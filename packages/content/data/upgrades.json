@@ -1,0 +1,15 @@
+{
+  "struct.ranged_defense.t2": {
+    "target": "struct.ranged_defense",
+    "effects": [{ "op": "set", "scope": "target", "field": "level", "value": 2 }]
+  },
+  "struct.barrier.reinforced": {
+    "effects": [
+      { "op": "set", "scope": "params", "param": "barrier.hpMax", "value": 24 },
+      { "op": "add", "scope": "params", "param": "barrier.gateHpMax", "value": 10 },
+      { "op": "set", "scope": "barriers", "field": "hpMax", "value": 24, "gate": false },
+      { "op": "add", "scope": "barriers", "field": "hpMax", "value": 10, "gate": true },
+      { "op": "add", "scope": "barriers", "field": "hp", "value": 10 }
+    ]
+  }
+}

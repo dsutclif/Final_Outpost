@@ -1,0 +1,8 @@
+{
+  "event.hazard": {
+    "effects": [
+      { "op": "multiply", "scope": "params", "param": "core.burnSpeed", "value": "hazard.burnMultiplier" },
+      { "op": "multiply", "scope": "params", "param": "core.safeRadiusScale", "value": "hazard.radiusScale" }
+    ]
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "id": "proto-L004",
+  "seed": 4,
+  "engineVersion": "0.2.0",
+  "contentVersion": "0.2.0",
+  "map": { "w": 480, "h": 900, "zones": ["base", "sources-w", "mine-e", "attack-n", "gate"] },
+  "modules": ["carry", "gather", "core", "sales", "workers", "build_pads", "barrier_lines", "housing", "defense", "defenders", "salvage_upgrades", "medical", "hazard_events"],
+  "start": [240, 600],
+  "entities": [
+    { "type": "sink.core", "id": "core", "at": [240, 520], "params": { "fuel": 20, "level": 1 } },
+
+    { "type": "node.material_source", "at": [40, 420] },
+    { "type": "node.material_source", "at": [95, 395] },
+    { "type": "node.material_source", "at": [50, 485] },
+    { "type": "node.material_source", "at": [105, 465] },
+
+    { "type": "node.fuel_deposit", "at": [425, 400] },
+    { "type": "node.fuel_deposit", "at": [445, 455] },
+
+    { "type": "node.food_source", "id": "food1", "at": [420, 610] },
+
+    { "type": "sink.sales_point", "id": "shop", "at": [330, 740], "sells": ["res.food_raw_1", "res.food_raw_2"] },
+
+    { "type": "barrier.line", "id": "north_wall", "res": "res.currency", "costPerSection": 8, "sections": [
+      { "a": [0, 230], "b": [160, 230] },
+      { "a": [160, 230], "b": [320, 230], "gate": true },
+      { "a": [320, 230], "b": [480, 230] }
+    ] },
+
+    { "type": "pad.build", "id": "tower0", "at": [130, 330], "cost": { "res.currency": 18 }, "build": "struct.ranged_defense" },
+    { "type": "pad.build", "id": "tower1", "at": [350, 330], "cost": { "res.currency": 18 }, "build": "struct.ranged_defense" },
+    { "type": "pad.build", "id": "towerup0", "at": [130, 390], "cost": { "res.salvage": 3 }, "build": "struct.ranged_defense.t2", "target": "tower0", "requires": { "pad": "tower0" } },
+    { "type": "pad.build", "id": "towerup1", "at": [350, 390], "cost": { "res.salvage": 3 }, "build": "struct.ranged_defense.t2", "target": "tower1", "requires": { "pad": "tower1" } },
+    { "type": "pad.build", "id": "reinforce", "at": [240, 340], "cost": { "res.salvage": 4 }, "build": "struct.barrier.reinforced" },
+    { "type": "pad.build", "id": "barracks", "at": [150, 640], "cost": { "res.currency": 12 }, "build": "struct.barracks" },
+    { "type": "pad.hire", "id": "train", "at": [150, 720], "cost": { "res.currency": 5 }, "role": { "role": "role.defender" }, "repeatable": true, "requires": { "pad": "barracks" } },
+    { "type": "pad.build", "id": "medic", "at": [70, 800], "cost": { "res.currency": 12 }, "build": "struct.medical" },
+
+    { "type": "struct.gate", "id": "gate", "at": [240, 872], "arrivals": { "every": 14, "total": 6 } }
+  ],
+  "people": [
+    { "role": "role.supplier", "from": "node.material_source", "to": "sink.core" },
+    { "role": "role.supplier", "from": "node.food_source", "to": "sink.sales_point", "node": "food1" },
+    { "role": "role.cashier", "to": "sink.sales_point" },
+    { "role": "idle" }, { "role": "idle" }
+  ],
+  "waves": [
+    { "t": 45, "counts": { "hostile.creature": 3, "hostile.raider_humanoid": 1 } },
+    { "t": 105, "counts": { "hostile.creature": 4, "hostile.raider_humanoid": 2 } },
+    { "t": 165, "counts": { "hostile.creature": 5, "hostile.raider_humanoid": 4 } }
+  ],
+  "events": [
+    { "type": "event.hazard", "warnAt": 122, "start": 130, "end": 152 }
+  ],
+  "params": {
+    "start.currency": 25,
+    "housing.base": 10,
+    "meters.baseHealth": 15,
+    "customers.spawn": 2.6,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2
+  },
+  "goal": { "type": "waves" },
+  "fail": ["meter.lifeline", "meter.base_health"],
+  "text": {
+    "frozen_camp": {
+      "title": "Wolf Night",
+      "goal": "Survive 3 wolf waves",
+      "tips": [
+        "Wolves and raiders attack from the north in waves. Walk the wall line with coins to build walls, and buy towers to shoot them.",
+        "Wolves drop meat you can sell. Raiders drop scrap, which upgrades towers and reinforces walls.",
+        "Train fighters at the barracks using survivors who arrive at the gate.",
+        "Bitten survivors are injured and stop working until the medic tent heals them.",
+        "A blizzard will hit mid-level and burn fuel fast. Coal from the east mine burns four times longer than wood."
+      ]
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "node.prey": {
+    "hp": 3,
+    "speedMin": 0,
+    "speedMax": 30,
+    "turnMin": 1,
+    "turnMax": 3,
+    "drops": { "res.food_raw_2": 2 },
+    "respawn": 10,
+    "margin": 20
+  }
+}

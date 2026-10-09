@@ -1,0 +1,65 @@
+{
+  "id": "proto-L003",
+  "seed": 3,
+  "engineVersion": "0.2.0",
+  "contentVersion": "0.2.0",
+  "map": { "w": 480, "h": 900, "zones": ["base", "sources-ne", "woods-nw", "shop-s"] },
+  "modules": ["carry", "gather", "core", "sales", "workers", "build_pads", "hunting", "converters", "customer_variety"],
+  "start": [240, 520],
+  "entities": [
+    { "type": "sink.core", "id": "core", "at": [240, 430], "params": { "fuel": 14, "level": 1 } },
+
+    { "type": "node.material_source", "at": [380, 110] },
+    { "type": "node.material_source", "at": [440, 160] },
+    { "type": "node.material_source", "at": [390, 205] },
+    { "type": "node.material_source", "at": [450, 245] },
+
+    { "type": "node.food_source", "id": "food1", "at": [420, 430] },
+
+    { "type": "zone.prey", "id": "woods", "rect": [20, 60, 210, 230], "animal": "node.prey", "n": 3 },
+
+    { "type": "sink.sales_point", "id": "shop", "at": [330, 650], "sells": ["res.food_raw_1", "res.food_prepared"] },
+
+    { "type": "pad.build", "id": "grill", "at": [170, 630], "cost": { "res.currency": 12 }, "build": "conv.food_processor" },
+    { "type": "pad.build", "id": "saw", "at": [380, 310], "cost": { "res.currency": 15 }, "build": "conv.material_processor" },
+    { "type": "pad.hire", "id": "hunter", "at": [120, 330], "cost": { "res.currency": 12 },
+      "role": { "role": "role.hunter", "from": "node.prey", "to": "conv.food_processor" }, "requires": { "pad": "grill" } },
+    { "type": "pad.hire", "id": "server", "at": [110, 720], "cost": { "res.currency": 10 },
+      "role": { "role": "role.server", "from": "conv.food_processor", "to": "sink.sales_point" }, "requires": { "pad": "grill" } },
+    { "type": "pad.hire", "id": "cook", "at": [60, 630], "cost": { "res.currency": 10 },
+      "role": { "role": "role.operator", "to": "conv.food_processor" }, "requires": { "pad": "grill" } },
+    { "type": "pad.hire", "id": "sawyer", "at": [290, 320], "cost": { "res.currency": 10 },
+      "role": { "role": "role.operator", "to": "conv.material_processor" }, "requires": { "pad": "saw" } },
+    { "type": "pad.build", "id": "fire2", "at": [240, 530], "cost": { "res.currency": 20, "res.material_refined": 6 }, "build": "sink.core.level", "requires": { "pad": "saw" } },
+    { "type": "pad.build", "id": "landmark", "at": [250, 800], "cost": { "res.currency": 70, "res.material_refined": 10 }, "build": "struct.landmark", "big": true, "requires": { "coreLevel": 2 } }
+  ],
+  "people": [
+    { "role": "role.supplier", "from": "node.material_source", "to": "sink.core" },
+    { "role": "role.supplier", "from": "node.food_source", "to": "sink.sales_point", "node": "food1" },
+    { "role": "role.cashier", "to": "sink.sales_point" },
+    { "role": "idle" }, { "role": "idle" }, { "role": "idle" }, { "role": "idle" }
+  ],
+  "params": {
+    "start.currency": 10,
+    "housing.base": 8,
+    "customers.spawn": 2.6,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "customers.impatientShare": 0.35,
+    "customers.premiumShare": 0.15
+  },
+  "goal": { "type": "build", "target": "landmark" },
+  "fail": ["meter.lifeline"],
+  "text": {
+    "frozen_camp": {
+      "title": "Hunt and Cook",
+      "goal": "Build the Trading Post",
+      "tips": [
+        "Deer roam the north woods. Walk up to one to hunt it, then pick up the meat.",
+        "The grill turns raw fish and meat into meals worth more than raw fish. The sawmill turns logs into planks for bigger builds.",
+        "Converters only run while someone operates them. Stand on the operator spot yourself, or hire a cook and a sawyer.",
+        "Customers ask for what is in stock more often. Some are impatient, and gold VIPs pay double."
+      ]
+    }
+  }
+}

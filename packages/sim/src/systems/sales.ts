@@ -96,9 +96,12 @@ function serve(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
   out.push({ t: "sold", res: q.res, n: q.want, pay, premium: def.pay > 1, at: { ...s.register } });
 }
 
-/** The player at the register, or a cashier once workers exist. */
-function registerStaffed(st: State, cp: Compiled, s: SalesState): boolean {
-  return within(st.player.pos, s.register, cp.sales.registerRange);
+/** The player at the register, or a cashier standing on it. */
+export function registerStaffed(st: State, cp: Compiled, s: SalesState): boolean {
+  if (within(st.player.pos, s.register, cp.sales.registerRange)) return true;
+  return st.residents.some((r) =>
+    r.status === "ok" && cp.roles[r.role]?.behavior === "stand_at" && (r.assign.to === "sink.sales_point" || r.assign.to === null)
+    && within(r.pos, s.register, cp.sales.cashierRange));
 }
 
 function leave(cp: Compiled, s: SalesState): void {

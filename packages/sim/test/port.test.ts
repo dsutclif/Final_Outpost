@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { METER_MAX, TPS, createSim } from "../src/index.js";
-import { LEVEL_1, at, idle, newSim, walkTo } from "./helpers.js";
+import { content } from "@fo/content";
+import { IMPLEMENTED_MODULES, METER_MAX, TPS, createSim } from "../src/index.js";
+import { LEVELS, at, idle, newSim, walkTo } from "./helpers.js";
 
 // Each test walks the prototype's level 1 the way a player would and checks the
 // ported rules: gather to the per-type cap, feed the core, stock the shelf, sell
@@ -124,10 +125,10 @@ describe("prototype level 1 port", () => {
     expect(sim.state.pads.every((p) => !p.done)).toBe(true);
   });
 
-  it("warns about modules it does not implement yet", () => {
+  it("implements every catalog module, so no golden level warns", () => {
     const warns: string[] = [];
-    createSim(LEVEL_1, { onWarn: (m) => warns.push(m) });
-    expect(warns.some((w) => w.includes("workers"))).toBe(true);
-    expect(warns.some((w) => w.includes("carry"))).toBe(false);
+    for (const L of LEVELS) createSim(L, { onWarn: (m) => warns.push(m) });
+    expect(warns).toEqual([]);
+    for (const mod of Object.keys(content.modules)) expect(IMPLEMENTED_MODULES.has(mod), mod).toBe(true);
   });
 });

@@ -12,7 +12,11 @@ export function stepNodes(st: State, cp: Compiled): void {
   }
 }
 
-/** A resource is producible when some enabled node yields it (converters join this later). */
+/** A resource is producible when some enabled node yields it, a placed converter outputs it, or prey or scheduled hostiles drop it. */
 export function producible(st: State, cp: Compiled, res: string): boolean {
-  return st.nodes.some((n) => n.enabled && cp.nodes[n.type]!.yields === res);
+  if (st.nodes.some((n) => n.enabled && cp.nodes[n.type]!.yields === res)) return true;
+  if (st.converters.some((c) => cp.converters[c.type]!.output === res)) return true;
+  if (st.preyZones.some((z) => (cp.animals[z.animal]?.drops[res] ?? 0) > 0)) return true;
+  if (cp.waves.some((w) => w.types.some((t) => (cp.hostiles[t]?.drops[res] ?? 0) > 0))) return true;
+  return false;
 }

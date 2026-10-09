@@ -8,21 +8,25 @@ export function coreFuelCap(st: State, cp: Compiled): number {
   return lv.fuelCap;
 }
 
-/** Radius inside which the lifeline protects residents. Shrinks when the core is out of fuel. */
+export const hazardActive = (st: State): boolean => st.hazard.phase === "active";
+
+/** Radius inside which the lifeline protects residents. Shrinks when the core is out of fuel and during a hazard. */
 export function safeRadius(st: State, cp: Compiled): number {
   const lv = cp.core.levels[Math.min(st.core.level, cp.core.levels.length) - 1]!;
   let r = lv.safeRadius;
+  if (hazardActive(st)) r = mulDiv(r, cp.hazard.radiusScale, FP);
   if (st.core.fuel <= 0) r = mulDiv(r, cp.core.noFuelScale, FP);
-  // hazard events scale it again once that module exists
   return r;
 }
 
-/** Burn fuel on a fixed interval; the lifeline recovers while fuel lasts and drains to failure without it. */
+/** Burn fuel on a fixed interval (faster under a hazard); the lifeline recovers while fuel lasts and drains to failure without it. */
 export function stepCore(st: State, cp: Compiled, out: SimEvent[]): void {
   const c = st.core;
-  c.burnAcc++;
-  while (c.burnAcc >= cp.core.burnTicks) {
-    c.burnAcc -= cp.core.burnTicks;
+  // The accumulator counts FP per tick, so a hazard can scale the burn by a ratio exactly.
+  c.burnAcc += hazardActive(st) ? cp.hazard.burnMul : FP;
+  const threshold = cp.core.burnTicks * FP;
+  while (c.burnAcc >= threshold) {
+    c.burnAcc -= threshold;
     if (c.fuel > 0) {
       c.fuel--;
       if (c.fuel === 0) out.push({ t: "core_fuel_out" });
@@ -30,4 +34,21 @@ export function stepCore(st: State, cp: Compiled, out: SimEvent[]): void {
   }
   if (c.fuel > 0) c.lifeline = Math.min(METER_MAX, c.lifeline + cp.core.recoverPerTick);
   else c.lifeline = Math.max(0, c.lifeline - cp.core.drainPerTick);
+  st.meters.lifeline = c.lifeline;
+}
+
+/** Add fuel for one item of res. Returns false if the core is full or does not accept it. */
+export function feedCoreWith(st: State, cp: Compiled, res: string, out: SimEvent[], by?: number): boolean {
+  const value = cp.core.accepts[res];
+  if (value === undefined) return false;
+  const cap = coreFuelCap(st, cp);
+  const c = st.core;
+  if (c.fuel >= cap) return false;
+  const before = c.fuel;
+  c.fuel = Math.min(cap, c.fuel + value);
+  if (before === 0 && c.fuel > 0) out.push({ t: "core_fuel_restored" });
+  const ev: SimEvent = { t: "deposited", res, to: "sink.core", at: { ...c.pos } };
+  if (by !== undefined) ev.by = by;
+  out.push(ev);
+  return true;
 }

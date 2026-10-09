@@ -1,0 +1,4 @@
+{
+  "hostile.creature": { "hp": 3, "speed": 44, "drops": { "res.food_raw_2": 2 } },
+  "hostile.raider_humanoid": { "hp": 4, "speed": 36, "drops": { "res.salvage": 2 } }
+}

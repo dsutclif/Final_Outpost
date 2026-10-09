@@ -1,0 +1,6 @@
+{
+  "sink.core": { "priority": 10, "targetFill": 1.0, "critical": 0.3 },
+  "sink.sales_point": { "priority": 4, "targetFill": 0.75, "critical": 0 },
+  "conv.food_processor": { "priority": 3, "targetFill": 0.6, "critical": 0 },
+  "conv.material_processor": { "priority": 3, "targetFill": 0.6, "critical": 0 }
+}

@@ -6,17 +6,28 @@ export const ResId = idOf("res");
 // Typed as a template literal so manifest entity unions can still discriminate on `type`.
 export type NodeId = `node.${string}`;
 export const NodeId = z.custom<NodeId>((v) => typeof v === "string" && /^node\.[a-z0-9_]+$/.test(v), "node id");
+export type ConvId = `conv.${string}`;
+export const ConvId = z.custom<ConvId>((v) => typeof v === "string" && /^conv\.[a-z0-9_]+$/.test(v), "converter id");
+export type StructId = `struct.${string}`;
+export const StructId = z.custom<StructId>((v) => typeof v === "string" && /^struct\.[a-z0-9_]+(\.[a-z0-9_]+)*$/.test(v), "struct id");
+export type CaptureId = `capture.${string}`;
+export const CaptureId = z.custom<CaptureId>((v) => typeof v === "string" && /^capture\.[a-z0-9_]+$/.test(v), "capture id");
 // Registry keys stay plain strings, so the record is total rather than Partial.
 const NodeKey = idOf("node");
+const ConvKey = idOf("conv");
+const StructKey = idOf("struct");
+const CaptureKey = idOf("capture");
 export const SinkId = idOf("sink");
-export const ConvId = idOf("conv");
 export const RoleId = idOf("role");
-export const StructId = idOf("struct");
 export const MeterId = idOf("meter");
 export const UnitId = idOf("unit");
+export const HostileId = idOf("hostile");
+export const EventId = idOf("event");
+export const STORE_DEPOT = "store.depot";
 
 const seconds = z.number().nonnegative();
 const units = z.number().nonnegative();
+const Offset = z.tuple([z.number(), z.number()]);
 
 // ---------- Resources ----------
 export const ResourceDef = z.object({
@@ -36,12 +47,97 @@ export const NodeDef = z.object({
   range: units,
   // Seconds per item gathered by the player.
   rate: seconds,
+  // Seconds per item gathered by a worker; falls back to the role's gatherInterval.
+  workerRate: seconds.optional(),
   // Items held before the node is empty. null = infinite.
   stock: z.number().int().positive().nullable(),
   // Seconds to regrow one item. null = never (only with infinite stock).
   regrow: seconds.nullable(),
 });
 export type NodeDef = z.infer<typeof NodeDef>;
+
+// ---------- Animals (roaming prey; hunted, not gathered) ----------
+export const AnimalDef = z.object({
+  hp: z.number().int().positive(),
+  speedMin: units,
+  speedMax: units,
+  // Seconds between random heading changes.
+  turnMin: seconds,
+  turnMax: seconds,
+  drops: z.record(ResId, z.number().int().positive()),
+  respawn: seconds,
+  // Spawn at least this far inside the roam zone.
+  margin: units,
+});
+export type AnimalDef = z.infer<typeof AnimalDef>;
+
+// ---------- Hostiles ----------
+export const HostileDef = z.object({
+  hp: z.number().int().positive(),
+  speed: units,
+  drops: z.record(ResId, z.number().int().positive()),
+});
+export type HostileDef = z.infer<typeof HostileDef>;
+
+// ---------- Lassoables ----------
+export const LassoableDef = z.object({
+  release: z.enum(["inSafeRadius"]),
+  releaseTime: seconds,
+  result: z.enum(["recruit"]),
+  towSpacing: units,
+});
+export type LassoableDef = z.infer<typeof LassoableDef>;
+
+// ---------- Effects: data operations applied when something is built or an event runs ----------
+// scope "params": a named level parameter (state.params); "target": a field of the targeted structure;
+// "barriers": a field of every barrier section (optionally only gates / only walls).
+export const Effect = z.object({
+  op: z.enum(["set", "add", "multiply"]),
+  scope: z.enum(["params", "target", "barriers"]),
+  param: z.string().optional(),
+  field: z.enum(["level", "hp", "hpMax"]).optional(),
+  // A number, or the key of a content param whose value is used.
+  value: z.union([z.number(), z.string()]),
+  gate: z.boolean().optional(),
+});
+export type Effect = z.infer<typeof Effect>;
+
+// ---------- Structures ----------
+export const StructureDef = z.object({
+  hp: z.number().int().positive().optional(),
+  // Ranged defenses: one entry per tier (level 1 first).
+  tiers: z.array(z.object({ range: units, rate: seconds })).optional(),
+  damage: z.number().int().positive().optional(),
+  // Medical: heal duration and where the patient stands.
+  healTime: seconds.optional(),
+  healOffset: Offset.optional(),
+  // Depot: deposit / pickup range.
+  range: units.optional(),
+  effects: z.array(Effect).default([]),
+});
+export type StructureDef = z.infer<typeof StructureDef>;
+
+// ---------- Upgrades ----------
+export const UpgradeDef = z.object({
+  // Structure type the upgrade's pad must target; absent for level-wide upgrades.
+  target: StructKey.optional(),
+  effects: z.array(Effect).min(1),
+});
+export type UpgradeDef = z.infer<typeof UpgradeDef>;
+
+// ---------- Events ----------
+export const EventDef = z.object({ effects: z.array(Effect).min(1) });
+export type EventDef = z.infer<typeof EventDef>;
+
+// ---------- Consumers (supply routing) ----------
+export const ConsumerDef = z.object({
+  priority: z.number().positive(),
+  // Haulers stop delivering once stock reaches this share of capacity.
+  targetFill: z.number().min(0).max(1),
+  // Below this share of capacity a fuel-carrying hauler diverts to this consumer first.
+  critical: z.number().min(0).max(1),
+});
+export type ConsumerDef = z.infer<typeof ConsumerDef>;
 
 // ---------- Sinks (stations that consume a resource) ----------
 export const CoreLevelDef = z.object({ fuelCap: z.number().int().positive(), safeRadius: units });
@@ -63,11 +159,11 @@ export const SalesPointDef = z.object({
   range: units,
   shelfCap: z.number().int().positive(),
   depositInterval: seconds,
-  registerOffset: z.tuple([z.number(), z.number()]),
+  registerOffset: Offset,
   registerRange: units,
-  pileOffset: z.tuple([z.number(), z.number()]),
+  pileOffset: Offset,
   pileRange: units,
-  queueOffset: z.tuple([z.number(), z.number()]),
+  queueOffset: Offset,
   queueSpacing: units,
   queueMax: z.number().int().positive(),
 });
@@ -85,8 +181,8 @@ export const ConverterDef = z.object({
   outCap: z.number().int().positive(),
   role: RoleId,
   range: units,
-  operatorOffset: z.tuple([z.number(), z.number()]),
-  pickupOffset: z.tuple([z.number(), z.number()]),
+  operatorOffset: Offset,
+  pickupOffset: Offset,
 });
 export type ConverterDef = z.infer<typeof ConverterDef>;
 
@@ -99,6 +195,7 @@ export const RoleDef = z.object({
   deliverInterval: seconds.optional(),
   attackInterval: seconds.optional(),
   attackRange: units.optional(),
+  damage: z.number().int().positive().optional(),
 });
 export type RoleDef = z.infer<typeof RoleDef>;
 
@@ -137,15 +234,28 @@ export const Content = z.object({
   version: z.string(),
   resources: z.record(ResId, ResourceDef),
   nodes: z.record(NodeKey, NodeDef),
+  animals: z.record(NodeKey, AnimalDef),
   sinks: z.record(SinkId, SinkDef),
-  converters: z.record(ConvId, ConverterDef),
+  converters: z.record(ConvKey, ConverterDef),
   roles: z.record(RoleId, RoleDef),
   customers: z.record(UnitId, CustomerDef),
+  hostiles: z.record(HostileId, HostileDef),
+  lassoables: z.record(CaptureKey, LassoableDef),
+  structures: z.record(StructKey, StructureDef),
+  upgrades: z.record(StructKey, UpgradeDef),
+  events: z.record(EventId, EventDef),
+  consumers: z.record(z.string(), ConsumerDef),
   goals: z.record(z.string(), GoalDef),
   modules: z.record(z.string(), ModuleDef),
   defaults: ParamDefaults,
 });
 export type Content = z.infer<typeof Content>;
+
+function checkEffect(c: Content, where: string, e: Effect): void {
+  if (typeof e.value === "string" && !(e.value in c.defaults)) throw new Error(`${where}: effect value references unknown param ${e.value}`);
+  if (e.scope === "params" && !e.param) throw new Error(`${where}: params effect needs a param`);
+  if (e.scope !== "params" && !e.field) throw new Error(`${where}: ${e.scope} effect needs a field`);
+}
 
 /** Cross-reference checks zod cannot express. Throws on the first failure. */
 export function checkContentRefs(c: Content): void {
@@ -154,6 +264,14 @@ export function checkContentRefs(c: Content): void {
     if (!res.has(n.yields)) throw new Error(`node ${id} yields unknown resource ${n.yields}`);
     if (n.stock === null && n.regrow !== null) throw new Error(`node ${id}: infinite stock cannot regrow`);
     if (n.stock !== null && n.regrow === null) throw new Error(`node ${id}: finite stock needs a regrow time`);
+    if (c.animals[id]) throw new Error(`${id} is both a node and an animal`);
+  }
+  for (const [id, a] of Object.entries(c.animals)) {
+    for (const r of Object.keys(a.drops)) if (!res.has(r)) throw new Error(`animal ${id} drops unknown resource ${r}`);
+    if (a.speedMax < a.speedMin || a.turnMax < a.turnMin) throw new Error(`animal ${id}: max below min`);
+  }
+  for (const [id, h] of Object.entries(c.hostiles)) {
+    for (const r of Object.keys(h.drops)) if (!res.has(r)) throw new Error(`hostile ${id} drops unknown resource ${r}`);
   }
   for (const [id, s] of Object.entries(c.sinks)) {
     if (s.kind === "core") for (const r of Object.keys(s.accepts)) if (!res.has(r)) throw new Error(`sink ${id} accepts unknown resource ${r}`);
@@ -163,8 +281,22 @@ export function checkContentRefs(c: Content): void {
     if (!res.has(cv.output)) throw new Error(`converter ${id} output ${cv.output} unknown`);
     if (!c.roles[cv.role]) throw new Error(`converter ${id} role ${cv.role} unknown`);
   }
+  for (const [id, s] of Object.entries(c.structures)) for (const e of s.effects) checkEffect(c, `structure ${id}`, e);
+  for (const [id, u] of Object.entries(c.upgrades)) {
+    if (c.structures[id]) throw new Error(`${id} is both a structure and an upgrade`);
+    if (u.target !== undefined && !c.structures[u.target]) throw new Error(`upgrade ${id} targets unknown structure ${u.target}`);
+    for (const e of u.effects) {
+      checkEffect(c, `upgrade ${id}`, e);
+      if (e.scope === "target" && u.target === undefined) throw new Error(`upgrade ${id}: target effect without a target type`);
+    }
+  }
+  for (const [id, ev] of Object.entries(c.events)) for (const e of ev.effects) checkEffect(c, `event ${id}`, e);
+  for (const id of Object.keys(c.consumers)) {
+    if (!c.sinks[id] && !c.converters[id]) throw new Error(`consumer ${id} is neither a sink nor a converter`);
+  }
   for (const [id, m] of Object.entries(c.modules)) {
     for (const d of [...m.requires, ...m.excludes]) if (!c.modules[d]) throw new Error(`module ${id} references unknown module ${d}`);
     if (m.excludes.some((e) => m.requires.includes(e))) throw new Error(`module ${id} both requires and excludes a module`);
   }
+  if (!c.structures["struct.barrier"]?.hp || !c.structures["struct.gate"]?.hp) throw new Error("struct.barrier and struct.gate need hp");
 }

@@ -1,0 +1,10 @@
+{
+  "struct.housing": {},
+  "struct.medical": { "healTime": 6, "healOffset": [26, 0] },
+  "struct.barracks": {},
+  "struct.ranged_defense": { "tiers": [{ "range": 115, "rate": 1.0 }, { "range": 135, "rate": 0.55 }], "damage": 1 },
+  "struct.landmark": {},
+  "struct.depot": { "range": 40 },
+  "struct.barrier": { "hp": 14 },
+  "struct.gate": { "hp": 20 }
+}

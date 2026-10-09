@@ -3,6 +3,7 @@ import {
   checkManifest,
   Manifest as ManifestSchema,
   type Content,
+  type Effect,
   type Manifest,
 } from "@fo/content";
 import { FP, METER_MAX, TPS, fp, perTick, ratio, ticks, type Vec } from "./fixed.js";
@@ -21,8 +22,79 @@ export interface CompiledNodeDef {
   yields: string;
   range: number;
   rateTicks: number;
+  workerRateTicks: number | null;
   stock: number | null;
   regrowTicks: number | null;
+}
+
+export interface CompiledAnimal {
+  hp: number;
+  speedMin: number;
+  speedMax: number;
+  turnMin: number;
+  turnMax: number;
+  drops: Record<string, number>;
+  respawnTicks: number;
+  margin: number;
+}
+
+export interface CompiledHostile {
+  hp: number;
+  speed: number;
+  drops: Record<string, number>;
+}
+
+export interface CompiledLassoable {
+  releaseTicks: number;
+  towSpacing: number;
+}
+
+/** An effect with its value resolved to an integer (ratios in FP for multiply). */
+export interface CompiledEffect {
+  op: "set" | "add" | "multiply";
+  scope: "params" | "target" | "barriers";
+  param: string | null;
+  field: "level" | "hp" | "hpMax" | null;
+  value: number;
+  gate: boolean | null;
+}
+
+export interface CompiledStructure {
+  hp: number | null;
+  tiers: { range: number; rateTicks: number }[] | null;
+  damage: number;
+  healTicks: number;
+  healOffset: Vec;
+  range: number;
+  effects: CompiledEffect[];
+}
+
+export interface CompiledUpgrade {
+  target: string | null;
+  effects: CompiledEffect[];
+}
+
+export interface CompiledConverter {
+  inputs: string[];
+  output: string;
+  rateTicks: number;
+  inCap: number;
+  outCap: number;
+  role: string;
+  range: number;
+  operatorOffset: Vec;
+  pickupOffset: Vec;
+}
+
+export interface CompiledRole {
+  behavior: string;
+  speed: number;
+  carry: number;
+  gatherTicks: number;
+  deliverTicks: number;
+  attackTicks: number;
+  attackRange: number;
+  damage: number;
 }
 
 export interface CompiledCustomerDef {
@@ -30,6 +102,14 @@ export interface CompiledCustomerDef {
   orderSize: "range" | "max_plus";
   orderExtra: number;
   pay: number;
+}
+
+export interface CompiledConsumer {
+  /** FP-scaled priority. */
+  priority: number;
+  /** FP ratio of capacity. */
+  targetFill: number;
+  critical: number;
 }
 
 export interface CompiledSales {
@@ -43,6 +123,7 @@ export interface CompiledSales {
   queueOffset: Vec;
   queueSpacing: number;
   queueMax: number;
+  cashierRange: number;
   spawnTicks: number;
   jitterMin: number;
   jitterMax: number;
@@ -59,13 +140,30 @@ export interface CompiledSales {
   customers: Record<string, CompiledCustomerDef>;
 }
 
+export interface CompiledWave {
+  tick: number;
+  /** Spawn list in order: hostile type per spawn. */
+  types: string[];
+}
+
+export interface CompiledEvent {
+  type: string;
+  warnTick: number;
+  startTick: number;
+  endTick: number;
+}
+
+export type ManifestEntity = Manifest["entities"][number];
+
 export interface Compiled {
   manifest: Manifest;
   content: Content;
+  /** Manifest entities that carry an id, for pads and targets. */
+  entityById: Record<string, ManifestEntity>;
   map: { w: number; h: number };
   modules: Set<string>;
   resources: Record<string, CompiledResource>;
-  player: { speed: number; radius: number; actTicks: number };
+  player: { speed: number; radius: number; actTicks: number; attackTicks: number; attackRange: number; attackDamage: number };
   core: {
     range: number;
     accepts: Record<string, number>;
@@ -79,10 +177,43 @@ export interface Compiled {
     upgradeFuelBonus: number;
   };
   nodes: Record<string, CompiledNodeDef>;
+  animals: Record<string, CompiledAnimal>;
+  hostiles: Record<string, CompiledHostile>;
+  lassoables: Record<string, CompiledLassoable>;
+  structures: Record<string, CompiledStructure>;
+  upgrades: Record<string, CompiledUpgrade>;
+  converters: Record<string, CompiledConverter>;
+  roles: Record<string, CompiledRole>;
+  consumers: Record<string, CompiledConsumer>;
   sales: CompiledSales;
-  housingBase: number;
+  housing: { base: number; perBuilding: number };
+  lasso: { maxTowed: number; speedPenalty: number; pointSpacing: number; trailMax: number; closeDist: number; minLoopPoints: number };
+  hazard: { burnMul: number; radiusScale: number };
+  pads: { range: number; bigRange: number; payItemTicks: number; payCurrencyTicks: number };
+  residents: {
+    idleSpeed: number; idleRadiusX: number; idleRadiusY: number; waitingSpeed: number; gateSpeed: number; injuredSpeed: number;
+    arrive: number; workRange: number; coreDeliverRange: number; seekDropRange: number;
+  };
+  waiting: Vec;
+  gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
+  zones: { blockMargin: number };
+  barrier: { thickness: number; buildRange: number; buildTicks: number; hp: number; gateHp: number };
+  drops: { pickupRange: number; scatterX: number; scatterY: number };
+  convParams: { playerOperateRange: number; operatorRange: number; pickupRange: number; hintRange: number };
+  defense: {
+    spawnGapTicks: number; spawnY: number; spawnMarginX: number; barrierStop: number; barrierHitTicks: number; barrierDamage: number;
+    baseRange: number; baseHitTicks: number; baseDamage: number; steerBand: number; steerRate: number;
+    dropRelocateBand: number; dropRelocateOffset: number; postOffset: number;
+  };
+  waves: CompiledWave[];
+  events: CompiledEvent[];
+  baseHealth: number;
+  routing: { hintFill: number };
+  stats: { lifelineLow: number; coreLowFill: number };
   timerTicks: number;
 }
+
+const vec = ([x, y]: readonly [number, number]): Vec => ({ x: fp(x), y: fp(y) });
 
 export function compile(manifestIn: unknown, c: Content = defaultContent): Compiled {
   const manifest = ManifestSchema.parse(manifestIn);
@@ -95,6 +226,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     if (v === undefined) throw new Error(`${manifest.id}: no value for param ${key}`);
     return v;
   };
+  const int = (key: string): number => Math.round(param(key));
 
   const resources: Record<string, CompiledResource> = {};
   for (const [id, r] of Object.entries(c.resources)) resources[id] = { cap: r.cap, price: r.price, category: r.category };
@@ -105,10 +237,62 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       yields: n.yields,
       range: fp(n.range),
       rateTicks: ticks(n.rate),
+      workerRateTicks: n.workerRate === undefined ? null : ticks(n.workerRate),
       stock: n.stock,
       regrowTicks: n.regrow === null ? null : ticks(n.regrow),
     };
   }
+  const animals: Record<string, CompiledAnimal> = {};
+  for (const [id, a] of Object.entries(c.animals)) {
+    animals[id] = {
+      hp: a.hp, speedMin: perTick(a.speedMin), speedMax: perTick(a.speedMax),
+      turnMin: ticks(a.turnMin), turnMax: ticks(a.turnMax), drops: { ...a.drops },
+      respawnTicks: ticks(a.respawn), margin: fp(a.margin),
+    };
+  }
+  const hostiles: Record<string, CompiledHostile> = {};
+  for (const [id, h] of Object.entries(c.hostiles)) hostiles[id] = { hp: h.hp, speed: perTick(h.speed), drops: { ...h.drops } };
+  const lassoables: Record<string, CompiledLassoable> = {};
+  for (const [id, l] of Object.entries(c.lassoables)) lassoables[id] = { releaseTicks: ticks(l.releaseTime), towSpacing: fp(l.towSpacing) };
+
+  const effect = (e: Effect): CompiledEffect => {
+    const raw = typeof e.value === "string" ? param(e.value) : e.value;
+    // Multiplies are ratios in FP; sets and adds are plain integers (hp, levels).
+    const value = e.op === "multiply" ? ratio(raw) : Math.round(raw);
+    return { op: e.op, scope: e.scope, param: e.param ?? null, field: e.field ?? null, value, gate: e.gate ?? null };
+  };
+  const structures: Record<string, CompiledStructure> = {};
+  for (const [id, s] of Object.entries(c.structures)) {
+    structures[id] = {
+      hp: s.hp ?? null,
+      tiers: s.tiers ? s.tiers.map((t) => ({ range: fp(t.range), rateTicks: ticks(t.rate) })) : null,
+      damage: s.damage ?? 1,
+      healTicks: ticks(s.healTime ?? 0),
+      healOffset: s.healOffset ? vec(s.healOffset) : { x: 0, y: 0 },
+      range: fp(s.range ?? 0),
+      effects: s.effects.map(effect),
+    };
+  }
+  const upgrades: Record<string, CompiledUpgrade> = {};
+  for (const [id, u] of Object.entries(c.upgrades)) upgrades[id] = { target: u.target ?? null, effects: u.effects.map(effect) };
+
+  const converters: Record<string, CompiledConverter> = {};
+  for (const [id, cv] of Object.entries(c.converters)) {
+    converters[id] = {
+      inputs: [...cv.inputs], output: cv.output, rateTicks: ticks(cv.rate), inCap: cv.inCap, outCap: cv.outCap,
+      role: cv.role, range: fp(cv.range), operatorOffset: vec(cv.operatorOffset), pickupOffset: vec(cv.pickupOffset),
+    };
+  }
+  const roles: Record<string, CompiledRole> = {};
+  for (const [id, r] of Object.entries(c.roles)) {
+    roles[id] = {
+      behavior: r.behavior, speed: perTick(r.speed), carry: r.carry ?? 1,
+      gatherTicks: ticks(r.gatherInterval ?? 0), deliverTicks: ticks(r.deliverInterval ?? 0),
+      attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1,
+    };
+  }
+  const consumers: Record<string, CompiledConsumer> = {};
+  for (const [id, k] of Object.entries(c.consumers)) consumers[id] = { priority: ratio(k.priority), targetFill: ratio(k.targetFill), critical: ratio(k.critical) };
 
   const coreDef = c.sinks["sink.core"];
   if (!coreDef || coreDef.kind !== "core") throw new Error("content has no sink.core");
@@ -132,7 +316,6 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
   for (const [id, cu] of Object.entries(c.customers)) {
     customers[id] = { patienceTicks: ticks(cu.patience), orderSize: cu.orderSize, orderExtra: cu.orderExtra, pay: cu.pay };
   }
-  const vec = ([x, y]: readonly [number, number]): Vec => ({ x: fp(x), y: fp(y) });
   const sales: CompiledSales = {
     range: fp(salesDef.range),
     shelfCap: salesDef.shelfCap,
@@ -144,12 +327,13 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     queueOffset: vec(salesDef.queueOffset),
     queueSpacing: fp(salesDef.queueSpacing),
     queueMax: salesDef.queueMax,
+    cashierRange: fp(param("sales.cashierRange")),
     spawnTicks: ticks(param("customers.spawn")),
     jitterMin: ratio(param("customers.jitterMin")),
     jitterMax: ratio(param("customers.jitterMax")),
     initialDelayTicks: ticks(param("customers.initialDelay")),
-    orderMin: Math.round(param("customers.orderMin")),
-    orderMax: Math.round(param("customers.orderMax")),
+    orderMin: int("customers.orderMin"),
+    orderMax: int("customers.orderMax"),
     baseWeight: ratio(param("customers.baseWeight")),
     impatientShare: ratio(param("customers.impatientShare")),
     premiumShare: ratio(param("customers.premiumShare")),
@@ -159,10 +343,53 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     customers,
   };
 
+  // The hazard event's effects name which core parameters it scales. Only those two are meaningful today.
+  let burnMul = FP, radiusScale = FP;
+  const hazardDef = c.events["event.hazard"];
+  if (hazardDef) {
+    for (const e of hazardDef.effects.map(effect)) {
+      if (e.op !== "multiply" || e.scope !== "params") throw new Error("event.hazard supports multiply/params effects only");
+      if (e.param === "core.burnSpeed") burnMul = e.value;
+      else if (e.param === "core.safeRadiusScale") radiusScale = e.value;
+      else throw new Error(`event.hazard: unsupported param ${e.param}`);
+    }
+  }
+
+  const coreEnt = manifest.entities.find((e) => e.type === "sink.core");
+  if (!coreEnt || coreEnt.type !== "sink.core") throw new Error("manifest has no core");
+  const corePos = vec(coreEnt.at);
+  const waitingZone = manifest.entities.find((e) => e.type === "zone.waiting");
+  const waiting: Vec = waitingZone && waitingZone.type === "zone.waiting"
+    ? { x: fp(waitingZone.rect[0] + waitingZone.rect[2] / 2), y: fp(waitingZone.rect[1] + waitingZone.rect[3] / 2) }
+    : { x: corePos.x + fp(param("waiting.offsetX")), y: corePos.y + fp(param("waiting.offsetY")) };
+
+  const gateEnt = manifest.entities.find((e) => e.type === "struct.gate" && "arrivals" in e && e.arrivals);
+  const gate: Compiled["gate"] = gateEnt && gateEnt.type === "struct.gate" && gateEnt.arrivals
+    ? {
+      pos: vec(gateEnt.at), everyTicks: ticks(gateEnt.arrivals.every), total: gateEnt.arrivals.total,
+      initialTicks: ticks(param("gate.initialDelay")), queueMax: int("gate.queueMax"), queueSpacing: fp(param("gate.queueSpacing")),
+      queueOffsetY: fp(param("gate.queueOffsetY")), admitOffsetY: fp(param("gate.admitOffsetY")), admitRange: fp(param("gate.admitRange")),
+      spawnSpread: fp(param("gate.spawnSpread")), spawnOffsetY: fp(param("gate.spawnOffsetY")),
+    }
+    : null;
+
+  const waves: CompiledWave[] = manifest.waves.map((w) => {
+    const types: string[] = [];
+    for (const [type, n] of Object.entries(w.counts)) for (let i = 0; i < n; i++) types.push(type);
+    return { tick: ticks(w.t), types };
+  });
+  const events: CompiledEvent[] = manifest.events.map((e) => ({
+    type: e.type, warnTick: ticks(e.warnAt), startTick: ticks(e.start), endTick: ticks(e.end),
+  }));
+
+  const entityById: Record<string, ManifestEntity> = {};
+  for (const e of manifest.entities) if ("id" in e && e.id !== undefined) entityById[e.id] = e;
+
   const timerSeconds = param("timer.seconds");
   return {
     manifest,
     content: c,
+    entityById,
     map: { w: fp(manifest.map.w), h: fp(manifest.map.h) },
     modules: new Set(manifest.modules),
     resources,
@@ -170,11 +397,61 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       speed: perTick(param("player.speed")),
       radius: fp(param("player.radius")),
       actTicks: ticks(param("player.actInterval")),
+      attackTicks: ticks(param("player.attackInterval")),
+      attackRange: fp(param("player.attackRange")),
+      attackDamage: int("player.attackDamage"),
     },
     core,
     nodes,
+    animals,
+    hostiles,
+    lassoables,
+    structures,
+    upgrades,
+    converters,
+    roles,
+    consumers,
     sales,
-    housingBase: Math.round(param("housing.base")),
+    housing: { base: int("housing.base"), perBuilding: int("housing.perBuilding") },
+    lasso: {
+      maxTowed: int("lasso.maxTowed"), speedPenalty: ratio(param("lasso.speedPenalty")), pointSpacing: fp(param("lasso.pointSpacing")),
+      trailMax: int("lasso.trailMax"), closeDist: fp(param("lasso.closeDist")), minLoopPoints: int("lasso.minLoopPoints"),
+    },
+    hazard: { burnMul, radiusScale },
+    pads: {
+      range: fp(param("pads.range")), bigRange: fp(param("pads.bigRange")),
+      payItemTicks: ticks(param("pads.payItemInterval")), payCurrencyTicks: ticks(param("pads.payCurrencyInterval")),
+    },
+    residents: {
+      idleSpeed: perTick(param("residents.idleSpeed")), idleRadiusX: fp(param("residents.idleRadiusX")), idleRadiusY: fp(param("residents.idleRadiusY")),
+      waitingSpeed: perTick(param("residents.waitingSpeed")), gateSpeed: perTick(param("residents.gateSpeed")), injuredSpeed: perTick(param("residents.injuredSpeed")),
+      arrive: fp(param("residents.arrive")), workRange: fp(param("residents.workRange")), coreDeliverRange: fp(param("residents.coreDeliverRange")),
+      seekDropRange: fp(param("residents.seekDropRange")),
+    },
+    waiting,
+    gate,
+    zones: { blockMargin: fp(param("zones.blockMargin")) },
+    barrier: {
+      thickness: fp(param("barrier.thickness")), buildRange: fp(param("barrier.buildRange")), buildTicks: ticks(param("barrier.buildInterval")),
+      hp: c.structures["struct.barrier"]!.hp!, gateHp: c.structures["struct.gate"]!.hp!,
+    },
+    drops: { pickupRange: fp(param("drops.pickupRange")), scatterX: fp(param("drops.scatterX")), scatterY: fp(param("drops.scatterY")) },
+    convParams: {
+      playerOperateRange: fp(param("converters.playerOperateRange")), operatorRange: fp(param("converters.operatorRange")),
+      pickupRange: fp(param("converters.pickupRange")), hintRange: fp(param("converters.hintRange")),
+    },
+    defense: {
+      spawnGapTicks: ticks(param("defense.spawnGap")), spawnY: fp(param("defense.spawnY")), spawnMarginX: fp(param("defense.spawnMarginX")),
+      barrierStop: fp(param("defense.barrierStop")), barrierHitTicks: ticks(param("defense.barrierHitInterval")), barrierDamage: int("defense.barrierDamage"),
+      baseRange: fp(param("defense.baseRange")), baseHitTicks: ticks(param("defense.baseHitInterval")), baseDamage: int("defense.baseDamage"),
+      steerBand: fp(param("defense.steerBand")), steerRate: ratio(param("defense.steerRate")),
+      dropRelocateBand: fp(param("defense.dropRelocateBand")), dropRelocateOffset: fp(param("defense.dropRelocateOffset")), postOffset: fp(param("defense.postOffset")),
+    },
+    waves,
+    events,
+    baseHealth: int("meters.baseHealth"),
+    routing: { hintFill: ratio(param("routing.hintFill")) },
+    stats: { lifelineLow: ratio(param("stats.lifelineLow")), coreLowFill: ratio(param("stats.coreLowFill")) },
     timerTicks: timerSeconds > 0 ? ticks(timerSeconds) : 0,
   };
 }

@@ -1,6 +1,8 @@
 import type { Compiled } from "../compile.js";
 import type { HintKey, SimEvent } from "../events.js";
-import type { State } from "../state.js";
+import { FP, clamp, isqrt, mulDiv, within, type Vec } from "../fixed.js";
+import { between } from "../rng.js";
+import type { ResidentState, ResidentStatus, State } from "../state.js";
 
 /** Hints repeat only after this many ticks, matching the prototype's 1.5 s hint life. */
 const HINT_TICKS = 45;
@@ -39,3 +41,125 @@ export function endLevel(st: State, out: SimEvent[], won: boolean, reason: strin
   st.reason = reason;
   out.push({ t: "level_end", won, reason });
 }
+
+// ---------- geometry ----------
+
+/** Is p closer than r to the open segment a-b? Endpoints are excluded so adjacent sections leave no seam. */
+export function nearSegment(p: Vec, a: Vec, b: Vec, r: number): boolean {
+  const abx = b.x - a.x, aby = b.y - a.y;
+  const apx = p.x - a.x, apy = p.y - a.y;
+  const len2 = abx * abx + aby * aby;
+  if (len2 === 0) return false;
+  const t = apx * abx + apy * aby;
+  if (t <= 0 || t >= len2) return false;
+  const c: Vec = { x: a.x + mulDiv(abx, t, len2), y: a.y + mulDiv(aby, t, len2) };
+  return within(p, c, r);
+}
+
+/** Even-odd test with cross-multiplication, so no division and no rounding. */
+export function pointInPoly(pt: Vec, poly: readonly Vec[]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i]!, b = poly[j]!;
+    if ((a.y > pt.y) === (b.y > pt.y)) continue;
+    const dy = b.y - a.y;
+    const lhs = (pt.x - a.x) * dy, rhs = (b.x - a.x) * (pt.y - a.y);
+    if (dy > 0 ? lhs < rhs : lhs > rhs) inside = !inside;
+  }
+  return inside;
+}
+
+export const inRect = (p: Vec, r: { x: number; y: number; w: number; h: number }, margin = 0): boolean =>
+  p.x > r.x && p.x < r.x + r.w && p.y > r.y - margin && p.y < r.y + r.h + margin;
+
+// ---------- movement ----------
+
+/** Uncleared blocked zones and built wall sections block walkers; gates do not. */
+export function blockedAt(st: State, cp: Compiled, x: number, y: number): boolean {
+  const p = { x, y };
+  for (const z of st.zones) if (z.type === "zone.blocked" && !z.cleared && inRect(p, z.rect, cp.zones.blockMargin)) return true;
+  for (const line of st.barriers) {
+    for (const s of line.sections) if (s.built && !s.gate && nearSegment(p, s.a, s.b, cp.barrier.thickness)) return true;
+  }
+  return false;
+}
+
+/** Move pos toward target by at most step, axis by axis so a wall slides rather than sticks. Returns true when arrived. */
+export function moveAgent(st: State, cp: Compiled, pos: Vec, target: Vec, step: number, arrive: number): boolean {
+  const dx = target.x - pos.x, dy = target.y - pos.y;
+  const d = isqrt(dx * dx + dy * dy);
+  if (d < arrive) return true;
+  const s = d < step ? d : step;
+  const nx = clamp(pos.x + mulDiv(dx, s, d), 0, cp.map.w);
+  const ny = clamp(pos.y + mulDiv(dy, s, d), 0, cp.map.h);
+  if (!blockedAt(st, cp, nx, pos.y)) pos.x = nx;
+  if (!blockedAt(st, cp, pos.x, ny)) pos.y = ny;
+  return false;
+}
+
+/** Twelve points on a circle in fixed point, so agents can ring a point or pick a heading without trig. */
+export const RING: readonly (readonly [number, number])[] = [
+  [1000, 0], [866, 500], [500, 866], [0, 1000], [-500, 866], [-866, 500],
+  [-1000, 0], [-866, -500], [-500, -866], [0, -1000], [500, -866], [866, -500],
+];
+
+export const ringPoint = (center: Vec, k: number, rx: number, ry: number): Vec => {
+  const [cx, cy] = RING[((k % RING.length) + RING.length) % RING.length]!;
+  return { x: center.x + mulDiv(cx, rx, FP), y: center.y + mulDiv(cy, ry, FP) };
+};
+
+// ---------- residents and housing ----------
+
+/** Residents who live in the base: working, injured or healing. Not waiting, frozen, towed or arriving. */
+export const inBase = (r: ResidentState): boolean => r.status === "ok" || r.status === "injured" || r.status === "healing";
+export const population = (st: State): number => st.residents.filter(inBase).length;
+export const housingSlots = (st: State, cp: Compiled): number =>
+  cp.housing.base + cp.housing.perBuilding * st.structures.filter((s) => s.type === "struct.housing").length;
+export const freeSlots = (st: State, cp: Compiled): number => housingSlots(st, cp) - population(st);
+export const idleResidents = (st: State): ResidentState[] => st.residents.filter((r) => r.status === "ok" && r.role === "idle");
+
+export function newResident(st: State, pos: Vec, role: string, status: ResidentStatus): ResidentState {
+  const r: ResidentState = {
+    id: st.nextResidentId++,
+    pos: { ...pos },
+    role,
+    status,
+    carry: null,
+    n: 0,
+    mode: "gather",
+    target: null,
+    assign: { from: null, to: null, node: null, post: null },
+    acc: 0,
+    timer: 0,
+    slot: st.residents.length,
+  };
+  st.residents.push(r);
+  return r;
+}
+
+/** A new recruit moves in if a slot is free, otherwise walks to the waiting area. */
+export function admitRecruit(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]): boolean {
+  r.role = "idle";
+  if (freeSlots(st, cp) > 0) {
+    r.status = "ok";
+    out.push({ t: "moved_in", resident: r.id });
+    return true;
+  }
+  r.status = "waiting";
+  return false;
+}
+
+// ---------- drops ----------
+
+export function spawnDrops(st: State, cp: Compiled, drops: Record<string, number>, at: Vec, out: SimEvent[]): void {
+  const sx = cp.drops.scatterX, sy = cp.drops.scatterY;
+  for (const [res, n] of Object.entries(drops)) {
+    for (let k = 0; k < n; k++) {
+      const pos = { x: at.x + between(st.rng, -sx, sx + 1), y: at.y + between(st.rng, -sy, sy + 1) };
+      st.drops.push({ id: st.nextDropId++, res, pos });
+      out.push({ t: "drop", res, at: { ...pos } });
+    }
+  }
+}
+
+export const stepDown = (v: number): number => (v > 0 ? v - 1 : 0);
