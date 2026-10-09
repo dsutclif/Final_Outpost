@@ -1,0 +1,9 @@
+{
+  "role.supplier": { "behavior": "gather_deliver", "speed": 80, "carry": 3, "gatherInterval": 0.55, "deliverInterval": 0.15 },
+  "role.server": { "behavior": "collect_deliver", "speed": 80, "carry": 3, "gatherInterval": 0.2, "deliverInterval": 0.15 },
+  "role.cashier": { "behavior": "stand_at", "speed": 80 },
+  "role.operator": { "behavior": "stand_at", "speed": 80 },
+  "role.hunter": { "behavior": "hunt", "speed": 80, "carry": 2, "attackInterval": 0.5, "attackRange": 30, "deliverInterval": 0.15 },
+  "role.defender": { "behavior": "guard", "speed": 80, "attackInterval": 0.7, "attackRange": 75 },
+  "role.hauler": { "behavior": "haul", "speed": 80, "carry": 3, "gatherInterval": 0.2, "deliverInterval": 0.15 }
+}

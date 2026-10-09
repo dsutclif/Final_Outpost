@@ -1,0 +1,24 @@
+{
+  "carry": { "alwaysOn": true, "introducedAt": null },
+  "gather": { "alwaysOn": true, "introducedAt": null },
+  "core": { "alwaysOn": true, "introducedAt": null },
+  "sales": { "alwaysOn": true, "requires": ["carry"], "introducedAt": null },
+
+  "workers": { "introducedAt": 2 },
+  "source_gating": { "requires": ["workers"], "introducedAt": 3 },
+  "build_pads": { "introducedAt": 2 },
+  "barrier_lines": { "requires": ["build_pads"], "introducedAt": 4 },
+  "lasso": { "requires": ["barrier_lines"], "excludes": ["hunting", "defense"], "introducedAt": 5 },
+  "housing": { "requires": ["build_pads"], "introducedAt": 6 },
+  "core_levels": { "requires": ["build_pads"], "introducedAt": 7 },
+  "blocked_zones": { "requires": ["core_levels"], "introducedAt": 7 },
+  "hunting": { "introducedAt": 8 },
+  "converters": { "requires": ["workers", "build_pads"], "introducedAt": 9 },
+  "customer_variety": { "requires": ["sales"], "introducedAt": 11 },
+  "defense": { "requires": ["barrier_lines"], "introducedAt": 12 },
+  "defenders": { "requires": ["defense", "workers"], "introducedAt": 13 },
+  "salvage_upgrades": { "requires": ["defense"], "introducedAt": 14 },
+  "medical": { "requires": ["defense", "build_pads"], "introducedAt": 15 },
+  "hazard_events": { "introducedAt": 16 },
+  "supply_routing": { "requires": ["workers", "build_pads"], "introducedAt": 17 }
+}

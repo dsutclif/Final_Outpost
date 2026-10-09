@@ -1,0 +1,7 @@
+{
+  "build": { "description": "Pay off the target build pad", "exercises": "build_pads" },
+  "population": { "description": "Reach N residents living in the base", "exercises": "housing" },
+  "currency": { "description": "Hold N currency at once", "exercises": "sales" },
+  "waves": { "description": "Survive every scheduled attack wave", "exercises": "defense" },
+  "serve_premium": { "description": "Serve N premium customers", "exercises": "customer_variety" }
+}

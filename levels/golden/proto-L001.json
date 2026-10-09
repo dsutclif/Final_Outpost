@@ -1,0 +1,63 @@
+{
+  "id": "proto-L001",
+  "seed": 1,
+  "engineVersion": "0.1.0",
+  "contentVersion": "0.1.0",
+  "map": { "w": 480, "h": 900, "zones": ["base", "sources-w", "sources-e", "shop-s"] },
+  "modules": ["carry", "gather", "core", "sales", "workers", "source_gating", "build_pads"],
+  "start": [240, 520],
+  "entities": [
+    { "type": "sink.core", "id": "core", "at": [240, 400], "params": { "fuel": 12, "level": 1 } },
+
+    { "type": "node.material_source", "at": [50, 220] },
+    { "type": "node.material_source", "at": [105, 190] },
+    { "type": "node.material_source", "at": [55, 300] },
+    { "type": "node.material_source", "at": [120, 270] },
+    { "type": "node.material_source", "at": [50, 380] },
+    { "type": "node.material_source", "at": [115, 350] },
+
+    { "type": "node.food_source", "id": "food1", "at": [410, 240] },
+    { "type": "node.food_source", "id": "food2", "at": [410, 340], "enabled": false },
+
+    { "type": "sink.sales_point", "id": "shop", "at": [330, 570], "sells": ["res.food_raw_1"] },
+
+    { "type": "pad.hire", "id": "hire_core_supplier", "at": [160, 430], "cost": { "res.currency": 8 },
+      "role": { "role": "role.supplier", "from": "node.material_source", "to": "sink.core" } },
+    { "type": "pad.hire", "id": "hire_food_supplier_1", "at": [330, 240], "cost": { "res.currency": 12 },
+      "role": { "role": "role.supplier", "from": "node.food_source", "to": "sink.sales_point", "node": "food1" } },
+    { "type": "pad.build", "id": "unlock_food2", "at": [410, 340], "cost": { "res.currency": 15 },
+      "build": "node.enable", "target": "food2", "requires": { "pad": "hire_food_supplier_1" } },
+    { "type": "pad.hire", "id": "hire_food_supplier_2", "at": [330, 340], "cost": { "res.currency": 15 },
+      "role": { "role": "role.supplier", "from": "node.food_source", "to": "sink.sales_point", "node": "food2" },
+      "requires": { "pad": "unlock_food2" } },
+    { "type": "pad.hire", "id": "hire_cashier", "at": [200, 630], "cost": { "res.currency": 20 },
+      "role": { "role": "role.cashier" } },
+    { "type": "pad.build", "id": "landmark", "at": [120, 760], "cost": { "res.currency": 60 },
+      "build": "struct.landmark", "big": true }
+  ],
+  "people": [
+    { "role": "idle" }, { "role": "idle" }, { "role": "idle" }, { "role": "idle" }
+  ],
+  "params": {
+    "start.currency": 0,
+    "housing.base": 6,
+    "customers.spawn": 3,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "customers.impatientShare": 0,
+    "customers.premiumShare": 0
+  },
+  "goal": { "type": "build", "target": "landmark" },
+  "fail": ["meter.lifeline"],
+  "text": {
+    "frozen_camp": {
+      "title": "First Fire",
+      "goal": "Build the Lodge",
+      "tips": [
+        "Hire workers from your idle survivors. Each one gathers and delivers on their own.",
+        "Customers only pay while someone stands at the register. Hire a cashier to free yourself up.",
+        "A second pond opens once the first one has a fisher."
+      ]
+    }
+  }
+}

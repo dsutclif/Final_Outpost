@@ -1,0 +1,37 @@
+{
+  "player.speed": 155,
+  "player.radius": 12,
+  "player.actInterval": 0.05,
+  "player.attackInterval": 0.32,
+  "player.attackRange": 40,
+
+  "core.burn": 2.4,
+  "core.grace": 22,
+  "core.lifelineRecover": 0.25,
+  "core.noFuelRadiusScale": 0.4,
+
+  "customers.spawn": 3,
+  "customers.jitterMin": 0.7,
+  "customers.jitterMax": 1.3,
+  "customers.initialDelay": 1.5,
+  "customers.orderMin": 1,
+  "customers.orderMax": 2,
+  "customers.baseWeight": 1.5,
+  "customers.impatientShare": 0,
+  "customers.premiumShare": 0,
+  "customers.approach": 5,
+  "customers.leaveSpeedX": 160,
+  "customers.leaveSpeedY": 50,
+
+  "housing.base": 6,
+  "housing.perBuilding": 2,
+
+  "lasso.maxTowed": 3,
+  "lasso.speedPenalty": 0.1,
+
+  "hazard.burnMultiplier": 2.6,
+  "hazard.radiusScale": 0.75,
+
+  "start.currency": 0,
+  "timer.seconds": 0
+}

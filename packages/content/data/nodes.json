@@ -1,0 +1,5 @@
+{
+  "node.material_source": { "yields": "res.material_basic", "range": 36, "rate": 0.3, "stock": 4, "regrow": 6 },
+  "node.food_source": { "yields": "res.food_raw_1", "range": 36, "rate": 0.45, "stock": null, "regrow": null },
+  "node.fuel_deposit": { "yields": "res.fuel_dense", "range": 32, "rate": 0.5, "stock": null, "regrow": null }
+}

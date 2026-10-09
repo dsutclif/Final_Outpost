@@ -1,0 +1,10 @@
+{
+  "res.material_basic": { "cap": 6, "price": 0, "category": "material" },
+  "res.material_refined": { "cap": 6, "price": 0, "category": "material" },
+  "res.fuel_dense": { "cap": 6, "price": 0, "category": "fuel" },
+  "res.food_raw_1": { "cap": 6, "price": 2, "category": "food" },
+  "res.food_raw_2": { "cap": 6, "price": 3, "category": "food" },
+  "res.food_prepared": { "cap": 6, "price": 5, "category": "food" },
+  "res.salvage": { "cap": 6, "price": 0, "category": "salvage" },
+  "res.currency": { "cap": null, "price": 0, "category": "currency" }
+}

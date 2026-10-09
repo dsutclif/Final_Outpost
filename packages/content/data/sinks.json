@@ -1,0 +1,29 @@
+{
+  "sink.core": {
+    "kind": "core",
+    "range": 58,
+    "accepts": { "res.material_basic": 1, "res.fuel_dense": 4 },
+    "depositInterval": 0.1,
+    "exclusionRadius": 28,
+    "levels": [
+      { "fuelCap": 20, "safeRadius": 95 },
+      { "fuelCap": 32, "safeRadius": 125 },
+      { "fuelCap": 32, "safeRadius": 150 }
+    ],
+    "upgradeFuelBonus": 6,
+    "produces": "meter.lifeline"
+  },
+  "sink.sales_point": {
+    "kind": "sales_point",
+    "range": 48,
+    "shelfCap": 8,
+    "depositInterval": 0.1,
+    "registerOffset": [0, 54],
+    "registerRange": 30,
+    "pileOffset": [-62, 54],
+    "pileRange": 30,
+    "queueOffset": [76, 0],
+    "queueSpacing": 34,
+    "queueMax": 4
+  }
+}
