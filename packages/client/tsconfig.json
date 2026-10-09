@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "../..", "outDir": "dist", "types": ["vite/client"], "lib": ["ES2022", "DOM", "DOM.Iterable"] },
-  "include": ["src/**/*.ts"],
+  "compilerOptions": { "rootDir": "../..", "outDir": "node_modules/.tsc", "types": ["vite/client"], "lib": ["ES2022", "DOM", "DOM.Iterable"] },
+  "include": ["src/**/*.ts", "test/**/*.ts", "../../levels/**/*.json"],
   "references": [{ "path": "../content" }, { "path": "../sim" }, { "path": "../skins" }, { "path": "../render-2d" }, { "path": "../render-3d" }]
 }

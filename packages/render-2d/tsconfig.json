@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "../..", "outDir": "dist", "types": ["node"], "lib": ["ES2022", "DOM", "DOM.Iterable"] },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "../../levels/**/*.json"],
   "references": [{ "path": "../content" }, { "path": "../sim" }, { "path": "../skins" }]
 }
