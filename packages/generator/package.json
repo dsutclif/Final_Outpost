@@ -1,0 +1,8 @@
+{
+  "name": "@fo/generator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@fo/content": "workspace:*", "@fo/sim": "workspace:*", "@fo/bots": "workspace:*", "@fo/rater": "workspace:*", "@fo/sequencer": "workspace:*" }
+}

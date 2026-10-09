@@ -7,8 +7,10 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b packages/content packages/sim",
-    "check": "pnpm typecheck && pnpm test"
+    "typecheck": "tsc -b packages/content packages/sim packages/skins packages/bots packages/rater packages/sequencer packages/generator packages/render-2d packages/render-3d packages/client",
+    "check": "pnpm typecheck && pnpm test",
+    "dev": "pnpm --filter @fo/client dev",
+    "build": "pnpm --filter @fo/client build"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
