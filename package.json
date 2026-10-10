@@ -10,7 +10,7 @@
     "typecheck": "tsc -b packages/content packages/sim packages/skins packages/bots packages/rater packages/sequencer packages/generator packages/render-2d packages/render-3d packages/client tools",
     "check": "pnpm typecheck && pnpm test",
     "dev": "pnpm --filter @fo/client dev",
-    "build": "pnpm --filter @fo/client build",
+    "build": "pnpm --filter @fo/client build && node -e \"require('fs').rmSync('dist',{recursive:true,force:true});require('fs').cpSync('packages/client/dist','dist',{recursive:true})\"",
     "levels:build": "vite-node tools/build-levels.ts --",
     "levels:check": "vite-node tools/regress-levels.ts --"
   },
