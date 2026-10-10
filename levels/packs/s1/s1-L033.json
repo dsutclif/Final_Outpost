@@ -1,8 +1,8 @@
 {
   "id": "s1-L033",
   "seed": 1244230714,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,11 +19,9 @@
     "build_pads",
     "carry",
     "core",
-    "defenders",
     "defense",
     "gather",
-    "sales",
-    "workers"
+    "sales"
   ],
   "start": [
     240,
@@ -57,44 +55,44 @@
     {
       "type": "node.material_source",
       "at": [
-        88,
-        674
+        153,
+        714
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        34,
-        623
+        27,
+        607
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        173,
-        723
+        77,
+        697
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        78,
-        623
+        154,
+        666
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        365,
-        683
+        374,
+        690
       ]
     },
     {
       "type": "node.fuel_deposit",
       "at": [
-        171,
-        362
+        166,
+        364
       ]
     },
     {
@@ -140,128 +138,34 @@
       ]
     },
     {
-      "type": "pad.hire",
-      "id": "hire_core",
-      "at": [
-        164,
-        583
-      ],
-      "cost": {
-        "res.currency": 10
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food",
-      "at": [
-        367,
-        563
-      ],
-      "cost": {
-        "res.currency": 15
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_cashier",
-      "at": [
-        301,
-        496
-      ],
-      "cost": {
-        "res.currency": 22
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
-      }
-    },
-    {
       "type": "pad.build",
       "id": "tower0",
       "at": [
-        201,
-        396
+        204,
+        392
       ],
       "cost": {
-        "res.currency": 22
+        "res.currency": 21
       },
       "build": "struct.ranged_defense"
-    },
-    {
-      "type": "pad.build",
-      "id": "barracks",
-      "at": [
-        132,
-        562
-      ],
-      "cost": {
-        "res.currency": 15
-      },
-      "build": "struct.barracks"
-    },
-    {
-      "type": "pad.hire",
-      "id": "train",
-      "at": [
-        135,
-        619
-      ],
-      "cost": {
-        "res.currency": 6
-      },
-      "role": {
-        "role": "role.defender"
-      },
-      "repeatable": true,
-      "requires": {
-        "pad": "barracks"
-      }
     }
   ],
-  "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    }
-  ],
+  "people": [],
   "waves": [
     {
-      "t": 48,
+      "t": 51,
       "counts": {
-        "hostile.creature": 8
+        "hostile.creature": 9
       }
     },
     {
-      "t": 100,
+      "t": 107,
       "counts": {
         "hostile.creature": 11
       }
     },
     {
-      "t": 152,
+      "t": 162,
       "counts": {
         "hostile.creature": 14
       }
@@ -269,14 +173,14 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 5,
+    "start.currency": 4,
     "core.burn": 2.2,
     "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 7,
+    "housing.base": 2,
     "meters.baseHealth": 9,
-    "level.budgetSeconds": 210
+    "level.budgetSeconds": 220
   },
   "goal": {
     "type": "waves"
@@ -287,17 +191,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Guards and Hold Fast",
+      "title": "Turrets and Hold Fast",
       "goal": "Survive every raid",
       "tips": [
-        "Build a guard post, then train free colonists into guards."
+        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.445,
-    "fun": 0.781,
-    "botMargin": 0.915,
+    "difficulty": 0.374,
+    "fun": 0.833,
+    "botMargin": 0.844,
     "botsPassed": [
       "good",
       "average",

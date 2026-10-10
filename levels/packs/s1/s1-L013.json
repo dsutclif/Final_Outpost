@@ -1,8 +1,8 @@
 {
   "id": "s1-L013",
-  "seed": 15645374,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 1157148896,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -20,9 +20,9 @@
     "carry",
     "core",
     "gather",
-    "housing",
     "lasso",
     "sales",
+    "source_gating",
     "workers"
   ],
   "start": [
@@ -46,8 +46,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        301,
-        734
+        302,
+        732
       ],
       "sells": [
         "res.food_raw_1"
@@ -56,45 +56,54 @@
     {
       "type": "node.material_source",
       "at": [
-        143,
-        362
+        132,
+        395
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        86,
-        393
+        188,
+        356
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        92,
-        437
+        56,
+        423
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        39,
-        417
+        112,
+        349
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        62,
-        354
+        171,
+        416
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        313,
-        380
+        415,
+        406
       ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food2",
+      "at": [
+        434,
+        365
+      ],
+      "enabled": false
     },
     {
       "type": "barrier.line",
@@ -141,52 +150,33 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        321,
-        103
+        109,
+        89
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        127,
-        85
+        361,
+        75
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        417,
-        60
+        229,
+        74
       ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        226,
-        97
-      ]
-    },
-    {
-      "type": "struct.gate",
-      "id": "gate",
-      "at": [
-        240,
-        872
-      ],
-      "arrivals": {
-        "every": 15,
-        "total": 5
-      }
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        158,
-        482
+        198,
+        465
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 9
       },
       "role": {
         "role": "role.supplier",
@@ -198,8 +188,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        311,
-        515
+        361,
+        533
       ],
       "cost": {
         "res.currency": 13
@@ -216,7 +206,7 @@
       "id": "hire_cashier",
       "at": [
         189,
-        813
+        794
       ],
       "cost": {
         "res.currency": 19
@@ -228,42 +218,61 @@
     },
     {
       "type": "pad.build",
-      "id": "housing0",
+      "id": "unlock_food2",
       "at": [
-        348,
-        680
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "build": "struct.housing"
-    },
-    {
-      "type": "pad.build",
-      "id": "housing1",
-      "at": [
-        133,
-        686
+        434,
+        365
       ],
       "cost": {
         "res.currency": 16
       },
-      "build": "struct.housing"
+      "build": "node.enable",
+      "target": "food2",
+      "requires": {
+        "pad": "hire_food"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food2",
+      "at": [
+        401,
+        525
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food2"
+      },
+      "requires": {
+        "pad": "unlock_food2"
+      }
     },
     {
       "type": "pad.build",
-      "id": "housing2",
+      "id": "landmark",
       "at": [
-        365,
-        717
+        110,
+        798
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 82
       },
-      "build": "struct.housing"
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "hire_food2"
+      }
     }
   ],
   "people": [
+    {
+      "role": "idle"
+    },
     {
       "role": "idle"
     },
@@ -281,33 +290,33 @@
   "events": [],
   "params": {
     "start.currency": 8,
-    "core.burn": 2.5,
+    "core.burn": 2.6,
     "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 7,
-    "level.budgetSeconds": 210
+    "housing.base": 10,
+    "level.budgetSeconds": 300
   },
   "goal": {
-    "type": "population",
-    "n": 13
+    "type": "build",
+    "target": "landmark"
   },
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Stasis Pods and Colonists",
-      "goal": "Grow the colony to 13 colonists",
+      "title": "Locked Caches and Foundations",
+      "goal": "Build the Habitat hub",
       "tips": [
-        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+        "Some grow domes start locked. Unlock them with credits on their pad."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.304,
-    "fun": 0.878,
-    "botMargin": 0.455,
+    "difficulty": 0.272,
+    "fun": 0.604,
+    "botMargin": 0.467,
     "botsPassed": [
       "good",
       "average",

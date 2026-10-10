@@ -74,8 +74,14 @@ describe("sequencer", () => {
     }
   });
 
-  it("dependency-only modules never appear without a module that needs them", () => {
-    for (const r of reqs) if (r.modules.includes("barrier_lines")) expect(r.modules.includes("lasso") || r.modules.includes("defense")).toBe(true);
+  it("barrier lines are taught on their own, before the lasso (DECISIONS 1)", () => {
+    const beats = schedule();
+    const bl = beats.find((b) => b.modules.includes("barrier_lines"))!;
+    expect(bl.modules).toEqual(["barrier_lines"]);
+    expect(introductionLevel("barrier_lines")!).toBeLessThan(introductionLevel("lasso")!);
+    const teach = reqs[bl.level - 1]!;
+    expect(teach.modules).toContain("barrier_lines");
+    expect(teach.modules).not.toContain("lasso");
   });
 
   it("goals exercise what the level needs: defense levels are waves, population needs recruits", () => {

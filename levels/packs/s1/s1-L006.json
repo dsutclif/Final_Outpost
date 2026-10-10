@@ -1,8 +1,8 @@
 {
   "id": "s1-L006",
   "seed": 39245116,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -55,7 +55,7 @@
       "type": "node.material_source",
       "at": [
         107,
-        360
+        358
       ]
     },
     {
@@ -83,16 +83,16 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        88,
-        704
+        82,
+        592
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        116,
-        669
+        39,
+        602
       ],
       "enabled": false
     },
@@ -101,10 +101,10 @@
       "id": "hire_core",
       "at": [
         181,
-        471
+        470
       ],
       "cost": {
-        "res.currency": 9
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -116,8 +116,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        194,
-        675
+        190,
+        607
       ],
       "cost": {
         "res.currency": 14
@@ -148,11 +148,11 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        116,
-        669
+        39,
+        602
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 18
       },
       "build": "node.enable",
       "target": "food2",
@@ -164,11 +164,11 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        231,
-        651
+        148,
+        630
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 18
       },
       "role": {
         "role": "role.supplier",
@@ -188,7 +188,7 @@
         800
       ],
       "cost": {
-        "res.currency": 115
+        "res.currency": 114
       },
       "build": "struct.landmark",
       "big": true,
@@ -209,20 +209,17 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [],
   "events": [],
   "params": {
     "start.currency": 4,
-    "core.burn": 2.3,
-    "customers.spawn": 3.1,
+    "core.burn": 2.4,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 7,
+    "housing.base": 6,
     "level.budgetSeconds": 230
   },
   "goal": {
@@ -242,9 +239,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.205,
-    "fun": 0.44,
-    "botMargin": 0.316,
+    "difficulty": 0.212,
+    "fun": 0.442,
+    "botMargin": 0.33,
     "botsPassed": [
       "good",
       "average",

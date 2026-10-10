@@ -147,10 +147,6 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
       for (const p of pads) if (p.type === "pad.build" && p.build === "zone.clear") add(p.id, "goal", { goalPath: true });
     }
   } else if (goal.type === "waves") {
-    for (const e of m.entities) {
-      if (e.type !== "barrier.line") continue;
-      e.sections.forEach((s, i) => { if (!s.prebuilt) barriers.push({ line: e.id, section: i, res: e.res, cost: e.costPerSection }); });
-    }
     const towers = pads.filter((p): p is BuildEnt => p.type === "pad.build" && p.build === "struct.ranged_defense").sort(byCost);
     for (const t of towers) add(t.id, "defense");
     const counts = m.waves.map((w) => Object.values(w.counts).reduce((a, b) => a + b, 0));
@@ -164,6 +160,13 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
     if (salvage) {
       for (const p of pads) if (p.type === "pad.build" && c.upgrades[p.build] && Object.keys(p.cost).every((r) => c.resources[r]?.cap !== null)) add(p.id, "upgrade");
     }
+  }
+
+  // Barrier sections on any goal (DECISIONS 1): a wall can be built wherever a line exists, and the
+  // lasso's tow line works outside it, so a standalone barrier-lines level must use the module.
+  for (const e of m.entities) {
+    if (e.type !== "barrier.line") continue;
+    e.sections.forEach((s, i) => { if (!s.prebuilt) barriers.push({ line: e.id, section: i, res: e.res, cost: e.costPerSection }); });
   }
 
   // ---------- conditional steps ----------

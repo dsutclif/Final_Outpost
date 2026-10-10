@@ -1,8 +1,8 @@
 {
   "id": "s1-L003",
   "seed": 272105353,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -35,7 +35,7 @@
         450
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -53,48 +53,48 @@
     {
       "type": "node.material_source",
       "at": [
-        54,
-        654
+        83,
+        680
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        107,
-        695
+        168,
+        697
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        173,
-        686
+        30,
+        635
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        120,
-        643
+        96,
+        627
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        422,
-        678
+        372,
+        682
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        179,
-        569
+        169,
+        564
       ],
       "cost": {
-        "res.currency": 9
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -106,8 +106,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        397,
-        559
+        367,
+        561
       ],
       "cost": {
         "res.currency": 14
@@ -127,7 +127,7 @@
         521
       ],
       "cost": {
-        "res.currency": 21
+        "res.currency": 22
       },
       "role": {
         "role": "role.cashier",
@@ -142,7 +142,7 @@
         797
       ],
       "cost": {
-        "res.currency": 162
+        "res.currency": 151
       },
       "build": "struct.landmark",
       "big": true
@@ -157,20 +157,17 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.4,
-    "customers.spawn": 3,
+    "start.currency": 2,
+    "core.burn": 2.3,
+    "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 6,
+    "housing.base": 5,
     "level.budgetSeconds": 260
   },
   "goal": {
@@ -190,9 +187,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.163,
-    "fun": 0.768,
-    "botMargin": 0.351,
+    "difficulty": 0.208,
+    "fun": 0.815,
+    "botMargin": 0.329,
     "botsPassed": [
       "good",
       "average",

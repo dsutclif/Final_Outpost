@@ -1,8 +1,8 @@
 {
   "id": "s1-L023",
   "seed": 650105297,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,14 +15,13 @@
     ]
   },
   "modules": [
-    "blocked_zones",
     "build_pads",
     "carry",
-    "converters",
     "core",
     "core_levels",
     "gather",
     "housing",
+    "hunting",
     "sales",
     "workers"
   ],
@@ -39,7 +38,7 @@
         520
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -52,54 +51,56 @@
       ],
       "sells": [
         "res.food_raw_1",
-        "res.food_prepared"
+        "res.food_raw_2"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
         43,
-        577
+        603
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        32,
-        505
+        82,
+        378
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        41,
-        447
+        39,
+        515
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        69,
-        399
+        54,
+        419
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        426,
-        498
+        436,
+        475
       ]
     },
     {
-      "type": "zone.blocked",
-      "id": "rubble",
+      "type": "zone.prey",
+      "id": "prey",
       "rect": [
-        0,
-        282,
-        480,
-        44
-      ]
+        130,
+        345,
+        220,
+        80
+      ],
+      "animal": "node.prey",
+      "n": 3
     },
     {
       "type": "struct.gate",
@@ -117,11 +118,11 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        136,
-        489
+        140,
+        487
       ],
       "cost": {
-        "res.currency": 9
+        "res.currency": 8
       },
       "role": {
         "role": "role.supplier",
@@ -133,11 +134,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        368,
-        597
+        374,
+        584
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -154,7 +155,7 @@
         826
       ],
       "cost": {
-        "res.currency": 21
+        "res.currency": 19
       },
       "role": {
         "role": "role.cashier",
@@ -162,126 +163,58 @@
       }
     },
     {
-      "type": "pad.build",
-      "id": "grill",
-      "at": [
-        125,
-        707
-      ],
-      "cost": {
-        "res.currency": 14
-      },
-      "build": "conv.food_processor",
-      "requires": {
-        "pad": "feeder"
-      }
-    },
-    {
       "type": "pad.hire",
-      "id": "cook",
+      "id": "hunter",
       "at": [
-        71,
-        790
+        240,
+        449
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 13
       },
       "role": {
-        "role": "role.operator",
-        "to": "conv.food_processor"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "feeder",
-      "at": [
-        304,
-        595
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "conv.food_processor",
-        "node": "food1"
-      },
-      "requires": {
-        "pad": "cook"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "server",
-      "at": [
-        171,
-        656
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "role": {
-        "role": "role.server",
-        "from": "conv.food_processor",
+        "role": "role.hunter",
+        "from": "node.prey",
         "to": "sink.sales_point"
-      },
-      "requires": {
-        "pad": "grill"
       }
     },
     {
       "type": "pad.build",
       "id": "core_level",
       "at": [
-        150,
-        583
+        129,
+        604
       ],
       "cost": {
-        "res.currency": 29
+        "res.currency": 27
       },
       "build": "sink.core.level"
     },
     {
       "type": "pad.build",
-      "id": "zone_pad",
-      "at": [
-        238,
-        374
-      ],
-      "cost": {
-        "res.currency": 17
-      },
-      "build": "zone.clear",
-      "target": "rubble",
-      "requires": {
-        "coreLevel": 2
-      }
-    },
-    {
-      "type": "pad.build",
       "id": "housing0",
       "at": [
-        363,
-        648
+        343,
+        637
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 13
       },
       "build": "struct.housing",
       "requires": {
-        "pad": "zone_pad"
+        "pad": "hunter",
+        "coreLevel": 2
       }
     },
     {
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        140,
-        620
+        129,
+        648
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 16
       },
       "build": "struct.housing"
     }
@@ -301,45 +234,39 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 6,
+    "start.currency": 5,
     "core.burn": 2.5,
-    "customers.spawn": 2.9,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 7,
-    "level.budgetSeconds": 220
+    "customers.orderMax": 3,
+    "housing.base": 5,
+    "level.budgetSeconds": 160
   },
   "goal": {
     "type": "population",
-    "n": 11
+    "n": 9
   },
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Domes and Full Habs",
-      "goal": "Grow the colony to 11 colonists",
+      "title": "Hoppers and Full Habs",
+      "goal": "Grow the colony to 9 colonists",
       "tips": [
-        "New colonists need a bed. Build hab pods so they can move in."
+        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.563,
-    "fun": 0.887,
-    "botMargin": 0.392,
+    "difficulty": 0.53,
+    "fun": 0.919,
+    "botMargin": 0.402,
     "botsPassed": [
       "good",
       "average",

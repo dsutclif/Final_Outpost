@@ -1,8 +1,8 @@
 {
   "id": "s1-L048",
   "seed": 307298876,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,16 +15,16 @@
     ]
   },
   "modules": [
-    "blocked_zones",
+    "barrier_lines",
     "build_pads",
     "carry",
     "core",
     "core_levels",
+    "defense",
     "gather",
-    "hazard_events",
     "housing",
-    "sales",
-    "workers"
+    "medical",
+    "sales"
   ],
   "start": [
     218,
@@ -39,7 +39,7 @@
         500
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -51,21 +51,22 @@
         649
       ],
       "sells": [
-        "res.food_raw_1"
+        "res.food_raw_1",
+        "res.food_raw_2"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        429,
-        467
+        410,
+        418
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        430,
-        410
+        432,
+        486
       ]
     },
     {
@@ -78,33 +79,72 @@
     {
       "type": "node.material_source",
       "at": [
-        385,
-        435
+        387,
+        496
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        416,
-        641
+        402,
+        605
       ]
     },
     {
       "type": "node.fuel_deposit",
       "at": [
-        152,
-        374
+        176,
+        360
       ]
     },
     {
-      "type": "zone.blocked",
-      "id": "rubble",
-      "rect": [
-        0,
-        282,
-        480,
-        44
+      "type": "node.fuel_deposit",
+      "at": [
+        268,
+        361
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 8,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            138,
+            290
+          ],
+          "prebuilt": false
+        },
+        {
+          "a": [
+            138,
+            290
+          ],
+          "b": [
+            298,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            298,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
       ]
     },
     {
@@ -115,111 +155,58 @@
         872
       ],
       "arrivals": {
-        "every": 17,
+        "every": 16,
         "total": 4
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_core",
-      "at": [
-        318,
-        453
-      ],
-      "cost": {
-        "res.currency": 10
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food",
-      "at": [
-        311,
-        642
-      ],
-      "cost": {
-        "res.currency": 15
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_cashier",
-      "at": [
-        22,
-        739
-      ],
-      "cost": {
-        "res.currency": 22
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
       }
     },
     {
       "type": "pad.build",
       "id": "core_level",
       "at": [
-        128,
-        576
+        138,
+        568
       ],
       "cost": {
-        "res.currency": 30
+        "res.currency": 27
       },
       "build": "sink.core.level"
     },
     {
       "type": "pad.build",
-      "id": "zone_pad",
+      "id": "tower0",
       "at": [
-        217,
-        363
+        231,
+        381
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 19
       },
-      "build": "zone.clear",
-      "target": "rubble",
+      "build": "struct.ranged_defense",
       "requires": {
         "coreLevel": 2
       }
     },
     {
       "type": "pad.build",
-      "id": "landmark",
+      "id": "medic",
       "at": [
-        110,
-        226
+        323,
+        646
       ],
       "cost": {
-        "res.currency": 98
+        "res.currency": 13
       },
-      "build": "struct.landmark",
-      "big": true,
-      "requires": {
-        "pad": "zone_pad"
-      }
+      "build": "struct.medical"
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        336,
-        608
+        304,
+        596
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 13
       },
       "build": "struct.housing"
     }
@@ -233,49 +220,65 @@
     },
     {
       "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 20,
+      "counts": {
+        "hostile.creature": 4
+      }
     },
     {
-      "role": "idle"
-    }
-  ],
-  "waves": [],
-  "events": [
+      "t": 53,
+      "counts": {
+        "hostile.creature": 8
+      }
+    },
     {
-      "type": "event.hazard",
-      "warnAt": 69,
-      "start": 77,
-      "end": 99
+      "t": 110,
+      "counts": {
+        "hostile.creature": 11
+      }
+    },
+    {
+      "t": 167,
+      "counts": {
+        "hostile.creature": 14
+      }
     }
   ],
+  "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.2,
-    "customers.spawn": 3.2,
+    "start.currency": 4,
+    "core.burn": 2.5,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 5,
-    "level.budgetSeconds": 250
+    "housing.base": 4,
+    "meters.baseHealth": 11,
+    "level.budgetSeconds": 230
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "waves"
   },
   "fail": [
-    "meter.lifeline"
+    "meter.lifeline",
+    "meter.base_health"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Domes and Foundations",
-      "goal": "Build the Habitat hub",
+      "title": "Med Bays and Raiders",
+      "goal": "Survive every raid",
       "tips": [
-        "New colonists need a bed. Build hab pods so they can move in."
+        "Hurt colonists stop working until a med bay heals them."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.769,
-    "fun": 0.91,
-    "botMargin": 0.325,
+    "difficulty": 0.757,
+    "fun": 0.753,
+    "botMargin": 0.784,
     "botsPassed": [
       "good",
       "average",

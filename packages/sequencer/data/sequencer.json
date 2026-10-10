@@ -20,9 +20,9 @@
     { "untilBeat": 99, "levels": 4 }
   ],
   "templates": ["crossroads", "west_fields", "east_fields", "north_fields", "south_fields", "corridor", "crescent"],
-  "coIntroduce": { "barrier_lines": "lasso" },
+  "coIntroduce": {},
   "implies": { "workers": ["build_pads"], "hunting": ["workers"] },
-  "dependencyOnly": ["barrier_lines"],
+  "dependencyOnly": [],
   "anchored": ["source_gating", "core_levels", "blocked_zones", "hunting"],
   "anchorGoals": ["build", "waves"],
   "goals": {
@@ -42,11 +42,11 @@
   "coreGoal": "build",
   "goalPreference": ["build", "population", "waves", "serve_premium", "currency"],
   "notes": {
-    "coIntroduce": "barrier_lines has no standalone teach level: the bot only builds sections on waves goals and registers the module on barrier_built or captured, so a lone barrier_lines level always fails the idle-module filter. It is taught together with the lasso, which requires it.",
-    "dependencyOnly": "Modules that only enter a level as another module's dependency (lasso, defense), never as a free pick.",
-    "anchored": "Modules whose pads only get bought when they sit on the bot's plan: they hang off the goal pad (build), a tower (waves), the first housing pad (population with housing) or the cashier hire (any goal with workers).",
-    "implies": "Hire pads are pads: a level with workers always has build_pads. Hunting needs a hunter hire, because the bot never hunts on its own (it only hits prey it passes).",
-    "coreGoal": "Level 1 (the core loop, no optional modules) builds the landmark, as the prototype's first level does. A currency goal would fit the registry better, but the bot's stall detector counts sales as progress only toward a plan-step price, so a level with no pads always stalls.",
-    "goalExcludes": "Defense modules only pair with waves goals (the bot plans walls only for waves). Currency goals are kept to levels without plan steps, because the stall detector counts sales as progress only toward a plan-step price."
+    "coIntroduce": "Empty since 0.4.0: barrier lines are taught on their own before the lasso (DECISIONS 1), because the bot now builds unbuilt sections on any goal and the generator emits a standalone yard wall.",
+    "dependencyOnly": "Modules that only enter a level as another module's dependency (none now), never as a free pick.",
+    "anchored": "Modules whose pads only get bought when they sit on the bot's plan: they hang off the goal pad (build), a tower (waves), or the cashier hire (any goal with workers).",
+    "implies": "Hire pads are pads: a level with workers always has build_pads. Hunting keeps a hunter hire so the module is exercised even when the bot would rather do something else.",
+    "coreGoal": "Level 1 (the core loop, no optional modules) builds the landmark, as the prototype's first level does. A currency goal would fit the registry better, but a currency goal now counts sales toward goal.n (0.4.0), so this is a preference rather than a constraint.",
+    "goalExcludes": "Defense modules only pair with waves goals (a wall also matters for the lasso, but its hostiles only come on waves). Currency goals are kept to levels without plan steps, because the stall detector counts sales as progress only toward a plan-step price."
   }
 }

@@ -1,8 +1,8 @@
 {
   "id": "s1-L037",
-  "seed": 159335682,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 787545886,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,10 +19,11 @@
     "build_pads",
     "carry",
     "core",
+    "defenders",
     "defense",
     "gather",
     "sales",
-    "salvage_upgrades"
+    "workers"
   ],
   "start": [
     240,
@@ -37,7 +38,7 @@
         500
       ],
       "params": {
-        "fuel": 16,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -46,7 +47,7 @@
       "id": "shop",
       "at": [
         316,
-        689
+        690
       ],
       "sells": [
         "res.food_raw_1",
@@ -56,51 +57,51 @@
     {
       "type": "node.material_source",
       "at": [
-        97,
-        519
+        61,
+        472
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        86,
-        434
+        107,
+        417
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        67,
-        554
+        94,
+        538
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        102,
-        383
+        62,
+        373
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        54,
-        478
+        114,
+        466
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        395,
-        478
+        448,
+        469
       ]
     },
     {
       "type": "barrier.line",
       "id": "wall",
       "res": "res.currency",
-      "costPerSection": 6,
+      "costPerSection": 8,
       "sections": [
         {
           "a": [
@@ -111,7 +112,7 @@
             160,
             290
           ],
-          "prebuilt": true
+          "prebuilt": false
         },
         {
           "a": [
@@ -139,108 +140,149 @@
       ]
     },
     {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        164,
+        481
+      ],
+      "cost": {
+        "res.currency": 9
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        399,
+        543
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        262,
+        790
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
       "type": "pad.build",
       "id": "tower0",
       "at": [
-        159,
-        372
-      ],
-      "cost": {
-        "res.currency": 17
-      },
-      "build": "struct.ranged_defense"
-    },
-    {
-      "type": "pad.build",
-      "id": "tower1",
-      "at": [
-        323,
+        238,
         375
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 20
       },
       "build": "struct.ranged_defense"
     },
     {
       "type": "pad.build",
-      "id": "towerup0",
+      "id": "barracks",
       "at": [
-        161,
-        455
+        140,
+        621
       ],
       "cost": {
-        "res.salvage": 3
+        "res.currency": 13
       },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower0",
-      "requires": {
-        "pad": "tower0"
-      }
+      "build": "struct.barracks"
     },
     {
-      "type": "pad.build",
-      "id": "towerup1",
+      "type": "pad.hire",
+      "id": "train",
       "at": [
-        337,
-        455
+        139,
+        710
       ],
       "cost": {
-        "res.salvage": 3
+        "res.currency": 5
       },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower1",
+      "role": {
+        "role": "role.defender"
+      },
+      "repeatable": true,
       "requires": {
-        "pad": "tower1"
+        "pad": "barracks"
       }
-    },
-    {
-      "type": "pad.build",
-      "id": "reinforce",
-      "at": [
-        248,
-        413
-      ],
-      "cost": {
-        "res.salvage": 4
-      },
-      "build": "struct.barrier.reinforced"
     }
   ],
-  "people": [],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
   "waves": [
     {
-      "t": 61,
+      "t": 50,
       "counts": {
-        "hostile.creature": 6,
-        "hostile.raider_humanoid": 1
+        "hostile.creature": 8
       }
     },
     {
-      "t": 128,
+      "t": 108,
       "counts": {
-        "hostile.creature": 8,
-        "hostile.raider_humanoid": 3
+        "hostile.creature": 11
       }
     },
     {
-      "t": 195,
+      "t": 166,
       "counts": {
-        "hostile.creature": 9,
-        "hostile.raider_humanoid": 4
+        "hostile.creature": 13
       }
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 11,
-    "core.burn": 2.8,
-    "customers.spawn": 2.7,
+    "start.currency": 6,
+    "core.burn": 2.3,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 2,
-    "meters.baseHealth": 13,
-    "level.budgetSeconds": 260
+    "customers.orderMax": 3,
+    "housing.base": 9,
+    "meters.baseHealth": 11,
+    "level.budgetSeconds": 230
   },
   "goal": {
     "type": "waves"
@@ -251,17 +293,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Scrap and Hold Fast",
+      "title": "Guards and Hold Fast",
       "goal": "Survive every raid",
       "tips": [
-        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
+        "Build a guard post, then train free colonists into guards."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.371,
-    "fun": 0.576,
-    "botMargin": 0.923,
+    "difficulty": 0.426,
+    "fun": 0.738,
+    "botMargin": 0.899,
     "botsPassed": [
       "good",
       "average",

@@ -51,7 +51,7 @@ describe("workers and build pads (level 1)", () => {
     const sim = newSim();
     grant(sim, { currency: 8 });
     const dwell = sim.compiled.pads.dwellTicks;
-    expect(dwell).toBe(Math.round(0.35 * TPS));
+    expect(dwell).toBe(Math.round(0.5 * TPS));
     // A chord 20 units off the pad centre at walking speed: inside the radius for fewer than dwell ticks.
     walkTo(sim, at(110, 450), 4);
     const cross = walkPath(sim, [at(210, 450), at(220, 470)], 4);
@@ -75,6 +75,16 @@ describe("workers and build pads (level 1)", () => {
     walkTo(sim, at(160, 520), 4);
     expect(sim.state.player.padId).toBeNull();
     expect(sim.state.player.padDwell).toBe(0);
+  });
+
+  it("pad dwell: a straight crossing through the exact centre of a pad never pays (DECISIONS 9g)", () => {
+    const sim = newSim();
+    grant(sim, { currency: 8 });
+    expect(sim.compiled.pads.dwellTicks).toBe(15);
+    walkTo(sim, at(110, 430), 3);
+    const cross = walkPath(sim, [at(220, 430)], 3);
+    expect(all(cross, "pad_paid")).toEqual([]);
+    expect(sim.state.currency).toBe(8);
   });
 
   it("pads.dwell 0 pays on the first act tick", () => {
@@ -125,7 +135,7 @@ describe("workers and build pads (level 1)", () => {
     idle(sim, 30);
     expect(sim.state.sales!.shelf["res.food_raw_1"]).toBe(6);
     walkTo(sim, at(200, 630), 8);
-    idle(sim, 40, (e) => has(e, "hired"));
+    idle(sim, 80, (e) => has(e, "hired"));
     walkTo(sim, at(120, 450), 10); // well away from the register
     const ev = idle(sim, 30 * TPS, (e) => has(e, "sold"));
     expect(has(ev, "sold")).toBe(true);

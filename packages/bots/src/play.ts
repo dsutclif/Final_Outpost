@@ -110,7 +110,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
 
   const inputs: Input[] = [];
   const stallStates: StallState[] = [];
-  let lastProgress = 0, stalls = 0;
+  let lastProgress = 0, stalls = 0, lastCapNeed = Infinity;
   let fuelMin = 1, fuelLow = 0, moveOnly = 0, acting = 0, dead = 0, earned = 0;
   const used = new Set<string>();
   const progressS: number[] = [], threatS: number[] = [];
@@ -125,12 +125,23 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     const ev = sim.step(inp);
     let progressed = false, acted = false;
     const needCur = brain.currencyNeedNext(st);
+    // Capped goods the plan still needs (refined, salvage): carrying or making more of them is
+    // progress even when no pad has been paid yet, so a bot still building up a load is not "stalled".
+    // Sampled twice a second, and only on plans that have such costs at all (it is a per-step scan).
+    if (brain.usesCapped && st.tick % 15 === 0) {
+      const capNeed = Object.values(brain.cappedNeed(st)).reduce((a, b) => a + b, 0);
+      if (capNeed < lastCapNeed) progressed = true;
+      lastCapNeed = capNeed;
+    }
     for (const e of ev) {
+      if (e.t === "converted" && brain.usesCapped && (brain.cappedNeed(st)[e.res] ?? 0) > 0) progressed = true;
       if (PROGRESS_EVENTS.has(e.t)) progressed = true;
       if (REWARD_EVENTS.has(e.t) && e.t !== "sold") progressed = true;
       if (e.t === "sold") {
         earned += e.pay;
         if (currencyReachable(st, needCur, earned, budgetTicks)) progressed = true;
+        // Serving a premium customer is the goal itself on serve_premium levels.
+        if (goal.type === "serve_premium" && e.premium) progressed = true;
       }
       if (e.t === "collected" && currencyReachable(st, needCur, earned, budgetTicks)) progressed = true;
       if (e.t === "deposited" && e.to === "sink.core" && e.by === undefined && fuelBefore * 2 < coreCap(st, cp)) progressed = true;
@@ -168,7 +179,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   }
 
   const won = st.won === true;
-  const reason = st.over ? st.reason ?? "unknown" : "time_budget";
+  const reason = st.over ? st.reason ?? "unknown" : "budget";
   const ticks = st.tick;
   let margin: number;
   if (goal.type === "waves") {
@@ -239,8 +250,9 @@ const coreCap = (st: State, cp: { core: { levels: { fuelCap: number }[] } }): nu
 function currencyReachable(st: State, need: number, earned: number, budgetTicks: number): boolean {
   if (need <= st.currency) return false;
   const rate = earned / Math.max(TPS * 10, st.tick);
-  const left = Math.max(0, budgetTicks - st.tick);
-  return need - st.currency <= rate * left * 1.5 + 1;
+  // Judged against the whole budget, not what is left of it: a bot still earning toward a price it
+  // could have reached must not turn into a "stall" just because the clock is nearly out.
+  return need - st.currency <= rate * budgetTicks * 1.5 + 1;
 }
 
 function snapshotStall(st: State, brain: Brain): StallState {

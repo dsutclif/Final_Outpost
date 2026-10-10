@@ -1,8 +1,8 @@
 {
   "id": "s1-L010",
   "seed": 633739471,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -20,7 +20,6 @@
     "carry",
     "core",
     "gather",
-    "lasso",
     "sales",
     "source_gating",
     "workers"
@@ -107,9 +106,9 @@
     },
     {
       "type": "barrier.line",
-      "id": "fence",
+      "id": "wall",
       "res": "res.currency",
-      "costPerSection": 8,
+      "costPerSection": 7,
       "sections": [
         {
           "a": [
@@ -119,8 +118,7 @@
           "b": [
             138,
             160
-          ],
-          "prebuilt": true
+          ]
         },
         {
           "a": [
@@ -131,8 +129,7 @@
             298,
             160
           ],
-          "gate": true,
-          "prebuilt": true
+          "gate": true
         },
         {
           "a": [
@@ -142,37 +139,8 @@
           "b": [
             480,
             160
-          ],
-          "prebuilt": true
+          ]
         }
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        162,
-        96
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        308,
-        96
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        416,
-        84
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        64,
-        66
       ]
     },
     {
@@ -267,7 +235,7 @@
         805
       ],
       "cost": {
-        "res.currency": 92
+        "res.currency": 64
       },
       "build": "struct.landmark",
       "big": true,
@@ -301,8 +269,8 @@
     "customers.spawn": 2.8,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 11,
-    "level.budgetSeconds": 310
+    "housing.base": 7,
+    "level.budgetSeconds": 250
   },
   "goal": {
     "type": "build",
@@ -321,9 +289,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.256,
-    "fun": 0.561,
-    "botMargin": 0.458,
+    "difficulty": 0.216,
+    "fun": 0.666,
+    "botMargin": 0.437,
     "botsPassed": [
       "good",
       "average",

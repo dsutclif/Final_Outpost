@@ -1,8 +1,8 @@
 {
   "id": "s1-L044",
-  "seed": 1664954184,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 922952508,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,12 +19,12 @@
     "barrier_lines",
     "build_pads",
     "carry",
-    "converters",
     "core",
     "defense",
     "gather",
-    "medical",
+    "hunting",
     "sales",
+    "salvage_upgrades",
     "workers"
   ],
   "start": [
@@ -48,57 +48,68 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        345,
+        347,
         639
       ],
       "sells": [
         "res.food_raw_1",
-        "res.food_prepared",
         "res.food_raw_2"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        76,
-        405
+        58,
+        461
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        75,
-        454
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        142,
-        386
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        92,
+        117,
         346
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        109,
+        426
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        56,
+        396
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        78,
-        674
+        80,
+        612
       ]
     },
     {
       "type": "node.fuel_deposit",
       "at": [
-        430,
-        410
+        415,
+        378
       ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        190,
+        345,
+        150,
+        70
+      ],
+      "animal": "node.prey",
+      "n": 3
     },
     {
       "type": "barrier.line",
@@ -146,8 +157,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        180,
-        472
+        189,
+        456
       ],
       "cost": {
         "res.currency": 9
@@ -162,11 +173,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        178,
-        655
+        193,
+        621
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
       "role": {
         "role": "role.supplier",
@@ -179,11 +190,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        237,
-        736
+        254,
+        743
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 21
       },
       "role": {
         "role": "role.cashier",
@@ -191,106 +202,66 @@
       }
     },
     {
-      "type": "pad.build",
-      "id": "grill",
-      "at": [
-        225,
-        641
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "build": "conv.food_processor",
-      "requires": {
-        "pad": "feeder"
-      }
-    },
-    {
       "type": "pad.hire",
-      "id": "cook",
+      "id": "hunter",
       "at": [
-        152,
-        698
+        279,
+        439
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 14
       },
       "role": {
-        "role": "role.operator",
-        "to": "conv.food_processor"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "feeder",
-      "at": [
-        123,
-        625
-      ],
-      "cost": {
-        "res.currency": 11
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "conv.food_processor",
-        "node": "food1"
-      },
-      "requires": {
-        "pad": "cook"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "server",
-      "at": [
-        332,
-        579
-      ],
-      "cost": {
-        "res.currency": 11
-      },
-      "role": {
-        "role": "role.server",
-        "from": "conv.food_processor",
+        "role": "role.hunter",
+        "from": "node.prey",
         "to": "sink.sales_point"
-      },
-      "requires": {
-        "pad": "grill"
       }
     },
     {
       "type": "pad.build",
       "id": "tower0",
       "at": [
-        231,
-        366
+        238,
+        360
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 21
       },
-      "build": "struct.ranged_defense"
+      "build": "struct.ranged_defense",
+      "requires": {
+        "pad": "hunter"
+      }
     },
     {
       "type": "pad.build",
-      "id": "medic",
+      "id": "towerup0",
       "at": [
-        406,
-        651
+        214,
+        424
       ],
       "cost": {
-        "res.currency": 13
+        "res.salvage": 3
       },
-      "build": "struct.medical"
+      "build": "struct.ranged_defense.t2",
+      "target": "tower0",
+      "requires": {
+        "pad": "tower0"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        293,
+        380
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "build": "struct.barrier.reinforced"
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -309,39 +280,36 @@
   ],
   "waves": [
     {
-      "t": 20,
-      "counts": {
-        "hostile.creature": 4
-      }
-    },
-    {
       "t": 51,
       "counts": {
-        "hostile.creature": 7
+        "hostile.creature": 8,
+        "hostile.raider_humanoid": 2
       }
     },
     {
-      "t": 106,
+      "t": 105,
       "counts": {
-        "hostile.creature": 10
+        "hostile.creature": 11,
+        "hostile.raider_humanoid": 4
       }
     },
     {
-      "t": 161,
+      "t": 159,
       "counts": {
-        "hostile.creature": 12
+        "hostile.creature": 14,
+        "hostile.raider_humanoid": 6
       }
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 6,
+    "start.currency": 4,
     "core.burn": 2.4,
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 9,
-    "meters.baseHealth": 11,
+    "housing.base": 7,
+    "meters.baseHealth": 10,
     "level.budgetSeconds": 220
   },
   "goal": {
@@ -353,17 +321,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Med Bays and Raiders",
+      "title": "Scrap and Raiders",
       "goal": "Survive every raid",
       "tips": [
-        "Hurt colonists stop working until a med bay heals them."
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
       ]
     }
   },
   "rating": {
     "difficulty": 0.595,
-    "fun": 0.83,
-    "botMargin": 0.874,
+    "fun": 0.575,
+    "botMargin": 0.89,
     "botsPassed": [
       "good",
       "average",

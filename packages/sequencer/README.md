@@ -37,15 +37,15 @@ Rules read `packages/content/data/modules.json` (`requires`, `excludes`, `always
 These live in `data/sequencer.json` with a note each, because the bot ladder (Stream C) can only
 verify a module it actually exercises:
 
-- `coIntroduce: barrier_lines -> lasso`. The bot builds barrier sections only on waves goals and
-  registers the module on `barrier_built` or `captured`, so a level with barrier lines alone always
-  fails the idle-module filter. Barrier lines are taught with the lasso (which requires them), and
-  `dependencyOnly` keeps them from being drawn as a free companion.
-- `implies`: workers imply build pads (hire pads are pads); hunting implies workers (the bot never
-  hunts; a hunter hire does).
+- `coIntroduce` and `dependencyOnly` are empty since 0.4.0. Barrier lines are taught on their own,
+  before the lasso (DECISIONS 1): the bot builds unbuilt barrier sections on any goal and the
+  generator emits a standalone yard wall, so a level with barrier lines alone exercises the module.
+- `implies`: workers imply build pads (hire pads are pads); hunting implies workers (a hunter hire
+  keeps the module exercised; the bot also hunts on its own).
 - `anchored` modules (source gating, core levels, blocked zones, hunting) need a pad the bot will
-  certainly buy to hang their pads from: build and waves goals, population with housing, or any goal
-  with workers (the cashier hire).
+  certainly buy to hang their pads from: build and waves goals, or any goal with workers (the
+  cashier hire). A population goal with housing alone does not anchor them: the housing pads need
+  none of the chain, so the module sat idle.
 - `goalExcludes`: defense modules pair only with waves goals. Currency goals are kept off every
   level with plan steps, and level 1 builds the landmark (`coreGoal`), because the stall detector
   counts sales as progress only toward a plan-step price, so a pad-free currency level stalls.

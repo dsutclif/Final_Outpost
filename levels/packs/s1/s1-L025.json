@@ -1,8 +1,8 @@
 {
   "id": "s1-L025",
   "seed": 1269787539,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -17,11 +17,11 @@
   "modules": [
     "build_pads",
     "carry",
+    "converters",
     "core",
-    "core_levels",
-    "customer_variety",
     "gather",
-    "sales"
+    "sales",
+    "workers"
   ],
   "start": [
     240,
@@ -36,7 +36,7 @@
         520
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -48,94 +48,207 @@
         719
       ],
       "sells": [
-        "res.food_raw_1"
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        74,
-        603
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        77,
-        428
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        63,
-        486
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        42,
-        571
+        "res.food_raw_1",
+        "res.food_prepared"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
         32,
-        439
+        524
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        32,
+        594
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        70,
+        416
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        73,
+        617
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        415,
-        510
+        402,
+        418
       ]
     },
     {
-      "type": "pad.build",
-      "id": "core_level",
+      "type": "pad.hire",
+      "id": "hire_core",
       "at": [
-        162,
-        616
+        127,
+        528
       ],
       "cost": {
-        "res.currency": 23
+        "res.currency": 10
       },
-      "build": "sink.core.level"
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        313,
+        520
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        123,
+        808
+      ],
+      "cost": {
+        "res.currency": 22
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "grill",
+      "at": [
+        132,
+        681
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "build": "conv.food_processor",
+      "requires": {
+        "pad": "feeder"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "cook",
+      "at": [
+        65,
+        749
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "role": {
+        "role": "role.operator",
+        "to": "conv.food_processor"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "feeder",
+      "at": [
+        280,
+        580
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "conv.food_processor",
+        "node": "food1"
+      },
+      "requires": {
+        "pad": "cook"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "server",
+      "at": [
+        189,
+        727
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "role": {
+        "role": "role.server",
+        "from": "conv.food_processor",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "grill"
+      }
     },
     {
       "type": "pad.build",
       "id": "landmark",
       "at": [
-        100,
-        794
+        73,
+        811
       ],
       "cost": {
-        "res.currency": 66
+        "res.currency": 279
       },
       "build": "struct.landmark",
-      "big": true,
-      "requires": {
-        "coreLevel": 2
-      }
+      "big": true
     }
   ],
-  "people": [],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 10,
-    "core.burn": 2.8,
-    "customers.spawn": 2.7,
+    "start.currency": 3,
+    "core.burn": 2.2,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 2,
-    "customers.impatientShare": 0.19,
-    "customers.premiumShare": 0.21,
-    "level.budgetSeconds": 150
+    "customers.orderMax": 3,
+    "housing.base": 8,
+    "level.budgetSeconds": 360
   },
   "goal": {
     "type": "build",
@@ -146,22 +259,23 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hurried Traders and Groundbreak",
+      "title": "Smelters and Groundbreak",
       "goal": "Build the Habitat hub",
       "tips": [
-        "Hurried traders leave fast and gold VIP traders pay double."
+        "Converters turn one resource into another, but only while someone stands on the operator spot."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.442,
-    "fun": 0.911,
-    "botMargin": 0.512,
+    "difficulty": 0.339,
+    "fun": 0.698,
+    "botMargin": 0.323,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ]
   }
 }

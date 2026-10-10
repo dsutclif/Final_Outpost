@@ -1,8 +1,8 @@
 {
   "id": "s1-L036",
-  "seed": 2117954190,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 922520431,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,7 +19,7 @@
     "build_pads",
     "carry",
     "core",
-    "defenders",
+    "customer_variety",
     "defense",
     "gather",
     "sales",
@@ -39,7 +39,7 @@
         500
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -47,7 +47,7 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        337,
+        338,
         638
       ],
       "sells": [
@@ -58,52 +58,45 @@
     {
       "type": "node.material_source",
       "at": [
-        62,
-        410
+        48,
+        502
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        55,
-        526
+        81,
+        427
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        102,
-        379
+        112,
+        364
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        72,
-        472
+        130,
+        406
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        58,
-        590
-      ]
-    },
-    {
-      "type": "node.fuel_deposit",
-      "at": [
-        288,
-        357
+        78,
+        588
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        93,
-        619
+        89,
+        633
       ],
       "enabled": false
     },
@@ -153,8 +146,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        159,
-        472
+        172,
+        477
       ],
       "cost": {
         "res.currency": 9
@@ -169,11 +162,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        182,
-        597
+        178,
+        600
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
       "role": {
         "role": "role.supplier",
@@ -186,11 +179,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        230,
-        723
+        215,
+        718
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 21
       },
       "role": {
         "role": "role.cashier",
@@ -201,8 +194,8 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        93,
-        619
+        89,
+        633
       ],
       "cost": {
         "res.currency": 17
@@ -217,8 +210,8 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        192,
-        648
+        196,
+        640
       ],
       "cost": {
         "res.currency": 17
@@ -237,45 +230,15 @@
       "type": "pad.build",
       "id": "tower0",
       "at": [
-        240,
-        367
+        237,
+        372
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 21
       },
       "build": "struct.ranged_defense",
       "requires": {
         "pad": "hire_food2"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "barracks",
-      "at": [
-        126,
-        650
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "build": "struct.barracks"
-    },
-    {
-      "type": "pad.hire",
-      "id": "train",
-      "at": [
-        135,
-        730
-      ],
-      "cost": {
-        "res.currency": 6
-      },
-      "role": {
-        "role": "role.defender"
-      },
-      "repeatable": true,
-      "requires": {
-        "pad": "barracks"
       }
     }
   ],
@@ -294,47 +257,40 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [
     {
-      "t": 49,
+      "t": 53,
       "counts": {
-        "hostile.creature": 9
+        "hostile.creature": 8
       }
     },
     {
-      "t": 101,
+      "t": 106,
       "counts": {
-        "hostile.creature": 12
+        "hostile.creature": 11
       }
     },
     {
-      "t": 153,
+      "t": 159,
       "counts": {
-        "hostile.creature": 15
+        "hostile.creature": 14
       }
     }
   ],
   "events": [],
   "params": {
     "start.currency": 4,
-    "core.burn": 2.4,
+    "core.burn": 2.5,
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 10,
-    "meters.baseHealth": 9,
-    "level.budgetSeconds": 210
+    "housing.base": 7,
+    "customers.impatientShare": 0.25,
+    "customers.premiumShare": 0.17,
+    "meters.baseHealth": 10,
+    "level.budgetSeconds": 220
   },
   "goal": {
     "type": "waves"
@@ -353,9 +309,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.657,
-    "fun": 0.822,
-    "botMargin": 0.874,
+    "difficulty": 0.679,
+    "fun": 0.638,
+    "botMargin": 0.902,
     "botsPassed": [
       "good",
       "average",

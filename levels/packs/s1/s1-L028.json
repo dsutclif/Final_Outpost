@@ -1,8 +1,8 @@
 {
   "id": "s1-L028",
   "seed": 693082942,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,12 +15,12 @@
     ]
   },
   "modules": [
+    "blocked_zones",
     "build_pads",
     "carry",
     "converters",
     "core",
     "core_levels",
-    "customer_variety",
     "gather",
     "hunting",
     "sales",
@@ -39,7 +39,7 @@
         500
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -59,44 +59,30 @@
     {
       "type": "node.material_source",
       "at": [
-        112,
-        412
+        66,
+        518
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        68,
-        526
+        53,
+        472
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        41,
-        485
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        104,
-        556
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        70,
-        439
+        81,
+        405
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        449,
-        478
+        427,
+        448
       ]
     },
     {
@@ -112,14 +98,24 @@
       "n": 3
     },
     {
+      "type": "zone.blocked",
+      "id": "rubble",
+      "rect": [
+        0,
+        282,
+        480,
+        44
+      ]
+    },
+    {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        151,
-        489
+        161,
+        485
       ],
       "cost": {
-        "res.currency": 9
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -131,11 +127,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        385,
-        564
+        390,
+        563
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
       "role": {
         "role": "role.supplier",
@@ -148,29 +144,26 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        217,
-        773
+        216,
+        777
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 22
       },
       "role": {
         "role": "role.cashier",
         "to": "sink.sales_point"
-      },
-      "requires": {
-        "coreLevel": 2
       }
     },
     {
       "type": "pad.build",
       "id": "grill",
       "at": [
-        208,
-        630
+        189,
+        653
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
       "build": "conv.food_processor",
       "requires": {
@@ -181,11 +174,11 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        124,
-        676
+        111,
+        705
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 12
       },
       "role": {
         "role": "role.operator",
@@ -196,11 +189,11 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        329,
-        545
+        299,
+        554
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 12
       },
       "role": {
         "role": "role.supplier",
@@ -216,11 +209,11 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        259,
-        686
+        308,
+        605
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 12
       },
       "role": {
         "role": "role.server",
@@ -235,11 +228,11 @@
       "type": "pad.hire",
       "id": "hunter",
       "at": [
-        160,
-        584
+        155,
+        583
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
       "role": {
         "role": "role.hunter",
@@ -254,19 +247,48 @@
       "type": "pad.build",
       "id": "core_level",
       "at": [
-        185,
-        553
+        134,
+        549
       ],
       "cost": {
-        "res.currency": 27
+        "res.currency": 30
       },
       "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "zone_pad",
+      "at": [
+        234,
+        364
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "build": "zone.clear",
+      "target": "rubble",
+      "requires": {
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        110,
+        226
+      ],
+      "cost": {
+        "res.currency": 205
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "zone_pad"
+      }
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -292,36 +314,34 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.7,
-    "customers.spawn": 2.9,
+    "start.currency": 4,
+    "core.burn": 2.2,
+    "customers.spawn": 3.2,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 10,
-    "customers.impatientShare": 0.22,
-    "customers.premiumShare": 0.21,
+    "customers.orderMax": 3,
+    "housing.base": 9,
     "level.budgetSeconds": 300
   },
   "goal": {
-    "type": "serve_premium",
-    "n": 10
+    "type": "build",
+    "target": "landmark"
   },
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hoppers and Fine Dining",
-      "goal": "Serve 10 VIP traders",
+      "title": "Hoppers and Scaffolds",
+      "goal": "Build the Habitat hub",
       "tips": [
         "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.377,
-    "fun": 0.888,
-    "botMargin": 0.498,
+    "difficulty": 0.799,
+    "fun": 0.925,
+    "botMargin": 0.293,
     "botsPassed": [
       "good",
       "average",

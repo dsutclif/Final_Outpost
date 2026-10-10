@@ -1,8 +1,8 @@
 {
   "id": "s1-L015",
   "seed": 294531354,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,11 +15,10 @@
     ]
   },
   "modules": [
-    "blocked_zones",
+    "barrier_lines",
     "build_pads",
     "carry",
     "core",
-    "core_levels",
     "gather",
     "housing",
     "sales",
@@ -107,13 +106,42 @@
       "enabled": false
     },
     {
-      "type": "zone.blocked",
-      "id": "rubble",
-      "rect": [
-        0,
-        282,
-        480,
-        44
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 7,
+      "sections": [
+        {
+          "a": [
+            0,
+            160
+          ],
+          "b": [
+            160,
+            160
+          ]
+        },
+        {
+          "a": [
+            160,
+            160
+          ],
+          "b": [
+            320,
+            160
+          ],
+          "gate": true
+        },
+        {
+          "a": [
+            320,
+            160
+          ],
+          "b": [
+            480,
+            160
+          ]
+        }
       ]
     },
     {
@@ -125,7 +153,7 @@
       ],
       "arrivals": {
         "every": 15,
-        "total": 4
+        "total": 3
       }
     },
     {
@@ -214,57 +242,29 @@
     },
     {
       "type": "pad.build",
-      "id": "core_level",
+      "id": "landmark",
       "at": [
-        157,
-        528
+        234,
+        785
       ],
       "cost": {
-        "res.currency": 26
+        "res.currency": 37
       },
-      "build": "sink.core.level"
-    },
-    {
-      "type": "pad.build",
-      "id": "zone_pad",
-      "at": [
-        276,
-        394
-      ],
-      "cost": {
-        "res.currency": 16
-      },
-      "build": "zone.clear",
-      "target": "rubble",
+      "build": "struct.landmark",
+      "big": true,
       "requires": {
-        "pad": "hire_food2",
-        "coreLevel": 2
+        "pad": "hire_food2"
       }
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        311,
-        589
+        317,
+        584
       ],
       "cost": {
         "res.currency": 13
-      },
-      "build": "struct.housing",
-      "requires": {
-        "pad": "zone_pad"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "housing1",
-      "at": [
-        123,
-        555
-      ],
-      "cost": {
-        "res.currency": 16
       },
       "build": "struct.housing"
     }
@@ -294,29 +294,29 @@
     "customers.spawn": 2.8,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 5,
-    "level.budgetSeconds": 230
+    "housing.base": 6,
+    "level.budgetSeconds": 210
   },
   "goal": {
-    "type": "population",
-    "n": 9
+    "type": "build",
+    "target": "landmark"
   },
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Locked Caches and New Arrivals",
-      "goal": "Grow the colony to 9 colonists",
+      "title": "Locked Caches and Scaffolds",
+      "goal": "Build the Habitat hub",
       "tips": [
         "Some grow domes start locked. Unlock them with credits on their pad."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.328,
-    "fun": 0.536,
-    "botMargin": 0.445,
+    "difficulty": 0.282,
+    "fun": 0.741,
+    "botMargin": 0.424,
     "botsPassed": [
       "good",
       "average",

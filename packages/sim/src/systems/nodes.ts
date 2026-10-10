@@ -30,3 +30,15 @@ export function dropOnly(st: State, cp: Compiled, res: string): boolean {
   if (st.converters.some((c) => cp.converters[c.type]!.output === res)) return false;
   return producible(st, cp, res);
 }
+
+/**
+ * True when a resource's only source is a placed converter that has nothing to give: no enabled
+ * node yields it, every converter making it holds no output and is not running. Customers skip
+ * such goods while the shelf is empty, so an unfed converter cannot clog the queue (DECISIONS 9f).
+ */
+export function converterIdle(st: State, cp: Compiled, res: string): boolean {
+  if (st.nodes.some((n) => n.enabled && cp.nodes[n.type]!.yields === res)) return false;
+  const makers = st.converters.filter((c) => cp.converters[c.type]!.output === res);
+  if (makers.length === 0) return false;
+  return makers.every((c) => c.out === 0 && c.inQ.length === 0);
+}

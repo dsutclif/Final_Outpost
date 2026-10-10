@@ -1,8 +1,8 @@
 {
   "id": "s1-L014",
-  "seed": 1072745074,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 1387735723,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,11 +15,10 @@
     ]
   },
   "modules": [
-    "blocked_zones",
+    "barrier_lines",
     "build_pads",
     "carry",
     "core",
-    "core_levels",
     "gather",
     "housing",
     "sales"
@@ -45,8 +44,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        251,
-        720
+        246,
+        725
       ],
       "sells": [
         "res.food_raw_1"
@@ -55,61 +54,83 @@
     {
       "type": "node.material_source",
       "at": [
-        70,
-        580
+        55,
+        479
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        49,
-        470
+        74,
+        601
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        84,
-        401
+        80,
+        647
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        72,
-        519
+        47,
+        536
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        28,
-        527
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        30,
-        430
+        67,
+        405
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        427,
-        525
+        408,
+        476
       ]
     },
     {
-      "type": "zone.blocked",
-      "id": "rubble",
-      "rect": [
-        0,
-        282,
-        480,
-        44
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 5,
+      "sections": [
+        {
+          "a": [
+            0,
+            160
+          ],
+          "b": [
+            160,
+            160
+          ]
+        },
+        {
+          "a": [
+            160,
+            160
+          ],
+          "b": [
+            320,
+            160
+          ],
+          "gate": true
+        },
+        {
+          "a": [
+            320,
+            160
+          ],
+          "b": [
+            480,
+            160
+          ]
+        }
       ]
     },
     {
@@ -121,62 +142,42 @@
       ],
       "arrivals": {
         "every": 13,
-        "total": 3
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "core_level",
-      "at": [
-        140,
-        571
-      ],
-      "cost": {
-        "res.currency": 20
-      },
-      "build": "sink.core.level"
-    },
-    {
-      "type": "pad.build",
-      "id": "zone_pad",
-      "at": [
-        231,
-        367
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "build": "zone.clear",
-      "target": "rubble",
-      "requires": {
-        "coreLevel": 2
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "landmark",
-      "at": [
-        95,
-        226
-      ],
-      "cost": {
-        "res.currency": 33
-      },
-      "build": "struct.landmark",
-      "big": true,
-      "requires": {
-        "pad": "zone_pad"
+        "total": 5
       }
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        337,
-        635
+        349,
+        631
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 11
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing1",
+      "at": [
+        141,
+        630
+      ],
+      "cost": {
+        "res.currency": 14
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing2",
+      "at": [
+        346,
+        694
+      ],
+      "cost": {
+        "res.currency": 17
       },
       "build": "struct.housing"
     }
@@ -185,35 +186,34 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 11,
-    "core.burn": 3,
-    "customers.spawn": 2.5,
+    "start.currency": 10,
+    "core.burn": 2.9,
+    "customers.spawn": 2.6,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
     "housing.base": 1,
-    "level.budgetSeconds": 200
+    "level.budgetSeconds": 140
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "population",
+    "n": 5
   },
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Rockslides and Groundbreak",
-      "goal": "Build the Habitat hub",
+      "title": "Domes and Headcount",
+      "goal": "Grow the colony to 5 colonists",
       "tips": [
-        "Rockslides block the way until you clear them from their pad.",
-        "Upgrade the reactor for a bigger heat ring and new build sites."
+        "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.373,
-    "fun": 0.834,
-    "botMargin": 0.624,
+    "difficulty": 0.24,
+    "fun": 0.88,
+    "botMargin": 0.57,
     "botsPassed": [
       "good",
       "average",

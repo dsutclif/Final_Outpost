@@ -1,8 +1,8 @@
 {
   "id": "s1-L042",
   "seed": 858836680,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,11 +19,11 @@
     "build_pads",
     "carry",
     "core",
-    "defenders",
+    "customer_variety",
     "defense",
     "gather",
-    "medical",
     "sales",
+    "salvage_upgrades",
     "workers"
   ],
   "start": [
@@ -58,44 +58,37 @@
     {
       "type": "node.material_source",
       "at": [
-        154,
-        686
+        80,
+        652
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        86,
-        692
+        97,
+        698
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        58,
-        609
+        31,
+        606
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        36,
-        662
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        124,
-        611
+        167,
+        677
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        454,
-        661
+        394,
+        676
       ]
     },
     {
@@ -113,7 +106,7 @@
             160,
             290
           ],
-          "prebuilt": false
+          "prebuilt": true
         },
         {
           "a": [
@@ -144,8 +137,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        160,
-        570
+        174,
+        538
       ],
       "cost": {
         "res.currency": 8
@@ -160,11 +153,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        419,
+        390,
         550
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -177,11 +170,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        297,
-        410
+        298,
+        495
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 19
       },
       "role": {
         "role": "role.cashier",
@@ -196,7 +189,7 @@
         368
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 19
       },
       "build": "struct.ranged_defense"
     },
@@ -204,67 +197,60 @@
       "type": "pad.build",
       "id": "tower1",
       "at": [
-        322,
+        314,
         373
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 19
       },
       "build": "struct.ranged_defense"
     },
     {
       "type": "pad.build",
-      "id": "barracks",
+      "id": "towerup0",
       "at": [
-        113,
-        553
+        165,
+        425
       ],
       "cost": {
-        "res.currency": 12
+        "res.salvage": 3
       },
-      "build": "struct.barracks"
-    },
-    {
-      "type": "pad.hire",
-      "id": "train",
-      "at": [
-        174,
-        643
-      ],
-      "cost": {
-        "res.currency": 5
-      },
-      "role": {
-        "role": "role.defender"
-      },
-      "repeatable": true,
+      "build": "struct.ranged_defense.t2",
+      "target": "tower0",
       "requires": {
-        "pad": "barracks"
+        "pad": "tower0"
       }
     },
     {
       "type": "pad.build",
-      "id": "medic",
+      "id": "towerup1",
       "at": [
-        316,
-        594
+        342,
+        516
       ],
       "cost": {
-        "res.currency": 12
+        "res.salvage": 3
       },
-      "build": "struct.medical"
+      "build": "struct.ranged_defense.t2",
+      "target": "tower1",
+      "requires": {
+        "pad": "tower1"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        198,
+        397
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "build": "struct.barrier.reinforced"
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -280,40 +266,39 @@
   ],
   "waves": [
     {
-      "t": 20,
+      "t": 52,
       "counts": {
-        "hostile.creature": 4
+        "hostile.creature": 7,
+        "hostile.raider_humanoid": 2
       }
     },
     {
-      "t": 60,
+      "t": 109,
       "counts": {
-        "hostile.creature": 6
+        "hostile.creature": 9,
+        "hostile.raider_humanoid": 3
       }
     },
     {
-      "t": 124,
+      "t": 165,
       "counts": {
-        "hostile.creature": 8
-      }
-    },
-    {
-      "t": 188,
-      "counts": {
-        "hostile.creature": 11
+        "hostile.creature": 11,
+        "hostile.raider_humanoid": 5
       }
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 9,
-    "core.burn": 2.7,
-    "customers.spawn": 2.7,
+    "start.currency": 6,
+    "core.burn": 2.4,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 9,
+    "customers.orderMax": 3,
+    "housing.base": 6,
+    "customers.impatientShare": 0.26,
+    "customers.premiumShare": 0.19,
     "meters.baseHealth": 11,
-    "level.budgetSeconds": 250
+    "level.budgetSeconds": 230
   },
   "goal": {
     "type": "waves"
@@ -324,17 +309,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Med Bays and Hold Fast",
+      "title": "Scrap and Hold Fast",
       "goal": "Survive every raid",
       "tips": [
-        "Hurt colonists stop working until a med bay heals them."
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.449,
-    "fun": 0.912,
-    "botMargin": 0.908,
+    "difficulty": 0.459,
+    "fun": 0.897,
+    "botMargin": 0.91,
     "botsPassed": [
       "good",
       "average",

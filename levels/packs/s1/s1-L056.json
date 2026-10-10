@@ -1,8 +1,8 @@
 {
   "id": "s1-L056",
-  "seed": 1329038753,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 1427777921,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -16,15 +16,14 @@
     ]
   },
   "modules": [
-    "barrier_lines",
     "build_pads",
     "carry",
     "converters",
     "core",
-    "customer_variety",
-    "defense",
     "gather",
+    "hunting",
     "sales",
+    "supply_routing",
     "workers"
   ],
   "start": [
@@ -40,7 +39,7 @@
         510
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -48,8 +47,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        349,
-        636
+        345,
+        638
       ],
       "sells": [
         "res.food_raw_1",
@@ -60,104 +59,67 @@
     {
       "type": "node.material_source",
       "at": [
-        69,
-        411
+        95,
+        414
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        128,
-        378
+        138,
+        369
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        93,
-        450
+        48,
+        449
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        87,
-        348
+        89,
+        352
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        151,
+        421
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        83,
-        656
+        100,
+        674
       ]
     },
     {
-      "type": "node.fuel_deposit",
-      "at": [
-        440,
-        414
-      ]
-    },
-    {
-      "type": "node.fuel_deposit",
-      "at": [
-        414,
-        367
-      ]
-    },
-    {
-      "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 9,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            182,
-            290
-          ],
-          "prebuilt": false
-        },
-        {
-          "a": [
-            182,
-            290
-          ],
-          "b": [
-            342,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            342,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
-      ]
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        190,
+        345,
+        150,
+        70
+      ],
+      "animal": "node.prey",
+      "n": 3
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        176,
-        451
+        191,
+        458
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 9
       },
       "role": {
         "role": "role.supplier",
@@ -169,11 +131,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        165,
-        640
+        188,
+        663
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -186,11 +148,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        233,
-        691
+        282,
+        741
       ],
       "cost": {
-        "res.currency": 22
+        "res.currency": 20
       },
       "role": {
         "role": "role.cashier",
@@ -201,11 +163,11 @@
       "type": "pad.build",
       "id": "grill",
       "at": [
-        250,
-        728
+        226,
+        656
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 13
       },
       "build": "conv.food_processor",
       "requires": {
@@ -216,11 +178,11 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        181,
-        787
+        160,
+        700
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 11
       },
       "role": {
         "role": "role.operator",
@@ -231,11 +193,11 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        184,
-        699
+        152,
+        646
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 11
       },
       "role": {
         "role": "role.supplier",
@@ -251,11 +213,11 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        354,
-        739
+        312,
+        590
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 11
       },
       "role": {
         "role": "role.server",
@@ -268,15 +230,118 @@
     },
     {
       "type": "pad.build",
-      "id": "tower0",
+      "id": "saw",
       "at": [
-        238,
-        364
+        107,
+        497
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "build": "conv.material_processor"
+    },
+    {
+      "type": "pad.hire",
+      "id": "sawyer",
+      "at": [
+        181,
+        550
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.operator",
+        "to": "conv.material_processor"
+      },
+      "requires": {
+        "pad": "saw"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hunter",
+      "at": [
+        283,
+        442
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "conv.food_processor"
+      },
+      "requires": {
+        "pad": "grill"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "depot",
+      "at": [
+        167,
+        604
       ],
       "cost": {
         "res.currency": 22
       },
-      "build": "struct.ranged_defense"
+      "build": "struct.depot"
+    },
+    {
+      "type": "pad.hire",
+      "id": "hauler",
+      "at": [
+        212,
+        589
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.hauler",
+        "from": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "depot_supplier",
+      "at": [
+        120,
+        461
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        381,
+        809
+      ],
+      "cost": {
+        "res.currency": 83,
+        "res.material_refined": 13
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "depot"
+      }
     }
   ],
   "people": [
@@ -297,67 +362,56 @@
     },
     {
       "role": "idle"
-    }
-  ],
-  "waves": [
-    {
-      "t": 46,
-      "counts": {
-        "hostile.creature": 9
-      }
     },
     {
-      "t": 98,
-      "counts": {
-        "hostile.creature": 12
-      }
+      "role": "idle"
     },
     {
-      "t": 151,
-      "counts": {
-        "hostile.creature": 15
-      }
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
     }
   ],
+  "waves": [],
   "events": [],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.2,
-    "customers.spawn": 3.1,
+    "start.currency": 7,
+    "core.burn": 2.4,
+    "customers.spawn": 2.8,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 8,
-    "customers.impatientShare": 0.38,
-    "customers.premiumShare": 0.13,
-    "meters.baseHealth": 9,
-    "level.budgetSeconds": 210
+    "housing.base": 12,
+    "level.budgetSeconds": 240
   },
   "goal": {
-    "type": "waves"
+    "type": "build",
+    "target": "landmark"
   },
   "fail": [
-    "meter.lifeline",
-    "meter.base_health"
+    "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Turrets and Siege",
-      "goal": "Survive every raid",
+      "title": "Couriers and Raising the Hub",
+      "goal": "Build the Habitat hub",
       "tips": [
-        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
+        "A warehouse lets couriers move goods between sites for you."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.672,
-    "fun": 0.854,
-    "botMargin": 0.864,
+    "difficulty": 0.763,
+    "fun": 0.932,
+    "botMargin": 0.443,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ]
   }
 }

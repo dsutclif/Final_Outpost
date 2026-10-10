@@ -1,8 +1,8 @@
 {
   "id": "s1-L035",
-  "seed": 1445929856,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 1074723268,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,12 +19,10 @@
     "build_pads",
     "carry",
     "core",
-    "defenders",
+    "customer_variety",
     "defense",
     "gather",
-    "sales",
-    "source_gating",
-    "workers"
+    "sales"
   ],
   "start": [
     240,
@@ -39,7 +37,7 @@
         450
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -48,7 +46,7 @@
       "id": "shop",
       "at": [
         387,
-        400
+        401
       ],
       "sells": [
         "res.food_raw_1",
@@ -58,60 +56,44 @@
     {
       "type": "node.material_source",
       "at": [
-        117,
-        687
+        106,
+        722
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        67,
-        652
+        158,
+        734
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        175,
-        699
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        159,
-        653
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        30,
-        625
+        73,
+        686
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        406,
-        657
+        350,
+        703
       ]
     },
     {
-      "type": "node.food_source",
-      "id": "food2",
+      "type": "node.fuel_deposit",
       "at": [
-        372,
-        629
-      ],
-      "enabled": false
+        162,
+        368
+      ]
     },
     {
       "type": "barrier.line",
       "id": "wall",
       "res": "res.currency",
-      "costPerSection": 7,
+      "costPerSection": 9,
       "sections": [
         {
           "a": [
@@ -122,7 +104,7 @@
             160,
             290
           ],
-          "prebuilt": true
+          "prebuilt": false
         },
         {
           "a": [
@@ -150,191 +132,51 @@
       ]
     },
     {
-      "type": "pad.hire",
-      "id": "hire_core",
-      "at": [
-        176,
-        556
-      ],
-      "cost": {
-        "res.currency": 8
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food",
-      "at": [
-        398,
-        571
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_cashier",
-      "at": [
-        302,
-        501
-      ],
-      "cost": {
-        "res.currency": 19
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "unlock_food2",
-      "at": [
-        372,
-        629
-      ],
-      "cost": {
-        "res.currency": 16
-      },
-      "build": "node.enable",
-      "target": "food2",
-      "requires": {
-        "pad": "hire_food"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food2",
-      "at": [
-        361,
-        542
-      ],
-      "cost": {
-        "res.currency": 16
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food2"
-      },
-      "requires": {
-        "pad": "unlock_food2"
-      }
-    },
-    {
       "type": "pad.build",
       "id": "tower0",
       "at": [
-        199,
-        385
+        285,
+        377
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 23
       },
-      "build": "struct.ranged_defense",
-      "requires": {
-        "pad": "hire_food2"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "barracks",
-      "at": [
-        149,
-        595
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "build": "struct.barracks"
-    },
-    {
-      "type": "pad.hire",
-      "id": "train",
-      "at": [
-        113,
-        625
-      ],
-      "cost": {
-        "res.currency": 5
-      },
-      "role": {
-        "role": "role.defender"
-      },
-      "repeatable": true,
-      "requires": {
-        "pad": "barracks"
-      }
+      "build": "struct.ranged_defense"
     }
   ],
-  "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    }
-  ],
+  "people": [],
   "waves": [
     {
-      "t": 53,
+      "t": 44,
       "counts": {
-        "hostile.creature": 8
+        "hostile.creature": 9
       }
     },
     {
-      "t": 111,
-      "counts": {
-        "hostile.creature": 10
-      }
-    },
-    {
-      "t": 170,
+      "t": 95,
       "counts": {
         "hostile.creature": 13
+      }
+    },
+    {
+      "t": 146,
+      "counts": {
+        "hostile.creature": 16
       }
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.5,
-    "customers.spawn": 3,
+    "start.currency": 2,
+    "core.burn": 2.2,
+    "customers.spawn": 3.2,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 10,
-    "meters.baseHealth": 11,
-    "level.budgetSeconds": 230
+    "customers.orderMax": 3,
+    "housing.base": 2,
+    "customers.impatientShare": 0.37,
+    "customers.premiumShare": 0.13,
+    "meters.baseHealth": 8,
+    "level.budgetSeconds": 210
   },
   "goal": {
     "type": "waves"
@@ -345,17 +187,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Locked Caches and Raiders",
+      "title": "Turrets and Raiders",
       "goal": "Survive every raid",
       "tips": [
-        "Some grow domes start locked. Unlock them with credits on their pad."
+        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.587,
-    "fun": 0.583,
-    "botMargin": 0.889,
+    "difficulty": 0.572,
+    "fun": 0.718,
+    "botMargin": 0.837,
     "botsPassed": [
       "good",
       "average",

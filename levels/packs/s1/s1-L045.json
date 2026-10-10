@@ -1,8 +1,8 @@
 {
   "id": "s1-L045",
-  "seed": 350234150,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 196658801,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,12 +15,13 @@
     ]
   },
   "modules": [
+    "barrier_lines",
     "build_pads",
     "carry",
     "core",
-    "customer_variety",
+    "defense",
     "gather",
-    "hazard_events",
+    "medical",
     "sales"
   ],
   "start": [
@@ -36,7 +37,7 @@
         520
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -44,111 +45,218 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        249,
-        720
+        247,
+        718
       ],
       "sells": [
-        "res.food_raw_1"
+        "res.food_raw_1",
+        "res.food_raw_2"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        50,
-        506
+        49,
+        517
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        88,
-        382
+        77,
+        421
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        60,
-        607
+        27,
+        469
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        50,
-        430
+        68,
+        617
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        82,
+        363
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        440,
-        490
+        434,
+        513
       ]
     },
     {
       "type": "node.fuel_deposit",
       "at": [
-        403,
-        680
+        418,
+        661
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        457,
+        624
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 7,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            160,
+            290
+          ],
+          "prebuilt": false
+        },
+        {
+          "a": [
+            160,
+            290
+          ],
+          "b": [
+            320,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            320,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
       ]
     },
     {
       "type": "pad.build",
-      "id": "landmark",
+      "id": "tower0",
       "at": [
-        94,
-        801
+        172,
+        362
       ],
       "cost": {
-        "res.currency": 135
+        "res.currency": 18
       },
-      "build": "struct.landmark",
-      "big": true
-    }
-  ],
-  "people": [],
-  "waves": [],
-  "events": [
+      "build": "struct.ranged_defense"
+    },
     {
-      "type": "event.hazard",
-      "warnAt": 62,
-      "start": 70,
-      "end": 92
+      "type": "pad.build",
+      "id": "tower1",
+      "at": [
+        335,
+        378
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "build": "struct.ranged_defense"
+    },
+    {
+      "type": "pad.build",
+      "id": "medic",
+      "at": [
+        354,
+        671
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "build": "struct.medical"
     }
   ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 20,
+      "counts": {
+        "hostile.creature": 4
+      }
+    },
+    {
+      "t": 56,
+      "counts": {
+        "hostile.creature": 7
+      }
+    },
+    {
+      "t": 118,
+      "counts": {
+        "hostile.creature": 9
+      }
+    },
+    {
+      "t": 180,
+      "counts": {
+        "hostile.creature": 11
+      }
+    }
+  ],
+  "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.5,
-    "customers.spawn": 2.8,
+    "start.currency": 9,
+    "core.burn": 2.7,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "housing.base": 2,
-    "customers.impatientShare": 0.28,
-    "customers.premiumShare": 0.19,
+    "customers.orderMax": 2,
+    "housing.base": 5,
+    "meters.baseHealth": 11,
     "level.budgetSeconds": 240
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "waves"
   },
   "fail": [
-    "meter.lifeline"
+    "meter.lifeline",
+    "meter.base_health"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Dust and Raising the Hub",
-      "goal": "Build the Habitat hub",
+      "title": "Med Bays and Siege",
+      "goal": "Survive every raid",
       "tips": [
-        "A dust storm burns fuel fast. Fill the reactor before it hits."
+        "Hurt colonists stop working until a med bay heals them."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.097,
-    "fun": 0.89,
-    "botMargin": 0.515,
+    "difficulty": 0.396,
+    "fun": 0.901,
+    "botMargin": 0.857,
     "botsPassed": [
       "good",
       "average",

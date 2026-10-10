@@ -1,8 +1,8 @@
 {
   "id": "s1-L021",
-  "seed": 324504251,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 381296644,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -17,9 +17,9 @@
   "modules": [
     "build_pads",
     "carry",
-    "converters",
     "core",
     "gather",
+    "hunting",
     "sales",
     "workers"
   ],
@@ -44,59 +44,71 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        320,
-        689
+        319,
+        691
       ],
       "sells": [
         "res.food_raw_1",
-        "res.food_prepared"
+        "res.food_raw_2"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        43,
-        514
+        97,
+        368
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        63,
-        470
+        76,
+        423
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        138,
-        362
+        44,
+        501
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        106,
-        403
+        123,
+        406
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        406,
-        422
+        402,
+        410
       ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        20,
+        600,
+        140,
+        120
+      ],
+      "animal": "node.prey",
+      "n": 3
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        148,
-        459
+        152,
+        455
       ],
       "cost": {
-        "res.currency": 9
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -108,8 +120,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        367,
-        528
+        354,
+        508
       ],
       "cost": {
         "res.currency": 14
@@ -125,8 +137,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        222,
-        782
+        235,
+        793
       ],
       "cost": {
         "res.currency": 21
@@ -137,102 +149,19 @@
       }
     },
     {
-      "type": "pad.build",
-      "id": "grill",
+      "type": "pad.hire",
+      "id": "hunter",
       "at": [
-        196,
-        671
+        173,
+        602
       ],
       "cost": {
         "res.currency": 14
       },
-      "build": "conv.food_processor",
-      "requires": {
-        "pad": "feeder"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "cook",
-      "at": [
-        112,
-        740
-      ],
-      "cost": {
-        "res.currency": 12
-      },
       "role": {
-        "role": "role.operator",
-        "to": "conv.food_processor"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "feeder",
-      "at": [
-        288,
-        565
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "conv.food_processor",
-        "node": "food1"
-      },
-      "requires": {
-        "pad": "cook"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "server",
-      "at": [
-        291,
-        639
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "role": {
-        "role": "role.server",
-        "from": "conv.food_processor",
+        "role": "role.hunter",
+        "from": "node.prey",
         "to": "sink.sales_point"
-      },
-      "requires": {
-        "pad": "grill"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "saw",
-      "at": [
-        102,
-        534
-      ],
-      "cost": {
-        "res.currency": 18
-      },
-      "build": "conv.material_processor"
-    },
-    {
-      "type": "pad.hire",
-      "id": "sawyer",
-      "at": [
-        174,
-        587
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "role": {
-        "role": "role.operator",
-        "to": "conv.material_processor"
-      },
-      "requires": {
-        "pad": "saw"
       }
     },
     {
@@ -240,23 +169,19 @@
       "id": "landmark",
       "at": [
         108,
-        798
+        805
       ],
       "cost": {
-        "res.currency": 157,
-        "res.material_refined": 13
+        "res.currency": 149
       },
       "build": "struct.landmark",
-      "big": true
+      "big": true,
+      "requires": {
+        "pad": "hunter"
+      }
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -276,13 +201,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.4,
-    "customers.spawn": 3,
+    "start.currency": 4,
+    "core.burn": 2.3,
+    "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 9,
-    "level.budgetSeconds": 260
+    "housing.base": 7,
+    "level.budgetSeconds": 230
   },
   "goal": {
     "type": "build",
@@ -293,17 +218,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Smelters and Groundbreak",
+      "title": "Hoppers and Groundbreak",
       "goal": "Build the Habitat hub",
       "tips": [
-        "Converters turn one resource into another, but only while someone stands on the operator spot."
+        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.259,
-    "fun": 0.931,
-    "botMargin": 0.357,
+    "difficulty": 0.437,
+    "fun": 0.927,
+    "botMargin": 0.335,
     "botsPassed": [
       "good",
       "average",

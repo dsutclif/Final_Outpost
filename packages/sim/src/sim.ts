@@ -22,7 +22,7 @@ import { stepResidents } from "./systems/residents.js";
 import { stepSales } from "./systems/sales.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.3.0";
+export const ENGINE_VERSION = "0.4.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([

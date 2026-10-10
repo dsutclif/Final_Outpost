@@ -1,8 +1,8 @@
 {
   "id": "s1-L026",
   "seed": 652827244,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -20,9 +20,9 @@
     "converters",
     "core",
     "core_levels",
-    "customer_variety",
     "gather",
     "housing",
+    "hunting",
     "sales",
     "workers"
   ],
@@ -52,14 +52,15 @@
       ],
       "sells": [
         "res.food_raw_1",
-        "res.food_prepared"
+        "res.food_prepared",
+        "res.food_raw_2"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        396,
-        446
+        411,
+        452
       ]
     },
     {
@@ -79,24 +80,29 @@
     {
       "type": "node.material_source",
       "at": [
-        445,
-        436
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        354,
-        362
+        455,
+        434
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        384,
-        627
+        402,
+        655
       ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        20,
+        360,
+        115,
+        130
+      ],
+      "animal": "node.prey",
+      "n": 3
     },
     {
       "type": "struct.gate",
@@ -106,7 +112,7 @@
         872
       ],
       "arrivals": {
-        "every": 15,
+        "every": 16,
         "total": 5
       }
     },
@@ -114,11 +120,11 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        311,
-        474
+        320,
+        483
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 9
       },
       "role": {
         "role": "role.supplier",
@@ -130,11 +136,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        270,
-        645
+        276,
+        652
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -147,11 +153,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        25,
-        754
+        59,
+        759
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 20
       },
       "role": {
         "role": "role.cashier",
@@ -162,11 +168,11 @@
       "type": "pad.build",
       "id": "grill",
       "at": [
-        29,
-        597
+        20,
+        593
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 13
       },
       "build": "conv.food_processor",
       "requires": {
@@ -177,11 +183,11 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        29,
-        558
+        20,
+        554
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 11
       },
       "role": {
         "role": "role.operator",
@@ -192,11 +198,11 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        173,
-        617
+        184,
+        661
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 11
       },
       "role": {
         "role": "role.supplier",
@@ -212,11 +218,11 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        132,
-        598
+        119,
+        575
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 11
       },
       "role": {
         "role": "role.server",
@@ -228,14 +234,33 @@
       }
     },
     {
+      "type": "pad.hire",
+      "id": "hunter",
+      "at": [
+        143,
+        462
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "conv.food_processor"
+      },
+      "requires": {
+        "pad": "grill"
+      }
+    },
+    {
       "type": "pad.build",
       "id": "core_level",
       "at": [
-        141,
-        557
+        144,
+        539
       ],
       "cost": {
-        "res.currency": 25
+        "res.currency": 28
       },
       "build": "sink.core.level"
     },
@@ -247,7 +272,7 @@
         622
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 13
       },
       "build": "struct.housing",
       "requires": {
@@ -258,11 +283,11 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        83,
-        548
+        160,
+        582
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 16
       },
       "build": "struct.housing"
     },
@@ -270,16 +295,19 @@
       "type": "pad.build",
       "id": "housing2",
       "at": [
-        327,
-        697
+        312,
+        695
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 19
       },
       "build": "struct.housing"
     }
   ],
   "people": [
+    {
+      "role": "idle"
+    },
     {
       "role": "idle"
     },
@@ -306,40 +334,39 @@
   "events": [],
   "params": {
     "start.currency": 6,
-    "core.burn": 2.5,
-    "customers.spawn": 2.8,
+    "core.burn": 2.6,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "housing.base": 7,
-    "customers.impatientShare": 0.25,
-    "customers.premiumShare": 0.19,
-    "level.budgetSeconds": 160
+    "customers.orderMax": 2,
+    "housing.base": 8,
+    "level.budgetSeconds": 210
   },
   "goal": {
     "type": "population",
-    "n": 12
+    "n": 13
   },
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Domes and Colonists",
-      "goal": "Grow the colony to 12 colonists",
+      "title": "Hoppers and Colonists",
+      "goal": "Grow the colony to 13 colonists",
       "tips": [
-        "New colonists need a bed. Build hab pods so they can move in."
+        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.761,
-    "fun": 0.931,
-    "botMargin": 0.495,
+    "difficulty": 0.578,
+    "fun": 0.962,
+    "botMargin": 0.415,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ]
   }
 }

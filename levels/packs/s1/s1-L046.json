@@ -1,8 +1,8 @@
 {
   "id": "s1-L046",
   "seed": 1335281702,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,16 +15,16 @@
     ]
   },
   "modules": [
+    "barrier_lines",
+    "blocked_zones",
     "build_pads",
     "carry",
     "core",
     "core_levels",
+    "defense",
     "gather",
-    "hazard_events",
-    "housing",
-    "hunting",
-    "sales",
-    "workers"
+    "medical",
+    "sales"
   ],
   "start": [
     240,
@@ -39,7 +39,7 @@
         500
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -47,8 +47,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        320,
-        688
+        316,
+        690
       ],
       "sells": [
         "res.food_raw_1",
@@ -58,199 +58,159 @@
     {
       "type": "node.material_source",
       "at": [
-        117,
-        403
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        88,
-        529
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
         62,
-        415
+        524
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        107,
-        461
+        104,
+        369
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        66,
-        490
+        93,
+        431
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        72,
+        479
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        389,
-        477
+        435,
+        450
       ]
     },
     {
       "type": "node.fuel_deposit",
       "at": [
-        405,
-        600
+        433,
+        586
       ]
     },
     {
       "type": "node.fuel_deposit",
       "at": [
-        387,
-        637
+        399,
+        615
       ]
     },
     {
-      "type": "zone.prey",
-      "id": "prey",
+      "type": "zone.blocked",
+      "id": "rubble",
       "rect": [
-        20,
-        600,
-        140,
-        120
-      ],
-      "animal": "node.prey",
-      "n": 3
+        0,
+        790,
+        150,
+        110
+      ]
     },
     {
-      "type": "struct.gate",
-      "id": "gate",
-      "at": [
-        240,
-        872
-      ],
-      "arrivals": {
-        "every": 15,
-        "total": 5
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_core",
-      "at": [
-        163,
-        472
-      ],
-      "cost": {
-        "res.currency": 9
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food",
-      "at": [
-        362,
-        572
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_cashier",
-      "at": [
-        219,
-        783
-      ],
-      "cost": {
-        "res.currency": 19
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hunter",
-      "at": [
-        153,
-        596
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "role": {
-        "role": "role.hunter",
-        "from": "node.prey",
-        "to": "sink.sales_point"
-      }
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 8,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            160,
+            290
+          ],
+          "prebuilt": false
+        },
+        {
+          "a": [
+            160,
+            290
+          ],
+          "b": [
+            320,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            320,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
+      ]
     },
     {
       "type": "pad.build",
       "id": "core_level",
       "at": [
-        126,
-        563
+        152,
+        577
       ],
       "cost": {
-        "res.currency": 27
+        "res.currency": 30
       },
       "build": "sink.core.level"
     },
     {
       "type": "pad.build",
-      "id": "housing0",
+      "id": "zone_pad",
       "at": [
-        323,
-        590
+        74,
+        754
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 18
       },
-      "build": "struct.housing",
+      "build": "zone.clear",
+      "target": "rubble",
       "requires": {
-        "pad": "hunter",
         "coreLevel": 2
       }
     },
     {
       "type": "pad.build",
-      "id": "housing1",
+      "id": "tower0",
       "at": [
-        122,
-        638
+        232,
+        367
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 21
       },
-      "build": "struct.housing"
+      "build": "struct.ranged_defense",
+      "requires": {
+        "pad": "zone_pad"
+      }
     },
     {
       "type": "pad.build",
-      "id": "housing2",
+      "id": "medic",
       "at": [
-        383,
-        681
+        360,
+        647
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 14
       },
-      "build": "struct.housing"
+      "build": "struct.medical"
     }
   ],
   "people": [
@@ -262,49 +222,65 @@
     },
     {
       "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 20,
+      "counts": {
+        "hostile.creature": 4
+      }
     },
     {
-      "role": "idle"
-    }
-  ],
-  "waves": [],
-  "events": [
+      "t": 48,
+      "counts": {
+        "hostile.creature": 8
+      }
+    },
     {
-      "type": "event.hazard",
-      "warnAt": 50,
-      "start": 58,
-      "end": 80
+      "t": 100,
+      "counts": {
+        "hostile.creature": 10
+      }
+    },
+    {
+      "t": 152,
+      "counts": {
+        "hostile.creature": 13
+      }
     }
   ],
+  "events": [],
   "params": {
-    "start.currency": 7,
-    "core.burn": 2.5,
-    "customers.spawn": 2.8,
+    "start.currency": 3,
+    "core.burn": 2.3,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 4,
-    "level.budgetSeconds": 200
+    "customers.orderMax": 3,
+    "housing.base": 5,
+    "meters.baseHealth": 10,
+    "level.budgetSeconds": 210
   },
   "goal": {
-    "type": "population",
-    "n": 9
+    "type": "waves"
   },
   "fail": [
-    "meter.lifeline"
+    "meter.lifeline",
+    "meter.base_health"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hoppers and New Arrivals",
-      "goal": "Grow the colony to 9 colonists",
+      "title": "Med Bays and Hold Fast",
+      "goal": "Survive every raid",
       "tips": [
-        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
+        "Hurt colonists stop working until a med bay heals them."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.549,
-    "fun": 0.712,
-    "botMargin": 0.449,
+    "difficulty": 0.9,
+    "fun": 0.305,
+    "botMargin": 0.773,
     "botsPassed": [
       "good",
       "average",

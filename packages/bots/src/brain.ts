@@ -10,7 +10,7 @@ import type { BotProfile } from "./profiles.js";
 
 export type TaskKind =
   | "feed" | "fuel" | "gather" | "stock" | "register" | "pile" | "pay" | "barrier" | "operate" | "deposit"
-  | "fetch" | "drop" | "admit" | "fight" | "lasso" | "wait";
+  | "fetch" | "drop" | "admit" | "fight" | "lasso" | "hunt" | "wait";
 
 export interface Task {
   kind: TaskKind;
@@ -55,6 +55,7 @@ export class Brain {
     private readonly rng: Rng,
   ) {
     this.nav = new Nav(cp);
+    this.usesCapped = plan.steps.some((s) => Object.keys(s.cost).some((r) => cp.resources[r]?.cap !== null));
   }
 
   private rand(): number { return nextU32(this.rng) / 4294967296; }
@@ -100,6 +101,19 @@ export class Brain {
 
   /** Capped resources (refined, salvage) still needed by unfinished unconditional steps, minus what is carried. */
   cappedNeed(st: State): Record<string, number> {
+    // Called several times a tick (scoring, hunting, the stall detector); the answer cannot change within one.
+    if (this.needMemo && this.needMemo.tick === st.tick && this.needMemo.stack === st.player.stack.length) return this.needMemo.v;
+    const v = this.cappedNeedUncached(st);
+    this.needMemo = { tick: st.tick, stack: st.player.stack.length, v };
+    return v;
+  }
+
+  /** True when some plan step costs a capped good (refined material, salvage). */
+  readonly usesCapped: boolean = false;
+
+  private needMemo: { tick: number; stack: number; v: Record<string, number> } | null = null;
+
+  private cappedNeedUncached(st: State): Record<string, number> {
     const need: Record<string, number> = {};
     for (const s of this.plan.steps) {
       if (s.when !== "always" && !this.whenHolds(st, s)) continue;
@@ -115,7 +129,10 @@ export class Brain {
     const nx = this.nextStep(st);
     if (nx) return this.remaining(nx.pad, nx.step)["res.currency"] ?? 0;
     const b = this.nextBarrier(st);
-    return b ? b.cost - b.paid : 0;
+    if (b) return b.cost - b.paid;
+    // No plan step left: a currency goal still needs goal.n in hand, so sales keep counting as progress.
+    const g = this.cp.manifest.goal;
+    return g.type === "currency" ? Math.max(0, g.n) : 0;
   }
 
   /** Mark hire pads that can never be staffed (locked, nobody coming) as skipped so the plan moves on. */
@@ -201,6 +218,36 @@ export class Brain {
 
   private sellable(st: State): string[] { return st.sales ? st.sales.sells : []; }
 
+  /** A converter that takes `res` and makes something the plan needs or the shop sells. */
+  private converterFor(st: State, res: string): State["converters"][number] | null {
+    const capped = this.cappedNeed(st);
+    for (const cv of st.converters) {
+      const def = this.cp.converters[cv.type]!;
+      if (!def.inputs.includes(res)) continue;
+      if ((capped[def.output] ?? 0) > 0 || this.sellable(st).includes(def.output)) return cv;
+    }
+    return null;
+  }
+
+  /** Raw goods worth carrying: needed by the plan, sold directly, or fed to a converter whose output counts. */
+  private wantRaw(st: State, res: string): boolean {
+    return (this.cappedNeed(st)[res] ?? 0) > 0 || this.sellable(st).includes(res) || this.converterFor(st, res) !== null;
+  }
+
+  /** The prey zone's drop, when hunting is active and the drop is worth having. */
+  private huntRes(st: State): string | null {
+    if (!this.cp.manifest.modules.includes("hunting")) return null;
+    for (const z of st.preyZones) {
+      for (const r of Object.keys(this.cp.animals[z.animal]!.drops)) if (this.wantRaw(st, r)) return r;
+    }
+    return null;
+  }
+
+  private huntedBy(st: State, res: string): boolean {
+    return st.residents.some((r) => r.status === "ok" && this.cp.roles[r.role]?.behavior === "gather_deliver"
+      && r.assign.from != null && this.cp.animals[r.assign.from]?.drops[res] !== undefined);
+  }
+
   score(st: State): Task[] {
     const cp = this.cp, p = st.player, tasks: Task[] = [];
     const T = (kind: TaskKind, score: number, key = "", want = 0) => tasks.push({ kind, score, key, want });
@@ -263,7 +310,8 @@ export class Brain {
     const nb = this.nextBarrier(st);
     if (nb) {
       const have = cp.resources[nb.res]?.cap === null ? st.currency : count(p.stack, nb.res);
-      if (have >= Math.min(nb.cost - nb.paid, 1) && have >= nb.cost - nb.paid) T("barrier", st.waves.idx < cp.waves.length ? 80 : 55);
+      // A section behind rubble or another wall cannot be walked to yet; the plan moves on meanwhile.
+      if (have >= Math.min(nb.cost - nb.paid, 1) && have >= nb.cost - nb.paid && this.nav.reachable(p.pos, this.barrierSpot(st, nb).pos)) T("barrier", st.waves.idx < cp.waves.length ? 80 : 55);
     }
 
     // Pads on the plan.
@@ -351,17 +399,34 @@ export class Brain {
       for (const d of st.drops) {
         if (count(p.stack, d.res) >= (cp.resources[d.res]?.cap ?? 6)) continue;
         const need = (capped[d.res] ?? 0) > 0;
-        const sell = this.sellable(st).includes(d.res);
+        const sell = this.sellable(st).includes(d.res) || this.converterFor(st, d.res) !== null;
         if (!need && !sell) continue;
         T("drop", need ? 60 : 47, String(d.id));
         break;
       }
     }
 
+    // Hunting: when nothing more urgent is on, take prey whose drop feeds a converter or the shelf.
+    const hres = this.huntRes(st);
+    if (hres !== null && !this.huntedBy(st, hres) && count(p.stack, hres) < Math.min(cp.resources[hres]?.cap ?? 6, 4)
+      && st.prey.some((d) => d.alive)) {
+      T("hunt", 34);
+    }
+
+    // Raw inputs in the backpack go into the converter that turns them into something sold.
+    for (const cv of st.converters) {
+      const def = cp.converters[cv.type]!;
+      if ((capped[def.output] ?? 0) > 0 || !this.sellable(st).includes(def.output)) continue;
+      const carryIn = def.inputs.find((r) => !this.sellable(st).includes(r) && count(p.stack, r) > 0);
+      if (carryIn && cv.inQ.length < def.inCap && cv.inQ.length + cv.out < def.outCap + 2) T("deposit", 41, cv.id);
+    }
+
     // Lasso: rescue reachable containers when someone can house them.
     if (this.plan.lasso && !this.lasso && p.tow.length === 0) {
       const idle = st.captures.filter((c) => c.state === "idle" && this.nav.reachable(p.pos, c.pos));
-      const room = cp.manifest.goal.type === "population" || freeSlots(st, cp) > 0;
+      // Rescued recruits wait for a roof, and a housing pad still to buy is what the "waiting" step is for.
+      const room = cp.manifest.goal.type === "population" || freeSlots(st, cp) > 0
+        || this.plan.steps.some((s) => s.reason === "housing" && !this.stepDone(st, s));
       if (idle.length > 0 && room) T("lasso", 52, "start");
     }
 
@@ -478,10 +543,7 @@ export class Brain {
         if (!b) return null;
         const have = cp.resources[b.res]?.cap === null ? st.currency : count(p.stack, b.res);
         if (have <= 0) return null;
-        const mid = { x: (b.a.x + b.b.x) / 2, y: (b.a.y + b.b.y) / 2 };
-        // Stand just on the core side of the section so the finished wall pushes us inward.
-        const dx = st.core.pos.x - mid.x, dy = st.core.pos.y - mid.y, L = Math.sqrt(dx * dx + dy * dy) || 1;
-        return { pos: { x: Math.round(mid.x + (dx / L) * 10 * U), y: Math.round(mid.y + (dy / L) * 10 * U) }, r: 5 * U };
+        return this.barrierSpot(st, b);
       }
       case "operate": case "deposit": {
         const cv = st.converters.find((c) => c.id === t.key);
@@ -527,7 +589,28 @@ export class Brain {
         return { pos: spot, r: 3 * U };
       }
       case "lasso": return this.lassoTarget(st);
+      case "hunt": {
+        const res = this.huntRes(st);
+        if (res === null || count(p.stack, res) >= Math.min(cp.resources[res]?.cap ?? 6, 4)) return null;
+        let best: Vec | null = null, bd = Infinity;
+        for (const d of st.prey) {
+          if (!d.alive) continue;
+          const dd = d2(d.pos, p.pos);
+          if (dd < bd) { bd = dd; best = d.pos; }
+        }
+        if (!best) return null;
+        // Close enough for the auto-attack; stand still while the swing lands.
+        if (near(p.pos, best, cp.player.attackRange - 10 * U)) return { pos: p.pos, r: 1 };
+        return { pos: best, r: cp.player.attackRange - 14 * U };
+      }
     }
+  }
+
+  /** Just on the core side of the section so the finished wall pushes us inward. */
+  private barrierSpot(st: State, b: { a: Vec; b: Vec }): Target {
+    const mid = { x: (b.a.x + b.b.x) / 2, y: (b.a.y + b.b.y) / 2 };
+    const dx = st.core.pos.x - mid.x, dy = st.core.pos.y - mid.y, L = Math.sqrt(dx * dx + dy * dy) || 1;
+    return { pos: { x: Math.round(mid.x + (dx / L) * 10 * U), y: Math.round(mid.y + (dy / L) * 10 * U) }, r: 5 * U };
   }
 
   private shopSpot(st: State): Vec {

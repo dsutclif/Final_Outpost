@@ -4,7 +4,7 @@ import { FP, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between, chance } from "../rng.js";
 import type { CustomerState, SalesState, State } from "../state.js";
 import { hint } from "./common.js";
-import { dropOnly, producible } from "./nodes.js";
+import { converterIdle, dropOnly, producible } from "./nodes.js";
 
 /** Customers arrive, queue, give up, and are served while the register is staffed. */
 export function stepSales(st: State, cp: Compiled, out: SimEvent[]): void {
@@ -22,9 +22,10 @@ function spawn(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
   s.spawnAcc--;
   if (s.spawnAcc > 0 || s.queue.length >= S.queueMax) return;
   s.spawnAcc = mulDiv(S.spawnTicks, between(st.rng, S.jitterMin, S.jitterMax + 1), FP);
-  // Never ask for a good the level cannot produce yet, nor for a drop-only good while its shelf is
-  // empty, so a quiet drop economy cannot clog the queue.
-  const opts = s.sells.filter((r) => producible(st, cp, r) && !((s.shelf[r] ?? 0) === 0 && dropOnly(st, cp, r)));
+  // Never ask for a good the level cannot produce yet, nor for a drop-only or idle-converter good while its
+  // shelf is empty, so a quiet drop economy cannot clog the queue.
+  const opts = s.sells.filter((r) => producible(st, cp, r)
+    && !((s.shelf[r] ?? 0) === 0 && (dropOnly(st, cp, r) || converterIdle(st, cp, r))));
   if (opts.length === 0) return;
   // Demand leans toward what is on the shelf; the base weight keeps some variety.
   const weights = opts.map((r) => S.baseWeight + (s.shelf[r] ?? 0) * FP);

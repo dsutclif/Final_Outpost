@@ -1,17 +1,18 @@
 {
   "id": "s1-L012",
   "seed": 1501945513,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
     "zones": [
       "base",
-      "sources-sw",
-      "food-se",
-      "shop-ne",
-      "landmark-s"
+      "sources-nw",
+      "food-sw",
+      "fuel-ne",
+      "shop-e",
+      "landmark-se"
     ]
   },
   "modules": [
@@ -20,26 +21,24 @@
     "carry",
     "core",
     "gather",
-    "housing",
     "lasso",
     "sales",
-    "source_gating",
     "workers"
   ],
   "start": [
-    240,
-    360
+    262,
+    602
   ],
   "entities": [
     {
       "type": "sink.core",
       "id": "core",
       "at": [
-        240,
-        450
+        262,
+        510
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -47,8 +46,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        387,
-        400
+        344,
+        640
       ],
       "sells": [
         "res.food_raw_1"
@@ -57,54 +56,45 @@
     {
       "type": "node.material_source",
       "at": [
-        59,
-        602
+        164,
+        354
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        125,
-        647
+        62,
+        447
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        106,
-        693
+        111,
+        393
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        174,
-        659
+        109,
+        348
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        44,
-        657
+        52,
+        388
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        410,
-        656
+        101,
+        642
       ]
-    },
-    {
-      "type": "node.food_source",
-      "id": "food2",
-      "at": [
-        411,
-        700
-      ],
-      "enabled": false
     },
     {
       "type": "barrier.line",
@@ -118,18 +108,18 @@
             160
           ],
           "b": [
-            160,
+            182,
             160
           ],
           "prebuilt": true
         },
         {
           "a": [
-            160,
+            182,
             160
           ],
           "b": [
-            320,
+            342,
             160
           ],
           "gate": true,
@@ -137,7 +127,7 @@
         },
         {
           "a": [
-            320,
+            342,
             160
           ],
           "b": [
@@ -170,23 +160,11 @@
       ]
     },
     {
-      "type": "struct.gate",
-      "id": "gate",
-      "at": [
-        240,
-        872
-      ],
-      "arrivals": {
-        "every": 14,
-        "total": 4
-      }
-    },
-    {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        162,
-        550
+        172,
+        447
       ],
       "cost": {
         "res.currency": 8
@@ -201,11 +179,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        396,
-        551
+        193,
+        638
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 12
       },
       "role": {
         "role": "role.supplier",
@@ -218,86 +196,19 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        309,
-        511
+        237,
+        724
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 19
       },
       "role": {
         "role": "role.cashier",
         "to": "sink.sales_point"
       }
-    },
-    {
-      "type": "pad.build",
-      "id": "unlock_food2",
-      "at": [
-        411,
-        700
-      ],
-      "cost": {
-        "res.currency": 14
-      },
-      "build": "node.enable",
-      "target": "food2",
-      "requires": {
-        "pad": "hire_food"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food2",
-      "at": [
-        386,
-        595
-      ],
-      "cost": {
-        "res.currency": 14
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food2"
-      },
-      "requires": {
-        "pad": "unlock_food2"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "landmark",
-      "at": [
-        247,
-        790
-      ],
-      "cost": {
-        "res.currency": 75
-      },
-      "build": "struct.landmark",
-      "big": true,
-      "requires": {
-        "pad": "hire_food2"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "housing0",
-      "at": [
-        352,
-        556
-      ],
-      "cost": {
-        "res.currency": 11
-      },
-      "build": "struct.housing"
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -314,34 +225,34 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 9,
-    "core.burn": 2.7,
-    "customers.spawn": 2.7,
+    "start.currency": 8,
+    "core.burn": 2.6,
+    "customers.spawn": 2.8,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 6,
-    "level.budgetSeconds": 270
+    "housing.base": 7,
+    "level.budgetSeconds": 60
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "population",
+    "n": 7
   },
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Locked Caches and Raising the Hub",
-      "goal": "Build the Habitat hub",
+      "title": "Tow Lines and Full Habs",
+      "goal": "Grow the colony to 7 colonists",
       "tips": [
-        "Some grow domes start locked. Unlock them with credits on their pad."
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.241,
-    "fun": 0.532,
-    "botMargin": 0.509,
+    "difficulty": 0.281,
+    "fun": 0.748,
+    "botMargin": 0.734,
     "botsPassed": [
       "good",
       "average",

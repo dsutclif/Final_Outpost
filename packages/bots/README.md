@@ -111,7 +111,7 @@ Connected-component labels answer "reachable at all" in O(1). A bot that is wedg
 
 **End of a run.** A run ends when the sim ends or the tick cap is reached. The cap is the level
 timer, otherwise the time budget, or for waves goals the last wave plus `WAVES_TAIL_SECONDS` (120).
-A run cut off by the cap reports reason `time_budget`.
+A run cut off by the cap reports reason `budget`.
 
 **Time budget.** `level.budgetSeconds` from the compiled manifest (content default 300; DECISIONS
 9b): a rating input for margins, the trivial filter and stars, never a fail condition.

@@ -1,8 +1,8 @@
 {
   "id": "s1-L016",
   "seed": 1235648501,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -16,13 +16,11 @@
   },
   "modules": [
     "barrier_lines",
-    "blocked_zones",
     "build_pads",
     "carry",
     "core",
-    "core_levels",
     "gather",
-    "lasso",
+    "housing",
     "sales",
     "workers"
   ],
@@ -57,61 +55,44 @@
     {
       "type": "node.material_source",
       "at": [
-        137,
-        378
+        140,
+        369
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        81,
-        407
+        62,
+        422
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        191,
-        399
+        186,
+        391
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        124,
-        424
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        49,
-        373
+        61,
+        376
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        435,
-        423
-      ]
-    },
-    {
-      "type": "zone.blocked",
-      "id": "rubble",
-      "rect": [
-        0,
-        282,
-        480,
-        44
+        418,
+        393
       ]
     },
     {
       "type": "barrier.line",
-      "id": "fence",
+      "id": "wall",
       "res": "res.currency",
-      "costPerSection": 8,
+      "costPerSection": 7,
       "sections": [
         {
           "a": [
@@ -121,8 +102,7 @@
           "b": [
             160,
             160
-          ],
-          "prebuilt": true
+          ]
         },
         {
           "a": [
@@ -133,8 +113,7 @@
             320,
             160
           ],
-          "gate": true,
-          "prebuilt": true
+          "gate": true
         },
         {
           "a": [
@@ -144,48 +123,31 @@
           "b": [
             480,
             160
-          ],
-          "prebuilt": true
+          ]
         }
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "struct.gate",
+      "id": "gate",
       "at": [
-        208,
-        92
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        416,
-        52
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        82,
-        85
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        322,
-        80
-      ]
+        240,
+        872
+      ],
+      "arrivals": {
+        "every": 16,
+        "total": 4
+      }
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        176,
-        476
+        174,
+        473
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 9
       },
       "role": {
         "role": "role.supplier",
@@ -197,11 +159,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        385,
-        546
+        375,
+        528
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -214,11 +176,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        198,
-        831
+        172,
+        815
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 20
       },
       "role": {
         "role": "role.cashier",
@@ -227,47 +189,27 @@
     },
     {
       "type": "pad.build",
-      "id": "core_level",
+      "id": "housing0",
       "at": [
-        143,
-        623
+        352,
+        673
       ],
       "cost": {
-        "res.currency": 25
+        "res.currency": 13
       },
-      "build": "sink.core.level"
+      "build": "struct.housing"
     },
     {
       "type": "pad.build",
-      "id": "zone_pad",
+      "id": "housing1",
       "at": [
-        231,
-        370
+        128,
+        663
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 16
       },
-      "build": "zone.clear",
-      "target": "rubble",
-      "requires": {
-        "coreLevel": 2
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "landmark",
-      "at": [
-        110,
-        224
-      ],
-      "cost": {
-        "res.currency": 67
-      },
-      "build": "struct.landmark",
-      "big": true,
-      "requires": {
-        "pad": "zone_pad"
-      }
+      "build": "struct.housing"
     }
   ],
   "people": [
@@ -287,40 +229,39 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.5,
-    "customers.spawn": 2.8,
+    "start.currency": 5,
+    "core.burn": 2.7,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 10,
-    "level.budgetSeconds": 270
+    "customers.orderMax": 3,
+    "housing.base": 4,
+    "level.budgetSeconds": 180
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "population",
+    "n": 8
   },
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Tow Lines and Raising the Hub",
-      "goal": "Build the Habitat hub",
+      "title": "Domes and Full Habs",
+      "goal": "Grow the colony to 8 colonists",
       "tips": [
-        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+        "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.35,
-    "fun": 0.852,
-    "botMargin": 0.476,
+    "difficulty": 0.402,
+    "fun": 0.841,
+    "botMargin": 0.478,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ]
   }
 }

@@ -1,8 +1,8 @@
 {
   "id": "s1-L055",
   "seed": 2110915574,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,13 +15,13 @@
     ]
   },
   "modules": [
+    "blocked_zones",
     "build_pads",
     "carry",
     "core",
     "core_levels",
     "gather",
     "housing",
-    "hunting",
     "sales",
     "supply_routing",
     "workers"
@@ -51,64 +51,61 @@
         691
       ],
       "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
+        "res.food_raw_1"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        117,
-        382
+        88,
+        461
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        61,
-        468
+        62,
+        501
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        63,
-        515
+        107,
+        407
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        74,
-        406
+        101,
+        361
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        109,
-        525
+        76,
+        545
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        435,
-        459
+        426,
+        473
       ]
     },
     {
-      "type": "zone.prey",
-      "id": "prey",
+      "type": "zone.blocked",
+      "id": "rubble",
       "rect": [
-        20,
-        600,
-        140,
-        120
-      ],
-      "animal": "node.prey",
-      "n": 3
+        0,
+        282,
+        480,
+        44
+      ]
     },
     {
       "type": "struct.gate",
@@ -126,8 +123,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        168,
-        483
+        169,
+        481
       ],
       "cost": {
         "res.currency": 9
@@ -142,8 +139,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        388,
-        568
+        382,
+        576
       ],
       "cost": {
         "res.currency": 13
@@ -171,42 +168,40 @@
       }
     },
     {
-      "type": "pad.hire",
-      "id": "hunter",
-      "at": [
-        180,
-        584
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "role": {
-        "role": "role.hunter",
-        "from": "node.prey",
-        "to": "sink.sales_point"
-      },
-      "requires": {
-        "pad": "depot"
-      }
-    },
-    {
       "type": "pad.build",
       "id": "core_level",
       "at": [
-        139,
-        564
+        167,
+        566
       ],
       "cost": {
-        "res.currency": 28
+        "res.currency": 27
       },
       "build": "sink.core.level"
     },
     {
       "type": "pad.build",
+      "id": "zone_pad",
+      "at": [
+        242,
+        359
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "build": "zone.clear",
+      "target": "rubble",
+      "requires": {
+        "pad": "depot",
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
       "id": "depot",
       "at": [
-        154,
-        637
+        184,
+        601
       ],
       "cost": {
         "res.currency": 22
@@ -217,8 +212,8 @@
       "type": "pad.hire",
       "id": "hauler",
       "at": [
-        218,
-        669
+        255,
+        649
       ],
       "cost": {
         "res.currency": 11
@@ -235,8 +230,8 @@
       "type": "pad.hire",
       "id": "depot_supplier",
       "at": [
-        102,
-        577
+        123,
+        533
       ],
       "cost": {
         "res.currency": 11
@@ -254,25 +249,24 @@
       "type": "pad.build",
       "id": "landmark",
       "at": [
-        113,
-        801
+        110,
+        226
       ],
       "cost": {
-        "res.currency": 80
+        "res.currency": 18
       },
       "build": "struct.landmark",
       "big": true,
       "requires": {
-        "pad": "hunter",
-        "coreLevel": 2
+        "pad": "zone_pad"
       }
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        359,
-        611
+        357,
+        618
       ],
       "cost": {
         "res.currency": 13
@@ -295,21 +289,18 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.5,
+    "start.currency": 8,
+    "core.burn": 2.7,
     "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "housing.base": 7,
-    "level.budgetSeconds": 240
+    "customers.orderMax": 2,
+    "housing.base": 6,
+    "level.budgetSeconds": 210
   },
   "goal": {
     "type": "build",
@@ -328,9 +319,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.579,
-    "fun": 0.576,
-    "botMargin": 0.441,
+    "difficulty": 0.576,
+    "fun": 0.661,
+    "botMargin": 0.434,
     "botsPassed": [
       "good",
       "average",

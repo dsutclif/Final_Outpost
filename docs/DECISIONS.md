@@ -47,5 +47,10 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     trivial, L4 easy defense, L4 node/pad overlap) are accepted as baseline facts; the
     generator's filters and difficulty search fix these in generated levels. The L4 overlap is
     moved 2 units to clear the readability filter.
+9f. **Idle-converter demand (2026-10-10).** Mirroring 9d, customers do not order a good whose only
+    source is a converter while its shelf stock is zero and the converter has no output stock and
+    is not running (`converterIdle`), so an unfed converter cannot clog the queue. Engine 0.4.0.
+9g. **Pad dwell 0.5 s (2026-10-10).** `pads.dwell` rises from 0.35 to 0.5 s (15 ticks): a straight
+    crossing of a pad (about 11.6 ticks) must never pay. Content 0.4.0.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

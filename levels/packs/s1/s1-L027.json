@@ -1,8 +1,8 @@
 {
   "id": "s1-L027",
-  "seed": 561101499,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 144597288,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -18,10 +18,10 @@
     "barrier_lines",
     "build_pads",
     "carry",
+    "converters",
     "core",
-    "customer_variety",
     "gather",
-    "lasso",
+    "housing",
     "sales",
     "source_gating",
     "workers"
@@ -39,7 +39,7 @@
         560
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -47,61 +47,69 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        301,
-        735
+        299,
+        734
       ],
       "sells": [
-        "res.food_raw_1"
+        "res.food_raw_1",
+        "res.food_prepared"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        151,
-        371
+        82,
+        434
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        70,
-        421
+        115,
+        381
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        106,
-        380
+        157,
+        409
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        167,
-        419
+        49,
+        398
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        164,
+        357
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        316,
-        390
+        412,
+        409
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        335,
-        350
+        408,
+        365
       ],
       "enabled": false
     },
     {
       "type": "barrier.line",
-      "id": "fence",
+      "id": "wall",
       "res": "res.currency",
       "costPerSection": 8,
       "sections": [
@@ -113,8 +121,7 @@
           "b": [
             160,
             160
-          ],
-          "prebuilt": true
+          ]
         },
         {
           "a": [
@@ -125,8 +132,7 @@
             320,
             160
           ],
-          "gate": true,
-          "prebuilt": true
+          "gate": true
         },
         {
           "a": [
@@ -136,38 +142,28 @@
           "b": [
             480,
             160
-          ],
-          "prebuilt": true
+          ]
         }
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "struct.gate",
+      "id": "gate",
       "at": [
-        147,
-        93
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        356,
-        66
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        247,
-        71
-      ]
+        240,
+        872
+      ],
+      "arrivals": {
+        "every": 16,
+        "total": 2
+      }
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        198,
-        475
+        184,
+        472
       ],
       "cost": {
         "res.currency": 8
@@ -182,11 +178,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        308,
-        532
+        384,
+        549
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 12
       },
       "role": {
         "role": "role.supplier",
@@ -199,11 +195,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        202,
-        821
+        175,
+        808
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 18
       },
       "role": {
         "role": "role.cashier",
@@ -214,11 +210,11 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        335,
-        350
+        408,
+        365
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 15
       },
       "build": "node.enable",
       "target": "food2",
@@ -230,11 +226,11 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        340,
-        481
+        348,
+        532
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 15
       },
       "role": {
         "role": "role.supplier",
@@ -248,22 +244,146 @@
     },
     {
       "type": "pad.build",
-      "id": "landmark",
+      "id": "grill",
       "at": [
-        109,
-        796
+        168,
+        701
       ],
       "cost": {
-        "res.currency": 124
+        "res.currency": 12
+      },
+      "build": "conv.food_processor",
+      "requires": {
+        "pad": "feeder"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "cook",
+      "at": [
+        97,
+        757
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.operator",
+        "to": "conv.food_processor"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "feeder",
+      "at": [
+        313,
+        554
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "conv.food_processor",
+        "node": "food1"
+      },
+      "requires": {
+        "pad": "cook"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "server",
+      "at": [
+        172,
+        661
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.server",
+        "from": "conv.food_processor",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "grill"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "saw",
+      "at": [
+        83,
+        495
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "build": "conv.material_processor"
+    },
+    {
+      "type": "pad.hire",
+      "id": "sawyer",
+      "at": [
+        147,
+        557
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.operator",
+        "to": "conv.material_processor"
+      },
+      "requires": {
+        "pad": "saw"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        106,
+        809
+      ],
+      "cost": {
+        "res.currency": 15,
+        "res.material_refined": 12
       },
       "build": "struct.landmark",
       "big": true,
       "requires": {
         "pad": "hire_food2"
       }
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        337,
+        673
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "build": "struct.housing"
     }
   ],
   "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
     {
       "role": "idle"
     },
@@ -289,9 +409,7 @@
     "customers.orderMin": 1,
     "customers.orderMax": 2,
     "housing.base": 10,
-    "customers.impatientShare": 0.27,
-    "customers.premiumShare": 0.18,
-    "level.budgetSeconds": 270
+    "level.budgetSeconds": 290
   },
   "goal": {
     "type": "build",
@@ -310,9 +428,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.398,
-    "fun": 0.663,
-    "botMargin": 0.457,
+    "difficulty": 0.478,
+    "fun": 0.827,
+    "botMargin": 0.43,
     "botsPassed": [
       "good",
       "average",

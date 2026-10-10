@@ -164,13 +164,17 @@ targets of the right type, depot bindings only when a depot exists).
 ## Behaviour notes and deviations from the prototype
 
 - **Pad dwell (0.3.0, DECISIONS 9c).** Payment starts only after the player has stayed within one
-  pad's radius for `pads.dwell` seconds (default 0.35, compiled to `pads.dwellTicks`; 0 restores
+  pad's radius for `pads.dwell` seconds (default 0.5 since 0.4.0, previously 0.35; compiled to `pads.dwellTicks` = 15; 0 restores
   instant payment). Leaving the radius resets the counter. Walking straight off a start position
   that overlaps a pad (golden level 2 starts inside the core-upgrade pad's radius) no longer pays.
-  Note: a walk through the exact centre of a 30-unit pad lasts about 11.6 ticks, just over the
-  11-tick dwell, so only near-diametric crossings can still pay a unit.
+  Note: a walk through the exact centre of a 30-unit pad lasts about 11.6 ticks, so the 15-tick
+  dwell (DECISIONS 9g) means no straight crossing ever pays; the old 11-tick dwell let
+  near-diametric ones pay a unit.
 - **Drop-only demand (0.3.0, DECISIONS 9d).** A good whose only producible source is prey or
   hostile drops (`dropOnly`) is not ordered while its shelf count is zero.
+- **Idle-converter demand (0.4.0, DECISIONS 9f).** A good whose only source is a converter is not
+  ordered while its shelf count is zero and every converter making it holds no output and has
+  nothing queued (`converterIdle`).
 - **Time budget (0.3.0, DECISIONS 9b).** `level.budgetSeconds` (default 300) is compiled to
   `compiled.level` for the bots and rater. The sim never fails on it.
 

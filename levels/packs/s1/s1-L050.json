@@ -1,8 +1,8 @@
 {
   "id": "s1-L050",
   "seed": 2014425219,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,11 +19,11 @@
     "build_pads",
     "carry",
     "core",
+    "defenders",
     "defense",
     "gather",
+    "hazard_events",
     "sales",
-    "salvage_upgrades",
-    "supply_routing",
     "workers"
   ],
   "start": [
@@ -217,106 +217,46 @@
       "cost": {
         "res.currency": 18
       },
-      "build": "struct.ranged_defense",
-      "requires": {
-        "pad": "depot"
-      }
+      "build": "struct.ranged_defense"
     },
     {
       "type": "pad.build",
-      "id": "towerup0",
+      "id": "barracks",
       "at": [
-        152,
-        443
+        117,
+        632
       ],
       "cost": {
-        "res.salvage": 3
+        "res.currency": 12
       },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower0",
-      "requires": {
-        "pad": "tower0"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "towerup1",
-      "at": [
-        317,
-        423
-      ],
-      "cost": {
-        "res.salvage": 3
-      },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower1",
-      "requires": {
-        "pad": "tower1"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "reinforce",
-      "at": [
-        255,
-        414
-      ],
-      "cost": {
-        "res.salvage": 4
-      },
-      "build": "struct.barrier.reinforced"
-    },
-    {
-      "type": "pad.build",
-      "id": "depot",
-      "at": [
-        154,
-        628
-      ],
-      "cost": {
-        "res.currency": 20
-      },
-      "build": "struct.depot"
+      "build": "struct.barracks"
     },
     {
       "type": "pad.hire",
-      "id": "hauler",
+      "id": "train",
       "at": [
-        220,
-        662
+        110,
+        696
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 5
       },
       "role": {
-        "role": "role.hauler",
-        "from": "store.depot"
+        "role": "role.defender"
       },
+      "repeatable": true,
       "requires": {
-        "pad": "depot"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "depot_supplier",
-      "at": [
-        94,
-        560
-      ],
-      "cost": {
-        "res.currency": 10
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "store.depot"
-      },
-      "requires": {
-        "pad": "depot"
+        "pad": "barracks"
       }
     }
   ],
   "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
     {
       "role": "idle"
     },
@@ -337,33 +277,37 @@
     {
       "t": 56,
       "counts": {
-        "hostile.creature": 7,
-        "hostile.raider_humanoid": 2
+        "hostile.creature": 7
       }
     },
     {
       "t": 116,
       "counts": {
-        "hostile.creature": 9,
-        "hostile.raider_humanoid": 3
+        "hostile.creature": 9
       }
     },
     {
       "t": 176,
       "counts": {
-        "hostile.creature": 11,
-        "hostile.raider_humanoid": 5
+        "hostile.creature": 11
       }
     }
   ],
-  "events": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 83,
+      "start": 91,
+      "end": 113
+    }
+  ],
   "params": {
     "start.currency": 7,
     "core.burn": 2.6,
     "customers.spawn": 2.8,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 7,
+    "housing.base": 9,
     "meters.baseHealth": 11,
     "level.budgetSeconds": 240
   },
@@ -376,17 +320,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Warehouses and Night Watch",
+      "title": "Storms and Night Watch",
       "goal": "Survive every raid",
       "tips": [
-        "A warehouse lets couriers move goods between sites for you."
+        "A dust storm burns fuel fast. Fill the reactor before it hits."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.365,
-    "fun": 0.818,
-    "botMargin": 0.92,
+    "difficulty": 0.37,
+    "fun": 0.838,
+    "botMargin": 0.946,
     "botsPassed": [
       "good",
       "average",

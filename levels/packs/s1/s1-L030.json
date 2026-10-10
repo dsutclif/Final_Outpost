@@ -1,8 +1,8 @@
 {
   "id": "s1-L030",
   "seed": 37864213,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -16,14 +16,13 @@
     ]
   },
   "modules": [
-    "barrier_lines",
     "build_pads",
     "carry",
     "converters",
     "core",
     "customer_variety",
-    "defense",
     "gather",
+    "hunting",
     "sales",
     "workers"
   ],
@@ -40,7 +39,7 @@
         510
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -60,97 +59,60 @@
     {
       "type": "node.material_source",
       "at": [
-        117,
-        368
+        47,
+        467
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        83,
-        421
+        91,
+        378
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        77,
-        472
+        158,
+        349
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        133,
-        417
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        55,
-        376
+        52,
+        418
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        78,
-        634
+        63,
+        622
       ]
     },
     {
-      "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 7,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            182,
-            290
-          ],
-          "prebuilt": true
-        },
-        {
-          "a": [
-            182,
-            290
-          ],
-          "b": [
-            342,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            342,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
-      ]
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        190,
+        345,
+        150,
+        70
+      ],
+      "animal": "node.prey",
+      "n": 3
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        174,
-        453
+        194,
+        462
       ],
       "cost": {
-        "res.currency": 9
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -162,11 +124,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        186,
-        641
+        173,
+        624
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 15
       },
       "role": {
         "role": "role.supplier",
@@ -179,11 +141,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        246,
-        724
+        273,
+        749
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 23
       },
       "role": {
         "role": "role.cashier",
@@ -194,11 +156,11 @@
       "type": "pad.build",
       "id": "grill",
       "at": [
-        279,
-        746
+        223,
+        633
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 15
       },
       "build": "conv.food_processor",
       "requires": {
@@ -209,11 +171,11 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        211,
-        812
+        156,
+        693
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 13
       },
       "role": {
         "role": "role.operator",
@@ -224,11 +186,11 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        178,
-        705
+        126,
+        609
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -244,11 +206,11 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        379,
-        744
+        304,
+        572
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 13
       },
       "role": {
         "role": "role.server",
@@ -260,16 +222,23 @@
       }
     },
     {
-      "type": "pad.build",
-      "id": "tower0",
+      "type": "pad.hire",
+      "id": "hunter",
       "at": [
-        245,
-        366
+        278,
+        419
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 15
       },
-      "build": "struct.ranged_defense"
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "conv.food_processor"
+      },
+      "requires": {
+        "pad": "grill"
+      }
     }
   ],
   "people": [
@@ -293,61 +262,44 @@
     },
     {
       "role": "idle"
-    }
-  ],
-  "waves": [
-    {
-      "t": 57,
-      "counts": {
-        "hostile.creature": 7
-      }
     },
     {
-      "t": 117,
-      "counts": {
-        "hostile.creature": 10
-      }
-    },
-    {
-      "t": 178,
-      "counts": {
-        "hostile.creature": 12
-      }
+      "role": "idle"
     }
   ],
+  "waves": [],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.5,
-    "customers.spawn": 3,
+    "start.currency": 4,
+    "core.burn": 2.3,
+    "customers.spawn": 3.1,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 9,
-    "customers.impatientShare": 0.25,
-    "customers.premiumShare": 0.19,
-    "meters.baseHealth": 11,
-    "level.budgetSeconds": 240
+    "customers.orderMax": 3,
+    "housing.base": 10,
+    "customers.impatientShare": 0.35,
+    "customers.premiumShare": 0.16,
+    "level.budgetSeconds": 390
   },
   "goal": {
-    "type": "waves"
+    "type": "serve_premium",
+    "n": 10
   },
   "fail": [
-    "meter.lifeline",
-    "meter.base_health"
+    "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Turrets and Siege",
-      "goal": "Survive every raid",
+      "title": "Hoppers and Guests",
+      "goal": "Serve 10 VIP traders",
       "tips": [
-        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
+        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.364,
-    "fun": 0.846,
-    "botMargin": 0.932,
+    "difficulty": 0.376,
+    "fun": 0.956,
+    "botMargin": 0.422,
     "botsPassed": [
       "good",
       "average",

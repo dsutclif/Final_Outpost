@@ -1,8 +1,8 @@
 {
   "id": "s1-L008",
   "seed": 1067227942,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -20,7 +20,6 @@
     "carry",
     "core",
     "gather",
-    "lasso",
     "sales",
     "workers"
   ],
@@ -37,7 +36,7 @@
         500
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -55,49 +54,42 @@
     {
       "type": "node.material_source",
       "at": [
-        113,
-        382
+        105,
+        367
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        79,
+        409
       ]
     },
     {
       "type": "node.material_source",
       "at": [
         82,
-        466
+        505
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        109,
-        520
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        40,
-        511
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        63,
-        375
+        26,
+        464
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        112,
-        694
+        76,
+        698
       ]
     },
     {
       "type": "barrier.line",
-      "id": "fence",
+      "id": "wall",
       "res": "res.currency",
       "costPerSection": 8,
       "sections": [
@@ -109,8 +101,7 @@
           "b": [
             182,
             160
-          ],
-          "prebuilt": true
+          ]
         },
         {
           "a": [
@@ -121,8 +112,7 @@
             342,
             160
           ],
-          "gate": true,
-          "prebuilt": true
+          "gate": true
         },
         {
           "a": [
@@ -132,48 +122,19 @@
           "b": [
             480,
             160
-          ],
-          "prebuilt": true
+          ]
         }
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        407,
-        90
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        210,
-        98
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        105,
-        87
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        311,
-        99
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        161,
-        479
+        148,
+        451
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 9
       },
       "role": {
         "role": "role.supplier",
@@ -185,11 +146,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        206,
-        685
+        169,
+        679
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 14
       },
       "role": {
         "role": "role.supplier",
@@ -202,11 +163,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        258,
-        743
+        238,
+        724
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 21
       },
       "role": {
         "role": "role.cashier",
@@ -217,11 +178,11 @@
       "type": "pad.build",
       "id": "landmark",
       "at": [
-        372,
-        808
+        370,
+        809
       ],
       "cost": {
-        "res.currency": 114
+        "res.currency": 135
       },
       "build": "struct.landmark",
       "big": true
@@ -244,13 +205,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 7,
-    "core.burn": 2.6,
-    "customers.spawn": 2.7,
+    "start.currency": 6,
+    "core.burn": 2.5,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 10,
-    "level.budgetSeconds": 310
+    "customers.orderMax": 3,
+    "housing.base": 6,
+    "level.budgetSeconds": 270
   },
   "goal": {
     "type": "build",
@@ -264,15 +225,14 @@
       "title": "Walls and Foundations",
       "goal": "Build the Habitat hub",
       "tips": [
-        "Dashed wall lines show where walls go. Walk along one carrying what it costs to build it.",
-        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+        "Dashed wall lines show where walls go. Walk along one carrying what it costs to build it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.171,
-    "fun": 0.448,
-    "botMargin": 0.492,
+    "difficulty": 0.201,
+    "fun": 0.803,
+    "botMargin": 0.379,
     "botsPassed": [
       "good",
       "average",

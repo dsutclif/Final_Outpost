@@ -269,6 +269,21 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     pocketTop = y + 6;
   }
 
+  // Barrier lines on their own (DECISIONS 1): a yard wall at the lasso fence's height, every section
+  // unbuilt, so the bot's barrier task (which now runs on any goal) is what exercises the module.
+  if (has("barrier_lines") && !lassoOn && !defenseOn) {
+    // Under a blocked band the wall sits just south of it, so the bot can reach every section.
+    const y = zoneRect && bandMode === "north" ? bandY + N.band + 3 : N.lassoLine;
+    const gx = Math.min(360, Math.max(120, core[0]));
+    const sc = Math.max(1, Math.round(K.wallCost));
+    ents.push({ type: "barrier.line", id: "wall", res: "res.currency", costPerSection: sc, sections: [
+      { a: [0, y], b: [gx - 80, y] },
+      { a: [gx - 80, y], b: [gx + 80, y], gate: true },
+      { a: [gx + 80, y], b: [480, y] },
+    ] });
+    if (!(zoneRect && bandMode === "north")) pocketTop = y + 6;
+  }
+
   // Defense.
   let towers: Ent[] = [];
   const waves: { t: number; counts: Record<string, number> }[] = [];

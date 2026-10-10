@@ -1,8 +1,8 @@
 {
   "id": "s1-L053",
-  "seed": 1436247380,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 57378298,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -17,11 +17,8 @@
   "modules": [
     "build_pads",
     "carry",
-    "converters",
     "core",
-    "customer_variety",
     "gather",
-    "housing",
     "sales",
     "supply_routing",
     "workers"
@@ -39,7 +36,7 @@
         500
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -47,71 +44,58 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        119,
+        120,
         650
       ],
       "sells": [
-        "res.food_raw_1",
-        "res.food_prepared"
+        "res.food_raw_1"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        351,
-        361
+        409,
+        414
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        403,
-        463
+        422,
+        523
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        427,
-        525
+        398,
+        468
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        414,
-        398
+        449,
+        465
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        394,
-        683
+        426,
+        654
       ]
-    },
-    {
-      "type": "struct.gate",
-      "id": "gate",
-      "at": [
-        240,
-        872
-      ],
-      "arrivals": {
-        "every": 16,
-        "total": 2
-      }
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        295,
-        458
+        317,
+        498
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -123,11 +107,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        280,
-        667
+        288,
+        656
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 15
       },
       "role": {
         "role": "role.supplier",
@@ -140,11 +124,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        19,
-        777
+        36,
+        762
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 22
       },
       "role": {
         "role": "role.cashier",
@@ -153,82 +137,13 @@
     },
     {
       "type": "pad.build",
-      "id": "grill",
-      "at": [
-        26,
-        571
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "build": "conv.food_processor",
-      "requires": {
-        "pad": "feeder"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "cook",
-      "at": [
-        28,
-        530
-      ],
-      "cost": {
-        "res.currency": 10
-      },
-      "role": {
-        "role": "role.operator",
-        "to": "conv.food_processor"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "feeder",
-      "at": [
-        217,
-        660
-      ],
-      "cost": {
-        "res.currency": 10
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "conv.food_processor",
-        "node": "food1"
-      },
-      "requires": {
-        "pad": "cook"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "server",
-      "at": [
-        76,
-        524
-      ],
-      "cost": {
-        "res.currency": 10
-      },
-      "role": {
-        "role": "role.server",
-        "from": "conv.food_processor",
-        "to": "sink.sales_point"
-      },
-      "requires": {
-        "pad": "grill"
-      }
-    },
-    {
-      "type": "pad.build",
       "id": "depot",
       "at": [
-        256,
-        633
+        239,
+        652
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 24
       },
       "build": "struct.depot"
     },
@@ -236,11 +151,11 @@
       "type": "pad.hire",
       "id": "hauler",
       "at": [
-        328,
-        655
+        325,
+        703
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 12
       },
       "role": {
         "role": "role.hauler",
@@ -254,11 +169,11 @@
       "type": "pad.hire",
       "id": "depot_supplier",
       "at": [
-        310,
-        517
+        328,
+        576
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 12
       },
       "role": {
         "role": "role.supplier",
@@ -273,44 +188,20 @@
       "type": "pad.build",
       "id": "landmark",
       "at": [
-        110,
+        108,
         807
       ],
       "cost": {
-        "res.currency": 236
+        "res.currency": 128
       },
       "build": "struct.landmark",
       "big": true,
       "requires": {
         "pad": "depot"
       }
-    },
-    {
-      "type": "pad.build",
-      "id": "housing0",
-      "at": [
-        331,
-        616
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "build": "struct.housing"
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -327,15 +218,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.6,
-    "customers.spawn": 2.9,
+    "start.currency": 2,
+    "core.burn": 2.3,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 9,
-    "customers.impatientShare": 0.25,
-    "customers.premiumShare": 0.18,
-    "level.budgetSeconds": 270
+    "customers.orderMax": 3,
+    "housing.base": 6,
+    "level.budgetSeconds": 250
   },
   "goal": {
     "type": "build",
@@ -354,9 +243,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.405,
-    "fun": 0.746,
-    "botMargin": 0.384,
+    "difficulty": 0.367,
+    "fun": 0.808,
+    "botMargin": 0.343,
     "botsPassed": [
       "good",
       "average",

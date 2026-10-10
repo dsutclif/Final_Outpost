@@ -1,8 +1,8 @@
 {
   "id": "s1-L041",
   "seed": 1752643492,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -21,8 +21,8 @@
     "core",
     "defense",
     "gather",
-    "medical",
-    "sales"
+    "sales",
+    "salvage_upgrades"
   ],
   "start": [
     240,
@@ -37,7 +37,7 @@
         560
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -56,8 +56,8 @@
     {
       "type": "node.material_source",
       "at": [
-        113,
-        408
+        191,
+        363
       ]
     },
     {
@@ -70,44 +70,44 @@
     {
       "type": "node.material_source",
       "at": [
-        159,
-        365
+        122,
+        415
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        105,
-        351
+        121,
+        355
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        366,
-        393
+        322,
+        382
       ]
     },
     {
       "type": "node.fuel_deposit",
       "at": [
-        67,
-        577
+        64,
+        579
       ]
     },
     {
       "type": "node.fuel_deposit",
       "at": [
-        98,
-        629
+        81,
+        534
       ]
     },
     {
       "type": "barrier.line",
       "id": "wall",
       "res": "res.currency",
-      "costPerSection": 7,
+      "costPerSection": 8,
       "sections": [
         {
           "a": [
@@ -118,7 +118,7 @@
             160,
             290
           ],
-          "prebuilt": false
+          "prebuilt": true
         },
         {
           "a": [
@@ -159,62 +159,65 @@
     },
     {
       "type": "pad.build",
-      "id": "medic",
+      "id": "towerup0",
       "at": [
-        330,
-        679
+        245,
+        434
       ],
       "cost": {
-        "res.currency": 13
+        "res.salvage": 3
       },
-      "build": "struct.medical"
-    }
-  ],
-  "people": [
-    {
-      "role": "idle"
+      "build": "struct.ranged_defense.t2",
+      "target": "tower0",
+      "requires": {
+        "pad": "tower0"
+      }
     },
     {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        210,
+        456
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "build": "struct.barrier.reinforced"
     }
   ],
+  "people": [],
   "waves": [
     {
-      "t": 20,
+      "t": 55,
       "counts": {
-        "hostile.creature": 4
+        "hostile.creature": 8,
+        "hostile.raider_humanoid": 2
       }
     },
     {
-      "t": 54,
+      "t": 114,
       "counts": {
-        "hostile.creature": 7
+        "hostile.creature": 10,
+        "hostile.raider_humanoid": 4
       }
     },
     {
-      "t": 113,
+      "t": 172,
       "counts": {
-        "hostile.creature": 10
-      }
-    },
-    {
-      "t": 171,
-      "counts": {
-        "hostile.creature": 12
+        "hostile.creature": 13,
+        "hostile.raider_humanoid": 5
       }
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 5,
+    "start.currency": 6,
     "core.burn": 2.6,
     "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 5,
+    "housing.base": 2,
     "meters.baseHealth": 11,
     "level.budgetSeconds": 230
   },
@@ -227,17 +230,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Med Bays and Siege",
+      "title": "Scrap and Siege",
       "goal": "Survive every raid",
       "tips": [
-        "Hurt colonists stop working until a med bay heals them."
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.419,
-    "fun": 0.778,
-    "botMargin": 0.849,
+    "difficulty": 0.442,
+    "fun": 0.787,
+    "botMargin": 0.873,
     "botsPassed": [
       "good",
       "average",

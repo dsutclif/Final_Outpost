@@ -131,7 +131,7 @@ export function compatibleGoals(mods: readonly string[], cfg: SequencerConfig = 
     if (need.length > 0 && !need.some((m) => set.has(m))) return false;
     if ((cfg.goalExcludes[g] ?? []).some((m) => set.has(m))) return false;
     // Anchored modules need a pad the bot will certainly buy to hang their pads from.
-    if (anchored && !cfg.anchorGoals.includes(g) && !(g === "population" && set.has("housing")) && !set.has("workers")) return false;
+    if (anchored && !cfg.anchorGoals.includes(g) && !set.has("workers")) return false;
     return true;
   });
 }

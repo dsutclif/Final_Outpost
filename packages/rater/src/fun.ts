@@ -52,7 +52,7 @@ export function funProxies(ms: Measurement, noveltyElements: { modules: number; 
   const medianGap = mean(med.map((r) => r.trace.rewardGapMedian));
   const dead = mean(med.map((r) => r.trace.deadTicks / Math.max(1, r.ticks)));
   const fails = all.filter((r) => !r.won && r.reason !== "goal");
-  const fairShare = fails.length === 0 ? 1 : mean(fails.map((r) => (r.trace.warningLead >= 10 || r.reason === "timer" || r.reason === "time_budget" ? 1 : 0)));
+  const fairShare = fails.length === 0 ? 1 : mean(fails.map((r) => (r.trace.warningLead >= 10 || r.reason === "timer" || r.reason === "budget" ? 1 : 0)));
   let noveltyY = 0, noveltyV = 0;
   if (noveltyElements) {
     const n = noveltyElements;

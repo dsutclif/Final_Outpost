@@ -1,8 +1,8 @@
 {
   "id": "s1-L018",
-  "seed": 1071243415,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 1825322637,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,12 +15,13 @@
     ]
   },
   "modules": [
+    "barrier_lines",
+    "blocked_zones",
     "build_pads",
     "carry",
     "core",
     "core_levels",
     "gather",
-    "hunting",
     "sales",
     "source_gating",
     "workers"
@@ -50,76 +51,119 @@
         640
       ],
       "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
+        "res.food_raw_1"
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        40,
-        490
+        58,
+        533
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        48,
-        439
+        83,
+        389
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        95,
-        398
+        73,
+        458
       ]
     },
     {
       "type": "node.material_source",
       "at": [
         131,
-        358
+        384
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        109,
+        529
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        60,
-        631
+        87,
+        635
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        101,
-        614
+        43,
+        636
       ],
       "enabled": false
     },
     {
-      "type": "zone.prey",
-      "id": "prey",
+      "type": "zone.blocked",
+      "id": "rubble",
       "rect": [
-        345,
-        360,
-        115,
-        130
-      ],
-      "animal": "node.prey",
-      "n": 3
+        0,
+        282,
+        480,
+        44
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 8,
+      "sections": [
+        {
+          "a": [
+            0,
+            329
+          ],
+          "b": [
+            182,
+            329
+          ]
+        },
+        {
+          "a": [
+            182,
+            329
+          ],
+          "b": [
+            342,
+            329
+          ],
+          "gate": true
+        },
+        {
+          "a": [
+            342,
+            329
+          ],
+          "b": [
+            480,
+            329
+          ]
+        }
+      ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        160,
-        469
+        177,
+        475
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 8
       },
       "role": {
         "role": "role.supplier",
@@ -131,11 +175,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        184,
-        631
+        181,
+        629
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 12
       },
       "role": {
         "role": "role.supplier",
@@ -148,11 +192,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        238,
-        733
+        278,
+        749
       ],
       "cost": {
-        "res.currency": 23
+        "res.currency": 19
       },
       "role": {
         "role": "role.cashier",
@@ -163,11 +207,11 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        101,
-        614
+        43,
+        636
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 16
       },
       "build": "node.enable",
       "target": "food2",
@@ -179,11 +223,11 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        213,
-        600
+        146,
+        646
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 16
       },
       "role": {
         "role": "role.supplier",
@@ -196,58 +240,52 @@
       }
     },
     {
-      "type": "pad.hire",
-      "id": "hunter",
-      "at": [
-        334,
-        462
-      ],
-      "cost": {
-        "res.currency": 15
-      },
-      "role": {
-        "role": "role.hunter",
-        "from": "node.prey",
-        "to": "sink.sales_point"
-      },
-      "requires": {
-        "pad": "hire_food2"
-      }
-    },
-    {
       "type": "pad.build",
       "id": "core_level",
       "at": [
-        164,
-        557
+        159,
+        562
       ],
       "cost": {
-        "res.currency": 32
+        "res.currency": 26
       },
       "build": "sink.core.level"
     },
     {
       "type": "pad.build",
-      "id": "landmark",
+      "id": "zone_pad",
       "at": [
-        371,
-        802
+        260,
+        369
       ],
       "cost": {
-        "res.currency": 69
+        "res.currency": 16
+      },
+      "build": "zone.clear",
+      "target": "rubble",
+      "requires": {
+        "pad": "hire_food2",
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        370,
+        226
+      ],
+      "cost": {
+        "res.currency": 49
       },
       "build": "struct.landmark",
       "big": true,
       "requires": {
-        "pad": "hunter",
-        "coreLevel": 2
+        "pad": "zone_pad"
       }
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -267,12 +305,12 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.3,
-    "customers.spawn": 3.2,
+    "start.currency": 7,
+    "core.burn": 2.5,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 8,
+    "housing.base": 7,
     "level.budgetSeconds": 260
   },
   "goal": {
@@ -292,9 +330,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.378,
-    "fun": 0.701,
-    "botMargin": 0.422,
+    "difficulty": 0.369,
+    "fun": 0.757,
+    "botMargin": 0.467,
     "botsPassed": [
       "good",
       "average",

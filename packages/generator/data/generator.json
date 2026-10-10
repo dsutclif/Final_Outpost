@@ -35,7 +35,7 @@
   },
   "spacing": { "margin": 8, "standR": 16, "screen": [200, 350] },
   "search": {
-    "maxIterations": 9,
+    "maxIterations": 12,
     "tolerance": 0.05,
     "funThreshold": 0.4,
     "quickSeeds": { "ref": 4, "other": 2 },

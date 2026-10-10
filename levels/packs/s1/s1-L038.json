@@ -1,8 +1,8 @@
 {
   "id": "s1-L038",
   "seed": 1094709853,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,11 +19,11 @@
     "build_pads",
     "carry",
     "core",
+    "customer_variety",
     "defenders",
     "defense",
     "gather",
     "sales",
-    "salvage_upgrades",
     "workers"
   ],
   "start": [
@@ -39,7 +39,7 @@
         560
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -58,8 +58,8 @@
     {
       "type": "node.material_source",
       "at": [
-        157,
-        365
+        135,
+        357
       ]
     },
     {
@@ -72,23 +72,23 @@
     {
       "type": "node.material_source",
       "at": [
-        143,
-        412
+        185,
+        361
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        99,
-        361
+        159,
+        405
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        446,
-        425
+        336,
+        373
       ]
     },
     {
@@ -106,7 +106,7 @@
             160,
             290
           ],
-          "prebuilt": true
+          "prebuilt": false
         },
         {
           "a": [
@@ -137,11 +137,11 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        192,
-        462
+        202,
+        460
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 9
       },
       "role": {
         "role": "role.supplier",
@@ -153,11 +153,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        389,
-        538
+        323,
+        506
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -174,7 +174,7 @@
         812
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 20
       },
       "role": {
         "role": "role.cashier",
@@ -185,79 +185,23 @@
       "type": "pad.build",
       "id": "tower0",
       "at": [
-        195,
-        392
+        236,
+        368
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 20
       },
       "build": "struct.ranged_defense"
-    },
-    {
-      "type": "pad.build",
-      "id": "tower1",
-      "at": [
-        315,
-        365
-      ],
-      "cost": {
-        "res.currency": 18
-      },
-      "build": "struct.ranged_defense"
-    },
-    {
-      "type": "pad.build",
-      "id": "towerup0",
-      "at": [
-        223,
-        436
-      ],
-      "cost": {
-        "res.salvage": 3
-      },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower0",
-      "requires": {
-        "pad": "tower0"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "towerup1",
-      "at": [
-        313,
-        429
-      ],
-      "cost": {
-        "res.salvage": 3
-      },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower1",
-      "requires": {
-        "pad": "tower1"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "reinforce",
-      "at": [
-        254,
-        411
-      ],
-      "cost": {
-        "res.salvage": 4
-      },
-      "build": "struct.barrier.reinforced"
     },
     {
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        141,
-        687
+        137,
+        691
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 13
       },
       "build": "struct.barracks"
     },
@@ -265,11 +209,11 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        153,
-        768
+        146,
+        763
       ],
       "cost": {
-        "res.currency": 5
+        "res.currency": 6
       },
       "role": {
         "role": "role.defender"
@@ -305,37 +249,36 @@
   ],
   "waves": [
     {
-      "t": 52,
+      "t": 51,
       "counts": {
-        "hostile.creature": 8,
-        "hostile.raider_humanoid": 2
+        "hostile.creature": 8
       }
     },
     {
-      "t": 112,
+      "t": 107,
       "counts": {
-        "hostile.creature": 10,
-        "hostile.raider_humanoid": 4
+        "hostile.creature": 11
       }
     },
     {
-      "t": 172,
+      "t": 162,
       "counts": {
-        "hostile.creature": 13,
-        "hostile.raider_humanoid": 5
+        "hostile.creature": 13
       }
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.6,
-    "customers.spawn": 2.8,
+    "start.currency": 5,
+    "core.burn": 2.4,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
+    "customers.orderMax": 3,
     "housing.base": 9,
-    "meters.baseHealth": 11,
-    "level.budgetSeconds": 230
+    "customers.impatientShare": 0.28,
+    "customers.premiumShare": 0.17,
+    "meters.baseHealth": 10,
+    "level.budgetSeconds": 220
   },
   "goal": {
     "type": "waves"
@@ -346,17 +289,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Scrap and Siege",
+      "title": "Turrets and Siege",
       "goal": "Survive every raid",
       "tips": [
-        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
+        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.589,
-    "fun": 0.867,
-    "botMargin": 0.868,
+    "difficulty": 0.582,
+    "fun": 0.638,
+    "botMargin": 0.892,
     "botsPassed": [
       "good",
       "average",

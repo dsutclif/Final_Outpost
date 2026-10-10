@@ -1,8 +1,8 @@
 {
   "id": "s1-L040",
-  "seed": 1405721220,
-  "engineVersion": "0.3.0",
-  "contentVersion": "0.3.0",
+  "seed": 1780247755,
+  "engineVersion": "0.4.0",
+  "contentVersion": "0.4.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,11 +19,11 @@
     "build_pads",
     "carry",
     "core",
+    "customer_variety",
     "defenders",
     "defense",
     "gather",
     "sales",
-    "salvage_upgrades",
     "workers"
   ],
   "start": [
@@ -39,7 +39,7 @@
         500
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -47,8 +47,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        119,
-        651
+        117,
+        652
       ],
       "sells": [
         "res.food_raw_1",
@@ -58,51 +58,51 @@
     {
       "type": "node.material_source",
       "at": [
-        391,
-        419
+        438,
+        454
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        424,
-        473
+        392,
+        375
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        379,
-        530
+        418,
+        509
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        446,
-        527
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        369,
-        362
+        346,
+        363
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        385,
-        648
+        418,
+        616
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        213,
+        353
       ]
     },
     {
       "type": "barrier.line",
       "id": "wall",
       "res": "res.currency",
-      "costPerSection": 7,
+      "costPerSection": 9,
       "sections": [
         {
           "a": [
@@ -113,7 +113,7 @@
             138,
             290
           ],
-          "prebuilt": true
+          "prebuilt": false
         },
         {
           "a": [
@@ -144,11 +144,11 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        309,
-        473
+        313,
+        468
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 9
       },
       "role": {
         "role": "role.supplier",
@@ -160,11 +160,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        263,
-        649
+        280,
+        631
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 14
       },
       "role": {
         "role": "role.supplier",
@@ -177,11 +177,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        60,
-        758
+        22,
+        743
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 21
       },
       "role": {
         "role": "role.cashier",
@@ -192,79 +192,23 @@
       "type": "pad.build",
       "id": "tower0",
       "at": [
-        159,
-        364
+        255,
+        381
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 21
       },
       "build": "struct.ranged_defense"
-    },
-    {
-      "type": "pad.build",
-      "id": "tower1",
-      "at": [
-        319,
-        372
-      ],
-      "cost": {
-        "res.currency": 18
-      },
-      "build": "struct.ranged_defense"
-    },
-    {
-      "type": "pad.build",
-      "id": "towerup0",
-      "at": [
-        184,
-        426
-      ],
-      "cost": {
-        "res.salvage": 3
-      },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower0",
-      "requires": {
-        "pad": "tower0"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "towerup1",
-      "at": [
-        347,
-        430
-      ],
-      "cost": {
-        "res.salvage": 3
-      },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower1",
-      "requires": {
-        "pad": "tower1"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "reinforce",
-      "at": [
-        249,
-        401
-      ],
-      "cost": {
-        "res.salvage": 4
-      },
-      "build": "struct.barrier.reinforced"
     },
     {
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        87,
-        602
+        96,
+        591
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 14
       },
       "build": "struct.barracks"
     },
@@ -272,11 +216,11 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        47,
-        649
+        56,
+        621
       ],
       "cost": {
-        "res.currency": 5
+        "res.currency": 6
       },
       "role": {
         "role": "role.defender"
@@ -312,37 +256,36 @@
   ],
   "waves": [
     {
-      "t": 56,
+      "t": 53,
       "counts": {
-        "hostile.creature": 7,
-        "hostile.raider_humanoid": 2
+        "hostile.creature": 8
       }
     },
     {
-      "t": 116,
+      "t": 107,
       "counts": {
-        "hostile.creature": 9,
-        "hostile.raider_humanoid": 3
+        "hostile.creature": 11
       }
     },
     {
-      "t": 176,
+      "t": 162,
       "counts": {
-        "hostile.creature": 11,
-        "hostile.raider_humanoid": 5
+        "hostile.creature": 13
       }
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 7,
-    "core.burn": 2.6,
-    "customers.spawn": 2.8,
+    "start.currency": 3,
+    "core.burn": 2.4,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
+    "customers.orderMax": 3,
     "housing.base": 9,
-    "meters.baseHealth": 11,
-    "level.budgetSeconds": 240
+    "customers.impatientShare": 0.29,
+    "customers.premiumShare": 0.16,
+    "meters.baseHealth": 9,
+    "level.budgetSeconds": 220
   },
   "goal": {
     "type": "waves"
@@ -353,17 +296,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Scrap and Raiders",
+      "title": "Turrets and Raiders",
       "goal": "Survive every raid",
       "tips": [
-        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
+        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.393,
-    "fun": 0.716,
-    "botMargin": 0.898,
+    "difficulty": 0.446,
+    "fun": 0.889,
+    "botMargin": 0.882,
     "botsPassed": [
       "good",
       "average",
