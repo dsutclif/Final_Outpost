@@ -32,5 +32,7 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
    development and from free static hosting after; App Store port behind the gate.
 9. **Models.** Fable 5.1 for architecture-heavy phases (0, 2, 3, 6); Opus 5.5 for
    UI, offline shell, 3D renderer and the store port (1-UI, 4, 5, 7).
+9a. **Model fallback (2026-10-09).** Fable 5.1 usage ran out mid-build; all remaining
+    streams run on Opus 5.5.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

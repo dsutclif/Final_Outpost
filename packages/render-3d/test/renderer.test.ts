@@ -1,0 +1,171 @@
+import { CONTENT_VERSION } from "@fo/content";
+import { ENGINE_VERSION, FP, createSim, type Input, type SimEvent } from "@fo/sim";
+import { SKINS, marsGreenhouse } from "@fo/skins";
+import { Matrix4, type InstancedMesh, type Object3D } from "three";
+import { describe, expect, it } from "vitest";
+import level1 from "../../../levels/golden/proto-L001.json";
+import level4 from "../../../levels/golden/proto-L004.json";
+import { MAX_DRAW_CALLS, MAX_TRIANGLES, createCamera } from "../src/index.js";
+import { Renderer3D, type GLLike } from "../src/renderer.js";
+
+// The renderer runs headless here: three's scene graph is real, WebGLRenderer is replaced by
+// a recording fake (never instantiated), and the DOM is a minimal stand-in whose 2D canvas
+// context swallows every call, so label art code runs without a browser.
+
+function fakeCtx(): CanvasRenderingContext2D {
+  const store: Record<string | symbol, unknown> = {};
+  return new Proxy(store, {
+    get(t, k) {
+      if (k in t) return t[k];
+      return (..._args: unknown[]) => (k === "measureText" ? { width: 40 } : undefined);
+    },
+    set(t, k, v) { t[k] = v; return true; },
+  }) as unknown as CanvasRenderingContext2D;
+}
+
+function fakeMount(): HTMLElement {
+  const doc = { createElement: () => el() };
+  function el(): Record<string, unknown> {
+    const ctx = fakeCtx();
+    return {
+      style: {}, className: "", textContent: "", width: 0, height: 0, clientWidth: 390, clientHeight: 780,
+      appendChild: () => undefined, remove: () => undefined,
+      getContext: () => ctx,
+      getBoundingClientRect: () => ({ width: 390, height: 780 }),
+      ownerDocument: doc,
+    };
+  }
+  return el() as unknown as HTMLElement;
+}
+
+function fakeGL(): GLLike & { renders: number } {
+  return {
+    renders: 0,
+    domElement: { remove: () => undefined } as unknown as HTMLCanvasElement,
+    info: { render: { calls: 0, triangles: 0 } },
+    shadowMap: { enabled: false, type: 0 as GLLike["shadowMap"]["type"] },
+    outputColorSpace: "srgb",
+    toneMapping: 0 as GLLike["toneMapping"],
+    setPixelRatio: () => undefined,
+    setSize: () => undefined,
+    render(): void { this.renders++; },
+    dispose: () => undefined,
+  };
+}
+
+const pin = <T extends object>(m: T): T => ({ ...m, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION });
+
+function finiteMatrices(root: Object3D): string[] {
+  const bad: string[] = [];
+  const m = new Matrix4();
+  root.traverse((o) => {
+    if (![o.position.x, o.position.y, o.position.z, o.scale.x, o.scale.y, o.scale.z].every(Number.isFinite)) bad.push(o.name || o.type);
+    const im = o as InstancedMesh;
+    if (im.isInstancedMesh) {
+      for (let i = 0; i < im.count; i++) {
+        im.getMatrixAt(i, m);
+        if (!m.elements.every(Number.isFinite)) { bad.push(`${im.name}#${i}`); break; }
+      }
+    }
+  });
+  return bad;
+}
+
+/** Walk in a slow square so the player gathers, carries and pays. */
+function wander(tick: number): Input {
+  const phase = Math.floor(tick / 90) % 4;
+  const d = [[1, 0], [0, 1], [-1, 0], [0, -1]][phase]!;
+  return { dx: d[0]! * FP, dy: d[1]! * FP };
+}
+
+function run(manifest: object, ticks: number, input: (t: number) => Input, until?: (e: SimEvent) => boolean) {
+  const clock = { t: 0 };
+  const gl = fakeGL();
+  const r = new Renderer3D({ now: () => clock.t, dpr: () => 2, createGL: () => gl, quality: "medium" });
+  const sim = createSim(manifest);
+  r.init(sim.compiled.manifest, marsGreenhouse, fakeMount());
+  const cam = createCamera();
+  const seen = new Set<string>();
+  let stop = false;
+  for (let i = 0; i < ticks && !sim.state.over && !stop; i++) {
+    for (const e of sim.step(input(i))) {
+      seen.add(e.t);
+      r.onEvent(e);
+      if (until?.(e)) stop = true;
+    }
+    clock.t += 1000 / 30;
+    r.sync(sim.state, (i % 3) / 3, cam);
+  }
+  return { r, gl, sim, cam, seen };
+}
+
+describe("render-3d module", () => {
+  it("imports without a DOM and keeps three out of the entry point", async () => {
+    expect(typeof globalThis.document).toBe("undefined");
+    const mod = await import("../src/index.js");
+    expect(typeof mod.loadRenderer3D).toBe("function");
+    const src = await import("node:fs").then((fs) => fs.readFileSync(new URL("../src/index.ts", import.meta.url), "utf8"));
+    expect(src).not.toMatch(/from "three"/);
+    expect(src).toMatch(/import\("\.\/renderer\.js"\)/);
+  });
+
+  it("loadRenderer3D resolves to a Contract 2 renderer without touching WebGL", async () => {
+    const { loadRenderer3D } = await import("../src/index.js");
+    const r = await loadRenderer3D({ quality: "low" });
+    for (const k of ["init", "sync", "onEvent", "resize", "dispose", "setQuality", "stats"] as const) expect(typeof r[k]).toBe("function");
+    expect(r.getQuality()).toBe("low");
+  });
+});
+
+describe("Renderer3D (fake WebGL)", () => {
+  it("plays level 1 with finite transforms, renders every frame and stays inside the budgets", () => {
+    const { r, gl, sim, cam } = run(pin(level1), 900, wander);
+    expect(gl.renders).toBeGreaterThan(100);
+    expect(Number.isFinite(cam.x) && Number.isFinite(cam.y)).toBe(true);
+    expect(finiteMatrices(r.three.scene)).toEqual([]);
+    const s = r.stats();
+    expect(s.estDrawCalls).toBeGreaterThan(5);
+    expect(s.estDrawCalls).toBeLessThanOrEqual(MAX_DRAW_CALLS);
+    expect(s.estTriangles).toBeLessThanOrEqual(MAX_TRIANGLES);
+    expect(sim.state.tick).toBeGreaterThan(100);
+    r.dispose();
+  });
+
+  it("level 4 during the first wave stays inside the budgets on every tier", () => {
+    const { r, seen } = run(pin(level4), 2400, () => ({ dx: 0, dy: 0 }), (e) => e.t === "wave_started");
+    expect(seen.has("wave_started")).toBe(true);
+    for (const q of ["low", "medium", "high"] as const) {
+      r.setQuality(q);
+      const s = r.stats();
+      expect(s.quality).toBe(q);
+      expect(s.estDrawCalls, `${q} draw calls`).toBeLessThanOrEqual(MAX_DRAW_CALLS);
+      expect(s.estTriangles, `${q} triangles`).toBeLessThanOrEqual(MAX_TRIANGLES);
+    }
+    expect(finiteMatrices(r.three.scene)).toEqual([]);
+    r.dispose();
+  });
+
+  it("clamps the camera to the map like the 2D renderer", () => {
+    const { r, cam } = run(pin(level1), 200, () => ({ dx: -FP, dy: -FP }));
+    expect(cam.x).toBeGreaterThanOrEqual(0);
+    expect(cam.y).toBeGreaterThanOrEqual(0);
+    expect(cam.x).toBeLessThanOrEqual(480);
+    expect(cam.y).toBeLessThanOrEqual(900);
+    r.dispose();
+  });
+
+  it("re-inits, resizes, switches skins and disposes cleanly", () => {
+    const gl = fakeGL();
+    const r = new Renderer3D({ now: () => 0, createGL: () => gl });
+    const sim = createSim(pin(level4));
+    for (const skin of Object.values(SKINS)) {
+      r.init(sim.compiled.manifest, skin, fakeMount());
+      r.resize(320, 640);
+      r.sync(sim.state, 0, createCamera());
+      expect(finiteMatrices(r.three.scene)).toEqual([]);
+    }
+    r.dispose();
+    // sync after dispose is a no-op
+    r.sync(sim.state, 0, createCamera());
+  });
+});

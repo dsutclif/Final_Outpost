@@ -123,6 +123,10 @@ importers:
       three:
         specifier: ^0.170.0
         version: 0.170.0
+    devDependencies:
+      '@types/three':
+        specifier: ^0.170.0
+        version: 0.170.0
 
   packages/sequencer:
     dependencies:
