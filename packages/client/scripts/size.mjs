@@ -11,7 +11,10 @@ const dist = join(dirname(fileURLToPath(import.meta.url)), "..", "dist");
 const BUDGET = 300 * 1024;
 const walk = (d) => readdirSync(d).flatMap((f) => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : [p]; });
 const html = readFileSync(join(dist, "index.html"), "utf8");
-const eager = new Set([...html.matchAll(/(?:src|href)="\/?([^"]+\.(?:js|css))"/g)].map((m) => m[1]));
+// Strip the deploy base (BASE_PATH, e.g. /Final_Outpost/) so paths resolve inside dist.
+const base = (process.env.BASE_PATH ?? "/").replace(/^\/|\/$/g, "");
+const unbase = (p) => (base && p.startsWith(base + "/") ? p.slice(base.length + 1) : p);
+const eager = new Set([...html.matchAll(/(?:src|href)="\/?([^"]+\.(?:js|css))"/g)].map((m) => unbase(m[1])));
 let shell = 0, lazy = 0, sw = 0;
 const rows = [];
 for (const f of walk(dist)) {

@@ -51,6 +51,8 @@ function levelPacks(): Plugin {
 }
 
 export default defineConfig({
+  // GitHub Pages serves from /<repo>/; CI sets BASE_PATH, local builds stay at the root.
+  base: process.env.BASE_PATH ?? "/",
   server: { host: "0.0.0.0", port: 5180, strictPort: true },
   preview: { host: "0.0.0.0", port: 5181 },
   build: { outDir: "dist", target: "es2022", sourcemap: false, chunkSizeWarningLimit: 800 },
