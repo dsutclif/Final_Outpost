@@ -1,0 +1,256 @@
+{
+  "id": "s1-L005",
+  "seed": 860553483,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-sw",
+      "food-se",
+      "shop-ne",
+      "landmark-s"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "sales",
+    "source_gating",
+    "workers"
+  ],
+  "start": [
+    240,
+    360
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        450
+      ],
+      "params": {
+        "fuel": 13,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        390,
+        396
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        122,
+        695
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        73,
+        665
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        64,
+        608
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        170,
+        676
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        345,
+        681
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food2",
+      "at": [
+        384,
+        658
+      ],
+      "enabled": false
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        179,
+        553
+      ],
+      "cost": {
+        "res.currency": 9
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        373,
+        565
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        294,
+        494
+      ],
+      "cost": {
+        "res.currency": 19
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "unlock_food2",
+      "at": [
+        384,
+        658
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "build": "node.enable",
+      "target": "food2",
+      "requires": {
+        "pad": "hire_food"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food2",
+      "at": [
+        386,
+        514
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food2"
+      },
+      "requires": {
+        "pad": "unlock_food2"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        240,
+        796
+      ],
+      "cost": {
+        "res.currency": 119
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "hire_food2"
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 7,
+    "core.burn": 2.6,
+    "customers.spawn": 2.9,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "housing.base": 7,
+    "level.budgetSeconds": 250
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Locked Caches and Raising the Hub",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "Some grow domes start locked. Unlock them with credits on their pad."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.126,
+    "fun": 0.444,
+    "botMargin": 0.416,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "id": "s1-L048",
+  "seed": 307298876,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-e",
+      "food-se",
+      "shop-w",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "blocked_zones",
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "hazard_events",
+    "housing",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    218,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        218,
+        500
+      ],
+      "params": {
+        "fuel": 10,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        117,
+        649
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        429,
+        467
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        430,
+        410
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        373,
+        373
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        385,
+        435
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        416,
+        641
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        152,
+        374
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble",
+      "rect": [
+        0,
+        282,
+        480,
+        44
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        240,
+        872
+      ],
+      "arrivals": {
+        "every": 17,
+        "total": 4
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        318,
+        453
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        311,
+        642
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        22,
+        739
+      ],
+      "cost": {
+        "res.currency": 22
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        128,
+        576
+      ],
+      "cost": {
+        "res.currency": 30
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "zone_pad",
+      "at": [
+        217,
+        363
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "build": "zone.clear",
+      "target": "rubble",
+      "requires": {
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        110,
+        226
+      ],
+      "cost": {
+        "res.currency": 98
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "zone_pad"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        336,
+        608
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "build": "struct.housing"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 69,
+      "start": 77,
+      "end": 99
+    }
+  ],
+  "params": {
+    "start.currency": 1,
+    "core.burn": 2.2,
+    "customers.spawn": 3.2,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "housing.base": 5,
+    "level.budgetSeconds": 250
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Domes and Foundations",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "New colonists need a bed. Build hab pods so they can move in."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.769,
+    "fun": 0.91,
+    "botMargin": 0.325,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

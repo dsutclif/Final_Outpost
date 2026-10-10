@@ -7,10 +7,12 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b packages/content packages/sim packages/skins packages/bots packages/rater packages/sequencer packages/generator packages/render-2d packages/render-3d packages/client",
+    "typecheck": "tsc -b packages/content packages/sim packages/skins packages/bots packages/rater packages/sequencer packages/generator packages/render-2d packages/render-3d packages/client tools",
     "check": "pnpm typecheck && pnpm test",
     "dev": "pnpm --filter @fo/client dev",
-    "build": "pnpm --filter @fo/client build"
+    "build": "pnpm --filter @fo/client build",
+    "levels:build": "vite-node tools/build-levels.ts --",
+    "levels:check": "vite-node tools/regress-levels.ts --"
   },
   "devDependencies": {
     "@capacitor/android": "^7.6.9",
@@ -24,6 +26,7 @@
     "@types/node": "^24.0.0",
     "fast-check": "^4.1.1",
     "typescript": "^5.8.3",
+    "vite-node": "3.2.4",
     "vitest": "^3.2.4"
   }
 }

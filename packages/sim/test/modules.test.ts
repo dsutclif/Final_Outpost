@@ -47,6 +47,45 @@ describe("workers and build pads (level 1)", () => {
     expect(sim.state.core.fuel).toBeGreaterThan(fuel0 - 11 + 3);
   });
 
+  it("pad dwell: crossing a pad never pays; payment starts after standing on it for pads.dwell, and leaving resets", () => {
+    const sim = newSim();
+    grant(sim, { currency: 8 });
+    const dwell = sim.compiled.pads.dwellTicks;
+    expect(dwell).toBe(Math.round(0.35 * TPS));
+    // A chord 20 units off the pad centre at walking speed: inside the radius for fewer than dwell ticks.
+    walkTo(sim, at(110, 450), 4);
+    const cross = walkPath(sim, [at(210, 450), at(220, 470)], 4);
+    expect(all(cross, "pad_paid")).toEqual([]);
+    expect(sim.state.currency).toBe(8);
+    expect(sim.state.player.padId).toBeNull();
+    // Stand on it: the dwell counter winds up to dwell ticks, then payment starts.
+    walkTo(sim, at(160, 430), 6);
+    expect(sim.state.player.padId).toBe("hire_core_supplier");
+    const t0 = sim.state.tick - sim.state.player.padDwell;
+    const ev: SimEvent[] = [];
+    let firstPaid = -1;
+    for (let i = 0; i < 40 && firstPaid < 0; i++) {
+      const e = sim.step({ dx: 0, dy: 0 });
+      ev.push(...e);
+      if (has(e, "pad_paid")) firstPaid = sim.state.tick;
+    }
+    expect(firstPaid - t0).toBeGreaterThanOrEqual(dwell);
+    expect(sim.state.player.padDwell).toBe(dwell);
+    // Leaving resets the wind-up.
+    walkTo(sim, at(160, 520), 4);
+    expect(sim.state.player.padId).toBeNull();
+    expect(sim.state.player.padDwell).toBe(0);
+  });
+
+  it("pads.dwell 0 pays on the first act tick", () => {
+    const sim = newSim({ params: { ...LEVEL_1.params, "pads.dwell": 0 } });
+    grant(sim, { currency: 8 });
+    expect(sim.compiled.pads.dwellTicks).toBe(0);
+    const ev = walkTo(sim, at(160, 430), 29);
+    const more = idle(sim, 2);
+    expect(all([...ev, ...more], "pad_paid").length).toBeGreaterThan(0);
+  });
+
   it("idle residents never self-assign and hire pads lock when nobody is free", () => {
     const sim = newSim({ people: [{ role: "idle" }] });
     idle(sim, 60);
@@ -122,8 +161,10 @@ describe("barrier lines, lasso, housing, core levels and blocked zones (level 2)
 
   it("leaving through the gate engages the lasso; a loop captures a container that releases a recruit in the safe radius", () => {
     const sim = newSim({}, LEVEL_2);
-    // Route around the core-upgrade pad at (240, 580), which would otherwise take the coins.
+    // The level starts within reach of the core-upgrade pad at (240, 580); walking straight off it
+    // never pays, because payment waits for the pad dwell.
     walkPath(sim, [at(300, 600), at(300, 740), at(240, 800)]);
+    expect(sim.state.currency).toBe(10);
     expect(sim.state.lasso.engaged).toBe(true);
     const ev = walkPath(sim, [at(390, 800), at(390, 850), at(460, 850), at(460, 785), at(395, 785), at(390, 815)]);
     const cap = find(ev, "captured");
@@ -148,8 +189,7 @@ describe("barrier lines, lasso, housing, core levels and blocked zones (level 2)
     expect(sim.state.stats.rescued).toBe(1);
     const pop0 = sim.state.residents.filter((r) => r.status === "ok").length;
     expect(pop0).toBe(4);
-    // Building housing frees a slot and the waiting recruit moves in on their own. The level starts
-    // within reach of the core-upgrade pad, which took a coin on the first tick, so top up.
+    // Building housing frees a slot and the waiting recruit moves in on their own.
     grant(sim, { currency: 10 - sim.state.currency });
     const build = [...walkTo(sim, at(80, 610), 8), ...idle(sim, 60, (e) => has(e, "moved_in"))];
     expect(find(build, "built")?.build).toBe("struct.housing");
@@ -311,6 +351,19 @@ describe("hunting, converters and customer variety (level 3)", () => {
     const impatientTicks = sim.compiled.sales.customers["unit.customer_impatient"]!.patienceTicks;
     expect(impatientTicks).toBe(16 * TPS);
     expect(all(ev, "customer_left").length).toBeGreaterThan(0);
+  });
+
+  it("drop-only demand: no orders for a good only drops supply while its shelf is empty", () => {
+    // Level 4 sells raw food 2, which only creature drops supply.
+    const sim = createSim({ ...LEVEL_4, params: { ...LEVEL_4.params, "core.burn": 60 }, waves: [{ t: 400, counts: { "hostile.creature": 1 } }] });
+    const early = idle(sim, 40 * TPS);
+    const asked = all(early, "customer_arrived");
+    expect(asked.length).toBeGreaterThan(3);
+    expect(asked.every((c) => c.res === "res.food_raw_1")).toBe(true);
+    // Once some is on the shelf, it is in demand again.
+    (sim.state.sales!.shelf as Record<string, number>)["res.food_raw_2"] = 8;
+    const later = idle(sim, 40 * TPS);
+    expect(all(later, "customer_arrived").some((c) => c.res === "res.food_raw_2")).toBe(true);
   });
 
   it("a premium sale pays double and counts toward the serve_premium goal", () => {

@@ -1,0 +1,224 @@
+{
+  "id": "s1-L014",
+  "seed": 1072745074,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-far-w",
+      "food-far-e",
+      "shop-s",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "blocked_zones",
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "housing",
+    "sales"
+  ],
+  "start": [
+    240,
+    612
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        520
+      ],
+      "params": {
+        "fuel": 17,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        251,
+        720
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        70,
+        580
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        49,
+        470
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        84,
+        401
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        72,
+        519
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        28,
+        527
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        30,
+        430
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        427,
+        525
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble",
+      "rect": [
+        0,
+        282,
+        480,
+        44
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        240,
+        872
+      ],
+      "arrivals": {
+        "every": 13,
+        "total": 3
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        140,
+        571
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "zone_pad",
+      "at": [
+        231,
+        367
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "build": "zone.clear",
+      "target": "rubble",
+      "requires": {
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        95,
+        226
+      ],
+      "cost": {
+        "res.currency": 33
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "zone_pad"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        337,
+        635
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "build": "struct.housing"
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 11,
+    "core.burn": 3,
+    "customers.spawn": 2.5,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 1,
+    "level.budgetSeconds": 200
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Rockslides and Groundbreak",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "Rockslides block the way until you clear them from their pad.",
+        "Upgrade the reactor for a bigger heat ring and new build sites."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.373,
+    "fun": 0.834,
+    "botMargin": 0.624,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ]
+  }
+}

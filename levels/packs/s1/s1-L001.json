@@ -1,0 +1,147 @@
+{
+  "id": "s1-L001",
+  "seed": 148133935,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "food-sw",
+      "shop-e",
+      "landmark-se"
+    ]
+  },
+  "modules": [
+    "carry",
+    "core",
+    "gather",
+    "sales"
+  ],
+  "start": [
+    262,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        262,
+        500
+      ],
+      "params": {
+        "fuel": 14,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        334,
+        641
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        129,
+        378
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        86,
+        475
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        75,
+        529
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        48,
+        444
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        61,
+        383
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        100,
+        666
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        370,
+        807
+      ],
+      "cost": {
+        "res.currency": 85
+      },
+      "build": "struct.landmark",
+      "big": true
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 8,
+    "core.burn": 2.8,
+    "customers.spawn": 2.7,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 2,
+    "level.budgetSeconds": 170
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Traders and Raising the Hub",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "Stock the kiosk, then stand at the register so traders pay. Scoop up the credits pile."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.105,
+    "fun": 0.936,
+    "botMargin": 0.487,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ]
+  }
+}

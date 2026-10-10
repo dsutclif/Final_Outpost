@@ -23,14 +23,34 @@ export function refreshPads(st: State, cp: Compiled): void {
   }
 }
 
+const padRange = (cp: Compiled, pad: PadState): number => {
+  const e = padEnt(cp, pad);
+  return e.type === "pad.build" && e.big ? cp.pads.bigRange : cp.pads.range;
+};
+
+/**
+ * Which pad the player stands on and for how long. Payment waits until the player has stayed on
+ * one pad for `pads.dwell`, so walking across a pad never spends by accident; leaving resets it.
+ */
+export function trackPadDwell(st: State, cp: Compiled): void {
+  const p = st.player;
+  let on: string | null = null;
+  for (const pad of st.pads) {
+    if (pad.done || !pad.visible) continue;
+    if (within(p.pos, pad.pos, padRange(cp, pad))) { on = pad.id; break; }
+  }
+  if (on !== p.padId) { p.padId = on; p.padDwell = 0; }
+  if (on !== null && p.padDwell < cp.pads.dwellTicks) p.padDwell++;
+}
+
 /** The player stands on a pad: pay one unit (backpack first, then currency) or hint why not. Returns true if the pad consumed the action. */
 export function tryPayPad(st: State, cp: Compiled, out: SimEvent[]): boolean {
   const p = st.player;
   for (const pad of st.pads) {
     if (pad.done || !pad.visible) continue;
     const e = padEnt(cp, pad);
-    const r = e.type === "pad.build" && e.big ? cp.pads.bigRange : cp.pads.range;
-    if (!within(p.pos, pad.pos, r)) continue;
+    if (!within(p.pos, pad.pos, padRange(cp, pad))) continue;
+    if (pad.id !== p.padId || p.padDwell < cp.pads.dwellTicks) continue;
     if (e.requires?.coreLevel !== undefined && st.core.level < e.requires.coreLevel) { hint(st, out, "needs_core_level"); return true; }
     if (e.type === "pad.hire" && idleResidents(st).length === 0) { hint(st, out, "no_idle_resident"); return true; }
     const costs = Object.entries(e.cost);

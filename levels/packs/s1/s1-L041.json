@@ -1,0 +1,249 @@
+{
+  "id": "s1-L041",
+  "seed": 1752643492,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-ne",
+      "fuel-w",
+      "shop-s"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "defense",
+    "gather",
+    "medical",
+    "sales"
+  ],
+  "start": [
+    240,
+    652
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        560
+      ],
+      "params": {
+        "fuel": 13,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        300,
+        735
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        113,
+        408
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        57,
+        433
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        159,
+        365
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        105,
+        351
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        366,
+        393
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        67,
+        577
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        98,
+        629
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 7,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            160,
+            290
+          ],
+          "prebuilt": false
+        },
+        {
+          "a": [
+            160,
+            290
+          ],
+          "b": [
+            320,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            320,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "tower0",
+      "at": [
+        253,
+        379
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "build": "struct.ranged_defense"
+    },
+    {
+      "type": "pad.build",
+      "id": "medic",
+      "at": [
+        330,
+        679
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "build": "struct.medical"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 20,
+      "counts": {
+        "hostile.creature": 4
+      }
+    },
+    {
+      "t": 54,
+      "counts": {
+        "hostile.creature": 7
+      }
+    },
+    {
+      "t": 113,
+      "counts": {
+        "hostile.creature": 10
+      }
+    },
+    {
+      "t": 171,
+      "counts": {
+        "hostile.creature": 12
+      }
+    }
+  ],
+  "events": [],
+  "params": {
+    "start.currency": 5,
+    "core.burn": 2.6,
+    "customers.spawn": 2.9,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 5,
+    "meters.baseHealth": 11,
+    "level.budgetSeconds": 230
+  },
+  "goal": {
+    "type": "waves"
+  },
+  "fail": [
+    "meter.lifeline",
+    "meter.base_health"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Med Bays and Siege",
+      "goal": "Survive every raid",
+      "tips": [
+        "Hurt colonists stop working until a med bay heals them."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.419,
+    "fun": 0.778,
+    "botMargin": 0.849,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

@@ -36,6 +36,7 @@
   "pads.bigRange": 40,
   "pads.payItemInterval": 0.08,
   "pads.payCurrencyInterval": 0.03,
+  "pads.dwell": 0.35,
   "residents.idleSpeed": 50,
   "residents.idleRadiusX": 70,
   "residents.idleRadiusY": 58,
@@ -86,5 +87,6 @@
   "stats.lifelineLow": 0.25,
   "stats.coreLowFill": 0.3,
   "start.currency": 0,
-  "timer.seconds": 0
+  "timer.seconds": 0,
+  "level.budgetSeconds": 300
 }

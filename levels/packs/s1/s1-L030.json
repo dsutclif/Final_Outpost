@@ -1,0 +1,359 @@
+{
+  "id": "s1-L030",
+  "seed": 37864213,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-sw",
+      "fuel-ne",
+      "shop-e",
+      "landmark-se"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "converters",
+    "core",
+    "customer_variety",
+    "defense",
+    "gather",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    262,
+    602
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        262,
+        510
+      ],
+      "params": {
+        "fuel": 13,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        347,
+        644
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_prepared",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        117,
+        368
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        83,
+        421
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        77,
+        472
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        133,
+        417
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        55,
+        376
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        78,
+        634
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 7,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            182,
+            290
+          ],
+          "prebuilt": true
+        },
+        {
+          "a": [
+            182,
+            290
+          ],
+          "b": [
+            342,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            342,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        174,
+        453
+      ],
+      "cost": {
+        "res.currency": 9
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        186,
+        641
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        246,
+        724
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "grill",
+      "at": [
+        279,
+        746
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "build": "conv.food_processor",
+      "requires": {
+        "pad": "feeder"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "cook",
+      "at": [
+        211,
+        812
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.operator",
+        "to": "conv.food_processor"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "feeder",
+      "at": [
+        178,
+        705
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "conv.food_processor",
+        "node": "food1"
+      },
+      "requires": {
+        "pad": "cook"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "server",
+      "at": [
+        379,
+        744
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.server",
+        "from": "conv.food_processor",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "grill"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower0",
+      "at": [
+        245,
+        366
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "build": "struct.ranged_defense"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 57,
+      "counts": {
+        "hostile.creature": 7
+      }
+    },
+    {
+      "t": 117,
+      "counts": {
+        "hostile.creature": 10
+      }
+    },
+    {
+      "t": 178,
+      "counts": {
+        "hostile.creature": 12
+      }
+    }
+  ],
+  "events": [],
+  "params": {
+    "start.currency": 6,
+    "core.burn": 2.5,
+    "customers.spawn": 3,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 9,
+    "customers.impatientShare": 0.25,
+    "customers.premiumShare": 0.19,
+    "meters.baseHealth": 11,
+    "level.budgetSeconds": 240
+  },
+  "goal": {
+    "type": "waves"
+  },
+  "fail": [
+    "meter.lifeline",
+    "meter.base_health"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Turrets and Siege",
+      "goal": "Survive every raid",
+      "tips": [
+        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.364,
+    "fun": 0.846,
+    "botMargin": 0.932,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

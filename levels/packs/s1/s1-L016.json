@@ -1,0 +1,326 @@
+{
+  "id": "s1-L016",
+  "seed": 1235648501,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-ne",
+      "fuel-w",
+      "shop-s"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "blocked_zones",
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "lasso",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    240,
+    652
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        560
+      ],
+      "params": {
+        "fuel": 13,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        300,
+        738
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        137,
+        378
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        81,
+        407
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        191,
+        399
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        124,
+        424
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        49,
+        373
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        435,
+        423
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble",
+      "rect": [
+        0,
+        282,
+        480,
+        44
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "fence",
+      "res": "res.currency",
+      "costPerSection": 8,
+      "sections": [
+        {
+          "a": [
+            0,
+            160
+          ],
+          "b": [
+            160,
+            160
+          ],
+          "prebuilt": true
+        },
+        {
+          "a": [
+            160,
+            160
+          ],
+          "b": [
+            320,
+            160
+          ],
+          "gate": true,
+          "prebuilt": true
+        },
+        {
+          "a": [
+            320,
+            160
+          ],
+          "b": [
+            480,
+            160
+          ],
+          "prebuilt": true
+        }
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        208,
+        92
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        416,
+        52
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        82,
+        85
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        322,
+        80
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        176,
+        476
+      ],
+      "cost": {
+        "res.currency": 8
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        385,
+        546
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        198,
+        831
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        143,
+        623
+      ],
+      "cost": {
+        "res.currency": 25
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "zone_pad",
+      "at": [
+        231,
+        370
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "build": "zone.clear",
+      "target": "rubble",
+      "requires": {
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        110,
+        224
+      ],
+      "cost": {
+        "res.currency": 67
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "zone_pad"
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 8,
+    "core.burn": 2.5,
+    "customers.spawn": 2.8,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 10,
+    "level.budgetSeconds": 270
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Tow Lines and Raising the Hub",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.35,
+    "fun": 0.852,
+    "botMargin": 0.476,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

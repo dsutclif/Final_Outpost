@@ -1,0 +1,370 @@
+{
+  "id": "s1-L054",
+  "seed": 271138203,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "food-sw",
+      "shop-e",
+      "landmark-se"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "defense",
+    "gather",
+    "sales",
+    "salvage_upgrades",
+    "supply_routing",
+    "workers"
+  ],
+  "start": [
+    262,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        262,
+        500
+      ],
+      "params": {
+        "fuel": 12,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        336,
+        640
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        71,
+        404
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        40,
+        464
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        91,
+        456
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        109,
+        377
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        66,
+        612
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        235,
+        357
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        309,
+        361
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 8,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            182,
+            290
+          ],
+          "prebuilt": false
+        },
+        {
+          "a": [
+            182,
+            290
+          ],
+          "b": [
+            342,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            342,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        159,
+        464
+      ],
+      "cost": {
+        "res.currency": 9
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        177,
+        629
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        230,
+        719
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower0",
+      "at": [
+        242,
+        402
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "build": "struct.ranged_defense",
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "towerup0",
+      "at": [
+        202,
+        438
+      ],
+      "cost": {
+        "res.salvage": 3
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower0",
+      "requires": {
+        "pad": "tower0"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        278,
+        428
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "build": "struct.barrier.reinforced"
+    },
+    {
+      "type": "pad.build",
+      "id": "depot",
+      "at": [
+        211,
+        670
+      ],
+      "cost": {
+        "res.currency": 22
+      },
+      "build": "struct.depot"
+    },
+    {
+      "type": "pad.hire",
+      "id": "hauler",
+      "at": [
+        275,
+        756
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.hauler",
+        "from": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "depot_supplier",
+      "at": [
+        130,
+        533
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 49,
+      "counts": {
+        "hostile.creature": 8,
+        "hostile.raider_humanoid": 2
+      }
+    },
+    {
+      "t": 106,
+      "counts": {
+        "hostile.creature": 10,
+        "hostile.raider_humanoid": 4
+      }
+    },
+    {
+      "t": 162,
+      "counts": {
+        "hostile.creature": 13,
+        "hostile.raider_humanoid": 5
+      }
+    }
+  ],
+  "events": [],
+  "params": {
+    "start.currency": 3,
+    "core.burn": 2.4,
+    "customers.spawn": 3.1,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 7,
+    "meters.baseHealth": 9,
+    "level.budgetSeconds": 220
+  },
+  "goal": {
+    "type": "waves"
+  },
+  "fail": [
+    "meter.lifeline",
+    "meter.base_health"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Warehouses and Night Watch",
+      "goal": "Survive every raid",
+      "tips": [
+        "A warehouse lets couriers move goods between sites for you."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.594,
+    "fun": 0.756,
+    "botMargin": 0.874,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

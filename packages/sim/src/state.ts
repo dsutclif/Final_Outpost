@@ -20,6 +20,10 @@ export interface PlayerState {
   tow: number[];
   /** True on ticks where the input vector was non-zero. */
   moving: boolean;
+  /** Pad the player is standing on (first visible, unfinished pad in range), or null. */
+  padId: string | null;
+  /** Ticks the player has stood on `padId` without leaving; payment starts at `pads.dwell`. */
+  padDwell: number;
 }
 
 export interface NodeState {

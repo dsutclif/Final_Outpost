@@ -1,0 +1,310 @@
+{
+  "id": "s1-L057",
+  "seed": 623719896,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-sw",
+      "food-se",
+      "shop-ne",
+      "landmark-s"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "defense",
+    "gather",
+    "hazard_events",
+    "medical",
+    "sales",
+    "salvage_upgrades"
+  ],
+  "start": [
+    240,
+    360
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        450
+      ],
+      "params": {
+        "fuel": 13,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        388,
+        396
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        142,
+        685
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        34,
+        600
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        79,
+        660
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        175,
+        724
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        406,
+        671
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        185,
+        363
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 7,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            160,
+            290
+          ],
+          "prebuilt": false
+        },
+        {
+          "a": [
+            160,
+            290
+          ],
+          "b": [
+            320,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            320,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "tower0",
+      "at": [
+        144,
+        379
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "build": "struct.ranged_defense"
+    },
+    {
+      "type": "pad.build",
+      "id": "tower1",
+      "at": [
+        317,
+        367
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "build": "struct.ranged_defense"
+    },
+    {
+      "type": "pad.build",
+      "id": "towerup0",
+      "at": [
+        151,
+        462
+      ],
+      "cost": {
+        "res.salvage": 3
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower0",
+      "requires": {
+        "pad": "tower0"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "towerup1",
+      "at": [
+        303,
+        497
+      ],
+      "cost": {
+        "res.salvage": 3
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower1",
+      "requires": {
+        "pad": "tower1"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        188,
+        493
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "build": "struct.barrier.reinforced"
+    },
+    {
+      "type": "pad.build",
+      "id": "medic",
+      "at": [
+        342,
+        588
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "build": "struct.medical"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 20,
+      "counts": {
+        "hostile.creature": 4
+      }
+    },
+    {
+      "t": 56,
+      "counts": {
+        "hostile.creature": 8,
+        "hostile.raider_humanoid": 2
+      }
+    },
+    {
+      "t": 113,
+      "counts": {
+        "hostile.creature": 10,
+        "hostile.raider_humanoid": 4
+      }
+    },
+    {
+      "t": 171,
+      "counts": {
+        "hostile.creature": 13,
+        "hostile.raider_humanoid": 5
+      }
+    }
+  ],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 35,
+      "start": 43,
+      "end": 65
+    }
+  ],
+  "params": {
+    "start.currency": 7,
+    "core.burn": 2.5,
+    "customers.spawn": 2.9,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 5,
+    "meters.baseHealth": 11,
+    "level.budgetSeconds": 230
+  },
+  "goal": {
+    "type": "waves"
+  },
+  "fail": [
+    "meter.lifeline",
+    "meter.base_health"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Scrap and Raiders",
+      "goal": "Survive every raid",
+      "tips": [
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.758,
+    "fun": 0.741,
+    "botMargin": 0.878,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

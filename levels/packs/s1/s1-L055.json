@@ -1,0 +1,342 @@
+{
+  "id": "s1-L055",
+  "seed": 2110915574,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "sources-e",
+      "shop-se",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "housing",
+    "hunting",
+    "sales",
+    "supply_routing",
+    "workers"
+  ],
+  "start": [
+    240,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        500
+      ],
+      "params": {
+        "fuel": 14,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        314,
+        691
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        117,
+        382
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        61,
+        468
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        63,
+        515
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        74,
+        406
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        109,
+        525
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        435,
+        459
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        20,
+        600,
+        140,
+        120
+      ],
+      "animal": "node.prey",
+      "n": 3
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        240,
+        872
+      ],
+      "arrivals": {
+        "every": 16,
+        "total": 4
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        168,
+        483
+      ],
+      "cost": {
+        "res.currency": 9
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        388,
+        568
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        221,
+        786
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hunter",
+      "at": [
+        180,
+        584
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        139,
+        564
+      ],
+      "cost": {
+        "res.currency": 28
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "depot",
+      "at": [
+        154,
+        637
+      ],
+      "cost": {
+        "res.currency": 22
+      },
+      "build": "struct.depot"
+    },
+    {
+      "type": "pad.hire",
+      "id": "hauler",
+      "at": [
+        218,
+        669
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.hauler",
+        "from": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "depot_supplier",
+      "at": [
+        102,
+        577
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        113,
+        801
+      ],
+      "cost": {
+        "res.currency": 80
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "hunter",
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        359,
+        611
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "build": "struct.housing"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 4,
+    "core.burn": 2.5,
+    "customers.spawn": 2.9,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "housing.base": 7,
+    "level.budgetSeconds": 240
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Warehouses and Scaffolds",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "A warehouse lets couriers move goods between sites for you."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.579,
+    "fun": 0.576,
+    "botMargin": 0.441,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

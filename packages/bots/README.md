@@ -113,10 +113,9 @@ Connected-component labels answer "reachable at all" in O(1). A bot that is wedg
 timer, otherwise the time budget, or for waves goals the last wave plus `WAVES_TAIL_SECONDS` (120).
 A run cut off by the cap reports reason `time_budget`.
 
-**Time budget.** Manifests cannot carry `bot.timeBudgetSeconds`, because `checkManifest` rejects
-params without a content default. The budget is therefore `opts.timeBudgetSeconds`, then
-`manifest.params["bot.timeBudgetSeconds"]` (read leniently and stripped before the sim sees it),
-then `DEFAULT_TIME_BUDGET_SECONDS = 300`. A level timer, when set, always wins.
+**Time budget.** `level.budgetSeconds` from the compiled manifest (content default 300; DECISIONS
+9b): a rating input for margins, the trivial filter and stars, never a fail condition.
+`opts.timeBudgetSeconds` overrides it. A level timer (`timer.seconds`), when set, always wins.
 
 **Margin.**
 

@@ -1,5 +1,5 @@
 import { Manifest as ManifestSchema, content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { LADDER, PROFILES, planBot, playBot, DEFAULT_TIME_BUDGET_SECONDS, type BotProfile, type BotResult, type Plan } from "@fo/bots";
+import { LADDER, PROFILES, planBot, playBot, type BotProfile, type BotResult, type Plan } from "@fo/bots";
 import { TPS } from "@fo/sim";
 
 // Measurement: run the bot ladder on a manifest and reduce the runs to the spec's raw metrics.
@@ -66,8 +66,9 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
     return playBot(manifest, v, 1, botOpts);
   });
 
-  const timer = manifest.params["timer.seconds"] ?? content.defaults["timer.seconds"] ?? 0;
-  const budgetTicks = Math.round((timer > 0 ? timer : opts.timeBudgetSeconds ?? DEFAULT_TIME_BUDGET_SECONDS) * TPS);
+  const P = (k: string): number => manifest.params[k] ?? content.defaults[k] ?? 0;
+  const timer = P("timer.seconds");
+  const budgetTicks = Math.round((timer > 0 ? timer : opts.timeBudgetSeconds ?? P("level.budgetSeconds")) * TPS);
   const template = opts.template ?? manifest.map.zones.join("|");
   const history = opts.history ?? [];
   const metrics = computeMetrics(manifest, content, plan, runs, budgetTicks, history);

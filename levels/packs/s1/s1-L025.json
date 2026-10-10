@@ -1,0 +1,167 @@
+{
+  "id": "s1-L025",
+  "seed": 1269787539,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-far-w",
+      "food-far-e",
+      "shop-s",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "customer_variety",
+    "gather",
+    "sales"
+  ],
+  "start": [
+    240,
+    612
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        520
+      ],
+      "params": {
+        "fuel": 14,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        246,
+        719
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        74,
+        603
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        77,
+        428
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        63,
+        486
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        42,
+        571
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        32,
+        439
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        415,
+        510
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        162,
+        616
+      ],
+      "cost": {
+        "res.currency": 23
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        100,
+        794
+      ],
+      "cost": {
+        "res.currency": 66
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "coreLevel": 2
+      }
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 10,
+    "core.burn": 2.8,
+    "customers.spawn": 2.7,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 2,
+    "customers.impatientShare": 0.19,
+    "customers.premiumShare": 0.21,
+    "level.budgetSeconds": 150
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hurried Traders and Groundbreak",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "Hurried traders leave fast and gold VIP traders pay double."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.442,
+    "fun": 0.911,
+    "botMargin": 0.512,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ]
+  }
+}

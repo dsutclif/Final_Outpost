@@ -1,0 +1,204 @@
+{
+  "id": "s1-L003",
+  "seed": 272105353,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-sw",
+      "food-se",
+      "shop-ne",
+      "landmark-s"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    240,
+    360
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        450
+      ],
+      "params": {
+        "fuel": 12,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        388,
+        398
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        54,
+        654
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        107,
+        695
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        173,
+        686
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        120,
+        643
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        422,
+        678
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        179,
+        569
+      ],
+      "cost": {
+        "res.currency": 9
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        397,
+        559
+      ],
+      "cost": {
+        "res.currency": 14
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        304,
+        521
+      ],
+      "cost": {
+        "res.currency": 21
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        244,
+        797
+      ],
+      "cost": {
+        "res.currency": 162
+      },
+      "build": "struct.landmark",
+      "big": true
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 4,
+    "core.burn": 2.4,
+    "customers.spawn": 3,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "housing.base": 6,
+    "level.budgetSeconds": 260
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Blueprints and Groundbreak",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "Stand on a Hire pad to put a free colonist to work. They gather and deliver on their own."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.163,
+    "fun": 0.768,
+    "botMargin": 0.351,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

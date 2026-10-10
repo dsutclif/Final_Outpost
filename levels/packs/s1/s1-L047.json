@@ -1,0 +1,260 @@
+{
+  "id": "s1-L047",
+  "seed": 67777143,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-far-w",
+      "food-far-e",
+      "shop-s",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "defense",
+    "gather",
+    "hazard_events",
+    "sales",
+    "salvage_upgrades"
+  ],
+  "start": [
+    240,
+    612
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        520
+      ],
+      "params": {
+        "fuel": 12,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        247,
+        719
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        75,
+        403
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        67,
+        623
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        32,
+        519
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        40,
+        583
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        445,
+        466
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        396,
+        697
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        450,
+        631
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 8,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            160,
+            290
+          ],
+          "prebuilt": false
+        },
+        {
+          "a": [
+            160,
+            290
+          ],
+          "b": [
+            320,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            320,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "tower0",
+      "at": [
+        246,
+        378
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "build": "struct.ranged_defense"
+    },
+    {
+      "type": "pad.build",
+      "id": "towerup0",
+      "at": [
+        250,
+        452
+      ],
+      "cost": {
+        "res.salvage": 3
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower0",
+      "requires": {
+        "pad": "tower0"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        210,
+        396
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "build": "struct.barrier.reinforced"
+    }
+  ],
+  "people": [],
+  "waves": [
+    {
+      "t": 51,
+      "counts": {
+        "hostile.creature": 8,
+        "hostile.raider_humanoid": 2
+      }
+    },
+    {
+      "t": 107,
+      "counts": {
+        "hostile.creature": 11,
+        "hostile.raider_humanoid": 4
+      }
+    },
+    {
+      "t": 162,
+      "counts": {
+        "hostile.creature": 13,
+        "hostile.raider_humanoid": 6
+      }
+    }
+  ],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 76,
+      "start": 84,
+      "end": 106
+    }
+  ],
+  "params": {
+    "start.currency": 5,
+    "core.burn": 2.4,
+    "customers.spawn": 3,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "housing.base": 2,
+    "meters.baseHealth": 10,
+    "level.budgetSeconds": 220
+  },
+  "goal": {
+    "type": "waves"
+  },
+  "fail": [
+    "meter.lifeline",
+    "meter.base_health"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Scrap and Night Watch",
+      "goal": "Survive every raid",
+      "tips": [
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.542,
+    "fun": 0.792,
+    "botMargin": 0.861,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

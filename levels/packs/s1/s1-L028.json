@@ -1,0 +1,333 @@
+{
+  "id": "s1-L028",
+  "seed": 693082942,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "sources-e",
+      "shop-se",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "converters",
+    "core",
+    "core_levels",
+    "customer_variety",
+    "gather",
+    "hunting",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    240,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        500
+      ],
+      "params": {
+        "fuel": 14,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        316,
+        691
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_prepared",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        112,
+        412
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        68,
+        526
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        41,
+        485
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        104,
+        556
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        70,
+        439
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        449,
+        478
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        20,
+        600,
+        140,
+        120
+      ],
+      "animal": "node.prey",
+      "n": 3
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        151,
+        489
+      ],
+      "cost": {
+        "res.currency": 9
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        385,
+        564
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        217,
+        773
+      ],
+      "cost": {
+        "res.currency": 19
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "grill",
+      "at": [
+        208,
+        630
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "build": "conv.food_processor",
+      "requires": {
+        "pad": "feeder"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "cook",
+      "at": [
+        124,
+        676
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.operator",
+        "to": "conv.food_processor"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "feeder",
+      "at": [
+        329,
+        545
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "conv.food_processor",
+        "node": "food1"
+      },
+      "requires": {
+        "pad": "cook"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "server",
+      "at": [
+        259,
+        686
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.server",
+        "from": "conv.food_processor",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "grill"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hunter",
+      "at": [
+        160,
+        584
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "conv.food_processor"
+      },
+      "requires": {
+        "pad": "grill"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        185,
+        553
+      ],
+      "cost": {
+        "res.currency": 27
+      },
+      "build": "sink.core.level"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 6,
+    "core.burn": 2.7,
+    "customers.spawn": 2.9,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 10,
+    "customers.impatientShare": 0.22,
+    "customers.premiumShare": 0.21,
+    "level.budgetSeconds": 300
+  },
+  "goal": {
+    "type": "serve_premium",
+    "n": 10
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hoppers and Fine Dining",
+      "goal": "Serve 10 VIP traders",
+      "tips": [
+        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.377,
+    "fun": 0.888,
+    "botMargin": 0.498,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

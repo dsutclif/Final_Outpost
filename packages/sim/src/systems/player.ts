@@ -5,7 +5,7 @@ import type { State } from "../state.js";
 import { hitHostile, hitPrey, nearestHostile, nearestPrey } from "./combat.js";
 import { blockedAt, canTake, hint, stepDown, take } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
-import { tryPayPad } from "./pads.js";
+import { trackPadDwell, tryPayPad } from "./pads.js";
 
 export interface Input {
   /** Direction in fixed point; magnitude at most FP. Anything larger is normalised. */
@@ -41,6 +41,7 @@ export function movePlayer(st: State, cp: Compiled, input: Input): void {
 /** Proximity actions, in the prototype's priority order: pads, core, sales point, converters, then gathering. */
 export function playerAct(st: State, cp: Compiled, out: SimEvent[]): void {
   const p = st.player;
+  trackPadDwell(st, cp);
   if (p.actCd > 0) { p.actCd--; return; }
   p.actCd = cp.player.actTicks;
 

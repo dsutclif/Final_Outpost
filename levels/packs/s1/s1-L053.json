@@ -1,0 +1,368 @@
+{
+  "id": "s1-L053",
+  "seed": 1436247380,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-e",
+      "food-se",
+      "shop-w",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "converters",
+    "core",
+    "customer_variety",
+    "gather",
+    "housing",
+    "sales",
+    "supply_routing",
+    "workers"
+  ],
+  "start": [
+    218,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        218,
+        500
+      ],
+      "params": {
+        "fuel": 13,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        119,
+        650
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_prepared"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        351,
+        361
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        403,
+        463
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        427,
+        525
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        414,
+        398
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        394,
+        683
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        240,
+        872
+      ],
+      "arrivals": {
+        "every": 16,
+        "total": 2
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        295,
+        458
+      ],
+      "cost": {
+        "res.currency": 8
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        280,
+        667
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        19,
+        777
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "grill",
+      "at": [
+        26,
+        571
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "build": "conv.food_processor",
+      "requires": {
+        "pad": "feeder"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "cook",
+      "at": [
+        28,
+        530
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.operator",
+        "to": "conv.food_processor"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "feeder",
+      "at": [
+        217,
+        660
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "conv.food_processor",
+        "node": "food1"
+      },
+      "requires": {
+        "pad": "cook"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "server",
+      "at": [
+        76,
+        524
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.server",
+        "from": "conv.food_processor",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "grill"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "depot",
+      "at": [
+        256,
+        633
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "build": "struct.depot"
+    },
+    {
+      "type": "pad.hire",
+      "id": "hauler",
+      "at": [
+        328,
+        655
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.hauler",
+        "from": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "depot_supplier",
+      "at": [
+        310,
+        517
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        110,
+        807
+      ],
+      "cost": {
+        "res.currency": 236
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        331,
+        616
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "build": "struct.housing"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 8,
+    "core.burn": 2.6,
+    "customers.spawn": 2.9,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 9,
+    "customers.impatientShare": 0.25,
+    "customers.premiumShare": 0.18,
+    "level.budgetSeconds": 270
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Couriers and Foundations",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "A warehouse lets couriers move goods between sites for you."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.405,
+    "fun": 0.746,
+    "botMargin": 0.384,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

@@ -5,7 +5,7 @@ and both renderers. This file is the working reference for anyone coding against
 order, the state fields, the events, and the recipe for adding a module. The rules themselves are
 in `docs/SPEC.md` (structure) and `docs/prototype/frost-camp-demo.html` (numbers).
 
-Engine `0.2.0`, content `0.2.0`. Every catalog module in `packages/content/data/modules.json` runs.
+Engine `0.3.0`, content `0.3.0`. Every catalog module in `packages/content/data/modules.json` runs.
 
 ## Numbers
 
@@ -34,7 +34,7 @@ document it here; the order is part of the determinism contract.
 | 10 | `stepHousing` (housing.ts) | Waiting residents walk to the waiting area and move in when a slot frees; releasing containers free a recruit. |
 | 11 | `stepGate` (housing.ts) | Gate arrivals spawn on the timer, queue, and are admitted when the player stands by the gate. |
 | 12 | `stepResidents` (residents.ts) | Every resident's state machine: injured → medical, healing, idle ring, and each role behaviour. |
-| 13 | `stepSales` (sales.ts) | Customers spawn (producible goods only), queue, give up, are served while the register is staffed by the player or a cashier. |
+| 13 | `stepSales` (sales.ts) | Customers spawn (producible goods only, and no drop-only good while its shelf is empty), queue, give up, are served while the register is staffed by the player or a cashier. |
 | 14 | `stepConverters` (converters.ts) | Convert one input per rate while operated. |
 | 15 | `stepHunting` (hunting.ts) | Prey roam inside their zone and respawn. |
 | 16 | `stepDefense` (defense.ts) | Wave schedule, hostile spawn, barrier stop and damage, base attacks and injuries, ranged defenses, wave cleared. |
@@ -58,7 +58,7 @@ Positions are `Vec {x, y}` in fixed point. Field names follow Contract 1 in `doc
 | `rng` | `{state}` | mulberry32 state. |
 | `currency` | int | Coins in hand (never in the backpack). |
 | `params` | `Record<string, int>` | Runtime overlay that upgrades change: `barrier.hpMax`, `barrier.gateHpMax`. |
-| `player` | `{pos, face, stack[], actCd, atkCd, buildCd, tow[], moving}` | `stack` is carried items in pickup order; `tow` is capture ids in chain order. |
+| `player` | `{pos, face, stack[], actCd, atkCd, buildCd, tow[], moving, padId, padDwell}` | `stack` is carried items in pickup order; `tow` is capture ids in chain order. `padId` is the pad the player stands on (first visible, unfinished pad in range) and `padDwell` the ticks spent on it, capped at `compiled.pads.dwellTicks`; renderers draw the wind-up ring as `padDwell / dwellTicks`. |
 | `core` | `{pos, fuel, level, burnAcc, lifeline}` | `burnAcc` counts FP per tick so the hazard ratio is exact. |
 | `nodes[]` | `{id, type, pos, stock, regrowAcc, enabled}` | `stock` null = infinite; disabled nodes wait for a `node.enable` pad. |
 | `sales` | `{pos, register, pile, pileN, shelf, sells[], queue[], leaving[], spawnAcc, premiumServed}` or null | One shelf count per sellable type. |
@@ -85,7 +85,8 @@ Positions are `Vec {x, y}` in fixed point. Field names follow Contract 1 in `doc
 | `lastHint`, `over`, `won`, `reason` | | Hint throttling and level end. |
 
 Derived helpers exported from `@fo/sim`: `safeRadius(state, compiled)`, `population`,
-`housingSlots`, `freeSlots`, `blockedAt`, `outsideLines`, `producible`, `pointInPoly`.
+`housingSlots`, `freeSlots`, `blockedAt`, `outsideLines`, `producible`, `dropOnly`, `pointInPoly`, and the
+stats constants `REWARD_GAP_EDGES` (reward-gap histogram bucket edges, seconds) and `REWARD_RING`.
 
 ## Events
 
@@ -161,6 +162,17 @@ and a line, hunting a prey zone, lasso a lassoable, every line a gate, contiguou
 targets of the right type, depot bindings only when a depot exists).
 
 ## Behaviour notes and deviations from the prototype
+
+- **Pad dwell (0.3.0, DECISIONS 9c).** Payment starts only after the player has stayed within one
+  pad's radius for `pads.dwell` seconds (default 0.35, compiled to `pads.dwellTicks`; 0 restores
+  instant payment). Leaving the radius resets the counter. Walking straight off a start position
+  that overlaps a pad (golden level 2 starts inside the core-upgrade pad's radius) no longer pays.
+  Note: a walk through the exact centre of a 30-unit pad lasts about 11.6 ticks, just over the
+  11-tick dwell, so only near-diametric crossings can still pay a unit.
+- **Drop-only demand (0.3.0, DECISIONS 9d).** A good whose only producible source is prey or
+  hostile drops (`dropOnly`) is not ordered while its shelf count is zero.
+- **Time budget (0.3.0, DECISIONS 9b).** `level.budgetSeconds` (default 300) is compiled to
+  `compiled.level` for the bots and rater. The sim never fails on it.
 
 - Walls are built by walking the line with the resource (spec), not by paying wall pads
   (prototype). Golden level 4 uses `res.currency` at 8 per section so the economy matches. A

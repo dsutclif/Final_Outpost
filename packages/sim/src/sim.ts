@@ -22,7 +22,7 @@ import { stepResidents } from "./systems/residents.js";
 import { stepSales } from "./systems/sales.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.2.0";
+export const ENGINE_VERSION = "0.3.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -72,7 +72,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
     rng: seedRng(m.seed),
     currency: m.params["start.currency"] ?? cp.content.defaults["start.currency"] ?? 0,
     params: { "barrier.hpMax": cp.barrier.hp, "barrier.gateHpMax": cp.barrier.gateHp },
-    player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false },
+    player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false, padId: null, padDwell: 0 },
     core: { pos: corePos, fuel: coreEnt.params.fuel, level: coreEnt.params.level, burnAcc: 0, lifeline: METER_MAX },
     nodes: [],
     sales: null,

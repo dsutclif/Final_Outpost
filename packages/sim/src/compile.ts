@@ -189,7 +189,9 @@ export interface Compiled {
   housing: { base: number; perBuilding: number };
   lasso: { maxTowed: number; speedPenalty: number; pointSpacing: number; trailMax: number; closeDist: number; minLoopPoints: number };
   hazard: { burnMul: number; radiusScale: number };
-  pads: { range: number; bigRange: number; payItemTicks: number; payCurrencyTicks: number };
+  pads: { range: number; bigRange: number; payItemTicks: number; payCurrencyTicks: number; dwellTicks: number };
+  /** Rating-only time budget (never a fail condition; `timer.seconds` is the fail timer). */
+  level: { budgetSeconds: number; budgetTicks: number };
   residents: {
     idleSpeed: number; idleRadiusX: number; idleRadiusY: number; waitingSpeed: number; gateSpeed: number; injuredSpeed: number;
     arrive: number; workRange: number; coreDeliverRange: number; seekDropRange: number;
@@ -421,7 +423,10 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     pads: {
       range: fp(param("pads.range")), bigRange: fp(param("pads.bigRange")),
       payItemTicks: ticks(param("pads.payItemInterval")), payCurrencyTicks: ticks(param("pads.payCurrencyInterval")),
+      // Zero is allowed here (instant payment), unlike ticks(), which never goes below one.
+      dwellTicks: Math.max(0, Math.round(param("pads.dwell") * TPS)),
     },
+    level: { budgetSeconds: param("level.budgetSeconds"), budgetTicks: Math.max(1, Math.round(param("level.budgetSeconds") * TPS)) },
     residents: {
       idleSpeed: perTick(param("residents.idleSpeed")), idleRadiusX: fp(param("residents.idleRadiusX")), idleRadiusY: fp(param("residents.idleRadiusY")),
       waitingSpeed: perTick(param("residents.waitingSpeed")), gateSpeed: perTick(param("residents.gateSpeed")), injuredSpeed: perTick(param("residents.injuredSpeed")),

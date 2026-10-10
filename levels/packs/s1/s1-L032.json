@@ -1,0 +1,324 @@
+{
+  "id": "s1-L032",
+  "seed": 1676619851,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-far-w",
+      "food-far-e",
+      "shop-s",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "defense",
+    "gather",
+    "hunting",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    240,
+    612
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        520
+      ],
+      "params": {
+        "fuel": 13,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        251,
+        720
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        66,
+        414
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        65,
+        631
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        45,
+        555
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        41,
+        476
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        450,
+        491
+      ]
+    },
+    {
+      "type": "node.fuel_deposit",
+      "at": [
+        451,
+        627
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        130,
+        345,
+        220,
+        80
+      ],
+      "animal": "node.prey",
+      "n": 3
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 8,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            160,
+            290
+          ],
+          "prebuilt": false
+        },
+        {
+          "a": [
+            160,
+            290
+          ],
+          "b": [
+            320,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            320,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        151,
+        501
+      ],
+      "cost": {
+        "res.currency": 9
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        356,
+        573
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        135,
+        792
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hunter",
+      "at": [
+        257,
+        433
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        139,
+        592
+      ],
+      "cost": {
+        "res.currency": 27
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "tower0",
+      "at": [
+        237,
+        371
+      ],
+      "cost": {
+        "res.currency": 20
+      },
+      "build": "struct.ranged_defense",
+      "requires": {
+        "pad": "hunter",
+        "coreLevel": 2
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 53,
+      "counts": {
+        "hostile.creature": 7
+      }
+    },
+    {
+      "t": 110,
+      "counts": {
+        "hostile.creature": 10
+      }
+    },
+    {
+      "t": 167,
+      "counts": {
+        "hostile.creature": 12
+      }
+    }
+  ],
+  "events": [],
+  "params": {
+    "start.currency": 6,
+    "core.burn": 2.5,
+    "customers.spawn": 2.9,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "housing.base": 7,
+    "meters.baseHealth": 10,
+    "level.budgetSeconds": 230
+  },
+  "goal": {
+    "type": "waves"
+  },
+  "fail": [
+    "meter.lifeline",
+    "meter.base_health"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hoppers and Night Watch",
+      "goal": "Survive every raid",
+      "tips": [
+        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.469,
+    "fun": 0.813,
+    "botMargin": 0.912,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

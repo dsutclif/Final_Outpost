@@ -1,0 +1,306 @@
+{
+  "id": "s1-L018",
+  "seed": 1071243415,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "food-sw",
+      "shop-e",
+      "landmark-se"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "hunting",
+    "sales",
+    "source_gating",
+    "workers"
+  ],
+  "start": [
+    262,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        262,
+        500
+      ],
+      "params": {
+        "fuel": 12,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        337,
+        640
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        40,
+        490
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        48,
+        439
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        95,
+        398
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        131,
+        358
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        60,
+        631
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food2",
+      "at": [
+        101,
+        614
+      ],
+      "enabled": false
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        345,
+        360,
+        115,
+        130
+      ],
+      "animal": "node.prey",
+      "n": 3
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        160,
+        469
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        184,
+        631
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        238,
+        733
+      ],
+      "cost": {
+        "res.currency": 23
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "unlock_food2",
+      "at": [
+        101,
+        614
+      ],
+      "cost": {
+        "res.currency": 19
+      },
+      "build": "node.enable",
+      "target": "food2",
+      "requires": {
+        "pad": "hire_food"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food2",
+      "at": [
+        213,
+        600
+      ],
+      "cost": {
+        "res.currency": 19
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food2"
+      },
+      "requires": {
+        "pad": "unlock_food2"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hunter",
+      "at": [
+        334,
+        462
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "hire_food2"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        164,
+        557
+      ],
+      "cost": {
+        "res.currency": 32
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        371,
+        802
+      ],
+      "cost": {
+        "res.currency": 69
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "hunter",
+        "coreLevel": 2
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 4,
+    "core.burn": 2.3,
+    "customers.spawn": 3.2,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "housing.base": 8,
+    "level.budgetSeconds": 260
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Locked Caches and Groundbreak",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "Some grow domes start locked. Unlock them with credits on their pad."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.378,
+    "fun": 0.701,
+    "botMargin": 0.422,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

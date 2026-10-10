@@ -34,5 +34,18 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
    UI, offline shell, 3D renderer and the store port (1-UI, 4, 5, 7).
 9a. **Model fallback (2026-10-09).** Fable 5.1 usage ran out mid-build; all remaining
     streams run on Opus 5.5.
+9b. **Time budget (2026-10-09).** Every level carries `level.budgetSeconds` (content default
+    300). It is a rating input only (margins, the trivial filter, stars), never a fail
+    condition; `timer.seconds` stays the optional fail timer. The generator sets the budget
+    from its flow model.
+9c. **Pad dwell (2026-10-09).** Payment starts only after the player has stood on a pad for
+    `pads.dwellTicks` (default 0.35 s), so walking across a pad never spends by accident.
+9d. **Drop-only demand (2026-10-09).** Customers do not order a good whose only source is
+    hostile or prey drops while its shelf stock is zero, so an empty drop economy cannot clog
+    the queue.
+9e. **Golden levels stay prototype-faithful.** Their rater flags (L1 idle source gating, L2
+    trivial, L4 easy defense, L4 node/pad overlap) are accepted as baseline facts; the
+    generator's filters and difficulty search fix these in generated levels. The L4 overlap is
+    moved 2 units to clear the readability filter.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

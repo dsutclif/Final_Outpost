@@ -1,0 +1,3229 @@
+[
+ {
+  "index": 1,
+  "id": "s1-L001",
+  "file": "s1-L001.json",
+  "title": "Traders and Raising the Hub",
+  "phase": "core",
+  "introduced": [],
+  "modules": [
+   "carry",
+   "core",
+   "gather",
+   "sales"
+  ],
+  "goal": "build",
+  "template": "west_fields",
+  "target": 0.15,
+  "D": 0.10545511881824905,
+  "F": 0.9355955169619067,
+  "onTarget": true,
+  "margin": {
+   "good": 0.4870588235294118,
+   "average": 0.4495424836601307,
+   "weak": 0.37686274509803924,
+   "novice": 0.16928104575163397,
+   "floor": -1
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 3.284,
+  "seed": 148133935,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 2
+  },
+  "ratings": 5
+ },
+ {
+  "index": 2,
+  "id": "s1-L002",
+  "file": "s1-L002.json",
+  "title": "Blueprints and Scaffolds",
+  "phase": "teach",
+  "introduced": [
+   "build_pads",
+   "workers"
+  ],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "crescent",
+  "target": 0.122,
+  "D": 0.09602677744859982,
+  "F": 0.23716794214070358,
+  "onTarget": true,
+  "margin": {
+   "good": 0.42860000000000004,
+   "average": 0.42919999999999997,
+   "weak": 0.42488888888888887,
+   "novice": 0.4142666666666666,
+   "floor": 0.2986666666666667
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 5.002,
+  "seed": 671543360,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1
+  },
+  "ratings": 4
+ },
+ {
+  "index": 3,
+  "id": "s1-L003",
+  "file": "s1-L003.json",
+  "title": "Blueprints and Groundbreak",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "south_fields",
+  "target": 0.174,
+  "D": 0.1634339489525905,
+  "F": 0.7678662316372741,
+  "onTarget": true,
+  "margin": {
+   "good": 0.35097435897435897,
+   "average": 0.344957264957265,
+   "weak": 0.3235470085470085,
+   "novice": 0.2576068376068376,
+   "floor": 0.14504273504273502
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 11.338,
+  "seed": 272105353,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 3,
+   "stall": 2
+  },
+  "ratings": 9
+ },
+ {
+  "index": 4,
+  "id": "s1-L004",
+  "file": "s1-L004.json",
+  "title": "Blueprints and Foundations",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "corridor",
+  "target": 0.186,
+  "D": 0.19370008451133874,
+  "F": 0.8029371333362734,
+  "onTarget": true,
+  "margin": {
+   "good": 0.3354927536231884,
+   "average": 0.3407729468599034,
+   "weak": 0.2892753623188406,
+   "novice": 0.24816425120772945,
+   "floor": 0.09328502415458938
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 4.864,
+  "seed": 1170598138,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1
+  },
+  "ratings": 4
+ },
+ {
+  "index": 5,
+  "id": "s1-L005",
+  "file": "s1-L005.json",
+  "title": "Locked Caches and Raising the Hub",
+  "phase": "teach",
+  "introduced": [
+   "source_gating"
+  ],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "south_fields",
+  "target": 0.158,
+  "D": 0.12597528437237826,
+  "F": 0.443631753257353,
+  "onTarget": true,
+  "margin": {
+   "good": 0.41616,
+   "average": 0.41324444444444436,
+   "weak": 0.40617777777777775,
+   "novice": 0.3371555555555556,
+   "floor": 0.27315555555555554
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 5.647,
+  "seed": 860553483,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1
+  },
+  "ratings": 4
+ },
+ {
+  "index": 6,
+  "id": "s1-L006",
+  "file": "s1-L006.json",
+  "title": "Locked Caches and Scaffolds",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "west_fields",
+  "target": 0.211,
+  "D": 0.2046529056270544,
+  "F": 0.43984829196461867,
+  "onTarget": true,
+  "margin": {
+   "good": 0.31573913043478263,
+   "average": 0.3166183574879227,
+   "weak": 0.3096135265700483,
+   "novice": 0.2559420289855072,
+   "floor": -0.2867632850241546
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 9.998,
+  "seed": 39245116,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 2,
+   "stall": 1
+  },
+  "ratings": 7
+ },
+ {
+  "index": 7,
+  "id": "s1-L007",
+  "file": "s1-L007.json",
+  "title": "Locked Caches and Groundbreak",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "crossroads",
+  "target": 0.223,
+  "D": 0.18334799887298028,
+  "F": 0.5412210431259582,
+  "onTarget": true,
+  "margin": {
+   "good": 0.35012499999999996,
+   "average": 0.34935185185185186,
+   "weak": 0.3362037037037037,
+   "novice": 0.3025462962962963,
+   "floor": 0.1798611111111111
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 5.695,
+  "seed": 1793842133,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1
+  },
+  "ratings": 4
+ },
+ {
+  "index": 8,
+  "id": "s1-L008",
+  "file": "s1-L008.json",
+  "title": "Walls and Foundations",
+  "phase": "teach",
+  "introduced": [
+   "barrier_lines",
+   "lasso"
+  ],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "lasso",
+   "sales",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "west_fields",
+  "target": 0.195,
+  "D": 0.1709475836691227,
+  "F": 0.4480692980475416,
+  "onTarget": true,
+  "margin": {
+   "good": 0.491741935483871,
+   "average": 0.4879928315412186,
+   "weak": 0.47867383512544803,
+   "novice": 0.4114336917562724,
+   "floor": 0.31261648745519716
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 10.134,
+  "seed": 1067227942,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1,
+   "stall": 1
+  },
+  "ratings": 5
+ },
+ {
+  "index": 9,
+  "id": "s1-L009",
+  "file": "s1-L009.json",
+  "title": "Locked Caches and Full Habs",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "lasso",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "population",
+  "template": "crossroads",
+  "target": 0.247,
+  "D": 0.5092512063229259,
+  "F": 0.4778293622370971,
+  "onTarget": false,
+  "margin": {
+   "good": 0.6316666666666667,
+   "average": 0.6059259259259259,
+   "weak": 0.5798148148148149,
+   "novice": 0.1738888888888889,
+   "floor": 0.11777777777777777
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 0.6666666666666666,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 23.262,
+  "seed": 1695410239,
+  "attempts": 3,
+  "rejects": {
+   "idleModule": 22,
+   "offTarget": 5
+  },
+  "ratings": 31
+ },
+ {
+  "index": 10,
+  "id": "s1-L010",
+  "file": "s1-L010.json",
+  "title": "Locked Caches and Groundbreak",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "lasso",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "east_fields",
+  "target": 0.259,
+  "D": 0.2562977574347686,
+  "F": 0.5612817478514611,
+  "onTarget": true,
+  "margin": {
+   "good": 0.4575376344086021,
+   "average": 0.4444444444444444,
+   "weak": 0.44021505376344083,
+   "novice": 0.3592114695340502,
+   "floor": 0.20175627240143368
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 12.49,
+  "seed": 633739471,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1,
+   "stall": 1
+  },
+  "ratings": 5
+ },
+ {
+  "index": 11,
+  "id": "s1-L011",
+  "file": "s1-L011.json",
+  "title": "Domes and New Arrivals",
+  "phase": "teach",
+  "introduced": [
+   "housing"
+  ],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "housing",
+   "sales",
+   "workers"
+  ],
+  "goal": "population",
+  "template": "crossroads",
+  "target": 0.231,
+  "D": 0.14907224946158268,
+  "F": 0.8487803045098362,
+  "onTarget": false,
+  "margin": {
+   "good": 0.4454666666666666,
+   "average": 0.4243333333333333,
+   "weak": 0.35966666666666675,
+   "novice": 0.29644444444444445,
+   "floor": -0.14266666666666666
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 50.062,
+  "seed": 1986617577,
+  "attempts": 3,
+  "rejects": {
+   "offTarget": 27
+  },
+  "ratings": 37
+ },
+ {
+  "index": 12,
+  "id": "s1-L012",
+  "file": "s1-L012.json",
+  "title": "Locked Caches and Raising the Hub",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "housing",
+   "lasso",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "south_fields",
+  "target": 0.283,
+  "D": 0.24099232479387972,
+  "F": 0.5322436870131982,
+  "onTarget": true,
+  "margin": {
+   "good": 0.5090123456790124,
+   "average": 0.46958847736625514,
+   "weak": 0.467119341563786,
+   "novice": 0.4253909465020576,
+   "floor": 0.40530864197530864
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 6.108,
+  "seed": 1501945513,
+  "attempts": 1,
+  "rejects": {},
+  "ratings": 2
+ },
+ {
+  "index": 13,
+  "id": "s1-L013",
+  "file": "s1-L013.json",
+  "title": "Stasis Pods and Colonists",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "housing",
+   "lasso",
+   "sales",
+   "workers"
+  ],
+  "goal": "population",
+  "template": "north_fields",
+  "target": 0.295,
+  "D": 0.30433007281744456,
+  "F": 0.8783581703328676,
+  "onTarget": true,
+  "margin": {
+   "good": 0.4551904761904762,
+   "average": 0.4182010582010582,
+   "weak": 0.3889417989417989,
+   "novice": 0.2959259259259259,
+   "floor": 0.23571428571428574
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 45.963,
+  "seed": 15645374,
+  "attempts": 2,
+  "rejects": {
+   "offTarget": 11
+  },
+  "ratings": 16
+ },
+ {
+  "index": 14,
+  "id": "s1-L014",
+  "file": "s1-L014.json",
+  "title": "Rockslides and Groundbreak",
+  "phase": "teach",
+  "introduced": [
+   "blocked_zones",
+   "core_levels"
+  ],
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "housing",
+   "sales"
+  ],
+  "goal": "build",
+  "template": "corridor",
+  "target": 0.267,
+  "D": 0.3734089479041727,
+  "F": 0.8339105993402661,
+  "onTarget": false,
+  "margin": {
+   "good": 0.6241999999999999,
+   "average": 0.5882777777777778,
+   "weak": 0.5261666666666667,
+   "novice": 0.4048333333333333,
+   "floor": -0.5076923076923077
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 50.286,
+  "seed": 1072745074,
+  "attempts": 3,
+  "rejects": {
+   "offTarget": 23,
+   "stall": 4
+  },
+  "ratings": 40
+ },
+ {
+  "index": 15,
+  "id": "s1-L015",
+  "file": "s1-L015.json",
+  "title": "Locked Caches and New Arrivals",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "housing",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "population",
+  "template": "south_fields",
+  "target": 0.319,
+  "D": 0.32826560113844727,
+  "F": 0.5359445155777143,
+  "onTarget": true,
+  "margin": {
+   "good": 0.44457971014492753,
+   "average": 0.46207729468599035,
+   "weak": 0.43555555555555553,
+   "novice": 0.4056521739130435,
+   "floor": 0.2929468599033816
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 12.226,
+  "seed": 294531354,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 3
+  },
+  "ratings": 6
+ },
+ {
+  "index": 16,
+  "id": "s1-L016",
+  "file": "s1-L016.json",
+  "title": "Tow Lines and Raising the Hub",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "lasso",
+   "sales",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "north_fields",
+  "target": 0.332,
+  "D": 0.3501332920669602,
+  "F": 0.8517772770642481,
+  "onTarget": true,
+  "margin": {
+   "good": 0.4757530864197531,
+   "average": 0.46440329218106996,
+   "weak": 0.4643621399176954,
+   "novice": 0.4349382716049383,
+   "floor": 0.34641975308641976
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 11.896,
+  "seed": 1235648501,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 3
+  },
+  "ratings": 6
+ },
+ {
+  "index": 17,
+  "id": "s1-L017",
+  "file": "s1-L017.json",
+  "title": "Hoppers and Foundations",
+  "phase": "teach",
+  "introduced": [
+   "hunting"
+  ],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "hunting",
+   "sales",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "east_fields",
+  "target": 0.304,
+  "D": 0.25788708970849306,
+  "F": 0.7159141992994351,
+  "onTarget": true,
+  "margin": {
+   "good": 0.36010000000000003,
+   "average": 0.3213333333333333,
+   "weak": 0.3236111111111111,
+   "novice": 0.21744444444444444,
+   "floor": 0.09855555555555556
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 10.126,
+  "seed": 566427356,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 4
+  },
+  "ratings": 9
+ },
+ {
+  "index": 18,
+  "id": "s1-L018",
+  "file": "s1-L018.json",
+  "title": "Locked Caches and Groundbreak",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "hunting",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "west_fields",
+  "target": 0.356,
+  "D": 0.3783959923852129,
+  "F": 0.7006721742732733,
+  "onTarget": true,
+  "margin": {
+   "good": 0.42232051282051286,
+   "average": 0.38880341880341884,
+   "weak": 0.3659401709401709,
+   "novice": 0.2767521367521368,
+   "floor": 0.21927350427350425
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 10.969,
+  "seed": 1071243415,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 3
+  },
+  "ratings": 7
+ },
+ {
+  "index": 19,
+  "id": "s1-L019",
+  "file": "s1-L019.json",
+  "title": "Hoppers and Scaffolds",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "hunting",
+   "sales",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "crossroads",
+  "target": 0.368,
+  "D": 0.38881658807164415,
+  "F": 0.762469386296863,
+  "onTarget": true,
+  "margin": {
+   "good": 0.35253968253968254,
+   "average": 0.30158730158730157,
+   "weak": 0.26492063492063495,
+   "novice": 0.2103703703703704,
+   "floor": 0.05862433862433863
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 3.99,
+  "seed": 1128479174,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1
+  },
+  "ratings": 4
+ },
+ {
+  "index": 20,
+  "id": "s1-L020",
+  "file": "s1-L020.json",
+  "title": "Hoppers and New Arrivals",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "housing",
+   "hunting",
+   "sales",
+   "workers"
+  ],
+  "goal": "population",
+  "template": "west_fields",
+  "target": 0.38,
+  "D": 0.3941954077431993,
+  "F": 0.7032004168340703,
+  "onTarget": true,
+  "margin": {
+   "good": 0.45773913043478254,
+   "average": 0.4615942028985507,
+   "weak": 0.4240096618357488,
+   "novice": 0.33797101449275363,
+   "floor": 0.15990338164251208
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 11.2,
+  "seed": 1788831366,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 4
+  },
+  "ratings": 7
+ },
+ {
+  "index": 21,
+  "id": "s1-L021",
+  "file": "s1-L021.json",
+  "title": "Smelters and Groundbreak",
+  "phase": "teach",
+  "introduced": [
+   "converters"
+  ],
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "crossroads",
+  "target": 0.42,
+  "D": 0.2594491671882787,
+  "F": 0.9311646022704877,
+  "onTarget": false,
+  "margin": {
+   "good": 0.356551282051282,
+   "average": 0.35059829059829056,
+   "weak": 0.3212820512820513,
+   "novice": 0.2470940170940171,
+   "floor": 0.020256410256410253
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 56.831,
+  "seed": 324504251,
+  "attempts": 3,
+  "rejects": {
+   "offTarget": 19,
+   "stall": 8
+  },
+  "ratings": 41
+ },
+ {
+  "index": 22,
+  "id": "s1-L022",
+  "file": "s1-L022.json",
+  "title": "Locked Caches and Foundations",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "crescent",
+  "target": 0.494,
+  "D": 0.3694181541044445,
+  "F": 0.7140449145140301,
+  "onTarget": false,
+  "margin": {
+   "good": 0.3054166666666666,
+   "average": 0.2665625,
+   "weak": 0.24892361111111114,
+   "novice": 0.19243055555555555,
+   "floor": 0.09940972222222222
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 81.34,
+  "seed": 21601391,
+  "attempts": 3,
+  "rejects": {
+   "offTarget": 12,
+   "stall": 15
+  },
+  "ratings": 36
+ },
+ {
+  "index": 23,
+  "id": "s1-L023",
+  "file": "s1-L023.json",
+  "title": "Domes and Full Habs",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "core_levels",
+   "gather",
+   "housing",
+   "sales",
+   "workers"
+  ],
+  "goal": "population",
+  "template": "corridor",
+  "target": 0.538,
+  "D": 0.5627924649959026,
+  "F": 0.8869420158463058,
+  "onTarget": true,
+  "margin": {
+   "good": 0.39204545454545453,
+   "average": 0.40505050505050505,
+   "weak": 0.40212121212121216,
+   "novice": 0.2926767676767677,
+   "floor": -0.022020202020202
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 17.808,
+  "seed": 650105297,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 4
+  },
+  "ratings": 8
+ },
+ {
+  "index": 24,
+  "id": "s1-L024",
+  "file": "s1-L024.json",
+  "title": "Locked Caches and Scaffolds",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "gather",
+   "lasso",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "south_fields",
+  "target": 0.581,
+  "D": 0.5205617723011241,
+  "F": 0.6215008312296986,
+  "onTarget": false,
+  "margin": {
+   "good": 0.4645747126436781,
+   "average": 0.44881226053639844,
+   "weak": 0.4290038314176245,
+   "novice": 0.29521072796934866,
+   "floor": 0.05771435010785922
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 102.651,
+  "seed": 2001386594,
+  "attempts": 3,
+  "rejects": {
+   "stall": 15,
+   "offTarget": 12,
+   "layout": 11
+  },
+  "ratings": 35
+ },
+ {
+  "index": 25,
+  "id": "s1-L025",
+  "file": "s1-L025.json",
+  "title": "Hurried Traders and Groundbreak",
+  "phase": "teach",
+  "introduced": [
+   "customer_variety"
+  ],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "customer_variety",
+   "gather",
+   "sales"
+  ],
+  "goal": "build",
+  "template": "corridor",
+  "target": 0.42,
+  "D": 0.4415287810019541,
+  "F": 0.9108477055593222,
+  "onTarget": true,
+  "margin": {
+   "good": 0.5123777777777777,
+   "average": 0.46362962962962967,
+   "weak": 0.35207407407407404,
+   "novice": 0.2122962962962963,
+   "floor": -0.7415730337078652
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 5.066,
+  "seed": 1269787539,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 4,
+   "stall": 1
+  },
+  "ratings": 10
+ },
+ {
+  "index": 26,
+  "id": "s1-L026",
+  "file": "s1-L026.json",
+  "title": "Domes and Colonists",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "core_levels",
+   "customer_variety",
+   "gather",
+   "housing",
+   "sales",
+   "workers"
+  ],
+  "goal": "population",
+  "template": "east_fields",
+  "target": 0.55,
+  "D": 0.7610262222760142,
+  "F": 0.9309830464410589,
+  "onTarget": false,
+  "margin": {
+   "good": 0.4952291666666667,
+   "average": 0.4390972222222222,
+   "weak": 0.38222222222222224,
+   "novice": 0.26972222222222225,
+   "floor": -0.25
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 43.55,
+  "seed": 652827244,
+  "attempts": 3,
+  "rejects": {
+   "offTarget": 25,
+   "infeasible": 1
+  },
+  "ratings": 37
+ },
+ {
+  "index": 27,
+  "id": "s1-L027",
+  "file": "s1-L027.json",
+  "title": "Locked Caches and Raising the Hub",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "customer_variety",
+   "gather",
+   "lasso",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "north_fields",
+  "target": 0.55,
+  "D": 0.39753424189792147,
+  "F": 0.6632779791313433,
+  "onTarget": false,
+  "margin": {
+   "good": 0.4569506172839506,
+   "average": 0.44843621399176953,
+   "weak": 0.4379835390946502,
+   "novice": 0.36707818930041153,
+   "floor": 0.19641975308641976
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 78.763,
+  "seed": 561101499,
+  "attempts": 3,
+  "rejects": {
+   "stall": 11,
+   "offTarget": 16
+  },
+  "ratings": 37
+ },
+ {
+  "index": 28,
+  "id": "s1-L028",
+  "file": "s1-L028.json",
+  "title": "Hoppers and Fine Dining",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "core_levels",
+   "customer_variety",
+   "gather",
+   "hunting",
+   "sales",
+   "workers"
+  ],
+  "goal": "serve_premium",
+  "template": "crossroads",
+  "target": 0.756,
+  "D": 0.3774115889544506,
+  "F": 0.8875147199579493,
+  "onTarget": false,
+  "margin": {
+   "good": 0.4977222222222221,
+   "average": 0.5495925925925926,
+   "weak": 0.5537777777777778,
+   "novice": 0.5306666666666667,
+   "floor": 0.4833703703703704
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 54.449,
+  "seed": 693082942,
+  "attempts": 3,
+  "rejects": {
+   "stall": 14,
+   "infeasible": 1,
+   "offTarget": 10,
+   "trivial": 2
+  },
+  "ratings": 34
+ },
+ {
+  "index": 29,
+  "id": "s1-L029",
+  "file": "s1-L029.json",
+  "title": "Turrets and Night Watch",
+  "phase": "teach",
+  "introduced": [
+   "defense"
+  ],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defense",
+   "gather",
+   "sales"
+  ],
+  "goal": "waves",
+  "template": "west_fields",
+  "target": 0.42,
+  "D": 0.3992884809959806,
+  "F": 0.7040516276171623,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8471951664748258,
+   "average": 0.8133222222975132,
+   "weak": 0.8330313584764051,
+   "novice": 0.7377443590130158,
+   "floor": 0.2625938680656866
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 64.652,
+  "seed": 1926329531,
+  "attempts": 3,
+  "rejects": {
+   "offTarget": 22
+  },
+  "ratings": 33
+ },
+ {
+  "index": 30,
+  "id": "s1-L030",
+  "file": "s1-L030.json",
+  "title": "Turrets and Siege",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "customer_variety",
+   "defense",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "crescent",
+  "target": 0.4,
+  "D": 0.36364362544168116,
+  "F": 0.8455347349164652,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9316872183442373,
+   "average": 0.9149858684480986,
+   "weak": 0.8424996219436393,
+   "novice": 0.8473778275714895,
+   "floor": 0.1412651826983722
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 26.009,
+  "seed": 37864213,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 3
+  },
+  "ratings": 6
+ },
+ {
+  "index": 31,
+  "id": "s1-L031",
+  "file": "s1-L031.json",
+  "title": "Domes and Raiders",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "defense",
+   "gather",
+   "housing",
+   "sales"
+  ],
+  "goal": "waves",
+  "template": "east_fields",
+  "target": 0.45,
+  "D": 0.4367242512240248,
+  "F": 0.8277977905740294,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9453162361451447,
+   "average": 0.9300206503996401,
+   "weak": 0.8215519803285757,
+   "novice": 0.7894104024423173,
+   "floor": 0.725548584591138
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 26.195,
+  "seed": 112877692,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 4
+  },
+  "ratings": 9
+ },
+ {
+  "index": 32,
+  "id": "s1-L032",
+  "file": "s1-L032.json",
+  "title": "Hoppers and Night Watch",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "defense",
+   "gather",
+   "hunting",
+   "sales",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "corridor",
+  "target": 0.494,
+  "D": 0.46948827125614245,
+  "F": 0.8131182879173361,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9123800661005408,
+   "average": 0.856983609240554,
+   "weak": 0.8168358782759363,
+   "novice": 0.8118768759461585,
+   "floor": 0.3010966614906831
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 10.498,
+  "seed": 1676619851,
+  "attempts": 1,
+  "rejects": {},
+  "ratings": 2
+ },
+ {
+  "index": 33,
+  "id": "s1-L033",
+  "file": "s1-L033.json",
+  "title": "Guards and Hold Fast",
+  "phase": "teach",
+  "introduced": [
+   "defenders"
+  ],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "south_fields",
+  "target": 0.42,
+  "D": 0.44471853615646617,
+  "F": 0.7814239357329342,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9147700889906429,
+   "average": 0.897817761636385,
+   "weak": 0.8433116319444446,
+   "novice": 0.72506905025989,
+   "floor": 0.20931800918296053
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 13.676,
+  "seed": 1244230714,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1
+  },
+  "ratings": 4
+ },
+ {
+  "index": 34,
+  "id": "s1-L034",
+  "file": "s1-L034.json",
+  "title": "Domes and Siege",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "housing",
+   "sales",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "crescent",
+  "target": 0.55,
+  "D": 0.5437341021085437,
+  "F": 0.6827993860934125,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9195038038911936,
+   "average": 0.9061236491606457,
+   "weak": 0.8567613766129951,
+   "novice": 0.8214637043454646,
+   "floor": 0.11904149855838075
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 34.954,
+  "seed": 304161225,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 2
+  },
+  "ratings": 6
+ },
+ {
+  "index": 35,
+  "id": "s1-L035",
+  "file": "s1-L035.json",
+  "title": "Locked Caches and Raiders",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "south_fields",
+  "target": 0.55,
+  "D": 0.5867471335900812,
+  "F": 0.5825702064623147,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8894812980520547,
+   "average": 0.8626128501211247,
+   "weak": 0.8343638411767381,
+   "novice": 0.7786218989343991,
+   "floor": 0.26434322521279036
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 22.015,
+  "seed": 1445929856,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 3
+  },
+  "ratings": 7
+ },
+ {
+  "index": 36,
+  "id": "s1-L036",
+  "file": "s1-L036.json",
+  "title": "Locked Caches and Night Watch",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "west_fields",
+  "target": 0.669,
+  "D": 0.6568368151658333,
+  "F": 0.8224934972879262,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8736095691066483,
+   "average": 0.813806646932897,
+   "weak": 0.8197694906192279,
+   "novice": 0.7789680177586056,
+   "floor": 0.11416065071837957
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 209.489,
+  "seed": 2117954190,
+  "attempts": 2,
+  "rejects": {
+   "flow": 24,
+   "offTarget": 12
+  },
+  "ratings": 19
+ },
+ {
+  "index": 37,
+  "id": "s1-L037",
+  "file": "s1-L037.json",
+  "title": "Scrap and Hold Fast",
+  "phase": "teach",
+  "introduced": [
+   "salvage_upgrades"
+  ],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades"
+  ],
+  "goal": "waves",
+  "template": "crossroads",
+  "target": 0.42,
+  "D": 0.37148156272664423,
+  "F": 0.5757453508849538,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9230419162124542,
+   "average": 0.9097617948185627,
+   "weak": 0.9173003603150659,
+   "novice": 0.8683961119058402,
+   "floor": 0.03472985590999711
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 173.616,
+  "seed": 159335682,
+  "attempts": 2,
+  "rejects": {
+   "offTarget": 13
+  },
+  "ratings": 22
+ },
+ {
+  "index": 38,
+  "id": "s1-L038",
+  "file": "s1-L038.json",
+  "title": "Scrap and Siege",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "north_fields",
+  "target": 0.55,
+  "D": 0.5888293275510502,
+  "F": 0.8673062472254327,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8680696346911804,
+   "average": 0.858729401922008,
+   "weak": 0.7867209642182339,
+   "novice": 0.7591355810516994,
+   "floor": 0.5434379894796563
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 168.506,
+  "seed": 1094709853,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 5
+  },
+  "ratings": 12
+ },
+ {
+  "index": 39,
+  "id": "s1-L039",
+  "file": "s1-L039.json",
+  "title": "Scrap and Raiders",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades"
+  ],
+  "goal": "waves",
+  "template": "crescent",
+  "target": 0.55,
+  "D": 0.5625131692367572,
+  "F": 0.4110228070690723,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9313644083189597,
+   "average": 0.9044129395379121,
+   "weak": 0.8965357482191282,
+   "novice": 0.7470596479099342,
+   "floor": 0.07802780084879689
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 18.539,
+  "seed": 1912053956,
+  "attempts": 1,
+  "rejects": {
+   "flow": 1,
+   "offTarget": 1
+  },
+  "ratings": 4
+ },
+ {
+  "index": 40,
+  "id": "s1-L040",
+  "file": "s1-L040.json",
+  "title": "Scrap and Raiders",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "east_fields",
+  "target": 0.4,
+  "D": 0.3926413820700614,
+  "F": 0.7156613375157465,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8977499794669533,
+   "average": 0.9562974639177382,
+   "weak": 0.8633927861664068,
+   "novice": 0.8418046861415407,
+   "floor": 0.2656579746538162
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 9.971,
+  "seed": 1405721220,
+  "attempts": 1,
+  "rejects": {},
+  "ratings": 2
+ },
+ {
+  "index": 41,
+  "id": "s1-L041",
+  "file": "s1-L041.json",
+  "title": "Med Bays and Siege",
+  "phase": "teach",
+  "introduced": [
+   "medical"
+  ],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defense",
+   "gather",
+   "medical",
+   "sales"
+  ],
+  "goal": "waves",
+  "template": "north_fields",
+  "target": 0.42,
+  "D": 0.4192467526547563,
+  "F": 0.7784769666188057,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8494174931701272,
+   "average": 0.8420183874825596,
+   "weak": 0.8407061036667253,
+   "novice": 0.7484525616219312,
+   "floor": 0.5124411898031868
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 241.451,
+  "seed": 1752643492,
+  "attempts": 2,
+  "rejects": {
+   "idleModule": 9,
+   "offTarget": 4
+  },
+  "ratings": 17
+ },
+ {
+  "index": 42,
+  "id": "s1-L042",
+  "file": "s1-L042.json",
+  "title": "Med Bays and Hold Fast",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "medical",
+   "sales",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "south_fields",
+  "target": 0.494,
+  "D": 0.4491355441003622,
+  "F": 0.9116003227929417,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9075762508905216,
+   "average": 0.892776268115942,
+   "weak": 0.9569877811703362,
+   "novice": 0.7995910835650029,
+   "floor": 0.2854238718708827
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 519.751,
+  "seed": 858836680,
+  "attempts": 3,
+  "rejects": {
+   "offTarget": 7,
+   "idleModule": 18
+  },
+  "ratings": 34
+ },
+ {
+  "index": 43,
+  "id": "s1-L043",
+  "file": "s1-L043.json",
+  "title": "Scrap and Night Watch",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "customer_variety",
+   "defense",
+   "gather",
+   "medical",
+   "sales",
+   "salvage_upgrades"
+  ],
+  "goal": "waves",
+  "template": "corridor",
+  "target": 0.538,
+  "D": 0.6774267613882998,
+  "F": 0.7808197203137986,
+  "onTarget": false,
+  "margin": {
+   "good": 0.8841736478274038,
+   "average": 0.8715906665813032,
+   "weak": 0.8721408286287557,
+   "novice": 0.6926144182704954,
+   "floor": 0.7620335466267729
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 529.359,
+  "seed": 963761580,
+  "attempts": 3,
+  "rejects": {
+   "offTarget": 5,
+   "idleModule": 22
+  },
+  "ratings": 32
+ },
+ {
+  "index": 44,
+  "id": "s1-L044",
+  "file": "s1-L044.json",
+  "title": "Med Bays and Raiders",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "defense",
+   "gather",
+   "medical",
+   "sales",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "crescent",
+  "target": 0.581,
+  "D": 0.5945506609753207,
+  "F": 0.8304454222820573,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8740192146271321,
+   "average": 0.8307895790866068,
+   "weak": 0.797733184177679,
+   "novice": 0.755426052571495,
+   "floor": 0.5866830813931718
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 14.012,
+  "seed": 1664954184,
+  "attempts": 1,
+  "rejects": {
+   "idleModule": 1
+  },
+  "ratings": 3
+ },
+ {
+  "index": 45,
+  "id": "s1-L045",
+  "file": "s1-L045.json",
+  "title": "Dust and Raising the Hub",
+  "phase": "teach",
+  "introduced": [
+   "hazard_events"
+  ],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "customer_variety",
+   "gather",
+   "hazard_events",
+   "sales"
+  ],
+  "goal": "build",
+  "template": "corridor",
+  "target": 0.42,
+  "D": 0.09724466870338491,
+  "F": 0.8904343227592119,
+  "onTarget": false,
+  "margin": {
+   "good": 0.514888888888889,
+   "average": 0.42800925925925926,
+   "weak": 0.4025462962962963,
+   "novice": 0.3131481481481481,
+   "floor": -0.0434104938271605
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 15.141,
+  "seed": 350234150,
+  "attempts": 3,
+  "rejects": {
+   "stall": 20,
+   "offTarget": 7
+  },
+  "ratings": 35
+ },
+ {
+  "index": 46,
+  "id": "s1-L046",
+  "file": "s1-L046.json",
+  "title": "Hoppers and New Arrivals",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "hazard_events",
+   "housing",
+   "hunting",
+   "sales",
+   "workers"
+  ],
+  "goal": "population",
+  "template": "crossroads",
+  "target": 0.55,
+  "D": 0.549319774361744,
+  "F": 0.7120260441109431,
+  "onTarget": true,
+  "margin": {
+   "good": 0.4485166666666666,
+   "average": 0.4043333333333334,
+   "weak": 0.4337777777777778,
+   "novice": 0.3404444444444444,
+   "floor": 0.1291111111111111
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 17.939,
+  "seed": 1335281702,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 4,
+   "stall": 1
+  },
+  "ratings": 11
+ },
+ {
+  "index": 47,
+  "id": "s1-L047",
+  "file": "s1-L047.json",
+  "title": "Scrap and Night Watch",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defense",
+   "gather",
+   "hazard_events",
+   "sales",
+   "salvage_upgrades"
+  ],
+  "goal": "waves",
+  "template": "corridor",
+  "target": 0.55,
+  "D": 0.5416741986178125,
+  "F": 0.791610423662676,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8610228439731931,
+   "average": 0.8427085887658468,
+   "weak": 0.8588676288500237,
+   "novice": 0.7421416342079058,
+   "floor": 0.447169174382716
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 6.832,
+  "seed": 67777143,
+  "attempts": 1,
+  "rejects": {},
+  "ratings": 2
+ },
+ {
+  "index": 48,
+  "id": "s1-L048",
+  "file": "s1-L048.json",
+  "title": "Domes and Foundations",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "hazard_events",
+   "housing",
+   "sales",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "east_fields",
+  "target": 0.756,
+  "D": 0.7690010782431321,
+  "F": 0.9104315479714208,
+  "onTarget": true,
+  "margin": {
+   "good": 0.32526666666666665,
+   "average": 0.28248888888888884,
+   "weak": 0.29008888888888884,
+   "novice": 0.18546666666666667,
+   "floor": -0.2000998477929985
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 125.978,
+  "seed": 307298876,
+  "attempts": 1,
+  "rejects": {
+   "stall": 1,
+   "offTarget": 4
+  },
+  "ratings": 11
+ },
+ {
+  "index": 49,
+  "id": "s1-L049",
+  "file": "s1-L049.json",
+  "title": "Couriers and Raising the Hub",
+  "phase": "teach",
+  "introduced": [
+   "supply_routing"
+  ],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "sales",
+   "supply_routing",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "north_fields",
+  "target": 0.42,
+  "D": 0.21856725169271557,
+  "F": 0.7539437464724936,
+  "onTarget": false,
+  "margin": {
+   "good": 0.392939393939394,
+   "average": 0.3925757575757576,
+   "weak": 0.3853030303030303,
+   "novice": 0.27939393939393936,
+   "floor": 0.08095959595959597
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 245.287,
+  "seed": 2061895893,
+  "attempts": 3,
+  "rejects": {
+   "offTarget": 11,
+   "stall": 16
+  },
+  "ratings": 35
+ },
+ {
+  "index": 50,
+  "id": "s1-L050",
+  "file": "s1-L050.json",
+  "title": "Warehouses and Night Watch",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "supply_routing",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "corridor",
+  "target": 0.4,
+  "D": 0.36491384938869803,
+  "F": 0.8175744761936437,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9202250948525673,
+   "average": 0.8482000146986292,
+   "weak": 0.8622529018949496,
+   "novice": 0.8149037913065601,
+   "floor": 0.6106435143764296
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 69.039,
+  "seed": 2014425219,
+  "attempts": 1,
+  "rejects": {},
+  "ratings": 2
+ },
+ {
+  "index": 51,
+  "id": "s1-L051",
+  "file": "s1-L051.json",
+  "title": "Warehouses and Scaffolds",
+  "phase": "test",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "customer_variety",
+   "gather",
+   "sales",
+   "source_gating",
+   "supply_routing",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "south_fields",
+  "target": 0.45,
+  "D": 0.42435916402659374,
+  "F": 0.4753632589214394,
+  "onTarget": true,
+  "margin": {
+   "good": 0.44448809523809524,
+   "average": 0.45896825396825397,
+   "weak": 0.4682539682539682,
+   "novice": 0.3662301587301588,
+   "floor": 0.31055555555555553
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 151.991,
+  "seed": 900293734,
+  "attempts": 2,
+  "rejects": {
+   "stall": 7,
+   "offTarget": 2
+  },
+  "ratings": 13
+ },
+ {
+  "index": 52,
+  "id": "s1-L052",
+  "file": "s1-L052.json",
+  "title": "Couriers and Siege",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "supply_routing",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "north_fields",
+  "target": 0.494,
+  "D": 0.45796127265307146,
+  "F": 0.7496918876001082,
+  "onTarget": true,
+  "margin": {
+   "good": 0.9411222604994155,
+   "average": 0.8933188734997944,
+   "weak": 0.821854270315091,
+   "novice": 0.8264778670964366,
+   "floor": 0.38498426041234257
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 216.513,
+  "seed": 351208237,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 3,
+   "flow": 24
+  },
+  "ratings": 8
+ },
+ {
+  "index": 53,
+  "id": "s1-L053",
+  "file": "s1-L053.json",
+  "title": "Couriers and Foundations",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "customer_variety",
+   "gather",
+   "housing",
+   "sales",
+   "supply_routing",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "east_fields",
+  "target": 0.538,
+  "D": 0.40467022427076765,
+  "F": 0.7456057367697153,
+  "onTarget": false,
+  "margin": {
+   "good": 0.3841111111111111,
+   "average": 0.38806584362139923,
+   "weak": 0.34465020576131683,
+   "novice": 0.30950617283950616,
+   "floor": 0.24938271604938275
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 337.849,
+  "seed": 1436247380,
+  "attempts": 3,
+  "rejects": {
+   "stall": 20,
+   "offTarget": 7,
+   "layout": 1
+  },
+  "ratings": 31
+ },
+ {
+  "index": 54,
+  "id": "s1-L054",
+  "file": "s1-L054.json",
+  "title": "Warehouses and Night Watch",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "supply_routing",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "west_fields",
+  "target": 0.581,
+  "D": 0.5943858642301814,
+  "F": 0.7564535292304043,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8738444498453418,
+   "average": 0.8423126726955407,
+   "weak": 0.8517026727736031,
+   "novice": 0.6621617948755159,
+   "floor": -0.06349729038085201
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 432.971,
+  "seed": 271138203,
+  "attempts": 2,
+  "rejects": {
+   "offTarget": 15,
+   "infeasible": 1
+  },
+  "ratings": 26
+ },
+ {
+  "index": 55,
+  "id": "s1-L055",
+  "file": "s1-L055.json",
+  "title": "Warehouses and Scaffolds",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "housing",
+   "hunting",
+   "sales",
+   "supply_routing",
+   "workers"
+  ],
+  "goal": "build",
+  "template": "crossroads",
+  "target": 0.625,
+  "D": 0.5789513584269135,
+  "F": 0.5762616365770981,
+  "onTarget": true,
+  "margin": {
+   "good": 0.441,
+   "average": 0.4337962962962963,
+   "weak": 0.38671296296296304,
+   "novice": 0.3444444444444445,
+   "floor": 0.16814814814814816
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 102.98,
+  "seed": 2110915574,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 2
+  },
+  "ratings": 6
+ },
+ {
+  "index": 56,
+  "id": "s1-L056",
+  "file": "s1-L056.json",
+  "title": "Turrets and Siege",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "customer_variety",
+   "defense",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "crescent",
+  "target": 0.669,
+  "D": 0.6719662945354509,
+  "F": 0.8540426485561954,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8643780459459695,
+   "average": 0.8813548026972358,
+   "weak": 0.7272243473852233,
+   "novice": 0.7739225608048281,
+   "floor": 0.610152541331031
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 297.06,
+  "seed": 1329038753,
+  "attempts": 2,
+  "rejects": {
+   "offTarget": 10,
+   "infeasible": 1
+  },
+  "ratings": 16
+ },
+ {
+  "index": 57,
+  "id": "s1-L057",
+  "file": "s1-L057.json",
+  "title": "Scrap and Raiders",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defense",
+   "gather",
+   "hazard_events",
+   "medical",
+   "sales",
+   "salvage_upgrades"
+  ],
+  "goal": "waves",
+  "template": "south_fields",
+  "target": 0.713,
+  "D": 0.7580226098183287,
+  "F": 0.7414650459086841,
+  "onTarget": true,
+  "margin": {
+   "good": 0.877570193796981,
+   "average": 0.7370379981035723,
+   "weak": 0.8558145263836928,
+   "novice": 0.8006800755274823,
+   "floor": 0.33625968666884276
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 107.714,
+  "seed": 623719896,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1,
+   "idleModule": 1
+  },
+  "ratings": 5
+ },
+ {
+  "index": 58,
+  "id": "s1-L058",
+  "file": "s1-L058.json",
+  "title": "Scrap and Night Watch",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defense",
+   "gather",
+   "hazard_events",
+   "medical",
+   "sales",
+   "salvage_upgrades"
+  ],
+  "goal": "waves",
+  "template": "corridor",
+  "target": 0.756,
+  "D": 0.8526005714448622,
+  "F": 0.8493119212295103,
+  "onTarget": false,
+  "margin": {
+   "good": 0.8252184758803625,
+   "average": 0.8262856528985557,
+   "weak": 0.7604466960646175,
+   "novice": 0.7508443140128748,
+   "floor": 0.3815350110857489
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 342.587,
+  "seed": 212345883,
+  "attempts": 3,
+  "rejects": {
+   "infeasible": 3,
+   "offTarget": 1,
+   "idleModule": 24
+  },
+  "ratings": 26
+ },
+ {
+  "index": 59,
+  "id": "s1-L059",
+  "file": "s1-L059.json",
+  "title": "Scrap and Hold Fast",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "south_fields",
+  "target": 0.8,
+  "D": 0.8961258851354869,
+  "F": 0.5606138667828472,
+  "onTarget": false,
+  "margin": {
+   "good": 0.9209239458026806,
+   "average": 0.9175978092647642,
+   "weak": 0.7887369734914048,
+   "novice": 0.6048010419678683,
+   "floor": -0.2623648396718867
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.3333333333333333
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 376.446,
+  "seed": 1563063732,
+  "attempts": 3,
+  "rejects": {
+   "flow": 9,
+   "infeasible": 2,
+   "offTarget": 23,
+   "layout": 20
+  },
+  "ratings": 34
+ },
+ {
+  "index": 60,
+  "id": "s1-L060",
+  "file": "s1-L060.json",
+  "title": "Scrap and Hold Fast",
+  "phase": "mix",
+  "introduced": [],
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "waves",
+  "template": "corridor",
+  "target": 0.4,
+  "D": 0.41759748792553464,
+  "F": 0.7132494119962882,
+  "onTarget": true,
+  "margin": {
+   "good": 0.8968354398080631,
+   "average": 0.9034886401743796,
+   "weak": 0.8478357415559353,
+   "novice": 0.8092639833711267,
+   "floor": 0.5342463693226503
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 251.849,
+  "seed": 305521690,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 7
+  },
+  "ratings": 13
+ }
+]

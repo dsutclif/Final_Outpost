@@ -1,0 +1,87 @@
+{
+  "source": "generated calibration batch: 57 unsearched samples of levels 1-60 (refSeeds 10, others 3)",
+  "n": 57,
+  "metrics": {
+    "skillNeeded": {
+      "mean": 0.100877,
+      "sd": 0.155693
+    },
+    "marginRef": {
+      "mean": 0.639051,
+      "sd": 0.200032
+    },
+    "marginMedian": {
+      "mean": 0.577198,
+      "sd": 0.201243
+    },
+    "lifelineRisk": {
+      "mean": 0.346761,
+      "sd": 0.145368
+    },
+    "concurrentDemand": {
+      "mean": 0.011673,
+      "sd": 0.028932
+    },
+    "routeLoad": {
+      "mean": 0.900682,
+      "sd": 0.03788
+    },
+    "threatPressure": {
+      "mean": 0.096783,
+      "sd": 0.157606
+    },
+    "economyTightness": {
+      "mean": 0.639443,
+      "sd": 0.855483
+    },
+    "moduleCount": {
+      "mean": 4.842105,
+      "sd": 1.509369
+    },
+    "novelty": {
+      "mean": 0,
+      "sd": 0
+    }
+  },
+  "byGoal": {
+    "build": {
+      "n": 26,
+      "metrics": {
+        "marginRef": {
+          "mean": 0.49985,
+          "sd": 0.084352
+        },
+        "marginMedian": {
+          "mean": 0.464116,
+          "sd": 0.109529
+        }
+      }
+    },
+    "population": {
+      "n": 8,
+      "metrics": {
+        "marginRef": {
+          "mean": 0.487908,
+          "sd": 0.053891
+        },
+        "marginMedian": {
+          "mean": 0.420718,
+          "sd": 0.088145
+        }
+      }
+    },
+    "waves": {
+      "n": 22,
+      "metrics": {
+        "marginRef": {
+          "mean": 0.871789,
+          "sd": 0.061376
+        },
+        "marginMedian": {
+          "mean": 0.77894,
+          "sd": 0.142956
+        }
+      }
+    }
+  }
+}

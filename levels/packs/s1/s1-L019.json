@@ -1,0 +1,254 @@
+{
+  "id": "s1-L019",
+  "seed": 1128479174,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "sources-e",
+      "shop-se",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "hunting",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    240,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        500
+      ],
+      "params": {
+        "fuel": 12,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        322,
+        694
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        59,
+        438
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        46,
+        523
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        138,
+        364
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        91,
+        510
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        368,
+        409
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        20,
+        600,
+        140,
+        120
+      ],
+      "animal": "node.prey",
+      "n": 3
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        172,
+        466
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.material_source",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        350,
+        522
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        213,
+        761
+      ],
+      "cost": {
+        "res.currency": 22
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hunter",
+      "at": [
+        156,
+        589
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "sink.sales_point"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        128,
+        558
+      ],
+      "cost": {
+        "res.currency": 31
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "landmark",
+      "at": [
+        111,
+        797
+      ],
+      "cost": {
+        "res.currency": 102
+      },
+      "build": "struct.landmark",
+      "big": true,
+      "requires": {
+        "pad": "hunter",
+        "coreLevel": 2
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 5,
+    "core.burn": 2.3,
+    "customers.spawn": 3,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "housing.base": 7,
+    "level.budgetSeconds": 210
+  },
+  "goal": {
+    "type": "build",
+    "target": "landmark"
+  },
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hoppers and Scaffolds",
+      "goal": "Build the Habitat hub",
+      "tips": [
+        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.389,
+    "fun": 0.762,
+    "botMargin": 0.353,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

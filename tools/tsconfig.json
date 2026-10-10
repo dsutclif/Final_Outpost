@@ -1,0 +1,6 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "..", "outDir": "dist", "types": ["node"] },
+  "include": ["*.ts"],
+  "references": [{ "path": "../packages/content" }, { "path": "../packages/sim" }, { "path": "../packages/bots" }, { "path": "../packages/rater" }, { "path": "../packages/sequencer" }, { "path": "../packages/generator" }]
+}

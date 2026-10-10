@@ -1,11 +1,11 @@
 import { content as defaultContent, type Content } from "@fo/content";
-import { FP, METER_MAX, REWARD_EVENTS, TPS, createSim, population, seedRng, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
+import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, createSim, population, seedRng, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
 import { Brain } from "./brain.js";
 import { planBot, type Plan } from "./plan.js";
 import { withLearning, type BotProfile } from "./profiles.js";
 
-/** Time budget for goals without a level timer. Override with opts.timeBudgetSeconds. */
-export const DEFAULT_TIME_BUDGET_SECONDS = 300;
+/** Content default of `level.budgetSeconds`, kept as a named export for callers. */
+export const DEFAULT_TIME_BUDGET_SECONDS: number = defaultContent.defaults["level.budgetSeconds"] ?? 300;
 /** Extra play time after the last wave before a waves level counts as stuck. */
 export const WAVES_TAIL_SECONDS = 120;
 /** No progress for this long is a stall (spec: 30 s). */
@@ -15,7 +15,7 @@ export interface BotOptions {
   content?: Content;
   /** Previous attempts at this level; shrinks the profile's noise by its learn term. */
   attempt?: number;
-  /** Time budget in seconds for build/population/currency goals without a timer. */
+  /** Overrides the manifest's `level.budgetSeconds` (build/population/currency goals without a timer). */
   timeBudgetSeconds?: number;
   /** Hard cap on ticks (defaults from the timer, the budget or the wave schedule). */
   maxTicks?: number;
@@ -94,14 +94,11 @@ const PROGRESS_EVENTS: ReadonlySet<SimEvent["t"]> = new Set<SimEvent["t"]>([
 /** Play a manifest headless with one profile and one in-level seed. Deterministic. */
 export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, opts: BotOptions = {}): BotResult {
   const content = opts.content ?? defaultContent;
-  const raw = manifest as { params?: Record<string, number> };
-  // The budget param is read leniently: manifests cannot carry it (no content default), callers can.
-  const budgetS = opts.timeBudgetSeconds ?? raw.params?.["bot.timeBudgetSeconds"] ?? DEFAULT_TIME_BUDGET_SECONDS;
-  const cleanParams = { ...(raw.params ?? {}) };
-  delete cleanParams["bot.timeBudgetSeconds"];
-  const sim = createSim({ ...(manifest as object), params: cleanParams, seed }, { content });
+  const sim = createSim({ ...(manifest as object), seed }, { content });
   const cp = sim.compiled, st = sim.state;
-  const plan = opts.plan ?? planBot({ ...(manifest as object), params: cleanParams }, content);
+  // level.budgetSeconds is a rating input only (DECISIONS 9b); the sim never fails on it.
+  const budgetS = opts.timeBudgetSeconds ?? cp.level.budgetSeconds;
+  const plan = opts.plan ?? planBot(manifest, content);
   const profile = withLearning(profileIn, opts.attempt ?? 0);
   const rng = seedRng((seed * 2654435761 + hashName(profile.name)) >>> 0);
   const brain = new Brain(cp, plan, profile, rng);
@@ -218,8 +215,6 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   if (opts.recordInputs) res.inputs = inputs;
   return res;
 }
-
-const REWARD_GAP_EDGES = [1, 2, 4, 8, 15, 30, 60];
 
 function histMedian(hist: number[] | undefined, count: number, ticks: number): number {
   if (!hist || count === 0) return ticks / TPS;

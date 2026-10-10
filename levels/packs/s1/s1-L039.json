@@ -1,0 +1,317 @@
+{
+  "id": "s1-L039",
+  "seed": 1912053956,
+  "engineVersion": "0.3.0",
+  "contentVersion": "0.3.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-sw",
+      "fuel-ne",
+      "shop-e",
+      "landmark-se"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "blocked_zones",
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "defense",
+    "gather",
+    "sales",
+    "salvage_upgrades"
+  ],
+  "start": [
+    262,
+    602
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        262,
+        510
+      ],
+      "params": {
+        "fuel": 14,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        341,
+        640
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        122,
+        389
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        86,
+        475
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        71,
+        428
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        89,
+        355
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        123,
+        444
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        110,
+        622
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble",
+      "rect": [
+        330,
+        790,
+        150,
+        110
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "wall",
+      "res": "res.currency",
+      "costPerSection": 6,
+      "sections": [
+        {
+          "a": [
+            0,
+            290
+          ],
+          "b": [
+            182,
+            290
+          ],
+          "prebuilt": true
+        },
+        {
+          "a": [
+            182,
+            290
+          ],
+          "b": [
+            342,
+            290
+          ],
+          "gate": true,
+          "prebuilt": false
+        },
+        {
+          "a": [
+            342,
+            290
+          ],
+          "b": [
+            480,
+            290
+          ],
+          "prebuilt": false
+        }
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level",
+      "at": [
+        169,
+        567
+      ],
+      "cost": {
+        "res.currency": 23
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "zone_pad",
+      "at": [
+        404,
+        749
+      ],
+      "cost": {
+        "res.currency": 14
+      },
+      "build": "zone.clear",
+      "target": "rubble",
+      "requires": {
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower0",
+      "at": [
+        163,
+        363
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "build": "struct.ranged_defense"
+    },
+    {
+      "type": "pad.build",
+      "id": "tower1",
+      "at": [
+        310,
+        380
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "build": "struct.ranged_defense",
+      "requires": {
+        "pad": "zone_pad"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "towerup0",
+      "at": [
+        166,
+        425
+      ],
+      "cost": {
+        "res.salvage": 3
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower0",
+      "requires": {
+        "pad": "tower0"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "towerup1",
+      "at": [
+        324,
+        432
+      ],
+      "cost": {
+        "res.salvage": 3
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower1",
+      "requires": {
+        "pad": "tower1"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        259,
+        415
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "build": "struct.barrier.reinforced"
+    }
+  ],
+  "people": [],
+  "waves": [
+    {
+      "t": 58,
+      "counts": {
+        "hostile.creature": 6,
+        "hostile.raider_humanoid": 1
+      }
+    },
+    {
+      "t": 118,
+      "counts": {
+        "hostile.creature": 8,
+        "hostile.raider_humanoid": 3
+      }
+    },
+    {
+      "t": 177,
+      "counts": {
+        "hostile.creature": 11,
+        "hostile.raider_humanoid": 4
+      }
+    }
+  ],
+  "events": [],
+  "params": {
+    "start.currency": 10,
+    "core.burn": 2.8,
+    "customers.spawn": 2.7,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "housing.base": 2,
+    "meters.baseHealth": 11,
+    "level.budgetSeconds": 240
+  },
+  "goal": {
+    "type": "waves"
+  },
+  "fail": [
+    "meter.lifeline",
+    "meter.base_health"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Scrap and Raiders",
+      "goal": "Survive every raid",
+      "tips": [
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.563,
+    "fun": 0.411,
+    "botMargin": 0.931,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

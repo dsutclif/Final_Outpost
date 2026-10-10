@@ -20,3 +20,13 @@ export function producible(st: State, cp: Compiled, res: string): boolean {
   if (cp.waves.some((w) => w.types.some((t) => (cp.hostiles[t]?.drops[res] ?? 0) > 0))) return true;
   return false;
 }
+
+/**
+ * True when the only producible source of a resource is prey or hostile drops: no enabled node
+ * yields it and no placed converter makes it. Customers skip such goods while the shelf is empty.
+ */
+export function dropOnly(st: State, cp: Compiled, res: string): boolean {
+  if (st.nodes.some((n) => n.enabled && cp.nodes[n.type]!.yields === res)) return false;
+  if (st.converters.some((c) => cp.converters[c.type]!.output === res)) return false;
+  return producible(st, cp, res);
+}

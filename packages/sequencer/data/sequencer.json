@@ -1,0 +1,52 @@
+{
+  "packId": "s1",
+  "tutorialLength": 20,
+  "tutorialTargets": { "from": 0.15, "to": 0.38 },
+  "blockLength": 10,
+  "band": { "lo": 0.4, "hi": 0.8 },
+  "breatherTarget": 0.4,
+  "teachTarget": 0.42,
+  "testTarget": 0.55,
+  "tutorialTeachDrop": 0.04,
+  "funThresholds": { "tutorial": 0.2, "band": 0.4 },
+  "recoveryDrop": 0.1,
+  "maxOptional": 6,
+  "mix": { "min": 3, "max": 5 },
+  "recentWindow": 5,
+  "duplicateWindow": 10,
+  "testLevels": 2,
+  "spacing": [
+    { "untilBeat": 6, "levels": 3 },
+    { "untilBeat": 99, "levels": 4 }
+  ],
+  "templates": ["crossroads", "west_fields", "east_fields", "north_fields", "south_fields", "corridor", "crescent"],
+  "coIntroduce": { "barrier_lines": "lasso" },
+  "implies": { "workers": ["build_pads"], "hunting": ["workers"] },
+  "dependencyOnly": ["barrier_lines"],
+  "anchored": ["source_gating", "core_levels", "blocked_zones", "hunting"],
+  "anchorGoals": ["build", "waves"],
+  "goals": {
+    "build": { "needsAny": ["build_pads"] },
+    "population": { "needsAny": ["lasso", "housing"] },
+    "waves": { "needsAny": ["defense"] },
+    "currency": { "needsAny": [] },
+    "serve_premium": { "needsAny": ["customer_variety"] }
+  },
+  "goalExcludes": {
+    "build": ["defense", "defenders", "salvage_upgrades", "medical"],
+    "population": ["defense", "defenders", "salvage_upgrades", "medical"],
+    "waves": [],
+    "currency": ["workers", "build_pads", "lasso", "housing", "defense", "defenders", "salvage_upgrades", "medical"],
+    "serve_premium": ["lasso", "housing", "defense", "defenders", "salvage_upgrades", "medical"]
+  },
+  "coreGoal": "build",
+  "goalPreference": ["build", "population", "waves", "serve_premium", "currency"],
+  "notes": {
+    "coIntroduce": "barrier_lines has no standalone teach level: the bot only builds sections on waves goals and registers the module on barrier_built or captured, so a lone barrier_lines level always fails the idle-module filter. It is taught together with the lasso, which requires it.",
+    "dependencyOnly": "Modules that only enter a level as another module's dependency (lasso, defense), never as a free pick.",
+    "anchored": "Modules whose pads only get bought when they sit on the bot's plan: they hang off the goal pad (build), a tower (waves), the first housing pad (population with housing) or the cashier hire (any goal with workers).",
+    "implies": "Hire pads are pads: a level with workers always has build_pads. Hunting needs a hunter hire, because the bot never hunts on its own (it only hits prey it passes).",
+    "coreGoal": "Level 1 (the core loop, no optional modules) builds the landmark, as the prototype's first level does. A currency goal would fit the registry better, but the bot's stall detector counts sales as progress only toward a plan-step price, so a level with no pads always stalls.",
+    "goalExcludes": "Defense modules only pair with waves goals (the bot plans walls only for waves). Currency goals are kept to levels without plan steps, because the stall detector counts sales as progress only toward a plan-step price."
+  }
+}

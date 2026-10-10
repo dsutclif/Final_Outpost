@@ -1,0 +1,62 @@
+{
+  "_doc": "Map templates (480 x 900 world units, y grows south). Rects are [x, y, w, h]. Every template reserves y < 330 for the north stack: the attack line (defense), the lasso fence and its outer zone, and the blocked band with its pocket. 'zones' names the regions for map.zones (the rater's template key).",
+  "templates": [
+    {
+      "id": "crossroads",
+      "zones": ["base", "sources-w", "sources-e", "shop-se", "landmark-sw"],
+      "core": [240, 500], "start": [0, 92],
+      "fields": { "material": [25, 360, 115, 200], "food": [350, 360, 105, 180], "fuel": [360, 575, 95, 70] },
+      "shop": [318, 690], "landmark": [110, 800], "prey": [20, 600, 140, 120], "depot": [170, 610]
+    },
+    {
+      "id": "west_fields",
+      "zones": ["base", "sources-w", "food-sw", "shop-e", "landmark-se"],
+      "core": [262, 500], "start": [0, 92],
+      "fields": { "material": [25, 345, 110, 190], "food": [25, 570, 120, 150], "fuel": [180, 345, 150, 45] },
+      "shop": [336, 640], "landmark": [370, 805], "prey": [345, 360, 115, 130], "depot": [190, 660]
+    },
+    {
+      "id": "east_fields",
+      "zones": ["base", "sources-e", "food-se", "shop-w", "landmark-sw"],
+      "core": [218, 500], "start": [0, 92],
+      "fields": { "material": [345, 345, 110, 190], "food": [335, 570, 120, 150], "fuel": [150, 345, 150, 45] },
+      "shop": [120, 650], "landmark": [110, 805], "prey": [20, 360, 115, 130], "depot": [260, 660]
+    },
+    {
+      "id": "north_fields",
+      "zones": ["base", "sources-nw", "food-ne", "fuel-w", "shop-s"],
+      "core": [240, 560], "start": [0, 92],
+      "fields": { "material": [25, 345, 170, 95], "food": [285, 345, 170, 95], "fuel": [25, 520, 80, 110] },
+      "shop": [300, 735], "landmark": [110, 800], "prey": [370, 520, 90, 120], "depot": [130, 680]
+    },
+    {
+      "id": "south_fields",
+      "zones": ["base", "sources-sw", "food-se", "shop-ne", "landmark-s"],
+      "core": [240, 450], "start": [0, -90],
+      "fields": { "material": [25, 600, 150, 140], "food": [305, 610, 150, 120], "fuel": [160, 345, 110, 40] },
+      "shop": [388, 400], "landmark": [240, 810], "prey": [20, 350, 130, 130], "depot": [150, 520]
+    },
+    {
+      "id": "corridor",
+      "zones": ["base", "sources-far-w", "food-far-e", "shop-s", "landmark-sw"],
+      "core": [240, 520], "start": [0, 92],
+      "fields": { "material": [20, 350, 70, 300], "food": [390, 350, 70, 230], "fuel": [390, 620, 70, 80] },
+      "shop": [250, 720], "landmark": [95, 805], "prey": [130, 345, 220, 80], "depot": [150, 640]
+    },
+    {
+      "id": "crescent",
+      "zones": ["base", "sources-nw", "food-sw", "fuel-ne", "shop-e", "landmark-se"],
+      "core": [262, 510], "start": [0, 92],
+      "fields": { "material": [25, 345, 140, 130], "food": [25, 600, 130, 120], "fuel": [370, 350, 90, 80] },
+      "shop": [345, 640], "landmark": [380, 805], "prey": [190, 345, 150, 70], "depot": [180, 660]
+    }
+  ],
+  "north": {
+    "_doc": "North stack, top down. lassoLine: fence y when the lasso is on (containers sit in [outerTop, lassoLine - outerGap]). attackLine: wall y for defense. Blocked band: 'band' height, placed below the pocket; the pocket holds the landmark on build goals or the containers' access on population goals.",
+    "lassoLine": 160, "outerTop": 52, "outerGap": 56,
+    "attackLine": 290,
+    "band": 44, "pocket": 112, "insideTop": 330
+  },
+  "corner": { "_doc": "Blocked corner for waves goals: an empty pocket in a south corner.", "w": 150, "h": 110 },
+  "arrivals": { "at": [240, 872], "clearTop": 830 }
+}
