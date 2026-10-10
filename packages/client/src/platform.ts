@@ -32,7 +32,8 @@ export const isNative = (): boolean => {
 export function webPlatform(doc: Document | null = typeof document !== "undefined" ? document : null): Platform {
   return {
     native: false,
-    haptic(ms) { try { navigator.vibrate?.(ms); } catch { /* unsupported */ } },
+    // Chrome logs an error for vibrate() before the first tap; skip until the user has interacted
+    haptic(ms) { try { if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return; navigator.vibrate?.(ms); } catch { /* unsupported */ } },
     storage: null,
     onPause(fn) { doc?.addEventListener("visibilitychange", () => { if (doc.visibilityState === "hidden") fn(); }); },
     onResume(fn) { doc?.addEventListener("visibilitychange", () => { if (doc.visibilityState === "visible") fn(); }); },
