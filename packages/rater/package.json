@@ -3,6 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "dependencies": { "@fo/content": "workspace:*", "@fo/sim": "workspace:*", "@fo/bots": "workspace:*" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@fo/content": "workspace:*",
+    "@fo/sim": "workspace:*",
+    "@fo/bots": "workspace:*"
+  },
+  "scripts": {
+    "rate": "vite-node src/cli.ts --"
+  },
+  "devDependencies": {
+    "vite-node": "3.2.4"
+  }
 }

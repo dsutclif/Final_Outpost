@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "../..", "outDir": "dist", "types": ["node"] },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "data/*.json", "../../levels/**/*.json"],
   "references": [{ "path": "../content" }, { "path": "../sim" }, { "path": "../bots" }]
 }

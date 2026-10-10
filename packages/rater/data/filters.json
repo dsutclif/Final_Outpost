@@ -1,0 +1,6 @@
+{
+  "screenRadius": 450,
+  "trivialBudgetShare": 0.4,
+  "trivialWavesMargin": 0.95,
+  "duplicateWindow": 10
+}

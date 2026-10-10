@@ -1,0 +1,46 @@
+{
+  "source": "proto-L001.json, proto-L002.json, proto-L003.json, proto-L004.json (refSeeds 10, others 3)",
+  "n": 4,
+  "metrics": {
+    "skillNeeded": {
+      "mean": 0,
+      "sd": 0
+    },
+    "marginRef": {
+      "mean": 0.731251,
+      "sd": 0.174453
+    },
+    "marginMedian": {
+      "mean": 0.708792,
+      "sd": 0.184369
+    },
+    "lifelineRisk": {
+      "mean": 0.253635,
+      "sd": 0.105094
+    },
+    "concurrentDemand": {
+      "mean": 0,
+      "sd": 0
+    },
+    "routeLoad": {
+      "mean": 0.932229,
+      "sd": 0.020163
+    },
+    "threatPressure": {
+      "mean": 0.003051,
+      "sd": 0.006101
+    },
+    "economyTightness": {
+      "mean": 0.347675,
+      "sd": 0.123521
+    },
+    "moduleCount": {
+      "mean": 6,
+      "sd": 2.581989
+    },
+    "novelty": {
+      "mean": 3.25,
+      "sd": 2.362908
+    }
+  }
+}

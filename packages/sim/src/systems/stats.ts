@@ -1,9 +1,14 @@
 import type { Compiled } from "../compile.js";
 import { ACTION_EVENTS, REWARD_EVENTS, type SimEvent } from "../events.js";
-import { FP, METER_MAX, mulDiv, within } from "../fixed.js";
+import { FP, METER_MAX, TPS, mulDiv, within } from "../fixed.js";
 import type { State } from "../state.js";
 import { coreFuelCap } from "./core.js";
 import { converterRunnable, operated } from "./converters.js";
+
+/** How many recent reward ticks `stats.rewardTicks` keeps. */
+export const REWARD_RING = 64;
+/** Upper edges (seconds) of the reward-gap histogram buckets; the last bucket is open-ended. */
+export const REWARD_GAP_EDGES: readonly number[] = [1, 2, 4, 8, 15, 30, 60];
 
 /** Cheap counters the rater and bots read; updated from this tick's events and state. */
 export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): void {
@@ -21,10 +26,30 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
     if (ACTION_EVENTS.has(e.t)) acted = true;
     if (REWARD_EVENTS.has(e.t)) reward = true;
   }
-  if (reward) s.rewardTicks.push(st.tick);
+  if (reward) recordReward(st);
   if (!st.player.moving && !acted) s.idleTicks++;
   if (st.core.lifeline < mulDiv(METER_MAX, cp.stats.lifelineLow, FP)) s.lifelineLowTicks++;
   if (demands(st, cp) >= 2) s.concurrentDemandTicks++;
+}
+
+/** Bounded reward bookkeeping: a ring of recent ticks plus count, last tick, longest gap and a gap histogram. */
+function recordReward(st: State): void {
+  const s = st.stats;
+  if (s.rewardCount === undefined) {
+    s.rewardCount = 0;
+    s.rewardLastTick = 0;
+    s.rewardGapMax = 0;
+    s.rewardGapHist = new Array<number>(REWARD_GAP_EDGES.length + 1).fill(0);
+  }
+  const gap = st.tick - s.rewardLastTick!;
+  s.rewardCount++;
+  s.rewardLastTick = st.tick;
+  if (gap > s.rewardGapMax!) s.rewardGapMax = gap;
+  let b = 0;
+  while (b < REWARD_GAP_EDGES.length && gap >= REWARD_GAP_EDGES[b]! * TPS) b++;
+  s.rewardGapHist![b]!++;
+  s.rewardTicks.push(st.tick);
+  if (s.rewardTicks.length > REWARD_RING) s.rewardTicks.shift();
 }
 
 /** Stations that need the player right now: a low core, a servable customer at an unstaffed register, an unoperated converter with inputs. */

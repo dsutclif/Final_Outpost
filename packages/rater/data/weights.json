@@ -1,0 +1,30 @@
+{
+  "difficulty": {
+    "bias": 0,
+    "w": {
+      "skillNeeded": 1.2,
+      "marginRef": -0.4,
+      "marginMedian": -0.4,
+      "lifelineRisk": 0.4,
+      "concurrentDemand": 0.3,
+      "routeLoad": 0.2,
+      "threatPressure": 0.5,
+      "economyTightness": 0.7,
+      "moduleCount": 0.9,
+      "novelty": 0.2
+    }
+  },
+  "fun": {
+    "bias": 0,
+    "v": {
+      "closeFinish": 0.8,
+      "lateUncertainty": 0.6,
+      "tensionRhythm": 0.5,
+      "decisiveness": 0.4,
+      "rewardCadence": 0.5,
+      "deadTime": 0.5,
+      "fairFailure": 0.4,
+      "novelty": 0.4
+    }
+  }
+}

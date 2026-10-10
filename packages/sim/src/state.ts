@@ -254,8 +254,20 @@ export interface Stats {
   lifelineLowTicks: number;
   concurrentDemandTicks: number;
   idleTicks: number;
-  /** Ticks on which a reward event (sale, build, unlock, release) fired. */
+  /**
+   * Ticks on which a reward event (sale, build, unlock, release) fired: a ring of the most
+   * recent REWARD_RING entries, so the state stays bounded on long runs. Totals live in the
+   * optional fields below, which stats.ts initialises on the first reward.
+   */
   rewardTicks: number[];
+  /** Total reward events so far. */
+  rewardCount?: number;
+  /** Tick of the most recent reward event. */
+  rewardLastTick?: number;
+  /** Longest gap between consecutive reward events, in ticks (the first gap counts from tick 0). */
+  rewardGapMax?: number;
+  /** Histogram of reward gaps; bucket edges in seconds are REWARD_GAP_EDGES in stats.ts. */
+  rewardGapHist?: number[];
 }
 
 export interface HintState {
