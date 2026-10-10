@@ -2,7 +2,9 @@ import { mix, type Skin } from "@fo/skins";
 
 // Every colour the 3D renderer uses, derived from the active skin's palette tokens. Nothing
 // here names a skin or holds a literal colour: a new skin re-themes the whole scene, and the
-// grey debug skin stays grey. Derived tokens (sky, suit, visor...) are mixes of real tokens.
+// grey debug skin stays grey. Sky, fog and storm are skin tokens; derived tokens (suit,
+// visor...) are mixes of real tokens. skin.look3d.saturation nudges the scene's colour
+// (the palette the contrast tests check is untouched).
 
 export interface Tokens {
   ground: string;
@@ -51,9 +53,34 @@ export interface Tokens {
   role: Record<string, string>;
 }
 
+/** Scale a hex colour's HSL saturation by k (clamped). */
+export function saturate(hex: string, k: number): string {
+  if (k === 1) return hex;
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex.trim());
+  if (!m) return hex;
+  const [r, g, b] = [m[1]!, m[2]!, m[3]!].map((x) => parseInt(x, 16) / 255) as [number, number, number];
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  if (d === 0) return hex;
+  let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h /= 6;
+  if (h < 0) h += 1;
+  const s0 = d / (1 - Math.abs(2 * l - 1));
+  const s = Math.min(1, s0 * k);
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s, pp = 2 * l - q;
+  const ch = (t: number): number => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    const v = t < 1 / 6 ? pp + (q - pp) * 6 * t : t < 1 / 2 ? q : t < 2 / 3 ? pp + (q - pp) * (2 / 3 - t) * 6 : pp;
+    return Math.round(Math.max(0, Math.min(1, v)) * 255);
+  };
+  return "#" + [ch(h + 1 / 3), ch(h), ch(h - 1 / 3)].map((v) => v.toString(16).padStart(2, "0")).join("");
+}
+
 export function deriveTokens(skin: Skin): Tokens {
-  const p = skin.palette;
-  const sky = mix(p.accent, p.structure, 0.62);
+  const k = skin.look3d?.saturation ?? 1;
+  const sat = (c: string): string => saturate(c, k);
+  const p = { ...skin.palette, ground: sat(skin.palette.ground), groundAlt: sat(skin.palette.groundAlt), groundDark: sat(skin.palette.groundDark), accent: sat(skin.palette.accent) };
+  const sky = sat(p.sky);
   return {
     ground: p.ground,
     groundAlt: p.groundAlt,
@@ -68,8 +95,8 @@ export function deriveTokens(skin: Skin): Tokens {
     glass: p.glass,
     sky,
     skyTop: mix(sky, p.interactive, 0.25),
-    fog: mix(sky, p.groundAlt, 0.35),
-    storm: mix(p.accent, p.groundAlt, 0.55),
+    fog: sat(p.fog),
+    storm: sat(p.storm),
     sun: mix(p.structure, p.accent, 0.22),
     plasma: p.accent,
     plasmaHot: mix(p.accent, p.structure, 0.55),
@@ -88,7 +115,7 @@ export function deriveTokens(skin: Skin): Tokens {
     creatureDark: mix(p.groundDark, p.ink, 0.75),
     prey: mix(p.groundAlt, p.structureDark, 0.45),
     frost: mix(p.glass, p.interactive, 0.5),
-    res: { ...p.res },
+    res: Object.fromEntries(Object.entries(p.res).map(([id, c]) => [id, sat(c)])),
     role: { ...p.role },
   };
 }

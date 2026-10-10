@@ -1,7 +1,7 @@
 import type { SimEvent } from "@fo/sim";
 import type { Skin } from "@fo/skins";
 
-// Haptics (navigator.vibrate) and a tiny WebAudio synth: short procedural blips per event,
+// Haptics (navigator.vibrate, or the native haptics plugin via platform.ts) and a tiny WebAudio synth: short procedural blips per event,
 // no audio files. Both sit behind settings and never throw.
 
 /** Vibration length per event, in ms. Only events the player caused buzz. */
@@ -28,13 +28,17 @@ export function hapticMs(e: SimEvent): number {
   }
 }
 
+const vibrate = (ms: number | number[]): void => { try { navigator.vibrate?.(ms); } catch { /* unsupported */ } };
+
 export class Haptics {
   enabled = true;
   private last = 0;
+  /** Where buzzes go: navigator.vibrate on the web, platform.haptic natively. */
+  constructor(public sink: (ms: number | number[]) => void = vibrate) {}
   /** A vibration pattern (ms on/off), for the heartbeat. */
   pulse(pattern: number[]): void {
     if (!this.enabled) return;
-    try { navigator.vibrate?.(pattern); } catch { /* unsupported */ }
+    this.sink(pattern);
   }
   play(e: SimEvent): void {
     if (!this.enabled) return;
@@ -43,7 +47,7 @@ export class Haptics {
     const now = performance.now();
     if (now - this.last < 35 && ms < 20) return;
     this.last = now;
-    try { navigator.vibrate?.(ms); } catch { /* unsupported */ }
+    this.sink(ms);
   }
 }
 

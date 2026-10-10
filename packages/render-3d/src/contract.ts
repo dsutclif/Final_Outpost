@@ -12,9 +12,17 @@ export interface Camera {
   /** Extra zoom on top of the fit-to-width framing. */
   zoom: number;
   follow: boolean;
+  /**
+   * Optional world point (world units) the camera leans toward while following, e.g. the
+   * nearest pad, so targets near the map edge come fully on screen. Null or absent: none.
+   */
+  lead?: { x: number; y: number } | null;
 }
 
-export const createCamera = (): Camera => ({ x: 0, y: 0, zoom: 1, follow: true });
+export const createCamera = (): Camera => ({ x: 0, y: 0, zoom: 1, follow: true, lead: null });
+
+/** How far toward `cam.lead` the follow target moves (0 = hero only, 1 = the lead point). */
+export const LEAD_WEIGHT = 0.35;
 
 /** Contract 2 (docs/PLAN.md). */
 export interface Renderer {
@@ -35,3 +43,6 @@ export interface RenderStats {
   estTriangles: number;
   quality: string;
 }
+
+/** A coach mark: target in world units and the line to show (same shape as render-2d's). */
+export interface CoachMark { key: string; at: { x: number; y: number }; text: string }

@@ -12,10 +12,12 @@ export const PITCH_DEG = 50;
 /** Vertical field of view, degrees: slight perspective. */
 export const FOV_DEG = 40;
 /**
- * Ground width visible at the look point, world units. The 2D stage shows 400; a tilted
- * camera sees more ground depth for the same screen, so 3D frames a little tighter.
+ * Ground width visible at the look point, world units. The 2D stage shows 440 of the
+ * 480-unit map; a tilted camera sees wider ground above the look point (about 1.5x at the
+ * top edge) and narrower below, so 3D frames 360 at the centre and leans the camera toward
+ * the nearest target (Camera.lead) to bring edge pads on screen.
  */
-export const VIEW_W = 320;
+export const VIEW_W = 360;
 /** Follow easing rate, 1/s (same as the 2D renderer). */
 export const FOLLOW_RATE = 6;
 

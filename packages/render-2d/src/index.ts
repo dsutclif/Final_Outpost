@@ -1,5 +1,5 @@
 export type { Camera, Renderer } from "./contract.js";
-export { createCamera } from "./contract.js";
+export { createCamera, LEAD_WEIGHT } from "./contract.js";
 export { Renderer2D, createRenderer2D, STAGE_W, type Renderer2DOptions, type Quality, type CoachMark } from "./renderer.js";
 export { register, registeredTypes, hasDraw, hasExactDraw, type DrawFn } from "./draw/registry.js";
 export { hasItemLook } from "./draw/items.js";

@@ -168,4 +168,27 @@ describe("Renderer3D (fake WebGL)", () => {
     // sync after dispose is a no-op
     r.sync(sim.state, 0, createCamera());
   });
+
+  it("projects world points, shows coach marks and leans the camera toward cam.lead", () => {
+    const { r, sim, cam } = run(pin(level1), 30, () => ({ dx: 0, dy: 0 }));
+    const pl = { x: sim.state.player.pos.x / FP, y: sim.state.player.pos.y / FP };
+    const s = r.worldToScreen(pl);
+    expect(Number.isFinite(s.x) && Number.isFinite(s.y)).toBe(true);
+    expect(s.x).toBeGreaterThan(0);
+    expect(s.x).toBeLessThan(390);
+    r.setCoach({ key: "k", at: { x: 20, y: 880 }, text: "Go here" });
+    r.sync(sim.state, 0, cam);
+    r.setCoach({ key: "k", at: pl, text: "Here" });
+    r.sync(sim.state, 0, cam);
+    const before = { ...cam };
+    r.snapCamera();
+    r.sync(sim.state, 0, { ...cam, lead: { x: pl.x, y: pl.y + 300 } });
+    const leaned = { x: 0, y: 0, zoom: 1, follow: true, lead: { x: pl.x, y: pl.y + 300 } };
+    r.snapCamera();
+    r.sync(sim.state, 0, leaned);
+    expect(leaned.y).toBeGreaterThanOrEqual(before.y);
+    r.setCoach(null);
+    r.dispose();
+  });
 });
+

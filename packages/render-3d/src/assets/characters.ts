@@ -1,3 +1,4 @@
+import { mix } from "@fo/skins";
 import { BufferGeometry, Color, Euler, Group, Matrix4, Mesh, Object3D, Quaternion, Vector3 } from "three";
 import { GeoBuilder, tinted } from "../geom.js";
 import type { MaterialSet } from "../materials.js";
@@ -77,7 +78,8 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
     const role = id === "unit.resident" ? "role.idle" : id;
     const col = roleToken(t, role);
     const g = gearFor(role, models);
-    return { ...base, stripe: role === "role.idle" ? null : col, hat: g.hat, hatColor: col, tool: g.tool };
+    // unhired colonists get a neutral stripe: they read as people waiting for a job, not mannequins
+    return { ...base, stripe: role === "role.idle" ? mix(col, t.ink, 0.3) : col, hat: g.hat, hatColor: col, tool: g.tool };
   }
   if (id.startsWith("unit.customer")) {
     const premium = id.endsWith("premium"), impatient = id.endsWith("impatient");

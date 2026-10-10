@@ -13,6 +13,8 @@ export interface Progress {
   current: string | null;
   /** Coach-mark completions per rule id; a rule retires after a few. */
   coach: Record<string, number>;
+  /** Best star rating per level (1 to 3, from the win margin). */
+  stars: Record<string, number>;
 }
 
 export interface Settings {
@@ -22,6 +24,10 @@ export interface Settings {
   quality: "auto" | "low" | "medium" | "high";
   skin: string;
   debug: boolean;
+  /** False until the first-launch benchmark (or the player) picks the renderer. */
+  rendererChosen: boolean;
+  /** Frames per second the 3D benchmark measured, or null if it never ran. */
+  benchFps: number | null;
 }
 
 export interface TelemetryAttempt {
@@ -37,8 +43,8 @@ export interface TelemetryAttempt {
 
 export interface TelemetryRow extends TelemetryAttempt { seq?: number; sent: boolean }
 
-export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, current: null, coach: {} };
-export const DEFAULT_SETTINGS: Settings = { renderer: "2d", haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false };
+export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {} };
+export const DEFAULT_SETTINGS: Settings = { renderer: "2d", haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, rendererChosen: false, benchFps: null };
 
 interface FoDB extends DBSchema {
   kv: { key: string; value: unknown };
@@ -67,6 +73,7 @@ export function mergeProgress(raw: unknown): Progress {
     quits: { ...(r.quits ?? {}) },
     current: typeof r.current === "string" ? r.current : null,
     coach: { ...(r.coach ?? {}) },
+    stars: { ...(r.stars ?? {}) },
   };
 }
 
@@ -113,7 +120,9 @@ export async function openSaves(): Promise<SaveStore> {
   try { persistent = (await navigator.storage?.persist?.()) ?? false; } catch { persistent = false; }
   if (typeof indexedDB === "undefined") return new MemoryStore();
   try {
-    const db = await openDB<FoDB>(DB_NAME, DB_VERSION, {
+    // a stuck open (blocked by another tab's pending upgrade or delete) must not hang the boot
+    const timeout = new Promise<null>((r) => setTimeout(() => r(null), 4000));
+    const db = await Promise.race([timeout, openDB<FoDB>(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion) {
         // Version 1: first schema. Later versions add steps below, never rewrite these.
         if (oldVersion < 1) {
@@ -121,7 +130,8 @@ export async function openSaves(): Promise<SaveStore> {
           if (!db.objectStoreNames.contains("telemetry")) db.createObjectStore("telemetry", { keyPath: "seq", autoIncrement: true });
         }
       },
-    });
+    })]);
+    if (!db) return new MemoryStore();
     return new IdbStore(db, persistent);
   } catch {
     return new MemoryStore();

@@ -23,6 +23,12 @@ export interface SkinPalette {
   ink: string;
   /** Glass, domes, pods. */
   glass: string;
+  /** Haze at the horizon (3D sky gradient, hemisphere light). */
+  sky: string;
+  /** Distance fog on a clear day (3D). */
+  fog: string;
+  /** Fog and haze while the hazard event is active (3D). */
+  storm: string;
   /** One colour per resource id. */
   res: Record<string, string>;
   /** Body colour per role id (plus "role.idle"). */
@@ -50,6 +56,17 @@ export interface SkinText {
   coach: Record<string, string>;
   /** A concrete tip for the lose card, per end reason. */
   loseTips: Record<string, string>;
+  /**
+   * Word lists for titles of generated levels (levelTitle()): one noun list per goal type and
+   * per module id. A title is built from the goal and the level's headline module.
+   */
+  titleWords?: { goals: Record<string, string[]>; modules: Record<string, string[]> };
+}
+
+/** Optional per-skin adjustments to the 3D look (never to the palette the contrast tests check). */
+export interface SkinLook3D {
+  /** Saturation multiplier applied to scene colours (1 = palette as is). */
+  saturation?: number;
 }
 
 export interface Skin {
@@ -71,6 +88,12 @@ export interface Skin {
   /** 3D model key per canonical id (the 3D renderer fills these in). */
   models: Record<string, string>;
   text: SkinText;
+  /**
+   * Level titles keyed by level id, for levels whose manifest carries no text for this skin
+   * (manifest text is keyed by skin id and the golden levels predate this skin).
+   */
+  levelTitles?: Record<string, string>;
+  look3d?: SkinLook3D;
   /** Synth patch key per event key. */
   audio: Record<string, string>;
   /** Draw the canonical-id label on every entity (debug skin). */

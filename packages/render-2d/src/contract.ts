@@ -10,13 +10,21 @@ export interface Camera {
   /** View centre, world units. */
   x: number;
   y: number;
-  /** Extra zoom on top of the fit-to-width scale (1 = 400 world units across). */
+  /** Extra zoom on top of the fit-to-width scale (1 = STAGE_W world units across). */
   zoom: number;
   /** Follow the player (true) or hold the given centre (false). */
   follow: boolean;
+  /**
+   * Optional world point the camera leans toward while following (nearest pad, coach target),
+   * so targets near the map edge come fully on screen. Null or absent: follow the hero only.
+   */
+  lead?: { x: number; y: number } | null;
 }
 
-export const createCamera = (): Camera => ({ x: 0, y: 0, zoom: 1, follow: true });
+export const createCamera = (): Camera => ({ x: 0, y: 0, zoom: 1, follow: true, lead: null });
+
+/** How far toward `cam.lead` the follow target moves (0 = hero only, 1 = the lead point). */
+export const LEAD_WEIGHT = 0.35;
 
 /** Contract 2 (docs/PLAN.md). Both the 2D and the 3D renderer implement this. */
 export interface Renderer {

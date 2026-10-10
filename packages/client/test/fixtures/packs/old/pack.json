@@ -1,0 +1,13 @@
+{
+  "id": "old",
+  "engineVersion": "0.0.1",
+  "contentVersion": "0.0.1",
+  "levels": [
+    {
+      "id": "old-1",
+      "file": "old-1.json",
+      "modules": [],
+      "goal": "build"
+    }
+  ]
+}

@@ -41,6 +41,9 @@ export const debugSkin: Skin = {
     ok: "#8be28b",
     ink: "#111111",
     glass: "#cfcfcf",
+    sky: "#bdbdbd",
+    fog: "#8a8a8a",
+    storm: "#6e6e6e",
     res,
     role,
     ui: {

@@ -1,5 +1,5 @@
 import type { Manifest } from "@fo/content";
-import { fmt, nameOf, uiText, type Skin } from "@fo/skins";
+import { fmt, levelTitle, nameOf, uiText, type Skin } from "@fo/skins";
 
 // Player-facing level text. A manifest may carry text per skin; otherwise the skin builds
 // a title and goal from the canonical goal, so any level plays in any skin.
@@ -35,7 +35,8 @@ export function moduleTips(m: Manifest, skin: Skin, seenBefore: ReadonlySet<stri
 
 export function levelText(m: Manifest, skin: Skin, index: number, seenBefore: ReadonlySet<string> | null = null): LevelText {
   const own = m.text[skin.id];
-  const title = own?.title || `${uiText(skin, "levelWord")} ${index + 1}`;
+  // manifest text for this skin, else the skin's own title for the level id, else a generated one
+  const title = levelTitle(skin, m) || `${uiText(skin, "levelWord")} ${index + 1}`;
   const goal = own?.goal || goalText(m, skin);
   const fromModules = moduleTips(m, skin, seenBefore);
   const tips = own?.tips?.length ? own.tips : fromModules.length ? fromModules : skin.text.genericTips;

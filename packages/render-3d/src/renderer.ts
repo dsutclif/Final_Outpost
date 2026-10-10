@@ -32,9 +32,10 @@ import { getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildModel } from "./assets/registry.js";
 import { buildRubble, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
-import type { Camera, RenderStats, Renderer } from "./contract.js";
+import { LEAD_WEIGHT, type Camera, type CoachMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder } from "./geom.js";
 import { Interp, type V } from "./interp.js";
+import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Environment } from "./scene/environment.js";
 import { Fx } from "./scene/fx.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
@@ -65,7 +66,7 @@ export interface Renderer3DOptions {
   createGL?: (canvas: HTMLCanvasElement) => GLLike;
 }
 
-interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; requiresPad?: string; requiresCoreLevel?: number }
+interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean }
 
 /** A placed model and its per-entity animation state. */
 interface Placed { key: string; model: Model; born: number; seen: boolean; data: Record<string, unknown>; sprites: Sprite[]; extra: Object3D[] }
@@ -126,10 +127,16 @@ export class Renderer3D implements Renderer {
   private hintEl: HTMLElement | null = null;
   private bannerEl: HTMLElement | null = null;
   private vignetteEl: HTMLElement | null = null;
-  private pointerEls: HTMLElement[] = [];
+  private pointers: DomPointers | null = null;
+  private coachDom: DomCoach | null = null;
+  private coach: (CoachMark & { since: number }) | null = null;
   private hintUntil = 0;
+  private hintCls = "";
   private bannerText = "";
+  private bannerKind = "";
   private bannerUntil = 0;
+  private shownBanner = "";
+  private shownKind = "";
   private lasso: { trail: Mesh; rope: Mesh; ropePts: Vector3[]; ropePrev: Vector3[] } | null = null;
   private scaffoldGeo: BufferGeometry | null = null;
   private padPlane: PlaneGeometry | null = null;
@@ -299,8 +306,11 @@ export class Renderer3D implements Renderer {
     this.hintEl?.remove();
     this.bannerEl?.remove();
     this.vignetteEl?.remove();
-    for (const p of this.pointerEls) p.remove();
-    this.pointerEls = [];
+    this.pointers?.dispose();
+    this.coachDom?.dispose();
+    this.pointers = null;
+    this.coachDom = null;
+    this.coach = null;
     this.env = null; this.fx = null; this.crowd = null; this.blobs = null; this.items = null; this.walls = null;
     this.lasso = null; this.bctx = null; this.gl = null; this.mount = null; this.world = null;
     this.hintEl = null; this.bannerEl = null; this.vignetteEl = null;
@@ -322,6 +332,7 @@ export class Renderer3D implements Renderer {
       else if (kind === "build" && what === "sink.core.level") label = uiText(this.skin, "coreLevel", { n: 2 });
       else if (kind === "build" && what === "zone.clear") label = uiText(this.skin, "clear", { name: name("zone.blocked") });
       const info: PadInfo = { id: e.id, kind, cost: { ...e.cost }, label, big: e.type === "pad.build" ? e.big : false, what };
+      if (this.manifest.goal.type === "build" && this.manifest.goal.target === e.id) info.goal = true;
       if (e.requires?.pad !== undefined) info.requiresPad = e.requires.pad;
       if (e.requires?.coreLevel !== undefined) info.requiresCoreLevel = e.requires.coreLevel;
       this.pads.set(e.id, info);
@@ -337,12 +348,31 @@ export class Renderer3D implements Renderer {
       mount.appendChild(e);
       return e;
     };
+    injectStyle(doc);
     this.vignetteEl = el("fo-vignette", "position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;z-index:1");
-    this.hintEl = el("fo-hint", `position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:${this.skin.palette.ui.overlay};color:${this.skin.palette.ui.panel};font:800 14px/1.2 ${FONT};padding:7px 14px;border-radius:999px;pointer-events:none;white-space:nowrap;opacity:0;transition:opacity .25s;z-index:2`);
-    this.bannerEl = el("fo-banner", `position:absolute;left:50%;top:10px;transform:translateX(-50%);background:${t.danger};color:${this.skin.palette.ui.panel};font:800 16px/1.2 ${FONT};padding:7px 16px;border-radius:999px;pointer-events:none;white-space:nowrap;z-index:2;display:none`);
-    for (let i = 0; i < 8; i++) {
-      this.pointerEls.push(el("fo-pointer", `position:absolute;left:0;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:3px solid ${this.skin.palette.ui.panel};display:none;pointer-events:none;z-index:2`));
-    }
+    // same classes and CSS as the 2D renderer, so hints and banners look identical
+    this.hintEl = el("fo-hint", "");
+    this.hintCls = "fo-hint";
+    this.bannerEl = el("fo-banner", "display:none");
+    this.shownBanner = "";
+    this.shownKind = "";
+    void t;
+    this.pointers = new DomPointers(doc, mount, this.skin.palette, 8);
+    this.coachDom = new DomCoach(doc, mount, this.skin.palette, this.pointers);
+  }
+
+  /** Contextual coach mark (world units), or null to hide it. Purely visual; never blocks input. */
+  setCoach(c: CoachMark | null): void {
+    if (c && this.coach && c.key === this.coach.key) { this.coach.at = c.at; this.coach.text = c.text; return; }
+    this.coach = c ? { ...c, since: this.t } : null;
+  }
+
+  /** Jump the camera onto the hero on the next sync (after a teleport or a scripted run). */
+  snapCamera(): void { this.camReady = false; }
+
+  /** World point (world units on the ground, optional height) to mount CSS px, last camera. */
+  worldToScreen(p: V, height = 0): V {
+    return this.toScreen(v3(p.x, height, p.y));
   }
 
   private buildScaffold(): BufferGeometry {
@@ -451,7 +481,9 @@ export class Renderer3D implements Renderer {
     // the same clamp as the 2D renderer, on the 2D-equivalent view rect
     const vw = VIEW_W / z, vh = (VIEW_W * this.cssH) / this.cssW / z;
     if (cam.follow) {
-      const tx = target.x, ty = target.y - vh * 0.05;
+      const lead = cam.lead;
+      const lx = lead ? (lead.x - target.x) * LEAD_WEIGHT : 0, ly = lead ? (lead.y - target.y) * LEAD_WEIGHT : 0;
+      const tx = target.x + lx, ty = target.y + ly - vh * 0.05;
       if (!this.camReady) { cam.x = tx; cam.y = ty; this.camReady = true; }
       const e = 1 - Math.exp(-dt * FOLLOW_RATE);
       cam.x += (tx - cam.x) * e;
@@ -526,6 +558,7 @@ export class Renderer3D implements Renderer {
     });
     for (const s of p.sprites) this.dynamic.remove(s);
     for (const o of p.extra) {
+      if (!o) continue;
       this.dynamic.remove(o);
       const m = o as Mesh;
       if (m.isMesh && m.geometry !== this.scaffoldGeo && m.geometry !== this.padPlane) m.geometry.dispose();
@@ -646,7 +679,7 @@ export class Renderer3D implements Renderer {
       if (!n.enabled) {
         const txt = uiText(this.skin, "locked");
         sp.visible = this.labels.apply(sp, `lock|${txt}`, () => this.labels.text(txt, this.skin.palette.ui.panel, 34), 9);
-        sp.position.set(p.model.root.position.x, ART_M * 1.5, p.model.root.position.z);
+        sp.position.set(p.model.root.position.x, ART_M * 2.2, p.model.root.position.z); // above the unlock pad's label
       } else sp.visible = false;
     });
   }
@@ -807,7 +840,80 @@ export class Renderer3D implements Renderer {
         scaf.position.set(at.x, 0, at.z);
         scaf.scale.set(ART_M * sc, ART_M * (0.25 + fill * 1.6), ART_M * sc);
       } else if (scaf) scaf.visible = false;
+      this.padRing(p, s, pad, big, at);
     }
+  }
+
+  /**
+   * The payment ring: where standing starts spending. It appears as the hero approaches
+   * (dashed, fading in over the last 40 units); inside, a white arc winds up over the sim's
+   * pad dwell, then the ring spins while paying.
+   */
+  private padRing(p: Placed, s: State, pad: State["pads"][number], big: boolean, at: Vector3): void {
+    const rFp = big ? this.cp?.pads.bigRange : this.cp?.pads.range;
+    let ring = p.extra[2] as Mesh | undefined;
+    if (!rFp || pad.locked) { if (ring) ring.visible = false; return; }
+    const r = rFp / FP;
+    const d = Math.hypot(s.player.pos.x / FP - at.x, s.player.pos.y / FP - at.z);
+    const near = 40;
+    if (d > r + near) { if (ring) ring.visible = false; return; }
+    if (!ring) {
+      ring = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false }));
+      ring.renderOrder = 2;
+      this.dynamic.add(ring);
+      p.extra[2] = ring;
+    }
+    const inside = d <= r;
+    const k = inside ? 4 : Math.max(1, Math.min(3, Math.round((1 - (d - r) / near) * 3)));
+    const wind = inside ? this.dwellK(s, pad.id) : null;
+    const wq = wind === null || wind >= 1 ? -1 : Math.round(wind * 16);
+    const m = this.labels.meshMaterial(`pr|${inside}|${k}|${big}|${wq}`, () => this.padRingArt(inside, k / 4, big, wq < 0 ? null : wq / 16));
+    if (!m) { ring.visible = false; return; }
+    ring.material = m;
+    ring.visible = true;
+    ring.position.set(at.x, 2.8, at.z);
+    ring.scale.setScalar(r * 2 * (256 / 236));
+    ring.rotation.y = inside && wq < 0 ? -this.t * 2.4 : 0;
+  }
+
+  /**
+   * Wind-up toward payment, 0..1, from the sim's pad dwell (state.player.padDwell ticks on the
+   * pad named in player state, over the compiled pads.dwellTicks); null before the sim has it.
+   */
+  private dwellK(s: State, padId: string): number | null {
+    const pl = s.player as unknown as Record<string, unknown>;
+    const ticks = pl["padDwell"];
+    const need = (this.cp?.pads as unknown as Record<string, unknown> | undefined)?.["dwellTicks"];
+    if (typeof ticks !== "number" || typeof need !== "number") return null;
+    const on = pl["padId"] ?? pl["dwellPad"] ?? pl["pad"];
+    if (on !== undefined && on !== null && on !== padId) return 0;
+    return need <= 0 ? 1 : Math.max(0, Math.min(1, ticks / need));
+  }
+
+  private padRingArt(inside: boolean, a: number, big: boolean, wind: number | null = null): LabelArt {
+    const t = this.tokens;
+    const col = big ? t.accent : t.interactive;
+    return {
+      w: 256, h: 256,
+      draw: (g, w, h) => {
+        g.clearRect(0, 0, w, h);
+        g.globalAlpha = a;
+        g.beginPath(); g.arc(w / 2, h / 2, 118, 0, Math.PI * 2);
+        g.lineWidth = 7; g.strokeStyle = col;
+        if (!inside) g.setLineDash([16, 12]);
+        g.stroke();
+        g.setLineDash([]);
+        if (inside && wind !== null) {
+          // winding up: a white arc fills clockwise; payment starts when it closes
+          g.lineWidth = 14; g.lineCap = "round"; g.strokeStyle = "#ffffff";
+          g.beginPath(); g.arc(w / 2, h / 2, 118, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * wind); g.stroke();
+        } else if (inside) {
+          g.lineWidth = 12; g.lineCap = "round"; g.strokeStyle = "#ffffff";
+          for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(w / 2, h / 2, 118, (i * 2 * Math.PI) / 3, (i * 2 * Math.PI) / 3 + 0.6); g.stroke(); }
+        }
+        g.globalAlpha = 1;
+      },
+    };
   }
 
   private syncBarriers(s: State): void {
@@ -828,6 +934,8 @@ export class Renderer3D implements Renderer {
           const lamp = p.model.parts["lamp"] as Mesh | undefined;
           if (lamp) (lamp.material as MeshBasicMaterial).color.set(sec.hp < sec.hpMax * 0.5 ? this.tokens.danger : this.tokens.ok);
         }
+        if (sec.built) this.wallHp(b.id, i, sec, mid, s);
+        else this.hideWallHp(b.id, i);
         if (sec.built && !sec.gate) {
           const low = sec.hp < sec.hpMax * 0.5;
           const pop = this.fx!.popAge(`bar:${b.id}:${i}`);
@@ -851,6 +959,42 @@ export class Renderer3D implements Renderer {
         }
       });
     }
+  }
+
+  /** HP pips over a wall section when it is damaged or the hero is close (readable at a glance). */
+  private wallHp(line: string | number, i: number, sec: State["barriers"][number]["sections"][number], mid: Vector3, s: State): void {
+    const near = Math.hypot(s.player.pos.x / FP - mid.x, s.player.pos.y / FP - mid.z) < 70;
+    const key = `hp:${line}:${i}`;
+    if (!(sec.hp < sec.hpMax || near) || sec.hpMax <= 0) { this.hideWallHp(line, i); return; }
+    const holder = this.place(key, "barrier.hp", mid, 1, () => ({ root: new Group(), cls: "decal", parts: {} }));
+    const sp = this.sprite(holder, 0);
+    const pips = Math.min(8, sec.hpMax);
+    const on = Math.max(0, Math.ceil((sec.hp / sec.hpMax) * pips));
+    sp.visible = this.labels.apply(sp, `hp|${on}|${pips}`, () => this.hpArt(on, pips), 7);
+    sp.position.set(mid.x, ART_M * 1.25, mid.z);
+  }
+
+  private hideWallHp(line: string | number, i: number): void {
+    const p = this.placed.get(`hp:${line}:${i}`);
+    if (p) p.seen = false;
+  }
+
+  private hpArt(on: number, pips: number): LabelArt {
+    const t = this.tokens;
+    const pw = 22, gap = 5, w = pips * (pw + gap) + gap + 8, h = 30;
+    const col = on / pips > 0.5 ? t.ok : on / pips > 0.25 ? t.accent : t.danger;
+    return {
+      w, h,
+      draw: (g) => {
+        roundRect(g, 2, 2, w - 4, h - 4, 10);
+        g.fillStyle = t.ink; g.globalAlpha = 0.8; g.fill(); g.globalAlpha = 1;
+        for (let k = 0; k < pips; k++) {
+          roundRect(g, 4 + gap + k * (pw + gap), 8, pw, h - 16, 4);
+          g.fillStyle = k < on ? col : "rgba(255,255,255,0.18)";
+          g.fill();
+        }
+      },
+    };
   }
 
   private syncZones(s: State): void {
@@ -1211,46 +1355,90 @@ export class Renderer3D implements Renderer {
 
   // ---------------------------------------------------------------- DOM overlays
 
+  private nextWave(w: State): { n: number; s: number } | null {
+    const cp = this.cp;
+    if (!cp || !w.waves) return null;
+    const wave = cp.waves[w.waves.idx];
+    if (!wave) return null;
+    return { n: w.waves.idx + 1, s: Math.max(0, (wave.tick - w.tick) / TPS) };
+  }
+
   private updateDom(w: State): void {
-    if (this.hintEl) this.hintEl.style.opacity = this.t < this.hintUntil ? "1" : "0";
+    const pl = this.interp.pos("player", w.player.pos, 1);
+    const hero = this.toScreen(v3(pl.x, ART_M * 0.5, pl.y));
+    if (this.hintEl) {
+      // hints never cover the hero: flip to the top when the hero walks low on screen
+      const cls = `fo-hint${hero.y > this.cssH - 110 ? " top" : ""}${this.t < this.hintUntil ? " on" : ""}`;
+      if (cls !== this.hintCls) { this.hintCls = cls; this.hintEl.className = cls; }
+    }
     if (this.vignetteEl) {
       const k = w.core.fuel <= 0 || this.lifeK < 0.6 ? Math.min(1, (1 - this.lifeK) * 1.4) * (0.6 + 0.25 * Math.sin(this.t * 4)) : 0;
       this.vignetteEl.style.opacity = k.toFixed(2);
       if (k > 0 && !this.vignetteEl.style.background) this.vignetteEl.style.background = `radial-gradient(ellipse at center, transparent 45%, ${this.tokens.frost} 130%)`;
     }
     this.updatePointers(w);
+    this.updateCoach(w, hero);
     if (!this.bannerEl) return;
-    let text = "";
+    let text = "", kind = "";
     const hz = w.hazard;
     const name = this.skin.hazardName;
-    if (hz && hz.phase === "warning") text = floaterText(this.skin, "hazard_warning", { name, s: Math.max(0, Math.ceil(((hz.until ?? w.tick) - w.tick) / TPS)) });
-    else if (hz && hz.phase === "active") text = floaterText(this.skin, "hazard_active", { name, s: Math.max(0, Math.ceil(((hz.until ?? w.tick) - w.tick) / TPS)) });
-    else if (this.t < this.bannerUntil) text = this.bannerText;
-    if (text) {
-      if (this.bannerEl.textContent !== text) this.bannerEl.textContent = text;
-      this.bannerEl.style.display = "block";
-    } else this.bannerEl.style.display = "none";
+    const nw = this.nextWave(w);
+    if (hz && hz.phase === "warning") { text = floaterText(this.skin, "hazard_warning", { name, s: Math.max(0, Math.ceil(((hz.until ?? w.tick) - w.tick) / TPS)) }); kind = "hazard"; }
+    else if (hz && hz.phase === "active") { text = floaterText(this.skin, "hazard_active", { name, s: Math.max(0, Math.ceil(((hz.until ?? w.tick) - w.tick) / TPS)) }); kind = "hazard"; }
+    else if (this.t < this.bannerUntil) { text = this.bannerText; kind = this.bannerKind; }
+    else if (nw && nw.s <= 10 && !w.over) { text = floaterText(this.skin, "wave_soon", { n: nw.n, s: Math.ceil(nw.s) }); kind = "danger"; }
+    if (text !== this.shownBanner) {
+      this.shownBanner = text;
+      this.bannerEl.textContent = text;
+      this.bannerEl.style.display = text ? "block" : "none";
+    }
+    if (text && kind !== this.shownKind) {
+      this.shownKind = kind;
+      const pal = this.skin.palette;
+      this.bannerEl.style.background = kind === "ok" ? pal.ok : kind === "hazard" ? mix(this.tokens.storm, this.tokens.accent, 0.3) : kind === "danger" ? pal.danger : pal.accent;
+      this.bannerEl.style.color = kind === "ok" ? pal.ink : "#ffffff";
+    }
   }
 
-  /** Off-screen pointers: hostiles, idle pods, arrivals, and the core when fuel is low. */
+  private updateCoach(w: State, hero: V): void {
+    const dom = this.coachDom;
+    if (!dom) return;
+    const c = this.coach && !w.over ? this.coach : null;
+    if (!c) { dom.update(null, this.cssW, this.cssH, this.t, () => 0); return; }
+    const ground = this.toScreen(v3(c.at.x, 0, c.at.y));
+    const side = this.toScreen(v3(c.at.x + 18, 0, c.at.y));
+    const above = this.toScreen(v3(c.at.x, ART_M * 1.5, c.at.y));
+    dom.update({ text: c.text, age: this.t - c.since, ground, above, hero, ringScale: Math.max(0.4, Math.hypot(side.x - ground.x, side.y - ground.y) / 22) },
+      this.cssW, this.cssH, this.t, (txt) => this.labels.textWidth(txt, 14));
+  }
+
+  /** Off-screen pointers, the same set as the 2D renderer: hostiles, pods, arrivals, core, credits, goal. */
   private updatePointers(w: State): void {
-    const t = this.tokens;
-    const targets: { p: Vector3; c: string }[] = [];
-    for (const h of w.hostiles) targets.push({ p: this.wv(h.pos, 10), c: t.danger });
-    for (const c of w.captures) if (c.state === "idle") targets.push({ p: this.wv(c.pos, 10), c: t.interactive });
-    for (const r of w.residents) if (r.status === "arriving") targets.push({ p: this.wv(r.pos, 10), c: t.accent });
-    if (w.core.fuel <= 3) targets.push({ p: this.wv(w.core.pos, 20), c: t.accent });
-    let used = 0;
-    for (const tg of targets) {
-      if (used >= this.pointerEls.length) break;
-      const s = this.toScreen(tg.p);
-      if (s.x > 0 && s.x < this.cssW && s.y > 0 && s.y < this.cssH) continue;
-      const el = this.pointerEls[used++]!;
-      el.style.display = "block";
-      el.style.background = tg.c;
-      el.style.transform = `translate(${Math.max(18, Math.min(this.cssW - 18, s.x))}px, ${Math.max(18, Math.min(this.cssH - 18, s.y))}px)`;
+    if (!this.pointers) return;
+    const t = this.tokens, pal = this.skin.palette;
+    const targets: PointerTarget[] = [];
+    const at = (p: V, h = 10): V => this.toScreen(this.wv(p, h));
+    let hostileShown = 0;
+    for (const h of w.hostiles) {
+      if (hostileShown >= 3) break;
+      const q = this.interp.pos(`h:${h.id}`, h.pos, 1);
+      const sp = this.toScreen(v3(q.x, 10, q.y));
+      if (sp.x > 0 && sp.x < this.cssW && sp.y > 0 && sp.y < this.cssH) continue;
+      targets.push({ p: sp, color: t.danger, icon: "hostile" });
+      hostileShown++;
     }
-    for (let i = used; i < this.pointerEls.length; i++) this.pointerEls[i]!.style.display = "none";
+    const nw = this.nextWave(w);
+    if (nw && nw.s <= 6 && hostileShown === 0) targets.push({ p: { x: this.cssW / 2, y: -100 }, color: t.danger, icon: "hostile" });
+    let pods = 0;
+    for (const c of w.captures) if (c.state === "idle" && pods < 3) { targets.push({ p: at(c.pos), color: t.interactive, icon: "pod" }); pods++; }
+    if (w.residents.some((r) => r.status === "arriving") && this.cp?.gate) targets.push({ p: at(this.cp.gate.pos), color: t.ok, icon: "person" });
+    if (w.core.fuel <= 3) targets.push({ p: at(w.core.pos, 20), color: t.accent, icon: "core" });
+    if ((w.sales?.pileN ?? 0) >= 10) targets.push({ p: at(w.sales!.pile), color: pal.res["res.currency"] ?? t.accent, icon: "coin" });
+    for (const p of w.pads) {
+      if (!this.pads.get(p.id)?.goal || p.done || !p.visible) continue;
+      targets.push({ p: at(p.pos), color: t.accent, icon: "goal" });
+    }
+    this.pointers.update(targets, this.cssW, this.cssH, this.t);
   }
 
   /** World point to mount CSS px. */
@@ -1269,11 +1457,12 @@ export class Renderer3D implements Renderer {
   private showHint(text: string): void {
     if (!this.hintEl) return;
     if (this.hintEl.textContent !== text) this.hintEl.textContent = text;
-    this.hintUntil = this.t + 1.6;
+    this.hintUntil = this.t + 1.8;
   }
 
-  private banner(text: string, sec = 2.5): void {
+  private banner(text: string, kind: string, sec = 2.5): void {
     this.bannerText = text;
+    this.bannerKind = kind;
     this.bannerUntil = this.t + sec;
   }
 
@@ -1458,12 +1647,12 @@ export class Renderer3D implements Renderer {
         break;
       case "wave_started": {
         const n = Number(e["idx"] ?? 0) + 1;
-        this.banner(ft("wave_started", { n }));
+        this.banner(ft("wave_started", { n }), "danger");
         fx.shake = Math.max(fx.shake, 6);
         break;
       }
       case "wave_cleared":
-        this.banner(ft("wave_cleared"), 2);
+        this.banner(ft("wave_cleared"), "ok", 2);
         this.cheerNear(this.playerBack(), 9999);
         break;
       case "barrier_built": {

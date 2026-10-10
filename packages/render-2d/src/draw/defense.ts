@@ -100,10 +100,21 @@ function drawSection(dc: DC, s: SectionView & { paid?: number }, res: string | u
     }
   }
   g.restore();
-  if (s.hpMax && (s.hp ?? s.hpMax) < s.hpMax) {
-    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-    bar(g, mx - 16, my + 13, 32, 4, (s.hp ?? 0) / s.hpMax, (s.hp ?? 0) / s.hpMax < 0.35 ? dc.pal.danger : dc.pal.ok, "rgba(33,24,26,.4)");
-  }
+  // hp pips: shown when damaged or when the hero is close, so wall health reads at a glance
+  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+  const pl = dc.w(dc.world.player.pos);
+  if (s.hpMax && ((s.hp ?? s.hpMax) < s.hpMax || (pl.x - mx) ** 2 + (pl.y - my) ** 2 < 70 * 70)) hpPips(dc, mx, my + 16, s.hp ?? s.hpMax, s.hpMax);
+}
+
+/** A row of up to 8 pips coloured by health (ok, accent, danger) on a dark pill. */
+export function hpPips(dc: DC, x: number, y: number, hp: number, hpMax: number): void {
+  const g = dc.g;
+  const n = Math.min(8, hpMax), on = Math.max(0, Math.ceil((hp / hpMax) * n));
+  const pw = 4.5, gap = 1.5, w = n * (pw + gap) + gap + 2;
+  const k = on / n;
+  const col = k > 0.5 ? dc.pal.ok : k > 0.25 ? dc.pal.accent : dc.pal.danger;
+  fillRR(g, x - w / 2, y - 4, w, 8, 3, "rgba(33,24,26,.72)");
+  for (let i = 0; i < n; i++) fillRR(g, x - w / 2 + 1 + gap + i * (pw + gap), y - 2.2, pw, 4.4, 1.2, i < on ? col : "rgba(255,255,255,.2)");
 }
 
 /** Wall sections rise out of the ground with a little overshoot. */

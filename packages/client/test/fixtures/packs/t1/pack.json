@@ -1,0 +1,42 @@
+{
+  "id": "t1",
+  "engineVersion": "0.2.0",
+  "contentVersion": "0.2.0",
+  "levels": [
+    {
+      "id": "t1-L001",
+      "file": "t1-L001.json",
+      "modules": [
+        "carry",
+        "gather",
+        "core",
+        "sales",
+        "workers",
+        "source_gating",
+        "build_pads"
+      ],
+      "goal": "build",
+      "rating": 0.31
+    },
+    {
+      "id": "t1-L002",
+      "file": "t1-L002.json",
+      "title": "Fixture Two",
+      "modules": [
+        "carry",
+        "gather",
+        "core",
+        "sales",
+        "workers",
+        "build_pads",
+        "barrier_lines",
+        "lasso",
+        "housing",
+        "core_levels",
+        "blocked_zones"
+      ],
+      "goal": "population",
+      "rating": 0.44
+    }
+  ]
+}

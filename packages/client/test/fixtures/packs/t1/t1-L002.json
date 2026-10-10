@@ -1,0 +1,348 @@
+{
+ "id": "t1-L002",
+ "seed": 2,
+ "engineVersion": "0.2.0",
+ "contentVersion": "0.2.0",
+ "map": {
+  "w": 480,
+  "h": 900,
+  "zones": [
+   "base",
+   "sources-w",
+   "outer-n",
+   "outer-s",
+   "gate"
+  ]
+ },
+ "modules": [
+  "carry",
+  "gather",
+  "core",
+  "sales",
+  "workers",
+  "build_pads",
+  "barrier_lines",
+  "lasso",
+  "housing",
+  "core_levels",
+  "blocked_zones"
+ ],
+ "start": [
+  240,
+  560
+ ],
+ "entities": [
+  {
+   "type": "sink.core",
+   "id": "core",
+   "at": [
+    240,
+    470
+   ],
+   "params": {
+    "fuel": 14,
+    "level": 1
+   }
+  },
+  {
+   "type": "node.material_source",
+   "at": [
+    45,
+    330
+   ]
+  },
+  {
+   "type": "node.material_source",
+   "at": [
+    100,
+    300
+   ]
+  },
+  {
+   "type": "node.material_source",
+   "at": [
+    55,
+    410
+   ]
+  },
+  {
+   "type": "node.material_source",
+   "at": [
+    115,
+    385
+   ]
+  },
+  {
+   "type": "node.material_source",
+   "at": [
+    45,
+    480
+   ]
+  },
+  {
+   "type": "node.food_source",
+   "id": "food1",
+   "at": [
+    415,
+    360
+   ]
+  },
+  {
+   "type": "sink.sales_point",
+   "id": "shop",
+   "at": [
+    330,
+    640
+   ],
+   "sells": [
+    "res.food_raw_1"
+   ]
+  },
+  {
+   "type": "pad.build",
+   "id": "tent1",
+   "at": [
+    80,
+    610
+   ],
+   "cost": {
+    "res.currency": 10
+   },
+   "build": "struct.housing"
+  },
+  {
+   "type": "pad.build",
+   "id": "fire2",
+   "at": [
+    240,
+    580
+   ],
+   "cost": {
+    "res.currency": 25
+   },
+   "build": "sink.core.level"
+  },
+  {
+   "type": "pad.build",
+   "id": "tent2",
+   "at": [
+    80,
+    700
+   ],
+   "cost": {
+    "res.currency": 12
+   },
+   "build": "struct.housing",
+   "requires": {
+    "coreLevel": 2
+   }
+  },
+  {
+   "type": "pad.build",
+   "id": "tent3",
+   "at": [
+    160,
+    700
+   ],
+   "cost": {
+    "res.currency": 15
+   },
+   "build": "struct.housing",
+   "requires": {
+    "coreLevel": 2
+   }
+  },
+  {
+   "type": "pad.build",
+   "id": "drift_pad",
+   "at": [
+    240,
+    270
+   ],
+   "cost": {
+    "res.currency": 15
+   },
+   "build": "zone.clear",
+   "target": "drift",
+   "requires": {
+    "coreLevel": 2
+   }
+  },
+  {
+   "type": "zone.blocked",
+   "id": "drift",
+   "rect": [
+    0,
+    200,
+    480,
+    44
+   ]
+  },
+  {
+   "type": "barrier.line",
+   "id": "north_fence",
+   "res": "res.currency",
+   "costPerSection": 8,
+   "sections": [
+    {
+     "a": [
+      0,
+      180
+     ],
+     "b": [
+      160,
+      180
+     ],
+     "prebuilt": true
+    },
+    {
+     "a": [
+      160,
+      180
+     ],
+     "b": [
+      320,
+      180
+     ],
+     "gate": true,
+     "prebuilt": true
+    },
+    {
+     "a": [
+      320,
+      180
+     ],
+     "b": [
+      480,
+      180
+     ],
+     "prebuilt": true
+    }
+   ]
+  },
+  {
+   "type": "barrier.line",
+   "id": "south_fence",
+   "res": "res.currency",
+   "costPerSection": 8,
+   "sections": [
+    {
+     "a": [
+      0,
+      760
+     ],
+     "b": [
+      160,
+      760
+     ],
+     "prebuilt": true
+    },
+    {
+     "a": [
+      160,
+      760
+     ],
+     "b": [
+      320,
+      760
+     ],
+     "gate": true,
+     "prebuilt": true
+    },
+    {
+     "a": [
+      320,
+      760
+     ],
+     "b": [
+      480,
+      760
+     ],
+     "prebuilt": true
+    }
+   ]
+  },
+  {
+   "type": "capture.recruit_container",
+   "at": [
+    430,
+    800
+   ]
+  },
+  {
+   "type": "capture.recruit_container",
+   "at": [
+    50,
+    820
+   ]
+  },
+  {
+   "type": "capture.recruit_container",
+   "at": [
+    90,
+    110
+   ]
+  },
+  {
+   "type": "capture.recruit_container",
+   "at": [
+    250,
+    70
+   ]
+  },
+  {
+   "type": "capture.recruit_container",
+   "at": [
+    410,
+    130
+   ]
+  },
+  {
+   "type": "struct.gate",
+   "id": "gate",
+   "at": [
+    240,
+    872
+   ],
+   "arrivals": {
+    "every": 18,
+    "total": 3
+   }
+  }
+ ],
+ "people": [
+  {
+   "role": "role.supplier",
+   "from": "node.material_source",
+   "to": "sink.core"
+  },
+  {
+   "role": "role.supplier",
+   "from": "node.food_source",
+   "to": "sink.sales_point",
+   "node": "food1"
+  },
+  {
+   "role": "role.cashier",
+   "to": "sink.sales_point"
+  },
+  {
+   "role": "idle"
+  }
+ ],
+ "params": {
+  "start.currency": 10,
+  "housing.base": 4,
+  "customers.spawn": 2.8,
+  "customers.orderMin": 1,
+  "customers.orderMax": 2
+ },
+ "goal": {
+  "type": "population",
+  "n": 10
+ },
+ "fail": [
+  "meter.lifeline"
+ ],
+ "text": {}
+}

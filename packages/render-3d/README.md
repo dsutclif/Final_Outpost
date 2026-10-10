@@ -20,6 +20,10 @@ r.sync(sim.state, loop.alpha, camera);          // camera: { x, y, zoom, follow 
 for (const e of events) r.onEvent(e);
 r.resize(w, h);
 r.setQuality("low" | "medium" | "high");        // settings toggle, live
+r.setCoach({ key, at: { x, y }, text } | null); // coach mark (world units), DOM overlay like 2D's
+r.snapCamera();                                 // jump to the hero after a scripted run
+r.worldToScreen({ x, y }, height?);             // world units -> mount CSS px (both renderers have it)
+// camera.lead = { x, y } | null: the follow target leans LEAD_WEIGHT toward it (nearest pad)
 r.stats();                                      // { drawCalls, triangles, fps, estDrawCalls, estTriangles, quality }
 r.dispose();
 ```
@@ -28,8 +32,11 @@ Steps for the client stream:
 
 1. Settings "renderer: 3D" → `await loadRenderer3D(...)` and use it wherever `Renderer2D` is used
    (same `init/sync/onEvent/resize/dispose`, same `hudAnchor` / `onCoinLanded` hooks).
-2. Like the 2D renderer it draws the hint pill, hazard/wave banner, distress vignette and
-   off-screen pointers itself as DOM children of the mount; the HUD stays client-side.
+2. Like the 2D renderer it draws the hint pill, hazard/wave banner (same `fo-hint`/`fo-banner`
+   classes and CSS), distress vignette, off-screen pointers (arrow plus icon bubble, the same set
+   as 2D) and coach marks itself as DOM children of the mount (`src/scene/dom.ts`); the HUD stays
+   client-side. The client wires it through `packages/client/src/render.ts` (live 2D/3D swap,
+   first-launch benchmark).
 3. `preloadRenderer3D()` warms the chunk (e.g. when the settings screen opens).
 4. Vite code-splits the dynamic import automatically; no config change needed.
 5. Optional: pick the tier with a first-launch benchmark (spec) by reading `stats().fps` for a
@@ -52,8 +59,8 @@ fake WebGL renderer.
 - Sim `(x, y) / FP` maps to three `(x, 0, y)`: +y in the sim (down the screen) is +z, toward the camera.
 - The scene works in sim world units. Models are authored in **art metres** (hero = 1.0 tall) and
   placed with scale `ART_M = 28` world units per metre.
-- Camera: 50° pitch, 40° vertical FOV, framed so `VIEW_W = 320` world units span the screen at the
-  look point; eased follow at the 2D rate with the 2D clamp (on the 2D-equivalent view rect). The
+- Camera: 50° pitch, 40° vertical FOV, framed so `VIEW_W = 360` world units span the screen at the
+  look point, leaning toward `camera.lead`; eased follow at the 2D rate with the 2D clamp (on the 2D-equivalent view rect). The
   ground extends past the map edges and falls into fog, so the top of the frame never shows void.
 
 ## Asset conventions
@@ -66,8 +73,9 @@ fake WebGL renderer.
   the camera. `parts` names what the renderer animates (orb, spin, head, muzzle, lid, doors, lamp...).
 - Geometry goes through `GeoBuilder` (`src/geom.ts`): primitives merged into one non-indexed
   vertex-coloured geometry, so a building is one draw call on the shared `std` material.
-- Colours come only from the skin palette via `deriveTokens` (`src/tokens.ts`); derived tokens
-  (sky, suits, visor, plasma, trim) are mixes of real tokens. Names come from `skin.names`.
+- Colours come only from the skin palette via `deriveTokens` (`src/tokens.ts`): sky, fog and storm
+  are skin tokens (`palette.sky/fog/storm`); derived tokens (suits, visor, plasma, trim) are mixes
+  of real tokens; `skin.look3d.saturation` nudges scene saturation (Mars: 1.14). Names come from `skin.names`.
 - Anchors are `Object3D` children named `deposit, pickup, queue, interact, safe, pad, stack,
   hand_L, hand_R, head`; `getAnchor(root, name)` finds them. Per-class requirements are in
   `src/ids.ts` (`CLASS_ANCHORS`), per-id extras in the registry.

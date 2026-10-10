@@ -1,7 +1,7 @@
 import { content as defaultContent, type Content, type Manifest } from "@fo/content";
 import { FP, TPS, compile, safeRadius, type Compiled, type SimEvent, type State } from "@fo/sim";
 import { alpha, floaterText, hintText, nameOf, uiText, type Skin } from "@fo/skins";
-import type { Camera, Renderer } from "./contract.js";
+import { LEAD_WEIGHT, type Camera, type Renderer } from "./contract.js";
 import type { DC, PadInfo } from "./draw/dc.js";
 import { padLabel } from "./draw/pads.js";
 import { drawEntity } from "./draw/registry.js";
@@ -22,8 +22,12 @@ import "./draw/world.js";
 
 export type { CoachMark } from "./draw/overlay.js";
 
-/** Logical stage width in world units; the canvas scales this to the device width. */
-export const STAGE_W = 400;
+/**
+ * Logical stage width in world units; the canvas scales this to the device width. 440 of the
+ * 480-unit map, so pads on the map edges sit fully on screen once the camera clamps (the
+ * playtest found edge pads half off-screen at 400), and the camera leans toward Camera.lead.
+ */
+export const STAGE_W = 440;
 
 export type Quality = "low" | "medium" | "high";
 const DPR_CAP: Record<Quality, number> = { low: 1, medium: 1.5, high: 2 };
@@ -320,8 +324,11 @@ export class Renderer2D implements Renderer {
     const z = cam.zoom || 1;
     const vw = this.viewW / z, vh = this.viewH / z;
     if (cam.follow) {
-      // Aim a little above the hero so the back stack and what lies ahead stay in view.
-      const tx = target.x, ty = target.y - vh * 0.04;
+      // Aim a little above the hero so the back stack and what lies ahead stay in view, and
+      // lean toward the lead point (nearest pad or coach target) when the client gives one.
+      const lead = cam.lead;
+      const tx = target.x + (lead ? (lead.x - target.x) * LEAD_WEIGHT : 0);
+      const ty = target.y - vh * 0.04 + (lead ? (lead.y - target.y) * LEAD_WEIGHT : 0);
       if (!this.camReady) { cam.x = tx; cam.y = ty; this.camReady = true; }
       const e = 1 - Math.exp(-dt * 6);
       cam.x += (tx - cam.x) * e;
@@ -643,6 +650,9 @@ export class Renderer2D implements Renderer {
     }
     return best;
   }
+
+  /** World point (world units) to mount CSS px with the last camera; same signature as the 3D renderer's. */
+  worldToScreen(p: V, _height = 0): V { return this.toScreen(p); }
 
   /** World point to canvas CSS px, using the last camera. */
   private toScreen(p: V): V {

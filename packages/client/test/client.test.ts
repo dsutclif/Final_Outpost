@@ -103,7 +103,9 @@ describe("level text, HUD model and level sources", () => {
   it("builds Mars text from the canonical goal when the manifest has none for the skin", () => {
     const sim = createSim(manifest);
     const t = levelText(sim.compiled.manifest, marsGreenhouse, 0);
-    expect(t.title).toBe("Level 1");
+    // the skin's title for the golden level id (the manifest only has frozen_camp text)
+    expect(t.title).toBe("Reactor Online");
+    expect(levelText({ ...sim.compiled.manifest, id: "x-unknown", text: {} }, (() => { const { titleWords: _, ...text } = marsGreenhouse.text; return { ...marsGreenhouse, text }; })(), 4).title).toBe("Level 5");
     expect(t.goal).toBe("Build the Habitat hub");
     expect(t.tips.length).toBeGreaterThan(0);
     expect(goalText(sim.compiled.manifest, marsGreenhouse)).not.toMatch(/Lodge/);
@@ -133,7 +135,7 @@ describe("level text, HUD model and level sources", () => {
     const dead = new PackLevelSource("/levels/packs/s1", async () => new Response("", { status: 404 }));
     const pack = new PackLevelSource("/levels/packs/s2", async (url) => {
       const u = String(url);
-      if (u.endsWith("pack.json")) return new Response(JSON.stringify({ levels: [{ id: "g-001" }] }));
+      if (u.endsWith("pack.json")) return new Response(JSON.stringify({ id: "s2", engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION, levels: [{ id: "g-001", file: "g-001.json", modules: ["carry"], goal: "build", rating: 0.5 }] }));
       return new Response(JSON.stringify({ ...manifest, id: "g-001" }));
     });
     const chain = new ChainLevelSource([new StaticLevelSource([manifest]), dead, pack]);
@@ -146,7 +148,7 @@ describe("level text, HUD model and level sources", () => {
 describe("saves and feedback", () => {
   it("migrates from nothing and keeps new setting defaults", async () => {
     const s = new MemoryStore();
-    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, current: null, coach: {} });
+    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {} });
     expect((await s.getSettings()).haptics).toBe(true);
     expect(mergeSettings({ sound: false }).sound).toBe(false);
     expect(mergeSettings({ sound: false }).renderer).toBe("2d");

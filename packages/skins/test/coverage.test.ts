@@ -53,3 +53,25 @@ describe("skin coverage", () => {
     for (const id of ids) expect(debug.names[id]).toBe(id);
   });
 });
+
+describe("level titles", async () => {
+  const { levelTitle, marsGreenhouse: mars } = await import("../src/index.js");
+  it("mars names the four golden levels", () => {
+    for (const id of ["proto-L001", "proto-L002", "proto-L003", "proto-L004"]) {
+      expect(levelTitle(mars, { id, goal: "build", modules: ["carry"], text: { frozen_camp: { title: "x" } } })).toBe(mars.levelTitles![id]);
+    }
+  });
+  it("manifest text for the skin wins", () => {
+    expect(levelTitle(mars, { id: "proto-L001", goal: "build", modules: [], text: { mars_greenhouse: { title: "Own" } } })).toBe("Own");
+  });
+  it("generated titles are deterministic and use the goal and headline module", () => {
+    const a = levelTitle(mars, { id: "s1-L017", goal: { type: "waves" }, modules: ["carry", "core", "defense", "hazard_events"] });
+    expect(a).toBe(levelTitle(mars, { id: "s1-L017", goal: { type: "waves" }, modules: ["carry", "core", "defense", "hazard_events"] }));
+    expect(a).toMatch(/^(Dust|Storms) and (Raiders|Night Watch|Hold Fast|Siege)$/);
+    const ids = Array.from({ length: 20 }, (_, i) => levelTitle(mars, { id: `s1-L${i}`, goal: "build", modules: ["housing"] }));
+    expect(new Set(ids).size).toBeGreaterThan(1);
+  });
+  it("every skin has sky, fog and storm tokens", () => {
+    for (const s of Object.values(SKINS)) for (const k of ["sky", "fog", "storm"] as const) expect(s.palette[k]).toMatch(/^#[0-9a-f]{6}$/i);
+  });
+});

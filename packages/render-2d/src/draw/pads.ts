@@ -45,6 +45,50 @@ function buildGlyph(dc: DC, info: PadInfo, x: number, y: number, col: string): v
   }
 }
 
+/**
+ * The payment boundary (the sim's pad range): fades in, dashed, over the last 40 units of
+ * approach; inside, a white arc winds up over the sim's dwell time, then the ring spins while
+ * paying, so a walk across a pad never spends without the player seeing it coming.
+ */
+/**
+ * Wind-up toward payment, 0..1, from the sim's pad dwell (state.player.padDwell ticks on the
+ * pad named in player state, over the compiled pads.dwellTicks); null before the sim has it.
+ */
+export function dwellK(dc: DC, padId: string): number | null {
+  const pl = dc.world.player as unknown as Record<string, unknown>;
+  const ticks = pl["padDwell"];
+  const need = (dc.cp?.pads as unknown as Record<string, unknown> | undefined)?.["dwellTicks"];
+  if (typeof ticks !== "number" || typeof need !== "number") return null;
+  const on = pl["padId"] ?? pl["dwellPad"] ?? pl["pad"];
+  if (on !== undefined && on !== null && on !== padId) return 0;
+  return need <= 0 ? 1 : Math.max(0, Math.min(1, ticks / need));
+}
+
+function payRing(dc: DC, p: { x: number; y: number }, pl: { x: number; y: number }, rangeFp: number | undefined, col: string, wind: number | null = null): void {
+  if (!rangeFp) return;
+  const r = dc.w({ x: rangeFp, y: 0 }).x, near = 40;
+  const d = Math.hypot(pl.x - p.x, pl.y - p.y);
+  if (d > r + near) return;
+  const g = dc.g, inside = d <= r;
+  g.save();
+  g.globalAlpha = inside ? 1 : Math.max(0.25, 1 - (d - r) / near);
+  g.beginPath(); g.arc(p.x, p.y, r, 0, Math.PI * 2);
+  g.lineWidth = 2.5; g.strokeStyle = col;
+  if (!inside) g.setLineDash([7, 6]);
+  g.stroke();
+  g.setLineDash([]);
+  if (inside && wind !== null && wind < 1) {
+    // winding up: a white arc fills clockwise; payment starts when it closes
+    g.lineWidth = 5; g.lineCap = "round"; g.strokeStyle = "#ffffff";
+    g.beginPath(); g.arc(p.x, p.y, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * wind); g.stroke();
+  } else if (inside) {
+    g.lineWidth = 4; g.lineCap = "round"; g.strokeStyle = "#ffffff";
+    const a0 = dc.t * 2.4;
+    for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(p.x, p.y, r, a0 + (i * 2 * Math.PI) / 3, a0 + (i * 2 * Math.PI) / 3 + 0.6); g.stroke(); }
+  }
+  g.restore();
+}
+
 function drawPad(dc: DC, pad: PadView & { locked: boolean }): void {
   const info = dc.pads.get(pad.id);
   if (!info) return;
@@ -65,6 +109,7 @@ function drawPad(dc: DC, pad: PadView & { locked: boolean }): void {
   const pulse = onIt ? 1 + 0.04 * Math.sin(dc.t * 12) : 1;
   const [sx, sy] = popScale(dc.popAge(`pad:${pad.id}`));
   const fresh = dc.since(`padpaid:${pad.id}`, String(paid));
+  if (!pad.locked) payRing(dc, p, pl, info.big ? dc.cp?.pads.bigRange : dc.cp?.pads.range, col, dwellK(dc, pad.id));
 
   g.save();
   g.translate(p.x, p.y);
