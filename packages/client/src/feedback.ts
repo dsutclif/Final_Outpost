@@ -16,8 +16,14 @@ export function hapticMs(e: SimEvent): number {
     case "hired":
     case "unlocked": return 30;
     case "captured": return 25;
-    case "hit": return x["by"] === "player" || x["target"] === "base" ? 6 : 0;
+    case "hit": return x["target"] === "base" ? 35 : x["by"] === "player" ? 6 : 0;
     case "wave_started": return 40;
+    case "barrier_built": return 20;
+    case "barrier_broken": return 50;
+    case "core_upgraded": return 40;
+    case "released":
+    case "recruit_arrived": return 18;
+    case "level_end": return 60;
     default: return 0;
   }
 }
@@ -25,6 +31,11 @@ export function hapticMs(e: SimEvent): number {
 export class Haptics {
   enabled = true;
   private last = 0;
+  /** A vibration pattern (ms on/off), for the heartbeat. */
+  pulse(pattern: number[]): void {
+    if (!this.enabled) return;
+    try { navigator.vibrate?.(pattern); } catch { /* unsupported */ }
+  }
   play(e: SimEvent): void {
     if (!this.enabled) return;
     const ms = hapticMs(e);
@@ -51,6 +62,11 @@ const PATCHES: Record<string, Patch> = {
   fanfare: { wave: "triangle", notes: [[523, 0, 0.12], [659, 0.12, 0.12], [784, 0.24, 0.12], [1047, 0.36, 0.3]], gain: 0.14 },
   fail: { wave: "triangle", notes: [[392, 0, 0.18], [330, 0.18, 0.18], [262, 0.36, 0.35]], gain: 0.12 },
   soft: { wave: "sine", notes: [[660, 0, 0.05]], gain: 0.05 },
+  beat: { wave: "sine", notes: [[70, 0, 0.09], [62, 0.22, 0.09]], gain: 0.22, slide: 40 },
+  wall: { wave: "triangle", notes: [[260, 0, 0.08], [390, 0.06, 0.1]], gain: 0.1 },
+  pop: { wave: "sine", notes: [[520, 0, 0.05], [780, 0.04, 0.07]], gain: 0.1 },
+  boom: { wave: "sawtooth", notes: [[110, 0, 0.18]], gain: 0.12, slide: 50, noise: true },
+  storm: { wave: "sawtooth", notes: [[140, 0, 0.5]], gain: 0.05, slide: 90, noise: true },
 };
 
 export class Synth {

@@ -21,11 +21,24 @@ export function goalText(m: Manifest, skin: Skin): string {
   return fmt(tpl, { target: buildTargetName(m, skin), n: "n" in g ? g.n : "" });
 }
 
-export function levelText(m: Manifest, skin: Skin, index: number): LevelText {
+/**
+ * Tips for a level: the manifest's own text for this skin, else one skin tip per module the
+ * level introduces (modules not seen in earlier levels), else the skin's generic tips.
+ */
+export function moduleTips(m: Manifest, skin: Skin, seenBefore: ReadonlySet<string> | null, max = 4): string[] {
+  // basics the how-to line already covers go last
+  const rank = (mod: string): number => (mod === "carry" || mod === "gather" ? 1 : 0);
+  const fresh = m.modules.filter((mod) => !seenBefore || !seenBefore.has(mod)).sort((a, b) => rank(a) - rank(b));
+  const tips = fresh.map((mod) => skin.text.moduleTips?.[mod]).filter((t): t is string => !!t);
+  return tips.slice(0, max);
+}
+
+export function levelText(m: Manifest, skin: Skin, index: number, seenBefore: ReadonlySet<string> | null = null): LevelText {
   const own = m.text[skin.id];
   const title = own?.title || `${uiText(skin, "levelWord")} ${index + 1}`;
   const goal = own?.goal || goalText(m, skin);
-  const tips = own?.tips?.length ? own.tips : skin.text.genericTips;
+  const fromModules = moduleTips(m, skin, seenBefore);
+  const tips = own?.tips?.length ? own.tips : fromModules.length ? fromModules : skin.text.genericTips;
   return { title, goal, tips };
 }
 

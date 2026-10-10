@@ -5,6 +5,8 @@ import { FP, type Input } from "@fo/sim";
 
 export const JOY_DEAD = 6;
 export const JOY_SAT = 50;
+/** Drag distance beyond which the joystick base follows the finger. */
+export const JOY_FOLLOW = 70;
 
 /** Drag offset in CSS px to a fixed-point direction: zero inside the dead zone, full at saturation. */
 export function joystickVector(dx: number, dy: number, dead = JOY_DEAD, sat = JOY_SAT): Input {
@@ -80,6 +82,9 @@ export class InputController {
       const r = stage.getBoundingClientRect();
       this.x = e.clientX - r.left;
       this.y = e.clientY - r.top;
+      // floating base: dragging past the rim pulls the base along, so reversing is instant
+      const dx = this.x - this.ox, dy = this.y - this.oy, m = Math.hypot(dx, dy);
+      if (m > JOY_FOLLOW) { this.ox = this.x - (dx / m) * JOY_FOLLOW; this.oy = this.y - (dy / m) * JOY_FOLLOW; }
       this.draw();
     });
     const end = (e: PointerEvent): void => {

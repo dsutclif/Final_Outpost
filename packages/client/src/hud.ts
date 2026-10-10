@@ -23,7 +23,7 @@ export function hudModel(state: State, m: Manifest, cp: Compiled | null, skin: S
 
   const lv = cp?.core.levels[Math.min(Math.max(1, w.core.level), cp.core.levels.length) - 1];
   const cap = lv?.fuelCap ?? 0;
-  chips.push({ key: "fuel", text: cap ? `${skin.fuelName} ${w.core.fuel}/${cap}` : `${skin.fuelName} ${w.core.fuel}`, color: pal.res["res.fuel_dense"] ?? pal.accent, bad: w.core.fuel <= 3 });
+  chips.push({ key: "fuel", text: cap ? `${w.core.fuel}/${cap}` : `${w.core.fuel}`, color: pal.res["res.fuel_dense"] ?? pal.accent, bad: w.core.fuel <= 3 });
 
   const residents = w.residents ?? [];
   const housings = (w.structures ?? []).filter((s) => s.type === "struct.housing").length;
@@ -33,21 +33,26 @@ export function hudModel(state: State, m: Manifest, cp: Compiled | null, skin: S
     const base = m.params["housing.base"] ?? content.defaults["housing.base"] ?? 0;
     const per = m.params["housing.perBuilding"] ?? content.defaults["housing.perBuilding"] ?? 2;
     const slots = base + housings * per;
-    chips.push({ key: "population", text: `${uiText(skin, "population")} ${pop}/${slots}`, color: pal.role["role.idle"] ?? "#b8c3cc", bad: pop >= slots && residents.some((r) => r.status === "waiting") });
+    chips.push({ key: "population", text: `${pop}/${slots}`, color: pal.role["role.idle"] ?? "#b8c3cc", bad: pop >= slots && residents.some((r) => r.status === "waiting") });
   }
 
   const bhMax = w.meters?.baseHealthMax ?? 0;
   if (m.fail.includes("meter.base_health") || (m.modules.includes("defense") && bhMax > 0)) {
     const bh = w.meters?.baseHealth ?? 0;
-    chips.push({ key: "baseHealth", text: `${uiText(skin, "baseHealth")} ${bh}`, color: pal.danger, bad: bhMax > 0 && bh / bhMax < 0.3 });
+    const k = bhMax > 0 ? Math.max(0, Math.min(1, bh / bhMax)) : 1;
+    chips.push({ key: "baseHealth", text: `${uiText(skin, "baseHealth")} ${bh}`, color: pal.danger, bar: k, bad: k < 0.3 });
   }
 
   const waves = w.waves;
-  if (waves && (waves.pending?.length || waves.active)) {
-    const next = waves.pending?.[0];
+  const totalWaves = cp?.waves.length ?? 0;
+  if (waves && totalWaves > 0) {
     const hostiles = w.hostiles?.length ?? 0;
-    if (waves.active && hostiles) chips.push({ key: "wave", text: `${uiText(skin, "wave")} ${waves.idx}: ${hostiles}`, color: pal.danger, bad: true });
-    else if (next) chips.push({ key: "wave", text: `${uiText(skin, "wave")} ${Math.max(0, Math.ceil((next.tick - w.tick) / TPS))}s`, color: pal.structureDark });
+    const next = cp?.waves[waves.idx];
+    if (waves.active && (hostiles || waves.pending?.length)) chips.push({ key: "wave", text: `${uiText(skin, "wave")} ${waves.idx}/${totalWaves} · ${hostiles + (waves.pending?.length ?? 0)}`, color: pal.danger, bad: true });
+    else if (next) {
+      const s = Math.max(0, Math.ceil((next.tick - w.tick) / TPS));
+      chips.push({ key: "wave", text: `${uiText(skin, "wave")} ${waves.idx + 1} · ${s}s`, color: pal.structureDark, bad: s <= 10 });
+    }
   }
 
   if (cp && cp.timerTicks > 0) {
@@ -60,7 +65,7 @@ export function hudModel(state: State, m: Manifest, cp: Compiled | null, skin: S
   if (g.type === "population") goal += ` · ${pop}/${g.n}`;
   else if (g.type === "currency") goal += ` · ${w.currency}/${g.n}`;
   else if (g.type === "serve_premium") goal += ` · ${(state.sales?.premiumServed ?? 0)}/${g.n}`;
-  else if (g.type === "waves" && waves) goal += ` · ${waves.idx}/${waves.idx + (waves.pending?.length ? new Set(waves.pending.map((p) => p.tick)).size : 0)}`;
+  else if (g.type === "waves" && waves) goal += ` · ${Math.max(0, waves.idx - (waves.active ? 1 : 0))}/${totalWaves}`;
   return { goal, chips };
 }
 
@@ -76,3 +81,97 @@ export function chipsHtml(model: HudModel): string {
 }
 
 const esc = (s: string): string => s.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
+
+interface ChipEls { root: HTMLElement; lbl: HTMLElement; fill: HTMLElement | null; ic: HTMLElement | null; key: string }
+
+/**
+ * Keeps one DOM node per chip and patches text and widths in place, so CSS transitions and the
+ * coin-landing pulse survive updates. The currency number counts toward its real value.
+ */
+export class HudView {
+  private els = new Map<string, ChipEls>();
+  private shown = 0;
+  private target = 0;
+  private first = true;
+
+  constructor(private readonly root: HTMLElement) {}
+
+  reset(currency: number): void {
+    this.root.textContent = "";
+    this.els.clear();
+    this.shown = currency;
+    this.target = currency;
+    this.first = true;
+  }
+
+  render(model: HudModel): void {
+    const doc = this.root.ownerDocument;
+    const seen = new Set<string>();
+    model.chips.forEach((c, i) => {
+      seen.add(c.key);
+      let el = this.els.get(c.key);
+      const meter = c.bar !== undefined;
+      if (!el || (el.fill !== null) !== meter) {
+        el?.root.remove();
+        const root = doc.createElement("span");
+        root.dataset["k"] = c.key;
+        const lbl = doc.createElement("span");
+        lbl.className = "lbl";
+        let fill: HTMLElement | null = null, ic: HTMLElement | null = null;
+        if (meter) {
+          root.appendChild(lbl);
+          const track = doc.createElement("span");
+          track.className = "track";
+          fill = doc.createElement("span");
+          fill.className = "fill";
+          track.appendChild(fill);
+          root.appendChild(track);
+        } else {
+          ic = doc.createElement("span");
+          ic.className = "ic";
+          root.appendChild(ic);
+          root.appendChild(lbl);
+        }
+        el = { root, lbl, fill, ic, key: c.key };
+        this.els.set(c.key, el);
+      }
+      const cls = `chip${c.bad ? " bad" : ""}${meter ? " meter" : ""}${el.root.classList.contains("pulse") ? " pulse" : ""}`;
+      if (el.root.className !== cls) el.root.className = cls;
+      if (c.key === "currency") {
+        this.target = Number(c.text) || 0;
+        if (this.first) { this.shown = this.target; this.first = false; }
+      } else if (el.lbl.textContent !== c.text) el.lbl.textContent = c.text;
+      if (el.fill) { const wPct = `${Math.round((c.bar ?? 0) * 100)}%`; if (el.fill.style.width !== wPct) el.fill.style.width = wPct; if (el.fill.style.background !== c.color) el.fill.style.background = c.color; }
+      if (el.ic && el.ic.dataset["c"] !== c.color) { el.ic.style.background = c.color; el.ic.dataset["c"] = c.color; }
+      if (this.root.children[i] !== el.root) this.root.insertBefore(el.root, this.root.children[i] ?? null);
+    });
+    for (const [k, el] of this.els) if (!seen.has(k)) { el.root.remove(); this.els.delete(k); }
+    this.paintCurrency();
+  }
+
+  /** Per frame: count the currency chip toward its real value. */
+  tick(dtSec: number): void {
+    if (this.shown === this.target) return;
+    const diff = this.target - this.shown;
+    const step = Math.max(1, Math.ceil(Math.abs(diff) * Math.min(1, dtSec * 9)));
+    this.shown += Math.sign(diff) * Math.min(Math.abs(diff), step);
+    this.paintCurrency();
+  }
+
+  private paintCurrency(): void {
+    const el = this.els.get("currency");
+    if (!el) return;
+    const s = String(this.shown);
+    if (el.lbl.textContent !== s) el.lbl.textContent = s;
+  }
+
+  pulse(key: string): void {
+    const el = this.els.get(key)?.root;
+    if (!el) return;
+    el.classList.remove("pulse");
+    void el.offsetWidth;
+    el.classList.add("pulse");
+  }
+
+  anchor(key: string): HTMLElement | null { return this.els.get(key)?.root ?? null; }
+}

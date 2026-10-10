@@ -19,11 +19,16 @@ export function hasDraw(type: string): boolean {
   return DRAW.has(type) || DRAW.has(`${type.split(".")[0]}.*`);
 }
 
+/** A routine registered for exactly this type (not a category wildcard or the crate). */
+export function hasExactDraw(type: string): boolean {
+  return DRAW.has(type);
+}
+
 export function registeredTypes(): string[] {
   return [...DRAW.keys()].sort();
 }
 
-export function drawEntity(dc: DC, type: string, e: { pos?: { x: number; y: number } }): void {
+export function drawEntity(dc: DC, type: string, e: object): void {
   const fn = DRAW.get(type) ?? DRAW.get(`${type.split(".")[0]}.*`) ?? fallback;
   fn(dc, { ...e, type: (e as { type?: string }).type ?? type });
 }

@@ -4,11 +4,11 @@ import { alpha, floaterText, hintText, nameOf, uiText, type Skin } from "@fo/ski
 import type { Camera, Renderer } from "./contract.js";
 import type { DC, PadInfo } from "./draw/dc.js";
 import { padLabel } from "./draw/pads.js";
-import { circle, type G } from "./draw/prim.js";
 import { drawEntity } from "./draw/registry.js";
 import { structuresFromBuiltPads } from "./draw/structures.js";
 import { lifelineK } from "./draw/units.js";
 import { drawGround } from "./draw/world.js";
+import { drawCoach, drawPointer, iconFor, type CoachMark, type PointerIcon } from "./draw/overlay.js";
 import { Fx } from "./fx.js";
 import { Interp } from "./interp.js";
 import type { V, WorldView } from "./view.js";
@@ -20,9 +20,14 @@ import "./draw/structures.js";
 import "./draw/defense.js";
 import "./draw/world.js";
 
+export type { CoachMark } from "./draw/overlay.js";
+
 /** Logical stage width in world units; the canvas scales this to the device width. */
 export const STAGE_W = 400;
-const MAX_DPR = 2;
+
+export type Quality = "low" | "medium" | "high";
+const DPR_CAP: Record<Quality, number> = { low: 1, medium: 1.5, high: 2 };
+const DENSITY: Record<Quality, number> = { low: 0.4, medium: 0.75, high: 1 };
 
 export interface Renderer2DOptions {
   /** Clock in milliseconds; injectable for tests. */
@@ -30,16 +35,21 @@ export interface Renderer2DOptions {
   /** Device pixel ratio source; injectable for tests. */
   dpr?: () => number;
   content?: Content;
+  quality?: Quality;
 }
 
 interface Job { layer: number; y: number; type: string; e: unknown }
+
+// Storm streaks: fixed seeds so the overlay allocates nothing per frame.
+const STREAKS = Array.from({ length: 90 }, (_, i) => ({ sx: (i * 97.3) % 1, sy: (i * 53.71) % 1, sp: 0.8 + ((i * 7) % 5) * 0.12, len: 8 + (i % 4) * 6 }));
 
 /** Canvas 2D renderer (Contract 2). Draws from state every frame; events add juice only. */
 export class Renderer2D implements Renderer {
   private mount: HTMLElement | null = null;
   private canvas: HTMLCanvasElement | null = null;
-  private g: G | null = null;
+  private g: CanvasRenderingContext2D | null = null;
   private groundCache: HTMLCanvasElement | null = null;
+  private frost: HTMLCanvasElement | null = null;
   private hintEl: HTMLElement | null = null;
   private bannerEl: HTMLElement | null = null;
   private manifest!: Manifest;
@@ -61,12 +71,21 @@ export class Renderer2D implements Renderer {
   private last = 0;
   private t = 0;
   private moving = 0;
+  private sway = { x: 0, y: 0 };
+  private swayV = { x: 0, y: 0 };
   private hintUntil = 0;
+  private hintTop = false;
   private bannerText = "";
+  private bannerKind = "";
   private bannerUntil = 0;
+  private baseFlash = 0;
+  private coach: CoachMark | null = null;
+  private quality: Quality;
   private changes = new Map<string, { v: string; t: number }>();
   private readonly nowFn: () => number;
   private readonly dprFn: () => number;
+  private lastCam = { x: 0, y: 0, zoom: 1 };
+  private wasOutside = false;
   /** Screen point (canvas CSS px) where coins fly to; the client points it at the currency chip. */
   hudAnchor: () => V = () => ({ x: 36, y: -14 });
 
@@ -74,9 +93,28 @@ export class Renderer2D implements Renderer {
     this.nowFn = opts.now ?? (() => (globalThis.performance?.now?.() ?? Date.now()));
     this.dprFn = opts.dpr ?? (() => (globalThis as { devicePixelRatio?: number }).devicePixelRatio ?? 1);
     this.content = opts.content ?? defaultContent;
+    this.quality = opts.quality ?? "high";
+    this.fx.density = DENSITY[this.quality];
   }
 
   set onCoinLanded(fn: (() => void) | null) { this.fx.onCoinLanded = fn; }
+
+  /** Change the quality tier (canvas resolution and particle density). */
+  setQuality(q: Quality): void {
+    if (q === this.quality) return;
+    this.quality = q;
+    this.fx.density = DENSITY[q];
+    this.resize(this.cssW, this.cssH);
+  }
+
+  /** Jump the camera onto the hero on the next sync (after a teleport or a scripted run). */
+  snapCamera(): void { this.camReady = false; }
+
+  /** Contextual coach mark (world units), or null to hide it. Purely visual; never blocks input. */
+  setCoach(c: CoachMark | null): void {
+    if (c && this.coach && c.key === this.coach.key) { this.coach.at = c.at; this.coach.text = c.text; return; }
+    this.coach = c ? { ...c, since: this.t } : null;
+  }
 
   init(manifest: Manifest, skin: Skin, mount: HTMLElement): void {
     this.dispose();
@@ -86,21 +124,24 @@ export class Renderer2D implements Renderer {
     try { this.cp = compile(manifest, this.content); } catch { this.cp = null; }
     this.buildPadInfo();
     const doc = mount.ownerDocument;
+    injectStyle(doc);
     const canvas = doc.createElement("canvas");
     canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none";
     mount.appendChild(canvas);
     this.canvas = canvas;
     this.g = canvas.getContext("2d");
     this.hintEl = doc.createElement("div");
-    this.hintEl.className = "fo-hint";
-    this.hintEl.style.cssText = "position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(33,24,26,.82);color:#fff;font:800 14px/1.2 system-ui,sans-serif;padding:7px 14px;border-radius:999px;pointer-events:none;white-space:nowrap;opacity:0;transition:opacity .25s;z-index:2";
+    this.hintEl.className = this.hintCls = "fo-hint";
+    this.shownBanner = "";
+    this.shownKind = "";
     mount.appendChild(this.hintEl);
     this.bannerEl = doc.createElement("div");
     this.bannerEl.className = "fo-banner";
-    this.bannerEl.style.cssText = `position:absolute;left:50%;top:10px;transform:translateX(-50%);background:${skin.palette.danger};color:#fff;font:800 16px/1.2 system-ui,sans-serif;padding:7px 16px;border-radius:999px;pointer-events:none;white-space:nowrap;z-index:2;display:none;box-shadow:0 4px 14px rgba(0,0,0,.25)`;
+    this.bannerEl.style.display = "none";
     mount.appendChild(this.bannerEl);
     this.interp.reset();
     this.fx.clear();
+    this.coach = null;
     this.camReady = false;
     this.t0 = this.nowFn();
     this.last = this.t0;
@@ -113,29 +154,38 @@ export class Renderer2D implements Renderer {
     const byId = new Map<string, { type: string }>();
     for (const e of this.manifest.entities) if (e.id !== undefined) byId.set(e.id, e);
     const lbl = { name: (id: string) => nameOf(this.skin, id), ui: (k: string, v?: Record<string, string | number>) => uiText(this.skin, k, v) };
+    let coreLevel = 1;
+    for (const e of this.manifest.entities) if (e.type === "sink.core") coreLevel = (e as { params?: { level?: number } }).params?.level ?? 1;
     for (const e of this.manifest.entities) {
       if (e.type !== "pad.hire" && e.type !== "pad.build") continue;
       const kind = e.type === "pad.hire" ? "hire" : "build";
       const what = e.type === "pad.hire" ? e.role.role : e.build;
       const targetType = e.type === "pad.build" && e.target ? byId.get(e.target)?.type : undefined;
+      if (what === "sink.core.level") coreLevel++;
       const info: PadInfo = {
         id: e.id,
         kind,
         cost: { ...e.cost },
-        label: padLabel(lbl, kind, what, targetType),
+        label: padLabel(lbl, kind, what, targetType, coreLevel),
         big: e.type === "pad.build" ? e.big : false,
         what,
       };
+      if (e.type === "pad.hire") {
+        if (e.role.from) info.from = e.role.from;
+        if (e.role.to) info.to = e.role.to;
+      }
       if (e.requires?.pad !== undefined) info.requiresPad = e.requires.pad;
       if (e.requires?.coreLevel !== undefined) info.requiresCoreLevel = e.requires.coreLevel;
+      if (this.manifest.goal.type === "build" && this.manifest.goal.target === e.id) info.goal = true;
       this.pads.set(e.id, info);
     }
+    for (const info of this.pads.values()) if (info.requiresPad) info.requiresLabel = this.pads.get(info.requiresPad)?.label ?? info.requiresPad;
   }
 
   resize(w: number, h: number): void {
     this.cssW = Math.max(1, w);
     this.cssH = Math.max(1, h);
-    this.dpr = Math.min(MAX_DPR, Math.max(1, this.dprFn() || 1));
+    this.dpr = Math.min(DPR_CAP[this.quality], Math.max(1, this.dprFn() || 1));
     if (this.canvas) {
       this.canvas.width = Math.max(1, Math.round(this.cssW * this.dpr));
       this.canvas.height = Math.max(1, Math.round(this.cssH * this.dpr));
@@ -144,24 +194,44 @@ export class Renderer2D implements Renderer {
     this.viewW = STAGE_W;
     this.viewH = this.cssH / this.scale;
     this.buildGroundCache();
+    this.buildFrost();
+  }
+
+  private makeCanvas(w: number, h: number): HTMLCanvasElement | null {
+    if (!this.mount) return null;
+    try {
+      const c = this.mount.ownerDocument.createElement("canvas");
+      c.width = Math.max(1, Math.round(w));
+      c.height = Math.max(1, Math.round(h));
+      return c;
+    } catch { return null; }
   }
 
   private buildGroundCache(): void {
     if (!this.mount || !this.skin) return;
     const W = this.manifest.map.w, H = this.manifest.map.h;
     const k = this.scale * this.dpr;
-    try {
-      const c = this.mount.ownerDocument.createElement("canvas");
-      c.width = Math.max(1, Math.round(W * k));
-      c.height = Math.max(1, Math.round(H * k));
-      const g = c.getContext("2d");
-      if (!g) { this.groundCache = null; return; }
-      g.setTransform(k, 0, 0, k, 0, 0);
-      drawGround(g, this.skin, W, H);
-      this.groundCache = c;
-    } catch {
-      this.groundCache = null;
-    }
+    const c = this.makeCanvas(W * k, H * k);
+    const g = c?.getContext("2d");
+    if (!c || !g) { this.groundCache = null; return; }
+    g.setTransform(k, 0, 0, k, 0, 0);
+    drawGround(g, this.skin, W, H);
+    this.groundCache = c;
+  }
+
+  /** Edge vignette drawn once per size; frames only change its alpha (no per-frame gradients). */
+  private buildFrost(): void {
+    const w = this.cssW, h = this.cssH;
+    const c = this.makeCanvas(w / 2, h / 2);
+    const g = c?.getContext("2d");
+    if (!c || !g) { this.frost = null; return; }
+    const grad = g.createRadialGradient(w / 4, h / 4, Math.min(w, h) * 0.16, w / 4, h / 4, Math.max(w, h) * 0.38);
+    grad.addColorStop(0, "rgba(170,220,255,0)");
+    grad.addColorStop(0.6, "rgba(170,220,255,0.35)");
+    grad.addColorStop(1, "rgba(200,235,255,1)");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, w / 2, h / 2);
+    this.frost = c;
   }
 
   dispose(): void {
@@ -173,6 +243,7 @@ export class Renderer2D implements Renderer {
     this.hintEl = null;
     this.bannerEl = null;
     this.groundCache = null;
+    this.frost = null;
     this.mount = null;
     this.world = null;
   }
@@ -192,21 +263,26 @@ export class Renderer2D implements Renderer {
     this.interp.update(w);
     this.fx.now = this.t;
     this.fx.update(dt);
+    this.baseFlash = Math.max(0, this.baseFlash - dt * 3);
 
     const pl = this.interp.pos("player", w.player.pos, a);
     const v = this.interp.vel("player");
     const sp = Math.min(1, Math.hypot(v.x, v.y) / 4);
     this.moving += (sp - this.moving) * Math.min(1, dt * 10);
+    this.stepSway(v, dt);
     this.followCamera(cam, pl, dt);
-    this.lastCam = { x: cam.x, y: cam.y };
+    const z = cam.zoom || 1;
+    this.lastCam = { x: cam.x, y: cam.y, zoom: z };
 
-    const dc = this.makeDC(g, w, a);
+    const dc = this.makeDC(g, w, a, pl);
     const W = this.manifest.map.w, H = this.manifest.map.h;
-    const k = this.scale * this.dpr * (cam.zoom || 1);
-    const vw = this.viewW / (cam.zoom || 1), vh = this.viewH / (cam.zoom || 1);
+    const k = this.scale * this.dpr * z;
+    const vw = this.viewW / z, vh = this.viewH / z;
     const shake = this.fx.shake;
     const sx = shake ? (Math.random() - 0.5) * shake : 0, sy = shake ? (Math.random() - 0.5) * shake : 0;
     const ox = cam.x - vw / 2 + sx, oy = cam.y - vh / 2 + sy;
+    this.fx.viewX0 = ox;
+    this.fx.viewX1 = ox + vw;
 
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.fillStyle = this.skin.palette.ui.bg;
@@ -218,12 +294,25 @@ export class Renderer2D implements Renderer {
     for (const job of this.collectJobs(dc)) drawEntity(dc, job.type, job.e as { pos?: V });
     drawEntity(dc, "fx.lasso", {});
     this.fx.drawWorld(dc, pl);
+    const coachOn = this.coach && !w.over ? this.coach : null;
+    if (coachOn) drawCoach(dc, coachOn, pl, { x0: ox, y0: oy, x1: ox + vw, y1: oy + vh }, false);
 
     // screen space
     g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    this.drawOverlays(dc, ox, oy, k / this.dpr);
+    this.drawOverlays(dc, ox, oy, k / this.dpr, pl);
+    if (coachOn) drawCoach(dc, coachOn, pl, { x0: ox, y0: oy, x1: ox + vw, y1: oy + vh }, true, k / this.dpr, this.cssW, this.cssH);
     this.fx.drawScreen(dc);
-    this.updateDom(w);
+    this.updateDom(w, (pl.y - oy) * (k / this.dpr));
+  }
+
+  /** The back stack lags behind the hero's motion: a damped spring driven by velocity. */
+  private stepSway(v: V, dt: number): void {
+    const kSpring = 70, damp = 9;
+    const tx = -v.x * 1.6, ty = -Math.abs(v.y) * 0.4;
+    this.swayV.x += ((tx - this.sway.x) * kSpring - this.swayV.x * damp) * dt;
+    this.swayV.y += ((ty - this.sway.y) * kSpring - this.swayV.y * damp) * dt;
+    this.sway.x = Math.max(-9, Math.min(9, this.sway.x + this.swayV.x * dt));
+    this.sway.y = Math.max(-5, Math.min(5, this.sway.y + this.swayV.y * dt));
   }
 
   private followCamera(cam: Camera, target: V, dt: number): void {
@@ -242,7 +331,7 @@ export class Renderer2D implements Renderer {
     cam.y = vh >= H ? H / 2 : Math.max(vh / 2, Math.min(H - vh / 2, cam.y));
   }
 
-  private makeDC(g: G, w: WorldView, a: number): DC {
+  private makeDC(g: CanvasRenderingContext2D, w: WorldView, a: number, pl: V): DC {
     const skin = this.skin;
     const cp = this.cp;
     let safeR = 0;
@@ -252,6 +341,10 @@ export class Renderer2D implements Renderer {
       const lv = cp.core.levels[Math.min(Math.max(1, w.core.level), cp.core.levels.length) - 1];
       if (lv) fuelCap = lv.fuelCap;
     }
+    const c = w.core.pos;
+    const outside = safeR > 0 && (pl.x - c.x / FP) ** 2 + (pl.y - c.y / FP) ** 2 > safeR * safeR;
+    if (outside && !this.wasOutside && lifelineK({ world: w } as DC) < 0.999) this.fx.floater(pl.x, pl.y - 52, floaterText(skin, "outside_safe"), "#bfe6ff", 12);
+    this.wasOutside = outside;
     return {
       g, skin, pal: skin.palette, content: this.content, manifest: this.manifest, cp, world: w, t: this.t,
       pos: (key, fpPos) => this.interp.pos(key, fpPos, a),
@@ -267,11 +360,15 @@ export class Renderer2D implements Renderer {
       px: this.scale,
       moving: this.moving,
       since: (key, value) => {
-        const c = this.changes.get(key);
-        if (!c || c.v !== value) { this.changes.set(key, { v: value, t: this.t }); return 0; }
-        return this.t - c.t;
+        const ch = this.changes.get(key);
+        if (!ch || ch.v !== value) { this.changes.set(key, { v: value, t: this.t }); return 0; }
+        return this.t - ch.t;
       },
       vel: (key) => this.interp.vel(key),
+      knock: (key) => this.fx.knockOff(key),
+      sway: this.sway,
+      outside,
+      quality: this.quality,
     };
   }
 
@@ -288,10 +385,10 @@ export class Renderer2D implements Renderer {
     const def = this.content.converters[cv.type];
     const op = cv.operatorPos ?? (def ? { x: cv.pos.x + def.operatorOffset[0] * FP, y: cv.pos.y + def.operatorOffset[1] * FP } : null);
     if (!op) return false;
-    const r = (def?.range ?? 30) * FP;
+    const r = this.cp?.convParams.playerOperateRange ?? (def?.range ?? 30) * FP;
     const near = (p: V, rr: number): boolean => (p.x - op.x) ** 2 + (p.y - op.y) ** 2 < rr * rr;
     if (near(w.player.pos, r)) return true;
-    return (w.residents ?? []).some((x) => x.role === def?.role && (x.status ?? "ok") === "ok" && near(x.pos, 12 * FP));
+    return (w.residents ?? []).some((x) => x.role === def?.role && (x.status ?? "ok") === "ok" && near(x.pos, this.cp?.convParams.operatorRange ?? 12 * FP));
   }
 
   private padVisible(w: WorldView, p: NonNullable<WorldView["pads"]>[number], done: Set<string>): boolean {
@@ -306,10 +403,13 @@ export class Renderer2D implements Renderer {
     return lv !== undefined && w.core.level < lv;
   }
 
+  private jobs: Job[] = [];
+
   /** Everything to draw this frame, ordered by layer then by ground y (painter's order). */
   private collectJobs(dc: DC): Job[] {
     const w = dc.world;
-    const jobs: Job[] = [];
+    const jobs = this.jobs;
+    jobs.length = 0;
     const y = (p: V | undefined): number => (p ? p.y / FP : 0);
     // layer 0: ground decals
     for (const z of w.preyZones ?? []) jobs.push({ layer: 0, y: z.rect.y / FP, type: "zone.prey", e: { ...z, type: "zone.prey" } });
@@ -347,73 +447,144 @@ export class Renderer2D implements Renderer {
 
   // ---------------------------------------------------------------- overlays
 
-  private drawOverlays(dc: DC, ox: number, oy: number, k: number): void {
-    const g = dc.g, w = dc.world, pal = dc.pal;
-    const sw = this.cssW, sh = this.cssH;
-    // hazard: tint and blowing dust
-    if (w.hazard?.phase === "active") {
-      g.fillStyle = "rgba(214,140,70,.28)";
-      g.fillRect(0, 0, sw, sh);
-      g.fillStyle = "rgba(255,214,160,.7)";
-      for (let i = 0; i < 70; i++) {
-        const px = ((i * 97.3 + this.t * (220 + (i % 5) * 40)) % (sw + 40)) - 20;
-        const py = (i * 53.7 + Math.sin(this.t * 2 + i) * 10) % sh;
-        g.fillRect(px, py, 10 + (i % 3) * 5, 1.5);
-      }
-    }
-    // distress: the lifeline is draining, the screen frosts at the edges
-    const lifeK = lifelineK(dc);
-    if (w.core.fuel <= 0 || lifeK < 0.6) {
-      const pulse = 0.5 + 0.5 * Math.sin(this.t * 4);
-      const strength = Math.min(1, (1 - lifeK) * 1.4) * (0.55 + 0.25 * pulse);
-      const grad = g.createRadialGradient(sw / 2, sh / 2, Math.min(sw, sh) * 0.35, sw / 2, sh / 2, Math.max(sw, sh) * 0.75);
-      grad.addColorStop(0, "rgba(160,215,255,0)");
-      grad.addColorStop(1, `rgba(160,215,255,${strength})`);
-      g.fillStyle = grad;
-      g.fillRect(0, 0, sw, sh);
-    }
-    // off-screen pointers: things that need the player
-    const targets: { p: V; c: string }[] = [];
-    for (const h of w.hostiles ?? []) targets.push({ p: dc.pos(`h:${h.id}`, h.pos), c: pal.danger });
-    for (const c of w.captures ?? []) if (c.state === "idle") targets.push({ p: dc.pos(`c:${c.id}`, c.pos), c: pal.interactive });
-    for (const r of w.residents ?? []) if (r.status === "arriving") targets.push({ p: dc.pos(`r:${r.id}`, r.pos), c: pal.accent });
-    if (w.core.fuel <= 3) targets.push({ p: dc.w(w.core.pos), c: pal.accent });
-    for (const t of targets) {
-      const x = (t.p.x - ox) * k, y = (t.p.y - oy) * k;
-      if (x > 0 && x < sw && y > 0 && y < sh) continue;
-      const ex = Math.max(18, Math.min(sw - 18, x)), ey = Math.max(18, Math.min(sh - 18, y));
-      const ang = Math.atan2(y - ey, x - ex);
-      g.save(); g.translate(ex, ey); g.rotate(ang);
-      g.beginPath(); g.moveTo(14, 0); g.lineTo(2, -8); g.lineTo(2, 8); g.closePath();
-      g.fillStyle = t.c; g.fill();
-      g.restore();
-      circle(g, ex, ey, 9, t.c, "#ffffff", 2.5);
-    }
+  private nextWave(w: WorldView): { n: number; s: number } | null {
+    const cp = this.cp;
+    if (!cp || !w.waves) return null;
+    const wave = cp.waves[w.waves.idx];
+    if (!wave) return null;
+    return { n: w.waves.idx + 1, s: Math.max(0, (wave.tick - w.tick) / TPS) };
   }
 
-  private updateDom(w: WorldView): void {
-    if (this.hintEl) this.hintEl.style.opacity = this.t < this.hintUntil ? "1" : "0";
+  private drawOverlays(dc: DC, ox: number, oy: number, k: number, pl: V): void {
+    const g = dc.g, w = dc.world, pal = dc.pal;
+    const sw = this.cssW, sh = this.cssH;
+    const t = this.t;
+    // hazard: ochre tint, blowing streaks and drifting dust clouds
+    const phase = w.hazard?.phase ?? "none";
+    if (phase === "active" || phase === "warning") {
+      const strong = phase === "active";
+      g.fillStyle = strong ? "rgba(214,140,70,.30)" : `rgba(214,140,70,${0.06 + 0.04 * Math.sin(t * 3)})`;
+      g.fillRect(0, 0, sw, sh);
+      if (strong) {
+        const n = Math.round(STREAKS.length * this.fx.density);
+        g.strokeStyle = "rgba(255,222,170,.75)";
+        g.lineWidth = 1.6;
+        g.beginPath();
+        for (let i = 0; i < n; i++) {
+          const s = STREAKS[i]!;
+          const px = ((s.sx * (sw + 80) + t * 260 * s.sp) % (sw + 80)) - 40;
+          const py = (s.sy * sh + t * 40 * s.sp + Math.sin(t * 2 + i) * 6) % sh;
+          g.moveTo(px, py);
+          g.lineTo(px - s.len, py - s.len * 0.25);
+        }
+        g.stroke();
+        g.fillStyle = "rgba(196,120,64,.16)";
+        for (let i = 0; i < 5; i++) {
+          const cx = ((i * 131 + t * 90) % (sw + 240)) - 120, cy = (i * 173) % sh;
+          g.beginPath(); g.ellipse(cx, cy, 120, 50, 0, 0, Math.PI * 2); g.fill();
+        }
+      }
+    }
+    // distress: the lifeline drains -> frost creeps in with a heartbeat; stepping outside the heat frosts lightly
+    const lifeK = lifelineK(dc);
+    let frost = 0;
+    if (w.core.fuel <= 0 || lifeK < 0.6) {
+      const ph = t % 1.1;
+      const beat = Math.exp(-((ph / 0.07) ** 2)) + 0.6 * Math.exp(-(((ph - 0.24) / 0.07) ** 2));
+      frost = Math.min(1, (1 - lifeK) * 1.3) * (0.6 + 0.4 * beat);
+    }
+    if (dc.outside) frost = Math.max(frost, 0.28 + 0.06 * Math.sin(t * 2.5));
+    if (frost > 0.01 && this.frost) {
+      g.globalAlpha = Math.min(1, frost);
+      g.drawImage(this.frost, 0, 0, sw, sh);
+      g.globalAlpha = 1;
+    }
+    // base hit: red edge flash
+    if (this.baseFlash > 0) {
+      g.strokeStyle = alpha(pal.danger, Math.min(0.8, this.baseFlash));
+      g.lineWidth = 18;
+      g.strokeRect(0, 0, sw, sh);
+    }
+    // off-screen pointers: things that need the player
+    const toS = (p: V): V => ({ x: (p.x - ox) * k, y: (p.y - oy) * k });
+    const pointers: { p: V; c: string; icon: PointerIcon }[] = [];
+    let hostileShown = 0;
+    const hs = w.hostiles ?? [];
+    for (const h of hs) {
+      if (hostileShown >= 3) break;
+      const q = toS(dc.pos(`h:${h.id}`, h.pos));
+      if (q.x > 0 && q.x < sw && q.y > 0 && q.y < sh) continue;
+      pointers.push({ p: q, c: pal.danger, icon: "hostile" });
+      hostileShown++;
+    }
+    const nw = this.nextWave(w);
+    if (nw && nw.s <= 6 && hostileShown === 0) pointers.push({ p: { x: sw / 2, y: -100 }, c: pal.danger, icon: "hostile" });
+    let pods = 0;
+    for (const c of w.captures ?? []) if (c.state === "idle" && pods < 3) { pointers.push({ p: toS(dc.pos(`c:${c.id}`, c.pos)), c: pal.interactive, icon: "pod" }); pods++; }
+    if (w.residents?.some((r) => r.status === "arriving") && this.cp?.gate) pointers.push({ p: toS(dc.w(this.cp.gate.pos)), c: pal.ok, icon: "person" });
+    if (w.core.fuel <= 3) pointers.push({ p: toS(dc.w(w.core.pos)), c: pal.accent, icon: "core" });
+    if ((w.sales?.pileN ?? 0) >= 10) pointers.push({ p: toS(dc.w(w.sales!.pile)), c: pal.res["res.currency"] ?? pal.accent, icon: "coin" });
+    for (const p of w.pads ?? []) {
+      const info = this.pads.get(p.id);
+      if (!info?.goal || p.done || p.visible === false) continue;
+      pointers.push({ p: toS(dc.w(p.pos)), c: pal.accent, icon: "goal" });
+    }
+    const margin = 26;
+    for (const ptr of pointers) {
+      const { x, y } = ptr.p;
+      if (x > 0 && x < sw && y > 0 && y < sh) continue;
+      const cx = sw / 2, cy = sh / 2;
+      // clamp along the ray from the centre so pointers sit where the thing is
+      const dx = x - cx, dy = y - cy;
+      const s = Math.min(dx ? (sw / 2 - margin) / Math.abs(dx) : Infinity, dy ? (sh / 2 - margin) / Math.abs(dy) : Infinity);
+      const ex = cx + dx * s, ey = cy + dy * s;
+      drawPointer(dc, ex, ey, Math.atan2(dy, dx), ptr.c, iconFor(ptr.icon), t);
+    }
+    void pl;
+  }
+
+  private hintCls = "";
+  private shownKind = "";
+  private shownBanner = "";
+
+  private updateDom(w: WorldView, heroY: number): void {
+    if (this.hintEl) {
+      // hints never cover the hero: flip to the top when the hero walks low on screen
+      const top = heroY > this.cssH - 110;
+      const cls = `fo-hint${top ? " top" : ""}${this.t < this.hintUntil ? " on" : ""}`;
+      if (cls !== this.hintCls) { this.hintCls = cls; this.hintEl.className = cls; }
+    }
     if (!this.bannerEl) return;
-    let text = "";
+    let text = "", kind = "";
     const hz = w.hazard;
     const name = this.skin.hazardName;
-    if (hz && hz.phase === "warning") text = floaterText(this.skin, "hazard_warning", { name, s: Math.max(0, Math.ceil(((hz.until ?? w.tick) - w.tick) / TPS)) });
-    else if (hz && hz.phase === "active") text = floaterText(this.skin, "hazard_active", { name, s: Math.max(0, Math.ceil(((hz.until ?? w.tick) - w.tick) / TPS)) });
-    else if (this.t < this.bannerUntil) text = this.bannerText;
-    if (text) {
-      if (this.bannerEl.textContent !== text) this.bannerEl.textContent = text;
-      this.bannerEl.style.display = "block";
-    } else this.bannerEl.style.display = "none";
+    const nw = this.nextWave(w);
+    if (hz && hz.phase === "warning") { text = floaterText(this.skin, "hazard_warning", { name, s: Math.max(0, Math.ceil(((hz.until ?? w.tick) - w.tick) / TPS)) }); kind = "hazard"; }
+    else if (hz && hz.phase === "active") { text = floaterText(this.skin, "hazard_active", { name, s: Math.max(0, Math.ceil(((hz.until ?? w.tick) - w.tick) / TPS)) }); kind = "hazard"; }
+    else if (this.t < this.bannerUntil) { text = this.bannerText; kind = this.bannerKind; }
+    else if (nw && nw.s <= 10 && !w.over) { text = floaterText(this.skin, "wave_soon", { n: nw.n, s: Math.ceil(nw.s) }); kind = "danger"; }
+    if (text !== this.shownBanner) {
+      this.shownBanner = text;
+      this.bannerEl.textContent = text;
+      this.bannerEl.style.display = text ? "block" : "none";
+    }
+    if (text && kind !== this.shownKind) {
+      this.shownKind = kind;
+      const pal = this.skin.palette;
+      this.bannerEl.style.background = kind === "ok" ? pal.ok : kind === "hazard" ? "#c9773d" : kind === "danger" ? pal.danger : pal.accent;
+      this.bannerEl.style.color = kind === "ok" ? pal.ink : "#ffffff";
+    }
   }
 
   private showHint(text: string): void {
     if (!this.hintEl) return;
     if (this.hintEl.textContent !== text) this.hintEl.textContent = text;
-    this.hintUntil = this.t + 1.6;
+    this.hintUntil = this.t + 1.8;
   }
 
-  private banner(text: string, sec = 2.5): void {
+  private banner(text: string, kind: string, sec = 2.5): void {
     this.bannerText = text;
+    this.bannerKind = kind;
     this.bannerUntil = this.t + sec;
   }
 
@@ -436,7 +607,7 @@ export class Renderer2D implements Renderer {
     if (byCap) return byCap;
     const byRes = find(w.residents, e["resident"]);
     if (byRes) return byRes;
-    const byConv = find(w.converters, e["conv"]);
+    const byConv = find(w.converters, e["conv"]) ?? (typeof e["conv"] === "string" ? (() => { const c = w.converters?.find((x) => x.type === e["conv"]); return c ? wu(c.pos) : null; })() : null);
     if (byConv) return byConv;
     if (e["line"] !== undefined && e["section"] !== undefined) {
       const s = w.barriers?.find((b) => b.id === e["line"])?.sections[Number(e["section"])];
@@ -463,22 +634,21 @@ export class Renderer2D implements Renderer {
     return w ? { x: w.player.pos.x / FP, y: w.player.pos.y / FP } : { x: 0, y: 0 };
   }
 
-  private flashNearestTurret(at: V): void {
-    let best: string | number | null = null, bd = Infinity;
-    for (const s of this.world?.structures ?? []) {
-      if (s.type !== "struct.ranged_defense") continue;
+  private nearest<T extends { pos: V }>(list: readonly T[] | undefined, at: V, pred: (x: T) => boolean): T | null {
+    let best: T | null = null, bd = Infinity;
+    for (const s of list ?? []) {
+      if (!pred(s)) continue;
       const d = (s.pos.x / FP - at.x) ** 2 + (s.pos.y / FP - at.y) ** 2;
-      if (d < bd) { bd = d; best = s.id; }
+      if (d < bd) { bd = d; best = s; }
     }
-    if (best !== null) this.fx.flash(`s:${String(best)}`, 0.1);
+    return best;
   }
 
   /** World point to canvas CSS px, using the last camera. */
-  private toScreen(p: V, cam: { x: number; y: number }): V {
-    return { x: (p.x - (cam.x - this.viewW / 2)) * this.scale, y: (p.y - (cam.y - this.viewH / 2)) * this.scale };
+  private toScreen(p: V): V {
+    const c = this.lastCam, s = this.scale * c.zoom;
+    return { x: (p.x - (c.x - this.viewW / c.zoom / 2)) * s, y: (p.y - (c.y - this.viewH / c.zoom / 2)) * s };
   }
-
-  private lastCam = { x: 0, y: 0 };
 
   onEvent(ev: SimEvent): void {
     if (!this.g) return;
@@ -494,11 +664,13 @@ export class Renderer2D implements Renderer {
         const wp = this.workerPos(e);
         fx.arc(String(e["res"]), at, wp, wp ? 0.4 : 0.32);
         if (e.t === "gathered") fx.dust(at.x, at.y + 8, alpha(pal.groundAlt, 0.8), 5);
+        else if (!wp) fx.ring(at.x, at.y + 4, pal.interactive, 22, 0.3);
         break;
       }
       case "deposited": {
         const from = this.workerPos(e) ?? (() => { const p = this.playerPos(); return { x: p.x, y: p.y - 34 }; })();
         fx.arc(String(e["res"]), from, at, 0.26);
+        if (e["to"] === "sink.core" && e["by"] === undefined) fx.burst(at.x, at.y - 20, [pal.accent, "#fff3a0"], 5, 60, -60, 3, 0.45);
         break;
       }
       case "pad_paid":
@@ -511,11 +683,14 @@ export class Renderer2D implements Renderer {
       case "drop":
         fx.burst(at.x, at.y, ["#ffffff", pal.res[String(e["res"])] ?? pal.interactive], 6, 60, 120, 2.5, 0.4);
         break;
-      case "sold":
+      case "sold": {
         fx.floater(at.x, at.y - 30, ft("sold"), "#ffffff", 14);
         fx.floater(at.x - 30, at.y - 14, `+${Number(e["pay"] ?? 0)}`, gold, 16);
         fx.burst(at.x, at.y - 10, [gold, "#fff3a0"], e["premium"] ? 14 : 7, 70, 200, 3);
+        const pile = this.world?.sales?.pile;
+        if (pile) fx.arc("res.currency", { x: at.x, y: at.y - 10 }, { x: pile.x / FP, y: pile.y / FP }, 0.35);
         break;
+      }
       case "customer_left":
         if (e["angry"]) fx.floater(at.x, at.y - 30, ft("too_slow"), pal.danger, 14);
         break;
@@ -523,8 +698,7 @@ export class Renderer2D implements Renderer {
         const n = Number(e["n"] ?? 1);
         const p = this.playerPos();
         fx.floater(p.x, p.y - 50, ft("collected", { n }), gold, 17);
-        const from = this.toScreen(at, this.lastCam);
-        fx.coinsToHud(from, this.hudAnchor(), Math.min(12, Math.max(3, n)));
+        fx.coinsToHud(this.toScreen(at), this.hudAnchor(), Math.min(12, Math.max(3, Math.ceil(n / 2))));
         break;
       }
       case "core_fuel_out":
@@ -540,9 +714,10 @@ export class Renderer2D implements Renderer {
       case "level_end":
         if (e["won"]) {
           const p = this.playerPos();
-          fx.burst(p.x, p.y - 20, [pal.accent, pal.interactive, gold, pal.ok, "#ffffff"], 70, 220, 260, 4, 1.6);
+          fx.burst(p.x, p.y - 20, [pal.accent, pal.interactive, gold, pal.ok, "#ffffff"], 50, 220, 260, 4, 1.4);
+          fx.confettiShower(this.cssW, [pal.accent, pal.interactive, gold, pal.ok, "#ffffff", pal.res["res.food_raw_2"] ?? "#ffa3b4"]);
           fx.floater(p.x, p.y - 60, ft("win"), "#ffffff", 20);
-        }
+        } else fx.shake = Math.max(fx.shake, 8);
         break;
       case "built":
       case "hired":
@@ -554,6 +729,8 @@ export class Renderer2D implements Renderer {
         fx.dust(at.x, at.y + 16, alpha("#f3e2c8", 0.9), 14);
         fx.ring(at.x, at.y + 10, pal.interactive, 70, 0.6);
         fx.burst(at.x, at.y - 10, [pal.accent, gold, "#ffffff"], 18, 140, 260, 3.5);
+        fx.shake = Math.max(fx.shake, 2.5);
+        if (e["build"] === "sink.core.level") break; // core_upgraded names it
         const padId = typeof e["pad"] === "string" ? (e["pad"] as string) : typeof e["id"] === "string" ? (e["id"] as string) : "";
         const label = this.pads.get(padId)?.label ?? name(e["type"] ?? e["role"]);
         const key = e.t === "hired" ? "hired" : e.t === "unlocked" ? "unlocked" : "built";
@@ -561,56 +738,79 @@ export class Renderer2D implements Renderer {
         break;
       }
       case "captured": {
-        const n = Array.isArray(e["ids"]) ? (e["ids"] as unknown[]).length : Number(e["n"] ?? 1);
         const p = this.playerPos();
-        fx.floater(p.x, p.y - 50, n > 1 ? ft("captured_n", { n }) : ft("captured"), pal.interactive, 16);
+        fx.floater(p.x, p.y - 50, ft("captured"), pal.interactive, 16);
+        fx.ring(at.x, at.y + 12, pal.interactive, 44, 0.45);
         break;
       }
       case "released":
         fx.floater(at.x, at.y - 36, ft("released"), pal.accent, 14);
-        fx.burst(at.x, at.y - 10, [pal.glass, "#ffffff"], 12, 80, 120, 3);
+        fx.burst(at.x, at.y - 10, [pal.glass, "#ffffff"], 14, 90, 140, 3);
+        fx.ring(at.x, at.y + 10, pal.glass, 40, 0.5);
         break;
       case "recruit_arrived":
         fx.floater(at.x, at.y - 34, ft("recruit_arrived"), pal.ok, 14);
+        fx.ring(at.x, at.y + 10, pal.ok, 34, 0.5);
         break;
       case "moved_in":
         fx.floater(at.x, at.y - 34, ft("moved_in"), pal.ok, 14);
         break;
       case "injured":
         fx.floater(at.x, at.y - 34, ft("injured"), pal.danger, 14);
+        fx.burst(at.x, at.y - 10, [pal.danger, "#ffffff"], 6, 70, 120, 2.5, 0.4);
         break;
       case "healed":
         fx.floater(at.x, at.y - 34, ft("healed"), pal.ok, 14);
         break;
       case "hit": {
         const target = String(e["target"]);
-        if (target === "hostile") fx.flash(`h:${String(e["id"])}`);
-        else if (target === "prey") fx.flash(`p:${String(e["id"])}`);
-        else if (target === "base") fx.shake = Math.max(fx.shake, 5);
-        if (e["by"] === "structure") this.flashNearestTurret(at);
-        fx.burst(at.x, at.y - 6, ["#ffffff", "#fff3a0"], 6, 90, 0, 2.5, 0.25);
+        const by = e["by"];
+        if (target === "hostile" || target === "prey") {
+          const key = `${target === "hostile" ? "h" : "p"}:${String(e["id"])}`;
+          fx.flash(key);
+          let src = this.playerPos();
+          if (by === "structure") {
+            const tur = this.nearest(this.world?.structures, at, (s) => s.type === "struct.ranged_defense");
+            if (tur) {
+              src = { x: tur.pos.x / FP, y: tur.pos.y / FP - 6 };
+              fx.flash(`s:${String(tur.id)}`, 0.12);
+              fx.tracer(src, { x: at.x, y: at.y - 6 }, "#fff3a0");
+            }
+          } else if (by === "resident") {
+            const r = this.nearest(this.world?.residents, at, (x) => x.status === "ok" && x.role !== "idle");
+            if (r) src = { x: r.pos.x / FP, y: r.pos.y / FP };
+          }
+          fx.knock(key, at.x - src.x, at.y - src.y);
+          fx.burst(at.x, at.y - 6, ["#ffffff", "#fff3a0"], 6, 90, 0, 2.5, 0.25);
+        } else if (target === "base") {
+          fx.shake = Math.max(fx.shake, 9);
+          this.baseFlash = 0.8;
+          fx.burst(at.x, at.y - 16, [pal.danger, "#ffffff"], 8, 120, 160, 3, 0.4);
+        } else if (target === "barrier") {
+          fx.shake = Math.max(fx.shake, 2);
+          fx.burst(at.x, at.y + 10, [pal.structure, pal.structureDark], 5, 80, 200, 3, 0.4);
+        }
         break;
       }
-      case "shot":
-        if (e["by"] !== undefined) fx.flash(`s:${String(e["by"])}`, 0.1);
-        break;
       case "died":
         fx.dust(at.x, at.y, alpha("#d8c0a0", 0.9), 10);
-        fx.burst(at.x, at.y - 6, [pal.danger, "#ffffff"], 8, 100, 160, 3, 0.5);
+        fx.burst(at.x, at.y - 6, [pal.danger, "#ffffff"], 10, 110, 160, 3, 0.5);
         break;
       case "wave_started": {
-        const n = Number(e["idx"] ?? 0) + 1;
-        this.banner(ft("wave_started", { n }));
+        const n = Number(e["idx"] ?? 1);
+        this.banner(ft("wave_started", { n }), "danger");
         fx.shake = Math.max(fx.shake, 6);
         break;
       }
       case "wave_cleared":
-        this.banner(ft("wave_cleared"), 2);
+        this.banner(ft("wave_cleared"), "ok", 2);
         break;
       case "barrier_built": {
-        const b = e["line"] ?? e["barrier"] ?? e["id"], s = e["section"];
+        const b = e["line"], s = e["section"];
         if (b !== undefined && s !== undefined) fx.pop(`bar:${String(b)}:${String(s)}`);
-        fx.dust(at.x, at.y, alpha("#f3e2c8", 0.9), 8);
+        fx.dust(at.x, at.y, alpha("#f3e2c8", 0.9), 10);
+        fx.floater(at.x, at.y - 24, ft("barrier_built"), "#ffffff", 14);
+        fx.shake = Math.max(fx.shake, 2);
         break;
       }
       case "barrier_broken":
@@ -619,8 +819,10 @@ export class Renderer2D implements Renderer {
         fx.floater(at.x, at.y - 24, ft("barrier_broken"), pal.danger, 15);
         break;
       case "hazard_warning":
-      case "hazard_start":
         fx.shake = Math.max(fx.shake, 3);
+        break;
+      case "hazard_start":
+        fx.shake = Math.max(fx.shake, 5);
         break;
       case "core_upgraded": {
         const c = this.world ? { x: this.world.core.pos.x / FP, y: this.world.core.pos.y / FP } : at;
@@ -632,6 +834,7 @@ export class Renderer2D implements Renderer {
       case "zone_cleared":
         fx.dust(at.x, at.y, alpha("#d8c0a0", 0.9), 24);
         fx.floater(at.x, at.y, ft("zone_cleared"), "#ffffff", 16);
+        fx.shake = Math.max(fx.shake, 4);
         break;
       case "converted":
         fx.burst(at.x, at.y - 14, [pal.accent, "#ffffff"], 5, 50, -40, 2.5, 0.5);
@@ -640,6 +843,22 @@ export class Renderer2D implements Renderer {
         break;
     }
   }
+}
+
+const STYLE = `
+.fo-hint{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px) scale(.96);background:rgba(33,24,26,.86);color:#fff;font:800 14px/1.2 "Baloo 2","Nunito",ui-rounded,system-ui,sans-serif;padding:8px 16px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .2s,transform .2s;z-index:2;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.fo-hint.on{opacity:1;transform:translate(-50%,0) scale(1)}
+.fo-hint.top{bottom:auto;top:58px}
+.fo-banner{position:absolute;left:50%;top:10px;transform:translateX(-50%);color:#fff;font:800 17px/1.15 "Baloo 2","Nunito",ui-rounded,system-ui,sans-serif;padding:8px 18px;border-radius:999px;pointer-events:none;white-space:nowrap;z-index:2;box-shadow:0 4px 0 rgba(0,0,0,.18),0 8px 18px rgba(0,0,0,.25);text-shadow:0 1px 0 rgba(0,0,0,.25);animation:fo-banner-in .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes fo-banner-in{from{transform:translateX(-50%) scale(.6);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+`;
+
+function injectStyle(doc: Document): void {
+  if (typeof doc.getElementById !== "function" || doc.getElementById("fo-r2d-style")) return;
+  const el = doc.createElement("style");
+  el.id = "fo-r2d-style";
+  el.textContent = STYLE;
+  doc.head?.appendChild(el);
 }
 
 export const createRenderer2D = (opts?: Renderer2DOptions): Renderer2D => new Renderer2D(opts);

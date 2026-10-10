@@ -62,6 +62,7 @@ export const debugSkin: Skin = {
     ...marsGreenhouse.text,
     hints,
     reasons: Object.fromEntries(Object.keys(marsGreenhouse.text.reasons).map((k) => [k, `reason:${k}`])),
+    coach: Object.fromEntries(Object.keys(marsGreenhouse.text.coach).map((k) => [k, `coach:${k}`])),
     genericTips: ["debug skin: names are canonical ids"],
   },
   audio: { ...marsGreenhouse.audio },

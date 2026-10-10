@@ -12,7 +12,14 @@ export interface PadInfo {
   label: string;
   big: boolean;
   requiresPad?: string;
+  /** Label of the required pad, for the lock reason. */
+  requiresLabel?: string;
   requiresCoreLevel?: number;
+  /** Hire pads: where the worker takes from and delivers to. */
+  from?: string;
+  to?: string;
+  /** This pad completes the level's build goal. */
+  goal?: boolean;
   /** For hire pads: the role hired. For build pads: what is built (struct.*, node.enable, ...). */
   what: string;
 }
@@ -52,6 +59,14 @@ export interface DC {
   since(key: string, value: string): number;
   /** Per-tick displacement of a mover key, world units (zero when unknown). */
   vel(key: string): V;
+  /** Knockback offset for an entity key after a hit, or null. */
+  knock(key: string): V | null;
+  /** Back-stack sway in world units (a damped spring on the hero's motion). */
+  sway: V;
+  /** True while the hero stands outside the core's safe radius. */
+  outside: boolean;
+  /** Render quality tier. */
+  quality: "low" | "medium" | "high";
 }
 
 /** Sprite key for a canonical id: the skin's choice, else the generic default. */

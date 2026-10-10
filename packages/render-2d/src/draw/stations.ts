@@ -2,6 +2,7 @@ import { alpha, mix } from "@fo/skins";
 import { TPS } from "@fo/sim";
 import type { ConverterView, SalesView, V } from "../view.js";
 import { spriteKey, type DC } from "./dc.js";
+import { drawPerson } from "./characters.js";
 import { drawCoinPile, drawItem } from "./items.js";
 import { TAU, bar, circle, clamp01, ellipse, fillRR, label, line, poly, rr, shadow } from "./prim.js";
 import { register } from "./registry.js";
@@ -26,9 +27,12 @@ register("sink.core.safe", (dc) => {
   grad.addColorStop(1, alpha(dc.pal.accent, 0));
   g.fillStyle = grad;
   g.beginPath(); g.arc(c.x, c.y, R, 0, TAU); g.fill();
+  const towing = (dc.world.player.tow?.length ?? 0) > 0;
+  const call = dc.outside || towing;
   g.beginPath(); g.arc(c.x, c.y, R, 0, TAU);
-  g.setLineDash([5, 8]); g.lineDashOffset = -dc.t * 8;
-  g.strokeStyle = alpha(lit ? dc.pal.accent : dc.pal.danger, 0.65); g.lineWidth = 2.5; g.stroke();
+  g.setLineDash([6, 8]); g.lineDashOffset = -dc.t * (call ? 24 : 8);
+  g.strokeStyle = alpha(lit ? (towing ? dc.pal.interactive : dc.pal.accent) : dc.pal.danger, call ? 0.95 : 0.65);
+  g.lineWidth = call ? 3.5 + Math.sin(dc.t * 6) : 2.5; g.stroke();
   g.setLineDash([]); g.lineDashOffset = 0;
 });
 
@@ -201,11 +205,13 @@ const NODE_DEFAULT_LOOK: Record<string, (dc: DC, n: NodeV) => void> = {
   "node.fuel_deposit": drawFuelCache,
 };
 
-register("node.*", (dc, n: NodeV) => {
+function drawNode(dc: DC, n: NodeV): void {
   const look = NODE_LOOKS[spriteKey(dc, n.type)] ?? NODE_DEFAULT_LOOK[n.type] ?? drawOrePile;
   look(dc, n);
   if (dc.skin.labelAll) { const p = dc.w(n.pos); label(dc.g, dc.name(n.type), p.x, p.y + 24, 8, "#ffffff"); }
-});
+}
+for (const id of Object.keys(NODE_DEFAULT_LOOK)) register(id, drawNode);
+register("node.*", drawNode);
 
 // ---------- converters ----------
 
@@ -218,12 +224,18 @@ register("conv.spot", (dc, cv: ConverterView & { manned: boolean }) => {
     const col = cv.manned ? dc.pal.ok : dc.pal.danger;
     rr(g, op.x - 18, op.y - 14, 36, 28, 8);
     g.fillStyle = alpha(col, 0.15); g.fill();
-    g.setLineDash([4, 4]); g.strokeStyle = col; g.lineWidth = 2.5; g.stroke(); g.setLineDash([]);
+    g.setLineDash([4, 4]); g.lineDashOffset = cv.manned ? 0 : -dc.t * 12; g.strokeStyle = col; g.lineWidth = 2.5; g.stroke(); g.setLineDash([]); g.lineDashOffset = 0;
+    if (!cv.manned) {
+      // a ghost of the operator shows where to stand
+      g.globalAlpha = 0.35 + 0.15 * Math.sin(dc.t * 4);
+      drawPerson(dc, op.x, op.y - 2, { body: "#ffffff", helmet: "#ffffff", visor: "#ffffff", scale: 0.75 });
+      g.globalAlpha = 1;
+    }
     label(g, dc.ui("operator"), op.x, op.y + 22, 8, "#ffffff");
   }
 });
 
-register("conv.*", (dc, cv: ConverterView & { manned: boolean }) => {
+function drawConverter(dc: DC, cv: ConverterView & { manned: boolean }): void {
   const g = dc.g, p = dc.w(cv.pos);
   const def = dc.content.converters[cv.type];
   const working = cv.manned && cv.inQ.length > 0;
@@ -267,8 +279,22 @@ register("conv.*", (dc, cv: ConverterView & { manned: boolean }) => {
     for (let k = 0; k < Math.min(cv.out, 8); k++) drawItem(dc, def.output, pk.x, pk.y + 10 - k * 5, 0.95);
     if (cv.out > 0) label(g, dc.ui("out"), pk.x, pk.y + 24, 8, "#ffffff");
   }
+  // recipe sign: inputs -> output
+  if (def) {
+    const ins = def.inputs;
+    const sw = ins.length * 15 + 34;
+    const sy = p.y - 46;
+    fillRR(g, p.x - sw / 2, sy - 10, sw, 20, 10, "#ffffff", OUT, 1.5);
+    ins.forEach((r, k) => drawItem(dc, r, p.x - sw / 2 + 11 + k * 15, sy, 0.62));
+    const ax = p.x + sw / 2 - 24;
+    poly(g, [ax - 3, sy - 4, ax + 3, sy, ax - 3, sy + 4], dc.pal.ink);
+    drawItem(dc, def.output, p.x + sw / 2 - 11, sy, 0.7);
+  }
   if (dc.skin.labelAll) label(g, dc.name(cv.type), p.x, p.y + 32, 8, "#ffffff");
-});
+}
+register("conv.food_processor", drawConverter);
+register("conv.material_processor", drawConverter);
+register("conv.*", drawConverter);
 
 // ---------- depot ----------
 

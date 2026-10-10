@@ -29,8 +29,8 @@ body {
 
 /* ---------- HUD ---------- */
 .hud {
-  display: flex; flex-direction: column; gap: 6px; z-index: 4;
-  padding: calc(8px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) 8px calc(12px + env(safe-area-inset-left, 0px));
+  display: flex; flex-direction: column; gap: 5px; z-index: 4;
+  padding: calc(6px + env(safe-area-inset-top, 0px)) calc(10px + env(safe-area-inset-right, 0px)) 7px calc(10px + env(safe-area-inset-left, 0px));
   background: var(--panel); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
 }
 .app.nohud .hud { display: none; }
@@ -38,19 +38,23 @@ body {
 .goal { flex: 1; min-width: 0; touch-action: manipulation; }
 .goal .lbl, .card .lbl { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .goal .txt { font-family: var(--display); font-weight: 800; font-size: 16px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips { display: flex; gap: 5px; flex-wrap: wrap; }
 .chip {
-  display: flex; align-items: center; gap: 5px; font-family: var(--display); font-weight: 800; font-size: 15px;
-  font-variant-numeric: tabular-nums; background: var(--panel-alt); border-radius: 999px; padding: 2px 10px; line-height: 1.5;
+  display: flex; align-items: center; gap: 5px; font-family: var(--display); font-weight: 800; font-size: 14px;
+  font-variant-numeric: tabular-nums; background: var(--panel-alt); border-radius: 999px; padding: 1px 9px; line-height: 1.5;
+  transition: background-color 0.2s, color 0.2s;
 }
+.chip[data-k="currency"] { font-size: 16px; padding-left: 6px; }
+.chip[data-k="currency"] .ic { width: 15px; height: 15px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.2), 0 0 0 2px rgba(0,0,0,.08); }
 .chip.bad { background: #fde3df; color: var(--bad); }
 .chip .ic { width: 12px; height: 12px; border-radius: 50%; flex: none; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18); }
 .chip.meter { gap: 7px; }
-.chip.meter .track { width: 64px; height: 9px; border-radius: 5px; background: rgba(0, 0, 0, 0.12); overflow: hidden; }
+.chip.meter .track { width: 52px; height: 9px; border-radius: 5px; background: rgba(0, 0, 0, 0.12); overflow: hidden; }
 .chip.meter .fill { display: block; height: 100%; border-radius: 5px; transition: width 0.25s; }
 .chip.bad.meter .fill { animation: blink 0.8s infinite alternate; }
 .chip.pulse { animation: pulse 0.25s ease-out; }
-@keyframes pulse { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.chip.bad { animation: none; }
+@keyframes pulse { 0% { transform: scale(1); } 40% { transform: scale(1.18); background: #fff2c4; } 100% { transform: scale(1); } }
 @keyframes blink { to { opacity: 0.45; } }
 
 /* ---------- stage ---------- */
@@ -101,6 +105,12 @@ button:active { transform: translateY(1px); box-shadow: inset 0 -1px 0 rgba(0, 0
 button:focus-visible { outline: 3px solid var(--interactive); outline-offset: 2px; }
 button.go { background: var(--go); color: #fff; box-shadow: inset 0 -4px 0 var(--go-shade); }
 button.big { width: 100%; font-size: 20px; min-height: 56px; margin-bottom: 8px; }
+button.play { display: grid; place-items: center; line-height: 1; gap: 3px; font-size: 24px; min-height: 64px; }
+button.play small { font-size: 13px; opacity: 0.85; letter-spacing: 0.06em; text-transform: uppercase; }
+button small.count { font-size: 12px; opacity: 0.6; }
+button.danger { color: var(--bad); }
+button.danger.armed { background: var(--bad); color: #fff; box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); }
+.linkbtn { display: grid; place-items: center; min-height: 44px; border-radius: 14px; background: var(--panel-alt); color: var(--ink); font-family: var(--display); font-weight: 800; text-decoration: none; }
 button.small { min-height: 40px; font-size: 15px; padding: 6px 12px; }
 button:disabled { opacity: 0.5; cursor: default; }
 .menuBtn { min-height: 36px; padding: 4px 12px; font-size: 14px; }
@@ -119,7 +129,9 @@ button:disabled { opacity: 0.5; cursor: default; }
 .lvtile .num { font-size: 24px; line-height: 1; }
 .lvtile .name { font-size: 13px; line-height: 1.15; }
 .lvtile .sub { font-family: var(--body); font-size: 11.5px; color: var(--muted); font-weight: 700; }
-.lvtile.cleared::after { content: "\2713"; position: absolute; top: 8px; right: 10px; color: var(--go-shade); font-size: 18px; }
+.lvtile .sub .tick { color: var(--go-shade); margin-right: 4px; }
+.lvtile.next .sub .tick { color: #fff; }
+.lvtile.cleared::after { content: "\2605"; position: absolute; top: 8px; right: 10px; color: var(--gold); font-size: 18px; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); }
 .lvtile.next { background: var(--go); color: #fff; box-shadow: inset 0 -4px 0 var(--go-shade); }
 .lvtile.next .sub { color: #fff; }
 .lvtile.locked .num::before { content: "\1F512 "; font-size: 14px; }
@@ -131,7 +143,11 @@ button:disabled { opacity: 0.5; cursor: default; }
     radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.35), transparent 60%),
     linear-gradient(180deg, #e8a87a 0%, #c9774a 30%, var(--ground) 62%, #5e3020 100%);
 }
-.title-wrap { display: grid; justify-items: center; gap: 10px; text-align: center; width: 100%; padding-bottom: 8vh; }
+#ov-title { overflow: hidden; }
+.title-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+.title-wrap { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; width: 100%; height: 100%; padding: 9vh 0 3vh; }
+.title-wrap .stack { margin-top: auto; }
+#ov-title { place-items: stretch; }
 .wordmark { display: grid; justify-items: center; line-height: 0.86; font-family: var(--display); font-weight: 900; text-transform: uppercase; }
 .wordmark span {
   display: block; color: #fff8ef; letter-spacing: 0.02em;
@@ -168,3 +184,29 @@ button:disabled { opacity: 0.5; cursor: default; }
 @media (orientation: landscape) and (pointer: coarse) and (max-height: 600px) {
   .rotate { display: grid; }
 }
+
+/* ---------- intro and result cards ---------- */
+.card.intro .goal-line { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; background: #fff1dc; border-radius: 12px; padding: 8px 10px; }
+.card.intro .goal-ic { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex: none; transform: translateY(-1px); }
+.card.result { animation: card-in 0.4s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes card-in { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.card.result .badge {
+  width: 64px; height: 64px; margin: -52px auto 6px; border-radius: 50%; display: grid; place-items: center; font-size: 34px; color: #fff;
+  background: var(--go); box-shadow: inset 0 -5px 0 var(--go-shade), 0 6px 16px rgba(0,0,0,.25); font-family: var(--display); font-weight: 900;
+}
+.card.result.lost .badge { background: var(--bad); box-shadow: inset 0 -5px 0 rgba(0,0,0,.25), 0 6px 16px rgba(0,0,0,.25); }
+.card.result { margin-top: 44px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); gap: 6px; margin: 4px 0 12px; }
+.stat-cell { background: var(--panel-alt); border-radius: 12px; padding: 8px 4px; display: grid; gap: 1px; animation: stat-in 0.35s both cubic-bezier(.2, 1.5, .4, 1); }
+.stat-cell b { font-family: var(--display); font-size: 20px; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.stat-cell span { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+@keyframes stat-in { from { transform: translateY(8px) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+.bestline { font-family: var(--display); font-weight: 800; color: var(--ink) !important; }
+.newbest { background: var(--gold); color: var(--ink); border-radius: 999px; padding: 1px 8px; margin-right: 4px; }
+.card .tip { background: #fff1dc; border-radius: 12px; padding: 9px 11px; color: var(--ink); text-align: left; font-size: 14px; }
+
+/* chip glyphs: shape tells the meter apart, not colour alone */
+.chip[data-k="fuel"] .ic { width: 9px; height: 15px; border-radius: 3px; box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.12), 0 -2px 0 -0.5px #3b3f46; }
+.chip[data-k="population"] .ic { width: 13px; height: 14px; border-radius: 6px 6px 3px 3px; -webkit-mask: radial-gradient(circle at 50% 28%, #000 3.4px, transparent 3.6px), linear-gradient(#000, #000) bottom / 100% 45% no-repeat; mask: radial-gradient(circle at 50% 28%, #000 3.4px, transparent 3.6px), linear-gradient(#000, #000) bottom / 100% 45% no-repeat; background: #7d8b96 !important; }
+.chip[data-k="timer"] .ic { border: 2px solid currentColor; background: transparent !important; }
+.chip[data-k="wave"] .ic { border-radius: 2px; transform: rotate(45deg); width: 10px; height: 10px; }

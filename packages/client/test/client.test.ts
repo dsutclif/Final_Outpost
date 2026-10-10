@@ -115,7 +115,7 @@ describe("level text, HUD model and level sources", () => {
     const keys = m.chips.map((c) => c.key);
     expect(keys).toEqual(expect.arrayContaining(["currency", "lifeline", "fuel"]));
     expect(m.chips.find((c) => c.key === "lifeline")!.text).toBe("Heat");
-    expect(m.chips.find((c) => c.key === "fuel")!.text).toMatch(/^Fuel 12\/20$/);
+    expect(m.chips.find((c) => c.key === "fuel")!.text).toBe("12/20");
     expect(m.goal).toContain("Habitat hub");
   });
 
@@ -146,7 +146,7 @@ describe("level text, HUD model and level sources", () => {
 describe("saves and feedback", () => {
   it("migrates from nothing and keeps new setting defaults", async () => {
     const s = new MemoryStore();
-    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, current: null });
+    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, current: null, coach: {} });
     expect((await s.getSettings()).haptics).toBe(true);
     expect(mergeSettings({ sound: false }).sound).toBe(false);
     expect(mergeSettings({ sound: false }).renderer).toBe("2d");

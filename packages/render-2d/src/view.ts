@@ -49,6 +49,8 @@ export interface WorldView {
   waves?: { idx: number; pending?: { tick: number; type: string }[]; active?: boolean };
   hazard?: { phase: string; until?: number };
   lasso?: { trail?: V[]; towing?: (string | number)[]; engaged?: boolean };
+  gateQueue?: number[];
+  stats?: { sold?: number; rescued?: number };
   over: boolean;
   won: boolean | null;
   reason: string | null;

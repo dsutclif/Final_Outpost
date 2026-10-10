@@ -44,6 +44,12 @@ export interface SkinText {
   ui: Record<string, string>;
   /** Tips shown on a level intro card when the manifest has none for this skin. */
   genericTips: string[];
+  /** One intro-card tip per module id, shown on the level that introduces the module. */
+  moduleTips: Record<string, string>;
+  /** Coach-mark lines for first-time guidance, keyed by coach rule id. */
+  coach: Record<string, string>;
+  /** A concrete tip for the lose card, per end reason. */
+  loseTips: Record<string, string>;
 }
 
 export interface Skin {

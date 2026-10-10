@@ -11,6 +11,11 @@ interface Arc { res: string; from: V; to: V | null; t: number; dur: number; h: n
 interface Coin { from: V; to: V; t: number; dur: number; delay: number }
 interface Part { x: number; y: number; vx: number; vy: number; grav: number; t: number; life: number; color: string; size: number; spin: number }
 interface Ring { x: number; y: number; t: number; dur: number; r: number; color: string }
+interface Knock { x: number; y: number; t: number }
+interface Tracer { x1: number; y1: number; x2: number; y2: number; t: number; color: string }
+interface Confetto { x: number; y: number; vx: number; vy: number; rot: number; vr: number; color: string; w: number; h: number; t: number }
+
+const KNOCK_DUR = 0.22;
 
 export class Fx {
   floaters: Floater[] = [];
@@ -18,6 +23,14 @@ export class Fx {
   coins: Coin[] = [];
   parts: Part[] = [];
   rings: Ring[] = [];
+  tracers: Tracer[] = [];
+  confetti: Confetto[] = [];
+  private knocks = new Map<string, Knock>();
+  /** Visible world x range, so floaters near the edge stay readable. */
+  viewX0 = -Infinity;
+  viewX1 = Infinity;
+  /** Particle count multiplier from the quality setting. */
+  density = 1;
   private flashes = new Map<string, number>();
   private pops = new Map<string, number>();
   shake = 0;
@@ -41,6 +54,11 @@ export class Fx {
     this.parts = this.parts.filter((p) => p.t < p.life);
     for (const r of this.rings) r.t += dt;
     this.rings = this.rings.filter((r) => r.t < r.dur);
+    for (const tr of this.tracers) tr.t += dt;
+    this.tracers = this.tracers.filter((tr) => tr.t < 0.12);
+    for (const c of this.confetti) { c.t += dt; c.x += c.vx * dt; c.y += c.vy * dt; c.vy = Math.min(140, c.vy + 260 * dt); c.vx *= 1 - dt * 0.8; c.rot += c.vr * dt; }
+    this.confetti = this.confetti.filter((c) => c.t < 4.5);
+    for (const [k, kn] of this.knocks) { kn.t += dt; if (kn.t >= KNOCK_DUR) this.knocks.delete(k); }
     this.shake = Math.max(0, this.shake - dt * 18);
     if (this.floaters.length > 40) this.floaters.splice(0, this.floaters.length - 40);
     if (this.parts.length > 400) this.parts.splice(0, this.parts.length - 400);
@@ -67,7 +85,37 @@ export class Fx {
     for (let i = 0; i < n; i++) this.coins.push({ from: { x: from.x + (i % 3) * 4 - 4, y: from.y - i * 2 }, to, t: 0, dur: 0.55, delay: i * 0.05 });
   }
 
+  /** Push an entity away from a hit for a moment (drawn offset, never fed back). */
+  knock(key: string, dx: number, dy: number): void {
+    const m = Math.hypot(dx, dy) || 1;
+    this.knocks.set(key, { x: (dx / m) * 7, y: (dy / m) * 7, t: 0 });
+  }
+
+  knockOff(key: string): V | null {
+    const kn = this.knocks.get(key);
+    if (!kn) return null;
+    const k = 1 - kn.t / KNOCK_DUR;
+    const e = k * k;
+    return { x: kn.x * e, y: kn.y * e };
+  }
+
+  tracer(from: V, to: V, color: string): void {
+    this.tracers.push({ x1: from.x, y1: from.y, x2: to.x, y2: to.y, t: 0, color });
+  }
+
+  /** Screen-space confetti shower from the top edge (CSS px). */
+  confettiShower(w: number, colors: readonly string[], n = 110): void {
+    const count = Math.round(n * this.density);
+    for (let i = 0; i < count; i++) {
+      this.confetti.push({
+        x: Math.random() * w, y: -20 - Math.random() * 180, vx: (Math.random() - 0.5) * 80, vy: 40 + Math.random() * 90,
+        rot: Math.random() * TAU, vr: (Math.random() - 0.5) * 14, color: colors[i % colors.length]!, w: 5 + Math.random() * 5, h: 3 + Math.random() * 4, t: 0,
+      });
+    }
+  }
+
   burst(x: number, y: number, colors: readonly string[], n: number, speed = 90, grav = 160, size = 3, life = 0.7): void {
+    n = Math.max(1, Math.round(n * this.density));
     for (let i = 0; i < n; i++) {
       const a = (i / n) * TAU + Math.random() * 0.6;
       const s = speed * (0.5 + Math.random() * 0.7);
@@ -106,6 +154,7 @@ export class Fx {
 
   clear(): void {
     this.floaters = []; this.arcs = []; this.coins = []; this.parts = []; this.rings = [];
+    this.tracers = []; this.confetti = []; this.knocks.clear();
     this.flashes.clear(); this.pops.clear(); this.shake = 0;
   }
 
@@ -127,6 +176,12 @@ export class Fx {
       } else circle(g, p.x, p.y, p.size * (0.6 + k * 0.6), p.color);
     }
     g.globalAlpha = 1;
+    for (const tr of this.tracers) {
+      g.globalAlpha = 1 - tr.t / 0.12;
+      g.beginPath(); g.moveTo(tr.x1, tr.y1); g.lineTo(tr.x2, tr.y2);
+      g.strokeStyle = tr.color; g.lineWidth = 3; g.lineCap = "round"; g.stroke();
+    }
+    g.globalAlpha = 1;
     for (const a of this.arcs) {
       const k = a.t / a.dur;
       const to = a.to ?? { x: player.x, y: player.y - 34 };
@@ -138,13 +193,23 @@ export class Fx {
       const rise = (1 - (1 - k) * (1 - k)) * 34;
       const s = k < 0.15 ? 0.6 + (k / 0.15) * 0.5 : k < 0.3 ? 1.1 - ((k - 0.15) / 0.15) * 0.1 : 1;
       g.globalAlpha = k > 0.7 ? 1 - (k - 0.7) / 0.3 : 1;
-      label(g, f.text, f.x, f.y - rise, f.size * s, f.color);
+      const half = f.text.length * f.size * 0.3 + 4;
+      const fx = Math.max(this.viewX0 + half, Math.min(this.viewX1 - half, f.x));
+      label(g, f.text, fx, f.y - rise, f.size * s, f.color);
       g.globalAlpha = 1;
     }
   }
 
   /** Screen-space effects (coins flying to the HUD); call with an identity * dpr transform. */
   drawScreen(dc: DC): void {
+    const g = dc.g;
+    for (const c of this.confetti) {
+      g.save(); g.translate(c.x, c.y); g.rotate(c.rot); g.scale(1, Math.abs(Math.cos(c.rot * 1.3)) * 0.8 + 0.2);
+      g.globalAlpha = c.t > 3.8 ? Math.max(0, 1 - (c.t - 3.8) / 0.7) : 1;
+      g.fillStyle = c.color; g.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+      g.restore();
+    }
+    g.globalAlpha = 1;
     for (const c of this.coins) {
       if (c.t < c.delay) continue;
       const k = Math.min(1, (c.t - c.delay) / c.dur);

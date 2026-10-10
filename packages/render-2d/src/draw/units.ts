@@ -21,7 +21,16 @@ register("unit.player", (dc, e: { pos: V; key: string }) => {
   g.beginPath(); g.ellipse(p.x, p.y + 13, 17, 6.5, 0, 0, Math.PI * 2);
   g.strokeStyle = alpha(dc.pal.interactive, 0.9); g.lineWidth = 2.5; g.stroke();
   const bob = dc.t * 12 * dc.moving;
-  drawPerson(dc, p.x, p.y, { body: PLAYER_BODY, helmet: "#ffffff", visor: "#ffb347", face: pl.face, bob, backpack: true, scale: 1.08 });
+  const cold = dc.outside || lifelineK(dc) < 0.4;
+  const shiver = cold ? Math.sin(dc.t * 38) * 0.8 : 0;
+  drawPerson(dc, p.x + shiver, p.y, { body: cold ? mix(PLAYER_BODY, "#cfeaff", 0.35) : PLAYER_BODY, helmet: "#ffffff", visor: "#ffb347", face: pl.face, bob, backpack: true, scale: 1.08 });
+  if (cold) {
+    // breath puffs in the cold
+    for (let k = 0; k < 2; k++) {
+      const ph = (dc.t * 0.9 + k * 0.5) % 1;
+      circle(g, p.x + pl.face * (9 + ph * 10), p.y - 15 - ph * 8, 2 + ph * 3, `rgba(255,255,255,${0.7 * (1 - ph)})`);
+    }
+  }
   // orange suit stripe makes the hero pop from colonists
   fillRR(g, p.x - 10, p.y - 1 + Math.sin(bob) * 1.5, 20, 3.5, 1.5, dc.pal.accent);
   drawBackStack(dc, p, pl.stack);
@@ -38,8 +47,10 @@ function drawBackStack(dc: DC, p: V, stack: readonly string[]): void {
     const n = Math.max(0, (counts.get(res) ?? 0) - dc.inFlight(res));
     const cx = p.x + (ci - (order.length - 1) / 2) * 24;
     for (let k = 0; k < n; k++) {
-      const wob = Math.sin(dc.t * 9 - k * 0.55) * k * (0.25 + 0.6 * dc.moving);
-      drawItem(dc, res, cx + wob, p.y - 30 - k * 7);
+      // higher items lag more: the stack bends against the motion and wobbles on top of it
+      const lag = (k + 1) / 6;
+      const wob = Math.sin(dc.t * 9 - k * 0.55) * k * (0.2 + 0.5 * dc.moving);
+      drawItem(dc, res, cx + wob + dc.sway.x * lag * (1 + k * 0.25), p.y - 30 - k * 7 + dc.sway.y * lag);
     }
     const cap = dc.content.resources[res]?.cap ?? null;
     if (cap !== null && (counts.get(res) ?? 0) >= cap) label(dc.g, dc.ui("max"), cx, p.y - 40 - n * 7, 9, dc.pal.danger, "#ffffff");
@@ -124,7 +135,9 @@ register("unit.customer", (dc, e: CustomerView & { key: string; idx: number; que
 register("unit.prey", (dc, e: PreyView) => {
   if (!e.alive) return;
   const g = dc.g;
-  const p = dc.pos(`p:${e.id}`, e.pos);
+  const p0 = dc.pos(`p:${e.id}`, e.pos);
+  const kn = dc.knock(`p:${e.id}`);
+  const p = kn ? { x: p0.x + kn.x, y: p0.y + kn.y } : p0;
   const fl = dc.flash(`p:${e.id}`);
   const hop = Math.abs(Math.sin(dc.t * 5 + Number(e.id) * 1.7)) * 6;
   const col = fl > 0 ? "#ffffff" : "#d8b48a";
@@ -163,11 +176,13 @@ function drawPod(dc: DC, p: V, state: string, openK: number, key: string): void 
   void key;
 }
 
-register("capture.*", (dc, c: CaptureView) => {
+function drawCapture(dc: DC, c: CaptureView): void {
   const p = dc.pos(`c:${c.id}`, c.pos);
   const openK = c.state === "releasing" ? Math.min(1, dc.since(`cs:${c.id}`, c.state) / 1.6) : 0;
   drawPod(dc, p, c.state, openK, `c:${c.id}`);
-});
+}
+register("capture.recruit_container", drawCapture);
+register("capture.*", drawCapture);
 
 // ---------- drops ----------
 
@@ -186,24 +201,41 @@ register("fx.lasso", (dc) => {
   const pl = dc.pos("player", w.player.pos);
   const trail = w.lasso?.trail ?? [];
   if (trail.length > 1) {
+    // the tow line being thrown: a rope trail with its start marked as the place to close the loop
     g.beginPath();
     const t0 = dc.w(trail[0]!);
     g.moveTo(t0.x, t0.y);
     for (const v of trail) { const q = dc.w(v); g.lineTo(q.x, q.y); }
     g.lineTo(pl.x, pl.y);
-    g.setLineDash([7, 5]); g.strokeStyle = alpha(dc.pal.interactive, 0.9); g.lineWidth = 3; g.stroke(); g.setLineDash([]);
-    circle(g, t0.x, t0.y, 5, dc.pal.interactive, "#ffffff", 1.5);
+    g.lineJoin = "round";
+    g.strokeStyle = "rgba(33,24,26,.35)"; g.lineWidth = 6; g.stroke();
+    g.setLineDash([8, 5]); g.lineDashOffset = -dc.t * 30;
+    g.strokeStyle = "#f3e2c8"; g.lineWidth = 3.5; g.stroke();
+    g.setLineDash([]); g.lineDashOffset = 0;
+    const minPts = dc.cp?.lasso.minLoopPoints ?? 12;
+    const ready = trail.length >= minPts;
+    const pulse = ready ? 1 + 0.35 * Math.sin(dc.t * 10) : 1;
+    circle(g, t0.x, t0.y, 6 * pulse, ready ? dc.pal.interactive : "#f3e2c8", "#ffffff", 2);
+    if (ready) { g.beginPath(); g.arc(t0.x, t0.y, 14 + ((dc.t * 30) % 10), 0, Math.PI * 2); g.strokeStyle = alpha(dc.pal.interactive, 0.6); g.lineWidth = 2; g.stroke(); }
   }
   const tow = w.lasso?.towing ?? w.player.tow ?? [];
   if (tow.length && w.captures) {
-    // the rope sags: a quadratic through a point below the midpoint
+    // a sagging, swinging rope from the hero through each pod in chain order
+    let from = pl;
+    let i = 0;
     for (const id of tow) {
       const c = w.captures.find((x) => x.id === id);
       if (!c) continue;
       const q = dc.pos(`c:${c.id}`, c.pos);
-      const mx = (pl.x + q.x) / 2, my = (pl.y + q.y) / 2 + 12 + Math.sin(dc.t * 5) * 3;
-      g.beginPath(); g.moveTo(pl.x, pl.y); g.quadraticCurveTo(mx, my, q.x, q.y - 10);
-      g.strokeStyle = "#e9d8b8"; g.lineWidth = 2.5; g.stroke();
+      const to = { x: q.x, y: q.y - 8 };
+      const d = Math.hypot(to.x - from.x, to.y - from.y);
+      const sag = Math.max(4, 22 - d * 0.35) + Math.sin(dc.t * 5 + i) * 3;
+      const mx = (from.x + to.x) / 2 + Math.sin(dc.t * 3.3 + i) * 3, my = (from.y + to.y) / 2 + sag;
+      g.beginPath(); g.moveTo(from.x, from.y - 4); g.quadraticCurveTo(mx, my, to.x, to.y);
+      g.strokeStyle = "rgba(33,24,26,.4)"; g.lineWidth = 5; g.stroke();
+      g.strokeStyle = "#e9d8b8"; g.lineWidth = 3; g.stroke();
+      from = to;
+      i++;
     }
   }
 });

@@ -1,3 +1,4 @@
+import { FP } from "@fo/sim";
 import { alpha, mix } from "@fo/skins";
 import type { StructureView } from "../view.js";
 import type { DC } from "./dc.js";
@@ -72,7 +73,7 @@ register("struct.ranged_defense", (dc, s: StructureView) => withPop(dc, s, (x, y
   const g = dc.g;
   const p = dc.w(s.pos);
   // aim at the nearest hostile, idle sweep otherwise
-  let ang = Math.sin(dc.t * 0.8 + Number(s.id || 0)) * 0.8 - Math.PI / 2;
+  let ang = Math.sin(dc.t * 0.8 + (String(s.id).length * 1.7 + String(s.id).charCodeAt(0))) * 0.8 - Math.PI / 2;
   let best = Infinity;
   for (const h of dc.world.hostiles ?? []) {
     const q = dc.w(h.pos), d = (q.x - p.x) ** 2 + (q.y - p.y) ** 2;
@@ -103,6 +104,37 @@ function drawGuardPost(dc: DC, s: StructureView): void { withPop(dc, s, (x, y) =
 }, 28); }
 register("struct.training", drawGuardPost);
 register("struct.barracks", drawGuardPost);
+
+// The arrivals airlock at the map edge. When recruits queue, a beacon flashes and the
+// spot to stand on to let them in is drawn on the ground.
+register("struct.gate", (dc, s: StructureView) => {
+  const g = dc.g, p = dc.w(s.pos);
+  const queue = dc.world.gateQueue?.length ?? 0;
+  const gp = dc.cp?.gate;
+  if (queue > 0 && gp) {
+    const ax = gp.pos.x / FP, ay = (gp.pos.y + gp.admitOffsetY) / FP, r = gp.admitRange / FP;
+    g.beginPath(); g.ellipse(ax, ay, r * 0.8, r * 0.36, 0, 0, Math.PI * 2);
+    g.fillStyle = alpha(dc.pal.ok, 0.16 + 0.08 * Math.sin(dc.t * 5)); g.fill();
+    g.setLineDash([6, 5]); g.lineDashOffset = -dc.t * 20; g.strokeStyle = dc.pal.ok; g.lineWidth = 2.5; g.stroke(); g.setLineDash([]); g.lineDashOffset = 0;
+  }
+  withPop(dc, s, (x, y) => {
+    shadow(g, x, y + 18, 40, 0.25);
+    fillRR(g, x - 38, y - 6, 76, 26, 6, dc.pal.structure, OUT, 2);
+    g.beginPath(); g.arc(x, y - 6, 22, Math.PI, 0); g.closePath();
+    g.fillStyle = dc.pal.structure; g.fill(); g.strokeStyle = OUT; g.lineWidth = 2; g.stroke();
+    fillRR(g, x - 38, y + 2, 76, 5, 2.5, TEAL);
+    // door, open when someone waits
+    fillRR(g, x - 11, y - 16, 22, 36, 8, mix(dc.pal.structureDark, "#000000", 0.3));
+    if (queue > 0) fillRR(g, x - 9, y - 14, 18, 34, 7, alpha(dc.pal.ok, 0.45));
+    const on = queue > 0 && Math.sin(dc.t * 8) > 0;
+    circle(g, x, y - 32, 4.5, on ? dc.pal.ok : "#6e7a72", OUT, 1.5);
+    label(g, dc.ui("arrivals"), x, y + 30, 9, "#ffffff");
+  }, 26);
+  if (queue > 0) {
+    circle(g, p.x + 30, p.y - 26, 11, dc.pal.ok, "#ffffff", 2.5);
+    label(g, String(queue), p.x + 30, p.y - 26, 12, dc.pal.ink, null);
+  }
+});
 
 /** Generic building for any struct.* without its own routine. */
 register("struct.*", (dc, s: StructureView) => withPop(dc, s, (x, y) => {

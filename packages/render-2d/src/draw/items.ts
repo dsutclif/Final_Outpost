@@ -62,6 +62,9 @@ const ITEMS: Record<string, ItemFn> = {
   },
 };
 
+/** True when an item sprite key has its own drawing. */
+export function hasItemLook(key: string): boolean { return key in ITEMS; }
+
 /** Fallback by resource category so unknown sprite keys still read as their kind. */
 function genericItem(g: G, x: number, y: number, c: string): void {
   circle(g, x, y, 7, c, OUT, 1.5);
