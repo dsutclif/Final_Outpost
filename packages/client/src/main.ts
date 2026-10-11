@@ -29,7 +29,8 @@ async function boot(): Promise<void> {
   }
   const telemetry = new TelemetryQueue(store, import.meta.env.VITE_TELEMETRY_URL || undefined);
   let app: App | null = null;
-  const pwa = setupPwa(() => { if (app) app.updateReady = true; });
+  // the waiting worker can be found before the app exists; the check after start() covers that
+  const pwa = setupPwa(() => app?.offerUpdate());
   // every pack under levels/packs that matches this engine/content version
   const source = await allLevels(`${import.meta.env.BASE_URL}levels/packs`.replace(/\/{2,}/g, "/"));
   app = new App(root, {
@@ -41,6 +42,7 @@ async function boot(): Promise<void> {
     },
   });
   await app.start();
+  if (pwa.ready) app.offerUpdate();
   if (import.meta.env.DEV) {
     (window as unknown as { __fo: App }).__fo = app;
     void import("./dev/playtest.js").then((m) => m.installPlaytest(app!));

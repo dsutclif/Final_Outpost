@@ -377,6 +377,12 @@ export class App {
 
   // ------------------------------------------------------------------ screens
 
+  /** A new build is waiting: apply it now when no level is in progress, else at the next menu. */
+  offerUpdate(): void {
+    this.updateReady = true;
+    if ((this.screen === "title" || this.screen === "levels") && !this.session) this.deps.applyUpdate?.();
+  }
+
   private show(screen: Screen): void {
     const prev = this.screen;
     this.screen = screen;
