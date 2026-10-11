@@ -52,5 +52,15 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     is not running (`converterIdle`), so an unfed converter cannot clog the queue. Engine 0.4.0.
 9g. **Pad dwell 0.5 s (2026-10-10).** `pads.dwell` rises from 0.35 to 0.5 s (15 ticks): a straight
     crossing of a pad (about 11.6 ticks) must never pay. Content 0.4.0.
+9h. **Redesign round 2 (2026-10-10).** Agreed with Doug after an iPhone playtest; the full
+    brief is `docs/REDESIGN-R2.md` and overrides older entries where they conflict. In short:
+    3D only; clerk pad and Martian kiosk; Colony HP; fuel forests; reactor-out countdown with
+    colonists freezing one at a time; always-stocked customer queue; perimeter walls only where
+    needed, attacks from 1–3 sides, swarm waves with a scrap economy and bosses; five level
+    families (shelter, rescue, harvest, industrialize, defend) with ten goal types each and a
+    story intro in that order for levels 1–5; three named star objectives per level shown before
+    and during play; guide arrows on levels 1–5, discovery labels, tap to inspect, field guide;
+    whole pack cached offline. Supersedes 1 (intro order) and 9e's acceptance of superfluous
+    elements in generated levels.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.
