@@ -158,7 +158,7 @@ export async function discoverPacks(base: string, fetchFn: FetchFn = defaultFetc
   }
 }
 
-/** Several sources played back to back (golden levels first, then packs in order). */
+/** Several sources played back to back (packs in order). */
 export class ChainLevelSource implements LevelSource {
   private owner = new Map<string, LevelSource>();
 
@@ -186,10 +186,13 @@ export class ChainLevelSource implements LevelSource {
   }
 }
 
-/** Golden levels, then every compatible pack the server lists. */
-export async function allLevels(base: string, fetchFn?: FetchFn): Promise<ChainLevelSource> {
+/**
+ * Every compatible pack the server lists. The prototype (golden) levels are a dev-build extra,
+ * listed after the packs so level 1 is always the first pack level; shipped builds never show them.
+ */
+export async function allLevels(base: string, fetchFn?: FetchFn, includeGolden: boolean = import.meta.env.DEV): Promise<ChainLevelSource> {
   const packs = await discoverPacks(base, fetchFn);
-  return new ChainLevelSource([goldenLevelSource(), ...packs]);
+  return new ChainLevelSource(includeGolden ? [...packs, goldenLevelSource()] : packs);
 }
 
 // ------------------------------------------------------------------ offline cache

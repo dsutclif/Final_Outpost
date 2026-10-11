@@ -1,7 +1,7 @@
 {
   "id": "s1-L053",
   "seed": 1436247380,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -519,7 +519,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 84
+        "seconds": 88
       }
     },
     {
@@ -533,7 +533,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Galleys",
+      "title": "Presses and Upgrades",
       "goal": "converter_level",
       "tips": [
         "Converters turn one resource into another, but only while someone stands on the operator spot."

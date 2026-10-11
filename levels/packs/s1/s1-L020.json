@@ -1,7 +1,7 @@
 {
   "id": "s1-L020",
   "seed": 886552486,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -370,14 +370,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 74
+        "seconds": 77
       }
     },
     {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 60
+        "pct": 50
       }
     }
   ],
@@ -386,7 +386,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Storms",
+      "title": "Storms and Power Up",
       "goal": "core_level",
       "tips": [
         "A dust storm burns fuel fast. Fill the reactor before it hits."

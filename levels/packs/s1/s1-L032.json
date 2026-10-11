@@ -1,7 +1,7 @@
 {
   "id": "s1-L032",
   "seed": 1676619851,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -385,7 +385,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 172
+        "seconds": 189
       }
     },
     {
@@ -400,7 +400,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Scrap",
+      "title": "Scrap and New Hands",
       "goal": "hire",
       "tips": [
         "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."

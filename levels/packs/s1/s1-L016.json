@@ -1,7 +1,7 @@
 {
   "id": "s1-L016",
   "seed": 804459749,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -343,7 +343,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Domes",
+      "title": "Hab Pods and Sweep",
       "goal": "clear_zones",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."

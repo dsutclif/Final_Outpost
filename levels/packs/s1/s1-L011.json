@@ -1,7 +1,7 @@
 {
   "id": "s1-L011",
   "seed": 975969584,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -325,7 +325,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Reactors",
+      "title": "Rising Flares",
       "goal": "core_level",
       "tips": [
         "Upgrade the reactor for a bigger heat ring and new build sites."

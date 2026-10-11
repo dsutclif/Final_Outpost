@@ -1,7 +1,7 @@
 {
   "id": "s1-L049",
   "seed": 2061895893,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -289,7 +289,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 55
+        "seconds": 58
       }
     },
     {
@@ -303,7 +303,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Dust",
+      "title": "Flares and Sweep",
       "goal": "clear_zones",
       "tips": [
         "A dust storm burns fuel fast. Fill the reactor before it hits."

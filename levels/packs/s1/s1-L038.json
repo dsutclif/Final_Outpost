@@ -1,7 +1,7 @@
 {
   "id": "s1-L038",
   "seed": 1094709853,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -304,7 +304,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 109
+        "seconds": 110
       }
     },
     {
@@ -320,7 +320,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Storms",
+      "title": "Storms and Brighter Cores",
       "goal": "core_level",
       "tips": [
         "A dust storm burns fuel fast. Fill the reactor before it hits."

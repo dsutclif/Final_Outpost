@@ -1,7 +1,7 @@
 {
   "id": "s1-L060",
   "seed": 305521690,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -498,7 +498,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 216
+        "seconds": 235
       }
     },
     {
@@ -515,7 +515,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Scrap",
+      "title": "Rust and Body Count",
       "goal": "kills",
       "tips": [
         "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."

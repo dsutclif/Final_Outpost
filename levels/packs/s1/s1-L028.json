@@ -1,7 +1,7 @@
 {
   "id": "s1-L028",
   "seed": 693082942,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -293,7 +293,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 153
+        "seconds": 161
       }
     },
     {
@@ -309,7 +309,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Tow Lines",
+      "title": "Stasis Pods and Protein Run",
       "goal": "protein",
       "tips": [
         "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."

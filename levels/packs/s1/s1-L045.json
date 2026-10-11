@@ -1,7 +1,7 @@
 {
   "id": "s1-L045",
   "seed": 196658801,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -317,7 +317,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Tow Lines",
+      "title": "Tow Lines and Hunters' Larder",
       "goal": "protein",
       "tips": [
         "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."

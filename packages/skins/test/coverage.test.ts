@@ -67,7 +67,7 @@ describe("level titles", async () => {
   it("generated titles are deterministic and use the goal and headline module", () => {
     const a = levelTitle(mars, { id: "s1-L017", goal: { type: "waves" }, modules: ["carry", "core", "defense", "hazard_events"] });
     expect(a).toBe(levelTitle(mars, { id: "s1-L017", goal: { type: "waves" }, modules: ["carry", "core", "defense", "hazard_events"] }));
-    expect(a).toMatch(/^(Dust|Storms) and (Raiders|Night Watch|Hold Fast|Siege)$/);
+    expect(a).toMatch(/^(Dust|Storms|Flares) and (Raiders|Night Watch|Hold Fast|Siege)$/);
     const ids = Array.from({ length: 20 }, (_, i) => levelTitle(mars, { id: `s1-L${i}`, goal: "build", modules: ["housing"] }));
     expect(new Set(ids).size).toBeGreaterThan(1);
   });

@@ -113,18 +113,21 @@ function useConverters(st: State, cp: Compiled, out: SimEvent[]): boolean {
 
 function gather(st: State, cp: Compiled, out: SimEvent[]): boolean {
   const p = st.player;
+  let capped = false;
   for (let i = 0; i < st.nodes.length; i++) {
     const n = st.nodes[i]!;
     if (!n.enabled || n.stock === 0) continue;
     const def = cp.nodes[n.type]!;
     if (!within(p.pos, n.pos, def.range)) continue;
-    if (!canTake(cp, p.stack, def.yields)) { hint(st, out, "carry_max"); return true; }
+    // A node whose yield is at the backpack cap must not shadow an in-range node of another resource.
+    if (!canTake(cp, p.stack, def.yields)) { capped = true; continue; }
     if (n.stock !== null) n.stock--;
     p.stack.push(def.yields);
     p.actCd = def.rateTicks;
     out.push({ t: "gathered", res: def.yields, node: i, at: { ...n.pos } });
     return true;
   }
+  if (capped) { hint(st, out, "carry_max"); return true; }
   return false;
 }
 

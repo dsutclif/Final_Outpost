@@ -1,7 +1,7 @@
 {
   "id": "s1-L046",
   "seed": 1601943691,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -240,7 +240,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Blueprints",
+      "title": "Blueprints and Hiring Drive",
       "goal": "hire",
       "tips": [
         "Stand on a Hire pad to put a free colonist to work. They gather and deliver on their own."

@@ -1,7 +1,7 @@
 {
   "id": "s1-L026",
   "seed": 880376164,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -332,14 +332,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 259
+        "seconds": 286
       }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 95
+        "pct": 80
       }
     }
   ],
@@ -349,7 +349,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Med Bays",
+      "title": "Triage and Body Count",
       "goal": "kills",
       "tips": [
         "Hurt colonists stop working until a med bay heals them."

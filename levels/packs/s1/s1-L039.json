@@ -1,7 +1,7 @@
 {
   "id": "s1-L039",
   "seed": 1912053956,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -327,7 +327,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 45
+        "seconds": 47
       }
     },
     {
@@ -341,7 +341,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Stasis Pods",
+      "title": "Stasis Pods and Thin Ice",
       "goal": "rescue_before_freeze",
       "tips": [
         "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."

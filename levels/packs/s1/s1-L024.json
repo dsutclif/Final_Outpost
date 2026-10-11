@@ -1,7 +1,7 @@
 {
   "id": "s1-L024",
   "seed": 777760941,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -364,7 +364,7 @@
       "id": "challenge",
       "kind": "streak",
       "params": {
-        "n": 42
+        "n": 20
       }
     }
   ],
@@ -373,7 +373,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Locked Caches",
+      "title": "Locked Caches and Beat the Clock",
       "goal": "earn_within",
       "tips": [
         "Some grow domes start locked. Unlock them with credits on their pad."

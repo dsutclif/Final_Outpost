@@ -1,7 +1,7 @@
 {
   "id": "s1-L054",
   "seed": 1988824582,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -383,7 +383,7 @@
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 95
+        "pct": 80
       }
     }
   ],
@@ -393,7 +393,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Scrap",
+      "title": "Scrap and Long Night",
       "goal": "waves_survived",
       "tips": [
         "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."

@@ -1,7 +1,7 @@
 {
   "id": "s1-L018",
   "seed": 1948149487,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -292,14 +292,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 141
+        "seconds": 150
       }
     },
     {
       "id": "challenge",
       "kind": "streak",
       "params": {
-        "n": 81
+        "n": 20
       }
     }
   ],
@@ -308,7 +308,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Locked Caches and Ledgers",
+      "title": "Vaults and Ledgers",
       "goal": "Bank 287 credits",
       "tips": [
         "Some grow domes start locked. Unlock them with credits on their pad."

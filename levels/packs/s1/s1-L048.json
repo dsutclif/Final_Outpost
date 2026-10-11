@@ -1,7 +1,7 @@
 {
   "id": "s1-L048",
   "seed": 36296839,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -342,7 +342,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Med Bays and Raiders",
+      "title": "Stitches and Raiders",
       "goal": "Survive every raid",
       "tips": [
         "Hurt colonists stop working until a med bay heals them."

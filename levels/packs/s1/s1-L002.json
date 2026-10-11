@@ -1,7 +1,7 @@
 {
   "id": "s1-L002",
   "seed": 671543360,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -206,7 +206,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 21
+        "seconds": 22
       }
     },
     {
@@ -220,7 +220,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "s1-L002",
+      "title": "Pods in the Dust",
       "goal": "rescue",
       "tips": [
         "Feed ore to the reactor. If it runs dry, the colony starts to freeze."

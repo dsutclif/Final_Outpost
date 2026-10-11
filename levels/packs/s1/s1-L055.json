@@ -1,7 +1,7 @@
 {
   "id": "s1-L055",
   "seed": 2110915574,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -281,7 +281,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hab Pods",
+      "title": "Domes and Building Spree",
       "goal": "build_count",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."

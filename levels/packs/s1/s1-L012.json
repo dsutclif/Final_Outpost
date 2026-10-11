@@ -1,7 +1,7 @@
 {
   "id": "s1-L012",
   "seed": 1417805574,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -328,7 +328,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "s1-L012",
+      "title": "Thin Ice",
       "goal": "rescue_before_freeze",
       "tips": [
         "Feed ore to the reactor. If it runs dry, the colony starts to freeze."

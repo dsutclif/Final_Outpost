@@ -21,6 +21,33 @@ describe("prototype level 1 port", () => {
     expect(more.some((e) => e.t === "hint" && e.key === "carry_max")).toBe(true);
   });
 
+  it("skips a capped node and gathers from another in-range node", () => {
+    const sim = newSim();
+    const st = sim.state;
+    const mat = st.nodes.findIndex((n) => n.type === "node.material_source");
+    const food = st.nodes.findIndex((n) => n.type === "node.food_source");
+    expect(mat).toBeLessThan(food);
+    st.nodes[food]!.pos = { ...st.nodes[mat]!.pos };
+    st.player.pos = { ...st.nodes[mat]!.pos };
+    st.player.stack = Array(6).fill("res.material_basic");
+    const ev = idle(sim, 60);
+    expect(ev.some((e) => e.t === "gathered" && e.res === "res.food_raw_1")).toBe(true);
+    expect(ev.some((e) => e.t === "hint" && e.key === "carry_max")).toBe(false);
+  });
+
+  it("hints carry_max only when every in-range node is capped", () => {
+    const sim = newSim();
+    const st = sim.state;
+    const mat = st.nodes.findIndex((n) => n.type === "node.material_source");
+    const food = st.nodes.findIndex((n) => n.type === "node.food_source");
+    st.nodes[food]!.pos = { ...st.nodes[mat]!.pos };
+    st.player.pos = { ...st.nodes[mat]!.pos };
+    st.player.stack = [...Array(6).fill("res.material_basic"), ...Array(6).fill("res.food_raw_1")];
+    const ev = idle(sim, 60);
+    expect(ev.some((e) => e.t === "hint" && e.key === "carry_max")).toBe(true);
+    expect(ev.some((e) => e.t === "gathered")).toBe(false);
+  });
+
   it("feeds the core with carried material", () => {
     const sim = newSim();
     walkTo(sim, at(50, 220), 30);

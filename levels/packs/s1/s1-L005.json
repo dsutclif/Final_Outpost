@@ -1,7 +1,7 @@
 {
   "id": "s1-L005",
   "seed": 860553483,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -269,7 +269,7 @@
       "id": "challenge2",
       "kind": "hp_floor",
       "params": {
-        "pct": 85
+        "pct": 80
       }
     },
     {
@@ -284,7 +284,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Siege",
+      "title": "First Raid",
       "goal": "Survive every raid",
       "tips": [
         "Feed ore to the reactor. If it runs dry, the colony starts to freeze."

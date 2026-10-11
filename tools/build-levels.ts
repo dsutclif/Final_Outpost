@@ -7,7 +7,7 @@ import { CONTENT_VERSION } from "../packages/content/src/index.js";
 import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { computeReference, type HistoryEntry, type Measurement, type Metrics } from "../packages/rater/src/index.js";
 import { sequenceRange, type LevelRequest } from "../packages/sequencer/src/index.js";
-import { calibrationSample, generateDetailed, templateById, type Candidate } from "../packages/generator/src/index.js";
+import { calibrationSample, dedupeTitles, generateDetailed, templateById, type Candidate } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
 
 // pnpm levels:build --from 1 --to 60 --out levels/packs/s1 [--jobs N] [--retries N] [--calibrate] [--verbose]
@@ -181,6 +181,17 @@ async function main(): Promise<void> {
   const byId = new Map<string, Entry>();
   for (const e of old) byId.set(e.id, e);
   for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, family: r.family, modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target });
+  // Titles are unique across the pack: levels from earlier builds keep theirs, new ones are deduped against them.
+  const keep: Record<string, string> = {};
+  for (const e of old) if (e.title && e.title !== e.id && !results.some((r) => r.id === e.id)) keep[e.id] = e.title;
+  const titles = dedupeTitles([...byId.values()].map((e) => ({ id: e.id, goal: e.goal, modules: e.modules })), keep);
+  for (const r of results) {
+    const mf = JSON.parse(readFileSync(join(outDir, r.file), "utf8")) as { text: Record<string, { title: string }> };
+    mf.text["mars_greenhouse"]!.title = titles[r.id]!;
+    writeFileSync(join(outDir, r.file), JSON.stringify(mf, null, 2) + String.fromCharCode(10));
+    r.title = titles[r.id]!;
+  }
+  for (const e of byId.values()) e.title = titles[e.id]!;
   const levels = [...byId.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
   writeFileSync(packPath, JSON.stringify({ id: packId, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION, levels }, null, 2) + "\n");
 

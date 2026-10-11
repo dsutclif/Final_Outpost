@@ -46,6 +46,7 @@ import { GroundMarks } from "./scene/groundmarks.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
+import { padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
 import { ART_M, FOLLOW_RATE, FOV_DEG, PITCH_DEG, TIERS, VIEW_W, type QualityTier } from "./units.js";
 
@@ -74,7 +75,7 @@ export interface Renderer3DOptions {
 interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean }
 
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
-const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = 30;
+const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = 30, PAD_LOCK_H = 36;
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
 
@@ -930,9 +931,10 @@ export class Renderer3D implements Renderer {
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
       if (!owed.length) owed.push({ res: "res.currency", left: 0 });
       const label = info?.label ?? nameOf(this.skin, pad.type);
-      const lockTxt = pad.locked && info?.requiresCoreLevel !== undefined ? uiText(this.skin, "coreLevel", { n: info.requiresCoreLevel }) : "";
+      const lockTxt = padLockReason(this.skin, info, pad.locked, s.core.level);
       const rows = owed.length > PAD_PER_ROW ? 2 : 1;
-      sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, owed, pad.locked, lockTxt), PAD_LABEL_H * (rows === 2 ? PAD_ART_H2 / PAD_ART_H : 1));
+      const artH = (rows === 2 ? PAD_ART_H2 : PAD_ART_H) + (lockTxt ? PAD_LOCK_H : 0);
+      sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, owed, pad.locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
       sp.position.set(at.x, ART_M * (1.25 + (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04), at.z);
       this.candidate(pad.type, p, ART_M * (2.6 + (rows - 1) * 0.6));
       // scaffold rises with the payment for buildings
@@ -1499,15 +1501,16 @@ export class Renderer3D implements Renderer {
   private padLabelArt(label: string, owed: readonly { res: string; left: number }[], locked: boolean, lockTxt: string): LabelArt {
     const t = this.tokens, ui = this.skin.palette.ui;
     const big = 44, small = 38, gap = 10;
-    const top = lockTxt || label;
-    const wTop = this.labels.textWidth(top, small) + 30;
+    // A locked pad keeps its own name as the title; the reason sits under it, smaller.
+    const top = label, lockPx = 28, extra = lockTxt ? PAD_LOCK_H : 0;
+    const wTop = Math.max(this.labels.textWidth(top, small), lockTxt ? this.labels.textWidth(lockTxt, lockPx) : 0) + 30;
     const cell = owed.map((o) => this.labels.textWidth(`${o.left}`, big) + 64);
     const rowsOf = owed.length > PAD_PER_ROW ? [owed.slice(0, Math.ceil(owed.length / 2)), owed.slice(Math.ceil(owed.length / 2))] : [owed.slice()];
     let k = 0;
     const rowCells = rowsOf.map((r) => r.map(() => cell[k++]!));
     const rowW = rowCells.map((r) => r.reduce((a, b) => a + b, 0) + gap * (r.length - 1) + 24);
     const w = Math.max(wTop, ...rowW) + 20;
-    const h = rowsOf.length === 2 ? PAD_ART_H2 : PAD_ART_H;
+    const h = (rowsOf.length === 2 ? PAD_ART_H2 : PAD_ART_H) + extra;
     return {
       w, h,
       draw: (g, W) => {
@@ -1515,8 +1518,13 @@ export class Renderer3D implements Renderer {
         g.font = `800 ${small}px ${FONT}`;
         g.lineWidth = 8; g.strokeStyle = t.ink; g.strokeText(top, W / 2, 24);
         g.fillStyle = locked ? ui.muted : ui.panel; g.fillText(top, W / 2, 24);
+        if (lockTxt) {
+          g.font = `800 ${lockPx}px ${FONT}`;
+          g.lineWidth = 7; g.strokeStyle = t.ink; g.strokeText(lockTxt, W / 2, 56);
+          g.fillStyle = ui.panel; g.fillText(lockTxt, W / 2, 56);
+        }
         rowsOf.forEach((row, ri) => {
-          const y = 48 + ri * 76;
+          const y = 48 + extra + ri * 76;
           const x0 = (W - rowW[ri]!) / 2;
           roundRect(g, x0, y, rowW[ri]!, 68, 34);
           g.fillStyle = locked ? mix(t.structureDark, t.ink, 0.4) : t.ink; g.globalAlpha = 0.85; g.fill(); g.globalAlpha = 1;

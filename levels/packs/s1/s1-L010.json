@@ -1,7 +1,7 @@
 {
   "id": "s1-L010",
   "seed": 1387950823,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -341,7 +341,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 168
+        "seconds": 180
       }
     },
     {
@@ -356,7 +356,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "s1-L010",
+      "title": "Gun Line",
       "goal": "turret_level",
       "tips": [
         "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."

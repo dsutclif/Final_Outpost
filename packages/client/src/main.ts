@@ -30,7 +30,7 @@ async function boot(): Promise<void> {
   const telemetry = new TelemetryQueue(store, import.meta.env.VITE_TELEMETRY_URL || undefined);
   let app: App | null = null;
   const pwa = setupPwa(() => { if (app) app.updateReady = true; });
-  // golden levels first, then every pack under levels/packs that matches this engine/content version
+  // every pack under levels/packs that matches this engine/content version
   const source = await allLevels(`${import.meta.env.BASE_URL}levels/packs`.replace(/\/{2,}/g, "/"));
   app = new App(root, {
     source, store, telemetry, platform, justUpdated: takeFlag(),

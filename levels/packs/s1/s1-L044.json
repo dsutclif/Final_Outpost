@@ -1,7 +1,7 @@
 {
   "id": "s1-L044",
   "seed": 103669247,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -237,7 +237,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hab Pods",
+      "title": "Hab Pods and Endurance",
       "goal": "survive",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."

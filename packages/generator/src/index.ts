@@ -9,7 +9,7 @@ import { skinText } from "./text.js";
 
 export { TEMPLATES, GEN, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
-export { skinText } from "./text.js";
+export { skinText, dedupeTitles } from "./text.js";
 export { Placer, unreadablePairs } from "./layout.js";
 
 /** Contract 5 request, from the sequencer (family, features, goal kind, modules). */
@@ -175,6 +175,9 @@ function earned(o: Obj, r: BotResult): boolean {
   }
 }
 
+/** Star-parameter caps: extreme challenges the good bot can hit are still unfair for people. */
+export const STAR_CAPS = { streak: 20, hpFloor: 80, heatFloor: 50, timeSlack: 1.15 } as const;
+
 const pctile = (xs: number[], q: number) => { const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.max(0, Math.floor(q * (s.length - 1))))] ?? 0; };
 
 /** Candidate challenge objectives of a family, parameters sized from the good bot's runs. */
@@ -184,8 +187,8 @@ function challengeCandidates(fam: Family, goodRuns: BotResult[], allowed: readon
   const add = (kind: string, params: Record<string, number | string> = {}) => { if (kind !== goalKind && allowed.includes(kind)) out.push({ id: "challenge", kind, params }); };
   for (const k of allowed) {
     switch (k) {
-      case "heat_floor": { const pct = Math.floor(pctile(S.map((s) => s.heatMin / 10), 0.2) / 5) * 5 - 5; if (pct >= 10) add(k, { pct: Math.min(60, pct) }); break; }
-      case "hp_floor": { const pct = Math.floor(pctile(S.map((s) => s.hpMin), 0.2) / 5) * 5 - 5; if (pct >= 20 && pct < 100) add(k, { pct }); break; }
+      case "heat_floor": { const pct = Math.floor(pctile(S.map((s) => s.heatMin / 10), 0.2) / 5) * 5 - 5; if (pct >= 10) add(k, { pct: Math.min(STAR_CAPS.heatFloor, pct) }); break; }
+      case "hp_floor": { const pct = Math.floor(pctile(S.map((s) => s.hpMin), 0.2) / 5) * 5 - 5; if (pct >= 20 && pct < 100) add(k, { pct: Math.min(STAR_CAPS.hpFloor, pct) }); break; }
       case "tow_full_trip": case "tow_trip": {
         const n = Math.min(3, Math.floor(pctile(S.map((s) => (k === "tow_trip" ? s.tripBest : s.tripBestClean)), 0.3)));
         if (n >= 2) add(k, { n });
@@ -198,7 +201,7 @@ function challengeCandidates(fam: Family, goodRuns: BotResult[], allowed: readon
         break;
       }
       case "rescue": { const n = Math.floor(pctile(S.map((s) => s.rescued), 0.3)); if (n >= 2) add(k, { n }); break; }
-      case "streak": { const n = Math.floor(pctile(S.map((s) => s.streakMax), 0.3) * 0.9); if (n >= 4) add(k, { n }); break; }
+      case "streak": { const n = Math.floor(pctile(S.map((s) => s.streakMax), 0.3) * 0.9); if (n >= 4) add(k, { n: Math.min(STAR_CAPS.streak, n) }); break; }
       case "hire": { const n = Math.floor(pctile(S.map((s) => s.hired), 0.3)); if (n >= 2) add(k, { n }); break; }
       default: add(k);
     }
@@ -232,12 +235,15 @@ function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string
     second = { ...ordered[1]!, id: "challenge2" };
   } else {
     const tMax = Math.max(...good.map((r) => r.ticks)) / 30;
-    second = { id: "time", kind: "time_target", params: { seconds: Math.ceil(tMax * 1.04) } };
+    // Never tighter than 1.15x the good bot's median finish: humans are slower than the bot.
+    const sorted = good.filter((r) => r.won).map((r) => r.ticks / 30).sort((a, b) => a - b);
+    const floorSec = Math.ceil((sorted[Math.floor((sorted.length - 1) / 2)] ?? tMax) * STAR_CAPS.timeSlack);
+    second = { id: "time", kind: "time_target", params: { seconds: Math.max(floorSec, Math.ceil(tMax * 1.04)) } };
     if (!nonTrivial(second)) {
       // Everyone finishes in time: tighten to the median rung's typical time if that still keeps the good bot.
       const med = ms.runs[MEDIAN_RUNG]!.filter((r) => r.won).map((r) => r.ticks / 30);
       const t = med.length > 0 ? Math.floor(Math.min(...med) / 5) * 5 : 0;
-      if (t > tMax) second.params["seconds"] = t;
+      if (t > tMax && t >= floorSec) second.params["seconds"] = t;
       if (!nonTrivial(second)) return "time target trivially met";
     }
   }

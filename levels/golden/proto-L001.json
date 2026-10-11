@@ -1,7 +1,7 @@
 {
   "id": "proto-L001",
   "seed": 1,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": { "w": 480, "h": 900, "zones": ["base", "sources-w", "sources-e", "shop-s"] },
   "modules": ["carry", "gather", "core", "sales", "workers", "source_gating", "build_pads"],

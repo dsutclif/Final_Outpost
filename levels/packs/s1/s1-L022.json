@@ -1,7 +1,7 @@
 {
   "id": "s1-L022",
   "seed": 21601391,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -258,7 +258,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 58
+        "seconds": 64
       }
     },
     {
@@ -272,7 +272,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Domes and Colonists",
+      "title": "Sleepers and Colonists",
       "goal": "Grow the colony to 6 colonists",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."

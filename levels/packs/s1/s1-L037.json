@@ -1,7 +1,7 @@
 {
   "id": "s1-L037",
   "seed": 787545886,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -311,7 +311,7 @@
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 95
+        "pct": 80
       }
     }
   ],
@@ -321,7 +321,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Med Bays",
+      "title": "Triage and Endurance",
       "goal": "survive",
       "tips": [
         "Hurt colonists stop working until a med bay heals them."

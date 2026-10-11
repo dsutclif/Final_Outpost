@@ -1,7 +1,7 @@
 {
   "id": "s1-L027",
   "seed": 561101499,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -253,7 +253,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Reactors",
+      "title": "Reactors and Sweep",
       "goal": "clear_zones",
       "tips": [
         "Upgrade the reactor for a bigger heat ring and new build sites."

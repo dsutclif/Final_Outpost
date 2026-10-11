@@ -69,3 +69,39 @@ describe.skipIf(!present)("level pack s1", () => {
     }
   });
 });
+
+describe.skipIf(!present)("pack titles", () => {
+  it("are unique and never fall back to the level id", async () => {
+    const pack = JSON.parse(readFileSync(packFile, "utf8")) as { levels: { id: string; file: string; title: string }[] };
+    const titles = pack.levels.map((e) => e.title);
+    expect(new Set(titles).size).toBe(titles.length);
+    for (const e of pack.levels) {
+      expect(e.title).not.toBe(e.id);
+      const m = JSON.parse(readFileSync(join(packDir, e.file), "utf8")) as { text: Record<string, { title: string }> };
+      expect(m.text["mars_greenhouse"]!.title).toBe(e.title);
+    }
+  });
+
+  it("dedupeTitles keeps reserved titles and never repeats", async () => {
+    const { dedupeTitles } = await import("../src/index.js");
+    const items = Array.from({ length: 40 }, (_, i) => ({ id: `t-${i}`, goal: "kills", modules: ["carry", "lasso"] }));
+    const out = dedupeTitles(items, { "t-0": "Hand Made" });
+    expect(out["t-0"]).toBe("Hand Made");
+    expect(new Set(Object.values(out)).size).toBe(40);
+  });
+});
+
+describe.skipIf(!present)("star parameter caps", () => {
+  it("no shipped star objective exceeds the human-fair caps", async () => {
+    const { STAR_CAPS } = await import("../src/index.js");
+    const pack = JSON.parse(readFileSync(packFile, "utf8")) as { levels: { file: string }[] };
+    for (const e of pack.levels) {
+      const m = JSON.parse(readFileSync(join(packDir, e.file), "utf8")) as { objectives: { id: string; kind: string; params: Record<string, number> }[] };
+      for (const o of m.objectives.filter((x) => x.id !== "main")) {
+        if (o.kind === "streak") expect(o.params["n"]).toBeLessThanOrEqual(STAR_CAPS.streak);
+        if (o.kind === "hp_floor") expect(o.params["pct"]).toBeLessThanOrEqual(STAR_CAPS.hpFloor);
+        if (o.kind === "heat_floor") expect(o.params["pct"]).toBeLessThanOrEqual(STAR_CAPS.heatFloor);
+      }
+    }
+  });
+});

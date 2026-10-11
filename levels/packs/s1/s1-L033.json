@@ -1,7 +1,7 @@
 {
   "id": "s1-L033",
   "seed": 1817121508,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -215,7 +215,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 65
+        "seconds": 72
       }
     },
     {
@@ -231,7 +231,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hab Pods",
+      "title": "Domes and Open Gates",
       "goal": "admit",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."

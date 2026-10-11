@@ -1,7 +1,7 @@
 {
   "id": "s1-L052",
   "seed": 351208237,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -292,14 +292,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 154
+        "seconds": 162
       }
     },
     {
       "id": "challenge",
       "kind": "streak",
       "params": {
-        "n": 73
+        "n": 20
       }
     }
   ],
@@ -308,7 +308,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Locked Caches",
+      "title": "Vaults and Paydays",
       "goal": "earn",
       "tips": [
         "Some grow domes start locked. Unlock them with credits on their pad."

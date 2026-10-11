@@ -1,7 +1,7 @@
 {
   "id": "s1-L006",
   "seed": 39245116,
-  "engineVersion": "0.5.0",
+  "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
     "w": 480,
@@ -268,7 +268,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 36
+        "seconds": 39
       }
     },
     {
@@ -284,7 +284,7 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "s1-L006",
+      "title": "Roof Overhead",
       "goal": "house_all",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."
