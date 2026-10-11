@@ -84,6 +84,14 @@ export interface Versions { engineVersion: string; contentVersion: string }
 export const RUNNING: Versions = { engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION };
 
 type FetchFn = (url: string) => Promise<Pick<Response, "ok" | "status" | "json">>;
+
+/** FNV-1a over pack.json's JSON text, as 8 hex chars: any change to the pack changes every level URL. */
+export function packRevision(body: unknown): string {
+  const s = JSON.stringify(body);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
 const defaultFetch: FetchFn = (url) => fetch(url);
 
 /**
@@ -113,10 +121,14 @@ export class PackLevelSource implements LevelSource {
       id: String(body.id ?? this.baseUrl), engineVersion: body.engineVersion, contentVersion: body.contentVersion,
       levels: body.levels.map((l) => ({ ...l, file: l.file || `${l.id}.json`, modules: l.modules ?? [] })),
     };
+    this.rev = packRevision(body);
     return this.index;
   }
 
-  urlOf(entry: PackEntry): string { return `${this.baseUrl}/${entry.file}`; }
+  /** Short hash of pack.json; level URLs carry it so a changed pack never serves cached old levels. */
+  private rev = "";
+
+  urlOf(entry: PackEntry): string { return `${this.baseUrl}/${entry.file}${this.rev ? `?v=${this.rev}` : ""}`; }
 
   async list(): Promise<LevelMeta[]> {
     const p = await this.pack();

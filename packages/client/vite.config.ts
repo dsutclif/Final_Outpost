@@ -93,7 +93,7 @@ export default defineConfig({
             options: { cacheName: "fo-packs", networkTimeoutSeconds: 4 },
           },
           {
-            // level manifests are pinned and never change: fetched once, then served from the phone
+            // level URLs carry ?v=<pack.json hash>, so a cached entry never goes stale: fetched once, then served from the phone
             urlPattern: ({ url }) => url.pathname.includes("/levels/"),
             handler: "CacheFirst",
             options: { cacheName: "fo-levels", expiration: { maxEntries: 600 } },

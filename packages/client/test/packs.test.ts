@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { ChainLevelSource, StaticLevelSource, discoverPacks, offlineReady, prefetchLevels, upcoming, type CacheLike } from "../src/levels.js";
+import { ChainLevelSource, StaticLevelSource, discoverPacks, offlineReady, packRevision, prefetchLevels, upcoming, type CacheLike } from "../src/levels.js";
 import golden1 from "../../../levels/golden/proto-L001.json";
 
 // Contract 5 packs read from the fixture folder through a fetch stub, the way the client reads
@@ -13,14 +13,14 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
 const fixtureVersions = JSON.parse(readFileSync(join(root, "packs/t1/pack.json"), "utf8")) as { engineVersion: string; contentVersion: string };
 const running = { engineVersion: fixtureVersions.engineVersion, contentVersion: fixtureVersions.contentVersion };
 const fsFetch = async (url: string): Promise<Response> => {
-  const p = join(root, url.replace(/^\//, ""));
+  const p = join(root, url.replace(/^\//, "").replace(/\?.*$/, ""));
   return existsSync(p) ? new Response(readFileSync(p, "utf8")) : new Response("", { status: 404 });
 };
 
 describe("level packs", () => {
   it("discovers packs, skips one built for another engine version, and lists entries from pack.json only", async () => {
     let levelFetches = 0;
-    const counting = async (url: string) => { if (/L00\d\.json$/.test(url)) levelFetches++; return fsFetch(url); };
+    const counting = async (url: string) => { if (/L00\d\.json(\?|$)/.test(url)) levelFetches++; return fsFetch(url); };
     const packs = await discoverPacks("/packs", counting, running);
     expect(packs).toHaveLength(2);
     const chain = new ChainLevelSource([new StaticLevelSource([golden1]), ...packs]);
@@ -30,7 +30,10 @@ describe("level packs", () => {
     expect(levelFetches).toBe(0);
     expect(list[2]!.title).toBe("Fixture Two");
     expect(list[1]!.rating).toBeCloseTo(0.31);
-    expect(list[1]!.url).toBe("/packs/t1/t1-L001.json");
+    // level URLs carry the pack revision so a changed pack never serves a cached old level
+    const rev = packRevision(JSON.parse(readFileSync(join(root, "packs/t1/pack.json"), "utf8")));
+    expect(list[1]!.url).toBe(`/packs/t1/t1-L001.json?v=${rev}`);
+    expect(packRevision({ a: 1 })).not.toBe(packRevision({ a: 2 }));
     expect(packs[1]!.incompatible).toBe(true);
     const m = await chain.load("t1-L002");
     expect(m.id).toBe("t1-L002");
