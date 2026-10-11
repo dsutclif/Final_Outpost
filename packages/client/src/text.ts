@@ -1,5 +1,6 @@
 import type { Manifest } from "@fo/content";
 import { fmt, levelTitle, nameOf, uiText, type Skin } from "@fo/skins";
+import { labelOf, manifestObjectives } from "./objectives.js";
 
 // Player-facing level text. A manifest may carry text per skin; otherwise the skin builds
 // a title and goal from the canonical goal, so any level plays in any skin.
@@ -16,6 +17,9 @@ function buildTargetName(m: Manifest, skin: Skin): string {
 }
 
 export function goalText(m: Manifest, skin: Skin): string {
+  // the main objective mirrors the goal and carries its params, so its label is the best sentence
+  const main = manifestObjectives(m)[0];
+  if (main) return labelOf(m, skin, main);
   const g = m.goal;
   const tpl = skin.text.goals[g.type] ?? nameOf(skin, `goal.${g.type}`);
   return fmt(tpl, { target: buildTargetName(m, skin), n: "n" in g ? (g.n ?? "") : "" });
@@ -37,7 +41,8 @@ export function levelText(m: Manifest, skin: Skin, index: number, seenBefore: Re
   const own = m.text[skin.id];
   // manifest text for this skin, else the skin's own title for the level id, else a generated one
   const title = levelTitle(skin, m) || `${uiText(skin, "levelWord")} ${index + 1}`;
-  const goal = own?.goal || goalText(m, skin);
+  // generated packs wrote the raw goal kind ("heat_hold") as text: only trust a real sentence
+  const goal = own?.goal && /\s/.test(own.goal) && manifestObjectives(m).length === 0 ? own.goal : goalText(m, skin);
   const fromModules = moduleTips(m, skin, seenBefore);
   const tips = own?.tips?.length ? own.tips : fromModules.length ? fromModules : skin.text.genericTips;
   return { title, goal, tips };

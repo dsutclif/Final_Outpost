@@ -2015,10 +2015,22 @@ export class Renderer3D implements Renderer {
         const hh = purpose ? 33 : 18;
         sp.visible = this.labels.apply(sp, `disc|${name}|${purpose}`, () => this.discoveryArt(name, purpose), hh);
         sp.position.set(c.x, c.h + hh / 2 + Math.sin(this.t * 2 + c.x) * 1.2, c.z);
+        this.keepOnScreen(sp);
         shown.add(id);
       }
     }
     for (const [id, sp] of this.discSprites) if (!shown.has(id)) sp.visible = false;
+  }
+
+  /** Slide a label sideways (via its sprite anchor) so it never runs off the left or right screen edge. */
+  private keepOnScreen(sp: Sprite): void {
+    const a = this.toScreen(sp.position);
+    const b = this.toScreen(v3(sp.position.x + 10, sp.position.y, sp.position.z));
+    const wPx = sp.scale.x * Math.abs(b.x - a.x) / 10;
+    if (!(wPx > 0)) return;
+    const margin = 6;
+    const left = Math.min(Math.max(a.x - wPx / 2, margin), this.cssW - margin - wPx);
+    sp.center.set(Math.min(1, Math.max(0, (a.x - left) / wPx)), sp.center.y);
   }
 
   private discoveryArt(name: string, purpose: string): LabelArt {
