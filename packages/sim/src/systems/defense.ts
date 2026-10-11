@@ -1,64 +1,81 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { FP, moveToward, mulDiv, within } from "../fixed.js";
+import { FP, isqrt, moveToward, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between } from "../rng.js";
-import type { BarrierSectionState, BarrierState, HostileState, State } from "../state.js";
-import { breakSection } from "./barriers.js";
-import { barrierYAt, hitHostile, nearestHostile } from "./combat.js";
-import { hint, stepDown } from "./common.js";
+import type { HostileState, State } from "../state.js";
+import { breakSection, firstCrossing, outsideLine } from "./barriers.js";
+import { hitHostile, nearestHostile } from "./combat.js";
+import { hint, nearSegment, stepDown } from "./common.js";
+import { dropTow } from "./lasso.js";
 
-interface Ahead { line: BarrierState; idx: number; s: BarrierSectionState; stopY: number }
+type Side = HostileState["side"];
 
-/** The nearest built section ahead of a hostile walking toward larger y, if its x is covered. */
-function sectionAhead(st: State, cp: Compiled, h: HostileState): Ahead | null {
-  let best: Ahead | null = null;
-  for (const line of st.barriers) {
-    for (let i = 0; i < line.sections.length; i++) {
-      const s = line.sections[i]!;
-      if (!s.built || s.a.x === s.b.x) continue;
-      const lo = Math.min(s.a.x, s.b.x), hi = Math.max(s.a.x, s.b.x);
-      if (h.pos.x <= lo || h.pos.x >= hi) continue;
-      const yAt = s.a.y + mulDiv(s.b.y - s.a.y, h.pos.x - s.a.x, s.b.x - s.a.x);
-      const stopY = yAt - cp.defense.barrierStop;
-      if (h.pos.y >= stopY) continue;
-      if (!best || stopY < best.stopY) best = { line, idx: i, s, stopY };
-    }
+/** A spawn point just beyond the given map edge. `defense.spawnY` is the (negative) distance outside it. */
+function spawnPoint(st: State, cp: Compiled, side: Side): Vec {
+  const D = cp.defense, W = cp.map.w, H = cp.map.h;
+  const along = (len: number): number => between(st.rng, D.spawnMarginX, len - D.spawnMarginX);
+  switch (side) {
+    case "n": return { x: along(W), y: D.spawnY };
+    case "s": return { x: along(W), y: H - D.spawnY };
+    case "w": return { x: D.spawnY, y: along(H) };
+    case "e": return { x: W - D.spawnY, y: along(H) };
   }
-  return best;
 }
 
-/** Waves spawn at the attack edge; hostiles walk to the core, stop at built barriers and hit them, then hit the base. */
+/**
+ * Where a hostile walks this tick. Until it is past an open barrier line (outside it, or within
+ * steerBand of it) it drifts only slightly sideways toward the core, so attackers meet the wall
+ * spread out along their attack side; after that, and always around a closed ring, it heads
+ * straight for the core.
+ */
+function walkTarget(st: State, cp: Compiled, h: HostileState): Vec {
+  const D = cp.defense, c = st.core.pos;
+  const approaching = st.barriers.some((line) => !line.closed
+    && (outsideLine(st, line, h.pos) || line.sections.some((s) => nearSegment(h.pos, s.a, s.b, D.steerBand))));
+  if (!approaching) return c;
+  if (h.side === "n" || h.side === "s") return { x: h.pos.x + mulDiv(c.x - h.pos.x, D.steerRate, FP), y: c.y };
+  return { x: c.x, y: h.pos.y + mulDiv(c.y - h.pos.y, D.steerRate, FP) };
+}
+
+/**
+ * Waves spawn beyond their attack side(s); hostiles walk to the core, stop at any built section
+ * (gates included) their next step would cross, hit it until it breaks, then hit the base.
+ */
 export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   const W = st.waves;
   const wave = cp.waves[W.idx];
   if (wave && st.tick >= wave.tick) {
-    wave.types.forEach((type, k) => W.pending.push({ tick: st.tick + k * cp.defense.spawnGapTicks, type }));
+    wave.types.forEach((type, k) => W.pending.push({ tick: st.tick + k * wave.gapTicks, type, side: wave.sides[k % wave.sides.length]! }));
     W.idx++;
     W.active = true;
     out.push({ t: "wave_started", idx: W.idx });
     hint(st, out, "wave_incoming");
   }
   while (W.pending.length > 0 && st.tick >= W.pending[0]!.tick) {
-    const { type } = W.pending.shift()!;
-    st.hostiles.push({
-      id: st.nextHostileId++, type,
-      pos: { x: between(st.rng, cp.defense.spawnMarginX, cp.map.w - cp.defense.spawnMarginX), y: cp.defense.spawnY },
-      hp: cp.hostiles[type]!.hp, target: "core", acc: 0,
-    });
+    const { type, side } = W.pending.shift()!;
+    const def = cp.hostiles[type]!;
+    const h: HostileState = { id: st.nextHostileId++, type, pos: spawnPoint(st, cp, side), hp: def.hp, hpMax: def.hp, side, target: "core", acc: 0 };
+    st.hostiles.push(h);
+    if (def.boss) out.push({ t: "boss_spawned", id: h.id, kind: type, at: { ...h.pos } });
   }
 
   const D = cp.defense;
   for (const h of [...st.hostiles]) {
     const def = cp.hostiles[h.type]!;
-    const ahead = sectionAhead(st, cp, h);
-    if (ahead && h.pos.y + def.speed >= ahead.stopY) {
+    const goal = walkTarget(st, cp, h);
+    const dx = goal.x - h.pos.x, dy = goal.y - h.pos.y, d = isqrt(dx * dx + dy * dy);
+    // Look one step plus the stand-off distance ahead; a built section in the way stops the walk.
+    const look = def.speed + D.barrierStop;
+    const ahead = d === 0 ? null : firstCrossing(st, h.pos, { x: h.pos.x + mulDiv(dx, look, d), y: h.pos.y + mulDiv(dy, look, d) });
+    if (ahead) {
       h.target = "barrier";
       h.acc = stepDown(h.acc);
       if (h.acc <= 0) {
         h.acc = D.barrierHitTicks;
-        ahead.s.hp -= D.barrierDamage;
+        const s = ahead.line.sections[ahead.idx]!;
+        s.hp = Math.max(0, s.hp - D.barrierDamage * def.damage);
         out.push({ t: "hit", target: "barrier", id: ahead.idx, at: { ...h.pos }, by: "hostile" });
-        if (ahead.s.hp <= 0) breakSection(st, ahead.line, ahead.idx, out);
+        if (s.hp <= 0) breakSection(st, ahead.line, ahead.idx, out);
       }
       continue;
     }
@@ -67,7 +84,7 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
       h.acc = stepDown(h.acc);
       if (h.acc <= 0) {
         h.acc = D.baseHitTicks;
-        st.meters.baseHealth = Math.max(0, st.meters.baseHealth - D.baseDamage);
+        st.meters.baseHealth = Math.max(0, st.meters.baseHealth - D.baseDamage * def.damage);
         out.push({ t: "hit", target: "base", id: 0, at: { ...st.core.pos }, by: "hostile" });
         const victims = st.residents.filter((r) => r.status === "ok" && cp.roles[r.role]?.behavior !== "guard");
         if (victims.length > 0) {
@@ -79,13 +96,10 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
       continue;
     }
     h.target = "core";
-    // Before passing the line hostiles drift only slightly toward the core, so they meet the wall spread out.
-    const lineY = barrierYAt(st, h.pos.x) ?? st.barriers[0]?.a.y;
-    const tx = lineY !== undefined && h.pos.y < lineY + D.steerBand
-      ? h.pos.x + mulDiv(st.core.pos.x - h.pos.x, D.steerRate, FP)
-      : st.core.pos.x;
-    moveToward(h.pos, { x: tx, y: st.core.pos.y }, def.speed, 1);
+    moveToward(h.pos, goal, def.speed, 1);
   }
+
+  hitPlayer(st, cp, out);
 
   for (const s of st.structures) {
     const def = cp.structures[s.type]!;
@@ -103,6 +117,18 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
     W.active = false;
     out.push({ t: "wave_cleared", idx: W.idx });
   }
+}
+
+/** A hostile in contact hits the player (no health of its own); a hit makes the tow drop its rearmost captive. */
+function hitPlayer(st: State, cp: Compiled, out: SimEvent[]): void {
+  const p = st.player;
+  p.hitCd = stepDown(p.hitCd);
+  if (p.hitCd > 0) return;
+  const foe = nearestHostile(st, p.pos, cp.defense.playerHitRange);
+  if (!foe) return;
+  p.hitCd = cp.defense.playerHitTicks;
+  out.push({ t: "hit", target: "player", id: 0, at: { ...p.pos }, by: "hostile" });
+  if (p.tow.length > 0) dropTow(st, p.tow[p.tow.length - 1]!, "hit", out);
 }
 
 export const wavesDone = (st: State, cp: Compiled): boolean =>

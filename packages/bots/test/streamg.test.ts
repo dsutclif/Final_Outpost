@@ -10,6 +10,7 @@ describe("stream G bot fixes", () => {
   it("currency goal: L1 with goal currency 150 is won by the good bot without stalls", () => {
     const m = structuredClone(level1) as Record<string, unknown>;
     m["goal"] = { type: "currency", n: 150 };
+    delete m["objectives"]; // the golden objectives mirror its build goal
     for (const s of [1, 2, 3]) {
       const r = playBot(m, good, s);
       expect({ s, won: r.won, reason: r.reason, stalls: r.stalls }).toEqual({ s, won: true, reason: "goal", stalls: 0 });

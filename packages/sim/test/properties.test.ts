@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { FP, METER_MAX, housingSlots, population, type Input, type Sim } from "../src/index.js";
+import { FP, FROST_MAX, METER_MAX, housingSlots, mulDiv, population, type Input, type Sim } from "../src/index.js";
 import { LEVELS, assertIntegerState, newSim } from "./helpers.js";
 
 // Invariants that must hold on every tick of every golden level under any input stream.
@@ -63,7 +63,24 @@ function checkInvariants(sim: Sim, watch: Map<number, Watch>): void {
     if (!s.built) expect(s.hp).toBe(0);
     expect(s.paid).toBeLessThanOrEqual(line.costPerSection);
   }
-  for (const h of st.hostiles) expect(h.hp).toBeGreaterThan(0);
+  for (const h of st.hostiles) { expect(h.hp).toBeGreaterThan(0); expect(h.hp).toBeLessThanOrEqual(h.hpMax); }
+  // Reactor-out countdown: the lifeline is the countdown while it runs; frost stays in range and only the dead are at the top.
+  expect(st.freeze.ticksLeft).toBeGreaterThanOrEqual(0);
+  expect(st.freeze.ticksLeft).toBeLessThanOrEqual(st.freeze.ticksTotal);
+  if (st.freeze.active) expect(st.core.lifeline).toBe(mulDiv(st.freeze.ticksLeft, METER_MAX, st.freeze.ticksTotal));
+  if (st.core.fuel === 0) expect(st.freeze.active).toBe(true);
+  for (const r of st.residents) {
+    expect(r.frost).toBeGreaterThanOrEqual(0);
+    expect(r.frost).toBeLessThanOrEqual(FROST_MAX);
+    if (r.frost === FROST_MAX) expect(r.status).toBe("dead");
+  }
+  expect(st.residents.filter((r) => r.status === "dead").length).toBe(st.stats.froze);
+  // Customers: everyone who arrived is queued, served or left angry.
+  if (st.sales) expect(st.sales.queue.length).toBe(st.stats.customersSpawned - st.stats.sold - st.stats.customersAngry);
+  // Objectives never both done and failed; the main goal is done exactly when the level is won.
+  for (const o of st.objectives) expect(o.done && o.failed).toBe(false);
+  if (st.over) expect(st.objectives[0]!.done).toBe(st.won === true);
+  for (const c of st.captures) expect(c.freezeTicks).toBeGreaterThanOrEqual(0);
   for (const d of st.prey) if (d.alive) expect(d.hp).toBeGreaterThan(0);
   for (const c of st.captures) if (c.state === "towed") expect(st.player.tow).toContain(c.id);
   // Workers: loads within carry, and a worker only turns to deliver with a full load or an exhausted source.

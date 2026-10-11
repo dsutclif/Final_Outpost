@@ -5,9 +5,9 @@ import type { Vec } from "./fixed.js";
 export type SimEvent =
   | { t: "gathered"; res: string; node: number; at: Vec; by?: number }
   | { t: "deposited"; res: string; to: string; at: Vec; by?: number }
-  | { t: "sold"; res: string; n: number; pay: number; premium: boolean; at: Vec }
-  | { t: "customer_arrived"; kind: string; res: string; want: number }
-  | { t: "customer_left"; angry: boolean; at: Vec }
+  | { t: "sold"; res: string; n: number; pay: number; premium: boolean; at: Vec; customer: number; kind: string }
+  | { t: "customer_arrived"; kind: string; res: string; want: number; customer: number }
+  | { t: "customer_left"; angry: boolean; at: Vec; customer: number }
   | { t: "collected"; res: string; n: number; at: Vec }
   | { t: "core_fuel_out" }
   | { t: "core_fuel_restored" }
@@ -25,12 +25,20 @@ export type SimEvent =
   | { t: "released"; capture: number; resident: number; at: Vec }
   | { t: "recruit_arrived"; resident: number; at: Vec }
   | { t: "moved_in"; resident: number }
+  | { t: "pod_lost"; capture: number; at: Vec }
+  | { t: "tow_dropped"; capture: number; at: Vec; reason: "hit" | "slack" }
+  | { t: "crate_delivered"; capture: number; at: Vec; bundle: Record<string, number> }
+  // reactor-out countdown
+  | { t: "froze"; resident: number; at: Vec }
+  // objectives: emitted when one becomes done or failed
+  | { t: "objective"; id: string; kind: string; done: boolean; failed: boolean }
   // combat
-  | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier"; id: number; at: Vec; by: "player" | "resident" | "structure" | "hostile" }
+  | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier" | "player"; id: number; at: Vec; by: "player" | "resident" | "structure" | "hostile" }
   | { t: "died"; kind: string; id: number; at: Vec }
   | { t: "drop"; res: string; at: Vec }
   | { t: "picked"; res: string; at: Vec; by?: number }
   | { t: "wave_started"; idx: number }
+  | { t: "boss_spawned"; id: number; kind: string; at: Vec }
   | { t: "wave_cleared"; idx: number }
   | { t: "barrier_progress"; line: string; section: number; paid: number; cost: number }
   | { t: "barrier_built"; line: string; section: number }
@@ -42,7 +50,8 @@ export type SimEvent =
   | { t: "hazard_start"; end: number }
   | { t: "hazard_end" }
   // converters
-  | { t: "converted"; conv: string; res: string };
+  | { t: "converted"; conv: string; res: string }
+  | { t: "converter_upgraded"; conv: string; level: number };
 
 export type HintKey =
   | "carry_max"
@@ -66,4 +75,5 @@ export const ACTION_EVENTS: ReadonlySet<SimEvent["t"]> = new Set<SimEvent["t"]>(
 /** Event types the rater treats as rewards. */
 export const REWARD_EVENTS: ReadonlySet<SimEvent["t"]> = new Set<SimEvent["t"]>([
   "sold", "built", "hired", "unlocked", "core_upgraded", "zone_cleared", "released", "recruit_arrived", "barrier_built", "wave_cleared",
+  "crate_delivered",
 ]);

@@ -1,8 +1,8 @@
 {
   "id": "proto-L001",
   "seed": 1,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": { "w": 480, "h": 900, "zones": ["base", "sources-w", "sources-e", "shop-s"] },
   "modules": ["carry", "gather", "core", "sales", "workers", "source_gating", "build_pads"],
   "start": [240, 520],
@@ -48,6 +48,12 @@
     "customers.premiumShare": 0
   },
   "goal": { "type": "build", "target": "landmark" },
+  "family": "shelter",
+  "objectives": [
+    { "id": "main", "kind": "build", "params": { "target": "landmark" } },
+    { "id": "fast", "kind": "time_target", "params": { "seconds": 120 } },
+    { "id": "warm", "kind": "heat_floor", "params": { "pct": 25 } }
+  ],
   "fail": ["meter.lifeline"],
   "text": {
     "frozen_camp": {

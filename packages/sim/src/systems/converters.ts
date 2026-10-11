@@ -7,7 +7,7 @@ import { hint } from "./common.js";
 export function placeConverter(st: State, cp: Compiled, id: string, type: string, pos: Vec): ConverterState {
   const def = cp.converters[type]!;
   const cv: ConverterState = {
-    id, type, pos: { ...pos }, inQ: [], out: 0, acc: 0,
+    id, type, pos: { ...pos }, inQ: [], out: 0, acc: 0, level: 1,
     operatorPos: { x: pos.x + def.operatorOffset.x, y: pos.y + def.operatorOffset.y },
     pickupPos: { x: pos.x + def.pickupOffset.x, y: pos.y + def.pickupOffset.y },
   };
@@ -23,6 +23,12 @@ export function operated(st: State, cp: Compiled, cv: ConverterState): boolean {
     r.status === "ok" && r.role === role && r.assign.to === cv.type && within(r.pos, cv.operatorPos, cp.convParams.operatorRange));
 }
 
+/** Ticks per output at the converter's level. */
+export const rateTicks = (cp: Compiled, cv: ConverterState): number => {
+  const by = cp.converters[cv.type]!.rateTicksByLevel;
+  return by[Math.min(cv.level, by.length) - 1]!;
+};
+
 export const converterRunnable = (cp: Compiled, cv: ConverterState): boolean =>
   cv.inQ.length > 0 && cv.out < cp.converters[cv.type]!.outCap;
 
@@ -32,7 +38,7 @@ export function stepConverters(st: State, cp: Compiled, out: SimEvent[]): void {
     const def = cp.converters[cv.type]!;
     if (converterRunnable(cp, cv) && operated(st, cp, cv)) {
       cv.acc++;
-      if (cv.acc > def.rateTicks) {
+      if (cv.acc > rateTicks(cp, cv)) {
         cv.acc = 0;
         cv.inQ.shift();
         cv.out++;

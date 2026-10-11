@@ -1,7 +1,7 @@
 import type { Content } from "@fo/content";
 import { compile, type Compiled } from "./compile.js";
 import type { SimEvent } from "./events.js";
-import { METER_MAX, fp, type Vec } from "./fixed.js";
+import { METER_MAX, fp, ticks, type Vec } from "./fixed.js";
 import { hashOf } from "./hash.js";
 import { seedRng } from "./rng.js";
 import type { BarrierState, NodeState, PadState, SalesState, State, StructureState, ZoneState, PreyZoneState, CaptureState } from "./state.js";
@@ -10,6 +10,8 @@ import { newResident, ringPoint } from "./systems/common.js";
 import { placeConverter, stepConverters } from "./systems/converters.js";
 import { safeRadius, stepCore } from "./systems/core.js";
 import { stepDefense } from "./systems/defense.js";
+import { stepFreeze } from "./systems/freeze.js";
+import { initObjectives, stepObjectives } from "./systems/objectives.js";
 import { checkEnd } from "./systems/goals.js";
 import { stepHazard } from "./systems/hazard.js";
 import { stepGate, stepHousing } from "./systems/housing.js";
@@ -19,10 +21,10 @@ import { stepNodes } from "./systems/nodes.js";
 import { applyEffects, refreshPads } from "./systems/pads.js";
 import { collectPile, movePlayer, pickDrops, playerAct, playerCombat, type Input } from "./systems/player.js";
 import { stepResidents } from "./systems/residents.js";
-import { stepSales } from "./systems/sales.js";
+import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.4.0";
+export const ENGINE_VERSION = "0.5.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -72,7 +74,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
     rng: seedRng(m.seed),
     currency: m.params["start.currency"] ?? cp.content.defaults["start.currency"] ?? 0,
     params: { "barrier.hpMax": cp.barrier.hp, "barrier.gateHpMax": cp.barrier.gateHp },
-    player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false, padId: null, padDwell: 0 },
+    player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false, padId: null, padDwell: 0, hitCd: 0 },
     core: { pos: corePos, fuel: coreEnt.params.fuel, level: coreEnt.params.level, burnAcc: 0, lifeline: METER_MAX },
     nodes: [],
     sales: null,
@@ -95,10 +97,18 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
     meters: { lifeline: METER_MAX, baseHealth: cp.baseHealth, baseHealthMax: cp.baseHealth },
     waves: { idx: 0, pending: [], active: false },
     hazard: { phase: "none", until: 0, idx: 0 },
-    lasso: { trail: [], towing: [], engaged: false },
+    lasso: { trail: [], towing: [], engaged: false, trip: { delivered: 0, lost: 0 }, slack: 0 },
     gateQueue: [],
     timers: { gateAcc: cp.gate ? cp.gate.initialTicks : 0, gateLeft: cp.gate ? cp.gate.total : 0 },
-    stats: { sold: 0, built: 0, rescued: 0, injured: 0, barriersLost: 0, lifelineLowTicks: 0, concurrentDemandTicks: 0, idleTicks: 0, rewardTicks: [] },
+    freeze: { active: false, ticksLeft: cp.freeze.graceTicks, ticksTotal: cp.freeze.graceTicks, lossAt: -1 },
+    objectives: initObjectives(cp),
+    stats: {
+      sold: 0, built: 0, rescued: 0, injured: 0, barriersLost: 0, lifelineLowTicks: 0, concurrentDemandTicks: 0, idleTicks: 0, rewardTicks: [],
+      fuelOuts: 0, froze: 0, heatMin: 1000, customersSpawned: 0, customersAngry: 0, earned: 0, soldUnits: {}, streak: 0, streakMax: 0,
+      bulkServed: 0, unlocked: 0, hired: 0, hiredBy: {}, converted: 0, convertedBy: {}, tier2Made: 0, hauled: 0, kills: 0, bossKills: 0,
+      preyKilled: 0, protein: 0, salvage: 0, crates: 0, podsLost: 0, wavesCleared: 0, admitted: 0, zonesCleared: 0, hazardsSurvived: 0,
+      tripBest: 0, tripBestClean: 0, lastPlayerDeposit: 0, salesSinceDeposit: 0,
+    },
     lastHint: null,
     over: false,
     won: null,
@@ -111,12 +121,14 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       case "sink.core": break;
       case "sink.sales_point": {
         const pos = vec(e.at);
+        const lay = salesLayout(cp, pos, corePos);
         const sales: SalesState = {
           pos,
-          register: { x: pos.x + cp.sales.registerOffset.x, y: pos.y + cp.sales.registerOffset.y },
-          pile: { x: pos.x + cp.sales.pileOffset.x, y: pos.y + cp.sales.pileOffset.y },
+          register: lay.register,
+          pile: lay.pile,
           pileN: 0, shelf: {}, sells: [...e.sells], queue: [], leaving: [],
           spawnAcc: cp.sales.initialDelayTicks, premiumServed: 0,
+          nextCustomerId: 0, queueAt: lay.queueAt, queueStep: lay.queueStep, edgeX: lay.edgeX,
         };
         state.sales = sales;
         break;
@@ -131,7 +143,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
         const sections = e.sections.map((s) => ({ a: vec(s.a), b: vec(s.b), built: false, hp: 0, hpMax: sectionHpMax(state, s.gate), gate: s.gate, paid: 0 }));
         const line: BarrierState = {
           id: e.id, a: { ...sections[0]!.a }, b: { ...sections[sections.length - 1]!.b },
-          res: e.res, costPerSection: e.costPerSection, sections,
+          res: e.res, costPerSection: e.costPerSection ?? cp.barrier.costPerSection, sections, closed: e.closed ?? false,
         };
         e.sections.forEach((s, i) => { if (s.prebuilt) buildSection(state, cp, line, sections[i]!); });
         state.barriers.push(line);
@@ -165,7 +177,8 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           if (t === "struct.depot") state.depot = { pos: vec(e.at), stock: {} };
           applyEffects(state, def.effects, s);
         } else if (t.startsWith("capture.")) {
-          const c: CaptureState = { id: nextCapture++, type: t, pos: vec(e.at), state: "idle", timer: 0 };
+          const freeze = "freeze" in e && e.freeze !== undefined ? (e.freeze > 0 ? ticks(e.freeze) : 0) : cp.lassoables[t]!.freezeTicks;
+          const c: CaptureState = { id: nextCapture++, type: t, pos: vec(e.at), state: "idle", timer: 0, freezeTicks: freeze };
           state.captures.push(c);
         }
       }
@@ -197,6 +210,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       movePlayer(state, cp, input);
       stepHazard(state, cp, out);
       stepCore(state, cp, out);
+      stepFreeze(state, cp, out);
       stepNodes(state, cp);
       stepBarrierBuild(state, cp, out);
       playerAct(state, cp, out);
@@ -213,6 +227,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       stepDefense(state, cp, out);
       refreshPads(state, cp);
       stepStats(state, cp, out);
+      stepObjectives(state, cp, out);
       checkEnd(state, cp, out);
       return out;
     },

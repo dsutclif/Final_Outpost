@@ -17,7 +17,7 @@ export function stepResidents(st: State, cp: Compiled, out: SimEvent[]): void {
 
 function stepResident(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]): void {
   switch (r.status) {
-    case "frozen": case "towed": case "releasing": case "arriving": case "waiting": return;
+    case "frozen": case "towed": case "releasing": case "arriving": case "waiting": case "dead": return;
     case "injured": {
       const med = st.structures.find((s) => s.type === "struct.medical");
       if (!med) return;

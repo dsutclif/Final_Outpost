@@ -17,7 +17,7 @@ export function skinText(m: Manifest, introduced: readonly string[], skin: Skin 
   const tmpl = skin.text.goals[g.type] ?? g.type;
   const goal = fmt(tmpl, {
     target: g.type === "build" ? nameOf(skin, "struct.landmark") : "",
-    n: "n" in g ? g.n : 0,
+    n: "n" in g ? g.n ?? 0 : 0,
   });
   const tipFor = (mod: string) => skin.text.moduleTips[mod];
   const tips = (introduced.length > 0 ? introduced : [headline]).map(tipFor).filter((t): t is string => !!t).slice(0, 3);

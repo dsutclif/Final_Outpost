@@ -11,3 +11,8 @@ export { population, housingSlots, freeSlots, blockedAt, pointInPoly } from "./s
 export { outsideLines } from "./systems/barriers.js";
 export { producible, dropOnly, converterIdle } from "./systems/nodes.js";
 export { REWARD_GAP_EDGES, REWARD_RING } from "./systems/stats.js";
+export { salesLayout, type SalesLayout } from "./systems/sales.js";
+export { FROST_MAX } from "./systems/freeze.js";
+export { OBJECTIVE_KINDS, starsOf } from "./systems/objectives.js";
+export { segCross } from "./systems/common.js";
+export { rateTicks } from "./systems/converters.js";

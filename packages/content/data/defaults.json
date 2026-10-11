@@ -12,7 +12,7 @@
   "customers.spawn": 3,
   "customers.jitterMin": 0.7,
   "customers.jitterMax": 1.3,
-  "customers.initialDelay": 1.5,
+  "customers.initialDelay": 0.5,
   "customers.orderMin": 1,
   "customers.orderMax": 2,
   "customers.baseWeight": 1.5,
@@ -88,5 +88,15 @@
   "stats.coreLowFill": 0.3,
   "start.currency": 0,
   "timer.seconds": 0,
-  "level.budgetSeconds": 300
+  "level.budgetSeconds": 300,
+  "customers.refillSpawn": 1.0,
+  "customers.refillBelow": 3,
+  "customers.bulkShare": 0,
+  "freeze.frostDecay": 4,
+  "freeze.othersRate": 0.5,
+  "freeze.othersCap": 0.8,
+  "barrier.costPerSection": 2,
+  "defense.playerHitRange": 18,
+  "defense.playerHitInterval": 1,
+  "lasso.slackTime": 2.5
 }

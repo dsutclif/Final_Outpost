@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  CaptureId, ConvId, EventId, HostileId, MeterId, NodeId, ResId, RoleId, SinkId, StructId, STORE_DEPOT,
+  CaptureId, ConvId, EventId, Family, HostileId, MeterId, NodeId, ResId, RoleId, SinkId, StructId, STORE_DEPOT,
   type Content,
 } from "./schema.js";
 
@@ -60,7 +60,8 @@ export const BuildPad = z.object({
   cost: Cost,
   // What paying the pad does. struct.* places a structure or applies an upgrade, conv.* places a
   // converter; the others are data operations on a target entity.
-  build: z.union([StructId, ConvId, z.enum(["node.enable", "sink.core.level", "zone.clear"])]),
+  // "conv.level" raises the targeted converter one level (content `upgradeRates`).
+  build: z.union([StructId, ConvId, z.enum(["node.enable", "sink.core.level", "zone.clear", "conv.level"])]),
   target: EntityRef.optional(),
   requires: Requirement.optional(),
   repeatable: z.boolean().default(false),
@@ -74,7 +75,12 @@ export const StructureEntity = z.object({
   // struct.gate only: recruits arrive here on a timer and queue until the player admits them.
   arrivals: z.object({ every: z.number().positive(), total: z.number().int().positive() }).optional(),
 });
-export const CaptureEntity = z.object({ ...base, type: CaptureId });
+export const CaptureEntity = z.object({
+  ...base,
+  type: CaptureId,
+  // Seconds before it freezes over and is lost; overrides the lassoable's freezeTime (0 = never).
+  freeze: z.number().nonnegative().optional(),
+});
 // Barrier lines: contiguous sections, each built by walking along it with the line's resource.
 export const BarrierSection = z.object({
   a: Point,
@@ -82,13 +88,37 @@ export const BarrierSection = z.object({
   gate: z.boolean().default(false),
   prebuilt: z.boolean().default(false),
 });
-export const BarrierLineEntity = z.object({
+/**
+ * A ring or open polyline given as points instead of sections: `points` are the vertices, a
+ * section joins each consecutive pair (and the last back to the first when `closed`), and
+ * `gates` / `prebuilt` list section indices. Normalised to `sections` before validation.
+ */
+function ringToSections(v: unknown): unknown {
+  if (!v || typeof v !== "object") return v;
+  const o = v as Record<string, unknown>;
+  if (o.type !== "barrier.line" || o.sections !== undefined || !Array.isArray(o.points)) return v;
+  const pts = o.points as unknown[];
+  const closed = o.closed === true;
+  const gates = new Set(Array.isArray(o.gates) ? o.gates as unknown[] : []);
+  const pre = new Set(Array.isArray(o.prebuilt) ? o.prebuilt as unknown[] : []);
+  const n = closed ? pts.length : pts.length - 1;
+  const sections = [];
+  for (let i = 0; i < n; i++) sections.push({ a: pts[i], b: pts[(i + 1) % pts.length], gate: gates.has(i), prebuilt: pre.has(i) });
+  return { ...o, sections };
+}
+export const BarrierLineEntity = z.preprocess(ringToSections, z.object({
   id: EntityRef,
   type: z.literal("barrier.line"),
   res: ResId,
-  costPerSection: z.number().int().positive(),
+  // Defaults to the content param barrier.costPerSection.
+  costPerSection: z.number().int().positive().optional(),
   sections: z.array(BarrierSection).min(1),
-});
+  // A closed line is a ring: the last section ends where the first begins, and "outside" means outside the polygon.
+  closed: z.boolean().optional(),
+  points: z.array(Point).optional(),
+  gates: z.array(z.number().int().nonnegative()).optional(),
+  prebuilt: z.array(z.number().int().nonnegative()).optional(),
+}));
 export const ZoneEntity = z.object({
   id: EntityRef,
   type: z.enum(["zone.blocked", "zone.waiting"]),
@@ -115,7 +145,17 @@ export const Person = z.object({
   node: EntityRef.optional(),
 });
 
-export const Wave = z.object({ t: z.number().nonnegative(), counts: z.record(HostileId, z.number().int().positive()) });
+export const SIDES = ["n", "e", "s", "w"] as const;
+export const Side = z.enum(SIDES);
+export type Side = z.infer<typeof Side>;
+export const Wave = z.object({
+  t: z.number().nonnegative(),
+  counts: z.record(HostileId, z.number().int().positive()),
+  // Map edge(s) the wave attacks from; with a list, spawn k comes from side k mod length. Default "n".
+  side: z.union([Side, z.array(Side).min(1)]).optional(),
+  // Seconds between spawns; defaults to defense.spawnGap.
+  gap: z.number().positive().optional(),
+});
 export const LevelEvent = z.object({
   type: EventId,
   warnAt: z.number().nonnegative(),
@@ -123,14 +163,53 @@ export const LevelEvent = z.object({
   end: z.number().positive(),
 });
 
-export const Goal = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("build"), target: EntityRef }),
-  z.object({ type: z.literal("population"), n: z.number().int().positive() }),
-  z.object({ type: z.literal("currency"), n: z.number().int().positive() }),
-  z.object({ type: z.literal("waves") }),
-  z.object({ type: z.literal("serve_premium"), n: z.number().int().positive() }),
+/** Goal types added for the level families; each is a main objective kind in content/data/objectives.json. */
+export const FAMILY_GOAL_TYPES = [
+  "core_level", "build_count", "hazard_survive", "heat_hold", "fuel_full", "admit", "clear_zones", "house_all", "survive",
+  "rescue", "rescue_all", "tow_trip", "rescue_before_freeze", "hunt", "protein", "rescue_housed", "tow_full_trip", "crates",
+  "sell", "earn", "unlock", "shelves_full", "streak", "sell_each", "hire", "earn_within", "bulk_order",
+  "produce", "converters_running", "haul", "chain", "automate", "stockpile", "converter_level",
+  "waves_survived", "kills", "boss", "turret_level", "salvage", "perimeter_before_wave1",
+] as const;
+const PosInt = z.number().int().positive();
+/** Params an objective or family goal may carry; which ones a kind needs is data (objectives.json). */
+export const GoalParams = {
+  n: PosInt.optional(),
+  k: PosInt.optional(),
+  target: EntityRef.optional(),
+  res: ResId.optional(),
+  role: RoleId.optional(),
+  build: StructId.optional(),
+  pct: z.number().min(0).max(100).optional(),
+  seconds: z.number().positive().optional(),
+};
+export const Goal = z.union([
+  z.discriminatedUnion("type", [
+    z.object({ type: z.literal("build"), target: EntityRef }),
+    z.object({ type: z.literal("population"), n: PosInt }),
+    z.object({ type: z.literal("currency"), n: PosInt }),
+    z.object({ type: z.literal("waves") }),
+    z.object({ type: z.literal("serve_premium"), n: PosInt }),
+  ]),
+  z.object({ type: z.enum(FAMILY_GOAL_TYPES), ...GoalParams }),
 ]);
 export type Goal = z.infer<typeof Goal>;
+
+/** A named star objective. The first one of a level is its main goal and mirrors `goal`. */
+export const Objective = z.object({
+  id: z.string().min(1),
+  kind: z.string().min(1),
+  params: z.record(z.string(), z.union([z.number(), z.string()])).default({}),
+  label: z.string().optional(),
+});
+export type Objective = z.infer<typeof Objective>;
+
+/** A goal as objective params: every field but `type`. */
+export function goalParams(g: Goal): Record<string, number | string> {
+  const out: Record<string, number | string> = {};
+  for (const [k, v] of Object.entries(g)) if (k !== "type" && v !== undefined) out[k] = v as number | string;
+  return out;
+}
 
 export const Rating = z.object({
   difficulty: z.number().min(0).max(1),
@@ -158,6 +237,9 @@ export const Manifest = z.object({
   events: z.array(LevelEvent).default([]),
   params: z.record(z.string(), z.number()).default({}),
   goal: Goal,
+  // Level family (REDESIGN-R2 §5) and three star objectives; the first mirrors `goal`.
+  family: Family.optional(),
+  objectives: z.array(Objective).optional(),
   fail: z.array(MeterId).min(1),
   rating: Rating.optional(),
   // Player-facing text per skin id. Never read by the sim.
@@ -171,6 +253,23 @@ const isBuild = (e: Entity): e is z.infer<typeof BuildPad> => e.type === "pad.bu
 /** Validate references between a manifest and the content set. Throws on the first failure. */
 export function checkManifest(m: Manifest, c: Content): void {
   const fail = (msg: string): never => { throw new Error(`${m.id}: ${msg}`); };
+  // Objective kinds and their params are data (objectives.json); main goals must be main-capable kinds.
+  const checkObjective = (where: string, kind: string, params: Record<string, number | string>, main: boolean): void => {
+    const def = c.objectives[kind];
+    if (!def) return fail(`${where}: unknown objective kind ${kind}`);
+    if (main && !def.main) fail(`${where}: ${kind} cannot be a main goal`);
+    for (const k of Object.keys(params)) if (!(k in def.params)) fail(`${where}: ${kind} takes no param ${k}`);
+    for (const [k, spec] of Object.entries(def.params)) {
+      const v = params[k];
+      if (v === undefined) { if (!spec.endsWith("?")) fail(`${where}: ${kind} needs param ${k}`); continue; }
+      const t = spec.replace("?", "");
+      const ok = typeof v === "number"
+        ? (t === "int" && Number.isInteger(v) && v > 0) || (t === "seconds" && v > 0) || (t === "pct" && v >= 0 && v <= 100)
+        : (t === "res" && c.resources[v] !== undefined) || (t === "role" && c.roles[v] !== undefined)
+          || (t === "struct" && c.structures[v] !== undefined) || (t === "pad" && m.entities.some((e) => isBuild(e) && e.id === v));
+      if (!ok) fail(`${where}: param ${k} of ${kind} must be a valid ${t}`);
+    }
+  };
   for (const mod of m.modules) if (!c.modules[mod]) fail(`unknown module ${mod}`);
   const active = new Set(m.modules);
   for (const [id, def] of Object.entries(c.modules)) {
@@ -225,7 +324,12 @@ export function checkManifest(m: Manifest, c: Content): void {
         for (const r of Object.keys(e.cost)) if (!c.resources[r]) fail(`pad ${e.id} costs unknown ${r}`);
         const b = e.build;
         padBuilds.set(e.id, b);
-        if (b === "node.enable") {
+        if (b === "conv.level") {
+          const t = e.target !== undefined ? ids.get(e.target) : undefined;
+          const conv: string | undefined = t && isBuild(t) ? t.build : t?.type;
+          if (!conv || !conv.startsWith("conv.") || conv === "conv.level" || !c.converters[conv]) fail(`pad ${e.id} must target a converter or a pad that builds one`);
+          else if (c.converters[conv]!.upgradeRates.length === 0) fail(`pad ${e.id}: ${conv} has no upgrade levels`);
+        } else if (b === "node.enable") {
           const t = e.target !== undefined ? ids.get(e.target) : undefined;
           if (!t || !t.type.startsWith("node.") || !c.nodes[t.type]) fail(`pad ${e.id} must target a node to enable`);
         } else if (b === "zone.clear") {
@@ -243,7 +347,7 @@ export function checkManifest(m: Manifest, c: Content): void {
             if (builds !== up.target) fail(`pad ${e.id} upgrade ${b} must target a pad or entity of type ${up.target}`);
           }
         } else if (!c.structures[b]) fail(`pad ${e.id} builds unknown ${b}`);
-        if (e.repeatable && b !== "sink.core.level" && !c.structures[b] && !c.upgrades[b]) fail(`pad ${e.id} cannot repeat ${b}`);
+        if (e.repeatable && b !== "sink.core.level" && b !== "conv.level" && !c.structures[b] && !c.upgrades[b]) fail(`pad ${e.id} cannot repeat ${b}`);
         break;
       }
       case "barrier.line": {
@@ -255,6 +359,11 @@ export function checkManifest(m: Manifest, c: Content): void {
           if (prev.b[0] !== cur.a[0] || prev.b[1] !== cur.a[1]) fail(`barrier ${e.id} section ${i} is not contiguous`);
         }
         for (const s of e.sections) if (s.a[0] === s.b[0] && s.a[1] === s.b[1]) fail(`barrier ${e.id} has a zero-length section`);
+        if (e.closed) {
+          const first = e.sections[0]!, last = e.sections[e.sections.length - 1]!;
+          if (e.sections.length < 3 || last.b[0] !== first.a[0] || last.b[1] !== first.a[1]) fail(`barrier ${e.id} is closed but does not form a ring`);
+        }
+        for (const i of [...(e.gates ?? []), ...(e.prebuilt ?? [])]) if (i >= e.sections.length) fail(`barrier ${e.id} names section ${i}, which does not exist`);
         break;
       }
       case "zone.blocked":
@@ -307,5 +416,26 @@ export function checkManifest(m: Manifest, c: Content): void {
     if (!t || !isBuild(t)) fail(`goal targets unknown pad ${m.goal.target}`);
   }
   if (m.goal.type === "waves" && m.waves.length === 0) fail(`waves goal needs waves`);
+  checkObjective("goal", m.goal.type, goalParams(m.goal), true);
+  // Main goals that count something only a hazard or a wave produces need one scheduled.
+  if (m.goal.type === "hazard_survive" && m.events.length === 0) fail(`hazard_survive goal needs events`);
+  if (["waves_survived", "kills", "boss", "perimeter_before_wave1"].includes(m.goal.type) && m.waves.length === 0) fail(`${m.goal.type} goal needs waves`);
+  if (m.goal.type === "boss" && !m.waves.some((w) => Object.keys(w.counts).some((h) => c.hostiles[h]?.boss))) fail(`boss goal needs a boss in a wave`);
+  if (m.objectives !== undefined) {
+    if (m.objectives.length !== 3) fail(`objectives must list exactly three (main goal first), found ${m.objectives.length}`);
+    const seen = new Set<string>();
+    m.objectives.forEach((o, i) => {
+      if (seen.has(o.id)) fail(`duplicate objective id ${o.id}`);
+      seen.add(o.id);
+      checkObjective(`objective ${o.id}`, o.kind, o.params, i === 0);
+    });
+    const main = m.objectives[0];
+    if (main) {
+      const gp = goalParams(m.goal);
+      const same = main.kind === m.goal.type && Object.keys(gp).length === Object.keys(main.params).length
+        && Object.entries(gp).every(([k, v]) => main.params[k] === v);
+      if (!same) fail(`objective ${main.id} must mirror the goal (${m.goal.type})`);
+    }
+  }
   for (const k of Object.keys(m.params)) if (!(k in c.defaults)) fail(`param ${k} has no content default`);
 }

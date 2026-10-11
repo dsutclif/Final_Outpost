@@ -1,7 +1,8 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { mulDiv, within, type Vec } from "../fixed.js";
+import { isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import type { HostileState, PreyState, State } from "../state.js";
+import { lineCrossingPoint, nearAnyLine, outsideLines } from "./barriers.js";
 import { spawnDrops } from "./common.js";
 
 export type Attacker = "player" | "resident" | "structure";
@@ -48,26 +49,26 @@ export function hitPrey(st: State, cp: Compiled, d: PreyState, dmg: number, by: 
   spawnDrops(st, cp, cp.animals[zone.animal]!.drops, d.pos, out);
 }
 
-/** Height of the first barrier line at x (linear along its sections), or null when x is off the line. */
-export function barrierYAt(st: State, x: number): number | null {
-  const line = st.barriers[0];
-  if (!line) return null;
-  for (const s of line.sections) {
-    const lo = Math.min(s.a.x, s.b.x), hi = Math.max(s.a.x, s.b.x);
-    if (x <= lo || x >= hi) continue;
-    if (s.a.x === s.b.x) return null;
-    return s.a.y + mulDiv(s.b.y - s.a.y, x - s.a.x, s.b.x - s.a.x);
-  }
-  return null;
+/** p moved d toward the core (or onto it when closer). */
+function towardCore(st: State, p: Vec, d: number): Vec {
+  const dx = st.core.pos.x - p.x, dy = st.core.pos.y - p.y;
+  const L = isqrt(dx * dx + dy * dy);
+  if (L <= d) return { ...st.core.pos };
+  return { x: p.x + mulDiv(dx, d, L), y: p.y + mulDiv(dy, d, L) };
 }
 
+/**
+ * Loot that falls beyond a barrier line, or on it, lands dropRelocateOffset inside: past the point
+ * where the way to the core crosses the line, so the player can reach it from any attack side.
+ */
 function relocateInside(st: State, cp: Compiled, p: Vec): Vec {
-  const y = barrierYAt(st, p.x) ?? st.barriers[0]?.a.y;
-  if (y === undefined) return { ...p };
-  // Hostiles come from the far side of the line (toward smaller y, the spawn edge).
-  const towardCore = st.core.pos.y >= y ? 1 : -1;
-  const beyond = towardCore > 0 ? p.y < y + cp.defense.dropRelocateBand : p.y > y - cp.defense.dropRelocateBand;
-  return beyond ? { x: p.x, y: y + towardCore * cp.defense.dropRelocateOffset } : { ...p };
+  if (st.barriers.length === 0) return { ...p };
+  const D = cp.defense;
+  if (outsideLines(st, p)) {
+    const at = lineCrossingPoint(st, p, st.core.pos);
+    return at ? towardCore(st, at, D.dropRelocateOffset) : { ...p };
+  }
+  return nearAnyLine(st, p, D.dropRelocateBand) ? towardCore(st, p, D.dropRelocateOffset) : { ...p };
 }
 
 export const inRange = (a: Vec, b: Vec, r: number): boolean => within(a, b, r);

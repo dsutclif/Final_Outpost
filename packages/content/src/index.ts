@@ -13,13 +13,14 @@ import upgrades from "../data/upgrades.json";
 import events from "../data/events.json";
 import consumers from "../data/consumers.json";
 import goals from "../data/goals.json";
+import objectives from "../data/objectives.json";
 import modules from "../data/modules.json";
 import defaults from "../data/defaults.json";
 
 export * from "./schema.js";
 export * from "./manifest.js";
 
-export const CONTENT_VERSION = "0.4.0";
+export const CONTENT_VERSION = "0.5.0";
 
 /** The validated content set. Parsing happens once at import time. */
 export const content: Content = Content.parse({
@@ -38,6 +39,7 @@ export const content: Content = Content.parse({
   events,
   consumers,
   goals,
+  objectives,
   modules,
   defaults,
 });

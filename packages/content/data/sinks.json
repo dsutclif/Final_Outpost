@@ -23,7 +23,7 @@
     "pileOffset": [-62, 54],
     "pileRange": 30,
     "queueOffset": [76, 0],
-    "queueSpacing": 34,
-    "queueMax": 4
+    "queueMax": 4,
+    "queueStep": [0, -34]
   }
 }

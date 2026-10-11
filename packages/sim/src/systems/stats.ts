@@ -16,11 +16,49 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
   let acted = false, reward = false;
   for (const e of out) {
     switch (e.t) {
-      case "sold": s.sold++; break;
+      case "sold":
+        s.sold++;
+        s.earned += e.pay;
+        s.soldUnits[e.res] = (s.soldUnits[e.res] ?? 0) + e.n;
+        s.streak++;
+        if (s.streak > s.streakMax) s.streakMax = s.streak;
+        if (e.kind === "unit.customer_bulk") s.bulkServed++;
+        s.salesSinceDeposit++;
+        break;
+      case "customer_arrived": s.customersSpawned++; break;
+      case "customer_left": if (e.angry) { s.customersAngry++; s.streak = 0; } break;
       case "built": s.built++; break;
       case "released": s.rescued++; break;
       case "injured": s.injured++; break;
       case "barrier_broken": s.barriersLost++; break;
+      case "core_fuel_out": s.fuelOuts++; break;
+      case "froze": s.froze++; break;
+      case "unlocked": s.unlocked++; break;
+      case "hired": s.hired++; s.hiredBy[e.role] = (s.hiredBy[e.role] ?? 0) + 1; break;
+      case "converted": {
+        s.converted++;
+        s.convertedBy[e.res] = (s.convertedBy[e.res] ?? 0) + 1;
+        const cv = st.converters.find((c) => c.id === e.conv);
+        if (cv && cp.converters[cv.type]!.tier >= 2) s.tier2Made++;
+        break;
+      }
+      case "deposited": {
+        if (e.by === undefined) { s.lastPlayerDeposit = st.tick; s.salesSinceDeposit = 0; }
+        else if (cp.roles[st.residents.find((r) => r.id === e.by)?.role ?? ""]?.behavior === "haul") s.hauled++;
+        if (cp.proteinRes.includes(e.res)) s.protein++;
+        break;
+      }
+      case "died":
+        if (cp.hostiles[e.kind]) { s.kills++; if (cp.hostiles[e.kind]!.boss) s.bossKills++; }
+        else if (cp.animals[e.kind]) s.preyKilled++;
+        break;
+      case "picked": if (e.res === "res.salvage") s.salvage++; break;
+      case "crate_delivered": s.crates++; break;
+      case "pod_lost": s.podsLost++; break;
+      case "wave_cleared": s.wavesCleared++; break;
+      case "recruit_arrived": s.admitted++; break;
+      case "zone_cleared": s.zonesCleared++; break;
+      case "hazard_end": s.hazardsSurvived++; break;
       default: break;
     }
     if (ACTION_EVENTS.has(e.t)) acted = true;
@@ -29,6 +67,8 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
   if (reward) recordReward(st);
   if (!st.player.moving && !acted) s.idleTicks++;
   if (st.core.lifeline < mulDiv(METER_MAX, cp.stats.lifelineLow, FP)) s.lifelineLowTicks++;
+  const heat = mulDiv(st.core.fuel, 1000, coreFuelCap(st, cp));
+  if (heat < s.heatMin) s.heatMin = heat;
   if (demands(st, cp) >= 2) s.concurrentDemandTicks++;
 }
 

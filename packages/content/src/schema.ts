@@ -76,6 +76,10 @@ export const HostileDef = z.object({
   hp: z.number().int().positive(),
   speed: units,
   drops: z.record(ResId, z.number().int().positive()),
+  // Multiplies defense.baseDamage and defense.barrierDamage for this hostile's hits.
+  damage: z.number().int().positive().default(1),
+  // Bosses announce themselves with a boss_spawned event; renderers draw a health bar.
+  boss: z.boolean().default(false),
 });
 export type HostileDef = z.infer<typeof HostileDef>;
 
@@ -83,8 +87,12 @@ export type HostileDef = z.infer<typeof HostileDef>;
 export const LassoableDef = z.object({
   release: z.enum(["inSafeRadius"]),
   releaseTime: seconds,
-  result: z.enum(["recruit"]),
+  // "recruit": opens into a colonist after releaseTime; "bundle": pays `bundle` the moment it enters the safe radius.
+  result: z.enum(["recruit", "bundle"]),
+  bundle: z.record(ResId, z.number().int().positive()).optional(),
   towSpacing: units,
+  // Seconds an idle or towed one survives before it is lost (pod_lost). 0 = never; a manifest entity can override.
+  freezeTime: seconds.default(0),
 });
 export type LassoableDef = z.infer<typeof LassoableDef>;
 
@@ -102,6 +110,9 @@ export const Effect = z.object({
 });
 export type Effect = z.infer<typeof Effect>;
 
+// Default pad cost for the generator (pads in a manifest always state their own cost).
+const DefaultCost = z.record(ResId, z.number().int().positive()).optional();
+
 // ---------- Structures ----------
 export const StructureDef = z.object({
   hp: z.number().int().positive().optional(),
@@ -114,6 +125,7 @@ export const StructureDef = z.object({
   // Depot: deposit / pickup range.
   range: units.optional(),
   effects: z.array(Effect).default([]),
+  cost: DefaultCost,
 });
 export type StructureDef = z.infer<typeof StructureDef>;
 
@@ -122,6 +134,7 @@ export const UpgradeDef = z.object({
   // Structure type the upgrade's pad must target; absent for level-wide upgrades.
   target: StructKey.optional(),
   effects: z.array(Effect).min(1),
+  cost: DefaultCost,
 });
 export type UpgradeDef = z.infer<typeof UpgradeDef>;
 
@@ -164,8 +177,9 @@ export const SalesPointDef = z.object({
   pileOffset: Offset,
   pileRange: units,
   queueOffset: Offset,
-  queueSpacing: units,
   queueMax: z.number().int().positive(),
+  // Offset from one queue slot to the next.
+  queueStep: Offset,
 });
 export const SinkDef = z.discriminatedUnion("kind", [CoreDef, SalesPointDef]);
 export type SinkDef = z.infer<typeof SinkDef>;
@@ -183,6 +197,8 @@ export const ConverterDef = z.object({
   range: units,
   operatorOffset: Offset,
   pickupOffset: Offset,
+  // Seconds per output at level 2, 3, ...; a converter's max level is 1 + upgradeRates.length.
+  upgradeRates: z.array(seconds.positive()).default([]),
 });
 export type ConverterDef = z.infer<typeof ConverterDef>;
 
@@ -196,14 +212,15 @@ export const RoleDef = z.object({
   attackInterval: seconds.optional(),
   attackRange: units.optional(),
   damage: z.number().int().positive().optional(),
+  cost: DefaultCost,
 });
 export type RoleDef = z.infer<typeof RoleDef>;
 
 // ---------- Customers ----------
 export const CustomerDef = z.object({
   patience: seconds,
-  // "range": draw order size in [orderMin, orderMax]; "max_plus": orderMax + extra.
-  orderSize: z.enum(["range", "max_plus"]),
+  // "range": draw order size in [orderMin, orderMax]; "max_plus": orderMax + extra; "fixed": exactly orderExtra.
+  orderSize: z.enum(["range", "max_plus", "fixed"]),
   orderExtra: z.number().int().nonnegative(),
   pay: z.number().int().positive(),
 });
@@ -215,6 +232,23 @@ export const GoalDef = z.object({
   // Module that this goal type exercises; the generator picks goals by it.
   exercises: z.string(),
 });
+
+// ---------- Objectives (star objectives and main goals) ----------
+export const FAMILIES = ["shelter", "rescue", "harvest", "industrialize", "defend"] as const;
+export const Family = z.enum(FAMILIES);
+export type Family = z.infer<typeof Family>;
+// Param kinds; a trailing "?" marks an optional param.
+export const ObjectiveParamKind = z.enum(["int", "seconds", "pct", "res", "role", "struct", "pad", "int?", "seconds?", "pct?", "res?", "role?", "struct?", "pad?"]);
+export const ObjectiveDef = z.object({
+  description: z.string(),
+  families: z.array(Family).default([]),
+  // Can be a level's main goal (and so a manifest goal type).
+  main: z.boolean(),
+  // "Never" objectives: fail on the first breach, count as done at level end if never breached.
+  guard: z.boolean().default(false),
+  params: z.record(z.string(), ObjectiveParamKind).default({}),
+});
+export type ObjectiveDef = z.infer<typeof ObjectiveDef>;
 
 // ---------- Modules ----------
 export const ModuleDef = z.object({
@@ -246,6 +280,7 @@ export const Content = z.object({
   events: z.record(EventId, EventDef),
   consumers: z.record(z.string(), ConsumerDef),
   goals: z.record(z.string(), GoalDef),
+  objectives: z.record(z.string(), ObjectiveDef),
   modules: z.record(z.string(), ModuleDef),
   defaults: ParamDefaults,
 });
@@ -273,6 +308,18 @@ export function checkContentRefs(c: Content): void {
   for (const [id, h] of Object.entries(c.hostiles)) {
     for (const r of Object.keys(h.drops)) if (!res.has(r)) throw new Error(`hostile ${id} drops unknown resource ${r}`);
   }
+  for (const [id, l] of Object.entries(c.lassoables)) {
+    if (l.result === "bundle" && (!l.bundle || Object.keys(l.bundle).length === 0)) throw new Error(`lassoable ${id}: bundle result needs a bundle`);
+    for (const r of Object.keys(l.bundle ?? {})) if (!res.has(r)) throw new Error(`lassoable ${id} bundles unknown resource ${r}`);
+  }
+  const costs: [string, Record<string, number> | undefined][] = [
+    ...Object.entries(c.structures).map(([id, s]) => [id, s.cost] as [string, Record<string, number> | undefined]),
+    ...Object.entries(c.upgrades).map(([id, u]) => [id, u.cost] as [string, Record<string, number> | undefined]),
+    ...Object.entries(c.roles).map(([id, r]) => [id, r.cost] as [string, Record<string, number> | undefined]),
+  ];
+  for (const [id, cost] of costs) for (const r of Object.keys(cost ?? {})) if (!res.has(r)) throw new Error(`${id} default cost uses unknown resource ${r}`);
+  for (const g of Object.keys(c.goals)) if (!c.objectives[g]?.main) throw new Error(`goal type ${g} needs a main objective entry`);
+  if (c.converters["conv.level"]) throw new Error("conv.level is a build operation, not a converter id");
   for (const [id, s] of Object.entries(c.sinks)) {
     if (s.kind === "core") for (const r of Object.keys(s.accepts)) if (!res.has(r)) throw new Error(`sink ${id} accepts unknown resource ${r}`);
   }

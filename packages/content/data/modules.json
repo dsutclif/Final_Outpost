@@ -3,12 +3,11 @@
   "gather": { "alwaysOn": true, "introducedAt": null },
   "core": { "alwaysOn": true, "introducedAt": null },
   "sales": { "alwaysOn": true, "requires": ["carry"], "introducedAt": null },
-
   "workers": { "introducedAt": 2 },
   "source_gating": { "requires": ["workers"], "introducedAt": 3 },
   "build_pads": { "introducedAt": 2 },
   "barrier_lines": { "requires": ["build_pads"], "introducedAt": 4 },
-  "lasso": { "requires": ["barrier_lines"], "excludes": ["hunting", "defense"], "introducedAt": 5 },
+  "lasso": { "requires": ["barrier_lines"], "excludes": ["defense"], "introducedAt": 5 },
   "housing": { "requires": ["build_pads"], "introducedAt": 6 },
   "core_levels": { "requires": ["build_pads"], "introducedAt": 7 },
   "blocked_zones": { "requires": ["core_levels"], "introducedAt": 7 },

@@ -379,7 +379,7 @@ describe("hunting, converters and customer variety (level 3)", () => {
   it("a premium sale pays double and counts toward the serve_premium goal", () => {
     const sim = createSim({
       ...LEVEL_3, params: { ...LEVEL_3.params, "core.burn": 60, "customers.premiumShare": 1 },
-      goal: { type: "serve_premium", n: 1 },
+      goal: { type: "serve_premium", n: 1 }, objectives: undefined,
     });
     grant(sim, { items: Array(6).fill("res.food_raw_1") });
     walkTo(sim, at(330, 650), 40);
@@ -547,7 +547,8 @@ describe("defense, defenders, salvage upgrades, medical and hazards (level 4)", 
     walkTo(sim, at(70, 800), 8);
     idle(sim, 60, (e) => has(e, "built"));
     expect(sim.state.structures.some((s) => s.type === "struct.medical")).toBe(true);
-    walkPath(sim, [at(320, 600), at(320, 440), at(240, 440)]);
+    // Wait well clear of the creature's path so the auto-attack cannot kill it before it reaches the base.
+    walkPath(sim, [at(320, 600), at(420, 560)]);
     const ev = idle(sim, 40 * TPS, (e) => has(e, "injured"));
     const victim = sim.state.residents.find((r) => r.id === find(ev, "injured")!.resident)!;
     const role = victim.role;
@@ -628,6 +629,7 @@ describe("supply routing", () => {
     ],
     params: { "start.currency": 0, "core.burn": 60 },
     goal: { type: "currency", n: 999 },
+    objectives: undefined,
   };
 
   it("suppliers bound to the depot drop there; haulers route by need score to the neediest consumer", () => {
@@ -693,8 +695,8 @@ describe("manifest cross-reference checks", () => {
     bad({ events: [{ type: "event.eclipse", warnAt: 1, start: 2, end: 3 }] }, /unknown event/);
     bad({ entities: ents.map((e) => e.type === "pad.build" && e.id === "towerup0" ? { ...e, target: "barracks" } : e) }, /must target/);
   });
-  it("rejects lasso with hunting and defense without waves", () => {
-    expect(() => createSim({ ...LEVEL_3, modules: [...LEVEL_3.modules, "barrier_lines", "lasso"] })).toThrow(/excludes/);
+  it("rejects lasso with defense, and defense without waves", () => {
+    expect(() => createSim({ ...LEVEL_4, modules: [...LEVEL_4.modules, "lasso"] })).toThrow(/excludes/);
     bad({ waves: [] }, /defense needs waves/);
   });
 });

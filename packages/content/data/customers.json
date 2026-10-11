@@ -1,5 +1,6 @@
 {
   "unit.customer": { "patience": 45, "orderSize": "range", "orderExtra": 0, "pay": 1 },
   "unit.customer_impatient": { "patience": 16, "orderSize": "range", "orderExtra": 0, "pay": 1 },
-  "unit.customer_premium": { "patience": 45, "orderSize": "max_plus", "orderExtra": 1, "pay": 2 }
+  "unit.customer_premium": { "patience": 45, "orderSize": "max_plus", "orderExtra": 1, "pay": 2 },
+  "unit.customer_bulk": { "patience": 120, "orderSize": "fixed", "orderExtra": 6, "pay": 1 }
 }

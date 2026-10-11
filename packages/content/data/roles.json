@@ -35,7 +35,8 @@
     "speed": 80,
     "attackInterval": 0.7,
     "attackRange": 75,
-    "damage": 1
+    "damage": 1,
+    "cost": { "res.salvage": 4 }
   },
   "role.hauler": {
     "behavior": "haul",

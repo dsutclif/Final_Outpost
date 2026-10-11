@@ -98,8 +98,15 @@ function build(st: State, cp: Compiled, pad: PadState, e: HireEnt | BuildEnt, ou
     out.push({ t: "built", pad: pad.id, build: e.build, at: { ...pad.pos } });
     if (!st.built.includes(pad.id)) st.built.push(pad.id);
   }
-  if (e.repeatable) { pad.done = false; pad.paid = {}; }
+  // A repeatable converter upgrade retires once the converter is at its top level.
+  const maxed = e.type === "pad.build" && e.build === "conv.level" && convMaxed(st, cp, e.target);
+  if (e.repeatable && !maxed) { pad.done = false; pad.paid = {}; }
   else pad.done = true;
+}
+
+function convMaxed(st: State, cp: Compiled, id: string | undefined): boolean {
+  const cv = st.converters.find((c) => c.id === id);
+  return !cv || cv.level >= cp.converters[cv.type]!.rateTicksByLevel.length;
 }
 
 const dist2 = (a: Vec, b: Vec): number => (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
@@ -122,6 +129,14 @@ function applyBuild(st: State, cp: Compiled, pad: PadState, e: BuildEnt, out: Si
     const z = st.zones.find((x) => x.id === e.target);
     if (z) z.cleared = true;
     out.push({ t: "zone_cleared", zone: e.target! });
+    return;
+  }
+  if (b === "conv.level") {
+    const cv = st.converters.find((c) => c.id === e.target);
+    if (cv && !convMaxed(st, cp, cv.id)) {
+      cv.level++;
+      out.push({ t: "converter_upgraded", conv: cv.id, level: cv.level });
+    }
     return;
   }
   if (b.startsWith("conv.")) { placeConverter(st, cp, pad.id, b, pad.pos); return; }

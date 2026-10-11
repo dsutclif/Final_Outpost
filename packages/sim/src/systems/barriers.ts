@@ -1,8 +1,8 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { isqrt, mulDiv, type Vec } from "../fixed.js";
+import { FP, isqrt, mulDiv, type Vec } from "../fixed.js";
 import type { BarrierSectionState, BarrierState, State } from "../state.js";
-import { hint, nearSegment, stepDown, take } from "./common.js";
+import { hint, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
 
 export const sectionHpMax = (st: State, gate: boolean): number =>
   gate ? st.params["barrier.gateHpMax"]! : st.params["barrier.hpMax"]!;
@@ -70,35 +70,75 @@ export function stepBarrierBuild(st: State, cp: Compiled, out: SimEvent[]): void
 
 const sign = (v: number): number => (v > 0 ? 1 : v < 0 ? -1 : 0);
 
+/** A closed line's vertices in order. */
+export const ringOf = (line: BarrierState): Vec[] => line.sections.map((s) => s.a);
+
 /**
- * The player is outside when some line's chord separates them from the core and they stand
- * within the chord's extent. Lines are treated as their chord a→b, which is exact for straight runs.
+ * A point is outside a closed line (a ring) when it is not inside its polygon. For an open line it
+ * is outside when the line's chord separates it from the core and it stands within the chord's
+ * extent; open lines are treated as their chord a→b, which is exact for straight runs.
  */
-export function outsideLines(st: State, p: Vec): boolean {
-  for (const line of st.barriers) {
-    const abx = line.b.x - line.a.x, aby = line.b.y - line.a.y;
-    const len2 = abx * abx + aby * aby;
-    if (len2 === 0) continue;
-    const t = (p.x - line.a.x) * abx + (p.y - line.a.y) * aby;
-    if (t < 0 || t > len2) continue;
-    const coreSide = sign(abx * (st.core.pos.y - line.a.y) - aby * (st.core.pos.x - line.a.x));
-    const pSide = sign(abx * (p.y - line.a.y) - aby * (p.x - line.a.x));
-    if (pSide !== 0 && pSide !== coreSide) return true;
-  }
-  return false;
+export function outsideLine(st: State, line: BarrierState, p: Vec): boolean {
+  if (line.closed) return !pointInPoly(p, ringOf(line));
+  const abx = line.b.x - line.a.x, aby = line.b.y - line.a.y;
+  const len2 = abx * abx + aby * aby;
+  if (len2 === 0) return false;
+  const t = (p.x - line.a.x) * abx + (p.y - line.a.y) * aby;
+  if (t < 0 || t > len2) return false;
+  const coreSide = sign(abx * (st.core.pos.y - line.a.y) - aby * (st.core.pos.x - line.a.x));
+  const pSide = sign(abx * (p.y - line.a.y) - aby * (p.x - line.a.x));
+  return pSide !== 0 && pSide !== coreSide;
 }
 
-/** Guard posts along the first line: section midpoints, then interior joints, then quarter points, offset toward the core. */
+/** Outside any barrier line (see outsideLine). */
+export const outsideLines = (st: State, p: Vec): boolean => st.barriers.some((line) => outsideLine(st, line, p));
+
+/** The first built section (gates included) that segment a→b crosses, nearest to a; null if none. */
+export function firstCrossing(st: State, a: Vec, b: Vec): { line: BarrierState; idx: number; t: number } | null {
+  let best: { line: BarrierState; idx: number; t: number } | null = null;
+  for (const line of st.barriers) {
+    for (let i = 0; i < line.sections.length; i++) {
+      const s = line.sections[i]!;
+      if (!s.built) continue;
+      const t = segCross(a, b, s.a, s.b);
+      if (t >= 0 && (!best || t < best.t)) best = { line, idx: i, t };
+    }
+  }
+  return best;
+}
+
+/** Where segment a→b first meets any section of any line, built or not; null if it never does. */
+export function lineCrossingPoint(st: State, a: Vec, b: Vec): Vec | null {
+  let best = -1;
+  for (const line of st.barriers) for (const s of line.sections) {
+    const t = segCross(a, b, s.a, s.b);
+    if (t >= 0 && (best < 0 || t < best)) best = t;
+  }
+  if (best < 0) return null;
+  return { x: a.x + mulDiv(b.x - a.x, best, FP), y: a.y + mulDiv(b.y - a.y, best, FP) };
+}
+
+/** True when p is within r of any section of any line. */
+export const nearAnyLine = (st: State, p: Vec, r: number): boolean =>
+  st.barriers.some((line) => line.sections.some((s) => nearSegment(p, s.a, s.b, r)));
+
+/**
+ * Guard posts along the first line: section midpoints, then interior joints, then quarter points,
+ * each offset along its section's normal toward the core side (straight inward on a ring).
+ */
 export function guardPost(st: State, cp: Compiled, k: number): Vec {
   const line = st.barriers[0];
   if (!line) return { ...st.core.pos };
-  const pts: Vec[] = [];
-  const lerp = (s: { a: Vec; b: Vec }, num: number, den: number): Vec =>
-    ({ x: s.a.x + mulDiv(s.b.x - s.a.x, num, den), y: s.a.y + mulDiv(s.b.y - s.a.y, num, den) });
+  const pts: { p: Vec; s: BarrierSectionState }[] = [];
+  const lerp = (s: BarrierSectionState, num: number, den: number): { p: Vec; s: BarrierSectionState } =>
+    ({ p: { x: s.a.x + mulDiv(s.b.x - s.a.x, num, den), y: s.a.y + mulDiv(s.b.y - s.a.y, num, den) }, s });
   for (const s of line.sections) pts.push(lerp(s, 1, 2));
-  for (let i = 1; i < line.sections.length; i++) pts.push({ ...line.sections[i]!.a });
+  for (let i = 1; i < line.sections.length; i++) pts.push({ p: { ...line.sections[i]!.a }, s: line.sections[i]! });
   for (const s of line.sections) { pts.push(lerp(s, 1, 4)); pts.push(lerp(s, 3, 4)); }
-  const base = pts[k % pts.length]!;
-  const toward = st.core.pos.y >= base.y ? 1 : -1;
-  return { x: base.x, y: base.y + toward * cp.defense.postOffset };
+  const { p: base, s } = pts[k % pts.length]!;
+  let nx = -(s.b.y - s.a.y), ny = s.b.x - s.a.x;
+  if (nx * (st.core.pos.x - base.x) + ny * (st.core.pos.y - base.y) < 0) { nx = -nx; ny = -ny; }
+  const d = isqrt(nx * nx + ny * ny);
+  if (d === 0) return base;
+  return { x: base.x + mulDiv(nx, cp.defense.postOffset, d), y: base.y + mulDiv(ny, cp.defense.postOffset, d) };
 }

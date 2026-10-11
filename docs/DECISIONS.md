@@ -62,5 +62,13 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     and during play; guide arrows on levels 1–5, discovery labels, tap to inspect, field guide;
     whole pack cached offline. Supersedes 1 (intro order) and 9e's acceptance of superfluous
     elements in generated levels.
+9i. **R2 sim rules (2026-10-10, engine/content 0.5.0).** Phantom sales came from serving a
+    customer on the tick they spawned off-map (y-only slot check); serving now needs both axes.
+    Tow loss: the rearmost pod drops when a hostile hits the player; standing still 2.5 s outside
+    the heat while towing drops the whole tow. Lasso no longer excludes hunting (the rescue
+    family needs both); it still excludes defense. Objective kinds live in
+    `content/data/objectives.json`; manifests carry `family` and exactly three `objectives`, the
+    first mirroring `goal`. Colonists freeze one at a time across the grace period while the
+    reactor is out.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

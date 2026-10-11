@@ -8,7 +8,8 @@
     "role": "role.operator",
     "range": 30,
     "operatorOffset": [0, 48],
-    "pickupOffset": [54, 0]
+    "pickupOffset": [54, 0],
+    "upgradeRates": [1.1, 0.8]
   },
   "conv.material_processor": {
     "inputs": ["res.material_basic"],
@@ -19,6 +20,19 @@
     "role": "role.operator",
     "range": 30,
     "operatorOffset": [0, 48],
-    "pickupOffset": [54, 0]
+    "pickupOffset": [54, 0],
+    "upgradeRates": [0.85, 0.6]
+  },
+  "conv.alloy_works": {
+    "inputs": ["res.material_refined"],
+    "output": "res.component",
+    "rate": 2.0,
+    "inCap": 8,
+    "outCap": 10,
+    "role": "role.operator",
+    "range": 30,
+    "operatorOffset": [0, 48],
+    "pickupOffset": [54, 0],
+    "upgradeRates": [1.4, 1.0]
   }
 }

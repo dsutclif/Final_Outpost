@@ -1,6 +1,6 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { FP, METER_MAX, mulDiv } from "../fixed.js";
+import { FP, mulDiv } from "../fixed.js";
 import type { State } from "../state.js";
 
 export function coreFuelCap(st: State, cp: Compiled): number {
@@ -19,7 +19,7 @@ export function safeRadius(st: State, cp: Compiled): number {
   return r;
 }
 
-/** Burn fuel on a fixed interval (faster under a hazard); the lifeline recovers while fuel lasts and drains to failure without it. */
+/** Burn fuel on a fixed interval (faster under a hazard). The lifeline and frost follow in freeze.ts. */
 export function stepCore(st: State, cp: Compiled, out: SimEvent[]): void {
   const c = st.core;
   // The accumulator counts FP per tick, so a hazard can scale the burn by a ratio exactly.
@@ -32,9 +32,6 @@ export function stepCore(st: State, cp: Compiled, out: SimEvent[]): void {
       if (c.fuel === 0) out.push({ t: "core_fuel_out" });
     }
   }
-  if (c.fuel > 0) c.lifeline = Math.min(METER_MAX, c.lifeline + cp.core.recoverPerTick);
-  else c.lifeline = Math.max(0, c.lifeline - cp.core.drainPerTick);
-  st.meters.lifeline = c.lifeline;
 }
 
 /** Add fuel for one item of res. Returns false if the core is full or does not accept it. */

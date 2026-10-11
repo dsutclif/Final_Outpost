@@ -21,7 +21,7 @@ export function stepHousing(st: State, cp: Compiled, out: SimEvent[]): void {
     if (c.state !== "releasing") continue;
     c.timer--;
     if (c.timer > 0) continue;
-    const r = newResident(st, c.pos, "idle", "ok");
+    const r = newResident(st, c.pos, "idle", "ok", "rescue");
     admitRecruit(st, cp, r, out);
     out.push({ t: "released", capture: c.id, resident: r.id, at: { ...c.pos } });
     st.captures.splice(st.captures.indexOf(c), 1);
@@ -38,7 +38,7 @@ export function stepGate(st: State, cp: Compiled, out: SimEvent[]): void {
     T.gateAcc = g.everyTicks;
     T.gateLeft--;
     const pos = { x: g.pos.x + between(st.rng, -g.spawnSpread, g.spawnSpread + 1), y: cp.map.h + g.spawnOffsetY };
-    const r = newResident(st, pos, "idle", "arriving");
+    const r = newResident(st, pos, "idle", "arriving", "gate");
     st.gateQueue.push(r.id);
   }
   st.gateQueue.forEach((id, k) => {

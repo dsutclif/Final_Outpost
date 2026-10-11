@@ -166,7 +166,7 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
   // lasso's tow line works outside it, so a standalone barrier-lines level must use the module.
   for (const e of m.entities) {
     if (e.type !== "barrier.line") continue;
-    e.sections.forEach((s, i) => { if (!s.prebuilt) barriers.push({ line: e.id, section: i, res: e.res, cost: e.costPerSection }); });
+    e.sections.forEach((s, i) => { if (!s.prebuilt) barriers.push({ line: e.id, section: i, res: e.res, cost: e.costPerSection ?? c.defaults["barrier.costPerSection"] ?? 2 }); });
   }
 
   // ---------- conditional steps ----------

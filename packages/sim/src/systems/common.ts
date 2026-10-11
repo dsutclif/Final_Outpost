@@ -74,6 +74,21 @@ export const inRect = (p: Vec, r: { x: number; y: number; w: number; h: number }
 
 // ---------- movement ----------
 
+/**
+ * Where segment p1→p2 crosses segment q1→q2 (endpoints included), as a fraction of p1→p2 in FP,
+ * or -1 when they do not cross. Parallel segments never cross. Cross products only, so exact.
+ */
+export function segCross(p1: Vec, p2: Vec, q1: Vec, q2: Vec): number {
+  const rx = p2.x - p1.x, ry = p2.y - p1.y, sx = q2.x - q1.x, sy = q2.y - q1.y;
+  let d = rx * sy - ry * sx;
+  if (d === 0) return -1;
+  const qpx = q1.x - p1.x, qpy = q1.y - p1.y;
+  let t = qpx * sy - qpy * sx, u = qpx * ry - qpy * rx;
+  if (d < 0) { d = -d; t = -t; u = -u; }
+  if (t < 0 || t > d || u < 0 || u > d) return -1;
+  return mulDiv(t, FP, d);
+}
+
 /** Uncleared blocked zones and built wall sections block walkers; gates do not. */
 export function blockedAt(st: State, cp: Compiled, x: number, y: number): boolean {
   const p = { x, y };
@@ -118,7 +133,7 @@ export const housingSlots = (st: State, cp: Compiled): number =>
 export const freeSlots = (st: State, cp: Compiled): number => housingSlots(st, cp) - population(st);
 export const idleResidents = (st: State): ResidentState[] => st.residents.filter((r) => r.status === "ok" && r.role === "idle");
 
-export function newResident(st: State, pos: Vec, role: string, status: ResidentStatus): ResidentState {
+export function newResident(st: State, pos: Vec, role: string, status: ResidentStatus, origin: ResidentState["origin"] = "start"): ResidentState {
   const r: ResidentState = {
     id: st.nextResidentId++,
     pos: { ...pos },
@@ -132,6 +147,8 @@ export function newResident(st: State, pos: Vec, role: string, status: ResidentS
     acc: 0,
     timer: 0,
     slot: st.residents.length,
+    frost: 0,
+    origin,
   };
   st.residents.push(r);
   return r;

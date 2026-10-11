@@ -6,6 +6,39 @@ import type { CustomerState, SalesState, State } from "../state.js";
 import { hint } from "./common.js";
 import { converterIdle, dropOnly, producible } from "./nodes.js";
 
+/** Content offsets point "toward" a reference: each axis flips so a positive component faces it. */
+const toward = (off: Vec, from: Vec, to: Vec): Vec => ({ x: to.x >= from.x ? off.x : 0 - off.x, y: to.y >= from.y ? off.y : 0 - off.y });
+
+export interface SalesLayout {
+  /** Clerk pad beside the kiosk, on the core-facing side. */
+  register: Vec;
+  pile: Vec;
+  /** Queue slot 0, beside the kiosk on the side facing the map interior; slot k = queueAt + k × queueStep. */
+  queueAt: Vec;
+  queueStep: Vec;
+  /** x of the edge customers come from and leave to: the map edge on the stall's side. */
+  edgeX: number;
+}
+
+/**
+ * Where the clerk pad, coin pile and customer line go for a stall. Register and pile offsets point
+ * toward the core, the queue offset toward the map centre (so the line never runs off the map edge),
+ * and the queue step toward the core (the content default is negative: the line grows away from it).
+ * Exported so the generator can keep pads clear of these spots.
+ */
+export function salesLayout(cp: Compiled, pos: Vec, core: Vec): SalesLayout {
+  const S = cp.sales;
+  const centre = { x: cp.map.w / 2, y: cp.map.h / 2 };
+  const r = toward(S.registerOffset, pos, core), p = toward(S.pileOffset, pos, core), q = toward(S.queueOffset, pos, centre);
+  return {
+    register: { x: pos.x + r.x, y: pos.y + r.y },
+    pile: { x: pos.x + p.x, y: pos.y + p.y },
+    queueAt: { x: pos.x + q.x, y: pos.y + q.y },
+    queueStep: toward(S.queueStep, pos, core),
+    edgeX: pos.x * 2 >= cp.map.w ? cp.map.w + 20 * FP : -20 * FP,
+  };
+}
+
 /** Customers arrive, queue, give up, and are served while the register is staffed. */
 export function stepSales(st: State, cp: Compiled, out: SimEvent[]): void {
   const s = st.sales;
@@ -20,8 +53,11 @@ export function stepSales(st: State, cp: Compiled, out: SimEvent[]): void {
 function spawn(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
   const S = cp.sales;
   s.spawnAcc--;
+  // A short line refills fast, so three or four customers are usually waiting.
+  if (s.queue.length < S.refillBelow && s.spawnAcc > S.refillTicks) s.spawnAcc = S.refillTicks;
   if (s.spawnAcc > 0 || s.queue.length >= S.queueMax) return;
-  s.spawnAcc = mulDiv(S.spawnTicks, between(st.rng, S.jitterMin, S.jitterMax + 1), FP);
+  const base = s.queue.length + 1 < S.refillBelow ? S.refillTicks : S.spawnTicks;
+  s.spawnAcc = mulDiv(base, between(st.rng, S.jitterMin, S.jitterMax + 1), FP);
   // Never ask for a good the level cannot produce yet, nor for a drop-only or idle-converter good while its
   // shelf is empty, so a quiet drop economy cannot clog the queue.
   const opts = s.sells.filter((r) => producible(st, cp, r)
@@ -37,27 +73,29 @@ function spawn(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
   }
   const premium = chance(st.rng, S.premiumShare, FP);
   const impatient = !premium && chance(st.rng, S.impatientShare, FP);
-  const kind = premium ? "unit.customer_premium" : impatient ? "unit.customer_impatient" : "unit.customer";
+  // The bulk roll only happens when the level asks for bulk traders, so other levels keep their rng stream.
+  const bulk = !premium && !impatient && S.bulkShare > 0 && chance(st.rng, S.bulkShare, FP);
+  const kind = premium ? "unit.customer_premium" : impatient ? "unit.customer_impatient" : bulk ? "unit.customer_bulk" : "unit.customer";
   const def = S.customers[kind]!;
-  const want = def.orderSize === "max_plus" ? S.orderMax + def.orderExtra : between(st.rng, S.orderMin, S.orderMax + 1);
+  const want = def.orderSize === "max_plus" ? S.orderMax + def.orderExtra
+    : def.orderSize === "fixed" ? def.orderExtra
+      : between(st.rng, S.orderMin, S.orderMax + 1);
+  const id = s.nextCustomerId++;
   s.queue.push({
-    kind, res, want,
+    id, kind, res, want,
     patience: def.patienceTicks, patienceMax: def.patienceTicks,
-    pos: { x: cp.map.w + 20 * FP, y: s.pos.y },
+    pos: { x: s.edgeX, y: slot(s, s.queue.length).y },
     angry: false,
   });
-  out.push({ t: "customer_arrived", kind, res, want });
+  out.push({ t: "customer_arrived", kind, res, want, customer: id });
 }
 
-const slot = (cp: Compiled, s: SalesState, k: number): Vec => ({
-  x: s.pos.x + cp.sales.queueOffset.x,
-  y: s.pos.y + cp.sales.queueOffset.y + k * cp.sales.queueSpacing,
-});
+const slot = (s: SalesState, k: number): Vec => ({ x: s.queueAt.x + k * s.queueStep.x, y: s.queueAt.y + k * s.queueStep.y });
 
 function advanceQueue(cp: Compiled, s: SalesState): void {
   const a = cp.sales.approach;
   s.queue.forEach((q, k) => {
-    const g = slot(cp, s, k);
+    const g = slot(s, k);
     q.pos.x += mulDiv(g.x - q.pos.x, a, FP);
     q.pos.y += mulDiv(g.y - q.pos.y, a, FP);
     q.patience--;
@@ -70,18 +108,22 @@ function giveUp(s: SalesState, out: SimEvent[]): void {
     if (q.patience > 0) { stay.push(q); continue; }
     q.angry = true;
     s.leaving.push(q);
-    out.push({ t: "customer_left", angry: true, at: { ...q.pos } });
+    out.push({ t: "customer_left", angry: true, at: { ...q.pos }, customer: q.id });
   }
   s.queue = stay;
 }
 
-/** Serve the first customer in line whose order can be filled, so one missing good never blocks the queue. */
+/** A customer is at their slot once within this distance of it on both axes (not just in line with it). */
+const ARRIVED = 6 * FP;
+
+/**
+ * Serve the first customer in line who stands at their slot and whose order can be filled, so one
+ * missing good never blocks the queue. Every sale removes exactly that customer from the queue and
+ * sends them off paid (B2: a customer still walking in from the map edge was once "arrived" because
+ * only the y distance was checked, so sales fired with nobody visibly queued).
+ */
 function serve(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
-  const arrived = 6 * FP;
-  const idx = s.queue.findIndex((q, k) => {
-    const g = slot(cp, s, k);
-    return Math.abs(q.pos.y - g.y) < arrived && (s.shelf[q.res] ?? 0) >= q.want;
-  });
+  const idx = s.queue.findIndex((q, k) => within(q.pos, slot(s, k), ARRIVED) && (s.shelf[q.res] ?? 0) >= q.want);
   if (idx < 0) return;
   if (!registerStaffed(st, cp, s)) {
     if (within(st.player.pos, s.pos, 140 * FP)) hint(st, out, "stand_at_register");
@@ -95,10 +137,10 @@ function serve(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
   if (def.pay > 1) s.premiumServed++;
   s.queue.splice(idx, 1);
   s.leaving.push(q);
-  out.push({ t: "sold", res: q.res, n: q.want, pay, premium: def.pay > 1, at: { ...s.register } });
+  out.push({ t: "sold", res: q.res, n: q.want, pay, premium: def.pay > 1, at: { ...s.register }, customer: q.id, kind: q.kind });
 }
 
-/** The player at the register, or a cashier standing on it. */
+/** The player on the clerk pad, or a cashier standing on it. */
 export function registerStaffed(st: State, cp: Compiled, s: SalesState): boolean {
   if (within(st.player.pos, s.register, cp.sales.registerRange)) return true;
   return st.residents.some((r) =>
@@ -106,7 +148,9 @@ export function registerStaffed(st: State, cp: Compiled, s: SalesState): boolean
     && within(r.pos, s.register, cp.sales.cashierRange));
 }
 
+/** Leaving customers walk off toward their edge and are dropped once past it. */
 function leave(cp: Compiled, s: SalesState): void {
-  for (const q of s.leaving) { q.pos.x += cp.sales.leaveX; q.pos.y += cp.sales.leaveY; }
-  s.leaving = s.leaving.filter((q) => q.pos.x < cp.map.w + 40 * FP);
+  const dir = s.edgeX > 0 ? 1 : -1;
+  for (const q of s.leaving) { q.pos.x += dir * cp.sales.leaveX; q.pos.y += cp.sales.leaveY; }
+  s.leaving = s.leaving.filter((q) => (dir > 0 ? q.pos.x < cp.map.w + 40 * FP : q.pos.x > -40 * FP));
 }

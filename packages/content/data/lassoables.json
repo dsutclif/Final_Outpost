@@ -1,3 +1,4 @@
 {
-  "capture.recruit_container": { "release": "inSafeRadius", "releaseTime": 1.6, "result": "recruit", "towSpacing": 32 }
+  "capture.recruit_container": { "release": "inSafeRadius", "releaseTime": 1.6, "result": "recruit", "towSpacing": 32 },
+  "capture.supply_crate": { "release": "inSafeRadius", "releaseTime": 0, "result": "bundle", "bundle": { "res.material_basic": 4, "res.currency": 8 }, "towSpacing": 28 }
 }
