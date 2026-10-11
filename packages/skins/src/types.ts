@@ -54,6 +54,13 @@ export interface SkinText {
   moduleTips: Record<string, string>;
   /** Coach-mark lines for first-time guidance, keyed by coach rule id. */
   coach: Record<string, string>;
+  /**
+   * Star-objective template per objective kind (content objectives.json). Placeholders: {n} {k}
+   * {time} (m:ss) {pct} {res} {role} {build} {target}. A manifest objective `label` wins.
+   */
+  objectives?: Record<string, string>;
+  /** One-line guide-arrow instruction per bot task kind (feed, fuel, gather, stock, pay, ...). */
+  guide?: Record<string, string>;
   /** A concrete tip for the lose card, per end reason. */
   loseTips: Record<string, string>;
   /**

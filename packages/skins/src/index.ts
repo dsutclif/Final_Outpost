@@ -46,6 +46,32 @@ export function floaterText(skin: Skin, key: string, vars?: Record<string, strin
   return fmt(skin.text.floaters[key] ?? humanise(key), vars);
 }
 
+/** Seconds as m:ss. */
+export const clockText = (seconds: number): string => { const s = Math.max(0, Math.ceil(seconds)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+
+/**
+ * Name of a star objective: the manifest's own label, else the skin template for its kind with
+ * params filled in (ids through names, seconds as m:ss).
+ */
+export function objectiveText(skin: Skin, kind: string, params: Record<string, number | string> = {}, label?: string, padBuild?: (pad: string) => string | null): string {
+  if (label) return label;
+  const tpl = skin.text.objectives?.[kind];
+  if (!tpl) return humanise(kind);
+  const vars: Record<string, string | number> = {};
+  for (const [k, v] of Object.entries(params)) {
+    if (k === "seconds" && typeof v === "number") vars["time"] = clockText(v);
+    else if (k === "target" && typeof v === "string") vars["target"] = nameOf(skin, padBuild?.(v) ?? "struct.landmark");
+    else if (typeof v === "string") vars[k] = nameOf(skin, v);
+    else vars[k] = v;
+  }
+  return fmt(tpl, vars).replace(/\s+/g, " ").trim();
+}
+
+/** One-line guide instruction for a bot task kind; {res} {name} are substituted. */
+export function guideText(skin: Skin, kind: string, vars?: Record<string, string | number>): string {
+  return fmt(skin.text.guide?.[kind] ?? humanise(kind), vars);
+}
+
 export function resColor(skin: Skin, res: string): string {
   return skin.palette.res[res] ?? skin.palette.interactive;
 }

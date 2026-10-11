@@ -4,7 +4,7 @@ import { marsGreenhouse } from "@fo/skins";
 import { describe, expect, it } from "vitest";
 import level1 from "../../../levels/golden/proto-L001.json";
 import { isNew, labelled, nearbyPassive, touchedBy } from "../src/discovery.js";
-import { objectiveLines } from "../src/hud.js";
+import { introObjectives, liveObjectives } from "../src/objectives.js";
 import { TAP_MS, TAP_PX, isTap } from "../src/input.js";
 
 const manifest = { ...level1, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION };
@@ -64,11 +64,15 @@ describe("tap to inspect", () => {
 });
 
 describe("objective strip", () => {
-  it("shows nothing until the sim reports objectives, then labels and counters", () => {
-    const m = createSim(manifest).compiled.manifest;
-    expect(objectiveLines(undefined, m, marsGreenhouse)).toEqual([]);
-    const withLabels = { ...m, objectives: [{ id: "a", kind: "serve_premium", label: "VIPs" }] } as typeof m;
-    const lines = objectiveLines([{ id: "a", kind: "serve_premium", progress: 2, target: 5, done: false, failed: false }], withLabels, marsGreenhouse);
-    expect(lines).toEqual([{ id: "a", text: "VIPs 2/5", done: false, failed: false }]);
+  it("names the golden level's objectives in skin words and counts from state.objectives", () => {
+    const sim = createSim(manifest);
+    const intro = introObjectives(sim.compiled.manifest, marsGreenhouse).map((o) => o.label);
+    expect(intro).toEqual(["Build the Habitat hub", "Finish in 2:00", "Heat never below 25%"]);
+    const live = liveObjectives(sim.state, sim.compiled.manifest, marsGreenhouse);
+    expect(live.map((o) => [o.kind, o.floor])).toEqual([["build", null], ["time_target", null], ["heat_floor", 0.25]]);
+    const st = structuredClone(sim.state);
+    st.objectives[0] = { ...st.objectives[0]!, kind: "serve_premium", progress: 2, target: 5 };
+    const m = { ...sim.compiled.manifest, objectives: [{ id: "main", kind: "serve_premium", params: { n: 5 }, label: "VIPs" }] } as typeof sim.compiled.manifest;
+    expect(liveObjectives(st, m, marsGreenhouse)[0]).toMatchObject({ label: "VIPs", counter: "2/5" });
   });
 });

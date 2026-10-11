@@ -314,3 +314,28 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 .card.unsupported { margin-top: 18px; }
 .card.unsupported h2 { font-size: 22px; }
+
+/* ---------- star objectives (round 2): strip, intro list, result list ---------- */
+.chip.meter .tick.bad { background: var(--bad); opacity: 1; width: 3px; margin-left: -1.5px; }
+.chip[data-k="starTime"] { font-weight: 800; }
+.chip[data-k="lifeline"].bad .fill { animation: warn-pulse 0.9s ease-in-out infinite; }
+@keyframes warn-pulse { 50% { filter: brightness(1.5) saturate(1.3); } }
+.obj .cnt { opacity: 0.8; margin-left: 4px; font-variant-numeric: tabular-nums; }
+.obj.done .cnt { display: none; }
+.obj.failed::before { content: "\2717  "; text-decoration: none; display: inline-block; }
+.obj.flash { animation: obj-flash 0.9s ease-out; }
+@keyframes obj-flash { 0% { transform: scale(1.3); box-shadow: 0 0 0 0 var(--gold); } 60% { box-shadow: 0 0 0 8px transparent; } 100% { transform: none; } }
+.objlist { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; gap: 5px; }
+.objlist li { display: flex; align-items: center; gap: 8px; background: var(--panel-alt); border-radius: 12px; padding: 6px 10px; font-weight: 800; font-size: 14.5px; color: var(--ink); }
+.objlist li .oic { flex: none; color: var(--muted); }
+.objlist li .ost { flex: none; font-size: 18px; line-height: 1; color: rgba(0, 0, 0, 0.22); }
+.objlist li.on { background: #fff1dc; }
+.objlist li.on .ost { color: var(--gold); text-shadow: 0 1px 0 #b8801a; }
+.objlist li.missed { opacity: 0.6; }
+.objlist li.missed .otxt { text-decoration: line-through; }
+.objlist li .otxt { flex: 1; text-align: left; line-height: 1.2; }
+.objlist li .omark { flex: none; font-size: 13px; font-weight: 900; }
+.objlist li.on .omark { color: var(--go-shade); }
+.objlist li.missed .omark { color: var(--bad); }
+.card .objhead { font: 800 12px/1 var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 10px 0 0; text-align: left; }
+.card.result .objlist { margin: 10px 0 2px; }

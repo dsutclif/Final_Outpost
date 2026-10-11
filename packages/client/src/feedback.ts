@@ -24,6 +24,10 @@ export function hapticMs(e: SimEvent): number {
     case "released":
     case "recruit_arrived": return 18;
     case "level_end": return 60;
+    case "froze": return 45;
+    case "tow_dropped":
+    case "pod_lost": return 30;
+    case "crate_delivered": return 25;
     default: return 0;
   }
 }
@@ -70,6 +74,9 @@ const PATCHES: Record<string, Patch> = {
   wall: { wave: "triangle", notes: [[260, 0, 0.08], [390, 0.06, 0.1]], gain: 0.1 },
   pop: { wave: "sine", notes: [[520, 0, 0.05], [780, 0.04, 0.07]], gain: 0.1 },
   boom: { wave: "sawtooth", notes: [[110, 0, 0.18]], gain: 0.12, slide: 50, noise: true },
+  star: { wave: "sine", notes: [[784, 0, 0.07], [1175, 0.07, 0.07], [1568, 0.14, 0.16]], gain: 0.12 },
+  miss: { wave: "triangle", notes: [[330, 0, 0.09], [247, 0.09, 0.16]], gain: 0.09 },
+  freeze: { wave: "sine", notes: [[1760, 0, 0.08], [1320, 0.05, 0.14], [880, 0.12, 0.2]], gain: 0.08, slide: 440 },
   storm: { wave: "sawtooth", notes: [[140, 0, 0.5]], gain: 0.05, slide: 90, noise: true },
 };
 

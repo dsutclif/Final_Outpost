@@ -5,7 +5,7 @@
 import type { RenderStats, Renderer } from "./contract.js";
 import type { QualityTier } from "./units.js";
 
-export type { Camera, CoachMark, RenderStats, Renderer } from "./contract.js";
+export type { Camera, CoachMark, GuideMark, RenderStats, Renderer } from "./contract.js";
 export { createCamera, LEAD_WEIGHT } from "./contract.js";
 export { ART_M, FOV_DEG, PITCH_DEG, VIEW_W, QUALITY_TIERS, TIERS, MAX_DRAW_CALLS, MAX_TRIANGLES, type QualityTier, type TierSettings } from "./units.js";
 export { TRI_BUDGET, CLASS_ANCHORS, ANCHOR_NAMES, modelIds, type AssetClass, type AnchorName } from "./ids.js";
@@ -19,6 +19,8 @@ export interface Renderer3DHandle extends Renderer {
   onCoinLanded: (() => void) | null;
   /** Contextual coach mark (world units), or null to hide it; drawn as a DOM overlay. */
   setCoach(c: { key: string; at: { x: number; y: number }; text: string } | null): void;
+  /** Guide arrow target (world units) with its one-line instruction, or null to hide it. */
+  setGuide(g: { key: string; at: { x: number; y: number }; text: string } | null): void;
   /** Jump the camera onto the hero on the next sync. */
   snapCamera(): void;
   /** World point (world units, on the ground) to mount CSS px, with the last camera. */

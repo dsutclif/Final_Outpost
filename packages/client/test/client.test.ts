@@ -115,9 +115,12 @@ describe("level text, HUD model and level sources", () => {
     const sim = createSim(manifest);
     const m = hudModel(sim.state, sim.compiled.manifest, sim.compiled, marsGreenhouse);
     const keys = m.chips.map((c) => c.key);
-    expect(keys).toEqual(expect.arrayContaining(["currency", "lifeline", "fuel"]));
-    expect(m.chips.find((c) => c.key === "lifeline")!.text).toBe("Heat");
-    expect(m.chips.find((c) => c.key === "fuel")!.text).toBe("12/20");
+    expect(keys).toEqual(expect.arrayContaining(["currency", "lifeline", "starTime"]));
+    // Heat is the fuel fraction, with the heat-floor objective's threshold as a tick
+    const heat = m.chips.find((c) => c.key === "lifeline")!;
+    expect(heat.text).toBe("Heat 12/20");
+    expect(heat.ticks).toEqual([0.25]);
+    expect(m.chips.find((c) => c.key === "starTime")!.text).toBe("★ 2:00");
     expect(m.goal).toContain("Habitat hub");
   });
 
@@ -148,7 +151,7 @@ describe("level text, HUD model and level sources", () => {
 describe("saves and feedback", () => {
   it("migrates from nothing and keeps new setting defaults", async () => {
     const s = new MemoryStore();
-    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {}, discovered: {} });
+    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {} });
     expect((await s.getSettings()).haptics).toBe(true);
     expect(mergeSettings({ sound: false }).sound).toBe(false);
     expect("renderer" in mergeSettings({ sound: false, renderer: "2d", rendererChosen: true })).toBe(false);

@@ -47,6 +47,8 @@ export interface Anim {
   distress: number;
   /** Lying down (injured). */
   down: number;
+  /** 0..1 frozen solid (a colonist lost to the cold): ice-blue all over, no shiver. */
+  ice?: number;
 }
 
 export const restAnim = (): Anim => ({ t: 0, phase: 0, speed: 0, carry: false, hit: 0, knock: 0, cheer: 0, distress: 0, down: 0 });
@@ -195,7 +197,8 @@ function local(parent: Matrix4, x: number, y: number, z: number, rx = 0, ry = 0,
 function shade(out: Color, base: string | null, a: Anim, frost: string | null): Color {
   if (base === null) out.setRGB(1, 1, 1);
   else out.set(base);
-  if (frost && a.distress > 0) out.lerp(cFrost.set(frost), Math.min(0.55, a.distress * 0.45));
+  if (frost && a.ice) out.lerp(cFrost.set(frost), 0.88);
+  else if (frost && a.distress > 0) out.lerp(cFrost.set(frost), Math.min(0.55, a.distress * 0.45));
   if (a.hit > 0) out.lerp(cFlash, a.hit);
   return out;
 }
@@ -209,11 +212,11 @@ export function poseCharacter(look: Look, a: Anim, root: Matrix4, emit: Emit, fr
   if (look.kind === "hopper") return poseHopper(look, a, root, emit, anchor);
   shade(cSuit, look.suit, a, frost);
   shade(cDark, look.suitDark, a, frost);
-  shade(cVisor, look.visor, a, null);
+  shade(cVisor, look.visor, a, a.ice ? frost : null);
   shade(cWhite, null, a, frost);
   const sw = Math.sin(a.phase) * a.speed;
   const bob = Math.abs(Math.sin(a.phase)) * 0.035 * a.speed + a.cheer * Math.abs(Math.sin(a.t * 9)) * 0.14;
-  const shiver = a.distress > 0 ? Math.sin(a.t * 47) * 0.012 * a.distress : 0;
+  const shiver = a.distress > 0 && !a.ice ? Math.sin(a.t * 47) * 0.012 * a.distress : 0;
   const lean = -a.knock + a.speed * 0.08 - a.down * 1.45;
   local(root, shiver, bob + a.down * 0.12, 0, lean, 0, 0, mBody);
 

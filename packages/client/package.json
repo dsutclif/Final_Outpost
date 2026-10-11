@@ -15,7 +15,8 @@
     "@fo/sim": "workspace:*",
     "@fo/skins": "workspace:*",
     "@fo/render-3d": "workspace:*",
-    "idb": "^8.0.0"
+    "idb": "^8.0.0",
+    "@fo/bots": "workspace:*"
   },
   "devDependencies": {
     "vite": "^6.0.0",

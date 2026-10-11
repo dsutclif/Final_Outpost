@@ -36,12 +36,13 @@ import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildModel } from "./assets/registry.js";
 import { buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
-import { LEAD_WEIGHT, type Camera, type CoachMark, type RenderStats, type Renderer } from "./contract.js";
+import { LEAD_WEIGHT, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder } from "./geom.js";
 import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Environment } from "./scene/environment.js";
 import { Fx } from "./scene/fx.js";
+import { GroundMarks } from "./scene/groundmarks.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
@@ -154,6 +155,10 @@ export class Renderer3D implements Renderer {
   private pointers: DomPointers | null = null;
   private coachDom: DomCoach | null = null;
   private coach: (CoachMark & { since: number }) | null = null;
+  private guideMark: GuideMark | null = null;
+  private marks: GroundMarks | null = null;
+  private guideSprite: Sprite | null = null;
+  private lowFuelSaid = false;
   private hintUntil = 0;
   private hintCls = "";
   private bannerText = "";
@@ -249,6 +254,10 @@ export class Renderer3D implements Renderer {
     this.padPlane = new PlaneGeometry(1, 1);
     this.padPlane.rotateX(-Math.PI / 2);
     this.buildLasso();
+    this.marks = new GroundMarks(this.scene, { interactive: this.tokens.interactive, accent: this.tokens.accent, frost: this.tokens.frost, ink: this.tokens.ink });
+    this.guideSprite = null;
+    this.guideMark = null;
+    this.lowFuelSaid = false;
     this.buildDom(doc, mount);
 
     this.interp.reset();
@@ -339,6 +348,10 @@ export class Renderer3D implements Renderer {
     this.vignetteEl?.remove();
     this.pointers?.dispose();
     this.coachDom?.dispose();
+    this.marks?.dispose();
+    this.marks = null;
+    this.guideSprite = null;
+    this.guideMark = null;
     this.pointers = null;
     this.coachDom = null;
     this.coach = null;
@@ -390,6 +403,12 @@ export class Renderer3D implements Renderer {
     void t;
     this.pointers = new DomPointers(doc, mount, this.skin.palette, 8);
     this.coachDom = new DomCoach(doc, mount, this.skin.palette, this.pointers);
+  }
+
+  /** Guide arrow target (world units) and its instruction, or null. Purely visual; never blocks input. */
+  setGuide(g: GuideMark | null): void {
+    if (g && this.guideMark && g.key === this.guideMark.key) { this.guideMark.at = g.at; this.guideMark.text = g.text; return; }
+    this.guideMark = g ? { ...g } : null;
   }
 
   /** Contextual coach mark (world units), or null to hide it. Purely visual; never blocks input. */
@@ -487,6 +506,7 @@ export class Renderer3D implements Renderer {
     this.syncDrops(state);
     this.syncCharacters(state, a, pl, dt);
     this.syncLasso(state, a, pl, dt);
+    this.syncMarks(state, pl);
 
     for (const [k, p] of this.placed) if (!p.seen) { this.removePlaced(p); this.placed.delete(k); }
     this.drawDiscovery(pl);
@@ -821,6 +841,8 @@ export class Renderer3D implements Renderer {
     for (const cv of s.converters) {
       const p = this.place(`cv:${cv.id}`, cv.type, this.wv(cv.pos));
       this.candidate(cv.type, p);
+      const popAge = this.fx!.popAge(`cv:${cv.id}`);
+      p.model.root.scale.setScalar(popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1);
       const def = this.content.converters[cv.type] as { outCap?: number; range?: number; role?: string; output?: string } | undefined;
       const manned = this.converterManned(s, cv, def);
       const blocked = cv.out >= (def?.outCap ?? 99);
@@ -1212,14 +1234,16 @@ export class Renderer3D implements Renderer {
       const rl = lookFor(id, t, this.skin.models);
       const ry = this.faceFrom(key, rv);
       const an = this.anim(key, sp, !!r.carry);
-      an.distress = r.status === "frozen" || (r.status as string) === "dead" ? 1 : this.distressFor(pos);
+      const dead = (r.status as string) === "dead" || r.status === "frozen";
+      an.distress = dead ? 1 : this.distressFor(pos);
+      if (dead) { an.ice = 1; an.speed = 0; }
       if (r.status === "injured") { an.speed *= 0.6; an.hit = 0.2 + 0.2 * Math.sin(this.t * 6); }
       if (r.status === "healing") an.down = 1;
       this.addCharacter(rl, an, pos, ry, t.frost);
       if (r.carry && r.n > 0) this.backStack(new Array<string>(Math.min(6, r.n)).fill(r.carry), pos, ry, rl.scale, sp, rv, false);
-      // frost meter over a colonist while the reactor is out (engine 0.5 resident.frost, 0..1000)
-      const frost = (r as unknown as { frost?: number }).frost;
-      if (typeof frost === "number" && frost > 0 && r.status !== "frozen") this.barTag(pos.x, ART_M * rl.scale * 1.45, pos.y, frost / 1000, t.frost, 7);
+      // frost meter over a colonist while the reactor is out (resident.frost, 0..1000)
+      const frost = r.frost;
+      if (typeof frost === "number" && frost > 0 && !dead) this.barTag(pos.x, ART_M * rl.scale * 1.45, pos.y, frost / 1000, t.frost, 7);
     }
 
     for (const h of s.hostiles) {
@@ -1236,10 +1260,10 @@ export class Renderer3D implements Renderer {
       const kb = fk * 7;
       this.addCharacter(hl, an, { x: pos.x - Math.sin(hy) * kb, y: pos.y - Math.cos(hy) * kb }, hy, null);
       this.candidatePt(h.type, pos.x, pos.y, ART_M * hl.scale * 1.8);
-      // health bar over bosses and wounded attackers (engine 0.5 hostile.hpMax)
-      const hpMax = (h as unknown as { hpMax?: number; boss?: boolean }).hpMax;
-      const boss = !!(h as unknown as { boss?: boolean }).boss;
-      if (typeof hpMax === "number" && hpMax > 0 && (boss || h.hp < hpMax)) this.barTag(pos.x, ART_M * hl.scale * (boss ? 1.9 : 1.5), pos.y, h.hp / hpMax, t.danger, boss ? 12 : 6);
+      // health bar over bosses (content `boss` flag) and wounded attackers
+      const hpMax = h.hpMax;
+      const boss = !!this.cp?.hostiles[h.type]?.boss;
+      if (hpMax > 0 && (boss || h.hp < hpMax)) this.barTag(pos.x, ART_M * hl.scale * (boss ? 1.9 : 1.5), pos.y, h.hp / hpMax, t.danger, boss ? 12 : 6);
     }
 
     for (const p of s.prey) {
@@ -1297,6 +1321,54 @@ export class Renderer3D implements Renderer {
       // neighbouring tags stagger up so two full columns never print over each other
       if (player && typeof cap === "number" && total >= cap) this.maxTag(bx + wx, y + 6 + (ci % 2) * 16, bz + wz);
     });
+  }
+
+  // ---------------------------------------------------------------- guide arrow and frost ring
+
+  private syncMarks(s: State, pl: V): void {
+    const m = this.marks;
+    if (!m) return;
+    const g = this.guideMark && !s.over ? this.guideMark : null;
+    m.guide(pl.x, pl.y, g?.at.x ?? 0, g?.at.y ?? 0, this.t, !!g, ART_M * 1.9);
+    if (g) {
+      let sp = this.guideSprite;
+      if (!sp) { sp = new Sprite(); sp.renderOrder = 15; this.dynamic.add(sp); this.guideSprite = sp; }
+      const hh = 20;
+      sp.visible = this.labels.apply(sp, `guide|${g!.text}`, () => this.guideArt(g!.text), hh);
+      // the line rides the marker; with the target off screen it rides the ground arrow instead
+      const scr = this.toScreen(v3(g.at.x, ART_M * 2.2, g.at.y));
+      const off = scr.x < 70 || scr.x > this.cssW - 70 || scr.y < 40 || scr.y > this.cssH - 40;
+      const dx = g.at.x - pl.x, dz = g.at.y - pl.y, d = Math.hypot(dx, dz) || 1;
+      if (off && d > 46) sp.position.set(pl.x + (dx / d) * 34, ART_M * 1.5 + Math.abs(Math.sin(this.t * 4.2)) * 4, pl.y + (dz / d) * 34);
+      else sp.position.set(g.at.x, ART_M * 1.9 + 38 + Math.abs(Math.sin(this.t * 4.2)) * 9, g.at.y);
+    } else if (this.guideSprite) this.guideSprite.visible = false;
+    // the frost ring drains with the reactor-out countdown, around the reactor
+    const fz = s.freeze;
+    const on = !!fz?.active && fz.ticksTotal > 0 && !s.over;
+    const r = Math.max(30, Math.min(54, (this.safeR || 120) * 0.34));
+    const c = this.wv(s.core.pos);
+    m.frost(c.x, c.z, r, on ? fz.ticksLeft / fz.ticksTotal : 0, this.t, on);
+    // one soft warning as the reactor runs low (re-armed once it is refuelled)
+    if (this.fuelK < 0.2 && s.core.fuel > 0 && !this.lowFuelSaid) {
+      this.lowFuelSaid = true;
+      this.fx?.floater(floaterText(this.skin, "reactor_low"), this.tokens.danger, c.clone().setY(ART_M * 2.6), 44, 13);
+    } else if (this.fuelK > 0.4) this.lowFuelSaid = false;
+  }
+
+  private guideArt(text: string): LabelArt {
+    const t = this.tokens, ui = this.skin.palette.ui;
+    const np = 34;
+    const w = this.labels.textWidth(text, np) + 56;
+    return {
+      w, h: 64,
+      draw: (g, W) => {
+        roundRect(g, 3, 6, W - 6, 52, 26);
+        g.fillStyle = ui.panel; g.globalAlpha = 0.96; g.fill(); g.globalAlpha = 1;
+        g.lineWidth = 5; g.strokeStyle = t.interactive; g.stroke();
+        g.font = `800 ${np}px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillStyle = ui.ink; g.fillText(text, W / 2, 33);
+      },
+    };
   }
 
   // ---------------------------------------------------------------- lasso
@@ -1823,6 +1895,51 @@ export class Renderer3D implements Renderer {
         break;
       case "converted":
         fx.burst(up(at, ART_M * 1.2), [t.accent, white], 5, 50, 120, 3, 0.5);
+        break;
+      case "froze": {
+        // a colonist is lost to the cold: frost burst and a shudder
+        fx.burst(up(at, ART_M * 0.9), [t.frost, white, t.glass], 26, 120, 220, 4, 0.8);
+        fx.dustRing(at, t.frost, 20, 90, 6);
+        fx.floater(ft("froze"), t.frost, up(at, ART_M * 1.9), 44, 13);
+        fx.shake = Math.max(fx.shake, 4);
+        this.banner(ft("froze"), "hazard", 2.2);
+        break;
+      }
+      case "pod_lost":
+        fx.burst(up(at, ART_M * 0.8), [t.frost, white], 18, 110, 200, 4, 0.7);
+        fx.floater(ft("pod_lost"), t.danger, up(at, ART_M * 1.8), 44, 13);
+        break;
+      case "tow_dropped": {
+        // the line snaps: sparks at the pod and a short message at the hero
+        fx.burst(up(at, ART_M * 0.6), [t.accent, white, mix(t.accent, t.ink, 0.4)], 14, 150, 160, 3, 0.4);
+        fx.dustRing(at, mix(t.groundAlt, t.structure, 0.3), 10, 70, 5);
+        fx.floater(ft(e["reason"] === "slack" ? "tow_slack" : "tow_dropped"), t.danger, up(this.playerBack(), 26), 44, 13);
+        fx.shake = Math.max(fx.shake, 3);
+        break;
+      }
+      case "crate_delivered": {
+        const bundle = (e["bundle"] ?? {}) as Record<string, number>;
+        const keys = Object.keys(bundle);
+        fx.burst(up(at, ART_M), [gold, t.accent, white, ...keys.map((k) => resToken(t, k))], 24, 140, 260, 5);
+        fx.dustRing(at, t.accent, 18, 110, 7);
+        fx.floater(ft("crate_delivered"), white, up(at, ART_M * 2), 44, 13);
+        for (const k of keys.slice(0, 3)) fx.arc(k, up(at, ART_M), () => this.playerBack(), 0.5, true);
+        break;
+      }
+      case "converter_upgraded": {
+        const cv = this.world?.converters.find((c) => c.id === e["conv"]);
+        const p = cv ? this.wv(cv.pos) : at;
+        if (cv) fx.pop(`cv:${cv.id}`);
+        fx.dustRing(p, t.accent, 22, 120, 7);
+        fx.burst(up(p, ART_M * 1.1), [t.accent, white, gold], 20, 120, 240, 4, 0.7);
+        fx.floater(ft("converter_upgraded"), white, up(p, ART_M * 2.2), 44, 13);
+        break;
+      }
+      case "boss_spawned":
+        // a banner, plus the off-screen pointer in updatePointers keeps it findable
+        this.banner(ft("boss_spawned"), "danger", 3.4);
+        fx.shake = Math.max(fx.shake, 8);
+        fx.burst(up(at, ART_M), [t.danger, white], 16, 120, 220, 5, 0.6);
         break;
       default:
         break;

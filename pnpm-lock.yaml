@@ -59,6 +59,9 @@ importers:
 
   packages/client:
     dependencies:
+      '@fo/bots':
+        specifier: workspace:*
+        version: link:../bots
       '@fo/content':
         specifier: workspace:*
         version: link:../content

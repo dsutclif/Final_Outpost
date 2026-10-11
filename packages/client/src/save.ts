@@ -15,6 +15,8 @@ export interface Progress {
   coach: Record<string, number>;
   /** Best star rating per level (1 to 3, from the win margin). */
   stars: Record<string, number>;
+  /** Objective ids achieved per level, best-ever union across attempts (the stars the level grid shows). */
+  starSet: Record<string, string[]>;
   /** Canonical ids of object types the player has interacted with (discovery labels, field guide). */
   discovered: Record<string, true>;
 }
@@ -25,6 +27,8 @@ export interface Settings {
   quality: "auto" | "low" | "medium" | "high";
   skin: string;
   debug: boolean;
+  /** Show guide arrows on every level (they always show on the first five). */
+  guide: boolean;
   /** Frames per second the "auto" quality probe measured in play, or null before it ran. */
   probeFps: number | null;
 }
@@ -42,8 +46,8 @@ export interface TelemetryAttempt {
 
 export interface TelemetryRow extends TelemetryAttempt { seq?: number; sent: boolean }
 
-export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {}, discovered: {} };
-export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, probeFps: null };
+export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {} };
+export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, probeFps: null };
 
 interface FoDB extends DBSchema {
   kv: { key: string; value: unknown };
@@ -73,6 +77,7 @@ export function mergeProgress(raw: unknown): Progress {
     current: typeof r.current === "string" ? r.current : null,
     coach: { ...(r.coach ?? {}) },
     stars: { ...(r.stars ?? {}) },
+    starSet: { ...(r.starSet ?? {}) },
     discovered: { ...(r.discovered ?? {}) },
   };
 }
