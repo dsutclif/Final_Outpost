@@ -62,9 +62,6 @@ importers:
       '@fo/content':
         specifier: workspace:*
         version: link:../content
-      '@fo/render-2d':
-        specifier: workspace:*
-        version: link:../render-2d
       '@fo/render-3d':
         specifier: workspace:*
         version: link:../render-3d

@@ -1,5 +1,5 @@
 import { CONTENT_VERSION } from "@fo/content";
-import { ENGINE_VERSION, FP, createSim } from "@fo/sim";
+import { ENGINE_VERSION, FP, createSim, type SimEvent } from "@fo/sim";
 import { marsGreenhouse } from "@fo/skins";
 import { describe, expect, it } from "vitest";
 import level1 from "../../../levels/golden/proto-L001.json";
@@ -148,10 +148,10 @@ describe("level text, HUD model and level sources", () => {
 describe("saves and feedback", () => {
   it("migrates from nothing and keeps new setting defaults", async () => {
     const s = new MemoryStore();
-    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {} });
+    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {}, discovered: {} });
     expect((await s.getSettings()).haptics).toBe(true);
     expect(mergeSettings({ sound: false }).sound).toBe(false);
-    expect(mergeSettings({ sound: false }).renderer).toBe("2d");
+    expect("renderer" in mergeSettings({ sound: false, renderer: "2d", rendererChosen: true })).toBe(false);
     await s.appendTelemetry({ levelId: "a", engineVersion: "0", contentVersion: "0", outcome: "win", reason: "goal", ticks: 10, quits: 0, ts: 1 });
     const rows = await s.allTelemetry();
     expect(rows).toHaveLength(1);
@@ -162,7 +162,7 @@ describe("saves and feedback", () => {
   it("buzzes for the player's own actions only", () => {
     expect(hapticMs({ t: "gathered", res: "r", node: 0, at: { x: 0, y: 0 } })).toBe(4);
     expect(hapticMs({ t: "gathered", res: "r", node: 0, at: { x: 0, y: 0 }, by: 2 })).toBe(0);
-    expect(hapticMs({ t: "sold", res: "r", n: 1, pay: 2, premium: false, at: { x: 0, y: 0 } })).toBe(12);
+    expect(hapticMs({ t: "sold", res: "r", n: 1, pay: 2, premium: false, at: { x: 0, y: 0 }, customer: 1, kind: "unit.customer" } as SimEvent)).toBe(12);
     expect(hapticMs({ t: "wave_started", idx: 0 })).toBe(40);
   });
 });

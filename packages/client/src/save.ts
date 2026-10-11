@@ -15,19 +15,18 @@ export interface Progress {
   coach: Record<string, number>;
   /** Best star rating per level (1 to 3, from the win margin). */
   stars: Record<string, number>;
+  /** Canonical ids of object types the player has interacted with (discovery labels, field guide). */
+  discovered: Record<string, true>;
 }
 
 export interface Settings {
-  renderer: "2d" | "3d";
   haptics: boolean;
   sound: boolean;
   quality: "auto" | "low" | "medium" | "high";
   skin: string;
   debug: boolean;
-  /** False until the first-launch benchmark (or the player) picks the renderer. */
-  rendererChosen: boolean;
-  /** Frames per second the 3D benchmark measured, or null if it never ran. */
-  benchFps: number | null;
+  /** Frames per second the "auto" quality probe measured in play, or null before it ran. */
+  probeFps: number | null;
 }
 
 export interface TelemetryAttempt {
@@ -43,8 +42,8 @@ export interface TelemetryAttempt {
 
 export interface TelemetryRow extends TelemetryAttempt { seq?: number; sent: boolean }
 
-export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {} };
-export const DEFAULT_SETTINGS: Settings = { renderer: "2d", haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, rendererChosen: false, benchFps: null };
+export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {}, discovered: {} };
+export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, probeFps: null };
 
 interface FoDB extends DBSchema {
   kv: { key: string; value: unknown };
@@ -74,12 +73,15 @@ export function mergeProgress(raw: unknown): Progress {
     current: typeof r.current === "string" ? r.current : null,
     coach: { ...(r.coach ?? {}) },
     stars: { ...(r.stars ?? {}) },
+    discovered: { ...(r.discovered ?? {}) },
   };
 }
 
 export function mergeSettings(raw: unknown): Settings {
-  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Settings>;
-  return { ...DEFAULT_SETTINGS, ...r };
+  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Settings> & Record<string, unknown>;
+  // fields from the 2D/3D era (renderer, rendererChosen, benchFps) are dropped
+  const { renderer: _r, rendererChosen: _c, benchFps: _b, ...rest } = r;
+  return { ...DEFAULT_SETTINGS, ...rest } as Settings;
 }
 
 class IdbStore implements SaveStore {

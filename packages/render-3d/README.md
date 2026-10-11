@@ -1,8 +1,8 @@
 # @fo/render-3d
 
 The 3D renderer: three.js, every model procedural (no asset files). It implements Contract 2
-(`docs/PLAN.md`) with the same public shape as `@fo/render-2d`, so the client can swap renderers
-behind one camera object.
+(`docs/PLAN.md`) and is the only renderer the client ships (redesign round 2); `@fo/render-2d`
+stays in the repo for tests and tools only.
 
 ## Integrating in the client
 
@@ -10,37 +10,35 @@ behind one camera object.
 import { loadRenderer3D, type QualityTier } from "@fo/render-3d";
 
 // three.js and the renderer load as a separate chunk only on this call; the entry module is
-// three-free, so a 2D-only session never downloads them.
+// three-free, so the shell (title, menus, unsupported-device screen) boots without them.
 const r = await loadRenderer3D({ quality: settings.quality as QualityTier });
 r.hudAnchor = () => ({ x: chipX, y: chipY });  // CSS px in the mount: where coins fly
 r.onCoinLanded = () => hud.bumpCurrency();
 r.init(manifest, skin, stageEl);               // creates its own <canvas> + DOM overlays in stageEl
-// per frame, exactly like Renderer2D:
+// per frame:
 r.sync(sim.state, loop.alpha, camera);          // camera: { x, y, zoom, follow } (createCamera())
 for (const e of events) r.onEvent(e);
 r.resize(w, h);
 r.setQuality("low" | "medium" | "high");        // settings toggle, live
 r.setCoach({ key, at: { x, y }, text } | null); // coach mark (world units), DOM overlay like 2D's
 r.snapCamera();                                 // jump to the hero after a scripted run
-r.worldToScreen({ x, y }, height?);             // world units -> mount CSS px (both renderers have it)
+r.worldToScreen({ x, y }, height?);             // world units -> mount CSS px
+r.pick(x, y);                                   // tap to inspect: canonical id under a mount CSS px point, or null
+r.setDiscovery((id) => !seen[id]);              // floating name + purpose over types not used yet (null: none)
 // camera.lead = { x, y } | null: the follow target leans LEAD_WEIGHT toward it (nearest pad)
 r.stats();                                      // { drawCalls, triangles, fps, estDrawCalls, estTriangles, quality }
 r.dispose();
 ```
 
-Steps for the client stream:
+The client wires it through `packages/client/src/render.ts`: a WebGL capability check (no WebGL
+means the "unsupported device" screen), `createRenderer(tier)`, and `thumbnails(ids, skin)`
+(field-guide icons from `renderThumbnails` in the renderer chunk). The renderer draws the hint
+pill, hazard/wave banner, distress vignette, off-screen pointers, coach marks, discovery labels,
+MAX tags, frost meters and boss bars itself; the HUD stays client-side. `preloadRenderer3D()`
+warms the chunk. "Auto" quality is picked by a short fps probe in the first seconds of play.
 
-1. Settings "renderer: 3D" → `await loadRenderer3D(...)` and use it wherever `Renderer2D` is used
-   (same `init/sync/onEvent/resize/dispose`, same `hudAnchor` / `onCoinLanded` hooks).
-2. Like the 2D renderer it draws the hint pill, hazard/wave banner (same `fo-hint`/`fo-banner`
-   classes and CSS), distress vignette, off-screen pointers (arrow plus icon bubble, the same set
-   as 2D) and coach marks itself as DOM children of the mount (`src/scene/dom.ts`); the HUD stays
-   client-side. The client wires it through `packages/client/src/render.ts` (live 2D/3D swap,
-   first-launch benchmark).
-3. `preloadRenderer3D()` warms the chunk (e.g. when the settings screen opens).
-4. Vite code-splits the dynamic import automatically; no config change needed.
-5. Optional: pick the tier with a first-launch benchmark (spec) by reading `stats().fps` for a
-   few seconds on `medium` and dropping to `low` under 30.
+Engine 0.5 fields are read only when present: `resident.frost` (frost meter over a colonist),
+`hostile.hpMax` / `hostile.boss` (health bar over wounded attackers and bosses), status `"dead"`.
 
 Direct (non-lazy) use for tools and tests: `import { Renderer3D } from "@fo/render-3d/renderer"`.
 Its constructor takes `{ now, dpr, content, quality, createGL }`; `createGL` lets tests inject a

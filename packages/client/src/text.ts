@@ -18,7 +18,7 @@ function buildTargetName(m: Manifest, skin: Skin): string {
 export function goalText(m: Manifest, skin: Skin): string {
   const g = m.goal;
   const tpl = skin.text.goals[g.type] ?? nameOf(skin, `goal.${g.type}`);
-  return fmt(tpl, { target: buildTargetName(m, skin), n: "n" in g ? g.n : "" });
+  return fmt(tpl, { target: buildTargetName(m, skin), n: "n" in g ? (g.n ?? "") : "" });
 }
 
 /**

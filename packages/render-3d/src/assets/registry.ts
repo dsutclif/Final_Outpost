@@ -6,10 +6,10 @@ import { ART_M } from "../units.js";
 import { buildConverter, buildCore, buildGate, buildGuardPost, buildHabPod, buildKiosk, buildLandmark, buildMedBay, buildTurret, buildWarehouse } from "./buildings.js";
 import { buildCharacterModel, lookFor } from "./characters.js";
 import { anchor, mesh, model, type BuildCtx, type Model } from "./common.js";
-import { buildItem, buildPile, buildRegister } from "./props.js";
+import { buildClerkPad, buildItem, buildPile } from "./props.js";
 import {
-  buildBarrierDash, buildDashedRect, buildFuelCache, buildGrowDome, buildOrePile, buildPadPlate, buildRubble,
-  buildStasisPod, buildStormPreset, buildWaitingMarker, buildWallPanel,
+  buildBarrierDash, buildBurrow, buildFuelCache, buildGrowDome, buildOrePile, buildPadPlate, buildRubble,
+  buildScrapPile, buildStasisPod, buildSupplyCrate, buildStormPreset, buildWaitingMarker, buildWallPanel,
 } from "./scatter.js";
 
 // Model registry keyed by canonical id, mirroring the 2D renderer's draw registry: adding a
@@ -75,13 +75,14 @@ registerModel("res.*", (ctx) => buildItem("res.unknown", ctx));
 registerModel("node.material_source", (ctx) => buildOrePile(ctx), ["pickup", "interact"]);
 registerModel("node.food_source", (ctx) => buildGrowDome(ctx), ["pickup", "interact"]);
 registerModel("node.fuel_deposit", (ctx) => buildFuelCache(ctx), ["pickup", "interact"]);
+registerModel("node.fuel_scrap", (ctx) => buildScrapPile(ctx), ["pickup", "interact"]);
 registerModel("node.prey", character("node.prey"));
 registerModel("unit.prey", character("unit.prey"));
 
 const sales = content.sinks["sink.sales_point"] as { queueOffset?: number[] } | undefined;
 registerModel("sink.core", (ctx) => buildCore(ctx), ["deposit", "safe", "interact", "pad"]);
 registerModel("sink.sales_point", (ctx) => buildKiosk(ctx, m2(sales?.queueOffset, [2.7, 0])), ["deposit", "queue", "interact", "pad"]);
-registerModel("sink.sales_point.register", (ctx) => buildRegister(ctx));
+registerModel("sink.sales_point.register", (ctx) => buildClerkPad(ctx));
 registerModel("sink.sales_point.pile", (ctx) => buildPile(ctx));
 
 for (const id of Object.keys(content.converters)) {
@@ -89,7 +90,8 @@ for (const id of Object.keys(content.converters)) {
   registerModel(id, (ctx) => buildConverter(id, ctx, m2(def.pickupOffset, [1.93, 0]), m2(def.operatorOffset, [0, 1.7])), ["deposit", "pickup", "interact", "pad"]);
 }
 
-for (const id of ["unit.player", "unit.resident", "unit.customer", "unit.customer_impatient", "unit.customer_premium", "hostile.raider_humanoid", "hostile.creature", "role.idle", ...Object.keys(content.roles), "role.medic"]) {
+const people = ["unit.player", "unit.resident", "unit.customer", "unit.customer_impatient", "unit.customer_premium", "unit.customer_bulk", "hostile.raider_humanoid", "hostile.creature", "hostile.swarmling", "hostile.boss", "role.idle", ...Object.keys(content.roles), ...Object.keys(content.customers), ...Object.keys(content.hostiles), "role.medic"];
+for (const id of new Set(people)) {
   registerModel(id, character(id));
 }
 
@@ -109,9 +111,10 @@ registerModel("struct.barrier.reinforced", (ctx) => buildWallPanel(ctx, false, t
 registerModel("struct.barrier.cracked", (ctx) => buildWallPanel(ctx, true));
 
 registerModel("capture.recruit_container", (ctx) => buildStasisPod(ctx));
+registerModel("capture.supply_crate", (ctx) => buildSupplyCrate(ctx));
 registerModel("zone.blocked", (ctx) => buildRubble(ctx));
 registerModel("zone.waiting", (ctx) => buildWaitingMarker(ctx));
-registerModel("zone.prey", (ctx) => buildDashedRect(ctx));
+registerModel("zone.prey", (ctx) => buildBurrow(ctx));
 registerModel("barrier.line", (ctx) => buildBarrierDash(ctx));
 registerModel("pad.hire", (ctx) => buildPadPlate(ctx), ["pad"]);
 registerModel("pad.build", (ctx) => buildPadPlate(ctx), ["pad"]);

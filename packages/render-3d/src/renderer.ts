@@ -1,7 +1,8 @@
 import { content as defaultContent, type Content, type Manifest } from "@fo/content";
 import { FP, TPS, compile, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
-import { floaterText, hintText, mix, nameOf, uiText, type Skin } from "@fo/skins";
+import { floaterText, hintText, mix, nameOf, purposeOf, uiText, type Skin } from "@fo/skins";
 import {
+  Box3,
   BufferAttribute,
   Color,
   Frustum,
@@ -15,10 +16,12 @@ import {
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
+  Raycaster,
   Scene,
   Sprite,
   SRGBColorSpace,
   Sphere,
+  Vector2,
   Vector3,
   WebGLRenderer,
   type BufferGeometry,
@@ -31,6 +34,7 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildModel } from "./assets/registry.js";
+import { buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
 import { LEAD_WEIGHT, type Camera, type CoachMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder } from "./geom.js";
@@ -68,6 +72,11 @@ export interface Renderer3DOptions {
 
 interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean }
 
+/** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
+const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = 30;
+/** Back-stack columns per row behind the hero before a second row starts. */
+const BACK_PER_ROW = 3;
+
 /** A placed model and its per-entity animation state. */
 interface Placed { key: string; model: Model; born: number; seen: boolean; data: Record<string, unknown>; sprites: Sprite[]; extra: Object3D[] }
 
@@ -76,6 +85,15 @@ const SAFE_RING_K = 1;
 const v3 = (x = 0, y = 0, z = 0): Vector3 => new Vector3(x, y, z);
 const tmpM = new Matrix4(), tmpV = new Vector3(), tmpV2 = new Vector3();
 const clamp01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x);
+const tmpBox = new Box3();
+/** Discovery labels shown at once (nearest first) and how far from the hero they reach (world units). */
+const MAX_DISCOVERY = 6;
+const DISCOVERY_RANGE = 260;
+/** Tap-to-inspect: characters within this many CSS px of the tap win over buildings. */
+const PICK_PX = 28;
+
+/** Where a type's discovery label would go this frame: the instance nearest the hero. */
+interface Candidate { x: number; z: number; h: number; d2: number }
 
 /** three.js renderer (Contract 2). State drives every visual; events add juice only. */
 export class Renderer3D implements Renderer {
@@ -95,7 +113,13 @@ export class Renderer3D implements Renderer {
   private crowd: Crowd | null = null;
   private blobs: Blobs | null = null;
   private items: Items | null = null;
-  private walls: { wall: Batch; cracked: Batch; reinforced: Batch; dash: Batch; rubble: Batch } | null = null;
+  private walls: { wall: Batch; cracked: Batch; reinforced: Batch; dash: Batch; rubble: Batch; crate: Batch } | null = null;
+  private isNew: ((id: string) => boolean) | null = null;
+  private cands = new Map<string, Candidate>();
+  private discSprites = new Map<string, Sprite>();
+  private tagSprites: Sprite[] = [];
+  private tagUsed = 0;
+  private raycaster = new Raycaster();
   private geos: BufferGeometry[] = [];
   private dynamic = new Group();
   private placed = new Map<string, Placed>();
@@ -211,13 +235,15 @@ export class Renderer3D implements Renderer {
     };
     const wallG = geoOf(buildWallPanel(this.bctx)), crackG = geoOf(buildWallPanel(this.bctx, true)), reinfG = geoOf(buildWallPanel(this.bctx, false, true));
     const dashG = geoOf(buildBarrierDash(this.bctx)), rubbleG = geoOf(buildRubble(this.bctx));
-    this.geos.push(wallG, crackG, reinfG, dashG, rubbleG);
+    const crateG = buildCrateGeo(this.tokens);
+    this.geos.push(wallG, crackG, reinfG, dashG, rubbleG, crateG);
     this.walls = {
       wall: new Batch(wallG, mats.std, this.scene, 16, "walls"),
       cracked: new Batch(crackG, mats.std, this.scene, 8, "wallsCracked"),
       reinforced: new Batch(reinfG, mats.std, this.scene, 8, "wallsReinforced"),
       dash: new Batch(dashG, mats.std, this.scene, 64, "barrierDashes"),
       rubble: new Batch(rubbleG, mats.std, this.scene, 16, "rubble"),
+      crate: new Batch(crateG, mats.std, this.scene, 4, "shelfCrates"),
     };
     this.scaffoldGeo = this.buildScaffold();
     this.padPlane = new PlaneGeometry(1, 1);
@@ -299,6 +325,11 @@ export class Renderer3D implements Renderer {
       this.lasso.rope.geometry.dispose();
       (this.lasso.rope.material as MeshBasicMaterial).dispose();
     }
+    for (const sp of this.discSprites.values()) this.dynamic.remove(sp);
+    for (const sp of this.tagSprites) this.dynamic.remove(sp);
+    this.discSprites.clear();
+    this.tagSprites = [];
+    this.cands.clear();
     this.labels.dispose();
     if (this.bctx) disposeBuildCtx(this.bctx);
     this.gl?.domElement.remove?.();
@@ -436,6 +467,8 @@ export class Renderer3D implements Renderer {
     this.followCamera(cam, pl, dt);
 
     for (const p of this.placed.values()) p.seen = false;
+    this.cands.clear();
+    this.tagUsed = 0;
     this.items.begin();
     this.crowd.begin();
     this.blobs.begin();
@@ -456,6 +489,8 @@ export class Renderer3D implements Renderer {
     this.syncLasso(state, a, pl, dt);
 
     for (const [k, p] of this.placed) if (!p.seen) { this.removePlaced(p); this.placed.delete(k); }
+    this.drawDiscovery(pl);
+    for (let i = this.tagUsed; i < this.tagSprites.length; i++) this.tagSprites[i]!.visible = false;
 
     this.fx.draw(this.items);
     this.items.end();
@@ -512,10 +547,13 @@ export class Renderer3D implements Renderer {
     if (!p) {
       const ctx = { ...this.bctx!, level };
       const model = build ? build(ctx) : buildModel(id, ctx);
+      model.root.updateMatrixWorld(true);
+      tmpBox.setFromObject(model.root);
+      const h = tmpBox.isEmpty() ? 1 : Math.max(0.2, tmpBox.max.y);
       model.root.scale.setScalar(ART_M);
       this.applyShadows(model.root);
       this.dynamic.add(model.root);
-      p = { key, model, born: this.synced ? this.t : -Infinity, seen: true, data: {}, sprites: [], extra: [] };
+      p = { key, model, born: this.synced ? this.t : -Infinity, seen: true, data: { id, h: h * ART_M }, sprites: [], extra: [] };
       this.placed.set(key, p);
     }
     p.seen = true;
@@ -575,6 +613,7 @@ export class Renderer3D implements Renderer {
 
   private syncCore(s: State): void {
     const p = this.place(`core:${s.core.level}`, "sink.core", this.wv(s.core.pos), s.core.level);
+    this.candidate("sink.core", p);
     const { orb, flame, spin } = p.model.parts;
     const k = this.fuelK;
     const out = s.core.fuel <= 0;
@@ -592,20 +631,13 @@ export class Renderer3D implements Renderer {
     const sales = s.sales;
     if (!sales) return;
     const kiosk = this.place("sales", "sink.sales_point", this.wv(sales.pos));
-    this.place("register", "sink.sales_point.register", this.wv(sales.register));
+    this.candidate("sink.sales_point", kiosk);
+    // the clerk pad: whoever stands on it (hero or clerk) rings up the queue; no register object
+    const reg = this.place("register", "sink.sales_point.register", this.wv(sales.register));
+    this.candidate("sink.sales_point.register", reg, ART_M * 0.55);
+    this.shelfCrates(sales, kiosk);
+    // the currency pile by the clerk pad
     const items = this.items!;
-    // shelf crates fill and empty: one column per sellable type along the counter
-    const dep = this.anchorWorld(kiosk, "deposit", tmpV);
-    const n = Math.max(1, sales.sells.length);
-    sales.sells.forEach((res, i) => {
-      const count = Math.min(10, sales.shelf[res] ?? 0);
-      const x0 = dep.x + (i - (n - 1) / 2) * 22;
-      for (let j = 0; j < count; j++) {
-        const col = j % 2, row = Math.floor(j / 2);
-        items.add(res, x0 + (col - 0.5) * 10, dep.y + row * items.height(res) * 0.95, dep.z - 4 + (row % 2) * 2, 0.3 * col);
-      }
-    });
-    // the currency pile at the register
     const pile = this.wv(sales.pile);
     const coin = "res.currency";
     const pn = Math.min(30, sales.pileN);
@@ -613,10 +645,58 @@ export class Renderer3D implements Renderer {
       const col = i % 3, row = Math.floor(i / 3);
       items.add(coin, pile.x + (col - 1) * 8 + (row % 2) * 2, row * items.height(coin), pile.z + ((col * 7) % 3) * 2, row * 0.7);
     }
+    if (pn > 0) this.candidatePt("sink.sales_point.pile", pile.x, pile.z, ART_M * 1.1);
     // customers: queue faces the kiosk, leaving ones walk off
     sales.queue.forEach((c, i) => this.customer(`q:${i}`, c, a, true, kiosk));
     sales.leaving.forEach((c, i) => this.customer(`l:${i}`, c, a, false, kiosk));
-    void a;
+  }
+
+  /**
+   * One open crate per sellable good on the kiosk's counter ledge, with the units it holds
+   * visible inside (up to two layers of four) and a count chip above it that reads at phone size.
+   */
+  private shelfCrates(sales: NonNullable<State["sales"]>, kiosk: Placed): void {
+    const items = this.items!, crates = this.walls!.crate;
+    const dep = this.anchorWorld(kiosk, "deposit", tmpV2).clone();
+    const n = Math.max(1, sales.sells.length);
+    const cap = (this.cp?.sales as { shelfCap?: number } | undefined)?.shelfCap ?? 10;
+    const pitch = Math.min(0.85, 2.1 / n) * ART_M;
+    // few goods get bigger crates (and bigger items) so a lone shelf still reads at phone size
+    const ck = Math.min(1.45, pitch / (0.56 * ART_M));
+    sales.sells.forEach((res, i) => {
+      const x = dep.x + (i - (n - 1) / 2) * pitch;
+      tmpM.makeScale(ART_M * ck, ART_M, ART_M * ck).setPosition(x, dep.y, dep.z);
+      crates.push(tmpM);
+      const have = sales.shelf[res] ?? 0;
+      const shown = Math.min(8, have);
+      const ih = items.height(res) * 0.75;
+      for (let j = 0; j < shown; j++) {
+        const layer = Math.floor(j / 4), c = j % 2, r = Math.floor((j % 4) / 2);
+        items.add(res, x + (c - 0.5) * 0.2 * ART_M * ck, dep.y + 0.05 * ART_M + layer * ih, dep.z + (r - 0.5) * 0.15 * ART_M, 0.4 * c + r, 0.78 * ck);
+      }
+      const chip = this.sprite(kiosk, i);
+      const full = have >= cap;
+      chip.visible = this.labels.apply(chip, `shelf|${res}|${have}|${full}`, () => this.shelfChipArt(res, have, full), 15);
+      chip.position.set(x, dep.y + 0.78 * ART_M, dep.z + 0.12 * ART_M);
+    });
+    for (let i = sales.sells.length; i < kiosk.sprites.length; i++) kiosk.sprites[i]!.visible = false;
+  }
+
+  private shelfChipArt(res: string, n: number, full: boolean): LabelArt {
+    const t = this.tokens, ui = this.skin.palette.ui;
+    const num = `${n}`;
+    const w = this.labels.textWidth(num, 40) + 78;
+    return {
+      w, h: 64,
+      draw: (g, W) => {
+        roundRect(g, 3, 3, W - 6, 58, 29);
+        g.fillStyle = full ? t.ok : t.ink; g.globalAlpha = full ? 1 : 0.85; g.fill(); g.globalAlpha = 1;
+        g.lineWidth = 4; g.strokeStyle = full ? t.ink : ui.panel; g.stroke();
+        drawIcon(g, 32, 32, 18, resToken(t, res), t.ink);
+        g.font = `800 40px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillStyle = full ? t.ink : ui.panel; g.fillText(num, 32 + (W - 32) / 2 - 2, 35);
+      },
+    };
   }
 
   private customer(key: string, c: CustomerState, a: number, queued: boolean, kiosk: Placed): void {
@@ -629,6 +709,7 @@ export class Renderer3D implements Renderer {
     const anim = this.anim(key, moving ? 0.8 : 0, false);
     if (c.angry) anim.hit = 0.25 + 0.25 * Math.sin(this.t * 12);
     this.addCharacter(look, anim, pos, yaw, null);
+    this.candidatePt(c.kind, pos.x, pos.y, ART_M * look.scale * 1.9);
     if (queued) {
       // order bubble with the patience arc
       const pk = Math.round(clamp01(c.patience / Math.max(1, c.patienceMax)) * 10);
@@ -657,6 +738,7 @@ export class Renderer3D implements Renderer {
     s.nodes.forEach((n, i) => {
       const key = `n:${i}`;
       const p = this.place(key, n.type, this.wv(n.pos));
+      if (n.enabled) this.candidate(n.type, p);
       const body = p.model.parts["body"] as Mesh | undefined;
       const steps = body?.userData["steps"] as number[] | undefined;
       if (body && steps) {
@@ -688,6 +770,7 @@ export class Renderer3D implements Renderer {
     for (const st of s.structures) {
       const key = `s:${st.id}:${st.type}:${st.level}`;
       const p = this.place(key, st.type, this.wv(st.pos), st.level);
+      this.candidate(st.type, p);
       if (st.type === "struct.ranged_defense") this.aimTurret(p, st, s);
       const lights = p.model.parts["lights"];
       if (lights) lights.visible = this.fuelK > 0 || Math.sin(this.t * 9) > 0;
@@ -737,6 +820,7 @@ export class Renderer3D implements Renderer {
     const items = this.items!;
     for (const cv of s.converters) {
       const p = this.place(`cv:${cv.id}`, cv.type, this.wv(cv.pos));
+      this.candidate(cv.type, p);
       const def = this.content.converters[cv.type] as { outCap?: number; range?: number; role?: string; output?: string } | undefined;
       const manned = this.converterManned(s, cv, def);
       const blocked = cv.out >= (def?.outCap ?? 99);
@@ -819,14 +903,16 @@ export class Renderer3D implements Renderer {
       if (dm) { decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
-      // floating icon + cost
+      // floating name plus every cost resource with what is still owed (icon + number each)
       const sp = this.sprite(p, 0);
-      const firstRes = Object.keys(cost)[0] ?? "res.currency";
-      const left = Math.max(0, (cost[firstRes] ?? 0) - (pad.paid[firstRes] ?? 0));
+      const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
+      if (!owed.length) owed.push({ res: "res.currency", left: 0 });
       const label = info?.label ?? nameOf(this.skin, pad.type);
       const lockTxt = pad.locked && info?.requiresCoreLevel !== undefined ? uiText(this.skin, "coreLevel", { n: info.requiresCoreLevel }) : "";
-      sp.visible = this.labels.apply(sp, `pl|${label}|${firstRes}|${left}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, firstRes, left, pad.locked, lockTxt), 22);
-      sp.position.set(at.x, ART_M * (1.15 + Math.sin(this.t * 2.2 + at.x) * 0.04), at.z);
+      const rows = owed.length > PAD_PER_ROW ? 2 : 1;
+      sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, owed, pad.locked, lockTxt), PAD_LABEL_H * (rows === 2 ? PAD_ART_H2 / PAD_ART_H : 1));
+      sp.position.set(at.x, ART_M * (1.25 + (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04), at.z);
+      this.candidate(pad.type, p, ART_M * (2.6 + (rows - 1) * 0.6));
       // scaffold rises with the payment for buildings
       let scaf = p.extra[1] as Mesh | undefined;
       const builds = info?.kind === "build" && (info.what.startsWith("struct.") || info.what.startsWith("conv.") || info.what === "sink.core.level");
@@ -953,6 +1039,7 @@ export class Renderer3D implements Renderer {
           const key = `barl:${b.id}:${i}`;
           const holder = this.place(key, "barrier.line", mid, 1, () => ({ root: new Group(), cls: "decal", parts: {} }));
           const left = Math.max(0, b.costPerSection - sec.paid);
+          this.candidatePt("barrier.line", mid.x, mid.z, ART_M * 1.6);
           const sp = this.sprite(holder, 0);
           sp.visible = this.labels.apply(sp, `bl|${b.res}|${left}`, () => this.costArt(b.res, left), 11);
           sp.position.set(mid.x, ART_M * (0.7 + Math.sin(this.t * 2 + i) * 0.04), mid.z);
@@ -1005,6 +1092,7 @@ export class Renderer3D implements Renderer {
         const age = this.fx!.popAge(`zone:${z.id}`);
         if (z.cleared && age > 0.6) continue;
         const k = z.cleared ? Math.max(0, 1 - age / 0.6) : 1;
+        if (!z.cleared) this.candidatePt("zone.blocked", x + w / 2, y + h / 2, ART_M * 1.8);
         // tile rubble across the rect, instanced
         const tile = ART_M * 1.3;
         const nx = Math.max(1, Math.round(w / tile)), ny = Math.max(1, Math.round(h / tile));
@@ -1017,10 +1105,14 @@ export class Renderer3D implements Renderer {
         p.model.root.scale.set(w, ART_M, h);
       }
     }
+    // prey zones have no outline: a few burrows mark the patch the critters roam
     for (const pz of s.preyZones) {
       const x = pz.rect.x / FP, y = pz.rect.y / FP, w = pz.rect.w / FP, h = pz.rect.h / FP;
-      const p = this.place(`pz:${pz.id}`, "zone.prey", v3(x + w / 2, 0, y + h / 2));
-      p.model.root.scale.set(w, ART_M, h);
+      const n = Math.max(2, Math.min(3, Math.round((w * h) / (ART_M * ART_M * 40))));
+      for (let k = 0; k < n; k++) {
+        const fx = 0.2 + 0.6 * (((k + 1) * 0.618 + pz.id.length * 0.13) % 1), fz = 0.25 + 0.5 * ((k * 0.382 + 0.31) % 1);
+        this.place(`pz:${pz.id}:${k}`, "zone.prey", v3(x + w * fx, 0, y + h * fz));
+      }
     }
   }
 
@@ -1029,6 +1121,7 @@ export class Renderer3D implements Renderer {
       const key = `c:${c.id}`;
       const pos = this.interp.pos(key, c.pos, a);
       const p = this.place(`cap:${c.id}`, c.type, v3(pos.x, 0, pos.y));
+      if (c.state === "idle") this.candidate(c.type, p);
       const lid = p.model.parts["lid"];
       const rt = (this.content.lassoables[c.type] as { releaseTime?: number } | undefined)?.releaseTime ?? 1.6;
       if (c.state === "releasing") {
@@ -1119,11 +1212,14 @@ export class Renderer3D implements Renderer {
       const rl = lookFor(id, t, this.skin.models);
       const ry = this.faceFrom(key, rv);
       const an = this.anim(key, sp, !!r.carry);
-      an.distress = r.status === "frozen" ? 1 : this.distressFor(pos);
+      an.distress = r.status === "frozen" || (r.status as string) === "dead" ? 1 : this.distressFor(pos);
       if (r.status === "injured") { an.speed *= 0.6; an.hit = 0.2 + 0.2 * Math.sin(this.t * 6); }
       if (r.status === "healing") an.down = 1;
       this.addCharacter(rl, an, pos, ry, t.frost);
       if (r.carry && r.n > 0) this.backStack(new Array<string>(Math.min(6, r.n)).fill(r.carry), pos, ry, rl.scale, sp, rv, false);
+      // frost meter over a colonist while the reactor is out (engine 0.5 resident.frost, 0..1000)
+      const frost = (r as unknown as { frost?: number }).frost;
+      if (typeof frost === "number" && frost > 0 && r.status !== "frozen") this.barTag(pos.x, ART_M * rl.scale * 1.45, pos.y, frost / 1000, t.frost, 7);
     }
 
     for (const h of s.hostiles) {
@@ -1139,6 +1235,11 @@ export class Renderer3D implements Renderer {
       // knockback: shoved away from where it faces
       const kb = fk * 7;
       this.addCharacter(hl, an, { x: pos.x - Math.sin(hy) * kb, y: pos.y - Math.cos(hy) * kb }, hy, null);
+      this.candidatePt(h.type, pos.x, pos.y, ART_M * hl.scale * 1.8);
+      // health bar over bosses and wounded attackers (engine 0.5 hostile.hpMax)
+      const hpMax = (h as unknown as { hpMax?: number; boss?: boolean }).hpMax;
+      const boss = !!(h as unknown as { boss?: boolean }).boss;
+      if (typeof hpMax === "number" && hpMax > 0 && (boss || h.hp < hpMax)) this.barTag(pos.x, ART_M * hl.scale * (boss ? 1.9 : 1.5), pos.y, h.hp / hpMax, t.danger, boss ? 12 : 6);
     }
 
     for (const p of s.prey) {
@@ -1152,30 +1253,50 @@ export class Renderer3D implements Renderer {
       an.hit = this.fx!.flashK(key);
       an.knock = an.hit * 0.6;
       this.addCharacter(look2, an, pos, py, null);
+      this.candidatePt("unit.prey", pos.x, pos.y, ART_M * look2.scale * 1.6);
     }
     // order bubbles of customers that left the queue
     for (const [k, b] of this.bubbles) if (b.seen !== this.frameNo) { this.dynamic.remove(b.s); this.bubbles.delete(k); }
     void items; void dt;
   }
 
-  /** Items stacked on a character's back, wobbling with speed; in-flight items are held back. */
+  /**
+   * Items on a character's back. The hero's pack is one column per resource, side by side in a
+   * fixed (content) order, each up to its carry cap, with a MAX tag over any full column; a worker
+   * carries one column. Columns wobble with speed; items still flying in are held back.
+   */
   private backStack(stack: readonly string[], pos: V, yaw: number, scale: number, moving: number, vel: V, player: boolean): void {
     const items = this.items!;
-    const hidden = new Map<string, number>();
-    if (player) for (const res of new Set(stack)) hidden.set(res, this.fx!.inFlightToPlayer(res));
-    const sx = Math.sin(yaw), sz = Math.cos(yaw);
+    const counts = new Map<string, number>();
+    for (const r of stack) counts.set(r, (counts.get(r) ?? 0) + 1);
+    const order = Object.keys(this.content.resources);
+    const cols = [...counts.keys()].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    const fx = Math.sin(yaw), fz = Math.cos(yaw);
+    const rx = Math.cos(yaw), rz = -Math.sin(yaw);
     const s = ART_M * scale;
-    let x = pos.x - sx * 0.27 * s, z = pos.y - sz * 0.27 * s, y = 0.72 * s;
+    const k = scale > 1 ? 1 : 0.9;
     const lean = Math.min(1, Math.hypot(vel.x, vel.y) / 3);
-    for (let i = 0; i < stack.length; i++) {
-      const res = stack[i]!;
-      const hold = hidden.get(res) ?? 0;
-      if (hold > 0 && stack.lastIndexOf(res) >= i && stack.slice(i).filter((r) => r === res).length <= hold) { continue; }
-      const w = Math.sin(this.t * 9 - i * 0.55) * i * 0.35 * (0.3 + moving);
-      const back = -lean * i * 0.6;
-      items.add(res, x + Math.cos(yaw) * w + sx * back, y, z - Math.sin(yaw) * w + sz * back, yaw + i * 0.2, scale > 1 ? 1 : 0.9);
-      y += items.height(res) * (scale > 1 ? 1 : 0.9);
-    }
+    const colW = 0.42 * ART_M * k;
+    cols.forEach((res, ci) => {
+      const row = Math.floor(ci / BACK_PER_ROW), inRow = Math.min(BACK_PER_ROW, cols.length - row * BACK_PER_ROW);
+      const across = ((ci % BACK_PER_ROW) - (inRow - 1) / 2) * colW;
+      const back = 0.27 * s + row * 0.34 * ART_M;
+      const bx = pos.x - fx * back + rx * across, bz = pos.y - fz * back + rz * across;
+      const total = counts.get(res)!;
+      const n = Math.max(0, total - (player ? this.fx!.inFlightToPlayer(res) : 0));
+      const h = items.height(res) * k;
+      let y = 0.72 * s, wx = 0, wz = 0;
+      for (let i = 0; i < n; i++) {
+        const w = Math.sin(this.t * 9 - i * 0.55 - ci * 0.7) * i * 0.3 * (0.3 + moving);
+        const lb = -lean * i * 0.5;
+        wx = rx * w + fx * lb; wz = rz * w + fz * lb;
+        items.add(res, bx + wx, y, bz + wz, yaw + i * 0.2, k);
+        y += h;
+      }
+      const cap = this.cp?.resources[res]?.cap;
+      // neighbouring tags stagger up so two full columns never print over each other
+      if (player && typeof cap === "number" && total >= cap) this.maxTag(bx + wx, y + 6 + (ci % 2) * 16, bz + wz);
+    });
   }
 
   // ---------------------------------------------------------------- lasso
@@ -1299,26 +1420,45 @@ export class Renderer3D implements Renderer {
     };
   }
 
-  private padLabelArt(label: string, res: string, left: number, locked: boolean, lockTxt: string): LabelArt {
+  /**
+   * Pad label: the name on top, then one pill per cost resource (icon + what is left), up to
+   * PAD_PER_ROW per row and a second row beyond that. A paid-up resource shows a dimmed 0.
+   */
+  private padLabelArt(label: string, owed: readonly { res: string; left: number }[], locked: boolean, lockTxt: string): LabelArt {
     const t = this.tokens, ui = this.skin.palette.ui;
-    const big = 46, small = 38;
+    const big = 44, small = 38, gap = 10;
     const top = lockTxt || label;
     const wTop = this.labels.textWidth(top, small) + 30;
-    const num = `${left}`;
-    const wNum = this.labels.textWidth(num, big) + 90;
-    const w = Math.max(wTop, wNum) + 20;
+    const cell = owed.map((o) => this.labels.textWidth(`${o.left}`, big) + 64);
+    const rowsOf = owed.length > PAD_PER_ROW ? [owed.slice(0, Math.ceil(owed.length / 2)), owed.slice(Math.ceil(owed.length / 2))] : [owed.slice()];
+    let k = 0;
+    const rowCells = rowsOf.map((r) => r.map(() => cell[k++]!));
+    const rowW = rowCells.map((r) => r.reduce((a, b) => a + b, 0) + gap * (r.length - 1) + 24);
+    const w = Math.max(wTop, ...rowW) + 20;
+    const h = rowsOf.length === 2 ? PAD_ART_H2 : PAD_ART_H;
     return {
-      w, h: 132,
+      w, h,
       draw: (g, W) => {
         g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
         g.font = `800 ${small}px ${FONT}`;
         g.lineWidth = 8; g.strokeStyle = t.ink; g.strokeText(top, W / 2, 24);
         g.fillStyle = locked ? ui.muted : ui.panel; g.fillText(top, W / 2, 24);
-        roundRect(g, (W - wNum) / 2, 48, wNum, 70, 35);
-        g.fillStyle = locked ? mix(t.structureDark, t.ink, 0.4) : t.ink; g.globalAlpha = 0.85; g.fill(); g.globalAlpha = 1;
-        drawIcon(g, (W - wNum) / 2 + 38, 83, 22, resToken(t, res), t.ink);
-        g.font = `800 ${big}px ${FONT}`;
-        g.fillStyle = ui.panel; g.fillText(num, (W - wNum) / 2 + 38 + (wNum - 38) / 2 + 4, 86);
+        rowsOf.forEach((row, ri) => {
+          const y = 48 + ri * 76;
+          const x0 = (W - rowW[ri]!) / 2;
+          roundRect(g, x0, y, rowW[ri]!, 68, 34);
+          g.fillStyle = locked ? mix(t.structureDark, t.ink, 0.4) : t.ink; g.globalAlpha = 0.85; g.fill(); g.globalAlpha = 1;
+          let x = x0 + 12;
+          row.forEach((o, i) => {
+            const cw = rowCells[ri]![i]!;
+            g.globalAlpha = o.left === 0 && owed.length > 1 ? 0.45 : 1;
+            drawIcon(g, x + 24, y + 34, 20, resToken(t, o.res), t.ink);
+            g.font = `800 ${big}px ${FONT}`;
+            g.fillStyle = ui.panel; g.fillText(`${o.left}`, x + 48 + (cw - 48) / 2 - 4, y + 37);
+            g.globalAlpha = 1;
+            x += cw + gap;
+          });
+        });
       },
     };
   }
@@ -1589,7 +1729,7 @@ export class Renderer3D implements Renderer {
         fx.dustRing(at, t.accent, 18, 90, 6);
         break;
       case "hint":
-        this.showHint(hintText(skin, String(e["key"])));
+        this.showHint(e["key"] === "need_resource" ? this.needText() ?? hintText(skin, "need_resource") : hintText(skin, String(e["key"])));
         break;
       case "level_end":
         if (e["won"]) {
@@ -1712,6 +1852,179 @@ export class Renderer3D implements Renderer {
     return at.clone().setY(ART_M * 0.6);
   }
 
+  // ---------------------------------------------------------------- discovery, inspect, tags
+
+  /** Which types still show a discovery label (name + purpose); null hides them all. */
+  setDiscovery(isNew: ((id: string) => boolean) | null): void {
+    this.isNew = isNew;
+  }
+
+  /** Offer a placed model as its type's label spot; the instance nearest the hero wins. */
+  private candidate(id: string, p: Placed, h?: number): void {
+    const r = p.model.root.position;
+    this.candidatePt(id, r.x, r.z, h ?? ((p.data["h"] as number | undefined) ?? ART_M) + 12);
+  }
+
+  private candidatePt(id: string, x: number, z: number, h: number): void {
+    if (!this.isNew || !this.world) return;
+    const pl = this.world.player.pos;
+    const d2 = (x - pl.x / FP) ** 2 + (z - pl.y / FP) ** 2;
+    if (d2 > DISCOVERY_RANGE * DISCOVERY_RANGE) return;
+    const c = this.cands.get(id);
+    if (c ? c.d2 <= d2 : !this.isNew(id)) return;
+    this.cands.set(id, { x, z, h, d2 });
+  }
+
+  /** Name and one-line purpose over the nearest instance of each type the player has not used yet. */
+  private drawDiscovery(_pl: V): void {
+    const shown = new Set<string>();
+    if (this.isNew && this.world && !this.world.over) {
+      const list = [...this.cands.entries()].sort((a, b) => a[1].d2 - b[1].d2).slice(0, MAX_DISCOVERY);
+      const coach = this.coach;
+      for (const [id, c] of list) {
+        // the coach mark already speaks for what it points at
+        if (coach && (coach.at.x - c.x) ** 2 + (coach.at.y - c.z) ** 2 < 45 * 45) continue;
+        const name = nameOf(this.skin, id), purpose = purposeOf(this.skin, id);
+        let sp = this.discSprites.get(id);
+        if (!sp) { sp = new Sprite(); sp.renderOrder = 13; this.dynamic.add(sp); this.discSprites.set(id, sp); }
+        const hh = purpose ? 33 : 18;
+        sp.visible = this.labels.apply(sp, `disc|${name}|${purpose}`, () => this.discoveryArt(name, purpose), hh);
+        sp.position.set(c.x, c.h + hh / 2 + Math.sin(this.t * 2 + c.x) * 1.2, c.z);
+        shown.add(id);
+      }
+    }
+    for (const [id, sp] of this.discSprites) if (!shown.has(id)) sp.visible = false;
+  }
+
+  private discoveryArt(name: string, purpose: string): LabelArt {
+    const t = this.tokens, ui = this.skin.palette.ui;
+    const np = 40, pp = 28;
+    const wN = this.labels.textWidth(name, np) + 40;
+    const wP = purpose ? this.labels.textWidth(purpose, pp) + 44 : 0;
+    const w = Math.max(wN, wP) + 8;
+    const h = purpose ? 110 : 60;
+    return {
+      w, h,
+      draw: (g, W) => {
+        g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
+        g.font = `800 ${np}px ${FONT}`;
+        g.lineWidth = 9; g.strokeStyle = t.ink; g.strokeText(name, W / 2, 28);
+        g.fillStyle = t.interactive; g.fillText(name, W / 2, 28);
+        if (!purpose) return;
+        roundRect(g, (W - wP) / 2, 58, wP, 48, 24);
+        g.fillStyle = ui.panel; g.globalAlpha = 0.95; g.fill(); g.globalAlpha = 1;
+        g.lineWidth = 4; g.strokeStyle = t.interactive; g.stroke();
+        g.font = `800 ${pp}px ${FONT}`;
+        g.fillStyle = ui.ink; g.fillText(purpose, W / 2, 83);
+      },
+    };
+  }
+
+  /**
+   * Canonical id of what is under a mount CSS px point: characters by screen distance first
+   * (they stand in front of buildings), then the first placed model a ray from the camera hits,
+   * then the nearest small model on screen. Null when nothing is there.
+   */
+  pick(x: number, y: number): string | null {
+    const w = this.world;
+    if (!w || !this.gl) return null;
+    const hit = { id: null as string | null, d: PICK_PX * PICK_PX };
+    const test = (id: string, px: number, pz: number, h: number): void => {
+      const sp = this.toScreen(v3(px, h, pz));
+      const d = (sp.x - x) ** 2 + (sp.y - y) ** 2;
+      if (d < hit.d) { hit.d = d; hit.id = id; }
+    };
+    const mid = ART_M * 0.5;
+    const pl = this.interp.pos("player", w.player.pos, 1);
+    test("unit.player", pl.x, pl.y, mid);
+    for (const r of w.residents) {
+      if (r.status === "towed" || r.status === "releasing") continue;
+      const p = this.interp.pos(`r:${r.id}`, r.pos, 1);
+      test(r.role === "idle" ? "role.idle" : r.role, p.x, p.y, mid);
+    }
+    for (const h of w.hostiles) { const p = this.interp.pos(`h:${h.id}`, h.pos, 1); test(h.type, p.x, p.y, mid); }
+    for (const p of w.prey) if (p.alive) { const q = this.interp.pos(`p:${p.id}`, p.pos, 1); test("unit.prey", q.x, q.y, mid * 0.6); }
+    w.sales?.queue.forEach((c, i) => { const q = this.interp.pos(`q:${i}`, c.pos, 1); test(c.kind, q.x, q.y, mid); });
+    if (hit.id) return hit.id;
+    const roots = new Map<Object3D, string>();
+    for (const p of this.placed.values()) {
+      const id = p.data["id"];
+      if (typeof id === "string" && this.skin.names[id] && p.model.root.visible) roots.set(p.model.root, id);
+    }
+    this.raycaster.setFromCamera(new Vector2((x / this.cssW) * 2 - 1, -(y / this.cssH) * 2 + 1), this.camera);
+    for (const h of this.raycaster.intersectObjects([...roots.keys()], true)) {
+      for (let o: Object3D | null = h.object; o; o = o.parent) { const id = roots.get(o); if (id) return id; }
+    }
+    hit.d = (PICK_PX * 1.4) ** 2;
+    for (const [root, id] of roots) test(id, root.position.x, root.position.z, 4);
+    return hit.id;
+  }
+
+  /** "Bring 3 Ore, 2 Alloy": what the pad under the hero still lacks that the hero isn't carrying. */
+  private needText(): string | null {
+    const w = this.world;
+    const padId = w?.player.padId;
+    if (!w || !padId) return null;
+    const pad = w.pads.find((p) => p.id === padId), info = this.pads.get(padId);
+    if (!pad || !info) return null;
+    const owed = Object.entries(info.cost)
+      .map(([res, n]) => [res, n - (pad.paid[res] ?? 0)] as const)
+      .filter(([res, left]) => left > 0 && this.cp?.resources[res]?.cap !== null);
+    const missing = owed.filter(([res]) => !w.player.stack.includes(res));
+    const list = (missing.length ? missing : owed).map(([res, left]) => `${left} ${nameOf(this.skin, res)}`).join(", ");
+    return list ? uiText(this.skin, "needResource", { list }) : null;
+  }
+
+  private nextTag(): Sprite {
+    let sp = this.tagSprites[this.tagUsed];
+    if (!sp) { sp = new Sprite(); sp.renderOrder = 14; this.dynamic.add(sp); this.tagSprites.push(sp); }
+    this.tagUsed++;
+    return sp;
+  }
+
+  /** "MAX" over a full column of the hero's pack. */
+  private maxTag(x: number, y: number, z: number): void {
+    const sp = this.nextTag();
+    const txt = uiText(this.skin, "max");
+    sp.visible = this.labels.apply(sp, `max|${txt}`, () => this.maxArt(txt), 8);
+    sp.position.set(x, y + 4.5, z);
+  }
+
+  private maxArt(txt: string): LabelArt {
+    const t = this.tokens;
+    const w = this.labels.textWidth(txt, 34) + 34;
+    return {
+      w, h: 52,
+      draw: (g, W) => {
+        roundRect(g, 3, 3, W - 6, 46, 16);
+        g.fillStyle = t.danger; g.fill();
+        g.lineWidth = 5; g.strokeStyle = t.ink; g.stroke();
+        g.font = `800 34px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillStyle = "#ffffff"; g.fillText(txt, W / 2, 28);
+      },
+    };
+  }
+
+  /** A small meter over a character (frost on colonists, health on attackers and bosses). */
+  private barTag(x: number, y: number, z: number, k: number, color: string, height: number): void {
+    const sp = this.nextTag();
+    const q = Math.round(clamp01(k) * 20);
+    sp.visible = this.labels.apply(sp, `bar|${color}|${q}`, () => this.barArt(q / 20, color), height);
+    sp.position.set(x, y + height / 2, z);
+  }
+
+  private barArt(k: number, color: string): LabelArt {
+    const t = this.tokens;
+    return {
+      w: 150, h: 30,
+      draw: (g, W, H) => {
+        roundRect(g, 2, 2, W - 4, H - 4, 12);
+        g.fillStyle = t.ink; g.globalAlpha = 0.85; g.fill(); g.globalAlpha = 1;
+        if (k > 0) { roundRect(g, 6, 6, Math.max(12, (W - 12) * k), H - 12, 8); g.fillStyle = color; g.fill(); }
+      },
+    };
+  }
+
   // ---------------------------------------------------------------- stats
 
   /** Draw calls, triangles and fps for the debug overlay and the perf tests. */
@@ -1767,3 +2080,5 @@ export class Renderer3D implements Renderer {
 }
 
 export const createRenderer3D = (opts?: Renderer3DOptions): Renderer3D => new Renderer3D(opts);
+
+export { renderThumbnails } from "./thumbs.js";

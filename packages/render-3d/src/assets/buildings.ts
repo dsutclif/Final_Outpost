@@ -69,35 +69,73 @@ export function buildCore(ctx: BuildCtx): Model {
 
 // ------------------------------------------------------------------ kiosk
 
-/** The kiosk; queue offset in metres comes from content (sales queueOffset / ART_M). */
+/**
+ * The kiosk: a sealed, pressurised trade pod. A rounded hull on a plinth, a glass display
+ * front facing the camera with a counter ledge where the renderer sets one shelf crate per
+ * sellable good, and an airlock hatch on the customer (queue) side. Queue offset in metres
+ * comes from content (sales queueOffset / ART_M); the hatch faces whichever side it is on.
+ */
 export function buildKiosk(ctx: BuildCtx, queue: readonly [number, number] = [2.7, 0]): Model {
   const { t, mats } = ctx;
   const m = model("hero");
+  const side = queue[0] < 0 ? -1 : 1;
+  const hx = side * 1.3;
   const b = new GeoBuilder()
-    .rbox(2.5, 0.14, 1.7, 0.05, t.structureDark, { at: [0, 0.07, 0] }, 1)
-    .rbox(2.2, 0.72, 0.95, 0.1, t.structure, { at: [0, 0.5, 0.15] }, 2)
-    .box(2.24, 0.1, 0.99, t.trim, { at: [0, 0.82, 0.15] })
-    .box(2.0, 0.14, 0.05, t.trim, { at: [0, 0.42, 0.64] })
-    .rbox(2.3, 1.45, 0.2, 0.06, t.structure, { at: [0, 0.86, -0.62] }, 1)
-    .box(2.0, 0.06, 0.4, t.structureDark, { at: [0, 1.2, -0.42] })
-    .rbox(0.18, 1.6, 0.18, 0.05, t.structureDark, { at: [-1.05, 0.95, 0.55] }, 1)
-    .rbox(0.18, 1.6, 0.18, 0.05, t.structureDark, { at: [1.05, 0.95, 0.55] }, 1);
-  // striped awning: the ad-stall read
-  for (let i = 0; i < 6; i++) {
-    const x = -1.125 + i * 0.45;
-    b.box(0.45, 0.07, 1.25, i % 2 ? t.structure : t.accent, { at: [x, 1.78, 0.05], rot: [0.22, 0, 0] });
-    b.cyl(0.225, 0.225, 0.45, 6, i % 2 ? t.structure : t.accent, { at: [x, 1.66, 0.67], rot: [0, 0, Math.PI / 2] }, false);
-  }
-  // sign
-  b.rbox(1.1, 0.34, 0.12, 0.06, t.accent, { at: [0, 2.15, -0.1] }, 1).box(0.9, 0.2, 0.02, t.structure, { at: [0, 2.15, -0.03] });
-  // airlock hatch at the side
-  b.rbox(0.5, 1.0, 0.12, 0.08, t.metal, { at: [-1.25, 0.6, -0.1], rot: [0, Math.PI / 2, 0] }, 1).box(0.3, 0.4, 0.02, t.glass, { at: [-1.32, 0.8, -0.1], rot: [0, Math.PI / 2, 0] });
+    // plinth and skirt
+    .rbox(2.9, 0.16, 2.0, 0.06, t.structureDark, { at: [0, 0.08, -0.05] }, 1)
+    .box(2.6, 0.06, 1.7, t.metal, { at: [0, 0.19, -0.1] })
+    // pressure hull: one chunky rounded capsule-box, trimmed at the waist and the roof line
+    .rbox(2.5, 1.5, 1.35, 0.42, t.structure, { at: [0, 0.98, -0.2] }, 3)
+    .box(2.54, 0.09, 1.2, t.trim, { at: [0, 0.42, -0.2] })
+    .rbox(2.2, 0.16, 1.05, 0.08, t.structureDark, { at: [0, 1.78, -0.2] }, 1)
+    // display window frame (the glass itself is a separate transparent mesh)
+    .rbox(1.98, 0.12, 0.14, 0.05, t.metal, { at: [0, 1.5, 0.46] }, 1)
+    .rbox(1.98, 0.12, 0.14, 0.05, t.metal, { at: [0, 0.58, 0.46] }, 1)
+    .box(0.1, 0.94, 0.14, t.metal, { at: [-0.95, 1.04, 0.46] })
+    .box(0.1, 0.94, 0.14, t.metal, { at: [0.95, 1.04, 0.46] })
+    .box(0.06, 0.86, 0.1, t.metal, { at: [0, 1.04, 0.47] })
+    // lit back wall and shelves behind the glass
+    .box(1.8, 0.8, 0.04, mix(t.structure, t.accent, 0.18), { at: [0, 1.04, 0.0] })
+    .box(1.8, 0.05, 0.3, t.structureDark, { at: [0, 1.18, 0.15] })
+    // counter ledge in front of the glass: the shelf crates sit here, unobstructed
+    .rbox(2.3, 0.12, 0.62, 0.05, t.trim, { at: [0, 0.56, 0.78] }, 1)
+    .box(2.1, 0.36, 0.08, t.structureDark, { at: [0, 0.32, 1.02] })
+    .box(0.12, 0.42, 0.5, t.structureDark, { at: [-1.05, 0.3, 0.78] })
+    .box(0.12, 0.42, 0.5, t.structureDark, { at: [1.05, 0.3, 0.78] })
+    // sign: an accent board on the roof with a credit disc
+    .rbox(1.25, 0.36, 0.14, 0.07, t.accent, { at: [0, 2.08, -0.05] }, 1)
+    .cyl(0.12, 0.12, 0.04, 12, resToken(t, "res.currency"), { at: [-0.4, 2.08, 0.04], rot: [Math.PI / 2, 0, 0] })
+    .box(0.62, 0.12, 0.03, t.structure, { at: [0.15, 2.08, 0.03] })
+    .box(0.06, 0.2, 0.06, t.metal, { at: [-0.45, 1.88, -0.05] })
+    .box(0.06, 0.2, 0.06, t.metal, { at: [0.45, 1.88, -0.05] })
+    // pressure tanks and an antenna on the back
+    .capsule(0.16, 0.7, t.metal, { at: [-0.55, 0.6, -0.98], rot: [0, 0, Math.PI / 2] }, 2, 8)
+    .capsule(0.16, 0.7, t.metal, { at: [0.55, 0.6, -0.98], rot: [0, 0, Math.PI / 2] }, 2, 8)
+    .cyl(0.025, 0.025, 0.55, 5, t.metalDark, { at: [-side * 0.9, 2.0, -0.55] })
+    .sphere(0.06, 6, 4, t.accent, { at: [-side * 0.9, 2.3, -0.55] })
+    // pressure dome on the roof
+    .dome(0.62, 12, 4, mix(t.structure, t.glass, 0.25), { at: [0, 1.86, -0.35], scale: [1.35, 0.55, 0.9] })
+    // airlock vestibule on the customer side: a short tube out of the hull, ribbed, ending in a
+    // round door with a porthole and a hazard stripe, on a step plate
+    .cyl(0.5, 0.5, 0.5, 16, t.structure, { at: [hx + side * 0.1, 0.95, -0.2], rot: [0, 0, Math.PI / 2] })
+    .torus(0.5, 0.06, 6, 18, t.trim, { at: [hx - side * 0.08, 0.95, -0.2], rot: [0, Math.PI / 2, 0] })
+    .torus(0.5, 0.06, 6, 18, t.trim, { at: [hx + side * 0.34, 0.95, -0.2], rot: [0, Math.PI / 2, 0] })
+    .cyl(0.42, 0.42, 0.08, 16, t.metal, { at: [hx + side * 0.38, 0.95, -0.2], rot: [0, 0, Math.PI / 2] })
+    .cyl(0.15, 0.15, 0.09, 12, t.glass, { at: [hx + side * 0.41, 1.08, -0.2], rot: [0, 0, Math.PI / 2] })
+    .box(0.05, 0.08, 0.5, t.accent, { at: [hx + side * 0.43, 0.82, -0.2] })
+    .rbox(0.7, 0.1, 0.9, 0.03, t.metalDark, { at: [hx + side * 0.55, 0.2, -0.2] }, 1);
   m.root.add(mesh(b.build(), mats.std, "body"));
-  anchor(m.root, "deposit", 0, 0.9, 0.15);
+  const glass = mesh(new GeoBuilder().box(1.8, 0.82, 0.04, t.glass, { at: [0, 1.04, 0.47] }).build(), mats.glass, "glass");
+  m.root.add(glass);
+  const lamp = mesh(new GeoBuilder().sphere(0.08, 8, 6, WHITE).build(), statusMat(mats.glow, t.ok), "lamp");
+  lamp.position.set(hx + side * 0.1, 1.5, -0.2);
+  m.root.add(lamp);
+  Object.assign(m.parts, { glass, lamp });
+  anchor(m.root, "deposit", 0, 0.62, 0.78);
   anchor(m.root, "queue", queue[0], 0, queue[1]);
-  anchor(m.root, "interact", 0, 0, 1.0);
+  anchor(m.root, "interact", 0, 0, 1.25);
   anchor(m.root, "pad", 0, 0, 0);
-  anchor(m.root, "pickup", 0, 0.9, 0.15);
+  anchor(m.root, "pickup", 0, 0.62, 0.78);
   return m;
 }
 

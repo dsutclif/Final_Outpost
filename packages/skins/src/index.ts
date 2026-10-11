@@ -29,6 +29,11 @@ export function fmt(template: string, vars: Record<string, string | number> = {}
   return template.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m));
 }
 
+/** One-line purpose of a canonical id, or "" when the skin has none. */
+export function purposeOf(skin: Skin, id: string): string {
+  return skin.purposes?.[id] ?? "";
+}
+
 export function hintText(skin: Skin, key: string): string {
   return skin.text.hints[key] ?? humanise(key);
 }

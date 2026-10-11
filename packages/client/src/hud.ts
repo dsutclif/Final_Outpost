@@ -1,25 +1,42 @@
 import { content, type Manifest } from "@fo/content";
 import { METER_MAX, TPS, type Compiled, type State } from "@fo/sim";
 import { uiText, type Skin } from "@fo/skins";
-import type { WorldView } from "@fo/render-2d";
 import { goalText } from "./text.js";
 
 // The HUD strip: level name, goal with progress, and resource chips in skin words. The model
 // is a pure function of state so it is cheap to diff and easy to test.
 
-export interface Chip { key: string; text: string; color: string; bad?: boolean; bar?: number }
-export interface HudModel { goal: string; chips: Chip[] }
+export interface Chip {
+  key: string; text: string; color: string; bad?: boolean;
+  /** Meter fill 0..1 (draws a bar instead of an icon). */
+  bar?: number;
+  /** Tick marks on the bar, 0..1 (the 25% heat line). */
+  ticks?: number[];
+}
+/** One live objective (star) with its counter, when the sim reports objectives. */
+export interface ObjectiveLine { id: string; text: string; done: boolean; failed: boolean }
+export interface HudModel { goal: string; chips: Chip[]; objectives: ObjectiveLine[] }
+
+/** Optional sim fields from engine 0.5 (freeze countdown, objectives); read only when present. */
+interface Freeze { active: boolean; ticksLeft: number; ticksTotal: number }
+interface SimObjective { id: string; kind: string; progress: number; target: number; done: boolean; failed: boolean }
+interface ManifestObjective { id?: string; kind: string; label?: string }
+
+const clock = (ticks: number): string => { const s = Math.max(0, Math.ceil(ticks / TPS)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 
 const COUNTS_AS_POP = new Set(["ok", "injured", "healing"]);
 
 export function hudModel(state: State, m: Manifest, cp: Compiled | null, skin: Skin): HudModel {
-  const w = state as unknown as WorldView;
+  const w = state;
   const pal = skin.palette;
+  const ext = state as unknown as { freeze?: Freeze; objectives?: SimObjective[] };
   const chips: Chip[] = [];
   chips.push({ key: "currency", text: String(w.currency), color: pal.res["res.currency"] ?? "#ffcb3d" });
 
   const life = Math.max(0, Math.min(1, (w.meters?.lifeline ?? w.core.lifeline) / METER_MAX));
-  chips.push({ key: "lifeline", text: skin.lifelineName, color: pal.accent, bar: life, bad: life < 0.35 || w.core.fuel <= 0 });
+  const fz = ext.freeze;
+  if (fz?.active) chips.push({ key: "lifeline", text: uiText(skin, "freezesIn", { t: clock(fz.ticksLeft) }), color: pal.interactive, bar: Math.max(0, Math.min(1, fz.ticksLeft / Math.max(1, fz.ticksTotal))), bad: true });
+  else chips.push({ key: "lifeline", text: skin.lifelineName, color: pal.accent, bar: life, bad: life < 0.35 || w.core.fuel <= 0, ticks: [0.25] });
 
   const lv = cp?.core.levels[Math.min(Math.max(1, w.core.level), cp.core.levels.length) - 1];
   const cap = lv?.fuelCap ?? 0;
@@ -40,7 +57,7 @@ export function hudModel(state: State, m: Manifest, cp: Compiled | null, skin: S
   if (m.fail.includes("meter.base_health") || (m.modules.includes("defense") && bhMax > 0)) {
     const bh = w.meters?.baseHealth ?? 0;
     const k = bhMax > 0 ? Math.max(0, Math.min(1, bh / bhMax)) : 1;
-    chips.push({ key: "baseHealth", text: `${uiText(skin, "baseHealth")} ${bh}`, color: pal.danger, bar: k, bad: k < 0.3 });
+    chips.push({ key: "baseHealth", text: `${uiText(skin, "baseHealth")} ${Math.max(0, bh)}/${bhMax}`, color: pal.danger, bar: k, bad: k < 0.3 });
   }
 
   const waves = w.waves;
@@ -66,7 +83,19 @@ export function hudModel(state: State, m: Manifest, cp: Compiled | null, skin: S
   else if (g.type === "currency") goal += ` · ${w.currency}/${g.n}`;
   else if (g.type === "serve_premium") goal += ` · ${(state.sales?.premiumServed ?? 0)}/${g.n}`;
   else if (g.type === "waves" && waves) goal += ` · ${Math.max(0, waves.idx - (waves.active ? 1 : 0))}/${totalWaves}`;
-  return { goal, chips };
+  return { goal, chips, objectives: objectiveLines(ext.objectives, m, skin) };
+}
+
+/** The live objective strip ("VIPs 2/5 ✓"), from state.objectives and the manifest's labels. */
+export function objectiveLines(list: SimObjective[] | undefined, m: Manifest, skin: Skin): ObjectiveLine[] {
+  if (!Array.isArray(list) || !list.length) return [];
+  const defs = ((m as unknown as { objectives?: ManifestObjective[] }).objectives ?? []);
+  return list.map((o, i) => {
+    const def = defs.find((d) => d.id !== undefined && d.id === o.id) ?? defs[i];
+    const label = def?.label ?? skin.text.ui[`obj_${o.kind}`] ?? uiText(skin, o.kind);
+    const count = o.target > 1 ? ` ${Math.min(o.progress, o.target)}/${o.target}` : "";
+    return { id: o.id, text: `${label}${count}`, done: o.done, failed: o.failed };
+  });
 }
 
 export function chipsHtml(model: HudModel): string {
@@ -74,7 +103,8 @@ export function chipsHtml(model: HudModel): string {
     const cls = `chip${c.bad ? " bad" : ""}`;
     if (c.bar !== undefined) {
       const pct = Math.round(c.bar * 100);
-      return `<span class="${cls} meter" data-k="${c.key}"><span class="lbl">${esc(c.text)}</span><span class="track"><span class="fill" style="width:${pct}%;background:${c.color}"></span></span></span>`;
+      const ticks = (c.ticks ?? []).map((t) => `<span class="tick" style="left:${Math.round(t * 100)}%"></span>`).join("");
+      return `<span class="${cls} meter" data-k="${c.key}"><span class="lbl">${esc(c.text)}</span><span class="track"><span class="fill" style="width:${pct}%;background:${c.color}"></span>${ticks}</span></span>`;
     }
     return `<span class="${cls}" data-k="${c.key}"><span class="ic" style="background:${c.color}"></span>${esc(c.text)}</span>`;
   }).join("");
@@ -82,7 +112,7 @@ export function chipsHtml(model: HudModel): string {
 
 const esc = (s: string): string => s.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
 
-interface ChipEls { root: HTMLElement; lbl: HTMLElement; fill: HTMLElement | null; ic: HTMLElement | null; key: string }
+interface ChipEls { root: HTMLElement; lbl: HTMLElement; fill: HTMLElement | null; ic: HTMLElement | null; key: string; ticks: string }
 
 /**
  * Keeps one DOM node per chip and patches text and widths in place, so CSS transitions and the
@@ -132,10 +162,18 @@ export class HudView {
           root.appendChild(ic);
           root.appendChild(lbl);
         }
-        el = { root, lbl, fill, ic, key: c.key };
+        el = { root, lbl, fill, ic, key: c.key, ticks: "" };
         this.els.set(c.key, el);
       }
-      const cls = `chip${c.bad ? " bad" : ""}${meter ? " meter" : ""}${el.root.classList.contains("pulse") ? " pulse" : ""}`;
+      const tk = (c.ticks ?? []).join(",");
+      if (el.fill && el.ticks !== tk) {
+        el.ticks = tk;
+        const track = el.fill.parentElement!;
+        for (const t of track.querySelectorAll(".tick")) t.remove();
+        for (const t of c.ticks ?? []) { const m = doc.createElement("span"); m.className = "tick"; m.style.left = `${Math.round(t * 100)}%`; track.appendChild(m); }
+      }
+      const keep = ["pulse", "hit"].filter((k) => el!.root.classList.contains(k)).map((k) => ` ${k}`).join("");
+      const cls = `chip${c.bad ? " bad" : ""}${meter ? " meter" : ""}${keep}`;
       if (el.root.className !== cls) el.root.className = cls;
       if (c.key === "currency") {
         this.target = Number(c.text) || 0;
@@ -164,6 +202,19 @@ export class HudView {
     const s = String(this.shown);
     if (el.lbl.textContent !== s) el.lbl.textContent = s;
   }
+
+  /** Damage feedback on a meter chip: red flash and a shake (Colony HP on base hits). */
+  hit(key: string): void {
+    const el = this.els.get(key)?.root;
+    if (!el) return;
+    el.classList.remove("hit");
+    void el.offsetWidth;
+    el.classList.add("hit");
+    const t = this.hitTimers.get(key);
+    if (t) clearTimeout(t);
+    this.hitTimers.set(key, setTimeout(() => el.classList.remove("hit"), 450));
+  }
+  private hitTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   pulse(key: string): void {
     const el = this.els.get(key)?.root;

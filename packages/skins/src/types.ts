@@ -82,6 +82,11 @@ export interface Skin {
   hazardName: string;
   /** Name of every canonical id. */
   names: Record<string, string>;
+  /**
+   * One-line purpose per canonical id ("Dig ore here; feed it to the reactor"), shown on
+   * discovery labels, tap-to-inspect cards and the field guide. Missing ids show no purpose.
+   */
+  purposes?: Record<string, string>;
   palette: SkinPalette;
   /** 2D sprite key per canonical id; the 2D renderer maps keys to draw routines. */
   sprites: Record<string, string>;

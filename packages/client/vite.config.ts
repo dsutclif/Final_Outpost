@@ -79,7 +79,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // the three.js chunk is precached too, so a phone that chose 3D still plays offline
+        // the three.js chunk is precached too, so the game plays offline after the first launch
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
         globIgnores: ["store/**"],
         navigateFallback: "index.html",

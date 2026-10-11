@@ -6,7 +6,7 @@ import level4 from "../../../levels/golden/proto-L004.json";
 import type { LevelMeta } from "../src/levels.js";
 import { budgetSeconds, chapters, isUnlocked, nextLevel, starsFor, winMargin } from "../src/progress.js";
 import { DEFAULT_PROGRESS, type Progress } from "../src/save.js";
-import { autoTier, pickRenderer } from "../src/render.js";
+import { autoTier } from "../src/render.js";
 
 const pin = <T extends object>(m: T): T => ({ ...m, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION });
 const meta = (i: number): LevelMeta => ({ id: `L${i}`, index: i, modules: [], goalType: "build", text: {}, engineVersion: "", contentVersion: "" });
@@ -50,14 +50,12 @@ describe("progression", () => {
   });
 });
 
-describe("renderer choice", () => {
-  it("keeps 2D below 40 fps or without WebGL, and tiers 3D by the benchmark", () => {
-    expect(pickRenderer({ fps: 58, ok: true, reason: "ok" })).toBe("3d");
-    expect(pickRenderer({ fps: 39, ok: false, reason: "slow" })).toBe("2d");
-    expect(pickRenderer({ fps: 0, ok: false, reason: "webgl" })).toBe("2d");
+describe("quality tier", () => {
+  it("tiers the 3D renderer by the probed frame rate, else the core count", () => {
     expect(autoTier(60, 8)).toBe("high");
     expect(autoTier(60, 4)).toBe("medium");
     expect(autoTier(45, 8)).toBe("medium");
+    expect(autoTier(30, 8)).toBe("low");
     expect(autoTier(null, 2)).toBe("low");
   });
 });

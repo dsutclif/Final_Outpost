@@ -7,6 +7,13 @@ export const JOY_DEAD = 6;
 export const JOY_SAT = 50;
 /** Drag distance beyond which the joystick base follows the finger. */
 export const JOY_FOLLOW = 70;
+/** A tap: released within this many px of where it went down... */
+export const TAP_PX = 8;
+/** ...and within this many ms. */
+export const TAP_MS = 250;
+
+/** Whether a press was a tap (inspect) rather than a joystick drag. */
+export const isTap = (maxMove: number, ms: number): boolean => maxMove < TAP_PX && ms < TAP_MS;
 
 /** Drag offset in CSS px to a fixed-point direction: zero inside the dead zone, full at saturation. */
 export function joystickVector(dx: number, dy: number, dead = JOY_DEAD, sat = JOY_SAT): Input {
@@ -51,8 +58,12 @@ export class InputController {
   private readonly base: HTMLElement;
   private readonly knob: HTMLElement;
   private readonly off: (() => void)[] = [];
+  private downAt = 0;
+  private maxMove = 0;
   /** When false, input reads as zero and the joystick is hidden (menus open). */
   enabled = false;
+  /** A tap on the stage (stage CSS px); the joystick ignores it. */
+  onTap: ((x: number, y: number) => void) | null = null;
 
   constructor(private readonly stage: HTMLElement) {
     const doc = stage.ownerDocument;
@@ -73,6 +84,8 @@ export class InputController {
       const r = stage.getBoundingClientRect();
       this.ox = this.x = e.clientX - r.left;
       this.oy = this.y = e.clientY - r.top;
+      this.downAt = e.timeStamp || performance.now();
+      this.maxMove = 0;
       try { stage.setPointerCapture(e.pointerId); } catch { /* not capturable */ }
       this.draw();
       e.preventDefault();
@@ -82,18 +95,20 @@ export class InputController {
       const r = stage.getBoundingClientRect();
       this.x = e.clientX - r.left;
       this.y = e.clientY - r.top;
+      this.maxMove = Math.max(this.maxMove, Math.hypot(this.x - this.ox, this.y - this.oy));
       // floating base: dragging past the rim pulls the base along, so reversing is instant
       const dx = this.x - this.ox, dy = this.y - this.oy, m = Math.hypot(dx, dy);
       if (m > JOY_FOLLOW) { this.ox = this.x - (dx / m) * JOY_FOLLOW; this.oy = this.y - (dy / m) * JOY_FOLLOW; }
       this.draw();
     });
-    const end = (e: PointerEvent): void => {
+    const end = (e: PointerEvent, cancelled: boolean): void => {
       if (e.pointerId !== this.pointer) return;
       this.pointer = null;
       this.draw();
+      if (!cancelled && this.enabled && isTap(this.maxMove, (e.timeStamp || performance.now()) - this.downAt)) this.onTap?.(this.ox, this.oy);
     };
-    on(stage, "pointerup", end);
-    on(stage, "pointercancel", end);
+    on(stage, "pointerup", (e) => end(e, false));
+    on(stage, "pointercancel", (e) => end(e, true));
     const win = doc.defaultView ?? window;
     on(win, "keydown", (e) => {
       const k = KEYMAP[(e as KeyboardEvent).key.toLowerCase()];

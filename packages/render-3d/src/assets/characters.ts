@@ -82,7 +82,8 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
     return { ...base, stripe: role === "role.idle" ? mix(col, t.ink, 0.3) : col, hat: g.hat, hatColor: col, tool: g.tool };
   }
   if (id.startsWith("unit.customer")) {
-    const premium = id.endsWith("premium"), impatient = id.endsWith("impatient");
+    const premium = id.endsWith("premium"), impatient = id.endsWith("impatient"), bulk = id.endsWith("bulk");
+    if (bulk) return { ...base, suit: t.customer, suitDark: t.customerDark, pack: t.accent, stripe: t.accent, hat: "hat.frame", hatColor: t.accent, bigPack: true, scale: 1 };
     const gold = t.res["res.currency"] ?? t.accent;
     return {
       ...base, suit: t.customer, suitDark: t.customerDark, pack: t.customerDark,
@@ -95,6 +96,10 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
     return { ...base, suit: t.raider, suitDark: t.raiderDark, pack: t.raiderDark, visor: t.raiderVisor, hat: "hat.hood", hatColor: t.raiderDark, tool: "tool.club", scale: 0.95 };
   }
   if (id === "hostile.creature") return { ...base, kind: "creature", suit: t.creature, suitDark: t.creatureDark, visor: t.danger, scale: 1 };
+  if (id === "hostile.swarmling") return { ...base, kind: "creature", suit: mix(t.creature, t.danger, 0.25), suitDark: t.creatureDark, visor: t.danger, scale: 0.62 };
+  if (id === "hostile.boss") {
+    return { ...base, suit: t.raiderDark, suitDark: t.raider, pack: t.raiderDark, visor: t.danger, hat: "hat.crest", hatColor: t.danger, tool: "tool.club", scale: 1.75, bigPack: true };
+  }
   if (id === "unit.prey" || id === "node.prey") return { ...base, kind: "hopper", suit: t.prey, suitDark: t.groundDark, visor: t.ink, scale: 1 };
   return base;
 }

@@ -1,6 +1,6 @@
 // Public entry of @fo/render-3d. Deliberately three-free: importing this module costs
-// nothing, and loadRenderer3D() pulls three.js in a separate chunk only when the player
-// switches to the 3D renderer, so the 2D-only bundle stays small.
+// nothing, and loadRenderer3D() pulls three.js in a separate chunk, so the app shell boots
+// (title, menus, the unsupported-device screen) without downloading it.
 
 import type { RenderStats, Renderer } from "./contract.js";
 import type { QualityTier } from "./units.js";
@@ -23,6 +23,10 @@ export interface Renderer3DHandle extends Renderer {
   snapCamera(): void;
   /** World point (world units, on the ground) to mount CSS px, with the last camera. */
   worldToScreen(p: { x: number; y: number }, height?: number): { x: number; y: number };
+  /** Canonical id of the object under a mount CSS px point (tap to inspect), or null. */
+  pick(x: number, y: number): string | null;
+  /** Which types still show a floating discovery label (name + purpose); null shows none. */
+  setDiscovery(isNew: ((id: string) => boolean) | null): void;
 }
 
 export interface LoadRenderer3DOptions {

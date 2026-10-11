@@ -1,6 +1,6 @@
 import "./style.css";
 import { App } from "./app.js";
-import { allLevels, goldenLevelSource } from "./levels.js";
+import { allLevels } from "./levels.js";
 import { MirroredStore, createPlatform } from "./platform.js";
 import { setupPwa } from "./pwa.js";
 import { openSaves } from "./save.js";
@@ -20,13 +20,6 @@ function takeFlag(): boolean {
 async function boot(): Promise<void> {
   const root = document.getElementById("root");
   if (!root) throw new Error("no #root");
-  // dev-only asset lab; the branch is compiled out of production builds
-  if (import.meta.env.DEV && location.hash.startsWith("#lab")) {
-    window.addEventListener("hashchange", () => location.reload());
-    const { mountLab } = await import("./dev/lab.js");
-    await mountLab(root, goldenLevelSource());
-    return;
-  }
   const platform = await createPlatform();
   let store = await openSaves();
   if (platform.storage) {
@@ -49,7 +42,6 @@ async function boot(): Promise<void> {
   });
   await app.start();
   if (import.meta.env.DEV) {
-    window.addEventListener("hashchange", () => { if (location.hash.startsWith("#lab")) location.reload(); });
     (window as unknown as { __fo: App }).__fo = app;
     void import("./dev/playtest.js").then((m) => m.installPlaytest(app!));
   }

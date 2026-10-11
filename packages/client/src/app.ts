@@ -1,16 +1,17 @@
 import { CONTENT_VERSION, type Manifest } from "@fo/content";
 import { ENGINE_VERSION, FP, IMPLEMENTED_MODULES, METER_MAX, createSim, type Sim, type SimEvent } from "@fo/sim";
-import { createCamera, type Camera } from "@fo/render-2d";
-import { getSkin, levelTitle, nameOf, uiText, type Skin } from "@fo/skins";
+import { createCamera, type Camera } from "@fo/render-3d";
+import { getSkin, levelTitle, nameOf, purposeOf, uiText, type Skin } from "@fo/skins";
 import { Coach, toWorld } from "./coach.js";
+import { isNew, nearbyPassive, touchedBy } from "./discovery.js";
 import { Haptics, Synth } from "./feedback.js";
 import { HudView, hudModel } from "./hud.js";
 import { InputController } from "./input.js";
-import { offlineReady, prefetchLevels, upcoming, type LevelMeta, type LevelSource } from "./levels.js";
+import { offlineReady, prefetchLevels, type LevelMeta, type LevelSource } from "./levels.js";
 import { FixedStepper } from "./loop.js";
 import { webPlatform, type Platform } from "./platform.js";
 import { chapters, isUnlocked, nextLevel, starText, starsFor, winMargin } from "./progress.js";
-import { autoTier, benchmark3D, createRenderer, pickRenderer, warm3D, type GameRenderer, type RendererKind, type Tier } from "./render.js";
+import { PROBE_SEC, autoTier, createRenderer, thumbnails, warm3D, webglAvailable, type GameRenderer, type Tier } from "./render.js";
 import { DEFAULT_PROGRESS, type Progress, type SaveStore, type Settings } from "./save.js";
 import type { TelemetryQueue } from "./telemetry.js";
 import { formatTicks, levelText } from "./text.js";
@@ -19,7 +20,7 @@ import { TitleBackdrop } from "./title.js";
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
 // and the glue between sim, renderer, input, saves, telemetry and feedback.
 
-type Screen = "title" | "levels" | "intro" | "playing" | "result" | "settings" | "error";
+type Screen = "title" | "levels" | "intro" | "playing" | "result" | "settings" | "error" | "unsupported";
 
 interface Session {
   meta: LevelMeta;
@@ -34,8 +35,10 @@ interface Session {
   earned: number;
   lastCurrency: number;
   wavesCleared: number;
-  /** Lowest lifeline over the attempt (the star margin on levels with no timer or hull). */
+  /** Lowest lifeline over the attempt (the star margin on levels with no timer or Colony HP). */
   lifeMin: number;
+  /** Seconds played this attempt (drives the "auto" quality probe). */
+  played: number;
 }
 
 export interface AppDeps {
@@ -56,8 +59,8 @@ const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, sel: string): 
 };
 
 const COUNTS_AS_POP = new Set(["ok", "injured", "healing"]);
-/** Levels to keep cached ahead of the player. */
-const PREFETCH_AHEAD = 30;
+/** How long the tap-to-inspect card stays up (ms). */
+const INSPECT_MS = 2200;
 /** Pads closer than this pull the camera toward them (world units). */
 const LEAD_RANGE = 150;
 
@@ -82,31 +85,36 @@ export class App {
   private resultTimer: ReturnType<typeof setTimeout> | null = null;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private ftoastTimer: ReturnType<typeof setTimeout> | null = null;
+  private inspectTimer: ReturnType<typeof setTimeout> | null = null;
+  private settingsTab: "settings" | "guide" = "settings";
+  private thumbs = new Map<string, string>();
   private beatAt = 0;
   private resetArmed = false;
   private settingsFrom: Screen = "title";
-  private bench: Promise<void> | null = null;
-  private swapping: Promise<void> | null = null;
   private offline = -1;
   updateReady = false;
 
   private readonly el: {
     app: HTMLElement; hud: HTMLElement; lvlName: HTMLElement; goal: HTMLElement; chips: HTMLElement; menuBtn: HTMLButtonElement; gearBtn: HTMLButtonElement;
     stage: HTMLElement; world: HTMLElement; debug: HTMLElement; ov: Record<string, HTMLElement>; rotate: HTMLElement; loading: HTMLElement; toast: HTMLElement;
+    ftoast: HTMLElement; inspect: HTMLElement; objectives: HTMLElement;
   };
 
   constructor(root: HTMLElement, private readonly deps: AppDeps) {
     root.innerHTML = TEMPLATE;
     const ov: Record<string, HTMLElement> = {};
-    for (const k of ["title", "levels", "intro", "result", "settings", "error"]) ov[k] = $(root, `#ov-${k}`);
+    for (const k of ["title", "levels", "intro", "result", "settings", "error", "unsupported"]) ov[k] = $(root, `#ov-${k}`);
     this.el = {
       app: $(root, ".app"), hud: $(root, ".hud"), lvlName: $(root, "#lvlName"), goal: $(root, "#goalTxt"), chips: $(root, "#chips"),
       menuBtn: $<HTMLButtonElement>(root, "#menuBtn"), gearBtn: $<HTMLButtonElement>(root, "#gearBtn"), stage: $(root, "#stage"), world: $(root, "#world"),
       debug: $(root, "#debug"), ov, rotate: $(root, ".rotate"), loading: $(root, "#loading"), toast: $(root, "#toast"),
+      ftoast: $(root, "#ftoast"), inspect: $(root, "#inspect"), objectives: $(root, "#objectives"),
     };
     this.platform = deps.platform ?? webPlatform();
     this.haptics = new Haptics((ms) => this.platform.haptic(ms));
     this.input = new InputController(this.el.stage);
+    this.input.onTap = (x, y) => this.inspectAt(x, y);
     this.hud = new HudView(this.el.chips);
     this.bindChrome();
   }
@@ -118,12 +126,12 @@ export class App {
     this.applySettings();
     this.applyTheme();
     try { this.levels = await this.deps.source.list(); } catch { this.levels = []; }
-    this.show("title");
     this.last = performance.now();
     requestAnimationFrame(this.frame);
+    if (!webglAvailable(this.el.app.ownerDocument)) { this.show("unsupported"); return; }
+    this.show("title");
     if (this.deps.justUpdated) this.continueToast();
-    if (!this.settings.rendererChosen) this.bench = this.runBenchmark();
-    else if (this.settings.renderer === "3d") warm3D();
+    warm3D();
     void this.prefetch();
   }
 
@@ -137,7 +145,12 @@ export class App {
     this.platform.onResume(() => this.setHidden(false));
     if (this.platform.native) doc.addEventListener("visibilitychange", () => this.setHidden(doc.visibilityState === "hidden"));
     this.el.menuBtn.addEventListener("click", () => this.quitToLevels());
-    this.el.gearBtn.addEventListener("click", () => { if (this.screen === "playing") this.show("settings"); });
+    // the in-level gear opens Settings over any level screen and pauses play; Back resumes
+    this.el.gearBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (this.screen === "settings") this.leaveSettings();
+      else if (this.session) this.show("settings");
+    });
     doc.addEventListener("keydown", (e) => {
       if (e.key === "`") this.toggleDebug();
       if (e.key === "Escape" && this.screen === "playing") this.quitToLevels();
@@ -196,12 +209,25 @@ export class App {
     this.session?.renderer.setQuality(this.qualityTier());
   }
 
-  /** Quality tier for the renderer; "auto" uses the 3D benchmark result, else the core count. */
+  /** Quality tier for the renderer; "auto" uses the in-play frame-rate probe, else the core count. */
   private qualityTier(): Tier {
     const q = this.settings.quality;
     if (q !== "auto") return q;
     const cores = (navigator as { hardwareConcurrency?: number }).hardwareConcurrency ?? 4;
-    return autoTier(this.settings.renderer === "3d" ? this.settings.benchFps : null, cores);
+    return autoTier(this.settings.probeFps, cores);
+  }
+
+  /**
+   * "Auto" quality: the first PROBE_SEC seconds of real play on the core-count tier measure the
+   * renderer's own fps once; the result picks the tier from then on (Settings can override).
+   */
+  private probe(s: Session, dt: number): void {
+    if (this.settings.quality !== "auto" || this.settings.probeFps !== null) return;
+    s.played += dt / 1000;
+    if (s.played < PROBE_SEC) return;
+    this.settings.probeFps = Math.max(1, Math.round(s.renderer.fps()));
+    void this.deps.store.setSettings(this.settings);
+    this.applySettings();
   }
 
   private toggleDebug(): void {
@@ -234,63 +260,36 @@ export class App {
     }, 9000);
   }
 
-  // ------------------------------------------------------------------ renderer choice
+  // ------------------------------------------------------------------ renderer
 
-  /**
-   * First launch: play the first level hidden behind the title in 3D for ~3 s and keep 3D when
-   * it holds 40 fps (render.ts benchmark3D). No WebGL, a failed load or a slow device keep 2D.
-   * A backgrounded page leaves the choice open until it is shown again.
-   */
-  private async runBenchmark(): Promise<void> {
-    const first = this.levels[0];
-    if (!first) return;
-    await new Promise((r) => setTimeout(r, 350));
-    let manifest: Manifest;
-    try { manifest = await this.deps.source.load(first.id); } catch { return; }
-    // only on the title (a level running in the same stage would skew the result)
-    if (this.screen !== "title" && this.session) return;
-    const res = await benchmark3D(manifest, this.skin, this.el.world);
-    if (res.reason === "hidden") {
-      // backgrounded: try again the next time the page is shown
-      const doc = this.el.app.ownerDocument;
-      const again = (): void => {
-        if (doc.visibilityState !== "visible") return;
-        doc.removeEventListener("visibilitychange", again);
-        if (!this.settings.rendererChosen && !this.session) this.bench = this.runBenchmark();
-      };
-      doc.addEventListener("visibilitychange", again);
-      return;
-    }
-    this.settings.renderer = pickRenderer(res);
-    this.settings.benchFps = res.fps;
-    this.settings.rendererChosen = true;
-    void this.deps.store.setSettings(this.settings);
-    if (this.screen === "settings") this.renderSettings();
-  }
-
-  /** A renderer of the chosen kind; falls back to 2D (and remembers it) when 3D cannot start. */
-  private async makeRenderer(kind: RendererKind): Promise<GameRenderer> {
-    if (kind === "2d") return createRenderer("2d", this.qualityTier());
+  /** The 3D renderer, or null (and the unsupported screen) when it cannot start. */
+  private async makeRenderer(): Promise<GameRenderer | null> {
     this.el.loading.textContent = uiText(this.skin, "rendererLoading");
     this.el.loading.hidden = false;
     try {
-      return await createRenderer("3d", this.qualityTier());
+      return await createRenderer(this.qualityTier());
     } catch {
-      this.settings.renderer = "2d";
-      this.settings.rendererChosen = true;
-      void this.deps.store.setSettings(this.settings);
-      this.toast(`<span>${esc(uiText(this.skin, "rendererFallback"))}</span>`, {}, 4000);
-      return createRenderer("2d", this.qualityTier());
+      this.show("unsupported");
+      return null;
     } finally {
       this.el.loading.hidden = true;
     }
   }
 
   private attachRenderer(s: Session, r: GameRenderer): void {
-    r.init(s.sim.compiled.manifest, this.skin, this.el.world);
+    try {
+      r.init(s.sim.compiled.manifest, this.skin, this.el.world);
+    } catch {
+      // a context that fails at init (lost GPU, blocklisted driver) is an unsupported device
+      try { r.dispose(); } catch { /* ignore */ }
+      this.session = null;
+      this.show("unsupported");
+      return;
+    }
     r.hudAnchor = () => this.coinTarget();
     r.onCoinLanded = () => this.hud.pulse("currency");
     r.setQuality(this.qualityTier());
+    r.setDiscovery((id) => isNew(this.progress.discovered)(id));
     s.renderer = r;
     this.resize();
     r.snapCamera();
@@ -298,40 +297,68 @@ export class App {
     r.sync(s.sim.state, 0, s.cam);
   }
 
-  /** Switch 2D/3D live: the level keeps running state, only the view is rebuilt. */
-  private async setRendererKind(kind: RendererKind): Promise<void> {
-    this.settings.renderer = kind;
-    this.settings.rendererChosen = true;
-    void this.deps.store.setSettings(this.settings);
+  // ------------------------------------------------------------------ discovery
+
+  /** Mark types as used; the first touch of a labelled type gets a small toast. */
+  private discover(ids: readonly string[]): void {
+    let fresh: string | null = null;
+    for (const id of ids) {
+      if (this.progress.discovered[id]) continue;
+      this.progress.discovered[id] = true;
+      if (!fresh && isNew({})(id)) fresh = id;
+      this.saveProgressSoon();
+    }
+    if (fresh) this.firstTouch(fresh);
+  }
+
+  private firstTouch(id: string): void {
+    const s = this.skin, t = this.el.ftoast;
+    const purpose = purposeOf(s, id);
+    t.innerHTML = `<b>${esc(uiText(s, "newType", { name: nameOf(s, id) }))}</b>${purpose ? `<span>${esc(purpose)}</span>` : ""}`;
+    t.hidden = false;
+    t.classList.remove("in");
+    void t.offsetWidth;
+    t.classList.add("in");
+    if (this.ftoastTimer) clearTimeout(this.ftoastTimer);
+    this.ftoastTimer = setTimeout(() => { t.hidden = true; }, 2600);
+  }
+
+  /** Tap to inspect: name and purpose of what is under the finger, for a couple of seconds. */
+  private inspectAt(x: number, y: number): void {
     const s = this.session;
-    if (!s || s.renderer.kind === kind) return;
-    const job = (async () => {
-      const r = await this.makeRenderer(kind);
-      if (this.session !== s) { r.dispose(); return; }
-      s.renderer.dispose();
-      this.attachRenderer(s, r);
-    })();
-    this.swapping = job;
-    await job;
-    if (this.swapping === job) this.swapping = null;
-    if (this.screen === "settings") this.renderSettings();
+    if (!s || this.screen !== "playing") return;
+    const id = s.renderer.pick(x, y);
+    const card = this.el.inspect;
+    if (!id) { card.hidden = true; return; }
+    const sk = this.skin, purpose = purposeOf(sk, id);
+    card.innerHTML = `<b>${esc(nameOf(sk, id))}</b>${purpose ? `<span>${esc(purpose)}</span>` : ""}`;
+    card.hidden = false;
+    const r = this.el.stage.getBoundingClientRect();
+    const w = Math.min(250, r.width - 24);
+    card.style.width = `${w}px`;
+    card.style.left = `${Math.max(12, Math.min(r.width - w - 12, x - w / 2))}px`;
+    card.style.top = `${y > r.height * 0.45 ? Math.max(8, y - 96) : y + 28}px`;
+    card.classList.remove("in");
+    void card.offsetWidth;
+    card.classList.add("in");
+    if (this.inspectTimer) clearTimeout(this.inspectTimer);
+    this.inspectTimer = setTimeout(() => { card.hidden = true; }, INSPECT_MS);
   }
 
   // ------------------------------------------------------------------ offline levels
 
-  /** When online, cache the next levels after the player's current one; refresh the count. */
+  /** When online, cache every level of every pack (the whole set is well under 1 MB); refresh the count. */
   private async prefetch(): Promise<void> {
-    const cur = nextLevel(this.levels, this.progress);
-    if (typeof navigator === "undefined" || navigator.onLine !== false) await prefetchLevels(upcoming(this.levels, cur ? cur.index - 1 : -1, PREFETCH_AHEAD));
+    if (typeof navigator === "undefined" || navigator.onLine !== false) await prefetchLevels(this.levels);
     this.offline = await offlineReady(this.levels);
     if (this.screen === "levels" || this.screen === "settings") this.paintOffline();
   }
 
   private offlineLine(): string {
     if (this.offline < 0) return "";
-    const s = this.skin;
-    const n = this.offline;
-    return n > 0 ? uiText(s, "offlineReady", { n }) : uiText(s, "offlineNone");
+    const s = this.skin, n = this.offline, total = this.levels.length;
+    if (n <= 0) return uiText(s, "offlineNone");
+    return n >= total ? uiText(s, "offlineAll", { n }) : uiText(s, "offlineSome", { n, total });
   }
 
   private paintOffline(): void {
@@ -347,12 +374,14 @@ export class App {
     this.input.enabled = screen === "playing";
     if (screen !== "playing") this.input.release();
     this.el.debug.hidden = !this.settings.debug || !this.session;
-    this.el.app.classList.toggle("nohud", !this.session || screen === "title" || screen === "levels" || (screen === "settings" && prev !== "playing"));
+    this.el.app.classList.toggle("nohud", !this.session || screen === "title" || screen === "levels" || screen === "unsupported");
+    if (screen !== "playing") this.el.inspect.hidden = true;
     if ((screen === "title" || screen === "levels") && this.updateReady && this.deps.applyUpdate?.()) return;
     if (screen === "title") this.renderTitle();
     else this.title?.stop();
     if (screen === "levels") this.renderLevels();
-    if (screen === "settings") { this.settingsFrom = prev === "settings" ? this.settingsFrom : prev; this.renderSettings(); warm3D(); }
+    if (screen === "settings") { this.settingsFrom = prev === "settings" ? this.settingsFrom : prev; this.renderSettings(); }
+    if (screen === "unsupported") this.renderUnsupported();
     if (screen === "playing") { this.session?.stepper.reset(); this.last = performance.now(); }
   }
 
@@ -421,37 +450,27 @@ export class App {
     ov.querySelector<HTMLElement>(".lvtile.next")?.scrollIntoView?.({ block: "center" });
   }
 
+  /** Leave Settings for where it was opened from: back into the paused level, else the title. */
+  private leaveSettings(): void {
+    const s = this.session, from = this.settingsFrom;
+    if (s && !s.ended) this.show(from === "intro" ? "intro" : "playing");
+    else if (s && from === "result") this.show("result");
+    else this.show("title");
+  }
+
   private renderSettings(): void {
-    const ov = this.el.ov["settings"]!, s = this.skin, st = this.settings;
+    const ov = this.el.ov["settings"]!, s = this.skin;
     this.resetArmed = false;
-    const toggle = (k: "haptics" | "sound", label: string): string =>
-      `<label class="set"><span>${esc(label)}</span><input type="checkbox" data-k="${k}" ${st[k] ? "checked" : ""}></label>`;
-    const dev = import.meta.env.DEV;
-    const kind = this.session?.renderer.kind ?? st.renderer;
-    const busy = this.swapping !== null;
-    ov.innerHTML = `<div class="card">
-      <div class="card-head"><h2>${esc(uiText(s, "settings"))}</h2><button data-a="back" class="small">${esc(uiText(s, "back"))}</button></div>
-      <label class="set"><span>${esc(uiText(s, "settingsRenderer"))}</span>
-        <span class="seg" role="radiogroup">${(["2d", "3d"] as const).map((k) => `<button role="radio" aria-checked="${kind === k}" class="${kind === k ? "on" : ""}" data-r="${k}" ${busy ? "disabled" : ""}>${esc(uiText(s, `renderer${k}`))}</button>`).join("")}</span></label>
-      ${busy ? `<p class="note">${esc(uiText(s, "rendererLoading"))}</p>` : ""}
-      ${toggle("haptics", uiText(s, "settingsHaptics"))}
-      ${toggle("sound", uiText(s, "settingsSound"))}
-      <label class="set"><span>${esc(uiText(s, "settingsQuality"))}</span>
-        <select data-k="quality">${(["auto", "low", "medium", "high"] as const).map((q) => `<option value="${q}" ${st.quality === q ? "selected" : ""}>${esc(uiText(s, `quality_${q}`))}</option>`).join("")}</select></label>
-      <p class="note offline" data-offline>${esc(this.offlineLine())}</p>
-      ${this.session && !this.session.ended ? "" : `<button data-a="export" class="wide-btn">${esc(uiText(s, "exportTelemetry"))}</button>
-      <button data-a="reset" class="wide-btn danger">${esc(uiText(s, "resetProgress"))}</button>`}
-      ${dev ? `<a class="wide-btn linkbtn" href="#lab">${esc(uiText(s, "lab"))}</a>` : ""}
-      <p class="note">v${ENGINE_VERSION} · content ${CONTENT_VERSION}${this.deps.store.persistent ? " · storage persistent" : ""}${st.benchFps !== null ? ` · 3D bench ${st.benchFps} fps` : ""}</p>
-    </div>`;
-    const resetBtn = ov.querySelector<HTMLButtonElement>('[data-a="reset"]');
+    const paused = !!this.session && !this.session.ended && this.settingsFrom === "playing";
+    const tab = this.settingsTab;
+    const tabs = `<div class="tabs" role="tablist">${(["settings", "guide"] as const).map((k) => `<button role="tab" aria-selected="${tab === k}" class="${tab === k ? "on" : ""}" data-tab="${k}">${esc(uiText(s, k === "settings" ? "tabSettings" : "tabGuide"))}</button>`).join("")}</div>`;
+    const head = `<div class="card-head"><h2>${esc(uiText(s, paused ? "paused" : "settings"))}</h2><button data-a="back" class="small${paused ? " go" : ""}">${esc(uiText(s, paused ? "resume" : "back"))}</button></div>`;
+    ov.innerHTML = `<div class="card settings-card">${head}${tabs}<div class="tabbody">${tab === "guide" ? this.guideHtml() : this.settingsHtml()}</div></div>`;
     this.wire(ov, {
-      back: () => {
-        const live = this.session && !this.session.ended;
-        this.show(live ? (this.settingsFrom === "playing" ? "playing" : "intro") : "title");
-      },
+      back: () => this.leaveSettings(),
       export: () => { void this.deps.telemetry.exportFile(); },
       reset: () => {
+        const resetBtn = ov.querySelector<HTMLButtonElement>('[data-a="reset"]');
         if (!resetBtn) return;
         if (!this.resetArmed) { this.resetArmed = true; resetBtn.textContent = uiText(s, "resetConfirm"); resetBtn.classList.add("armed"); return; }
         this.progress = structuredClone(DEFAULT_PROGRESS);
@@ -462,8 +481,8 @@ export class App {
         resetBtn.disabled = true;
       },
     });
-    for (const b of ov.querySelectorAll<HTMLButtonElement>("[data-r]")) {
-      b.addEventListener("click", (e) => { e.preventDefault(); void this.setRendererKind(b.dataset["r"] as RendererKind); });
+    for (const b of ov.querySelectorAll<HTMLButtonElement>("[data-tab]")) {
+      b.addEventListener("click", () => { this.settingsTab = b.dataset["tab"] as "settings" | "guide"; this.renderSettings(); });
     }
     for (const inp of ov.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-k]")) {
       inp.addEventListener("change", () => {
@@ -476,6 +495,62 @@ export class App {
         if (k === "sound" && val) { this.synth.unlock(); this.synth.play("coin"); }
       });
     }
+    if (tab === "guide") void this.paintThumbs(ov);
+  }
+
+  private settingsHtml(): string {
+    const s = this.skin, st = this.settings;
+    const toggle = (k: "haptics" | "sound", label: string): string =>
+      `<label class="set"><span>${esc(label)}</span><input type="checkbox" data-k="${k}" ${st[k] ? "checked" : ""}></label>`;
+    return `${toggle("haptics", uiText(s, "settingsHaptics"))}
+      ${toggle("sound", uiText(s, "settingsSound"))}
+      <label class="set"><span>${esc(uiText(s, "settingsQuality"))}</span>
+        <select data-k="quality">${(["auto", "low", "medium", "high"] as const).map((q) => `<option value="${q}" ${st.quality === q ? "selected" : ""}>${esc(uiText(s, `quality_${q}`))}</option>`).join("")}</select></label>
+      <p class="note offline" data-offline>${esc(this.offlineLine())}</p>
+      ${this.session && !this.session.ended ? "" : `<button data-a="export" class="wide-btn">${esc(uiText(s, "exportTelemetry"))}</button>
+      <button data-a="reset" class="wide-btn danger">${esc(uiText(s, "resetProgress"))}</button>`}
+      <p class="note">v${ENGINE_VERSION} · content ${CONTENT_VERSION}${this.deps.store.persistent ? " · storage persistent" : ""}${st.probeFps !== null ? ` · ${st.probeFps} fps probe` : ""}</p>`;
+  }
+
+  /** Field guide: every discovered type with its icon, name and purpose. */
+  private guideHtml(): string {
+    const s = this.skin;
+    const ids = Object.keys(this.progress.discovered)
+      .filter((id) => s.names[id] && purposeOf(s, id))
+      .sort((a, b) => guideOrder(a) - guideOrder(b) || nameOf(s, a).localeCompare(nameOf(s, b)));
+    if (!ids.length) return `<p class="guide-empty">${esc(uiText(s, "guideEmpty"))}</p>`;
+    return `<p class="note">${esc(uiText(s, "guideCount", { n: ids.length }))}</p><ul class="guide">${ids.map((id) => {
+      const th = this.thumbs.get(id);
+      return `<li data-id="${esc(id)}"><span class="gicon" style="--c:${guideColor(s, id)}">${th ? `<img src="${th}" alt="">` : `<i>${esc(nameOf(s, id).charAt(0))}</i>`}</span><span class="gtext"><b>${esc(nameOf(s, id))}</b><small>${esc(purposeOf(s, id))}</small></span></li>`;
+    }).join("")}</ul>`;
+  }
+
+  /** Small 3D renders for the field guide, made once per type and swapped in when ready. */
+  private async paintThumbs(ov: HTMLElement): Promise<void> {
+    const want = Object.keys(this.progress.discovered).filter((id) => !this.thumbs.has(id));
+    if (want.length) {
+      const got = await thumbnails(want, this.skin, 96);
+      for (const id of want) this.thumbs.set(id, got.get(id) ?? "");
+    }
+    for (const li of ov.querySelectorAll<HTMLElement>(".guide li[data-id]")) {
+      const url = this.thumbs.get(li.dataset["id"]!);
+      const icon = li.querySelector(".gicon");
+      if (url && icon && !icon.querySelector("img")) icon.innerHTML = `<img src="${url}" alt="">`;
+    }
+  }
+
+  /** No WebGL: a friendly card in the skin's look instead of the game. */
+  private renderUnsupported(): void {
+    const ov = this.el.ov["unsupported"]!, s = this.skin;
+    const words = uiText(s, "wordmark").split(" ");
+    ov.innerHTML = `<div class="title-wrap">
+        <div class="wordmark" aria-label="${esc(uiText(s, "wordmark"))}">
+          <span class="wm-top">${esc(words[0] ?? "")}</span>
+          <span class="wm-bot">${esc(words.slice(1).join(" "))}</span>
+        </div>
+        <div class="card center unsupported"><h2>${esc(uiText(s, "unsupportedTitle"))}</h2><p>${esc(uiText(s, "unsupportedBody"))}</p></div>
+      </div>`;
+    new TitleBackdrop(ov, this.skin).start();
   }
 
   private wire(root: HTMLElement, actions: Record<string, () => void>): void {
@@ -504,15 +579,15 @@ export class App {
       this.showError(meta, err);
       return;
     }
-    // the first-launch benchmark decides the renderer; wait for it (at most ~3 s)
-    if (this.bench) { this.el.loading.textContent = uiText(this.skin, "rendererLoading"); this.el.loading.hidden = false; await this.bench; this.el.loading.hidden = true; this.bench = null; }
-    const renderer = await this.makeRenderer(this.settings.renderer);
+    const renderer = await this.makeRenderer();
+    if (!renderer) return;
     const coach = new Coach(sim.compiled.manifest.modules, this.progress.coach, undefined, !!sim.compiled.gate);
     this.session = {
       meta, manifest: sim.compiled.manifest, sim, renderer, cam: createCamera(), stepper: new FixedStepper(), coach, ended: false,
-      earned: 0, lastCurrency: sim.state.currency, wavesCleared: 0, lifeMin: sim.state.meters.lifeline,
+      earned: 0, lastCurrency: sim.state.currency, wavesCleared: 0, lifeMin: sim.state.meters.lifeline, played: 0,
     };
     this.attachRenderer(this.session, renderer);
+    if (!this.session) return;
     this.progress.current = meta.id;
     void this.deps.store.setProgress(this.progress);
     const t = levelText(this.session.manifest, this.skin, meta.index, this.seenBefore(meta));
@@ -677,12 +752,6 @@ export class App {
     return true;
   }
 
-  /** Dev hook: switch renderer (awaits the 3D chunk). */
-  async debugRenderer(kind: RendererKind): Promise<string> {
-    await this.setRendererKind(kind);
-    return this.session?.renderer.kind ?? this.settings.renderer;
-  }
-
   /** Dev hook: the running sim (read-only use). */
   get debugSim(): Sim | null { return this.session?.sim ?? null; }
 
@@ -713,6 +782,8 @@ export class App {
       for (let i = 0; i < n && !s.ended; i++) this.stepOnce(s, this.input.read());
       this.updateCoach(s);
       this.heartbeat(s, now);
+      this.probe(s, dt);
+      if (s.sim.state.tick % 15 === 0) this.discover(nearbyPassive(s.sim.state));
     }
     if (this.hidden) return;
     s.cam.lead = this.leadPoint(s);
@@ -759,17 +830,24 @@ export class App {
     this.haptics.play(e);
     this.synth.playEvent(e, this.skin);
     if (s.coach.onEvent(e, s.sim.compiled).length) this.saveProgressSoon();
+    const touched = touchedBy(e, s.sim.state);
+    if (touched.length) this.discover(touched);
+    if (e.t === "hit" && e.target === "base") this.hud.hit("baseHealth");
     if (e.t === "wave_cleared") s.wavesCleared++;
     if (e.t === "level_end") this.finish(e.won, e.reason);
   }
 
   private updateHud(s: Session): void {
     const model = hudModel(s.sim.state, s.manifest, s.sim.compiled, this.skin);
-    const key = model.goal + JSON.stringify(model.chips);
+    const key = model.goal + JSON.stringify(model.chips) + JSON.stringify(model.objectives);
     if (key === this.hudKey) return;
     this.hudKey = key;
     if (this.el.goal.textContent !== model.goal) this.el.goal.textContent = model.goal;
     this.hud.render(model);
+    // objective strip under the goal line: only when the sim reports objectives
+    const ob = this.el.objectives;
+    ob.hidden = model.objectives.length === 0;
+    ob.innerHTML = model.objectives.map((o) => `<span class="obj${o.done ? " done" : ""}${o.failed ? " failed" : ""}">${esc(o.text)}</span>`).join("");
   }
 
   /** Where coins fly: the currency chip, in stage px (both renderers use this). */
@@ -786,9 +864,14 @@ export class App {
     if (st.tick - this.hashCache.tick >= 30 || st.tick < this.hashCache.tick) this.hashCache = { tick: st.tick, hash: s.sim.hash().slice(0, 12) };
     const mods = s.manifest.modules.map((m) => `<span class="${IMPLEMENTED_MODULES.has(m) ? "on" : "off"}">${esc(nameOf(this.skin, `module.${m}`))}</span>`).join(" ");
     const rfps = s.renderer.fps();
-    this.el.debug.innerHTML = `${Math.round(this.fps)} fps${rfps !== null ? ` (3D ${rfps})` : ""} · ${s.renderer.kind} · tick ${st.tick} · drop ${s.stepper.dropped}<br>hash ${this.hashCache.hash}<br>${esc(s.meta.id)} · ${mods}`;
+    this.el.debug.innerHTML = `${Math.round(this.fps)} fps (3D ${rfps}) · ${this.qualityTier()} · tick ${st.tick} · drop ${s.stepper.dropped}<br>hash ${this.hashCache.hash}<br>${esc(s.meta.id)} · ${mods}`;
   }
 }
+
+/** Field guide order: resources, sources, sinks and converters, buildings, people, threats. */
+const GUIDE_ORDER = ["res", "node", "sink", "conv", "pad", "struct", "store", "barrier", "zone", "capture", "role", "unit", "hostile"];
+const guideOrder = (id: string): number => { const i = GUIDE_ORDER.indexOf(id.split(".")[0]!); return i < 0 ? 99 : i; };
+const guideColor = (s: Skin, id: string): string => s.palette.res[id] ?? s.palette.role[id] ?? (id.startsWith("hostile.") ? s.palette.danger : id.startsWith("struct.") || id.startsWith("sink.") ? s.palette.accent : s.palette.interactive);
 
 const esc = (s: string): string => s.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
 
@@ -796,7 +879,7 @@ const TEMPLATE = `
 <div class="app nohud">
   <header class="hud">
     <div class="hrow">
-      <div class="goal"><div class="lbl" id="lvlName"></div><div class="txt" id="goalTxt"></div></div>
+      <div class="goal"><div class="lbl" id="lvlName"></div><div class="txt" id="goalTxt"></div><div class="objectives" id="objectives" hidden></div></div>
       <button class="gearBtn" id="gearBtn" aria-label="Settings"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4L10.7 6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
       <button class="menuBtn" id="menuBtn" aria-label="Levels">Levels</button>
     </div>
@@ -810,6 +893,9 @@ const TEMPLATE = `
     <div class="overlay" id="ov-result" hidden></div>
     <div class="overlay" id="ov-settings" hidden></div>
     <div class="overlay" id="ov-error" hidden></div>
+    <div class="overlay" id="ov-unsupported" hidden></div>
+    <div class="ftoast" id="ftoast" hidden></div>
+    <div class="inspect" id="inspect" hidden></div>
     <div class="loading" id="loading" hidden></div>
     <div class="toast" id="toast" hidden></div>
     <div class="debug" id="debug" hidden></div>

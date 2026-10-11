@@ -190,5 +190,36 @@ describe("Renderer3D (fake WebGL)", () => {
     r.setCoach(null);
     r.dispose();
   });
-});
 
+  it("labels new types, picks what is under a tap and shows a MAX tag over a full pack column", () => {
+    const sim = createSim(pin(level1));
+    const gl = fakeGL();
+    const r = new Renderer3D({ now: () => 0, createGL: () => gl });
+    r.init(sim.compiled.manifest, marsGreenhouse, fakeMount());
+    r.resize(390, 780);
+    const cam = createCamera();
+    const seen: string[] = [];
+    r.setDiscovery((id) => { seen.push(id); return id !== "sink.core"; });
+    // a full column of greens and a partial one of ore
+    const cap = sim.compiled.resources["res.food_raw_1"]!.cap!;
+    sim.state.player.stack = [...new Array<string>(cap).fill("res.food_raw_1"), "res.material_basic"];
+    r.snapCamera();
+    r.sync(sim.state, 0, cam);
+    expect(seen).toContain("sink.core");
+    const { scene } = r.three;
+    let sprites = 0;
+    scene.traverse((o) => { if (o.visible && (o as { isSprite?: boolean }).isSprite) sprites++; });
+    expect(sprites).toBeGreaterThan(0);
+    // tap on the hero: the hero is the closest character to the screen centre column
+    const pl = sim.state.player.pos;
+    const p = r.worldToScreen({ x: pl.x / FP, y: pl.y / FP }, 14);
+    expect(r.pick(p.x, p.y)).toBe("unit.player");
+    // the kiosk body under its screen point
+    const k = r.worldToScreen({ x: sim.state.sales!.pos.x / FP, y: sim.state.sales!.pos.y / FP }, 30);
+    expect(r.pick(k.x, k.y)).toBe("sink.sales_point");
+    expect(r.pick(-500, -500)).toBeNull();
+    r.setDiscovery(null);
+    r.sync(sim.state, 0, cam);
+    r.dispose();
+  });
+});

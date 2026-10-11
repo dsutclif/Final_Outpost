@@ -92,6 +92,47 @@ export function buildFuelCache(ctx: BuildCtx): Model {
   return m;
 }
 
+/**
+ * A small ore-scrap heap: a quick, low-stock material node. Levels set many of them close
+ * together (fuel forests), so each is small and cheap (well under the scatter budget).
+ */
+export function buildScrapPile(ctx: BuildCtx, seed = 9): Model {
+  const { t, mats } = ctx;
+  const m = model("scatter");
+  const ore = resToken(t, "res.material_basic");
+  const b = new GeoBuilder().cyl(0.4, 0.46, 0.05, 8, t.groundDark, { at: [0, 0.025, 0] });
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + hash01(seed + i), r = i === 0 ? 0 : 0.2;
+    b.rock(0.13 + hash01(seed + i * 3) * 0.05, i % 2 ? ore : mix(ore, t.ink, 0.25), { at: [Math.cos(a) * r, 0.12, Math.sin(a) * r], scale: [1, 0.8, 1] }, (i % 3) as 0 | 1 | 2);
+  }
+  b.box(0.22, 0.04, 0.1, t.metal, { at: [0.22, 0.06, 0.18], rot: [0, 0.6, 0.2] });
+  const body = mesh(b.build(), mats.std, "body");
+  m.root.add(body);
+  anchor(m.root, "pickup", 0, 0.3, 0);
+  anchor(m.root, "interact", 0, 0, 0.55);
+  return m;
+}
+
+/** A lassoable supply crate: a strapped cargo box with a lid that pops on release. */
+export function buildSupplyCrate(ctx: BuildCtx): Model {
+  const { t, mats } = ctx;
+  const m = model("scatter");
+  const b = new GeoBuilder()
+    .rbox(0.8, 0.5, 0.6, 0.06, t.structureDark, { at: [0, 0.25, 0] }, 1)
+    .box(0.06, 0.52, 0.62, t.accent, { at: [-0.22, 0.26, 0] })
+    .box(0.06, 0.52, 0.62, t.accent, { at: [0.22, 0.26, 0] })
+    .cyl(0.08, 0.08, 0.03, 10, resToken(t, "res.currency"), { at: [0, 0.32, 0.31], rot: [Math.PI / 2, 0, 0] });
+  m.root.add(mesh(b.build(), mats.std, "body"));
+  const lid = new Group();
+  lid.name = "lid";
+  lid.position.set(0, 0.5, -0.3);
+  lid.add(mesh(new GeoBuilder().rbox(0.84, 0.1, 0.64, 0.04, t.metal, { at: [0, 0.05, 0.3] }, 1).build(), mats.std, "lidBody"));
+  m.root.add(lid);
+  m.parts["lid"] = lid;
+  anchor(m.root, "interact", 0, 0, 0.6);
+  return m;
+}
+
 /** Stasis pod with a sleeper inside; the lid lifts on release. */
 export function buildStasisPod(ctx: BuildCtx): Model {
   const { t, mats } = ctx;
@@ -189,6 +230,25 @@ export function buildWaitingMarker(ctx: BuildCtx): Model {
 }
 
 /** Dashed outline of a 1 x 1 m rect (prey zone): subtle, ground-coloured. */
+/**
+ * A hopper burrow: a low mound with a dark hole and a few pebbles. Prey zones show two or
+ * three of these instead of an outline, so the critters roam a natural-looking patch.
+ */
+export function buildBurrow(ctx: BuildCtx, seed = 5): Model {
+  const { t, mats } = ctx;
+  const m = model("scatter");
+  const b = new GeoBuilder()
+    .dome(0.42, 10, 4, t.groundAlt, { at: [0, 0, 0], scale: [1, 0.35, 0.85] })
+    .cyl(0.16, 0.12, 0.05, 10, t.groundDark, { at: [0.05, 0.13, 0.08], scale: [1, 1, 0.8] });
+  for (let i = 0; i < 4; i++) {
+    const a = hash01(seed + i) * Math.PI * 2, r = 0.45 + hash01(seed + i * 7) * 0.2;
+    b.rock(0.05 + hash01(seed + i * 3) * 0.04, i % 2 ? t.groundDark : mix(t.groundAlt, t.structureDark, 0.3), { at: [Math.cos(a) * r, 0.03, Math.sin(a) * r] }, (i % 3) as 0 | 1 | 2);
+  }
+  m.root.add(mesh(b.build(), mats.std, "body"));
+  anchor(m.root, "interact", 0, 0, 0.5);
+  return m;
+}
+
 export function buildDashedRect(ctx: BuildCtx, color?: string): Model {
   const { t, mats } = ctx;
   const m = model("decal");
