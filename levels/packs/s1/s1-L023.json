@@ -1,8 +1,8 @@
 {
   "id": "s1-L023",
-  "seed": 650105297,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 886907390,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,15 +15,15 @@
     ]
   },
   "modules": [
+    "barrier_lines",
+    "blocked_zones",
     "build_pads",
     "carry",
     "core",
     "core_levels",
     "gather",
-    "housing",
-    "hunting",
-    "sales",
-    "workers"
+    "lasso",
+    "sales"
   ],
   "start": [
     240,
@@ -38,7 +38,7 @@
         520
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 15,
         "level": 1
       }
     },
@@ -46,233 +46,328 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        250,
-        719
+        303,
+        640
       ],
       "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        43,
-        603
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        82,
-        378
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        39,
-        515
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        54,
-        419
+        "res.food_raw_1"
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        436,
-        475
+        331,
+        535
       ]
     },
     {
-      "type": "zone.prey",
-      "id": "prey",
+      "type": "node.material_source",
+      "at": [
+        145,
+        518
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        114,
+        491
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        166,
+        480
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        165,
+        553
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        99,
+        537
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        129,
+        559
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        126,
+        451
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        163,
+        450
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        198,
+        466
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        152,
+        581
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        578
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        103,
+        580
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          60,
+          320
+        ],
+        [
+          180,
+          320
+        ],
+        [
+          300,
+          320
+        ],
+        [
+          420,
+          320
+        ],
+        [
+          420,
+          453
+        ],
+        [
+          420,
+          587
+        ],
+        [
+          420,
+          720
+        ],
+        [
+          300,
+          720
+        ],
+        [
+          180,
+          720
+        ],
+        [
+          60,
+          720
+        ],
+        [
+          60,
+          587
+        ],
+        [
+          60,
+          453
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "pass",
       "rect": [
-        130,
-        345,
-        220,
-        80
-      ],
-      "animal": "node.prey",
-      "n": 3
+        0,
+        114,
+        480,
+        44
+      ]
     },
     {
-      "type": "struct.gate",
-      "id": "gate",
+      "type": "capture.recruit_container",
       "at": [
-        240,
-        872
+        198,
+        42
       ],
-      "arrivals": {
-        "every": 16,
-        "total": 4
-      }
+      "freeze": 152
     },
     {
-      "type": "pad.hire",
-      "id": "hire_core",
+      "type": "capture.recruit_container",
       "at": [
-        140,
-        487
+        106,
+        57
       ],
-      "cost": {
-        "res.currency": 8
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
+      "freeze": 171
     },
     {
-      "type": "pad.hire",
-      "id": "hire_food",
+      "type": "capture.recruit_container",
       "at": [
-        374,
-        584
+        382,
+        218
       ],
-      "cost": {
-        "res.currency": 13
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
+      "freeze": 170
     },
     {
-      "type": "pad.hire",
-      "id": "hire_cashier",
+      "type": "capture.recruit_container",
       "at": [
-        154,
-        826
+        181,
+        252
       ],
-      "cost": {
-        "res.currency": 19
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
-      }
+      "freeze": 181
     },
     {
-      "type": "pad.hire",
-      "id": "hunter",
+      "type": "capture.supply_crate",
       "at": [
-        240,
-        449
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "role": {
-        "role": "role.hunter",
-        "from": "node.prey",
-        "to": "sink.sales_point"
-      }
+        272,
+        212
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        51,
+        239
+      ]
     },
     {
       "type": "pad.build",
-      "id": "core_level",
+      "id": "core_level0",
       "at": [
-        129,
-        604
+        126,
+        627
       ],
       "cost": {
-        "res.currency": 27
+        "res.currency": 24
       },
       "build": "sink.core.level"
     },
     {
       "type": "pad.build",
-      "id": "housing0",
+      "id": "clear_pass",
       "at": [
-        343,
-        637
+        310,
+        239
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
-      "build": "struct.housing",
+      "build": "zone.clear",
+      "target": "pass",
       "requires": {
-        "pad": "hunter",
         "coreLevel": 2
       }
-    },
-    {
-      "type": "pad.build",
-      "id": "housing1",
-      "at": [
-        129,
-        648
-      ],
-      "cost": {
-        "res.currency": 16
-      },
-      "build": "struct.housing"
     }
   ],
-  "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    }
-  ],
+  "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.5,
-    "customers.spawn": 3,
+    "start.currency": 8,
+    "core.burn": 2.8,
+    "housing.base": 6,
+    "customers.spawn": 2.8,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "housing.base": 5,
-    "level.budgetSeconds": 160
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 100
   },
   "goal": {
-    "type": "population",
-    "n": 9
+    "type": "rescue_all"
   },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "rescue_all",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 46
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "tow_full_trip",
+      "params": {
+        "n": 3
+      }
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hoppers and Full Habs",
-      "goal": "Grow the colony to 9 colonists",
+      "title": "Tow Lines",
+      "goal": "rescue_all",
       "tips": [
-        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.53,
-    "fun": 0.919,
-    "botMargin": 0.402,
+    "difficulty": 0.719,
+    "fun": 0.819,
+    "botMargin": 0.576,
     "botsPassed": [
       "good",
       "average",
       "weak",
       "novice",
       "floor"
-    ]
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2,
+      "goodAll": 1
+    }
   }
 }

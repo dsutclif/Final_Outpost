@@ -1,8 +1,8 @@
 {
   "id": "s1-L045",
   "seed": 196658801,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,9 +19,9 @@
     "build_pads",
     "carry",
     "core",
-    "defense",
     "gather",
-    "medical",
+    "hunting",
+    "lasso",
     "sales"
   ],
   "start": [
@@ -37,7 +37,7 @@
         520
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 15,
         "level": 1
       }
     },
@@ -45,8 +45,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        247,
-        718
+        303,
+        635
       ],
       "sells": [
         "res.food_raw_1",
@@ -54,215 +54,290 @@
       ]
     },
     {
-      "type": "node.material_source",
-      "at": [
-        49,
-        517
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        77,
-        421
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        27,
-        469
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        68,
-        617
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        82,
-        363
-      ]
-    },
-    {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        434,
-        513
+        356,
+        527
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.material_source",
       "at": [
-        418,
-        661
+        144,
+        512
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.material_source",
       "at": [
-        457,
-        624
+        139,
+        552
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        102,
+        516
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        126,
+        474
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        172,
+        477
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        97,
+        480
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        100,
+        553
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        180,
+        561
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        161,
+        448
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        130,
+        438
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        116,
+        584
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        198,
+        462
       ]
     },
     {
       "type": "barrier.line",
-      "id": "wall",
+      "id": "ring",
       "res": "res.currency",
-      "costPerSection": 7,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            160,
-            290
-          ],
-          "prebuilt": false
-        },
-        {
-          "a": [
-            160,
-            290
-          ],
-          "b": [
-            320,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            320,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
+      "costPerSection": 1,
+      "points": [
+        [
+          60,
+          320
+        ],
+        [
+          180,
+          320
+        ],
+        [
+          300,
+          320
+        ],
+        [
+          420,
+          320
+        ],
+        [
+          420,
+          453
+        ],
+        [
+          420,
+          587
+        ],
+        [
+          420,
+          720
+        ],
+        [
+          300,
+          720
+        ],
+        [
+          180,
+          720
+        ],
+        [
+          60,
+          720
+        ],
+        [
+          60,
+          587
+        ],
+        [
+          60,
+          453
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
       ]
     },
     {
-      "type": "pad.build",
-      "id": "tower0",
+      "type": "capture.recruit_container",
       "at": [
-        172,
-        362
-      ],
-      "cost": {
-        "res.currency": 18
-      },
-      "build": "struct.ranged_defense"
+        50,
+        114
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "tower1",
+      "type": "capture.recruit_container",
       "at": [
-        335,
-        378
-      ],
-      "cost": {
-        "res.currency": 18
-      },
-      "build": "struct.ranged_defense"
+        188,
+        86
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "medic",
+      "type": "capture.recruit_container",
       "at": [
-        354,
-        671
+        88,
+        247
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        145,
+        174
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        385,
+        163
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        291,
+        214
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        440,
+        350,
+        60,
+        150
       ],
-      "cost": {
-        "res.currency": 12
-      },
-      "build": "struct.medical"
+      "animal": "node.prey",
+      "n": 3
     }
   ],
-  "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    }
-  ],
-  "waves": [
-    {
-      "t": 20,
-      "counts": {
-        "hostile.creature": 4
-      }
-    },
-    {
-      "t": 56,
-      "counts": {
-        "hostile.creature": 7
-      }
-    },
-    {
-      "t": 118,
-      "counts": {
-        "hostile.creature": 9
-      }
-    },
-    {
-      "t": 180,
-      "counts": {
-        "hostile.creature": 11
-      }
-    }
-  ],
+  "people": [],
+  "waves": [],
   "events": [],
   "params": {
-    "start.currency": 9,
+    "start.currency": 7,
     "core.burn": 2.7,
-    "customers.spawn": 2.9,
+    "housing.base": 6,
+    "customers.spawn": 2.7,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 5,
-    "meters.baseHealth": 11,
-    "level.budgetSeconds": 240
+    "level.budgetSeconds": 270
   },
   "goal": {
-    "type": "waves"
+    "type": "protein",
+    "n": 23
   },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "protein",
+      "params": {
+        "n": 23
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 168
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "rescue_all",
+      "params": {}
+    }
+  ],
   "fail": [
-    "meter.lifeline",
-    "meter.base_health"
+    "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Med Bays and Siege",
-      "goal": "Survive every raid",
+      "title": "Tow Lines",
+      "goal": "protein",
       "tips": [
-        "Hurt colonists stop working until a med bay heals them."
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.396,
-    "fun": 0.901,
-    "botMargin": 0.857,
+    "difficulty": 0.566,
+    "fun": 0.726,
+    "botMargin": 0.527,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
-    ]
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1
+    }
   }
 }

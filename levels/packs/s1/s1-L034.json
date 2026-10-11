@@ -1,8 +1,8 @@
 {
   "id": "s1-L034",
-  "seed": 349303267,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 1224849928,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -20,11 +20,9 @@
     "build_pads",
     "carry",
     "core",
-    "core_levels",
-    "customer_variety",
-    "defense",
     "gather",
-    "housing",
+    "hunting",
+    "lasso",
     "sales"
   ],
   "start": [
@@ -45,221 +43,233 @@
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.material_source",
       "at": [
-        345,
-        638
-      ],
-      "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
+        183,
+        465
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        87,
-        414
+        182,
+        426
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        121,
-        376
+        222,
+        432
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        39,
-        473
+        179,
+        523
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        163,
-        355
+        228,
+        401
       ]
     },
     {
-      "type": "node.food_source",
-      "id": "food1",
+      "type": "node.fuel_scrap",
       "at": [
-        90,
-        632
+        254,
+        431
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.fuel_scrap",
       "at": [
-        402,
-        361
-      ]
-    },
-    {
-      "type": "node.fuel_deposit",
-      "at": [
-        427,
-        414
+        258,
+        402
       ]
     },
     {
       "type": "barrier.line",
-      "id": "wall",
+      "id": "ring",
       "res": "res.currency",
-      "costPerSection": 8,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            182,
-            290
-          ],
-          "prebuilt": false
-        },
-        {
-          "a": [
-            182,
-            290
-          ],
-          "b": [
-            342,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            342,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
+      "costPerSection": 1,
+      "points": [
+        [
+          127,
+          360
+        ],
+        [
+          262,
+          360
+        ],
+        [
+          397,
+          360
+        ],
+        [
+          397,
+          510
+        ],
+        [
+          397,
+          660
+        ],
+        [
+          262,
+          660
+        ],
+        [
+          127,
+          660
+        ],
+        [
+          127,
+          510
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
       ]
     },
     {
-      "type": "struct.gate",
-      "id": "gate",
+      "type": "capture.recruit_container",
       "at": [
-        240,
-        872
-      ],
-      "arrivals": {
-        "every": 17,
-        "total": 4
-      }
+        380,
+        134
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "core_level",
+      "type": "capture.recruit_container",
       "at": [
-        164,
-        578
-      ],
-      "cost": {
-        "res.currency": 28
-      },
-      "build": "sink.core.level"
+        283,
+        46
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "tower0",
+      "type": "capture.recruit_container",
       "at": [
-        246,
-        371
-      ],
-      "cost": {
-        "res.currency": 20
-      },
-      "build": "struct.ranged_defense",
-      "requires": {
-        "coreLevel": 2
-      }
+        148,
+        41
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "housing0",
+      "type": "capture.recruit_container",
       "at": [
-        400,
-        619
+        42,
+        512
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        324,
+        218
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        231,
+        191
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        69,
+        119
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        20,
+        390,
+        87,
+        150
       ],
-      "cost": {
-        "res.currency": 13
-      },
-      "build": "struct.housing"
+      "animal": "node.prey",
+      "n": 3
     }
   ],
   "people": [],
-  "waves": [
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 4,
+    "core.burn": 2.5,
+    "housing.base": 6,
+    "level.budgetSeconds": 240
+  },
+  "goal": {
+    "type": "hunt",
+    "n": 25
+  },
+  "family": "rescue",
+  "objectives": [
     {
-      "t": 51,
-      "counts": {
-        "hostile.creature": 8
+      "id": "main",
+      "kind": "hunt",
+      "params": {
+        "n": 25
       }
     },
     {
-      "t": 107,
-      "counts": {
-        "hostile.creature": 11
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 148
       }
     },
     {
-      "t": 162,
-      "counts": {
-        "hostile.creature": 13
+      "id": "challenge",
+      "kind": "tow_trip",
+      "params": {
+        "n": 3
       }
     }
   ],
-  "events": [],
-  "params": {
-    "start.currency": 5,
-    "core.burn": 2.4,
-    "customers.spawn": 3,
-    "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "housing.base": 1,
-    "customers.impatientShare": 0.28,
-    "customers.premiumShare": 0.17,
-    "meters.baseHealth": 10,
-    "level.budgetSeconds": 220
-  },
-  "goal": {
-    "type": "waves"
-  },
   "fail": [
-    "meter.lifeline",
-    "meter.base_health"
+    "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Domes and Siege",
-      "goal": "Survive every raid",
+      "title": "Tow Lines",
+      "goal": "hunt",
       "tips": [
-        "New colonists need a bed. Build hab pods so they can move in."
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.518,
-    "fun": 0.714,
-    "botMargin": 0.902,
+    "difficulty": 0.632,
+    "fun": 0.509,
+    "botMargin": 0.442,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
-    ]
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2,
+      "goodAll": 1
+    }
   }
 }

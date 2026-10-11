@@ -1,42 +1,42 @@
 {
-  "source": "generated calibration batch: 57 unsearched samples of levels 1-60 (refSeeds 10, others 3)",
-  "n": 57,
+  "source": "generated calibration batch: 50 unsearched samples of levels 1-60 (refSeeds 10, others 3)",
+  "n": 50,
   "metrics": {
     "skillNeeded": {
-      "mean": 0.100877,
-      "sd": 0.155693
+      "mean": 0.195,
+      "sd": 0.216005
     },
     "marginRef": {
-      "mean": 0.639051,
-      "sd": 0.200032
+      "mean": 0.491025,
+      "sd": 0.16618
     },
     "marginMedian": {
-      "mean": 0.577198,
-      "sd": 0.201243
+      "mean": 0.369742,
+      "sd": 0.263806
     },
     "lifelineRisk": {
-      "mean": 0.346761,
-      "sd": 0.145368
+      "mean": 0.31356,
+      "sd": 0.111026
     },
     "concurrentDemand": {
-      "mean": 0.011673,
-      "sd": 0.028932
+      "mean": 0.000355,
+      "sd": 0.00141
     },
     "routeLoad": {
-      "mean": 0.900682,
-      "sd": 0.03788
+      "mean": 0.868212,
+      "sd": 0.065505
     },
     "threatPressure": {
-      "mean": 0.096783,
-      "sd": 0.157606
+      "mean": 0.051506,
+      "sd": 0.15486
     },
     "economyTightness": {
-      "mean": 0.639443,
-      "sd": 0.855483
+      "mean": 0.226845,
+      "sd": 0.258472
     },
     "moduleCount": {
-      "mean": 4.842105,
-      "sd": 1.509369
+      "mean": 3.62,
+      "sd": 1.21033
     },
     "novelty": {
       "mean": 0,
@@ -44,42 +44,29 @@
     }
   },
   "byGoal": {
-    "build": {
-      "n": 26,
+    "core_level": {
+      "n": 3,
       "metrics": {
         "marginRef": {
-          "mean": 0.49985,
-          "sd": 0.084352
+          "mean": 0.470333,
+          "sd": 0.115656
         },
         "marginMedian": {
-          "mean": 0.464116,
-          "sd": 0.109529
+          "mean": 0.300653,
+          "sd": 0.159259
         }
       }
     },
-    "population": {
-      "n": 8,
+    "protein": {
+      "n": 3,
       "metrics": {
         "marginRef": {
-          "mean": 0.487908,
-          "sd": 0.053891
+          "mean": 0.454614,
+          "sd": 0.121754
         },
         "marginMedian": {
-          "mean": 0.420718,
-          "sd": 0.088145
-        }
-      }
-    },
-    "waves": {
-      "n": 22,
-      "metrics": {
-        "marginRef": {
-          "mean": 0.871789,
-          "sd": 0.061376
-        },
-        "marginMedian": {
-          "mean": 0.77894,
-          "sd": 0.142956
+          "mean": 0.320223,
+          "sd": 0.188017
         }
       }
     }

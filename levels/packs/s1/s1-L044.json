@@ -1,8 +1,8 @@
 {
   "id": "s1-L044",
-  "seed": 922952508,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 103669247,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -16,16 +16,12 @@
     ]
   },
   "modules": [
-    "barrier_lines",
     "build_pads",
     "carry",
     "core",
-    "defense",
     "gather",
-    "hunting",
-    "sales",
-    "salvage_upgrades",
-    "workers"
+    "housing",
+    "sales"
   ],
   "start": [
     262,
@@ -40,7 +36,7 @@
         510
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -48,217 +44,145 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        347,
-        639
+        346,
+        638
       ],
       "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        58,
-        461
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        117,
-        346
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        109,
-        426
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        56,
-        396
+        "res.food_raw_1"
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        80,
-        612
+        151,
+        602
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.material_source",
       "at": [
-        415,
-        378
+        106,
+        413
       ]
     },
     {
-      "type": "zone.prey",
-      "id": "prey",
-      "rect": [
-        190,
-        345,
-        150,
-        70
-      ],
-      "animal": "node.prey",
-      "n": 3
-    },
-    {
-      "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 8,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            182,
-            290
-          ],
-          "prebuilt": false
-        },
-        {
-          "a": [
-            182,
-            290
-          ],
-          "b": [
-            342,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            342,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
-      ]
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_core",
+      "type": "node.material_source",
       "at": [
-        189,
+        125,
         456
-      ],
-      "cost": {
-        "res.currency": 9
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
+      ]
     },
     {
-      "type": "pad.hire",
-      "id": "hire_food",
+      "type": "node.fuel_scrap",
       "at": [
-        193,
-        621
-      ],
-      "cost": {
-        "res.currency": 14
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
+        149,
+        406
+      ]
     },
     {
-      "type": "pad.hire",
-      "id": "hire_cashier",
+      "type": "node.fuel_scrap",
       "at": [
-        254,
-        743
-      ],
-      "cost": {
-        "res.currency": 21
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
-      }
+        123,
+        372
+      ]
     },
     {
-      "type": "pad.hire",
-      "id": "hunter",
+      "type": "node.fuel_scrap",
       "at": [
-        279,
-        439
-      ],
-      "cost": {
-        "res.currency": 14
-      },
-      "role": {
-        "role": "role.hunter",
-        "from": "node.prey",
-        "to": "sink.sales_point"
-      }
+        69,
+        428
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "tower0",
+      "type": "node.fuel_scrap",
       "at": [
-        238,
-        360
-      ],
-      "cost": {
-        "res.currency": 21
-      },
-      "build": "struct.ranged_defense",
-      "requires": {
-        "pad": "hunter"
-      }
+        75,
+        458
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "towerup0",
+      "type": "node.fuel_scrap",
       "at": [
-        214,
-        424
+        169,
+        428
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        62,
+        399
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        91,
+        368
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        377
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        99,
+        488
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        262,
+        810
       ],
-      "cost": {
-        "res.salvage": 3
-      },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower0",
-      "requires": {
-        "pad": "tower0"
+      "arrivals": {
+        "every": 20,
+        "total": 5
       }
     },
     {
       "type": "pad.build",
-      "id": "reinforce",
+      "id": "housing0",
       "at": [
-        293,
-        380
+        364,
+        539
       ],
       "cost": {
-        "res.salvage": 4
+        "res.currency": 16
       },
-      "build": "struct.barrier.reinforced"
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing1",
+      "at": [
+        199,
+        599
+      ],
+      "cost": {
+        "res.currency": 19
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing2",
+      "at": [
+        394,
+        669
+      ],
+      "cost": {
+        "res.currency": 22
+      },
+      "build": "struct.housing"
     }
   ],
   "people": [
@@ -267,77 +191,74 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
-  "waves": [
-    {
-      "t": 51,
-      "counts": {
-        "hostile.creature": 8,
-        "hostile.raider_humanoid": 2
-      }
-    },
-    {
-      "t": 105,
-      "counts": {
-        "hostile.creature": 11,
-        "hostile.raider_humanoid": 4
-      }
-    },
-    {
-      "t": 159,
-      "counts": {
-        "hostile.creature": 14,
-        "hostile.raider_humanoid": 6
-      }
-    }
-  ],
+  "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.4,
-    "customers.spawn": 3,
+    "start.currency": 0,
+    "core.burn": 2.1,
+    "housing.base": 2,
+    "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 7,
-    "meters.baseHealth": 10,
-    "level.budgetSeconds": 220
+    "level.budgetSeconds": 260
   },
   "goal": {
-    "type": "waves"
+    "type": "survive",
+    "seconds": 200
   },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "survive",
+      "params": {
+        "seconds": 200
+      }
+    },
+    {
+      "id": "challenge2",
+      "kind": "admit",
+      "params": {
+        "n": 5
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 35
+      }
+    }
+  ],
   "fail": [
-    "meter.lifeline",
-    "meter.base_health"
+    "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Scrap and Raiders",
-      "goal": "Survive every raid",
+      "title": "Hab Pods",
+      "goal": "survive",
       "tips": [
-        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
+        "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.595,
-    "fun": 0.575,
-    "botMargin": 0.89,
+    "difficulty": 0.024,
+    "fun": 0.853,
+    "botMargin": 0.673,
     "botsPassed": [
       "good",
       "average",
       "weak",
       "novice",
       "floor"
-    ]
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1
+    }
   }
 }

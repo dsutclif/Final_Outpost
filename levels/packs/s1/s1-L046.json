@@ -1,8 +1,8 @@
 {
   "id": "s1-L046",
-  "seed": 1335281702,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 1601943691,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,16 +15,12 @@
     ]
   },
   "modules": [
-    "barrier_lines",
-    "blocked_zones",
     "build_pads",
     "carry",
     "core",
-    "core_levels",
-    "defense",
     "gather",
-    "medical",
-    "sales"
+    "sales",
+    "workers"
   ],
   "start": [
     240,
@@ -39,7 +35,7 @@
         500
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -47,170 +43,145 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        316,
-        690
+        313,
+        698
       ],
       "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        62,
-        524
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        104,
-        369
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        93,
-        431
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        72,
-        479
+        "res.food_raw_1"
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        435,
-        450
+        366,
+        530
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.material_source",
       "at": [
-        433,
-        586
+        78,
+        456
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.material_source",
       "at": [
-        399,
-        615
+        108,
+        482
       ]
     },
     {
-      "type": "zone.blocked",
-      "id": "rubble",
-      "rect": [
-        0,
-        790,
-        150,
-        110
-      ]
-    },
-    {
-      "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 8,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            160,
-            290
-          ],
-          "prebuilt": false
-        },
-        {
-          "a": [
-            160,
-            290
-          ],
-          "b": [
-            320,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            320,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
-      ]
-    },
-    {
-      "type": "pad.build",
-      "id": "core_level",
+      "type": "node.fuel_scrap",
       "at": [
-        152,
-        577
+        52,
+        486
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        82,
+        417
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        122,
+        433
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        38,
+        449
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        49,
+        418
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        83,
+        518
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        18,
+        473
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        50,
+        517
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        145,
+        464
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        160,
+        516
       ],
       "cost": {
-        "res.currency": 30
+        "res.currency": 10
       },
-      "build": "sink.core.level"
-    },
-    {
-      "type": "pad.build",
-      "id": "zone_pad",
-      "at": [
-        74,
-        754
-      ],
-      "cost": {
-        "res.currency": 18
-      },
-      "build": "zone.clear",
-      "target": "rubble",
-      "requires": {
-        "coreLevel": 2
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "sink.core"
       }
     },
     {
-      "type": "pad.build",
-      "id": "tower0",
+      "type": "pad.hire",
+      "id": "hire_food",
       "at": [
-        232,
-        367
+        350,
+        592
       ],
       "cost": {
-        "res.currency": 21
+        "res.currency": 15
       },
-      "build": "struct.ranged_defense",
-      "requires": {
-        "pad": "zone_pad"
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
       }
     },
     {
-      "type": "pad.build",
-      "id": "medic",
+      "type": "pad.hire",
+      "id": "hire_cashier",
       "at": [
-        360,
-        647
+        306,
+        597
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 23
       },
-      "build": "struct.medical"
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      }
     }
   ],
   "people": [
@@ -224,69 +195,72 @@
       "role": "idle"
     }
   ],
-  "waves": [
-    {
-      "t": 20,
-      "counts": {
-        "hostile.creature": 4
-      }
-    },
-    {
-      "t": 48,
-      "counts": {
-        "hostile.creature": 8
-      }
-    },
-    {
-      "t": 100,
-      "counts": {
-        "hostile.creature": 10
-      }
-    },
-    {
-      "t": 152,
-      "counts": {
-        "hostile.creature": 13
-      }
-    }
-  ],
+  "waves": [],
   "events": [],
   "params": {
     "start.currency": 3,
-    "core.burn": 2.3,
-    "customers.spawn": 3,
+    "core.burn": 2.4,
+    "housing.base": 5,
+    "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 5,
-    "meters.baseHealth": 10,
-    "level.budgetSeconds": 210
+    "customers.bulkShare": 0.16,
+    "level.budgetSeconds": 60
   },
   "goal": {
-    "type": "waves"
+    "type": "hire",
+    "n": 3
   },
+  "family": "harvest",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "hire",
+      "params": {
+        "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 46
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "streak",
+      "params": {
+        "n": 9
+      }
+    }
+  ],
   "fail": [
-    "meter.lifeline",
-    "meter.base_health"
+    "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Med Bays and Hold Fast",
-      "goal": "Survive every raid",
+      "title": "Blueprints",
+      "goal": "hire",
       "tips": [
-        "Hurt colonists stop working until a med bay heals them."
+        "Stand on a Hire pad to put a free colonist to work. They gather and deliver on their own."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.9,
-    "fun": 0.305,
-    "botMargin": 0.773,
+    "difficulty": 0.661,
+    "fun": 0.937,
+    "botMargin": 0.371,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
-    ]
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2.33,
+      "goodAll": 1
+    }
   }
 }

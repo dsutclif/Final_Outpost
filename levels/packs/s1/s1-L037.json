@@ -1,8 +1,8 @@
 {
   "id": "s1-L037",
   "seed": 787545886,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,11 +19,10 @@
     "build_pads",
     "carry",
     "core",
-    "defenders",
     "defense",
     "gather",
-    "sales",
-    "workers"
+    "medical",
+    "sales"
   ],
   "start": [
     240,
@@ -38,211 +37,193 @@
         500
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 10,
         "level": 1
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.material_source",
       "at": [
-        316,
-        690
-      ],
-      "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
+        135,
+        476
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        61,
-        472
+        175,
+        456
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        107,
+        172,
+        505
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        139,
+        437
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        135,
+        519
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        108,
+        436
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        96,
+        483
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        100,
+        513
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
         417
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        94,
-        538
+        157,
+        549
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        62,
-        373
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        114,
-        466
-      ]
-    },
-    {
-      "type": "node.food_source",
-      "id": "food1",
-      "at": [
-        448,
-        469
+        125,
+        406
       ]
     },
     {
       "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 8,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            160,
-            290
-          ],
-          "prebuilt": false
-        },
-        {
-          "a": [
-            160,
-            290
-          ],
-          "b": [
-            320,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            320,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
+      "id": "ring",
+      "res": "res.salvage",
+      "costPerSection": 2,
+      "points": [
+        [
+          50,
+          265
+        ],
+        [
+          177,
+          265
+        ],
+        [
+          303,
+          265
+        ],
+        [
+          430,
+          265
+        ],
+        [
+          430,
+          383
+        ],
+        [
+          430,
+          500
+        ],
+        [
+          430,
+          618
+        ],
+        [
+          430,
+          735
+        ],
+        [
+          303,
+          735
+        ],
+        [
+          177,
+          735
+        ],
+        [
+          50,
+          735
+        ],
+        [
+          50,
+          618
+        ],
+        [
+          50,
+          500
+        ],
+        [
+          50,
+          383
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        8
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
       ]
     },
     {
-      "type": "pad.hire",
-      "id": "hire_core",
-      "at": [
-        164,
-        481
-      ],
-      "cost": {
-        "res.currency": 9
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food",
-      "at": [
-        399,
-        543
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_cashier",
-      "at": [
-        262,
-        790
-      ],
-      "cost": {
-        "res.currency": 20
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
-      }
-    },
-    {
       "type": "pad.build",
-      "id": "tower0",
+      "id": "tower_e",
       "at": [
-        238,
-        375
+        359,
+        506
       ],
       "cost": {
-        "res.currency": 20
+        "res.salvage": 8
       },
       "build": "struct.ranged_defense"
     },
     {
       "type": "pad.build",
-      "id": "barracks",
+      "id": "medic",
       "at": [
-        140,
-        621
+        337,
+        604
       ],
       "cost": {
-        "res.currency": 13
+        "res.salvage": 6
       },
-      "build": "struct.barracks"
-    },
-    {
-      "type": "pad.hire",
-      "id": "train",
-      "at": [
-        139,
-        710
-      ],
-      "cost": {
-        "res.currency": 5
-      },
-      "role": {
-        "role": "role.defender"
-      },
-      "repeatable": true,
-      "requires": {
-        "pad": "barracks"
-      }
+      "build": "struct.medical"
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -255,61 +236,112 @@
   ],
   "waves": [
     {
-      "t": 50,
+      "t": 12,
       "counts": {
-        "hostile.creature": 8
-      }
+        "hostile.swarmling": 6,
+        "hostile.raider_humanoid": 3
+      },
+      "side": "e",
+      "gap": 0.4
     },
     {
-      "t": 108,
+      "t": 42,
       "counts": {
-        "hostile.creature": 11
-      }
+        "hostile.swarmling": 6
+      },
+      "side": "e",
+      "gap": 0.7
     },
     {
-      "t": 166,
+      "t": 84,
       "counts": {
-        "hostile.creature": 13
-      }
+        "hostile.swarmling": 10,
+        "hostile.raider_humanoid": 2
+      },
+      "side": "e",
+      "gap": 0.7
+    },
+    {
+      "t": 126,
+      "counts": {
+        "hostile.swarmling": 15,
+        "hostile.raider_humanoid": 3
+      },
+      "side": "e",
+      "gap": 0.7
+    },
+    {
+      "t": 168,
+      "counts": {
+        "hostile.swarmling": 19,
+        "hostile.raider_humanoid": 5,
+        "hostile.boss": 1
+      },
+      "side": "e",
+      "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 6,
+    "start.currency": 3,
     "core.burn": 2.3,
-    "customers.spawn": 2.9,
-    "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "housing.base": 9,
+    "housing.base": 5,
     "meters.baseHealth": 11,
-    "level.budgetSeconds": 230
+    "level.budgetSeconds": 250
   },
   "goal": {
-    "type": "waves"
+    "type": "survive",
+    "seconds": 190
   },
+  "family": "defend",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "survive",
+      "params": {
+        "seconds": 190
+      }
+    },
+    {
+      "id": "challenge2",
+      "kind": "no_injuries",
+      "params": {}
+    },
+    {
+      "id": "challenge",
+      "kind": "hp_floor",
+      "params": {
+        "pct": 95
+      }
+    }
+  ],
   "fail": [
     "meter.lifeline",
     "meter.base_health"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Guards and Hold Fast",
-      "goal": "Survive every raid",
+      "title": "Med Bays",
+      "goal": "survive",
       "tips": [
-        "Build a guard post, then train free colonists into guards."
+        "Hurt colonists stop working until a med bay heals them."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.426,
-    "fun": 0.738,
-    "botMargin": 0.899,
+    "difficulty": 0.736,
+    "fun": 0.399,
+    "botMargin": 0.906,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
-    ]
+      "novice"
+    ],
+    "stars": {
+      "good": 2.8,
+      "median": 1.67,
+      "goodAll": 0.9
+    }
   }
 }

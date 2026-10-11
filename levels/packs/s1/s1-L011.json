@@ -1,30 +1,31 @@
 {
   "id": "s1-L011",
-  "seed": 1241095550,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 975969584,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
     "zones": [
       "base",
       "sources-w",
-      "sources-e",
-      "shop-se",
-      "landmark-sw"
+      "food-sw",
+      "shop-e",
+      "landmark-se"
     ]
   },
   "modules": [
-    "barrier_lines",
+    "blocked_zones",
     "build_pads",
     "carry",
     "core",
+    "core_levels",
     "gather",
-    "lasso",
+    "hazard_events",
     "sales"
   ],
   "start": [
-    240,
+    262,
     592
   ],
   "entities": [
@@ -32,7 +33,7 @@
       "type": "sink.core",
       "id": "core",
       "at": [
-        240,
+        262,
         500
       ],
       "params": {
@@ -44,184 +45,308 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        321,
-        689
+        334,
+        632
       ],
       "sells": [
         "res.food_raw_1"
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.food_source",
+      "id": "food1",
       "at": [
-        105,
-        429
+        145,
+        591
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        74,
-        468
+        164,
+        466
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        110,
+        151,
         503
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        135,
-        376
+        132,
+        441
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        47,
+        185,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        207,
+        458
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        196,
+        498
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        115,
+        480
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        158,
+        417
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        192,
+        532
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        101,
+        437
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        209,
+        406
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        408
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        104,
         512
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        41,
-        556
+        93,
+        394
       ]
     },
     {
-      "type": "node.food_source",
-      "id": "food1",
+      "type": "node.fuel_scrap",
       "at": [
-        360,
-        473
+        231,
+        438
       ]
     },
     {
-      "type": "barrier.line",
-      "id": "fence",
-      "res": "res.currency",
-      "costPerSection": 8,
-      "sections": [
-        {
-          "a": [
-            0,
-            160
-          ],
-          "b": [
-            160,
-            160
-          ],
-          "prebuilt": true
-        },
-        {
-          "a": [
-            160,
-            160
-          ],
-          "b": [
-            320,
-            160
-          ],
-          "gate": true,
-          "prebuilt": true
-        },
-        {
-          "a": [
-            320,
-            160
-          ],
-          "b": [
-            480,
-            160
-          ],
-          "prebuilt": true
-        }
+      "type": "node.fuel_scrap",
+      "at": [
+        377,
+        533
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "node.fuel_scrap",
       "at": [
-        405,
-        76
+        374,
+        501
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "node.fuel_scrap",
       "at": [
-        76,
+        350,
+        522
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        408,
+        507
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        427,
+        537
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble0",
+      "rect": [
+        243,
+        310,
+        120,
         70
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "node.fuel_scrap",
       "at": [
-        201,
-        104
+        268,
+        345
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "node.fuel_scrap",
       "at": [
-        299,
-        88
+        303,
+        345
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        338,
+        345
       ]
     },
     {
       "type": "pad.build",
-      "id": "landmark",
+      "id": "core_level0",
       "at": [
-        110,
-        804
+        211,
+        580
       ],
       "cost": {
-        "res.currency": 72
+        "res.currency": 21
       },
-      "build": "struct.landmark",
-      "big": true
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level1",
+      "at": [
+        399,
+        643
+      ],
+      "cost": {
+        "res.currency": 33
+      },
+      "build": "sink.core.level",
+      "requires": {
+        "pad": "clear0"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "clear0",
+      "at": [
+        311,
+        423
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "build": "zone.clear",
+      "target": "rubble0",
+      "requires": {
+        "coreLevel": 2
+      }
     }
   ],
   "people": [],
   "waves": [],
-  "events": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 17,
+      "start": 25,
+      "end": 47
+    }
+  ],
   "params": {
-    "start.currency": 10,
+    "start.currency": 9,
     "core.burn": 2.9,
+    "housing.base": 2,
     "customers.spawn": 2.6,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 6,
-    "level.budgetSeconds": 250
+    "level.budgetSeconds": 180
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "core_level",
+    "n": 3
   },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "core_level",
+      "params": {
+        "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 75
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_colonist_freezes",
+      "params": {}
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Tow Lines and Scaffolds",
-      "goal": "Build the Habitat hub",
+      "title": "Reactors",
+      "goal": "core_level",
       "tips": [
-        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+        "Upgrade the reactor for a bigger heat ring and new build sites."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.196,
-    "fun": 0.905,
-    "botMargin": 0.648,
+    "difficulty": 0.136,
+    "fun": 0.754,
+    "botMargin": 0.642,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
-    ]
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2,
+      "goodAll": 1
+    }
   }
 }

@@ -36,7 +36,8 @@ export function flowModel(m: Manifest, plan: Plan, c: Content, budgetSeconds: nu
   const sells = shop && shop.type === "sink.sales_point" ? shop.sells : [];
   const nodes = m.entities.filter((e) => e.type.startsWith("node.") && "at" in e) as { type: string; at: [number, number]; enabled?: boolean }[];
   const near = (type: string, from: P2, k = 3): number => {
-    const ds = nodes.filter((n) => n.type === type && n.enabled !== false).map((n) => d(n.at, from)).sort((a, b) => a - b).slice(0, k);
+    const same = (t: string) => t === type || (type === "node.material_source" && t === "node.fuel_scrap");
+    const ds = nodes.filter((n) => same(n.type) && n.enabled !== false).map((n) => d(n.at, from)).sort((a, b) => a - b).slice(0, k);
     return ds.length === 0 ? Infinity : ds.reduce((a, b) => a + b, 0) / ds.length;
   };
   const dMat = near("node.material_source", coreAt);

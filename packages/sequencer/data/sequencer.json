@@ -6,47 +6,133 @@
   "band": { "lo": 0.4, "hi": 0.8 },
   "breatherTarget": 0.4,
   "teachTarget": 0.42,
-  "testTarget": 0.55,
   "tutorialTeachDrop": 0.04,
   "funThresholds": { "tutorial": 0.2, "band": 0.4 },
   "recoveryDrop": 0.1,
-  "maxOptional": 6,
-  "mix": { "min": 3, "max": 5 },
-  "recentWindow": 5,
   "duplicateWindow": 10,
-  "testLevels": 2,
-  "spacing": [
-    { "untilBeat": 6, "levels": 3 },
-    { "untilBeat": 99, "levels": 4 }
-  ],
+  "storyLength": 5,
+  "introLength": 15,
   "templates": ["crossroads", "west_fields", "east_fields", "north_fields", "south_fields", "corridor", "crescent"],
-  "coIntroduce": {},
-  "implies": { "workers": ["build_pads"], "hunting": ["workers"] },
-  "dependencyOnly": [],
-  "anchored": ["source_gating", "core_levels", "blocked_zones", "hunting"],
-  "anchorGoals": ["build", "waves"],
+  "implies": { "workers": ["build_pads"] },
+  "familyOrder": ["shelter", "rescue", "harvest", "industrialize", "defend"],
+  "finales": [
+    ["shelter", "harvest"],
+    ["rescue", "harvest"],
+    ["harvest", "industrialize"],
+    ["industrialize", "harvest"],
+    ["defend", "shelter"]
+  ],
+  "mixFeatures": { "min": 1, "max": 3 },
+  "features": {
+    "housing": { "family": "shelter", "modules": ["housing"], "with": ["gate_arrivals"] },
+    "gate_arrivals": { "family": "shelter", "modules": ["housing"] },
+    "core_levels": { "family": "shelter", "modules": ["core_levels"], "anchor": true },
+    "rockslides": { "family": "shelter", "modules": ["blocked_zones"], "anchor": true, "with": ["core_levels"] },
+    "dust_storms": { "family": "shelter", "modules": ["hazard_events"] },
+    "hunting": { "family": "rescue", "modules": ["hunting"] },
+    "crates": { "family": "rescue", "modules": [] },
+    "pod_timers": { "family": "rescue", "modules": [] },
+    "clearing_pass": { "family": "rescue", "modules": ["blocked_zones"] },
+    "vips": { "family": "harvest", "modules": ["customer_variety"] },
+    "source_unlocks": { "family": "harvest", "modules": ["source_gating"], "anchor": true },
+    "bulk_orders": { "family": "harvest", "modules": [] },
+    "material_processor": { "family": "industrialize", "modules": [], "with": ["tier2"] },
+    "converter_levels": { "family": "industrialize", "modules": [], "anchor": true },
+    "tier2": { "family": "industrialize", "modules": [], "with": ["material_processor"] },
+    "depot": { "family": "industrialize", "modules": ["supply_routing"] },
+    "turrets": { "family": "defend", "modules": [] },
+    "salvage_upgrades": { "family": "defend", "modules": ["salvage_upgrades"], "with": ["turrets"] },
+    "multi_side": { "family": "defend", "modules": [] },
+    "defenders": { "family": "defend", "modules": ["defenders"] },
+    "bosses": { "family": "defend", "modules": [], "with": ["turrets"] },
+    "med_bay": { "family": "defend", "modules": ["medical"] }
+  },
+  "families": {
+    "shelter": {
+      "modules": [],
+      "teachGoal": "heat_hold",
+      "intro": [["housing", "gate_arrivals"], ["core_levels", "rockslides", "dust_storms"]],
+      "challenges": ["settlement_never_freezes", "no_colonist_freezes", "heat_floor", "admit"]
+    },
+    "rescue": {
+      "modules": ["lasso"],
+      "teachGoal": "rescue",
+      "intro": [["hunting", "crates"], ["pod_timers", "clearing_pass"]],
+      "challenges": ["tow_full_trip", "rescue_all", "tow_trip", "rescue"]
+    },
+    "harvest": {
+      "modules": ["workers"],
+      "teachGoal": "earn",
+      "intro": [["vips", "source_unlocks"], ["bulk_orders"]],
+      "challenges": ["no_angry_customers", "streak"]
+    },
+    "industrialize": {
+      "modules": ["converters"],
+      "teachGoal": "produce",
+      "intro": [["material_processor", "converter_levels"], ["depot"]],
+      "challenges": ["no_stockpile_overload", "hire"]
+    },
+    "defend": {
+      "modules": ["defense"],
+      "teachGoal": "waves",
+      "intro": [["turrets", "multi_side", "salvage_upgrades"], ["defenders", "bosses", "med_bay"]],
+      "challenges": ["hp_floor", "no_injuries", "no_wall_lost", "kills", "salvage"]
+    }
+  },
   "goals": {
-    "build": { "needsAny": ["build_pads"] },
-    "population": { "needsAny": ["lasso", "housing"] },
-    "waves": { "needsAny": ["defense"] },
-    "currency": { "needsAny": [] },
-    "serve_premium": { "needsAny": ["customer_variety"] }
+    "heat_hold": { "family": "shelter", "needs": [], "avoid": ["housing", "gate_arrivals"] },
+    "fuel_full": { "family": "shelter", "needs": [], "avoid": ["housing", "gate_arrivals"] },
+    "survive": { "family": "shelter", "needs": [] },
+    "hazard_survive": { "family": "shelter", "needs": ["dust_storms"] },
+    "population": { "family": "shelter", "needs": ["gate_arrivals"], "anchor": true },
+    "build_count": { "family": "shelter", "needs": ["housing"], "anchor": true },
+    "core_level": { "family": "shelter", "needs": ["core_levels"], "anchor": true },
+    "admit": { "family": "shelter", "needs": ["gate_arrivals"] },
+    "clear_zones": { "family": "shelter", "needs": ["rockslides"], "anchor": true },
+    "house_all": { "family": "shelter", "needs": ["gate_arrivals", "housing"], "anchor": true },
+
+    "rescue": { "family": "rescue", "needs": [], "avoid": ["hunting"] },
+    "rescue_all": { "family": "rescue", "needs": [], "avoid": ["hunting"] },
+    "rescue_before_freeze": { "family": "rescue", "needs": ["pod_timers"], "avoid": ["hunting"] },
+    "hunt": { "family": "rescue", "needs": ["hunting"], "avoid": ["clearing_pass"] },
+    "protein": { "family": "rescue", "needs": ["hunting"], "avoid": ["clearing_pass"] },
+    "rescue_housed": { "family": "rescue", "needs": ["housing"], "anchor": true },
+    "crates": { "family": "rescue", "needs": ["crates"], "avoid": ["hunting", "clearing_pass"] },
+
+    "earn": { "family": "harvest", "needs": [], "anchor": true },
+    "currency": { "family": "harvest", "needs": [], "anchor": true },
+    "sell": { "family": "harvest", "needs": [], "anchor": true },
+    "serve_premium": { "family": "harvest", "needs": ["vips"], "anchor": true },
+    "unlock": { "family": "harvest", "needs": ["source_unlocks"], "anchor": true },
+    "shelves_full": { "family": "harvest", "needs": [], "anchor": true },
+    "streak": { "family": "harvest", "needs": [], "anchor": true },
+    "sell_each": { "family": "harvest", "needs": ["@two_goods"], "anchor": true },
+    "hire": { "family": "harvest", "needs": [], "anchor": true },
+    "earn_within": { "family": "harvest", "needs": [], "anchor": true },
+    "bulk_order": { "family": "harvest", "needs": ["bulk_orders"], "anchor": true },
+
+    "produce": { "family": "industrialize", "needs": [], "anchor": true },
+    "converters_running": { "family": "industrialize", "needs": ["tier2"], "anchor": true },
+    "haul": { "family": "industrialize", "needs": ["depot"], "anchor": true },
+    "chain": { "family": "industrialize", "needs": ["tier2"], "anchor": true },
+    "automate": { "family": "industrialize", "needs": [], "anchor": true },
+    "stockpile": { "family": "industrialize", "needs": ["depot"], "anchor": true },
+    "build": { "family": "industrialize", "needs": ["material_processor"], "anchor": true },
+    "converter_level": { "family": "industrialize", "needs": ["converter_levels"], "anchor": true },
+    "hire_ops": { "family": "industrialize", "kind": "hire", "needs": [], "anchor": true },
+
+    "waves": { "family": "defend", "needs": [], "anchor": true },
+    "waves_survived": { "family": "defend", "needs": [], "anchor": true },
+    "kills": { "family": "defend", "needs": [], "anchor": true },
+    "boss": { "family": "defend", "needs": ["bosses"], "anchor": true },
+    "turret_level": { "family": "defend", "needs": ["salvage_upgrades"], "anchor": true, "avoid": ["defenders"] },
+    "salvage": { "family": "defend", "needs": [], "anchor": true },
+    "train_defenders": { "family": "defend", "kind": "hire", "needs": ["defenders"], "anchor": true },
+    "hold_out": { "family": "defend", "kind": "survive", "needs": [], "anchor": true }
   },
-  "goalExcludes": {
-    "build": ["defense", "defenders", "salvage_upgrades", "medical"],
-    "population": ["defense", "defenders", "salvage_upgrades", "medical"],
-    "waves": [],
-    "currency": ["workers", "build_pads", "lasso", "housing", "defense", "defenders", "salvage_upgrades", "medical"],
-    "serve_premium": ["lasso", "housing", "defense", "defenders", "salvage_upgrades", "medical"]
-  },
-  "coreGoal": "build",
-  "goalPreference": ["build", "population", "waves", "serve_premium", "currency"],
   "notes": {
-    "coIntroduce": "Empty since 0.4.0: barrier lines are taught on their own before the lasso (DECISIONS 1), because the bot now builds unbuilt sections on any goal and the generator emits a standalone yard wall.",
-    "dependencyOnly": "Modules that only enter a level as another module's dependency (none now), never as a free pick.",
-    "anchored": "Modules whose pads only get bought when they sit on the bot's plan: they hang off the goal pad (build), a tower (waves), or the cashier hire (any goal with workers).",
-    "implies": "Hire pads are pads: a level with workers always has build_pads. Hunting keeps a hunter hire so the module is exercised even when the bot would rather do something else.",
-    "coreGoal": "Level 1 (the core loop, no optional modules) builds the landmark, as the prototype's first level does. A currency goal would fit the registry better, but a currency goal now counts sales toward goal.n (0.4.0), so this is a preference rather than a constraint.",
-    "goalExcludes": "Defense modules only pair with waves goals (a wall also matters for the lasso, but its hostiles only come on waves). Currency goals are kept to levels without plan steps, because the stall detector counts sales as progress only toward a plan-step price."
+    "goals": "Goal ids are unique per family; `avoid` lists features the goal would leave unused (the level ends before they matter); `kind` names the objective kind when it differs (the rescue family's 'clear the pass' is clear_zones, defend's 'train N defenders' is hire). `needs` lists features the goal requires (@two_goods: at least two sellable goods). `anchor`: the goal puts a pad on the bot's plan that anchored features can hang their pads from.",
+    "features": "`anchor` features add pads the bot only buys when they sit on its plan, so they need an anchoring goal. `with` pulls in companion features (salvage upgrades need turrets, tier 2 needs the material processor).",
+    "finales": "Every 10th level combines two families: the first is the level's family and goal, the second adds its core modules and one feature. Rescue never pairs with defend (content: lasso excludes defense)."
   }
 }

@@ -1,6 +1,6 @@
-import { FP, TPS, nextU32, outsideLines, freeSlots, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, nextU32, outsideLines, freeSlots, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
-import type { Plan, PlanStep } from "./plan.js";
+import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
 
 // Utility controller. Every few ticks it scores the tasks the state offers, picks the best
@@ -22,6 +22,11 @@ export interface Task {
 }
 
 export interface Target { pos: Vec; r: number }
+
+/** Step kinds the client's guide arrows name. "gate" means: leave (or re-enter) the ring through a gate first. */
+export type SuggestKind = "gather" | "feed" | "stock" | "register" | "pile" | "pay" | "tow" | "gate" | "barrier" | "operate"
+  | "deposit" | "fetch" | "drop" | "admit" | "fight" | "hunt";
+export interface Suggestion { kind: SuggestKind; target: Vec; key: string }
 
 const U = FP;
 const d2 = (a: Vec, b: Vec): number => (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
@@ -55,8 +60,15 @@ export class Brain {
     private readonly rng: Rng,
   ) {
     this.nav = new Nav(cp);
-    this.usesCapped = plan.steps.some((s) => Object.keys(s.cost).some((r) => cp.resources[r]?.cap !== null));
+    this.pol = plan.policies ?? DEFAULT_POLICIES;
+    this.usesCapped = plan.steps.some((s) => Object.keys(s.cost).some((r) => cp.resources[r]?.cap !== null))
+      || plan.barriers.some((b) => cp.resources[b.res]?.cap !== null);
+    this.rings = cp.manifest.entities.flatMap((e) => (e.type === "barrier.line" && e.closed ? [e.sections.map((s) => ({ x: s.a[0] * FP, y: s.a[1] * FP }))] : []));
   }
+
+  private readonly pol: Policies;
+  /** Closed barrier rings as polygons (fixed point). */
+  private readonly rings: Vec[][];
 
   private rand(): number { return nextU32(this.rng) / 4294967296; }
 
@@ -120,6 +132,11 @@ export class Brain {
       if (this.stepDone(st, s) || this.skip.has(s.pad)) continue;
       const pad = st.pads.find((p) => p.id === s.pad)!;
       for (const [r, n] of Object.entries(this.remaining(pad, s))) if (this.cp.resources[r]?.cap !== null) need[r] = (need[r] ?? 0) + n;
+    }
+    for (const t of this.plan.barriers) {
+      if (this.cp.resources[t.res]?.cap === null) continue;
+      const sec = st.barriers.find((l) => l.id === t.line)?.sections[t.section];
+      if (sec && !sec.built) need[t.res] = (need[t.res] ?? 0) + Math.max(0, t.cost - sec.paid);
     }
     for (const r of Object.keys(need)) need[r] = Math.max(0, need[r]! - count(st.player.stack, r));
     return need;
@@ -248,6 +265,30 @@ export class Brain {
       && r.assign.from != null && this.cp.animals[r.assign.from]?.drops[res] !== undefined);
   }
 
+  /** Automate goals: once suppliers, a cashier and a core supplier run the economy, the player stops depositing. */
+  private handsOff(st: State): boolean {
+    if (!this.pol.handsOff || !st.sales || this.nextStep(st) !== null) return false;
+    return this.coreSupplied(st) && this.cashier(st) && st.sales.sells.some((r) => this.supplied(st, r));
+  }
+
+  /** Inside every closed ring (or no rings). */
+  private insideRings(p: Vec): boolean {
+    return this.rings.every((poly) => pointInPoly(p, poly));
+  }
+
+  /** Converter outputs worth making: plan needs, the shelf, goal resources, or the input of such a converter. */
+  private wantedOut(st: State, res: string, depth = 0): boolean {
+    if ((this.cappedNeed(st)[res] ?? 0) > 0 || this.sellable(st).includes(res)) return true;
+    const g = this.cp.manifest.goal as { type: string; res?: string };
+    if ((g.type === "produce" || g.type === "stockpile") && (g.res === undefined || g.res === res)) return true;
+    if (depth >= 2) return false;
+    for (const cv of st.converters) {
+      const d = this.cp.converters[cv.type]!;
+      if (d.inputs.includes(res) && d.output !== res && this.wantedOut(st, d.output, depth + 1)) return true;
+    }
+    return false;
+  }
+
   score(st: State): Task[] {
     const cp = this.cp, p = st.player, tasks: Task[] = [];
     const T = (kind: TaskKind, score: number, key = "", want = 0) => tasks.push({ kind, score, key, want });
@@ -258,7 +299,7 @@ export class Brain {
 
     // Fight hostiles that threaten the base.
     // Any hostile on the map: hostiles hitting walls or the base are urgent, the rest are met at the line.
-    const threat = st.hostiles.filter((h) => h.target !== "core" || near(h.pos, st.core.pos, 330 * U) || this.lineThreat(st, h.pos));
+    const threat = st.hostiles.filter((h) => h.target !== "core" || near(h.pos, st.core.pos, 330 * U));
     if (threat.length > 0) T("fight", 85);
     else if (st.hostiles.length > 0) T("fight", 66);
 
@@ -273,7 +314,11 @@ export class Brain {
       let sc = frac < 0.75 || carriedFuel <= room ? 30 + (1 - frac) * 50 : 10;
       if (ttl < toCore + 6 * TPS) sc = 96;
       if (hazard && frac < 0.9) sc = Math.max(sc, 84);
-      T("feed", sc);
+      // Heat challenges and heat goals: keep the core above the floor; fill goals: top it up.
+      if (this.pol.heatFloor > 0 && frac < this.pol.heatFloor + 0.2) sc = Math.max(sc, 76);
+      if (this.pol.fillCore) sc = Math.max(sc, 72);
+      if (this.handsOff(st) && ttl > toCore + 10 * TPS) sc = 0;
+      if (sc > 0) T("feed", sc);
     }
     {
       const fuels = Object.entries(cp.core.accepts).sort((a, b) => b[1] - a[1]);
@@ -298,6 +343,10 @@ export class Brain {
           else if (hazard && fuel + carriedFuel < cap) sc = 82;
           else if (!this.coreSupplied(st) && frac < 0.55) sc = 44 + (0.55 - frac) * 60;
           else if (this.coreSupplied(st) && frac < 0.3) sc = 50;
+          const after = (fuel + carriedFuel) / cap;
+          if (this.pol.heatFloor > 0 && after < this.pol.heatFloor + 0.15) sc = Math.max(sc, 74 + (this.pol.heatFloor + 0.15 - after) * 40);
+          if (this.pol.fillCore && fuel + carriedFuel < cap) sc = Math.max(sc, 62);
+          if (this.handsOff(st) && sc < 92) sc = 0;
         }
         if (sc > 0) T("fuel", sc, String(bi), want);
       }
@@ -328,7 +377,8 @@ export class Brain {
         if (have < n) all = false;
         if (capR !== null && have >= Math.min(n, capR)) items = true;
       }
-      if (all || items) T("pay", 70, nx.step.pad);
+      // The med bay is urgent once someone is hurt.
+      if (all || items) T("pay", nx.step.reason === "medical" ? 84 : 70, nx.step.pad);
     }
 
     // Currency at the register.
@@ -341,8 +391,9 @@ export class Brain {
     // Selling.
     if (sales) {
       const servable = sales.queue.some((q) => (sales.shelf[q.res] ?? 0) >= q.want);
-      const stockable = this.sellable(st).filter((r) => count(p.stack, r) > 0 && (sales.shelf[r] ?? 0) < cp.sales.shelfCap);
-      if (stockable.length > 0) {
+      const shelfLimit = (r: string) => this.pol.noOverload ? cp.sales.shelfCap - count(p.stack, r) : cp.sales.shelfCap;
+      const stockable = this.sellable(st).filter((r) => count(p.stack, r) > 0 && (sales.shelf[r] ?? 0) < shelfLimit(r));
+      if (stockable.length > 0 && !this.handsOff(st)) {
         // A worthwhile load: a full backpack of it, or enough to fill every order waiting for it.
         const load = stockable.some((r) => {
           const have = count(p.stack, r), capR = cp.resources[r]?.cap ?? 6;
@@ -350,20 +401,23 @@ export class Brain {
           return have >= capR || have >= Math.max(1, asked) || this.current.kind !== "gather";
         });
         const wanted = stockable.some((r) => sales.queue.some((q) => q.res === r && (sales.shelf[r] ?? 0) < q.want));
-        T("stock", !load ? 25 : wanted ? 58 : 48);
+        T("stock", !load ? 25 : wanted ? (this.pol.serveFirst ? 68 : 58) : this.pol.holdShelf ? 60 : 48);
       }
-      if (!this.cashier(st)) {
-        if (servable) T("register", 55);
+      if (!this.cashier(st) && !this.pol.holdShelf) {
+        const urgent = this.pol.serveFirst && sales.queue.some((q) => q.patience < q.patienceMax / 2);
+        if (servable) T("register", this.pol.serveFirst ? (urgent ? 79 : 66) : 55);
         else if (sales.queue.length > 0 && stockable.length === 0) T("register", 12);
       }
       for (const r of this.sellable(st)) {
         const onShelf = (sales.shelf[r] ?? 0) + count(p.stack, r);
         const asked = sales.queue.some((q) => q.res === r);
         const supplied = this.supplied(st, r);
-        if (onShelf >= (supplied ? 2 : 4) && !(asked && onShelf < 3)) continue;
+        const full = this.pol.holdShelf ? onShelf >= cp.sales.shelfCap : onShelf >= (supplied ? 2 : 4) && !(asked && onShelf < 3);
+        if (full || this.handsOff(st)) continue;
         if (count(p.stack, r) >= (cp.resources[r]?.cap ?? 6)) continue;
         const i = this.bestNode(st, r, 6);
-        const sc = supplied ? (asked ? 30 : 15) : (asked || onShelf === 0 ? 46 : 36);
+        let sc = supplied ? (asked ? 30 : 15) : (asked || onShelf === 0 ? 46 : 36);
+        if (this.pol.holdShelf || (this.pol.serveFirst && asked)) sc += 10;
         if (i >= 0) T("gather", sc, `${i}`, Math.min(6, (cp.resources[r]?.cap ?? 6)));
         for (const cv of st.converters) {
           if (cp.converters[cv.type]!.output === r && cv.out > 0 && count(p.stack, r) < (cp.resources[r]?.cap ?? 6)) T("fetch", sc + 2, cv.id);
@@ -376,10 +430,29 @@ export class Brain {
     for (const cv of st.converters) {
       const def = cp.converters[cv.type]!;
       const forPlan = capped[def.output] ?? 0;
-      const forSale = this.sellable(st).includes(def.output);
+      const sells = this.sellable(st).includes(def.output);
+      const forSale = sells || this.wantedOut(st, def.output);
       if (forPlan <= 0 && !forSale) continue;
       const opByWorker = st.residents.some((r) => r.status === "ok" && r.role === def.role && r.assign.to === cv.type && near(r.pos, cv.operatorPos, cp.convParams.operatorRange));
       if (cv.inQ.length > 0 && cv.out < def.outCap && !opByWorker) T("operate", forPlan > 0 ? 45 : 38, cv.id);
+      const served = st.residents.some((r) => r.status === "ok" && r.assign.from === cv.type && this.cp.roles[r.role]?.behavior === "collect_deliver");
+      // Intermediate goods (refined material for a tier-2 converter) and outputs about to overflow.
+      if (forPlan <= 0 && cv.out > 0 && !served && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) {
+        if (!sells) T("fetch", 50, cv.id);
+        else if (this.pol.noOverload && cv.out >= def.outCap - 4) T("fetch", 72, cv.id);
+      }
+      if (forPlan <= 0 && !sells && !this.handsOff(st)) {
+        const pipeline = cv.inQ.length + cv.out;
+        const carryIn = def.inputs.find((r) => count(p.stack, r) > 0);
+        const fed = st.residents.some((r) => r.status === "ok" && r.assign.to === cv.type && this.cp.roles[r.role]?.behavior !== "stand_at");
+        if (carryIn && cv.inQ.length < def.inCap) T("deposit", 46, cv.id);
+        else if (!carryIn && !fed && pipeline < 3) {
+          for (const r of def.inputs) {
+            const i = this.bestNode(st, r, 6);
+            if (i >= 0) { T("gather", 40, `${i}`, 6); break; }
+          }
+        }
+      }
       if (forPlan > 0) {
         const pipeline = cv.inQ.length + cv.out;
         if (cv.out > 0 && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) T("fetch", 52, cv.id);
@@ -398,7 +471,7 @@ export class Brain {
     if (st.drops.length > 0) {
       for (const d of st.drops) {
         if (count(p.stack, d.res) >= (cp.resources[d.res]?.cap ?? 6)) continue;
-        const need = (capped[d.res] ?? 0) > 0;
+        const need = (capped[d.res] ?? 0) > 0 || this.pol.collect.includes(d.res);
         const sell = this.sellable(st).includes(d.res) || this.converterFor(st, d.res) !== null;
         if (!need && !sell) continue;
         T("drop", need ? 60 : 47, String(d.id));
@@ -408,7 +481,8 @@ export class Brain {
 
     // Hunting: when nothing more urgent is on, take prey whose drop feeds a converter or the shelf.
     const hres = this.huntRes(st);
-    if (hres !== null && !this.huntedBy(st, hres) && count(p.stack, hres) < Math.min(cp.resources[hres]?.cap ?? 6, 4)
+    if (this.pol.hunt && st.prey.some((d) => d.alive) && (hres === null || count(p.stack, hres) < (cp.resources[hres]?.cap ?? 6))) T("hunt", 50);
+    else if (hres !== null && !this.huntedBy(st, hres) && count(p.stack, hres) < Math.min(cp.resources[hres]?.cap ?? 6, 4)
       && st.prey.some((d) => d.alive)) {
       T("hunt", 34);
     }
@@ -416,18 +490,21 @@ export class Brain {
     // Raw inputs in the backpack go into the converter that turns them into something sold.
     for (const cv of st.converters) {
       const def = cp.converters[cv.type]!;
-      if ((capped[def.output] ?? 0) > 0 || !this.sellable(st).includes(def.output)) continue;
+      if ((capped[def.output] ?? 0) > 0 || !this.sellable(st).includes(def.output) || this.handsOff(st)) continue;
       const carryIn = def.inputs.find((r) => !this.sellable(st).includes(r) && count(p.stack, r) > 0);
-      if (carryIn && cv.inQ.length < def.inCap && cv.inQ.length + cv.out < def.outCap + 2) T("deposit", 41, cv.id);
+      const room = this.pol.noOverload ? def.outCap - 4 : def.outCap + 2;
+      if (carryIn && cv.inQ.length < def.inCap && cv.inQ.length + cv.out < room) T("deposit", 41, cv.id);
     }
 
     // Lasso: rescue reachable containers when someone can house them.
     if (this.plan.lasso && !this.lasso && p.tow.length === 0) {
-      const idle = st.captures.filter((c) => c.state === "idle" && this.nav.reachable(p.pos, c.pos));
       // Rescued recruits wait for a roof, and a housing pad still to buy is what the "waiting" step is for.
-      const room = cp.manifest.goal.type === "population" || freeSlots(st, cp) > 0
+      const room = cp.manifest.goal.type === "population" || freeSlots(st, cp) > 0 || this.plan.lasso
         || this.plan.steps.some((s) => s.reason === "housing" && !this.stepDone(st, s));
-      if (idle.length > 0 && room) T("lasso", 52, "start");
+      const idle = st.captures.filter((c) => c.state === "idle" && this.nav.reachable(p.pos, c.pos)
+        && (room || cp.lassoables[c.type]?.result === "bundle"));
+      const timed = idle.some((c) => c.freezeTicks > 0);
+      if (idle.length > 0) T("lasso", timed || this.pol.rescueAll ? 64 : 52, "start");
     }
 
     T("wait", 1);
@@ -437,12 +514,18 @@ export class Brain {
   /** On the far side of some barrier line from the core. */
   private beyondLines(st: State, h: Vec): boolean { return outsideLines(st, h); }
 
-  private lineThreat(st: State, h: Vec): boolean {
-    for (const l of st.barriers) {
-      const y = Math.min(l.a.y, l.b.y);
-      if (h.y > y - 90 * U) return true;
+  /** Where to meet a hostile still walking in from outside a ring: just inside the ring on its line to the core. */
+  private intercept(st: State, h: Vec): Vec | null {
+    if (this.rings.length === 0 || this.insideRings(h)) return null;
+    const c = st.core.pos;
+    let lo = 0, hi = 1;
+    for (let k = 0; k < 14; k++) {
+      const mid = (lo + hi) / 2;
+      const q = { x: Math.round(c.x + (h.x - c.x) * mid), y: Math.round(c.y + (h.y - c.y) * mid) };
+      if (this.insideRings(q)) lo = mid; else hi = mid;
     }
-    return false;
+    const L = Math.sqrt(d2(c, h)) || 1, back = Math.max(0, lo - (24 * U) / L);
+    return this.nav.free({ x: Math.round(c.x + (h.x - c.x) * back), y: Math.round(c.y + (h.y - c.y) * back) });
   }
 
   /** Choose among scored tasks: best, or with priority error the runner-up. */
@@ -489,6 +572,54 @@ export class Brain {
 
   get isIdle(): boolean { return this.current.kind === "wait"; }
 
+  /**
+   * The next step for a guide arrow: the current task (or, while idle, the best-scored one) and its
+   * target, read from the live state without advancing the controller. When the target lies on the
+   * other side of a closed ring from the player, the step is "gate" and points at the nearest gate.
+   */
+  suggest(st: State, _cp?: Compiled): Suggestion | null {
+    this.nav.refresh(st);
+    let task = this.current;
+    let tgt = task.kind === "wait" ? null : this.resolveQuiet(st, task);
+    if (!tgt) {
+      const best = [...this.score(st)].filter((t) => t.kind !== "wait").sort((a, b) => b.score - a.score)[0];
+      if (!best) return null;
+      task = best;
+      if (best.kind === "lasso" && best.key === "start") {
+        const c = this.pickCapture(st, st.player.pos, null);
+        tgt = c ? { pos: c.pos, r: 0 } : null;
+      } else tgt = this.resolveQuiet(st, best);
+    }
+    if (!tgt) return null;
+    const map: Partial<Record<TaskKind, SuggestKind>> = { fuel: "gather", lasso: "tow" };
+    let kind = (map[task.kind] ?? task.kind) as SuggestKind;
+    let target = tgt.pos;
+    if (this.rings.length > 0 && this.insideRings(st.player.pos) !== this.insideRings(target) && task.kind !== "fight") {
+      const g = this.nearestGate(st, st.player.pos);
+      if (g) { kind = "gate"; target = g; }
+    }
+    return { kind, target: { ...target }, key: `${kind}:${task.key}` };
+  }
+
+  /** resolve() without disturbing the lasso memory. */
+  private resolveQuiet(st: State, t: Task): Target | null {
+    const mem = this.lasso ? { ...this.lasso, loop: [...this.lasso.loop] } : null;
+    const r = this.resolve(st, { ...t });
+    this.lasso = mem;
+    return r;
+  }
+
+  private nearestGate(st: State, from: Vec): Vec | null {
+    let best: Vec | null = null, bd = Infinity;
+    for (const l of st.barriers) for (const s of l.sections) {
+      if (!s.gate) continue;
+      const m = { x: (s.a.x + s.b.x) / 2, y: (s.a.y + s.b.y) / 2 };
+      const dd = d2(m, from);
+      if (dd < bd) { bd = dd; best = m; }
+    }
+    return best;
+  }
+
   /** Target for a task, or null when the task is done or impossible now. */
   private resolve(st: State, t: Task): Target | null {
     const cp = this.cp, p = st.player;
@@ -515,6 +646,12 @@ export class Brain {
       case "stock": {
         const s = st.sales;
         if (!s || !s.sells.some((r) => count(p.stack, r) > 0 && (s.shelf[r] ?? 0) < cp.sales.shelfCap)) return null;
+        if (this.pol.holdShelf) {
+          // Stock from the far side of the shelf, out of the clerk pad's reach, so nobody gets served.
+          const dx = s.pos.x - s.register.x, dy = s.pos.y - s.register.y, L = Math.sqrt(dx * dx + dy * dy) || 1;
+          const d = cp.sales.range - 12 * U;
+          return { pos: this.nav.free({ x: Math.round(s.pos.x + (dx / L) * d), y: Math.round(s.pos.y + (dy / L) * d) }), r: 4 * U };
+        }
         return { pos: this.shopSpot(st), r: 6 * U };
       }
       case "register": {
@@ -582,6 +719,8 @@ export class Brain {
         }
         if (!best) return null;
         if (near(p.pos, best, cp.player.attackRange - 8 * U)) return { pos: p.pos, r: 1 };
+        const bh = st.hostiles.find((h) => h.pos === best)!;
+        if (bh.target === "core") { const ip = this.intercept(st, best); if (ip) return { pos: ip, r: 6 * U }; }
         // Approach from the core side so a wall between us never blocks the swing.
         const dx = st.core.pos.x - best.x, dy = st.core.pos.y - best.y, L = Math.sqrt(dx * dx + dy * dy) || 1;
         const off = Math.min(30 * U, L);
@@ -591,7 +730,8 @@ export class Brain {
       case "lasso": return this.lassoTarget(st);
       case "hunt": {
         const res = this.huntRes(st);
-        if (res === null || count(p.stack, res) >= Math.min(cp.resources[res]?.cap ?? 6, 4)) return null;
+        if (!this.pol.hunt && (res === null || count(p.stack, res) >= Math.min(cp.resources[res]?.cap ?? 6, 4))) return null;
+        if (this.pol.hunt && res !== null && count(p.stack, res) >= (cp.resources[res]?.cap ?? 6)) return null;
         let best: Vec | null = null, bd = Infinity;
         for (const d of st.prey) {
           if (!d.alive) continue;
@@ -664,14 +804,28 @@ export class Brain {
 
   private startLasso(st: State): void {
     const p = st.player.pos;
-    let best = null as null | { id: number; pos: Vec }, bd = Infinity;
-    for (const c of st.captures) {
-      if (c.state !== "idle" || !this.nav.reachable(p, c.pos)) continue;
-      const dd = d2(c.pos, p);
-      if (dd < bd) { bd = dd; best = c; }
-    }
+    const best = this.pickCapture(st, p, null);
     if (!best) { this.lasso = null; return; }
     this.lasso = { capture: best.id, loop: this.loopAround(best.pos), idx: -1, phase: "loop", flip: 0 };
+  }
+
+  /**
+   * The next captive to loop: pods on a freeze timer first, most urgent that can still be reached in
+   * time, else the nearest. `within` limits the search (chaining another captive onto a tow).
+   */
+  private pickCapture(st: State, from: Vec, within: number | null): State["captures"][number] | null {
+    let best: State["captures"][number] | null = null, bs = Infinity;
+    const sp = this.speed(st);
+    for (const c of st.captures) {
+      if (c.state !== "idle" || !this.nav.reachable(from, c.pos)) continue;
+      const dd = Math.sqrt(d2(c.pos, from));
+      if (within !== null && dd > within) continue;
+      const trip = (dd + Math.sqrt(d2(c.pos, st.core.pos))) / sp + 6 * TPS;
+      let sc = dd;
+      if (c.freezeTicks > 0) sc = c.freezeTicks > trip ? c.freezeTicks * sp * 0.25 - 1e9 : dd + 1e7;
+      if (sc < bs) { bs = sc; best = c; }
+    }
+    return best;
   }
 
   private loopAround(c: Vec): Vec[] {
@@ -695,7 +849,10 @@ export class Brain {
       const cap = st.captures.find((c) => c.id === L.capture);
       if (!cap || cap.state !== "idle") {
         // Captured (or gone): grab another nearby one if the chain has room, else head home.
-        const more = st.captures.find((c) => c.state === "idle" && near(c.pos, p.pos, 260 * U) && this.nav.reachable(p.pos, c.pos));
+        // Keep chaining while the chain has room: nearby captives always, farther ones until the tow target.
+        const urgent = st.captures.some((c) => c.state === "towed" && c.freezeTicks > 0 && c.freezeTicks < 20 * TPS);
+        const reach = p.tow.length < this.pol.towWant ? 420 * U : 260 * U;
+        const more = urgent ? null : this.pickCapture(st, p.pos, reach);
         if (more && p.tow.length < this.cp.lasso.maxTowed && p.tow.length > 0) {
           this.lasso = { capture: more.id, loop: this.loopAround(more.pos), idx: -1, phase: "loop", flip: 0 };
           return this.lassoTarget(st);
@@ -748,7 +905,15 @@ export class Brain {
     this.debug.target = tgt;
     const moved = d2(p, this.lastPos) > 0;
     this.lastPos = { ...p };
-    if (!tgt || near(p, tgt.pos, tgt.r)) { this.stuck = 0; return this.emit({ dx: 0, dy: 0 }); }
+    if (!tgt || near(p, tgt.pos, tgt.r)) {
+      this.stuck = 0;
+      // Never stand still outside the heat with a tow: the line would go slack and drop everyone.
+      if (st.player.tow.length > 0 && !near(p, st.core.pos, safeRadius(st, this.cp))) {
+        const dx = st.core.pos.x - p.x, dy = st.core.pos.y - p.y, L = Math.sqrt(dx * dx + dy * dy) || 1;
+        return this.emit({ dx: Math.round((dx / L) * FP), dy: Math.round((dy / L) * FP) });
+      }
+      return this.emit({ dx: 0, dy: 0 });
+    }
     if (!moved && (this.lastInput.dx !== 0 || this.lastInput.dy !== 0)) this.stuck++; else this.stuck = 0;
     const w = this.nav.waypoint(p, tgt.pos, this.avoidCircles(st));
     this.debug.waypoint = w;

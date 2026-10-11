@@ -1,80 +1,91 @@
 # @fo/generator
 
-Turns a request into a bot-verified, rated level manifest (Contract 5 in `docs/PLAN.md`; the spec's
-"Level generation" and "Targeting"). No level-specific code: layouts are templates in
-`data/templates.json`, every knob range and cost is in `data/generator.json`, every mechanic number
-comes from content or the manifest's params. All randomness is the sim's seeded `mulberry32`.
+Turns a sequencer request into a bot-verified, rated level manifest with a family and three star
+objectives (Contract 5 in `docs/PLAN.md`; REDESIGN-R2 §3-§6). No level-specific code: layouts come
+from `data/templates.json`, every knob range, cost and ring size is in `data/generator.json`, every
+mechanic number comes from content or the manifest's params. All randomness is the sim's seeded
+`mulberry32`.
 
 ```ts
 import { generate, generateDetailed } from "@fo/generator";
-const m = generate({ target: 0.45, modules: ["workers", "converters"], goalType: "build", seed: 7, template: "corridor" });
-// null when the search budget runs out
-const d = generateDetailed(req, { history });  // { manifest | null, best (closest clean candidate), stats }
+const d = generateDetailed(sequence(7, history), { history });
+d.manifest;   // on target, or null when the search budget runs out
+d.best;       // closest clean candidate: { manifest, rating, stars: { good, median, goodAll }, starsByRung }
+d.stats;      // iterations, rejects by reason, ratings
 ```
 
-Batch: `pnpm levels:build --from 1 --to 60 --out levels/packs/s1` (see `tools/build-levels.ts`), and
-`pnpm levels:check` replays every pack level on the full ladder.
+Batch: `pnpm levels:build --from 1 --to 60 --out levels/packs/s1 [--calibrate]`, then
+`pnpm levels:check`. Dev: `pnpm vite-node tools/try-level.ts -- --index 7 [--build-only --ladder --p 0.4]`.
 
-## Stages
+## Layout per family (`build.ts`)
 
-1. **Modules.** `closure()` from `@fo/sequencer`: content `requires`, the sequencer's `implies`,
-   always-on modules; content `excludes` throw.
-2. **Layout** (`build.ts`, `layout.ts`). A template fixes the core, field rects, shop, landmark,
-   prey and depot spots. Everything with an interaction radius is placed by constraint: sampled in
-   its region, kept clear of every other centre by the larger radius plus 8 units (the rater's
-   unreadable rule), kept off standing spots (register, coin pile, converter operator and pickup,
-   start, arrivals admit spot), inside the screen box (±200 × ±350 of the core) for key stations,
-   and picked by affinity (a hire pad near what it serves) or, for nodes, by the `reach` knob
-   (walking distance from the core). The north stack (y < 330) holds the lasso fence (y 160, prebuilt,
-   gate aligned with the core, containers in the outer strip), the defense wall (y 290, three
-   sections, the middle one a gate, towers just behind), and the blocked band (full width, with the
-   landmark or the containers' access behind it, so the zone pad is the one unlock path). On waves
-   goals the blocked zone is an empty south corner. Arrivals use the gate at (240, 872).
-3. **Economy** (`flow.ts`). Knobs (burn, distances, costs, customer rate, start fuel and coins) are
-   drawn from their `[easy, hard]` range at pressure p. The flow model computes steady-state rates
-   from content numbers (player and worker gather rates, carry caps, walking speeds, order sizes,
-   prices) and walks the bot's own plan (`planBot`), waiting for each price at the income of the hires
-   made so far. It rejects a core the player cannot sustain alone in the opening (> 60% of their
-   time), a core supplier covering < 75% of the burn, a goal needing > 85% of the budget, and a
-   defense not affordable by the last wave. The goal size (landmark cost, currency or premium N) is
-   bisected so the estimated completion time matches the `length` knob.
-4. **Goal and fail.** Goal from the request (build landmark, population of every recruit, waves,
-   currency, serve premium); `meter.lifeline` always, `meter.base_health` with defense; hazard
-   events placed at ~42% of the estimated time (or between waves); `level.budgetSeconds` from the
-   flow estimate, then recalibrated to measured play (below).
+Common to every level: the core from the template; a **fuel forest** (8-14 `node.fuel_scrap` packed
+at 30-unit spacing plus two `node.material_source`, 105-175 units from the core, a second smaller grove
+at low pressure); a sales point only when currency buys something or selling is the point. The clerk
+pad, coin pile and the four queue slots come from `salesLayout` (`@fo/sim`) and must lie on screen
+(±200 × ±350 of the core), inside the map and clear of every station.
 
-Pads a module needs bought hang off an **anchor**, a pad certainly on the bot's plan (the landmark,
-the last tower, the first housing pad, or the cashier hire), through `requires.pad`: blocked-zone pad,
-hunter, depot, then the gated food supplier (which requires its unlock, which requires the first food
-supplier). Core levels go on the zone pad or the anchor as `requires.coreLevel: 2`. Converters: the
-grill requires the feeder, which requires the cook, so prepared food is made from the moment
-customers can order it; on build goals a material processor and refined-material landmark cost are
-added 60% of the time. Medical levels get an early probe wave so injuries happen.
+| Family | Elements |
+|--------|----------|
+| shelter | Housing pads and a gate with arrivals (gate arrivals), core-level pads, rubble over a fuel grove with its clearing pad (rockslides; the pad needs core level 2), dust storms (hazard events, pulled in when the good bot finishes before them). |
+| rescue | A **prebuilt closed ring** with one gate on the side with room; stasis pods (and supply crates) outside it, at least 62 units off the ring; pods on freeze timers (pod timers); a rubble band across the map with pods beyond it and its pad between ring and band (clearing the pass); a prey zone in a side strip (hunting). |
+| harvest | Food source, farm worker, cashier and core-supplier hires; gated sources with unlock pads (source unlocks); premium/impatient shares (VIPs); `customers.bulkShare` (bulk orders). |
+| industrialize | Food processor with cook, feeder (on its own food field) and server; material processor with operator and a scrap feeder, always with the tier-2 alloy works, its operator, a refined-material carrier and a component server; a repeatable converter-level pad (converter levels); depot with a depot supplier and a hauler (none on stockpile goals, which would drain it). |
+| defend | A **closed ring** whose attack-facing sections start unbuilt (a share prebuilt at low pressure, the quiet sides prebuilt, the gate on a quiet side), priced 1-2 salvage (currency on currency goals); attacks from 1 side, or 2-3 with multi-side; swarm waves (swarmlings plus raiders) and a boss in the last wave (bosses); turrets, upgrades, reinforcement, barracks, defender training and the med bay priced in salvage, with waves scaled until the drops of every wave but the last cover 1.6× the plan's salvage. A med-bay level opens with an early probe wave so someone gets hurt. |
 
-## Feasibility, filters, targeting (`index.ts`)
+Walls appear on defend and rescue levels only. Finales combine both families' elements.
 
-For each candidate: the good bot plays 3 seeds uncapped; any loss rejects it (too hard). The budget
-is then set from the slowest of those runs: `budget = t_max / (1 − margin)`, with the `margin` knob
-from 0.62 (easy) to 0.22 (hard). The candidate is rated (`@fo/rater`) on 4 + 2 seeds; stalls and
-infeasibility lower the pressure, `trivial` raises it, idle modules and unreadable layouts redraw.
-D drives a bisection on p with every knob jittered by ±0.12 per iteration (the hill-climb's
-mutations). A candidate whose quick D is within tolerance (or the closest so far) is re-rated with
-the spec's 10 + 3 seeds; it ships when the full rating is feasible (good bot wins every seed with
-≥ 20% margin), filter-clean, within ±0.05 of the target and F ≥ the arc's threshold. Budget: 9
-iterations (`search` in `data/generator.json`).
+**Anchoring.** Every pad must be on the bot's plan before the goal completes (the level ends at the
+goal). After a draft, pads off the plan or planned only after the last goal-path step are chained into
+the goal path through `requires.pad` (spliced above a shared prerequisite so the chain stays a line);
+a draft whose plan cannot be bought in order (requirement loops, core-level deadlocks) is rejected.
 
-D and F are computed against `data/reference.json`: reference stats recomputed from a generated
-calibration batch (`pnpm levels:build --calibrate`), the recalibration the rater README prescribes.
-The rater's own shipped reference holds only the four golden levels and saturates on waves levels
-(a waves level's threat pressure scores z ≈ 15 or more), so it cannot rate a generated pack.
+## Goal and objectives
 
-Each manifest carries `rating: { difficulty, fun, botMargin, botsPassed }` and
-`text.mars_greenhouse: { title, goal, tips }` (title from the skin's title words for the goal and the
-headline module; tips are the skin's module tips for the modules the level introduces).
+The main goal is the request's kind; `objectives[0]` mirrors it. Counts that follow from the layout
+(pods, crates, arrivals, zones, unlocks, hires, levels) are set when building. **Rate goals** (earn,
+sell, serve premium, streaks, bulk orders, hunt, protein, produce, haul, chain, stockpile, kills,
+salvage, earn within T) are sized by a probe: the good bot plays with an unreachable N for the level's
+length (or to the end of the waves) and N becomes 90% of what it reached. `fuel_full` gets its deadline
+from when the probe filled the core.
 
-## Known limits (bot-side)
+Star objectives are settled after the full rating from the ladder's runs:
 
-- The stall detector treats "too slow to reach the price within the budget" as no progress, so a
-  rung that loses on time usually also stalls, and the stall filter rejects the level. On build
-  goals this caps how far the ladder can be separated; waves levels reach the top of the band.
-- See `packages/sequencer/README.md` for the module/goal constraints that come from bot behaviour.
+- **Time target**: 1.04 × the good bot's slowest time (rounded up to a second); goals that end on the clock
+  or after a fixed hold (waves, survive, storms, heat hold) take a second family challenge instead.
+- **Family challenge**: from the family's list (shelter: settlement never freezes / no colonist freezes
+  / heat floor; rescue: tow a full chain without loss / rescue all / tow N in one trip; harvest: no angry
+  customers / streak; industrialize: no stockpile overload / hire N; defend: Colony HP floor / no
+  injuries / no wall lost), then fallbacks sized from the runs (admit N, rescue N, kills, salvage).
+  Params (heat and HP floors, N) come from the good bot's runs (20th-30th percentile). A candidate must
+  be earned by the good bot on at least 60% of its seeds and missed by at least one ladder run (never
+  trivially satisfied). The preference rotates with the level seed.
+
+The final objectives are replayed in the sim (good bot 10 seeds, every other rung 3); a level ships only
+when the good bot earns all three stars on at least one seed. `rating.stars` records the good and median
+means.
+
+## Validity (rejected candidates)
+
+- Flow model: a core the player cannot sustain alone (> 60% of the opening), one supplier < 75% of the burn.
+- Good bot loses any of three quick seeds (infeasible), or fails the rater's feasibility (every seed
+  won with ≥ 20% margin).
+- Rater filters: stall on any rung, trivial, idle module, unreadable layout, duplicate.
+- **Idle elements** (no exemption for walls): every pad bought, every barrier line built on or hit (or,
+  for a rescue ring, a lasso loop closed outside it), every converter producing, every gatherable
+  resource gathered, captures brought home, prey hunted, sales made, gate arrivals admitted, storms
+  ridden out, all on the good bot's winning runs.
+- Objectives: no family challenge qualifies, a trivially met time target, or no three-star seed.
+
+## Search (`index.ts`)
+
+As before: the pressure p drives every knob, bisected on D against `data/reference.json` (recomputed by
+`levels:build --calibrate`), knobs jittered by ±0.12 per iteration, quick rating 4 + 2 seeds, full
+rating 10 + 3. The closest clean candidate ships when none lands within ±0.05 of the target.
+
+## Known limits
+
+- The sim gathers from the first node in range and stops there when that resource is full, so the
+  generator keeps fuel nodes out of food nodes' ranges (reported as a sim gap).
+- Rate goals finish when the counter reaches N, so the rater's margin is time-based for them; goals
+  that end on the clock use health (defend) or mean heat (shelter) as the margin.

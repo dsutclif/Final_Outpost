@@ -1,5 +1,5 @@
 import type { Content, Manifest } from "@fo/content";
-import { LADDER } from "@fo/bots";
+import { LADDER, TIME_FIXED_GOALS } from "@fo/bots";
 import { meanMargin, winRate, type HistoryEntry, type Measurement } from "./measure.js";
 import filterData from "../data/filters.json";
 
@@ -16,7 +16,10 @@ function idleModules(ms: Measurement, c: Content): string[] {
   for (const rs of Object.values(ms.runs)) for (const r of rs) if (r.won) r.trace.modulesUsed.forEach((m) => used.add(m));
   const anyWin = Object.values(ms.runs).some((rs) => rs.some((r) => r.won));
   if (!anyWin) return [];
-  return ms.manifest.modules.filter((id) => !c.modules[id]?.alwaysOn && !used.has(id));
+  // A module pulled in only as a dependency, with nothing of its own in the level (build pads on a level
+  // without a single pad), cannot be exercised and is not counted. Walls get no such exemption.
+  const pads = ms.manifest.entities.some((e) => e.type === "pad.hire" || e.type === "pad.build");
+  return ms.manifest.modules.filter((id) => !c.modules[id]?.alwaysOn && !used.has(id) && !(id === "build_pads" && !pads));
 }
 
 interface Station { id: string; x: number; y: number; r: number; key: boolean; target?: string | undefined }
@@ -87,7 +90,7 @@ export function qualityFilters(ms: Measurement, c: Content): { filters: Filters;
   const idle = idleModules(ms, c);
   const weakest = ms.runs[LADDER[LADDER.length - 1]!.name]!;
   let trivial: boolean;
-  if (ms.manifest.goal.type === "waves") {
+  if (TIME_FIXED_GOALS.has(ms.manifest.goal.type)) {
     trivial = winRate(weakest) === 1 && meanMargin(weakest) >= FILTER_PARAMS.trivialWavesMargin;
   } else {
     const ticks = weakest.filter((r) => r.won).map((r) => r.ticks);

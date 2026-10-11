@@ -1,8 +1,8 @@
 {
   "id": "s1-L033",
-  "seed": 1244230714,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 1817121508,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,12 +15,11 @@
     ]
   },
   "modules": [
-    "barrier_lines",
     "build_pads",
     "carry",
     "core",
-    "defense",
     "gather",
+    "housing",
     "sales"
   ],
   "start": [
@@ -44,170 +43,216 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        387,
-        402
+        367,
+        401
       ],
       "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        153,
-        714
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        27,
-        607
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        77,
-        697
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        154,
-        666
+        "res.food_raw_1"
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        374,
-        690
+        350,
+        611
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.material_source",
       "at": [
-        166,
-        364
+        153,
+        584
       ]
     },
     {
-      "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 9,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            160,
-            290
-          ],
-          "prebuilt": false
-        },
-        {
-          "a": [
-            160,
-            290
-          ],
-          "b": [
-            320,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            320,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
+      "type": "node.material_source",
+      "at": [
+        193,
+        581
       ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
+        623
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        556
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        152,
+        532
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        128,
+        615
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        191,
+        533
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        99,
+        583
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        196,
+        621
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        139,
+        647
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        95,
+        544
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        218,
+        549
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        240,
+        750
+      ],
+      "arrivals": {
+        "every": 18,
+        "total": 4
+      }
     },
     {
       "type": "pad.build",
-      "id": "tower0",
+      "id": "housing0",
       "at": [
-        204,
-        392
+        345,
+        559
       ],
       "cost": {
-        "res.currency": 21
+        "res.currency": 15
       },
-      "build": "struct.ranged_defense"
-    }
-  ],
-  "people": [],
-  "waves": [
-    {
-      "t": 51,
-      "counts": {
-        "hostile.creature": 9
-      }
+      "build": "struct.housing"
     },
     {
-      "t": 107,
-      "counts": {
-        "hostile.creature": 11
-      }
-    },
-    {
-      "t": 162,
-      "counts": {
-        "hostile.creature": 14
-      }
+      "type": "pad.build",
+      "id": "housing1",
+      "at": [
+        136,
+        492
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "build": "struct.housing"
     }
   ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
   "events": [],
   "params": {
     "start.currency": 4,
     "core.burn": 2.2,
-    "customers.spawn": 3.1,
+    "housing.base": 2,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "housing.base": 2,
-    "meters.baseHealth": 9,
-    "level.budgetSeconds": 220
+    "level.budgetSeconds": 90
   },
   "goal": {
-    "type": "waves"
+    "type": "admit",
+    "n": 4
   },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "admit",
+      "params": {
+        "n": 4
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 65
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 50
+      }
+    }
+  ],
   "fail": [
-    "meter.lifeline",
-    "meter.base_health"
+    "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Turrets and Hold Fast",
-      "goal": "Survive every raid",
+      "title": "Hab Pods",
+      "goal": "admit",
       "tips": [
-        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
+        "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.374,
-    "fun": 0.833,
-    "botMargin": 0.844,
+    "difficulty": 0.071,
+    "fun": 0.885,
+    "botMargin": 0.309,
     "botsPassed": [
       "good",
       "average",
       "weak",
       "novice",
       "floor"
-    ]
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2.33,
+      "goodAll": 1
+    }
   }
 }

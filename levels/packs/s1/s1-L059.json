@@ -1,8 +1,8 @@
 {
   "id": "s1-L059",
-  "seed": 1999906109,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 1563063732,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,12 +19,9 @@
     "build_pads",
     "carry",
     "core",
-    "defenders",
     "defense",
     "gather",
-    "hunting",
-    "sales",
-    "workers"
+    "sales"
   ],
   "start": [
     240,
@@ -39,245 +36,205 @@
         450
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 13,
         "level": 1
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.material_source",
       "at": [
-        389,
-        399
-      ],
-      "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
+        185,
+        529
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        167,
-        726
+        205,
+        567
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        98,
-        718
+        146,
+        552
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        36,
-        636
+        150,
+        505
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        75,
-        666
+        228,
+        535
       ]
     },
     {
-      "type": "node.food_source",
-      "id": "food1",
+      "type": "node.fuel_scrap",
       "at": [
-        421,
-        696
+        169,
+        479
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.fuel_scrap",
       "at": [
-        186,
-        351
+        131,
+        527
       ]
     },
     {
-      "type": "zone.prey",
-      "id": "prey",
-      "rect": [
-        20,
-        350,
-        130,
-        130
-      ],
-      "animal": "node.prey",
-      "n": 3
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        581
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        247,
+        561
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        185,
+        604
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        139,
+        472
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        238,
+        602
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        255,
+        517
+      ]
     },
     {
       "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 9,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            160,
-            290
-          ],
-          "prebuilt": false
-        },
-        {
-          "a": [
-            160,
-            290
-          ],
-          "b": [
-            320,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            320,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
+      "id": "ring",
+      "res": "res.salvage",
+      "costPerSection": 1,
+      "points": [
+        [
+          50,
+          215
+        ],
+        [
+          177,
+          215
+        ],
+        [
+          303,
+          215
+        ],
+        [
+          430,
+          215
+        ],
+        [
+          430,
+          333
+        ],
+        [
+          430,
+          450
+        ],
+        [
+          430,
+          568
+        ],
+        [
+          430,
+          685
+        ],
+        [
+          303,
+          685
+        ],
+        [
+          177,
+          685
+        ],
+        [
+          50,
+          685
+        ],
+        [
+          50,
+          568
+        ],
+        [
+          50,
+          450
+        ],
+        [
+          50,
+          333
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        8
+      ],
+      "prebuilt": [
+        4,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
       ]
     },
     {
-      "type": "pad.hire",
-      "id": "hire_core",
+      "type": "pad.build",
+      "id": "tower_e",
       "at": [
-        163,
-        555
+        355,
+        456
       ],
       "cost": {
-        "res.currency": 10
+        "res.salvage": 8
       },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food",
-      "at": [
-        411,
-        556
-      ],
-      "cost": {
-        "res.currency": 15
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_cashier",
-      "at": [
-        295,
-        502
-      ],
-      "cost": {
-        "res.currency": 22
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hunter",
-      "at": [
-        162,
-        431
-      ],
-      "cost": {
-        "res.currency": 15
-      },
-      "role": {
-        "role": "role.hunter",
-        "from": "node.prey",
-        "to": "sink.sales_point"
-      }
+      "build": "struct.ranged_defense"
     },
     {
       "type": "pad.build",
-      "id": "tower0",
+      "id": "tower_n",
       "at": [
-        290,
-        357
+        223,
+        282
       ],
       "cost": {
-        "res.currency": 22
+        "res.salvage": 8
       },
-      "build": "struct.ranged_defense",
-      "requires": {
-        "pad": "hunter"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "barracks",
-      "at": [
-        143,
-        592
-      ],
-      "cost": {
-        "res.currency": 15
-      },
-      "build": "struct.barracks"
-    },
-    {
-      "type": "pad.hire",
-      "id": "train",
-      "at": [
-        155,
-        674
-      ],
-      "cost": {
-        "res.currency": 6
-      },
-      "role": {
-        "role": "role.defender"
-      },
-      "repeatable": true,
-      "requires": {
-        "pad": "barracks"
-      }
+      "build": "struct.ranged_defense"
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -290,61 +247,117 @@
   ],
   "waves": [
     {
-      "t": 50,
+      "t": 46,
       "counts": {
-        "hostile.creature": 9
-      }
+        "hostile.swarmling": 7
+      },
+      "side": [
+        "e",
+        "n"
+      ],
+      "gap": 0.7
     },
     {
-      "t": 102,
+      "t": 96,
       "counts": {
-        "hostile.creature": 12
-      }
+        "hostile.swarmling": 10,
+        "hostile.raider_humanoid": 1
+      },
+      "side": [
+        "n",
+        "e"
+      ],
+      "gap": 0.7
     },
     {
-      "t": 154,
+      "t": 146,
       "counts": {
-        "hostile.creature": 15
-      }
+        "hostile.swarmling": 15,
+        "hostile.raider_humanoid": 3
+      },
+      "side": [
+        "e",
+        "n"
+      ],
+      "gap": 0.7
+    },
+    {
+      "t": 196,
+      "counts": {
+        "hostile.swarmling": 20,
+        "hostile.raider_humanoid": 4,
+        "hostile.boss": 1
+      },
+      "side": [
+        "n",
+        "e"
+      ],
+      "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.2,
-    "customers.spawn": 3,
-    "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "housing.base": 10,
-    "meters.baseHealth": 9,
-    "level.budgetSeconds": 210
+    "start.currency": 5,
+    "core.burn": 2.6,
+    "housing.base": 5,
+    "meters.baseHealth": 12,
+    "level.budgetSeconds": 410
   },
   "goal": {
-    "type": "waves"
+    "type": "boss",
+    "n": 1
   },
+  "family": "defend",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "boss",
+      "params": {
+        "n": 1
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 247
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "hp_floor",
+      "params": {
+        "pct": 25
+      }
+    }
+  ],
   "fail": [
     "meter.lifeline",
     "meter.base_health"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hoppers and Hold Fast",
-      "goal": "Survive every raid",
+      "title": "Turrets",
+      "goal": "boss",
       "tips": [
-        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
+        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.788,
-    "fun": 0.769,
-    "botMargin": 0.891,
+    "difficulty": 0.654,
+    "fun": 0.496,
+    "botMargin": 0.424,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
       "floor"
-    ]
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1
+    }
   }
 }

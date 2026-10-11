@@ -1,8 +1,8 @@
 {
   "id": "s1-L002",
   "seed": 671543360,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -16,12 +16,13 @@
     ]
   },
   "modules": [
+    "barrier_lines",
     "build_pads",
     "carry",
     "core",
     "gather",
-    "sales",
-    "workers"
+    "lasso",
+    "sales"
   ],
   "start": [
     262,
@@ -36,171 +37,211 @@
         510
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 12,
         "level": 1
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.material_source",
       "at": [
-        344,
-        644
-      ],
-      "sells": [
-        "res.food_raw_1"
+        179,
+        474
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        60,
-        440
+        191,
+        430
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        108,
-        417
+        192,
+        511
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        70,
-        386
+        236,
+        433
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
         165,
-        363
+        396
       ]
     },
     {
-      "type": "node.food_source",
-      "id": "food1",
+      "type": "node.fuel_scrap",
       "at": [
-        75,
-        622
+        163,
+        531
       ]
     },
     {
-      "type": "pad.hire",
-      "id": "hire_core",
+      "type": "node.fuel_scrap",
       "at": [
-        180,
-        457
-      ],
-      "cost": {
-        "res.currency": 8
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
+        226,
+        403
+      ]
     },
     {
-      "type": "pad.hire",
-      "id": "hire_food",
+      "type": "node.fuel_scrap",
       "at": [
-        172,
-        640
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
+        258,
+        405
+      ]
     },
     {
-      "type": "pad.hire",
-      "id": "hire_cashier",
-      "at": [
-        276,
-        752
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          127,
+          360
+        ],
+        [
+          262,
+          360
+        ],
+        [
+          397,
+          360
+        ],
+        [
+          397,
+          510
+        ],
+        [
+          397,
+          660
+        ],
+        [
+          262,
+          660
+        ],
+        [
+          127,
+          660
+        ],
+        [
+          127,
+          510
+        ]
       ],
-      "cost": {
-        "res.currency": 19
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
-      }
+      "closed": true,
+      "gates": [
+        1
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "landmark",
+      "type": "capture.recruit_container",
       "at": [
-        375,
-        800
-      ],
-      "cost": {
-        "res.currency": 105
-      },
-      "build": "struct.landmark",
-      "big": true
+        151,
+        273
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        372,
+        48
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        163,
+        120
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        384,
+        247
+      ]
     }
   ],
-  "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    }
-  ],
+  "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.5,
-    "customers.spawn": 2.9,
-    "customers.orderMin": 1,
-    "customers.orderMax": 2,
+    "start.currency": 3,
+    "core.burn": 2.3,
     "housing.base": 6,
-    "level.budgetSeconds": 250
+    "level.budgetSeconds": 60
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "rescue",
+    "n": 4
   },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "rescue",
+      "params": {
+        "n": 4
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 21
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "rescue_all",
+      "params": {}
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Blueprints and Scaffolds",
-      "goal": "Build the Habitat hub",
+      "title": "s1-L002",
+      "goal": "rescue",
       "tips": [
-        "Stand on a pad to pour credits into it. It builds the moment it is full.",
-        "Stand on a Hire pad to put a free colonist to work. They gather and deliver on their own."
+        "Feed ore to the reactor. If it runs dry, the colony starts to freeze."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.097,
-    "fun": 0.244,
-    "botMargin": 0.428,
+    "difficulty": 0.115,
+    "fun": 0.522,
+    "botMargin": 0.677,
     "botsPassed": [
       "good",
       "average",
       "weak",
       "novice",
       "floor"
-    ]
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2.33,
+      "goodAll": 1
+    }
   }
 }

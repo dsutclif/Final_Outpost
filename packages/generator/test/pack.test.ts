@@ -14,7 +14,7 @@ const packFile = join(packDir, "pack.json");
 const present = existsSync(packFile);
 
 describe.skipIf(!present)("level pack s1", () => {
-  const pack = present ? JSON.parse(readFileSync(packFile, "utf8")) as { id: string; engineVersion: string; contentVersion: string; levels: { id: string; file: string; title: string; modules: string[]; goal: string; rating: number }[] } : null!;
+  const pack = present ? JSON.parse(readFileSync(packFile, "utf8")) as { id: string; engineVersion: string; contentVersion: string; levels: { id: string; file: string; title: string; family: string; modules: string[]; goal: string; rating: number }[] } : null!;
   const load = (file: string) => ManifestSchema.parse(JSON.parse(readFileSync(join(packDir, file), "utf8")));
 
   it("is pinned to the running engine and content versions", () => {
@@ -35,6 +35,26 @@ describe.skipIf(!present)("level pack s1", () => {
       expect(m.rating?.difficulty).toBeCloseTo(e.rating, 3);
       expect(m.text["mars_greenhouse"]?.title).toBe(e.title);
       expect(m.params["level.budgetSeconds"]).toBeGreaterThan(0);
+      // REDESIGN-R2: a family and three named star objectives, the first mirroring the goal.
+      expect(m.family).toBe(e.family);
+      expect(m.objectives).toHaveLength(3);
+      expect(m.objectives![0]!.kind).toBe(m.goal.type);
+    }
+  });
+
+  it("levels 1-5 are the family story in order, and every family appears equally often", () => {
+    expect(pack.levels.slice(0, 5).map((e) => e.family)).toEqual(["shelter", "rescue", "harvest", "industrialize", "defend"]);
+    const counts: Record<string, number> = {};
+    for (const e of pack.levels) counts[e.family] = (counts[e.family] ?? 0) + 1;
+    for (const f of ["shelter", "rescue", "harvest", "industrialize", "defend"]) expect(counts[f]).toBe(pack.levels.length / 5);
+  });
+
+  it("barrier lines appear only on defend and rescue levels, as closed rings", () => {
+    for (const e of pack.levels) {
+      const m = load(e.file);
+      const lines = m.entities.filter((x) => x.type === "barrier.line");
+      if (m.family !== "defend" && m.family !== "rescue") expect({ id: e.id, lines: lines.length }).toEqual({ id: e.id, lines: 0 });
+      for (const l of lines) if (l.type === "barrier.line") expect(l.closed).toBe(true);
     }
   });
 
@@ -45,6 +65,7 @@ describe.skipIf(!present)("level pack s1", () => {
       const r = playBot(load(e.file), PROFILES["good"]!, 1);
       expect({ id: e.id, won: r.won, stalls: r.stalls }).toEqual({ id: e.id, won: true, stalls: 0 });
       expect(r.margin).toBeGreaterThanOrEqual(0.2);
+      expect(r.stars).toBeGreaterThanOrEqual(1);
     }
   });
 });

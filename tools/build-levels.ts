@@ -36,6 +36,13 @@ export interface LevelResult {
   file: string;
   title: string;
   phase: string;
+  family: string;
+  secondary: string | null;
+  features: string[];
+  objectives: { id: string; kind: string; params: Record<string, number | string> }[];
+  /** Mean stars of the good and median bots, share of good seeds with three stars, and per rung. */
+  stars: { good: number; median: number; goodAll: number };
+  starsByRung: Record<string, number>;
   introduced: string[];
   modules: string[];
   goal: string;
@@ -88,6 +95,8 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   const r = pick.rating;
   const res: LevelResult = {
     index, id: m.id, file, title: m.text["mars_greenhouse"]?.title ?? m.id, phase: req.phase, introduced: req.introduced,
+    family: req.family, secondary: req.secondary, features: req.features, objectives: (m.objectives ?? []) as LevelResult["objectives"],
+    stars: pick.stars, starsByRung: pick.starsByRung,
     modules: m.modules, goal: m.goal.type, template: req.template, target: req.target, D: r.D, F: r.F, onTarget: shipped !== null,
     margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, seconds: (Date.now() - t0) / 1000, seed: m.seed,
     attempts, rejects, ratings,
@@ -167,11 +176,11 @@ async function main(): Promise<void> {
 
   // pack.json: merge with any levels already in the pack outside this range.
   const packPath = join(outDir, "pack.json");
-  type Entry = { id: string; file: string; title: string; modules: string[]; goal: string; rating: number; fun: number; target: number };
+  type Entry = { id: string; file: string; title: string; family: string; modules: string[]; goal: string; rating: number; fun: number; target: number };
   const old: Entry[] = existsSync(packPath) ? (JSON.parse(readFileSync(packPath, "utf8")) as { levels: Entry[]; engineVersion: string }).levels : [];
   const byId = new Map<string, Entry>();
   for (const e of old) byId.set(e.id, e);
-  for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target });
+  for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, family: r.family, modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target });
   const levels = [...byId.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
   writeFileSync(packPath, JSON.stringify({ id: packId, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION, levels }, null, 2) + "\n");
 
@@ -209,6 +218,26 @@ function printSummary(rs: LevelResult[], failed: number, secs: number): void {
   for (const r of rs) for (const [k, n] of Object.entries(r.rejects)) rej[k] = (rej[k] ?? 0) + n;
   const off = rs.filter((r) => !r.onTarget).length;
   console.log(`\n${rs.length} levels, ${off} off target (*), ${failed} failed, ${secs.toFixed(0)} s wall; rejected candidates: ${JSON.stringify(rej)}`);
+  console.log(familySummary(rs).join("\n"));
+}
+
+const objText = (o: LevelResult["objectives"][number]): string => {
+  const ps = Object.entries(o.params).map(([k, v]) => `${k}=${String(v).replace(/^(res|role|struct)\./, "")}`).join(" ");
+  return ps ? `${o.kind} (${ps})` : o.kind;
+};
+
+/** Per-family counts, goals and star objectives used, and mean stars per rung. */
+function familySummary(rs: LevelResult[]): string[] {
+  const out: string[] = [];
+  const fams = [...new Set(rs.map((r) => r.family))];
+  for (const f of fams) {
+    const xs = rs.filter((r) => r.family === f);
+    const goals = [...new Set(xs.map((r) => r.goal))].join(", ");
+    const stars = [...new Set(xs.flatMap((r) => r.objectives.slice(1).map((o) => o.kind)))].join(", ");
+    const rung = RUNGS.map((p) => `${p} ${(xs.reduce((a, r) => a + (r.starsByRung?.[p] ?? 0), 0) / Math.max(1, xs.length)).toFixed(2)}`).join(" / ");
+    out.push(`${f}: ${xs.length} levels; goals: ${goals}; star objectives: ${stars}; mean stars: ${rung}`);
+  }
+  return out;
 }
 
 function levelsDoc(packId: string, rs: LevelResult[]): string {
@@ -222,13 +251,19 @@ function levelsDoc(packId: string, rs: LevelResult[]): string {
     "feasible, filter-clean candidate after every retry. Margins are the good and median (weak) bots'",
     "mean margins; Passed lists the rungs that win at least half their runs.",
     "",
-    "| # | Id | Title | Phase | Introduces | Optional modules | Goal | Target | D | F | Good | Weak | Passed |",
-    "|---|----|-------|-------|------------|------------------|------|--------|---|---|------|------|--------|",
+    "Every level has a family and three star objectives: the main goal, then a time target (or, for goals that end",
+    "on the clock, a second family challenge), then the family challenge. Stars are the good and median (weak) bots'",
+    "mean stars on the final objectives (10 and 3 seeds).",
+    "",
+    "| # | Id | Family | Phase | Introduces | Features | Goal | Star 2 | Star 3 | Target | D | F | Good | Weak | Stars good/median |",
+    "|---|----|--------|-------|------------|----------|------|--------|--------|--------|---|---|------|------|-------------------|",
   ];
   for (const r of rs) {
-    const mods = r.modules.filter((m) => !["carry", "gather", "core", "sales"].includes(m)).join(", ");
-    lines.push(`| ${r.index} | ${r.id} | ${r.title} | ${r.phase} | ${r.introduced.join(" + ") || ""} | ${mods || "-"} | ${r.goal} | ${r.target.toFixed(2)} | ${r.D.toFixed(3)}${r.onTarget ? "" : "*"} | ${r.F.toFixed(3)} | ${pct(r.margin["good"])} | ${pct(r.margin["weak"])} | ${r.botsPassed.length} |`);
+    const fam = r.secondary ? `${r.family} + ${r.secondary}` : r.family;
+    const [g, s2, s3] = r.objectives ?? [];
+    lines.push(`| ${r.index} | ${r.id} | ${fam} | ${r.phase} | ${r.introduced.join(" + ") || ""} | ${r.features.join(", ") || "-"} | ${g ? objText(g) : r.goal} | ${s2 ? objText(s2) : ""} | ${s3 ? objText(s3) : ""} | ${r.target.toFixed(2)} | ${r.D.toFixed(3)}${r.onTarget ? "" : "*"} | ${r.F.toFixed(3)} | ${pct(r.margin["good"])} | ${pct(r.margin["weak"])} | ${r.stars?.good ?? 0}/${r.stars?.median ?? 0} |`);
   }
+  lines.push("", "## Families", "", ...familySummary(rs).map((l) => `- ${l}`));
   lines.push("", "## Curve", "", "```");
   for (const r of rs) {
     const bar = (x: number) => Math.round(x * 50);

@@ -1,8 +1,8 @@
 {
   "id": "s1-L055",
   "seed": 2110915574,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,16 +15,13 @@
     ]
   },
   "modules": [
-    "blocked_zones",
     "build_pads",
     "carry",
     "core",
-    "core_levels",
     "gather",
+    "hazard_events",
     "housing",
-    "sales",
-    "supply_routing",
-    "workers"
+    "sales"
   ],
   "start": [
     240,
@@ -47,64 +44,145 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        314,
-        691
+        313,
+        694
       ],
       "sells": [
         "res.food_raw_1"
       ]
     },
     {
-      "type": "node.material_source",
-      "at": [
-        88,
-        461
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        62,
-        501
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        107,
-        407
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        101,
-        361
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        76,
-        545
-      ]
-    },
-    {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        426,
-        473
+        355,
+        540
       ]
     },
     {
-      "type": "zone.blocked",
-      "id": "rubble",
-      "rect": [
-        0,
-        282,
-        480,
-        44
+      "type": "node.material_source",
+      "at": [
+        117,
+        469
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        86,
+        444
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        155,
+        460
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        76,
+        491
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        122,
+        509
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        136,
+        420
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        159,
+        489
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        155,
+        518
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        100,
+        530
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        56,
+        469
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        109,
+        406
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        181,
+        435
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        140,
+        543
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        425,
+        533
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        402,
+        486
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        407,
+        587
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        377,
+        468
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        431,
+        565
       ]
     },
     {
@@ -112,164 +190,34 @@
       "id": "gate",
       "at": [
         240,
-        872
+        800
       ],
       "arrivals": {
-        "every": 16,
+        "every": 14,
         "total": 4
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_core",
-      "at": [
-        169,
-        481
-      ],
-      "cost": {
-        "res.currency": 9
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food",
-      "at": [
-        382,
-        576
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_cashier",
-      "at": [
-        221,
-        786
-      ],
-      "cost": {
-        "res.currency": 20
-      },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "core_level",
-      "at": [
-        167,
-        566
-      ],
-      "cost": {
-        "res.currency": 27
-      },
-      "build": "sink.core.level"
-    },
-    {
-      "type": "pad.build",
-      "id": "zone_pad",
-      "at": [
-        242,
-        359
-      ],
-      "cost": {
-        "res.currency": 16
-      },
-      "build": "zone.clear",
-      "target": "rubble",
-      "requires": {
-        "pad": "depot",
-        "coreLevel": 2
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "depot",
-      "at": [
-        184,
-        601
-      ],
-      "cost": {
-        "res.currency": 22
-      },
-      "build": "struct.depot"
-    },
-    {
-      "type": "pad.hire",
-      "id": "hauler",
-      "at": [
-        255,
-        649
-      ],
-      "cost": {
-        "res.currency": 11
-      },
-      "role": {
-        "role": "role.hauler",
-        "from": "store.depot"
-      },
-      "requires": {
-        "pad": "depot"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "depot_supplier",
-      "at": [
-        123,
-        533
-      ],
-      "cost": {
-        "res.currency": 11
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "store.depot"
-      },
-      "requires": {
-        "pad": "depot"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "landmark",
-      "at": [
-        110,
-        226
-      ],
-      "cost": {
-        "res.currency": 18
-      },
-      "build": "struct.landmark",
-      "big": true,
-      "requires": {
-        "pad": "zone_pad"
       }
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        357,
-        618
+        333,
+        594
       ],
       "cost": {
         "res.currency": 13
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing1",
+      "at": [
+        144,
+        594
+      ],
+      "cost": {
+        "res.currency": 16
       },
       "build": "struct.housing"
     }
@@ -280,54 +228,80 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [],
-  "events": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 0,
+      "start": 4,
+      "end": 16
+    }
+  ],
   "params": {
-    "start.currency": 8,
+    "start.currency": 6,
     "core.burn": 2.7,
-    "customers.spawn": 2.9,
+    "housing.base": 2,
+    "customers.spawn": 2.8,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 6,
-    "level.budgetSeconds": 210
+    "level.budgetSeconds": 90
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "build_count",
+    "build": "struct.housing",
+    "n": 2
   },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "build_count",
+      "params": {
+        "build": "struct.housing",
+        "n": 2
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 52
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_colonist_freezes",
+      "params": {}
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Warehouses and Scaffolds",
-      "goal": "Build the Habitat hub",
+      "title": "Hab Pods",
+      "goal": "build_count",
       "tips": [
-        "A warehouse lets couriers move goods between sites for you."
+        "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.576,
-    "fun": 0.661,
-    "botMargin": 0.434,
+    "difficulty": 0.55,
+    "fun": 0.838,
+    "botMargin": 0.55,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
-    ]
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2.67,
+      "goodAll": 1
+    }
   }
 }

@@ -1,51 +1,57 @@
 # @fo/sequencer
 
 Turns a level index and the levels the player has seen into a generator request (Contract 5 in
-`docs/PLAN.md`; the spec's "Sequencing and progression"). Pure and deterministic: no randomness,
-choices come from a string hash of the pack id and index.
+`docs/PLAN.md`; REDESIGN-R2 §5). Pure and deterministic: no randomness, choices come from a string
+hash of the pack id and index.
 
 ```ts
-import { sequence, sequenceRange, schedule, closure } from "@fo/sequencer";
-const req = sequence(14, history);        // history: [{ modules, goal, template, fails? }], most recent last
-req.target; req.modules; req.optional; req.introduced; req.goalType; req.template; req.seed;
-req.phase;          // "core" | "teach" | "test" | "mix"
-req.breather;       // the block's breather level
-req.funThreshold;   // the arc's F threshold the generator must clear
-const all = sequenceRange(1, 60);         // each request sees the earlier requests as history
+import { sequence, sequenceRange, closure, familyCounts } from "@fo/sequencer";
+const req = sequence(14, history);   // history: [{ modules, goal, template, family, features, fails? }], most recent last
+req.family; req.secondary;           // level family (and the second family of a finale)
+req.features;                        // family mechanics in the level (data/sequencer.json `features`)
+req.goalType; req.goalId;            // objective kind of the main goal, and its id in sequencer.json
+req.challenges;                      // kinds the generator may pick the family challenge star from
+req.modules; req.introduced; req.template; req.seed; req.target;
+req.phase;                           // "teach" | "intro" | "mix" | "finale"
+const all = sequenceRange(1, 60);    // each request sees the earlier requests as history
 ```
 
-Rules read `packages/content/data/modules.json` (`requires`, `excludes`, `alwaysOn`,
-`introducedAt`) and `data/sequencer.json`.
+Rules read `data/sequencer.json` and content (`modules.json` requires/excludes/alwaysOn).
 
-## Rules
+## Arc
 
-| Rule | Implementation |
-|------|----------------|
-| Introduction order | Beats in `introducedAt` order. Modules sharing an `introducedAt` are one beat (workers + build pads; core levels + blocked zones). Level 1 is the core loop; then a beat every 3 levels for the first 6 beats (tutorial arc) and every 4 after (`spacing`). The 14 beats land on levels 2, 5, 8, 11, 14, 17, 21, 25, 29, 33, 37, 41, 45, 49. |
-| Teach | The beat's modules plus their dependency closure, plus familiar modules up to 2 (most recently introduced first). Forced dependencies can exceed 2 (salvage upgrades needs defense, barrier lines and build pads). The goal is the registry goal that exercises the new module when one fits. |
-| Test | The next `testLevels` (2) levels keep the new modules with 1 to 3 companions, different from the teach level's and the previous level's. |
-| Mix | 3 to 5 optional modules, always including one introduced in the last 5 levels (once the list runs out, after level 53, no module is recent and the rule lapses). |
-| Cap | At most 6 optional modules after the dependency closure. |
-| Exclusions | Content `excludes` in either direction (lasso never with hunting or defense). |
-| Always on | carry, gather, core, sales. |
-| Curve | Tutorial (levels 1 to 20): 0.15 rising to 0.38, teach levels 0.04 lower. After: a sawtooth per 10-level block from 0.45 to 0.8, the block's last level a 0.4 breather; teach levels capped at 0.42 and test levels at 0.55. |
-| Novelty | No two consecutive levels share module set, goal and template; no repeat of a module set + goal + template within the last 10 levels (the rater's duplicate window). Templates rotate to satisfy both. |
-| Recovery | Optional (`{ recovery: true }`): after two failed attempts (`history[-1].fails >= 2`) the target drops by 0.1. |
+| Levels | Rule |
+|--------|------|
+| 1-5 | One teach level per family, in story order: shelter, rescue, harvest, industrialize, defend. No features, the family's `teachGoal`, low target. |
+| 6-15 | Two intro levels per family, same order twice; each introduces the family's next `intro` feature group (shelter: housing + gate arrivals, then core levels + rockslides + dust storms; rescue: hunting + crates, then pod timers + clearing the pass; harvest: VIPs + source unlocks, then bulk orders; industrialize: material processor (with the tier-2 chain) + converter levels, then depot + haulers; defend: turrets + multi-side attacks + salvage upgrades, then defenders + bosses + med bay). The goal is the one that exercises the most newly introduced features. |
+| 16-60 | Families rotate (8 mix levels each); every 10th level is a two-family finale (`finales`: shelter+harvest, rescue+harvest, harvest+industrialize, industrialize+harvest, defend+shelter). Mix levels draw 1-3 of the family's unlocked features, preferring ones its previous level did not use; finales add one feature of the second family. |
 
-## Data-level constraints that come from the bots
+Every family gets 12 levels (1 teach + 2 intro + 8 mix + 1 finale as the primary family).
 
-These live in `data/sequencer.json` with a note each, because the bot ladder (Stream C) can only
-verify a module it actually exercises:
+## Goals
 
-- `coIntroduce` and `dependencyOnly` are empty since 0.4.0. Barrier lines are taught on their own,
-  before the lasso (DECISIONS 1): the bot builds unbuilt barrier sections on any goal and the
-  generator emits a standalone yard wall, so a level with barrier lines alone exercises the module.
-- `implies`: workers imply build pads (hire pads are pads); hunting implies workers (a hunter hire
-  keeps the module exercised; the bot also hunts on its own).
-- `anchored` modules (source gating, core levels, blocked zones, hunting) need a pad the bot will
-  certainly buy to hang their pads from: build and waves goals, or any goal with workers (the
-  cashier hire). A population goal with housing alone does not anchor them: the housing pads need
-  none of the chain, so the module sat idle.
-- `goalExcludes`: defense modules pair only with waves goals. Currency goals are kept off every
-  level with plan steps, and level 1 builds the landmark (`coreGoal`), because the stall detector
-  counts sales as progress only toward a plan-step price, so a pad-free currency level stalls.
+`goals` lists each family's goal ids with the features they need (`needs`), the features they would
+leave unused because the level ends first (`avoid`), and whether they put a pad on the bot's plan
+(`anchor`). Features marked `anchor` (core levels, rockslides, source unlocks) add pads the bot only
+buys when they hang off the plan, so they pair only with anchoring goals. Mix levels rotate the
+family's goals, least recently used first. Goal ids map to objective kinds (`kind`) where they differ
+(defend's "train N defenders" is `hire`, "hold out" is `survive`).
+
+Removed as main goals, with the reason: `perimeter_before_wave1` (the level would end before a single
+wave, leaving the defense unused), rescue's "clear the pass" (ends before the pods behind the pass are
+reached; rescue goals that need those pods use the pass instead), `tow_trip` and `tow_full_trip` (every
+rung finishes them almost at once, so the trivial filter rejects every candidate; they stay as rescue
+star challenges). In the s1 pack the rotation never draws `fuel_full`, `hazard_survive`, `sell_each`
+or `rescue_housed` as main goals (their feature prerequisites do not come up for the family).
+
+## Curve
+
+Tutorial (levels 1-20): 0.15 rising to 0.38, teach and intro levels 0.04 lower. After: a sawtooth per
+10-level block: the block opens on a 0.4 breather, rises from 0.45, and closes on the finale at 0.8.
+
+## Other rules
+
+- Dependency closure (content `requires` plus `implies`: workers imply build pads), content exclusions
+  (lasso never with defense, so rescue never pairs with defend), always-on modules.
+- Novelty: no two consecutive levels share module set, goal and template; no repeat within 10 levels.
+- Recovery (optional): after two failed attempts the target drops by 0.1.

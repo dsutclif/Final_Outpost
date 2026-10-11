@@ -1,8 +1,8 @@
 {
   "id": "s1-L001",
   "seed": 148133935,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -33,115 +33,151 @@
         500
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 9,
         "level": 1
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.material_source",
       "at": [
-        334,
-        641
-      ],
-      "sells": [
-        "res.food_raw_1"
+        89,
+        450
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        129,
-        378
+        118,
+        418
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        86,
-        475
+        136,
+        457
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        75,
-        529
+        55,
+        427
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        48,
-        444
+        84,
+        489
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        61,
-        383
+        43,
+        459
       ]
     },
     {
-      "type": "node.food_source",
-      "id": "food1",
+      "type": "node.fuel_scrap",
       "at": [
-        100,
-        666
+        117,
+        495
       ]
     },
     {
-      "type": "pad.build",
-      "id": "landmark",
+      "type": "node.fuel_scrap",
       "at": [
-        370,
-        807
-      ],
-      "cost": {
-        "res.currency": 85
-      },
-      "build": "struct.landmark",
-      "big": true
+        80,
+        389
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        158,
+        436
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        59,
+        511
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        25,
+        430
+      ]
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.8,
-    "customers.spawn": 2.7,
-    "customers.orderMin": 1,
-    "customers.orderMax": 2,
+    "start.currency": 0,
+    "core.burn": 2.2,
     "housing.base": 2,
-    "level.budgetSeconds": 170
+    "level.budgetSeconds": 120
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "heat_hold",
+    "pct": 65,
+    "seconds": 85
   },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "heat_hold",
+      "params": {
+        "pct": 65,
+        "seconds": 85
+      }
+    },
+    {
+      "id": "challenge2",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    },
+    {
+      "id": "challenge",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 35
+      }
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Traders and Raising the Hub",
-      "goal": "Build the Habitat hub",
+      "title": "s1-L001",
+      "goal": "heat_hold",
       "tips": [
-        "Stock the kiosk, then stand at the register so traders pay. Scoop up the credits pile."
+        "Feed ore to the reactor. If it runs dry, the colony starts to freeze."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.106,
-    "fun": 0.935,
-    "botMargin": 0.486,
+    "difficulty": 0.082,
+    "fun": 0.208,
+    "botMargin": 0.26,
     "botsPassed": [
       "good",
       "average",
       "weak",
       "novice"
-    ]
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1
+    }
   }
 }

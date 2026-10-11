@@ -1,8 +1,8 @@
 {
   "id": "s1-L049",
-  "seed": 791895302,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 2061895893,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,10 +15,11 @@
     ]
   },
   "modules": [
+    "blocked_zones",
     "build_pads",
     "carry",
     "core",
-    "customer_variety",
+    "core_levels",
     "gather",
     "hazard_events",
     "sales"
@@ -36,7 +37,7 @@
         560
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 15,
         "level": 1
       }
     },
@@ -44,68 +45,212 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        297,
-        735
+        301,
+        736
       ],
       "sells": [
         "res.food_raw_1"
       ]
     },
     {
-      "type": "node.material_source",
-      "at": [
-        77,
-        429
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        163,
-        369
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        122,
-        418
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        68,
-        383
-      ]
-    },
-    {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        380,
-        399
+        333,
+        437
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.material_source",
       "at": [
-        79,
-        558
+        157,
+        458
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        196,
+        434
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        159,
+        419
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        146,
+        497
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        196,
+        479
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        476
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        416
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        111,
+        448
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        185,
+        512
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        181,
+        393
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        142,
+        392
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        117,
+        509
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        230,
+        474
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        85,
+        463
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        336,
+        633
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        304,
+        630
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        366,
+        628
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        395,
+        645
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        364,
+        732
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble0",
+      "rect": [
+        277,
+        289,
+        120,
+        70
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        302,
+        324
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        337,
+        324
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        372,
+        324
       ]
     },
     {
       "type": "pad.build",
-      "id": "landmark",
+      "id": "core_level0",
       "at": [
-        106,
-        800
+        155,
+        637
       ],
       "cost": {
-        "res.currency": 118
+        "res.currency": 25
       },
-      "build": "struct.landmark",
-      "big": true
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "clear0",
+      "at": [
+        351,
+        388
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "build": "zone.clear",
+      "target": "rubble0",
+      "requires": {
+        "coreLevel": 2
+      }
     }
   ],
   "people": [],
@@ -113,47 +258,72 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 55,
-      "start": 63,
-      "end": 85
+      "warnAt": 0,
+      "start": 5,
+      "end": 27
     }
   ],
   "params": {
     "start.currency": 7,
-    "core.burn": 2.6,
-    "customers.spawn": 2.9,
-    "customers.orderMin": 1,
-    "customers.orderMax": 3,
+    "core.burn": 2.8,
     "housing.base": 2,
-    "customers.impatientShare": 0.27,
-    "customers.premiumShare": 0.18,
-    "level.budgetSeconds": 220
+    "customers.spawn": 2.7,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 110
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "clear_zones",
+    "n": 1
   },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "clear_zones",
+      "params": {
+        "n": 1
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 55
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Dust and Raising the Hub",
-      "goal": "Build the Habitat hub",
+      "title": "Dust",
+      "goal": "clear_zones",
       "tips": [
         "A dust storm burns fuel fast. Fill the reactor before it hits."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.564,
-    "fun": 0.767,
-    "botMargin": 0.468,
+    "difficulty": 0.731,
+    "fun": 0.668,
+    "botMargin": 0.547,
     "botsPassed": [
       "good",
       "average",
       "weak",
       "novice"
-    ]
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2,
+      "goodAll": 1
+    }
   }
 }

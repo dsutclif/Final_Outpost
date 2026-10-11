@@ -1,8 +1,8 @@
 {
   "id": "s1-L017",
-  "seed": 1053963896,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 566427356,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,13 +15,13 @@
     ]
   },
   "modules": [
-    "blocked_zones",
+    "barrier_lines",
     "build_pads",
     "carry",
     "core",
-    "core_levels",
     "gather",
-    "housing",
+    "hunting",
+    "lasso",
     "sales"
   ],
   "start": [
@@ -37,188 +37,244 @@
         500
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 12,
         "level": 1
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.material_source",
       "at": [
-        122,
-        651
+        300,
+        453
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        291,
+        499
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        262,
+        438
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        307,
+        413
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        277,
+        412
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        309,
+        537
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        239,
+        404
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        225,
+        431
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          83,
+          350
+        ],
+        [
+          218,
+          350
+        ],
+        [
+          353,
+          350
+        ],
+        [
+          353,
+          500
+        ],
+        [
+          353,
+          650
+        ],
+        [
+          218,
+          650
+        ],
+        [
+          83,
+          650
+        ],
+        [
+          83,
+          500
+        ]
       ],
-      "sells": [
-        "res.food_raw_1"
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        378,
-        448
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        403,
-        533
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        380,
-        396
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        442,
-        443
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        400,
-        488
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        347,
-        534
-      ]
-    },
-    {
-      "type": "node.food_source",
-      "id": "food1",
-      "at": [
-        362,
-        691
-      ]
-    },
-    {
-      "type": "zone.blocked",
-      "id": "rubble",
-      "rect": [
+      "closed": true,
+      "gates": [
+        1
+      ],
+      "prebuilt": [
         0,
-        282,
-        480,
-        44
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
       ]
     },
     {
-      "type": "struct.gate",
-      "id": "gate",
+      "type": "capture.recruit_container",
       "at": [
-        240,
-        872
-      ],
-      "arrivals": {
-        "every": 12,
-        "total": 2
-      }
+        50,
+        100
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "core_level",
+      "type": "capture.recruit_container",
       "at": [
-        123,
-        574
-      ],
-      "cost": {
-        "res.currency": 20
-      },
-      "build": "sink.core.level"
+        252,
+        109
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "zone_pad",
+      "type": "capture.recruit_container",
       "at": [
-        215,
-        363
-      ],
-      "cost": {
-        "res.currency": 12
-      },
-      "build": "zone.clear",
-      "target": "rubble",
-      "requires": {
-        "coreLevel": 2
-      }
+        319,
+        208
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "landmark",
+      "type": "capture.recruit_container",
       "at": [
-        110,
-        226
-      ],
-      "cost": {
-        "res.currency": 42
-      },
-      "build": "struct.landmark",
-      "big": true,
-      "requires": {
-        "pad": "zone_pad"
-      }
+        405,
+        52
+      ]
     },
     {
-      "type": "pad.build",
-      "id": "housing0",
+      "type": "capture.supply_crate",
       "at": [
-        338,
-        614
+        159,
+        166
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        429,
+        364
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        179,
+        263
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        373,
+        380,
+        87,
+        150
       ],
-      "cost": {
-        "res.currency": 10
-      },
-      "build": "struct.housing"
+      "animal": "node.prey",
+      "n": 3
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 11,
-    "core.burn": 2.8,
-    "customers.spawn": 2.6,
-    "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 1,
+    "start.currency": 3,
+    "core.burn": 2.5,
+    "housing.base": 6,
     "level.budgetSeconds": 210
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "hunt",
+    "n": 27
   },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "hunt",
+      "params": {
+        "n": 27
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 145
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "rescue_all",
+      "params": {}
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Rubble and Foundations",
-      "goal": "Build the Habitat hub",
+      "title": "Stasis Pods",
+      "goal": "hunt",
       "tips": [
-        "Rockslides block the way until you clear them from their pad.",
-        "Upgrade the reactor for a bigger heat ring and new build sites."
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.337,
-    "fun": 0.773,
-    "botMargin": 0.621,
+    "difficulty": 0.331,
+    "fun": 0.489,
+    "botMargin": 0.345,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
-    ]
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2,
+      "goodAll": 1
+    }
   }
 }

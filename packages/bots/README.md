@@ -171,3 +171,51 @@ timer then restarts.
    idle-module filter sees it.
 4. **Tests.** Add a scripted case or a crafted manifest to `test/bots.test.ts`. The good bot must
    win the module's golden or test level with at least 20% margin.
+
+## Redesign round 2 (families, rings, stars)
+
+**Planner goal stage** covers every objective kind used as a main goal: build, population, house all and
+house N rescued (housing until the slots fit), build N of a structure, core level N, clear N zones,
+unlock N sources, hire N (of a role; repeatable pads repeat), converter level N, produce / converters
+running / chain (the converters with operators, feeders, servers, and any converter making their
+inputs), haul / stockpile (depot, depot suppliers, haulers), turret level (towers, then the dearest
+upgrade as the goal pad). Lasso goals add the clearing pad of any zone hiding captives. On defend goals
+the towers are the goal path. The med bay is planned before upgrades (it waits for the first injury).
+Barrier sections are ordered attack-facing first (from the waves' sides).
+
+**Policies** (`plan.policies`, from the goal and the star objectives):
+
+| Policy | From | Effect |
+|--------|------|--------|
+| `heatFloor` | heat challenges (0.5), heat hold (pct + 12%), any defend level (0.35) | Feed and fetch fuel early to stay above it |
+| `fillCore` | fuel_full | Keep topping the core up |
+| `serveFirst` | no angry customers, streak | Serve (79 when someone is half out of patience) and stock wanted goods before other work |
+| `holdShelf` | shelves_full | Stock from the far side of the shelf, out of the clerk pad's reach; no cashier until after the goal |
+| `noOverload` | no_stockpile_overload | Stop stocking at the shelf cap; fetch converter output before it caps |
+| `handsOff` | automate | Once every plan step is done and the economy runs itself, deposit nothing (fuel emergencies aside) |
+| `collect` | salvage goals | Pick up salvage drops even when nothing needs them |
+| `hunt` | hunt, protein | Hunt for its own sake |
+| `towWant` | tow-trip goals and objectives | Chain captives within 420 units until the tow holds N |
+| `rescueAll` | rescue_before_freeze | Raise the lasso's priority |
+
+**Controller additions.** Capped needs include unbuilt salvage-priced barrier sections. Captives are
+picked by freeze timer (most urgent that can still be reached in time), crates are always worth towing,
+and a towing bot never stands still outside the heat (the slack rule). Hostiles still walking in from
+outside a closed ring are met just inside the ring on their line to the core. Converter outputs that
+feed another wanted converter (refined material for the alloy works) are fetched and deposited.
+Sales count as progress on sales goals, conversions on production goals, depot deposits always, an
+active hazard always, and every wave still to come on any defend level; the main objective's progress
+rising is progress on any goal.
+
+**Results.** `BotResult` adds `stars` (sim `starsOf`), `objectives` (kind, done per objective),
+`runStats` (heat and HP minimum, fuel outs, freezes, angry customers, injuries, walls lost, overload,
+best trips, pods lost and left, rescued, streak, hires, mean heat, admitted, kills, salvage) and `used`
+(pads bought, lines built on or hit, node types gathered, converters producing, captures home, prey
+killed, sales, admissions, hazards) for the generator's objective sizing and idle-element rule.
+Margins: goals that end on the clock use health and integrity (with waves) or mean heat (without).
+
+**Guide arrows.** `brain.suggest(state, compiled)` returns `{ kind, target, key }` for the current task
+(or, while idle, the best-scored one) without advancing the controller; kinds are gather, feed, stock,
+register, pile, pay, tow, gate, barrier, operate, deposit, fetch, drop, admit, fight, hunt. When the
+target lies on the other side of a closed ring from the player, the step is `gate` and points at the
+nearest gate section ("leave through the airlock").

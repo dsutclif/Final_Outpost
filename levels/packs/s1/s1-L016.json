@@ -1,8 +1,8 @@
 {
   "id": "s1-L016",
-  "seed": 1235648501,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 804459749,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,14 +15,14 @@
     ]
   },
   "modules": [
-    "barrier_lines",
+    "blocked_zones",
     "build_pads",
     "carry",
     "core",
+    "core_levels",
     "gather",
     "housing",
-    "sales",
-    "workers"
+    "sales"
   ],
   "start": [
     240,
@@ -37,7 +37,7 @@
         560
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 17,
         "level": 1
       }
     },
@@ -45,86 +45,152 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        300,
-        738
+        302,
+        746
       ],
       "sells": [
         "res.food_raw_1"
       ]
     },
     {
-      "type": "node.material_source",
-      "at": [
-        140,
-        369
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        62,
-        422
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        186,
-        391
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        61,
-        376
-      ]
-    },
-    {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        418,
-        393
+        293,
+        439
       ]
     },
     {
-      "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 7,
-      "sections": [
-        {
-          "a": [
-            0,
-            160
-          ],
-          "b": [
-            160,
-            160
-          ]
-        },
-        {
-          "a": [
-            160,
-            160
-          ],
-          "b": [
-            320,
-            160
-          ],
-          "gate": true
-        },
-        {
-          "a": [
-            320,
-            160
-          ],
-          "b": [
-            480,
-            160
-          ]
-        }
+      "type": "node.material_source",
+      "at": [
+        179,
+        481
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        146,
+        458
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        155,
+        513
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        211,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        224,
+        489
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        178,
+        428
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        504
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        542
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        207,
+        421
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        133,
+        421
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        107,
+        440
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        160,
+        404
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        117,
+        538
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        110,
+        478
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        319,
+        642
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        274,
+        618
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        286,
+        652
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        349,
+        650
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        317,
+        606
       ]
     },
     {
@@ -132,70 +198,82 @@
       "id": "gate",
       "at": [
         240,
-        872
+        860
       ],
       "arrivals": {
-        "every": 16,
-        "total": 4
+        "every": 12,
+        "total": 3
       }
     },
     {
-      "type": "pad.hire",
-      "id": "hire_core",
-      "at": [
-        174,
-        473
-      ],
-      "cost": {
-        "res.currency": 9
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.material_source",
-        "to": "sink.core"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_food",
-      "at": [
-        375,
-        528
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "role": {
-        "role": "role.supplier",
-        "from": "node.food_source",
-        "to": "sink.sales_point",
-        "node": "food1"
-      }
-    },
-    {
-      "type": "pad.hire",
-      "id": "hire_cashier",
-      "at": [
+      "type": "zone.blocked",
+      "id": "rubble0",
+      "rect": [
         172,
-        815
+        281,
+        120,
+        70
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        197,
+        316
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        232,
+        316
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        267,
+        316
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level0",
+      "at": [
+        151,
+        628
       ],
       "cost": {
         "res.currency": 20
       },
-      "role": {
-        "role": "role.cashier",
-        "to": "sink.sales_point"
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "clear0",
+      "at": [
+        227,
+        386
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "build": "zone.clear",
+      "target": "rubble0",
+      "requires": {
+        "coreLevel": 2,
+        "pad": "housing1"
       }
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        352,
-        673
+        369,
+        613
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 10
       },
       "build": "struct.housing"
     },
@@ -203,22 +281,19 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        128,
-        663
+        139,
+        666
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 13
       },
-      "build": "struct.housing"
+      "build": "struct.housing",
+      "requires": {
+        "pad": "housing0"
+      }
     }
   ],
   "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
     {
       "role": "idle"
     },
@@ -229,39 +304,66 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.7,
-    "customers.spawn": 2.9,
+    "start.currency": 10,
+    "core.burn": 3,
+    "housing.base": 2,
+    "customers.spawn": 2.5,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "housing.base": 4,
-    "level.budgetSeconds": 180
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 140
   },
   "goal": {
-    "type": "population",
-    "n": 8
+    "type": "clear_zones",
+    "n": 1
   },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "clear_zones",
+      "params": {
+        "n": 1
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 57
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_colonist_freezes",
+      "params": {}
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Domes and Full Habs",
-      "goal": "Grow the colony to 8 colonists",
+      "title": "Domes",
+      "goal": "clear_zones",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.402,
-    "fun": 0.841,
-    "botMargin": 0.478,
+    "difficulty": 0.435,
+    "fun": 0.838,
+    "botMargin": 0.652,
     "botsPassed": [
       "good",
       "average",
       "weak",
       "novice"
-    ]
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2,
+      "goodAll": 1
+    }
   }
 }

@@ -1,8 +1,8 @@
 {
   "id": "s1-L048",
-  "seed": 307298876,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "seed": 36296839,
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,10 +19,8 @@
     "build_pads",
     "carry",
     "core",
-    "core_levels",
     "defense",
     "gather",
-    "housing",
     "medical",
     "sales"
   ],
@@ -39,176 +37,221 @@
         500
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 16,
         "level": 1
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.material_source",
       "at": [
-        117,
-        649
-      ],
-      "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
+        315,
+        482
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        410,
-        418
+        313,
+        443
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        432,
-        486
+        355,
+        468
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        373,
-        373
+        269,
+        457
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        387,
-        496
+        348,
+        506
       ]
     },
     {
-      "type": "node.food_source",
-      "id": "food1",
+      "type": "node.fuel_scrap",
       "at": [
-        402,
-        605
+        355,
+        439
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.fuel_scrap",
       "at": [
-        176,
-        360
+        318,
+        521
       ]
     },
     {
-      "type": "node.fuel_deposit",
+      "type": "node.fuel_scrap",
       "at": [
-        268,
-        361
+        288,
+        511
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        273,
+        425
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        295,
+        400
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        339,
+        409
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        240,
+        436
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        369,
+        535
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        241,
+        401
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        293,
+        543
       ]
     },
     {
       "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 8,
-      "sections": [
-        {
-          "a": [
-            0,
-            290
-          ],
-          "b": [
-            138,
-            290
-          ],
-          "prebuilt": false
-        },
-        {
-          "a": [
-            138,
-            290
-          ],
-          "b": [
-            298,
-            290
-          ],
-          "gate": true,
-          "prebuilt": false
-        },
-        {
-          "a": [
-            298,
-            290
-          ],
-          "b": [
-            480,
-            290
-          ],
-          "prebuilt": false
-        }
+      "id": "ring",
+      "res": "res.salvage",
+      "costPerSection": 1,
+      "points": [
+        [
+          28,
+          265
+        ],
+        [
+          155,
+          265
+        ],
+        [
+          281,
+          265
+        ],
+        [
+          408,
+          265
+        ],
+        [
+          408,
+          383
+        ],
+        [
+          408,
+          500
+        ],
+        [
+          408,
+          618
+        ],
+        [
+          408,
+          735
+        ],
+        [
+          281,
+          735
+        ],
+        [
+          155,
+          735
+        ],
+        [
+          28,
+          735
+        ],
+        [
+          28,
+          618
+        ],
+        [
+          28,
+          500
+        ],
+        [
+          28,
+          383
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        8
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        11,
+        12,
+        13
       ]
     },
     {
-      "type": "struct.gate",
-      "id": "gate",
-      "at": [
-        240,
-        872
-      ],
-      "arrivals": {
-        "every": 16,
-        "total": 4
-      }
-    },
-    {
       "type": "pad.build",
-      "id": "core_level",
+      "id": "tower_w",
       "at": [
-        138,
-        568
+        91,
+        511
       ],
       "cost": {
-        "res.currency": 27
+        "res.salvage": 8
       },
-      "build": "sink.core.level"
-    },
-    {
-      "type": "pad.build",
-      "id": "tower0",
-      "at": [
-        231,
-        381
-      ],
-      "cost": {
-        "res.currency": 19
-      },
-      "build": "struct.ranged_defense",
-      "requires": {
-        "coreLevel": 2
-      }
+      "build": "struct.ranged_defense"
     },
     {
       "type": "pad.build",
       "id": "medic",
       "at": [
-        323,
-        646
+        332,
+        600
       ],
       "cost": {
-        "res.currency": 13
+        "res.salvage": 6
       },
       "build": "struct.medical"
-    },
-    {
-      "type": "pad.build",
-      "id": "housing0",
-      "at": [
-        304,
-        596
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "build": "struct.housing"
     }
   ],
   "people": [
@@ -224,44 +267,75 @@
   ],
   "waves": [
     {
-      "t": 20,
+      "t": 12,
       "counts": {
-        "hostile.creature": 4
-      }
+        "hostile.swarmling": 8,
+        "hostile.raider_humanoid": 3
+      },
+      "side": "w",
+      "gap": 0.4
     },
     {
-      "t": 53,
+      "t": 54,
       "counts": {
-        "hostile.creature": 8
-      }
+        "hostile.swarmling": 4
+      },
+      "side": "w",
+      "gap": 0.7
     },
     {
-      "t": 110,
+      "t": 112,
       "counts": {
-        "hostile.creature": 11
-      }
+        "hostile.swarmling": 7,
+        "hostile.raider_humanoid": 1
+      },
+      "side": "w",
+      "gap": 0.7
     },
     {
-      "t": 167,
+      "t": 171,
       "counts": {
-        "hostile.creature": 14
-      }
+        "hostile.swarmling": 10,
+        "hostile.raider_humanoid": 2,
+        "hostile.boss": 1
+      },
+      "side": "w",
+      "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.5,
-    "customers.spawn": 3,
-    "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "housing.base": 4,
-    "meters.baseHealth": 11,
-    "level.budgetSeconds": 230
+    "start.currency": 10,
+    "core.burn": 2.8,
+    "housing.base": 5,
+    "meters.baseHealth": 15,
+    "level.budgetSeconds": 450
   },
   "goal": {
     "type": "waves"
   },
+  "family": "defend",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "waves",
+      "params": {}
+    },
+    {
+      "id": "challenge2",
+      "kind": "salvage",
+      "params": {
+        "n": 20
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "hp_floor",
+      "params": {
+        "pct": 40
+      }
+    }
+  ],
   "fail": [
     "meter.lifeline",
     "meter.base_health"
@@ -276,15 +350,19 @@
     }
   },
   "rating": {
-    "difficulty": 0.757,
-    "fun": 0.753,
-    "botMargin": 0.784,
+    "difficulty": 0.889,
+    "fun": 0.097,
+    "botMargin": 0.707,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
-    ]
+      "novice"
+    ],
+    "stars": {
+      "good": 2.8,
+      "median": 2.33,
+      "goodAll": 0.8
+    }
   }
 }

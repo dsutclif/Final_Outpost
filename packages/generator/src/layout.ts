@@ -9,7 +9,7 @@ import type { Rand } from "./rand.js";
 export type Rect = readonly [number, number, number, number];
 export type Pt = readonly [number, number];
 
-export interface Station { id: string; x: number; y: number; r: number; key: boolean; on?: string | undefined }
+export interface Station { id: string; x: number; y: number; r: number; key: boolean; on?: string | undefined; tight?: boolean | undefined }
 /** A spot the player stands on to act (register, pile, operator): no station radius may cover it. */
 export interface Spot { id: string; x: number; y: number; r: number }
 
@@ -27,21 +27,37 @@ export interface PlaceOpts {
   samples?: number;
   /** Extra standing spots this station brings (converter operator/pickup), relative offsets. */
   spots?: { id: string; dx: number; dy: number }[];
+  /** Forest nodes: packed densely against other tight stations (only the rater's no-overlap rule applies). */
+  tight?: boolean;
+  /** Keep the centre at least r from each of these points (gatherables of another resource: see build.ts). */
+  avoid?: { p: Pt; r: number }[];
+}
+
+/** Distance from p to the segment ab. */
+export function segDist(p: Pt, a: Pt, b: Pt): number {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy;
+  const t = L2 === 0 ? 0 : Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2));
+  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
 }
 
 export class Placer {
   readonly stations: Station[] = [];
   readonly spots: Spot[] = [];
   readonly blocked: Rect[] = [];
+  /** Barrier sections: nothing interactive sits on a wall. */
+  readonly walls: [Pt, Pt][] = [];
   constructor(readonly rand: Rand, readonly margin: number, readonly standR: number,
     readonly bounds: Rect, readonly core: Pt, readonly screen: Pt, readonly c: Content = defaultContent) {}
 
   ok(id: string, p: Pt, r: number, opts: PlaceOpts = {}): boolean {
     if (!inRect(p, this.bounds)) return false;
     for (const b of this.blocked) if (inRect(p, b, r * 0.5 + 10)) return false;
+    for (const w of this.walls) if (segDist(p, w[0], w[1]) < r + 10) return false;
+    for (const a of opts.avoid ?? []) if (dist(p, a.p) < a.r) return false;
     for (const s of this.stations) {
       if (opts.on === s.id) continue;
-      if (dist(p, [s.x, s.y]) < Math.max(r, s.r) + this.margin) return false;
+      const m = opts.tight && s.tight ? 3 : this.margin;
+      if (dist(p, [s.x, s.y]) < Math.max(r, s.r) + m) return false;
     }
     for (const sp of this.spots) if (dist(p, [sp.x, sp.y]) < r + sp.r) return false;
     for (const o of opts.spots ?? []) {
@@ -49,6 +65,7 @@ export class Placer {
       if (!inRect(q, this.bounds)) return false;
       for (const s of this.stations) if (opts.on !== s.id && dist(q, [s.x, s.y]) < s.r + this.standR) return false;
       for (const b of this.blocked) if (inRect(q, b, 14)) return false;
+      for (const w of this.walls) if (segDist(q, w[0], w[1]) < this.standR + 8) return false;
     }
     return true;
   }
@@ -79,7 +96,7 @@ export class Placer {
   }
 
   add(id: string, p: Pt, r: number, opts: PlaceOpts = {}): void {
-    this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on });
+    this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight });
     for (const o of opts.spots ?? []) this.spots.push({ id: `${id}:${o.id}`, x: p[0] + o.dx, y: p[1] + o.dy, r: this.standR });
   }
 

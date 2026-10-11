@@ -1,5 +1,5 @@
 import { Manifest as ManifestSchema, content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { LADDER, PROFILES, planBot, playBot, type BotProfile, type BotResult, type Plan } from "@fo/bots";
+import { LADDER, PROFILES, TIME_FIXED_GOALS, planBot, playBot, type BotProfile, type BotResult, type Plan } from "@fo/bots";
 import { TPS } from "@fo/sim";
 
 // Measurement: run the bot ladder on a manifest and reduce the runs to the spec's raw metrics.
@@ -94,7 +94,7 @@ function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string
     return (r.trace.baseHpLost / baseHp + 0.2 * r.trace.barriersBroken + 0.2 * r.trace.injuries) / minutes;
   }));
   // Currency the plan needs over what the reference bot's income rate yields in the time budget.
-  const horizon = m.goal.type === "waves" ? mean(ref.map((r) => r.ticks)) : budgetTicks;
+  const horizon = TIME_FIXED_GOALS.has(m.goal.type) ? mean(ref.map((r) => r.ticks)) : budgetTicks;
   const available = mean(ref.map((r) => (r.trace.currencyEarned / Math.max(1, r.ticks)) * horizon)) + (m.params["start.currency"] ?? 0);
   const economyTightness = plan.currencyNeeded / Math.max(1, available);
   const optional = m.modules.filter((id) => !c.modules[id]?.alwaysOn);

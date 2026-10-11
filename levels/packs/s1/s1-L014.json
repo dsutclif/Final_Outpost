@@ -1,8 +1,8 @@
 {
   "id": "s1-L014",
   "seed": 1387735723,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,13 +15,14 @@
     ]
   },
   "modules": [
-    "barrier_lines",
     "build_pads",
     "carry",
+    "converters",
     "core",
     "gather",
-    "housing",
-    "sales"
+    "sales",
+    "supply_routing",
+    "workers"
   ],
   "start": [
     240,
@@ -36,7 +37,7 @@
         520
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -44,181 +45,362 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        246,
-        725
+        256,
+        722
       ],
       "sells": [
-        "res.food_raw_1"
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        55,
-        479
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        74,
-        601
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        80,
-        647
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        47,
-        536
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        67,
-        405
+        "res.food_raw_1",
+        "res.food_prepared"
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        408,
-        476
+        412,
+        578
       ]
     },
     {
-      "type": "barrier.line",
-      "id": "wall",
-      "res": "res.currency",
-      "costPerSection": 5,
-      "sections": [
-        {
-          "a": [
-            0,
-            160
-          ],
-          "b": [
-            160,
-            160
-          ]
-        },
-        {
-          "a": [
-            160,
-            160
-          ],
-          "b": [
-            320,
-            160
-          ],
-          "gate": true
-        },
-        {
-          "a": [
-            320,
-            160
-          ],
-          "b": [
-            480,
-            160
-          ]
-        }
-      ]
-    },
-    {
-      "type": "struct.gate",
-      "id": "gate",
+      "type": "node.material_source",
       "at": [
-        240,
-        872
+        100,
+        498
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        115,
+        536
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        140,
+        505
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        122,
+        465
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        72,
+        532
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        94,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        54,
+        501
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        56,
+        469
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        154,
+        479
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        155,
+        532
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        76,
+        563
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        35,
+        530
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        174,
+        502
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food_g",
+      "at": [
+        70,
+        610
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        190,
+        454
       ],
-      "arrivals": {
-        "every": 13,
-        "total": 5
+      "cost": {
+        "res.currency": 9
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        371,
+        649
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        290,
+        596
+      ],
+      "cost": {
+        "res.currency": 19
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
       }
     },
     {
       "type": "pad.build",
-      "id": "housing0",
+      "id": "grill",
       "at": [
-        349,
-        631
+        147,
+        675
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "build": "conv.food_processor",
+      "requires": {
+        "pad": "feeder"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "cook",
+      "at": [
+        95,
+        725
       ],
       "cost": {
         "res.currency": 11
       },
-      "build": "struct.housing"
+      "role": {
+        "role": "role.operator",
+        "to": "conv.food_processor"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "feeder",
+      "at": [
+        111,
+        639
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "conv.food_processor",
+        "node": "food_g"
+      },
+      "requires": {
+        "pad": "cook"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "server",
+      "at": [
+        265,
+        781
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.server",
+        "from": "conv.food_processor",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "grill"
+      }
     },
     {
       "type": "pad.build",
-      "id": "housing1",
+      "id": "depot",
       "at": [
-        141,
-        630
+        170,
+        623
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 22
       },
-      "build": "struct.housing"
+      "build": "struct.depot"
     },
     {
-      "type": "pad.build",
-      "id": "housing2",
+      "type": "pad.hire",
+      "id": "depot_supplier",
       "at": [
-        346,
-        694
+        147,
+        586
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 11
       },
-      "build": "struct.housing"
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
     }
   ],
-  "people": [],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 10,
-    "core.burn": 2.9,
-    "customers.spawn": 2.6,
+    "start.currency": 5,
+    "core.burn": 2.5,
+    "housing.base": 10,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 1,
-    "level.budgetSeconds": 140
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 250
   },
   "goal": {
-    "type": "population",
-    "n": 5
+    "type": "stockpile",
+    "res": "res.material_basic",
+    "n": 48
   },
+  "family": "industrialize",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "stockpile",
+      "params": {
+        "res": "res.material_basic",
+        "n": 48
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 143
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_stockpile_overload",
+      "params": {}
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Domes and Headcount",
-      "goal": "Grow the colony to 5 colonists",
+      "title": "s1-L014",
+      "goal": "stockpile",
       "tips": [
-        "New colonists need a bed. Build hab pods so they can move in."
+        "Feed ore to the reactor. If it runs dry, the colony starts to freeze."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.24,
-    "fun": 0.88,
-    "botMargin": 0.57,
+    "difficulty": 0.221,
+    "fun": 0.934,
+    "botMargin": 0.469,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
-    ]
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 2.8,
+      "median": 1.33,
+      "goodAll": 0.8
+    }
   }
 }

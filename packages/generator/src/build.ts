@@ -1,15 +1,19 @@
 import { CONTENT_VERSION, content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { ENGINE_VERSION } from "@fo/sim";
+import { ENGINE_VERSION, createSim, salesLayout, type Compiled } from "@fo/sim";
 import { planBot } from "@fo/bots";
 import templatesData from "../data/templates.json";
 import genData from "../data/generator.json";
 import { flowModel, type Flow } from "./flow.js";
-import { Placer, dist, type Pt, type Rect } from "./layout.js";
+import { Placer, dist, segDist, type Pt, type Rect } from "./layout.js";
 import { Rand, clamp01, lerp, round1, round2 } from "./rand.js";
 
-// Stage 2-4 of the spec: layout from a template by constraint placement, economy parameters drawn
-// from the knob ranges and balanced by the flow model, then goal and fail conditions. Every number
-// comes from data (templates.json, generator.json, content); nothing names a level.
+// Stages 2-4 of the spec, per level family (REDESIGN-R2 §3-§6): layout from a template by constraint
+// placement (fuel forests near the base in every level, perimeter rings only where walls are needed),
+// economy parameters drawn from the knob ranges, then the goal, the star objectives and the fail
+// conditions. Every number comes from data (templates.json, generator.json, content); nothing names a
+// level. Rate goals (earn N, hunt N ...) get a placeholder N that index.ts sizes from a probe run.
+
+export type Family = "shelter" | "rescue" | "harvest" | "industrialize" | "defend";
 
 export interface Template {
   id: string;
@@ -22,17 +26,14 @@ export interface Template {
   prey: [number, number, number, number];
   depot: [number, number];
 }
-interface TemplatesFile {
-  templates: Template[];
-  north: { lassoLine: number; outerTop: number; outerGap: number; attackLine: number; band: number; pocket: number; insideTop: number };
-  corner: { w: number; h: number };
-  arrivals: { at: [number, number]; clearTop: number };
-}
+interface TemplatesFile { templates: Template[] }
 export const TEMPLATES = templatesData as unknown as TemplatesFile;
+type RingDims = { hw: number; hh: number; split: [number, number] };
 export const GEN = genData as unknown as {
   knobs: Record<string, [number, number]>;
   jitter: number;
   costs: Record<string, number>;
+  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number };
   spacing: { margin: number; standR: number; screen: [number, number] };
   search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number };
 };
@@ -55,448 +56,724 @@ export function knobsFor(p: number, mut: Partial<Record<string, number>> = {}): 
 export interface BuildInput {
   id: string;
   seed: number;
-  modules: string[];
+  family: Family;
+  secondary?: Family | null | undefined;
+  features: readonly string[];
+  /** Objective kind of the main goal. */
   goalType: string;
+  modules: string[];
   template: Template;
   knobs: Knobs;
-  /** Measured good-bot time (s) to set the budget from, once known; else the flow estimate. */
-  budgetRef?: number | undefined;
   content?: Content;
 }
 
-export interface Built { manifest: Manifest; flow: Flow; stations: Placer["stations"]; notes: string[] }
+/** How index.ts finishes the goal: `rate` goals get N from a probe run, `fill` goals their deadline. */
+export type Sizing = "fixed" | "rate" | "fill" | "cost";
+
+export interface Built { manifest: Manifest; flow: Flow; stations: Placer["stations"]; notes: string[]; sizing: Sizing; queue: Pt[] }
 
 type Ent = Record<string, unknown> & { type: string };
+
+/** The placeholder family challenge set before rating; index.ts settles the final one from the runs. */
+export const CHALLENGE_PLACEHOLDER: Record<Family, { kind: string; params: Record<string, number | string> }> = {
+  shelter: { kind: "heat_floor", params: { pct: 25 } },
+  rescue: { kind: "tow_full_trip", params: { n: 2 } },
+  harvest: { kind: "no_angry_customers", params: {} },
+  industrialize: { kind: "no_stockpile_overload", params: {} },
+  defend: { kind: "no_injuries", params: {} },
+};
+
+const RATE_GOALS = new Set(["hunt", "protein", "currency", "sell", "earn", "serve_premium", "streak", "sell_each", "bulk_order",
+  "produce", "haul", "chain", "stockpile", "kills", "salvage", "earn_within"]);
+const FILL_GOALS = new Set(["fuel_full"]);
+
+// One compiled stub supplies the content's sales offsets to salesLayout (they do not depend on the level).
+let stubCp: Compiled | null = null;
+function salesSpots(stall: Pt, core: Pt, c: Content): { register: Pt; pile: Pt; queue: Pt[] } {
+  if (!stubCp) {
+    stubCp = createSim({
+      id: "stub", seed: 1, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION, map: { w: 480, h: 900, zones: [] },
+      modules: ["carry", "gather", "core", "sales"], start: [240, 500],
+      entities: [{ type: "sink.core", at: [240, 450], params: { fuel: 10, level: 1 } }, { type: "sink.sales_point", at: [300, 600], sells: ["res.food_raw_1"] }],
+      goal: { type: "currency", n: 5 }, fail: ["meter.lifeline"],
+    }, { content: c }).compiled;
+  }
+  const F = 1000;
+  const L = salesLayout(stubCp, { x: stall[0] * F, y: stall[1] * F }, { x: core[0] * F, y: core[1] * F });
+  const q: Pt[] = [];
+  const qmax = (c.sinks["sink.sales_point"] as { queueMax: number }).queueMax;
+  for (let k = 0; k < qmax; k++) q.push([(L.queueAt.x + k * L.queueStep.x) / F, (L.queueAt.y + k * L.queueStep.y) / F]);
+  return { register: [L.register.x / F, L.register.y / F], pile: [L.pile.x / F, L.pile.y / F], queue: q };
+}
+
+/** A rectangle ring around the core, split into sections; points clockwise from the top-left corner. */
+function ringPoints(core: Pt, dims: RingDims): { points: Pt[]; side: ("n" | "e" | "s" | "w")[]; rect: Rect } {
+  const x0 = Math.max(14, core[0] - dims.hw), x1 = Math.min(466, core[0] + dims.hw);
+  const y0 = Math.max(14, core[1] - dims.hh), y1 = Math.min(886, core[1] + dims.hh);
+  const [h, v] = dims.split;
+  const pts: Pt[] = [], side: ("n" | "e" | "s" | "w")[] = [];
+  const r = (x: number) => Math.round(x);
+  for (let k = 0; k < h; k++) { pts.push([r(x0 + ((x1 - x0) * k) / h), y0]); side.push("n"); }
+  for (let k = 0; k < v; k++) { pts.push([x1, r(y0 + ((y1 - y0) * k) / v)]); side.push("e"); }
+  for (let k = 0; k < h; k++) { pts.push([r(x1 - ((x1 - x0) * k) / h), y1]); side.push("s"); }
+  for (let k = 0; k < v; k++) { pts.push([x0, r(y1 - ((y1 - y0) * k) / v)]); side.push("w"); }
+  return { points: pts, side, rect: [x0, y0, x1 - x0, y1 - y0] };
+}
+
+const rectDist = (p: Pt, r: Rect): number => {
+  const dx = Math.max(r[0] - p[0], 0, p[0] - (r[0] + r[2]));
+  const dy = Math.max(r[1] - p[1], 0, p[1] - (r[1] + r[3]));
+  return Math.hypot(dx, dy);
+};
+
+const m0People = (_p: unknown[]): string[] => [];
 
 /** Build one candidate manifest; throws a reason string (Error) when a constraint cannot be met. */
 export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const c = inp.content ?? defaultContent;
   const K = inp.knobs;
-  const mods = new Set(inp.modules);
-  const has = (m: string) => mods.has(m);
+  const fam = inp.family;
+  const fams = new Set<Family>([fam, ...(inp.secondary ? [inp.secondary] : [])]);
+  const feat = new Set(inp.features);
+  const has = (m: string) => inp.modules.includes(m);
+  const goal = inp.goalType;
   const tpl = inp.template;
-  const N = TEMPLATES.north;
   const rand = new Rand((inp.seed ^ Math.imul(layoutSalt + 1, 0x9e3779b1)) >>> 0);
   const notes: string[] = [];
-  const goal = inp.goalType;
-  const arrivalsOn = has("housing");
-  const bottom = arrivalsOn ? TEMPLATES.arrivals.clearTop : 884;
-  const core: Pt = tpl.core;
   const S = GEN.spacing;
-  const P = new Placer(rand.fork("place"), S.margin, S.standR, [16, N.insideTop, 448, bottom - N.insideTop], core, S.screen, c);
+  const core: Pt = tpl.core;
   const cost = (k: string) => Math.max(1, Math.round((GEN.costs[k] ?? 10) * K.costScale));
-  const range = (k: "pads.range" | "pads.bigRange") => c.defaults[k]!;
-  const R = { node: c.nodes["node.material_source"]!.range, fuel: c.nodes["node.fuel_deposit"]!.range, pad: range("pads.range"), big: range("pads.bigRange"),
-    core: (c.sinks["sink.core"] as { range: number }).range, shop: (c.sinks["sink.sales_point"] as { range: number }).range, conv: c.converters["conv.food_processor"]!.range };
-  const ents: Ent[] = [];
-  const fail = (why: string): never => { throw new Error(why); };
-  const placePad = (id: string, near: Pt, opts: { big?: boolean; region?: Rect; on?: string } = {}): Pt => {
-    const r = opts.big ? R.big : R.pad;
-    const region: Rect = opts.region ?? [near[0] - 110, near[1] - 110, 220, 220];
-    const p = P.place(id, r, region, { near, key: true, ...(opts.on ? { on: opts.on } : {}) })
-      ?? P.place(id, r, [16, N.insideTop, 448, bottom - N.insideTop], { near, key: true, samples: 240, ...(opts.on ? { on: opts.on } : {}) });
-    return p ?? fail(`no room for pad ${id}`);
+  const salv = (k: string) => GEN.costs[k] ?? 6;
+  const R = {
+    node: c.nodes["node.material_source"]!.range, scrap: c.nodes["node.fuel_scrap"]!.range, food: c.nodes["node.food_source"]!.range,
+    pad: c.defaults["pads.range"]!, big: c.defaults["pads.bigRange"]!,
+    core: (c.sinks["sink.core"] as { range: number }).range, shop: (c.sinks["sink.sales_point"] as { range: number }).range,
+    conv: c.converters["conv.food_processor"]!.range,
   };
+  const fail = (why: string): never => { throw new Error(why); };
+  const ents: Ent[] = [];
+  const pads: Ent[] = [];
+  const pad = (e: Ent) => { pads.push(e); return e; };
 
-  // ---------- north stack and blocked zones ----------
-  const lassoOn = has("lasso");
-  const defenseOn = has("defense");
-  const blockedOn = has("blocked_zones");
-  const bandMode = blockedOn ? (defenseOn ? "corner" : "north") : null;
-  const bandY = N.insideTop - N.band - 4;
-  let pocketTop = lassoOn ? N.lassoLine + 6 : bandY - N.pocket;
+  // ---------- perimeter ring (defend: unbuilt where attacked; rescue: prebuilt with a gate) ----------
+  const defend = fams.has("defend");
+  const rescue = fams.has("rescue");
+  const needsCurrency = fams.has("harvest") || fams.has("industrialize") || feat.has("housing") || feat.has("gate_arrivals")
+    || feat.has("core_levels") || feat.has("rockslides") || feat.has("clearing_pass") || goal === "protein" || goal === "perimeter_before_wave1";
+  let ring: ReturnType<typeof ringPoints> | null = null;
+  let ringGates: number[] = [];
+  let sides: ("n" | "e" | "s" | "w")[] = [];
+  if (defend || rescue) {
+    const dims = defend ? GEN.rings.defend : needsCurrency ? GEN.rings.rescueShop : GEN.rings.rescue;
+    ring = ringPoints(core, dims);
+  }
+  const inner: Rect = ring ? [ring.rect[0] + 12, ring.rect[1] + 12, ring.rect[2] - 24, ring.rect[3] - 24] : [16, 40, 448, 836];
+  const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, S.screen, c);
+  if (ring) ring.points.forEach((p, i) => P.walls.push([p, ring!.points[(i + 1) % ring!.points.length]!]));
 
   P.add("core", core, R.core, { key: true });
-  const startPt: Pt = [core[0] + tpl.start[0], core[1] + tpl.start[1]];
+  const startPt: Pt = [core[0] + tpl.start[0], Math.max(inner[1] + 10, Math.min(inner[1] + inner[3] - 10, core[1] + tpl.start[1]))];
   P.spot("start", startPt, 18);
-  if (arrivalsOn) P.spot("admit", [TEMPLATES.arrivals.at[0], TEMPLATES.arrivals.at[1] - 20], 22);
 
-  let zoneRect: Rect | null = null;
-  if (bandMode === "north") { zoneRect = [0, bandY, 480, N.band]; }
-  else if (bandMode === "corner") {
-    const left = rand.chance(0.5);
-    zoneRect = [left ? 0 : 480 - TEMPLATES.corner.w, 900 - TEMPLATES.corner.h, TEMPLATES.corner.w, TEMPLATES.corner.h];
-  }
-  if (zoneRect) P.blocked.push(zoneRect);
-  if (arrivalsOn && bandMode === "corner") P.blocked.push([180, 840, 120, 60]);
-
-  // ---------- core, shop, fields ----------
+  // ---------- core ----------
   const level1Cap = (c.sinks["sink.core"] as { levels: { fuelCap: number }[] }).levels[0]!.fuelCap;
-  ents.push({ type: "sink.core", id: "core", at: [...core], params: { fuel: Math.max(4, Math.round(level1Cap * K.fuel0)), level: 1 } });
+  const fuel0 = goal === "fuel_full" ? Math.max(3, Math.round(level1Cap * 0.3)) : Math.max(4, Math.round(level1Cap * K.fuel0));
+  ents.push({ type: "sink.core", id: "core", at: [...core], params: { fuel: fuel0, level: 1 } });
 
-  const shopReg = (c.sinks["sink.sales_point"] as { registerOffset: [number, number]; pileOffset: [number, number] });
-  const shopAt = P.place("shop", R.shop, [tpl.shop[0] - 22, tpl.shop[1] - 22, 44, 44], {
-    near: tpl.shop, key: true,
-    spots: [{ id: "register", dx: shopReg.registerOffset[0], dy: shopReg.registerOffset[1] }, { id: "pile", dx: shopReg.pileOffset[0], dy: shopReg.pileOffset[1] }],
-  }) ?? fail("no room for the sales point");
-  const sells = ["res.food_raw_1"];
-  // `sells` is filled in as modules add goods; the entity holds the same array.
-  ents.push({ type: "sink.sales_point", id: "shop", at: [...shopAt], sells });
-
-  const field = (r: [number, number, number, number]): Rect => r;
-  const nMat = Math.round(K.materialNodes);
-  const matAt: Pt[] = [];
-  for (let i = 0; i < nMat; i++) {
-    const p = P.place(`mat${i + 1}`, R.node, field(tpl.fields.material), { reach: { from: core, t: K.reach }, samples: 60 });
-    if (p) matAt.push(p);
+  // ---------- shop (only where currency buys something or selling is the point) ----------
+  const sells: string[] = [];
+  let shopAt: Pt | null = null;
+  let register: Pt | null = null;
+  let queue: Pt[] = [];
+  let food1: Pt | null = null;
+  if (needsCurrency) {
+    const cands: { p: Pt; sp: ReturnType<typeof salesSpots>; d: number }[] = [];
+    const why = { ok: 0, screen: 0, clear: 0, reg: 0, pile: 0 };
+    for (let i = 0; i < 500; i++) {
+      const base: Pt = ring ? [Math.min(inner[0] + inner[2] - 30, Math.max(inner[0] + 30, tpl.shop[0])), Math.min(inner[1] + inner[3] - 30, Math.max(inner[1] + 30, tpl.shop[1]))] : tpl.shop;
+      const spread = i < 160 ? 160 : 400;
+      const p: Pt = [Math.round(base[0] + (rand.float() - 0.5) * spread), Math.round(base[1] + (rand.float() - 0.5) * spread)];
+      if (!P.onScreen(p) || !P.ok("shop", p, R.shop)) { why.ok++; continue; }
+      const sp = salesSpots(p, core, c);
+      const onScreen = (q: Pt) => P.onScreen(q) && q[0] >= 14 && q[0] <= 466 && q[1] >= 14 && q[1] <= 886;
+      if (![sp.register, sp.pile, ...sp.queue].every(onScreen)) { why.screen++; continue; }
+      const clear = (q: Pt, r: number) => P.stations.every((s) => dist(q, [s.x, s.y]) >= s.r + r) && P.spots.every((s) => s.id === "start" || dist(q, [s.x, s.y]) >= s.r + r)
+        && P.walls.every((w) => segDist(q, w[0], w[1]) >= r + 2);
+      if (!clear(sp.register, S.standR)) { why.reg++; continue; }
+      if (!clear(sp.pile, S.standR)) { why.pile++; continue; }
+      if (!sp.queue.every((q) => clear(q, 10))) { why.clear++; if (process.env["FO_DEBUG"]) console.log(JSON.stringify({ p, q: sp.queue, st: P.stations.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id), sp: P.spots.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id) })); continue; }
+      cands.push({ p, sp, d: dist(p, base) });
+    }
+    if (cands.length === 0) fail(`no room for the sales point (${JSON.stringify(why)})`);
+    const best = cands.reduce((a, b) => (b.d < a.d ? b : a));
+    shopAt = best.p; register = best.sp.register; queue = best.sp.queue;
+    P.add("shop", shopAt, R.shop, { key: true });
+    P.spot("register", best.sp.register); P.spot("pile", best.sp.pile);
+    best.sp.queue.forEach((q, k) => P.spot(`queue${k}`, q, 12));
+    sells.push("res.food_raw_1");
+    ents.push({ type: "sink.sales_point", id: "shop", at: [...shopAt], sells });
+    const fr = tpl.fields.food;
+    const foodRegion: Rect = ring ? inner : [fr[0], fr[1], fr[2], fr[3]];
+    food1 = P.place("food1", R.food, foodRegion, { near: [(shopAt[0] + core[0]) / 2 + (shopAt[0] > core[0] ? 60 : -60), shopAt[1] - 40], key: true, samples: 160 })
+      ?? fail("no room for food");
+    ents.push({ type: "node.food_source", id: "food1", at: [...food1] });
   }
-  if (matAt.length < 3) fail("material field too crowded");
-  matAt.forEach((p) => ents.push({ type: "node.material_source", at: [...p] }));
-  const food1 = P.place("food1", R.node, field(tpl.fields.food), { reach: { from: shopAt, t: K.reach } }) ?? fail("no room for food");
-  ents.push({ type: "node.food_source", id: "food1", at: [...food1] });
 
-  const fuelOn = has("hazard_events") || (defenseOn && rand.chance(0.5));
-  if (fuelOn) {
-    const n = rand.int(1, 2);
-    for (let i = 0; i < n; i++) {
-      const p = P.place(`fuel${i + 1}`, R.fuel, field(tpl.fields.fuel), { reach: { from: core, t: K.reach } });
-      if (p) ents.push({ type: "node.fuel_deposit", at: [...p] });
+  // ---------- fuel forests ----------
+  const forestDir = (() => {
+    const f = tpl.fields.material;
+    const cx = f[0] + f[2] / 2 - core[0], cy = f[1] + f[3] / 2 - core[1], L = Math.hypot(cx, cy) || 1;
+    return [cx / L, cy / L] as const;
+  })();
+  const placeForest = (tag: string, dir: readonly [number, number], reach: number, n: number, mats: number): number => {
+    const cx = Math.min(inner[0] + inner[2] - 45, Math.max(inner[0] + 45, core[0] + dir[0] * reach));
+    const cy = Math.min(inner[1] + inner[3] - 45, Math.max(inner[1] + 45, core[1] + dir[1] * reach));
+    const region: Rect = [cx - 75, cy - 75, 150, 150];
+    let got = 0;
+    for (let i = 0; i < n + mats; i++) {
+      const mat = i < mats;
+      const id = `${tag}${i + 1}`;
+      // The sim gathers from the first node in range and stops there when that resource is full, so a
+      // fuel node inside a food node's range could block fuel gathering: keep the ranges apart.
+      const avoid = food1 ? [{ p: food1, r: R.food + (mat ? R.node : R.scrap) + 8 }] : [];
+      const p = P.place(id, mat ? R.node : R.scrap, region, { near: [cx, cy], samples: 90, tight: true, avoid });
+      if (!p) continue;
+      ents.push({ type: mat ? "node.material_source" : "node.fuel_scrap", at: [...p] });
+      got++;
+    }
+    return got;
+  };
+  const nForest = ring && !defend ? Math.min(10, Math.round(K.forest)) : Math.round(K.forest);
+  const got = placeForest("forest", forestDir, ring ? Math.min(K.forestReach, 100) : K.forestReach, nForest, 2);
+  if (got < Math.max(6, nForest - 4)) fail("fuel forest too crowded");
+  // A second, smaller forest on the far side at low pressure (fuel forests, plural).
+  if (K.forest >= 11 && !ring) placeForest("grove", [-forestDir[0], -forestDir[1]], K.forestReach + 10, 5, 0);
+
+  const placePad = (id: string, near: Pt, opts: { big?: boolean; region?: Rect; on?: string } = {}): Pt => {
+    const r = opts.big ? R.big : R.pad;
+    const region: Rect = opts.region ?? [near[0] - 100, near[1] - 100, 200, 200];
+    const p = P.place(id, r, region, { near, key: true, ...(opts.on ? { on: opts.on } : {}) })
+      ?? P.place(id, r, inner, { near, key: true, samples: 260, ...(opts.on ? { on: opts.on } : {}) });
+    return p ?? fail(`no room for pad ${id}`);
+  };
+  const toward = (a: Pt, b: Pt, t: number): Pt => [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t)];
+  const forestC: Pt = [core[0] + forestDir[0] * K.forestReach, core[1] + forestDir[1] * K.forestReach];
+
+  // ---------- workers: core supplier, farm worker, cashier ----------
+  const workers = has("workers") && shopAt !== null;
+  let hireCashier: Ent | null = null;
+  if (workers && shopAt && food1 && register) {
+    const a = placePad("hire_core", toward(core, forestC, 0.5));
+    pad({ type: "pad.hire", id: "hire_core", at: [...a], cost: { "res.currency": cost("hire.core") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "sink.core" } });
+    const b = placePad("hire_food", toward(food1, shopAt, 0.4));
+    pad({ type: "pad.hire", id: "hire_food", at: [...b], cost: { "res.currency": cost("hire.food") }, role: { role: "role.supplier", from: "node.food_source", to: "sink.sales_point", node: "food1" } });
+    const cpos = goal === "shelves_full" ? null : placePad("hire_cashier", toward(register, core, 0.35));
+    if (cpos) hireCashier = pad({ type: "pad.hire", id: "hire_cashier", at: [...cpos], cost: { "res.currency": cost("hire.cashier") }, role: { role: "role.cashier", to: "sink.sales_point" } });
+  }
+
+  // ---------- harvest mechanics ----------
+  let gated = 0;
+  if (feat.has("source_unlocks") && food1 && shopAt) {
+    const n = goal === "unlock" && K.costScale > 1.05 ? 2 : 1;
+    for (let k = 0; k < n; k++) {
+      const id = `food${k + 2}`;
+      const f = P.place(id, R.food, ring ? inner : tpl.fields.food, { near: food1, samples: 160, key: true }) ?? fail("no room for the gated food source");
+      ents.push({ type: "node.food_source", id, at: [...f], enabled: false });
+      P.add(`unlock_${id}`, f, R.pad, { key: true, on: id });
+      pad({ type: "pad.build", id: `unlock_${id}`, at: [...f], cost: { "res.currency": cost("unlock") + 5 * k }, build: "node.enable", target: id, ...(workers ? { requires: { pad: "hire_food" } } : {}) });
+      if (workers && goal !== "unlock") {
+        const h = placePad(`hire_${id}`, toward(f, shopAt, 0.4));
+        pad({ type: "pad.hire", id: `hire_${id}`, at: [...h], cost: { "res.currency": cost("hire.food2") }, role: { role: "role.supplier", from: "node.food_source", to: "sink.sales_point", node: id }, requires: { pad: `unlock_${id}` } });
+      }
+      gated++;
     }
   }
 
-  // ---------- pads ----------
-  const pads: Ent[] = [];
-  const pad = (e: Ent) => { pads.push(e); return e; };
-  const workers = has("workers");
-  const toward = (a: Pt, b: Pt, t: number): Pt => [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t)];
-  const matC: Pt = [matAt.reduce((a, p) => a + p[0], 0) / matAt.length, matAt.reduce((a, p) => a + p[1], 0) / matAt.length];
-  const register: Pt = [shopAt[0] + shopReg.registerOffset[0], shopAt[1] + shopReg.registerOffset[1]];
-  let hireCashier: Ent | null = null;
-  if (workers) {
-    const a = placePad("hire_core", toward(core, matC, 0.5));
-    pad({ type: "pad.hire", id: "hire_core", at: [...a], cost: { "res.currency": cost("hire.core") }, role: { role: "role.supplier", from: "node.material_source", to: "sink.core" } });
-    const b = placePad("hire_food", toward(food1, shopAt, 0.4));
-    pad({ type: "pad.hire", id: "hire_food", at: [...b], cost: { "res.currency": cost("hire.food") }, role: { role: "role.supplier", from: "node.food_source", to: "sink.sales_point", node: "food1" } });
-    const cpos = placePad("hire_cashier", [register[0] - 80, register[1] + 20]);
-    hireCashier = pad({ type: "pad.hire", id: "hire_cashier", at: [...cpos], cost: { "res.currency": cost("hire.cashier") }, role: { role: "role.cashier", to: "sink.sales_point" } });
-  }
-
-  // Chain: pads that must be bought, hung off the anchor through requires.pad (last element may carry its own requirement).
-  const chainFront: Ent[] = [];
-  let chainTail: Ent | null = null;
-
-  if (has("source_gating")) {
-    const f2 = P.place("food2", R.node, field(tpl.fields.food), { near: food1, samples: 120 }) ?? fail("no room for the gated food source");
-    ents.push({ type: "node.food_source", id: "food2", at: [...f2], enabled: false });
-    if (!P.ok("unlock_food2", f2, R.pad, { on: "food2" })) fail("unlock pad overlaps");
-    P.add("unlock_food2", f2, R.pad, { key: true, on: "food2" });
-    pad({ type: "pad.build", id: "unlock_food2", at: [...f2], cost: { "res.currency": cost("unlock") }, build: "node.enable", target: "food2", requires: { pad: "hire_food" } });
-    const h2 = placePad("hire_food2", toward(f2, shopAt, 0.4));
-    chainTail = pad({ type: "pad.hire", id: "hire_food2", at: [...h2], cost: { "res.currency": cost("hire.food2") }, role: { role: "role.supplier", from: "node.food_source", to: "sink.sales_point", node: "food2" }, requires: { pad: "unlock_food2" } });
-  }
-
-  // Converters.
+  // ---------- industrialize: converters ----------
   const convSpots = (k: string) => {
     const d = c.converters[k]!;
     return [{ id: "op", dx: d.operatorOffset[0], dy: d.operatorOffset[1] }, { id: "pick", dx: d.pickupOffset[0], dy: d.pickupOffset[1] }];
   };
-  let grillOn = false, sawOn = false;
-  if (has("converters")) {
-    grillOn = true;
-    const g = P.place("grill", R.pad, [shopAt[0] - 200, shopAt[1] - 150, 300, 260], { near: [shopAt[0] - 120, shopAt[1] - 20], key: true, spots: convSpots("conv.food_processor") })
+  const opPos = (k: string, at: Pt): Pt => [at[0] + c.converters[k]!.operatorOffset[0], at[1] + c.converters[k]!.operatorOffset[1]];
+  const indus = fams.has("industrialize") && has("converters") && shopAt && food1;
+  let saw = false, alloy = false;
+  if (indus && shopAt && food1) {
+    const g = P.place("grill", R.conv, ring ? inner : [shopAt[0] - 200, shopAt[1] - 160, 300, 260], { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), samples: 200 })
       ?? fail("no room for the food processor");
-    // The cook and the feeder are hired before the grill opens (grill requires feeder requires cook), so
-    // prepared food is made from the moment customers can ask for it.
     pad({ type: "pad.build", id: "grill", at: [...g], cost: { "res.currency": cost("grill") }, build: "conv.food_processor", requires: { pad: "feeder" } });
-    const op: Pt = [g[0] + c.converters["conv.food_processor"]!.operatorOffset[0], g[1] + c.converters["conv.food_processor"]!.operatorOffset[1]];
-    const cook = placePad("cook", [op[0] - 70, op[1] + 10]);
+    const cook = placePad("cook", [opPos("conv.food_processor", g)[0] - 66, opPos("conv.food_processor", g)[1] + 10]);
     pad({ type: "pad.hire", id: "cook", at: [...cook], cost: { "res.currency": cost("hire.cook") }, role: { role: "role.operator", to: "conv.food_processor" } });
-    const fd = placePad("feeder", toward(food1, g, 0.5));
-    pad({ type: "pad.hire", id: "feeder", at: [...fd], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.food_source", to: "conv.food_processor", node: "food1" }, requires: { pad: "cook" } });
+    // The food processor's feeder has its own field, so the shelf's farm worker does not starve it.
+    const fg = P.place("food_g", R.food, ring ? inner : [g[0] - 160, g[1] - 160, 320, 320], { near: [g[0] - 70, g[1] - 60], key: true, samples: 200 }) ?? food1;
+    if (fg !== food1) ents.push({ type: "node.food_source", id: "food_g", at: [...fg] });
+    const fd = placePad("feeder", toward(fg, g, 0.5));
+    pad({ type: "pad.hire", id: "feeder", at: [...fd], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.food_source", to: "conv.food_processor", node: fg === food1 ? "food1" : "food_g" }, requires: { pad: "cook" } });
     const sv = placePad("server", toward(g, shopAt, 0.5));
     pad({ type: "pad.hire", id: "server", at: [...sv], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.food_processor", to: "sink.sales_point" }, requires: { pad: "grill" } });
     sells.push("res.food_prepared");
-    if (goal === "build" && rand.chance(0.6)) {
-      sawOn = true;
-      const s = P.place("saw", R.pad, [matC[0] - 150, matC[1] - 150, 300, 300], { near: toward(matC, core, 0.45), key: true, spots: convSpots("conv.material_processor") })
+    if (feat.has("converter_levels")) {
+      const lp = placePad("grill_level", [g[0] + 70, g[1] - 40]);
+      // Repeatable only when the goal needs more than one level: a repeatable pad is never "done", so nothing could require it.
+      const rep = goal === "converter_level" && K.costScale > 1.15;
+      pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", ...(rep ? { repeatable: true } : {}) });
+    }
+    if (feat.has("material_processor")) {
+      saw = true;
+      const s = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), samples: 200 })
         ?? fail("no room for the material processor");
       pad({ type: "pad.build", id: "saw", at: [...s], cost: { "res.currency": cost("saw") }, build: "conv.material_processor" });
-      const sop: Pt = [s[0] + c.converters["conv.material_processor"]!.operatorOffset[0], s[1] + c.converters["conv.material_processor"]!.operatorOffset[1]];
-      const sw = placePad("sawyer", [sop[0] + 70, sop[1] + 10]);
+      const sw = placePad("sawyer", [opPos("conv.material_processor", s)[0] + 66, opPos("conv.material_processor", s)[1] + 10]);
       pad({ type: "pad.hire", id: "sawyer", at: [...sw], cost: { "res.currency": cost("hire.sawyer") }, role: { role: "role.operator", to: "conv.material_processor" }, requires: { pad: "saw" } });
+      // Every converter has a feed path: a worker brings fuel scrap to the material processor.
+      const sf = placePad("saw_feeder", toward(forestC, s, 0.5));
+      pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "sawyer" } });
+      if (feat.has("tier2")) {
+        alloy = true;
+        const a = P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { near: toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), samples: 240 })
+          ?? fail("no room for the alloy works");
+        pad({ type: "pad.build", id: "alloy", at: [...a], cost: { "res.currency": cost("alloy") }, build: "conv.alloy_works", requires: { pad: "sawyer" } });
+        const sm = placePad("smith", [opPos("conv.alloy_works", a)[0] - 66, opPos("conv.alloy_works", a)[1] + 10]);
+        pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
+        const rc = placePad("refined_carrier", toward(s, a, 0.5));
+        pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "smith" } });
+        const cs = placePad("component_server", toward(a, shopAt, 0.5));
+        pad({ type: "pad.hire", id: "component_server", at: [...cs], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.alloy_works", to: "sink.sales_point" }, requires: { pad: "refined_carrier" } });
+        sells.push("res.component");
+      }
+    }
+  }
+  if (feat.has("depot") && workers) {
+    const dp = placePad("depot", tpl.depot);
+    pad({ type: "pad.build", id: "depot", at: [...dp], cost: { "res.currency": cost("depot") }, build: "struct.depot" });
+    const ds = placePad("depot_supplier", toward(forestC, dp, 0.5));
+    pad({ type: "pad.hire", id: "depot_supplier", at: [...ds], cost: { "res.currency": cost("hire.depotSupplier") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "store.depot" }, requires: { pad: "depot" } });
+    // Haulers drain the depot, so a stockpile goal has none.
+    if (goal !== "stockpile") {
+      const hl = placePad("hauler", [dp[0] + 66, dp[1] + 30]);
+      pad({ type: "pad.hire", id: "hauler", at: [...hl], cost: { "res.currency": cost("hire.hauler") }, role: { role: "role.hauler", from: "store.depot" }, requires: { pad: "depot" } });
     }
   }
 
-  // Hunting.
-  if (has("hunting")) {
+  // ---------- shelter mechanics ----------
+  let arrivals = 0;
+  const gatePos: Pt | null = feat.has("gate_arrivals") ? (ring ? [core[0], Math.min(880, ring.rect[1] + ring.rect[3] + 26)] : [core[0], Math.min(860, core[1] + 300)]) : null;
+  if (gatePos) {
+    arrivals = Math.round(K.arrivals);
+    P.spot("admit", [gatePos[0], gatePos[1] - 20], 22);
+    ents.push({ type: "struct.gate", id: "gate", at: [...gatePos], arrivals: { every: Math.round(K.arrivalEvery), total: arrivals } });
+  }
+  const corePads: Ent[] = [];
+  if (feat.has("core_levels") || feat.has("rockslides") || feat.has("clearing_pass") || goal === "core_level") {
+    // A core-level goal with rubble needs a second level pad to hang the clearing pad from.
+    const nLv = goal === "core_level" && (K.costScale > 1.1 || feat.has("rockslides")) ? 2 : 1;
+    for (let k = 0; k < nLv; k++) {
+      const lp = placePad(`core_level${k}`, [core[0] - 90 + 180 * k, core[1] + 75]);
+      corePads.push(pad({ type: "pad.build", id: `core_level${k}`, at: [...lp], cost: { "res.currency": cost("core.level") + 12 * k }, build: "sink.core.level" }));
+    }
+  }
+  let zones = 0;
+  if (feat.has("rockslides") && !ring) {
+    const n = goal === "clear_zones" && K.costScale > 1.1 ? 2 : 1;
+    for (let k = 0; k < n; k++) {
+      // Rubble over part of a fuel grove: clearing it opens more fuel near the base.
+      let zr: Rect | null = null;
+      for (let t = 0; t < 40 && !zr; t++) {
+        const ang = rand.float() * Math.PI * 2, d = 130 + rand.float() * 90;
+        const zc: Pt = [Math.round(core[0] + Math.cos(ang) * d), Math.round(core[1] + Math.sin(ang) * d * 1.2)];
+        const cand: Rect = [Math.max(20, Math.min(340, zc[0] - 60)), Math.max(60, Math.min(770, zc[1] - 35)), 120, 70];
+        const clear = !P.stations.some((s) => s.id !== "core" && rectDist([s.x, s.y], cand) < s.r + 6) && rectDist(core, cand) >= R.core + 30
+          && !P.spots.some((s) => rectDist([s.x, s.y], cand) < s.r + 6) && P.blocked.every((b) => rectDist([b[0] + b[2] / 2, b[1] + b[3] / 2], cand) > 90)
+          && P.onScreen([cand[0] + 60, cand[1] + 35]);
+        if (clear) zr = cand;
+      }
+      if (!zr) throw new Error("no room for rubble");
+      ents.push({ type: "zone.blocked", id: `rubble${k}`, rect: [...zr] });
+      P.blocked.push(zr);
+      for (let i = 0; i < 3; i++) ents.push({ type: "node.fuel_scrap", at: [Math.round(zr[0] + 25 + 35 * i), Math.round(zr[1] + zr[3] / 2)] });
+      const zp = placePad(`clear${k}`, [zr[0] + zr[2] / 2, zr[1] + (zr[1] > core[1] ? -45 : zr[3] + 45)]);
+      void zp;
+      pad({ type: "pad.build", id: `clear${k}`, at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: `rubble${k}`, requires: { coreLevel: 2 } });
+      zones++;
+    }
+  }
+
+  // ---------- rescue: pods, crates, the pass, prey ----------
+  let pods = 0, crates = 0;
+  if (rescue && ring) {
+    const rr = ring.rect;
+    const north = core[1] - rr[1] < 0 ? false : rr[1] > 900 - (rr[1] + rr[3]);
+    const gateSide = north ? "n" : "s";
+    // Gate: the middle-most section on the pods' side.
+    const gIdx = ring.side.map((s, i) => ({ s, i })).filter((x) => x.s === gateSide);
+    ringGates = [gIdx[Math.floor(gIdx.length / 2)]!.i];
+    ents.push({ type: "barrier.line", id: "ring", res: "res.currency", costPerSection: 1, points: ring.points.map((p) => [...p]), closed: true,
+      gates: ringGates, prebuilt: ring.points.map((_, i) => i) });
+    const E = GEN.rings.edge, gap = GEN.rings.podGap;
+    let passRect: Rect | null = null;
+    if (feat.has("clearing_pass")) {
+      const y = north ? Math.round(rr[1] * 0.42) - 20 : Math.round(900 - (900 - rr[1] - rr[3]) * 0.42) - 24;
+      passRect = [0, y, 480, 44];
+      ents.push({ type: "zone.blocked", id: "pass", rect: [...passRect] });
+      const padY = north ? y + 44 + Math.round((rr[1] - y - 44) / 2) : rr[1] + rr[3] + Math.round((y - rr[1] - rr[3]) / 2);
+      const zp: Pt = [core[0] + 70, padY];
+      if (!P.onScreen(zp)) fail("pass pad off screen");
+      P.add("clear_pass", zp, R.pad, { key: true });
+      pad({ type: "pad.build", id: "clear_pass", at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: "pass", requires: { coreLevel: 2 } });
+      zones++;
+    }
+    const outside = (p: Pt) => rectDist(p, rr) >= gap && p[0] >= E && p[0] <= 480 - E && p[1] >= E && p[1] <= 900 - E
+      && !(passRect && rectDist(p, passRect) < 50) && !(north ? p[1] > rr[1] + rr[3] : p[1] < rr[1]);
+    const behind = (p: Pt) => passRect !== null && (north ? p[1] < passRect[1] : p[1] > passRect[1] + passRect[3]);
+    const placed: Pt[] = [];
+    const take = (n: number, type: string, wantBehind: number, freeze: (k: number, p: Pt) => number | null) => {
+      let k = 0, b = 0;
+      for (let tries = 0; tries < 900 && k < n; tries++) {
+        const p: Pt = [rand.int(E, 480 - E), rand.int(E, 900 - E)];
+        // Tow goals spread the captives out, so gathering a full chain is a route, not a grab.
+        const spread = goal === "tow_trip" || goal === "tow_full_trip" ? 150 : 90;
+        if (!outside(p) || placed.some((q) => dist(p, q) < spread)) continue;
+        // Recruits behind the pass fill the "behind" quota first; the rest stay on the near side.
+        const isBehind = behind(p);
+        if (passRect && isBehind !== b < wantBehind) continue;
+        placed.push(p);
+        const fz = freeze(k, p);
+        ents.push({ type, at: [...p], ...(fz !== null ? { freeze: fz } : {}) });
+        k++; if (isBehind) b++;
+      }
+      return k;
+    };
+    const nPods = goal === "crates" ? 1 + Math.round(K.pods / 3) : Math.round(K.pods);
+    pods = take(nPods, "capture.recruit_container", passRect ? Math.ceil(nPods / 2) : 0,
+      (k, p) => feat.has("pod_timers") ? Math.round(K.podFreeze + 18 * k + dist(p, core) / 8) : null);
+    if (pods < 2) fail("no room for pods");
+    if ((goal === "tow_trip" || goal === "tow_full_trip") && pods + crates < 3) fail("a tow goal needs three captives");
+    if (feat.has("crates")) {
+      crates = take(Math.round(K.crates), "capture.supply_crate", 0, () => null);
+      if (crates < 1) fail("no room for crates");
+    }
+    if (feat.has("hunting")) {
+      const side = core[0] > 240 ? 0 : 1;
+      const pr: Rect = side === 0 ? [20, rr[1] + 30, Math.max(60, rr[0] - 40), 150] : [rr[0] + rr[2] + 20, rr[1] + 30, Math.max(60, 480 - (rr[0] + rr[2]) - 40), 150];
+      if (pr[2] < 60) {
+        // No side strip: roam inside the ring instead.
+        const ir: Rect = [inner[0] + 10, inner[1] + 10, 120, 90];
+        ents.push({ type: "zone.prey", id: "prey", rect: [...ir], animal: "node.prey", n: 3 });
+      } else ents.push({ type: "zone.prey", id: "prey", rect: [...pr], animal: "node.prey", n: 3 });
+      const drops = Object.keys(c.animals["node.prey"]!.drops);
+      if (shopAt) for (const r of drops) if (!sells.includes(r) && (c.resources[r]?.price ?? 0) > 0) sells.push(r);
+    }
+  } else if (feat.has("hunting")) {
     const pr = tpl.prey;
     ents.push({ type: "zone.prey", id: "prey", rect: [...pr], animal: "node.prey", n: 3 });
-    const drops = Object.keys(c.animals["node.prey"]!.drops);
-    for (const r of drops) if (!sells.includes(r) && (c.resources[r]?.price ?? 0) > 0) sells.push(r);
-    const hp = placePad("hunter", toward([pr[0] + pr[2] / 2, pr[1] + pr[3] / 2], core, 0.45));
-    const h = pad({ type: "pad.hire", id: "hunter", at: [...hp], cost: { "res.currency": cost("hire.hunter") },
-      role: { role: "role.hunter", from: "node.prey", to: grillOn ? "conv.food_processor" : "sink.sales_point" }, ...(grillOn ? { requires: { pad: "grill" } } : {}) });
-    if (!grillOn) chainFront.push(h);
+    if (shopAt) for (const r of Object.keys(c.animals["node.prey"]!.drops)) if (!sells.includes(r) && (c.resources[r]?.price ?? 0) > 0) sells.push(r);
   }
 
-  // Core levels.
-  let corePad: Ent | null = null;
-  if (has("core_levels")) {
-    const lp = placePad("core_level", [core[0] - 95, core[1] + 70]);
-    corePad = pad({ type: "pad.build", id: "core_level", at: [...lp], cost: { "res.currency": cost("core.level") }, build: "sink.core.level" });
-  }
-
-  // Blocked zone and its clearing pad.
-  let zonePad: Ent | null = null;
-  if (zoneRect) {
-    ents.push({ type: "zone.blocked", id: "rubble", rect: [...zoneRect] });
-    const zr = zoneRect;
-    const near: Pt = bandMode === "north" ? [core[0], zr[1] + zr[3] + 42] : [zr[0] + zr[2] / 2, zr[1] - 42];
-    const zp = placePad("zone_pad", near, { region: bandMode === "north" ? [40, zr[1] + zr[3] + 30, 400, 40] : [zr[0], zr[1] - 75, zr[2], 50] });
-    zonePad = pad({ type: "pad.build", id: "zone_pad", at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: "rubble" });
-    chainFront.unshift(zonePad);
-  }
-
-  // Lasso fence and containers.
-  let containers = 0;
-  if (lassoOn) {
-    const y = N.lassoLine;
-    const gx = Math.min(360, Math.max(120, core[0]));
-    ents.push({ type: "barrier.line", id: "fence", res: "res.currency", costPerSection: 8, sections: [
-      { a: [0, y], b: [gx - 80, y], prebuilt: true },
-      { a: [gx - 80, y], b: [gx + 80, y], gate: true, prebuilt: true },
-      { a: [gx + 80, y], b: [480, y], prebuilt: true },
-    ] });
-    const want = Math.round(K.containers);
-    const at: Pt[] = [];
-    for (let tries = 0; tries < 400 && at.length < want; tries++) {
-      const p: Pt = [rand.int(60, 420), rand.int(N.outerTop, y - N.outerGap)];
-      if (at.every((q) => dist(p, q) >= 95)) at.push(p);
+  // ---------- defend: ring, towers, upgrades, defenders, med bay, waves ----------
+  const waves: { t: number; counts: Record<string, number>; side?: string | string[]; gap?: number }[] = [];
+  const towers: Ent[] = [];
+  if (defend && ring) {
+    const all: ("n" | "e" | "s" | "w")[] = ["n", "e", "w", "s"];
+    const nSides = feat.has("multi_side") ? (K.waves >= 4 ? 3 : 2) : 1;
+    const first = all[rand.int(0, 2)]!;
+    sides = [first, ...all.filter((s) => s !== first && s !== "s").slice(0, nSides - 1)];
+    if (sides.length < nSides) sides.push("s");
+    const quiet = all.filter((s) => !sides.includes(s));
+    const gateSide = quiet.includes("s") ? "s" : quiet[0] ?? "s";
+    const gIdx = ring.side.map((s, i) => ({ s, i })).filter((x) => x.s === gateSide);
+    ringGates = [gIdx[Math.floor(gIdx.length / 2)]!.i];
+    const wallsCurrency = goal === "perimeter_before_wave1";
+    const pre: number[] = [];
+    ring.side.forEach((s, i) => {
+      if (!sides.includes(s)) pre.push(i);
+      else if (rand.float() < K.prebuiltRing && !wallsCurrency) pre.push(i);
+    });
+    if (pre.length === ring.points.length) pre.splice(pre.indexOf(ring.side.findIndex((s) => s === sides[0])), 1);
+    ents.push({ type: "barrier.line", id: "ring", res: wallsCurrency ? "res.currency" : "res.salvage", costPerSection: Math.max(1, Math.round(K.ringCost)),
+      points: ring.points.map((p) => [...p]), closed: true, gates: ringGates, prebuilt: pre });
+    if (feat.has("turrets")) {
+      for (const sd of sides) {
+        const [dx, dy] = sd === "n" ? [0, -1] : sd === "s" ? [0, 1] : sd === "e" ? [1, 0] : [-1, 0];
+        const reach = dy !== 0 ? ring.rect[3] / 2 - 75 : ring.rect[2] / 2 - 70;
+        const tp = placePad(`tower_${sd}`, [core[0] + dx * reach, core[1] + dy * reach]);
+        towers.push(pad({ type: "pad.build", id: `tower_${sd}`, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense" }));
+      }
+      if (feat.has("salvage_upgrades")) {
+        // On a turret-level goal the first upgrade reaches the tier, so only one tower gets an upgrade pad.
+        (goal === "turret_level" ? towers.slice(-1) : towers).forEach((t) => {
+          const tp = t.at as Pt;
+          const up = placePad(`${String(t.id)}_up`, toward(tp, core, 0.45));
+          pad({ type: "pad.build", id: `${String(t.id)}_up`, at: [...up], cost: { "res.salvage": salv("salvage.towerUp") }, build: "struct.ranged_defense.t2", target: t.id, requires: { pad: t.id } });
+        });
+        const rf = placePad("reinforce", [core[0] + 80, core[1] - 70]);
+        pad({ type: "pad.build", id: "reinforce", at: [...rf], cost: { "res.salvage": salv("salvage.reinforce") }, build: "struct.barrier.reinforced" });
+      }
     }
-    at.forEach((p) => ents.push({ type: "capture.recruit_container", at: [...p] }));
-    containers = at.length;
-    if (containers < 2) fail("no room for containers");
-    pocketTop = y + 6;
-  }
-
-  // Barrier lines on their own (DECISIONS 1): a yard wall at the lasso fence's height, every section
-  // unbuilt, so the bot's barrier task (which now runs on any goal) is what exercises the module.
-  if (has("barrier_lines") && !lassoOn && !defenseOn) {
-    // Under a blocked band the wall sits just south of it, so the bot can reach every section.
-    const y = zoneRect && bandMode === "north" ? bandY + N.band + 3 : N.lassoLine;
-    const gx = Math.min(360, Math.max(120, core[0]));
-    const sc = Math.max(1, Math.round(K.wallCost));
-    ents.push({ type: "barrier.line", id: "wall", res: "res.currency", costPerSection: sc, sections: [
-      { a: [0, y], b: [gx - 80, y] },
-      { a: [gx - 80, y], b: [gx + 80, y], gate: true },
-      { a: [gx + 80, y], b: [480, y] },
-    ] });
-    if (!(zoneRect && bandMode === "north")) pocketTop = y + 6;
-  }
-
-  // Defense.
-  let towers: Ent[] = [];
-  const waves: { t: number; counts: Record<string, number> }[] = [];
-  if (defenseOn) {
-    const y = N.attackLine;
-    const gx = Math.min(330, Math.max(150, core[0]));
-    const nPre = has("medical") ? 0 : Math.round(K.prebuilt * 2);
-    ents.push({ type: "barrier.line", id: "wall", res: "res.currency", costPerSection: Math.round(K.wallCost), sections: [
-      { a: [0, y], b: [gx - 80, y], prebuilt: nPre >= 1 },
-      { a: [gx - 80, y], b: [gx + 80, y], gate: true, prebuilt: nPre >= 1 && K.prebuilt > 0.5 },
-      { a: [gx + 80, y], b: [480, y], prebuilt: nPre >= 2 },
-    ] });
-    const nT = Math.max(1, Math.round(K.towers));
-    for (let k = 0; k < nT; k++) {
-      const x = Math.round((480 * (k + 1)) / (nT + 1));
-      const tp = placePad(`tower${k}`, [x, y + 80], { region: [x - 90, N.insideTop + 6, 180, 80] });
-      towers.push(pad({ type: "pad.build", id: `tower${k}`, at: [...tp], cost: { "res.currency": cost("tower") }, build: "struct.ranged_defense" }));
+    if (feat.has("defenders")) {
+      const bk = placePad("barracks", [core[0] - 100, core[1] + 100]);
+      pad({ type: "pad.build", id: "barracks", at: [...bk], cost: { "res.salvage": salv("salvage.barracks") }, build: "struct.barracks" });
+      const tr = placePad("train", [bk[0], bk[1] + 70]);
+      pad({ type: "pad.hire", id: "train", at: [...tr], cost: { "res.salvage": salv("salvage.train") }, role: { role: "role.defender" }, repeatable: true, requires: { pad: "barracks" } });
     }
-    const salvage = has("salvage_upgrades");
-    if (salvage) {
-      towers.forEach((t, k) => {
-        const tp = t.at as Pt;
-        const up = placePad(`towerup${k}`, [tp[0], tp[1] + 65]);
-        pad({ type: "pad.build", id: `towerup${k}`, at: [...up], cost: { "res.salvage": GEN.costs["salvage.towerUp"]! }, build: "struct.ranged_defense.t2", target: t.id, requires: { pad: t.id } });
-      });
-      const rf = placePad("reinforce", [gx, y + 130]);
-      pad({ type: "pad.build", id: "reinforce", at: [...rf], cost: { "res.salvage": GEN.costs["salvage.reinforce"]! }, build: "struct.barrier.reinforced" });
+    if (feat.has("med_bay")) {
+      const md = placePad("medic", [core[0] + 100, core[1] + 110]);
+      pad({ type: "pad.build", id: "medic", at: [...md], cost: { "res.salvage": salv("salvage.medic") }, build: "struct.medical" });
     }
-    if (has("defenders")) {
-      const bk = placePad("barracks", [core[0] - 110, core[1] + 120]);
-      pad({ type: "pad.build", id: "barracks", at: [...bk], cost: { "res.currency": cost("barracks") }, build: "struct.barracks" });
-      const tr = placePad("train", [bk[0], bk[1] + 75]);
-      pad({ type: "pad.hire", id: "train", at: [...tr], cost: { "res.currency": cost("train") }, role: { role: "role.defender" }, repeatable: true, requires: { pad: "barracks" } });
-    }
-    if (has("medical")) {
-      const md = placePad("medic", [core[0] + 100, core[1] + 140]);
-      pad({ type: "pad.build", id: "medic", at: [...md], cost: { "res.currency": cost("medic") }, build: "struct.medical" });
-    }
-    // Medical needs injuries: an early probe wave reaches the base before any wall can be up.
-    if (has("medical")) waves.push({ t: 20, counts: { "hostile.creature": 4 } });
-    const nW = 3;
+    // A med bay needs patients: an early probe wave reaches the base before any wall can be paid for.
+    if (feat.has("med_bay")) waves.push({ t: 12, counts: { "hostile.swarmling": 6, "hostile.raider_humanoid": 3 }, side: sides.length === 1 ? sides[0]! : [...sides], gap: 0.4 });
+    const nW = Math.round(K.waves);
     for (let k = 0; k < nW; k++) {
-      const counts: Record<string, number> = { "hostile.creature": Math.max(1, Math.round((3 + k) * K.waveScale)) };
-      if (salvage) counts["hostile.raider_humanoid"] = Math.max(1, Math.round((1 + k) * K.waveScale * 0.7));
-      waves.push({ t: Math.round(K.firstWave + k * K.waveGap), counts });
+      const counts: Record<string, number> = { "hostile.swarmling": Math.max(3, Math.round(K.swarm * (k === 0 ? 0.6 : 1 + 0.45 * (k - 1)))) };
+      if (k >= 1) counts["hostile.raider_humanoid"] = Math.max(1, Math.round(K.swarm * 0.15 * k));
+      if (feat.has("bosses") && (k === nW - 1 || (k === nW - 3 && nW >= 5))) counts["hostile.boss"] = 1;
+      const wSides = sides.length === 1 ? sides[0]! : [...sides.slice(k % sides.length), ...sides.slice(0, k % sides.length)];
+      waves.push({ t: Math.round(K.firstWave + k * K.waveGap + (wallsCurrency ? 25 : 0)), counts, side: wSides, gap: 0.7 });
     }
-    const creatureDrops = Object.keys(c.hostiles["hostile.creature"]!.drops);
-    for (const r of creatureDrops) if (!sells.includes(r) && (c.resources[r]?.price ?? 0) > 0) sells.push(r);
   }
 
-  // Supply routing.
-  if (has("supply_routing")) {
-    const dp = placePad("depot", tpl.depot);
-    // The depot hangs off the anchor so the bot builds it on the way to the goal.
-    chainFront.push(pad({ type: "pad.build", id: "depot", at: [...dp], cost: { "res.currency": cost("depot") }, build: "struct.depot" }));
-    const hl = placePad("hauler", [dp[0] + 70, dp[1] + 30]);
-    pad({ type: "pad.hire", id: "hauler", at: [...hl], cost: { "res.currency": cost("hire.hauler") }, role: { role: "role.hauler", from: "store.depot" }, requires: { pad: "depot" } });
-    const ds = placePad("depot_supplier", toward(matC, dp, 0.5));
-    pad({ type: "pad.hire", id: "depot_supplier", at: [...ds], cost: { "res.currency": cost("hire.depotSupplier") }, role: { role: "role.supplier", from: "node.material_source", to: "store.depot" }, requires: { pad: "depot" } });
-  }
-
-  // Housing and arrivals.
-  let arrivals = 0;
+  // ---------- housing ----------
   const housingPads: Ent[] = [];
-  if (arrivalsOn) {
-    arrivals = goal === "population" ? rand.int(3, 5) : rand.int(2, 4);
-    ents.push({ type: "struct.gate", id: "gate", at: [...TEMPLATES.arrivals.at], arrivals: { every: Math.round(K.arrivalEvery), total: arrivals } });
+  const perHousing = c.defaults["housing.perBuilding"]!;
+  const housingOn = feat.has("housing") || goal === "rescue_housed";
+  if (housingOn) {
+    const newcomers = arrivals + pods;
+    const nH = Math.max(1, Math.ceil(newcomers / perHousing));
+    for (let k = 0; k < nH; k++) {
+      const hp = placePad(`housing${k}`, [core[0] + (k % 2 === 0 ? 95 : -95), core[1] + 95 + 55 * Math.floor(k / 2)]);
+      housingPads.push(pad({ type: "pad.build", id: `housing${k}`, at: [...hp], cost: { "res.currency": cost("housing") + 3 * k }, build: "struct.housing" }));
+    }
   }
 
-  // ---------- goal ----------
+  // ---------- landmark (industrialize build goal) ----------
   let landmark: Ent | null = null;
   if (goal === "build") {
-    let lp: Pt;
-    if (bandMode === "north") {
-      lp = [Math.min(400, Math.max(80, tpl.landmark[0])), Math.round((pocketTop + bandY) / 2)];
-      P.add("landmark", lp, R.big, { key: true });
-    } else lp = placePad("landmark", tpl.landmark, { big: true, region: [tpl.landmark[0] - 40, tpl.landmark[1] - 40, 80, 70] });
-    landmark = pad({ type: "pad.build", id: "landmark", at: [...lp], cost: { "res.currency": 50 }, build: "struct.landmark", big: true });
+    const lp = placePad("landmark", ring ? [core[0], inner[1] + 50] : tpl.landmark, { big: true });
+    landmark = pad({ type: "pad.build", id: "landmark", at: [...lp], cost: { "res.currency": 40 }, build: "struct.landmark", big: true });
   }
 
-  // People: idle residents for every hire the plan will buy, plus spares.
-  const housingSlotsPer = c.defaults["housing.perBuilding"]!;
+  for (const s of P.stations) if (s.id !== "core" && dist([s.x, s.y], startPt) < s.r + 4) fail(`start overlaps ${s.id}`);
+
+  // ---------- goal ----------
+  const params0 = (): Record<string, number | string> => {
+    switch (goal) {
+      case "heat_hold": return { pct: Math.round(K.heatPct / 5) * 5, seconds: Math.round(K.length * 0.45 / 5) * 5 };
+      case "fuel_full": return { seconds: 60 };
+      case "survive": return { seconds: Math.round(K.length / 10) * 10 };
+      case "hazard_survive": return {};
+      case "population": return { n: 0 };
+      case "build_count": return { build: "struct.housing", n: housingPads.length };
+      case "core_level": return { n: 1 + corePads.length };
+      case "admit": return { n: arrivals };
+      case "clear_zones": return { n: Math.max(1, zones) };
+      case "house_all": return {};
+      case "rescue": return { n: pods };
+      case "rescue_all": return {};
+      case "tow_trip": return { n: Math.min(3, pods + crates) };
+      case "rescue_before_freeze": return { n: Math.max(1, pods - (K.pods < 4 && !feat.has("clearing_pass") ? 1 : 0)) };
+      case "rescue_housed": return { n: pods };
+      case "tow_full_trip": return { n: Math.min(3, pods + crates) };
+      case "crates": return { n: crates };
+      case "sell": return { res: "res.food_raw_1", n: 10 };
+      case "sell_each": return { n: 3, k: Math.min(2, sells.length) };
+      case "unlock": return { n: gated };
+      case "shelves_full": return {};
+      case "hire": return fam === "defend" ? { n: 2, role: "role.defender" } : { n: 2 };
+      case "earn_within": return { n: 20, seconds: Math.round(K.length) };
+      case "bulk_order": return { n: 1 };
+      case "produce": return { n: 10, res: alloy ? "res.component" : "res.food_prepared" };
+      case "converters_running": return { k: 2, seconds: Math.round(8 + K.length * 0.05) };
+      case "chain": return { n: 3 };
+      case "automate": return { seconds: Math.round(20 + K.length * 0.1) };
+      case "stockpile": return { res: "res.material_basic", n: 8 };
+      case "build": return { target: "landmark" };
+      case "converter_level": return { n: 2 + (K.costScale > 1.15 ? 1 : 0) };  // 3 only with the repeatable pad
+      case "waves": return {};
+      case "waves_survived": return { n: Math.max(1, waves.length - 1) };
+      case "boss": return { n: waves.reduce((a, w) => a + (w.counts["hostile.boss"] ?? 0), 0) };
+      case "turret_level": return { n: 2 };
+      case "perimeter_before_wave1": return {};
+      default: return { n: 5 };
+    }
+  };
+  const gparams = params0();
+  if (goal === "hire" && fam !== "defend") gparams["n"] = Math.max(2, pads.filter((p) => p.type === "pad.hire").length);
+  const sizing: Sizing = RATE_GOALS.has(goal) ? "rate" : FILL_GOALS.has(goal) ? "fill" : goal === "build" ? "cost" : "fixed";
+
+  // People: idle residents for every hire the plan will buy, plus spares; colonists to defend.
   const people: { role: string }[] = [];
-  let popN = 0;
+  const events: { type: string; warnAt: number; start: number; end: number }[] = [];
+  const startCurrency = goal === "perimeter_before_wave1" ? 6 : Math.round(K.startCurrency);
 
-  // Anchor: a pad certainly on the bot's plan, carrying the chain of pads the level needs bought.
-  const anchor: Ent | null = landmark ?? (goal === "waves" ? towers[towers.length - 1] ?? null : null) ?? null;
-  const chain = [...chainFront, ...(chainTail ? [chainTail] : [])];
-
-  const finish = (landmarkCost: number, refined: number, currencyN: number, extraPeople: number): Manifest => {
+  const finish = (landmarkCost: number, refined: number, extraPeople: number): Manifest => {
     const ps: Ent[] = pads.map((p) => structuredClone(p));
-    const byId = (id: string) => ps.find((p) => p.id === id)!;
-    // Housing pads (population goals and recruits that would wait).
-    let anchorId: string | null = anchor ? String(anchor.id) : null;
-    const hp = housingPads.map((h) => structuredClone(h));
-    for (const h of hp) ps.push(h);
-    if (!anchorId && goal === "population" && hp.length > 0) anchorId = String(hp[0]!.id);
-    if (!anchorId && hireCashier) anchorId = "hire_cashier";
-    if (landmark) {
-      const lm = byId("landmark");
-      lm.cost = { "res.currency": landmarkCost, ...(refined > 0 ? { "res.material_refined": refined } : {}) };
-    }
-    // Requirement chain: anchor -> chain[0] -> chain[1] ...
-    const naturallyPlanned = (e: Ent) => e.id === "zone_pad" && goal === "population" && lassoOn && bandMode === "north";
-    const links = chain.filter((e) => !(naturallyPlanned(e) && chain.length === 1));
-    let prev: string | null = anchorId;
-    for (const e of links) {
-      if (prev === null) break;
-      if (prev === e.id) continue;
-      const pe = byId(prev);
-      pe.requires = { ...((pe.requires as object) ?? {}), pad: String(e.id) };
-      prev = String(e.id);
-    }
-    if (anchorId === null && links.length > 0 && !links.every(naturallyPlanned)) notes.push("no anchor for the pad chain");
-    if (corePad) {
-      const target = zonePad ? byId("zone_pad") : anchorId ? byId(anchorId) : null;
-      if (target) target.requires = { ...((target.requires as object) ?? {}), coreLevel: 2 };
-    }
-    const p0 = workers || has("medical") || arrivalsOn ? 0 : 0;
-    void p0;
-    const idle = extraPeople;
-    for (let i = 0; i < idle; i++) people.push({ role: "idle" });
-    const nPeople = people.length;
-    let base: number;
-    if (goal === "population") {
-      popN = Math.max(nPeople + 1, nPeople + containers + arrivals - Math.round(K.recruitSlack));
-      base = arrivalsOn && hp.length > 0 ? Math.max(nPeople, popN - housingSlotsPer * hp.length) : popN;
-    } else {
-      base = arrivalsOn ? nPeople + 1 : nPeople + containers + 2;
-    }
+    if (landmark) ps.find((p) => p.id === "landmark")!.cost = { "res.currency": landmarkCost, ...(refined > 0 ? { "res.material_refined": refined } : {}) };
+    const pp = [...people.map((p) => ({ ...p })), ...Array.from({ length: extraPeople }, () => ({ role: "idle" }))];
+    const nPeople = pp.length;
+    const base = housingOn ? Math.max(1, nPeople) : nPeople + arrivals + pods + 2;
     const params: Record<string, number> = {
-      "start.currency": Math.round(K.startCurrency),
+      "start.currency": startCurrency,
       "core.burn": round1(K.burn),
-      "customers.spawn": round1(K.spawn),
-      "customers.orderMin": 1,
-      "customers.orderMax": Math.round(K.orderMax),
       "housing.base": Math.max(1, base),
     };
+    if (shopAt) {
+      params["customers.spawn"] = round1(K.spawn);
+      params["customers.orderMin"] = 1;
+      params["customers.orderMax"] = Math.round(K.orderMax);
+    }
     if (has("customer_variety")) { params["customers.impatientShare"] = round2(K.impatient); params["customers.premiumShare"] = round2(K.premium); }
-    if (defenseOn) params["meters.baseHealth"] = Math.round(K.baseHealth);
-    const g: Manifest["goal"] = goal === "build" ? { type: "build", target: "landmark" }
-      : goal === "population" ? { type: "population", n: popN }
-      : goal === "waves" ? { type: "waves" }
-      : goal === "serve_premium" ? { type: "serve_premium", n: Math.max(1, currencyN) }
-      : { type: "currency", n: Math.max(5, currencyN) };
+    if (feat.has("bulk_orders")) params["customers.bulkShare"] = round2(K.bulkShare);
+    if (defend) params["meters.baseHealth"] = Math.round(K.baseHealth);
+    const gp = { ...gparams };
+    if (goal === "population") gp["n"] = nPeople + arrivals + pods;
+    const g = { type: goal, ...gp } as Manifest["goal"];
+    const ch = CHALLENGE_PLACEHOLDER[fam];
     const m = {
       id: inp.id, seed: inp.seed >>> 0, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION,
       map: { w: 480, h: 900, zones: [...tpl.zones] },
       modules: [...inp.modules].sort(),
       start: [...startPt],
       entities: [...ents, ...ps],
-      people: people.splice(0),
-      waves, events: [] as Manifest["events"],
+      people: pp,
+      waves: structuredClone(waves), events: structuredClone(events),
       params, goal: g,
-      fail: defenseOn ? ["meter.lifeline", "meter.base_health"] : ["meter.lifeline"],
+      family: fam,
+      objectives: [
+        { id: "main", kind: goal, params: gp },
+        { id: "time", kind: "time_target", params: { seconds: 900 } },
+        { id: "challenge", kind: ch.kind, params: { ...ch.params } },
+      ],
+      fail: defend ? ["meter.lifeline", "meter.base_health"] : ["meter.lifeline"],
       text: {},
     } as unknown as Manifest;
     return m;
   };
 
-  // Housing pads: population goals need slots; elsewhere, recruits that would wait.
-  if (arrivalsOn) {
-    const nH = goal === "population" ? Math.max(1, Math.ceil(arrivals / housingSlotsPer)) : 1;
-    for (let k = 0; k < nH; k++) {
-      const hpos = placePad(`housing${k}`, [core[0] + (k % 2 === 0 ? 110 : -110), core[1] + 110 + 60 * Math.floor(k / 2)]);
-      housingPads.push({ type: "pad.build", id: `housing${k}`, at: [...hpos], cost: { "res.currency": cost("housing") + 3 * k }, build: "struct.housing" });
+  // Hazards: dust storms at fractions of the estimated length.
+  if (feat.has("dust_storms")) {
+    const T = Math.max(70, K.length);
+    const n = goal === "hazard_survive" && K.length > 150 ? 2 : 1;
+    for (let k = 0; k < n; k++) {
+      const start = Math.round(T * (n === 1 ? 0.4 : 0.3 + 0.4 * k));
+      events.push({ type: "event.hazard", warnAt: Math.max(0, start - 8), start, end: start + 22 });
     }
   }
 
-  // Start must not stand on a pad.
-  for (const s of P.stations) if (s.id !== "core" && dist([s.x, s.y], startPt) < s.r + 4) fail(`start overlaps ${s.id}`);
+  // Draft plan: chain unplanned pads off an anchor (a pad certainly on the plan) through requires.pad.
+  const draftPeople = workers ? 6 : feat.has("gate_arrivals") || housingOn ? 2 : defend ? 3 : 0;
+  let draft = finish(40, saw && !alloy ? 6 : 0, draftPeople);
+  let plan0 = planBot(draft, c);
+  const planned = () => new Set(plan0.steps.filter((s) => s.when === "always").map((s) => s.pad));
+  // Medical waits for injuries; housing pads wait for recruits unless the goal ends first (then they are chained).
+  const conditional = (p: Ent) => p.build === "struct.medical";
+  // Pads the plan would only reach after the goal is done count as unplanned too: the level ends at the goal.
+  const lastGoal = plan0.steps.map((s, i) => (s.goalPath && s.when === "always" ? i : -1)).reduce((a, b) => Math.max(a, b), -1);
+  const late = lastGoal >= 0 ? new Set(plan0.steps.filter((s, i) => i > lastGoal && s.when === "always").map((s) => s.pad)) : new Set<string>();
+  const unplanned = pads.filter((p) => (!planned().has(String(p.id)) || late.has(String(p.id))) && !conditional(p));
+  if (unplanned.length > 0) {
+    const steps = plan0.steps.filter((s) => s.when === "always");
+    const anchorStep = [...steps].reverse().find((s) => s.goalPath) ?? steps[steps.length - 1];
+    // Without an anchor, housing pads stay conditional (bought once recruits wait); anything else fails.
+    if (!anchorStep && unplanned.some((p) => p.build !== "struct.housing")) fail("no anchor for the unplanned pads");
+    const byId = (id: string) => pads.find((p) => p.id === id)!;
+    const root = (e: Ent): Ent => { let x = e; for (let i = 0; i < 10; i++) { const r = (x.requires as { pad?: string } | undefined)?.pad; if (!r) break; x = byId(r); } return x; };
+    const chainOf = (e: Ent): Set<string> => { const out = new Set<string>(); let x: Ent | undefined = e; for (let i = 0; i < 10 && x; i++) { out.add(String(x.id)); const r: string | undefined = (x.requires as { pad?: string } | undefined)?.pad; x = r ? byId(r) : undefined; } return out; };
+    for (const u of anchorStep ? unplanned : []) {
+      if (planned().has(String(u.id)) && !late.has(String(u.id))) continue;
+      // A repeatable pad is never "done", so nothing may require it.
+      if (u.repeatable) continue;
+      // The anchor: the last goal-path step (else the last step) that does not itself depend on u.
+      const ch0 = chainOf(u);
+      const all = plan0.steps.filter((x) => x.when === "always");
+      const pick = [...all].reverse().find((x) => x.goalPath && !ch0.has(x.pad) && x.repeat === 1) ?? [...all].reverse().find((x) => !ch0.has(x.pad) && x.repeat === 1);
+      if (!pick) continue;
+      const a = byId(pick.pad);
+      const prevReq = (a.requires as { pad?: string } | undefined)?.pad;
+      const ch = chainOf(u);
+      if (ch.has(String(a.id))) continue;
+      const r = root(u);
+      // Any edit that would close a requirement loop is undone and u is left for the checks below.
+      const snapshot = pads.map((p) => (p.requires ? { ...(p.requires as object) } : undefined));
+      const loops = () => pads.some((p) => { let x: Ent | undefined = p; for (let i = 0; i <= pads.length && x; i++) { const q: string | undefined = (x.requires as { pad?: string } | undefined)?.pad; x = q ? byId(q) : undefined; if (x === p) return true; } return false; });
+      const revert = () => pads.forEach((p, i) => { if (snapshot[i]) p.requires = snapshot[i]; else delete p.requires; });
+      if (prevReq && !ch.has(prevReq)) {
+        // The anchor's chain and u's chain may share a pad (two hires both needing the depot): splice u in
+        // just above the shared pad, so the requirement chain stays a single line.
+        const pc: string[] = []; let x: Ent | undefined = byId(prevReq);
+        for (let i = 0; i < 12 && x; i++) { pc.push(String(x.id)); const q: string | undefined = (x.requires as { pad?: string } | undefined)?.pad; x = q ? byId(q) : undefined; }
+        const common = pc.findIndex((id) => ch.has(id));
+        if (common > 0) {
+          const above = byId(pc[common - 1]!);
+          above.requires = { ...((above.requires as object) ?? {}), pad: String(u.id) };
+          if (loops()) { revert(); continue; }
+          draft = finish(40, saw && !alloy ? 6 : 0, draftPeople);
+          plan0 = planBot(draft, c);
+          continue;
+        }
+        if (common < 0) r.requires = { ...((r.requires as object) ?? {}), pad: prevReq };
+      }
+      a.requires = { ...((a.requires as object) ?? {}), pad: String(u.id) };
+      if (loops()) { revert(); continue; }
+      draft = finish(40, saw && !alloy ? 6 : 0, draftPeople);
+      plan0 = planBot(draft, c);
+    }
+    const still = pads.filter((p) => !planned().has(String(p.id)) && !conditional(p) && !(p.build === "struct.housing" && !anchorStep) && !p.repeatable);
+    if (still.length > 0) fail(`pads off the plan: ${still.map((p) => p.id).join(",")}`);
+  }
+  // The plan must be buyable in order: every requirement met by an earlier step (no requirement loops).
+  {
+    const done = new Set<string>(m0People(people));
+    let level = 1;
+    for (const st of plan0.steps.filter((x) => x.when === "always")) {
+      const e = pads.find((p) => p.id === st.pad)!;
+      const req = e.requires as { pad?: string; coreLevel?: number } | undefined;
+      if (req?.pad && !done.has(req.pad)) fail(`plan order: ${st.pad} needs ${req.pad} first (${plan0.steps.map((x) => x.pad + "<" + ((pads.find((p) => p.id === x.pad)?.requires as { pad?: string } | undefined)?.pad ?? "")).join(" ")})`);
+      if (req?.coreLevel && level < req.coreLevel) fail(`plan order: ${st.pad} needs core level ${req.coreLevel}`);
+      done.add(st.pad);
+      if (e.build === "sink.core.level") level++;
+    }
+  }
 
-  // People count from a draft plan: one idle resident per hire step (repeats included), plus spares.
-  const draft = finish(50, sawOn ? 6 : 0, 30, 0);
-  const plan0 = planBot(draft, c);
-  const hires = plan0.steps.filter((s) => s.kind === "hire" && s.when === "always" && !(c.roles[(pads.find((p) => p.id === s.pad)?.role as { role: string } | undefined)?.role ?? ""]?.behavior === "guard"))
-    .reduce((a, s) => a + s.repeat, 0);
-  let extra = workers ? hires + Math.round(K.spareIdle) : 0;
-  if (has("defenders")) extra += 2 + Math.round(K.spareIdle);
-  if (has("medical")) extra = Math.max(extra, 3);
-  if (lassoOn && goal !== "population" && workers) extra = Math.max(extra, hires);
+  // People from the plan: one idle resident per hire step (repeats included), plus spares.
+  const hires = plan0.steps.filter((s) => s.kind === "hire" && s.when === "always").reduce((a, s) => a + s.repeat, 0);
+  let extra = hires > 0 ? hires + Math.round(K.spareIdle) : 0;
+  if (feat.has("defenders")) extra = Math.max(extra, 2 + Math.round(K.spareIdle) + (goal === "hire" ? Number(gparams["n"] ?? 2) : 0));
+  if (defend) extra = Math.max(extra, 3);
+  // Injuries need colonists who are not defenders, or the med bay never has a patient.
+  if (feat.has("med_bay") && feat.has("defenders")) extra += 2;
+  // Injured colonists cannot be trained, so a train-N goal keeps a few spare.
+  if (goal === "hire" && fam === "defend") extra += 3;
+
+  // The scrap economy must pay for the defense: waves drop at least twice the salvage the plan spends.
+  if (defend && waves.length > 0) {
+    const need = plan0.steps.filter((x) => x.when === "always").reduce((a, x) => a + (x.cost["res.salvage"] ?? 0) * x.repeat, 0)
+      + plan0.barriers.reduce((a, b) => a + (b.res === "res.salvage" ? b.cost : 0), 0)
+      + pads.filter((p) => p.build === "struct.medical").reduce((a, p) => a + ((p.cost as Record<string, number>)["res.salvage"] ?? 0), 0);
+    // Drops of the last wave come too late to spend, so only the earlier waves count.
+    const drops = () => waves.slice(0, -1).reduce((a, w) => a + Object.entries(w.counts).reduce((b, [h, n]) => b + n * (c.hostiles[h]?.drops["res.salvage"] ?? 0), 0), 0);
+    for (let k = 0; k < 12 && drops() < need * 1.6; k++) for (const w of waves) w.counts["hostile.swarmling"] = Math.ceil((w.counts["hostile.swarmling"] ?? 0) * 1.25);
+  }
+  if ((feat.has("gate_arrivals") || housingOn) && !workers) extra = Math.max(extra, 2);
 
   // ---------- economy sizing ----------
-  const budgetFor = (T: number) => Math.min(900, Math.max(90, Math.round((inp.budgetRef ?? T) / (1 - K.margin) / 10) * 10));
-  const evalCost = (cst: number, n: number) => {
-    const m = finish(cst, sawOn ? Math.round(6 + 6 * K.costScale) : 0, n, extra);
-    const plan = planBot(m, c);
-    const f = flowModel(m, plan, c, 1e9);
-    return { m, f };
+  const evalCost = (cst: number) => {
+    const m = finish(cst, saw && !alloy ? Math.round(6 + 6 * K.costScale) : 0, extra);
+    return { m, f: flowModel(m, planBot(m, c), c, 1e9) };
   };
-  let chosen: { m: Manifest; f: Flow };
-  const L = K.length;
-  if (goal === "build" || goal === "currency" || goal === "serve_premium") {
-    let lo = 10, hi = goal === "serve_premium" ? 30 : 600;
-    for (let i = 0; i < 14; i++) {
+  let chosen = evalCost(40);
+  if (sizing === "cost") {
+    let lo = 10, hi = 400;
+    for (let i = 0; i < 12; i++) {
       const mid = Math.round((lo + hi) / 2);
-      const r = goal === "build" ? evalCost(mid, 30) : evalCost(50, mid);
-      if (r.f.T < L) lo = mid; else hi = mid;
+      if (evalCost(mid).f.T < K.length) lo = mid; else hi = mid;
     }
-    const v = Math.max(goal === "serve_premium" ? 2 : 15, lo);
-    chosen = goal === "build" ? evalCost(v, 30) : evalCost(50, v);
-  } else chosen = evalCost(50, 30);
-
+    chosen = evalCost(Math.max(15, lo));
+  }
   const m = chosen.m;
   const waveEnd = waves.length > 0 ? waves[waves.length - 1]!.t : 0;
-  const budget = goal === "waves" ? Math.round((waveEnd + 60) / 10) * 10 : budgetFor(chosen.f.T);
-  m.params["level.budgetSeconds"] = budget;
-  if (has("hazard_events")) {
-    const T = goal === "waves" ? waveEnd : Math.max(60, chosen.f.T);
-    const start = Math.round(goal === "waves" ? (waves[0]!.t + waves[1]!.t) / 2 + 5 : T * 0.42);
-    m.events = [{ type: "event.hazard", warnAt: Math.max(0, start - 8), start, end: start + 22 }];
-  }
-  const flow = flowModel(m, planBot(m, c), c, budget);
+  const evEnd = events.reduce((a, e) => Math.max(a, e.end), 0);
+  const fixedEnd = Math.max(waveEnd, evEnd, goal === "survive" ? Number(gparams["seconds"]) : 0);
+  m.params["level.budgetSeconds"] = Math.min(900, Math.max(90, Math.round(Math.max(fixedEnd + 60, chosen.f.T / (1 - K.margin)) / 10) * 10));
+  const flow = flowModel(m, planBot(m, c), c, m.params["level.budgetSeconds"]!);
   if (!flow.ok) fail(`flow: ${flow.reason}`);
-  return { manifest: m, flow, stations: P.stations, notes };
+  void register;
+  return { manifest: m, flow, stations: P.stations, notes, sizing, queue };
 }

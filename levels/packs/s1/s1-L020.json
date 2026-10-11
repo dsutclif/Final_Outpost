@@ -1,8 +1,8 @@
 {
   "id": "s1-L020",
   "seed": 886552486,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,16 +15,15 @@
     ]
   },
   "modules": [
-    "barrier_lines",
     "blocked_zones",
     "build_pads",
     "carry",
     "core",
     "core_levels",
     "gather",
-    "housing",
-    "lasso",
-    "sales"
+    "hazard_events",
+    "sales",
+    "workers"
   ],
   "start": [
     262,
@@ -39,7 +38,7 @@
         500
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -47,250 +46,368 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        336,
-        637
+        338,
+        643
       ],
       "sells": [
         "res.food_raw_1"
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.food_source",
+      "id": "food1",
       "at": [
-        86,
-        474
+        143,
+        635
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        100,
-        404
+        126,
+        449
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        123,
-        364
+        166,
+        434
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        36,
-        489
+        115,
+        496
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        134,
+        160,
+        475
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        189,
+        477
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        144,
+        510
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        91,
+        478
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        84,
+        435
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        135,
+        405
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        105,
+        412
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        173,
+        512
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        204,
         451
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        109,
-        535
+        88,
+        512
       ]
     },
     {
-      "type": "node.food_source",
-      "id": "food1",
+      "type": "node.fuel_scrap",
       "at": [
-        128,
-        712
+        117,
+        532
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        394,
+        542
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        362,
+        545
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        411,
+        518
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        375,
+        517
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        426,
+        554
       ]
     },
     {
       "type": "zone.blocked",
-      "id": "rubble",
+      "id": "rubble0",
       "rect": [
-        0,
-        282,
-        480,
-        44
+        340,
+        314,
+        120,
+        70
       ]
     },
     {
-      "type": "barrier.line",
-      "id": "fence",
-      "res": "res.currency",
-      "costPerSection": 8,
-      "sections": [
-        {
-          "a": [
-            0,
-            160
-          ],
-          "b": [
-            182,
-            160
-          ],
-          "prebuilt": true
-        },
-        {
-          "a": [
-            182,
-            160
-          ],
-          "b": [
-            342,
-            160
-          ],
-          "gate": true,
-          "prebuilt": true
-        },
-        {
-          "a": [
-            342,
-            160
-          ],
-          "b": [
-            480,
-            160
-          ],
-          "prebuilt": true
-        }
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
+      "type": "node.fuel_scrap",
       "at": [
-        171,
-        63
+        365,
+        349
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "node.fuel_scrap",
       "at": [
-        417,
-        92
+        400,
+        349
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "node.fuel_scrap",
       "at": [
-        290,
-        55
+        435,
+        349
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "pad.hire",
+      "id": "hire_core",
       "at": [
-        73,
-        52
-      ]
-    },
-    {
-      "type": "struct.gate",
-      "id": "gate",
-      "at": [
-        240,
-        872
+        227,
+        416
       ],
-      "arrivals": {
-        "every": 12,
-        "total": 4
+      "cost": {
+        "res.currency": 8
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "sink.core"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        219,
+        636
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        304,
+        552
+      ],
+      "cost": {
+        "res.currency": 17
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
       }
     },
     {
       "type": "pad.build",
-      "id": "core_level",
+      "id": "core_level0",
       "at": [
-        155,
-        569
+        159,
+        585
       ],
       "cost": {
-        "res.currency": 22
+        "res.currency": 24
       },
       "build": "sink.core.level"
     },
     {
       "type": "pad.build",
-      "id": "zone_pad",
+      "id": "core_level1",
       "at": [
-        266,
-        371
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "build": "zone.clear",
-      "target": "rubble",
-      "requires": {
-        "coreLevel": 2
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "landmark",
-      "at": [
-        370,
-        224
+        330,
+        499
       ],
       "cost": {
         "res.currency": 36
       },
-      "build": "struct.landmark",
-      "big": true,
+      "build": "sink.core.level",
       "requires": {
-        "pad": "zone_pad"
+        "pad": "clear0"
       }
     },
     {
       "type": "pad.build",
-      "id": "housing0",
+      "id": "clear0",
       "at": [
-        391,
-        625
+        388,
+        425
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 15
       },
-      "build": "struct.housing"
+      "build": "zone.clear",
+      "target": "rubble0",
+      "requires": {
+        "coreLevel": 2
+      }
     }
   ],
-  "people": [],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
   "waves": [],
-  "events": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 12,
+      "start": 20,
+      "end": 42
+    }
+  ],
   "params": {
-    "start.currency": 12,
-    "core.burn": 3,
-    "customers.spawn": 2.6,
+    "start.currency": 8,
+    "core.burn": 2.7,
+    "housing.base": 7,
+    "customers.spawn": 2.7,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "housing.base": 1,
-    "level.budgetSeconds": 270
+    "customers.bulkShare": 0.23,
+    "level.budgetSeconds": 140
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "core_level",
+    "n": 3
   },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "core_level",
+      "params": {
+        "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 74
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 60
+      }
+    }
+  ],
   "fail": [
     "meter.lifeline"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Stasis Pods and Scaffolds",
-      "goal": "Build the Habitat hub",
+      "title": "Storms",
+      "goal": "core_level",
       "tips": [
-        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+        "A dust storm burns fuel fast. Fill the reactor before it hits."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.305,
-    "fun": 0.83,
-    "botMargin": 0.593,
+    "difficulty": 0.333,
+    "fun": 0.89,
+    "botMargin": 0.527,
     "botsPassed": [
       "good",
       "average",
       "weak",
       "novice",
       "floor"
-    ]
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2,
+      "goodAll": 1
+    }
   }
 }

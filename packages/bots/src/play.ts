@@ -1,7 +1,7 @@
 import { content as defaultContent, type Content } from "@fo/content";
-import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, createSim, population, seedRng, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
+import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, createSim, seedRng, starsOf, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
 import { Brain } from "./brain.js";
-import { planBot, type Plan } from "./plan.js";
+import { TIME_FIXED_GOALS, planBot, type Plan } from "./plan.js";
 import { withLearning, type BotProfile } from "./profiles.js";
 
 /** Content default of `level.budgetSeconds`, kept as a named export for callers. */
@@ -72,6 +72,55 @@ export interface BotTrace {
   warningLead: number;
 }
 
+/** End-of-run numbers the generator sizes star objectives from (REDESIGN-R2 §6). */
+export interface RunStats {
+  /** Lowest core fuel, per mille of capacity. */
+  heatMin: number;
+  /** Lowest base health, percent of max (100 without defense). */
+  hpMin: number;
+  fuelOuts: number;
+  froze: number;
+  customersAngry: number;
+  injured: number;
+  barriersLost: number;
+  /** A converter output or a shelf reached its cap at some point. */
+  overload: boolean;
+  tripBest: number;
+  tripBestClean: number;
+  podsLost: number;
+  /** Recruit pods still on the map at the end. */
+  podsLeft: number;
+  rescued: number;
+  streakMax: number;
+  hired: number;
+  /** Mean core fuel share over the run (sampled each second). */
+  heatMean: number;
+  admitted: number;
+  kills: number;
+  salvage: number;
+}
+
+/** What the run used, for the generator's "every element is used" rule. */
+export interface ElementUse {
+  /** Pads completed (or hired from at least once). */
+  pads: string[];
+  /** Barrier lines built on or hit, or (closed rings) outside of which a lasso loop closed. */
+  lines: string[];
+  /** Node types gathered by anyone. */
+  nodes: string[];
+  /** Converter ids that produced something. */
+  converters: string[];
+  /** Captures brought home (released or delivered). */
+  captures: number;
+  preyKilled: number;
+  /** Sales made (the sales point was used). */
+  sold: number;
+  /** Gate arrivals admitted. */
+  admitted: number;
+  /** Hazard events ridden out. */
+  hazards: number;
+}
+
 export interface BotResult {
   profile: string;
   seed: number;
@@ -82,14 +131,22 @@ export interface BotResult {
   stalls: number;
   stallStates: StallState[];
   trace: BotTrace;
+  /** Star objectives done at the end (sim `starsOf`), and each objective's outcome in manifest order. */
+  stars: number;
+  objectives: { kind: string; done: boolean }[];
+  runStats: RunStats;
+  used: ElementUse;
   hash: string;
   inputs?: Input[];
 }
 
 const PROGRESS_EVENTS: ReadonlySet<SimEvent["t"]> = new Set<SimEvent["t"]>([
   "pad_paid", "built", "hired", "unlocked", "core_upgraded", "zone_cleared", "captured", "released", "recruit_arrived",
-  "moved_in", "barrier_progress", "barrier_built", "wave_cleared", "died",
+  "moved_in", "barrier_progress", "barrier_built", "wave_cleared", "died", "crate_delivered",
 ]);
+
+const SALES_GOALS: ReadonlySet<string> = new Set(["currency", "sell", "earn", "serve_premium", "streak", "sell_each", "earn_within", "bulk_order", "shelves_full", "automate"]);
+const MAKE_GOALS: ReadonlySet<string> = new Set(["produce", "chain", "converters_running", "automate", "converter_level", "haul", "stockpile"]);
 
 /** Play a manifest headless with one profile and one in-level seed. Deterministic. */
 export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, opts: BotOptions = {}): BotResult {
@@ -106,7 +163,11 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const goal = cp.manifest.goal;
   const lastWave = cp.waves.length > 0 ? cp.waves[cp.waves.length - 1]!.tick : 0;
   const budgetTicks = cp.timerTicks > 0 ? cp.timerTicks : Math.round(budgetS * TPS);
-  const maxTicks = opts.maxTicks ?? (goal.type === "waves" ? lastWave + WAVES_TAIL_SECONDS * TPS : budgetTicks);
+  const timeFixed = TIME_FIXED_GOALS.has(goal.type);
+  const lastEvent = cp.manifest.events.reduce((a, e) => Math.max(a, e.end), 0) * TPS;
+  const survive = goal.type === "survive" ? Math.round(((goal as { seconds?: number }).seconds ?? 0) * TPS) : 0;
+  const fixedEnd = Math.max(lastWave, lastEvent, survive);
+  const maxTicks = opts.maxTicks ?? (cp.timerTicks > 0 ? cp.timerTicks : timeFixed ? fixedEnd + WAVES_TAIL_SECONDS * TPS : budgetTicks);
 
   const inputs: Input[] = [];
   const stallStates: StallState[] = [];
@@ -116,6 +177,10 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const progressS: number[] = [], threatS: number[] = [];
   let warnStart = -1;
   let integSum = 0, integN = 0;
+  let hpMin = 100, overload = false, heatSum = 0, heatN = 0, lastObj = 0;
+  const lines = new Set<string>(), nodesUsed = new Set<string>(), convUsed = new Set<string>();
+  let capturesHome = 0;
+  const builtPads = new Set<string>();
 
   while (!st.over && st.tick < maxTicks) {
     const inp = brain.tick(st);
@@ -134,6 +199,8 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
       lastCapNeed = capNeed;
     }
     for (const e of ev) {
+      if (e.t === "converted" && MAKE_GOALS.has(goal.type)) progressed = true;
+      if (e.t === "deposited" && e.to === "store.depot") progressed = true;
       if (e.t === "converted" && brain.usesCapped && (brain.cappedNeed(st)[e.res] ?? 0) > 0) progressed = true;
       if (PROGRESS_EVENTS.has(e.t)) progressed = true;
       if (REWARD_EVENTS.has(e.t) && e.t !== "sold") progressed = true;
@@ -142,17 +209,38 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
         if (currencyReachable(st, needCur, earned, budgetTicks)) progressed = true;
         // Serving a premium customer is the goal itself on serve_premium levels.
         if (goal.type === "serve_premium" && e.premium) progressed = true;
+        // Selling is the goal itself on harvest goals (earn, streaks, bulk orders ...).
+        if (SALES_GOALS.has(goal.type)) progressed = true;
       }
       if (e.t === "collected" && currencyReachable(st, needCur, earned, budgetTicks)) progressed = true;
-      if (e.t === "deposited" && e.to === "sink.core" && e.by === undefined && fuelBefore * 2 < coreCap(st, cp)) progressed = true;
+      // Feeding a core below half (or below the heat policy's band) keeps the colony alive: progress.
+      if (e.t === "deposited" && e.to === "sink.core" && e.by === undefined && fuelBefore < coreCap(st, cp) * Math.max(0.5, (plan.policies?.heatFloor ?? 0) + 0.2)) progressed = true;
       if (e.t === "hired") brain.hiresByPad[e.pad] = (brain.hiresByPad[e.pad] ?? 0) + 1;
+      if (e.t === "gathered") { const n = st.nodes[e.node]; nodesUsed.add(n ? n.type : String(e.node)); }
+      if (e.t === "converted") convUsed.add(e.conv);
+      if (e.t === "built") builtPads.add(e.pad);
+      if (e.t === "barrier_progress" || e.t === "barrier_built") lines.add(e.line);
+      if (e.t === "hit" && e.target === "barrier") for (const l of st.barriers) if (l.sections.some((sec) => near2(sec, e.at))) lines.add(l.id);
+      if (e.t === "captured") for (const l of st.barriers) if (l.closed) lines.add(l.id);
+      if (e.t === "released" || e.t === "crate_delivered") capturesHome++;
       if ((e.t === "gathered" || e.t === "deposited" || e.t === "collected" || e.t === "picked" || e.t === "pad_paid" || e.t === "barrier_progress") && !("by" in e && e.by !== undefined)) acted = true;
       noteModule(used, e, cp.upgrades);
     }
     void currencyBefore;
     opts.onTick?.(st, brain, ev);
     // On a waves goal the schedule itself advances the goal while waves are still to come.
-    if (goal.type === "waves" && st.waves.idx < cp.waves.length) progressed = true;
+    // While attack waves are still to come, the schedule itself advances any defend level.
+    if (cp.waves.length > 0 && st.waves.idx < cp.waves.length) progressed = true;
+    if (timeFixed && !st.over) progressed = true;
+    // Riding out a storm is the job while it lasts.
+    if (st.hazard.phase !== "none") progressed = true;
+    const ob = st.objectives[0];
+    if (ob && ob.progress > lastObj) progressed = true;
+    if (ob) lastObj = ob.progress;
+    const hp = st.meters.baseHealthMax > 0 ? (st.meters.baseHealth * 100) / st.meters.baseHealthMax : 100;
+    if (hp < hpMin) hpMin = hp;
+    if (!overload) overload = st.converters.some((cv) => cv.out >= cp.converters[cv.type]!.outCap)
+      || (st.sales !== null && Object.values(st.sales.shelf).some((n) => n >= cp.sales.shelfCap));
     if (progressed) lastProgress = st.tick;
     else if (st.tick - lastProgress >= STALL_SECONDS * TPS) {
       stalls++;
@@ -173,6 +261,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
       if (max > 0) { integSum += have / max; integN++; }
     }
     if (st.tick % TPS === 0) {
+      heatSum += st.core.fuel / cap; heatN++;
       progressS.push(goalProgress(st, cp, plan, brain));
       threatS.push(threatSignal(st, cp));
     }
@@ -182,11 +271,14 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const reason = st.over ? st.reason ?? "unknown" : "budget";
   const ticks = st.tick;
   let margin: number;
-  if (goal.type === "waves") {
+  if (timeFixed && cp.waves.length > 0) {
     const hp = st.meters.baseHealth / Math.max(1, st.meters.baseHealthMax);
     // Barrier integrity averaged over every second since the first wave: quick fights and rebuilds count.
     const integrity = integN > 0 ? integSum / integN : hp;
     margin = won ? (hp + integrity) / 2 : -(1 - goalProgress(st, cp, plan, brain));
+  } else if (timeFixed) {
+    // Holding out against the clock (survive, storms): the margin is how warm the colony stayed.
+    margin = won ? heatSum / Math.max(1, heatN) : -(1 - goalProgress(st, cp, plan, brain));
   } else {
     margin = won ? (budgetTicks - ticks) / budgetTicks : -(1 - goalProgress(st, cp, plan, brain));
   }
@@ -220,12 +312,33 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     threat: threatS,
     warningLead: !won && warnStart >= 0 ? (ticks - warnStart) / TPS : -1,
   };
+  const runStats: RunStats = {
+    heatMin: s.heatMin, hpMin, fuelOuts: s.fuelOuts, froze: s.froze, customersAngry: s.customersAngry, injured: s.injured,
+    barriersLost: s.barriersLost, overload, tripBest: s.tripBest, tripBestClean: s.tripBestClean, podsLost: s.podsLost,
+    podsLeft: st.captures.filter((c) => cp.lassoables[c.type]?.result === "recruit").length, rescued: s.rescued,
+    streakMax: s.streakMax, hired: s.hired, heatMean: heatSum / Math.max(1, heatN),
+    admitted: s.admitted, kills: s.kills, salvage: s.salvage,
+  };
+  const usedEl: ElementUse = {
+    pads: st.pads.filter((p) => p.done || builtPads.has(p.id) || (brain.hiresByPad[p.id] ?? 0) > 0).map((p) => p.id),
+    lines: [...lines], nodes: [...nodesUsed], converters: [...convUsed], captures: capturesHome, preyKilled: s.preyKilled, sold: s.sold,
+    admitted: s.admitted, hazards: s.hazardsSurvived,
+  };
   const res: BotResult = {
-    profile: profile.name, seed, won, reason, ticks, margin, stalls, stallStates, trace, hash: sim.hash(),
+    profile: profile.name, seed, won, reason, ticks, margin, stalls, stallStates, trace,
+    stars: st.over ? starsOf(st) : 0, objectives: st.objectives.map((o) => ({ kind: o.kind, done: o.done })),
+    runStats, used: usedEl, hash: sim.hash(),
   };
   if (opts.recordInputs) res.inputs = inputs;
   return res;
 }
+
+const near2 = (sec: { a: Vec; b: Vec }, p: Vec): boolean => {
+  const R = 40 * FP;
+  const minx = Math.min(sec.a.x, sec.b.x) - R, maxx = Math.max(sec.a.x, sec.b.x) + R;
+  const miny = Math.min(sec.a.y, sec.b.y) - R, maxy = Math.max(sec.a.y, sec.b.y) + R;
+  return p.x >= minx && p.x <= maxx && p.y >= miny && p.y <= maxy;
+};
 
 function histMedian(hist: number[] | undefined, count: number, ticks: number): number {
   if (!hist || count === 0) return ticks / TPS;
@@ -252,7 +365,8 @@ function currencyReachable(st: State, need: number, earned: number, budgetTicks:
   const rate = earned / Math.max(TPS * 10, st.tick);
   // Judged against the whole budget, not what is left of it: a bot still earning toward a price it
   // could have reached must not turn into a "stall" just because the clock is nearly out.
-  return need - st.currency <= rate * budgetTicks * 1.5 + 1;
+  // A slow player earning toward a reachable price is not stalled: the horizon grows with the run.
+  return need - st.currency <= rate * Math.max(budgetTicks, 4 * st.tick) * 1.5 + 1;
 }
 
 function snapshotStall(st: State, brain: Brain): StallState {
@@ -286,7 +400,8 @@ function noteModule(used: Set<string>, e: SimEvent, upgrades: Record<string, unk
     case "zone_cleared": used.add("blocked_zones"); break;
     case "released": used.add("lasso"); break;
     case "moved_in": case "recruit_arrived": used.add("housing"); break;
-    case "barrier_built": used.add("barrier_lines"); break;
+    case "barrier_built": case "barrier_progress": used.add("barrier_lines"); break;
+    case "hit": if (e.target === "barrier") used.add("barrier_lines"); break;
     case "captured": used.add("lasso"); used.add("barrier_lines"); break; // the tow line only engages outside a line
     case "wave_started": case "wave_cleared": used.add("defense"); break;
     case "died": if (e.kind.startsWith("node.")) used.add("hunting"); break;
@@ -298,31 +413,24 @@ function noteModule(used: Set<string>, e: SimEvent, upgrades: Record<string, unk
   }
 }
 
-/** Goal progress in [0, 1]. Build goals count paid cost along the goal path. */
+/** Goal progress in [0, 1], from the sim's main objective (objective 0 mirrors the goal). */
 export function goalProgress(st: State, cp: ReturnType<typeof createSim>["compiled"], plan: Plan, brain?: Brain): number {
-  const g = cp.manifest.goal;
-  switch (g.type) {
-    case "build": {
-      let paid = 0, total = 0;
-      for (const s of plan.steps) {
-        if (!s.goalPath) continue;
-        const pad = st.pads.find((p) => p.id === s.pad);
-        for (const [r, n] of Object.entries(s.cost)) { total += n; paid += pad ? (pad.done ? n : Math.min(n, pad.paid[r] ?? 0)) : 0; }
-      }
-      return st.built.includes(g.target) ? 1 : total > 0 ? Math.min(0.99, paid / total) : 0;
-    }
-    case "population": return Math.min(1, population(st) / g.n);
-    case "currency": return Math.min(1, st.currency / g.n);
-    case "serve_premium": return Math.min(1, (st.sales?.premiumServed ?? 0) / g.n);
-    case "waves": {
-      const n = cp.waves.length;
-      if (n === 0) return 1;
-      const done = st.waves.idx - (st.waves.active ? 1 : 0);
-      return Math.min(1, Math.max(0, done) / n);
-    }
-  }
   void brain;
-  return 0;
+  const o = st.objectives[0];
+  if (!o) return 0;
+  if (o.done) return 1;
+  const g = cp.manifest.goal;
+  if (g.type === "build") {
+    // Paid cost along the goal path, so a half-paid landmark counts.
+    let paid = 0, total = 0;
+    for (const s of plan.steps) {
+      if (!s.goalPath) continue;
+      const pad = st.pads.find((p) => p.id === s.pad);
+      for (const [r, n] of Object.entries(s.cost)) { total += n; paid += pad ? (pad.done ? n : Math.min(n, pad.paid[r] ?? 0)) : 0; }
+    }
+    return total > 0 ? Math.min(0.99, paid / total) : 0;
+  }
+  return o.target > 0 ? Math.min(0.99, Math.max(0, o.progress / o.target)) : 0;
 }
 
 /** 0..1 threat: the worst of fuel shortfall, queue pressure and attack load. */

@@ -1,8 +1,8 @@
 {
   "id": "s1-L032",
   "seed": 1676619851,
-  "engineVersion": "0.4.0",
-  "contentVersion": "0.4.0",
+  "engineVersion": "0.5.0",
+  "contentVersion": "0.5.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,15 +15,16 @@
     ]
   },
   "modules": [
-    "blocked_zones",
+    "barrier_lines",
     "build_pads",
     "carry",
     "core",
-    "core_levels",
-    "customer_variety",
+    "defenders",
+    "defense",
     "gather",
-    "housing",
-    "sales"
+    "sales",
+    "salvage_upgrades",
+    "workers"
   ],
   "start": [
     240,
@@ -38,189 +39,389 @@
         520
       ],
       "params": {
-        "fuel": 16,
+        "fuel": 17,
         "level": 1
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.material_source",
       "at": [
-        251,
-        720
+        145,
+        509
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        106,
+        519
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        147,
+        469
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        142,
+        558
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        175,
+        537
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        177,
+        481
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        115,
+        464
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        114,
+        568
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        180,
+        567
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        180,
+        451
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        86,
+        469
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        87,
+        557
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        434
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        210,
+        460
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.salvage",
+      "costPerSection": 1,
+      "points": [
+        [
+          50,
+          285
+        ],
+        [
+          177,
+          285
+        ],
+        [
+          303,
+          285
+        ],
+        [
+          430,
+          285
+        ],
+        [
+          430,
+          403
+        ],
+        [
+          430,
+          520
+        ],
+        [
+          430,
+          638
+        ],
+        [
+          430,
+          755
+        ],
+        [
+          303,
+          755
+        ],
+        [
+          177,
+          755
+        ],
+        [
+          50,
+          755
+        ],
+        [
+          50,
+          638
+        ],
+        [
+          50,
+          520
+        ],
+        [
+          50,
+          403
+        ]
       ],
-      "sells": [
-        "res.food_raw_1"
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        71,
-        500
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        88,
-        413
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        64,
-        548
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        76,
-        608
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        79,
-        367
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        25,
-        450
-      ]
-    },
-    {
-      "type": "node.food_source",
-      "id": "food1",
-      "at": [
-        417,
-        538
-      ]
-    },
-    {
-      "type": "zone.blocked",
-      "id": "rubble",
-      "rect": [
+      "closed": true,
+      "gates": [
+        8
+      ],
+      "prebuilt": [
         0,
-        282,
-        480,
-        44
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
       ]
     },
     {
-      "type": "struct.gate",
-      "id": "gate",
+      "type": "pad.build",
+      "id": "tower_n",
       "at": [
-        240,
-        872
+        238,
+        357
       ],
-      "arrivals": {
-        "every": 12,
-        "total": 2
-      }
+      "cost": {
+        "res.salvage": 8
+      },
+      "build": "struct.ranged_defense"
     },
     {
       "type": "pad.build",
-      "id": "core_level",
+      "id": "tower_n_up",
       "at": [
-        131,
-        580
+        245,
+        440
       ],
       "cost": {
-        "res.currency": 22
+        "res.salvage": 6
       },
-      "build": "sink.core.level"
-    },
-    {
-      "type": "pad.build",
-      "id": "zone_pad",
-      "at": [
-        244,
-        360
-      ],
-      "cost": {
-        "res.currency": 13
-      },
-      "build": "zone.clear",
-      "target": "rubble",
+      "build": "struct.ranged_defense.t2",
+      "target": "tower_n",
       "requires": {
-        "coreLevel": 2
+        "pad": "tower_n"
       }
     },
     {
       "type": "pad.build",
-      "id": "landmark",
+      "id": "reinforce",
       "at": [
-        95,
-        226
+        311,
+        444
       ],
       "cost": {
-        "res.currency": 46
+        "res.salvage": 6
       },
-      "build": "struct.landmark",
-      "big": true,
+      "build": "struct.barrier.reinforced",
       "requires": {
-        "pad": "zone_pad"
+        "pad": "tower_n_up"
       }
     },
     {
       "type": "pad.build",
-      "id": "housing0",
+      "id": "barracks",
       "at": [
-        367,
-        617
+        153,
+        613
       ],
       "cost": {
-        "res.currency": 11
+        "res.salvage": 5
       },
-      "build": "struct.housing"
+      "build": "struct.barracks",
+      "requires": {
+        "pad": "reinforce"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "train",
+      "at": [
+        146,
+        680
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "role": {
+        "role": "role.defender"
+      },
+      "repeatable": true,
+      "requires": {
+        "pad": "barracks"
+      }
     }
   ],
-  "people": [],
-  "waves": [],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 55,
+      "counts": {
+        "hostile.swarmling": 24
+      },
+      "side": "n",
+      "gap": 0.7
+    },
+    {
+      "t": 115,
+      "counts": {
+        "hostile.swarmling": 38,
+        "hostile.raider_humanoid": 1
+      },
+      "side": "n",
+      "gap": 0.7
+    },
+    {
+      "t": 175,
+      "counts": {
+        "hostile.swarmling": 48,
+        "hostile.raider_humanoid": 2
+      },
+      "side": "n",
+      "gap": 0.7
+    }
+  ],
   "events": [],
   "params": {
-    "start.currency": 12,
-    "core.burn": 2.9,
-    "customers.spawn": 2.6,
-    "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "housing.base": 1,
-    "customers.impatientShare": 0.13,
-    "customers.premiumShare": 0.24,
-    "level.budgetSeconds": 160
+    "start.currency": 9,
+    "core.burn": 3,
+    "housing.base": 11,
+    "meters.baseHealth": 16,
+    "level.budgetSeconds": 430
   },
   "goal": {
-    "type": "build",
-    "target": "landmark"
+    "type": "hire",
+    "n": 2,
+    "role": "role.defender"
   },
+  "family": "defend",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "hire",
+      "params": {
+        "n": 2,
+        "role": "role.defender"
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 172
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_wall_lost",
+      "params": {}
+    }
+  ],
   "fail": [
-    "meter.lifeline"
+    "meter.lifeline",
+    "meter.base_health"
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hab Pods and Groundbreak",
-      "goal": "Build the Habitat hub",
+      "title": "Scrap",
+      "goal": "hire",
       "tips": [
-        "New colonists need a bed. Build hab pods so they can move in."
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.511,
-    "fun": 0.898,
-    "botMargin": 0.571,
+    "difficulty": 0.651,
+    "fun": 0.31,
+    "botMargin": 0.621,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
-    ]
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 2.9,
+      "median": 2.33,
+      "goodAll": 0.9
+    }
   }
 }
