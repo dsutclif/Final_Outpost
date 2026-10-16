@@ -33,6 +33,8 @@ export interface PlaceOpts {
   tight?: boolean;
   /** Keep the centre at least r from each of these points (gatherables of another resource: see build.ts). */
   avoid?: { p: Pt; r: number }[];
+  /** May stand right against a wall (inside it), not just clear of it: a wall tower's pad. */
+  hugWall?: boolean;
   /** Footprint key(s) (Placer.footprints): the ground the drawn model covers, which must not touch another's. */
   fp?: string | readonly string[];
 }
@@ -69,7 +71,7 @@ export class Placer {
   ok(id: string, p: Pt, r: number, opts: PlaceOpts = {}): boolean {
     if (!inRect(p, this.bounds)) return false;
     for (const b of this.blocked) if (inRect(p, b, r * 0.5 + 10)) return false;
-    for (const w of this.walls) if (segDist(p, w[0], w[1]) < r + 10) return false;
+    for (const w of this.walls) if (segDist(p, w[0], w[1]) < (opts.hugWall ? r - 4 : r + 10)) return false;
     for (const a of opts.avoid ?? []) if (dist(p, a.p) < a.r) return false;
     const fb = this.box(p, opts.fp);
     for (const s of this.stations) {

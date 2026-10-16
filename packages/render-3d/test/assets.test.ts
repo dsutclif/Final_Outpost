@@ -5,6 +5,7 @@ import { createBuildCtx } from "../src/assets/context.js";
 import { getAnchor } from "../src/assets/common.js";
 import { ROLE_GEAR } from "../src/assets/characters.js";
 import { buildModel, hasModel, requiredAnchors } from "../src/assets/registry.js";
+import { buildTerrain } from "../src/assets/scatter.js";
 import { objectTriangles } from "../src/geom.js";
 import { CLASS_ANCHORS, TRI_BUDGET, modelIds } from "../src/ids.js";
 
@@ -71,3 +72,17 @@ describe("model registry", () => {
     expect(buildModel("struct.not_a_thing", createBuildCtx(SKINS["debug"]!)).root.userData["fallback"]).toBe(true);
   });
 });
+
+describe("terrain (R3 item 17)", () => {
+  const ctx = createBuildCtx(marsGreenhouse);
+  // the largest rect the generator draws for each kind (generator.json terrain.kinds), in metres
+  const sizes: [string, number, number][] = [["ridge", 140 / 28, 22 / 28], ["ridge", 22 / 28, 140 / 28], ["outcrop", 58 / 28, 48 / 28], ["chasm", 90 / 28, 40 / 28]];
+  for (const [kind, w, d] of sizes) {
+    it(`${kind} ${w.toFixed(1)}x${d.toFixed(1)} fits the scatter budget and exposes its anchor`, () => {
+      const m = buildTerrain(ctx, kind, w, d);
+      expect(objectTriangles(m.root)).toBeLessThanOrEqual(TRI_BUDGET[m.cls]);
+      expect(getAnchor(m.root, "interact")).toBeDefined();
+    });
+  }
+});
+

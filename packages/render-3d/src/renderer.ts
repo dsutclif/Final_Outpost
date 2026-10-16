@@ -38,7 +38,7 @@ import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
-import { buildRubble, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
+import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
 import { LEAD_WEIGHT, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder } from "./geom.js";
 import { Interp, type V } from "./interp.js";
@@ -1341,6 +1341,10 @@ export class Renderer3D implements Renderer {
           tmpM.makeRotationY((i * 7 + j * 3) % 6).scale(tmpV.set((w / nx) * 1.15, ART_M * 1.25 * k, (h / ny) * 1.15)).setPosition(x + (i + 0.5) * (w / nx), 0, y + (j + 0.5) * (h / ny));
           W.rubble.push(tmpM);
         }
+      } else if (z.type === "zone.terrain") {
+        // one model per piece, built to the rect (the footprint in metres) and cached under its key
+        const kind = z.kind ?? "ridge", seed = 3 + z.id.length * 5 + Math.round(x + y);
+        this.place(`z:${z.id}`, "zone.terrain", v3(x + w / 2, 0, y + h / 2), 1, (ctx) => buildTerrain(ctx, kind, w / ART_M, h / ART_M, seed));
       } else if (z.type === "zone.waiting") {
         const p = this.place(`z:${z.id}`, "zone.waiting", v3(x + w / 2, 0, y + h / 2));
         p.model.root.scale.set(w, ART_M, h);

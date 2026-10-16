@@ -1,11 +1,11 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { FP, isqrt, moveToward, mulDiv, within, type Vec } from "../fixed.js";
+import { FP, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between } from "../rng.js";
 import type { HostileState, State } from "../state.js";
 import { breakSection, firstCrossing, outsideLine } from "./barriers.js";
 import { hitHostile, nearestHostile } from "./combat.js";
-import { canTake, hint, nearSegment, stepDown } from "./common.js";
+import { canTake, hint, nearSegment, stepDown, walkAround } from "./common.js";
 import { dropTow } from "./lasso.js";
 
 type Side = HostileState["side"];
@@ -96,7 +96,7 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
       continue;
     }
     h.target = "core";
-    moveToward(h.pos, goal, def.speed, 1);
+    walkAround(st, cp, h.pos, goal, def.speed);
   }
 
   hitPlayer(st, cp, out);

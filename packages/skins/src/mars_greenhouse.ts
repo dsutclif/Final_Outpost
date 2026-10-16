@@ -78,6 +78,7 @@ const names: Record<string, string> = {
   "hostile.raider_humanoid": "Raider",
   "hostile.creature": "Dust crawler",
   "zone.blocked": "Rockslide",
+  "zone.terrain": "Rock ridge",
   "zone.waiting": "Arrivals pad",
   "meter.lifeline": "Heat",
   "meter.base_health": "Colony HP",
@@ -196,6 +197,7 @@ const purposes: Record<string, string> = {
   "hostile.raider_humanoid": "Attacks the colony; walk into it to fight",
   "hostile.creature": "Attacks the colony; walk into it to fight",
   "zone.blocked": "Blocks the way until its pad clears it",
+  "zone.terrain": "Solid rock: nothing crosses it, so walk around",
   "zone.waiting": "New arrivals wait here for a bed",
   "zone.prey": "Hoppers roam here",
 };
@@ -249,6 +251,7 @@ const sprites: Record<string, string> = {
   "hostile.raider_humanoid": "hostile.raider",
   "hostile.creature": "hostile.crawler",
   "zone.blocked": "zone.rockslide",
+  "zone.terrain": "zone.ridge",
   "zone.waiting": "zone.pad",
 };
 
@@ -280,15 +283,17 @@ export const marsGreenhouse: Skin = {
     fog: "#d9a47c",
     storm: "#c27a3a",
     res: {
-      "res.material_basic": "#a9c1d9",
-      "res.material_refined": "#e3eaf2",
-      "res.fuel_dense": "#c9f24e",
-      "res.food_raw_1": "#72e46e",
-      "res.food_raw_2": "#ffa3b4",
-      "res.food_prepared": "#ffe6b3",
-      "res.salvage": "#b9c4ce",
-      "res.currency": "#ffcb3d",
-      "res.component": "#7fe0f0",
+      // Saturated and chunky so carried items pop against the rust ground (ore is violet, not
+      // the grey of the scattered rocks); the item builders add a dark rim for the silhouette.
+      "res.material_basic": "#d89dff",
+      "res.material_refined": "#f4f6ff",
+      "res.fuel_dense": "#f2ff3a",
+      "res.food_raw_1": "#35e65a",
+      "res.food_raw_2": "#ff8fb8",
+      "res.food_prepared": "#ffdc8a",
+      "res.salvage": "#8fb6ff",
+      "res.currency": "#ffc21f",
+      "res.component": "#4ff2d2",
     },
     role: {
       "role.idle": "#b8c3cc",

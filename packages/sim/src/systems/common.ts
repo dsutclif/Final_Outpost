@@ -92,7 +92,7 @@ export function segCross(p1: Vec, p2: Vec, q1: Vec, q2: Vec): number {
 /** Uncleared blocked zones and built wall sections block walkers; gates do not. */
 export function blockedAt(st: State, cp: Compiled, x: number, y: number): boolean {
   const p = { x, y };
-  for (const z of st.zones) if (z.type === "zone.blocked" && !z.cleared && inRect(p, z.rect, cp.zones.blockMargin)) return true;
+  for (const z of st.zones) if ((z.type === "zone.blocked" || z.type === "zone.terrain") && !z.cleared && inRect(p, z.rect, cp.zones.blockMargin)) return true;
   for (const line of st.barriers) {
     for (const s of line.sections) if (s.built && !s.gate && nearSegment(p, s.a, s.b, cp.barrier.thickness)) return true;
   }
@@ -180,3 +180,41 @@ export function spawnDrops(st: State, cp: Compiled, drops: Record<string, number
 }
 
 export const stepDown = (v: number): number => (v > 0 ? v - 1 : 0);
+
+/** Terrain only (never clears). Hostiles ignore rubble and walls here: walls are handled by their own stop rule. */
+export function terrainAt(st: State, cp: Compiled, x: number, y: number): boolean {
+  const p = { x, y };
+  for (const z of st.zones) if (z.type === "zone.terrain" && inRect(p, z.rect, cp.zones.blockMargin)) return true;
+  return false;
+}
+
+/**
+ * One walking step toward `target` that never enters terrain. A blocked step slides along the free
+ * axis when that still makes real headway, otherwise sidesteps along the face away from the rect's
+ * centre (stateless, so a hostile keeps to the side it met the rock on and rounds the corner).
+ */
+export function walkAround(st: State, cp: Compiled, pos: Vec, target: Vec, step: number): void {
+  const dx = target.x - pos.x, dy = target.y - pos.y, d = isqrt(dx * dx + dy * dy);
+  if (d === 0) return;
+  const s = d < step ? d : step;
+  const mx = mulDiv(dx, s, d), my = mulDiv(dy, s, d);
+  if (!st.zones.some((z) => z.type === "zone.terrain")) { pos.x += mx; pos.y += my; return; }
+  if (!terrainAt(st, cp, pos.x + mx, pos.y + my)) { pos.x += mx; pos.y += my; return; }
+  const half = step >> 1;
+  const slideX = !terrainAt(st, cp, pos.x + mx, pos.y), slideY = !terrainAt(st, cp, pos.x, pos.y + my);
+  const ax = Math.abs(mx), ay = Math.abs(my);
+  if (slideX && ax >= half && ax >= ay) { pos.x += mx; return; }
+  if (slideY && ay >= half) { pos.y += my; return; }
+  if (slideX && ax >= half) { pos.x += mx; return; }
+  // Head-on: sidestep across the dominant travel axis, away from the blocking rect's centre.
+  const z = st.zones.find((q) => q.type === "zone.terrain" && inRect({ x: pos.x + mx, y: pos.y + my }, q.rect, cp.zones.blockMargin))!;
+  if (ay >= ax) {
+    const dir = pos.x * 2 < 2 * z.rect.x + z.rect.w ? -1 : 1;
+    if (!terrainAt(st, cp, pos.x + dir * step, pos.y)) pos.x += dir * step;
+    else if (!terrainAt(st, cp, pos.x - dir * step, pos.y)) pos.x -= dir * step;
+  } else {
+    const dir = pos.y * 2 < 2 * z.rect.y + z.rect.h ? -1 : 1;
+    if (!terrainAt(st, cp, pos.x, pos.y + dir * step)) pos.y += dir * step;
+    else if (!terrainAt(st, cp, pos.x, pos.y - dir * step)) pos.y -= dir * step;
+  }
+}

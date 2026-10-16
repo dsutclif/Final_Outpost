@@ -85,7 +85,17 @@ describe("layout and economy per family (stages 2-4)", () => {
         if (l.type !== "barrier.line") continue;
         expect(l.closed).toBe(true);
         expect(l.sections.filter((s) => s.gate).length).toBeGreaterThanOrEqual(1);
-        expect(l.sections.filter((s) => s.gate).length).toBeLessThanOrEqual(2);
+        expect(l.sections.filter((s) => s.gate).length).toBeLessThanOrEqual(4);
+        // R3 item 11: every side a wave comes from (bar the med bay's probe raid) has a gate.
+        if (r.family === "defend") {
+          const raidT = Math.min(...m.waves.map((w) => w.t));
+          const sideOf = (s: { a: number[]; b: number[] }) => (s.a[1] === s.b[1] ? (s.a[1] < 450 ? "n" : "s") : s.a[0] < 240 ? "w" : "e");
+          const gated = new Set(l.sections.filter((s) => s.gate).map(sideOf));
+          for (const w of m.waves) {
+            if (w.t === raidT && m.modules.includes("medical")) continue;
+            for (const sd of Array.isArray(w.side) ? w.side : [w.side ?? "n"]) expect({ side: sd, gated: gated.has(sd) }).toEqual({ side: sd, gated: true });
+          }
+        }
         const sim = createSim(m);
         const poly = sim.state.barriers[0]!.sections.map((s) => s.a);
         expect(pointInPoly(sim.state.core.pos, poly)).toBe(true);

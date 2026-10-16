@@ -175,6 +175,55 @@ export function buildRubble(ctx: BuildCtx, seed = 3): Model {
   return m;
 }
 
+/**
+ * Terrain (R3 item 17): a chunky rock ridge, outcrop or chasm that fills a w x d metre footprint
+ * (the zone rect over ART_M) and stands about a metre tall, so it reads as a barrier from the
+ * camera. Rocks stay inside the footprint so the picture matches where the sim stops walkers.
+ * `kind` "chasm" is a dark pit with a low jagged rim instead of a wall of rock.
+ */
+export function buildTerrain(ctx: BuildCtx, kind = "ridge", w = 1, d = 1, seed = 7): Model {
+  const { t, mats } = ctx;
+  const m = model("scatter");
+  const b = new GeoBuilder();
+  const rockC = (i: number) => (i % 3 === 0 ? mix(t.groundDark, t.structureDark, 0.35) : i % 3 === 1 ? t.groundAlt : mix(t.groundAlt, t.groundDark, 0.5));
+  const alongX = w >= d, long = Math.max(w, d), short = Math.min(w, d);
+  if (kind === "chasm") {
+    // a dark pit, with chunky rim rocks along the edge
+    b.box(w, 0.04, d, mix(t.ink, t.groundDark, 0.25), { at: [0, 0.02, 0] });
+    b.box(w * 0.78, 0.05, d * 0.7, t.ink, { at: [0, 0.05, 0] });
+    const n = Math.min(10, Math.max(4, Math.round((w + d) * 2.2)));
+    for (let i = 0; i < n; i++) {
+      const f = (i + 0.5) / n, per = 2 * (w + d);
+      let s = f * per, x: number, z: number;
+      if (s < w) { x = -w / 2 + s; z = -d / 2; } else if ((s -= w) < d) { x = w / 2; z = -d / 2 + s; } else if ((s -= d) < w) { x = w / 2 - s; z = d / 2; } else { s -= w; x = -w / 2; z = d / 2 - s; }
+      const r = 0.16 + hash01(seed + i * 3) * 0.1;
+      const cx = Math.max(-w / 2 + r, Math.min(w / 2 - r, x)), cz = Math.max(-d / 2 + r, Math.min(d / 2 - r, z));
+      b.rock(r, rockC(i), { at: [cx, r * 0.9, cz], rot: [i, i * 2, 0], scale: [1, 0.9 + hash01(seed + i) * 0.6, 1] }, (i % 3) as 0 | 1 | 2);
+    }
+  } else {
+    // rows of tall rocks along the long axis; an outcrop is a fat cluster with a taller crown
+    const rows = kind === "outcrop" ? 2 : 1;
+    const per = Math.min(kind === "outcrop" ? 4 : 10, Math.max(2, Math.round(long / (kind === "outcrop" ? 0.42 : 0.5))));
+    let i = 0;
+    for (let row = 0; row < rows; row++) {
+      for (let k = 0; k < per; k++, i++) {
+        const f = (k + 0.5) / per;
+        const r = Math.min(short / (rows === 2 ? 3.2 : 2.2), 0.42) * (0.85 + hash01(seed + i * 5) * 0.3);
+        const tall = (kind === "outcrop" ? 1.5 : 1.7) * (0.8 + hash01(seed + i * 7 + 2) * 0.5) + (row === 0 && kind === "outcrop" && k === 1 ? 0.5 : 0);
+        const a = -long / 2 + r + f * (long - 2 * r) + (hash01(seed + i * 11) - 0.5) * 0.12;
+        const o = rows === 2 ? (row === 0 ? -1 : 1) * (short / 2 - r) * 0.85 : (hash01(seed + i * 13) - 0.5) * Math.max(0, short - 2 * r) * 0.5;
+        const x = alongX ? a : o, z = alongX ? o : a;
+        b.rock(r, rockC(i), { at: [x, r * tall * 0.78, z], rot: [i * 0.7, i * 2.1, 0], scale: [1, tall, 1] }, (i % 3) as 0 | 1 | 2);
+      }
+    }
+    // a low plinth so the base reads as one mass
+    b.box(w * 0.96, 0.08, d * 0.96, mix(t.groundDark, t.ground, 0.3), { at: [0, 0.04, 0] });
+  }
+  m.root.add(mesh(b.build(), mats.std, "body"));
+  anchor(m.root, "interact", 0, 0, 0.5);
+  return m;
+}
+
 /** Wall panel 1 m long along x (stretched per section). `cracked` is the low-hp morph. */
 export function buildWallPanel(ctx: BuildCtx, cracked = false, reinforced = false): Model {
   const { t, mats } = ctx;

@@ -285,17 +285,26 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   let p = clamp01((req.target - 0.08) / 0.8);
   let best: Candidate | null = null;
   const mrand = rand.fork("mutate");
+  // Repeated-loop lever: 0..1 share of the worker hire price cut, raised after each `repetitive` reject.
+  let ease = 0;
+  const easeUp = (): boolean => { if (ease >= 1) return false; ease = Math.min(1, ease + 1 / S.loopEaseSteps); return true; };
 
   for (let it = 0; it < maxIt; it++) {
     stats.iterations++;
     const mut: Record<string, number> = {};
     if (it > 0) for (const k of Object.keys(GEN.knobs)) mut[k] = (mrand.float() * 2 - 1) * GEN.jitter;
     const knobs = knobsFor(p, mut);
+    // Levers against a repeated player loop, scaled by how often the search has had to ease it:
+    // a slower burn (fewer core feeding trips), a shorter level (fewer trips overall), a little
+    // more starting currency (the first worker hire arrives sooner). Hire prices ease in buildLevel.
+    knobs.burn *= 1 + S.loopBurnEase * ease;
+    knobs.length *= 1 - S.loopLengthCut * ease;
+    knobs.startCurrency += S.loopStartCurrency * ease;
     let built: Built | null = null;
     let why = "";
     for (let salt = 0; salt < S.layoutTries && !built; salt++) {
       try {
-        built = buildLevel({ id, seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods, template: tpl, knobs, content: c }, salt);
+        built = buildLevel({ id, seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods, template: tpl, knobs, hireEase: ease, content: c }, salt);
       } catch (e) { why = (e as Error).message; reject(why.startsWith("flow") ? "flow" : "layout"); }
     }
     if (!built) { log(`  it${it} p=${p.toFixed(2)} build failed: ${why}`); hi = p; p = (lo + p) / 2; continue; }
@@ -332,9 +341,19 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     log(`  it${it} good=${quick.map((q) => Math.round(q.ticks / 30)).join("/")}s budget=${m.params["level.budgetSeconds"]} goal=${JSON.stringify(m.goal)}`);
     let { ms, r } = rateIt(opts.seeds?.quick ?? S.quickSeeds);
     const flags = Object.entries(r.filters).filter(([, v]) => v).map(([k]) => k);
-    log(`  it${it} p=${p.toFixed(2)} D=${r.D.toFixed(3)} F=${r.F.toFixed(3)} feasible=${r.feasible} ${flags.join(",")} ${r.evidence.idleModules.join(",")}`);
+    log(`  it${it} p=${p.toFixed(2)} D=${r.D.toFixed(3)} F=${r.F.toFixed(3)} feasible=${r.feasible} loopMax=${ms.loopMax} [${ms.loopKey}] ${flags.join(",")} ${r.evidence.idleModules.join(",")}`);
     flags.forEach(reject);
     if (!r.feasible) reject("infeasible");
+    // No more than loopCap identical player trips in a row: a 6th repeat must be unnecessary, so the
+    // level has to give a worker (cheaper hire pads here), a bigger carry, or a cheaper cost.
+    if (r.feasible && ms.loopMax > S.loopCap) {
+      reject("repetitive");
+      const eased = easeUp();
+      log(`  it${it} repetitive: ${ms.loopMax} x ${ms.loopKey}${eased ? ` (hire prices eased to ${ease.toFixed(2)})` : ""}`);
+      if (eased) continue;
+      p = clamp01(p + (mrand.float() - 0.5) * 0.2);
+      continue;
+    }
     const hardFlags = flags.filter((f) => f !== "trivial");
     if (!r.feasible || hardFlags.includes("stall")) { hi = p; p = (lo + p) / 2; continue; }
     if (flags.includes("trivial")) { lo = p; p = (p + hi) / 2; continue; }
@@ -343,6 +362,12 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     if (close || best === null || Math.abs(r.D - req.target) < best.err) {
       ({ ms, r } = rateIt(opts.seeds?.full ?? S.fullSeeds));
       const err = Math.abs(r.D - req.target);
+      if (ms.loopMax > S.loopCap) {
+        reject("repetitive");
+        easeUp();
+        log(`  it${it} repetitive on the full ladder: ${ms.loopMax} x ${ms.loopKey}`);
+        continue;
+      }
       const idle = idleElements(m, ms.runs["good"]!);
       if (!r.ok) Object.entries(r.filters).filter(([, v]) => v).forEach(([k]) => reject(k));
       else if (idle.length > 0) { reject("idleElement"); log(`  it${it} idle elements: ${idle.join(", ")}`); }

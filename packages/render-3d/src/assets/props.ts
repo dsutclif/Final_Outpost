@@ -35,20 +35,23 @@ export function itemHeight(res: string): number {
 
 export function buildItemGeo(res: string, t: Tokens): BufferGeometry {
   const c = resToken(t, res);
-  const dk = mix(c, t.ink, 0.35), lt = mix(c, t.structure, 0.45);
+  // dk is also the rim: a darker, slightly larger body under the coloured one gives every item a
+  // dark edge against the ground (the silhouette read in the reference ads).
+  const dk = mix(c, t.ink, 0.35), lt = mix(c, t.structure, 0.45), rim = mix(c, t.ink, 0.6);
   const g = new GeoBuilder();
   switch (KIND[res]) {
     case "ore":
-      g.rock(0.15, c, { at: [0, 0.12, 0], scale: [1.15, 0.85, 1] }, 0).rock(0.08, dk, { at: [0.1, 0.17, 0.05] }, 1).rock(0.06, lt, { at: [-0.08, 0.2, -0.03] }, 2);
+      g.rock(0.175, rim, { at: [0, 0.11, 0], scale: [1.2, 0.85, 1.05] }, 0)
+        .rock(0.15, c, { at: [0, 0.13, 0], scale: [1.15, 0.9, 1] }, 0).rock(0.085, dk, { at: [0.1, 0.18, 0.05] }, 1).rock(0.065, lt, { at: [-0.08, 0.22, -0.03] }, 2);
       break;
     case "bar":
-      g.rbox(0.36, 0.12, 0.17, 0.03, c, { at: [0, 0.06, 0] }, 1).box(0.26, 0.02, 0.1, lt, { at: [0, 0.125, 0] });
+      g.rbox(0.4, 0.12, 0.2, 0.03, rim, { at: [0, 0.055, 0] }, 1).rbox(0.36, 0.12, 0.17, 0.03, c, { at: [0, 0.07, 0] }, 1).box(0.26, 0.02, 0.1, lt, { at: [0, 0.135, 0] });
       break;
     case "cell":
-      g.cyl(0.085, 0.085, 0.22, 10, c, { at: [0, 0.14, 0] }).cyl(0.09, 0.09, 0.04, 10, t.metal, { at: [0, 0.03, 0] }).cyl(0.09, 0.09, 0.04, 10, t.metal, { at: [0, 0.26, 0] }).cyl(0.035, 0.035, 0.04, 6, lt, { at: [0, 0.3, 0] });
+      g.cyl(0.085, 0.085, 0.22, 10, c, { at: [0, 0.14, 0] }).cyl(0.09, 0.09, 0.04, 10, rim, { at: [0, 0.03, 0] }).cyl(0.09, 0.09, 0.04, 10, rim, { at: [0, 0.26, 0] }).cyl(0.035, 0.035, 0.04, 6, lt, { at: [0, 0.3, 0] });
       break;
     case "greens":
-      g.sphere(0.12, 7, 5, c, { at: [0, 0.12, 0], scale: [1, 0.9, 1] }).sphere(0.08, 6, 4, lt, { at: [0.08, 0.2, 0.02] }).sphere(0.08, 6, 4, dk, { at: [-0.08, 0.18, -0.03] }).cone(0.05, 0.1, 5, dk, { at: [0, 0.27, 0] });
+      g.sphere(0.135, 7, 5, rim, { at: [0, 0.115, 0], scale: [1, 0.85, 1] }).sphere(0.12, 7, 5, c, { at: [0, 0.13, 0], scale: [1, 0.9, 1] }).sphere(0.08, 6, 4, lt, { at: [0.08, 0.21, 0.02] }).sphere(0.08, 6, 4, dk, { at: [-0.08, 0.19, -0.03] }).cone(0.05, 0.1, 5, dk, { at: [0, 0.28, 0] });
       break;
     case "protein":
       g.sphere(0.13, 8, 6, c, { at: [0, 0.12, 0], scale: [1.2, 0.85, 0.95] }).cyl(0.03, 0.03, 0.2, 5, t.structure, { at: [0.15, 0.13, 0], rot: [0, 0, Math.PI / 2] }).sphere(0.04, 5, 4, t.structure, { at: [0.26, 0.13, 0] });
@@ -65,7 +68,7 @@ export function buildItemGeo(res: string, t: Tokens): BufferGeometry {
         .box(0.06, 0.12, 0.06, t.metal, { at: [0.09, 0.14, 0.09] });
       break;
     case "coin":
-      g.cyl(0.14, 0.14, 0.05, 12, c, { at: [0, 0.035, 0] }).cyl(0.09, 0.09, 0.06, 12, lt, { at: [0, 0.04, 0] });
+      g.cyl(0.145, 0.145, 0.05, 12, rim, { at: [0, 0.035, 0] }).cyl(0.105, 0.105, 0.06, 12, c, { at: [0, 0.04, 0] });
       break;
     default:
       g.rbox(0.28, 0.24, 0.28, 0.04, c, { at: [0, 0.12, 0] }, 1).box(0.3, 0.04, 0.3, dk, { at: [0, 0.12, 0] });
