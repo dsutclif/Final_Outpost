@@ -153,6 +153,56 @@ describe("layout and economy per family (stages 2-4)", () => {
   });
 });
 
+describe("strict crew slots", () => {
+  type E = { id?: string; type: string; at?: [number, number] };
+  const crew: Record<string, [string, "in" | "op" | "out"][]> = {
+    grill: [["feeder", "in"], ["cook", "op"], ["server", "out"]],
+    saw: [["saw_feeder", "in"], ["sawyer", "op"]],
+    alloy: [["refined_carrier", "in"], ["smith", "op"], ["component_server", "out"]],
+  };
+  it("puts every crew pad exactly at its machine's slot offset, the belt pad on the belt and the cashier past the clerk", () => {
+    let machines = 0, belts = 0, cashiers = 0, depots = 0;
+    for (const i of [3, 8, 9, 14, 19, 25, 30, 47]) {
+      const b = build(i);
+      if (!b) continue;
+      const at = new Map<string, [number, number]>();
+      for (const e of b.manifest.entities as E[]) if (e.id && e.at) at.set(e.id, e.at);
+      for (const [m, slots] of Object.entries(crew)) {
+        const mp = at.get(m);
+        if (!mp) continue;
+        machines++;
+        for (const [id, slot] of slots) {
+          const p = at.get(id);
+          if (!p) continue;
+          expect([id, p]).toEqual([id, [mp[0] + GEN.crewStations[slot][0], mp[1] + GEN.crewStations[slot][1]]]);
+        }
+      }
+      const dp = at.get("depot");
+      for (const [id, slot] of [["depot_supplier", "in"], ["hauler", "out"]] as const) {
+        const p = at.get(id);
+        if (dp && p) { depots++; expect(p).toEqual([dp[0] + GEN.depotCrewStations[slot][0], dp[1] + GEN.depotCrewStations[slot][1]]); }
+      }
+      const belt = at.get("belt"), saw = at.get("saw"), alloy = at.get("alloy");
+      if (belt && saw && alloy) {
+        belts++;
+        const pk = content.converters["conv.material_processor"]!.pickupOffset;
+        const from = [saw[0] + pk[0], saw[1] + pk[1]];
+        expect(belt).toEqual([Math.round(from[0]! + (alloy[0] - from[0]!) / 2), Math.round(from[1]! + (alloy[1] - from[1]!) / 2)]);
+      }
+      const shop = at.get("shop"), cashier = at.get("hire_cashier");
+      if (shop && cashier) {
+        cashiers++;
+        const reg = (content.sinks["sink.sales_point"] as { registerOffset: [number, number] }).registerOffset;
+        expect(cashier[0]).toBe(shop[0] + GEN.cashierPad[0]);
+        expect(Math.abs(cashier[1] - shop[1])).toBe(Math.abs(reg[1]) + GEN.cashierPad[1]);
+      }
+    }
+    expect(machines).toBeGreaterThan(0);
+    expect(cashiers).toBeGreaterThan(0);
+    expect(belts + depots).toBeGreaterThan(0);
+  }, 120_000);
+});
+
 describe("generate (search + rating + stars)", () => {
   it("returns the same manifest for the same request and seed, with sized objectives", () => {
     const r = reqs[0]!;

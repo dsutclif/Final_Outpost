@@ -1080,8 +1080,10 @@ export class Renderer3D implements Renderer {
       sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, owed, pad.locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
       // a pad that places a new model shows its blueprint at full size, so a name never floats over nothing
       const ghostH = ghosts.has(pad.id) ? this.syncGhost(p, info!.what, info!.site ? v3(info!.site.x, 0, info!.site.y) : at, fill, !!info!.site) : this.hideGhost(p);
-      const lift = Math.max(1.25, ghostH + 0.3);
-      sp.position.set(at.x, ART_M * (lift + (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04), at.z);
+      // the belt's pad sits on the belt itself (generator: mid-run), so its name and price lie on the belt blueprint, not above it
+      const onBelt = info?.what === "struct.conveyor";
+      const lift = onBelt ? BELT_TOP + 0.12 : Math.max(1.25, ghostH + 0.3);
+      sp.position.set(at.x, ART_M * (lift + (onBelt ? 0 : (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04)), at.z);
       this.candidate(pad.type, p, ART_M * (lift + 1.35 + (rows - 1) * 0.6));
       // scaffold rises with the payment for upgrades that have no blueprint of their own
       let scaf = p.extra[1] as Mesh | undefined;

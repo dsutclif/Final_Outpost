@@ -49,8 +49,9 @@
     "podGap": 62, "edge": 36, "towerPadIn": 46, "towerPadSearch": 30, "towerPadHug": 28
   },
   "spacing": { "margin": 8, "standR": 16, "screen": [200, 350], "footprintGap": 6 },
-  "crewStations": { "in": [-64, 6], "op": [0, 98], "out": [104, 16] },
-  "cashierPad": [60, 20],
+  "crewStations": { "in": [-64, 58], "op": [0, 96], "out": [100, 16] },
+  "depotCrewStations": { "in": [-76, 0], "out": [76, 0] },
+  "cashierPad": [0, 70],
   "waveStartMax": 20,
   "defendWaves": {
     "_doc": "Swarmlings per wave = swarm knob x share: wave 0 firstShare, then +earlyGrowth per wave; weak raids each come from one attack side; from wave lateFrom on (levels with towers or guards to buy) +lateGrowth per wave, packed at lateGap seconds apart instead of gap, from every attack side. Raiders = swarm x (late)Raiders x wave index. The early raids grow until they drop dropsPerEarlyNeed x the walls and one tower per attack side; then the regular waves grow together until those before the last drop dropsPerNeed x the salvage the plan spends; each packed wave stays lateStep x the wave before it. towersPerSide wall towers flank each attack side's gate (fewer when that would pass maxTowers in all); at most maxUpgrades of them get an upgrade pad. With towers or guards to buy there are at least lateFrom + 2 waves. On med bay levels a probe raid (raid) comes through a breach in a quiet side at t s, before the player has scrap to wall it. A defend survive goal lasts surviveTail s past the start of the wave before the last.",
@@ -86,7 +87,7 @@
     "funThreshold": 0.4,
     "quickSeeds": { "ref": 4, "other": 2 },
     "fullSeeds": { "ref": 10, "other": 3 },
-    "layoutTries": 12,
+    "layoutTries": 40,
     "_loop": "REDESIGN-R3 item 7: reject when the reference bot repeats one player trip (same source type, resource, target; trips a worker already performs are not counted) more than loopCap times in a row. Each reject raises an ease level by 1/loopEaseSteps: hire prices drop up to loopHireCut, core burn slows by up to loopBurnEase, level length shrinks by up to loopLengthCut, start currency grows by up to loopStartCurrency.",
     "loopCap": 5,
     "loopHireCut": 0.6,
