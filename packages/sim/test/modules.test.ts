@@ -487,7 +487,8 @@ describe("defense, defenders, salvage upgrades, medical and hazards (level 4)", 
   });
 
   it("ranged defenses shoot hostiles, salvage upgrades them and reinforces the walls", () => {
-    const sim = newSim({}, LEVEL_4);
+    // base prices: the automation tax has its own tests (economy.test.ts)
+    const sim = newSim({ params: { ...(LEVEL_4.params as Record<string, number>), "pads.automationGrowth": 1 } }, LEVEL_4);
     grant(sim, { currency: 30, items: ["res.salvage", "res.salvage", "res.salvage"] });
     expect(pad(sim, "towerup0").visible).toBe(false);
     walkPath(sim, [at(130, 600), at(130, 330)]);

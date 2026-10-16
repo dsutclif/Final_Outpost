@@ -14,7 +14,8 @@ describe("planner", () => {
   it("orders economy hires before the goal path, from data only", () => {
     const p = planBot(level1);
     expect(p.steps.map((s) => s.pad)).toEqual(["hire_core_supplier", "hire_food_supplier_1", "hire_cashier", "landmark"]);
-    expect(p.currencyNeeded).toBe(8 + 12 + 20 + 60);
+    // the automation tax (x1.2 per worker already bought) raises the 2nd and 3rd hires; the landmark is a building
+    expect(p.currencyNeeded).toBe(8 + Math.ceil(12 * 1.2) + Math.ceil(20 * 1.2 * 1.2) + 60);
     expect(p.goalCurrency).toBe(60);
   });
 

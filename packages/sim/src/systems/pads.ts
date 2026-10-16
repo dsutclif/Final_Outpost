@@ -5,6 +5,7 @@ import type { PadState, State, StructureState } from "../state.js";
 import { hint, idleResidents, take } from "./common.js";
 import { coreFuelCap } from "./core.js";
 import { placeConverter } from "./converters.js";
+import { isAutomation, jobDone, jobOf, padCost } from "./economy.js";
 
 type HireEnt = Extract<Compiled["entityById"][string], { type: "pad.hire" }>;
 type BuildEnt = Extract<Compiled["entityById"][string], { type: "pad.build" }>;
@@ -19,6 +20,8 @@ export function refreshPads(st: State, cp: Compiled): void {
     const e = padEnt(cp, pad);
     const req = e.requires;
     pad.visible = !(req?.pad !== undefined && !padDone(st, req.pad));
+    // manual first: the first hire of a job kind waits until the player has done that job by hand
+    if (pad.visible && e.type === "pad.hire" && e.manual) { const job = jobOf(cp, e); if (job && !jobDone(st, job)) pad.visible = false; }
     pad.locked = (req?.coreLevel !== undefined && st.core.level < req.coreLevel) || (e.type === "pad.hire" && idle === 0);
   }
 }
@@ -53,14 +56,14 @@ export function tryPayPad(st: State, cp: Compiled, out: SimEvent[]): boolean {
     if (pad.id !== p.padId || p.padDwell < cp.pads.dwellTicks) continue;
     if (e.requires?.coreLevel !== undefined && st.core.level < e.requires.coreLevel) { hint(st, out, "needs_core_level"); return true; }
     if (e.type === "pad.hire" && idleResidents(st).length === 0) { hint(st, out, "no_idle_resident"); return true; }
-    const costs = Object.entries(e.cost);
+    const costs = Object.entries(padCost(st, cp, e));
     // Carried items go first so a player holding salvage or planks sees them land before coins.
     for (const [res, n] of costs) {
       if (cp.resources[res]!.cap === null || (pad.paid[res] ?? 0) >= n || !take(p.stack, res)) continue;
       pad.paid[res] = (pad.paid[res] ?? 0) + 1;
       p.actCd = cp.pads.payItemTicks;
       out.push({ t: "pad_paid", pad: pad.id, res, n: pad.paid[res]! });
-      if (fullyPaid(e, pad)) build(st, cp, pad, e, out);
+      if (fullyPaid(st, cp, e, pad)) build(st, cp, pad, e, out);
       return true;
     }
     const cur = costs.find(([res, n]) => cp.resources[res]!.cap === null && (pad.paid[res] ?? 0) < n);
@@ -70,18 +73,18 @@ export function tryPayPad(st: State, cp: Compiled, out: SimEvent[]): boolean {
       pad.paid[cur[0]] = (pad.paid[cur[0]] ?? 0) + 1;
       p.actCd = cp.pads.payCurrencyTicks;
       out.push({ t: "pad_paid", pad: pad.id, res: cur[0], n: pad.paid[cur[0]]! });
-      if (fullyPaid(e, pad)) build(st, cp, pad, e, out);
+      if (fullyPaid(st, cp, e, pad)) build(st, cp, pad, e, out);
       return true;
     }
-    if (!fullyPaid(e, pad)) { hint(st, out, "need_resource"); return true; }
+    if (!fullyPaid(st, cp, e, pad)) { hint(st, out, "need_resource"); return true; }
     build(st, cp, pad, e, out);
     return true;
   }
   return false;
 }
 
-const fullyPaid = (e: HireEnt | BuildEnt, pad: PadState): boolean =>
-  Object.entries(e.cost).every(([res, n]) => (pad.paid[res] ?? 0) >= n);
+const fullyPaid = (st: State, cp: Compiled, e: HireEnt | BuildEnt, pad: PadState): boolean =>
+  Object.entries(padCost(st, cp, e)).every(([res, n]) => (pad.paid[res] ?? 0) >= n);
 
 function build(st: State, cp: Compiled, pad: PadState, e: HireEnt | BuildEnt, out: SimEvent[]): void {
   if (e.type === "pad.hire") {
@@ -93,9 +96,11 @@ function build(st: State, cp: Compiled, pad: PadState, e: HireEnt | BuildEnt, ou
     s.mode = "gather"; s.n = 0; s.carry = null; s.acc = 0; s.target = null;
     if (cp.roles[s.role]?.behavior === "guard") s.assign.post = st.residents.filter((r) => r.role === s.role).length - 1;
     out.push({ t: "hired", pad: pad.id, resident: s.id, role: s.role });
+    st.automation = (st.automation ?? 0) + 1;
   } else {
     applyBuild(st, cp, pad, e, out);
     out.push({ t: "built", pad: pad.id, build: e.build, at: { ...pad.pos } });
+    if (isAutomation(cp, e)) st.automation = (st.automation ?? 0) + 1;
     if (!st.built.includes(pad.id)) st.built.push(pad.id);
   }
   // A repeatable converter upgrade retires once the converter is at its top level.

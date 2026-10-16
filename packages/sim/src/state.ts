@@ -438,6 +438,10 @@ export interface State {
   freeze: FreezeState;
   objectives: ObjectiveState[];
   stats: Stats;
+  /** Jobs the player has done by hand (and where each carried resource came from); created on first need. */
+  manual?: { src: Record<string, string>; done: string[] };
+  /** Workers, belts and upgrades bought this level (the automation tax's exponent); created on the first. */
+  automation?: number;
   /** Conveyor belts, created with the first one built (absent before, so older levels hash as they did). */
   conveyors?: ConveyorState[];
   /** Ticks each capped stock has sat at cap, by stock key. Absent while the collapse rule is off. */

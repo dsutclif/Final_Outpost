@@ -36,6 +36,7 @@
   "hazard.burnMultiplier": 2.6,
   "hazard.radiusScale": 0.75,
   "pads.range": 30,
+  "pads.automationGrowth": 1.2,
   "pads.bigRange": 40,
   "pads.payItemInterval": 0.08,
   "pads.payCurrencyInterval": 0.03,

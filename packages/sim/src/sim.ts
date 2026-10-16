@@ -9,6 +9,7 @@ import { stepBarrierBuild, buildSection, sectionHpMax } from "./systems/barriers
 import { newResident, ringPoint } from "./systems/common.js";
 import { placeConverter, stepConverters } from "./systems/converters.js";
 import { stepConveyors } from "./systems/conveyors.js";
+import { stepManual } from "./systems/economy.js";
 import { safeRadius, stepCore } from "./systems/core.js";
 import { stepDefense } from "./systems/defense.js";
 import { stepFreeze } from "./systems/freeze.js";
@@ -235,6 +236,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       stepStockCollapse(state, cp);
       stepHunting(state, cp, out);
       stepDefense(state, cp, out);
+      stepManual(state, cp, out);
       refreshPads(state, cp);
       stepStats(state, cp, out);
       stepObjectives(state, cp, out);

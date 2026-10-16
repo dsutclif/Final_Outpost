@@ -1,5 +1,5 @@
 import { content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { FP, TPS, beltEnds, collapseSecondsLeft, compile, converterStockKey, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
+import { FP, TPS, beltEnds, collapseSecondsLeft, padCost, compile, converterStockKey, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
 import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
   Box3,
@@ -399,6 +399,12 @@ export class Renderer3D implements Renderer {
       if (e.requires?.coreLevel !== undefined) info.requiresCoreLevel = e.requires.coreLevel;
       this.pads.set(e.id, info);
     }
+  }
+
+  /** A pad's price now, with the automation tax (docs/ECONOMY-PLAN.md); null when unknown. */
+  private liveCost(s: State, padId: string): Record<string, number> | null {
+    const e = this.cp?.entityById[padId];
+    return this.cp && e && (e.type === "pad.hire" || e.type === "pad.build") ? padCost(s, this.cp, e) : null;
   }
 
   /** What a worker gathers or moves, and the machine, place or destination it serves, as display names. */
@@ -1045,7 +1051,7 @@ export class Renderer3D implements Renderer {
       if (big && p.data["big"] === undefined) { p.data["big"] = true; }
       const sc = big ? 1.4 : 1;
       this.popScale(p, ART_M, sc, sc);
-      const cost = info?.cost ?? {};
+      const cost = this.liveCost(s, pad.id) ?? info?.cost ?? {};
       const total = Object.values(cost).reduce((x, y) => x + y, 0) || 1;
       const paid = Object.entries(cost).reduce((x, [r, c]) => x + Math.min(c, pad.paid[r] ?? 0), 0);
       const fill = paid / total;
@@ -2417,7 +2423,7 @@ export class Renderer3D implements Renderer {
     if (!w || !padId) return null;
     const pad = w.pads.find((p) => p.id === padId), info = this.pads.get(padId);
     if (!pad || !info) return null;
-    const owed = Object.entries(info.cost)
+    const owed = Object.entries(this.liveCost(w, padId) ?? info.cost)
       .map(([res, n]) => [res, n - (pad.paid[res] ?? 0)] as const)
       .filter(([res, left]) => left > 0 && this.cp?.resources[res]?.cap !== null);
     const missing = owed.filter(([res]) => !w.player.stack.includes(res));

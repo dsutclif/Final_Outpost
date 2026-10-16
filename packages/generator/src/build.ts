@@ -910,6 +910,22 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const train = pads.find((p) => p.id === "train"), bk = pads.find((p) => p.id === "barracks");
     if (train && bk) train.requires = { ...((train.requires as object) ?? {}), pad: "barracks" };
   }
+  // Manual first (docs/ECONOMY-PLAN.md): the first hire pad of each job kind waits until the player has
+  // done that job by hand; later pads of the same kind do not. Couriers have no hand-done job.
+  {
+    const seen = new Set<string>();
+    for (const p of pads) {
+      if (p.type !== "pad.hire") continue;
+      const r = p.role as { role: string; from?: string; to?: string };
+      const beh = c.roles[r.role]?.behavior;
+      const job = beh === "gather_deliver" || beh === "collect_deliver" ? (r.from && r.to ? `carry:${r.from}>${r.to}` : null)
+        : beh === "stand_at" ? (r.to?.startsWith("conv.") ? `operate:${r.to}` : "clerk")
+          : beh === "hunt" ? "hunt" : beh === "guard" ? "guard" : null;
+      if (!job || seen.has(job)) continue;
+      seen.add(job);
+      p.manual = true;
+    }
+  }
   // The plan must be buyable in order: every requirement met by an earlier step (no requirement loops).
   {
     const done = new Set<string>(m0People(people));

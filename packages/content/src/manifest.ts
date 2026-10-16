@@ -48,6 +48,8 @@ export const HirePad = z.object({
   ...base,
   id: EntityRef,
   type: z.literal("pad.hire"),
+  // First hire of its job kind: hidden until the player has done that job by hand (docs/ECONOMY-PLAN.md).
+  manual: z.boolean().optional(),
   cost: Cost,
   role: RoleBinding,
   requires: Requirement.optional(),

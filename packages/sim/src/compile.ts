@@ -229,7 +229,9 @@ export interface Compiled {
   /** Reactor-out countdown and frost (per mille). */
   freeze: { graceTicks: number; decayPerTick: number; othersRate: number; othersCap: number };
   hazard: { burnMul: number; radiusScale: number };
-  pads: { range: number; bigRange: number; payItemTicks: number; payCurrencyTicks: number; dwellTicks: number };
+  pads: { range: number; bigRange: number; payItemTicks: number; payCurrencyTicks: number; dwellTicks: number; automationGrowthPm: number };
+  /** Some hire pad waits for its job to be done by hand (track the player's jobs). */
+  manualJobs: boolean;
   /** Rating-only time budget (never a fail condition; `timer.seconds` is the fail timer). */
   level: { budgetSeconds: number; budgetTicks: number };
   residents: {
@@ -507,7 +509,9 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       payItemTicks: ticks(param("pads.payItemInterval")), payCurrencyTicks: ticks(param("pads.payCurrencyInterval")),
       // Zero is allowed here (instant payment), unlike ticks(), which never goes below one.
       dwellTicks: Math.max(0, Math.round(param("pads.dwell") * TPS)),
+      automationGrowthPm: Math.round(param("pads.automationGrowth") * 1000),
     },
+    manualJobs: manifest.entities.some((e) => e.type === "pad.hire" && e.manual === true),
     level: { budgetSeconds: param("level.budgetSeconds"), budgetTicks: Math.max(1, Math.round(param("level.budgetSeconds") * TPS)) },
     residents: {
       idleSpeed: perTick(param("residents.idleSpeed")), idleRadiusX: fp(param("residents.idleRadiusX")), idleRadiusY: fp(param("residents.idleRadiusY")),

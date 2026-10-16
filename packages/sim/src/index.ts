@@ -18,3 +18,4 @@ export { segCross } from "./systems/common.js";
 export { collapseSecondsLeft, converterStockKey } from "./systems/stock.js";
 export { rateTicks } from "./systems/converters.js";
 export { beltEnds } from "./systems/conveyors.js";
+export { isAutomation, jobDone, jobOf, padCost } from "./systems/economy.js";

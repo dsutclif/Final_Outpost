@@ -330,7 +330,16 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
   if (cashierLater) { const h = hires.find((p) => isCashier(p.role)); if (h) add(h.id, "economy"); }
 
   const always = steps.filter((s) => s.when === "always");
-  const currencyNeeded = always.reduce((a, s) => a + sumCurrency(s.cost, c) * s.repeat, 0)
+  // The automation tax (docs/ECONOMY-PLAN.md): each worker, belt or upgrade in plan order costs growth^n more.
+  const growth = (m.params["pads.automationGrowth"] ?? c.defaults["pads.automationGrowth"] ?? 1);
+  const isAuto = (id: string) => { const e = pads.find((p) => p.id === id); return !!e && (e.type === "pad.hire" || e.build === "struct.conveyor" || e.build === "conv.level" || e.build === "sink.core.level" || !!c.upgrades[e.build]); };
+  let autoN = 0;
+  const taxed = (s: PlanStep): number => {
+    let sum = 0;
+    for (let k = 0; k < s.repeat; k++) { const auto = isAuto(s.pad); sum += Math.ceil(sumCurrency(s.cost, c) * (auto ? growth ** autoN : 1)); if (auto) autoN++; }
+    return sum;
+  };
+  const currencyNeeded = always.reduce((a, s) => a + taxed(s), 0)
     + barriers.reduce((a, b) => a + (c.resources[b.res]?.cap === null ? b.cost : 0), 0);
   const goalCurrency = steps.filter((s) => s.goalPath).reduce((a, s) => a + sumCurrency(s.cost, c) * s.repeat, 0)
     + barriers.reduce((a, b) => a + (c.resources[b.res]?.cap === null ? b.cost : 0), 0);

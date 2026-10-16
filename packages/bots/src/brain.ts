@@ -1,4 +1,4 @@
-import { FP, TPS, nextU32, outsideLines, freeSlots, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
@@ -10,7 +10,7 @@ import type { BotProfile } from "./profiles.js";
 
 export type TaskKind =
   | "feed" | "fuel" | "gather" | "stock" | "register" | "pile" | "pay" | "barrier" | "operate" | "deposit"
-  | "fetch" | "drop" | "admit" | "fight" | "lasso" | "hunt" | "wait";
+  | "fetch" | "drop" | "admit" | "fight" | "lasso" | "hunt" | "depot" | "wait";
 
 export interface Task {
   kind: TaskKind;
@@ -104,10 +104,12 @@ export class Brain {
     return null;
   }
 
-  /** Remaining cost of a pad, per resource. */
-  remaining(pad: PadState, s: PlanStep): Record<string, number> {
+  /** Remaining cost of a pad at its current (automation-taxed) price, per resource. */
+  remaining(st: State, pad: PadState, s: PlanStep): Record<string, number> {
+    const e = this.cp.entityById[s.pad];
+    const cost = e && (e.type === "pad.hire" || e.type === "pad.build") ? padCost(st, this.cp, e) : s.cost;
     const out: Record<string, number> = {};
-    for (const [r, n] of Object.entries(s.cost)) { const left = n - (pad.paid[r] ?? 0); if (left > 0) out[r] = left; }
+    for (const [r, n] of Object.entries(cost)) { const left = n - (pad.paid[r] ?? 0); if (left > 0) out[r] = left; }
     return out;
   }
 
@@ -131,7 +133,7 @@ export class Brain {
       if (s.when !== "always" && !this.whenHolds(st, s)) continue;
       if (this.stepDone(st, s) || this.skip.has(s.pad)) continue;
       const pad = st.pads.find((p) => p.id === s.pad)!;
-      for (const [r, n] of Object.entries(this.remaining(pad, s))) if (this.cp.resources[r]?.cap !== null) need[r] = (need[r] ?? 0) + n;
+      for (const [r, n] of Object.entries(this.remaining(st, pad, s))) if (this.cp.resources[r]?.cap !== null) need[r] = (need[r] ?? 0) + n;
     }
     for (const t of this.plan.barriers) {
       if (this.cp.resources[t.res]?.cap === null) continue;
@@ -144,7 +146,7 @@ export class Brain {
 
   currencyNeedNext(st: State): number {
     const nx = this.nextStep(st);
-    if (nx) return this.remaining(nx.pad, nx.step)["res.currency"] ?? 0;
+    if (nx) return this.remaining(st, nx.pad, nx.step)["res.currency"] ?? 0;
     const b = this.nextBarrier(st);
     if (b) return b.cost - b.paid;
     // No plan step left: a currency goal still needs goal.n in hand, so sales keep counting as progress.
@@ -391,7 +393,7 @@ export class Brain {
     const nx = this.nextStep(st);
     const currencyNeed = this.currencyNeedNext(st);
     if (nx) {
-      const rem = this.remaining(nx.pad, nx.step);
+      const rem = this.remaining(st, nx.pad, nx.step);
       // Pay when the whole remainder is in hand, or when a full backpack of a capped cost can go in
       // (a cost larger than the backpack cap is paid in installments).
       let all = true, items = false;
@@ -535,8 +537,49 @@ export class Brain {
       if (idle.length > 0) T("lasso", timed || this.pol.rescueAll ? 64 : 52, "start");
     }
 
+    // Manual first (docs/ECONOMY-PLAN.md): a planned hire pad that waits only for its job to be done by
+    // hand gets that job done once, the way a player learns a job before automating it.
+    for (const s of this.plan.steps) {
+      const e = cp.entityById[s.pad];
+      if (!e || e.type !== "pad.hire" || !e.manual) continue;
+      const job = jobOf(cp, e);
+      if (!job || jobDone(st, job)) continue;
+      const pad = st.pads.find((x) => x.id === s.pad);
+      if (!pad || pad.done || (e.requires?.pad !== undefined && !st.pads.some((x) => x.id === e.requires!.pad && x.done) && !st.built.includes(e.requires.pad))) continue;
+      this.manualTask(st, job, T);
+      break;
+    }
+
     T("wait", 1);
     return tasks;
+  }
+
+  /** Tasks that do one job by hand: carry S to T, or operate a machine (feeding it first if empty). */
+  private manualTask(st: State, job: string, T: (kind: TaskKind, score: number, key?: string, want?: number) => void): void {
+    const cp = this.cp, p = st.player;
+    const conv = (type: string) => st.converters.find((c) => c.type === type);
+    const SC = 70;
+    const carry = (from: string, to: string): void => {
+      const res = cp.nodes[from]?.yields ?? cp.converters[from]?.output;
+      if (!res) return;
+      if (count(p.stack, res) > 0) {
+        const target = conv(to);
+        if (target) T("deposit", SC, target.id);
+        else if (to === "store.depot" && st.depot) T("depot", SC);
+        // core and kiosk deliveries are covered by the fuel and stock tasks once carrying
+        return;
+      }
+      if (cp.nodes[from]) { const i = this.bestNode(st, res, 6); if (i >= 0) T("gather", SC, `${i}`, 2); return; }
+      const src = conv(from);
+      if (src && src.out > 0) T("fetch", SC, src.id);
+    };
+    if (job.startsWith("carry:")) { const [from, to] = job.slice(6).split(">"); carry(from!, to!); return; }
+    if (job.startsWith("operate:")) {
+      const cv = conv(job.slice(8));
+      if (!cv) return;
+      if (cv.inQ.length > 0) T("operate", SC, cv.id);
+      else { const input = cp.converters[cv.type]!.inputs[0]; const src = input ? Object.keys(cp.nodes).find((n) => cp.nodes[n]!.yields === input) ?? Object.keys(cp.converters).find((k) => cp.converters[k]!.output === input) : undefined; if (src) carry(src, cv.type); }
+    }
   }
 
   /** On the far side of some barrier line from the core. */
@@ -698,7 +741,7 @@ export class Brain {
         const step = this.plan.steps.find((s) => s.pad === t.key);
         if (!pad || !step || this.stepDone(st, step) || !pad.visible || pad.locked) return null;
         if (pad.done) return null;
-        const rem = this.remaining(pad, step);
+        const rem = this.remaining(st, pad, step);
         const payable = Object.entries(rem).some(([r]) => (cp.resources[r]?.cap === null ? st.currency > 0 : count(p.stack, r) > 0));
         if (!payable && Object.keys(rem).length > 0) return null;
         return { pos: pad.pos, r: 14 * U };
@@ -719,6 +762,10 @@ export class Brain {
         if (t.kind === "deposit") return this.ringSpot(st, cv.pos, def.range - 10 * U);
         // Operating from the spot that also reaches the input hopper, so one stop does both.
         return { pos: this.convSpot(cv.pos, cv.operatorPos, def.range, cp.convParams.playerOperateRange), r: 1 * U };
+      }
+      case "depot": {
+        if (!st.depot || p.stack.length === 0) return null;
+        return { pos: st.depot.pos, r: 10 * U };
       }
       case "fetch": {
         const cv = st.converters.find((c) => c.id === t.key);
