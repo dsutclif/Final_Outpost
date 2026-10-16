@@ -35,6 +35,7 @@ export type SimEvent =
   | { t: "objective"; id: string; kind: string; done: boolean; failed: boolean }
   // combat
   | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier" | "player"; id: number; at: Vec; by: "player" | "resident" | "structure" | "hostile" }
+  | { t: "shot"; from: Vec; to: Vec; id: number }
   | { t: "died"; kind: string; id: number; at: Vec }
   | { t: "drop"; res: string; at: Vec }
   | { t: "picked"; res: string; at: Vec; by?: number }

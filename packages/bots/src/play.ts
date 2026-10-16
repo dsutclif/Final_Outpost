@@ -249,8 +249,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     if (ob) lastObj = ob.progress;
     const hp = st.meters.baseHealthMax > 0 ? (st.meters.baseHealth * 100) / st.meters.baseHealthMax : 100;
     if (hp < hpMin) hpMin = hp;
-    if (!overload) overload = st.converters.some((cv) => cv.out >= cp.converters[cv.type]!.outCap)
-      || (st.sales !== null && Object.values(st.sales.shelf).some((n) => n >= cp.sales.shelfCap));
+    if (!overload) overload = st.converters.some((cv) => cv.out >= cp.converters[cv.type]!.outCap);
     st.converters.forEach((cv, i) => {
       const run = cv.out >= cp.converters[cv.type]!.outCap ? (capRun[i] ?? 0) + 1 : 0;
       capRun[i] = run;

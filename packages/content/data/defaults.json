@@ -5,6 +5,8 @@
   "player.attackInterval": 0.32,
   "player.attackRange": 40,
   "player.attackDamage": 1,
+  "player.rangedRange": 90,
+  "player.rangedInterval": 0.6,
   "core.burn": 2.4,
   "core.grace": 22,
   "core.lifelineRecover": 0.25,

@@ -26,6 +26,8 @@ export interface PlayerState {
   padDwell: number;
   /** Ticks until a hostile in contact can hit the player again. */
   hitCd: number;
+  /** Ticks until the ranged shot is ready again. */
+  shotCd: number;
 }
 
 export interface NodeState {

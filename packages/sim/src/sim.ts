@@ -80,7 +80,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       // Present only when repair is on, so a level without it hashes exactly as before.
       ...(cp.barrier.repairPm > 0 ? { "barrier.repairPm": cp.barrier.repairPm } : {}),
     },
-    player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false, padId: null, padDwell: 0, hitCd: 0 },
+    player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false, padId: null, padDwell: 0, hitCd: 0, shotCd: 0 },
     core: { pos: corePos, fuel: coreEnt.params.fuel, level: coreEnt.params.level, burnAcc: 0, lifeline: METER_MAX },
     nodes: [],
     sales: null,

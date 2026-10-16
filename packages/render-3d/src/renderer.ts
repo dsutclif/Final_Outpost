@@ -2121,6 +2121,11 @@ export class Renderer3D implements Renderer {
         fx.burst(up(at, 10), [white, mix(t.accent, t.structure, 0.5)], 6, 90, 120, 3, 0.25);
         break;
       }
+      case "shot": {
+        const from = up(this.wv(e["from"] as V), 14), to = up(this.wv(e["to"] as V), 10);
+        fx.tracer(from, to, mix(t.accent, white, 0.5));
+        break;
+      }
       case "died":
         fx.dustRing(at, mix(t.groundAlt, t.structure, 0.3), 12, 70, 6);
         fx.burst(up(at, 8), [t.danger, white], 8, 100, 200, 4, 0.5);

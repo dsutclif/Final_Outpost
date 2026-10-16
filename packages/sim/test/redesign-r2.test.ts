@@ -244,7 +244,8 @@ describe("perimeter rings and attack sides", () => {
   });
 
   it("hostiles from every side are stopped by the section they would cross, gates included", () => {
-    const sim = createSim(ringL4([{ t: 1, counts: { "hostile.creature": 4 }, side: ["n", "e", "s", "w"], gap: 0.1 }]));
+    // The hero stays out of it: a ranged shot would pick off the south attacker before it reaches the ring.
+    const sim = createSim({ ...ringL4([{ t: 1, counts: { "hostile.creature": 4 }, side: ["n", "e", "s", "w"], gap: 0.1 }]), params: { ...(LEVEL_4 as Loose).params, "player.rangedRange": 0 } });
     // Every attacker reaches the ring within about ten seconds; a section takes 14 hits to break.
     const ev = idle(sim, 12 * TPS);
     expect(sim.state.hostiles.map((h) => h.side).sort()).toEqual(["e", "n", "s", "w"]);

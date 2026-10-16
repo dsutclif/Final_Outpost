@@ -94,6 +94,10 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
       med bay's early raid hits a quiet, unguarded side so injuries still happen.
     - "Every shelf full" is out of the main-goal pool for now: with purchase time shelves fill in
       seconds. It returns when harvest levels sell more goods per kiosk (R3 Phase C).
+    - 0.6.1 playtest changes: "Nothing overflows" counts converter outputs only (never kiosk shelves);
+      the player deposits carried goods (not currency) into the warehouse within `struct.depot` range
+      (`deposited` to `store.depot`); the player auto-fires at the nearest hostile within
+      `player.rangedRange` (90) every `player.rangedInterval` (0.6 s) for `player.attackDamage`, emitting `shot`.
     - Layout: the generator keeps drawn models from overlapping (`generator.json` footprints, held
       to the 3D models by a render-3d test), and groups each machine's hire pads beside it.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
