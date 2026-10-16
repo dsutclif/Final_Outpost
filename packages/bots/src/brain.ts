@@ -432,9 +432,13 @@ export class Brain {
       const forPlan = capped[def.output] ?? 0;
       const sells = this.sellable(st).includes(def.output);
       const forSale = sells || this.wantedOut(st, def.output);
+      // Overstock collapse rule on: never let an output sit at cap. Collect from a nearly full pile
+      // first, even an unwanted one, and stop operating it short of the cap.
+      const collapseRule = cp.stock.collapseTicks > 0;
+      if (collapseRule && cv.out >= def.outCap - 2 && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) T("fetch", 85, cv.id);
       if (forPlan <= 0 && !forSale) continue;
       const opByWorker = st.residents.some((r) => r.status === "ok" && r.role === def.role && r.assign.to === cv.type && near(r.pos, cv.operatorPos, cp.convParams.operatorRange));
-      if (cv.inQ.length > 0 && cv.out < def.outCap && !opByWorker) T("operate", forPlan > 0 ? 45 : 38, cv.id);
+      if (cv.inQ.length > 0 && cv.out < (collapseRule ? def.outCap - 1 : def.outCap) && !opByWorker) T("operate", forPlan > 0 ? 45 : 38, cv.id);
       const served = st.residents.some((r) => r.status === "ok" && r.assign.from === cv.type && this.cp.roles[r.role]?.behavior === "collect_deliver");
       // Intermediate goods (refined material for a tier-2 converter) and outputs about to overflow.
       if (forPlan <= 0 && cv.out > 0 && !served && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) {

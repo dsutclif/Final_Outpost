@@ -408,6 +408,8 @@ export interface State {
   freeze: FreezeState;
   objectives: ObjectiveState[];
   stats: Stats;
+  /** Ticks each capped stock has sat at cap, by stock key. Absent while the collapse rule is off. */
+  collapse?: Record<string, number>;
   lastHint: HintState | null;
   over: boolean;
   won: boolean | null;

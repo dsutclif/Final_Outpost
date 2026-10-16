@@ -1,12 +1,12 @@
 import type { Content, Manifest } from "@fo/content";
 import { LADDER, TIME_FIXED_GOALS } from "@fo/bots";
-import { meanMargin, winRate, type HistoryEntry, type Measurement } from "./measure.js";
+import { REFERENCE, meanMargin, winRate, type HistoryEntry, type Measurement } from "./measure.js";
 import filterData from "../data/filters.json";
 
 // Quality filters from the spec. Each returns a flag plus the evidence behind it.
 
-export interface Filters { idleModule: boolean; trivial: boolean; stall: boolean; unreadable: boolean; duplicate: boolean }
-export interface FilterEvidence { idleModules: string[]; unreadable: string[]; stallRuns: string[]; duplicateOf: string | null }
+export interface Filters { idleModule: boolean; trivial: boolean; stall: boolean; unreadable: boolean; duplicate: boolean; collapse: boolean }
+export interface FilterEvidence { idleModules: string[]; unreadable: string[]; stallRuns: string[]; duplicateOf: string | null; collapseRuns: string[] }
 
 export const FILTER_PARAMS = filterData as { screenRadius: number; trivialBudgetShare: number; trivialWavesMargin: number; duplicateWindow: number };
 
@@ -100,8 +100,11 @@ export function qualityFilters(ms: Measurement, c: Content): { filters: Filters;
   for (const [p, rs] of Object.entries(ms.runs)) for (const r of rs) if (r.stalls > 0) stallRuns.push(`${p}#${r.seed}@${r.stallStates[0]?.tick ?? 0}`);
   const unread = unreadable(ms.manifest, c);
   const dup = duplicateOf(ms, ms.history);
+  // A reference-bot run that ended in a pile collapse means the level has an unavoidable (or at least
+  // unmanaged) overstock. Only possible when stock.collapseSeconds is on.
+  const collapseRuns = (ms.runs[REFERENCE] ?? []).filter((r) => r.reason === "pile_collapse").map((r) => `${REFERENCE}#${r.seed}`);
   return {
-    filters: { idleModule: idle.length > 0, trivial, stall: stallRuns.length > 0, unreadable: unread.length > 0, duplicate: dup !== null },
-    evidence: { idleModules: idle, unreadable: unread, stallRuns, duplicateOf: dup },
+    filters: { idleModule: idle.length > 0, trivial, stall: stallRuns.length > 0, unreadable: unread.length > 0, duplicate: dup !== null, collapse: collapseRuns.length > 0 },
+    evidence: { idleModules: idle, unreadable: unread, stallRuns, duplicateOf: dup, collapseRuns },
   };
 }

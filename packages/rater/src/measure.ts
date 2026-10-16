@@ -35,6 +35,8 @@ export interface Measurement {
   /** Reference bot replayed with priority-order variants (decisiveness). */
   variants: BotResult[];
   metrics: Metrics;
+  /** Longest time, in seconds, any stock sat at cap in any reference-bot run (0 when none did). */
+  capHoldMax: number;
   budgetTicks: number;
   template: string;
   history: readonly HistoryEntry[];
@@ -72,7 +74,8 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const template = opts.template ?? manifest.map.zones.join("|");
   const history = opts.history ?? [];
   const metrics = computeMetrics(manifest, content, plan, runs, budgetTicks, history);
-  return { manifest, plan, runs, variants, metrics, budgetTicks, template, history };
+  const capHoldMax = Math.max(0, ...runs[REFERENCE]!.map((r) => r.trace.capHoldMax));
+  return { manifest, plan, runs, variants, metrics, capHoldMax, budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,

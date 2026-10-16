@@ -1,5 +1,5 @@
 import { content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { FP, TPS, compile, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
+import { FP, TPS, collapseSecondsLeft, compile, converterStockKey, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
 import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
   Box3,
@@ -135,6 +135,8 @@ export class Renderer3D implements Renderer {
   private lastPick: string | null = null;
   private interp = new Interp();
   private world: State | null = null;
+  /** Renderer clock when a pile collapsed (drives the topple animation); null while none has. */
+  private collapseAt: number | null = null;
   private yaw = new Map<string, number>();
   private phase = new Map<string, number>();
   private cheerUntil = new Map<string, number>();
@@ -364,7 +366,7 @@ export class Renderer3D implements Renderer {
     this.coachDom = null;
     this.coach = null;
     this.env = null; this.fx = null; this.crowd = null; this.blobs = null; this.items = null; this.walls = null;
-    this.lasso = null; this.bctx = null; this.gl = null; this.mount = null; this.world = null;
+    this.lasso = null; this.bctx = null; this.gl = null; this.mount = null; this.world = null; this.collapseAt = null;
     this.hintEl = null; this.bannerEl = null; this.vignetteEl = null;
     this.scene = new Scene();
   }
@@ -899,9 +901,25 @@ export class Renderer3D implements Renderer {
       cv.inQ.slice(0, 6).forEach((res, i) => items.add(res, dep.x + ((i % 3) - 1) * 6, dep.y - 4 + Math.floor(i / 3) * 6, dep.z + ((i * 5) % 3) - 1, i));
       const pick = this.anchorWorld(p, "pickup", tmpV2);
       const outRes = def?.output ?? "res.food_prepared";
+      // overstock collapse: the pile sways harder as the countdown runs down, then topples outward
+      const left = this.cp ? collapseSecondsLeft(s, this.cp, converterStockKey(cv.id)) : null;
+      const total = (this.cp?.stock.collapseTicks ?? 0) / TPS;
+      const fallen = s.over && s.reason === "pile_collapse" && blocked;
+      if (!(s.over && s.reason === "pile_collapse")) this.collapseAt = null;
+      if (fallen && this.collapseAt === null) this.collapseAt = this.t;
+      const fall = fallen && this.collapseAt !== null ? Math.min(1, (this.t - this.collapseAt) / 0.7) : 0;
+      const sway = left !== null && !fallen ? 0.8 + 3.2 * (1 - left / Math.max(1, total)) : 0;
       for (let i = 0; i < Math.min(12, cv.out); i++) {
         const col = i % 2, row = Math.floor(i / 2);
-        items.add(outRes, pick.x + (col - 0.5) * 11, pick.y + row * items.height(outRes), pick.z, 0.2 * col);
+        const hgt = row * items.height(outRes);
+        const wob = sway * (0.4 + row * 0.25) * Math.sin(this.t * 16 + i * 1.7);
+        // toppling: each item slides out along its own bearing and drops to the ground, flat
+        const ang = i * 2.399, spread = fall * (6 + row * 7);
+        items.add(outRes,
+          pick.x + (col - 0.5) * 11 + wob + Math.cos(ang) * spread,
+          fall > 0 ? hgt * (1 - fall) : pick.y + hgt,
+          pick.z + (sway ? 0.5 * wob : 0) + Math.sin(ang) * spread,
+          0.2 * col + fall * (i % 3), 1, sway ? 0.05 * wob : fall * 1.3);
       }
       // output count on the tray; red with "!" once it is full and the machine has stopped
       const chip = this.sprite(p, 1);
@@ -915,7 +933,28 @@ export class Renderer3D implements Renderer {
         warn.visible = this.labels.apply(warn, `warn|${txt}`, () => this.warnArt(txt, blocked ? this.tokens.danger : this.tokens.interactive), 12);
         warn.position.set(p.model.root.position.x, ART_M * 2.5 + Math.sin(this.t * 4) * 1.5, p.model.root.position.z);
       } else warn.visible = false;
+      // in-world countdown over the pile while it sits at cap
+      const cd = this.sprite(p, 2);
+      if (left !== null && !fallen) {
+        const txt = floaterText(this.skin, "pile_collapse_in", { n: left });
+        cd.visible = this.labels.apply(cd, `collapse|${txt}`, () => this.collapseArt(txt), 15);
+        cd.position.set(pick.x, pick.y + Math.ceil(Math.min(12, cv.out) / 2) * items.height(outRes) + 26, pick.z);
+      } else cd.visible = false;
     }
+  }
+
+  private collapseArt(txt: string): LabelArt {
+    const t = this.tokens, ui = this.skin.palette.ui;
+    return {
+      w: 280, h: 72,
+      draw: (g) => {
+        roundRect(g, 4, 4, 272, 64, 32);
+        g.fillStyle = t.danger; g.fill();
+        g.lineWidth = 6; g.strokeStyle = t.ink; g.stroke();
+        g.font = `800 38px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillStyle = ui.panel; g.fillText(txt, 140, 38);
+      },
+    };
   }
 
   private converterManned(s: State, cv: State["converters"][number], def: { range?: number; role?: string } | undefined): boolean {
@@ -1941,6 +1980,16 @@ export class Renderer3D implements Renderer {
       case "hint":
         this.showHint(e["key"] === "need_resource" ? this.needText() ?? hintText(skin, "need_resource") : hintText(skin, String(e["key"])));
         break;
+      case "pile_collapsed": {
+        const cv = this.world?.converters.find((c) => c.id === e["conv"]);
+        const where = cv ? this.wv(cv.pickupPos) : at;
+        this.collapseAt = this.t;
+        fx.shake = Math.max(fx.shake, 8);
+        fx.dustRing(where, mix(t.structure, t.groundAlt, 0.3), 24, 120, 8);
+        fx.burst(up(where, 10), [t.danger, t.structure, white], 22, 120, 220, 5, 0.6);
+        fx.floater(ft("pile_collapsed"), t.danger, up(where, ART_M * 1.8), 46, 14);
+        break;
+      }
       case "level_end":
         if (e["won"]) {
           const p = this.playerBack();

@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { computeReference, historyEntry, measure, rate, rateBatch, type Rating } from "../src/index.js";
+import { content } from "@fo/content";
+import { computeReference, historyEntry, measure, qualityFilters, rate, rateBatch, type Rating } from "../src/index.js";
 import level1 from "../../../levels/golden/proto-L001.json";
 import level2 from "../../../levels/golden/proto-L002.json";
 import level3 from "../../../levels/golden/proto-L003.json";
