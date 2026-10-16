@@ -14,7 +14,7 @@ export type Family = "shelter" | "rescue" | "harvest" | "industrialize" | "defen
 export type Phase = "teach" | "intro" | "mix" | "finale";
 
 export interface FeatureDef { family: Family; modules: string[]; anchor?: boolean; with?: string[] }
-export interface GoalDef { family: Family; kind?: string; needs: string[]; anchor?: boolean; avoid?: string[] }
+export interface GoalDef { family: Family; kind?: string; needs: string[]; adds?: string[]; anchor?: boolean; avoid?: string[] }
 export interface FamilyDef { modules: string[]; teachGoal: string; intro: string[][]; challenges: string[] }
 
 export interface SequencerConfig {
@@ -284,11 +284,18 @@ function choose(index: number, slot: Slot, families: Family[], history: readonly
         if (extra) features = featureClosure([...features, extra], cfg);
       }
     }
-    const modules = modulesFor(families, features, c, cfg);
+    let modules = modulesFor(families, features, c, cfg);
     if (conflicts(modules, c).length > 0) continue;
     const goals = goalsFor(fam, features, families, cfg);
     if (goals.length === 0) continue;
     const goal = pickGoal(goals, slot, history, cfg, s);
+    const adds = (cfg.goals[goal]?.adds ?? []).filter((f) => !features.includes(f));
+    if (adds.length > 0) {
+      // The goal pulls in features of its own (shelves_full: a hunted good beside the farmed one).
+      features = featureClosure([...features, ...adds], cfg);
+      modules = modulesFor(families, features, c, cfg);
+      if (conflicts(modules, c).length > 0) continue;
+    }
     const template = pickTemplate(modules, goalKind(goal, cfg), history, cfg, s);
     if (template === null) continue;
     return { features, modules, goal, template };

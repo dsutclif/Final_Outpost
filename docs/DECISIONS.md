@@ -92,8 +92,8 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
       overfill one (automation relieves the pressure). A belt is laid only for goals that ride on its
       chain (`conveyorGoals`). Boss levels without a med bay get two wall towers per attack side; the
       med bay's early raid hits a quiet, unguarded side so injuries still happen.
-    - "Every shelf full" is out of the main-goal pool for now: with purchase time shelves fill in
-      seconds. It returns when harvest levels sell more goods per kiosk (R3 Phase C).
+    - "Every shelf full" is back in the harvest pool with `adds: ["hunting"]` (and `avoid: source_unlocks`): the kiosk also sells hunted goods, so filling every shelf needs the hunt as well as the farm. (It left the pool earlier because with purchase time shelves fill in
+      seconds with one good.)
     - 0.6.1 playtest changes: "Nothing overflows" counts converter outputs only (never kiosk shelves);
       the player deposits carried goods (not currency) into the warehouse within `struct.depot` range
       (`deposited` to `store.depot`); the player auto-fires at the nearest hostile within
