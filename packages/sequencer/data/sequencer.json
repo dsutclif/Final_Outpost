@@ -110,6 +110,7 @@
     "hire": { "family": "harvest", "needs": [], "anchor": true },
     "earn_within": { "family": "harvest", "needs": [], "anchor": true },
     "bulk_order": { "family": "harvest", "needs": ["bulk_orders"], "anchor": true },
+    "shelves_full": { "family": "harvest", "needs": [], "adds": ["hunting"], "avoid": ["source_unlocks"], "anchor": true },
 
     "produce": { "family": "industrialize", "needs": [], "anchor": true },
     "converters_running": { "family": "industrialize", "needs": ["tier2"], "anchor": true },
@@ -131,7 +132,7 @@
     "hold_out": { "family": "defend", "kind": "survive", "needs": [], "anchor": true }
   },
   "notes": {
-    "goals": "Goal ids are unique per family; `avoid` lists features the goal would leave unused (the level ends before they matter); `kind` names the objective kind when it differs (the rescue family's 'clear the pass' is clear_zones, defend's 'train N defenders' is hire). `needs` lists features the goal requires (@two_goods: at least two sellable goods). `anchor`: the goal puts a pad on the bot's plan that anchored features can hang their pads from.",
+    "goals": "Goal ids are unique per family; `avoid` lists features the goal would leave unused (the level ends before they matter); `kind` names the objective kind when it differs (the rescue family's 'clear the pass' is clear_zones, defend's 'train N defenders' is hire). `adds` lists features the goal pulls in (shelves_full adds hunting, so the kiosk sells a hunted good beside the farmed one and every shelf takes planning); `needs` lists features the goal requires (@two_goods: at least two sellable goods). `anchor`: the goal puts a pad on the bot's plan that anchored features can hang their pads from.",
     "features": "`anchor` features add pads the bot only buys when they sit on its plan, so they need an anchoring goal. `with` pulls in companion features (salvage upgrades need turrets, tier 2 needs the material processor).",
     "finales": "Every 10th level combines two families: the first is the level's family and goal, the second adds its core modules and one feature. Rescue never pairs with defend (content: lasso excludes defense)."
   }
