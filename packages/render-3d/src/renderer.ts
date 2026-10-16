@@ -1494,13 +1494,16 @@ export class Renderer3D implements Renderer {
       const key = `p:${p.id}`;
       const pos = this.interp.pos(key, p.pos, a);
       const pv = this.interp.vel(key);
-      const look2 = lookFor("unit.prey", t, this.skin.models);
+      const beast = (this.cp?.animals[s.preyZones[p.zone]?.animal ?? ""]?.aggroRange ?? 0) > 0;
+      const preyId = beast ? "unit.prey_dangerous" : "unit.prey";
+      const look2 = lookFor(preyId, t, this.skin.models);
       const py = this.faceFrom(key, pv, 0);
       const an = this.anim(key, Math.min(1, Math.hypot(pv.x, pv.y) / 0.8), false);
       an.hit = this.fx!.flashK(key);
       an.knock = an.hit * 0.6;
+      if (beast) an.alert = p.charging ? 1 : 0;
       this.addCharacter(look2, an, pos, py, null);
-      this.candidatePt("unit.prey", pos.x, pos.y, ART_M * look2.scale * 1.6);
+      this.candidatePt(preyId, pos.x, pos.y, ART_M * look2.scale * 1.6);
     }
     // order bubbles of customers that left the queue
     for (const [k, b] of this.bubbles) if (b.seen !== this.frameNo) { this.dynamic.remove(b.s); this.bubbles.delete(k); }
@@ -2113,6 +2116,11 @@ export class Renderer3D implements Renderer {
       case "injured":
         fx.floater(ft("injured"), t.danger, up(at, ART_M * 1.5), 40, 11);
         break;
+      case "animal_charge":
+        // Warning cue: a red ring on the ground and a shout over the animal as it picks a target.
+        fx.floater(ft("animal_charge"), t.danger, up(at, ART_M * 2.1), 36, 12);
+        fx.dustRing(at, t.danger, 14, 90, 8);
+        break;
       case "healed":
         fx.floater(ft("healed"), t.ok, up(at, ART_M * 1.5), 40, 11);
         break;
@@ -2121,6 +2129,10 @@ export class Renderer3D implements Renderer {
         if (target === "hostile") fx.flash(`h:${String(e["id"])}`);
         else if (target === "prey") fx.flash(`p:${String(e["id"])}`);
         else if (target === "base") { fx.shake = Math.max(fx.shake, 5); fx.flash("player", 0.12); }
+        else if (target === "player" && e["by"] === "animal") {
+          fx.shake = Math.max(fx.shake, 4); fx.flash("player", 0.2);
+          fx.floater(ft("animal_hit"), t.danger, up(at, ART_M * 1.8), 38, 12);
+        }
         if (e["by"] === "structure") this.flashNearestTurret(at);
         fx.burst(up(at, 10), [white, mix(t.accent, t.structure, 0.5)], 6, 90, 120, 3, 0.25);
         break;

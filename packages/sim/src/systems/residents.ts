@@ -170,7 +170,8 @@ function hunterStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRol
     if (moveAgent(st, cp, r.pos, drop.pos, role.speed, cp.residents.arrive)) pickDrop(st, r, role, drop, out);
     return;
   }
-  const zones = st.preyZones.map((z, i) => (z.animal === r.assign.from ? i : -1));
+  // Hunters take the dangerous variants of their quarry too (and risk a bite for it).
+  const zones = st.preyZones.map((z, i) => (z.animal === r.assign.from || cp.animals[z.animal]?.variantOf === r.assign.from ? i : -1));
   const prey: PreyState | null = closest(r.pos, st.prey.filter((d) => d.alive && zones.includes(d.zone)));
   if (!prey) { if (r.n > 0) r.mode = "deliver"; return; }
   if (!within(r.pos, prey.pos, role.attackRange) && !moveAgent(st, cp, r.pos, prey.pos, role.speed, role.attackRange)) return;

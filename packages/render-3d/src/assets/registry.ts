@@ -78,6 +78,8 @@ registerModel("node.fuel_deposit", (ctx) => buildFuelCache(ctx), ["pickup", "int
 registerModel("node.fuel_scrap", (ctx) => buildScrapPile(ctx), ["pickup", "interact"]);
 registerModel("node.prey", character("node.prey"));
 registerModel("unit.prey", character("unit.prey"));
+registerModel("node.prey_dangerous", character("node.prey_dangerous"));
+registerModel("unit.prey_dangerous", character("unit.prey_dangerous"));
 
 const sales = content.sinks["sink.sales_point"] as { queueOffset?: number[] } | undefined;
 registerModel("sink.core", (ctx) => buildCore(ctx), ["deposit", "safe", "interact", "pad"]);

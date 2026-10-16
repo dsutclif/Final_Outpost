@@ -34,7 +34,7 @@ export type SimEvent =
   // objectives: emitted when one becomes done or failed
   | { t: "objective"; id: string; kind: string; done: boolean; failed: boolean }
   // combat
-  | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier" | "player"; id: number; at: Vec; by: "player" | "resident" | "structure" | "hostile" }
+  | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier" | "player" | "resident"; id: number; at: Vec; by: "player" | "resident" | "structure" | "hostile" | "animal" }
   | { t: "shot"; from: Vec; to: Vec; id: number }
   | { t: "died"; kind: string; id: number; at: Vec }
   | { t: "drop"; res: string; at: Vec }
@@ -47,6 +47,7 @@ export type SimEvent =
   | { t: "barrier_broken"; line: string; section: number }
   | { t: "barrier_repaired"; line: string; section: number; cost: number; rebuilt: boolean }
   | { t: "injured"; resident: number }
+  | { t: "animal_charge"; id: number; at: Vec }
   | { t: "healed"; resident: number }
   // hazards
   | { t: "hazard_warning"; start: number }

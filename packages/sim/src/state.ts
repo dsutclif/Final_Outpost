@@ -28,6 +28,9 @@ export interface PlayerState {
   hitCd: number;
   /** Ticks until the ranged shot is ready again. */
   shotCd: number;
+  /** Ticks of slowed walking left after an animal bite, and the FP share of speed kept meanwhile. */
+  stun: number;
+  stunSlow: number;
 }
 
 export interface NodeState {
@@ -211,6 +214,9 @@ export interface PreyState {
   vel: Vec;
   /** Ticks until the next heading change. */
   turn: number;
+  /** Dangerous animals: ticks until the next bite, and whether it is charging someone. */
+  atk: number;
+  charging: boolean;
 }
 
 export interface HostileState {
@@ -361,6 +367,8 @@ export interface Stats {
   kills: number;
   bossKills: number;
   preyKilled: number;
+  /** Bites taken from dangerous animals, by the player or a worker. */
+  animalHits: number;
   /** Hunted food (animal drops) delivered to a sink, converter or depot. */
   protein: number;
   /** Salvage picked up. */

@@ -30,6 +30,7 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
       case "built": s.built++; break;
       case "released": s.rescued++; break;
       case "injured": s.injured++; break;
+      case "hit": if (e.by === "animal") s.animalHits++; break;
       case "barrier_broken": s.barriersLost++; break;
       case "core_fuel_out": s.fuelOuts++; break;
       case "froze": s.froze++; break;

@@ -10,7 +10,7 @@ import { roleToken, type Tokens } from "../tokens.js";
 // scene and colour it per instance; the standalone model (asset lab, tests) bakes colours.
 // Units are art metres: the hero stands 1.0 tall.
 
-export type CharKind = "humanoid" | "creature" | "hopper";
+export type CharKind = "humanoid" | "creature" | "hopper" | "spiker";
 
 export interface Look {
   kind: CharKind;
@@ -47,6 +47,8 @@ export interface Anim {
   distress: number;
   /** Lying down (injured). */
   down: number;
+  /** 0..1 a dangerous animal is charging: crouched, faster stomp, red-hot. */
+  alert?: number;
   /** 0..1 frozen solid (a colonist lost to the cold): ice-blue all over, no shiver. */
   ice?: number;
 }
@@ -101,6 +103,9 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
   if (id === "hostile.swarmling") return { ...base, kind: "creature", suit: mix(t.creature, t.danger, 0.25), suitDark: t.creatureDark, visor: t.danger, scale: 0.62 };
   if (id === "hostile.boss") {
     return { ...base, suit: t.raiderDark, suitDark: t.raider, pack: t.raiderDark, visor: t.danger, hat: "hat.crest", hatColor: t.danger, tool: "tool.club", scale: 1.75, bigPack: true };
+  }
+  if (id === "unit.prey_dangerous" || id === "node.prey_dangerous") {
+    return { ...base, kind: "spiker", suit: mix(t.prey, t.danger, 0.3), suitDark: t.groundDark, visor: t.danger, scale: 1.3 };
   }
   if (id === "unit.prey" || id === "node.prey") return { ...base, kind: "hopper", suit: t.prey, suitDark: t.groundDark, visor: t.ink, scale: 1 };
   return base;
@@ -174,6 +179,22 @@ export function buildPartGeos(t: Tokens): PartGeos {
     .cone(0.05, 0.18, 5, t.prey, { at: [-0.1, 0.52, -0.02], rot: [-0.3, 0, 0.3] })
     .cone(0.05, 0.18, 5, t.prey, { at: [0.1, 0.52, -0.02], rot: [-0.3, 0, -0.3] })
     .build());
+  // spiked hopper: heavier, darker body with a spine ridge, tusks and red eyes; same feet as the hopper
+  m.set("s.body", g()
+    .rock(0.25, mix(t.prey, t.danger, 0.3), { at: [0, 0.31, 0], scale: [1.05, 0.85, 1.15] })
+    .sphere(0.06, 6, 4, t.danger, { at: [-0.09, 0.4, 0.19] })
+    .sphere(0.06, 6, 4, t.danger, { at: [0.09, 0.4, 0.19] })
+    .sphere(0.025, 5, 3, t.ink, { at: [-0.09, 0.4, 0.24] })
+    .sphere(0.025, 5, 3, t.ink, { at: [0.09, 0.4, 0.24] })
+    .cone(0.035, 0.14, 4, t.metal, { at: [-0.07, 0.22, 0.27], rot: [1.5, 0, 0.25] })
+    .cone(0.035, 0.14, 4, t.metal, { at: [0.07, 0.22, 0.27], rot: [1.5, 0, -0.25] })
+    .cone(0.06, 0.26, 5, t.ink, { at: [0, 0.58, -0.12], rot: [-0.4, 0, 0] })
+    .cone(0.06, 0.3, 5, t.ink, { at: [-0.12, 0.55, 0.0], rot: [0, 0, 0.45] })
+    .cone(0.06, 0.3, 5, t.ink, { at: [0.12, 0.55, 0.0], rot: [0, 0, -0.45] })
+    .cone(0.05, 0.24, 5, t.ink, { at: [0, 0.52, 0.12], rot: [0.5, 0, 0] })
+    .cone(0.05, 0.22, 5, t.ink, { at: [-0.2, 0.4, -0.05], rot: [0, 0, 1.0] })
+    .cone(0.05, 0.22, 5, t.ink, { at: [0.2, 0.4, -0.05], rot: [0, 0, -1.0] })
+    .build());
   m.set("p.leg", g().capsule(0.05, 0.12, t.groundDark, { at: [0, -0.08, 0] }, 1, 5).box(0.1, 0.05, 0.16, t.groundDark, { at: [0, -0.18, 0.04] }).build());
   return m;
 }
@@ -210,6 +231,7 @@ function shade(out: Color, base: string | null, a: Anim, frost: string | null): 
 export function poseCharacter(look: Look, a: Anim, root: Matrix4, emit: Emit, frost: string | null = null, anchor?: EmitAnchor): void {
   if (look.kind === "creature") return poseCreature(look, a, root, emit, anchor);
   if (look.kind === "hopper") return poseHopper(look, a, root, emit, anchor);
+  if (look.kind === "spiker") return poseSpiker(a, root, emit, anchor);
   shade(cSuit, look.suit, a, frost);
   shade(cDark, look.suitDark, a, frost);
   shade(cVisor, look.visor, a, a.ice ? frost : null);
@@ -268,6 +290,24 @@ function poseCreature(look: Look, a: Anim, root: Matrix4, emit: Emit, anchor?: E
   anchor?.("stack", local(mBody, 0, 0.5, -0.1));
   anchor?.("hand_L", local(mBody, -0.1, 0.25, 0.5));
   anchor?.("hand_R", local(mBody, 0.1, 0.25, 0.5));
+}
+
+/** The dangerous hopper: stomps instead of hopping, and when charging crouches forward and glows red. */
+function poseSpiker(a: Anim, root: Matrix4, emit: Emit, anchor?: EmitAnchor): void {
+  const alert = a.alert ?? 0;
+  shade(cWhite, null, a, null);
+  if (alert > 0) cWhite.setRGB(1, 1 - 0.5 * alert, 1 - 0.55 * alert);
+  const stomp = Math.abs(Math.sin(a.phase * (1 + alert))) * (0.1 + 0.08 * alert) * Math.max(0.2, a.speed);
+  const quiver = alert * Math.sin(a.t * 40) * 0.02;
+  local(root, quiver, stomp, 0, 0.25 * alert - a.knock * 0.8, 0, 0, mBody);
+  emit("s.body", mBody, cWhite);
+  const tuck = stomp * 3;
+  emit("p.leg", local(mBody, -0.15, 0.2, 0.02, -tuck), cWhite);
+  emit("p.leg", local(mBody, 0.15, 0.2, 0.02, tuck), cWhite);
+  anchor?.("head", local(mBody, 0, 0.55, 0.05));
+  anchor?.("stack", local(mBody, 0, 0.6, -0.1));
+  anchor?.("hand_L", local(mBody, -0.13, 0.05, 0.1));
+  anchor?.("hand_R", local(mBody, 0.13, 0.05, 0.1));
 }
 
 function poseHopper(look: Look, a: Anim, root: Matrix4, emit: Emit, anchor?: EmitAnchor): void {

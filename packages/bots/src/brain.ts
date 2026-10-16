@@ -760,13 +760,19 @@ export class Brain {
         const res = this.huntRes(st);
         if (!this.pol.hunt && (res === null || count(p.stack, res) >= Math.min(cp.resources[res]?.cap ?? 6, 4))) return null;
         if (this.pol.hunt && res !== null && count(p.stack, res) >= (cp.resources[res]?.cap ?? 6)) return null;
-        let best: Vec | null = null, bd = Infinity;
+        let best: Vec | null = null, bd = Infinity, beast = false;
         for (const d of st.prey) {
           if (!d.alive) continue;
           const dd = d2(d.pos, p.pos);
-          if (dd < bd) { bd = dd; best = d.pos; }
+          if (dd < bd) { bd = dd; best = d.pos; beast = cp.animals[st.preyZones[d.zone]!.animal]!.aggroRange > 0; }
         }
         if (!best) return null;
+        // A dangerous animal is softened up from range: the player auto-fires at it inside rangedRange, so hold
+        // there (it charges onto the swing) instead of walking into its bite.
+        if (beast && cp.player.rangedRange > 0) {
+          if (near(p.pos, best, cp.player.rangedRange - 8 * U)) return { pos: p.pos, r: 1 };
+          return { pos: best, r: cp.player.rangedRange - 15 * U };
+        }
         // Close enough for the auto-attack; stand still while the swing lands.
         if (near(p.pos, best, cp.player.attackRange - 10 * U)) return { pos: p.pos, r: 1 };
         return { pos: best, r: cp.player.attackRange - 14 * U };

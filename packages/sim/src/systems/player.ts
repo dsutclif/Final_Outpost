@@ -2,7 +2,7 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { FP, clamp, clampDir, dist, mulDiv, within, type Vec } from "../fixed.js";
 import type { State } from "../state.js";
-import { hitHostile, hitPrey, nearestHostile, nearestPrey } from "./combat.js";
+import { hitHostile, hitPrey, nearestDangerousPrey, nearestHostile, nearestPrey } from "./combat.js";
 import { blockedAt, canTake, hint, stepDown, take } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
 import { trackPadDwell, tryPayPad } from "./pads.js";
@@ -18,7 +18,9 @@ export function movePlayer(st: State, cp: Compiled, input: Input): void {
   const dir = clampDir(input.dx, input.dy);
   p.moving = dir.x !== 0 || dir.y !== 0;
   // Each towed object slows the player by the lasso penalty.
-  const speed = mulDiv(cp.player.speed, Math.max(0, FP - cp.lasso.speedPenalty * p.tow.length), FP);
+  let speed = mulDiv(cp.player.speed, Math.max(0, FP - cp.lasso.speedPenalty * p.tow.length), FP);
+  // A bite from a dangerous animal slows the walk for a moment.
+  if (p.stun > 0) { p.stun--; speed = mulDiv(speed, p.stunSlow, FP); }
   const r = cp.player.radius;
   const nx = clamp(p.pos.x + mulDiv(dir.x, speed, FP), r, cp.map.w - r);
   const ny = clamp(p.pos.y + mulDiv(dir.y, speed, FP), r, cp.map.h - r);
@@ -170,10 +172,18 @@ export function playerCombat(st: State, cp: Compiled, out: SimEvent[]): void {
   // Ranged shot at the nearest hostile (integer squared distance, ties to the first in the list,
   // which is id order); fired while moving, hostiles only.
   if (p.shotCd > 0 || cp.player.rangedRange <= 0) return;
+  // Dangerous animals count as foes for the auto-fire so they can be softened up before they close in;
+  // plain prey is never shot, it is hunted in melee.
   const foe = nearestHostile(st, p.pos, cp.player.rangedRange);
-  if (!foe) return;
-  out.push({ t: "shot", from: { ...p.pos }, to: { ...foe.pos }, id: foe.id });
-  hitHostile(st, cp, foe, cp.player.attackDamage, "player", out);
+  const beast = nearestDangerousPrey(st, cp, p.pos, cp.player.rangedRange);
+  if (!foe && !beast) return;
+  if (beast && (!foe || dist(beast.pos, p.pos) < dist(foe.pos, p.pos))) {
+    out.push({ t: "shot", from: { ...p.pos }, to: { ...beast.pos }, id: beast.id });
+    hitPrey(st, cp, beast, cp.player.attackDamage, "player", out);
+  } else {
+    out.push({ t: "shot", from: { ...p.pos }, to: { ...foe!.pos }, id: foe!.id });
+    hitHostile(st, cp, foe!, cp.player.attackDamage, "player", out);
+  }
   p.shotCd = cp.player.rangedTicks;
 }
 
