@@ -337,11 +337,11 @@ export class App {
   private inspectAt(x: number, y: number): void {
     const s = this.session;
     if (!s || this.screen !== "playing") return;
-    const id = s.renderer.pick(x, y);
+    const hit = s.renderer.inspect(x, y);
     const card = this.el.inspect;
-    if (!id) { card.hidden = true; return; }
-    const sk = this.skin, purpose = purposeOf(sk, id);
-    card.innerHTML = `<b>${esc(nameOf(sk, id))}</b>${purpose ? `<span>${esc(purpose)}</span>` : ""}`;
+    if (!hit) { card.hidden = true; return; }
+    const { name, purpose } = hit;
+    card.innerHTML = `<b>${esc(name)}</b>${purpose ? `<span>${esc(purpose)}</span>` : ""}`;
     card.hidden = false;
     const r = this.el.stage.getBoundingClientRect();
     const w = Math.min(250, r.width - 24);

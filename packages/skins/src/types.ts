@@ -94,6 +94,15 @@ export interface Skin {
    * discovery labels, tap-to-inspect cards and the field guide. Missing ids show no purpose.
    */
   purposes?: Record<string, string>;
+  /**
+   * Worker titles per role id, named after what they work ("{res} collector", "{machine}
+   * operator"). Vars: res (what they gather or move), machine, place, dest, and lower-case
+   * resL / machineL / placeL / destL for mid-sentence use. A role without a template, or a
+   * template with an unfilled var, falls back to the role's plain name.
+   */
+  workerNames?: Record<string, string>;
+  /** One-line duty per role id with the same vars, for inspect cards; falls back to purposes. */
+  workerPurposes?: Record<string, string>;
   palette: SkinPalette;
   /** 2D sprite key per canonical id; the 2D renderer maps keys to draw routines. */
   sprites: Record<string, string>;

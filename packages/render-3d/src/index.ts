@@ -27,6 +27,8 @@ export interface Renderer3DHandle extends Renderer {
   worldToScreen(p: { x: number; y: number }, height?: number): { x: number; y: number };
   /** Canonical id of the object under a mount CSS px point (tap to inspect), or null. */
   pick(x: number, y: number): string | null;
+  /** pick() with display text: hire pads and hired colonists are named for what they work. */
+  inspect(x: number, y: number): { id: string; name: string; purpose: string } | null;
   /** Which types still show a floating discovery label (name + purpose); null shows none. */
   setDiscovery(isNew: ((id: string) => boolean) | null): void;
 }

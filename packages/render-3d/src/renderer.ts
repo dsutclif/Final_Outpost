@@ -1,6 +1,6 @@
 import { content as defaultContent, type Content, type Manifest } from "@fo/content";
 import { FP, TPS, compile, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
-import { floaterText, hintText, mix, nameOf, purposeOf, uiText, type Skin } from "@fo/skins";
+import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
   Box3,
   BufferAttribute,
@@ -74,7 +74,7 @@ export interface Renderer3DOptions {
   createGL?: (canvas: HTMLCanvasElement) => GLLike;
 }
 
-interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean }
+interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; worker?: { vars: WorkerVars; res?: string }; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean }
 
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = 30, PAD_LOCK_H = 36;
@@ -128,6 +128,8 @@ export class Renderer3D implements Renderer {
   private dynamic = new Group();
   private placed = new Map<string, Placed>();
   private pads = new Map<string, PadInfo>();
+  /** Placed key (or r:<resident id>) of the last pick() hit, for inspect(). */
+  private lastPick: string | null = null;
   private interp = new Interp();
   private world: State | null = null;
   private yaw = new Map<string, number>();
@@ -375,15 +377,36 @@ export class Renderer3D implements Renderer {
       const what = e.type === "pad.hire" ? e.role.role : e.build;
       const targetType = e.type === "pad.build" && e.target ? byId.get(e.target)?.type : undefined;
       let label = name(what);
+      let worker: PadInfo["worker"];
+      if (e.type === "pad.hire") {
+        worker = this.workerOf(e.role.from, e.role.to);
+        label = workerName(this.skin, what, worker.vars);
+      }
       if (kind === "build" && what === "node.enable") label = uiText(this.skin, "unlock", { name: targetType ? name(targetType) : "" }).trim();
       else if (kind === "build" && what === "sink.core.level") label = uiText(this.skin, "coreLevel", { n: 2 });
       else if (kind === "build" && what === "zone.clear") label = uiText(this.skin, "clear", { name: name("zone.blocked") });
       const info: PadInfo = { id: e.id, kind, cost: { ...e.cost }, label, big: e.type === "pad.build" ? e.big : false, what };
+      if (worker) info.worker = worker;
       if (this.manifest.goal.type === "build" && this.manifest.goal.target === e.id) info.goal = true;
       if (e.requires?.pad !== undefined) info.requiresPad = e.requires.pad;
       if (e.requires?.coreLevel !== undefined) info.requiresCoreLevel = e.requires.coreLevel;
       this.pads.set(e.id, info);
     }
+  }
+
+  /** What a worker gathers or moves, and the machine, place or destination it serves, as display names. */
+  private workerOf(from: string | null | undefined, to: string | null | undefined): { vars: WorkerVars; res?: string } {
+    const c = this.content;
+    const name = (id: string): string => nameOf(this.skin, id === "store.depot" ? "struct.depot" : id);
+    const drops = from ? (c.animals[from] as { drops?: Record<string, number> } | undefined)?.drops : undefined;
+    const res = from
+      ? (c.nodes[from] as { yields?: string } | undefined)?.yields ?? (c.converters[from] as { output?: string } | undefined)?.output ?? (drops ? Object.keys(drops)[0] : undefined)
+      : undefined;
+    const vars: WorkerVars = {};
+    if (res) vars.res = nameOf(this.skin, res);
+    if (to?.startsWith("conv.")) vars.machine = name(to);
+    if (to) { vars.dest = name(to); vars.place = name(to); } else vars.place = name("sink.sales_point");
+    return res ? { vars, res } : { vars };
   }
 
   private buildDom(doc: Document, mount: HTMLElement): void {
@@ -711,19 +734,21 @@ export class Renderer3D implements Renderer {
     for (let i = sales.sells.length; i < kiosk.sprites.length; i++) kiosk.sprites[i]!.visible = false;
   }
 
-  private shelfChipArt(res: string, n: number, full: boolean): LabelArt {
+  /** Count chip: resource icon and number; green when a shelf is full (good), red "n!" when a stock is over (blocked). */
+  private shelfChipArt(res: string, n: number, full: boolean, over = false): LabelArt {
     const t = this.tokens, ui = this.skin.palette.ui;
-    const num = `${n}`;
+    const num = over ? `${n}!` : `${n}`;
     const w = this.labels.textWidth(num, 40) + 78;
+    const bg = over ? t.danger : full ? t.ok : t.ink, fg = full && !over ? t.ink : ui.panel;
     return {
       w, h: 64,
       draw: (g, W) => {
         roundRect(g, 3, 3, W - 6, 58, 29);
-        g.fillStyle = full ? t.ok : t.ink; g.globalAlpha = full ? 1 : 0.85; g.fill(); g.globalAlpha = 1;
-        g.lineWidth = 4; g.strokeStyle = full ? t.ink : ui.panel; g.stroke();
+        g.fillStyle = bg; g.globalAlpha = full || over ? 1 : 0.85; g.fill(); g.globalAlpha = 1;
+        g.lineWidth = 4; g.strokeStyle = full && !over ? t.ink : ui.panel; g.stroke();
         drawIcon(g, 32, 32, 18, resToken(t, res), t.ink);
         g.font = `800 40px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
-        g.fillStyle = full ? t.ink : ui.panel; g.fillText(num, 32 + (W - 32) / 2 - 2, 35);
+        g.fillStyle = fg; g.fillText(num, 32 + (W - 32) / 2 - 2, 35);
       },
     };
   }
@@ -875,6 +900,12 @@ export class Renderer3D implements Renderer {
         const col = i % 2, row = Math.floor(i / 2);
         items.add(outRes, pick.x + (col - 0.5) * 11, pick.y + row * items.height(outRes), pick.z, 0.2 * col);
       }
+      // output count on the tray; red with "!" once it is full and the machine has stopped
+      const chip = this.sprite(p, 1);
+      if (cv.out > 0) {
+        chip.visible = this.labels.apply(chip, `shelf|${outRes}|${cv.out}|over:${blocked}`, () => this.shelfChipArt(outRes, cv.out, false, blocked), 13);
+        chip.position.set(pick.x, pick.y + Math.ceil(Math.min(12, cv.out) / 2) * items.height(outRes) + 10, pick.z);
+      } else chip.visible = false;
       const warn = this.sprite(p, 0);
       if (blocked || !manned) {
         const txt = blocked ? "!" : "?";
@@ -895,14 +926,23 @@ export class Renderer3D implements Renderer {
   private syncDepot(s: State): void {
     const d = s.depot;
     if (!d) return;
-    // the depot is also a structure (struct.depot); stock shows as crates by the door
+    // the depot is also a structure (struct.depot), drawn cut away: its stock stands inside in
+    // one column per resource with a count chip, so the inventory reads without tapping
+    const st = s.structures.find((x) => x.type === "struct.depot");
+    const p = st ? this.placed.get(`s:${st.id}:${st.type}:${st.level}`) : undefined;
     const at = this.wv(d.pos);
     const items = this.items!;
-    let i = 0;
-    for (const [res, n] of Object.entries(d.stock)) {
-      for (let j = 0; j < Math.min(6, n); j++) items.add(res, at.x - 30 + i * 12, j * items.height(res), at.z + 34);
-      i++;
-    }
+    const stock = Object.entries(d.stock).filter(([, n]) => n > 0);
+    const cols = Math.max(1, stock.length), pitch = Math.min(0.5, 2.0 / cols) * ART_M;
+    stock.forEach(([res, n], i) => {
+      const x = at.x + (i - (cols - 1) / 2) * pitch, z = at.z - 0.15 * ART_M;
+      for (let j = 0; j < Math.min(10, n); j++) items.add(res, x, 0.16 * ART_M + j * items.height(res), z, 0.3 * (j % 2));
+      if (!p) return;
+      const chip = this.sprite(p, i);
+      chip.visible = this.labels.apply(chip, `shelf|${res}|${n}|false`, () => this.shelfChipArt(res, n, false), 13);
+      chip.position.set(x, 0.16 * ART_M + Math.min(10, n) * items.height(res) + 9, z);
+    });
+    if (p) for (let i = stock.length; i < p.sprites.length; i++) p.sprites[i]!.visible = false;
   }
 
   private syncPads(s: State): void {
@@ -936,7 +976,8 @@ export class Renderer3D implements Renderer {
         this.dynamic.add(decal);
         p.extra[0] = decal;
       }
-      const dm = this.labels.meshMaterial(`pd|${fb}|${pad.locked}|${big}`, () => this.padDecalArt(fb / 24, pad.locked, big));
+      const wk = info?.kind === "hire" ? info : undefined;
+      const dm = this.labels.meshMaterial(`pd|${fb}|${pad.locked}|${big}|${wk?.what ?? ""}|${wk?.worker?.res ?? ""}`, () => this.padDecalArt(fb / 24, pad.locked, big, wk?.what, wk?.worker?.res));
       if (dm) { decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
@@ -1532,7 +1573,7 @@ export class Renderer3D implements Renderer {
     };
   }
 
-  private padDecalArt(fill: number, locked: boolean, big: boolean): LabelArt {
+  private padDecalArt(fill: number, locked: boolean, big: boolean, role?: string, res?: string): LabelArt {
     const t = this.tokens;
     const col = big ? t.accent : t.interactive;
     return {
@@ -1548,6 +1589,16 @@ export class Renderer3D implements Renderer {
         if (fill > 0) {
           g.beginPath(); g.arc(w / 2, h / 2, 82, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fill);
           g.lineWidth = 18; g.lineCap = "round"; g.strokeStyle = col; g.stroke();
+        }
+        // a hire pad shows who you get: the worker in their role colour, badged with what they handle
+        if (role) {
+          const body = this.skin.palette.role[role] ?? t.structure;
+          g.globalAlpha = locked ? 0.5 : 1;
+          g.lineWidth = 7; g.strokeStyle = t.ink; g.fillStyle = body;
+          g.beginPath(); g.arc(w / 2, h / 2 - 22, 21, 0, Math.PI * 2); g.fill(); g.stroke();
+          g.beginPath(); g.moveTo(w / 2 - 38, h / 2 + 44); g.quadraticCurveTo(w / 2 - 38, h / 2 + 4, w / 2, h / 2 + 4); g.quadraticCurveTo(w / 2 + 38, h / 2 + 4, w / 2 + 38, h / 2 + 44); g.closePath(); g.fill(); g.stroke();
+          if (res) drawIcon(g, w / 2 + 40, h / 2 + 34, 22, resToken(t, res), t.ink);
+          g.globalAlpha = 1;
         }
       },
     };
@@ -2141,36 +2192,63 @@ export class Renderer3D implements Renderer {
   pick(x: number, y: number): string | null {
     const w = this.world;
     if (!w || !this.gl) return null;
-    const hit = { id: null as string | null, d: PICK_PX * PICK_PX };
-    const test = (id: string, px: number, pz: number, h: number): void => {
+    const hit = { id: null as string | null, key: null as string | null, d: PICK_PX * PICK_PX };
+    const test = (id: string, px: number, pz: number, h: number, key: string | null = null): void => {
       const sp = this.toScreen(v3(px, h, pz));
       const d = (sp.x - x) ** 2 + (sp.y - y) ** 2;
-      if (d < hit.d) { hit.d = d; hit.id = id; }
+      if (d < hit.d) { hit.d = d; hit.id = id; hit.key = key; }
     };
+    this.lastPick = null;
     const mid = ART_M * 0.5;
     const pl = this.interp.pos("player", w.player.pos, 1);
     test("unit.player", pl.x, pl.y, mid);
     for (const r of w.residents) {
       if (r.status === "towed" || r.status === "releasing") continue;
       const p = this.interp.pos(`r:${r.id}`, r.pos, 1);
-      test(r.role === "idle" ? "role.idle" : r.role, p.x, p.y, mid);
+      test(r.role === "idle" ? "role.idle" : r.role, p.x, p.y, mid, `r:${r.id}`);
     }
     for (const h of w.hostiles) { const p = this.interp.pos(`h:${h.id}`, h.pos, 1); test(h.type, p.x, p.y, mid); }
     for (const p of w.prey) if (p.alive) { const q = this.interp.pos(`p:${p.id}`, p.pos, 1); test("unit.prey", q.x, q.y, mid * 0.6); }
     w.sales?.queue.forEach((c, i) => { const q = this.interp.pos(`q:${i}`, c.pos, 1); test(c.kind, q.x, q.y, mid); });
-    if (hit.id) return hit.id;
+    if (hit.id) { this.lastPick = hit.key; return hit.id; }
     const roots = new Map<Object3D, string>();
+    const keys = new Map<Object3D, string>();
     for (const p of this.placed.values()) {
       const id = p.data["id"];
-      if (typeof id === "string" && this.skin.names[id] && p.model.root.visible) roots.set(p.model.root, id);
+      if (typeof id === "string" && this.skin.names[id] && p.model.root.visible) { roots.set(p.model.root, id); keys.set(p.model.root, p.key); }
     }
     this.raycaster.setFromCamera(new Vector2((x / this.cssW) * 2 - 1, -(y / this.cssH) * 2 + 1), this.camera);
     for (const h of this.raycaster.intersectObjects([...roots.keys()], true)) {
-      for (let o: Object3D | null = h.object; o; o = o.parent) { const id = roots.get(o); if (id) return id; }
+      for (let o: Object3D | null = h.object; o; o = o.parent) { const id = roots.get(o); if (id) { this.lastPick = keys.get(o) ?? null; return id; } }
     }
     hit.d = (PICK_PX * 1.4) ** 2;
-    for (const [root, id] of roots) test(id, root.position.x, root.position.z, 4);
+    for (const [root, id] of roots) test(id, root.position.x, root.position.z, 4, keys.get(root) ?? null);
+    this.lastPick = hit.key;
     return hit.id;
+  }
+
+  /**
+   * pick() plus the display text for an inspect card: hire pads and hired colonists are named
+   * for what they work ("Ore collector", "Galley operator"); everything else by its type.
+   */
+  inspect(x: number, y: number): { id: string; name: string; purpose: string } | null {
+    const id = this.pick(x, y);
+    if (!id) return null;
+    const key = this.lastPick ?? "";
+    const plain = { id, name: nameOf(this.skin, id), purpose: purposeOf(this.skin, id) };
+    if (key.startsWith("pad:")) {
+      const info = this.pads.get(key.slice(4));
+      if (info?.kind === "hire" && info.worker) return { id, name: info.label, purpose: workerPurpose(this.skin, info.what, info.worker.vars) };
+      if (info) return { id, name: info.label, purpose: plain.purpose };
+    }
+    if (key.startsWith("r:")) {
+      const r = this.world?.residents.find((x) => `r:${x.id}` === key);
+      if (r && r.role !== "idle") {
+        const w = this.workerOf(r.assign.from, r.assign.to);
+        return { id, name: workerName(this.skin, r.role, w.vars), purpose: workerPurpose(this.skin, r.role, w.vars) };
+      }
+    }
+    return plain;
   }
 
   /** "Bring 3 Ore, 2 Alloy": what the pad under the hero still lacks that the hero isn't carrying. */

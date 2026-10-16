@@ -19,6 +19,27 @@ export function getSkin(id: string | null | undefined): Skin {
   return (id && SKINS[id]) || marsGreenhouse;
 }
 
+/** What a hired worker is assigned to, as display names (see Skin.workerNames). */
+export interface WorkerVars { res?: string; machine?: string; place?: string; dest?: string }
+
+function workerFmt(template: string | undefined, vars: WorkerVars): string | null {
+  if (!template) return null;
+  const all: Record<string, string> = {};
+  for (const [k, v] of Object.entries(vars)) if (v) { all[k] = v; all[`${k}L`] = v.toLowerCase(); }
+  const out = fmt(template, all);
+  return /\{\w+\}/.test(out) ? null : out;
+}
+
+/** "Ore collector", "Galley operator": a worker titled by what they work; the role name otherwise. */
+export function workerName(skin: Skin, role: string, vars: WorkerVars): string {
+  return workerFmt(skin.workerNames?.[role], vars) ?? nameOf(skin, role);
+}
+
+/** "Collects ore and brings it to the smelter": a worker's duty; the role's purpose otherwise. */
+export function workerPurpose(skin: Skin, role: string, vars: WorkerVars): string {
+  return workerFmt(skin.workerPurposes?.[role], vars) ?? purposeOf(skin, role);
+}
+
 /** Display name of a canonical id; never throws, so a missing name shows as a readable label. */
 export function nameOf(skin: Skin, id: string): string {
   return skin.names[id] ?? humanise(id);

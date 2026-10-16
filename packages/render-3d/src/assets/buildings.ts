@@ -291,19 +291,25 @@ export function buildTurret(ctx: BuildCtx): Model {
 export function buildWarehouse(ctx: BuildCtx): Model {
   const { t, mats } = ctx;
   const m = model("hero");
+  // Cut away (R3): no roof skin and a low front wall, so the stock stacked on the floor
+  // (drawn by the renderer from the sim) reads from the game camera.
   const b = new GeoBuilder()
     .rbox(2.8, 0.12, 2.0, 0.05, t.structureDark, { at: [0, 0.06, 0] }, 1)
-    .rbox(2.5, 1.1, 1.7, 0.1, t.structure, { at: [0, 0.65, -0.05] }, 1)
-    .cyl(0.86, 0.86, 2.5, 12, t.structure, { at: [0, 1.2, -0.05], rot: [0, 0, Math.PI / 2], scale: [1, 1, 0.98] }, false)
-    .box(2.54, 0.1, 1.74, t.trim, { at: [0, 1.2, -0.05] });
-  // roll door with ribs
-  b.rbox(1.2, 0.95, 0.06, 0.03, t.metal, { at: [0, 0.6, 0.82] }, 1);
-  for (let i = 0; i < 5; i++) b.box(1.16, 0.03, 0.04, t.metalDark, { at: [0, 0.22 + i * 0.18, 0.86] });
-  // crates outside
-  const crate = (x: number, z: number, y: number, c: string): void => { b.rbox(0.36, 0.34, 0.36, 0.04, c, { at: [x, y + 0.17, z] }, 1).box(0.38, 0.05, 0.38, t.metalDark, { at: [x, y + 0.17, z] }); };
-  crate(1.1, 0.95, 0, resToken(t, "res.material_basic"));
-  crate(1.5, 0.75, 0, resToken(t, "res.food_raw_1"));
-  crate(1.25, 0.85, 0.34, resToken(t, "res.fuel_dense"));
+    .box(2.4, 0.04, 1.6, mix(t.structureDark, t.metal, 0.4), { at: [0, 0.14, -0.05] })
+    .rbox(2.5, 1.1, 0.12, 0.04, t.structure, { at: [0, 0.65, -0.84] }, 1)
+    .rbox(0.12, 1.1, 1.7, 0.04, t.structure, { at: [-1.19, 0.65, -0.05] }, 1)
+    .rbox(0.12, 1.1, 1.7, 0.04, t.structure, { at: [1.19, 0.65, -0.05] }, 1)
+    .rbox(0.7, 0.42, 0.1, 0.03, t.structure, { at: [-0.86, 0.33, 0.76] }, 1)
+    .rbox(0.7, 0.42, 0.1, 0.03, t.structure, { at: [0.86, 0.33, 0.76] }, 1)
+    .box(2.54, 0.1, 0.16, t.trim, { at: [0, 1.2, -0.84] })
+    .box(0.16, 0.1, 1.74, t.trim, { at: [-1.19, 1.2, -0.05] })
+    .box(0.16, 0.1, 1.74, t.trim, { at: [1.19, 1.2, -0.05] })
+    // door posts and the rolled-up door as a lintel over the opening
+    .box(0.1, 1.1, 0.12, t.metal, { at: [-0.5, 0.65, 0.78] })
+    .box(0.1, 1.1, 0.12, t.metal, { at: [0.5, 0.65, 0.78] })
+    .cyl(0.12, 0.12, 1.1, 8, t.metal, { at: [0, 1.22, 0.78], rot: [0, 0, Math.PI / 2] });
+  // bare roof ribs: the half-cylinder roof, skeleton only
+  for (let i = 0; i < 4; i++) b.torus(0.84, 0.045, 4, 10, t.trim, { at: [-1.1 + i * (2.2 / 3), 1.2, -0.05], rot: [0, Math.PI / 2, 0] }, Math.PI);
   m.root.add(mesh(b.build(), mats.std, "body"));
   anchor(m.root, "deposit", 0, 0.5, 0.95);
   anchor(m.root, "pickup", 0, 0.5, 0.95);

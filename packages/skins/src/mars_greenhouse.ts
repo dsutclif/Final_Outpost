@@ -113,6 +113,24 @@ const names: Record<string, string> = {
 
 // One line per type: what it is for. Shown over types the player has not used yet, on the
 // tap-to-inspect card and in the field guide.
+const workerNames: Record<string, string> = {
+  "role.supplier": "{res} collector",
+  "role.server": "{res} hauler",
+  "role.operator": "{machine} operator",
+  "role.cashier": "{place} clerk",
+  "role.hunter": "{res} hunter",
+  "role.hauler": "Warehouse courier",
+};
+
+const workerPurposes: Record<string, string> = {
+  "role.supplier": "Collects {resL} for the {destL}",
+  "role.server": "Carries {resL} to the {destL}",
+  "role.operator": "Stands at the {machineL} and runs it for you",
+  "role.cashier": "Rings up traders at the {placeL}",
+  "role.hunter": "Hunts hoppers and takes the {resL} to the {destL}",
+  "role.hauler": "Moves goods from the warehouse to where they are needed",
+};
+
 const purposes: Record<string, string> = {
   "res.material_basic": "Burns in the reactor and builds walls",
   "res.material_refined": "Smelted from ore; sells high and builds",
@@ -241,6 +259,8 @@ export const marsGreenhouse: Skin = {
   themeColor: "#8a4d2e",
   names,
   purposes,
+  workerNames,
+  workerPurposes,
   palette: {
     ground: "#8a4d2e",
     groundAlt: "#97573a",
