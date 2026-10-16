@@ -88,7 +88,7 @@
   "stats.coreLowFill": 0.3,
   "start.currency": 0,
   "timer.seconds": 0,
-  "level.budgetSeconds": 300,
+  "level.budgetSeconds": 420,
   "customers.refillSpawn": 1.0,
   "customers.refillBelow": 3,
   "customers.bulkShare": 0,

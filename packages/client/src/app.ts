@@ -11,6 +11,7 @@ import { HudView, hudModel } from "./hud.js";
 import { InputController } from "./input.js";
 import { offlineReady, prefetchLevels, type LevelMeta, type LevelSource } from "./levels.js";
 import { FixedStepper } from "./loop.js";
+import { TIME_TARGET_STEPS, applyTimeTarget, normalizeTimeTargetPct } from "./timetarget.js";
 import { webPlatform, type Platform } from "./platform.js";
 import { chapters, isUnlocked, nextLevel, starText } from "./progress.js";
 import { PROBE_SEC, autoTier, createRenderer, thumbnails, warm3D, webglAvailable, type GameRenderer, type Tier } from "./render.js";
@@ -512,7 +513,7 @@ export class App {
       inp.addEventListener("change", () => {
         const k = inp.dataset["k"] as keyof Settings;
         const val = inp instanceof HTMLInputElement && inp.type === "checkbox" ? inp.checked : inp.value;
-        (this.settings as unknown as Record<string, unknown>)[k] = val;
+        (this.settings as unknown as Record<string, unknown>)[k] = k === "timeTargetPct" ? normalizeTimeTargetPct(val) : val;
         this.applySettings();
         void this.deps.store.setSettings(this.settings);
         if (k === "haptics" && val) this.haptics.play({ t: "built" } as SimEvent);
@@ -529,6 +530,8 @@ export class App {
     return `${toggle("haptics", uiText(s, "settingsHaptics"))}
       ${toggle("sound", uiText(s, "settingsSound"))}
       ${toggle("guide", uiText(s, "settingsGuide"))}
+      <label class="set"><span>${esc(uiText(s, "settingsTimeTarget"))}</span>
+        <select data-k="timeTargetPct">${TIME_TARGET_STEPS.map((p) => `<option value="${p}" ${st.timeTargetPct === p ? "selected" : ""}>${p}%</option>`).join("")}</select></label>
       <label class="set"><span>${esc(uiText(s, "settingsQuality"))}</span>
         <select data-k="quality">${(["auto", "low", "medium", "high"] as const).map((q) => `<option value="${q}" ${st.quality === q ? "selected" : ""}>${esc(uiText(s, `quality_${q}`))}</option>`).join("")}</select></label>
       <p class="note offline" data-offline>${esc(this.offlineLine())}</p>
@@ -599,6 +602,7 @@ export class App {
     let manifest: Manifest, sim: Sim;
     try {
       manifest = await this.deps.source.load(meta.id);
+      manifest = applyTimeTarget(manifest, this.settings.timeTargetPct);
       sim = createSim(manifest);
     } catch (err) {
       this.showError(meta, err);

@@ -30,6 +30,7 @@
     "heatPct": [40, 70],
     "bulkShare": [0.25, 0.15]
   },
+  "timeTargetK": 1.4,
   "jitter": 0.12,
   "costs": {
     "hire.core": 8, "hire.food": 12, "hire.cashier": 18, "unlock": 15, "hire.food2": 15,

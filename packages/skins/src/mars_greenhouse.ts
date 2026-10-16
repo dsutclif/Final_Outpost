@@ -481,6 +481,7 @@ export const marsGreenhouse: Skin = {
       starEarned: "Star earned",
       starMissed: "Missed",
       settingsGuide: "Show guide arrows",
+      settingsTimeTarget: "Time target",
       guideNow: "Next: {text}",
       freezeWarn: "Reactor is out!",
       howTo: "Drag anywhere to walk. Stand next to things to use them: dig ore, feed the reactor, stock the kiosk, ring up traders from the clerk pad, and stand on a pad to spend credits.",

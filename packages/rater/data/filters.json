@@ -1,6 +1,7 @@
 {
+  "_doc": "trivialBudgetShare was 0.4 of a budget that is now 1.4x longer (generator timeTargetK), so 0.4 / 1.4 keeps the same absolute finish-time cut.",
   "screenRadius": 450,
-  "trivialBudgetShare": 0.4,
+  "trivialBudgetShare": 0.286,
   "trivialWavesMargin": 0.95,
   "duplicateWindow": 10
 }
