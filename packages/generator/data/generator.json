@@ -65,6 +65,13 @@
     "funThreshold": 0.4,
     "quickSeeds": { "ref": 4, "other": 2 },
     "fullSeeds": { "ref": 10, "other": 3 },
-    "layoutTries": 12
+    "layoutTries": 12,
+    "_loop": "REDESIGN-R3 item 7: reject when the reference bot repeats one player trip (same source type, resource, target; trips a worker already performs are not counted) more than loopCap times in a row. Each reject raises an ease level by 1/loopEaseSteps: hire prices drop up to loopHireCut, core burn slows by up to loopBurnEase, level length shrinks by up to loopLengthCut, start currency grows by up to loopStartCurrency.",
+    "loopCap": 5,
+    "loopHireCut": 0.6,
+    "loopEaseSteps": 3,
+    "loopBurnEase": 0.5,
+    "loopLengthCut": 0.3,
+    "loopStartCurrency": 8
   }
 }

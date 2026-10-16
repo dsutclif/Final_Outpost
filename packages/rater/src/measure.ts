@@ -39,6 +39,9 @@ export interface Measurement {
   repairs: number;
   /** Longest time, in seconds, any stock sat at cap in any reference-bot run (0 when none did). */
   capHoldMax: number;
+  /** Worst `loopMax` (longest run of identical player trips) over the reference-bot runs, and the trip behind it. */
+  loopMax: number;
+  loopKey: string;
   budgetTicks: number;
   template: string;
   history: readonly HistoryEntry[];
@@ -78,7 +81,8 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const metrics = computeMetrics(manifest, content, plan, runs, budgetTicks, history);
   const repairs = mean(runs[REFERENCE]!.map((r) => r.trace.repairs));
   const capHoldMax = Math.max(0, ...runs[REFERENCE]!.map((r) => r.trace.capHoldMax));
-  return { manifest, plan, runs, variants, metrics, repairs, capHoldMax, budgetTicks, template, history };
+  const worst = runs[REFERENCE]!.reduce((a, r) => (r.trace.loopMax > a.trace.loopMax ? r : a));
+  return { manifest, plan, runs, variants, metrics, repairs, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,
