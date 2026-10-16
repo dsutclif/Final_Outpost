@@ -1,8 +1,8 @@
 {
   "id": "s1-L056",
   "seed": 1427777921,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -198,8 +198,8 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.2,
+    "start.currency": 0,
+    "core.burn": 2.1,
     "housing.base": 5,
     "level.budgetSeconds": 80
   },
@@ -244,9 +244,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.442,
-    "fun": 0.904,
-    "botMargin": 0.52,
+    "difficulty": 0.441,
+    "fun": 0.94,
+    "botMargin": 0.518,
     "botsPassed": [
       "good",
       "average",

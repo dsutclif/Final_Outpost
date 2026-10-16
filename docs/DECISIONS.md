@@ -98,6 +98,11 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
       the player deposits carried goods (not currency) into the warehouse within `struct.depot` range
       (`deposited` to `store.depot`); the player auto-fires at the nearest hostile within
       `player.rangedRange` (90) every `player.rangedInterval` (0.6 s) for `player.attackDamage`, emitting `shot`.
+    - 0.6.2 (playtest): hire pads stand at each worker's station around its machine (input by the
+      hopper, operator below the operator spot, output by the tray; `crewStations`), the cashier's
+      beside the clerk spot; drop pickup range equals the ranged-shot range (90); clearing a wave
+      sweeps its leftover loot into the pack up to the carry caps. With the ranged shot golden L4 is
+      won comfortably by every rung, so the ladder-order test skips saturated levels.
     - Layout: the generator keeps drawn models from overlapping (`generator.json` footprints, held
       to the 3D models by a render-3d test), and groups each machine's hire pads beside it.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same

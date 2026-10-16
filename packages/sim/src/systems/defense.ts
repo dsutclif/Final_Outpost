@@ -5,7 +5,7 @@ import { below, between } from "../rng.js";
 import type { HostileState, State } from "../state.js";
 import { breakSection, firstCrossing, outsideLine } from "./barriers.js";
 import { hitHostile, nearestHostile } from "./combat.js";
-import { hint, nearSegment, stepDown } from "./common.js";
+import { canTake, hint, nearSegment, stepDown } from "./common.js";
 import { dropTow } from "./lasso.js";
 
 type Side = HostileState["side"];
@@ -116,6 +116,14 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   if (W.active && W.pending.length === 0 && st.hostiles.length === 0) {
     W.active = false;
     out.push({ t: "wave_cleared", idx: W.idx });
+    // Surviving a wave sweeps its leftover loot into the hero's pack, up to the carry caps (R3 playtest).
+    const loot = new Set(Object.values(cp.hostiles).flatMap((h) => Object.keys(h.drops)));
+    for (const d of [...st.drops]) {
+      if (!loot.has(d.res) || !canTake(cp, st.player.stack, d.res)) continue;
+      st.drops.splice(st.drops.indexOf(d), 1);
+      st.player.stack.push(d.res);
+      out.push({ t: "picked", res: d.res, at: { ...d.pos } });
+    }
   }
 }
 

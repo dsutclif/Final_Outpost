@@ -1,8 +1,8 @@
 {
   "id": "s1-L005",
-  "seed": 30251334,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "seed": 860553483,
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,77 +36,84 @@
         520
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 11,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        146,
-        518
+        147,
+        494
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        138,
-        482
+        119,
+        508
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        174,
-        530
+        151,
+        525
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        115,
-        505
+        120,
+        477
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        168,
+        176,
         499
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        536
+        121,
+        538
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        149,
-        552
+        146,
+        556
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        109,
-        475
+        148,
+        465
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        185,
-        463
+        88,
+        502
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        126,
+        116,
+        583
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        105,
         435
       ]
     },
@@ -181,13 +188,14 @@
         0,
         1,
         2,
-        3,
         4,
-        5,
-        6,
         7,
         8,
-        9
+        9,
+        10,
+        11,
+        12,
+        13
       ]
     }
   ],
@@ -208,53 +216,44 @@
       "counts": {
         "hostile.swarmling": 6
       },
-      "side": "w",
+      "side": "e",
       "gap": 0.7
     },
     {
-      "t": 62,
+      "t": 67,
       "counts": {
-        "hostile.swarmling": 11,
+        "hostile.swarmling": 10,
         "hostile.raider_humanoid": 2
       },
-      "side": "w",
+      "side": "e",
       "gap": 0.7
     },
     {
-      "t": 104,
+      "t": 115,
       "counts": {
-        "hostile.swarmling": 16,
+        "hostile.swarmling": 15,
         "hostile.raider_humanoid": 3
       },
-      "side": "w",
+      "side": "e",
       "gap": 0.7
     },
     {
-      "t": 145,
+      "t": 162,
       "counts": {
-        "hostile.swarmling": 20,
+        "hostile.swarmling": 19,
         "hostile.raider_humanoid": 5
       },
-      "side": "w",
-      "gap": 0.7
-    },
-    {
-      "t": 187,
-      "counts": {
-        "hostile.swarmling": 25,
-        "hostile.raider_humanoid": 6
-      },
-      "side": "w",
+      "side": "e",
       "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.2,
+    "start.currency": 3,
+    "core.burn": 2.3,
     "housing.base": 5,
     "meters.baseHealth": 10,
-    "level.budgetSeconds": 390
+    "level.budgetSeconds": 410
   },
   "goal": {
     "type": "waves"
@@ -268,15 +267,15 @@
     },
     {
       "id": "challenge2",
-      "kind": "no_injuries",
-      "params": {}
-    },
-    {
-      "id": "challenge",
       "kind": "hp_floor",
       "params": {
         "pct": 80
       }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_injuries",
+      "params": {}
     }
   ],
   "fail": [
@@ -293,20 +292,19 @@
     }
   },
   "rating": {
-    "difficulty": 0.142,
-    "fun": 0.44,
-    "botMargin": 0.944,
+    "difficulty": 0.191,
+    "fun": 0.319,
+    "botMargin": 0.97,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
-      "good": 2.9,
-      "median": 2,
-      "goodAll": 0.9
+      "good": 3,
+      "median": 3,
+      "goodAll": 1
     }
   }
 }

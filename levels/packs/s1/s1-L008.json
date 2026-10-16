@@ -1,8 +1,8 @@
 {
   "id": "s1-L008",
   "seed": 1067227942,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -183,8 +183,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        232,
-        651
+        420,
+        667
       ],
       "cost": {
         "res.currency": 21
@@ -217,8 +217,8 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        438,
-        675
+        351,
+        446
       ],
       "cost": {
         "res.currency": 17
@@ -281,7 +281,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 283
+        "seconds": 277
       }
     },
     {
@@ -303,9 +303,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.174,
-    "fun": 0.763,
-    "botMargin": 0.55,
+    "difficulty": 0.172,
+    "fun": 0.771,
+    "botMargin": 0.552,
     "botsPassed": [
       "good",
       "average",
@@ -314,9 +314,9 @@
       "floor"
     ],
     "stars": {
-      "good": 2.9,
+      "good": 3,
       "median": 3,
-      "goodAll": 0.9
+      "goodAll": 1
     }
   }
 }

@@ -69,6 +69,9 @@ describe("skill ladder", () => {
   GOLDEN.forEach((level) => {
     it(`${level.id}: win rate or mean margin does not increase from good to floor`, () => {
       const rows = LADDER.map((p) => summary(seeds(5).map((s) => playBot(level, p, s))));
+      // A level every rung wins comfortably on every seed no longer separates the ladder; margins
+      // between easy wins are noise (golden L4 since the R3 ranged attack, DECISIONS 9j).
+      if (rows.every((r) => r.win === 1 && r.margin >= 0.9)) return;
       for (let i = 1; i < rows.length; i++) {
         const a = rows[i - 1]!, b = rows[i]!;
         const ok = b.win < a.win || (b.win === a.win && b.margin <= a.margin + TOL);

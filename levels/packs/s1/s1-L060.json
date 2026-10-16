@@ -1,8 +1,8 @@
 {
   "id": "s1-L060",
-  "seed": 305521690,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "seed": 1328600182,
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -40,7 +40,7 @@
         520
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -48,8 +48,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        274,
-        675
+        270,
+        672
       ],
       "sells": [
         "res.food_raw_1"
@@ -59,85 +59,92 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        382,
-        652
+        384,
+        667
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        139,
-        500
+        136,
+        512
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        132,
-        531
+        167,
+        503
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        108,
-        498
+        113,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        517
+        158,
+        540
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        142,
-        471
+        125,
+        539
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        156,
-        549
+        143,
+        482
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        480
+        93,
+        528
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        111,
-        554
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        108,
+        97,
         465
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        448
+        129,
+        455
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        127,
-        439
+        179,
+        473
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        573
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        98,
+        568
       ]
     },
     {
@@ -148,7 +155,7 @@
         781
       ],
       "arrivals": {
-        "every": 16,
+        "every": 15,
         "total": 4
       }
     },
@@ -156,7 +163,7 @@
       "type": "barrier.line",
       "id": "ring",
       "res": "res.salvage",
-      "costPerSection": 2,
+      "costPerSection": 1,
       "points": [
         [
           50,
@@ -223,9 +230,8 @@
         0,
         1,
         2,
-        3,
+        4,
         5,
-        6,
         7,
         8,
         9,
@@ -239,11 +245,11 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        160,
-        598
+        191,
+        622
       ],
       "cost": {
-        "res.currency": 9
+        "res.currency": 8
       },
       "role": {
         "role": "role.supplier",
@@ -255,11 +261,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        378,
-        548
+        375,
+        572
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 12
       },
       "role": {
         "role": "role.supplier",
@@ -272,11 +278,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        306,
-        509
+        357,
+        514
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 18
       },
       "role": {
         "role": "role.cashier",
@@ -290,8 +296,8 @@
       "type": "pad.build",
       "id": "tower_e",
       "at": [
-        370,
-        491
+        354,
+        451
       ],
       "cost": {
         "res.salvage": 8
@@ -306,8 +312,8 @@
       "type": "pad.build",
       "id": "tower_e_up",
       "at": [
-        348,
-        421
+        293,
+        388
       ],
       "cost": {
         "res.salvage": 6
@@ -322,8 +328,8 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        291,
-        370
+        368,
+        390
       ],
       "cost": {
         "res.salvage": 6
@@ -337,8 +343,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        98,
-        699
+        121,
+        698
       ],
       "cost": {
         "res.salvage": 5
@@ -352,8 +358,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        197,
-        402
+        163,
+        410
       ],
       "cost": {
         "res.salvage": 4
@@ -413,7 +419,7 @@
   ],
   "waves": [
     {
-      "t": 48,
+      "t": 46,
       "counts": {
         "hostile.swarmling": 24
       },
@@ -421,7 +427,7 @@
       "gap": 0.7
     },
     {
-      "t": 100,
+      "t": 99,
       "counts": {
         "hostile.swarmling": 38,
         "hostile.raider_humanoid": 1
@@ -430,16 +436,16 @@
       "gap": 0.7
     },
     {
-      "t": 151,
+      "t": 152,
       "counts": {
-        "hostile.swarmling": 59,
+        "hostile.swarmling": 55,
         "hostile.raider_humanoid": 2
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 203,
+      "t": 205,
       "counts": {
         "hostile.swarmling": 74,
         "hostile.raider_humanoid": 3
@@ -450,18 +456,18 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.7,
+    "start.currency": 5,
+    "core.burn": 2.6,
     "housing.base": 20,
     "customers.spawn": 2.8,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
     "meters.baseHealth": 13,
-    "level.budgetSeconds": 570
+    "level.budgetSeconds": 630
   },
   "goal": {
     "type": "kills",
-    "n": 161
+    "n": 158
   },
   "family": "defend",
   "objectives": [
@@ -469,14 +475,14 @@
       "id": "main",
       "kind": "kills",
       "params": {
-        "n": 161
+        "n": 158
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 370
+        "seconds": 374
       }
     },
     {
@@ -501,9 +507,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.784,
-    "fun": 0.78,
-    "botMargin": 0.597,
+    "difficulty": 0.752,
+    "fun": 0.539,
+    "botMargin": 0.632,
     "botsPassed": [
       "good",
       "average",

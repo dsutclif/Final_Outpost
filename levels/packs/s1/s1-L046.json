@@ -1,8 +1,8 @@
 {
   "id": "s1-L046",
-  "seed": 679335405,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "seed": 973226322,
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -35,7 +35,7 @@
         500
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        319,
-        700
+        326,
+        681
       ],
       "sells": [
         "res.food_raw_1"
@@ -54,96 +54,89 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        369,
-        536
+        377,
+        540
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        77,
-        460
+        81,
+        453
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        95,
-        435
+        58,
+        477
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        60,
-        434
+        62,
+        431
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        107,
-        466
+        35,
+        448
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        48,
-        473
+        89,
+        495
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        68,
-        494
+        111,
+        465
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        99,
-        507
+        98,
+        424
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        31,
-        446
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        125,
-        437
+        36,
+        414
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        77,
-        396
+        49,
+        520
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        27,
-        510
+        138,
+        426
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        167,
-        501
+        172,
+        502
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 11
       },
       "role": {
         "role": "role.supplier",
@@ -155,11 +148,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        294,
-        566
+        307,
+        560
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 16
       },
       "role": {
         "role": "role.supplier",
@@ -172,11 +165,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        192,
-        605
+        422,
+        660
       ],
       "cost": {
-        "res.currency": 23
+        "res.currency": 24
       },
       "role": {
         "role": "role.cashier",
@@ -198,10 +191,10 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
+    "start.currency": 0,
     "core.burn": 2.1,
     "housing.base": 5,
-    "customers.spawn": 3.3,
+    "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "customers.bulkShare": 0.16,
@@ -209,7 +202,7 @@
   },
   "goal": {
     "type": "earn",
-    "n": 399
+    "n": 446
   },
   "family": "harvest",
   "objectives": [
@@ -217,22 +210,20 @@
       "id": "main",
       "kind": "earn",
       "params": {
-        "n": 399
+        "n": 446
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 273
+        "seconds": 279
       }
     },
     {
       "id": "challenge",
-      "kind": "streak",
-      "params": {
-        "n": 20
-      }
+      "kind": "no_angry_customers",
+      "params": {}
     }
   ],
   "fail": [
@@ -248,9 +239,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.644,
-    "fun": 0.938,
-    "botMargin": 0.47,
+    "difficulty": 0.625,
+    "fun": 0.91,
+    "botMargin": 0.46,
     "botsPassed": [
       "good",
       "average",

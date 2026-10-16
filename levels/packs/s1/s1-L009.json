@@ -1,8 +1,8 @@
 {
   "id": "s1-L009",
   "seed": 1947207031,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -183,8 +183,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        345,
-        520
+        431,
+        622
       ],
       "cost": {
         "res.currency": 23
@@ -211,7 +211,7 @@
       "id": "feeder",
       "at": [
         116,
-        784
+        762
       ],
       "cost": {
         "res.currency": 13
@@ -230,8 +230,8 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        108,
-        847
+        172,
+        830
       ],
       "cost": {
         "res.currency": 13
@@ -248,8 +248,8 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        66,
-        592
+        298,
+        754
       ],
       "cost": {
         "res.currency": 13
@@ -267,8 +267,8 @@
       "type": "pad.build",
       "id": "grill_level",
       "at": [
-        306,
-        713
+        359,
+        711
       ],
       "cost": {
         "res.currency": 23
@@ -284,8 +284,8 @@
       "type": "pad.build",
       "id": "saw",
       "at": [
-        277,
-        337
+        350,
+        455
       ],
       "cost": {
         "res.currency": 19
@@ -296,8 +296,8 @@
       "type": "pad.hire",
       "id": "saw_feeder",
       "at": [
-        375,
-        411
+        311,
+        341
       ],
       "cost": {
         "res.currency": 13
@@ -315,8 +315,8 @@
       "type": "pad.hire",
       "id": "sawyer",
       "at": [
-        451,
-        533
+        458,
+        414
       ],
       "cost": {
         "res.currency": 13
@@ -333,8 +333,8 @@
       "type": "pad.build",
       "id": "alloy",
       "at": [
-        396,
-        797
+        385,
+        815
       ],
       "cost": {
         "res.currency": 25
@@ -348,8 +348,8 @@
       "type": "pad.hire",
       "id": "refined_carrier",
       "at": [
-        320,
-        845
+        318,
+        817
       ],
       "cost": {
         "res.currency": 13
@@ -367,8 +367,8 @@
       "type": "pad.hire",
       "id": "smith",
       "at": [
-        186,
-        846
+        260,
+        826
       ],
       "cost": {
         "res.currency": 13
@@ -385,8 +385,8 @@
       "type": "pad.hire",
       "id": "component_server",
       "at": [
-        263,
-        849
+        446,
+        716
       ],
       "cost": {
         "res.currency": 13
@@ -467,15 +467,13 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 183
+        "seconds": 181
       }
     },
     {
       "id": "challenge",
-      "kind": "hire",
-      "params": {
-        "n": 11
-      }
+      "kind": "settlement_never_freezes",
+      "params": {}
     }
   ],
   "fail": [
@@ -491,9 +489,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.203,
-    "fun": 0.897,
-    "botMargin": 0.524,
+    "difficulty": 0.192,
+    "fun": 0.903,
+    "botMargin": 0.533,
     "botsPassed": [
       "good",
       "average",

@@ -1,8 +1,8 @@
 {
   "id": "s1-L037",
-  "seed": 159335682,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "seed": 168884196,
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,78 +37,78 @@
         500
       ],
       "params": {
-        "fuel": 9,
+        "fuel": 10,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        136,
-        472
+        143,
+        476
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        157,
-        492
+        123,
+        454
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        154,
-        447
+        142,
+        506
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        129,
-        502
+        167,
+        455
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        106,
-        484
+        108,
+        494
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        121,
-        446
+        174,
+        504
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        171,
-        520
+        138,
+        428
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        468
+        91,
+        463
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        134,
-        545
+        160,
+        548
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        96,
-        410
+        99,
+        542
       ]
     },
     {
@@ -182,28 +182,28 @@
         0,
         1,
         2,
-        3,
-        4,
-        5,
-        6,
         7,
         8,
-        9
+        9,
+        10,
+        11,
+        12,
+        13
       ]
     },
     {
       "type": "pad.build",
-      "id": "tower_w",
+      "id": "tower_e",
       "at": [
-        143,
-        612
+        379,
+        500
       ],
       "cost": {
         "res.salvage": 8
       },
       "build": "struct.ranged_defense",
       "site": [
-        50,
+        430,
         500
       ]
     },
@@ -211,8 +211,8 @@
       "type": "pad.build",
       "id": "medic",
       "at": [
-        343,
-        620
+        339,
+        619
       ],
       "cost": {
         "res.salvage": 6
@@ -246,59 +246,49 @@
       "counts": {
         "hostile.swarmling": 7
       },
-      "side": "w",
+      "side": "e",
       "gap": 0.7
     },
     {
       "t": 61,
       "counts": {
-        "hostile.swarmling": 12,
+        "hostile.swarmling": 11,
         "hostile.raider_humanoid": 2
       },
-      "side": "w",
+      "side": "e",
       "gap": 0.7
     },
     {
       "t": 102,
       "counts": {
-        "hostile.swarmling": 17,
-        "hostile.raider_humanoid": 4,
-        "hostile.boss": 1
+        "hostile.swarmling": 16,
+        "hostile.raider_humanoid": 3
       },
-      "side": "w",
+      "side": "e",
       "gap": 0.7
     },
     {
-      "t": 143,
+      "t": 142,
       "counts": {
-        "hostile.swarmling": 23,
-        "hostile.raider_humanoid": 5
-      },
-      "side": "w",
-      "gap": 0.7
-    },
-    {
-      "t": 184,
-      "counts": {
-        "hostile.swarmling": 28,
-        "hostile.raider_humanoid": 7,
+        "hostile.swarmling": 21,
+        "hostile.raider_humanoid": 5,
         "hostile.boss": 1
       },
-      "side": "w",
+      "side": "e",
       "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 0,
-    "core.burn": 2.1,
+    "start.currency": 2,
+    "core.burn": 2.2,
     "housing.base": 5,
     "meters.baseHealth": 10,
-    "level.budgetSeconds": 350
+    "level.budgetSeconds": 360
   },
   "goal": {
     "type": "survive",
-    "seconds": 190
+    "seconds": 200
   },
   "family": "defend",
   "objectives": [
@@ -306,7 +296,7 @@
       "id": "main",
       "kind": "survive",
       "params": {
-        "seconds": 190
+        "seconds": 200
       }
     },
     {
@@ -336,9 +326,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.624,
-    "fun": 0.526,
-    "botMargin": 0.922,
+    "difficulty": 0.668,
+    "fun": 0.193,
+    "botMargin": 0.929,
     "botsPassed": [
       "good",
       "average",
@@ -347,8 +337,8 @@
     ],
     "stars": {
       "good": 2.8,
-      "median": 2.33,
-      "goodAll": 0.8
+      "median": 2.67,
+      "goodAll": 0.9
     }
   }
 }

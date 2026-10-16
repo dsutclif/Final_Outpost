@@ -1,8 +1,8 @@
 {
   "id": "s1-L035",
   "seed": 437949602,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -183,8 +183,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        412,
-        504
+        414,
+        495
       ],
       "cost": {
         "res.currency": 23
@@ -279,7 +279,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 266
+        "seconds": 263
       }
     },
     {
@@ -301,9 +301,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.621,
-    "fun": 0.813,
-    "botMargin": 0.517,
+    "difficulty": 0.62,
+    "fun": 0.809,
+    "botMargin": 0.518,
     "botsPassed": [
       "good",
       "average",

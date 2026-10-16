@@ -1,8 +1,8 @@
 {
   "id": "s1-L059",
   "seed": 1598010570,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -393,9 +393,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.773,
-    "fun": 0.579,
-    "botMargin": 0.602,
+    "difficulty": 0.698,
+    "fun": 0.613,
+    "botMargin": 0.603,
     "botsPassed": [
       "good",
       "average",
@@ -403,9 +403,9 @@
       "novice"
     ],
     "stars": {
-      "good": 2.9,
-      "median": 2.67,
-      "goodAll": 0.9
+      "good": 3,
+      "median": 3,
+      "goodAll": 1
     }
   }
 }

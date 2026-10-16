@@ -39,6 +39,10 @@ export const GEN = genData as unknown as {
   spacing: { margin: number; standR: number; screen: [number, number]; footprintGap: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
   footprints: Record<string, [number, number, number, number]>;
+  /** Hire pad offsets from a converter's centre for its input worker, operator and output worker. */
+  crewStations: Record<"in" | "op" | "out", [number, number]>;
+  /** Cashier hire pad offset from the clerk spot. */
+  cashierPad: [number, number];
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
@@ -279,6 +283,13 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const o = CREW[k]!, near: Pt = [at[0] + side * o[0], at[1] + o[1]];
     return placePad(id, near, { region: [near[0] - 44, near[1] - 44, 88, 88] });
   };
+  // A machine's hire pads stand where each worker will work (R3 playtest), still together around it:
+  // the input worker by the hopper (left), the operator below the operator spot, the output worker
+  // by the output tray (right). Offsets from the machine centre are data (generator.json crewStations).
+  const stationPad = (id: string, m: Pt, slot: "in" | "op" | "out", dy = 0): Pt => {
+    const o = GEN.crewStations[slot], near: Pt = [m[0] + o[0], m[1] + o[1] + dy];
+    return placePad(id, near, { region: [near[0] - 36, near[1] - 36, 72, 72] });
+  };
   const toward = (a: Pt, b: Pt, t: number): Pt => [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t)];
   const forestC: Pt = [core[0] + forestDir[0] * K.forestReach, core[1] + forestDir[1] * K.forestReach];
 
@@ -290,7 +301,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     pad({ type: "pad.hire", id: "hire_core", at: [...a], cost: { "res.currency": cost("hire.core") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "sink.core" } });
     const b = placePad("hire_food", toward(food1, shopAt, 0.4));
     pad({ type: "pad.hire", id: "hire_food", at: [...b], cost: { "res.currency": cost("hire.food") }, role: { role: "role.supplier", from: "node.food_source", to: "sink.sales_point", node: "food1" } });
-    const cpos = goal === "shelves_full" ? null : placePad("hire_cashier", toward(register, core, 0.35));
+    // the cashier's pad sits beside the clerk spot on the camera side, never behind the stall
+    const cn: Pt = [register[0] + GEN.cashierPad[0], register[1] + GEN.cashierPad[1]];
+    const cpos = goal === "shelves_full" ? null : placePad("hire_cashier", cn, { region: [cn[0] - 40, cn[1] - 30, 80, 70] });
     if (cpos) hireCashier = pad({ type: "pad.hire", id: "hire_cashier", at: [...cpos], cost: { "res.currency": cost("hire.cashier") }, role: { role: "role.cashier", to: "sink.sales_point" } });
   }
 
@@ -325,16 +338,15 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       ?? P.place("grill", R.conv, inner, { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), samples: 320, fp: "conv.food_processor" })
       ?? fail("no room for the food processor");
     pad({ type: "pad.build", id: "grill", at: [...g], cost: { "res.currency": cost("grill") }, build: "conv.food_processor" });
-    const gOp = opPos("conv.food_processor", g);
     // The food processor's feeder has its own field, so the shelf's farm worker does not starve it.
     const fg = P.place("food_g", R.food, ring ? inner : [g[0] - 160, g[1] - 160, 320, 320], { near: [g[0] - 70, g[1] - 60], key: true, samples: 200, fp: "node.food_source" }) ?? food1;
     if (fg !== food1) ents.push({ type: "node.food_source", id: "food_g", at: [...fg] });
     // Hire order per machine: input worker, operator, output worker.
-    const fd = crewPad("feeder", gOp, -1, 0);
+    const fd = stationPad("feeder", g, "in");
     pad({ type: "pad.hire", id: "feeder", at: [...fd], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.food_source", to: "conv.food_processor", node: fg === food1 ? "food1" : "food_g" }, requires: { pad: "grill" } });
-    const cook = crewPad("cook", gOp, -1, 1);
+    const cook = stationPad("cook", g, "op");
     pad({ type: "pad.hire", id: "cook", at: [...cook], cost: { "res.currency": cost("hire.cook") }, role: { role: "role.operator", to: "conv.food_processor" }, requires: { pad: "feeder" } });
-    const sv = crewPad("server", gOp, -1, 2);
+    const sv = stationPad("server", g, "out");
     pad({ type: "pad.hire", id: "server", at: [...sv], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.food_processor", to: "sink.sales_point" }, requires: { pad: "cook" } });
     sells.push("res.food_prepared");
     if (feat.has("converter_levels")) {
@@ -350,13 +362,10 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         ?? P.place("saw", R.conv, inner, { ...sawOpts, samples: 320 })
         ?? fail("no room for the material processor");
       pad({ type: "pad.build", id: "saw", at: [...s], cost: { "res.currency": cost("saw") }, build: "conv.material_processor" });
-      const sOp = opPos("conv.material_processor", s);
-      // with a belt leaving the tray on the right, the crew stands on the left
-      const crewSide: 1 | -1 = feat.has("conveyors") ? -1 : 1;
       // Every converter has a feed path: a worker brings fuel scrap to the material processor (hired first).
-      const sf = crewPad("saw_feeder", sOp, crewSide, 0);
+      const sf = stationPad("saw_feeder", s, "in");
       pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "saw" } });
-      const sw = crewPad("sawyer", sOp, crewSide, 1);
+      const sw = stationPad("sawyer", s, "op");
       pad({ type: "pad.hire", id: "sawyer", at: [...sw], cost: { "res.currency": cost("hire.sawyer") }, role: { role: "role.operator", to: "conv.material_processor" }, requires: { pad: "saw_feeder" } });
       if (feat.has("tier2")) {
         alloy = true;
@@ -368,12 +377,12 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           ?? P.place("alloy", R.conv, inner, { ...alloyOpts, samples: 320 })
           ?? fail("no room for the alloy works");
         pad({ type: "pad.build", id: "alloy", at: [...a], cost: { "res.currency": cost("alloy") }, build: "conv.alloy_works", requires: { pad: "sawyer" } });
-        const aOp = opPos("conv.alloy_works", a);
-        const rc = crewPad("refined_carrier", aOp, -1, 0);
+        // a belt arrives at the hopper side, so with one the input worker stands lower, off its path
+        const rc = stationPad("refined_carrier", a, "in", feat.has("conveyors") ? 56 : 0);
         pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
-        const sm = crewPad("smith", aOp, -1, 1);
+        const sm = stationPad("smith", a, "op");
         pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: { pad: "refined_carrier" } });
-        const cs = crewPad("component_server", aOp, -1, 2);
+        const cs = stationPad("component_server", a, "out");
         pad({ type: "pad.hire", id: "component_server", at: [...cs], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.alloy_works", to: "sink.sales_point" }, requires: { pad: "smith" } });
         if (feat.has("conveyors")) {
           // The step after haulers (R3 item 16): a belt from the smelter's tray to the parts works,

@@ -1,8 +1,8 @@
 {
   "id": "s1-L041",
   "seed": 750104110,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -190,8 +190,8 @@
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        418,
-        432
+        413,
+        429
       ],
       "enabled": false
     },
@@ -232,8 +232,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        185,
-        647
+        388,
+        768
       ],
       "cost": {
         "res.currency": 20
@@ -247,8 +247,8 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        418,
-        432
+        413,
+        429
       ],
       "cost": {
         "res.currency": 16
@@ -263,8 +263,8 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        402,
-        558
+        388,
+        547
       ],
       "cost": {
         "res.currency": 16
@@ -350,9 +350,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.313,
+    "difficulty": 0.321,
     "fun": 0.84,
-    "botMargin": 0.525,
+    "botMargin": 0.523,
     "botsPassed": [
       "good",
       "average",

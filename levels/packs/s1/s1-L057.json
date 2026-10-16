@@ -1,8 +1,8 @@
 {
   "id": "s1-L057",
   "seed": 1971604650,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -166,8 +166,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        320,
-        458
+        431,
+        493
       ],
       "cost": {
         "res.currency": 24
@@ -200,7 +200,7 @@
     "customers.orderMax": 3,
     "customers.impatientShare": 0.33,
     "customers.premiumShare": 0.15,
-    "level.budgetSeconds": 480
+    "level.budgetSeconds": 460
   },
   "goal": {
     "type": "serve_premium",
@@ -219,7 +219,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 435
+        "seconds": 441
       }
     },
     {
@@ -243,9 +243,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.696,
-    "fun": 0.919,
-    "botMargin": 0.524,
+    "difficulty": 0.612,
+    "fun": 0.923,
+    "botMargin": 0.504,
     "botsPassed": [
       "good",
       "average",

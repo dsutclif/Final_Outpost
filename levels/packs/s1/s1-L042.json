@@ -1,8 +1,8 @@
 {
   "id": "s1-L042",
   "seed": 1547836930,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,7 +37,7 @@
         450
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -65,71 +65,78 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        154,
-        584
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        130,
-        564
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        166,
-        555
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        178,
-        604
+        151,
+        590
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         125,
-        605
+        603
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        158,
-        633
+        162,
+        561
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        175,
+        609
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        116,
+        572
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        154,
+        639
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        187,
+        579
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        145,
+        535
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         191,
-        574
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        148,
-        530
+        550
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        225,
-        595
+        214,
+        616
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        98,
-        536
+        79,
+        613
       ]
     },
     {
@@ -144,8 +151,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        139,
-        448
+        237,
+        527
       ],
       "cost": {
         "res.currency": 10
@@ -160,7 +167,7 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        380,
+        361,
         519
       ],
       "cost": {
@@ -177,8 +184,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        317,
-        491
+        420,
+        496
       ],
       "cost": {
         "res.currency": 23
@@ -205,7 +212,7 @@
       "id": "feeder",
       "at": [
         192,
-        334
+        297
       ],
       "cost": {
         "res.currency": 13
@@ -224,8 +231,8 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        134,
-        383
+        173,
+        433
       ],
       "cost": {
         "res.currency": 13
@@ -242,8 +249,8 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        119,
-        321
+        354,
+        273
       ],
       "cost": {
         "res.currency": 13
@@ -261,8 +268,8 @@
       "type": "pad.build",
       "id": "grill_level",
       "at": [
-        356,
-        218
+        322,
+        176
       ],
       "cost": {
         "res.currency": 23
@@ -277,8 +284,8 @@
       "type": "pad.build",
       "id": "saw",
       "at": [
-        225,
-        711
+        56,
+        458
       ],
       "cost": {
         "res.currency": 19
@@ -289,8 +296,8 @@
       "type": "pad.hire",
       "id": "saw_feeder",
       "at": [
-        321,
-        769
+        100,
+        354
       ],
       "cost": {
         "res.currency": 13
@@ -308,8 +315,8 @@
       "type": "pad.hire",
       "id": "sawyer",
       "at": [
-        404,
-        779
+        67,
+        714
       ],
       "cost": {
         "res.currency": 13
@@ -326,8 +333,8 @@
       "type": "pad.build",
       "id": "alloy",
       "at": [
-        106,
-        742
+        288,
+        727
       ],
       "cost": {
         "res.currency": 25
@@ -341,8 +348,8 @@
       "type": "pad.hire",
       "id": "refined_carrier",
       "at": [
-        42,
-        795
+        223,
+        737
       ],
       "cost": {
         "res.currency": 13
@@ -360,8 +367,8 @@
       "type": "pad.hire",
       "id": "smith",
       "at": [
-        49,
-        622
+        168,
+        796
       ],
       "cost": {
         "res.currency": 13
@@ -378,8 +385,8 @@
       "type": "pad.hire",
       "id": "component_server",
       "at": [
-        45,
-        701
+        391,
+        742
       ],
       "cost": {
         "res.currency": 13
@@ -397,8 +404,8 @@
       "type": "pad.build",
       "id": "depot",
       "at": [
-        57,
-        431
+        86,
+        284
       ],
       "cost": {
         "res.currency": 25
@@ -412,8 +419,8 @@
       "type": "pad.hire",
       "id": "depot_supplier",
       "at": [
-        86,
-        208
+        240,
+        162
       ],
       "cost": {
         "res.currency": 13
@@ -431,8 +438,8 @@
       "type": "pad.hire",
       "id": "hauler",
       "at": [
-        55,
-        296
+        157,
+        358
       ],
       "cost": {
         "res.currency": 13
@@ -449,8 +456,8 @@
       "type": "pad.build",
       "id": "landmark",
       "at": [
-        313,
-        108
+        434,
+        131
       ],
       "cost": {
         "res.currency": 15
@@ -509,13 +516,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.3,
+    "start.currency": 3,
+    "core.burn": 2.4,
     "housing.base": 16,
     "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 280
+    "level.budgetSeconds": 250
   },
   "goal": {
     "type": "build",
@@ -534,13 +541,15 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 223
+        "seconds": 203
       }
     },
     {
       "id": "challenge",
-      "kind": "no_stockpile_overload",
-      "params": {}
+      "kind": "heat_floor",
+      "params": {
+        "pct": 25
+      }
     }
   ],
   "fail": [
@@ -556,9 +565,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.51,
-    "fun": 0.908,
-    "botMargin": 0.507,
+    "difficulty": 0.418,
+    "fun": 0.914,
+    "botMargin": 0.494,
     "botsPassed": [
       "good",
       "average",

@@ -1,8 +1,8 @@
 {
   "id": "s1-L015",
   "seed": 294531354,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -135,17 +135,24 @@
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        243,
-        604
+        114,
+        521
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        115,
-        472
+        254,
+        595
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        122,
+        460
       ]
     },
     {
@@ -220,7 +227,6 @@
         1,
         2,
         3,
-        5,
         7,
         8,
         9,
@@ -234,8 +240,8 @@
       "type": "pad.build",
       "id": "tower_e",
       "at": [
-        371,
-        448
+        378,
+        452
       ],
       "cost": {
         "res.salvage": 8
@@ -253,8 +259,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        142,
-        383
+        316,
+        509
       ],
       "cost": {
         "res.salvage": 5
@@ -265,8 +271,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        308,
-        460
+        324,
+        581
       ],
       "cost": {
         "res.salvage": 4
@@ -283,8 +289,8 @@
       "type": "pad.build",
       "id": "medic",
       "at": [
-        349,
-        559
+        390,
+        588
       ],
       "cost": {
         "res.salvage": 6
@@ -316,7 +322,7 @@
     {
       "t": 12,
       "counts": {
-        "hostile.swarmling": 13,
+        "hostile.swarmling": 17,
         "hostile.raider_humanoid": 3
       },
       "side": "n",
@@ -331,7 +337,7 @@
       "gap": 0.7
     },
     {
-      "t": 75,
+      "t": 78,
       "counts": {
         "hostile.swarmling": 15,
         "hostile.raider_humanoid": 1
@@ -340,9 +346,9 @@
       "gap": 0.7
     },
     {
-      "t": 131,
+      "t": 135,
       "counts": {
-        "hostile.swarmling": 22,
+        "hostile.swarmling": 19,
         "hostile.raider_humanoid": 2,
         "hostile.boss": 1
       },
@@ -353,10 +359,10 @@
   "events": [],
   "params": {
     "start.currency": 10,
-    "core.burn": 3,
+    "core.burn": 2.9,
     "housing.base": 8,
     "meters.baseHealth": 15,
-    "level.budgetSeconds": 530
+    "level.budgetSeconds": 570
   },
   "goal": {
     "type": "boss",
@@ -375,7 +381,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 252
+        "seconds": 256
       }
     },
     {
@@ -400,9 +406,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.615,
-    "fun": 0.041,
-    "botMargin": 0.705,
+    "difficulty": 0.638,
+    "fun": 0.053,
+    "botMargin": 0.718,
     "botsPassed": [
       "good",
       "average",

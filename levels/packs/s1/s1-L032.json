@@ -1,8 +1,8 @@
 {
   "id": "s1-L032",
   "seed": 2037529639,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -405,9 +405,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.549,
-    "fun": 0.156,
-    "botMargin": 0.675,
+    "difficulty": 0.543,
+    "fun": 0.141,
+    "botMargin": 0.674,
     "botsPassed": [
       "good",
       "average",

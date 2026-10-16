@@ -1,8 +1,8 @@
 {
   "id": "s1-L013",
   "seed": 1157148896,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -179,8 +179,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        405,
-        543
+        408,
+        507
       ],
       "cost": {
         "res.currency": 24
@@ -253,8 +253,8 @@
     }
   },
   "rating": {
-    "difficulty": 0.27,
-    "fun": 0.879,
+    "difficulty": 0.272,
+    "fun": 0.914,
     "botMargin": 0.461,
     "botsPassed": [
       "good",

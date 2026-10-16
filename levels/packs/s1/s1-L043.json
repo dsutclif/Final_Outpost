@@ -1,8 +1,8 @@
 {
   "id": "s1-L043",
-  "seed": 814437043,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "seed": 669122102,
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -46,92 +46,92 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        144,
+        133,
+        507
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        159,
+        524
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        174,
         498
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        161,
-        522
+        125,
+        541
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        116,
-        516
+        103,
+        518
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        548
+        135,
+        476
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        119,
-        483
+        152,
+        558
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        173,
-        479
+        89,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        462
+        168,
+        465
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        93,
-        496
+        91,
+        547
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        104,
-        549
+        122,
+        571
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        95,
-        466
+        152,
+        438
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        178,
-        569
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        186,
+        112,
         453
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        124,
-        574
       ]
     },
     {
@@ -202,29 +202,29 @@
         8
       ],
       "prebuilt": [
-        3,
-        4,
         5,
-        6,
         7,
         8,
         9,
-        11
+        10,
+        11,
+        12,
+        13
       ]
     },
     {
       "type": "pad.build",
-      "id": "tower_w",
+      "id": "tower_e",
       "at": [
-        102,
-        623
+        377,
+        520
       ],
       "cost": {
         "res.salvage": 8
       },
       "build": "struct.ranged_defense",
       "site": [
-        50,
+        430,
         520
       ]
     },
@@ -232,8 +232,8 @@
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        293,
-        351
+        286,
+        353
       ],
       "cost": {
         "res.salvage": 8
@@ -244,31 +244,31 @@
         285
       ],
       "requires": {
-        "pad": "tower_w_up"
+        "pad": "tower_e_up"
       }
     },
     {
       "type": "pad.build",
-      "id": "tower_w_up",
+      "id": "tower_e_up",
       "at": [
-        195,
-        638
+        308,
+        503
       ],
       "cost": {
         "res.salvage": 6
       },
       "build": "struct.ranged_defense.t2",
-      "target": "tower_w",
+      "target": "tower_e",
       "requires": {
-        "pad": "tower_w"
+        "pad": "tower_e"
       }
     },
     {
       "type": "pad.build",
       "id": "tower_n_up",
       "at": [
-        321,
-        429
+        322,
+        424
       ],
       "cost": {
         "res.salvage": 6
@@ -283,8 +283,8 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        348,
-        505
+        379,
+        446
       ],
       "cost": {
         "res.salvage": 6
@@ -298,8 +298,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        261,
-        661
+        146,
+        670
       ],
       "cost": {
         "res.salvage": 5
@@ -313,8 +313,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        320,
-        702
+        224,
+        703
       ],
       "cost": {
         "res.salvage": 4
@@ -340,59 +340,68 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 38
+        "hostile.swarmling": 19
       },
       "side": [
-        "w",
+        "e",
         "n"
       ],
       "gap": 0.7
     },
     {
-      "t": 80,
+      "t": 77,
       "counts": {
-        "hostile.swarmling": 55,
+        "hostile.swarmling": 30,
         "hostile.raider_humanoid": 1
       },
       "side": [
         "n",
-        "w"
+        "e"
       ],
       "gap": 0.7
     },
     {
-      "t": 140,
+      "t": 134,
       "counts": {
-        "hostile.swarmling": 75,
+        "hostile.swarmling": 44,
         "hostile.raider_humanoid": 2
       },
       "side": [
-        "w",
+        "e",
         "n"
+      ],
+      "gap": 0.7
+    },
+    {
+      "t": 191,
+      "counts": {
+        "hostile.swarmling": 59,
+        "hostile.raider_humanoid": 3
+      },
+      "side": [
+        "n",
+        "e"
       ],
       "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.8,
-    "housing.base": 7,
-    "meters.baseHealth": 16,
-    "level.budgetSeconds": 690
+    "start.currency": 7,
+    "core.burn": 2.7,
+    "housing.base": 6,
+    "meters.baseHealth": 14,
+    "level.budgetSeconds": 600
   },
   "goal": {
     "type": "salvage",
-    "n": 71
+    "n": 70
   },
   "family": "defend",
   "objectives": [
@@ -400,7 +409,7 @@
       "id": "main",
       "kind": "salvage",
       "params": {
-        "n": 71
+        "n": 70
       }
     },
     {
@@ -412,8 +421,10 @@
     },
     {
       "id": "challenge",
-      "kind": "no_injuries",
-      "params": {}
+      "kind": "hp_floor",
+      "params": {
+        "pct": 80
+      }
     }
   ],
   "fail": [
@@ -430,20 +441,19 @@
     }
   },
   "rating": {
-    "difficulty": 0.9,
-    "fun": 0.524,
-    "botMargin": 0.764,
+    "difficulty": 0.977,
+    "fun": 0.317,
+    "botMargin": 0.685,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
-      "good": 2.9,
-      "median": 1.67,
-      "goodAll": 0.9
+      "good": 3,
+      "median": 2.67,
+      "goodAll": 1
     }
   }
 }

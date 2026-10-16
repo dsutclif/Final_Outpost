@@ -1,8 +1,8 @@
 {
   "id": "s1-L021",
   "seed": 86203878,
-  "engineVersion": "0.6.1",
-  "contentVersion": "0.6.1",
+  "engineVersion": "0.6.2",
+  "contentVersion": "0.6.2",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,7 +37,7 @@
         500
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -189,7 +189,6 @@
         0,
         1,
         2,
-        3,
         7,
         8,
         9,
@@ -262,43 +261,43 @@
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 7
+        "hostile.swarmling": 6
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 64,
+      "t": 62,
       "counts": {
-        "hostile.swarmling": 12,
+        "hostile.swarmling": 11,
         "hostile.raider_humanoid": 2
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 109,
+      "t": 104,
       "counts": {
-        "hostile.swarmling": 17,
+        "hostile.swarmling": 15,
         "hostile.raider_humanoid": 3
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 153,
+      "t": 145,
       "counts": {
-        "hostile.swarmling": 22,
+        "hostile.swarmling": 20,
         "hostile.raider_humanoid": 5
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 198,
+      "t": 187,
       "counts": {
-        "hostile.swarmling": 27,
-        "hostile.raider_humanoid": 7
+        "hostile.swarmling": 25,
+        "hostile.raider_humanoid": 6
       },
       "side": "e",
       "gap": 0.7
@@ -306,11 +305,11 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.3,
+    "start.currency": 3,
+    "core.burn": 2.2,
     "housing.base": 5,
-    "meters.baseHealth": 9,
-    "level.budgetSeconds": 360
+    "meters.baseHealth": 11,
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "waves_survived",
@@ -352,9 +351,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.386,
-    "fun": 0.322,
-    "botMargin": 0.979,
+    "difficulty": 0.404,
+    "fun": 0.149,
+    "botMargin": 0.963,
     "botsPassed": [
       "good",
       "average",
@@ -363,7 +362,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.67,
+      "median": 3,
       "goodAll": 1
     }
   }
