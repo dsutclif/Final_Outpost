@@ -37,6 +37,12 @@ export interface PlaceOpts {
   hugWall?: boolean;
   /** Footprint key(s) (Placer.footprints): the ground the drawn model covers, which must not touch another's. */
   fp?: string | readonly string[];
+  /** Fixed worker slots (offsets from the centre) that are part of this placement: each must be free for a pad of radius r, and is reserved with it. */
+  slots?: { id: string; dx: number; dy: number; r: number; fp: string | readonly string[] }[];
+  /** The station sits on a wall (a belt's own build pad): the wall test is skipped. */
+  onWall?: boolean;
+  /** Extra candidate filter (a layout rule that depends on where the machine goes, e.g. its belt run). */
+  accept?: (p: Pt) => boolean;
 }
 
 /** Distance from p to the segment ab. */
@@ -71,7 +77,7 @@ export class Placer {
   ok(id: string, p: Pt, r: number, opts: PlaceOpts = {}): boolean {
     if (!inRect(p, this.bounds)) return false;
     for (const b of this.blocked) if (inRect(p, b, r * 0.5 + 10)) return false;
-    for (const w of this.walls) if (segDist(p, w[0], w[1]) < (opts.hugWall ? r - 4 : r + 10)) return false;
+    if (!opts.onWall) for (const w of this.walls) if (segDist(p, w[0], w[1]) < (opts.hugWall ? r - 4 : r + 10)) return false;
     for (const a of opts.avoid ?? []) if (dist(p, a.p) < a.r) return false;
     const fb = this.box(p, opts.fp);
     for (const s of this.stations) {
@@ -92,6 +98,19 @@ export class Placer {
       for (const b of this.blocked) if (inRect(q, b, 14)) return false;
       for (const w of this.walls) if (segDist(q, w[0], w[1]) < this.standR + 8) return false;
     }
+    if (opts.slots) {
+      const sl = opts.slots, gap = this.footprintGap;
+      const qs = sl.map((o): Pt => [p[0] + o.dx, p[1] + o.dy]);
+      const boxes = sl.map((o, i) => this.box(qs[i]!, o.fp));
+      const hit = (u: Box | undefined, v: Box | undefined) => !!u && !!v && u[0] < v[2] + gap && v[0] < u[2] + gap && u[1] < v[3] + gap && v[1] < u[3] + gap;
+      for (let i = 0; i < sl.length; i++) {
+        const q = qs[i]!, o = sl[i]!;
+        if (!this.ok(`${id}:${o.id}`, q, o.r, { fp: o.fp }) || (opts.key && !this.onScreen(q))) return false;
+        if (dist(p, q) < Math.max(r, o.r) + this.margin || hit(boxes[i], fb)) return false;
+        for (const t of opts.spots ?? []) if (dist(q, [p[0] + t.dx, p[1] + t.dy]) < o.r + this.standR) return false;
+        for (let j = i + 1; j < sl.length; j++) if (dist(q, qs[j]!) < o.r + sl[j]!.r + this.margin || hit(boxes[i], boxes[j])) return false;
+      }
+    }
     return true;
   }
 
@@ -104,7 +123,7 @@ export class Placer {
       const rg = regions[i % regions.length]!;
       const p: Pt = [Math.round(rg[0] + this.rand.float() * rg[2]), Math.round(rg[1] + this.rand.float() * rg[3])];
       if (opts.key && !this.onScreen(p)) continue;
-      if (this.ok(id, p, r, opts)) cands.push(p);
+      if (this.ok(id, p, r, opts) && (!opts.accept || opts.accept(p))) cands.push(p);
     }
     if (cands.length === 0) return null;
     let best: Pt;
@@ -122,6 +141,10 @@ export class Placer {
 
   add(id: string, p: Pt, r: number, opts: PlaceOpts = {}): void {
     this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight, fp: this.box(p, opts.fp) });
+    for (const o of opts.slots ?? []) {
+      const q: Pt = [p[0] + o.dx, p[1] + o.dy];
+      this.stations.push({ id: `${id}:${o.id}`, x: q[0], y: q[1], r: o.r, key: true, fp: this.box(q, o.fp) });
+    }
     for (const o of opts.spots ?? []) this.spots.push({ id: `${id}:${o.id}`, x: p[0] + o.dx, y: p[1] + o.dy, r: this.standR });
   }
 

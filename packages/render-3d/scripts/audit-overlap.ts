@@ -63,7 +63,8 @@ for (const f of files) {
       if (build === "node.enable" && e["target"]) plate.id = `${String(e["target"])}>${id}`;
       if (big) { const k = 1.4; plate.x0 = at[0] + (plate.x0 - at[0]) * k; plate.x1 = at[0] + (plate.x1 - at[0]) * k; plate.z0 = at[1] + (plate.z0 - at[1]) * k; plate.z1 = at[1] + (plate.z1 - at[1]) * k; }
       rects.push(plate);
-      if (type === "pad.build" && hasModel(build) && !content.upgrades[build]) rects.push(rectAt(`${id}>${build}`, "built", build, at[0], at[1]));
+      // a belt is a run between two machines with its pad on it (mid-run), not a box at the pad: only the plate counts
+      if (type === "pad.build" && build !== "struct.conveyor" && hasModel(build) && !content.upgrades[build]) rects.push(rectAt(`${id}>${build}`, "built", build, at[0], at[1]));
     }
   }
   const hits: string[] = [];
