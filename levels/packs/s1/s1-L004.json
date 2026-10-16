@@ -1,8 +1,8 @@
 {
   "id": "s1-L004",
   "seed": 2082620159,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -209,6 +209,28 @@
       ]
     },
     {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "outcrop",
+      "rect": [
+        200,
+        115,
+        33,
+        40
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "ridge",
+      "rect": [
+        41,
+        740,
+        21,
+        104
+      ]
+    },
+    {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
@@ -410,7 +432,7 @@
   },
   "rating": {
     "difficulty": 0.181,
-    "fun": 0.77,
+    "fun": 0.769,
     "botMargin": 0.733,
     "botsPassed": [
       "good",

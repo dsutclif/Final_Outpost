@@ -1,8 +1,8 @@
 {
   "id": "s1-L048",
   "seed": 307298876,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,10 +19,13 @@
     "build_pads",
     "carry",
     "core",
+    "defenders",
     "defense",
     "gather",
     "medical",
-    "sales"
+    "sales",
+    "salvage_upgrades",
+    "workers"
   ],
   "start": [
     218,
@@ -37,7 +40,7 @@
         500
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -105,28 +108,43 @@
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        349,
-        402
+        277,
+        416
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        322,
+        398
       ]
     },
     {
       "type": "barrier.line",
       "id": "ring",
       "res": "res.salvage",
-      "costPerSection": 2,
+      "costPerSection": 1,
       "points": [
         [
           28,
           265
         ],
         [
-          155,
+          104,
           265
         ],
         [
-          281,
+          180,
+          265
+        ],
+        [
+          256,
+          265
+        ],
+        [
+          332,
           265
         ],
         [
@@ -135,26 +153,38 @@
         ],
         [
           408,
-          383
+          359
         ],
         [
           408,
-          500
+          453
         ],
         [
           408,
-          618
+          547
+        ],
+        [
+          408,
+          641
         ],
         [
           408,
           735
         ],
         [
-          281,
+          332,
           735
         ],
         [
-          155,
+          256,
+          735
+        ],
+        [
+          180,
+          735
+        ],
+        [
+          104,
           735
         ],
         [
@@ -163,57 +193,186 @@
         ],
         [
           28,
-          618
+          641
         ],
         [
           28,
-          500
+          547
         ],
         [
           28,
-          383
+          453
+        ],
+        [
+          28,
+          359
         ]
       ],
       "closed": true,
       "gates": [
-        8
+        2
       ],
       "prebuilt": [
-        3,
+        0,
+        2,
         4,
         5,
-        6,
-        7,
-        8,
         9,
         10,
         11,
         12,
-        13
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "outcrop",
+      "rect": [
+        105,
+        100,
+        44,
+        39
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "ridge",
+      "rect": [
+        231,
+        165,
+        97,
+        21
       ]
     },
     {
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        266,
-        332
+        156,
+        293
       ],
       "cost": {
-        "res.salvage": 8
+        "res.salvage": 6
       },
       "build": "struct.ranged_defense",
       "site": [
-        281,
+        104,
         265
-      ]
+      ],
+      "requires": {
+        "pad": "barracks"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_n2",
+      "at": [
+        382,
+        293
+      ],
+      "cost": {
+        "res.salvage": 6
+      },
+      "build": "struct.ranged_defense",
+      "site": [
+        332,
+        265
+      ],
+      "requires": {
+        "pad": "tower_n2_up"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_n_up",
+      "at": [
+        185,
+        370
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower_n",
+      "requires": {
+        "pad": "tower_n"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_n2_up",
+      "at": [
+        275,
+        364
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower_n2",
+      "requires": {
+        "pad": "tower_n_up"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        367,
+        366
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.barrier.reinforced",
+      "requires": {
+        "pad": "tower_n2"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "barracks",
+      "at": [
+        117,
+        601
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "build": "struct.barracks"
+    },
+    {
+      "type": "pad.hire",
+      "id": "train",
+      "at": [
+        116,
+        662
+      ],
+      "cost": {
+        "res.salvage": 3
+      },
+      "role": {
+        "role": "role.defender"
+      },
+      "repeatable": true,
+      "requires": {
+        "pad": "reinforce"
+      }
     },
     {
       "type": "pad.build",
       "id": "medic",
       "at": [
-        332,
-        623
+        310,
+        617
       ],
       "cost": {
         "res.salvage": 6
@@ -230,93 +389,94 @@
     },
     {
       "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
     }
   ],
   "waves": [
     {
-      "t": 12,
+      "t": 10,
       "counts": {
-        "hostile.swarmling": 6,
-        "hostile.raider_humanoid": 3
+        "hostile.swarmling": 4,
+        "hostile.raider_humanoid": 12
       },
       "side": "e",
-      "gap": 0.4
+      "gap": 0.2
     },
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 7
+        "hostile.swarmling": 15
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 62,
+      "t": 69,
       "counts": {
-        "hostile.swarmling": 11,
-        "hostile.raider_humanoid": 2
+        "hostile.swarmling": 24,
+        "hostile.raider_humanoid": 1
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 104,
+      "t": 118,
       "counts": {
-        "hostile.swarmling": 16,
-        "hostile.raider_humanoid": 3,
-        "hostile.boss": 1
+        "hostile.swarmling": 47,
+        "hostile.raider_humanoid": 4
       },
       "side": "n",
-      "gap": 0.7
+      "gap": 0.45
     },
     {
-      "t": 146,
+      "t": 167,
       "counts": {
-        "hostile.swarmling": 21,
-        "hostile.raider_humanoid": 5
-      },
-      "side": "n",
-      "gap": 0.7
-    },
-    {
-      "t": 188,
-      "counts": {
-        "hostile.swarmling": 26,
+        "hostile.swarmling": 62,
         "hostile.raider_humanoid": 7,
         "hostile.boss": 1
       },
       "side": "n",
-      "gap": 0.7
+      "gap": 0.45
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.1,
-    "housing.base": 5,
-    "meters.baseHealth": 10,
-    "level.budgetSeconds": 420
+    "start.currency": 8,
+    "core.burn": 2.9,
+    "housing.base": 7,
+    "meters.baseHealth": 12,
+    "level.budgetSeconds": 320
   },
   "goal": {
-    "type": "waves"
+    "type": "waves_survived",
+    "n": 4
   },
   "family": "defend",
   "objectives": [
     {
       "id": "main",
-      "kind": "waves",
-      "params": {}
+      "kind": "waves_survived",
+      "params": {
+        "n": 4
+      }
     },
     {
       "id": "challenge2",
-      "kind": "no_injuries",
-      "params": {}
+      "kind": "hire",
+      "params": {
+        "n": 4
+      }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 55
+        "pct": 75
       }
     }
   ],
@@ -326,27 +486,28 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Stitches and Raiders",
-      "goal": "Survive every raid",
+      "title": "Rust and Survivors",
+      "goal": "waves_survived",
       "tips": [
-        "Hurt colonists stop working until a med bay heals them."
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.454,
-    "fun": 0.574,
-    "botMargin": 0.934,
+    "difficulty": 0.684,
+    "fun": 0.664,
+    "botMargin": 0.9,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
-      "good": 2.8,
-      "median": 3,
-      "goodAll": 0.8
+      "good": 2.9,
+      "median": 2.67,
+      "goodAll": 0.9
     }
   }
 }

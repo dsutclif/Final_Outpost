@@ -1,8 +1,8 @@
 {
   "id": "s1-L054",
   "seed": 271138203,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -39,7 +39,7 @@
         500
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 17,
         "level": 1
       }
     },
@@ -107,28 +107,57 @@
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        126,
-        398
+        108,
+        463
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        187,
+        522
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        111,
+        413
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        205,
+        421
       ]
     },
     {
       "type": "barrier.line",
       "id": "ring",
       "res": "res.salvage",
-      "costPerSection": 2,
+      "costPerSection": 1,
       "points": [
         [
           72,
           265
         ],
         [
-          199,
+          148,
           265
         ],
         [
-          325,
+          224,
+          265
+        ],
+        [
+          300,
+          265
+        ],
+        [
+          376,
           265
         ],
         [
@@ -137,26 +166,38 @@
         ],
         [
           452,
-          383
+          359
         ],
         [
           452,
-          500
+          453
         ],
         [
           452,
-          618
+          547
+        ],
+        [
+          452,
+          641
         ],
         [
           452,
           735
         ],
         [
-          325,
+          376,
           735
         ],
         [
-          199,
+          300,
+          735
+        ],
+        [
+          224,
+          735
+        ],
+        [
+          148,
           735
         ],
         [
@@ -165,91 +206,208 @@
         ],
         [
           72,
-          618
+          641
         ],
         [
           72,
-          500
+          547
         ],
         [
           72,
-          383
+          453
+        ],
+        [
+          72,
+          359
         ]
       ],
       "closed": true,
       "gates": [
-        8
+        2,
+        7
       ],
       "prebuilt": [
-        3,
+        0,
+        2,
         4,
         5,
-        6,
         7,
         8,
         9,
         10,
         11,
         12,
-        13
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        271,
+        109,
+        17,
+        87
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "ridge",
+      "rect": [
+        350,
+        65,
+        19,
+        134
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain2",
+      "kind": "ridge",
+      "rect": [
+        214,
+        73,
+        17,
+        132
       ]
     },
     {
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        316,
-        332
+        199,
+        292
       ],
       "cost": {
-        "res.salvage": 8
+        "res.salvage": 6
       },
       "build": "struct.ranged_defense",
       "site": [
-        325,
+        148,
         265
       ]
     },
     {
       "type": "pad.build",
-      "id": "tower_n_up",
+      "id": "tower_e",
       "at": [
-        339,
-        410
+        423,
+        427
       ],
       "cost": {
         "res.salvage": 6
       },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower_n",
+      "build": "struct.ranged_defense",
+      "site": [
+        452,
+        359
+      ],
       "requires": {
         "pad": "tower_n"
       }
     },
     {
       "type": "pad.build",
-      "id": "reinforce",
+      "id": "tower_n2",
       "at": [
-        375,
-        476
+        326,
+        292
       ],
       "cost": {
         "res.salvage": 6
       },
-      "build": "struct.barrier.reinforced",
+      "build": "struct.ranged_defense",
+      "site": [
+        376,
+        265
+      ],
+      "requires": {
+        "pad": "tower_e_up"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_e2",
+      "at": [
+        424,
+        708
+      ],
+      "cost": {
+        "res.salvage": 6
+      },
+      "build": "struct.ranged_defense",
+      "site": [
+        452,
+        641
+      ],
+      "requires": {
+        "pad": "tower_n2"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_n_up",
+      "at": [
+        207,
+        368
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower_n",
+      "requires": {
+        "pad": "tower_e"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_e_up",
+      "at": [
+        330,
+        465
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower_e",
       "requires": {
         "pad": "tower_n_up"
       }
     },
     {
       "type": "pad.build",
-      "id": "barracks",
+      "id": "reinforce",
       "at": [
-        134,
-        624
+        360,
+        406
       ],
       "cost": {
         "res.salvage": 5
+      },
+      "build": "struct.barrier.reinforced",
+      "requires": {
+        "pad": "tower_e2"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "barracks",
+      "at": [
+        147,
+        625
+      ],
+      "cost": {
+        "res.salvage": 4
       },
       "build": "struct.barracks",
       "requires": {
@@ -260,11 +418,11 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        135,
-        695
+        174,
+        682
       ],
       "cost": {
-        "res.salvage": 4
+        "res.salvage": 3
       },
       "role": {
         "role": "role.defender"
@@ -284,77 +442,103 @@
     },
     {
       "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
     }
   ],
   "waves": [
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 15
+        "hostile.swarmling": 19
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 66,
+      "t": 79,
       "counts": {
-        "hostile.swarmling": 23,
-        "hostile.raider_humanoid": 2
+        "hostile.swarmling": 30,
+        "hostile.raider_humanoid": 1
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 111,
+      "t": 138,
       "counts": {
-        "hostile.swarmling": 32,
+        "hostile.swarmling": 39,
         "hostile.raider_humanoid": 3
       },
-      "side": "n",
-      "gap": 0.7
+      "side": [
+        "n",
+        "e"
+      ],
+      "gap": 0.45
     },
     {
-      "t": 157,
+      "t": 197,
       "counts": {
-        "hostile.swarmling": 43,
-        "hostile.raider_humanoid": 5
+        "hostile.swarmling": 51,
+        "hostile.raider_humanoid": 4
       },
-      "side": "n",
-      "gap": 0.7
+      "side": [
+        "e",
+        "n"
+      ],
+      "gap": 0.45
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.2,
-    "housing.base": 5,
-    "meters.baseHealth": 10,
-    "level.budgetSeconds": 310
+    "start.currency": 10,
+    "core.burn": 3,
+    "housing.base": 11,
+    "meters.baseHealth": 16,
+    "level.budgetSeconds": 640
   },
   "goal": {
-    "type": "waves_survived",
-    "n": 3
+    "type": "hire",
+    "n": 2,
+    "role": "role.defender"
   },
   "family": "defend",
   "objectives": [
     {
       "id": "main",
-      "kind": "waves_survived",
+      "kind": "hire",
       "params": {
-        "n": 3
+        "n": 2,
+        "role": "role.defender"
       }
     },
     {
-      "id": "challenge2",
-      "kind": "no_injuries",
-      "params": {}
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 272
+      }
     },
     {
       "id": "challenge",
-      "kind": "hp_floor",
-      "params": {
-        "pct": 80
-      }
+      "kind": "no_wall_lost",
+      "params": {}
     }
   ],
   "fail": [
@@ -363,17 +547,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Scrap and Long Night",
-      "goal": "waves_survived",
+      "title": "Scrap and New Hands",
+      "goal": "hire",
       "tips": [
         "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.397,
-    "fun": 0.225,
-    "botMargin": 0.982,
+    "difficulty": 0.535,
+    "fun": 0.117,
+    "botMargin": 0.736,
     "botsPassed": [
       "good",
       "average",

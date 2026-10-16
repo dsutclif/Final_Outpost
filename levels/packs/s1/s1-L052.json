@@ -1,8 +1,8 @@
 {
   "id": "s1-L052",
   "seed": 52763692,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -249,26 +249,26 @@
     "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 350
+    "level.budgetSeconds": 340
   },
   "goal": {
-    "type": "currency",
-    "n": 279
+    "type": "earn",
+    "n": 361
   },
   "family": "harvest",
   "objectives": [
     {
       "id": "main",
-      "kind": "currency",
+      "kind": "earn",
       "params": {
-        "n": 279
+        "n": 361
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 294
+        "seconds": 290
       }
     },
     {
@@ -282,17 +282,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Vaults and Trade Winds",
-      "goal": "Bank 279 credits",
+      "title": "Vaults and Paydays",
+      "goal": "earn",
       "tips": [
         "Some grow domes start locked. Unlock them with credits on their pad."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.49,
-    "fun": 0.903,
-    "botMargin": 0.476,
+    "difficulty": 0.495,
+    "fun": 0.907,
+    "botMargin": 0.471,
     "botsPassed": [
       "good",
       "average",

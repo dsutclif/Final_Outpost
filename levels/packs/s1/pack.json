@@ -1,7 +1,7 @@
 {
   "id": "s1",
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "levels": [
     {
       "id": "s1-L001",
@@ -72,7 +72,7 @@
       ],
       "goal": "produce",
       "rating": 0.181,
-      "fun": 0.77,
+      "fun": 0.769,
       "target": 0.146
     },
     {
@@ -90,8 +90,8 @@
         "sales"
       ],
       "goal": "waves",
-      "rating": 0.191,
-      "fun": 0.319,
+      "rating": 0.154,
+      "fun": 0.445,
       "target": 0.158
     },
     {
@@ -187,8 +187,8 @@
         "salvage_upgrades"
       ],
       "goal": "turret_level",
-      "rating": 0.242,
-      "fun": 0.458,
+      "rating": 0.195,
+      "fun": 0.482,
       "target": 0.219
     },
     {
@@ -286,11 +286,12 @@
         "gather",
         "medical",
         "sales",
+        "salvage_upgrades",
         "workers"
       ],
       "goal": "boss",
-      "rating": 0.638,
-      "fun": 0.053,
+      "rating": 0.801,
+      "fun": 0.239,
       "target": 0.279
     },
     {
@@ -409,8 +410,8 @@
         "salvage_upgrades"
       ],
       "goal": "waves_survived",
-      "rating": 0.404,
-      "fun": 0.149,
+      "rating": 0.47,
+      "fun": 0.185,
       "target": 0.4
     },
     {
@@ -427,8 +428,8 @@
         "sales"
       ],
       "goal": "population",
-      "rating": 0.58,
-      "fun": 0.831,
+      "rating": 0.55,
+      "fun": 0.827,
       "target": 0.45
     },
     {
@@ -468,8 +469,8 @@
         "workers"
       ],
       "goal": "earn_within",
-      "rating": 0.542,
-      "fun": 0.75,
+      "rating": 0.568,
+      "fun": 0.64,
       "target": 0.538
     },
     {
@@ -496,21 +497,24 @@
     {
       "id": "s1-L026",
       "file": "s1-L026.json",
-      "title": "Triage and Body Count",
+      "title": "Wreckage and Hiring Drive",
       "family": "defend",
       "modules": [
         "barrier_lines",
         "build_pads",
         "carry",
         "core",
+        "defenders",
         "defense",
         "gather",
         "medical",
-        "sales"
+        "sales",
+        "salvage_upgrades",
+        "workers"
       ],
-      "goal": "kills",
-      "rating": 0.393,
-      "fun": 0.55,
+      "goal": "hire",
+      "rating": 0.793,
+      "fun": 0.108,
       "target": 0.625
     },
     {
@@ -567,8 +571,8 @@
         "workers"
       ],
       "goal": "sell",
-      "rating": 0.748,
-      "fun": 0.898,
+      "rating": 0.774,
+      "fun": 0.888,
       "target": 0.756
     },
     {
@@ -608,30 +612,29 @@
         "workers"
       ],
       "goal": "converters_running",
-      "rating": 0.068,
-      "fun": 0.756,
+      "rating": 0.093,
+      "fun": 0.803,
       "target": 0.4
     },
     {
       "id": "s1-L032",
       "file": "s1-L032.json",
-      "title": "Scrap and New Hands",
+      "title": "Scrap and Make It Through",
       "family": "defend",
       "modules": [
         "barrier_lines",
         "build_pads",
         "carry",
         "core",
-        "defenders",
         "defense",
         "gather",
+        "medical",
         "sales",
-        "salvage_upgrades",
-        "workers"
+        "salvage_upgrades"
       ],
-      "goal": "hire",
-      "rating": 0.543,
-      "fun": 0.141,
+      "goal": "survive",
+      "rating": 0.45,
+      "fun": 0.142,
       "target": 0.45
     },
     {
@@ -649,7 +652,7 @@
       ],
       "goal": "admit",
       "rating": 0.033,
-      "fun": 0.709,
+      "fun": 0.711,
       "target": 0.494
     },
     {
@@ -715,21 +718,23 @@
     {
       "id": "s1-L037",
       "file": "s1-L037.json",
-      "title": "Triage and Endurance",
+      "title": "Wreckage and Hold Fast",
       "family": "defend",
       "modules": [
         "barrier_lines",
         "build_pads",
         "carry",
         "core",
+        "defenders",
         "defense",
         "gather",
-        "medical",
-        "sales"
+        "sales",
+        "salvage_upgrades",
+        "workers"
       ],
-      "goal": "survive",
-      "rating": 0.668,
-      "fun": 0.193,
+      "goal": "waves",
+      "rating": 0.664,
+      "fun": 0.465,
       "target": 0.669
     },
     {
@@ -790,8 +795,8 @@
         "workers"
       ],
       "goal": "unlock",
-      "rating": 0.831,
-      "fun": 0.879,
+      "rating": 0.829,
+      "fun": 0.869,
       "target": 0.8
     },
     {
@@ -830,14 +835,14 @@
         "workers"
       ],
       "goal": "build",
-      "rating": 0.418,
-      "fun": 0.914,
+      "rating": 0.414,
+      "fun": 0.927,
       "target": 0.45
     },
     {
       "id": "s1-L043",
       "file": "s1-L043.json",
-      "title": "Wreckage and Spare Parts",
+      "title": "Wreckage and Titan Night",
       "family": "defend",
       "modules": [
         "barrier_lines",
@@ -847,13 +852,14 @@
         "defenders",
         "defense",
         "gather",
+        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
-      "goal": "salvage",
-      "rating": 0.977,
-      "fun": 0.317,
+      "goal": "boss",
+      "rating": 0.884,
+      "fun": 0.117,
       "target": 0.494
     },
     {
@@ -897,19 +903,20 @@
     {
       "id": "s1-L046",
       "file": "s1-L046.json",
-      "title": "Blueprints and Earnings",
+      "title": "Hoppers and Full Shelves",
       "family": "harvest",
       "modules": [
         "build_pads",
         "carry",
         "core",
         "gather",
+        "hunting",
         "sales",
         "workers"
       ],
-      "goal": "earn",
-      "rating": 0.625,
-      "fun": 0.91,
+      "goal": "shelves_full",
+      "rating": 0.658,
+      "fun": 0.659,
       "target": 0.625
     },
     {
@@ -936,21 +943,24 @@
     {
       "id": "s1-L048",
       "file": "s1-L048.json",
-      "title": "Stitches and Raiders",
+      "title": "Rust and Survivors",
       "family": "defend",
       "modules": [
         "barrier_lines",
         "build_pads",
         "carry",
         "core",
+        "defenders",
         "defense",
         "gather",
         "medical",
-        "sales"
+        "sales",
+        "salvage_upgrades",
+        "workers"
       ],
-      "goal": "waves",
-      "rating": 0.454,
-      "fun": 0.574,
+      "goal": "waves_survived",
+      "rating": 0.684,
+      "fun": 0.664,
       "target": 0.713
     },
     {
@@ -1016,7 +1026,7 @@
     {
       "id": "s1-L052",
       "file": "s1-L052.json",
-      "title": "Vaults and Trade Winds",
+      "title": "Vaults and Paydays",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -1027,9 +1037,9 @@
         "source_gating",
         "workers"
       ],
-      "goal": "currency",
-      "rating": 0.49,
-      "fun": 0.903,
+      "goal": "earn",
+      "rating": 0.495,
+      "fun": 0.907,
       "target": 0.45
     },
     {
@@ -1047,14 +1057,14 @@
         "workers"
       ],
       "goal": "converter_level",
-      "rating": 0.547,
-      "fun": 0.905,
+      "rating": 0.548,
+      "fun": 0.921,
       "target": 0.494
     },
     {
       "id": "s1-L054",
       "file": "s1-L054.json",
-      "title": "Scrap and Long Night",
+      "title": "Scrap and New Hands",
       "family": "defend",
       "modules": [
         "barrier_lines",
@@ -1068,9 +1078,9 @@
         "salvage_upgrades",
         "workers"
       ],
-      "goal": "waves_survived",
-      "rating": 0.397,
-      "fun": 0.225,
+      "goal": "hire",
+      "rating": 0.535,
+      "fun": 0.117,
       "target": 0.538
     },
     {
@@ -1126,7 +1136,7 @@
         "workers"
       ],
       "goal": "serve_premium",
-      "rating": 0.612,
+      "rating": 0.704,
       "fun": 0.923,
       "target": 0.669
     },
@@ -1154,26 +1164,7 @@
     {
       "id": "s1-L059",
       "file": "s1-L059.json",
-      "title": "Turrets and The Big One",
-      "family": "defend",
-      "modules": [
-        "barrier_lines",
-        "build_pads",
-        "carry",
-        "core",
-        "defense",
-        "gather",
-        "sales"
-      ],
-      "goal": "boss",
-      "rating": 0.698,
-      "fun": 0.613,
-      "target": 0.756
-    },
-    {
-      "id": "s1-L060",
-      "file": "s1-L060.json",
-      "title": "Rust and Body Count",
+      "title": "Rust and Endurance",
       "family": "defend",
       "modules": [
         "barrier_lines",
@@ -1183,14 +1174,35 @@
         "defenders",
         "defense",
         "gather",
-        "housing",
+        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
-      "goal": "kills",
-      "rating": 0.752,
-      "fun": 0.539,
+      "goal": "survive",
+      "rating": 0.792,
+      "fun": 0.271,
+      "target": 0.756
+    },
+    {
+      "id": "s1-L060",
+      "file": "s1-L060.json",
+      "title": "Rust and Hardpoints",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defense",
+        "gather",
+        "housing",
+        "sales",
+        "salvage_upgrades"
+      ],
+      "goal": "turret_level",
+      "rating": 0.846,
+      "fun": 0.787,
       "target": 0.8
     }
   ]

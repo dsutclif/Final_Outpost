@@ -1,8 +1,8 @@
 {
   "id": "s1-L053",
   "seed": 2035747089,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         500
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -64,78 +64,78 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        364,
-        444
+        378,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        385,
-        465
+        399,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        351,
-        475
+        365,
+        471
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        328,
-        455
+        342,
+        451
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        336,
-        425
+        350,
+        421
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        368,
-        414
+        382,
+        409
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        376,
-        494
+        390,
+        489
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        405,
-        433
+        419,
+        428
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        327,
-        493
+        341,
+        489
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        424,
-        473
+        438,
+        468
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        292,
-        470
+        305,
+        431
       ]
     },
     {
@@ -147,11 +147,33 @@
       ]
     },
     {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "outcrop",
+      "rect": [
+        337,
+        695,
+        41,
+        47
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "outcrop",
+      "rect": [
+        315,
+        784,
+        39,
+        44
+      ]
+    },
+    {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        332,
-        542
+        339,
+        540
       ],
       "cost": {
         "res.currency": 10
@@ -284,8 +306,8 @@
       "type": "pad.build",
       "id": "saw",
       "at": [
-        276,
-        337
+        301,
+        302
       ],
       "cost": {
         "res.currency": 18
@@ -296,8 +318,8 @@
       "type": "pad.hire",
       "id": "saw_feeder",
       "at": [
-        208,
-        342
+        233,
+        307
       ],
       "cost": {
         "res.currency": 12
@@ -315,8 +337,8 @@
       "type": "pad.hire",
       "id": "sawyer",
       "at": [
-        149,
-        390
+        183,
+        381
       ],
       "cost": {
         "res.currency": 12
@@ -333,8 +355,8 @@
       "type": "pad.build",
       "id": "alloy",
       "at": [
-        45,
-        404
+        79,
+        385
       ],
       "cost": {
         "res.currency": 24
@@ -348,8 +370,8 @@
       "type": "pad.hire",
       "id": "refined_carrier",
       "at": [
-        46,
-        517
+        19,
+        372
       ],
       "cost": {
         "res.currency": 12
@@ -367,8 +389,8 @@
       "type": "pad.hire",
       "id": "smith",
       "at": [
-        21,
-        292
+        63,
+        485
       ],
       "cost": {
         "res.currency": 12
@@ -385,8 +407,8 @@
       "type": "pad.hire",
       "id": "component_server",
       "at": [
-        153,
-        447
+        172,
+        286
       ],
       "cost": {
         "res.currency": 12
@@ -439,7 +461,7 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
+    "start.currency": 3,
     "core.burn": 2.2,
     "housing.base": 13,
     "customers.spawn": 3.1,
@@ -464,7 +486,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 179
+        "seconds": 172
       }
     },
     {
@@ -486,9 +508,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.547,
-    "fun": 0.905,
-    "botMargin": 0.498,
+    "difficulty": 0.548,
+    "fun": 0.921,
+    "botMargin": 0.51,
     "botsPassed": [
       "good",
       "average",

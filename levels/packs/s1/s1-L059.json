@@ -1,8 +1,8 @@
 {
   "id": "s1-L059",
-  "seed": 1598010570,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "seed": 2027708034,
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,9 +19,13 @@
     "build_pads",
     "carry",
     "core",
+    "defenders",
     "defense",
     "gather",
-    "sales"
+    "medical",
+    "sales",
+    "salvage_upgrades",
+    "workers"
   ],
   "start": [
     240,
@@ -36,106 +40,113 @@
         450
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 17,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
+        179,
+        526
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
         178,
-        532
+        560
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        189,
-        567
+        215,
+        526
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        208,
-        530
+        182,
+        494
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        173,
-        500
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        160,
-        565
+        146,
+        536
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         226,
-        554
+        556
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        202,
+        577
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        137,
+        564
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        159,
+        583
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         147,
-        532
+        506
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        238,
-        521
+        254,
+        525
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        144,
-        487
+        157,
+        472
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        127,
-        555
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        183,
-        598
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        256,
-        545
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        222,
-        604
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        144,
+        187,
         603
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        243,
+        585
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        112,
+        472
       ]
     },
     {
@@ -149,11 +160,19 @@
           215
         ],
         [
-          177,
+          126,
           215
         ],
         [
-          303,
+          202,
+          215
+        ],
+        [
+          278,
+          215
+        ],
+        [
+          354,
           215
         ],
         [
@@ -162,26 +181,38 @@
         ],
         [
           430,
-          333
+          309
         ],
         [
           430,
-          450
+          403
         ],
         [
           430,
-          568
+          497
+        ],
+        [
+          430,
+          591
         ],
         [
           430,
           685
         ],
         [
-          303,
+          354,
           685
         ],
         [
-          177,
+          278,
+          685
+        ],
+        [
+          202,
+          685
+        ],
+        [
+          126,
           685
         ],
         [
@@ -190,99 +221,182 @@
         ],
         [
           50,
-          568
+          591
         ],
         [
           50,
-          450
+          497
         ],
         [
           50,
-          333
+          403
+        ],
+        [
+          50,
+          309
         ]
       ],
       "closed": true,
       "gates": [
-        8
+        7
       ],
       "prebuilt": [
+        0,
+        1,
+        2,
+        3,
         4,
         5,
         7,
         8,
         9,
         10,
-        11,
-        12,
-        13
-      ]
-    },
-    {
-      "type": "pad.build",
-      "id": "tower_n",
-      "at": [
-        196,
-        281
-      ],
-      "cost": {
-        "res.salvage": 8
-      },
-      "build": "struct.ranged_defense",
-      "site": [
-        177,
-        215
-      ]
-    },
-    {
-      "type": "pad.build",
-      "id": "tower_n2",
-      "at": [
-        295,
-        282
-      ],
-      "cost": {
-        "res.salvage": 8
-      },
-      "build": "struct.ranged_defense",
-      "site": [
-        303,
-        215
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
       ]
     },
     {
       "type": "pad.build",
       "id": "tower_e",
       "at": [
-        378,
-        451
+        402,
+        376
       ],
       "cost": {
-        "res.salvage": 8
+        "res.salvage": 6
       },
       "build": "struct.ranged_defense",
       "site": [
         430,
-        450
-      ]
+        309
+      ],
+      "requires": {
+        "pad": "barracks"
+      }
     },
     {
       "type": "pad.build",
       "id": "tower_e2",
       "at": [
-        380,
-        534
+        403,
+        658
       ],
       "cost": {
-        "res.salvage": 8
+        "res.salvage": 6
       },
       "build": "struct.ranged_defense",
       "site": [
         430,
-        568
-      ]
+        591
+      ],
+      "requires": {
+        "pad": "tower_e2_up"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_e_up",
+      "at": [
+        329,
+        380
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower_e",
+      "requires": {
+        "pad": "tower_e"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_e2_up",
+      "at": [
+        345,
+        555
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower_e2",
+      "requires": {
+        "pad": "tower_e_up"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        324,
+        318
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.barrier.reinforced",
+      "requires": {
+        "pad": "tower_e2"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "barracks",
+      "at": [
+        136,
+        373
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "build": "struct.barracks"
+    },
+    {
+      "type": "pad.hire",
+      "id": "train",
+      "at": [
+        210,
+        320
+      ],
+      "cost": {
+        "res.salvage": 3
+      },
+      "role": {
+        "role": "role.defender"
+      },
+      "repeatable": true,
+      "requires": {
+        "pad": "reinforce"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "medic",
+      "at": [
+        326,
+        497
+      ],
+      "cost": {
+        "res.salvage": 6
+      },
+      "build": "struct.medical"
     }
   ],
   "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
     {
       "role": "idle"
     },
@@ -295,87 +409,84 @@
   ],
   "waves": [
     {
+      "t": 10,
+      "counts": {
+        "hostile.swarmling": 4,
+        "hostile.raider_humanoid": 12
+      },
+      "side": "s",
+      "gap": 0.2
+    },
+    {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 15
+        "hostile.swarmling": 5
       },
-      "side": [
-        "n",
-        "e"
-      ],
+      "side": "e",
       "gap": 0.7
     },
     {
-      "t": 72,
+      "t": 79,
       "counts": {
-        "hostile.swarmling": 22,
+        "hostile.swarmling": 9,
         "hostile.raider_humanoid": 1
       },
-      "side": [
-        "e",
-        "n"
-      ],
+      "side": "e",
       "gap": 0.7
     },
     {
-      "t": 123,
+      "t": 139,
       "counts": {
-        "hostile.swarmling": 29,
-        "hostile.raider_humanoid": 2
+        "hostile.swarmling": 17,
+        "hostile.raider_humanoid": 3
       },
-      "side": [
-        "n",
-        "e"
-      ],
-      "gap": 0.7
+      "side": "e",
+      "gap": 0.45
     },
     {
-      "t": 175,
+      "t": 198,
       "counts": {
-        "hostile.swarmling": 38,
+        "hostile.swarmling": 23,
         "hostile.raider_humanoid": 4,
         "hostile.boss": 1
       },
-      "side": [
-        "e",
-        "n"
-      ],
-      "gap": 0.7
+      "side": "e",
+      "gap": 0.45
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.6,
-    "housing.base": 5,
-    "meters.baseHealth": 13,
-    "level.budgetSeconds": 550
+    "start.currency": 9,
+    "core.burn": 3,
+    "housing.base": 8,
+    "meters.baseHealth": 16,
+    "level.budgetSeconds": 390
   },
   "goal": {
-    "type": "boss",
-    "n": 1
+    "type": "survive",
+    "seconds": 170
   },
   "family": "defend",
   "objectives": [
     {
       "id": "main",
-      "kind": "boss",
+      "kind": "survive",
       "params": {
-        "n": 1
+        "seconds": 170
       }
     },
     {
-      "id": "time",
-      "kind": "time_target",
+      "id": "challenge2",
+      "kind": "hire",
       "params": {
-        "seconds": 353
+        "n": 4
       }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 80
+        "pct": 45
       }
     }
   ],
@@ -385,26 +496,27 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Turrets and The Big One",
-      "goal": "boss",
+      "title": "Rust and Endurance",
+      "goal": "survive",
       "tips": [
-        "Raiders attack from the north in waves. Build walls and turrets before they arrive."
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.698,
-    "fun": 0.613,
-    "botMargin": 0.603,
+    "difficulty": 0.792,
+    "fun": 0.271,
+    "botMargin": 0.761,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2.67,
       "goodAll": 1
     }
   }

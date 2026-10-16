@@ -6,6 +6,6 @@
   "struct.landmark": {},
   "struct.depot": { "range": 40 },
   "struct.barrier": { "hp": 14 },
-  "struct.gate": { "hp": 20 },
+  "struct.gate": { "hp": 30 },
   "struct.conveyor": {}
 }

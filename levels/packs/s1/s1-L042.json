@@ -1,8 +1,8 @@
 {
   "id": "s1-L042",
   "seed": 1547836930,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -145,6 +145,17 @@
       "at": [
         177,
         231
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "outcrop",
+      "rect": [
+        90,
+        112,
+        41,
+        37
       ]
     },
     {
@@ -541,7 +552,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 203
+        "seconds": 204
       }
     },
     {
@@ -565,9 +576,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.418,
-    "fun": 0.914,
-    "botMargin": 0.494,
+    "difficulty": 0.414,
+    "fun": 0.927,
+    "botMargin": 0.49,
     "botsPassed": [
       "good",
       "average",

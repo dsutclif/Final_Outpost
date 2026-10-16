@@ -47,7 +47,7 @@ export const GEN = genData as unknown as {
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
-  defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; towersPerSide: number; maxTowers: number; maxUpgrades: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
+  defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; towersPerSide: number; maxTowers: number; maxUpgrades: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   conveyorGoals: string[];
   /** Geography: how often and how a level gets ridges, outcrops and chasms (terrain.ts). */
@@ -543,7 +543,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const regular = new Set<(typeof waves)[number]>();
   if (defend && ring) {
     const all: ("n" | "e" | "s" | "w")[] = ["n", "e", "w", "s"];
-    const nSides = feat.has("multi_side") ? (K.waves >= 4 ? 3 : 2) : 1;
+    // a two-family finale splits attention with its other family: at most two attack sides there
+    const nSides = feat.has("multi_side") ? (K.waves >= 4 && !inp.secondary ? 3 : 2) : 1;
     const first = all[rand.int(0, 2)]!;
     sides = [first, ...all.filter((s) => s !== first && s !== "s").slice(0, nSides - 1)];
     if (sides.length < nSides) sides.push("s");
@@ -573,7 +574,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const breach = (i: number) => ring!.side[i] === raidSide && !corner(i);
     ring.side.forEach((s, i) => {
       if (breach(i)) return;
-      if (!sides.includes(s) || ringGates.includes(i) || (feat.has("turrets") && corner(i))) pre.push(i);
+      // a two-family finale starts walled (but for the one section kept to build below): its defence work is towers and guards
+      if (!sides.includes(s) || ringGates.includes(i) || (feat.has("turrets") && corner(i)) || inp.secondary) pre.push(i);
       else if (rand.float() < K.prebuiltRing && !wallsCurrency) pre.push(i);
     });
     if (pre.length === ring.points.length) pre.splice(pre.indexOf(ring.side.findIndex((s) => s === sides[0])), 1);
@@ -672,12 +674,13 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     // towers and guards that scrap bought have to carry them.
     for (let k = 0; k < nW; k++) {
       const late = buyable && k >= lateFrom;
-      const mult = k === 0 ? DW.firstShare : late ? 1 + DW.earlyGrowth * (lateFrom - 1) + DW.lateGrowth * (k - lateFrom + 1) : 1 + DW.earlyGrowth * (k - 1);
+      const mult = k === 0 ? DW.firstShare : late ? 1 + DW.earlyGrowth * (lateFrom - 1) + DW.lateGrowth * (inp.secondary ? DW.finaleGrowthK : 1) * (k - lateFrom + 1) : 1 + DW.earlyGrowth * (k - 1);
       const counts: Record<string, number> = { "hostile.swarmling": Math.max(3, Math.round(K.swarm * mult)) };
       if (k >= 1) counts["hostile.raider_humanoid"] = Math.max(1, Math.round(K.swarm * (late ? DW.lateRaiders : DW.raiders) * k));
       if (feat.has("bosses") && (k === nW - 1 || (k === nW - 3 && nW >= 5))) counts["hostile.boss"] = 1;
       // A weak raid comes from one side (the player can meet it there); the packed waves from every side.
-      const wSides = sides.length === 1 || (buyable && !late) ? sides[k % sides.length]! : [...sides.slice(k % sides.length), ...sides.slice(0, k % sides.length)];
+      // the early raids all come from the first side, so their scrap buys every side's tower before the big waves
+      const wSides = sides.length === 1 || (buyable && !late) ? sides[0]! : [...sides.slice(k % sides.length), ...sides.slice(0, k % sides.length)];
       const w = { t: Math.round(t0 - early + k * K.waveGap), counts, side: wSides, gap: late ? DW.lateGap : DW.gap };
       waves.push(w);
       regular.add(w);

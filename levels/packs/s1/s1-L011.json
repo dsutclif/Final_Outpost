@@ -1,8 +1,8 @@
 {
   "id": "s1-L011",
   "seed": 1241095550,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -215,6 +215,17 @@
       "at": [
         288,
         246
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        396,
+        106,
+        19,
+        132
       ]
     },
     {

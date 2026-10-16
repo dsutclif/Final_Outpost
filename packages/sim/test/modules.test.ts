@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { FP, TPS, createSim, type Sim, type SimEvent, fp, within } from "../src/index.js";
 import { LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, at, grant, idle, newSim, walkPath, walkTo } from "./helpers.js";
+import { content } from "@fo/content";
+
+// Gate HP comes from content (raised for R3 gates on attack sides); reinforcing adds the upgrade bonus.
+const GATE_HP = (content.structures["struct.gate"] as { hp: number }).hp;
 
 // Scripted play-throughs of every catalog module on the golden levels. Each test walks the
 // prototype level the way a player would and checks the ported rule.
@@ -429,7 +433,7 @@ describe("defense, defenders, salvage upgrades, medical and hazards (level 4)", 
     expect(sim.state.player.pos.y).toBeGreaterThan(fp(230));
     walkTo(sim, at(240, 245), 4);
     idle(sim, 60, (e) => has(e, "barrier_built"));
-    expect(line.sections[1]).toMatchObject({ built: true, hp: 20, hpMax: 20, gate: true });
+    expect(line.sections[1]).toMatchObject({ built: true, hp: GATE_HP, hpMax: GATE_HP, gate: true });
     walkTo(sim, at(240, 200), 4);
     expect(sim.state.player.pos.y).toBeLessThan(fp(230));
     // Without the resource nothing is paid.
@@ -504,12 +508,12 @@ describe("defense, defenders, salvage upgrades, medical and hazards (level 4)", 
     walkTo(sim, at(240, 340), 8);
     idle(sim, 60, (e) => has(e, "built"));
     expect(line.sections[0]).toMatchObject({ hp: 24, hpMax: 24 });
-    expect(line.sections[1]!.hpMax).toBe(30);
+    expect(line.sections[1]!.hpMax).toBe(GATE_HP + 10);
     expect(sim.state.params["barrier.hpMax"]).toBe(24);
-    expect(sim.state.params["barrier.gateHpMax"]).toBe(30);
+    expect(sim.state.params["barrier.gateHpMax"]).toBe(GATE_HP + 10);
     walkTo(sim, at(240, 245), 4);
     idle(sim, 60, (e) => has(e, "barrier_built"));
-    expect(line.sections[1]).toMatchObject({ built: true, hp: 30, hpMax: 30 });
+    expect(line.sections[1]).toMatchObject({ built: true, hp: GATE_HP + 10, hpMax: GATE_HP + 10 });
     // The tier-2 tower fires at the first wave.
     walkPath(sim, [at(330, 400), at(330, 650), at(240, 650)]);
     const ev = idle(sim, 70 * TPS, (e) => all(e, "hit").some((h) => h.by === "structure"));

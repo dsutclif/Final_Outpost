@@ -1,8 +1,8 @@
 {
   "id": "s1-L040",
   "seed": 1405721220,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -164,6 +164,28 @@
       "at": [
         19,
         384
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        164,
+        136,
+        133,
+        22
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "ridge",
+      "rect": [
+        107,
+        193,
+        89,
+        16
       ]
     },
     {
@@ -526,9 +548,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.831,
-    "fun": 0.879,
-    "botMargin": 0.521,
+    "difficulty": 0.829,
+    "fun": 0.869,
+    "botMargin": 0.523,
     "botsPassed": [
       "good",
       "average",

@@ -1,8 +1,8 @@
 {
   "id": "s1-L029",
   "seed": 1926329531,
-  "engineVersion": "0.6.2",
-  "contentVersion": "0.6.2",
+  "engineVersion": "0.7.0",
+  "contentVersion": "0.7.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -139,6 +139,28 @@
       "enabled": false
     },
     {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        87,
+        206,
+        118,
+        21
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "outcrop",
+      "rect": [
+        350,
+        168,
+        39,
+        54
+      ]
+    },
+    {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
@@ -250,12 +272,12 @@
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "customers.bulkShare": 0.17,
-    "level.budgetSeconds": 360
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "sell",
     "res": "res.food_raw_1",
-    "n": 219
+    "n": 225
   },
   "family": "harvest",
   "objectives": [
@@ -264,14 +286,14 @@
       "kind": "sell",
       "params": {
         "res": "res.food_raw_1",
-        "n": 219
+        "n": 225
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 286
+        "seconds": 290
       }
     },
     {
@@ -295,9 +317,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.748,
-    "fun": 0.898,
-    "botMargin": 0.504,
+    "difficulty": 0.774,
+    "fun": 0.888,
+    "botMargin": 0.485,
     "botsPassed": [
       "good",
       "average",
