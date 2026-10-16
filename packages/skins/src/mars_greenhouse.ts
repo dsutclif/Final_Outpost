@@ -459,6 +459,7 @@ export const marsGreenhouse: Skin = {
       snapshotAll: "Snapshot all levels",
       needsPad: "After {name}",
       noIdle: "No free colonist",
+      noIdleHurt: "{n} hurt, recovering",
       wall: "WALK HERE",
       gate: "AIRLOCK",
       arrivals: "ARRIVALS",

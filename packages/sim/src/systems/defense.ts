@@ -89,7 +89,7 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
         const victims = st.residents.filter((r) => r.status === "ok" && cp.roles[r.role]?.behavior !== "guard");
         if (victims.length > 0) {
           const v = victims[below(st.rng, victims.length)]!;
-          v.status = "injured"; v.n = 0; v.carry = null; v.mode = "gather"; v.target = null;
+          v.status = "injured"; v.n = 0; v.carry = null; v.mode = "gather"; v.target = null; v.timer = cp.residents.selfHealTicks;
           out.push({ t: "injured", resident: v.id });
         }
       }

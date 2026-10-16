@@ -221,7 +221,7 @@ export interface Compiled {
   /** Rating-only time budget (never a fail condition; `timer.seconds` is the fail timer). */
   level: { budgetSeconds: number; budgetTicks: number };
   residents: {
-    idleSpeed: number; idleRadiusX: number; idleRadiusY: number; waitingSpeed: number; gateSpeed: number; injuredSpeed: number;
+    idleSpeed: number; idleRadiusX: number; idleRadiusY: number; waitingSpeed: number; gateSpeed: number; injuredSpeed: number; selfHealTicks: number;
     arrive: number; workRange: number; coreDeliverRange: number; seekDropRange: number;
   };
   waiting: Vec;
@@ -496,7 +496,8 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     level: { budgetSeconds: param("level.budgetSeconds"), budgetTicks: Math.max(1, Math.round(param("level.budgetSeconds") * TPS)) },
     residents: {
       idleSpeed: perTick(param("residents.idleSpeed")), idleRadiusX: fp(param("residents.idleRadiusX")), idleRadiusY: fp(param("residents.idleRadiusY")),
-      waitingSpeed: perTick(param("residents.waitingSpeed")), gateSpeed: perTick(param("residents.gateSpeed")), injuredSpeed: perTick(param("residents.injuredSpeed")),
+      waitingSpeed: perTick(param("residents.waitingSpeed")), gateSpeed: perTick(param("residents.gateSpeed")), injuredSpeed: perTick(param("residents.injuredSpeed")), // injured colonists mend on their own only where no med bay can be built
+      selfHealTicks: manifest.entities.some((e) => (e.type === "pad.build" && e.build === "struct.medical") || e.type === "struct.medical") ? 0 : ticks(param("residents.selfHealSeconds")),
       arrive: fp(param("residents.arrive")), workRange: fp(param("residents.workRange")), coreDeliverRange: fp(param("residents.coreDeliverRange")),
       seekDropRange: fp(param("residents.seekDropRange")),
     },

@@ -20,7 +20,13 @@ function stepResident(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]
     case "frozen": case "towed": case "releasing": case "arriving": case "waiting": case "dead": return;
     case "injured": {
       const med = st.structures.find((s) => s.type === "struct.medical");
-      if (!med) return;
+      // On a level without a med bay the injured mend on their own, slowly; otherwise they wait for it.
+      if (!med) {
+        if (cp.residents.selfHealTicks === 0) return;
+        r.timer = stepDown(r.timer);
+        if (r.timer <= 0) { r.status = "ok"; out.push({ t: "healed", resident: r.id }); }
+        return;
+      }
       const def = cp.structures[med.type]!;
       const spot = { x: med.pos.x + def.healOffset.x, y: med.pos.y + def.healOffset.y };
       if (moveAgent(st, cp, r.pos, spot, cp.residents.injuredSpeed, cp.residents.arrive)) { r.status = "healing"; r.timer = def.healTicks; }

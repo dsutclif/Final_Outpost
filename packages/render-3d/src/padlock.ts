@@ -8,9 +8,9 @@ export interface LockInfo { kind: "hire" | "build"; requiresCoreLevel?: number |
  * sim's order in refreshPads/tryPayPad: the core level first, then a hire pad with nobody free.
  * Empty when the pad is not locked.
  */
-export function padLockReason(skin: Skin, info: LockInfo | undefined, locked: boolean, coreLevel: number): string {
+export function padLockReason(skin: Skin, info: LockInfo | undefined, locked: boolean, coreLevel: number, hurt = 0): string {
   if (!locked || !info) return "";
   if (info.requiresCoreLevel !== undefined && coreLevel < info.requiresCoreLevel) return uiText(skin, "needsCoreLevel", { n: info.requiresCoreLevel });
-  if (info.kind === "hire") return uiText(skin, "noIdle");
+  if (info.kind === "hire") return hurt > 0 ? uiText(skin, "noIdleHurt", { n: hurt }) : uiText(skin, "noIdle");
   return uiText(skin, "locked");
 }

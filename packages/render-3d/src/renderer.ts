@@ -1068,7 +1068,7 @@ export class Renderer3D implements Renderer {
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
       if (!owed.length) owed.push({ res: "res.currency", left: 0 });
       const label = info?.label ?? nameOf(this.skin, pad.type);
-      const lockTxt = padLockReason(this.skin, info, pad.locked, s.core.level);
+      const lockTxt = padLockReason(this.skin, info, pad.locked, s.core.level, s.residents.filter((r) => r.status === "injured" || r.status === "healing").length);
       const rows = owed.length > PAD_PER_ROW ? 2 : 1;
       const artH = (rows === 2 ? PAD_ART_H2 : PAD_ART_H) + (lockTxt ? PAD_LOCK_H : 0);
       sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, owed, pad.locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));

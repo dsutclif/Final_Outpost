@@ -46,6 +46,7 @@
   "residents.waitingSpeed": 70,
   "residents.gateSpeed": 60,
   "residents.injuredSpeed": 50,
+  "residents.selfHealSeconds": 20,
   "residents.arrive": 3,
   "residents.workRange": 22,
   "residents.coreDeliverRange": 40,
