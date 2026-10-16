@@ -89,7 +89,8 @@ describe("layout and economy per family (stages 2-4)", () => {
         // R3 item 11: every side a wave comes from (bar the med bay's probe raid) has a gate.
         if (r.family === "defend") {
           const raidT = Math.min(...m.waves.map((w) => w.t));
-          const sideOf = (s: { a: number[]; b: number[] }) => (s.a[1] === s.b[1] ? (s.a[1] < 450 ? "n" : "s") : s.a[0] < 240 ? "w" : "e");
+          const ys = l.sections.map((s) => s.a[1]!), xs = l.sections.map((s) => s.a[0]!);
+          const sideOf = (s: { a: number[]; b: number[] }) => (s.a[1] === s.b[1] ? (s.a[1] === Math.min(...ys) ? "n" : "s") : s.a[0] === Math.min(...xs) ? "w" : "e");
           const gated = new Set(l.sections.filter((s) => s.gate).map(sideOf));
           for (const w of m.waves) {
             if (w.t === raidT && m.modules.includes("medical")) continue;
