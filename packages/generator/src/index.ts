@@ -3,11 +3,11 @@ import { LADDER, PROFILES, TIME_FIXED_GOALS, playBot, type BotResult } from "@fo
 import { measure, score, type Metrics, type Rating, type ReferenceStats, type HistoryEntry as RaterHistory, type Measurement } from "@fo/rater";
 import referenceData from "../data/reference.json";
 import { closure, conflicts } from "@fo/sequencer";
-import { GEN, TEMPLATES, buildLevel, knobsFor, templateById, type Built, type Family } from "./build.js";
+import { GEN, TEMPLATES, buildLevel, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
 
-export { TEMPLATES, GEN, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
+export { TEMPLATES, GEN, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
 export { skinText, dedupeTitles } from "./text.js";
 export { Placer, unreadablePairs } from "./layout.js";
@@ -248,6 +248,8 @@ function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string
       if (!nonTrivial(second)) return "time target trivially met";
     }
   }
+  // The player-facing allowance is longer than the bot-derived finish time (data factor).
+  if (second.kind === "time_target") second.params["seconds"] = timeTarget(Number(second.params["seconds"]));
   m.objectives = [m.objectives![0]!, second, { ...ordered[0]!, id: "challenge" }];
   return null;
 }
@@ -313,7 +315,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     }
     if (!TIME_FIXED_GOALS.has(m.goal.type)) {
       const tMax = Math.max(...quick.map((r) => r.ticks)) / 30;
-      m.params["level.budgetSeconds"] = Math.min(900, Math.max(60, Math.round(tMax / (1 - knobs.margin) / 10) * 10));
+      m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(60, Math.round(tMax / (1 - knobs.margin) / 10) * 10)), 10);
     }
     const rateIt = (seeds: { ref: number; other: number }) => {
       stats.ratings++;
@@ -405,7 +407,7 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
     const m = built.manifest;
     const quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
     if (quick.some((r) => !r.won)) return null;
-    if (!TIME_FIXED_GOALS.has(m.goal.type)) m.params["level.budgetSeconds"] = Math.round(Math.max(...quick.map((r) => r.ticks)) / 30 / (1 - knobs.margin) / 10) * 10;
+    if (!TIME_FIXED_GOALS.has(m.goal.type)) m.params["level.budgetSeconds"] = timeTarget(Math.round(Math.max(...quick.map((r) => r.ticks)) / 30 / (1 - knobs.margin) / 10) * 10, 10);
     const ms = measure(m, { content: c, refSeeds: GEN.search.fullSeeds.ref, otherSeeds: GEN.search.fullSeeds.other });
     return { goal: m.goal.type, metrics: ms.metrics };
   }

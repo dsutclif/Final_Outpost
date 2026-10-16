@@ -93,7 +93,7 @@
   "conveyor.everySeconds": 1.2,
   "conveyor.capacity": 6,
   "conveyor.gap": 14,
-  "level.budgetSeconds": 300,
+  "level.budgetSeconds": 420,
   "customers.refillSpawn": 1.0,
   "customers.refillBelow": 3,
   "customers.bulkShare": 0,

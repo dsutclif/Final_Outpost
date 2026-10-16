@@ -32,6 +32,8 @@ type RingDims = { hw: number; hh: number; split: [number, number] };
 export const GEN = genData as unknown as {
   knobs: Record<string, [number, number]>;
   jitter: number;
+  /** Multiplier on the generated time target (time star seconds and level.budgetSeconds): the player-facing time allowance. */
+  timeTargetK: number;
   costs: Record<string, number>;
   rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number };
   spacing: { margin: number; standR: number; screen: [number, number]; footprintGap: number };
@@ -39,6 +41,9 @@ export const GEN = genData as unknown as {
   footprints: Record<string, [number, number, number, number]>;
   search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number };
 };
+
+/** A generated time target (seconds) widened by the data factor; `step` rounds to that many seconds (1 = whole seconds). */
+export const timeTarget = (seconds: number, step = 1): number => Math.round((seconds * GEN.timeTargetK) / step) * step;
 
 export const templateById = (id: string): Template => {
   const t = TEMPLATES.templates.find((x) => x.id === id);
@@ -840,7 +845,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const waveEnd = waves.length > 0 ? waves[waves.length - 1]!.t : 0;
   const evEnd = events.reduce((a, e) => Math.max(a, e.end), 0);
   const fixedEnd = Math.max(waveEnd, evEnd, goal === "survive" ? Number(gparams["seconds"]) : 0);
-  m.params["level.budgetSeconds"] = Math.min(900, Math.max(90, Math.round(Math.max(fixedEnd + 60, chosen.f.T / (1 - K.margin)) / 10) * 10));
+  m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(90, Math.round(Math.max(fixedEnd + 60, chosen.f.T / (1 - K.margin)) / 10) * 10)), 10);
   const flow = flowModel(m, planBot(m, c), c, m.params["level.budgetSeconds"]!);
   if (!flow.ok) fail(`flow: ${flow.reason}`);
   void register;

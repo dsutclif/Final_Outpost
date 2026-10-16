@@ -1,4 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import { normalizeTimeTargetPct } from "./timetarget.js";
 
 // Saves in IndexedDB: progress, settings and the telemetry queue. Every read merges with
 // defaults, so a fresh install, an older save or a missing store all load cleanly. When
@@ -29,6 +30,8 @@ export interface Settings {
   debug: boolean;
   /** Show guide arrows on every level (they always show on the first five). */
   guide: boolean;
+  /** Scale on the level time target, in percent (100-200 in steps of 20). */
+  timeTargetPct: number;
   /** Frames per second the "auto" quality probe measured in play, or null before it ran. */
   probeFps: number | null;
 }
@@ -47,7 +50,7 @@ export interface TelemetryAttempt {
 export interface TelemetryRow extends TelemetryAttempt { seq?: number; sent: boolean }
 
 export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {} };
-export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, probeFps: null };
+export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, timeTargetPct: 100, probeFps: null };
 
 interface FoDB extends DBSchema {
   kv: { key: string; value: unknown };
@@ -86,7 +89,9 @@ export function mergeSettings(raw: unknown): Settings {
   const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Settings> & Record<string, unknown>;
   // fields from the 2D/3D era (renderer, rendererChosen, benchFps) are dropped
   const { renderer: _r, rendererChosen: _c, benchFps: _b, ...rest } = r;
-  return { ...DEFAULT_SETTINGS, ...rest } as Settings;
+  const out = { ...DEFAULT_SETTINGS, ...rest } as Settings;
+  out.timeTargetPct = normalizeTimeTargetPct(out.timeTargetPct);
+  return out;
 }
 
 class IdbStore implements SaveStore {

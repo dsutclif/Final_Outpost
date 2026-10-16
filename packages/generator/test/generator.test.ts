@@ -3,7 +3,7 @@ import { content, checkManifest, Manifest as ManifestSchema } from "@fo/content"
 import { createSim, outsideLines, pointInPoly, salesLayout, fp } from "@fo/sim";
 import { planBot } from "@fo/bots";
 import { closure, sequenceRange } from "@fo/sequencer";
-import { buildLevel, flowModel, generate, generateDetailed, knobsFor, skinText, templateById, unreadablePairs, TEMPLATES, GEN } from "../src/index.js";
+import { buildLevel, flowModel, generate, generateDetailed, knobsFor, skinText, templateById, unreadablePairs, timeTarget, TEMPLATES, GEN } from "../src/index.js";
 
 const reqs = sequenceRange(1, 60);
 const build = (i: number, p = 0.3) => {
@@ -145,7 +145,7 @@ describe("layout and economy per family (stages 2-4)", () => {
 describe("generate (search + rating + stars)", () => {
   it("returns the same manifest for the same request and seed, with sized objectives", () => {
     const r = reqs[0]!;
-    const light = { seeds: { quick: { ref: 2, other: 1 }, full: { ref: 3, other: 1 } }, maxIterations: 4 };
+    const light = { seeds: { quick: { ref: 2, other: 1 }, full: { ref: 3, other: 1 } }, maxIterations: 8 }; // 4 is too few once budgets are 1.4x longer
     const a = generateDetailed(r, light).best, b = generateDetailed(r, light).best;
     expect(a).not.toBeNull();
     expect(a!.manifest).toEqual(b!.manifest);
@@ -154,6 +154,21 @@ describe("generate (search + rating + stars)", () => {
     expect((m.rating as { difficulty: number }).difficulty).toBeGreaterThan(0);
     expect(m.objectives!.map((o) => o.kind)).not.toContain("time_target"); // heat_hold: two heat challenges
     expect(m.text["mars_greenhouse"]!.title.length).toBeGreaterThan(0);
+  });
+
+  it("widens the generated time target by the data factor (timeTargetK)", () => {
+    expect(GEN.timeTargetK).toBe(1.4);
+    expect(timeTarget(100)).toBe(140);
+    expect(timeTarget(86, 10)).toBe(120);
+    const k = GEN.timeTargetK;
+    try {
+      const wide = build(8)!.manifest.params["level.budgetSeconds"]!;
+      GEN.timeTargetK = 1;
+      const plain = build(8)!.manifest.params["level.budgetSeconds"]!;
+      expect(wide % 10).toBe(0);
+      expect(wide).toBe(Math.round((plain * k) / 10) * 10);
+      expect(wide).toBeGreaterThan(plain);
+    } finally { GEN.timeTargetK = k; }
   });
 
   it("titles and tips come from the skin, deterministically", () => {
