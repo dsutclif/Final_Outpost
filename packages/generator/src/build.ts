@@ -35,7 +35,7 @@ export const GEN = genData as unknown as {
   /** Multiplier on the generated time target (time star seconds and level.budgetSeconds): the player-facing time allowance. */
   timeTargetK: number;
   costs: Record<string, number>;
-  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number; towerPadSearch: number };
+  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number; towerPadSearch: number; towerPadHug: number };
   spacing: { margin: number; standR: number; screen: [number, number]; footprintGap: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
   footprints: Record<string, [number, number, number, number]>;
@@ -567,12 +567,26 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         for (let j = 0; j < count; j++) {
           const site = along[Math.min(along.length - 1, Math.floor(((j + 1) * along.length) / (count + 1)))]!.p;
           const id = j === 0 ? `tower_${sd}` : `tower_${sd}${j + 1}`;
-          const inward = dist(site, core) || 1;
-          const k = GEN.rings.towerPadIn / inward;
           P.add(`${id}@site`, site, 0, { fp: "struct.ranged_defense" });
-          const tpNear: Pt = [Math.round(site[0] + (core[0] - site[0]) * k), Math.round(site[1] + (core[1] - site[1]) * k)];
-          const sr = GEN.rings.towerPadSearch;
-          const tp = placePad(id, tpNear, { region: [tpNear[0] - sr, tpNear[1] - sr, 2 * sr, 2 * sr] });
+          // The pad stands beside its tower along the wall, against its inside face (R3 playtest);
+          // either side of the tower, else straight inward as before.
+          const alongV: Pt = sd === "n" || sd === "s" ? [1, 0] : [0, 1];
+          const inV: Pt = sd === "n" ? [0, 1] : sd === "s" ? [0, -1] : sd === "e" ? [-1, 0] : [1, 0];
+          const R2 = GEN.rings;
+          let tp: Pt | null = null;
+          for (const sgn of [1, -1]) {
+            if (tp) break;
+            // just clear of the tower's footprint that way (it is longer toward the camera)
+            const tf = GEN.footprints["struct.ranged_defense"]!, pf = GEN.footprints["pad"]!, ax = alongV[0] ? 0 : 1;
+            const off = (sgn > 0 ? tf[ax + 2]! : -tf[ax]!) + S.footprintGap + pf[2]! + 1;
+            const q: Pt = [Math.round(site[0] + alongV[0] * sgn * off + inV[0] * R2.towerPadHug), Math.round(site[1] + alongV[1] * sgn * off + inV[1] * R2.towerPadHug)];
+            tp = P.place(id, R.pad, [q[0] - 6, q[1] - 6, 12, 12], { near: q, key: true, fp: ["pad"], hugWall: true, samples: 60 });
+          }
+          if (!tp) {
+            const inward = dist(site, core) || 1, k = R2.towerPadIn / inward, sr = R2.towerPadSearch;
+            const tpNear: Pt = [Math.round(site[0] + (core[0] - site[0]) * k), Math.round(site[1] + (core[1] - site[1]) * k)];
+            tp = placePad(id, tpNear, { region: [tpNear[0] - sr, tpNear[1] - sr, 2 * sr, 2 * sr] });
+          }
           towers.push(pad({ type: "pad.build", id, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site] }));
         }
       }
