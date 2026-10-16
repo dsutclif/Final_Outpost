@@ -1,8 +1,8 @@
 {
   "id": "s1-L039",
-  "seed": 1639861484,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "seed": 381634170,
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -47,8 +47,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        337,
-        630
+        362,
+        622
       ],
       "sells": [
         "res.food_raw_1"
@@ -58,92 +58,85 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        367,
-        532
+        374,
+        479
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        181,
-        460
+        171,
+        455
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
+      "at": [
+        193,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        201,
+        477
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        165,
+        488
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
       "at": [
         140,
-        461
+        462
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        212,
-        421
+        155,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        499
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        154,
-        414
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        144,
-        504
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        182,
-        406
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        166,
-        526
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        234,
-        441
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        120,
-        424
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        211,
-        391
+        128,
+        498
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         195,
-        531
+        510
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        172,
+        402
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        166,
+        529
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        240,
+        390
       ]
     },
     {
@@ -233,58 +226,58 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        136,
-        60
+        358,
+        49
       ],
-      "freeze": 150
+      "freeze": 146
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        416,
-        42
+        38,
+        55
       ],
-      "freeze": 171
+      "freeze": 168
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        285,
-        241
+        118,
+        235
       ],
       "freeze": 162
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        133,
-        210
+        226,
+        206
       ],
-      "freeze": 187
+      "freeze": 179
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        406,
-        226
+        318,
+        243
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        41,
-        206
+        424,
+        221
       ]
     },
     {
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        152,
-        590
+        162,
+        584
       ],
       "cost": {
-        "res.currency": 25
+        "res.currency": 26
       },
       "build": "sink.core.level"
     },
@@ -312,10 +305,10 @@
     "start.currency": 7,
     "core.burn": 2.6,
     "housing.base": 6,
-    "customers.spawn": 2.7,
+    "customers.spawn": 2.8,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "level.budgetSeconds": 130
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 110
   },
   "goal": {
     "type": "rescue_before_freeze",
@@ -334,13 +327,15 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 84
+        "seconds": 80
       }
     },
     {
       "id": "challenge",
-      "kind": "rescue_all",
-      "params": {}
+      "kind": "tow_full_trip",
+      "params": {
+        "n": 3
+      }
     }
   ],
   "fail": [
@@ -356,9 +351,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.716,
-    "fun": 0.852,
-    "botMargin": 0.607,
+    "difficulty": 0.759,
+    "fun": 0.88,
+    "botMargin": 0.551,
     "botsPassed": [
       "good",
       "average",

@@ -1,8 +1,8 @@
 {
   "id": "s1-L051",
-  "seed": 1249703186,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "seed": 900293734,
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -41,52 +41,59 @@
       }
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        184,
-        536
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        228,
-        534
+        180,
+        532
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        145,
-        526
+        209,
+        524
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        146,
-        556
+        180,
+        502
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        174,
-        476
+        153,
+        516
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        145,
-        496
+        199,
+        554
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        260,
-        560
+        157,
+        562
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        237,
+        550
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        155,
+        481
       ]
     },
     {
@@ -146,50 +153,50 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        229,
-        848
+        346,
+        692
       ],
-      "freeze": 113
+      "freeze": 101
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        76,
-        664
+        77,
+        673
       ],
-      "freeze": 115
+      "freeze": 121
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        273,
-        751
+        71,
+        828
       ],
-      "freeze": 137
+      "freeze": 156
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        393,
-        806
+        214,
+        827
       ],
-      "freeze": 166
+      "freeze": 170
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        444,
-        371
+        308,
+        862
       ],
-      "freeze": 163
+      "freeze": 193
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
-    "core.burn": 2.1,
+    "start.currency": 0,
+    "core.burn": 2.2,
     "housing.base": 7,
     "level.budgetSeconds": 80
   },
@@ -207,7 +214,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 50
+        "seconds": 38
       }
     },
     {
@@ -231,9 +238,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.189,
-    "fun": 0.822,
-    "botMargin": 0.618,
+    "difficulty": 0.118,
+    "fun": 0.788,
+    "botMargin": 0.712,
     "botsPassed": [
       "good",
       "average",

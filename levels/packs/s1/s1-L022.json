@@ -1,8 +1,8 @@
 {
   "id": "s1-L022",
   "seed": 1590603978,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -60,87 +60,94 @@
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
+      "at": [
+        126,
+        434
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
       "at": [
         139,
-        441
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        104,
-        418
+        408
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        185,
-        445
+        102,
+        413
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        101,
-        460
+        155,
+        434
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        159,
-        407
+        103,
+        453
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        141,
+        480
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        77,
+        433
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        169,
+        408
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         118,
-        486
+        378
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        175,
-        476
+        172,
+        459
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        132,
-        382
+        102,
+        482
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
-        187,
-        399
+        161,
+        366
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
-        152,
-        495
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        208,
-        422
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        166,
-        374
+        73,
+        376
       ]
     },
     {
@@ -151,7 +158,7 @@
         810
       ],
       "arrivals": {
-        "every": 16,
+        "every": 18,
         "total": 4
       }
     },
@@ -159,11 +166,11 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        361,
-        544
+        452,
+        638
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
       "build": "struct.housing"
     },
@@ -171,11 +178,11 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        155,
-        678
+        224,
+        637
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 17
       },
       "build": "struct.housing"
     }
@@ -191,13 +198,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
+    "start.currency": 3,
     "core.burn": 2.3,
     "housing.base": 2,
-    "customers.spawn": 3.1,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 110
+    "level.budgetSeconds": 140
   },
   "goal": {
     "type": "population",
@@ -216,7 +223,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 90
+        "seconds": 99
       }
     },
     {
@@ -238,14 +245,13 @@
     }
   },
   "rating": {
-    "difficulty": 0.329,
-    "fun": 0.888,
-    "botMargin": 0.499,
+    "difficulty": 0.58,
+    "fun": 0.831,
+    "botMargin": 0.56,
     "botsPassed": [
       "good",
       "average",
-      "weak",
-      "novice"
+      "weak"
     ],
     "stars": {
       "good": 3,

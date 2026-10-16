@@ -1,8 +1,8 @@
 {
   "id": "s1-L001",
-  "seed": 1068679765,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "seed": 794704776,
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -38,73 +38,73 @@
       }
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        91,
-        447
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        133,
-        439
+        104,
+        442
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        70,
-        412
+        85,
+        466
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        109,
-        482
+        89,
+        413
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        66,
+        432
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        124,
+        463
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        127,
+        417
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        53,
+        459
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         104,
-        408
+        491
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
-        63,
-        482
+        58,
+        498
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
-        43,
-        443
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        83,
-        511
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        137,
-        399
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        84,
-        386
+        164,
+        439
       ]
     }
   ],
@@ -112,7 +112,7 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
+    "start.currency": 1,
     "core.burn": 2.1,
     "housing.base": 2,
     "level.budgetSeconds": 170
@@ -134,15 +134,13 @@
     },
     {
       "id": "challenge2",
-      "kind": "settlement_never_freezes",
+      "kind": "no_colonist_freezes",
       "params": {}
     },
     {
       "id": "challenge",
-      "kind": "heat_floor",
-      "params": {
-        "pct": 35
-      }
+      "kind": "settlement_never_freezes",
+      "params": {}
     }
   ],
   "fail": [
@@ -158,9 +156,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.046,
-    "fun": 0.138,
-    "botMargin": 0.432,
+    "difficulty": 0.045,
+    "fun": 0.125,
+    "botMargin": 0.428,
     "botsPassed": [
       "good",
       "average",

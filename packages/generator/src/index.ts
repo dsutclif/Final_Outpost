@@ -27,6 +27,8 @@ export interface GenRequest {
   /** Challenge kinds the star may use (sequencer: the family's list). */
   challenges?: readonly string[] | undefined;
   funThreshold?: number | undefined;
+  /** Sequencer phase (teach levels may keep an easy star). */
+  phase?: string | undefined;
 }
 
 export const GENERATOR_REFERENCE = referenceData as unknown as ReferenceStats;
@@ -217,14 +219,17 @@ function challengeCandidates(fam: Family, goodRuns: BotResult[], allowed: readon
  * seeds that some ladder run misses (so it is never trivially satisfied). Preference rotates with the
  * level seed so the pack uses the whole family list.
  */
-function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string[], seed: number): string | null {
+function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string[], seed: number, teach = false): string | null {
   const fam = m.family as Family;
   const good = ms.runs["good"]!;
   const ladder = Object.values(ms.runs).flat();
   const kind = m.goal.type;
   const nonTrivial = (o: Obj) => ladder.some((r) => !earned(o, r));
   const goodShare = (o: Obj) => good.filter((r) => earned(o, r)).length / good.length;
-  const cands = challengeCandidates(fam, good, allowed, kind).filter((o) => goodShare(o) >= 0.6 && nonTrivial(o));
+  const all = challengeCandidates(fam, good, allowed, kind).filter((o) => goodShare(o) >= 0.6);
+  const strict = all.filter(nonTrivial);
+  // Tutorial levels may keep a star every rung earns when none separates them: an easy star is fine there.
+  const cands = strict.length > 0 || !teach ? strict : all;
   const rot = (xs: Obj[]) => xs.map((o, i) => ({ o, k: (i + seed) % Math.max(1, xs.length) })).sort((a, b) => a.k - b.k).map((x) => x.o);
   // The family's own challenges first (the first three listed), fallbacks sized from the runs after.
   const ordered = [...rot(cands.filter((o) => allowed.indexOf(o.kind) < 3)), ...rot(cands.filter((o) => allowed.indexOf(o.kind) >= 3))];
@@ -340,7 +345,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       if (!r.ok) Object.entries(r.filters).filter(([, v]) => v).forEach(([k]) => reject(k));
       else if (idle.length > 0) { reject("idleElement"); log(`  it${it} idle elements: ${idle.join(", ")}`); }
       else {
-        const why2 = settleObjectives(m, ms, allowed, req.seed);
+        const why2 = settleObjectives(m, ms, allowed, req.seed, req.phase === "teach");
         if (why2) { reject("objectives"); log(`  it${it} objectives: ${why2}`); }
         else {
           const v = verifyStars(m, c);

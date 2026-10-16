@@ -1,8 +1,8 @@
 {
   "id": "s1-L011",
   "seed": 1241095550,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -61,143 +61,129 @@
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        155,
-        465
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        173,
-        429
+        154,
+        464
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        187,
-        488
+        163,
+        494
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        199,
-        460
+        184,
+        455
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        145,
-        507
+        143,
+        427
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        120,
+        471
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        425
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         114,
-        456
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        113,
-        488
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        135,
-        419
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        220,
         440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        186,
-        523
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        106,
-        410
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        84,
-        478
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        89,
-        440
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        95,
-        513
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        206,
-        396
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        376,
-        537
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        396,
-        513
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        340,
-        540
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        353,
+        194,
         512
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        412,
-        543
+        147,
+        393
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        85,
+        443
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        97,
+        497
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        93,
+        410
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        178,
+        398
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        372,
+        532
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        405,
+        531
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        367,
+        501
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        335,
+        515
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        397,
+        489
       ]
     },
     {
@@ -239,7 +225,7 @@
         608
       ],
       "cost": {
-        "res.currency": 22
+        "res.currency": 23
       },
       "build": "sink.core.level"
     },
@@ -251,7 +237,7 @@
         624
       ],
       "cost": {
-        "res.currency": 34
+        "res.currency": 35
       },
       "build": "sink.core.level",
       "requires": {
@@ -266,7 +252,7 @@
         320
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
       "build": "zone.clear",
       "target": "rubble0",
@@ -280,19 +266,19 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 37,
-      "start": 45,
-      "end": 67
+      "warnAt": 36,
+      "start": 44,
+      "end": 66
     }
   ],
   "params": {
-    "start.currency": 8,
+    "start.currency": 7,
     "core.burn": 2.8,
     "housing.base": 2,
-    "customers.spawn": 2.7,
+    "customers.spawn": 2.6,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "level.budgetSeconds": 280
+    "level.budgetSeconds": 290
   },
   "goal": {
     "type": "core_level",
@@ -333,9 +319,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.308,
-    "fun": 0.484,
-    "botMargin": 0.702,
+    "difficulty": 0.305,
+    "fun": 0.52,
+    "botMargin": 0.703,
     "botsPassed": [
       "good",
       "average",

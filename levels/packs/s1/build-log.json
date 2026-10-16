@@ -22,15 +22,13 @@
    },
    {
     "id": "challenge2",
-    "kind": "settlement_never_freezes",
+    "kind": "no_colonist_freezes",
     "params": {}
    },
    {
     "id": "challenge",
-    "kind": "heat_floor",
-    "params": {
-     "pct": 35
-    }
+    "kind": "settlement_never_freezes",
+    "params": {}
    }
   ],
   "stars": {
@@ -42,7 +40,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2,
+   "novice": 3,
    "floor": 0
   },
   "modules": [
@@ -54,15 +52,15 @@
   "goal": "heat_hold",
   "template": "west_fields",
   "target": 0.11,
-  "D": 0.04622552788919965,
-  "F": 0.13785408528760057,
+  "D": 0.0447531434601827,
+  "F": 0.1254067925780112,
   "onTarget": false,
   "margin": {
-   "good": 0.43178431372549025,
-   "average": 0.42071895424836603,
-   "weak": 0.405359477124183,
-   "novice": 0.34078431372549023,
-   "floor": -0.9388888888888888
+   "good": 0.4276470588235295,
+   "average": 0.422483660130719,
+   "weak": 0.40215686274509804,
+   "novice": 0.34379084967320256,
+   "floor": -0.5607407407407408
   },
   "winRate": {
    "good": 1,
@@ -77,14 +75,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 19.491,
-  "seed": 1068679765,
+  "seconds": 17.198,
+  "seed": 794704776,
   "attempts": 4,
   "rejects": {
    "objectives": 11,
    "offTarget": 29
   },
-  "ratings": 69
+  "ratings": 68
  },
  {
   "index": 2,
@@ -103,20 +101,22 @@
     "id": "main",
     "kind": "rescue",
     "params": {
-     "n": 4
+     "n": 5
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 36
+     "seconds": 56
     }
    },
    {
     "id": "challenge",
-    "kind": "rescue_all",
-    "params": {}
+    "kind": "tow_trip",
+    "params": {
+     "n": 3
+    }
    }
   ],
   "stars": {
@@ -126,10 +126,10 @@
   },
   "starsByRung": {
    "good": 3,
-   "average": 3,
+   "average": 2.67,
    "weak": 3,
    "novice": 3,
-   "floor": 2
+   "floor": 1.33
   },
   "modules": [
    "barrier_lines",
@@ -143,15 +143,15 @@
   "goal": "rescue",
   "template": "crescent",
   "target": 0.122,
-  "D": 0.09980179647044257,
-  "F": 0.43902718478816544,
-  "onTarget": true,
+  "D": 0.2092464160478722,
+  "F": 0.6186919706012931,
+  "onTarget": false,
   "margin": {
-   "good": 0.7191666666666665,
-   "average": 0.7091666666666666,
-   "weak": 0.6984722222222223,
-   "novice": 0.6009722222222222,
-   "floor": 0.1598611111111111
+   "good": 0.5750000000000001,
+   "average": 0.5265277777777778,
+   "weak": 0.47583333333333333,
+   "novice": 0.3719444444444444,
+   "floor": 0.015555555555555567
   },
   "winRate": {
    "good": 1,
@@ -167,14 +167,15 @@
    "novice",
    "floor"
   ],
-  "seconds": 7.414,
-  "seed": 671543360,
-  "attempts": 1,
+  "seconds": 46.954,
+  "seed": 930411082,
+  "attempts": 4,
   "rejects": {
-   "trivial": 1,
-   "objectives": 8
+   "trivial": 3,
+   "objectives": 32,
+   "offTarget": 5
   },
-  "ratings": 19
+  "ratings": 77
  },
  {
   "index": 3,
@@ -193,22 +194,20 @@
     "id": "main",
     "kind": "earn",
     "params": {
-     "n": 387
+     "n": 372
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 277
+     "seconds": 270
     }
    },
    {
     "id": "challenge",
-    "kind": "streak",
-    "params": {
-     "n": 20
-    }
+    "kind": "no_angry_customers",
+    "params": {}
    }
   ],
   "stars": {
@@ -220,8 +219,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
-   "floor": 1.33
+   "novice": 2.67,
+   "floor": 1
   },
   "modules": [
    "build_pads",
@@ -234,22 +233,22 @@
   "goal": "earn",
   "template": "corridor",
   "target": 0.134,
-  "D": 0.08464108860620286,
-  "F": 0.9112302124345087,
+  "D": 0.14735683892358425,
+  "F": 0.8829400831309187,
   "onTarget": true,
   "margin": {
-   "good": 0.5082666666666668,
-   "average": 0.45565079365079364,
-   "weak": 0.4343492063492063,
-   "novice": 0.3281269841269841,
-   "floor": 0.011575981296911517
+   "good": 0.5183142857142858,
+   "average": 0.4796507936507936,
+   "weak": 0.45571428571428574,
+   "novice": 0.34219047619047616,
+   "floor": 0.10209523809523809
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 1
   },
   "botsPassed": [
    "good",
@@ -258,14 +257,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 13.617,
+  "seconds": 10.543,
   "seed": 272105353,
   "attempts": 1,
   "rejects": {
    "objectives": 1,
-   "offTarget": 8
+   "offTarget": 3
   },
-  "ratings": 15
+  "ratings": 10
  },
  {
   "index": 4,
@@ -284,7 +283,7 @@
     "id": "main",
     "kind": "produce",
     "params": {
-     "n": 61,
+     "n": 39,
      "res": "res.food_prepared"
     }
    },
@@ -292,15 +291,13 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 266
+     "seconds": 161
     }
    },
    {
     "id": "challenge",
-    "kind": "hire",
-    "params": {
-     "n": 6
-    }
+    "kind": "settlement_never_freezes",
+    "params": {}
    }
   ],
   "stars": {
@@ -313,7 +310,7 @@
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 1.67
+   "floor": 3
   },
   "modules": [
    "build_pads",
@@ -327,22 +324,22 @@
   "goal": "produce",
   "template": "south_fields",
   "target": 0.146,
-  "D": 0.21901092908294778,
-  "F": 0.9103024403512431,
+  "D": 0.5519856099376833,
+  "F": 0.7804678851590476,
   "onTarget": false,
   "margin": {
-   "good": 0.48267708333333326,
-   "average": 0.43746527777777783,
-   "weak": 0.41802083333333334,
-   "novice": 0.3281597222222222,
-   "floor": 0.08671846539162113
+   "good": 0.7204259259259259,
+   "average": 0.7078703703703703,
+   "weak": 0.6950617283950619,
+   "novice": 0.6646604938271605,
+   "floor": 0.6299691358024692
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 1
   },
   "botsPassed": [
    "good",
@@ -351,15 +348,13 @@
    "novice",
    "floor"
   ],
-  "seconds": 93.476,
-  "seed": 1291466966,
+  "seconds": 42.73,
+  "seed": 425615680,
   "attempts": 4,
   "rejects": {
-   "objectives": 33,
-   "layout": 12,
-   "offTarget": 7
+   "offTarget": 40
   },
-  "ratings": 76
+  "ratings": 63
  },
  {
   "index": 5,
@@ -381,28 +376,28 @@
    },
    {
     "id": "challenge2",
-    "kind": "hp_floor",
-    "params": {
-     "pct": 70
-    }
+    "kind": "no_injuries",
+    "params": {}
    },
    {
     "id": "challenge",
-    "kind": "no_injuries",
-    "params": {}
+    "kind": "hp_floor",
+    "params": {
+     "pct": 80
+    }
    }
   ],
   "stars": {
-   "good": 2.7,
-   "median": 2.33,
-   "goodAll": 0.7
+   "good": 2.9,
+   "median": 2,
+   "goodAll": 0.9
   },
   "starsByRung": {
-   "good": 2.7,
-   "average": 2.33,
-   "weak": 2.33,
+   "good": 2.9,
+   "average": 3,
+   "weak": 2,
    "novice": 3,
-   "floor": 1
+   "floor": 0.67
   },
   "modules": [
    "barrier_lines",
@@ -416,20 +411,20 @@
   "goal": "waves",
   "template": "corridor",
   "target": 0.158,
-  "D": 0.16378875701736667,
-  "F": 0.425557483188341,
+  "D": 0.14231471740600296,
+  "F": 0.44006806561190076,
   "onTarget": true,
   "margin": {
-   "good": 0.8995225463463891,
-   "average": 0.895930448702941,
-   "weak": 0.8822386530051262,
-   "novice": 0.9217170571712767,
-   "floor": 0.3746084650092709
+   "good": 0.9441659295351629,
+   "average": 0.9504955409816332,
+   "weak": 0.436015067168358,
+   "novice": 0.9475936028424009,
+   "floor": 0.2868527661682084
   },
   "winRate": {
    "good": 1,
    "average": 1,
-   "weak": 1,
+   "weak": 0.6666666666666666,
    "novice": 1,
    "floor": 0.6666666666666666
   },
@@ -440,13 +435,15 @@
    "novice",
    "floor"
   ],
-  "seconds": 25.069,
-  "seed": 860553483,
-  "attempts": 1,
+  "seconds": 142.548,
+  "seed": 30251334,
+  "attempts": 2,
   "rejects": {
-   "trivial": 1
+   "trivial": 3,
+   "offTarget": 10,
+   "objectives": 1
   },
-  "ratings": 3
+  "ratings": 24
  },
  {
   "index": 6,
@@ -494,7 +491,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 1.67,
+   "novice": 2,
    "floor": 0
   },
   "modules": [
@@ -508,15 +505,15 @@
   "goal": "house_all",
   "template": "east_fields",
   "target": 0.171,
-  "D": 0.1977452713406026,
-  "F": 0.8102084321263239,
+  "D": 0.19979500696539854,
+  "F": 0.7829788909868074,
   "onTarget": true,
   "margin": {
-   "good": 0.5812619047619048,
-   "average": 0.5776190476190476,
-   "weak": 0.5074603174603175,
-   "novice": 0.2688095238095238,
-   "floor": -0.8333333333333334
+   "good": 0.5810476190476191,
+   "average": 0.5728571428571428,
+   "weak": 0.5177777777777778,
+   "novice": 0.2546031746031746,
+   "floor": -0.6666666666666666
   },
   "winRate": {
    "good": 1,
@@ -531,7 +528,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 2.562,
+  "seconds": 2.732,
   "seed": 39245116,
   "attempts": 1,
   "rejects": {
@@ -560,22 +557,20 @@
     "id": "main",
     "kind": "protein",
     "params": {
-     "n": 19
+     "n": 27
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 195
+     "seconds": 175
     }
    },
    {
     "id": "challenge",
-    "kind": "tow_full_trip",
-    "params": {
-     "n": 3
-    }
+    "kind": "rescue_all",
+    "params": {}
    }
   ],
   "stars": {
@@ -587,7 +582,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.67,
+   "novice": 2,
    "floor": 1.33
   },
   "modules": [
@@ -603,15 +598,15 @@
   "goal": "protein",
   "template": "north_fields",
   "target": 0.183,
-  "D": 0.17373285624931384,
-  "F": 0.8512566368493618,
+  "D": 0.16790537280397927,
+  "F": 0.8492133394825079,
   "onTarget": true,
   "margin": {
-   "good": 0.6922719298245614,
-   "average": 0.6750877192982455,
-   "weak": 0.5740350877192982,
-   "novice": 0.45377192982456144,
-   "floor": 0.09760233918128657
+   "good": 0.6977222222222224,
+   "average": 0.6400308641975309,
+   "weak": 0.6258333333333334,
+   "novice": 0.5201234567901234,
+   "floor": 0.07354938271604938
   },
   "winRate": {
    "good": 1,
@@ -627,15 +622,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 166.309,
-  "seed": 485223666,
-  "attempts": 2,
+  "seconds": 52.694,
+  "seed": 1793842133,
+  "attempts": 1,
   "rejects": {
-   "objectives": 13,
-   "offTarget": 5,
-   "stall": 1
+   "objectives": 2,
+   "offTarget": 3
   },
-  "ratings": 38
+  "ratings": 11
  },
  {
   "index": 8,
@@ -676,14 +670,14 @@
   ],
   "stars": {
    "good": 2.9,
-   "median": 2.67,
+   "median": 3,
    "goodAll": 0.9
   },
   "starsByRung": {
    "good": 2.9,
    "average": 3,
-   "weak": 2.67,
-   "novice": 2.33,
+   "weak": 3,
+   "novice": 2,
    "floor": 2
   },
   "modules": [
@@ -699,15 +693,15 @@
   "goal": "serve_premium",
   "template": "crossroads",
   "target": 0.195,
-  "D": 0.17615813023610669,
-  "F": 0.7375363181560144,
+  "D": 0.17430094289875975,
+  "F": 0.7631615549744168,
   "onTarget": true,
   "margin": {
-   "good": 0.542235294117647,
-   "average": 0.5574183006535948,
-   "weak": 0.5374183006535947,
-   "novice": 0.43905228758169934,
-   "floor": 0.22607843137254902
+   "good": 0.5501666666666667,
+   "average": 0.5544771241830064,
+   "weak": 0.5250326797385622,
+   "novice": 0.405359477124183,
+   "floor": 0.26519607843137255
   },
   "winRate": {
    "good": 1,
@@ -723,7 +717,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 9.153,
+  "seconds": 8.903,
   "seed": 1067227942,
   "attempts": 1,
   "rejects": {
@@ -760,26 +754,28 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 167
+     "seconds": 183
     }
    },
    {
     "id": "challenge",
-    "kind": "no_stockpile_overload",
-    "params": {}
+    "kind": "hire",
+    "params": {
+     "n": 11
+    }
    }
   ],
   "stars": {
-   "good": 2.6,
-   "median": 2,
-   "goodAll": 0.6
+   "good": 3,
+   "median": 3,
+   "goodAll": 1
   },
   "starsByRung": {
-   "good": 2.6,
-   "average": 2,
-   "weak": 2,
-   "novice": 2,
-   "floor": 0.67
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1.33
   },
   "modules": [
    "build_pads",
@@ -793,15 +789,15 @@
   "goal": "converter_level",
   "template": "west_fields",
   "target": 0.207,
-  "D": 0.20479031477634754,
-  "F": 0.9152172047293884,
+  "D": 0.20301061450270932,
+  "F": 0.8972432961541847,
   "onTarget": true,
   "margin": {
-   "good": 0.5063492063492063,
-   "average": 0.46878306878306875,
-   "weak": 0.4133862433862434,
-   "novice": 0.30682539682539683,
-   "floor": -0.1975661375661376
+   "good": 0.5240694444444445,
+   "average": 0.48587962962962966,
+   "weak": 0.4436574074074074,
+   "novice": 0.3519444444444444,
+   "floor": -0.15490740740740744
   },
   "winRate": {
    "good": 1,
@@ -817,15 +813,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 51.066,
-  "seed": 672373218,
-  "attempts": 2,
+  "seconds": 7.577,
+  "seed": 1947207031,
+  "attempts": 1,
   "rejects": {
-   "objectives": 7,
-   "stall": 1,
-   "offTarget": 6
+   "layout": 10,
+   "objectives": 2
   },
-  "ratings": 29
+  "ratings": 6
  },
  {
   "index": 10,
@@ -857,26 +852,26 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 241
+     "seconds": 181
     }
    },
    {
     "id": "challenge",
-    "kind": "no_injuries",
+    "kind": "no_wall_lost",
     "params": {}
    }
   ],
   "stars": {
-   "good": 2.8,
-   "median": 2,
-   "goodAll": 0.8
+   "good": 2.7,
+   "median": 2.67,
+   "goodAll": 0.7
   },
   "starsByRung": {
-   "good": 2.8,
+   "good": 2.7,
    "average": 2.67,
-   "weak": 2,
-   "novice": 2.33,
-   "floor": 2
+   "weak": 2.67,
+   "novice": 3,
+   "floor": 1
   },
   "modules": [
    "barrier_lines",
@@ -891,15 +886,15 @@
   "goal": "turret_level",
   "template": "crossroads",
   "target": 0.219,
-  "D": 0.2061065713264324,
-  "F": 0.3810705407373978,
+  "D": 0.21179874308409405,
+  "F": 0.5991418810599879,
   "onTarget": true,
   "margin": {
-   "good": 0.692061224489796,
-   "average": 0.6563492063492063,
-   "weak": 0.6937414965986394,
-   "novice": 0.5907482993197278,
-   "floor": 0.6341269841269841
+   "good": 0.6789142857142857,
+   "average": 0.6697460317460316,
+   "weak": 0.6552698412698413,
+   "novice": 0.6626349206349206,
+   "floor": 0.4234603174603175
   },
   "winRate": {
    "good": 1,
@@ -915,14 +910,13 @@
    "novice",
    "floor"
   ],
-  "seconds": 351.668,
+  "seconds": 272.355,
   "seed": 1387950823,
   "attempts": 3,
   "rejects": {
-   "offTarget": 24,
-   "lowFun": 2
+   "offTarget": 20
   },
-  "ratings": 41
+  "ratings": 33
  },
  {
   "index": 11,
@@ -973,7 +967,7 @@
    "average": 3,
    "weak": 3,
    "novice": 2,
-   "floor": 0.67
+   "floor": 0
   },
   "modules": [
    "blocked_zones",
@@ -988,22 +982,22 @@
   "goal": "core_level",
   "template": "west_fields",
   "target": 0.231,
-  "D": 0.30837450854864873,
-  "F": 0.4843226009558882,
+  "D": 0.3050133685802897,
+  "F": 0.51952263699415,
   "onTarget": false,
   "margin": {
-   "good": 0.7022976190476191,
-   "average": 0.6493650793650795,
-   "weak": 0.5910317460317459,
-   "novice": 0.46329365079365087,
-   "floor": -0.21944444444444447
+   "good": 0.7028620689655173,
+   "average": 0.6306513409961686,
+   "weak": 0.6081992337164751,
+   "novice": 0.44333333333333336,
+   "floor": -0.3333333333333333
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -1011,15 +1005,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 43.444,
+  "seconds": 36.202,
   "seed": 1241095550,
   "attempts": 4,
   "rejects": {
-   "stall": 1,
-   "offTarget": 35,
-   "infeasible": 4
+   "offTarget": 33,
+   "infeasible": 7,
+   "stall": 1
   },
-  "ratings": 46
+  "ratings": 42
  },
  {
   "index": 12,
@@ -1054,10 +1048,8 @@
    },
    {
     "id": "challenge",
-    "kind": "tow_full_trip",
-    "params": {
-     "n": 2
-    }
+    "kind": "rescue_all",
+    "params": {}
    }
   ],
   "stars": {
@@ -1069,7 +1061,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.33,
+   "novice": 2,
    "floor": 1.33
   },
   "modules": [
@@ -1086,15 +1078,15 @@
   "goal": "rescue_before_freeze",
   "template": "crescent",
   "target": 0.243,
-  "D": 0.3149768068675187,
-  "F": 0.8503329495498447,
+  "D": 0.3528222288960749,
+  "F": 0.8003153821762434,
   "onTarget": false,
   "margin": {
-   "good": 0.707311111111111,
-   "average": 0.6655555555555556,
-   "weak": 0.5917037037037037,
-   "novice": 0.5152592592592593,
-   "floor": -0.09925925925925927
+   "good": 0.6978000000000001,
+   "average": 0.6671111111111111,
+   "weak": 0.5842222222222222,
+   "novice": 0.44407407407407407,
+   "floor": -0.03651851851851854
   },
   "winRate": {
    "good": 1,
@@ -1110,8 +1102,8 @@
    "novice",
    "floor"
   ],
-  "seconds": 86.191,
-  "seed": 1417805574,
+  "seconds": 82.918,
+  "seed": 1973305700,
   "attempts": 4,
   "rejects": {
    "objectives": 37,
@@ -1145,7 +1137,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 288
+     "seconds": 298
     }
    },
    {
@@ -1163,8 +1155,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.33,
-   "floor": 0.33
+   "novice": 3,
+   "floor": 0.67
   },
   "modules": [
    "build_pads",
@@ -1177,15 +1169,15 @@
   "goal": "bulk_order",
   "template": "south_fields",
   "target": 0.255,
-  "D": 0.27258167768374747,
-  "F": 0.8646805932138354,
+  "D": 0.27047733365394916,
+  "F": 0.8789468393162736,
   "onTarget": true,
   "margin": {
-   "good": 0.49772916666666667,
-   "average": 0.49899305555555556,
-   "weak": 0.44722222222222224,
-   "novice": 0.2782638888888889,
-   "floor": -0.06517361111111111
+   "good": 0.4606881720430106,
+   "average": 0.45458781362007167,
+   "weak": 0.4074193548387097,
+   "novice": 0.23369175627240144,
+   "floor": -0.15021505376344085
   },
   "winRate": {
    "good": 1,
@@ -1200,14 +1192,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 22.654,
+  "seconds": 7.047,
   "seed": 1157148896,
   "attempts": 1,
   "rejects": {
    "objectives": 1,
-   "offTarget": 6
+   "offTarget": 3
   },
-  "ratings": 13
+  "ratings": 8
  },
  {
   "index": 14,
@@ -1233,33 +1225,35 @@
     "kind": "stockpile",
     "params": {
      "res": "res.material_basic",
-     "n": 8
+     "n": 6
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 182
+     "seconds": 186
     }
    },
    {
     "id": "challenge",
-    "kind": "no_stockpile_overload",
-    "params": {}
+    "kind": "hire",
+    "params": {
+     "n": 12
+    }
    }
   ],
   "stars": {
-   "good": 2.8,
-   "median": 2.67,
-   "goodAll": 0.8
+   "good": 3,
+   "median": 2,
+   "goodAll": 1
   },
   "starsByRung": {
-   "good": 2.8,
-   "average": 2.33,
-   "weak": 2.67,
-   "novice": 2,
-   "floor": 1.33
+   "good": 3,
+   "average": 3,
+   "weak": 2,
+   "novice": 3,
+   "floor": 2
   },
   "modules": [
    "build_pads",
@@ -1275,15 +1269,15 @@
   "goal": "stockpile",
   "template": "corridor",
   "target": 0.267,
-  "D": 0.27422068385801945,
-  "F": 0.7248425762341211,
+  "D": 0.2634201020045069,
+  "F": 0.7147590255146409,
   "onTarget": true,
   "margin": {
-   "good": 0.6467083333333333,
-   "average": 0.6199652777777779,
-   "weak": 0.5803819444444445,
-   "novice": 0.5107291666666667,
-   "floor": 0.4153125
+   "good": 0.6530729166666666,
+   "average": 0.6527777777777778,
+   "weak": 0.6501736111111112,
+   "novice": 0.5652083333333334,
+   "floor": 0.45645833333333335
   },
   "winRate": {
    "good": 1,
@@ -1299,16 +1293,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 137.559,
-  "seed": 903629261,
-  "attempts": 4,
+  "seconds": 81.291,
+  "seed": 1072745074,
+  "attempts": 3,
   "rejects": {
-   "layout": 68,
-   "objectives": 24,
-   "offTarget": 9,
-   "stall": 2
+   "layout": 37,
+   "objectives": 23
   },
-  "ratings": 65
+  "ratings": 48
  },
  {
   "index": 15,
@@ -1341,7 +1333,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 337
+     "seconds": 252
     }
    },
    {
@@ -1353,15 +1345,15 @@
    }
   ],
   "stars": {
-   "good": 2.9,
+   "good": 3,
    "median": 3,
-   "goodAll": 0.9
+   "goodAll": 1
   },
   "starsByRung": {
-   "good": 2.9,
-   "average": 2,
+   "good": 3,
+   "average": 3,
    "weak": 3,
-   "novice": 2.67,
+   "novice": 3,
    "floor": 2
   },
   "modules": [
@@ -1379,19 +1371,19 @@
   "goal": "boss",
   "template": "south_fields",
   "target": 0.279,
-  "D": 0.7325625282827368,
-  "F": 0.06561155936287,
+  "D": 0.6150074009907959,
+  "F": 0.04113907984054329,
   "onTarget": false,
   "margin": {
-   "good": 0.7252017543859648,
-   "average": 0.14890350877192982,
-   "weak": 0.7252631578947368,
-   "novice": 0.7289912280701755,
-   "floor": 0.15093567251461984
+   "good": 0.7046226415094339,
+   "average": 0.6957861635220125,
+   "weak": 0.7010062893081761,
+   "novice": 0.699643605870021,
+   "floor": 0.13165618448637317
   },
   "winRate": {
    "good": 1,
-   "average": 0.6666666666666666,
+   "average": 1,
    "weak": 1,
    "novice": 1,
    "floor": 0.6666666666666666
@@ -1403,17 +1395,17 @@
    "novice",
    "floor"
   ],
-  "seconds": 286.414,
-  "seed": 1593154686,
+  "seconds": 334.015,
+  "seed": 294531354,
   "attempts": 4,
   "rejects": {
-   "infeasible": 13,
+   "objectives": 6,
+   "offTarget": 8,
    "idleModule": 17,
    "trivial": 5,
-   "offTarget": 8,
-   "idleElement": 2
+   "idleElement": 6
   },
-  "ratings": 38
+  "ratings": 55
  },
  {
   "index": 16,
@@ -1442,7 +1434,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 112
+     "seconds": 106
     }
    },
    {
@@ -1478,15 +1470,15 @@
   "goal": "clear_zones",
   "template": "north_fields",
   "target": 0.332,
-  "D": 0.3739821102603921,
-  "F": 0.761852406458909,
-  "onTarget": true,
+  "D": 0.4405336015912249,
+  "F": 0.788395420269428,
+  "onTarget": false,
   "margin": {
-   "good": 0.7308000000000001,
-   "average": 0.6661777777777776,
-   "weak": 0.5930222222222222,
-   "novice": 0.4590222222222222,
-   "floor": -0.6441333333333333
+   "good": 0.6862539682539683,
+   "average": 0.6473015873015873,
+   "weak": 0.5569312169312169,
+   "novice": 0.35629629629629633,
+   "floor": -0.6205291005291006
   },
   "winRate": {
    "good": 1,
@@ -1501,14 +1493,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 28.518,
-  "seed": 2105284390,
-  "attempts": 3,
+  "seconds": 31.848,
+  "seed": 1721970751,
+  "attempts": 4,
   "rejects": {
    "offTarget": 20,
-   "stall": 1
+   "stall": 18,
+   "infeasible": 2
   },
-  "ratings": 32
+  "ratings": 45
  },
  {
   "index": 17,
@@ -1528,14 +1521,14 @@
     "id": "main",
     "kind": "hunt",
     "params": {
-     "n": 36
+     "n": 32
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 297
+     "seconds": 266
     }
    },
    {
@@ -1569,15 +1562,15 @@
   "goal": "hunt",
   "template": "east_fields",
   "target": 0.344,
-  "D": 0.31074334952811844,
-  "F": 0.567144022717309,
-  "onTarget": true,
+  "D": 0.28878320158580656,
+  "F": 0.5028184626326645,
+  "onTarget": false,
   "margin": {
-   "good": 0.4592254901960785,
-   "average": 0.42124183006535953,
-   "weak": 0.3909803921568627,
-   "novice": 0.3508169934640523,
-   "floor": 0.053246187363834414
+   "good": 0.46966666666666673,
+   "average": 0.41709677419354846,
+   "weak": 0.3931182795698925,
+   "novice": 0.33390681003584227,
+   "floor": 0.054637096774193546
   },
   "winRate": {
    "good": 1,
@@ -1593,14 +1586,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 188.125,
+  "seconds": 239.845,
   "seed": 327552485,
-  "attempts": 3,
+  "attempts": 4,
   "rejects": {
-   "objectives": 15,
-   "offTarget": 10
+   "objectives": 16,
+   "offTarget": 24
   },
-  "ratings": 50
+  "ratings": 65
  },
  {
   "index": 18,
@@ -1619,20 +1612,22 @@
     "id": "main",
     "kind": "currency",
     "params": {
-     "n": 367
+     "n": 338
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 300
+     "seconds": 283
     }
    },
    {
     "id": "challenge",
-    "kind": "no_angry_customers",
-    "params": {}
+    "kind": "streak",
+    "params": {
+     "n": 20
+    }
    }
   ],
   "stars": {
@@ -1644,8 +1639,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.33,
-   "floor": 1
+   "novice": 3,
+   "floor": 1.33
   },
   "modules": [
    "build_pads",
@@ -1659,22 +1654,22 @@
   "goal": "currency",
   "template": "west_fields",
   "target": 0.356,
-  "D": 0.38528854964450365,
-  "F": 0.8938438415460707,
+  "D": 0.3521883627581269,
+  "F": 0.9052859826411669,
   "onTarget": true,
   "margin": {
-   "good": 0.5108684210526315,
-   "average": 0.48500000000000004,
-   "weak": 0.46093567251461987,
-   "novice": 0.34792397660818714,
-   "floor": 0.0766374269005848
+   "good": 0.45557291666666666,
+   "average": 0.4215625,
+   "weak": 0.40368055555555554,
+   "novice": 0.26857638888888885,
+   "floor": -0.04677576429980276
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 1
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
@@ -1683,14 +1678,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 12.051,
-  "seed": 1071243415,
-  "attempts": 1,
+  "seconds": 31.439,
+  "seed": 1825322637,
+  "attempts": 2,
   "rejects": {
-   "objectives": 1,
-   "offTarget": 2
+   "objectives": 2,
+   "offTarget": 10
   },
-  "ratings": 8
+  "ratings": 22
  },
  {
   "index": 19,
@@ -1720,7 +1715,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 181
+     "seconds": 199
     }
    },
    {
@@ -1730,16 +1725,16 @@
    }
   ],
   "stars": {
-   "good": 2.6,
-   "median": 2.67,
-   "goodAll": 0.6
+   "good": 3,
+   "median": 3,
+   "goodAll": 1
   },
   "starsByRung": {
-   "good": 2.6,
-   "average": 2,
-   "weak": 2.67,
-   "novice": 2.33,
-   "floor": 0.67
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1.33
   },
   "modules": [
    "build_pads",
@@ -1754,15 +1749,15 @@
   "goal": "hire",
   "template": "crossroads",
   "target": 0.368,
-  "D": 0.25392728754649896,
-  "F": 0.911292089521129,
-  "onTarget": false,
+  "D": 0.3642298860664731,
+  "F": 0.904080866496343,
+  "onTarget": true,
   "margin": {
-   "good": 0.5815555555555556,
-   "average": 0.545514403292181,
-   "weak": 0.5110699588477366,
-   "novice": 0.39362139917695477,
-   "floor": -0.0743874643874644
+   "good": 0.5089866666666666,
+   "average": 0.4784,
+   "weak": 0.4182666666666666,
+   "novice": 0.29719999999999996,
+   "floor": -0.03608205128205129
   },
   "winRate": {
    "good": 1,
@@ -1778,15 +1773,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 141.118,
-  "seed": 1313073885,
-  "attempts": 4,
+  "seconds": 68.618,
+  "seed": 1200411012,
+  "attempts": 2,
   "rejects": {
-   "objectives": 36,
-   "stall": 3,
-   "offTarget": 1
+   "objectives": 9,
+   "offTarget": 8
   },
-  "ratings": 77
+  "ratings": 35
  },
  {
   "index": 20,
@@ -1815,7 +1809,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 129
+     "seconds": 125
     }
    },
    {
@@ -1833,7 +1827,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.67,
+   "novice": 3,
    "floor": 1.33
   },
   "modules": [
@@ -1850,22 +1844,22 @@
   "goal": "core_level",
   "template": "west_fields",
   "target": 0.38,
-  "D": 0.25310717340020095,
-  "F": 0.8664428489355052,
+  "D": 0.2439546452228023,
+  "F": 0.8014776750373233,
   "onTarget": false,
   "margin": {
-   "good": 0.6022833333333334,
-   "average": 0.569111111111111,
-   "weak": 0.5098333333333334,
-   "novice": 0.40499999999999997,
-   "floor": -0.0685
+   "good": 0.6070499999999999,
+   "average": 0.5772222222222222,
+   "weak": 0.5147222222222222,
+   "novice": 0.4005,
+   "floor": 0.06394444444444446
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 1
   },
   "botsPassed": [
    "good",
@@ -1874,15 +1868,16 @@
    "novice",
    "floor"
   ],
-  "seconds": 49.266,
-  "seed": 1788831366,
+  "seconds": 49.19,
+  "seed": 64818687,
   "attempts": 4,
   "rejects": {
-   "offTarget": 25,
-   "stall": 8,
-   "infeasible": 8
+   "offTarget": 21,
+   "infeasible": 7,
+   "stall": 12,
+   "objectives": 1
   },
-  "ratings": 43
+  "ratings": 46
  },
  {
   "index": 21,
@@ -1907,28 +1902,28 @@
    },
    {
     "id": "challenge2",
+    "kind": "no_injuries",
+    "params": {}
+   },
+   {
+    "id": "challenge",
     "kind": "hp_floor",
     "params": {
      "pct": 80
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "no_wall_lost",
-    "params": {}
    }
   ],
   "stars": {
-   "good": 2.9,
+   "good": 3,
    "median": 2.67,
-   "goodAll": 0.9
+   "goodAll": 1
   },
   "starsByRung": {
-   "good": 2.9,
+   "good": 3,
    "average": 3,
    "weak": 2.67,
-   "novice": 2.67,
-   "floor": 0
+   "novice": 3,
+   "floor": 0.33
   },
   "modules": [
    "barrier_lines",
@@ -1943,22 +1938,22 @@
   "goal": "waves_survived",
   "template": "crossroads",
   "target": 0.4,
-  "D": 0.3535935255488595,
-  "F": 0.17531204644694756,
+  "D": 0.3856463304797953,
+  "F": 0.32210550020876316,
   "onTarget": false,
   "margin": {
-   "good": 0.9905260849686686,
-   "average": 0.9905624605136382,
-   "weak": 0.9718082728377057,
-   "novice": 0.9857728679802062,
-   "floor": -0.5833333333333334
+   "good": 0.9788491888440014,
+   "average": 0.9823371674967526,
+   "weak": 0.959969071092841,
+   "novice": 0.9701575088677966,
+   "floor": -0.0945375475671318
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0
+   "floor": 0.3333333333333333
   },
   "botsPassed": [
    "good",
@@ -1966,18 +1961,17 @@
    "weak",
    "novice"
   ],
-  "seconds": 212.588,
-  "seed": 381296644,
+  "seconds": 266.235,
+  "seed": 86203878,
   "attempts": 4,
   "rejects": {
-   "idleModule": 27,
-   "idleElement": 3,
-   "trivial": 2,
-   "infeasible": 1,
-   "offTarget": 9,
-   "lowFun": 1
+   "idleElement": 5,
+   "idleModule": 3,
+   "offTarget": 27,
+   "lowFun": 2,
+   "trivial": 3
   },
-  "ratings": 48
+  "ratings": 55
  },
  {
   "index": 22,
@@ -2004,7 +1998,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 90
+     "seconds": 99
     }
    },
    {
@@ -2022,7 +2016,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 1.33,
+   "novice": 0.67,
    "floor": 0
   },
   "modules": [
@@ -2036,36 +2030,35 @@
   "goal": "population",
   "template": "crescent",
   "target": 0.45,
-  "D": 0.3288771844926596,
-  "F": 0.8878423665595876,
+  "D": 0.5804244425117795,
+  "F": 0.830745590525752,
   "onTarget": false,
   "margin": {
-   "good": 0.4986060606060606,
-   "average": 0.4016161616161616,
-   "weak": 0.2737373737373738,
-   "novice": -0.06707070707070709,
+   "good": 0.5595952380952381,
+   "average": 0.5035714285714286,
+   "weak": 0.42396825396825394,
+   "novice": -0.22063492063492066,
    "floor": -0.6666666666666666
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
-   "novice": 0.6666666666666666,
+   "novice": 0.3333333333333333,
    "floor": 0
   },
   "botsPassed": [
    "good",
    "average",
-   "weak",
-   "novice"
+   "weak"
   ],
-  "seconds": 50.928,
+  "seconds": 37.14,
   "seed": 1590603978,
   "attempts": 4,
   "rejects": {
    "offTarget": 40
   },
-  "ratings": 57
+  "ratings": 55
  },
  {
   "index": 23,
@@ -2091,7 +2084,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 84
+     "seconds": 83
     }
    },
    {
@@ -2111,7 +2104,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.33,
+   "novice": 2.67,
    "floor": 1.33
   },
   "modules": [
@@ -2128,15 +2121,15 @@
   "goal": "rescue_all",
   "template": "corridor",
   "target": 0.494,
-  "D": 0.8375701080399433,
-  "F": 0.8546042904895247,
+  "D": 0.707404124491862,
+  "F": 0.8553334345492706,
   "onTarget": false,
   "margin": {
-   "good": 0.602,
-   "average": 0.5664102564102564,
-   "weak": 0.4748717948717949,
-   "novice": 0.33376068376068374,
-   "floor": -0.09726495726495726
+   "good": 0.6088461538461538,
+   "average": 0.5772649572649572,
+   "weak": 0.5057264957264956,
+   "novice": 0.3742735042735043,
+   "floor": -0.07564102564102564
   },
   "winRate": {
    "good": 1,
@@ -2152,14 +2145,15 @@
    "novice",
    "floor"
   ],
-  "seconds": 100.894,
-  "seed": 1636033308,
+  "seconds": 104.009,
+  "seed": 886907390,
   "attempts": 4,
   "rejects": {
-   "offTarget": 5,
-   "objectives": 35
+   "offTarget": 3,
+   "objectives": 27,
+   "idleElement": 10
   },
-  "ratings": 79
+  "ratings": 80
  },
  {
   "index": 24,
@@ -2180,15 +2174,15 @@
     "id": "main",
     "kind": "earn_within",
     "params": {
-     "n": 418,
-     "seconds": 143
+     "n": 408,
+     "seconds": 133
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 185
+     "seconds": 183
     }
    },
    {
@@ -2199,13 +2193,13 @@
   ],
   "stars": {
    "good": 3,
-   "median": 3,
+   "median": 2,
    "goodAll": 1
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 3,
+   "weak": 2,
    "novice": 1,
    "floor": 0
   },
@@ -2222,20 +2216,20 @@
   "goal": "earn_within",
   "template": "south_fields",
   "target": 0.538,
-  "D": 0.5396805841002351,
-  "F": 0.649254685261532,
+  "D": 0.5536532582398376,
+  "F": 0.8249068091062111,
   "onTarget": true,
   "margin": {
-   "good": 0.6663725490196077,
-   "average": 0.6541503267973856,
-   "weak": 0.6211764705882353,
-   "novice": 0.15430418738468274,
-   "floor": -0.2312599681020734
+   "good": 0.6875000000000001,
+   "average": 0.6754938271604939,
+   "weak": 0.43624183006535944,
+   "novice": 0.08156318082788667,
+   "floor": -0.2957516339869281
   },
   "winRate": {
    "good": 1,
    "average": 1,
-   "weak": 1,
+   "weak": 0.6666666666666666,
    "novice": 0.3333333333333333,
    "floor": 0
   },
@@ -2244,13 +2238,13 @@
    "average",
    "weak"
   ],
-  "seconds": 14.235,
+  "seconds": 7.609,
   "seed": 2001386594,
   "attempts": 1,
   "rejects": {
-   "offTarget": 6
+   "offTarget": 1
   },
-  "ratings": 10
+  "ratings": 4
  },
  {
   "index": 25,
@@ -2279,7 +2273,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 232
+     "seconds": 245
     }
    },
    {
@@ -2297,10 +2291,10 @@
   },
   "starsByRung": {
    "good": 3,
-   "average": 3,
+   "average": 2.67,
    "weak": 2.67,
    "novice": 2.33,
-   "floor": 1
+   "floor": 1.67
   },
   "modules": [
    "build_pads",
@@ -2316,22 +2310,22 @@
   "goal": "automate",
   "template": "corridor",
   "target": 0.581,
-  "D": 0.6199319528947498,
-  "F": 0.8483903529961209,
+  "D": 0.5648698903585433,
+  "F": 0.7681573139720986,
   "onTarget": true,
   "margin": {
-   "good": 0.48270238095238094,
-   "average": 0.46404761904761904,
-   "weak": 0.46186507936507937,
-   "novice": 0.36952380952380953,
-   "floor": 0.12428571428571429
+   "good": 0.5167634408602151,
+   "average": 0.5003584229390681,
+   "weak": 0.5205376344086021,
+   "novice": 0.4265591397849462,
+   "floor": 0.15835125448028672
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 1
   },
   "botsPassed": [
    "good",
@@ -2340,14 +2334,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 24.48,
+  "seconds": 22.063,
   "seed": 1269787539,
   "attempts": 1,
   "rejects": {
-   "offTarget": 2,
-   "layout": 1
+   "objectives": 1,
+   "offTarget": 1
   },
-  "ratings": 5
+  "ratings": 6
  },
  {
   "index": 26,
@@ -2375,28 +2369,26 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 364
+     "seconds": 346
     }
    },
    {
     "id": "challenge",
-    "kind": "hp_floor",
-    "params": {
-     "pct": 80
-    }
+    "kind": "no_injuries",
+    "params": {}
    }
   ],
   "stars": {
-   "good": 2.9,
-   "median": 3,
-   "goodAll": 0.9
+   "good": 2.8,
+   "median": 2.33,
+   "goodAll": 0.8
   },
   "starsByRung": {
-   "good": 2.9,
-   "average": 1,
-   "weak": 3,
-   "novice": 1.67,
-   "floor": 2.33
+   "good": 2.8,
+   "average": 3,
+   "weak": 2.33,
+   "novice": 2.67,
+   "floor": 1.33
   },
   "modules": [
    "barrier_lines",
@@ -2411,40 +2403,41 @@
   "goal": "kills",
   "template": "east_fields",
   "target": 0.625,
-  "D": 0.5374336954374496,
-  "F": 0.4079405527441213,
+  "D": 0.5827180960451233,
+  "F": 0.2374984618404008,
   "onTarget": false,
   "margin": {
-   "good": 0.4975185185185185,
-   "average": -0.17097164563831227,
-   "weak": 0.4977283950617284,
-   "novice": 0.16355121421788088,
-   "floor": 0.4961728395061728
+   "good": 0.4497264957264958,
+   "average": 0.44994301994301994,
+   "weak": 0.44270655270655274,
+   "novice": 0.4496011396011396,
+   "floor": 0.13002035002035003
   },
   "winRate": {
    "good": 1,
-   "average": 0.3333333333333333,
+   "average": 1,
    "weak": 1,
-   "novice": 0.6666666666666666,
-   "floor": 1
+   "novice": 1,
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
+   "average",
    "weak",
    "novice",
    "floor"
   ],
-  "seconds": 352.961,
-  "seed": 880376164,
+  "seconds": 144.96,
+  "seed": 390785969,
   "attempts": 4,
   "rejects": {
-   "idleModule": 8,
-   "offTarget": 12,
-   "infeasible": 10,
-   "trivial": 1,
-   "idleElement": 1
+   "idleModule": 10,
+   "idleElement": 2,
+   "infeasible": 21,
+   "objectives": 3,
+   "lowFun": 1
   },
-  "ratings": 46
+  "ratings": 28
  },
  {
   "index": 27,
@@ -2471,7 +2464,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 111
+     "seconds": 112
     }
    },
    {
@@ -2489,7 +2482,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2,
+   "novice": 1.33,
    "floor": 0
   },
   "modules": [
@@ -2504,21 +2497,21 @@
   "goal": "clear_zones",
   "template": "north_fields",
   "target": 0.669,
-  "D": 0.3678522501587423,
-  "F": 0.9164257122460477,
+  "D": 0.39214493017292307,
+  "F": 0.9020034679959802,
   "onTarget": false,
   "margin": {
-   "good": 0.5892352941176471,
-   "average": 0.47640522875816993,
-   "weak": 0.40372549019607845,
-   "novice": 0.17751633986928106,
-   "floor": -0.8333333333333334
+   "good": 0.5909803921568628,
+   "average": 0.4605882352941177,
+   "weak": 0.383921568627451,
+   "novice": -0.07189542483660132,
+   "floor": -1
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
-   "novice": 1,
+   "novice": 0.6666666666666666,
    "floor": 0
   },
   "botsPassed": [
@@ -2527,17 +2520,16 @@
    "weak",
    "novice"
   ],
-  "seconds": 26.779,
+  "seconds": 28.722,
   "seed": 144597288,
   "attempts": 4,
   "rejects": {
-   "infeasible": 17,
-   "offTarget": 11,
-   "stall": 13,
-   "layout": 1,
-   "objectives": 1
+   "infeasible": 13,
+   "stall": 15,
+   "layout": 4,
+   "offTarget": 12
   },
-  "ratings": 38
+  "ratings": 36
  },
  {
   "index": 28,
@@ -2557,14 +2549,14 @@
     "id": "main",
     "kind": "protein",
     "params": {
-     "n": 27
+     "n": 36
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 266
+     "seconds": 231
     }
    },
    {
@@ -2582,8 +2574,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
-   "floor": 0.67
+   "novice": 2.33,
+   "floor": 0
   },
   "modules": [
    "barrier_lines",
@@ -2598,22 +2590,22 @@
   "goal": "protein",
   "template": "crossroads",
   "target": 0.713,
-  "D": 0.7557752214075546,
-  "F": 0.8385178410089789,
+  "D": 0.7042503587247022,
+  "F": 0.7601812027136404,
   "onTarget": true,
   "margin": {
-   "good": 0.6456260162601626,
-   "average": 0.5805149051490516,
-   "weak": 0.5442818428184282,
-   "novice": 0.40607046070460706,
-   "floor": -0.11654622101776572
+   "good": 0.5840294117647058,
+   "average": 0.553235294117647,
+   "weak": 0.49437908496732025,
+   "novice": 0.2552614379084967,
+   "floor": -0.2777777777777778
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -2621,13 +2613,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 197.56,
+  "seconds": 106.507,
   "seed": 53150105,
   "attempts": 2,
   "rejects": {
-   "offTarget": 18
+   "offTarget": 11,
+   "objectives": 1
   },
-  "ratings": 26
+  "ratings": 18
  },
  {
   "index": 29,
@@ -2648,14 +2641,14 @@
     "kind": "sell",
     "params": {
      "res": "res.food_raw_1",
-     "n": 254
+     "n": 219
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 300
+     "seconds": 283
     }
    },
    {
@@ -2676,7 +2669,7 @@
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 0.67
+   "floor": 0
   },
   "modules": [
    "build_pads",
@@ -2690,22 +2683,22 @@
   "goal": "sell",
   "template": "west_fields",
   "target": 0.756,
-  "D": 0.6508141104322123,
-  "F": 0.9168118091147582,
-  "onTarget": false,
+  "D": 0.7477064661143267,
+  "F": 0.8788337418922035,
+  "onTarget": true,
   "margin": {
-   "good": 0.4680190476190476,
-   "average": 0.4204761904761905,
-   "weak": 0.35768253968253966,
-   "novice": 0.23342857142857143,
-   "floor": -0.057479565054368194
+   "good": 0.5061944444444445,
+   "average": 0.4479320987654321,
+   "weak": 0.4178395061728395,
+   "novice": 0.2862037037037037,
+   "floor": -0.4779299847792999
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -2713,14 +2706,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 126.058,
+  "seconds": 73.532,
   "seed": 1926329531,
-  "attempts": 4,
+  "attempts": 3,
   "rejects": {
-   "offTarget": 34,
+   "offTarget": 15,
    "stall": 6
   },
-  "ratings": 64
+  "ratings": 39
  },
  {
   "index": 30,
@@ -2742,19 +2735,19 @@
     "id": "main",
     "kind": "rescue",
     "params": {
-     "n": 5
+     "n": 4
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 119
+     "seconds": 118
     }
    },
    {
     "id": "challenge",
-    "kind": "tow_full_trip",
+    "kind": "tow_trip",
     "params": {
      "n": 3
     }
@@ -2787,15 +2780,15 @@
   "goal": "rescue",
   "template": "corridor",
   "target": 0.8,
-  "D": 0.8055701533314809,
-  "F": 0.8914081794713952,
+  "D": 0.7736362785622727,
+  "F": 0.8815880832546444,
   "onTarget": true,
   "margin": {
-   "good": 0.4791904761904763,
-   "average": 0.42436507936507933,
-   "weak": 0.36206349206349203,
-   "novice": 0.2424603174603175,
-   "floor": -0.10880952380952381
+   "good": 0.4880714285714286,
+   "average": 0.45206349206349206,
+   "weak": 0.3717460317460317,
+   "novice": 0.23214285714285712,
+   "floor": -0.030158730158730152
   },
   "winRate": {
    "good": 1,
@@ -2811,15 +2804,13 @@
    "novice",
    "floor"
   ],
-  "seconds": 108.909,
-  "seed": 1896943992,
-  "attempts": 4,
+  "seconds": 18.666,
+  "seed": 37864213,
+  "attempts": 1,
   "rejects": {
-   "offTarget": 29,
-   "stall": 2,
-   "objectives": 3
+   "offTarget": 3
   },
-  "ratings": 50
+  "ratings": 7
  },
  {
   "index": 31,
@@ -2841,35 +2832,33 @@
     "kind": "converters_running",
     "params": {
      "k": 2,
-     "seconds": 18
+     "seconds": 17
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 335
+     "seconds": 630
     }
    },
    {
     "id": "challenge",
-    "kind": "hire",
-    "params": {
-     "n": 11
-    }
+    "kind": "no_stockpile_overload",
+    "params": {}
    }
   ],
   "stars": {
    "good": 3,
-   "median": 2.67,
+   "median": 0.67,
    "goodAll": 1
   },
   "starsByRung": {
    "good": 3,
-   "average": 3,
-   "weak": 2.67,
+   "average": 2.67,
+   "weak": 0.67,
    "novice": 3,
-   "floor": 0.67
+   "floor": 3
   },
   "modules": [
    "build_pads",
@@ -2883,39 +2872,39 @@
   "goal": "converters_running",
   "template": "east_fields",
   "target": 0.4,
-  "D": 0.48698434429024706,
-  "F": 0.9517625501420282,
-  "onTarget": false,
+  "D": 0.3739200385739007,
+  "F": 0.7950721090393554,
+  "onTarget": true,
   "margin": {
-   "good": 0.5177777777777778,
-   "average": 0.44431216931216927,
-   "weak": 0.39306878306878307,
-   "novice": -0.048333333333333346,
-   "floor": -0.22401234567901238
+   "good": 0.5797183098591551,
+   "average": 0.41907668231611894,
+   "weak": -0.5715640246709012,
+   "novice": 0.5821439749608763,
+   "floor": 0.46012519561815335
   },
   "winRate": {
    "good": 1,
    "average": 1,
-   "weak": 1,
-   "novice": 0.6666666666666666,
-   "floor": 0.3333333333333333
+   "weak": 0.3333333333333333,
+   "novice": 1,
+   "floor": 1
   },
   "botsPassed": [
    "good",
    "average",
-   "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 227.223,
-  "seed": 112877692,
+  "seconds": 103.384,
+  "seed": 1938763210,
   "attempts": 4,
   "rejects": {
-   "trivial": 6,
-   "objectives": 10,
-   "offTarget": 8,
-   "infeasible": 10
+   "infeasible": 11,
+   "trivial": 3,
+   "objectives": 9,
+   "offTarget": 4
   },
-  "ratings": 51
+  "ratings": 44
  },
  {
   "index": 32,
@@ -2944,12 +2933,12 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 336
+     "seconds": 265
     }
    },
    {
     "id": "challenge",
-    "kind": "no_injuries",
+    "kind": "no_wall_lost",
     "params": {}
    }
   ],
@@ -2962,8 +2951,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.67,
-   "floor": 1.67
+   "novice": 3,
+   "floor": 2
   },
   "modules": [
    "barrier_lines",
@@ -2980,22 +2969,22 @@
   "goal": "hire",
   "template": "corridor",
   "target": 0.45,
-  "D": 0.611166511393688,
-  "F": 0.13097730382802633,
+  "D": 0.5486760156507967,
+  "F": 0.15635380961236958,
   "onTarget": false,
   "margin": {
-   "good": 0.7845882352941177,
-   "average": 0.7800915032679739,
-   "weak": 0.7769673202614379,
-   "novice": 0.7254640522875816,
-   "floor": 0.08886274509803922
+   "good": 0.67466,
+   "average": 0.6752222222222223,
+   "weak": 0.6581555555555555,
+   "novice": 0.6584222222222222,
+   "floor": 0.4926
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 1
   },
   "botsPassed": [
    "good",
@@ -3004,15 +2993,15 @@
    "novice",
    "floor"
   ],
-  "seconds": 271.734,
+  "seconds": 266.525,
   "seed": 2037529639,
   "attempts": 4,
   "rejects": {
-   "infeasible": 18,
-   "offTarget": 12,
-   "stall": 7
+   "offTarget": 36,
+   "stall": 1,
+   "objectives": 3
   },
-  "ratings": 35
+  "ratings": 58
  },
  {
   "index": 33,
@@ -3039,7 +3028,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 98
+     "seconds": 99
     }
    },
    {
@@ -3060,7 +3049,7 @@
    "average": 3,
    "weak": 3,
    "novice": 2,
-   "floor": 2
+   "floor": 1.67
   },
   "modules": [
    "build_pads",
@@ -3073,15 +3062,15 @@
   "goal": "admit",
   "template": "south_fields",
   "target": 0.494,
-  "D": 0.03318455878260405,
-  "F": 0.8072446677768554,
+  "D": 0.03334983904232666,
+  "F": 0.708900755267922,
   "onTarget": false,
   "margin": {
-   "good": 0.5281538461538461,
-   "average": 0.5141880341880342,
-   "weak": 0.5248717948717949,
-   "novice": 0.5330769230769231,
-   "floor": 0.4393162393162393
+   "good": 0.5252820512820513,
+   "average": 0.5097435897435897,
+   "weak": 0.49974358974358973,
+   "novice": 0.5237606837606837,
+   "floor": 0.35717948717948717
   },
   "winRate": {
    "good": 1,
@@ -3097,8 +3086,8 @@
    "novice",
    "floor"
   ],
-  "seconds": 67.701,
-  "seed": 1462663899,
+  "seconds": 62.351,
+  "seed": 1817121508,
   "attempts": 4,
   "rejects": {
    "offTarget": 6,
@@ -3124,14 +3113,14 @@
     "id": "main",
     "kind": "hunt",
     "params": {
-     "n": 33
+     "n": 31
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 270
+     "seconds": 283
     }
    },
    {
@@ -3152,7 +3141,7 @@
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 0.67
+   "floor": 0
   },
   "modules": [
    "barrier_lines",
@@ -3167,22 +3156,22 @@
   "goal": "hunt",
   "template": "crescent",
   "target": 0.538,
-  "D": 0.5732780419300134,
-  "F": 0.4293790245965464,
+  "D": 0.5782455667197441,
+  "F": 0.5876650135107127,
   "onTarget": true,
   "margin": {
-   "good": 0.5051862745098039,
-   "average": 0.4808823529411765,
-   "weak": 0.4615032679738562,
-   "novice": 0.36111111111111116,
-   "floor": -0.014720736779560303
+   "good": 0.5015462962962963,
+   "average": 0.4955864197530864,
+   "weak": 0.4603395061728395,
+   "novice": 0.37959876543209875,
+   "floor": -0.16129032258064516
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -3190,14 +3179,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 51.629,
+  "seconds": 39.069,
   "seed": 304161225,
   "attempts": 1,
   "rejects": {
    "objectives": 1,
-   "offTarget": 4
+   "offTarget": 1
   },
-  "ratings": 9
+  "ratings": 6
  },
  {
   "index": 35,
@@ -3218,14 +3207,14 @@
     "id": "main",
     "kind": "streak",
     "params": {
-     "n": 85
+     "n": 80
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 281
+     "seconds": 266
     }
    },
    {
@@ -3235,16 +3224,16 @@
    }
   ],
   "stars": {
-   "good": 2.8,
+   "good": 2.7,
    "median": 2.67,
-   "goodAll": 0.8
+   "goodAll": 0.7
   },
   "starsByRung": {
-   "good": 2.8,
-   "average": 3,
+   "good": 2.7,
+   "average": 2.67,
    "weak": 2.67,
-   "novice": 1.67,
-   "floor": 0
+   "novice": 1.33,
+   "floor": 0.33
   },
   "modules": [
    "build_pads",
@@ -3259,22 +3248,22 @@
   "goal": "streak",
   "template": "south_fields",
   "target": 0.581,
-  "D": 0.5940200968688557,
-  "F": 0.8123412319284801,
+  "D": 0.6206830385869869,
+  "F": 0.8127890112373143,
   "onTarget": true,
   "margin": {
-   "good": 0.5083047619047619,
-   "average": 0.4600952380952381,
-   "weak": 0.3887619047619048,
-   "novice": 0.19612698412698412,
-   "floor": -0.10588235294117647
+   "good": 0.5166372549019608,
+   "average": 0.46539215686274504,
+   "weak": 0.3990196078431372,
+   "novice": 0.2393137254901961,
+   "floor": -0.049901960784313755
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0
+   "floor": 0.3333333333333333
   },
   "botsPassed": [
    "good",
@@ -3282,15 +3271,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 35.053,
+  "seconds": 31.624,
   "seed": 437949602,
   "attempts": 2,
   "rejects": {
-   "offTarget": 11,
+   "offTarget": 10,
    "stall": 1,
    "infeasible": 1
   },
-  "ratings": 19
+  "ratings": 18
  },
  {
   "index": 36,
@@ -3312,14 +3301,14 @@
     "id": "main",
     "kind": "haul",
     "params": {
-     "n": 21
+     "n": 14
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 309
+     "seconds": 274
     }
    },
    {
@@ -3340,7 +3329,7 @@
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 1
+   "floor": 0
   },
   "modules": [
    "build_pads",
@@ -3355,22 +3344,22 @@
   "goal": "haul",
   "template": "west_fields",
   "target": 0.625,
-  "D": 0.6602238643906354,
-  "F": 0.9215168064363258,
+  "D": 0.6661075430849227,
+  "F": 0.9175995316493629,
   "onTarget": true,
   "margin": {
-   "good": 0.4524666666666667,
-   "average": 0.41733333333333333,
-   "weak": 0.38384126984126987,
-   "novice": 0.28539682539682537,
-   "floor": -0.617111111111111
+   "good": 0.49354901960784314,
+   "average": 0.4654575163398693,
+   "weak": 0.41875816993464055,
+   "novice": 0.2759150326797386,
+   "floor": -1
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -3378,14 +3367,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 32.338,
+  "seconds": 50.676,
   "seed": 922520431,
   "attempts": 1,
   "rejects": {
    "objectives": 2,
-   "offTarget": 2
+   "offTarget": 5
   },
-  "ratings": 9
+  "ratings": 13
  },
  {
   "index": 37,
@@ -3418,7 +3407,7 @@
     "id": "challenge",
     "kind": "hp_floor",
     "params": {
-     "pct": 75
+     "pct": 80
     }
    }
   ],
@@ -3429,9 +3418,9 @@
   },
   "starsByRung": {
    "good": 2.8,
-   "average": 3,
+   "average": 2.67,
    "weak": 2.33,
-   "novice": 2,
+   "novice": 2.33,
    "floor": 0
   },
   "modules": [
@@ -3447,15 +3436,15 @@
   "goal": "survive",
   "template": "crossroads",
   "target": 0.669,
-  "D": 0.5347535357393205,
-  "F": 0.47178714117567755,
-  "onTarget": false,
+  "D": 0.6237719813942132,
+  "F": 0.5259087418137744,
+  "onTarget": true,
   "margin": {
-   "good": 0.9269727810769908,
-   "average": 0.9525554510758338,
-   "weak": 0.9118024930984717,
-   "novice": 0.832833003970788,
-   "floor": -0.43654970760233924
+   "good": 0.9224398473366889,
+   "average": 0.9060069694120246,
+   "weak": 0.7734922654276599,
+   "novice": 0.7419326290170919,
+   "floor": -0.3232163742690059
   },
   "winRate": {
    "good": 1,
@@ -3470,16 +3459,16 @@
    "weak",
    "novice"
   ],
-  "seconds": 208.615,
-  "seed": 787545886,
-  "attempts": 4,
+  "seconds": 166.629,
+  "seed": 159335682,
+  "attempts": 2,
   "rejects": {
-   "offTarget": 12,
-   "infeasible": 16,
-   "idleModule": 10,
-   "idleElement": 3
+   "idleModule": 4,
+   "idleElement": 8,
+   "offTarget": 4,
+   "trivial": 1
   },
-  "ratings": 35
+  "ratings": 27
  },
  {
   "index": 38,
@@ -3507,26 +3496,26 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 213
+     "seconds": 210
     }
    },
    {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
-     "pct": 45
+     "pct": 50
     }
    }
   ],
   "stars": {
    "good": 3,
-   "median": 2.67,
+   "median": 2.33,
    "goodAll": 1
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 2.67,
+   "weak": 2.33,
    "novice": 0.67,
    "floor": 0
   },
@@ -3543,15 +3532,15 @@
   "goal": "core_level",
   "template": "north_fields",
   "target": 0.713,
-  "D": 0.740052178870223,
-  "F": 0.5900390921466304,
+  "D": 0.737008784330047,
+  "F": 0.7696410892713876,
   "onTarget": true,
   "margin": {
-   "good": 0.5310357142857143,
-   "average": 0.44555555555555554,
-   "weak": 0.36984126984126986,
-   "novice": -0.07468253968253968,
-   "floor": -0.5555555555555556
+   "good": 0.5343571428571429,
+   "average": 0.4372619047619048,
+   "weak": 0.33880952380952384,
+   "novice": -0.09333333333333334,
+   "floor": -0.5555555555555557
   },
   "winRate": {
    "good": 1,
@@ -3566,13 +3555,13 @@
    "weak",
    "novice"
   ],
-  "seconds": 16.466,
+  "seconds": 24.354,
   "seed": 1094709853,
   "attempts": 1,
   "rejects": {
-   "offTarget": 3
+   "offTarget": 5
   },
-  "ratings": 7
+  "ratings": 10
  },
  {
   "index": 39,
@@ -3600,13 +3589,15 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 84
+     "seconds": 80
     }
    },
    {
     "id": "challenge",
-    "kind": "rescue_all",
-    "params": {}
+    "kind": "tow_full_trip",
+    "params": {
+     "n": 3
+    }
    }
   ],
   "stars": {
@@ -3618,7 +3609,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.33,
+   "novice": 2.67,
    "floor": 1.33
   },
   "modules": [
@@ -3635,15 +3626,15 @@
   "goal": "rescue_before_freeze",
   "template": "crescent",
   "target": 0.756,
-  "D": 0.715685200989197,
-  "F": 0.8515016196072317,
+  "D": 0.7589833061881632,
+  "F": 0.880478548280474,
   "onTarget": true,
   "margin": {
-   "good": 0.6068461538461538,
-   "average": 0.5595726495726496,
-   "weak": 0.5152991452991453,
-   "novice": 0.3448717948717949,
-   "floor": -0.06726495726495725
+   "good": 0.5511515151515152,
+   "average": 0.5385858585858586,
+   "weak": 0.47878787878787876,
+   "novice": 0.2897979797979798,
+   "floor": -0.10656565656565657
   },
   "winRate": {
    "good": 1,
@@ -3659,14 +3650,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 86.49,
-  "seed": 1639861484,
-  "attempts": 4,
+  "seconds": 37.366,
+  "seed": 381634170,
+  "attempts": 2,
   "rejects": {
-   "offTarget": 31,
-   "objectives": 3
+   "offTarget": 10,
+   "objectives": 1
   },
-  "ratings": 50
+  "ratings": 18
  },
  {
   "index": 40,
@@ -3696,27 +3687,27 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 164
+     "seconds": 158
     }
    },
    {
     "id": "challenge",
     "kind": "streak",
     "params": {
-     "n": 19
+     "n": 20
     }
    }
   ],
   "stars": {
-   "good": 2.9,
+   "good": 3,
    "median": 3,
-   "goodAll": 0.9
+   "goodAll": 1
   },
   "starsByRung": {
-   "good": 2.9,
-   "average": 2.67,
+   "good": 3,
+   "average": 3,
    "weak": 3,
-   "novice": 2.33,
+   "novice": 3,
    "floor": 0
   },
   "modules": [
@@ -3733,15 +3724,15 @@
   "goal": "unlock",
   "template": "east_fields",
   "target": 0.8,
-  "D": 0.845974408428201,
-  "F": 0.8853579922939052,
+  "D": 0.8371702244992788,
+  "F": 0.8955279468235592,
   "onTarget": true,
   "margin": {
-   "good": 0.5058166666666667,
-   "average": 0.4683888888888889,
-   "weak": 0.37744444444444447,
-   "novice": 0.19566666666666666,
-   "floor": -1
+   "good": 0.48368518518518516,
+   "average": 0.4409259259259259,
+   "weak": 0.3603086419753087,
+   "novice": 0.20370370370370372,
+   "floor": -0.6666666666666666
   },
   "winRate": {
    "good": 1,
@@ -3756,13 +3747,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 14.036,
-  "seed": 1405721220,
-  "attempts": 1,
+  "seconds": 31.264,
+  "seed": 612082269,
+  "attempts": 4,
   "rejects": {
-   "offTarget": 3
+   "layout": 316,
+   "offTarget": 8
   },
-  "ratings": 6
+  "ratings": 13
  },
  {
   "index": 41,
@@ -3790,7 +3782,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 91
+     "seconds": 84
     }
    },
    {
@@ -3800,16 +3792,16 @@
    }
   ],
   "stars": {
-   "good": 2.9,
+   "good": 3,
    "median": 3,
-   "goodAll": 0.9
+   "goodAll": 1
   },
   "starsByRung": {
-   "good": 2.9,
+   "good": 3,
    "average": 3,
    "weak": 3,
    "novice": 2.67,
-   "floor": 0.67
+   "floor": 1.33
   },
   "modules": [
    "build_pads",
@@ -3824,22 +3816,22 @@
   "goal": "hire",
   "template": "north_fields",
   "target": 0.4,
-  "D": 0.34652388264722284,
-  "F": 0.8471844587669889,
+  "D": 0.31261836945827604,
+  "F": 0.8402260704197867,
   "onTarget": false,
   "margin": {
-   "good": 0.5162727272727272,
-   "average": 0.5744444444444444,
-   "weak": 0.4926262626262626,
-   "novice": 0.3226262626262626,
-   "floor": -0.044949494949494954
+   "good": 0.5254666666666666,
+   "average": 0.5725555555555556,
+   "weak": 0.4854444444444444,
+   "novice": 0.34122222222222215,
+   "floor": 0.11011111111111112
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 1
   },
   "botsPassed": [
    "good",
@@ -3848,13 +3840,13 @@
    "novice",
    "floor"
   ],
-  "seconds": 36.161,
-  "seed": 1752643492,
+  "seconds": 33.538,
+  "seed": 750104110,
   "attempts": 4,
   "rejects": {
    "offTarget": 40
   },
-  "ratings": 51
+  "ratings": 54
  },
  {
   "index": 42,
@@ -3884,15 +3876,13 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 209
+     "seconds": 223
     }
    },
    {
     "id": "challenge",
-    "kind": "hire",
-    "params": {
-     "n": 13
-    }
+    "kind": "no_stockpile_overload",
+    "params": {}
    }
   ],
   "stars": {
@@ -3920,15 +3910,15 @@
   "goal": "build",
   "template": "south_fields",
   "target": 0.45,
-  "D": 0.44471038691032333,
-  "F": 0.9291594569438815,
-  "onTarget": true,
+  "D": 0.5103090746754867,
+  "F": 0.9081434811578172,
+  "onTarget": false,
   "margin": {
-   "good": 0.48041333333333336,
-   "average": 0.42982222222222216,
-   "weak": 0.38342222222222216,
-   "novice": 0.2208,
-   "floor": -0.06928888888888889
+   "good": 0.5072261904761906,
+   "average": 0.4583333333333333,
+   "weak": 0.38936507936507936,
+   "novice": 0.28876984126984123,
+   "floor": 0.02708180708180707
   },
   "winRate": {
    "good": 1,
@@ -3944,13 +3934,16 @@
    "novice",
    "floor"
   ],
-  "seconds": 13.898,
+  "seconds": 131.206,
   "seed": 1547836930,
-  "attempts": 1,
+  "attempts": 4,
   "rejects": {
-   "objectives": 2
+   "layout": 105,
+   "objectives": 12,
+   "offTarget": 18,
+   "stall": 2
   },
-  "ratings": 6
+  "ratings": 54
  },
  {
   "index": 43,
@@ -3972,35 +3965,33 @@
     "id": "main",
     "kind": "salvage",
     "params": {
-     "n": 74
+     "n": 71
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 372
+     "seconds": 307
     }
    },
    {
     "id": "challenge",
-    "kind": "hp_floor",
-    "params": {
-     "pct": 80
-    }
+    "kind": "no_injuries",
+    "params": {}
    }
   ],
   "stars": {
    "good": 2.9,
-   "median": 2.33,
+   "median": 1.67,
    "goodAll": 0.9
   },
   "starsByRung": {
    "good": 2.9,
-   "average": 3,
-   "weak": 2.33,
-   "novice": 1.67,
-   "floor": 0.67
+   "average": 2.67,
+   "weak": 1.67,
+   "novice": 2.67,
+   "floor": 1.33
   },
   "modules": [
    "barrier_lines",
@@ -4017,39 +4008,39 @@
   "goal": "salvage",
   "template": "corridor",
   "target": 0.494,
-  "D": 0.9744135697271507,
-  "F": 0.16458440496917784,
+  "D": 0.8999860727831441,
+  "F": 0.5242877899406201,
   "onTarget": false,
   "margin": {
-   "good": 0.7720319148936169,
-   "average": 0.7539952718676123,
-   "weak": 0.7253073286052009,
-   "novice": 0.3919589802568526,
-   "floor": -0.1122142355121079
+   "good": 0.7644202898550725,
+   "average": 0.7247665056360709,
+   "weak": 0.336501099997732,
+   "novice": 0.66829307568438,
+   "floor": 0.24241500532988594
   },
   "winRate": {
    "good": 1,
    "average": 1,
-   "weak": 1,
-   "novice": 0.6666666666666666,
-   "floor": 0.3333333333333333
+   "weak": 0.6666666666666666,
+   "novice": 1,
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 314.926,
+  "seconds": 361.848,
   "seed": 814437043,
   "attempts": 4,
   "rejects": {
-   "idleModule": 24,
-   "infeasible": 11,
-   "offTarget": 4,
-   "stall": 1
+   "infeasible": 3,
+   "offTarget": 15,
+   "idleModule": 16
   },
-  "ratings": 35
+  "ratings": 52
  },
  {
   "index": 44,
@@ -4069,13 +4060,15 @@
     "id": "main",
     "kind": "survive",
     "params": {
-     "seconds": 200
+     "seconds": 190
     }
    },
    {
     "id": "challenge2",
-    "kind": "settlement_never_freezes",
-    "params": {}
+    "kind": "admit",
+    "params": {
+     "n": 5
+    }
    },
    {
     "id": "challenge",
@@ -4108,15 +4101,15 @@
   "goal": "survive",
   "template": "crescent",
   "target": 0.538,
-  "D": 0.02521254611747511,
-  "F": 0.7742383543354932,
+  "D": 0.025804050443460305,
+  "F": 0.7728899122781226,
   "onTarget": false,
   "margin": {
-   "good": 0.667225,
-   "average": 0.6480833333333335,
-   "weak": 0.5925833333333334,
-   "novice": 0.5540000000000002,
-   "floor": 0.3043333333333334
+   "good": 0.661736842105263,
+   "average": 0.6421052631578947,
+   "weak": 0.5914035087719299,
+   "novice": 0.5462280701754387,
+   "floor": 0.27736842105263165
   },
   "winRate": {
    "good": 1,
@@ -4132,14 +4125,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 105.311,
-  "seed": 103669247,
+  "seconds": 85.948,
+  "seed": 922952508,
   "attempts": 4,
   "rejects": {
-   "objectives": 27,
-   "offTarget": 13
+   "objectives": 19,
+   "offTarget": 21
   },
-  "ratings": 73
+  "ratings": 65
  },
  {
   "index": 45,
@@ -4159,14 +4152,14 @@
     "id": "main",
     "kind": "protein",
     "params": {
-     "n": 18
+     "n": 31
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 213
+     "seconds": 209
     }
    },
    {
@@ -4184,8 +4177,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 1.67,
-   "floor": 0
+   "novice": 2.33,
+   "floor": 0.67
   },
   "modules": [
    "barrier_lines",
@@ -4200,15 +4193,15 @@
   "goal": "protein",
   "template": "corridor",
   "target": 0.581,
-  "D": 0.5766133821456089,
-  "F": 0.7994645434478058,
+  "D": 0.599725501632437,
+  "F": 0.7528017210550777,
   "onTarget": true,
   "margin": {
-   "good": 0.52316,
-   "average": 0.5018666666666666,
-   "weak": 0.46657777777777776,
-   "novice": 0.20591111111111113,
-   "floor": -0.1851851851851852
+   "good": 0.5924166666666666,
+   "average": 0.5511805555555555,
+   "weak": 0.4777777777777778,
+   "novice": 0.27982638888888894,
+   "floor": -0.07526881720430108
   },
   "winRate": {
    "good": 1,
@@ -4223,14 +4216,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 123.691,
-  "seed": 350234150,
-  "attempts": 2,
+  "seconds": 91.096,
+  "seed": 196658801,
+  "attempts": 1,
   "rejects": {
-   "layout": 10,
-   "offTarget": 16
+   "layout": 9,
+   "offTarget": 7,
+   "objectives": 1
   },
-  "ratings": 20
+  "ratings": 15
  },
  {
   "index": 46,
@@ -4249,20 +4243,22 @@
     "id": "main",
     "kind": "earn",
     "params": {
-     "n": 480
+     "n": 399
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 307
+     "seconds": 273
     }
    },
    {
     "id": "challenge",
-    "kind": "no_angry_customers",
-    "params": {}
+    "kind": "streak",
+    "params": {
+     "n": 20
+    }
    }
   ],
   "stars": {
@@ -4288,15 +4284,15 @@
   "goal": "earn",
   "template": "crossroads",
   "target": 0.625,
-  "D": 0.5459701240734331,
-  "F": 0.9221066468036603,
-  "onTarget": false,
+  "D": 0.6441111477103245,
+  "F": 0.93834776275605,
+  "onTarget": true,
   "margin": {
-   "good": 0.4484117647058823,
-   "average": 0.39509803921568626,
-   "weak": 0.32869281045751636,
-   "novice": 0.1711437908496732,
-   "floor": -0.40416666666666673
+   "good": 0.46986458333333336,
+   "average": 0.41225694444444444,
+   "weak": 0.3088194444444445,
+   "novice": 0.18274305555555556,
+   "floor": -0.5472013366750209
   },
   "winRate": {
    "good": 1,
@@ -4311,14 +4307,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 109.202,
-  "seed": 973226322,
+  "seconds": 95.422,
+  "seed": 679335405,
   "attempts": 4,
   "rejects": {
-   "offTarget": 33,
-   "stall": 7
+   "offTarget": 29,
+   "stall": 3
   },
-  "ratings": 66
+  "ratings": 53
  },
  {
   "index": 47,
@@ -4341,7 +4337,7 @@
     "id": "main",
     "kind": "chain",
     "params": {
-     "n": 33
+     "n": 38
     }
    },
    {
@@ -4369,7 +4365,7 @@
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 0
+   "floor": 0.67
   },
   "modules": [
    "build_pads",
@@ -4385,22 +4381,22 @@
   "goal": "chain",
   "template": "corridor",
   "target": 0.669,
-  "D": 0.7542624783731537,
-  "F": 0.9007751038091049,
+  "D": 0.767062298363375,
+  "F": 0.8989442983199033,
   "onTarget": false,
   "margin": {
-   "good": 0.4822857142857143,
-   "average": 0.42984126984126986,
-   "weak": 0.4116190476190476,
-   "novice": 0.27904761904761904,
-   "floor": -0.8181818181818182
+   "good": 0.47824761904761903,
+   "average": 0.4405714285714286,
+   "weak": 0.4113015873015873,
+   "novice": 0.3271428571428571,
+   "floor": -0.04687385129490392
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0
+   "floor": 0.3333333333333333
   },
   "botsPassed": [
    "good",
@@ -4408,16 +4404,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 201.109,
+  "seconds": 176.901,
   "seed": 67777143,
   "attempts": 4,
   "rejects": {
-   "objectives": 9,
-   "layout": 67,
-   "offTarget": 27,
-   "stall": 3
+   "layout": 56,
+   "objectives": 8,
+   "offTarget": 32
   },
-  "ratings": 60
+  "ratings": 58
  },
  {
   "index": 48,
@@ -4448,20 +4443,20 @@
     "id": "challenge",
     "kind": "hp_floor",
     "params": {
-     "pct": 80
+     "pct": 55
     }
    }
   ],
   "stars": {
-   "good": 2.7,
+   "good": 2.8,
    "median": 3,
    "goodAll": 0.8
   },
   "starsByRung": {
-   "good": 2.7,
+   "good": 2.8,
    "average": 3,
    "weak": 3,
-   "novice": 2.33,
+   "novice": 2.67,
    "floor": 1
   },
   "modules": [
@@ -4477,15 +4472,15 @@
   "goal": "waves",
   "template": "east_fields",
   "target": 0.713,
-  "D": 0.30536109884834944,
-  "F": 0.27099164970304646,
+  "D": 0.4381356890384166,
+  "F": 0.5643027349748615,
   "onTarget": false,
   "margin": {
-   "good": 0.9301501196032673,
-   "average": 0.9802776172494484,
-   "weak": 0.969651966853777,
-   "novice": 0.9002178653044873,
-   "floor": 0.19462000994620057
+   "good": 0.9342951425239654,
+   "average": 0.9845412588441015,
+   "weak": 0.9769703983192984,
+   "novice": 0.9450121701359331,
+   "floor": -0.17383504405486438
   },
   "winRate": {
    "good": 1,
@@ -4500,17 +4495,17 @@
    "weak",
    "novice"
   ],
-  "seconds": 160.962,
+  "seconds": 191.771,
   "seed": 307298876,
   "attempts": 4,
   "rejects": {
-   "idleModule": 5,
-   "infeasible": 27,
+   "idleModule": 9,
+   "trivial": 1,
    "idleElement": 1,
-   "offTarget": 2,
-   "trivial": 1
+   "offTarget": 8,
+   "infeasible": 19
   },
-  "ratings": 19
+  "ratings": 33
  },
  {
   "index": 49,
@@ -4538,7 +4533,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 129
+     "seconds": 123
     }
    },
    {
@@ -4572,14 +4567,14 @@
   "goal": "clear_zones",
   "template": "north_fields",
   "target": 0.756,
-  "D": 0.7403018556975055,
-  "F": 0.6555567559509683,
+  "D": 0.7286200248734037,
+  "F": 0.6295234231359043,
   "onTarget": true,
   "margin": {
-   "good": 0.5635185185185185,
-   "average": 0.46413580246913577,
-   "weak": 0.4174074074074074,
-   "novice": 0.1515432098765432,
+   "good": 0.5842222222222222,
+   "average": 0.49086419753086413,
+   "weak": 0.40006172839506177,
+   "novice": 0.1445679012345679,
    "floor": -1
   },
   "winRate": {
@@ -4595,12 +4590,12 @@
    "weak",
    "novice"
   ],
-  "seconds": 6.171,
+  "seconds": 4.689,
   "seed": 2061895893,
   "attempts": 1,
   "rejects": {
    "infeasible": 2,
-   "offTarget": 1
+   "stall": 1
   },
   "ratings": 4
  },
@@ -4626,7 +4621,7 @@
     "id": "main",
     "kind": "produce",
     "params": {
-     "n": 42,
+     "n": 36,
      "res": "res.component"
     }
    },
@@ -4634,7 +4629,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 316
+     "seconds": 288
     }
    },
    {
@@ -4655,7 +4650,7 @@
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 2
+   "floor": 0
   },
   "modules": [
    "build_pads",
@@ -4671,22 +4666,22 @@
   "goal": "produce",
   "template": "corridor",
   "target": 0.8,
-  "D": 0.7867789248005892,
-  "F": 0.9207724531684345,
+  "D": 0.8000893777604959,
+  "F": 0.9284567888551924,
   "onTarget": true,
   "margin": {
-   "good": 0.44825925925925925,
-   "average": 0.41746913580246914,
-   "weak": 0.36194444444444446,
-   "novice": 0.2672222222222222,
-   "floor": -0.07944003527336861
+   "good": 0.4394166666666667,
+   "average": 0.3914583333333333,
+   "weak": 0.3469097222222222,
+   "novice": 0.2598263888888889,
+   "floor": -0.1574074074074074
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -4694,14 +4689,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 19.076,
-  "seed": 2014425219,
-  "attempts": 1,
+  "seconds": 61.85,
+  "seed": 641168843,
+  "attempts": 2,
   "rejects": {
-   "layout": 4,
-   "offTarget": 1
+   "layout": 15,
+   "offTarget": 10,
+   "stall": 2
   },
-  "ratings": 4
+  "ratings": 18
  },
  {
   "index": 51,
@@ -4725,7 +4721,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 50
+     "seconds": 38
     }
    },
    {
@@ -4743,7 +4739,7 @@
   },
   "starsByRung": {
    "good": 3,
-   "average": 2.67,
+   "average": 3,
    "weak": 3,
    "novice": 3,
    "floor": 1.33
@@ -4760,15 +4756,15 @@
   "goal": "rescue_all",
   "template": "south_fields",
   "target": 0.4,
-  "D": 0.18924524030598922,
-  "F": 0.8221688248683116,
+  "D": 0.11768525569818797,
+  "F": 0.7881446281678524,
   "onTarget": false,
   "margin": {
-   "good": 0.6180833333333332,
-   "average": 0.5291666666666667,
-   "weak": 0.6027777777777777,
-   "novice": 0.5226388888888889,
-   "floor": 0.11666666666666668
+   "good": 0.7120833333333333,
+   "average": 0.69625,
+   "weak": 0.681111111111111,
+   "novice": 0.6209722222222221,
+   "floor": 0.09999999999999999
   },
   "winRate": {
    "good": 1,
@@ -4784,14 +4780,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 47.859,
-  "seed": 1249703186,
+  "seconds": 50.371,
+  "seed": 900293734,
   "attempts": 4,
   "rejects": {
-   "objectives": 34,
-   "offTarget": 6
+   "objectives": 36,
+   "offTarget": 4
   },
-  "ratings": 77
+  "ratings": 78
  },
  {
   "index": 52,
@@ -4810,14 +4806,14 @@
     "id": "main",
     "kind": "currency",
     "params": {
-     "n": 252
+     "n": 257
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 277
+     "seconds": 274
     }
    },
    {
@@ -4828,13 +4824,13 @@
   ],
   "stars": {
    "good": 3,
-   "median": 2.67,
+   "median": 3,
    "goodAll": 1
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 2.67,
+   "weak": 3,
    "novice": 2.33,
    "floor": 1
   },
@@ -4850,15 +4846,15 @@
   "goal": "currency",
   "template": "north_fields",
   "target": 0.45,
-  "D": 0.5065464641174808,
-  "F": 0.9246042136341971,
-  "onTarget": false,
+  "D": 0.48074338141928014,
+  "F": 0.9183456260597879,
+  "onTarget": true,
   "margin": {
-   "good": 0.49398039215686274,
-   "average": 0.4612418300653595,
-   "weak": 0.4174183006535948,
-   "novice": 0.3093790849673203,
-   "floor": 0.1335294117647059
+   "good": 0.4990980392156863,
+   "average": 0.45905228758169936,
+   "weak": 0.4319607843137255,
+   "novice": 0.3139869281045751,
+   "floor": 0.08124183006535947
   },
   "winRate": {
    "good": 1,
@@ -4874,14 +4870,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 94.389,
+  "seconds": 10.884,
   "seed": 351208237,
-  "attempts": 4,
+  "attempts": 1,
   "rejects": {
-   "offTarget": 37,
-   "objectives": 3
+   "objectives": 1,
+   "offTarget": 1
   },
-  "ratings": 56
+  "ratings": 6
  },
  {
   "index": 53,
@@ -4909,15 +4905,13 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 172
+     "seconds": 167
     }
    },
    {
     "id": "challenge",
-    "kind": "hire",
-    "params": {
-     "n": 11
-    }
+    "kind": "no_stockpile_overload",
+    "params": {}
    }
   ],
   "stars": {
@@ -4944,15 +4938,15 @@
   "goal": "converter_level",
   "template": "east_fields",
   "target": 0.494,
-  "D": 0.5426335153395937,
-  "F": 0.9300687591170215,
+  "D": 0.5230133888748851,
+  "F": 0.9141154073758581,
   "onTarget": true,
   "margin": {
-   "good": 0.48922222222222234,
-   "average": 0.4305820105820106,
-   "weak": 0.3882539682539683,
-   "novice": 0.2602116402116402,
-   "floor": -0.5555555555555557
+   "good": 0.5095396825396825,
+   "average": 0.4791534391534391,
+   "weak": 0.42682539682539683,
+   "novice": 0.32005291005291003,
+   "floor": -0.6666666666666666
   },
   "winRate": {
    "good": 1,
@@ -4967,15 +4961,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 53.6,
+  "seconds": 47.466,
   "seed": 1518513484,
   "attempts": 2,
   "rejects": {
+   "layout": 52,
    "objectives": 3,
-   "stall": 1,
-   "offTarget": 15
+   "offTarget": 11
   },
-  "ratings": 29
+  "ratings": 23
  },
  {
   "index": 54,
@@ -5001,28 +4995,28 @@
    },
    {
     "id": "challenge2",
-    "kind": "no_injuries",
-    "params": {}
+    "kind": "hp_floor",
+    "params": {
+     "pct": 75
+    }
    },
    {
     "id": "challenge",
-    "kind": "hp_floor",
-    "params": {
-     "pct": 80
-    }
+    "kind": "no_wall_lost",
+    "params": {}
    }
   ],
   "stars": {
-   "good": 3,
+   "good": 2.6,
    "median": 3,
-   "goodAll": 1
+   "goodAll": 0.6
   },
   "starsByRung": {
-   "good": 3,
-   "average": 3,
+   "good": 2.6,
+   "average": 1,
    "weak": 3,
-   "novice": 3,
-   "floor": 1
+   "novice": 2.33,
+   "floor": 1.67
   },
   "modules": [
    "barrier_lines",
@@ -5039,39 +5033,39 @@
   "goal": "waves_survived",
   "template": "west_fields",
   "target": 0.538,
-  "D": 0.6530681328703559,
-  "F": 0.14645434747769337,
+  "D": 0.4444767264476646,
+  "F": 0.06422189966419037,
   "onTarget": false,
   "margin": {
-   "good": 0.986021828545517,
-   "average": 0.985338154059266,
-   "weak": 0.9862839878110409,
-   "novice": 0.9849025007259029,
-   "floor": 0.10412780408475626
+   "good": 0.9378725254736026,
+   "average": 0.09790979097909773,
+   "weak": 0.9791189265687702,
+   "novice": 0.9657893685808343,
+   "floor": 0.5327878134968752
   },
   "winRate": {
    "good": 1,
-   "average": 1,
+   "average": 0.3333333333333333,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
-   "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 137.716,
-  "seed": 271138203,
+  "seconds": 117.216,
+  "seed": 1988824582,
   "attempts": 4,
   "rejects": {
-   "infeasible": 16,
-   "idleModule": 23,
-   "offTarget": 4,
-   "trivial": 4
+   "infeasible": 24,
+   "offTarget": 11,
+   "trivial": 6,
+   "idleModule": 2
   },
-  "ratings": 30
+  "ratings": 24
  },
  {
   "index": 55,
@@ -5100,7 +5094,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 108
+     "seconds": 104
     }
    },
    {
@@ -5118,7 +5112,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2,
+   "novice": 1.33,
    "floor": 0
   },
   "modules": [
@@ -5133,21 +5127,21 @@
   "goal": "build_count",
   "template": "crossroads",
   "target": 0.581,
-  "D": 0.5357253062725698,
-  "F": 0.6969591655114016,
+  "D": 0.5592107319222323,
+  "F": 0.7886530504002329,
   "onTarget": true,
   "margin": {
-   "good": 0.5519777777777778,
-   "average": 0.47948148148148145,
-   "weak": 0.4212592592592593,
-   "novice": 0.14355555555555555,
+   "good": 0.5486190476190477,
+   "average": 0.4665873015873016,
+   "weak": 0.3813492063492063,
+   "novice": -0.1184920634920635,
    "floor": -1
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
-   "novice": 1,
+   "novice": 0.6666666666666666,
    "floor": 0
   },
   "botsPassed": [
@@ -5156,13 +5150,13 @@
    "weak",
    "novice"
   ],
-  "seconds": 10.278,
+  "seconds": 9.631,
   "seed": 2110915574,
   "attempts": 1,
   "rejects": {
-   "offTarget": 8
+   "offTarget": 4
   },
-  "ratings": 13
+  "ratings": 10
  },
  {
   "index": 56,
@@ -5188,7 +5182,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 73
+     "seconds": 63
     }
    },
    {
@@ -5223,15 +5217,15 @@
   "goal": "crates",
   "template": "crescent",
   "target": 0.625,
-  "D": 0.5506018007071262,
-  "F": 0.9552122969502131,
+  "D": 0.44223056511689085,
+  "F": 0.9043241732405776,
   "onTarget": false,
   "margin": {
-   "good": 0.44125,
-   "average": 0.3361111111111111,
-   "weak": 0.42083333333333334,
-   "novice": 0.23416666666666666,
-   "floor": -0.16333333333333333
+   "good": 0.5202916666666666,
+   "average": 0.4330555555555556,
+   "weak": 0.4647222222222222,
+   "novice": 0.32763888888888887,
+   "floor": -0.16458333333333333
   },
   "winRate": {
    "good": 1,
@@ -5246,15 +5240,16 @@
    "weak",
    "novice"
   ],
-  "seconds": 53.141,
+  "seconds": 55.843,
   "seed": 1427777921,
   "attempts": 4,
   "rejects": {
-   "objectives": 5,
-   "offTarget": 34,
+   "objectives": 18,
+   "offTarget": 17,
+   "idleElement": 4,
    "trivial": 1
   },
-  "ratings": 55
+  "ratings": 66
  },
  {
   "index": 57,
@@ -5280,7 +5275,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 441
+     "seconds": 435
     }
    },
    {
@@ -5301,7 +5296,7 @@
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 0
+   "floor": 0.67
   },
   "modules": [
    "build_pads",
@@ -5315,22 +5310,22 @@
   "goal": "serve_premium",
   "template": "south_fields",
   "target": 0.669,
-  "D": 0.676832429322451,
-  "F": 0.9440506072979116,
+  "D": 0.695920424980833,
+  "F": 0.9190644955362358,
   "onTarget": true,
   "margin": {
-   "good": 0.4365042735042735,
-   "average": 0.4178632478632478,
-   "weak": 0.3747578347578348,
-   "novice": 0.22903133903133907,
-   "floor": -0.13725490196078435
+   "good": 0.5236875000000001,
+   "average": 0.5046990740740741,
+   "weak": 0.48134259259259254,
+   "novice": 0.29967592592592596,
+   "floor": -0.13933959694989106
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0
+   "floor": 0.3333333333333333
   },
   "botsPassed": [
    "good",
@@ -5338,13 +5333,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 83.628,
-  "seed": 1417587148,
-  "attempts": 4,
+  "seconds": 39.42,
+  "seed": 1971604650,
+  "attempts": 2,
   "rejects": {
-   "offTarget": 33
+   "offTarget": 14,
+   "objectives": 1
   },
-  "ratings": 49
+  "ratings": 22
  },
  {
   "index": 58,
@@ -5368,22 +5364,20 @@
     "kind": "stockpile",
     "params": {
      "res": "res.material_basic",
-     "n": 24
+     "n": 18
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 307
+     "seconds": 277
     }
    },
    {
     "id": "challenge",
-    "kind": "hire",
-    "params": {
-     "n": 12
-    }
+    "kind": "no_stockpile_overload",
+    "params": {}
    }
   ],
   "stars": {
@@ -5412,15 +5406,15 @@
   "goal": "stockpile",
   "template": "corridor",
   "target": 0.713,
-  "D": 0.7989642989371606,
-  "F": 0.8206865490642855,
+  "D": 0.8020492925338428,
+  "F": 0.8100366548123085,
   "onTarget": false,
   "margin": {
-   "good": 0.5002631578947369,
-   "average": 0.4791812865497076,
-   "weak": 0.43181286549707604,
-   "novice": 0.33678362573099413,
-   "floor": -0.205
+   "good": 0.4951666666666667,
+   "average": 0.4589542483660131,
+   "weak": 0.41444444444444445,
+   "novice": 0.2929084967320261,
+   "floor": -0.16372549019607843
   },
   "winRate": {
    "good": 1,
@@ -5435,17 +5429,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 132.897,
-  "seed": 212345883,
+  "seconds": 137.647,
+  "seed": 955612634,
   "attempts": 4,
   "rejects": {
-   "layout": 38,
-   "objectives": 7,
-   "probe": 1,
-   "offTarget": 27,
-   "stall": 5
+   "layout": 103,
+   "objectives": 6,
+   "offTarget": 34
   },
-  "ratings": 54
+  "ratings": 60
  },
  {
   "index": 59,
@@ -5473,7 +5465,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 368
+     "seconds": 353
     }
    },
    {
@@ -5486,14 +5478,14 @@
   ],
   "stars": {
    "good": 2.9,
-   "median": 1.67,
+   "median": 2.67,
    "goodAll": 0.9
   },
   "starsByRung": {
    "good": 2.9,
-   "average": 2.67,
-   "weak": 1.67,
-   "novice": 0.67,
+   "average": 2,
+   "weak": 2.67,
+   "novice": 2.33,
    "floor": 0
   },
   "modules": [
@@ -5508,36 +5500,36 @@
   "goal": "boss",
   "template": "south_fields",
   "target": 0.756,
-  "D": 0.95250278536044,
-  "F": 0.5663239583093949,
-  "onTarget": false,
+  "D": 0.7731167523430275,
+  "F": 0.5791216057313836,
+  "onTarget": true,
   "margin": {
-   "good": 0.7295647058823529,
-   "average": 0.7256862745098039,
-   "weak": 0.152,
-   "novice": -0.4266143790849673,
+   "good": 0.6019636363636365,
+   "average": 0.07430303030303032,
+   "weak": 0.6012323232323232,
+   "novice": 0.6051919191919192,
    "floor": -1
   },
   "winRate": {
    "good": 1,
-   "average": 1,
-   "weak": 0.6666666666666666,
-   "novice": 0.3333333333333333,
+   "average": 0.6666666666666666,
+   "weak": 1,
+   "novice": 1,
    "floor": 0
   },
   "botsPassed": [
    "good",
    "average",
-   "weak"
+   "weak",
+   "novice"
   ],
-  "seconds": 221.097,
+  "seconds": 33.873,
   "seed": 1598010570,
-  "attempts": 4,
+  "attempts": 1,
   "rejects": {
-   "infeasible": 29,
-   "offTarget": 7
+   "infeasible": 1
   },
-  "ratings": 27
+  "ratings": 2
  },
  {
   "index": 60,
@@ -5559,14 +5551,14 @@
     "id": "main",
     "kind": "kills",
     "params": {
-     "n": 156
+     "n": 161
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 316
+     "seconds": 370
     }
    },
    {
@@ -5578,15 +5570,15 @@
    }
   ],
   "stars": {
-   "good": 2.9,
+   "good": 3,
    "median": 3,
-   "goodAll": 0.9
+   "goodAll": 1
   },
   "starsByRung": {
-   "good": 2.9,
+   "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.67,
+   "novice": 3,
    "floor": 1.67
   },
   "modules": [
@@ -5605,15 +5597,15 @@
   "goal": "kills",
   "template": "corridor",
   "target": 0.8,
-  "D": 0.8490782097333961,
-  "F": 0.45200930138802686,
+  "D": 0.7841970469773583,
+  "F": 0.779500900701372,
   "onTarget": true,
   "margin": {
-   "good": 0.6923125,
-   "average": 0.6937326388888888,
-   "weak": 0.6927256944444444,
-   "novice": 0.6907118055555556,
-   "floor": 0.27851362179487177
+   "good": 0.5974736842105263,
+   "average": 0.5975243664717348,
+   "weak": 0.5976023391812866,
+   "novice": 0.5982846003898635,
+   "floor": 0.2894699308658119
   },
   "winRate": {
    "good": 1,
@@ -5629,14 +5621,12 @@
    "novice",
    "floor"
   ],
-  "seconds": 225.266,
-  "seed": 1328600182,
-  "attempts": 2,
+  "seconds": 46.113,
+  "seed": 305521690,
+  "attempts": 1,
   "rejects": {
-   "offTarget": 6,
-   "objectives": 4,
-   "trivial": 2
+   "offTarget": 1
   },
-  "ratings": 25
+  "ratings": 4
  }
 ]

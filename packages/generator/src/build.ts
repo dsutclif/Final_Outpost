@@ -322,6 +322,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   let saw = false, alloy = false;
   if (indus && shopAt && food1) {
     const g = P.place("grill", R.conv, ring ? inner : [shopAt[0] - 200, shopAt[1] - 160, 300, 260], { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), samples: 200, fp: "conv.food_processor" })
+      ?? P.place("grill", R.conv, inner, { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), samples: 320, fp: "conv.food_processor" })
       ?? fail("no room for the food processor");
     pad({ type: "pad.build", id: "grill", at: [...g], cost: { "res.currency": cost("grill") }, build: "conv.food_processor" });
     const gOp = opPos("conv.food_processor", g);

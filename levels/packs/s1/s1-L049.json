@@ -1,8 +1,8 @@
 {
   "id": "s1-L049",
   "seed": 2061895893,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -61,94 +61,94 @@
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
         154,
         452
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        179,
-        482
+        185,
+        451
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        113,
-        463
+        152,
+        481
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        194,
-        440
+        126,
+        431
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        429
+        153,
+        418
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        177,
-        409
+        121,
+        464
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        180,
+        497
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        124,
+        493
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        186,
+        417
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        213,
+        442
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         133,
-        485
+        396
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
-        130,
-        399
+        88,
+        416
       ]
     },
     {
-      "type": "node.fuel_scrap",
-      "at": [
-        136,
-        514
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        221,
-        456
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        90,
-        439
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        106,
-        500
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
         222,
-        419
+        397
       ]
     },
     {
@@ -216,9 +216,9 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 28,
-      "start": 36,
-      "end": 58
+      "warnAt": 29,
+      "start": 37,
+      "end": 59
     }
   ],
   "params": {
@@ -247,7 +247,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 129
+        "seconds": 123
       }
     },
     {
@@ -269,9 +269,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.74,
-    "fun": 0.656,
-    "botMargin": 0.564,
+    "difficulty": 0.729,
+    "fun": 0.63,
+    "botMargin": 0.584,
     "botsPassed": [
       "good",
       "average",

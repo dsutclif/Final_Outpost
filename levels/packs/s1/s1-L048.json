@@ -1,8 +1,8 @@
 {
   "id": "s1-L048",
   "seed": 307298876,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,50 +37,50 @@
         500
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 10,
         "level": 1
       }
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
         319,
         459
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        295,
-        502
+        313,
+        489
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        354,
-        483
+        289,
+        467
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        279,
-        442
+        351,
+        478
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        332,
-        515
+        309,
+        425
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        306,
-        422
+        320,
+        518
       ]
     },
     {
@@ -93,43 +93,22 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        342,
-        407
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        265,
-        415
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        310,
-        544
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        353,
-        535
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        273,
-        537
+        351,
+        511
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         289,
-        397
+        513
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        349,
+        402
       ]
     },
     {
@@ -217,8 +196,8 @@
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        264,
-        348
+        266,
+        332
       ],
       "cost": {
         "res.salvage": 8
@@ -233,8 +212,8 @@
       "type": "pad.build",
       "id": "medic",
       "at": [
-        308,
-        590
+        332,
+        623
       ],
       "cost": {
         "res.salvage": 6
@@ -264,36 +243,46 @@
       "gap": 0.4
     },
     {
-      "t": 48,
+      "t": 20,
       "counts": {
-        "hostile.swarmling": 5
+        "hostile.swarmling": 7
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 96,
+      "t": 62,
       "counts": {
-        "hostile.swarmling": 8,
-        "hostile.raider_humanoid": 1
+        "hostile.swarmling": 11,
+        "hostile.raider_humanoid": 2
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 144,
-      "counts": {
-        "hostile.swarmling": 12,
-        "hostile.raider_humanoid": 3
-      },
-      "side": "n",
-      "gap": 0.7
-    },
-    {
-      "t": 192,
+      "t": 104,
       "counts": {
         "hostile.swarmling": 16,
-        "hostile.raider_humanoid": 4,
+        "hostile.raider_humanoid": 3,
+        "hostile.boss": 1
+      },
+      "side": "n",
+      "gap": 0.7
+    },
+    {
+      "t": 146,
+      "counts": {
+        "hostile.swarmling": 21,
+        "hostile.raider_humanoid": 5
+      },
+      "side": "n",
+      "gap": 0.7
+    },
+    {
+      "t": 188,
+      "counts": {
+        "hostile.swarmling": 26,
+        "hostile.raider_humanoid": 7,
         "hostile.boss": 1
       },
       "side": "n",
@@ -302,11 +291,11 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.5,
+    "start.currency": 1,
+    "core.burn": 2.1,
     "housing.base": 5,
-    "meters.baseHealth": 12,
-    "level.budgetSeconds": 530
+    "meters.baseHealth": 10,
+    "level.budgetSeconds": 420
   },
   "goal": {
     "type": "waves"
@@ -327,7 +316,7 @@
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 80
+        "pct": 55
       }
     }
   ],
@@ -345,9 +334,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.305,
-    "fun": 0.271,
-    "botMargin": 0.93,
+    "difficulty": 0.438,
+    "fun": 0.564,
+    "botMargin": 0.934,
     "botsPassed": [
       "good",
       "average",
@@ -355,7 +344,7 @@
       "novice"
     ],
     "stars": {
-      "good": 2.7,
+      "good": 2.8,
       "median": 3,
       "goodAll": 0.8
     }

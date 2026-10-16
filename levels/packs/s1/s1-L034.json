@@ -1,8 +1,8 @@
 {
   "id": "s1-L034",
   "seed": 304161225,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -43,59 +43,52 @@
       }
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
         179,
         458
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        218,
-        423
+        208,
+        458
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        496
+        171,
+        428
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        194,
-        517
+        195,
+        493
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        168,
-        412
+        203,
+        417
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        257,
-        442
+        171,
+        511
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        256,
-        412
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        167,
-        530
+        197,
+        529
       ]
     },
     {
@@ -181,7 +174,7 @@
       ]
     },
     {
-      "type": "capture.supply_crate",
+      "type": "capture.recruit_container",
       "at": [
         39,
         610
@@ -202,6 +195,20 @@
       ]
     },
     {
+      "type": "capture.supply_crate",
+      "at": [
+        63,
+        295
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        172,
+        216
+      ]
+    },
+    {
       "type": "zone.prey",
       "id": "prey",
       "rect": [
@@ -218,14 +225,14 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.3,
-    "housing.base": 6,
-    "level.budgetSeconds": 340
+    "start.currency": 1,
+    "core.burn": 2.2,
+    "housing.base": 7,
+    "level.budgetSeconds": 360
   },
   "goal": {
     "type": "hunt",
-    "n": 33
+    "n": 31
   },
   "family": "rescue",
   "objectives": [
@@ -233,14 +240,14 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 33
+        "n": 31
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 270
+        "seconds": 283
       }
     },
     {
@@ -264,9 +271,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.573,
-    "fun": 0.429,
-    "botMargin": 0.505,
+    "difficulty": 0.578,
+    "fun": 0.588,
+    "botMargin": 0.502,
     "botsPassed": [
       "good",
       "average",

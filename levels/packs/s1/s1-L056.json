@@ -1,8 +1,8 @@
 {
   "id": "s1-L056",
   "seed": 1427777921,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -42,52 +42,52 @@
       }
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
         184,
         451
       ]
     },
     {
-      "type": "node.material_source",
-      "at": [
-        175,
-        496
-      ]
-    },
-    {
       "type": "node.fuel_scrap",
       "at": [
-        234,
-        446
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        216,
-        412
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        190,
-        398
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        258,
-        415
+        179,
+        485
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         198,
-        529
+        421
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        169,
+        402
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        221,
+        403
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        192,
+        520
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
+        510
       ]
     },
     {
@@ -198,8 +198,8 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
-    "core.burn": 2.1,
+    "start.currency": 1,
+    "core.burn": 2.2,
     "housing.base": 5,
     "level.budgetSeconds": 80
   },
@@ -220,7 +220,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 73
+        "seconds": 63
       }
     },
     {
@@ -244,9 +244,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.551,
-    "fun": 0.955,
-    "botMargin": 0.441,
+    "difficulty": 0.442,
+    "fun": 0.904,
+    "botMargin": 0.52,
     "botsPassed": [
       "good",
       "average",

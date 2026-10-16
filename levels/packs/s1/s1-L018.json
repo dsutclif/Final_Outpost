@@ -1,8 +1,8 @@
 {
   "id": "s1-L018",
-  "seed": 1071243415,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "seed": 1825322637,
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,8 +44,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        333,
-        638
+        335,
+        635
       ],
       "sells": [
         "res.food_raw_1"
@@ -55,93 +55,93 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        140,
-        585
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        93,
-        441
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        97,
-        482
+        144,
+        596
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        133,
+        108,
         448
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        122,
-        408
+        76,
+        451
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        67,
-        410
+        98,
+        418
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        61,
-        466
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        40,
-        429
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        101,
-        385
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        154,
+        109,
         477
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        155,
-        423
+        138,
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        77,
-        516
+        136,
+        466
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        83,
+        490
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        63,
+        418
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        157,
+        442
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        106,
+        375
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        45,
+        478
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        70,
-        605
+        71,
+        581
       ],
       "enabled": false
     },
@@ -149,8 +149,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        178,
-        522
+        190,
+        384
       ],
       "cost": {
         "res.currency": 10
@@ -165,8 +165,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        203,
-        598
+        214,
+        637
       ],
       "cost": {
         "res.currency": 15
@@ -182,8 +182,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        332,
-        528
+        328,
+        508
       ],
       "cost": {
         "res.currency": 22
@@ -200,8 +200,8 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        70,
-        605
+        71,
+        581
       ],
       "cost": {
         "res.currency": 19
@@ -216,8 +216,8 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        206,
-        674
+        135,
+        673
       ],
       "cost": {
         "res.currency": 19
@@ -250,17 +250,17 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.1,
+    "start.currency": 3,
+    "core.burn": 2.2,
     "housing.base": 6,
     "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 380
+    "level.budgetSeconds": 320
   },
   "goal": {
     "type": "currency",
-    "n": 367
+    "n": 338
   },
   "family": "harvest",
   "objectives": [
@@ -268,20 +268,22 @@
       "id": "main",
       "kind": "currency",
       "params": {
-        "n": 367
+        "n": 338
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 300
+        "seconds": 283
       }
     },
     {
       "id": "challenge",
-      "kind": "no_angry_customers",
-      "params": {}
+      "kind": "streak",
+      "params": {
+        "n": 20
+      }
     }
   ],
   "fail": [
@@ -290,16 +292,16 @@
   "text": {
     "mars_greenhouse": {
       "title": "Vaults and Ledgers",
-      "goal": "Bank 367 credits",
+      "goal": "Bank 338 credits",
       "tips": [
         "Some grow domes start locked. Unlock them with credits on their pad."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.385,
-    "fun": 0.894,
-    "botMargin": 0.511,
+    "difficulty": 0.352,
+    "fun": 0.905,
+    "botMargin": 0.456,
     "botsPassed": [
       "good",
       "average",

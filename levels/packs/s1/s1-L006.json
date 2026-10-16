@@ -1,8 +1,8 @@
 {
   "id": "s1-L006",
   "seed": 39245116,
-  "engineVersion": "0.6.0",
-  "contentVersion": "0.6.0",
+  "engineVersion": "0.6.1",
+  "contentVersion": "0.6.1",
   "map": {
     "w": 480,
     "h": 900,
@@ -59,94 +59,94 @@
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
         357,
         452
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        359,
-        492
+        347,
+        483
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        359,
-        411
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        316,
-        442
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        396,
-        470
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        312,
-        485
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        392,
-        426
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        325,
-        406
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        291,
-        461
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        397,
-        503
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        294,
+        348,
         423
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        389,
+        382,
+        475
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        322,
+        452
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        384,
+        441
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        412,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        375,
+        506
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        307,
+        486
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        360,
         396
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        421,
-        434
+        318,
+        418
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        407,
+        394
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        309,
+        380
       ]
     },
     {
@@ -165,8 +165,8 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        266,
-        565
+        261,
+        616
       ],
       "cost": {
         "res.currency": 14
@@ -177,8 +177,8 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        98,
-        554
+        137,
+        529
       ],
       "cost": {
         "res.currency": 17
@@ -243,8 +243,8 @@
     }
   },
   "rating": {
-    "difficulty": 0.198,
-    "fun": 0.81,
+    "difficulty": 0.2,
+    "fun": 0.783,
     "botMargin": 0.581,
     "botsPassed": [
       "good",

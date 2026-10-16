@@ -26,7 +26,7 @@ import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStockCollapse } from "./systems/stock.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.6.0";
+export const ENGINE_VERSION = "0.6.1";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([

@@ -71,7 +71,7 @@
       "modules": ["converters"],
       "teachGoal": "produce",
       "intro": [["material_processor", "converter_levels"], ["depot", "conveyors"]],
-      "challenges": ["no_stockpile_overload", "hire", "produce", "converters_running"]
+      "challenges": ["no_stockpile_overload", "hire", "settlement_never_freezes", "heat_floor"]
     },
     "defend": {
       "modules": ["defense"],
