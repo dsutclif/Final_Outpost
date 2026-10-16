@@ -150,6 +150,8 @@ export interface BarrierSectionState {
   gate: boolean;
   /** Resource units paid toward building this section. */
   paid: number;
+  /** Set when a hostile destroyed this section while repair is enabled; rebuilding then costs the repair price. */
+  broken?: boolean;
 }
 
 export interface BarrierState {

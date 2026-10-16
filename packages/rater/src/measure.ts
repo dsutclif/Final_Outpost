@@ -35,6 +35,8 @@ export interface Measurement {
   /** Reference bot replayed with priority-order variants (decisiveness). */
   variants: BotResult[];
   metrics: Metrics;
+  /** Mean wall repairs per reference-bot run (0 while barrier.repairK is off). */
+  repairs: number;
   budgetTicks: number;
   template: string;
   history: readonly HistoryEntry[];
@@ -72,7 +74,8 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const template = opts.template ?? manifest.map.zones.join("|");
   const history = opts.history ?? [];
   const metrics = computeMetrics(manifest, content, plan, runs, budgetTicks, history);
-  return { manifest, plan, runs, variants, metrics, budgetTicks, template, history };
+  const repairs = mean(runs[REFERENCE]!.map((r) => r.trace.repairs));
+  return { manifest, plan, runs, variants, metrics, repairs, budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,
