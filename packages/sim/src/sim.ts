@@ -8,6 +8,7 @@ import type { BarrierState, NodeState, PadState, SalesState, State, StructureSta
 import { stepBarrierBuild, buildSection, sectionHpMax } from "./systems/barriers.js";
 import { newResident, ringPoint } from "./systems/common.js";
 import { placeConverter, stepConverters } from "./systems/converters.js";
+import { stepConveyors } from "./systems/conveyors.js";
 import { safeRadius, stepCore } from "./systems/core.js";
 import { stepDefense } from "./systems/defense.js";
 import { stepFreeze } from "./systems/freeze.js";
@@ -30,7 +31,7 @@ export const ENGINE_VERSION = "0.5.1";
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
   "carry", "gather", "core", "sales",
   "workers", "build_pads", "source_gating", "barrier_lines", "lasso", "housing", "core_levels", "blocked_zones",
-  "hunting", "converters", "customer_variety", "defense", "defenders", "salvage_upgrades", "medical", "hazard_events",
+  "hunting", "converters", "customer_variety", "defense", "defenders", "salvage_upgrades", "medical", "hazard_events", "conveyors",
   "supply_routing",
 ]);
 
@@ -224,6 +225,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       stepResidents(state, cp, out);
       stepSales(state, cp, out);
       stepConverters(state, cp, out);
+      stepConveyors(state, cp, out);
       stepHunting(state, cp);
       stepDefense(state, cp, out);
       refreshPads(state, cp);

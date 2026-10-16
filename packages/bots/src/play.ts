@@ -72,7 +72,7 @@ export interface BotTrace {
   warningLead: number;
 }
 
-/** End-of-run numbers the generator sizes star objectives from (REDESIGN-R2 §6). */
+/** End-of-run numbers the generator sizes star objectives from (REDESIGN-R2 ï¿½6). */
 export interface RunStats {
   /** Lowest core fuel, per mille of capacity. */
   heatMin: number;
@@ -119,6 +119,8 @@ export interface ElementUse {
   admitted: number;
   /** Hazard events ridden out. */
   hazards: number;
+  /** Units conveyor belts delivered. */
+  conveyed: number;
 }
 
 export interface BotResult {
@@ -322,7 +324,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const usedEl: ElementUse = {
     pads: st.pads.filter((p) => p.done || builtPads.has(p.id) || (brain.hiresByPad[p.id] ?? 0) > 0).map((p) => p.id),
     lines: [...lines], nodes: [...nodesUsed], converters: [...convUsed], captures: capturesHome, preyKilled: s.preyKilled, sold: s.sold,
-    admitted: s.admitted, hazards: s.hazardsSurvived,
+    admitted: s.admitted, hazards: s.hazardsSurvived, conveyed: st.stats.conveyed ?? 0,
   };
   const res: BotResult = {
     profile: profile.name, seed, won, reason, ticks, margin, stalls, stallStates, trace,

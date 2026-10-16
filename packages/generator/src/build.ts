@@ -331,7 +331,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     }
     if (feat.has("material_processor")) {
       saw = true;
-      const s = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), samples: 200, fp: "conv.material_processor" })
+      const sawOpts = { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), fp: "conv.material_processor" };
+      const s = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...sawOpts, samples: 200 })
+        ?? P.place("saw", R.conv, inner, { ...sawOpts, samples: 320 })
         ?? fail("no room for the material processor");
       pad({ type: "pad.build", id: "saw", at: [...s], cost: { "res.currency": cost("saw") }, build: "conv.material_processor" });
       const sOp = opPos("conv.material_processor", s);
@@ -342,7 +344,13 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "sawyer" } });
       if (feat.has("tier2")) {
         alloy = true;
-        const a = P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { near: toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), samples: 240, fp: "conv.alloy_works" })
+        // With a belt the parts works stands beside the smelter, square to the line to the core,
+        // so the belt run is short and never crosses the base.
+        const toCore = dist(s, core) || 1, side = s[0] < core[0] ? -1 : 1;
+        const beside: Pt = [Math.round(s[0] - side * (core[1] - s[1]) / toCore * 150), Math.round(s[1] + side * (core[0] - s[0]) / toCore * 150)];
+        const alloyOpts = { near: feat.has("conveyors") ? beside : toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), fp: "conv.alloy_works" };
+        const a = P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { ...alloyOpts, samples: 240 })
+          ?? P.place("alloy", R.conv, inner, { ...alloyOpts, samples: 320 })
           ?? fail("no room for the alloy works");
         pad({ type: "pad.build", id: "alloy", at: [...a], cost: { "res.currency": cost("alloy") }, build: "conv.alloy_works", requires: { pad: "sawyer" } });
         const aOp = opPos("conv.alloy_works", a);
@@ -352,6 +360,20 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "smith" } });
         const cs = crewPad("component_server", aOp, -1, 2);
         pad({ type: "pad.hire", id: "component_server", at: [...cs], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.alloy_works", to: "sink.sales_point" }, requires: { pad: "refined_carrier" } });
+        if (feat.has("conveyors")) {
+          // The step after haulers (R3 item 16): a belt from the smelter's tray to the parts works,
+          // bought once the hauler runs. Its run is kept clear: nothing already placed may sit on
+          // it, and later stations treat it like a wall.
+          const d = c.converters["conv.material_processor"]!.pickupOffset;
+          const from: Pt = [s[0] + d[0], s[1] + d[1]];
+          for (const st of P.stations) {
+            if (["saw", "alloy"].includes(st.id) || st.tight) continue;
+            if (segDist([st.x, st.y], from, a) < st.r + 8) fail(`belt run blocked by ${st.id}`);
+          }
+          P.walls.push([from, a]);
+          const bp = placePad("belt", toward(from, a, 0.5), { region: [Math.min(from[0], a[0]) - 90, Math.min(from[1], a[1]) - 90, Math.abs(a[0] - from[0]) + 180, Math.abs(a[1] - from[1]) + 180] });
+          pad({ type: "pad.build", id: "belt", at: [...bp], cost: { "res.currency": cost("belt") }, build: "struct.conveyor", link: { from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "refined_carrier" } });
+        }
         sells.push("res.component");
       }
     }

@@ -40,6 +40,7 @@
     "converter_levels": { "family": "industrialize", "modules": [], "anchor": true },
     "tier2": { "family": "industrialize", "modules": [], "with": ["material_processor"] },
     "depot": { "family": "industrialize", "modules": ["supply_routing"] },
+    "conveyors": { "family": "industrialize", "modules": ["conveyors"], "with": ["tier2"] },
     "turrets": { "family": "defend", "modules": [] },
     "salvage_upgrades": { "family": "defend", "modules": ["salvage_upgrades"], "with": ["turrets"] },
     "multi_side": { "family": "defend", "modules": [] },
@@ -69,7 +70,7 @@
     "industrialize": {
       "modules": ["converters"],
       "teachGoal": "produce",
-      "intro": [["material_processor", "converter_levels"], ["depot"]],
+      "intro": [["material_processor", "converter_levels"], ["depot", "conveyors"]],
       "challenges": ["no_stockpile_overload", "hire"]
     },
     "defend": {

@@ -240,6 +240,7 @@ export interface Compiled {
   proteinRes: string[];
   events: CompiledEvent[];
   baseHealth: number;
+  conveyor: { speed: number; everyTicks: number; capacity: number; gap: number };
   routing: { hintFill: number };
   stats: { lifelineLow: number; coreLowFill: number };
   timerTicks: number;
@@ -517,6 +518,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     proteinRes,
     events,
     baseHealth: int("meters.baseHealth"),
+    conveyor: { speed: perTick(param("conveyor.speed")), everyTicks: ticks(param("conveyor.everySeconds")), capacity: int("conveyor.capacity"), gap: fp(param("conveyor.gap")) },
     routing: { hintFill: ratio(param("routing.hintFill")) },
     stats: { lifelineLow: ratio(param("stats.lifelineLow")), coreLowFill: ratio(param("stats.coreLowFill")) },
     timerTicks: timerSeconds > 0 ? ticks(timerSeconds) : 0,

@@ -35,7 +35,7 @@
     "hire.core": 8, "hire.food": 12, "hire.cashier": 18, "unlock": 15, "hire.food2": 15,
     "housing": 12, "core.level": 25, "zone": 15, "grill": 12, "hire.cook": 10, "hire.server": 10,
     "hire.feeder": 10, "saw": 15, "hire.sawyer": 10, "hire.hunter": 12, "depot": 20, "hire.hauler": 10,
-    "hire.depotSupplier": 10, "alloy": 20, "hire.smith": 10, "conv.level": 18,
+    "hire.depotSupplier": 10, "alloy": 20, "hire.smith": 10, "conv.level": 18, "belt": 16,
     "salvage.tower": 8, "salvage.towerUp": 6, "salvage.reinforce": 6, "salvage.barracks": 5, "salvage.train": 4, "salvage.medic": 6
   },
   "rings": {

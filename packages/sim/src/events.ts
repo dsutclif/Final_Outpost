@@ -51,6 +51,7 @@ export type SimEvent =
   | { t: "hazard_end" }
   // converters
   | { t: "converted"; conv: string; res: string }
+  | { t: "conveyed"; belt: string; res: string; at: Vec }
   | { t: "converter_upgraded"; conv: string; level: number };
 
 export type HintKey =

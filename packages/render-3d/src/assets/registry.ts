@@ -6,7 +6,7 @@ import { ART_M } from "../units.js";
 import { buildConverter, buildCore, buildGate, buildGuardPost, buildHabPod, buildKiosk, buildLandmark, buildMedBay, buildTurret, buildWarehouse } from "./buildings.js";
 import { buildCharacterModel, lookFor } from "./characters.js";
 import { anchor, mesh, model, type BuildCtx, type Model } from "./common.js";
-import { buildClerkPad, buildItem, buildPile } from "./props.js";
+import { buildBelt, buildClerkPad, buildItem, buildPile } from "./props.js";
 import {
   buildBarrierDash, buildBurrow, buildFuelCache, buildGrowDome, buildOrePile, buildPadPlate, buildRubble,
   buildScrapPile, buildStasisPod, buildSupplyCrate, buildStormPreset, buildWaitingMarker, buildWallPanel,
@@ -106,6 +106,7 @@ registerModel("struct.landmark", (ctx) => buildLandmark(ctx));
 registerModel("struct.depot", (ctx) => buildWarehouse(ctx), ["deposit", "pickup"]);
 registerModel("store.depot", (ctx) => buildWarehouse(ctx), ["deposit", "pickup"]);
 registerModel("struct.gate", (ctx) => buildGate(ctx));
+registerModel("struct.conveyor", (ctx) => buildBelt(ctx));
 registerModel("struct.barrier", (ctx) => buildWallPanel(ctx));
 registerModel("struct.barrier.reinforced", (ctx) => buildWallPanel(ctx, false, true));
 registerModel("struct.barrier.cracked", (ctx) => buildWallPanel(ctx, true));

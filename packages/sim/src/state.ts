@@ -315,6 +315,8 @@ export interface Stats {
   rewardTicks: number[];
   /** Total reward events so far. */
   rewardCount?: number;
+  /** Units conveyor belts delivered (set on the first delivery). */
+  conveyed?: number;
   /** Tick of the most recent reward event. */
   rewardLastTick?: number;
   /** Longest gap between consecutive reward events, in ticks (the first gap counts from tick 0). */
@@ -373,6 +375,15 @@ export interface HintState {
   tick: number;
 }
 
+/** A belt laid by a struct.conveyor pad; items are front first, d = distance along the belt (FP). */
+export interface ConveyorState {
+  id: string;
+  from: string;
+  to: string;
+  items: { res: string; d: number }[];
+  acc: number;
+}
+
 export interface State {
   tick: number;
   rng: Rng;
@@ -410,6 +421,8 @@ export interface State {
   freeze: FreezeState;
   objectives: ObjectiveState[];
   stats: Stats;
+  /** Conveyor belts, created with the first one built (absent before, so older levels hash as they did). */
+  conveyors?: ConveyorState[];
   lastHint: HintState | null;
   over: boolean;
   won: boolean | null;

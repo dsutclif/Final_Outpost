@@ -141,6 +141,10 @@ function applyBuild(st: State, cp: Compiled, pad: PadState, e: BuildEnt, out: Si
   }
   const at = pad.site ?? pad.pos;
   if (b.startsWith("conv.")) { placeConverter(st, cp, pad.id, b, at); return; }
+  if (b === "struct.conveyor") {
+    if (e.link) (st.conveyors ??= []).push({ id: pad.id, from: e.link.from, to: e.link.to, items: [], acc: 0 });
+    return;
+  }
   const up = cp.upgrades[b];
   if (up) {
     const target = e.target !== undefined ? st.structures.find((s) => s.id === e.target) ?? null : null;

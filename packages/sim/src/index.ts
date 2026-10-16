@@ -16,3 +16,4 @@ export { FROST_MAX } from "./systems/freeze.js";
 export { OBJECTIVE_KINDS, starsOf } from "./systems/objectives.js";
 export { segCross } from "./systems/common.js";
 export { rateTicks } from "./systems/converters.js";
+export { beltEnds } from "./systems/conveyors.js";

@@ -98,6 +98,23 @@ export function stationPlate(g: GeoBuilder, t: Tokens, x = 0, z = 0): GeoBuilder
     .box(0.34, 0.02, 0.1, mix(t.metalDark, t.ink, 0.2), { at: [x, 0.085, z + 0.2] });
 }
 
+/** Belt top height in art metres (items ride here). */
+export const BELT_TOP = 0.3;
+
+/** One art metre of conveyor along x (the renderer stretches it to the belt's run): frame, belt, rollers, legs. */
+export function buildBelt(ctx: BuildCtx): Model {
+  const t = ctx.t;
+  const g = new GeoBuilder()
+    .box(1.0, 0.1, 0.42, t.metal, { at: [0, BELT_TOP - 0.08, 0] })
+    .box(1.0, 0.03, 0.34, t.metalDark, { at: [0, BELT_TOP - 0.015, 0] })
+    .box(1.0, 0.06, 0.04, t.trim, { at: [0, BELT_TOP, 0.2] })
+    .box(1.0, 0.06, 0.04, t.trim, { at: [0, BELT_TOP, -0.2] });
+  for (const x of [-0.35, 0, 0.35]) g.box(0.06, BELT_TOP - 0.1, 0.06, t.metalDark, { at: [x, (BELT_TOP - 0.1) / 2, 0.16] }).box(0.06, BELT_TOP - 0.1, 0.06, t.metalDark, { at: [x, (BELT_TOP - 0.1) / 2, -0.16] });
+  const m = model("prop");
+  m.root.add(mesh(g.build(), ctx.mats.std, "belt"));
+  return m;
+}
+
 export function buildClerkPad(ctx: BuildCtx): Model {
   const m = model("prop");
   m.root.add(mesh(stationPlate(new GeoBuilder(), ctx.t).build(), ctx.mats.std, "plate"));

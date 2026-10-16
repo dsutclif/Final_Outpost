@@ -67,6 +67,7 @@ const names: Record<string, string> = {
   "zone.prey": "Hopper flats",
   "event.hazard": "Dust storm",
   "struct.depot": "Warehouse",
+  "struct.conveyor": "Conveyor",
   "struct.barrier": "Wall",
   "struct.gate": "Airlock",
   // captures, hostiles, zones, meters, hazard
@@ -103,6 +104,7 @@ const names: Record<string, string> = {
   "module.medical": "Med bay",
   "module.hazard_events": "Dust storms",
   "module.supply_routing": "Warehouse logistics",
+  "module.conveyors": "Conveyors",
   // goal types
   "goal.build": "Build",
   "goal.population": "Grow the colony",
@@ -181,6 +183,7 @@ const purposes: Record<string, string> = {
   "struct.training": "Trains guards from free colonists",
   "struct.barracks": "Trains guards from free colonists",
   "struct.depot": "Stores goods for couriers",
+  "struct.conveyor": "Carries goods between machines on its own",
   "store.depot": "Stores goods for couriers",
   "struct.barrier": "Stops raiders reaching the colony",
   "struct.barrier.reinforced": "Tougher walls",

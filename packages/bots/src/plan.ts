@@ -325,6 +325,8 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
   // Anything still off the plan that the economy can use: converter-level pads and remaining converters.
   for (const p of pads) if (p.type === "pad.build" && p.build.startsWith("conv.") && p.build !== "conv.level" && !inPlan.has(p.id)) addConverter(p.build, "economy", false);
   for (const p of pads) if (p.type === "pad.build" && p.build === "conv.level" && !inPlan.has(p.id)) add(p.id, "upgrade", { repeat: 1 });
+  // Conveyors automate a link the economy already runs; buy them once their hauler is in.
+  for (const p of pads) if (p.type === "pad.build" && p.build === "struct.conveyor" && !inPlan.has(p.id)) add(p.id, "economy");
   if (cashierLater) { const h = hires.find((p) => isCashier(p.role)); if (h) add(h.id, "economy"); }
 
   const always = steps.filter((s) => s.when === "always");

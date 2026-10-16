@@ -1,5 +1,5 @@
 import { content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { FP, TPS, compile, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
+import { FP, TPS, beltEnds, compile, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
 import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
   Box3,
@@ -37,7 +37,7 @@ import { getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
 import { buildModel, hasModel } from "./assets/registry.js";
-import { buildCrateGeo } from "./assets/props.js";
+import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
 import { LEAD_WEIGHT, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder } from "./geom.js";
@@ -530,6 +530,7 @@ export class Renderer3D implements Renderer {
     this.syncStructures(state);
     this.syncConverters(state);
     this.syncDepot(state);
+    this.syncConveyors(state);
     this.syncPads(state);
     this.syncBarriers(state);
     this.syncZones(state);
@@ -929,6 +930,41 @@ export class Renderer3D implements Renderer {
     return s.residents.some((x) => x.role === def?.role && x.status === "ok" && near(x.pos, 12 * FP));
   }
 
+  /**
+   * Conveyor belts (R3 item 16): one stretched belt model per run with its items riding on top;
+   * an unbuilt belt pad shows the run as a translucent blueprint so the player sees what it links.
+   */
+  private syncConveyors(s: State): void {
+    const items = this.items!;
+    const lay = (key: string, ends: { a: V; b: V }, ghost: boolean): { ax: number; az: number; ux: number; uz: number; len: number } => {
+      const ax = ends.a.x / FP, az = ends.a.y / FP, bx = ends.b.x / FP, bz = ends.b.y / FP;
+      const len = Math.max(1, Math.hypot(bx - ax, bz - az));
+      const p = this.place(key, "struct.conveyor", v3((ax + bx) / 2, 0, (az + bz) / 2), 1, ghost ? (ctx) => this.ghostModel("struct.conveyor", ctx) : undefined);
+      this.popScale(p, ART_M, len / ART_M, 1);
+      p.model.root.rotation.y = -Math.atan2(bz - az, bx - ax);
+      if (ghost) (p.model.root.userData["ghost"] as MeshLambertMaterial).opacity = 0.45 + 0.08 * Math.sin(this.t * 3);
+      else this.candidate("struct.conveyor", p, ART_M * 0.8);
+      return { ax, az, ux: (bx - ax) / len, uz: (bz - az) / len, len };
+    };
+    for (const belt of s.conveyors ?? []) {
+      const ends = beltEnds(s, belt);
+      if (!ends) continue;
+      const L = lay(`cb:${belt.id}`, ends, false);
+      for (const it of belt.items) {
+        const d = Math.min(L.len, it.d / FP);
+        items.add(it.res, L.ax + L.ux * d, BELT_TOP * ART_M, L.az + L.uz * d, Math.atan2(L.ux, L.uz));
+      }
+    }
+    for (const pad of s.pads) {
+      const info = this.pads.get(pad.id);
+      if (pad.done || !pad.visible || info?.what !== "struct.conveyor") continue;
+      const e = this.manifest.entities.find((x) => x.id === pad.id);
+      const link = e?.type === "pad.build" ? e.link : undefined;
+      const ends = link ? beltEnds(s, link) : null;
+      if (ends) lay(`cbg:${pad.id}`, ends, true);
+    }
+  }
+
   private syncDepot(s: State): void {
     const d = s.depot;
     if (!d) return;
@@ -1023,13 +1059,28 @@ export class Renderer3D implements Renderer {
    * none), firming up as it is paid. Returns its height in art metres, 0 when there is none.
    */
   private ghostable(info: PadInfo | undefined): boolean {
-    return info?.kind === "build" && hasModel(info.what) && !this.content.upgrades[info.what];
+    return info?.kind === "build" && hasModel(info.what) && !this.content.upgrades[info.what] && info.what !== "struct.conveyor";
   }
 
   private hideGhost(p: Placed): number {
     const g = p.extra[3];
     if (g) g.visible = false;
     return 0;
+  }
+
+  /** A model drawn as a translucent blueprint; its material rides in root.userData.ghost (removePlaced disposes it). */
+  private ghostModel(what: string, ctx: BuildCtx, onWall = false): Model {
+    const mat = new MeshLambertMaterial({ color: new Color(this.tokens.interactive), emissive: new Color(this.tokens.interactive), emissiveIntensity: 0.55, transparent: true, depthWrite: false });
+    const m = onWall && what === "struct.ranged_defense" ? buildTurret(ctx, true) : buildModel(what, ctx);
+    const drop: Object3D[] = [];
+    m.root.traverse((o) => {
+      const me = o as Mesh;
+      if (me.isMesh) { me.material = mat; me.castShadow = false; me.receiveShadow = false; me.renderOrder = 3; }
+      else if ((o as Light).isLight || (o as Sprite).isSprite) drop.push(o);
+    });
+    for (const o of drop) o.removeFromParent();
+    m.root.userData["ghost"] = mat;
+    return m;
   }
 
   private syncGhost(p: Placed, what: string, at: Vector3, fill: number, onWall = false): number {

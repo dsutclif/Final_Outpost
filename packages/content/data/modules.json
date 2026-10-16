@@ -19,5 +19,6 @@
   "salvage_upgrades": { "requires": ["defense"], "introducedAt": 14 },
   "medical": { "requires": ["defense", "build_pads"], "introducedAt": 15 },
   "hazard_events": { "introducedAt": 16 },
-  "supply_routing": { "requires": ["workers", "build_pads"], "introducedAt": 17 }
+  "supply_routing": { "requires": ["workers", "build_pads"], "introducedAt": 17 },
+  "conveyors": { "requires": ["converters", "build_pads"], "introducedAt": 18 }
 }

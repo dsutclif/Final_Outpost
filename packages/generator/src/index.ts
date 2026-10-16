@@ -143,6 +143,7 @@ function idleElements(m: Manifest, runs: readonly BotResult[]): string[] {
   if (m.entities.some((e) => e.type === "sink.sales_point") && !wins.some((r) => r.used.sold > 0)) out.push("sales point");
   if (m.entities.some((e) => e.type === "struct.gate" && "arrivals" in e && e.arrivals) && !wins.some((r) => r.used.admitted > 0)) out.push("arrivals gate");
   if (m.events.length > 0 && !wins.some((r) => r.used.hazards > 0)) out.push("hazard");
+  if (m.entities.some((e) => e.type === "pad.build" && e.build === "struct.conveyor") && !wins.some((r) => r.used.conveyed > 0)) out.push("conveyor");
   return out;
 }
 

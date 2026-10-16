@@ -69,6 +69,9 @@ export const BuildPad = z.object({
   // Where the structure stands once built, when not on the pad itself: a wall tower's site is a
   // post on its barrier line while the pad sits just inside the wall (R3 item 18).
   site: Point.optional(),
+  // struct.conveyor: the belt's source (a converter type or store.depot) and target (a converter
+  // type, sink.sales_point, sink.core or store.depot), looked up by type like worker roles.
+  link: z.object({ from: z.string(), to: z.string() }).optional(),
 });
 // A pre-placed converter or structure.
 export const ConverterEntity = z.object({ ...base, type: ConvId });
