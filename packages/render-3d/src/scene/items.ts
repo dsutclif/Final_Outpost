@@ -1,7 +1,7 @@
 import { Euler, Matrix4, Quaternion, Vector3, type BufferGeometry, type Material, type Object3D } from "three";
 import { buildItemGeo, itemHeight } from "../assets/props.js";
 import type { Tokens } from "../tokens.js";
-import { ART_M } from "../units.js";
+import { ART_M, ITEM_K } from "../units.js";
 import { Batch } from "./instancing.js";
 
 // Every resource item in the scene (back stacks, shelves, converter queues, drops, the coin
@@ -13,8 +13,8 @@ export class Items {
   private batches = new Map<string, Batch>();
   private geos = new Map<string, BufferGeometry>();
   private m = new Matrix4();
-  /** World scale of an item (art metres to world units, a touch oversized: "big chunky icons"). */
-  readonly scale = ART_M * 1.05;
+  /** World scale of an item (art metres to world units; ITEM_K oversizes them: "big chunky icons"). */
+  readonly scale = ART_M * ITEM_K;
 
   constructor(private readonly t: Tokens, private readonly mat: Material, private readonly parent: Object3D) {}
 

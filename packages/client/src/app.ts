@@ -105,7 +105,7 @@ export class App {
   updateReady = false;
 
   private readonly el: {
-    app: HTMLElement; hud: HTMLElement; lvlName: HTMLElement; goal: HTMLElement; chips: HTMLElement; menuBtn: HTMLButtonElement; gearBtn: HTMLButtonElement;
+    app: HTMLElement; hud: HTMLElement; lvlName: HTMLElement; goal: HTMLElement; chips: HTMLElement; menuBtn: HTMLButtonElement; retryBtn: HTMLButtonElement; gearBtn: HTMLButtonElement;
     stage: HTMLElement; world: HTMLElement; debug: HTMLElement; ov: Record<string, HTMLElement>; rotate: HTMLElement; loading: HTMLElement; toast: HTMLElement;
     ftoast: HTMLElement; inspect: HTMLElement; objectives: HTMLElement;
   };
@@ -116,7 +116,7 @@ export class App {
     for (const k of ["title", "levels", "intro", "result", "settings", "error", "unsupported"]) ov[k] = $(root, `#ov-${k}`);
     this.el = {
       app: $(root, ".app"), hud: $(root, ".hud"), lvlName: $(root, "#lvlName"), goal: $(root, "#goalTxt"), chips: $(root, "#chips"),
-      menuBtn: $<HTMLButtonElement>(root, "#menuBtn"), gearBtn: $<HTMLButtonElement>(root, "#gearBtn"), stage: $(root, "#stage"), world: $(root, "#world"),
+      menuBtn: $<HTMLButtonElement>(root, "#menuBtn"), retryBtn: $<HTMLButtonElement>(root, "#retryBtn"), gearBtn: $<HTMLButtonElement>(root, "#gearBtn"), stage: $(root, "#stage"), world: $(root, "#world"),
       debug: $(root, "#debug"), ov, rotate: $(root, ".rotate"), loading: $(root, "#loading"), toast: $(root, "#toast"),
       ftoast: $(root, "#ftoast"), inspect: $(root, "#inspect"), objectives: $(root, "#objectives"),
     };
@@ -154,6 +154,8 @@ export class App {
     this.platform.onResume(() => this.setHidden(false));
     if (this.platform.native) doc.addEventListener("visibilitychange", () => this.setHidden(doc.visibilityState === "hidden"));
     this.el.menuBtn.addEventListener("click", () => this.quitToLevels());
+    // in-play Retry: the same restart as the result card Retry
+    this.el.retryBtn.addEventListener("click", () => { const m = this.session?.meta; if (m && this.screen !== "settings") void this.openLevel(m); });
     // the in-level gear opens Settings over any level screen and pauses play; Back resumes
     this.el.gearBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -206,6 +208,7 @@ export class App {
     meta?.setAttribute("content", this.skin.themeColor);
     this.platform.statusBar(true, p.ui.bg);
     this.el.menuBtn.textContent = uiText(this.skin, "levels");
+    this.el.retryBtn.textContent = uiText(this.skin, "retry");
     this.el.gearBtn.setAttribute("aria-label", uiText(this.skin, "settings"));
     $(this.el.rotate, "p").textContent = uiText(this.skin, "rotate");
     this.title?.setSkin(this.skin);
@@ -955,6 +958,7 @@ const TEMPLATE = `
       <div class="goal"><div class="lbl" id="lvlName"></div><div class="txt" id="goalTxt"></div><div class="objectives" id="objectives" hidden></div></div>
       <button class="gearBtn" id="gearBtn" aria-label="Settings"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4L10.7 6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
       <button class="menuBtn" id="menuBtn" aria-label="Levels">Levels</button>
+      <button class="menuBtn" id="retryBtn" aria-label="Retry">Retry</button>
     </div>
     <div class="chips" id="chips"></div>
   </header>

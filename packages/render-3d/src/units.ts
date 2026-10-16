@@ -7,6 +7,9 @@
 /** World units per art metre: the hero stands about as tall as the 2D figure (28 units). */
 export const ART_M = 28;
 
+/** Resource item size, art metres to world units (R3 item 6: big chunky items, about half the hero tall in a stack of two). */
+export const ITEM_K = 1.35;
+
 /** Camera pitch below the horizon, degrees (ART-DIRECTION.md: about 50). */
 export const PITCH_DEG = 50;
 /** Vertical field of view, degrees: slight perspective. */
@@ -52,3 +55,6 @@ export const TIERS: Readonly<Record<QualityTier, TierSettings>> = {
 /** Scene budgets (docs/SPEC.md "Performance budget"). */
 export const MAX_DRAW_CALLS = 100;
 export const MAX_TRIANGLES = 60_000;
+
+/** How far past each map edge the camera may travel, world units, so ground shows around the play field. */
+export const VIEW_MARGIN = 60;

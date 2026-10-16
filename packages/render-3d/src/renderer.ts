@@ -50,7 +50,10 @@ import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
-import { ART_M, FOLLOW_RATE, FOV_DEG, PITCH_DEG, TIERS, VIEW_W, type QualityTier } from "./units.js";
+import { ART_M, FOLLOW_RATE, FOV_DEG, ITEM_K, PITCH_DEG, TIERS, VIEW_MARGIN, VIEW_W, type QualityTier } from "./units.js";
+
+/** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
+const SHELF_K = 1.05 / ITEM_K;
 
 /** The subset of WebGLRenderer the 3D renderer uses; tests inject a fake (no WebGL in Node). */
 export interface GLLike {
@@ -570,8 +573,8 @@ export class Renderer3D implements Renderer {
       cam.x += (tx - cam.x) * e;
       cam.y += (ty - cam.y) * e;
     }
-    cam.x = vw >= W ? W / 2 : Math.max(vw / 2, Math.min(W - vw / 2, cam.x));
-    cam.y = vh >= H ? H / 2 : Math.max(vh / 2, Math.min(H - vh / 2, cam.y));
+    cam.x = vw >= W + VIEW_MARGIN * 2 ? W / 2 : Math.max(vw / 2 - VIEW_MARGIN, Math.min(W - vw / 2 + VIEW_MARGIN, cam.x));
+    cam.y = vh >= H + VIEW_MARGIN * 2 ? H / 2 : Math.max(vh / 2 - VIEW_MARGIN, Math.min(H - vh / 2 + VIEW_MARGIN, cam.y));
 
     const shake = this.fx?.shake ?? 0;
     this.look.set(cam.x + (shake ? (Math.random() - 0.5) * shake : 0), 0, cam.y + (shake ? (Math.random() - 0.5) * shake : 0));
@@ -721,10 +724,10 @@ export class Renderer3D implements Renderer {
       crates.push(tmpM);
       const have = sales.shelf[res] ?? 0;
       const shown = Math.min(8, have);
-      const ih = items.height(res) * 0.75;
+      const ih = items.height(res) * 0.75 * SHELF_K;
       for (let j = 0; j < shown; j++) {
         const layer = Math.floor(j / 4), c = j % 2, r = Math.floor((j % 4) / 2);
-        items.add(res, x + (c - 0.5) * 0.2 * ART_M * ck, dep.y + 0.05 * ART_M + layer * ih, dep.z + (r - 0.5) * 0.15 * ART_M, 0.4 * c + r, 0.78 * ck);
+        items.add(res, x + (c - 0.5) * 0.2 * ART_M * ck, dep.y + 0.05 * ART_M + layer * ih, dep.z + (r - 0.5) * 0.15 * ART_M, 0.4 * c + r, 0.78 * ck * SHELF_K);
       }
       const chip = this.sprite(kiosk, i);
       const full = have >= cap;
@@ -1401,11 +1404,11 @@ export class Renderer3D implements Renderer {
     const s = ART_M * scale;
     const k = scale > 1 ? 1 : 0.9;
     const lean = Math.min(1, Math.hypot(vel.x, vel.y) / 3);
-    const colW = 0.42 * ART_M * k;
+    const colW = 0.42 * ART_M * k * (ITEM_K / 1.05);
     cols.forEach((res, ci) => {
       const row = Math.floor(ci / BACK_PER_ROW), inRow = Math.min(BACK_PER_ROW, cols.length - row * BACK_PER_ROW);
       const across = ((ci % BACK_PER_ROW) - (inRow - 1) / 2) * colW;
-      const back = 0.27 * s + row * 0.34 * ART_M;
+      const back = 0.27 * s * (ITEM_K / 1.05) + row * 0.34 * ART_M * (ITEM_K / 1.05);
       const bx = pos.x - fx * back + rx * across, bz = pos.y - fz * back + rz * across;
       const total = counts.get(res)!;
       const n = Math.max(0, total - (player ? this.fx!.inFlightToPlayer(res) : 0));
