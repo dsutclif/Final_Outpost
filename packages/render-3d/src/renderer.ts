@@ -883,7 +883,7 @@ export class Renderer3D implements Renderer {
   private syncConverters(s: State): void {
     const items = this.items!;
     for (const cv of s.converters) {
-      const p = this.place(`cv:${cv.id}`, cv.type, this.wv(cv.pos));
+      const p = this.place(`cv:${cv.id}:${cv.level}`, cv.type, this.wv(cv.pos), cv.level);
       this.candidate(cv.type, p);
       const popAge = this.fx!.popAge(`cv:${cv.id}`);
       p.model.root.scale.setScalar(ART_M * (popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1));
@@ -1018,11 +1018,11 @@ export class Renderer3D implements Renderer {
     const cols = Math.max(1, stock.length), pitch = Math.min(0.5, 2.0 / cols) * ART_M;
     stock.forEach(([res, n], i) => {
       const x = at.x + (i - (cols - 1) / 2) * pitch, z = at.z - 0.15 * ART_M;
-      for (let j = 0; j < Math.min(10, n); j++) items.add(res, x, 0.16 * ART_M + j * items.height(res), z, 0.3 * (j % 2));
+      for (let j = 0; j < Math.min(12, n); j++) items.add(res, x, 0.2 * ART_M + j * items.height(res), z, 0.3 * (j % 2));
       if (!p) return;
       const chip = this.sprite(p, i);
       chip.visible = this.labels.apply(chip, `shelf|${res}|${n}|false`, () => this.shelfChipArt(res, n, false), 13);
-      chip.position.set(x, 0.16 * ART_M + Math.min(10, n) * items.height(res) + 9, z);
+      chip.position.set(x, 0.2 * ART_M + Math.min(12, n) * items.height(res) + 9, z);
     });
     if (p) for (let i = stock.length; i < p.sprites.length; i++) p.sprites[i]!.visible = false;
   }
@@ -2234,7 +2234,7 @@ export class Renderer3D implements Renderer {
       for (const cv of w.converters) {
         if (cv.type !== to) continue;
         const d = (cv.pos.x / FP - at.x) ** 2 + (cv.pos.y / FP - at.z) ** 2;
-        const p = this.placed.get(`cv:${cv.id}`);
+        const p = this.placed.get(`cv:${cv.id}:${cv.level}`);
         if (p && d < bd) { bd = d; best = p; }
       }
       if (best) return this.anchorWorld(best, "deposit");

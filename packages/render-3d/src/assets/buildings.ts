@@ -42,7 +42,22 @@ export function buildCore(ctx: BuildCtx): Model {
   }
   // fuel hatch at the front: where carried items arc in
   b.rbox(0.5, 0.2, 0.34, 0.05, t.metal, { at: [0, 0.42, 0.95] }, 1).box(0.36, 0.04, 0.2, t.accent, { at: [0, 0.53, 0.95] });
-  if (ctx.level >= 3) b.torus(0.8, 0.05, 4, 18, t.accent, { at: [0, 1.3, 0], rot: [Math.PI / 2, 0, 0] });
+  if (ctx.level >= 2) {
+    // L2: accent collar on the base, accent caps on the pylons, level pips on the front step
+    b.torus(1.0, 0.07, 4, 16, t.accent, { at: [0, 0.3, 0], rot: [Math.PI / 2, 0, 0] });
+    for (let i = 0; i < 4; i++) {
+      const a = i * (TAU / 4) + Math.PI / 4;
+      b.box(0.26, 0.1, 0.54, t.accent, { at: [Math.sin(a) * 0.72, 1.4, Math.cos(a) * 0.72], rot: [0, a, 0] });
+    }
+  }
+  if (ctx.level >= 3) {
+    // L3: hot upper ring, a taller lit mast and a second collar
+    b.torus(0.8, 0.07, 4, 18, t.plasmaHot, { at: [0, 1.3, 0], rot: [Math.PI / 2, 0, 0] })
+      .torus(1.08, 0.06, 4, 16, t.plasmaHot, { at: [0, 0.2, 0], rot: [Math.PI / 2, 0, 0] })
+      .cyl(0.045, 0.045, 0.5, 5, t.metal, { at: [0, 2.35, 0] })
+      .sphere(0.1, 8, 6, t.plasmaHot, { at: [0, 2.65, 0] });
+  }
+  for (let i = 0; i < Math.min(4, ctx.level); i++) b.box(0.16, 0.08, 0.1, ctx.level >= 3 ? t.plasmaHot : t.accent, { at: [(i - (Math.min(4, ctx.level) - 1) / 2) * 0.24, 0.15, 1.1] });
   m.root.add(mesh(b.build(), mats.std, "body"));
   const glass = mesh(new GeoBuilder().cyl(0.43, 0.43, 1.0, 14, mix(t.glass, t.plasma, 0.6), { at: [0, 0.98, 0] }, true).build(), coreGlass(mats.glass), "glass");
   m.root.add(glass);
@@ -164,6 +179,24 @@ export function buildConverter(id: string, ctx: BuildCtx, pickup: readonly [numb
     .box(0.3, 0.22, 0.08, t.metalDark, { at: [0.35, 0.72, 0.58] });
   // the operator spot reads like the clerk pad: someone stands here to run it
   stationPlate(b, t, operator[0], operator[1]);
+  // level tiers (readable at phone size): L2 an accent band round the body, a second chimney and
+  // a side tank; L3 a hot-plasma base band, a taller chimney stack and a beacon mast. A row of lit
+  // pips on the front edge counts the level.
+  const lv = Math.min(4, Math.max(1, Math.floor(ctx.level)));
+  if (lv >= 2) {
+    b.box(1.76, 0.1, 1.26, t.accent, { at: [0, 0.86, -0.05] })
+      .cyl(0.12, 0.15, 1.0, 8, t.metalDark, { at: [0.2, 1.5, -0.5] })
+      .cyl(0.17, 0.17, 0.08, 8, t.accent, { at: [0.2, 2.03, -0.5] })
+      .cyl(0.2, 0.2, 0.85, 10, t.metal, { at: [-0.78, 1.4, -0.52] })
+      .torus(0.2, 0.04, 4, 10, t.accent, { at: [-0.78, 1.7, -0.52], rot: [Math.PI / 2, 0, 0] });
+  }
+  if (lv >= 3) {
+    b.box(1.76, 0.1, 1.26, t.plasmaHot, { at: [0, 0.3, -0.05] })
+      .cyl(0.11, 0.14, 0.55, 8, t.metalDark, { at: [0.55, 2.2, -0.4] })
+      .cyl(0.04, 0.04, 0.9, 5, t.metal, { at: [0.82, 1.75, 0.45] })
+      .sphere(0.1, 8, 6, t.plasmaHot, { at: [0.82, 2.25, 0.45] });
+  }
+  for (let i = 0; i < lv; i++) b.box(0.16, 0.12, 0.08, lv >= 3 ? t.plasmaHot : t.accent, { at: [-0.78 + i * 0.22, 1.08, 0.62] });
   if (food) b.dome(0.45, 10, 4, t.structure, { at: [0.15, 1.12, 0.05] }).box(0.6, 0.18, 0.04, out, { at: [-0.25, 0.7, 0.57] });
   else b.cyl(0.38, 0.32, 0.3, 10, t.metalDark, { at: [0.1, 1.27, 0.05] }).box(0.7, 0.12, 0.04, t.accent, { at: [-0.25, 0.7, 0.57] });
   m.root.add(mesh(b.build(), mats.std, "body"));
@@ -301,25 +334,28 @@ export function buildTurret(ctx: BuildCtx, onWall = false): Model {
 export function buildWarehouse(ctx: BuildCtx): Model {
   const { t, mats } = ctx;
   const m = model("hero");
-  // Cut away (R3): no roof skin and a low front wall, so the stock stacked on the floor
-  // (drawn by the renderer from the sim) reads from the game camera.
+  // Open-topped cutaway (R3): a dark floor slab with a bright edge stripe, knee-high side and back
+  // walls, a very low front lip and four corner posts, no roof at all. The renderer stands the
+  // stock in columns that rise well above the walls, so from the game camera it reads as a bin.
+  const floor = mix(t.structureDark, t.ink, 0.55);
+  const wall = 0.4;
   const b = new GeoBuilder()
     .rbox(2.8, 0.12, 2.0, 0.05, t.structureDark, { at: [0, 0.06, 0] }, 1)
-    .box(2.4, 0.04, 1.6, mix(t.structureDark, t.metal, 0.4), { at: [0, 0.14, -0.05] })
-    .rbox(2.5, 1.1, 0.12, 0.04, t.structure, { at: [0, 0.65, -0.84] }, 1)
-    .rbox(0.12, 1.1, 1.7, 0.04, t.structure, { at: [-1.19, 0.65, -0.05] }, 1)
-    .rbox(0.12, 1.1, 1.7, 0.04, t.structure, { at: [1.19, 0.65, -0.05] }, 1)
-    .rbox(0.7, 0.42, 0.1, 0.03, t.structure, { at: [-0.86, 0.33, 0.76] }, 1)
-    .rbox(0.7, 0.42, 0.1, 0.03, t.structure, { at: [0.86, 0.33, 0.76] }, 1)
-    .box(2.54, 0.1, 0.16, t.trim, { at: [0, 1.2, -0.84] })
-    .box(0.16, 0.1, 1.74, t.trim, { at: [-1.19, 1.2, -0.05] })
-    .box(0.16, 0.1, 1.74, t.trim, { at: [1.19, 1.2, -0.05] })
-    // door posts and the rolled-up door as a lintel over the opening
-    .box(0.1, 1.1, 0.12, t.metal, { at: [-0.5, 0.65, 0.78] })
-    .box(0.1, 1.1, 0.12, t.metal, { at: [0.5, 0.65, 0.78] })
-    .cyl(0.12, 0.12, 1.1, 8, t.metal, { at: [0, 1.22, 0.78], rot: [0, 0, Math.PI / 2] });
-  // bare roof ribs: the half-cylinder roof, skeleton only
-  for (let i = 0; i < 4; i++) b.torus(0.84, 0.045, 4, 10, t.trim, { at: [-1.1 + i * (2.2 / 3), 1.2, -0.05], rot: [0, Math.PI / 2, 0] }, Math.PI);
+    .box(2.4, 0.05, 1.6, floor, { at: [0, 0.145, -0.05] })
+    .box(2.4, 0.02, 0.07, t.accent, { at: [0, 0.18, 0.7] })
+    .box(2.4, 0.02, 0.07, t.accent, { at: [0, 0.18, -0.8] })
+    .box(0.07, 0.02, 1.5, t.accent, { at: [-1.13, 0.18, -0.05] })
+    .box(0.07, 0.02, 1.5, t.accent, { at: [1.13, 0.18, -0.05] })
+    .rbox(2.5, wall, 0.12, 0.04, t.structure, { at: [0, 0.2 + wall / 2, -0.84] }, 1)
+    .rbox(0.12, wall, 1.7, 0.04, t.structure, { at: [-1.19, 0.2 + wall / 2, -0.05] }, 1)
+    .rbox(0.12, wall, 1.7, 0.04, t.structure, { at: [1.19, 0.2 + wall / 2, -0.05] }, 1)
+    .rbox(0.8, 0.22, 0.1, 0.03, t.structure, { at: [-0.82, 0.3, 0.78] }, 1)
+    .rbox(0.8, 0.22, 0.1, 0.03, t.structure, { at: [0.82, 0.3, 0.78] }, 1)
+    .box(2.54, 0.07, 0.16, t.trim, { at: [0, 0.2 + wall, -0.84] })
+    .box(0.16, 0.07, 1.74, t.trim, { at: [-1.19, 0.2 + wall, -0.05] })
+    .box(0.16, 0.07, 1.74, t.trim, { at: [1.19, 0.2 + wall, -0.05] });
+  // short corner posts with accent caps: nothing crosses the opening overhead
+  for (const x of [-1.19, 1.19]) for (const z of [-0.84, 0.78]) b.box(0.14, 0.7, 0.14, t.metal, { at: [x, 0.5, z] }).box(0.18, 0.07, 0.18, t.accent, { at: [x, 0.87, z] });
   m.root.add(mesh(b.build(), mats.std, "body"));
   anchor(m.root, "deposit", 0, 0.5, 0.95);
   anchor(m.root, "pickup", 0, 0.5, 0.95);
