@@ -260,10 +260,7 @@
       "cost": {
         "res.currency": 12
       },
-      "build": "conv.food_processor",
-      "requires": {
-        "pad": "feeder"
-      }
+      "build": "conv.food_processor"
     },
     {
       "type": "pad.hire",
@@ -278,6 +275,9 @@
       "role": {
         "role": "role.operator",
         "to": "conv.food_processor"
+      },
+      "requires": {
+        "pad": "grill"
       }
     },
     {
@@ -330,7 +330,10 @@
         "res.currency": 19
       },
       "build": "conv.level",
-      "target": "grill"
+      "target": "grill",
+      "requires": {
+        "pad": "grill"
+      }
     },
     {
       "type": "pad.build",
@@ -519,7 +522,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 89
+        "seconds": 91
       }
     },
     {
@@ -541,9 +544,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.162,
-    "fun": 0.938,
-    "botMargin": 0.517,
+    "difficulty": 0.177,
+    "fun": 0.918,
+    "botMargin": 0.501,
     "botsPassed": [
       "good",
       "average",
@@ -552,9 +555,9 @@
       "floor"
     ],
     "stars": {
-      "good": 3,
+      "good": 2.9,
       "median": 2,
-      "goodAll": 1
+      "goodAll": 0.9
     }
   }
 }

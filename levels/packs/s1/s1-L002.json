@@ -206,7 +206,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 22
+        "seconds": 23
       }
     },
     {
@@ -240,7 +240,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.33,
+      "median": 3,
       "goodAll": 1
     }
   }

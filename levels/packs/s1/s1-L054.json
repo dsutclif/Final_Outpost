@@ -226,8 +226,8 @@
       "type": "pad.build",
       "id": "tower_w",
       "at": [
-        159,
-        584
+        191,
+        576
       ],
       "cost": {
         "res.salvage": 8
@@ -238,8 +238,8 @@
       "type": "pad.build",
       "id": "tower_w_up",
       "at": [
-        205,
-        595
+        191,
+        614
       ],
       "cost": {
         "res.salvage": 6
@@ -254,7 +254,7 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        342,
+        340,
         431
       ],
       "cost": {
@@ -269,8 +269,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        159,
-        630
+        153,
+        594
       ],
       "cost": {
         "res.salvage": 5
@@ -284,8 +284,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        165,
-        689
+        142,
+        668
       ],
       "cost": {
         "res.salvage": 4
@@ -318,7 +318,7 @@
   ],
   "waves": [
     {
-      "t": 52,
+      "t": 51,
       "counts": {
         "hostile.swarmling": 12
       },
@@ -326,7 +326,7 @@
       "gap": 0.7
     },
     {
-      "t": 110,
+      "t": 105,
       "counts": {
         "hostile.swarmling": 19,
         "hostile.raider_humanoid": 1
@@ -335,7 +335,7 @@
       "gap": 0.7
     },
     {
-      "t": 169,
+      "t": 160,
       "counts": {
         "hostile.swarmling": 28,
         "hostile.raider_humanoid": 2
@@ -344,7 +344,7 @@
       "gap": 0.7
     },
     {
-      "t": 227,
+      "t": 214,
       "counts": {
         "hostile.swarmling": 35,
         "hostile.raider_humanoid": 3
@@ -355,11 +355,11 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.9,
+    "start.currency": 7,
+    "core.burn": 2.7,
     "housing.base": 7,
-    "meters.baseHealth": 15,
-    "level.budgetSeconds": 300
+    "meters.baseHealth": 13,
+    "level.budgetSeconds": 270
   },
   "goal": {
     "type": "waves_survived",
@@ -376,15 +376,15 @@
     },
     {
       "id": "challenge2",
-      "kind": "no_injuries",
-      "params": {}
+      "kind": "salvage",
+      "params": {
+        "n": 37
+      }
     },
     {
       "id": "challenge",
-      "kind": "hp_floor",
-      "params": {
-        "pct": 80
-      }
+      "kind": "no_injuries",
+      "params": {}
     }
   ],
   "fail": [
@@ -401,9 +401,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.563,
-    "fun": 0.264,
-    "botMargin": 0.925,
+    "difficulty": 0.605,
+    "fun": 0.24,
+    "botMargin": 0.916,
     "botsPassed": [
       "good",
       "average",

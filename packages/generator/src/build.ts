@@ -300,9 +300,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   if (indus && shopAt && food1) {
     const g = P.place("grill", R.conv, ring ? inner : [shopAt[0] - 200, shopAt[1] - 160, 300, 260], { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), samples: 200 })
       ?? fail("no room for the food processor");
-    pad({ type: "pad.build", id: "grill", at: [...g], cost: { "res.currency": cost("grill") }, build: "conv.food_processor", requires: { pad: "feeder" } });
+    pad({ type: "pad.build", id: "grill", at: [...g], cost: { "res.currency": cost("grill") }, build: "conv.food_processor" });
     const cook = placePad("cook", [opPos("conv.food_processor", g)[0] - 66, opPos("conv.food_processor", g)[1] + 10]);
-    pad({ type: "pad.hire", id: "cook", at: [...cook], cost: { "res.currency": cost("hire.cook") }, role: { role: "role.operator", to: "conv.food_processor" } });
+    pad({ type: "pad.hire", id: "cook", at: [...cook], cost: { "res.currency": cost("hire.cook") }, role: { role: "role.operator", to: "conv.food_processor" }, requires: { pad: "grill" } });
     // The food processor's feeder has its own field, so the shelf's farm worker does not starve it.
     const fg = P.place("food_g", R.food, ring ? inner : [g[0] - 160, g[1] - 160, 320, 320], { near: [g[0] - 70, g[1] - 60], key: true, samples: 200 }) ?? food1;
     if (fg !== food1) ents.push({ type: "node.food_source", id: "food_g", at: [...fg] });
@@ -315,7 +315,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       const lp = placePad("grill_level", [g[0] + 70, g[1] - 40]);
       // Repeatable only when the goal needs more than one level: a repeatable pad is never "done", so nothing could require it.
       const rep = goal === "converter_level" && K.costScale > 1.15;
-      pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", ...(rep ? { repeatable: true } : {}) });
+      pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", requires: { pad: "grill" }, ...(rep ? { repeatable: true } : {}) });
     }
     if (feat.has("material_processor")) {
       saw = true;
@@ -729,6 +729,28 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       if (req?.coreLevel && level < req.coreLevel) fail(`plan order: ${st.pad} needs core level ${req.coreLevel}`);
       done.add(st.pad);
       if (e.build === "sink.core.level") level++;
+    }
+  }
+  // Nothing staffs, feeds or upgrades a machine before it stands: its build pad must be up the requires chain.
+  {
+    const byId = new Map(pads.map((p) => [String(p.id), p]));
+    const upChain = (p: Ent): Set<string> => {
+      const out = new Set<string>();
+      for (let x: Ent | undefined = p, i = 0; x && i <= pads.length; i++) {
+        const q = (x.requires as { pad?: string } | undefined)?.pad;
+        if (!q) break;
+        out.add(q);
+        x = byId.get(q);
+      }
+      return out;
+    };
+    for (const p of pads) {
+      const role = p.role as { from?: string; to?: string } | undefined;
+      const machines = [role?.from, role?.to].filter((t): t is string => !!t?.startsWith("conv."));
+      const needs = pads.filter((b) => machines.includes(String(b.build))).map((b) => String(b.id));
+      if (p.build === "conv.level" && p.target) needs.push(String(p.target));
+      const up = upChain(p);
+      for (const n of needs) if (!up.has(n)) fail(`pad order: ${String(p.id)} works a machine before ${n} builds it`);
     }
   }
 

@@ -37,7 +37,7 @@
         520
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -64,92 +64,92 @@
     {
       "type": "node.material_source",
       "at": [
-        100,
-        498
+        88,
+        497
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        115,
-        536
+        103,
+        535
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        505
+        127,
+        504
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        122,
-        465
+        109,
+        463
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        72,
-        532
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        94,
-        456
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        54,
-        501
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        56,
-        469
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        154,
-        479
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        155,
-        532
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        76,
-        563
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        35,
+        60,
         530
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        174,
-        502
+        53,
+        478
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        70,
+        452
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        138,
+        476
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        144,
+        538
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        28,
+        512
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        63,
+        562
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        162,
+        496
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        98,
+        435
       ]
     },
     {
@@ -164,8 +164,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        190,
-        454
+        184,
+        453
       ],
       "cost": {
         "res.currency": 9
@@ -201,7 +201,7 @@
         596
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 20
       },
       "role": {
         "role": "role.cashier",
@@ -218,10 +218,7 @@
       "cost": {
         "res.currency": 13
       },
-      "build": "conv.food_processor",
-      "requires": {
-        "pad": "feeder"
-      }
+      "build": "conv.food_processor"
     },
     {
       "type": "pad.hire",
@@ -236,6 +233,9 @@
       "role": {
         "role": "role.operator",
         "to": "conv.food_processor"
+      },
+      "requires": {
+        "pad": "grill"
       }
     },
     {
@@ -293,8 +293,8 @@
       "type": "pad.hire",
       "id": "depot_supplier",
       "at": [
-        147,
-        586
+        141,
+        585
       ],
       "cost": {
         "res.currency": 11
@@ -341,10 +341,10 @@
     "start.currency": 5,
     "core.burn": 2.5,
     "housing.base": 10,
-    "customers.spawn": 2.9,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 250
+    "level.budgetSeconds": 240
   },
   "goal": {
     "type": "stockpile",
@@ -365,7 +365,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 153
+        "seconds": 161
       }
     },
     {
@@ -387,9 +387,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.221,
-    "fun": 0.934,
-    "botMargin": 0.469,
+    "difficulty": 0.28,
+    "fun": 0.84,
+    "botMargin": 0.416,
     "botsPassed": [
       "good",
       "average",
@@ -398,9 +398,9 @@
       "floor"
     ],
     "stars": {
-      "good": 2.8,
-      "median": 1.33,
-      "goodAll": 0.8
+      "good": 3,
+      "median": 2.67,
+      "goodAll": 1
     }
   }
 }

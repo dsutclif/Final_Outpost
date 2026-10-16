@@ -213,10 +213,7 @@
       "cost": {
         "res.currency": 14
       },
-      "build": "conv.food_processor",
-      "requires": {
-        "pad": "feeder"
-      }
+      "build": "conv.food_processor"
     },
     {
       "type": "pad.hire",
@@ -231,6 +228,9 @@
       "role": {
         "role": "role.operator",
         "to": "conv.food_processor"
+      },
+      "requires": {
+        "pad": "grill"
       }
     },
     {
@@ -269,7 +269,7 @@
         "to": "sink.sales_point"
       },
       "requires": {
-        "pad": "grill"
+        "pad": "feeder"
       }
     }
   ],
@@ -305,7 +305,7 @@
     "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 280
+    "level.budgetSeconds": 290
   },
   "goal": {
     "type": "produce",
@@ -326,7 +326,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 173
+        "seconds": 178
       }
     },
     {
@@ -348,9 +348,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.145,
-    "fun": 0.912,
-    "botMargin": 0.462,
+    "difficulty": 0.142,
+    "fun": 0.904,
+    "botMargin": 0.465,
     "botsPassed": [
       "good",
       "average",

@@ -207,7 +207,7 @@
       },
       "build": "conv.food_processor",
       "requires": {
-        "pad": "feeder"
+        "pad": "depot"
       }
     },
     {
@@ -223,6 +223,9 @@
       "role": {
         "role": "role.operator",
         "to": "conv.food_processor"
+      },
+      "requires": {
+        "pad": "grill"
       }
     },
     {
@@ -277,7 +280,7 @@
       "build": "conv.level",
       "target": "grill",
       "requires": {
-        "pad": "depot"
+        "pad": "grill"
       }
     },
     {
@@ -487,7 +490,7 @@
   "goal": {
     "type": "stockpile",
     "res": "res.material_basic",
-    "n": 48
+    "n": 41
   },
   "family": "industrialize",
   "objectives": [
@@ -496,14 +499,14 @@
       "kind": "stockpile",
       "params": {
         "res": "res.material_basic",
-        "n": 48
+        "n": 41
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 182
+        "seconds": 183
       }
     },
     {
@@ -527,9 +530,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.712,
-    "fun": 0.866,
-    "botMargin": 0.365,
+    "difficulty": 0.717,
+    "fun": 0.961,
+    "botMargin": 0.369,
     "botsPassed": [
       "good",
       "average",
@@ -538,7 +541,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2,
+      "median": 3,
       "goodAll": 1
     }
   }

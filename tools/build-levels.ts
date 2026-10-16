@@ -181,9 +181,13 @@ async function main(): Promise<void> {
   const byId = new Map<string, Entry>();
   for (const e of old) byId.set(e.id, e);
   for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, family: r.family, modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target });
-  // Titles are unique across the pack: levels from earlier builds keep theirs, new ones are deduped against them.
+  // Titles are unique across the pack: a level keeps the title players know unless its goal changed;
+  // new or re-goaled levels are deduped against the kept ones.
   const keep: Record<string, string> = {};
-  for (const e of old) if (e.title && e.title !== e.id && !results.some((r) => r.id === e.id)) keep[e.id] = e.title;
+  for (const e of old) {
+    const r = results.find((x) => x.id === e.id);
+    if (e.title && e.title !== e.id && (!r || r.goal === e.goal)) keep[e.id] = e.title;
+  }
   const titles = dedupeTitles([...byId.values()].map((e) => ({ id: e.id, goal: e.goal, modules: e.modules })), keep);
   for (const r of results) {
     const mf = JSON.parse(readFileSync(join(outDir, r.file), "utf8")) as { text: Record<string, { title: string }> };
