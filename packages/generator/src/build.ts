@@ -549,15 +549,12 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     sides = [first, ...all.filter((s) => s !== first && s !== "s").slice(0, nSides - 1)];
     if (sides.length < nSides) sides.push("s");
     const quiet = all.filter((s) => !sides.includes(s));
-    // The med bay's early raid hits a quiet side with no towers (see the waves below).
-    // It comes from the quiet side farthest from where the player starts (arrivals keep the south).
-    const rr0 = ring.rect;
-    const sideMid = { n: [rr0[0] + rr0[2] / 2, rr0[1]], s: [rr0[0] + rr0[2] / 2, rr0[1] + rr0[3]], w: [rr0[0], rr0[1] + rr0[3] / 2], e: [rr0[0] + rr0[2], rr0[1] + rr0[3] / 2] } as Record<string, Pt>;
-    const raidCands = quiet.filter((q) => !(q === "s" && feat.has("gate_arrivals"))).sort((a, b) => dist(startPt, sideMid[b]!) - dist(startPt, sideMid[a]!));
-    const raidSide = feat.has("med_bay") ? raidCands[0] ?? quiet[0] ?? sides[0]! : null;
+    // R3 playtest: every side attackers come from has a gate and tower posts, so the probe raid comes
+    // from the first attack side (through its still-unbuilt wall, never its gate) like the early raids.
+    const raidSide = feat.has("med_bay") ? sides[0]! : null;
     // A gate faces every attack side (R3 item 11), on that side's middle section; arrivals keep an exit
-    // on the south side, where their gate stands. The med bay's probe raid side keeps a plain wall,
-    // which breaks sooner than a gate, so that raid still hurts someone.
+    // on the south side, where their gate stands. The med bay's probe raid comes through the first attack
+    // side's unbuilt wall sections (beside its gate), so that raid still hurts someone.
     const gateSides = [...new Set([...sides, ...(feat.has("gate_arrivals") ? ["s" as const] : [])])];
     ringGates = gateSides.map((gs) => {
       const gIdx = ring!.side.map((s, i) => ({ s, i })).filter((x) => x.s === gs);
@@ -571,7 +568,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const corner = (i: number) => ring!.side[(i + n0 - 1) % n0] !== ring!.side[i] || ring!.side[(i + 1) % n0] !== ring!.side[i];
     // The med bay's probe raid comes through a breach (its quiet side's wall, corners aside, is still
     // to build), so someone is hurt before the player can wall it.
-    const breach = (i: number) => ring!.side[i] === raidSide && !corner(i);
+    const breach = (i: number) => ring!.side[i] === raidSide && !corner(i) && !ringGates.includes(i);
     ring.side.forEach((s, i) => {
       if (breach(i)) return;
       // a two-family finale starts walled (but for the one section kept to build below): its defence work is towers and guards
@@ -895,6 +892,11 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     }
     const still = pads.filter((p) => !planned().has(String(p.id)) && !conditional(p) && !(p.build === "struct.housing" && !anchorStep) && !p.repeatable);
     if (still.length > 0) fail(`pads off the plan: ${still.map((p) => p.id).join(",")}`);
+  }
+  // Guard training opens with the guard post, not at the end of the defence chain (R3 playtest).
+  {
+    const train = pads.find((p) => p.id === "train"), bk = pads.find((p) => p.id === "barracks");
+    if (train && bk) train.requires = { ...((train.requires as object) ?? {}), pad: "barracks" };
   }
   // The plan must be buyable in order: every requirement met by an earlier step (no requirement loops).
   {
