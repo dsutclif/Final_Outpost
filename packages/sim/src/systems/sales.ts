@@ -123,13 +123,28 @@ const ARRIVED = 6 * FP;
  * only the y distance was checked, so sales fired with nobody visibly queued).
  */
 function serve(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
-  const idx = s.queue.findIndex((q, k) => within(q.pos, slot(s, k), ARRIVED) && (s.shelf[q.res] ?? 0) >= q.want);
+  const T = cp.sales.serveTicks;
+  let idx = -1;
+  if (T > 0 && s.serving) {
+    // Stay with the customer already at the window: if they left, clear it; if stock ran out, wait.
+    const cur = s.serving.customer;
+    const k = s.queue.findIndex((q) => q.id === cur);
+    if (k < 0 || !within(s.queue[k]!.pos, slot(s, k), ARRIVED)) delete s.serving;
+    else if ((s.shelf[s.queue[k]!.res] ?? 0) < s.queue[k]!.want) return;
+    else idx = k;
+  }
+  if (idx < 0) idx = s.queue.findIndex((q, k) => within(q.pos, slot(s, k), ARRIVED) && (s.shelf[q.res] ?? 0) >= q.want);
   if (idx < 0) return;
   if (!registerStaffed(st, cp, s)) {
     if (within(st.player.pos, s.pos, 140 * FP)) hint(st, out, "stand_at_register");
     return;
   }
   const q = s.queue[idx]!;
+  if (T > 0) {
+    if (!s.serving || s.serving.customer !== q.id) s.serving = { customer: q.id, ticks: 0, of: T };
+    if (++s.serving.ticks < T) return;
+    delete s.serving;
+  }
   const def = cp.sales.customers[q.kind]!;
   s.shelf[q.res] = (s.shelf[q.res] ?? 0) - q.want;
   const pay = (cp.resources[q.res]?.price ?? 0) * q.want * def.pay;

@@ -22,6 +22,7 @@
   "customers.leaveSpeedX": 160,
   "customers.leaveSpeedY": 50,
   "sales.cashierRange": 8,
+  "sales.serveSeconds": 0,
   "housing.base": 6,
   "housing.perBuilding": 2,
   "lasso.maxTowed": 3,
