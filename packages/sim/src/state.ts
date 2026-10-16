@@ -175,8 +175,11 @@ export interface Rect { x: number; y: number; w: number; h: number }
 
 export interface ZoneState {
   id: string;
-  type: "zone.blocked" | "zone.waiting";
+  type: "zone.blocked" | "zone.waiting" | "zone.terrain";
   rect: Rect;
+  /** Terrain only: the look (ridge, outcrop, chasm). */
+  kind?: string;
+  /** Never set on terrain: nothing clears it. */
   cleared: boolean;
 }
 

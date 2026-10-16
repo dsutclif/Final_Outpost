@@ -78,6 +78,7 @@ const names: Record<string, string> = {
   "hostile.raider_humanoid": "Raider",
   "hostile.creature": "Dust crawler",
   "zone.blocked": "Rockslide",
+  "zone.terrain": "Rock ridge",
   "zone.waiting": "Arrivals pad",
   "meter.lifeline": "Heat",
   "meter.base_health": "Colony HP",
@@ -196,6 +197,7 @@ const purposes: Record<string, string> = {
   "hostile.raider_humanoid": "Attacks the colony; walk into it to fight",
   "hostile.creature": "Attacks the colony; walk into it to fight",
   "zone.blocked": "Blocks the way until its pad clears it",
+  "zone.terrain": "Solid rock: nothing crosses it, so walk around",
   "zone.waiting": "New arrivals wait here for a bed",
   "zone.prey": "Hoppers roam here",
 };
@@ -249,6 +251,7 @@ const sprites: Record<string, string> = {
   "hostile.raider_humanoid": "hostile.raider",
   "hostile.creature": "hostile.crawler",
   "zone.blocked": "zone.rockslide",
+  "zone.terrain": "zone.ridge",
   "zone.waiting": "zone.pad",
 };
 

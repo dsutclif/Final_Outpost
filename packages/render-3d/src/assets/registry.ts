@@ -8,7 +8,7 @@ import { buildCharacterModel, lookFor } from "./characters.js";
 import { anchor, mesh, model, type BuildCtx, type Model } from "./common.js";
 import { buildBelt, buildClerkPad, buildItem, buildPile } from "./props.js";
 import {
-  buildBarrierDash, buildBurrow, buildFuelCache, buildGrowDome, buildOrePile, buildPadPlate, buildRubble,
+  buildBarrierDash, buildBurrow, buildFuelCache, buildGrowDome, buildOrePile, buildPadPlate, buildRubble, buildTerrain,
   buildScrapPile, buildStasisPod, buildSupplyCrate, buildStormPreset, buildWaitingMarker, buildWallPanel,
 } from "./scatter.js";
 
@@ -114,6 +114,7 @@ registerModel("struct.barrier.cracked", (ctx) => buildWallPanel(ctx, true));
 registerModel("capture.recruit_container", (ctx) => buildStasisPod(ctx));
 registerModel("capture.supply_crate", (ctx) => buildSupplyCrate(ctx));
 registerModel("zone.blocked", (ctx) => buildRubble(ctx));
+registerModel("zone.terrain", (ctx) => buildTerrain(ctx));
 registerModel("zone.waiting", (ctx) => buildWaitingMarker(ctx));
 registerModel("zone.prey", (ctx) => buildBurrow(ctx));
 registerModel("barrier.line", (ctx) => buildBarrierDash(ctx));

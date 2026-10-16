@@ -5,7 +5,8 @@ import templatesData from "../data/templates.json";
 import genData from "../data/generator.json";
 import { flowModel, type Flow } from "./flow.js";
 import { Placer, dist, segDist, type Pt, type Rect } from "./layout.js";
-import { Rand, clamp01, lerp, round1, round2 } from "./rand.js";
+import { Rand, clamp01, hashStr, lerp, mix, round1, round2 } from "./rand.js";
+import { placeTerrain, type TerrainData } from "./terrain.js";
 
 // Stages 2-4 of the spec, per level family (REDESIGN-R2 §3-§6): layout from a template by constraint
 // placement (fuel forests near the base in every level, perimeter rings only where walls are needed),
@@ -47,6 +48,8 @@ export const GEN = genData as unknown as {
   waveStartMax: number;
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   conveyorGoals: string[];
+  /** Geography: how often and how a level gets ridges, outcrops and chasms (terrain.ts). */
+  terrain: TerrainData;
   search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number; loopCap: number; loopHireCut: number; loopEaseSteps: number; loopBurnEase: number; loopLengthCut: number; loopStartCurrency: number };
 };
 
@@ -749,6 +752,19 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     } as unknown as Manifest;
     return m;
   };
+
+  // ---------- geography (R3 item 17): impassable ridges, outcrops and chasms on some levels ----------
+  // Placed last so every station is where it would be without terrain; its own random stream leaves other draws alone.
+  {
+    const walkPoints: Pt[] = ents.flatMap((e) => (/^(node|conv|sink|struct)\./.test(e.type) && Array.isArray(e["at"]) ? [[(e["at"] as number[])[0]!, (e["at"] as number[])[1]!] as Pt] : []));
+    const pieces = placeTerrain({
+      rand: new Rand(mix(inp.seed >>> 0, hashStr("terrain") ^ Math.imul(layoutSalt + 1, 0x9e3779b1))), P, T: GEN.terrain,
+      families: [fam, ...(inp.secondary ? [inp.secondary] : [])], defend, core, start: startPt, ring: ring ? ring.rect : null, attackSides: sides,
+      walkPoints, shop: shopAt ? { queue, edgeRight: shopAt[0] * 2 >= 480 } : null,
+    });
+    for (const t of pieces) ents.push({ type: "zone.terrain", id: t.id, kind: t.kind, rect: [...t.rect] });
+    if (pieces.length > 0) notes.push(`terrain ${pieces.map((t) => t.kind).join(",")}`);
+  }
 
   // Hazards: dust storms at fractions of the estimated length.
   if (feat.has("dust_storms")) {

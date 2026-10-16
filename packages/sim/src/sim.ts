@@ -157,8 +157,9 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
         break;
       }
       case "zone.blocked":
+      case "zone.terrain":
       case "zone.waiting": {
-        const z: ZoneState = { id: e.id, type: e.type, rect: rect(e.rect), cleared: false };
+        const z: ZoneState = { id: e.id, type: e.type, rect: rect(e.rect), cleared: false, ...(e.type === "zone.terrain" ? { kind: e.kind } : {}) };
         state.zones.push(z);
         break;
       }

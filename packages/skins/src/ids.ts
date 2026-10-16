@@ -28,6 +28,7 @@ export const CONTRACT_IDS: readonly string[] = [
   "hostile.raider_humanoid",
   "hostile.creature",
   "zone.blocked",
+  "zone.terrain",
   "zone.waiting",
   "meter.lifeline",
   "meter.base_health",
