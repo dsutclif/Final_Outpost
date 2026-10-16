@@ -30,6 +30,10 @@
       "mean": 0.003051,
       "sd": 0.006101
     },
+    "animalHits": {
+      "mean": 0,
+      "sd": 1
+    },
     "economyTightness": {
       "mean": 0.347675,
       "sd": 0.123521

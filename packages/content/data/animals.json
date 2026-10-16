@@ -8,5 +8,24 @@
     "drops": { "res.food_raw_2": 2 },
     "respawn": 10,
     "margin": 20
+  },
+  "node.prey_dangerous": {
+    "hp": 6,
+    "speedMin": 0,
+    "speedMax": 30,
+    "turnMin": 1,
+    "turnMax": 3,
+    "drops": { "res.food_raw_2": 3 },
+    "respawn": 14,
+    "margin": 20,
+    "variantOf": "node.prey",
+    "aggroRange": 75,
+    "chargeSpeed": 95,
+    "attackRange": 22,
+    "attackInterval": 1.4,
+    "knockDistance": 110,
+    "stun": 0.8,
+    "stunSlow": 0.35,
+    "injuresWorkers": true
   }
 }

@@ -32,6 +32,8 @@ export const TEMPLATES = templatesData as unknown as TemplatesFile;
 type RingDims = { hw: number; hh: number; split: [number, number] };
 export const GEN = genData as unknown as {
   knobs: Record<string, [number, number]>;
+  /** Dangerous prey: odds that a hunting level that earns any (knob `dangerPrey` rounds above 0) gets them, and the most in one zone. */
+  danger: { chance: number; max: number };
   jitter: number;
   /** Multiplier on the generated time target (time star seconds and level.budgetSeconds): the player-facing time allowance. */
   timeTargetK: number;
@@ -465,6 +467,16 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     }
   }
 
+  // Hunting zones: 3 animals, some of them dangerous variants on later levels (the `dangerPrey` knob rounds to the
+  // count, gated by a data chance). Its own random stream, so layouts and the rest of the level never shift.
+  const preyZones = (r: Rect): void => {
+    const drand = new Rand((inp.seed ^ hashStr("danger") ^ Math.imul(layoutSalt + 1, 0x85ebca6b)) >>> 0);
+    const want = Math.min(GEN.danger.max, Math.max(0, Math.round(K.dangerPrey)));
+    const dn = want > 0 && drand.chance(GEN.danger.chance) ? want : 0;
+    ents.push({ type: "zone.prey", id: "prey", rect: [...r], animal: "node.prey", n: 3 - dn });
+    if (dn > 0) ents.push({ type: "zone.prey", id: "prey_danger", rect: [...r], animal: "node.prey_dangerous", n: dn });
+  };
+
   // ---------- rescue: pods, crates, the pass, prey ----------
   let pods = 0, crates = 0;
   if (rescue && ring) {
@@ -525,14 +537,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       if (pr[2] < 60) {
         // No side strip: roam inside the ring instead.
         const ir: Rect = [inner[0] + 10, inner[1] + 10, 120, 90];
-        ents.push({ type: "zone.prey", id: "prey", rect: [...ir], animal: "node.prey", n: 3 });
-      } else ents.push({ type: "zone.prey", id: "prey", rect: [...pr], animal: "node.prey", n: 3 });
+        preyZones(ir);
+      } else preyZones(pr);
       const drops = Object.keys(c.animals["node.prey"]!.drops);
       if (shopAt) for (const r of drops) if (!sells.includes(r) && (c.resources[r]?.price ?? 0) > 0) sells.push(r);
     }
   } else if (feat.has("hunting")) {
     const pr = tpl.prey;
-    ents.push({ type: "zone.prey", id: "prey", rect: [...pr], animal: "node.prey", n: 3 });
+    preyZones(pr);
     if (shopAt) for (const r of Object.keys(c.animals["node.prey"]!.drops)) if (!sells.includes(r) && (c.resources[r]?.price ?? 0) > 0) sells.push(r);
   }
 

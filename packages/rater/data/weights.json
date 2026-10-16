@@ -9,6 +9,7 @@
       "concurrentDemand": 0.3,
       "routeLoad": 0.2,
       "threatPressure": 0.5,
+      "animalHits": 0.3,
       "economyTightness": 0.7,
       "moduleCount": 0.9,
       "novelty": 0.2

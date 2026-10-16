@@ -68,6 +68,19 @@ export const AnimalDef = z.object({
   respawn: seconds,
   // Spawn at least this far inside the roam zone.
   margin: units,
+  // Hunters treat this animal as the same quarry as `variantOf` (a dangerous variant of the plain prey).
+  variantOf: NodeId.optional(),
+  // Dangerous animals: charge anyone (player or hunter) within aggroRange, bite at attackRange every
+  // attackInterval. A hit knocks the top item off the player's stack knockDistance away and slows the
+  // player to stunSlow (a 0..1 share of speed) for stun seconds; a hunter is injured when injuresWorkers.
+  aggroRange: units.default(0),
+  chargeSpeed: units.default(0),
+  attackRange: units.default(0),
+  attackInterval: seconds.default(0),
+  knockDistance: units.default(0),
+  stun: seconds.default(0),
+  stunSlow: z.number().min(0).max(1).default(1),
+  injuresWorkers: z.boolean().default(false),
 });
 export type AnimalDef = z.infer<typeof AnimalDef>;
 
@@ -304,6 +317,8 @@ export function checkContentRefs(c: Content): void {
   for (const [id, a] of Object.entries(c.animals)) {
     for (const r of Object.keys(a.drops)) if (!res.has(r)) throw new Error(`animal ${id} drops unknown resource ${r}`);
     if (a.speedMax < a.speedMin || a.turnMax < a.turnMin) throw new Error(`animal ${id}: max below min`);
+    if (a.variantOf !== undefined && !c.animals[a.variantOf]) throw new Error(`animal ${id}: variantOf unknown ${a.variantOf}`);
+    if (a.aggroRange > 0 && (a.chargeSpeed <= 0 || a.attackRange <= 0 || a.attackInterval <= 0)) throw new Error(`animal ${id}: a dangerous animal needs chargeSpeed, attackRange and attackInterval`);
   }
   for (const [id, h] of Object.entries(c.hostiles)) {
     for (const r of Object.keys(h.drops)) if (!res.has(r)) throw new Error(`hostile ${id} drops unknown resource ${r}`);

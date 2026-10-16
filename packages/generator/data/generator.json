@@ -28,8 +28,10 @@
     "arrivals": [3, 5],
     "arrivalEvery": [12, 20],
     "heatPct": [40, 70],
-    "bulkShare": [0.25, 0.15]
+    "bulkShare": [0.25, 0.15],
+    "dangerPrey": [-1.5, 2.4]
   },
+  "danger": { "chance": 0.6, "max": 2 },
   "timeTargetK": 1.4,
   "jitter": 0.12,
   "costs": {

@@ -37,6 +37,18 @@ export interface CompiledAnimal {
   drops: Record<string, number>;
   respawnTicks: number;
   margin: number;
+  /** The plain animal hunters take this one for (dangerous variants), or null. */
+  variantOf: string | null;
+  /** 0 = passive prey; otherwise it charges anyone within this range (FP). */
+  aggroRange: number;
+  chargeSpeed: number;
+  attackRange: number;
+  attackTicks: number;
+  knockDistance: number;
+  stunTicks: number;
+  /** FP share of walking speed kept while stunned. */
+  stunSlow: number;
+  injuresWorkers: boolean;
 }
 
 export interface CompiledHostile {
@@ -285,6 +297,9 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       hp: a.hp, speedMin: perTick(a.speedMin), speedMax: perTick(a.speedMax),
       turnMin: ticks(a.turnMin), turnMax: ticks(a.turnMax), drops: { ...a.drops },
       respawnTicks: ticks(a.respawn), margin: fp(a.margin),
+      variantOf: a.variantOf ?? null, aggroRange: fp(a.aggroRange), chargeSpeed: perTick(a.chargeSpeed), attackRange: fp(a.attackRange),
+      attackTicks: ticks(a.attackInterval), knockDistance: fp(a.knockDistance), stunTicks: a.stun > 0 ? ticks(a.stun) : 0,
+      stunSlow: ratio(a.stunSlow), injuresWorkers: a.injuresWorkers,
     };
   }
   const hostiles: Record<string, CompiledHostile> = {};

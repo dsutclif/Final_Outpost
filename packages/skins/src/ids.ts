@@ -6,6 +6,7 @@ export const CONTRACT_IDS: readonly string[] = [
   "unit.player",
   "unit.resident",
   "unit.prey",
+  "unit.prey_dangerous",
   "role.idle",
   "pad.hire",
   "pad.build",

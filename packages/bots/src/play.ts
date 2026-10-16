@@ -52,6 +52,8 @@ export interface BotTrace {
   /** Wall sections repaired or rebuilt at the repair price (0 unless barrier.repairK is on). */
   repairs: number;
   injuries: number;
+  /** Bites taken from dangerous animals. */
+  animalHits: number;
   /** Currency cost of the plan's pads and barrier sections. */
   currencyNeeded: number;
   /** Currency paid by customers. */
@@ -397,6 +399,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     barriersBroken: s.barriersLost,
     repairs,
     injuries: s.injured,
+    animalHits: s.animalHits,
     currencyNeeded: plan.currencyNeeded,
     currencyEarned: earned,
     rewardGaps: gaps,
