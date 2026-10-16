@@ -49,6 +49,7 @@ export function playerAct(st: State, cp: Compiled, out: SimEvent[]): void {
   if (feedCore(st, cp, out)) return;
   if (stockShelf(st, cp, out)) return;
   if (useConverters(st, cp, out)) return;
+  if (stockDepot(st, cp, out)) return;
   gather(st, cp, out);
 }
 
@@ -78,6 +79,25 @@ function stockShelf(st: State, cp: Compiled, out: SimEvent[]): boolean {
   take(p.stack, res);
   s.shelf[res] = (s.shelf[res] ?? 0) + 1;
   out.push({ t: "deposited", res, to: "sink.sales_point", at: { ...s.pos } });
+  p.actCd = cp.sales.depositTicks;
+  return true;
+}
+
+/**
+ * Drop carried goods into the warehouse when standing within its range. Currency is never dropped
+ * here (it is spent at pads or banked at the register; the warehouse is a goods store). Core and
+ * converter deposits run first, so fuel and machine inputs are not diverted away from what needs them.
+ */
+function stockDepot(st: State, cp: Compiled, out: SimEvent[]): boolean {
+  const d = st.depot;
+  if (!d) return false;
+  const p = st.player;
+  if (!within(p.pos, d.pos, cp.structures["struct.depot"]?.range ?? 0)) return false;
+  const res = p.stack.find((r) => cp.resources[r]?.category !== "currency");
+  if (res === undefined) return false;
+  take(p.stack, res);
+  d.stock[res] = (d.stock[res] ?? 0) + 1;
+  out.push({ t: "deposited", res, to: "store.depot", at: { ...d.pos } });
   p.actCd = cp.sales.depositTicks;
   return true;
 }
@@ -135,14 +155,26 @@ function gather(st: State, cp: Compiled, out: SimEvent[]): boolean {
 export function playerCombat(st: State, cp: Compiled, out: SimEvent[]): void {
   const p = st.player;
   p.atkCd = stepDown(p.atkCd);
-  if (p.atkCd > 0) return;
-  const h = nearestHostile(st, p.pos, cp.player.attackRange);
-  const d = nearestPrey(st, p.pos, cp.player.attackRange);
-  if (!h && !d) return;
-  const pickHostile = h && (!d || dist(h.pos, p.pos) <= dist(d.pos, p.pos));
-  if (pickHostile) hitHostile(st, cp, h!, cp.player.attackDamage, "player", out);
-  else hitPrey(st, cp, d!, cp.player.attackDamage, "player", out);
-  p.atkCd = cp.player.attackTicks;
+  p.shotCd = stepDown(p.shotCd);
+  if (p.atkCd <= 0) {
+    const h = nearestHostile(st, p.pos, cp.player.attackRange);
+    const d = nearestPrey(st, p.pos, cp.player.attackRange);
+    if (h || d) {
+      const pickHostile = h && (!d || dist(h.pos, p.pos) <= dist(d.pos, p.pos));
+      if (pickHostile) hitHostile(st, cp, h!, cp.player.attackDamage, "player", out);
+      else hitPrey(st, cp, d!, cp.player.attackDamage, "player", out);
+      p.atkCd = cp.player.attackTicks;
+      if (pickHostile) return;
+    }
+  }
+  // Ranged shot at the nearest hostile (integer squared distance, ties to the first in the list,
+  // which is id order); fired while moving, hostiles only.
+  if (p.shotCd > 0 || cp.player.rangedRange <= 0) return;
+  const foe = nearestHostile(st, p.pos, cp.player.rangedRange);
+  if (!foe) return;
+  out.push({ t: "shot", from: { ...p.pos }, to: { ...foe.pos }, id: foe.id });
+  hitHostile(st, cp, foe, cp.player.attackDamage, "player", out);
+  p.shotCd = cp.player.rangedTicks;
 }
 
 /** Drops are picked up by walking over them when the backpack has room for that type. */

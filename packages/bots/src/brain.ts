@@ -415,7 +415,7 @@ export class Brain {
     // Selling.
     if (sales) {
       const servable = sales.queue.some((q) => (sales.shelf[q.res] ?? 0) >= q.want);
-      const shelfLimit = (r: string) => this.pol.noOverload ? cp.sales.shelfCap - count(p.stack, r) : cp.sales.shelfCap;
+      const shelfLimit = (_r: string) => cp.sales.shelfCap;
       const stockable = this.sellable(st).filter((r) => count(p.stack, r) > 0 && (sales.shelf[r] ?? 0) < shelfLimit(r));
       if (stockable.length > 0 && !this.handsOff(st)) {
         // A worthwhile load: a full backpack of it, or enough to fill every order waiting for it.

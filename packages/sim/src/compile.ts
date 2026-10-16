@@ -189,7 +189,7 @@ export interface Compiled {
   map: { w: number; h: number };
   modules: Set<string>;
   resources: Record<string, CompiledResource>;
-  player: { speed: number; radius: number; actTicks: number; attackTicks: number; attackRange: number; attackDamage: number };
+  player: { speed: number; radius: number; actTicks: number; attackTicks: number; attackRange: number; attackDamage: number; rangedRange: number; rangedTicks: number };
   core: {
     range: number;
     accepts: Record<string, number>;
@@ -460,6 +460,8 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       attackTicks: ticks(param("player.attackInterval")),
       attackRange: fp(param("player.attackRange")),
       attackDamage: int("player.attackDamage"),
+      rangedRange: fp(param("player.rangedRange")),
+      rangedTicks: ticks(param("player.rangedInterval")),
     },
     core,
     nodes,

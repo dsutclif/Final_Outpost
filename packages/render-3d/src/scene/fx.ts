@@ -60,6 +60,15 @@ export class Fx {
     }
   }
 
+  /** Short visible shot: a streak of still particles from `from` to `to`, fading fast. */
+  tracer(from: Vector3, to: Vector3, color: string, n = 7, life = 0.16, size = 3): void {
+    n = Math.max(3, Math.round(n * Math.max(0.5, this.particleScale)));
+    for (let i = 0; i < n; i++) {
+      const k = (i + 1) / n;
+      this.spawn(tmpV.lerpVectors(from, to, k), new Vector3(), 0, life * (0.6 + 0.4 * k), size * (0.7 + 0.5 * k), color, 0);
+    }
+  }
+
   /** Expanding ring of dust on the ground (builds, landings). */
   dustRing(at: Vector3, color: string, n: number, speed: number, size = 7): void {
     n = Math.max(4, Math.round(n * this.particleScale));
