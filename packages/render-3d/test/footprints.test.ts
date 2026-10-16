@@ -12,6 +12,7 @@ import { ART_M } from "../src/units.js";
 
 const gen = JSON.parse(readFileSync(new URL("../../generator/data/generator.json", import.meta.url), "utf8")) as { footprints: Record<string, [number, number, number, number]> };
 const fp = gen.footprints;
+const OCCLUDE = 1 / Math.tan((50 * Math.PI) / 180);
 const ctx = createBuildCtx(marsGreenhouse);
 
 describe("generator footprints", () => {
@@ -24,6 +25,10 @@ describe("generator footprints", () => {
       expect(m.root.userData["fallback"]).toBeUndefined();
       expect(x0).toBeLessThanOrEqual(b.min.x * ART_M);
       expect(y0).toBeLessThanOrEqual(b.min.z * ART_M);
+      // The camera looks down ~50 degrees from the south, so a tall model hides the ground north of it
+      // (smaller y) by height * cot(50 deg); the footprint reaches that far so no pad hides behind it.
+      // (low ground piles under 10 world units hide nothing a pad could sit behind, and forests pack them tight)
+      if (b.max.y * ART_M >= 10) expect(y0).toBeLessThanOrEqual(b.min.z * ART_M - OCCLUDE * b.max.y * ART_M);
       expect(x1).toBeGreaterThanOrEqual(b.max.x * ART_M);
       expect(y1).toBeGreaterThanOrEqual(b.max.z * ART_M);
     });

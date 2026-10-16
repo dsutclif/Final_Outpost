@@ -44,17 +44,17 @@
     "defend": { "hw": 190, "hh": 235, "split": [3, 4] },
     "rescue": { "hw": 135, "hh": 150, "split": [2, 2] },
     "rescueShop": { "hw": 180, "hh": 200, "split": [3, 3] },
-    "podGap": 62, "edge": 36, "towerPadIn": 70
+    "podGap": 62, "edge": 36, "towerPadIn": 46, "towerPadSearch": 30
   },
   "spacing": { "margin": 8, "standR": 16, "screen": [200, 350], "footprintGap": 6 },
   "conveyorGoals": ["produce", "chain", "converters_running", "automate", "stockpile"],
   "footprints": {
     "pad": [-25, -25, 25, 25], "pad.big": [-35, -35, 35, 35],
-    "sink.core": [-34, -34, 34, 34], "sink.sales_point": [-42, -33, 63, 32],
-    "node.material_source": [-30, -29, 30, 30], "node.food_source": [-32, -32, 32, 32], "node.fuel_scrap": [-14, -14, 14, 14],
-    "conv.food_processor": [-29, -22, 65, 63], "conv.material_processor": [-29, -22, 65, 63], "conv.alloy_works": [-29, -22, 65, 63],
-    "struct.housing": [-31, -21, 31, 21], "struct.medical": [-28, -22, 33, 22], "struct.barracks": [-24, -23, 28, 23],
-    "struct.ranged_defense": [-19, -19, 19, 35], "struct.depot": [-40, -29, 40, 29], "struct.landmark": [-64, -71, 64, 71]
+    "sink.core": [-34, -84, 34, 34], "sink.sales_point": [-42, -88, 63, 32],
+    "node.material_source": [-30, -54, 30, 30], "node.food_source": [-32, -61, 32, 32], "node.fuel_scrap": [-14, -14, 14, 14],
+    "conv.food_processor": [-29, -67, 65, 63], "conv.material_processor": [-29, -67, 65, 63], "conv.alloy_works": [-29, -67, 65, 63],
+    "struct.housing": [-31, -55, 31, 21], "struct.medical": [-28, -62, 33, 22], "struct.barracks": [-24, -77, 28, 23],
+    "struct.ranged_defense": [-19, -45, 19, 35], "struct.depot": [-40, -78, 40, 29], "struct.landmark": [-64, -154, 64, 71]
   },
   "search": {
     "maxIterations": 10,
