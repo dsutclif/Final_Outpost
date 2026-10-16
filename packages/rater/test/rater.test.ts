@@ -55,8 +55,10 @@ describe("quality filters", () => {
   it("trivial: a goal so cheap the weakest bot wins in well under 40% of the budget", () => {
     const m = l1();
     landmark(m)["cost"] = { "res.currency": 4 };
-    // prices only: no automation tax, so the goal stays as cheap as it says
+    // prices only: no automation tax, so the goal stays as cheap as it says; a long budget, so even the
+    // weakest bot (about 130 s here) finishes well inside the trivial share of it
     (m as { params: Record<string, number> }).params["pads.automationGrowth"] = 1;
+    (m as { params: Record<string, number> }).params["level.budgetSeconds"] = 600;
     // Without the golden heat-floor star, whose policy keeps every bot feeding the core (bots README).
     delete (m as { objectives?: unknown }).objectives;
     expect(rate(m, FAST).filters.trivial).toBe(true);

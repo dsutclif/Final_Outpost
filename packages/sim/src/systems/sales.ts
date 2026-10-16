@@ -21,15 +21,18 @@ export interface SalesLayout {
 }
 
 /**
- * Where the clerk pad, coin pile and customer line go for a stall. Register and pile offsets point
- * toward the core, the queue offset toward the map centre (so the line never runs off the map edge),
- * and the queue step toward the core (the content default is negative: the line grows away from it).
+ * Where the clerk pad, coin pile and customer line go for a stall. Register and pile sit on the
+ * camera side (south, +y) so the stall never hides them (R3 playtest); the queue offset points toward
+ * the map centre (so the line never runs off the map edge) and the queue step toward the core (the
+ * content default is negative: the line grows away from it).
  * Exported so the generator can keep pads clear of these spots.
  */
 export function salesLayout(cp: Compiled, pos: Vec, core: Vec): SalesLayout {
   const S = cp.sales;
   const centre = { x: cp.map.w / 2, y: cp.map.h / 2 };
-  const r = toward(S.registerOffset, pos, core), p = toward(S.pileOffset, pos, core), q = toward(S.queueOffset, pos, centre);
+  // horizontally still toward the core (pile side), vertically always toward the camera
+  const south = { x: core.x, y: pos.y + FP };
+  const r = toward(S.registerOffset, pos, south), p = toward(S.pileOffset, pos, south), q = toward(S.queueOffset, pos, centre);
   return {
     register: { x: pos.x + r.x, y: pos.y + r.y },
     pile: { x: pos.x + p.x, y: pos.y + p.y },

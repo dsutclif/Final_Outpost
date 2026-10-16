@@ -75,10 +75,10 @@ describe("prototype level 1 port", () => {
     expect(sim.state.sales!.shelf["res.food_raw_1"]).toBe(6);
     expect(sim.state.player.stack.length).toBe(0);
 
-    // The clerk pad is 54 units from the counter on the core side (north here); stand on it and wait.
+    // The clerk pad is 54 units from the counter on the camera side (south); stand on it and wait.
     // Customers queued while the shelf was being stocked, so sales can start as the player steps in.
-    expect(sim.state.sales!.register).toEqual(at(330, 516));
-    const ev = [...walkTo(sim, at(330, 516), 10), ...idle(sim, 60 * TPS, (e) => e.some((x) => x.t === "sold"))];
+    expect(sim.state.sales!.register).toEqual(at(330, 624));
+    const ev = [...walkTo(sim, at(330, 624), 10), ...idle(sim, 60 * TPS, (e) => e.some((x) => x.t === "sold"))];
     const sales = ev.filter((e) => e.t === "sold");
     expect(sales.length).toBeGreaterThan(0);
     let paid = 0;
@@ -91,8 +91,8 @@ describe("prototype level 1 port", () => {
     expect(sim.state.sales!.pileN).toBe(paid);
     expect(sim.state.currency).toBe(0);
 
-    expect(sim.state.sales!.pile).toEqual(at(392, 516));
-    const got = [...walkTo(sim, at(392, 516), 20), ...idle(sim, 5)];
+    expect(sim.state.sales!.pile).toEqual(at(392, 624));
+    const got = [...walkTo(sim, at(392, 624), 20), ...idle(sim, 5)];
     expect(got.some((e) => e.t === "collected")).toBe(true);
     expect(sim.state.currency + sim.state.sales!.pileN).toBeGreaterThanOrEqual(paid);
     expect(sim.state.currency).toBeGreaterThanOrEqual(paid);

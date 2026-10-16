@@ -73,11 +73,11 @@ describe("B2: every sale comes from exactly one queued customer", () => {
 });
 
 describe("clerk pad and queue side", () => {
-  it("level 1: the clerk pad sits beside the kiosk toward the core; the line forms toward the map interior and grows away from the core", () => {
+  it("level 1: the clerk pad sits on the camera side of the kiosk; the line forms toward the map interior and grows away from the core", () => {
     const sim = newSim();
     const s = sim.state.sales!;
-    expect(s.register).toEqual(at(330, 516));
-    expect(s.pile).toEqual(at(392, 516));
+    expect(s.register).toEqual(at(330, 624));
+    expect(s.pile).toEqual(at(392, 624));
     expect(s.queueAt).toEqual(at(254, 570));
     expect(s.queueStep).toEqual(at(0, 34));
     expect(s.edgeX).toBe(fp(500));
@@ -87,8 +87,8 @@ describe("clerk pad and queue side", () => {
     const cp = newSim().compiled;
     for (const [sx, sy, cx, cy] of [[150, 570, 240, 400], [330, 300, 240, 400], [455, 880, 240, 400], [25, 20, 240, 400]] as const) {
       const lay = salesLayout(cp, at(sx, sy), at(cx, cy));
-      // Clerk pad on the core side of the kiosk.
-      expect(Math.sign(lay.register.y - fp(sy))).toBe(Math.sign(fp(cy) - fp(sy)));
+      // Clerk pad on the camera side (south) of the kiosk, so the stall never hides it (R3 playtest).
+      expect(lay.register.y).toBeGreaterThan(fp(sy));
       // Line toward the map interior.
       expect(Math.sign(lay.queueAt.x - fp(sx))).toBe(sx * 2 >= 480 ? -1 : 1);
       for (let k = 0; k < cp.sales.queueMax; k++) {
