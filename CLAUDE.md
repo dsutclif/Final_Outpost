@@ -50,7 +50,32 @@ pnpm install
 pnpm test          # vitest: determinism, property and port tests
 pnpm typecheck     # tsc project references
 pnpm check         # both
+pnpm dev           # client on 0.0.0.0:5180
+pnpm build         # production build into ./dist (Vercel output)
+pnpm levels:build --from 1 --to 60 --out levels/packs/s1   # regenerate the pack (~45 min)
+pnpm levels:check  # replay every pack level with the bot ladder (~30 s)
 ```
+
+## Working on this project (for any machine)
+
+- **Read first:** `docs/DECISIONS.md` (overrides the spec), `docs/REDESIGN-R2.md` (latest agreed
+  design), `README.md` status. Doug's feedback rounds are recorded there, not in chat history.
+- **Hosting:** GitHub `dsutclif/Final_Outpost` (public), Vercel auto-deploys `main` to
+  https://final-outpost-rho.vercel.app (`vercel.json`; root build copies the client into `./dist`).
+  Doug plays on an iPhone from that URL. After pushing, wait for the new `assets/index-*.js` to
+  appear on the URL, then verify there; "done" means verified live.
+- **Pushing:** this repo is Doug's alone; commit and push freely, no PR needed.
+- **Engine bumps:** any rules change bumps `ENGINE_VERSION`, re-pins `levels/golden` and
+  `levels/packs/s1`, then `pnpm levels:check` must stay clean. Level URLs carry the pack hash, and a
+  waiting service worker applies itself on menu screens, so players pick up new packs automatically.
+- **Models:** Doug wants cheaper models where they fit: Opus for large judgment-heavy work, Sonnet
+  for narrow fixes, playtests and docs, Haiku for mechanical checks. Lean briefs that point at
+  specific docs/files rather than the whole spec. If a usage limit stops an agent, resume it.
+- **Browser checks:** never start the Browser pane by launch-config name from another project's
+  folder; run `pnpm dev` yourself and open it by URL.
+- **Windows toolchain:** if `pnpm` isn't found in Git Bash, run it from PowerShell (node lives in
+  `C:\Program Files\nodejs`, pnpm in `%APPDATA%\npm`). Vitest is capped at 3 workers because the
+  long synchronous bot/rater hooks time out under heavy parallel load.
 
 ## Conventions
 
