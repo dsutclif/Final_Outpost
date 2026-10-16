@@ -1,4 +1,5 @@
 import { CanvasTexture, LinearFilter, MeshBasicMaterial, SRGBColorSpace, Sprite, SpriteMaterial } from "three";
+import { LABEL_K } from "../units.js";
 
 // World-space text and icons as cached canvas sprites: rounded heavy font, white with a dark
 // outline (ART-DIRECTION.md typography). Every texture is keyed by what it shows, so a
@@ -67,7 +68,8 @@ export class Labels {
     const m = this.material(key, art);
     if (!m) { sprite.visible = false; return false; }
     if (sprite.material !== m.mat) sprite.material = m.mat;
-    sprite.scale.set(height * m.aspect, height, 1);
+    const h = height * LABEL_K;
+    sprite.scale.set(h * m.aspect, h, 1);
     return true;
   }
 

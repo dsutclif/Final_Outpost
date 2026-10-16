@@ -10,6 +10,7 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   NoToneMapping,
   Object3D,
   PCFShadowMap,
@@ -19,6 +20,7 @@ import {
   Raycaster,
   Scene,
   Sprite,
+  type Light,
   SRGBColorSpace,
   Sphere,
   Vector2,
@@ -33,7 +35,7 @@ import {
 import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
-import { buildModel } from "./assets/registry.js";
+import { buildModel, hasModel } from "./assets/registry.js";
 import { buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
 import { LEAD_WEIGHT, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
@@ -619,6 +621,12 @@ export class Renderer3D implements Renderer {
     for (const o of p.extra) {
       if (!o) continue;
       this.dynamic.remove(o);
+      const ghost = o.userData["ghost"] as MeshLambertMaterial | undefined;
+      if (ghost) {
+        o.traverse((c) => { if ((c as Mesh).isMesh) (c as Mesh).geometry.dispose(); });
+        ghost.dispose();
+        continue;
+      }
       const m = o as Mesh;
       if (m.isMesh && m.geometry !== this.scaffoldGeo && m.geometry !== this.padPlane) m.geometry.dispose();
     }
@@ -900,6 +908,12 @@ export class Renderer3D implements Renderer {
   private syncPads(s: State): void {
     const done = new Set<string>(s.built);
     for (const p of s.pads) if (p.done) done.add(p.id);
+    const pl = s.player.pos;
+    const ghosts = new Set(s.pads
+      .filter((pad) => !pad.done && pad.visible && this.ghostable(this.pads.get(pad.id)))
+      .sort((a, b) => ((a.pos.x - pl.x) ** 2 + (a.pos.y - pl.y) ** 2) - ((b.pos.x - pl.x) ** 2 + (b.pos.y - pl.y) ** 2) || (a.id < b.id ? -1 : 1))
+      .slice(0, TIERS[this.quality].ghosts)
+      .map((pad) => pad.id));
     for (const pad of s.pads) {
       if (pad.done || !pad.visible) continue;
       const info = this.pads.get(pad.id);
@@ -935,12 +949,15 @@ export class Renderer3D implements Renderer {
       const rows = owed.length > PAD_PER_ROW ? 2 : 1;
       const artH = (rows === 2 ? PAD_ART_H2 : PAD_ART_H) + (lockTxt ? PAD_LOCK_H : 0);
       sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, owed, pad.locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
-      sp.position.set(at.x, ART_M * (1.25 + (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04), at.z);
-      this.candidate(pad.type, p, ART_M * (2.6 + (rows - 1) * 0.6));
-      // scaffold rises with the payment for buildings
+      // a pad that places a new model shows its blueprint at full size, so a name never floats over nothing
+      const ghostH = ghosts.has(pad.id) ? this.syncGhost(p, info!.what, at, fill) : this.hideGhost(p);
+      const lift = Math.max(1.25, ghostH + 0.3);
+      sp.position.set(at.x, ART_M * (lift + (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04), at.z);
+      this.candidate(pad.type, p, ART_M * (lift + 1.35 + (rows - 1) * 0.6));
+      // scaffold rises with the payment for upgrades that have no blueprint of their own
       let scaf = p.extra[1] as Mesh | undefined;
       const builds = info?.kind === "build" && (info.what.startsWith("struct.") || info.what.startsWith("conv.") || info.what === "sink.core.level");
-      if (builds && paid > 0) {
+      if (builds && paid > 0 && !ghostH) {
         if (!scaf) {
           scaf = new Mesh(this.scaffoldGeo!, this.bctx!.mats.std);
           this.dynamic.add(scaf);
@@ -952,6 +969,47 @@ export class Renderer3D implements Renderer {
       } else if (scaf) scaf.visible = false;
       this.padRing(p, s, pad, big, at);
     }
+  }
+
+  /**
+   * Translucent blueprint of what a build pad places (structures and converters; upgrades have
+   * none), firming up as it is paid. Returns its height in art metres, 0 when there is none.
+   */
+  private ghostable(info: PadInfo | undefined): boolean {
+    return info?.kind === "build" && hasModel(info.what) && !this.content.upgrades[info.what];
+  }
+
+  private hideGhost(p: Placed): number {
+    const g = p.extra[3];
+    if (g) g.visible = false;
+    return 0;
+  }
+
+  private syncGhost(p: Placed, what: string, at: Vector3, fill: number): number {
+    let g = p.extra[3] as Group | undefined;
+    if (!g) {
+      const mat = new MeshLambertMaterial({ color: new Color(this.tokens.interactive), emissive: new Color(this.tokens.interactive), emissiveIntensity: 0.55, transparent: true, depthWrite: false });
+      const m = buildModel(what, { ...this.bctx!, level: 1 });
+      const drop: Object3D[] = [];
+      m.root.traverse((o) => {
+        const me = o as Mesh;
+        if (me.isMesh) { me.material = mat; me.castShadow = false; me.receiveShadow = false; me.renderOrder = 3; }
+        else if ((o as Light).isLight || (o as Sprite).isSprite) drop.push(o);
+      });
+      for (const o of drop) o.removeFromParent();
+      m.root.updateMatrixWorld(true);
+      tmpBox.setFromObject(m.root);
+      g = m.root;
+      g.userData["ghost"] = mat;
+      g.userData["h"] = tmpBox.isEmpty() ? 1 : Math.max(0.3, tmpBox.max.y);
+      g.scale.setScalar(ART_M);
+      this.dynamic.add(g);
+      p.extra[3] = g;
+    }
+    g.visible = true;
+    g.position.set(at.x, 0, at.z);
+    (g.userData["ghost"] as MeshLambertMaterial).opacity = 0.5 + 0.3 * fill + 0.06 * Math.sin(this.t * 3 + at.x);
+    return g.userData["h"] as number;
   }
 
   /**
