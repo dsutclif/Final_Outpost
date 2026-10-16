@@ -1204,6 +1204,7 @@ export class Renderer3D implements Renderer {
         }
         if (sec.built) this.wallHp(b.id, i, sec, mid, s);
         else this.hideWallHp(b.id, i);
+        this.repairMarker(b, i, sec, mid, s);
         if (sec.built && !sec.gate) {
           const low = sec.hp < sec.hpMax * 0.5;
           const pop = this.fx!.popAge(`bar:${b.id}:${i}`);
@@ -1220,7 +1221,9 @@ export class Renderer3D implements Renderer {
           }
           const key = `barl:${b.id}:${i}`;
           const holder = this.place(key, "barrier.line", mid, 1, () => ({ root: new Group(), cls: "decal", parts: {} }));
-          const left = Math.max(0, b.costPerSection - sec.paid);
+          const rp = s.params["barrier.repairPm"] ?? 0;
+          const need = sec.broken && rp > 0 ? Math.max(1, Math.ceil((b.costPerSection * rp) / 1000)) : b.costPerSection;
+          const left = Math.max(0, need - sec.paid);
           this.candidatePt("barrier.line", mid.x, mid.z, ART_M * 1.6);
           const sp = this.sprite(holder, 0);
           sp.visible = this.labels.apply(sp, `bl|${b.res}|${left}`, () => this.costArt(b.res, left), 11);
@@ -1241,6 +1244,23 @@ export class Renderer3D implements Renderer {
     const on = Math.max(0, Math.ceil((sec.hp / sec.hpMax) * pips));
     sp.visible = this.labels.apply(sp, `hp|${on}|${pips}`, () => this.hpArt(on, pips), 7);
     sp.position.set(mid.x, ART_M * 1.25, mid.z);
+  }
+
+  /** "Repair" marker (the repair price) floating over a damaged standing section; only when repair is on. */
+  private repairMarker(b: State["barriers"][number], i: number, sec: State["barriers"][number]["sections"][number], mid: Vector3, s: State): void {
+    const key = `rep:${b.id}:${i}`;
+    const rp = s.params["barrier.repairPm"] ?? 0;
+    if (rp <= 0 || !sec.built || sec.hp >= sec.hpMax) {
+      const p = this.placed.get(key);
+      if (p) p.seen = false;
+      return;
+    }
+    const cost = Math.max(1, Math.ceil((b.costPerSection * rp) / 1000));
+    const holder = this.place(key, "barrier.repair", mid, 1, () => ({ root: new Group(), cls: "decal", parts: {} }));
+    this.candidatePt("barrier.repair", mid.x, mid.z, ART_M * 1.6);
+    const sp = this.sprite(holder, 0);
+    sp.visible = this.labels.apply(sp, `rp|${b.res}|${cost}`, () => this.costArt(b.res, cost), 11);
+    sp.position.set(mid.x, ART_M * (1.95 + Math.sin(this.t * 3 + i) * 0.05), mid.z);
   }
 
   private hideWallHp(line: string | number, i: number): void {
@@ -2071,6 +2091,11 @@ export class Renderer3D implements Renderer {
         fx.dustRing(at, mix(t.structure, t.groundAlt, 0.3), 12, 80, 6);
         break;
       }
+      case "barrier_repaired":
+        fx.pop(`bar:${String(e["line"])}:${String(e["section"])}`);
+        fx.burst(up(at, 10), [t.ok, t.structure], 12, 90, 200, 4, 0.4);
+        fx.floater(ft("barrier_repaired"), t.ok, up(at, ART_M * 1.4), 40, 12);
+        break;
       case "barrier_broken":
         fx.shake = Math.max(fx.shake, 7);
         fx.burst(up(at, 12), [t.structure, t.structureDark], 18, 140, 260, 6);

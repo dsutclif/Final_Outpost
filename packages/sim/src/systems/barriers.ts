@@ -2,7 +2,13 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { FP, isqrt, mulDiv, type Vec } from "../fixed.js";
 import type { BarrierSectionState, BarrierState, State } from "../state.js";
-import { hint, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
+import { countOf, hint, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
+
+/** Units a repair (or rebuild of a destroyed section) costs: ceil(costPerSection * repairK); 0 when repair is off. */
+export const repairCost = (st: State, line: BarrierState): number => {
+  const pm = st.params["barrier.repairPm"] ?? 0;
+  return pm > 0 ? Math.max(1, Math.ceil((line.costPerSection * pm) / 1000)) : 0;
+};
 
 export const sectionHpMax = (st: State, gate: boolean): number =>
   gate ? st.params["barrier.gateHpMax"]! : st.params["barrier.hpMax"]!;
@@ -13,6 +19,7 @@ export function buildSection(st: State, cp: Compiled, line: BarrierState, s: Bar
   s.hpMax = sectionHpMax(st, s.gate);
   s.hp = s.hpMax;
   s.paid = line.costPerSection;
+  delete s.broken;
   if (!s.gate) unstick(st, cp, s);
 }
 
@@ -37,6 +44,7 @@ export function breakSection(st: State, line: BarrierState, idx: number, out: Si
   s.built = false;
   s.hp = 0;
   s.paid = 0;
+  if ((st.params["barrier.repairPm"] ?? 0) > 0) s.broken = true;
   out.push({ t: "barrier_broken", line: line.id, section: idx });
   hint(st, out, "barrier_broken");
 }
@@ -50,7 +58,20 @@ export function stepBarrierBuild(st: State, cp: Compiled, out: SimEvent[]): void
     const cap = cp.resources[line.res]?.cap ?? null;
     for (let i = 0; i < line.sections.length; i++) {
       const s = line.sections[i]!;
-      if (s.built || !nearSegment(p.pos, s.a, s.b, cp.barrier.buildRange)) continue;
+      if (!nearSegment(p.pos, s.a, s.b, cp.barrier.buildRange)) continue;
+      const rc = repairCost(st, line);
+      if (s.built) {
+        // Repair: a damaged standing section is restored in one payment, never partially charged.
+        if (rc === 0 || s.hp >= s.hpMax) continue;
+        const have = cap === null ? st.currency : countOf(p.stack, line.res);
+        if (have < rc) { hint(st, out, "barrier_damaged"); continue; }
+        for (let k = 0; k < rc; k++) { if (cap === null) st.currency--; else take(p.stack, line.res); }
+        s.hp = s.hpMax;
+        p.buildCd = cp.barrier.buildTicks;
+        out.push({ t: "barrier_repaired", line: line.id, section: i, cost: rc, rebuilt: false });
+        return;
+      }
+      const need = s.broken && rc > 0 ? rc : line.costPerSection;
       // Currency lives in state.currency; everything else comes out of the backpack.
       if (cap === null) {
         if (st.currency <= 0) continue;
@@ -58,10 +79,12 @@ export function stepBarrierBuild(st: State, cp: Compiled, out: SimEvent[]): void
       } else if (!take(p.stack, line.res)) continue;
       s.paid++;
       p.buildCd = cp.barrier.buildTicks;
-      out.push({ t: "barrier_progress", line: line.id, section: i, paid: s.paid, cost: line.costPerSection });
-      if (s.paid >= line.costPerSection) {
+      out.push({ t: "barrier_progress", line: line.id, section: i, paid: s.paid, cost: need });
+      if (s.paid >= need) {
+        const rebuilt = s.broken === true && rc > 0;
         buildSection(st, cp, line, s);
         out.push({ t: "barrier_built", line: line.id, section: i });
+        if (rebuilt) out.push({ t: "barrier_repaired", line: line.id, section: i, cost: need, rebuilt: true });
       }
       return;
     }

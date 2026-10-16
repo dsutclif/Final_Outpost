@@ -174,6 +174,30 @@ export class Brain {
     return null;
   }
 
+  /**
+   * With wall repair on: a damaged standing section facing a side hostiles are attacking from, nearest to the
+   * hero first. Null while repair is off, so the bots play exactly as before.
+   */
+  nextRepair(st: State): { line: string; section: number; cost: number; paid: number; res: string; a: Vec; b: Vec } | null {
+    const pm = st.params["barrier.repairPm"] ?? 0;
+    if (pm <= 0 || st.hostiles.length === 0) return null;
+    const sides = new Set(st.hostiles.map((h) => h.side));
+    let best: { line: string; section: number; cost: number; paid: number; res: string; a: Vec; b: Vec } | null = null;
+    let bd = Infinity;
+    for (const line of st.barriers) {
+      for (let i = 0; i < line.sections.length; i++) {
+        const s = line.sections[i]!;
+        if (!s.built || s.hp >= s.hpMax) continue;
+        const mx = (s.a.x + s.b.x) / 2 - st.core.pos.x, my = (s.a.y + s.b.y) / 2 - st.core.pos.y;
+        const side = Math.abs(mx) > Math.abs(my) ? (mx > 0 ? "e" : "w") : (my > 0 ? "s" : "n");
+        if (!sides.has(side)) continue;
+        const d = (mx - (st.player.pos.x - st.core.pos.x)) ** 2 + (my - (st.player.pos.y - st.core.pos.y)) ** 2;
+        if (d < bd) { bd = d; best = { line: line.id, section: i, cost: Math.max(1, Math.ceil((line.costPerSection * pm) / 1000)), paid: 0, res: line.res, a: s.a, b: s.b }; }
+      }
+    }
+    return best;
+  }
+
   // ---------- task scoring ----------
 
   private fuelValueCarried(st: State): number {
@@ -356,7 +380,7 @@ export class Brain {
     if (st.gateQueue.length > 0 && cp.gate) T("admit", cp.manifest.goal.type === "population" ? 70 : 62);
 
     // Barrier sections before and between waves.
-    const nb = this.nextBarrier(st);
+    const nb = this.nextBarrier(st) ?? this.nextRepair(st);
     if (nb) {
       const have = cp.resources[nb.res]?.cap === null ? st.currency : count(p.stack, nb.res);
       // A section behind rubble or another wall cannot be walked to yet; the plan moves on meanwhile.
@@ -676,7 +700,7 @@ export class Brain {
         return { pos: pad.pos, r: 14 * U };
       }
       case "barrier": {
-        const b = this.nextBarrier(st);
+        const b = this.nextBarrier(st) ?? this.nextRepair(st);
         if (!b) return null;
         const have = cp.resources[b.res]?.cap === null ? st.currency : count(p.stack, b.res);
         if (have <= 0) return null;

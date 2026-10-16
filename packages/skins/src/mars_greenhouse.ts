@@ -337,6 +337,7 @@ export const marsGreenhouse: Skin = {
       zone_cleared: "The way is open",
       need_resource: "You need more materials for this",
       barrier_broken: "A wall broke!",
+      barrier_damaged: "Walls cracked: bring materials to repair",
       hazard_warning: "Dust storm coming. Stock the reactor!",
     },
     reasons: {
@@ -372,6 +373,7 @@ export const marsGreenhouse: Skin = {
       wave_cleared: "Raid repelled!",
       barrier_broken: "Wall down!",
       barrier_built: "Wall up!",
+      barrier_repaired: "Wall repaired!",
       core_upgraded: "Reactor Lv{n}!",
       zone_cleared: "Cleared!",
       unlocked: "Unlocked!",
@@ -680,6 +682,7 @@ export const marsGreenhouse: Skin = {
     picked: "tick",
     barrier_built: "wall",
     barrier_broken: "boom",
+    barrier_repaired: "wall",
     released: "pop",
     recruit_arrived: "pop",
     moved_in: "pop",

@@ -49,6 +49,8 @@ export interface BotTrace {
   routeShare: number;
   baseHpLost: number;
   barriersBroken: number;
+  /** Wall sections repaired or rebuilt at the repair price (0 unless barrier.repairK is on). */
+  repairs: number;
   injuries: number;
   /** Currency cost of the plan's pads and barrier sections. */
   currencyNeeded: number;
@@ -180,6 +182,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   let warnStart = -1;
   let integSum = 0, integN = 0;
   let hpMin = 100, overload = false, heatSum = 0, heatN = 0, lastObj = 0;
+  let repairs = 0;
   const lines = new Set<string>(), nodesUsed = new Set<string>(), convUsed = new Set<string>();
   let capturesHome = 0;
   const builtPads = new Set<string>();
@@ -222,10 +225,11 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
       if (e.t === "converted") convUsed.add(e.conv);
       if (e.t === "built") builtPads.add(e.pad);
       if (e.t === "barrier_progress" || e.t === "barrier_built") lines.add(e.line);
+      if (e.t === "barrier_repaired") { repairs++; lines.add(e.line); }
       if (e.t === "hit" && e.target === "barrier") for (const l of st.barriers) if (l.sections.some((sec) => near2(sec, e.at))) lines.add(l.id);
       if (e.t === "captured") for (const l of st.barriers) if (l.closed) lines.add(l.id);
       if (e.t === "released" || e.t === "crate_delivered") capturesHome++;
-      if ((e.t === "gathered" || e.t === "deposited" || e.t === "collected" || e.t === "picked" || e.t === "pad_paid" || e.t === "barrier_progress") && !("by" in e && e.by !== undefined)) acted = true;
+      if ((e.t === "gathered" || e.t === "deposited" || e.t === "collected" || e.t === "picked" || e.t === "pad_paid" || e.t === "barrier_progress" || e.t === "barrier_repaired") && !("by" in e && e.by !== undefined)) acted = true;
       noteModule(used, e, cp.upgrades);
     }
     void currencyBefore;
@@ -301,6 +305,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     routeShare: moveOnly / Math.max(1, moveOnly + acting),
     baseHpLost: st.meters.baseHealthMax - st.meters.baseHealth,
     barriersBroken: s.barriersLost,
+    repairs,
     injuries: s.injured,
     currencyNeeded: plan.currencyNeeded,
     currencyEarned: earned,
@@ -402,7 +407,7 @@ function noteModule(used: Set<string>, e: SimEvent, upgrades: Record<string, unk
     case "zone_cleared": used.add("blocked_zones"); break;
     case "released": used.add("lasso"); break;
     case "moved_in": case "recruit_arrived": used.add("housing"); break;
-    case "barrier_built": case "barrier_progress": used.add("barrier_lines"); break;
+    case "barrier_built": case "barrier_progress": case "barrier_repaired": used.add("barrier_lines"); break;
     case "hit": if (e.target === "barrier") used.add("barrier_lines"); break;
     case "captured": used.add("lasso"); used.add("barrier_lines"); break; // the tow line only engages outside a line
     case "wave_started": case "wave_cleared": used.add("defense"); break;

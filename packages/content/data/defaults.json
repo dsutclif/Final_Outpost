@@ -101,6 +101,7 @@
   "freeze.othersRate": 0.5,
   "freeze.othersCap": 0.8,
   "barrier.costPerSection": 2,
+  "barrier.repairK": 0,
   "defense.playerHitRange": 18,
   "defense.playerHitInterval": 1,
   "lasso.slackTime": 2.5

@@ -227,7 +227,7 @@ export interface Compiled {
   waiting: Vec;
   gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
   zones: { blockMargin: number };
-  barrier: { thickness: number; buildRange: number; buildTicks: number; hp: number; gateHp: number; costPerSection: number };
+  barrier: { thickness: number; buildRange: number; buildTicks: number; hp: number; gateHp: number; costPerSection: number; repairPm: number };
   drops: { pickupRange: number; scatterX: number; scatterY: number };
   convParams: { playerOperateRange: number; operatorRange: number; pickupRange: number; hintRange: number };
   defense: {
@@ -502,6 +502,8 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     barrier: {
       thickness: fp(param("barrier.thickness")), buildRange: fp(param("barrier.buildRange")), buildTicks: ticks(param("barrier.buildInterval")),
       hp: c.structures["struct.barrier"]!.hp!, gateHp: c.structures["struct.gate"]!.hp!, costPerSection: int("barrier.costPerSection"),
+      // Repair price as a per-mille share of costPerSection; 0 disables repair.
+      repairPm: Math.max(0, Math.round(param("barrier.repairK") * 1000)),
     },
     drops: { pickupRange: fp(param("drops.pickupRange")), scatterX: fp(param("drops.scatterX")), scatterY: fp(param("drops.scatterY")) },
     convParams: {

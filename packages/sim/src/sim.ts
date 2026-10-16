@@ -74,7 +74,11 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
     tick: 0,
     rng: seedRng(m.seed),
     currency: m.params["start.currency"] ?? cp.content.defaults["start.currency"] ?? 0,
-    params: { "barrier.hpMax": cp.barrier.hp, "barrier.gateHpMax": cp.barrier.gateHp },
+    params: {
+      "barrier.hpMax": cp.barrier.hp, "barrier.gateHpMax": cp.barrier.gateHp,
+      // Present only when repair is on, so a level without it hashes exactly as before.
+      ...(cp.barrier.repairPm > 0 ? { "barrier.repairPm": cp.barrier.repairPm } : {}),
+    },
     player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false, padId: null, padDwell: 0, hitCd: 0 },
     core: { pos: corePos, fuel: coreEnt.params.fuel, level: coreEnt.params.level, burnAcc: 0, lifeline: METER_MAX },
     nodes: [],
