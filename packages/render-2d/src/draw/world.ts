@@ -58,6 +58,20 @@ register("zone.blocked", (dc, z: ZoneView) => {
   label(g, dc.name("zone.blocked").toUpperCase(), x + w / 2, y + h / 2, 11, "#ffffff");
 });
 
+// Terrain (R3 item 17): a chunky rock mass that never clears; the 3D renderer draws the real ridge.
+register("zone.terrain", (dc, z: ZoneView) => {
+  const g = dc.g;
+  const x = z.rect.x / FP, y = z.rect.y / FP, w = z.rect.w / FP, h = z.rect.h / FP;
+  const chasm = z.kind === "chasm";
+  fillRR(g, x, y, w, h, 10, chasm ? mix(dc.pal.groundDark, "#000000", 0.55) : mix(dc.pal.groundDark, "#000000", 0.1), alpha("#21181a", 0.6), 2);
+  const n = Math.max(2, Math.floor(Math.max(w, h) / 26));
+  for (let i = 0; i < n; i++) {
+    const f = (i + 0.5) / n, bx = w >= h ? x + f * w : x + w / 2, by = w >= h ? y + h / 2 : y + f * h;
+    const r = Math.min(w, h) * 0.45 + hash01(i + 11) * 4;
+    poly(g, [bx - r, by + r * 0.5, bx - r * 0.6, by - r * 0.7, bx + r * 0.4, by - r, bx + r, by - r * 0.1, bx + r * 0.7, by + r * 0.6], chasm ? mix(dc.pal.groundDark, "#000000", 0.3) : mix(dc.pal.groundAlt, "#ffffff", 0.12), "rgba(33,24,26,.5)", 1.5);
+  }
+});
+
 register("zone.waiting", (dc, z: ZoneView) => {
   const g = dc.g;
   const x = z.rect.x / FP, y = z.rect.y / FP, w = z.rect.w / FP, h = z.rect.h / FP;

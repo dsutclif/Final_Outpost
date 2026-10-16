@@ -59,6 +59,19 @@
     "struct.housing": [-31, -55, 31, 21], "struct.medical": [-28, -62, 33, 22], "struct.barracks": [-24, -77, 28, 23],
     "struct.ranged_defense": [-19, -45, 19, 35], "struct.depot": [-40, -78, 40, 29], "struct.landmark": [-64, -154, 64, 71]
   },
+  "terrain": {
+    "_doc": "Geography (R3 item 17). chance = share of levels per family that get terrain; pieces = [min, max]; sizes in world units; gaps are clearances to stations, the core, walls, the map edge and the straight lines residents walk.",
+    "chance": { "default": 0.3, "defend": 0.6 },
+    "skipFamilies": ["rescue"],
+    "pieces": { "default": [1, 2], "defend": [2, 3] },
+    "kinds": {
+      "ridge": { "weight": 3, "long": [80, 140], "short": [16, 22] },
+      "outcrop": { "weight": 2, "long": [38, 58], "short": [32, 48] },
+      "chasm": { "weight": 1, "long": [56, 90], "short": [28, 40] }
+    },
+    "stationGap": 22, "coreGap": 100, "edgeGap": 30, "wallGap": 24, "pathGap": 26, "pieceGap": 24,
+    "maxShare": 0.08, "tries": 80, "cell": 10, "walker": 14, "minBand": 60
+  },
   "search": {
     "maxIterations": 10,
     "tolerance": 0.05,

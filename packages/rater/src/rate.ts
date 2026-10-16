@@ -2,6 +2,7 @@ import { content as defaultContent, Manifest as ManifestSchema, type Content } f
 import { LADDER } from "@fo/bots";
 import { funProxies, PROXY_NAMES, type Proxies } from "./fun.js";
 import { qualityFilters, type FilterEvidence, type Filters } from "./filters.js";
+import type { TerrainStats } from "./terrain.js";
 import { METRIC_NAMES, REFERENCE, measure, meanMargin, winRate, type HistoryEntry, type MeasureOptions, type Measurement, type MetricName, type Metrics } from "./measure.js";
 import referenceData from "../data/reference.json";
 import weightsData from "../data/weights.json";
@@ -57,6 +58,8 @@ export interface Rating {
   feasible: boolean;
   filters: Filters;
   evidence: FilterEvidence;
+  /** Geography of the level: reported, never z-scored. */
+  terrain: TerrainStats;
   /** Feasible and no filter fired. */
   ok: boolean;
 }
@@ -105,6 +108,7 @@ export function score(ms: Measurement, opts: RateOptions = {}): Rating {
     filters,
     evidence,
     ok: feasible && !Object.values(filters).some(Boolean),
+    terrain: ms.terrain,
   };
 }
 

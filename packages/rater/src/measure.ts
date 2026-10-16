@@ -1,6 +1,7 @@
 import { Manifest as ManifestSchema, content as defaultContent, type Content, type Manifest } from "@fo/content";
 import { LADDER, PROFILES, TIME_FIXED_GOALS, planBot, playBot, type BotProfile, type BotResult, type Plan } from "@fo/bots";
 import { TPS } from "@fo/sim";
+import { terrainStats, type TerrainStats } from "./terrain.js";
 
 // Measurement: run the bot ladder on a manifest and reduce the runs to the spec's raw metrics.
 // Nothing here is normalised; rate.ts turns these into z-scores, D and F.
@@ -39,6 +40,8 @@ export interface Measurement {
   repairs: number;
   /** Longest time, in seconds, any stock sat at cap in any reference-bot run (0 when none did). */
   capHoldMax: number;
+  /** Geography: pieces, map share and blocked approach lanes (not z-scored). */
+  terrain: TerrainStats;
   budgetTicks: number;
   template: string;
   history: readonly HistoryEntry[];
@@ -78,7 +81,7 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const metrics = computeMetrics(manifest, content, plan, runs, budgetTicks, history);
   const repairs = mean(runs[REFERENCE]!.map((r) => r.trace.repairs));
   const capHoldMax = Math.max(0, ...runs[REFERENCE]!.map((r) => r.trace.capHoldMax));
-  return { manifest, plan, runs, variants, metrics, repairs, capHoldMax, budgetTicks, template, history };
+  return { manifest, plan, runs, variants, metrics, repairs, capHoldMax, terrain: terrainStats(manifest), budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,

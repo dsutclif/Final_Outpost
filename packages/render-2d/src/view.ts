@@ -14,7 +14,7 @@ export interface PadView { id: string; type: string; pos: V; done: boolean; paid
 export interface StructureView { id: string | number; type: string; pos: V; level?: number; hp?: number; hpMax?: number }
 export interface SectionView { a: V; b: V; built: boolean; hp?: number; hpMax?: number; gate?: boolean }
 export interface BarrierView { id: string | number; a: V; b: V; res?: string; costPerSection?: number; sections: SectionView[] }
-export interface ZoneView { id: string | number; type: string; rect: { x: number; y: number; w: number; h: number }; cleared?: boolean }
+export interface ZoneView { id: string | number; type: string; rect: { x: number; y: number; w: number; h: number }; cleared?: boolean; kind?: string }
 export interface CaptureView { id: string | number; type: string; pos: V; state: string; timer?: number }
 export interface PreyView { id: string | number; pos: V; hp?: number; alive: boolean; respawn?: number }
 export interface HostileView { id: string | number; type: string; pos: V; hp?: number; hpMax?: number; target?: unknown }

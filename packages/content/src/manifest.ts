@@ -130,6 +130,14 @@ export const ZoneEntity = z.object({
   type: z.enum(["zone.blocked", "zone.waiting"]),
   rect: Rect,
 });
+/** Impassable ground that never clears (a ridge, rock outcrop or chasm): routes bend around it. One rect per entity; an L-shaped ridge is two. */
+export const TERRAIN_KINDS = ["ridge", "outcrop", "chasm"] as const;
+export const TerrainEntity = z.object({
+  id: EntityRef,
+  type: z.literal("zone.terrain"),
+  kind: z.enum(TERRAIN_KINDS).default("ridge"),
+  rect: Rect,
+});
 export const PreyZoneEntity = z.object({
   id: EntityRef,
   type: z.literal("zone.prey"),
@@ -140,7 +148,7 @@ export const PreyZoneEntity = z.object({
 
 export const Entity = z.union([
   CoreEntity, NodeEntity, SalesPointEntity, HirePad, BuildPad, ConverterEntity, StructureEntity,
-  CaptureEntity, BarrierLineEntity, ZoneEntity, PreyZoneEntity,
+  CaptureEntity, BarrierLineEntity, ZoneEntity, TerrainEntity, PreyZoneEntity,
 ]);
 export type Entity = z.infer<typeof Entity>;
 
@@ -374,6 +382,7 @@ export function checkManifest(m: Manifest, c: Content): void {
       }
       case "zone.blocked":
       case "zone.waiting":
+      case "zone.terrain":
         break;
       case "zone.prey":
         if (!c.animals[e.animal]) fail(`zone ${e.id} roams unknown animal ${e.animal}`);

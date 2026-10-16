@@ -82,7 +82,7 @@ export function drawLabCell(g: CanvasRenderingContext2D, id: string, variant: st
   const cat = id.split(".")[0] ?? "";
   g.save();
   g.translate(w / 2, h * 0.62);
-  const big = ["struct.landmark", "sink.sales_point", "struct.depot", "store.depot", "sink.depot", "zone.blocked", "zone.waiting", "zone.prey", "struct.barrier", "barrier.line", "struct.gate"].includes(id) || cat === "pad";
+  const big = ["struct.landmark", "sink.sales_point", "struct.depot", "store.depot", "sink.depot", "zone.blocked", "zone.terrain", "zone.waiting", "zone.prey", "struct.barrier", "barrier.line", "struct.gate"].includes(id) || cat === "pad";
   const k = Math.min(w, h) / (big ? 150 : 84);
   g.scale(k, k);
   const e = (extra: Record<string, unknown>) => ({ id: "lab", type: id, pos: O, ...extra });
