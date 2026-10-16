@@ -35,7 +35,7 @@ export const GEN = genData as unknown as {
   /** Multiplier on the generated time target (time star seconds and level.budgetSeconds): the player-facing time allowance. */
   timeTargetK: number;
   costs: Record<string, number>;
-  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number };
+  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number; towerPadSearch: number };
   spacing: { margin: number; standR: number; screen: [number, number]; footprintGap: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
   footprints: Record<string, [number, number, number, number]>;
@@ -245,7 +245,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const region: Rect = [cx - 75, cy - 75, 150, 150];
     let got = 0;
     for (let i = 0; i < n + mats; i++) {
-      const mat = i < mats;
+      const mat = i >= n; // fuel piles first: they are the forest, the tall material nodes fit around them
       const id = `${tag}${i + 1}`;
       // The sim gathers from the first node in range and stops there when that resource is full, so a
       // fuel node inside a food node's range could block fuel gathering: keep the ranges apart.
@@ -325,15 +325,16 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       ?? fail("no room for the food processor");
     pad({ type: "pad.build", id: "grill", at: [...g], cost: { "res.currency": cost("grill") }, build: "conv.food_processor" });
     const gOp = opPos("conv.food_processor", g);
-    const cook = crewPad("cook", gOp, -1, 0);
-    pad({ type: "pad.hire", id: "cook", at: [...cook], cost: { "res.currency": cost("hire.cook") }, role: { role: "role.operator", to: "conv.food_processor" }, requires: { pad: "grill" } });
     // The food processor's feeder has its own field, so the shelf's farm worker does not starve it.
     const fg = P.place("food_g", R.food, ring ? inner : [g[0] - 160, g[1] - 160, 320, 320], { near: [g[0] - 70, g[1] - 60], key: true, samples: 200, fp: "node.food_source" }) ?? food1;
     if (fg !== food1) ents.push({ type: "node.food_source", id: "food_g", at: [...fg] });
-    const fd = crewPad("feeder", gOp, -1, 1);
-    pad({ type: "pad.hire", id: "feeder", at: [...fd], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.food_source", to: "conv.food_processor", node: fg === food1 ? "food1" : "food_g" }, requires: { pad: "cook" } });
+    // Hire order per machine: input worker, operator, output worker.
+    const fd = crewPad("feeder", gOp, -1, 0);
+    pad({ type: "pad.hire", id: "feeder", at: [...fd], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.food_source", to: "conv.food_processor", node: fg === food1 ? "food1" : "food_g" }, requires: { pad: "grill" } });
+    const cook = crewPad("cook", gOp, -1, 1);
+    pad({ type: "pad.hire", id: "cook", at: [...cook], cost: { "res.currency": cost("hire.cook") }, role: { role: "role.operator", to: "conv.food_processor" }, requires: { pad: "feeder" } });
     const sv = crewPad("server", gOp, -1, 2);
-    pad({ type: "pad.hire", id: "server", at: [...sv], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.food_processor", to: "sink.sales_point" }, requires: { pad: "grill" } });
+    pad({ type: "pad.hire", id: "server", at: [...sv], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.food_processor", to: "sink.sales_point" }, requires: { pad: "cook" } });
     sells.push("res.food_prepared");
     if (feat.has("converter_levels")) {
       const lp = placePad("grill_level", [g[0] + 70, g[1] - 40]);
@@ -351,11 +352,11 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       const sOp = opPos("conv.material_processor", s);
       // with a belt leaving the tray on the right, the crew stands on the left
       const crewSide: 1 | -1 = feat.has("conveyors") ? -1 : 1;
-      const sw = crewPad("sawyer", sOp, crewSide, 0);
-      pad({ type: "pad.hire", id: "sawyer", at: [...sw], cost: { "res.currency": cost("hire.sawyer") }, role: { role: "role.operator", to: "conv.material_processor" }, requires: { pad: "saw" } });
-      // Every converter has a feed path: a worker brings fuel scrap to the material processor.
-      const sf = crewPad("saw_feeder", sOp, crewSide, 1);
-      pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "sawyer" } });
+      // Every converter has a feed path: a worker brings fuel scrap to the material processor (hired first).
+      const sf = crewPad("saw_feeder", sOp, crewSide, 0);
+      pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "saw" } });
+      const sw = crewPad("sawyer", sOp, crewSide, 1);
+      pad({ type: "pad.hire", id: "sawyer", at: [...sw], cost: { "res.currency": cost("hire.sawyer") }, role: { role: "role.operator", to: "conv.material_processor" }, requires: { pad: "saw_feeder" } });
       if (feat.has("tier2")) {
         alloy = true;
         // With a belt the parts works stands just past the smelter tray (to its right), so the run
@@ -367,12 +368,12 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           ?? fail("no room for the alloy works");
         pad({ type: "pad.build", id: "alloy", at: [...a], cost: { "res.currency": cost("alloy") }, build: "conv.alloy_works", requires: { pad: "sawyer" } });
         const aOp = opPos("conv.alloy_works", a);
-        const sm = crewPad("smith", aOp, -1, 0);
-        pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
-        const rc = crewPad("refined_carrier", aOp, -1, 1);
-        pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "smith" } });
+        const rc = crewPad("refined_carrier", aOp, -1, 0);
+        pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
+        const sm = crewPad("smith", aOp, -1, 1);
+        pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: { pad: "refined_carrier" } });
         const cs = crewPad("component_server", aOp, -1, 2);
-        pad({ type: "pad.hire", id: "component_server", at: [...cs], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.alloy_works", to: "sink.sales_point" }, requires: { pad: "refined_carrier" } });
+        pad({ type: "pad.hire", id: "component_server", at: [...cs], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.alloy_works", to: "sink.sales_point" }, requires: { pad: "smith" } });
         if (feat.has("conveyors")) {
           // The step after haulers (R3 item 16): a belt from the smelter's tray to the parts works,
           // bought once the hauler runs. Its run is kept clear: nothing already placed may sit on
@@ -559,7 +560,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           const inward = dist(site, core) || 1;
           const k = GEN.rings.towerPadIn / inward;
           P.add(`${id}@site`, site, 0, { fp: "struct.ranged_defense" });
-          const tp = placePad(id, [Math.round(site[0] + (core[0] - site[0]) * k), Math.round(site[1] + (core[1] - site[1]) * k)]);
+          const tpNear: Pt = [Math.round(site[0] + (core[0] - site[0]) * k), Math.round(site[1] + (core[1] - site[1]) * k)];
+          const sr = GEN.rings.towerPadSearch;
+          const tp = placePad(id, tpNear, { region: [tpNear[0] - sr, tpNear[1] - sr, 2 * sr, 2 * sr] });
           towers.push(pad({ type: "pad.build", id, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site] }));
         }
       }
