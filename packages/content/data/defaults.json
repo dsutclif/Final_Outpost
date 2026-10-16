@@ -62,7 +62,7 @@
   "barrier.thickness": 12,
   "barrier.buildRange": 20,
   "barrier.buildInterval": 0.1,
-  "drops.pickupRange": 24,
+  "drops.pickupRange": 40,
   "drops.scatterX": 10,
   "drops.scatterY": 6,
   "converters.playerOperateRange": 22,

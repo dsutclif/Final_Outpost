@@ -39,6 +39,8 @@ export const GEN = genData as unknown as {
   spacing: { margin: number; standR: number; screen: [number, number]; footprintGap: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
   footprints: Record<string, [number, number, number, number]>;
+  /** Latest first-wave time, seconds, on single-family levels. */
+  waveStartMax: number;
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   conveyorGoals: string[];
   search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number };
@@ -587,12 +589,16 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     // attack sides and stop raiders at the wall before anyone is hurt).
     if (feat.has("med_bay")) waves.push({ t: 12, counts: { "hostile.swarmling": 6, "hostile.raider_humanoid": 3 }, side: quiet.find((q) => q !== gateSide) ?? quiet[0] ?? sides[0]!, gap: 0.4 });
     const nW = Math.round(K.waves);
+    // The first raid lands within waveStartMax seconds (R3 playtest), except on a two-family level,
+    // where a hauler or similar has to be set up before the player turns to defence.
+    const t0 = K.firstWave + (wallsCurrency ? 25 : 0);
+    const early = inp.secondary ? 0 : Math.max(0, t0 - GEN.waveStartMax);
     for (let k = 0; k < nW; k++) {
       const counts: Record<string, number> = { "hostile.swarmling": Math.max(3, Math.round(K.swarm * (k === 0 ? 0.6 : 1 + 0.45 * (k - 1)))) };
       if (k >= 1) counts["hostile.raider_humanoid"] = Math.max(1, Math.round(K.swarm * 0.15 * k));
       if (feat.has("bosses") && (k === nW - 1 || (k === nW - 3 && nW >= 5))) counts["hostile.boss"] = 1;
       const wSides = sides.length === 1 ? sides[0]! : [...sides.slice(k % sides.length), ...sides.slice(0, k % sides.length)];
-      waves.push({ t: Math.round(K.firstWave + k * K.waveGap + (wallsCurrency ? 25 : 0)), counts, side: wSides, gap: 0.7 });
+      waves.push({ t: Math.round(t0 - early + k * K.waveGap), counts, side: wSides, gap: 0.7 });
     }
   }
 
