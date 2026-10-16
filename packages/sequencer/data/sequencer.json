@@ -41,12 +41,12 @@
     "tier2": { "family": "industrialize", "modules": [], "with": ["material_processor"] },
     "depot": { "family": "industrialize", "modules": ["supply_routing"] },
     "conveyors": { "family": "industrialize", "modules": ["conveyors"], "with": ["tier2"] },
-    "turrets": { "family": "defend", "modules": [] },
+    "turrets": { "family": "defend", "modules": [], "with": ["salvage_upgrades"] },
     "salvage_upgrades": { "family": "defend", "modules": ["salvage_upgrades"], "with": ["turrets"] },
-    "multi_side": { "family": "defend", "modules": [] },
-    "defenders": { "family": "defend", "modules": ["defenders"] },
-    "bosses": { "family": "defend", "modules": [], "with": ["turrets"] },
-    "med_bay": { "family": "defend", "modules": ["medical"] }
+    "multi_side": { "family": "defend", "modules": [], "with": ["turrets"] },
+    "defenders": { "family": "defend", "modules": ["defenders"], "with": ["turrets"] },
+    "bosses": { "family": "defend", "modules": [], "with": ["turrets", "defenders"] },
+    "med_bay": { "family": "defend", "modules": ["medical"], "with": ["turrets"] }
   },
   "families": {
     "shelter": {
@@ -77,7 +77,7 @@
       "modules": ["defense"],
       "teachGoal": "waves",
       "intro": [["turrets", "multi_side", "salvage_upgrades"], ["defenders", "bosses", "med_bay"]],
-      "challenges": ["hp_floor", "no_injuries", "no_wall_lost", "kills", "salvage"]
+      "challenges": ["hp_floor", "no_injuries", "no_wall_lost", "hire", "heat_floor"]
     }
   },
   "goals": {
@@ -123,10 +123,8 @@
 
     "waves": { "family": "defend", "needs": [], "anchor": true },
     "waves_survived": { "family": "defend", "needs": [], "anchor": true },
-    "kills": { "family": "defend", "needs": [], "anchor": true },
     "boss": { "family": "defend", "needs": ["bosses"], "anchor": true },
     "turret_level": { "family": "defend", "needs": ["salvage_upgrades"], "anchor": true, "avoid": ["defenders"] },
-    "salvage": { "family": "defend", "needs": [], "anchor": true },
     "train_defenders": { "family": "defend", "kind": "hire", "needs": ["defenders"], "anchor": true },
     "hold_out": { "family": "defend", "kind": "survive", "needs": [], "anchor": true }
   },

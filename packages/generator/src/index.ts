@@ -250,7 +250,9 @@ function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string
       const med = ms.runs[MEDIAN_RUNG]!.filter((r) => r.won).map((r) => r.ticks / 30);
       const t = med.length > 0 ? Math.floor(Math.min(...med) / 5) * 5 : 0;
       if (t > tMax && t >= floorSec) second.params["seconds"] = t;
-      if (!nonTrivial(second)) return "time target trivially met";
+      // Defend levels end on the wave clock, so every rung can finish together: a second challenge instead.
+      if (!nonTrivial(second) && fam === "defend" && ordered.length >= 2) second = { ...ordered[1]!, id: "challenge2" };
+      else if (!nonTrivial(second)) return "time target trivially met";
     }
   }
   // The player-facing allowance is longer than the bot-derived finish time (data factor).

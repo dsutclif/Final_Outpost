@@ -37,11 +37,11 @@
     "housing": 12, "core.level": 25, "zone": 15, "grill": 12, "hire.cook": 10, "hire.server": 10,
     "hire.feeder": 10, "saw": 15, "hire.sawyer": 10, "hire.hunter": 12, "depot": 20, "hire.hauler": 10,
     "hire.depotSupplier": 10, "alloy": 20, "hire.smith": 10, "conv.level": 18, "belt": 16,
-    "salvage.tower": 8, "salvage.towerUp": 6, "salvage.reinforce": 6, "salvage.barracks": 5, "salvage.train": 4, "salvage.medic": 6
+    "salvage.tower": 6, "salvage.towerUp": 5, "salvage.reinforce": 5, "salvage.barracks": 4, "salvage.train": 3, "salvage.medic": 6
   },
   "rings": {
     "_doc": "Half extents of the perimeter ring around the core (world units), and sections per side (top/bottom, left/right).",
-    "defend": { "hw": 190, "hh": 235, "split": [3, 4] },
+    "defend": { "hw": 190, "hh": 235, "split": [5, 5] },
     "rescue": { "hw": 135, "hh": 150, "split": [2, 2] },
     "rescueShop": { "hw": 180, "hh": 200, "split": [3, 3] },
     "podGap": 62, "edge": 36, "towerPadIn": 46, "towerPadSearch": 30
@@ -50,6 +50,12 @@
   "crewStations": { "in": [-64, 6], "op": [0, 98], "out": [104, 16] },
   "cashierPad": [60, 20],
   "waveStartMax": 20,
+  "defendWaves": {
+    "_doc": "Swarmlings per wave = swarm knob x share: wave 0 firstShare, then +earlyGrowth per wave; weak raids each come from one attack side; from wave lateFrom on (levels with towers or guards to buy) +lateGrowth per wave, packed at lateGap seconds apart instead of gap, from every attack side. Raiders = swarm x (late)Raiders x wave index. The early raids grow until they drop dropsPerEarlyNeed x the walls and one tower per attack side; then the regular waves grow together until those before the last drop dropsPerNeed x the salvage the plan spends; each packed wave stays lateStep x the wave before it. towersPerSide wall towers flank each attack side's gate (fewer when that would pass maxTowers in all); at most maxUpgrades of them get an upgrade pad. With towers or guards to buy there are at least lateFrom + 2 waves. On med bay levels a probe raid (raid) comes through a breach in a quiet side at t s, before the player has scrap to wall it. A defend survive goal lasts surviveTail s past the start of the wave before the last.",
+    "firstShare": 0.6, "earlyGrowth": 0.45, "lateFrom": 2, "lateGrowth": 0.8,
+    "raiders": 0.15, "lateRaiders": 0.25, "gap": 0.7, "lateGap": 0.35, "towersPerSide": 2, "maxTowers": 4, "maxUpgrades": 2, "dropsPerNeed": 1.4, "dropsPerEarlyNeed": 1.3, "lateStep": 1.3, "surviveTail": 30,
+    "raid": { "t": 10, "swarmlings": 4, "raiders": 12, "gap": 0.2 }
+  },
   "conveyorGoals": ["produce", "chain", "converters_running", "automate", "stockpile"],
   "footprints": {
     "pad": [-25, -25, 25, 25], "pad.big": [-35, -35, 35, 35],
