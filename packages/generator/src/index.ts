@@ -219,6 +219,15 @@ function challengeCandidates(fam: Family, goodRuns: BotResult[], allowed: readon
  * seeds that some ladder run misses (so it is never trivially satisfied). Preference rotates with the
  * level seed so the pack uses the whole family list.
  */
+/**
+ * Over the loop cap? Feeding the reactor by hand is exempt on a level with nobody to hire for it (no
+ * workers module): until manual-first pricing lands (docs/ECONOMY-PLAN.md) there is no fix to offer.
+ */
+function overLoopCap(ms: Measurement): boolean {
+  if (ms.loopMax <= GEN.search.loopCap) return false;
+  return !(ms.loopKey.includes(">sink.core") && !ms.manifest.modules.includes("workers"));
+}
+
 function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string[], seed: number, teach = false): string | null {
   const fam = m.family as Family;
   const good = ms.runs["good"]!;
@@ -344,9 +353,9 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     log(`  it${it} p=${p.toFixed(2)} D=${r.D.toFixed(3)} F=${r.F.toFixed(3)} feasible=${r.feasible} loopMax=${ms.loopMax} [${ms.loopKey}] ${flags.join(",")} ${r.evidence.idleModules.join(",")}`);
     flags.forEach(reject);
     if (!r.feasible) reject("infeasible");
-    // No more than loopCap identical player trips in a row: a 6th repeat must be unnecessary, so the
+    // No more than loopCap identical player trips in a row (see overLoopCap): a 6th repeat must be unnecessary, so the
     // level has to give a worker (cheaper hire pads here), a bigger carry, or a cheaper cost.
-    if (r.feasible && ms.loopMax > S.loopCap) {
+    if (r.feasible && overLoopCap(ms)) {
       reject("repetitive");
       const eased = easeUp();
       log(`  it${it} repetitive: ${ms.loopMax} x ${ms.loopKey}${eased ? ` (hire prices eased to ${ease.toFixed(2)})` : ""}`);
@@ -362,7 +371,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     if (close || best === null || Math.abs(r.D - req.target) < best.err) {
       ({ ms, r } = rateIt(opts.seeds?.full ?? S.fullSeeds));
       const err = Math.abs(r.D - req.target);
-      if (ms.loopMax > S.loopCap) {
+      if (overLoopCap(ms)) {
         reject("repetitive");
         easeUp();
         log(`  it${it} repetitive on the full ladder: ${ms.loopMax} x ${ms.loopKey}`);
