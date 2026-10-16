@@ -33,7 +33,7 @@ export const GEN = genData as unknown as {
   knobs: Record<string, [number, number]>;
   jitter: number;
   costs: Record<string, number>;
-  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number };
+  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number };
   spacing: { margin: number; standR: number; screen: [number, number]; footprintGap: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
   footprints: Record<string, [number, number, number, number]>;
@@ -505,11 +505,22 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ents.push({ type: "barrier.line", id: "ring", res: wallsCurrency ? "res.currency" : "res.salvage", costPerSection: Math.max(1, Math.round(K.ringCost)),
       points: ring.points.map((p) => [...p]), closed: true, gates: ringGates, prebuilt: pre });
     if (feat.has("turrets")) {
+      // Towers are built into the wall (R3 item 18): each attack side's tower stands on the ring post
+      // nearest the middle of that side (never beside a gate), its pad just inside the wall.
+      const n = ring.points.length;
       for (const sd of sides) {
-        const [dx, dy] = sd === "n" ? [0, -1] : sd === "s" ? [0, 1] : sd === "e" ? [1, 0] : [-1, 0];
-        const reach = dy !== 0 ? ring.rect[3] / 2 - 75 : ring.rect[2] / 2 - 70;
-        const tp = placePad(`tower_${sd}`, [core[0] + dx * reach, core[1] + dy * reach], { build: "struct.ranged_defense" });
-        towers.push(pad({ type: "pad.build", id: `tower_${sd}`, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense" }));
+        const posts = ring.points.map((p, k) => ({ p, k })).filter(({ k }) => {
+          const prev = (k + n - 1) % n;
+          return ring!.side[k] === sd && ring!.side[prev] === sd && !ringGates.includes(k) && !ringGates.includes(prev);
+        });
+        if (posts.length === 0) fail(`no wall post for a tower on side ${sd}`);
+        const mid: Pt = [posts.reduce((a, x) => a + x.p[0], 0) / posts.length, posts.reduce((a, x) => a + x.p[1], 0) / posts.length];
+        const site = posts.reduce((a, x) => (dist(x.p, mid) < dist(a.p, mid) ? x : a)).p;
+        const inward = dist(site, core) || 1;
+        const k = GEN.rings.towerPadIn / inward;
+        P.add(`tower_${sd}@site`, site, 0, { fp: "struct.ranged_defense" });
+        const tp = placePad(`tower_${sd}`, [Math.round(site[0] + (core[0] - site[0]) * k), Math.round(site[1] + (core[1] - site[1]) * k)]);
+        towers.push(pad({ type: "pad.build", id: `tower_${sd}`, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site] }));
       }
       if (feat.has("salvage_upgrades")) {
         // On a turret-level goal the first upgrade reaches the tier, so only one tower gets an upgrade pad.

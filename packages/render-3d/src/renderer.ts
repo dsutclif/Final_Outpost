@@ -35,6 +35,7 @@ import {
 import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
+import { buildTurret } from "./assets/buildings.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
@@ -77,7 +78,7 @@ export interface Renderer3DOptions {
   createGL?: (canvas: HTMLCanvasElement) => GLLike;
 }
 
-interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; worker?: { vars: WorkerVars; res?: string }; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean }
+interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; site?: V; worker?: { vars: WorkerVars; res?: string }; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean }
 
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = 30, PAD_LOCK_H = 36;
@@ -390,6 +391,7 @@ export class Renderer3D implements Renderer {
       else if (kind === "build" && what === "zone.clear") label = uiText(this.skin, "clear", { name: name("zone.blocked") });
       const info: PadInfo = { id: e.id, kind, cost: { ...e.cost }, label, big: e.type === "pad.build" ? e.big : false, what };
       if (worker) info.worker = worker;
+      if (e.type === "pad.build" && e.site) info.site = { x: e.site[0], y: e.site[1] };
       if (this.manifest.goal.type === "build" && this.manifest.goal.target === e.id) info.goal = true;
       if (e.requires?.pad !== undefined) info.requiresPad = e.requires.pad;
       if (e.requires?.coreLevel !== undefined) info.requiresCoreLevel = e.requires.coreLevel;
@@ -826,7 +828,8 @@ export class Renderer3D implements Renderer {
   private syncStructures(s: State): void {
     for (const st of s.structures) {
       const key = `s:${st.id}:${st.type}:${st.level}`;
-      const p = this.place(key, st.type, this.wv(st.pos), st.level);
+      const onWall = st.type === "struct.ranged_defense" && !!this.pads.get(st.id)?.site;
+      const p = this.place(key, st.type, this.wv(st.pos), st.level, onWall ? (ctx) => buildTurret(ctx, true) : undefined);
       this.candidate(st.type, p);
       if (st.type === "struct.ranged_defense") this.aimTurret(p, st, s);
       const lights = p.model.parts["lights"];
@@ -994,7 +997,7 @@ export class Renderer3D implements Renderer {
       const artH = (rows === 2 ? PAD_ART_H2 : PAD_ART_H) + (lockTxt ? PAD_LOCK_H : 0);
       sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, owed, pad.locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
       // a pad that places a new model shows its blueprint at full size, so a name never floats over nothing
-      const ghostH = ghosts.has(pad.id) ? this.syncGhost(p, info!.what, at, fill) : this.hideGhost(p);
+      const ghostH = ghosts.has(pad.id) ? this.syncGhost(p, info!.what, info!.site ? v3(info!.site.x, 0, info!.site.y) : at, fill, !!info!.site) : this.hideGhost(p);
       const lift = Math.max(1.25, ghostH + 0.3);
       sp.position.set(at.x, ART_M * (lift + (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04), at.z);
       this.candidate(pad.type, p, ART_M * (lift + 1.35 + (rows - 1) * 0.6));
@@ -1029,11 +1032,12 @@ export class Renderer3D implements Renderer {
     return 0;
   }
 
-  private syncGhost(p: Placed, what: string, at: Vector3, fill: number): number {
+  private syncGhost(p: Placed, what: string, at: Vector3, fill: number, onWall = false): number {
     let g = p.extra[3] as Group | undefined;
     if (!g) {
       const mat = new MeshLambertMaterial({ color: new Color(this.tokens.interactive), emissive: new Color(this.tokens.interactive), emissiveIntensity: 0.55, transparent: true, depthWrite: false });
-      const m = buildModel(what, { ...this.bctx!, level: 1 });
+      const ctx = { ...this.bctx!, level: 1 };
+      const m = onWall && what === "struct.ranged_defense" ? buildTurret(ctx, true) : buildModel(what, ctx);
       const drop: Object3D[] = [];
       m.root.traverse((o) => {
         const me = o as Mesh;

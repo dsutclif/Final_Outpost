@@ -119,6 +119,8 @@ export interface ResidentState {
 }
 
 export interface PadState {
+  /** Where the built structure stands, when not on the pad (wall towers). */
+  site?: Vec;
   id: string;
   type: "pad.hire" | "pad.build";
   pos: Vec;

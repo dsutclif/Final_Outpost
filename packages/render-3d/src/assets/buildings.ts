@@ -258,7 +258,8 @@ export function buildGuardPost(ctx: BuildCtx): Model {
   return m;
 }
 
-export function buildTurret(ctx: BuildCtx): Model {
+/** A turret; `onWall` stands it on a wall-height plinth so it reads as a tower in the wall (R3). */
+export function buildTurret(ctx: BuildCtx, onWall = false): Model {
   const { t, mats } = ctx;
   const m = model("hero");
   const t2 = ctx.level >= 2;
@@ -283,6 +284,15 @@ export function buildTurret(ctx: BuildCtx): Model {
   head.add(muzzle);
   m.root.add(head);
   Object.assign(m.parts, { head, muzzle });
+  if (onWall) {
+    const lift = 0.95;
+    for (const c of m.root.children) c.position.y += lift;
+    const p = new GeoBuilder()
+      .rbox(1.15, lift, 1.15, 0.06, mix(t.structure, t.metal, 0.3), { at: [0, lift / 2, 0] }, 1)
+      .box(1.25, 0.1, 1.25, t.trim, { at: [0, lift, 0] });
+    for (let i = 0; i < 4; i++) p.box(0.22, 0.16, 0.22, t.structure, { at: [i < 2 ? -0.5 : 0.5, lift + 0.12, i % 2 ? -0.5 : 0.5] });
+    m.root.add(mesh(p.build(), mats.std, "plinth"));
+  }
   anchor(m.root, "interact", 0, 0, 0.9);
   anchor(m.root, "pad", 0, 0, 0);
   return m;

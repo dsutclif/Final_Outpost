@@ -66,6 +66,9 @@ export const BuildPad = z.object({
   requires: Requirement.optional(),
   repeatable: z.boolean().default(false),
   big: z.boolean().default(false),
+  // Where the structure stands once built, when not on the pad itself: a wall tower's site is a
+  // post on its barrier line while the pad sits just inside the wall (R3 item 18).
+  site: Point.optional(),
 });
 // A pre-placed converter or structure.
 export const ConverterEntity = z.object({ ...base, type: ConvId });

@@ -139,7 +139,8 @@ function applyBuild(st: State, cp: Compiled, pad: PadState, e: BuildEnt, out: Si
     }
     return;
   }
-  if (b.startsWith("conv.")) { placeConverter(st, cp, pad.id, b, pad.pos); return; }
+  const at = pad.site ?? pad.pos;
+  if (b.startsWith("conv.")) { placeConverter(st, cp, pad.id, b, at); return; }
   const up = cp.upgrades[b];
   if (up) {
     const target = e.target !== undefined ? st.structures.find((s) => s.id === e.target) ?? null : null;
@@ -147,10 +148,10 @@ function applyBuild(st: State, cp: Compiled, pad: PadState, e: BuildEnt, out: Si
     return;
   }
   const def = cp.structures[b]!;
-  const s: StructureState = { id: pad.id, type: b, pos: { ...pad.pos }, level: 1, acc: 0 };
+  const s: StructureState = { id: pad.id, type: b, pos: { ...at }, level: 1, acc: 0 };
   if (def.hp !== null) { s.hp = def.hp; s.hpMax = def.hp; }
   st.structures.push(s);
-  if (b === "struct.depot") st.depot = { pos: { ...pad.pos }, stock: {} };
+  if (b === "struct.depot") st.depot = { pos: { ...at }, stock: {} };
   applyEffects(st, def.effects, s);
 }
 

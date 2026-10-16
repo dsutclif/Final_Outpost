@@ -43,7 +43,7 @@
     "defend": { "hw": 190, "hh": 235, "split": [3, 4] },
     "rescue": { "hw": 135, "hh": 150, "split": [2, 2] },
     "rescueShop": { "hw": 180, "hh": 200, "split": [3, 3] },
-    "podGap": 62, "edge": 36
+    "podGap": 62, "edge": 36, "towerPadIn": 70
   },
   "spacing": { "margin": 8, "standR": 16, "screen": [200, 350], "footprintGap": 6 },
   "footprints": {

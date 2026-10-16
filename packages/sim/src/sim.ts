@@ -136,6 +136,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       case "pad.hire":
       case "pad.build": {
         const pad: PadState = { id: e.id, type: e.type, pos: vec(e.at), done: false, paid: {}, visible: true, locked: false };
+        if (e.type === "pad.build" && e.site) pad.site = vec(e.site);
         state.pads.push(pad);
         break;
       }
