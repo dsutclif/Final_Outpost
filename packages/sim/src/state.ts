@@ -78,6 +78,8 @@ export interface SalesState {
   queueStep: Vec;
   /** x of the map edge customers arrive from and leave to (the edge on the stall's side), fixed point. */
   edgeX: number;
+  /** Customer at the window, ticks spent and ticks needed; present only while a timed sale is under way. */
+  serving?: { customer: number; ticks: number; of: number };
 }
 
 export type ResidentStatus = "ok" | "injured" | "healing" | "frozen" | "towed" | "releasing" | "waiting" | "arriving" | "dead";

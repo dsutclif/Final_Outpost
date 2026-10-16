@@ -145,6 +145,8 @@ export interface CompiledSales {
   refillBelow: number;
   bulkShare: number;
   cashierRange: number;
+  /** Ticks the front customer stands at the window before paying; 0 = instant sale. */
+  serveTicks: number;
   spawnTicks: number;
   jitterMin: number;
   jitterMax: number;
@@ -378,6 +380,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     refillBelow: int("customers.refillBelow"),
     bulkShare: ratio(param("customers.bulkShare")),
     cashierRange: fp(param("sales.cashierRange")),
+    serveTicks: param("sales.serveSeconds") > 0 ? ticks(param("sales.serveSeconds")) : 0,
     spawnTicks: ticks(param("customers.spawn")),
     jitterMin: ratio(param("customers.jitterMin")),
     jitterMax: ratio(param("customers.jitterMax")),

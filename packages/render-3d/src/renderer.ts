@@ -705,7 +705,7 @@ export class Renderer3D implements Renderer {
     }
     if (pn > 0) this.candidatePt("sink.sales_point.pile", pile.x, pile.z, ART_M * 1.1);
     // customers: queue faces the kiosk, leaving ones walk off
-    sales.queue.forEach((c, i) => this.customer(`q:${i}`, c, a, true, kiosk));
+    sales.queue.forEach((c, i) => this.customer(`q:${i}`, c, a, true, kiosk, sales.serving));
     sales.leaving.forEach((c, i) => this.customer(`l:${i}`, c, a, false, kiosk));
   }
 
@@ -759,7 +759,7 @@ export class Renderer3D implements Renderer {
     };
   }
 
-  private customer(key: string, c: CustomerState, a: number, queued: boolean, kiosk: Placed): void {
+  private customer(key: string, c: CustomerState, a: number, queued: boolean, kiosk: Placed, serving?: { customer: number; ticks: number; of: number }): void {
     const pos = this.interp.pos(key, c.pos, a);
     const look = lookFor(c.kind, this.tokens, this.skin.models);
     const vel = this.interp.vel(key);
@@ -774,7 +774,8 @@ export class Renderer3D implements Renderer {
       // order bubble with the patience arc
       const pk = Math.round(clamp01(c.patience / Math.max(1, c.patienceMax)) * 10);
       const sp = this.bubbleSprite(key);
-      const ok = this.labels.apply(sp, `ord|${c.res}|${c.want}|${pk}`, () => this.orderArt(c.res, c.want, pk / 10), 16);
+      const sv = serving && serving.customer === c.id ? Math.round(clamp01(serving.ticks / Math.max(1, serving.of)) * 8) : -1;
+      const ok = this.labels.apply(sp, `ord|${c.res}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), 16);
       sp.visible = ok;
       sp.position.set(pos.x, ART_M * look.scale * 1.55, pos.y);
     }
@@ -1611,7 +1612,7 @@ export class Renderer3D implements Renderer {
 
   // ---------------------------------------------------------------- label art
 
-  private orderArt(res: string, want: number, k: number): LabelArt {
+  private orderArt(res: string, want: number, k: number, serve: number | null = null): LabelArt {
     const t = this.tokens, ui = this.skin.palette.ui;
     return {
       w: 150, h: 120,
@@ -1627,6 +1628,11 @@ export class Renderer3D implements Renderer {
         // patience arc
         g.beginPath(); g.arc(48, 50, 30, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k);
         g.lineWidth = 6; g.strokeStyle = k > 0.35 ? t.ok : t.danger; g.stroke();
+        // serve progress: a bar along the bubble's lower edge while the customer is being served
+        if (serve !== null) {
+          roundRect(g, 24, 68, 102, 14, 7); g.fillStyle = ui.panel; g.fill(); g.lineWidth = 3; g.strokeStyle = t.ink; g.stroke();
+          if (serve > 0) { roundRect(g, 24, 68, Math.max(14, 102 * serve), 14, 7); g.fillStyle = t.ok; g.fill(); }
+        }
       },
     };
   }
