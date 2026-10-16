@@ -50,36 +50,36 @@
     {
       "type": "node.material_source",
       "at": [
-        174,
-        497
+        228,
+        534
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        220,
-        557
+        145,
+        526
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         146,
-        527
+        556
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        223,
-        518
+        174,
+        476
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        153,
-        563
+        145,
+        496
       ]
     },
     {
@@ -87,20 +87,6 @@
       "at": [
         260,
         560
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        252,
-        518
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        143,
-        472
       ]
     },
     {
@@ -163,7 +149,7 @@
         229,
         848
       ],
-      "freeze": 113
+      "freeze": 110
     },
     {
       "type": "capture.recruit_container",
@@ -171,7 +157,7 @@
         76,
         664
       ],
-      "freeze": 115
+      "freeze": 112
     },
     {
       "type": "capture.recruit_container",
@@ -179,7 +165,7 @@
         273,
         751
       ],
-      "freeze": 137
+      "freeze": 134
     },
     {
       "type": "capture.recruit_container",
@@ -187,7 +173,7 @@
         393,
         806
       ],
-      "freeze": 166
+      "freeze": 162
     },
     {
       "type": "capture.recruit_container",
@@ -195,15 +181,15 @@
         444,
         371
       ],
-      "freeze": 163
+      "freeze": 159
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
-    "core.burn": 2.1,
+    "start.currency": 0,
+    "core.burn": 2.2,
     "housing.base": 7,
     "level.budgetSeconds": 60
   },
@@ -221,7 +207,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 34
+        "seconds": 41
       }
     },
     {
@@ -245,9 +231,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.239,
-    "fun": 0.9,
-    "botMargin": 0.508,
+    "difficulty": 0.286,
+    "fun": 0.871,
+    "botMargin": 0.417,
     "botsPassed": [
       "good",
       "average",

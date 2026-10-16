@@ -236,7 +236,7 @@
         249,
         49
       ],
-      "freeze": 148
+      "freeze": 139
     },
     {
       "type": "capture.recruit_container",
@@ -244,7 +244,7 @@
         376,
         58
       ],
-      "freeze": 168
+      "freeze": 158
     },
     {
       "type": "capture.recruit_container",
@@ -252,7 +252,7 @@
         302,
         224
       ],
-      "freeze": 163
+      "freeze": 154
     },
     {
       "type": "capture.recruit_container",
@@ -260,7 +260,7 @@
         52,
         220
       ],
-      "freeze": 188
+      "freeze": 178
     },
     {
       "type": "capture.supply_crate",
@@ -296,11 +296,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        356,
-        546
+        321,
+        429
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
       "role": {
         "role": "role.supplier",
@@ -313,8 +313,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        284,
-        462
+        204,
+        649
       ],
       "cost": {
         "res.currency": 20
@@ -328,8 +328,8 @@
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        101,
-        637
+        130,
+        674
       ],
       "cost": {
         "res.currency": 28
@@ -370,13 +370,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.6,
+    "start.currency": 5,
+    "core.burn": 2.7,
     "housing.base": 10,
     "customers.spawn": 2.8,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "customers.bulkShare": 0.21,
+    "customers.bulkShare": 0.2,
     "level.budgetSeconds": 120
   },
   "goal": {
@@ -396,7 +396,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 74
+        "seconds": 75
       }
     },
     {
@@ -420,9 +420,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.772,
-    "fun": 0.932,
-    "botMargin": 0.468,
+    "difficulty": 0.787,
+    "fun": 0.874,
+    "botMargin": 0.452,
     "botsPassed": [
       "good",
       "average",

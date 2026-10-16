@@ -229,8 +229,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        204,
-        533
+        267,
+        430
       ],
       "cost": {
         "res.currency": 7
@@ -262,8 +262,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        304,
-        552
+        334,
+        500
       ],
       "cost": {
         "res.currency": 17
@@ -277,8 +277,8 @@
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        159,
-        585
+        77,
+        613
       ],
       "cost": {
         "res.currency": 23
@@ -289,8 +289,8 @@
       "type": "pad.build",
       "id": "core_level1",
       "at": [
-        330,
-        499
+        443,
+        615
       ],
       "cost": {
         "res.currency": 35
@@ -335,9 +335,9 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 8,
-      "start": 16,
-      "end": 38
+      "warnAt": 11,
+      "start": 19,
+      "end": 41
     }
   ],
   "params": {
@@ -367,7 +367,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 75
+        "seconds": 77
       }
     },
     {
@@ -391,9 +391,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.385,
-    "fun": 0.907,
-    "botMargin": 0.506,
+    "difficulty": 0.425,
+    "fun": 0.868,
+    "botMargin": 0.486,
     "botsPassed": [
       "good",
       "average",

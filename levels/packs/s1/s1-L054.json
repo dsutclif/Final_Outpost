@@ -226,8 +226,8 @@
       "type": "pad.build",
       "id": "tower_w",
       "at": [
-        191,
-        576
+        147,
+        594
       ],
       "cost": {
         "res.salvage": 8
@@ -238,7 +238,7 @@
       "type": "pad.build",
       "id": "tower_w_up",
       "at": [
-        191,
+        209,
         614
       ],
       "cost": {
@@ -269,8 +269,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        153,
-        594
+        150,
+        666
       ],
       "cost": {
         "res.salvage": 5
@@ -284,8 +284,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        142,
-        668
+        246,
+        684
       ],
       "cost": {
         "res.salvage": 4
@@ -376,15 +376,15 @@
     },
     {
       "id": "challenge2",
-      "kind": "salvage",
-      "params": {
-        "n": 37
-      }
+      "kind": "no_injuries",
+      "params": {}
     },
     {
       "id": "challenge",
-      "kind": "no_injuries",
-      "params": {}
+      "kind": "hp_floor",
+      "params": {
+        "pct": 80
+      }
     }
   ],
   "fail": [
@@ -401,9 +401,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.605,
-    "fun": 0.24,
-    "botMargin": 0.916,
+    "difficulty": 0.533,
+    "fun": 0.044,
+    "botMargin": 0.923,
     "botsPassed": [
       "good",
       "average",
@@ -412,9 +412,9 @@
       "floor"
     ],
     "stars": {
-      "good": 3,
+      "good": 2.9,
       "median": 3,
-      "goodAll": 1
+      "goodAll": 0.9
     }
   }
 }

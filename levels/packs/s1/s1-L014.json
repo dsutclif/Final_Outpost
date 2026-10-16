@@ -156,16 +156,16 @@
       "type": "node.food_source",
       "id": "food_g",
       "at": [
-        70,
-        610
+        42,
+        630
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        184,
-        453
+        205,
+        451
       ],
       "cost": {
         "res.currency": 9
@@ -212,8 +212,8 @@
       "type": "pad.build",
       "id": "grill",
       "at": [
-        147,
-        675
+        119,
+        695
       ],
       "cost": {
         "res.currency": 13
@@ -224,8 +224,8 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        95,
-        725
+        59,
+        749
       ],
       "cost": {
         "res.currency": 11
@@ -242,8 +242,8 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        111,
-        639
+        54,
+        815
       ],
       "cost": {
         "res.currency": 11
@@ -262,8 +262,8 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        265,
-        781
+        110,
+        639
       ],
       "cost": {
         "res.currency": 11
@@ -281,8 +281,8 @@
       "type": "pad.build",
       "id": "depot",
       "at": [
-        170,
-        623
+        235,
+        833
       ],
       "cost": {
         "res.currency": 22
@@ -293,8 +293,8 @@
       "type": "pad.hire",
       "id": "depot_supplier",
       "at": [
-        141,
-        585
+        314,
+        841
       ],
       "cost": {
         "res.currency": 11
@@ -349,7 +349,7 @@
   "goal": {
     "type": "stockpile",
     "res": "res.material_basic",
-    "n": 48
+    "n": 23
   },
   "family": "industrialize",
   "objectives": [
@@ -358,14 +358,14 @@
       "kind": "stockpile",
       "params": {
         "res": "res.material_basic",
-        "n": 48
+        "n": 23
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 161
+        "seconds": 163
       }
     },
     {
@@ -387,9 +387,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.28,
-    "fun": 0.84,
-    "botMargin": 0.416,
+    "difficulty": 0.293,
+    "fun": 0.933,
+    "botMargin": 0.41,
     "botsPassed": [
       "good",
       "average",
@@ -398,9 +398,9 @@
       "floor"
     ],
     "stars": {
-      "good": 3,
+      "good": 2.8,
       "median": 2.67,
-      "goodAll": 1
+      "goodAll": 0.8
     }
   }
 }

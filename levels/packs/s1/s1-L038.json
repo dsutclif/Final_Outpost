@@ -168,8 +168,8 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        365,
-        718
+        396,
+        699
       ]
     },
     {
@@ -189,8 +189,8 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        393,
-        702
+        401,
+        642
       ]
     },
     {
@@ -255,8 +255,8 @@
       "type": "pad.build",
       "id": "clear0",
       "at": [
-        242,
-        395
+        363,
+        425
       ],
       "cost": {
         "res.currency": 16
@@ -273,9 +273,9 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 31,
-      "start": 39,
-      "end": 61
+      "warnAt": 35,
+      "start": 43,
+      "end": 65
     }
   ],
   "params": {
@@ -285,7 +285,7 @@
     "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "level.budgetSeconds": 190
+    "level.budgetSeconds": 200
   },
   "goal": {
     "type": "core_level",
@@ -304,7 +304,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 110
+        "seconds": 112
       }
     },
     {
@@ -328,9 +328,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.733,
-    "fun": 0.662,
-    "botMargin": 0.501,
+    "difficulty": 0.716,
+    "fun": 0.82,
+    "botMargin": 0.517,
     "botsPassed": [
       "good",
       "average",
@@ -339,7 +339,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2,
+      "median": 2.33,
       "goodAll": 1
     }
   }

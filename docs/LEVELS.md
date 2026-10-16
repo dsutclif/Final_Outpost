@@ -15,136 +15,136 @@ mean stars on the final objectives (10 and 3 seeds).
 |---|----|--------|-------|------------|----------|------|--------|--------|--------|---|---|------|------|-------------------|
 | 1 | s1-L001 | shelter | teach | family:shelter | - | heat_hold (pct=65 seconds=85) | settlement_never_freezes | heat_floor (pct=35) | 0.11 | 0.082 | 0.208 | 26% | 21% | 3/3 |
 | 2 | s1-L002 | rescue | teach | family:rescue | - | rescue (n=4) | time_target (seconds=23) | rescue_all | 0.12 | 0.115 | 0.522 | 68% | 61% | 3/3 |
-| 3 | s1-L003 | harvest | teach | family:harvest | - | earn (n=293) | time_target (seconds=147) | streak (n=20) | 0.13 | 0.067* | 0.875 | 44% | 37% | 3/2.67 |
-| 4 | s1-L004 | industrialize | teach | family:industrialize | - | produce (n=66 res=food_prepared) | time_target (seconds=178) | no_stockpile_overload | 0.15 | 0.142 | 0.904 | 46% | 44% | 3/2.67 |
+| 3 | s1-L003 | harvest | teach | family:harvest | - | earn (n=304) | time_target (seconds=156) | streak (n=20) | 0.13 | 0.081* | 0.935 | 38% | 33% | 3/3 |
+| 4 | s1-L004 | industrialize | teach | family:industrialize | - | produce (n=39 res=food_prepared) | time_target (seconds=113) | no_stockpile_overload | 0.15 | 0.102 | 0.894 | 59% | 57% | 2.9/3 |
 | 5 | s1-L005 | defend | teach | family:defend | - | waves | hp_floor (pct=80) | no_injuries | 0.16 | 0.174 | 0.261 | 89% | 89% | 2.7/2.67 |
-| 6 | s1-L006 | shelter | intro | gate_arrivals + housing | gate_arrivals, housing | house_all | time_target (seconds=39) | heat_floor (pct=50) | 0.17 | 0.200 | 0.789 | 58% | 55% | 3/3 |
+| 6 | s1-L006 | shelter | intro | gate_arrivals + housing | gate_arrivals, housing | house_all | time_target (seconds=39) | no_colonist_freezes | 0.17 | 0.192 | 0.764 | 58% | 57% | 3/3 |
 | 7 | s1-L007 | rescue | intro | crates + hunting | crates, hunting | protein (n=16) | time_target (seconds=111) | rescue_all | 0.18 | 0.161 | 0.864 | 65% | 43% | 3/2.67 |
-| 8 | s1-L008 | harvest | intro | source_unlocks + vips | source_unlocks, vips | serve_premium (n=30) | time_target (seconds=216) | no_angry_customers | 0.20 | 0.243 | 0.858 | 42% | 33% | 3/3 |
-| 9 | s1-L009 | industrialize | intro | converter_levels + material_processor | converter_levels, material_processor, tier2 | converter_level (n=2) | time_target (seconds=91) | no_stockpile_overload | 0.21 | 0.177 | 0.918 | 50% | 40% | 2.9/2 |
-| 10 | s1-L010 | defend | intro | multi_side + salvage_upgrades + turrets | multi_side, salvage_upgrades, turrets | turret_level (n=2) | time_target (seconds=180) | no_injuries | 0.22 | 0.397* | 0.223 | 63% | 62% | 3/3 |
-| 11 | s1-L011 | shelter | intro | core_levels + dust_storms + rockslides | core_levels, dust_storms, rockslides | core_level (n=3) | time_target (seconds=75) | no_colonist_freezes | 0.23 | 0.136* | 0.754 | 64% | 55% | 3/2 |
+| 8 | s1-L008 | harvest | intro | source_unlocks + vips | source_unlocks, vips | serve_premium (n=30) | time_target (seconds=218) | no_angry_customers | 0.20 | 0.213 | 0.833 | 45% | 37% | 3/3 |
+| 9 | s1-L009 | industrialize | intro | converter_levels + material_processor | converter_levels, material_processor, tier2 | converter_level (n=2) | time_target (seconds=94) | no_stockpile_overload | 0.21 | 0.179 | 0.947 | 49% | 38% | 3/2 |
+| 10 | s1-L010 | defend | intro | multi_side + salvage_upgrades + turrets | multi_side, salvage_upgrades, turrets | turret_level (n=2) | time_target (seconds=177) | no_injuries | 0.22 | 0.390* | 0.271 | 63% | 62% | 3/3 |
+| 11 | s1-L011 | shelter | intro | core_levels + dust_storms + rockslides | core_levels, dust_storms, rockslides | core_level (n=3) | time_target (seconds=75) | no_colonist_freezes | 0.23 | 0.136* | 0.753 | 64% | 55% | 3/2 |
 | 12 | s1-L012 | rescue | intro | clearing_pass + pod_timers | clearing_pass, pod_timers | rescue_before_freeze (n=3) | time_target (seconds=43) | tow_full_trip (n=2) | 0.24 | 0.371* | 0.814 | 65% | 57% | 3/2 |
-| 13 | s1-L013 | harvest | intro | bulk_orders | bulk_orders | bulk_order (n=12) | time_target (seconds=191) | no_angry_customers | 0.26 | 0.211 | 0.929 | 38% | 29% | 3/3 |
-| 14 | s1-L014 | industrialize | intro | depot | depot | stockpile (res=material_basic n=48) | time_target (seconds=161) | no_stockpile_overload | 0.27 | 0.280 | 0.840 | 42% | 36% | 3/2.67 |
-| 15 | s1-L015 | defend | intro | bosses + defenders + med_bay | bosses, defenders, med_bay, turrets | boss (n=1) | time_target (seconds=223) | hp_floor (pct=80) | 0.28 | 0.880* | 0.074 | 53% | 54% | 3/2.33 |
-| 16 | s1-L016 | shelter | mix |  | core_levels, gate_arrivals, housing, rockslides | clear_zones (n=1) | time_target (seconds=57) | no_colonist_freezes | 0.33 | 0.435* | 0.838 | 65% | 53% | 3/2 |
+| 13 | s1-L013 | harvest | intro | bulk_orders | bulk_orders | bulk_order (n=12) | time_target (seconds=181) | no_angry_customers | 0.26 | 0.207 | 0.938 | 38% | 29% | 3/2.33 |
+| 14 | s1-L014 | industrialize | intro | depot | depot | stockpile (res=material_basic n=23) | time_target (seconds=163) | no_stockpile_overload | 0.27 | 0.293 | 0.933 | 41% | 36% | 2.8/2.67 |
+| 15 | s1-L015 | defend | intro | bosses + defenders + med_bay | bosses, defenders, med_bay, turrets | boss (n=1) | time_target (seconds=231) | hp_floor (pct=70) | 0.28 | 0.834* | 0.114 | 63% | 63% | 2.9/3 |
+| 16 | s1-L016 | shelter | mix |  | core_levels, gate_arrivals, housing, rockslides | clear_zones (n=1) | time_target (seconds=60) | heat_floor (pct=50) | 0.33 | 0.457* | 0.858 | 67% | 50% | 3/2 |
 | 17 | s1-L017 | rescue | mix |  | crates, hunting | hunt (n=27) | time_target (seconds=159) | rescue_all | 0.34 | 0.331 | 0.489 | 34% | 30% | 3/3 |
-| 18 | s1-L018 | harvest | mix |  | source_unlocks | currency (n=287) | time_target (seconds=150) | streak (n=20) | 0.36 | 0.430* | 0.932 | 41% | 33% | 3/3 |
-| 19 | s1-L019 | industrialize | mix |  | converter_levels, depot, material_processor, tier2 | hire (n=13) | time_target (seconds=107) | no_stockpile_overload | 0.37 | 0.346 | 0.940 | 48% | 38% | 2.8/2 |
-| 20 | s1-L020 | shelter + harvest | finale |  | bulk_orders, core_levels, dust_storms, rockslides | core_level (n=3) | time_target (seconds=75) | heat_floor (pct=50) | 0.38 | 0.385 | 0.907 | 51% | 39% | 3/2.33 |
+| 18 | s1-L018 | harvest | mix |  | source_unlocks | currency (n=281) | time_target (seconds=149) | streak (n=20) | 0.36 | 0.447* | 0.953 | 41% | 30% | 3/2 |
+| 19 | s1-L019 | industrialize | mix |  | converter_levels, depot, material_processor, tier2 | hire (n=13) | time_target (seconds=112) | no_stockpile_overload | 0.37 | 0.326 | 0.894 | 48% | 38% | 2.9/1.67 |
+| 20 | s1-L020 | shelter + harvest | finale |  | bulk_orders, core_levels, dust_storms, rockslides | core_level (n=3) | time_target (seconds=77) | heat_floor (pct=50) | 0.38 | 0.425 | 0.868 | 49% | 39% | 3/2.33 |
 | 21 | s1-L021 | defend | mix |  | salvage_upgrades, turrets | waves_survived (n=4) | hp_floor (pct=80) | no_wall_lost | 0.40 | 0.397* | 0.186 | 97% | 97% | 2.8/2 |
-| 22 | s1-L022 | shelter | mix |  | gate_arrivals, housing | population (n=6) | time_target (seconds=64) | no_colonist_freezes | 0.45 | 0.361* | 0.857 | 39% | 36% | 3/3 |
-| 23 | s1-L023 | rescue | mix |  | clearing_pass, crates, pod_timers | rescue_all | time_target (seconds=49) | tow_full_trip (n=3) | 0.49 | 0.719* | 0.819 | 58% | 46% | 3/2 |
-| 24 | s1-L024 | harvest | mix |  | bulk_orders, source_unlocks, vips | earn_within (n=353 seconds=109) | time_target (seconds=103) | streak (n=20) | 0.54 | 0.577 | 0.846 | 64% | 40% | 3/2 |
-| 25 | s1-L025 | industrialize | mix |  | converter_levels, depot | haul (n=24) | time_target (seconds=210) | hire (n=8) | 0.58 | 0.466* | 0.898 | 33% | 26% | 3/3 |
-| 26 | s1-L026 | defend | mix |  | bosses, med_bay, turrets | kills (n=90) | time_target (seconds=286) | hp_floor (pct=80) | 0.63 | 0.909* | 0.525 | 36% | 36% | 2.9/3 |
-| 27 | s1-L027 | shelter | mix |  | core_levels, rockslides | clear_zones (n=1) | time_target (seconds=54) | settlement_never_freezes | 0.67 | 0.581* | 0.908 | 48% | 28% | 3/2 |
+| 22 | s1-L022 | shelter | mix |  | gate_arrivals, housing | population (n=6) | time_target (seconds=64) | settlement_never_freezes | 0.45 | 0.345* | 0.861 | 39% | 35% | 3/3 |
+| 23 | s1-L023 | rescue | mix |  | clearing_pass, crates, pod_timers | rescue_all | time_target (seconds=46) | tow_trip (n=2) | 0.49 | 0.678* | 0.819 | 60% | 49% | 3/2 |
+| 24 | s1-L024 | harvest | mix |  | bulk_orders, source_unlocks, vips | earn_within (n=328 seconds=106) | time_target (seconds=103) | no_angry_customers | 0.54 | 0.595* | 0.840 | 63% | 38% | 3/2 |
+| 25 | s1-L025 | industrialize | mix |  | converter_levels, depot | haul (n=10) | time_target (seconds=186) | hire (n=8) | 0.58 | 0.729* | 0.924 | 36% | 31% | 3/3 |
+| 26 | s1-L026 | defend | mix |  | bosses, med_bay, turrets | kills (n=90) | time_target (seconds=283) | hp_floor (pct=55) | 0.63 | 0.678* | 0.571 | 35% | 35% | 3/2.67 |
+| 27 | s1-L027 | shelter | mix |  | core_levels, rockslides | clear_zones (n=1) | time_target (seconds=54) | settlement_never_freezes | 0.67 | 0.584* | 0.908 | 48% | 28% | 3/2 |
 | 28 | s1-L028 | rescue | mix |  | hunting, pod_timers | protein (n=29) | time_target (seconds=161) | tow_trip (n=3) | 0.71 | 0.726 | 0.916 | 47% | 23% | 3/2 |
-| 29 | s1-L029 | harvest | mix |  | bulk_orders, source_unlocks | sell (res=food_raw_1 n=226) | time_target (seconds=182) | no_angry_customers | 0.76 | 0.659* | 0.938 | 31% | 17% | 3/2 |
-| 30 | s1-L030 | rescue + harvest | finale |  | bulk_orders, clearing_pass, crates, pod_timers | rescue (n=4) | time_target (seconds=74) | tow_trip (n=3) | 0.80 | 0.772 | 0.932 | 47% | 35% | 3/2 |
-| 31 | s1-L031 | industrialize | mix |  | converter_levels, material_processor, tier2 | converters_running (k=2 seconds=15) | time_target (seconds=145) | hire (n=11) | 0.40 | 0.576* | 0.921 | 41% | 29% | 3/2.33 |
-| 32 | s1-L032 | defend | mix |  | defenders, salvage_upgrades, turrets | hire (n=2 role=defender) | time_target (seconds=189) | no_wall_lost | 0.45 | 0.651* | 0.310 | 62% | 61% | 2.9/2.67 |
-| 33 | s1-L033 | shelter | mix |  | gate_arrivals, housing | admit (n=4) | time_target (seconds=72) | heat_floor (pct=50) | 0.49 | 0.071* | 0.885 | 31% | 27% | 3/2.67 |
-| 34 | s1-L034 | rescue | mix |  | crates, hunting | hunt (n=25) | time_target (seconds=151) | tow_trip (n=3) | 0.54 | 0.632* | 0.509 | 44% | 36% | 3/2.33 |
-| 35 | s1-L035 | harvest | mix |  | bulk_orders, source_unlocks, vips | shelves_full | time_target (seconds=35) | no_angry_customers | 0.58 | 0.610 | 0.631 | 64% | 54% | 3/3 |
-| 36 | s1-L036 | industrialize | mix |  | converter_levels, depot | automate (seconds=35) | time_target (seconds=114) | hire (n=8) | 0.63 | 0.692* | 0.960 | 42% | 33% | 3/2.33 |
-| 37 | s1-L037 | defend | mix |  | bosses, med_bay, turrets | survive (seconds=190) | no_injuries | hp_floor (pct=80) | 0.67 | 0.736* | 0.399 | 91% | 87% | 2.9/2.33 |
-| 38 | s1-L038 | shelter | mix |  | core_levels, dust_storms, rockslides | core_level (n=3) | time_target (seconds=110) | heat_floor (pct=50) | 0.71 | 0.733 | 0.662 | 50% | 38% | 3/2 |
+| 29 | s1-L029 | harvest | mix |  | bulk_orders, source_unlocks | sell (res=food_raw_1 n=259) | time_target (seconds=201) | no_angry_customers | 0.76 | 0.857* | 0.963 | 30% | 13% | 3/2 |
+| 30 | s1-L030 | rescue + harvest | finale |  | bulk_orders, clearing_pass, crates, pod_timers | rescue (n=4) | time_target (seconds=75) | tow_trip (n=3) | 0.80 | 0.787 | 0.874 | 45% | 33% | 3/2 |
+| 31 | s1-L031 | industrialize | mix |  | converter_levels, material_processor, tier2 | converters_running (k=2 seconds=17) | time_target (seconds=226) | hire (n=11) | 0.40 | 0.218* | 0.940 | 44% | 30% | 3/1.67 |
+| 32 | s1-L032 | defend | mix |  | defenders, salvage_upgrades, turrets | hire (n=2 role=defender) | time_target (seconds=244) | no_injuries | 0.45 | 0.615* | 0.314 | 70% | 68% | 3/3 |
+| 33 | s1-L033 | shelter | mix |  | gate_arrivals, housing | admit (n=4) | time_target (seconds=72) | heat_floor (pct=50) | 0.49 | 0.078* | 0.892 | 31% | 23% | 3/2.33 |
+| 34 | s1-L034 | rescue | mix |  | crates, hunting | hunt (n=25) | time_target (seconds=148) | tow_full_trip (n=3) | 0.54 | 0.623* | 0.451 | 43% | 39% | 3/3 |
+| 35 | s1-L035 | harvest | mix |  | bulk_orders, source_unlocks, vips | shelves_full | time_target (seconds=32) | no_angry_customers | 0.58 | 0.590 | 0.818 | 71% | 50% | 3/2.33 |
+| 36 | s1-L036 | industrialize | mix |  | converter_levels, depot | automate (seconds=37) | time_target (seconds=120) | hire (n=8) | 0.63 | 0.726* | 0.937 | 39% | 34% | 3/3 |
+| 37 | s1-L037 | defend | mix |  | bosses, med_bay, turrets | survive (seconds=180) | no_injuries | hp_floor (pct=80) | 0.67 | 0.680* | 0.100 | 92% | 89% | 3/2.67 |
+| 38 | s1-L038 | shelter | mix |  | core_levels, dust_storms, rockslides | core_level (n=3) | time_target (seconds=112) | heat_floor (pct=50) | 0.71 | 0.716 | 0.820 | 52% | 39% | 3/2.33 |
 | 39 | s1-L039 | rescue | mix |  | clearing_pass, crates, pod_timers | rescue_before_freeze (n=4) | time_target (seconds=47) | rescue_all | 0.76 | 0.764 | 0.841 | 55% | 41% | 3/2 |
-| 40 | s1-L040 | harvest + industrialize | finale |  | bulk_orders, material_processor, source_unlocks, tier2, vips | unlock (n=2) | time_target (seconds=94) | no_angry_customers | 0.80 | 0.842 | 0.942 | 39% | 28% | 3/2.67 |
-| 41 | s1-L041 | harvest | mix |  | bulk_orders, source_unlocks, vips | streak (n=63) | time_target (seconds=167) | no_angry_customers | 0.40 | 0.485* | 0.910 | 50% | 39% | 2.9/2 |
-| 42 | s1-L042 | industrialize | mix |  | converter_levels, depot, material_processor, tier2 | build (target=landmark) | time_target (seconds=124) | no_stockpile_overload | 0.45 | 0.411 | 0.972 | 46% | 38% | 2.9/2.33 |
-| 43 | s1-L043 | defend | mix |  | defenders, multi_side, salvage_upgrades, turrets | salvage (n=60) | time_target (seconds=256) | hp_floor (pct=75) | 0.49 | 0.917* | 0.319 | 68% | 64% | 2.9/2.33 |
-| 44 | s1-L044 | shelter | mix |  | gate_arrivals, housing | survive (seconds=200) | admit (n=5) | heat_floor (pct=35) | 0.54 | 0.024* | 0.853 | 67% | 59% | 3/3 |
+| 40 | s1-L040 | harvest + industrialize | finale |  | bulk_orders, material_processor, source_unlocks, tier2, vips | unlock (n=1) | time_target (seconds=87) | no_angry_customers | 0.80 | 0.817 | 0.917 | 44% | 32% | 3/2.33 |
+| 41 | s1-L041 | harvest | mix |  | bulk_orders, source_unlocks, vips | streak (n=62) | time_target (seconds=165) | no_angry_customers | 0.40 | 0.484* | 0.905 | 51% | 43% | 2.9/3 |
+| 42 | s1-L042 | industrialize | mix |  | converter_levels, depot, material_processor, tier2 | build (target=landmark) | time_target (seconds=126) | no_stockpile_overload | 0.45 | 0.436 | 0.944 | 45% | 36% | 2.9/2 |
+| 43 | s1-L043 | defend | mix |  | defenders, multi_side, salvage_upgrades, turrets | salvage (n=65) | time_target (seconds=311) | hp_floor (pct=70) | 0.49 | 0.986* | 0.360 | 61% | 56% | 3/3 |
+| 44 | s1-L044 | shelter | mix |  | gate_arrivals, housing | survive (seconds=200) | settlement_never_freezes | heat_floor (pct=35) | 0.54 | 0.024* | 0.833 | 67% | 59% | 3/3 |
 | 45 | s1-L045 | rescue | mix |  | crates, hunting | protein (n=23) | time_target (seconds=168) | rescue_all | 0.58 | 0.566 | 0.726 | 53% | 43% | 3/3 |
-| 46 | s1-L046 | harvest | mix |  | bulk_orders | hire (n=3) | time_target (seconds=46) | streak (n=9) | 0.63 | 0.661 | 0.937 | 37% | 17% | 3/2.33 |
-| 47 | s1-L047 | industrialize | mix |  | converter_levels, depot, material_processor, tier2 | chain (n=25) | time_target (seconds=193) | hire (n=13) | 0.67 | 0.695 | 0.952 | 41% | 32% | 3/2 |
-| 48 | s1-L048 | defend | mix |  | bosses, med_bay, turrets | waves | salvage (n=20) | hp_floor (pct=40) | 0.71 | 0.889* | 0.097 | 71% | 68% | 2.8/2.33 |
-| 49 | s1-L049 | shelter | mix |  | core_levels, dust_storms, rockslides | clear_zones (n=1) | time_target (seconds=58) | settlement_never_freezes | 0.76 | 0.731 | 0.668 | 55% | 40% | 3/2 |
-| 50 | s1-L050 | industrialize + harvest | finale |  | bulk_orders, converter_levels, depot, material_processor, tier2 | produce (n=24 res=component) | time_target (seconds=215) | hire (n=13) | 0.80 | 0.802 | 0.915 | 29% | 18% | 3/2.33 |
-| 51 | s1-L051 | rescue | mix |  | pod_timers | rescue_all | time_target (seconds=34) | tow_full_trip (n=3) | 0.40 | 0.239* | 0.900 | 51% | 53% | 3/3 |
-| 52 | s1-L052 | harvest | mix |  | source_unlocks | earn (n=334) | time_target (seconds=162) | streak (n=20) | 0.45 | 0.478 | 0.957 | 41% | 31% | 3/2.33 |
-| 53 | s1-L053 | industrialize | mix |  | converter_levels, material_processor, tier2 | converter_level (n=2) | time_target (seconds=87) | no_stockpile_overload | 0.49 | 0.480 | 0.941 | 49% | 36% | 3/1.67 |
-| 54 | s1-L054 | defend | mix |  | defenders, salvage_upgrades, turrets | waves_survived (n=3) | salvage (n=37) | no_injuries | 0.54 | 0.605* | 0.240 | 92% | 93% | 3/3 |
-| 55 | s1-L055 | shelter | mix |  | dust_storms, gate_arrivals, housing | build_count (build=housing n=2) | time_target (seconds=52) | no_colonist_freezes | 0.58 | 0.550 | 0.838 | 55% | 40% | 3/2.67 |
+| 46 | s1-L046 | harvest | mix |  | bulk_orders | hire (n=3) | time_target (seconds=48) | streak (n=8) | 0.63 | 0.616 | 0.904 | 47% | 22% | 3/2.33 |
+| 47 | s1-L047 | industrialize | mix |  | converter_levels, depot, material_processor, tier2 | chain (n=15) | time_target (seconds=193) | hire (n=13) | 0.67 | 0.799* | 0.921 | 36% | 29% | 3/2.67 |
+| 48 | s1-L048 | defend | mix |  | bosses, med_bay, turrets | waves | kills (n=49) | salvage (n=26) | 0.71 | 0.712 | 0.656 | 71% | 26% | 3/2.67 |
+| 49 | s1-L049 | shelter | mix |  | core_levels, dust_storms, rockslides | clear_zones (n=1) | time_target (seconds=54) | settlement_never_freezes | 0.76 | 0.729 | 0.745 | 57% | 38% | 3/2 |
+| 50 | s1-L050 | industrialize + harvest | finale |  | bulk_orders, converter_levels, depot, material_processor, tier2 | produce (n=23 res=component) | time_target (seconds=221) | hire (n=13) | 0.80 | 0.819 | 0.953 | 31% | 19% | 3/2.67 |
+| 51 | s1-L051 | rescue | mix |  | pod_timers | rescue_all | time_target (seconds=41) | tow_full_trip (n=3) | 0.40 | 0.286* | 0.871 | 42% | 50% | 3/3 |
+| 52 | s1-L052 | harvest | mix |  | source_unlocks | earn (n=320) | time_target (seconds=159) | streak (n=20) | 0.45 | 0.476 | 0.955 | 43% | 34% | 3/2.67 |
+| 53 | s1-L053 | industrialize | mix |  | converter_levels, material_processor, tier2 | converter_level (n=2) | time_target (seconds=94) | no_stockpile_overload | 0.49 | 0.492 | 0.965 | 46% | 31% | 2.9/1.67 |
+| 54 | s1-L054 | defend | mix |  | defenders, salvage_upgrades, turrets | waves_survived (n=3) | no_injuries | hp_floor (pct=80) | 0.54 | 0.533* | 0.044 | 92% | 94% | 2.9/3 |
+| 55 | s1-L055 | shelter | mix |  | dust_storms, gate_arrivals, housing | build_count (build=housing n=2) | time_target (seconds=45) | heat_floor (pct=50) | 0.58 | 0.552 | 0.882 | 58% | 27% | 3/1.67 |
 | 56 | s1-L056 | rescue | mix |  | crates | crates (n=4) | time_target (seconds=50) | tow_trip (n=3) | 0.63 | 0.640 | 0.967 | 36% | 24% | 2.9/3 |
-| 57 | s1-L057 | harvest | mix |  | vips | serve_premium (n=15) | time_target (seconds=196) | no_angry_customers | 0.67 | 0.466* | 0.956 | 38% | 28% | 3/2.33 |
-| 58 | s1-L058 | industrialize | mix |  | converter_levels, depot, material_processor, tier2 | stockpile (res=material_basic n=41) | time_target (seconds=183) | hire (n=12) | 0.71 | 0.717 | 0.961 | 37% | 29% | 3/3 |
+| 57 | s1-L057 | harvest | mix |  | vips | serve_premium (n=21) | time_target (seconds=236) | no_angry_customers | 0.67 | 0.496* | 0.942 | 37% | 24% | 2.8/2.67 |
+| 58 | s1-L058 | industrialize | mix |  | converter_levels, depot, material_processor, tier2 | stockpile (res=material_basic n=40) | time_target (seconds=186) | hire (n=12) | 0.71 | 0.695 | 0.945 | 38% | 32% | 3/3 |
 | 59 | s1-L059 | defend | mix |  | bosses, multi_side, turrets | boss (n=1) | time_target (seconds=272) | hp_floor (pct=25) | 0.76 | 0.654* | 0.496 | 42% | 42% | 3/3 |
-| 60 | s1-L060 | defend + shelter | finale |  | defenders, gate_arrivals, salvage_upgrades, turrets | kills (n=140) | time_target (seconds=235) | hp_floor (pct=80) | 0.80 | 0.875* | 0.789 | 57% | 58% | 3/3 |
+| 60 | s1-L060 | defend + shelter | finale |  | defenders, gate_arrivals, salvage_upgrades, turrets | kills (n=161) | time_target (seconds=228) | hp_floor (pct=80) | 0.80 | 0.947* | 0.443 | 57% | 57% | 2.9/3 |
 
 ## Families
 
-- shelter: 12 levels; goals: heat_hold, house_all, core_level, clear_zones, population, admit, survive, build_count; star objectives: settlement_never_freezes, heat_floor, time_target, no_colonist_freezes, admit; mean stars: good 3.00 / average 2.70 / weak 2.47 / novice 1.83 / floor 0.50
-- rescue: 12 levels; goals: rescue, protein, rescue_before_freeze, hunt, rescue_all, crates; star objectives: time_target, rescue_all, tow_full_trip, tow_trip; mean stars: good 2.99 / average 2.83 / weak 2.50 / novice 2.08 / floor 1.00
-- harvest: 12 levels; goals: earn, serve_premium, bulk_order, currency, earn_within, sell, shelves_full, unlock, streak, hire; star objectives: time_target, streak, no_angry_customers; mean stars: good 2.99 / average 2.89 / weak 2.53 / novice 1.67 / floor 0.47
-- industrialize: 12 levels; goals: produce, converter_level, stockpile, hire, haul, converters_running, automate, build, chain; star objectives: time_target, no_stockpile_overload, hire; mean stars: good 2.97 / average 2.97 / weak 2.36 / novice 2.00 / floor 0.89
-- defend: 12 levels; goals: waves, turret_level, boss, waves_survived, kills, hire, survive, salvage; star objectives: hp_floor, no_injuries, time_target, no_wall_lost, salvage; mean stars: good 2.91 / average 2.81 / weak 2.64 / novice 2.30 / floor 1.36
+- shelter: 12 levels; goals: heat_hold, house_all, core_level, clear_zones, population, admit, survive, build_count; star objectives: settlement_never_freezes, heat_floor, time_target, no_colonist_freezes; mean stars: good 3.00 / average 2.78 / weak 2.39 / novice 1.72 / floor 0.47
+- rescue: 12 levels; goals: rescue, protein, rescue_before_freeze, hunt, rescue_all, crates; star objectives: time_target, rescue_all, tow_full_trip, tow_trip; mean stars: good 2.99 / average 2.89 / weak 2.56 / novice 2.08 / floor 1.00
+- harvest: 12 levels; goals: earn, serve_premium, bulk_order, currency, earn_within, sell, shelves_full, unlock, streak, hire; star objectives: time_target, streak, no_angry_customers; mean stars: good 2.97 / average 2.92 / weak 2.47 / novice 1.50 / floor 0.42
+- industrialize: 12 levels; goals: produce, converter_level, stockpile, hire, haul, converters_running, automate, build, chain; star objectives: time_target, no_stockpile_overload, hire; mean stars: good 2.95 / average 2.97 / weak 2.42 / novice 1.89 / floor 0.67
+- defend: 12 levels; goals: waves, turret_level, boss, waves_survived, kills, hire, survive, salvage; star objectives: hp_floor, no_injuries, time_target, no_wall_lost, kills, salvage; mean stars: good 2.93 / average 2.97 / weak 2.81 / novice 2.61 / floor 1.33
 
 ## Curve
 
 ```
  1 .   # |   .         .         .         .         . 0.08
  2 .     #   .         .         .         .         . 0.12
- 3 .  #   |  .         .         .         .         . 0.07
- 4 .      #  .         .         .         .         . 0.14
+ 3 .   #  |  .         .         .         .         . 0.08
+ 4 .    # |  .         .         .         .         . 0.10
  5 .       |#.         .         .         .         . 0.17
- 6 .        |#         .         .         .         . 0.20
+ 6 .        |#         .         .         .         . 0.19
  7 .       #|.         .         .         .         . 0.16
- 8 .         | #       .         .         .         . 0.24
+ 8 .         |#        .         .         .         . 0.21
  9 .        #|         .         .         .         . 0.18
-10 .         .|        #         .         .         . 0.40
+10 .         .|       #.         .         .         . 0.39
 11 .      #  . |       .         .         .         . 0.14
 12 .         . |      #.         .         .         . 0.37
-13 .         .# |      .         .         .         . 0.21
-14 .         .  |#     .         .         .         . 0.28
-15 .         .   |     .         .         .   #     . 0.88
-16 .         .      |  . #       .         .         . 0.43
+13 .         #  |      .         .         .         . 0.21
+14 .         .  | #    .         .         .         . 0.29
+15 .         .   |     .         .         . #       . 0.83
+16 .         .      |  .  #      .         .         . 0.46
 17 .         .      #  .         .         .         . 0.33
-18 .         .       | .#        .         .         . 0.43
-19 .         .      #| .         .         .         . 0.35
-20 .         .        #.         .         .         . 0.38
+18 .         .       | . #       .         .         . 0.45
+19 .         .     # | .         .         .         . 0.33
+20 .         .        |.#        .         .         . 0.42
 21 .         .         #         .         .         . 0.40
-22 .         .       # .  |      .         .         . 0.36
-23 .         .         .    |    .     #   .         . 0.72
-24 .         .         .      | #.         .         . 0.58
-25 .         .         .  #     |.         .         . 0.47
-26 .         .         .         .|        .    #    . 0.91
+22 .         .      #  .  |      .         .         . 0.34
+23 .         .         .    |    .   #     .         . 0.68
+24 .         .         .      |  #         .         . 0.59
+25 .         .         .        |.     #   .         . 0.73
+26 .         .         .         .|  #     .         . 0.68
 27 .         .         .        #.  |      .         . 0.58
 28 .         .         .         .     #   .         . 0.73
-29 .         .         .         .  #    | .         . 0.66
-30 .         .         .         .        #|         . 0.77
-31 .         .         |        #.         .         . 0.58
-32 .         .         .  |      .  #      .         . 0.65
-33 .   #     .         .    |    .         .         . 0.07
-34 .         .         .      |  . #       .         . 0.63
-35 .         .         .        |#         .         . 0.61
-36 .         .         .         .|   #    .         . 0.69
-37 .         .         .         .  |   #  .         . 0.74
-38 .         .         .         .     |#  .         . 0.73
+29 .         .         .         .       | .  #      . 0.86
+30 .         .         .         .        #|         . 0.79
+31 .         .#        |         .         .         . 0.22
+32 .         .         .  |      .#        .         . 0.62
+33 .   #     .         .    |    .         .         . 0.08
+34 .         .         .      |  .#        .         . 0.62
+35 .         .         .        |#         .         . 0.59
+36 .         .         .         .|    #   .         . 0.73
+37 .         .         .         .  |#     .         . 0.68
+38 .         .         .         .     #   .         . 0.72
 39 .         .         .         .       # .         . 0.76
-40 .         .         .         .         | #       . 0.84
-41 .         .         |   #     .         .         . 0.49
-42 .         .         .# |      .         .         . 0.41
-43 .         .         .    |    .         .     #   . 0.92
+40 .         .         .         .         |#        . 0.82
+41 .         .         |   #     .         .         . 0.48
+42 .         .         . #|      .         .         . 0.44
+43 .         .         .    |    .         .        #. 0.99
 44 .#        .         .      |  .         .         . 0.02
 45 .         .         .       #|.         .         . 0.57
-46 .         .         .         .| #      .         . 0.66
-47 .         .         .         .  | #    .         . 0.69
-48 .         .         .         .     |   .   #     . 0.89
-49 .         .         .         .      #| .         . 0.73
-50 .         .         .         .         #         . 0.80
-51 .         . #       |         .         .         . 0.24
+46 .         .         .         .#        .         . 0.62
+47 .         .         .         .  |      #         . 0.80
+48 .         .         .         .     #   .         . 0.71
+49 .         .         .         .     # | .         . 0.73
+50 .         .         .         .         |#        . 0.82
+51 .         .   #     |         .         .         . 0.29
 52 .         .         .  |#     .         .         . 0.48
-53 .         .         .   #|    .         .         . 0.48
-54 .         .         .      |  #         .         . 0.61
+53 .         .         .    #    .         .         . 0.49
+54 .         .         .      #  .         .         . 0.53
 55 .         .         .       #|.         .         . 0.55
 56 .         .         .         .|#       .         . 0.64
-57 .         .         .  #      .  |      .         . 0.47
-58 .         .         .         .     #   .         . 0.72
+57 .         .         .    #    .  |      .         . 0.50
+58 .         .         .         .    #|   .         . 0.69
 59 .         .         .         .  #    | .         . 0.65
-60 .         .         .         .         |   #     . 0.88
+60 .         .         .         .         |      #  . 0.95
 ```
 
 `#` is D, `|` the sequencer's target, dots mark 0.2 steps.

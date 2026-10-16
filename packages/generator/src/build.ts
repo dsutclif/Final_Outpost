@@ -34,7 +34,9 @@ export const GEN = genData as unknown as {
   jitter: number;
   costs: Record<string, number>;
   rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number };
-  spacing: { margin: number; standR: number; screen: [number, number] };
+  spacing: { margin: number; standR: number; screen: [number, number]; footprintGap: number };
+  /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
+  footprints: Record<string, [number, number, number, number]>;
   search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number };
 };
 
@@ -168,10 +170,10 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ring = ringPoints(core, dims);
   }
   const inner: Rect = ring ? [ring.rect[0] + 12, ring.rect[1] + 12, ring.rect[2] - 24, ring.rect[3] - 24] : [16, 40, 448, 836];
-  const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, S.screen, c);
+  const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, S.screen, c, GEN.footprints, S.footprintGap);
   if (ring) ring.points.forEach((p, i) => P.walls.push([p, ring!.points[(i + 1) % ring!.points.length]!]));
 
-  P.add("core", core, R.core, { key: true });
+  P.add("core", core, R.core, { key: true, fp: "sink.core" });
   const startPt: Pt = [core[0] + tpl.start[0], Math.max(inner[1] + 10, Math.min(inner[1] + inner[3] - 10, core[1] + tpl.start[1]))];
   P.spot("start", startPt, 18);
 
@@ -207,14 +209,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     if (cands.length === 0) fail(`no room for the sales point (${JSON.stringify(why)})`);
     const best = cands.reduce((a, b) => (b.d < a.d ? b : a));
     shopAt = best.p; register = best.sp.register; queue = best.sp.queue;
-    P.add("shop", shopAt, R.shop, { key: true });
+    P.add("shop", shopAt, R.shop, { key: true, fp: "sink.sales_point" });
     P.spot("register", best.sp.register); P.spot("pile", best.sp.pile);
     best.sp.queue.forEach((q, k) => P.spot(`queue${k}`, q, 12));
     sells.push("res.food_raw_1");
     ents.push({ type: "sink.sales_point", id: "shop", at: [...shopAt], sells });
     const fr = tpl.fields.food;
     const foodRegion: Rect = ring ? inner : [fr[0], fr[1], fr[2], fr[3]];
-    food1 = P.place("food1", R.food, foodRegion, { near: [(shopAt[0] + core[0]) / 2 + (shopAt[0] > core[0] ? 60 : -60), shopAt[1] - 40], key: true, samples: 160 })
+    food1 = P.place("food1", R.food, foodRegion, { near: [(shopAt[0] + core[0]) / 2 + (shopAt[0] > core[0] ? 60 : -60), shopAt[1] - 40], key: true, samples: 160, fp: "node.food_source" })
       ?? fail("no room for food");
     ents.push({ type: "node.food_source", id: "food1", at: [...food1] });
   }
@@ -236,7 +238,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       // The sim gathers from the first node in range and stops there when that resource is full, so a
       // fuel node inside a food node's range could block fuel gathering: keep the ranges apart.
       const avoid = food1 ? [{ p: food1, r: R.food + (mat ? R.node : R.scrap) + 8 }] : [];
-      const p = P.place(id, mat ? R.node : R.scrap, region, { near: [cx, cy], samples: 90, tight: true, avoid });
+      const p = P.place(id, mat ? R.node : R.scrap, region, { near: [cx, cy], samples: 90, tight: true, avoid, fp: mat ? "node.material_source" : "node.fuel_scrap" });
       if (!p) continue;
       ents.push({ type: mat ? "node.material_source" : "node.fuel_scrap", at: [...p] });
       got++;
@@ -249,12 +251,21 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   // A second, smaller forest on the far side at low pressure (fuel forests, plural).
   if (K.forest >= 11 && !ring) placeForest("grove", [-forestDir[0], -forestDir[1]], K.forestReach + 10, 5, 0);
 
-  const placePad = (id: string, near: Pt, opts: { big?: boolean; region?: Rect; on?: string } = {}): Pt => {
+  // A pad's ground footprint is its plate plus whatever it builds once paid, so nothing is placed where the building will stand.
+  const placePad = (id: string, near: Pt, opts: { big?: boolean; region?: Rect; on?: string; build?: string } = {}): Pt => {
     const r = opts.big ? R.big : R.pad;
     const region: Rect = opts.region ?? [near[0] - 100, near[1] - 100, 200, 200];
-    const p = P.place(id, r, region, { near, key: true, ...(opts.on ? { on: opts.on } : {}) })
-      ?? P.place(id, r, inner, { near, key: true, samples: 260, ...(opts.on ? { on: opts.on } : {}) });
+    const fp = [opts.big ? "pad.big" : "pad", ...(opts.build ? [opts.build] : [])];
+    const p = P.place(id, r, region, { near, key: true, fp, ...(opts.on ? { on: opts.on } : {}) })
+      ?? P.place(id, r, inner, { near, key: true, samples: 260, fp, ...(opts.on ? { on: opts.on } : {}) });
     return p ?? fail(`no room for pad ${id}`);
+  };
+  // A machine's crew hires as one block beside its operator spot (R3 item 14): operator first,
+  // then its feeder and hauler, in a 2x2 grid one pad apart, growing away from the machine.
+  const CREW: readonly Pt[] = [[66, 10], [66, 74], [130, 10], [130, 74]];
+  const crewPad = (id: string, at: Pt, side: 1 | -1, k: number): Pt => {
+    const o = CREW[k]!, near: Pt = [at[0] + side * o[0], at[1] + o[1]];
+    return placePad(id, near, { region: [near[0] - 44, near[1] - 44, 88, 88] });
   };
   const toward = (a: Pt, b: Pt, t: number): Pt => [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t)];
   const forestC: Pt = [core[0] + forestDir[0] * K.forestReach, core[1] + forestDir[1] * K.forestReach];
@@ -277,7 +288,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const n = goal === "unlock" && K.costScale > 1.05 ? 2 : 1;
     for (let k = 0; k < n; k++) {
       const id = `food${k + 2}`;
-      const f = P.place(id, R.food, ring ? inner : tpl.fields.food, { near: food1, samples: 160, key: true }) ?? fail("no room for the gated food source");
+      const f = P.place(id, R.food, ring ? inner : tpl.fields.food, { near: food1, samples: 160, key: true, fp: "node.food_source" }) ?? fail("no room for the gated food source");
       ents.push({ type: "node.food_source", id, at: [...f], enabled: false });
       P.add(`unlock_${id}`, f, R.pad, { key: true, on: id });
       pad({ type: "pad.build", id: `unlock_${id}`, at: [...f], cost: { "res.currency": cost("unlock") + 5 * k }, build: "node.enable", target: id, ...(workers ? { requires: { pad: "hire_food" } } : {}) });
@@ -298,17 +309,18 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const indus = fams.has("industrialize") && has("converters") && shopAt && food1;
   let saw = false, alloy = false;
   if (indus && shopAt && food1) {
-    const g = P.place("grill", R.conv, ring ? inner : [shopAt[0] - 200, shopAt[1] - 160, 300, 260], { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), samples: 200 })
+    const g = P.place("grill", R.conv, ring ? inner : [shopAt[0] - 200, shopAt[1] - 160, 300, 260], { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), samples: 200, fp: "conv.food_processor" })
       ?? fail("no room for the food processor");
     pad({ type: "pad.build", id: "grill", at: [...g], cost: { "res.currency": cost("grill") }, build: "conv.food_processor" });
-    const cook = placePad("cook", [opPos("conv.food_processor", g)[0] - 66, opPos("conv.food_processor", g)[1] + 10]);
+    const gOp = opPos("conv.food_processor", g);
+    const cook = crewPad("cook", gOp, -1, 0);
     pad({ type: "pad.hire", id: "cook", at: [...cook], cost: { "res.currency": cost("hire.cook") }, role: { role: "role.operator", to: "conv.food_processor" }, requires: { pad: "grill" } });
     // The food processor's feeder has its own field, so the shelf's farm worker does not starve it.
-    const fg = P.place("food_g", R.food, ring ? inner : [g[0] - 160, g[1] - 160, 320, 320], { near: [g[0] - 70, g[1] - 60], key: true, samples: 200 }) ?? food1;
+    const fg = P.place("food_g", R.food, ring ? inner : [g[0] - 160, g[1] - 160, 320, 320], { near: [g[0] - 70, g[1] - 60], key: true, samples: 200, fp: "node.food_source" }) ?? food1;
     if (fg !== food1) ents.push({ type: "node.food_source", id: "food_g", at: [...fg] });
-    const fd = placePad("feeder", toward(fg, g, 0.5));
+    const fd = crewPad("feeder", gOp, -1, 1);
     pad({ type: "pad.hire", id: "feeder", at: [...fd], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.food_source", to: "conv.food_processor", node: fg === food1 ? "food1" : "food_g" }, requires: { pad: "cook" } });
-    const sv = placePad("server", toward(g, shopAt, 0.5));
+    const sv = crewPad("server", gOp, -1, 2);
     pad({ type: "pad.hire", id: "server", at: [...sv], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.food_processor", to: "sink.sales_point" }, requires: { pad: "grill" } });
     sells.push("res.food_prepared");
     if (feat.has("converter_levels")) {
@@ -319,37 +331,39 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     }
     if (feat.has("material_processor")) {
       saw = true;
-      const s = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), samples: 200 })
+      const s = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), samples: 200, fp: "conv.material_processor" })
         ?? fail("no room for the material processor");
       pad({ type: "pad.build", id: "saw", at: [...s], cost: { "res.currency": cost("saw") }, build: "conv.material_processor" });
-      const sw = placePad("sawyer", [opPos("conv.material_processor", s)[0] + 66, opPos("conv.material_processor", s)[1] + 10]);
+      const sOp = opPos("conv.material_processor", s);
+      const sw = crewPad("sawyer", sOp, 1, 0);
       pad({ type: "pad.hire", id: "sawyer", at: [...sw], cost: { "res.currency": cost("hire.sawyer") }, role: { role: "role.operator", to: "conv.material_processor" }, requires: { pad: "saw" } });
       // Every converter has a feed path: a worker brings fuel scrap to the material processor.
-      const sf = placePad("saw_feeder", toward(forestC, s, 0.5));
+      const sf = crewPad("saw_feeder", sOp, 1, 1);
       pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "sawyer" } });
       if (feat.has("tier2")) {
         alloy = true;
-        const a = P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { near: toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), samples: 240 })
+        const a = P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { near: toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), samples: 240, fp: "conv.alloy_works" })
           ?? fail("no room for the alloy works");
         pad({ type: "pad.build", id: "alloy", at: [...a], cost: { "res.currency": cost("alloy") }, build: "conv.alloy_works", requires: { pad: "sawyer" } });
-        const sm = placePad("smith", [opPos("conv.alloy_works", a)[0] - 66, opPos("conv.alloy_works", a)[1] + 10]);
+        const aOp = opPos("conv.alloy_works", a);
+        const sm = crewPad("smith", aOp, -1, 0);
         pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
-        const rc = placePad("refined_carrier", toward(s, a, 0.5));
+        const rc = crewPad("refined_carrier", aOp, -1, 1);
         pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "smith" } });
-        const cs = placePad("component_server", toward(a, shopAt, 0.5));
+        const cs = crewPad("component_server", aOp, -1, 2);
         pad({ type: "pad.hire", id: "component_server", at: [...cs], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.alloy_works", to: "sink.sales_point" }, requires: { pad: "refined_carrier" } });
         sells.push("res.component");
       }
     }
   }
   if (feat.has("depot") && workers) {
-    const dp = placePad("depot", tpl.depot);
+    const dp = placePad("depot", tpl.depot, { build: "struct.depot" });
     pad({ type: "pad.build", id: "depot", at: [...dp], cost: { "res.currency": cost("depot") }, build: "struct.depot" });
-    const ds = placePad("depot_supplier", toward(forestC, dp, 0.5));
+    const ds = crewPad("depot_supplier", dp, 1, 0);
     pad({ type: "pad.hire", id: "depot_supplier", at: [...ds], cost: { "res.currency": cost("hire.depotSupplier") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "store.depot" }, requires: { pad: "depot" } });
     // Haulers drain the depot, so a stockpile goal has none.
     if (goal !== "stockpile") {
-      const hl = placePad("hauler", [dp[0] + 66, dp[1] + 30]);
+      const hl = crewPad("hauler", dp, 1, 1);
       pad({ type: "pad.hire", id: "hauler", at: [...hl], cost: { "res.currency": cost("hire.hauler") }, role: { role: "role.hauler", from: "store.depot" }, requires: { pad: "depot" } });
     }
   }
@@ -417,7 +431,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       const padY = north ? y + 44 + Math.round((rr[1] - y - 44) / 2) : rr[1] + rr[3] + Math.round((y - rr[1] - rr[3]) / 2);
       const zp: Pt = [core[0] + 70, padY];
       if (!P.onScreen(zp)) fail("pass pad off screen");
-      P.add("clear_pass", zp, R.pad, { key: true });
+      P.add("clear_pass", zp, R.pad, { key: true, fp: "pad" });
       pad({ type: "pad.build", id: "clear_pass", at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: "pass", requires: { coreLevel: 2 } });
       zones++;
     }
@@ -494,7 +508,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       for (const sd of sides) {
         const [dx, dy] = sd === "n" ? [0, -1] : sd === "s" ? [0, 1] : sd === "e" ? [1, 0] : [-1, 0];
         const reach = dy !== 0 ? ring.rect[3] / 2 - 75 : ring.rect[2] / 2 - 70;
-        const tp = placePad(`tower_${sd}`, [core[0] + dx * reach, core[1] + dy * reach]);
+        const tp = placePad(`tower_${sd}`, [core[0] + dx * reach, core[1] + dy * reach], { build: "struct.ranged_defense" });
         towers.push(pad({ type: "pad.build", id: `tower_${sd}`, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense" }));
       }
       if (feat.has("salvage_upgrades")) {
@@ -509,13 +523,13 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       }
     }
     if (feat.has("defenders")) {
-      const bk = placePad("barracks", [core[0] - 100, core[1] + 100]);
+      const bk = placePad("barracks", [core[0] - 100, core[1] + 100], { build: "struct.barracks" });
       pad({ type: "pad.build", id: "barracks", at: [...bk], cost: { "res.salvage": salv("salvage.barracks") }, build: "struct.barracks" });
       const tr = placePad("train", [bk[0], bk[1] + 70]);
       pad({ type: "pad.hire", id: "train", at: [...tr], cost: { "res.salvage": salv("salvage.train") }, role: { role: "role.defender" }, repeatable: true, requires: { pad: "barracks" } });
     }
     if (feat.has("med_bay")) {
-      const md = placePad("medic", [core[0] + 100, core[1] + 110]);
+      const md = placePad("medic", [core[0] + 100, core[1] + 110], { build: "struct.medical" });
       pad({ type: "pad.build", id: "medic", at: [...md], cost: { "res.salvage": salv("salvage.medic") }, build: "struct.medical" });
     }
     // A med bay needs patients: an early probe wave reaches the base before any wall can be paid for.
@@ -538,7 +552,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const newcomers = arrivals + pods;
     const nH = Math.max(1, Math.ceil(newcomers / perHousing));
     for (let k = 0; k < nH; k++) {
-      const hp = placePad(`housing${k}`, [core[0] + (k % 2 === 0 ? 95 : -95), core[1] + 95 + 55 * Math.floor(k / 2)]);
+      const hp = placePad(`housing${k}`, [core[0] + (k % 2 === 0 ? 95 : -95), core[1] + 95 + 55 * Math.floor(k / 2)], { build: "struct.housing" });
       housingPads.push(pad({ type: "pad.build", id: `housing${k}`, at: [...hp], cost: { "res.currency": cost("housing") + 3 * k }, build: "struct.housing" }));
     }
   }
@@ -546,7 +560,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   // ---------- landmark (industrialize build goal) ----------
   let landmark: Ent | null = null;
   if (goal === "build") {
-    const lp = placePad("landmark", ring ? [core[0], inner[1] + 50] : tpl.landmark, { big: true });
+    const lp = placePad("landmark", ring ? [core[0], inner[1] + 50] : tpl.landmark, { big: true, build: "struct.landmark" });
     landmark = pad({ type: "pad.build", id: "landmark", at: [...lp], cost: { "res.currency": 40 }, build: "struct.landmark", big: true });
   }
 

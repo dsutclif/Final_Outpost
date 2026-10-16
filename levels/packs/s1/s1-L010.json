@@ -216,8 +216,8 @@
       "type": "pad.build",
       "id": "tower_w",
       "at": [
-        169,
-        565
+        174,
+        581
       ],
       "cost": {
         "res.salvage": 8
@@ -341,7 +341,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 180
+        "seconds": 177
       }
     },
     {
@@ -364,9 +364,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.397,
-    "fun": 0.223,
-    "botMargin": 0.628,
+    "difficulty": 0.39,
+    "fun": 0.271,
+    "botMargin": 0.631,
     "botsPassed": [
       "good",
       "average",

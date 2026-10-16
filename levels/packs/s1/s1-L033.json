@@ -158,8 +158,8 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        345,
-        559
+        316,
+        538
       ],
       "cost": {
         "res.currency": 15
@@ -170,8 +170,8 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        136,
-        492
+        165,
+        478
       ],
       "cost": {
         "res.currency": 18
@@ -239,9 +239,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.071,
-    "fun": 0.885,
-    "botMargin": 0.309,
+    "difficulty": 0.078,
+    "fun": 0.892,
+    "botMargin": 0.308,
     "botsPassed": [
       "good",
       "average",
@@ -251,7 +251,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.67,
+      "median": 2.33,
       "goodAll": 1
     }
   }

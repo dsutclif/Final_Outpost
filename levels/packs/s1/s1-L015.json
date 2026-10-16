@@ -39,7 +39,7 @@
         450
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 16,
         "level": 1
       }
     },
@@ -149,6 +149,13 @@
       ]
     },
     {
+      "type": "node.fuel_scrap",
+      "at": [
+        117,
+        592
+      ]
+    },
+    {
       "type": "barrier.line",
       "id": "ring",
       "res": "res.salvage",
@@ -234,8 +241,8 @@
       "type": "pad.build",
       "id": "tower_e",
       "at": [
-        364,
-        449
+        349,
+        455
       ],
       "cost": {
         "res.salvage": 8
@@ -249,8 +256,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        96,
-        598
+        220,
+        645
       ],
       "cost": {
         "res.salvage": 5
@@ -261,8 +268,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        177,
-        633
+        148,
+        642
       ],
       "cost": {
         "res.salvage": 4
@@ -279,8 +286,8 @@
       "type": "pad.build",
       "id": "medic",
       "at": [
-        345,
-        557
+        333,
+        553
       ],
       "cost": {
         "res.salvage": 6
@@ -319,7 +326,7 @@
       "gap": 0.4
     },
     {
-      "t": 54,
+      "t": 55,
       "counts": {
         "hostile.swarmling": 7
       },
@@ -327,7 +334,7 @@
       "gap": 0.7
     },
     {
-      "t": 110,
+      "t": 114,
       "counts": {
         "hostile.swarmling": 12,
         "hostile.raider_humanoid": 1
@@ -336,9 +343,9 @@
       "gap": 0.7
     },
     {
-      "t": 166,
+      "t": 174,
       "counts": {
-        "hostile.swarmling": 17,
+        "hostile.swarmling": 15,
         "hostile.raider_humanoid": 2,
         "hostile.boss": 1
       },
@@ -352,7 +359,7 @@
     "core.burn": 3,
     "housing.base": 8,
     "meters.baseHealth": 16,
-    "level.budgetSeconds": 420
+    "level.budgetSeconds": 540
   },
   "goal": {
     "type": "boss",
@@ -371,14 +378,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 223
+        "seconds": 231
       }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 80
+        "pct": 70
       }
     }
   ],
@@ -396,9 +403,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.88,
-    "fun": 0.074,
-    "botMargin": 0.535,
+    "difficulty": 0.834,
+    "fun": 0.114,
+    "botMargin": 0.627,
     "botsPassed": [
       "good",
       "average",
@@ -407,9 +414,9 @@
       "floor"
     ],
     "stars": {
-      "good": 3,
-      "median": 2.33,
-      "goodAll": 1
+      "good": 2.9,
+      "median": 3,
+      "goodAll": 0.9
     }
   }
 }

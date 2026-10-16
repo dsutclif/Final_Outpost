@@ -143,16 +143,16 @@
       "type": "node.food_source",
       "id": "food_g",
       "at": [
-        66,
-        611
+        42,
+        654
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        160,
-        500
+        170,
+        506
       ],
       "cost": {
         "res.currency": 10
@@ -167,8 +167,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        338,
-        623
+        350,
+        649
       ],
       "cost": {
         "res.currency": 16
@@ -199,8 +199,8 @@
       "type": "pad.build",
       "id": "grill",
       "at": [
-        146,
-        669
+        122,
+        712
       ],
       "cost": {
         "res.currency": 16
@@ -214,8 +214,8 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        87,
-        726
+        59,
+        770
       ],
       "cost": {
         "res.currency": 13
@@ -232,8 +232,8 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        105,
-        632
+        56,
+        830
       ],
       "cost": {
         "res.currency": 13
@@ -252,8 +252,8 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        217,
-        771
+        117,
+        839
       ],
       "cost": {
         "res.currency": 13
@@ -271,8 +271,8 @@
       "type": "pad.build",
       "id": "grill_level",
       "at": [
-        175,
-        625
+        193,
+        645
       ],
       "cost": {
         "res.currency": 23
@@ -287,8 +287,8 @@
       "type": "pad.build",
       "id": "saw",
       "at": [
-        172,
-        390
+        156,
+        402
       ],
       "cost": {
         "res.currency": 19
@@ -302,8 +302,8 @@
       "type": "pad.hire",
       "id": "sawyer",
       "at": [
-        226,
-        445
+        253,
+        454
       ],
       "cost": {
         "res.currency": 13
@@ -320,8 +320,8 @@
       "type": "pad.hire",
       "id": "saw_feeder",
       "at": [
-        126,
-        414
+        314,
+        463
       ],
       "cost": {
         "res.currency": 13
@@ -339,8 +339,8 @@
       "type": "pad.build",
       "id": "alloy",
       "at": [
-        322,
-        475
+        386,
+        468
       ],
       "cost": {
         "res.currency": 26
@@ -354,8 +354,8 @@
       "type": "pad.hire",
       "id": "smith",
       "at": [
-        292,
-        562
+        306,
+        535
       ],
       "cost": {
         "res.currency": 13
@@ -372,8 +372,8 @@
       "type": "pad.hire",
       "id": "refined_carrier",
       "at": [
-        280,
-        434
+        339,
+        714
       ],
       "cost": {
         "res.currency": 13
@@ -391,8 +391,8 @@
       "type": "pad.hire",
       "id": "component_server",
       "at": [
-        332,
-        585
+        261,
+        392
       ],
       "cost": {
         "res.currency": 13
@@ -410,8 +410,8 @@
       "type": "pad.build",
       "id": "depot",
       "at": [
-        107,
-        681
+        240,
+        787
       ],
       "cost": {
         "res.currency": 26
@@ -422,8 +422,8 @@
       "type": "pad.hire",
       "id": "depot_supplier",
       "at": [
-        109,
-        588
+        314,
+        813
       ],
       "cost": {
         "res.currency": 13
@@ -441,8 +441,8 @@
       "type": "pad.hire",
       "id": "hauler",
       "at": [
-        104,
-        774
+        329,
+        870
       ],
       "cost": {
         "res.currency": 13
@@ -507,11 +507,11 @@
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "customers.bulkShare": 0.16,
-    "level.budgetSeconds": 270
+    "level.budgetSeconds": 280
   },
   "goal": {
     "type": "produce",
-    "n": 24,
+    "n": 23,
     "res": "res.component"
   },
   "family": "industrialize",
@@ -520,7 +520,7 @@
       "id": "main",
       "kind": "produce",
       "params": {
-        "n": 24,
+        "n": 23,
         "res": "res.component"
       }
     },
@@ -528,7 +528,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 215
+        "seconds": 221
       }
     },
     {
@@ -552,9 +552,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.802,
-    "fun": 0.915,
-    "botMargin": 0.295,
+    "difficulty": 0.819,
+    "fun": 0.953,
+    "botMargin": 0.306,
     "botsPassed": [
       "good",
       "average",
@@ -563,7 +563,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.33,
+      "median": 2.67,
       "goodAll": 1
     }
   }

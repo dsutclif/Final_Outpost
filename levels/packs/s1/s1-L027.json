@@ -197,8 +197,8 @@
       "type": "pad.build",
       "id": "clear0",
       "at": [
-        363,
-        435
+        381,
+        420
       ],
       "cost": {
         "res.currency": 15
@@ -261,9 +261,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.581,
+    "difficulty": 0.584,
     "fun": 0.908,
-    "botMargin": 0.484,
+    "botMargin": 0.483,
     "botsPassed": [
       "good",
       "average",

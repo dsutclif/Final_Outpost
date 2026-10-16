@@ -36,7 +36,7 @@
         560
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -62,100 +62,93 @@
     {
       "type": "node.material_source",
       "at": [
-        141,
-        434
+        144,
+        438
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        168,
-        469
+        142,
+        479
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        171,
-        408
+        179,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        122,
-        476
+        184,
+        429
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        100,
-        441
+        162,
+        399
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        194,
-        426
+        106,
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        119,
-        400
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        150,
-        382
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        138,
-        503
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        87,
-        474
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        209,
-        455
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        190,
-        385
+        97,
+        449
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         124,
-        369
+        387
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        184,
+        494
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        103,
+        490
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        212,
+        446
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        191,
+        395
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        357,
-        415
+        323,
+        368
       ],
       "enabled": false
     },
@@ -163,8 +156,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        212,
-        498
+        170,
+        541
       ],
       "cost": {
         "res.currency": 9
@@ -179,11 +172,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        313,
-        555
+        320,
+        544
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -196,11 +189,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        293,
-        622
+        311,
+        635
       ],
       "cost": {
-        "res.currency": 21
+        "res.currency": 20
       },
       "role": {
         "role": "role.cashier",
@@ -214,11 +207,11 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        357,
-        415
+        323,
+        368
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 16
       },
       "build": "node.enable",
       "target": "food2",
@@ -230,11 +223,11 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        353,
-        526
+        382,
+        516
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 16
       },
       "role": {
         "role": "role.supplier",
@@ -267,17 +260,17 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.4,
+    "start.currency": 3,
+    "core.burn": 2.5,
     "housing.base": 7,
-    "customers.spawn": 3,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "level.budgetSeconds": 240
   },
   "goal": {
     "type": "earn",
-    "n": 334
+    "n": 320
   },
   "family": "harvest",
   "objectives": [
@@ -285,14 +278,14 @@
       "id": "main",
       "kind": "earn",
       "params": {
-        "n": 334
+        "n": 320
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 162
+        "seconds": 159
       }
     },
     {
@@ -316,9 +309,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.478,
-    "fun": 0.957,
-    "botMargin": 0.414,
+    "difficulty": 0.476,
+    "fun": 0.955,
+    "botMargin": 0.427,
     "botsPassed": [
       "good",
       "average",
@@ -327,7 +320,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.33,
+      "median": 2.67,
       "goodAll": 1
     }
   }

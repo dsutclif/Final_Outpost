@@ -154,8 +154,8 @@
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        108,
-        623
+        71,
+        592
       ],
       "enabled": false
     },
@@ -163,8 +163,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        194,
-        520
+        245,
+        420
       ],
       "cost": {
         "res.currency": 9
@@ -196,8 +196,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        313,
-        551
+        340,
+        536
       ],
       "cost": {
         "res.currency": 20
@@ -214,8 +214,8 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        108,
-        623
+        71,
+        592
       ],
       "cost": {
         "res.currency": 17
@@ -230,8 +230,8 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        188,
-        648
+        154,
+        666
       ],
       "cost": {
         "res.currency": 17
@@ -277,7 +277,7 @@
   },
   "goal": {
     "type": "currency",
-    "n": 287
+    "n": 281
   },
   "family": "harvest",
   "objectives": [
@@ -285,14 +285,14 @@
       "id": "main",
       "kind": "currency",
       "params": {
-        "n": 287
+        "n": 281
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 150
+        "seconds": 149
       }
     },
     {
@@ -309,16 +309,16 @@
   "text": {
     "mars_greenhouse": {
       "title": "Vaults and Ledgers",
-      "goal": "Bank 287 credits",
+      "goal": "Bank 281 credits",
       "tips": [
         "Some grow domes start locked. Unlock them with credits on their pad."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.43,
-    "fun": 0.932,
-    "botMargin": 0.406,
+    "difficulty": 0.447,
+    "fun": 0.953,
+    "botMargin": 0.409,
     "botsPassed": [
       "good",
       "average",
@@ -327,7 +327,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2,
       "goodAll": 1
     }
   }

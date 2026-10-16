@@ -143,16 +143,16 @@
       "type": "node.food_source",
       "id": "food_g",
       "at": [
-        50,
-        635
+        42,
+        686
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        175,
-        505
+        155,
+        591
       ],
       "cost": {
         "res.currency": 9
@@ -184,8 +184,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        287,
-        588
+        169,
+        654
       ],
       "cost": {
         "res.currency": 20
@@ -199,8 +199,8 @@
       "type": "pad.build",
       "id": "grill",
       "at": [
-        131,
-        684
+        110,
+        714
       ],
       "cost": {
         "res.currency": 13
@@ -214,8 +214,8 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        74,
-        739
+        48,
+        771
       ],
       "cost": {
         "res.currency": 11
@@ -232,8 +232,8 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        94,
-        653
+        45,
+        833
       ],
       "cost": {
         "res.currency": 11
@@ -252,8 +252,8 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        182,
-        622
+        101,
+        830
       ],
       "cost": {
         "res.currency": 11
@@ -271,8 +271,8 @@
       "type": "pad.build",
       "id": "grill_level",
       "at": [
-        158,
-        590
+        98,
+        614
       ],
       "cost": {
         "res.currency": 20
@@ -287,8 +287,8 @@
       "type": "pad.build",
       "id": "saw",
       "at": [
-        180,
-        410
+        190,
+        381
       ],
       "cost": {
         "res.currency": 17
@@ -300,7 +300,7 @@
       "id": "sawyer",
       "at": [
         290,
-        457
+        422
       ],
       "cost": {
         "res.currency": 11
@@ -317,8 +317,8 @@
       "type": "pad.hire",
       "id": "saw_feeder",
       "at": [
-        119,
-        387
+        321,
+        508
       ],
       "cost": {
         "res.currency": 11
@@ -336,8 +336,8 @@
       "type": "pad.build",
       "id": "alloy",
       "at": [
-        339,
-        452
+        390,
+        661
       ],
       "cost": {
         "res.currency": 22
@@ -351,8 +351,8 @@
       "type": "pad.hire",
       "id": "smith",
       "at": [
-        355,
-        544
+        342,
+        757
       ],
       "cost": {
         "res.currency": 11
@@ -369,8 +369,8 @@
       "type": "pad.hire",
       "id": "refined_carrier",
       "at": [
-        315,
-        416
+        316,
+        819
       ],
       "cost": {
         "res.currency": 11
@@ -388,8 +388,8 @@
       "type": "pad.hire",
       "id": "component_server",
       "at": [
-        305,
-        542
+        244,
+        836
       ],
       "cost": {
         "res.currency": 11
@@ -407,8 +407,8 @@
       "type": "pad.build",
       "id": "depot",
       "at": [
-        146,
-        638
+        73,
+        387
       ],
       "cost": {
         "res.currency": 22
@@ -419,8 +419,8 @@
       "type": "pad.hire",
       "id": "depot_supplier",
       "at": [
-        111,
-        597
+        150,
+        322
       ],
       "cost": {
         "res.currency": 11
@@ -485,12 +485,12 @@
     "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 250
+    "level.budgetSeconds": 260
   },
   "goal": {
     "type": "stockpile",
     "res": "res.material_basic",
-    "n": 41
+    "n": 40
   },
   "family": "industrialize",
   "objectives": [
@@ -499,14 +499,14 @@
       "kind": "stockpile",
       "params": {
         "res": "res.material_basic",
-        "n": 41
+        "n": 40
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 183
+        "seconds": 186
       }
     },
     {
@@ -530,9 +530,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.717,
-    "fun": 0.961,
-    "botMargin": 0.369,
+    "difficulty": 0.695,
+    "fun": 0.945,
+    "botMargin": 0.381,
     "botsPassed": [
       "good",
       "average",

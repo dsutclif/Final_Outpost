@@ -146,8 +146,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        172,
-        485
+        146,
+        471
       ],
       "cost": {
         "res.currency": 9
@@ -179,8 +179,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        323,
-        454
+        273,
+        521
       ],
       "cost": {
         "res.currency": 21
@@ -234,7 +234,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 191
+        "seconds": 181
       }
     },
     {
@@ -256,9 +256,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.211,
-    "fun": 0.929,
-    "botMargin": 0.382,
+    "difficulty": 0.207,
+    "fun": 0.938,
+    "botMargin": 0.385,
     "botsPassed": [
       "good",
       "average",
@@ -267,7 +267,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2.33,
       "goodAll": 1
     }
   }

@@ -247,8 +247,8 @@
       "type": "pad.build",
       "id": "core_level1",
       "at": [
-        399,
-        643
+        428,
+        623
       ],
       "cost": {
         "res.currency": 33
@@ -334,7 +334,7 @@
   },
   "rating": {
     "difficulty": 0.136,
-    "fun": 0.754,
+    "fun": 0.753,
     "botMargin": 0.642,
     "botsPassed": [
       "good",

@@ -39,7 +39,7 @@
         520
       ],
       "params": {
-        "fuel": 16,
+        "fuel": 15,
         "level": 1
       }
     },
@@ -117,14 +117,14 @@
       "type": "node.fuel_scrap",
       "at": [
         187,
-        571
+        446
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        199,
-        450
+        192,
+        580
       ]
     },
     {
@@ -132,6 +132,13 @@
       "at": [
         88,
         573
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        214,
+        457
       ]
     },
     {
@@ -202,7 +209,6 @@
         8
       ],
       "prebuilt": [
-        0,
         3,
         4,
         5,
@@ -217,8 +223,8 @@
       "type": "pad.build",
       "id": "tower_w",
       "at": [
-        100,
-        425
+        102,
+        623
       ],
       "cost": {
         "res.salvage": 8
@@ -229,8 +235,8 @@
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        233,
-        355
+        224,
+        359
       ],
       "cost": {
         "res.salvage": 8
@@ -244,8 +250,8 @@
       "type": "pad.build",
       "id": "tower_w_up",
       "at": [
-        146,
-        400
+        195,
+        638
       ],
       "cost": {
         "res.salvage": 6
@@ -260,8 +266,8 @@
       "type": "pad.build",
       "id": "tower_n_up",
       "at": [
-        223,
-        413
+        283,
+        433
       ],
       "cost": {
         "res.salvage": 6
@@ -276,8 +282,8 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        315,
-        447
+        339,
+        462
       ],
       "cost": {
         "res.salvage": 6
@@ -291,8 +297,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        155,
-        644
+        133,
+        694
       ],
       "cost": {
         "res.salvage": 5
@@ -306,8 +312,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        164,
-        705
+        198,
+        697
       ],
       "cost": {
         "res.salvage": 4
@@ -340,9 +346,9 @@
   ],
   "waves": [
     {
-      "t": 55,
+      "t": 52,
       "counts": {
-        "hostile.swarmling": 38
+        "hostile.swarmling": 19
       },
       "side": [
         "w",
@@ -351,9 +357,9 @@
       "gap": 0.7
     },
     {
-      "t": 115,
+      "t": 109,
       "counts": {
-        "hostile.swarmling": 60,
+        "hostile.swarmling": 30,
         "hostile.raider_humanoid": 1
       },
       "side": [
@@ -363,9 +369,9 @@
       "gap": 0.7
     },
     {
-      "t": 175,
+      "t": 167,
       "counts": {
-        "hostile.swarmling": 75,
+        "hostile.swarmling": 44,
         "hostile.raider_humanoid": 2
       },
       "side": [
@@ -373,19 +379,31 @@
         "n"
       ],
       "gap": 0.7
+    },
+    {
+      "t": 224,
+      "counts": {
+        "hostile.swarmling": 55,
+        "hostile.raider_humanoid": 3
+      },
+      "side": [
+        "n",
+        "w"
+      ],
+      "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 9,
+    "start.currency": 8,
     "core.burn": 2.9,
     "housing.base": 7,
-    "meters.baseHealth": 15,
-    "level.budgetSeconds": 650
+    "meters.baseHealth": 14,
+    "level.budgetSeconds": 600
   },
   "goal": {
     "type": "salvage",
-    "n": 60
+    "n": 65
   },
   "family": "defend",
   "objectives": [
@@ -393,21 +411,21 @@
       "id": "main",
       "kind": "salvage",
       "params": {
-        "n": 60
+        "n": 65
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 256
+        "seconds": 311
       }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 75
+        "pct": 70
       }
     }
   ],
@@ -425,20 +443,19 @@
     }
   },
   "rating": {
-    "difficulty": 0.917,
-    "fun": 0.319,
-    "botMargin": 0.679,
+    "difficulty": 0.986,
+    "fun": 0.36,
+    "botMargin": 0.605,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
-      "good": 2.9,
-      "median": 2.33,
-      "goodAll": 0.9
+      "good": 3,
+      "median": 3,
+      "goodAll": 1
     }
   }
 }

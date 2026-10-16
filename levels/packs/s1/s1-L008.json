@@ -148,8 +148,8 @@
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        366,
-        495
+        365,
+        468
       ],
       "enabled": false
     },
@@ -157,8 +157,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        211,
-        426
+        179,
+        569
       ],
       "cost": {
         "res.currency": 9
@@ -173,8 +173,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        307,
-        574
+        294,
+        600
       ],
       "cost": {
         "res.currency": 14
@@ -190,8 +190,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        341,
-        591
+        223,
+        642
       ],
       "cost": {
         "res.currency": 21
@@ -208,8 +208,8 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        366,
-        495
+        365,
+        468
       ],
       "cost": {
         "res.currency": 18
@@ -224,8 +224,8 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        403,
-        575
+        432,
+        561
       ],
       "cost": {
         "res.currency": 18
@@ -269,7 +269,7 @@
     "customers.orderMax": 3,
     "customers.impatientShare": 0.26,
     "customers.premiumShare": 0.23,
-    "level.budgetSeconds": 280
+    "level.budgetSeconds": 300
   },
   "goal": {
     "type": "serve_premium",
@@ -288,7 +288,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 216
+        "seconds": 218
       }
     },
     {
@@ -310,9 +310,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.243,
-    "fun": 0.858,
-    "botMargin": 0.422,
+    "difficulty": 0.213,
+    "fun": 0.833,
+    "botMargin": 0.453,
     "botsPassed": [
       "good",
       "average",

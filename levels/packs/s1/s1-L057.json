@@ -1,6 +1,6 @@
 {
   "id": "s1-L057",
-  "seed": 1417587148,
+  "seed": 623719896,
   "engineVersion": "0.5.1",
   "contentVersion": "0.5.0",
   "map": {
@@ -44,8 +44,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        373,
-        394
+        378,
+        398
       ],
       "sells": [
         "res.food_raw_1"
@@ -55,103 +55,103 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        357,
-        614
+        382,
+        611
       ]
     },
     {
       "type": "node.material_source",
+      "at": [
+        158,
+        582
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        138,
+        545
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
       "at": [
         157,
-        583
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        118,
-        577
+        621
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        184,
-        612
+        117,
+        596
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        146,
-        539
+        198,
+        586
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        139,
-        623
+        186,
+        553
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        199,
-        581
+        132,
+        638
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        108,
-        615
+        188,
+        631
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        193,
-        542
+        99,
+        569
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        161,
-        646
+        223,
+        569
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        218,
-        609
+        174,
+        522
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        83,
-        595
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        93,
-        545
+        96,
+        622
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        187,
-        492
+        162,
+        466
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 9
       },
       "role": {
         "role": "role.supplier",
@@ -163,11 +163,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        348,
-        517
+        390,
+        538
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -180,11 +180,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        318,
-        458
+        322,
+        473
       ],
       "cost": {
-        "res.currency": 22
+        "res.currency": 20
       },
       "role": {
         "role": "role.cashier",
@@ -206,19 +206,19 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
-    "core.burn": 2.4,
+    "start.currency": 4,
+    "core.burn": 2.3,
     "housing.base": 5,
     "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.impatientShare": 0.27,
-    "customers.premiumShare": 0.19,
-    "level.budgetSeconds": 250
+    "customers.impatientShare": 0.28,
+    "customers.premiumShare": 0.21,
+    "level.budgetSeconds": 290
   },
   "goal": {
     "type": "serve_premium",
-    "n": 15
+    "n": 21
   },
   "family": "harvest",
   "objectives": [
@@ -226,14 +226,14 @@
       "id": "main",
       "kind": "serve_premium",
       "params": {
-        "n": 15
+        "n": 21
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 196
+        "seconds": 236
       }
     },
     {
@@ -248,16 +248,16 @@
   "text": {
     "mars_greenhouse": {
       "title": "Hurried Traders and VIPs",
-      "goal": "Serve 15 VIP traders",
+      "goal": "Serve 21 VIP traders",
       "tips": [
         "Hurried traders leave fast and gold VIP traders pay double."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.466,
-    "fun": 0.956,
-    "botMargin": 0.381,
+    "difficulty": 0.496,
+    "fun": 0.942,
+    "botMargin": 0.369,
     "botsPassed": [
       "good",
       "average",
@@ -265,9 +265,9 @@
       "novice"
     ],
     "stars": {
-      "good": 3,
-      "median": 2.33,
-      "goodAll": 1
+      "good": 2.8,
+      "median": 2.67,
+      "goodAll": 0.8
     }
   }
 }

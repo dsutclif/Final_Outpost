@@ -62,78 +62,71 @@
     {
       "type": "node.material_source",
       "at": [
-        106,
-        413
+        101,
+        410
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        125,
-        456
+        120,
+        453
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        149,
-        406
+        145,
+        403
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        123,
-        372
+        77,
+        457
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        69,
-        428
+        64,
+        425
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        75,
-        458
+        114,
+        366
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        169,
-        428
+        164,
+        425
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        62,
-        399
+        57,
+        396
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        91,
-        368
+        159,
+        371
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        153,
-        377
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        99,
-        488
+        84,
+        374
       ]
     },
     {
@@ -152,8 +145,8 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        364,
-        539
+        372,
+        541
       ],
       "cost": {
         "res.currency": 16
@@ -164,8 +157,8 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        199,
-        599
+        164,
+        667
       ],
       "cost": {
         "res.currency": 19
@@ -176,8 +169,8 @@
       "type": "pad.build",
       "id": "housing2",
       "at": [
-        394,
-        669
+        368,
+        711
       ],
       "cost": {
         "res.currency": 22
@@ -219,10 +212,8 @@
     },
     {
       "id": "challenge2",
-      "kind": "admit",
-      "params": {
-        "n": 5
-      }
+      "kind": "settlement_never_freezes",
+      "params": {}
     },
     {
       "id": "challenge",
@@ -246,8 +237,8 @@
   },
   "rating": {
     "difficulty": 0.024,
-    "fun": 0.853,
-    "botMargin": 0.673,
+    "fun": 0.833,
+    "botMargin": 0.671,
     "botsPassed": [
       "good",
       "average",
