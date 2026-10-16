@@ -3,6 +3,7 @@ import { mix } from "@fo/skins";
 import { GeoBuilder } from "../geom.js";
 import { resToken } from "../tokens.js";
 import { anchor, mesh, model, type BuildCtx, type Model } from "./common.js";
+import { stationPlate } from "./props.js";
 
 // Hero buildings, built in code from chunky rounded primitives. Each returns its merged
 // body (one draw call) plus the few separately animated parts the renderer drives from
@@ -160,9 +161,9 @@ export function buildConverter(id: string, ctx: BuildCtx, pickup: readonly [numb
     // output chute toward the pickup side
     .rbox(0.5, 0.12, 0.6, 0.04, t.metal, { at: [1.05, 0.55, 0], rot: [0, 0, -0.35] }, 1)
     .rbox(0.7, 0.14, 0.7, 0.05, t.structureDark, { at: [pickup[0], 0.08, pickup[1]] }, 1)
-    // operator mat
-    .cyl(0.32, 0.32, 0.03, 10, t.metalDark, { at: [operator[0], 0.015, operator[1]] })
     .box(0.3, 0.22, 0.08, t.metalDark, { at: [0.35, 0.72, 0.58] });
+  // the operator spot reads like the clerk pad: someone stands here to run it
+  stationPlate(b, t, operator[0], operator[1]);
   if (food) b.dome(0.45, 10, 4, t.structure, { at: [0.15, 1.12, 0.05] }).box(0.6, 0.18, 0.04, out, { at: [-0.25, 0.7, 0.57] });
   else b.cyl(0.38, 0.32, 0.3, 10, t.metalDark, { at: [0.1, 1.27, 0.05] }).box(0.7, 0.12, 0.04, t.accent, { at: [-0.25, 0.7, 0.57] });
   m.root.add(mesh(b.build(), mats.std, "body"));

@@ -4,9 +4,11 @@ import { SKINS, marsGreenhouse } from "@fo/skins";
 import { Matrix4, type InstancedMesh, type Object3D } from "three";
 import { describe, expect, it } from "vitest";
 import level1 from "../../../levels/golden/proto-L001.json";
+import level3 from "../../../levels/golden/proto-L003.json";
 import level4 from "../../../levels/golden/proto-L004.json";
 import { MAX_DRAW_CALLS, MAX_TRIANGLES, createCamera } from "../src/index.js";
 import { Renderer3D, type GLLike } from "../src/renderer.js";
+import { ART_M } from "../src/units.js";
 
 // The renderer runs headless here: three's scene graph is real, WebGLRenderer is replaced by
 // a recording fake (never instantiated), and the DOM is a minimal stand-in whose 2D canvas
@@ -78,7 +80,7 @@ function wander(tick: number): Input {
   return { dx: d[0]! * FP, dy: d[1]! * FP };
 }
 
-function run(manifest: object, ticks: number, input: (t: number) => Input, until?: (e: SimEvent) => boolean) {
+function run(manifest: object, ticks: number, input: (t: number, st: ReturnType<typeof createSim>["state"]) => Input, until?: (e: SimEvent) => boolean) {
   const clock = { t: 0 };
   const gl = fakeGL();
   const r = new Renderer3D({ now: () => clock.t, dpr: () => 2, createGL: () => gl, quality: "medium" });
@@ -88,7 +90,7 @@ function run(manifest: object, ticks: number, input: (t: number) => Input, until
   const seen = new Set<string>();
   let stop = false;
   for (let i = 0; i < ticks && !sim.state.over && !stop; i++) {
-    for (const e of sim.step(input(i))) {
+    for (const e of sim.step(input(i, sim.state))) {
       seen.add(e.t);
       r.onEvent(e);
       if (until?.(e)) stop = true;
@@ -129,6 +131,24 @@ describe("Renderer3D (fake WebGL)", () => {
     expect(s.estTriangles).toBeLessThanOrEqual(MAX_TRIANGLES);
     expect(sim.state.tick).toBeGreaterThan(100);
     r.dispose();
+  });
+
+  it("draws a built converter at full model size", () => {
+    // regression: the converter's build bounce once overwrote the model scale with ~1, shrinking it 28x
+    const at = { x: 170 * FP, y: 630 * FP };
+    const steer = (_t: number, st: ReturnType<typeof createSim>["state"]): Input => {
+      st.currency = 99;
+      const dx = at.x - st.player.pos.x, dy = at.y - st.player.pos.y, d = Math.hypot(dx, dy);
+      return d < 3 * FP ? { dx: 0, dy: 0 } : { dx: Math.round((dx / d) * FP), dy: Math.round((dy / d) * FP) };
+    };
+    const out = run(pin(level3), 30 * 25, steer, (e) => e.t === "built");
+    expect(out.seen.has("built")).toBe(true);
+    for (let i = 0; i < 30; i++) out.r.sync(out.sim.state, 0, out.cam);
+    const roots: Object3D[] = [];
+    out.r.three.scene.traverse((o) => { if (o.name === "conv.food_processor" && !o.userData["ghost"]) roots.push(o); });
+    expect(roots.length).toBeGreaterThan(0);
+    for (const o of roots) expect(o.scale.y).toBeCloseTo(ART_M, 0);
+    out.r.dispose();
   });
 
   it("level 4 during the first wave stays inside the budgets on every tier", () => {

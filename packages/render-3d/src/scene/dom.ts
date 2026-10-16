@@ -22,6 +22,11 @@ const STYLE = `
 .fo-ptr .bub{position:absolute;left:-13px;top:-13px;width:26px;height:26px;border-radius:50%;background:currentColor;box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,.3);display:grid;place-items:center}
 .fo-ptr .bub>span{width:19px;height:19px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;font:800 13px/1 ${FONT}}
 .fo-ptr svg{width:15px;height:15px;display:block}
+.fo-ptr.big .arr{border-left-width:18px;border-top-width:12px;border-bottom-width:12px;transform-origin:0 0}
+.fo-ptr.big .bub{left:-20px;top:-20px;width:40px;height:40px;box-shadow:0 0 0 3px #fff,0 3px 8px rgba(0,0,0,.35)}
+.fo-ptr.big .bub>span{width:30px;height:30px}
+.fo-ptr.big svg{width:24px;height:24px}
+.fo-ptr .cnt{position:absolute;left:10px;top:-24px;min-width:18px;padding:1px 5px;border-radius:9px;background:#fff;color:currentColor;font:800 12px/16px ${FONT};text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.3);display:none}
 .fo-coach-ring{position:absolute;left:0;top:0;width:44px;height:20px;margin:-10px 0 0 -22px;border-radius:50%;border:3px solid currentColor;pointer-events:none;z-index:1;display:none}
 .fo-coach-arrow{position:absolute;left:0;top:0;width:30px;height:26px;margin:-26px 0 0 -15px;pointer-events:none;z-index:2;display:none}
 .fo-coach-bubble{position:absolute;left:0;top:0;background:#fff;border:2.5px solid currentColor;border-radius:14px;padding:4px 11px;font:800 14px/1.25 ${FONT};white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:3;display:none;box-shadow:0 3px 0 rgba(0,0,0,.22)}
@@ -49,9 +54,10 @@ export function iconSvg(kind: PointerIcon, pal: SkinPalette): string {
   }
 }
 
-export interface PointerTarget { p: V2; color: string; icon: PointerIcon }
+/** `big` draws the larger threat pointer; `n` > 1 adds a count chip (attackers that way). */
+export interface PointerTarget { p: V2; color: string; icon: PointerIcon; big?: boolean; n?: number }
 
-interface PtrEl { root: HTMLElement; arr: HTMLElement; inner: HTMLElement; key: string }
+interface PtrEl { root: HTMLElement; arr: HTMLElement; inner: HTMLElement; cnt: HTMLElement; key: string; cls: string; n: number }
 
 /** Edge pointers: an arrow on the ray from the screen centre toward the target, and its icon. */
 export class DomPointers {
@@ -70,10 +76,13 @@ export class DomPointers {
     bub.className = "bub";
     const inner = this.doc.createElement("span");
     bub.appendChild(inner);
+    const cnt = this.doc.createElement("div");
+    cnt.className = "cnt";
     root.appendChild(arr);
     root.appendChild(bub);
+    root.appendChild(cnt);
     this.mount.appendChild(root);
-    return { root, arr, inner, key: "" };
+    return { root, arr, inner, cnt, key: "", cls: "fo-ptr", n: 0 };
   }
 
   /** Lay out pointers for every target outside the w × h screen; t (s) drives the bob. */
@@ -84,7 +93,7 @@ export class DomPointers {
       const { x, y } = tg.p;
       if (x > 0 && x < w && y > 0 && y < h) continue;
       const e = this.els[used++]!;
-      place(e, tg, w, h, t, margin, this.pal);
+      place(e, tg, w, h, t, tg.big ? Math.max(margin, 36) : margin, this.pal);
     }
     for (let i = used; i < this.els.length; i++) this.els[i]!.root.style.display = "none";
   }
@@ -109,8 +118,12 @@ function place(e: PtrEl, tg: PointerTarget, w: number, h: number, t: number, mar
   const bx = ep.x - Math.cos(ep.ang) * bob, by = ep.y - Math.sin(ep.ang) * bob;
   e.root.style.display = "block";
   e.root.style.color = tg.color;
+  const cls = tg.big ? "fo-ptr big" : "fo-ptr";
+  if (e.cls !== cls) { e.cls = cls; e.root.className = cls; }
+  const n = tg.n ?? 0;
+  if (e.n !== n) { e.n = n; e.cnt.textContent = `×${n}`; e.cnt.style.display = n > 1 ? "block" : "none"; }
   e.root.style.transform = `translate(${bx.toFixed(1)}px,${by.toFixed(1)}px)`;
-  e.arr.style.transform = `rotate(${ep.ang.toFixed(3)}rad) translate(10px,-8px)`;
+  e.arr.style.transform = `rotate(${ep.ang.toFixed(3)}rad) translate(${tg.big ? "18px,-12px" : "10px,-8px"})`;
   e.arr.style.transformOrigin = "0 0";
   const key = `${tg.icon}`;
   if (e.key !== key) {

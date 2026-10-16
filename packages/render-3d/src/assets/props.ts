@@ -84,18 +84,23 @@ export function buildItem(res: string, ctx: BuildCtx): Model {
  * glyph, like a converter's operator spot. Whoever stands on it (the player or a clerk) rings
  * up the queue; there is no register object to hide behind.
  */
-export function buildClerkPad(ctx: BuildCtx): Model {
-  const t = ctx.t;
+/**
+ * The "someone stands here" plate shared by the clerk pad and every converter's operator spot:
+ * a raised disc with a bright ring and a person glyph lying flat, head toward -z.
+ */
+export function stationPlate(g: GeoBuilder, t: Tokens, x = 0, z = 0): GeoBuilder {
   const glyph = t.interactive;
-  const g = new GeoBuilder()
-    .cyl(0.46, 0.5, 0.05, 20, t.metalDark, { at: [0, 0.025, 0] })
-    .torus(0.42, 0.035, 4, 24, glyph, { at: [0, 0.055, 0], rot: [Math.PI / 2, 0, 0] })
-    // person glyph lying flat: head disc and rounded shoulders
-    .cyl(0.09, 0.09, 0.02, 12, glyph, { at: [0, 0.06, -0.12] })
-    .cyl(0.17, 0.17, 0.02, 14, glyph, { at: [0, 0.06, 0.12], scale: [1, 1, 0.62] })
-    .box(0.34, 0.02, 0.1, mix(t.metalDark, t.ink, 0.2), { at: [0, 0.055, 0.2] });
+  return g
+    .cyl(0.46, 0.5, 0.08, 20, t.metalDark, { at: [x, 0.04, z] })
+    .torus(0.42, 0.05, 4, 24, glyph, { at: [x, 0.085, z], rot: [Math.PI / 2, 0, 0] })
+    .cyl(0.09, 0.09, 0.02, 12, glyph, { at: [x, 0.09, z - 0.12] })
+    .cyl(0.17, 0.17, 0.02, 14, glyph, { at: [x, 0.09, z + 0.12], scale: [1, 1, 0.62] })
+    .box(0.34, 0.02, 0.1, mix(t.metalDark, t.ink, 0.2), { at: [x, 0.085, z + 0.2] });
+}
+
+export function buildClerkPad(ctx: BuildCtx): Model {
   const m = model("prop");
-  m.root.add(mesh(g.build(), ctx.mats.std, "plate"));
+  m.root.add(mesh(stationPlate(new GeoBuilder(), ctx.t).build(), ctx.mats.std, "plate"));
   return m;
 }
 

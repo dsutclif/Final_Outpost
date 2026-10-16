@@ -257,7 +257,7 @@ export class Renderer3D implements Renderer {
     this.padPlane = new PlaneGeometry(1, 1);
     this.padPlane.rotateX(-Math.PI / 2);
     this.buildLasso();
-    this.marks = new GroundMarks(this.scene, { interactive: this.tokens.interactive, accent: this.tokens.accent, frost: this.tokens.frost, ink: this.tokens.ink });
+    this.marks = new GroundMarks(this.scene, { interactive: this.tokens.interactive, accent: this.tokens.accent, frost: this.tokens.frost, ink: this.tokens.ink, hero: this.tokens.ok });
     this.guideSprite = null;
     this.guideMark = null;
     this.lowFuelSaid = false;
@@ -404,7 +404,7 @@ export class Renderer3D implements Renderer {
     this.shownBanner = "";
     this.shownKind = "";
     void t;
-    this.pointers = new DomPointers(doc, mount, this.skin.palette, 8);
+    this.pointers = new DomPointers(doc, mount, this.skin.palette, 12);
     this.coachDom = new DomCoach(doc, mount, this.skin.palette, this.pointers);
   }
 
@@ -851,7 +851,7 @@ export class Renderer3D implements Renderer {
       const p = this.place(`cv:${cv.id}`, cv.type, this.wv(cv.pos));
       this.candidate(cv.type, p);
       const popAge = this.fx!.popAge(`cv:${cv.id}`);
-      p.model.root.scale.setScalar(popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1);
+      p.model.root.scale.setScalar(ART_M * (popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1));
       const def = this.content.converters[cv.type] as { outCap?: number; range?: number; role?: string; output?: string } | undefined;
       const manned = this.converterManned(s, cv, def);
       const blocked = cv.out >= (def?.outCap ?? 99);
@@ -1390,6 +1390,7 @@ export class Renderer3D implements Renderer {
     if (!m) return;
     const g = this.guideMark && !s.over ? this.guideMark : null;
     m.guide(pl.x, pl.y, g?.at.x ?? 0, g?.at.y ?? 0, this.t, !!g, ART_M * 1.9);
+    m.hero(pl.x, pl.y, this.t, !s.over);
     if (g) {
       let sp = this.guideSprite;
       if (!sp) { sp = new Sprite(); sp.renderOrder = 15; this.dynamic.add(sp); this.guideSprite = sp; }
@@ -1696,17 +1697,34 @@ export class Renderer3D implements Renderer {
     const t = this.tokens, pal = this.skin.palette;
     const targets: PointerTarget[] = [];
     const at = (p: V, h = 10): V => this.toScreen(this.wv(p, h));
-    let hostileShown = 0;
+    // one big threat pointer per direction (eight sectors around the screen centre), with a count,
+    // aimed at the nearest off-screen attacker that way
+    const cx = this.cssW / 2, cy = this.cssH / 2;
+    const sectors = new Map<number, { p: V; d2: number; n: number }>();
     for (const h of w.hostiles) {
-      if (hostileShown >= 3) break;
       const q = this.interp.pos(`h:${h.id}`, h.pos, 1);
       const sp = this.toScreen(v3(q.x, 10, q.y));
       if (sp.x > 0 && sp.x < this.cssW && sp.y > 0 && sp.y < this.cssH) continue;
-      targets.push({ p: sp, color: t.danger, icon: "hostile" });
-      hostileShown++;
+      const k = ((Math.round(Math.atan2(sp.y - cy, sp.x - cx) / (Math.PI / 4)) % 8) + 8) % 8;
+      const d2 = (sp.x - cx) ** 2 + (sp.y - cy) ** 2;
+      const sec = sectors.get(k);
+      if (!sec) sectors.set(k, { p: sp, d2, n: 1 });
+      else { sec.n++; if (d2 < sec.d2) { sec.p = sp; sec.d2 = d2; } }
     }
+    for (const sec of sectors.values()) targets.push({ p: sec.p, color: t.danger, icon: "hostile", big: true, n: sec.n });
+    // a wave about to land: point at each side it comes from
     const nw = this.nextWave(w);
-    if (nw && nw.s <= 6 && hostileShown === 0) targets.push({ p: { x: this.cssW / 2, y: -100 }, color: t.danger, icon: "hostile" });
+    const wave = this.cp?.waves[w.waves?.idx ?? -1];
+    if (nw && wave && nw.s <= 6 && sectors.size === 0) {
+      const pl = w.player.pos, W = this.manifest.map.w, H = this.manifest.map.h;
+      const edge = { n: { x: pl.x / FP, y: -40 }, s: { x: pl.x / FP, y: H + 40 }, e: { x: W + 40, y: pl.y / FP }, w: { x: -40, y: pl.y / FP } };
+      const counts = new Map<string, number>();
+      wave.types.forEach((_, i) => { const sd = wave.sides[i % wave.sides.length]!; counts.set(sd, (counts.get(sd) ?? 0) + 1); });
+      for (const [sd, n] of counts) {
+        const e = edge[sd as keyof typeof edge];
+        targets.push({ p: this.toScreen(v3(e.x, 10, e.y)), color: t.danger, icon: "hostile", big: true, n });
+      }
+    }
     let pods = 0;
     for (const c of w.captures) if (c.state === "idle" && pods < 3) { targets.push({ p: at(c.pos), color: t.interactive, icon: "pod" }); pods++; }
     if (w.residents.some((r) => r.status === "arriving") && this.cp?.gate) targets.push({ p: at(this.cp.gate.pos), color: t.ok, icon: "person" });

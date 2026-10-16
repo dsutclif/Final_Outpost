@@ -3,8 +3,8 @@ import {
 } from "three";
 
 // Flat and floating marks the renderer adds on top of the scene: the guide arrow on the ground
-// beside the hero with a bouncing marker over its target, and the frost ring that drains around
-// the reactor while it is out of fuel. Pure visuals; nothing here is pickable or blocks input.
+// beside the hero with a bouncing marker over its target, the green ring that marks the hero, and
+// the frost ring that drains around the reactor while it is out of fuel. Pure visuals; nothing here is pickable or blocks input.
 
 const mat = (color: string, opacity: number): MeshBasicMaterial =>
   new MeshBasicMaterial({ color: new Color(color), transparent: true, opacity, depthWrite: false, depthTest: false, toneMapped: false, side: 2 });
@@ -22,13 +22,14 @@ function arrowGeometry(): BufferGeometry {
   return g;
 }
 
-export interface MarkColors { interactive: string; accent: string; frost: string; ink: string }
+export interface MarkColors { interactive: string; accent: string; frost: string; ink: string; hero: string }
 
 export class GroundMarks {
   private readonly arrow: Mesh;
   private readonly arrowEdge: Mesh;
   private readonly marker: Mesh;
   private readonly track: Mesh;
+  private readonly heroRing: Mesh;
   private arc: Mesh;
   private arcQ = -1;
   private arcR = 0;
@@ -40,7 +41,11 @@ export class GroundMarks {
     this.marker = new Mesh(new ConeGeometry(7, 15, 4).rotateX(Math.PI), mat(c.interactive, 0.95));
     this.track = new Mesh(new RingGeometry(1, 1, 8), mat(c.frost, 0.22));
     this.arc = new Mesh(new RingGeometry(1, 1, 8), mat(c.frost, 0.9));
-    for (const m of [this.arrowEdge, this.arrow, this.marker, this.track, this.arc]) {
+    // depth-tested, unlike the other marks, so walls and buildings in front still hide it
+    const heroMat = mat(c.hero, 0.9);
+    heroMat.depthTest = true;
+    this.heroRing = new Mesh(new RingGeometry(11, 14, 40).rotateX(-Math.PI / 2), heroMat);
+    for (const m of [this.arrowEdge, this.arrow, this.marker, this.track, this.arc, this.heroRing]) {
       m.visible = false;
       m.frustumCulled = false;
       m.renderOrder = 9;
@@ -72,6 +77,14 @@ export class GroundMarks {
     }
   }
 
+  /** Green ring on the ground under the hero, so the player always finds their character. */
+  hero(x: number, z: number, t: number, on: boolean): void {
+    this.heroRing.visible = on;
+    if (!on) return;
+    this.heroRing.position.set(x, 2.6, z);
+    (this.heroRing.material as MeshBasicMaterial).opacity = 0.8 + 0.15 * Math.sin(t * 3);
+  }
+
   /** Frost ring around the reactor: `k` 1 = full circle (all the time left), draining to 0. */
   frost(cx: number, cz: number, radius: number, k: number, t: number, on: boolean): void {
     this.track.visible = this.arc.visible = on;
@@ -94,11 +107,11 @@ export class GroundMarks {
   }
 
   dispose(): void {
-    for (const m of [this.arrow, this.marker, this.track, this.arc]) {
+    for (const m of [this.arrow, this.marker, this.track, this.arc, this.heroRing]) {
       m.geometry.dispose();
       (m.material as MeshBasicMaterial).dispose();
     }
     (this.arrowEdge.material as MeshBasicMaterial).dispose();
-    for (const m of [this.arrowEdge, this.arrow, this.marker, this.track, this.arc]) this.scene.remove(m);
+    for (const m of [this.arrowEdge, this.arrow, this.marker, this.track, this.arc, this.heroRing]) this.scene.remove(m);
   }
 }
