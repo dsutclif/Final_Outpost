@@ -1,8 +1,8 @@
 {
   "id": "s1-L004",
-  "seed": 1170598138,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "seed": 1291466966,
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         450
       ],
       "params": {
-        "fuel": 16,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -44,8 +44,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        378,
-        386
+        374,
+        410
       ],
       "sells": [
         "res.food_raw_1",
@@ -56,174 +56,104 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        341,
+        391,
         610
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        182,
-        555
+        161,
+        577
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        156,
-        525
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        199,
-        517
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        220,
-        566
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        184,
-        595
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        229,
-        523
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        131,
-        564
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        144,
-        591
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        176,
-        483
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
         140,
-        489
+        611
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        214,
-        597
+        185,
+        612
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        111,
-        541
+        121,
+        572
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        253,
-        560
+        200,
+        583
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        584
+        188,
+        546
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        242,
-        606
+        155,
+        530
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        112,
-        506
+        93,
+        587
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        341,
-        329
+        163,
+        650
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        262,
-        319
+        99,
+        618
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        354,
-        300
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        235,
-        301
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        253,
-        273
+        117,
+        530
       ]
     },
     {
       "type": "node.food_source",
       "id": "food_g",
       "at": [
-        326,
-        169
+        153,
+        236
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        175,
-        426
+        166,
+        474
       ],
       "cost": {
-        "res.currency": 7
+        "res.currency": 11
       },
       "role": {
         "role": "role.supplier",
@@ -235,11 +165,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        350,
-        522
+        387,
+        531
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 16
       },
       "role": {
         "role": "role.supplier",
@@ -252,11 +182,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        317,
-        458
+        307,
+        483
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 24
       },
       "role": {
         "role": "role.cashier",
@@ -270,11 +200,11 @@
       "type": "pad.build",
       "id": "grill",
       "at": [
-        410,
-        261
+        235,
+        308
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 16
       },
       "build": "conv.food_processor"
     },
@@ -282,11 +212,11 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        350,
-        243
+        172,
+        359
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 13
       },
       "role": {
         "role": "role.operator",
@@ -300,11 +230,11 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        427,
-        493
+        97,
+        408
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -320,11 +250,11 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        186,
-        338
+        92,
+        352
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 13
       },
       "role": {
         "role": "role.server",
@@ -354,28 +284,22 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 9,
-    "core.burn": 2.9,
-    "housing.base": 10,
-    "customers.spawn": 2.6,
+    "start.currency": 0,
+    "core.burn": 2.2,
+    "housing.base": 8,
+    "customers.spawn": 3.1,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "level.budgetSeconds": 240
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 320
   },
   "goal": {
     "type": "produce",
-    "n": 39,
+    "n": 61,
     "res": "res.food_prepared"
   },
   "family": "industrialize",
@@ -384,7 +308,7 @@
       "id": "main",
       "kind": "produce",
       "params": {
-        "n": 39,
+        "n": 61,
         "res": "res.food_prepared"
       }
     },
@@ -392,13 +316,15 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 113
+        "seconds": 266
       }
     },
     {
       "id": "challenge",
-      "kind": "no_stockpile_overload",
-      "params": {}
+      "kind": "hire",
+      "params": {
+        "n": 6
+      }
     }
   ],
   "fail": [
@@ -414,9 +340,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.102,
-    "fun": 0.894,
-    "botMargin": 0.592,
+    "difficulty": 0.219,
+    "fun": 0.91,
+    "botMargin": 0.483,
     "botsPassed": [
       "good",
       "average",
@@ -425,9 +351,9 @@
       "floor"
     ],
     "stars": {
-      "good": 2.9,
+      "good": 3,
       "median": 3,
-      "goodAll": 0.9
+      "goodAll": 1
     }
   }
 }

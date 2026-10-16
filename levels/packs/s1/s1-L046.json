@@ -1,8 +1,8 @@
 {
   "id": "s1-L046",
-  "seed": 679335405,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "seed": 973226322,
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        319,
-        700
+        326,
+        681
       ],
       "sells": [
         "res.food_raw_1"
@@ -54,96 +54,89 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        369,
-        536
+        377,
+        540
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        74,
-        459
+        80,
+        453
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        73,
-        499
+        41,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        106,
-        434
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        32,
-        449
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        79,
-        417
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        30,
+        72,
         493
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        467
+        104,
+        495
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        117,
-        499
+        50,
+        422
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        41,
-        409
+        42,
+        504
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        136,
-        432
+        82,
+        406
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        62,
-        387
+        127,
+        444
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        112,
+        398
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        135,
+        474
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        166,
-        501
+        176,
+        419
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 11
       },
       "role": {
         "role": "role.supplier",
@@ -155,11 +148,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        358,
-        599
+        303,
+        576
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 16
       },
       "role": {
         "role": "role.supplier",
@@ -172,11 +165,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        192,
-        605
+        314,
+        502
       ],
       "cost": {
-        "res.currency": 21
+        "res.currency": 24
       },
       "role": {
         "role": "role.cashier",
@@ -198,41 +191,39 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
-    "core.burn": 2.2,
+    "start.currency": 1,
+    "core.burn": 2.1,
     "housing.base": 5,
-    "customers.spawn": 3.1,
+    "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.bulkShare": 0.18,
-    "level.budgetSeconds": 70
+    "customers.bulkShare": 0.15,
+    "level.budgetSeconds": 340
   },
   "goal": {
-    "type": "hire",
-    "n": 3
+    "type": "earn",
+    "n": 480
   },
   "family": "harvest",
   "objectives": [
     {
       "id": "main",
-      "kind": "hire",
+      "kind": "earn",
       "params": {
-        "n": 3
+        "n": 480
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 48
+        "seconds": 307
       }
     },
     {
       "id": "challenge",
-      "kind": "streak",
-      "params": {
-        "n": 8
-      }
+      "kind": "no_angry_customers",
+      "params": {}
     }
   ],
   "fail": [
@@ -240,17 +231,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Blueprints and Hiring Drive",
-      "goal": "hire",
+      "title": "Blueprints and Earnings",
+      "goal": "earn",
       "tips": [
         "Stand on a Hire pad to put a free colonist to work. They gather and deliver on their own."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.616,
-    "fun": 0.904,
-    "botMargin": 0.471,
+    "difficulty": 0.546,
+    "fun": 0.922,
+    "botMargin": 0.448,
     "botsPassed": [
       "good",
       "average",
@@ -259,7 +250,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.33,
+      "median": 3,
       "goodAll": 1
     }
   }

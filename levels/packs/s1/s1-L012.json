@@ -1,8 +1,8 @@
 {
   "id": "s1-L012",
   "seed": 1417805574,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -39,7 +39,7 @@
         510
       ],
       "params": {
-        "fuel": 16,
+        "fuel": 15,
         "level": 1
       }
     },
@@ -236,7 +236,7 @@
         57,
         45
       ],
-      "freeze": 174
+      "freeze": 163
     },
     {
       "type": "capture.recruit_container",
@@ -244,7 +244,7 @@
         317,
         60
       ],
-      "freeze": 185
+      "freeze": 174
     },
     {
       "type": "capture.recruit_container",
@@ -252,7 +252,7 @@
         55,
         231
       ],
-      "freeze": 189
+      "freeze": 179
     },
     {
       "type": "pad.build",
@@ -262,7 +262,7 @@
         575
       ],
       "cost": {
-        "res.currency": 21
+        "res.currency": 23
       },
       "build": "sink.core.level"
     },
@@ -274,7 +274,7 @@
         232
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 14
       },
       "build": "zone.clear",
       "target": "pass",
@@ -287,13 +287,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 9,
-    "core.burn": 2.9,
+    "start.currency": 8,
+    "core.burn": 2.8,
     "housing.base": 5,
-    "customers.spawn": 2.5,
+    "customers.spawn": 2.7,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "level.budgetSeconds": 100
+    "level.budgetSeconds": 150
   },
   "goal": {
     "type": "rescue_before_freeze",
@@ -312,7 +312,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 43
+        "seconds": 73
       }
     },
     {
@@ -336,9 +336,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.371,
-    "fun": 0.814,
-    "botMargin": 0.647,
+    "difficulty": 0.315,
+    "fun": 0.85,
+    "botMargin": 0.707,
     "botsPassed": [
       "good",
       "average",
@@ -348,7 +348,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2,
+      "median": 3,
       "goodAll": 1
     }
   }

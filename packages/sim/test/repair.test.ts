@@ -17,8 +17,8 @@ function standWalls(sim: Sim): void {
 const repairs = (ev: SimEvent[]) => ev.filter((e): e is Extract<SimEvent, { t: "barrier_repaired" }> => e.t === "barrier_repaired");
 
 describe("wall repair (barrier.repairK)", () => {
-  it("is off by default: a damaged wall is left alone and no param is added to the state", () => {
-    const sim = newSim({}, LEVEL_4);
+  it("with repairK 0 a damaged wall is left alone and no param is added to the state", () => {
+    const sim = withRepair(0);
     expect(sim.state.params["barrier.repairPm"]).toBeUndefined();
     standWalls(sim);
     sim.state.barriers[0]!.sections[0]!.hp = 3;

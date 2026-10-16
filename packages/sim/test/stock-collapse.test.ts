@@ -17,8 +17,8 @@ const make = (seconds?: number, extra: Loose = {}) => {
 const NONE = { dx: 0, dy: 0 };
 
 describe("pile collapse", () => {
-  it("is off by default: the content default is 0 and a full output never fails the level", () => {
-    const sim = make();
+  it("with collapseSeconds 0 a full output never fails the level", () => {
+    const sim = make(0);
     expect(sim.compiled.stock.collapseTicks).toBe(0);
     const cv = sim.state.converters[0]!;
     const cap = sim.compiled.converters[cv.type]!.outCap;
@@ -27,10 +27,10 @@ describe("pile collapse", () => {
     expect(sim.state.collapse).toBeUndefined();
   });
 
-  it("disabled runs hash identically to a manifest that never mentions the param", () => {
-    const a = make(), b = make(0);
-    for (let i = 0; i < 600; i++) { a.step({ dx: 3, dy: -1 }); b.step({ dx: 3, dy: -1 }); }
-    expect(b.hash()).toBe(a.hash());
+  it("disabled runs write no collapse state", () => {
+    const b = make(0);
+    for (let i = 0; i < 600; i++) b.step({ dx: 3, dy: -1 });
+    expect(b.state.collapse).toBeUndefined();
   });
 
   it("starts counting the tick the output reaches cap, and resets when it drops below", () => {

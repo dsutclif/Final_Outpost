@@ -36,10 +36,11 @@ describe("bots and the pile collapse rule", () => {
     expect(fetchedBelowCap).toBe(true);
   });
 
-  it("a disabled rule changes nothing: same hash as the golden params", () => {
-    const a = playBot(level3, good, 1);
-    const b = playBot(on(0), good, 1);
-    expect(b.hash).toBe(a.hash);
-    expect(b.ticks).toBe(a.ticks);
+  it("with the rule on (the default since engine 0.6.0) golden level 3 is still won, never by collapse", () => {
+    for (const seed of [1, 2, 3]) {
+      const r = playBot(level3, good, seed);
+      expect(r.won).toBe(true);
+      expect(r.reason).not.toBe("pile_collapse");
+    }
   });
 });

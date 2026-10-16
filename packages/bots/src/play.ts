@@ -423,6 +423,7 @@ function noteModule(used: Set<string>, e: SimEvent, upgrades: Record<string, unk
     case "wave_started": case "wave_cleared": used.add("defense"); break;
     case "died": if (e.kind.startsWith("node.")) used.add("hunting"); break;
     case "converted": used.add("converters"); break;
+    case "conveyed": used.add("conveyors"); break;
     case "healed": used.add("medical"); break;
     case "hazard_start": used.add("hazard_events"); break;
     case "customer_arrived": if (e.kind !== "unit.customer") used.add("customer_variety"); break;

@@ -1,8 +1,8 @@
 {
   "id": "s1-L054",
-  "seed": 1988824582,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "seed": 271138203,
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -39,113 +39,106 @@
         500
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 12,
         "level": 1
       }
     },
     {
       "type": "node.material_source",
       "at": [
-        169,
-        459
+        167,
+        470
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        135,
-        484
+        169,
+        429
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        174,
+        188,
+        505
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        477
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        130,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        154,
+        511
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        116,
         512
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        433
+        217,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        135,
-        437
+        193,
+        537
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        162,
-        417
+        159,
+        541
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        195,
-        490
+        202,
+        398
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        131,
-        530
+        114,
+        406
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        394
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        158,
-        542
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        112,
-        419
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        110,
-        453
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        200,
-        532
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        229,
-        411
+        109,
+        451
       ]
     },
     {
       "type": "barrier.line",
       "id": "ring",
       "res": "res.salvage",
-      "costPerSection": 1,
+      "costPerSection": 2,
       "points": [
         [
           72,
@@ -209,9 +202,6 @@
         8
       ],
       "prebuilt": [
-        0,
-        1,
-        2,
         3,
         4,
         5,
@@ -219,42 +209,49 @@
         7,
         8,
         9,
-        10
+        10,
+        11,
+        12,
+        13
       ]
     },
     {
       "type": "pad.build",
-      "id": "tower_w",
+      "id": "tower_n",
       "at": [
-        147,
-        594
+        303,
+        334
       ],
       "cost": {
         "res.salvage": 8
       },
-      "build": "struct.ranged_defense"
+      "build": "struct.ranged_defense",
+      "site": [
+        325,
+        265
+      ]
     },
     {
       "type": "pad.build",
-      "id": "tower_w_up",
+      "id": "tower_n_up",
       "at": [
-        209,
-        614
+        278,
+        402
       ],
       "cost": {
         "res.salvage": 6
       },
       "build": "struct.ranged_defense.t2",
-      "target": "tower_w",
+      "target": "tower_n",
       "requires": {
-        "pad": "tower_w"
+        "pad": "tower_n"
       }
     },
     {
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        340,
+        343,
         431
       ],
       "cost": {
@@ -262,15 +259,15 @@
       },
       "build": "struct.barrier.reinforced",
       "requires": {
-        "pad": "tower_w_up"
+        "pad": "tower_n_up"
       }
     },
     {
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        150,
-        666
+        142,
+        600
       ],
       "cost": {
         "res.salvage": 5
@@ -284,8 +281,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        246,
-        684
+        128,
+        679
       ],
       "cost": {
         "res.salvage": 4
@@ -311,55 +308,52 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [
     {
-      "t": 51,
+      "t": 45,
       "counts": {
-        "hostile.swarmling": 12
+        "hostile.swarmling": 15
       },
-      "side": "w",
+      "side": "n",
       "gap": 0.7
     },
     {
-      "t": 105,
+      "t": 94,
       "counts": {
-        "hostile.swarmling": 19,
+        "hostile.swarmling": 24,
         "hostile.raider_humanoid": 1
       },
-      "side": "w",
+      "side": "n",
       "gap": 0.7
     },
     {
-      "t": 160,
-      "counts": {
-        "hostile.swarmling": 28,
-        "hostile.raider_humanoid": 2
-      },
-      "side": "w",
-      "gap": 0.7
-    },
-    {
-      "t": 214,
+      "t": 142,
       "counts": {
         "hostile.swarmling": 35,
         "hostile.raider_humanoid": 3
       },
-      "side": "w",
+      "side": "n",
+      "gap": 0.7
+    },
+    {
+      "t": 191,
+      "counts": {
+        "hostile.swarmling": 44,
+        "hostile.raider_humanoid": 4
+      },
+      "side": "n",
       "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 7,
-    "core.burn": 2.7,
-    "housing.base": 7,
-    "meters.baseHealth": 13,
-    "level.budgetSeconds": 270
+    "start.currency": 4,
+    "core.burn": 2.5,
+    "housing.base": 6,
+    "meters.baseHealth": 12,
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "waves_survived",
@@ -401,20 +395,19 @@
     }
   },
   "rating": {
-    "difficulty": 0.533,
-    "fun": 0.044,
-    "botMargin": 0.923,
+    "difficulty": 0.653,
+    "fun": 0.146,
+    "botMargin": 0.986,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
-      "good": 2.9,
+      "good": 3,
       "median": 3,
-      "goodAll": 0.9
+      "goodAll": 1
     }
   }
 }

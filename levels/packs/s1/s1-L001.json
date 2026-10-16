@@ -1,8 +1,8 @@
 {
   "id": "s1-L001",
-  "seed": 148133935,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "seed": 1068679765,
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -40,78 +40,71 @@
     {
       "type": "node.material_source",
       "at": [
-        89,
-        450
+        91,
+        447
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        118,
-        418
+        133,
+        439
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        136,
-        457
+        70,
+        412
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        55,
-        427
+        109,
+        482
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        84,
-        489
+        104,
+        408
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        63,
+        482
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         43,
-        459
+        443
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        117,
-        495
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        80,
-        389
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        158,
-        436
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        59,
+        83,
         511
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        25,
-        430
+        137,
+        399
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        84,
+        386
       ]
     }
   ],
@@ -120,14 +113,14 @@
   "events": [],
   "params": {
     "start.currency": 0,
-    "core.burn": 2.2,
+    "core.burn": 2.1,
     "housing.base": 2,
-    "level.budgetSeconds": 120
+    "level.budgetSeconds": 170
   },
   "goal": {
     "type": "heat_hold",
     "pct": 65,
-    "seconds": 85
+    "seconds": 90
   },
   "family": "shelter",
   "objectives": [
@@ -136,7 +129,7 @@
       "kind": "heat_hold",
       "params": {
         "pct": 65,
-        "seconds": 85
+        "seconds": 90
       }
     },
     {
@@ -165,9 +158,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.082,
-    "fun": 0.208,
-    "botMargin": 0.26,
+    "difficulty": 0.046,
+    "fun": 0.138,
+    "botMargin": 0.432,
     "botsPassed": [
       "good",
       "average",

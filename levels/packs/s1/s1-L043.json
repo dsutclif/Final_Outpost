@@ -1,8 +1,8 @@
 {
   "id": "s1-L043",
   "seed": 814437043,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -39,7 +39,7 @@
         520
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 16,
         "level": 1
       }
     },
@@ -209,6 +209,7 @@
         8
       ],
       "prebuilt": [
+        0,
         3,
         4,
         5,
@@ -223,25 +224,33 @@
       "type": "pad.build",
       "id": "tower_w",
       "at": [
-        102,
-        623
-      ],
-      "cost": {
-        "res.salvage": 8
-      },
-      "build": "struct.ranged_defense"
-    },
-    {
-      "type": "pad.build",
-      "id": "tower_n",
-      "at": [
-        224,
-        359
+        92,
+        620
       ],
       "cost": {
         "res.salvage": 8
       },
       "build": "struct.ranged_defense",
+      "site": [
+        50,
+        520
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_n",
+      "at": [
+        294,
+        360
+      ],
+      "cost": {
+        "res.salvage": 8
+      },
+      "build": "struct.ranged_defense",
+      "site": [
+        303,
+        285
+      ],
       "requires": {
         "pad": "tower_w_up"
       }
@@ -250,8 +259,8 @@
       "type": "pad.build",
       "id": "tower_w_up",
       "at": [
-        195,
-        638
+        153,
+        653
       ],
       "cost": {
         "res.salvage": 6
@@ -266,8 +275,8 @@
       "type": "pad.build",
       "id": "tower_n_up",
       "at": [
-        283,
-        433
+        259,
+        446
       ],
       "cost": {
         "res.salvage": 6
@@ -282,8 +291,8 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        339,
-        462
+        315,
+        447
       ],
       "cost": {
         "res.salvage": 6
@@ -297,8 +306,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        133,
-        694
+        212,
+        651
       ],
       "cost": {
         "res.salvage": 5
@@ -312,8 +321,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        198,
-        697
+        221,
+        712
       ],
       "cost": {
         "res.salvage": 4
@@ -346,9 +355,9 @@
   ],
   "waves": [
     {
-      "t": 52,
+      "t": 55,
       "counts": {
-        "hostile.swarmling": 19
+        "hostile.swarmling": 38
       },
       "side": [
         "w",
@@ -357,9 +366,9 @@
       "gap": 0.7
     },
     {
-      "t": 109,
+      "t": 113,
       "counts": {
-        "hostile.swarmling": 30,
+        "hostile.swarmling": 60,
         "hostile.raider_humanoid": 1
       },
       "side": [
@@ -369,9 +378,9 @@
       "gap": 0.7
     },
     {
-      "t": 167,
+      "t": 171,
       "counts": {
-        "hostile.swarmling": 44,
+        "hostile.swarmling": 87,
         "hostile.raider_humanoid": 2
       },
       "side": [
@@ -379,31 +388,19 @@
         "n"
       ],
       "gap": 0.7
-    },
-    {
-      "t": 224,
-      "counts": {
-        "hostile.swarmling": 55,
-        "hostile.raider_humanoid": 3
-      },
-      "side": [
-        "n",
-        "w"
-      ],
-      "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.9,
+    "start.currency": 10,
+    "core.burn": 3,
     "housing.base": 7,
-    "meters.baseHealth": 14,
-    "level.budgetSeconds": 600
+    "meters.baseHealth": 16,
+    "level.budgetSeconds": 940
   },
   "goal": {
     "type": "salvage",
-    "n": 65
+    "n": 74
   },
   "family": "defend",
   "objectives": [
@@ -411,21 +408,21 @@
       "id": "main",
       "kind": "salvage",
       "params": {
-        "n": 65
+        "n": 74
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 311
+        "seconds": 372
       }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 70
+        "pct": 80
       }
     }
   ],
@@ -443,9 +440,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.986,
-    "fun": 0.36,
-    "botMargin": 0.605,
+    "difficulty": 0.974,
+    "fun": 0.165,
+    "botMargin": 0.772,
     "botsPassed": [
       "good",
       "average",
@@ -453,9 +450,9 @@
       "novice"
     ],
     "stars": {
-      "good": 3,
-      "median": 3,
-      "goodAll": 1
+      "good": 2.9,
+      "median": 2.33,
+      "goodAll": 0.9
     }
   }
 }

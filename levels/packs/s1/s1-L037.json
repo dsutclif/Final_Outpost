@@ -1,8 +1,8 @@
 {
   "id": "s1-L037",
   "seed": 787545886,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,7 +37,7 @@
         500
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -189,7 +189,6 @@
         0,
         1,
         2,
-        5,
         7,
         8,
         9,
@@ -203,20 +202,24 @@
       "type": "pad.build",
       "id": "tower_e",
       "at": [
-        357,
-        494
+        359,
+        506
       ],
       "cost": {
         "res.salvage": 8
       },
-      "build": "struct.ranged_defense"
+      "build": "struct.ranged_defense",
+      "site": [
+        430,
+        500
+      ]
     },
     {
       "type": "pad.build",
       "id": "medic",
       "at": [
-        345,
-        617
+        337,
+        604
       ],
       "cost": {
         "res.salvage": 6
@@ -242,11 +245,11 @@
         "hostile.swarmling": 6,
         "hostile.raider_humanoid": 3
       },
-      "side": "e",
+      "side": "n",
       "gap": 0.4
     },
     {
-      "t": 41,
+      "t": 42,
       "counts": {
         "hostile.swarmling": 6
       },
@@ -254,7 +257,7 @@
       "gap": 0.7
     },
     {
-      "t": 87,
+      "t": 84,
       "counts": {
         "hostile.swarmling": 10,
         "hostile.raider_humanoid": 2
@@ -263,7 +266,7 @@
       "gap": 0.7
     },
     {
-      "t": 134,
+      "t": 126,
       "counts": {
         "hostile.swarmling": 15,
         "hostile.raider_humanoid": 3
@@ -272,7 +275,7 @@
       "gap": 0.7
     },
     {
-      "t": 180,
+      "t": 168,
       "counts": {
         "hostile.swarmling": 19,
         "hostile.raider_humanoid": 5,
@@ -288,11 +291,11 @@
     "core.burn": 2.3,
     "housing.base": 5,
     "meters.baseHealth": 11,
-    "level.budgetSeconds": 240
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "survive",
-    "seconds": 180
+    "seconds": 190
   },
   "family": "defend",
   "objectives": [
@@ -300,7 +303,7 @@
       "id": "main",
       "kind": "survive",
       "params": {
-        "seconds": 180
+        "seconds": 190
       }
     },
     {
@@ -312,7 +315,7 @@
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 80
+        "pct": 75
       }
     }
   ],
@@ -330,9 +333,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.68,
-    "fun": 0.1,
-    "botMargin": 0.918,
+    "difficulty": 0.535,
+    "fun": 0.472,
+    "botMargin": 0.927,
     "botsPassed": [
       "good",
       "average",
@@ -340,9 +343,9 @@
       "novice"
     ],
     "stars": {
-      "good": 3,
-      "median": 2.67,
-      "goodAll": 1
+      "good": 2.8,
+      "median": 2.33,
+      "goodAll": 0.8
     }
   }
 }

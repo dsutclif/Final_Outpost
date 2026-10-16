@@ -1,8 +1,8 @@
 {
   "id": "s1-L010",
   "seed": 1387950823,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,7 +37,7 @@
         500
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 15,
         "level": 1
       }
     },
@@ -201,7 +201,6 @@
       ],
       "prebuilt": [
         0,
-        2,
         3,
         4,
         5,
@@ -222,26 +221,34 @@
       "cost": {
         "res.salvage": 8
       },
-      "build": "struct.ranged_defense"
+      "build": "struct.ranged_defense",
+      "site": [
+        50,
+        500
+      ]
     },
     {
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        247,
-        327
+        275,
+        349
       ],
       "cost": {
         "res.salvage": 8
       },
-      "build": "struct.ranged_defense"
+      "build": "struct.ranged_defense",
+      "site": [
+        303,
+        265
+      ]
     },
     {
       "type": "pad.build",
       "id": "tower_n_up",
       "at": [
-        251,
-        413
+        266,
+        425
       ],
       "cost": {
         "res.salvage": 6
@@ -256,8 +263,8 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        318,
-        422
+        322,
+        419
       ],
       "cost": {
         "res.salvage": 6
@@ -281,7 +288,7 @@
   ],
   "waves": [
     {
-      "t": 55,
+      "t": 51,
       "counts": {
         "hostile.swarmling": 24
       },
@@ -292,9 +299,9 @@
       "gap": 0.7
     },
     {
-      "t": 114,
+      "t": 108,
       "counts": {
-        "hostile.swarmling": 38,
+        "hostile.swarmling": 35,
         "hostile.raider_humanoid": 1
       },
       "side": [
@@ -304,7 +311,7 @@
       "gap": 0.7
     },
     {
-      "t": 174,
+      "t": 165,
       "counts": {
         "hostile.swarmling": 48,
         "hostile.raider_humanoid": 2
@@ -318,11 +325,11 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 9,
-    "core.burn": 3,
+    "start.currency": 8,
+    "core.burn": 2.9,
     "housing.base": 5,
-    "meters.baseHealth": 16,
-    "level.budgetSeconds": 420
+    "meters.baseHealth": 15,
+    "level.budgetSeconds": 490
   },
   "goal": {
     "type": "turret_level",
@@ -341,7 +348,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 177
+        "seconds": 241
       }
     },
     {
@@ -364,9 +371,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.39,
-    "fun": 0.271,
-    "botMargin": 0.631,
+    "difficulty": 0.206,
+    "fun": 0.381,
+    "botMargin": 0.692,
     "botsPassed": [
       "good",
       "average",
@@ -375,9 +382,9 @@
       "floor"
     ],
     "stars": {
-      "good": 3,
-      "median": 3,
-      "goodAll": 1
+      "good": 2.8,
+      "median": 2,
+      "goodAll": 0.8
     }
   }
 }

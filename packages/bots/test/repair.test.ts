@@ -9,6 +9,6 @@ describe("bot wall repair", () => {
   it("repairs damaged walls under attack when barrier.repairK is on, and never when it is off", () => {
     const on = [1, 2, 3, 4, 5, 6].map((s) => playBot(withRepair(0.5), good, s).trace.repairs);
     expect(on.reduce((a, b) => a + b, 0)).toBeGreaterThan(0);
-    for (const s of [1, 2, 3]) expect(playBot(level4, good, s).trace.repairs).toBe(0);
+    for (const s of [1, 2, 3]) expect(playBot(withRepair(0), good, s).trace.repairs).toBe(0);
   });
 });

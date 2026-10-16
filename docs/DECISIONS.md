@@ -70,5 +70,31 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     `content/data/objectives.json`; manifests carry `family` and exactly three `objectives`, the
     first mirroring `goal`. Colonists freeze one at a time across the grace period while the
     reactor is out.
+9j. **R3 Phase B rules (2026-10-16, engine/content 0.6.0).** From `docs/REDESIGN-R3.md` and
+    Doug's answers there.
+    - Purchase time: the front customer is served for `sales.serveSeconds` (0.6 s) before paying,
+      pausing while the clerk pad is unstaffed or the good is out; patience keeps running.
+    - Wall repair: walking a damaged section with the line's resource restores full HP for
+      `ceil(costPerSection × barrier.repairK)` (0.5), paid at once. A destroyed section is rebuilt
+      at the same repair price.
+    - Pile collapse: a converter output held at its cap for `stock.collapseSeconds` (8 s) collapses
+      and fails the level (`pile_collapse`); no goods are lost. Kiosk shelves never count, since a
+      full shelf is the healthy state.
+    - Time target: generated time targets and `level.budgetSeconds` are 1.4× (`timeTargetK`);
+      Settings scales the time star 100–200% per player, applied to the manifest before the sim
+      starts. The rater's trivial-budget share drops to 0.286 so it cuts at the same time as before.
+    - Wall towers: `pad.build.site` places the structure away from its pad; walled defend levels
+      put each attack side's turret on a ring post, replacing freestanding turrets.
+    - Conveyors: new module `conveyors` (`struct.conveyor`, `pad.build.link {from, to}`); a belt
+      moves units at `conveyor.speed`, one per `conveyor.everySeconds`, backs up when the target is
+      full. Introduced with the warehouse as the industrialize step after haulers.
+    - Hired operators pause one short of a full tray while piles can collapse, so only the player can
+      overfill one (automation relieves the pressure). A belt is laid only for goals that ride on its
+      chain (`conveyorGoals`). Boss levels without a med bay get two wall towers per attack side; the
+      med bay's early raid hits a quiet, unguarded side so injuries still happen.
+    - "Every shelf full" is out of the main-goal pool for now: with purchase time shelves fill in
+      seconds. It returns when harvest levels sell more goods per kiosk (R3 Phase C).
+    - Layout: the generator keeps drawn models from overlapping (`generator.json` footprints, held
+      to the 3D models by a render-3d test), and groups each machine's hire pads beside it.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

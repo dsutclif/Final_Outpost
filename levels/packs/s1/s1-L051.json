@@ -1,8 +1,8 @@
 {
   "id": "s1-L051",
   "seed": 1249703186,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -149,7 +149,7 @@
         229,
         848
       ],
-      "freeze": 110
+      "freeze": 113
     },
     {
       "type": "capture.recruit_container",
@@ -157,7 +157,7 @@
         76,
         664
       ],
-      "freeze": 112
+      "freeze": 115
     },
     {
       "type": "capture.recruit_container",
@@ -165,7 +165,7 @@
         273,
         751
       ],
-      "freeze": 134
+      "freeze": 137
     },
     {
       "type": "capture.recruit_container",
@@ -173,7 +173,7 @@
         393,
         806
       ],
-      "freeze": 162
+      "freeze": 166
     },
     {
       "type": "capture.recruit_container",
@@ -181,17 +181,17 @@
         444,
         371
       ],
-      "freeze": 159
+      "freeze": 163
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
-    "core.burn": 2.2,
+    "start.currency": 2,
+    "core.burn": 2.1,
     "housing.base": 7,
-    "level.budgetSeconds": 60
+    "level.budgetSeconds": 80
   },
   "goal": {
     "type": "rescue_all"
@@ -207,7 +207,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 41
+        "seconds": 50
       }
     },
     {
@@ -231,9 +231,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.286,
-    "fun": 0.871,
-    "botMargin": 0.417,
+    "difficulty": 0.189,
+    "fun": 0.822,
+    "botMargin": 0.618,
     "botsPassed": [
       "good",
       "average",

@@ -47,6 +47,7 @@
     "podGap": 62, "edge": 36, "towerPadIn": 70
   },
   "spacing": { "margin": 8, "standR": 16, "screen": [200, 350], "footprintGap": 6 },
+  "conveyorGoals": ["produce", "chain", "converters_running", "automate", "stockpile"],
   "footprints": {
     "pad": [-25, -25, 25, 25], "pad.big": [-35, -35, 35, 35],
     "sink.core": [-34, -34, 34, 34], "sink.sales_point": [-42, -33, 63, 32],

@@ -1,8 +1,8 @@
 {
   "id": "s1-L002",
   "seed": 671543360,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,7 +37,7 @@
         510
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -184,10 +184,10 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.3,
+    "start.currency": 2,
+    "core.burn": 2.2,
     "housing.base": 6,
-    "level.budgetSeconds": 60
+    "level.budgetSeconds": 80
   },
   "goal": {
     "type": "rescue",
@@ -206,7 +206,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 23
+        "seconds": 36
       }
     },
     {
@@ -228,9 +228,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.115,
-    "fun": 0.522,
-    "botMargin": 0.677,
+    "difficulty": 0.1,
+    "fun": 0.439,
+    "botMargin": 0.719,
     "botsPassed": [
       "good",
       "average",

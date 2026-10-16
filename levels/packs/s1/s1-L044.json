@@ -1,8 +1,8 @@
 {
   "id": "s1-L044",
   "seed": 103669247,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -137,7 +137,7 @@
         810
       ],
       "arrivals": {
-        "every": 20,
+        "every": 19,
         "total": 5
       }
     },
@@ -189,13 +189,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
+    "start.currency": 1,
     "core.burn": 2.1,
     "housing.base": 2,
     "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 260
+    "level.budgetSeconds": 360
   },
   "goal": {
     "type": "survive",
@@ -236,9 +236,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.024,
-    "fun": 0.833,
-    "botMargin": 0.671,
+    "difficulty": 0.025,
+    "fun": 0.774,
+    "botMargin": 0.667,
     "botsPassed": [
       "good",
       "average",

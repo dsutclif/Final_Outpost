@@ -18,6 +18,8 @@ export function placeConverter(st: State, cp: Compiled, id: string, type: string
 /** The player on the operator spot, or an operator bound to this converter type standing on it. */
 export function operated(st: State, cp: Compiled, cv: ConverterState): boolean {
   if (within(st.player.pos, cv.operatorPos, cp.convParams.playerOperateRange)) return true;
+  // While piles can collapse, a hired operator pauses one short of a full tray: only the player can overfill one.
+  if (cp.stock.collapseTicks > 0 && cv.out >= cp.converters[cv.type]!.outCap - 1) return false;
   const role = cp.converters[cv.type]!.role;
   return st.residents.some((r) =>
     r.status === "ok" && r.role === role && r.assign.to === cv.type && within(r.pos, cv.operatorPos, cp.convParams.operatorRange));

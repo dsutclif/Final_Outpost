@@ -9,9 +9,10 @@ const restock = (st: State) => { for (const r of st.sales!.sells) st.sales!.shel
 const sold = (ev: SimEvent[]) => ev.filter((e) => e.t === "sold") as Extract<SimEvent, { t: "sold" }>[];
 
 describe("R3-8: customer serve time", () => {
-  it("compiles 0.6 s to 18 ticks and 0 to instant", () => {
+  it("compiles 0.6 s (the default since engine 0.6.0) to 18 ticks and 0 to instant", () => {
     expect(withServe(0.6).compiled.sales.serveTicks).toBe(18);
-    expect(newSim().compiled.sales.serveTicks).toBe(0);
+    expect(newSim().compiled.sales.serveTicks).toBe(18);
+    expect(withServe(0).compiled.sales.serveTicks).toBe(0);
   });
 
   it("no sale completes before the timer; the sale lands serveTicks after serving begins", () => {
@@ -88,8 +89,8 @@ describe("R3-8: customer serve time", () => {
     expect((done[0] as { customer: number }).customer).toBe(customer);
   });
 
-  it("default (0) never sets serving", () => {
-    const sim = newSim(), st = sim.state;
+  it("serveSeconds 0 never sets serving", () => {
+    const sim = withServe(0), st = sim.state;
     st.player.pos = { ...st.sales!.register };
     for (let i = 0; i < 30 * TPS; i++) { restock(st); sim.step({ dx: 0, dy: 0 }); expect(st.sales!.serving).toBeUndefined(); }
     expect(st.stats.sold).toBeGreaterThan(0);

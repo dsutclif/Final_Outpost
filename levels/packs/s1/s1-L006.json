@@ -1,8 +1,8 @@
 {
   "id": "s1-L006",
-  "seed": 462020537,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "seed": 39245116,
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -35,7 +35,7 @@
         500
       ],
       "params": {
-        "fuel": 16,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        123,
-        647
+        120,
+        650
       ],
       "sells": [
         "res.food_raw_1"
@@ -54,148 +54,99 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        338,
-        583
+        337,
+        594
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        325,
-        475
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        339,
-        435
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        287,
+        357,
         452
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
-        369,
-        468
+        359,
+        492
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        358,
-        504
+        359,
+        411
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        301,
+        316,
+        442
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        396,
+        470
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        312,
+        485
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        392,
         426
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        305,
-        521
+        325,
+        406
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        382,
-        441
+        291,
+        461
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        260,
-        428
+        397,
+        503
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        289,
-        490
+        294,
+        423
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        314,
-        398
+        389,
+        396
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        394,
-        483
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        367,
-        403
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        394,
-        512
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        276,
-        535
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        94,
-        545
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        125,
-        537
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        103,
-        508
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        57,
-        536
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        62,
-        504
+        421,
+        434
       ]
     },
     {
@@ -206,8 +157,8 @@
         800
       ],
       "arrivals": {
-        "every": 13,
-        "total": 3
+        "every": 17,
+        "total": 4
       }
     },
     {
@@ -215,10 +166,10 @@
       "id": "housing0",
       "at": [
         266,
-        623
+        565
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 14
       },
       "build": "struct.housing"
     },
@@ -226,11 +177,11 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        42,
-        658
+        98,
+        554
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 17
       },
       "build": "struct.housing"
     }
@@ -246,13 +197,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 9,
-    "core.burn": 2.9,
+    "start.currency": 4,
+    "core.burn": 2.5,
     "housing.base": 2,
-    "customers.spawn": 2.6,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "level.budgetSeconds": 80
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 140
   },
   "goal": {
     "type": "house_all"
@@ -268,13 +219,15 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 39
+        "seconds": 94
       }
     },
     {
       "id": "challenge",
-      "kind": "no_colonist_freezes",
-      "params": {}
+      "kind": "heat_floor",
+      "params": {
+        "pct": 45
+      }
     }
   ],
   "fail": [
@@ -290,9 +243,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.192,
-    "fun": 0.764,
-    "botMargin": 0.578,
+    "difficulty": 0.198,
+    "fun": 0.81,
+    "botMargin": 0.581,
     "botsPassed": [
       "good",
       "average",

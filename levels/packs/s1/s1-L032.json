@@ -1,8 +1,8 @@
 {
   "id": "s1-L032",
   "seed": 2037529639,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -39,7 +39,7 @@
         520
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 16,
         "level": 1
       }
     },
@@ -226,20 +226,24 @@
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        255,
-        362
+        300,
+        355
       ],
       "cost": {
         "res.salvage": 8
       },
-      "build": "struct.ranged_defense"
+      "build": "struct.ranged_defense",
+      "site": [
+        303,
+        285
+      ]
     },
     {
       "type": "pad.build",
       "id": "tower_n_up",
       "at": [
-        281,
-        450
+        266,
+        424
       ],
       "cost": {
         "res.salvage": 6
@@ -254,7 +258,7 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        340,
+        334,
         448
       ],
       "cost": {
@@ -330,7 +334,7 @@
   ],
   "waves": [
     {
-      "t": 54,
+      "t": 53,
       "counts": {
         "hostile.swarmling": 24
       },
@@ -338,16 +342,16 @@
       "gap": 0.7
     },
     {
-      "t": 114,
+      "t": 111,
       "counts": {
-        "hostile.swarmling": 44,
+        "hostile.swarmling": 38,
         "hostile.raider_humanoid": 1
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 174,
+      "t": 169,
       "counts": {
         "hostile.swarmling": 55,
         "hostile.raider_humanoid": 2
@@ -358,11 +362,11 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 9,
+    "start.currency": 10,
     "core.burn": 3,
     "housing.base": 11,
     "meters.baseHealth": 16,
-    "level.budgetSeconds": 610
+    "level.budgetSeconds": 850
   },
   "goal": {
     "type": "hire",
@@ -383,7 +387,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 244
+        "seconds": 336
       }
     },
     {
@@ -406,9 +410,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.615,
-    "fun": 0.314,
-    "botMargin": 0.696,
+    "difficulty": 0.611,
+    "fun": 0.131,
+    "botMargin": 0.785,
     "botsPassed": [
       "good",
       "average",

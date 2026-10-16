@@ -1,7 +1,7 @@
 {
   "id": "s1",
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "levels": [
     {
       "id": "s1-L001",
@@ -15,8 +15,8 @@
         "sales"
       ],
       "goal": "heat_hold",
-      "rating": 0.082,
-      "fun": 0.208,
+      "rating": 0.046,
+      "fun": 0.138,
       "target": 0.11
     },
     {
@@ -34,8 +34,8 @@
         "sales"
       ],
       "goal": "rescue",
-      "rating": 0.115,
-      "fun": 0.522,
+      "rating": 0.1,
+      "fun": 0.439,
       "target": 0.122
     },
     {
@@ -52,8 +52,8 @@
         "workers"
       ],
       "goal": "earn",
-      "rating": 0.081,
-      "fun": 0.935,
+      "rating": 0.085,
+      "fun": 0.911,
       "target": 0.134
     },
     {
@@ -71,8 +71,8 @@
         "workers"
       ],
       "goal": "produce",
-      "rating": 0.102,
-      "fun": 0.894,
+      "rating": 0.219,
+      "fun": 0.91,
       "target": 0.146
     },
     {
@@ -90,8 +90,8 @@
         "sales"
       ],
       "goal": "waves",
-      "rating": 0.174,
-      "fun": 0.261,
+      "rating": 0.164,
+      "fun": 0.426,
       "target": 0.158
     },
     {
@@ -108,8 +108,8 @@
         "sales"
       ],
       "goal": "house_all",
-      "rating": 0.192,
-      "fun": 0.764,
+      "rating": 0.198,
+      "fun": 0.81,
       "target": 0.171
     },
     {
@@ -128,8 +128,8 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.161,
-      "fun": 0.864,
+      "rating": 0.174,
+      "fun": 0.851,
       "target": 0.183
     },
     {
@@ -148,8 +148,8 @@
         "workers"
       ],
       "goal": "serve_premium",
-      "rating": 0.213,
-      "fun": 0.833,
+      "rating": 0.176,
+      "fun": 0.738,
       "target": 0.195
     },
     {
@@ -167,8 +167,8 @@
         "workers"
       ],
       "goal": "converter_level",
-      "rating": 0.179,
-      "fun": 0.947,
+      "rating": 0.205,
+      "fun": 0.915,
       "target": 0.207
     },
     {
@@ -187,8 +187,8 @@
         "salvage_upgrades"
       ],
       "goal": "turret_level",
-      "rating": 0.39,
-      "fun": 0.271,
+      "rating": 0.206,
+      "fun": 0.381,
       "target": 0.219
     },
     {
@@ -207,8 +207,8 @@
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.136,
-      "fun": 0.753,
+      "rating": 0.308,
+      "fun": 0.484,
       "target": 0.231
     },
     {
@@ -228,8 +228,8 @@
         "sales"
       ],
       "goal": "rescue_before_freeze",
-      "rating": 0.371,
-      "fun": 0.814,
+      "rating": 0.315,
+      "fun": 0.85,
       "target": 0.243
     },
     {
@@ -246,8 +246,8 @@
         "workers"
       ],
       "goal": "bulk_order",
-      "rating": 0.207,
-      "fun": 0.938,
+      "rating": 0.273,
+      "fun": 0.865,
       "target": 0.255
     },
     {
@@ -259,6 +259,7 @@
         "build_pads",
         "carry",
         "converters",
+        "conveyors",
         "core",
         "gather",
         "sales",
@@ -266,8 +267,8 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.293,
-      "fun": 0.933,
+      "rating": 0.274,
+      "fun": 0.725,
       "target": 0.267
     },
     {
@@ -288,8 +289,8 @@
         "workers"
       ],
       "goal": "boss",
-      "rating": 0.834,
-      "fun": 0.114,
+      "rating": 0.733,
+      "fun": 0.066,
       "target": 0.279
     },
     {
@@ -308,8 +309,8 @@
         "sales"
       ],
       "goal": "clear_zones",
-      "rating": 0.457,
-      "fun": 0.858,
+      "rating": 0.374,
+      "fun": 0.762,
       "target": 0.332
     },
     {
@@ -328,8 +329,8 @@
         "sales"
       ],
       "goal": "hunt",
-      "rating": 0.331,
-      "fun": 0.489,
+      "rating": 0.311,
+      "fun": 0.567,
       "target": 0.344
     },
     {
@@ -347,8 +348,8 @@
         "workers"
       ],
       "goal": "currency",
-      "rating": 0.447,
-      "fun": 0.953,
+      "rating": 0.385,
+      "fun": 0.894,
       "target": 0.356
     },
     {
@@ -367,8 +368,8 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.326,
-      "fun": 0.894,
+      "rating": 0.254,
+      "fun": 0.911,
       "target": 0.368
     },
     {
@@ -388,8 +389,8 @@
         "workers"
       ],
       "goal": "core_level",
-      "rating": 0.425,
-      "fun": 0.868,
+      "rating": 0.253,
+      "fun": 0.866,
       "target": 0.38
     },
     {
@@ -408,8 +409,8 @@
         "salvage_upgrades"
       ],
       "goal": "waves_survived",
-      "rating": 0.397,
-      "fun": 0.186,
+      "rating": 0.354,
+      "fun": 0.175,
       "target": 0.4
     },
     {
@@ -426,8 +427,8 @@
         "sales"
       ],
       "goal": "population",
-      "rating": 0.345,
-      "fun": 0.861,
+      "rating": 0.329,
+      "fun": 0.888,
       "target": 0.45
     },
     {
@@ -447,8 +448,8 @@
         "sales"
       ],
       "goal": "rescue_all",
-      "rating": 0.678,
-      "fun": 0.819,
+      "rating": 0.838,
+      "fun": 0.855,
       "target": 0.494
     },
     {
@@ -467,28 +468,29 @@
         "workers"
       ],
       "goal": "earn_within",
-      "rating": 0.595,
-      "fun": 0.84,
+      "rating": 0.54,
+      "fun": 0.649,
       "target": 0.538
     },
     {
       "id": "s1-L025",
       "file": "s1-L025.json",
-      "title": "Couriers and Long Hauls",
+      "title": "Couriers and Hands Off",
       "family": "industrialize",
       "modules": [
         "build_pads",
         "carry",
         "converters",
+        "conveyors",
         "core",
         "gather",
         "sales",
         "supply_routing",
         "workers"
       ],
-      "goal": "haul",
-      "rating": 0.729,
-      "fun": 0.924,
+      "goal": "automate",
+      "rating": 0.62,
+      "fun": 0.848,
       "target": 0.581
     },
     {
@@ -507,8 +509,8 @@
         "sales"
       ],
       "goal": "kills",
-      "rating": 0.678,
-      "fun": 0.571,
+      "rating": 0.537,
+      "fun": 0.408,
       "target": 0.625
     },
     {
@@ -526,8 +528,8 @@
         "sales"
       ],
       "goal": "clear_zones",
-      "rating": 0.584,
-      "fun": 0.908,
+      "rating": 0.368,
+      "fun": 0.916,
       "target": 0.669
     },
     {
@@ -546,8 +548,8 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.726,
-      "fun": 0.916,
+      "rating": 0.756,
+      "fun": 0.839,
       "target": 0.713
     },
     {
@@ -565,8 +567,8 @@
         "workers"
       ],
       "goal": "sell",
-      "rating": 0.857,
-      "fun": 0.963,
+      "rating": 0.651,
+      "fun": 0.917,
       "target": 0.756
     },
     {
@@ -587,8 +589,8 @@
         "workers"
       ],
       "goal": "rescue",
-      "rating": 0.787,
-      "fun": 0.874,
+      "rating": 0.806,
+      "fun": 0.891,
       "target": 0.8
     },
     {
@@ -606,8 +608,8 @@
         "workers"
       ],
       "goal": "converters_running",
-      "rating": 0.218,
-      "fun": 0.94,
+      "rating": 0.487,
+      "fun": 0.952,
       "target": 0.4
     },
     {
@@ -628,8 +630,8 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.615,
-      "fun": 0.314,
+      "rating": 0.611,
+      "fun": 0.131,
       "target": 0.45
     },
     {
@@ -646,8 +648,8 @@
         "sales"
       ],
       "goal": "admit",
-      "rating": 0.078,
-      "fun": 0.892,
+      "rating": 0.033,
+      "fun": 0.807,
       "target": 0.494
     },
     {
@@ -666,14 +668,14 @@
         "sales"
       ],
       "goal": "hunt",
-      "rating": 0.623,
-      "fun": 0.451,
+      "rating": 0.573,
+      "fun": 0.429,
       "target": 0.538
     },
     {
       "id": "s1-L035",
       "file": "s1-L035.json",
-      "title": "Vaults and Full Shelves",
+      "title": "Vaults and Hot Streak",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -685,15 +687,15 @@
         "source_gating",
         "workers"
       ],
-      "goal": "shelves_full",
-      "rating": 0.59,
-      "fun": 0.818,
+      "goal": "streak",
+      "rating": 0.594,
+      "fun": 0.812,
       "target": 0.581
     },
     {
       "id": "s1-L036",
       "file": "s1-L036.json",
-      "title": "Warehouses and Hands Off",
+      "title": "Warehouses and Long Hauls",
       "family": "industrialize",
       "modules": [
         "build_pads",
@@ -705,9 +707,9 @@
         "supply_routing",
         "workers"
       ],
-      "goal": "automate",
-      "rating": 0.726,
-      "fun": 0.937,
+      "goal": "haul",
+      "rating": 0.66,
+      "fun": 0.922,
       "target": 0.625
     },
     {
@@ -726,8 +728,8 @@
         "sales"
       ],
       "goal": "survive",
-      "rating": 0.68,
-      "fun": 0.1,
+      "rating": 0.535,
+      "fun": 0.472,
       "target": 0.669
     },
     {
@@ -746,8 +748,8 @@
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.716,
-      "fun": 0.82,
+      "rating": 0.74,
+      "fun": 0.59,
       "target": 0.713
     },
     {
@@ -767,8 +769,8 @@
         "sales"
       ],
       "goal": "rescue_before_freeze",
-      "rating": 0.764,
-      "fun": 0.841,
+      "rating": 0.716,
+      "fun": 0.852,
       "target": 0.756
     },
     {
@@ -788,14 +790,14 @@
         "workers"
       ],
       "goal": "unlock",
-      "rating": 0.817,
-      "fun": 0.917,
+      "rating": 0.846,
+      "fun": 0.885,
       "target": 0.8
     },
     {
       "id": "s1-L041",
       "file": "s1-L041.json",
-      "title": "Vaults and Perfect Run",
+      "title": "Vaults and New Hands",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -807,9 +809,9 @@
         "source_gating",
         "workers"
       ],
-      "goal": "streak",
-      "rating": 0.484,
-      "fun": 0.905,
+      "goal": "hire",
+      "rating": 0.347,
+      "fun": 0.847,
       "target": 0.4
     },
     {
@@ -828,8 +830,8 @@
         "workers"
       ],
       "goal": "build",
-      "rating": 0.436,
-      "fun": 0.944,
+      "rating": 0.445,
+      "fun": 0.929,
       "target": 0.45
     },
     {
@@ -850,8 +852,8 @@
         "workers"
       ],
       "goal": "salvage",
-      "rating": 0.986,
-      "fun": 0.36,
+      "rating": 0.974,
+      "fun": 0.165,
       "target": 0.494
     },
     {
@@ -868,8 +870,8 @@
         "sales"
       ],
       "goal": "survive",
-      "rating": 0.024,
-      "fun": 0.833,
+      "rating": 0.025,
+      "fun": 0.774,
       "target": 0.538
     },
     {
@@ -888,14 +890,14 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.566,
-      "fun": 0.726,
+      "rating": 0.577,
+      "fun": 0.799,
       "target": 0.581
     },
     {
       "id": "s1-L046",
       "file": "s1-L046.json",
-      "title": "Blueprints and Hiring Drive",
+      "title": "Blueprints and Earnings",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -905,9 +907,9 @@
         "sales",
         "workers"
       ],
-      "goal": "hire",
-      "rating": 0.616,
-      "fun": 0.904,
+      "goal": "earn",
+      "rating": 0.546,
+      "fun": 0.922,
       "target": 0.625
     },
     {
@@ -919,6 +921,7 @@
         "build_pads",
         "carry",
         "converters",
+        "conveyors",
         "core",
         "gather",
         "sales",
@@ -926,8 +929,8 @@
         "workers"
       ],
       "goal": "chain",
-      "rating": 0.799,
-      "fun": 0.921,
+      "rating": 0.754,
+      "fun": 0.901,
       "target": 0.669
     },
     {
@@ -946,8 +949,8 @@
         "sales"
       ],
       "goal": "waves",
-      "rating": 0.712,
-      "fun": 0.656,
+      "rating": 0.305,
+      "fun": 0.271,
       "target": 0.713
     },
     {
@@ -966,8 +969,8 @@
         "sales"
       ],
       "goal": "clear_zones",
-      "rating": 0.729,
-      "fun": 0.745,
+      "rating": 0.74,
+      "fun": 0.656,
       "target": 0.756
     },
     {
@@ -979,6 +982,7 @@
         "build_pads",
         "carry",
         "converters",
+        "conveyors",
         "core",
         "gather",
         "sales",
@@ -986,8 +990,8 @@
         "workers"
       ],
       "goal": "produce",
-      "rating": 0.819,
-      "fun": 0.953,
+      "rating": 0.787,
+      "fun": 0.921,
       "target": 0.8
     },
     {
@@ -1005,14 +1009,14 @@
         "sales"
       ],
       "goal": "rescue_all",
-      "rating": 0.286,
-      "fun": 0.871,
+      "rating": 0.189,
+      "fun": 0.822,
       "target": 0.4
     },
     {
       "id": "s1-L052",
       "file": "s1-L052.json",
-      "title": "Vaults and Paydays",
+      "title": "Vaults and Trade Winds",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -1023,9 +1027,9 @@
         "source_gating",
         "workers"
       ],
-      "goal": "earn",
-      "rating": 0.476,
-      "fun": 0.955,
+      "goal": "currency",
+      "rating": 0.507,
+      "fun": 0.925,
       "target": 0.45
     },
     {
@@ -1043,8 +1047,8 @@
         "workers"
       ],
       "goal": "converter_level",
-      "rating": 0.492,
-      "fun": 0.965,
+      "rating": 0.543,
+      "fun": 0.93,
       "target": 0.494
     },
     {
@@ -1065,8 +1069,8 @@
         "workers"
       ],
       "goal": "waves_survived",
-      "rating": 0.533,
-      "fun": 0.044,
+      "rating": 0.653,
+      "fun": 0.146,
       "target": 0.538
     },
     {
@@ -1084,8 +1088,8 @@
         "sales"
       ],
       "goal": "build_count",
-      "rating": 0.552,
-      "fun": 0.882,
+      "rating": 0.536,
+      "fun": 0.697,
       "target": 0.581
     },
     {
@@ -1103,8 +1107,8 @@
         "sales"
       ],
       "goal": "crates",
-      "rating": 0.64,
-      "fun": 0.967,
+      "rating": 0.551,
+      "fun": 0.955,
       "target": 0.625
     },
     {
@@ -1122,8 +1126,8 @@
         "workers"
       ],
       "goal": "serve_premium",
-      "rating": 0.496,
-      "fun": 0.942,
+      "rating": 0.677,
+      "fun": 0.944,
       "target": 0.669
     },
     {
@@ -1135,6 +1139,7 @@
         "build_pads",
         "carry",
         "converters",
+        "conveyors",
         "core",
         "gather",
         "sales",
@@ -1142,8 +1147,8 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.695,
-      "fun": 0.945,
+      "rating": 0.799,
+      "fun": 0.821,
       "target": 0.713
     },
     {
@@ -1161,8 +1166,8 @@
         "sales"
       ],
       "goal": "boss",
-      "rating": 0.654,
-      "fun": 0.496,
+      "rating": 0.953,
+      "fun": 0.566,
       "target": 0.756
     },
     {
@@ -1184,8 +1189,8 @@
         "workers"
       ],
       "goal": "kills",
-      "rating": 0.947,
-      "fun": 0.443,
+      "rating": 0.849,
+      "fun": 0.452,
       "target": 0.8
     }
   ]

@@ -71,7 +71,7 @@
       "modules": ["converters"],
       "teachGoal": "produce",
       "intro": [["material_processor", "converter_levels"], ["depot", "conveyors"]],
-      "challenges": ["no_stockpile_overload", "hire"]
+      "challenges": ["no_stockpile_overload", "hire", "produce", "converters_running"]
     },
     "defend": {
       "modules": ["defense"],
@@ -105,7 +105,6 @@
     "sell": { "family": "harvest", "needs": [], "anchor": true },
     "serve_premium": { "family": "harvest", "needs": ["vips"], "anchor": true },
     "unlock": { "family": "harvest", "needs": ["source_unlocks"], "anchor": true },
-    "shelves_full": { "family": "harvest", "needs": [], "anchor": true },
     "streak": { "family": "harvest", "needs": [], "anchor": true },
     "sell_each": { "family": "harvest", "needs": ["@two_goods"], "anchor": true },
     "hire": { "family": "harvest", "needs": [], "anchor": true },

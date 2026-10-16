@@ -1,8 +1,8 @@
 {
   "id": "s1-L034",
   "seed": 304161225,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -38,7 +38,7 @@
         510
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -218,14 +218,14 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.5,
+    "start.currency": 3,
+    "core.burn": 2.3,
     "housing.base": 6,
-    "level.budgetSeconds": 230
+    "level.budgetSeconds": 340
   },
   "goal": {
     "type": "hunt",
-    "n": 25
+    "n": 33
   },
   "family": "rescue",
   "objectives": [
@@ -233,14 +233,14 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 25
+        "n": 33
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 148
+        "seconds": 270
       }
     },
     {
@@ -264,9 +264,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.623,
-    "fun": 0.451,
-    "botMargin": 0.431,
+    "difficulty": 0.573,
+    "fun": 0.429,
+    "botMargin": 0.505,
     "botsPassed": [
       "good",
       "average",

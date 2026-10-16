@@ -39,6 +39,8 @@ export const GEN = genData as unknown as {
   spacing: { margin: number; standR: number; screen: [number, number]; footprintGap: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
   footprints: Record<string, [number, number, number, number]>;
+  /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
+  conveyorGoals: string[];
   search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number };
 };
 
@@ -142,6 +144,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const fam = inp.family;
   const fams = new Set<Family>([fam, ...(inp.secondary ? [inp.secondary] : [])]);
   const feat = new Set(inp.features);
+  // A belt only earns its place where the goal rides on the chain it automates; elsewhere the level
+  // goes without it (and without the module), so no element sits idle.
+  if (feat.has("conveyors") && !GEN.conveyorGoals.includes(inp.goalType)) feat.delete("conveyors");
   const has = (m: string) => inp.modules.includes(m);
   const goal = inp.goalType;
   const tpl = inp.template;
@@ -342,17 +347,18 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         ?? fail("no room for the material processor");
       pad({ type: "pad.build", id: "saw", at: [...s], cost: { "res.currency": cost("saw") }, build: "conv.material_processor" });
       const sOp = opPos("conv.material_processor", s);
-      const sw = crewPad("sawyer", sOp, 1, 0);
+      // with a belt leaving the tray on the right, the crew stands on the left
+      const crewSide: 1 | -1 = feat.has("conveyors") ? -1 : 1;
+      const sw = crewPad("sawyer", sOp, crewSide, 0);
       pad({ type: "pad.hire", id: "sawyer", at: [...sw], cost: { "res.currency": cost("hire.sawyer") }, role: { role: "role.operator", to: "conv.material_processor" }, requires: { pad: "saw" } });
       // Every converter has a feed path: a worker brings fuel scrap to the material processor.
-      const sf = crewPad("saw_feeder", sOp, 1, 1);
+      const sf = crewPad("saw_feeder", sOp, crewSide, 1);
       pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "sawyer" } });
       if (feat.has("tier2")) {
         alloy = true;
-        // With a belt the parts works stands beside the smelter, square to the line to the core,
-        // so the belt run is short and never crosses the base.
-        const toCore = dist(s, core) || 1, side = s[0] < core[0] ? -1 : 1;
-        const beside: Pt = [Math.round(s[0] - side * (core[1] - s[1]) / toCore * 150), Math.round(s[1] + side * (core[0] - s[0]) / toCore * 150)];
+        // With a belt the parts works stands just past the smelter tray (to its right), so the run
+        // is short and straight; the build check below rejects any layout where it would cross the base.
+        const beside: Pt = [s[0] + 190, s[1]];
         const alloyOpts = { near: feat.has("conveyors") ? beside : toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), fp: "conv.alloy_works" };
         const a = P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { ...alloyOpts, samples: 240 })
           ?? P.place("alloy", R.conv, inner, { ...alloyOpts, samples: 320 })
@@ -541,13 +547,19 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           return ring!.side[k] === sd && ring!.side[prev] === sd && !ringGates.includes(k) && !ringGates.includes(prev);
         });
         if (posts.length === 0) fail(`no wall post for a tower on side ${sd}`);
-        const mid: Pt = [posts.reduce((a, x) => a + x.p[0], 0) / posts.length, posts.reduce((a, x) => a + x.p[1], 0) / posts.length];
-        const site = posts.reduce((a, x) => (dist(x.p, mid) < dist(a.p, mid) ? x : a)).p;
-        const inward = dist(site, core) || 1;
-        const k = GEN.rings.towerPadIn / inward;
-        P.add(`tower_${sd}@site`, site, 0, { fp: "struct.ranged_defense" });
-        const tp = placePad(`tower_${sd}`, [Math.round(site[0] + (core[0] - site[0]) * k), Math.round(site[1] + (core[1] - site[1]) * k)]);
-        towers.push(pad({ type: "pad.build", id: `tower_${sd}`, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site] }));
+        // Boss levels get two towers per side (a third and two thirds along it), so attackers spreading
+        // along a long wall stay in range (not with a med bay, whose injuries they would prevent); else one.
+        const along = posts.slice().sort((p, q) => p.p[0] - q.p[0] || p.p[1] - q.p[1]);
+        const count = Math.min(along.length, feat.has("bosses") && !feat.has("med_bay") ? 2 : 1);
+        for (let j = 0; j < count; j++) {
+          const site = along[Math.min(along.length - 1, Math.floor(((j + 1) * along.length) / (count + 1)))]!.p;
+          const id = j === 0 ? `tower_${sd}` : `tower_${sd}${j + 1}`;
+          const inward = dist(site, core) || 1;
+          const k = GEN.rings.towerPadIn / inward;
+          P.add(`${id}@site`, site, 0, { fp: "struct.ranged_defense" });
+          const tp = placePad(id, [Math.round(site[0] + (core[0] - site[0]) * k), Math.round(site[1] + (core[1] - site[1]) * k)]);
+          towers.push(pad({ type: "pad.build", id, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site] }));
+        }
       }
       if (feat.has("salvage_upgrades")) {
         // On a turret-level goal the first upgrade reaches the tier, so only one tower gets an upgrade pad.
@@ -571,7 +583,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       pad({ type: "pad.build", id: "medic", at: [...md], cost: { "res.salvage": salv("salvage.medic") }, build: "struct.medical" });
     }
     // A med bay needs patients: an early probe wave reaches the base before any wall can be paid for.
-    if (feat.has("med_bay")) waves.push({ t: 12, counts: { "hostile.swarmling": 6, "hostile.raider_humanoid": 3 }, side: sides.length === 1 ? sides[0]! : [...sides], gap: 0.4 });
+    // The med bay needs patients: its early raid hits a quiet, unguarded side (towers stand only on the
+    // attack sides and stop raiders at the wall before anyone is hurt).
+    if (feat.has("med_bay")) waves.push({ t: 12, counts: { "hostile.swarmling": 6, "hostile.raider_humanoid": 3 }, side: quiet.find((q) => q !== gateSide) ?? quiet[0] ?? sides[0]!, gap: 0.4 });
     const nW = Math.round(K.waves);
     for (let k = 0; k < nW; k++) {
       const counts: Record<string, number> = { "hostile.swarmling": Math.max(3, Math.round(K.swarm * (k === 0 ? 0.6 : 1 + 0.45 * (k - 1)))) };
@@ -681,7 +695,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const m = {
       id: inp.id, seed: inp.seed >>> 0, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION,
       map: { w: 480, h: 900, zones: [...tpl.zones] },
-      modules: [...inp.modules].sort(),
+      modules: [...inp.modules].filter((m) => m !== "conveyors" || feat.has("conveyors")).sort(),
       start: [...startPt],
       entities: [...ents, ...ps],
       people: pp,

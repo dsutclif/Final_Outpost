@@ -1,8 +1,8 @@
 {
   "id": "s1-L026",
   "seed": 880376164,
-  "engineVersion": "0.5.1",
-  "contentVersion": "0.5.0",
+  "engineVersion": "0.6.0",
+  "contentVersion": "0.6.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -204,13 +204,17 @@
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        220,
-        336
+        281,
+        333
       ],
       "cost": {
         "res.salvage": 8
       },
-      "build": "struct.ranged_defense"
+      "build": "struct.ranged_defense",
+      "site": [
+        281,
+        265
+      ]
     },
     {
       "type": "pad.build",
@@ -243,11 +247,11 @@
         "hostile.swarmling": 6,
         "hostile.raider_humanoid": 3
       },
-      "side": "n",
+      "side": "e",
       "gap": 0.4
     },
     {
-      "t": 44,
+      "t": 40,
       "counts": {
         "hostile.swarmling": 6
       },
@@ -255,7 +259,7 @@
       "gap": 0.7
     },
     {
-      "t": 90,
+      "t": 82,
       "counts": {
         "hostile.swarmling": 10,
         "hostile.raider_humanoid": 2
@@ -264,7 +268,7 @@
       "gap": 0.7
     },
     {
-      "t": 136,
+      "t": 124,
       "counts": {
         "hostile.swarmling": 15,
         "hostile.raider_humanoid": 3,
@@ -274,18 +278,18 @@
       "gap": 0.7
     },
     {
-      "t": 182,
+      "t": 167,
       "counts": {
-        "hostile.swarmling": 19,
+        "hostile.swarmling": 20,
         "hostile.raider_humanoid": 5
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 228,
+      "t": 209,
       "counts": {
-        "hostile.swarmling": 24,
+        "hostile.swarmling": 25,
         "hostile.raider_humanoid": 6,
         "hostile.boss": 1
       },
@@ -295,15 +299,15 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 2,
+    "start.currency": 1,
     "core.burn": 2.4,
     "housing.base": 5,
-    "meters.baseHealth": 10,
-    "level.budgetSeconds": 380
+    "meters.baseHealth": 11,
+    "level.budgetSeconds": 450
   },
   "goal": {
     "type": "kills",
-    "n": 90
+    "n": 91
   },
   "family": "defend",
   "objectives": [
@@ -311,21 +315,21 @@
       "id": "main",
       "kind": "kills",
       "params": {
-        "n": 90
+        "n": 91
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 283
+        "seconds": 364
       }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 55
+        "pct": 80
       }
     }
   ],
@@ -343,20 +347,19 @@
     }
   },
   "rating": {
-    "difficulty": 0.678,
-    "fun": 0.571,
-    "botMargin": 0.354,
+    "difficulty": 0.537,
+    "fun": 0.408,
+    "botMargin": 0.498,
     "botsPassed": [
       "good",
-      "average",
       "weak",
       "novice",
       "floor"
     ],
     "stars": {
-      "good": 3,
-      "median": 2.67,
-      "goodAll": 1
+      "good": 2.9,
+      "median": 3,
+      "goodAll": 0.9
     }
   }
 }
