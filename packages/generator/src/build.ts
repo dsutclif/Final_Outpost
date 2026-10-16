@@ -47,7 +47,7 @@ export const GEN = genData as unknown as {
   waveStartMax: number;
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   conveyorGoals: string[];
-  search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number };
+  search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number; loopCap: number; loopHireCut: number; loopEaseSteps: number; loopBurnEase: number; loopLengthCut: number; loopStartCurrency: number };
 };
 
 /** A generated time target (seconds) widened by the data factor; `step` rounds to that many seconds (1 = whole seconds). */
@@ -79,6 +79,8 @@ export interface BuildInput {
   modules: string[];
   template: Template;
   knobs: Knobs;
+  /** 0..1: how far the search has eased worker hire prices to break a repeated player loop (REDESIGN-R3 item 7). */
+  hireEase?: number;
   content?: Content;
 }
 
@@ -160,7 +162,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const notes: string[] = [];
   const S = GEN.spacing;
   const core: Pt = tpl.core;
-  const cost = (k: string) => Math.max(1, Math.round((GEN.costs[k] ?? 10) * K.costScale));
+  const hireK = 1 - GEN.search.loopHireCut * (inp.hireEase ?? 0);
+  const cost = (k: string) => Math.max(1, Math.round((GEN.costs[k] ?? 10) * K.costScale * (k.startsWith("hire.") ? hireK : 1)));
   const salv = (k: string) => GEN.costs[k] ?? 6;
   const R = {
     node: c.nodes["node.material_source"]!.range, scrap: c.nodes["node.fuel_scrap"]!.range, food: c.nodes["node.food_source"]!.range,
@@ -527,6 +530,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ents.push({ type: "zone.prey", id: "prey", rect: [...pr], animal: "node.prey", n: 3 });
     if (shopAt) for (const r of Object.keys(c.animals["node.prey"]!.drops)) if (!sells.includes(r) && (c.resources[r]?.price ?? 0) > 0) sells.push(r);
   }
+
 
   // ---------- defend: ring, towers, upgrades, defenders, med bay, waves ----------
   const waves: { t: number; counts: Record<string, number>; side?: string | string[]; gap?: number }[] = [];

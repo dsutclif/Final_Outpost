@@ -74,6 +74,85 @@ export interface BotTrace {
   warningLead: number;
   /** Longest unbroken stretch, in seconds, that any converter output sat at its cap (collapse metric). */
   capHoldMax: number;
+  /**
+   * Longest run of identical player trips in a row (REDESIGN-R3 item 7). A trip is one get phase
+   * (gather / pick up / collect cash) followed by one put phase (deposit, pay a pad, build a barrier);
+   * two trips are identical when they carry the same (source type, resource, target) set.
+   */
+  loopMax: number;
+  /** The repeated trip behind `loopMax` ("src>res>target + ...", "" when the player made no trips). */
+  loopKey: string;
+}
+
+/** Tracks the player's get/put cycles and the longest run of identical ones. */
+const LOOP_MERGE_TICKS = 3 * TPS;
+class LoopTracker {
+  private phase: "get" | "put" = "get";
+  private src: Record<string, string> = {};
+  private cycle = new Set<string>();
+  private lastKey = "";
+  private run = 0;
+  /** Last source a worker took each resource from, and the trips workers have completed. A trip a
+   *  worker already performs is optional for the player, so it is left out of the count: the level
+   *  "gave a worker" for that loop. */
+  private wSrc = new Map<string, string>();
+  private covered = new Set<string>();
+  /** Sim tick of the event being fed, the start of the open cycle (-1 when none) and the end of the previous one. */
+  now = 0;
+  private start = -1;
+  private lastEnd = -1e9;
+  private endAt = 0;
+  max = 0;
+  maxKey = "";
+  get(res: string, from: string): void {
+    if (this.phase === "put") this.close();
+    if (this.start < 0) this.start = this.now;
+    this.src[res] = from;
+  }
+  put(res: string, to: string): void {
+    this.phase = "put";
+    if (this.start < 0) this.start = this.now;
+    this.endAt = this.now;
+    this.cycle.add(`${this.src[res] ?? "start"}>${res}>${to}`);
+  }
+  workerGet(who: number, res: string, from: string): void { this.wSrc.set(`${who}|${res}`, from); }
+  workerPut(who: number, res: string, to: string): void {
+    const from = this.wSrc.get(`${who}|${res}`);
+    if (from !== undefined) this.covered.add(`${from}>${res}>${to}`);
+  }
+  close(): void {
+    this.phase = "get";
+    const trips = [...this.cycle].filter((t) => !this.covered.has(t));
+    const start = this.start;
+    this.cycle.clear();
+    this.start = -1;
+    if (trips.length === 0) return;
+    const key = trips.sort().join(" + ");
+    // Items handed over back to back with no walking in between are one trip, not a repeat.
+    const sameTrip = key === this.lastKey && start - this.lastEnd < LOOP_MERGE_TICKS;
+    this.lastEnd = this.endAt;
+    if (!sameTrip) this.run = key === this.lastKey ? this.run + 1 : 1;
+    this.lastKey = key;
+    if (this.run > this.max) { this.max = this.run; this.maxKey = key; }
+  }
+}
+
+/** Feed one sim event to the loop tracker: only the player's own actions count (workers carry `by`). */
+function noteLoop(loops: LoopTracker, e: SimEvent, st: State): void {
+  loops.now = st.tick;
+  switch (e.t) {
+    case "gathered": {
+      const from = st.nodes[e.node]?.type ?? "node";
+      if (e.by === undefined) loops.get(e.res, from); else loops.workerGet(e.by, e.res, from);
+      break;
+    }
+    case "picked": if (e.by === undefined) loops.get(e.res, "pickup"); else loops.workerGet(e.by, e.res, "pickup"); break;
+    case "collected": loops.get(e.res, "cash"); break;
+    case "deposited": if (e.by === undefined) loops.put(e.res, e.to); else loops.workerPut(e.by, e.res, e.to); break;
+    case "pad_paid": loops.put(e.res, `pad:${e.pad}`); break;
+    case "barrier_progress": loops.put("res.barrier", `barrier:${e.line}`); break;
+    default: break;
+  }
 }
 
 /** End-of-run numbers the generator sizes star objectives from (REDESIGN-R2 �6). */
@@ -187,6 +266,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   let repairs = 0;
   const capRun: number[] = [];
   let capHoldMax = 0;
+  const loops = new LoopTracker();
   const lines = new Set<string>(), nodesUsed = new Set<string>(), convUsed = new Set<string>();
   let capturesHome = 0;
   const builtPads = new Set<string>();
@@ -234,6 +314,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
       if (e.t === "captured") for (const l of st.barriers) if (l.closed) lines.add(l.id);
       if (e.t === "released" || e.t === "crate_delivered") capturesHome++;
       if ((e.t === "gathered" || e.t === "deposited" || e.t === "collected" || e.t === "picked" || e.t === "pad_paid" || e.t === "barrier_progress" || e.t === "barrier_repaired") && !("by" in e && e.by !== undefined)) acted = true;
+      noteLoop(loops, e, st);
       noteModule(used, e, cp.upgrades);
     }
     void currencyBefore;
@@ -281,6 +362,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     }
   }
 
+  loops.close();
   const won = st.won === true;
   const reason = st.over ? st.reason ?? "unknown" : "budget";
   const ticks = st.tick;
@@ -327,6 +409,8 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     threat: threatS,
     warningLead: !won && warnStart >= 0 ? (ticks - warnStart) / TPS : -1,
     capHoldMax: capHoldMax / TPS,
+    loopMax: loops.max,
+    loopKey: loops.maxKey,
   };
   const runStats: RunStats = {
     heatMin: s.heatMin, hpMin, fuelOuts: s.fuelOuts, froze: s.froze, customersAngry: s.customersAngry, injured: s.injured,
