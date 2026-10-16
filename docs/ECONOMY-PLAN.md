@@ -67,7 +67,16 @@ at the end.
 E1–E3 are one engine bump; E4–E7 come with a single pack rebuild. Roughly the size of Phase B.
 I'd split it as before: a Sonnet agent each for E1+E2, E3 and E5, with me on E4, E6 and tuning.
 
-## Questions for Doug
+## Doug's answers (2026-10-16)
+
+1. **Manual first for every first job of a kind:** the first greenhouse opened is worked by hand
+   before its collector can be hired, but later greenhouses are not. No manual pass is needed
+   again before upgrades.
+2. **Automation tax per level:** it resets each level.
+3. **Building machines does not count** toward the tax; only workers, belts and upgrades do.
+4. **Payback windows:** try about 15 s early and 30–45 s later, and tune by feel.
+
+## Questions for Doug (answered above)
 
 1. Manual first for **every** job, including defenders and the cashier, or only for gathering,
    hauling and machine work?
