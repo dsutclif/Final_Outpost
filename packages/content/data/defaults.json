@@ -104,5 +104,6 @@
   "barrier.repairK": 0,
   "defense.playerHitRange": 18,
   "defense.playerHitInterval": 1,
-  "lasso.slackTime": 2.5
+  "lasso.slackTime": 2.5,
+  "stock.collapseSeconds": 0
 }

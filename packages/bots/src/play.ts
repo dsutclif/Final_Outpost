@@ -72,6 +72,8 @@ export interface BotTrace {
   threat: number[];
   /** Seconds of warning before the failure condition triggered (loss only; -1 otherwise). */
   warningLead: number;
+  /** Longest unbroken stretch, in seconds, that any converter output sat at its cap (collapse metric). */
+  capHoldMax: number;
 }
 
 /** End-of-run numbers the generator sizes star objectives from (REDESIGN-R2 �6). */
@@ -183,6 +185,8 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   let integSum = 0, integN = 0;
   let hpMin = 100, overload = false, heatSum = 0, heatN = 0, lastObj = 0;
   let repairs = 0;
+  const capRun: number[] = [];
+  let capHoldMax = 0;
   const lines = new Set<string>(), nodesUsed = new Set<string>(), convUsed = new Set<string>();
   let capturesHome = 0;
   const builtPads = new Set<string>();
@@ -247,6 +251,11 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     if (hp < hpMin) hpMin = hp;
     if (!overload) overload = st.converters.some((cv) => cv.out >= cp.converters[cv.type]!.outCap)
       || (st.sales !== null && Object.values(st.sales.shelf).some((n) => n >= cp.sales.shelfCap));
+    st.converters.forEach((cv, i) => {
+      const run = cv.out >= cp.converters[cv.type]!.outCap ? (capRun[i] ?? 0) + 1 : 0;
+      capRun[i] = run;
+      if (run > capHoldMax) capHoldMax = run;
+    });
     if (progressed) lastProgress = st.tick;
     else if (st.tick - lastProgress >= STALL_SECONDS * TPS) {
       stalls++;
@@ -318,6 +327,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     progress: progressS,
     threat: threatS,
     warningLead: !won && warnStart >= 0 ? (ticks - warnStart) / TPS : -1,
+    capHoldMax: capHoldMax / TPS,
   };
   const runStats: RunStats = {
     heatMin: s.heatMin, hpMin, fuelOuts: s.fuelOuts, froze: s.froze, customersAngry: s.customersAngry, injured: s.injured,

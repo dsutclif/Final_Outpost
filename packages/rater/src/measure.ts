@@ -37,6 +37,8 @@ export interface Measurement {
   metrics: Metrics;
   /** Mean wall repairs per reference-bot run (0 while barrier.repairK is off). */
   repairs: number;
+  /** Longest time, in seconds, any stock sat at cap in any reference-bot run (0 when none did). */
+  capHoldMax: number;
   budgetTicks: number;
   template: string;
   history: readonly HistoryEntry[];
@@ -75,7 +77,8 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const history = opts.history ?? [];
   const metrics = computeMetrics(manifest, content, plan, runs, budgetTicks, history);
   const repairs = mean(runs[REFERENCE]!.map((r) => r.trace.repairs));
-  return { manifest, plan, runs, variants, metrics, repairs, budgetTicks, template, history };
+  const capHoldMax = Math.max(0, ...runs[REFERENCE]!.map((r) => r.trace.capHoldMax));
+  return { manifest, plan, runs, variants, metrics, repairs, capHoldMax, budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,

@@ -23,6 +23,7 @@ import { applyEffects, refreshPads } from "./systems/pads.js";
 import { collectPile, movePlayer, pickDrops, playerAct, playerCombat, type Input } from "./systems/player.js";
 import { stepResidents } from "./systems/residents.js";
 import { salesLayout, stepSales } from "./systems/sales.js";
+import { stepStockCollapse } from "./systems/stock.js";
 import { stepStats } from "./systems/stats.js";
 
 export const ENGINE_VERSION = "0.5.1";
@@ -230,6 +231,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       stepSales(state, cp, out);
       stepConverters(state, cp, out);
       stepConveyors(state, cp, out);
+      stepStockCollapse(state, cp);
       stepHunting(state, cp);
       stepDefense(state, cp, out);
       refreshPads(state, cp);

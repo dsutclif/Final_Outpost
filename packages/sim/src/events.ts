@@ -12,6 +12,7 @@ export type SimEvent =
   | { t: "core_fuel_out" }
   | { t: "core_fuel_restored" }
   | { t: "hint"; key: HintKey }
+  | { t: "pile_collapsed"; conv: string }
   | { t: "level_end"; won: boolean; reason: string }
   // build pads
   | { t: "pad_paid"; pad: string; res: string; n: number }

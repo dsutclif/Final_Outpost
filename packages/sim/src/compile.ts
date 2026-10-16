@@ -229,6 +229,8 @@ export interface Compiled {
   zones: { blockMargin: number };
   barrier: { thickness: number; buildRange: number; buildTicks: number; hp: number; gateHp: number; costPerSection: number; repairPm: number };
   drops: { pickupRange: number; scatterX: number; scatterY: number };
+  /** Overstock collapse: ticks a capped stock may sit at cap before it topples; 0 = rule off. */
+  stock: { collapseTicks: number };
   convParams: { playerOperateRange: number; operatorRange: number; pickupRange: number; hintRange: number };
   defense: {
     spawnGapTicks: number; spawnY: number; spawnMarginX: number; barrierStop: number; barrierHitTicks: number; barrierDamage: number;
@@ -506,6 +508,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       repairPm: Math.max(0, Math.round(param("barrier.repairK") * 1000)),
     },
     drops: { pickupRange: fp(param("drops.pickupRange")), scatterX: fp(param("drops.scatterX")), scatterY: fp(param("drops.scatterY")) },
+    stock: { collapseTicks: Math.max(0, Math.round(param("stock.collapseSeconds") * TPS)) },
     convParams: {
       playerOperateRange: fp(param("converters.playerOperateRange")), operatorRange: fp(param("converters.operatorRange")),
       pickupRange: fp(param("converters.pickupRange")), hintRange: fp(param("converters.hintRange")),

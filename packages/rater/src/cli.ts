@@ -70,7 +70,7 @@ if (asJson) {
   for (const r of ratings) console.log([r.id, ...METRIC_NAMES.map((k) => r.metrics[k].toFixed(3))].join("\t"));
   for (const r of ratings) {
     const ev = r.evidence;
-    const notes = [...ev.idleModules.map((m) => `idle module ${m}`), ...ev.unreadable, ...ev.stallRuns.map((s) => `stall ${s}`), ...(ev.duplicateOf ? [`duplicate of ${ev.duplicateOf}`] : [])];
+    const notes = [...ev.idleModules.map((m) => `idle module ${m}`), ...ev.unreadable, ...ev.stallRuns.map((s) => `stall ${s}`), ...ev.collapseRuns.map((s) => `pile collapse ${s}`), ...(ev.duplicateOf ? [`duplicate of ${ev.duplicateOf}`] : [])];
     if (notes.length > 0) console.log(`${r.id}: ${notes.join("; ")}`);
   }
 }
