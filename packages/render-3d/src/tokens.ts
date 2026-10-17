@@ -1,4 +1,4 @@
-import { mix, type Skin } from "@fo/skins";
+import { luminance, mix, type Skin } from "@fo/skins";
 
 // Every colour the 3D renderer uses, derived from the active skin's palette tokens. Nothing
 // here names a skin or holds a literal colour: a new skin re-themes the whole scene, and the
@@ -51,6 +51,11 @@ export interface Tokens {
   frost: string;
   res: Record<string, string>;
   role: Record<string, string>;
+  /**
+   * Colours for chips and labels drawn in the world: `panel` is always the light one and `ink`
+   * the dark one, whichever way round the skin's UI theme has them (a dark HUD flips them).
+   */
+  paper: { panel: string; ink: string; muted: string };
 }
 
 /** Scale a hex colour's HSL saturation by k (clamped). */
@@ -119,6 +124,9 @@ export function deriveTokens(skin: Skin): Tokens {
     frost: mix(p.glass, p.interactive, 0.5),
     res: Object.fromEntries(Object.entries(p.res).map(([id, c]) => [id, sat(c)])),
     role: { ...p.role },
+    paper: luminance(p.ui.panel) >= luminance(p.ui.ink)
+      ? { panel: p.ui.panel, ink: p.ui.ink, muted: p.ui.muted }
+      : { panel: p.ui.ink, ink: p.ui.panel, muted: p.ui.muted },
   };
 }
 

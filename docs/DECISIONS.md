@@ -135,5 +135,12 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     paths, and a gunmetal HUD in Barlow Condensed. `look3d.groundLift` pales the ground on
     screen only. Models keep their current shapes; reshaping them (or replacing them with
     generated GLB models) is the next phase. No rules change, so no engine bump.
+9m. **Vibe camera (2026-10-17).** Doug picked the isometric camera from the camera mock: 30°
+    pitch, 45° yaw, 8° FOV (near-orthographic), 266 units across (`units.ts`). Screen
+    directions turn to world directions for the joystick and keys (`screenToWorld`), the
+    level-start overview fits the base as the turned camera sees it, the look point is held on
+    the map (the diamond view always shows ground past the edges), and fog is measured from the
+    camera. World chips and labels take their light/dark colours from `tokens.paper`, so the
+    dark HUD theme no longer turns them dark-on-dark. Render-only: no engine bump.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

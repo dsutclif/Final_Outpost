@@ -11,7 +11,7 @@ words; it governs both renderers and every skin.
 
 | Element | What the ads do | Our rule |
 |---|---|---|
-| Camera | Tilted top-down, about 50° from horizontal, slight perspective, portrait frame, follows the hero with lag | 3D: fixed 50° pitch, FOV ~40°, eased follow. 2D: straight top-down, eased follow |
+| Camera | The concept "vibe" image: 2:1 isometric, about 30° from horizontal, turned 45° so buildings show two walls, nearly flat (no perspective lean), portrait frame, follows the hero with lag | 3D: 30° pitch, 45° yaw, FOV 8° (near-orthographic), 266 units across; joystick and keys turn with the camera (`screenToWorld`). 2D: straight top-down, eased follow |
 | Geometry | Chunky, readable silhouettes; no thin parts | ≤ 8k tris per character, ≤ 5k per hero building. Concept look: chamfered blocky modules, ribbed tubes, framed domes, pipes and vents |
 | Shading | Soft PBR, one low key light, long shadows, filmic tone mapping | ACES filmic, exposure 1.35; low sun from the left; low ambient. Procedural wear in the shader (`materials.ts addWear`): concrete grain, blotches, streaks on vertical faces, contact darkening; poured-panel seams on hero structures. Blob shadows under every unit |
 | Colour | Low saturation: concrete greys, pale dust, steel; colour only where it means something | Palette tokens per skin: ground, structure, accent, interactive, danger, one per resource. Interactive-on-ground luminance contrast ≥ 3:1 on the palette; `look3d.saturation` and `look3d.groundLift` mute and pale the scene on screen without touching the checked palette |

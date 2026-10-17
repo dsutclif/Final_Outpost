@@ -9,6 +9,7 @@ import l4 from "../../../levels/golden/proto-L004.json";
 import { createCamera } from "../src/contract.js";
 import { buildAssetLab, type AssetLab } from "../src/lab.js";
 import { Renderer3D } from "../src/renderer.js";
+import { screenToWorld } from "../src/units.js";
 import type { QualityTier } from "../src/units.js";
 
 // Standalone harness: plays a golden level on the real sim with keyboard input through the
@@ -43,8 +44,8 @@ addEventListener("keyup", (e) => { const k = KEYMAP[e.key.toLowerCase()]; if (k)
 const input = (): Input => {
   const x = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), y = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
   if (!x && !y) return { dx: 0, dy: 0 };
-  const m = Math.hypot(x, y);
-  return { dx: Math.trunc((x / m) * FP), dy: Math.trunc((y / m) * FP) };
+  const m = Math.hypot(x, y), w = screenToWorld(x / m, y / m);
+  return { dx: Math.trunc(w.x * FP), dy: Math.trunc(w.y * FP) };
 };
 
 let sim: Sim;
@@ -67,6 +68,7 @@ function start(): void {
   renderer = new Renderer3D({ quality: qSel.value as QualityTier });
   renderer.hudAnchor = () => ({ x: 40, y: 24 });
   renderer.init(sim.compiled.manifest, getSkin(skinSel.value), stage);
+  if (params.get("pitch")) renderer.camOverride = { pitch: Number(params.get("pitch")), yaw: Number(params.get("yaw") ?? 0), fov: Number(params.get("fov") ?? 40), viewW: Number(params.get("vw") ?? 220) };
   cam = createCamera();
   acc = 0;
   (window as unknown as { __fo: unknown }).__fo = { sim, renderer, cam, advance, keys };

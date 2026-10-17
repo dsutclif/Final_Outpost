@@ -10,10 +10,16 @@ export const ART_M = 28;
 /** Resource item size, art metres to world units (R3 item 6: big chunky items, about half the hero tall in a stack of two). */
 export const ITEM_K = 1.35;
 
-/** Camera pitch below the horizon, degrees (ART-DIRECTION.md: about 50). */
-export const PITCH_DEG = 50;
-/** Vertical field of view, degrees: slight perspective. */
-export const FOV_DEG = 40;
+/**
+ * Camera, matched to the concept "vibe" image (ART-DIRECTION.md): a 2:1 isometric view,
+ * 30 degrees below the horizon and turned 45 degrees so every building shows two walls,
+ * with a narrow field of view so it reads nearly flat (no perspective lean at the edges).
+ */
+export const PITCH_DEG = 30;
+/** Camera turn about the vertical axis, degrees: the camera sits toward +x +z of its target. */
+export const YAW_DEG = 45;
+/** Vertical field of view, degrees: narrow, so the view is close to orthographic. */
+export const FOV_DEG = 8;
 /**
  * Ground width visible at the look point, world units. R3 moved in close (the reference ads
  * frame the hero at about a tenth of screen height); the 2D stage shows 440 of the
@@ -21,9 +27,23 @@ export const FOV_DEG = 40;
  * top edge) and narrower below, so 3D frames 220 at the centre and leans the camera toward
  * the nearest target (Camera.lead) to bring edge pads on screen.
  */
-export const VIEW_W = 220;
+export const VIEW_W = 266;
 /** Floating labels keep their pre-R3 screen size: world heights shrink with the closer view. */
-export const LABEL_K = VIEW_W / 360;
+export const LABEL_K = 220 / 360;
+
+const YAW = (YAW_DEG * Math.PI) / 180, SIN_P = Math.sin((PITCH_DEG * Math.PI) / 180);
+
+/** A screen direction (x right, y down) to the world ground direction it points along. */
+export function screenToWorld(x: number, y: number): { x: number; y: number } {
+  const c = Math.cos(YAW), s = Math.sin(YAW);
+  return { x: x * c + y * s, y: -x * s + y * c };
+}
+
+/** A world ground point to screen-plane units (x right, y down; depth foreshortened by the pitch). */
+export function worldToScreenPlane(x: number, y: number): { x: number; y: number } {
+  const c = Math.cos(YAW), s = Math.sin(YAW);
+  return { x: x * c - y * s, y: (x * s + y * c) * SIN_P };
+}
 /** Follow easing rate, 1/s (same as the 2D renderer). */
 export const FOLLOW_RATE = 6;
 

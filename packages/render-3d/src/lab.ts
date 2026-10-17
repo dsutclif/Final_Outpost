@@ -90,7 +90,7 @@ export function buildAssetLab(skin: Skin, make: CanvasMaker | null, aspect: numb
     const label = new Sprite();
     const over = tris > TRI_BUDGET[m.cls];
     const txt = `${nameOf(skin, id)} · ${m.cls} · ${tris}△`;
-    if (labels.apply(label, `lab|${txt}|${over}`, () => labels.text(txt, over ? t.danger : skin.palette.ui.panel, 30), 7)) {
+    if (labels.apply(label, `lab|${txt}|${over}`, () => labels.text(txt, over ? t.danger : t.paper.panel, 30), 7)) {
       label.position.set(x, 3, z + cell * 0.42);
       scene.add(label);
     }

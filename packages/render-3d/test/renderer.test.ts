@@ -166,7 +166,7 @@ describe("Renderer3D (fake WebGL)", () => {
     r.dispose();
   });
 
-  it("clamps the camera to the map like the 2D renderer", () => {
+  it("keeps the camera look point on the map", () => {
     const { r, cam } = run(pin(level1), 200, () => ({ dx: -FP, dy: -FP }));
     expect(cam.x).toBeGreaterThanOrEqual(0);
     expect(cam.y).toBeGreaterThanOrEqual(0);

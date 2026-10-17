@@ -51,7 +51,7 @@ import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
-import { ART_M, FOLLOW_RATE, FOV_DEG, ITEM_K, PITCH_DEG, TIERS, VIEW_MARGIN, VIEW_W, type QualityTier } from "./units.js";
+import { ART_M, FOLLOW_RATE, FOV_DEG, ITEM_K, PITCH_DEG, TIERS, VIEW_W, YAW_DEG, type QualityTier } from "./units.js";
 
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
 const SHELF_K = 1.05 / ITEM_K;
@@ -89,7 +89,7 @@ const BACK_PER_ROW = 3;
 /** A placed model and its per-entity animation state. */
 interface Placed { key: string; model: Model; born: number; seen: boolean; data: Record<string, unknown>; sprites: Sprite[]; extra: Object3D[] }
 
-const PITCH = (PITCH_DEG * Math.PI) / 180;
+const PITCH = (PITCH_DEG * Math.PI) / 180, YAW = (YAW_DEG * Math.PI) / 180;
 const SAFE_RING_K = 1;
 const v3 = (x = 0, y = 0, z = 0): Vector3 => new Vector3(x, y, z);
 const tmpM = new Matrix4(), tmpV = new Vector3(), tmpV2 = new Vector3();
@@ -568,7 +568,7 @@ export class Renderer3D implements Renderer {
     for (const b of Object.values(this.walls!)) b.end();
 
     const coreW = this.wv(state.core.pos);
-    this.env.update(dt, this.t, this.look, coreW, this.safeR * SAFE_RING_K, this.fuelK, state.hazard?.phase ?? "none");
+    this.env.update(dt, this.t, this.look, coreW, this.safeR * SAFE_RING_K, this.fuelK, state.hazard?.phase ?? "none", this.camera.position.distanceTo(this.look));
     this.updateDom(state);
     this.synced = true;
     this.gl.render(this.scene, this.camera);
@@ -579,29 +579,39 @@ export class Renderer3D implements Renderer {
     return v3(p.x / FP, y, p.y / FP);
   }
 
+  /** Dev-only camera override for framing experiments (degrees, world units); null in the game. */
+  camOverride: { pitch: number; yaw: number; fov: number; viewW: number } | null = null;
+
   private followCamera(cam: Camera, target: V, dt: number): void {
+    const o = this.camOverride;
+    const viewW = o?.viewW ?? VIEW_W, pitch = o ? (o.pitch * Math.PI) / 180 : PITCH, yaw = o ? (o.yaw * Math.PI) / 180 : YAW;
+    const fov = o?.fov ?? FOV_DEG;
+    if (this.camera.fov !== fov) this.camera.fov = fov;
     const W = this.manifest.map.w, H = this.manifest.map.h;
     const z = cam.zoom || 1;
-    // the same clamp as the 2D renderer, on the 2D-equivalent view rect
-    const vw = VIEW_W / z, vh = (VIEW_W * this.cssH) / this.cssW / z;
+    const vw = viewW / z, vh = (viewW * this.cssH) / this.cssW / z;
     if (cam.follow) {
       const lead = cam.lead;
       const lx = lead ? (lead.x - target.x) * LEAD_WEIGHT : 0, ly = lead ? (lead.y - target.y) * LEAD_WEIGHT : 0;
-      const tx = target.x + lx, ty = target.y + ly - vh * 0.05;
+      // the hero sits a little below centre: shift the look point up the screen (screen up on the ground is away from the camera)
+      const up = (vh * 0.05) / Math.sin(pitch);
+      const tx = target.x + lx - Math.sin(yaw) * up, ty = target.y + ly - Math.cos(yaw) * up;
       if (!this.camReady) { cam.x = tx; cam.y = ty; this.camReady = true; }
       const e = 1 - Math.exp(-dt * FOLLOW_RATE);
       cam.x += (tx - cam.x) * e;
       cam.y += (ty - cam.y) * e;
     }
-    cam.x = vw >= W + VIEW_MARGIN * 2 ? W / 2 : Math.max(vw / 2 - VIEW_MARGIN, Math.min(W - vw / 2 + VIEW_MARGIN, cam.x));
-    cam.y = vh >= H + VIEW_MARGIN * 2 ? H / 2 : Math.max(vh / 2 - VIEW_MARGIN, Math.min(H - vh / 2 + VIEW_MARGIN, cam.y));
+    // the turned view never lines up with the map's edges, so keep the look point on the map
+    // and let the ground beyond the edges show
+    cam.x = Math.max(0, Math.min(W, cam.x));
+    cam.y = Math.max(0, Math.min(H, cam.y));
 
     const shake = this.fx?.shake ?? 0;
     this.look.set(cam.x + (shake ? (Math.random() - 0.5) * shake : 0), 0, cam.y + (shake ? (Math.random() - 0.5) * shake : 0));
     const vfov = (this.camera.fov * Math.PI) / 180;
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * this.camera.aspect);
     const d = vw / 2 / Math.tan(hfov / 2);
-    this.camera.position.set(this.look.x, Math.sin(PITCH) * d, this.look.z + Math.cos(PITCH) * d);
+    this.camera.position.set(this.look.x + Math.sin(yaw) * Math.cos(pitch) * d, Math.sin(pitch) * d, this.look.z + Math.cos(yaw) * Math.cos(pitch) * d);
     this.camera.near = Math.max(10, d * 0.2);
     this.camera.far = d * 6;
     this.camera.updateProjectionMatrix();
@@ -759,7 +769,7 @@ export class Renderer3D implements Renderer {
 
   /** Count chip: resource icon and number; green when a shelf is full (good), red "n!" when a stock is over (blocked). */
   private shelfChipArt(res: string, n: number, full: boolean, over = false): LabelArt {
-    const t = this.tokens, ui = this.skin.palette.ui;
+    const t = this.tokens, ui = this.tokens.paper;
     const num = over ? `${n}!` : `${n}`;
     const w = this.labels.textWidth(num, 40) + 78;
     const bg = over ? t.danger : full ? t.ok : t.ink, fg = full && !over ? t.ink : ui.panel;
@@ -838,7 +848,7 @@ export class Renderer3D implements Renderer {
       const sp = this.sprite(p, 0);
       if (!n.enabled) {
         const txt = uiText(this.skin, "locked");
-        sp.visible = this.labels.apply(sp, `lock|${txt}`, () => this.labels.text(txt, this.skin.palette.ui.panel, 34), 9);
+        sp.visible = this.labels.apply(sp, `lock|${txt}`, () => this.labels.text(txt, this.tokens.paper.panel, 34), 9);
         sp.position.set(p.model.root.position.x, ART_M * 2.2, p.model.root.position.z); // above the unlock pad's label
       } else sp.visible = false;
     });
@@ -964,7 +974,7 @@ export class Renderer3D implements Renderer {
   }
 
   private collapseArt(txt: string): LabelArt {
-    const t = this.tokens, ui = this.skin.palette.ui;
+    const t = this.tokens, ui = this.tokens.paper;
     return {
       w: 280, h: 72,
       draw: (g) => {
@@ -1606,7 +1616,7 @@ export class Renderer3D implements Renderer {
   }
 
   private guideArt(text: string): LabelArt {
-    const t = this.tokens, ui = this.skin.palette.ui;
+    const t = this.tokens, ui = this.tokens.paper;
     const np = 34;
     const w = this.labels.textWidth(text, np) + 56;
     return {
@@ -1702,7 +1712,7 @@ export class Renderer3D implements Renderer {
   // ---------------------------------------------------------------- label art
 
   private orderArt(res: string, want: number, k: number, serve: number | null = null): LabelArt {
-    const t = this.tokens, ui = this.skin.palette.ui;
+    const t = this.tokens, ui = this.tokens.paper;
     return {
       w: 150, h: 120,
       draw: (g) => {
@@ -1762,7 +1772,7 @@ export class Renderer3D implements Renderer {
    * PAD_PER_ROW per row and a second row beyond that. A paid-up resource shows a dimmed 0.
    */
   private padLabelArt(label: string, owed: readonly { res: string; left: number }[], locked: boolean, lockTxt: string): LabelArt {
-    const t = this.tokens, ui = this.skin.palette.ui;
+    const t = this.tokens, ui = this.tokens.paper;
     const big = 44, small = 38, gap = 10;
     // A locked pad keeps its own name as the title; the reason sits under it, smaller.
     const top = label, lockPx = 28, extra = lockTxt ? PAD_LOCK_H : 0;
@@ -1807,7 +1817,7 @@ export class Renderer3D implements Renderer {
   }
 
   private costArt(res: string, left: number): LabelArt {
-    const t = this.tokens, ui = this.skin.palette.ui;
+    const t = this.tokens, ui = this.tokens.paper;
     const num = `${left}`;
     const w = this.labels.textWidth(num, 40) + 86;
     return {
@@ -1823,7 +1833,7 @@ export class Renderer3D implements Renderer {
   }
 
   private warnArt(txt: string, color: string): LabelArt {
-    const t = this.tokens, ui = this.skin.palette.ui;
+    const t = this.tokens, ui = this.tokens.paper;
     return {
       w: 72, h: 72,
       draw: (g) => {
@@ -2035,7 +2045,7 @@ export class Renderer3D implements Renderer {
     const gold = resToken(t, "res.currency");
     const at = this.posOf(e);
     const ft = (key: string, vars?: Record<string, string | number>): string => floaterText(skin, key, vars);
-    const white = skin.palette.ui.panel;
+    const white = this.tokens.paper.panel;
     const up = (p: Vector3, h: number): Vector3 => p.clone().setY(p.y + h);
     switch (e.t) {
       case "gathered":
@@ -2343,7 +2353,7 @@ export class Renderer3D implements Renderer {
   }
 
   private discoveryArt(name: string, purpose: string): LabelArt {
-    const t = this.tokens, ui = this.skin.palette.ui;
+    const t = this.tokens, ui = this.tokens.paper;
     const np = 40, pp = 28;
     const wN = this.labels.textWidth(name, np) + 40;
     const wP = purpose ? this.labels.textWidth(purpose, pp) + 44 : 0;

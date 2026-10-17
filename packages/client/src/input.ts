@@ -1,7 +1,9 @@
 import { FP, type Input } from "@fo/sim";
+import { screenToWorld } from "@fo/render-3d";
 
 // Floating virtual joystick (drag anywhere on the stage) and arrow/WASD keys, both turned
-// into one fixed-point direction per tick. The maths is pure so it is unit tested.
+// into one fixed-point direction per tick. The maths is pure so it is unit tested. Both
+// read in screen directions and turn them to the world with the camera (screenToWorld).
 
 export const JOY_DEAD = 6;
 export const JOY_SAT = 50;
@@ -40,6 +42,13 @@ export function keysVector(k: KeyState): Input {
   if (x === 0 && y === 0) return { dx: 0, dy: 0 };
   const m = Math.hypot(x, y);
   return { dx: Math.trunc((x / m) * FP) || 0, dy: Math.trunc((y / m) * FP) || 0 };
+}
+
+/** A screen-direction input to the world direction under the turned camera (trunc keeps it within FP). */
+export function toWorld(v: Input): Input {
+  if (!v.dx && !v.dy) return v;
+  const w = screenToWorld(v.dx, v.dy);
+  return { dx: Math.trunc(w.x) || 0, dy: Math.trunc(w.y) || 0 };
 }
 
 const KEYMAP: Record<string, keyof KeyState> = {
@@ -123,8 +132,7 @@ export class InputController {
 
   read(): Input {
     if (!this.enabled) return { dx: 0, dy: 0 };
-    if (this.pointer !== null) return joystickVector(this.x - this.ox, this.y - this.oy);
-    return keysVector(this.keys);
+    return toWorld(this.pointer !== null ? joystickVector(this.x - this.ox, this.y - this.oy) : keysVector(this.keys));
   }
 
   release(): void {

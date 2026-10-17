@@ -1,6 +1,6 @@
 import { CONTENT_VERSION, type Manifest } from "@fo/content";
 import { ENGINE_VERSION, FP, IMPLEMENTED_MODULES, METER_MAX, createSim, starsOf, type Sim, type SimEvent } from "@fo/sim";
-import { VIEW_W, createCamera, type Camera } from "@fo/render-3d";
+import { VIEW_W, createCamera, worldToScreenPlane, type Camera } from "@fo/render-3d";
 import { getSkin, levelTitle, nameOf, purposeOf, uiText, type Skin } from "@fo/skins";
 import { Coach, toWorld } from "./coach.js";
 import { isNew, nearbyPassive, touchedBy } from "./discovery.js";
@@ -844,10 +844,15 @@ export class App {
     if (this.settings.debug) this.updateDebug(s);
   };
 
-  /** Frame the whole base: the bounding box of everything placed, fit to the stage. */
+  /** Frame the whole base: the bounding box of everything placed, as the turned camera sees it, fit to the stage. */
   private startOverview(s: Session): void {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    const add = (p: readonly number[]) => { x0 = Math.min(x0, p[0]!); y0 = Math.min(y0, p[1]!); x1 = Math.max(x1, p[0]!); y1 = Math.max(y1, p[1]!); };
+    let sx0 = Infinity, sy0 = Infinity, sx1 = -Infinity, sy1 = -Infinity;
+    const add = (p: readonly number[]) => {
+      x0 = Math.min(x0, p[0]!); y0 = Math.min(y0, p[1]!); x1 = Math.max(x1, p[0]!); y1 = Math.max(y1, p[1]!);
+      const q = worldToScreenPlane(p[0]!, p[1]!);
+      sx0 = Math.min(sx0, q.x); sy0 = Math.min(sy0, q.y); sx1 = Math.max(sx1, q.x); sy1 = Math.max(sy1, q.y);
+    };
     add(s.manifest.start);
     for (const e of s.manifest.entities as unknown as { at?: number[]; points?: number[][]; rect?: number[] }[]) {
       if (e.at) add(e.at);
@@ -855,7 +860,7 @@ export class App {
       if (e.rect) { add(e.rect); add([e.rect[0]! + e.rect[2]!, e.rect[1]! + e.rect[3]!]); }
     }
     const pad = 50, r = this.el.stage.getBoundingClientRect();
-    const bw = x1 - x0 + 2 * pad, bh = y1 - y0 + 2 * pad;
+    const bw = sx1 - sx0 + 2 * pad, bh = sy1 - sy0 + 2 * pad;
     const aspect = r.width > 0 ? r.height / r.width : 2;
     const zoom = Math.min(1, VIEW_W / bw, (VIEW_W * aspect) / bh);
     if (zoom >= 0.95) return;

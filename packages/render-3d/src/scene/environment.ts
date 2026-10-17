@@ -221,8 +221,9 @@ export class Environment {
     this.sun.castShadow = tier.shadows;
     if (tier.shadows) {
       this.sun.shadow.mapSize.set(tier.shadowSize, tier.shadowSize);
-      this.sun.shadow.camera.left = -420; this.sun.shadow.camera.right = 420;
-      this.sun.shadow.camera.top = 520; this.sun.shadow.camera.bottom = -520;
+      // the low camera sees far up the screen: cover a tall diamond of ground around the look point
+      this.sun.shadow.camera.left = -520; this.sun.shadow.camera.right = 520;
+      this.sun.shadow.camera.top = 640; this.sun.shadow.camera.bottom = -640;
       this.sun.shadow.camera.near = 10; this.sun.shadow.camera.far = 2000;
       this.sun.shadow.bias = -0.0015;
       this.sun.shadow.normalBias = 1.5;
@@ -238,7 +239,7 @@ export class Environment {
    * Per frame: follow the camera target with the sun and its shadow frustum, size the core
    * pool and light to the safe radius and fuel, and blend toward the storm.
    */
-  update(dt: number, t: number, look: Vector3, core: Vector3, safeR: number, fuelK: number, hazard: string): void {
+  update(dt: number, t: number, look: Vector3, core: Vector3, safeR: number, fuelK: number, hazard: string, camDist = 630): void {
     this.sun.position.set(look.x + SUN_OFS[0], SUN_OFS[1], look.z + SUN_OFS[2]);
     this.sun.target.position.copy(look);
     this.sun.target.updateMatrixWorld();
@@ -261,8 +262,9 @@ export class Environment {
     this.tmp.copy(this.cFog).lerp(this.cStorm, s);
     this.fog.color.copy(this.tmp);
     (this.scene.background as Color).copy(this.tmp);
-    this.fog.near = 1200 - s * 700;
-    this.fog.far = 3200 - s * 1700;
+    // fog is measured from the camera, which sits far back for the near-flat view
+    this.fog.near = camDist + 570 - s * 700;
+    this.fog.far = camDist + 2570 - s * 1700;
     const dim = 1 - s * 0.4;
     this.sun.intensity = SUN * dim;
     this.hemi.color.copy(this.cSky).lerp(this.cStorm, s);
