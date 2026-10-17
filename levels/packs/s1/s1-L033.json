@@ -1,8 +1,8 @@
 {
   "id": "s1-L033",
   "seed": 1817121508,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        367,
-        401
+        393,
+        403
       ],
       "sells": [
         "res.food_raw_1"
@@ -159,10 +159,10 @@
       "id": "terrain0",
       "kind": "ridge",
       "rect": [
-        137,
-        745,
-        17,
-        102
+        183,
+        254,
+        114,
+        16
       ]
     },
     {
@@ -250,8 +250,8 @@
     }
   },
   "rating": {
-    "difficulty": 0.033,
-    "fun": 0.711,
+    "difficulty": 0.036,
+    "fun": 0.834,
     "botMargin": 0.525,
     "botsPassed": [
       "good",

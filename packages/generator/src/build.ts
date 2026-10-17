@@ -39,7 +39,7 @@ export const GEN = genData as unknown as {
   timeTargetK: number;
   costs: Record<string, number>;
   rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number; towerPadSearch: number; towerPadHug: number };
-  spacing: { margin: number; standR: number; screen: [number, number]; footprintGap: number };
+  spacing: { margin: number; standR: number; screen: [number, number]; screenRadius: number; footprintGap: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
   footprints: Record<string, [number, number, number, number]>;
   /** Hire pad offsets from a converter's centre for its input worker, operator and output worker. */
@@ -47,7 +47,11 @@ export const GEN = genData as unknown as {
   /** Depot hire pad offsets from its centre: input worker left, output worker (hauler) right. */
   depotCrewStations: Record<"in" | "out", [number, number]>;
   /** Cashier hire pad offset from the clerk spot (south of it, clear of the queue lane). */
-  cashierPad: [number, number];
+  /** Cashier pad offsets from the clerk spot, in preference order (y sign follows the clerk's side). */
+  cashierPads: [number, number][];
+  /** With a belt: the parts works stands this far from the smelter, at one of beltPairs' directions. */
+  beltGap: number;
+  beltPairs: [number, number][];
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
@@ -115,7 +119,7 @@ const FILL_GOALS = new Set(["fuel_full"]);
 
 // One compiled stub supplies the content's sales offsets to salesLayout (they do not depend on the level).
 let stubCp: Compiled | null = null;
-function salesSpots(stall: Pt, core: Pt, c: Content): { register: Pt; pile: Pt; queue: Pt[] } {
+function salesSpots(stall: Pt, core: Pt, c: Content, side = 0): { register: Pt; pile: Pt; queue: Pt[] } {
   if (!stubCp) {
     stubCp = createSim({
       id: "stub", seed: 1, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION, map: { w: 480, h: 900, zones: [] },
@@ -125,7 +129,7 @@ function salesSpots(stall: Pt, core: Pt, c: Content): { register: Pt; pile: Pt; 
     }, { content: c }).compiled;
   }
   const F = 1000;
-  const L = salesLayout(stubCp, { x: stall[0] * F, y: stall[1] * F }, { x: core[0] * F, y: core[1] * F });
+  const L = salesLayout(stubCp, { x: stall[0] * F, y: stall[1] * F }, { x: core[0] * F, y: core[1] * F }, side);
   const q: Pt[] = [];
   const qmax = (c.sinks["sink.sales_point"] as { queueMax: number }).queueMax;
   for (let k = 0; k < qmax; k++) q.push([(L.queueAt.x + k * L.queueStep.x) / F, (L.queueAt.y + k * L.queueStep.y) / F]);
@@ -198,7 +202,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ring = ringPoints(core, dims);
   }
   const inner: Rect = ring ? [ring.rect[0] + 12, ring.rect[1] + 12, ring.rect[2] - 24, ring.rect[3] - 24] : [16, 40, 448, 836];
-  const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, S.screen, c, GEN.footprints, S.footprintGap);
+  const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, [S.screen[0], S.screen[1], S.screenRadius], c, GEN.footprints, S.footprintGap);
   if (ring) ring.points.forEach((p, i) => P.walls.push([p, ring!.points[(i + 1) % ring!.points.length]!]));
 
   P.add("core", core, R.core, { key: true, fp: "sink.core" });
@@ -215,38 +219,54 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const hasCashierSlot = has("workers") && goal !== "shelves_full";
   // The cashier's slot is straight out from the stall past the clerk spot (the clerk stands between the stall and the pad):
   // south of the clerk when the clerk is south of the stall (cashierPad data is the distance, the sign follows the clerk's side).
-  const cashierAt = (stall: Pt, reg: Pt): Pt => [reg[0] + GEN.cashierPad[0], reg[1] + (reg[1] >= stall[1] ? 1 : -1) * GEN.cashierPad[1]];
+  const cashierAt = (stall: Pt, reg: Pt, k = 0): Pt => {
+    const o = GEN.cashierPads[k]!;
+    return [reg[0] + o[0], reg[1] + (reg[1] >= stall[1] ? 1 : -1) * o[1]];
+  };
+  let cashierSlot = 0, clerkSide = 0;
   let shopAt: Pt | null = null;
   let register: Pt | null = null;
   let queue: Pt[] = [];
   let food1: Pt | null = null;
   if (needsCurrency) {
-    const cands: { p: Pt; sp: ReturnType<typeof salesSpots>; d: number }[] = [];
+    const cands: { p: Pt; sp: ReturnType<typeof salesSpots>; d: number; slot: number; side: number }[] = [];
     const why = { ok: 0, screen: 0, clear: 0, reg: 0, pile: 0 };
     for (let i = 0; i < 500; i++) {
       const base: Pt = ring ? [Math.min(inner[0] + inner[2] - 30, Math.max(inner[0] + 30, tpl.shop[0])), Math.min(inner[1] + inner[3] - 30, Math.max(inner[1] + 30, tpl.shop[1]))] : tpl.shop;
       const spread = i < 160 ? 160 : 400;
       const p: Pt = [Math.round(base[0] + (rand.float() - 0.5) * spread), Math.round(base[1] + (rand.float() - 0.5) * spread)];
       if (!P.onScreen(p) || !P.ok("shop", p, R.shop)) { why.ok++; continue; }
-      const sp = salesSpots(p, core, c);
-      const onScreen = (q: Pt) => P.onScreen(q) && q[0] >= 14 && q[0] <= 466 && q[1] >= 14 && q[1] <= 886;
-      if (![sp.register, sp.pile, ...sp.queue].every(onScreen)) { why.screen++; continue; }
-      const clear = (q: Pt, r: number) => P.stations.every((s) => dist(q, [s.x, s.y]) >= s.r + r) && P.spots.every((s) => s.id === "start" || dist(q, [s.x, s.y]) >= s.r + r)
-        && P.walls.every((w) => segDist(q, w[0], w[1]) >= r + 2);
-      if (!clear(sp.register, S.standR)) { why.reg++; continue; }
-      if (!clear(sp.pile, S.standR)) { why.pile++; continue; }
-      if (!sp.queue.every((q) => clear(q, 10))) { why.clear++; if (process.env["FO_DEBUG"]) console.log(JSON.stringify({ p, q: sp.queue, st: P.stations.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id), sp: P.spots.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id) })); continue; }
-      // The cashier's slot (south of the clerk spot) belongs to the kiosk's placement: it must be free for a pad
-      // and stay out of the queue lane and the clerk/pile spots; reserved below even if the pad is never hired.
-      if (hasCashierSlot) {
-        const cs = cashierAt(p, sp.register);
-        const sb = P.box(p, "sink.sales_point"), cb = P.box(cs, "pad");
-        if (sb && cb && cb[0] < sb[2] + S.footprintGap && sb[0] < cb[2] + S.footprintGap && cb[1] < sb[3] + S.footprintGap && sb[1] < cb[3] + S.footprintGap) { why.clear++; continue; }
-        if (!P.ok("hire_cashier", cs, R.pad, { key: true, fp: "pad" }) || !onScreen(cs)
-          || dist(cs, sp.register) < R.pad + S.standR || dist(cs, sp.pile) < R.pad + S.standR
-          || sp.queue.some((q) => dist(cs, q) < R.pad + 12 + 10)) { why.clear++; continue; }
+      // the clerk spot goes south of the stall if it fits, else east, else west (all in view of the camera)
+      for (const side of [0, 1, 2]) {
+        const sp = salesSpots(p, core, c, side);
+        const ok = ((): { slot: number } | null => {
+          const onScreen = (q: Pt) => P.onScreen(q) && q[0] >= 14 && q[0] <= 466 && q[1] >= 14 && q[1] <= 886;
+          if (![sp.register, sp.pile, ...sp.queue].every(onScreen)) { why.screen++; return null; }
+          const clear = (q: Pt, r: number) => P.stations.every((s) => dist(q, [s.x, s.y]) >= s.r + r) && P.spots.every((s) => s.id === "start" || dist(q, [s.x, s.y]) >= s.r + r)
+            && P.walls.every((w) => segDist(q, w[0], w[1]) >= r + 2);
+          if (!clear(sp.register, S.standR)) { why.reg++; return null; }
+          if (!clear(sp.pile, S.standR)) { why.pile++; return null; }
+          if (!sp.queue.every((q) => clear(q, 10))) { why.clear++; if (process.env["FO_DEBUG"]) console.log(JSON.stringify({ p, q: sp.queue, st: P.stations.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id), sp: P.spots.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id) })); return null; }
+          // The cashier's slot (south of the clerk spot) belongs to the kiosk's placement: it must be free for a pad
+          // and stay out of the queue lane and the clerk/pile spots; reserved below even if the pad is never hired.
+          let slot = 0;
+          if (hasCashierSlot) {
+            const fits = (cs: Pt): boolean => {
+              const sb = P.box(p, "sink.sales_point"), cb = P.box(cs, "pad");
+              if (sb && cb && cb[0] < sb[2] + S.footprintGap && sb[0] < cb[2] + S.footprintGap && cb[1] < sb[3] + S.footprintGap && sb[1] < cb[3] + S.footprintGap) return false;
+              return P.ok("hire_cashier", cs, R.pad, { key: true, fp: "pad", hugWall: true }) && onScreen(cs)
+                && dist(cs, sp.register) >= R.pad + S.standR && dist(cs, sp.pile) >= R.pad + S.standR
+                && !sp.queue.some((q) => dist(cs, q) < R.pad + 12 + 10);
+            };
+            slot = GEN.cashierPads.findIndex((_, k) => fits(cashierAt(p, sp.register, k)));
+            if (slot < 0) { why.clear++; return null; }
+          }
+          return { slot };
+        })();
+        if (!ok) continue;
+        cands.push({ p, sp, d: dist(p, base) + side * 40, slot: ok.slot, side });
+        break;
       }
-      cands.push({ p, sp, d: dist(p, base) });
     }
     if (cands.length === 0) fail(`no room for the sales point (${JSON.stringify(why)})`);
     const best = cands.reduce((a, b) => (b.d < a.d ? b : a));
@@ -254,7 +274,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     P.add("shop", shopAt, R.shop, { key: true, fp: "sink.sales_point" });
     P.spot("register", best.sp.register); P.spot("pile", best.sp.pile);
     best.sp.queue.forEach((q, k) => P.spot(`queue${k}`, q, 12));
-    if (hasCashierSlot) P.add("shop:cashier", cashierAt(shopAt, register), R.pad, { key: true, fp: "pad" });
+    cashierSlot = best.slot;
+    clerkSide = best.side;
+    if (hasCashierSlot) P.add("shop:cashier", cashierAt(shopAt, register, cashierSlot), R.pad, { key: true, fp: "pad" });
     sells.push("res.food_raw_1");
     ents.push({ type: "sink.sales_point", id: "shop", at: [...shopAt], sells });
     const fr = tpl.fields.food;
@@ -325,7 +347,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const b = placePad("hire_food", toward(food1, shopAt, 0.4));
     pad({ type: "pad.hire", id: "hire_food", at: [...b], cost: { "res.currency": cost("hire.food") }, role: { role: "role.supplier", from: "node.food_source", to: "sink.sales_point", node: "food1" } });
     // the cashier's pad is exactly on its slot, south of the clerk spot (reserved with the kiosk)
-    const cpos: Pt | null = hasCashierSlot ? cashierAt(shopAt, register) : null;
+    const cpos: Pt | null = hasCashierSlot ? cashierAt(shopAt, register, cashierSlot) : null;
     if (cpos) hireCashier = pad({ type: "pad.hire", id: "hire_cashier", at: [...cpos], cost: { "res.currency": cost("hire.cashier") }, role: { role: "role.cashier", to: "sink.sales_point" } });
   }
 
@@ -379,10 +401,39 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     }
     if (feat.has("material_processor")) {
       saw = true;
-      const sawOpts = { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), slots: crewSlots(feat.has("conveyors") && feat.has("tier2") ? ["in", "op"] : undefined), fp: "conv.material_processor" };
-      const s = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...sawOpts, samples: 2000 })
-        ?? P.place("saw", R.conv, inner, { ...sawOpts, samples: 4000 })
-        ?? fail("no room for the material processor");
+      // With a belt the smelter and parts works are placed as a pair: a smelter spot only counts if the parts works
+      // fits exactly beltGap to its right (its slots included) with a clear belt run between them.
+      let belted = feat.has("conveyors") && feat.has("tier2");
+      const pk0 = c.converters["conv.material_processor"]!.pickupOffset;
+      // the parts works stands past the smelter's tray side: right, diagonally, or nearly straight above or below
+      const pairAt = new Map<string, Pt>();
+      const alloyFor = (sp: Pt): Pt => pairAt.get(`${sp[0]},${sp[1]}`) ?? [sp[0] + GEN.beltGap, sp[1]];
+      const pairOk = (sp: Pt): boolean => {
+        const from: Pt = [sp[0] + pk0[0], sp[1] + pk0[1]];
+        for (const [ox, oy] of GEN.beltPairs) {
+          const q: Pt = [sp[0] + Math.round(ox * GEN.beltGap), sp[1] + Math.round(oy * GEN.beltGap)], mid = toward(from, q, 0.5);
+          if (!P.ok("alloy", q, R.conv, { key: true, spots: convSpots("conv.alloy_works"), slots: crewSlots(["op", "out"]), fp: "conv.alloy_works" })) continue;
+          if (P.stations.some((st) => !st.tight && segDist([st.x, st.y], from, q) < st.r + 8)) continue;
+          if (!P.ok("belt", mid, R.pad, { key: true, fp: ["pad"], onWall: true })) continue;
+          pairAt.set(`${sp[0]},${sp[1]}`, q);
+          return true;
+        }
+        return false;
+      };
+      const sawOpts = { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), slots: crewSlots(belted ? ["in", "op"] : undefined), fp: "conv.material_processor", ...(belted ? { accept: pairOk } : {}) };
+      let s0 = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...sawOpts, samples: 2000 })
+        ?? P.place("saw", R.conv, inner, { ...sawOpts, samples: 4000 });
+      if (!s0 && belted) {
+        // no room for the belted pair: this level goes without the belt (and its module), like a goal that needs none
+        belted = false;
+        feat.delete("conveyors");
+        const { accept: _pair, ...plainBase } = sawOpts as typeof sawOpts & { accept?: unknown };
+        void _pair;
+        const plain = { ...plainBase, slots: crewSlots() };
+        s0 = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...plain, samples: 2000 })
+          ?? P.place("saw", R.conv, inner, { ...plain, samples: 4000 });
+      }
+      const s: Pt = s0 ?? fail("no room for the material processor");
       pad({ type: "pad.build", id: "saw", at: [...s], cost: { "res.currency": cost("saw") }, build: "conv.material_processor" });
       // Every converter has a feed path: a worker brings fuel scrap to the material processor (hired first).
       const sf = stationPad(s, "in");
@@ -393,7 +444,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         alloy = true;
         // With a belt the parts works stands just past the smelter tray (to its right), so the run
         // is short and straight; the build check below rejects any layout where it would cross the base.
-        const beside: Pt = [s[0] + 190, s[1]];
+        const beside: Pt = alloyFor(s);
         // With a belt, a spot is only good if the run from the smelter's tray stays clear of everything placed and its
         // mid-run pad (on the belt) has room: checked here so a layout is not thrown away after the machine is placed.
         const pk = c.converters["conv.material_processor"]!.pickupOffset, runFrom: Pt = [s[0] + pk[0], s[1] + pk[1]];
@@ -406,16 +457,22 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           return dist(mid, q) >= Math.max(R.conv, R.pad) + S.margin && !clash(P.box(q, "conv.alloy_works"))
             && crewSlots().every((o) => { const sq: Pt = [q[0] + o.dx, q[1] + o.dy]; return dist(mid, sq) >= R.pad + S.margin && !clash(P.box(sq, "pad")); });
         };
-        const alloyOpts = { near: feat.has("conveyors") ? beside : toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), slots: crewSlots(), fp: "conv.alloy_works", ...(feat.has("conveyors") ? { accept: beltOk } : {}) };
-        const a = P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { ...alloyOpts, samples: 8000 })
+        // with a belt the belt is the parts works' input (no input hauler), so only its operator and output slots
+        const alloyOpts = { near: feat.has("conveyors") ? beside : toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), slots: crewSlots(belted ? ["op", "out"] : undefined), fp: "conv.alloy_works", ...(feat.has("conveyors") ? { accept: beltOk } : {}) };
+        // with a belt the pair check already cleared the exact spot beside the smelter
+        const a = (belted ? P.place("alloy", R.conv, [beside[0] - 1, beside[1] - 1, 2, 2], { ...alloyOpts, near: beside, samples: 40 }) : null)
+          ?? P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { ...alloyOpts, samples: 8000 })
           ?? P.place("alloy", R.conv, inner, { ...alloyOpts, samples: 16000 })
           ?? fail("no room for the alloy works");
         pad({ type: "pad.build", id: "alloy", at: [...a], cost: { "res.currency": cost("alloy") }, build: "conv.alloy_works", requires: { pad: "sawyer" } });
         // a belt arrives at the hopper side, so with one the input worker stands lower, off its path
-        const rc = stationPad(a, "in");
-        pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
+        // input worker, unless a belt feeds the parts works (it is then the input step; see below)
+        if (!belted) {
+          const rc = stationPad(a, "in");
+          pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
+        }
         const sm = stationPad(a, "op");
-        pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: { pad: "refined_carrier" } });
+        pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: { pad: belted ? "belt" : "refined_carrier" } });
         const cs = stationPad(a, "out");
         pad({ type: "pad.hire", id: "component_server", at: [...cs], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.alloy_works", to: "sink.sales_point" }, requires: { pad: "smith" } });
         if (feat.has("conveyors")) {
@@ -433,7 +490,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           const bp = toward(from, a, 0.5);
           if (!P.ok("belt", bp, R.pad, { key: true, fp: ["pad"], onWall: true })) fail("no room for the belt pad on its run");
           P.add("belt", bp, R.pad, { key: true, fp: ["pad"] });
-          pad({ type: "pad.build", id: "belt", at: [...bp], cost: { "res.currency": cost("belt") }, build: "struct.conveyor", link: { from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "refined_carrier" } });
+          pad({ type: "pad.build", id: "belt", at: [...bp], cost: { "res.currency": cost("belt") }, build: "struct.conveyor", link: { from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
         }
         sells.push("res.component");
       }
@@ -818,6 +875,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     };
     if (shopAt) {
       params["customers.spawn"] = round1(K.spawn);
+      if (clerkSide !== 0) params["sales.clerkSide"] = clerkSide;
       params["customers.orderMin"] = 1;
       params["customers.orderMax"] = Math.round(K.orderMax);
     }

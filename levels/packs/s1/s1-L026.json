@@ -1,8 +1,8 @@
 {
   "id": "s1-L026",
-  "seed": 880376164,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "seed": 971300282,
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -40,92 +40,99 @@
         500
       ],
       "params": {
-        "fuel": 16,
+        "fuel": 15,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        320,
-        478
+        323,
+        475
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        330,
-        450
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        285,
-        477
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        289,
+        316,
         445
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        305,
-        516
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        340,
-        508
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        351,
-        471
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        328,
-        418
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        366,
-        443
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
         287,
+        463
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        312,
+        509
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        352,
+        477
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        284,
+        500
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        277,
+        433
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        344,
+        437
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        349,
+        510
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        302,
         414
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        361,
-        411
+        333,
+        535
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        368,
-        522
+        341,
+        398
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        289,
+        536
       ]
     },
     {
@@ -217,7 +224,7 @@
       ],
       "closed": true,
       "gates": [
-        2
+        17
       ],
       "prebuilt": [
         0,
@@ -226,6 +233,9 @@
         3,
         4,
         5,
+        6,
+        7,
+        8,
         9,
         10,
         11,
@@ -233,133 +243,98 @@
         13,
         14,
         15,
-        16,
         17,
-        18,
         19
       ]
     },
     {
-      "type": "zone.terrain",
-      "id": "terrain0",
-      "kind": "ridge",
-      "rect": [
-        380,
-        100,
-        19,
-        124
-      ]
-    },
-    {
-      "type": "zone.terrain",
-      "id": "terrain1",
-      "kind": "outcrop",
-      "rect": [
-        190,
-        119,
-        38,
-        47
-      ]
-    },
-    {
-      "type": "zone.terrain",
-      "id": "terrain2",
-      "kind": "outcrop",
-      "rect": [
-        282,
-        166,
-        47,
-        40
-      ]
-    },
-    {
       "type": "pad.build",
-      "id": "tower_n",
+      "id": "tower_w",
       "at": [
-        154,
-        292
+        56,
+        427
       ],
       "cost": {
         "res.salvage": 6
       },
       "build": "struct.ranged_defense",
       "site": [
-        104,
-        265
+        28,
+        359
       ]
     },
     {
       "type": "pad.build",
-      "id": "tower_n2",
+      "id": "tower_w2",
       "at": [
-        382,
-        293
+        56,
+        708
       ],
       "cost": {
         "res.salvage": 6
       },
       "build": "struct.ranged_defense",
       "site": [
-        332,
-        265
+        28,
+        641
       ],
       "requires": {
-        "pad": "tower_n2_up"
+        "pad": "tower_w2_up"
       }
     },
     {
       "type": "pad.build",
-      "id": "tower_n_up",
+      "id": "tower_w_up",
       "at": [
-        180,
-        383
+        116,
+        463
       ],
       "cost": {
         "res.salvage": 5
       },
       "build": "struct.ranged_defense.t2",
-      "target": "tower_n",
+      "target": "tower_w",
       "requires": {
-        "pad": "tower_n"
+        "pad": "tower_w"
       }
     },
     {
       "type": "pad.build",
-      "id": "tower_n2_up",
+      "id": "tower_w2_up",
       "at": [
-        292,
-        351
+        128,
+        614
       ],
       "cost": {
         "res.salvage": 5
       },
       "build": "struct.ranged_defense.t2",
-      "target": "tower_n2",
+      "target": "tower_w2",
       "requires": {
-        "pad": "tower_n_up"
+        "pad": "tower_w_up"
       }
     },
     {
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        300,
-        561
+        311,
+        350
       ],
       "cost": {
         "res.salvage": 5
       },
       "build": "struct.barrier.reinforced",
       "requires": {
-        "pad": "tower_n2"
+        "pad": "tower_w2"
       }
     },
     {
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        111,
-        599
+        190,
+        640
       ],
       "cost": {
         "res.salvage": 4
@@ -373,8 +348,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        116,
-        666
+        132,
+        673
       ],
       "cost": {
         "res.salvage": 3
@@ -385,14 +360,15 @@
       "repeatable": true,
       "requires": {
         "pad": "barracks"
-      }
+      },
+      "manual": true
     },
     {
       "type": "pad.build",
       "id": "medic",
       "at": [
-        367,
-        619
+        295,
+        646
       ],
       "cost": {
         "res.salvage": 6
@@ -442,53 +418,53 @@
         "hostile.swarmling": 4,
         "hostile.raider_humanoid": 12
       },
-      "side": "e",
+      "side": "w",
       "gap": 0.2
     },
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 5
+        "hostile.swarmling": 4
       },
-      "side": "n",
+      "side": "w",
       "gap": 0.7
     },
     {
-      "t": 77,
+      "t": 74,
       "counts": {
-        "hostile.swarmling": 9,
+        "hostile.swarmling": 8,
         "hostile.raider_humanoid": 1
       },
-      "side": "n",
+      "side": "w",
       "gap": 0.7
     },
     {
-      "t": 135,
+      "t": 128,
       "counts": {
-        "hostile.swarmling": 17,
+        "hostile.swarmling": 15,
         "hostile.raider_humanoid": 3
       },
-      "side": "n",
+      "side": "w",
       "gap": 0.45
     },
     {
-      "t": 192,
+      "t": 183,
       "counts": {
-        "hostile.swarmling": 23,
-        "hostile.raider_humanoid": 5,
+        "hostile.swarmling": 20,
+        "hostile.raider_humanoid": 4,
         "hostile.boss": 1
       },
-      "side": "n",
+      "side": "w",
       "gap": 0.45
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 12,
-    "core.burn": 3.3,
+    "start.currency": 9,
+    "core.burn": 2.8,
     "housing.base": 13,
     "meters.baseHealth": 15,
-    "level.budgetSeconds": 550
+    "level.budgetSeconds": 570
   },
   "goal": {
     "type": "hire",
@@ -506,15 +482,17 @@
       }
     },
     {
-      "id": "challenge2",
-      "kind": "no_injuries",
-      "params": {}
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 273
+      }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 80
+        "pct": 35
       }
     }
   ],
@@ -532,9 +510,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.793,
-    "fun": 0.108,
-    "botMargin": 0.748,
+    "difficulty": 0.893,
+    "fun": 0.043,
+    "botMargin": 0.726,
     "botsPassed": [
       "good",
       "average",
@@ -543,9 +521,9 @@
       "floor"
     ],
     "stars": {
-      "good": 2.5,
-      "median": 2,
-      "goodAll": 0.6
+      "good": 2.9,
+      "median": 3,
+      "goodAll": 0.9
     }
   }
 }

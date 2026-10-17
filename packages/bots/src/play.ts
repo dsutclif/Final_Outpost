@@ -291,6 +291,11 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     }
     for (const e of ev) {
       if (e.t === "converted" && MAKE_GOALS.has(goal.type)) progressed = true;
+      // Working a machine by hand (manual first) is the player's own action, whatever the goal.
+      if (e.t === "converted") {
+        const cv = st.converters.find((x) => x.id === e.conv), R = cp.convParams.playerOperateRange;
+        if (cv && (st.player.pos.x - cv.operatorPos.x) ** 2 + (st.player.pos.y - cv.operatorPos.y) ** 2 <= R * R) progressed = true;
+      }
       if (e.t === "deposited" && e.to === "store.depot") progressed = true;
       if (e.t === "converted" && brain.usesCapped && (brain.cappedNeed(st)[e.res] ?? 0) > 0) progressed = true;
       if (PROGRESS_EVENTS.has(e.t)) progressed = true;

@@ -117,7 +117,9 @@ describe("layout and economy per family (stages 2-4)", () => {
       for (const e of m.entities) {
         if (e.type === "pad.hire" || e.type === "pad.build") expect({ pad: e.id, planned: planned.has(e.id) }).toEqual({ pad: e.id, planned: true });
         if (e.type === "pad.build" && e.build.startsWith("conv.") && e.build !== "conv.level") {
-          const fed = m.entities.some((h) => h.type === "pad.hire" && h.role.to === e.build && content.roles[h.role.role]?.behavior !== "stand_at");
+          // a worker brings its input, or a belt does (the parts works on a belted level)
+          const fed = m.entities.some((h) => h.type === "pad.hire" && h.role.to === e.build && content.roles[h.role.role]?.behavior !== "stand_at")
+            || (e.build === "conv.alloy_works" && m.entities.some((h) => h.type === "pad.build" && h.build === "struct.conveyor"));
           expect({ conv: e.id, fed }).toEqual({ conv: e.id, fed: true });
         }
       }
@@ -192,9 +194,10 @@ describe("strict crew slots", () => {
       const shop = at.get("shop"), cashier = at.get("hire_cashier");
       if (shop && cashier) {
         cashiers++;
-        const reg = (content.sinks["sink.sales_point"] as { registerOffset: [number, number] }).registerOffset;
-        expect(cashier[0]).toBe(shop[0] + GEN.cashierPad[0]);
-        expect(Math.abs(cashier[1] - shop[1])).toBe(Math.abs(reg[1]) + GEN.cashierPad[1]);
+        // one of the cashier slots past the clerk spot, which is south of the stall or (sales.clerkSide) east/west of it
+        const sim = createSim(b.manifest), r = sim.state.sales!.register;
+        const reg: [number, number] = [r.x / 1000, r.y / 1000], dir = reg[1] >= shop[1] ? 1 : -1;
+        expect(GEN.cashierPads.some((o) => cashier[0] === reg[0] + o[0] && cashier[1] === reg[1] + dir * o[1])).toBe(true);
       }
     }
     expect(machines).toBeGreaterThan(0);

@@ -87,6 +87,20 @@ I'd split it as before: a Sonnet agent each for E1+E2, E3 and E5, with me on E4,
 4. Payback windows of about 15 s early and 30–45 s later: do they feel right for 3–7 minute
    levels?
 
+## Generator follow-up (engine 0.8.0)
+
+Manual first and the tax slow every economy, so the generator now adapts levels to them:
+
+- **Goal sizing:** a rate goal's probe that falls short runs again at 1.6× and 2.4× the level
+  length before the candidate is dropped. Earn-within goals keep their deadline.
+- **No spare automation:** if the winning bot never needed some optional automation (hires,
+  belts, machine levels, upgrades, wall reinforcement), later builds of that level leave those
+  pads out, along with any pad that requires them. If no worker is ever needed, the workers
+  module goes too. This keeps every pad a level offers worth buying.
+- **Bots:** the bot works a full hopper down by hand before loading it for a manual job. It
+  also moves on to the next pending manual job when the first can't progress. A machine the
+  player works by hand counts as progress for stall detection.
+
 [m1]: https://www.gamedeveloper.com/design/the-math-of-idle-games-part-i
 [m2]: https://www.gamedeveloper.com/game-platforms/the-math-of-idle-games-part-ii
 [acw]: https://adventure-capitalist.fandom.com/wiki/File:BadDay.png

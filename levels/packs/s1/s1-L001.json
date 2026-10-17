@@ -1,8 +1,8 @@
 {
   "id": "s1-L001",
-  "seed": 794704776,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "seed": 148133935,
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -33,78 +33,78 @@
         500
       ],
       "params": {
-        "fuel": 9,
+        "fuel": 10,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        104,
-        442
+        90,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        85,
-        466
+        122,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        89,
-        413
+        108,
+        425
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        66,
-        432
+        90,
+        479
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        124,
-        463
+        75,
+        424
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        127,
-        417
+        59,
+        464
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        53,
-        459
+        117,
+        496
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        104,
-        491
+        95,
+        394
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        58,
-        498
+        146,
+        411
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        164,
-        439
+        171,
+        451
       ]
     }
   ],
@@ -112,15 +112,15 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
+    "start.currency": 0,
     "core.burn": 2.1,
     "housing.base": 2,
-    "level.budgetSeconds": 170
+    "level.budgetSeconds": 150
   },
   "goal": {
     "type": "heat_hold",
     "pct": 65,
-    "seconds": 90
+    "seconds": 85
   },
   "family": "shelter",
   "objectives": [
@@ -129,18 +129,20 @@
       "kind": "heat_hold",
       "params": {
         "pct": 65,
-        "seconds": 90
+        "seconds": 85
       }
     },
     {
       "id": "challenge2",
-      "kind": "no_colonist_freezes",
+      "kind": "settlement_never_freezes",
       "params": {}
     },
     {
       "id": "challenge",
-      "kind": "settlement_never_freezes",
-      "params": {}
+      "kind": "heat_floor",
+      "params": {
+        "pct": 40
+      }
     }
   ],
   "fail": [
@@ -156,9 +158,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.045,
-    "fun": 0.125,
-    "botMargin": 0.428,
+    "difficulty": 0.043,
+    "fun": 0.138,
+    "botMargin": 0.411,
     "botsPassed": [
       "good",
       "average",

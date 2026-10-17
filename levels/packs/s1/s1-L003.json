@@ -1,8 +1,8 @@
 {
   "id": "s1-L003",
   "seed": 272105353,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -35,7 +35,7 @@
         520
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -61,8 +61,8 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        84,
-        510
+        79,
+        514
       ]
     },
     {
@@ -82,15 +82,15 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        49,
-        528
+        108,
+        508
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        103,
-        539
+        49,
+        522
       ]
     },
     {
@@ -103,44 +103,44 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        114,
-        499
+        29,
+        483
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        27,
-        501
+        96,
+        544
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        70,
+        69,
         560
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        122,
-        448
+        141,
+        478
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        17,
-        454
+        20,
+        556
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        162,
-        522
+        169,
+        556
       ],
       "cost": {
         "res.currency": 11
@@ -149,14 +149,15 @@
         "role": "role.supplier",
         "from": "node.fuel_scrap",
         "to": "sink.core"
-      }
+      },
+      "manual": true
     },
     {
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        361,
-        642
+        349,
+        647
       ],
       "cost": {
         "res.currency": 16
@@ -166,14 +167,15 @@
         "from": "node.food_source",
         "to": "sink.sales_point",
         "node": "food1"
-      }
+      },
+      "manual": true
     },
     {
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        350,
-        701
+        254,
+        841
       ],
       "cost": {
         "res.currency": 24
@@ -181,7 +183,8 @@
       "role": {
         "role": "role.cashier",
         "to": "sink.sales_point"
-      }
+      },
+      "manual": true
     }
   ],
   "people": [
@@ -198,17 +201,17 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
+    "start.currency": 2,
     "core.burn": 2.2,
     "housing.base": 5,
-    "customers.spawn": 3.1,
+    "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "level.budgetSeconds": 340
   },
   "goal": {
     "type": "earn",
-    "n": 396
+    "n": 315
   },
   "family": "harvest",
   "objectives": [
@@ -216,14 +219,14 @@
       "id": "main",
       "kind": "earn",
       "params": {
-        "n": 396
+        "n": 315
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 286
+        "seconds": 265
       }
     },
     {
@@ -247,9 +250,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.104,
-    "fun": 0.911,
-    "botMargin": 0.48,
+    "difficulty": 0.083,
+    "fun": 0.906,
+    "botMargin": 0.517,
     "botsPassed": [
       "good",
       "average",

@@ -1,8 +1,8 @@
 {
   "id": "s1-L028",
-  "seed": 1133149248,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "seed": 1450634623,
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,7 +37,7 @@
         500
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -45,8 +45,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        323,
-        614
+        317,
+        620
       ],
       "sells": [
         "res.food_raw_1",
@@ -57,85 +57,85 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        374,
-        462
+        336,
+        443
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        139,
-        480
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        150,
-        453
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        178,
-        474
+        144,
+        475
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         121,
-        449
+        494
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        506
+        174,
+        484
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        108,
-        487
+        158,
+        446
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        134,
-        422
+        147,
+        509
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        442
+        99,
+        469
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        128,
+        123,
+        447
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        116,
+        529
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        175,
         519
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        414
+        112,
+        417
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        167,
-        545
+        163,
+        402
       ]
     },
     {
@@ -215,34 +215,34 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        343,
-        231
+        228,
+        54
       ],
-      "freeze": 121
+      "freeze": 134
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        45,
-        138
+        203,
+        144
       ],
-      "freeze": 154
+      "freeze": 141
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        313,
-        78
+        373,
+        86
+      ],
+      "freeze": 168
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        385,
+        197
       ],
       "freeze": 174
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        238,
-        227
-      ],
-      "freeze": 173
     },
     {
       "type": "zone.prey",
@@ -264,14 +264,14 @@
     "start.currency": 4,
     "core.burn": 2.5,
     "housing.base": 6,
-    "customers.spawn": 2.9,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 350
+    "level.budgetSeconds": 320
   },
   "goal": {
     "type": "protein",
-    "n": 38
+    "n": 30
   },
   "family": "rescue",
   "objectives": [
@@ -279,19 +279,19 @@
       "id": "main",
       "kind": "protein",
       "params": {
-        "n": 38
+        "n": 30
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 242
+        "seconds": 196
       }
     },
     {
       "id": "challenge",
-      "kind": "tow_full_trip",
+      "kind": "tow_trip",
       "params": {
         "n": 3
       }
@@ -310,14 +310,15 @@
     }
   },
   "rating": {
-    "difficulty": 0.726,
-    "fun": 0.824,
-    "botMargin": 0.576,
+    "difficulty": 0.653,
+    "fun": 0.877,
+    "botMargin": 0.619,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,

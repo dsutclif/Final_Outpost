@@ -146,6 +146,8 @@ export interface CompiledSales {
   shelfCap: number;
   depositTicks: number;
   registerOffset: Vec;
+  /** Which side of the stall the clerk spot is on: 0 south (camera side), 1 east, 2 west. */
+  clerkSide: number;
   registerRange: number;
   pileOffset: Vec;
   pileRange: number;
@@ -389,6 +391,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     shelfCap: salesDef.shelfCap,
     depositTicks: ticks(salesDef.depositInterval),
     registerOffset: vec(salesDef.registerOffset),
+    clerkSide: int("sales.clerkSide"),
     registerRange: fp(salesDef.registerRange),
     pileOffset: vec(salesDef.pileOffset),
     pileRange: fp(salesDef.pileRange),

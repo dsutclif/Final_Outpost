@@ -1,8 +1,8 @@
 {
   "id": "s1-L015",
   "seed": 503184040,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -40,7 +40,7 @@
         450
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 16,
         "level": 1
       }
     },
@@ -252,9 +252,11 @@
         8,
         9,
         10,
+        11,
+        12,
+        13,
         14,
         15,
-        16,
         17,
         19
       ]
@@ -331,21 +333,6 @@
     },
     {
       "type": "pad.build",
-      "id": "reinforce",
-      "at": [
-        305,
-        376
-      ],
-      "cost": {
-        "res.salvage": 5
-      },
-      "build": "struct.barrier.reinforced",
-      "requires": {
-        "pad": "tower_w2"
-      }
-    },
-    {
-      "type": "pad.build",
       "id": "barracks",
       "at": [
         310,
@@ -371,8 +358,9 @@
       },
       "repeatable": true,
       "requires": {
-        "pad": "reinforce"
-      }
+        "pad": "barracks"
+      },
+      "manual": true
     },
     {
       "type": "pad.build",
@@ -414,39 +402,39 @@
         "hostile.swarmling": 4,
         "hostile.raider_humanoid": 12
       },
-      "side": "s",
+      "side": "w",
       "gap": 0.2
     },
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 5
+        "hostile.swarmling": 4
       },
       "side": "w",
       "gap": 0.7
     },
     {
-      "t": 78,
+      "t": 77,
       "counts": {
-        "hostile.swarmling": 9,
+        "hostile.swarmling": 7,
         "hostile.raider_humanoid": 1
       },
       "side": "w",
       "gap": 0.7
     },
     {
-      "t": 135,
+      "t": 134,
       "counts": {
-        "hostile.swarmling": 17,
+        "hostile.swarmling": 14,
         "hostile.raider_humanoid": 3
       },
       "side": "w",
       "gap": 0.45
     },
     {
-      "t": 193,
+      "t": 192,
       "counts": {
-        "hostile.swarmling": 23,
+        "hostile.swarmling": 19,
         "hostile.raider_humanoid": 4,
         "hostile.boss": 1
       },
@@ -460,7 +448,7 @@
     "core.burn": 3,
     "housing.base": 8,
     "meters.baseHealth": 15,
-    "level.budgetSeconds": 730
+    "level.budgetSeconds": 690
   },
   "goal": {
     "type": "boss",
@@ -477,14 +465,14 @@
     },
     {
       "id": "challenge2",
-      "kind": "no_wall_lost",
+      "kind": "no_injuries",
       "params": {}
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 40
+        "pct": 80
       }
     }
   ],
@@ -502,9 +490,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.801,
-    "fun": 0.239,
-    "botMargin": 0.706,
+    "difficulty": 0.748,
+    "fun": 0.188,
+    "botMargin": 0.692,
     "botsPassed": [
       "good",
       "average",
@@ -515,7 +503,7 @@
     "stars": {
       "good": 2.6,
       "median": 2,
-      "goodAll": 0.6
+      "goodAll": 0.7
     }
   }
 }

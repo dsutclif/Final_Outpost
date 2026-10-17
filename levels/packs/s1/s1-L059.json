@@ -1,8 +1,8 @@
 {
   "id": "s1-L059",
   "seed": 2027708034,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -40,7 +40,7 @@
         450
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -136,10 +136,10 @@
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
-        243,
-        585
+        255,
+        591
       ]
     },
     {
@@ -248,9 +248,11 @@
         4,
         5,
         7,
-        8,
         9,
         10,
+        11,
+        12,
+        13,
         14,
         15,
         16,
@@ -263,7 +265,7 @@
       "type": "pad.build",
       "id": "tower_e",
       "at": [
-        402,
+        401,
         376
       ],
       "cost": {
@@ -282,7 +284,7 @@
       "type": "pad.build",
       "id": "tower_e2",
       "at": [
-        403,
+        402,
         658
       ],
       "cost": {
@@ -301,8 +303,8 @@
       "type": "pad.build",
       "id": "tower_e_up",
       "at": [
-        329,
-        380
+        340,
+        411
       ],
       "cost": {
         "res.salvage": 5
@@ -317,8 +319,8 @@
       "type": "pad.build",
       "id": "tower_e2_up",
       "at": [
-        345,
-        555
+        356,
+        564
       ],
       "cost": {
         "res.salvage": 5
@@ -327,21 +329,6 @@
       "target": "tower_e2",
       "requires": {
         "pad": "tower_e_up"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "reinforce",
-      "at": [
-        324,
-        318
-      ],
-      "cost": {
-        "res.salvage": 5
-      },
-      "build": "struct.barrier.reinforced",
-      "requires": {
-        "pad": "tower_e2"
       }
     },
     {
@@ -360,8 +347,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        210,
-        320
+        202,
+        317
       ],
       "cost": {
         "res.salvage": 3
@@ -371,15 +358,16 @@
       },
       "repeatable": true,
       "requires": {
-        "pad": "reinforce"
-      }
+        "pad": "barracks"
+      },
+      "manual": true
     },
     {
       "type": "pad.build",
       "id": "medic",
       "at": [
         326,
-        497
+        508
       ],
       "cost": {
         "res.salvage": 6
@@ -414,40 +402,40 @@
         "hostile.swarmling": 4,
         "hostile.raider_humanoid": 12
       },
-      "side": "s",
+      "side": "e",
       "gap": 0.2
     },
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 5
+        "hostile.swarmling": 4
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 79,
+      "t": 75,
       "counts": {
-        "hostile.swarmling": 9,
+        "hostile.swarmling": 7,
         "hostile.raider_humanoid": 1
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 139,
+      "t": 131,
       "counts": {
-        "hostile.swarmling": 17,
-        "hostile.raider_humanoid": 3
+        "hostile.swarmling": 15,
+        "hostile.raider_humanoid": 4
       },
       "side": "e",
       "gap": 0.45
     },
     {
-      "t": 198,
+      "t": 186,
       "counts": {
-        "hostile.swarmling": 23,
-        "hostile.raider_humanoid": 4,
+        "hostile.swarmling": 20,
+        "hostile.raider_humanoid": 5,
         "hostile.boss": 1
       },
       "side": "e",
@@ -456,15 +444,15 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 9,
-    "core.burn": 3,
+    "start.currency": 8,
+    "core.burn": 2.6,
     "housing.base": 8,
-    "meters.baseHealth": 16,
-    "level.budgetSeconds": 390
+    "meters.baseHealth": 14,
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "survive",
-    "seconds": 170
+    "seconds": 160
   },
   "family": "defend",
   "objectives": [
@@ -472,21 +460,19 @@
       "id": "main",
       "kind": "survive",
       "params": {
-        "seconds": 170
+        "seconds": 160
       }
     },
     {
       "id": "challenge2",
-      "kind": "hire",
-      "params": {
-        "n": 4
-      }
+      "kind": "no_injuries",
+      "params": {}
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 45
+        "pct": 80
       }
     }
   ],
@@ -504,9 +490,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.792,
-    "fun": 0.271,
-    "botMargin": 0.761,
+    "difficulty": 0.76,
+    "fun": 0.209,
+    "botMargin": 0.896,
     "botsPassed": [
       "good",
       "average",
@@ -515,9 +501,9 @@
       "floor"
     ],
     "stars": {
-      "good": 3,
+      "good": 2.6,
       "median": 2.67,
-      "goodAll": 1
+      "goodAll": 0.7
     }
   }
 }

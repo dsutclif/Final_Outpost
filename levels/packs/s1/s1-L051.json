@@ -1,8 +1,8 @@
 {
   "id": "s1-L051",
   "seed": 900293734,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -156,7 +156,7 @@
         346,
         692
       ],
-      "freeze": 101
+      "freeze": 98
     },
     {
       "type": "capture.recruit_container",
@@ -164,7 +164,7 @@
         77,
         673
       ],
-      "freeze": 121
+      "freeze": 117
     },
     {
       "type": "capture.recruit_container",
@@ -172,7 +172,7 @@
         71,
         828
       ],
-      "freeze": 156
+      "freeze": 152
     },
     {
       "type": "capture.recruit_container",
@@ -180,7 +180,7 @@
         214,
         827
       ],
-      "freeze": 170
+      "freeze": 166
     },
     {
       "type": "capture.recruit_container",
@@ -188,14 +188,14 @@
         308,
         862
       ],
-      "freeze": 193
+      "freeze": 189
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
+    "start.currency": 1,
     "core.burn": 2.2,
     "housing.base": 7,
     "level.budgetSeconds": 80

@@ -1,8 +1,8 @@
 {
   "id": "s1-L010",
   "seed": 633739471,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -384,7 +384,7 @@
       "gap": 0.7
     },
     {
-      "t": 71,
+      "t": 72,
       "counts": {
         "hostile.swarmling": 17,
         "hostile.raider_humanoid": 1
@@ -393,7 +393,7 @@
       "gap": 0.7
     },
     {
-      "t": 122,
+      "t": 124,
       "counts": {
         "hostile.swarmling": 23,
         "hostile.raider_humanoid": 4
@@ -405,7 +405,7 @@
       "gap": 0.45
     },
     {
-      "t": 174,
+      "t": 176,
       "counts": {
         "hostile.swarmling": 30,
         "hostile.raider_humanoid": 6
@@ -420,9 +420,9 @@
   "events": [],
   "params": {
     "start.currency": 6,
-    "core.burn": 2.8,
+    "core.burn": 2.7,
     "housing.base": 5,
-    "meters.baseHealth": 13,
+    "meters.baseHealth": 14,
     "level.budgetSeconds": 390
   },
   "goal": {
@@ -442,7 +442,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 242
+        "seconds": 246
       }
     },
     {
@@ -465,9 +465,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.195,
-    "fun": 0.482,
-    "botMargin": 0.613,
+    "difficulty": 0.206,
+    "fun": 0.497,
+    "botMargin": 0.608,
     "botsPassed": [
       "good",
       "average",

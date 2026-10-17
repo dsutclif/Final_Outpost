@@ -546,8 +546,10 @@ export class Brain {
       if (!job || jobDone(st, job)) continue;
       const pad = st.pads.find((x) => x.id === s.pad);
       if (!pad || pad.done || (e.requires?.pad !== undefined && !st.pads.some((x) => x.id === e.requires!.pad && x.done) && !st.built.includes(e.requires.pad))) continue;
+      // The first such job with something to do now (another may wait on a full hopper or an empty tray).
+      const n = tasks.length;
       this.manualTask(st, job, T);
-      break;
+      if (tasks.length > n) break;
     }
 
     T("wait", 1);
@@ -564,7 +566,9 @@ export class Brain {
       if (!res) return;
       if (count(p.stack, res) > 0) {
         const target = conv(to);
-        if (target) T("deposit", SC, target.id);
+        // A full hopper nobody works yet: work it down by hand to make room for the load.
+        if (target && target.inQ.length >= cp.converters[target.type]!.inCap) T(target.out < cp.converters[target.type]!.outCap ? "operate" : "fetch", SC, target.id);
+        else if (target) T("deposit", SC, target.id);
         else if (to === "store.depot" && st.depot) T("depot", SC);
         // core and kiosk deliveries are covered by the fuel and stock tasks once carrying
         return;

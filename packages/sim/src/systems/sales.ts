@@ -27,9 +27,21 @@ export interface SalesLayout {
  * content default is negative: the line grows away from it).
  * Exported so the generator can keep pads clear of these spots.
  */
-export function salesLayout(cp: Compiled, pos: Vec, core: Vec): SalesLayout {
+export function salesLayout(cp: Compiled, pos: Vec, core: Vec, side = cp.sales.clerkSide): SalesLayout {
   const S = cp.sales;
   const centre = { x: cp.map.w / 2, y: cp.map.h / 2 };
+  if (side === 1 || side === 2) {
+    // Clerk at the east or west side of the stall (still in view; used where the south side has no room):
+    // the pile just below the clerk, the queue on the other side of the stall.
+    const dir = side === 1 ? 1 : -1, d = Math.abs(S.registerOffset.y), py = Math.abs(S.pileOffset.y);
+    const register = { x: pos.x + dir * d, y: pos.y };
+    return {
+      register, pile: { x: register.x, y: register.y + py },
+      queueAt: { x: pos.x - dir * Math.abs(S.queueOffset.x), y: pos.y + S.queueOffset.y },
+      queueStep: toward(S.queueStep, pos, core),
+      edgeX: dir > 0 ? -20 * FP : cp.map.w + 20 * FP,
+    };
+  }
   // horizontally still toward the core (pile side), vertically always toward the camera
   const south = { x: core.x, y: pos.y + FP };
   const r = toward(S.registerOffset, pos, south), p = toward(S.pileOffset, pos, south), q = toward(S.queueOffset, pos, centre);

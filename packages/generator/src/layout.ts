@@ -59,7 +59,7 @@ export class Placer {
   /** Barrier sections: nothing interactive sits on a wall. */
   readonly walls: [Pt, Pt][] = [];
   constructor(readonly rand: Rand, readonly margin: number, readonly standR: number,
-    readonly bounds: Rect, readonly core: Pt, readonly screen: Pt, readonly c: Content = defaultContent,
+    readonly bounds: Rect, readonly core: Pt, readonly screen: readonly [number, number, number?], readonly c: Content = defaultContent,
     readonly footprints: Readonly<Record<string, Box>> = {}, readonly footprintGap = 0) {}
 
   /** Absolute ground box at p for the footprint key(s): the union of each key's box. */
@@ -151,7 +151,9 @@ export class Placer {
   spot(id: string, p: Pt, r = this.standR): void { this.spots.push({ id, x: p[0], y: p[1], r }); }
 
   onScreen(p: Pt): boolean {
-    return Math.abs(p[0] - this.core[0]) <= this.screen[0] && Math.abs(p[1] - this.core[1]) <= this.screen[1];
+    // the box the camera shows, and inside the rater's screen radius (the box's corners are not)
+    return Math.abs(p[0] - this.core[0]) <= this.screen[0] && Math.abs(p[1] - this.core[1]) <= this.screen[1]
+      && (this.screen[2] === undefined || dist(p, this.core) <= this.screen[2]);
   }
 }
 

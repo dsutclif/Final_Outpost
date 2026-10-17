@@ -1,8 +1,8 @@
 {
   "id": "s1-L008",
   "seed": 1067227942,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -70,7 +70,7 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        70,
+        69,
         451
       ]
     },
@@ -84,7 +84,7 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        83,
+        82,
         494
       ]
     },
@@ -98,51 +98,58 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        46,
-        468
+        51,
+        485
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        134,
+        133,
         452
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        69,
-        410
+        39,
+        438
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        148,
-        489
+        74,
+        415
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        141,
+        484
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        77,
-        533
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        135,
+        134,
         409
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        61,
+        527
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        437,
-        501
+        431,
+        530
       ],
       "enabled": false
     },
@@ -150,8 +157,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        173,
-        534
+        175,
+        568
       ],
       "cost": {
         "res.currency": 9
@@ -160,14 +167,15 @@
         "role": "role.supplier",
         "from": "node.fuel_scrap",
         "to": "sink.core"
-      }
+      },
+      "manual": true
     },
     {
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        422,
-        576
+        432,
+        627
       ],
       "cost": {
         "res.currency": 14
@@ -177,14 +185,15 @@
         "from": "node.food_source",
         "to": "sink.sales_point",
         "node": "food1"
-      }
+      },
+      "manual": true
     },
     {
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        420,
-        667
+        320,
+        817
       ],
       "cost": {
         "res.currency": 21
@@ -195,14 +204,15 @@
       },
       "requires": {
         "pad": "hire_food2"
-      }
+      },
+      "manual": true
     },
     {
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        437,
-        501
+        431,
+        530
       ],
       "cost": {
         "res.currency": 17
@@ -217,8 +227,8 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        351,
-        446
+        454,
+        710
       ],
       "cost": {
         "res.currency": 17
@@ -254,19 +264,19 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.3,
+    "start.currency": 4,
+    "core.burn": 2.4,
     "housing.base": 7,
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.impatientShare": 0.24,
-    "customers.premiumShare": 0.19,
-    "level.budgetSeconds": 340
+    "customers.impatientShare": 0.3,
+    "customers.premiumShare": 0.2,
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "serve_premium",
-    "n": 18
+    "n": 19
   },
   "family": "harvest",
   "objectives": [
@@ -274,14 +284,14 @@
       "id": "main",
       "kind": "serve_premium",
       "params": {
-        "n": 18
+        "n": 19
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 277
+        "seconds": 314
       }
     },
     {
@@ -296,16 +306,16 @@
   "text": {
     "mars_greenhouse": {
       "title": "Open Vault",
-      "goal": "Serve 18 VIP traders",
+      "goal": "Serve 19 VIP traders",
       "tips": [
         "Feed ore to the reactor. If it runs dry, the colony starts to freeze."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.172,
-    "fun": 0.771,
-    "botMargin": 0.552,
+    "difficulty": 0.181,
+    "fun": 0.802,
+    "botMargin": 0.521,
     "botsPassed": [
       "good",
       "average",
@@ -314,9 +324,9 @@
       "floor"
     ],
     "stars": {
-      "good": 3,
-      "median": 3,
-      "goodAll": 1
+      "good": 2.8,
+      "median": 2.67,
+      "goodAll": 0.8
     }
   }
 }

@@ -1,8 +1,8 @@
 {
   "id": "s1-L012",
   "seed": 1973305700,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -39,7 +39,7 @@
         510
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 16,
         "level": 1
       }
     },
@@ -229,7 +229,7 @@
         361,
         56
       ],
-      "freeze": 158
+      "freeze": 162
     },
     {
       "type": "capture.recruit_container",
@@ -237,7 +237,7 @@
         226,
         52
       ],
-      "freeze": 175
+      "freeze": 180
     },
     {
       "type": "capture.recruit_container",
@@ -245,7 +245,7 @@
         327,
         204
       ],
-      "freeze": 175
+      "freeze": 179
     },
     {
       "type": "pad.build",
@@ -255,7 +255,7 @@
         591
       ],
       "cost": {
-        "res.currency": 23
+        "res.currency": 20
       },
       "build": "sink.core.level"
     },
@@ -267,7 +267,7 @@
         232
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 12
       },
       "build": "zone.clear",
       "target": "pass",
@@ -280,13 +280,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.8,
+    "start.currency": 10,
+    "core.burn": 2.9,
     "housing.base": 5,
-    "customers.spawn": 2.7,
+    "customers.spawn": 2.5,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "level.budgetSeconds": 150
+    "level.budgetSeconds": 140
   },
   "goal": {
     "type": "rescue_before_freeze",
@@ -305,7 +305,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 73
+        "seconds": 59
       }
     },
     {
@@ -327,9 +327,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.353,
-    "fun": 0.8,
-    "botMargin": 0.698,
+    "difficulty": 0.309,
+    "fun": 0.817,
+    "botMargin": 0.739,
     "botsPassed": [
       "good",
       "average",

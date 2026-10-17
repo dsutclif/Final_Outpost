@@ -24,6 +24,7 @@
   "customers.leaveSpeedX": 160,
   "customers.leaveSpeedY": 50,
   "sales.cashierRange": 8,
+  "sales.clerkSide": 0,
   "sales.serveSeconds": 0.6,
   "housing.base": 6,
   "housing.perBuilding": 2,

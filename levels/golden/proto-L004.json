@@ -1,8 +1,8 @@
 {
   "id": "proto-L004",
   "seed": 4,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": { "w": 480, "h": 900, "zones": ["base", "sources-w", "mine-e", "attack-n", "gate"] },
   "modules": ["carry", "gather", "core", "sales", "workers", "build_pads", "barrier_lines", "housing", "defense", "defenders", "salvage_upgrades", "medical", "hazard_events"],
   "start": [240, 600],

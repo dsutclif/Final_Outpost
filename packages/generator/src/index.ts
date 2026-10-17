@@ -78,6 +78,8 @@ export function generate(req: GenRequest, opts: GenOptions = {}): Manifest | nul
 const REF = PROFILES["good"]!;
 const MEDIAN_RUNG = LADDER[Math.floor(LADDER.length / 2)]!.name;
 const HUGE = 1_000_000;
+/** Probe lengths, as multiples of the level length, tried in turn when the bot falls short of the goal. */
+const PROBE_STRETCH = [1, 1.6, 2.4];
 
 /** Main-goal params with N (or the deadline) replaced, mirrored into objective 0. */
 function setGoal(m: Manifest, patch: Record<string, number | string>): void {
@@ -101,22 +103,51 @@ function sizeGoal(b: Built, c: Content, lengthS: number): string | null {
   const waveEnd = m.waves.length > 0 ? m.waves[m.waves.length - 1]!.t + 40 : 0;
   const T = g.type === "earn_within" ? (g.seconds ?? lengthS) : Math.max(lengthS, waveEnd);
   if (b.sizing === "fill") setGoal(probe, { seconds: 900 }); else setGoal(probe, { n: HUGE });
+  const factor = g.type === "earn_within" ? 0.85 : 0.9;
+  const min = g.type === "bulk_order" ? 1 : g.type === "chain" ? 2 : 3;
+  // Manual-first jobs and the automation tax slow the bot on long chains: a probe that falls short of
+  // the goal's own workers runs again for longer (the level runs longer) before the candidate is dropped.
+  // A deadline goal keeps its deadline.
+  const stretches = g.type === "earn_within" ? [1] : PROBE_STRETCH;
   let progress = 0, doneAt = -1;
-  playBot(probe, REF, 1, { content: c, maxTicks: Math.round((b.sizing === "fill" ? 400 : T) * 30), onTick: (st) => {
-    const o = st.objectives[0]!;
-    progress = o.progress;
-    if (o.done && doneAt < 0) doneAt = st.tick;
-  } });
+  for (const stretch of stretches) {
+    progress = 0; doneAt = -1;
+    playBot(probe, REF, 1, { content: c, maxTicks: Math.round((b.sizing === "fill" ? 400 : T) * stretch * 30), onTick: (st) => {
+      const o = st.objectives[0]!;
+      progress = o.progress;
+      if (o.done && doneAt < 0) doneAt = st.tick;
+    } });
+    if (b.sizing === "fill" ? doneAt >= 0 : Math.floor(progress * factor) >= min) break;
+  }
   if (b.sizing === "fill") {
     if (doneAt < 0) return "probe: core never filled";
     setGoal(m, { seconds: Math.round((doneAt / 30) * 1.6 + 15) });
     return null;
   }
-  const n = Math.floor(progress * (g.type === "earn_within" ? 0.85 : 0.9));
-  const min = g.type === "bulk_order" ? 1 : g.type === "chain" ? 2 : 3;
+  const n = Math.floor(progress * factor);
   if (n < min) return `probe: ${g.type} reached only ${progress}`;
   setGoal(m, { n });
   return null;
+}
+
+/** Automation a level can do without: hires, belts, machine levels, upgrades and wall reinforcement. */
+function optionalPad(e: Manifest["entities"][number], c: Content): boolean {
+  if (e.type === "pad.hire") return true;
+  if (e.type !== "pad.build") return false;
+  return e.build === "conv.level" || e.build === "struct.conveyor" || e.build === "struct.barrier.reinforced" || !!c.upgrades[e.build];
+}
+
+/** Remove these pads and every pad that requires one of them. */
+function dropPads(m: Manifest, ids: ReadonlySet<string>): void {
+  const gone = new Set(ids);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const e of m.entities) {
+      const req = (e as { requires?: { pad?: string } }).requires?.pad;
+      if ("id" in e && e.id && !gone.has(e.id) && req && gone.has(req)) { gone.add(e.id); grew = true; }
+    }
+  }
+  m.entities = m.entities.filter((e) => !("id" in e && e.id && gone.has(e.id)));
 }
 
 /** Every element of the level used on the good bot's winning runs (REDESIGN-R2: nothing superfluous). */
@@ -142,7 +173,8 @@ function idleElements(m: Manifest, runs: readonly BotResult[]): string[] {
   }
   if (m.entities.some((e) => e.type.startsWith("capture.")) && !wins.some((r) => r.used.captures > 0 || r.runStats.tripBest > 0)) out.push("captures");
   if (m.entities.some((e) => e.type === "zone.prey") && !wins.some((r) => r.used.preyKilled > 0)) out.push("prey");
-  if (m.entities.some((e) => e.type === "sink.sales_point") && !wins.some((r) => r.used.sold > 0)) out.push("sales point");
+  // Filling the shelves is using the stall, even before a customer buys.
+  if (m.entities.some((e) => e.type === "sink.sales_point") && m.goal.type !== "shelves_full" && !wins.some((r) => r.used.sold > 0)) out.push("sales point");
   if (m.entities.some((e) => e.type === "struct.gate" && "arrivals" in e && e.arrivals) && !wins.some((r) => r.used.admitted > 0)) out.push("arrivals gate");
   if (m.events.length > 0 && !wins.some((r) => r.used.hazards > 0)) out.push("hazard");
   if (m.entities.some((e) => e.type === "pad.build" && e.build === "struct.conveyor") && !wins.some((r) => r.used.conveyed > 0)) out.push("conveyor");
@@ -221,11 +253,12 @@ function challengeCandidates(fam: Family, goodRuns: BotResult[], allowed: readon
  */
 /**
  * Over the loop cap? Feeding the reactor by hand is exempt on a level with nobody to hire for it (no
- * workers module): until manual-first pricing lands (docs/ECONOMY-PLAN.md) there is no fix to offer.
+ * hire pad delivers to the core): cheaper hires are then no fix to offer.
  */
 function overLoopCap(ms: Measurement): boolean {
   if (ms.loopMax <= GEN.search.loopCap) return false;
-  return !(ms.loopKey.includes(">sink.core") && !ms.manifest.modules.includes("workers"));
+  const coreHire = ms.manifest.entities.some((e) => e.type === "pad.hire" && (e as { role?: { to?: string } }).role?.to === "sink.core");
+  return !(ms.loopKey.includes(">sink.core") && !coreHire);
 }
 
 function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string[], seed: number, teach = false): string | null {
@@ -296,6 +329,10 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   const mrand = rand.fork("mutate");
   // Repeated-loop lever: 0..1 share of the worker hire price cut, raised after each `repetitive` reject.
   let ease = 0;
+  // Optional pads the winning bot never needed; left out of later builds (see dropPads).
+  const dropped = new Set<string>();
+  // Same for the workers module when nothing on the level ever needs a worker (a shelves goal filled by hand).
+  const droppedMods = new Set<string>();
   const easeUp = (): boolean => { if (ease >= 1) return false; ease = Math.min(1, ease + 1 / S.loopEaseSteps); return true; };
 
   for (let it = 0; it < maxIt; it++) {
@@ -313,11 +350,12 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     let why = "";
     for (let salt = 0; salt < S.layoutTries && !built; salt++) {
       try {
-        built = buildLevel({ id, seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods, template: tpl, knobs, hireEase: ease, content: c }, salt);
+        built = buildLevel({ id, seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods.filter((x) => !droppedMods.has(x)), template: tpl, knobs, hireEase: ease, content: c }, salt);
       } catch (e) { why = (e as Error).message; reject(why.startsWith("flow") ? "flow" : "layout"); }
     }
     if (!built) { log(`  it${it} p=${p.toFixed(2)} build failed: ${why}`); hi = p; p = (lo + p) / 2; continue; }
     const m = built.manifest;
+    if (dropped.size > 0) dropPads(m, dropped);
     const sz = sizeGoal(built, c, knobs.length);
     if (sz) { reject("probe"); log(`  it${it} p=${p.toFixed(2)} ${sz}`); hi = p; p = (lo + p) / 2; continue; }
     let quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
@@ -353,6 +391,12 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     log(`  it${it} p=${p.toFixed(2)} D=${r.D.toFixed(3)} F=${r.F.toFixed(3)} feasible=${r.feasible} loopMax=${ms.loopMax} [${ms.loopKey}] ${flags.join(",")} ${r.evidence.idleModules.join(",")}`);
     flags.forEach(reject);
     if (!r.feasible) reject("infeasible");
+    const idleMods = r.evidence.idleModules;
+    if (idleMods.includes("workers") && idleMods.every((x) => x === "workers" || x === "build_pads")
+      && !mods.some((x) => !droppedMods.has(x) && x !== "workers" && c.modules[x]?.requires?.includes("workers"))) {
+      droppedMods.add("workers");
+      log(`  it${it} no worker needed: dropping the workers module`);
+    }
     // No more than loopCap identical player trips in a row (see overLoopCap): a 6th repeat must be unnecessary, so the
     // level has to give a worker (cheaper hire pads here), a bigger carry, or a cheaper cost.
     if (r.feasible && overLoopCap(ms)) {
@@ -379,7 +423,14 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       }
       const idle = idleElements(m, ms.runs["good"]!);
       if (!r.ok) Object.entries(r.filters).filter(([, v]) => v).forEach(([k]) => reject(k));
-      else if (idle.length > 0) { reject("idleElement"); log(`  it${it} idle elements: ${idle.join(", ")}`); }
+      else if (idle.length > 0) {
+        reject("idleElement");
+        // Optional automation the winning bot never needed (manual-first and the automation tax make the
+        // late extras not worth buying): later builds of this level leave those pads out.
+        const extra = idle.map((s) => s.startsWith("pad ") ? m.entities.find((e) => "id" in e && e.id === s.slice(4)) : undefined);
+        if (extra.every((e) => e && optionalPad(e, c))) for (const e of extra) dropped.add((e as { id: string }).id);
+        log(`  it${it} idle elements: ${idle.join(", ")}${dropped.size > 0 ? ` (dropping ${[...dropped].join(", ")})` : ""}`);
+      }
       else {
         const why2 = settleObjectives(m, ms, allowed, req.seed, req.phase === "teach");
         if (why2) { reject("objectives"); log(`  it${it} objectives: ${why2}`); }

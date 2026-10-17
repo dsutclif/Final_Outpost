@@ -1,8 +1,8 @@
 {
   "id": "s1-L044",
   "seed": 922952508,
-  "engineVersion": "0.7.0",
-  "contentVersion": "0.7.0",
+  "engineVersion": "0.8.0",
+  "contentVersion": "0.8.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -62,71 +62,71 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        107,
-        414
+        108,
+        415
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        134,
+        135,
         426
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        78,
-        424
+        80,
+        425
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        117,
-        452
+        119,
+        453
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        132,
-        393
+        127,
+        390
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        97,
-        381
+        98,
+        382
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        161,
-        440
+        155,
+        400
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        162,
-        404
+        164,
+        433
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        68,
+        69,
         468
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        51,
-        392
+        52,
+        393
       ]
     },
     {
@@ -137,7 +137,7 @@
         810
       ],
       "arrivals": {
-        "every": 20,
+        "every": 19,
         "total": 5
       }
     },
@@ -192,14 +192,14 @@
     "start.currency": 0,
     "core.burn": 2.1,
     "housing.base": 2,
-    "customers.spawn": 3.2,
+    "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 350
+    "level.budgetSeconds": 360
   },
   "goal": {
     "type": "survive",
-    "seconds": 190
+    "seconds": 200
   },
   "family": "shelter",
   "objectives": [
@@ -207,22 +207,20 @@
       "id": "main",
       "kind": "survive",
       "params": {
-        "seconds": 190
+        "seconds": 200
       }
     },
     {
       "id": "challenge2",
-      "kind": "admit",
-      "params": {
-        "n": 5
-      }
-    },
-    {
-      "id": "challenge",
       "kind": "heat_floor",
       "params": {
         "pct": 35
       }
+    },
+    {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
     }
   ],
   "fail": [
@@ -238,9 +236,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.026,
-    "fun": 0.773,
-    "botMargin": 0.662,
+    "difficulty": 0.027,
+    "fun": 0.682,
+    "botMargin": 0.657,
     "botsPassed": [
       "good",
       "average",
