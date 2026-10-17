@@ -6,7 +6,8 @@
 // Configure in Vercel (Project → Settings → Environment Variables):
 //   LEVELS_DISPATCH_TOKEN  a fine-grained GitHub token for this repository with "Actions: read and write"
 //   LEVELS_REPO            owner/name, default dsutclif/Final_Outpost
-// Without the token it answers 503 and nothing is built.
+// Without the token it answers 503 and nothing is built. `"dryRun": true` in the body starts the
+// workflow in plan-only mode (end-to-end test that builds nothing).
 
 const AHEAD = 60;
 /** A batch is worth starting only when it can add at least this many levels. */
@@ -36,6 +37,7 @@ export default async function handler(req, res) {
   const b = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body ?? {};
   const cleared = Number(b.cleared);
   const engine = String(b.engine ?? ""), content = String(b.content ?? "");
+  const dryRun = b.dryRun === true;
   if (!Number.isInteger(cleared) || cleared < 0 || cleared > 100000 || !/^[\d.]+$/.test(engine) || !/^[\d.]+$/.test(content)) {
     return send(res, 400, { queued: false, reason: "bad progress" });
   }
@@ -58,8 +60,8 @@ export default async function handler(req, res) {
   const r = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/levels-next.yml/dispatches`, {
     method: "POST",
     headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28", "content-type": "application/json" },
-    body: JSON.stringify({ ref: "main", inputs: { cleared: String(c), played: JSON.stringify(played) } }),
+    body: JSON.stringify({ ref: "main", inputs: { cleared: String(c), played: JSON.stringify(played), dry_run: String(dryRun) } }),
   });
   if (r.status !== 204) return send(res, 502, { queued: false, reason: `dispatch failed (${r.status})`, published });
-  return send(res, 202, { queued: true, published, cleared: c });
+  return send(res, 202, { queued: true, published, cleared: c, dryRun });
 }
