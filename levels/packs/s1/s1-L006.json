@@ -1,8 +1,8 @@
 {
   "id": "s1-L006",
   "seed": 39245116,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        120,
-        650
+        149,
+        605
       ],
       "sells": [
         "res.food_raw_1"
@@ -54,8 +54,8 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        337,
-        594
+        336,
+        583
       ]
     },
     {
@@ -68,29 +68,29 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        347,
-        483
+        321,
+        462
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        348,
-        423
+        363,
+        481
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        382,
-        475
+        332,
+        432
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        322,
-        452
+        330,
+        496
       ]
     },
     {
@@ -103,22 +103,22 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        412,
-        456
+        295,
+        475
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        375,
-        506
+        283,
+        445
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        307,
-        486
+        391,
+        470
       ]
     },
     {
@@ -131,22 +131,22 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        318,
-        418
+        304,
+        417
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        407,
-        394
+        408,
+        517
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        309,
-        380
+        418,
+        409
       ]
     },
     {
@@ -165,8 +165,8 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        261,
-        616
+        290,
+        676
       ],
       "cost": {
         "res.currency": 14
@@ -177,8 +177,8 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        137,
-        529
+        66,
+        580
       ],
       "cost": {
         "res.currency": 17
@@ -243,9 +243,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.212,
-    "fun": 0.788,
-    "botMargin": 0.585,
+    "difficulty": 0.192,
+    "fun": 0.78,
+    "botMargin": 0.584,
     "botsPassed": [
       "good",
       "average",

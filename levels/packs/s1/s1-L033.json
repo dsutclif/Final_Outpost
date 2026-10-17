@@ -1,8 +1,8 @@
 {
   "id": "s1-L033",
   "seed": 1817121508,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        393,
-        403
+        352,
+        389
       ],
       "sells": [
         "res.food_raw_1"
@@ -54,8 +54,8 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        350,
-        611
+        339,
+        612
       ]
     },
     {
@@ -82,22 +82,22 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        123,
-        575
+        194,
+        590
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        592
+        200,
+        546
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        141,
-        622
+        118,
+        571
       ]
     },
     {
@@ -110,36 +110,36 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        173,
-        621
+        153,
+        617
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        203,
-        563
+        140,
+        514
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        607
+        227,
+        570
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        95,
-        544
+        98,
+        529
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        232,
-        598
+        185,
+        640
       ]
     },
     {
@@ -159,18 +159,18 @@
       "id": "terrain0",
       "kind": "ridge",
       "rect": [
-        183,
-        254,
-        114,
-        16
+        137,
+        745,
+        17,
+        102
       ]
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        314,
-        505
+        323,
+        516
       ],
       "cost": {
         "res.currency": 15
@@ -181,8 +181,8 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        165,
-        478
+        167,
+        465
       ],
       "cost": {
         "res.currency": 18
@@ -226,14 +226,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 99
+        "seconds": 102
       }
     },
     {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 45
+        "pct": 50
       }
     }
   ],
@@ -251,8 +251,8 @@
   },
   "rating": {
     "difficulty": 0.036,
-    "fun": 0.834,
-    "botMargin": 0.525,
+    "fun": 0.795,
+    "botMargin": 0.519,
     "botsPassed": [
       "good",
       "average",
@@ -262,7 +262,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2.33,
       "goodAll": 1
     }
   }

@@ -1,7 +1,7 @@
 import type { Manifest } from "@fo/content";
 import type { Compiled, State } from "@fo/sim";
 import { FP, seedRng } from "@fo/sim";
-import { guideText, nameOf, type Skin } from "@fo/skins";
+import { guideText, nameOf, workerName, type Skin, type WorkerVars } from "@fo/skins";
 
 // Guide arrows: every half second ask the bot controller (packages/bots, loaded on demand) what
 // a perfect player would do next from the current state (Brain.suggest, which reads the state
@@ -50,15 +50,39 @@ export class Guide {
     const kind = sug.kind;
     const key = sug.key;
     if (this.out && this.out.key !== key && st.tick - this.since < HOLD && !URGENT.has(kind)) return this.out;
+    // A step whose text cannot be made still points the way, so the arrow never freezes on the previous step.
+    let text: string;
+    try { text = this.text(st, skin, kind, key.slice(kind.length + 1)); } catch { text = guideText(skin, kind === "pay" ? "padAny" : kind); }
     if (this.out?.key !== key) this.since = st.tick;
-    const vars: Record<string, string> = {};
-    const id = key.slice(kind.length + 1);
-    if (kind === "gather") { const n = st.nodes[Number(id)]; if (n) vars["res"] = nameOf(skin, this.cp.nodes[n.type]!.yields); }
-    if (kind === "pay") {
-      const e = this.cp.entityById[id] as { build?: string; role?: string } | undefined;
-      vars["name"] = nameOf(skin, e?.build ?? e?.role ?? id);
-    }
-    this.out = { key, at: { x: sug.target.x / FP, y: sug.target.y / FP }, text: guideText(skin, kind, vars), kind };
+    this.out = { key, at: { x: sug.target.x / FP, y: sug.target.y / FP }, text, kind };
     return this.out;
+  }
+
+  private text(st: State, skin: Skin, kind: string, id: string): string {
+    const cp = this.cp;
+    if (kind === "gather") { const n = st.nodes[Number(id)]; return guideText(skin, kind, n ? { res: nameOf(skin, cp.nodes[n.type]!.yields) } : {}); }
+    if (kind !== "pay") return guideText(skin, kind);
+    const e = cp.entityById[id];
+    if (e?.type === "pad.hire") {
+      const { from, to } = e.role;
+      const res = from ? cp.nodes[from]?.yields ?? cp.converters[from]?.output ?? Object.keys(cp.animals[from]?.drops ?? {})[0] : undefined;
+      const place = (x: string) => nameOf(skin, x === "store.depot" ? "struct.depot" : x);
+      const vars: WorkerVars = {};
+      if (res) vars.res = nameOf(skin, res);
+      if (to?.startsWith("conv.")) vars.machine = place(to);
+      if (to) { vars.dest = place(to); vars.place = place(to); } else vars.place = place("sink.sales_point");
+      return guideText(skin, "hire", { name: workerName(skin, e.role.role, vars) });
+    }
+    if (e?.type !== "pad.build") return guideText(skin, "padAny");
+    // What the pad acts on: an upgrade names the thing it upgrades, an unlock or clearing names its target.
+    const target = e.target ? cp.entityById[e.target] : undefined;
+    const targetName = target ? nameOf(skin, target.type === "pad.build" ? target.build : target.type) : "";
+    switch (e.build) {
+      case "node.enable": return guideText(skin, "unlock", { name: targetName });
+      case "zone.clear": return guideText(skin, "clear", { name: targetName });
+      case "sink.core.level": return guideText(skin, "upgrade", { name: nameOf(skin, "sink.core") });
+      case "conv.level": case "struct.ranged_defense.t2": return guideText(skin, "upgrade", { name: targetName });
+      default: return guideText(skin, "pay", { name: nameOf(skin, e.build) });
+    }
   }
 }

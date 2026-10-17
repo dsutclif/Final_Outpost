@@ -1,8 +1,8 @@
 {
   "id": "s1-L034",
   "seed": 383627009,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -66,15 +66,15 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        182,
-        418
+        186,
+        503
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        185,
-        503
+        169,
+        426
       ]
     },
     {
@@ -262,8 +262,8 @@
     }
   },
   "rating": {
-    "difficulty": 0.565,
-    "fun": 0.55,
+    "difficulty": 0.564,
+    "fun": 0.567,
     "botMargin": 0.525,
     "botsPassed": [
       "good",

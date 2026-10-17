@@ -1,8 +1,8 @@
 {
   "id": "s1-L012",
   "seed": 1973305700,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -39,7 +39,7 @@
         510
       ],
       "params": {
-        "fuel": 16,
+        "fuel": 17,
         "level": 1
       }
     },
@@ -79,8 +79,8 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        188,
-        432
+        200,
+        440
       ]
     },
     {
@@ -93,50 +93,57 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        138,
-        448
+        170,
+        432
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        137,
-        479
+        193,
+        513
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        159,
-        426
+        131,
+        466
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        169,
-        524
+        143,
+        421
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        397
+        136,
+        506
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        189,
-        398
+        171,
+        402
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        235,
-        389
+        210,
+        385
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        128,
+        384
       ]
     },
     {
@@ -229,7 +236,7 @@
         361,
         56
       ],
-      "freeze": 162
+      "freeze": 161
     },
     {
       "type": "capture.recruit_container",
@@ -237,7 +244,7 @@
         226,
         52
       ],
-      "freeze": 180
+      "freeze": 178
     },
     {
       "type": "capture.recruit_container",
@@ -245,17 +252,17 @@
         327,
         204
       ],
-      "freeze": 179
+      "freeze": 178
     },
     {
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        190,
-        591
+        162,
+        559
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 22
       },
       "build": "sink.core.level"
     },
@@ -267,7 +274,7 @@
         232
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 13
       },
       "build": "zone.clear",
       "target": "pass",
@@ -281,12 +288,12 @@
   "events": [],
   "params": {
     "start.currency": 10,
-    "core.burn": 2.9,
+    "core.burn": 2.8,
     "housing.base": 5,
-    "customers.spawn": 2.5,
+    "customers.spawn": 2.6,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "level.budgetSeconds": 140
+    "level.budgetSeconds": 170
   },
   "goal": {
     "type": "rescue_before_freeze",
@@ -305,7 +312,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 59
+        "seconds": 77
       }
     },
     {
@@ -327,9 +334,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.309,
-    "fun": 0.817,
-    "botMargin": 0.739,
+    "difficulty": 0.305,
+    "fun": 0.756,
+    "botMargin": 0.727,
     "botsPassed": [
       "good",
       "average",

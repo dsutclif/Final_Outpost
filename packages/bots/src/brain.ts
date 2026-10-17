@@ -1,4 +1,4 @@
-import { FP, TPS, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, blockedAt, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
@@ -32,6 +32,7 @@ const U = FP;
 const d2 = (a: Vec, b: Vec): number => (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 const dist = (a: Vec, b: Vec): number => Math.sqrt(d2(a, b));
 const near = (a: Vec, b: Vec, r: number): boolean => d2(a, b) < r * r;
+const isDangerousAnimal = (cp: Compiled, kind: string): boolean => (cp.animals[kind]?.aggroRange ?? 0) > 0;
 const count = (stack: readonly string[], res: string): number => { let n = 0; for (const s of stack) if (s === res) n++; return n; };
 
 interface LassoMem { capture: number; loop: Vec[]; idx: number; phase: "loop" | "return"; flip: number }
@@ -251,6 +252,8 @@ export class Brain {
     st.nodes.forEach((n, i) => {
       const def = this.cp.nodes[n.type]!;
       if (!n.enabled || n.stock === 0 || def.yields !== res) return;
+      // a node still under rubble cannot be reached until its pad clears it
+      if (blockedAt(st, this.cp, n.pos.x, n.pos.y)) return;
       const get = n.stock === null ? want : Math.min(want, n.stock + 1);
       const t = this.travel(st, st.player.pos, n.pos) + get * def.rateTicks + 10;
       const s = (get * value) / t;
@@ -464,7 +467,8 @@ export class Brain {
       if (collapseRule && cv.out >= def.outCap - 2 && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) T("fetch", 85, cv.id);
       if (forPlan <= 0 && !forSale) continue;
       const opByWorker = st.residents.some((r) => r.status === "ok" && r.role === def.role && r.assign.to === cv.type && near(r.pos, cv.operatorPos, cp.convParams.operatorRange));
-      if (cv.inQ.length > 0 && cv.out < (collapseRule ? def.outCap - 1 : def.outCap) && !opByWorker) T("operate", forPlan > 0 ? 45 : 38, cv.id);
+      // Working a machine by hand restarts the hands-off clock.
+      if (cv.inQ.length > 0 && cv.out < (collapseRule ? def.outCap - 1 : def.outCap) && !opByWorker && !this.handsOff(st)) T("operate", forPlan > 0 ? 45 : 38, cv.id);
       const served = st.residents.some((r) => r.status === "ok" && r.assign.from === cv.type && this.cp.roles[r.role]?.behavior === "collect_deliver");
       // Intermediate goods (refined material for a tier-2 converter) and outputs about to overflow.
       if (forPlan <= 0 && cv.out > 0 && !served && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) {
@@ -511,7 +515,11 @@ export class Brain {
 
     // Hunting: when nothing more urgent is on, take prey whose drop feeds a converter or the shelf.
     const hres = this.huntRes(st);
-    if (this.pol.hunt && st.prey.some((d) => d.alive) && (hres === null || count(p.stack, hres) < (cp.resources[hres]?.cap ?? 6))) T("hunt", 50);
+    // Hurt and something out there bites: let health come back first.
+    const hurt = st.player.hp * 2 < cp.player.hp && st.prey.some((d) => d.alive && isDangerousAnimal(cp, st.preyZones[d.zone]!.animal));
+    if (hurt) {
+      // stay out of reach until healed
+    } else if (this.pol.hunt && st.prey.some((d) => d.alive) && (hres === null || count(p.stack, hres) < (cp.resources[hres]?.cap ?? 6))) T("hunt", 50);
     else if (hres !== null && !this.huntedBy(st, hres) && count(p.stack, hres) < Math.min(cp.resources[hres]?.cap ?? 6, 4)
       && st.prey.some((d) => d.alive)) {
       T("hunt", 34);
@@ -669,6 +677,8 @@ export class Brain {
     const map: Partial<Record<TaskKind, SuggestKind>> = { fuel: "gather", lasso: "tow" };
     let kind = (map[task.kind] ?? task.kind) as SuggestKind;
     let target = tgt.pos;
+    // the bot works a machine from a spot that also reaches the hopper; a player is shown the operator plate itself
+    if (task.kind === "operate") { const cv = st.converters.find((c) => c.id === task.key); if (cv) target = cv.operatorPos; }
     if (this.rings.length > 0 && this.insideRings(st.player.pos) !== this.insideRings(target) && task.kind !== "fight") {
       const g = this.nearestGate(st, st.player.pos);
       if (g) { kind = "gate"; target = g; }

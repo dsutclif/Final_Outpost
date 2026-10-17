@@ -41,6 +41,8 @@ export interface PlaceOpts {
   slots?: { id: string; dx: number; dy: number; r: number; fp: string | readonly string[] }[];
   /** The station sits on a wall (a belt's own build pad): the wall test is skipped. */
   onWall?: boolean;
+  /** false: rank by `near` alone, without the pull toward the core (a pad that must hug what it serves). */
+  pull?: boolean;
   /** Extra candidate filter (a layout rule that depends on where the machine goes, e.g. its belt run). */
   accept?: (p: Pt) => boolean;
 }
@@ -60,7 +62,9 @@ export class Placer {
   readonly walls: [Pt, Pt][] = [];
   constructor(readonly rand: Rand, readonly margin: number, readonly standR: number,
     readonly bounds: Rect, readonly core: Pt, readonly screen: readonly [number, number, number?], readonly c: Content = defaultContent,
-    readonly footprints: Readonly<Record<string, Box>> = {}, readonly footprintGap = 0) {}
+    readonly footprints: Readonly<Record<string, Box>> = {}, readonly footprintGap = 0,
+    /** Weight of the distance to the core when ranking candidates by `near`: keeps the base compact. */
+    readonly corePull = 0) {}
 
   /** Absolute ground box at p for the footprint key(s): the union of each key's box. */
   box(p: Pt, fp: string | readonly string[] | undefined): Box | undefined {
@@ -133,7 +137,9 @@ export class Placer {
       best = cands[Math.min(cands.length - 1, Math.round(opts.reach.t * (cands.length - 1)))]!;
     } else if (opts.near) {
       const nr = opts.near;
-      best = cands.reduce((a, b) => (dist(b, nr) < dist(a, nr) ? b : a));
+      const w = opts.pull === false ? 0 : this.corePull;
+      const cost = (q: Pt) => dist(q, nr) + w * dist(q, this.core);
+      best = cands.reduce((a, b) => (cost(b) < cost(a) ? b : a));
     } else best = cands[0]!;
     this.add(id, best, r, opts);
     return best;

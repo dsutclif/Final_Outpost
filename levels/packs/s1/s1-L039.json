@@ -1,8 +1,8 @@
 {
   "id": "s1-L039",
   "seed": 1912053956,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -58,8 +58,8 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        380,
-        502
+        351,
+        499
       ]
     },
     {
@@ -114,22 +114,22 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        144,
-        419
+        177,
+        523
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        508
+        139,
+        424
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        121,
-        441
+        131,
+        500
       ]
     },
     {
@@ -273,8 +273,8 @@
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        172,
-        584
+        190,
+        569
       ],
       "cost": {
         "res.currency": 24
@@ -349,9 +349,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.781,
-    "fun": 0.814,
-    "botMargin": 0.577,
+    "difficulty": 0.777,
+    "fun": 0.809,
+    "botMargin": 0.579,
     "botsPassed": [
       "good",
       "average",

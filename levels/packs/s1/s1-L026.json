@@ -1,8 +1,8 @@
 {
   "id": "s1-L026",
-  "seed": 971300282,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "seed": 652827244,
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -40,99 +40,106 @@
         500
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 17,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        323,
-        475
+        303,
+        474
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        316,
-        445
+        326,
+        456
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        287,
-        463
+        275,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        312,
-        509
+        328,
+        491
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        352,
-        477
+        292,
+        503
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        284,
-        500
+        314,
+        428
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        277,
-        433
+        356,
+        454
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        344,
-        437
+        272,
+        428
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        349,
-        510
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        302,
-        414
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        333,
-        535
+        313,
+        534
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         341,
-        398
+        517
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        289,
-        536
+        368,
+        482
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        276,
+        533
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        288,
+        394
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        347,
+        419
       ]
     },
     {
@@ -267,7 +274,7 @@
       "type": "pad.build",
       "id": "tower_w2",
       "at": [
-        56,
+        57,
         708
       ],
       "cost": {
@@ -286,8 +293,8 @@
       "type": "pad.build",
       "id": "tower_w_up",
       "at": [
-        116,
-        463
+        122,
+        460
       ],
       "cost": {
         "res.salvage": 5
@@ -302,8 +309,8 @@
       "type": "pad.build",
       "id": "tower_w2_up",
       "at": [
-        128,
-        614
+        99,
+        649
       ],
       "cost": {
         "res.salvage": 5
@@ -318,8 +325,8 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        311,
-        350
+        241,
+        382
       ],
       "cost": {
         "res.salvage": 5
@@ -333,8 +340,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        190,
-        640
+        117,
+        591
       ],
       "cost": {
         "res.salvage": 4
@@ -348,8 +355,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        132,
-        673
+        158,
+        670
       ],
       "cost": {
         "res.salvage": 3
@@ -367,8 +374,8 @@
       "type": "pad.build",
       "id": "medic",
       "at": [
-        295,
-        646
+        322,
+        618
       ],
       "cost": {
         "res.salvage": 6
@@ -430,7 +437,7 @@
       "gap": 0.7
     },
     {
-      "t": 74,
+      "t": 80,
       "counts": {
         "hostile.swarmling": 8,
         "hostile.raider_humanoid": 1
@@ -439,7 +446,7 @@
       "gap": 0.7
     },
     {
-      "t": 128,
+      "t": 139,
       "counts": {
         "hostile.swarmling": 15,
         "hostile.raider_humanoid": 3
@@ -448,7 +455,7 @@
       "gap": 0.45
     },
     {
-      "t": 183,
+      "t": 199,
       "counts": {
         "hostile.swarmling": 20,
         "hostile.raider_humanoid": 4,
@@ -460,11 +467,11 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 9,
-    "core.burn": 2.8,
+    "start.currency": 10,
+    "core.burn": 2.9,
     "housing.base": 13,
     "meters.baseHealth": 15,
-    "level.budgetSeconds": 570
+    "level.budgetSeconds": 640
   },
   "goal": {
     "type": "hire",
@@ -485,14 +492,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 273
+        "seconds": 295
       }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 35
+        "pct": 25
       }
     }
   ],
@@ -510,9 +517,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.893,
-    "fun": 0.043,
-    "botMargin": 0.726,
+    "difficulty": 0.82,
+    "fun": 0.042,
+    "botMargin": 0.735,
     "botsPassed": [
       "good",
       "average",
@@ -521,9 +528,9 @@
       "floor"
     ],
     "stars": {
-      "good": 2.9,
+      "good": 3,
       "median": 3,
-      "goodAll": 0.9
+      "goodAll": 1
     }
   }
 }

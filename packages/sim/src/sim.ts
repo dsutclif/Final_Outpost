@@ -27,7 +27,7 @@ import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStockCollapse } from "./systems/stock.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.8.0";
+export const ENGINE_VERSION = "0.9.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -81,7 +81,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       // Present only when repair is on, so a level without it hashes exactly as before.
       ...(cp.barrier.repairPm > 0 ? { "barrier.repairPm": cp.barrier.repairPm } : {}),
     },
-    player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false, padId: null, padDwell: 0, hitCd: 0, shotCd: 0, stun: 0, stunSlow: 1000 },
+    player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false, padId: null, padDwell: 0, hitCd: 0, shotCd: 0, stun: 0, stunSlow: 1000, hp: cp.player.hp, healCd: 0 },
     core: { pos: corePos, fuel: coreEnt.params.fuel, level: coreEnt.params.level, burnAcc: 0, lifeline: METER_MAX },
     nodes: [],
     sales: null,
@@ -114,7 +114,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       fuelOuts: 0, froze: 0, heatMin: 1000, customersSpawned: 0, customersAngry: 0, earned: 0, soldUnits: {}, streak: 0, streakMax: 0,
       bulkServed: 0, unlocked: 0, hired: 0, hiredBy: {}, converted: 0, convertedBy: {}, tier2Made: 0, hauled: 0, kills: 0, bossKills: 0,
       preyKilled: 0, animalHits: 0, protein: 0, salvage: 0, crates: 0, podsLost: 0, wavesCleared: 0, admitted: 0, zonesCleared: 0, hazardsSurvived: 0,
-      tripBest: 0, tripBestClean: 0, lastPlayerDeposit: 0, salesSinceDeposit: 0,
+      tripBest: 0, tripBestClean: 0, lastPlayerDeposit: 0, salesSinceDeposit: 0, downs: 0,
     },
     lastHint: null,
     over: false,

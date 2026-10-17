@@ -1,8 +1,8 @@
 {
   "id": "s1-L025",
   "seed": 735800557,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -46,8 +46,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        250,
-        723
+        246,
+        678
       ],
       "sells": [
         "res.food_raw_1",
@@ -74,35 +74,35 @@
       "type": "node.fuel_scrap",
       "at": [
         96,
-        487
+        519
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        106,
-        515
+        100,
+        478
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        53,
-        476
+        123,
+        498
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        67,
+        472
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         62,
-        534
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        37,
-        514
+        537
       ]
     },
     {
@@ -115,52 +115,45 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        66,
-        446
+        38,
+        516
       ]
     },
     {
       "type": "node.fuel_scrap",
-      "at": [
-        95,
-        453
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        126,
-        490
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        17,
-        459
-      ]
-    },
-    {
-      "type": "node.material_source",
       "at": [
         145,
-        527
+        533
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        136,
+        440
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        83,
+        436
       ]
     },
     {
       "type": "node.food_source",
       "id": "food_g",
       "at": [
-        86,
-        273
+        100,
+        799
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        145,
-        591
+        169,
+        592
       ],
       "cost": {
         "res.currency": 10
@@ -176,8 +169,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        351,
-        642
+        344,
+        650
       ],
       "cost": {
         "res.currency": 16
@@ -194,8 +187,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        250,
-        847
+        246,
+        802
       ],
       "cost": {
         "res.currency": 23
@@ -210,8 +203,8 @@
       "type": "pad.build",
       "id": "grill",
       "at": [
-        159,
-        343
+        25,
+        651
       ],
       "cost": {
         "res.currency": 16
@@ -222,8 +215,8 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        95,
-        401
+        31,
+        815
       ],
       "cost": {
         "res.currency": 13
@@ -243,8 +236,8 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        159,
-        439
+        25,
+        747
       ],
       "cost": {
         "res.currency": 13
@@ -262,8 +255,8 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        259,
-        359
+        125,
+        667
       ],
       "cost": {
         "res.currency": 13
@@ -282,8 +275,8 @@
       "type": "pad.build",
       "id": "saw",
       "at": [
-        272,
-        186
+        311,
+        441
       ],
       "cost": {
         "res.currency": 20
@@ -294,8 +287,8 @@
       "type": "pad.hire",
       "id": "saw_feeder",
       "at": [
-        208,
-        244
+        211,
+        405
       ],
       "cost": {
         "res.currency": 13
@@ -314,8 +307,8 @@
       "type": "pad.hire",
       "id": "sawyer",
       "at": [
-        272,
-        282
+        311,
+        537
       ],
       "cost": {
         "res.currency": 13
@@ -333,8 +326,8 @@
       "type": "pad.build",
       "id": "alloy",
       "at": [
-        339,
-        382
+        254,
+        245
       ],
       "cost": {
         "res.currency": 26
@@ -348,8 +341,8 @@
       "type": "pad.hire",
       "id": "smith",
       "at": [
-        339,
-        478
+        254,
+        341
       ],
       "cost": {
         "res.currency": 13
@@ -367,8 +360,8 @@
       "type": "pad.hire",
       "id": "component_server",
       "at": [
-        439,
-        398
+        354,
+        261
       ],
       "cost": {
         "res.currency": 13
@@ -387,8 +380,8 @@
       "type": "pad.build",
       "id": "belt",
       "at": [
-        333,
-        284
+        310,
+        343
       ],
       "cost": {
         "res.currency": 21
@@ -406,8 +399,8 @@
       "type": "pad.build",
       "id": "depot",
       "at": [
-        111,
-        865
+        367,
+        759
       ],
       "cost": {
         "res.currency": 26
@@ -418,8 +411,8 @@
       "type": "pad.hire",
       "id": "depot_supplier",
       "at": [
-        35,
-        865
+        140,
+        351
       ],
       "cost": {
         "res.currency": 13
@@ -438,8 +431,8 @@
       "type": "pad.hire",
       "id": "hauler",
       "at": [
-        187,
-        865
+        443,
+        759
       ],
       "cost": {
         "res.currency": 13
@@ -500,7 +493,7 @@
     "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 800
+    "level.budgetSeconds": 670
   },
   "goal": {
     "type": "automate",
@@ -519,13 +512,15 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 588
+        "seconds": 472
       }
     },
     {
       "id": "challenge",
-      "kind": "settlement_never_freezes",
-      "params": {}
+      "kind": "hire",
+      "params": {
+        "n": 12
+      }
     }
   ],
   "fail": [
@@ -541,9 +536,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.541,
-    "fun": 0.874,
-    "botMargin": 0.666,
+    "difficulty": 0.556,
+    "fun": 0.887,
+    "botMargin": 0.556,
     "botsPassed": [
       "good",
       "average",

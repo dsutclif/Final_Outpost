@@ -61,7 +61,14 @@ export function stepManual(st: State, cp: Compiled, out: readonly SimEvent[]): v
         const cv = st.converters.find((c) => c.pickupPos.x === e.at.x && c.pickupPos.y === e.at.y);
         if (cv) m.src[e.res] = cv.type;
       } break;
-      case "deposited": if (e.by === undefined && m.src[e.res]) mark(`carry:${m.src[e.res]}>${e.to}`); break;
+      case "deposited": {
+        if (e.by !== undefined || !m.src[e.res]) break;
+        const src = m.src[e.res]!;
+        mark(`carry:${src}>${e.to}`);
+        // Sources that yield the same thing are the same job to the player (ore from the ore pile or the scrap).
+        if (cp.nodes[src]) for (const [type, n] of Object.entries(cp.nodes)) if (type !== src && n.yields === e.res) mark(`carry:${type}>${e.to}`);
+        break;
+      }
       case "converted": {
         const cv = st.converters.find((c) => c.id === e.conv);
         if (cv && within(p, cv.operatorPos, cp.convParams.playerOperateRange)) mark(`operate:${cv.type}`);

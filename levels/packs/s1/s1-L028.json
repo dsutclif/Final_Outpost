@@ -1,8 +1,8 @@
 {
   "id": "s1-L028",
   "seed": 1450634623,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,7 +37,7 @@
         500
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -71,70 +71,70 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        121,
-        494
+        173,
+        465
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        174,
-        484
+        171,
+        504
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        158,
-        446
+        140,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        147,
-        509
+        122,
+        496
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        99,
-        469
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        123,
-        447
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        116,
+        146,
         529
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        175,
-        519
+        114,
+        454
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        112,
-        417
+        180,
+        538
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        178,
+        436
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        116,
+        525
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        163,
+        126,
         402
       ]
     },
@@ -218,7 +218,7 @@
         228,
         54
       ],
-      "freeze": 134
+      "freeze": 143
     },
     {
       "type": "capture.recruit_container",
@@ -226,7 +226,7 @@
         203,
         144
       ],
-      "freeze": 141
+      "freeze": 150
     },
     {
       "type": "capture.recruit_container",
@@ -234,7 +234,7 @@
         373,
         86
       ],
-      "freeze": 168
+      "freeze": 178
     },
     {
       "type": "capture.recruit_container",
@@ -242,7 +242,7 @@
         385,
         197
       ],
-      "freeze": 174
+      "freeze": 183
     },
     {
       "type": "zone.prey",
@@ -261,17 +261,17 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.5,
+    "start.currency": 6,
+    "core.burn": 2.6,
     "housing.base": 6,
-    "customers.spawn": 3,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "level.budgetSeconds": 320
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "protein",
-    "n": 30
+    "n": 32
   },
   "family": "rescue",
   "objectives": [
@@ -279,14 +279,14 @@
       "id": "main",
       "kind": "protein",
       "params": {
-        "n": 30
+        "n": 32
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 196
+        "seconds": 224
       }
     },
     {
@@ -310,9 +310,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.653,
-    "fun": 0.877,
-    "botMargin": 0.619,
+    "difficulty": 0.727,
+    "fun": 0.861,
+    "botMargin": 0.599,
     "botsPassed": [
       "good",
       "average",

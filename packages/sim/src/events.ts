@@ -34,6 +34,7 @@ export type SimEvent =
   // objectives: emitted when one becomes done or failed
   | { t: "objective"; id: string; kind: string; done: boolean; failed: boolean }
   // combat
+  | { t: "downed"; at: Vec }
   | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier" | "player" | "resident"; id: number; at: Vec; by: "player" | "resident" | "structure" | "hostile" | "animal" }
   | { t: "shot"; from: Vec; to: Vec; id: number }
   | { t: "died"; kind: string; id: number; at: Vec }

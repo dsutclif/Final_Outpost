@@ -23,7 +23,9 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
         s.streak++;
         if (s.streak > s.streakMax) s.streakMax = s.streak;
         if (e.kind === "unit.customer_bulk") s.bulkServed++;
-        s.salesSinceDeposit++;
+        // A sale the player rang up at the register is not hands-off.
+        if (st.sales && within(st.player.pos, st.sales.register, cp.sales.registerRange)) handWork(st);
+        else s.salesSinceDeposit++;
         break;
       case "customer_arrived": s.customersSpawned++; break;
       case "customer_left": if (e.angry) { s.customersAngry++; s.streak = 0; } break;
@@ -36,15 +38,17 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
       case "froze": s.froze++; break;
       case "unlocked": s.unlocked++; break;
       case "hired": s.hired++; s.hiredBy[e.role] = (s.hiredBy[e.role] ?? 0) + 1; break;
+      case "downed": s.downs++; break;
       case "converted": {
         s.converted++;
         s.convertedBy[e.res] = (s.convertedBy[e.res] ?? 0) + 1;
         const cv = st.converters.find((c) => c.id === e.conv);
         if (cv && cp.converters[cv.type]!.tier >= 2) s.tier2Made++;
+        if (cv && within(st.player.pos, cv.operatorPos, cp.convParams.playerOperateRange)) handWork(st);
         break;
       }
       case "deposited": {
-        if (e.by === undefined) { s.lastPlayerDeposit = st.tick; s.salesSinceDeposit = 0; }
+        if (e.by === undefined) handWork(st);
         else if (cp.roles[st.residents.find((r) => r.id === e.by)?.role ?? ""]?.behavior === "haul") s.hauled++;
         if (cp.proteinRes.includes(e.res)) s.protein++;
         break;
@@ -71,6 +75,12 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
   const heat = mulDiv(st.core.fuel, 1000, coreFuelCap(st, cp));
   if (heat < s.heatMin) s.heatMin = heat;
   if (demands(st, cp) >= 2) s.concurrentDemandTicks++;
+}
+
+/** The player kept the base running by hand this tick, which restarts the hands-off clock. */
+function handWork(st: State): void {
+  st.stats.lastPlayerDeposit = st.tick;
+  st.stats.salesSinceDeposit = 0;
 }
 
 /** Bounded reward bookkeeping: a ring of recent ticks plus count, last tick, longest gap and a gap histogram. */

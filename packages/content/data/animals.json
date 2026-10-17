@@ -10,7 +10,7 @@
     "margin": 20
   },
   "node.prey_dangerous": {
-    "hp": 6,
+    "hp": 8,
     "speedMin": 0,
     "speedMax": 30,
     "turnMin": 1,
@@ -22,7 +22,8 @@
     "aggroRange": 75,
     "chargeSpeed": 95,
     "attackRange": 22,
-    "attackInterval": 1.4,
+    "attackInterval": 1.2,
+    "damage": 2,
     "knockDistance": 110,
     "stun": 0.8,
     "stunSlow": 0.35,

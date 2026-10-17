@@ -107,7 +107,7 @@ function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string
     return (r.trace.baseHpLost / baseHp + 0.2 * r.trace.barriersBroken + 0.2 * r.trace.injuries) / minutes;
   }));
   // Bites from dangerous animals per minute of play, over the ladder (the hunting levels' own threat).
-  const animalHits = mean(Object.values(runs).flat().map((r) => r.trace.animalHits / Math.max(1 / 6, r.ticks / TPS / 60)));
+  const animalHits = mean(Object.values(runs).flat().map((r) => (r.trace.animalHits + 2 * (r.trace.downs ?? 0)) / Math.max(1 / 6, r.ticks / TPS / 60)));
   // Currency the plan needs over what the reference bot's income rate yields in the time budget.
   const horizon = TIME_FIXED_GOALS.has(m.goal.type) ? mean(ref.map((r) => r.ticks)) : budgetTicks;
   const available = mean(ref.map((r) => (r.trace.currencyEarned / Math.max(1, r.ticks)) * horizon)) + (m.params["start.currency"] ?? 0);

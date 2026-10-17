@@ -77,8 +77,8 @@ describe("dangerous prey", () => {
             if (bites > 0) {
               // Bites that landed this tick: someone dangerous and alive is within attackRange of the player.
               expect(beasts(sim).some((d) => d.alive && within(d.pos, st.player.pos, A.attackRange))).toBe(true);
-              // One item per bite at most (pickups can only add to the pack).
-              expect(st.player.stack.length).toBeGreaterThanOrEqual(stackBefore - bites);
+              // One item per bite at most (pickups can only add to the pack), unless the bite knocked the player down.
+              if (!ev.some((e) => e.t === "downed")) expect(st.player.stack.length).toBeGreaterThanOrEqual(stackBefore - bites);
             }
             if (++t % 25 === 0) assertIntegerState(st);
             if (st.over) return;
@@ -86,6 +86,60 @@ describe("dangerous prey", () => {
         }
       }),
       { numRuns: 25 },
+    );
+  });
+});
+
+describe("player health", () => {
+  const walk = fc.record({ dx: fc.integer({ min: -1000, max: 1000 }), dy: fc.integer({ min: -1000, max: 1000 }), hold: fc.integer({ min: 1, max: 40 }) });
+
+  it("bites take hp; at 0 the player is knocked down, the pack spills and hp refills", () => {
+    const sim = newSim({ seed: 7 }, withBeasts(3));
+    grant(sim, { items: ["res.food_raw_1", "res.food_raw_2", "res.food_raw_2"] });
+    const A = sim.compiled.animals["node.prey_dangerous"]!, max = sim.compiled.player.hp;
+    expect(sim.state.player.hp).toBe(max);
+    // one bite from down (and not healing meanwhile); the auto-fire would kill the beasts before five bites
+    sim.state.player.hp = A.damage;
+    sim.state.player.healCd = 1e6;
+    let downed = false, lowest = max;
+    for (let i = 0; i < 3000 && !downed && !sim.state.over; i++) {
+      const ev = sim.step({ dx: 0, dy: 0 });
+      lowest = Math.min(lowest, sim.state.player.hp);
+      downed = ev.some((e) => e.t === "downed");
+    }
+    expect(lowest).toBe(A.damage);
+    expect(A.damage).toBeGreaterThan(0);
+    expect(downed).toBe(true);
+    expect(sim.state.player.stack.length).toBe(0);
+    expect(sim.state.player.hp).toBe(max);
+    expect(sim.state.player.stunSlow).toBe(0);
+    expect(sim.state.stats.downs).toBe(1);
+  });
+
+  it("heals back to full after a quiet spell", () => {
+    const sim = newSim({ seed: 3 }, withBeasts(2, [sx, sy + 340]));
+    sim.state.player.hp = 1;
+    sim.state.player.healCd = sim.compiled.player.healDelayTicks;
+    idle(sim, sim.compiled.player.healDelayTicks + sim.compiled.player.healTicks * (sim.compiled.player.hp + 1));
+    expect(sim.state.player.hp).toBe(sim.compiled.player.hp);
+  });
+
+  it("property: hp stays within 0..max and a knockdown leaves an empty pack", () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 0, max: 1 << 30 }), fc.array(walk, { minLength: 1, maxLength: 20 }), (seed, segs) => {
+        const sim = newSim({ seed }, withBeasts(3));
+        grant(sim, { items: ["res.food_raw_2", "res.food_raw_2", "res.food_raw_1"] });
+        const max = sim.compiled.player.hp;
+        for (const s of segs) for (let i = 0; i < s.hold; i++) {
+          const ev = sim.step({ dx: s.dx, dy: s.dy });
+          const p = sim.state.player;
+          expect(p.hp).toBeGreaterThanOrEqual(0);
+          expect(p.hp).toBeLessThanOrEqual(max);
+          if (ev.some((e) => e.t === "downed")) expect(p.stack.length).toBe(0);
+          if (sim.state.over) return;
+        }
+      }),
+      { numRuns: 20 },
     );
   });
 });

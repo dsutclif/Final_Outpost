@@ -48,6 +48,8 @@ export interface CompiledAnimal {
   stunTicks: number;
   /** FP share of walking speed kept while stunned. */
   stunSlow: number;
+  /** Player hp taken per bite. */
+  damage: number;
   injuresWorkers: boolean;
 }
 
@@ -203,7 +205,7 @@ export interface Compiled {
   map: { w: number; h: number };
   modules: Set<string>;
   resources: Record<string, CompiledResource>;
-  player: { speed: number; radius: number; actTicks: number; attackTicks: number; attackRange: number; attackDamage: number; rangedRange: number; rangedTicks: number };
+  player: { speed: number; radius: number; actTicks: number; attackTicks: number; attackRange: number; attackDamage: number; rangedRange: number; rangedTicks: number; hp: number; healDelayTicks: number; healTicks: number; downTicks: number };
   core: {
     range: number;
     accepts: Record<string, number>;
@@ -303,7 +305,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       respawnTicks: ticks(a.respawn), margin: fp(a.margin),
       variantOf: a.variantOf ?? null, aggroRange: fp(a.aggroRange), chargeSpeed: perTick(a.chargeSpeed), attackRange: fp(a.attackRange),
       attackTicks: ticks(a.attackInterval), knockDistance: fp(a.knockDistance), stunTicks: a.stun > 0 ? ticks(a.stun) : 0,
-      stunSlow: ratio(a.stunSlow), injuresWorkers: a.injuresWorkers,
+      stunSlow: ratio(a.stunSlow), damage: a.damage, injuresWorkers: a.injuresWorkers,
     };
   }
   const hostiles: Record<string, CompiledHostile> = {};
@@ -482,6 +484,10 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       attackDamage: int("player.attackDamage"),
       rangedRange: fp(param("player.rangedRange")),
       rangedTicks: ticks(param("player.rangedInterval")),
+      hp: int("player.hp"),
+      healDelayTicks: ticks(param("player.healDelay")),
+      healTicks: ticks(param("player.healInterval")),
+      downTicks: ticks(param("player.downSeconds")),
     },
     core,
     nodes,

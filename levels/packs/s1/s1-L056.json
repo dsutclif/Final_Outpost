@@ -1,8 +1,8 @@
 {
   "id": "s1-L056",
   "seed": 1427777921,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,50 +44,64 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        184,
-        451
+        187,
+        467
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        179,
-        485
+        178,
+        436
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        198,
-        421
+        193,
+        499
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        169,
-        402
+        207,
+        437
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        221,
-        403
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        192,
-        520
+        176,
+        527
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         164,
-        510
+        487
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        173,
+        404
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        202,
+        408
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        249,
+        399
       ]
     },
     {
@@ -220,7 +234,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 63
+        "seconds": 62
       }
     },
     {
@@ -244,9 +258,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.441,
-    "fun": 0.94,
-    "botMargin": 0.518,
+    "difficulty": 0.444,
+    "fun": 0.896,
+    "botMargin": 0.531,
     "botsPassed": [
       "good",
       "average",

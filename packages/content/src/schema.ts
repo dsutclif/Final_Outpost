@@ -72,7 +72,9 @@ export const AnimalDef = z.object({
   variantOf: NodeId.optional(),
   // Dangerous animals: charge anyone (player or hunter) within aggroRange, bite at attackRange every
   // attackInterval. A hit knocks the top item off the player's stack knockDistance away and slows the
-  // player to stunSlow (a 0..1 share of speed) for stun seconds; a hunter is injured when injuresWorkers.
+  // player to stunSlow (a 0..1 share of speed) for stun seconds and takes damage off player.hp (at 0 the
+  // player is knocked down: the pack spills and they lie still for player.downSeconds); a hunter is
+  // injured when injuresWorkers.
   aggroRange: units.default(0),
   chargeSpeed: units.default(0),
   attackRange: units.default(0),
@@ -80,6 +82,7 @@ export const AnimalDef = z.object({
   knockDistance: units.default(0),
   stun: seconds.default(0),
   stunSlow: z.number().min(0).max(1).default(1),
+  damage: z.number().int().min(0).default(0),
   injuresWorkers: z.boolean().default(false),
 });
 export type AnimalDef = z.infer<typeof AnimalDef>;

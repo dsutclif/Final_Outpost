@@ -1,8 +1,8 @@
 {
   "id": "s1-L044",
   "seed": 922952508,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,8 +44,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        346,
-        641
+        330,
+        603
       ],
       "sells": [
         "res.food_raw_1"
@@ -62,71 +62,71 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        108,
-        415
+        122,
+        417
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        135,
-        426
+        139,
+        443
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        80,
-        425
+        95,
+        435
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        119,
-        453
+        151,
+        408
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        127,
-        390
+        124,
+        388
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        98,
-        382
+        81,
+        406
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        155,
-        400
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        164,
-        433
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        69,
+        111,
         468
       ]
     },
     {
+      "type": "node.fuel_scrap",
+      "at": [
+        165,
+        457
+      ]
+    },
+    {
       "type": "node.material_source",
       "at": [
-        52,
-        393
+        67,
+        467
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        169,
+        370
       ]
     },
     {
@@ -137,7 +137,7 @@
         810
       ],
       "arrivals": {
-        "every": 19,
+        "every": 20,
         "total": 5
       }
     },
@@ -145,8 +145,8 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        399,
-        519
+        431,
+        594
       ],
       "cost": {
         "res.currency": 16
@@ -157,8 +157,8 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        226,
-        653
+        86,
+        606
       ],
       "cost": {
         "res.currency": 19
@@ -169,8 +169,8 @@
       "type": "pad.build",
       "id": "housing2",
       "at": [
-        338,
-        744
+        366,
+        697
       ],
       "cost": {
         "res.currency": 22
@@ -236,9 +236,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.027,
-    "fun": 0.682,
-    "botMargin": 0.657,
+    "difficulty": 0.025,
+    "fun": 0.705,
+    "botMargin": 0.661,
     "botsPassed": [
       "good",
       "average",

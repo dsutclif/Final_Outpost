@@ -1,6 +1,6 @@
 import { CONTENT_VERSION, type Manifest } from "@fo/content";
 import { ENGINE_VERSION, FP, IMPLEMENTED_MODULES, METER_MAX, createSim, starsOf, type Sim, type SimEvent } from "@fo/sim";
-import { createCamera, type Camera } from "@fo/render-3d";
+import { VIEW_W, createCamera, type Camera } from "@fo/render-3d";
 import { getSkin, levelTitle, nameOf, purposeOf, uiText, type Skin } from "@fo/skins";
 import { Coach, toWorld } from "./coach.js";
 import { isNew, nearbyPassive, touchedBy } from "./discovery.js";
@@ -46,6 +46,11 @@ interface Session {
   guide: Guide | null;
   guideOn: boolean;
   guideTarget: GuideTarget | null;
+  /**
+   * Level-start overview (playtest): the camera shows the whole base and the sim waits until the
+   * player touches the screen, then it zooms in on the hero. 1 = fully out, easing to 0; null = off.
+   */
+  overview: { k: number; go: boolean; x: number; y: number; zoom: number } | null;
 }
 
 /** The first levels of the progression always show guide arrows. */
@@ -71,6 +76,8 @@ const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, sel: string): 
 const COUNTS_AS_POP = new Set(["ok", "injured", "healing"]);
 /** How long the tap-to-inspect card stays up (ms). */
 const INSPECT_MS = 2200;
+/** Seconds the overview takes to zoom in on the hero once the player touches the screen. */
+const OVERVIEW_ZOOM_S = 0.8;
 /** Pads closer than this pull the camera toward them (world units). */
 const LEAD_RANGE = 150;
 
@@ -108,7 +115,7 @@ export class App {
   private readonly el: {
     app: HTMLElement; hud: HTMLElement; lvlName: HTMLElement; goal: HTMLElement; chips: HTMLElement; menuBtn: HTMLButtonElement; retryBtn: HTMLButtonElement; gearBtn: HTMLButtonElement;
     stage: HTMLElement; world: HTMLElement; debug: HTMLElement; ov: Record<string, HTMLElement>; rotate: HTMLElement; loading: HTMLElement; toast: HTMLElement;
-    ftoast: HTMLElement; inspect: HTMLElement; objectives: HTMLElement;
+    ftoast: HTMLElement; tapstart: HTMLElement; inspect: HTMLElement; objectives: HTMLElement;
   };
 
   constructor(root: HTMLElement, private readonly deps: AppDeps) {
@@ -119,12 +126,14 @@ export class App {
       app: $(root, ".app"), hud: $(root, ".hud"), lvlName: $(root, "#lvlName"), goal: $(root, "#goalTxt"), chips: $(root, "#chips"),
       menuBtn: $<HTMLButtonElement>(root, "#menuBtn"), retryBtn: $<HTMLButtonElement>(root, "#retryBtn"), gearBtn: $<HTMLButtonElement>(root, "#gearBtn"), stage: $(root, "#stage"), world: $(root, "#world"),
       debug: $(root, "#debug"), ov, rotate: $(root, ".rotate"), loading: $(root, "#loading"), toast: $(root, "#toast"),
-      ftoast: $(root, "#ftoast"), inspect: $(root, "#inspect"), objectives: $(root, "#objectives"),
+      ftoast: $(root, "#ftoast"), tapstart: $(root, "#tapstart"), inspect: $(root, "#inspect"), objectives: $(root, "#objectives"),
     };
     this.platform = deps.platform ?? webPlatform();
     this.haptics = new Haptics((ms) => this.platform.haptic(ms));
     this.input = new InputController(this.el.stage);
     this.input.onTap = (x, y) => this.inspectAt(x, y);
+    // the first touch on the level-start overview starts play
+    this.el.stage.addEventListener("pointerdown", () => { const o = this.session?.overview; if (o && !o.go && this.screen === "playing") { o.go = true; this.el.tapstart.hidden = true; } }, { passive: true });
     this.hud = new HudView(this.el.chips);
     this.bindChrome();
   }
@@ -614,7 +623,7 @@ export class App {
     this.session = {
       meta, manifest: sim.compiled.manifest, sim, renderer, cam: createCamera(), stepper: new FixedStepper(), coach, ended: false,
       earned: 0, lastCurrency: sim.state.currency, wavesCleared: 0, lifeMin: sim.state.meters.lifeline, played: 0,
-      guide: null, guideOn: false, guideTarget: null,
+      guide: null, guideOn: false, guideTarget: null, overview: null,
     };
     this.attachRenderer(this.session, renderer);
     if (!this.session) return;
@@ -648,7 +657,7 @@ export class App {
       <div class="row"><button data-a="levels" class="small">${esc(uiText(s, "levels"))}</button><button data-a="settings" class="small">${esc(uiText(s, "settings"))}</button></div>
     </div>`;
     this.wire(ov, {
-      start: () => this.show("playing"),
+      start: () => { if (this.session) this.startOverview(this.session); this.show("playing"); },
       levels: () => { this.endSession(); this.show("levels"); },
       settings: () => this.show("settings"),
     });
@@ -677,6 +686,7 @@ export class App {
   }
 
   private endSession(): void {
+    this.el.tapstart.hidden = true;
     if (this.resultTimer) { clearTimeout(this.resultTimer); this.resultTimer = null; }
     this.session?.renderer.dispose();
     this.session = null;
@@ -816,7 +826,8 @@ export class App {
     if (dt > 0) this.fps += (1000 / dt - this.fps) * 0.05;
     const s = this.session;
     if (!s) return;
-    const playing = this.screen === "playing" && !this.hidden && !s.ended;
+    const waiting = this.stepOverview(s, dt / 1000);
+    const playing = this.screen === "playing" && !this.hidden && !s.ended && !waiting;
     if (playing) {
       const n = s.stepper.advance(dt);
       for (let i = 0; i < n && !s.ended; i++) this.stepOnce(s, this.input.read());
@@ -832,6 +843,41 @@ export class App {
     this.hud.tick(Math.min(0.1, dt / 1000));
     if (this.settings.debug) this.updateDebug(s);
   };
+
+  /** Frame the whole base: the bounding box of everything placed, fit to the stage. */
+  private startOverview(s: Session): void {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const add = (p: readonly number[]) => { x0 = Math.min(x0, p[0]!); y0 = Math.min(y0, p[1]!); x1 = Math.max(x1, p[0]!); y1 = Math.max(y1, p[1]!); };
+    add(s.manifest.start);
+    for (const e of s.manifest.entities as unknown as { at?: number[]; points?: number[][]; rect?: number[] }[]) {
+      if (e.at) add(e.at);
+      for (const q of e.points ?? []) add(q);
+      if (e.rect) { add(e.rect); add([e.rect[0]! + e.rect[2]!, e.rect[1]! + e.rect[3]!]); }
+    }
+    const pad = 50, r = this.el.stage.getBoundingClientRect();
+    const bw = x1 - x0 + 2 * pad, bh = y1 - y0 + 2 * pad;
+    const aspect = r.width > 0 ? r.height / r.width : 2;
+    const zoom = Math.min(1, VIEW_W / bw, (VIEW_W * aspect) / bh);
+    if (zoom >= 0.95) return;
+    s.overview = { k: 1, go: false, x: (x0 + x1) / 2, y: (y0 + y1) / 2, zoom };
+    s.cam.follow = false;
+    this.el.tapstart.textContent = uiText(this.skin, "tapToStart");
+    this.el.tapstart.hidden = false;
+  }
+
+  /** Drive the overview camera; true while play has not started. */
+  private stepOverview(s: Session, dt: number): boolean {
+    const o = s.overview;
+    if (!o) return false;
+    if (o.go) o.k = Math.max(0, o.k - dt / OVERVIEW_ZOOM_S);
+    const e = o.k * o.k * (3 - 2 * o.k);
+    const p = s.sim.state.player.pos;
+    s.cam.zoom = 1 + (o.zoom - 1) * e;
+    s.cam.x = p.x / FP + (o.x - p.x / FP) * e;
+    s.cam.y = p.y / FP + (o.y - p.y / FP) * e;
+    if (o.k <= 0) { s.overview = null; s.cam.zoom = 1; s.cam.follow = true; }
+    return !o.go;
+  }
 
   /**
    * Where the camera leans: the nearest open pad within reach, so pads on the map edge come
@@ -975,6 +1021,7 @@ const TEMPLATE = `
     <div class="overlay" id="ov-settings" hidden></div>
     <div class="overlay" id="ov-error" hidden></div>
     <div class="overlay" id="ov-unsupported" hidden></div>
+    <div class="tapstart" id="tapstart" hidden></div>
     <div class="ftoast" id="ftoast" hidden></div>
     <div class="inspect" id="inspect" hidden></div>
     <div class="loading" id="loading" hidden></div>

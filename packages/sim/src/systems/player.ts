@@ -21,6 +21,11 @@ export function movePlayer(st: State, cp: Compiled, input: Input): void {
   let speed = mulDiv(cp.player.speed, Math.max(0, FP - cp.lasso.speedPenalty * p.tow.length), FP);
   // A bite from a dangerous animal slows the walk for a moment.
   if (p.stun > 0) { p.stun--; speed = mulDiv(speed, p.stunSlow, FP); }
+  // Health comes back a point at a time once nothing has hit for a while.
+  if (p.hp < cp.player.hp) {
+    if (p.healCd > 0) p.healCd--;
+    else { p.hp++; p.healCd = cp.player.healTicks; }
+  }
   const r = cp.player.radius;
   const nx = clamp(p.pos.x + mulDiv(dir.x, speed, FP), r, cp.map.w - r);
   const ny = clamp(p.pos.y + mulDiv(dir.y, speed, FP), r, cp.map.h - r);

@@ -31,6 +31,10 @@ export interface PlayerState {
   /** Ticks of slowed walking left after an animal bite, and the FP share of speed kept meanwhile. */
   stun: number;
   stunSlow: number;
+  /** Health; animal bites take it, it heals back after a quiet spell, and at 0 the player is knocked down. */
+  hp: number;
+  /** Ticks until the next point of healing (restarts at player.healDelay on every hit). */
+  healCd: number;
 }
 
 export interface NodeState {
@@ -383,7 +387,10 @@ export interface Stats {
   tripBest: number;
   tripBestClean: number;
   /** Tick of the last deposit the player made by hand, and sales since then. */
+  /** Last tick the player kept the base running by hand: deposited, worked a machine or served at the register. */
   lastPlayerDeposit: number;
+  /** Times the player was knocked down by animal bites. */
+  downs: number;
   salesSinceDeposit: number;
 }
 

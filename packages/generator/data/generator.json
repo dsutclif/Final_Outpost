@@ -48,8 +48,11 @@
     "rescueShop": { "hw": 180, "hh": 200, "split": [3, 3] },
     "podGap": 62, "edge": 36, "towerPadIn": 46, "towerPadSearch": 30, "towerPadHug": 28
   },
-  "spacing": { "margin": 8, "standR": 16, "screen": [230, 420], "screenRadius": 440, "footprintGap": 6 },
+  "spacing": { "margin": 8, "standR": 16, "screen": [230, 420], "screenRadius": 440, "footprintGap": 6, "corePull": 0.3 },
   "crewStations": { "in": [-64, 58], "op": [0, 96], "out": [100, 16] },
+  "corePadBeside": [72, 18],
+  "busyForestMax": 9,
+  "shopPull": 0.3,
   "depotCrewStations": { "in": [-76, 0], "out": [76, 0] },
   "cashierPads": [[0, 70], [66, 30], [-66, 30], [70, 0], [-70, 0]],
   "beltGap": 175, "beltPairs": [[1, 0], [0.75, 0.66], [0.75, -0.66], [0.3, 0.95], [0.3, -0.95]],

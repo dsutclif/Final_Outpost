@@ -1,8 +1,8 @@
 {
   "id": "s1-L001",
-  "seed": 148133935,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "seed": 722945258,
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -33,78 +33,78 @@
         500
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 9,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        90,
-        450
+        112,
+        449
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        122,
-        460
+        89,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        108,
-        425
+        120,
+        477
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        90,
-        479
+        124,
+        421
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        75,
-        424
+        147,
+        457
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        59,
-        464
+        83,
+        469
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        117,
-        496
+        98,
+        497
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        95,
-        394
+        145,
+        495
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        146,
-        411
+        172,
+        427
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        171,
-        451
+        47,
+        431
       ]
     }
   ],
@@ -112,7 +112,7 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
+    "start.currency": 1,
     "core.burn": 2.1,
     "housing.base": 2,
     "level.budgetSeconds": 150
@@ -134,15 +134,15 @@
     },
     {
       "id": "challenge2",
-      "kind": "settlement_never_freezes",
-      "params": {}
+      "kind": "heat_floor",
+      "params": {
+        "pct": 35
+      }
     },
     {
       "id": "challenge",
-      "kind": "heat_floor",
-      "params": {
-        "pct": 40
-      }
+      "kind": "no_colonist_freezes",
+      "params": {}
     }
   ],
   "fail": [
@@ -158,9 +158,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.043,
-    "fun": 0.138,
-    "botMargin": 0.411,
+    "difficulty": 0.044,
+    "fun": 0.139,
+    "botMargin": 0.409,
     "botsPassed": [
       "good",
       "average",

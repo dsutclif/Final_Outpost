@@ -54,6 +54,8 @@ export interface BotTrace {
   injuries: number;
   /** Bites taken from dangerous animals. */
   animalHits: number;
+  /** Times those bites knocked the player down (whole pack spilled). */
+  downs: number;
   /** Currency cost of the plan's pads and barrier sections. */
   currencyNeeded: number;
   /** Currency paid by customers. */
@@ -405,6 +407,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     repairs,
     injuries: s.injured,
     animalHits: s.animalHits,
+    downs: s.downs,
     currencyNeeded: plan.currencyNeeded,
     currencyEarned: earned,
     rewardGaps: gaps,

@@ -50,7 +50,11 @@ function pickTarget(st: State, cp: Compiled, A: CompiledAnimal, d: PreyState): {
   return best;
 }
 
-/** A bite: the player loses the top item of the pack (or a towed captive when the pack is empty) and is slowed; a hunter is injured. */
+/**
+ * A bite: the player loses the top item of the pack (or a towed captive when the pack is empty), is slowed
+ * and loses hp; at 0 hp they are knocked down (the whole pack spills, the tow drops, they lie still for a
+ * moment and get up healed). A hunter is injured.
+ */
 function bite(st: State, cp: Compiled, A: CompiledAnimal, d: PreyState, victim: ResidentState | null, out: SimEvent[]): void {
   if (victim) {
     out.push({ t: "hit", target: "resident", id: victim.id, at: { ...victim.pos }, by: "animal" });
@@ -63,19 +67,39 @@ function bite(st: State, cp: Compiled, A: CompiledAnimal, d: PreyState, victim: 
   out.push({ t: "hit", target: "player", id: 0, at: { ...p.pos }, by: "animal" });
   p.stun = A.stunTicks;
   p.stunSlow = A.stunSlow;
-  if (p.stack.length > 0) {
-    const res = p.stack.pop()!;
-    // Flung away from the animal, past pickup range, and back toward open ground if that lands in terrain.
-    const dx = p.pos.x - d.pos.x, dy = p.pos.y - d.pos.y, L = isqrt(dx * dx + dy * dy);
-    const ux = L === 0 ? FP : mulDiv(dx, FP, L), uy = L === 0 ? 0 : mulDiv(dy, FP, L);
-    let k = A.knockDistance, pos: Vec = { ...p.pos };
-    for (let tries = 0; tries < 4; tries++, k = k >> 1) {
-      const x = clamp(p.pos.x + mulDiv(ux, k, FP), 0, cp.map.w), y = clamp(p.pos.y + mulDiv(uy, k, FP), 0, cp.map.h);
-      if (!blockedAt(st, cp, x, y)) { pos = { x, y }; break; }
-    }
-    st.drops.push({ id: st.nextDropId++, res, pos });
-    out.push({ t: "drop", res, at: { ...pos } });
-  } else if (p.tow.length > 0) dropTow(st, p.tow[p.tow.length - 1]!, "hit", out);
+  p.healCd = cp.player.healDelayTicks;
+  p.hp = Math.max(0, p.hp - A.damage);
+  if (p.hp === 0 && A.damage > 0) {
+    p.hp = cp.player.hp;
+    p.stun = cp.player.downTicks;
+    p.stunSlow = 0;
+    // The animal backs off while the player is down.
+    d.atk = cp.player.downTicks + A.attackTicks;
+    out.push({ t: "downed", at: { ...p.pos } });
+    let k = 0;
+    while (p.stack.length > 0) fling(st, cp, d, p.stack.pop()!, k++, out);
+    while (p.tow.length > 0) dropTow(st, p.tow[p.tow.length - 1]!, "hit", out);
+    return;
+  }
+  if (p.stack.length > 0) fling(st, cp, d, p.stack.pop()!, 0, out);
+  else if (p.tow.length > 0) dropTow(st, p.tow[p.tow.length - 1]!, "hit", out);
+}
+
+/** One item knocked off the pack, flung away from the animal past pickup range (fanned out by k), back toward open ground if that lands in terrain. */
+function fling(st: State, cp: Compiled, d: PreyState, res: string, k: number, out: SimEvent[]): void {
+  const p = st.player;
+  const A = cp.animals[st.preyZones[d.zone]!.animal]!;
+  // fan: alternate sides of the knock line, a little wider each item
+  const sx = (k & 1 ? -1 : 1) * ((k + 1) >> 1) * 15 * FP;
+  const dx = p.pos.x - d.pos.x, dy = p.pos.y - d.pos.y, L = isqrt(dx * dx + dy * dy);
+  const ux = L === 0 ? FP : mulDiv(dx, FP, L), uy = L === 0 ? 0 : mulDiv(dy, FP, L);
+  let reach = A.knockDistance, pos: Vec = { ...p.pos };
+  for (let tries = 0; tries < 4; tries++, reach = reach >> 1) {
+    const x = clamp(p.pos.x + mulDiv(ux, reach, FP) - mulDiv(uy, sx, FP), 0, cp.map.w), y = clamp(p.pos.y + mulDiv(uy, reach, FP) + mulDiv(ux, sx, FP), 0, cp.map.h);
+    if (!blockedAt(st, cp, x, y)) { pos = { x, y }; break; }
+  }
+  st.drops.push({ id: st.nextDropId++, res, pos });
+  out.push({ t: "drop", res, at: { ...pos } });
 }
 
 /** Prey wander inside their zone on random headings and respawn a while after being killed; dangerous ones charge and bite. */

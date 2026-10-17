@@ -1,8 +1,8 @@
 {
   "id": "s1-L010",
   "seed": 633739471,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -58,22 +58,22 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        119,
-        479
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        168,
-        462
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
         167,
-        506
+        451
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        171,
+        515
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        116,
+        477
       ]
     },
     {
@@ -86,8 +86,8 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        427
+        162,
+        418
       ]
     },
     {
@@ -100,29 +100,29 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        147,
-        529
+        96,
+        502
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        95,
-        500
+        133,
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        115,
-        417
+        153,
+        544
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        142,
-        405
+        185,
+        541
       ]
     },
     {
@@ -278,8 +278,8 @@
       "type": "pad.build",
       "id": "tower_e",
       "at": [
-        402,
-        425
+        401,
+        426
       ],
       "cost": {
         "res.salvage": 6
@@ -335,8 +335,8 @@
       "type": "pad.build",
       "id": "tower_e2_up",
       "at": [
-        325,
-        608
+        363,
+        643
       ],
       "cost": {
         "res.salvage": 5
@@ -351,8 +351,8 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        329,
-        440
+        317,
+        435
       ],
       "cost": {
         "res.salvage": 5
@@ -442,7 +442,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 246
+        "seconds": 248
       }
     },
     {
@@ -465,9 +465,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.206,
-    "fun": 0.497,
-    "botMargin": 0.608,
+    "difficulty": 0.179,
+    "fun": 0.316,
+    "botMargin": 0.607,
     "botsPassed": [
       "good",
       "average",

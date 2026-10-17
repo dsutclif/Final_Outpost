@@ -1,8 +1,8 @@
 {
   "id": "s1-L046",
   "seed": 1335281702,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -35,7 +35,7 @@
         500
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        314,
-        682
+        307,
+        622
       ],
       "sells": [
         "res.food_raw_1",
@@ -55,85 +55,78 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        366,
-        536
+        351,
+        492
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        78,
-        471
+        95,
+        452
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        81,
-        441
+        64,
+        472
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        109,
-        464
+        113,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        97,
+        127,
+        439
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        84,
         495
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        116,
-        435
+        52,
+        444
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        61,
-        500
+        77,
+        425
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        49,
-        471
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        134,
-        480
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        88,
-        411
+        150,
+        479
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        37,
-        428
+        136,
+        523
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        154,
-        445
+        130,
+        398
       ]
     },
     {
@@ -146,7 +139,7 @@
         120
       ],
       "animal": "node.prey",
-      "n": 2
+      "n": 1
     },
     {
       "type": "zone.prey",
@@ -158,7 +151,7 @@
         120
       ],
       "animal": "node.prey_dangerous",
-      "n": 1
+      "n": 2
     }
   ],
   "people": [],
@@ -166,12 +159,12 @@
   "events": [],
   "params": {
     "start.currency": 2,
-    "core.burn": 2.2,
+    "core.burn": 2.3,
     "housing.base": 2,
     "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.bulkShare": 0.17,
+    "customers.bulkShare": 0.16,
     "level.budgetSeconds": 80
   },
   "goal": {
@@ -188,7 +181,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 60
+        "seconds": 53
       }
     },
     {
@@ -210,9 +203,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.672,
-    "fun": 0.656,
-    "botMargin": 0.55,
+    "difficulty": 0.631,
+    "fun": 0.646,
+    "botMargin": 0.598,
     "botsPassed": [
       "good",
       "average",
@@ -221,7 +214,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.67,
+      "median": 3,
       "goodAll": 1
     }
   }

@@ -158,10 +158,11 @@ describe("layout and economy per family (stages 2-4)", () => {
 describe("strict crew slots", () => {
   type E = { id?: string; type: string; at?: [number, number] };
   const crew: Record<string, [string, "in" | "op" | "out"][]> = {
-    grill: [["feeder", "in"], ["cook", "op"], ["server", "out"]],
-    saw: [["saw_feeder", "in"], ["sawyer", "op"]],
+    grill: [["cook", "op"], ["server", "out"]],
+    saw: [["sawyer", "op"]],
     alloy: [["refined_carrier", "in"], ["smith", "op"], ["component_server", "out"]],
   };
+  // Collectors (the machine's and the warehouse's input workers) stand by their source instead: see below.
   it("puts every crew pad exactly at its machine's slot offset, the belt pad on the belt and the cashier past the clerk", () => {
     let machines = 0, belts = 0, cashiers = 0, depots = 0;
     for (const i of [3, 8, 9, 14, 19, 25, 30, 47]) {
@@ -180,7 +181,7 @@ describe("strict crew slots", () => {
         }
       }
       const dp = at.get("depot");
-      for (const [id, slot] of [["depot_supplier", "in"], ["hauler", "out"]] as const) {
+      for (const [id, slot] of [["hauler", "out"]] as const) {
         const p = at.get(id);
         if (dp && p) { depots++; expect(p).toEqual([dp[0] + GEN.depotCrewStations[slot][0], dp[1] + GEN.depotCrewStations[slot][1]]); }
       }
@@ -241,5 +242,28 @@ describe("generate (search + rating + stars)", () => {
     expect(t).toEqual(skinText(m, ["vips"]));
     expect(t.tips.length).toBeGreaterThanOrEqual(1);
     expect(fp(1)).toBe(1000);
+  });
+});
+
+describe("collector pads", () => {
+  type E = { id?: string; type: string; at?: [number, number]; role?: { role: string; from?: string; node?: string } };
+  it("stand beside the source they gather from", () => {
+    let n = 0, beside = 0;
+    for (const i of [4, 8, 9, 14, 19, 25, 47]) {
+      const b = build(i);
+      if (!b) continue;
+      const ents = b.manifest.entities as E[];
+      const byId = new Map(ents.filter((e) => e.id).map((e) => [e.id!, e]));
+      for (const e of ents) {
+        if (e.type !== "pad.hire" || e.role?.role !== "role.supplier" || !e.at) continue;
+        const srcs = e.role.node ? [byId.get(e.role.node)!.at!] : ents.filter((x) => x.type === e.role!.from && x.at).map((x) => x.at!);
+        const near = Math.min(...srcs.map((q) => Math.hypot(q[0] - e.at![0], q[1] - e.at![1])));
+        n++;
+        // the ideal spot is source range + pad range + margin (64-74); a crowded base pushes the odd one further out
+        if (near < 160) beside++;
+      }
+    }
+    expect(n).toBeGreaterThan(5);
+    expect(beside / n).toBeGreaterThanOrEqual(0.75);
   });
 });

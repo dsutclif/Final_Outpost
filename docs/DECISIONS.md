@@ -105,5 +105,27 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
       won comfortably by every rung, so the ladder-order test skips saturated levels.
     - Layout: the generator keeps drawn models from overlapping (`generator.json` footprints, held
       to the 3D models by a render-3d test), and groups each machine's hire pads beside it.
+9k. **Playtest after 0.8.0 (2026-10-17, engine/content 0.9.0).**
+    - Player health: `player.hp` (10). A dangerous animal's bite takes its `damage` (spiked hopper 2) on
+      top of the old knock-off; health heals a point every `player.healInterval` (0.5 s) once nothing
+      has hit for `player.healDelay` (4 s). At 0 the player is knocked down (`downed`): the whole pack
+      spills, the tow drops, they lie still for `player.downSeconds` (2 s) and get up at full health.
+      The 3D renderer draws a health bar over the hero while hurt. Spiked hoppers are a little
+      stronger: hp 8 (was 6), a bite every 1.2 s (was 1.4). Hostile hits still do no damage.
+    - Hands-off clock: working a machine's operator spot or ringing up a sale at the clerk pad now
+      restarts it, like a deposit (`stats.lastPlayerDeposit` is "last hand work").
+    - Manual first: sources that yield the same resource count as the same job, so ore carried from
+      the ore pile unlocks a pad whose worker gathers ore scrap.
+    - Layout: every collector's hire pad stands beside the source it gathers from (replacing 0.6.2's
+      "input worker by the hopper"); operators and output workers stay at their machine. Reactor
+      level pads stand beside the reactor (`corePadBeside`), a turret's upgrade pad on the turret's
+      other side along the wall. Placement leans toward the core (`spacing.corePull`), the kiosk
+      search centres part way to the core (`shopPull`), and industrialize levels get a smaller forest
+      (`busyForestMax`) and no second grove, so machines stay nearer the base.
+    - Client: a level opens on an overview of the whole base and waits for the first touch, then
+      zooms in on the hero. The guide names steps "Build the X" / "Hire the X" / "Upgrade the X",
+      and a step it cannot name no longer freezes the arrow on the previous step (the hire-pad label
+      bug behind "stuck on collect coins / feed reactor"). The haul goal reads "Couriers deliver N
+      goods from the warehouse".
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

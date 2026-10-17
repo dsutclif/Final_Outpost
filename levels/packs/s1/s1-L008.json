@@ -1,8 +1,8 @@
 {
   "id": "s1-L008",
   "seed": 1067227942,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -45,8 +45,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        320,
-        693
+        297,
+        636
       ],
       "sells": [
         "res.food_raw_1"
@@ -56,8 +56,8 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        359,
-        539
+        353,
+        500
       ]
     },
     {
@@ -70,8 +70,8 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        69,
-        451
+        126,
+        456
       ]
     },
     {
@@ -84,72 +84,72 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        82,
-        494
+        109,
+        493
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        114,
-        503
+        63,
+        466
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        51,
-        485
+        78,
+        492
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        133,
-        452
+        147,
+        476
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        39,
-        438
+        75,
+        431
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        74,
-        415
+        140,
+        429
       ]
     },
     {
       "type": "node.fuel_scrap",
-      "at": [
-        141,
-        484
-      ]
-    },
-    {
-      "type": "node.material_source",
       "at": [
         134,
-        409
+        515
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        61,
-        527
+        96,
+        534
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        107,
+        392
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        431,
-        530
+        424,
+        452
       ],
       "enabled": false
     },
@@ -157,7 +157,7 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        175,
+        190,
         568
       ],
       "cost": {
@@ -174,8 +174,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        432,
-        627
+        391,
+        571
       ],
       "cost": {
         "res.currency": 14
@@ -192,8 +192,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        320,
-        817
+        297,
+        760
       ],
       "cost": {
         "res.currency": 21
@@ -211,8 +211,8 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        431,
-        530
+        424,
+        452
       ],
       "cost": {
         "res.currency": 17
@@ -227,8 +227,8 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        454,
-        710
+        450,
+        533
       ],
       "cost": {
         "res.currency": 17
@@ -272,11 +272,11 @@
     "customers.orderMax": 3,
     "customers.impatientShare": 0.3,
     "customers.premiumShare": 0.2,
-    "level.budgetSeconds": 350
+    "level.budgetSeconds": 340
   },
   "goal": {
     "type": "serve_premium",
-    "n": 19
+    "n": 20
   },
   "family": "harvest",
   "objectives": [
@@ -284,14 +284,14 @@
       "id": "main",
       "kind": "serve_premium",
       "params": {
-        "n": 19
+        "n": 20
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 314
+        "seconds": 302
       }
     },
     {
@@ -306,16 +306,16 @@
   "text": {
     "mars_greenhouse": {
       "title": "Open Vault",
-      "goal": "Serve 19 VIP traders",
+      "goal": "Serve 20 VIP traders",
       "tips": [
         "Feed ore to the reactor. If it runs dry, the colony starts to freeze."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.181,
-    "fun": 0.802,
-    "botMargin": 0.521,
+    "difficulty": 0.186,
+    "fun": 0.787,
+    "botMargin": 0.511,
     "botsPassed": [
       "good",
       "average",
@@ -324,9 +324,9 @@
       "floor"
     ],
     "stars": {
-      "good": 2.8,
-      "median": 2.67,
-      "goodAll": 0.8
+      "good": 3,
+      "median": 3,
+      "goodAll": 1
     }
   }
 }

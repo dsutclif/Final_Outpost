@@ -1,8 +1,8 @@
 {
   "id": "s1-L022",
   "seed": 1533595209,
-  "engineVersion": "0.8.0",
-  "contentVersion": "0.8.0",
+  "engineVersion": "0.9.0",
+  "contentVersion": "0.9.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         510
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -44,8 +44,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        346,
-        645
+        329,
+        607
       ],
       "sells": [
         "res.food_raw_1"
@@ -62,92 +62,85 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        129,
-        426
+        147,
+        439
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        148,
-        452
+        120,
+        453
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        164,
-        427
+        117,
+        416
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        146,
-        397
+        155,
+        410
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        99,
-        446
+        142,
+        475
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        118,
-        470
+        171,
+        456
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        100,
-        411
+        182,
+        424
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        151,
-        483
+        197,
+        469
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        402
+        132,
+        387
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        179,
-        460
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        116,
-        374
+        171,
+        486
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        77,
-        481
+        81,
+        442
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        172,
-        359
+        105,
+        489
       ]
     },
     {
@@ -158,8 +151,8 @@
         810
       ],
       "arrivals": {
-        "every": 17,
-        "total": 4
+        "every": 18,
+        "total": 5
       }
     },
     {
@@ -188,8 +181,8 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        354,
-        517
+        429,
+        575
       ],
       "cost": {
         "res.currency": 14
@@ -200,11 +193,23 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        84,
-        640
+        82,
+        583
       ],
       "cost": {
         "res.currency": 17
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing2",
+      "at": [
+        361,
+        706
+      ],
+      "cost": {
+        "res.currency": 20
       },
       "build": "struct.housing"
     }
@@ -220,17 +225,17 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
+    "start.currency": 3,
     "core.burn": 2.4,
     "housing.base": 2,
     "customers.spawn": 3,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "level.budgetSeconds": 130
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 170
   },
   "goal": {
     "type": "population",
-    "n": 6
+    "n": 7
   },
   "family": "shelter",
   "objectives": [
@@ -238,14 +243,14 @@
       "id": "main",
       "kind": "population",
       "params": {
-        "n": 6
+        "n": 7
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 94
+        "seconds": 127
       }
     },
     {
@@ -260,16 +265,16 @@
   "text": {
     "mars_greenhouse": {
       "title": "Sleepers and Colonists",
-      "goal": "Grow the colony to 6 colonists",
+      "goal": "Grow the colony to 7 colonists",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.36,
-    "fun": 0.897,
-    "botMargin": 0.555,
+    "difficulty": 0.35,
+    "fun": 0.854,
+    "botMargin": 0.536,
     "botsPassed": [
       "good",
       "average",
@@ -278,7 +283,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2.67,
       "goodAll": 1
     }
   }

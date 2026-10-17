@@ -1454,6 +1454,12 @@ export class Renderer3D implements Renderer {
     anim.hit = this.fx!.flashK("player") * 0.6;
     this.addCharacter(look, anim, pl, yaw, t.frost);
     this.backStack(s.player.stack, pl, yaw, look.scale, this.moving, v, true);
+    // the hero's health shows over their head only while hurt (animal bites)
+    const hpMax = this.cp?.player.hp ?? 0;
+    if (hpMax > 0 && s.player.hp < hpMax) {
+      const k = s.player.hp / hpMax;
+      this.barTag(pl.x, ART_M * look.scale * 1.6, pl.y, k, k > 0.5 ? t.ok : t.danger, 8);
+    }
 
     for (const r of s.residents) {
       if (r.status === "towed" || r.status === "releasing") continue;
