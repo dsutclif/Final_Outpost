@@ -141,15 +141,34 @@ All characters: realistic, muted versions of the sheet designs, **empty-handed, 
 | `capture.supply_crate` | Supply crate | The towable supply crate: a rugged rusty-steel crate with strap bands, a handle and four small wheels. |
 | `zone.blocked` | Rockslide | A rockslide: a low wide pile of tan boulders and broken rock. |
 
+## Priority C: carried items (sheet: `Items.jpeg`)
+
+Singles only: the game builds back stacks, shelf stock and ground piles by repeating the single
+item, so the sheet's "stack" art is not needed. Items are drawn many times at once, so each is cut
+to about 200–500 triangles in cleanup: generate them simple and chunky, with a strong silhouette;
+fine print (labels, stamped text) will not survive and is not wanted. Same style block and rules.
+
+| File name | Asset | Prompt |
+|---|---|---|
+| `res.material_basic` | Crystalline ore | One chunk of crystalline ore from the sheet: a fist-sized lump of pale blue crystal growing from a little sandy rock base. Chunky, few large facets. |
+| `res.material_refined` | Alloy | One ingot of shiny alloy: a brushed silver trapezoid bar with bevelled edges. No text stamped on it. |
+| `res.fuel_dense` | Fuel cell | One fuel cell from the sheet: a short steel canister with a mesh cap and four tall windows glowing orange-red, chunky end rings. |
+| `res.food_raw_1` | Greens | One bundle of green leafy crops tied with twine at the stems, a few roots showing. Compact, chunky leaves. No tag. |
+| `res.food_raw_2` | Protein | One vacuum-wrapped protein block: a pale grey-silver plastic-wrapped brick with crimped ends. No printed label. |
+| `res.food_prepared` | Meal | One sealed meal pouch: a khaki foil pouch, slightly puffed, with a crimped top edge. No text. |
+| `res.salvage` | Scrap | One piece of bent scrap: a torn, rusty steel plate with a couple of twisted rods attached. Chunky. |
+| `res.currency` | Credits | One gold credit coin: a thick hexagonal gold coin with a raised ring emblem, seen at a three-quarter angle so its thickness shows. |
+| `res.component` | Parts | One machined part from the sheet: a steel gear fused to a short cylinder housing with bolts. Chunky. |
+
 ## Not sent to Meshy
 
-Kept code-built, because they are tiny on screen, flat, or animated in ways a single model
-cannot do: carried items (ore, alloy, fuel cells, crops, protein, meals, scrap, credits,
-parts), pads and rings, the conveyor belt, the hopper flats ground patch, the reactor glow,
-and all effects. They follow the concept look through the palette and the shader.
+Kept code-built, because they are flat or animated in ways a single model cannot do: pads and
+rings, the conveyor belt, the hopper flats ground patch, the reactor glow, and all effects. They
+follow the concept look through the palette and the shader.
 
 ## Priority and credit budget
 
-About 50 images. Order: Priority A buildings, A structures, A characters, then B. If credits
-run short, drop in this order: `role.server`, `role.hunter`, `role.cashier` (they fall back to
-the colonist model with code-built headgear), then the B nodes and props.
+About 60 images. Order: Priority A buildings, A structures, A characters, then B, then C (items,
+about 225 credits). If credits run short, drop in this order: `role.server`, `role.hunter`,
+`role.cashier` (they fall back to the colonist model with code-built headgear), then the items
+(code-built ones stay), then the B nodes and props.
