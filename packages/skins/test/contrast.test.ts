@@ -71,7 +71,7 @@ describe("palette readability", () => {
     });
   }
 
-  it("mars ground is a muted rust, not saturated red", () => {
+  it("mars ground is a muted sand, dark enough for the interactives", () => {
     const g = SKINS["mars_greenhouse"]!.palette.ground;
     expect(luminance(g)).toBeLessThan(0.2);
   });

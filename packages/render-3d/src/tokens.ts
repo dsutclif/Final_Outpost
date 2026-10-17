@@ -29,7 +29,7 @@ export interface Tokens {
   /** Plasma core: outer glow and hot centre. */
   plasma: string;
   plasmaHot: string;
-  /** Trim on structures (teal accent bands in the launch skin). */
+  /** Trim on structures (steel bands). */
   trim: string;
   metal: string;
   metalDark: string;
@@ -79,8 +79,10 @@ export function saturate(hex: string, k: number): string {
 export function deriveTokens(skin: Skin): Tokens {
   const k = skin.look3d?.saturation ?? 1;
   const sat = (c: string): string => saturate(c, k);
-  const p = { ...skin.palette, ground: sat(skin.palette.ground), groundAlt: sat(skin.palette.groundAlt), groundDark: sat(skin.palette.groundDark), accent: sat(skin.palette.accent) };
-  const sky = sat(p.sky);
+  const lift = skin.look3d?.groundLift ?? 0;
+  const sky = sat(skin.palette.sky);
+  const g = (c: string): string => mix(sat(c), sky, lift);
+  const p = { ...skin.palette, ground: g(skin.palette.ground), groundAlt: g(skin.palette.groundAlt), groundDark: g(skin.palette.groundDark), accent: sat(skin.palette.accent) };
   return {
     ground: p.ground,
     groundAlt: p.groundAlt,
@@ -100,7 +102,7 @@ export function deriveTokens(skin: Skin): Tokens {
     sun: mix(p.structure, p.accent, 0.22),
     plasma: p.accent,
     plasmaHot: mix(p.accent, p.structure, 0.55),
-    trim: mix(p.glass, p.interactive, 0.35),
+    trim: mix(p.glass, p.structureDark, 0.45),
     metal: mix(p.structureDark, p.ink, 0.3),
     metalDark: mix(p.structureDark, p.ink, 0.6),
     suit: p.structure,

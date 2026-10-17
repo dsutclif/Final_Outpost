@@ -1,7 +1,7 @@
 import { CONTENT_VERSION } from "@fo/content";
 import { ENGINE_VERSION, FP, TPS, createSim, type Input, type Sim, type State } from "@fo/sim";
 import { DEFAULT_SKIN, SKINS, getSkin } from "@fo/skins";
-import { WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, WebGLRenderer } from "three";
 import l1 from "../../../levels/golden/proto-L001.json";
 import l2 from "../../../levels/golden/proto-L002.json";
 import l3 from "../../../levels/golden/proto-L003.json";
@@ -81,6 +81,8 @@ function openLab(): void {
   const host = $("lab");
   const r = host.getBoundingClientRect();
   labGL = new WebGLRenderer({ antialias: true });
+  labGL.toneMapping = ACESFilmicToneMapping;
+  labGL.toneMappingExposure = 1.35;
   labGL.setPixelRatio(Math.min(2, devicePixelRatio));
   labGL.setSize(r.width, r.height);
   host.appendChild(labGL.domElement);

@@ -48,6 +48,7 @@ function fakeGL(): GLLike & { renders: number } {
     shadowMap: { enabled: false, type: 0 as GLLike["shadowMap"]["type"] },
     outputColorSpace: "srgb",
     toneMapping: 0 as GLLike["toneMapping"],
+    toneMappingExposure: 1,
     setPixelRatio: () => undefined,
     setSize: () => undefined,
     render(): void { this.renders++; },

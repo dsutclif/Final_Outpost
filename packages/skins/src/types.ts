@@ -74,6 +74,9 @@ export interface SkinText {
 export interface SkinLook3D {
   /** Saturation multiplier applied to scene colours (1 = palette as is). */
   saturation?: number;
+  /** Mix the ground tones toward the sky haze on screen (0 = palette as is): pale sand under a
+   *  strong key light while the checked palette keeps its darker, high-contrast ground. */
+  groundLift?: number;
 }
 
 export interface Skin {

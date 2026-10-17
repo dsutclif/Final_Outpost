@@ -127,5 +127,13 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
       and a step it cannot name no longer freezes the arrow on the previous step (the hire-pad label
       bug behind "stuck on collect coins / feed reactor"). The haul goal reads "Couriers deliver N
       goods from the warehouse".
+9l. **Art direction: brutalist outpost, Phase 1 look pass (2026-10-17).** Doug's concept sheets
+    replace the toy look (ART-DIRECTION.md); "when in doubt, the vibe image: more brutalist,
+    more realism, less saturation". Phase 1 is code only: new launch palette (dusty sand,
+    concrete, steel; contrast tests unchanged and passing), ACES tone mapping and a low key
+    light, procedural surface wear and panel seams in the shader, concrete slab aprons and
+    paths, and a gunmetal HUD in Barlow Condensed. `look3d.groundLift` pales the ground on
+    screen only. Models keep their current shapes; reshaping them (or replacing them with
+    generated GLB models) is the next phase. No rules change, so no engine bump.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

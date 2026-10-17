@@ -82,9 +82,9 @@ export class TitleBackdrop {
     g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     if (!this.sky) {
       this.sky = g.createLinearGradient(0, 0, 0, h);
-      this.sky.addColorStop(0, "#3b2436");
-      this.sky.addColorStop(0.28, mix(p.accent, "#f7d0a8", 0.55));
-      this.sky.addColorStop(0.55, mix(p.ground, p.accent, 0.35));
+      this.sky.addColorStop(0, "#2a2b2e");
+      this.sky.addColorStop(0.28, mix(p.sky, p.accent, 0.22));
+      this.sky.addColorStop(0.55, mix(p.ground, p.sky, 0.45));
       this.sky.addColorStop(1, mix(p.groundDark, "#000000", 0.35));
     }
     g.fillStyle = this.sky;
@@ -107,7 +107,7 @@ export class TitleBackdrop {
     g.fillStyle = alpha("#f3e2d0", 0.75);
     g.beginPath(); g.arc(mx, h * 0.14, 4, 0, Math.PI * 2); g.fill();
     // far dunes
-    this.dune(g, h * 0.55, 14, 0.012, t * 0.05, mix(p.groundAlt, "#f0b387", 0.35));
+    this.dune(g, h * 0.55, 14, 0.012, t * 0.05, mix(p.groundAlt, p.sky, 0.35));
     // middle ridge with the outpost
     const ridge = h * 0.6;
     this.dune(g, ridge, 10, 0.009, 1.3 + t * 0.09, mix(p.ground, p.groundAlt, 0.4));

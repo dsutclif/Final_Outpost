@@ -9,13 +9,13 @@ import type { SkinPalette } from "@fo/skins";
 export interface V2 { x: number; y: number }
 export type PointerIcon = "hostile" | "pod" | "person" | "core" | "coin" | "goal" | "alert";
 
-const FONT = '"Baloo 2","Nunito",ui-rounded,system-ui,sans-serif';
+const FONT = '"Barlow Condensed","Arial Narrow",system-ui,sans-serif';
 
 const STYLE = `
-.fo-hint{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px) scale(.96);background:rgba(33,24,26,.86);color:#fff;font:800 14px/1.2 ${FONT};padding:8px 16px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .2s,transform .2s;z-index:2;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.fo-hint{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px) scale(.96);background:rgba(16,18,20,.88);color:#fff;font:700 16px/1.2 ${FONT};letter-spacing:.03em;padding:8px 16px;border-radius:4px;border-left:3px solid #5cd8ff;pointer-events:none;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .2s,transform .2s;z-index:2;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 .fo-hint.on{opacity:1;transform:translate(-50%,0) scale(1)}
 .fo-hint.top{bottom:auto;top:58px}
-.fo-banner{position:absolute;left:50%;top:10px;transform:translateX(-50%);color:#fff;font:800 17px/1.15 ${FONT};padding:8px 18px;border-radius:999px;pointer-events:none;white-space:nowrap;z-index:2;box-shadow:0 4px 0 rgba(0,0,0,.18),0 8px 18px rgba(0,0,0,.25);text-shadow:0 1px 0 rgba(0,0,0,.25);animation:fo-banner-in .35s cubic-bezier(.2,1.6,.4,1)}
+.fo-banner{position:absolute;left:50%;top:10px;transform:translateX(-50%);color:#fff;font:800 19px/1.15 ${FONT};letter-spacing:.06em;text-transform:uppercase;padding:8px 18px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:2;box-shadow:0 4px 0 rgba(0,0,0,.18),0 8px 18px rgba(0,0,0,.25);text-shadow:0 1px 0 rgba(0,0,0,.25);animation:fo-banner-in .35s cubic-bezier(.2,1.6,.4,1)}
 @keyframes fo-banner-in{from{transform:translateX(-50%) scale(.6);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
 .fo-ptr{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:2;display:none}
 .fo-ptr .arr{position:absolute;left:0;top:0;width:0;height:0;border-left:12px solid currentColor;border-top:8px solid transparent;border-bottom:8px solid transparent;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff)}
@@ -29,7 +29,7 @@ const STYLE = `
 .fo-ptr .cnt{position:absolute;left:10px;top:-24px;min-width:18px;padding:1px 5px;border-radius:9px;background:#fff;color:currentColor;font:800 12px/16px ${FONT};text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.3);display:none}
 .fo-coach-ring{position:absolute;left:0;top:0;width:44px;height:20px;margin:-10px 0 0 -22px;border-radius:50%;border:3px solid currentColor;pointer-events:none;z-index:1;display:none}
 .fo-coach-arrow{position:absolute;left:0;top:0;width:30px;height:26px;margin:-26px 0 0 -15px;pointer-events:none;z-index:2;display:none}
-.fo-coach-bubble{position:absolute;left:0;top:0;background:#fff;border:2.5px solid currentColor;border-radius:14px;padding:4px 11px;font:800 14px/1.25 ${FONT};white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:3;display:none;box-shadow:0 3px 0 rgba(0,0,0,.22)}
+.fo-coach-bubble{position:absolute;left:0;top:0;background:#fff;border:2.5px solid currentColor;border-radius:4px;padding:4px 11px;font:700 16px/1.25 ${FONT};white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:3;display:none;box-shadow:0 3px 0 rgba(0,0,0,.22)}
 `;
 
 export function injectStyle(doc: Document): void {

@@ -5,7 +5,7 @@ import { LABEL_K } from "../units.js";
 // outline (ART-DIRECTION.md typography). Every texture is keyed by what it shows, so a
 // label that does not change is drawn once and shared; the cache evicts least-recently used.
 
-export const FONT = '"Baloo 2", "Nunito", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif';
+export const FONT = '"Barlow Condensed", "Arial Narrow", system-ui, sans-serif';
 
 type Ctx2D = CanvasRenderingContext2D;
 export type CanvasMaker = (w: number, h: number) => HTMLCanvasElement | null;

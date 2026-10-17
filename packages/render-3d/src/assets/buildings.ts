@@ -58,7 +58,7 @@ export function buildCore(ctx: BuildCtx): Model {
       .sphere(0.1, 8, 6, t.plasmaHot, { at: [0, 2.65, 0] });
   }
   for (let i = 0; i < Math.min(4, ctx.level); i++) b.box(0.16, 0.08, 0.1, ctx.level >= 3 ? t.plasmaHot : t.accent, { at: [(i - (Math.min(4, ctx.level) - 1) / 2) * 0.24, 0.15, 1.1] });
-  m.root.add(mesh(b.build(), mats.std, "body"));
+  m.root.add(mesh(b.build(), mats.panel, "body"));
   const glass = mesh(new GeoBuilder().cyl(0.43, 0.43, 1.0, 14, mix(t.glass, t.plasma, 0.6), { at: [0, 0.98, 0] }, true).build(), coreGlass(mats.glass), "glass");
   m.root.add(glass);
   const orb = mesh(new GeoBuilder().sphere(0.36, 12, 8, t.plasma).build(), mats.glow, "orb");
@@ -140,7 +140,7 @@ export function buildKiosk(ctx: BuildCtx, queue: readonly [number, number] = [2.
     .cyl(0.15, 0.15, 0.09, 12, t.glass, { at: [hx + side * 0.41, 1.08, -0.2], rot: [0, 0, Math.PI / 2] })
     .box(0.05, 0.08, 0.5, t.accent, { at: [hx + side * 0.43, 0.82, -0.2] })
     .rbox(0.7, 0.1, 0.9, 0.03, t.metalDark, { at: [hx + side * 0.55, 0.2, -0.2] }, 1);
-  m.root.add(mesh(b.build(), mats.std, "body"));
+  m.root.add(mesh(b.build(), mats.panel, "body"));
   const glass = mesh(new GeoBuilder().box(1.8, 0.82, 0.04, t.glass, { at: [0, 1.04, 0.47] }).build(), mats.glass, "glass");
   m.root.add(glass);
   const lamp = mesh(new GeoBuilder().sphere(0.08, 8, 6, WHITE).build(), statusMat(mats.glow, t.ok), "lamp");
@@ -199,7 +199,7 @@ export function buildConverter(id: string, ctx: BuildCtx, pickup: readonly [numb
   for (let i = 0; i < lv; i++) b.box(0.16, 0.12, 0.08, lv >= 3 ? t.plasmaHot : t.accent, { at: [-0.78 + i * 0.22, 1.08, 0.62] });
   if (food) b.dome(0.45, 10, 4, t.structure, { at: [0.15, 1.12, 0.05] }).box(0.6, 0.18, 0.04, out, { at: [-0.25, 0.7, 0.57] });
   else b.cyl(0.38, 0.32, 0.3, 10, t.metalDark, { at: [0.1, 1.27, 0.05] }).box(0.7, 0.12, 0.04, t.accent, { at: [-0.25, 0.7, 0.57] });
-  m.root.add(mesh(b.build(), mats.std, "body"));
+  m.root.add(mesh(b.build(), mats.panel, "body"));
   if (!food) {
     const melt = mesh(new GeoBuilder().cyl(0.3, 0.3, 0.04, 10, t.plasma, { at: [0.1, 1.43, 0.05] }).build(), mats.glow, "melt");
     m.root.add(melt);
@@ -233,7 +233,7 @@ export function buildHabPod(ctx: BuildCtx): Model {
     .torus(0.63, 0.05, 4, 14, t.trim, { at: [0.35, 0.82, 0], rot: [0, Math.PI / 2, 0] })
     .rbox(0.46, 0.7, 0.2, 0.08, t.metal, { at: [0, 0.6, 0.55] }, 1);
   for (const x of [-0.6, 0.6]) for (const z of [-0.35, 0.35]) b.cyl(0.06, 0.08, 0.3, 6, t.metalDark, { at: [x, 0.25, z] });
-  m.root.add(mesh(b.build(), mats.std, "body"));
+  m.root.add(mesh(b.build(), mats.panel, "body"));
   const win = new GeoBuilder();
   for (const x of [-0.55, 0.55]) win.sphere(0.13, 8, 6, t.plasmaHot, { at: [x, 0.95, 0.56], scale: [1, 1, 0.4] });
   win.box(0.3, 0.1, 0.02, t.plasmaHot, { at: [0, 0.98, 0.66] });
@@ -260,7 +260,7 @@ export function buildMedBay(ctx: BuildCtx, heal: readonly [number, number] = [0.
     .rbox(0.45, 0.14, 0.8, 0.05, t.structure, { at: [heal[0], 0.3, heal[1]] }, 1)
     .box(0.4, 0.06, 0.25, t.trim, { at: [heal[0], 0.4, heal[1] - 0.25] });
   for (const dz of [-0.3, 0.3]) b.cyl(0.03, 0.03, 0.24, 5, t.metal, { at: [heal[0], 0.12, heal[1] + dz] });
-  m.root.add(mesh(b.build(), mats.std, "body"));
+  m.root.add(mesh(b.build(), mats.panel, "body"));
   const beacon = mesh(new GeoBuilder().sphere(0.09, 8, 6, t.ok, { at: [-0.15, 1.65, 0] }).build(), mats.glow, "beacon");
   m.root.add(beacon);
   m.parts["beacon"] = beacon;
@@ -285,7 +285,7 @@ export function buildGuardPost(ctx: BuildCtx): Model {
   }
   // spear rack
   for (let i = 0; i < 3; i++) b.cyl(0.02, 0.02, 0.8, 4, t.metal, { at: [-0.75 + i * 0.1, 0.5, 0.45], rot: [0, 0, 0.12] });
-  m.root.add(mesh(b.build(), mats.std, "body"));
+  m.root.add(mesh(b.build(), mats.panel, "body"));
   anchor(m.root, "interact", 0, 0, 1.0);
   anchor(m.root, "pad", 0, 0, 0);
   return m;
@@ -301,7 +301,7 @@ export function buildTurret(ctx: BuildCtx, onWall = false): Model {
     .cyl(0.45, 0.58, 0.55, 8, t.structure, { at: [0, 0.4, 0] })
     .torus(0.5, 0.05, 4, 12, t2 ? t.accent : t.trim, { at: [0, 0.66, 0], rot: [Math.PI / 2, 0, 0] });
   if (t2) b.cyl(0.62, 0.66, 0.14, 8, t.metal, { at: [0, 0.2, 0] });
-  m.root.add(mesh(b.build(), mats.std, "body"));
+  m.root.add(mesh(b.build(), mats.panel, "body"));
   const head = new Group();
   head.name = "head";
   head.position.set(0, 0.72, 0);
@@ -324,7 +324,7 @@ export function buildTurret(ctx: BuildCtx, onWall = false): Model {
       .rbox(1.15, lift, 1.15, 0.06, mix(t.structure, t.metal, 0.3), { at: [0, lift / 2, 0] }, 1)
       .box(1.25, 0.1, 1.25, t.trim, { at: [0, lift, 0] });
     for (let i = 0; i < 4; i++) p.box(0.22, 0.16, 0.22, t.structure, { at: [i < 2 ? -0.5 : 0.5, lift + 0.12, i % 2 ? -0.5 : 0.5] });
-    m.root.add(mesh(p.build(), mats.std, "plinth"));
+    m.root.add(mesh(p.build(), mats.panel, "plinth"));
   }
   anchor(m.root, "interact", 0, 0, 0.9);
   anchor(m.root, "pad", 0, 0, 0);
@@ -356,7 +356,7 @@ export function buildWarehouse(ctx: BuildCtx): Model {
     .box(0.16, 0.07, 1.74, t.trim, { at: [1.19, 0.2 + wall, -0.05] });
   // short corner posts with accent caps: nothing crosses the opening overhead
   for (const x of [-1.19, 1.19]) for (const z of [-0.84, 0.78]) b.box(0.14, 0.7, 0.14, t.metal, { at: [x, 0.5, z] }).box(0.18, 0.07, 0.18, t.accent, { at: [x, 0.87, z] });
-  m.root.add(mesh(b.build(), mats.std, "body"));
+  m.root.add(mesh(b.build(), mats.panel, "body"));
   anchor(m.root, "deposit", 0, 0.5, 0.95);
   anchor(m.root, "pickup", 0, 0.5, 0.95);
   anchor(m.root, "interact", 0, 0, 1.3);
@@ -390,7 +390,7 @@ export function buildLandmark(ctx: BuildCtx): Model {
     b.cyl(0.16, 0.13, 0.18, 6, t.structureDark, { at: [Math.sin(a) * 2.35, 0.09, Math.cos(a) * 2.35] })
       .sphere(0.17, 6, 4, resToken(t, "res.food_raw_1"), { at: [Math.sin(a) * 2.35, 0.28, Math.cos(a) * 2.35] });
   }
-  m.root.add(mesh(b.build(), mats.std, "body"));
+  m.root.add(mesh(b.build(), mats.panel, "body"));
   const dome = mesh(new GeoBuilder().dome(1.6, 18, 7, t.glass, { at: [0, 0.75, 0] }).build(), mats.glass, "glass");
   m.root.add(dome);
   const inside = mesh(new GeoBuilder()
@@ -421,7 +421,7 @@ export function buildGate(ctx: BuildCtx): Model {
   b.rbox(2.72, 0.32, 0.64, 0.1, t.structure, { at: [0, 1.82, 0] }, 1)
     .box(1.6, 0.1, 0.04, t.accent, { at: [0, 1.82, 0.33] })
     .rbox(2.4, 0.08, 0.7, 0.03, t.metalDark, { at: [0, 0.04, 0] }, 1);
-  m.root.add(mesh(b.build(), mats.std, "frame"));
+  m.root.add(mesh(b.build(), mats.panel, "frame"));
   const doors = new Group();
   doors.name = "doors";
   for (const s of [-1, 1]) {

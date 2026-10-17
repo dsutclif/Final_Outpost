@@ -74,6 +74,12 @@ importers:
       '@fo/skins':
         specifier: workspace:*
         version: link:../skins
+      '@fontsource/barlow':
+        specifier: 5.1.0
+        version: 5.1.0
+      '@fontsource/barlow-condensed':
+        specifier: 5.1.0
+        version: 5.1.0
       idb:
         specifier: ^8.0.0
         version: 8.0.4
@@ -1038,6 +1044,12 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource/barlow-condensed@5.1.0':
+    resolution: {integrity: sha512-DqcKO+aOxYAOh47+2Ut6/lg2b8WdlaK+2pgJok5wZCBzlr6b856mE3Cmspu77aprcdYmuPkxM4UaUSp+F/Y/2w==}
+
+  '@fontsource/barlow@5.1.0':
+    resolution: {integrity: sha512-HXpoWJQX3RzVrUOpuZUBfWaoruLJ69B7Z3T9lZCWySEiEjvJ1FEwLz6BDJXx0lCrW8dEIf4UMq/xFs5IEn09ag==}
 
   '@ionic/cli-framework-output@2.2.8':
     resolution: {integrity: sha512-TshtaFQsovB4NWRBydbNFawql6yul7d5bMiW1WYYf17hd99V6xdDdk3vtF51bw6sLkxON3bDQpWsnUc9/hVo3g==}
@@ -3557,6 +3569,10 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.2':
     optional: true
+
+  '@fontsource/barlow-condensed@5.1.0': {}
+
+  '@fontsource/barlow@5.1.0': {}
 
   '@ionic/cli-framework-output@2.2.8':
     dependencies:

@@ -1,7 +1,7 @@
 import type { Skin } from "./types.js";
 
-// Launch skin. Ground is a muted rust so cool, bright interactives and resources pop
-// (the Mars red-on-red risk); test/contrast.test.ts holds every colour to the margin.
+// Launch skin. Dusty sand and concrete; bright interactives and resources pop against
+// them, and test/contrast.test.ts holds every colour to the margin.
 
 const names: Record<string, string> = {
   // resources
@@ -272,54 +272,57 @@ export const marsGreenhouse: Skin = {
   workerNames,
   workerPurposes,
   palette: {
-    ground: "#8a4d2e",
-    groundAlt: "#97573a",
-    groundDark: "#723d24",
-    structure: "#f3ece1",
-    structureDark: "#c9bfb0",
-    accent: "#ff9b3d",
-    interactive: "#4fd1ff",
+    // Brutalist outpost: dusty khaki sand, poured-concrete structures, steel. Colour is saved
+    // for what matters: reactor heat (accent), interaction (cyan) and the goods themselves.
+    // Albedos sit darker than they read on screen; the low, strong key light brings them up.
+    ground: "#645849",
+    groundAlt: "#706352",
+    groundDark: "#544a3e",
+    structure: "#c6c4be",
+    structureDark: "#8e8c86",
+    accent: "#ff9a3c",
+    interactive: "#5cd8ff",
     danger: "#ff5a3c",
     ok: "#62e39a",
-    ink: "#21181a",
-    glass: "#9cf0d2",
-    sky: "#f6caa0",
-    fog: "#d9a47c",
-    storm: "#c27a3a",
+    ink: "#1b1c1e",
+    glass: "#8aa2a8",
+    sky: "#d8d1c2",
+    fog: "#c4baa8",
+    storm: "#a68862",
     res: {
-      // Saturated and chunky so carried items pop against the rust ground (ore is violet, not
-      // the grey of the scattered rocks); the item builders add a dark rim for the silhouette.
-      "res.material_basic": "#d89dff",
+      // Chunky and clearly coloured so carried goods read at a glance on sand and concrete;
+      // the scene's look3d.saturation mutes them on screen without touching these checks.
+      "res.material_basic": "#7cc8ff",
       "res.material_refined": "#f4f6ff",
-      "res.fuel_dense": "#f2ff3a",
-      "res.food_raw_1": "#35e65a",
+      "res.fuel_dense": "#ff8f4a",
+      "res.food_raw_1": "#5fd36a",
       "res.food_raw_2": "#ff8fb8",
-      "res.food_prepared": "#ffdc8a",
-      "res.salvage": "#8fb6ff",
-      "res.currency": "#ffc21f",
+      "res.food_prepared": "#e8e08a",
+      "res.salvage": "#e8a57e",
+      "res.currency": "#ffd02a",
       "res.component": "#4ff2d2",
     },
     role: {
-      "role.idle": "#b8c3cc",
-      "role.supplier": "#ffb03b",
-      "role.server": "#ff7fa8",
-      "role.cashier": "#b98cff",
-      "role.operator": "#f5f5f5",
-      "role.hunter": "#8fd16a",
-      "role.defender": "#93acd0",
-      "role.hauler": "#40c9b5",
-      "role.medic": "#ffffff",
+      "role.idle": "#a9b0b5",
+      "role.supplier": "#d9a441",
+      "role.server": "#c98a9c",
+      "role.cashier": "#9d8bc4",
+      "role.operator": "#8c96a0",
+      "role.hunter": "#8fa86a",
+      "role.defender": "#8a949e",
+      "role.hauler": "#b0875a",
+      "role.medic": "#e8e6e1",
     },
     ui: {
-      bg: "#3a2219",
-      panel: "#fff8ef",
-      panelAlt: "#f6e9da",
-      ink: "#2b1d18",
-      muted: "#7c6458",
-      go: "#ff7a3d",
-      goShade: "#d4561c",
-      bad: "#c62e1c",
-      overlay: "rgba(58,34,25,.72)",
+      bg: "#141618",
+      panel: "#26292c",
+      panelAlt: "#33373b",
+      ink: "#ebe8e1",
+      muted: "#9b988f",
+      go: "#e8862c",
+      goShade: "#a3561a",
+      bad: "#e2543c",
+      overlay: "rgba(10,11,12,.74)",
     },
   },
   sprites,
@@ -687,7 +690,7 @@ export const marsGreenhouse: Skin = {
     "proto-L003": "Galley Rush",
     "proto-L004": "Raid Night",
   },
-  look3d: { saturation: 1.14 },
+  look3d: { saturation: 0.82, groundLift: 0.38 },
   audio: {
     gathered: "tick",
     deposited: "tock",

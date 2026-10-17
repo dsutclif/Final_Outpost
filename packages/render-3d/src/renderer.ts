@@ -11,7 +11,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshLambertMaterial,
-  NoToneMapping,
+  ACESFilmicToneMapping,
   Object3D,
   PCFShadowMap,
   PCFSoftShadowMap,
@@ -43,9 +43,9 @@ import { LEAD_WEIGHT, type Camera, type CoachMark, type GuideMark, type RenderSt
 import { GeoBuilder } from "./geom.js";
 import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
-import { Environment } from "./scene/environment.js";
 import { Fx } from "./scene/fx.js";
 import { GroundMarks } from "./scene/groundmarks.js";
+import { Environment, type Site } from "./scene/environment.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
@@ -63,6 +63,7 @@ export interface GLLike {
   shadowMap: { enabled: boolean; type: ShadowMapType };
   outputColorSpace: ColorSpace;
   toneMapping: ToneMapping;
+  toneMappingExposure: number;
   setPixelRatio(r: number): void;
   setSize(w: number, h: number, updateStyle?: boolean): void;
   render(scene: Scene, camera: ThreeCamera): void;
@@ -222,7 +223,8 @@ export class Renderer3D implements Renderer {
     mount.appendChild(canvas);
     this.gl = this.createGL(canvas);
     this.gl.outputColorSpace = SRGBColorSpace;
-    this.gl.toneMapping = NoToneMapping;
+    this.gl.toneMapping = ACESFilmicToneMapping;
+    this.gl.toneMappingExposure = 1.35;
 
     const make: CanvasMaker | null = typeof doc.createElement === "function"
       ? (w, h) => {
@@ -238,7 +240,14 @@ export class Renderer3D implements Renderer {
     this.scene = new Scene();
     this.scene.add(this.dynamic = new Group());
     const mats = this.bctx.mats;
-    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1);
+    // concrete aprons under everything built (or to be built), paved back to the core
+    const sites = manifest.entities.flatMap((e): Site[] => {
+      const at = (e as { at?: readonly [number, number] }).at;
+      if (!at) return [];
+      const r = e.type === "sink.core" ? 78 : e.type.startsWith("sink.") || e.type.startsWith("conv.") ? 62 : e.type === "pad.build" || e.type.startsWith("struct.") || e.type === "node.food_source" ? 48 : 0;
+      return r ? [{ x: at[0], z: at[1], r, core: e.type === "sink.core" }] : [];
+    });
+    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites);
     this.fx = new Fx(mats.particle, this.scene, this.labels);
     this.fx.onCoinLanded = this.coinCb;
     this.crowd = new Crowd(this.bctx.parts, mats.std, this.scene);
@@ -254,9 +263,9 @@ export class Renderer3D implements Renderer {
     const crateG = buildCrateGeo(this.tokens);
     this.geos.push(wallG, crackG, reinfG, dashG, rubbleG, crateG);
     this.walls = {
-      wall: new Batch(wallG, mats.std, this.scene, 16, "walls"),
-      cracked: new Batch(crackG, mats.std, this.scene, 8, "wallsCracked"),
-      reinforced: new Batch(reinfG, mats.std, this.scene, 8, "wallsReinforced"),
+      wall: new Batch(wallG, mats.panel, this.scene, 16, "walls"),
+      cracked: new Batch(crackG, mats.panel, this.scene, 8, "wallsCracked"),
+      reinforced: new Batch(reinfG, mats.panel, this.scene, 8, "wallsReinforced"),
       dash: new Batch(dashG, mats.std, this.scene, 64, "barrierDashes"),
       rubble: new Batch(rubbleG, mats.std, this.scene, 16, "rubble"),
       crate: new Batch(crateG, mats.std, this.scene, 4, "shelfCrates"),

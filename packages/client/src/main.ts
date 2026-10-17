@@ -1,3 +1,8 @@
+import "@fontsource/barlow-condensed/latin-600.css";
+import "@fontsource/barlow-condensed/latin-700.css";
+import "@fontsource/barlow-condensed/latin-800.css";
+import "@fontsource/barlow/latin-500.css";
+import "@fontsource/barlow/latin-700.css";
 import "./style.css";
 import { App } from "./app.js";
 import { allLevels } from "./levels.js";
@@ -18,6 +23,8 @@ function takeFlag(): boolean {
 }
 
 async function boot(): Promise<void> {
+  // world labels are drawn to canvas once, so the display face must be ready before the first level
+  try { await document.fonts?.load('800 16px "Barlow Condensed"'); } catch { /* falls back to the system face */ }
   const root = document.getElementById("root");
   if (!root) throw new Error("no #root");
   const platform = await createPlatform();

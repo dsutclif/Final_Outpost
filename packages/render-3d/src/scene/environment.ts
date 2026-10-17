@@ -29,6 +29,13 @@ import { Batch } from "./instancing.js";
 // from the map size and the skin tokens.
 
 const EDGE = 900;
+/** Poured slab size in world units (about 1.4 m); aprons and paths snap to this grid. */
+const SLAB = 40;
+
+/** Something built (or to be built) on the map: gets a concrete apron of radius r. */
+export interface Site { x: number; z: number; r: number; core?: boolean }
+/** Key light: low and from the left so structures throw long shadows; ambient stays low for contrast. */
+const SUN = 3.3, SUN_OFS = [-400, 460, 140] as const, HEMI = 1.15, HEMI_LOW = 2.2;
 
 /** Value noise in [0,1] over the plane, seeded by the level. */
 function noise(x: number, y: number, seed: number): number {
@@ -59,13 +66,13 @@ export class Environment {
   /** 0..1 storm blend (eased toward the hazard phase). */
   storminess = 0;
 
-  constructor(private readonly scene: Scene, readonly W: number, readonly H: number, private readonly t: Tokens, private readonly mats: MaterialSet, seed: number) {
+  constructor(private readonly scene: Scene, readonly W: number, readonly H: number, private readonly t: Tokens, private readonly mats: MaterialSet, seed: number, sites: readonly Site[] = []) {
     this.cFog = new Color(t.fog);
     this.cStorm = new Color(t.storm);
     this.cSky = new Color(t.sky);
     scene.add(this.group);
     this.group.add(this.buildGround(seed));
-    this.group.add(this.buildPlates(seed));
+    this.group.add(this.buildSlabs(seed, sites));
     this.buildScatter(seed);
 
     // sky dome: a vertex-coloured gradient; mostly hidden at 50 degrees but frames the asset lab
@@ -89,10 +96,10 @@ export class Environment {
     scene.fog = this.fog;
     scene.background = this.cFog.clone();
 
-    this.hemi = new HemisphereLight(new Color(t.sky), new Color(t.groundDark), 2.0);
+    this.hemi = new HemisphereLight(new Color(t.sky), new Color(t.groundDark), HEMI);
     scene.add(this.hemi);
-    this.sun = new DirectionalLight(new Color(t.sun), 2.6);
-    this.sun.position.set(-260, 620, 320);
+    this.sun = new DirectionalLight(new Color(t.sun), SUN);
+    this.sun.position.set(...SUN_OFS);
     this.sun.target.position.set(0, 0, 0);
     scene.add(this.sun, this.sun.target);
     this.coreLight = new PointLight(new Color(t.plasma), 0, 100, 1.1);
@@ -149,21 +156,45 @@ export class Environment {
     return m;
   }
 
-  /** Cracked composite plates and seams inside the map (one merged mesh). */
-  private buildPlates(seed: number): Mesh {
+  /**
+   * Poured concrete: square slabs on a fixed grid under every site, plus a two-slab path from
+   * each site back to the core (one merged mesh). Joints between slabs show the sand.
+   */
+  private buildSlabs(seed: number, sites: readonly Site[]): Mesh {
     const { W, H, t } = this;
-    const b = new GeoBuilder();
-    const plate = mix(t.groundAlt, t.structureDark, 0.1), seam = mix(t.groundDark, t.groundAlt, 0.3);
-    for (let i = 0; i < 30; i++) {
-      const x = hash01(seed * 13 + i * 3) * W, z = hash01(seed * 17 + i * 5) * H;
-      const w = 26 + hash01(i * 7 + seed) * 40, d = 20 + hash01(i * 11 + seed) * 30;
-      const r = hash01(i * 13) * 0.5 - 0.25;
-      b.box(w, 0.6, d, plate, { at: [x, 0.3, z], rot: [0, r, 0] });
-      // a crack across the plate
-      b.box(w * 0.6, 0.7, 1.1, seam, { at: [x, 0.35, z], rot: [0, r + 0.6 + hash01(i) * 0.6, 0] });
+    const nx = Math.ceil(W / SLAB), nz = Math.ceil(H / SLAB);
+    const on = new Uint8Array(nx * nz);
+    const mark = (i: number, j: number): void => { if (i >= 0 && j >= 0 && i < nx && j < nz) on[j * nx + i] = 1; };
+    const cell = (v: number): number => Math.floor(v / SLAB);
+    for (const s of sites) {
+      const r = Math.ceil(s.r / SLAB);
+      for (let j = cell(s.z) - r; j <= cell(s.z) + r; j++) for (let i = cell(s.x) - r; i <= cell(s.x) + r; i++) {
+        const dx = (i + 0.5) * SLAB - s.x, dz = (j + 0.5) * SLAB - s.z;
+        if (Math.max(Math.abs(dx), Math.abs(dz)) <= s.r + SLAB * 0.5) mark(i, j);
+      }
     }
-    const m = new Mesh(b.build(), this.mats.std);
-    m.name = "plates";
+    const core = sites.find((s) => s.core);
+    if (core) {
+      for (const s of sites) {
+        if (s === core) continue;
+        // L-shaped path: along x at the site's row, then along z at the core's column
+        const ci = cell(core.x), cj = cell(core.z), si = cell(s.x), sj = cell(s.z);
+        for (let i = Math.min(si, ci); i <= Math.max(si, ci); i++) { mark(i, sj); mark(i, sj + 1); }
+        for (let j = Math.min(sj, cj); j <= Math.max(sj, cj); j++) { mark(ci, j); mark(ci - 1, j); }
+      }
+    }
+    const b = new GeoBuilder();
+    const base = mix(t.structureDark, t.ink, 0.3), alt = mix(base, t.structure, 0.12), worn = mix(base, t.groundDark, 0.3);
+    const gap = 0.9;
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+      if (!on[j * nx + i]) continue;
+      const h = hash01(seed * 31 + i * 7.3 + j * 13.1);
+      const c = h < 0.15 ? worn : h > 0.82 ? alt : base;
+      const lift = 0.9 + hash01(i * 3.7 + j * 5.9) * 0.5;
+      b.box(SLAB - gap, lift, SLAB - gap, c, { at: [(i + 0.5) * SLAB, lift / 2, (j + 0.5) * SLAB] });
+    }
+    const m = new Mesh(b.build(), this.mats.slab);
+    m.name = "slabs";
     m.receiveShadow = true;
     return m;
   }
@@ -200,7 +231,7 @@ export class Environment {
       this.sun.shadow.camera.updateProjectionMatrix();
     }
     // low tier: no key light, so the ambient carries more
-    this.hemi.intensity = tier.extraLights > 0 ? 2.0 : 3.0;
+    this.hemi.intensity = tier.extraLights > 0 ? HEMI : HEMI_LOW;
   }
 
   /**
@@ -208,7 +239,7 @@ export class Environment {
    * pool and light to the safe radius and fuel, and blend toward the storm.
    */
   update(dt: number, t: number, look: Vector3, core: Vector3, safeR: number, fuelK: number, hazard: string): void {
-    this.sun.position.set(look.x - 260, 620, look.z + 320);
+    this.sun.position.set(look.x + SUN_OFS[0], SUN_OFS[1], look.z + SUN_OFS[2]);
     this.sun.target.position.copy(look);
     this.sun.target.updateMatrixWorld();
 
@@ -233,7 +264,7 @@ export class Environment {
     this.fog.near = 1200 - s * 700;
     this.fog.far = 3200 - s * 1700;
     const dim = 1 - s * 0.4;
-    this.sun.intensity = 2.6 * dim;
+    this.sun.intensity = SUN * dim;
     this.hemi.color.copy(this.cSky).lerp(this.cStorm, s);
 
     this.storm.begin();
