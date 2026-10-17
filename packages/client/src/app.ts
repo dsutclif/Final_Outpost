@@ -13,6 +13,7 @@ import { offlineReady, prefetchLevels, type LevelMeta, type LevelSource } from "
 import { FixedStepper } from "./loop.js";
 import { TIME_TARGET_STEPS, applyTimeTarget, normalizeTimeTargetPct } from "./timetarget.js";
 import { webPlatform, type Platform } from "./platform.js";
+import { progressReport, reportProgress } from "./supply.js";
 import { chapters, isUnlocked, nextLevel, starText } from "./progress.js";
 import { PROBE_SEC, autoTier, createRenderer, thumbnails, warm3D, webglAvailable, type GameRenderer, type Tier } from "./render.js";
 import { DEFAULT_PROGRESS, type Progress, type SaveStore, type Settings } from "./save.js";
@@ -393,9 +394,26 @@ export class App {
 
   /** When online, cache every level of every pack (the whole set is well under 1 MB); refresh the count. */
   private async prefetch(): Promise<void> {
-    if (typeof navigator === "undefined" || navigator.onLine !== false) await prefetchLevels(this.levels);
+    if (typeof navigator === "undefined" || navigator.onLine !== false) {
+      await prefetchLevels(this.levels);
+      void this.reportSupply();
+    }
     this.offline = await offlineReady(this.levels);
     if (this.screen === "levels" || this.screen === "settings") this.paintOffline();
+  }
+
+  /** Attempts to first clear: every finished attempt counts until the level is cleared. */
+  private countTry(id: string): void {
+    if (!this.progress.cleared[id]) this.progress.tries[id] = (this.progress.tries[id] ?? 0) + 1;
+  }
+
+  /** Ask for the next level batch when the published levels run low (shipped builds only). */
+  private async reportSupply(): Promise<void> {
+    const url = import.meta.env.VITE_PROGRESS_URL ?? (import.meta.env.PROD ? "/api/progress" : "off");
+    if (url === "off" || typeof location === "undefined" || !/^https?:$/.test(location.protocol)) return;
+    const published = this.levels.filter((l) => l.url).length;
+    const report = progressReport(this.levels, this.progress.cleared, (id) => this.starCount(id), this.progress.tries);
+    await reportProgress(url, report, published, { engine: ENGINE_VERSION, content: CONTENT_VERSION });
   }
 
   private offlineLine(): string {
@@ -699,6 +717,7 @@ export class App {
     if (s && !s.ended && this.screen === "playing") {
       const quits = (this.progress.quits[s.meta.id] ?? 0) + 1;
       this.progress.quits[s.meta.id] = quits;
+      this.countTry(s.meta.id);
       void this.deps.store.setProgress(this.progress);
       void this.deps.telemetry.record(this.attempt(s, "quit", "quit", quits - 1));
     }
@@ -728,6 +747,7 @@ export class App {
     const id = s.meta.id, ticks = s.sim.state.tick;
     const prevBest = this.progress.best[id];
     let stars = 0;
+    this.countTry(id);
     if (won) {
       this.progress.cleared[id] = true;
       if (prevBest === undefined || ticks < prevBest) this.progress.best[id] = ticks;

@@ -11,13 +11,15 @@ import { calibrationSample, dedupeTitles, generateDetailed, templateById, type C
 import { hashStr, mix } from "../packages/generator/src/rand.js";
 
 // pnpm levels:build --from 1 --to 60 --out levels/packs/s1 [--jobs N] [--retries N] [--calibrate] [--verbose]
+//   [--target-offset X] [--no-doc]
 //
 // Sequencer -> generator -> rater for each index. Requests come from the sequencer with the earlier
 // requests as history, so every level can be generated independently: the CLI runs one child
 // process per level, `--jobs` at a time (default: cores - 2). A level whose search fails retries with
 // new seeds; after the last retry the closest feasible, filter-clean candidate ships and is reported
 // as off target. `--calibrate` first measures one unsearched sample per level and rewrites the
-// generator's reference stats (packages/generator/data/reference.json).
+// generator's reference stats (packages/generator/data/reference.json). `--target-offset` shifts every
+// level's target difficulty (batch tuning, tools/levels-next.ts); `--no-doc` leaves docs/LEVELS.md alone.
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -66,8 +68,8 @@ const historyFor = (reqs: readonly LevelRequest[], index: number): HistoryEntry[
 
 // ---------- worker: one level ----------
 
-function workLevel(index: number, outDir: string, retries: number, verbose: boolean): void {
-  const reqs = sequenceRange(1, index);
+function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number): void {
+  const reqs = sequenceRange(1, index, [], { targetOffset });
   const req = reqs[index - 1]!;
   const history = historyFor(reqs, index);
   const t0 = Date.now();
@@ -165,7 +167,8 @@ async function main(): Promise<void> {
   console.log(`building ${packId} levels ${from}-${to} with ${jobs} jobs`);
   const results: LevelResult[] = [];
   const failed: { index: number; rejects: unknown }[] = [];
-  await pool(indices, jobs, (i) => runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), ...(verbose ? ["--verbose"] : [])]), (i, out) => {
+  const offset = arg("--target-offset", "0")!;
+  await pool(indices, jobs, (i) => runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--target-offset", offset, ...(verbose ? ["--verbose"] : [])]), (i, out) => {
     const r = parseResult(out);
     if (!r || r["failed"]) { failed.push({ index: i, rejects: r?.["rejects"] }); console.log(`  L${i}: FAILED ${JSON.stringify(r?.["rejects"] ?? {})}`); return; }
     const lr = r as unknown as LevelResult;
@@ -212,7 +215,7 @@ async function main(): Promise<void> {
   for (const r of results) logMap.set(r.index, r);
   const all = [...logMap.values()].sort((a, b) => a.index - b.index);
   writeFileSync(logPath, JSON.stringify(all, null, 1) + "\n");
-  writeFileSync(join(root, "docs", "LEVELS.md"), levelsDoc(packId, all));
+  if (!flag("--no-doc")) writeFileSync(join(root, "docs", "LEVELS.md"), levelsDoc(packId, all));
 
   printSummary(results, failed.length, (Date.now() - t0) / 1000);
   if (failed.length > 0) process.exitCode = 1;
@@ -289,6 +292,6 @@ function levelsDoc(packId: string, rs: LevelResult[]): string {
   return lines.join("\n");
 }
 
-if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"));
+if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")));
 else if (flag("--calib")) workCalib(Number(arg("--index")));
 else void main();

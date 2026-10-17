@@ -142,5 +142,12 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     the map (the diamond view always shows ground past the edges), and fog is measured from the
     camera. World chips and labels take their light/dark colours from `tokens.paper`, so the
     dark HUD theme no longer turns them dark-on-dark. Render-only: no engine bump.
+9n. **Level supply (2026-10-17).** Doug finished the 60-level pack and wants levels to keep
+    coming. Levels stay an offline batch built and bot-tested on a computer, now in batches as the
+    player advances, never more than 60 past the last cleared level (docs/LEVEL-SUPPLY.md). This
+    adds one stateless relay (`api/progress.js`, a Vercel function) to the spec's "no servers";
+    the build runs in GitHub Actions. Batch tuning from the player's stars and attempts
+    (`sequencer.json` `adapt`) is built but off until Doug picks the goal. No levels built yet; the
+    supply stays off until the dispatch token is set.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

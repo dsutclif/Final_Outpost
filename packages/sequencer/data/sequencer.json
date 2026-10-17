@@ -9,6 +9,15 @@
   "tutorialTeachDrop": 0.04,
   "funThresholds": { "tutorial": 0.2, "band": 0.4 },
   "recoveryDrop": 0.1,
+  "adapt": {
+    "enabled": false,
+    "window": 10,
+    "minSamples": 5,
+    "attempts": { "lo": 1.0, "hi": 1.5 },
+    "stars": { "lo": 1.8, "hi": 2.6 },
+    "step": 0.05,
+    "offset": { "lo": -0.25, "hi": 0.15 }
+  },
   "duplicateWindow": 10,
   "storyLength": 5,
   "introLength": 15,

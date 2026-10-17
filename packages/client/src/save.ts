@@ -11,6 +11,8 @@ export interface Progress {
   best: Record<string, number>;
   /** Quit count per level. */
   quits: Record<string, number>;
+  /** Finished attempts per level up to and including its first clear (level supply tuning). */
+  tries: Record<string, number>;
   current: string | null;
   /** Coach-mark completions per rule id; a rule retires after a few. */
   coach: Record<string, number>;
@@ -49,7 +51,7 @@ export interface TelemetryAttempt {
 
 export interface TelemetryRow extends TelemetryAttempt { seq?: number; sent: boolean }
 
-export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {} };
+export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {} };
 export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, timeTargetPct: 100, probeFps: null };
 
 interface FoDB extends DBSchema {
@@ -77,6 +79,7 @@ export function mergeProgress(raw: unknown): Progress {
     cleared: { ...(r.cleared ?? {}) },
     best: { ...(r.best ?? {}) },
     quits: { ...(r.quits ?? {}) },
+    tries: { ...(r.tries ?? {}) },
     current: typeof r.current === "string" ? r.current : null,
     coach: { ...(r.coach ?? {}) },
     stars: { ...(r.stars ?? {}) },

@@ -28,6 +28,8 @@ export interface SequencerConfig {
   tutorialTeachDrop: number;
   funThresholds: { tutorial: number; band: number };
   recoveryDrop: number;
+  /** Batch tuning from the player's results (adaptOffset). */
+  adapt: AdaptConfig;
   duplicateWindow: number;
   storyLength: number;
   introLength: number;
@@ -39,6 +41,27 @@ export interface SequencerConfig {
   features: Record<string, FeatureDef>;
   families: Record<Family, FamilyDef>;
   goals: Record<string, GoalDef>;
+}
+
+/**
+ * How a new batch of levels leans on the player's recent results. Each cleared level reports its
+ * stars (0-3) and attempts to clear it; the window's means are held inside the goal bands by moving
+ * the whole batch's target difficulty a step at a time, within the offset bounds.
+ */
+export interface AdaptConfig {
+  enabled: boolean;
+  /** Most recent cleared levels considered. */
+  window: number;
+  /** Fewer cleared levels than this: keep the offset. */
+  minSamples: number;
+  /** Goal band for mean attempts per cleared level (1 = every level first try). */
+  attempts: { lo: number; hi: number };
+  /** Goal band for mean stars per cleared level. */
+  stars: { lo: number; hi: number };
+  /** Offset change per batch. */
+  step: number;
+  /** Bounds on the total offset. */
+  offset: { lo: number; hi: number };
 }
 
 export const DEFAULT_CONFIG = data as unknown as SequencerConfig;
@@ -90,6 +113,8 @@ export interface SequenceOptions {
   config?: SequencerConfig;
   /** Spec's optional recovery rule: after two failed attempts, target 0.1 lower. */
   recovery?: boolean;
+  /** Added to every target (batch tuning, adaptOffset); the result stays in [0.05, 0.95]. */
+  targetOffset?: number;
 }
 
 // ---------- deterministic choice (no Math.random) ----------
@@ -239,6 +264,7 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
   const families: Family[] = slot.secondary ? [slot.family, slot.secondary] : [slot.family];
   const pick = choose(index, slot, families, history, c, cfg, salt);
   let { target, breather } = targetFor(index, slot.phase, cfg);
+  if (opts.targetOffset) target = Math.min(0.95, Math.max(0.05, Math.round((target + opts.targetOffset) * 1000) / 1000));
   if (opts.recovery && prev?.fails !== undefined && prev.fails >= 2) target = Math.max(0.05, Math.round((target - cfg.recoveryDrop) * 1000) / 1000);
   return {
     index,
@@ -354,4 +380,33 @@ export function familyCounts(reqs: readonly LevelRequest[]): Record<string, numb
   const out: Record<string, number> = {};
   for (const r of reqs) out[r.family] = (out[r.family] ?? 0) + 1;
   return out;
+}
+
+// ---------- batch tuning ----------
+
+/** One cleared level as the player played it. */
+export interface PlayedLevel { index: number; stars: number; attempts: number }
+
+export interface AdaptResult { offset: number; reason: string; meanStars: number | null; meanAttempts: number | null; samples: number }
+
+/**
+ * The next batch's target offset from the previous one and the player's recent cleared levels.
+ * Struggling (too many attempts, or too few stars) eases the batch; cruising (first-try clears
+ * with stars to spare) hardens it; inside both bands it holds. Attempts win a conflict: the
+ * spec's research finds failures cost engagement more than easy wins do. Pure.
+ */
+export function adaptOffset(prev: number, played: readonly PlayedLevel[], cfg: SequencerConfig = DEFAULT_CONFIG): AdaptResult {
+  const a = cfg.adapt;
+  const r3 = (x: number) => Math.round(x * 1000) / 1000;
+  const recent = [...played].sort((x, y) => x.index - y.index).slice(-a.window);
+  if (!a.enabled) return { offset: 0, reason: "adaptation off", meanStars: null, meanAttempts: null, samples: recent.length };
+  if (recent.length < a.minSamples) return { offset: prev, reason: `only ${recent.length} cleared levels`, meanStars: null, meanAttempts: null, samples: recent.length };
+  const meanStars = r3(recent.reduce((t, p) => t + p.stars, 0) / recent.length);
+  const meanAttempts = r3(recent.reduce((t, p) => t + Math.max(1, p.attempts), 0) / recent.length);
+  let step = 0, reason = "inside the goal bands";
+  if (meanAttempts > a.attempts.hi) { step = -a.step; reason = `attempts ${meanAttempts} above ${a.attempts.hi}`; }
+  else if (meanStars < a.stars.lo) { step = -a.step; reason = `stars ${meanStars} below ${a.stars.lo}`; }
+  else if (meanAttempts <= a.attempts.lo && meanStars > a.stars.hi) { step = a.step; reason = `first-try clears with stars ${meanStars} above ${a.stars.hi}`; }
+  const offset = r3(Math.min(a.offset.hi, Math.max(a.offset.lo, prev + step)));
+  return { offset, reason, meanStars, meanAttempts, samples: recent.length };
 }

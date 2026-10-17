@@ -1,0 +1,65 @@
+name: Build next level batch
+
+# The level supply (tools/levels-next.ts). Started by api/progress.js when the game reports the
+# player's progress, or by hand from the Actions tab. Builds at most one batch per run, never more
+# than 60 levels past the player, commits it to main, and Vercel deploys it. Runs queue one at a
+# time; a newer request replaces one still waiting.
+on:
+  workflow_dispatch:
+    inputs:
+      cleared:
+        description: "Levels the player has cleared (play order)"
+        required: true
+      played:
+        description: "Recent cleared levels as JSON: [{index, stars, attempts}]"
+        required: false
+        default: "[]"
+      dry_run:
+        description: "Plan only, build nothing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: levels-next
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+      # The endpoint cannot tell a real player from a made-up report, so cap the supply's growth.
+      - name: Daily cap (6 batches)
+        id: cap
+        run: echo "count=$(git log --since='24 hours ago' --author='level-supply' --oneline | wc -l)" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v4
+        if: ${{ fromJSON(steps.cap.outputs.count) < 6 }}
+      - uses: actions/setup-node@v4
+        if: ${{ fromJSON(steps.cap.outputs.count) < 6 }}
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: ${{ fromJSON(steps.cap.outputs.count) < 6 }}
+      - name: Plan and build the batch
+        if: ${{ fromJSON(steps.cap.outputs.count) < 6 }}
+        env:
+          CLEARED: ${{ inputs.cleared }}
+          PLAYED: ${{ inputs.played }}
+        run: pnpm levels:next --cleared "$CLEARED" --played "$PLAYED" ${{ inputs.dry_run && '--dry-run' || '' }}
+      - name: Commit the new pack
+        if: ${{ !inputs.dry_run && fromJSON(steps.cap.outputs.count) < 6 }}
+        run: |
+          if [ -z "$(git status --porcelain levels/packs)" ]; then echo "no new levels"; exit 0; fi
+          git config user.name "level-supply[bot]"
+          git config user.email "level-supply@users.noreply.github.com"
+          git add levels/packs
+          git commit -m "Levels: next batch for a player at level ${{ inputs.cleared }}"
+          git pull --rebase origin main
+          git push origin HEAD:main

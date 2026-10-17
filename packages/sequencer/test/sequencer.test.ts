@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { content } from "@fo/content";
 import {
-  DEFAULT_CONFIG, FAMILIES, alwaysOn, closure, conflicts, familyCounts, goalKind, historyOf, sequence, sequenceRange, slotFor, targetFor,
-  type HistoryEntry, type LevelRequest,
+  DEFAULT_CONFIG, FAMILIES, adaptOffset, alwaysOn, closure, conflicts, familyCounts, goalKind, historyOf, sequence, sequenceRange, slotFor, targetFor,
+  type HistoryEntry, type LevelRequest, type SequencerConfig,
 } from "../src/index.js";
 
 const N = 60;
@@ -111,5 +111,39 @@ describe("sequencer (level families, REDESIGN-R2 §5)", () => {
     expect(slotFor(6)).toMatchObject({ family: "shelter", phase: "intro" });
     expect(slotFor(15)).toMatchObject({ family: "defend", phase: "intro" });
     expect(slotFor(20).phase).toBe("finale");
+  });
+});
+
+describe("batch tuning", () => {
+  const on: SequencerConfig = { ...cfg, adapt: { ...cfg.adapt, enabled: true } };
+  const played = (stars: number, attempts: number, n = 10) => Array.from({ length: n }, (_, i) => ({ index: 61 + i, stars, attempts }));
+
+  it("shifts every target by the offset, the sequence otherwise unchanged", () => {
+    const base = sequenceRange(61, 80);
+    const eased = sequenceRange(61, 80, [], { targetOffset: -0.1 });
+    for (let i = 0; i < base.length; i++) {
+      expect(eased[i]!.target).toBeCloseTo(Math.max(0.05, base[i]!.target - 0.1), 3);
+      expect({ ...eased[i]!, target: 0 }).toEqual({ ...base[i]!, target: 0 });
+    }
+  });
+
+  it("holds when off, or with too few cleared levels", () => {
+    expect(adaptOffset(0.1, played(1, 5)).offset).toBe(0);
+    expect(adaptOffset(0.1, played(1, 5, on.adapt.minSamples - 1), on).offset).toBe(0.1);
+  });
+
+  it("eases a struggling player, hardens for a cruising one, holds in band", () => {
+    expect(adaptOffset(0, played(3, 3), on).offset).toBe(-on.adapt.step);
+    expect(adaptOffset(0, played(1, 1), on).offset).toBe(-on.adapt.step);
+    expect(adaptOffset(0, played(3, 1), on).offset).toBe(on.adapt.step);
+    expect(adaptOffset(0.05, played(2, 1.2), on).offset).toBe(0.05);
+  });
+
+  it("stays inside the offset bounds", () => {
+    let o = 0;
+    for (let k = 0; k < 20; k++) o = adaptOffset(o, played(0, 6), on).offset;
+    expect(o).toBe(on.adapt.offset.lo);
+    for (let k = 0; k < 20; k++) o = adaptOffset(o, played(3, 1), on).offset;
+    expect(o).toBe(on.adapt.offset.hi);
   });
 });
