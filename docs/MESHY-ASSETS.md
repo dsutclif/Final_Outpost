@@ -37,12 +37,14 @@ On the meshy.ai home page, **Quick Generate** tab:
      `Meshy 7.1 - Flagship`.
    - **Carried items (Priority C):** `Smart Topology` instead, with the target polygon count at
      about **400**. It is far cheaper (about 5 credits) and already game-sized.
-3. Click the **gear** (settings) next to the model picker:
-   - **License:** `Private` (the paid-plan option). Never ship CC BY models from the free plan.
-   - **Geometry resolution:** `Standard`. Ultra 2K/4K adds detail the phone version cuts away.
-   - **Image Enhancement:** `Off` first, so the model follows the image exactly; turn it on only
-     if a result comes out blurry.
-   - **Pose Control** (characters only): `Custom Pose`, then the **A-pose** preset.
+3. Click the **gear** (Model Generation Settings) next to the model picker:
+   - **Resolution:** `Standard`. Ultra 2K/4K adds detail the phone version cuts away.
+   - **Split:** off. Moving parts are already separate images.
+   - **Texture:** **on** (it is off by default). Without it the model comes back plain grey.
+   - **Pose:** `A-Pose` for characters, `None` for everything else.
+   - **Image Enhancement:** off first, so the model follows the image exactly; turn it on only if
+     a result comes out blurry. (It is on by default.)
+   - **License:** `Private` (it defaults to CC BY 4.0). Never ship CC BY models.
    - **Multi-view** (optional): if Gemini gave you extra views of the same object (side, back),
      add them; backs come out much better. Single image is fine otherwise.
 4. **Generate** (about a minute). Spin the preview: reject models with melted shapes, holes, or
