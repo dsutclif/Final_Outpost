@@ -39,9 +39,11 @@ async function boot(): Promise<void> {
   // the waiting worker can be found before the app exists; the check after start() covers that
   const pwa = setupPwa(() => app?.offerUpdate());
   // every pack under levels/packs that matches this engine/content version
-  const source = await allLevels(`${import.meta.env.BASE_URL}levels/packs`.replace(/\/{2,}/g, "/"));
+  const packsBase = `${import.meta.env.BASE_URL}levels/packs`.replace(/\/{2,}/g, "/");
+  const source = await allLevels(packsBase);
   app = new App(root, {
     source, store, telemetry, platform, justUpdated: takeFlag(),
+    findLevels: () => allLevels(packsBase),
     applyUpdate: () => {
       if (!pwa.ready) return false;
       try { localStorage.setItem(UPDATED_FLAG, "1"); } catch { /* the toast is a nicety */ }

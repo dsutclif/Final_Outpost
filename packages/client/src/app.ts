@@ -66,7 +66,12 @@ export interface AppDeps {
   platform?: Platform;
   /** The app was just updated (set by main.ts from a flag written before the reload). */
   justUpdated?: boolean;
+  /** Look for packs again (new batches from the level supply); main.ts passes allLevels. */
+  findLevels?: () => Promise<LevelSource>;
 }
+
+/** While the app is open and online, look for new level batches this often. */
+const LEVEL_CHECK_MS = 15 * 60 * 1000;
 
 const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, sel: string): T => {
   const el = root.querySelector<T>(sel);
@@ -140,7 +145,10 @@ export class App {
     ftoast: HTMLElement; tapstart: HTMLElement; inspect: HTMLElement; objectives: HTMLElement;
   };
 
+  /** Where levels come from; replaced when a newer set of packs is found (refreshLevels). */
+  private source: LevelSource;
   constructor(root: HTMLElement, private readonly deps: AppDeps) {
+    this.source = deps.source;
     root.innerHTML = TEMPLATE;
     const ov: Record<string, HTMLElement> = {};
     for (const k of ["title", "levels", "intro", "result", "settings", "error", "unsupported"]) ov[k] = $(root, `#ov-${k}`);
@@ -166,7 +174,7 @@ export class App {
     this.skin = getSkin(this.settings.skin);
     this.applySettings();
     this.applyTheme();
-    try { this.levels = await this.deps.source.list(); } catch { this.levels = []; }
+    try { this.levels = await this.source.list(); } catch { this.levels = []; }
     this.last = performance.now();
     requestAnimationFrame(this.frame);
     if (!webglAvailable(this.el.app.ownerDocument)) { this.show("unsupported"); return; }
@@ -206,6 +214,7 @@ export class App {
     const ro = new ResizeObserver(() => this.resize());
     ro.observe(this.el.stage);
     window.addEventListener("online", () => void this.prefetch());
+    setInterval(() => { if (document.visibilityState === "visible") void this.prefetch(); }, LEVEL_CHECK_MS);
   }
 
   /** Background/foreground: pause the loop, input and audio (the sim never runs hidden). */
@@ -395,11 +404,27 @@ export class App {
   /** When online, cache every level of every pack (the whole set is well under 1 MB); refresh the count. */
   private async prefetch(): Promise<void> {
     if (typeof navigator === "undefined" || navigator.onLine !== false) {
+      await this.refreshLevels();
       await prefetchLevels(this.levels);
       void this.reportSupply();
     }
     this.offline = await offlineReady(this.levels);
     if (this.screen === "levels" || this.screen === "settings") this.paintOffline();
+  }
+
+  /** Pick up level batches published since launch; play order and earlier indices are unchanged. */
+  private async refreshLevels(): Promise<void> {
+    if (!this.deps.findLevels) return;
+    try {
+      const src = await this.deps.findLevels();
+      const metas = await src.list();
+      const added = metas.length - this.levels.length;
+      if (added <= 0) return;
+      this.source = src;
+      this.levels = metas;
+      if (this.screen === "levels") this.renderLevels();
+      if (this.screen !== "playing") this.toast(esc(uiText(this.skin, "newLevels", { n: added })));
+    } catch { /* offline or a bad pack: keep what we have */ }
   }
 
   /** Attempts to first clear: every finished attempt counts until the level is cleared. */
@@ -447,7 +472,7 @@ export class App {
     if ((screen === "title" || screen === "levels") && this.updateReady && this.deps.applyUpdate?.()) return;
     if (screen === "title") this.renderTitle();
     else this.title?.stop();
-    if (screen === "levels") this.renderLevels();
+    if (screen === "levels") { this.renderLevels(); void this.refreshLevels(); }
     if (screen === "settings") { this.settingsFrom = prev === "settings" ? this.settingsFrom : prev; this.renderSettings(); }
     if (screen === "unsupported") this.renderUnsupported();
     if (screen === "playing") { this.session?.stepper.reset(); this.last = performance.now(); }
@@ -649,7 +674,7 @@ export class App {
     this.endSession();
     let manifest: Manifest, sim: Sim;
     try {
-      manifest = await this.deps.source.load(meta.id);
+      manifest = await this.source.load(meta.id);
       manifest = applyTimeTarget(manifest, this.settings.timeTargetPct);
       sim = createSim(manifest);
     } catch (err) {

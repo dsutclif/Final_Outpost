@@ -96,7 +96,7 @@ export default defineConfig({
             // level URLs carry ?v=<pack.json hash>, so a cached entry never goes stale: fetched once, then served from the phone
             urlPattern: ({ url }) => url.pathname.includes("/levels/"),
             handler: "CacheFirst",
-            options: { cacheName: "fo-levels", expiration: { maxEntries: 600 } },
+            options: { cacheName: "fo-levels", expiration: { maxEntries: 2000 } },
           },
         ],
       },

@@ -6,8 +6,9 @@ in batches as the player advances instead of one fixed pack. DECISIONS 9n.
 
 ## How it works
 
-1. **The game reports progress** when online (launch, reconnect, after each win), at most once an
-   hour and only when a batch could be due: how many levels the player has cleared, plus the last
+1. **The game reports progress** when online (the same moments it looks for new packs), at most
+   once an hour and only when a batch could be due, which starts when the player is within 50
+   levels of the end, so a batch is built long before the last 10: how many levels the player has cleared, plus the last
    10 cleared levels with their stars and attempts to first clear (`packages/client/src/supply.ts`).
 2. **`api/progress.js`** (a Vercel function) counts the levels already published for the player's
    engine version. If there is room for at least 10 more without going past **60 levels ahead of
@@ -16,7 +17,9 @@ in batches as the player advances instead of one fixed pack. DECISIONS 9n.
    levels), build it with the normal generator and bots (`tools/build-levels.ts`), commit it to
    `main` as a new pack (`levels/packs/s1-061/`, `s1-081/`, ...). Runs queue one at a time and
    stop after 6 batches in 24 hours.
-4. **Vercel deploys** the commit; the game lists and caches the new levels on its next launch.
+4. **Vercel deploys** the commit. While online, the game looks for new packs at launch, on
+   reconnect, after each win, on opening the level list and every 15 minutes; new levels are cached
+   for offline play and announced with a "new levels ready" note.
 
 Levels keep their ids in one sequence (`s1-L061`, `s1-L062`, ...); the sequencer works for any level
 number, so families, finales every 10th level and the difficulty sawtooth continue past 60.
@@ -64,4 +67,3 @@ cleared in about one attempt and hard ones in about seven (arXiv 2401.17436).
   Per-player tuning needs per-player sequences (later; the spec's IRT stage).
 - The endpoint cannot verify a report, so the workflow's daily cap bounds what a fake report can do.
 - An engine bump makes published packs incompatible; the next run then rebuilds from level 1 in batches.
-- New levels appear after the game is relaunched, not mid-session.

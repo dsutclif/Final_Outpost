@@ -494,6 +494,7 @@ export const marsGreenhouse: Skin = {
       offlineAll: "All {n} levels ready offline",
       offlineSome: "{n} of {total} levels ready offline",
       chapter: "Sector {n}",
+      newLevels: "{n} new levels ready",
       family_shelter: "Shelter: keep the reactor hot",
       family_rescue: "Rescue: bring colonists home",
       family_harvest: "Harvest: grow and trade",
