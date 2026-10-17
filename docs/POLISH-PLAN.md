@@ -28,13 +28,17 @@ DECISIONS.md records what shipped (9l, 9m). Tick items here as they land.
 
 - [ ] **Actions animated.** Gathering, depositing, machines processing: visible work, not
       just items appearing. Converters show input going in, the machine working, output coming out.
-- [ ] **Upgrades that mean something.** Each level of a building should look like what it
-      actually does better, designed from its function, not a generic box with more smokestacks.
-      For example: the reactor gains containment and cooling as it runs hotter; the smelter
-      gains a second crucible and a pour line; a turret gains real ammunition feed and sensors.
-      This feeds the Lv2/Lv3 prompts in MESHY-ASSETS.md.
+- [ ] **Upgrades that mean something.** Upgraded buildings follow Doug's mock-ups
+      (`Upgraded stuctures.jpeg`, already in the MESHY-ASSETS.md Lv2/Lv3 prompts); no
+      further upgrade design for now.
 - [ ] **Specific pad icons.** Each pad shows what it is for: a register on the clerk/cashier
       pad, a pickaxe on a collector's hire pad, the machine's silhouette on its operator pad.
+
+## After the new models are in: one combined regeneration
+
+Doug, 2026-10-17: hold every change that needs a full level regeneration until the 3D models
+are done, since the models may force one anyway. Then do these together under one engine bump.
+
 - [ ] **No pads the level does not need.** Pads and conveyor build spaces still appear for
       things the level can be completed without. Generator: only place pads that serve the
       goal or a star objective (or are an intended optional choice, marked as such).
@@ -42,9 +46,7 @@ DECISIONS.md records what shipped (9l, 9m). Tick items here as they land.
       Each warehouse gets one drop-off pad (anything the player carries goes in) and one
       pickup pad per stored resource. This is a rules change: content, sim, bots, rater,
       engine bump and pack regeneration (CLAUDE.md rule 5).
-
-## When the levels are regenerated with the new models
-
+- [ ] Footprints refitted to the new models, if they differ from today's.
 - [ ] **Layout shaped for the phone under the turned camera.** The map is a tall rectangle,
       but the 45° camera shows it as a diamond, so a lot of each screen is empty ground past
       the map's corners. Lay out bases so their spread fits a portrait screen as the camera
