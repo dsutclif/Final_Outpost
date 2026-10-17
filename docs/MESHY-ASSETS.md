@@ -25,19 +25,44 @@ the repo is public). Name every file by the asset's **file name** below, e.g.
 - For levelled buildings (reactor, turret, wall), make Lv1 first, then attach that image to the
   Lv2 prompt ("same building, upgraded"), and Lv2 to Lv3, so the levels match.
 
-**Meshy** (one paid month; start only when the images are ready)
-- Image to 3D, latest model, texture on, PBR on. If it offers a "remove lighting" / de-light
-  option, turn it on: baked-in highlights fight the game's own sun.
-- Symmetry: on for buildings and characters, auto for rocks and creatures.
-- Characters and creatures: after generating, use **Rig** (humanoid for people, the closest
-  option for creatures) and add **idle** and **walk** animations (and **run** if it is free).
-- Download **GLB**. Polycount does not matter; the cleanup step decimates.
-- Credits: spend them in the priority order below (A first). Retry an asset at most twice;
-  a weak model is still useful, and the code-built fallback covers anything missing.
+**Meshy** (one paid month on Pro or above, for the Private license; start only when the images
+are ready). Checked against meshy.ai and docs.meshy.ai on 2026-10-17; the interface changes often,
+so if a name below has moved, look for the same idea nearby.
+
+On the meshy.ai home page, **Quick Generate** tab:
+
+1. **Upload a photo or sketch**: drop in one Gemini image.
+2. Under the upload box, set the two pickers:
+   - **Buildings, structures, characters, creatures, nodes and props:** `High Detail` and
+     `Meshy 7.1 - Flagship`.
+   - **Carried items (Priority C):** `Smart Topology` instead, with the target polygon count at
+     about **400**. It is far cheaper (about 5 credits) and already game-sized.
+3. Click the **gear** (settings) next to the model picker:
+   - **License:** `Private` (the paid-plan option). Never ship CC BY models from the free plan.
+   - **Geometry resolution:** `Standard`. Ultra 2K/4K adds detail the phone version cuts away.
+   - **Image Enhancement:** `Off` first, so the model follows the image exactly; turn it on only
+     if a result comes out blurry.
+   - **Pose Control** (characters only): `Custom Pose`, then the **A-pose** preset.
+   - **Multi-view** (optional): if Gemini gave you extra views of the same object (side, back),
+     add them; backs come out much better. Single image is fine otherwise.
+4. **Generate** (about a minute). Spin the preview: reject models with melted shapes, holes, or
+   a back side that makes no sense, and retry (at most twice; a code-built fallback covers anything
+   still missing).
+5. **Characters and creatures only:** open **Remesh** (free) and remesh to about 10,000 faces, then
+   open **Animate**. Auto-rig runs (humanoid or quadruped), then pick clips from the preset library:
+   a **walk**, an **idle**, and a **run** if one looks right. Clips are free. Only humanoids and
+   four-legged creatures can be rigged: the six-legged dust crawler and dust mites download as
+   static models and the game animates them itself.
+6. **Download** as **GLB** (for characters, after adding the clips, so they are inside the file).
+   Save it as `<file name>.glb` next to its image in `Mobile game/Asset models/`.
+
+Skip **AI Texturing** (it re-paints the model, costs credits, and the Blender step bakes lighting
+anyway). Credits: Meshy 7 costs about 25 per model; 7.1 may differ, so check the credit counter
+after the first one and tell Claude if it is much higher.
 
 **Moving parts.** The game animates a few parts on their own, so those are generated as
-**separate objects** (noted per asset): turret head and base, airlock door and frame, kiosk
-shell and its glass. The reactor's plasma glow stays code-built inside a model with an open top.
+**separate objects** (noted per asset): turret head and base, airlock door and frame. The
+reactor's plasma glow stays code-built inside a model with an open top.
 
 **Tools in hands.** Characters are generated **empty-handed**: held tools break auto-rigging.
 The game attaches each role's tool (pickaxe, wrench, shield...) in code.
