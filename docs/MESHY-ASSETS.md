@@ -50,13 +50,16 @@ On the meshy.ai home page, **Quick Generate** tab:
 4. **Generate** (about a minute). Spin the preview: reject models with melted shapes, holes, or
    a back side that makes no sense, and retry (at most twice; a code-built fallback covers anything
    still missing).
-5. **Characters and creatures only:** open **Remesh** (free) and remesh to about 10,000 faces, then
-   open **Animate**. Auto-rig runs (humanoid or quadruped), then pick clips from the preset library:
+5. **Remesh** (free) everything except the items: Target Polycount `Fixed`, `10K`, Topology
+   `Triangle`. Download **both** the original and the 10K version: the 10K one becomes the game
+   model (Blender takes it to about 5K), and the original's detail is baked into its normal map.
+   **Characters and creatures:** after remeshing, open **Animate**. Auto-rig runs (humanoid or quadruped), then pick clips from the preset library:
    a **walk**, an **idle**, and a **run** if one looks right. Clips are free. Only humanoids and
    four-legged creatures can be rigged: the six-legged dust crawler and dust mites download as
    static models and the game animates them itself.
 6. **Download** as **GLB** (for characters, after adding the clips, so they are inside the file).
-   Save it as `<file name>.glb` next to its image in `Mobile game/Asset models/`.
+   Save the 10K version as `<file name>.glb` and the original as `<file name>.hi.glb`, next to its
+   image in `Mobile game/Asset models/`.
 
 Skip **AI Texturing** (it re-paints the model, costs credits, and the Blender step bakes lighting
 anyway). Credits: Meshy 7 costs about 25 per model; 7.1 may differ, so check the credit counter
