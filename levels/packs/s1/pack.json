@@ -378,6 +378,7 @@
       "file": "s1-L020.json",
       "title": "Storms and Power Up",
       "family": "shelter",
+      "secondary": "harvest",
       "modules": [
         "blocked_zones",
         "build_pads",
@@ -580,6 +581,7 @@
       "file": "s1-L030.json",
       "title": "Tow Lines and Last Calls",
       "family": "rescue",
+      "secondary": "harvest",
       "modules": [
         "barrier_lines",
         "blocked_zones",
@@ -783,6 +785,7 @@
       "file": "s1-L040.json",
       "title": "Vaults and Open Sesame",
       "family": "harvest",
+      "secondary": "industrialize",
       "modules": [
         "build_pads",
         "carry",
@@ -987,6 +990,7 @@
       "file": "s1-L050.json",
       "title": "Warehouses and Assembly",
       "family": "industrialize",
+      "secondary": "harvest",
       "modules": [
         "build_pads",
         "carry",
@@ -1188,6 +1192,7 @@
       "file": "s1-L060.json",
       "title": "Rust and Hardpoints",
       "family": "defend",
+      "secondary": "shelter",
       "modules": [
         "barrier_lines",
         "build_pads",

@@ -482,7 +482,7 @@ export class App {
         ? `<span class="stars" aria-label="${esc(uiText(s, "stars", { n: stars || 1 }))}">${starText(stars || 1)}</span>${best !== undefined ? `<span class="t">${esc(formatTicks(best))}</span>` : ""}`
         : open ? esc(uiText(s, "notPlayed")) : `<span class="lock" aria-hidden="true"></span>${esc(uiText(s, "locked"))}`;
       return `<button class="lvtile${cleared ? " cleared" : ""}${open ? "" : " locked"}${l.id === next ? " next" : ""}" data-id="${esc(l.id)}" ${open ? "" : "disabled"}>
-        <span class="num">${l.index + 1}</span>${l.family ? familyIcon(l.family, uiText(s, `family_${l.family}`)) : ""}
+        <span class="num">${l.index + 1}</span>${l.family ? `<span class="fams">${[l.family, l.secondary].filter((f): f is string => !!f).map((f) => familyIcon(f, uiText(s, `family_${f}`))).join("")}</span>` : ""}
         <span class="name">${esc(this.titleOf(l).name)}</span>
         <span class="sub">${sub}</span>
       </button>`;

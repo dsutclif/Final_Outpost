@@ -22,6 +22,8 @@ export interface LevelMeta {
   rating?: number;
   /** Level family (shelter, rescue, harvest, industrialize, defend), when known. */
   family?: string;
+  /** Second family of a two-family finale (every 10th level after the teaching arc). */
+  secondary?: string;
   /** Absolute or base-relative URL of the manifest for fetched levels; absent for bundled ones. */
   url?: string;
 }
@@ -73,6 +75,7 @@ export interface PackEntry {
   goal: string | { type: string };
   rating?: number;
   family?: string;
+  secondary?: string;
 }
 
 /** pack.json (Contract 5). */
@@ -144,6 +147,7 @@ export class PackLevelSource implements LevelSource {
       if (l.title) meta.title = l.title;
       if (typeof l.rating === "number") meta.rating = l.rating;
       if (l.family) meta.family = l.family;
+      if (l.secondary) meta.secondary = l.secondary;
       return meta;
     });
   }

@@ -246,7 +246,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .lvtile.next .stars { color: #1a1208; }
 .lvtile.cleared::after { content: none; }
 .lvtile.locked .num::before { content: none; }
-.lvtile .fam { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; color: var(--muted); }
+.lvtile .fams { position: absolute; top: 8px; right: 8px; display: flex; gap: 3px; }
+.lvtile .fam { width: 22px; height: 22px; color: var(--muted); }
 .lvtile .fam svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .lvtile .fam-shelter { color: var(--accent); }
 .lvtile .fam-rescue { color: var(--interactive); }

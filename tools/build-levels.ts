@@ -176,11 +176,11 @@ async function main(): Promise<void> {
 
   // pack.json: merge with any levels already in the pack outside this range.
   const packPath = join(outDir, "pack.json");
-  type Entry = { id: string; file: string; title: string; family: string; modules: string[]; goal: string; rating: number; fun: number; target: number };
+  type Entry = { id: string; file: string; title: string; family: string; secondary?: string; modules: string[]; goal: string; rating: number; fun: number; target: number };
   const old: Entry[] = existsSync(packPath) ? (JSON.parse(readFileSync(packPath, "utf8")) as { levels: Entry[]; engineVersion: string }).levels : [];
   const byId = new Map<string, Entry>();
   for (const e of old) byId.set(e.id, e);
-  for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, family: r.family, modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target });
+  for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, family: r.family, ...(r.secondary ? { secondary: r.secondary } : {}), modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target });
   // Titles are unique across the pack: a level keeps the title players know unless its goal changed;
   // new or re-goaled levels are deduped against the kept ones.
   const keep: Record<string, string> = {};
