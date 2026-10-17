@@ -4,6 +4,11 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
   "framework": null,
+  "functions": {
+    "api/progress.js": {
+      "maxDuration": 15
+    }
+  },
   "headers": [
     {
       "source": "/sw.js",
