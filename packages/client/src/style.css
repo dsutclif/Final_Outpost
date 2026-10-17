@@ -246,6 +246,15 @@ button:disabled { opacity: 0.5; cursor: default; }
 .lvtile.next .stars { color: #1a1208; }
 .lvtile.cleared::after { content: none; }
 .lvtile.locked .num::before { content: none; }
+.lvtile .fam { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; color: var(--muted); }
+.lvtile .fam svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lvtile .fam-shelter { color: var(--accent); }
+.lvtile .fam-rescue { color: var(--interactive); }
+.lvtile .fam-harvest { color: #8fc66a; }
+.lvtile .fam-industrialize { color: #b9b6ae; }
+.lvtile .fam-defend { color: var(--bad); }
+.lvtile.next .fam { color: currentColor; }
+.lvtile.locked .fam { opacity: 0.55; }
 .lvtile .lock { display: inline-block; width: 9px; height: 8px; border-radius: 2px; background: currentColor; margin-right: 4px; position: relative; top: 1px; }
 .lvtile .lock::before { content: ""; position: absolute; left: 1.5px; top: -5px; width: 6px; height: 6px; border: 1.6px solid currentColor; border-bottom: 0; border-radius: 4px 4px 0 0; box-sizing: border-box; }
 .offline { margin: -4px 2px 6px !important; }

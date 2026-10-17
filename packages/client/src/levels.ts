@@ -20,6 +20,8 @@ export interface LevelMeta {
   title?: string;
   /** Rater score from the pack index, when present. */
   rating?: number;
+  /** Level family (shelter, rescue, harvest, industrialize, defend), when known. */
+  family?: string;
   /** Absolute or base-relative URL of the manifest for fetched levels; absent for bundled ones. */
   url?: string;
 }
@@ -31,7 +33,7 @@ export interface LevelSource {
 
 const metaOf = (m: Manifest, index: number): LevelMeta => ({
   id: m.id, index, modules: m.modules, goalType: m.goal.type, text: m.text,
-  engineVersion: m.engineVersion, contentVersion: m.contentVersion,
+  engineVersion: m.engineVersion, contentVersion: m.contentVersion, ...(m.family ? { family: m.family } : {}),
 });
 
 /** Manifests already in memory (bundled JSON, tests). */
@@ -70,6 +72,7 @@ export interface PackEntry {
   /** Goal type (or the goal object; only its type is read). */
   goal: string | { type: string };
   rating?: number;
+  family?: string;
 }
 
 /** pack.json (Contract 5). */
@@ -140,6 +143,7 @@ export class PackLevelSource implements LevelSource {
       };
       if (l.title) meta.title = l.title;
       if (typeof l.rating === "number") meta.rating = l.rating;
+      if (l.family) meta.family = l.family;
       return meta;
     });
   }

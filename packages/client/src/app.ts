@@ -81,6 +81,27 @@ const OVERVIEW_ZOOM_S = 0.8;
 /** Pads closer than this pull the camera toward them (world units). */
 const LEAD_RANGE = 150;
 
+
+// Level family glyphs for the level grid: shape tells the family apart, colour comes from CSS.
+const FAMILY_ICONS: Record<string, string> = {
+  // a flame: keep the reactor hot
+  shelter: '<path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.4 1.2-3.9 2.4-5 .1 1.6.8 2.7 1.9 3.3C11 9 11.2 6 12 3z"/>',
+  // a lifebuoy: bring people home
+  rescue: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M6.3 6.3l3.2 3.2M17.7 6.3l-3.2 3.2M6.3 17.7l3.2-3.2M17.7 17.7l-3.2-3.2"/>',
+  // a sprout: grow and trade
+  harvest: '<path d="M12 21v-9"/><path d="M12 12c0-4 3-6.5 7-6.5 0 4-3 6.5-7 6.5z"/><path d="M12 14.5c0-3-2.4-5-5.5-5 0 3 2.4 5 5.5 5z"/>',
+  // a gear: build supply chains
+  industrialize: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="6"/>',
+  // a shield: hold the walls
+  defend: '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M12 7v10"/>',
+};
+
+function familyIcon(family: string, label: string): string {
+  const g = FAMILY_ICONS[family];
+  if (!g) return "";
+  return `<span class="fam fam-${esc(family)}" title="${esc(label)}" aria-label="${esc(label)}"><svg viewBox="0 0 24 24" aria-hidden="true">${g}</svg></span>`;
+}
+
 export class App {
   private skin: Skin = getSkin(null);
   private settings!: Settings;
@@ -461,7 +482,7 @@ export class App {
         ? `<span class="stars" aria-label="${esc(uiText(s, "stars", { n: stars || 1 }))}">${starText(stars || 1)}</span>${best !== undefined ? `<span class="t">${esc(formatTicks(best))}</span>` : ""}`
         : open ? esc(uiText(s, "notPlayed")) : `<span class="lock" aria-hidden="true"></span>${esc(uiText(s, "locked"))}`;
       return `<button class="lvtile${cleared ? " cleared" : ""}${open ? "" : " locked"}${l.id === next ? " next" : ""}" data-id="${esc(l.id)}" ${open ? "" : "disabled"}>
-        <span class="num">${l.index + 1}</span>
+        <span class="num">${l.index + 1}</span>${l.family ? familyIcon(l.family, uiText(s, `family_${l.family}`)) : ""}
         <span class="name">${esc(this.titleOf(l).name)}</span>
         <span class="sub">${sub}</span>
       </button>`;
