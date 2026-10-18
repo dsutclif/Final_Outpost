@@ -47,6 +47,7 @@ import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/
 import { Fx } from "./scene/fx.js";
 import { GroundMarks } from "./scene/groundmarks.js";
 import { Environment, type Site } from "./scene/environment.js";
+import { Rigged } from "./scene/rigged.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
@@ -141,6 +142,7 @@ export class Renderer3D implements Renderer {
   private labels: Labels = new Labels(null, "#000");
   private fx: Fx | null = null;
   private crowd: Crowd | null = null;
+  private rigged: Rigged | null = null;
   private blobs: Blobs | null = null;
   private items: Items | null = null;
   private walls: { wall: Batch; cracked: Batch; reinforced: Batch; crackedR: Batch; dash: Batch; rubble: Batch; crate: Batch } | null = null;
@@ -297,6 +299,7 @@ export class Renderer3D implements Renderer {
     this.fx = new Fx(mats.particle, this.scene, this.labels);
     this.fx.onCoinLanded = this.coinCb;
     this.crowd = new Crowd(this.bctx.parts, mats.std, this.scene);
+    this.rigged = new Rigged(this.scene);
     this.blobs = new Blobs(mats.blob, this.scene);
     this.items = new Items(this.tokens, mats.std, this.scene);
     const geoOf = (m: Model): BufferGeometry => {
@@ -388,6 +391,7 @@ export class Renderer3D implements Renderer {
     this.env?.dispose();
     this.fx?.dispose();
     this.crowd?.dispose();
+    this.rigged?.dispose();
     this.blobs?.dispose();
     this.items?.dispose();
     if (this.walls) for (const b of Object.values(this.walls)) b.dispose();
@@ -422,7 +426,7 @@ export class Renderer3D implements Renderer {
     this.pointers = null;
     this.coachDom = null;
     this.coach = null;
-    this.env = null; this.fx = null; this.crowd = null; this.blobs = null; this.items = null; this.walls = null;
+    this.env = null; this.fx = null; this.crowd = null; this.rigged = null; this.blobs = null; this.items = null; this.walls = null;
     this.lasso = null; this.bctx = null; this.gl = null; this.mount = null; this.world = null; this.collapseAt = null;
     this.hintEl = null; this.bannerEl = null; this.vignetteEl = null;
     this.scene = new Scene();
@@ -585,6 +589,7 @@ export class Renderer3D implements Renderer {
     this.tagUsed = 0;
     this.items.begin();
     this.crowd.begin();
+    this.rigged?.begin();
     this.blobs.begin();
     for (const b of Object.values(this.walls!)) b.begin();
 
@@ -611,6 +616,7 @@ export class Renderer3D implements Renderer {
     this.fx.draw(this.items);
     this.items.end();
     this.crowd.end();
+    this.rigged?.end(dt);
     this.blobs.end();
     for (const b of Object.values(this.walls!)) b.end();
 
@@ -861,7 +867,13 @@ export class Renderer3D implements Renderer {
     this.yaw.set(key, yaw);
     const anim = this.anim(key, moving ? 0.8 : 0, false);
     if (c.angry) anim.hit = 0.25 + 0.25 * Math.sin(this.t * 12);
-    this.addCharacter(look, anim, pos, yaw, null);
+    // a rigged Meshy trader once loaded (keyed by customer, so queue moves keep its clip); else the crowd figure
+    const rig = this.rigged?.entryFor(c.kind);
+    if (rig) {
+      const cheer = (this.cheerUntil.get(`c:${c.id}`) ?? 0) > this.t;
+      this.rigged!.add(`c:${c.id}`, c.kind, rig, { moving, hurried: c.kind.endsWith("impatient"), cheer }, pos.x, pos.y, yaw, ART_M * look.scale / 0.9);
+      this.blobs!.add(pos.x, pos.y, 10 * look.scale);
+    } else this.addCharacter(look, anim, pos, yaw, null);
     this.candidatePt(c.kind, pos.x, pos.y, ART_M * look.scale * 1.9);
     if (queued) {
       // order bubble with the patience arc
@@ -2155,6 +2167,7 @@ export class Renderer3D implements Renderer {
         break;
       case "sold": {
         const pay = Number(e["pay"] ?? 0);
+        this.cheerUntil.set(`c:${String(e["customer"])}`, this.t + 1.9);
         fx.floater(ft("sold"), white, up(at, ART_M * 1.6), 40, 11);
         fx.floater(`+${pay}`, gold, up(at, ART_M * 1.1), 48, 14);
         fx.burst(up(at, ART_M), [gold, mix(gold, t.structure, 0.5)], e["premium"] ? 14 : 7, 70, 200, 4);

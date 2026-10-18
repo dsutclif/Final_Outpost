@@ -173,6 +173,40 @@ roughness 0.38. Until a prop lands (or if it fails) the code tool stays: raiders
 the guard gets a small code carbine and a left-hand shield; the VIP case and cart have no code
 version. `fit.html?crowd=1` shows these characters posed through the crowd batches with their props.
 
+**Characters (rigged), first test 2026-10-18: the trader.** `unit.customer` and its three
+variants now come from one rigged Meshy file; every other character is still code-built. What
+worked, so the rest can follow the same path:
+
+1. Meshy: High Detail + Texture, A-Pose, then **Remesh** (Fixed, 10K, Triangle) and **Animate**
+   (auto-rig, humanoid). The trader's clips: `Walking`, `Running`, `Listening_Gesture` (idle),
+   `Cheer_with_Both_Hands_Up`, and a check-watch clip from Text to Motion, which Meshy names with
+   a UUID (`01a14d31-...`; 3 s, raises the wrist display to the face). Download one GLB with all
+   clips (the trader: 26 MB, 10.4K tris, 70-joint Mixamo skeleton, 2K/4K PNG maps).
+2. `meshy.json` entry with `kind: "character"`, `tris`, `texture`, `height` (art metres) and
+   `clips` mapping the game's states to clip names: `walk`, `run` (hurried variant moving),
+   `idle` (queued), `wait` (hurried variant queued), `cheer` (on its sale, while standing).
+3. `pnpm models:build -- unit.customer`: the same shape-only bake in bind-pose space, keeping each
+   kept vertex's skin weights (cut to the four strongest joints); skeleton, bind matrices and
+   clips stay, keyframes resampled, maps replaced by one 512 px WebP. The trader: **1,000
+   triangles, 607 KB** (376 KB of it clips). 1,000 matches a code-built figure (~900): at 2,000,
+   a queue of 8 cost 13k more triangles than the code traders.
+4. Runtime (`render-3d/src/scene/rigged.ts`): skinned meshes cannot join the crowd's instanced
+   batches, so each visible character is a SkeletonUtils clone (geometry and material shared)
+   with its own AnimationMixer, pooled by entity id (queue moves keep the clip) and crossfaded
+   0.25 s between clips. One draw call per character. Until the file loads, or if it fails, the
+   code-built figure stays.
+5. Props (`held` in the entry, per variant): on a bone (`mixamorig:RightHand` etc., transform
+   `[x, y, z, rx, ry, rz, scale]` in the bone's frame, model metres) or pushed (`grip`: after the
+   clip poses the arms, upper arm and forearm turn to point at the handle, both hands). The VIP
+   carries a gold case in each hand (`[0, 0.3, 0, 180, 0, 0]`: the hand bone's +y runs down the
+   fingers), the bulk trader pushes the hover cart (`[0, 0.08, 0.95, 0, 90, 0, 1.3]`, grip
+   `[0, 1.0, 0.3]` ± 0.18).
+
+Budget, golden level 4 with a queue of 8 traders (two of each variant): 61.0k triangles and 65
+draw calls, against 61.3k and 60 with code traders. `fit.html?rig=1` shows every variant and clip
+state (`&k=<n>` one of them). Mixed with the chibi code-built figures, the realistic trader looks
+taller and thinner; that settles once the other characters are rigged the same way.
+
 ## Style block (paste at the start of every Gemini chat)
 
 > You are making clean reference images for converting into 3D game models, one object per

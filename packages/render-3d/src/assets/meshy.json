@@ -49,6 +49,10 @@
     { "file": "prop.hover_cart", "src": "Trader Cart.glb", "id": "prop.hover_cart", "kind": "prop", "tris": 1500, "lod": 300, "texture": 512, "yaw": 0, "width": 1,
       "tools": { "tool.cart": [0, 0.08, 0.62, 0, 90, 0, 0.8] } },
     { "file": "prop.briefcase_gold", "src": "VIP Briefcase.glb", "id": "prop.briefcase_gold", "kind": "prop", "tris": 600, "lod": 100, "texture": 256, "yaw": 0, "width": 0.32, "tint": "gold", "metal": 0.55, "rough": 0.38,
-      "tools": { "tool.briefcase": [0, -0.3, 0, 0, 90, 0] } }
+      "tools": { "tool.briefcase": [0, -0.3, 0, 0, 90, 0] } },
+    { "file": "unit.customer", "src": "../Solo Mock Ups/Trader-animated.glb", "id": "unit.customer", "kind": "character", "tris": 1000, "texture": 512, "height": 1.1,
+      "clips": { "walk": "Walking", "run": "Running", "idle": "Listening_Gesture", "wait": "01a14d31-2cb2-7660-8ed5-223a042b96df", "cheer": "Cheer_with_Both_Hands_Up" },
+      "held": { "unit.customer_premium": [{ "prop": "prop.briefcase_gold", "bone": "mixamorig:RightHand", "at": [0, 0.3, 0, 180, 0, 0] }, { "prop": "prop.briefcase_gold", "bone": "mixamorig:LeftHand", "at": [0, 0.3, 0, 180, 0, 0] }],
+        "unit.customer_bulk": [{ "prop": "prop.hover_cart", "at": [0, 0.08, 0.95, 0, 90, 0, 1.3], "grip": [0, 1.0, 0.3, 0.18] }] } }
   ]
 }

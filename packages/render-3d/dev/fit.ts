@@ -6,13 +6,15 @@ import { lookFor, restAnim } from "../src/assets/characters.js";
 import { loadMeshy, meshyEntries, meshyScene, meshyTools } from "../src/assets/meshy.js";
 import { buildModel } from "../src/assets/registry.js";
 import { Crowd } from "../src/scene/instancing.js";
+import { Rigged, type RigState } from "../src/scene/rigged.js";
 import { PITCH_DEG, YAW_DEG } from "../src/units.js";
 
 // Fitting view for Meshy models: per entry, the code model (left) beside the GLB (right) from
 // the game camera's angle, on the generator footprint (yellow), with anchors (cyan dots) and
 // animated parts (axes). ?i=<n> frames one entry (?ly=<m> look height); ?yaw=<deg> turns the camera; ?code=0 hides
 // the code model; ?w=<px>&h=<px> sets the canvas size (default: window). ?crowd=1: the code-built
-// characters that hold Meshy props, posed through the crowd batches as in the game.
+// characters that hold Meshy props, posed through the crowd batches as in the game. ?rig=1: the
+// rigged characters (every variant and clip state, as the renderer drives them).
 
 const q = new URLSearchParams(location.search);
 const W = Number(q.get("w") ?? innerWidth), H = Number(q.get("h") ?? innerHeight);
@@ -47,10 +49,14 @@ const showCode = q.get("code") !== "0";
 const ROW = 5.5, COL = 3.6;
 const CROWD = ["role.supplier", "role.operator", "role.defender", "hostile.raider_humanoid", "hostile.boss", "unit.customer_premium", "unit.customer_bulk"];
 const crowd = q.get("crowd") ? new Crowd(ctx.parts, ctx.mats.std, scene) : null;
+const rigged = q.get("rig") ? new Rigged(scene) : null;
+const RIGS: [string, RigState][] = [["unit.customer", { moving: true, hurried: false, cheer: false }], ["unit.customer", { moving: false, hurried: false, cheer: false }],
+  ["unit.customer_impatient", { moving: false, hurried: true, cheer: false }], ["unit.customer_impatient", { moving: true, hurried: true, cheer: false }],
+  ["unit.customer", { moving: false, hurried: false, cheer: true }], ["unit.customer_premium", { moving: false, hurried: false, cheer: false }], ["unit.customer_bulk", { moving: true, hurried: false, cheer: false }]];
 if (crowd) for (const e of entries) for (const p of meshyTools(e)) crowd.setPart(p.part, p.geo, p.mat);
 
 entries.forEach((e, i) => {
-  if (crowd) return;
+  if (crowd || rigged) return;
   if (q.get("i") !== null && Number(q.get("i")) !== i) return;
   const top = !!q.get("top");
   const z = top ? Math.floor(i / 4) * 4 : i * ROW;
@@ -88,7 +94,7 @@ entries.forEach((e, i) => {
   }
 });
 
-const one = crowd ? String(entries.length) : q.get("i");
+const one = crowd || rigged ? String(entries.length) : q.get("i");
 const yaw = ((Number(q.get("yaw") ?? YAW_DEG)) * Math.PI) / 180, pitch = (PITCH_DEG * Math.PI) / 180;
 const look = one !== null ? new Vector3(showCode ? COL / 2 : COL, Number(q.get("ly") ?? 0.8), Number(one) * ROW) : new Vector3(COL / 2, 0, ((entries.length - 1) * ROW) / 2);
 const span = q.get("span") ? Number(q.get("span")) : one !== null ? (showCode ? 8 : 4.2) : entries.length * ROW * 0.75;
@@ -96,7 +102,15 @@ const cam = new PerspectiveCamera(one !== null ? 20 : 30, W / H, 0.1, 1000);
 const d = span / 2 / Math.tan((cam.fov * Math.PI) / 360) * (W < H ? H / W : 1) * 0.9;
 cam.position.set(look.x + Math.sin(yaw) * Math.cos(pitch) * d, look.y + Math.sin(pitch) * d, look.z + Math.cos(yaw) * Math.cos(pitch) * d);
 if (q.get("top") && one !== null) { const o = Number(one); cam.position.set((o % 4) * 4, 9, Math.floor(o / 4) * 4); cam.up.set(0, 0, -1); cam.lookAt((o % 4) * 4, 0, Math.floor(o / 4) * 4); } else if (q.get("top")) { cam.position.set(6, 17, 2); cam.up.set(0, 0, -1); cam.lookAt(6, 0, 2); } else cam.lookAt(look);
+let lastT = performance.now();
 function draw(): void {
+if (rigged) {
+  const now = performance.now();
+  rigged.begin();
+  RIGS.forEach(([id, st], k) => { const e = rigged.entryFor(id); if (e && (q.get("k") === null || Number(q.get("k")) === k)) rigged.add(String(k), id, e, st, q.get("k") !== null ? COL : COL + (k - (RIGS.length - 1) / 2) * 1.1, entries.length * ROW, Number(q.get("face") ?? 0.6), id.endsWith("bulk") ? 1 / 0.9 : 1); });
+  rigged.end((now - lastT) / 1000);
+  lastT = now;
+}
 if (crowd) {
   crowd.begin();
   CROWD.forEach((id, k) => crowd.add(lookFor(id, t), { ...restAnim(), t: performance.now() / 1000 }, new Matrix4().makeRotationY(Number(q.get("face") ?? 0.6)).setPosition(COL + (k - (CROWD.length - 1) / 2) * 1.1, 0, entries.length * ROW).scale(new Vector3(lookFor(id, t).scale, lookFor(id, t).scale, lookFor(id, t).scale)), null));

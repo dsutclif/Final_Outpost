@@ -23,7 +23,8 @@ DECISIONS.md records what shipped (9l, 9m). Tick items here as they land.
    and eight held props on the code-built characters (crowd LODs; game-size files and hand
    transforms kept for the rigged characters; gold-recoloured VIP case). Open: level 4 with
    everything built is 64k triangles, over the 60k budget because of batch 1's core and turret
-   base triangle counts; Meshy characters (rigging) still to come.
+   base triangle counts; Rigged characters: the trader (all four customer types, clips, gold cases, pushed cart) proved
+   the path on 2026-10-18 (MESHY-ASSETS.md "Characters"); the other characters still need Remesh + Animate.
 2. Lighting and soft corner shadowing in each model's texture, a soft contact shadow under each
    building. (Meshy's albedo already carries some; the Node bake copies colour only, so an AO
    pass would be added to tools/build-models.ts rather than Blender.)

@@ -17,7 +17,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Document, NodeIO, type mat4 } from "@gltf-transform/core";
 import { ALL_EXTENSIONS, EXTTextureWebP } from "@gltf-transform/extensions";
-import { dedup, flatten, join as joinMeshes, quantize, transformMesh, weld } from "@gltf-transform/functions";
+import { dedup, flatten, join as joinMeshes, prune, quantize, resample, transformMesh, weld } from "@gltf-transform/functions";
 import { MeshoptSimplifier } from "meshoptimizer";
 import sharp from "sharp";
 import { BufferAttribute, BufferGeometry, Triangle, Vector3 } from "three";
@@ -40,7 +40,8 @@ export interface MeshyEntry {
   rough?: number; metal?: number;
   /** "prop": held item; props and wall sections (batch) get no blueprint outline. */
   batch?: string;
-  kind?: "prop";
+  /** "prop": held item; "character": rigged (skeleton and clips kept, see buildCharacter). */
+  kind?: "prop" | "character";
   /** Also write <file>.lod.glb at this many triangles (props drawn on the code-built crowd). */
   lod?: number;
 }
@@ -133,7 +134,7 @@ function fit(pos: Float32Array, e: MeshyEntry): BuiltEntry["bounds"] {
 }
 
 /** Shape-only simplification: weld by position (UV seams gone), then meshopt to the target. */
-function lowPoly(src: Src, target: number): { pos: Float32Array; idx: Uint32Array } {
+function lowPoly(src: Src, target: number): { pos: Float32Array; idx: Uint32Array; orig: Uint32Array } {
   const remap = MeshoptSimplifier.generatePositionRemap(src.pos, 3);
   const idx = src.idx.map((i) => remap[i]!);
   let [out] = MeshoptSimplifier.simplify(idx, src.pos, 3, target * 3, 1);
@@ -141,20 +142,21 @@ function lowPoly(src: Src, target: number): { pos: Float32Array; idx: Uint32Arra
   if (out.length > target * 3.3) [out] = MeshoptSimplifier.simplify(out, src.pos, 3, target * 3, 1, ["Permissive"]);
   const used = new Map<number, number>();
   const outIdx = out.map((i) => { let j = used.get(i); if (j === undefined) used.set(i, j = used.size); return j; });
-  const pos = new Float32Array(used.size * 3);
-  for (const [i, j] of used) pos.set(src.pos.subarray(i * 3, i * 3 + 3), j * 3);
-  return { pos, idx: outIdx };
+  const pos = new Float32Array(used.size * 3), orig = new Uint32Array(used.size);
+  for (const [i, j] of used) { pos.set(src.pos.subarray(i * 3, i * 3 + 3), j * 3); orig[j] = i; }
+  return { pos, idx: outIdx, orig };
 }
 
 /** Fresh UV atlas for the low mesh (padded charts, `size` px). Vertices split at the new seams. */
-function unwrap(low: { pos: Float32Array; idx: Uint32Array }, size: number): { pos: Float32Array; uv: Float32Array; idx: Uint32Array } {
+function unwrap(low: { pos: Float32Array; idx: Uint32Array }, size: number): { pos: Float32Array; uv: Float32Array; idx: Uint32Array; xref: Uint32Array } {
   const atlas = new watlas.Atlas();
   atlas.addMesh({ vertexPositionData: low.pos, vertexCount: low.pos.length / 3, vertexPositionStride: 12, indexData: low.idx, indexCount: low.idx.length });
   atlas.generate({}, { resolution: size, padding: 4, bilinear: true });
   const m = atlas.getMesh(0);
-  const pos = new Float32Array(m.vertexCount * 3), uv = new Float32Array(m.vertexCount * 2);
+  const pos = new Float32Array(m.vertexCount * 3), uv = new Float32Array(m.vertexCount * 2), xref = new Uint32Array(m.vertexCount);
   for (let i = 0; i < m.vertexCount; i++) {
     const v = m.getVertex(i);
+    xref[i] = v.xref;
     pos.set(low.pos.subarray(v.xref * 3, v.xref * 3 + 3), i * 3);
     uv[i * 2] = v.uv[0] / atlas.width;
     uv[i * 2 + 1] = v.uv[1] / atlas.height;
@@ -162,7 +164,7 @@ function unwrap(low: { pos: Float32Array; idx: Uint32Array }, size: number): { p
   const idx = new Uint32Array(m.indexCount);
   m.getIndexArray(idx);
   atlas.delete();
-  return { pos, uv, idx };
+  return { pos, uv, idx, xref };
 }
 
 /** Fill each texel of the low atlas from the closest point on the high mesh's texture. */
@@ -270,9 +272,69 @@ async function writeOutline(low: { pos: Float32Array; idx: Uint32Array }): Promi
   return io.writeBinary(doc);
 }
 
+/**
+ * A rigged character (Meshy Remesh + Animate): the same shape-only bake, but in bind-pose space
+ * and with each kept vertex's skin weights carried over from the original (simplification only
+ * keeps original vertices), cut to the four strongest joints. The skeleton, bind matrices and
+ * clips stay as they are; keyframes are resampled. No fit: the renderer scales it to `height`.
+ */
+async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8Array; tris: number; bounds: BuiltEntry["bounds"] }> {
+  const doc = await io.read(path);
+  const prims = doc.getRoot().listMeshes().flatMap((m) => m.listPrimitives());
+  const prim = prims.find((p) => p.getAttribute("JOINTS_0"));
+  if (!prim || prims.length !== 1) throw new Error(`expected one skinned primitive, got ${prims.length}`);
+  const read = (name: string): number[][] => {
+    const a = prim.getAttribute(name)!, out: number[][] = [];
+    for (let i = 0; i < a.getCount(); i++) out.push(a.getElement(i, []));
+    return out;
+  };
+  const sets = prim.listSemantics().filter((n) => n.startsWith("JOINTS_")).map((n) => [read(n), read(n.replace("JOINTS", "WEIGHTS"))] as const);
+  const img = prim.getMaterial()!.getBaseColorTexture()!.getImage()!;
+  const raw = await sharp(img).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const src: Src = {
+    pos: new Float32Array(prim.getAttribute("POSITION")!.getArray()!), uv: new Float32Array(prim.getAttribute("TEXCOORD_0")!.getArray()!),
+    idx: Uint32Array.from(prim.getIndices()!.getArray()!), tex: { data: raw.data, w: raw.info.width, h: raw.info.height },
+  };
+  const size = e.texture ?? 512;
+  const low = lowPoly(src, e.tris ?? 3000);
+  const out = unwrap(low, size);
+  const n = out.pos.length / 3, joints = new Uint16Array(n * 4), weights = new Float32Array(n * 4);
+  for (let v = 0; v < n; v++) {
+    const o = low.orig[out.xref[v]!]!;
+    const all = sets.flatMap(([j, w]) => j[o]!.map((jj, k) => [jj, w[o]![k]!] as const)).filter(([, w]) => w > 0).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const sum = all.reduce((t, [, w]) => t + w, 0) || 1;
+    all.forEach(([jj, w], k) => { joints[v * 4 + k] = jj; weights[v * 4 + k] = w / sum; });
+  }
+  const rgba = bake(src, out, size);
+  const webp = await sharp(rgba, { raw: { width: size, height: size, channels: 4 } }).removeAlpha().webp({ quality: 82 }).toBuffer();
+  doc.createExtension(EXTTextureWebP).setRequired(true);
+  const buf = doc.getRoot().listBuffers()[0]!;
+  for (const name of prim.listSemantics()) prim.setAttribute(name, null);
+  prim.setAttribute("POSITION", doc.createAccessor().setType("VEC3").setArray(new Float32Array(out.pos)).setBuffer(buf))
+    .setAttribute("TEXCOORD_0", doc.createAccessor().setType("VEC2").setArray(new Float32Array(out.uv)).setBuffer(buf))
+    .setAttribute("JOINTS_0", doc.createAccessor().setType("VEC4").setArray(joints).setBuffer(buf))
+    .setAttribute("WEIGHTS_0", doc.createAccessor().setType("VEC4").setArray(weights).setBuffer(buf))
+    .setIndices(doc.createAccessor().setType("SCALAR").setArray(n < 65536 ? Uint16Array.from(out.idx) : new Uint32Array(out.idx)).setBuffer(buf));
+  const tex = doc.createTexture("albedo").setImage(new Uint8Array(webp)).setMimeType("image/webp");
+  prim.getMaterial()!.setBaseColorTexture(tex).setNormalTexture(null).setMetallicRoughnessTexture(null).setOcclusionTexture(null).setEmissiveTexture(null)
+    .setRoughnessFactor(e.rough ?? 0.9).setMetallicFactor(e.metal ?? 0);
+  await doc.transform(resample(), prune(), dedup());
+  const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < out.pos.length; i += 3) for (let k = 0; k < 3; k++) { b[k] = Math.min(b[k]!, out.pos[i + k]!); b[k + 3] = Math.max(b[k + 3]!, out.pos[i + k]!); }
+  return { glb: await io.writeBinary(doc), tris: out.idx.length / 3, bounds: b.map((v) => Math.round(v * 1000) / 1000) as BuiltEntry["bounds"] };
+}
+
 async function build(e: MeshyEntry): Promise<void> {
   const path = join(SRC, e.src);
   if (!existsSync(path)) { console.warn(`skip ${e.file}: ${path} not found`); return; }
+  if (e.kind === "character") {
+    const t0 = Date.now();
+    const c = await buildCharacter(e, path);
+    writeFileSync(join(OUT, `${e.file}.glb`), c.glb);
+    built[e.file] = { hash: createHash("sha1").update(c.glb).digest("hex").slice(0, 10), tris: c.tris, bytes: c.glb.byteLength, bounds: c.bounds };
+    console.log(`${e.file}: rigged, ${c.tris} tris, ${(c.glb.byteLength / 1024).toFixed(0)} KB, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+    return;
+  }
   const t0 = Date.now();
   const src = await loadSource(path, e.tint);
   const bounds = fit(src.pos, e);

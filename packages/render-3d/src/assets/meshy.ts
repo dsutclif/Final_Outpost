@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Euler, Matrix4, Quaternion, Vector3, type Group, type Material, type Mesh, type Object3D } from "three";
+import { BufferAttribute, BufferGeometry, Euler, Matrix4, Quaternion, Vector3, type AnimationClip, type Group, type Material, type Mesh, type Object3D } from "three";
 import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { AnchorName } from "../ids.js";
 import { disposeGeo, getAnchor, type Model } from "./common.js";
@@ -20,7 +20,13 @@ export interface MeshyEntry {
   slot?: string[]; mirror?: string[];
   /** Instanced by the renderer as a wall section; `depth` scales its thickness. */
   batch?: "wall" | "reinforced"; depth?: number;
-  kind?: "prop";
+  kind?: "prop" | "character";
+  /** Character clips by role (walk, run, idle, wait, cheer) → clip name in the file. */
+  clips?: Record<string, string>;
+  /** Character props on bones or pushed ahead (rigged.ts). */
+  held?: Record<string, { prop: string; bone?: string; at: number[]; grip?: number[] }[]>;
+  /** Character height in art metres (the file keeps its own units and skeleton). */
+  height?: number;
   /**
    * Character tool slots this prop fills (characters.ts part ids), each with its hand-attach
    * transform [x, y, z, rx, ry, rz, scale] (art metres, degrees) from the hand frame
@@ -38,6 +44,8 @@ const BUILT = built as Record<string, { hash: string; tris: number; bounds: numb
 const cache = new Map<string, Group>();
 /** Blueprint outlines by file: the same shape at a few hundred triangles (build pads draw these). */
 const outlines = new Map<string, Group>();
+/** Animation clips of rigged characters by file. */
+const clips = new Map<string, AnimationClip[]>();
 const pending = new Map<string, Promise<void>>();
 let loader: Promise<GLTFLoader> | null = null;
 let enabled = true;
@@ -69,6 +77,15 @@ function pick(list: readonly MeshyEntry[], id: string, level: number): MeshyEntr
 export function meshyBounds(file: string): readonly number[] | undefined { return BUILT[file]?.bounds; }
 
 export function meshyLoaded(file: string): boolean { return cache.has(file); }
+
+/** The loaded scene (shared, not a copy) and clips of a rigged character file. */
+export function meshyRig(file: string): { scene: Group; clips: AnimationClip[] } | undefined {
+  const scene = cache.get(file);
+  return scene && { scene, clips: clips.get(file) ?? [] };
+}
+
+/** Entries of rigged characters (`kind: "character"`). */
+export function meshyCharacters(): readonly MeshyEntry[] { return ENTRIES.filter((e) => e.kind === "character"); }
 
 /** A placed copy of a loaded GLB (held props, the dev fit page); undefined until it lands. */
 export function meshyScene(file: string): Group | undefined {
@@ -136,6 +153,7 @@ export function loadMeshy(onLoad?: (e: MeshyEntry) => void, ids?: ReadonlySet<st
         outlineUrl ? l.loadAsync(outlineUrl).catch(() => null) : null,
       ])).then(([gltf, outline]) => {
         prepare(gltf.scene);
+        if (gltf.animations.length) clips.set(e.file, gltf.animations);
         if (outline) { prepare(outline.scene, true); outlines.set(e.file, outline.scene); }
         cache.set(e.file, gltf.scene);
       }).catch((err: unknown) => { console.warn(`meshy: ${e.file} failed, keeping the code model`, err); });
