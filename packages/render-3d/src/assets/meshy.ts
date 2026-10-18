@@ -158,6 +158,17 @@ export function meshyGeometry(file: string): { geo: BufferGeometry; mat: Materia
 }
 
 /**
+ * The entries a level can show: every building, prop, item and decor, plus only the rigged
+ * characters it names (each is 200-700 KB; a phone loading all of them for every level could
+ * stall or drop the ones it needs). The hero and colonists are always there; traders come with a kiosk.
+ */
+export function meshyIdsFor(manifest: unknown): Set<string> {
+  const text = JSON.stringify(manifest);
+  return new Set(ENTRIES.filter((e) => e.kind !== "character" || e.id === "unit.player" || e.id === "role.idle"
+    || text.includes(`"${e.id}`) || (e.id === "unit.customer" && text.includes('"sink.sales_point"'))).map((e) => e.id));
+}
+
+/**
  * Fetch GLBs (all, or those for `ids`) in the background; `onLoad` runs per file as it lands
  * so the renderer can rebuild what it has placed. Failures are logged and leave the code model.
  * `base` is where packages/client/public is served (the page's base URL by default).
@@ -174,8 +185,10 @@ export function loadMeshy(onLoad?: (e: MeshyEntry) => void, ids?: ReadonlySet<st
       // props on the code-built crowd take their small LOD; the game-size file waits for rigged characters
       const url = new URL(b.lod ? `models/${e.file}.lod.glb?v=${b.lod.hash}` : `models/${e.file}.glb?v=${b.hash}`, root).href;
       const outlineUrl = b.outline && new URL(`models/${e.file}.outline.glb?v=${b.outline.hash}`, root).href;
+      // one retry: a dropped request on a phone would otherwise leave the code model all level
+      const glb = (l: GLTFLoader) => l.loadAsync(url).catch(() => new Promise((r) => setTimeout(r, 1500)).then(() => l.loadAsync(url)));
       p = loader!.then((l) => Promise.all([
-        l.loadAsync(url),
+        glb(l),
         // a missing outline only means the blueprint stays code-built
         outlineUrl ? l.loadAsync(outlineUrl).catch(() => null) : null,
       ])).then(([gltf, outline]) => {

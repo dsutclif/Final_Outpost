@@ -36,7 +36,7 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { disposeGeo, getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
-import { applyMeshy, loadMeshy, meshyBounds, meshyEntries, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
+import { applyMeshy, loadMeshy, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
@@ -280,7 +280,7 @@ export class Renderer3D implements Renderer {
         (g.userData["ghost"] as MeshLambertMaterial).dispose();
         delete p.extra[3];
       }
-    });
+    }, meshyIdsFor(manifest));
     this.buildPadInfo();
 
     const doc = mount.ownerDocument;
