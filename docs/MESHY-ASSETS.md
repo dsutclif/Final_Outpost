@@ -194,12 +194,13 @@ All characters: realistic, muted versions of the sheet designs, **empty-handed, 
 
 ## Priority B: visitors, raiders, creatures (sheet: `Non settler characters.jpeg`)
 
+All four trader types come from **one** rigged trader: the hurried trader plays the check-watch clip and walks faster, the VIP carries the gold briefcase (one per hand) and the bulk trader pushes the hover cart. The game picks the clip and attaches the prop per type, so each still reads by silhouette.
+
 | File name | Asset | Prompt |
 |---|---|---|
-| `unit.customer` | Trader | The Trader from the sheet: worn khaki-grey EVA suit, clear bubble helmet, backpack. Empty hands. |
-| `unit.customer_impatient` | Hurried trader | The Hurried trader: the same suit, leaner, a glowing cyan wrist display. Empty hands. |
-| `unit.customer_premium` | VIP trader | The VIP trader: a smarter suit with brass trim and a dark mirrored visor. Empty hands (the cases are added later). |
-| `unit.customer_bulk` | Bulk trader | The Bulk trader **with his hover cart** from the sheet: a trader standing behind a flat hover cart loaded with strapped crates, hands on the handle. One object. |
+| `unit.customer` | Trader (all four trader types) | The Trader from the sheet: worn khaki-grey EVA suit, clear bubble helmet, backpack, a wrist display on the left forearm. Empty hands, A-pose. **Animate:** a walk, an idle, and a "check watch" clip (search the library for "watch" or "impatient"; if none fits, Text to Motion: "glances at wristwatch impatiently while waiting"). One file with all clips. |
+| `prop.briefcase_gold` | VIP trader's case | One hard-shell briefcase, brushed gold metal with dark handle and clasps. Small prop. **Smart Topology, about 400 polygons.** |
+| `prop.hover_cart` | Bulk trader's cart | The bulk trader's hover cart from the sheet **without the trader**: a flat steel cart on four small hover pads, a push handle at the back, strapped crates on top. Remesh to 10K like the buildings. |
 | `hostile.raider_humanoid` | Raider | The Raider: black tactical armour, helmet with a glowing red visor band. No weapon. |
 | `hostile.boss` | Raider warlord | The Boss raider: huge powered armour suit, bulky shoulders and limbs, small head with a red visor. No weapon. |
 | `hostile.creature` | Dust crawler | The Dust crawler: a large armoured six-legged insect-like creature, segmented dusty brown shell, standing on all legs. |
