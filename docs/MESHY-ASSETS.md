@@ -37,8 +37,11 @@ On the meshy.ai home page, **Quick Generate** tab:
 2. Under the upload box, set the two pickers:
    - **Buildings, structures, characters, creatures, nodes and props:** `High Detail` and
      `Meshy 7.1 - Flagship`.
-   - **Carried items (Priority C):** `Smart Topology` instead, with the target polygon count at
-     about **400**. It is far cheaper (about 5 credits) and already game-sized.
+   - **Carried items and held props:** try `Smart Topology` (target about 400 polygons, about
+     5 credits) on **one** item first. Meshy's docs do not say whether Smart Topology output is
+     coloured: if it comes back grey, use `High Detail` + Texture on for all items and props
+     instead (about 25 credits each) and skip Remesh; the build tool (`pnpm models:build`)
+     shrinks them to game size with their colours.
 3. Click the **gear** (Model Generation Settings) next to the model picker:
    - **Resolution:** `Standard`. Ultra 2K/4K adds detail the phone version cuts away.
    - **Split:** off. Moving parts are already separate images.
@@ -225,8 +228,9 @@ All four trader types come from **one** rigged trader: the hurried trader plays 
 
 Characters are generated empty-handed (held objects break rigging), so what they hold is a
 separate small prop the game attaches to the hand bone. One object per image, nothing holding it,
-laid out at the usual three-quarter view. **Smart Topology, about 600 polygons** (shield and
-minigun about 1,000). Same style block and rules.
+laid out at the usual three-quarter view. Same Meshy settings as the carried items (Smart Topology
+if it comes out coloured, else High Detail + Texture). Game size is about 600 triangles (shield
+and minigun about 1,000). Same style block and rules.
 
 | File name | Held by | Prompt |
 |---|---|---|
@@ -243,8 +247,9 @@ minigun about 1,000). Same style block and rules.
 ## Priority C: carried items (sheet: `Items.jpeg`)
 
 Singles only: the game builds back stacks, shelf stock and ground piles by repeating the single
-item, so the sheet's "stack" art is not needed. Items are drawn many times at once, so each is cut
-to about 200–500 triangles in cleanup: generate them simple and chunky, with a strong silhouette;
+item, so the sheet's "stack" art is not needed. Meshy settings: see step 2 above (Smart Topology
+only if it comes out coloured). Items are drawn many times at once, so each is cut to about
+200–500 triangles in cleanup: generate them simple and chunky, with a strong silhouette;
 fine print (labels, stamped text) will not survive and is not wanted. Same style block and rules.
 
 | File name | Asset | Prompt |
