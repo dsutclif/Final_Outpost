@@ -63,12 +63,15 @@ export class Labels {
     return e.meshMat;
   }
 
-  /** Apply a cached label to a sprite; `height` is the world height of the sprite. */
+  /** Visible width over LABEL_VIEW_W, set by the renderer each frame: keeps labels a fixed size on screen. */
+  screenK = 1;
+
+  /** Apply a cached label to a sprite; `height` is the world height of the sprite at LABEL_VIEW_W. */
   apply(sprite: Sprite, key: string, art: () => LabelArt, height: number): boolean {
     const m = this.material(key, art);
     if (!m) { sprite.visible = false; return false; }
     if (sprite.material !== m.mat) sprite.material = m.mat;
-    const h = height * LABEL_K;
+    const h = height * LABEL_K * this.screenK;
     sprite.scale.set(h * m.aspect, h, 1);
     return true;
   }

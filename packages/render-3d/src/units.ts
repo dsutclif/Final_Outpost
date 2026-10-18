@@ -27,9 +27,15 @@ export const FOV_DEG = 8;
  * top edge) and narrower below, so 3D frames 220 at the centre and leans the camera toward
  * the nearest target (Camera.lead) to bring edge pads on screen.
  */
-export const VIEW_W = 266;
+export const VIEW_W = 200;
 /** Floating labels keep their pre-R3 screen size: world heights shrink with the closer view. */
 export const LABEL_K = 220 / 360;
+/**
+ * Labels are sized for this view width and then held at a fixed size on screen (Doug,
+ * 2026-10-18): the renderer scales every label by the visible width over this, so zooming the
+ * camera (the closer view, the level-start overview) moves the world but not the text.
+ */
+export const LABEL_VIEW_W = 266;
 
 const YAW = (YAW_DEG * Math.PI) / 180, SIN_P = Math.sin((PITCH_DEG * Math.PI) / 180);
 

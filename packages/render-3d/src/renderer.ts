@@ -53,7 +53,7 @@ import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
-import { ART_M, FOLLOW_RATE, FOV_DEG, ITEM_K, PITCH_DEG, TIERS, VIEW_W, YAW_DEG, type QualityTier } from "./units.js";
+import { ART_M, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TIERS, VIEW_W, YAW_DEG, type QualityTier } from "./units.js";
 
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
 const SHELF_K = 1.05 / ITEM_K;
@@ -664,6 +664,7 @@ export class Renderer3D implements Renderer {
     const W = this.manifest.map.w, H = this.manifest.map.h;
     const z = cam.zoom || 1;
     const vw = viewW / z, vh = (viewW * this.cssH) / this.cssW / z;
+    this.labels.screenK = vw / LABEL_VIEW_W;
     if (cam.follow) {
       const lead = cam.lead;
       const lx = lead ? (lead.x - target.x) * LEAD_WEIGHT : 0, ly = lead ? (lead.y - target.y) * LEAD_WEIGHT : 0;

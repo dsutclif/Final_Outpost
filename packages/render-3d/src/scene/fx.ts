@@ -10,7 +10,7 @@ import type { Labels } from "./labels.js";
 export type Target = Vector3 | (() => Vector3);
 
 interface Particle { p: Vector3; v: Vector3; g: number; life: number; age: number; size: number; color: Color; spin: number; drag: number }
-interface Floater { sprite: Sprite; mat: SpriteMaterial; age: number; life: number; base: Vector3; on: boolean }
+interface Floater { sprite: Sprite; mat: SpriteMaterial; age: number; life: number; base: Vector3; on: boolean; size?: [number, number] }
 interface Flight { res: string; from: Vector3; to: Target; age: number; dur: number; h: number; toPlayer: boolean; done?: () => void; spin: number }
 
 const MAX_PARTICLES = 700;
@@ -118,7 +118,8 @@ export class Fx {
     if (m) {
       if (f.mat.map !== m.mat.map) { f.mat.needsUpdate = f.mat.map === null; f.mat.map = m.mat.map; }
       f.mat.opacity = 1;
-      f.sprite.scale.set(height * m.aspect, height, 1);
+      f.size = [height * m.aspect, height];
+      f.sprite.scale.set(height * m.aspect * this.labels.screenK, height * this.labels.screenK, 1);
     }
     f.age = 0;
     f.base.copy(at);
@@ -162,7 +163,8 @@ export class Fx {
       f.age += dt;
       const k = f.age / f.life;
       if (k >= 1) { f.on = false; f.sprite.visible = false; continue; }
-      f.sprite.position.set(f.base.x, f.base.y + 26 * (1 - (1 - k) * (1 - k)), f.base.z);
+      f.sprite.position.set(f.base.x, f.base.y + 26 * this.labels.screenK * (1 - (1 - k) * (1 - k)), f.base.z);
+      if (f.size) f.sprite.scale.set(f.size[0] * this.labels.screenK, f.size[1] * this.labels.screenK, 1);
       f.mat.opacity = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
     }
     for (const f of this.flights) f.age += dt;
