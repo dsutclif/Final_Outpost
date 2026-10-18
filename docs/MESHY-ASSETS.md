@@ -227,7 +227,7 @@ each starting under a branching joint) and walks them in an alternating gait. Wh
   two-handed clip of that character (gun: barrel from the right hand through the left in
   `Run_and_Shoot`; tool: handle from the left hand through the right in `Heavy_Hammer_Swing` or
   the dig), then rides the right hand in every clip. `when` shows it only during those actions
-  (the hero swaps pickaxe, scythe, shovel and the guard's gun by task). Without `axis` the tool's
+  (the hero swaps pickaxe, shovel and the guard's gun by task; the hammer swing is for ore only, crops use the kneel-and-pick clip, so the scythe prop is built but unused). Without `axis` the tool's
   long axis and head end are read off its mesh (the diagonal shovel).
 - **Guard shield arm.** `shieldArm` braces the left arm across the chest over every clip (the
   clips are two-handed rifle clips); the shield rides the chest in front of the forearm.
