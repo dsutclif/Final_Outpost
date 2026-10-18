@@ -1,8 +1,8 @@
 {
   "id": "s1-L043",
   "seed": 1620668013,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -47,92 +47,99 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
+        141,
         510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        500
+        178,
+        488
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
-        540
+        154,
+        538
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        470
+        134,
+        478
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        113,
+        521
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         180,
-        550
+        551
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        480
+        161,
+        459
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        510
+        138,
+        563
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        550
+        195,
+        576
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
+        166,
         580
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
-        570
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
         130,
-        450
+        447
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        100,
-        480
+        102,
+        485
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
+        183,
         440
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        96,
+        565
       ]
     },
     {
@@ -251,8 +258,8 @@
       "type": "pad.build",
       "id": "tower_w",
       "at": [
-        100,
-        400
+        99,
+        378
       ],
       "cost": {
         "res.salvage": 6
@@ -270,8 +277,8 @@
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        180,
-        320
+        174,
+        314
       ],
       "cost": {
         "res.salvage": 6
@@ -289,8 +296,8 @@
       "type": "pad.build",
       "id": "tower_w2",
       "at": [
-        100,
-        630
+        77,
+        726
       ],
       "cost": {
         "res.salvage": 6
@@ -308,8 +315,8 @@
       "type": "pad.build",
       "id": "tower_n2",
       "at": [
-        300,
-        320
+        403,
+        314
       ],
       "cost": {
         "res.salvage": 6
@@ -327,8 +334,8 @@
       "type": "pad.build",
       "id": "tower_w_up",
       "at": [
-        160,
-        390
+        99,
+        378
       ],
       "cost": {
         "res.salvage": 5
@@ -343,8 +350,8 @@
       "type": "pad.build",
       "id": "tower_n_up",
       "at": [
-        220,
-        390
+        174,
+        314
       ],
       "cost": {
         "res.salvage": 5
@@ -371,8 +378,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        100,
-        710
+        219,
+        711
       ],
       "cost": {
         "res.salvage": 3
@@ -516,9 +523,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.817,
-    "fun": 0.095,
-    "botMargin": 0.704,
+    "difficulty": 0.797,
+    "fun": 0.098,
+    "botMargin": 0.705,
     "botsPassed": [
       "good",
       "average",
@@ -527,9 +534,9 @@
       "floor"
     ],
     "stars": {
-      "good": 2.7,
-      "median": 2.67,
-      "goodAll": 0.7
+      "good": 2.8,
+      "median": 3,
+      "goodAll": 0.8
     }
   }
 }

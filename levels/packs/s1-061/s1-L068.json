@@ -1,8 +1,8 @@
 {
   "id": "s1-L068",
-  "seed": 216857373,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "seed": 491347235,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         450
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -45,7 +45,7 @@
       "id": "shop",
       "at": [
         357,
-        395
+        394
       ],
       "sells": [
         "res.food_raw_1"
@@ -61,7 +61,7 @@
         ],
         [
           281,
-          293
+          292
         ]
       ]
     },
@@ -69,111 +69,100 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        320,
-        610
+        323,
+        612
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        580
+        151,
+        593
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        550
+        159,
+        564
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        560
+        179,
+        543
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        580
+        183,
+        582
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        610
+        126,
+        564
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        530
+        172,
+        613
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        550
+        139,
+        622
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        220,
-        540
+        206,
+        557
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        200,
-        600
+        211,
+        616
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        120,
-        620
+        128,
+        524
       ]
     },
     {
       "type": "zone.terrain",
       "id": "terrain0",
-      "kind": "ridge",
+      "kind": "outcrop",
       "rect": [
-        66,
-        254,
-        19,
-        112
-      ]
-    },
-    {
-      "type": "zone.terrain",
-      "id": "terrain1",
-      "kind": "ridge",
-      "rect": [
-        216,
-        131,
-        124,
-        19
+        93,
+        777,
+        40,
+        53
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        270,
-        520
+        250,
+        523
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -186,8 +175,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        390,
-        580
+        388,
+        572
       ],
       "cost": {
         "res.currency": 16
@@ -205,10 +194,10 @@
       "id": "hire_cashier",
       "at": [
         357,
-        519
+        518
       ],
       "cost": {
-        "res.currency": 24
+        "res.currency": 23
       },
       "role": {
         "role": "role.cashier",
@@ -232,7 +221,7 @@
   "events": [],
   "params": {
     "start.currency": 1,
-    "core.burn": 2.2,
+    "core.burn": 2.1,
     "housing.base": 5,
     "lots.block": 160,
     "lots.street": 40,
@@ -240,9 +229,9 @@
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "customers.impatientShare": 0.35,
-    "customers.premiumShare": 0.15,
-    "customers.bulkShare": 0.16,
-    "level.budgetSeconds": 360
+    "customers.premiumShare": 0.16,
+    "customers.bulkShare": 0.15,
+    "level.budgetSeconds": 390
   },
   "goal": {
     "type": "bulk_order",
@@ -261,7 +250,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 405
+        "seconds": 428
       }
     },
     {
@@ -285,9 +274,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.747,
-    "fun": 0.952,
-    "botMargin": 0.483,
+    "difficulty": 0.714,
+    "fun": 0.916,
+    "botMargin": 0.493,
     "botsPassed": [
       "good",
       "average",

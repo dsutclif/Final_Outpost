@@ -1,8 +1,8 @@
 {
   "id": "s1-L049",
   "seed": 2061895893,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -70,99 +70,99 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        330,
-        440
+        307,
+        435
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        440
+        141,
+        439
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        470
+        167,
+        466
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        440
+        176,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        470
+        186,
+        491
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        500
+        143,
+        488
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
+        124,
+        465
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        204,
+        452
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        154,
         410
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        450
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        110,
-        440
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        200,
+        117,
         420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        500
+        195,
+        403
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        410
+        109,
+        509
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        90,
-        480
+        82,
+        475
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        180,
-        370
+        119,
+        378
       ]
     },
     {
@@ -231,8 +231,8 @@
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        170,
-        580
+        168,
+        578
       ],
       "cost": {
         "res.currency": 30
@@ -243,8 +243,8 @@
       "type": "pad.build",
       "id": "clear0",
       "at": [
-        400,
-        410
+        376,
+        407
       ],
       "cost": {
         "res.currency": 18
@@ -259,8 +259,8 @@
       "type": "pad.build",
       "id": "clear1",
       "at": [
-        110,
-        650
+        113,
+        652
       ],
       "cost": {
         "res.currency": 18
@@ -291,7 +291,7 @@
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 280
+    "level.budgetSeconds": 250
   },
   "goal": {
     "type": "clear_zones",
@@ -310,7 +310,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 193
+        "seconds": 181
       }
     },
     {
@@ -332,9 +332,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.745,
-    "fun": 0.576,
-    "botMargin": 0.578,
+    "difficulty": 0.784,
+    "fun": 0.505,
+    "botMargin": 0.551,
     "botsPassed": [
       "good",
       "average",

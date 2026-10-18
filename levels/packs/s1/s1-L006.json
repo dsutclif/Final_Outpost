@@ -1,8 +1,8 @@
 {
   "id": "s1-L006",
   "seed": 39245116,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -68,99 +68,99 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        340,
-        570
+        336,
+        583
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        360,
-        460
+        357,
+        452
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        330,
-        450
+        321,
+        462
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        330,
-        480
+        336,
+        487
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        300,
-        460
+        332,
+        432
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        360,
-        430
+        296,
+        484
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        360,
-        490
+        301,
+        438
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        290,
-        490
+        382,
+        468
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        330,
-        420
+        370,
+        425
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        290,
-        430
+        286,
+        519
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        290,
-        520
+        379,
+        497
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        390,
-        460
+        298,
+        406
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        300,
-        390
+        410,
+        423
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        360,
-        390
+        421,
+        488
       ]
     },
     {
@@ -179,7 +179,7 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        270,
+        269,
         600
       ],
       "cost": {
@@ -235,14 +235,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 94
+        "seconds": 95
       }
     },
     {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 45
+        "pct": 50
       }
     }
   ],
@@ -259,9 +259,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.199,
-    "fun": 0.813,
-    "botMargin": 0.584,
+    "difficulty": 0.192,
+    "fun": 0.802,
+    "botMargin": 0.582,
     "botsPassed": [
       "good",
       "average",
@@ -270,7 +270,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2.67,
       "goodAll": 1
     }
   }

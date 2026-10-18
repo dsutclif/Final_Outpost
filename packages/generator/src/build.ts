@@ -721,12 +721,39 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ents.push({ type: "barrier.line", id: "ring", res: wallsCurrency ? "res.currency" : "res.salvage", costPerSection: Math.max(1, Math.round(K.ringCost)),
       points: ring.points.map((p) => [...p]), closed: true, gates: ringGates, prebuilt: pre });
     if (feat.has("turrets")) {
+      // A pad's spot just beside a wall tower, along the wall (sgn: which way) and against its inside face:
+      // clear of the tower's footprint that way (it is longer toward the camera) by the footprint gap.
+      // sgn 0: straight inward of the tower, against its inner face (where a ring corner leaves no room along the wall).
+      const besideTower = (site: Pt, alongV: Pt, inV: Pt, sgn: number): Pt => {
+        const tf = GEN.footprints["struct.ranged_defense"]!, pf = GEN.footprints["pad"]!;
+        if (sgn === 0) {
+          const ax = inV[0] ? 0 : 1, pos = (inV[0] || inV[1]) > 0;
+          const off = (pos ? tf[ax + 2]! : -tf[ax]!) + S.footprintGap + pf[2]! + 1;
+          return [site[0] + inV[0] * off, site[1] + inV[1] * off];
+        }
+        const ax = alongV[0] ? 0 : 1;
+        const off = (sgn > 0 ? tf[ax + 2]! : -tf[ax]!) + S.footprintGap + pf[2]! + 1;
+        return [Math.round(site[0] + alongV[0] * sgn * off + inV[0] * GEN.rings.towerPadHug), Math.round(site[1] + alongV[1] * sgn * off + inV[1] * GEN.rings.towerPadHug)];
+      };
+      // Gatherables (forest nodes) standing on a tower pad's spot are taken off the map.
+      const clearFor = (q: Pt): void => {
+        const fb = P.box(q, "pad")!, g = S.footprintGap;
+        for (let i = P.stations.length - 1; i >= 0; i--) {
+          const s = P.stations[i]!;
+          if (!s.tight) continue;
+          const hit = dist(q, [s.x, s.y]) < Math.max(R.pad, s.r) + S.margin
+            || (!!s.fp && fb[0] < s.fp[2] + g && s.fp[0] < fb[2] + g && fb[1] < s.fp[3] + g && s.fp[1] < fb[3] + g);
+          if (!hit) continue;
+          P.stations.splice(i, 1);
+          const k = ents.findIndex((e) => e.type.startsWith("node.") && Array.isArray(e["at"]) && (e["at"] as number[])[0] === s.x && (e["at"] as number[])[1] === s.y);
+          if (k >= 0) ents.splice(k, 1);
+        }
+      };
       // Towers are built into the wall (R3 item 18) on the attack sides' ring posts, never beside a gate:
       // with the gate mid-side they flank it (R3 item 3: the defence the economy buys), each pad just
       // inside the wall beside its tower.
       const n = ring.points.length;
       const sites: { sd: string; j: number; site: Pt }[] = [];
-      const towerOther = new Map<string, Pt>();
       for (const sd of sides) {
         const posts = ring.points.map((p, k) => ({ p, k })).filter(({ k }) => {
           const prev = (k + n - 1) % n;
@@ -749,13 +776,12 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         const inV: Pt = sd === "n" ? [0, 1] : sd === "s" ? [0, -1] : sd === "e" ? [-1, 0] : [1, 0];
         const R2 = GEN.rings;
         let tp: Pt | null = null;
-        for (const sgn of [1, -1]) {
+        // first as drawn, then making room: gatherables in the way of a spot beside the tower give way
+        for (const room of [false, true]) for (const sgn of [1, -1, 0]) {
           if (tp) break;
-          // just clear of the tower's footprint that way (it is longer toward the camera)
-          const tf = GEN.footprints["struct.ranged_defense"]!, pf = GEN.footprints["pad"]!, ax = alongV[0] ? 0 : 1;
-          const off = (sgn > 0 ? tf[ax + 2]! : -tf[ax]!) + S.footprintGap + pf[2]! + 1;
-          const q: Pt = [Math.round(site[0] + alongV[0] * sgn * off + inV[0] * R2.towerPadHug), Math.round(site[1] + alongV[1] * sgn * off + inV[1] * R2.towerPadHug)];
-          tp = P.place(id, R.pad, [q[0] - 6, q[1] - 6, 12, 12], { near: q, key: true, fp: ["pad"], hugWall: true, samples: 60 });
+          const q = besideTower(site, alongV, inV, sgn);
+          if (room) clearFor(q);
+          tp = P.place(id, R.pad, [q[0] - 6, q[1] - 6, 12, 12], { near: q, key: true, fp: ["pad"], hugWall: true, pull: false, samples: 60 });
         }
         if (!tp) {
           const inward = dist(site, core) || 1, k = R2.towerPadIn / inward, sr = R2.towerPadSearch;
@@ -763,17 +789,15 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           tp = placePad(id, tpNear, { region: [tpNear[0] - sr, tpNear[1] - sr, 2 * sr, 2 * sr] });
         }
         towers.push(pad({ type: "pad.build", id, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site] }));
-        // its upgrade pad goes on the tower's other side along the wall, mirroring the build pad
-        towerOther.set(id, [Math.round(2 * site[0] - tp[0] + 2 * inV[0] * R2.towerPadHug), Math.round(2 * site[1] - tp[1] + 2 * inV[1] * R2.towerPadHug)]);
       }
       if (feat.has("salvage_upgrades")) {
         // On a turret-level goal the first upgrade reaches the tier, so only one tower gets an upgrade pad;
         // elsewhere up to maxUpgrades, one side's first tower after another, so the scrap can pay for them.
         (goal === "turret_level" ? towers.slice(-1) : towers.slice(0, GEN.defendWaves.maxUpgrades)).forEach((t) => {
-          const tp = t.at as Pt, other = towerOther.get(String(t.id)), upId = `${String(t.id)}_up`;
-          // beside the turret: its other side along the wall, else just inside its build pad
-          const up = (other ? P.place(upId, R.pad, [other[0] - 8, other[1] - 8, 16, 16], { near: other, key: true, fp: ["pad"], hugWall: true, samples: 80 }) : null)
-            ?? placePad(upId, toward(tp, core, Math.min(0.6, (2 * R.pad + S.margin + 4) / (dist(tp, core) || 1))), { region: [tp[0] - 90, tp[1] - 90, 180, 180] });
+          // The upgrade pad takes the tower's own build pad spot, right beside the turret: it only shows once
+          // the tower stands, when that pad is gone (Doug's playtest of 0.11.0).
+          const up = t.at as Pt, upId = `${String(t.id)}_up`;
+          P.add(upId, up, R.pad, { key: true, on: String(t.id) });
           pad({ type: "pad.build", id: `${String(t.id)}_up`, at: [...up], cost: { "res.salvage": salv("salvage.towerUp") }, build: "struct.ranged_defense.t2", target: t.id, requires: { pad: t.id } });
         });
         const rf = placePad("reinforce", [core[0] + 80, core[1] - 70]);

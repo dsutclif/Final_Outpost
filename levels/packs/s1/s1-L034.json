@@ -1,8 +1,8 @@
 {
   "id": "s1-L034",
-  "seed": 383627009,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "seed": 304161225,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -38,71 +38,64 @@
         510
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 9,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        460
+        179,
+        458
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        460
+        207,
+        471
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        490
+        207,
+        441
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        430
+        194,
+        517
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        430
+        196,
+        408
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        520
+        163,
+        431
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        210,
-        400
+        178,
+        489
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        250,
-        400
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        170,
-        400
+        167,
+        530
       ]
     },
     {
@@ -162,50 +155,64 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        359,
-        277
+        252,
+        291
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        169,
-        202
+        412,
+        60
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        48,
-        317
+        262,
+        168
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        402,
-        139
+        117,
+        122
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        39,
+        610
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        273,
-        111
+        362,
+        136
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        92,
-        36
+        345,
+        257
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        43,
-        586
+        63,
+        295
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        172,
+        216
       ]
     },
     {
@@ -218,23 +225,35 @@
         150
       ],
       "animal": "node.prey",
-      "n": 3
+      "n": 1
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey_danger",
+      "rect": [
+        20,
+        390,
+        87,
+        150
+      ],
+      "animal": "node.prey_dangerous",
+      "n": 2
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.4,
-    "housing.base": 6,
+    "start.currency": 1,
+    "core.burn": 2.1,
+    "housing.base": 7,
     "lots.block": 160,
     "lots.street": 40,
-    "level.budgetSeconds": 340
+    "level.budgetSeconds": 320
   },
   "goal": {
     "type": "hunt",
-    "n": 30
+    "n": 25
   },
   "family": "rescue",
   "objectives": [
@@ -242,20 +261,22 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 30
+        "n": 25
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 251
+        "seconds": 287
       }
     },
     {
       "id": "challenge",
-      "kind": "rescue_all",
-      "params": {}
+      "kind": "tow_full_trip",
+      "params": {
+        "n": 3
+      }
     }
   ],
   "fail": [
@@ -271,14 +292,15 @@
     }
   },
   "rating": {
-    "difficulty": 0.511,
-    "fun": 0.47,
-    "botMargin": 0.544,
+    "difficulty": 0.504,
+    "fun": 0.761,
+    "botMargin": 0.444,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,

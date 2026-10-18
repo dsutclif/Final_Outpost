@@ -1,8 +1,8 @@
 {
   "id": "s1-L001",
-  "seed": 148133935,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "seed": 722945258,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -40,71 +40,71 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
+        106,
+        447
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        473
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        144,
+        451
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        117,
+        419
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        487
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        75,
         450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        470
+        169,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        480
+        98,
+        489
       ]
     },
     {
-      "type": "node.fuel_scrap",
-      "at": [
-        120,
-        420
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        170,
-        480
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        80,
-        440
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
         160,
-        440
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        150,
-        410
+        392
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        150,
-        520
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        70,
-        490
+        58,
+        412
       ]
     }
   ],
@@ -113,7 +113,7 @@
   "events": [],
   "params": {
     "start.currency": 0,
-    "core.burn": 2.1,
+    "core.burn": 2.2,
     "housing.base": 2,
     "lots.block": 160,
     "lots.street": 40,
@@ -121,7 +121,7 @@
   },
   "goal": {
     "type": "heat_hold",
-    "pct": 65,
+    "pct": 70,
     "seconds": 85
   },
   "family": "shelter",
@@ -130,21 +130,21 @@
       "id": "main",
       "kind": "heat_hold",
       "params": {
-        "pct": 65,
+        "pct": 70,
         "seconds": 85
       }
     },
     {
       "id": "challenge2",
-      "kind": "settlement_never_freezes",
-      "params": {}
-    },
-    {
-      "id": "challenge",
       "kind": "heat_floor",
       "params": {
         "pct": 40
       }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_colonist_freezes",
+      "params": {}
     }
   ],
   "fail": [
@@ -160,9 +160,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.04,
-    "fun": 0.138,
-    "botMargin": 0.411,
+    "difficulty": 0.042,
+    "fun": 0.137,
+    "botMargin": 0.405,
     "botsPassed": [
       "good",
       "average",

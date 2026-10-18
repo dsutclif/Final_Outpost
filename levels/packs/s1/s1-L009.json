@@ -1,8 +1,8 @@
 {
   "id": "s1-L009",
   "seed": 1947207031,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -71,42 +71,35 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        140,
-        570
+        145,
+        592
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        450
+        117,
+        445
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        480
+        117,
+        474
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
-        470
+        148,
+        472
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        440
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        90,
+        165,
         440
       ]
     },
@@ -114,51 +107,58 @@
       "type": "node.fuel_scrap",
       "at": [
         180,
-        480
+        489
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        420
+        91,
+        458
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        410
+        139,
+        424
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        131,
+        503
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        60,
-        470
+        98,
+        406
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        60,
-        410
+        171,
+        397
       ]
     },
     {
       "type": "node.food_source",
       "id": "food_g",
       "at": [
-        40,
-        610
+        256,
+        359
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        330,
-        490
+        210,
+        563
       ],
       "cost": {
         "res.currency": 10
@@ -174,8 +174,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        210,
-        580
+        209,
+        645
       ],
       "cost": {
         "res.currency": 15
@@ -208,8 +208,8 @@
       "type": "pad.build",
       "id": "grill",
       "at": [
-        110,
-        680
+        330,
+        390
       ],
       "cost": {
         "res.currency": 15
@@ -220,8 +220,8 @@
       "type": "pad.hire",
       "id": "feeder",
       "at": [
-        50,
-        680
+        319,
+        293
       ],
       "cost": {
         "res.currency": 13
@@ -241,8 +241,8 @@
       "type": "pad.hire",
       "id": "cook",
       "at": [
-        110,
-        776
+        330,
+        486
       ],
       "cost": {
         "res.currency": 13
@@ -260,8 +260,8 @@
       "type": "pad.hire",
       "id": "server",
       "at": [
-        210,
-        696
+        430,
+        406
       ],
       "cost": {
         "res.currency": 13
@@ -280,8 +280,8 @@
       "type": "pad.build",
       "id": "grill_level",
       "at": [
-        210,
-        750
+        425,
+        341
       ],
       "cost": {
         "res.currency": 23
@@ -309,8 +309,8 @@
       "type": "pad.hire",
       "id": "saw_feeder",
       "at": [
-        120,
-        350
+        109,
+        319
       ],
       "cost": {
         "res.currency": 13
@@ -348,8 +348,8 @@
       "type": "pad.build",
       "id": "alloy",
       "at": [
-        340,
-        217
+        110,
+        700
       ],
       "cost": {
         "res.currency": 25
@@ -363,8 +363,8 @@
       "type": "pad.hire",
       "id": "refined_carrier",
       "at": [
-        276,
-        275
+        46,
+        758
       ],
       "cost": {
         "res.currency": 13
@@ -383,8 +383,8 @@
       "type": "pad.hire",
       "id": "smith",
       "at": [
-        340,
-        313
+        110,
+        796
       ],
       "cost": {
         "res.currency": 13
@@ -402,8 +402,8 @@
       "type": "pad.hire",
       "id": "component_server",
       "at": [
-        440,
-        233
+        210,
+        716
       ],
       "cost": {
         "res.currency": 13
@@ -484,14 +484,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 442
+        "seconds": 435
       }
     },
     {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 25
+        "pct": 30
       }
     }
   ],
@@ -508,9 +508,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.191,
-    "fun": 0.918,
-    "botMargin": 0.496,
+    "difficulty": 0.207,
+    "fun": 0.901,
+    "botMargin": 0.505,
     "botsPassed": [
       "good",
       "average",

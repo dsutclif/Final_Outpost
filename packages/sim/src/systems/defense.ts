@@ -38,13 +38,15 @@ function walkTarget(st: State, cp: Compiled, h: HostileState): Vec {
 }
 
 /**
+ * One wave at a time: a wave starts at its tick, but never while the last one is still on the field,
+ * and only after a quiet spell once it is cleared (Doug, 2026-10-18).
  * Waves spawn beyond their attack side(s); hostiles walk to the core, stop at any built section
  * (gates included) their next step would cross, hit it until it breaks, then hit the base.
  */
 export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   const W = st.waves;
   const wave = cp.waves[W.idx];
-  if (wave && st.tick >= wave.tick) {
+  if (wave && st.tick >= wave.tick && !W.active && st.tick >= W.quietUntil) {
     wave.types.forEach((type, k) => W.pending.push({ tick: st.tick + k * wave.gapTicks, type, side: wave.sides[k % wave.sides.length]! }));
     W.idx++;
     W.active = true;
@@ -115,6 +117,7 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
 
   if (W.active && W.pending.length === 0 && st.hostiles.length === 0) {
     W.active = false;
+    W.quietUntil = st.tick + cp.defense.waveQuietTicks;
     out.push({ t: "wave_cleared", idx: W.idx });
     // Surviving a wave sweeps its leftover loot into the hero's pack, up to the carry caps (R3 playtest).
     const loot = new Set(Object.values(cp.hostiles).flatMap((h) => Object.keys(h.drops)));

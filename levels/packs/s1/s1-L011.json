@@ -1,8 +1,8 @@
 {
   "id": "s1-L011",
   "seed": 212276694,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -71,140 +71,140 @@
       "id": "food1",
       "at": [
         140,
-        600
+        604
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
+        173,
         470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        460
+        143,
+        463
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        204,
+        468
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        186,
+        499
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        176,
+        433
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        146,
+        499
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        141,
+        427
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        114,
+        477
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         200,
-        470
+        531
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        500
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        160,
-        500
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        180,
-        440
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        210,
-        440
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        130,
-        500
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        150,
-        430
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        190,
-        530
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        190,
+        199,
         410
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        450
+        171,
+        402
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        420
+        113,
+        448
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        90,
-        490
+        87,
+        509
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        99,
+        401
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        370,
-        500
+        367,
+        504
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        330,
-        490
+        333,
+        499
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        410,
-        520
+        412,
+        534
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        410,
-        550
+        351,
+        474
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        400,
-        490
+        412,
+        491
       ]
     },
     {
@@ -264,8 +264,8 @@
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        210,
-        580
+        204,
+        574
       ],
       "cost": {
         "res.currency": 25
@@ -276,8 +276,8 @@
       "type": "pad.build",
       "id": "core_level1",
       "at": [
-        330,
-        440
+        353,
+        413
       ],
       "cost": {
         "res.currency": 37
@@ -291,8 +291,8 @@
       "type": "pad.build",
       "id": "clear0",
       "at": [
-        170,
-        360
+        176,
+        359
       ],
       "cost": {
         "res.currency": 15
@@ -323,7 +323,7 @@
     "customers.spawn": 2.7,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "level.budgetSeconds": 290
+    "level.budgetSeconds": 310
   },
   "goal": {
     "type": "core_level",
@@ -342,7 +342,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 174
+        "seconds": 172
       }
     },
     {
@@ -364,9 +364,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.177,
-    "fun": 0.684,
-    "botMargin": 0.628,
+    "difficulty": 0.15,
+    "fun": 0.538,
+    "botMargin": 0.654,
     "botsPassed": [
       "good",
       "average",

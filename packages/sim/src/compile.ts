@@ -257,7 +257,9 @@ export interface Compiled {
   defense: {
     spawnGapTicks: number; spawnY: number; spawnMarginX: number; barrierStop: number; barrierHitTicks: number; barrierDamage: number;
     baseRange: number; baseHitTicks: number; baseDamage: number; steerBand: number; steerRate: number;
-    dropRelocateBand: number; dropRelocateOffset: number; postOffset: number; playerHitRange: number; playerHitTicks: number;
+    dropRelocateBand: number; dropRelocateOffset: number; postOffset: number;
+    /** Quiet ticks after a wave is cleared before the next may start. */
+    waveQuietTicks: number; playerHitRange: number; playerHitTicks: number;
   };
   waves: CompiledWave[];
   /** Main goal first; synthesised from `goal` when the manifest lists no objectives. */
@@ -557,7 +559,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       barrierStop: fp(param("defense.barrierStop")), barrierHitTicks: ticks(param("defense.barrierHitInterval")), barrierDamage: int("defense.barrierDamage"),
       baseRange: fp(param("defense.baseRange")), baseHitTicks: ticks(param("defense.baseHitInterval")), baseDamage: int("defense.baseDamage"),
       steerBand: fp(param("defense.steerBand")), steerRate: ratio(param("defense.steerRate")),
-      dropRelocateBand: fp(param("defense.dropRelocateBand")), dropRelocateOffset: fp(param("defense.dropRelocateOffset")), postOffset: fp(param("defense.postOffset")),
+      dropRelocateBand: fp(param("defense.dropRelocateBand")), dropRelocateOffset: fp(param("defense.dropRelocateOffset")), postOffset: fp(param("defense.postOffset")), waveQuietTicks: ticks(param("defense.waveQuiet")),
       playerHitRange: fp(param("defense.playerHitRange")), playerHitTicks: ticks(param("defense.playerHitInterval")),
     },
     waves,

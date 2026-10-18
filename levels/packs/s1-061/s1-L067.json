@@ -1,8 +1,8 @@
 {
   "id": "s1-L067",
-  "seed": 561160057,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "seed": 989947716,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,42 +44,49 @@
       "type": "node.fuel_scrap",
       "at": [
         160,
-        510
+        522
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        540
+        162,
+        489
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        480
+        165,
+        556
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        570
+        175,
+        458
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        450
+        144,
+        462
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
-        440
+        205,
+        581
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        144,
+        581
       ]
     },
     {
@@ -139,64 +146,64 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        405,
-        94
+        216,
+        230
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        392,
+        254,
+        140
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        45,
+        296
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        43,
+        90
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        373,
+        307
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        350,
         199
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "capture.supply_crate",
       "at": [
-        201,
-        301
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        42,
-        552
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        271,
-        166
+        61,
+        187
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        437,
-        551
+        184,
+        53
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        160,
-        109
-      ]
-    },
-    {
-      "type": "capture.supply_crate",
-      "at": [
-        431,
-        329
-      ]
-    },
-    {
-      "type": "capture.supply_crate",
-      "at": [
-        86,
-        54
+        381,
+        43
       ]
     }
   ],
@@ -204,7 +211,7 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
+    "start.currency": 0,
     "core.burn": 2.1,
     "housing.base": 7,
     "lots.block": 160,
@@ -225,12 +232,12 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 81
+        "seconds": 77
       }
     },
     {
       "id": "challenge",
-      "kind": "tow_trip",
+      "kind": "tow_full_trip",
       "params": {
         "n": 3
       }
@@ -249,9 +256,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.646,
-    "fun": 0.976,
-    "botMargin": 0.376,
+    "difficulty": 0.62,
+    "fun": 0.925,
+    "botMargin": 0.405,
     "botsPassed": [
       "good",
       "average",

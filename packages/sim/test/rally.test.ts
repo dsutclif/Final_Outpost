@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { FP, attackedSide, createSim, guardPost, sectionSide, within } from "../src/index.js";
+import { FP, TPS, attackedSide, createSim, guardPost, sectionSide, within, type SimEvent } from "../src/index.js";
 import { LEVEL_4 } from "./helpers.js";
 
 // Raids hit one side at a time and guards rally to it (Doug, 2026-10-18): with nothing in reach a
@@ -59,5 +59,27 @@ describe("guards rally to the side under attack", () => {
     expect(attackedSide(st)).toBe("w");
     st.hostiles = [h(4, "s", 0)];
     expect(attackedSide(st)).toBeNull();
+  });
+});
+
+describe("one wave at a time", () => {
+  it("a wave waits while the last is on the field, then for the quiet spell after it is cleared", () => {
+    const sim = createSim({ ...level(), waves: [{ t: 1, counts: { "hostile.swarmling": 2 }, side: "n" }, { t: 2, counts: { "hostile.swarmling": 2 }, side: "e" }] });
+    const st = sim.state, quiet = sim.compiled.defense.waveQuietTicks;
+    const started: number[] = [];
+    let cleared = -1;
+    for (let i = 0; i < 120 * TPS && started.length < 2; i++) {
+      const ev: SimEvent[] = sim.step({ dx: 0, dy: 0 });
+      if (ev.some((e) => e.t === "wave_started")) started.push(st.tick);
+      if (ev.some((e) => e.t === "wave_cleared")) cleared = st.tick;
+      // the field never holds two waves' sides at once
+      expect(new Set(st.hostiles.map((h) => h.side)).size).toBeLessThanOrEqual(1);
+      // clear the first wave once it has fully spawned
+      if (started.length === 1 && st.waves.pending.length === 0 && st.tick > 5 * TPS) for (const h of st.hostiles) h.hp = 0;
+      st.hostiles = st.hostiles.filter((h) => h.hp > 0);
+    }
+    expect(started.length).toBe(2);
+    expect(cleared).toBeGreaterThan(0);
+    expect(started[1]).toBe(cleared + quiet);
   });
 });

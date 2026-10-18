@@ -1,8 +1,8 @@
 {
   "id": "s1-L002",
   "seed": 671543360,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,43 +44,50 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        470
+        179,
+        474
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        440
+        182,
+        444
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        510
+        189,
+        507
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        410
+        210,
+        462
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        400
+        187,
+        414
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        250,
-        400
+        163,
+        531
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        226,
+        403
       ]
     },
     {
@@ -194,7 +201,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 32
+        "seconds": 36
       }
     },
     {
@@ -216,9 +223,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.072,
-    "fun": 0.281,
-    "botMargin": 0.761,
+    "difficulty": 0.082,
+    "fun": 0.214,
+    "botMargin": 0.721,
     "botsPassed": [
       "good",
       "average",

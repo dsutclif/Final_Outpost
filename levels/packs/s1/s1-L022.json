@@ -1,8 +1,8 @@
 {
   "id": "s1-L022",
-  "seed": 21601391,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "seed": 1174210907,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         510
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -44,7 +44,7 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        329,
+        335,
         618
       ],
       "sells": [
@@ -52,15 +52,15 @@
       ],
       "route": [
         [
-          255,
+          261,
           920
         ],
         [
-          255,
+          261,
           897
         ],
         [
-          253,
+          259,
           720
         ]
       ]
@@ -69,92 +69,92 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        150,
-        620
+        154,
+        613
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        430
+        153,
+        438
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
-        450
+        127,
+        457
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
-        420
+        185,
+        462
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        430
+        124,
+        419
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        400
+        155,
+        482
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        470
+        178,
+        422
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        470
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        150,
-        490
+        205,
+        438
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         150,
-        390
+        406
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        400
+        199,
+        488
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        488
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        80,
-        430
+        84,
+        448
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        80,
-        390
+        171,
+        368
       ]
     },
     {
@@ -166,19 +166,8 @@
       ],
       "arrivals": {
         "every": 18,
-        "total": 4
+        "total": 5
       }
-    },
-    {
-      "type": "zone.terrain",
-      "id": "terrain0",
-      "kind": "outcrop",
-      "rect": [
-        258,
-        162,
-        43,
-        51
-      ]
     },
     {
       "type": "pad.build",
@@ -203,6 +192,18 @@
         "res.currency": 18
       },
       "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing2",
+      "at": [
+        340,
+        785
+      ],
+      "cost": {
+        "res.currency": 21
+      },
+      "build": "struct.housing"
     }
   ],
   "people": [
@@ -217,18 +218,18 @@
   "events": [],
   "params": {
     "start.currency": 3,
-    "core.burn": 2.3,
+    "core.burn": 2.4,
     "housing.base": 2,
     "lots.block": 160,
     "lots.street": 40,
     "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 130
+    "level.budgetSeconds": 170
   },
   "goal": {
     "type": "population",
-    "n": 6
+    "n": 7
   },
   "family": "shelter",
   "objectives": [
@@ -236,14 +237,14 @@
       "id": "main",
       "kind": "population",
       "params": {
-        "n": 6
+        "n": 7
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 99
+        "seconds": 130
       }
     },
     {
@@ -258,16 +259,16 @@
   "text": {
     "mars_greenhouse": {
       "title": "Sleepers and Colonists",
-      "goal": "Grow the colony to 6 colonists",
+      "goal": "Grow the colony to 7 colonists",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.325,
-    "fun": 0.833,
-    "botMargin": 0.53,
+    "difficulty": 0.395,
+    "fun": 0.867,
+    "botMargin": 0.529,
     "botsPassed": [
       "good",
       "average",

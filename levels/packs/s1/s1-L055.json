@@ -1,8 +1,8 @@
 {
   "id": "s1-L055",
   "seed": 2110915574,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         500
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -69,85 +69,99 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        360,
-        500
+        363,
+        505
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        100,
+        96,
+        464
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        127,
         460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        460
+        132,
+        496
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         160,
-        480
+        476
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        490
+        91,
+        494
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        90,
-        490
+        163,
+        439
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        450
+        110,
+        436
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
+        164,
         520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        430
+        76,
+        438
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        70,
-        450
+        139,
+        417
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        53,
+        470
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        160,
-        410
+        52,
+        511
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        80,
-        530
+        119,
+        534
       ]
     },
     {
@@ -158,8 +172,8 @@
         800
       ],
       "arrivals": {
-        "every": 17,
-        "total": 5
+        "every": 16,
+        "total": 4
       }
     },
     {
@@ -170,7 +184,7 @@
         600
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 13
       },
       "build": "struct.housing"
     },
@@ -179,22 +193,10 @@
       "id": "housing1",
       "at": [
         120,
-        620
+        630
       ],
       "cost": {
-        "res.currency": 18
-      },
-      "build": "struct.housing"
-    },
-    {
-      "type": "pad.build",
-      "id": "housing2",
-      "at": [
-        320,
-        775
-      ],
-      "cost": {
-        "res.currency": 21
+        "res.currency": 16
       },
       "build": "struct.housing"
     }
@@ -211,26 +213,26 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 38,
-      "start": 46,
-      "end": 68
+      "warnAt": 0,
+      "start": 4,
+      "end": 26
     }
   ],
   "params": {
-    "start.currency": 2,
-    "core.burn": 2.3,
+    "start.currency": 3,
+    "core.burn": 2.4,
     "housing.base": 2,
     "lots.block": 160,
     "lots.street": 40,
-    "customers.spawn": 3.1,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 220
+    "level.budgetSeconds": 140
   },
   "goal": {
     "type": "build_count",
     "build": "struct.housing",
-    "n": 3
+    "n": 2
   },
   "family": "shelter",
   "objectives": [
@@ -239,14 +241,14 @@
       "kind": "build_count",
       "params": {
         "build": "struct.housing",
-        "n": 3
+        "n": 2
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 160
+        "seconds": 102
       }
     },
     {
@@ -268,9 +270,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.601,
-    "fun": 0.75,
-    "botMargin": 0.553,
+    "difficulty": 0.558,
+    "fun": 0.676,
+    "botMargin": 0.568,
     "botsPassed": [
       "good",
       "average",

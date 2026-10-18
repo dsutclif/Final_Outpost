@@ -1,8 +1,8 @@
 {
   "id": "s1-L051",
-  "seed": 1783514193,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "seed": 145953954,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -43,57 +43,57 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        530
+        188,
+        514
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        210,
-        530
+        220,
+        528
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        490
+        195,
+        548
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        240,
-        520
+        165,
+        494
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        560
+        163,
+        536
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
-        520
+        256,
+        526
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        560
+        173,
+        463
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        460
+        142,
+        472
       ]
     },
     {
@@ -153,49 +153,49 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        146,
-        718
+        93,
+        805
       ],
-      "freeze": 104
+      "freeze": 108
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        365,
+        332,
+        762
+      ],
+      "freeze": 119
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        169,
+        666
+      ],
+      "freeze": 124
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        46,
+        638
+      ],
+      "freeze": 148
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        386,
         862
       ],
-      "freeze": 140
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        433,
-        645
-      ],
-      "freeze": 139
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        269,
-        662
-      ],
-      "freeze": 149
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        359,
-        701
-      ],
-      "freeze": 175
+      "freeze": 187
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
+    "start.currency": 1,
     "core.burn": 2.1,
     "housing.base": 7,
     "lots.block": 160,
@@ -216,12 +216,12 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 42
+        "seconds": 48
       }
     },
     {
       "id": "challenge",
-      "kind": "tow_trip",
+      "kind": "tow_full_trip",
       "params": {
         "n": 3
       }
@@ -240,9 +240,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.122,
-    "fun": 0.754,
-    "botMargin": 0.675,
+    "difficulty": 0.138,
+    "fun": 0.796,
+    "botMargin": 0.631,
     "botsPassed": [
       "good",
       "average",

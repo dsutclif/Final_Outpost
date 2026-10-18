@@ -93,6 +93,7 @@
   "defense.dropRelocateBand": 20,
   "defense.dropRelocateOffset": 30,
   "defense.postOffset": 34,
+  "defense.waveQuiet": 8,
   "meters.baseHealth": 15,
   "routing.hintFill": 0.3,
   "stats.lifelineLow": 0.25,

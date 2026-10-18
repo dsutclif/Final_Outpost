@@ -1,8 +1,8 @@
 {
   "id": "s1-L063",
   "seed": 835321469,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -69,93 +69,86 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        300,
+        297,
         440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        420
+        147,
+        433
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        450
+        165,
+        463
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        450
+        133,
+        465
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        490
+        168,
+        499
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        450
+        197,
+        441
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        420
+        116,
+        436
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        420
+        172,
+        407
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        390
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        130,
-        490
+        128,
+        407
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        90,
-        460
+        128,
+        504
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        200,
-        380
+        95,
+        479
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        370,
-        440
+        365,
+        433
       ],
       "enabled": false
     },
@@ -163,11 +156,11 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        170,
-        540
+        168,
+        570
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -180,11 +173,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        310,
-        510
+        307,
+        511
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 15
       },
       "role": {
         "role": "role.supplier",
@@ -202,7 +195,7 @@
         804
       ],
       "cost": {
-        "res.currency": 24
+        "res.currency": 22
       },
       "role": {
         "role": "role.cashier",
@@ -217,11 +210,11 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        370,
-        440
+        365,
+        433
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 19
       },
       "build": "node.enable",
       "target": "food2",
@@ -233,11 +226,11 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        370,
-        520
+        364,
+        513
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 19
       },
       "role": {
         "role": "role.supplier",
@@ -267,19 +260,19 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
-    "core.burn": 2.2,
+    "start.currency": 1,
+    "core.burn": 2.3,
     "housing.base": 6,
     "lots.block": 160,
     "lots.street": 40,
     "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 320
+    "level.budgetSeconds": 360
   },
   "goal": {
     "type": "currency",
-    "n": 221
+    "n": 233
   },
   "family": "harvest",
   "objectives": [
@@ -287,22 +280,20 @@
       "id": "main",
       "kind": "currency",
       "params": {
-        "n": 221
+        "n": 233
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 281
+        "seconds": 284
       }
     },
     {
       "id": "challenge",
-      "kind": "streak",
-      "params": {
-        "n": 20
-      }
+      "kind": "no_angry_customers",
+      "params": {}
     }
   ],
   "fail": [
@@ -311,16 +302,16 @@
   "text": {
     "mars_greenhouse": {
       "title": "Vaults and Trade Winds",
-      "goal": "Bank 221 credits",
+      "goal": "Bank 233 credits",
       "tips": [
         "Some grow domes start locked. Unlock them with credits on their pad."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.459,
-    "fun": 0.925,
-    "botMargin": 0.451,
+    "difficulty": 0.457,
+    "fun": 0.891,
+    "botMargin": 0.514,
     "botsPassed": [
       "good",
       "average",

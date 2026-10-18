@@ -161,8 +161,8 @@ export class Placer {
     const inLot: Pt[] = [];
     for (let i = 0; i < n; i++) {
       const rg = regions[i % regions.length]!;
-      // on a lot grid, positions snap to a 10-unit step so neighbours line up
-      const q = (v: number) => (this.lots ? Math.round(v / 10) * 10 : Math.round(v));
+      // buildings on a lot grid snap to a 10-unit step so neighbours line up
+      const q = (v: number) => (lot ? Math.round(v / 10) * 10 : Math.round(v));
       const raw: Pt = [q(rg[0] + this.rand.float() * rg[2]), q(rg[1] + this.rand.float() * rg[3])];
       const valid = (p: Pt) => (!opts.key || this.onScreen(p)) && this.ok(id, p, r, opts) && (!opts.accept || opts.accept(p));
       const lp = lot ? this.toLot(raw, opts.fp) : raw;

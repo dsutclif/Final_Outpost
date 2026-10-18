@@ -1,8 +1,8 @@
 {
   "id": "s1-L007",
   "seed": 1793842133,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -75,92 +75,92 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        320,
-        490
+        317,
+        488
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         170,
-        480
+        484
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
+        171,
+        538
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        183,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        142,
+        499
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        184,
         510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        450
+        225,
+        454
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        550
+        144,
+        464
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        490
+        145,
+        552
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        450
+        185,
+        426
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        220,
-        450
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        140,
-        520
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        130,
-        460
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        130,
-        550
+        112,
+        489
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        170,
-        410
+        246,
+        417
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        130,
-        420
+        108,
+        535
       ]
     },
     {
@@ -260,7 +260,7 @@
       ]
     },
     {
-      "type": "capture.recruit_container",
+      "type": "capture.supply_crate",
       "at": [
         178,
         75
@@ -281,13 +281,6 @@
       ]
     },
     {
-      "type": "capture.supply_crate",
-      "at": [
-        48,
-        69
-      ]
-    },
-    {
       "type": "zone.prey",
       "id": "prey",
       "rect": [
@@ -304,15 +297,15 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 7,
-    "core.burn": 2.6,
-    "housing.base": 6,
+    "start.currency": 8,
+    "core.burn": 2.8,
+    "housing.base": 5,
     "lots.block": 160,
     "lots.street": 40,
-    "customers.spawn": 2.8,
+    "customers.spawn": 2.7,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "level.budgetSeconds": 340
+    "level.budgetSeconds": 310
   },
   "goal": {
     "type": "protein",
@@ -331,7 +324,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 209
+        "seconds": 179
       }
     },
     {
@@ -353,9 +346,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.209,
-    "fun": 0.834,
-    "botMargin": 0.639,
+    "difficulty": 0.154,
+    "fun": 0.851,
+    "botMargin": 0.656,
     "botsPassed": [
       "good",
       "average",

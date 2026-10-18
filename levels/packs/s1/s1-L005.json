@@ -1,8 +1,8 @@
 {
   "id": "s1-L005",
-  "seed": 860553483,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "seed": 30251334,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,85 +36,85 @@
         520
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 10,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        510
+        146,
+        518
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        510
+        172,
+        487
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        540
+        174,
+        530
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        550
+        143,
+        489
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        460
+        118,
+        531
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        570
+        113,
+        498
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        470
+        149,
+        552
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        540
+        178,
+        560
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        90,
-        500
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        120,
-        580
+        187,
+        453
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        100,
-        440
+        136,
+        449
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        114,
+        571
       ]
     },
     {
@@ -206,7 +206,7 @@
       ],
       "closed": true,
       "gates": [
-        7
+        17
       ],
       "prebuilt": [
         0,
@@ -214,18 +214,17 @@
         2,
         3,
         4,
+        5,
         6,
         7,
+        8,
+        9,
         10,
         11,
         12,
         13,
         14,
-        15,
-        16,
-        17,
-        18,
-        19
+        17
       ]
     }
   ],
@@ -246,46 +245,55 @@
       "counts": {
         "hostile.swarmling": 6
       },
-      "side": "e",
+      "side": "w",
       "gap": 0.7
     },
     {
-      "t": 67,
+      "t": 62,
       "counts": {
-        "hostile.swarmling": 10,
-        "hostile.raider_humanoid": 1
+        "hostile.swarmling": 11,
+        "hostile.raider_humanoid": 2
       },
-      "side": "e",
+      "side": "w",
       "gap": 0.7
     },
     {
-      "t": 115,
+      "t": 104,
       "counts": {
-        "hostile.swarmling": 14,
+        "hostile.swarmling": 15,
         "hostile.raider_humanoid": 3
       },
-      "side": "e",
+      "side": "w",
       "gap": 0.7
     },
     {
-      "t": 162,
+      "t": 146,
       "counts": {
-        "hostile.swarmling": 19,
-        "hostile.raider_humanoid": 4
+        "hostile.swarmling": 20,
+        "hostile.raider_humanoid": 5
       },
-      "side": "e",
+      "side": "w",
+      "gap": 0.7
+    },
+    {
+      "t": 187,
+      "counts": {
+        "hostile.swarmling": 25,
+        "hostile.raider_humanoid": 6
+      },
+      "side": "w",
       "gap": 0.7
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.5,
+    "start.currency": 1,
+    "core.burn": 2.2,
     "housing.base": 5,
     "lots.block": 160,
     "lots.street": 40,
-    "meters.baseHealth": 12,
-    "level.budgetSeconds": 420
+    "meters.baseHealth": 10,
+    "level.budgetSeconds": 430
   },
   "goal": {
     "type": "waves"
@@ -299,15 +307,15 @@
     },
     {
       "id": "challenge2",
+      "kind": "no_injuries",
+      "params": {}
+    },
+    {
+      "id": "challenge",
       "kind": "hp_floor",
       "params": {
         "pct": 80
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "no_injuries",
-      "params": {}
     }
   ],
   "fail": [
@@ -324,18 +332,19 @@
     }
   },
   "rating": {
-    "difficulty": 0.207,
-    "fun": 0.257,
-    "botMargin": 0.976,
+    "difficulty": 0.138,
+    "fun": 0.437,
+    "botMargin": 0.963,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,
-      "median": 2.67,
+      "median": 1.33,
       "goodAll": 1
     }
   }

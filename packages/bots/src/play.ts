@@ -282,8 +282,10 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   let capturesHome = 0;
   const builtPads = new Set<string>();
 
-  // Past the main goal the level runs on for open star objectives, for at most the overtime.
-  while (!st.over && st.tick < maxTicks + (st.objectives[0]?.done ? cp.overtimeTicks : 0)) {
+  // Past the main goal the level runs on for open star objectives, for at most the overtime; waves held
+  // back until the last one was cleared still get played (up to twice the cap).
+  const cap = (): number => (st.objectives[0]?.done ? maxTicks + cp.overtimeTicks : st.waves.idx < cp.waves.length ? 2 * maxTicks : maxTicks);
+  while (!st.over && st.tick < cap()) {
     const inp = brain.tick(st);
     if (opts.recordInputs) inputs.push(inp);
     const fuelBefore = st.core.fuel;

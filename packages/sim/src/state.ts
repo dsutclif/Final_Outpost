@@ -278,6 +278,8 @@ export interface WavesState {
   pending: { tick: number; type: string; side: "n" | "e" | "s" | "w" }[];
   /** True once a wave has spawned until every hostile is dead. */
   active: boolean;
+  /** No wave starts before this tick (a quiet spell after the last one was cleared). */
+  quietUntil: number;
 }
 
 export interface HazardState {

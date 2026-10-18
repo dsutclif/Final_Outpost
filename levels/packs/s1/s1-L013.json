@@ -1,8 +1,8 @@
 {
   "id": "s1-L013",
-  "seed": 871296343,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "seed": 101666938,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -35,7 +35,7 @@
         450
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -68,103 +68,113 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        310,
-        610
+        311,
+        614
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        560
+        165,
+        571
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        590
+        186,
+        547
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        530
+        155,
+        601
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        570
+        191,
+        587
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        560
+        132,
+        572
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
-        530
+        157,
+        541
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        210,
-        520
+        178,
+        515
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        590
+        216,
+        541
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        230,
-        560
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        160,
-        500
+        149,
+        513
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        130,
-        610
+        113,
+        537
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        110,
-        530
+        211,
+        627
       ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        171,
+        445
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "sink.core"
+      },
+      "manual": true
     },
     {
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        300,
-        520
+        294,
+        523
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 16
       },
       "role": {
         "role": "role.supplier",
@@ -182,7 +192,7 @@
         518
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 24
       },
       "role": {
         "role": "role.cashier",
@@ -200,28 +210,25 @@
     },
     {
       "role": "idle"
-    },
-    {
-      "role": "idle"
     }
   ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.4,
-    "housing.base": 6,
+    "start.currency": 1,
+    "core.burn": 2.2,
+    "housing.base": 5,
     "lots.block": 160,
     "lots.street": 40,
-    "customers.spawn": 2.9,
+    "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.bulkShare": 0.19,
+    "customers.bulkShare": 0.17,
     "level.budgetSeconds": 290
   },
   "goal": {
     "type": "bulk_order",
-    "n": 9
+    "n": 10
   },
   "family": "harvest",
   "objectives": [
@@ -229,14 +236,14 @@
       "id": "main",
       "kind": "bulk_order",
       "params": {
-        "n": 9
+        "n": 10
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 211
+        "seconds": 262
       }
     },
     {
@@ -258,9 +265,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.2,
-    "fun": 0.899,
-    "botMargin": 0.496,
+    "difficulty": 0.293,
+    "fun": 0.913,
+    "botMargin": 0.472,
     "botsPassed": [
       "good",
       "average",
@@ -269,7 +276,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.67,
+      "median": 3,
       "goodAll": 1
     }
   }

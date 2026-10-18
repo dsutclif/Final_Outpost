@@ -167,5 +167,11 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     facing the side most live hostiles came from, and back to their own posts once it is clear.
     The bot needs no new move (it already fights the live hostiles); the runner traces
     `rallyShare` and the rater reports it.
+9q. **Playtest of 0.11.0 (2026-10-18, engine/content 0.12.0).** Doug saw a second wave from
+    another side join the first with no gap. One wave at a time: a wave never starts while the last
+    is on the field, and waits `defense.waveQuiet` (8 s) after it is cleared. Wall-tower build pads
+    stand beside their tower against the wall's inside face (along the wall either way, else
+    straight inward; forest nodes on that spot give way), and a tower's Lv2 pad takes its build
+    pad's spot, which is free once the tower stands. Pads no longer snap to the 10-unit lot step.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

@@ -1,8 +1,8 @@
 {
   "id": "s1-L044",
-  "seed": 103669247,
-  "engineVersion": "0.11.0",
-  "contentVersion": "0.11.0",
+  "seed": 1043834734,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -69,78 +69,78 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        150,
-        600
+        153,
+        604
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         120,
-        440
+        438
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
+        151,
+        421
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        149,
         450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        410
+        117,
+        408
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        410
+        183,
+        461
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        450
+        187,
+        421
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        480
+        105,
+        464
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        470
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        90,
-        430
+        138,
+        479
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        160,
-        370
+        71,
+        432
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        90,
-        390
+        143,
+        378
       ]
     },
     {
@@ -154,6 +154,17 @@
         "every": 20,
         "total": 5
       }
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "chasm",
+      "rect": [
+        277,
+        206,
+        61,
+        31
+      ]
     },
     {
       "type": "pad.build",
@@ -183,7 +194,7 @@
       "type": "pad.build",
       "id": "housing2",
       "at": [
-        340,
+        330,
         785
       ],
       "cost": {
@@ -203,7 +214,7 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
+    "start.currency": 0,
     "core.burn": 2.1,
     "housing.base": 2,
     "lots.block": 160,
@@ -228,15 +239,15 @@
     },
     {
       "id": "challenge2",
-      "kind": "settlement_never_freezes",
-      "params": {}
-    },
-    {
-      "id": "challenge",
       "kind": "heat_floor",
       "params": {
         "pct": 35
       }
+    },
+    {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
     }
   ],
   "fail": [
@@ -252,9 +263,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.024,
-    "fun": 0.738,
-    "botMargin": 0.677,
+    "difficulty": 0.025,
+    "fun": 0.643,
+    "botMargin": 0.67,
     "botsPassed": [
       "good",
       "average",
@@ -264,7 +275,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.67,
+      "median": 3,
       "goodAll": 1
     }
   }
