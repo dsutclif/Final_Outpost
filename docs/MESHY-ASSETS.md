@@ -332,23 +332,28 @@ and minigun about 1,000). Same style block and rules.
 
 ## Priority C: carried items (sheet: `Items.jpeg`)
 
-Singles only: the game builds back stacks, shelf stock and ground piles by repeating the single
-item, so the sheet's "stack" art is not needed. Meshy settings: see step 2 above (Smart Topology
-only if it comes out coloured). Items are drawn many times at once, so each is cut to about
-200–500 triangles in cleanup: generate them simple and chunky, with a strong silhouette;
-fine print (labels, stamped text) will not survive and is not wanted. Same style block and rules.
+One item per resource, **made to stack**: the game builds back stacks, shelf stock and ground
+piles by repeating this one item on top of itself, so every item is a compact unit with a **flat
+bottom and a flat top**, about **twice as wide as it is tall** (brick-like), with nothing sticking
+up above its top face. All nine should be roughly the same footprint so mixed stacks look tidy. The
+designs follow the stack art on the Items sheet (crates, strapped bundles, ration boxes). Meshy
+settings: see step 2 above. Items are drawn many times at once, so each is cut to about 200–500
+triangles in cleanup: chunky shapes, strong silhouette, no fine print or stamped text.
+
+Add this line to every item prompt: *"A single stackable unit: flat bottom, flat top, nothing
+sticking up above the top face, about twice as wide as it is tall."*
 
 | File name | Asset | Prompt |
 |---|---|---|
-| `res.material_basic` | Crystalline ore | One chunk of crystalline ore from the sheet: a fist-sized lump of pale blue crystal growing from a little sandy rock base. Chunky, few large facets. |
-| `res.material_refined` | Alloy | One ingot of shiny alloy: a brushed silver trapezoid bar with bevelled edges. No text stamped on it. |
-| `res.fuel_dense` | Fuel cell | One fuel cell from the sheet: a short steel canister with a mesh cap and four tall windows glowing orange-red, chunky end rings. |
-| `res.food_raw_1` | Greens | One bundle of green leafy crops tied with twine at the stems, a few roots showing. Compact, chunky leaves. No tag. |
-| `res.food_raw_2` | Protein | One vacuum-wrapped protein block: a pale grey-silver plastic-wrapped brick with crimped ends. No printed label. |
-| `res.food_prepared` | Meal | One sealed meal pouch: a khaki foil pouch, slightly puffed, with a crimped top edge. No text. |
-| `res.salvage` | Scrap | One piece of bent scrap: a torn, rusty steel plate with a couple of twisted rods attached. Chunky. |
-| `res.currency` | Credits | One gold credit coin: a thick hexagonal gold coin with a raised ring emblem, seen at a three-quarter angle so its thickness shows. |
-| `res.component` | Parts | One machined part from the sheet: a steel gear fused to a short cylinder housing with bolts. Chunky. |
+| `res.material_basic` | Crystalline ore | One block of crystalline ore: pale blue crystal cut into a rough rectangular slab, its sides showing jagged crystal facets, held by two dark steel straps. Flat top and bottom faces. |
+| `res.material_refined` | Alloy | One ingot of shiny alloy: a brushed silver trapezoid bar with bevelled edges, lying flat. |
+| `res.fuel_dense` | Fuel cell | One fuel cell from the sheet lying on its side in a low steel cradle: a steel canister with four windows glowing orange-red and chunky end rings; the cradle gives it a flat base and the canister top is level with the cradle rails. |
+| `res.food_raw_1` | Greens | One shallow wooden crop crate filled with leafy green crops, the leaves trimmed level with the crate's rim. Like one crate from the sheet's crate stack. |
+| `res.food_raw_2` | Protein | One vacuum-wrapped protein block: a pale grey-silver plastic-wrapped brick with crimped ends and one strap around the middle, lying flat. |
+| `res.food_prepared` | Meal | One sealed ration box: an olive-drab hard plastic box with a flat lid and rounded corners, like one box from the sheet's meal stack. |
+| `res.salvage` | Scrap | One compacted scrap bale: rusty bent metal crushed into a rough rectangular block, two steel bands around it, a few short torn edges on the sides only. |
+| `res.currency` | Credits | One short stack of three thick hexagonal gold credit coins with a raised ring emblem, neatly aligned. |
+| `res.component` | Parts | One machined parts block: a compact steel housing with a gear set into its side and bolted end plates, like one unit from the sheet's parts rack. |
 
 ## Not sent to Meshy
 
