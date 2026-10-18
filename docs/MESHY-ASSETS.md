@@ -101,6 +101,9 @@ rebuilds one. No Blender: the bake runs in Node (meshoptimizer, watlas, three-me
   give way to the GLB, animated parts (core orb, flame and spin ring, converter fan and status
   light, turret head, kiosk lamp) move to `parts`, anchors to `anchors`. On a failed load the code
   model stays. Converter pickup trays and operator plates stay code-built.
+- **Blueprints.** The build also writes `<file>.outline.glb`: the same shape at about 250
+  triangles, positions only (~4 KB). Build-pad blueprints draw it in the cyan ghost material, so
+  each outline matches its building without any hand-editing.
 - **Checking a model.** Dev page (from `packages/render-3d`:
   `node ../client/node_modules/vite/bin/vite.js dev --config dev/vite.config.ts`, port 5190):
   `fit.html?i=<n>&code=0` shows entry n at the game angle with anchors (cyan) and parts (axes);

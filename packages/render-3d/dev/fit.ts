@@ -1,5 +1,5 @@
 import { getSkin, DEFAULT_SKIN } from "@fo/skins";
-import { Raycaster, Vector2, ACESFilmicToneMapping, AxesHelper, BufferGeometry, Color, DirectionalLight, Float32BufferAttribute, HemisphereLight, LineBasicMaterial, LineLoop, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene, SphereGeometry, SRGBColorSpace, Vector3, WebGLRenderer } from "three";
+import { Raycaster, Vector2, ACESFilmicToneMapping, AxesHelper, BufferGeometry, Color, DirectionalLight, Float32BufferAttribute, HemisphereLight, LineBasicMaterial, LineLoop, Mesh, MeshBasicMaterial, MeshLambertMaterial, PerspectiveCamera, PlaneGeometry, Scene, SphereGeometry, SRGBColorSpace, Vector3, WebGLRenderer } from "three";
 import gen from "../../generator/data/generator.json";
 import { createBuildCtx } from "../src/assets/context.js";
 import { loadMeshy, meshyEntries } from "../src/assets/meshy.js";
@@ -39,6 +39,7 @@ scene.add(ground);
 const fp = (gen as { footprints: Record<string, number[]> }).footprints;
 const dot = new SphereGeometry(0.06, 8, 6), dotMat = new MeshBasicMaterial({ color: new Color(t.interactive), depthTest: false });
 const lineMat = new LineBasicMaterial({ color: 0xffd23c });
+const ghostMat = new MeshLambertMaterial({ color: new Color(t.interactive), emissive: new Color(t.interactive), emissiveIntensity: 0.55, transparent: true, opacity: 0.65, depthWrite: false });
 const showCode = q.get("code") !== "0";
 const ROW = 5.5, COL = 3.6;
 
@@ -47,7 +48,10 @@ entries.forEach((e, i) => {
   const top = !!q.get("top");
   const z = top ? Math.floor(i / 4) * 4 : i * ROW;
   for (const glb of showCode ? [false, true] : [true]) {
-    const m = buildModel(e.id, { ...ctx, level: e.level ?? 1 });
+    const ghost = q.get("ghost") === "1";
+    const m = buildModel(e.id, { ...ctx, level: e.level ?? 1, ghost });
+    // ?ghost=1: the build-pad blueprint (outline model, tinted like the renderer's ghost)
+    if (ghost) m.root.traverse((o) => { if ((o as Mesh).isMesh) (o as Mesh).material = ghostMat; });
     if (glb !== !!m.root.userData["meshy"]) { if (glb) console.warn(`${e.file} not loaded`); }
     if (!glb && m.root.userData["meshy"]) continue;
     const x = top ? (i % 4) * 4 : glb ? COL : 0;

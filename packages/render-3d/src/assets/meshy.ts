@@ -16,10 +16,12 @@ export interface MeshyEntry {
 }
 
 const ENTRIES = (config as { models: MeshyEntry[] }).models;
-const BUILT = built as Record<string, { hash: string; tris: number; bounds: number[] } | undefined>;
+const BUILT = built as Record<string, { hash: string; tris: number; bounds: number[]; outline?: { hash: string } } | undefined>;
 
 /** Loaded GLB scenes by file (shared geometry and materials; clones go into models). */
 const cache = new Map<string, Group>();
+/** Blueprint outlines by file: the same shape at a few hundred triangles (build pads draw these). */
+const outlines = new Map<string, Group>();
 const pending = new Map<string, Promise<void>>();
 let loader: Promise<GLTFLoader> | null = null;
 let enabled = true;
@@ -53,9 +55,16 @@ export function loadMeshy(onLoad?: (e: MeshyEntry) => void, ids?: ReadonlySet<st
     if (cache.has(e.file)) return Promise.resolve();
     let p = pending.get(e.file);
     if (!p) {
-      const url = new URL(`models/${e.file}.glb?v=${BUILT[e.file]!.hash}`, root).href;
-      p = loader!.then((l) => l.loadAsync(url)).then((gltf) => {
+      const b = BUILT[e.file]!;
+      const url = new URL(`models/${e.file}.glb?v=${b.hash}`, root).href;
+      const outlineUrl = b.outline && new URL(`models/${e.file}.outline.glb?v=${b.outline.hash}`, root).href;
+      p = loader!.then((l) => Promise.all([
+        l.loadAsync(url),
+        // a missing outline only means the blueprint stays code-built
+        outlineUrl ? l.loadAsync(outlineUrl).catch(() => null) : null,
+      ])).then(([gltf, outline]) => {
         prepare(gltf.scene);
+        if (outline) { prepare(outline.scene, true); outlines.set(e.file, outline.scene); }
         cache.set(e.file, gltf.scene);
       }).catch((err: unknown) => { console.warn(`meshy: ${e.file} failed, keeping the code model`, err); });
       pending.set(e.file, p);
@@ -65,15 +74,26 @@ export function loadMeshy(onLoad?: (e: MeshyEntry) => void, ids?: ReadonlySet<st
   return Promise.all(jobs).then(() => undefined);
 }
 
-/** Mark the loaded meshes shared, so disposing a placed copy never frees the cached geometry. */
-function prepare(scene: Group): void {
-  scene.traverse((o) => { if ((o as Mesh).isMesh) o.userData["shared"] = true; });
+/**
+ * Mark the loaded meshes shared, so disposing a placed copy never frees the cached geometry.
+ * Outlines carry positions only and are drawn lit, so they get flat normals here.
+ */
+function prepare(scene: Group, flat = false): void {
+  scene.traverse((o) => {
+    const m = o as Mesh;
+    if (!m.isMesh) return;
+    m.userData["shared"] = true;
+    if (flat) { m.geometry = m.geometry.toNonIndexed(); m.geometry.computeVertexNormals(); }
+  });
 }
 
-/** Swap a freshly built code model's body for its GLB, if one is loaded for this id and level. */
-export function applyMeshy(m: Model, id: string, level = 1): void {
+/**
+ * Swap a freshly built code model's body for its GLB, if one is loaded for this id and level;
+ * `outline` takes the blueprint outline instead (build-pad ghosts).
+ */
+export function applyMeshy(m: Model, id: string, level = 1, outline = false): void {
   const e = meshyFor(id, level);
-  const scene = e && cache.get(e.file);
+  const scene = e && (outline ? outlines : cache).get(e.file);
   if (!e || !scene) return;
   const drop = new Set(e.replace);
   let at: Object3D | undefined;

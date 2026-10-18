@@ -33,9 +33,9 @@ const OUT = join(ROOT, "packages/client/public/models");
 export interface MeshyEntry {
   file: string; src: string; id: string; level?: number;
   yaw?: number; width?: number; height?: number; offset?: [number, number];
-  tris?: number; texture?: number;
+  tris?: number; texture?: number; outlineTris?: number;
 }
-export interface BuiltEntry { hash: string; tris: number; bytes: number; bounds: [number, number, number, number, number, number] }
+export interface BuiltEntry { hash: string; tris: number; bytes: number; outline: { hash: string; tris: number; bytes: number }; bounds: [number, number, number, number, number, number] }
 
 const args = process.argv.slice(2);
 const srcAt = args.indexOf("--src");
@@ -227,6 +227,17 @@ async function writeGlb(low: { pos: Float32Array; uv: Float32Array; idx: Uint32A
   return io.writeBinary(doc);
 }
 
+/** The blueprint outline: the same shape cut to a few hundred triangles, positions only. */
+async function writeOutline(low: { pos: Float32Array; idx: Uint32Array }): Promise<Uint8Array> {
+  const doc = new Document();
+  const buf = doc.createBuffer();
+  const prim = doc.createPrimitive()
+    .setAttribute("POSITION", doc.createAccessor().setType("VEC3").setArray(new Float32Array(low.pos)).setBuffer(buf))
+    .setIndices(doc.createAccessor().setType("SCALAR").setArray(Uint16Array.from(low.idx)).setBuffer(buf));
+  doc.createScene().addChild(doc.createNode("outline").setMesh(doc.createMesh("outline").addPrimitive(prim)));
+  return io.writeBinary(doc);
+}
+
 async function build(e: MeshyEntry): Promise<void> {
   const path = join(SRC, e.src);
   if (!existsSync(path)) { console.warn(`skip ${e.file}: ${path} not found`); return; }
@@ -237,8 +248,11 @@ async function build(e: MeshyEntry): Promise<void> {
   const low = unwrap(lowPoly(src, e.tris ?? 3000), size);
   const glb = await writeGlb(low, bake(src, low, size), size);
   writeFileSync(join(OUT, `${e.file}.glb`), glb);
-  built[e.file] = { hash: createHash("sha1").update(glb).digest("hex").slice(0, 10), tris: low.idx.length / 3, bytes: glb.byteLength, bounds };
-  console.log(`${e.file}: ${src.idx.length / 3} → ${low.idx.length / 3} tris, ${(glb.byteLength / 1024).toFixed(0)} KB, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  const ghost = lowPoly(src, e.outlineTris ?? 250);
+  const outline = await writeOutline(ghost);
+  writeFileSync(join(OUT, `${e.file}.outline.glb`), outline);
+  built[e.file] = { hash: createHash("sha1").update(glb).digest("hex").slice(0, 10), tris: low.idx.length / 3, bytes: glb.byteLength, bounds, outline: { hash: createHash("sha1").update(outline).digest("hex").slice(0, 10), tris: ghost.idx.length / 3, bytes: outline.byteLength } };
+  console.log(`${e.file}: ${src.idx.length / 3} → ${low.idx.length / 3} tris (outline ${ghost.idx.length / 3}), ${(glb.byteLength / 1024).toFixed(0)} KB, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 }
 
 for (const e of config.models) if (!only.length || only.includes(e.file)) await build(e);

@@ -44,7 +44,7 @@ export function requiredAnchors(id: string): readonly AnchorName[] {
 export function buildModel(id: string, ctx: BuildCtx): Model {
   const e = MODELS.get(id) ?? MODELS.get(`${id.split(".")[0]}.*`);
   const m = e ? e.build(ctx) : fallback(ctx);
-  if (e) applyMeshy(m, id, ctx.level);
+  if (e) applyMeshy(m, id, ctx.level, ctx.ghost);
   m.root.name = id;
   m.root.userData["id"] = id;
   if (!e) m.root.userData["fallback"] = true;

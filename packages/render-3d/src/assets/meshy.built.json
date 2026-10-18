@@ -10,7 +10,12 @@
       1.164,
       1.033,
       1.2
-    ]
+    ],
+    "outline": {
+      "hash": "f2d2c9ab00",
+      "tris": 250,
+      "bytes": 3748
+    }
   },
   "sink.core.l2": {
     "hash": "3f60e2b0b9",
@@ -23,7 +28,12 @@
       1.127,
       1.075,
       1.2
-    ]
+    ],
+    "outline": {
+      "hash": "fd397db729",
+      "tris": 244,
+      "bytes": 3640
+    }
   },
   "sink.core.l3": {
     "hash": "045f7ae5b3",
@@ -36,7 +46,12 @@
       1.072,
       1.321,
       1.2
-    ]
+    ],
+    "outline": {
+      "hash": "14f8c4c3dd",
+      "tris": 246,
+      "bytes": 3712
+    }
   },
   "sink.sales_point": {
     "hash": "5cd0957663",
@@ -49,7 +64,12 @@
       1.2,
       2.398,
       1.115
-    ]
+    ],
+    "outline": {
+      "hash": "f8de6265a2",
+      "tris": 248,
+      "bytes": 3772
+    }
   },
   "conv.material_processor": {
     "hash": "537adb376d",
@@ -62,7 +82,12 @@
       0.8,
       1.214,
       1
-    ]
+    ],
+    "outline": {
+      "hash": "1bd00eed1d",
+      "tris": 250,
+      "bytes": 3700
+    }
   },
   "conv.food_processor": {
     "hash": "fdadf1e04e",
@@ -75,7 +100,12 @@
       1,
       0.845,
       0.798
-    ]
+    ],
+    "outline": {
+      "hash": "5cb8320f2b",
+      "tris": 250,
+      "bytes": 3676
+    }
   },
   "conv.alloy_works": {
     "hash": "4a76ab2895",
@@ -88,7 +118,12 @@
       1,
       0.929,
       0.589
-    ]
+    ],
+    "outline": {
+      "hash": "bb6ef17586",
+      "tris": 244,
+      "bytes": 3680
+    }
   },
   "struct.ranged_defense.base": {
     "hash": "3a5a797006",
@@ -101,6 +136,11 @@
       0.65,
       0.744,
       0.65
-    ]
+    ],
+    "outline": {
+      "hash": "1e4561183b",
+      "tris": 250,
+      "bytes": 3568
+    }
   }
 }

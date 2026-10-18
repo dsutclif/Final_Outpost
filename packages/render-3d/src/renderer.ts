@@ -228,6 +228,14 @@ export class Renderer3D implements Renderer {
         this.placed.delete(k);
         this.quiet.add(k);
       }
+      for (const p of this.placed.values()) {
+        const g = p.extra[3];
+        if (!g || (g.userData["what"] !== e.id && !String(g.userData["what"]).startsWith(e.id + ".t"))) continue;
+        this.dynamic.remove(g);
+        g.traverse((c) => { if ((c as Mesh).isMesh) disposeGeo(c as Mesh); });
+        (g.userData["ghost"] as MeshLambertMaterial).dispose();
+        delete p.extra[3];
+      }
     });
     this.buildPadInfo();
 
@@ -680,7 +688,7 @@ export class Renderer3D implements Renderer {
   /** A turret standing in a wall line (on its plinth), with its GLB base when loaded. */
   private wallTurret(ctx: BuildCtx): Model {
     const m = buildTurret(ctx, true);
-    applyMeshy(m, "struct.ranged_defense", ctx.level);
+    applyMeshy(m, "struct.ranged_defense", ctx.level, ctx.ghost);
     return m;
   }
 
@@ -1157,7 +1165,8 @@ export class Renderer3D implements Renderer {
   }
 
   /** A model drawn as a translucent blueprint; its material rides in root.userData.ghost (removePlaced disposes it). */
-  private ghostModel(what: string, ctx: BuildCtx, onWall = false): Model {
+  private ghostModel(what: string, base: BuildCtx, onWall = false): Model {
+    const ctx = { ...base, ghost: true };
     const mat = new MeshLambertMaterial({ color: new Color(this.tokens.interactive), emissive: new Color(this.tokens.interactive), emissiveIntensity: 0.55, transparent: true, depthWrite: false });
     const m = onWall && what === "struct.ranged_defense" ? this.wallTurret(ctx) : buildModel(what, ctx);
     const drop: Object3D[] = [];
@@ -1175,7 +1184,7 @@ export class Renderer3D implements Renderer {
     let g = p.extra[3] as Group | undefined;
     if (!g) {
       const mat = new MeshLambertMaterial({ color: new Color(this.tokens.interactive), emissive: new Color(this.tokens.interactive), emissiveIntensity: 0.55, transparent: true, depthWrite: false });
-      const ctx = { ...this.bctx!, level: 1 };
+      const ctx = { ...this.bctx!, level: 1, ghost: true };
       const m = onWall && what === "struct.ranged_defense" ? this.wallTurret(ctx) : buildModel(what, ctx);
       const drop: Object3D[] = [];
       m.root.traverse((o) => {
@@ -1188,6 +1197,7 @@ export class Renderer3D implements Renderer {
       tmpBox.setFromObject(m.root);
       g = m.root;
       g.userData["ghost"] = mat;
+      g.userData["what"] = what;
       g.userData["h"] = tmpBox.isEmpty() ? 1 : Math.max(0.3, tmpBox.max.y);
       g.scale.setScalar(ART_M);
       this.dynamic.add(g);

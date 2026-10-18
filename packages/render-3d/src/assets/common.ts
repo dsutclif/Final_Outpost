@@ -13,6 +13,8 @@ export interface BuildCtx {
   models: Readonly<Record<string, string>>;
   /** Upgrade tier / core level (1-based). */
   level: number;
+  /** Built for a build-pad blueprint: Meshy ids take their outline model. */
+  ghost?: boolean;
 }
 
 /**
