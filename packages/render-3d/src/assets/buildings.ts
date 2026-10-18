@@ -320,7 +320,7 @@ export function buildTurret(ctx: BuildCtx, onWall = false): Model {
   m.root.add(head);
   Object.assign(m.parts, { head, muzzle });
   if (onWall) {
-    const lift = 0.95;
+    const lift = 1.6;
     for (const c of m.root.children) c.position.y += lift;
     const p = new GeoBuilder()
       .rbox(1.15, lift, 1.15, 0.06, mix(t.structure, t.metal, 0.3), { at: [0, lift / 2, 0] }, 1)

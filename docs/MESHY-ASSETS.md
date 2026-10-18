@@ -143,8 +143,8 @@ Triangle targets are lower than batch 1 because these repeat (walls, doors, head
 | Hab Pod | `struct.housing` | 1,300 | Door and ramp to +z; nudged 4 cm back to sit inside the footprint |
 | Med Bay | `struct.medical` | 1,400 | 1.75 m, shifted 12 cm left so the heal spot (+0.93 m) is outside the wall |
 | Warehouse | `struct.depot` | 1,400 | Open-roof bin, low front lip to +z; 2.1 m (near square, so narrower than the code bin); deposit/pickup moved to z 1.15. `store.depot` stays code-built |
-| Wall 1 / Wall 2 | `struct.barrier` / reinforced (`batch`) | 160 / 220 | Native proportions (1.9 m / 1.29 m long); each section lays whole tiles end to end. Below half hp the same tile is cut to a jagged top and darkened (generated at load) |
-| Turret Top 1/2 | head, `struct.ranged_defense` L1 / `.t2` | 450 / 600 | Yaw 90 / 180 so barrels face +z; offset so the turret ring sits on the base axis; muzzle flash moved to the barrel tips |
+| Wall 1 / Wall 2 | `struct.barrier` / reinforced (`batch`) | 160 / 220 | 1.3 m / 1.5 m tall (taller than a colonist; Doug 2026-10-18, wall-tower plinths raised to 1.6 m), native proportions; each section lays whole tiles end to end. Below half hp the same tile is cut to a jagged top and darkened (generated at load) |
+| Turret Top 1/2 | head, `struct.ranged_defense` L1 / `.t2` | 450 / 600 | Yaw 90 / 11 so barrels face +z (Top 2 measured off the mesh: ring centre on the pivot, barrel tip at +z); offset so the turret ring sits on the base axis; muzzle flash moved to the barrel tips |
 | Turret Top 3 | head, L3 | 600 | Built, `unwired` (no t3 in content yet): drop the flag when a t3 exists |
 
 Held props (`prop.*`, Smart Topology originals ~4k tris): each is baked twice, a game-size
