@@ -440,9 +440,9 @@
     }
   },
   "prop.briefcase_gold": {
-    "hash": "8e5ea0d300",
+    "hash": "fee6501884",
     "tris": 600,
-    "bytes": 28880,
+    "bytes": 30456,
     "bounds": [
       -0.16,
       0,
@@ -452,9 +452,9 @@
       0.067
     ],
     "lod": {
-      "hash": "9d8bbe0c7a",
+      "hash": "da8e3f9dde",
       "tris": 100,
-      "bytes": 12704
+      "bytes": 14760
     }
   },
   "unit.customer": {

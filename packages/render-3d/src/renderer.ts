@@ -874,6 +874,8 @@ export class Renderer3D implements Renderer {
       this.rigged!.add(`c:${c.id}`, c.kind, rig, { moving, hurried: c.kind.endsWith("impatient"), cheer }, pos.x, pos.y, yaw, ART_M * look.scale / 0.9);
       this.blobs!.add(pos.x, pos.y, 10 * look.scale);
     } else this.addCharacter(look, anim, pos, yaw, null);
+    // a bulk trader wheels its order away on the cart (angry ones leave empty-handed)
+    if (look.push && !queued && !c.angry) this.cartLoad(c, pos, yaw, look.scale);
     this.candidatePt(c.kind, pos.x, pos.y, ART_M * look.scale * 1.9);
     if (queued) {
       // order bubble with the patience arc
@@ -883,6 +885,17 @@ export class Renderer3D implements Renderer {
       const ok = this.labels.apply(sp, `ord|${c.res}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), 16);
       sp.visible = ok;
       sp.position.set(pos.x, ART_M * look.scale * 1.55, pos.y);
+    }
+  }
+
+  /** The bought goods stacked on a leaving bulk trader's cart deck, three by two per layer. */
+  private cartLoad(c: CustomerState, pos: V, yaw: number, k: number): void {
+    const items = this.items!, fwd = 0.68 * ART_M * k, deck = 0.36 * ART_M * k, pitch = 0.17 * ART_M * k;
+    const sin = Math.sin(yaw), cos = Math.cos(yaw), ih = items.height(c.res) * 0.8;
+    for (let j = 0; j < Math.min(c.want, 12); j++) {
+      const layer = Math.floor(j / 6), col = (j % 3) - 1, row = Math.floor((j % 6) / 3) - 0.5;
+      const lx = col * pitch, lz = fwd + row * pitch;
+      items.add(c.res, pos.x + lx * cos + lz * sin, deck + layer * ih, pos.y - lx * sin + lz * cos, yaw + 0.3 * col, 0.8);
     }
   }
 

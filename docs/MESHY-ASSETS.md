@@ -164,12 +164,14 @@ end of the arm, +z forward, +y up the arm); reuse it for the hand bones in the c
 | Raider Gun | `tool.rifle_raider` | `hostile.raider_humanoid` | [0, -0.11, 0.08, 0, 90, 0, 0.85] |
 | Raider Boss Gun | `tool.minigun` | `hostile.boss` | [0, -0.12, 0.1, 0, -90, 0, 0.75] |
 | Trader Cart | `tool.cart` (pushed, body frame) | `unit.customer_bulk` | [0, 0.08, 0.62, 0, 90, 0, 0.8] |
-| VIP Briefcase | `tool.briefcase` (both hands) | `unit.customer_premium` | [0, -0.3, 0, 0, 90, 0] |
+| VIP Briefcase | `tool.briefcase` (one hand) | `unit.customer_premium` | [0, -0.47, 0, 0, 90, 0, 1.6] |
 
 The VIP briefcase came out of Meshy brown: the build recolours it (`tint: "gold"`): texel
 brightness picks a shade between deep bronze, #c9a24a and a pale highlight with faint horizontal
 brushing, near-black texels (handle, clasps) stay dark, and the material gets metalness 0.55 /
-roughness 0.38. Until a prop lands (or if it fails) the code tool stays: raiders keep the club,
+roughness 0.38. `decal` stamps "VIP" on both broad faces: letters drawn as SVG paths (no font
+or Blender needed) and projected in object space onto the texels of the faces facing ±z, mirrored
+on the far side so both read left to right. Until a prop lands (or if it fails) the code tool stays: raiders keep the club,
 the guard gets a small code carbine and a left-hand shield; the VIP case and cart have no code
 version. `fit.html?crowd=1` shows these characters posed through the crowd batches with their props.
 
@@ -198,9 +200,10 @@ worked, so the rest can follow the same path:
 5. Props (`held` in the entry, per variant): on a bone (`mixamorig:RightHand` etc., transform
    `[x, y, z, rx, ry, rz, scale]` in the bone's frame, model metres) or pushed (`grip`: after the
    clip poses the arms, upper arm and forearm turn to point at the handle, both hands). The VIP
-   carries a gold case in each hand (`[0, 0.3, 0, 180, 0, 0]`: the hand bone's +y runs down the
-   fingers), the bulk trader pushes the hover cart (`[0, 0.08, 0.95, 0, 90, 0, 1.3]`, grip
-   `[0, 1.0, 0.3]` ± 0.18).
+   carries one gold case at briefcase size (`[0, 0.5, 0, 180, 0, 0, 1.6]`, about 0.5 m wide:
+   the hand bone's +y runs down the fingers), the bulk trader pushes the hover cart (`[0, 0.08, 0.95, 0, 90, 0, 1.3]`, grip
+   `[0, 1.0, 0.3]` ± 0.18). A bulk trader that was served wheels its order away on the cart deck
+   (renderer `cartLoad`, both the rigged and the code-built figure).
 
 Budget, golden level 4 with a queue of 8 traders (two of each variant): 61.0k triangles and 65
 draw calls, against 61.3k and 60 with code traders. `fit.html?rig=1` shows every variant and clip

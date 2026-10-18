@@ -101,8 +101,8 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
       stripe: premium ? gold : impatient ? t.danger : null,
       hat: premium ? "hat.crown" : impatient ? "hat.cap" : "hat.none",
       hatColor: premium ? gold : impatient ? t.danger : t.customer,
-      // the VIP carries a gold case in each hand (Meshy prop only: no code case)
-      ...(premium ? { tool: "tool.briefcase", offhand: "tool.briefcase" } : {}),
+      // the VIP carries a gold case (Meshy prop only: no code case)
+      ...(premium ? { tool: "tool.briefcase" } : {}),
     };
   }
   if (id === "hostile.raider_humanoid") {

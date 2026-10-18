@@ -36,6 +36,8 @@ export interface MeshyEntry {
   tris?: number; texture?: number; outlineTris?: number;
   /** Recolour the base colour before baking ("gold": brushed warm gold, darks kept). */
   tint?: "gold";
+  /** Lettering on the broad faces: text and [x0, y0, x1, y1] (fitted art metres), see lettering(). */
+  decal?: { text: string; box: number[] };
   /** Material factors (default rough 0.9, metal 0). */
   rough?: number; metal?: number;
   /** "prop": held item; props and wall sections (batch) get no blueprint outline. */
@@ -167,15 +169,45 @@ function unwrap(low: { pos: Float32Array; idx: Uint32Array }, size: number): { p
   return { pos, uv, idx, xref };
 }
 
+type Paint = (p: Vector3, n: Vector3, rgba: Buffer, o: number) => void;
+
+/**
+ * Lettering projected onto a model's broad faces (both sides of a flat object, like a case):
+ * `decal` = [x0, y0, x1, y1] in fitted art metres on the faces facing ±z. Letters are drawn as
+ * SVG paths (no font needed) and blended in dark, so they read as stamped into the surface.
+ */
+async function lettering(text: string, box: number[]): Promise<Paint> {
+  const glyph: Record<string, string> = {
+    V: "M0,0 h30 l25,75 l25,-75 h30 l-40,100 h-30 z",
+    I: "M0,0 h30 v100 h-30 z",
+    P: "M0,0 h55 a35,35 0 0 1 0,70 h-25 v30 h-30 z M30,25 v20 h22 a10,10 0 0 0 0,-20 z",
+  };
+  const adv: Record<string, number> = { V: 125, I: 45, P: 100 };
+  let x = 10, paths = "";
+  for (const ch of text) { paths += `<path transform="translate(${x},10)" fill-rule="evenodd" d="${glyph[ch] ?? ""}"/>`; x += adv[ch] ?? 60; }
+  const W = x, H = 120;
+  const mask = await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="100%" height="100%" fill="black"/><g fill="white">${paths}</g></svg>`)).greyscale().raw().toBuffer();
+  const [x0, y0, x1, y1] = box as [number, number, number, number];
+  const ink = [46, 34, 16];
+  return (p, n, rgba, o) => {
+    if (Math.abs(n.z) < 0.8) return;
+    // the far side is seen from behind: mirror so it reads left to right there too
+    const u = n.z > 0 ? (p.x - x0) / (x1 - x0) : (x1 - p.x) / (x1 - x0), v = (y1 - p.y) / (y1 - y0);
+    if (u < 0 || u >= 1 || v < 0 || v >= 1) return;
+    const k = 0.9 * mask[Math.floor(v * H) * W + Math.floor(u * W)]! / 255;
+    for (let ch = 0; ch < 3; ch++) rgba[o + ch] = Math.round(rgba[o + ch]! * (1 - k) + ink[ch]! * k);
+  };
+}
+
 /** Fill each texel of the low atlas from the closest point on the high mesh's texture. */
-function bake(src: Src, low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, size: number): Buffer {
+function bake(src: Src, low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, size: number, paint?: Paint): Buffer {
   const geo = new BufferGeometry();
   geo.setAttribute("position", new BufferAttribute(src.pos, 3));
   geo.setIndex(new BufferAttribute(src.idx, 1));
   const bvh = new MeshBVH(geo);
   const out = Buffer.alloc(size * size * 4);
   const hit = { point: new Vector3(), distance: 0, faceIndex: 0 };
-  const p = new Vector3(), a = new Vector3(), b = new Vector3(), c = new Vector3(), bc = new Vector3(), tri = new Triangle();
+  const p = new Vector3(), a = new Vector3(), b = new Vector3(), c = new Vector3(), bc = new Vector3(), nrm = new Vector3(), tri = new Triangle();
   const { data, w, h } = src.tex;
   const sample = (u: number, v: number, o: number): void => {
     // bilinear, wrapping like the GPU sampler (Meshy UVs stay in 0..1)
@@ -191,6 +223,7 @@ function bake(src: Src, low: { pos: Float32Array; uv: Float32Array; idx: Uint32A
     const u = [low.uv[i0 * 2]! * size, low.uv[i1 * 2]! * size, low.uv[i2 * 2]! * size];
     const v = [low.uv[i0 * 2 + 1]! * size, low.uv[i1 * 2 + 1]! * size, low.uv[i2 * 2 + 1]! * size];
     a.fromArray(low.pos, i0 * 3); b.fromArray(low.pos, i1 * 3); c.fromArray(low.pos, i2 * 3);
+    if (paint) tri.set(a, b, c).getNormal(nrm);
     const det = (v[1]! - v[2]!) * (u[0]! - u[2]!) + (u[2]! - u[1]!) * (v[0]! - v[2]!);
     if (Math.abs(det) < 1e-9) continue;
     const xmin = Math.max(0, Math.floor(Math.min(...u) - 1)), xmax = Math.min(size - 1, Math.ceil(Math.max(...u) + 1));
@@ -213,6 +246,7 @@ function bake(src: Src, low: { pos: Float32Array; uv: Float32Array; idx: Uint32A
       tri.a.fromArray(src.pos, j0 * 3); tri.b.fromArray(src.pos, j1 * 3); tri.c.fromArray(src.pos, j2 * 3);
       tri.getBarycoord(hit.point, bc);
       sample(src.uv[j0 * 2]! * bc.x + src.uv[j1 * 2]! * bc.y + src.uv[j2 * 2]! * bc.z, src.uv[j0 * 2 + 1]! * bc.x + src.uv[j1 * 2 + 1]! * bc.y + src.uv[j2 * 2 + 1]! * bc.z, o);
+      paint?.(p, nrm, out, o);
     }
   }
   dilate(out, size, 8);
@@ -338,15 +372,16 @@ async function build(e: MeshyEntry): Promise<void> {
   const t0 = Date.now();
   const src = await loadSource(path, e.tint);
   const bounds = fit(src.pos, e);
+  const paint = e.decal ? await lettering(e.decal.text, e.decal.box) : undefined;
   const size = e.texture ?? 1024;
   const low = unwrap(lowPoly(src, e.tris ?? 3000), size);
-  const glb = await writeGlb(low, bake(src, low, size), size, e);
+  const glb = await writeGlb(low, bake(src, low, size, paint), size, e);
   writeFileSync(join(OUT, `${e.file}.glb`), glb);
   const hash = (b: Uint8Array): string => createHash("sha1").update(b).digest("hex").slice(0, 10);
   built[e.file] = { hash: hash(glb), tris: low.idx.length / 3, bytes: glb.byteLength, bounds };
   if (e.lod) {
     const small = unwrap(lowPoly(src, e.lod), size);
-    const lod = await writeGlb(small, bake(src, small, size), size, e);
+    const lod = await writeGlb(small, bake(src, small, size, paint), size, e);
     writeFileSync(join(OUT, `${e.file}.lod.glb`), lod);
     built[e.file]!.lod = { hash: hash(lod), tris: small.idx.length / 3, bytes: lod.byteLength };
   }
