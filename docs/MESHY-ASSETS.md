@@ -221,6 +221,25 @@ All four trader types come from **one** rigged trader: the hurried trader plays 
 | `capture.supply_crate` | Supply crate | The towable supply crate: a rugged rusty-steel crate with strap bands, a handle and four small wheels. |
 | `zone.blocked` | Rockslide | A rockslide: a low wide pile of tan boulders and broken rock. |
 
+## Priority B: held props (sheets: `Settlers.jpeg`, `Non settler characters.jpeg`)
+
+Characters are generated empty-handed (held objects break rigging), so what they hold is a
+separate small prop the game attaches to the hand bone. One object per image, nothing holding it,
+laid out at the usual three-quarter view. **Smart Topology, about 600 polygons** (shield and
+minigun about 1,000). Same style block and rules.
+
+| File name | Held by | Prompt |
+|---|---|---|
+| `prop.rifle_raider` | Raider | The raider's rifle from the sheet: a black tactical assault rifle with a short stock, top rail and a long magazine. Worn matte black. |
+| `prop.minigun` | Boss raider | The boss raider's rotary minigun from the sheet: six barrels in a cylinder, a heavy box receiver, a top carry handle and an ammunition feed on the side. Gunmetal, worn. |
+| `prop.rifle_guard` | Guard | The guard's rifle from the sheet: a compact gunmetal-grey carbine with a short barrel and a red sight. |
+| `prop.shield_guard` | Guard | The guard's riot shield from the sheet: a tall rectangular steel shield with angled armour plates, a small viewing slot near the top and a red stripe. Front face visible. |
+| `prop.pickaxe` | Hauler | A heavy mining pickaxe: steel head, dark worn wooden handle with a taped grip. |
+| `prop.wrench` | Technician | A large adjustable steel wrench, about the length of a forearm, worn grip. |
+| `prop.medkit` | Medic | A white hard-shell medical case with a red cross on the side and a top handle. |
+| `prop.scanner` | Clerk | A handheld rugged scanner tablet: grey case with a small glowing cyan screen and a grip handle. |
+| `prop.rifle_ranger` | Ranger | A long hunting stun rifle: olive-grey, long barrel, scope, padded stock. |
+
 ## Priority C: carried items (sheet: `Items.jpeg`)
 
 Singles only: the game builds back stacks, shelf stock and ground piles by repeating the single
@@ -248,7 +267,7 @@ follow the concept look through the palette and the shader.
 
 ## Priority and credit budget
 
-About 60 images. Order: Priority A buildings, A structures, A characters, then B, then C (items,
-about 225 credits). If credits run short, drop in this order: `role.server`, `role.hunter`,
+About 70 images. Order: Priority A buildings, A structures, A characters, then B (with the held
+props, about 45 credits), then C (items, about 225 credits). If credits run short, drop in this order: `role.server`, `role.hunter`,
 `role.cashier` (they fall back to the colonist model with code-built headgear), then the items
 (code-built ones stay), then the B nodes and props.
