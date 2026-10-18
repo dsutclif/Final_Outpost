@@ -993,7 +993,8 @@ export class Renderer3D implements Renderer {
     const open = (p.data["open"] as number | undefined) ?? 0;
     const k = open + ((near ? 1 : 0) - open) * 0.15;
     p.data["open"] = k;
-    doors.children.forEach((d, i) => { d.position.x = (i === 0 ? -1 : 1) * (0.5 + k * 0.85); });
+    // the door sinks into the ground to open (the ground hides what is below it)
+    doors.children.forEach((d) => { d.position.y = -k * 1.62; });
   }
 
   private syncConverters(s: State): void {

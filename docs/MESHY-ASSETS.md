@@ -139,7 +139,7 @@ Triangle targets are lower than batch 1 because these repeat (walls, doors, head
 | Second batch | Id | Tris | Notes |
 |---|---|---|---|
 | Gate frame | `struct.gate` (`replace: frame`) | 650 | 2.7 m; the renderer still stretches it along x to the gate section |
-| Gate door | `struct.gate` (`slot: doorL, doorR`) | 250 | One door model, mirrored for the right door; slides open as before |
+| Gate door | `struct.gate` (`slot: doorL`, `replace: doorR`) | 250 | One door fills the whole opening (Doug's airlock concept); it sinks into the ground to open. A slot entry's `replace` drops parts it makes redundant, `parts` keyed by the slot name moves the part itself |
 | Hab Pod | `struct.housing` | 1,300 | Door and ramp to +z; nudged 4 cm back to sit inside the footprint |
 | Med Bay | `struct.medical` | 1,400 | 1.75 m, shifted 12 cm left so the heal spot (+0.93 m) is outside the wall |
 | Warehouse | `struct.depot` | 1,400 | Open-roof bin, low front lip to +z; 2.1 m (near square, so narrower than the code bin); deposit/pickup moved to z 1.15. `store.depot` stays code-built |

@@ -187,8 +187,14 @@ export function applyMeshy(m: Model, id: string, level = 1, outline = false): vo
     const scene = (outline ? outlines : cache).get(e.file);
     if (!scene) continue;
     const flip = new Set(e.mirror ?? []);
-    const olds: Mesh[] = [];
-    m.root.traverse((o) => { if (e.slot!.includes(o.name) && (o as Mesh).isMesh) olds.push(o as Mesh); });
+    const olds: Mesh[] = [], gone: Mesh[] = [];
+    m.root.traverse((o) => {
+      if (!(o as Mesh).isMesh) return;
+      if (e.slot!.includes(o.name)) olds.push(o as Mesh);
+      // `replace` on a slot entry: meshes the part makes redundant (one gate door for two)
+      else if (e.replace?.includes(o.name)) gone.push(o as Mesh);
+    });
+    for (const o of gone) { o.removeFromParent(); disposeGeo(o); }
     for (const old of olds) {
       // same place in the same parent (the gate animates its doors by child order)
       const glb = scene.clone(true);
@@ -197,6 +203,9 @@ export function applyMeshy(m: Model, id: string, level = 1, outline = false): vo
       glb.quaternion.copy(old.quaternion);
       glb.scale.copy(old.scale);
       if (flip.has(old.name)) glb.scale.x *= -1;
+      // `parts` keyed by the slot name moves the swapped part itself
+      const at = e.parts?.[old.name];
+      if (at && at.length >= 3) glb.position.set(at[0]!, at[1]!, at[2]!);
       const parent = old.parent!;
       parent.children.splice(parent.children.indexOf(old), 1, glb);
       glb.parent = parent;
@@ -204,7 +213,7 @@ export function applyMeshy(m: Model, id: string, level = 1, outline = false): vo
       disposeGeo(old);
       for (const [k, v] of Object.entries(m.parts)) if (v === old) m.parts[k] = glb;
       for (const [name, p] of Object.entries(e.parts ?? {})) {
-        const part = m.parts[name];
+        const part = name === old.name ? undefined : m.parts[name];
         if (part && p.length >= 3) part.position.set(p[0]!, p[1]!, p[2]!);
       }
     }
