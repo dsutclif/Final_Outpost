@@ -595,7 +595,7 @@ export const marsGreenhouse: Skin = {
       bulk_order: "Fill a bulk order",
       produce: "Produce {n} goods",
       converters_running: "Run {k} converters for {time}",
-      haul: "Couriers deliver {n} goods from the warehouse",
+      haul: "Couriers deliver {n} {res} from the warehouse",
       chain: "Make {n} advanced goods",
       automate: "Run hands-off for {time}",
       stockpile: "Stockpile {n} {res}",

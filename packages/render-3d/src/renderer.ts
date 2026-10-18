@@ -127,6 +127,95 @@ const PICK_PX = 28;
 interface Candidate { x: number; z: number; h: number; d2: number }
 
 /** three.js renderer (Contract 2). State drives every visual; events add juice only. */
+/** Pad picture: the hire pad's job tool, or what a build pad does when it builds nothing visible. */
+function padGlyph(info: PadInfo | undefined, upgrades: Record<string, unknown>): string {
+  if (!info) return "";
+  if (info.kind === "hire") {
+    const res = info.worker?.res ?? "";
+    switch (info.what) {
+      case "role.cashier": return "register";
+      case "role.supplier": return res.startsWith("res.food") ? "basket" : "pick";
+      case "role.operator": return "wrench";
+      case "role.server": return "tray";
+      case "role.hauler": return "crate";
+      case "role.defender": return "shield";
+      case "role.hunter": return "scope";
+      case "role.medic": return "cross";
+      default: return "person";
+    }
+  }
+  if (info.what === "node.enable") return "unlock";
+  if (info.what === "conv.level" || info.what === "sink.core.level" || upgrades[info.what]) return "up";
+  return "";
+}
+
+/** Flat pad glyphs, centred on (x, y), about 2r across; ink outlines, light fills. */
+function drawGlyph(g: CanvasRenderingContext2D, kind: string, x: number, y: number, r: number, ink: string, light: string): void {
+  g.save();
+  g.translate(x, y);
+  g.lineJoin = "round"; g.lineCap = "round";
+  g.strokeStyle = ink; g.fillStyle = light; g.lineWidth = r * 0.16;
+  const box = (x0: number, y0: number, w: number, h: number, fill = light): void => { g.fillStyle = fill; g.beginPath(); g.rect(x0 * r, y0 * r, w * r, h * r); g.fill(); g.stroke(); };
+  const line = (...p: number[]): void => { g.beginPath(); g.moveTo(p[0]! * r, p[1]! * r); for (let i = 2; i < p.length; i += 2) g.lineTo(p[i]! * r, p[i + 1]! * r); g.stroke(); };
+  switch (kind) {
+    case "register": // till: screen on a stalk, keyed body, cash drawer
+      box(-0.25, -0.95, 0.5, 0.35); line(0, -0.6, 0, -0.35);
+      box(-0.8, -0.35, 1.6, 0.75);
+      g.fillStyle = ink;
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) g.fillRect((-0.5 + i * 0.35) * r, (-0.2 + j * 0.25) * r, 0.18 * r, 0.12 * r);
+      box(-0.95, 0.4, 1.9, 0.45, ink);
+      break;
+    case "pick": // pickaxe: handle and curved head
+      line(-0.6, 0.85, 0.45, -0.45);
+      g.beginPath(); g.moveTo(-0.15 * r, -0.85 * r); g.quadraticCurveTo(0.55 * r, -0.75 * r, 0.9 * r, -0.05 * r); g.lineWidth = r * 0.26; g.stroke();
+      break;
+    case "basket": // crop basket with leaves
+      for (const a of [-0.45, 0, 0.45]) { g.beginPath(); g.ellipse(a * r, -0.45 * r, 0.18 * r, 0.38 * r, a, 0, Math.PI * 2); g.fillStyle = light; g.fill(); g.stroke(); }
+      g.fillStyle = light; g.beginPath(); g.moveTo(-0.85 * r, -0.1 * r); g.lineTo(0.85 * r, -0.1 * r); g.lineTo(0.6 * r, 0.8 * r); g.lineTo(-0.6 * r, 0.8 * r); g.closePath(); g.fill(); g.stroke();
+      break;
+    case "wrench": // a bold open-jaw wrench: the machine operator
+      g.lineWidth = r * 0.3; line(-0.6, 0.65, 0.25, -0.2);
+      g.beginPath(); g.arc(0.45 * r, -0.4 * r, 0.42 * r, Math.PI * 0.95, Math.PI * 2.55); g.lineWidth = r * 0.26; g.stroke();
+      break;
+    case "tray": // a stack of goods with speed lines: carried from machine to kiosk
+      box(-0.25, -0.75, 0.7, 0.5); box(-0.25, -0.25, 0.7, 0.5); box(-0.25, 0.25, 0.7, 0.5);
+      line(-0.95, -0.4, -0.5, -0.4); line(-0.85, 0.05, -0.5, 0.05); line(-0.95, 0.5, -0.5, 0.5);
+      break;
+    case "crate": // crate with a forward arrow: goods moved from the warehouse
+      box(-0.85, -0.5, 1.1, 1.1); line(-0.85, -0.5, 0.25, 0.6); line(0.25, -0.5, -0.85, 0.6);
+      g.lineWidth = r * 0.2; line(0.35, 0.05, 0.95, 0.05); line(0.7, -0.22, 0.95, 0.05, 0.7, 0.32);
+      break;
+    case "shield":
+      g.beginPath(); g.moveTo(0, -0.9 * r); g.lineTo(0.75 * r, -0.6 * r); g.lineTo(0.65 * r, 0.25 * r);
+      g.quadraticCurveTo(0.35 * r, 0.75 * r, 0, 0.95 * r); g.quadraticCurveTo(-0.35 * r, 0.75 * r, -0.65 * r, 0.25 * r); g.lineTo(-0.75 * r, -0.6 * r);
+      g.closePath(); g.fillStyle = light; g.fill(); g.stroke();
+      line(0, -0.6, 0, 0.6);
+      break;
+    case "scope": // crosshair
+      g.beginPath(); g.arc(0, 0, 0.6 * r, 0, Math.PI * 2); g.stroke();
+      line(0, -0.95, 0, -0.3); line(0, 0.3, 0, 0.95); line(-0.95, 0, -0.3, 0); line(0.3, 0, 0.95, 0);
+      break;
+    case "cross": {
+      const k = 0.27, e = 0.8;
+      g.beginPath();
+      for (const [px, py] of [[-k, -e], [k, -e], [k, -k], [e, -k], [e, k], [k, k], [k, e], [-k, e], [-k, k], [-e, k], [-e, -k], [-k, -k]] as const) g.lineTo(px * r, py * r);
+      g.closePath(); g.fillStyle = light; g.fill(); g.stroke();
+      break;
+    }
+    case "up": // upgrade chevrons
+      g.lineWidth = r * 0.26; line(-0.65, 0.05, 0, -0.6, 0.65, 0.05); line(-0.65, 0.7, 0, 0.05, 0.65, 0.7);
+      break;
+    case "unlock": // open padlock
+      g.beginPath(); g.arc(-0.05 * r, -0.4 * r, 0.38 * r, Math.PI, Math.PI * 1.95); g.lineWidth = r * 0.2; g.stroke();
+      g.lineWidth = r * 0.16; box(-0.6, -0.1, 1.2, 0.95);
+      break;
+    default: // person
+      g.beginPath(); g.arc(0, -0.45 * r, 0.32 * r, 0, Math.PI * 2); g.fillStyle = light; g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(-0.7 * r, 0.9 * r); g.quadraticCurveTo(-0.7 * r, 0.05 * r, 0, 0.05 * r); g.quadraticCurveTo(0.7 * r, 0.05 * r, 0.7 * r, 0.9 * r); g.closePath(); g.fill(); g.stroke();
+  }
+  g.restore();
+}
+
 /** The work clip for gathering at each node type (rigged characters). */
 const GATHER_ACT: Readonly<Record<string, string>> = {
   "node.material_source": "mine", "node.food_source": "reap", "node.fuel_deposit": "pick", "node.fuel_scrap": "dig",
@@ -1050,10 +1139,29 @@ export class Renderer3D implements Renderer {
       this.candidate(cv.type, p);
       const popAge = this.fx!.popAge(`cv:${cv.id}`);
       p.model.root.scale.setScalar(ART_M * (popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1));
-      const def = this.content.converters[cv.type] as { outCap?: number; range?: number; role?: string; output?: string } | undefined;
+      // each finished unit thumps the machine: a short squash down and out
+      const thump = this.fx!.popAge(`cvw:${cv.id}`);
+      if (thump < 0.3) {
+        const q = Math.sin((thump / 0.3) * Math.PI);
+        p.model.root.scale.y *= 1 - 0.07 * q;
+        p.model.root.scale.x *= 1 + 0.035 * q;
+        p.model.root.scale.z *= 1 + 0.035 * q;
+      }
+      const def = this.content.converters[cv.type] as { outCap?: number; range?: number; role?: string; output?: string; rate?: number; upgradeRates?: number[] } | undefined;
       const manned = this.converterManned(s, cv, def);
       const blocked = cv.out >= (def?.outCap ?? 99);
       const working = manned && cv.inQ.length > 0 && !blocked;
+      // the unit going in next, for the conversion animation (the sim has already taken it when it reports)
+      if (cv.inQ[0]) p.data["front"] = cv.inQ[0];
+      if (working) {
+        // progress toward the next unit over the machine
+        const sec = (cv.level > 1 ? def?.upgradeRates?.[cv.level - 2] : undefined) ?? def?.rate ?? 1;
+        const r = p.model.root.position;
+        // just over the machine top (measured once per model; the GLB swaps in later, so re-measure when it does)
+        const key = String(p.model.root.userData["meshy"] ?? "code");
+        if (p.data["topOf"] !== key) { p.data["topOf"] = key; p.data["top"] = new Box3().setFromObject(p.model.root).max.y; }
+        this.barTag(r.x, (p.data["top"] as number) + 8, r.z, cv.acc / Math.max(1, sec * TPS), this.tokens.accent, 7);
+      }
       const spin = p.model.parts["spin"];
       if (spin) spin.rotation.z += working ? 0.18 : 0.004;
       const status = p.model.parts["status"] as Mesh | undefined;
@@ -1255,7 +1363,8 @@ export class Renderer3D implements Renderer {
         p.extra[0] = decal;
       }
       const wk = info?.kind === "hire" ? info : undefined;
-      const dm = this.labels.meshMaterial(`pd|${fb}|${pad.locked}|${big}|${wk?.what ?? ""}|${wk?.worker?.res ?? ""}`, () => this.padDecalArt(fb / 24, pad.locked, big, wk?.what, wk?.worker?.res));
+      const glyph = padGlyph(info, this.content.upgrades);
+      const dm = this.labels.meshMaterial(`pd|${fb}|${pad.locked}|${big}|${wk?.what ?? ""}|${wk?.worker?.res ?? ""}|${glyph}`, () => this.padDecalArt(fb / 24, pad.locked, big, wk?.what, wk?.worker?.res, glyph));
       if (dm) { decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
@@ -1936,7 +2045,7 @@ export class Renderer3D implements Renderer {
     };
   }
 
-  private padDecalArt(fill: number, locked: boolean, big: boolean, role?: string, res?: string): LabelArt {
+  private padDecalArt(fill: number, locked: boolean, big: boolean, role?: string, res?: string, glyph = ""): LabelArt {
     const t = this.tokens;
     const col = big ? t.accent : t.interactive;
     return {
@@ -1953,14 +2062,15 @@ export class Renderer3D implements Renderer {
           g.beginPath(); g.arc(w / 2, h / 2, 82, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fill);
           g.lineWidth = 18; g.lineCap = "round"; g.strokeStyle = col; g.stroke();
         }
-        // a hire pad shows who you get: the worker in their role colour, badged with what they handle
-        if (role) {
-          const body = this.skin.palette.role[role] ?? t.structure;
+        // a hire pad shows the job's tool on a disc in the role colour, badged with what they handle;
+        // upgrade and unlock pads show what they do (Doug: "a register on the cashier pad")
+        if (glyph) {
           g.globalAlpha = locked ? 0.5 : 1;
-          g.lineWidth = 7; g.strokeStyle = t.ink; g.fillStyle = body;
-          g.beginPath(); g.arc(w / 2, h / 2 - 22, 21, 0, Math.PI * 2); g.fill(); g.stroke();
-          g.beginPath(); g.moveTo(w / 2 - 38, h / 2 + 44); g.quadraticCurveTo(w / 2 - 38, h / 2 + 4, w / 2, h / 2 + 4); g.quadraticCurveTo(w / 2 + 38, h / 2 + 4, w / 2 + 38, h / 2 + 44); g.closePath(); g.fill(); g.stroke();
-          if (res) drawIcon(g, w / 2 + 40, h / 2 + 34, 22, resToken(t, res), t.ink);
+          const disc = role ? this.skin.palette.role[role] ?? t.structure : col;
+          g.beginPath(); g.arc(w / 2, h / 2, 58, 0, Math.PI * 2);
+          g.fillStyle = disc; g.fill(); g.lineWidth = 7; g.strokeStyle = t.ink; g.stroke();
+          drawGlyph(g, glyph, w / 2, h / 2, 38, t.ink, t.paper.panel);
+          if (res) drawIcon(g, w / 2 + 48, h / 2 + 48, 22, resToken(t, res), t.ink);
           g.globalAlpha = 1;
         }
       },
@@ -2457,9 +2567,22 @@ export class Renderer3D implements Renderer {
         fx.dustRing(at, mix(t.groundAlt, t.structure, 0.3), 28, 140, 9);
         fx.floater(ft("zone_cleared"), white, up(at, ART_M * 1.2), 44, 13);
         break;
-      case "converted":
+      case "converted": {
+        // the input unit drops from the hopper into the machine, the machine thumps, the product
+        // arcs out onto the tray (the tray count already includes it, so it lands on its own stack)
+        const cv = this.world?.converters.find((c) => c.id === e["conv"]);
+        const p = cv && this.placed.get(`cv:${cv.id}:${cv.level}`);
+        if (cv && p) {
+          const dep = this.anchorWorld(p, "deposit", new Vector3()).clone(), pick = this.anchorWorld(p, "pickup", new Vector3()).clone();
+          const core = p.model.root.position.clone().setY(ART_M * 1.1);
+          const inRes = (p.data["front"] as string | undefined) ?? (this.content.converters[cv.type] as { inputs?: string[] } | undefined)?.inputs?.[0];
+          if (inRes) fx.arc(inRes, dep, core, 0.25);
+          fx.pop(`cvw:${cv.id}`);
+          fx.arc(String(e["res"]), core, pick, 0.35);
+        }
         fx.burst(up(at, ART_M * 1.2), [t.accent, white], 5, 50, 120, 3, 0.5);
         break;
+      }
       case "froze": {
         // a colonist is lost to the cold: frost burst and a shudder
         fx.burst(up(at, ART_M * 0.9), [t.frost, white, t.glass], 26, 120, 220, 4, 0.8);

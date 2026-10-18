@@ -1,6 +1,6 @@
-import type { Manifest } from "@fo/content";
+import { content, type Manifest } from "@fo/content";
 import { TPS, type ObjectiveState, type State } from "@fo/sim";
-import { clockText, objectiveText, type Skin } from "@fo/skins";
+import { clockText, fmt, nameOf, objectiveText, type Skin } from "@fo/skins";
 
 // Star objectives as the player sees them. The sim owns progress, done and failed
 // (state.objectives, starsOf); this module only names them in skin words and formats counters.
@@ -49,7 +49,28 @@ const padBuild = (m: Manifest) => (pad: string): string | null => {
 
 /** Label of a manifest objective in the skin's words. */
 export function labelOf(m: Manifest, skin: Skin, o: ManifestObjective): string {
+  // the haul goal counts whatever couriers carry out of the warehouse: name what goes into it
+  if (o.kind === "haul" && !o.label && !o.params?.["res"]) {
+    const goods = depotGoods(m).map((r) => nameOf(skin, r).toLowerCase());
+    const tpl = skin.text.objectives?.["haul"];
+    if (tpl) return fmt(tpl, { ...o.params, res: goods.length ? goods.join(" and ") : "goods" });
+  }
   return objectiveText(skin, o.kind, o.params ?? {}, o.label, padBuild(m));
+}
+
+/** Resources workers bring to the warehouse: their source node's yield or their machine's output. */
+function depotGoods(m: Manifest): string[] {
+  const out = new Set<string>();
+  for (const e of m.entities) {
+    if (e.type !== "pad.hire" || e.role?.to !== "store.depot" || !e.role.from) continue;
+    const from = e.role.from;
+    const pad = m.entities.find((x) => x.id === from);
+    const conv = pad?.type === "pad.build" ? pad.build : from;
+    const res = (content.nodes as Record<string, { yields?: string }>)[from]?.yields
+      ?? (content.converters as Record<string, { output?: string }>)[conv]?.output;
+    if (res) out.add(res);
+  }
+  return [...out];
 }
 
 /** Intro-card list: the manifest's objectives before any play. */
