@@ -175,10 +175,11 @@ export function buildConverter(id: string, ctx: BuildCtx, pickup: readonly [numb
     .cyl(0.19, 0.19, 0.1, 8, t.metal, { at: [0.55, 1.9, -0.4] })
     // output chute toward the pickup side
     .rbox(0.5, 0.12, 0.6, 0.04, t.metal, { at: [1.05, 0.55, 0], rot: [0, 0, -0.35] }, 1)
-    .rbox(0.7, 0.14, 0.7, 0.05, t.structureDark, { at: [pickup[0], 0.08, pickup[1]] }, 1)
     .box(0.3, 0.22, 0.08, t.metalDark, { at: [0.35, 0.72, 0.58] });
-  // the operator spot reads like the clerk pad: someone stands here to run it
-  stationPlate(b, t, operator[0], operator[1]);
+  // pickup tray and operator spot (reads like the clerk pad: someone stands here to run it) are
+  // their own mesh, so they stay when a Meshy body replaces this one
+  const plates = new GeoBuilder().rbox(0.7, 0.14, 0.7, 0.05, t.structureDark, { at: [pickup[0], 0.08, pickup[1]] }, 1);
+  stationPlate(plates, t, operator[0], operator[1]);
   // level tiers (readable at phone size): L2 an accent band round the body, a second chimney and
   // a side tank; L3 a hot-plasma base band, a taller chimney stack and a beacon mast. A row of lit
   // pips on the front edge counts the level.
@@ -200,6 +201,7 @@ export function buildConverter(id: string, ctx: BuildCtx, pickup: readonly [numb
   if (food) b.dome(0.45, 10, 4, t.structure, { at: [0.15, 1.12, 0.05] }).box(0.6, 0.18, 0.04, out, { at: [-0.25, 0.7, 0.57] });
   else b.cyl(0.38, 0.32, 0.3, 10, t.metalDark, { at: [0.1, 1.27, 0.05] }).box(0.7, 0.12, 0.04, t.accent, { at: [-0.25, 0.7, 0.57] });
   m.root.add(mesh(b.build(), mats.panel, "body"));
+  m.root.add(mesh(plates.build(), mats.panel, "plates"));
   if (!food) {
     const melt = mesh(new GeoBuilder().cyl(0.3, 0.3, 0.04, 10, t.plasma, { at: [0.1, 1.43, 0.05] }).build(), mats.glow, "melt");
     m.root.add(melt);

@@ -1,7 +1,7 @@
 import { marsGreenhouse } from "@fo/skins";
 import { Box3 } from "three";
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createBuildCtx } from "../src/assets/context.js";
 import { buildModel } from "../src/assets/registry.js";
 import { ART_M } from "../src/units.js";
@@ -39,4 +39,26 @@ describe("generator footprints", () => {
     expect(fp["pad"]![2]).toBeGreaterThanOrEqual(half);
     expect(fp["pad.big"]![2]).toBeGreaterThanOrEqual(half * 1.4);
   });
+});
+
+// Meshy GLBs (src/assets/meshy.ts) stand in for the code bodies once loaded, so their fitted
+// ground bounds (meshy.built.json, art metres) must sit inside the same footprints. The occlusion
+// reach is left to the code models: it was set for the old 50-degree camera and is refit with the
+// footprints at the next regeneration (docs/POLISH-PLAN.md).
+describe("meshy footprints", () => {
+  const built = JSON.parse(readFileSync(new URL("../src/assets/meshy.built.json", import.meta.url), "utf8")) as Record<string, { bounds: number[] }>;
+  const config = JSON.parse(readFileSync(new URL("../src/assets/meshy.json", import.meta.url), "utf8")) as { models: { file: string; id: string }[] };
+  for (const e of config.models) {
+    it(`${e.file} is built and covered by ${e.id}`, () => {
+      const b = built[e.file]?.bounds;
+      expect(b, "run pnpm models:build").toBeDefined();
+      expect(existsSync(new URL(`../../client/public/models/${e.file}.glb`, import.meta.url))).toBe(true);
+      const [x0, y0, x1, y1] = fp[e.id]!;
+      const [bx0, , bz0, bx1, , bz1] = b!.map((v) => v * ART_M) as [number, number, number, number, number, number];
+      expect(x0).toBeLessThanOrEqual(bx0);
+      expect(y0).toBeLessThanOrEqual(bz0);
+      expect(x1).toBeGreaterThanOrEqual(bx1);
+      expect(y1).toBeGreaterThanOrEqual(bz1);
+    });
+  }
 });

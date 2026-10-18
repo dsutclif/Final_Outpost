@@ -93,6 +93,12 @@ export default defineConfig({
             options: { cacheName: "fo-packs", networkTimeoutSeconds: 4 },
           },
           {
+            // Meshy models carry ?v=<file hash> (meshy.built.json): fetched once, then served from the phone
+            urlPattern: ({ url }) => url.pathname.includes("/models/") && url.pathname.endsWith(".glb"),
+            handler: "CacheFirst",
+            options: { cacheName: "fo-models", expiration: { maxEntries: 200 } },
+          },
+          {
             // level URLs carry ?v=<pack.json hash>, so a cached entry never goes stale: fetched once, then served from the phone
             urlPattern: ({ url }) => url.pathname.includes("/levels/"),
             handler: "CacheFirst",

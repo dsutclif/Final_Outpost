@@ -4,13 +4,15 @@ Phase 2 of the art direction (ART-DIRECTION.md, DECISIONS 9l). Each asset below 
 
 1. **Gemini** turns the concept sheet into one clean picture of one object.
 2. **Meshy** (image to 3D) turns that picture into a textured model (GLB).
-3. **Claude** shrinks it for phones, fits it to the game's footprint and loads it in place of
-   the code-built model (which stays as the fallback).
+3. **Claude** runs `pnpm models:build`, which bakes it down for phones (about 3,000 triangles),
+   fits it to the game's footprint and loads it in place of the code-built model (which stays as
+   the fallback). See "Bringing models into the game" below.
 
-Concept sheets live outside the repo in `Mobile game/Asset concepts/`. Raw Gemini images and
-Meshy downloads go in `Mobile game/Asset models/` (also outside the repo: they are large, and
-the repo is public). Name every file by the asset's **file name** below, e.g.
-`sink.core.l1.png` → `sink.core.l1.glb`.
+Concept sheets live outside the repo in `Mobile game/Asset concepts/`. Meshy downloads go in
+`Mobile game/Asset workflow/3D Models/` and their Gemini images in `Asset workflow/Solo Mock Ups/`
+(outside the repo: they are large, and the repo is public). Name new files by the asset's
+**file name** below (`sink.core.l1.png` → `sink.core.l1.glb`); readable names like the first
+batch's (`Heat Core 1.glb`) also work, since `meshy.json` maps each file to its id.
 
 ## How to run it
 
@@ -50,19 +52,18 @@ On the meshy.ai home page, **Quick Generate** tab:
 4. **Generate** (about a minute). Spin the preview: reject models with melted shapes, holes, or
    a back side that makes no sense, and retry (at most twice; a code-built fallback covers anything
    still missing).
-5. **Remesh** (free) everything except the items: Target Polycount `Fixed`, `10K`, Topology
-   `Triangle`. Download **both** the original and the 10K version: the 10K one becomes the game
-   model (Blender takes it to about 5K), and the original's detail is baked into its normal map.
-   **Characters and creatures:** after remeshing, open **Animate**. Auto-rig runs (humanoid or quadruped), then pick clips from the preset library:
+5. **Buildings, structures, nodes and props: no remesh.** Download the original; the game's build
+   step bakes it straight down to a phone model and needs the full detail to bake from.
+   **Characters and creatures:** Remesh (free: Target Polycount `Fixed`, `10K`, Topology
+   `Triangle`), then open **Animate**. Auto-rig runs (humanoid or quadruped), then pick clips from the preset library:
    a **walk**, an **idle**, and a **run** if one looks right. Clips are free. Only humanoids and
    four-legged creatures can be rigged: the six-legged dust crawler and dust mites download as
    static models and the game animates them itself.
 6. **Download** as **GLB** (for characters, after adding the clips, so they are inside the file).
-   Save the 10K version as `<file name>.glb` and the original as `<file name>.hi.glb`, next to its
-   image in `Mobile game/Asset models/`.
+   Save it as `<file name>.glb` in `Mobile game/Asset workflow/3D Models/`. (The build step bakes
+   static models only; rigged characters will need their own path when they arrive.)
 
-Skip **AI Texturing** (it re-paints the model, costs credits, and the Blender step bakes lighting
-anyway). Credits: Meshy 7 costs about 25 per model; 7.1 may differ, so check the credit counter
+Skip **AI Texturing** (it re-paints the model and costs credits). Credits: Meshy 7 costs about 25 per model; 7.1 may differ, so check the credit counter
 after the first one and tell Claude if it is much higher.
 
 **Moving parts.** The game animates a few parts on their own, so those are generated as
@@ -71,6 +72,54 @@ reactor's plasma glow stays code-built inside a model with an open top.
 
 **Tools in hands.** Characters are generated **empty-handed**: held tools break auto-rigging.
 The game attaches each role's tool (pickaxe, wrench, shield...) in code.
+
+## Bringing models into the game (built 2026-10-17)
+
+`pnpm models:build` (tools/build-models.ts) reads each entry in
+`packages/render-3d/src/assets/meshy.json` and writes `packages/client/public/models/<file>.glb`
+plus `meshy.built.json` (triangles, bounds, content hash). `pnpm models:build -- sink.core.l1`
+rebuilds one. No Blender: the bake runs in Node (meshoptimizer, watlas, three-mesh-bvh, sharp).
+
+- **Why a bake.** Meshy's texture atlas is cut into hundreds of small islands. Simplifying the
+  textured mesh either stalls at 7-18k triangles (the seams hold it) or smears colour across the
+  seams (tried: blotchy walls, broken tanks). So the tool simplifies the *shape* alone (about
+  3,000 triangles; 1,600 for the turret base, which repeats along walls), unwraps it into a fresh
+  atlas, fills each texel from the nearest point on the original's texture, and pads the edges.
+  Output: positions, UVs and one 1024 px WebP base colour, quantized, about 200-240 KB per model.
+  No normal or metal/roughness maps: three flat-shades it (no normals in the file), matching the
+  code models' faceted look.
+- **Fit.** `yaw` turns the model so its working side faces +z (the core's hopper and each
+  converter's input toward the deposit side), `width` scales its widest ground side to art
+  metres, and the pivot goes to the ground centre. `render-3d/test/footprints.test.ts` keeps every
+  fitted model inside its generator footprint.
+- **Runtime** (`render-3d/src/assets/meshy.ts`). The renderer builds the code model as always and
+  fetches the GLBs in the background (`models/<file>.glb?v=<hash>`, cache-first in the service
+  worker). As each lands, placed copies are rebuilt without the pop: the meshes named in `replace`
+  give way to the GLB, animated parts (core orb, flame and spin ring, converter fan and status
+  light, turret head, kiosk lamp) move to `parts`, anchors to `anchors`. On a failed load the code
+  model stays. Converter pickup trays and operator plates stay code-built.
+- **Checking a model.** Dev page (from `packages/render-3d`:
+  `node ../client/node_modules/vite/bin/vite.js dev --config dev/vite.config.ts`, port 5190):
+  `fit.html?i=<n>&code=0` shows entry n at the game angle with anchors (cyan) and parts (axes);
+  `&quad=1` four sides, `&top=1` a plan view, `&span=<m>` zoom; clicking prints a point in model
+  coordinates. In a level: `?pack=s1-L014&full=1&stage=build` builds every pad; `&meshy=0` shows the
+  code models for a budget comparison.
+- **Budget.** In s1-L014 with everything built, 59k triangles and 48 draw calls (code models:
+  57k, 52). Crowded levels were already near 60k with the code models; the GLBs add about 1-2k.
+
+**Adding the next batch:** drop the GLBs in `Asset workflow/3D Models/` (Gemini image in
+`Solo Mock Ups/`) and ask Claude to bring them in. Claude adds one entry per model to `meshy.json`
+(file, src, id, level if per level, yaw, width, replace, parts, anchors), runs the build, checks it
+on the fit page and in a level, and commits the small GLBs. Raw downloads never go in the repo.
+
+| First batch | Id | Yaw | Notes |
+|---|---|---|---|
+| Heat Core 1/2/3 | `sink.core` L1/L2/L3 | 0 / 90 / -90 | Hopper to the front; plasma orb and flame in the well; L2+ spin ring over the rim |
+| Trade Kiosk | `sink.sales_point` | 0 | Glass front to +z, airlock to the queue side (+x); shelf crates in front of the glass |
+| Smelter | `conv.material_processor` | 90 | Glowing mouth to the front, ore hopper (deposit) on the pickup side |
+| Galley | `conv.food_processor` | 180 | Hoppers to the front |
+| Parts works | `conv.alloy_works` | 0 | Machining bay to the front |
+| Turret Base | `struct.ranged_defense` (all tiers) | 0 | Code-built head turns on top; wall towers keep their plinth |
 
 ## Style block (paste at the start of every Gemini chat)
 

@@ -8,6 +8,7 @@ import l3 from "../../../levels/golden/proto-L003.json";
 import l4 from "../../../levels/golden/proto-L004.json";
 import { createCamera } from "../src/contract.js";
 import { buildAssetLab, type AssetLab } from "../src/lab.js";
+import { setMeshyEnabled } from "../src/assets/meshy.js";
 import { Renderer3D } from "../src/renderer.js";
 import { screenToWorld } from "../src/units.js";
 import type { QualityTier } from "../src/units.js";
@@ -17,13 +18,16 @@ import type { QualityTier } from "../src/units.js";
 // mode=lab, ff=<ticks> (fast-forward before rendering), stage=walls (dev-only: build every
 // wall section so a wave can be framed against finished lines).
 
-const LEVELS = [l1, l2, l3, l4].map((m) => ({ ...m, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION }));
 const params = new URLSearchParams(location.search);
+const pack = params.get("pack");
+if (params.get("meshy") === "0") setMeshyEnabled(false);
+const extra = pack ? [await fetch(`/packs/${pack.split("-")[0]}/${pack}.json`).then((r) => r.json())] : [];
+const LEVELS = [l1, l2, l3, l4, ...extra].map((m) => ({ ...m, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION }));
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 
 const levelSel = $<HTMLSelectElement>("level");
 LEVELS.forEach((m, i) => levelSel.add(new Option(`${i + 1} · ${m.id}`, String(i))));
-levelSel.value = String(Math.max(0, Math.min(3, Number(params.get("level") ?? 1) - 1)));
+levelSel.value = String(pack ? 4 : Math.max(0, Math.min(3, Number(params.get("level") ?? 1) - 1)));
 const skinSel = $<HTMLSelectElement>("skin");
 for (const s of Object.values(SKINS)) skinSel.add(new Option(s.name, s.id));
 skinSel.value = params.get("skin") ?? DEFAULT_SKIN;
@@ -63,6 +67,18 @@ function start(): void {
   const manifest = LEVELS[Number(levelSel.value)]!;
   sim = createSim(manifest);
   if (params.get("stage") === "walls") stageWalls(sim.state as State);
+  if (params.get("stage") === "build") {
+    // dev only: stand on every build pad with money until it completes (converters, turrets, core levels)
+    for (let round = 0; round < 3; round++) for (const pad of sim.state.pads) {
+      if (pad.type !== "pad.build" || pad.done || !pad.visible) continue;
+      for (let i = 0; i < 240 && !pad.done && !sim.state.over; i++) {
+        const st = sim.state as State;
+        st.currency = 999;
+        st.player.pos = { ...pad.pos };
+        sim.step({ dx: 0, dy: 0 });
+      }
+    }
+  }
   const ff = Math.max(0, Number(ffIn.value) || 0);
   for (let i = 0; i < ff && !sim.state.over; i++) sim.step({ dx: 0, dy: 0 });
   renderer = new Renderer3D({ quality: qSel.value as QualityTier });

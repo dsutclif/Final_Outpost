@@ -15,10 +15,12 @@ DECISIONS.md records what shipped (9l, 9m). Tick items here as they land.
 
 ## Next: models in the game (fresh session; brief = MESHY-ASSETS.md + ART-DIRECTION.md + this file)
 
-1. GLB loader, phone cleanup (decimate, texture size), fit each model to its footprint, keep
-   the code-built model as the fallback.
-2. Blender bake: lighting and soft corner shadowing baked into each model's texture, a soft
-   contact shadow under each building.
+1. [x] GLB loader, phone cleanup, fit to footprint, code model as fallback (2026-10-17, first
+   batch of 8: cores L1-L3, kiosk, smelter, galley, parts works, turret base). Built as
+   `pnpm models:build`, a Node bake with no Blender; see MESHY-ASSETS.md "Bringing models into the game".
+2. Lighting and soft corner shadowing in each model's texture, a soft contact shadow under each
+   building. (Meshy's albedo already carries some; the Node bake copies colour only, so an AO
+   pass would be added to tools/build-models.ts rather than Blender.)
 3. Static shadows rendered once per level (redrawn when something is built); characters keep
    blob shadows.
 4. Cheap glow pass on hot and lit parts (reactor, furnace, fuel cells) and a final colour grade.

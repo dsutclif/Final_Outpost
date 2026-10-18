@@ -50,3 +50,8 @@ export function mesh(geo: BufferGeometry, mat: Material, name = ""): Mesh {
 export function model(cls: AssetClass, root = new Group()): Model {
   return { root, cls, parts: {} };
 }
+
+/** Dispose a model mesh's geometry unless it is shared (loaded GLB meshes are cloned, not copied). */
+export function disposeGeo(m: Mesh): void {
+  if (!m.userData["shared"]) m.geometry.dispose();
+}

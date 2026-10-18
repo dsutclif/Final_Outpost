@@ -6,6 +6,7 @@ import { ART_M } from "../units.js";
 import { buildConverter, buildCore, buildGate, buildGuardPost, buildHabPod, buildKiosk, buildLandmark, buildMedBay, buildTurret, buildWarehouse } from "./buildings.js";
 import { buildCharacterModel, lookFor } from "./characters.js";
 import { anchor, mesh, model, type BuildCtx, type Model } from "./common.js";
+import { applyMeshy } from "./meshy.js";
 import { buildBelt, buildClerkPad, buildItem, buildPile } from "./props.js";
 import {
   buildBarrierDash, buildBurrow, buildFuelCache, buildGrowDome, buildOrePile, buildPadPlate, buildRubble, buildTerrain,
@@ -43,6 +44,7 @@ export function requiredAnchors(id: string): readonly AnchorName[] {
 export function buildModel(id: string, ctx: BuildCtx): Model {
   const e = MODELS.get(id) ?? MODELS.get(`${id.split(".")[0]}.*`);
   const m = e ? e.build(ctx) : fallback(ctx);
+  if (e) applyMeshy(m, id, ctx.level);
   m.root.name = id;
   m.root.userData["id"] = id;
   if (!e) m.root.userData["fallback"] = true;

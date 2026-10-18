@@ -33,9 +33,10 @@ import {
   type ToneMapping,
 } from "three";
 import { lookFor, type Anim, type Look } from "./assets/characters.js";
-import { getAnchor, type BuildCtx, type Model } from "./assets/common.js";
+import { disposeGeo, getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
+import { applyMeshy, loadMeshy } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
@@ -132,6 +133,8 @@ export class Renderer3D implements Renderer {
   private geos: BufferGeometry[] = [];
   private dynamic = new Group();
   private placed = new Map<string, Placed>();
+  /** Keys rebuilt because their GLB landed: they reappear without the pop. */
+  private quiet = new Set<string>();
   private pads = new Map<string, PadInfo>();
   /** Placed key (or r:<resident id>) of the last pick() hit, for inspect(). */
   private lastPick: string | null = null;
@@ -215,6 +218,17 @@ export class Renderer3D implements Renderer {
     try { this.cp = compile(manifest, this.content); } catch { this.cp = null; }
     this.bctx = createBuildCtx(skin);
     this.tokens = this.bctx.t;
+    // Meshy GLBs load in the background; whatever was placed with its code model is rebuilt as each lands
+    const bctx = this.bctx;
+    void loadMeshy((e) => {
+      if (this.bctx !== bctx) return;
+      for (const [k, p] of this.placed) {
+        if (p.data["id"] !== e.id && !String(p.data["id"]).startsWith(e.id + ".t")) continue;
+        this.removePlaced(p);
+        this.placed.delete(k);
+        this.quiet.add(k);
+      }
+    });
     this.buildPadInfo();
 
     const doc = mount.ownerDocument;
@@ -632,7 +646,7 @@ export class Renderer3D implements Renderer {
       model.root.scale.setScalar(ART_M);
       this.applyShadows(model.root);
       this.dynamic.add(model.root);
-      p = { key, model, born: this.synced ? this.t : -Infinity, seen: true, data: { id, h: h * ART_M }, sprites: [], extra: [] };
+      p = { key, model, born: this.synced && !this.quiet.delete(key) ? this.t : -Infinity, seen: true, data: { id, h: h * ART_M }, sprites: [], extra: [] };
       this.placed.set(key, p);
     }
     p.seen = true;
@@ -663,12 +677,19 @@ export class Renderer3D implements Renderer {
     return s;
   }
 
+  /** A turret standing in a wall line (on its plinth), with its GLB base when loaded. */
+  private wallTurret(ctx: BuildCtx): Model {
+    const m = buildTurret(ctx, true);
+    applyMeshy(m, "struct.ranged_defense", ctx.level);
+    return m;
+  }
+
   private removePlaced(p: Placed): void {
     this.dynamic.remove(p.model.root);
     p.model.root.traverse((o) => {
       const m = o as Mesh;
       if (!m.isMesh) return;
-      m.geometry.dispose();
+      disposeGeo(m);
       const mat = m.material as MeshBasicMaterial;
       // shared skin materials stay; per-model clones (status lights, lamps) go
       if (mat && !this.bctx?.mats.all().includes(mat) && !mat.map) mat.dispose();
@@ -679,7 +700,7 @@ export class Renderer3D implements Renderer {
       this.dynamic.remove(o);
       const ghost = o.userData["ghost"] as MeshLambertMaterial | undefined;
       if (ghost) {
-        o.traverse((c) => { if ((c as Mesh).isMesh) (c as Mesh).geometry.dispose(); });
+        o.traverse((c) => { if ((c as Mesh).isMesh) disposeGeo(c as Mesh); });
         ghost.dispose();
         continue;
       }
@@ -858,7 +879,7 @@ export class Renderer3D implements Renderer {
     for (const st of s.structures) {
       const key = `s:${st.id}:${st.type}:${st.level}`;
       const onWall = st.type === "struct.ranged_defense" && !!this.pads.get(st.id)?.site;
-      const p = this.place(key, st.type, this.wv(st.pos), st.level, onWall ? (ctx) => buildTurret(ctx, true) : undefined);
+      const p = this.place(key, st.type, this.wv(st.pos), st.level, onWall ? (ctx) => this.wallTurret(ctx) : undefined);
       this.candidate(st.type, p);
       if (st.type === "struct.ranged_defense") this.aimTurret(p, st, s);
       const lights = p.model.parts["lights"];
@@ -1138,7 +1159,7 @@ export class Renderer3D implements Renderer {
   /** A model drawn as a translucent blueprint; its material rides in root.userData.ghost (removePlaced disposes it). */
   private ghostModel(what: string, ctx: BuildCtx, onWall = false): Model {
     const mat = new MeshLambertMaterial({ color: new Color(this.tokens.interactive), emissive: new Color(this.tokens.interactive), emissiveIntensity: 0.55, transparent: true, depthWrite: false });
-    const m = onWall && what === "struct.ranged_defense" ? buildTurret(ctx, true) : buildModel(what, ctx);
+    const m = onWall && what === "struct.ranged_defense" ? this.wallTurret(ctx) : buildModel(what, ctx);
     const drop: Object3D[] = [];
     m.root.traverse((o) => {
       const me = o as Mesh;
@@ -1155,7 +1176,7 @@ export class Renderer3D implements Renderer {
     if (!g) {
       const mat = new MeshLambertMaterial({ color: new Color(this.tokens.interactive), emissive: new Color(this.tokens.interactive), emissiveIntensity: 0.55, transparent: true, depthWrite: false });
       const ctx = { ...this.bctx!, level: 1 };
-      const m = onWall && what === "struct.ranged_defense" ? buildTurret(ctx, true) : buildModel(what, ctx);
+      const m = onWall && what === "struct.ranged_defense" ? this.wallTurret(ctx) : buildModel(what, ctx);
       const drop: Object3D[] = [];
       m.root.traverse((o) => {
         const me = o as Mesh;

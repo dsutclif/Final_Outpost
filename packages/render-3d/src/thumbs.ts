@@ -1,6 +1,7 @@
 import type { Skin } from "@fo/skins";
 import { Box3, Color, DirectionalLight, HemisphereLight, Mesh, PerspectiveCamera, Scene, SRGBColorSpace, Vector3, WebGLRenderer } from "three";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
+import { disposeGeo } from "./assets/common.js";
 import { buildModel } from "./assets/registry.js";
 
 // Field-guide thumbnails: each canonical id's model rendered once, three-quarter view, on a
@@ -47,7 +48,7 @@ export function renderThumbnails(ids: readonly string[], skin: Skin, px = 96, do
       gl.render(scene, cam);
       try { out.set(id, canvas.toDataURL("image/png")); } catch { /* tainted or lost context */ }
       scene.remove(root);
-      root.traverse((o) => { if ((o as Mesh).isMesh) (o as Mesh).geometry.dispose(); });
+      root.traverse((o) => { if ((o as Mesh).isMesh) disposeGeo(o as Mesh); });
     }
   } finally {
     disposeBuildCtx(ctx);
