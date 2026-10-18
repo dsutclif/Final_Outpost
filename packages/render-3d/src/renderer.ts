@@ -36,7 +36,7 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { disposeGeo, getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
-import { applyMeshy, loadMeshy } from "./assets/meshy.js";
+import { applyMeshy, loadMeshy, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
@@ -96,6 +96,26 @@ const v3 = (x = 0, y = 0, z = 0): Vector3 => new Vector3(x, y, z);
 const tmpM = new Matrix4(), tmpV = new Vector3(), tmpV2 = new Vector3();
 const clamp01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x);
 const tmpBox = new Box3();
+/** Meshy wall sections below half hp: darker, on top of the broken silhouette. */
+const CRACKED = new Color(0.78, 0.74, 0.7);
+
+/**
+ * A wall section knocked down to a jagged top: every vertex above a ragged cut line along the
+ * section drops onto it (the texture squashes there, which reads as broken edges).
+ */
+function crackGeo(src: BufferGeometry): BufferGeometry {
+  const geo = src.clone();
+  const p = geo.getAttribute("position");
+  const box = src.boundingBox!, h = box.max.y - box.min.y, w = box.max.x - box.min.x;
+  for (let i = 0; i < p.count; i++) {
+    const u = (p.getX(i) - box.min.x) / w;
+    const cut = box.min.y + h * (0.55 + 0.14 * Math.sin(u * 9.4 + 0.6) + 0.08 * Math.sin(u * 23 + 2) - 0.12 * Math.max(0, 1 - Math.abs(u - 0.62) * 6));
+    if (p.getY(i) > cut) p.setY(i, cut);
+  }
+  geo.computeBoundingBox();
+  return geo;
+}
+
 /** Discovery labels shown at once (nearest first) and how far from the hero they reach (world units). */
 const MAX_DISCOVERY = 6;
 const DISCOVERY_RANGE = 260;
@@ -123,7 +143,9 @@ export class Renderer3D implements Renderer {
   private crowd: Crowd | null = null;
   private blobs: Blobs | null = null;
   private items: Items | null = null;
-  private walls: { wall: Batch; cracked: Batch; reinforced: Batch; dash: Batch; rubble: Batch; crate: Batch } | null = null;
+  private walls: { wall: Batch; cracked: Batch; reinforced: Batch; crackedR: Batch; dash: Batch; rubble: Batch; crate: Batch } | null = null;
+  /** Meshy wall sections once loaded: tile length (art metres) and thickness scale. */
+  private wallFit: Partial<Record<"wall" | "reinforced", { len: number; depth: number }>> = {};
   private isNew: ((id: string) => boolean) | null = null;
   private cands = new Map<string, Candidate>();
   private discSprites = new Map<string, Sprite>();
@@ -222,6 +244,8 @@ export class Renderer3D implements Renderer {
     const bctx = this.bctx;
     void loadMeshy((e) => {
       if (this.bctx !== bctx) return;
+      if (e.batch) { this.meshyWall(e); return; }
+      if (e.kind === "prop") { for (const t of meshyTools(e)) this.crowd?.setPart(t.part, t.geo, t.mat); return; }
       for (const [k, p] of this.placed) {
         if (p.data["id"] !== e.id && !String(p.data["id"]).startsWith(e.id + ".t")) continue;
         this.removePlaced(p);
@@ -288,6 +312,7 @@ export class Renderer3D implements Renderer {
       wall: new Batch(wallG, mats.panel, this.scene, 16, "walls"),
       cracked: new Batch(crackG, mats.panel, this.scene, 8, "wallsCracked"),
       reinforced: new Batch(reinfG, mats.panel, this.scene, 8, "wallsReinforced"),
+      crackedR: new Batch(crackG, mats.panel, this.scene, 8, "wallsCrackedReinforced"),
       dash: new Batch(dashG, mats.std, this.scene, 64, "barrierDashes"),
       rubble: new Batch(rubbleG, mats.std, this.scene, 16, "rubble"),
       crate: new Batch(crateG, mats.std, this.scene, 4, "shelfCrates"),
@@ -683,6 +708,18 @@ export class Renderer3D implements Renderer {
       p.sprites[i] = s;
     }
     return s;
+  }
+
+  /** A Meshy wall section has landed: its batch (and the matching cracked one) draw it from now on. */
+  private meshyWall(e: MeshyEntry): void {
+    const g = meshyGeometry(e.file);
+    if (!g || !this.walls || !e.batch) return;
+    const box = g.geo.boundingBox!;
+    const cracked = crackGeo(g.geo);
+    this.geos.push(g.geo, cracked);
+    this.walls[e.batch].swap(g.geo, g.mat);
+    this.walls[e.batch === "wall" ? "cracked" : "crackedR"].swap(cracked, g.mat);
+    this.wallFit[e.batch] = { len: box.max.x - box.min.x, depth: e.depth ?? 1 };
   }
 
   /** A turret standing in a wall line (on its plinth), with its GLB base when loaded. */
@@ -1306,8 +1343,20 @@ export class Renderer3D implements Renderer {
           const low = sec.hp < sec.hpMax * 0.5;
           const pop = this.fx!.popAge(`bar:${b.id}:${i}`);
           const k = pop < 0.45 ? Math.min(1.12, (pop / 0.3) * 1.12) - Math.max(0, pop - 0.3) * 0.8 : 1;
-          tmpM.makeRotationY(ang).scale(tmpV.set(len, ART_M * Math.max(0.05, k), ART_M)).setPosition(mid);
-          (low ? W.cracked : reinforced ? W.reinforced : W.wall).push(tmpM);
+          const fit = this.wallFit[reinforced ? "reinforced" : "wall"];
+          const batch = low ? (reinforced && fit ? W.crackedR : W.cracked) : reinforced ? W.reinforced : W.wall;
+          if (!fit) {
+            tmpM.makeRotationY(ang).scale(tmpV.set(len, ART_M * Math.max(0.05, k), ART_M)).setPosition(mid);
+            batch.push(tmpM);
+          } else {
+            // Meshy sections keep their proportions: whole tiles laid end to end along the line
+            const n = Math.max(1, Math.round(len / (fit.len * ART_M)));
+            for (let j = 0; j < n; j++) {
+              const f = (j + 0.5) / n;
+              tmpM.makeRotationY(ang).scale(tmpV.set(len / n / fit.len, ART_M * Math.max(0.05, k), ART_M * fit.depth)).setPosition(a.x + dx * f, 0, a.z + dz * f);
+              batch.push(tmpM, low ? CRACKED : undefined);
+            }
+          }
         } else if (!sec.built) {
           // dashed marker plus a floating cost
           const nd = Math.max(1, Math.floor(len / 14));

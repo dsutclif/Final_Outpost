@@ -22,6 +22,10 @@ export interface Look {
   hat: string;
   hatColor: string;
   tool: string;
+  /** Held in the left hand (the guard's shield, the VIP's second case). */
+  offhand?: string;
+  /** Pushed ahead of the body (the bulk trader's cart). */
+  push?: string;
   scale: number;
   /** Big back pack (the hero). */
   bigPack: boolean;
@@ -55,23 +59,26 @@ export interface Anim {
 
 export const restAnim = (): Anim => ({ t: 0, phase: 0, speed: 0, carry: false, hit: 0, knock: 0, cheer: 0, distress: 0, down: 0 });
 
-/** Role gear: headgear plus held tool, so roles differ in silhouette, not colour alone. */
-export const ROLE_GEAR: Readonly<Record<string, { hat: string; tool: string }>> = {
+/**
+ * Role gear: headgear plus held tool, so roles differ in silhouette, not colour alone. Tools with
+ * a Meshy prop (meshy.json `tools`) swap to it once loaded; the code tool is the fallback.
+ */
+export const ROLE_GEAR: Readonly<Record<string, { hat: string; tool: string; offhand?: string }>> = {
   "role.idle": { hat: "hat.none", tool: "tool.none" },
   "role.supplier": { hat: "hat.hardhat", tool: "tool.pick" },
   "role.server": { hat: "hat.cap", tool: "tool.tray" },
   "role.cashier": { hat: "hat.visor", tool: "tool.tablet" },
   "role.operator": { hat: "hat.goggles", tool: "tool.wrench" },
   "role.hunter": { hat: "hat.antenna", tool: "tool.spear" },
-  "role.defender": { hat: "hat.crest", tool: "tool.shield" },
+  "role.defender": { hat: "hat.crest", tool: "tool.rifle_guard", offhand: "tool.shield_l" },
   "role.hauler": { hat: "hat.frame", tool: "tool.none" },
   "role.medic": { hat: "hat.cross", tool: "tool.kit" },
 };
 
-const gearFor = (role: string, models: Readonly<Record<string, string>>): { hat: string; tool: string } => {
+const gearFor = (role: string, models: Readonly<Record<string, string>>): { hat: string; tool: string; offhand?: string } => {
   const g = ROLE_GEAR[role] ?? { hat: "hat.cap", tool: "tool.none" };
   const hat = models[role];
-  return hat && hat.startsWith("hat.") ? { hat, tool: g.tool } : g;
+  return hat && hat.startsWith("hat.") ? { ...g, hat } : g;
 };
 
 /** Look for a character id (unit.*, role.*, hostile.*, node.prey). */
@@ -83,26 +90,28 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
     const col = roleToken(t, role);
     const g = gearFor(role, models);
     // unhired colonists get a neutral stripe: they read as people waiting for a job, not mannequins
-    return { ...base, stripe: role === "role.idle" ? mix(col, t.ink, 0.3) : col, hat: g.hat, hatColor: col, tool: g.tool };
+    return { ...base, stripe: role === "role.idle" ? mix(col, t.ink, 0.3) : col, hat: g.hat, hatColor: col, tool: g.tool, ...(g.offhand ? { offhand: g.offhand } : {}) };
   }
   if (id.startsWith("unit.customer")) {
     const premium = id.endsWith("premium"), impatient = id.endsWith("impatient"), bulk = id.endsWith("bulk");
-    if (bulk) return { ...base, suit: t.customer, suitDark: t.customerDark, pack: t.accent, stripe: t.accent, hat: "hat.frame", hatColor: t.accent, bigPack: true, scale: 1 };
+    if (bulk) return { ...base, suit: t.customer, suitDark: t.customerDark, pack: t.accent, stripe: t.accent, hat: "hat.frame", hatColor: t.accent, bigPack: true, scale: 1, push: "tool.cart" };
     const gold = t.res["res.currency"] ?? t.accent;
     return {
       ...base, suit: t.customer, suitDark: t.customerDark, pack: t.customerDark,
       stripe: premium ? gold : impatient ? t.danger : null,
       hat: premium ? "hat.crown" : impatient ? "hat.cap" : "hat.none",
       hatColor: premium ? gold : impatient ? t.danger : t.customer,
+      // the VIP carries a gold case in each hand (Meshy prop only: no code case)
+      ...(premium ? { tool: "tool.briefcase", offhand: "tool.briefcase" } : {}),
     };
   }
   if (id === "hostile.raider_humanoid") {
-    return { ...base, suit: t.raider, suitDark: t.raiderDark, pack: t.raiderDark, visor: t.raiderVisor, hat: "hat.hood", hatColor: t.raiderDark, tool: "tool.club", scale: 0.95 };
+    return { ...base, suit: t.raider, suitDark: t.raiderDark, pack: t.raiderDark, visor: t.raiderVisor, hat: "hat.hood", hatColor: t.raiderDark, tool: "tool.rifle_raider", scale: 0.95 };
   }
   if (id === "hostile.creature") return { ...base, kind: "creature", suit: t.creature, suitDark: t.creatureDark, visor: t.danger, scale: 1 };
   if (id === "hostile.swarmling") return { ...base, kind: "creature", suit: mix(t.creature, t.danger, 0.25), suitDark: t.creatureDark, visor: t.danger, scale: 0.62 };
   if (id === "hostile.boss") {
-    return { ...base, suit: t.raiderDark, suitDark: t.raider, pack: t.raiderDark, visor: t.danger, hat: "hat.crest", hatColor: t.danger, tool: "tool.club", scale: 1.75, bigPack: true };
+    return { ...base, suit: t.raiderDark, suitDark: t.raider, pack: t.raiderDark, visor: t.danger, hat: "hat.crest", hatColor: t.danger, tool: "tool.minigun", scale: 1.75, bigPack: true };
   }
   if (id === "unit.prey_dangerous" || id === "node.prey_dangerous") {
     return { ...base, kind: "spiker", suit: mix(t.prey, t.danger, 0.3), suitDark: t.groundDark, visor: t.danger, scale: 1.3 };
@@ -158,6 +167,13 @@ export function buildPartGeos(t: Tokens): PartGeos {
   m.set("tool.shield", g().cyl(0.17, 0.17, 0.04, 10, t.structure, { at: [0.06, 0, 0.06], rot: [0, 0, Math.PI / 2] }).cyl(0.11, 0.11, 0.05, 10, t.trim, { at: [0.075, 0, 0.06], rot: [0, 0, Math.PI / 2] }).build());
   m.set("tool.kit", g().rbox(0.2, 0.15, 0.1, 0.03, t.structure, { at: [0, -0.06, 0.06] }, 1).box(0.04, 0.1, 0.11, t.danger, { at: [0, -0.06, 0.06] }).box(0.1, 0.04, 0.11, t.danger, { at: [0, -0.06, 0.06] }).build());
   m.set("tool.club", g().cyl(0.035, 0.022, 0.42, 6, dark, { at: [0, 0.08, 0.08], rot: [0.5, 0, 0] }).build());
+  // Meshy prop slots: until the prop lands, raiders keep the club and the guard a short carbine
+  m.set("tool.rifle_raider", m.get("tool.club")!);
+  m.set("tool.minigun", m.get("tool.club")!);
+  m.set("tool.rifle_guard", g().box(0.05, 0.07, 0.3, dark, { at: [0, -0.02, 0.12] }).cyl(0.018, 0.018, 0.16, 5, metal, { at: [0, 0, 0.34], rot: [Math.PI / 2, 0, 0] }).build());
+  m.set("tool.shield_l", g().cyl(0.17, 0.17, 0.04, 10, t.structure, { at: [-0.06, 0, 0.06], rot: [0, 0, Math.PI / 2] }).cyl(0.11, 0.11, 0.05, 10, t.trim, { at: [-0.075, 0, 0.06], rot: [0, 0, Math.PI / 2] }).build());
+  m.set("tool.briefcase", new BufferGeometry());
+  m.set("tool.cart", new BufferGeometry());
   // dust crawler: body + head baked, six legs instanced
   m.set("c.body", g()
     .sphere(0.3, 10, 6, t.creature, { at: [0, 0.3, 0], scale: [1.1, 0.55, 1.35] })
@@ -269,6 +285,8 @@ export function poseCharacter(look: Look, a: Anim, root: Matrix4, emit: Emit, fr
   const handR = local(mArmR, 0, -HAND_DROP, 0, 0, 0, 0, mHand);
   if (look.tool !== "tool.none") emit(look.tool, handR, cWhite);
   anchor?.("hand_R", handR);
+  if (look.offhand) emit(look.offhand, local(armL, 0, -HAND_DROP, 0), cWhite);
+  if (look.push) emit(look.push, mBody, cWhite);
   anchor?.("hand_L", local(armL, 0, -HAND_DROP, 0));
   anchor?.("stack", local(mBody, 0, 0.7, -0.25));
 }

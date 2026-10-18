@@ -18,6 +18,12 @@ DECISIONS.md records what shipped (9l, 9m). Tick items here as they land.
 1. [x] GLB loader, phone cleanup, fit to footprint, code model as fallback (2026-10-17, first
    batch of 8: cores L1-L3, kiosk, smelter, galley, parts works, turret base). Built as
    `pnpm models:build`, a Node bake with no Blender; see MESHY-ASSETS.md "Bringing models into the game".
+   Second batch 2026-10-18: gate (frame + mirrored doors), hab pod, med bay, warehouse, walls 1/2
+   (tiled instanced sections with a generated cracked state), turret heads L1/L2 (L3 built, unwired),
+   and eight held props on the code-built characters (crowd LODs; game-size files and hand
+   transforms kept for the rigged characters; gold-recoloured VIP case). Open: level 4 with
+   everything built is 64k triangles, over the 60k budget because of batch 1's core and turret
+   base triangle counts; Meshy characters (rigging) still to come.
 2. Lighting and soft corner shadowing in each model's texture, a soft contact shadow under each
    building. (Meshy's albedo already carries some; the Node bake copies colour only, so an AO
    pass would be added to tools/build-models.ts rather than Blender.)

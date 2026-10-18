@@ -10,8 +10,16 @@ export class Batch {
   mesh: InstancedMesh;
   private n = 0;
 
-  constructor(private readonly geo: BufferGeometry, private readonly mat: Material, private readonly parent: Object3D, cap = 16, readonly name = "") {
+  constructor(private geo: BufferGeometry, private mat: Material, private readonly parent: Object3D, cap = 16, readonly name = "") {
     this.mesh = this.make(cap);
+  }
+
+  /** Draw with another geometry and material from now on (a Meshy model that has landed). */
+  swap(geo: BufferGeometry, mat: Material): void {
+    this.geo = geo;
+    this.mat = mat;
+    this.mesh.geometry = geo;
+    this.mesh.material = mat;
   }
 
   private make(cap: number): InstancedMesh {
@@ -72,6 +80,8 @@ const WHITE = new Color(1, 1, 1);
 /** Every character on screen, posed through the shared rig into per-part batches. */
 export class Crowd {
   private batches = new Map<string, Batch>();
+  /** Parts drawn with their own geometry and material (Meshy props in the tool slots). */
+  private swaps = new Map<string, { geo: BufferGeometry; mat: Material }>();
 
   constructor(private readonly parts: PartGeos, private readonly mat: Material, private readonly parent: Object3D) {}
 
@@ -83,12 +93,19 @@ export class Crowd {
     poseCharacter(look, anim, root, (part, m, color) => this.batch(part)?.push(m, color), frost);
   }
 
+  /** Draw `part` with this geometry and material from now on (the caller owns both). */
+  setPart(part: string, geo: BufferGeometry, mat: Material): void {
+    this.swaps.set(part, { geo, mat });
+    this.batches.get(part)?.swap(geo, mat);
+  }
+
   private batch(part: string): Batch | null {
     let b = this.batches.get(part);
     if (!b) {
-      const geo = this.parts.get(part);
+      const sw = this.swaps.get(part);
+      const geo = sw?.geo ?? this.parts.get(part);
       if (!geo || !geo.getAttribute("position")) return null;
-      b = new Batch(geo, this.mat, this.parent, part.startsWith("c.leg") ? 48 : 24, part);
+      b = new Batch(geo, sw?.mat ?? this.mat, this.parent, part.startsWith("c.leg") ? 48 : 24, part);
       this.batches.set(part, b);
     }
     return b;
@@ -101,6 +118,8 @@ export class Crowd {
   dispose(): void {
     for (const b of this.batches.values()) b.dispose();
     this.batches.clear();
+    for (const sw of this.swaps.values()) sw.geo.dispose();
+    this.swaps.clear();
   }
 }
 

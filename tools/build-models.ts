@@ -34,8 +34,17 @@ export interface MeshyEntry {
   file: string; src: string; id: string; level?: number;
   yaw?: number; width?: number; height?: number; offset?: [number, number];
   tris?: number; texture?: number; outlineTris?: number;
+  /** Recolour the base colour before baking ("gold": brushed warm gold, darks kept). */
+  tint?: "gold";
+  /** Material factors (default rough 0.9, metal 0). */
+  rough?: number; metal?: number;
+  /** "prop": held item; props and wall sections (batch) get no blueprint outline. */
+  batch?: string;
+  kind?: "prop";
+  /** Also write <file>.lod.glb at this many triangles (props drawn on the code-built crowd). */
+  lod?: number;
 }
-export interface BuiltEntry { hash: string; tris: number; bytes: number; outline: { hash: string; tris: number; bytes: number }; bounds: [number, number, number, number, number, number] }
+export interface BuiltEntry { hash: string; tris: number; bytes: number; outline?: { hash: string; tris: number; bytes: number }; lod?: { hash: string; tris: number; bytes: number }; bounds: [number, number, number, number, number, number] }
 
 const args = process.argv.slice(2);
 const srcAt = args.indexOf("--src");
@@ -52,7 +61,7 @@ mkdirSync(OUT, { recursive: true });
 interface Src { pos: Float32Array; uv: Float32Array; idx: Uint32Array; tex: { data: Buffer; w: number; h: number } }
 
 /** The high mesh in model space (one primitive after join) and its base colour as raw RGBA. */
-async function loadSource(path: string): Promise<Src> {
+async function loadSource(path: string, tint?: MeshyEntry["tint"]): Promise<Src> {
   const doc = await io.read(path);
   await doc.transform(dedup(), flatten(), joinMeshes(), weld());
   const prims = doc.getRoot().listNodes().flatMap((n) => {
@@ -73,7 +82,30 @@ async function loadSource(path: string): Promise<Src> {
   };
   const img = prim.getMaterial()!.getBaseColorTexture()!.getImage()!;
   const raw = await sharp(img).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  if (tint === "gold") gold(raw.data, raw.info.width);
   return { pos: floats("POSITION"), uv: floats("TEXCOORD_0"), idx: Uint32Array.from(prim.getIndices()!.getArray()!), tex: { data: raw.data, w: raw.info.width, h: raw.info.height } };
+}
+
+/**
+ * Brushed warm gold (about #c9a24a) from any base colour: brightness picks the shade between a
+ * deep bronze and a pale highlight, with faint horizontal brushing. Near-black texels (handle,
+ * clasps, seams) stay dark so the hardware still reads.
+ */
+function gold(px: Buffer, w: number): void {
+  const lo = [92, 64, 22], mid = [201, 162, 74], hi = [246, 224, 150];
+  for (let o = 0, i = 0; o < px.length; o += 4, i++) {
+    const l = (0.2126 * px[o]! + 0.7152 * px[o + 1]! + 0.0722 * px[o + 2]!) / 255;
+    if (l < 0.12) continue;
+    const y = Math.floor(i / w), x = i % w;
+    const brush = 0.05 * Math.sin(y * 1.7 + Math.sin(y * 0.13) * 6) + 0.03 * Math.sin(y * 7.3 + x * 0.002);
+    const k = Math.min(1, Math.max(0, (l - 0.12) / 0.7 + brush));
+    // dark-to-gold blend near the cut-off so edges do not ring
+    const keep = Math.min(1, (l - 0.12) / 0.06);
+    for (let c = 0; c < 3; c++) {
+      const g = k < 0.5 ? lo[c]! + (mid[c]! - lo[c]!) * (k / 0.5) : mid[c]! + (hi[c]! - mid[c]!) * ((k - 0.5) / 0.5);
+      px[o + c] = Math.round(px[o + c]! * (1 - keep) + g * keep);
+    }
+  }
 }
 
 /** Fit in place: turn by yaw, scale to art metres, ground centre at the origin. Returns the bounds. */
@@ -210,13 +242,13 @@ function dilate(img: Buffer, size: number, passes: number): void {
 }
 
 /** A one-mesh GLB: positions and UVs only (no normals: three flat-shades it, like the code models). */
-async function writeGlb(low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, rgba: Buffer, size: number): Promise<Uint8Array> {
+async function writeGlb(low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, rgba: Buffer, size: number, e: MeshyEntry): Promise<Uint8Array> {
   const doc = new Document();
   doc.createExtension(EXTTextureWebP).setRequired(true);
   const buf = doc.createBuffer();
   const webp = await sharp(rgba, { raw: { width: size, height: size, channels: 4 } }).removeAlpha().webp({ quality: 82 }).toBuffer();
   const tex = doc.createTexture("albedo").setImage(new Uint8Array(webp)).setMimeType("image/webp");
-  const mat = doc.createMaterial("meshy").setBaseColorTexture(tex).setRoughnessFactor(0.9).setMetallicFactor(0);
+  const mat = doc.createMaterial("meshy").setBaseColorTexture(tex).setRoughnessFactor(e.rough ?? 0.9).setMetallicFactor(e.metal ?? 0);
   const prim = doc.createPrimitive()
     .setAttribute("POSITION", doc.createAccessor().setType("VEC3").setArray(new Float32Array(low.pos)).setBuffer(buf))
     .setAttribute("TEXCOORD_0", doc.createAccessor().setType("VEC2").setArray(new Float32Array(low.uv)).setBuffer(buf))
@@ -242,17 +274,27 @@ async function build(e: MeshyEntry): Promise<void> {
   const path = join(SRC, e.src);
   if (!existsSync(path)) { console.warn(`skip ${e.file}: ${path} not found`); return; }
   const t0 = Date.now();
-  const src = await loadSource(path);
+  const src = await loadSource(path, e.tint);
   const bounds = fit(src.pos, e);
   const size = e.texture ?? 1024;
   const low = unwrap(lowPoly(src, e.tris ?? 3000), size);
-  const glb = await writeGlb(low, bake(src, low, size), size);
+  const glb = await writeGlb(low, bake(src, low, size), size, e);
   writeFileSync(join(OUT, `${e.file}.glb`), glb);
-  const ghost = lowPoly(src, e.outlineTris ?? 250);
-  const outline = await writeOutline(ghost);
-  writeFileSync(join(OUT, `${e.file}.outline.glb`), outline);
-  built[e.file] = { hash: createHash("sha1").update(glb).digest("hex").slice(0, 10), tris: low.idx.length / 3, bytes: glb.byteLength, bounds, outline: { hash: createHash("sha1").update(outline).digest("hex").slice(0, 10), tris: ghost.idx.length / 3, bytes: outline.byteLength } };
-  console.log(`${e.file}: ${src.idx.length / 3} → ${low.idx.length / 3} tris (outline ${ghost.idx.length / 3}), ${(glb.byteLength / 1024).toFixed(0)} KB, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  const hash = (b: Uint8Array): string => createHash("sha1").update(b).digest("hex").slice(0, 10);
+  built[e.file] = { hash: hash(glb), tris: low.idx.length / 3, bytes: glb.byteLength, bounds };
+  if (e.lod) {
+    const small = unwrap(lowPoly(src, e.lod), size);
+    const lod = await writeGlb(small, bake(src, small, size), size, e);
+    writeFileSync(join(OUT, `${e.file}.lod.glb`), lod);
+    built[e.file]!.lod = { hash: hash(lod), tris: small.idx.length / 3, bytes: lod.byteLength };
+  }
+  if (e.kind !== "prop" && !e.batch) {
+    const ghost = lowPoly(src, e.outlineTris ?? 250);
+    const outline = await writeOutline(ghost);
+    writeFileSync(join(OUT, `${e.file}.outline.glb`), outline);
+    built[e.file]!.outline = { hash: hash(outline), tris: ghost.idx.length / 3, bytes: outline.byteLength };
+  }
+  console.log(`${e.file}: ${src.idx.length / 3} → ${low.idx.length / 3} tris (outline ${built[e.file]!.outline?.tris ?? 0}, lod ${built[e.file]!.lod?.tris ?? 0}), ${(glb.byteLength / 1024).toFixed(0)} KB, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 }
 
 for (const e of config.models) if (!only.length || only.includes(e.file)) await build(e);

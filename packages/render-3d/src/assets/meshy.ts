@@ -1,4 +1,4 @@
-import type { Group, Mesh, Object3D } from "three";
+import { BufferAttribute, BufferGeometry, Euler, Matrix4, Quaternion, Vector3, type Group, type Material, type Mesh, type Object3D } from "three";
 import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { AnchorName } from "../ids.js";
 import { disposeGeo, getAnchor, type Model } from "./common.js";
@@ -9,14 +9,30 @@ import config from "./meshy.json";
 // The code model is always built first and stays the fallback: until a GLB has loaded (or if it
 // fails), nothing changes. Once loaded, the meshes an entry names in `replace` give way to the
 // GLB, and the animated parts and anchors the renderer drives stay, moved where the entry says.
+// Entries with `slot` swap named meshes in place instead (gate doors, turret head) so the
+// renderer keeps animating them; `batch` entries are instanced by the renderer (wall sections,
+// meshyGeometry) and `kind: "prop"` entries are held items (meshyScene).
 
 export interface MeshyEntry {
   file: string; src: string; id: string; level?: number;
-  replace: string[]; parts: Record<string, number[]>; anchors: Record<string, number[]>;
+  replace?: string[]; parts?: Record<string, number[]>; anchors?: Record<string, number[]>;
+  /** Meshes this GLB swaps one for one, keeping their place; `mirror` ones flip on x. */
+  slot?: string[]; mirror?: string[];
+  /** Instanced by the renderer as a wall section; `depth` scales its thickness. */
+  batch?: "wall" | "reinforced"; depth?: number;
+  kind?: "prop";
+  /**
+   * Character tool slots this prop fills (characters.ts part ids), each with its hand-attach
+   * transform [x, y, z, rx, ry, rz, scale] (art metres, degrees) from the hand frame
+   * (`push` slots: the body frame). Kept for the rigged Meshy characters' hand bones too.
+   */
+  tools?: Record<string, number[]>;
+  /** Built but not used in the game yet (loaded only on request). */
+  unwired?: boolean;
 }
 
 const ENTRIES = (config as { models: MeshyEntry[] }).models;
-const BUILT = built as Record<string, { hash: string; tris: number; bounds: number[]; outline?: { hash: string } } | undefined>;
+const BUILT = built as Record<string, { hash: string; tris: number; bounds: number[]; outline?: { hash: string }; lod?: { hash: string } } | undefined>;
 
 /** Loaded GLB scenes by file (shared geometry and materials; clones go into models). */
 const cache = new Map<string, Group>();
@@ -33,30 +49,86 @@ export function meshyEntries(): readonly MeshyEntry[] { return ENTRIES; }
 
 /** The entry for an id at a level: an exact level match wins over a level-free entry. */
 export function meshyFor(id: string, level = 1): MeshyEntry | undefined {
+  return pick(ENTRIES.filter((e) => !e.slot && !e.batch && !e.kind), id, level);
+}
+
+/** Slot entries for an id at a level, one per slot set (the doors, the turret head). */
+export function meshySlots(id: string, level = 1): MeshyEntry[] {
+  const slots = ENTRIES.filter((e) => e.slot && !e.unwired);
+  return [...new Set(slots.map((e) => e.slot!.join()))]
+    .map((k) => pick(slots.filter((e) => e.slot!.join() === k), id, level))
+    .filter((e): e is MeshyEntry => !!e);
+}
+
+function pick(list: readonly MeshyEntry[], id: string, level: number): MeshyEntry | undefined {
   // upgrade tiers registered as their own id (struct.ranged_defense.t2) share the base entry
   const base = id.replace(/\.t\d+$/, "");
-  return ENTRIES.find((e) => e.id === base && e.level === level) ?? ENTRIES.find((e) => e.id === base && e.level === undefined);
+  return list.find((e) => e.id === base && e.level === level) ?? list.find((e) => e.id === base && e.level === undefined);
 }
 
 export function meshyBounds(file: string): readonly number[] | undefined { return BUILT[file]?.bounds; }
 
 export function meshyLoaded(file: string): boolean { return cache.has(file); }
 
+/** A placed copy of a loaded GLB (held props, the dev fit page); undefined until it lands. */
+export function meshyScene(file: string): Group | undefined {
+  return cache.get(file)?.clone(true);
+}
+
+/** A loaded prop placed in each tool slot it fills (geometry per slot; the material is shared). */
+export function meshyTools(e: MeshyEntry): { part: string; geo: BufferGeometry; mat: Material }[] {
+  const d = Math.PI / 180;
+  return Object.entries(e.tools ?? {}).flatMap(([part, h]) => {
+    const g = meshyGeometry(e.file);
+    if (!g) return [];
+    const [x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, k = 1] = h;
+    g.geo.applyMatrix4(new Matrix4().compose(new Vector3(x, y, z), new Quaternion().setFromEuler(new Euler(rx * d, ry * d, rz * d)), new Vector3(k, k, k)));
+    return [{ part, ...g }];
+  });
+}
+
+/**
+ * A loaded GLB as one plain geometry (node transform and quantization baked in) plus its
+ * material, for instancing. Undefined until it lands.
+ */
+export function meshyGeometry(file: string): { geo: BufferGeometry; mat: Material } | undefined {
+  const scene = cache.get(file);
+  let src: Mesh | undefined;
+  scene?.traverse((o) => { if (!src && (o as Mesh).isMesh) src = o as Mesh; });
+  if (!scene || !src) return undefined;
+  const m: Mesh = src;
+  scene.updateMatrixWorld(true);
+  const p = m.geometry.getAttribute("position"), uv = m.geometry.getAttribute("uv");
+  const pos = new Float32Array(p.count * 3), v = new Vector3();
+  for (let i = 0; i < p.count; i++) v.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld).toArray(pos, i * 3);
+  const geo = new BufferGeometry();
+  geo.setAttribute("position", new BufferAttribute(pos, 3));
+  if (uv) {
+    const t = new Float32Array(uv.count * 2);
+    for (let i = 0; i < uv.count; i++) { t[i * 2] = uv.getX(i); t[i * 2 + 1] = uv.getY(i); }
+    geo.setAttribute("uv", new BufferAttribute(t, 2));
+  }
+  if (m.geometry.index) geo.setIndex(new BufferAttribute(Uint32Array.from(m.geometry.index.array), 1));
+  geo.computeBoundingBox();
+  return { geo, mat: m.material as Material };
+}
+
 /**
  * Fetch GLBs (all, or those for `ids`) in the background; `onLoad` runs per file as it lands
  * so the renderer can rebuild what it has placed. Failures are logged and leave the code model.
  * `base` is where packages/client/public is served (the page's base URL by default).
  */
-export function loadMeshy(onLoad?: (e: MeshyEntry) => void, ids?: ReadonlySet<string>, base?: string): Promise<void> {
+export function loadMeshy(onLoad?: (e: MeshyEntry) => void, ids?: ReadonlySet<string>, base?: string, unwired = false): Promise<void> {
   if (!enabled || typeof document === "undefined" || typeof fetch === "undefined") return Promise.resolve();
   const root = base ?? document.baseURI;
   loader ??= import("three/examples/jsm/loaders/GLTFLoader.js").then((m) => new m.GLTFLoader());
-  const jobs = ENTRIES.filter((e) => (!ids || ids.has(e.id)) && BUILT[e.file]).map((e) => {
+  const jobs = ENTRIES.filter((e) => (!ids || ids.has(e.id)) && BUILT[e.file] && (unwired || !e.unwired)).map((e) => {
     if (cache.has(e.file)) return Promise.resolve();
     let p = pending.get(e.file);
     if (!p) {
       const b = BUILT[e.file]!;
-      const url = new URL(`models/${e.file}.glb?v=${b.hash}`, root).href;
+      // props on the code-built crowd take their small LOD; the game-size file waits for rigged characters
+      const url = new URL(b.lod ? `models/${e.file}.lod.glb?v=${b.lod.hash}` : `models/${e.file}.glb?v=${b.hash}`, root).href;
       const outlineUrl = b.outline && new URL(`models/${e.file}.outline.glb?v=${b.outline.hash}`, root).href;
       p = loader!.then((l) => Promise.all([
         l.loadAsync(url),
@@ -92,10 +164,41 @@ function prepare(scene: Group, flat = false): void {
  * `outline` takes the blueprint outline instead (build-pad ghosts).
  */
 export function applyMeshy(m: Model, id: string, level = 1, outline = false): void {
+  applyBody(m, id, level, outline);
+  for (const e of meshySlots(id, level)) {
+    const scene = (outline ? outlines : cache).get(e.file);
+    if (!scene) continue;
+    const flip = new Set(e.mirror ?? []);
+    const olds: Mesh[] = [];
+    m.root.traverse((o) => { if (e.slot!.includes(o.name) && (o as Mesh).isMesh) olds.push(o as Mesh); });
+    for (const old of olds) {
+      // same place in the same parent (the gate animates its doors by child order)
+      const glb = scene.clone(true);
+      glb.name = old.name;
+      glb.position.copy(old.position);
+      glb.quaternion.copy(old.quaternion);
+      glb.scale.copy(old.scale);
+      if (flip.has(old.name)) glb.scale.x *= -1;
+      const parent = old.parent!;
+      parent.children.splice(parent.children.indexOf(old), 1, glb);
+      glb.parent = parent;
+      old.parent = null;
+      disposeGeo(old);
+      for (const [k, v] of Object.entries(m.parts)) if (v === old) m.parts[k] = glb;
+      for (const [name, p] of Object.entries(e.parts ?? {})) {
+        const part = m.parts[name];
+        if (part && p.length >= 3) part.position.set(p[0]!, p[1]!, p[2]!);
+      }
+    }
+    m.root.userData["meshy"] ??= e.file;
+  }
+}
+
+function applyBody(m: Model, id: string, level: number, outline: boolean): void {
   const e = meshyFor(id, level);
   const scene = e && (outline ? outlines : cache).get(e.file);
   if (!e || !scene) return;
-  const drop = new Set(e.replace);
+  const drop = new Set(e.replace ?? []);
   let at: Object3D | undefined;
   const gone: Object3D[] = [];
   m.root.traverse((o) => { if (drop.has(o.name) && (o as Mesh).isMesh) { at ??= o; gone.push(o); } });
@@ -110,13 +213,13 @@ export function applyMeshy(m: Model, id: string, level = 1, outline = false): vo
   if (at) glb.position.y = at.position.y;
   glb.traverse((o) => { if ((o as Mesh).isMesh) o.name = "body"; });
   m.root.add(glb);
-  for (const [name, p] of Object.entries(e.parts)) {
+  for (const [name, p] of Object.entries(e.parts ?? {})) {
     const part = m.parts[name];
     if (!part) continue;
     if (p.length >= 3) part.position.set(p[0]!, p[1]! + glb.position.y, p[2]!);
     if (p.length >= 4) part.scale.setScalar(p[3]!);
   }
-  for (const [name, p] of Object.entries(e.anchors)) {
+  for (const [name, p] of Object.entries(e.anchors ?? {})) {
     const a = getAnchor(m.root, name as AnchorName);
     if (a) a.position.set(p[0]!, p[1]! + glb.position.y, p[2]!);
   }

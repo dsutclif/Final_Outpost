@@ -104,7 +104,7 @@ rebuilds one. No Blender: the bake runs in Node (meshoptimizer, watlas, three-me
 - **Blueprints.** The build also writes `<file>.outline.glb`: the same shape at about 250
   triangles, positions only (~4 KB). Build-pad blueprints draw it in the cyan ghost material, so
   each outline matches its building without any hand-editing.
-- **Checking a model.** Dev page (from `packages/render-3d`:
+- **Checking a model.** `fit.html`: `&ly=<m>` sets the look height for small props. Dev page (from `packages/render-3d`:
   `node ../client/node_modules/vite/bin/vite.js dev --config dev/vite.config.ts`, port 5190):
   `fit.html?i=<n>&code=0` shows entry n at the game angle with anchors (cyan) and parts (axes);
   `&quad=1` four sides, `&top=1` a plan view, `&span=<m>` zoom; clicking prints a point in model
@@ -112,6 +112,10 @@ rebuilds one. No Blender: the bake runs in Node (meshoptimizer, watlas, three-me
   code models for a budget comparison.
 - **Budget.** In s1-L014 with everything built, 59k triangles and 48 draw calls (code models:
   57k, 52). Crowded levels were already near 60k with the code models; the GLBs add about 1-2k.
+  Batch 2, golden level 4 `?level=4&full=1&stage=walls&ff=300` with towers, med bay, barracks and
+  guards built: 64k triangles and 70 draw calls (code models 57.9k, 72). Batch 2 adds about 1.6k
+  of that (doors, wall tiles, prop LODs); the rest is batch 1's core (3,000 vs 1,100 code) and
+  two turret bases (1,600 each), which a lower `tris` and a rebuild would bring back under 60k.
 
 **Adding the next batch:** drop the GLBs in `Asset workflow/3D Models/` (Gemini image in
 `Solo Mock Ups/`) and ask Claude to bring them in. Claude adds one entry per model to `meshy.json`
@@ -125,7 +129,49 @@ on the fit page and in a level, and commits the small GLBs. Raw downloads never 
 | Smelter | `conv.material_processor` | 90 | Glowing mouth to the front, ore hopper (deposit) on the pickup side |
 | Galley | `conv.food_processor` | 180 | Hoppers to the front |
 | Parts works | `conv.alloy_works` | 0 | Machining bay to the front |
-| Turret Base | `struct.ranged_defense` (all tiers) | 0 | Code-built head turns on top; wall towers keep their plinth |
+| Turret Base | `struct.ranged_defense` (all tiers) | 0 | Head turns on top (GLB heads since batch 2); wall towers keep their plinth |
+
+**Second batch (2026-10-18).** Same bake, plus three runtime shapes: `slot` entries swap named
+meshes in place so the renderer keeps animating them (gate doors, turret head), `batch` entries
+are instanced wall sections, `kind: "prop"` entries fill the code-built characters' tool slots.
+Triangle targets are lower than batch 1 because these repeat (walls, doors, heads, props).
+
+| Second batch | Id | Tris | Notes |
+|---|---|---|---|
+| Gate frame | `struct.gate` (`replace: frame`) | 650 | 2.7 m; the renderer still stretches it along x to the gate section |
+| Gate door | `struct.gate` (`slot: doorL, doorR`) | 250 | One door model, mirrored for the right door; slides open as before |
+| Hab Pod | `struct.housing` | 1,300 | Door and ramp to +z; nudged 4 cm back to sit inside the footprint |
+| Med Bay | `struct.medical` | 1,400 | 1.75 m, shifted 12 cm left so the heal spot (+0.93 m) is outside the wall |
+| Warehouse | `struct.depot` | 1,400 | Open-roof bin, low front lip to +z; 2.1 m (near square, so narrower than the code bin); deposit/pickup moved to z 1.15. `store.depot` stays code-built |
+| Wall 1 / Wall 2 | `struct.barrier` / reinforced (`batch`) | 160 / 220 | Native proportions (1.9 m / 1.29 m long); each section lays whole tiles end to end. Below half hp the same tile is cut to a jagged top and darkened (generated at load) |
+| Turret Top 1/2 | head, `struct.ranged_defense` L1 / `.t2` | 450 / 600 | Yaw 90 / 180 so barrels face +z; offset so the turret ring sits on the base axis; muzzle flash moved to the barrel tips |
+| Turret Top 3 | head, L3 | 600 | Built, `unwired` (no t3 in content yet): drop the flag when a t3 exists |
+
+Held props (`prop.*`, Smart Topology originals ~4k tris): each is baked twice, a game-size
+`<file>.glb` (~600 tris; shield and minigun ~1,000, cart 1,500) kept for the rigged Meshy
+characters, and a `<file>.lod.glb` (80-300 tris) that the code-built crowd draws now (budget:
+a whole crowd holding 600-tri props cost ~5k triangles in level 4). `tools` in `meshy.json`
+maps each prop to the character tool slot it fills and records its **hand-attach transform**
+`[x, y, z, rx, ry, rz, scale]` (art metres, degrees) from the code rig's hand frame (hand at the
+end of the arm, +z forward, +y up the arm); reuse it for the hand bones in the character pass.
+
+| Prop | Slot (characters.ts) | Held by | Hand transform |
+|---|---|---|---|
+| Guard Gun | `tool.rifle_guard` (right) | `role.defender` | [0, -0.13, 0.08, 0, 90, 0, 0.8] |
+| Guard Shield | `tool.shield_l` (left) | `role.defender` | [0, -0.25, 0.1, 0, 0, 0, 0.75] |
+| Hauler Pickaxe | `tool.pick` | `role.supplier` | [0, -0.12, 0.04, 30, 0, 0, 0.9] |
+| Technician Wrench | `tool.wrench` | `role.operator` | [0, -0.12, 0.04, 0, 0, -90] |
+| Raider Gun | `tool.rifle_raider` | `hostile.raider_humanoid` | [0, -0.11, 0.08, 0, 90, 0, 0.85] |
+| Raider Boss Gun | `tool.minigun` | `hostile.boss` | [0, -0.12, 0.1, 0, -90, 0, 0.75] |
+| Trader Cart | `tool.cart` (pushed, body frame) | `unit.customer_bulk` | [0, 0.08, 0.62, 0, 90, 0, 0.8] |
+| VIP Briefcase | `tool.briefcase` (both hands) | `unit.customer_premium` | [0, -0.3, 0, 0, 90, 0] |
+
+The VIP briefcase came out of Meshy brown: the build recolours it (`tint: "gold"`): texel
+brightness picks a shade between deep bronze, #c9a24a and a pale highlight with faint horizontal
+brushing, near-black texels (handle, clasps) stay dark, and the material gets metalness 0.55 /
+roughness 0.38. Until a prop lands (or if it fails) the code tool stays: raiders keep the club,
+the guard gets a small code carbine and a left-hand shield; the VIP case and cart have no code
+version. `fit.html?crowd=1` shows these characters posed through the crowd batches with their props.
 
 ## Style block (paste at the start of every Gemini chat)
 

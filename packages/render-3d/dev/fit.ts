@@ -1,15 +1,18 @@
 import { getSkin, DEFAULT_SKIN } from "@fo/skins";
-import { Raycaster, Vector2, ACESFilmicToneMapping, AxesHelper, BufferGeometry, Color, DirectionalLight, Float32BufferAttribute, HemisphereLight, LineBasicMaterial, LineLoop, Mesh, MeshBasicMaterial, MeshLambertMaterial, PerspectiveCamera, PlaneGeometry, Scene, SphereGeometry, SRGBColorSpace, Vector3, WebGLRenderer } from "three";
+import { Raycaster, Vector2, ACESFilmicToneMapping, AxesHelper, BufferGeometry, Color, DirectionalLight, Float32BufferAttribute, HemisphereLight, LineBasicMaterial, Matrix4, LineLoop, Mesh, MeshBasicMaterial, MeshLambertMaterial, PerspectiveCamera, PlaneGeometry, Scene, SphereGeometry, SRGBColorSpace, Vector3, WebGLRenderer } from "three";
 import gen from "../../generator/data/generator.json";
 import { createBuildCtx } from "../src/assets/context.js";
-import { loadMeshy, meshyEntries } from "../src/assets/meshy.js";
+import { lookFor, restAnim } from "../src/assets/characters.js";
+import { loadMeshy, meshyEntries, meshyScene, meshyTools } from "../src/assets/meshy.js";
 import { buildModel } from "../src/assets/registry.js";
+import { Crowd } from "../src/scene/instancing.js";
 import { PITCH_DEG, YAW_DEG } from "../src/units.js";
 
 // Fitting view for Meshy models: per entry, the code model (left) beside the GLB (right) from
 // the game camera's angle, on the generator footprint (yellow), with anchors (cyan dots) and
-// animated parts (axes). ?i=<n> frames one entry; ?yaw=<deg> turns the camera; ?code=0 hides
-// the code model; ?w=<px>&h=<px> sets the canvas size (default: window).
+// animated parts (axes). ?i=<n> frames one entry (?ly=<m> look height); ?yaw=<deg> turns the camera; ?code=0 hides
+// the code model; ?w=<px>&h=<px> sets the canvas size (default: window). ?crowd=1: the code-built
+// characters that hold Meshy props, posed through the crowd batches as in the game.
 
 const q = new URLSearchParams(location.search);
 const W = Number(q.get("w") ?? innerWidth), H = Number(q.get("h") ?? innerHeight);
@@ -22,7 +25,7 @@ gl.setSize(W, H);
 document.body.appendChild(gl.domElement);
 
 const skin = getSkin(q.get("skin") ?? DEFAULT_SKIN);
-await loadMeshy(undefined, undefined, location.href);
+await loadMeshy(undefined, undefined, location.href, true);
 const entries = meshyEntries();
 const ctx = createBuildCtx(skin);
 const t = ctx.t;
@@ -42,11 +45,24 @@ const lineMat = new LineBasicMaterial({ color: 0xffd23c });
 const ghostMat = new MeshLambertMaterial({ color: new Color(t.interactive), emissive: new Color(t.interactive), emissiveIntensity: 0.55, transparent: true, opacity: 0.65, depthWrite: false });
 const showCode = q.get("code") !== "0";
 const ROW = 5.5, COL = 3.6;
+const CROWD = ["role.supplier", "role.operator", "role.defender", "hostile.raider_humanoid", "hostile.boss", "unit.customer_premium", "unit.customer_bulk"];
+const crowd = q.get("crowd") ? new Crowd(ctx.parts, ctx.mats.std, scene) : null;
+if (crowd) for (const e of entries) for (const p of meshyTools(e)) crowd.setPart(p.part, p.geo, p.mat);
 
 entries.forEach((e, i) => {
+  if (crowd) return;
   if (q.get("i") !== null && Number(q.get("i")) !== i) return;
   const top = !!q.get("top");
   const z = top ? Math.floor(i / 4) * 4 : i * ROW;
+  // props, wall sections and unwired parts have no code model of their own: the GLB alone
+  if (e.kind || e.batch || e.unwired) {
+    const g = meshyScene(e.file);
+    if (!g) { console.warn(`${e.file} not loaded`); return; }
+    g.name = e.file;
+    g.position.set(top ? (i % 4) * 4 : COL, 0, z);
+    scene.add(g);
+    return;
+  }
   for (const glb of showCode ? [false, true] : [true]) {
     const ghost = q.get("ghost") === "1";
     const m = buildModel(e.id, { ...ctx, level: e.level ?? 1, ghost });
@@ -72,15 +88,20 @@ entries.forEach((e, i) => {
   }
 });
 
-const one = q.get("i");
+const one = crowd ? String(entries.length) : q.get("i");
 const yaw = ((Number(q.get("yaw") ?? YAW_DEG)) * Math.PI) / 180, pitch = (PITCH_DEG * Math.PI) / 180;
-const look = one !== null ? new Vector3(showCode ? COL / 2 : COL, 0.8, Number(one) * ROW) : new Vector3(COL / 2, 0, ((entries.length - 1) * ROW) / 2);
+const look = one !== null ? new Vector3(showCode ? COL / 2 : COL, Number(q.get("ly") ?? 0.8), Number(one) * ROW) : new Vector3(COL / 2, 0, ((entries.length - 1) * ROW) / 2);
 const span = q.get("span") ? Number(q.get("span")) : one !== null ? (showCode ? 8 : 4.2) : entries.length * ROW * 0.75;
 const cam = new PerspectiveCamera(one !== null ? 20 : 30, W / H, 0.1, 1000);
 const d = span / 2 / Math.tan((cam.fov * Math.PI) / 360) * (W < H ? H / W : 1) * 0.9;
 cam.position.set(look.x + Math.sin(yaw) * Math.cos(pitch) * d, look.y + Math.sin(pitch) * d, look.z + Math.cos(yaw) * Math.cos(pitch) * d);
 if (q.get("top") && one !== null) { const o = Number(one); cam.position.set((o % 4) * 4, 9, Math.floor(o / 4) * 4); cam.up.set(0, 0, -1); cam.lookAt((o % 4) * 4, 0, Math.floor(o / 4) * 4); } else if (q.get("top")) { cam.position.set(6, 17, 2); cam.up.set(0, 0, -1); cam.lookAt(6, 0, 2); } else cam.lookAt(look);
 function draw(): void {
+if (crowd) {
+  crowd.begin();
+  CROWD.forEach((id, k) => crowd.add(lookFor(id, t), { ...restAnim(), t: performance.now() / 1000 }, new Matrix4().makeRotationY(Number(q.get("face") ?? 0.6)).setPosition(COL + (k - (CROWD.length - 1) / 2) * 1.1, 0, entries.length * ROW).scale(new Vector3(lookFor(id, t).scale, lookFor(id, t).scale, lookFor(id, t).scale)), null));
+  crowd.end();
+}
 if (q.get("quad")) {
   // four sides of one model: from +z (front, top left), +x, -z, -x
   gl.setScissorTest(true);

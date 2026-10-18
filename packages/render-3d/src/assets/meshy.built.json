@@ -142,5 +142,319 @@
       "tris": 250,
       "bytes": 3568
     }
+  },
+  "struct.gate": {
+    "hash": "b1518507e9",
+    "tris": 650,
+    "bytes": 66160,
+    "bounds": [
+      -1.35,
+      0,
+      -0.406,
+      1.35,
+      1.802,
+      0.406
+    ],
+    "outline": {
+      "hash": "8d6090796e",
+      "tris": 250,
+      "bytes": 3748
+    }
+  },
+  "struct.gate.door": {
+    "hash": "2ed1c255bb",
+    "tris": 250,
+    "bytes": 66080,
+    "bounds": [
+      -0.48,
+      0,
+      -0.076,
+      0.48,
+      0.772,
+      0.076
+    ],
+    "outline": {
+      "hash": "17ef54edf4",
+      "tris": 250,
+      "bytes": 3708
+    }
+  },
+  "struct.housing": {
+    "hash": "b1435609e2",
+    "tris": 1272,
+    "bytes": 169216,
+    "bounds": [
+      -1,
+      0,
+      -0.818,
+      1,
+      1.164,
+      0.738
+    ],
+    "outline": {
+      "hash": "3caab3d370",
+      "tris": 250,
+      "bytes": 3784
+    }
+  },
+  "struct.medical": {
+    "hash": "025d1857b9",
+    "tris": 1380,
+    "bytes": 247300,
+    "bounds": [
+      -0.995,
+      0,
+      -0.665,
+      0.755,
+      1.205,
+      0.665
+    ],
+    "outline": {
+      "hash": "4031a0f2b2",
+      "tris": 250,
+      "bytes": 3700
+    }
+  },
+  "struct.depot": {
+    "hash": "cd856c5471",
+    "tris": 1398,
+    "bytes": 178480,
+    "bounds": [
+      -0.952,
+      0,
+      -1.1,
+      0.952,
+      0.596,
+      1
+    ],
+    "outline": {
+      "hash": "b7454b4c28",
+      "tris": 250,
+      "bytes": 3748
+    }
+  },
+  "struct.barrier": {
+    "hash": "ec716315f9",
+    "tris": 160,
+    "bytes": 56680,
+    "bounds": [
+      -0.955,
+      0,
+      -0.387,
+      0.955,
+      0.85,
+      0.387
+    ]
+  },
+  "struct.barrier.reinforced": {
+    "hash": "274e901120",
+    "tris": 216,
+    "bytes": 65844,
+    "bounds": [
+      -0.645,
+      0,
+      -0.219,
+      0.645,
+      1.05,
+      0.219
+    ]
+  },
+  "struct.ranged_defense.head1": {
+    "hash": "aad6ca0cd1",
+    "tris": 448,
+    "bytes": 48120,
+    "bounds": [
+      -0.229,
+      0,
+      -0.3,
+      0.229,
+      0.41,
+      0.7
+    ],
+    "outline": {
+      "hash": "2497975669",
+      "tris": 250,
+      "bytes": 3748
+    }
+  },
+  "struct.ranged_defense.head2": {
+    "hash": "e837c180a8",
+    "tris": 580,
+    "bytes": 59136,
+    "bounds": [
+      -0.329,
+      0,
+      -0.25,
+      0.329,
+      0.641,
+      0.85
+    ],
+    "outline": {
+      "hash": "5a66c4e1fb",
+      "tris": 240,
+      "bytes": 3524
+    }
+  },
+  "struct.ranged_defense.head3": {
+    "hash": "4b22d67943",
+    "tris": 600,
+    "bytes": 58024,
+    "bounds": [
+      -0.44,
+      0,
+      -0.35,
+      0.44,
+      0.643,
+      0.85
+    ],
+    "outline": {
+      "hash": "174f00ee8c",
+      "tris": 250,
+      "bytes": 3752
+    }
+  },
+  "prop.rifle_guard": {
+    "hash": "54ac30d01c",
+    "tris": 600,
+    "bytes": 29708,
+    "bounds": [
+      -0.275,
+      0,
+      -0.029,
+      0.275,
+      0.256,
+      0.029
+    ],
+    "lod": {
+      "hash": "db6fac0090",
+      "tris": 99,
+      "bytes": 14052
+    }
+  },
+  "prop.shield_guard": {
+    "hash": "85c0aabeaf",
+    "tris": 1000,
+    "bytes": 37644,
+    "bounds": [
+      -0.167,
+      0,
+      -0.065,
+      0.167,
+      0.5,
+      0.065
+    ],
+    "lod": {
+      "hash": "2cc9d28297",
+      "tris": 150,
+      "bytes": 18008
+    }
+  },
+  "prop.pickaxe": {
+    "hash": "b2ae136e5d",
+    "tris": 599,
+    "bytes": 23124,
+    "bounds": [
+      -0.218,
+      0,
+      -0.044,
+      0.218,
+      0.45,
+      0.044
+    ],
+    "lod": {
+      "hash": "a65e406062",
+      "tris": 100,
+      "bytes": 11124
+    }
+  },
+  "prop.wrench": {
+    "hash": "fc0dc5beee",
+    "tris": 600,
+    "bytes": 24384,
+    "bounds": [
+      -0.15,
+      0,
+      -0.03,
+      0.15,
+      0.024,
+      0.03
+    ],
+    "lod": {
+      "hash": "95101bdc25",
+      "tris": 79,
+      "bytes": 11780
+    }
+  },
+  "prop.rifle_raider": {
+    "hash": "9649693fd5",
+    "tris": 596,
+    "bytes": 29132,
+    "bounds": [
+      -0.25,
+      0,
+      -0.022,
+      0.25,
+      0.207,
+      0.022
+    ],
+    "lod": {
+      "hash": "3bb27e52d7",
+      "tris": 98,
+      "bytes": 15004
+    }
+  },
+  "prop.minigun": {
+    "hash": "edd51083b2",
+    "tris": 999,
+    "bytes": 45460,
+    "bounds": [
+      -0.325,
+      0,
+      -0.17,
+      0.325,
+      0.228,
+      0.17
+    ],
+    "lod": {
+      "hash": "de1c2f9f8f",
+      "tris": 200,
+      "bytes": 20596
+    }
+  },
+  "prop.hover_cart": {
+    "hash": "cc9e792065",
+    "tris": 1500,
+    "bytes": 76444,
+    "bounds": [
+      -0.5,
+      0,
+      -0.384,
+      0.5,
+      0.75,
+      0.384
+    ],
+    "lod": {
+      "hash": "b2fd5bea5a",
+      "tris": 294,
+      "bytes": 43792
+    }
+  },
+  "prop.briefcase_gold": {
+    "hash": "8e5ea0d300",
+    "tris": 600,
+    "bytes": 28880,
+    "bounds": [
+      -0.16,
+      0,
+      -0.067,
+      0.16,
+      0.268,
+      0.067
+    ],
+    "lod": {
+      "hash": "9d8bbe0c7a",
+      "tris": 100,
+      "bytes": 12704
+    }
   }
 }
