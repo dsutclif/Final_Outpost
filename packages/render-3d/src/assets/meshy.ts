@@ -20,11 +20,16 @@ export interface MeshyEntry {
   slot?: string[]; mirror?: string[];
   /** Instanced by the renderer as a wall section; `depth` scales its thickness. */
   batch?: "wall" | "reinforced"; depth?: number;
-  kind?: "prop" | "character";
+  /** prop: held; character: rigged; item: a resource unit (replaces the code item); decor: map-border dressing. */
+  kind?: "prop" | "character" | "item" | "decor";
+  /** Fitted width in art metres (decor copies are spread at this size). */
+  width?: number;
   /** Character clips by role (walk, run, idle, wait, cheer) → clip name in the file. */
   clips?: Record<string, string>;
-  /** Character props on bones or pushed ahead (rigged.ts). */
-  held?: Record<string, { prop: string; bone?: string; at: number[]; grip?: number[] }[]>;
+  /** Character props by variant id ("*": every variant), see MeshyHeld. */
+  held?: Record<string, MeshyHeld[]>;
+  /** Left arm braced in a shield pose over every clip (the guard). */
+  shieldArm?: boolean;
   /** Character height in art metres (the file keeps its own units and skeleton). */
   height?: number;
   /**
@@ -35,6 +40,28 @@ export interface MeshyEntry {
   tools?: Record<string, number[]>;
   /** Built but not used in the game yet (loaded only on request). */
   unwired?: boolean;
+}
+
+/** A prop on a rigged character (rigged.ts). */
+export interface MeshyHeld {
+  prop: string;
+  /** On a bone at a fixed [x, y, z, rx, ry, rz, scale] (bone frame, model metres, degrees). */
+  bone?: string; at?: number[];
+  /** Pushed ahead: both hands reach for [x, y, z, half-width] (the cart). */
+  grip?: number[];
+  /**
+   * Placed from a two-handed clip (`clip` at `t` of its length) and carried in the right hand:
+   * "gun" barrel from the right hand through the left, "tool" handle from the left through the
+   * right. `axis` is the prop's grip-to-muzzle (or head) direction, `side` its up (gun) or forward
+   * (tool), `hold` the point that sits in the hand (fitted art metres). No axis: read off the mesh.
+   */
+  align?: "gun" | "tool"; clip?: string; t?: number; axis?: number[]; side?: number[]; hold?: number[];
+  /** Strapped to the braced shield arm (entry `shieldArm`). */
+  shield?: boolean;
+  /** Size against the fitted art-metre size. */
+  k?: number;
+  /** Shown only during these actions (rig state `act`). */
+  when?: string[];
 }
 
 const ENTRIES = (config as { models: MeshyEntry[] }).models;

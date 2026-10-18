@@ -12,6 +12,8 @@ const q = new Quaternion(), e = new Euler(), s = new Vector3(), p = new Vector3(
 export class Items {
   private batches = new Map<string, Batch>();
   private geos = new Map<string, BufferGeometry>();
+  /** Meshy items that have landed: their geometry and textured material replace the code item. */
+  private meshy = new Map<string, { geo: BufferGeometry; mat: Material }>();
   private m = new Matrix4();
   /** World scale of an item (art metres to world units; ITEM_K oversizes them: "big chunky icons"). */
   readonly scale = ART_M * ITEM_K;
@@ -33,8 +35,16 @@ export class Items {
     this.batch(res).push(this.m);
   }
 
+  /** Draw `res` with a Meshy model from now on (fitted in art metres, pivot at the bottom). */
+  setModel(res: string, geo: BufferGeometry, mat: Material): void {
+    this.meshy.set(res, { geo, mat });
+    this.batches.get(res)?.swap(geo, mat);
+  }
+
   private batch(res: string): Batch {
     let b = this.batches.get(res);
+    const mm = this.meshy.get(res);
+    if (!b && mm) { b = new Batch(mm.geo, mm.mat, this.parent, 32, `item:${res}`); this.batches.set(res, b); }
     if (!b) {
       let g = this.geos.get(res);
       if (!g) { g = buildItemGeo(res, this.t); this.geos.set(res, g); }
@@ -51,6 +61,8 @@ export class Items {
   dispose(): void {
     for (const b of this.batches.values()) b.dispose();
     for (const g of this.geos.values()) g.dispose();
+    for (const m of this.meshy.values()) m.geo.dispose();
+    this.meshy.clear();
     this.batches.clear();
     this.geos.clear();
   }

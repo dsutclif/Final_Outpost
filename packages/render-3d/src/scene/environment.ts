@@ -15,6 +15,8 @@ import {
   RingGeometry,
   SphereGeometry,
   Vector3,
+  type BufferGeometry,
+  type Material,
   type Scene,
 } from "three";
 import { mix } from "@fo/skins";
@@ -66,7 +68,7 @@ export class Environment {
   /** 0..1 storm blend (eased toward the hazard phase). */
   storminess = 0;
 
-  constructor(private readonly scene: Scene, readonly W: number, readonly H: number, private readonly t: Tokens, private readonly mats: MaterialSet, seed: number, sites: readonly Site[] = []) {
+  constructor(private readonly scene: Scene, readonly W: number, readonly H: number, private readonly t: Tokens, private readonly mats: MaterialSet, private readonly seed: number, sites: readonly Site[] = []) {
     this.cFog = new Color(t.fog);
     this.cStorm = new Color(t.storm);
     this.cSky = new Color(t.sky);
@@ -211,6 +213,29 @@ export class Environment {
       const s = 1 + hash01(i * 5.1) * hash01(i * 2.9) * 4;
       m.makeRotationY(i).scale(new Vector3(s * 1.3, s * 0.7, s)).setPosition(x, s * 0.2, z);
       batch.push(m, c.set(tones[i % 3]!));
+    }
+    batch.end();
+    batch.mesh.receiveShadow = true;
+  }
+
+  /**
+   * Decor (a Meshy scrap heap or ore outcrop, `size` world units across): a few copies in the band
+   * just outside the map edge, where nothing is ever built or walked, so the border reads as terrain.
+   */
+  addDecor(geo: BufferGeometry, mat: Material, salt: number, size: number): void {
+    const n = Math.max(4, Math.min(14, Math.round((this.W + this.H) / 150)));
+    const batch = new Batch(geo, mat, this.group, n, `decor${salt}`);
+    const box = geo.boundingBox ?? (geo.computeBoundingBox(), geo.boundingBox!);
+    const k0 = size / Math.max(0.01, box.max.x - box.min.x, box.max.z - box.min.z);
+    const m = new Matrix4();
+    for (let i = 0; i < n; i++) {
+      const h = (j: number): number => hash01(this.seed * 13 + salt * 101 + i * 7.3 + j * 1.9);
+      const along = h(1), out = size * 0.6 + h(2) * size * 2.2, side = (i + salt) % 4;
+      const x = side === 0 ? -out : side === 1 ? this.W + out : along * this.W;
+      const z = side === 2 ? -out : side === 3 ? this.H + out : along * this.H;
+      const k = k0 * (0.75 + h(3) * 0.6);
+      m.makeRotationY(h(4) * Math.PI * 2).scale(new Vector3(k, k, k)).setPosition(x, 0, z);
+      batch.push(m);
     }
     batch.end();
     batch.mesh.receiveShadow = true;

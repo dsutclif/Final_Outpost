@@ -210,6 +210,36 @@ draw calls, against 61.3k and 60 with code traders. `fit.html?rig=1` shows every
 state (`&k=<n>` one of them). Mixed with the chibi code-built figures, the realistic trader looks
 taller and thinner; that settles once the other characters are rigged the same way.
 
+**Third batch (2026-10-18): every character rigged.** Hero, hauler, guard, medic, courier,
+colonist, clerk, runner, ranger, raider and boss come from rigged Meshy files (about 1,000
+triangles each); the technician stays code-built until its file arrives. The dust crawler and the
+mite (seven legs) are rigged without clips: `rigged.ts` finds legs (chains reaching the ground,
+each starting under a branching joint) and walks them in an alternating gait. What the runtime adds:
+
+- **Idle from the walk.** Files without an idle get one: each bone at its average over the walk
+  cycle, plus a slow breath in the chest.
+- **Actions** (`clips` keys beyond walk/run/idle): gathering picks by node type (`mine` ore,
+  `reap` grow dome, `pick` fuel cache, `dig` scrap), from the sim's `gathered` events; `shoot`
+  (standing) and `shootMove` from the hero's shots and from hits by guards and hunters; raiders
+  shoot while at a barrier or the base. A standing character turns to face what it works on.
+  Clip names: `01a14f4e…` is the bent-over dig, `01a14f15…` the rifle-ready stance.
+- **Props placed from the clips.** A held prop with `align` is fitted once per file from a
+  two-handed clip of that character (gun: barrel from the right hand through the left in
+  `Run_and_Shoot`; tool: handle from the left hand through the right in `Heavy_Hammer_Swing` or
+  the dig), then rides the right hand in every clip. `when` shows it only during those actions
+  (the hero swaps pickaxe, scythe, shovel and the guard's gun by task). Without `axis` the tool's
+  long axis and head end are read off its mesh (the diagonal shovel).
+- **Guard shield arm.** `shieldArm` braces the left arm across the chest over every clip (the
+  clips are two-handed rifle clips); the shield rides the chest in front of the forearm.
+- **Runner carry.** With a `carry` clip the goods are held in front of the chest, not on the back.
+- Frozen residents and those lying in the med bay keep the code figure (it has those poses).
+
+Also: `res.material_basic` (`kind: "item"`) replaces the code ore in every stack and shelf;
+`kind: "decor"` entries (two scrap heaps) are scattered in the band just outside the map edge.
+`fit.html?rig=<id>` shows a character in each state (`&k=<n>` one; pass `&w=&h=` in the browser
+pane), `fit.html?clips=<file>` every clip in a row (`&ck=<n>` one clip at five moments).
+Golden level 4 with guards and haulers working: 64k triangles, 50 draw calls (was 70).
+
 ## Style block (paste at the start of every Gemini chat)
 
 > You are making clean reference images for converting into 3D game models, one object per

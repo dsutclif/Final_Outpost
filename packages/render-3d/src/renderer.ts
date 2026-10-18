@@ -36,7 +36,7 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { disposeGeo, getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
-import { applyMeshy, loadMeshy, meshyBounds, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
+import { applyMeshy, loadMeshy, meshyBounds, meshyEntries, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
@@ -127,6 +127,11 @@ const PICK_PX = 28;
 interface Candidate { x: number; z: number; h: number; d2: number }
 
 /** three.js renderer (Contract 2). State drives every visual; events add juice only. */
+/** The work clip for gathering at each node type (rigged characters). */
+const GATHER_ACT: Readonly<Record<string, string>> = {
+  "node.material_source": "mine", "node.food_source": "reap", "node.fuel_deposit": "pick", "node.fuel_scrap": "dig",
+};
+
 export class Renderer3D implements Renderer {
   private mount: HTMLElement | null = null;
   private gl: GLLike | null = null;
@@ -169,6 +174,8 @@ export class Renderer3D implements Renderer {
   private yaw = new Map<string, number>();
   private phase = new Map<string, number>();
   private cheerUntil = new Map<string, number>();
+  /** What a rigged character is doing (a clip key: mine, reap, pick, dig, shoot), until when, and at what. */
+  private acts = new Map<string, { act: string; until: number; at?: V }>();
   private quality: QualityTier;
   private cssW = 400;
   private cssH = 700;
@@ -248,6 +255,15 @@ export class Renderer3D implements Renderer {
       if (this.bctx !== bctx) return;
       if (e.batch) { this.meshyWall(e); return; }
       if (e.kind === "prop") { for (const t of meshyTools(e)) this.crowd?.setPart(t.part, t.geo, t.mat); return; }
+      if (e.kind === "item" || e.kind === "decor") {
+        const g = meshyGeometry(e.file);
+        if (!g) return;
+        g.geo.computeVertexNormals();
+        if (e.kind === "item") this.items?.setModel(e.id, g.geo, g.mat);
+        else { this.env?.addDecor(g.geo, g.mat, meshyEntries().indexOf(e), ART_M * (e.width ?? 1.4)); this.geos.push(g.geo); }
+        return;
+      }
+      if (e.kind === "character") return;
       for (const [k, p] of this.placed) {
         if (p.data["id"] !== e.id && !String(p.data["id"]).startsWith(e.id + ".t")) continue;
         this.removePlaced(p);
@@ -1593,8 +1609,14 @@ export class Renderer3D implements Renderer {
     const anim = this.anim("player", this.moving, s.player.stack.length > 0);
     anim.distress = this.distressFor(pl);
     anim.hit = this.fx!.flashK("player") * 0.6;
-    this.addCharacter(look, anim, pl, yaw, t.frost);
-    this.backStack(s.player.stack, pl, yaw, look.scale, this.moving, v, true);
+    const prig = this.rigged?.entryFor("unit.player");
+    const pmove = this.moving > 0.15;
+    const pyaw = this.faceAct("player", pl, yaw, pmove);
+    if (prig) {
+      this.rigged!.add("player", "unit.player", prig, { moving: pmove, hurried: false, run: true, cheer: anim.cheer > 0, act: this.actOf("player")?.act, speed: this.moving }, pl.x, pl.y, pyaw, ART_M * look.scale / 0.9);
+      this.blobs!.add(pl.x, pl.y, 10 * look.scale);
+    } else this.addCharacter(look, anim, pl, yaw, t.frost);
+    this.backStack(s.player.stack, pl, pyaw, look.scale, this.moving, v, true);
     // the hero's health shows over their head only while hurt (animal bites)
     const hpMax = this.cp?.player.hp ?? 0;
     if (hpMax > 0 && s.player.hp < hpMax) {
@@ -1617,8 +1639,17 @@ export class Renderer3D implements Renderer {
       if (dead) { an.ice = 1; an.speed = 0; }
       if (r.status === "injured") { an.speed *= 0.6; an.hit = 0.2 + 0.2 * Math.sin(this.t * 6); }
       if (r.status === "healing") an.down = 1;
-      this.addCharacter(rl, an, pos, ry, t.frost);
-      if (r.carry && r.n > 0) this.backStack(new Array<string>(Math.min(6, r.n)).fill(r.carry), pos, ry, rl.scale, sp, rv, false);
+      // rigged once loaded, except the frozen and those lying in the med bay (the code figure poses those)
+      const rrig = dead || r.status === "healing" ? undefined : this.rigged?.entryFor(id);
+      const moving = sp > 0.05;
+      const ryaw = this.faceAct(key, pos, ry, moving);
+      const carrying = !!r.carry && r.n > 0;
+      if (rrig) {
+        this.rigged!.add(key, id, rrig, { moving, hurried: false, cheer: an.cheer > 0, act: this.actOf(key)?.act, carry: carrying, speed: sp }, pos.x, pos.y, ryaw, ART_M * rl.scale / 0.9);
+        this.blobs!.add(pos.x, pos.y, 10 * rl.scale);
+      } else this.addCharacter(rl, an, pos, ry, t.frost);
+      // a carry clip holds the goods in front of the chest; everyone else wears them on the back
+      if (carrying) this.backStack(new Array<string>(Math.min(6, r.n)).fill(r.carry!), pos, ryaw, rl.scale, sp, rv, false, !!rrig?.clips?.["carry"] && moving);
       // frost meter over a colonist while the reactor is out (resident.frost, 0..1000)
       const frost = r.frost;
       if (typeof frost === "number" && frost > 0 && !dead) this.barTag(pos.x, ART_M * rl.scale * 1.45, pos.y, frost / 1000, t.frost, 7);
@@ -1636,7 +1667,13 @@ export class Renderer3D implements Renderer {
       an.knock = fk * 0.5;
       // knockback: shoved away from where it faces
       const kb = fk * 7;
-      this.addCharacter(hl, an, { x: pos.x - Math.sin(hy) * kb, y: pos.y - Math.cos(hy) * kb }, hy, null);
+      const hrig = this.rigged?.entryFor(h.type);
+      const at = { x: pos.x - Math.sin(hy) * kb, y: pos.y - Math.cos(hy) * kb };
+      if (hrig) {
+        const moving = Math.hypot(hv.x, hv.y) > 0.05;
+        this.rigged!.add(key, h.type, hrig, { moving, hurried: false, cheer: false, speed: an.speed, act: h.target !== "core" ? "shoot" : undefined }, at.x, at.y, hy, ART_M * hl.scale / 0.9);
+        this.blobs!.add(at.x, at.y, hl.kind === "creature" ? 16 * hl.scale : 10 * hl.scale);
+      } else this.addCharacter(hl, an, at, hy, null);
       this.candidatePt(h.type, pos.x, pos.y, ART_M * hl.scale * 1.8);
       // health bar over bosses (content `boss` flag) and wounded attackers
       const hpMax = h.hpMax;
@@ -1670,7 +1707,7 @@ export class Renderer3D implements Renderer {
    * fixed (content) order, each up to its carry cap, with a MAX tag over any full column; a worker
    * carries one column. Columns wobble with speed; items still flying in are held back.
    */
-  private backStack(stack: readonly string[], pos: V, yaw: number, scale: number, moving: number, vel: V, player: boolean): void {
+  private backStack(stack: readonly string[], pos: V, yaw: number, scale: number, moving: number, vel: V, player: boolean, front = false): void {
     const items = this.items!;
     const counts = new Map<string, number>();
     for (const r of stack) counts.set(r, (counts.get(r) ?? 0) + 1);
@@ -1685,12 +1722,12 @@ export class Renderer3D implements Renderer {
     cols.forEach((res, ci) => {
       const row = Math.floor(ci / BACK_PER_ROW), inRow = Math.min(BACK_PER_ROW, cols.length - row * BACK_PER_ROW);
       const across = ((ci % BACK_PER_ROW) - (inRow - 1) / 2) * colW;
-      const back = 0.27 * s * (ITEM_K / 1.05) + row * 0.34 * ART_M * (ITEM_K / 1.05);
+      const back = front ? -0.3 * s : 0.27 * s * (ITEM_K / 1.05) + row * 0.34 * ART_M * (ITEM_K / 1.05);
       const bx = pos.x - fx * back + rx * across, bz = pos.y - fz * back + rz * across;
       const total = counts.get(res)!;
       const n = Math.max(0, total - (player ? this.fx!.inFlightToPlayer(res) : 0));
       const h = items.height(res) * k;
-      let y = 0.72 * s, wx = 0, wz = 0;
+      let y = (front ? 0.55 : 0.72) * s, wx = 0, wz = 0;
       for (let i = 0; i < n; i++) {
         const w = Math.sin(this.t * 9 - i * 0.55 - ci * 0.7) * i * 0.3 * (0.3 + moving);
         const lb = -lean * i * 0.5;
@@ -2132,6 +2169,34 @@ export class Renderer3D implements Renderer {
     return v3(p.x - Math.sin(yaw) * 8, top, p.y - Math.cos(yaw) * 8);
   }
 
+  /** A hit by the hero or a resident: the shooter (nearest guard or hunter) aims at it for a moment. */
+  private shooterAt(by: unknown, at: Vector3): void {
+    const aim = { act: "shoot", until: this.t + 0.8, at: { x: at.x, y: at.z } };
+    if (by === "player") { this.acts.set("player", aim); return; }
+    if (by !== "resident" || !this.world) return;
+    let best: number | null = null, bd = Infinity;
+    for (const r of this.world.residents) {
+      if (r.role !== "role.defender" && r.role !== "role.hunter") continue;
+      const d = (r.pos.x / FP - at.x) ** 2 + (r.pos.y / FP - at.z) ** 2;
+      if (d < bd) { bd = d; best = r.id; }
+    }
+    if (best !== null) this.acts.set(`r:${best}`, aim);
+  }
+
+  private actOf(key: string): { act: string; at?: V } | undefined {
+    const a = this.acts.get(key);
+    return a && a.until > this.t ? a : undefined;
+  }
+
+  /** Faces a standing character toward what it works on or shoots at. */
+  private faceAct(key: string, pos: V, yaw: number, moving: boolean): number {
+    const a = this.actOf(key);
+    if (moving || !a?.at) return yaw;
+    const y = Math.atan2(a.at.x - pos.x, a.at.y - pos.y);
+    this.yaw.set(key, y);
+    return y;
+  }
+
   private workerBack(e: Record<string, unknown>): Vector3 | null {
     const by = e["by"];
     if (typeof by !== "number" || !this.world) return null;
@@ -2172,6 +2237,11 @@ export class Renderer3D implements Renderer {
     switch (e.t) {
       case "gathered":
       case "picked": {
+        if (e.t === "gathered") {
+          const node = this.world?.nodes[Number(e["node"])];
+          const act = GATHER_ACT[node?.type ?? ""] ?? "mine";
+          this.acts.set(typeof e["by"] === "number" ? `r:${e["by"]}` : "player", { act, until: this.t + 0.9, ...(node ? { at: { x: node.pos.x / FP, y: node.pos.y / FP } } : {}) });
+        }
         const wb = this.workerBack(e);
         const res = String(e["res"]);
         const from = up(at, ART_M * 0.6);
@@ -2290,10 +2360,13 @@ export class Renderer3D implements Renderer {
           fx.floater(ft("animal_hit"), t.danger, up(at, ART_M * 1.8), 38, 12);
         }
         if (e["by"] === "structure") this.flashNearestTurret(at);
+        if (target === "hostile" || target === "prey") this.shooterAt(e["by"], at);
         fx.burst(up(at, 10), [white, mix(t.accent, t.structure, 0.5)], 6, 90, 120, 3, 0.25);
         break;
       }
       case "shot": {
+        const aim = e["to"] as V;
+        this.acts.set("player", { act: "shoot", until: this.t + 0.8, at: { x: aim.x / FP, y: aim.y / FP } });
         const from = up(this.wv(e["from"] as V), 14), to = up(this.wv(e["to"] as V), 10);
         fx.tracer(from, to, mix(t.accent, white, 0.5));
         break;

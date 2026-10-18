@@ -3,7 +3,9 @@ import { Raycaster, Vector2, ACESFilmicToneMapping, AxesHelper, BufferGeometry, 
 import gen from "../../generator/data/generator.json";
 import { createBuildCtx } from "../src/assets/context.js";
 import { lookFor, restAnim } from "../src/assets/characters.js";
-import { loadMeshy, meshyEntries, meshyScene, meshyTools } from "../src/assets/meshy.js";
+import { AnimationMixer } from "three";
+import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { loadMeshy, meshyEntries, meshyRig, meshyScene, meshyTools } from "../src/assets/meshy.js";
 import { buildModel } from "../src/assets/registry.js";
 import { Crowd } from "../src/scene/instancing.js";
 import { Rigged, type RigState } from "../src/scene/rigged.js";
@@ -50,9 +52,18 @@ const ROW = 5.5, COL = 3.6;
 const CROWD = ["role.supplier", "role.operator", "role.defender", "hostile.raider_humanoid", "hostile.boss", "unit.customer_premium", "unit.customer_bulk"];
 const crowd = q.get("crowd") ? new Crowd(ctx.parts, ctx.mats.std, scene) : null;
 const rigged = q.get("rig") ? new Rigged(scene) : null;
-const RIGS: [string, RigState][] = [["unit.customer", { moving: true, hurried: false, cheer: false }], ["unit.customer", { moving: false, hurried: false, cheer: false }],
+const rigId = q.get("rig");
+const RIGS: [string, RigState][] = rigId && rigId !== "1" ? rigStates(rigId) : [["unit.customer", { moving: true, hurried: false, cheer: false }], ["unit.customer", { moving: false, hurried: false, cheer: false }],
   ["unit.customer_impatient", { moving: false, hurried: true, cheer: false }], ["unit.customer_impatient", { moving: true, hurried: true, cheer: false }],
   ["unit.customer", { moving: false, hurried: false, cheer: true }], ["unit.customer_premium", { moving: false, hurried: false, cheer: false }], ["unit.customer_bulk", { moving: true, hurried: false, cheer: false }]];
+/** ?rig=<id>: one character standing, walking, then each action (and its moving form). */
+function rigStates(id: string): [string, RigState][] {
+  const e = entries.find((x) => x.id === id);
+  const acts = Object.keys(e?.clips ?? {}).filter((k) => !["walk", "run", "idle", "wait", "cheer", "carry"].includes(k) && !k.endsWith("Move"));
+  const base: RigState = { moving: false, hurried: false, cheer: false, speed: 1 };
+  return [[id, base], [id, { ...base, moving: true }], ...(e?.clips?.["carry"] ? [[id, { ...base, moving: true, carry: true }] as [string, RigState]] : []),
+    ...acts.flatMap((act) => [[id, { ...base, act }] as [string, RigState], ...(e?.clips?.[act + "Move"] ? [[id, { ...base, act, moving: true }] as [string, RigState]] : [])])];
+}
 if (crowd) for (const e of entries) for (const p of meshyTools(e)) crowd.setPart(p.part, p.geo, p.mat);
 
 entries.forEach((e, i) => {
@@ -94,7 +105,31 @@ entries.forEach((e, i) => {
   }
 });
 
-const one = crowd || rigged ? String(entries.length) : q.get("i");
+const out0 = document.createElement("pre");
+out0.style.cssText = "position:fixed;left:4px;top:4px;margin:0;color:#fff;background:#000a;font:13px monospace;padding:4px";
+document.body.appendChild(out0);
+// ?clips=<file>: every clip of one rigged file in a row, frozen at ?ct=<0..1> of each clip
+const sheet = q.get("clips");
+if (sheet) {
+  const rig = meshyRig(sheet);
+  if (rig) {
+    out0.textContent = rig.clips.map((c, k) => `${k}: ${c.name} ${c.duration.toFixed(1)}s`).join("\n");
+    // ?ck=<k>: that clip alone, at five moments through it
+    const ck = q.get("ck");
+    const shots = ck === null ? rig.clips.map((c) => [c, Number(q.get("ct") ?? 0.5)] as const) : [0.1, 0.3, 0.5, 0.7, 0.9].map((f) => [rig.clips[Number(ck)]!, f] as const);
+    shots.forEach(([c, ct], k) => {
+      const root = cloneSkinned(rig.scene);
+      root.position.set(COL + (k - (shots.length - 1) / 2) * 1.3, 0, entries.length * ROW);
+      root.rotation.y = Number(q.get("face") ?? 0.6);
+      const mixer = new AnimationMixer(root);
+      mixer.clipAction(c).play();
+      mixer.setTime(ct * c.duration);
+      scene.add(root);
+    });
+  }
+}
+
+const one = crowd || rigged || sheet ? String(entries.length) : q.get("i");
 const yaw = ((Number(q.get("yaw") ?? YAW_DEG)) * Math.PI) / 180, pitch = (PITCH_DEG * Math.PI) / 180;
 const look = one !== null ? new Vector3(showCode ? COL / 2 : COL, Number(q.get("ly") ?? 0.8), Number(one) * ROW) : new Vector3(COL / 2, 0, ((entries.length - 1) * ROW) / 2);
 const span = q.get("span") ? Number(q.get("span")) : one !== null ? (showCode ? 8 : 4.2) : entries.length * ROW * 0.75;
@@ -135,7 +170,7 @@ if (q.get("quad")) {
 requestAnimationFrame(draw);
 }
 draw();
-(window as unknown as { __fit: unknown }).__fit = { ready: true, entries: entries.map((e) => e.file) };
+(window as unknown as { __fit: unknown }).__fit = { ready: true, entries: entries.map((e) => e.file), rigged };
 
 // click a model (single, non-quad view) to read the point in its own art-metre coordinates
 const out = document.createElement("pre");

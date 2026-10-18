@@ -43,7 +43,7 @@ export interface MeshyEntry {
   /** "prop": held item; props and wall sections (batch) get no blueprint outline. */
   batch?: string;
   /** "prop": held item; "character": rigged (skeleton and clips kept, see buildCharacter). */
-  kind?: "prop" | "character";
+  kind?: "prop" | "character" | "item" | "decor";
   /** Also write <file>.lod.glb at this many triangles (props drawn on the code-built crowd). */
   lod?: number;
 }
@@ -385,7 +385,7 @@ async function build(e: MeshyEntry): Promise<void> {
     writeFileSync(join(OUT, `${e.file}.lod.glb`), lod);
     built[e.file]!.lod = { hash: hash(lod), tris: small.idx.length / 3, bytes: lod.byteLength };
   }
-  if (e.kind !== "prop" && !e.batch) {
+  if (!e.kind && !e.batch) {
     const ghost = lowPoly(src, e.outlineTris ?? 250);
     const outline = await writeOutline(ghost);
     writeFileSync(join(OUT, `${e.file}.outline.glb`), outline);
