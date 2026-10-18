@@ -3,7 +3,7 @@ import type { SimEvent } from "../events.js";
 import type { State } from "../state.js";
 import { endLevel, population } from "./common.js";
 import { collapsedConverter } from "./stock.js";
-import { settleObjectives } from "./objectives.js";
+import { objectiveSettled, settleObjectives } from "./objectives.js";
 
 export { population };
 
@@ -16,15 +16,23 @@ const FAILS: Record<string, (st: State, cp: Compiled) => boolean> = {
   "meter.base_health": (st) => st.meters.baseHealth <= 0,
 };
 
-/** Fails first, then the timer, then the main goal (objective 0, which mirrors the manifest goal). */
+/**
+ * The level ends on its slowest goal: once the main goal (objective 0, which mirrors the manifest goal)
+ * is done, it ends when every objective is done or can no longer be done, or when the overtime runs
+ * out. Fails, a pile collapse and the timer still end it early: a loss before the main goal, a win
+ * after it (the open stars are lost).
+ */
 export function checkEnd(st: State, cp: Compiled, out: SimEvent[]): void {
-  let ended = false;
-  for (const f of cp.manifest.fail) {
-    if (FAILS[f]?.(st, cp)) { endLevel(st, out, false, f); ended = true; break; }
+  const main = st.objectives[0];
+  const won = main?.done ?? false;
+  let why = cp.manifest.fail.find((f) => FAILS[f]?.(st, cp)) ?? null;
+  if (why === null) {
+    const pile = collapsedConverter(st, cp);
+    if (pile !== null) { out.push({ t: "pile_collapsed", conv: pile }); why = "pile_collapse"; }
   }
-  const pile = ended ? null : collapsedConverter(st, cp);
-  if (pile !== null) { out.push({ t: "pile_collapsed", conv: pile }); endLevel(st, out, false, "pile_collapse"); ended = true; }
-  if (!ended && cp.timerTicks > 0 && st.tick >= cp.timerTicks) { endLevel(st, out, false, "timer"); ended = true; }
-  if (!ended && st.objectives[0]?.done) { endLevel(st, out, true, "goal"); ended = true; }
-  if (ended) settleObjectives(st, cp, out);
+  if (why === null && cp.timerTicks > 0 && st.tick >= cp.timerTicks) why = "timer";
+  if (why === null && won && (st.tick - main!.doneTick >= cp.overtimeTicks || st.objectives.every((o, i) => objectiveSettled(cp, o, i)))) why = "goal";
+  if (why === null) return;
+  endLevel(st, out, won, won ? "goal" : why);
+  settleObjectives(st, cp, out);
 }

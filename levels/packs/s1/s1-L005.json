@@ -1,8 +1,8 @@
 {
   "id": "s1-L005",
   "seed": 860553483,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,85 +36,85 @@
         520
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 12,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        158,
-        509
+        160,
+        510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        128,
-        509
+        130,
+        510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        150,
-        478
+        170,
+        540
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        181,
-        488
+        140,
+        550
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        171,
-        545
+        160,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        121,
-        538
+        180,
+        570
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        130,
+        470
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        110,
+        540
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        90,
+        500
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         120,
-        468
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        139,
-        565
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        162,
-        450
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        100,
-        498
+        580
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        99,
-        573
+        100,
+        440
       ]
     },
     {
@@ -214,6 +214,7 @@
         2,
         3,
         4,
+        6,
         7,
         10,
         11,
@@ -249,7 +250,7 @@
       "gap": 0.7
     },
     {
-      "t": 68,
+      "t": 67,
       "counts": {
         "hostile.swarmling": 10,
         "hostile.raider_humanoid": 1
@@ -258,7 +259,7 @@
       "gap": 0.7
     },
     {
-      "t": 116,
+      "t": 115,
       "counts": {
         "hostile.swarmling": 14,
         "hostile.raider_humanoid": 3
@@ -267,19 +268,10 @@
       "gap": 0.7
     },
     {
-      "t": 164,
+      "t": 162,
       "counts": {
-        "hostile.swarmling": 18,
+        "hostile.swarmling": 19,
         "hostile.raider_humanoid": 4
-      },
-      "side": "e",
-      "gap": 0.7
-    },
-    {
-      "t": 212,
-      "counts": {
-        "hostile.swarmling": 23,
-        "hostile.raider_humanoid": 6
       },
       "side": "e",
       "gap": 0.7
@@ -287,11 +279,13 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.3,
+    "start.currency": 5,
+    "core.burn": 2.5,
     "housing.base": 5,
-    "meters.baseHealth": 11,
-    "level.budgetSeconds": 480
+    "lots.block": 160,
+    "lots.street": 40,
+    "meters.baseHealth": 12,
+    "level.budgetSeconds": 420
   },
   "goal": {
     "type": "waves"
@@ -330,20 +324,19 @@
     }
   },
   "rating": {
-    "difficulty": 0.142,
-    "fun": 0.614,
-    "botMargin": 0.963,
+    "difficulty": 0.207,
+    "fun": 0.257,
+    "botMargin": 0.976,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
-      "good": 2.9,
-      "median": 2,
-      "goodAll": 0.9
+      "good": 3,
+      "median": 2.67,
+      "goodAll": 1
     }
   }
 }

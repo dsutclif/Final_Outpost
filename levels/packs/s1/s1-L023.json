@@ -1,8 +1,8 @@
 {
   "id": "s1-L023",
-  "seed": 837394679,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 886907390,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -46,96 +46,114 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        304,
-        636
+        314,
+        604
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "route": [
+        [
+          500,
+          663
+        ],
+        [
+          477,
+          663
+        ],
+        [
+          405,
+          663
+        ],
+        [
+          238,
+          706
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        326,
-        500
+        340,
+        470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        137,
-        506
+        150,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        168,
-        521
+        160,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        132,
-        537
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        163,
-        491
+        130,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         170,
-        552
+        550
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        137,
-        473
+        120,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        103,
-        504
+        140,
+        550
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        160,
+        450
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        580
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        160,
+        580
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         100,
-        537
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        142,
-        565
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        171,
-        447
+        470
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        107,
-        445
+        110,
+        580
       ]
     },
     {
@@ -195,7 +213,8 @@
       ],
       "closed": true,
       "gates": [
-        1
+        1,
+        5
       ],
       "prebuilt": [
         0,
@@ -225,55 +244,55 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        246,
-        44
+        198,
+        42
       ],
       "freeze": 144
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        129,
-        44
+        106,
+        57
       ],
-      "freeze": 163
+      "freeze": 162
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        81,
-        211
+        382,
+        218
       ],
-      "freeze": 164
+      "freeze": 162
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        412,
-        216
+        181,
+        252
       ],
-      "freeze": 182
+      "freeze": 172
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        178,
-        246
+        272,
+        212
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        315,
-        258
+        51,
+        239
       ]
     },
     {
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        191,
-        597
+        170,
+        630
       ],
       "cost": {
         "res.currency": 27
@@ -304,6 +323,8 @@
     "start.currency": 5,
     "core.burn": 2.5,
     "housing.base": 6,
+    "lots.block": 160,
+    "lots.street": 40,
     "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
@@ -328,7 +349,7 @@
     },
     {
       "id": "challenge",
-      "kind": "tow_trip",
+      "kind": "tow_full_trip",
       "params": {
         "n": 3
       }
@@ -347,9 +368,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.914,
-    "fun": 0.842,
-    "botMargin": 0.609,
+    "difficulty": 0.928,
+    "fun": 0.81,
+    "botMargin": 0.607,
     "botsPassed": [
       "good",
       "average",

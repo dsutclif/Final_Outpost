@@ -1,8 +1,8 @@
 {
   "id": "s1-L037",
   "seed": 2050163547,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -47,70 +47,63 @@
       "type": "node.fuel_scrap",
       "at": [
         160,
-        478
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        131,
-        487
+        130,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        143,
-        452
+        160,
+        510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        169,
-        515
+        170,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        172,
-        444
+        130,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        103,
-        479
+        170,
+        540
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        137,
-        519
+        170,
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        117,
-        439
+        130,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        166,
-        413
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        97,
-        536
+        100,
+        470
       ]
     },
     {
@@ -229,8 +222,8 @@
       "type": "pad.build",
       "id": "tower_n",
       "at": [
-        178,
-        293
+        180,
+        300
       ],
       "cost": {
         "res.salvage": 6
@@ -245,8 +238,8 @@
       "type": "pad.build",
       "id": "tower_n2",
       "at": [
-        404,
-        294
+        300,
+        300
       ],
       "cost": {
         "res.salvage": 6
@@ -264,8 +257,8 @@
       "type": "pad.build",
       "id": "tower_n_up",
       "at": [
-        76,
-        299
+        200,
+        360
       ],
       "cost": {
         "res.salvage": 5
@@ -280,8 +273,8 @@
       "type": "pad.build",
       "id": "tower_n2_up",
       "at": [
-        303,
-        293
+        280,
+        370
       ],
       "cost": {
         "res.salvage": 5
@@ -296,8 +289,8 @@
       "type": "pad.build",
       "id": "reinforce",
       "at": [
-        326,
-        434
+        320,
+        430
       ],
       "cost": {
         "res.salvage": 5
@@ -311,8 +304,8 @@
       "type": "pad.build",
       "id": "barracks",
       "at": [
-        158,
-        616
+        120,
+        620
       ],
       "cost": {
         "res.salvage": 4
@@ -326,8 +319,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        157,
-        681
+        120,
+        690
       ],
       "cost": {
         "res.salvage": 3
@@ -363,7 +356,7 @@
       "gap": 0.7
     },
     {
-      "t": 65,
+      "t": 62,
       "counts": {
         "hostile.swarmling": 10,
         "hostile.raider_humanoid": 2
@@ -372,7 +365,7 @@
       "gap": 0.7
     },
     {
-      "t": 110,
+      "t": 104,
       "counts": {
         "hostile.swarmling": 21,
         "hostile.raider_humanoid": 5,
@@ -382,7 +375,7 @@
       "gap": 0.45
     },
     {
-      "t": 155,
+      "t": 145,
       "counts": {
         "hostile.swarmling": 28,
         "hostile.raider_humanoid": 8
@@ -391,7 +384,7 @@
       "gap": 0.45
     },
     {
-      "t": 200,
+      "t": 187,
       "counts": {
         "hostile.swarmling": 37,
         "hostile.raider_humanoid": 10,
@@ -406,7 +399,9 @@
     "start.currency": 1,
     "core.burn": 2.3,
     "housing.base": 5,
-    "meters.baseHealth": 10,
+    "lots.block": 160,
+    "lots.street": 40,
+    "meters.baseHealth": 9,
     "level.budgetSeconds": 420
   },
   "goal": {
@@ -446,8 +441,8 @@
     }
   },
   "rating": {
-    "difficulty": 0.64,
-    "fun": 0.471,
+    "difficulty": 0.684,
+    "fun": 0.426,
     "botMargin": 0.994,
     "botsPassed": [
       "good",

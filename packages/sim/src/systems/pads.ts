@@ -160,7 +160,7 @@ function applyBuild(st: State, cp: Compiled, pad: PadState, e: BuildEnt, out: Si
   const s: StructureState = { id: pad.id, type: b, pos: { ...at }, level: 1, acc: 0 };
   if (def.hp !== null) { s.hp = def.hp; s.hpMax = def.hp; }
   st.structures.push(s);
-  if (b === "struct.depot") st.depot = { pos: { ...at }, stock: {} };
+  if (b === "struct.depot") st.depot = { pos: { ...at }, stock: {}, stores: [] };
   applyEffects(st, def.effects, s);
 }
 

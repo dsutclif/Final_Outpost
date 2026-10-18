@@ -2,7 +2,7 @@ import type { Compiled } from "../compile.js";
 import type { HintKey, SimEvent } from "../events.js";
 import { FP, clamp, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import { between } from "../rng.js";
-import type { ResidentState, ResidentStatus, State } from "../state.js";
+import type { DepotState, ResidentState, ResidentStatus, State } from "../state.js";
 
 /** Hints repeat only after this many ticks, matching the prototype's 1.5 s hint life. */
 const HINT_TICKS = 45;
@@ -32,6 +32,24 @@ export function take(stack: string[], res: string): boolean {
   if (i < 0) return false;
   stack.splice(i, 1);
   return true;
+}
+
+/** Warehouse pads: the drop-off spot and the pickup spot of each stored resource. */
+export const depotDrop = (d: DepotState, cp: Compiled): Vec => {
+  const o = cp.structures["struct.depot"]!.dropOffset;
+  return { x: d.pos.x + o.x, y: d.pos.y + o.y };
+};
+export const depotPickup = (d: DepotState, cp: Compiled, k: number): Vec => {
+  const o = cp.structures["struct.depot"]!.pickupOffsets[k]!;
+  return { x: d.pos.x + o.x, y: d.pos.y + o.y };
+};
+/**
+ * Store one res. A resource seen for the first time takes the next free pickup pad; once every pad is
+ * taken, further kinds are still stored (couriers move them) but have no pad of their own.
+ */
+export function depotPut(d: DepotState, cp: Compiled, res: string): void {
+  if (!d.stores.includes(res) && d.stores.length < cp.structures["struct.depot"]!.pickupOffsets.length) d.stores.push(res);
+  d.stock[res] = (d.stock[res] ?? 0) + 1;
 }
 
 export function endLevel(st: State, out: SimEvent[], won: boolean, reason: string): void {

@@ -4,9 +4,10 @@ import { planBot } from "@fo/bots";
 import templatesData from "../data/templates.json";
 import genData from "../data/generator.json";
 import { flowModel, type Flow } from "./flow.js";
-import { Placer, dist, segDist, type Box, type Pt, type Rect } from "./layout.js";
+import { Placer, dist, inRect, segDist, type Box, type Pt, type Rect } from "./layout.js";
 import { Rand, clamp01, hashStr, lerp, mix, round1, round2 } from "./rand.js";
 import { placeTerrain, type TerrainData } from "./terrain.js";
+import { traderRoute } from "./route.js";
 
 // Stages 2-4 of the spec, per level family (REDESIGN-R2 §6): layout from a template by constraint
 // placement (fuel forests near the base in every level, perimeter rings only where walls are needed),
@@ -40,6 +41,8 @@ export const GEN = genData as unknown as {
   costs: Record<string, number>;
   rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number; towerPadSearch: number; towerPadHug: number };
   spacing: { margin: number; standR: number; screen: [number, number]; screenRadius: number; footprintGap: number; corePull: number };
+  traderRoute: { cell: number; clear: number; door: number };
+  lots: { block: number; street: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
   footprints: Record<string, [number, number, number, number]>;
   /** Hire pad offsets from a converter's centre for its input worker, operator and output worker. */
@@ -211,6 +214,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const inner: Rect = ring ? [ring.rect[0] + 12, ring.rect[1] + 12, ring.rect[2] - 24, ring.rect[3] - 24] : [16, 40, 448, 836];
   const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, [S.screen[0], S.screen[1], S.screenRadius], c, GEN.footprints, S.footprintGap, S.corePull);
   if (ring) ring.points.forEach((p, i) => P.walls.push([p, ring!.points[(i + 1) % ring!.points.length]!]));
+  P.lots = GEN.lots;
 
   P.add("core", core, R.core, { key: true, fp: "sink.core" });
   const startPt: Pt = [core[0] + tpl.start[0], Math.max(inner[1] + 10, Math.min(inner[1] + inner[3] - 10, core[1] + tpl.start[1]))];
@@ -236,47 +240,54 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   let queue: Pt[] = [];
   let food1: Pt | null = null;
   if (needsCurrency) {
-    const cands: { p: Pt; sp: ReturnType<typeof salesSpots>; d: number; slot: number; side: number }[] = [];
+    const cands: { p: Pt; sp: ReturnType<typeof salesSpots>; d: number; slot: number; side: number; lot: boolean }[] = [];
     const why = { ok: 0, screen: 0, clear: 0, reg: 0, pile: 0 };
     for (let i = 0; i < 500; i++) {
       const base: Pt = ring ? [Math.min(inner[0] + inner[2] - 30, Math.max(inner[0] + 30, tpl.shop[0])), Math.min(inner[1] + inner[3] - 30, Math.max(inner[1] + 30, tpl.shop[1]))] : toward(tpl.shop, core, GEN.shopPull);
       const spread = i < 160 ? 160 : 400;
-      const p: Pt = [Math.round(base[0] + (rand.float() - 0.5) * spread), Math.round(base[1] + (rand.float() - 0.5) * spread)];
-      if (!P.onScreen(p) || !P.ok("shop", p, R.shop)) { why.ok++; continue; }
-      // the clerk spot goes south of the stall if it fits, else east, else west (all in view of the camera)
-      for (const side of [0, 1, 2]) {
-        const sp = salesSpots(p, core, c, side);
-        const ok = ((): { slot: number } | null => {
-          const onScreen = (q: Pt) => P.onScreen(q) && q[0] >= 14 && q[0] <= 466 && q[1] >= 14 && q[1] <= 886;
-          if (![sp.register, sp.pile, ...sp.queue].every(onScreen)) { why.screen++; return null; }
-          const clear = (q: Pt, r: number) => P.stations.every((s) => dist(q, [s.x, s.y]) >= s.r + r) && P.spots.every((s) => s.id === "start" || dist(q, [s.x, s.y]) >= s.r + r)
-            && P.walls.every((w) => segDist(q, w[0], w[1]) >= r + 2);
-          if (!clear(sp.register, S.standR)) { why.reg++; return null; }
-          if (!clear(sp.pile, S.standR)) { why.pile++; return null; }
-          if (!sp.queue.every((q) => clear(q, 10))) { why.clear++; if (process.env["FO_DEBUG"]) console.log(JSON.stringify({ p, q: sp.queue, st: P.stations.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id), sp: P.spots.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id) })); return null; }
-          // The cashier's slot (south of the clerk spot) belongs to the kiosk's placement: it must be free for a pad
-          // and stay out of the queue lane and the clerk/pile spots; reserved below even if the pad is never hired.
-          let slot = 0;
-          if (hasCashierSlot) {
-            const fits = (cs: Pt): boolean => {
-              const sb = P.box(p, "sink.sales_point"), cb = P.box(cs, "pad");
-              if (sb && cb && cb[0] < sb[2] + S.footprintGap && sb[0] < cb[2] + S.footprintGap && cb[1] < sb[3] + S.footprintGap && sb[1] < cb[3] + S.footprintGap) return false;
-              return P.ok("hire_cashier", cs, R.pad, { key: true, fp: "pad", hugWall: true }) && onScreen(cs)
-                && dist(cs, sp.register) >= R.pad + S.standR && dist(cs, sp.pile) >= R.pad + S.standR
-                && !sp.queue.some((q) => dist(cs, q) < R.pad + 12 + 10);
-            };
-            slot = GEN.cashierPads.findIndex((_, k) => fits(cashierAt(p, sp.register, k)));
-            if (slot < 0) { why.clear++; return null; }
-          }
-          return { slot };
-        })();
-        if (!ok) continue;
-        cands.push({ p, sp, d: dist(p, base) + side * 40, slot: ok.slot, side });
-        break;
+      const raw: Pt = [Math.round(base[0] + (rand.float() - 0.5) * spread), Math.round(base[1] + (rand.float() - 0.5) * spread)];
+      // the spot snapped into a lot first, then the spot as drawn
+      const lp = P.toLot(raw, "sink.sales_point"), n0 = cands.length;
+      for (const p of lp[0] === raw[0] && lp[1] === raw[1] ? [raw] : [lp, raw]) {
+        if (!P.onScreen(p) || !P.ok("shop", p, R.shop)) { why.ok++; continue; }
+        // the clerk spot goes south of the stall if it fits, else east, else west (all in view of the camera)
+        for (const side of [0, 1, 2]) {
+          const sp = salesSpots(p, core, c, side);
+          const ok = ((): { slot: number } | null => {
+            // inside a ring the whole line stands inside it too (traders reach it through the gate)
+            const onScreen = (q: Pt) => P.onScreen(q) && q[0] >= 14 && q[0] <= 466 && q[1] >= 14 && q[1] <= 886 && (!ring || inRect(q, inner));
+            if (![sp.register, sp.pile, ...sp.queue].every(onScreen)) { why.screen++; return null; }
+            const clear = (q: Pt, r: number) => P.stations.every((s) => dist(q, [s.x, s.y]) >= s.r + r) && P.spots.every((s) => s.id === "start" || dist(q, [s.x, s.y]) >= s.r + r)
+              && P.walls.every((w) => segDist(q, w[0], w[1]) >= r + 2);
+            if (!clear(sp.register, S.standR)) { why.reg++; return null; }
+            if (!clear(sp.pile, S.standR)) { why.pile++; return null; }
+            if (!sp.queue.every((q) => clear(q, 10))) { why.clear++; if (process.env["FO_DEBUG"]) console.log(JSON.stringify({ p, q: sp.queue, st: P.stations.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id), sp: P.spots.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id) })); return null; }
+            // The cashier's slot (south of the clerk spot) belongs to the kiosk's placement: it must be free for a pad
+            // and stay out of the queue lane and the clerk/pile spots; reserved below even if the pad is never hired.
+            let slot = 0;
+            if (hasCashierSlot) {
+              const fits = (cs: Pt): boolean => {
+                const sb = P.box(p, "sink.sales_point"), cb = P.box(cs, "pad");
+                if (sb && cb && cb[0] < sb[2] + S.footprintGap && sb[0] < cb[2] + S.footprintGap && cb[1] < sb[3] + S.footprintGap && sb[1] < cb[3] + S.footprintGap) return false;
+                return P.ok("hire_cashier", cs, R.pad, { key: true, fp: "pad", hugWall: true }) && onScreen(cs)
+                  && dist(cs, sp.register) >= R.pad + S.standR && dist(cs, sp.pile) >= R.pad + S.standR
+                  && !sp.queue.some((q) => dist(cs, q) < R.pad + 12 + 10);
+              };
+              slot = GEN.cashierPads.findIndex((_, k) => fits(cashierAt(p, sp.register, k)));
+              if (slot < 0) { why.clear++; return null; }
+            }
+            return { slot };
+          })();
+          if (!ok) continue;
+          cands.push({ p, sp, d: dist(p, base) + side * 40, slot: ok.slot, side, lot: P.inLot(P.box(p, "sink.sales_point")) });
+          break;
+        }
+        if (cands.length > n0) break;
       }
     }
     if (cands.length === 0) fail(`no room for the sales point (${JSON.stringify(why)})`);
-    const best = cands.reduce((a, b) => (b.d < a.d ? b : a));
+    // in a lot when any candidate is
+    const best = (cands.some((x) => x.lot) ? cands.filter((x) => x.lot) : cands).reduce((a, b) => (b.d < a.d ? b : a));
     shopAt = best.p; register = best.sp.register; queue = best.sp.queue;
     P.add("shop", shopAt, R.shop, { key: true, fp: "sink.sales_point" });
     P.spot("register", best.sp.register); P.spot("pile", best.sp.pile);
@@ -517,7 +528,12 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     }
   }
   if (feat.has("depot") && workers) {
-    const dSlots = (["out"] as const).map((k) => ({ id: k, dx: GEN.depotCrewStations[k][0], dy: GEN.depotCrewStations[k][1], r: R.pad, fp: "pad" }));
+    // the hauler's pad, then the warehouse's own pads: drop-off and one pickup per storable resource (content offsets)
+    const dDef = c.structures["struct.depot"]!;
+    const dSlots = [
+      ...(["out"] as const).map((k) => ({ id: k, dx: GEN.depotCrewStations[k][0], dy: GEN.depotCrewStations[k][1], r: R.pad, fp: "pad" })),
+      ...[dDef.dropOffset ?? [0, 0], ...(dDef.pickupOffsets ?? [])].map((o, k) => ({ id: k === 0 ? "drop" : `pick${k - 1}`, dx: o[0], dy: o[1], r: dDef.padRange ?? R.pad, fp: "pad" })),
+    ];
     const dp = placePad("depot", tpl.depot, { build: "struct.depot", slots: dSlots });
     pad({ type: "pad.build", id: "depot", at: [...dp], cost: { "res.currency": cost("depot") }, build: "struct.depot" });
     const ds = placePad("depot_supplier", besideSource("node.fuel_scrap", dp));
@@ -582,6 +598,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     if (dn > 0) ents.push({ type: "zone.prey", id: "prey_danger", rect: [...r], animal: "node.prey_dangerous", n: dn });
   };
 
+  // Traders come in through a gate: the ring always has one in the section nearest the kiosk.
+  const kioskGate = (gates: number[]): number[] => {
+    if (!ring || !shopAt) return gates;
+    const pts = ring.points, at = shopAt;
+    const near = pts.map((p, i) => i).reduce((a, i) => (segDist(at, pts[i]!, pts[(i + 1) % pts.length]!) < segDist(at, pts[a]!, pts[(a + 1) % pts.length]!) ? i : a), 0);
+    return [...new Set([...gates, near])].sort((a, b) => a - b);
+  };
+
   // ---------- rescue: pods, crates, the pass, prey ----------
   let pods = 0, crates = 0;
   if (rescue && ring) {
@@ -590,7 +614,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const gateSide = north ? "n" : "s";
     // Gate: the middle-most section on the pods' side.
     const gIdx = ring.side.map((s, i) => ({ s, i })).filter((x) => x.s === gateSide);
-    ringGates = [gIdx[Math.floor(gIdx.length / 2)]!.i];
+    ringGates = kioskGate([gIdx[Math.floor(gIdx.length / 2)]!.i]);
     ents.push({ type: "barrier.line", id: "ring", res: "res.currency", costPerSection: 1, points: ring.points.map((p) => [...p]), closed: true,
       gates: ringGates, prebuilt: ring.points.map((_, i) => i) });
     const E = GEN.rings.edge, gap = GEN.rings.podGap;
@@ -676,7 +700,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ringGates = gateSides.map((gs) => {
       const gIdx = ring!.side.map((s, i) => ({ s, i })).filter((x) => x.s === gs);
       return gIdx[Math.floor(gIdx.length / 2)]!.i;
-    }).sort((a, b) => a - b);
+    });
+    ringGates = kioskGate(ringGates);
     const wallsCurrency = goal === "perimeter_before_wave1";
     const pre: number[] = [];
     // Gates stand from the start. Where towers are to be bought, so do the corner sections, so the
@@ -897,6 +922,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       "start.currency": startCurrency,
       "core.burn": round1(K.burn),
       "housing.base": Math.max(1, base),
+      // the renderer paves the lots in use and the streets between them
+      "lots.block": GEN.lots.block, "lots.street": GEN.lots.street,
     };
     if (shopAt) {
       params["customers.spawn"] = round1(K.spawn);
@@ -943,6 +970,25 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     });
     for (const t of pieces) ents.push({ type: "zone.terrain", id: t.id, kind: t.kind, rect: [...t.rect] });
     if (pieces.length > 0) notes.push(`terrain ${pieces.map((t) => t.kind).join(",")}`);
+  }
+
+  // Traders walk in from the map edge around every building and through a gate (sim sales.ts).
+  if (shopAt) {
+    const RT = GEN.traderRoute;
+    const solid: Box[] = P.stations.flatMap((s) => (s.solid && s.fp && s.id !== "shop" ? [s.fp] : []));
+    for (const e of ents) if ((e.type === "zone.terrain" || e.type === "zone.blocked") && Array.isArray(e["rect"])) {
+      const r = e["rect"] as number[];
+      solid.push([r[0]!, r[1]!, r[0]! + r[2]!, r[1]! + r[3]!]);
+    }
+    const walls = ents.filter((e) => e.type === "barrier.line").flatMap((e) => {
+      const pts = e["points"] as Pt[], gates = new Set(e["gates"] as number[]);
+      return pts.map((a, i) => ({ a, b: pts[(i + 1) % pts.length]!, gate: gates.has(i) }));
+    });
+    // the route ends on the last queue slot (clear of every wall), so the walk along the line stays inside
+    const tail = queue[queue.length - 1]!;
+    const route = traderRoute({ w: 480, h: 900, solid: [...solid, P.box(shopAt, "sink.sales_point")!], walls, clear: RT.clear, door: RT.door, cell: RT.cell }, tail);
+    if (!route) fail("no trader route from the map edge to the line");
+    ents.find((e) => e.id === "shop")!["route"] = route;
   }
 
   // Hazards: dust storms at fractions of the estimated length.

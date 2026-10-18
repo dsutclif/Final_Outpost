@@ -1,8 +1,8 @@
 {
   "id": "s1-L070",
-  "seed": 714113804,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 1935856185,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -40,7 +40,7 @@
         510
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -49,110 +49,166 @@
       "id": "shop",
       "at": [
         328,
-        598
+        618
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "route": [
+        [
+          255,
+          920
+        ],
+        [
+          255,
+          897
+        ],
+        [
+          252,
+          720
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        155,
-        618
+        150,
+        610
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        143,
-        442
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        177,
-        444
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        142,
-        474
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        162,
-        413
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        178,
-        485
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        111,
+        160,
         440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
+        190,
+        450
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        160,
+        470
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        130,
+        460
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        490
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        160,
+        410
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        130,
+        430
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
         200,
-        462
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        121,
-        412
+        130,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        206,
-        432
+        160,
+        510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        162,
-        511
+        160,
+        380
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        197,
+        90,
+        440
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        120,
         390
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        94,
-        487
+        410,
+        580
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        330,
+        510
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        360,
+        510
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        410,
+        550
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        410,
+        620
       ]
     },
     {
       "type": "zone.blocked",
       "id": "rubble0",
       "rect": [
-        140,
-        229,
+        296,
+        337,
         120,
         70
       ]
@@ -160,33 +216,64 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        264
+        321,
+        372
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        264
+        356,
+        372
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        235,
-        264
+        391,
+        372
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble1",
+      "rect": [
+        121,
+        270,
+        120,
+        70
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        146,
+        305
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        181,
+        305
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        216,
+        305
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        331,
-        473
+        330,
+        460
       ],
       "cost": {
-        "res.currency": 8
+        "res.currency": 9
       },
       "role": {
         "role": "role.supplier",
@@ -199,11 +286,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        208,
-        685
+        200,
+        680
       ],
       "cost": {
-        "res.currency": 12
+        "res.currency": 14
       },
       "role": {
         "role": "role.supplier",
@@ -218,10 +305,10 @@
       "id": "hire_cashier",
       "at": [
         328,
-        722
+        742
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 20
       },
       "role": {
         "role": "role.cashier",
@@ -234,10 +321,10 @@
       "id": "core_level0",
       "at": [
         390,
-        466
+        460
       ],
       "cost": {
-        "res.currency": 25
+        "res.currency": 28
       },
       "build": "sink.core.level"
     },
@@ -245,14 +332,30 @@
       "type": "pad.build",
       "id": "clear0",
       "at": [
-        258,
-        336
+        450,
+        450
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 17
       },
       "build": "zone.clear",
       "target": "rubble0",
+      "requires": {
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "clear1",
+      "at": [
+        210,
+        370
+      ],
+      "cost": {
+        "res.currency": 17
+      },
+      "build": "zone.clear",
+      "target": "rubble1",
       "requires": {
         "coreLevel": 2
       }
@@ -276,25 +379,27 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 10,
-      "start": 18,
-      "end": 40
+      "warnAt": 21,
+      "start": 29,
+      "end": 51
     }
   ],
   "params": {
-    "start.currency": 5,
+    "start.currency": 6,
     "core.burn": 2.5,
     "housing.base": 6,
+    "lots.block": 160,
+    "lots.street": 40,
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.impatientShare": 0.23,
-    "customers.premiumShare": 0.25,
-    "level.budgetSeconds": 180
+    "customers.impatientShare": 0.25,
+    "customers.premiumShare": 0.22,
+    "level.budgetSeconds": 200
   },
   "goal": {
     "type": "clear_zones",
-    "n": 1
+    "n": 2
   },
   "family": "shelter",
   "objectives": [
@@ -302,19 +407,19 @@
       "id": "main",
       "kind": "clear_zones",
       "params": {
-        "n": 1
+        "n": 2
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 104
+        "seconds": 127
       }
     },
     {
       "id": "challenge",
-      "kind": "no_colonist_freezes",
+      "kind": "settlement_never_freezes",
       "params": {}
     }
   ],
@@ -331,9 +436,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.828,
-    "fun": 0.743,
-    "botMargin": 0.636,
+    "difficulty": 0.86,
+    "fun": 0.663,
+    "botMargin": 0.614,
     "botsPassed": [
       "good",
       "average",

@@ -1,8 +1,8 @@
 {
   "id": "s1-L022",
-  "seed": 1533595209,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 21601391,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         510
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -45,102 +45,116 @@
       "id": "shop",
       "at": [
         329,
-        607
+        618
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "route": [
+        [
+          255,
+          920
+        ],
+        [
+          255,
+          897
+        ],
+        [
+          253,
+          720
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        155,
-        610
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        147,
-        439
+        150,
+        620
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         120,
-        453
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        117,
-        416
+        150,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        155,
-        410
+        150,
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        142,
-        475
+        180,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        171,
-        456
+        120,
+        400
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        182,
-        424
+        180,
+        470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        197,
-        469
+        120,
+        470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        132,
-        387
+        150,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        171,
-        486
+        150,
+        390
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        400
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        81,
-        442
+        80,
+        430
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        105,
-        489
+        80,
+        390
       ]
     },
     {
@@ -152,40 +166,29 @@
       ],
       "arrivals": {
         "every": 18,
-        "total": 5
+        "total": 4
       }
     },
     {
       "type": "zone.terrain",
       "id": "terrain0",
-      "kind": "chasm",
+      "kind": "outcrop",
       "rect": [
-        217,
-        190,
-        35,
-        79
-      ]
-    },
-    {
-      "type": "zone.terrain",
-      "id": "terrain1",
-      "kind": "chasm",
-      "rect": [
-        70,
-        69,
-        40,
-        61
+        258,
+        162,
+        43,
+        51
       ]
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        429,
-        575
+        340,
+        465
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 15
       },
       "build": "struct.housing"
     },
@@ -193,23 +196,11 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        82,
-        583
+        80,
+        580
       ],
       "cost": {
-        "res.currency": 17
-      },
-      "build": "struct.housing"
-    },
-    {
-      "type": "pad.build",
-      "id": "housing2",
-      "at": [
-        361,
-        706
-      ],
-      "cost": {
-        "res.currency": 20
+        "res.currency": 18
       },
       "build": "struct.housing"
     }
@@ -226,16 +217,18 @@
   "events": [],
   "params": {
     "start.currency": 3,
-    "core.burn": 2.4,
+    "core.burn": 2.3,
     "housing.base": 2,
-    "customers.spawn": 3,
+    "lots.block": 160,
+    "lots.street": 40,
+    "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 170
+    "level.budgetSeconds": 130
   },
   "goal": {
     "type": "population",
-    "n": 7
+    "n": 6
   },
   "family": "shelter",
   "objectives": [
@@ -243,19 +236,19 @@
       "id": "main",
       "kind": "population",
       "params": {
-        "n": 7
+        "n": 6
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 127
+        "seconds": 99
       }
     },
     {
       "id": "challenge",
-      "kind": "settlement_never_freezes",
+      "kind": "no_colonist_freezes",
       "params": {}
     }
   ],
@@ -265,16 +258,16 @@
   "text": {
     "mars_greenhouse": {
       "title": "Sleepers and Colonists",
-      "goal": "Grow the colony to 7 colonists",
+      "goal": "Grow the colony to 6 colonists",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.35,
-    "fun": 0.854,
-    "botMargin": 0.536,
+    "difficulty": 0.325,
+    "fun": 0.833,
+    "botMargin": 0.53,
     "botsPassed": [
       "good",
       "average",
@@ -283,7 +276,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.67,
+      "median": 3,
       "goodAll": 1
     }
   }

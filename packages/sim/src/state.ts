@@ -67,6 +67,8 @@ export interface CustomerState {
   patienceMax: number;
   pos: Vec;
   angry: boolean;
+  /** Next route waypoint: counts up on the way in (route length = in line), down on the way out. */
+  leg: number;
 }
 
 export interface SalesState {
@@ -87,6 +89,8 @@ export interface SalesState {
   queueStep: Vec;
   /** x of the map edge customers arrive from and leave to (the edge on the stall's side), fixed point. */
   edgeX: number;
+  /** Waypoints from the map edge (first) to the back of the line (last), fixed point. */
+  route: Vec[];
   /** Customer at the window, ticks spent and ticks needed; present only while a timed sale is under way. */
   serving?: { customer: number; ticks: number; of: number };
 }
@@ -258,6 +262,8 @@ export interface ConverterState {
 export interface DepotState {
   pos: Vec;
   stock: Record<string, number>;
+  /** Stored resources in order of first arrival; the k-th has the k-th pickup pad. */
+  stores: string[];
 }
 
 export interface MetersState {
@@ -310,6 +316,8 @@ export interface ObjectiveState {
   done: boolean;
   /** Can no longer be achieved (a guard was breached or a deadline passed). */
   failed: boolean;
+  /** Tick it was done; -1 while not. */
+  doneTick: number;
 }
 
 export interface TimersState {
@@ -336,6 +344,8 @@ export interface Stats {
   rewardCount?: number;
   /** Units conveyor belts delivered (set on the first delivery). */
   conveyed?: number;
+  /** Units the player took back out of the warehouse (set on the first pickup). */
+  depotPicked?: number;
   /** Tick of the most recent reward event. */
   rewardLastTick?: number;
   /** Longest gap between consecutive reward events, in ticks (the first gap counts from tick 0). */

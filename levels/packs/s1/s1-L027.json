@@ -1,8 +1,8 @@
 {
   "id": "s1-L027",
-  "seed": 561101499,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 144597288,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         560
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -44,146 +44,118 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        292,
-        694
+        302,
+        682
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "route": [
+        [
+          225,
+          920
+        ],
+        [
+          225,
+          897
+        ],
+        [
+          226,
+          784
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        317,
+        310,
         440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        153,
-        445
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        145,
-        473
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        180,
+        160,
         460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        172,
-        489
+        150,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        171,
-        422
+        170,
+        490
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        130,
+        460
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        440
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        140,
+        490
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        150,
+        520
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        220,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         120,
-        447
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        115,
-        480
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        212,
-        455
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        142,
-        410
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        144,
-        505
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        200,
         420
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        168,
-        380
+        200,
+        400
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        87,
-        425
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        379,
-        701
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        384,
-        661
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        397,
-        625
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        404,
-        725
+        160,
+        390
       ]
     },
     {
       "type": "zone.blocked",
       "id": "rubble0",
       "rect": [
-        286,
-        318,
+        74,
+        752,
         120,
         70
       ]
@@ -191,33 +163,64 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        311,
-        353
+        99,
+        787
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        346,
-        353
+        134,
+        787
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        381,
-        353
+        169,
+        787
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble1",
+      "rect": [
+        340,
+        508,
+        120,
+        70
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        365,
+        543
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        400,
+        543
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        435,
+        543
       ]
     },
     {
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        173,
-        575
+        170,
+        580
       ],
       "cost": {
-        "res.currency": 27
+        "res.currency": 28
       },
       "build": "sink.core.level"
     },
@@ -225,14 +228,30 @@
       "type": "pad.build",
       "id": "clear0",
       "at": [
-        383,
-        435
+        130,
+        710
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 17
       },
       "build": "zone.clear",
       "target": "rubble0",
+      "requires": {
+        "coreLevel": 2
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "clear1",
+      "at": [
+        400,
+        630
+      ],
+      "cost": {
+        "res.currency": 17
+      },
+      "build": "zone.clear",
+      "target": "rubble1",
       "requires": {
         "coreLevel": 2
       }
@@ -242,17 +261,19 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.6,
+    "start.currency": 3,
+    "core.burn": 2.4,
     "housing.base": 2,
-    "customers.spawn": 3,
+    "lots.block": 160,
+    "lots.street": 40,
+    "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 130
+    "level.budgetSeconds": 180
   },
   "goal": {
     "type": "clear_zones",
-    "n": 1
+    "n": 2
   },
   "family": "shelter",
   "objectives": [
@@ -260,14 +281,14 @@
       "id": "main",
       "kind": "clear_zones",
       "params": {
-        "n": 1
+        "n": 2
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 91
+        "seconds": 127
       }
     },
     {
@@ -289,18 +310,17 @@
     }
   },
   "rating": {
-    "difficulty": 0.403,
-    "fun": 0.855,
-    "botMargin": 0.57,
+    "difficulty": 0.765,
+    "fun": 0.904,
+    "botMargin": 0.566,
     "botsPassed": [
       "good",
       "average",
-      "weak",
-      "novice"
+      "weak"
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2.67,
       "goodAll": 1
     }
   }

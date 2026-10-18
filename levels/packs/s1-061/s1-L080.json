@@ -1,8 +1,8 @@
 {
   "id": "s1-L080",
-  "seed": 509946472,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 709330810,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -40,7 +40,7 @@
         510
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -48,83 +48,127 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        348,
-        626
+        329,
+        592
       ],
       "sells": [
         "res.food_raw_1",
         "res.food_raw_2"
+      ],
+      "route": [
+        [
+          500,
+          657
+        ],
+        [
+          477,
+          657
+        ],
+        [
+          453,
+          657
+        ],
+        [
+          447,
+          657
+        ],
+        [
+          435,
+          657
+        ],
+        [
+          429,
+          657
+        ],
+        [
+          405,
+          694
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        336,
-        484
+        370,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        189,
-        467
+        170,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        448
+        210,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        202,
-        440
+        170,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        168,
-        493
+        190,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        141,
-        473
+        200,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        195,
-        522
+        160,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        192,
-        407
+        200,
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        146,
-        418
+        140,
+        470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        124,
-        503
+        140,
+        500
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        170,
+        390
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        230,
+        390
       ]
     },
     {
@@ -184,7 +228,8 @@
       ],
       "closed": true,
       "gates": [
-        1
+        1,
+        5
       ],
       "prebuilt": [
         0,
@@ -204,29 +249,36 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        421,
-        233
+        379,
+        85
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        96,
+        72,
+        175
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        283,
+        107
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        189,
         218
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        269,
-        124
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        112,
-        99
+        82,
+        59
       ]
     },
     {
@@ -239,17 +291,29 @@
         150
       ],
       "animal": "node.prey",
-      "n": 3
+      "n": 1
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey_danger",
+      "rect": [
+        20,
+        340,
+        60,
+        150
+      ],
+      "animal": "node.prey_dangerous",
+      "n": 2
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        217,
-        579
+        300,
+        380
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 8
       },
       "role": {
         "role": "role.supplier",
@@ -262,11 +326,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        402,
-        507
+        360,
+        660
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 12
       },
       "role": {
         "role": "role.supplier",
@@ -280,11 +344,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        228,
-        656
+        209,
+        622
       ],
       "cost": {
-        "res.currency": 22
+        "res.currency": 18
       },
       "role": {
         "role": "role.cashier",
@@ -307,20 +371,22 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
-    "core.burn": 2.2,
-    "housing.base": 9,
-    "customers.spawn": 3.1,
+    "start.currency": 3,
+    "core.burn": 2.7,
+    "housing.base": 10,
+    "lots.block": 160,
+    "lots.street": 40,
+    "customers.spawn": 3.2,
     "sales.clerkSide": 2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.impatientShare": 0.3,
+    "customers.impatientShare": 0.33,
     "customers.premiumShare": 0.17,
     "level.budgetSeconds": 290
   },
   "goal": {
     "type": "hunt",
-    "n": 25
+    "n": 17
   },
   "family": "rescue",
   "objectives": [
@@ -328,14 +394,14 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 25
+        "n": 17
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 258
+        "seconds": 242
       }
     },
     {
@@ -359,9 +425,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.738,
-    "fun": 0.948,
-    "botMargin": 0.443,
+    "difficulty": 0.719,
+    "fun": 0.886,
+    "botMargin": 0.491,
     "botsPassed": [
       "good",
       "average",
@@ -370,9 +436,9 @@
       "floor"
     ],
     "stars": {
-      "good": 2.9,
+      "good": 3,
       "median": 3,
-      "goodAll": 0.9
+      "goodAll": 1
     }
   }
 }

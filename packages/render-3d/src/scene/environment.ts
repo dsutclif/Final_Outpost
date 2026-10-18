@@ -36,6 +36,8 @@ const SLAB = 40;
 
 /** Something built (or to be built) on the map: gets a concrete apron of radius r. */
 export interface Site { x: number; z: number; r: number; core?: boolean }
+/** The generator's lots and streets: streets cross at the core (x, z) and repeat every block + street. */
+export interface Lots { x: number; z: number; block: number; street: number }
 /** Key light: low and from the left so structures throw long shadows; ambient stays low for contrast. */
 const SUN = 3.3, SUN_OFS = [-400, 460, 140] as const, HEMI = 1.15, HEMI_LOW = 2.2;
 
@@ -68,7 +70,7 @@ export class Environment {
   /** 0..1 storm blend (eased toward the hazard phase). */
   storminess = 0;
 
-  constructor(private readonly scene: Scene, readonly W: number, readonly H: number, private readonly t: Tokens, private readonly mats: MaterialSet, private readonly seed: number, sites: readonly Site[] = []) {
+  constructor(private readonly scene: Scene, readonly W: number, readonly H: number, private readonly t: Tokens, private readonly mats: MaterialSet, private readonly seed: number, sites: readonly Site[] = [], private readonly lots: Lots | null = null) {
     this.cFog = new Color(t.fog);
     this.cStorm = new Color(t.storm);
     this.cSky = new Color(t.sky);
@@ -175,6 +177,20 @@ export class Environment {
         if (Math.max(Math.abs(dx), Math.abs(dz)) <= s.r + SLAB * 0.5) mark(i, j);
       }
     }
+    // lots and streets: every lot with a site on it is paved with the streets round it, and a pipe
+    // runs along each of those streets at the lot's edge
+    const L = this.lots, pipes: [number, number, number][] = [];
+    if (L) {
+      const P = L.block + L.street, k = (v: number, c: number) => Math.floor((v - c - L.street / 2) / P);
+      const used = new Set<string>();
+      for (const s of sites) used.add(`${k(s.x, L.x)},${k(s.z, L.z)}`);
+      for (const key of used) {
+        const [a, b] = key.split(",").map(Number) as [number, number];
+        const x0 = L.x + L.street / 2 + a * P, z0 = L.z + L.street / 2 + b * P;
+        for (let j = cell(z0 - L.street); j <= cell(z0 + L.block + L.street - 1); j++) for (let i = cell(x0 - L.street); i <= cell(x0 + L.block + L.street - 1); i++) mark(i, j);
+        pipes.push([x0, x0 + L.block, z0 - L.street / 2], [x0, x0 + L.block, z0 + L.block + L.street / 2]);
+      }
+    }
     const core = sites.find((s) => s.core);
     if (core) {
       for (const s of sites) {
@@ -194,6 +210,13 @@ export class Environment {
       const c = h < 0.15 ? worn : h > 0.82 ? alt : base;
       const lift = 0.9 + hash01(i * 3.7 + j * 5.9) * 0.5;
       b.box(SLAB - gap, lift, SLAB - gap, c, { at: [(i + 0.5) * SLAB, lift / 2, (j + 0.5) * SLAB] });
+    }
+    // pipes on low stands, merged with the slabs
+    const pipe = mix(t.structure, t.ink, 0.25);
+    for (const [x0, x1, z] of pipes) {
+      if (x0 < 0 || x1 > W || z < 0 || z > H) continue;
+      b.box(x1 - x0, 3.2, 3.2, pipe, { at: [(x0 + x1) / 2, 4.6, z] });
+      for (let x = x0 + 10; x < x1; x += 40) b.box(2, 3, 5, base, { at: [x, 1.5, z] });
     }
     const m = new Mesh(b.build(), this.mats.slab);
     m.name = "slabs";

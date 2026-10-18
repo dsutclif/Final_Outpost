@@ -1,8 +1,8 @@
 {
   "id": "s1-L044",
-  "seed": 922952508,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 103669247,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,89 +44,103 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        330,
-        603
+        327,
+        618
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "route": [
+        [
+          249,
+          920
+        ],
+        [
+          249,
+          897
+        ],
+        [
+          251,
+          720
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        155,
-        611
+        150,
+        600
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        122,
-        417
+        120,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        139,
-        443
+        150,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        95,
-        435
+        130,
+        410
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        151,
-        408
+        160,
+        410
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        124,
-        388
+        180,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        81,
-        406
+        180,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        111,
-        468
+        120,
+        470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        457
+        90,
+        430
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        67,
-        467
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        169,
+        160,
         370
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        90,
+        390
       ]
     },
     {
@@ -145,8 +159,8 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        431,
-        594
+        340,
+        465
       ],
       "cost": {
         "res.currency": 16
@@ -157,8 +171,8 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        86,
-        606
+        80,
+        580
       ],
       "cost": {
         "res.currency": 19
@@ -169,8 +183,8 @@
       "type": "pad.build",
       "id": "housing2",
       "at": [
-        366,
-        697
+        340,
+        785
       ],
       "cost": {
         "res.currency": 22
@@ -189,17 +203,19 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
+    "start.currency": 1,
     "core.burn": 2.1,
     "housing.base": 2,
+    "lots.block": 160,
+    "lots.street": 40,
     "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 360
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "survive",
-    "seconds": 200
+    "seconds": 190
   },
   "family": "shelter",
   "objectives": [
@@ -207,20 +223,20 @@
       "id": "main",
       "kind": "survive",
       "params": {
-        "seconds": 200
+        "seconds": 190
       }
     },
     {
       "id": "challenge2",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    },
+    {
+      "id": "challenge",
       "kind": "heat_floor",
       "params": {
         "pct": 35
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "settlement_never_freezes",
-      "params": {}
     }
   ],
   "fail": [
@@ -236,9 +252,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.025,
-    "fun": 0.705,
-    "botMargin": 0.661,
+    "difficulty": 0.024,
+    "fun": 0.738,
+    "botMargin": 0.677,
     "botsPassed": [
       "good",
       "average",
@@ -248,7 +264,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2.67,
       "goodAll": 1
     }
   }

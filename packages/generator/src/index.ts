@@ -150,6 +150,28 @@ function dropPads(m: Manifest, ids: ReadonlySet<string>): void {
   m.entities = m.entities.filter((e) => !("id" in e && e.id && gone.has(e.id)));
 }
 
+/**
+ * The level without each optional pad it can do without: one at a time, a pad goes when the good bot
+ * still wins every quick seed and earns as many stars without it. Null when every pad earns its place.
+ */
+function spareCut(m: Manifest, c: Content): Manifest | null {
+  const stars = (x: Manifest): number => {
+    // a cut that takes a pad the goal names with it leaves no valid level
+    let rs: BotResult[];
+    try { rs = [1, 2, 3].map((s) => playBot(x, REF, s, { content: c })); } catch { return -1; }
+    return rs.every((r) => r.won) ? rs.reduce((a, r) => a + r.stars, 0) : -1;
+  };
+  const base = stars(m);
+  let cur = m, cut = false;
+  for (const e of m.entities) {
+    if (!("id" in e) || !e.id || !optionalPad(e, c) || !cur.entities.some((x) => "id" in x && x.id === e.id)) continue;
+    const next = structuredClone(cur);
+    dropPads(next, new Set([e.id]));
+    if (stars(next) >= base) { cur = next; cut = true; }
+  }
+  return cut ? cur : null;
+}
+
 /** Every element of the level used on the good bot's winning runs (REDESIGN-R2: nothing superfluous). */
 function idleElements(m: Manifest, runs: readonly BotResult[]): string[] {
   const wins = runs.filter((r) => r.won);
@@ -188,7 +210,7 @@ function earned(o: Obj, r: BotResult): boolean {
   const s = r.runStats;
   if (!r.won) return false;
   switch (o.kind) {
-    case "time_target": return r.ticks <= Number(o.params["seconds"]) * 30;
+    case "time_target": return r.goalTicks <= Number(o.params["seconds"]) * 30;
     case "settlement_never_freezes": return s.fuelOuts === 0;
     case "no_colonist_freezes": return s.froze === 0;
     case "heat_floor": return s.heatMin >= Number(o.params["pct"]) * 10;
@@ -282,14 +304,14 @@ function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string
     if (ordered.length < 2) return "time-fixed goal needs two family challenges";
     second = { ...ordered[1]!, id: "challenge2" };
   } else {
-    const tMax = Math.max(...good.map((r) => r.ticks)) / 30;
+    const tMax = Math.max(...good.map((r) => r.goalTicks)) / 30;
     // Never tighter than 1.15x the good bot's median finish: humans are slower than the bot.
-    const sorted = good.filter((r) => r.won).map((r) => r.ticks / 30).sort((a, b) => a - b);
+    const sorted = good.filter((r) => r.won).map((r) => r.goalTicks / 30).sort((a, b) => a - b);
     const floorSec = Math.ceil((sorted[Math.floor((sorted.length - 1) / 2)] ?? tMax) * STAR_CAPS.timeSlack);
     second = { id: "time", kind: "time_target", params: { seconds: Math.max(floorSec, Math.ceil(tMax * 1.04)) } };
     if (!nonTrivial(second)) {
       // Everyone finishes in time: tighten to the median rung's typical time if that still keeps the good bot.
-      const med = ms.runs[MEDIAN_RUNG]!.filter((r) => r.won).map((r) => r.ticks / 30);
+      const med = ms.runs[MEDIAN_RUNG]!.filter((r) => r.won).map((r) => r.goalTicks / 30);
       const t = med.length > 0 ? Math.floor(Math.min(...med) / 5) * 5 : 0;
       if (t > tMax && t >= floorSec) second.params["seconds"] = t;
       // Defend levels end on the wave clock, so every rung can finish together: a second challenge instead.
@@ -361,7 +383,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     let quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
     // Hazards must land while the level is still running: pull them in when the good bot finishes early.
     if (m.events.length > 0 && m.goal.type !== "hazard_survive" && quick.every((r) => r.won)) {
-      const tMin = Math.min(...quick.map((r) => r.ticks)) / 30;
+      const tMin = Math.min(...quick.map((r) => r.goalTicks)) / 30;
       const last = Math.max(...m.events.map((e) => e.end));
       if (last > tMin * 0.85) {
         const shift = Math.round(last - tMin * 0.7);
@@ -377,7 +399,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       continue;
     }
     if (!TIME_FIXED_GOALS.has(m.goal.type)) {
-      const tMax = Math.max(...quick.map((r) => r.ticks)) / 30;
+      const tMax = Math.max(...quick.map((r) => r.goalTicks)) / 30;
       m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(60, Math.round(tMax / (1 - knobs.margin) / 10) * 10)), 10);
     }
     const rateIt = (seeds: { ref: number; other: number }) => {
@@ -385,7 +407,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       const ms = measure(m, { content: c, refSeeds: seeds.ref, otherSeeds: seeds.other, history });
       return { ms, r: score(ms, { content: c, reference }) };
     };
-    log(`  it${it} good=${quick.map((q) => Math.round(q.ticks / 30)).join("/")}s budget=${m.params["level.budgetSeconds"]} goal=${JSON.stringify(m.goal)}`);
+    log(`  it${it} good=${quick.map((q) => Math.round(q.goalTicks / 30)).join("/")}s budget=${m.params["level.budgetSeconds"]} goal=${JSON.stringify(m.goal)}`);
     let { ms, r } = rateIt(opts.seeds?.quick ?? S.quickSeeds);
     const flags = Object.entries(r.filters).filter(([, v]) => v).map(([k]) => k);
     log(`  it${it} p=${p.toFixed(2)} D=${r.D.toFixed(3)} F=${r.F.toFixed(3)} feasible=${r.feasible} loopMax=${ms.loopMax} [${ms.loopKey}] ${flags.join(",")} ${r.evidence.idleModules.join(",")}`);
@@ -439,11 +461,22 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
           if (!v.feasible) { reject("infeasible"); log(`  it${it} good bot loses or wins narrowly on the final objectives`); }
           else if (v.goodAny === 0) { reject("stars"); log(`  it${it} good bot never earns all three stars`); }
           else {
-            attachRating(m, r, req.introduced ?? [], v.summary);
-            const cand: Candidate = { manifest: m, rating: r, p, err, stars: v.summary, starsByRung: v.byRung };
-            if (!best || err < best.err) best = cand;
-            if (err <= tol && r.F >= fmin) return { manifest: m, best: cand, stats };
-            if (err <= tol) reject("lowFun"); else reject("offTarget");
+            // No pad the level can be finished (stars included) without: re-rate the trimmed level and keep it if it still passes.
+            let fin = { m, r, v, err };
+            const lean = spareCut(m, c);
+            if (lean) {
+              stats.ratings++;
+              const ms2 = measure(lean, { content: c, refSeeds: (opts.seeds?.full ?? S.fullSeeds).ref, otherSeeds: (opts.seeds?.full ?? S.fullSeeds).other, history });
+              const r2 = score(ms2, { content: c, reference });
+              const v2 = r2.ok && !overLoopCap(ms2) && idleElements(lean, ms2.runs["good"]!).length === 0 ? verifyStars(lean, c) : null;
+              if (v2 && v2.feasible && v2.goodAny > 0) fin = { m: lean, r: r2, v: v2, err: Math.abs(r2.D - req.target) };
+              log(`  it${it} spare pads: ${m.entities.filter((e) => "id" in e && !lean.entities.some((x) => "id" in x && x.id === e.id)).map((e) => (e as { id: string }).id).join(", ")}${fin.m === lean ? " dropped" : " kept (the trimmed level fails)"}`);
+            }
+            attachRating(fin.m, fin.r, req.introduced ?? [], fin.v.summary);
+            const cand: Candidate = { manifest: fin.m, rating: fin.r, p, err: fin.err, stars: fin.v.summary, starsByRung: fin.v.byRung };
+            if (!best || cand.err < best.err) best = cand;
+            if (fin.err <= tol && fin.r.F >= fmin) return { manifest: fin.m, best: cand, stats };
+            if (fin.err <= tol) reject("lowFun"); else reject("offTarget");
           }
         }
       }
@@ -499,7 +532,7 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
     const m = built.manifest;
     const quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
     if (quick.some((r) => !r.won)) return null;
-    if (!TIME_FIXED_GOALS.has(m.goal.type)) m.params["level.budgetSeconds"] = timeTarget(Math.round(Math.max(...quick.map((r) => r.ticks)) / 30 / (1 - knobs.margin) / 10) * 10, 10);
+    if (!TIME_FIXED_GOALS.has(m.goal.type)) m.params["level.budgetSeconds"] = timeTarget(Math.round(Math.max(...quick.map((r) => r.goalTicks)) / 30 / (1 - knobs.margin) / 10) * 10, 10);
     const ms = measure(m, { content: c, refSeeds: GEN.search.fullSeeds.ref, otherSeeds: GEN.search.fullSeeds.other });
     return { goal: m.goal.type, metrics: ms.metrics };
   }

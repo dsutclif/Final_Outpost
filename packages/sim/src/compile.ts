@@ -93,6 +93,9 @@ export interface CompiledStructure {
   healTicks: number;
   healOffset: Vec;
   range: number;
+  padRange: number;
+  dropOffset: Vec;
+  pickupOffsets: Vec[];
   effects: CompiledEffect[];
 }
 
@@ -174,8 +177,8 @@ export interface CompiledSales {
   premiumShare: number;
   /** Fraction of the remaining distance closed per tick, out of FP. */
   approach: number;
-  leaveX: number;
-  leaveY: number;
+  /** Walking speed along the route, per tick. */
+  walk: number;
   customers: Record<string, CompiledCustomerDef>;
 }
 
@@ -266,6 +269,8 @@ export interface Compiled {
   routing: { hintFill: number };
   stats: { lifelineLow: number; coreLowFill: number };
   timerTicks: number;
+  /** After the main goal: how long open star objectives stay live before the level ends anyway. */
+  overtimeTicks: number;
 }
 
 const vec = ([x, y]: readonly [number, number]): Vec => ({ x: fp(x), y: fp(y) });
@@ -333,6 +338,9 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       healTicks: ticks(s.healTime ?? 0),
       healOffset: s.healOffset ? vec(s.healOffset) : { x: 0, y: 0 },
       range: fp(s.range ?? 0),
+      padRange: fp(s.padRange ?? 0),
+      dropOffset: s.dropOffset ? vec(s.dropOffset) : { x: 0, y: 0 },
+      pickupOffsets: (s.pickupOffsets ?? []).map(vec),
       effects: s.effects.map(effect),
     };
   }
@@ -415,8 +423,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     impatientShare: ratio(param("customers.impatientShare")),
     premiumShare: ratio(param("customers.premiumShare")),
     approach: Math.min(FP, Math.round((param("customers.approach") * FP) / TPS)),
-    leaveX: perTick(param("customers.leaveSpeedX")),
-    leaveY: perTick(param("customers.leaveSpeedY")),
+    walk: perTick(param("customers.walkSpeed")),
     customers,
   };
 
@@ -561,5 +568,6 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     routing: { hintFill: ratio(param("routing.hintFill")) },
     stats: { lifelineLow: ratio(param("stats.lifelineLow")), coreLowFill: ratio(param("stats.coreLowFill")) },
     timerTicks: timerSeconds > 0 ? ticks(timerSeconds) : 0,
+    overtimeTicks: ticks(param("level.overtimeSeconds")),
   };
 }

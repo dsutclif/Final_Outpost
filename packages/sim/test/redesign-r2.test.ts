@@ -70,6 +70,31 @@ describe("B2: every sale comes from exactly one queued customer", () => {
     // It took the walk in from the edge, not one tick after spawning.
     expect(st.tick).toBeGreaterThan(sim.compiled.sales.initialDelayTicks + 10);
   });
+
+  it("customers walk the generated route in, waypoint by waypoint, and the same way back out", () => {
+    const shop = ents(LEVEL_1).find((e) => e.type === "sink.sales_point")!;
+    const route = [[shop.at[0], 920], [shop.at[0] - 120, 820], [shop.at[0] - 120, shop.at[1] + 60]];
+    const sim = newSim({ entities: ents(LEVEL_1).map((e) => (e === shop ? { ...e, route } : e)) });
+    const st = sim.state, pts = route.map(([x, y]) => at(x!, y!));
+    const seen = new Map<number, number[]>();
+    const note = (q: { id: number; pos: { x: number; y: number } }) => {
+      const k = pts.findIndex((p) => within(q.pos, p, 8 * FP));
+      const s = seen.get(q.id) ?? [];
+      if (k >= 0 && s[s.length - 1] !== k) s.push(k);
+      seen.set(q.id, s);
+    };
+    st.player.pos = { ...st.sales!.register };
+    let gone = -1;
+    for (let i = 0; i < 60 * TPS && gone < 0; i++) {
+      restock(st, 8);
+      sim.step({ dx: 0, dy: 0 });
+      for (const q of [...st.sales!.queue, ...st.sales!.leaving]) note(q);
+      const left = [...seen.keys()].find((id) => !st.sales!.queue.some((q) => q.id === id) && !st.sales!.leaving.some((q) => q.id === id));
+      if (left !== undefined) gone = left;
+    }
+    expect(gone).toBeGreaterThanOrEqual(0);
+    expect(seen.get(gone)).toEqual([0, 1, 2, 1, 0]);
+  });
 });
 
 describe("clerk pad and queue side", () => {
@@ -382,6 +407,18 @@ describe("objectives", () => {
     expect(sim.state.objectives.map((o) => [o.done, o.failed])).toEqual([[true, false], [true, false], [true, false]]);
     expect(starsOf(sim.state)).toBe(3);
     expect(all(ev, "objective").map((o) => o.id)).toEqual(["main", "a", "b"]);
+  });
+
+  it("the level ends on its slowest goal: an open star keeps it running after the main goal, for at most the overtime", () => {
+    const sim = createSim(level(LEVEL_1, {
+      goal: { type: "survive", seconds: 10 }, params: { ...(LEVEL_1 as Loose).params, "core.burn": 9999 },
+      objectives: objs({ kind: "survive", params: { seconds: 10 } }, { kind: "crates", params: { n: 1 } }, { kind: "no_colonist_freezes" }),
+    }));
+    const ev = idle(sim, 200 * TPS, (e) => has(e, "level_end"));
+    expect(find(ev, "level_end")).toMatchObject({ won: true, reason: "goal" });
+    expect(sim.state.objectives[0]!.doneTick).toBe(10 * TPS);
+    expect(sim.state.tick).toBe(10 * TPS + content.defaults["level.overtimeSeconds"]! * TPS);
+    expect(sim.state.objectives.map((o) => o.done)).toEqual([true, false, true]);
   });
 
   it("guards fail on their first breach; deadlines fail when they pass; a lost level settles the rest as failed", () => {

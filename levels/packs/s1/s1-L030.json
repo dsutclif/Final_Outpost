@@ -1,8 +1,8 @@
 {
   "id": "s1-L030",
   "seed": 1271275899,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -39,7 +39,7 @@
         520
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -47,89 +47,107 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        306,
-        635
+        316,
+        602
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "route": [
+        [
+          500,
+          663
+        ],
+        [
+          477,
+          663
+        ],
+        [
+          405,
+          663
+        ],
+        [
+          392,
+          704
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        328,
-        499
+        320,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        139,
-        509
+        150,
+        510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        162,
-        489
+        160,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        539
+        160,
+        540
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        126,
-        482
+        130,
+        540
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        133,
-        538
+        110,
+        500
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        186,
+        130,
         470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
+        170,
+        570
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        180,
+        450
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
         100,
-        497
+        530
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        99,
-        531
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        151,
-        566
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        145,
-        447
+        140,
+        440
       ]
     },
     {
@@ -189,7 +207,8 @@
       ],
       "closed": true,
       "gates": [
-        1
+        1,
+        5
       ],
       "prebuilt": [
         0,
@@ -219,65 +238,58 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        202,
-        62
+        141,
+        63
       ],
-      "freeze": 134
+      "freeze": 143
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        326,
-        59
+        252,
+        40
       ],
-      "freeze": 153
+      "freeze": 163
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        336,
-        247
+        299,
+        252
       ],
-      "freeze": 148
+      "freeze": 155
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        37,
+        181,
+        221
+      ],
+      "freeze": 177
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        410,
+        249
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        55,
         239
-      ],
-      "freeze": 173
-    },
-    {
-      "type": "capture.supply_crate",
-      "at": [
-        230,
-        251
-      ]
-    },
-    {
-      "type": "capture.supply_crate",
-      "at": [
-        126,
-        208
-      ]
-    },
-    {
-      "type": "capture.supply_crate",
-      "at": [
-        432,
-        214
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        198,
-        586
+        130,
+        620
       ],
       "cost": {
-        "res.currency": 9
+        "res.currency": 8
       },
       "role": {
         "role": "role.supplier",
@@ -290,11 +302,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        352,
-        404
+        240,
+        400
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 13
       },
       "role": {
         "role": "role.supplier",
@@ -308,11 +320,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        186,
-        665
+        196,
+        632
       ],
       "cost": {
-        "res.currency": 21
+        "res.currency": 19
       },
       "role": {
         "role": "role.cashier",
@@ -324,11 +336,11 @@
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        118,
-        612
+        170,
+        390
       ],
       "cost": {
-        "res.currency": 29
+        "res.currency": 27
       },
       "build": "sink.core.level"
     },
@@ -340,7 +352,7 @@
         239
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 16
       },
       "build": "zone.clear",
       "target": "pass",
@@ -366,15 +378,17 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.3,
+    "start.currency": 4,
+    "core.burn": 2.5,
     "housing.base": 10,
-    "customers.spawn": 3.1,
+    "lots.block": 160,
+    "lots.street": 40,
+    "customers.spawn": 3,
     "sales.clerkSide": 2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.bulkShare": 0.17,
-    "level.budgetSeconds": 170
+    "customers.bulkShare": 0.19,
+    "level.budgetSeconds": 180
   },
   "goal": {
     "type": "rescue",
@@ -393,7 +407,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 136
+        "seconds": 130
       }
     },
     {
@@ -417,14 +431,15 @@
     }
   },
   "rating": {
-    "difficulty": 0.921,
-    "fun": 0.878,
-    "botMargin": 0.506,
+    "difficulty": 0.675,
+    "fun": 0.831,
+    "botMargin": 0.545,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,

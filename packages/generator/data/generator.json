@@ -48,7 +48,9 @@
     "rescueShop": { "hw": 180, "hh": 200, "split": [3, 3] },
     "podGap": 62, "edge": 36, "towerPadIn": 46, "towerPadSearch": 30, "towerPadHug": 28
   },
-  "spacing": { "margin": 8, "standR": 16, "screen": [230, 420], "screenRadius": 440, "footprintGap": 6, "corePull": 0.3 },
+  "traderRoute": { "_doc": "Grid cell, clearance from footprints and walls, and half the gate door opening (world units).", "cell": 6, "clear": 10, "door": 16 },
+  "lots": { "_doc": "Lots and streets (POLISH-PLAN item 7B): streets of street units cross at the core (its plaza) and repeat every block + street; square lots of block units between them; buildings keep to one lot along each axis they fit.", "block": 160, "street": 40 },
+  "spacing": { "margin": 8, "standR": 16, "screen": [230, 420], "screenRadius": 440, "footprintGap": 4, "corePull": 0.6 },
   "crewStations": { "in": [-64, 58], "op": [0, 96], "out": [100, 16] },
   "corePadBeside": [72, 18],
   "busyForestMax": 9,

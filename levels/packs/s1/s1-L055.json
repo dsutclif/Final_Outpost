@@ -1,8 +1,8 @@
 {
   "id": "s1-L055",
   "seed": 2110915574,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         500
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -44,110 +44,110 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        290,
-        637
+        302,
+        634
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "route": [
+        [
+          225,
+          920
+        ],
+        [
+          225,
+          897
+        ],
+        [
+          226,
+          736
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        363,
-        505
+        360,
+        500
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        96,
-        464
+        100,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        124,
-        455
+        130,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        107,
-        498
+        160,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        92,
-        433
+        120,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        141,
-        494
+        90,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        67,
-        464
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        153,
-        457
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        59,
-        492
+        160,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         140,
-        425
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        77,
-        516
+        120,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        171,
-        488
+        70,
+        450
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        168,
-        527
+        160,
+        410
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        119,
-        537
+        80,
+        530
       ]
     },
     {
@@ -158,19 +158,19 @@
         800
       ],
       "arrivals": {
-        "every": 16,
-        "total": 4
+        "every": 17,
+        "total": 5
       }
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        394,
-        615
+        189,
+        600
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 15
       },
       "build": "struct.housing"
     },
@@ -178,11 +178,23 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        144,
-        628
+        120,
+        620
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 18
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing2",
+      "at": [
+        320,
+        775
+      ],
+      "cost": {
+        "res.currency": 21
       },
       "build": "struct.housing"
     }
@@ -199,24 +211,26 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 0,
-      "start": 4,
-      "end": 22
+      "warnAt": 38,
+      "start": 46,
+      "end": 68
     }
   ],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.4,
+    "start.currency": 2,
+    "core.burn": 2.3,
     "housing.base": 2,
-    "customers.spawn": 3,
+    "lots.block": 160,
+    "lots.street": 40,
+    "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 130
+    "level.budgetSeconds": 220
   },
   "goal": {
     "type": "build_count",
     "build": "struct.housing",
-    "n": 2
+    "n": 3
   },
   "family": "shelter",
   "objectives": [
@@ -225,14 +239,14 @@
       "kind": "build_count",
       "params": {
         "build": "struct.housing",
-        "n": 2
+        "n": 3
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 88
+        "seconds": 160
       }
     },
     {
@@ -254,9 +268,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.545,
-    "fun": 0.845,
-    "botMargin": 0.576,
+    "difficulty": 0.601,
+    "fun": 0.75,
+    "botMargin": 0.553,
     "botsPassed": [
       "good",
       "average",

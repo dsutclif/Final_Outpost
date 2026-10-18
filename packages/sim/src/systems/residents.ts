@@ -4,7 +4,7 @@ import { FP, mulDiv, within, type Vec } from "../fixed.js";
 import type { ConverterState, DropState, NodeState, PreyState, ResidentState, State } from "../state.js";
 import { guardPost } from "./barriers.js";
 import { hitHostile, hitPrey, nearestHostile } from "./combat.js";
-import { moveAgent, ringPoint, stepDown } from "./common.js";
+import { depotPut, moveAgent, ringPoint, stepDown } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
 
 // Residents are data-driven state machines: a role id picks the behaviour, the assignment
@@ -114,7 +114,7 @@ function deliverStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRo
     const d = st.depot;
     if (!d || !moveAgent(st, cp, r.pos, d.pos, role.speed, cp.residents.workRange)) return;
     if (!ready(r, role.deliverTicks)) return;
-    d.stock[res] = (d.stock[res] ?? 0) + 1; r.n--; deposited(d.pos, to);
+    depotPut(d, cp, res); r.n--; deposited(d.pos, to);
     doneCarrying(r);
     return;
   }

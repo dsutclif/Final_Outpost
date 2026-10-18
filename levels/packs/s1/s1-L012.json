@@ -1,8 +1,8 @@
 {
   "id": "s1-L012",
-  "seed": 1973305700,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 1501945513,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -39,7 +39,7 @@
         510
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 15,
         "level": 1
       }
     },
@@ -47,103 +47,130 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        346,
-        629
+        324,
+        441
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "route": [
+        [
+          500,
+          363
+        ],
+        [
+          477,
+          363
+        ],
+        [
+          453,
+          363
+        ],
+        [
+          447,
+          363
+        ],
+        [
+          435,
+          363
+        ],
+        [
+          429,
+          363
+        ],
+        [
+          393,
+          339
+        ],
+        [
+          248,
+          339
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        357,
-        499
+        370,
+        560
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        166,
-        463
+        190,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        193,
-        474
+        180,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        440
+        160,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        169,
-        494
+        160,
+        430
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        430
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        140,
+        490
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         170,
-        432
+        400
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        193,
-        513
+        160,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        131,
-        466
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        143,
-        421
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        136,
-        506
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        171,
-        402
+        130,
+        450
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        210,
-        385
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        128,
-        384
+        130,
+        390
       ]
     },
     {
@@ -203,7 +230,8 @@
       ],
       "closed": true,
       "gates": [
-        1
+        1,
+        3
       ],
       "prebuilt": [
         0,
@@ -233,36 +261,36 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        361,
-        56
+        415,
+        43
       ],
       "freeze": 161
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        226,
-        52
+        172,
+        38
       ],
       "freeze": 178
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        327,
-        204
+        154,
+        208
       ],
-      "freeze": 178
+      "freeze": 176
     },
     {
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        162,
-        559
+        180,
+        570
       ],
       "cost": {
-        "res.currency": 22
+        "res.currency": 23
       },
       "build": "sink.core.level"
     },
@@ -274,7 +302,7 @@
         232
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 14
       },
       "build": "zone.clear",
       "target": "pass",
@@ -287,10 +315,13 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 10,
+    "start.currency": 8,
     "core.burn": 2.8,
     "housing.base": 5,
-    "customers.spawn": 2.6,
+    "lots.block": 160,
+    "lots.street": 40,
+    "customers.spawn": 2.7,
+    "sales.clerkSide": 1,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
     "level.budgetSeconds": 170
@@ -312,13 +343,15 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 77
+        "seconds": 78
       }
     },
     {
       "id": "challenge",
-      "kind": "rescue_all",
-      "params": {}
+      "kind": "tow_trip",
+      "params": {
+        "n": 2
+      }
     }
   ],
   "fail": [
@@ -334,8 +367,8 @@
     }
   },
   "rating": {
-    "difficulty": 0.305,
-    "fun": 0.756,
+    "difficulty": 0.284,
+    "fun": 0.751,
     "botMargin": 0.727,
     "botsPassed": [
       "good",

@@ -1,8 +1,8 @@
 {
   "id": "s1-L061",
   "seed": 1398726059,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,110 +44,124 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        361,
-        399
+        357,
+        395
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "route": [
+        [
+          500,
+          291
+        ],
+        [
+          477,
+          291
+        ],
+        [
+          281,
+          293
+        ]
       ]
     },
     {
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        337,
-        612
+        340,
+        610
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        161,
-        571
+        160,
+        570
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        195,
-        566
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        175,
-        545
+        190,
+        560
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         180,
-        593
+        530
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        204,
-        537
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        125,
-        578
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        146,
-        536
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        174,
-        515
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        149,
-        604
+        150,
+        540
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         210,
+        520
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        590
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        220,
+        550
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        170,
+        500
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        160,
         600
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        113,
-        544
+        130,
+        570
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        120,
+        540
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        234,
-        567
+        190,
+        630
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        132,
-        499
+        130,
+        500
       ]
     },
     {
@@ -196,7 +210,7 @@
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        171,
+        170,
         410
       ],
       "cost": {
@@ -208,7 +222,7 @@
       "type": "pad.build",
       "id": "core_level1",
       "at": [
-        308,
+        310,
         470
       ],
       "cost": {
@@ -224,7 +238,7 @@
       "id": "clear0",
       "at": [
         150,
-        302
+        300
       ],
       "cost": {
         "res.currency": 17
@@ -243,6 +257,8 @@
     "start.currency": 6,
     "core.burn": 2.5,
     "housing.base": 2,
+    "lots.block": 160,
+    "lots.street": 40,
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
@@ -287,9 +303,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.39,
-    "fun": 0.825,
-    "botMargin": 0.576,
+    "difficulty": 0.426,
+    "fun": 0.833,
+    "botMargin": 0.575,
     "botsPassed": [
       "good",
       "average",

@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { FP, createSim, fp, isqrt, type SimEvent } from "../src/index.js";
+import { FP, createSim, depotDrop, depotPickup, fp, isqrt, type SimEvent } from "../src/index.js";
 import { LEVEL_1, LEVEL_2, LEVEL_3, at, idle, newSim } from "./helpers.js";
 
 // Playtest 0.6.0 round: shelves never count as overflow, the player can stock the warehouse,
@@ -55,7 +55,7 @@ describe("player stocks the warehouse", () => {
   it("deposits carried goods one per action while in range, and emits deposited", () => {
     const sim = createSim(level());
     const d = sim.state.depot!;
-    sim.state.player.pos = { x: d.pos.x + fp(20), y: d.pos.y };
+    sim.state.player.pos = depotDrop(d, sim.compiled);
     sim.state.player.stack.push("res.material_basic", "res.material_basic", "res.material_basic");
     const ev = idle(sim, 60);
     const dep = all(ev, "deposited").filter((e) => e.to === "store.depot");
@@ -72,11 +72,60 @@ describe("player stocks the warehouse", () => {
     sim.state.player.pos = { x: d.pos.x + fp(200), y: d.pos.y };
     idle(sim, 30);
     expect(sim.state.depot!.stock["res.material_basic"]).toBeUndefined();
-    sim.state.player.pos = { x: d.pos.x + fp(20), y: d.pos.y };
+    sim.state.player.pos = depotDrop(d, sim.compiled);
     sim.state.player.stack = ["res.currency"];
     idle(sim, 30);
     expect(sim.state.depot!.stock["res.currency"]).toBeUndefined();
     expect(sim.state.player.stack).toEqual(["res.currency"]);
+  });
+});
+
+describe("warehouse pads", () => {
+  const level = (): Loose => ({
+    ...LEVEL_1, id: "test-depot-pads",
+    modules: ["carry", "gather", "core", "sales", "workers", "build_pads", "supply_routing"],
+    entities: [
+      { type: "sink.core", id: "core", at: [240, 400], params: { fuel: 20, level: 1 } },
+      { type: "node.material_source", at: [60, 300] },
+      { type: "sink.sales_point", id: "shop", at: [330, 600], sells: ["res.food_raw_1"] },
+      { type: "struct.depot", id: "depot", at: [240, 200] },
+    ],
+    people: [], params: { "start.currency": 0 }, goal: { type: "currency", n: 999 }, objectives: undefined,
+  });
+  const goods = ["res.material_basic", "res.food_raw_1", "res.fuel_dense", "res.material_refined"];
+
+  it("drops anything carried from the drop-off pad, gives each new good the next pickup pad, and hands it back there", () => {
+    fc.assert(fc.property(fc.array(fc.constantFrom(...goods), { minLength: 1, maxLength: 8 }), (load) => {
+      const sim = createSim(level());
+      const d = sim.state.depot!, cp = sim.compiled, slots = cp.structures["struct.depot"]!.pickupOffsets.length;
+      sim.state.player.stack = [...load];
+      const carried = [...sim.state.player.stack];
+      sim.state.player.pos = depotDrop(d, cp);
+      idle(sim, 300);
+      const firsts = [...new Set(carried)];
+      expect(d.stores).toEqual(firsts.slice(0, slots));
+      // everything goes in; goods beyond the free pickup pads are stored without a pad
+      expect(sim.state.player.stack.length).toBe(0);
+      for (const r of firsts) expect(d.stock[r]).toBe(carried.filter((x) => x === r).length);
+      d.stores.forEach((r, k) => {
+        sim.state.player.stack = [];
+        sim.state.player.pos = depotPickup(d, cp, k);
+        const ev = idle(sim, 300);
+        expect(all(ev, "picked").every((e) => e.res === r && e.by === undefined)).toBe(true);
+        expect(sim.state.player.stack.every((x) => x === r)).toBe(true);
+        expect(sim.state.player.stack.length + (d.stock[r] ?? 0)).toBe(carried.filter((x) => x === r).length);
+      });
+    }), { numRuns: 25 });
+  });
+
+  it("does not hand goods out from the building itself, only from the pads", () => {
+    const sim = createSim(level());
+    const d = sim.state.depot!;
+    d.stores.push("res.material_basic");
+    d.stock["res.material_basic"] = 3;
+    sim.state.player.pos = { x: d.pos.x, y: d.pos.y + fp(35) };
+    idle(sim, 60);
+    expect(sim.state.player.stack.length).toBe(0);
   });
 });
 

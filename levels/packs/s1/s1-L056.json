@@ -1,8 +1,8 @@
 {
   "id": "s1-L056",
   "seed": 1427777921,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,64 +44,50 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        187,
-        467
+        190,
+        470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        178,
-        436
+        180,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        193,
-        499
+        190,
+        500
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        207,
-        437
+        210,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        176,
-        527
+        200,
+        410
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        164,
-        487
+        190,
+        530
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        173,
-        404
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        202,
-        408
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        249,
-        399
+        230,
+        400
       ]
     },
     {
@@ -215,6 +201,8 @@
     "start.currency": 0,
     "core.burn": 2.1,
     "housing.base": 5,
+    "lots.block": 160,
+    "lots.street": 40,
     "level.budgetSeconds": 80
   },
   "goal": {
@@ -234,7 +222,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 62
+        "seconds": 63
       }
     },
     {
@@ -258,14 +246,15 @@
     }
   },
   "rating": {
-    "difficulty": 0.444,
-    "fun": 0.896,
-    "botMargin": 0.531,
+    "difficulty": 0.165,
+    "fun": 0.919,
+    "botMargin": 0.514,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,

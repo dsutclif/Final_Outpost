@@ -1,8 +1,8 @@
 {
   "id": "s1-L001",
-  "seed": 722945258,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 148133935,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -33,78 +33,78 @@
         500
       ],
       "params": {
-        "fuel": 9,
+        "fuel": 10,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        112,
-        449
+        110,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        89,
-        430
+        140,
+        470
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        110,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         120,
-        477
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        124,
-        421
+        170,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        147,
-        457
+        80,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        83,
-        469
+        160,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        98,
-        497
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        145,
-        495
+        150,
+        410
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        172,
-        427
+        150,
+        520
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        47,
-        431
+        70,
+        490
       ]
     }
   ],
@@ -112,9 +112,11 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
+    "start.currency": 0,
     "core.burn": 2.1,
     "housing.base": 2,
+    "lots.block": 160,
+    "lots.street": 40,
     "level.budgetSeconds": 150
   },
   "goal": {
@@ -134,15 +136,15 @@
     },
     {
       "id": "challenge2",
-      "kind": "heat_floor",
-      "params": {
-        "pct": 35
-      }
+      "kind": "settlement_never_freezes",
+      "params": {}
     },
     {
       "id": "challenge",
-      "kind": "no_colonist_freezes",
-      "params": {}
+      "kind": "heat_floor",
+      "params": {
+        "pct": 40
+      }
     }
   ],
   "fail": [
@@ -158,9 +160,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.044,
-    "fun": 0.139,
-    "botMargin": 0.409,
+    "difficulty": 0.04,
+    "fun": 0.138,
+    "botMargin": 0.411,
     "botsPassed": [
       "good",
       "average",

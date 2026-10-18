@@ -1,7 +1,7 @@
 {
   "id": "s1-061",
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "levels": [
     {
       "id": "s1-L061",
@@ -18,8 +18,8 @@
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.39,
-      "fun": 0.825,
+      "rating": 0.426,
+      "fun": 0.833,
       "target": 0.4
     },
     {
@@ -39,8 +39,8 @@
         "sales"
       ],
       "goal": "rescue",
-      "rating": 0.478,
-      "fun": 0.831,
+      "rating": 0.471,
+      "fun": 0.821,
       "target": 0.45
     },
     {
@@ -58,8 +58,8 @@
         "workers"
       ],
       "goal": "currency",
-      "rating": 0.449,
-      "fun": 0.885,
+      "rating": 0.459,
+      "fun": 0.925,
       "target": 0.494
     },
     {
@@ -78,8 +78,8 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.546,
-      "fun": 0.867,
+      "rating": 0.534,
+      "fun": 0.833,
       "target": 0.538
     },
     {
@@ -100,8 +100,8 @@
         "workers"
       ],
       "goal": "waves",
-      "rating": 0.605,
-      "fun": 0.379,
+      "rating": 0.613,
+      "fun": 0.522,
       "target": 0.581
     },
     {
@@ -118,8 +118,8 @@
         "sales"
       ],
       "goal": "house_all",
-      "rating": 0.638,
-      "fun": 0.854,
+      "rating": 0.607,
+      "fun": 0.82,
       "target": 0.625
     },
     {
@@ -137,8 +137,8 @@
         "sales"
       ],
       "goal": "rescue_all",
-      "rating": 0.62,
-      "fun": 0.925,
+      "rating": 0.576,
+      "fun": 0.972,
       "target": 0.669
     },
     {
@@ -156,8 +156,8 @@
         "workers"
       ],
       "goal": "bulk_order",
-      "rating": 0.707,
-      "fun": 0.938,
+      "rating": 0.747,
+      "fun": 0.952,
       "target": 0.713
     },
     {
@@ -176,8 +176,8 @@
         "workers"
       ],
       "goal": "automate",
-      "rating": 0.669,
-      "fun": 0.957,
+      "rating": 0.784,
+      "fun": 0.923,
       "target": 0.756
     },
     {
@@ -199,8 +199,8 @@
         "workers"
       ],
       "goal": "clear_zones",
-      "rating": 0.828,
-      "fun": 0.743,
+      "rating": 0.86,
+      "fun": 0.663,
       "target": 0.8
     },
     {
@@ -219,8 +219,8 @@
         "salvage_upgrades"
       ],
       "goal": "waves_survived",
-      "rating": 0.429,
-      "fun": 0.526,
+      "rating": 0.405,
+      "fun": 0.117,
       "target": 0.4
     },
     {
@@ -239,8 +239,8 @@
         "sales"
       ],
       "goal": "population",
-      "rating": 0.474,
-      "fun": 0.797,
+      "rating": 0.452,
+      "fun": 0.787,
       "target": 0.45
     },
     {
@@ -260,8 +260,8 @@
         "sales"
       ],
       "goal": "rescue_before_freeze",
-      "rating": 0.481,
-      "fun": 0.845,
+      "rating": 0.49,
+      "fun": 0.808,
       "target": 0.494
     },
     {
@@ -280,8 +280,8 @@
         "workers"
       ],
       "goal": "earn_within",
-      "rating": 0.551,
-      "fun": 0.857,
+      "rating": 0.564,
+      "fun": 0.867,
       "target": 0.538
     },
     {
@@ -300,8 +300,8 @@
         "workers"
       ],
       "goal": "haul",
-      "rating": 0.609,
-      "fun": 0.84,
+      "rating": 0.572,
+      "fun": 0.791,
       "target": 0.581
     },
     {
@@ -321,8 +321,8 @@
         "salvage_upgrades"
       ],
       "goal": "survive",
-      "rating": 0.663,
-      "fun": 0.198,
+      "rating": 0.628,
+      "fun": 0.121,
       "target": 0.625
     },
     {
@@ -340,8 +340,8 @@
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.702,
-      "fun": 0.775,
+      "rating": 0.685,
+      "fun": 0.706,
       "target": 0.669
     },
     {
@@ -359,8 +359,8 @@
         "sales"
       ],
       "goal": "crates",
-      "rating": 0.135,
-      "fun": 0.816,
+      "rating": 0.446,
+      "fun": 0.908,
       "target": 0.713
     },
     {
@@ -379,8 +379,8 @@
         "workers"
       ],
       "goal": "sell",
-      "rating": 0.793,
-      "fun": 0.908,
+      "rating": 0.759,
+      "fun": 0.915,
       "target": 0.756
     },
     {
@@ -402,8 +402,8 @@
         "workers"
       ],
       "goal": "hunt",
-      "rating": 0.738,
-      "fun": 0.948,
+      "rating": 0.719,
+      "fun": 0.886,
       "target": 0.8
     }
   ],

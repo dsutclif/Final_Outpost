@@ -2,6 +2,7 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { isqrt, type Vec } from "../fixed.js";
 import type { ConveyorState, ConverterState, State } from "../state.js";
+import { depotPut } from "./common.js";
 import { feedCoreWith } from "./core.js";
 
 // Conveyors (R3 item 16): a belt a build pad lays between a source (a converter's pickup tray or
@@ -42,7 +43,7 @@ function give(st: State, cp: Compiled, to: string, res: string, out: SimEvent[])
   if (to === "sink.core") return feedCoreWith(st, cp, res, out);
   if (to === "store.depot") {
     if (!st.depot) return false;
-    st.depot.stock[res] = (st.depot.stock[res] ?? 0) + 1;
+    depotPut(st.depot, cp, res);
     return true;
   }
   if (to === "sink.sales_point") {

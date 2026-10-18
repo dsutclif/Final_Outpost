@@ -7,7 +7,7 @@ export { FP, TPS, METER_MAX, fp, ticks, perTick, mulDiv, isqrt, dist, within, cl
 export { canonical, hashOf } from "./hash.js";
 export { seedRng, nextU32, below, between, type Rng } from "./rng.js";
 export { safeRadius } from "./systems/core.js";
-export { population, housingSlots, freeSlots, blockedAt, pointInPoly } from "./systems/common.js";
+export { population, housingSlots, freeSlots, blockedAt, pointInPoly, depotDrop, depotPickup } from "./systems/common.js";
 export { outsideLines } from "./systems/barriers.js";
 export { producible, dropOnly, converterIdle } from "./systems/nodes.js";
 export { REWARD_GAP_EDGES, REWARD_RING } from "./systems/stats.js";

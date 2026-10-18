@@ -1,8 +1,8 @@
 {
   "id": "s1-L017",
-  "seed": 1053963896,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 327552485,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,43 +44,57 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        293,
-        474
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        289,
-        445
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        295,
-        520
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
         280,
-        416
+        470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        242,
-        394
+        290,
+        500
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        306,
-        396
+        290,
+        440
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        290,
+        530
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        230,
+        390
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        300,
+        410
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        270,
+        410
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        310,
+        470
       ]
     },
     {
@@ -140,50 +154,64 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        441,
-        57
+        68,
+        138
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        150,
-        132
+        312,
+        207
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        441,
-        243
+        357,
+        77
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        41,
-        97
+        212,
+        129
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        261,
+        46
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        244,
-        201
+        424,
+        612
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        435,
-        520
+        66,
+        285
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        266,
-        78
+        233,
+        268
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        424,
+        366
       ]
     },
     {
@@ -196,33 +224,23 @@
         150
       ],
       "animal": "node.prey",
-      "n": 2
-    },
-    {
-      "type": "zone.prey",
-      "id": "prey_danger",
-      "rect": [
-        373,
-        380,
-        87,
-        150
-      ],
-      "animal": "node.prey_dangerous",
-      "n": 1
+      "n": 3
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
-    "core.burn": 2.4,
-    "housing.base": 6,
-    "level.budgetSeconds": 290
+    "start.currency": 0,
+    "core.burn": 2.1,
+    "housing.base": 7,
+    "lots.block": 160,
+    "lots.street": 40,
+    "level.budgetSeconds": 340
   },
   "goal": {
     "type": "hunt",
-    "n": 27
+    "n": 35
   },
   "family": "rescue",
   "objectives": [
@@ -230,14 +248,14 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 27
+        "n": 35
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 235
+        "seconds": 293
       }
     },
     {
@@ -259,9 +277,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.318,
-    "fun": 0.458,
-    "botMargin": 0.496,
+    "difficulty": 0.262,
+    "fun": 0.515,
+    "botMargin": 0.473,
     "botsPassed": [
       "good",
       "average",

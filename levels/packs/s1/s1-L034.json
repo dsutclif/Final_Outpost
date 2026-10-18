@@ -1,8 +1,8 @@
 {
   "id": "s1-L034",
   "seed": 383627009,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -38,64 +38,71 @@
         510
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 12,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        177,
-        455
+        200,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        202,
-        475
+        170,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        206,
-        442
+        170,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        186,
-        503
+        200,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        169,
-        426
+        170,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        218,
-        401
+        190,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        176,
-        532
+        210,
+        400
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         250,
-        404
+        400
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        170,
+        400
       ]
     },
     {
@@ -218,14 +225,16 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.2,
+    "start.currency": 3,
+    "core.burn": 2.4,
     "housing.base": 6,
-    "level.budgetSeconds": 360
+    "lots.block": 160,
+    "lots.street": 40,
+    "level.budgetSeconds": 340
   },
   "goal": {
     "type": "hunt",
-    "n": 32
+    "n": 30
   },
   "family": "rescue",
   "objectives": [
@@ -233,14 +242,14 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 32
+        "n": 30
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 276
+        "seconds": 251
       }
     },
     {
@@ -262,9 +271,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.564,
-    "fun": 0.567,
-    "botMargin": 0.525,
+    "difficulty": 0.511,
+    "fun": 0.47,
+    "botMargin": 0.544,
     "botsPassed": [
       "good",
       "average",

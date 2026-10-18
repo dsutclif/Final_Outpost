@@ -1017,6 +1017,8 @@ export class App {
       const el = this.el.objectives.querySelector<HTMLElement>(`[data-id="${CSS.escape(e.id)}"]`);
       el?.classList.remove("flash"); void el?.offsetWidth; el?.classList.add("flash");
     }, 0);
+    // the level runs on for the open stars once the main goal is done (it ends on its slowest goal)
+    if (idx === 0 && e.done) this.starToast(uiText(this.skin, "goalDone"), uiText(this.skin, "goalDoneLine"));
     if (idx > 0) {
       const v = liveObjectives(s.sim.state, s.manifest, this.skin)[idx];
       if (v) this.starToast(e.done ? uiText(this.skin, "starEarned") : uiText(this.skin, "starMissed"), v.label);

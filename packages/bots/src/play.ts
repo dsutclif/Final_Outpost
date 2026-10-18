@@ -51,6 +51,8 @@ export interface BotTrace {
   barriersBroken: number;
   /** Wall sections repaired or rebuilt at the repair price (0 unless barrier.repairK is on). */
   repairs: number;
+  /** Goods the player took back out of the warehouse. */
+  depotPicks: number;
   injuries: number;
   /** Bites taken from dangerous animals. */
   animalHits: number;
@@ -216,6 +218,8 @@ export interface BotResult {
   won: boolean;
   reason: string;
   ticks: number;
+  /** Tick the main goal was done (the run goes on for open star objectives); ticks when it never was. */
+  goalTicks: number;
   margin: number;
   stalls: number;
   stallStates: StallState[];
@@ -275,7 +279,8 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   let capturesHome = 0;
   const builtPads = new Set<string>();
 
-  while (!st.over && st.tick < maxTicks) {
+  // Past the main goal the level runs on for open star objectives, for at most the overtime.
+  while (!st.over && st.tick < maxTicks + (st.objectives[0]?.done ? cp.overtimeTicks : 0)) {
     const inp = brain.tick(st);
     if (opts.recordInputs) inputs.push(inp);
     const fuelBefore = st.core.fuel;
@@ -335,7 +340,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     // Riding out a storm is the job while it lasts.
     if (st.hazard.phase !== "none") progressed = true;
     const ob = st.objectives[0];
-    if (ob && ob.progress > lastObj) progressed = true;
+    if (ob && (ob.progress > lastObj || ob.done)) progressed = true;
     if (ob) lastObj = ob.progress;
     const hp = st.meters.baseHealthMax > 0 ? (st.meters.baseHealth * 100) / st.meters.baseHealthMax : 100;
     if (hp < hpMin) hpMin = hp;
@@ -375,6 +380,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const won = st.won === true;
   const reason = st.over ? st.reason ?? "unknown" : "budget";
   const ticks = st.tick;
+  const goalTicks = st.objectives[0]?.done ? st.objectives[0].doneTick : ticks;
   let margin: number;
   if (timeFixed && cp.waves.length > 0) {
     const hp = st.meters.baseHealth / Math.max(1, st.meters.baseHealthMax);
@@ -385,7 +391,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     // Holding out against the clock (survive, storms): the margin is how warm the colony stayed.
     margin = won ? heatSum / Math.max(1, heatN) : -(1 - goalProgress(st, cp, plan, brain));
   } else {
-    margin = won ? (budgetTicks - ticks) / budgetTicks : -(1 - goalProgress(st, cp, plan, brain));
+    margin = won ? (budgetTicks - goalTicks) / budgetTicks : -(1 - goalProgress(st, cp, plan, brain));
   }
 
   const s = st.stats;
@@ -405,6 +411,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     baseHpLost: st.meters.baseHealthMax - st.meters.baseHealth,
     barriersBroken: s.barriersLost,
     repairs,
+    depotPicks: st.stats.depotPicked ?? 0,
     injuries: s.injured,
     animalHits: s.animalHits,
     downs: s.downs,
@@ -436,7 +443,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     admitted: s.admitted, hazards: s.hazardsSurvived, conveyed: st.stats.conveyed ?? 0,
   };
   const res: BotResult = {
-    profile: profile.name, seed, won, reason, ticks, margin, stalls, stallStates, trace,
+    profile: profile.name, seed, won, reason, ticks, goalTicks, margin, stalls, stallStates, trace,
     stars: st.over ? starsOf(st) : 0, objectives: st.objectives.map((o) => ({ kind: o.kind, done: o.done })),
     runStats, used: usedEl, hash: sim.hash(),
   };

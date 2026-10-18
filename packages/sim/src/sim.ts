@@ -27,7 +27,7 @@ import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStockCollapse } from "./systems/stock.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.9.0";
+export const ENGINE_VERSION = "0.10.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -136,6 +136,8 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           pileN: 0, shelf: {}, sells: [...e.sells], queue: [], leaving: [],
           spawnAcc: cp.sales.initialDelayTicks, premiumServed: 0,
           nextCustomerId: 0, queueAt: lay.queueAt, queueStep: lay.queueStep, edgeX: lay.edgeX,
+          // Without a generated route customers walk straight in from the edge on the stall's side.
+          route: e.route ? e.route.map(vec) : [{ x: lay.edgeX, y: lay.queueAt.y }],
         };
         state.sales = sales;
         break;
@@ -183,7 +185,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           const s: StructureState = { id: e.id ?? `${t}#${state.structures.length}`, type: t, pos: vec(e.at), level: 1, acc: 0 };
           if (def.hp !== null) { s.hp = def.hp; s.hpMax = def.hp; }
           state.structures.push(s);
-          if (t === "struct.depot") state.depot = { pos: vec(e.at), stock: {} };
+          if (t === "struct.depot") state.depot = { pos: vec(e.at), stock: {}, stores: [] };
           applyEffects(state, def.effects, s);
         } else if (t.startsWith("capture.")) {
           const freeze = "freeze" in e && e.freeze !== undefined ? (e.freeze > 0 ? ticks(e.freeze) : 0) : cp.lassoables[t]!.freezeTicks;

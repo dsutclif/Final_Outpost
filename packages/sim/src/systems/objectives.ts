@@ -167,7 +167,7 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
 };
 
 export function initObjectives(cp: Compiled): ObjectiveState[] {
-  return cp.objectives.map((o) => ({ id: o.id, kind: o.kind, progress: 0, target: 0, done: false, failed: false }));
+  return cp.objectives.map((o) => ({ id: o.id, kind: o.kind, progress: 0, target: 0, done: false, failed: false, doneTick: -1 }));
 }
 
 function evaluate(st: State, cp: Compiled, def: CompiledObjective, o: ObjectiveState, main: ObjectiveState, out: SimEvent[]): void {
@@ -177,7 +177,7 @@ function evaluate(st: State, cp: Compiled, def: CompiledObjective, o: ObjectiveS
     return;
   }
   const done = kind({ st, cp, p: def.params, o, main });
-  if (done && !o.failed) o.done = true;
+  if (done && !o.failed) { o.done = true; o.doneTick = st.tick; }
   if (o.done || o.failed) out.push({ t: "objective", id: o.id, kind: o.kind, done: o.done, failed: o.failed });
 }
 
@@ -197,6 +197,10 @@ export function settleObjectives(st: State, cp: Compiled, out: SimEvent[]): void
     out.push({ t: "objective", id: o.id, kind: o.kind, done: o.done, failed: o.failed });
   });
 }
+
+/** Settled for ending the level: done, failed, or a guard (which settles as done). */
+export const objectiveSettled = (cp: Compiled, o: ObjectiveState, i: number): boolean =>
+  o.done || o.failed || (cp.content.objectives[cp.objectives[i]!.kind]?.guard ?? false);
 
 /** Stars earned: objectives done (meaningful once the level is over). */
 export const starsOf = (st: State): number => st.objectives.filter((o) => o.done).length;

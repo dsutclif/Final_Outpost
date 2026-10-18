@@ -36,6 +36,8 @@ export const SalesPointEntity = z.object({
   ...base,
   type: z.literal("sink.sales_point"),
   sells: z.array(ResId).min(1),
+  // Waypoints from the map edge to the back of the line, around structures and through a gate (generator).
+  route: z.array(Point).optional(),
 });
 export const RoleBinding = z.object({
   role: RoleId,

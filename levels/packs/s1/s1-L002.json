@@ -1,8 +1,8 @@
 {
   "id": "s1-L002",
   "seed": 671543360,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,49 +44,42 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        179,
-        474
+        180,
+        470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        182,
-        444
+        190,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        189,
-        507
+        190,
+        510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        201,
-        414
+        200,
+        410
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        166,
-        418
+        170,
+        400
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        163,
-        531
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        229,
+        250,
         400
       ]
     },
@@ -180,6 +173,8 @@
     "start.currency": 4,
     "core.burn": 2.6,
     "housing.base": 6,
+    "lots.block": 160,
+    "lots.street": 40,
     "level.budgetSeconds": 80
   },
   "goal": {
@@ -199,7 +194,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 36
+        "seconds": 32
       }
     },
     {
@@ -221,9 +216,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.082,
-    "fun": 0.219,
-    "botMargin": 0.72,
+    "difficulty": 0.072,
+    "fun": 0.281,
+    "botMargin": 0.761,
     "botsPassed": [
       "good",
       "average",

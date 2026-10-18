@@ -149,5 +149,16 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     the build runs in GitHub Actions. Batch tuning from the player's stars and attempts
     (`sequencer.json` `adapt`) is built but off until Doug picks the goal. No levels built yet; the
     supply stays off until the dispatch token is set.
+9o. **Combined regeneration after the models (2026-10-18, engine/content 0.10.0).** The level
+    ends on its slowest goal: after the main goal it runs on for open stars, at most
+    `level.overtimeSeconds`, and anything that ends it after the main goal is a win. Traders walk a
+    generator route from the map edge through a gate (a ring always has one nearest the kiosk) and
+    back. Optional pads the good bot can do without, stars included, are dropped. The warehouse has
+    a drop-off pad and up to three pickup pads, used standing still (walking across drops nothing).
+    Footprints stay as they were; every Meshy model fits them. Layout: straight square rings kept
+    (Doug), base pulled to the core, and lots and streets (7B): streets cross at the core, buildings
+    go in lots when any valid spot is in one, the 3D renderer paves used lots and runs pipes on
+    their streets. Packs regenerated: s1 60/60 (27 off target by more than 0.05), s1-061 20/20
+    (4); levels:check clean on both.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

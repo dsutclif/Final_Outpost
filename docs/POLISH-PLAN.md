@@ -48,30 +48,32 @@ DECISIONS.md records what shipped (9l, 9m). Tick items here as they land.
 Doug, 2026-10-17: hold every change that needs a full level regeneration until the 3D models
 are done, since the models may force one anyway. Then do these together under one engine bump.
 
-- [ ] **The level ends on its slowest goal** (Doug, 2026-10-18). Today the level ends the moment
-      objective 0 (the main goal) is done and every star objective still open fails
-      (`sim/systems/goals.ts` checkEnd, `objectives.ts` settleObjectives): opening a second
-      greenhouse before serving the 20th customer costs a star. End instead when every objective
-      is done or can no longer be done (fails and the timer still end it early). Rules change:
-      engine bump, bots and rater (levels get longer), re-pin golden levels and the pack.
-- [ ] **Traders walk real paths** (Doug, 2026-10-18). Customers move in straight lines through
-      walls and buildings (`sim/systems/sales.ts`). Route arrivals and departures around
-      structures, through a gate; the generator always puts a gate in the wall section nearest the
-      kiosk. Rules change (sim movement) plus generator change.
+Done together as engine/content 0.10.0 on 2026-10-18 (DECISIONS.md 9o).
 
-- [ ] **No pads the level does not need.** Pads and conveyor build spaces still appear for
-      things the level can be completed without. Generator: only place pads that serve the
-      goal or a star objective (or are an intended optional choice, marked as such).
-- [ ] **Manual warehouse use.** The player has no way to take goods out of the warehouse.
-      Each warehouse gets one drop-off pad (anything the player carries goes in) and one
-      pickup pad per stored resource. This is a rules change: content, sim, bots, rater,
-      engine bump and pack regeneration (CLAUDE.md rule 5).
-- [ ] Footprints refitted to the new models, if they differ from today's.
-- [ ] **Layout shaped for the phone under the turned camera.** The map is a tall rectangle,
-      but the 45° camera shows it as a diamond, so a lot of each screen is empty ground past
-      the map's corners. Lay out bases so their spread fits a portrait screen as the camera
-      sees it: long along the screen's vertical (the map's diagonal), narrow across it.
-      Options to weigh: generate on a diamond-shaped region, rotate the generator's layout
-      45°, or keep the rectangle and cluster the base along the diagonal.
-- [ ] Denser, connected bases like the vibe image: tighter spacing, pipes and concrete joining
-      buildings, less open sand inside the walls.
+- [x] **The level ends on its slowest goal** (Doug, 2026-10-18). Once the main goal is done the
+      level runs on until every star is done or can no longer be done, for at most
+      `level.overtimeSeconds` (90); a fail, a pile collapse or the timer after the main goal ends
+      it as a win with the open stars lost. Bots play the overtime; time stars and the budget are
+      sized from the main goal's tick (`goalTicks`).
+- [x] **Traders walk real paths** (Doug, 2026-10-18). The generator writes a route on the kiosk
+      (`route`: map edge → back of the line, around every building footprint and blocked ground,
+      through a gate's door); the sim walks it in at `customers.walkSpeed` and back out. A ring
+      always has a gate in the section nearest the kiosk, and the whole line stands inside it.
+- [x] **No pads the level does not need.** After the stars are settled the generator drops each
+      optional pad (hires, machine levels, belts, upgrades) the good bot can win and earn as many
+      stars without, then re-rates the trimmed level and keeps it if it still passes.
+- [x] **Manual warehouse use.** A drop-off pad (anything carried goes in) and a pickup pad per
+      stored resource (up to three, in order of arrival), used while standing still on them;
+      content offsets, sim, bot (takes stock off the pad when nearer, except where the stock is
+      the goal or couriers move it), rater `depotPicks`, generator reserves the pads' ground.
+- [x] Footprints: today's generator footprints kept; every Meshy model fits them
+      (`render-3d/test/footprints.test.ts`).
+- [x] **Layout shaped for the phone under the turned camera.** Doug: keep the straight square
+      wall rings (on screen they already read as diagonals), walls need not fit the screen. The
+      base is pulled tighter to the core (`corePull` 0.6) inside the lots below; the level-start
+      overview already frames the base.
+- [x] **Denser, connected bases: lots and streets** (Doug picked 7B). Streets 40 wide cross at
+      the core and repeat every 200; buildings go in a 160-unit lot whenever any valid spot is in
+      one (`generator.json` `lots`), flat pads and gatherables may use the streets; positions
+      snap to 10. The 3D renderer paves every lot in use with its streets and runs pipes along
+      them (`lots.block` / `lots.street` params).

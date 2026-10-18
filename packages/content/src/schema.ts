@@ -138,8 +138,12 @@ export const StructureDef = z.object({
   // Medical: heal duration and where the patient stands.
   healTime: seconds.optional(),
   healOffset: Offset.optional(),
-  // Depot: deposit / pickup range.
+  // Depot: haulers' work range; the player uses its pads: one drop-off, one pickup per stored resource
+  // (offsets from the building, taken in the order resources first arrive), each with padRange.
   range: units.optional(),
+  padRange: units.optional(),
+  dropOffset: Offset.optional(),
+  pickupOffsets: z.array(Offset).optional(),
   effects: z.array(Effect).default([]),
   cost: DefaultCost,
 });

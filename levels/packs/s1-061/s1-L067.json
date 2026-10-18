@@ -1,8 +1,8 @@
 {
   "id": "s1-L067",
-  "seed": 989947716,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "seed": 1152716582,
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,57 +36,50 @@
         520
       ],
       "params": {
-        "fuel": 9,
+        "fuel": 10,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
+        170,
+        510
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        170,
+        480
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
         160,
-        522
+        550
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        162,
-        489
+        170,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        165,
-        556
+        190,
+        580
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        175,
-        458
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        144,
-        462
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        205,
-        581
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        144,
-        581
+        150,
+        580
       ]
     },
     {
@@ -146,64 +139,64 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        216,
-        230
+        442,
+        637
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        254,
-        140
+        126,
+        290
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        45,
-        296
+        65,
+        78
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        43,
-        90
+        402,
+        89
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        373,
-        307
+        202,
+        89
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        350,
-        199
+        274,
+        265
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        61,
-        187
+        309,
+        147
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        184,
-        53
+        392,
+        201
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        381,
-        43
+        103,
+        186
       ]
     }
   ],
@@ -211,9 +204,11 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
+    "start.currency": 1,
     "core.burn": 2.1,
     "housing.base": 7,
+    "lots.block": 160,
+    "lots.street": 40,
     "level.budgetSeconds": 80
   },
   "goal": {
@@ -254,9 +249,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.62,
-    "fun": 0.925,
-    "botMargin": 0.405,
+    "difficulty": 0.576,
+    "fun": 0.972,
+    "botMargin": 0.408,
     "botsPassed": [
       "good",
       "average",

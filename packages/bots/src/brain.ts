@@ -1,4 +1,4 @@
-import { FP, TPS, blockedAt, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, blockedAt, depotDrop, depotPickup, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
@@ -19,6 +19,8 @@ export interface Task {
   key: string;
   /** How many items to collect for gather tasks. */
   want: number;
+  /** Gather from nodes only, never the warehouse (a load on its way into the warehouse). */
+  nodeOnly?: boolean;
 }
 
 export interface Target { pos: Vec; r: number }
@@ -320,7 +322,7 @@ export class Brain {
 
   score(st: State): Task[] {
     const cp = this.cp, p = st.player, tasks: Task[] = [];
-    const T = (kind: TaskKind, score: number, key = "", want = 0) => tasks.push({ kind, score, key, want });
+    const T = (kind: TaskKind, score: number, key = "", want = 0, nodeOnly = false) => tasks.push({ kind, score, key, want, ...(nodeOnly ? { nodeOnly } : {}) });
     this.refreshSkips(st);
 
     // Lasso in progress: finish it.
@@ -565,7 +567,7 @@ export class Brain {
   }
 
   /** Tasks that do one job by hand: carry S to T, or operate a machine (feeding it first if empty). */
-  private manualTask(st: State, job: string, T: (kind: TaskKind, score: number, key?: string, want?: number) => void): void {
+  private manualTask(st: State, job: string, T: (kind: TaskKind, score: number, key?: string, want?: number, nodeOnly?: boolean) => void): void {
     const cp = this.cp, p = st.player;
     const conv = (type: string) => st.converters.find((c) => c.type === type);
     const SC = 70;
@@ -581,7 +583,7 @@ export class Brain {
         // core and kiosk deliveries are covered by the fuel and stock tasks once carrying
         return;
       }
-      if (cp.nodes[from]) { const i = this.bestNode(st, res, 6); if (i >= 0) T("gather", SC, `${i}`, 2); return; }
+      if (cp.nodes[from]) { const i = this.bestNode(st, res, 6); if (i >= 0) T("gather", SC, `${i}`, 2, to === "store.depot"); return; }
       const src = conv(from);
       if (src && src.out > 0) T("fetch", SC, src.id);
     };
@@ -726,6 +728,14 @@ export class Brain {
           t.key = String(i);
           n = st.nodes[i]!;
         }
+        // Stored goods come off the warehouse pickup pad when that is the shorter walk, unless the stock
+        // is the point (a stockpile or haul goal) or couriers already move it.
+        const keep = this.plan.goal.type === "stockpile" || this.plan.goal.type === "haul" || st.residents.some((r) => cp.roles[r.role]?.behavior === "haul");
+        const d = st.depot, k = d && !t.nodeOnly && !keep ? d.stores.indexOf(res) : -1;
+        if (d && k >= 0 && (d.stock[res] ?? 0) > 0) {
+          const at = depotPickup(d, cp, k);
+          if (this.travel(st, p.pos, at) < this.travel(st, p.pos, n.pos)) return { pos: at, r: 6 * U };
+        }
         return this.ringSpot(st, n.pos, cp.nodes[n.type]!.range - 12 * U);
       }
       case "stock": {
@@ -778,8 +788,9 @@ export class Brain {
         return { pos: this.convSpot(cv.pos, cv.operatorPos, def.range, cp.convParams.playerOperateRange), r: 1 * U };
       }
       case "depot": {
-        if (!st.depot || p.stack.length === 0) return null;
-        return { pos: st.depot.pos, r: 10 * U };
+        const d = st.depot;
+        if (!d || !p.stack.some((r) => cp.resources[r]?.category !== "currency")) return null;
+        return { pos: depotDrop(d, cp), r: 6 * U };
       }
       case "fetch": {
         const cv = st.converters.find((c) => c.id === t.key);

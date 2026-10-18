@@ -3,7 +3,7 @@ import type { SimEvent } from "../events.js";
 import { FP, clamp, clampDir, dist, mulDiv, within, type Vec } from "../fixed.js";
 import type { State } from "../state.js";
 import { hitHostile, hitPrey, nearestDangerousPrey, nearestHostile, nearestPrey } from "./combat.js";
-import { blockedAt, canTake, hint, stepDown, take } from "./common.js";
+import { blockedAt, canTake, depotDrop, depotPickup, depotPut, hint, stepDown, take } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
 import { trackPadDwell, tryPayPad } from "./pads.js";
 
@@ -57,6 +57,7 @@ export function playerAct(st: State, cp: Compiled, out: SimEvent[]): void {
   if (stockShelf(st, cp, out)) return;
   if (useConverters(st, cp, out)) return;
   if (stockDepot(st, cp, out)) return;
+  if (takeDepot(st, cp, out)) return;
   gather(st, cp, out);
 }
 
@@ -91,20 +92,37 @@ function stockShelf(st: State, cp: Compiled, out: SimEvent[]): boolean {
 }
 
 /**
- * Drop carried goods into the warehouse when standing within its range. Currency is never dropped
- * here (it is spent at pads or banked at the register; the warehouse is a goods store). Core and
- * converter deposits run first, so fuel and machine inputs are not diverted away from what needs them.
+ * Drop carried goods into the warehouse while standing still on its drop-off pad (walking across it
+ * drops nothing, so a load on its way elsewhere is not lost). Currency is never dropped here (it is
+ * spent at pads or banked at the register; the warehouse is a goods store). Core and converter deposits run first, so fuel and machine inputs
+ * are not diverted away from what needs them.
  */
 function stockDepot(st: State, cp: Compiled, out: SimEvent[]): boolean {
   const d = st.depot;
   if (!d) return false;
   const p = st.player;
-  if (!within(p.pos, d.pos, cp.structures["struct.depot"]?.range ?? 0)) return false;
+  if (p.moving || !within(p.pos, depotDrop(d, cp), cp.structures["struct.depot"]!.padRange)) return false;
   const res = p.stack.find((r) => cp.resources[r]?.category !== "currency");
   if (res === undefined) return false;
   take(p.stack, res);
-  d.stock[res] = (d.stock[res] ?? 0) + 1;
+  depotPut(d, cp, res);
   out.push({ t: "deposited", res, to: "store.depot", at: { ...d.pos } });
+  p.actCd = cp.sales.depositTicks;
+  return true;
+}
+
+/** Take one unit of a stored good while standing still on its pickup pad. */
+function takeDepot(st: State, cp: Compiled, out: SimEvent[]): boolean {
+  const d = st.depot;
+  if (!d || st.player.moving) return false;
+  const p = st.player, R = cp.structures["struct.depot"]!.padRange;
+  const k = d.stores.findIndex((r, i) => (d.stock[r] ?? 0) > 0 && within(p.pos, depotPickup(d, cp, i), R) && canTake(cp, p.stack, r));
+  if (k < 0) return false;
+  const res = d.stores[k]!;
+  d.stock[res]!--;
+  p.stack.push(res);
+  st.stats.depotPicked = (st.stats.depotPicked ?? 0) + 1;
+  out.push({ t: "picked", res, at: depotPickup(d, cp, k) });
   p.actCd = cp.sales.depositTicks;
   return true;
 }

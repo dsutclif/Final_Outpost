@@ -93,7 +93,7 @@ export function qualityFilters(ms: Measurement, c: Content): { filters: Filters;
   if (TIME_FIXED_GOALS.has(ms.manifest.goal.type)) {
     trivial = winRate(weakest) === 1 && meanMargin(weakest) >= FILTER_PARAMS.trivialWavesMargin;
   } else {
-    const ticks = weakest.filter((r) => r.won).map((r) => r.ticks);
+    const ticks = weakest.filter((r) => r.won).map((r) => r.goalTicks);
     trivial = winRate(weakest) === 1 && ticks.length > 0 && Math.max(...ticks) < FILTER_PARAMS.trivialBudgetShare * ms.budgetTicks;
   }
   const stallRuns: string[] = [];

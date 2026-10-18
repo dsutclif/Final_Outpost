@@ -1,6 +1,6 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { FP, mulDiv, within, type Vec } from "../fixed.js";
+import { FP, moveToward, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between, chance } from "../rng.js";
 import type { CustomerState, SalesState, State } from "../state.js";
 import { hint } from "./common.js";
@@ -99,8 +99,8 @@ function spawn(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
   s.queue.push({
     id, kind, res, want,
     patience: def.patienceTicks, patienceMax: def.patienceTicks,
-    pos: { x: s.edgeX, y: slot(s, s.queue.length).y },
-    angry: false,
+    pos: { ...s.route[0]! },
+    angry: false, leg: 1,
   });
   out.push({ t: "customer_arrived", kind, res, want, customer: id });
 }
@@ -110,10 +110,15 @@ const slot = (s: SalesState, k: number): Vec => ({ x: s.queueAt.x + k * s.queueS
 function advanceQueue(cp: Compiled, s: SalesState): void {
   const a = cp.sales.approach;
   s.queue.forEach((q, k) => {
+    q.patience--;
+    // Walk the route in, then close on the slot as the line moves up.
+    if (q.leg < s.route.length) {
+      if (moveToward(q.pos, s.route[q.leg]!, cp.sales.walk, ARRIVED)) q.leg++;
+      return;
+    }
     const g = slot(s, k);
     q.pos.x += mulDiv(g.x - q.pos.x, a, FP);
     q.pos.y += mulDiv(g.y - q.pos.y, a, FP);
-    q.patience--;
   });
 }
 
@@ -122,7 +127,7 @@ function giveUp(s: SalesState, out: SimEvent[]): void {
   for (const q of s.queue) {
     if (q.patience > 0) { stay.push(q); continue; }
     q.angry = true;
-    s.leaving.push(q);
+    goHome(s, q);
     out.push({ t: "customer_left", angry: true, at: { ...q.pos }, customer: q.id });
   }
   s.queue = stay;
@@ -166,7 +171,7 @@ function serve(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
   s.pileN += pay;
   if (def.pay > 1) s.premiumServed++;
   s.queue.splice(idx, 1);
-  s.leaving.push(q);
+  goHome(s, q);
   out.push({ t: "sold", res: q.res, n: q.want, pay, premium: def.pay > 1, at: { ...s.register }, customer: q.id, kind: q.kind });
 }
 
@@ -178,9 +183,14 @@ export function registerStaffed(st: State, cp: Compiled, s: SalesState): boolean
     && within(r.pos, s.register, cp.sales.cashierRange));
 }
 
-/** Leaving customers walk off toward their edge and are dropped once past it. */
+/** Leave by the way they came: back along the route from the furthest waypoint already reached. */
+function goHome(s: SalesState, q: CustomerState): void {
+  q.leg = Math.min(q.leg, s.route.length) - 1;
+  s.leaving.push(q);
+}
+
+/** Leaving customers walk the route back out and are dropped at its edge end. */
 function leave(cp: Compiled, s: SalesState): void {
-  const dir = s.edgeX > 0 ? 1 : -1;
-  for (const q of s.leaving) { q.pos.x += dir * cp.sales.leaveX; q.pos.y += cp.sales.leaveY; }
-  s.leaving = s.leaving.filter((q) => (dir > 0 ? q.pos.x < cp.map.w + 40 * FP : q.pos.x > -40 * FP));
+  for (const q of s.leaving) if (q.leg >= 0 && moveToward(q.pos, s.route[q.leg]!, cp.sales.walk, ARRIVED)) q.leg--;
+  s.leaving = s.leaving.filter((q) => q.leg >= 0);
 }

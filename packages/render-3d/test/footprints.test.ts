@@ -43,8 +43,8 @@ describe("generator footprints", () => {
 
 // Meshy GLBs (src/assets/meshy.ts) stand in for the code bodies once loaded, so their fitted
 // ground bounds (meshy.built.json, art metres) must sit inside the same footprints. The occlusion
-// reach is left to the code models: it was set for the old 50-degree camera and is refit with the
-// footprints at the next regeneration (docs/POLISH-PLAN.md).
+// reach is left to the code models: the footprints were kept as they are at the 2026-10-18
+// regeneration (docs/DECISIONS.md), and hidden pads are left to the planned silhouette pass.
 describe("meshy footprints", () => {
   const built = JSON.parse(readFileSync(new URL("../src/assets/meshy.built.json", import.meta.url), "utf8")) as Record<string, { bounds: number[] }>;
   const config = JSON.parse(readFileSync(new URL("../src/assets/meshy.json", import.meta.url), "utf8")) as { models: { file: string; id: string; slot?: string[]; batch?: string; kind?: string }[] };

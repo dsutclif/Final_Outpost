@@ -4,7 +4,7 @@
   "struct.barracks": { "cost": { "res.salvage": 5 } },
   "struct.ranged_defense": { "tiers": [{ "range": 115, "rate": 1.0 }, { "range": 135, "rate": 0.55 }], "damage": 1, "cost": { "res.salvage": 8 } },
   "struct.landmark": {},
-  "struct.depot": { "range": 40 },
+  "struct.depot": { "range": 40, "padRange": 20, "dropOffset": [-28, 62], "pickupOffsets": [[28, 62], [84, 62], [-84, 62]] },
   "struct.barrier": { "hp": 14 },
   "struct.gate": { "hp": 30 },
   "struct.conveyor": {}

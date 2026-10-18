@@ -215,6 +215,8 @@ export class Renderer3D implements Renderer {
   private lasso: { trail: Mesh; rope: Mesh; ropePts: Vector3[]; ropePrev: Vector3[] } | null = null;
   private scaffoldGeo: BufferGeometry | null = null;
   private padPlane: PlaneGeometry | null = null;
+  /** Warehouse drop-off pad, then one pickup pad per stored resource. */
+  private depotPads: Mesh[] = [];
   private readonly nowFn: () => number;
   private readonly dprFn: () => number;
   private readonly createGL: (canvas: HTMLCanvasElement) => GLLike;
@@ -311,7 +313,10 @@ export class Renderer3D implements Renderer {
       const r = e.type === "sink.core" ? 78 : e.type.startsWith("sink.") || e.type.startsWith("conv.") ? 62 : e.type === "pad.build" || e.type.startsWith("struct.") || e.type === "node.food_source" ? 48 : 0;
       return r ? [{ x: at[0], z: at[1], r, core: e.type === "sink.core" }] : [];
     });
-    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites);
+    const core = manifest.entities.find((e) => e.type === "sink.core") as { at?: readonly [number, number] } | undefined;
+    const block = manifest.params["lots.block"] ?? 0, street = manifest.params["lots.street"] ?? 0;
+    const lots = block > 0 && core?.at ? { x: core.at[0], z: core.at[1], block, street } : null;
+    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots);
     this.fx = new Fx(mats.particle, this.scene, this.labels);
     this.fx.onCoinLanded = this.coinCb;
     this.crowd = new Crowd(this.bctx.parts, mats.std, this.scene);
@@ -1028,6 +1033,8 @@ export class Renderer3D implements Renderer {
     const w = this.world!;
     let near = Math.hypot(w.player.pos.x / FP - at.x, w.player.pos.y / FP - at.z) < 46;
     if (!near) for (const r of w.residents) if (Math.hypot(r.pos.x / FP - at.x, r.pos.y / FP - at.z) < 40) { near = true; break; }
+    // traders walk their route through the gate
+    if (!near && w.sales) for (const q of [...w.sales.queue, ...w.sales.leaving]) if (Math.hypot(q.pos.x / FP - at.x, q.pos.y / FP - at.z) < 40) { near = true; break; }
     const open = (p.data["open"] as number | undefined) ?? 0;
     const k = open + ((near ? 1 : 0) - open) * 0.15;
     p.data["open"] = k;
@@ -1180,6 +1187,39 @@ export class Renderer3D implements Renderer {
       chip.position.set(x, 0.2 * ART_M + Math.min(12, n) * items.height(res) + 9, z);
     });
     if (p) for (let i = stock.length; i < p.sprites.length; i++) p.sprites[i]!.visible = false;
+    // its pads: drop-off (anything carried goes in), then a pickup pad for each stored resource
+    const def = this.content.structures["struct.depot"];
+    const offs = [def?.dropOffset ?? [0, 0], ...(def?.pickupOffsets ?? []).slice(0, d.stores.length)];
+    offs.forEach((o, i) => {
+      let m = this.depotPads[i];
+      if (!m) { m = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false })); m.renderOrder = 1; this.dynamic.add(m); this.depotPads[i] = m; }
+      const res = i === 0 ? undefined : d.stores[i - 1];
+      const mat = this.labels.meshMaterial(`dp|${res ?? ""}`, () => this.depotPadArt(res));
+      if (mat) m.material = mat;
+      m.visible = !!mat;
+      const w = this.wv({ x: d.pos.x + o[0] * FP, y: d.pos.y + o[1] * FP });
+      m.position.set(w.x, 2.4, w.z);
+      m.scale.setScalar(2 * (def?.padRange ?? 20) * 1.1);
+    });
+    for (let i = offs.length; i < this.depotPads.length; i++) this.depotPads[i]!.visible = false;
+  }
+
+  /** A warehouse pad: solid outline, a down arrow on the drop-off, the resource's icon on a pickup. */
+  private depotPadArt(res?: string): LabelArt {
+    const t = this.tokens;
+    return {
+      w: 256, h: 256,
+      draw: (g, w, h) => {
+        g.clearRect(0, 0, w, h);
+        roundRect(g, 14, 14, w - 28, h - 28, 44);
+        g.fillStyle = "rgba(0,0,0,0.22)"; g.fill();
+        g.lineWidth = 9; g.strokeStyle = t.interactive; g.stroke();
+        if (res) { drawIcon(g, w / 2, h / 2, 62, resToken(t, res), t.ink); return; }
+        g.beginPath(); g.moveTo(w / 2, h / 2 + 56); g.lineTo(w / 2 - 50, h / 2); g.lineTo(w / 2 - 20, h / 2); g.lineTo(w / 2 - 20, h / 2 - 56);
+        g.lineTo(w / 2 + 20, h / 2 - 56); g.lineTo(w / 2 + 20, h / 2); g.lineTo(w / 2 + 50, h / 2); g.closePath();
+        g.fillStyle = t.interactive; g.fill(); g.lineWidth = 6; g.strokeStyle = t.ink; g.stroke();
+      },
+    };
   }
 
   private syncPads(s: State): void {

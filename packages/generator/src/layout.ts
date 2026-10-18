@@ -11,7 +11,7 @@ export type Pt = readonly [number, number];
 
 /** [x0, y0, x1, y1] in world units. */
 export type Box = readonly [number, number, number, number];
-export interface Station { id: string; x: number; y: number; r: number; key: boolean; on?: string | undefined; tight?: boolean | undefined; fp?: Box | undefined }
+export interface Station { id: string; x: number; y: number; r: number; key: boolean; on?: string | undefined; tight?: boolean | undefined; fp?: Box | undefined; solid?: boolean | undefined }
 /** A spot the player stands on to act (register, pile, operator): no station radius may cover it. */
 export interface Spot { id: string; x: number; y: number; r: number }
 
@@ -60,6 +60,8 @@ export class Placer {
   readonly blocked: Rect[] = [];
   /** Barrier sections: nothing interactive sits on a wall. */
   readonly walls: [Pt, Pt][] = [];
+  /** Lots and streets: streets cross at the core and repeat every block + street, lots between them (null: off). */
+  lots: { block: number; street: number } | null = null;
   constructor(readonly rand: Rand, readonly margin: number, readonly standR: number,
     readonly bounds: Rect, readonly core: Pt, readonly screen: readonly [number, number, number?], readonly c: Content = defaultContent,
     readonly footprints: Readonly<Record<string, Box>> = {}, readonly footprintGap = 0,
@@ -76,6 +78,37 @@ export class Placer {
       b = b ? [Math.min(b[0], f[0]), Math.min(b[1], f[1]), Math.max(b[2], f[2]), Math.max(b[3], f[3])] : [f[0], f[1], f[2], f[3]];
     }
     return b && [p[0] + b[0], p[1] + b[1], p[0] + b[2], p[1] + b[3]];
+  }
+
+  /** A footprint that keeps to the lots: anything but flat pads and gatherables. */
+  building(fp: string | readonly string[] | undefined): boolean {
+    const keys = fp === undefined ? [] : typeof fp === "string" ? [fp] : fp;
+    return keys.some((k) => !k.startsWith("pad") && !k.startsWith("node."));
+  }
+
+  /** A building's ground box stays inside one lot along each axis it fits in, so streets stay open. */
+  inLot(b: Box | undefined): boolean {
+    if (!this.lots || !b) return true;
+    const { block, street } = this.lots, P = block + street;
+    const fits = (lo: number, hi: number, c: number): boolean => {
+      if (hi - lo > block) return true;
+      const o = c + street / 2;
+      return hi <= o + Math.floor((lo - o) / P) * P + block;
+    };
+    return fits(b[0], b[2], this.core[0]) && fits(b[1], b[3], this.core[1]);
+  }
+
+  /** p shifted so the footprint's box sits inside the lot its centre falls in (unchanged off the grid). */
+  toLot(p: Pt, fp: string | readonly string[] | undefined): Pt {
+    const b = this.lots ? this.box(p, fp) : undefined;
+    if (!this.lots || !b) return p;
+    const { block, street } = this.lots, P = block + street;
+    const shift = (lo: number, hi: number, c: number): number => {
+      if (hi - lo > block) return 0;
+      const o = c + street / 2, s = o + Math.floor(((lo + hi) / 2 - o) / P) * P;
+      return lo < s ? s - lo : hi > s + block ? s + block - hi : 0;
+    };
+    return [p[0] + shift(b[0], b[2], this.core[0]), p[1] + shift(b[1], b[3], this.core[1])];
   }
 
   ok(id: string, p: Pt, r: number, opts: PlaceOpts = {}): boolean {
@@ -123,12 +156,20 @@ export class Placer {
     const regions: readonly Rect[] = Array.isArray(region[0]) ? region as readonly Rect[] : [region as Rect];
     const n = opts.samples ?? 80;
     const cands: Pt[] = [];
+    // a building goes in a lot whenever some valid spot is in one (flat pads and gatherables may use the streets)
+    const lot = this.lots !== null && this.building(opts.fp);
+    const inLot: Pt[] = [];
     for (let i = 0; i < n; i++) {
       const rg = regions[i % regions.length]!;
-      const p: Pt = [Math.round(rg[0] + this.rand.float() * rg[2]), Math.round(rg[1] + this.rand.float() * rg[3])];
-      if (opts.key && !this.onScreen(p)) continue;
-      if (this.ok(id, p, r, opts) && (!opts.accept || opts.accept(p))) cands.push(p);
+      // on a lot grid, positions snap to a 10-unit step so neighbours line up
+      const q = (v: number) => (this.lots ? Math.round(v / 10) * 10 : Math.round(v));
+      const raw: Pt = [q(rg[0] + this.rand.float() * rg[2]), q(rg[1] + this.rand.float() * rg[3])];
+      const valid = (p: Pt) => (!opts.key || this.onScreen(p)) && this.ok(id, p, r, opts) && (!opts.accept || opts.accept(p));
+      const lp = lot ? this.toLot(raw, opts.fp) : raw;
+      if (lot && valid(lp)) inLot.push(lp);
+      else if (valid(raw)) cands.push(raw);
     }
+    if (inLot.length > 0) cands.splice(0, cands.length, ...inLot);
     if (cands.length === 0) return null;
     let best: Pt;
     if (opts.reach) {
@@ -146,7 +187,9 @@ export class Placer {
   }
 
   add(id: string, p: Pt, r: number, opts: PlaceOpts = {}): void {
-    this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight, fp: this.box(p, opts.fp) });
+    // a footprint with anything beyond a flat pad stands up off the ground (traders walk around it)
+    const solid = (opts.fp === undefined ? [] : typeof opts.fp === "string" ? [opts.fp] : opts.fp).some((k) => !k.startsWith("pad"));
+    this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight, fp: this.box(p, opts.fp), solid });
     for (const o of opts.slots ?? []) {
       const q: Pt = [p[0] + o.dx, p[1] + o.dy];
       this.stations.push({ id: `${id}:${o.id}`, x: q[0], y: q[1], r: o.r, key: true, fp: this.box(q, o.fp) });

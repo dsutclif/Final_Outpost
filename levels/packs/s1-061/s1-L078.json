@@ -1,8 +1,8 @@
 {
   "id": "s1-L078",
   "seed": 1953122977,
-  "engineVersion": "0.9.0",
-  "contentVersion": "0.9.0",
+  "engineVersion": "0.10.0",
+  "contentVersion": "0.10.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,64 +37,57 @@
         510
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 9,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        177,
-        458
+        180,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        201,
-        477
+        210,
+        460
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        490
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         200,
-        435
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        175,
-        498
+        180,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        173,
-        408
+        170,
+        410
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        204,
-        401
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        186,
-        529
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        233,
-        402
+        230,
+        400
       ]
     },
     {
@@ -208,6 +201,8 @@
     "start.currency": 0,
     "core.burn": 2.2,
     "housing.base": 5,
+    "lots.block": 160,
+    "lots.street": 40,
     "level.budgetSeconds": 80
   },
   "goal": {
@@ -227,7 +222,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 59
+        "seconds": 71
       }
     },
     {
@@ -251,15 +246,14 @@
     }
   },
   "rating": {
-    "difficulty": 0.135,
-    "fun": 0.816,
-    "botMargin": 0.548,
+    "difficulty": 0.446,
+    "fun": 0.908,
+    "botMargin": 0.451,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
       "good": 3,
