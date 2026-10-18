@@ -75,7 +75,9 @@
         { "prop": "prop.rifle_guard", "align": "gun", "clip": "Run_and_Shoot", "axis": [-1, 0, 0], "hold": [0.1, 0.06, 0] },
         { "prop": "prop.shield_guard", "shield": true, "k": 0.8 }] } },
     { "file": "role.medic", "src": "Medic - animated.glb", "id": "role.medic", "kind": "character", "tris": 1000, "texture": 512, "height": 1.1,
-      "clips": { "walk": "Walking", "run": "Running", "care": "Female_Crouch_Pick_Fruit_Basket_Stand" } },
+      "clips": { "walk": "Walking", "run": "Running", "care": "Female_Crouch_Pick_Fruit_Basket_Stand" },
+      "held": { "*": [
+        { "prop": "prop.medkit", "bone": "mixamorig:RightHand", "at": [0, 0.42, 0, 180, 0, 0, 1.2] }] } },
     { "file": "role.hauler", "src": "Courrier_All_Animations.glb", "id": "role.hauler", "kind": "character", "tris": 1000, "texture": 512, "height": 1.1,
       "clips": {"walk": "Walking", "run": "Running"} },
     { "file": "role.idle", "src": "Settler - Animated.glb", "id": "role.idle", "kind": "character", "tris": 1000, "texture": 512, "height": 1.1,
@@ -99,7 +101,7 @@
     { "file": "hostile.creature", "src": "Dust Crawler Rigged.glb", "id": "hostile.creature", "kind": "character", "tris": 1000, "texture": 512, "height": 0.5 },
     { "file": "hostile.swarmling", "src": "Mite - Rigged.glb", "id": "hostile.swarmling", "kind": "character", "tris": 700, "texture": 256, "height": 0.5 },
     { "file": "res.material_basic", "src": "Crystalline Ore Portable Unit.glb", "id": "res.material_basic", "kind": "item", "tris": 300, "texture": 256, "yaw": 0, "width": 0.42 },
-    { "file": "decor.scrap_heap", "src": "Ore Scrap 1 decor.glb", "id": "decor.scrap_heap", "kind": "decor", "tris": 700, "texture": 512, "yaw": 0, "width": 1.4 },
+    { "file": "prop.medkit", "src": "Ore Scrap 1 decor.glb", "id": "prop.medkit", "kind": "prop", "tris": 500, "lod": 120, "texture": 256, "yaw": 0, "width": 0.3 },
     { "file": "decor.scrap_field", "src": "Ore Scrap 3.glb", "id": "decor.scrap_field", "kind": "decor", "tris": 700, "texture": 512, "yaw": 0, "width": 1.8 }
   ]
 }

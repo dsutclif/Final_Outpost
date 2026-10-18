@@ -235,7 +235,8 @@ each starting under a branching joint) and walks them in an alternating gait. Wh
 - Frozen residents and those lying in the med bay keep the code figure (it has those poses).
 
 Also: `res.material_basic` (`kind: "item"`) replaces the code ore in every stack and shelf;
-`kind: "decor"` entries (two scrap heaps) are scattered in the band just outside the map edge.
+`kind: "decor"` entries (the flat scrap field) are scattered in the band just outside the map edge.
+The medic carries `prop.medkit` in the right hand (its download is named `Ore Scrap 1 decor.glb`).
 `fit.html?rig=<id>` shows a character in each state (`&k=<n>` one; pass `&w=&h=` in the browser
 pane), `fit.html?clips=<file>` every clip in a row (`&ck=<n>` one clip at five moments).
 Golden level 4 with guards and haulers working: 64k triangles, 50 draw calls (was 70).
