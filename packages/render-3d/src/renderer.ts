@@ -36,7 +36,7 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { disposeGeo, getAnchor, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
-import { applyMeshy, loadMeshy, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
+import { applyMeshy, loadMeshy, meshyBounds, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
@@ -716,6 +716,28 @@ export class Renderer3D implements Renderer {
     return s;
   }
 
+  /**
+   * Wall drawn along a section from fraction f0 to f1 (whole sections, and the runs beside a gate).
+   * Meshy tiles keep their proportions, laid end to end; the code panel stretches to the run.
+   */
+  private wallRun(a: Vector3, dx: number, dz: number, ang: number, len: number, f0: number, f1: number, reinforced: boolean, low: boolean, k: number): void {
+    const W = this.walls!, run = len * (f1 - f0), h = ART_M * Math.max(0.05, k);
+    const fit = this.wallFit[reinforced ? "reinforced" : "wall"];
+    const batch = low ? (reinforced && fit ? W.crackedR : W.cracked) : reinforced ? W.reinforced : W.wall;
+    if (!fit) {
+      const f = (f0 + f1) / 2;
+      tmpM.makeRotationY(ang).scale(tmpV.set(run, h, ART_M)).setPosition(a.x + dx * f, 0, a.z + dz * f);
+      batch.push(tmpM);
+      return;
+    }
+    const n = Math.max(1, Math.round(run / (fit.len * ART_M)));
+    for (let j = 0; j < n; j++) {
+      const f = f0 + ((j + 0.5) / n) * (f1 - f0);
+      tmpM.makeRotationY(ang).scale(tmpV.set(run / n / fit.len, h, ART_M * fit.depth)).setPosition(a.x + dx * f, 0, a.z + dz * f);
+      batch.push(tmpM, low ? CRACKED : undefined);
+    }
+  }
+
   /** A Meshy wall section has landed: its batch (and the matching cracked one) draw it from now on. */
   private meshyWall(e: MeshyEntry): void {
     const g = meshyGeometry(e.file);
@@ -1356,7 +1378,15 @@ export class Renderer3D implements Renderer {
         if (sec.gate) {
           const p = this.place(`gate:${b.id}:${i}`, "struct.gate", mid);
           p.model.root.rotation.y = ang;
-          this.popScale(p, ART_M, sec.built ? len / (2.6 * ART_M) : 0.0001, 1);
+          // the Meshy gate keeps its own width and wall runs fill the section either side; the code
+          // gate (authored for a 2 m opening) still stretches to the section
+          const gw = p.model.root.userData["meshy"] ? (meshyBounds("struct.gate")?.[3] ?? 0) * 2 * ART_M : 0;
+          this.popScale(p, ART_M, sec.built ? (gw > 0 && gw < len ? 1 : len / (2.6 * ART_M)) : 0.0001, 1);
+          if (sec.built && gw > 0 && gw < len) {
+            const side = (1 - gw / len) / 2;
+            this.wallRun(a, dx, dz, ang, len, 0, side, reinforced, sec.hp < sec.hpMax * 0.5, 1);
+            this.wallRun(a, dx, dz, ang, len, 1 - side, 1, reinforced, sec.hp < sec.hpMax * 0.5, 1);
+          }
           if (!sec.built) p.model.root.visible = false; else p.model.root.visible = true;
           if (sec.built) this.gateDoors(p, mid);
           const lamp = p.model.parts["lamp"] as Mesh | undefined;
@@ -1366,23 +1396,9 @@ export class Renderer3D implements Renderer {
         else this.hideWallHp(b.id, i);
         this.repairMarker(b, i, sec, mid, s);
         if (sec.built && !sec.gate) {
-          const low = sec.hp < sec.hpMax * 0.5;
           const pop = this.fx!.popAge(`bar:${b.id}:${i}`);
           const k = pop < 0.45 ? Math.min(1.12, (pop / 0.3) * 1.12) - Math.max(0, pop - 0.3) * 0.8 : 1;
-          const fit = this.wallFit[reinforced ? "reinforced" : "wall"];
-          const batch = low ? (reinforced && fit ? W.crackedR : W.cracked) : reinforced ? W.reinforced : W.wall;
-          if (!fit) {
-            tmpM.makeRotationY(ang).scale(tmpV.set(len, ART_M * Math.max(0.05, k), ART_M)).setPosition(mid);
-            batch.push(tmpM);
-          } else {
-            // Meshy sections keep their proportions: whole tiles laid end to end along the line
-            const n = Math.max(1, Math.round(len / (fit.len * ART_M)));
-            for (let j = 0; j < n; j++) {
-              const f = (j + 0.5) / n;
-              tmpM.makeRotationY(ang).scale(tmpV.set(len / n / fit.len, ART_M * Math.max(0.05, k), ART_M * fit.depth)).setPosition(a.x + dx * f, 0, a.z + dz * f);
-              batch.push(tmpM, low ? CRACKED : undefined);
-            }
-          }
+          this.wallRun(a, dx, dz, ang, len, 0, 1, reinforced, sec.hp < sec.hpMax * 0.5, k);
         } else if (!sec.built) {
           // dashed marker plus a floating cost
           const nd = Math.max(1, Math.floor(len / 14));
