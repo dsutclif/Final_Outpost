@@ -1,8 +1,8 @@
 {
   "id": "s1-L032",
-  "seed": 248576493,
-  "engineVersion": "0.10.0",
-  "contentVersion": "0.10.0",
+  "seed": 2037529639,
+  "engineVersion": "0.11.0",
+  "contentVersion": "0.11.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -38,29 +38,29 @@
         520
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 14,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
+        150,
         510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        540
+        180,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        530
+        150,
+        540
       ]
     },
     {
@@ -74,7 +74,21 @@
       "type": "node.fuel_scrap",
       "at": [
         120,
-        480
+        530
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        120,
+        470
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        120,
+        500
       ]
     },
     {
@@ -87,43 +101,22 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        180,
-        460
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        140,
-        570
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        100,
-        510
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        150,
+        160,
         450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        90,
-        540
+        150,
+        570
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        110,
-        440
+        120,
+        560
       ]
     },
     {
@@ -242,10 +235,10 @@
       "id": "terrain0",
       "kind": "outcrop",
       "rect": [
-        236,
-        180,
-        33,
-        43
+        315,
+        129,
+        53,
+        41
       ]
     },
     {
@@ -253,10 +246,10 @@
       "id": "terrain1",
       "kind": "outcrop",
       "rect": [
-        126,
-        166,
-        42,
-        39
+        123,
+        174,
+        47,
+        52
       ]
     },
     {
@@ -264,10 +257,10 @@
       "id": "terrain2",
       "kind": "ridge",
       "rect": [
-        57,
-        111,
-        98,
-        17
+        173,
+        74,
+        86,
+        21
       ]
     },
     {
@@ -377,25 +370,10 @@
     },
     {
       "type": "pad.build",
-      "id": "reinforce",
-      "at": [
-        310,
-        420
-      ],
-      "cost": {
-        "res.salvage": 5
-      },
-      "build": "struct.barrier.reinforced",
-      "requires": {
-        "pad": "tower_e2"
-      }
-    },
-    {
-      "type": "pad.build",
       "id": "medic",
       "at": [
         330,
-        620
+        630
       ],
       "cost": {
         "res.salvage": 6
@@ -433,36 +411,30 @@
       "gap": 0.7
     },
     {
-      "t": 69,
+      "t": 68,
       "counts": {
         "hostile.swarmling": 9,
         "hostile.raider_humanoid": 1
       },
-      "side": "n",
+      "side": "e",
       "gap": 0.7
     },
     {
-      "t": 117,
+      "t": 116,
       "counts": {
         "hostile.swarmling": 19,
         "hostile.raider_humanoid": 5
       },
-      "side": [
-        "n",
-        "e"
-      ],
+      "side": "n",
       "gap": 0.45
     },
     {
-      "t": 166,
+      "t": 165,
       "counts": {
         "hostile.swarmling": 25,
         "hostile.raider_humanoid": 7
       },
-      "side": [
-        "e",
-        "n"
-      ],
+      "side": "e",
       "gap": 0.45
     }
   ],
@@ -478,7 +450,7 @@
   },
   "goal": {
     "type": "survive",
-    "seconds": 150
+    "seconds": 160
   },
   "family": "defend",
   "objectives": [
@@ -486,7 +458,7 @@
       "id": "main",
       "kind": "survive",
       "params": {
-        "seconds": 150
+        "seconds": 160
       }
     },
     {
@@ -498,7 +470,7 @@
     },
     {
       "id": "challenge",
-      "kind": "no_wall_lost",
+      "kind": "no_injuries",
       "params": {}
     }
   ],
@@ -516,9 +488,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.47,
-    "fun": 0.166,
-    "botMargin": 0.943,
+    "difficulty": 0.444,
+    "fun": 0.085,
+    "botMargin": 0.927,
     "botsPassed": [
       "good",
       "average",
@@ -527,8 +499,8 @@
       "floor"
     ],
     "stars": {
-      "good": 2.6,
-      "median": 2.33,
+      "good": 2.5,
+      "median": 2.67,
       "goodAll": 0.6
     }
   }

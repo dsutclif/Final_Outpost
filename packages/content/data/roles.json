@@ -32,6 +32,7 @@
   },
   "role.defender": {
     "behavior": "guard",
+    "rally": true,
     "speed": 80,
     "attackInterval": 0.7,
     "attackRange": 75,

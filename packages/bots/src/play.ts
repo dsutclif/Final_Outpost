@@ -1,5 +1,5 @@
 import { content as defaultContent, type Content } from "@fo/content";
-import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, createSim, seedRng, starsOf, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
+import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, attackedSide, createSim, guardPost, seedRng, starsOf, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
 import { Brain } from "./brain.js";
 import { TIME_FIXED_GOALS, planBot, type Plan } from "./plan.js";
 import { withLearning, type BotProfile } from "./profiles.js";
@@ -53,6 +53,8 @@ export interface BotTrace {
   repairs: number;
   /** Goods the player took back out of the warehouse. */
   depotPicks: number;
+  /** Share of guard-seconds under attack spent within reach of a post on the attacked side (-1: never tested). */
+  rallyShare: number;
   injuries: number;
   /** Bites taken from dangerous animals. */
   animalHits: number;
@@ -272,6 +274,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   let integSum = 0, integN = 0;
   let hpMin = 100, overload = false, heatSum = 0, heatN = 0, lastObj = 0;
   let repairs = 0;
+  let rallyOn = 0, rallyN = 0;
   const capRun: number[] = [];
   let capHoldMax = 0;
   const loops = new LoopTracker();
@@ -370,6 +373,13 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
       if (max > 0) { integSum += have / max; integN++; }
     }
     if (st.tick % TPS === 0) {
+      const side = attackedSide(st);
+      if (side) for (const r of st.residents) {
+        if (r.status !== "ok" || !cp.roles[r.role]?.rally) continue;
+        const q = guardPost(st, cp, r.assign.post ?? 0, side), R = cp.roles[r.role]!.attackRange;
+        rallyN++;
+        if ((r.pos.x - q.x) ** 2 + (r.pos.y - q.y) ** 2 <= R * R) rallyOn++;
+      }
       heatSum += st.core.fuel / cap; heatN++;
       progressS.push(goalProgress(st, cp, plan, brain));
       threatS.push(threatSignal(st, cp));
@@ -412,6 +422,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     barriersBroken: s.barriersLost,
     repairs,
     depotPicks: st.stats.depotPicked ?? 0,
+    rallyShare: rallyN > 0 ? rallyOn / rallyN : -1,
     injuries: s.injured,
     animalHits: s.animalHits,
     downs: s.downs,

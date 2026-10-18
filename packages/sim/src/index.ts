@@ -8,7 +8,7 @@ export { canonical, hashOf } from "./hash.js";
 export { seedRng, nextU32, below, between, type Rng } from "./rng.js";
 export { safeRadius } from "./systems/core.js";
 export { population, housingSlots, freeSlots, blockedAt, pointInPoly, depotDrop, depotPickup } from "./systems/common.js";
-export { outsideLines } from "./systems/barriers.js";
+export { attackedSide, guardPost, outsideLines, sectionSide } from "./systems/barriers.js";
 export { producible, dropOnly, converterIdle } from "./systems/nodes.js";
 export { REWARD_GAP_EDGES, REWARD_RING } from "./systems/stats.js";
 export { salesLayout, type SalesLayout } from "./systems/sales.js";

@@ -2,7 +2,7 @@ import type { Compiled, CompiledRole } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { FP, mulDiv, within, type Vec } from "../fixed.js";
 import type { ConverterState, DropState, NodeState, PreyState, ResidentState, State } from "../state.js";
-import { guardPost } from "./barriers.js";
+import { attackedSide, guardPost } from "./barriers.js";
 import { hitHostile, hitPrey, nearestHostile } from "./combat.js";
 import { depotPut, moveAgent, ringPoint, stepDown } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
@@ -193,7 +193,8 @@ function guardStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole
     if (ready(r, role.attackTicks)) hitHostile(st, cp, foe, role.damage, "resident", out);
     return;
   }
-  moveAgent(st, cp, r.pos, guardPost(st, cp, r.assign.post ?? 0), role.speed, cp.residents.arrive);
+  // with nothing in reach, rally to the wall on the side under attack, or hold the own post when clear
+  moveAgent(st, cp, r.pos, guardPost(st, cp, r.assign.post ?? 0, role.rally ? attackedSide(st) : null), role.speed, cp.residents.arrive);
 }
 
 // ---------- haulers (supply routing) ----------

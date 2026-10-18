@@ -232,6 +232,8 @@ export const RoleDef = z.object({
   attackInterval: seconds.optional(),
   attackRange: units.optional(),
   damage: z.number().int().positive().optional(),
+  // Guards: leave their post for the wall on the side under attack, and come back when it is clear.
+  rally: z.boolean().default(false),
   cost: DefaultCost,
 });
 export type RoleDef = z.infer<typeof RoleDef>;

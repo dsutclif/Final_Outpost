@@ -822,9 +822,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       const counts: Record<string, number> = { "hostile.swarmling": Math.max(3, Math.round(K.swarm * mult)) };
       if (k >= 1) counts["hostile.raider_humanoid"] = Math.max(1, Math.round(K.swarm * (late ? DW.lateRaiders : DW.raiders) * k));
       if (feat.has("bosses") && (k === nW - 1 || (k === nW - 3 && nW >= 5))) counts["hostile.boss"] = 1;
-      // A weak raid comes from one side (the player can meet it there); the packed waves from every side.
-      // the early raids all come from the first side, so their scrap buys every side's tower before the big waves
-      const wSides = sides.length === 1 || (buyable && !late) ? sides[0]! : [...sides.slice(k % sides.length), ...sides.slice(0, k % sides.length)];
+      // Every wave hits one side, and the next wave moves on to the next attack side (Doug, 2026-10-18):
+      // the guards rally to it and the player meets it there. The first wave (and the med bay's probe raid) is the first side's.
+      const wSides = sides[k % sides.length]!;
       const w = { t: Math.round(t0 - early + k * K.waveGap), counts, side: wSides, gap: late ? DW.lateGap : DW.gap };
       waves.push(w);
       regular.add(w);

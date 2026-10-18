@@ -160,5 +160,12 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     go in lots when any valid spot is in one, the 3D renderer paves used lots and runs pipes on
     their streets. Packs regenerated: s1 60/60 (27 off target by more than 0.05), s1-061 20/20
     (4); levels:check clean on both.
+9p. **One side at a time (2026-10-18, engine/content 0.11.0).** Doug: raids hit one side at a time
+    and soldiers move to that side. Every wave comes from a single attack side, the next wave from
+    the next side (the first wave and the med bay's probe raid keep the first side). Guards
+    (`rally` on role.defender) with nothing in reach walk to the mid and quarter posts of the wall
+    facing the side most live hostiles came from, and back to their own posts once it is clear.
+    The bot needs no new move (it already fights the live hostiles); the runner traces
+    `rallyShare` and the rater reports it.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

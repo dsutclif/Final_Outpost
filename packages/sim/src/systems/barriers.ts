@@ -1,7 +1,7 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { FP, isqrt, mulDiv, type Vec } from "../fixed.js";
-import type { BarrierSectionState, BarrierState, State } from "../state.js";
+import type { BarrierSectionState, BarrierState, HostileState, State } from "../state.js";
 import { countOf, hint, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
 
 /** Units a repair (or rebuild of a destroyed section) costs: ceil(costPerSection * repairK); 0 when repair is off. */
@@ -149,15 +149,37 @@ export const nearAnyLine = (st: State, p: Vec, r: number): boolean =>
  * Guard posts along the first line: section midpoints, then interior joints, then quarter points,
  * each offset along its section's normal toward the core side (straight inward on a ring).
  */
-export function guardPost(st: State, cp: Compiled, k: number): Vec {
+type Side = HostileState["side"];
+
+/** The map side a section faces, seen from the core: the larger offset of its midpoint wins. */
+export function sectionSide(st: State, s: BarrierSectionState): Side {
+  const dx = (s.a.x + s.b.x) / 2 - st.core.pos.x, dy = (s.a.y + s.b.y) / 2 - st.core.pos.y;
+  return Math.abs(dy) >= Math.abs(dx) ? (dy < 0 ? "n" : "s") : dx < 0 ? "w" : "e";
+}
+
+/** The side most live hostiles came from (ties to n, e, s, w), or null when none are left. */
+export function attackedSide(st: State): Side | null {
+  const n: Record<Side, number> = { n: 0, e: 0, s: 0, w: 0 };
+  for (const h of st.hostiles) if (h.hp > 0) n[h.side]++;
+  let best: Side | null = null;
+  for (const s of ["n", "e", "s", "w"] as const) if (n[s] > 0 && (best === null || n[s] > n[best])) best = s;
+  return best;
+}
+
+export function guardPost(st: State, cp: Compiled, k: number, side: Side | null = null): Vec {
   const line = st.barriers[0];
   if (!line) return { ...st.core.pos };
-  const pts: { p: Vec; s: BarrierSectionState }[] = [];
+  let pts: { p: Vec; s: BarrierSectionState; joint?: boolean }[] = [];
   const lerp = (s: BarrierSectionState, num: number, den: number): { p: Vec; s: BarrierSectionState } =>
     ({ p: { x: s.a.x + mulDiv(s.b.x - s.a.x, num, den), y: s.a.y + mulDiv(s.b.y - s.a.y, num, den) }, s });
   for (const s of line.sections) pts.push(lerp(s, 1, 2));
-  for (let i = 1; i < line.sections.length; i++) pts.push({ p: { ...line.sections[i]!.a }, s: line.sections[i]! });
+  for (let i = 1; i < line.sections.length; i++) pts.push({ p: { ...line.sections[i]!.a }, s: line.sections[i]!, joint: true });
   for (const s of line.sections) { pts.push(lerp(s, 1, 4)); pts.push(lerp(s, 3, 4)); }
+  // rallying: the mid and quarter posts of the sections facing that side (a joint may be a ring corner)
+  if (side !== null) {
+    const facing = pts.filter((q) => !q.joint && sectionSide(st, q.s) === side);
+    if (facing.length > 0) pts = facing;
+  }
   const { p: base, s } = pts[k % pts.length]!;
   let nx = -(s.b.y - s.a.y), ny = s.b.x - s.a.x;
   if (nx * (st.core.pos.x - base.x) + ny * (st.core.pos.y - base.y) < 0) { nx = -nx; ny = -ny; }

@@ -1,8 +1,8 @@
 {
   "id": "s1-L048",
   "seed": 36296839,
-  "engineVersion": "0.10.0",
-  "contentVersion": "0.10.0",
+  "engineVersion": "0.11.0",
+  "contentVersion": "0.11.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -275,25 +275,6 @@
     },
     {
       "type": "pad.build",
-      "id": "tower_w2",
-      "at": [
-        60,
-        560
-      ],
-      "cost": {
-        "res.salvage": 6
-      },
-      "build": "struct.ranged_defense",
-      "site": [
-        28,
-        641
-      ],
-      "requires": {
-        "pad": "tower_w2_up"
-      }
-    },
-    {
-      "type": "pad.build",
       "id": "tower_w_up",
       "at": [
         130,
@@ -306,37 +287,6 @@
       "target": "tower_w",
       "requires": {
         "pad": "tower_w"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "tower_w2_up",
-      "at": [
-        130,
-        540
-      ],
-      "cost": {
-        "res.salvage": 5
-      },
-      "build": "struct.ranged_defense.t2",
-      "target": "tower_w2",
-      "requires": {
-        "pad": "tower_w_up"
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "reinforce",
-      "at": [
-        300,
-        370
-      ],
-      "cost": {
-        "res.salvage": 5
-      },
-      "build": "struct.barrier.reinforced",
-      "requires": {
-        "pad": "tower_w2"
       }
     },
     {
@@ -422,27 +372,27 @@
       "gap": 0.7
     },
     {
-      "t": 80,
+      "t": 79,
       "counts": {
-        "hostile.swarmling": 17,
+        "hostile.swarmling": 19,
         "hostile.raider_humanoid": 1
       },
       "side": "w",
       "gap": 0.7
     },
     {
-      "t": 140,
+      "t": 137,
       "counts": {
-        "hostile.swarmling": 30,
+        "hostile.swarmling": 35,
         "hostile.raider_humanoid": 3
       },
       "side": "w",
       "gap": 0.45
     },
     {
-      "t": 200,
+      "t": 196,
       "counts": {
-        "hostile.swarmling": 40,
+        "hostile.swarmling": 46,
         "hostile.raider_humanoid": 4,
         "hostile.boss": 1
       },
@@ -453,11 +403,11 @@
   "events": [],
   "params": {
     "start.currency": 10,
-    "core.burn": 3,
+    "core.burn": 2.9,
     "housing.base": 8,
     "lots.block": 160,
     "lots.street": 40,
-    "meters.baseHealth": 15,
+    "meters.baseHealth": 16,
     "level.budgetSeconds": 430
   },
   "goal": {
@@ -477,7 +427,7 @@
       "id": "challenge2",
       "kind": "hp_floor",
       "params": {
-        "pct": 20
+        "pct": 70
       }
     },
     {
@@ -500,9 +450,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.709,
-    "fun": 0.357,
-    "botMargin": 0.805,
+    "difficulty": 0.69,
+    "fun": 0.429,
+    "botMargin": 0.857,
     "botsPassed": [
       "good",
       "average",

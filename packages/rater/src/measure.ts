@@ -40,6 +40,8 @@ export interface Measurement {
   repairs: number;
   /** Mean goods the reference bot took back out of the warehouse per run. */
   depotPicks: number;
+  /** Mean share of guard-seconds under attack spent on the attacked side (-1 where no guard ever rallied). */
+  rallyShare: number;
   /** Longest time, in seconds, any stock sat at cap in any reference-bot run (0 when none did). */
   capHoldMax: number;
   /** Worst `loopMax` (longest run of identical player trips) over the reference-bot runs, and the trip behind it. */
@@ -86,9 +88,11 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const metrics = computeMetrics(manifest, content, plan, runs, budgetTicks, history);
   const repairs = mean(runs[REFERENCE]!.map((r) => r.trace.repairs));
   const depotPicks = mean(runs[REFERENCE]!.map((r) => r.trace.depotPicks));
+  const rallied = runs[REFERENCE]!.map((r) => r.trace.rallyShare).filter((x) => x >= 0);
+  const rallyShare = rallied.length > 0 ? mean(rallied) : -1;
   const capHoldMax = Math.max(0, ...runs[REFERENCE]!.map((r) => r.trace.capHoldMax));
   const worst = runs[REFERENCE]!.reduce((a, r) => (r.trace.loopMax > a.trace.loopMax ? r : a));
-  return { manifest, plan, runs, variants, metrics, repairs, depotPicks, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, terrain: terrainStats(manifest), budgetTicks, template, history };
+  return { manifest, plan, runs, variants, metrics, repairs, depotPicks, rallyShare, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, terrain: terrainStats(manifest), budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,

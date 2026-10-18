@@ -1,8 +1,8 @@
 {
   "id": "s1-L029",
-  "seed": 1226968294,
-  "engineVersion": "0.10.0",
-  "contentVersion": "0.10.0",
+  "seed": 261986809,
+  "engineVersion": "0.11.0",
+  "contentVersion": "0.11.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         500
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -44,8 +44,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        324,
-        618
+        327,
+        608
       ],
       "sells": [
         "res.food_raw_1"
@@ -60,8 +60,8 @@
           897
         ],
         [
-          248,
-          720
+          251,
+          710
         ]
       ]
     },
@@ -77,77 +77,70 @@
       "type": "node.fuel_scrap",
       "at": [
         110,
-        460
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        140,
-        440
+        130,
+        470
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        100,
+        470
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         150,
-        470
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        180,
-        470
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        110,
-        430
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        140,
-        500
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        180,
         440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        110,
-        500
+        80,
+        440
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         170,
+        470
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        120,
+        500
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        150,
         500
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        140,
+        110,
         400
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        70,
-        450
+        150,
+        400
       ]
     },
     {
@@ -160,10 +153,32 @@
       "enabled": false
     },
     {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        199,
+        201,
+        19,
+        100
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "chasm",
+      "rect": [
+        34,
+        136,
+        61,
+        29
+      ]
+    },
+    {
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        200,
+        190,
         650
       ],
       "cost": {
@@ -181,8 +196,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        324,
-        742
+        327,
+        732
       ],
       "cost": {
         "res.currency": 23
@@ -216,7 +231,7 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        140,
+        130,
         650
       ],
       "cost": {
@@ -250,7 +265,7 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
+    "start.currency": 1,
     "core.burn": 2.2,
     "housing.base": 6,
     "lots.block": 160,
@@ -258,13 +273,13 @@
     "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.bulkShare": 0.17,
-    "level.budgetSeconds": 350
+    "customers.bulkShare": 0.16,
+    "level.budgetSeconds": 340
   },
   "goal": {
     "type": "sell",
     "res": "res.food_raw_1",
-    "n": 211
+    "n": 230
   },
   "family": "harvest",
   "objectives": [
@@ -273,20 +288,22 @@
       "kind": "sell",
       "params": {
         "res": "res.food_raw_1",
-        "n": 211
+        "n": 230
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 284
+        "seconds": 307
       }
     },
     {
       "id": "challenge",
-      "kind": "no_angry_customers",
-      "params": {}
+      "kind": "streak",
+      "params": {
+        "n": 20
+      }
     }
   ],
   "fail": [
@@ -302,14 +319,13 @@
     }
   },
   "rating": {
-    "difficulty": 0.999,
-    "fun": 0.938,
-    "botMargin": 0.422,
+    "difficulty": 0.995,
+    "fun": 0.95,
+    "botMargin": 0.349,
     "botsPassed": [
       "good",
       "average",
-      "weak",
-      "novice"
+      "weak"
     ],
     "stars": {
       "good": 3,

@@ -129,6 +129,7 @@ export interface CompiledRole {
   attackTicks: number;
   attackRange: number;
   damage: number;
+  rally: boolean;
 }
 
 export interface CompiledCustomerDef {
@@ -368,7 +369,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     roles[id] = {
       behavior: r.behavior, speed: perTick(r.speed), carry: r.carry ?? 1,
       gatherTicks: ticks(r.gatherInterval ?? 0), deliverTicks: ticks(r.deliverInterval ?? 0),
-      attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1,
+      attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1, rally: r.rally,
     };
   }
   const consumers: Record<string, CompiledConsumer> = {};
