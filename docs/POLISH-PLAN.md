@@ -48,6 +48,17 @@ DECISIONS.md records what shipped (9l, 9m). Tick items here as they land.
 Doug, 2026-10-17: hold every change that needs a full level regeneration until the 3D models
 are done, since the models may force one anyway. Then do these together under one engine bump.
 
+- [ ] **The level ends on its slowest goal** (Doug, 2026-10-18). Today the level ends the moment
+      objective 0 (the main goal) is done and every star objective still open fails
+      (`sim/systems/goals.ts` checkEnd, `objectives.ts` settleObjectives): opening a second
+      greenhouse before serving the 20th customer costs a star. End instead when every objective
+      is done or can no longer be done (fails and the timer still end it early). Rules change:
+      engine bump, bots and rater (levels get longer), re-pin golden levels and the pack.
+- [ ] **Traders walk real paths** (Doug, 2026-10-18). Customers move in straight lines through
+      walls and buildings (`sim/systems/sales.ts`). Route arrivals and departures around
+      structures, through a gate; the generator always puts a gate in the wall section nearest the
+      kiosk. Rules change (sim movement) plus generator change.
+
 - [ ] **No pads the level does not need.** Pads and conveyor build spaces still appear for
       things the level can be completed without. Generator: only place pads that serve the
       goal or a star objective (or are an intended optional choice, marked as such).
