@@ -402,7 +402,7 @@ sticking up above the top face, about twice as wide as it is tall."*
 ## Not sent to Meshy
 
 Kept code-built, because they are flat or animated in ways a single model cannot do: pads and
-rings, the conveyor belt, the hopper flats ground patch, the reactor glow, and all effects. They
+rings, the moving belt surface (the conveyor frame is the kit above), the hopper flats ground patch, the reactor glow, and all effects. They
 follow the concept look through the palette and the shader.
 
 ## Priority and credit budget
