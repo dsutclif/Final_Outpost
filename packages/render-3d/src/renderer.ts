@@ -1061,13 +1061,18 @@ export class Renderer3D implements Renderer {
       if (n.enabled) this.candidate(n.type, p);
       const body = p.model.parts["body"] as Mesh | undefined;
       const steps = body?.userData["steps"] as number[] | undefined;
-      if (body && steps) {
+      // a Meshy pile has no draw-range steps, so it settles lower as its stock runs down
+      const glb = !steps && p.model.root.userData["meshy"] ? p.model.root.getObjectByName("body") : undefined;
+      if ((body && steps) || glb) {
         const def = this.content.nodes[n.type] as { stock?: number | null } | undefined;
         const max = Math.max(this.stockMax.get(key) ?? 0, def?.stock ?? 0, n.stock ?? 0);
         this.stockMax.set(key, max);
         const frac = n.stock === null || max === 0 ? 1 : n.stock / max;
-        const idx = Math.ceil(frac * (steps.length - 1));
-        body.geometry.setDrawRange(0, steps[Math.max(0, Math.min(steps.length - 1, idx))]!);
+        if (glb) glb.scale.set(0.8 + 0.2 * frac, 0.35 + 0.65 * frac, 0.8 + 0.2 * frac);
+        else {
+          const idx = Math.ceil(frac * (steps!.length - 1));
+          body!.geometry.setDrawRange(0, steps![Math.max(0, Math.min(steps!.length - 1, idx))]!);
+        }
       }
       const lamp = p.model.parts["lamp"] as Mesh | undefined;
       if (lamp) {

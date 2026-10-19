@@ -951,5 +951,41 @@
       1.58,
       1.398
     ]
+  },
+  "node.material_source": {
+    "hash": "cb5a21de89",
+    "tris": 900,
+    "bytes": 191500,
+    "bounds": [
+      -0.93,
+      0,
+      -1,
+      0.93,
+      0.773,
+      1
+    ],
+    "outline": {
+      "hash": "46ab5b78ce",
+      "tris": 246,
+      "bytes": 3724
+    }
+  },
+  "node.fuel_scrap": {
+    "hash": "35b469c887",
+    "tris": 396,
+    "bytes": 39952,
+    "bounds": [
+      -0.475,
+      0,
+      -0.409,
+      0.475,
+      0.681,
+      0.409
+    ],
+    "outline": {
+      "hash": "99935e8e58",
+      "tris": 250,
+      "bytes": 3772
+    }
   }
 }

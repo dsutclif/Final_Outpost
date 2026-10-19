@@ -255,11 +255,12 @@ under it (L1 [-0.1, 0.7, -0.12], L2 [-0.03, 1.0, -0.04], L3 [-0.06, 0.91, -0.05]
 | Rockslide | `zone.blocked` (`batch: "rubble"`) | 500 | Squared to the 1 x 1 m tile the renderer stretches over the zone |
 | Items | `res.*` (`kind: "item"`) | 200-300 | Alloy, fuel cell, greens, protein, meal, coin (`tint: "gold"`), scrap bale (800: at 300 its 7.7M-tri source collapsed to a wedge). Stacks use each model's own height |
 | Protein Ground | `res.food_raw_2` (`ground: true`) | 250 | The steak a hunted hopper drops; the wrapped pack stays the carried unit |
+| Crystalline Ore Pile 1 / 2 | `node.material_source` / `node.fuel_scrap` | 900 / 400 | Wide sandy heap is the ore pile (2.0 m), the single crystal rock the small ore node (0.95 m). A GLB pile has no draw-range steps, so it squashes down (height 35-100%) as its stock runs out |
 | Ship Scrap 1 / 2 | `decor.ship_scrap` / `decor.ship_wreck` | 350 / 500 | Border dressing. Decor kinds now share one border's worth of copies (bigger pieces fewer) |
 
 Golden level 4 at tick ~850: 58.0k triangles, 42 draw calls (55.5k before this batch; code
-models 49.7k). Still code-built: the fuel cell cache (`node.fuel_deposit`, no GLB yet), the ore
-pile, the habitat hub, the parts item.
+models 49.7k). Still code-built: the fuel cell cache (`node.fuel_deposit`, no GLB yet), the habitat hub,
+the parts item.
 
 ## Style block (paste at the start of every Gemini chat)
 

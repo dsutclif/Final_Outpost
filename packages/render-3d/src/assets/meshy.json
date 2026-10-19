@@ -121,6 +121,10 @@
     { "file": "res.salvage", "src": "Scrap Stackable.glb", "id": "res.salvage", "kind": "item", "tris": 800, "texture": 256, "yaw": 0, "width": 0.36 },
     { "file": "res.currency", "src": "Credit Coin.glb", "id": "res.currency", "kind": "item", "tris": 250, "texture": 256, "yaw": 0, "width": 0.3, "tint": "gold", "metal": 0.55, "rough": 0.38 },
     { "file": "decor.ship_scrap", "src": "Ship Scrap 1.glb", "id": "decor.ship_scrap", "kind": "decor", "tris": 350, "texture": 512, "yaw": 0, "width": 1.8 },
-    { "file": "decor.ship_wreck", "src": "Ship_Scrap_2.glb", "id": "decor.ship_wreck", "kind": "decor", "tris": 500, "texture": 512, "yaw": 0, "width": 3.2 }
+    { "file": "decor.ship_wreck", "src": "Ship_Scrap_2.glb", "id": "decor.ship_wreck", "kind": "decor", "tris": 500, "texture": 512, "yaw": 0, "width": 3.2 },
+    { "file": "node.material_source", "src": "Crystalline_Ore_Pile__1.glb", "id": "node.material_source", "tris": 900, "yaw": 0, "width": 2.0, "replace": ["body"],
+      "parts": {}, "anchors": {} },
+    { "file": "node.fuel_scrap", "src": "Crystalline_Ore_Pile_2.glb", "id": "node.fuel_scrap", "tris": 400, "texture": 512, "yaw": 0, "width": 0.95, "replace": ["body"],
+      "parts": {}, "anchors": {} }
   ]
 }
