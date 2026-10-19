@@ -312,6 +312,19 @@ All characters: realistic, muted versions of the sheet designs, **empty-handed, 
 | `role.server` | Runner | A runner: lightweight grey suit with muted rose stripes, a soft cap-style helmet, a small hip bag. |
 | `role.hunter` | Ranger | A ranger: olive-grey field suit, a helmet with a tall antenna and a monocular scope over one eye. |
 
+## Priority B: conveyor kit (sheet: `Miscellaneous structures.jpeg`)
+
+Belts are built from repeatable pieces like the wall: the game tiles the straight segment along the
+belt, puts a drive end at each end and a corner at a bend. The belt surface and the goods riding it
+stay code-drawn (the surface scrolls), so every piece is the **frame only, with the belt bed empty
+and flat**. Remesh to 10K like the buildings. Same style block and rules.
+
+| File name | Asset | Prompt |
+|---|---|---|
+| `struct.conveyor.segment` | Straight segment | One straight section of industrial conveyor frame from the sheet: dark steel side rails with rollers between them, four angled legs, a flat empty belt bed, about three times as long as it is wide. **Both ends open and cut square** so identical sections join seamlessly end to end. No goods on it. |
+| `struct.conveyor.drive` | Drive end | The drive end of the same conveyor: a short frame section ending in a chunky motor housing with a large exposed gear on the side, as on the sheet. The open end is cut square to join a straight section. No goods on it. |
+| `struct.conveyor.corner` | 90° corner | A 90-degree corner piece of the same conveyor frame: a square section with curved rails and rollers turning the belt bed a quarter turn. Both open ends cut square to join straight sections. No goods on it. |
+
 ## Priority B: visitors, raiders, creatures (sheet: `Non settler characters.jpeg`)
 
 All four trader types come from **one** rigged trader: the hurried trader plays the check-watch clip and walks faster, the VIP carries the gold briefcase (one per hand) and the bulk trader pushes the hover cart. The game picks the clip and attaches the prop per type, so each still reads by silhouette.
