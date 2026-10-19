@@ -124,7 +124,7 @@ on the fit page and in a level, and commits the small GLBs. Raw downloads never 
 
 | First batch | Id | Yaw | Notes |
 |---|---|---|---|
-| Heat Core 1/2/3 | `sink.core` L1/L2/L3 | 0 / 90 / -90 | Hopper to the front; plasma orb and flame in the well; L2+ spin ring over the rim |
+| Reactor Core 1/2/3 (batch 4; was Heat Core) | `sink.core` L1/L2/L3 | 0 / -90 / 90 | Hopper to the front; plasma orb and flame in the well; L2+ spin ring over the rim |
 | Trade Kiosk | `sink.sales_point` | 0 | Glass front to +z, airlock to the queue side (+x); shelf crates in front of the glass |
 | Smelter | `conv.material_processor` | 90 | Glowing mouth to the front, ore hopper (deposit) on the pickup side |
 | Galley | `conv.food_processor` | 180 | Hoppers to the front |
@@ -240,6 +240,26 @@ The medic carries `prop.medkit` in the right hand (its download is named `Ore Sc
 `fit.html?rig=<id>` shows a character in each state (`&k=<n>` one; pass `&w=&h=` in the browser
 pane), `fit.html?clips=<file>` every clip in a row (`&ck=<n>` one clip at five moments).
 Golden level 4 with guards and haulers working: 64k triangles, 50 draw calls (was 70).
+
+**Fourth batch (2026-10-19): reactor redo, scatter, items.** New reactor files for all three
+levels (`Reactor Core 1/2/3.glb` replace `Heat Core`; L2 and L3 turned 180° so the hopper faces
++z). The orb, flame and spin ring are placed from each mesh: the well centre is the largest empty
+circle among the vertices above 70% of the height, the ring sits 0.18 m over the rim, the orb 0.22 m
+under it (L1 [-0.1, 0.7, -0.12], L2 [-0.03, 1.0, -0.04], L3 [-0.06, 0.91, -0.05]).
+
+| Fourth batch | Id | Tris | Notes |
+|---|---|---|---|
+| Guard Post | `struct.barracks` | 1,400 | 1.6 m, road barriers to +z |
+| Grow Dome | `node.food_source` | 1,600 | Open planter (no glass): drops the code glass and lamp |
+| Stasis Pod / Cargo Crate | `capture.recruit_container` / `.supply_crate` | 900 / 600 | Whole model; the code lid is dropped, so release shows only the shake. No footprint test (towed) |
+| Rockslide | `zone.blocked` (`batch: "rubble"`) | 500 | Squared to the 1 x 1 m tile the renderer stretches over the zone |
+| Items | `res.*` (`kind: "item"`) | 200-300 | Alloy, fuel cell, greens, protein, meal, coin (`tint: "gold"`), scrap bale (800: at 300 its 7.7M-tri source collapsed to a wedge). Stacks use each model's own height |
+| Protein Ground | `res.food_raw_2` (`ground: true`) | 250 | The steak a hunted hopper drops; the wrapped pack stays the carried unit |
+| Ship Scrap 1 / 2 | `decor.ship_scrap` / `decor.ship_wreck` | 350 / 500 | Border dressing. Decor kinds now share one border's worth of copies (bigger pieces fewer) |
+
+Golden level 4 at tick ~850: 58.0k triangles, 42 draw calls (55.5k before this batch; code
+models 49.7k). Still code-built: the fuel cell cache (`node.fuel_deposit`, no GLB yet), the ore
+pile, the habitat hub, the parts item.
 
 ## Style block (paste at the start of every Gemini chat)
 

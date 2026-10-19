@@ -18,10 +18,12 @@ export interface MeshyEntry {
   replace?: string[]; parts?: Record<string, number[]>; anchors?: Record<string, number[]>;
   /** Meshes this GLB swaps one for one, keeping their place; `mirror` ones flip on x. */
   slot?: string[]; mirror?: string[];
-  /** Instanced by the renderer as a wall section; `depth` scales its thickness. */
-  batch?: "wall" | "reinforced"; depth?: number;
+  /** Instanced by the renderer: a wall section (`depth` scales its thickness) or rockslide rubble. */
+  batch?: "wall" | "reinforced" | "rubble"; depth?: number;
   /** prop: held; character: rigged; item: a resource unit (replaces the code item); decor: map-border dressing. */
   kind?: "prop" | "character" | "item" | "decor";
+  /** item: drawn for a loose drop on the ground instead of the stacking unit. */
+  ground?: boolean;
   /** Fitted width in art metres (decor copies are spread at this size). */
   width?: number;
   /** Character clips by role (walk, run, idle, wait, cheer) → clip name in the file. */

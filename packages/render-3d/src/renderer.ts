@@ -350,8 +350,8 @@ export class Renderer3D implements Renderer {
         const g = meshyGeometry(e.file);
         if (!g) return;
         g.geo.computeVertexNormals();
-        if (e.kind === "item") this.items?.setModel(e.id, g.geo, g.mat);
-        else { this.env?.addDecor(g.geo, g.mat, meshyEntries().indexOf(e), ART_M * (e.width ?? 1.4)); this.geos.push(g.geo); }
+        if (e.kind === "item") this.items?.setModel(e.ground ? `${e.id}@ground` : e.id, g.geo, g.mat);
+        else { this.env?.addDecor(g.geo, g.mat, meshyEntries().indexOf(e), ART_M * (e.width ?? 1.4), meshyEntries().filter((d) => d.kind === "decor" && !d.unwired).length); this.geos.push(g.geo); }
         return;
       }
       if (e.kind === "character") return;
@@ -853,6 +853,14 @@ export class Renderer3D implements Renderer {
   private meshyWall(e: MeshyEntry): void {
     const g = meshyGeometry(e.file);
     if (!g || !this.walls || !e.batch) return;
+    if (e.batch === "rubble") {
+      // tiles are stretched over the zone rect, so the rockslide fills a 1 x 1 m footprint like the code rubble
+      const b = g.geo.boundingBox!;
+      g.geo.translate(-(b.min.x + b.max.x) / 2, 0, -(b.min.z + b.max.z) / 2).scale(1 / Math.max(0.01, b.max.x - b.min.x), 1, 1 / Math.max(0.01, b.max.z - b.min.z));
+      this.geos.push(g.geo);
+      this.walls.rubble.swap(g.geo, g.mat);
+      return;
+    }
     const box = g.geo.boundingBox!;
     const cracked = crackGeo(g.geo);
     this.geos.push(g.geo, cracked);
@@ -1709,7 +1717,7 @@ export class Renderer3D implements Renderer {
     for (const d of s.drops) {
       const at = this.wv(d.pos);
       const bounce = Math.abs(Math.sin(this.t * 5 + d.id)) * 7;
-      this.items!.add(d.res, at.x, bounce, at.z, this.t * 2 + d.id);
+      this.items!.addDrop(d.res, at.x, bounce, at.z, this.t * 2 + d.id);
       this.blobs!.add(at.x, at.z, 6);
     }
   }

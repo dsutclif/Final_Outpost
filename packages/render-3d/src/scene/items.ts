@@ -24,9 +24,10 @@ export class Items {
     for (const b of this.batches.values()) b.begin();
   }
 
-  /** World height of one stacked item. */
+  /** World height of one stacked item (a Meshy item stacks at its own height). */
   height(res: string): number {
-    return itemHeight(res) * this.scale;
+    const box = this.meshy.get(res)?.geo.boundingBox;
+    return (box ? box.max.y - box.min.y : itemHeight(res)) * this.scale;
   }
 
   add(res: string, x: number, y: number, z: number, yaw = 0, k = 1, tilt = 0): void {
@@ -37,8 +38,14 @@ export class Items {
 
   /** Draw `res` with a Meshy model from now on (fitted in art metres, pivot at the bottom). */
   setModel(res: string, geo: BufferGeometry, mat: Material): void {
+    geo.computeBoundingBox();
     this.meshy.set(res, { geo, mat });
     this.batches.get(res)?.swap(geo, mat);
+  }
+
+  /** A loose drop on the ground: its own ground model when one has landed (the protein cut). */
+  addDrop(res: string, x: number, y: number, z: number, yaw = 0): void {
+    this.add(this.meshy.has(`${res}@ground`) ? `${res}@ground` : res, x, y, z, yaw);
   }
 
   private batch(res: string): Batch {

@@ -18,24 +18,6 @@
     }
   },
   "sink.core.l2": {
-    "hash": "3f60e2b0b9",
-    "tris": 2978,
-    "bytes": 224072,
-    "bounds": [
-      -1.127,
-      0,
-      -1.2,
-      1.127,
-      1.075,
-      1.2
-    ],
-    "outline": {
-      "hash": "fd397db729",
-      "tris": 244,
-      "bytes": 3640
-    }
-  },
-  "sink.core.l3": {
     "hash": "045f7ae5b3",
     "tris": 2932,
     "bytes": 233244,
@@ -51,6 +33,24 @@
       "hash": "14f8c4c3dd",
       "tris": 246,
       "bytes": 3712
+    }
+  },
+  "sink.core.l3": {
+    "hash": "c83ffa82bd",
+    "tris": 2932,
+    "bytes": 263080,
+    "bounds": [
+      -1.142,
+      0,
+      -1.2,
+      1.142,
+      1.307,
+      1.2
+    ],
+    "outline": {
+      "hash": "10ba583714",
+      "tris": 240,
+      "bytes": 3568
     }
   },
   "sink.sales_point": {
@@ -736,5 +736,220 @@
       "tris": 114,
       "bytes": 20744
     }
+  },
+  "struct.barracks": {
+    "hash": "53791cde55",
+    "tris": 1398,
+    "bytes": 178972,
+    "bounds": [
+      -0.513,
+      0,
+      -0.8,
+      0.513,
+      1.138,
+      0.8
+    ],
+    "outline": {
+      "hash": "aca6450572",
+      "tris": 248,
+      "bytes": 3808
+    }
+  },
+  "node.food_source": {
+    "hash": "b3b961302f",
+    "tris": 1576,
+    "bytes": 221956,
+    "bounds": [
+      -1.037,
+      0,
+      -1.1,
+      1.037,
+      0.745,
+      1.1
+    ],
+    "outline": {
+      "hash": "3bd4d02598",
+      "tris": 218,
+      "bytes": 3328
+    }
+  },
+  "capture.recruit_container": {
+    "hash": "5de6b46f22",
+    "tris": 900,
+    "bytes": 159712,
+    "bounds": [
+      -0.55,
+      0,
+      -0.309,
+      0.55,
+      0.579,
+      0.309
+    ],
+    "outline": {
+      "hash": "635bdf0af7",
+      "tris": 248,
+      "bytes": 3608
+    }
+  },
+  "capture.supply_crate": {
+    "hash": "89697784db",
+    "tris": 590,
+    "bytes": 54496,
+    "bounds": [
+      -0.425,
+      0,
+      -0.234,
+      0.425,
+      0.582,
+      0.234
+    ],
+    "outline": {
+      "hash": "4b6660b635",
+      "tris": 250,
+      "bytes": 4124
+    }
+  },
+  "zone.blocked": {
+    "hash": "1b9ab3f1e1",
+    "tris": 496,
+    "bytes": 70592,
+    "bounds": [
+      -0.5,
+      0,
+      -0.265,
+      0.5,
+      0.259,
+      0.265
+    ]
+  },
+  "res.material_refined": {
+    "hash": "0df3819a16",
+    "tris": 200,
+    "bytes": 5228,
+    "bounds": [
+      -0.2,
+      0,
+      -0.098,
+      0.2,
+      0.065,
+      0.098
+    ]
+  },
+  "res.fuel_dense": {
+    "hash": "924d08d4eb",
+    "tris": 299,
+    "bytes": 21308,
+    "bounds": [
+      -0.2,
+      0,
+      -0.139,
+      0.2,
+      0.255,
+      0.139
+    ]
+  },
+  "res.food_raw_1": {
+    "hash": "2d2db0cf35",
+    "tris": 288,
+    "bytes": 18216,
+    "bounds": [
+      -0.2,
+      0,
+      -0.168,
+      0.2,
+      0.191,
+      0.168
+    ]
+  },
+  "res.food_raw_2": {
+    "hash": "14c6b6bfab",
+    "tris": 250,
+    "bytes": 11676,
+    "bounds": [
+      -0.2,
+      0,
+      -0.14,
+      0.2,
+      0.117,
+      0.14
+    ]
+  },
+  "res.food_raw_2.ground": {
+    "hash": "a22a33c0fd",
+    "tris": 250,
+    "bytes": 30032,
+    "bounds": [
+      -0.21,
+      0,
+      -0.188,
+      0.21,
+      0.086,
+      0.188
+    ]
+  },
+  "res.food_prepared": {
+    "hash": "4b6a0a4b54",
+    "tris": 248,
+    "bytes": 10436,
+    "bounds": [
+      -0.19,
+      0,
+      -0.138,
+      0.19,
+      0.092,
+      0.138
+    ]
+  },
+  "res.salvage": {
+    "hash": "6af54d6f78",
+    "tris": 798,
+    "bytes": 34268,
+    "bounds": [
+      -0.18,
+      0,
+      -0.119,
+      0.18,
+      0.181,
+      0.119
+    ]
+  },
+  "res.currency": {
+    "hash": "37f7fb8700",
+    "tris": 250,
+    "bytes": 22156,
+    "bounds": [
+      -0.15,
+      0,
+      -0.147,
+      0.15,
+      0.038,
+      0.147
+    ]
+  },
+  "decor.ship_scrap": {
+    "hash": "844c1619fb",
+    "tris": 342,
+    "bytes": 67196,
+    "bounds": [
+      -0.9,
+      0,
+      -0.755,
+      0.9,
+      0.465,
+      0.755
+    ]
+  },
+  "decor.ship_wreck": {
+    "hash": "2446288105",
+    "tris": 498,
+    "bytes": 59548,
+    "bounds": [
+      -1.6,
+      0,
+      -1.398,
+      1.6,
+      1.58,
+      1.398
+    ]
   }
 }

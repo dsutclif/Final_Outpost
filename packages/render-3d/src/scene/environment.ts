@@ -245,8 +245,9 @@ export class Environment {
    * Decor (a Meshy scrap heap or ore outcrop, `size` world units across): a few copies in the band
    * just outside the map edge, where nothing is ever built or walked, so the border reads as terrain.
    */
-  addDecor(geo: BufferGeometry, mat: Material, salt: number, size: number): void {
-    const n = Math.max(4, Math.min(14, Math.round((this.W + this.H) / 150)));
+  addDecor(geo: BufferGeometry, mat: Material, salt: number, size: number, kinds = 1): void {
+    // the decor kinds share one border's worth of copies; bigger pieces (the wreck) get fewer
+    const n = Math.max(2, Math.min(14, Math.round((this.W + this.H) / 150 / kinds / Math.max(1, size / (1.8 * ART_M)))));
     const batch = new Batch(geo, mat, this.group, n, `decor${salt}`);
     const box = geo.boundingBox ?? (geo.computeBoundingBox(), geo.boundingBox!);
     const k0 = size / Math.max(0.01, box.max.x - box.min.x, box.max.z - box.min.z);
