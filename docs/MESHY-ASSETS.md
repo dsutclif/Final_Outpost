@@ -219,7 +219,7 @@ each starting under a branching joint) and walks them in an alternating gait. Wh
 - **Idle from the walk.** Files without an idle get one: each bone at its average over the walk
   cycle, plus a slow breath in the chest.
 - **Actions** (`clips` keys beyond walk/run/idle): gathering picks by node type (`mine` ore,
-  `reap` grow dome, `pick` fuel cache, `dig` scrap), from the sim's `gathered` events; `shoot`
+  `reap` grow dome, `pick` fuel cache; both ore nodes `mine` since batch 4 made the small one a crystal rock), from the sim's `gathered` events; `shoot`
   (standing) and `shootMove` from the hero's shots and from hits by guards and hunters; raiders
   shoot while at a barrier or the base. A standing character turns to face what it works on.
   Clip names: `01a14f4e…` is the bent-over dig, `01a14f15…` the rifle-ready stance.

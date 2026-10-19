@@ -216,9 +216,9 @@ function drawGlyph(g: CanvasRenderingContext2D, kind: string, x: number, y: numb
   g.restore();
 }
 
-/** The work clip for gathering at each node type (rigged characters). */
+/** The work clip for gathering at each node type (rigged characters); both ore nodes are crystal rock, so the pickaxe. */
 const GATHER_ACT: Readonly<Record<string, string>> = {
-  "node.material_source": "mine", "node.food_source": "reap", "node.fuel_deposit": "pick", "node.fuel_scrap": "dig",
+  "node.material_source": "mine", "node.food_source": "reap", "node.fuel_deposit": "pick", "node.fuel_scrap": "mine",
 };
 
 export class Renderer3D implements Renderer {
