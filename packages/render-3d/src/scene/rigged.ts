@@ -1,4 +1,4 @@
-import { AnimationClip, AnimationMixer, Euler, Matrix4, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack, type AnimationAction, type Bone, type BufferGeometry, type Mesh, type Object3D } from "three";
+import { AnimationClip, AnimationMixer, Box3, Euler, Matrix4, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack, type AnimationAction, type Bone, type BufferGeometry, type Mesh, type Object3D, type SkinnedMesh } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { meshyCharacters, meshyGeometry, meshyLoaded, meshyRig, meshyScene, type MeshyEntry, type MeshyHeld } from "../assets/meshy.js";
 
@@ -115,7 +115,10 @@ export class Rigged {
 
   /** The rig for a character id (unit.customer covers its variants), once loaded. */
   entryFor(id: string): MeshyEntry | undefined {
-    return meshyCharacters().find((e) => (id === e.id || id.startsWith(e.id + "_")) && meshyRig(e.file));
+    // an id with its own file never borrows a prefix match (the spiky hopper is not node.prey)
+    const own = meshyCharacters().find((e) => e.id === id);
+    if (own) return meshyRig(own.file) ? own : undefined;
+    return meshyCharacters().find((e) => id.startsWith(e.id + "_") && meshyRig(e.file));
   }
 
   begin(): void {
@@ -134,7 +137,8 @@ export class Rigged {
     inst.seen = true;
     inst.root.visible = true;
     const b = meshyRig(e.file)!;
-    const h = (e.height ?? 1.1) / Math.max(0.01, b.scene.userData["height"] as number ?? 1.7);
+    // art metres per model unit: by body length for long, low creatures (the hoppers), else by height
+    const h = e.length ? e.length / ((b.scene.userData["length"] as number) || 1) : (e.height ?? 1.1) / ((b.scene.userData["height"] as number) || 1.7);
     inst.root.position.set(x, 0, z);
     inst.root.rotation.y = yaw;
     inst.root.scale.setScalar(scale * h);
@@ -194,9 +198,33 @@ export class Rigged {
   private make(id: string, e: MeshyEntry): Inst {
     const rig = meshyRig(e.file)!;
     if (rig.scene.userData["height"] === undefined) {
-      let top = 0;
-      rig.scene.traverse((o) => { const m = o as Mesh; if (m.isMesh) { m.geometry.computeBoundingBox(); top = Math.max(top, m.geometry.boundingBox!.max.y); } });
-      rig.scene.userData["height"] = top || 1.7;
+      // measured as drawn (skinned, through the armature): FBX-style files keep the mesh in other
+      // units under a scaled, turned armature, so the raw vertex heights mean nothing there
+      const box = new Box3();
+      // creatures sized by length are measured as they walk: the hoppers' hop clip scales the hips 1.6x
+      const walk = e.length ? rig.clips.find((c) => c.name === e.clips?.["walk"]) : undefined;
+      const rest: [Object3D, Vector3, Quaternion, Vector3][] = [];
+      const mixer = walk ? new AnimationMixer(rig.scene) : null;
+      if (mixer && walk) {
+        rig.scene.traverse((o) => { rest.push([o, o.position.clone(), o.quaternion.clone(), o.scale.clone()]); });
+        mixer.clipAction(walk).play();
+        mixer.setTime(0);
+      }
+      rig.scene.updateMatrixWorld(true);
+      rig.scene.traverse((o) => {
+        const m = o as SkinnedMesh;
+        if (!m.isMesh) return;
+        if (m.isSkinnedMesh) { m.skeleton.update(); m.computeBoundingBox(); box.union(m.boundingBox!.clone().applyMatrix4(m.matrixWorld)); }
+        else { m.geometry.computeBoundingBox(); box.union(m.geometry.boundingBox!.clone().applyMatrix4(m.matrixWorld)); }
+      });
+      if (mixer) {
+        mixer.stopAllAction();
+        mixer.uncacheRoot(rig.scene);
+        for (const [o, p, q, s] of rest) { o.position.copy(p); o.quaternion.copy(q); o.scale.copy(s); }
+        rig.scene.updateMatrixWorld(true);
+      }
+      rig.scene.userData["height"] = box.isEmpty() ? 1.7 : box.max.y - Math.min(0, box.min.y) || 1.7;
+      rig.scene.userData["length"] = box.isEmpty() ? 1 : Math.max(box.max.x - box.min.x, box.max.z - box.min.z) || 1;
     }
     const height = rig.scene.userData["height"] as number;
     const root = cloneSkinned(rig.scene);

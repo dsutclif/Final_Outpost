@@ -271,7 +271,7 @@ models 49.7k). Fuel cell cache and habitat hub followed in batch 6.
 | Assembled Part | `res.component` (`kind: "item"`) | 300 | The parts unit in stacks, shelves and belts |
 | Crystalline Scrap Pile Large | `decor.crystal_scrap` (`kind: "decor"`) | 570 | Border dressing, 1.8 m (its Gemini image is `Crystalline Scrap decor.jpg`) |
 
-**Sixth batch (2026-10-22): technician, fuel cell cache, habitat hub.** Every model in the list now
+**Sixth batch (2026-10-22): technician, fuel cell cache, habitat hub, hoppers, dust crawler re-rig.** Every model in the list now
 has a Meshy file.
 
 | Sixth batch | Id | Tris | Notes |
@@ -279,6 +279,8 @@ has a Meshy file.
 | Technician_All_Animations | `role.operator` (`kind: "character"`) | 1,000 | Standing at a running converter it works it: `work` (`open_door_3`, a pull, with the wrench in the right hand) and `work2` (a Text to Motion clip, empty-handed, though named the wrench clip in the download) take turns, each once through. The pull is the door-open clip recut to its two reach-and-swing windows (`cut`: 1.0-2.7 s and 6.2-8.7 s) with the hips and legs held at the standing pose of 0 s (`plant`), so the walk to the door and away is gone; `inPlace` pins the other clip's hip travel. A pooled rig is rebuilt when its character id changes, so a hired colonist takes its job's rig |
 | Fuel_Cell_Cache | `node.fuel_deposit` | 900 | 1.4 m open crate; no generator footprint, so the footprint test skips it |
 | Habitation_Hub | `struct.landmark` | 2,400 | 4.4 m; dome glass and glow dropped, the beacon sits on the dome cap [0, 2.16, -0.3] |
+| Rock_Hopper_Animated / Spiky_Rock_Hopper_Animated | `node.prey` / `node.prey_dangerous` (`kind: "character"`) | 800 | Picked by the prey zone's animal id. One 1 s hop clip each, used as the walk; the idle is made from it. Sized by `length` (nose to tail: 0.9 / 0.6 m, the spiky one then x1.3 by its look), measured in the hop's first frame because the clip scales the hips 1.6x. These are FBX-style exports (mesh in centimetres under a 0.01, turned armature, emissive white, specular/ior): the character bake works at metre scale and clears the emissive and extensions, and the renderer measures rigs as drawn (skinned) |
+| Dust Crawler Rigged (re-rig) | `hostile.creature` | 1,000 | Same entry, rebuilt from the new rig; still no clips, the code gait walks its legs |
 
 ## Style block (paste at the start of every Gemini chat)
 

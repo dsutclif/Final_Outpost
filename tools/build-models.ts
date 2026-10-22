@@ -329,6 +329,12 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
     pos: new Float32Array(prim.getAttribute("POSITION")!.getArray()!), uv: new Float32Array(prim.getAttribute("TEXCOORD_0")!.getArray()!),
     idx: Uint32Array.from(prim.getIndices()!.getArray()!), tex: { data: raw.data, w: raw.info.width, h: raw.info.height },
   };
+  // FBX-style exports (the hoppers) keep the mesh in centimetres under a 0.01 armature, about 3 mm
+  // across: simplify, unwrap and bake at a metre scale, then hand the positions back at the source's
+  let lo = Infinity, hi = -Infinity;
+  for (const v of src.pos) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  const up = hi - lo < 0.1 ? 1.7 / (hi - lo) : 1;
+  if (up !== 1) for (let i = 0; i < src.pos.length; i++) src.pos[i]! *= up;
   const size = e.texture ?? 512;
   const low = lowPoly(src, e.tris ?? 3000);
   const out = unwrap(low, size);
@@ -340,6 +346,7 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
     all.forEach(([jj, w], k) => { joints[v * 4 + k] = jj; weights[v * 4 + k] = w / sum; });
   }
   const rgba = bake(src, out, size);
+  if (up !== 1) for (let i = 0; i < out.pos.length; i++) out.pos[i]! /= up;
   const webp = await sharp(rgba, { raw: { width: size, height: size, channels: 4 } }).removeAlpha().webp({ quality: 82 }).toBuffer();
   doc.createExtension(EXTTextureWebP).setRequired(true);
   const buf = doc.getRoot().listBuffers()[0]!;
@@ -351,7 +358,10 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
     .setIndices(doc.createAccessor().setType("SCALAR").setArray(n < 65536 ? Uint16Array.from(out.idx) : new Uint32Array(out.idx)).setBuffer(buf));
   const tex = doc.createTexture("albedo").setImage(new Uint8Array(webp)).setMimeType("image/webp");
   prim.getMaterial()!.setBaseColorTexture(tex).setNormalTexture(null).setMetallicRoughnessTexture(null).setOcclusionTexture(null).setEmissiveTexture(null)
-    .setRoughnessFactor(e.rough ?? 0.9).setMetallicFactor(e.metal ?? 0);
+    .setRoughnessFactor(e.rough ?? 0.9).setMetallicFactor(e.metal ?? 0)
+    // FBX-style exports set emissive to white (a glowing white figure) and add specular/ior
+    .setEmissiveFactor([0, 0, 0]);
+  for (const x of doc.getRoot().listExtensionsUsed()) if (x.extensionName.startsWith("KHR_materials_")) x.dispose();
   await doc.transform(resample(), prune(), dedup());
   const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
   for (let i = 0; i < out.pos.length; i += 3) for (let k = 0; k < 3; k++) { b[k] = Math.min(b[k]!, out.pos[i + k]!); b[k + 3] = Math.max(b[k + 3]!, out.pos[i + k]!); }

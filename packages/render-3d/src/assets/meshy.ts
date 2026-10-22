@@ -44,6 +44,8 @@ export interface MeshyEntry {
   shieldArm?: boolean;
   /** Character height in art metres (the file keeps its own units and skeleton). */
   height?: number;
+  /** Body length nose to tail in art metres; sizes long, low creatures instead of `height`. */
+  length?: number;
   /**
    * Character tool slots this prop fills (characters.ts part ids), each with its hand-attach
    * transform [x, y, z, rx, ry, rz, scale] (art metres, degrees) from the hand frame

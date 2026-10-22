@@ -142,6 +142,10 @@
     { "file": "role.operator", "src": "Technician_All_Animations.glb", "id": "role.operator", "kind": "character", "tris": 1000, "texture": 512, "height": 1.1,
       "clips": { "walk": "Walking", "run": "Running", "work": "open_door_3", "work2": "_01a164f1_4dbb_74ce_aa54_bf2b0ed2e3ee" }, "inPlace": ["work2"], "cut": { "work": [[1.0, 2.7], [6.2, 8.7]] }, "plant": { "work": 0 },
       "held": { "*": [
-        { "prop": "prop.wrench", "bone": "mixamorig:RightHand", "at": [0.1, 0.09, 0.02, 0, 0, 0, 1.7], "when": ["work"] }] } }
+        { "prop": "prop.wrench", "bone": "mixamorig:RightHand", "at": [0.1, 0.09, 0.02, 0, 0, 0, 1.7], "when": ["work"] }] } },
+    { "file": "node.prey_dangerous", "src": "Spiky_Rock_Hopper_Animated.glb", "id": "node.prey_dangerous", "kind": "character", "tris": 800, "texture": 512, "length": 0.6,
+      "clips": { "walk": "Armature|Unreal Take|baselayer" } },
+    { "file": "node.prey", "src": "Rock_Hopper_Animated.glb", "id": "node.prey", "kind": "character", "tris": 800, "texture": 512, "length": 0.9,
+      "clips": { "walk": "Armature|Unreal Take|baselayer" } }
   ]
 }

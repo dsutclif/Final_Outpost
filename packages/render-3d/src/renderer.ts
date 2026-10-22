@@ -1888,7 +1888,12 @@ export class Renderer3D implements Renderer {
       an.hit = this.fx!.flashK(key);
       an.knock = an.hit * 0.6;
       if (beast) an.alert = p.charging ? 1 : 0;
-      this.addCharacter(look2, an, pos, py, null);
+      // rigged by the zone's animal id once its file lands (the hop clip moving, an idle made from it standing)
+      const prig = this.rigged?.entryFor(s.preyZones[p.zone]?.animal ?? (beast ? "node.prey_dangerous" : "node.prey"));
+      if (prig) {
+        this.rigged!.add(key, prig.id, prig, { moving: Math.hypot(pv.x, pv.y) > 0.05, hurried: false, cheer: false, speed: an.speed }, pos.x, pos.y, py, ART_M * look2.scale / 0.9);
+        this.blobs!.add(pos.x, pos.y, 10 * look2.scale);
+      } else this.addCharacter(look2, an, pos, py, null);
       this.candidatePt(preyId, pos.x, pos.y, ART_M * look2.scale * 1.6);
     }
     // order bubbles of customers that left the queue
