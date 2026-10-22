@@ -812,7 +812,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         const firstRound = towers.filter((t) => !/\d$/.test(String(t.id)));
         const line = (goal === "turret_level"
           ? [...towers, byId("reinforce"), ...ups]
-          : [...firstRound, ...ups, ...towers.filter((t) => !firstRound.includes(t)), byId("reinforce")])
+          : [...firstRound, ...firstRound.map((t) => byId(`${String(t.id)}_up`)),
+              ...towers.filter((t) => !firstRound.includes(t)).flatMap((t) => [t, byId(`${String(t.id)}_up`)]), byId("reinforce")])
           .filter((p): p is Ent => p !== undefined);
         for (let k = 1; k < line.length; k++) line[k]!.requires = { pad: String(line[k - 1]!.id) };
       }
@@ -1134,6 +1135,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       return out;
     };
     for (const p of pads) {
+      if (typeof p.build === "string" && p.build.endsWith(".t2") && p.target && !upChain(p).has(String(p.target))) fail(`pad order: ${String(p.id)} upgrades ${String(p.target)} before it builds`);
       const role = p.role as { from?: string; to?: string } | undefined;
       const machines = [role?.from, role?.to].filter((t): t is string => !!t?.startsWith("conv."));
       const needs = pads.filter((b) => machines.includes(String(b.build))).map((b) => String(b.id));

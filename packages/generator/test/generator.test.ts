@@ -126,6 +126,28 @@ describe("layout and economy per family (stages 2-4)", () => {
     }
   });
 
+  it("defend upgrade pads come after their own tower in the requires chain", () => {
+    let checked = 0;
+    for (const { b } of built()) {
+      const pads = b?.manifest.entities.filter((e) => e.type === "pad.build") as { id: string; target?: string; requires?: { pad?: string } }[] | undefined;
+      if (!pads) continue;
+      const byId = new Map(pads.map((p) => [p.id, p]));
+      const second = pads.filter((p) => /^tower_.*\d$/.test(p.id));
+      if (second.length === 0) continue;
+      for (const up of pads.filter((p) => p.id.endsWith("_up") && p.target)) {
+        const seen: string[] = [];
+        for (let x = byId.get(up.id); x?.requires?.pad; x = byId.get(x.requires.pad)) seen.push(x.requires.pad);
+        expect(seen, `${up.id} needs ${up.target} first`).toContain(up.target);
+        checked++;
+      }
+      // a tower on every attack side before any second tower
+      const order = (id: string) => { let n = 0; for (let x = byId.get(id); x?.requires?.pad; x = byId.get(x.requires.pad)) n++; return n; };
+      const firsts = pads.filter((p) => /^tower_/.test(p.id) && !/\d$/.test(p.id) && !p.id.endsWith("_up"));
+      for (const s of second.filter((p) => !p.id.endsWith("_up"))) for (const f of firsts) expect(order(f.id)).toBeLessThan(order(s.id));
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
   it("defend levels price the defense in salvage and drop enough of it", () => {
     for (const { r, b } of built()) {
       if (!b || r.family !== "defend") continue;
