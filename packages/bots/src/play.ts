@@ -3,6 +3,7 @@ import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, attackedSide, crea
 import { Brain } from "./brain.js";
 import { TIME_FIXED_GOALS, planBot, type Plan } from "./plan.js";
 import { withLearning, type BotProfile } from "./profiles.js";
+import { Perception } from "./view.js";
 
 /** Content default of `level.budgetSeconds`, kept as a named export for callers. */
 export const DEFAULT_TIME_BUDGET_SECONDS: number = defaultContent.defaults["level.budgetSeconds"] ?? 300;
@@ -254,6 +255,9 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const profile = withLearning(profileIn, opts.attempt ?? 0);
   const rng = seedRng((seed * 2654435761 + hashName(profile.name)) >>> 0);
   const brain = new Brain(cp, plan, profile, rng);
+  // The human-view bot decides from what is on screen; the sim and every statistic below read the real state.
+  const eyes = profile.view ? new Perception() : null;
+  eyes?.overview(st);
 
   const goal = cp.manifest.goal;
   const lastWave = cp.waves.length > 0 ? cp.waves[cp.waves.length - 1]!.tick : 0;
@@ -286,7 +290,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   // back until the last one was cleared still get played (up to twice the cap).
   const cap = (): number => (st.objectives[0]?.done ? maxTicks + cp.overtimeTicks : st.waves.idx < cp.waves.length ? 2 * maxTicks : maxTicks);
   while (!st.over && st.tick < cap()) {
-    const inp = brain.tick(st);
+    const inp = brain.tick(eyes ? eyes.see(st) : st);
     if (opts.recordInputs) inputs.push(inp);
     const fuelBefore = st.core.fuel;
     const currencyBefore = st.currency;

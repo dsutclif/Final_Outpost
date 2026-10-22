@@ -16,6 +16,8 @@ export interface BotProfile {
   learn: number;
   /** Ticks between re-evaluations of the task list. */
   evalTicks: number;
+  /** Sees only the screen around the hero and the HUD (src/view.ts) instead of the whole State. */
+  view?: boolean;
 }
 
 export const LADDER: readonly BotProfile[] = [
@@ -26,7 +28,14 @@ export const LADDER: readonly BotProfile[] = [
   { name: "floor", reactionTicks: 70, routeNoise: 0.8, priorityErr: 0.42, multitask: false, learn: 0.3, evalTicks: 16 },
 ];
 
-export const PROFILES: Readonly<Record<string, BotProfile>> = Object.fromEntries(LADDER.map((p) => [p.name, p]));
+/**
+ * The human-view bot (BACKLOG-R4 Batch 2): plays like a careful person, not a rung of the ladder.
+ * Half a second to react, a little wander and misjudgement, and it perceives only what a player can
+ * (src/view.ts). Star challenges must be earned by this bot, not by the omniscient good bot.
+ */
+export const HUMAN: BotProfile = { name: "human", reactionTicks: 15, routeNoise: 0.15, priorityErr: 0.05, multitask: true, learn: 0.3, evalTicks: 6, view: true };
+
+export const PROFILES: Readonly<Record<string, BotProfile>> = Object.fromEntries([...LADDER, HUMAN].map((p) => [p.name, p]));
 
 /** The profile after `attempt` previous tries: every noise term shrinks by the learn factor. */
 export function withLearning(p: BotProfile, attempt: number): BotProfile {

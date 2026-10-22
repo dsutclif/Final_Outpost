@@ -101,5 +101,11 @@
     "loopBurnEase": 0.5,
     "loopLengthCut": 0.3,
     "loopStartCurrency": 8
+  },
+  "humanStars": {
+    "_doc": "BACKLOG-R4 Batch 2: stars are earned by the human-view bot (bots HUMAN profile: human reaction, a little error, sees only the screen and the HUD), not the omniscient good bot. Each star objective (challenges and the time target) must be earned on at least minEarned of `seeds` in-level seeds, and at least one seed must take all three stars. 4 of 6 (two thirds) is a star a careful player earns on most attempts without luck or off-screen knowledge; one seed in three may miss it, which keeps the star a challenge. The good bot's old bar was 1 three-star seed in 10. levels:check replays the same seeds and fails a level whose human stars fall more than regressTolerance below the mean recorded at generation (rating.stars.human).",
+    "seeds": 6,
+    "minEarned": 4,
+    "regressTolerance": 0.25
   }
 }

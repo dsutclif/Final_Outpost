@@ -1,7 +1,8 @@
 import { content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { LADDER, PROFILES, TIME_FIXED_GOALS, playBot, type BotResult } from "@fo/bots";
+import { HUMAN, LADDER, PROFILES, TIME_FIXED_GOALS, playBot, type BotResult } from "@fo/bots";
 import { measure, score, type Metrics, type Rating, type ReferenceStats, type HistoryEntry as RaterHistory, type Measurement } from "@fo/rater";
 import referenceData from "../data/reference.json";
+import genData from "../data/generator.json";
 import { closure, conflicts } from "@fo/sequencer";
 import { GEN, TEMPLATES, buildLevel, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
@@ -42,7 +43,12 @@ export interface GenOptions {
   log?: (line: string) => void;
   reference?: ReferenceStats;
   seeds?: { quick: { ref: number; other: number }; full: { ref: number; other: number } };
+  /** Stars must be earned by the human-view bot (default). False: the good bot's old rule, for comparisons. */
+  humanStars?: boolean;
 }
+
+/** Star bar for the human-view bot (generator.json humanStars); levels:check reads the same block. */
+export const HUMAN_STARS = genData.humanStars as { seeds: number; minEarned: number; regressTolerance: number };
 
 export interface StarSummary {
   /** Mean stars of the good bot over its 10 seeds, and of the median (weak) bot over 3. */
@@ -50,6 +56,9 @@ export interface StarSummary {
   median: number;
   /** Share of good seeds with all three stars. */
   goodAll: number;
+  /** Mean stars of the human-view bot over HUMAN_STARS.seeds, and its share of three-star seeds. */
+  human?: number;
+  humanAll?: number;
 }
 
 export interface Candidate {
@@ -283,21 +292,26 @@ function overLoopCap(ms: Measurement): boolean {
   return !(ms.loopKey.includes(">sink.core") && !coreHire);
 }
 
-function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string[], seed: number, teach = false): string | null {
+function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string[], seed: number, teach = false, human: readonly BotResult[] | null = null, log: (line: string) => void = () => {}): string | null {
   const fam = m.family as Family;
   const good = ms.runs["good"]!;
   const ladder = Object.values(ms.runs).flat();
   const kind = m.goal.type;
   const nonTrivial = (o: Obj) => ladder.some((r) => !earned(o, r));
   const goodShare = (o: Obj) => good.filter((r) => earned(o, r)).length / good.length;
-  const all = challengeCandidates(fam, good, allowed, kind).filter((o) => goodShare(o) >= 0.6);
+  // With the human-view bot, challenges are sized from its runs and kept only when it earns them on
+  // minEarned of its seeds: the omniscient good bot no longer decides what a person can do.
+  const humanOk = (o: Obj) => human!.filter((r) => earned(o, r)).length >= HUMAN_STARS.minEarned;
+  const sized = challengeCandidates(fam, human ? [...human] : good, allowed, kind);
+  const all = sized.filter(human ? humanOk : (o) => goodShare(o) >= 0.6);
+  log(`challenges: ${sized.map((o) => `${o.kind}${Object.keys(o.params).length ? JSON.stringify(o.params) : ""} good ${good.filter((r) => earned(o, r)).length}/${good.length}${human ? ` human ${human.filter((r) => earned(o, r)).length}/${human.length}` : ""}${all.includes(o) ? "" : " dropped"}`).join("; ")}`);
   const strict = all.filter(nonTrivial);
   // Tutorial levels may keep a star every rung earns when none separates them: an easy star is fine there.
   const cands = strict.length > 0 || !teach ? strict : all;
   const rot = (xs: Obj[]) => xs.map((o, i) => ({ o, k: (i + seed) % Math.max(1, xs.length) })).sort((a, b) => a.k - b.k).map((x) => x.o);
   // The family's own challenges first (the first three listed), fallbacks sized from the runs after.
   const ordered = [...rot(cands.filter((o) => allowed.indexOf(o.kind) < 3)), ...rot(cands.filter((o) => allowed.indexOf(o.kind) >= 3))];
-  if (ordered.length === 0) return "no family challenge the good bot earns that the ladder can miss";
+  if (ordered.length === 0) return `no family challenge the ${human ? "human-view" : "good"} bot earns that the ladder can miss`;
   let second: Obj;
   // Goals that finish on the clock (or after a fixed hold) leave no room for a time star: a second challenge instead.
   if (TIME_FIXED_GOALS.has(kind) || kind === "heat_hold") {
@@ -320,7 +334,14 @@ function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string
     }
   }
   // The player-facing allowance is longer than the bot-derived finish time (data factor).
-  if (second.kind === "time_target") second.params["seconds"] = timeTarget(Number(second.params["seconds"]));
+  if (second.kind === "time_target") {
+    let sec = timeTarget(Number(second.params["seconds"]));
+    // ... and never shorter than the human-view bot needs on minEarned of its seeds.
+    const hs = human ? human.filter((r) => r.won).map((r) => r.goalTicks / 30).sort((a, b) => a - b) : [];
+    const need = hs[HUMAN_STARS.minEarned - 1];
+    if (need !== undefined && need * 1.04 > sec) sec = Math.ceil((need * 1.04) / 5) * 5;
+    second.params["seconds"] = sec;
+  }
   m.objectives = [m.objectives![0]!, second, { ...ordered[0]!, id: "challenge" }];
   return null;
 }
@@ -344,6 +365,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   const log = opts.log ?? (() => {});
   const history = opts.history ?? [];
   const allowed = req.challenges ?? [];
+  const humanStars = opts.humanStars ?? true;
 
   let lo = 0, hi = 1;
   let p = clamp01((req.target - 0.08) / 0.8);
@@ -454,12 +476,13 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
         log(`  it${it} idle elements: ${idle.join(", ")}${dropped.size > 0 ? ` (dropping ${[...dropped].join(", ")})` : ""}`);
       }
       else {
-        const why2 = settleObjectives(m, ms, allowed, req.seed, req.phase === "teach");
+        const human = humanStars ? playHuman(m, c) : null;
+        const why2 = settleObjectives(m, ms, allowed, req.seed, req.phase === "teach", human, (s) => log(`  it${it} ${s}`));
         if (why2) { reject("objectives"); log(`  it${it} objectives: ${why2}`); }
         else {
-          const v = verifyStars(m, c);
+          const v = verifyStars(m, c, humanStars);
           if (!v.feasible) { reject("infeasible"); log(`  it${it} good bot loses or wins narrowly on the final objectives`); }
-          else if (v.goodAny === 0) { reject("stars"); log(`  it${it} good bot never earns all three stars`); }
+          else if (!v.starsOk) { reject("stars"); log(`  it${it} ${humanStars ? `human-view bot misses a star on more than ${HUMAN_STARS.seeds - HUMAN_STARS.minEarned} of ${HUMAN_STARS.seeds} seeds or never earns all three` : "good bot never earns all three stars"}`); }
           else {
             // No pad the level can be finished (stars included) without: re-rate the trimmed level and keep it if it still passes.
             let fin = { m, r, v, err };
@@ -468,8 +491,8 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
               stats.ratings++;
               const ms2 = measure(lean, { content: c, refSeeds: (opts.seeds?.full ?? S.fullSeeds).ref, otherSeeds: (opts.seeds?.full ?? S.fullSeeds).other, history });
               const r2 = score(ms2, { content: c, reference });
-              const v2 = r2.ok && !overLoopCap(ms2) && idleElements(lean, ms2.runs["good"]!).length === 0 ? verifyStars(lean, c) : null;
-              if (v2 && v2.feasible && v2.goodAny > 0) fin = { m: lean, r: r2, v: v2, err: Math.abs(r2.D - req.target) };
+              const v2 = r2.ok && !overLoopCap(ms2) && idleElements(lean, ms2.runs["good"]!).length === 0 ? verifyStars(lean, c, humanStars) : null;
+              if (v2 && v2.feasible && v2.starsOk) fin = { m: lean, r: r2, v: v2, err: Math.abs(r2.D - req.target) };
               log(`  it${it} spare pads: ${m.entities.filter((e) => "id" in e && !lean.entities.some((x) => "id" in x && x.id === e.id)).map((e) => (e as { id: string }).id).join(", ")}${fin.m === lean ? " dropped" : " kept (the trimmed level fails)"}`);
             }
             attachRating(fin.m, fin.r, req.introduced ?? [], fin.v.summary);
@@ -488,8 +511,17 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   return { manifest: null, best, stats };
 }
 
-/** Replay the final objectives in the sim: good bot 10 seeds, every other rung 3. */
-function verifyStars(m: Manifest, c: Content): { summary: StarSummary; byRung: Record<string, number>; goodAny: number; feasible: boolean } {
+/** The human-view bot on HUMAN_STARS.seeds in-level seeds (the same seeds levels:check replays). */
+function playHuman(m: Manifest, c: Content): BotResult[] {
+  return Array.from({ length: HUMAN_STARS.seeds }, (_, i) => playBot(m, HUMAN, i + 1, { content: c }));
+}
+
+/**
+ * Replay the final objectives in the sim: good bot 10 seeds, every other rung 3, and with `human` the
+ * human-view bot. Stars pass when the good bot takes all three on some seed or, with `human`, when the
+ * human-view bot earns every star objective on minEarned of its seeds and all three on at least one.
+ */
+function verifyStars(m: Manifest, c: Content, human = false): { summary: StarSummary; byRung: Record<string, number>; starsOk: boolean; feasible: boolean } {
   const byRung: Record<string, number> = {};
   let goodAll = 0, goodAny = 0, feasible = true;
   for (const prof of LADDER) {
@@ -504,7 +536,15 @@ function verifyStars(m: Manifest, c: Content): { summary: StarSummary; byRung: R
     }
     byRung[prof.name] = Math.round((sum / n) * 100) / 100;
   }
-  return { summary: { good: byRung["good"]!, median: byRung[MEDIAN_RUNG]!, goodAll: goodAll / 10 }, byRung, goodAny, feasible };
+  const summary: StarSummary = { good: byRung["good"]!, median: byRung[MEDIAN_RUNG]!, goodAll: goodAll / 10 };
+  if (!human) return { summary, byRung, starsOk: goodAny > 0, feasible };
+  const hs = playHuman(m, c);
+  const humanAll = hs.filter((r) => r.stars === 3).length;
+  const each = (m.objectives ?? []).slice(1).every((_, i) => hs.filter((r) => r.objectives[i + 1]?.done).length >= HUMAN_STARS.minEarned);
+  byRung["human"] = Math.round((hs.reduce((a, r) => a + r.stars, 0) / hs.length) * 100) / 100;
+  summary.human = byRung["human"];
+  summary.humanAll = Math.round((humanAll / hs.length) * 100) / 100;
+  return { summary, byRung, starsOk: each && humanAll > 0, feasible };
 }
 
 /** Rating block and launch-skin text on the manifest. */
