@@ -83,9 +83,17 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // the three.js chunk is precached too, so the game plays offline after the first launch
-        globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
-        globIgnores: ["store/**", "sandbox.html", "assets/sandbox-*.js"],
+        // The game must work fully offline (Doug; about 10 MB is fine), so the install precaches the
+        // three.js chunk, fonts and every Meshy model. Models are fetched with ?v=<hash>; the precache
+        // matches them without it, and its own revisions replace a file when its content changes.
+        // Levels stay on the runtime routes below: the app prefetches every level while online and
+        // polls pack.json for new batches, which a precached copy would hide.
+        globPatterns: ["**/*.{js,css,html,svg,png,webmanifest,woff2}", "models/**/*.glb"],
+        globIgnores: ["store/**", "sandbox.html", "assets/sandbox-*.js", "dev/**", "levels/**"],
+        ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // the first visit's page is controlled at once, so nothing it loads misses the cache
+        clientsClaim: true,
         navigateFallback: "index.html",
         navigateFallbackDenylist: [/\/levels\//, /privacy\.html$/, /sandbox\.html$/],
         cleanupOutdatedCaches: true,

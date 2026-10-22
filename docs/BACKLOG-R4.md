@@ -18,8 +18,10 @@ when they ship. Batches run in the order below.
 - [x] **Model swap on replay (backlog 12).** `loadMeshy` returns early for cached files
       without calling `onLoad`, so a second `init()` keeps code-built walls, decor, items and
       held props (`render-3d/src/assets/meshy.ts`, `renderer.ts` 343-372).
-- [ ] **Full offline (11).** Precache every built GLB (`meshy.built.json`, with `?v=`), the
+- [x] **Full offline (11).** Precache every built GLB (`meshy.built.json`, with `?v=`), the
       pack index and all level files on install; add `clientsClaim`. About 10 MB is fine.
+      Done 2026-10-22: models + fonts precached (11 MB), clientsClaim; levels stay on the
+      runtime prefetch (precaching them would hide new batches). Doug to test in airplane mode.
 - [ ] **Buildings above floor tiles (7).** Lift buildings by the slab thickness.
 - [ ] **Mites smaller (10).** Visual only; hit range unchanged.
 - [ ] **Helper arrow (9).** Show the guide arrow on any level after 20 s with no progress
