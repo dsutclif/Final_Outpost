@@ -1,0 +1,490 @@
+[
+ {
+  "index": 81,
+  "id": "s1-L081",
+  "file": "s1-L081.json",
+  "title": "All Lines Up",
+  "phase": "mix",
+  "introduced": [],
+  "family": "industrialize",
+  "secondary": null,
+  "features": [
+   "conveyors",
+   "material_processor",
+   "tier2"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "converters_running",
+    "params": {
+     "k": 2,
+     "seconds": 17
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 451
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_stockpile_overload",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 2,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "conveyors",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "converters_running",
+  "template": "corridor",
+  "target": 0.4,
+  "D": 0.43772937184920263,
+  "F": 0.8547098937754061,
+  "onTarget": true,
+  "margin": {
+   "good": 0.5333,
+   "average": 0.49879629629629624,
+   "weak": 0.4156851851851852,
+   "novice": 0.3998333333333333,
+   "floor": 0.2749259259259259
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 41.869,
+  "seed": 1187127569,
+  "attempts": 1,
+  "rejects": {
+   "layout": 2,
+   "offTarget": 1
+  },
+  "ratings": 5
+ },
+ {
+  "index": 82,
+  "id": "s1-L082",
+  "file": "s1-L082.json",
+  "title": "Scrap and The Big One",
+  "phase": "mix",
+  "introduced": [],
+  "family": "defend",
+  "secondary": null,
+  "features": [
+   "bosses",
+   "defenders",
+   "salvage_upgrades",
+   "turrets"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "boss",
+    "params": {
+     "n": 1
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 20
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_wall_lost",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 2.67,
+   "goodAll": 1,
+   "human": 2.83,
+   "humanAll": 0.83
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 2.67,
+   "novice": 2.67,
+   "floor": 3,
+   "human": 2.83
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "boss",
+  "template": "crossroads",
+  "target": 0.45,
+  "D": 0.4510504548009175,
+  "F": 0.10117855051247933,
+  "onTarget": false,
+  "margin": {
+   "good": 0.6934879227053139,
+   "average": 0.6939291465378422,
+   "weak": 0.6952495974235106,
+   "novice": 0.6935748792270532,
+   "floor": 0.6966183574879228
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 2112.58,
+  "seed": 1498602325,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 27,
+   "lowFun": 34,
+   "trivial": 8,
+   "objectives": 1
+  },
+  "ratings": 154
+ },
+ {
+  "index": 83,
+  "id": "s1-L083",
+  "file": "s1-L083.json",
+  "title": "Domes and Many Hands",
+  "phase": "mix",
+  "introduced": [],
+  "family": "shelter",
+  "secondary": null,
+  "features": [
+   "core_levels",
+   "gate_arrivals",
+   "housing",
+   "rockslides"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "build_count",
+    "params": {
+     "build": "struct.housing",
+     "n": 2
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 132
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 45
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 1.33,
+   "floor": 0.33,
+   "human": 3
+  },
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "housing",
+   "sales"
+  ],
+  "goal": "build_count",
+  "template": "west_fields",
+  "target": 0.494,
+  "D": 0.5258171610686203,
+  "F": 0.6654595742663949,
+  "onTarget": true,
+  "margin": {
+   "good": 0.6896172839506174,
+   "average": 0.67440329218107,
+   "weak": 0.6009053497942388,
+   "novice": 0.4186831275720165,
+   "floor": -0.29691358024691356
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.3333333333333333
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 21.853,
+  "seed": 214720723,
+  "attempts": 2,
+  "rejects": {
+   "offTarget": 16
+  },
+  "ratings": 25
+ },
+ {
+  "index": 84,
+  "id": "s1-L084",
+  "file": "s1-L084.json",
+  "title": "Tow Lines and Rescue",
+  "phase": "mix",
+  "introduced": [],
+  "family": "rescue",
+  "secondary": null,
+  "features": [
+   "crates"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "rescue",
+    "params": {
+     "n": 5
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 70
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "tow_trip",
+    "params": {
+     "n": 3
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 3,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "lasso",
+   "sales"
+  ],
+  "goal": "rescue",
+  "template": "east_fields",
+  "target": 0.538,
+  "D": 0.3963418231506022,
+  "F": 0.6467740088174938,
+  "onTarget": false,
+  "margin": {
+   "good": 0.46499999999999997,
+   "average": 0.41055555555555556,
+   "weak": 0.39847222222222217,
+   "novice": 0.3227777777777778,
+   "floor": -0.0795833333333333
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.3333333333333333
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 73.663,
+  "seed": 1075896991,
+  "attempts": 7,
+  "rejects": {
+   "objectives": 61,
+   "offTarget": 9
+  },
+  "ratings": 133
+ },
+ {
+  "index": 85,
+  "id": "s1-L085",
+  "file": "s1-L085.json",
+  "title": "Vaults and Perfect Run",
+  "phase": "mix",
+  "introduced": [],
+  "family": "harvest",
+  "secondary": null,
+  "features": [
+   "bulk_orders",
+   "source_unlocks",
+   "vips"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "streak",
+    "params": {
+     "n": 62
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 266
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_angry_customers",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 2.5,
+   "median": 2.33,
+   "goodAll": 0.5,
+   "human": 2.67,
+   "humanAll": 0.67
+  },
+  "starsByRung": {
+   "good": 2.5,
+   "average": 3,
+   "weak": 2.33,
+   "novice": 2,
+   "floor": 1,
+   "human": 2.67
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "customer_variety",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "streak",
+  "template": "north_fields",
+  "target": 0.581,
+  "D": 0.4957603092372034,
+  "F": 0.916683880212344,
+  "onTarget": false,
+  "margin": {
+   "good": 0.525942857142857,
+   "average": 0.5112698412698413,
+   "weak": 0.4113015873015873,
+   "novice": 0.27965079365079365,
+   "floor": 0.13723809523809524
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 176.542,
+  "seed": 1002813744,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 20,
+   "objectives": 47,
+   "stall": 3,
+   "infeasible": 2
+  },
+  "ratings": 134
+ }
+]
