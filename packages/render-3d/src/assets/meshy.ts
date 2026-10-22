@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Euler, Matrix4, Quaternion, Vector3, type AnimationClip, type Group, type Material, type Mesh, type Object3D } from "three";
+import { BufferAttribute, BufferGeometry, Euler, Group, Matrix4, Quaternion, Vector3, type AnimationClip, type Material, type Mesh, type Object3D } from "three";
 import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { AnchorName } from "../ids.js";
 import { disposeGeo, getAnchor, type Model } from "./common.js";
@@ -20,8 +20,12 @@ export interface MeshyEntry {
   slot?: string[]; mirror?: string[];
   /** Instanced by the renderer: a wall section (`depth` scales its thickness) or rockslide rubble. */
   batch?: "wall" | "reinforced" | "rubble"; depth?: number;
-  /** prop: held; character: rigged; item: a resource unit (replaces the code item); decor: map-border dressing. */
-  kind?: "prop" | "character" | "item" | "decor";
+  /** prop: held; character: rigged; item: a resource unit (replaces the code item); decor: map-border dressing; belt: a conveyor kit piece. */
+  kind?: "prop" | "character" | "item" | "decor" | "belt";
+  /** Belt kit piece: tiled straight section, drive end (motor to +x), or 90° corner. */
+  belt?: "segment" | "drive" | "corner";
+  /** Belt segment: height of the belt bed (art metres) where goods ride. */
+  top?: number;
   /** item: drawn for a loose drop on the ground instead of the stacking unit. */
   ground?: boolean;
   /** Fitted width in art metres (decor copies are spread at this size). */
@@ -157,6 +161,43 @@ export function meshyGeometry(file: string): { geo: BufferGeometry; mat: Materia
   if (m.geometry.index) geo.setIndex(new BufferAttribute(Uint32Array.from(m.geometry.index.array), 1));
   geo.computeBoundingBox();
   return { geo, mat: m.material as Material };
+}
+
+/**
+ * A straight conveyor run of `len` art metres along x from the belt kit: a drive end at each end
+ * (motors outward, matched to the segment's width) and whole segments stretched to fill the
+ * rest. Undefined until both pieces have loaded (the code belt stays).
+ */
+export function meshyBelt(len: number): Group | undefined {
+  const seg = ENTRIES.find((e) => e.belt === "segment"), drv = ENTRIES.find((e) => e.belt === "drive");
+  const s = seg && cache.get(seg.file), d = drv && cache.get(drv.file);
+  const sb = seg && BUILT[seg.file]?.bounds, db = drv && BUILT[drv.file]?.bounds;
+  if (!s || !d || !sb || !db) return undefined;
+  const g = new Group();
+  const segL = sb[3]! - sb[0]!, drvL = db[3]! - db[0]!, kz = (sb[5]! - sb[2]!) / (db[5]! - db[2]!);
+  // a run shorter than two drive ends squeezes them rather than overlapping
+  const dl = Math.min(drvL, len / 2);
+  for (const side of [1, -1]) {
+    const c = d.clone(true);
+    c.position.x = (side * (len - dl)) / 2;
+    c.scale.set(side * (dl / drvL), 1, kz);
+    g.add(c);
+  }
+  const mid = len - 2 * dl, n = Math.round(mid / segL);
+  for (let i = 0; i < n; i++) {
+    const c = s.clone(true);
+    c.position.x = -mid / 2 + ((i + 0.5) * mid) / n;
+    c.scale.x = mid / (n * segL);
+    g.add(c);
+  }
+  g.traverse((o) => { if ((o as Mesh).isMesh) o.name = "belt"; });
+  return g;
+}
+
+/** Bed height of the loaded belt kit (art metres), or undefined while the code belt shows. */
+export function meshyBeltTop(): number | undefined {
+  const seg = ENTRIES.find((e) => e.belt === "segment");
+  return seg && cache.has(seg.file) ? seg.top : undefined;
 }
 
 /**

@@ -987,5 +987,106 @@
       "tris": 250,
       "bytes": 3772
     }
+  },
+  "res.component": {
+    "hash": "006be01d6b",
+    "tris": 300,
+    "bytes": 22028,
+    "bounds": [
+      -0.2,
+      0,
+      -0.151,
+      0.2,
+      0.308,
+      0.151
+    ]
+  },
+  "decor.crystal_scrap": {
+    "hash": "3e5753f06d",
+    "tris": 568,
+    "bytes": 57280,
+    "bounds": [
+      -0.9,
+      0,
+      -0.857,
+      0.9,
+      0.435,
+      0.857
+    ]
+  },
+  "zone.prey.l1": {
+    "hash": "28181533a0",
+    "tris": 696,
+    "bytes": 70948,
+    "bounds": [
+      -0.8,
+      0,
+      -0.725,
+      0.8,
+      0.428,
+      0.725
+    ],
+    "outline": {
+      "hash": "dd25e75922",
+      "tris": 248,
+      "bytes": 3736
+    }
+  },
+  "zone.prey.l2": {
+    "hash": "9507dab8ac",
+    "tris": 500,
+    "bytes": 53500,
+    "bounds": [
+      -0.8,
+      0,
+      -0.796,
+      0.8,
+      0.288,
+      0.796
+    ],
+    "outline": {
+      "hash": "7fe0749661",
+      "tris": 250,
+      "bytes": 3772
+    }
+  },
+  "struct.conveyor.segment": {
+    "hash": "e34151173a",
+    "tris": 384,
+    "bytes": 35288,
+    "bounds": [
+      -0.75,
+      0,
+      -0.203,
+      0.75,
+      0.45,
+      0.203
+    ]
+  },
+  "struct.conveyor.drive": {
+    "hash": "241af391c1",
+    "tris": 482,
+    "bytes": 41896,
+    "bounds": [
+      -0.7,
+      0,
+      -0.178,
+      0.7,
+      0.67,
+      0.178
+    ]
+  },
+  "struct.conveyor.corner": {
+    "hash": "ec2bf12bb9",
+    "tris": 398,
+    "bytes": 35220,
+    "bounds": [
+      -0.3,
+      0,
+      -0.22,
+      0.3,
+      0.248,
+      0.22
+    ]
   }
 }

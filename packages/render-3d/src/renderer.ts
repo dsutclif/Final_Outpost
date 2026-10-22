@@ -33,10 +33,10 @@ import {
   type ToneMapping,
 } from "three";
 import { lookFor, type Anim, type Look } from "./assets/characters.js";
-import { disposeGeo, getAnchor, type BuildCtx, type Model } from "./assets/common.js";
+import { disposeGeo, getAnchor, model, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
-import { applyMeshy, loadMeshy, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
+import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
@@ -1263,8 +1263,16 @@ export class Renderer3D implements Renderer {
     const lay = (key: string, ends: { a: V; b: V }, ghost: boolean): { ax: number; az: number; ux: number; uz: number; len: number } => {
       const ax = ends.a.x / FP, az = ends.a.y / FP, bx = ends.b.x / FP, bz = ends.b.y / FP;
       const len = Math.max(1, Math.hypot(bx - ax, bz - az));
-      const p = this.place(key, "struct.conveyor", v3((ax + bx) / 2, 0, (az + bz) / 2), 1, ghost ? (ctx) => this.ghostModel("struct.conveyor", ctx) : undefined);
-      this.popScale(p, ART_M, len / ART_M, 1);
+      // the Meshy belt kit is laid to the run's length (drive ends, tiled segments); the code belt stretches
+      const p = this.place(key, "struct.conveyor", v3((ax + bx) / 2, 0, (az + bz) / 2), 1, ghost ? (ctx) => this.ghostModel("struct.conveyor", ctx) : (ctx) => {
+        const kit = meshyBelt(len / ART_M);
+        if (!kit) return buildModel("struct.conveyor", ctx);
+        const m = model("prop");
+        m.root.add(kit);
+        m.root.userData["kit"] = true;
+        return m;
+      });
+      this.popScale(p, ART_M, p.model.root.userData["kit"] ? 1 : len / ART_M, 1);
       p.model.root.rotation.y = -Math.atan2(bz - az, bx - ax);
       if (ghost) (p.model.root.userData["ghost"] as MeshLambertMaterial).opacity = 0.45 + 0.08 * Math.sin(this.t * 3);
       else this.candidate("struct.conveyor", p, ART_M * 0.8);
@@ -1276,7 +1284,7 @@ export class Renderer3D implements Renderer {
       const L = lay(`cb:${belt.id}`, ends, false);
       for (const it of belt.items) {
         const d = Math.min(L.len, it.d / FP);
-        items.add(it.res, L.ax + L.ux * d, BELT_TOP * ART_M, L.az + L.uz * d, Math.atan2(L.ux, L.uz));
+        items.add(it.res, L.ax + L.ux * d, (meshyBeltTop() ?? BELT_TOP) * ART_M, L.az + L.uz * d, Math.atan2(L.ux, L.uz));
       }
     }
     for (const pad of s.pads) {
@@ -1684,7 +1692,12 @@ export class Renderer3D implements Renderer {
       const n = Math.max(2, Math.min(3, Math.round((w * h) / (ART_M * ART_M * 40))));
       for (let k = 0; k < n; k++) {
         const fx = 0.2 + 0.6 * (((k + 1) * 0.618 + pz.id.length * 0.13) % 1), fz = 0.25 + 0.5 * ((k * 0.382 + 0.31) % 1);
-        this.place(`pz:${pz.id}:${k}`, "zone.prey", v3(x + w * fx, 0, y + h * fz));
+        // levels 1 and 2 pick the two hopper-flats models in turn, kept inside the zone (it can
+        // border a wall); the code burrow is about 1.3 art metres across
+        const lv = 1 + (k % 2), b = meshyBounds(`zone.prey.l${lv}`);
+        const hx = Math.min(w / 2, (b?.[3] ?? 0.65) * ART_M), hz = Math.min(h / 2, (b?.[5] ?? 0.65) * ART_M);
+        const cx = Math.min(x + w - hx, Math.max(x + hx, x + w * fx)), cz = Math.min(y + h - hz, Math.max(y + hz, y + h * fz));
+        this.place(`pz:${pz.id}:${k}`, "zone.prey", v3(cx, 0, cz), lv);
       }
     }
   }

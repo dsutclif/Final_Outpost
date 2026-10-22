@@ -125,6 +125,15 @@
     { "file": "node.material_source", "src": "Crystalline_Ore_Pile__1.glb", "id": "node.material_source", "tris": 900, "yaw": 0, "width": 2.0, "replace": ["body"],
       "parts": {}, "anchors": {} },
     { "file": "node.fuel_scrap", "src": "Crystalline_Ore_Pile_2.glb", "id": "node.fuel_scrap", "tris": 400, "texture": 512, "yaw": 0, "width": 0.95, "replace": ["body"],
-      "parts": {}, "anchors": {} }
+      "parts": {}, "anchors": {} },
+    { "file": "res.component", "src": "Assembled Part.glb", "id": "res.component", "kind": "item", "tris": 300, "texture": 256, "yaw": 0, "width": 0.4 },
+    { "file": "decor.crystal_scrap", "src": "Crystalline Scrap Pile Large.glb", "id": "decor.crystal_scrap", "kind": "decor", "tris": 600, "texture": 512, "yaw": 0, "width": 1.8 },
+    { "file": "zone.prey.l1", "src": "Hopper Flats 1.glb", "id": "zone.prey", "level": 1, "tris": 700, "texture": 512, "yaw": 0, "width": 1.6, "replace": ["body"],
+      "parts": {}, "anchors": {} },
+    { "file": "zone.prey.l2", "src": "Hopper Flats 2.glb", "id": "zone.prey", "level": 2, "tris": 500, "texture": 512, "yaw": 0, "width": 1.6, "replace": ["body"],
+      "parts": {}, "anchors": {} },
+    { "file": "struct.conveyor.segment", "src": "Conveyor Main.glb", "id": "struct.conveyor", "kind": "belt", "belt": "segment", "tris": 400, "texture": 512, "yaw": 0, "width": 1.5, "top": 0.38 },
+    { "file": "struct.conveyor.drive", "src": "Conveyor End.glb", "id": "struct.conveyor", "kind": "belt", "belt": "drive", "tris": 500, "texture": 512, "yaw": 0, "width": 1.4 },
+    { "file": "struct.conveyor.corner", "src": "Conveyor Turn.glb", "id": "struct.conveyor", "kind": "belt", "belt": "corner", "tris": 400, "texture": 512, "yaw": 0, "width": 0.6, "unwired": true }
   ]
 }

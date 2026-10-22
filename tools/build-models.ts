@@ -43,7 +43,7 @@ export interface MeshyEntry {
   /** "prop": held item; props and wall sections (batch) get no blueprint outline. */
   batch?: string;
   /** "prop": held item; "character": rigged (skeleton and clips kept, see buildCharacter). */
-  kind?: "prop" | "character" | "item" | "decor";
+  kind?: "prop" | "character" | "item" | "decor" | "belt";
   /** Also write <file>.lod.glb at this many triangles (props drawn on the code-built crowd). */
   lod?: number;
 }

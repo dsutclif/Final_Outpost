@@ -259,8 +259,17 @@ under it (L1 [-0.1, 0.7, -0.12], L2 [-0.03, 1.0, -0.04], L3 [-0.06, 0.91, -0.05]
 | Ship Scrap 1 / 2 | `decor.ship_scrap` / `decor.ship_wreck` | 350 / 500 | Border dressing. Decor kinds now share one border's worth of copies (bigger pieces fewer) |
 
 Golden level 4 at tick ~850: 58.0k triangles, 42 draw calls (55.5k before this batch; code
-models 49.7k). Still code-built: the fuel cell cache (`node.fuel_deposit`, no GLB yet), the habitat hub,
-the parts item.
+models 49.7k). Still code-built: the fuel cell cache (`node.fuel_deposit`, no GLB yet), the habitat hub.
+
+**Fifth batch (2026-10-22): conveyor kit, hopper flats, parts, crystal scrap.**
+
+| Fifth batch | Id | Tris | Notes |
+|---|---|---|---|
+| Conveyor Main / End | `struct.conveyor` (`kind: "belt"`, `belt: segment / drive`) | 380 / 480 | A built belt is laid from the kit (`meshyBelt`): a drive end at each end, motors outward and squeezed to the segment's width, whole segments stretched to fill the run. Goods ride at the segment's `top` (0.38 m). Pad blueprints keep the code belt |
+| Conveyor Turn | `belt: corner` | 400 | Built, `unwired`: belts are straight runs, no bends yet |
+| Hopper Flats 1 / 2 | `zone.prey` L1 / L2 | 700 / 500 | 1.6 m; a prey zone's burrow patches alternate the two and are kept inside the zone rect (some border a wall) |
+| Assembled Part | `res.component` (`kind: "item"`) | 300 | The parts unit in stacks, shelves and belts |
+| Crystalline Scrap Pile Large | `decor.crystal_scrap` (`kind: "decor"`) | 570 | Border dressing, 1.8 m (its Gemini image is `Crystalline Scrap decor.jpg`) |
 
 ## Style block (paste at the start of every Gemini chat)
 
@@ -423,7 +432,7 @@ sticking up above the top face, about twice as wide as it is tall."*
 ## Not sent to Meshy
 
 Kept code-built, because they are flat or animated in ways a single model cannot do: pads and
-rings, the moving belt surface (the conveyor frame is the kit above), the hopper flats ground patch, the reactor glow, and all effects. They
+rings, the reactor glow, and all effects. They
 follow the concept look through the palette and the shader.
 
 ## Priority and credit budget
