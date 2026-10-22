@@ -36,6 +36,10 @@ export interface MeshyEntry {
   held?: Record<string, MeshyHeld[]>;
   /** `clips` keys whose clip walks the body about: played on the spot (hips keep only their height). */
   inPlace?: string[];
+  /** `clips` keys cut down to these [from, to] windows (seconds), played back to back. */
+  cut?: Record<string, number[][]>;
+  /** `clips` keys whose hips and legs hold the pose at this time (seconds): upper body only. */
+  plant?: Record<string, number>;
   /** Left arm braced in a shield pose over every clip (the guard). */
   shieldArm?: boolean;
   /** Character height in art metres (the file keeps its own units and skeleton). */

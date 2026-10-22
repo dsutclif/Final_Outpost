@@ -76,6 +76,33 @@ function pinRoot(clip: AnimationClip): void {
   const v = hips.values;
   for (let i = 3; i < v.length; i += 3) { v[i] = v[0]!; v[i + 2] = v[2]!; }
 }
+
+const LEGS = /(Hips|UpLeg|Leg|Foot|ToeBase|Toe_End)\.(position|quaternion|scale)$/;
+
+/**
+ * Recut a clip to the [from, to] windows that matter (seconds, played back to back at 30 fps)
+ * and, with `plant`, hold the hips and legs at that moment's pose: the door pull keeps its reach
+ * and swing without the walk up to the door and away.
+ */
+function shapeClip(clip: AnimationClip, cut: number[][] | undefined, plant: number | undefined): void {
+  if (pinned.has(clip)) return;
+  pinned.add(clip);
+  const segs = cut ?? [[0, clip.duration]];
+  const times: number[] = [], src: number[] = [];
+  let acc = 0;
+  for (const [a = 0, b = clip.duration] of segs) {
+    for (let t = a; t < b - 1e-6; t += 1 / 30) { times.push(acc + t - a); src.push(t); }
+    acc += b - a;
+  }
+  clip.tracks = clip.tracks.map((tr) => {
+    const f = tr.createInterpolant(), n = tr.getValueSize();
+    const held = plant !== undefined && LEGS.test(tr.name) ? Array.from(f.evaluate(plant)) : null;
+    const values = new Float32Array(times.length * n);
+    src.forEach((t, i) => values.set(held ?? f.evaluate(t), i * n));
+    return new (tr.constructor as new (name: string, times: number[], values: Float32Array) => typeof tr)(tr.name, times, values);
+  });
+  clip.duration = acc;
+}
 const placed = new Map<string, Matrix4>();
 
 const boneOf = (root: Object3D, name: string): Bone | undefined =>
@@ -176,7 +203,9 @@ export class Rigged {
     root.traverse((o) => { if ((o as Mesh).isMesh) { o.frustumCulled = false; o.castShadow = false; } });
     const mixer = new AnimationMixer(root);
     const actions = new Map<string, AnimationAction>();
-    for (const k of e.inPlace ?? []) { const clip = rig.clips.find((c) => c.name === e.clips?.[k]); if (clip) pinRoot(clip); }
+    const clipOf = (k: string): AnimationClip | undefined => rig.clips.find((c) => c.name === e.clips?.[k]);
+    for (const k of new Set([...Object.keys(e.cut ?? {}), ...Object.keys(e.plant ?? {})])) { const clip = clipOf(k); if (clip) shapeClip(clip, e.cut?.[k], e.plant?.[k]); }
+    for (const k of e.inPlace ?? []) { const clip = clipOf(k); if (clip) pinRoot(clip); }
     for (const clip of rig.clips) actions.set(clip.name, mixer.clipAction(clip));
     const walk = rig.clips.find((c) => c.name === e.clips?.["walk"]);
     if (walk && !e.clips?.["idle"]) {

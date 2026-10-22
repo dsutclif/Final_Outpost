@@ -276,7 +276,7 @@ has a Meshy file.
 
 | Sixth batch | Id | Tris | Notes |
 |---|---|---|---|
-| Technician_All_Animations | `role.operator` (`kind: "character"`) | 1,000 | Standing at a running converter it works it: `work` (`open_door_3`, a pull, with the wrench in the right hand) and `work2` (a Text to Motion clip, empty-handed, though named the wrench clip in the download) take turns, each once through. `inPlace` pins the hips' travel (the pull walks the body about). A pooled rig is rebuilt when its character id changes, so a hired colonist takes its job's rig |
+| Technician_All_Animations | `role.operator` (`kind: "character"`) | 1,000 | Standing at a running converter it works it: `work` (`open_door_3`, a pull, with the wrench in the right hand) and `work2` (a Text to Motion clip, empty-handed, though named the wrench clip in the download) take turns, each once through. The pull is the door-open clip recut to its two reach-and-swing windows (`cut`: 1.0-2.7 s and 6.2-8.7 s) with the hips and legs held at the standing pose of 0 s (`plant`), so the walk to the door and away is gone; `inPlace` pins the other clip's hip travel. A pooled rig is rebuilt when its character id changes, so a hired colonist takes its job's rig |
 | Fuel_Cell_Cache | `node.fuel_deposit` | 900 | 1.4 m open crate; no generator footprint, so the footprint test skips it |
 | Habitation_Hub | `struct.landmark` | 2,400 | 4.4 m; dome glass and glow dropped, the beacon sits on the dome cap [0, 2.16, -0.3] |
 
