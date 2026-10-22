@@ -36,13 +36,22 @@ when they ship. Batches run in the order below.
 
 ## Batch 2: level checking and generation (code only; no pack ships except a playtest set)
 
-- [ ] **Human-view bot (3).** Bot sees only what is on screen and in the HUD, reacts at human
+- [x] **Human-view bot (3).** Bot sees only what is on screen and in the HUD, reacts at human
       speed with some error; stars must be earned by this bot, not the perfect one.
       `levels:check` enforces a star rate.
-- [ ] **Turret upgrade before turret (6).** `generator/src/build.ts` ~806-815 puts second-round
+      Done 2026-10-22 (8d5c6ab): HUMAN profile + screen/HUD perception filter (bots/src/view.ts);
+      each star must be earned on 4 of 6 human-view seeds plus one 3-star seed (generator.json
+      humanStars). Finding: hiding off-screen info barely weakens the bot (47/60 levels still pass);
+      the hard feel likely comes from its perfect planning and attention. Open: tune it harder or
+      calibrate it against Doug's own play telemetry.
+- [x] **Turret upgrade before turret (6).** `generator/src/build.ts` ~806-815 puts second-round
       towers after all upgrades; chain each upgrade after its own tower and add a pad-order
       check for upgrade targets.
-- [ ] **No new levels after finishing the pack.** Diagnose and fix the `levels:next` path.
+      Done 2026-10-22 (b3d184a), with a regression test that fails on the old order.
+- [x] **No new levels after finishing the pack.** Diagnose and fix the `levels:next` path.
+      Done 2026-10-22 (b890dfc), probable cause: one failed level made the CI build exit 1, so the
+      whole batch was discarded and every later trigger rebuilt and failed the same batch. Now the
+      levels before a failure are kept. s1-061 holds 20 levels (80 published, not 84).
 - [ ] Generate about 5 levels for Doug to playtest all changes so far.
 
 ## Batch 3: one engine bump (0.13.0), then the single regeneration
