@@ -34,6 +34,8 @@ export interface MeshyEntry {
   clips?: Record<string, string>;
   /** Character props by variant id ("*": every variant), see MeshyHeld. */
   held?: Record<string, MeshyHeld[]>;
+  /** `clips` keys whose clip walks the body about: played on the spot (hips keep only their height). */
+  inPlace?: string[];
   /** Left arm braced in a shield pose over every clip (the guard). */
   shieldArm?: boolean;
   /** Character height in art metres (the file keeps its own units and skeleton). */

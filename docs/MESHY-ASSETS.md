@@ -212,7 +212,7 @@ taller and thinner; that settles once the other characters are rigged the same w
 
 **Third batch (2026-10-18): every character rigged.** Hero, hauler, guard, medic, courier,
 colonist, clerk, runner, ranger, raider and boss come from rigged Meshy files (about 1,000
-triangles each); the technician stays code-built until its file arrives. The dust crawler and the
+triangles each); the technician followed in batch 6. The dust crawler and the
 mite (seven legs) are rigged without clips: `rigged.ts` finds legs (chains reaching the ground,
 each starting under a branching joint) and walks them in an alternating gait. What the runtime adds:
 
@@ -259,7 +259,7 @@ under it (L1 [-0.1, 0.7, -0.12], L2 [-0.03, 1.0, -0.04], L3 [-0.06, 0.91, -0.05]
 | Ship Scrap 1 / 2 | `decor.ship_scrap` / `decor.ship_wreck` | 350 / 500 | Border dressing. Decor kinds now share one border's worth of copies (bigger pieces fewer) |
 
 Golden level 4 at tick ~850: 58.0k triangles, 42 draw calls (55.5k before this batch; code
-models 49.7k). Still code-built: the fuel cell cache (`node.fuel_deposit`, no GLB yet), the habitat hub.
+models 49.7k). Fuel cell cache and habitat hub followed in batch 6.
 
 **Fifth batch (2026-10-22): conveyor kit, hopper flats, parts, crystal scrap.**
 
@@ -270,6 +270,15 @@ models 49.7k). Still code-built: the fuel cell cache (`node.fuel_deposit`, no GL
 | Hopper Flats 1 / 2 | `zone.prey` L1 / L2 | 700 / 500 | 1.6 m; a prey zone's burrow patches alternate the two and are kept inside the zone rect (some border a wall) |
 | Assembled Part | `res.component` (`kind: "item"`) | 300 | The parts unit in stacks, shelves and belts |
 | Crystalline Scrap Pile Large | `decor.crystal_scrap` (`kind: "decor"`) | 570 | Border dressing, 1.8 m (its Gemini image is `Crystalline Scrap decor.jpg`) |
+
+**Sixth batch (2026-10-22): technician, fuel cell cache, habitat hub.** Every model in the list now
+has a Meshy file.
+
+| Sixth batch | Id | Tris | Notes |
+|---|---|---|---|
+| Technician_All_Animations | `role.operator` (`kind: "character"`) | 1,000 | Standing at a running converter it works it: `work` (`open_door_3`, a pull, with the wrench in the right hand) and `work2` (a Text to Motion clip, empty-handed, though named the wrench clip in the download) take turns, each once through. `inPlace` pins the hips' travel (the pull walks the body about). A pooled rig is rebuilt when its character id changes, so a hired colonist takes its job's rig |
+| Fuel_Cell_Cache | `node.fuel_deposit` | 900 | 1.4 m open crate; no generator footprint, so the footprint test skips it |
+| Habitation_Hub | `struct.landmark` | 2,400 | 4.4 m; dome glass and glow dropped, the beacon sits on the dome cap [0, 2.16, -0.3] |
 
 ## Style block (paste at the start of every Gemini chat)
 

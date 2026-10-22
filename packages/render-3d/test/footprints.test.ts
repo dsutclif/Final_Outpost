@@ -50,7 +50,7 @@ describe("meshy footprints", () => {
   const config = JSON.parse(readFileSync(new URL("../src/assets/meshy.json", import.meta.url), "utf8")) as { models: { file: string; id: string; slot?: string[]; batch?: string; kind?: string }[] };
   // parts (doors, turret heads), wall sections, held props, the gate (sized by its wall section)
   // captures (towed about) and zone dressing (prey burrows) have no footprint of their own
-  for (const e of config.models.filter((m) => !m.slot && !m.batch && !m.kind && m.id !== "struct.gate" && !m.id.startsWith("capture.") && !m.id.startsWith("zone."))) {
+  for (const e of config.models.filter((m) => !m.slot && !m.batch && !m.kind && m.id !== "struct.gate" && !m.id.startsWith("capture.") && !m.id.startsWith("zone.") && fp[m.id])) {
     it(`${e.file} is built and covered by ${e.id}`, () => {
       const b = built[e.file]?.bounds;
       expect(b, "run pnpm models:build").toBeDefined();

@@ -26,7 +26,7 @@ export interface RigState {
   speed?: number;
   /** Runs rather than walks while moving (the hero). */
   run?: boolean;
-  /** What it is doing: a `clips` key (mine, reap, pick, dig, shoot); its props show only then. */
+  /** What it is doing: a `clips` key (mine, reap, pick, dig, shoot, work); its props show only then. */
   act?: string | undefined;
   /** Carrying goods (a `carry` clip, if the file has one, replaces the walk). */
   carry?: boolean;
@@ -35,6 +35,8 @@ export interface RigState {
 interface Prop { obj: Object3D; when?: string[] }
 
 interface Inst {
+  /** Character id it was built for (props and clips depend on it). */
+  id: string;
   root: Object3D;
   mixer: AnimationMixer;
   actions: Map<string, AnimationAction>;
@@ -48,6 +50,8 @@ interface Inst {
   shield: { bones: [Bone, Bone, Bone]; chest: Bone; at: Vector3[] } | null;
   legs: Leg[] | null;
   phase: number;
+  /** Time into the current clip of an alternating action pair, last frame (a drop means it wrapped). */
+  altLast: number;
   /** Props still loading when this copy was made: it is rebuilt once they land. */
   missing: string[];
 }
@@ -61,6 +65,17 @@ const tmpA = new Vector3(), tmpB = new Vector3(), tmpC = new Vector3(), tmpQ = n
 
 /** Per file: synthesized idle clips and prop placements (bone-local matrices). */
 const idles = new Map<string, AnimationClip>();
+const pinned = new WeakSet<AnimationClip>();
+
+/** Keeps a clip that walks the body about (Meshy's door pull) on the spot: the hips keep their height, not their travel. */
+function pinRoot(clip: AnimationClip): void {
+  if (pinned.has(clip)) return;
+  pinned.add(clip);
+  const hips = clip.tracks.find((t) => t instanceof VectorKeyframeTrack && /Hips\.position$/.test(t.name));
+  if (!hips) return;
+  const v = hips.values;
+  for (let i = 3; i < v.length; i += 3) { v[i] = v[0]!; v[i + 2] = v[2]!; }
+}
 const placed = new Map<string, Matrix4>();
 
 const boneOf = (root: Object3D, name: string): Bone | undefined =>
@@ -83,7 +98,8 @@ export class Rigged {
   /** Place character `key` (one per entity) of kind `id` at world x/z, facing yaw, `scale` world units per art metre. */
   add(key: string, id: string, e: MeshyEntry, s: RigState, x: number, z: number, yaw: number, scale: number): void {
     let inst = this.pool.get(key);
-    if (inst?.missing.length && inst.missing.every(meshyLoaded)) { this.parent.remove(inst.root); inst.mixer.stopAllAction(); inst = undefined; }
+    // rebuilt once its props land, or when the entity became someone else (a colonist hired into a job)
+    if (inst && ((inst.missing.length && inst.missing.every(meshyLoaded)) || inst.id !== id)) { this.parent.remove(inst.root); inst.mixer.stopAllAction(); inst = undefined; }
     if (!inst) {
       inst = this.make(id, e);
       this.pool.set(key, inst);
@@ -102,11 +118,20 @@ export class Rigged {
     const c = e.clips ?? {};
     const act = s.act && c[s.act] ? s.act : undefined;
     const moveAct = act && c[act + "Move"] ? act + "Move" : undefined;
-    const want = s.cheer && !s.moving && c["cheer"] ? "cheer"
+    let want = s.cheer && !s.moving && c["cheer"] ? "cheer"
       : s.moving ? moveAct ?? (s.carry && c["carry"] ? "carry" : (s.hurried || s.run) && c["run"] ? "run" : "walk")
       : act ?? (s.hurried && c["wait"] ? "wait" : "idle");
+    // an action with a second clip (`work` / `work2`) takes turns: each plays once through, then the other
+    if (want === act && c[act + "2"]) {
+      const pair = [act, act + "2"], on = pair.findIndex((k) => c[k] === inst.current);
+      const t = on >= 0 ? inst.actions.get(inst.current)!.time : 0;
+      // a looping clip's time drops back when it wraps: that ends its turn
+      const wrapped = on >= 0 && t < inst.altLast;
+      want = pair[on < 0 ? 0 : wrapped ? 1 - on : on]!;
+      inst.altLast = wrapped ? 0 : t;
+    }
     this.play(inst, c[want] ?? (want === "idle" ? "__idle" : c["walk"] ?? ""));
-    for (const p of inst.props) p.obj.visible = !p.when || (!!s.act && p.when.includes(s.act));
+    for (const p of inst.props) p.obj.visible = !p.when || p.when.includes(want) || (want !== s.act + "2" && !!s.act && p.when.includes(s.act));
   }
 
   /** Advance every visible character's clips; hide the ones not placed this frame. */
@@ -151,13 +176,14 @@ export class Rigged {
     root.traverse((o) => { if ((o as Mesh).isMesh) { o.frustumCulled = false; o.castShadow = false; } });
     const mixer = new AnimationMixer(root);
     const actions = new Map<string, AnimationAction>();
+    for (const k of e.inPlace ?? []) { const clip = rig.clips.find((c) => c.name === e.clips?.[k]); if (clip) pinRoot(clip); }
     for (const clip of rig.clips) actions.set(clip.name, mixer.clipAction(clip));
     const walk = rig.clips.find((c) => c.name === e.clips?.["walk"]);
     if (walk && !e.clips?.["idle"]) {
       if (!idles.has(e.file)) idles.set(e.file, idleFrom(walk));
       actions.set("__idle", mixer.clipAction(idles.get(e.file)!));
     }
-    const inst: Inst = { root, mixer, actions, current: "", seen: true, grip: null, arms: [], props: [], shield: null, legs: null, phase: 0, missing: [] };
+    const inst: Inst = { id, root, mixer, actions, current: "", seen: true, grip: null, arms: [], props: [], shield: null, legs: null, phase: 0, altLast: 0, missing: [] };
     root.updateMatrixWorld(true);
     if (!rig.clips.length) inst.legs = legsOf(root, height);
     if (e.shieldArm) inst.shield = this.shieldPose(root);
