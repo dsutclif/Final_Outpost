@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CONTENT_VERSION } from "../packages/content/src/index.js";
@@ -72,6 +72,37 @@ function parsePlayed(s: string | undefined): PlayedLevel[] {
   }).slice(-50);
 }
 
+/** A level id's play-order number: `s1-L081` is 81. */
+const levelNumber = (id: string): number => Number(/-L(\d+)$/.exec(id)?.[1] ?? NaN);
+
+/**
+ * Keep only the levels of a built pack that run contiguously from `from` (a level that failed to
+ * generate ends the run; the levels after it would leave a hole in play order). Removes the dropped
+ * level files, and the pack and its index entry when nothing is left. Returns how many were kept.
+ * Without this one failed level threw away the whole batch (the build exits 1, nothing is committed).
+ */
+export function keepContiguous(packsRoot: string, packId: string, from: number): number {
+  const dir = join(packsRoot, packId), packPath = join(dir, "pack.json");
+  if (!existsSync(packPath)) return 0;
+  const pack = JSON.parse(readFileSync(packPath, "utf8")) as PackFile & { levels: { id: string; file: string }[] };
+  const nums = new Set(pack.levels.map((l) => levelNumber(l.id)));
+  let end = from - 1;
+  while (nums.has(end + 1)) end++;
+  const kept = pack.levels.filter((l) => levelNumber(l.id) <= end);
+  for (const l of pack.levels) if (levelNumber(l.id) > end) rmSync(join(dir, l.file), { force: true });
+  if (kept.length === 0) {
+    rmSync(dir, { recursive: true, force: true });
+    const indexPath = join(packsRoot, "index.json");
+    if (existsSync(indexPath)) {
+      const idx = JSON.parse(readFileSync(indexPath, "utf8")) as { packs: string[] };
+      writeFileSync(indexPath, JSON.stringify({ ...idx, packs: idx.packs.filter((id) => id !== packId) }, null, 2) + "\n");
+    }
+    return 0;
+  }
+  writeFileSync(packPath, JSON.stringify({ ...pack, levels: kept }, null, 2) + "\n");
+  return kept.length;
+}
+
 async function main(): Promise<void> {
   const cleared = Number(arg("--cleared", "0"));
   if (!Number.isInteger(cleared) || cleared < 0) throw new Error(`--cleared must be a whole number, got ${arg("--cleared")}`);
@@ -87,14 +118,18 @@ async function main(): Promise<void> {
   const viteNode = join(root, "node_modules", "vite-node", "vite-node.mjs");
   const jobs = arg("--jobs");
   const args = [viteNode, join(here, "build-levels.ts"), "--", "--from", String(plan.from), "--to", String(plan.to),
-    "--out", join(packsDir, plan.packId), "--target-offset", String(plan.tuning.offset), "--no-doc", ...(jobs ? ["--jobs", jobs] : [])];
+    "--out", join(packsDir, plan.packId), "--target-offset", String(plan.tuning.offset), "--no-doc", "--retries", arg("--retries", "6")!, ...(jobs ? ["--jobs", jobs] : [])];
   const code = await new Promise<number>((ok) => spawn(process.execPath, args, { cwd: root, stdio: "inherit" }).on("close", (c) => ok(c ?? 1)));
+  // A failed level fails the build (code 1) but the rest of the batch is good: publish the levels
+  // that run on from the first one, so the supply still grows and the workflow commits them.
+  const kept = code === 0 ? -1 : keepContiguous(packsDir, plan.packId, plan.from);
+  if (kept >= 0) console.log(`build exited ${code}: keeping ${kept} of ${plan.to - plan.from + 1} levels`);
   const packPath = join(packsDir, plan.packId, "pack.json");
   if (existsSync(packPath)) {
     const pack = JSON.parse(readFileSync(packPath, "utf8")) as PackFile;
     writeFileSync(packPath, JSON.stringify({ ...pack, tuning: plan.tuning }, null, 2) + "\n");
   }
-  process.exitCode = code;
+  process.exitCode = code === 0 || kept > 0 ? 0 : code || 1;
 }
 
 // tests import planBatch without running the CLI
