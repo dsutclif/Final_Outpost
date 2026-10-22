@@ -1,0 +1,96 @@
+{
+  "id": "s1-086",
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
+  "levels": [
+    {
+      "id": "s1-L086",
+      "file": "s1-L086.json",
+      "title": "Conveyors and Output",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "supply_routing",
+        "workers"
+      ],
+      "goal": "produce",
+      "rating": 1,
+      "fun": 0.778,
+      "target": 0.625
+    },
+    {
+      "id": "s1-L087",
+      "file": "s1-L087.json",
+      "title": "Wreckage and Gun Line",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defense",
+        "gather",
+        "medical",
+        "sales",
+        "salvage_upgrades"
+      ],
+      "goal": "turret_level",
+      "rating": 0.669,
+      "fun": 0.144,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L088",
+      "file": "s1-L088.json",
+      "title": "Flares and Cleared Ground",
+      "family": "shelter",
+      "modules": [
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "hazard_events",
+        "sales"
+      ],
+      "goal": "clear_zones",
+      "rating": 0.713,
+      "fun": 0.827,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L089",
+      "file": "s1-L089.json",
+      "title": "Stasis Pods and Hunters' Larder",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "hunting",
+        "lasso",
+        "sales"
+      ],
+      "goal": "protein",
+      "rating": 0.776,
+      "fun": 0.807,
+      "target": 0.756
+    }
+  ],
+  "tuning": {
+    "offset": 0,
+    "reason": "adaptation off",
+    "meanStars": null,
+    "meanAttempts": null,
+    "samples": 10,
+    "cleared": 80
+  }
+}

@@ -1,0 +1,447 @@
+{
+  "id": "s1-L087",
+  "seed": 2062029292,
+  "engineVersion": "0.12.0",
+  "contentVersion": "0.12.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-far-w",
+      "food-far-e",
+      "shop-s",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "defense",
+    "gather",
+    "medical",
+    "sales",
+    "salvage_upgrades"
+  ],
+  "start": [
+    240,
+    612
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        520
+      ],
+      "params": {
+        "fuel": 15,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        156,
+        504
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        149,
+        535
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        126,
+        497
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        182,
+        481
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        173,
+        555
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        141,
+        471
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        132,
+        564
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        118,
+        532
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        175,
+        448
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        203,
+        575
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        94,
+        494
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        104,
+        451
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.salvage",
+      "costPerSection": 1,
+      "points": [
+        [
+          50,
+          285
+        ],
+        [
+          126,
+          285
+        ],
+        [
+          202,
+          285
+        ],
+        [
+          278,
+          285
+        ],
+        [
+          354,
+          285
+        ],
+        [
+          430,
+          285
+        ],
+        [
+          430,
+          379
+        ],
+        [
+          430,
+          473
+        ],
+        [
+          430,
+          567
+        ],
+        [
+          430,
+          661
+        ],
+        [
+          430,
+          755
+        ],
+        [
+          354,
+          755
+        ],
+        [
+          278,
+          755
+        ],
+        [
+          202,
+          755
+        ],
+        [
+          126,
+          755
+        ],
+        [
+          50,
+          755
+        ],
+        [
+          50,
+          661
+        ],
+        [
+          50,
+          567
+        ],
+        [
+          50,
+          473
+        ],
+        [
+          50,
+          379
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        7
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_e",
+      "at": [
+        402,
+        444
+      ],
+      "cost": {
+        "res.salvage": 6
+      },
+      "build": "struct.ranged_defense",
+      "site": [
+        430,
+        379
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_e2",
+      "at": [
+        403,
+        725
+      ],
+      "cost": {
+        "res.salvage": 6
+      },
+      "build": "struct.ranged_defense",
+      "site": [
+        430,
+        661
+      ],
+      "requires": {
+        "pad": "tower_e"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "tower_e2_up",
+      "at": [
+        403,
+        725
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.ranged_defense.t2",
+      "target": "tower_e2",
+      "requires": {
+        "pad": "reinforce"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "reinforce",
+      "at": [
+        319,
+        455
+      ],
+      "cost": {
+        "res.salvage": 5
+      },
+      "build": "struct.barrier.reinforced",
+      "requires": {
+        "pad": "tower_e2"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "medic",
+      "at": [
+        340,
+        630
+      ],
+      "cost": {
+        "res.salvage": 6
+      },
+      "build": "struct.medical"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [
+    {
+      "t": 10,
+      "counts": {
+        "hostile.swarmling": 4,
+        "hostile.raider_humanoid": 12
+      },
+      "side": "e",
+      "gap": 0.2
+    },
+    {
+      "t": 20,
+      "counts": {
+        "hostile.swarmling": 4
+      },
+      "side": "e",
+      "gap": 0.7
+    },
+    {
+      "t": 74,
+      "counts": {
+        "hostile.swarmling": 7,
+        "hostile.raider_humanoid": 1
+      },
+      "side": "e",
+      "gap": 0.7
+    },
+    {
+      "t": 128,
+      "counts": {
+        "hostile.swarmling": 14,
+        "hostile.raider_humanoid": 3
+      },
+      "side": "e",
+      "gap": 0.45
+    },
+    {
+      "t": 182,
+      "counts": {
+        "hostile.swarmling": 19,
+        "hostile.raider_humanoid": 5
+      },
+      "side": "e",
+      "gap": 0.45
+    }
+  ],
+  "events": [],
+  "params": {
+    "start.currency": 7,
+    "core.burn": 2.7,
+    "housing.base": 5,
+    "lots.block": 160,
+    "lots.street": 40,
+    "meters.baseHealth": 14,
+    "level.budgetSeconds": 240
+  },
+  "goal": {
+    "type": "turret_level",
+    "n": 2
+  },
+  "family": "defend",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "turret_level",
+      "params": {
+        "n": 2
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 213
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "hp_floor",
+      "params": {
+        "pct": 80
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline",
+    "meter.base_health"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Wreckage and Gun Line",
+      "goal": "turret_level",
+      "tips": [
+        "Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.669,
+    "fun": 0.144,
+    "botMargin": 0.69,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}
