@@ -13,7 +13,9 @@
   "dependencies": {
     "@fo/bots": "workspace:*",
     "@fo/content": "workspace:*",
+    "@fo/generator": "workspace:*",
     "@fo/render-3d": "workspace:*",
+    "@fo/sequencer": "workspace:*",
     "@fo/sim": "workspace:*",
     "@fo/skins": "workspace:*",
     "@fontsource/barlow": "5.1.0",

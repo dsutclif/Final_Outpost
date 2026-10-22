@@ -744,6 +744,8 @@ export class Renderer3D implements Renderer {
 
   /** Dev-only camera override for framing experiments (degrees, world units); null in the game. */
   camOverride: { pitch: number; yaw: number; fov: number; viewW: number } | null = null;
+  /** Dev-only building size multiplier (layout sandbox); 1 in the game. */
+  devBuildScale = 1;
 
   private followCamera(cam: Camera, target: V, dt: number): void {
     const o = this.camOverride;
@@ -801,7 +803,8 @@ export class Renderer3D implements Renderer {
     }
     p.seen = true;
     p.model.root.position.copy(at);
-    this.popScale(p, ART_M);
+    const k = this.devBuildScale !== 1 && /^(sink|conv|struct)\./.test(id) && id !== "struct.conveyor" && id !== "struct.gate" ? this.devBuildScale : 1;
+    this.popScale(p, ART_M * k);
     return p;
   }
 

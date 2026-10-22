@@ -92,9 +92,15 @@ importers:
       '@fo/content':
         specifier: workspace:*
         version: link:../content
+      '@fo/generator':
+        specifier: workspace:*
+        version: link:../generator
       '@fo/render-3d':
         specifier: workspace:*
         version: link:../render-3d
+      '@fo/sequencer':
+        specifier: workspace:*
+        version: link:../sequencer
       '@fo/sim':
         specifier: workspace:*
         version: link:../sim

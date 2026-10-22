@@ -6,10 +6,11 @@ when they ship. Batches run in the order below.
 
 ## Batch 0: layout sandbox (dev page, no rules change)
 
-- [ ] Dev page on the Vercel URL with sliders for building density (block, street, footprint
+- [x] Dev page on the Vercel URL with sliders for building density (block, street, footprint
       gap, core pull, screen radius), building size and camera zoom. It renders a sample base
       from the real generator layout code and the real models, with the vibe reference image
-      in a corner for comparison.
+      in a corner for comparison. Live at /sandbox.html (2026-10-22); every pad is forced built,
+      unlock gates skipped; "Copy link" carries the values in the URL.
 - [ ] Doug plays with it; the chosen values are recorded here and feed Batch 3.
 
 ## Batch 1: renderer/client fixes (no engine bump, no pack regeneration)

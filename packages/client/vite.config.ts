@@ -55,7 +55,11 @@ export default defineConfig({
   base: process.env.BASE_PATH ?? "/",
   server: { host: "0.0.0.0", port: 5180, strictPort: true },
   preview: { host: "0.0.0.0", port: 5181 },
-  build: { outDir: "dist", target: "es2022", sourcemap: false, chunkSizeWarningLimit: 800 },
+  build: {
+    outDir: "dist", target: "es2022", sourcemap: false, chunkSizeWarningLimit: 800,
+    // sandbox.html: the layout sandbox dev page (docs/BACKLOG-R4.md batch 0), unlinked from the game
+    rollupOptions: { input: { main: resolve(here, "index.html"), sandbox: resolve(here, "sandbox.html") } },
+  },
   plugins: [
     levelPacks(),
     VitePWA({
@@ -81,9 +85,9 @@ export default defineConfig({
       workbox: {
         // the three.js chunk is precached too, so the game plays offline after the first launch
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
-        globIgnores: ["store/**"],
+        globIgnores: ["store/**", "sandbox.html", "assets/sandbox-*.js"],
         navigateFallback: "index.html",
-        navigateFallbackDenylist: [/\/levels\//, /privacy\.html$/],
+        navigateFallbackDenylist: [/\/levels\//, /privacy\.html$/, /sandbox\.html$/],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
