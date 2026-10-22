@@ -2,7 +2,7 @@ import { FP, createSim, type Sim, type State } from "@fo/sim";
 import { DEFAULT_SKIN, getSkin } from "@fo/skins";
 import { GEN, buildLevel, knobsFor, templateById, type Built } from "@fo/generator";
 import { closure, sequenceRange } from "@fo/sequencer";
-import { PITCH_DEG, YAW_DEG, FOV_DEG, VIEW_W, createCamera, screenToWorld } from "@fo/render-3d";
+import { PITCH_DEG, YAW_DEG, FOV_DEG, TEXT, VIEW_W, createCamera, screenToWorld } from "@fo/render-3d";
 import { Renderer3D } from "@fo/render-3d/renderer";
 
 // Layout sandbox (docs/BACKLOG-R4.md batch 0): rebuilds a sequenced level's layout with the real
@@ -29,6 +29,7 @@ const KNOBS: Knob[] = [
   { key: "pull", label: "Pull to core", min: 0, max: 3, step: 0.1, def: GEN.spacing.corePull, rebuild: true },
   { key: "size", label: "Building size", min: 0.6, max: 1.5, step: 0.05, def: 1, rebuild: true },
   { key: "zoom", label: "View width", min: 100, max: 450, step: 10, def: VIEW_W, rebuild: false },
+  { key: "text", label: "Text size", min: 0.6, max: 1.8, step: 0.05, def: 1, rebuild: false },
 ];
 const val: Record<string, number> = {};
 for (const k of KNOBS) val[k.key] = params.has(k.key) ? Number(params.get(k.key)) : k.def;
@@ -168,7 +169,9 @@ function rebuild(): void {
 }
 
 function applyView(): void {
-  if (renderer) renderer.camOverride = { pitch: PITCH_DEG, yaw: YAW_DEG, fov: FOV_DEG, viewW: val.zoom! };
+  if (renderer) { renderer.camOverride = { pitch: PITCH_DEG, yaw: YAW_DEG, fov: FOV_DEG, viewW: val.zoom! }; renderer.devTextScale = val.text!; }
+  // the text slider reads as the main text size it gives (units.ts TEXT.main)
+  if (outs.text) outs.text.textContent = String(Math.round(TEXT.main * val.text! * 10) / 10);
 }
 
 function centre(): void {

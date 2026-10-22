@@ -265,6 +265,8 @@ export class Renderer3D implements Renderer {
   private cheerUntil = new Map<string, number>();
   /** What a rigged character is doing (a clip key: mine, reap, pick, dig, shoot), until when, and at what. */
   private acts = new Map<string, { act: string; until: number; at?: V }>();
+  /** Operator spots of the converters running this frame (world), with the machine they face. */
+  private workSpots: { op: V; at: V }[] = [];
   private quality: QualityTier;
   private cssW = 400;
   private cssH = 700;
@@ -746,6 +748,8 @@ export class Renderer3D implements Renderer {
   camOverride: { pitch: number; yaw: number; fov: number; viewW: number } | null = null;
   /** Dev-only building size multiplier (layout sandbox); 1 in the game. */
   devBuildScale = 1;
+  /** Dev-only multiplier on units.ts TEXT (layout sandbox); 1 in the game. */
+  devTextScale = 1;
 
   private followCamera(cam: Camera, target: V, dt: number): void {
     const o = this.camOverride;
@@ -756,6 +760,7 @@ export class Renderer3D implements Renderer {
     const z = cam.zoom || 1;
     const vw = viewW / z, vh = (viewW * this.cssH) / this.cssW / z;
     this.labels.screenK = vw / LABEL_VIEW_W;
+    this.labels.textK = this.devTextScale;
     if (cam.follow) {
       const lead = cam.lead;
       const lx = lead ? (lead.x - target.x) * LEAD_WEIGHT : 0, ly = lead ? (lead.y - target.y) * LEAD_WEIGHT : 0;
@@ -1153,6 +1158,7 @@ export class Renderer3D implements Renderer {
 
   private syncConverters(s: State): void {
     const items = this.items!;
+    this.workSpots.length = 0;
     for (const cv of s.converters) {
       const p = this.place(`cv:${cv.id}:${cv.level}`, cv.type, this.wv(cv.pos), cv.level);
       this.candidate(cv.type, p);
@@ -1172,6 +1178,7 @@ export class Renderer3D implements Renderer {
       const working = manned && cv.inQ.length > 0 && !blocked;
       // the unit going in next, for the conversion animation (the sim has already taken it when it reports)
       if (cv.inQ[0]) p.data["front"] = cv.inQ[0];
+      if (working) this.workSpots.push({ op: { x: cv.operatorPos.x / FP, y: cv.operatorPos.y / FP }, at: { x: cv.pos.x / FP, y: cv.pos.y / FP } });
       if (working) {
         // progress toward the next unit over the machine
         const sec = (cv.level > 1 ? def?.upgradeRates?.[cv.level - 2] : undefined) ?? def?.rate ?? 1;
@@ -1824,6 +1831,11 @@ export class Renderer3D implements Renderer {
       // rigged once loaded, except the frozen and those lying in the med bay (the code figure poses those)
       const rrig = dead || r.status === "healing" ? undefined : this.rigged?.entryFor(id);
       const moving = sp > 0.05;
+      // an operator standing at a running machine works it (its `work` clips, facing the machine)
+      if (!moving && r.status === "ok" && rrig?.clips?.["work"]) {
+        const w = this.workSpots.find((ws) => (ws.op.x - pos.x) ** 2 + (ws.op.y - pos.y) ** 2 < (ART_M * 0.6) ** 2);
+        if (w) this.acts.set(key, { act: "work", until: this.t + 0.3, at: w.at });
+      }
       const ryaw = this.faceAct(key, pos, ry, moving);
       const carrying = !!r.carry && r.n > 0;
       if (rrig) {

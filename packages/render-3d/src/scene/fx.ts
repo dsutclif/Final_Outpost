@@ -123,7 +123,8 @@ export class Fx {
       if (f.mat.map !== m.mat.map) { f.mat.needsUpdate = f.mat.map === null; f.mat.map = m.mat.map; }
       f.mat.opacity = 1;
       f.size = [height * m.aspect, height];
-      f.sprite.scale.set(height * m.aspect * this.labels.screenK, height * this.labels.screenK, 1);
+      const k = this.labels.screenK * this.labels.textK;
+      f.sprite.scale.set(height * m.aspect * k, height * k, 1);
     }
     f.age = 0;
     f.base.copy(at);
