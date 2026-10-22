@@ -27,7 +27,7 @@ export const FOV_DEG = 8;
  * top edge) and narrower below, so 3D frames 220 at the centre and leans the camera toward
  * the nearest target (Camera.lead) to bring edge pads on screen.
  */
-export const VIEW_W = 200;
+export const VIEW_W = 240;
 /** Floating labels keep their pre-R3 screen size: world heights shrink with the closer view. */
 export const LABEL_K = 220 / 360;
 /**
@@ -90,7 +90,7 @@ export const VIEW_MARGIN = 60;
  * zoom. Every world label and floater sizes its text from these (Doug, backlog R4: one larger,
  * consistent scale; about 14 CSS px for main text on a phone).
  */
-export const TEXT = { main: 10, sub: 8, big: 13 } as const;
+export const TEXT = { main: 8, sub: 6.4, big: 10.4 } as const;
 
 /** Label sprite height (Labels.apply) that shows text drawn at `px` on a canvas `canvasH` px tall at text height `t`. */
 export const textSprite = (t: number, px: number, canvasH: number): number => (t * canvasH) / (px * LABEL_K);

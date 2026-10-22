@@ -17,6 +17,9 @@ when they ship. Batches run in the order below.
       levels still generate with them. Four sliders sit at their minimum and pull at its maximum,
       so the ranges may need widening. Outer reach barely moves (mean 252 vs 257): resource fields
       come from the level templates, which the sliders do not control.
+      Shipped now (renderer only): view width 240 (units.ts VIEW_W) and text main 8 (TEXT x 0.8;
+      Doug: 10 was slightly too large). Bot view box scaled with the camera (bots/data/view.json
+      viewW 319). Slider ranges widened: lot size down to 20, building gap down to -10, pull to 8.
 - Keep the sandbox (Doug, 2026-10-22): it stays for future tuning; never delete it.
 
 ## Batch 1: renderer/client fixes (no engine bump, no pack regeneration)
@@ -76,6 +79,9 @@ Defence (option B with Doug's changes):
       reactor core loses the level.
 
 Other:
+- [ ] Pull resource fields (ore, scrap, greens) in toward the core so the whole base is compact like
+      the vibe image; today the level templates place them and the sandbox sliders do not reach them
+      (Doug, 2026-10-22). Add a sandbox slider for it first.
 - [ ] Building packing and screen alignment from the Batch 0 values; the camera keeps
       following the player (the base need not fit the screen).
 - [ ] Player walks through buildings (not walls or turrets); others path around; the building

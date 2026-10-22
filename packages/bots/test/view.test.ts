@@ -21,8 +21,7 @@ describe("human-view perception", () => {
   it("matches the 3D camera in units.ts", () => {
     expect(VIEW.pitchDeg).toBe(unit("PITCH_DEG"));
     expect(VIEW.yawDeg).toBe(unit("YAW_DEG"));
-    expect(VIEW.viewW).toBe(unit("LABEL_VIEW_W"));
-    expect(VIEW.viewW).toBeGreaterThanOrEqual(unit("VIEW_W"));
+    expect(VIEW.viewW).toBe(Math.round(unit("VIEW_W") * (VIEW as unknown as { groundK: number }).groundK));
   });
 
   it("sees the screen box around the hero and nothing beyond its sides", () => {

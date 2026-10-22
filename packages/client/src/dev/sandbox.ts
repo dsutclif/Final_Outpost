@@ -22,11 +22,11 @@ const sizedKey = (k: string) => /^(sink|conv|struct)\./.test(k);
 
 interface Knob { key: string; label: string; min: number; max: number; step: number; def: number; rebuild: boolean }
 const KNOBS: Knob[] = [
-  { key: "block", label: "Lot size", min: 60, max: 240, step: 10, def: GEN.lots.block, rebuild: true },
+  { key: "block", label: "Lot size", min: 20, max: 240, step: 10, def: GEN.lots.block, rebuild: true },
   { key: "street", label: "Street width", min: 0, max: 80, step: 5, def: GEN.lots.street, rebuild: true },
-  { key: "gap", label: "Building gap", min: 0, max: 30, step: 1, def: GEN.spacing.footprintGap, rebuild: true },
+  { key: "gap", label: "Building gap", min: -10, max: 30, step: 1, def: GEN.spacing.footprintGap, rebuild: true },
   { key: "margin", label: "Pad margin", min: 0, max: 30, step: 1, def: GEN.spacing.margin, rebuild: true },
-  { key: "pull", label: "Pull to core", min: 0, max: 3, step: 0.1, def: GEN.spacing.corePull, rebuild: true },
+  { key: "pull", label: "Pull to core", min: 0, max: 8, step: 0.1, def: GEN.spacing.corePull, rebuild: true },
   { key: "size", label: "Building size", min: 0.6, max: 1.5, step: 0.05, def: 1, rebuild: true },
   { key: "zoom", label: "View width", min: 100, max: 450, step: 10, def: VIEW_W, rebuild: false },
   { key: "text", label: "Text size", min: 0.6, max: 1.8, step: 0.05, def: 1, rebuild: false },
