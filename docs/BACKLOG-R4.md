@@ -11,7 +11,13 @@ when they ship. Batches run in the order below.
       from the real generator layout code and the real models, with the vibe reference image
       in a corner for comparison. Live at /sandbox.html (2026-10-22); every pad is forced built,
       unlock gates skipped; "Copy link" carries the values in the URL.
-- [ ] Doug plays with it; the chosen values are recorded here and feed Batch 3.
+- [x] Doug plays with it; the chosen values are recorded here and feed Batch 3.
+      Chosen 2026-10-22 (screenshot, L4): lot size 60, street 0, building gap 0, pad margin 0,
+      pull to core 3, building size 1.1, view width 240, text size 8 (TEXT x 0.8). All 60 s1
+      levels still generate with them. Four sliders sit at their minimum and pull at its maximum,
+      so the ranges may need widening. Outer reach barely moves (mean 252 vs 257): resource fields
+      come from the level templates, which the sliders do not control.
+- Keep the sandbox (Doug, 2026-10-22): it stays for future tuning; never delete it.
 
 ## Batch 1: renderer/client fixes (no engine bump, no pack regeneration)
 
