@@ -2,6 +2,7 @@ import { BoxGeometry, Color, Euler, Matrix4, Quaternion, Sprite, SpriteMaterial,
 import type { Items } from "./items.js";
 import { Batch } from "./instancing.js";
 import type { Labels } from "./labels.js";
+import { TEXT } from "../units.js";
 
 // Juice: particles (dust rings, sparks, confetti), "+N" floaters, items arcing onto the back
 // stack or into a sink, coins flying to the HUD, hit flashes and pop timers. Events start
@@ -99,7 +100,10 @@ export class Fx {
 
   // ---------------------------------------------------------------- floaters
 
-  floater(text: string, color: string, at: Vector3, px = 44, height = 13): void {
+  /** Floating text; `textH` is the letter height on screen (units.ts TEXT), px only sets the drawing resolution. */
+  floater(text: string, color: string, at: Vector3, px = 44, textH: number = TEXT.main): void {
+    // Labels.text draws on a canvas 1.45 x px tall
+    const height = textH * 1.45;
     let f = this.floaters.find((x) => !x.on);
     if (!f) {
       if (this.floaters.length >= 28) f = this.floaters.reduce((a, b) => (a.age / a.life > b.age / b.life ? a : b));

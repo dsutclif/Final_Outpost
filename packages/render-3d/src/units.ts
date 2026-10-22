@@ -84,3 +84,13 @@ export const MAX_TRIANGLES = 60_000;
 
 /** How far past each map edge the camera may travel, world units, so ground shows around the play field. */
 export const VIEW_MARGIN = 60;
+
+/**
+ * On-screen text sizes: world height of the letters at LABEL_VIEW_W, which labels keep at any
+ * zoom. Every world label and floater sizes its text from these (Doug, backlog R4: one larger,
+ * consistent scale; about 14 CSS px for main text on a phone).
+ */
+export const TEXT = { main: 10, sub: 8, big: 13 } as const;
+
+/** Label sprite height (Labels.apply) that shows text drawn at `px` on a canvas `canvasH` px tall at text height `t`. */
+export const textSprite = (t: number, px: number, canvasH: number): number => (t * canvasH) / (px * LABEL_K);

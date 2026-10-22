@@ -109,7 +109,7 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
     return { ...base, suit: t.raider, suitDark: t.raiderDark, pack: t.raiderDark, visor: t.raiderVisor, hat: "hat.hood", hatColor: t.raiderDark, tool: "tool.rifle_raider", scale: 0.95 };
   }
   if (id === "hostile.creature") return { ...base, kind: "creature", suit: t.creature, suitDark: t.creatureDark, visor: t.danger, scale: 1 };
-  if (id === "hostile.swarmling") return { ...base, kind: "creature", suit: mix(t.creature, t.danger, 0.25), suitDark: t.creatureDark, visor: t.danger, scale: 0.62 };
+  if (id === "hostile.swarmling") return { ...base, kind: "creature", suit: mix(t.creature, t.danger, 0.25), suitDark: t.creatureDark, visor: t.danger, scale: 0.45 };
   if (id === "hostile.boss") {
     return { ...base, suit: t.raiderDark, suitDark: t.raider, pack: t.raiderDark, visor: t.danger, hat: "hat.crest", hatColor: t.danger, tool: "tool.minigun", scale: 1.75, bigPack: true };
   }

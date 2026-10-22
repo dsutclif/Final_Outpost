@@ -46,14 +46,14 @@ import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Fx } from "./scene/fx.js";
 import { GroundMarks } from "./scene/groundmarks.js";
-import { Environment, type Site } from "./scene/environment.js";
+import { Environment, SLAB_TOP, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
-import { ART_M, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TIERS, VIEW_W, YAW_DEG, type QualityTier } from "./units.js";
+import { ART_M, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, VIEW_W, YAW_DEG, textSprite, type QualityTier } from "./units.js";
 
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
 const SHELF_K = 1.05 / ITEM_K;
@@ -84,7 +84,7 @@ export interface Renderer3DOptions {
 interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; site?: V; worker?: { vars: WorkerVars; res?: string }; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean }
 
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
-const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = 30, PAD_LOCK_H = 36;
+const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
 
@@ -803,7 +803,10 @@ export class Renderer3D implements Renderer {
     }
     p.seen = true;
     p.model.root.position.copy(at);
-    const k = this.devBuildScale !== 1 && /^(sink|conv|struct)\./.test(id) && id !== "struct.conveyor" && id !== "struct.gate" ? this.devBuildScale : 1;
+    const building = /^(sink|conv|struct)\./.test(id) && id !== "struct.gate";
+    // buildings stand on the concrete slabs, not sunk into them (Doug, backlog R4 item 7)
+    if (building) p.model.root.position.y += SLAB_TOP;
+    const k = this.devBuildScale !== 1 && building && id !== "struct.conveyor" ? this.devBuildScale : 1;
     this.popScale(p, ART_M * k);
     return p;
   }
@@ -977,7 +980,7 @@ export class Renderer3D implements Renderer {
       }
       const chip = this.sprite(kiosk, i);
       const full = have >= cap;
-      chip.visible = this.labels.apply(chip, `shelf|${res}|${have}|${full}`, () => this.shelfChipArt(res, have, full), 15);
+      chip.visible = this.labels.apply(chip, `shelf|${res}|${have}|${full}`, () => this.shelfChipArt(res, have, full), textSprite(TEXT.main, 40, 64));
       chip.position.set(x, dep.y + 0.78 * ART_M, dep.z + 0.12 * ART_M);
     });
     for (let i = sales.sells.length; i < kiosk.sprites.length; i++) kiosk.sprites[i]!.visible = false;
@@ -1026,7 +1029,7 @@ export class Renderer3D implements Renderer {
       const pk = Math.round(clamp01(c.patience / Math.max(1, c.patienceMax)) * 10);
       const sp = this.bubbleSprite(key);
       const sv = serving && serving.customer === c.id ? Math.round(clamp01(serving.ticks / Math.max(1, serving.of)) * 8) : -1;
-      const ok = this.labels.apply(sp, `ord|${c.res}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), 16);
+      const ok = this.labels.apply(sp, `ord|${c.res}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), textSprite(TEXT.main, 52, 120));
       sp.visible = ok;
       sp.position.set(pos.x, ART_M * look.scale * 1.55, pos.y);
     }
@@ -1088,7 +1091,7 @@ export class Renderer3D implements Renderer {
       const sp = this.sprite(p, 0);
       if (!n.enabled) {
         const txt = uiText(this.skin, "locked");
-        sp.visible = this.labels.apply(sp, `lock|${txt}`, () => this.labels.text(txt, this.tokens.paper.panel, 34), 9);
+        sp.visible = this.labels.apply(sp, `lock|${txt}`, () => this.labels.text(txt, this.tokens.paper.panel, 34), textSprite(TEXT.sub, 34, 34 * 1.45));
         sp.position.set(p.model.root.position.x, ART_M * 2.2, p.model.root.position.z); // above the unlock pad's label
       } else sp.visible = false;
     });
@@ -1216,7 +1219,7 @@ export class Renderer3D implements Renderer {
       // output count on the tray; red with "!" once it is full and the machine has stopped
       const chip = this.sprite(p, 1);
       if (cv.out > 0) {
-        chip.visible = this.labels.apply(chip, `shelf|${outRes}|${cv.out}|over:${blocked}`, () => this.shelfChipArt(outRes, cv.out, false, blocked), 13);
+        chip.visible = this.labels.apply(chip, `shelf|${outRes}|${cv.out}|over:${blocked}`, () => this.shelfChipArt(outRes, cv.out, false, blocked), textSprite(TEXT.main, 40, 64));
         chip.position.set(pick.x, pick.y + Math.ceil(Math.min(12, cv.out) / 2) * items.height(outRes) + 10, pick.z);
       } else chip.visible = false;
       const warn = this.sprite(p, 0);
@@ -1229,7 +1232,7 @@ export class Renderer3D implements Renderer {
       const cd = this.sprite(p, 2);
       if (left !== null && !fallen) {
         const txt = floaterText(this.skin, "pile_collapse_in", { n: left });
-        cd.visible = this.labels.apply(cd, `collapse|${txt}`, () => this.collapseArt(txt), 15);
+        cd.visible = this.labels.apply(cd, `collapse|${txt}`, () => this.collapseArt(txt), textSprite(TEXT.main, 38, 72));
         cd.position.set(pick.x, pick.y + Math.ceil(Math.min(12, cv.out) / 2) * items.height(outRes) + 26, pick.z);
       } else cd.visible = false;
     }
@@ -1316,7 +1319,7 @@ export class Renderer3D implements Renderer {
       for (let j = 0; j < Math.min(12, n); j++) items.add(res, x, 0.2 * ART_M + j * items.height(res), z, 0.3 * (j % 2));
       if (!p) return;
       const chip = this.sprite(p, i);
-      chip.visible = this.labels.apply(chip, `shelf|${res}|${n}|false`, () => this.shelfChipArt(res, n, false), 13);
+      chip.visible = this.labels.apply(chip, `shelf|${res}|${n}|false`, () => this.shelfChipArt(res, n, false), textSprite(TEXT.main, 40, 64));
       chip.position.set(x, 0.2 * ART_M + Math.min(12, n) * items.height(res) + 9, z);
     });
     if (p) for (let i = stock.length; i < p.sprites.length; i++) p.sprites[i]!.visible = false;
@@ -1604,7 +1607,7 @@ export class Renderer3D implements Renderer {
           const left = Math.max(0, need - sec.paid);
           this.candidatePt("barrier.line", mid.x, mid.z, ART_M * 1.6);
           const sp = this.sprite(holder, 0);
-          sp.visible = this.labels.apply(sp, `bl|${b.res}|${left}`, () => this.costArt(b.res, left), 11);
+          sp.visible = this.labels.apply(sp, `bl|${b.res}|${left}`, () => this.costArt(b.res, left), textSprite(TEXT.main, 40, 70));
           sp.position.set(mid.x, ART_M * (0.7 + Math.sin(this.t * 2 + i) * 0.04), mid.z);
         }
       });
@@ -1637,7 +1640,7 @@ export class Renderer3D implements Renderer {
     const holder = this.place(key, "barrier.repair", mid, 1, () => ({ root: new Group(), cls: "decal", parts: {} }));
     this.candidatePt("barrier.repair", mid.x, mid.z, ART_M * 1.6);
     const sp = this.sprite(holder, 0);
-    sp.visible = this.labels.apply(sp, `rp|${b.res}|${cost}`, () => this.costArt(b.res, cost), 11);
+    sp.visible = this.labels.apply(sp, `rp|${b.res}|${cost}`, () => this.costArt(b.res, cost), textSprite(TEXT.main, 40, 70));
     sp.position.set(mid.x, ART_M * (1.95 + Math.sin(this.t * 3 + i) * 0.05), mid.z);
   }
 
@@ -1931,7 +1934,7 @@ export class Renderer3D implements Renderer {
     if (g) {
       let sp = this.guideSprite;
       if (!sp) { sp = new Sprite(); sp.renderOrder = 15; this.dynamic.add(sp); this.guideSprite = sp; }
-      const hh = 20;
+      const hh = textSprite(TEXT.main, 34, 64);
       sp.visible = this.labels.apply(sp, `guide|${g!.text}`, () => this.guideArt(g!.text), hh);
       // the line rides the marker; with the target off screen it rides the ground arrow instead
       const scr = this.toScreen(v3(g.at.x, ART_M * 2.2, g.at.y));
@@ -1949,7 +1952,7 @@ export class Renderer3D implements Renderer {
     // one soft warning as the reactor runs low (re-armed once it is refuelled)
     if (this.fuelK < 0.2 && s.core.fuel > 0 && !this.lowFuelSaid) {
       this.lowFuelSaid = true;
-      this.fx?.floater(floaterText(this.skin, "reactor_low"), this.tokens.danger, c.clone().setY(ART_M * 2.6), 44, 13);
+      this.fx?.floater(floaterText(this.skin, "reactor_low"), this.tokens.danger, c.clone().setY(ART_M * 2.6), 44);
     } else if (this.fuelK > 0.4) this.lowFuelSaid = false;
   }
 
@@ -2060,8 +2063,8 @@ export class Renderer3D implements Renderer {
         g.beginPath(); g.moveTo(66, 90); g.lineTo(75, 112); g.lineTo(86, 90); g.closePath();
         g.fillStyle = ui.panel; g.fill();
         drawIcon(g, 48, 50, 22, resToken(t, res), t.ink);
-        g.font = `800 38px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
-        g.fillStyle = t.ink; g.fillText(`${want}`, 102, 52);
+        g.font = `800 52px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillStyle = t.ink; g.fillText(`${want}`, 104, 53);
         // patience arc
         g.beginPath(); g.arc(48, 50, 30, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k);
         g.lineWidth = 6; g.strokeStyle = k > 0.35 ? t.ok : t.danger; g.stroke();
@@ -2448,24 +2451,24 @@ export class Renderer3D implements Renderer {
       case "sold": {
         const pay = Number(e["pay"] ?? 0);
         this.cheerUntil.set(`c:${String(e["customer"])}`, this.t + 1.9);
-        fx.floater(ft("sold"), white, up(at, ART_M * 1.6), 40, 11);
-        fx.floater(`+${pay}`, gold, up(at, ART_M * 1.1), 48, 14);
+        fx.floater(ft("sold"), white, up(at, ART_M * 1.6), 40);
+        fx.floater(`+${pay}`, gold, up(at, ART_M * 1.1), 48);
         fx.burst(up(at, ART_M), [gold, mix(gold, t.structure, 0.5)], e["premium"] ? 14 : 7, 70, 200, 4);
         const pile = this.world?.sales ? this.wv(this.world.sales.pile) : at;
         fx.coins(up(at, ART_M), () => pile, Math.min(5, Math.max(1, pay)), "res.currency");
         break;
       }
       case "customer_left":
-        if (e["angry"]) fx.floater(ft("too_slow"), t.danger, up(at, ART_M * 1.5), 40, 11);
+        if (e["angry"]) fx.floater(ft("too_slow"), t.danger, up(at, ART_M * 1.5), 40);
         break;
       case "collected": {
         const n = Number(e["n"] ?? 1);
-        fx.floater(ft("collected", { n }), gold, up(this.playerBack(), 20), 46, 14);
+        fx.floater(ft("collected", { n }), gold, up(this.playerBack(), 20), 46);
         fx.coins(up(at, 6), () => { const h = this.hudAnchor(); return this.fromScreen(h.x, h.y); }, Math.min(12, Math.max(3, n)), "res.currency");
         break;
       }
       case "core_fuel_out":
-        fx.floater(ft("fuel_out"), t.danger, up(at, ART_M * 2.2), 44, 13);
+        fx.floater(ft("fuel_out"), t.danger, up(at, ART_M * 2.2), 44);
         fx.shake = Math.max(fx.shake, 4);
         break;
       case "core_fuel_restored":
@@ -2481,14 +2484,14 @@ export class Renderer3D implements Renderer {
         fx.shake = Math.max(fx.shake, 8);
         fx.dustRing(where, mix(t.structure, t.groundAlt, 0.3), 24, 120, 8);
         fx.burst(up(where, 10), [t.danger, t.structure, white], 22, 120, 220, 5, 0.6);
-        fx.floater(ft("pile_collapsed"), t.danger, up(where, ART_M * 1.8), 46, 14);
+        fx.floater(ft("pile_collapsed"), t.danger, up(where, ART_M * 1.8), 46);
         break;
       }
       case "level_end":
         if (e["won"]) {
           const p = this.playerBack();
           fx.confetti(up(p, 30), [t.accent, t.interactive, gold, t.ok, white], 140);
-          fx.floater(ft("win"), white, up(p, 40), 56, 18);
+          fx.floater(ft("win"), white, up(p, 40), 56, TEXT.big);
           this.cheerNear(p, 9999);
         }
         break;
@@ -2501,34 +2504,34 @@ export class Renderer3D implements Renderer {
         fx.burst(up(at, 20), [t.accent, gold, white], 18, 140, 260, 5);
         const label = this.pads.get(padId)?.label ?? nameOf(skin, String(e["build"] ?? e["role"] ?? ""));
         const key = e.t === "hired" ? "hired" : e.t === "unlocked" ? "unlocked" : "built";
-        fx.floater(ft(key, { name: label }), white, up(at, ART_M * 2.3), 42, 12);
+        fx.floater(ft(key, { name: label }), white, up(at, ART_M * 2.3), 42);
         this.cheerNear(at, 140);
         break;
       }
       case "captured":
-        fx.floater(ft("captured"), t.interactive, up(this.playerBack(), 22), 44, 13);
+        fx.floater(ft("captured"), t.interactive, up(this.playerBack(), 22), 44);
         break;
       case "released":
-        fx.floater(ft("released"), t.accent, up(at, ART_M * 1.6), 42, 12);
+        fx.floater(ft("released"), t.accent, up(at, ART_M * 1.6), 42);
         fx.burst(up(at, 12), [t.glass, white], 14, 80, 160, 4);
         this.cheerUntil.set(`r:${String(e["resident"])}`, this.t + 1.4);
         break;
       case "recruit_arrived":
-        fx.floater(ft("recruit_arrived"), t.ok, up(at, ART_M * 1.5), 40, 11);
+        fx.floater(ft("recruit_arrived"), t.ok, up(at, ART_M * 1.5), 40);
         break;
       case "moved_in":
-        fx.floater(ft("moved_in"), t.ok, up(at, ART_M * 1.5), 40, 11);
+        fx.floater(ft("moved_in"), t.ok, up(at, ART_M * 1.5), 40);
         break;
       case "injured":
-        fx.floater(ft("injured"), t.danger, up(at, ART_M * 1.5), 40, 11);
+        fx.floater(ft("injured"), t.danger, up(at, ART_M * 1.5), 40);
         break;
       case "animal_charge":
         // Warning cue: a red ring on the ground and a shout over the animal as it picks a target.
-        fx.floater(ft("animal_charge"), t.danger, up(at, ART_M * 2.1), 36, 12);
+        fx.floater(ft("animal_charge"), t.danger, up(at, ART_M * 2.1), 36);
         fx.dustRing(at, t.danger, 14, 90, 8);
         break;
       case "healed":
-        fx.floater(ft("healed"), t.ok, up(at, ART_M * 1.5), 40, 11);
+        fx.floater(ft("healed"), t.ok, up(at, ART_M * 1.5), 40);
         break;
       case "hit": {
         const target = String(e["target"]);
@@ -2537,7 +2540,7 @@ export class Renderer3D implements Renderer {
         else if (target === "base") { fx.shake = Math.max(fx.shake, 5); fx.flash("player", 0.12); }
         else if (target === "player" && e["by"] === "animal") {
           fx.shake = Math.max(fx.shake, 4); fx.flash("player", 0.2);
-          fx.floater(ft("animal_hit"), t.danger, up(at, ART_M * 1.8), 38, 12);
+          fx.floater(ft("animal_hit"), t.danger, up(at, ART_M * 1.8), 38);
         }
         if (e["by"] === "structure") this.flashNearestTurret(at);
         if (target === "hostile" || target === "prey") this.shooterAt(e["by"], at);
@@ -2573,12 +2576,12 @@ export class Renderer3D implements Renderer {
       case "barrier_repaired":
         fx.pop(`bar:${String(e["line"])}:${String(e["section"])}`);
         fx.burst(up(at, 10), [t.ok, t.structure], 12, 90, 200, 4, 0.4);
-        fx.floater(ft("barrier_repaired"), t.ok, up(at, ART_M * 1.4), 40, 12);
+        fx.floater(ft("barrier_repaired"), t.ok, up(at, ART_M * 1.4), 40);
         break;
       case "barrier_broken":
         fx.shake = Math.max(fx.shake, 7);
         fx.burst(up(at, 12), [t.structure, t.structureDark], 18, 140, 260, 6);
-        fx.floater(ft("barrier_broken"), t.danger, up(at, ART_M * 1.4), 42, 12);
+        fx.floater(ft("barrier_broken"), t.danger, up(at, ART_M * 1.4), 42);
         break;
       case "hazard_warning":
       case "hazard_start":
@@ -2588,13 +2591,13 @@ export class Renderer3D implements Renderer {
         const c = this.world ? this.wv(this.world.core.pos) : at;
         fx.dustRing(c, t.accent, 30, 160, 8);
         fx.burst(up(c, ART_M * 1.2), [t.accent, mix(t.accent, t.structure, 0.6)], 26, 160, 260, 5);
-        fx.floater(ft("core_upgraded", { n: Number(e["level"] ?? this.world?.core.level ?? 2) }), white, up(c, ART_M * 2.6), 46, 14);
+        fx.floater(ft("core_upgraded", { n: Number(e["level"] ?? this.world?.core.level ?? 2) }), white, up(c, ART_M * 2.6), 46);
         break;
       }
       case "zone_cleared":
         fx.pop(`zone:${String(e["zone"])}`);
         fx.dustRing(at, mix(t.groundAlt, t.structure, 0.3), 28, 140, 9);
-        fx.floater(ft("zone_cleared"), white, up(at, ART_M * 1.2), 44, 13);
+        fx.floater(ft("zone_cleared"), white, up(at, ART_M * 1.2), 44);
         break;
       case "converted": {
         // the input unit drops from the hopper into the machine, the machine thumps, the product
@@ -2616,20 +2619,20 @@ export class Renderer3D implements Renderer {
         // a colonist is lost to the cold: frost burst and a shudder
         fx.burst(up(at, ART_M * 0.9), [t.frost, white, t.glass], 26, 120, 220, 4, 0.8);
         fx.dustRing(at, t.frost, 20, 90, 6);
-        fx.floater(ft("froze"), t.frost, up(at, ART_M * 1.9), 44, 13);
+        fx.floater(ft("froze"), t.frost, up(at, ART_M * 1.9), 44);
         fx.shake = Math.max(fx.shake, 4);
         this.banner(ft("froze"), "hazard", 2.2);
         break;
       }
       case "pod_lost":
         fx.burst(up(at, ART_M * 0.8), [t.frost, white], 18, 110, 200, 4, 0.7);
-        fx.floater(ft("pod_lost"), t.danger, up(at, ART_M * 1.8), 44, 13);
+        fx.floater(ft("pod_lost"), t.danger, up(at, ART_M * 1.8), 44);
         break;
       case "tow_dropped": {
         // the line snaps: sparks at the pod and a short message at the hero
         fx.burst(up(at, ART_M * 0.6), [t.accent, white, mix(t.accent, t.ink, 0.4)], 14, 150, 160, 3, 0.4);
         fx.dustRing(at, mix(t.groundAlt, t.structure, 0.3), 10, 70, 5);
-        fx.floater(ft(e["reason"] === "slack" ? "tow_slack" : "tow_dropped"), t.danger, up(this.playerBack(), 26), 44, 13);
+        fx.floater(ft(e["reason"] === "slack" ? "tow_slack" : "tow_dropped"), t.danger, up(this.playerBack(), 26), 44);
         fx.shake = Math.max(fx.shake, 3);
         break;
       }
@@ -2638,7 +2641,7 @@ export class Renderer3D implements Renderer {
         const keys = Object.keys(bundle);
         fx.burst(up(at, ART_M), [gold, t.accent, white, ...keys.map((k) => resToken(t, k))], 24, 140, 260, 5);
         fx.dustRing(at, t.accent, 18, 110, 7);
-        fx.floater(ft("crate_delivered"), white, up(at, ART_M * 2), 44, 13);
+        fx.floater(ft("crate_delivered"), white, up(at, ART_M * 2), 44);
         for (const k of keys.slice(0, 3)) fx.arc(k, up(at, ART_M), () => this.playerBack(), 0.5, true);
         break;
       }
@@ -2648,7 +2651,7 @@ export class Renderer3D implements Renderer {
         if (cv) fx.pop(`cv:${cv.id}`);
         fx.dustRing(p, t.accent, 22, 120, 7);
         fx.burst(up(p, ART_M * 1.1), [t.accent, white, gold], 20, 120, 240, 4, 0.7);
-        fx.floater(ft("converter_upgraded"), white, up(p, ART_M * 2.2), 44, 13);
+        fx.floater(ft("converter_upgraded"), white, up(p, ART_M * 2.2), 44);
         break;
       }
       case "boss_spawned":
@@ -2720,7 +2723,7 @@ export class Renderer3D implements Renderer {
         const name = nameOf(this.skin, id), purpose = purposeOf(this.skin, id);
         let sp = this.discSprites.get(id);
         if (!sp) { sp = new Sprite(); sp.renderOrder = 13; this.dynamic.add(sp); this.discSprites.set(id, sp); }
-        const hh = purpose ? 33 : 18;
+        const hh = textSprite(TEXT.main, 40, purpose ? 110 : 60);
         sp.visible = this.labels.apply(sp, `disc|${name}|${purpose}`, () => this.discoveryArt(name, purpose), hh);
         sp.position.set(c.x, c.h + hh / 2 + Math.sin(this.t * 2 + c.x) * 1.2, c.z);
         this.keepOnScreen(sp);
@@ -2743,7 +2746,7 @@ export class Renderer3D implements Renderer {
 
   private discoveryArt(name: string, purpose: string): LabelArt {
     const t = this.tokens, ui = this.tokens.paper;
-    const np = 40, pp = 28;
+    const np = 40, pp = 32;
     const wN = this.labels.textWidth(name, np) + 40;
     const wP = purpose ? this.labels.textWidth(purpose, pp) + 44 : 0;
     const w = Math.max(wN, wP) + 8;
@@ -2858,7 +2861,7 @@ export class Renderer3D implements Renderer {
   private maxTag(x: number, y: number, z: number): void {
     const sp = this.nextTag();
     const txt = uiText(this.skin, "max");
-    sp.visible = this.labels.apply(sp, `max|${txt}`, () => this.maxArt(txt), 8);
+    sp.visible = this.labels.apply(sp, `max|${txt}`, () => this.maxArt(txt), textSprite(TEXT.main, 34, 52));
     sp.position.set(x, y + 4.5, z);
   }
 

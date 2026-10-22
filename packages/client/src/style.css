@@ -42,7 +42,7 @@ body {
 .app.nohud .hud { display: none; }
 .hrow { display: flex; align-items: center; gap: 8px; }
 .goal { flex: 1; min-width: 0; touch-action: manipulation; }
-.goal .lbl, .card .lbl { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.goal .lbl, .card .lbl { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .goal .txt { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: 0.01em; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chips { display: flex; gap: 5px; flex-wrap: wrap; }
 .chip {
@@ -270,7 +270,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 /* ---------- objectives strip, meter ticks, Colony HP ---------- */
 .objectives { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
 .objectives[hidden] { display: none; }
-.obj { font-size: 12.5px; font-weight: 700; font-family: var(--display); letter-spacing: 0.02em; border-radius: 2px; padding: 1px 7px; box-shadow: var(--plate); background: var(--panel-alt); color: var(--ink); white-space: nowrap; }
+.obj { font-size: 14px; font-weight: 700; font-family: var(--display); letter-spacing: 0.02em; border-radius: 2px; padding: 1px 7px; box-shadow: var(--plate); background: var(--panel-alt); color: var(--ink); white-space: nowrap; }
 .obj.done { background: var(--ok, #62e39a); color: #0f2418; }
 .obj.done::before { content: "\2713  "; }
 .obj.failed { opacity: 0.55; text-decoration: line-through; }
@@ -298,8 +298,8 @@ button:disabled { opacity: 0.5; cursor: default; }
   max-width: calc(100% - 32px); background: rgba(16, 18, 20, 0.9); color: #ebe8e1; border-radius: var(--r); padding: 6px 12px; border-left: 3px solid var(--interactive);
   display: grid; gap: 1px; text-align: center; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
-.ftoast b { font: 800 14px/1.2 var(--display); color: var(--interactive); }
-.ftoast span { font-size: 12.5px; font-weight: 700; line-height: 1.25; }
+.ftoast b { font: 800 15px/1.2 var(--display); color: var(--interactive); }
+.ftoast span { font-size: 14px; font-weight: 700; line-height: 1.25; }
 .ftoast.in, .inspect.in { animation: card-in 0.3s cubic-bezier(.2, 1.5, .4, 1); }
 .ftoast[hidden], .inspect[hidden] { display: none; }
 .inspect {
@@ -307,7 +307,7 @@ button:disabled { opacity: 0.5; cursor: default; }
   padding: 8px 12px; display: grid; gap: 2px; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3); border: 2px solid var(--interactive);
 }
 .inspect b { font: 800 16px/1.15 var(--display); }
-.inspect span { font-size: 13px; color: var(--muted); font-weight: 700; line-height: 1.3; }
+.inspect span { font-size: 14px; color: var(--muted); font-weight: 700; line-height: 1.3; }
 
 /* ---------- settings tabs and field guide ---------- */
 .settings-card { display: flex; flex-direction: column; max-height: calc(100% - 8px); }
@@ -323,7 +323,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .gicon i { font: 800 22px/1 var(--display); font-style: normal; color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); }
 .gtext { display: grid; gap: 1px; min-width: 0; }
 .gtext b { font: 800 15px/1.15 var(--display); }
-.gtext small { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+.gtext small { font-size: 14px; color: var(--muted); line-height: 1.3; }
 .guide-empty { text-align: center; padding: 18px 6px; }
 
 /* ---------- unsupported device ---------- */

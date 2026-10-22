@@ -22,13 +22,15 @@ when they ship. Batches run in the order below.
       pack index and all level files on install; add `clientsClaim`. About 10 MB is fine.
       Done 2026-10-22: models + fonts precached (11 MB), clientsClaim; levels stay on the
       runtime prefetch (precaching them would hide new batches). Doug to test in airplane mode.
-- [ ] **Buildings above floor tiles (7).** Lift buildings by the slab thickness.
-- [ ] **Mites smaller (10).** Visual only; hit range unchanged.
+- [x] **Buildings above floor tiles (7).** Lift buildings by the slab thickness.
+- [x] **Mites smaller (10).** Visual only; hit range unchanged. Scale 0.62 -> 0.45.
 - [ ] **Helper arrow (9).** Show the guide arrow on any level after 20 s with no progress
       toward level goals (not raw inactivity); add an off setting.
-- [ ] **Text size.** "Max" text is unreadable and smaller than the rest; all dynamic on-screen
+- [x] **Text size.** "Max" text is unreadable and smaller than the rest; all dynamic on-screen
       text is slightly too small. One consistent, larger size scale for every dynamic text
       element, fixed on screen. Second time asked (first on 2026-10-18): check every element live.
+      Done 2026-10-22: render-3d units.ts TEXT {main 10, sub 8, big 13} drives every world label
+      and floater (MAX was 3.2, now 10); in-play HUD text 14 px. Tune all of it from TEXT.
 
 ## Batch 2: level checking and generation (code only; no pack ships except a playtest set)
 

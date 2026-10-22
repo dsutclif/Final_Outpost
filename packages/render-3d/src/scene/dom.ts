@@ -26,7 +26,7 @@ const STYLE = `
 .fo-ptr.big .bub{left:-20px;top:-20px;width:40px;height:40px;box-shadow:0 0 0 3px #fff,0 3px 8px rgba(0,0,0,.35)}
 .fo-ptr.big .bub>span{width:30px;height:30px}
 .fo-ptr.big svg{width:24px;height:24px}
-.fo-ptr .cnt{position:absolute;left:10px;top:-24px;min-width:18px;padding:1px 5px;border-radius:9px;background:#fff;color:currentColor;font:800 12px/16px ${FONT};text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.3);display:none}
+.fo-ptr .cnt{position:absolute;left:10px;top:-24px;min-width:18px;padding:1px 5px;border-radius:9px;background:#fff;color:currentColor;font:800 14px/18px ${FONT};text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.3);display:none}
 .fo-coach-ring{position:absolute;left:0;top:0;width:44px;height:20px;margin:-10px 0 0 -22px;border-radius:50%;border:3px solid currentColor;pointer-events:none;z-index:1;display:none}
 .fo-coach-arrow{position:absolute;left:0;top:0;width:30px;height:26px;margin:-26px 0 0 -15px;pointer-events:none;z-index:2;display:none}
 .fo-coach-bubble{position:absolute;left:0;top:0;background:#fff;border:2.5px solid currentColor;border-radius:4px;padding:4px 11px;font:700 16px/1.25 ${FONT};white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:3;display:none;box-shadow:0 3px 0 rgba(0,0,0,.22)}

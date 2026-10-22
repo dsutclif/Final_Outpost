@@ -33,6 +33,8 @@ import { Batch } from "./instancing.js";
 const EDGE = 900;
 /** Poured slab size in world units (about 1.4 m); aprons and paths snap to this grid. */
 const SLAB = 40;
+/** Highest slab top (world units): slabs rise 0.9 to 1.4 off the sand, and buildings stand on this. */
+export const SLAB_TOP = 1.4;
 
 /** Something built (or to be built) on the map: gets a concrete apron of radius r. */
 export interface Site { x: number; z: number; r: number; core?: boolean }
@@ -208,7 +210,7 @@ export class Environment {
       if (!on[j * nx + i]) continue;
       const h = hash01(seed * 31 + i * 7.3 + j * 13.1);
       const c = h < 0.15 ? worn : h > 0.82 ? alt : base;
-      const lift = 0.9 + hash01(i * 3.7 + j * 5.9) * 0.5;
+      const lift = 0.9 + hash01(i * 3.7 + j * 5.9) * (SLAB_TOP - 0.9);
       b.box(SLAB - gap, lift, SLAB - gap, c, { at: [(i + 0.5) * SLAB, lift / 2, (j + 0.5) * SLAB] });
     }
     // pipes on low stands, merged with the slabs
