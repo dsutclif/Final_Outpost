@@ -221,7 +221,9 @@ export function loadMeshy(onLoad?: (e: MeshyEntry) => void, ids?: ReadonlySet<st
   const root = base ?? document.baseURI;
   loader ??= import("three/examples/jsm/loaders/GLTFLoader.js").then((m) => new m.GLTFLoader());
   const jobs = ENTRIES.filter((e) => (!ids || ids.has(e.id)) && BUILT[e.file] && (unwired || !e.unwired)).map((e) => {
-    if (cache.has(e.file)) return Promise.resolve();
+    // already loaded (an earlier level or a replay): the new scene still needs its walls, decor,
+    // items and props swapped in, so report it after init returns, as a fresh download would
+    if (cache.has(e.file)) return Promise.resolve().then(() => onLoad?.(e));
     let p = pending.get(e.file);
     if (!p) {
       const b = BUILT[e.file]!;

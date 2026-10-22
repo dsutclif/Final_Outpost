@@ -6,8 +6,8 @@ when they ship. Batches run in the order below.
 
 ## Batch 0: layout sandbox (dev page, no rules change)
 
-- [x] Dev page on the Vercel URL with sliders for building density (block, street, footprint
-      gap, core pull, screen radius), building size and camera zoom. It renders a sample base
+- [x] Dev page on the Vercel URL with sliders for building density (lot size, street width,
+      building gap, pad margin, pull to core), building size and camera zoom. It renders a sample base
       from the real generator layout code and the real models, with the vibe reference image
       in a corner for comparison. Live at /sandbox.html (2026-10-22); every pad is forced built,
       unlock gates skipped; "Copy link" carries the values in the URL.
@@ -15,7 +15,7 @@ when they ship. Batches run in the order below.
 
 ## Batch 1: renderer/client fixes (no engine bump, no pack regeneration)
 
-- [ ] **Model swap on replay (backlog 12).** `loadMeshy` returns early for cached files
+- [x] **Model swap on replay (backlog 12).** `loadMeshy` returns early for cached files
       without calling `onLoad`, so a second `init()` keeps code-built walls, decor, items and
       held props (`render-3d/src/assets/meshy.ts`, `renderer.ts` 343-372).
 - [ ] **Full offline (11).** Precache every built GLB (`meshy.built.json`, with `?v=`), the
