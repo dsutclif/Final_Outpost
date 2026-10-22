@@ -105,3 +105,6 @@ Other:
 ## Open questions
 
 - Can the gate be upgraded for more HP, even though it cannot be repaired? (asked 2026-10-22)
+  Doug: not yet. Groundwork exists: gate HP is its own param (barrier.gateHpMax) and upgrade
+  effects can target gates only ("gate": true, see struct.barrier.reinforced in upgrades.json), so a
+  gate upgrade is a data entry plus generator pad placement and a bot purchase rule, no engine work.
