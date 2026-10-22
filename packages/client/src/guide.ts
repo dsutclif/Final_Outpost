@@ -1,6 +1,6 @@
 import type { Manifest } from "@fo/content";
 import type { Compiled, State } from "@fo/sim";
-import { FP, seedRng } from "@fo/sim";
+import { FP, TPS, seedRng } from "@fo/sim";
 import { guideText, nameOf, workerName, type Skin, type WorkerVars } from "@fo/skins";
 
 // Guide arrows: every half second ask the bot controller (packages/bots, loaded on demand) what
@@ -8,6 +8,32 @@ import { guideText, nameOf, workerName, type Skin, type WorkerVars } from "@fo/s
 // without advancing the controller), and hand the renderer that one target and a one-line
 // instruction. A suggestion is held for a short while so two near-equal steps do not make the
 // arrow flicker; reactor and raid steps cut in at once.
+
+/** Seconds without progress toward the level goals before the arrow shows on any level (Doug, backlog R4 item 9). */
+export const STUCK_SECONDS = 20;
+
+/**
+ * Progress is a new best on the main objective, another objective done, or another pad finished;
+ * the player counts as stuck after STUCK_SECONDS with none, however much they move around.
+ */
+export class StuckTimer {
+  private best = -1;
+  private done = -1;
+  private pads = -1;
+  private since = 0;
+
+  stuck(st: State): boolean {
+    const main = st.objectives.find((o) => o.id === "main") ?? st.objectives[0];
+    const p = main?.progress ?? 0, d = st.objectives.filter((o) => o.done).length, n = st.pads.filter((x) => x.done).length;
+    if (p > this.best || d > this.done || n > this.pads) {
+      this.best = Math.max(this.best, p);
+      this.done = d;
+      this.pads = n;
+      this.since = st.tick;
+    }
+    return st.tick - this.since >= STUCK_SECONDS * TPS;
+  }
+}
 
 export interface GuideTarget { key: string; at: { x: number; y: number }; text: string; kind: string }
 

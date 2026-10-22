@@ -32,6 +32,8 @@ export interface Settings {
   debug: boolean;
   /** Show guide arrows on every level (they always show on the first five). */
   guide: boolean;
+  /** Show the guide arrow on any level after a stretch with no progress toward its goals. */
+  stuckArrow: boolean;
   /** Scale on the level time target, in percent (100-200 in steps of 20). */
   timeTargetPct: number;
   /** Frames per second the "auto" quality probe measured in play, or null before it ran. */
@@ -52,7 +54,7 @@ export interface TelemetryAttempt {
 export interface TelemetryRow extends TelemetryAttempt { seq?: number; sent: boolean }
 
 export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {} };
-export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, timeTargetPct: 100, probeFps: null };
+export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, stuckArrow: true, timeTargetPct: 100, probeFps: null };
 
 interface FoDB extends DBSchema {
   kv: { key: string; value: unknown };

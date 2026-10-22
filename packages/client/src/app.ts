@@ -5,7 +5,7 @@ import { getSkin, levelTitle, nameOf, purposeOf, uiText, type Skin } from "@fo/s
 import { Coach, toWorld } from "./coach.js";
 import { isNew, nearbyPassive, touchedBy } from "./discovery.js";
 import { Haptics, Synth } from "./feedback.js";
-import { Guide, type GuideTarget } from "./guide.js";
+import { Guide, StuckTimer, type GuideTarget } from "./guide.js";
 import { iconSvg, introObjectives, liveObjectives } from "./objectives.js";
 import { HudView, hudModel } from "./hud.js";
 import { InputController } from "./input.js";
@@ -47,6 +47,8 @@ interface Session {
   guide: Guide | null;
   guideOn: boolean;
   guideTarget: GuideTarget | null;
+  /** No-progress timer: shows the arrow on any level when the player seems lost. */
+  stuck: StuckTimer;
   /**
    * Level-start overview (playtest): the camera shows the whole base and the sim waits until the
    * player touches the screen, then it zooms in on the hero. 1 = fully out, easing to 0; null = off.
@@ -598,11 +600,12 @@ export class App {
 
   private settingsHtml(): string {
     const s = this.skin, st = this.settings;
-    const toggle = (k: "haptics" | "sound" | "guide", label: string): string =>
+    const toggle = (k: "haptics" | "sound" | "guide" | "stuckArrow", label: string): string =>
       `<label class="set"><span>${esc(label)}</span><input type="checkbox" data-k="${k}" ${st[k] ? "checked" : ""}></label>`;
     return `${toggle("haptics", uiText(s, "settingsHaptics"))}
       ${toggle("sound", uiText(s, "settingsSound"))}
       ${toggle("guide", uiText(s, "settingsGuide"))}
+      ${toggle("stuckArrow", uiText(s, "settingsStuckArrow"))}
       <label class="set"><span>${esc(uiText(s, "settingsTimeTarget"))}</span>
         <select data-k="timeTargetPct">${TIME_TARGET_STEPS.map((p) => `<option value="${p}" ${st.timeTargetPct === p ? "selected" : ""}>${p}%</option>`).join("")}</select></label>
       <label class="set"><span>${esc(uiText(s, "settingsQuality"))}</span>
@@ -687,7 +690,7 @@ export class App {
     this.session = {
       meta, manifest: sim.compiled.manifest, sim, renderer, cam: createCamera(), stepper: new FixedStepper(), coach, ended: false,
       earned: 0, lastCurrency: sim.state.currency, wavesCleared: 0, lifeMin: sim.state.meters.lifeline, played: 0,
-      guide: null, guideOn: false, guideTarget: null, overview: null,
+      guide: null, guideOn: false, guideTarget: null, stuck: new StuckTimer(), overview: null,
     };
     this.attachRenderer(this.session, renderer);
     if (!this.session) return;
@@ -968,13 +971,14 @@ export class App {
   /** Load the guide (and with it the bot controller chunk) only where arrows will show. */
   private startGuide(s: Session): void {
     s.guideOn = s.meta.index < GUIDE_LEVELS || this.settings.guide;
-    if (!s.guideOn || s.guide) return;
+    if ((!s.guideOn && !this.settings.stuckArrow) || s.guide) return;
     void Guide.create(s.manifest, s.sim.compiled).then((g) => { if (this.session === s) s.guide = g; });
   }
 
   private updateCoach(s: Session): void {
     const mark = s.coach.update(s.sim.state, s.sim.compiled);
-    s.guideTarget = s.guideOn && s.guide && !s.ended ? s.guide.update(s.sim.state, this.skin) : null;
+    const stuck = this.settings.stuckArrow && s.stuck.stuck(s.sim.state);
+    s.guideTarget = (s.guideOn || stuck) && s.guide && !s.ended ? s.guide.update(s.sim.state, this.skin) : null;
     s.renderer.setGuide(s.guideTarget);
     if (!mark) { s.renderer.setCoach(null); return; }
     const at = toWorld(mark.at), g = s.guideTarget;

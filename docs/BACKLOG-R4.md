@@ -24,8 +24,10 @@ when they ship. Batches run in the order below.
       runtime prefetch (precaching them would hide new batches). Doug to test in airplane mode.
 - [x] **Buildings above floor tiles (7).** Lift buildings by the slab thickness.
 - [x] **Mites smaller (10).** Visual only; hit range unchanged. Scale 0.62 -> 0.45.
-- [ ] **Helper arrow (9).** Show the guide arrow on any level after 20 s with no progress
+- [x] **Helper arrow (9).** Show the guide arrow on any level after 20 s with no progress
       toward level goals (not raw inactivity); add an off setting.
+      Done 2026-10-22: client guide.ts StuckTimer; progress = new best on the main goal, an
+      objective done or a pad finished. Setting "Arrow when I seem lost", on by default.
 - [x] **Text size.** "Max" text is unreadable and smaller than the rest; all dynamic on-screen
       text is slightly too small. One consistent, larger size scale for every dynamic text
       element, fixed on screen. Second time asked (first on 2026-10-18): check every element live.

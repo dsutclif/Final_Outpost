@@ -513,6 +513,7 @@ export const marsGreenhouse: Skin = {
       goalDone: "Goal complete",
       goalDoneLine: "Finish the open stars",
       settingsGuide: "Show guide arrows",
+      settingsStuckArrow: "Arrow when I seem lost",
       settingsTimeTarget: "Time target",
       guideNow: "Next: {text}",
       freezeWarn: "Reactor is out!",
