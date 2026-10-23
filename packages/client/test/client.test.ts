@@ -8,7 +8,7 @@ import { hudModel } from "../src/hud.js";
 import { JOY_DEAD, JOY_SAT, joystickVector, keysVector, knobOffset } from "../src/input.js";
 import { ChainLevelSource, PackLevelSource, StaticLevelSource } from "../src/levels.js";
 import { FixedStepper, TICK_MS } from "../src/loop.js";
-import { MemoryStore, mergeSettings } from "../src/save.js";
+import { MemoryStore, PROGRESS_EPOCH, mergeSettings } from "../src/save.js";
 import { goalText, levelText } from "../src/text.js";
 
 describe("fixed-step accumulator", () => {
@@ -151,7 +151,7 @@ describe("level text, HUD model and level sources", () => {
 describe("saves and feedback", () => {
   it("migrates from nothing and keeps new setting defaults", async () => {
     const s = new MemoryStore();
-    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {} });
+    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {}, epoch: PROGRESS_EPOCH });
     expect((await s.getSettings()).haptics).toBe(true);
     expect(mergeSettings({ sound: false }).sound).toBe(false);
     expect("renderer" in mergeSettings({ sound: false, renderer: "2d", rendererChosen: true })).toBe(false);

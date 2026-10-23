@@ -74,3 +74,19 @@ describe("native save mirror", async () => {
     expect(await b.restore()).toBe(false);
   });
 });
+
+describe("progress epoch (alpha rule: a regenerated pack restarts at L1)", () => {
+  it("clears level progress from an older epoch but keeps coach marks and discoveries", async () => {
+    const { mergeProgress, PROGRESS_EPOCH } = await import("../src/save.js");
+    const old = { cleared: { "s1-L001": true }, best: { "s1-L001": 900 }, stars: { "s1-L001": 3 }, current: "s1-L002", coach: { move: 3 }, discovered: { "node.food_source": true } };
+    const m = mergeProgress(old);
+    expect(m.epoch).toBe(PROGRESS_EPOCH);
+    expect(m.cleared).toEqual({});
+    expect(m.stars).toEqual({});
+    expect(m.current).toBeNull();
+    expect(m.coach).toEqual({ move: 3 });
+    expect(m.discovered).toEqual({ "node.food_source": true });
+    const same = mergeProgress({ ...old, epoch: PROGRESS_EPOCH });
+    expect(same.cleared).toEqual({ "s1-L001": true });
+  });
+});

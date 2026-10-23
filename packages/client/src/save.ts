@@ -22,7 +22,16 @@ export interface Progress {
   starSet: Record<string, string[]>;
   /** Canonical ids of object types the player has interacted with (discovery labels, field guide). */
   discovered: Record<string, true>;
+  /** Which pack generation the level progress belongs to (PROGRESS_EPOCH). */
+  epoch?: number;
 }
+
+/**
+ * Bumped when a regenerated pack reuses level ids for different levels (alpha rule: progress resets to
+ * L1). A save from an older epoch keeps its coach marks and discoveries; its level progress is cleared.
+ * 2: Batch 3 (engine 0.13.0), the 50-level pack.
+ */
+export const PROGRESS_EPOCH = 2;
 
 export interface Settings {
   haptics: boolean;
@@ -53,7 +62,7 @@ export interface TelemetryAttempt {
 
 export interface TelemetryRow extends TelemetryAttempt { seq?: number; sent: boolean }
 
-export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {} };
+export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {}, epoch: PROGRESS_EPOCH };
 export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, stuckArrow: true, timeTargetPct: 100, probeFps: null };
 
 interface FoDB extends DBSchema {
@@ -76,8 +85,11 @@ export interface SaveStore {
 }
 
 export function mergeProgress(raw: unknown): Progress {
-  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Progress>;
+  const r0 = (raw && typeof raw === "object" ? raw : {}) as Partial<Progress>;
+  // an older pack generation: level progress starts over, what the player has learned stays
+  const r: Partial<Progress> = raw && r0.epoch !== PROGRESS_EPOCH ? { ...(r0.coach ? { coach: r0.coach } : {}), ...(r0.discovered ? { discovered: r0.discovered } : {}) } : r0;
   return {
+    epoch: PROGRESS_EPOCH,
     cleared: { ...(r.cleared ?? {}) },
     best: { ...(r.best ?? {}) },
     quits: { ...(r.quits ?? {}) },

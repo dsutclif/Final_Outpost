@@ -80,7 +80,10 @@ Defence (option B with Doug's changes):
 - 2026-10-23: all six defence items built on branch `batch3-defence` (engine 0.13.0, not merged,
   packs not regenerated); rules in DECISIONS 9r. Agreed: guards on
   every defend level, unbuilt wall sections are openings attackers use, levels with waves run to the
-  last wave. Gate HP upgrades left out (groundwork below).
+  last wave. Gate HP upgrades left out (groundwork below). Reworked after Doug's playtests toward
+  the Kingshot playable ad (long roads lined with a few sockets, rising prices, hordes, marching
+  guards, Lv2 guard post soldiers, scavenged scrap heaps, no pad spillover): DECISIONS 9r. Doug
+  2026-10-23: "looks good", integrate into the full game.
 
 Other:
 - [ ] Pull resource fields (ore, scrap, greens) in toward the core so the whole base is compact like
@@ -100,7 +103,7 @@ Other:
 ## Later (not this round)
 
 - Ammo logistics for turrets (option C).
-- Guard post upgrade that trains soldiers instead of guards.
+- Guard post upgrade that trains soldiers instead of guards (done in Batch 3: Lv2 guard post trains soldiers on its own).
 - Economy links: guards need settlers (housing), tower level capped by reactor core level.
 - Between-level equipment: scythe (picking speed), backpack (carry), and so on.
 - Zoom gesture: dropped; the sandbox zoom answer replaces it.

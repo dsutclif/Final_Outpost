@@ -199,6 +199,25 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     - Bots: a defence spend policy (goal-path purchases first, then the first two guards, towers,
       Lv2 and more guards, Lv3; the socket on the next wave's side first, then the cheapest).
       Rater/bot traces: `playerKillShare` (stats `killsBy`, from `died.by`) and `ladderLeft`.
+    - Playtests of the sample (2026-10-23), after the Kingshot playable ad (Doug's gold standard),
+      replace the socket layout and sizing above:
+      - Defend maps are padded by `defendRoad.pad` (360) on every side; each wave walks a dirt road from
+        the map edge to its gate, so the player runs out to meet it. Only two socket pairs per road,
+        outside the wall (the nearest open from the start, the second with the next wave); none inside.
+      - Every defence purchase raises the next one's price (`pads.defenceGrowth`, generated 1.08);
+        generated prices guard 5, tower 8, Lv2 16, Lv3 32; waves sized against the first guards and the
+        open towers at those rising prices. Attackers about 4x the first build (swarm knob [30, 72]).
+      - Guards march out through the gate to the nearest attacker and back (`role.sortie`). A Lv2 guard
+        post (`struct.barracks.t2`, 40 scrap, looks the same) trains a soldier every 5 s (up to 16 alive,
+        `struct.barracks.troops`): hp 4 and 1 damage a second, like a raider; attackers within
+        `defense.troopContact` stop to fight them, and they can die.
+      - Loot stays where an attacker fell (no relocation, no wave-clear sweep); scrap cap 400. Scrap
+        heaps (`node.salvage_pile`, 8 scrap, never regrowing) lie out beyond the wall away from the roads
+        on 80% of defend levels, to scavenge for the first purchases; such levels show no scrap as mere
+        decoration, and the heaps take every scrap model in turn.
+      - A defend level's reactor hauler is hired with scrap; scrap-paid hires are never cut by the search.
+      - After any purchase the player steps off the pad before a pad takes payment again
+        (`player.padLeave`), so scrap never spills from one upgrade into the next.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.
 11. **Player walks through buildings (engine 0.13.0, R4 batch 3).** Param `player.walkThrough` (default 1).
