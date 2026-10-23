@@ -66,16 +66,16 @@ when they ship. Batches run in the order below.
 ## Batch 3: one engine bump (0.13.0), then the single regeneration
 
 Defence (option B with Doug's changes):
-- [ ] Player kicks off each defend level by shooting; kills earn the first defence purchase
+- [x] Player kicks off each defend level by shooting; kills earn the first defence purchase
       quickly. Player keeps shooting alongside guards and towers afterwards.
-- [ ] Guard post pre-built on defend levels; first purchase is hiring guards.
-- [ ] Walls are built by hand and cannot be broken. The gate can be broken and cannot be
+- [x] Guard post pre-built on defend levels; first purchase is hiring guards.
+- [x] Walls are built by hand and cannot be broken. The gate can be broken and cannot be
       repaired. Attackers past the gate go straight for the core.
-- [ ] Narrower attacker paths funnel to the gate; turret sockets sit at the gate, inside or
+- [x] Narrower attacker paths funnel to the gate; turret sockets sit at the gate, inside or
       outside the wall.
-- [ ] Keep building and upgrading till the end: more towers on sockets, tower levels 2 and 3
+- [x] Keep building and upgrading till the end: more towers on sockets, tower levels 2 and 3
       (level 3 is new), rising costs.
-- [ ] Stars: "no wall lost" becomes "gate held". A broken gate loses the star only; a broken
+- [x] Stars: "no wall lost" becomes "gate held". A broken gate loses the star only; a broken
       reactor core loses the level.
 - 2026-10-23: all six defence items built on branch `batch3-defence` (engine 0.13.0, not merged,
   packs not regenerated); rules in DECISIONS 9r. Agreed: guards on
@@ -86,10 +86,10 @@ Defence (option B with Doug's changes):
   2026-10-23: "looks good", integrate into the full game.
 
 Other:
-- [ ] Pull resource fields (ore, scrap, greens) in toward the core so the whole base is compact like
+- [x] Pull resource fields (ore, scrap, greens) in toward the core so the whole base is compact like
       the vibe image; today the level templates place them and the sandbox sliders do not reach them
       (Doug, 2026-10-22). Add a sandbox slider for it first.
-- [ ] Building packing and screen alignment from the Batch 0 values; the camera keeps
+- [x] Building packing and screen alignment from the Batch 0 values; the camera keeps
       following the player (the base need not fit the screen).
 - [x] Player walks through buildings (not walls or turrets); others path around; the building
       goes see-through while the player is inside.
@@ -97,8 +97,12 @@ Other:
       range, all as params (foundation for between-level equipment).
       Done 2026-10-22 (9e504de): player.* params already per level; added player.gatherSpeed (%)
       and player.carryBonus; bots use sim playerCap/gatherTicks. Defaults change nothing.
-- [ ] Bump ENGINE_VERSION, re-pin golden levels, regenerate the pack as **50 levels**,
+- [x] Bump ENGINE_VERSION, re-pin golden levels, regenerate the pack as **50 levels**,
       `levels:check` clean. All player progress resets to L1 (alpha rule).
+      Done 2026-10-23 (810391e): defence, walk-through and compact layout in one regeneration (54 min,
+      L30/L44 rebuilt after); 50 levels, levels:check 50/50 clean, 50/50 meet the human-view star bar;
+      client PROGRESS_EPOCH 2 resets progress; packs s1-061/081/086 removed. Verified live
+      (assets/index-COTW3hw_.js, pack 0.13.0 with 50 levels).
 
 ## Later (not this round)
 
