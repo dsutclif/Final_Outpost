@@ -86,8 +86,10 @@ Other:
       following the player (the base need not fit the screen).
 - [ ] Player walks through buildings (not walls or turrets); others path around; the building
       goes see-through while the player is inside.
-- [ ] Player loadout block: gather speed, carry capacity, shot damage and rate, move speed,
+- [x] Player loadout block: gather speed, carry capacity, shot damage and rate, move speed,
       range, all as params (foundation for between-level equipment).
+      Done 2026-10-22 (9e504de): player.* params already per level; added player.gatherSpeed (%)
+      and player.carryBonus; bots use sim playerCap/gatherTicks. Defaults change nothing.
 - [ ] Bump ENGINE_VERSION, re-pin golden levels, regenerate the pack as **50 levels**,
       `levels:check` clean. All player progress resets to L1 (alpha rule).
 
