@@ -78,7 +78,7 @@ Defence (option B with Doug's changes):
 - [ ] Stars: "no wall lost" becomes "gate held". A broken gate loses the star only; a broken
       reactor core loses the level.
 - 2026-10-23: all six defence items built on branch `batch3-defence` (engine 0.13.0, not merged,
-  packs not regenerated); rules in DECISIONS 9r. Defaults taken pending Doug's answers: guards on
+  packs not regenerated); rules in DECISIONS 9r. Agreed: guards on
   every defend level, unbuilt wall sections are openings attackers use, levels with waves run to the
   last wave. Gate HP upgrades left out (groundwork below).
 
