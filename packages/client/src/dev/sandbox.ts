@@ -27,6 +27,7 @@ const KNOBS: Knob[] = [
   { key: "gap", label: "Building gap", min: -10, max: 30, step: 1, def: GEN.spacing.footprintGap, rebuild: true },
   { key: "margin", label: "Pad margin", min: 0, max: 30, step: 1, def: GEN.spacing.margin, rebuild: true },
   { key: "pull", label: "Pull to core", min: 0, max: 8, step: 0.1, def: GEN.spacing.corePull, rebuild: true },
+  { key: "fpull", label: "Pull fields in", min: 0, max: 0.9, step: 0.05, def: GEN.spacing.fieldPull ?? 0, rebuild: true },
   { key: "size", label: "Building size", min: 0.6, max: 1.5, step: 0.05, def: 1, rebuild: true },
   { key: "zoom", label: "View width", min: 100, max: 450, step: 10, def: VIEW_W, rebuild: false },
   { key: "text", label: "Text size", min: 0.6, max: 1.8, step: 0.05, def: 1, rebuild: false },
@@ -99,6 +100,7 @@ function applyKnobs(): void {
   GEN.spacing.footprintGap = val.gap!;
   GEN.spacing.margin = val.margin!;
   GEN.spacing.corePull = val.pull!;
+  GEN.spacing.fieldPull = val.fpull!;
   const s = val.size!;
   for (const [k, b] of Object.entries(baseFootprints)) {
     GEN.footprints[k] = sizedKey(k) ? [Math.round(b[0] * s), Math.round(b[1] * s), Math.round(b[2] * s), Math.round(b[3] * s)] : [...b];

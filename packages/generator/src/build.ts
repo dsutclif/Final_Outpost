@@ -40,7 +40,7 @@ export const GEN = genData as unknown as {
   timeTargetK: number;
   costs: Record<string, number>;
   rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number; towerPadSearch: number; towerPadHug: number };
-  spacing: { margin: number; standR: number; screen: [number, number]; screenRadius: number; footprintGap: number; corePull: number };
+  spacing: { margin: number; standR: number; screen: [number, number]; screenRadius: number; footprintGap: number; corePull: number; fieldPull?: number };
   traderRoute: { cell: number; clear: number; door: number };
   lots: { block: number; street: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
@@ -212,6 +212,10 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ring = ringPoints(core, dims);
   }
   const inner: Rect = ring ? [ring.rect[0] + 12, ring.rect[1] + 12, ring.rect[2] - 24, ring.rect[3] - 24] : [16, 40, 448, 836];
+  // fieldPull (0..1, default 0 = unchanged) draws the template's resource fields toward the core
+  const fp0 = Math.min(0.95, Math.max(0, S.fieldPull ?? 0));
+  const pullRect = (r: Rect): Rect => fp0 === 0 ? r
+    : [Math.round(r[0] + (core[0] - (r[0] + r[2] / 2)) * fp0), Math.round(r[1] + (core[1] - (r[1] + r[3] / 2)) * fp0), r[2], r[3]];
   const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, [S.screen[0], S.screen[1], S.screenRadius], c, GEN.footprints, S.footprintGap, S.corePull);
   if (ring) ring.points.forEach((p, i) => P.walls.push([p, ring!.points[(i + 1) % ring!.points.length]!]));
   P.lots = GEN.lots;
@@ -298,7 +302,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     sells.push("res.food_raw_1");
     ents.push({ type: "sink.sales_point", id: "shop", at: [...shopAt], sells });
     const fr = tpl.fields.food;
-    const foodRegion: Rect = ring ? inner : [fr[0], fr[1], fr[2], fr[3]];
+    const foodRegion: Rect = ring ? inner : pullRect([fr[0], fr[1], fr[2], fr[3]]);
     food1 = P.place("food1", R.food, foodRegion, { near: [(shopAt[0] + core[0]) / 2 + (shopAt[0] > core[0] ? 60 : -60), shopAt[1] - 40], key: true, samples: 160, fp: "node.food_source" })
       ?? fail("no room for food");
     ents.push({ type: "node.food_source", id: "food1", at: [...food1] });
@@ -311,8 +315,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     return [cx / L, cy / L] as const;
   })();
   const placeForest = (tag: string, dir: readonly [number, number], reach: number, n: number, mats: number): number => {
-    const cx = Math.min(inner[0] + inner[2] - 45, Math.max(inner[0] + 45, core[0] + dir[0] * reach));
-    const cy = Math.min(inner[1] + inner[3] - 45, Math.max(inner[1] + 45, core[1] + dir[1] * reach));
+    const rr = reach * (1 - fp0);
+    const cx = Math.min(inner[0] + inner[2] - 45, Math.max(inner[0] + 45, core[0] + dir[0] * rr));
+    const cy = Math.min(inner[1] + inner[3] - 45, Math.max(inner[1] + 45, core[1] + dir[1] * rr));
     const region: Rect = [cx - 75, cy - 75, 150, 150];
     let got = 0;
     for (let i = 0; i < n + mats; i++) {
@@ -387,7 +392,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const n = goal === "unlock" && K.costScale > 1.05 ? 2 : 1;
     for (let k = 0; k < n; k++) {
       const id = `food${k + 2}`;
-      const f = P.place(id, R.food, ring ? inner : tpl.fields.food, { near: food1, samples: 160, key: true, fp: "node.food_source" }) ?? fail("no room for the gated food source");
+      const f = P.place(id, R.food, ring ? inner : pullRect(tpl.fields.food), { near: food1, samples: 160, key: true, fp: "node.food_source" }) ?? fail("no room for the gated food source");
       ents.push({ type: "node.food_source", id, at: [...f], enabled: false });
       P.add(`unlock_${id}`, f, R.pad, { key: true, on: id });
       pad({ type: "pad.build", id: `unlock_${id}`, at: [...f], cost: { "res.currency": cost("unlock") + 5 * k }, build: "node.enable", target: id, ...(workers ? { requires: { pad: "hire_food" } } : {}) });
