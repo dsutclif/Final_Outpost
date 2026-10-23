@@ -3,5 +3,7 @@
   "screenRadius": 450,
   "trivialBudgetShare": 0.286,
   "trivialWavesMargin": 0.95,
-  "duplicateWindow": 10
+  "duplicateWindow": 10,
+  "_ladder": "ladderLeftMin: the reference bot must leave at least this much salvage of turret ladder (towers, Lv2, Lv3) unbought on average, so there is always something to build until a defend level ends (Batch 3).",
+  "ladderLeftMin": 4
 }

@@ -35,6 +35,13 @@ const d2 = (a: Vec, b: Vec): number => (a.x - b.x) * (a.x - b.x) + (a.y - b.y) *
 const dist = (a: Vec, b: Vec): number => Math.sqrt(d2(a, b));
 const near = (a: Vec, b: Vec, r: number): boolean => d2(a, b) < r * r;
 const isDangerousAnimal = (cp: Compiled, kind: string): boolean => (cp.animals[kind]?.aggroRange ?? 0) > 0;
+/** The map side a point lies toward, seen from the core (as the sim tells wall sections apart). */
+const sideOf = (st: State, p: Vec): "n" | "e" | "s" | "w" => {
+  const dx = p.x - st.core.pos.x, dy = p.y - st.core.pos.y;
+  return Math.abs(dy) >= Math.abs(dx) ? (dy < 0 ? "n" : "s") : dx < 0 ? "w" : "e";
+};
+/** Guards bought before any tower (Batch 3: the guard post stands, hiring is the first purchase). */
+const FIRST_GUARDS = 2;
 const count = (stack: readonly string[], res: string): number => { let n = 0; for (const s of stack) if (s === res) n++; return n; };
 
 interface LassoMem { capture: number; loop: Vec[]; idx: number; phase: "loop" | "return"; flip: number }
@@ -98,13 +105,42 @@ export class Brain {
 
   /** The first plan step that can take a payment now. */
   nextStep(st: State): { step: PlanStep; pad: PadState } | null {
+    let first: { step: PlanStep; pad: PadState } | null = null, best: { step: PlanStep; pad: PadState } | null = null, bk = Infinity;
     for (const s of this.plan.steps) {
       if (this.stepDone(st, s) || !this.whenHolds(st, s) || this.skip.has(s.pad)) continue;
       const pad = st.pads.find((p) => p.id === s.pad)!;
       if (!pad.visible || pad.locked) continue;
-      return { step: s, pad };
+      first ??= { step: s, pad };
+      if (this.ladderRank(s) < 0) { if (first.step === s) return first; continue; }
+      const k = this.ladderKey(st, s, pad);
+      if (k < bk) { bk = k; best = { step: s, pad }; }
     }
-    return null;
+    return best ?? first;
+  }
+
+  /**
+   * The defence spend policy (Batch 3): with the next purchase a defence one, buy the first guards (the
+   * guard post stands from the start, so they are the first purchase), then towers, then Lv2 and further
+   * guards, then Lv3; steps on the goal path before the rest, and within a rank the socket on the side the
+   * next wave comes from, then the cheapest.
+   * -1 for steps that are not defence purchases (plan order holds for those).
+   */
+  private ladderRank(s: PlanStep): number {
+    const e = this.cp.entityById[s.pad];
+    if (!e) return -1;
+    if (e.type === "pad.hire") return this.cp.roles[e.role.role]?.behavior !== "guard" ? -1 : (this.hiresByPad[s.pad] ?? 0) < FIRST_GUARDS ? 0 : 2;
+    if (e.type !== "pad.build") return -1;
+    return e.build === "struct.ranged_defense" ? 1 : e.build === "struct.ranged_defense.t2" ? 2 : e.build === "struct.ranged_defense.t3" ? 3 : -1;
+  }
+
+  private ladderKey(st: State, s: PlanStep, pad: PadState): number {
+    const e = this.cp.entityById[s.pad] as { site?: readonly [number, number]; target?: string };
+    const next = this.cp.waves[Math.min(st.waves.idx, this.cp.waves.length - 1)]?.sides[0] ?? null;
+    const site = e.site ?? (e.target ? (this.cp.entityById[e.target] as { site?: readonly [number, number] } | undefined)?.site : undefined);
+    const side = site ? sideOf(st, { x: site[0] * FP, y: site[1] * FP }) : null;
+    const cost = Object.values(this.remaining(st, pad, s)).reduce((a, n) => a + n, 0);
+    // a goal on the ladder (a tower level, N guards) is bought toward first
+    return (s.goalPath ? 0 : 1e7) + this.ladderRank(s) * 1e6 + (next !== null && side !== null && side !== next ? 1e5 : 0) + cost;
   }
 
   /** Remaining cost of a pad at its current (automation-taxed) price, per resource. */
@@ -177,30 +213,6 @@ export class Brain {
       return { line: t.line, section: t.section, cost: line.costPerSection, paid: s.paid, res: line.res, a: s.a, b: s.b };
     }
     return null;
-  }
-
-  /**
-   * With wall repair on: a damaged standing section facing a side hostiles are attacking from, nearest to the
-   * hero first. Null while repair is off, so the bots play exactly as before.
-   */
-  nextRepair(st: State): { line: string; section: number; cost: number; paid: number; res: string; a: Vec; b: Vec } | null {
-    const pm = st.params["barrier.repairPm"] ?? 0;
-    if (pm <= 0 || st.hostiles.length === 0) return null;
-    const sides = new Set(st.hostiles.map((h) => h.side));
-    let best: { line: string; section: number; cost: number; paid: number; res: string; a: Vec; b: Vec } | null = null;
-    let bd = Infinity;
-    for (const line of st.barriers) {
-      for (let i = 0; i < line.sections.length; i++) {
-        const s = line.sections[i]!;
-        if (!s.built || s.hp >= s.hpMax) continue;
-        const mx = (s.a.x + s.b.x) / 2 - st.core.pos.x, my = (s.a.y + s.b.y) / 2 - st.core.pos.y;
-        const side = Math.abs(mx) > Math.abs(my) ? (mx > 0 ? "e" : "w") : (my > 0 ? "s" : "n");
-        if (!sides.has(side)) continue;
-        const d = (mx - (st.player.pos.x - st.core.pos.x)) ** 2 + (my - (st.player.pos.y - st.core.pos.y)) ** 2;
-        if (d < bd) { bd = d; best = { line: line.id, section: i, cost: Math.max(1, Math.ceil((line.costPerSection * pm) / 1000)), paid: 0, res: line.res, a: s.a, b: s.b }; }
-      }
-    }
-    return best;
   }
 
   // ---------- task scoring ----------
@@ -387,7 +399,7 @@ export class Brain {
     if (st.gateQueue.length > 0 && cp.gate) T("admit", cp.manifest.goal.type === "population" ? 70 : 62);
 
     // Barrier sections before and between waves.
-    const nb = this.nextBarrier(st) ?? this.nextRepair(st);
+    const nb = this.nextBarrier(st);
     if (nb) {
       const have = cp.resources[nb.res]?.cap === null ? st.currency : count(p.stack, nb.res);
       // A section behind rubble or another wall cannot be walked to yet; the plan moves on meanwhile.
@@ -771,7 +783,7 @@ export class Brain {
         return { pos: pad.pos, r: 14 * U };
       }
       case "barrier": {
-        const b = this.nextBarrier(st) ?? this.nextRepair(st);
+        const b = this.nextBarrier(st);
         if (!b) return null;
         const have = cp.resources[b.res]?.cap === null ? st.currency : count(p.stack, b.res);
         if (have <= 0) return null;

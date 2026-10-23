@@ -3,6 +3,7 @@ import type { SimEvent } from "../events.js";
 import type { State } from "../state.js";
 import { endLevel, population } from "./common.js";
 import { collapsedConverter } from "./stock.js";
+import { wavesDone } from "./defense.js";
 import { objectiveSettled, settleObjectives } from "./objectives.js";
 
 export { population };
@@ -19,7 +20,7 @@ const FAILS: Record<string, (st: State, cp: Compiled) => boolean> = {
 /**
  * The level ends on its slowest goal: once the main goal (objective 0, which mirrors the manifest goal)
  * is done, it ends when every objective is done or can no longer be done, or when the overtime runs
- * out. Fails, a pile collapse and the timer still end it early: a loss before the main goal, a win
+ * out, and never while attack waves are still to come (Batch 3). Fails, a pile collapse and the timer still end it early: a loss before the main goal, a win
  * after it (the open stars are lost).
  */
 export function checkEnd(st: State, cp: Compiled, out: SimEvent[]): void {
@@ -31,7 +32,9 @@ export function checkEnd(st: State, cp: Compiled, out: SimEvent[]): void {
     if (pile !== null) { out.push({ t: "pile_collapsed", conv: pile }); why = "pile_collapse"; }
   }
   if (why === null && cp.timerTicks > 0 && st.tick >= cp.timerTicks) why = "timer";
-  if (why === null && won && (st.tick - main!.doneTick >= cp.overtimeTicks || st.objectives.every((o, i) => objectiveSettled(cp, o, i)))) why = "goal";
+  // Batch 3: a level with attack waves runs until the last one is cleared, so the defence is built and held to the end.
+  const wavesLeft = cp.waves.length > 0 && !wavesDone(st, cp);
+  if (why === null && won && !wavesLeft && (st.tick - main!.doneTick >= cp.overtimeTicks || st.objectives.every((o, i) => objectiveSettled(cp, o, i)))) why = "goal";
   if (why === null) return;
   endLevel(st, out, won, won ? "goal" : why);
   settleObjectives(st, cp, out);

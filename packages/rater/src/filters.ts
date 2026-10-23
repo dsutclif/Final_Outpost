@@ -5,10 +5,10 @@ import filterData from "../data/filters.json";
 
 // Quality filters from the spec. Each returns a flag plus the evidence behind it.
 
-export interface Filters { idleModule: boolean; trivial: boolean; stall: boolean; unreadable: boolean; duplicate: boolean; collapse: boolean }
+export interface Filters { idleModule: boolean; trivial: boolean; stall: boolean; unreadable: boolean; duplicate: boolean; collapse: boolean; ladderSpent: boolean }
 export interface FilterEvidence { idleModules: string[]; unreadable: string[]; stallRuns: string[]; duplicateOf: string | null; collapseRuns: string[] }
 
-export const FILTER_PARAMS = filterData as { screenRadius: number; trivialBudgetShare: number; trivialWavesMargin: number; duplicateWindow: number };
+export const FILTER_PARAMS = filterData as { screenRadius: number; trivialBudgetShare: number; trivialWavesMargin: number; duplicateWindow: number; ladderLeftMin: number };
 
 /** Modules the manifest switches on that no winning run of any rung ever exercised. */
 function idleModules(ms: Measurement, c: Content): string[] {
@@ -52,7 +52,7 @@ function stations(m: Manifest, c: Content): Station[] {
 
 /**
  * Unreadable: one interaction centre sits inside another's radius (standing at one would trigger
- * the other), except a pad placed on the entity it acts on; or a key station farther than a screen
+ * the other), except a pad placed on the entity it acts on (or beside another acting on it); or a key station farther than a screen
  * from the core.
  */
 function unreadable(m: Manifest, c: Content): string[] {
@@ -60,7 +60,8 @@ function unreadable(m: Manifest, c: Content): string[] {
   const out: string[] = [];
   for (let i = 0; i < st.length; i++) for (let j = i + 1; j < st.length; j++) {
     const a = st[i]!, b = st[j]!;
-    if (a.target === b.id || b.target === a.id) continue;
+    // a pad on the entity it acts on, or two pads acting on one target (a tower's Lv2 and Lv3: one shows at a time)
+    if (a.target === b.id || b.target === a.id || (a.target !== undefined && a.target === b.target)) continue;
     const d = Math.hypot(a.x - b.x, a.y - b.y);
     if (d < Math.max(a.r, b.r)) out.push(`overlap ${a.id}~${b.id} (${d.toFixed(0)} < ${Math.max(a.r, b.r)})`);
   }
@@ -104,7 +105,9 @@ export function qualityFilters(ms: Measurement, c: Content): { filters: Filters;
   // unmanaged) overstock. Only possible when stock.collapseSeconds is on.
   const collapseRuns = (ms.runs[REFERENCE] ?? []).filter((r) => r.reason === "pile_collapse").map((r) => `${REFERENCE}#${r.seed}`);
   return {
-    filters: { idleModule: idle.length > 0, trivial, stall: stallRuns.length > 0, unreadable: unread.length > 0, duplicate: dup !== null, collapse: collapseRuns.length > 0 },
+    // Batch 3: a defend level always leaves something to build; a reference bot that bought the whole turret ladder ran out of it.
+    filters: { idleModule: idle.length > 0, trivial, stall: stallRuns.length > 0, unreadable: unread.length > 0, duplicate: dup !== null, collapse: collapseRuns.length > 0,
+      ladderSpent: ms.ladderLeft >= 0 && ms.ladderLeft < FILTER_PARAMS.ladderLeftMin },
     evidence: { idleModules: idle, unreadable: unread, stallRuns, duplicateOf: dup, collapseRuns },
   };
 }

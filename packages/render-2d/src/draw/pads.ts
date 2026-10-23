@@ -37,7 +37,7 @@ function buildGlyph(dc: DC, info: PadInfo, x: number, y: number, col: string): v
   } else if (w.startsWith("conv.")) {
     circle(g, x, y, 6, col);
     circle(g, x, y, 2.4, "rgba(33,24,26,.6)");
-  } else if (w.includes(".t2") || w.includes("reinforced")) {
+  } else if (/\.t\d$/.test(w) || w.includes("reinforced")) {
     poly(g, [x, y - 7, x + 6, y, x + 2.5, y, x + 2.5, y + 6, x - 2.5, y + 6, x - 2.5, y, x - 6, y], col);
   } else {
     poly(g, [x - 7, y - 1, x, y - 7, x + 7, y - 1], col);

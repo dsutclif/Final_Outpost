@@ -27,10 +27,12 @@ describe("golden ratings", () => {
     expect(again).toEqual(batch[0]);
   });
 
-  it("are ordered sensibly: level 1 is the easiest, level 4 the hardest", () => {
+  // Since Batch 3 (walls cannot break, raiders only hit the gate) level 4's defence is easier and it rates
+  // about level 3's difficulty, so the two hardest are 3 and 4 in either order.
+  it("are ordered sensibly: level 1 is the easiest, levels 3 and 4 the hardest", () => {
     const D = batch.map((r) => r.D);
     expect(Math.min(...D)).toBe(D[0]);
-    expect(Math.max(...D)).toBe(D[3]);
+    expect(Math.min(D[2]!, D[3]!)).toBeGreaterThan(Math.max(D[0]!, D[1]!));
   });
 
   it("every golden level is feasible for the reference bot", () => {

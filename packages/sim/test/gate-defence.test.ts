@@ -118,3 +118,25 @@ describe("defence purchases", () => {
     expect(by["player"]).toBeGreaterThan(0);
   });
 });
+
+describe("a defend level runs to its last wave", () => {
+  it("does not end on its main goal while attack waves are still to come", () => {
+    const sim = createSim(level({
+      params: { ...(LEVEL_4 as Loose).params },
+      goal: { type: "kills", n: 1 },
+      objectives: [{ id: "main", kind: "kills", params: { n: 1 } }, { id: "gate", kind: "gate_held", params: {} }, { id: "safe", kind: "no_injuries", params: {} }],
+      waves: [{ t: 1, counts: { "hostile.swarmling": 1 }, side: "s" }, { t: 40, counts: { "hostile.swarmling": 2 }, side: "s" }],
+    }));
+    const st = sim.state;
+    st.player.pos = at(240, 680);
+    idle(sim, 30 * TPS, () => st.stats.kills >= 1);
+    expect(st.objectives[0]!.done).toBe(true);
+    idle(sim, 20 * TPS);
+    expect(st.over).toBe(false);
+    idle(sim, 120 * TPS, () => st.over);
+    expect(st.over).toBe(true);
+    expect(st.won).toBe(true);
+    expect(st.waves.idx).toBe(2);
+    expect(st.hostiles).toHaveLength(0);
+  });
+});

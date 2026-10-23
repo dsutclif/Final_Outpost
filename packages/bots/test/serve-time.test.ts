@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ENGINE_VERSION } from "@fo/sim";
 import { PROFILES, playBot } from "../src/index.js";
 import level1 from "../../../levels/golden/proto-L001.json";
 import level3 from "../../../levels/golden/proto-L003.json";
@@ -9,7 +10,9 @@ import s1l20 from "../../../levels/packs/s1/s1-L020.json";
 const forced = (m: { params: Record<string, number> }) => ({ ...m, params: { ...m.params, "sales.serveSeconds": 0.6 } });
 
 describe("bots with sales.serveSeconds = 0.6", () => {
-  for (const [name, level] of [["proto-L001", level1], ["proto-L003", level3], ["s1-L005", s1l5], ["s1-L020", s1l20]] as const) {
+  // pack levels only while the pack is pinned to this engine (it waits for its regeneration after a bump)
+  const levels = [["proto-L001", level1], ["proto-L003", level3], ["s1-L005", s1l5], ["s1-L020", s1l20]] as const;
+  for (const [name, level] of levels.filter(([, l]) => (l as { engineVersion: string }).engineVersion === ENGINE_VERSION)) {
     it(`good bot still wins ${name}`, () => {
       const m = forced(level as never);
       for (const seed of [1, 2]) {

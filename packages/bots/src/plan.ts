@@ -261,9 +261,10 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
       break;
     }
     case "turret_level": {
-      // Any one upgrade reaches the tier; the dearest is the goal pad, the rest come before it.
+      // Any one upgrade to the tier reaches it; the dearest is the goal pad (its own chain comes with it).
+      const tier = Number((g as { n?: number }).n ?? 2);
       for (const p of buildPads("struct.ranged_defense")) add(p.id, "defense");
-      const ups = buildPads("struct.ranged_defense.t2");
+      const ups = buildPads(tier >= 3 ? "struct.ranged_defense.t3" : "struct.ranged_defense.t2");
       if (ups.length > 0) add(ups[ups.length - 1]!.id, "goal", { goalPath: true });
       break;
     }

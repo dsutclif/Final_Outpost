@@ -1,5 +1,5 @@
 import { content as defaultContent, type Content } from "@fo/content";
-import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, attackedSide, createSim, guardPost, seedRng, starsOf, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
+import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, attackedSide, createSim, guardPost, seedRng, starsOf, type Compiled, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
 import { Brain } from "./brain.js";
 import { TIME_FIXED_GOALS, planBot, type Plan } from "./plan.js";
 import { withLearning, type BotProfile } from "./profiles.js";
@@ -50,8 +50,10 @@ export interface BotTrace {
   routeShare: number;
   baseHpLost: number;
   barriersBroken: number;
-  /** Wall sections repaired or rebuilt at the repair price (0 unless barrier.repairK is on). */
-  repairs: number;
+  /** Share of hostile kills the player landed (-1: no kills). Batch 3: the player keeps shooting beside the defence. */
+  playerKillShare: number;
+  /** Salvage price of the turret ladder (towers and their levels) still unbought at the end (-1: no ladder). */
+  ladderLeft: number;
   /** Goods the player took back out of the warehouse. */
   depotPicks: number;
   /** Share of guard-seconds under attack spent within reach of a post on the attacked side (-1: never tested). */
@@ -245,6 +247,18 @@ const SALES_GOALS: ReadonlySet<string> = new Set(["currency", "sell", "earn", "s
 const MAKE_GOALS: ReadonlySet<string> = new Set(["produce", "chain", "converters_running", "automate", "converter_level", "haul", "stockpile"]);
 
 /** Play a manifest headless with one profile and one in-level seed. Deterministic. */
+/** Salvage price of the unbought turret ladder pads (towers, Lv2, Lv3); -1 when the level has none. */
+function ladderLeft(st: State, cp: Compiled): number {
+  let any = false, left = 0;
+  for (const p of st.pads) {
+    const e = cp.entityById[p.id];
+    if (!e || e.type !== "pad.build" || !e.build.startsWith("struct.ranged_defense")) continue;
+    any = true;
+    if (!p.done) left += e.cost["res.salvage"] ?? 0;
+  }
+  return any ? left : -1;
+}
+
 export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, opts: BotOptions = {}): BotResult {
   const content = opts.content ?? defaultContent;
   const sim = createSim({ ...(manifest as object), seed }, { content });
@@ -277,7 +291,6 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   let warnStart = -1;
   let integSum = 0, integN = 0;
   let hpMin = 100, overload = false, heatSum = 0, heatN = 0, lastObj = 0;
-  let repairs = 0;
   let rallyOn = 0, rallyN = 0;
   const capRun: number[] = [];
   let capHoldMax = 0;
@@ -332,11 +345,10 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
       if (e.t === "converted") convUsed.add(e.conv);
       if (e.t === "built") builtPads.add(e.pad);
       if (e.t === "barrier_progress" || e.t === "barrier_built") lines.add(e.line);
-      if (e.t === "barrier_repaired") { repairs++; lines.add(e.line); }
       if (e.t === "hit" && e.target === "barrier") for (const l of st.barriers) if (l.sections.some((sec) => near2(sec, e.at))) lines.add(l.id);
       if (e.t === "captured") for (const l of st.barriers) if (l.closed) lines.add(l.id);
       if (e.t === "released" || e.t === "crate_delivered") capturesHome++;
-      if ((e.t === "gathered" || e.t === "deposited" || e.t === "collected" || e.t === "picked" || e.t === "pad_paid" || e.t === "barrier_progress" || e.t === "barrier_repaired") && !("by" in e && e.by !== undefined)) acted = true;
+      if ((e.t === "gathered" || e.t === "deposited" || e.t === "collected" || e.t === "picked" || e.t === "pad_paid" || e.t === "barrier_progress") && !("by" in e && e.by !== undefined)) acted = true;
       noteLoop(loops, e, st);
       noteModule(used, e, cp.upgrades);
     }
@@ -426,7 +438,8 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     routeShare: moveOnly / Math.max(1, moveOnly + acting),
     baseHpLost: st.meters.baseHealthMax - st.meters.baseHealth,
     barriersBroken: s.barriersLost,
-    repairs,
+    playerKillShare: s.kills > 0 ? (s.killsBy?.["player"] ?? 0) / s.kills : -1,
+    ladderLeft: ladderLeft(st, cp),
     depotPicks: st.stats.depotPicked ?? 0,
     rallyShare: rallyN > 0 ? rallyOn / rallyN : -1,
     injuries: s.injured,
@@ -535,7 +548,7 @@ function noteModule(used: Set<string>, e: SimEvent, upgrades: Record<string, unk
     case "zone_cleared": used.add("blocked_zones"); break;
     case "released": used.add("lasso"); break;
     case "moved_in": case "recruit_arrived": used.add("housing"); break;
-    case "barrier_built": case "barrier_progress": case "barrier_repaired": used.add("barrier_lines"); break;
+    case "barrier_built": case "barrier_progress": used.add("barrier_lines"); break;
     case "hit": if (e.target === "barrier") used.add("barrier_lines"); break;
     case "captured": used.add("lasso"); used.add("barrier_lines"); break; // the tow line only engages outside a line
     case "wave_started": case "wave_cleared": used.add("defense"); break;

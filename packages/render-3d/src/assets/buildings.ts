@@ -311,7 +311,7 @@ export function buildTurret(ctx: BuildCtx, onWall = false): Model {
     .rbox(0.62, 0.38, 0.62, 0.12, t.structure, { at: [0, 0.18, 0] }, 2)
     .box(0.64, 0.08, 0.64, t2 ? t.accent : t.trim, { at: [0, 0.2, 0] })
     .sphere(0.08, 8, 6, t.danger, { at: [0, 0.3, 0.3] });
-  const barrels = t2 ? [-0.12, 0.12] : [0];
+  const barrels = ctx.level >= 3 ? [-0.16, 0, 0.16] : t2 ? [-0.12, 0.12] : [0];
   for (const x of barrels) h.cyl(0.07, 0.08, 0.7, 8, t.metalDark, { at: [x, 0.18, 0.55], rot: [Math.PI / 2, 0, 0] });
   head.add(mesh(h.build(), mats.std, "headBody"));
   const muzzle = mesh(new GeoBuilder().cone(0.14, 0.32, 6, t.plasmaHot, { at: [0, 0.18, 1.05], rot: [Math.PI / 2, 0, 0] }).build(), mats.additive, "muzzle");

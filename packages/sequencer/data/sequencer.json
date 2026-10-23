@@ -86,7 +86,7 @@
       "modules": ["defense"],
       "teachGoal": "waves",
       "intro": [["turrets", "multi_side", "salvage_upgrades"], ["defenders", "bosses", "med_bay"]],
-      "challenges": ["hp_floor", "no_injuries", "no_wall_lost", "hire", "heat_floor"]
+      "challenges": ["hp_floor", "no_injuries", "gate_held", "hire", "heat_floor"]
     }
   },
   "goals": {

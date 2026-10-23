@@ -39,7 +39,7 @@ export const GEN = genData as unknown as {
   /** Multiplier on the generated time target (time star seconds and level.budgetSeconds): the player-facing time allowance. */
   timeTargetK: number;
   costs: Record<string, number>;
-  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; towerPadIn: number; towerPadSearch: number; towerPadHug: number };
+  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number };
   spacing: { margin: number; standR: number; screen: [number, number]; screenRadius: number; footprintGap: number; corePull: number };
   traderRoute: { cell: number; clear: number; door: number };
   lots: { block: number; street: number };
@@ -64,8 +64,10 @@ export const GEN = genData as unknown as {
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
-  defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; towersPerSide: number; maxTowers: number; maxUpgrades: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
+  defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
+  /** Batch 3 turret sockets at each attack gate; see generator.json. */
+  defendSockets: { start: number; inside: [number, number][]; outside: [number, number][]; unlocks: { wave: number; n: number; outside?: boolean }[]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number; padIn: number };
   conveyorGoals: string[];
   /** Geography: how often and how a level gets ridges, outcrops and chasms (terrain.ts). */
   terrain: TerrainData;
@@ -721,108 +723,97 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ents.push({ type: "barrier.line", id: "ring", res: wallsCurrency ? "res.currency" : "res.salvage", costPerSection: Math.max(1, Math.round(K.ringCost)),
       points: ring.points.map((p) => [...p]), closed: true, gates: ringGates, prebuilt: pre });
     if (feat.has("turrets")) {
-      // A pad's spot just beside a wall tower, along the wall (sgn: which way) and against its inside face:
-      // clear of the tower's footprint that way (it is longer toward the camera) by the footprint gap.
-      // sgn 0: straight inward of the tower, against its inner face (where a ring corner leaves no room along the wall).
-      const besideTower = (site: Pt, alongV: Pt, inV: Pt, sgn: number): Pt => {
-        const tf = GEN.footprints["struct.ranged_defense"]!, pf = GEN.footprints["pad"]!;
-        if (sgn === 0) {
-          const ax = inV[0] ? 0 : 1, pos = (inV[0] || inV[1]) > 0;
-          const off = (pos ? tf[ax + 2]! : -tf[ax]!) + S.footprintGap + pf[2]! + 1;
-          return [site[0] + inV[0] * off, site[1] + inV[1] * off];
+      // Batch 3 (tower defence): turret sockets at every attack side's gate, along its approach lane. A socket
+      // is a tower pad, then its Lv2 and Lv3 pads on the same spot (each needs the one before, costs double
+      // each step). `start` sockets per gate stand from the start, inside the wall beside the gate and outside
+      // flanking the lane; more open as the waves grow (`unlocks`), so there is always something to buy.
+      const SK = GEN.defendSockets;
+      const OUT: Record<string, Pt> = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
+      const tf = GEN.footprints["struct.ranged_defense"]!, g = S.footprintGap;
+      // Inflated tower box clear of the map edge, every wall, the lane and every station and standing spot.
+      const siteOk = (q: Pt, lane: { a: Pt; b: Pt }): boolean => {
+        const b = P.box(q, "struct.ranged_defense")!;
+        if (b[0] < SK.edge || b[1] < SK.edge || b[2] > 480 - SK.edge || b[3] > 900 - SK.edge) return false;
+        const fat: Box = [b[0] - SK.wallClear, b[1] - SK.wallClear, b[2] + SK.wallClear, b[3] + SK.wallClear];
+        const hits = (a: Pt, c: Pt, r: Box) => segDist([(r[0] + r[2]) / 2, (r[1] + r[3]) / 2], a, c) < Math.hypot(r[2] - r[0], r[3] - r[1]) / 2
+          && Math.max(Math.min(a[0], c[0]), r[0]) <= Math.min(Math.max(a[0], c[0]), r[2]) && Math.max(Math.min(a[1], c[1]), r[1]) <= Math.min(Math.max(a[1], c[1]), r[3]);
+        for (const w of P.walls) if (hits(w[0], w[1], fat)) return false;
+        const lw = SK.laneClear;
+        if (hits(lane.a, lane.b, [b[0] - lw, b[1] - lw, b[2] + lw, b[3] + lw])) return false;
+        for (const s of P.stations) {
+          if (dist(q, [s.x, s.y]) < s.r + SK.siteR) return false;
+          if (s.fp && b[0] < s.fp[2] + g && s.fp[0] < b[2] + g && b[1] < s.fp[3] + g && s.fp[1] < b[3] + g) return false;
         }
-        const ax = alongV[0] ? 0 : 1;
-        const off = (sgn > 0 ? tf[ax + 2]! : -tf[ax]!) + S.footprintGap + pf[2]! + 1;
-        return [Math.round(site[0] + alongV[0] * sgn * off + inV[0] * GEN.rings.towerPadHug), Math.round(site[1] + alongV[1] * sgn * off + inV[1] * GEN.rings.towerPadHug)];
+        for (const sp of P.spots) if (dist(q, [sp.x, sp.y]) < sp.r + SK.siteR) return false;
+        return true;
       };
-      // Gatherables (forest nodes) standing on a tower pad's spot are taken off the map.
-      const clearFor = (q: Pt): void => {
-        const fb = P.box(q, "pad")!, g = S.footprintGap;
-        for (let i = P.stations.length - 1; i >= 0; i--) {
-          const s = P.stations[i]!;
-          if (!s.tight) continue;
-          const hit = dist(q, [s.x, s.y]) < Math.max(R.pad, s.r) + S.margin
-            || (!!s.fp && fb[0] < s.fp[2] + g && s.fp[0] < fb[2] + g && fb[1] < s.fp[3] + g && s.fp[1] < fb[3] + g);
-          if (!hit) continue;
-          P.stations.splice(i, 1);
-          const k = ents.findIndex((e) => e.type.startsWith("node.") && Array.isArray(e["at"]) && (e["at"] as number[])[0] === s.x && (e["at"] as number[])[1] === s.y);
-          if (k >= 0) ents.splice(k, 1);
+      // The spot nearest the wanted one (gate frame: u along the side, v outward) that is free, or null.
+      const findSite = (m: Pt, al: Pt, o: Pt, uv: readonly [number, number], lane: { a: Pt; b: Pt }): Pt | null => {
+        const want: Pt = [Math.round(m[0] + al[0] * uv[0] + o[0] * uv[1]), Math.round(m[1] + al[1] * uv[0] + o[1] * uv[1])];
+        const tries: Pt[] = [];
+        for (let du = -SK.search; du <= SK.search; du += 6) for (let dv = -SK.search; dv <= SK.search; dv += 6) tries.push([du, dv]);
+        tries.sort((p, q) => Math.hypot(p[0], p[1]) - Math.hypot(q[0], q[1]));
+        for (const [du, dv] of tries) {
+          // never drift across the wall: an inside socket stays inside, an outside one outside
+          const q: Pt = [want[0] + al[0] * du + o[0] * dv, want[1] + al[1] * du + o[1] * dv];
+          if (Math.sign(uv[1]) !== Math.sign(uv[1] + dv)) continue;
+          if (siteOk(q, lane)) return q;
         }
+        return null;
       };
-      // Towers are built into the wall (R3 item 18) on the attack sides' ring posts, never beside a gate:
-      // with the gate mid-side they flank it (R3 item 3: the defence the economy buys), each pad just
-      // inside the wall beside its tower.
-      const n = ring.points.length;
-      const sites: { sd: string; j: number; site: Pt }[] = [];
+      const nW0 = Math.max(Math.round(K.waves), GEN.defendWaves.lateFrom + 2);
       for (const sd of sides) {
-        const posts = ring.points.map((p, k) => ({ p, k })).filter(({ k }) => {
-          const prev = (k + n - 1) % n;
-          return ring!.side[k] === sd && ring!.side[prev] === sd && !ringGates.includes(k) && !ringGates.includes(prev);
+        // the side's attack gate: of its gates the one nearest the core (as the sim picks it)
+        const mids = ringGates.filter((i) => ring!.side[i] === sd).map((i) => {
+          const a = ring!.points[i]!, b = ring!.points[(i + 1) % ring!.points.length]!;
+          return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as Pt;
         });
-        if (posts.length === 0) fail(`no wall post for a tower on side ${sd}`);
-        // towersPerSide spread evenly along the free posts (the med bay's raid side has none, so injuries still happen).
-        const along = posts.slice().sort((p, q) => p.p[0] - q.p[0] || p.p[1] - q.p[1]);
-        const count = Math.min(along.length, Math.max(1, Math.min(GEN.defendWaves.towersPerSide, Math.floor(GEN.defendWaves.maxTowers / sides.length))));
-        for (let j = 0; j < count; j++) sites.push({ sd, j, site: along[Math.min(along.length - 1, Math.floor(((j + 1) * along.length) / (count + 1)))]!.p });
-      }
-      // Every side's first tower comes before any side's second, so the pads chain in that order.
-      sites.sort((a, b) => a.j - b.j);
-      for (const { sd, j, site } of sites) {
-        const id = j === 0 ? `tower_${sd}` : `tower_${sd}${j + 1}`;
-        P.add(`${id}@site`, site, 0, { fp: "struct.ranged_defense" });
-        // The pad stands beside its tower along the wall, against its inside face (R3 playtest);
-        // either side of the tower, else straight inward as before.
-        const alongV: Pt = sd === "n" || sd === "s" ? [1, 0] : [0, 1];
-        const inV: Pt = sd === "n" ? [0, 1] : sd === "s" ? [0, -1] : sd === "e" ? [-1, 0] : [1, 0];
-        const R2 = GEN.rings;
-        let tp: Pt | null = null;
-        // first as drawn, then making room: gatherables in the way of a spot beside the tower give way
-        for (const room of [false, true]) for (const sgn of [1, -1, 0]) {
-          if (tp) break;
-          const q = besideTower(site, alongV, inV, sgn);
-          if (room) clearFor(q);
-          tp = P.place(id, R.pad, [q[0] - 6, q[1] - 6, 12, 12], { near: q, key: true, fp: ["pad"], hugWall: true, pull: false, samples: 60 });
+        const m = mids.reduce((p, q) => (dist(q, core) < dist(p, core) ? q : p)), o = OUT[sd]!, al: Pt = [Math.abs(o[1]), Math.abs(o[0])];
+        const lane = { a: m, b: [m[0] + o[0] * 900, m[1] + o[1] * 900] as Pt };
+        // inside and outside spots take turns: the start sockets, then each unlock's
+        const want: { uv: readonly [number, number]; wave: number }[] = [];
+        const ins = [...SK.inside], outs = [...SK.outside];
+        for (let k = 0; k < SK.start; k++) want.push({ uv: (k % 2 === 0 ? ins : outs).shift() ?? (ins.shift() ?? outs.shift())!, wave: 0 });
+        for (const u of SK.unlocks) {
+          const w = Math.min(u.wave, nW0 - 1);
+          // they open at the gate the next wave (index w) comes to
+          if (w < 1 || sides[w % sides.length] !== sd) continue;
+          for (let k = 0; k < u.n; k++) { const uv = (u.outside ? outs : ins).shift() ?? (u.outside ? ins : outs).shift(); if (uv) want.push({ uv, wave: w }); }
         }
-        if (!tp) {
-          const inward = dist(site, core) || 1, k = R2.towerPadIn / inward, sr = R2.towerPadSearch;
-          const tpNear: Pt = [Math.round(site[0] + (core[0] - site[0]) * k), Math.round(site[1] + (core[1] - site[1]) * k)];
-          tp = placePad(id, tpNear, { region: [tpNear[0] - sr, tpNear[1] - sr, 2 * sr, 2 * sr] });
+        let made = 0;
+        for (const { uv, wave } of want) {
+          // a spot with no room (outside, with the ring close to the map edge) tries its mirror across the
+          // wall, then the unused spots of the other kind
+          let site = findSite(m, al, o, uv, lane) ?? findSite(m, al, o, [uv[0], -uv[1]], lane);
+          for (const rest = uv[1] > 0 ? ins : outs; !site && rest.length > 0;) site = findSite(m, al, o, rest.shift()!, lane);
+          if (!site) continue;
+          const id = `tower_${sd}${++made}`;
+          P.add(`${id}@site`, site, 0, { fp: "struct.ranged_defense" });
+          // the pad stands just inside the wall: behind an outside socket, inward of an inside one
+          const inward: Pt = [-o[0], -o[1]];
+          const depth = (inward[0] + inward[1] > 0 ? tf[inward[0] ? 2 : 3]! : -tf[inward[0] ? 0 : 1]!) + g + 26;
+          const out = (site[0] - m[0]) * o[0] + (site[1] - m[1]) * o[1];
+          const back = out > 0 ? out + SK.padIn : depth;
+          const near: Pt = [Math.round(site[0] + inward[0] * back), Math.round(site[1] + inward[1] * back)];
+          const tp = P.place(id, R.pad, [near[0] - 24, near[1] - 24, 48, 48], { near, key: true, fp: ["pad"], hugWall: true, pull: false, samples: 120 })
+            ?? placePad(id, near, { region: [near[0] - 60, near[1] - 60, 120, 120] });
+          towers.push(pad({ type: "pad.build", id, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site], ...(wave > 0 ? { requires: { wave } } : {}) }));
+          if (!feat.has("salvage_upgrades")) continue;
+          // Lv2 and Lv3 take the tower pad's spot, which is free once the one before is bought (Doug's playtest of 0.11.0).
+          P.add(`${id}_up`, tp, R.pad, { key: true, on: id });
+          pad({ type: "pad.build", id: `${id}_up`, at: [...tp], cost: { "res.salvage": salv("salvage.towerUp") }, build: "struct.ranged_defense.t2", target: id, requires: { pad: id } });
+          P.add(`${id}_up3`, tp, R.pad, { key: true, on: id });
+          pad({ type: "pad.build", id: `${id}_up3`, at: [...tp], cost: { "res.salvage": salv("salvage.towerUp3") }, build: "struct.ranged_defense.t3", target: id, requires: { pad: `${id}_up` } });
         }
-        towers.push(pad({ type: "pad.build", id, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site] }));
-      }
-      if (feat.has("salvage_upgrades")) {
-        // On a turret-level goal the first upgrade reaches the tier, so only one tower gets an upgrade pad;
-        // elsewhere up to maxUpgrades, one side's first tower after another, so the scrap can pay for them.
-        (goal === "turret_level" ? towers.slice(-1) : towers.slice(0, GEN.defendWaves.maxUpgrades)).forEach((t) => {
-          // The upgrade pad takes the tower's own build pad spot, right beside the turret: it only shows once
-          // the tower stands, when that pad is gone (Doug's playtest of 0.11.0).
-          const up = t.at as Pt, upId = `${String(t.id)}_up`;
-          P.add(upId, up, R.pad, { key: true, on: String(t.id) });
-          pad({ type: "pad.build", id: `${String(t.id)}_up`, at: [...up], cost: { "res.salvage": salv("salvage.towerUp") }, build: "struct.ranged_defense.t2", target: t.id, requires: { pad: t.id } });
-        });
-        const rf = placePad("reinforce", [core[0] + 80, core[1] - 70]);
-        pad({ type: "pad.build", id: "reinforce", at: [...rf], cost: { "res.salvage": salv("salvage.reinforce") }, build: "struct.barrier.reinforced" });
-      }
-      // The defence unlocks in one line: a tower on every attack side first, then their upgrades, the
-      // second towers and the wall reinforcement, so no side is left bare while another gets a second.
-      // (On a turret-level goal its one upgrade, the goal, comes last.)
-      {
-        const byId = (id: string) => pads.find((p) => p.id === id);
-        const ups = towers.map((t) => byId(`${String(t.id)}_up`));
-        const firstRound = towers.filter((t) => !/\d$/.test(String(t.id)));
-        const line = (goal === "turret_level"
-          ? [...towers, byId("reinforce"), ...ups]
-          : [...firstRound, ...firstRound.map((t) => byId(`${String(t.id)}_up`)),
-              ...towers.filter((t) => !firstRound.includes(t)).flatMap((t) => [t, byId(`${String(t.id)}_up`)]), byId("reinforce")])
-          .filter((p): p is Ent => p !== undefined);
-        for (let k = 1; k < line.length; k++) line[k]!.requires = { pad: String(line[k - 1]!.id) };
+        if (made < SK.start) fail(`no room for ${SK.start} turret sockets at the ${sd} gate`);
       }
     }
     if (feat.has("defenders")) {
+      // Batch 3: the guard post stands from the start, so the first defence purchase is hiring guards.
       const bk = placePad("barracks", [core[0] - 100, core[1] + 100], { build: "struct.barracks" });
-      pad({ type: "pad.build", id: "barracks", at: [...bk], cost: { "res.salvage": salv("salvage.barracks") }, build: "struct.barracks" });
+      ents.push({ type: "struct.barracks", id: "barracks", at: [...bk] });
       const tr = placePad("train", [bk[0], bk[1] + 70]);
-      pad({ type: "pad.hire", id: "train", at: [...tr], cost: { "res.salvage": salv("salvage.train") }, role: { role: "role.defender" }, repeatable: true, requires: { pad: "barracks" } });
+      pad({ type: "pad.hire", id: "train", at: [...tr], cost: { "res.salvage": salv("salvage.train") }, role: { role: "role.defender" }, repeatable: true });
     }
     if (feat.has("med_bay")) {
       const md = placePad("medic", [core[0] + 100, core[1] + 110], { build: "struct.medical" });
@@ -910,7 +901,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       case "sell_each": return { n: 3, k: Math.min(2, sells.length) };
       case "unlock": return { n: gated };
       case "shelves_full": return {};
-      case "hire": return fam === "defend" ? { n: 2, role: "role.defender" } : { n: 2 };
+      // defend: more guards than the first purchase, so the level runs on into the waves
+      case "hire": return fam === "defend" ? { n: 4, role: "role.defender" } : { n: 2 };
       case "earn_within": return { n: 20, seconds: Math.round(K.length) };
       case "bulk_order": return { n: 1 };
       case "produce": return { n: 10, res: alloy ? "res.component" : "res.food_prepared" };
@@ -923,7 +915,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       case "waves": return {};
       case "waves_survived": return { n: Math.max(1, waves.length - 1) };
       case "boss": return { n: waves.reduce((a, w) => a + (w.counts["hostile.boss"] ?? 0), 0) };
-      case "turret_level": return { n: 2 };
+      case "turret_level": return { n: 3 };
       case "perimeter_before_wave1": return {};
       default: return { n: 5 };
     }
@@ -1036,7 +1028,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   // Pads the plan would only reach after the goal is done count as unplanned too: the level ends at the goal.
   const lastGoal = plan0.steps.map((s, i) => (s.goalPath && s.when === "always" ? i : -1)).reduce((a, b) => Math.max(a, b), -1);
   const late = lastGoal >= 0 ? new Set(plan0.steps.filter((s, i) => i > lastGoal && s.when === "always").map((s) => s.pad)) : new Set<string>();
-  const unplanned = pads.filter((p) => (!planned().has(String(p.id)) || late.has(String(p.id))) && !conditional(p));
+  // The defence ladder (sockets, their levels, guards) is bought all through the level, never chained to the goal.
+  const ladder = (p: Ent) => String(p.build ?? "").startsWith("struct.ranged_defense") || (p.type === "pad.hire" && (p.role as { role: string }).role === "role.defender");
+  const unplanned = pads.filter((p) => (!planned().has(String(p.id)) || (late.has(String(p.id)) && !ladder(p))) && !conditional(p));
   if (unplanned.length > 0) {
     const steps = plan0.steps.filter((s) => s.when === "always");
     const anchorStep = [...steps].reverse().find((s) => s.goalPath) ?? steps[steps.length - 1];
@@ -1135,7 +1129,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       return out;
     };
     for (const p of pads) {
-      if (typeof p.build === "string" && p.build.endsWith(".t2") && p.target && !upChain(p).has(String(p.target))) fail(`pad order: ${String(p.id)} upgrades ${String(p.target)} before it builds`);
+      if (typeof p.build === "string" && /.td$/.test(p.build) && p.target && !upChain(p).has(String(p.target))) fail(`pad order: ${String(p.id)} upgrades ${String(p.target)} before it builds`);
       const role = p.role as { from?: string; to?: string } | undefined;
       const machines = [role?.from, role?.to].filter((t): t is string => !!t?.startsWith("conv."));
       const needs = pads.filter((b) => machines.includes(String(b.build))).map((b) => String(b.id));
@@ -1169,7 +1163,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     if (firstLate > 0) {
       const salvOf = (id: string) => ((pads.find((p) => p.id === id)?.cost as Record<string, number> | undefined)?.["res.salvage"] ?? 0);
       const early = plan0.barriers.reduce((a, b) => a + (b.res === "res.salvage" ? b.cost : 0), 0)
-        + sides.reduce((a, sd) => a + salvOf(`tower_${sd}`), 0);
+        + sides.reduce((a, sd) => a + salvOf(`tower_${sd}1`), 0) + 2 * salvOf("train");
       for (let k = 0; k < 12 && dropsOf(waves.slice(0, firstLate)) < early * DW.dropsPerEarlyNeed; k++) grow(waves.slice(0, firstLate));
     }
     // Drops of the last wave (on a survive-N-waves goal, of the last two) come too late to spend, so

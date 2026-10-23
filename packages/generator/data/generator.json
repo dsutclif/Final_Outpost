@@ -39,14 +39,14 @@
     "housing": 12, "core.level": 25, "zone": 15, "grill": 12, "hire.cook": 10, "hire.server": 10,
     "hire.feeder": 10, "saw": 15, "hire.sawyer": 10, "hire.hunter": 12, "depot": 20, "hire.hauler": 10,
     "hire.depotSupplier": 10, "alloy": 20, "hire.smith": 10, "conv.level": 18, "belt": 16,
-    "salvage.tower": 6, "salvage.towerUp": 5, "salvage.reinforce": 5, "salvage.barracks": 4, "salvage.train": 3, "salvage.medic": 6
+    "salvage.tower": 3, "salvage.towerUp": 6, "salvage.towerUp3": 12, "salvage.train": 3, "salvage.medic": 6
   },
   "rings": {
     "_doc": "Half extents of the perimeter ring around the core (world units), and sections per side (top/bottom, left/right).",
-    "defend": { "hw": 190, "hh": 235, "split": [5, 5] },
+    "defend": { "hw": 165, "hh": 225, "split": [5, 5] },
     "rescue": { "hw": 135, "hh": 150, "split": [2, 2] },
     "rescueShop": { "hw": 180, "hh": 200, "split": [3, 3] },
-    "podGap": 62, "edge": 36, "towerPadIn": 46, "towerPadSearch": 30, "towerPadHug": 28
+    "podGap": 62, "edge": 36
   },
   "traderRoute": { "_doc": "Grid cell, clearance from footprints and walls, and half the gate door opening (world units).", "cell": 6, "clear": 10, "door": 16 },
   "lots": { "_doc": "Lots and streets (POLISH-PLAN item 7B): streets of street units cross at the core (its plaza) and repeat every block + street; square lots of block units between them; buildings keep to one lot along each axis they fit.", "block": 160, "street": 40 },
@@ -60,10 +60,18 @@
   "beltGap": 175, "beltPairs": [[1, 0], [0.75, 0.66], [0.75, -0.66], [0.3, 0.95], [0.3, -0.95]],
   "waveStartMax": 20,
   "defendWaves": {
-    "_doc": "Swarmlings per wave = swarm knob x share: wave 0 firstShare, then +earlyGrowth per wave; weak raids each come from one attack side; from wave lateFrom on (levels with towers or guards to buy) +lateGrowth per wave, packed at lateGap seconds apart instead of gap, from every attack side. Raiders = swarm x (late)Raiders x wave index. The early raids grow until they drop dropsPerEarlyNeed x the walls and one tower per attack side; then the regular waves grow together until those before the last drop dropsPerNeed x the salvage the plan spends; each packed wave stays lateStep x the wave before it. towersPerSide wall towers flank each attack side's gate (fewer when that would pass maxTowers in all); at most maxUpgrades of them get an upgrade pad. With towers or guards to buy there are at least lateFrom + 2 waves. On med bay levels a probe raid (raid) comes through a breach in a quiet side at t s, before the player has scrap to wall it. A defend survive goal lasts surviveTail s past the start of the wave before the last.",
+    "_doc": "Swarmlings per wave = swarm knob x share: wave 0 firstShare, then +earlyGrowth per wave; weak raids each come from one attack side; from wave lateFrom on (levels with towers or guards to buy) +lateGrowth per wave, packed at lateGap seconds apart instead of gap, from every attack side. Raiders = swarm x (late)Raiders x wave index. The early raids grow until they drop dropsPerEarlyNeed x the walls and one tower per attack side; then the regular waves grow together until those before the last drop dropsPerNeed x the whole purchase ladder (every socket's tower, Lv2 and Lv3, the guards, walls and med bay: Batch 3 sizes the waves against it and leaves some of it to buy at the end); each packed wave stays lateStep x the wave before it. With towers or guards to buy there are at least lateFrom + 2 waves. On med bay levels a probe raid (raid) comes through a breach in a quiet side at t s, before the player has scrap to wall it. A defend survive goal lasts surviveTail s past the start of the wave before the last.",
     "firstShare": 0.6, "earlyGrowth": 0.45, "lateFrom": 2, "lateGrowth": 0.6, "finaleGrowthK": 0.5,
-    "raiders": 0.15, "lateRaiders": 0.25, "gap": 0.7, "lateGap": 0.45, "towersPerSide": 2, "maxTowers": 4, "maxUpgrades": 2, "dropsPerNeed": 1.4, "dropsPerEarlyNeed": 1.3, "lateStep": 1.3, "surviveTail": 30,
+    "raiders": 0.15, "lateRaiders": 0.25, "gap": 0.7, "lateGap": 0.45, "dropsPerNeed": 0.6, "dropsPerEarlyNeed": 1.3, "lateStep": 1.3, "surviveTail": 30,
     "raid": { "t": 10, "swarmlings": 4, "raiders": 12, "gap": 0.2 }
+  },
+  "defendSockets": {
+    "_doc": "Batch 3 turret sockets at each attack gate. Spots are [u, v] in world units in the gate's frame: u along the wall from the gate's middle, v outward (negative = inside). start sockets per gate stand from the start, taking inside and outside spots in turn; each unlock opens n more (outside spots first when outside is true) at the gate the next wave comes to, once that many waves have started (capped at the last wave). A spot with no room tries its mirror across the wall, then gives up; a gate with fewer than start sockets fails the layout. A site keeps edge from the map edge, wallClear from every wall, laneClear from the attack lane (the straight line out from the gate) and siteR from every station centre; search is how far it may drift from the wanted spot. An outside socket's pad stands padIn inside the wall.",
+    "start": 4,
+    "inside": [[-86, -50], [86, -50], [-150, -50], [150, -50]],
+    "outside": [[-50, 58], [50, 58], [-50, 124], [50, 124]],
+    "unlocks": [{ "wave": 3, "n": 2, "outside": true }],
+    "edge": 6, "wallClear": 6, "laneClear": 14, "siteR": 22, "search": 24, "padIn": 34
   },
   "conveyorGoals": ["produce", "chain", "converters_running", "automate", "stockpile"],
   "footprints": {

@@ -46,7 +46,6 @@ export type SimEvent =
   | { t: "barrier_progress"; line: string; section: number; paid: number; cost: number }
   | { t: "barrier_built"; line: string; section: number }
   | { t: "barrier_broken"; line: string; section: number }
-  | { t: "barrier_repaired"; line: string; section: number; cost: number; rebuilt: boolean }
   | { t: "injured"; resident: number }
   | { t: "animal_charge"; id: number; at: Vec }
   | { t: "healed"; resident: number }
@@ -71,12 +70,11 @@ export type HintKey =
   | "operate_converter"
   | "wave_incoming"
   | "barrier_broken"
-  | "barrier_damaged"
   | "hazard_warning";
 
 /** Event types that count as the player doing something (for the idle-time stat). */
 export const ACTION_EVENTS: ReadonlySet<SimEvent["t"]> = new Set<SimEvent["t"]>([
-  "gathered", "deposited", "collected", "pad_paid", "picked", "hit", "barrier_progress", "barrier_repaired", "captured",
+  "gathered", "deposited", "collected", "pad_paid", "picked", "hit", "barrier_progress", "captured",
 ]);
 
 /** Event types the rater treats as rewards. */

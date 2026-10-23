@@ -106,6 +106,7 @@ registerModel("struct.barracks", (ctx) => buildGuardPost(ctx));
 registerModel("struct.training", (ctx) => buildGuardPost(ctx));
 registerModel("struct.ranged_defense", (ctx) => buildTurret(ctx));
 registerModel("struct.ranged_defense.t2", (ctx) => buildTurret({ ...ctx, level: Math.max(2, ctx.level) }));
+registerModel("struct.ranged_defense.t3", (ctx) => buildTurret({ ...ctx, level: Math.max(3, ctx.level) }));
 registerModel("struct.landmark", (ctx) => buildLandmark(ctx));
 registerModel("struct.depot", (ctx) => buildWarehouse(ctx), ["deposit", "pickup"]);
 registerModel("store.depot", (ctx) => buildWarehouse(ctx), ["deposit", "pickup"]);

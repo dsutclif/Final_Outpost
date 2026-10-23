@@ -33,7 +33,7 @@
       "parts": { "muzzle": [0, 0.27, 0.78] } },
     { "file": "struct.ranged_defense.head2", "src": "Turret Top 2.glb", "id": "struct.ranged_defense", "level": 2, "tris": 600, "texture": 512, "yaw": 11, "width": 1.1, "offset": [0, 0.17], "slot": ["headBody"],
       "parts": { "muzzle": [0, 0.45, 0.76] } },
-    { "file": "struct.ranged_defense.head3", "src": "Turret Top 3.glb", "id": "struct.ranged_defense", "level": 3, "tris": 600, "texture": 512, "yaw": 90, "width": 1.2, "offset": [0, 0.25], "slot": ["headBody"], "unwired": true,
+    { "file": "struct.ranged_defense.head3", "src": "Turret Top 3.glb", "id": "struct.ranged_defense", "level": 3, "tris": 600, "texture": 512, "yaw": 90, "width": 1.2, "offset": [0, 0.25], "slot": ["headBody"],
       "parts": { "muzzle": [0, 0.4, 0.9] } },
     { "file": "prop.rifle_guard", "src": "Guard Gun.glb", "id": "prop.rifle_guard", "kind": "prop", "tris": 600, "lod": 100, "texture": 256, "yaw": 0, "width": 0.55,
       "tools": { "tool.rifle_guard": [0, -0.13, 0.08, 0, 90, 0, 0.8] } },

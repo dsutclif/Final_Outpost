@@ -1102,10 +1102,21 @@ export class Renderer3D implements Renderer {
     });
   }
 
+  /** A tower site on a wall post (R3 wall towers) stands on a plinth; a gate socket (Batch 3) stands on the ground. */
+  private onWallAt(site: { x: number; y: number }, s: State): boolean {
+    const px = site.x * FP, py = site.y * FP, r = 8 * FP;
+    return s.barriers.some((b) => b.sections.some((sec) => {
+      const ax = sec.a.x, ay = sec.a.y, dx = sec.b.x - ax, dy = sec.b.y - ay, L2 = dx * dx + dy * dy;
+      const t = L2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L2));
+      return Math.hypot(px - ax - t * dx, py - ay - t * dy) < r;
+    }));
+  }
+
   private syncStructures(s: State): void {
     for (const st of s.structures) {
       const key = `s:${st.id}:${st.type}:${st.level}`;
-      const onWall = st.type === "struct.ranged_defense" && !!this.pads.get(st.id)?.site;
+      const site = this.pads.get(st.id)?.site;
+      const onWall = st.type === "struct.ranged_defense" && !!site && this.onWallAt(site, s);
       const p = this.place(key, st.type, this.wv(st.pos), st.level, onWall ? (ctx) => this.wallTurret(ctx) : undefined);
       this.candidate(st.type, p);
       if (st.type === "struct.ranged_defense") this.aimTurret(p, st, s);
@@ -1412,7 +1423,7 @@ export class Renderer3D implements Renderer {
       const artH = (rows === 2 ? PAD_ART_H2 : PAD_ART_H) + (lockTxt ? PAD_LOCK_H : 0);
       sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, owed, pad.locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
       // a pad that places a new model shows its blueprint at full size, so a name never floats over nothing
-      const ghostH = ghosts.has(pad.id) ? this.syncGhost(p, info!.what, info!.site ? v3(info!.site.x, 0, info!.site.y) : at, fill, !!info!.site) : this.hideGhost(p);
+      const ghostH = ghosts.has(pad.id) ? this.syncGhost(p, info!.what, info!.site ? v3(info!.site.x, 0, info!.site.y) : at, fill, !!info!.site && this.onWallAt(info!.site, s)) : this.hideGhost(p);
       // the belt's pad sits on the belt itself (generator: mid-run), so its name and price lie on the belt blueprint, not above it
       const onBelt = info?.what === "struct.conveyor";
       const lift = onBelt ? BELT_TOP + 0.12 : Math.max(1.25, ghostH + 0.3);
@@ -1581,25 +1592,28 @@ export class Renderer3D implements Renderer {
           // the Meshy gate keeps its own width and wall runs fill the section either side; the code
           // gate (authored for a 2 m opening) still stretches to the section
           const gw = p.model.root.userData["meshy"] ? (meshyBounds("struct.gate")?.[3] ?? 0) * 2 * ART_M : 0;
-          this.popScale(p, ART_M, sec.built ? (gw > 0 && gw < len ? 1 : len / (2.6 * ART_M)) : 0.0001, 1);
-          if (sec.built && gw > 0 && gw < len) {
+          // Batch 3: a broken gate stays as a slumped wreck (it can never be rebuilt); the walls beside it stand
+          const up = sec.built || sec.broken === true;
+          this.popScale(p, ART_M, up ? (gw > 0 && gw < len ? 1 : len / (2.6 * ART_M)) : 0.0001, 1);
+          if (sec.broken) { p.model.root.scale.y *= 0.35; p.model.root.rotation.z = 0.12; } else p.model.root.rotation.z = 0;
+          if (up && gw > 0 && gw < len) {
             const side = (1 - gw / len) / 2;
-            this.wallRun(a, dx, dz, ang, len, 0, side, reinforced, sec.hp < sec.hpMax * 0.5, 1);
-            this.wallRun(a, dx, dz, ang, len, 1 - side, 1, reinforced, sec.hp < sec.hpMax * 0.5, 1);
+            this.wallRun(a, dx, dz, ang, len, 0, side, reinforced, false, 1);
+            this.wallRun(a, dx, dz, ang, len, 1 - side, 1, reinforced, false, 1);
           }
-          if (!sec.built) p.model.root.visible = false; else p.model.root.visible = true;
+          p.model.root.visible = up;
           if (sec.built) this.gateDoors(p, mid);
           const lamp = p.model.parts["lamp"] as Mesh | undefined;
-          if (lamp) (lamp.material as MeshBasicMaterial).color.set(sec.hp < sec.hpMax * 0.5 ? this.tokens.danger : this.tokens.ok);
+          if (lamp) (lamp.material as MeshBasicMaterial).color.set(!sec.built || sec.hp < sec.hpMax * 0.5 ? this.tokens.danger : this.tokens.ok);
         }
-        if (sec.built) this.wallHp(b.id, i, sec, mid, s);
+        // only gates take damage (Batch 3), so only a gate carries hp pips
+        if (sec.built && sec.gate) this.wallHp(b.id, i, sec, mid, s);
         else this.hideWallHp(b.id, i);
-        this.repairMarker(b, i, sec, mid, s);
         if (sec.built && !sec.gate) {
           const pop = this.fx!.popAge(`bar:${b.id}:${i}`);
           const k = pop < 0.45 ? Math.min(1.12, (pop / 0.3) * 1.12) - Math.max(0, pop - 0.3) * 0.8 : 1;
-          this.wallRun(a, dx, dz, ang, len, 0, 1, reinforced, sec.hp < sec.hpMax * 0.5, k);
-        } else if (!sec.built) {
+          this.wallRun(a, dx, dz, ang, len, 0, 1, reinforced, false, k);
+        } else if (!sec.built && !sec.broken) {
           // dashed marker plus a floating cost
           const nd = Math.max(1, Math.floor(len / 14));
           for (let j = 0; j < nd; j++) {
@@ -1609,9 +1623,7 @@ export class Renderer3D implements Renderer {
           }
           const key = `barl:${b.id}:${i}`;
           const holder = this.place(key, "barrier.line", mid, 1, () => ({ root: new Group(), cls: "decal", parts: {} }));
-          const rp = s.params["barrier.repairPm"] ?? 0;
-          const need = sec.broken && rp > 0 ? Math.max(1, Math.ceil((b.costPerSection * rp) / 1000)) : b.costPerSection;
-          const left = Math.max(0, need - sec.paid);
+          const left = Math.max(0, b.costPerSection - sec.paid);
           this.candidatePt("barrier.line", mid.x, mid.z, ART_M * 1.6);
           const sp = this.sprite(holder, 0);
           sp.visible = this.labels.apply(sp, `bl|${b.res}|${left}`, () => this.costArt(b.res, left), textSprite(TEXT.main, 40, 70));
@@ -1632,23 +1644,6 @@ export class Renderer3D implements Renderer {
     const on = Math.max(0, Math.ceil((sec.hp / sec.hpMax) * pips));
     sp.visible = this.labels.apply(sp, `hp|${on}|${pips}`, () => this.hpArt(on, pips), 7);
     sp.position.set(mid.x, ART_M * 1.25, mid.z);
-  }
-
-  /** "Repair" marker (the repair price) floating over a damaged standing section; only when repair is on. */
-  private repairMarker(b: State["barriers"][number], i: number, sec: State["barriers"][number]["sections"][number], mid: Vector3, s: State): void {
-    const key = `rep:${b.id}:${i}`;
-    const rp = s.params["barrier.repairPm"] ?? 0;
-    if (rp <= 0 || !sec.built || sec.hp >= sec.hpMax) {
-      const p = this.placed.get(key);
-      if (p) p.seen = false;
-      return;
-    }
-    const cost = Math.max(1, Math.ceil((b.costPerSection * rp) / 1000));
-    const holder = this.place(key, "barrier.repair", mid, 1, () => ({ root: new Group(), cls: "decal", parts: {} }));
-    this.candidatePt("barrier.repair", mid.x, mid.z, ART_M * 1.6);
-    const sp = this.sprite(holder, 0);
-    sp.visible = this.labels.apply(sp, `rp|${b.res}|${cost}`, () => this.costArt(b.res, cost), textSprite(TEXT.main, 40, 70));
-    sp.position.set(mid.x, ART_M * (1.95 + Math.sin(this.t * 3 + i) * 0.05), mid.z);
   }
 
   private hideWallHp(line: string | number, i: number): void {
@@ -2590,11 +2585,6 @@ export class Renderer3D implements Renderer {
         fx.dustRing(at, mix(t.structure, t.groundAlt, 0.3), 12, 80, 6);
         break;
       }
-      case "barrier_repaired":
-        fx.pop(`bar:${String(e["line"])}:${String(e["section"])}`);
-        fx.burst(up(at, 10), [t.ok, t.structure], 12, 90, 200, 4, 0.4);
-        fx.floater(ft("barrier_repaired"), t.ok, up(at, ART_M * 1.4), 40);
-        break;
       case "barrier_broken":
         fx.shake = Math.max(fx.shake, 7);
         fx.burst(up(at, 12), [t.structure, t.structureDark], 18, 140, 260, 6);

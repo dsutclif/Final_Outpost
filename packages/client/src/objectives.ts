@@ -32,7 +32,7 @@ function iconOf(kind: string, index: number): ObjectiveView["icon"] {
   if (CLOCK_ICON.has(kind)) return "clock";
   if (kind === "heat_floor" || kind === "settlement_never_freezes") return "heat";
   if (kind === "no_colonist_freezes") return "freeze";
-  if (kind === "hp_floor" || kind === "no_injuries" || kind === "no_wall_lost") return "shield";
+  if (kind === "hp_floor" || kind === "no_injuries" || kind === "gate_held") return "shield";
   return "target";
 }
 

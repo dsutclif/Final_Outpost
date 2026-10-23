@@ -139,10 +139,13 @@ function sizeGoal(b: Built, c: Content, lengthS: number): string | null {
   return null;
 }
 
+/** The turret ladder (towers and their levels): meant to outlast the level, never cut (Batch 3). */
+const ladderPad = (e: Manifest["entities"][number]): boolean => e.type === "pad.build" && e.build.startsWith("struct.ranged_defense");
+
 /** Automation a level can do without: hires, belts, machine levels, upgrades and wall reinforcement. */
 function optionalPad(e: Manifest["entities"][number], c: Content): boolean {
   if (e.type === "pad.hire") return true;
-  if (e.type !== "pad.build") return false;
+  if (e.type !== "pad.build" || ladderPad(e)) return false;
   return e.build === "conv.level" || e.build === "struct.conveyor" || e.build === "struct.barrier.reinforced" || !!c.upgrades[e.build];
 }
 
@@ -191,11 +194,13 @@ function idleElements(m: Manifest, runs: readonly BotResult[]): string[] {
   const convs = new Set(wins.flatMap((r) => r.used.converters));
   const out: string[] = [];
   for (const e of m.entities) {
-    if ((e.type === "pad.hire" || e.type === "pad.build") && !pads.has(e.id)) out.push(`pad ${e.id}`);
+    if ((e.type === "pad.hire" || e.type === "pad.build") && !pads.has(e.id) && !ladderPad(e)) out.push(`pad ${e.id}`);
     if (e.type === "barrier.line" && !lines.has(e.id)) out.push(`line ${e.id}`);
     // A converter counts once it is producing, or bought with its feed in place (a chain still filling when the goal lands).
     if (e.type === "pad.build" && e.build.startsWith("conv.") && e.build !== "conv.level" && !convs.has(e.id) && !pads.has(e.id)) out.push(`converter ${e.id}`);
   }
+  // Some of the turret ladder must be bought; the rest is left to build until the end (Batch 3).
+  if (m.entities.some(ladderPad) && !m.entities.some((e) => ladderPad(e) && pads.has((e as { id: string }).id))) out.push("turret ladder");
   // Gatherables count by what they yield: a fuel forest of scrap and material sources is one element.
   const yields = (t: string) => defaultContent.nodes[t]?.yields ?? t;
   const usedYields = new Set([...nodes].map(yields));
@@ -226,7 +231,7 @@ function earned(o: Obj, r: BotResult): boolean {
     case "no_angry_customers": return s.customersAngry === 0;
     case "no_injuries": return s.injured === 0;
     case "hp_floor": return s.hpMin >= Number(o.params["pct"]);
-    case "no_wall_lost": return s.barriersLost === 0;
+    case "gate_held": return s.barriersLost === 0;
     case "no_stockpile_overload": return !s.overload;
     case "tow_full_trip": return s.tripBestClean >= Number(o.params["n"]);
     case "tow_trip": return s.tripBest >= Number(o.params["n"]);

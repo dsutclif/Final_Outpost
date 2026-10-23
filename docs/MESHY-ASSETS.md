@@ -145,7 +145,7 @@ Triangle targets are lower than batch 1 because these repeat (walls, doors, head
 | Warehouse | `struct.depot` | 1,400 | Open-roof bin, low front lip to +z; 2.1 m (near square, so narrower than the code bin); deposit/pickup moved to z 1.15. `store.depot` stays code-built |
 | Wall 1 / Wall 2 | `struct.barrier` / reinforced (`batch`) | 160 / 220 | 1.3 m / 1.5 m tall (taller than a colonist; Doug 2026-10-18, wall-tower plinths raised to 1.6 m), native proportions; each section lays whole tiles end to end. Below half hp the same tile is cut to a jagged top and darkened (generated at load) |
 | Turret Top 1/2 | head, `struct.ranged_defense` L1 / `.t2` | 450 / 600 | Yaw 90 / 11 so barrels face +z (Top 2 measured off the mesh: ring centre on the pivot, barrel tip at +z); offset so the turret ring sits on the base axis; muzzle flash moved to the barrel tips |
-| Turret Top 3 | head, L3 | 600 | Built, `unwired` (no t3 in content yet): drop the flag when a t3 exists |
+| Turret Top 3 | head, L3 / `.t3` | 600 | Wired with the t3 tower (Batch 3, engine 0.13.0) |
 
 Held props (`prop.*`, Smart Topology originals ~4k tris): each is baked twice, a game-size
 `<file>.glb` (~600 tris; shield and minigun ~1,000, cart 1,500) kept for the rigged Meshy

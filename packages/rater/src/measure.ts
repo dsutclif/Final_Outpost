@@ -36,8 +36,10 @@ export interface Measurement {
   /** Reference bot replayed with priority-order variants (decisiveness). */
   variants: BotResult[];
   metrics: Metrics;
-  /** Mean wall repairs per reference-bot run (0 while barrier.repairK is off). */
-  repairs: number;
+  /** Mean share of hostile kills the reference bot landed itself (-1: no kills). Batch 3: it keeps shooting. */
+  playerKillShare: number;
+  /** Mean salvage price of turret-ladder pads the reference bot left unbought at the end (-1: no ladder). */
+  ladderLeft: number;
   /** Mean goods the reference bot took back out of the warehouse per run. */
   depotPicks: number;
   /** Mean share of guard-seconds under attack spent on the attacked side (-1 where no guard ever rallied). */
@@ -86,13 +88,16 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const template = opts.template ?? manifest.map.zones.join("|");
   const history = opts.history ?? [];
   const metrics = computeMetrics(manifest, content, plan, runs, budgetTicks, history);
-  const repairs = mean(runs[REFERENCE]!.map((r) => r.trace.repairs));
+  const shares = runs[REFERENCE]!.map((r) => r.trace.playerKillShare).filter((x) => x >= 0);
+  const playerKillShare = shares.length > 0 ? mean(shares) : -1;
+  const lefts = runs[REFERENCE]!.map((r) => r.trace.ladderLeft).filter((x) => x >= 0);
+  const ladderLeft = lefts.length > 0 ? mean(lefts) : -1;
   const depotPicks = mean(runs[REFERENCE]!.map((r) => r.trace.depotPicks));
   const rallied = runs[REFERENCE]!.map((r) => r.trace.rallyShare).filter((x) => x >= 0);
   const rallyShare = rallied.length > 0 ? mean(rallied) : -1;
   const capHoldMax = Math.max(0, ...runs[REFERENCE]!.map((r) => r.trace.capHoldMax));
   const worst = runs[REFERENCE]!.reduce((a, r) => (r.trace.loopMax > a.trace.loopMax ? r : a));
-  return { manifest, plan, runs, variants, metrics, repairs, depotPicks, rallyShare, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, terrain: terrainStats(manifest), budgetTicks, template, history };
+  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, rallyShare, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, terrain: terrainStats(manifest), budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,
