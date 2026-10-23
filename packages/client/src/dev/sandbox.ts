@@ -18,15 +18,14 @@ const params = new URLSearchParams(location.search);
 const LEVELS = 60;
 const reqs = sequenceRange(1, LEVELS);
 const baseFootprints = structuredClone(GEN.footprints);
-const sizedKey = (k: string) => /^(sink|conv|struct)\./.test(k);
+const sizedKey = (k: string) => /^(sink|conv|struct)\./.test(k) || k === "node.food_source";
 
 interface Knob { key: string; label: string; min: number; max: number; step: number; def: number; rebuild: boolean }
 const KNOBS: Knob[] = [
-  { key: "block", label: "Lot size", min: 20, max: 240, step: 10, def: GEN.lots.block, rebuild: true },
-  { key: "street", label: "Street width", min: 0, max: 80, step: 5, def: GEN.lots.street, rebuild: true },
   { key: "gap", label: "Building gap", min: -10, max: 30, step: 1, def: GEN.spacing.footprintGap, rebuild: true },
-  { key: "margin", label: "Pad margin", min: 0, max: 30, step: 1, def: GEN.spacing.margin, rebuild: true },
   { key: "pull", label: "Pull to core", min: 0, max: 8, step: 0.1, def: GEN.spacing.corePull, rebuild: true },
+  { key: "fpull", label: "Pull fields in", min: 0, max: 0.9, step: 0.05, def: GEN.spacing.fieldPull ?? 0, rebuild: true },
+  { key: "char", label: "Character size", min: 0.5, max: 2, step: 0.05, def: 1, rebuild: false },
   { key: "size", label: "Building size", min: 0.6, max: 1.5, step: 0.05, def: 1, rebuild: true },
   { key: "zoom", label: "View width", min: 100, max: 450, step: 10, def: VIEW_W, rebuild: false },
   { key: "text", label: "Text size", min: 0.6, max: 1.8, step: 0.05, def: 1, rebuild: false },
@@ -82,7 +81,8 @@ $("copy").onclick = async () => {
 };
 
 const statusEl = $("status");
-function status(t: string, err = false): void { statusEl.textContent = t; statusEl.classList.toggle("err", err); }
+// a failed build leaves the last good base on screen: dim it so it is not mistaken for the new values
+function status(t: string, err = false): void { statusEl.textContent = t; statusEl.classList.toggle("err", err); stage.style.opacity = err ? "0.35" : "1"; }
 
 // ---------------------------------------------------------------- build
 
@@ -94,11 +94,12 @@ function schedule(ms = 300): void {
 }
 
 function applyKnobs(): void {
-  GEN.lots.block = val.block!;
-  GEN.lots.street = val.street!;
+  GEN.lots.block = 60; // fixed at Doug's chosen values (BACKLOG-R4 batch 0)
+  GEN.lots.street = 0;
   GEN.spacing.footprintGap = val.gap!;
-  GEN.spacing.margin = val.margin!;
+  GEN.spacing.margin = 0;
   GEN.spacing.corePull = val.pull!;
+  GEN.spacing.fieldPull = val.fpull!;
   const s = val.size!;
   for (const [k, b] of Object.entries(baseFootprints)) {
     GEN.footprints[k] = sizedKey(k) ? [Math.round(b[0] * s), Math.round(b[1] * s), Math.round(b[2] * s), Math.round(b[3] * s)] : [...b];
@@ -160,6 +161,7 @@ function rebuild(): void {
   renderer.devBuildScale = val.size!;
   renderer.hudAnchor = () => ({ x: 40, y: 24 });
   renderer.init(sim.compiled.manifest, getSkin(DEFAULT_SKIN), stage);
+  (window as unknown as { __sandbox: unknown }).__sandbox = { renderer, sim, built };
   applyView();
   centre();
   const core = built.manifest.entities.find((e) => (e as { type: string }).type === "sink.core") as { at?: [number, number] } | undefined;
@@ -169,7 +171,7 @@ function rebuild(): void {
 }
 
 function applyView(): void {
-  if (renderer) { renderer.camOverride = { pitch: PITCH_DEG, yaw: YAW_DEG, fov: FOV_DEG, viewW: val.zoom! }; renderer.devTextScale = val.text!; }
+  if (renderer) { renderer.camOverride = { pitch: PITCH_DEG, yaw: YAW_DEG, fov: FOV_DEG, viewW: val.zoom! }; renderer.devTextScale = val.text!; renderer.devCharScale = val.char!; }
   // the text slider reads as the main text size it gives (units.ts TEXT.main)
   if (outs.text) outs.text.textContent = String(Math.round(TEXT.main * val.text! * 10) / 10);
 }
