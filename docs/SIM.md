@@ -28,7 +28,7 @@ document it here; the order is part of the determinism contract.
 | 3 | `stepCore` (core.ts) | Burns fuel on the burn interval (× hazard multiplier while active). |
 | 3a | `stepFreeze` (freeze.ts) | Lifeline recovers and frost thaws while fuel lasts; with the core empty the reactor-out countdown runs and residents freeze one at a time. |
 | 4 | `stepNodes` (nodes.ts) | Finite nodes regrow. |
-| 5 | `stepBarrierBuild` (barriers.ts) | Player near an unbuilt section with the line's resource pays one unit per build interval; a paid-up section becomes solid. |
+| 5 | `stepBarrierBuild` (barriers.ts) | Player near an unbuilt section with the line's resource pays one unit per build interval; a paid-up section becomes solid. Nothing is repaired and a broken gate is never rebuilt (Batch 3). |
 | 6 | `playerAct` (player.ts) | Proximity actions in prototype priority: pads → core → sales shelf → converters (deposit input, pick up output) → gather. |
 | 7 | `playerCombat` (player.ts) | Auto-attack the nearest prey or hostile in range. |
 | 8 | `pickDrops`, `collectPile` (player.ts) | Walk-over pickup of drops (if the backpack has room) and the register's currency pile. |
@@ -39,7 +39,7 @@ document it here; the order is part of the determinism contract.
 | 13 | `stepSales` (sales.ts) | Customers spawn (producible goods only, and no drop-only good while its shelf is empty; fast refill while the line is short), queue, give up, are served at their slot while the clerk pad is staffed by the player or a cashier. |
 | 14 | `stepConverters` (converters.ts) | Convert one input per rate while operated. |
 | 15 | `stepHunting` (hunting.ts) | Prey roam inside their zone and respawn. |
-| 16 | `stepDefense` (defense.ts) | Wave schedule, hostile spawn on the wave's sides, barrier stop (segment crossing) and damage, base attacks and injuries, hostile contact with the player (tow drop), ranged defenses, wave cleared. |
+| 16 | `stepDefense` (defense.ts) | Wave schedule, hostile spawn down a narrow lane in line with each side's attack gate (`defense.laneHalfWidth`), walk to the nearest opening on that side or else the gate; walls block and never take damage, the gate is hit until it breaks (Batch 3); base attacks and injuries, hostile contact with the player (tow drop), ranged defenses, wave cleared. |
 | 17 | `refreshPads` (pads.ts) | Recomputes `visible` and `locked` on every pad for renderers and bots. |
 | 18 | `stepStats` (stats.ts) | Counters from this tick's events and state. |
 | 18a | `stepObjectives` (objectives.ts) | Evaluates every star objective (main goal first) from state and stats. |
@@ -70,7 +70,7 @@ Positions are `Vec {x, y}` in fixed point. Field names follow Contract 1 in `doc
 | `pads[]` | `{id, type, pos, done, paid, visible, locked}` | `paid` is per resource; `locked` = core level too low or (hire) nobody idle. |
 | `built[]` | string[] | Ids of completed build pads (goal `build` reads it). |
 | `structures[]` | `{id, type, pos, level, hp?, hpMax?, acc}` | Id = the pad that built it. Ranged defenses use `level` for their tier. |
-| `barriers[]` | `{id, a, b, res, costPerSection, sections[], closed}` | Section: `{a, b, built, hp, hpMax, gate, paid}`. Gates pass walkers, block hostiles. `closed` lines are rings. |
+| `barriers[]` | `{id, a, b, res, costPerSection, sections[], closed}` | Section: `{a, b, built, hp, hpMax, gate, paid}`. Gates pass walkers, block hostiles. Only gates take damage; a broken gate keeps `broken` and is never rebuilt. `closed` lines are rings. |
 | `zones[]` | `{id, type, rect, cleared}` | `zone.blocked` blocks until cleared; `zone.waiting` places the waiting area. |
 | `preyZones[]` | `{id, rect, animal}` | Roam areas; `prey[].zone` indexes this. |
 | `captures[]` | `{id, type, pos, state, timer, freezeTicks}` | `state` ∈ idle, towed, releasing. Removed once released, delivered (crates) or lost. `freezeTicks` counts down while idle or towed; 0 = no timer. |
@@ -86,7 +86,7 @@ Positions are `Vec {x, y}` in fixed point. Field names follow Contract 1 in `doc
 | `objectives[]` | `{id, kind, progress, target, done, failed}` | Star objectives in manifest order (main goal first; one synthesised `main` from `goal` when the manifest lists none). `failed` = can no longer be achieved. At level end every entry settles to done or failed. |
 | `gateQueue[]` | int[] | Resident ids queued at the arrivals gate. |
 | `timers` | `{gateAcc, gateLeft}` | |
-| `stats` | `{sold, built, rescued, injured, barriersLost, lifelineLowTicks, concurrentDemandTicks, idleTicks, rewardTicks[], ...}` | Cheap counters for bots, the rater and objectives. 0.5.0 adds `fuelOuts, froze, heatMin` (per mille of fuel cap), `customersSpawned, customersAngry, earned, soldUnits{res}, streak, streakMax, bulkServed, unlocked, hired, hiredBy{role}, converted, convertedBy{res}, tier2Made, hauled, kills, bossKills, preyKilled, protein, salvage, crates, podsLost, wavesCleared, admitted, zonesCleared, hazardsSurvived, tripBest, tripBestClean, lastPlayerDeposit, salesSinceDeposit`. |
+| `stats` | `{sold, built, rescued, injured, barriersLost, lifelineLowTicks, concurrentDemandTicks, idleTicks, rewardTicks[], ...}` | Cheap counters for bots, the rater and objectives. 0.5.0 adds `fuelOuts, froze, heatMin` (per mille of fuel cap), `customersSpawned, customersAngry, earned, soldUnits{res}, streak, streakMax, bulkServed, unlocked, hired, hiredBy{role}, converted, convertedBy{res}, tier2Made, hauled, kills, killsBy{player|resident|structure} (0.13.0), bossKills, preyKilled, protein, salvage, crates, podsLost, wavesCleared, admitted, zonesCleared, hazardsSurvived, tripBest, tripBestClean, lastPlayerDeposit, salesSinceDeposit`. |
 | `lastHint`, `over`, `won`, `reason` | | Hint throttling and level end. |
 
 Derived helpers exported from `@fo/sim`: `safeRadius(state, compiled)`, `population`,
@@ -129,7 +129,7 @@ caused the event. Positions are fixed point.
 | `boss_spawned` | id, kind, at | A hostile whose content `boss` flag is set spawned. |
 | `converter_upgraded` | conv, level | A `conv.level` pad raised a converter. |
 | `hit` | target, id, at, by | `target` ∈ hostile, prey, base, barrier, player; `by` ∈ player, resident, structure, hostile. |
-| `died` | kind, id, at | Hostile or prey killed. |
+| `died` | kind, id, at, by? | Hostile or prey killed; for hostiles `by` says who landed the last hit (player, resident, structure). |
 | `drop` | res, at | Loot landed (already relocated inside the barrier if it fell beyond it). |
 | `picked` | res, at, by? | Drop or converter output picked up. |
 | `wave_started` | idx | 1-based wave number. |
@@ -154,7 +154,7 @@ Hint keys: `carry_max`, `core_full`, `stand_at_register`, `not_enough_currency`,
 
 `packages/content/data`: `resources`, `nodes` (gatherables, with a `workerRate`), `animals`
 (`node.prey`), `sinks`, `converters`, `roles`, `customers`, `enemies` (`hostile.*`), `lassoables`
-(`capture.*`), `structures` (`struct.*`), `upgrades` (`struct.*.t2`, `struct.barrier.reinforced`),
+(`capture.*`), `structures` (`struct.*`), `upgrades` (`struct.*.t2`, `struct.ranged_defense.t3`, `struct.barrier.reinforced`),
 `events` (`event.hazard`), `consumers` (routing priorities), `goals`, `objectives`, `modules`, `defaults`.
 `objectives` is the registry of every objective kind (`{description, families, main, guard, params}`);
 `goals` stays the generator's goal-type catalog. Structures, upgrades and roles may carry a default

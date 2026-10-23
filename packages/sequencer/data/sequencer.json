@@ -83,7 +83,7 @@
       "challenges": ["no_stockpile_overload", "hire", "settlement_never_freezes", "heat_floor"]
     },
     "defend": {
-      "modules": ["defense"],
+      "modules": ["defense", "defenders"],
       "teachGoal": "waves",
       "intro": [["turrets", "multi_side", "salvage_upgrades"], ["defenders", "bosses", "med_bay"]],
       "challenges": ["hp_floor", "no_injuries", "gate_held", "hire", "heat_floor"]

@@ -121,7 +121,7 @@ export class Brain {
   /**
    * The defence spend policy (Batch 3): with the next purchase a defence one, buy the first guards (the
    * guard post stands from the start, so they are the first purchase), then towers, then Lv2 and further
-   * guards, then Lv3; steps on the goal path before the rest, and within a rank the socket on the side the
+   * guards, then Lv3; after the first guards, steps on the goal path before the rest, and within a rank the socket on the side the
    * next wave comes from, then the cheapest.
    * -1 for steps that are not defence purchases (plan order holds for those).
    */
@@ -140,7 +140,9 @@ export class Brain {
     const side = site ? sideOf(st, { x: site[0] * FP, y: site[1] * FP }) : null;
     const cost = Object.values(this.remaining(st, pad, s)).reduce((a, n) => a + n, 0);
     // a goal on the ladder (a tower level, N guards) is bought toward first
-    return (s.goalPath ? 0 : 1e7) + this.ladderRank(s) * 1e6 + (next !== null && side !== null && side !== next ? 1e5 : 0) + cost;
+    const rank = this.ladderRank(s);
+    // the first guards come first of all (the guard post stands: hiring is the first purchase)
+    return (rank === 0 || s.goalPath ? 0 : 1e7) + rank * 1e6 + (next !== null && side !== null && side !== next ? 1e5 : 0) + cost;
   }
 
   /** Remaining cost of a pad at its current (automation-taxed) price, per resource. */

@@ -87,9 +87,20 @@ export function flowModel(m: Manifest, plan: Plan, c: Content, budgetSeconds: nu
   let t = 0, cur = P("start.currency"), busy = 0;
   const advance = (dt: number) => { t += dt; busy += dt * Math.min(1, 0.55 + feedShare()); };
   const padById = new Map(m.entities.filter((e) => e.type === "pad.hire" || e.type === "pad.build").map((e) => [(e as { id: string }).id, e] as const));
+  // The turret ladder's surplus (Lv3s, sockets that open with the waves, guards past the first two) is
+  // meant to be left over (Batch 3): only its core is walked.
+  const reqOf = (id: string) => (padById.get(id) as { requires?: { pad?: string; wave?: number } } | undefined)?.requires;
+  const surplus = (id: string): boolean => {
+    for (let x: string | undefined = id, i = 0; x && i < 8; x = reqOf(x)?.pad, i++) {
+      const e = padById.get(x);
+      if ((e?.type === "pad.build" && e.build === "struct.ranged_defense.t3") || reqOf(x)?.wave !== undefined) return true;
+    }
+    return false;
+  };
   for (const s of plan.steps) {
-    if (s.when !== "always") continue;
-    for (let k = 0; k < s.repeat; k++) {
+    if (s.when !== "always" || surplus(s.pad)) continue;
+    const guardHire = (padById.get(s.pad) as { role?: { role: string } } | undefined)?.role?.role === "role.defender";
+    for (let k = 0; k < (guardHire ? Math.min(2, s.repeat) : s.repeat); k++) {
       const cost = Object.entries(s.cost).reduce((a, [r, n]) => a + (c.resources[r]?.cap === null ? n : 0), 0);
       const capped = Object.entries(s.cost).reduce((a, [r, n]) => a + (c.resources[r]?.cap !== null ? n : 0), 0);
       const wait = Math.max(0, cost - cur) / income();

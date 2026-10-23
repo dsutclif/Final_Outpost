@@ -142,11 +142,14 @@ function sizeGoal(b: Built, c: Content, lengthS: number): string | null {
 /** The turret ladder (towers and their levels): meant to outlast the level, never cut (Batch 3). */
 const ladderPad = (e: Manifest["entities"][number]): boolean => e.type === "pad.build" && e.build.startsWith("struct.ranged_defense");
 
-/** Automation a level can do without: hires, belts, machine levels, upgrades and wall reinforcement. */
+/**
+ * Automation a level can do without: hires, belts, machine levels, upgrades and wall reinforcement; and the
+ * med bay, when no winning run has anyone hurt (Batch 3: the gate funnel lets the bot stop the probe raid).
+ */
 function optionalPad(e: Manifest["entities"][number], c: Content): boolean {
   if (e.type === "pad.hire") return true;
   if (e.type !== "pad.build" || ladderPad(e)) return false;
-  return e.build === "conv.level" || e.build === "struct.conveyor" || e.build === "struct.barrier.reinforced" || !!c.upgrades[e.build];
+  return e.build === "conv.level" || e.build === "struct.conveyor" || e.build === "struct.barrier.reinforced" || e.build === "struct.medical" || !!c.upgrades[e.build];
 }
 
 /** Remove these pads and every pad that requires one of them. */
@@ -477,7 +480,11 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
         // Optional automation the winning bot never needed (manual-first and the automation tax make the
         // late extras not worth buying): later builds of this level leave those pads out.
         const extra = idle.map((s) => s.startsWith("pad ") ? m.entities.find((e) => "id" in e && e.id === s.slice(4)) : undefined);
-        if (extra.every((e) => e && optionalPad(e, c))) for (const e of extra) dropped.add((e as { id: string }).id);
+        if (extra.every((e) => e && optionalPad(e, c))) for (const e of extra) {
+          dropped.add((e as { id: string }).id);
+          // a dropped med bay leaves the medical module with nothing to do
+          if (e!.type === "pad.build" && e!.build === "struct.medical") droppedMods.add("medical");
+        }
         log(`  it${it} idle elements: ${idle.join(", ")}${dropped.size > 0 ? ` (dropping ${[...dropped].join(", ")})` : ""}`);
       }
       else {

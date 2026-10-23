@@ -67,6 +67,8 @@ export interface TerrainCtx {
   /** Defend: the ring's rect and the sides hostiles come from. */
   ring: Rect | null;
   attackSides: readonly ("n" | "e" | "s" | "w")[];
+  /** Defend: each attack lane, from its gate out past the map edge (Batch 3); kept clear by pathGap. */
+  lanes?: readonly (readonly [Pt, Pt])[];
   /** Places residents walk between: nodes, machines, structures (the core and start are added). */
   walkPoints: readonly Pt[];
   /** The stall's queue slots and which map edge customers arrive from; null when there is no stall. */
@@ -116,6 +118,7 @@ export function placeTerrain(x: TerrainCtx): TerrainPiece[] {
     for (const q of placed) if (rectsTouch(inflate(rect, T.pieceGap), q.rect)) return false;
     const fat = inflate(rect, T.pathGap);
     for (let i = 0; i < walk.length; i++) for (let j = i + 1; j < walk.length; j++) if (segHitsRect(walk[i]!, walk[j]!, fat)) return false;
+    for (const [a, b] of x.lanes ?? []) if (segHitsRect(a, b, fat)) return false;
     if (x.shop) {
       // Customers walk a straight line from the map edge to each queue slot.
       const ex = x.shop.edgeRight ? MAP_W + 20 : -20;

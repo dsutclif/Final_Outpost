@@ -211,7 +211,8 @@ export function unreadablePairs(stations: readonly Station[], core: Pt, screenRa
   const out: string[] = [];
   for (let i = 0; i < stations.length; i++) for (let j = i + 1; j < stations.length; j++) {
     const a = stations[i]!, b = stations[j]!;
-    if (a.on === b.id || b.on === a.id) continue;
+    // a pad on what it acts on, or two pads on one thing (a tower's Lv2 and Lv3 share a spot, one shows at a time)
+    if (a.on === b.id || b.on === a.id || (a.on !== undefined && a.on === b.on)) continue;
     if (dist([a.x, a.y], [b.x, b.y]) < Math.max(a.r, b.r)) out.push(`${a.id}~${b.id}`);
   }
   for (const s of stations) if (s.key && dist([s.x, s.y], core) > screenRadius) out.push(`offscreen ${s.id}`);

@@ -173,5 +173,31 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     stand beside their tower against the wall's inside face (along the wall either way, else
     straight inward; forest nodes on that spot give way), and a tower's Lv2 pad takes its build
     pad's spot, which is free once the tower stands. Pads no longer snap to the 10-unit lot step.
+9r. **Defence as tower defence (Batch 3, BACKLOG-R4, engine/content 0.13.0).** Doug's option B:
+    managing defences, not first-person shooting.
+    - Walls are built by hand and can no longer be damaged; nothing is repaired (`barrier.repairK`
+      is gone). Only gates take damage. A broken gate stays broken (`broken`), is never rebuilt, and
+      attackers from that side then go straight for the core. A broken core still loses the level.
+    - Each wave comes down a narrow lane in line with its side's attack gate (the gate on that side
+      nearest the core; `defense.laneHalfWidth` 18). Outside the ring an attacker makes for the
+      nearest opening facing its side (an unbuilt wall section, or its gate once broken), else for the
+      gate, which it hits until it breaks. Guards rally inside the attacked side's gate.
+    - Turret sockets at every attack gate (generator.json `defendSockets`): 4 per gate from the start
+      (inside the wall beside the gate and outside flanking the lane, where the map has room), and 2
+      more at the gate the next wave comes to once 3 waves have started (pads with `requires.wave`).
+      Each socket is a tower pad, then Lv2 and Lv3 pads on the same spot (Lv3 is new:
+      `struct.ranged_defense.t3`, tier range 150, a shot every 0.35 s); each needs the one before and
+      costs double (generated 3, 6, 12 salvage). The wall reinforcement pad is gone.
+    - Every defend level has guards (the family's modules include `defenders`) and starts with the
+      guard post standing, so the first purchase is hiring guards (`train`, no requirement).
+    - A level with attack waves runs until the last wave is cleared, on every goal (a train-N-guards
+      or tower-level goal no longer ends it in the first minute); the main goal still decides the win.
+    - Star: "no wall lost" is replaced by "gate held" (`gate_held`). Waves are sized against the
+      purchase ladder: all but the last wave drop `dropsPerNeed` (1.1) x its core (walls, the first
+      two guards, med bay, tower and Lv2 on every starting socket); Lv3s and later sockets are left
+      to buy, and the rater's `ladderSpent` filter rejects a level where the reference bot buys it all.
+    - Bots: a defence spend policy (goal-path purchases first, then the first two guards, towers,
+      Lv2 and more guards, Lv3; the socket on the next wave's side first, then the cheapest).
+      Rater/bot traces: `playerKillShare` (stats `killsBy`, from `died.by`) and `ladderLeft`.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.

@@ -126,24 +126,46 @@ describe("layout and economy per family (stages 2-4)", () => {
     }
   });
 
-  it("defend upgrade pads come after their own tower in the requires chain", () => {
+  it("defend tower levels come after their own tower (Lv3 after its Lv2) in the requires chain", () => {
     let checked = 0;
     for (const { b } of built()) {
-      const pads = b?.manifest.entities.filter((e) => e.type === "pad.build") as { id: string; target?: string; requires?: { pad?: string } }[] | undefined;
+      const pads = b?.manifest.entities.filter((e) => e.type === "pad.build") as { id: string; build: string; target?: string; requires?: { pad?: string } }[] | undefined;
       if (!pads) continue;
       const byId = new Map(pads.map((p) => [p.id, p]));
-      const second = pads.filter((p) => /^tower_.*\d$/.test(p.id));
-      if (second.length === 0) continue;
-      for (const up of pads.filter((p) => p.id.endsWith("_up") && p.target)) {
+      for (const up of pads.filter((p) => /\.t\d$/.test(p.build) && p.target)) {
         const seen: string[] = [];
         for (let x = byId.get(up.id); x?.requires?.pad; x = byId.get(x.requires.pad)) seen.push(x.requires.pad);
         expect(seen, `${up.id} needs ${up.target} first`).toContain(up.target);
+        if (up.build.endsWith(".t3")) expect(seen, `${up.id} needs ${up.target}_up first`).toContain(`${up.target}_up`);
         checked++;
       }
-      // a tower on every attack side before any second tower
-      const order = (id: string) => { let n = 0; for (let x = byId.get(id); x?.requires?.pad; x = byId.get(x.requires.pad)) n++; return n; };
-      const firsts = pads.filter((p) => /^tower_/.test(p.id) && !/\d$/.test(p.id) && !p.id.endsWith("_up"));
-      for (const s of second.filter((p) => !p.id.endsWith("_up"))) for (const f of firsts) expect(order(f.id)).toBeLessThan(order(s.id));
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it("defend levels: turret sockets at every attack gate, inside and outside the wall, more opening with the waves; the guard post stands", () => {
+    let checked = 0;
+    for (const { r, b } of built()) {
+      if (!b || r.family !== "defend") continue;
+      const m = b.manifest;
+      const towers = m.entities.filter((e) => e.type === "pad.build" && e.build === "struct.ranged_defense") as { id: string; site?: [number, number]; requires?: { wave?: number } }[];
+      if (towers.length === 0) continue;
+      const sim = createSim(m);
+      const sides = [...new Set(m.waves.map((w) => w.side as string))];
+      for (const sd of sides) {
+        const mine = towers.filter((t) => t.id.startsWith(`tower_${sd}`));
+        expect(mine.filter((t) => !t.requires?.wave).length, `${m.id} ${sd} gate`).toBeGreaterThanOrEqual(4);
+        for (const t of mine) expect(t.site, t.id).toBeDefined();
+      }
+      // some socket stands outside the wall, some inside
+      const out = towers.map((t) => outsideLines(sim.state, { x: t.site![0] * 1000, y: t.site![1] * 1000 }));
+      expect(out.some((o) => o) && out.some((o) => !o), m.id).toBe(true);
+      if (m.waves.length >= 4) expect(towers.some((t) => (t.requires?.wave ?? 0) > 0), m.id).toBe(true);
+      if (m.entities.some((e) => e.type === "pad.hire" && e.id === "train")) {
+        expect(m.entities.some((e) => e.type === "struct.barracks")).toBe(true);
+        expect((m.entities.find((e) => "id" in e && e.id === "train") as { requires?: unknown }).requires).toBeUndefined();
+      }
+      checked++;
     }
     expect(checked).toBeGreaterThan(0);
   });
