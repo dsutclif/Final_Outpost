@@ -1,6 +1,6 @@
 import { CONTENT_VERSION, type Manifest } from "@fo/content";
 import { ENGINE_VERSION, FP, IMPLEMENTED_MODULES, METER_MAX, createSim, starsOf, type Sim, type SimEvent } from "@fo/sim";
-import { VIEW_W, createCamera, worldToScreenPlane, type Camera } from "@fo/render-3d";
+import { viewWFor, createCamera, worldToScreenPlane, type Camera } from "@fo/render-3d";
 import { getSkin, levelTitle, nameOf, purposeOf, uiText, type Skin } from "@fo/skins";
 import { Coach, toWorld } from "./coach.js";
 import { isNew, nearbyPassive, touchedBy } from "./discovery.js";
@@ -931,7 +931,7 @@ export class App {
     const pad = 50, r = this.el.stage.getBoundingClientRect();
     const bw = sx1 - sx0 + 2 * pad, bh = sy1 - sy0 + 2 * pad;
     const aspect = r.width > 0 ? r.height / r.width : 2;
-    const zoom = Math.min(1, VIEW_W / bw, (VIEW_W * aspect) / bh);
+    const vw = viewWFor(s.manifest.family), zoom = Math.min(1, vw / bw, (vw * aspect) / bh);
     if (zoom >= 0.95) return;
     s.overview = { k: 1, go: false, x: (x0 + x1) / 2, y: (y0 + y1) / 2, zoom };
     s.cam.follow = false;

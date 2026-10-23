@@ -1,5 +1,6 @@
 import type { State, Vec } from "@fo/sim";
 import { FP } from "@fo/sim";
+import { LOOK, viewWidth } from "@fo/content";
 import viewData from "../data/view.json";
 
 // Perception filter for the human-view bot. A player sees the HUD (currency, heat, base health,
@@ -17,7 +18,9 @@ export interface ViewBox {
   pointerSectors: number;
 }
 
-export const VIEW: ViewBox = viewData;
+/** The camera box for a level family: its look.json ground width times the wider ground toward the top edge. */
+export const viewFor = (family?: string): ViewBox => ({ ...viewData, viewW: Math.round(viewWidth(family) * LOOK.groundK) });
+export const VIEW: ViewBox = viewFor();
 
 /** Builds the State a player could perceive each tick and remembers what went off screen. */
 export class Perception {

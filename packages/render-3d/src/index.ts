@@ -7,7 +7,7 @@ import type { QualityTier } from "./units.js";
 
 export type { Camera, CoachMark, GuideMark, RenderStats, Renderer } from "./contract.js";
 export { createCamera, LEAD_WEIGHT } from "./contract.js";
-export { ART_M, FOV_DEG, PITCH_DEG, YAW_DEG, VIEW_W, TEXT, screenToWorld, worldToScreenPlane, QUALITY_TIERS, TIERS, MAX_DRAW_CALLS, MAX_TRIANGLES, type QualityTier, type TierSettings } from "./units.js";
+export { ART_M, BUILD_K, CHAR_K, viewWFor, FOV_DEG, PITCH_DEG, YAW_DEG, VIEW_W, TEXT, screenToWorld, worldToScreenPlane, QUALITY_TIERS, TIERS, MAX_DRAW_CALLS, MAX_TRIANGLES, type QualityTier, type TierSettings } from "./units.js";
 export { TRI_BUDGET, CLASS_ANCHORS, ANCHOR_NAMES, modelIds, type AssetClass, type AnchorName } from "./ids.js";
 
 /** What the client holds: Contract 2 plus the 3D extras. */
