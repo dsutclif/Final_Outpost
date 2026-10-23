@@ -24,6 +24,8 @@ export interface PlayerState {
   padId: string | null;
   /** Ticks the player has stood on `padId` without leaving; payment starts at `pads.dwell`. */
   padDwell: number;
+  /** Set when a purchase completes: no pad takes payment until the player has stepped off every pad (Batch 3: no spillover into the next upgrade). */
+  padLeave?: boolean;
   /** Ticks until a hostile in contact can hit the player again. */
   hitCd: number;
   /** Ticks until the ranged shot is ready again. */

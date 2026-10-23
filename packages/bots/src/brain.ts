@@ -793,6 +793,11 @@ export class Brain {
         const rem = this.remaining(st, pad, step);
         const payable = Object.entries(rem).some(([r]) => (cp.resources[r]?.cap === null ? st.currency > 0 : count(p.stack, r) > 0));
         if (!payable && Object.keys(rem).length > 0) return null;
+        // just bought something here: step off the pad first (the sim takes no payment until then)
+        if (p.padLeave && near(p.pos, pad.pos, cp.pads.range + 6 * U)) {
+          const dx = p.pos.x - pad.pos.x, dy = p.pos.y - pad.pos.y, d = Math.hypot(dx, dy) || 1, k = (cp.pads.range + 20 * U) / d;
+          return { pos: { x: Math.round(pad.pos.x + (d < U ? cp.pads.range + 20 * U : dx * k)), y: Math.round(pad.pos.y + (d < U ? 0 : dy * k)) }, r: 4 * U };
+        }
         return { pos: pad.pos, r: 14 * U };
       }
       case "barrier": {

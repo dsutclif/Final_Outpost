@@ -42,6 +42,11 @@ export function trackPadDwell(st: State, cp: Compiled): void {
     if (pad.done || !pad.visible) continue;
     if (within(p.pos, pad.pos, padRange(cp, pad))) { on = pad.id; break; }
   }
+  // after a purchase the player steps off before the next pad (the next level on the same spot) takes scrap
+  if (p.padLeave) {
+    if (on !== null) { p.padId = null; p.padDwell = 0; return; }
+    delete p.padLeave;
+  }
   if (on !== p.padId) { p.padId = on; p.padDwell = 0; }
   if (on !== null && p.padDwell < cp.pads.dwellTicks) p.padDwell++;
 }
@@ -104,6 +109,7 @@ function build(st: State, cp: Compiled, pad: PadState, e: HireEnt | BuildEnt, ou
     if (!st.built.includes(pad.id)) st.built.push(pad.id);
   }
   if (isDefence(cp, e)) st.defenceBought = (st.defenceBought ?? 0) + 1;
+  st.player.padLeave = true;
   // A repeatable converter upgrade retires once the converter is at its top level.
   const maxed = e.type === "pad.build" && e.build === "conv.level" && convMaxed(st, cp, e.target);
   if (e.repeatable && !maxed) { pad.done = false; pad.paid = {}; }

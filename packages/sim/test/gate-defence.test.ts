@@ -216,3 +216,28 @@ describe("guard post Lv2 soldiers (Batch 3 playtest)", () => {
     expect(st.stats.killsBy?.["troop"] ?? 0).toBeGreaterThan(0);
   });
 });
+
+describe("no spillover between upgrades (Batch 3 playtest)", () => {
+  it("after a purchase the next pad on the same spot takes nothing until the player steps off and back on", () => {
+    const base = LEVEL_4 as Loose;
+    const sim = createSim({
+      ...base, id: "test-spill", params: { ...base.params, "pads.automationGrowth": 1 },
+      entities: [...base.entities.filter((e: Loose) => !e.type.startsWith("pad.")),
+        { type: "pad.build", id: "t1", at: [300, 600], cost: { "res.salvage": 2 }, build: "struct.ranged_defense" },
+        { type: "pad.build", id: "t1_up", at: [300, 600], cost: { "res.salvage": 2 }, build: "struct.ranged_defense.t2", target: "t1", requires: { pad: "t1" } }],
+    });
+    const st = sim.state;
+    st.player.pos = at(300, 600);
+    st.player.stack = Array(6).fill("res.salvage");
+    idle(sim, 3 * TPS);
+    expect(st.pads.find((p) => p.id === "t1")!.done).toBe(true);
+    expect(st.pads.find((p) => p.id === "t1_up")!.paid).toEqual({});
+    expect(st.player.stack).toHaveLength(4);
+    st.player.pos = at(300, 700);
+    idle(sim, 2);
+    st.player.pos = at(300, 600);
+    idle(sim, 3 * TPS);
+    expect(st.pads.find((p) => p.id === "t1_up")!.done).toBe(true);
+    expect(st.player.stack).toHaveLength(2);
+  });
+});

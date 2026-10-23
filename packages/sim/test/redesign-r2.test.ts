@@ -569,6 +569,9 @@ describe("bulk orders, tier-2 converters and converter levels", () => {
     expect(cv.level).toBe(1);
     grant(sim, { currency: 10 - sim.state.currency + 4 });
     const ev = [...walkTo(sim, at(380, 560), 6), ...idle(sim, 3 * TPS)];
+    // one level per visit: step off and back on for the next (Batch 3: no spillover)
+    expect(all(ev, "converter_upgraded").map((e) => e.level)).toEqual([2]);
+    ev.push(...walkTo(sim, at(380, 640), 6), ...walkTo(sim, at(380, 560), 6), ...idle(sim, 3 * TPS));
     expect(all(ev, "converter_upgraded").map((e) => e.level)).toEqual([2, 3]);
     expect(cv.level).toBe(3);
     expect(sim.state.pads.find((p) => p.id === "oven_up")!.done).toBe(true);
