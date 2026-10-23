@@ -20,9 +20,18 @@ export const countOf = (stack: readonly string[], res: string): number => {
   return n;
 };
 
-export function canTake(cp: Compiled, stack: readonly string[], res: string): boolean {
+/** How many of `res` the player can carry: the resource's cap plus the loadout bonus; null when it is not carried. */
+export function playerCap(cp: Compiled, res: string): number | null {
   const cap = cp.resources[res]?.cap;
-  if (cap === null || cap === undefined) return false;
+  return cap === null || cap === undefined ? null : cap + cp.player.carryBonus;
+}
+
+/** Ticks the player spends gathering one item from a node of this type, at the loadout's gathering speed. */
+export const gatherTicks = (cp: Compiled, nodeType: string): number => mulDiv(cp.nodes[nodeType]!.rateTicks, 100, cp.player.gatherSpeed);
+
+export function canTake(cp: Compiled, stack: readonly string[], res: string): boolean {
+  const cap = playerCap(cp, res);
+  if (cap === null) return false;
   return countOf(stack, res) < cap;
 }
 

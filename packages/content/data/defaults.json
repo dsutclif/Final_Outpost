@@ -11,6 +11,8 @@
   "player.healDelay": 4,
   "player.healInterval": 0.5,
   "player.downSeconds": 2,
+  "player.gatherSpeed": 100,
+  "player.carryBonus": 0,
   "core.burn": 2.4,
   "core.grace": 22,
   "core.lifelineRecover": 0.25,

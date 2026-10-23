@@ -1,4 +1,4 @@
-import { FP, TPS, blockedAt, depotDrop, depotPickup, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, blockedAt, depotDrop, depotPickup, gatherTicks, playerCap, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
@@ -257,7 +257,7 @@ export class Brain {
       // a node still under rubble cannot be reached until its pad clears it
       if (blockedAt(st, this.cp, n.pos.x, n.pos.y)) return;
       const get = n.stock === null ? want : Math.min(want, n.stock + 1);
-      const t = this.travel(st, st.player.pos, n.pos) + get * def.rateTicks + 10;
+      const t = this.travel(st, st.player.pos, n.pos) + get * gatherTicks(this.cp, n.type) + 10;
       const s = (get * value) / t;
       if (s > bs) { bs = s; best = i; }
     });
@@ -355,19 +355,19 @@ export class Brain {
       const fuels = Object.entries(cp.core.accepts).sort((a, b) => b[1] - a[1]);
       let bi = -1, bres = "", bval = 0, bsc = -1;
       for (const [res, val] of fuels) {
-        const want = Math.min(cp.resources[res]?.cap ?? 6, Math.max(2, Math.ceil((cap - fuel - carriedFuel) / val)));
+        const want = Math.min(playerCap(cp, res) ?? 6, Math.max(2, Math.ceil((cap - fuel - carriedFuel) / val)));
         const i = this.bestNode(st, res, want, val);
         if (i < 0) continue;
         const n = st.nodes[i]!;
-        const t = this.travel(st, p.pos, n.pos) + this.travel(st, n.pos, st.core.pos) + want * cp.nodes[n.type]!.rateTicks;
+        const t = this.travel(st, p.pos, n.pos) + this.travel(st, n.pos, st.core.pos) + want * gatherTicks(cp, n.type);
         const s = (want * val) / (t + 1);
         if (s > bsc) { bsc = s; bi = i; bres = res; bval = val; }
       }
       if (bi >= 0) {
         const n = st.nodes[bi]!;
-        const trip = this.travel(st, p.pos, n.pos) + this.travel(st, n.pos, st.core.pos) + 6 * cp.nodes[n.type]!.rateTicks;
-        const want = Math.min(cp.resources[bres]?.cap ?? 6, Math.max(2, Math.ceil((cap - fuel - carriedFuel) / bval)));
-        const roomForMore = count(p.stack, bres) < (cp.resources[bres]?.cap ?? 6);
+        const trip = this.travel(st, p.pos, n.pos) + this.travel(st, n.pos, st.core.pos) + 6 * gatherTicks(cp, n.type);
+        const want = Math.min(playerCap(cp, bres) ?? 6, Math.max(2, Math.ceil((cap - fuel - carriedFuel) / bval)));
+        const roomForMore = count(p.stack, bres) < (playerCap(cp, bres) ?? 6);
         let sc = 0;
         if (carriedFuel < cap - fuel && roomForMore) {
           if (fuel + carriedFuel <= 0 || ttl + carriedFuel * this.burnTicks(st) < trip + 8 * TPS) sc = 92;
@@ -403,7 +403,7 @@ export class Brain {
       // (a cost larger than the backpack cap is paid in installments).
       let all = true, items = false;
       for (const [r, n] of Object.entries(rem)) {
-        const capR = cp.resources[r]?.cap ?? null;
+        const capR = playerCap(cp, r);
         const have = capR === null ? st.currency : count(p.stack, r);
         if (have < n) all = false;
         if (capR !== null && have >= Math.min(n, capR)) items = true;
@@ -427,7 +427,7 @@ export class Brain {
       if (stockable.length > 0 && !this.handsOff(st)) {
         // A worthwhile load: a full backpack of it, or enough to fill every order waiting for it.
         const load = stockable.some((r) => {
-          const have = count(p.stack, r), capR = cp.resources[r]?.cap ?? 6;
+          const have = count(p.stack, r), capR = playerCap(cp, r) ?? 6;
           const asked = sales.queue.filter((q) => q.res === r).reduce((a, q) => a + q.want, 0) - (sales.shelf[r] ?? 0);
           return have >= capR || have >= Math.max(1, asked) || this.current.kind !== "gather";
         });

@@ -3,7 +3,7 @@ import type { SimEvent } from "../events.js";
 import { FP, clamp, clampDir, dist, mulDiv, within, type Vec } from "../fixed.js";
 import type { State } from "../state.js";
 import { hitHostile, hitPrey, nearestDangerousPrey, nearestHostile, nearestPrey } from "./combat.js";
-import { blockedAt, canTake, depotDrop, depotPickup, depotPut, hint, stepDown, take } from "./common.js";
+import { blockedAt, canTake, depotDrop, gatherTicks, depotPickup, depotPut, hint, stepDown, take } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
 import { trackPadDwell, tryPayPad } from "./pads.js";
 
@@ -168,7 +168,7 @@ function gather(st: State, cp: Compiled, out: SimEvent[]): boolean {
     if (!canTake(cp, p.stack, def.yields)) { capped = true; continue; }
     if (n.stock !== null) n.stock--;
     p.stack.push(def.yields);
-    p.actCd = def.rateTicks;
+    p.actCd = gatherTicks(cp, n.type);
     out.push({ t: "gathered", res: def.yields, node: i, at: { ...n.pos } });
     return true;
   }
