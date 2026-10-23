@@ -147,7 +147,8 @@ const ladderPad = (e: Manifest["entities"][number]): boolean => e.type === "pad.
  * med bay, when no winning run has anyone hurt (Batch 3: the gate funnel lets the bot stop the probe raid).
  */
 function optionalPad(e: Manifest["entities"][number], c: Content): boolean {
-  if (e.type === "pad.hire") return true;
+  // hires paid in scrap run a defend level's town and defence (the reactor hauler, guards): kept (Batch 3)
+  if (e.type === "pad.hire") return !("res.salvage" in e.cost);
   if (e.type !== "pad.build" || ladderPad(e)) return false;
   return e.build === "conv.level" || e.build === "struct.conveyor" || e.build === "struct.barrier.reinforced" || e.build === "struct.medical" || !!c.upgrades[e.build];
 }
