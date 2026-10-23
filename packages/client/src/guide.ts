@@ -107,7 +107,7 @@ export class Guide {
       case "node.enable": return guideText(skin, "unlock", { name: targetName });
       case "zone.clear": return guideText(skin, "clear", { name: targetName });
       case "sink.core.level": return guideText(skin, "upgrade", { name: nameOf(skin, "sink.core") });
-      case "conv.level": case "struct.ranged_defense.t2": case "struct.ranged_defense.t3": return guideText(skin, "upgrade", { name: targetName });
+      case "conv.level": case "struct.ranged_defense.t2": case "struct.ranged_defense.t3": case "struct.barracks.t2": return guideText(skin, "upgrade", { name: targetName });
       default: return guideText(skin, "pay", { name: nameOf(skin, e.build) });
     }
   }

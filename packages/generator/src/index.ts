@@ -140,7 +140,7 @@ function sizeGoal(b: Built, c: Content, lengthS: number): string | null {
 }
 
 /** The turret ladder (towers and their levels): meant to outlast the level, never cut (Batch 3). */
-const ladderPad = (e: Manifest["entities"][number]): boolean => e.type === "pad.build" && e.build.startsWith("struct.ranged_defense");
+const ladderPad = (e: Manifest["entities"][number]): boolean => e.type === "pad.build" && (e.build.startsWith("struct.ranged_defense") || e.build === "struct.barracks.t2");
 
 /**
  * Automation a level can do without: hires, belts, machine levels, upgrades and wall reinforcement; and the

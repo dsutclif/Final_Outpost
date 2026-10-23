@@ -35,9 +35,10 @@ export type SimEvent =
   | { t: "objective"; id: string; kind: string; done: boolean; failed: boolean }
   // combat
   | { t: "downed"; at: Vec }
-  | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier" | "player" | "resident"; id: number; at: Vec; by: "player" | "resident" | "structure" | "hostile" | "animal" }
+  | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier" | "player" | "resident" | "troop"; id: number; at: Vec; by: "player" | "resident" | "structure" | "troop" | "hostile" | "animal" }
   | { t: "shot"; from: Vec; to: Vec; id: number }
-  | { t: "died"; kind: string; id: number; at: Vec; by?: "player" | "resident" | "structure" }
+  | { t: "died"; kind: string; id: number; at: Vec; by?: "player" | "resident" | "structure" | "troop" }
+  | { t: "troop_spawned"; id: number; at: Vec; home: string }
   | { t: "drop"; res: string; at: Vec }
   | { t: "picked"; res: string; at: Vec; by?: number }
   | { t: "wave_started"; idx: number }

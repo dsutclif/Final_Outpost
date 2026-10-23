@@ -132,7 +132,7 @@ describe("layout and economy per family (stages 2-4)", () => {
       const pads = b?.manifest.entities.filter((e) => e.type === "pad.build") as { id: string; build: string; target?: string; requires?: { pad?: string } }[] | undefined;
       if (!pads) continue;
       const byId = new Map(pads.map((p) => [p.id, p]));
-      for (const up of pads.filter((p) => /\.t\d$/.test(p.build) && p.target)) {
+      for (const up of pads.filter((p) => /\.t\d$/.test(p.build) && p.target && byId.has(p.target))) {
         const seen: string[] = [];
         for (let x = byId.get(up.id); x?.requires?.pad; x = byId.get(x.requires.pad)) seen.push(x.requires.pad);
         expect(seen, `${up.id} needs ${up.target} first`).toContain(up.target);

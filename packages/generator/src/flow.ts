@@ -91,7 +91,7 @@ export function flowModel(m: Manifest, plan: Plan, c: Content, budgetSeconds: nu
   // (build.ts), so the flow walks the rest of the build order only (Batch 3).
   const ladder = (id: string): boolean => {
     const e = padById.get(id);
-    return (e?.type === "pad.build" && e.build.startsWith("struct.ranged_defense")) || (e?.type === "pad.hire" && roles[e.role.role]?.behavior === "guard");
+    return (e?.type === "pad.build" && (e.build.startsWith("struct.ranged_defense") || e.build === "struct.barracks.t2")) || (e?.type === "pad.hire" && roles[e.role.role]?.behavior === "guard");
   };
   for (const s of plan.steps) {
     if (s.when !== "always" || ladder(s.pad)) continue;

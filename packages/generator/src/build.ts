@@ -71,7 +71,7 @@ export const GEN = genData as unknown as {
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
   defendSockets: { keepForest: number; startInside: number; inside: [number, number][]; insideEW: [number, number][]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number };
   /** Batch 3: the padded defend map and the socket-lined roads; see generator.json. */
-  defendRoad: { pad: number; first: number; step: number; towerU: number; towerUEW: number; endGap: number; priceGrowth: number };
+  defendRoad: { pad: number; maxPairs: number; first: number; step: number; towerU: number; towerUEW: number; endGap: number; priceGrowth: number };
   conveyorGoals: string[];
   /** Geography: how often and how a level gets ridges, outcrops and chasms (terrain.ts). */
   terrain: TerrainData;
@@ -810,9 +810,11 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           if (!s.tight) continue;
           const hit = dist(q, [s.x, s.y]) < s.r + r
             || (!!s.fp && b[0] < s.fp[2] + g && s.fp[0] < b[2] + g && b[1] < s.fp[3] + g && s.fp[1] < b[3] + g);
-          if (!hit || P.stations.filter((x) => x.tight).length <= SK.keepForest) continue;
-          P.stations.splice(i, 1);
+          if (!hit) continue;
           const k = ents.findIndex((e) => e.type.startsWith("node.") && Array.isArray(e["at"]) && (e["at"] as number[])[0] === s.x && (e["at"] as number[])[1] === s.y);
+          // never thin the reactor's ore scrap below keepForest
+          if (k >= 0 && ents[k]!.type === "node.fuel_scrap" && ents.filter((e) => e.type === "node.fuel_scrap").length <= SK.keepForest) continue;
+          P.stations.splice(i, 1);
           if (k >= 0) ents.splice(k, 1);
         }
       };
@@ -885,7 +887,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         const { sd, m, o, al } = G;
         const reach = sd === "n" ? m[1] + RD.pad : sd === "s" ? 900 + RD.pad - m[1] : sd === "w" ? m[0] + RD.pad : 480 + RD.pad - m[0];
         let pair = 0, opened = 0;
-        for (let v = RD.first; v <= reach - RD.endGap; v += RD.step, pair++) {
+        for (let v = RD.first; v <= reach - RD.endGap && pair < RD.maxPairs; v += RD.step, pair++) {
           const wave = Math.min(pair, nW0 - 1);
           for (const sg of [-1, 1]) {
             const site = find(m, al, o, [sg * (sd === "e" || sd === "w" ? RD.towerUEW : RD.towerU), v], "struct.ranged_defense", SK.siteR, false);
@@ -917,6 +919,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       ents.push({ type: "struct.barracks", id: "barracks", at: [...bk] });
       const tr = placePad("train", [bk[0], bk[1] + 70]);
       pad({ type: "pad.hire", id: "train", at: [...tr], cost: { "res.salvage": salv("salvage.train") }, role: { role: "role.defender" }, repeatable: true });
+      // Lv2 guard post: trains soldiers on its own at a steady beat (content struct.barracks troops)
+      const bu = placePad("barracks_up", [bk[0] + 70, bk[1]]);
+      pad({ type: "pad.build", id: "barracks_up", at: [...bu], cost: { "res.salvage": salv("salvage.barracksUp") }, build: "struct.barracks.t2", target: "barracks" });
     }
     if (feat.has("med_bay")) {
       const md = placePad("medic", [core[0] + 100, core[1] + 110], { build: "struct.medical" });
@@ -1132,7 +1137,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const lastGoal = plan0.steps.map((s, i) => (s.goalPath && s.when === "always" ? i : -1)).reduce((a, b) => Math.max(a, b), -1);
   const late = lastGoal >= 0 ? new Set(plan0.steps.filter((s, i) => i > lastGoal && s.when === "always").map((s) => s.pad)) : new Set<string>();
   // The defence ladder (sockets, their levels, guards) is bought all through the level, never chained to the goal.
-  const ladder = (p: Ent) => String(p.build ?? "").startsWith("struct.ranged_defense") || (p.type === "pad.hire" && (p.role as { role: string }).role === "role.defender");
+  const ladder = (p: Ent) => String(p.build ?? "").startsWith("struct.ranged_defense") || p.build === "struct.barracks.t2" || (p.type === "pad.hire" && (p.role as { role: string }).role === "role.defender");
   const unplanned = pads.filter((p) => (!planned().has(String(p.id)) || (late.has(String(p.id)) && !ladder(p))) && !conditional(p));
   if (unplanned.length > 0) {
     const steps = plan0.steps.filter((s) => s.when === "always");
@@ -1232,7 +1237,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       return out;
     };
     for (const p of pads) {
-      if (typeof p.build === "string" && /\.t\d$/.test(p.build) && p.target && !upChain(p).has(String(p.target))) fail(`pad order: ${String(p.id)} upgrades ${String(p.target)} before it builds`);
+      if (typeof p.build === "string" && /\.t\d$/.test(p.build) && p.target && byId.has(String(p.target)) && !upChain(p).has(String(p.target))) fail(`pad order: ${String(p.id)} upgrades ${String(p.target)} before it builds`);
       const role = p.role as { from?: string; to?: string } | undefined;
       const machines = [role?.from, role?.to].filter((t): t is string => !!t?.startsWith("conv."));
       const needs = pads.filter((b) => machines.includes(String(b.build))).map((b) => String(b.id));

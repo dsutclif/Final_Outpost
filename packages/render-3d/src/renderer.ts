@@ -1889,6 +1889,23 @@ export class Renderer3D implements Renderer {
       if (typeof frost === "number" && frost > 0 && !dead) this.barTag(pos.x, ART_M * rl.scale * 1.45, pos.y, frost / 1000, t.frost, 7);
     }
 
+    // soldiers from a Lv2 guard post (Batch 3): drawn as guards, with a health bar once hit
+    for (const tr of s.troops ?? []) {
+      const key = `tr:${tr.id}`;
+      const pos = this.interp.pos(key, tr.pos, a);
+      const tv = this.interp.vel(key);
+      const sp = Math.min(1, Math.hypot(tv.x, tv.y) / 2.4);
+      const tl = lookFor("role.defender", t, this.skin.models);
+      const ty = this.faceFrom(key, tv);
+      const trig = this.rigged?.entryFor("role.defender");
+      const fighting = s.hostiles.some((h) => (h.pos.x - tr.pos.x) ** 2 + (h.pos.y - tr.pos.y) ** 2 < (30 * FP) ** 2);
+      if (trig) {
+        this.rigged!.add(key, "role.defender", trig, { moving: sp > 0.05, hurried: false, cheer: false, speed: sp, act: fighting ? "shoot" : undefined }, pos.x, pos.y, ty, ART_M * tl.scale / 0.9);
+        this.blobs!.add(pos.x, pos.y, 10 * tl.scale);
+      } else this.addCharacter(tl, this.anim(key, sp, false), pos, ty, null);
+      if (tr.hp < tr.hpMax) this.barTag(pos.x, ART_M * tl.scale * 1.5, pos.y, tr.hp / tr.hpMax, t.ok, 6);
+    }
+
     for (const h of s.hostiles) {
       const key = `h:${h.id}`;
       const pos = this.interp.pos(key, h.pos, a);

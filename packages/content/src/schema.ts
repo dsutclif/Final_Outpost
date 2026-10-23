@@ -144,6 +144,12 @@ export const StructureDef = z.object({
   padRange: units.optional(),
   dropOffset: Offset.optional(),
   pickupOffsets: z.array(Offset).optional(),
+  // A guard post from level fromLevel trains a soldier every `every` seconds (at most max alive): a fighter no
+  // stronger than an attacker that marches out to the nearest one, is fought back and can die (Batch 3).
+  troops: z.object({
+    fromLevel: z.number().int().positive(), every: seconds, max: z.number().int().positive(),
+    hp: z.number().int().positive(), damage: z.number().int().positive(), attackInterval: seconds, attackRange: units, speed: units,
+  }).optional(),
   effects: z.array(Effect).default([]),
   cost: DefaultCost,
 });

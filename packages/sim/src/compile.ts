@@ -96,6 +96,7 @@ export interface CompiledStructure {
   padRange: number;
   dropOffset: Vec;
   pickupOffsets: Vec[];
+  troops: { fromLevel: number; everyTicks: number; max: number; hp: number; damage: number; attackTicks: number; attackRange: number; speed: number } | null;
   effects: CompiledEffect[];
 }
 
@@ -264,6 +265,8 @@ export interface Compiled {
     baseRange: number; baseHitTicks: number; baseDamage: number;
     /** Half the width of the lane a wave comes down toward its side's gate (Batch 3). */
     laneHalfWidth: number;
+    /** Reach at which an attacker stops to fight a soldier (Batch 3). */
+    troopContact: number;
     postOffset: number;
     /** Quiet ticks after a wave is cleared before the next may start. */
     waveQuietTicks: number; playerHitRange: number; playerHitTicks: number;
@@ -351,6 +354,10 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       padRange: fp(s.padRange ?? 0),
       dropOffset: s.dropOffset ? vec(s.dropOffset) : { x: 0, y: 0 },
       pickupOffsets: (s.pickupOffsets ?? []).map(vec),
+      troops: s.troops ? {
+        fromLevel: s.troops.fromLevel, everyTicks: ticks(s.troops.every), max: s.troops.max, hp: s.troops.hp, damage: s.troops.damage,
+        attackTicks: ticks(s.troops.attackInterval), attackRange: fp(s.troops.attackRange), speed: perTick(s.troops.speed),
+      } : null,
       effects: s.effects.map(effect),
     };
   }
@@ -566,7 +573,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       spawnGapTicks: ticks(param("defense.spawnGap")), spawnY: fp(param("defense.spawnY")), spawnMarginX: fp(param("defense.spawnMarginX")),
       barrierStop: fp(param("defense.barrierStop")), barrierHitTicks: ticks(param("defense.barrierHitInterval")), barrierDamage: int("defense.barrierDamage"),
       baseRange: fp(param("defense.baseRange")), baseHitTicks: ticks(param("defense.baseHitInterval")), baseDamage: int("defense.baseDamage"),
-      laneHalfWidth: fp(param("defense.laneHalfWidth")),
+      laneHalfWidth: fp(param("defense.laneHalfWidth")), troopContact: fp(param("defense.troopContact")),
       postOffset: fp(param("defense.postOffset")), waveQuietTicks: ticks(param("defense.waveQuiet")),
       playerHitRange: fp(param("defense.playerHitRange")), playerHitTicks: ticks(param("defense.playerHitInterval")),
     },

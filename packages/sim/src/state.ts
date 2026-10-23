@@ -235,9 +235,21 @@ export interface HostileState {
   hpMax: number;
   /** Map edge it attacked from. */
   side: "n" | "e" | "s" | "w";
-  /** "core" while walking in, "barrier" while hitting a section, "base" while attacking the core. */
-  target: "core" | "barrier" | "base";
+  /** "core" while walking in, "barrier" while hitting a section, "base" while attacking the core, "troop" while fighting a soldier. */
+  target: "core" | "barrier" | "base" | "troop";
   acc: number;
+}
+
+/** A soldier trained by a guard post (Batch 3): fights hostiles hand to hand and can die. */
+export interface TroopState {
+  id: number;
+  pos: Vec;
+  hp: number;
+  hpMax: number;
+  /** Ticks until its next blow. */
+  acc: number;
+  /** Id of the guard post that trained it (it returns there when the field is clear). */
+  home: string;
 }
 
 export interface DropState {
@@ -446,6 +458,9 @@ export interface State {
   prey: PreyState[];
   hostiles: HostileState[];
   nextHostileId: number;
+  /** Soldiers from guard posts (Batch 3); created with the first one. */
+  troops?: TroopState[];
+  nextTroopId?: number;
   drops: DropState[];
   nextDropId: number;
   converters: ConverterState[];

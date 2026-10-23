@@ -105,6 +105,7 @@ const medical = content.structures["struct.medical"] as { healOffset?: number[] 
 registerModel("struct.housing", (ctx) => buildHabPod(ctx));
 registerModel("struct.medical", (ctx) => buildMedBay(ctx, m2(medical?.healOffset, [0.93, 0])));
 registerModel("struct.barracks", (ctx) => buildGuardPost(ctx));
+registerModel("struct.barracks.t2", (ctx) => buildGuardPost(ctx));
 registerModel("struct.training", (ctx) => buildGuardPost(ctx));
 registerModel("struct.ranged_defense", (ctx) => buildTurret(ctx));
 registerModel("struct.ranged_defense.t2", (ctx) => buildTurret({ ...ctx, level: Math.max(2, ctx.level) }));

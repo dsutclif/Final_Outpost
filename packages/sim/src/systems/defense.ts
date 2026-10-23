@@ -2,10 +2,10 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between } from "../rng.js";
-import type { HostileState, State } from "../state.js";
+import type { HostileState, State, TroopState } from "../state.js";
 import { attackGate, breakSection, firstCrossing, outsideLines, sectionMid, sectionSide } from "./barriers.js";
 import { hitHostile, nearestHostile } from "./combat.js";
-import { hint, stepDown, walkAround } from "./common.js";
+import { hint, moveAgent, stepDown, walkAround } from "./common.js";
 import { dropTow } from "./lasso.js";
 
 type Side = HostileState["side"];
@@ -81,6 +81,22 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   const D = cp.defense;
   for (const h of [...st.hostiles]) {
     const def = cp.hostiles[h.type]!;
+    // a soldier in reach is fought where it stands (Batch 3: the clash on the road)
+    const foe = nearestTroop(st, h.pos, D.troopContact);
+    if (foe) {
+      h.target = "troop";
+      h.acc = stepDown(h.acc);
+      if (h.acc <= 0) {
+        h.acc = D.barrierHitTicks;
+        foe.hp -= def.damage;
+        out.push({ t: "hit", target: "troop", id: foe.id, at: { ...foe.pos }, by: "hostile" });
+        if (foe.hp <= 0) {
+          st.troops = st.troops!.filter((x) => x !== foe);
+          out.push({ t: "died", kind: "unit.troop", id: foe.id, at: { ...foe.pos } });
+        }
+      }
+      continue;
+    }
     const goal = walkTarget(st, cp, h);
     const dx = goal.x - h.pos.x, dy = goal.y - h.pos.y, d = isqrt(dx * dx + dy * dy);
     // Look one step plus the stand-off distance ahead; a built section in the way stops the walk.
@@ -121,6 +137,7 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   }
 
   hitPlayer(st, cp, out);
+  stepTroops(st, cp, out);
 
   for (const s of st.structures) {
     const def = cp.structures[s.type]!;
@@ -139,6 +156,72 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
     W.quietUntil = st.tick + cp.defense.waveQuietTicks;
     out.push({ t: "wave_cleared", idx: W.idx });
   }
+}
+
+function nearestTroop(st: State, p: Vec, r: number): TroopState | null {
+  let best: TroopState | null = null, bd = r * r;
+  for (const t of st.troops ?? []) {
+    const dx = t.pos.x - p.x, dy = t.pos.y - p.y, d = dx * dx + dy * dy;
+    if (d < bd) { bd = d; best = t; }
+  }
+  return best;
+}
+
+/**
+ * Guard posts at their troop level train a soldier every interval (up to their max alive). A soldier marches
+ * out to the nearest attacker (through that side's gate), fights it hand to hand and can die; with the field
+ * clear it walks back to its post (Batch 3, after Kingshot).
+ */
+function stepTroops(st: State, cp: Compiled, out: SimEvent[]): void {
+  for (const s of st.structures) {
+    const T = cp.structures[s.type]?.troops;
+    if (!T || s.level < T.fromLevel) continue;
+    s.acc = stepDown(s.acc);
+    const alive = (st.troops ?? []).filter((t) => t.home === s.id).length;
+    if (s.acc > 0 || alive >= T.max) continue;
+    s.acc = T.everyTicks;
+    const t: TroopState = { id: st.nextTroopId ?? 0, pos: { x: s.pos.x, y: s.pos.y + cp.defense.postOffset }, hp: T.hp, hpMax: T.hp, acc: 0, home: s.id };
+    st.nextTroopId = t.id + 1;
+    (st.troops ??= []).push(t);
+    out.push({ t: "troop_spawned", id: t.id, at: { ...t.pos }, home: s.id });
+  }
+  for (const t of [...(st.troops ?? [])]) {
+    const home = st.structures.find((x) => x.id === t.home);
+    const T = home ? cp.structures[home.type]!.troops! : null;
+    if (!home || !T) continue;
+    t.acc = stepDown(t.acc);
+    const foe = nearestHostile(st, t.pos, T.attackRange);
+    if (foe) {
+      if (t.acc <= 0) { t.acc = T.attackTicks; hitHostile(st, cp, foe, T.damage, "troop", out); }
+      continue;
+    }
+    let target: HostileState | null = null, bd = 0;
+    for (const h of st.hostiles) {
+      const dx = h.pos.x - t.pos.x, dy = h.pos.y - t.pos.y, d = dx * dx + dy * dy;
+      if (!target || d < bd) { target = h; bd = d; }
+    }
+    const outside = st.barriers.length > 0 && outsideLines(st, t.pos);
+    let goal: Vec = target ? target.pos : home.pos;
+    if (target && !outside && st.barriers.length > 0 && outsideLines(st, target.pos)) {
+      const g = attackGate(st, target.side);
+      const door = g ? sectionMid(g.line.sections[g.idx]!) : null;
+      if (door && !within(t.pos, door, cp.defense.barrierStop)) goal = door;
+    } else if (!target && outside) {
+      const g = nearestGateMid(st, t.pos);
+      if (g && !within(t.pos, g, cp.defense.barrierStop)) goal = g;
+    }
+    moveAgent(st, cp, t.pos, goal, T.speed, cp.residents.arrive);
+  }
+}
+
+function nearestGateMid(st: State, p: Vec): Vec | null {
+  let best: Vec | null = null, bd = 0;
+  for (const line of st.barriers) for (const s of line.sections) {
+    if (!s.gate) continue;
+    const m = sectionMid(s), dx = m.x - p.x, dy = m.y - p.y, d = dx * dx + dy * dy;
+    if (!best || d < bd) { best = m; bd = d; }
+  }
+  return best;
 }
 
 /** A hostile in contact hits the player (no health of its own); a hit makes the tow drop its rearmost captive. */

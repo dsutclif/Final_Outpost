@@ -4,7 +4,7 @@ import { within, type Vec } from "../fixed.js";
 import type { HostileState, PreyState, State } from "../state.js";
 import { spawnDrops } from "./common.js";
 
-export type Attacker = "player" | "resident" | "structure";
+export type Attacker = "player" | "resident" | "structure" | "troop";
 
 /** Nearest living hostile strictly within r of p, or null. */
 export function nearestHostile(st: State, p: Vec, r: number): HostileState | null {

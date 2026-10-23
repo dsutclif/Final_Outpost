@@ -92,6 +92,7 @@
   "defense.baseHitInterval": 1.6,
   "defense.baseDamage": 1,
   "defense.laneHalfWidth": 18,
+  "defense.troopContact": 18,
   "defense.postOffset": 34,
   "defense.waveQuiet": 8,
   "meters.baseHealth": 15,

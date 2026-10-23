@@ -184,3 +184,35 @@ describe("Kingshot-style defence (Batch 3 playtest)", () => {
     expect(g.pos.y).toBeGreaterThan(400 * FP);
   });
 });
+
+describe("guard post Lv2 soldiers (Batch 3 playtest)", () => {
+  const withPost = (): Loose => {
+    const base = LEVEL_4 as Loose;
+    return level({
+      entities: [...base.entities.filter((e: Loose) => e.type !== "barrier.line" && e.id !== "barracks" && e.id !== "train"), RING, { type: "struct.barracks", id: "barracks", at: [200, 560] }],
+      waves: [{ t: 30, counts: { "hostile.raider_humanoid": 30 }, side: "n", gap: 0.3 }],
+    });
+  };
+
+  it("trains nothing at level 1, then a soldier every interval up to the max once at level 2", () => {
+    const sim = createSim(withPost());
+    const st = sim.state, T = sim.compiled.structures["struct.barracks"]!.troops!;
+    idle(sim, 10 * TPS);
+    expect(st.troops ?? []).toHaveLength(0);
+    st.structures.find((s) => s.id === "barracks")!.level = 2;
+    const ev = idle(sim, T.everyTicks * 3 + 2);
+    expect(all(ev, "troop_spawned").length).toBe(4);
+    expect(st.troops).toHaveLength(4);
+  });
+
+  it("soldiers march out to the attackers, fight them, and can die", () => {
+    const sim = createSim(withPost());
+    const st = sim.state;
+    st.structures.find((s) => s.id === "barracks")!.level = 2;
+    const ev = idle(sim, 80 * TPS);
+    expect(all(ev, "hit").some((h) => h.by === "troop" && h.target === "hostile")).toBe(true);
+    expect(all(ev, "hit").some((h) => h.target === "troop")).toBe(true);
+    expect(all(ev, "died").some((d) => d.kind === "unit.troop")).toBe(true);
+    expect(st.stats.killsBy?.["troop"] ?? 0).toBeGreaterThan(0);
+  });
+});

@@ -130,7 +130,7 @@ export class Brain {
     if (!e) return -1;
     if (e.type === "pad.hire") return this.cp.roles[e.role.role]?.behavior !== "guard" ? -1 : (this.hiresByPad[s.pad] ?? 0) < FIRST_GUARDS ? 0 : 1;
     if (e.type !== "pad.build") return -1;
-    return e.build.startsWith("struct.ranged_defense") ? 1 : -1;
+    return e.build.startsWith("struct.ranged_defense") || e.build === "struct.barracks.t2" ? 1 : -1;
   }
 
   private ladderKey(st: State, s: PlanStep, pad: PadState): number {
@@ -140,7 +140,8 @@ export class Brain {
     const side = site ? sideOf(st, { x: site[0] * FP, y: site[1] * FP }) : null;
     // price per level gained: a tower level (Lv2, Lv3) weighs its price by the level it brings, so upgrades mix in with new towers
     const e2 = this.cp.entityById[s.pad] as { build?: string };
-    const per = e2.build === "struct.ranged_defense.t2" ? 2 : e2.build === "struct.ranged_defense.t3" ? 3 : 1;
+    // the Lv2 guard post trains soldiers for the rest of the level: worth several towers
+    const per = e2.build === "struct.ranged_defense.t2" ? 2 : e2.build === "struct.ranged_defense.t3" ? 3 : e2.build === "struct.barracks.t2" ? 5 : 1;
     const cost = Object.values(this.remaining(st, pad, s)).reduce((a, n) => a + n, 0) / per;
     // a goal on the ladder (a tower level, N guards) is bought toward first
     const rank = this.ladderRank(s);

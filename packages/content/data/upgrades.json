@@ -13,6 +13,13 @@
     ],
     "cost": { "res.salvage": 32 }
   },
+  "struct.barracks.t2": {
+    "target": "struct.barracks",
+    "effects": [
+      { "op": "set", "scope": "target", "field": "level", "value": 2 }
+    ],
+    "cost": { "res.salvage": 40 }
+  },
   "struct.barrier.reinforced": {
     "effects": [
       { "op": "set", "scope": "params", "param": "barrier.hpMax", "value": 24 },
