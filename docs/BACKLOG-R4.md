@@ -88,7 +88,7 @@ Other:
       (Doug, 2026-10-22). Add a sandbox slider for it first.
 - [ ] Building packing and screen alignment from the Batch 0 values; the camera keeps
       following the player (the base need not fit the screen).
-- [ ] Player walks through buildings (not walls or turrets); others path around; the building
+- [x] Player walks through buildings (not walls or turrets); others path around; the building
       goes see-through while the player is inside.
 - [x] Player loadout block: gather speed, carry capacity, shot damage and rate, move speed,
       range, all as params (foundation for between-level equipment).
