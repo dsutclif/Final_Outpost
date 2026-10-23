@@ -905,8 +905,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           const q: Pt = [Math.round(lo[0] + hr.float() * (hi[0] - lo[0])), Math.round(lo[1] + hr.float() * (hi[1] - lo[1]))];
           if (rectDist(q, rr) < SH.outside || rectDist(q, rr) > SH.outside + SH.band) continue;
           if (lanes.some(([a, b2]) => segDist(q, a, b2) < SH.roadGap)) continue;
-          if (!boxOk(q, "node.fuel_scrap", rFp, false)) continue;
-          P.add(`heap${k}`, q, rFp, { fp: "node.fuel_scrap" });
+          if (!boxOk(q, "node.salvage_pile", rFp, false)) continue;
+          P.add(`heap${k}`, q, rFp, { fp: "node.salvage_pile" });
           ents.push({ type: "node.salvage_pile", at: [...q] });
           k++;
         }

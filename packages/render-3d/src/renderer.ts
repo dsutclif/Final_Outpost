@@ -87,6 +87,8 @@ interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, num
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
+/** Decor that looks like scrap: left out where scrap heaps can be picked over. */
+const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.ship_wreck", "decor.scrap_field"]);
 /** Items drawn per carried column at most. */
 const BACK_MAX_DRAWN = 30;
 
@@ -382,6 +384,8 @@ export class Renderer3D implements Renderer {
       if (this.bctx !== bctx) return;
       if (e.batch) { this.meshyWall(e); return; }
       if (e.kind === "prop") { for (const t of meshyTools(e)) this.crowd?.setPart(t.part, t.geo, t.mat); return; }
+      // a level with scrap heaps shows no scrap as mere decoration (Doug: all visible scrap is pickable)
+      if (e.kind === "decor" && SCRAP_DECOR.has(e.id) && manifest.entities.some((x) => x.type === "node.salvage_pile")) return;
       if (e.kind === "item" || e.kind === "decor") {
         const g = meshyGeometry(e.file);
         if (!g) return;
@@ -1113,7 +1117,8 @@ export class Renderer3D implements Renderer {
   private syncNodes(s: State): void {
     s.nodes.forEach((n, i) => {
       const key = `n:${i}`;
-      const p = this.place(key, n.type, this.wv(n.pos));
+      // scrap heaps take the scrap models in turn (ship scrap, scrap field, wreck): every scrap on such a level is pickable
+      const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? 1 + (i % 3) : 1);
       if (n.enabled) this.candidate(n.type, p);
       const body = p.model.parts["body"] as Mesh | undefined;
       const steps = body?.userData["steps"] as number[] | undefined;

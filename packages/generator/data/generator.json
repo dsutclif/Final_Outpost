@@ -85,7 +85,7 @@
   "footprints": {
     "pad": [-25, -25, 25, 25], "pad.big": [-35, -35, 35, 35],
     "sink.core": [-34, -84, 34, 34], "sink.sales_point": [-42, -88, 63, 32],
-    "node.material_source": [-30, -54, 30, 30], "node.food_source": [-32, -61, 32, 32], "node.fuel_scrap": [-14, -14, 14, 14],
+    "node.material_source": [-30, -54, 30, 30], "node.food_source": [-32, -61, 32, 32], "node.fuel_scrap": [-14, -14, 14, 14], "node.salvage_pile": [-48, -48, 48, 48],
     "conv.food_processor": [-29, -67, 65, 63], "conv.material_processor": [-29, -67, 65, 63], "conv.alloy_works": [-29, -67, 65, 63],
     "struct.housing": [-31, -55, 31, 21], "struct.medical": [-28, -62, 33, 22], "struct.barracks": [-24, -77, 28, 23],
     "struct.ranged_defense": [-19, -45, 19, 35], "struct.depot": [-40, -78, 40, 29], "struct.landmark": [-64, -154, 64, 71]

@@ -16,6 +16,7 @@ export function capturePositions(w: WorldView): Map<string, V> {
   put("player", w.player.pos);
   for (const r of w.residents ?? []) put(`r:${r.id}`, r.pos);
   for (const h of w.hostiles ?? []) put(`h:${h.id}`, h.pos);
+  for (const t of w.troops ?? []) put(`tr:${t.id}`, t.pos);
   for (const p of w.prey ?? []) put(`p:${p.id}`, p.pos);
   for (const c of w.captures ?? []) put(`c:${c.id}`, c.pos);
   w.sales?.queue.forEach((q, i) => put(`q:${i}`, q.pos));

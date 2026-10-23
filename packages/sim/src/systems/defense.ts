@@ -5,7 +5,7 @@ import { below, between } from "../rng.js";
 import type { HostileState, State, TroopState } from "../state.js";
 import { attackGate, breakSection, firstCrossing, outsideLines, sectionMid, sectionSide } from "./barriers.js";
 import { hitHostile, nearestHostile } from "./combat.js";
-import { hint, moveAgent, stepDown, walkAround } from "./common.js";
+import { hint, moveAgent, ringPoint, stepDown, walkAround } from "./common.js";
 import { dropTow } from "./lasso.js";
 
 type Side = HostileState["side"];
@@ -201,7 +201,8 @@ function stepTroops(st: State, cp: Compiled, out: SimEvent[]): void {
       if (!target || d < bd) { target = h; bd = d; }
     }
     const outside = st.barriers.length > 0 && outsideLines(st, t.pos);
-    let goal: Vec = target ? target.pos : home.pos;
+    // with the field clear they stand in a loose ring round their post, not on one spot
+    let goal: Vec = target ? target.pos : ringPoint(home.pos, t.id, cp.defense.postOffset * 2, cp.defense.postOffset * 3 / 2);
     if (target && !outside && st.barriers.length > 0 && outsideLines(st, target.pos)) {
       const g = attackGate(st, target.side);
       const door = g ? sectionMid(g.line.sections[g.idx]!) : null;
