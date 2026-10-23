@@ -66,13 +66,13 @@
     "raid": { "t": 6, "swarmlings": 12, "raiders": 0, "gap": 0.12 }
   },
   "scrapHeaps": {
-    "_doc": "Batch 3 (Doug): on a share (chance) of defend levels, n scrap heaps (node.salvage_pile, a few scrap each, never regrowing) stand about reach units from the core, so the first defences can be bought before the first kills.",
-    "chance": 0.6, "n": [2, 3], "reach": 110
+    "_doc": "Batch 3 (Doug): on a share (chance) of defend levels, n scrap heaps (node.salvage_pile, a little scrap each, never regrowing) lie out in the wilds beyond the wall, at least outside units past the ring and within band of that, and roadGap clear of every attack road, so the player scavenges for the first defences.",
+    "chance": 0.8, "n": [3, 5], "outside": 70, "band": 240, "roadGap": 80
   },
   "defendSockets": {
-    "_doc": "Batch 3 turret sockets inside the wall at each attack gate: startInside per gate, at spots [u, v] in the gate's frame (u along the wall from the gate's middle, v outward, negative = inside; east and west gates use insideEW, the tower footprint being long along y). A site keeps edge from the (padded) map edge, wallClear from every wall, laneClear from every attack lane and siteR from every station centre; search is how far it may drift from the wanted spot. Gatherables on a socket's tower or pad give way, while more than keepForest ore scrap nodes are left.",
+    "_doc": "Batch 3 turret sockets inside the wall at each attack gate (none since Doug's playtest: the road pairs outside are enough): startInside per gate, at spots [u, v] in the gate's frame (u along the wall from the gate's middle, v outward, negative = inside; east and west gates use insideEW, the tower footprint being long along y). A site keeps edge from the (padded) map edge, wallClear from every wall, laneClear from every attack lane and siteR from every station centre; search is how far it may drift from the wanted spot. Gatherables on a socket's tower or pad give way, while more than keepForest ore scrap nodes are left.",
     "keepForest": 6,
-    "startInside": 2,
+    "startInside": 0,
     "inside": [[-86, -50], [86, -50], [-150, -50], [150, -50], [-60, -125], [60, -125], [-130, -125], [130, -125]],
     "insideEW": [[-120, -50], [120, -50], [-190, -50], [190, -50], [-80, -125], [80, -125], [-160, -125], [160, -125]],
     "edge": 6, "wallClear": 6, "laneClear": 14, "siteR": 22, "search": 24

@@ -67,7 +67,7 @@ export const GEN = genData as unknown as {
   defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
-  scrapHeaps: { chance: number; n: [number, number]; reach: number };
+  scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
   defendSockets: { keepForest: number; startInside: number; inside: [number, number][]; insideEW: [number, number][]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number };
   /** Batch 3: the padded defend map and the socket-lined roads; see generator.json. */
@@ -368,20 +368,6 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   if (got < Math.max(6, nForest - 4)) fail("fuel forest too crowded");
   // A second, smaller forest on the far side at low pressure (fuel forests, plural).
   if (K.forest >= 11 && !ring && !busy) placeForest("grove", [-forestDir[0], -forestDir[1]], K.forestReach + 10, 5, 0);
-
-  // Batch 3: on some defend levels a few scrap heaps in the base give the first scrap for the defences
-  // (generator.json scrapHeaps), drawn from their own random stream so the rest of the level never shifts.
-  if (defend) {
-    const SH = GEN.scrapHeaps, hr = new Rand(mix(inp.seed >>> 0, hashStr("scrapHeaps")));
-    if (hr.float() < SH.chance) {
-      const n = hr.int(SH.n[0], SH.n[1]);
-      for (let k = 0; k < n; k++) {
-        const a = hr.float() * Math.PI * 2, near: Pt = [Math.round(core[0] + Math.cos(a) * SH.reach), Math.round(core[1] + Math.sin(a) * SH.reach)];
-        const q = P.place(`heap${k}`, c.nodes["node.salvage_pile"]!.range, inner, { near, key: true, fp: "node.fuel_scrap", samples: 200 });
-        if (q) ents.push({ type: "node.salvage_pile", at: [...q] });
-      }
-    }
-  }
 
   // A pad's ground footprint is its plate plus whatever it builds once paid, so nothing is placed where the building will stand.
   const placePad = (id: string, near: Pt, opts: { big?: boolean; region?: Rect; on?: string; build?: string; slots?: { id: string; dx: number; dy: number; r: number; fp: string }[] } = {}): Pt => {
@@ -908,6 +894,22 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           }
         }
         if (opened === 0) fail(`no room for a turret socket on the ${sd} road`);
+      }
+      // Scrap heaps out in the wilds beyond the wall, off the roads: the player scavenges them for the first
+      // defences (Doug). Their own random stream, so the rest of the level never shifts.
+      const SH = GEN.scrapHeaps, hr = new Rand(mix(inp.seed >>> 0, hashStr("scrapHeaps")));
+      if (hr.float() < SH.chance) {
+        const want = hr.int(SH.n[0], SH.n[1]), rr = ring.rect;
+        const rFp = c.nodes["node.salvage_pile"]!.range;
+        for (let k = 0, tries = 0; k < want && tries < 400; tries++) {
+          const q: Pt = [Math.round(lo[0] + hr.float() * (hi[0] - lo[0])), Math.round(lo[1] + hr.float() * (hi[1] - lo[1]))];
+          if (rectDist(q, rr) < SH.outside || rectDist(q, rr) > SH.outside + SH.band) continue;
+          if (lanes.some(([a, b2]) => segDist(q, a, b2) < SH.roadGap)) continue;
+          if (!boxOk(q, "node.fuel_scrap", rFp, false)) continue;
+          P.add(`heap${k}`, q, rFp, { fp: "node.fuel_scrap" });
+          ents.push({ type: "node.salvage_pile", at: [...q] });
+          k++;
+        }
       }
     }
     if (guards) {

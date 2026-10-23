@@ -143,7 +143,7 @@ describe("layout and economy per family (stages 2-4)", () => {
     expect(checked).toBeGreaterThan(0);
   });
 
-  it("defend levels: turret sockets at every attack gate, inside and outside the wall, more opening with the waves; the guard post stands", () => {
+  it("defend levels: turret sockets on every attack road outside the wall, more opening with the waves; scrap heaps outside; the guard post stands", () => {
     let checked = 0, unlocking = 0;
     for (const { r, b } of built()) {
       if (!b || r.family !== "defend") continue;
@@ -154,12 +154,12 @@ describe("layout and economy per family (stages 2-4)", () => {
       const sides = [...new Set(m.waves.map((w) => w.side as string))];
       for (const sd of sides) {
         const mine = towers.filter((t) => t.id.startsWith(`tower_${sd}`));
-        expect(mine.filter((t) => !t.requires?.wave).length, `${m.id} ${sd} gate`).toBeGreaterThanOrEqual(4);
+        expect(mine.filter((t) => !t.requires?.wave).length, `${m.id} ${sd} gate`).toBeGreaterThanOrEqual(1);
         for (const t of mine) expect(t.site, t.id).toBeDefined();
       }
-      // some socket stands outside the wall, some inside
-      const out = towers.map((t) => outsideLines(sim.state, { x: t.site![0] * 1000, y: t.site![1] * 1000 }));
-      expect(out.some((o) => o) && out.some((o) => !o), m.id).toBe(true);
+      // every socket stands outside the wall, on the road (Doug: two pairs outside each gate are enough)
+      for (const t of towers) expect(outsideLines(sim.state, { x: t.site![0] * 1000, y: t.site![1] * 1000 }), t.id).toBe(true);
+      for (const h of m.entities.filter((e) => e.type === "node.salvage_pile") as { at: [number, number] }[]) expect(outsideLines(sim.state, { x: h.at[0] * 1000, y: h.at[1] * 1000 }), "scrap heap").toBe(true);
       // sockets that open with the waves (soft: a gate without room for them skips them)
       if (towers.some((t) => (t.requires?.wave ?? 0) > 0)) unlocking++;
       if (m.entities.some((e) => e.type === "pad.hire" && e.id === "train")) {

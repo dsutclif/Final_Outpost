@@ -3,5 +3,5 @@
   "node.food_source": { "yields": "res.food_raw_1", "range": 36, "rate": 0.45, "workerRate": 0.8, "stock": null, "regrow": null },
   "node.fuel_deposit": { "yields": "res.fuel_dense", "range": 32, "rate": 0.5, "workerRate": 0.8, "stock": null, "regrow": null },
   "node.fuel_scrap": { "yields": "res.material_basic", "range": 26, "rate": 0.3, "workerRate": 0.55, "stock": 2, "regrow": 4 },
-  "node.salvage_pile": { "yields": "res.salvage", "range": 34, "rate": 0.25, "workerRate": 0.6, "stock": 10, "regrow": null }
+  "node.salvage_pile": { "yields": "res.salvage", "range": 34, "rate": 0.25, "workerRate": 0.6, "stock": 8, "regrow": null }
 }
