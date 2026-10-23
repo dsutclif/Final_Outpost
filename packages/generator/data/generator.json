@@ -66,10 +66,12 @@
     "raid": { "t": 6, "swarmlings": 12, "raiders": 0, "gap": 0.12 }
   },
   "defendSockets": {
-    "_doc": "Batch 3 turret sockets at each attack gate. Spots are [u, v] in world units in the gate's frame: u along the wall from the gate's middle, v outward (negative = inside). start sockets per gate stand from the start, taking inside and outside spots in turn; each unlock opens n more (outside spots first when outside is true) at the gate the next wave comes to, once that many waves have started (capped at the last wave). A spot with no room tries its mirror across the wall, then gives up; a gate with fewer than start sockets fails the layout. A site keeps edge from the map edge, wallClear from every wall, laneClear from the attack lane (the straight line out from the gate) and siteR from every station centre; search is how far it may drift from the wanted spot. An outside socket's pad stands padIn inside the wall. Gatherables (forest nodes) on a socket's spot give way.",
+    "_doc": "Batch 3 turret sockets at each attack gate. Spots are [u, v] in world units in the gate's frame: u along the wall from the gate's middle, v outward (negative = inside); east and west gates use insideEW (the tower footprint is long along y). start sockets per gate stand from the start, taking inside and outside spots in turn; each unlock opens n more (outside spots first when outside is true) at the gate the next wave comes to, once that many waves have started (capped at the last wave). A spot with no room tries its mirror across the wall, then gives up; a gate with fewer than start sockets fails the layout. A site keeps edge from the map edge, wallClear from every wall, laneClear from the attack lane (the straight line out from the gate) and siteR from every station centre; search is how far it may drift from the wanted spot. An outside socket's pad stands padIn inside the wall. Gatherables (forest nodes) on a socket's tower or pad spot give way, while more than keepForest are left.",
+    "keepForest": 6,
     "start": 4,
     "inside": [[-86, -50], [86, -50], [-150, -50], [150, -50], [-60, -125], [60, -125], [-130, -125], [130, -125]],
-    "outside": [[-50, 58], [50, 58], [-50, 124], [50, 124]],
+    "insideEW": [[-120, -50], [120, -50], [-190, -50], [190, -50], [-80, -125], [80, -125], [-160, -125], [160, -125]],
+    "outside": [[-50, 42], [50, 42], [-50, 108], [50, 108]],
     "unlocks": [{ "wave": 3, "n": 2, "outside": true }],
     "edge": 6, "wallClear": 6, "laneClear": 14, "siteR": 22, "search": 24, "padIn": 34
   },

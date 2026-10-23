@@ -67,7 +67,7 @@ export const GEN = genData as unknown as {
   defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
-  defendSockets: { start: number; inside: [number, number][]; outside: [number, number][]; unlocks: { wave: number; n: number; outside?: boolean }[]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number; padIn: number };
+  defendSockets: { keepForest: number; start: number; inside: [number, number][]; insideEW: [number, number][]; outside: [number, number][]; unlocks: { wave: number; n: number; outside?: boolean }[]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number; padIn: number };
   conveyorGoals: string[];
   /** Geography: how often and how a level gets ridges, outcrops and chasms (terrain.ts). */
   terrain: TerrainData;
@@ -729,13 +729,6 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     if (pre.length === ring.points.length) pre.splice(pre.indexOf(ring.side.findIndex((s) => s === sides[0])), 1);
     ents.push({ type: "barrier.line", id: "ring", res: wallsCurrency ? "res.currency" : "res.salvage", costPerSection: Math.max(1, Math.round(K.ringCost)),
       points: ring.points.map((p) => [...p]), closed: true, gates: ringGates, prebuilt: pre });
-    if (guards) {
-      // Batch 3: the guard post stands from the start, so the first defence purchase is hiring guards.
-      const bk = placePad("barracks", [core[0] - 100, core[1] + 100], { build: "struct.barracks" });
-      ents.push({ type: "struct.barracks", id: "barracks", at: [...bk] });
-      const tr = placePad("train", [bk[0], bk[1] + 70]);
-      pad({ type: "pad.hire", id: "train", at: [...tr], cost: { "res.salvage": salv("salvage.train") }, role: { role: "role.defender" }, repeatable: true });
-    }
     if (feat.has("turrets")) {
       // Batch 3 (tower defence): turret sockets at every attack side's gate, along its approach lane. A socket
       // is a tower pad, then its Lv2 and Lv3 pads on the same spot (each needs the one before, costs double
@@ -762,15 +755,16 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         for (const sp of P.spots) if (dist(q, [sp.x, sp.y]) < sp.r + SK.siteR) return false;
         return true;
       };
-      // Gatherables (forest nodes) under a socket's tower are taken off the map.
-      const clearTight = (q: Pt): void => {
-        const b = P.box(q, "struct.ranged_defense")!;
+      // Gatherables (forest nodes) under a socket's tower or its pad are taken off the map.
+      const clearTight = (q: Pt, padR = 0): void => {
+        const b = padR > 0 ? P.box(q, "pad")! : P.box(q, "struct.ranged_defense")!;
         for (let i = P.stations.length - 1; i >= 0; i--) {
           const s = P.stations[i]!;
           if (!s.tight) continue;
-          const hit = dist(q, [s.x, s.y]) < s.r + SK.siteR
+          const hit = dist(q, [s.x, s.y]) < s.r + (padR > 0 ? padR + S.margin : SK.siteR)
             || (!!s.fp && b[0] < s.fp[2] + g && s.fp[0] < b[2] + g && b[1] < s.fp[3] + g && s.fp[1] < b[3] + g);
-          if (!hit) continue;
+          // never thin the fuel forest below what the core needs
+          if (!hit || P.stations.filter((x) => x.tight).length <= SK.keepForest) continue;
           P.stations.splice(i, 1);
           const k = ents.findIndex((e) => e.type.startsWith("node.") && Array.isArray(e["at"]) && (e["at"] as number[])[0] === s.x && (e["at"] as number[])[1] === s.y);
           if (k >= 0) ents.splice(k, 1);
@@ -791,6 +785,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         return null;
       };
       const nW0 = Math.max(Math.round(K.waves), GEN.defendWaves.lateFrom + 2);
+      type Gate = { sd: string; m: Pt; o: Pt; al: Pt; lane: { a: Pt; b: Pt }; ins: [number, number][]; outs: [number, number][]; want: { uv: readonly [number, number]; wave: number }[]; made: number; open: number };
+      const gates: Gate[] = [];
       for (const sd of sides) {
         // the side's attack gate: of its gates the one nearest the core (as the sim picks it)
         const mids = ringGates.filter((i) => ring!.side[i] === sd).map((i) => {
@@ -802,7 +798,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         lanes.push([lane.a, lane.b]);
         // inside and outside spots take turns: the start sockets, then each unlock's
         const want: { uv: readonly [number, number]; wave: number }[] = [];
-        const ins = [...SK.inside], outs = [...SK.outside];
+        // the tower footprint is long along y, so an east or west gate spaces its inside sockets wider
+        const ins = [...(sd === "e" || sd === "w" ? SK.insideEW : SK.inside)], outs = [...SK.outside];
         for (let k = 0; k < SK.start; k++) want.push({ uv: (k % 2 === 0 ? ins : outs).shift() ?? (ins.shift() ?? outs.shift())!, wave: 0 });
         for (const u of SK.unlocks) {
           const w = Math.min(u.wave, nW0 - 1);
@@ -810,14 +807,18 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           if (w < 1 || sides[w % sides.length] !== sd) continue;
           for (let k = 0; k < u.n; k++) { const uv = (u.outside ? outs : ins).shift() ?? (u.outside ? ins : outs).shift(); if (uv) want.push({ uv, wave: w }); }
         }
-        let made = 0, open = 0;
-        for (const { uv, wave } of want) {
+        gates.push({ sd, m, o, al, lane, ins, outs, want, made: 0, open: 0 });
+      }
+      // every gate's starting sockets before any gate's later ones, so one gate's extras never crowd out another's start
+      for (const phase of [0, 1]) for (const G of gates) {
+        const { sd, m, o, al, lane, ins, outs } = G;
+        for (const { uv, wave } of G.want.filter((x) => (x.wave === 0) === (phase === 0))) {
           // a spot with no room (outside, with the ring close to the map edge) tries its mirror across the
           // wall, then the unused spots of the other kind
           let site = findSite(m, al, o, uv, lane) ?? findSite(m, al, o, [uv[0], -uv[1]], lane);
           for (const rest = uv[1] > 0 ? ins : outs; !site && rest.length > 0;) site = findSite(m, al, o, rest.shift()!, lane);
           if (!site) continue;
-          const id = `tower_${sd}${made + 1}`;
+          const id = `tower_${sd}${G.made + 1}`;
           clearTight(site);
           P.add(`${id}@site`, site, 0, { fp: "struct.ranged_defense" });
           // the pad stands just inside the wall: behind an outside socket, inward of an inside one
@@ -826,12 +827,13 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           const out = (site[0] - m[0]) * o[0] + (site[1] - m[1]) * o[1];
           const back = out > 0 ? out + SK.padIn : depth;
           const near: Pt = [Math.round(site[0] + inward[0] * back), Math.round(site[1] + inward[1] * back)];
+          clearTight(near, R.pad);
           const tp = P.place(id, R.pad, [near[0] - 24, near[1] - 24, 48, 48], { near, key: true, fp: ["pad"], hugWall: true, pull: false, samples: 120 })
             ?? P.place(id, R.pad, [near[0] - 60, near[1] - 60, 120, 120], { near, key: true, fp: ["pad"], pull: false, samples: 400 });
           // no room for its pad: the socket is left out (and its site freed)
           if (!tp) { P.stations.splice(P.stations.findIndex((x) => x.id === `${id}@site`), 1); continue; }
-          made++;
-          if (wave === 0) open++;
+          G.made++;
+          if (wave === 0) G.open++;
           towers.push(pad({ type: "pad.build", id, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site], ...(wave > 0 ? { requires: { wave } } : {}) }));
           if (!feat.has("salvage_upgrades")) continue;
           // Lv2 and Lv3 take the tower pad's spot, which is free once the one before is bought (Doug's playtest of 0.11.0).
@@ -840,8 +842,18 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           P.add(`${id}_up3`, tp, R.pad, { key: true, on: id });
           pad({ type: "pad.build", id: `${id}_up3`, at: [...tp], cost: { "res.salvage": salv("salvage.towerUp3") }, build: "struct.ranged_defense.t3", target: id, requires: { pad: `${id}_up` } });
         }
-        if (open < SK.start) fail(`no room for ${SK.start} turret sockets at the ${sd} gate`);
+        if (phase === 0 && G.open < SK.start) fail(`no room for ${SK.start} turret sockets at the ${sd} gate`);
       }
+    }
+    if (guards) {
+      // Batch 3: the guard post stands from the start, so the first defence purchase is hiring guards.
+      // away from the attack gates, where the turret sockets go
+      const away = sides.reduce((v, sd) => [v[0] - (sd === "e" ? 1 : sd === "w" ? -1 : 0), v[1] - (sd === "s" ? 1 : sd === "n" ? -1 : 0)] as Pt, [0, 0] as Pt);
+      const aw = Math.hypot(away[0], away[1]) || 1, bkDir: Pt = Math.hypot(away[0], away[1]) > 0 ? [away[0] / aw, away[1] / aw] : [-0.7, 0.7];
+      const bk = placePad("barracks", [Math.round(core[0] + bkDir[0] * 110), Math.round(core[1] + bkDir[1] * 110)], { build: "struct.barracks" });
+      ents.push({ type: "struct.barracks", id: "barracks", at: [...bk] });
+      const tr = placePad("train", [bk[0], bk[1] + 70]);
+      pad({ type: "pad.hire", id: "train", at: [...tr], cost: { "res.salvage": salv("salvage.train") }, role: { role: "role.defender" }, repeatable: true });
     }
     if (feat.has("med_bay")) {
       const md = placePad("medic", [core[0] + 100, core[1] + 110], { build: "struct.medical" });
