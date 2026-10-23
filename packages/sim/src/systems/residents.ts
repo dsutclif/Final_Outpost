@@ -204,7 +204,7 @@ function guardStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole
     const out = outsideLines(st, r.pos);
     if (target) {
       const g = outsideLines(st, target.pos) && !out ? attackGate(st, target.side) : null;
-      const door = g ? sectionMid(g.line.sections[g.idx]!) : null;
+      const door = g ? sectionMid(g.line.sections[g.idx]!) : outsideLines(st, target.pos) && !out ? nearestGate(st, target.pos) : null;
       moveAgent(st, cp, r.pos, door && !within(r.pos, door, cp.defense.barrierStop) ? door : target.pos, role.speed, cp.residents.arrive);
       return;
     }

@@ -205,7 +205,7 @@ function stepTroops(st: State, cp: Compiled, out: SimEvent[]): void {
     let goal: Vec = target ? target.pos : ringPoint(home.pos, t.id, cp.defense.postOffset * 2, cp.defense.postOffset * 3 / 2);
     if (target && !outside && st.barriers.length > 0 && outsideLines(st, target.pos)) {
       const g = attackGate(st, target.side);
-      const door = g ? sectionMid(g.line.sections[g.idx]!) : null;
+      const door = g ? sectionMid(g.line.sections[g.idx]!) : nearestGateMid(st, target.pos);
       if (door && !within(t.pos, door, cp.defense.barrierStop)) goal = door;
     } else if (!target && outside) {
       const g = nearestGateMid(st, t.pos);
