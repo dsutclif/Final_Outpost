@@ -25,6 +25,8 @@ describe("guards rally to the side under attack", () => {
   it("walk to a post on the attacked side's wall, and back to their own post when it is clear", () => {
     fc.assert(fc.property(fc.constantFrom(...SIDES), fc.integer({ min: 0, max: 3 }), (side, post) => {
       const sim = createSim(level());
+      // rallying is what a guard does when it does not sortie (Batch 3 guards march out instead: gate-defence.test.ts)
+      sim.compiled.roles["role.defender"]!.sortie = false;
       const st = sim.state;
       const g = st.residents.find((r) => r.role === "idle")!;
       g.role = "role.defender";

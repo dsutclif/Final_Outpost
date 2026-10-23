@@ -462,6 +462,8 @@ export interface State {
   stats: Stats;
   /** Jobs the player has done by hand (and where each carried resource came from); created on first need. */
   manual?: { src: Record<string, string>; done: string[] };
+  /** Defence purchases made (guards, towers, tower levels): the exponent of pads.defenceGrowth; created on the first. */
+  defenceBought?: number;
   /** Workers, belts and upgrades bought this level (the automation tax's exponent); created on the first. */
   automation?: number;
   /** Conveyor belts, created with the first one built (absent before, so older levels hash as they did). */

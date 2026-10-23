@@ -130,6 +130,7 @@ export interface CompiledRole {
   attackRange: number;
   damage: number;
   rally: boolean;
+  sortie: boolean;
 }
 
 export interface CompiledCustomerDef {
@@ -239,7 +240,9 @@ export interface Compiled {
   /** Reactor-out countdown and frost (per mille). */
   freeze: { graceTicks: number; decayPerTick: number; othersRate: number; othersCap: number };
   hazard: { burnMul: number; radiusScale: number };
-  pads: { range: number; bigRange: number; payItemTicks: number; payCurrencyTicks: number; dwellTicks: number; automationGrowthPm: number };
+  pads: { range: number; bigRange: number; payItemTicks: number; payCurrencyTicks: number; dwellTicks: number; automationGrowthPm: number;
+    /** Per-mille price rise per defence purchase made (1000 = off). */
+    defenceGrowthPm: number };
   /** Some hire pad waits for its job to be done by hand (track the player's jobs). */
   manualJobs: boolean;
   /** Rating-only time budget (never a fail condition; `timer.seconds` is the fail timer). */
@@ -261,7 +264,7 @@ export interface Compiled {
     baseRange: number; baseHitTicks: number; baseDamage: number;
     /** Half the width of the lane a wave comes down toward its side's gate (Batch 3). */
     laneHalfWidth: number;
-    dropRelocateBand: number; dropRelocateOffset: number; postOffset: number;
+    postOffset: number;
     /** Quiet ticks after a wave is cleared before the next may start. */
     waveQuietTicks: number; playerHitRange: number; playerHitTicks: number;
   };
@@ -375,7 +378,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     roles[id] = {
       behavior: r.behavior, speed: perTick(r.speed), carry: r.carry ?? 1,
       gatherTicks: ticks(r.gatherInterval ?? 0), deliverTicks: ticks(r.deliverInterval ?? 0),
-      attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1, rally: r.rally,
+      attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1, rally: r.rally, sortie: r.sortie,
     };
   }
   const consumers: Record<string, CompiledConsumer> = {};
@@ -535,6 +538,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       // Zero is allowed here (instant payment), unlike ticks(), which never goes below one.
       dwellTicks: Math.max(0, Math.round(param("pads.dwell") * TPS)),
       automationGrowthPm: Math.round(param("pads.automationGrowth") * 1000),
+      defenceGrowthPm: Math.round(param("pads.defenceGrowth") * 1000),
     },
     manualJobs: manifest.entities.some((e) => e.type === "pad.hire" && e.manual === true),
     level: { budgetSeconds: param("level.budgetSeconds"), budgetTicks: Math.max(1, Math.round(param("level.budgetSeconds") * TPS)) },
@@ -563,7 +567,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       barrierStop: fp(param("defense.barrierStop")), barrierHitTicks: ticks(param("defense.barrierHitInterval")), barrierDamage: int("defense.barrierDamage"),
       baseRange: fp(param("defense.baseRange")), baseHitTicks: ticks(param("defense.baseHitInterval")), baseDamage: int("defense.baseDamage"),
       laneHalfWidth: fp(param("defense.laneHalfWidth")),
-      dropRelocateBand: fp(param("defense.dropRelocateBand")), dropRelocateOffset: fp(param("defense.dropRelocateOffset")), postOffset: fp(param("defense.postOffset")), waveQuietTicks: ticks(param("defense.waveQuiet")),
+      postOffset: fp(param("defense.postOffset")), waveQuietTicks: ticks(param("defense.waveQuiet")),
       playerHitRange: fp(param("defense.playerHitRange")), playerHitTicks: ticks(param("defense.playerHitInterval")),
     },
     waves,

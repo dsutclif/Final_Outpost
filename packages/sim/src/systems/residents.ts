@@ -1,8 +1,8 @@
 import type { Compiled, CompiledRole } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { FP, mulDiv, within, type Vec } from "../fixed.js";
-import type { ConverterState, DropState, NodeState, PreyState, ResidentState, State } from "../state.js";
-import { attackedSide, guardPost } from "./barriers.js";
+import type { ConverterState, DropState, HostileState, NodeState, PreyState, ResidentState, State } from "../state.js";
+import { attackGate, attackedSide, guardPost, outsideLines, sectionMid } from "./barriers.js";
 import { hitHostile, hitPrey, nearestHostile } from "./combat.js";
 import { depotPut, moveAgent, ringPoint, stepDown } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
@@ -193,8 +193,38 @@ function guardStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole
     if (ready(r, role.attackTicks)) hitHostile(st, cp, foe, role.damage, "resident", out);
     return;
   }
-  // with nothing in reach, rally to the wall on the side under attack, or hold the own post when clear
+  // Batch 3: a sortie guard marches out to the nearest attacker on the field (through its side's gate), and
+  // back in through the nearest gate once the field is clear; otherwise rally to the attacked side's wall or hold the post
+  if (role.sortie && st.barriers.length > 0) {
+    let target: HostileState | null = null, bd = 0;
+    for (const h of st.hostiles) {
+      const dx = h.pos.x - r.pos.x, dy = h.pos.y - r.pos.y, d = dx * dx + dy * dy;
+      if (!target || d < bd) { target = h; bd = d; }
+    }
+    const out = outsideLines(st, r.pos);
+    if (target) {
+      const g = outsideLines(st, target.pos) && !out ? attackGate(st, target.side) : null;
+      const door = g ? sectionMid(g.line.sections[g.idx]!) : null;
+      moveAgent(st, cp, r.pos, door && !within(r.pos, door, cp.defense.barrierStop) ? door : target.pos, role.speed, cp.residents.arrive);
+      return;
+    }
+    if (out) {
+      const home = nearestGate(st, r.pos);
+      if (home && !within(r.pos, home, cp.defense.barrierStop)) { moveAgent(st, cp, r.pos, home, role.speed, cp.residents.arrive); return; }
+    }
+  }
   moveAgent(st, cp, r.pos, guardPost(st, cp, r.assign.post ?? 0, role.rally ? attackedSide(st) : null), role.speed, cp.residents.arrive);
+}
+
+/** Middle of the gate section nearest p (any side), or null without gates. */
+function nearestGate(st: State, p: Vec): Vec | null {
+  let best: Vec | null = null, bd = 0;
+  for (const line of st.barriers) for (const s of line.sections) {
+    if (!s.gate) continue;
+    const m = sectionMid(s), dx = m.x - p.x, dy = m.y - p.y, d = dx * dx + dy * dy;
+    if (!best || d < bd) { best = m; bd = d; }
+  }
+  return best;
 }
 
 // ---------- haulers (supply routing) ----------

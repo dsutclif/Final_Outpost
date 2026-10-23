@@ -35,14 +35,23 @@ export function isAutomation(cp: Compiled, e: PadEnt): boolean {
   return b === "struct.conveyor" || b === "conv.level" || b === "sink.core.level" || !!cp.upgrades[b];
 }
 
+/** A defence purchase: hiring a guard, or building a tower or one of its levels. */
+export function isDefence(cp: Compiled, e: PadEnt): boolean {
+  if (e.type === "pad.hire") return cp.roles[e.role.role]?.behavior === "guard";
+  return e.build.startsWith("struct.ranged_defense");
+}
+
 /** What a pad costs now: its base cost, raised by the automation tax for automation pads. */
 export function padCost(st: State, cp: Compiled, e: PadEnt): Record<string, number> {
-  const n = isAutomation(cp, e) ? st.automation ?? 0 : 0;
-  if (n === 0 || cp.pads.automationGrowthPm <= 1000) return e.cost;
+  // Defence purchases climb on their own count (Batch 3: each tower, level or guard costs more than the last).
+  const def = isDefence(cp, e) && cp.pads.defenceGrowthPm > 1000;
+  const n = def ? st.defenceBought ?? 0 : isAutomation(cp, e) ? st.automation ?? 0 : 0;
+  const growth = def ? cp.pads.defenceGrowthPm : cp.pads.automationGrowthPm;
+  if (n === 0 || growth <= 1000) return e.cost;
   const out: Record<string, number> = {};
   for (const [res, base] of Object.entries(e.cost)) {
     let v = base * 1000;
-    for (let i = 0; i < n; i++) v = mulDiv(v, cp.pads.automationGrowthPm, 1000);
+    for (let i = 0; i < n; i++) v = mulDiv(v, growth, 1000);
     out[res] = Math.ceil(v / 1000);
   }
   return out;

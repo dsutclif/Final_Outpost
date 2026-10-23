@@ -112,21 +112,6 @@ export function firstCrossing(st: State, a: Vec, b: Vec): { line: BarrierState; 
   return best;
 }
 
-/** Where segment a→b first meets any section of any line, built or not; null if it never does. */
-export function lineCrossingPoint(st: State, a: Vec, b: Vec): Vec | null {
-  let best = -1;
-  for (const line of st.barriers) for (const s of line.sections) {
-    const t = segCross(a, b, s.a, s.b);
-    if (t >= 0 && (best < 0 || t < best)) best = t;
-  }
-  if (best < 0) return null;
-  return { x: a.x + mulDiv(b.x - a.x, best, FP), y: a.y + mulDiv(b.y - a.y, best, FP) };
-}
-
-/** True when p is within r of any section of any line. */
-export const nearAnyLine = (st: State, p: Vec, r: number): boolean =>
-  st.barriers.some((line) => line.sections.some((s) => nearSegment(p, s.a, s.b, r)));
-
 /**
  * Guard posts along the first line: section midpoints, then interior joints, then quarter points,
  * each offset along its section's normal toward the core side (straight inward on a ring).

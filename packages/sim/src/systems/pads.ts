@@ -5,7 +5,7 @@ import type { PadState, State, StructureState } from "../state.js";
 import { hint, idleResidents, take } from "./common.js";
 import { coreFuelCap } from "./core.js";
 import { placeConverter } from "./converters.js";
-import { isAutomation, jobDone, jobOf, padCost } from "./economy.js";
+import { isAutomation, isDefence, jobDone, jobOf, padCost } from "./economy.js";
 
 type HireEnt = Extract<Compiled["entityById"][string], { type: "pad.hire" }>;
 type BuildEnt = Extract<Compiled["entityById"][string], { type: "pad.build" }>;
@@ -103,6 +103,7 @@ function build(st: State, cp: Compiled, pad: PadState, e: HireEnt | BuildEnt, ou
     if (isAutomation(cp, e)) st.automation = (st.automation ?? 0) + 1;
     if (!st.built.includes(pad.id)) st.built.push(pad.id);
   }
+  if (isDefence(cp, e)) st.defenceBought = (st.defenceBought ?? 0) + 1;
   // A repeatable converter upgrade retires once the converter is at its top level.
   const maxed = e.type === "pad.build" && e.build === "conv.level" && convMaxed(st, cp, e.target);
   if (e.repeatable && !maxed) { pad.done = false; pad.paid = {}; }

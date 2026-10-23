@@ -34,7 +34,9 @@ function stations(m: Manifest, c: Content): Station[] {
     const [x, y] = e.at;
     if (e.type === "pad.hire" || e.type === "pad.build") {
       const big = e.type === "pad.build" && e.big;
-      out.push({ id, x, y, r: big ? P("pads.bigRange") : P("pads.range"), key: true, target: e.type === "pad.build" ? e.target : undefined });
+      // turret sockets line the attack roads out to the map edge (Batch 3): meant to be out of the opening view
+      const road = e.type === "pad.build" && e.build.startsWith("struct.ranged_defense");
+      out.push({ id, x, y, r: big ? P("pads.bigRange") : P("pads.range"), key: !road, target: e.type === "pad.build" ? e.target : undefined });
     } else if (e.type === "sink.core") {
       const d = c.sinks["sink.core"];
       out.push({ id, x, y, r: d && d.kind === "core" ? d.range : 0, key: true });

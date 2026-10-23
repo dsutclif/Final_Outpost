@@ -46,7 +46,7 @@ import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Fx } from "./scene/fx.js";
 import { GroundMarks } from "./scene/groundmarks.js";
-import { Environment, SLAB_TOP, type Site } from "./scene/environment.js";
+import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
@@ -87,6 +87,8 @@ interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, num
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
+/** Items drawn per carried column at most. */
+const BACK_MAX_DRAWN = 30;
 
 /** A placed model and its per-entity animation state. */
 interface Placed { key: string; model: Model; born: number; seen: boolean; data: Record<string, unknown>; sprites: Sprite[]; extra: Object3D[] }
@@ -220,6 +222,38 @@ function drawGlyph(g: CanvasRenderingContext2D, kind: string, x: number, y: numb
 const GATHER_ACT: Readonly<Record<string, string>> = {
   "node.material_source": "mine", "node.food_source": "reap", "node.fuel_deposit": "pick", "node.fuel_scrap": "mine",
 };
+
+/**
+ * The attack roads (Batch 3): from each attacked side's gate (of its gates the one nearest the core, as the
+ * sim picks it) straight out past the map edge, as wide as the lane the waves come down.
+ */
+function attackRoads(cp: Compiled): Road[] {
+  const core = cp.manifest.entities.find((e) => e.type === "sink.core");
+  if (!core) return [];
+  const [cx, cz] = core.at;
+  const sides = new Set(cp.waves.flatMap((w) => w.sides));
+  const W = cp.manifest.map.w, H = cp.manifest.map.h, w = Math.max(30, (cp.defense.laneHalfWidth / FP) * 2 + 16);
+  const out: Road[] = [];
+  for (const sd of sides) {
+    let best: [number, number] | null = null, bd = Infinity;
+    for (const e of cp.manifest.entities) {
+      if (e.type !== "barrier.line") continue;
+      for (const s of e.sections) {
+        if (!s.gate) continue;
+        const mx = (s.a[0] + s.b[0]) / 2, mz = (s.a[1] + s.b[1]) / 2, dx = mx - cx, dz = mz - cz;
+        const side = Math.abs(dz) >= Math.abs(dx) ? (dz < 0 ? "n" : "s") : dx < 0 ? "w" : "e";
+        if (side !== sd) continue;
+        const d = dx * dx + dz * dz;
+        if (d < bd) { bd = d; best = [mx, mz]; }
+      }
+    }
+    if (!best) continue;
+    const [ax, az] = best, far = 400;
+    const [bx, bz] = sd === "n" ? [ax, -far] : sd === "s" ? [ax, H + far] : sd === "w" ? [-far, az] : [W + far, az];
+    out.push({ ax, az, bx, bz, w });
+  }
+  return out;
+}
 
 export class Renderer3D implements Renderer {
   private mount: HTMLElement | null = null;
@@ -398,16 +432,27 @@ export class Renderer3D implements Renderer {
     this.scene.add(this.dynamic = new Group());
     const mats = this.bctx.mats;
     // concrete aprons under everything built (or to be built), paved back to the core
+    // the closed rings: turret sockets out on the attack roads stand on bare ground (Batch 3), never paved
+    const rings = (this.cp?.manifest.entities ?? []).flatMap((e) => (e.type === "barrier.line" && e.closed ? [e.sections.map((x) => x.a)] : []));
+    const inRings = (p: readonly [number, number]) => rings.every((poly) => {
+      let inside = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const [xi, yi] = poly[i]!, [xj, yj] = poly[j]!;
+        if ((yi > p[1]) !== (yj > p[1]) && p[0] < ((xj - xi) * (p[1] - yi)) / (yj - yi) + xi) inside = !inside;
+      }
+      return inside;
+    });
     const sites = manifest.entities.flatMap((e): Site[] => {
       const at = (e as { at?: readonly [number, number] }).at;
       if (!at) return [];
+      if (e.type === "pad.build" && (e as { build: string }).build.startsWith("struct.ranged_defense") && !inRings(at)) return [];
       const r = e.type === "sink.core" ? 78 : e.type.startsWith("sink.") || e.type.startsWith("conv.") ? 62 : e.type === "pad.build" || e.type.startsWith("struct.") || e.type === "node.food_source" ? 48 : 0;
       return r ? [{ x: at[0], z: at[1], r, core: e.type === "sink.core" }] : [];
     });
     const core = manifest.entities.find((e) => e.type === "sink.core") as { at?: readonly [number, number] } | undefined;
     const block = manifest.params["lots.block"] ?? 0, street = manifest.params["lots.street"] ?? 0;
     const lots = block > 0 && core?.at ? { x: core.at[0], z: core.at[1], block, street } : null;
-    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots);
+    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots, this.cp ? attackRoads(this.cp) : []);
     this.fx = new Fx(mats.particle, this.scene, this.labels);
     this.fx.onCoinLanded = this.coinCb;
     this.crowd = new Crowd(this.bctx.parts, mats.std, this.scene);
@@ -1919,7 +1964,8 @@ export class Renderer3D implements Renderer {
       const back = front ? -0.3 * s : 0.27 * s * (ITEM_K / 1.05) + row * 0.34 * ART_M * (ITEM_K / 1.05);
       const bx = pos.x - fx * back + rx * across, bz = pos.y - fz * back + rz * across;
       const total = counts.get(res)!;
-      const n = Math.max(0, total - (player ? this.fx!.inFlightToPlayer(res) : 0));
+      // a tall stack is drawn to BACK_MAX_DRAWN items (Batch 3 scrap runs to hundreds)
+      const n = Math.min(BACK_MAX_DRAWN, Math.max(0, total - (player ? this.fx!.inFlightToPlayer(res) : 0)));
       const h = items.height(res) * k;
       let y = (front ? 0.55 : 0.72) * s, wx = 0, wz = 0;
       for (let i = 0; i < n; i++) {

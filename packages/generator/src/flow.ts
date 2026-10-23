@@ -87,20 +87,15 @@ export function flowModel(m: Manifest, plan: Plan, c: Content, budgetSeconds: nu
   let t = 0, cur = P("start.currency"), busy = 0;
   const advance = (dt: number) => { t += dt; busy += dt * Math.min(1, 0.55 + feedShare()); };
   const padById = new Map(m.entities.filter((e) => e.type === "pad.hire" || e.type === "pad.build").map((e) => [(e as { id: string }).id, e] as const));
-  // The turret ladder's surplus (Lv3s, sockets that open with the waves, guards past the first two) is
-  // meant to be left over (Batch 3): only its core is walked.
-  const reqOf = (id: string) => (padById.get(id) as { requires?: { pad?: string; wave?: number } } | undefined)?.requires;
-  const surplus = (id: string): boolean => {
-    for (let x: string | undefined = id, i = 0; x && i < 8; x = reqOf(x)?.pad, i++) {
-      const e = padById.get(x);
-      if ((e?.type === "pad.build" && e.build === "struct.ranged_defense.t3") || reqOf(x)?.wave !== undefined) return true;
-    }
-    return false;
+  // The turret ladder (towers, their levels, guards) is paid in scrap from the waves, which are sized to it
+  // (build.ts), so the flow walks the rest of the build order only (Batch 3).
+  const ladder = (id: string): boolean => {
+    const e = padById.get(id);
+    return (e?.type === "pad.build" && e.build.startsWith("struct.ranged_defense")) || (e?.type === "pad.hire" && roles[e.role.role]?.behavior === "guard");
   };
   for (const s of plan.steps) {
-    if (s.when !== "always" || surplus(s.pad)) continue;
-    const guardHire = (padById.get(s.pad) as { role?: { role: string } } | undefined)?.role?.role === "role.defender";
-    for (let k = 0; k < (guardHire ? Math.min(2, s.repeat) : s.repeat); k++) {
+    if (s.when !== "always" || ladder(s.pad)) continue;
+    for (let k = 0; k < s.repeat; k++) {
       const cost = Object.entries(s.cost).reduce((a, [r, n]) => a + (c.resources[r]?.cap === null ? n : 0), 0);
       const capped = Object.entries(s.cost).reduce((a, [r, n]) => a + (c.resources[r]?.cap !== null ? n : 0), 0);
       const wait = Math.max(0, cost - cur) / income();

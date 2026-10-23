@@ -234,6 +234,8 @@ export const RoleDef = z.object({
   damage: z.number().int().positive().optional(),
   // Guards: leave their post for the wall on the side under attack, and come back when it is clear.
   rally: z.boolean().default(false),
+  // Guards: march out through the gate to meet a wave on the field, back to their posts once it is gone (Batch 3).
+  sortie: z.boolean().default(false),
   cost: DefaultCost,
 });
 export type RoleDef = z.infer<typeof RoleDef>;

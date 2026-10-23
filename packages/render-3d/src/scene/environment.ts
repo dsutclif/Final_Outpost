@@ -40,6 +40,9 @@ export const SLAB_TOP = 1.4;
 export interface Site { x: number; z: number; r: number; core?: boolean }
 /** The generator's lots and streets: streets cross at the core (x, z) and repeat every block + street. */
 export interface Lots { x: number; z: number; block: number; street: number }
+
+/** An attack road (Batch 3): packed dirt from a gate (a) out past the map edge (b), w wide. */
+export interface Road { ax: number; az: number; bx: number; bz: number; w: number }
 /** Key light: low and from the left so structures throw long shadows; ambient stays low for contrast. */
 const SUN = 3.3, SUN_OFS = [-400, 460, 140] as const, HEMI = 1.15, HEMI_LOW = 2.2;
 
@@ -72,13 +75,14 @@ export class Environment {
   /** 0..1 storm blend (eased toward the hazard phase). */
   storminess = 0;
 
-  constructor(private readonly scene: Scene, readonly W: number, readonly H: number, private readonly t: Tokens, private readonly mats: MaterialSet, private readonly seed: number, sites: readonly Site[] = [], private readonly lots: Lots | null = null) {
+  constructor(private readonly scene: Scene, readonly W: number, readonly H: number, private readonly t: Tokens, private readonly mats: MaterialSet, private readonly seed: number, sites: readonly Site[] = [], private readonly lots: Lots | null = null, roads: readonly Road[] = []) {
     this.cFog = new Color(t.fog);
     this.cStorm = new Color(t.storm);
     this.cSky = new Color(t.sky);
     scene.add(this.group);
     this.group.add(this.buildGround(seed));
     this.group.add(this.buildSlabs(seed, sites));
+    if (roads.length > 0) this.group.add(this.buildRoads(seed, roads));
     this.buildScatter(seed);
 
     // sky dome: a vertex-coloured gradient; mostly hidden at 50 degrees but frames the asset lab
@@ -130,6 +134,37 @@ export class Environment {
 
     this.storm = new Batch(this.stormGeo, mats.particle, this.group, 160, "storm");
     for (let i = 0; i < 160; i++) this.stormSeeds.push(new Vector3(hash01(i * 3.1), hash01(i * 7.3), hash01(i * 11.7)));
+  }
+
+  /** Packed dirt roads, a hair above the ground, with ragged darker edges. */
+  private buildRoads(seed: number, roads: readonly Road[]): Group {
+    const t = this.t, out = new Group();
+    out.name = "roads";
+    // trodden lighter than the sand around it, with dark ruts at the edges
+    const mid = new Color(t.groundAlt).lerp(new Color(t.sun), 0.22), edge = new Color(t.groundDark).lerp(new Color(t.ground), 0.3);
+    for (const r of roads) {
+      const dx = r.bx - r.ax, dz = r.bz - r.az, L = Math.hypot(dx, dz);
+      if (L === 0) continue;
+      const geo = new PlaneGeometry(r.w, L, 4, Math.max(1, Math.round(L / 20)));
+      geo.rotateX(-Math.PI / 2);
+      geo.rotateY(Math.atan2(dx, dz));
+      geo.translate((r.ax + r.bx) / 2, 0.35, (r.az + r.bz) / 2);
+      const pos = geo.getAttribute("position"), col = new Float32Array(pos.count * 3), c = new Color();
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i), z = pos.getZ(i);
+        // across: 0 on the centre line, 1 at the edge
+        const across = Math.abs((x - r.ax) * dz - (z - r.az) * dx) / L / (r.w / 2);
+        const n = noise(x / 40, z / 40, seed + 11);
+        c.copy(mid).lerp(edge, Math.min(1, Math.max(0, across - 0.7 + (n - 0.5) * 0.3) * 3.5));
+        col.set([c.r, c.g, c.b], i * 3);
+      }
+      geo.setAttribute("color", new BufferAttribute(col, 3));
+      geo.computeVertexNormals();
+      const m = new Mesh(geo, this.mats.ground);
+      m.receiveShadow = true;
+      out.add(m);
+    }
+    return out;
   }
 
   private buildGround(seed: number): Mesh {

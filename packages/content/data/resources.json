@@ -5,7 +5,7 @@
   "res.food_raw_1": { "cap": 6, "price": 2, "category": "food" },
   "res.food_raw_2": { "cap": 6, "price": 3, "category": "food" },
   "res.food_prepared": { "cap": 6, "price": 5, "category": "food" },
-  "res.salvage": { "cap": 12, "price": 0, "category": "salvage" },
+  "res.salvage": { "cap": 400, "price": 0, "category": "salvage" },
   "res.component": { "cap": 6, "price": 9, "category": "material" },
   "res.currency": { "cap": null, "price": 0, "category": "currency" }
 }

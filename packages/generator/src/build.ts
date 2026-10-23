@@ -67,7 +67,9 @@ export const GEN = genData as unknown as {
   defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
-  defendSockets: { keepForest: number; start: number; inside: [number, number][]; insideEW: [number, number][]; outside: [number, number][]; unlocks: { wave: number; n: number; outside?: boolean }[]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number; padIn: number };
+  defendSockets: { keepForest: number; startInside: number; inside: [number, number][]; insideEW: [number, number][]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number };
+  /** Batch 3: the padded defend map and the socket-lined roads; see generator.json. */
+  defendRoad: { pad: number; first: number; step: number; towerU: number; towerUEW: number; endGap: number; priceGrowth: number };
   conveyorGoals: string[];
   /** Geography: how often and how a level gets ridges, outcrops and chasms (terrain.ts). */
   terrain: TerrainData;
@@ -171,6 +173,28 @@ const m0People = (_p: unknown[]): string[] => [];
 
 /** Guards the bot hires before any tower (bots brain.ts FIRST_GUARDS): part of the ladder's core. */
 const FIRST_GUARDS = 2;
+
+/** Move every position in the manifest by d on both axes and grow the map by d on every side. */
+function padMap(m: Manifest, d: number): void {
+  const mv = (p: readonly number[]): number[] => [p[0]! + d, p[1]! + d];
+  const W = m.map.w, H = m.map.h;
+  m.map = { ...m.map, w: W + 2 * d, h: H + 2 * d };
+  m.start = mv(m.start) as Manifest["start"];
+  m.entities = m.entities.map((e0) => {
+    const e = structuredClone(e0) as Record<string, unknown>;
+    for (const k of ["at", "site"]) if (Array.isArray(e[k])) e[k] = mv(e[k] as number[]);
+    if (Array.isArray(e["points"])) e["points"] = (e["points"] as number[][]).map(mv);
+    if (Array.isArray(e["sections"])) e["sections"] = (e["sections"] as { a: number[]; b: number[] }[]).map((x) => ({ ...x, a: mv(x.a), b: mv(x.b) }));
+    if (Array.isArray(e["rect"])) { const r = e["rect"] as number[]; e["rect"] = [r[0]! + d, r[1]! + d, r[2]!, r[3]!]; }
+    if (Array.isArray(e["route"])) {
+      // traders still come in from the (new) map edge
+      const r = (e["route"] as number[][]).map(mv), f = r[0]!;
+      const out = f[0]! <= d ? [0, f[1]!] : f[0]! >= W + d ? [W + 2 * d, f[1]!] : f[1]! <= d ? [f[0]!, 0] : f[1]! >= H + d ? [f[0]!, H + 2 * d] : null;
+      e["route"] = out ? [out, ...r] : r;
+    }
+    return e as Manifest["entities"][number];
+  });
+}
 
 /** Build one candidate manifest; throws a reason string (Error) when a constraint cannot be met. */
 export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
@@ -377,6 +401,11 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
 
   // ---------- workers: core supplier, farm worker, cashier ----------
   const workers = has("workers") && shopAt !== null;
+  // Batch 3: a defend level's town runs itself too: the reactor's ore hauler is hired with scrap.
+  if (fams.has("defend") && !workers && has("workers")) {
+    const a = placePad("hire_core", besideSource("node.fuel_scrap", core));
+    pad({ type: "pad.hire", id: "hire_core", at: [...a], cost: { "res.salvage": salv("salvage.hireCore") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "sink.core" } });
+  }
   let hireCashier: Ent | null = null;
   if (workers && shopAt && food1 && register) {
     const a = placePad("hire_core", besideSource("node.fuel_scrap", core));
@@ -729,120 +758,138 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     if (pre.length === ring.points.length) pre.splice(pre.indexOf(ring.side.findIndex((s) => s === sides[0])), 1);
     ents.push({ type: "barrier.line", id: "ring", res: wallsCurrency ? "res.currency" : "res.salvage", costPerSection: Math.max(1, Math.round(K.ringCost)),
       points: ring.points.map((p) => [...p]), closed: true, gates: ringGates, prebuilt: pre });
-    if (feat.has("turrets")) {
-      // Batch 3 (tower defence): turret sockets at every attack side's gate, along its approach lane. A socket
-      // is a tower pad, then its Lv2 and Lv3 pads on the same spot (each needs the one before, costs double
-      // each step). `start` sockets per gate stand from the start, inside the wall beside the gate and outside
-      // flanking the lane; more open as the waves grow (`unlocks`), so there is always something to buy.
-      const SK = GEN.defendSockets;
+    {
+      // Batch 3 (tower defence, after Kingshot): every defend level has turret sockets. Each attack gate has a few
+      // inside the wall beside it, and the road out of it is lined with sockets on both sides the whole way to the
+      // map edge (the map is padded by defendRoad.pad so the road is long): the nearest pair stands from the start
+      // and one more pair per road opens with each wave. A socket is a tower pad, then its Lv2 and Lv3 pads on the
+      // same spot (each needs the one before); every defence purchase raises the next price (pads.defenceGrowth).
+      const SK = GEN.defendSockets, RD = GEN.defendRoad;
       const OUT: Record<string, Pt> = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
       const tf = GEN.footprints["struct.ranged_defense"]!, g = S.footprintGap;
-      // Inflated tower box clear of the map edge, every wall, the lane and every station and standing spot.
-      const siteOk = (q: Pt, lane: { a: Pt; b: Pt }): boolean => {
-        const b = P.box(q, "struct.ranged_defense")!;
-        if (b[0] < SK.edge || b[1] < SK.edge || b[2] > 480 - SK.edge || b[3] > 900 - SK.edge) return false;
+      const lo: Pt = [-RD.pad + SK.edge, -RD.pad + SK.edge], hi: Pt = [480 + RD.pad - SK.edge, 900 + RD.pad - SK.edge];
+      const segHits = (a: Pt, c: Pt, r: Box) => segDist([(r[0] + r[2]) / 2, (r[1] + r[3]) / 2], a, c) < Math.hypot(r[2] - r[0], r[3] - r[1]) / 2
+        && Math.max(Math.min(a[0], c[0]), r[0]) <= Math.min(Math.max(a[0], c[0]), r[2]) && Math.max(Math.min(a[1], c[1]), r[1]) <= Math.min(Math.max(a[1], c[1]), r[3]);
+      // A footprint box clear of the (padded) map edge, every wall, every lane (unless onRoad) and every station and standing spot.
+      const boxOk = (q: Pt, fp: string, r: number, onRoad: boolean): boolean => {
+        const b = P.box(q, fp)!;
+        if (b[0] < lo[0] || b[1] < lo[1] || b[2] > hi[0] || b[3] > hi[1]) return false;
         const fat: Box = [b[0] - SK.wallClear, b[1] - SK.wallClear, b[2] + SK.wallClear, b[3] + SK.wallClear];
-        const hits = (a: Pt, c: Pt, r: Box) => segDist([(r[0] + r[2]) / 2, (r[1] + r[3]) / 2], a, c) < Math.hypot(r[2] - r[0], r[3] - r[1]) / 2
-          && Math.max(Math.min(a[0], c[0]), r[0]) <= Math.min(Math.max(a[0], c[0]), r[2]) && Math.max(Math.min(a[1], c[1]), r[1]) <= Math.min(Math.max(a[1], c[1]), r[3]);
-        for (const w of P.walls) if (hits(w[0], w[1], fat)) return false;
+        for (const w of P.walls) if (segHits(w[0], w[1], fat)) return false;
         const lw = SK.laneClear;
-        if (hits(lane.a, lane.b, [b[0] - lw, b[1] - lw, b[2] + lw, b[3] + lw])) return false;
+        if (!onRoad) for (const [a, c] of lanes) if (segHits(a, c, [b[0] - lw, b[1] - lw, b[2] + lw, b[3] + lw])) return false;
         for (const s of P.stations) {
           if (s.tight) continue; // gatherables give way (clearTight)
-          if (dist(q, [s.x, s.y]) < s.r + SK.siteR) return false;
+          if (dist(q, [s.x, s.y]) < s.r + r) return false;
           if (s.fp && b[0] < s.fp[2] + g && s.fp[0] < b[2] + g && b[1] < s.fp[3] + g && s.fp[1] < b[3] + g) return false;
         }
-        for (const sp of P.spots) if (dist(q, [sp.x, sp.y]) < sp.r + SK.siteR) return false;
+        for (const sp of P.spots) if (dist(q, [sp.x, sp.y]) < sp.r + r) return false;
         return true;
       };
-      // Gatherables (forest nodes) under a socket's tower or its pad are taken off the map.
-      const clearTight = (q: Pt, padR = 0): void => {
-        const b = padR > 0 ? P.box(q, "pad")! : P.box(q, "struct.ranged_defense")!;
+      // Gatherables (forest nodes) under a socket's tower or its pad are taken off the map, while the forest keeps enough.
+      const clearTight = (q: Pt, fp: string, r: number): void => {
+        const b = P.box(q, fp)!;
         for (let i = P.stations.length - 1; i >= 0; i--) {
           const s = P.stations[i]!;
           if (!s.tight) continue;
-          const hit = dist(q, [s.x, s.y]) < s.r + (padR > 0 ? padR + S.margin : SK.siteR)
+          const hit = dist(q, [s.x, s.y]) < s.r + r
             || (!!s.fp && b[0] < s.fp[2] + g && s.fp[0] < b[2] + g && b[1] < s.fp[3] + g && s.fp[1] < b[3] + g);
-          // never thin the fuel forest below what the core needs
           if (!hit || P.stations.filter((x) => x.tight).length <= SK.keepForest) continue;
           P.stations.splice(i, 1);
           const k = ents.findIndex((e) => e.type.startsWith("node.") && Array.isArray(e["at"]) && (e["at"] as number[])[0] === s.x && (e["at"] as number[])[1] === s.y);
           if (k >= 0) ents.splice(k, 1);
         }
       };
-      // The spot nearest the wanted one (gate frame: u along the side, v outward) that is free, or null.
-      const findSite = (m: Pt, al: Pt, o: Pt, uv: readonly [number, number], lane: { a: Pt; b: Pt }): Pt | null => {
+      // The free spot nearest the wanted one (gate frame: u along the side, v outward), never drifting across the wall.
+      const find = (m: Pt, al: Pt, o: Pt, uv: readonly [number, number], fp: string, r: number, onRoad: boolean): Pt | null => {
         const want: Pt = [Math.round(m[0] + al[0] * uv[0] + o[0] * uv[1]), Math.round(m[1] + al[1] * uv[0] + o[1] * uv[1])];
         const tries: Pt[] = [];
         for (let du = -SK.search; du <= SK.search; du += 6) for (let dv = -SK.search; dv <= SK.search; dv += 6) tries.push([du, dv]);
         tries.sort((p, q) => Math.hypot(p[0], p[1]) - Math.hypot(q[0], q[1]));
         for (const [du, dv] of tries) {
-          // never drift across the wall: an inside socket stays inside, an outside one outside
-          const q: Pt = [want[0] + al[0] * du + o[0] * dv, want[1] + al[1] * du + o[1] * dv];
           if (Math.sign(uv[1]) !== Math.sign(uv[1] + dv)) continue;
-          if (siteOk(q, lane)) return q;
+          const q: Pt = [want[0] + al[0] * du + o[0] * dv, want[1] + al[1] * du + o[1] * dv];
+          if (boxOk(q, fp, r, onRoad)) return q;
         }
         return null;
       };
       const nW0 = Math.max(Math.round(K.waves), GEN.defendWaves.lateFrom + 2);
-      type Gate = { sd: string; m: Pt; o: Pt; al: Pt; lane: { a: Pt; b: Pt }; ins: [number, number][]; outs: [number, number][]; want: { uv: readonly [number, number]; wave: number }[]; made: number; open: number };
-      const gates: Gate[] = [];
-      for (const sd of sides) {
+      const made: Record<string, number> = {};
+      const socket = (sd: string, site: Pt, tp: Pt, wave: number): void => {
+        const id = `tower_${sd}${(made[sd] = (made[sd] ?? 0) + 1)}`;
+        P.add(`${id}@site`, site, 0, { fp: "struct.ranged_defense" });
+        // far road pads are meant to be out of the opening view: key only within the screen radius
+        const key = dist(tp, core) <= S.screenRadius;
+        P.add(id, tp, R.pad, { key, fp: ["pad"], on: `${id}@site` });
+        towers.push(pad({ type: "pad.build", id, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site], ...(wave > 0 ? { requires: { wave } } : {}) }));
+        // Lv2 and Lv3 take the tower pad's spot, which is free once the one before is bought.
+        P.add(`${id}_up`, tp, R.pad, { key, on: id });
+        pad({ type: "pad.build", id: `${id}_up`, at: [...tp], cost: { "res.salvage": salv("salvage.towerUp") }, build: "struct.ranged_defense.t2", target: id, requires: { pad: id } });
+        P.add(`${id}_up3`, tp, R.pad, { key, on: id });
+        pad({ type: "pad.build", id: `${id}_up3`, at: [...tp], cost: { "res.salvage": salv("salvage.towerUp3") }, build: "struct.ranged_defense.t3", target: id, requires: { pad: `${id}_up` } });
+      };
+      type Gate = { sd: string; m: Pt; o: Pt; al: Pt };
+      const gates: Gate[] = sides.map((sd) => {
         // the side's attack gate: of its gates the one nearest the core (as the sim picks it)
         const mids = ringGates.filter((i) => ring!.side[i] === sd).map((i) => {
           const a = ring!.points[i]!, b = ring!.points[(i + 1) % ring!.points.length]!;
           return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as Pt;
         });
         const m = mids.reduce((p, q) => (dist(q, core) < dist(p, core) ? q : p)), o = OUT[sd]!, al: Pt = [Math.abs(o[1]), Math.abs(o[0])];
-        const lane = { a: m, b: [m[0] + o[0] * 900, m[1] + o[1] * 900] as Pt };
-        lanes.push([lane.a, lane.b]);
-        // inside and outside spots take turns: the start sockets, then each unlock's
-        const want: { uv: readonly [number, number]; wave: number }[] = [];
-        // the tower footprint is long along y, so an east or west gate spaces its inside sockets wider
-        const ins = [...(sd === "e" || sd === "w" ? SK.insideEW : SK.inside)], outs = [...SK.outside];
-        for (let k = 0; k < SK.start; k++) want.push({ uv: (k % 2 === 0 ? ins : outs).shift() ?? (ins.shift() ?? outs.shift())!, wave: 0 });
-        for (const u of SK.unlocks) {
-          const w = Math.min(u.wave, nW0 - 1);
-          // they open at the gate the next wave (index w) comes to
-          if (w < 1 || sides[w % sides.length] !== sd) continue;
-          for (let k = 0; k < u.n; k++) { const uv = (u.outside ? outs : ins).shift() ?? (u.outside ? ins : outs).shift(); if (uv) want.push({ uv, wave: w }); }
-        }
-        gates.push({ sd, m, o, al, lane, ins, outs, want, made: 0, open: 0 });
-      }
-      // every gate's starting sockets before any gate's later ones, so one gate's extras never crowd out another's start
-      for (const phase of [0, 1]) for (const G of gates) {
-        const { sd, m, o, al, lane, ins, outs } = G;
-        for (const { uv, wave } of G.want.filter((x) => (x.wave === 0) === (phase === 0))) {
-          // a spot with no room (outside, with the ring close to the map edge) tries its mirror across the
-          // wall, then the unused spots of the other kind
-          let site = findSite(m, al, o, uv, lane) ?? findSite(m, al, o, [uv[0], -uv[1]], lane);
-          for (const rest = uv[1] > 0 ? ins : outs; !site && rest.length > 0;) site = findSite(m, al, o, rest.shift()!, lane);
+        lanes.push([m, [m[0] + o[0] * (900 + 2 * RD.pad), m[1] + o[1] * (900 + 2 * RD.pad)]]);
+        return { sd, m, o, al };
+      });
+      // inside the wall: a few sockets beside each gate, standing from the start
+      for (const G of gates) {
+        const { sd, m, o, al } = G;
+        const spots = [...(sd === "e" || sd === "w" ? SK.insideEW : SK.inside)];
+        let n = 0;
+        while (n < SK.startInside && spots.length > 0) {
+          const site = find(m, al, o, spots.shift()!, "struct.ranged_defense", SK.siteR, false);
           if (!site) continue;
-          const id = `tower_${sd}${G.made + 1}`;
-          clearTight(site);
-          P.add(`${id}@site`, site, 0, { fp: "struct.ranged_defense" });
-          // the pad stands just inside the wall: behind an outside socket, inward of an inside one
+          clearTight(site, "struct.ranged_defense", SK.siteR);
+          // its pad inward of it
           const inward: Pt = [-o[0], -o[1]];
           const depth = (inward[0] + inward[1] > 0 ? tf[inward[0] ? 2 : 3]! : -tf[inward[0] ? 0 : 1]!) + g + 26;
-          const out = (site[0] - m[0]) * o[0] + (site[1] - m[1]) * o[1];
-          const back = out > 0 ? out + SK.padIn : depth;
-          const near: Pt = [Math.round(site[0] + inward[0] * back), Math.round(site[1] + inward[1] * back)];
-          clearTight(near, R.pad);
-          const tp = P.place(id, R.pad, [near[0] - 24, near[1] - 24, 48, 48], { near, key: true, fp: ["pad"], hugWall: true, pull: false, samples: 120 })
-            ?? P.place(id, R.pad, [near[0] - 60, near[1] - 60, 120, 120], { near, key: true, fp: ["pad"], pull: false, samples: 400 });
-          // no room for its pad: the socket is left out (and its site freed)
-          if (!tp) { P.stations.splice(P.stations.findIndex((x) => x.id === `${id}@site`), 1); continue; }
-          G.made++;
-          if (wave === 0) G.open++;
-          towers.push(pad({ type: "pad.build", id, at: [...tp], cost: { "res.salvage": salv("salvage.tower") }, build: "struct.ranged_defense", site: [...site], ...(wave > 0 ? { requires: { wave } } : {}) }));
-          if (!feat.has("salvage_upgrades")) continue;
-          // Lv2 and Lv3 take the tower pad's spot, which is free once the one before is bought (Doug's playtest of 0.11.0).
-          P.add(`${id}_up`, tp, R.pad, { key: true, on: id });
-          pad({ type: "pad.build", id: `${id}_up`, at: [...tp], cost: { "res.salvage": salv("salvage.towerUp") }, build: "struct.ranged_defense.t2", target: id, requires: { pad: id } });
-          P.add(`${id}_up3`, tp, R.pad, { key: true, on: id });
-          pad({ type: "pad.build", id: `${id}_up3`, at: [...tp], cost: { "res.salvage": salv("salvage.towerUp3") }, build: "struct.ranged_defense.t3", target: id, requires: { pad: `${id}_up` } });
+          const near: Pt = [Math.round(site[0] + inward[0] * depth), Math.round(site[1] + inward[1] * depth)];
+          P.add("probe@site", site, 0, { fp: "struct.ranged_defense" });
+          clearTight(near, "pad", R.pad + S.margin);
+          const tp = P.place("probe", R.pad, [near[0] - 24, near[1] - 24, 48, 48], { near, key: true, fp: ["pad"], hugWall: true, pull: false, samples: 120 })
+            ?? P.place("probe", R.pad, [near[0] - 60, near[1] - 60, 120, 120], { near, key: true, fp: ["pad"], pull: false, samples: 400 });
+          for (const id of ["probe", "probe@site"]) { const k = P.stations.findIndex((x) => x.id === id); if (k >= 0) P.stations.splice(k, 1); }
+          if (!tp) continue;
+          socket(sd, site, tp, 0);
+          n++;
         }
-        if (phase === 0 && G.open < SK.start) fail(`no room for ${SK.start} turret sockets at the ${sd} gate`);
+        if (n < SK.startInside) fail(`no room for ${SK.startInside} turret sockets inside the ${sd} gate`);
+      }
+      // along each road: a pair of sockets every roadStep from the wall out to the edge, the nearest pair open from
+      // the start and each next pair once that many waves have started (the last ones with the last wave)
+      for (const G of gates) {
+        const { sd, m, o, al } = G;
+        const reach = sd === "n" ? m[1] + RD.pad : sd === "s" ? 900 + RD.pad - m[1] : sd === "w" ? m[0] + RD.pad : 480 + RD.pad - m[0];
+        let pair = 0, opened = 0;
+        for (let v = RD.first; v <= reach - RD.endGap; v += RD.step, pair++) {
+          const wave = Math.min(pair, nW0 - 1);
+          for (const sg of [-1, 1]) {
+            const site = find(m, al, o, [sg * (sd === "e" || sd === "w" ? RD.towerUEW : RD.towerU), v], "struct.ranged_defense", SK.siteR, false);
+            if (!site) continue;
+            // its pad just off the tower toward the road (clear of the footprint, which is longer along y)
+            const toRoad: Pt = [-sg * al[0], -sg * al[1]];
+            const ext = (toRoad[0] + toRoad[1] > 0 ? tf[toRoad[0] ? 2 : 3]! : -tf[toRoad[0] ? 0 : 1]!) + g + 26;
+            const u0 = (site[0] - m[0]) * al[0] + (site[1] - m[1]) * al[1] - sg * ext;
+            const pv: [number, number] = [u0, (site[0] - m[0]) * o[0] + (site[1] - m[1]) * o[1]];
+            P.add("probe@site", site, 0, { fp: "struct.ranged_defense" });
+            const tp = find(m, al, o, pv, "pad", R.pad + S.margin, true);
+            P.stations.splice(P.stations.findIndex((x) => x.id === "probe@site"), 1);
+            if (!tp) continue;
+            clearTight(site, "struct.ranged_defense", SK.siteR);
+            clearTight(tp, "pad", R.pad + S.margin);
+            socket(sd, site, tp, wave);
+            if (wave === 0) opened++;
+          }
+        }
+        if (opened === 0) fail(`no room for a turret socket on the ${sd} road`);
       }
     }
     if (guards) {
@@ -990,7 +1037,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     }
     if (has("customer_variety")) { params["customers.impatientShare"] = round2(K.impatient); params["customers.premiumShare"] = round2(K.premium); }
     if (feat.has("bulk_orders")) params["customers.bulkShare"] = round2(K.bulkShare);
-    if (defend) params["meters.baseHealth"] = Math.round(K.baseHealth);
+    if (defend) { params["meters.baseHealth"] = Math.round(K.baseHealth); params["pads.defenceGrowth"] = GEN.defendRoad.priceGrowth; }
     const gp = { ...gparams };
     if (goal === "population") gp["n"] = nPeople + arrivals + pods;
     const g = { type: goal, ...gp } as Manifest["goal"];
@@ -1192,12 +1239,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   // The scrap economy must pay for the defense (generator.json defendWaves).
   if (defend && waves.length > 0) {
     // Batch 3: the waves are sized against the purchase ladder. Their scrap must buy its core (the walls,
-    // the first guards, a tower and its Lv2 on every socket standing from the start, and anything else
-    // the plan spends scrap on); Lv3s and the sockets that open later are the surplus left to build.
+    // the first guards, a tower on every socket standing from the start, and anything else the plan spends
+    // scrap on); tower levels, more guards and the sockets that open later are the surplus left to build.
     const salvOf = (id: string) => ((pads.find((p) => p.id === id)?.cost as Record<string, number> | undefined)?.["res.salvage"] ?? 0);
     const ladderStep = (id: string) => { const p = pads.find((q) => q.id === id); return !!p && (String(p.build ?? "").startsWith("struct.ranged_defense") || p.id === "train"); };
-    const coreLadder = towers.filter((t) => !(t.requires as { wave?: number } | undefined)?.wave).reduce((a, t) => a + salvOf(String(t.id)) + salvOf(`${String(t.id)}_up`), 0)
-      + (pads.some((p) => p.id === "train") ? FIRST_GUARDS * salvOf("train") : 0);
+    // bought in the bot's order (the first guards, then the open towers), each at the price the purchases before it raised (pads.defenceGrowth)
+    const open = towers.filter((t) => !(t.requires as { wave?: number } | undefined)?.wave);
+    const order = [...(pads.some((p) => p.id === "train") ? Array(FIRST_GUARDS).fill("train") : []), ...open.map((t) => String(t.id))] as string[];
+    const coreLadder = order.reduce((a, id, k) => a + Math.ceil(salvOf(id) * GEN.defendRoad.priceGrowth ** k), 0);
     const need = plan0.steps.filter((x) => x.when === "always" && !ladderStep(x.pad)).reduce((a, x) => a + (x.cost["res.salvage"] ?? 0) * x.repeat, 0)
       + plan0.barriers.reduce((a, b) => a + (b.res === "res.salvage" ? b.cost : 0), 0)
       + pads.filter((p) => p.build === "struct.medical").reduce((a, p) => a + ((p.cost as Record<string, number>)["res.salvage"] ?? 0), 0)
@@ -1252,5 +1301,12 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const flow = flowModel(m, planBot(m, c), c, m.params["level.budgetSeconds"]!);
   if (!flow.ok) fail(`flow: ${flow.reason}`);
   void register;
+  if (defend) {
+    // Batch 3: the defend map is padded on every side (the long roads); everything moves by the padding.
+    const d = GEN.defendRoad.pad;
+    padMap(m, d);
+    for (const s of P.stations) { s.x += d; s.y += d; if (s.fp) s.fp = [s.fp[0] + d, s.fp[1] + d, s.fp[2] + d, s.fp[3] + d]; }
+    return { manifest: m, flow, stations: P.stations, notes, sizing, queue: queue.map((q) => [q[0] + d, q[1] + d] as Pt) };
+  }
   return { manifest: m, flow, stations: P.stations, notes, sizing, queue };
 }

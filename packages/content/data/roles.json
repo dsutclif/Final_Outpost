@@ -33,6 +33,7 @@
   "role.defender": {
     "behavior": "guard",
     "rally": true,
+    "sortie": true,
     "speed": 80,
     "attackInterval": 0.7,
     "attackRange": 75,

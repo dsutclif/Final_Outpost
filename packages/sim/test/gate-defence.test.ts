@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { FP, TPS, attackGate, createSim, sectionMid, type SimEvent } from "../src/index.js";
+import { FP, TPS, attackGate, createSim, padCost, sectionMid, type SimEvent } from "../src/index.js";
 import { LEVEL_4, at, idle } from "./helpers.js";
 
 // Batch 3 defence (BACKLOG-R4): walls cannot be broken; each wave comes down a narrow lane to its side's
@@ -138,5 +138,49 @@ describe("a defend level runs to its last wave", () => {
     expect(st.won).toBe(true);
     expect(st.waves.idx).toBe(2);
     expect(st.hostiles).toHaveLength(0);
+  });
+});
+
+describe("Kingshot-style defence (Batch 3 playtest)", () => {
+  it("each defence purchase raises the next one's price by pads.defenceGrowth", () => {
+    const base = LEVEL_4 as Loose;
+    const sim = createSim({
+      ...base, id: "test-growth", params: { ...base.params, "pads.defenceGrowth": 1.5, "pads.automationGrowth": 1 },
+      entities: [...base.entities, { type: "pad.build", id: "t9", at: [300, 420], cost: { "res.salvage": 4 }, build: "struct.ranged_defense" }],
+    });
+    const e = sim.compiled.entityById["t9"] as never;
+    expect(padCost(sim.state, sim.compiled, e)).toEqual({ "res.salvage": 4 });
+    sim.state.defenceBought = 2;
+    expect(padCost(sim.state, sim.compiled, e)).toEqual({ "res.salvage": 9 });
+  });
+
+  it("loot stays where an attacker fell, out on the road too", () => {
+    const sim = createSim(level({ waves: [{ t: 300, counts: { "hostile.swarmling": 1 } }] }));
+    const st = sim.state;
+    st.hostiles.push({ id: 900, type: "hostile.raider_humanoid", pos: at(240, 300), hp: 1, hpMax: 4, side: "n", target: "core", acc: 0 });
+    st.player.pos = at(240, 360);
+    sim.state.params; // the hero's shot (ranged range 0 here): melee range instead
+    st.player.pos = at(240, 320);
+    const ev = idle(sim, 2 * TPS);
+    const drops = all(ev, "drop");
+    expect(drops.length).toBeGreaterThan(0);
+    for (const d of drops) expect(d.at.y).toBeLessThan(400 * FP);
+  });
+
+  it("guards march out through the gate to meet attackers on the field, and come back once it is clear", () => {
+    const sim = createSim(level({ waves: [{ t: 300, counts: { "hostile.swarmling": 1 } }] }));
+    const st = sim.state;
+    const g = st.residents.find((r) => r.role === "idle")!;
+    g.role = "role.defender";
+    g.assign = { from: null, to: null, node: null, post: 0 };
+    g.pos = at(240, 520);
+    const foe = { id: 901, type: "hostile.swarmling", pos: at(180, 200), hp: 99, hpMax: 99, side: "n" as const, target: "core" as const, acc: 0 };
+    st.hostiles.push(foe);
+    let outside = false;
+    for (let i = 0; i < 15 * TPS && !outside; i++) { foe.pos = at(180, 200); foe.hp = 99; sim.step({ dx: 0, dy: 0 }); outside = g.pos.y < 400 * FP; }
+    expect(outside).toBe(true);
+    st.hostiles = [];
+    idle(sim, 15 * TPS);
+    expect(g.pos.y).toBeGreaterThan(400 * FP);
   });
 });
