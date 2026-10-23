@@ -78,6 +78,8 @@ registerModel("node.material_source", (ctx) => buildOrePile(ctx), ["pickup", "in
 registerModel("node.food_source", (ctx) => buildGrowDome(ctx), ["pickup", "interact"]);
 registerModel("node.fuel_deposit", (ctx) => buildFuelCache(ctx), ["pickup", "interact"]);
 registerModel("node.fuel_scrap", (ctx) => buildScrapPile(ctx), ["pickup", "interact"]);
+// Batch 3: a scrap heap the hero picks over for the first defences (the ship-scrap model when loaded)
+registerModel("node.salvage_pile", (ctx) => buildScrapPile(ctx), ["pickup", "interact"]);
 registerModel("node.prey", character("node.prey"));
 registerModel("unit.prey", character("unit.prey"));
 registerModel("node.prey_dangerous", character("node.prey_dangerous"));

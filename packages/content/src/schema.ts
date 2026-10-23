@@ -51,7 +51,7 @@ export const NodeDef = z.object({
   workerRate: seconds.optional(),
   // Items held before the node is empty. null = infinite.
   stock: z.number().int().positive().nullable(),
-  // Seconds to regrow one item. null = never (only with infinite stock).
+  // Seconds to regrow one item. null = never: an infinite source, or a pile that runs out (scrap piles, Batch 3).
   regrow: seconds.nullable(),
 });
 export type NodeDef = z.infer<typeof NodeDef>;
@@ -322,7 +322,6 @@ export function checkContentRefs(c: Content): void {
   for (const [id, n] of Object.entries(c.nodes)) {
     if (!res.has(n.yields)) throw new Error(`node ${id} yields unknown resource ${n.yields}`);
     if (n.stock === null && n.regrow !== null) throw new Error(`node ${id}: infinite stock cannot regrow`);
-    if (n.stock !== null && n.regrow === null) throw new Error(`node ${id}: finite stock needs a regrow time`);
     if (c.animals[id]) throw new Error(`${id} is both a node and an animal`);
   }
   for (const [id, a] of Object.entries(c.animals)) {

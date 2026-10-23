@@ -444,6 +444,12 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     flags.forEach(reject);
     if (!r.feasible) reject("infeasible");
     const idleMods = r.evidence.idleModules;
+    // An unused med bay (nobody hurt on a winning run) goes, with its module (Batch 3).
+    if (idleMods.includes("medical") && !droppedMods.has("medical")) {
+      droppedMods.add("medical");
+      for (const e of m.entities) if (e.type === "pad.build" && e.build === "struct.medical") dropped.add(e.id);
+      log(`  it${it} no one hurt: dropping the med bay`);
+    }
     if (idleMods.includes("workers") && idleMods.every((x) => x === "workers" || x === "build_pads")
       && !mods.some((x) => !droppedMods.has(x) && x !== "workers" && c.modules[x]?.requires?.includes("workers"))) {
       droppedMods.add("workers");

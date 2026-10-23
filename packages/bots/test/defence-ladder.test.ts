@@ -3,7 +3,7 @@ import { PROFILES, playBot } from "../src/index.js";
 import level4 from "../../../levels/golden/proto-L004.json";
 
 // Batch 3 defence spend policy: with the guard post standing, the first defence purchase is a guard;
-// then towers before any Lv2, Lv2 before any Lv3 (among the pads on show); and the hero keeps shooting.
+// then towers and tower levels by price per level gained (so upgrades mix in); and the hero keeps shooting.
 
 type Loose = Record<string, any>;
 const tower = (id: string, at: [number, number], site: [number, number]): Loose[] => [
@@ -28,25 +28,22 @@ const level = (): Loose => {
 };
 
 describe("defence spend policy", () => {
-  it("hires a guard first, then towers, then Lv2, then Lv3, and keeps shooting", () => {
+  it("hires guards first, then towers and tower levels by price per level, and keeps shooting", () => {
     for (const seed of [1, 2]) {
       const order: string[] = [];
-      const r = playBot(level(), PROFILES["good"]!, seed, { onTick: (st, _b, ev) => {
+      const r = playBot(level(), PROFILES["good"]!, seed, { onTick: (_st, _b, ev) => {
         for (const e of ev) {
           if (e.t !== "hired" && e.t !== "built") continue;
           const kind = e.t === "hired" ? "guard" : e.build === "struct.ranged_defense" ? "tower" : e.build.endsWith(".t2") ? "t2" : e.build.endsWith(".t3") ? "t3" : null;
           if (!kind) continue;
-          // nothing of a lower rank was on show and unbought when this one was bought
-          const shown = st.pads.filter((p) => p.visible && !p.done && p.id !== ("pad" in e ? e.pad : ""));
-          const rank = { guard: 0, tower: 1, t2: 2, t3: 3 }[kind];
-          if (rank >= 2) expect(shown.some((p) => p.id.startsWith("tower_") && !p.id.includes("_up")), `${kind} before every tower (${seed})`).toBe(false);
-          if (rank >= 3) expect(shown.some((p) => p.id.endsWith("_up")), `t3 before every Lv2 (${seed})`).toBe(false);
           order.push(kind);
         }
       } });
       expect(r.won, `seed ${seed}: ${r.reason}`).toBe(true);
       expect(order[0], `seed ${seed}: ${order.join(",")}`).toBe("guard");
       expect(order).toContain("tower");
+      // a tower comes before any tower level
+      if (order.includes("t2")) expect(order.indexOf("tower")).toBeLessThan(order.indexOf("t2"));
       expect(r.trace.playerKillShare).toBeGreaterThan(0);
       expect(r.trace.ladderLeft).toBeGreaterThanOrEqual(0);
     }

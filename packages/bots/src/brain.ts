@@ -120,17 +120,17 @@ export class Brain {
 
   /**
    * The defence spend policy (Batch 3): with the next purchase a defence one, buy the first guards (the
-   * guard post stands from the start, so they are the first purchase), then towers, then Lv2 and further
-   * guards, then Lv3; after the first guards, steps on the goal path before the rest, and within a rank the socket on the side the
+   * guard post stands from the start, so they are the first purchase), then towers, tower levels and more
+   * guards by price (a tower level's price divided by the level it brings); after the first guards, steps on the goal path before the rest, and within a rank the socket on the side the
    * next wave comes from, then the cheapest.
    * -1 for steps that are not defence purchases (plan order holds for those).
    */
   private ladderRank(s: PlanStep): number {
     const e = this.cp.entityById[s.pad];
     if (!e) return -1;
-    if (e.type === "pad.hire") return this.cp.roles[e.role.role]?.behavior !== "guard" ? -1 : (this.hiresByPad[s.pad] ?? 0) < FIRST_GUARDS ? 0 : 2;
+    if (e.type === "pad.hire") return this.cp.roles[e.role.role]?.behavior !== "guard" ? -1 : (this.hiresByPad[s.pad] ?? 0) < FIRST_GUARDS ? 0 : 1;
     if (e.type !== "pad.build") return -1;
-    return e.build === "struct.ranged_defense" ? 1 : e.build === "struct.ranged_defense.t2" ? 2 : e.build === "struct.ranged_defense.t3" ? 3 : -1;
+    return e.build.startsWith("struct.ranged_defense") ? 1 : -1;
   }
 
   private ladderKey(st: State, s: PlanStep, pad: PadState): number {
@@ -138,7 +138,10 @@ export class Brain {
     const next = this.cp.waves[Math.min(st.waves.idx, this.cp.waves.length - 1)]?.sides[0] ?? null;
     const site = e.site ?? (e.target ? (this.cp.entityById[e.target] as { site?: readonly [number, number] } | undefined)?.site : undefined);
     const side = site ? sideOf(st, { x: site[0] * FP, y: site[1] * FP }) : null;
-    const cost = Object.values(this.remaining(st, pad, s)).reduce((a, n) => a + n, 0);
+    // price per level gained: a tower level (Lv2, Lv3) weighs its price by the level it brings, so upgrades mix in with new towers
+    const e2 = this.cp.entityById[s.pad] as { build?: string };
+    const per = e2.build === "struct.ranged_defense.t2" ? 2 : e2.build === "struct.ranged_defense.t3" ? 3 : 1;
+    const cost = Object.values(this.remaining(st, pad, s)).reduce((a, n) => a + n, 0) / per;
     // a goal on the ladder (a tower level, N guards) is bought toward first
     const rank = this.ladderRank(s);
     // the first guards come first of all (the guard post stands: hiring is the first purchase)
@@ -470,8 +473,15 @@ export class Brain {
       }
     }
 
-    // Converters: operate, feed and fetch for plan costs or sales.
     const capped = this.cappedNeed(st);
+    // Plan costs a node yields directly (scrap heaps, Batch 3): go and pick them over.
+    for (const [r, n] of Object.entries(capped)) {
+      if (n <= 0 || Object.values(cp.converters).some((d) => d.output === r)) continue;
+      const want = Math.min(n, playerCap(cp, r) ?? n);
+      const i = this.bestNode(st, r, want);
+      if (i >= 0) T("gather", 47, `${i}`, want);
+    }
+    // Converters: operate, feed and fetch for plan costs or sales.
     for (const cv of st.converters) {
       const def = cp.converters[cv.type]!;
       const forPlan = capped[def.output] ?? 0;
