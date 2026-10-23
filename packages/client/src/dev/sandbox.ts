@@ -83,7 +83,8 @@ $("copy").onclick = async () => {
 };
 
 const statusEl = $("status");
-function status(t: string, err = false): void { statusEl.textContent = t; statusEl.classList.toggle("err", err); }
+// a failed build leaves the last good base on screen: dim it so it is not mistaken for the new values
+function status(t: string, err = false): void { statusEl.textContent = t; statusEl.classList.toggle("err", err); stage.style.opacity = err ? "0.35" : "1"; }
 
 // ---------------------------------------------------------------- build
 
@@ -162,6 +163,7 @@ function rebuild(): void {
   renderer.devBuildScale = val.size!;
   renderer.hudAnchor = () => ({ x: 40, y: 24 });
   renderer.init(sim.compiled.manifest, getSkin(DEFAULT_SKIN), stage);
+  (window as unknown as { __sandbox: unknown }).__sandbox = { renderer, sim, built };
   applyView();
   centre();
   const core = built.manifest.entities.find((e) => (e as { type: string }).type === "sink.core") as { at?: [number, number] } | undefined;

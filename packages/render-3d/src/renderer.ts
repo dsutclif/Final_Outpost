@@ -811,9 +811,13 @@ export class Renderer3D implements Renderer {
     const building = /^(sink|conv|struct)\./.test(id) && id !== "struct.gate";
     // buildings stand on the concrete slabs, not sunk into them (Doug, backlog R4 item 7)
     if (building) p.model.root.position.y += SLAB_TOP;
-    const k = this.devBuildScale !== 1 && building && id !== "struct.conveyor" ? this.devBuildScale : 1;
-    this.popScale(p, ART_M * k);
+    this.popScale(p, ART_M * this.buildK(id));
     return p;
+  }
+
+  /** Size multiplier for a placed id: the dev building scale on buildings (not belts or gates), else 1. */
+  private buildK(id: string): number {
+    return this.devBuildScale !== 1 && /^(sink|conv|struct)./.test(id) && id !== "struct.gate" && id !== "struct.conveyor" ? this.devBuildScale : 1;
   }
 
   /** Squash-and-stretch pop for anything that appeared after the level loaded (0 -> 1.15 -> 1, 400 ms). */
@@ -1163,7 +1167,7 @@ export class Renderer3D implements Renderer {
       const p = this.place(`cv:${cv.id}:${cv.level}`, cv.type, this.wv(cv.pos), cv.level);
       this.candidate(cv.type, p);
       const popAge = this.fx!.popAge(`cv:${cv.id}`);
-      p.model.root.scale.setScalar(ART_M * (popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1));
+      p.model.root.scale.setScalar(ART_M * this.buildK(cv.type) * (popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1));
       // each finished unit thumps the machine: a short squash down and out
       const thump = this.fx!.popAge(`cvw:${cv.id}`);
       if (thump < 0.3) {
