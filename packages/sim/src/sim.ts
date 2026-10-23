@@ -27,7 +27,7 @@ import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStockCollapse } from "./systems/stock.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.12.0";
+export const ENGINE_VERSION = "0.13.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -78,8 +78,6 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
     currency: m.params["start.currency"] ?? cp.content.defaults["start.currency"] ?? 0,
     params: {
       "barrier.hpMax": cp.barrier.hp, "barrier.gateHpMax": cp.barrier.gateHp,
-      // Present only when repair is on, so a level without it hashes exactly as before.
-      ...(cp.barrier.repairPm > 0 ? { "barrier.repairPm": cp.barrier.repairPm } : {}),
     },
     player: { pos: vec(m.start), face: 1, stack: [], actCd: 0, atkCd: 0, buildCd: 0, tow: [], moving: false, padId: null, padDwell: 0, hitCd: 0, shotCd: 0, stun: 0, stunSlow: 1000, hp: cp.player.hp, healCd: 0 },
     core: { pos: corePos, fuel: coreEnt.params.fuel, level: coreEnt.params.level, burnAcc: 0, lifeline: METER_MAX },

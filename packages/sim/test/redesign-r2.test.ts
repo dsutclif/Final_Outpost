@@ -268,21 +268,6 @@ describe("perimeter rings and attack sides", () => {
     expect(outsideLines(sim.state, at(30, 30))).toBe(true);
   });
 
-  it("hostiles from every side are stopped by the section they would cross, gates included", () => {
-    // The hero stays out of it: a ranged shot would pick off the south attacker before it reaches the ring.
-    const sim = createSim({ ...ringL4([{ t: 1, counts: { "hostile.creature": 4 }, side: ["n", "e", "s", "w"], gap: 0.1 }]), params: { ...(LEVEL_4 as Loose).params, "player.rangedRange": 0 } });
-    // Every attacker reaches the ring within about ten seconds; a section takes 14 hits to break.
-    const ev = idle(sim, 12 * TPS);
-    expect(sim.state.hostiles.map((h) => h.side).sort()).toEqual(["e", "n", "s", "w"]);
-    for (const h of sim.state.hostiles) {
-      expect(h.target, `${h.side} attacker`).toBe("barrier");
-      expect(outsideLines(sim.state, h.pos)).toBe(true);
-      expect(h.hpMax).toBe(h.hp);
-    }
-    expect(sim.state.meters.baseHealth).toBe(sim.state.meters.baseHealthMax);
-    expect(all(ev, "hit").filter((h) => h.target === "barrier").length).toBeGreaterThan(0);
-  });
-
   it("a hostile walking straight at the joint of two built sections is still stopped", () => {
     const L = level(LEVEL_4, {
       entities: ents(LEVEL_4).map((e) => (e.type === "barrier.line" ? { ...e, sections: e.sections.map((s: Loose) => ({ ...s, prebuilt: true })) } : e)),
@@ -354,7 +339,9 @@ describe("defense economy", () => {
 
   it("defense items carry default salvage costs for the generator", () => {
     expect(content.structures["struct.ranged_defense"]!.cost).toEqual({ "res.salvage": 8 });
-    expect(content.upgrades["struct.ranged_defense.t2"]!.cost).toEqual({ "res.salvage": 6 });
+    // each tower step costs double the one before (Batch 3)
+    expect(content.upgrades["struct.ranged_defense.t2"]!.cost).toEqual({ "res.salvage": 16 });
+    expect(content.upgrades["struct.ranged_defense.t3"]!.cost).toEqual({ "res.salvage": 32 });
     expect(content.roles["role.defender"]!.cost).toEqual({ "res.salvage": 4 });
     expect(content.defaults["barrier.costPerSection"]).toBe(2);
   });
@@ -389,8 +376,8 @@ describe("objectives", () => {
     bad({ objectives: objs(main, { kind: "teleport" }, { kind: "no_injuries" }) }, /unknown objective kind/);
     bad({ objectives: objs(main, { kind: "time_target" }, { kind: "no_injuries" }) }, /needs param seconds/);
     bad({ objectives: objs(main, { kind: "sell", params: { res: "res.gold", n: 3 } }, { kind: "no_injuries" }) }, /valid res/);
-    bad({ objectives: objs({ kind: "currency", params: { n: 5 } }, { kind: "no_injuries" }, { kind: "no_wall_lost" }) }, /mirror the goal/);
-    bad({ objectives: objs(main, { kind: "no_injuries" }, { kind: "no_wall_lost" }).slice(0, 2) }, /exactly three/);
+    bad({ objectives: objs({ kind: "currency", params: { n: 5 } }, { kind: "no_injuries" }, { kind: "gate_held" }) }, /mirror the goal/);
+    bad({ objectives: objs(main, { kind: "no_injuries" }, { kind: "gate_held" }).slice(0, 2) }, /exactly three/);
     bad({ goal: { type: "survive" } }, /needs param seconds/);
     bad({ goal: { type: "hazard_survive" }, objectives: undefined }, /needs events/);
     expect(() => createSim(level(LEVEL_4, { goal: { type: "boss" }, objectives: undefined }))).toThrow(/needs a boss/);
@@ -450,7 +437,7 @@ describe("objectives", () => {
       haul: { n: 1 }, chain: {}, automate: { seconds: 5 }, stockpile: { res: "res.food_raw_1", n: 1 }, converter_level: { n: 2 },
       waves: {}, waves_survived: { n: 1 }, kills: { n: 1 }, boss: {}, turret_level: { n: 2 }, salvage: { n: 1 }, perimeter_before_wave1: {},
       time_target: { seconds: 30 }, settlement_never_freezes: {}, no_colonist_freezes: {}, heat_floor: { pct: 25 }, no_angry_customers: {},
-      no_injuries: {}, hp_floor: { pct: 50 }, no_wall_lost: {}, no_stockpile_overload: {},
+      no_injuries: {}, hp_floor: { pct: 50 }, gate_held: {}, no_stockpile_overload: {},
     };
     const kinds = Object.keys(content.objectives).filter((k) => k !== "build");
     expect(kinds.every((k) => params[k] !== undefined)).toBe(true);

@@ -54,8 +54,11 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
         break;
       }
       case "died":
-        if (cp.hostiles[e.kind]) { s.kills++; if (cp.hostiles[e.kind]!.boss) s.bossKills++; }
-        else if (cp.animals[e.kind]) s.preyKilled++;
+        if (cp.hostiles[e.kind]) {
+          s.kills++;
+          if (cp.hostiles[e.kind]!.boss) s.bossKills++;
+          if (e.by) { const k = (s.killsBy ??= {}); k[e.by] = (k[e.by] ?? 0) + 1; }
+        } else if (cp.animals[e.kind]) s.preyKilled++;
         break;
       case "picked": if (e.res === "res.salvage") s.salvage++; break;
       case "crate_delivered": s.crates++; break;

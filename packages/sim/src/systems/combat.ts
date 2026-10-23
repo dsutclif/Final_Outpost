@@ -43,7 +43,7 @@ export function hitHostile(st: State, cp: Compiled, h: HostileState, dmg: number
   out.push({ t: "hit", target: "hostile", id: h.id, at: { ...h.pos }, by });
   if (h.hp > 0) return;
   st.hostiles = st.hostiles.filter((x) => x !== h);
-  out.push({ t: "died", kind: h.type, id: h.id, at: { ...h.pos } });
+  out.push({ t: "died", kind: h.type, id: h.id, at: { ...h.pos }, by });
   // Loot that fell beyond the barrier is relocated to the inside so the player can reach it.
   const at = relocateInside(st, cp, h.pos);
   spawnDrops(st, cp, cp.hostiles[h.type]!.drops, at, out);

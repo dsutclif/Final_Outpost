@@ -51,6 +51,6 @@
   "no_angry_customers": { "description": "No customer leaves angry", "families": ["harvest"], "main": false, "guard": true, "params": {} },
   "no_injuries": { "description": "No colonist is injured", "families": ["defend"], "main": false, "guard": true, "params": {} },
   "hp_floor": { "description": "Colony HP never drops below X%", "families": ["defend"], "main": false, "guard": true, "params": { "pct": "pct" } },
-  "no_wall_lost": { "description": "No barrier section is broken", "families": ["defend"], "main": false, "guard": true, "params": {} },
+  "gate_held": { "description": "No gate is broken", "families": ["defend"], "main": false, "guard": true, "params": {} },
   "no_stockpile_overload": { "description": "No converter output ever reaches its cap", "families": ["industrialize"], "main": false, "guard": true, "params": {} }
 }

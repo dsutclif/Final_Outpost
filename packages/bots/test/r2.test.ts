@@ -53,7 +53,7 @@ const defend = {
   params: { "housing.base": 6, "core.burn": 3, "meters.baseHealth": 16 },
   goal: { type: "waves" },
   family: "defend",
-  objectives: [{ id: "main", kind: "waves", params: {} }, { id: "c2", kind: "hp_floor", params: { pct: 30 } }, { id: "challenge", kind: "no_wall_lost", params: {} }],
+  objectives: [{ id: "main", kind: "waves", params: {} }, { id: "c2", kind: "hp_floor", params: { pct: 30 } }, { id: "challenge", kind: "gate_held", params: {} }],
   fail: ["meter.lifeline", "meter.base_health"],
 };
 

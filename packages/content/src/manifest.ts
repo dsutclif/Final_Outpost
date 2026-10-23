@@ -13,10 +13,12 @@ const Cost = z.record(ResId, z.number().int().positive());
 export const SourceRef = z.union([NodeId, ConvId, z.literal(STORE_DEPOT)]);
 export const TargetRef = z.union([SinkId, ConvId, z.literal(STORE_DEPOT)]);
 
-// A pad can require another pad to be done and/or a minimum core level.
+// A pad can require another pad to be done, a minimum core level, and/or that many attack waves to
+// have started (turret sockets that open as the waves grow, Batch 3).
 export const Requirement = z.object({
   pad: EntityRef.optional(),
   coreLevel: z.number().int().positive().optional(),
+  wave: z.number().int().positive().optional(),
 });
 
 const base = { id: EntityRef.optional(), at: Point };

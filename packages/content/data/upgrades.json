@@ -4,7 +4,14 @@
     "effects": [
       { "op": "set", "scope": "target", "field": "level", "value": 2 }
     ],
-    "cost": { "res.salvage": 6 }
+    "cost": { "res.salvage": 16 }
+  },
+  "struct.ranged_defense.t3": {
+    "target": "struct.ranged_defense",
+    "effects": [
+      { "op": "set", "scope": "target", "field": "level", "value": 3 }
+    ],
+    "cost": { "res.salvage": 32 }
   },
   "struct.barrier.reinforced": {
     "effects": [

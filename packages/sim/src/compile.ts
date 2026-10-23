@@ -251,14 +251,16 @@ export interface Compiled {
   waiting: Vec;
   gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
   zones: { blockMargin: number };
-  barrier: { thickness: number; buildRange: number; buildTicks: number; hp: number; gateHp: number; costPerSection: number; repairPm: number };
+  barrier: { thickness: number; buildRange: number; buildTicks: number; hp: number; gateHp: number; costPerSection: number };
   drops: { pickupRange: number; scatterX: number; scatterY: number };
   /** Overstock collapse: ticks a capped stock may sit at cap before it topples; 0 = rule off. */
   stock: { collapseTicks: number };
   convParams: { playerOperateRange: number; operatorRange: number; pickupRange: number; hintRange: number };
   defense: {
     spawnGapTicks: number; spawnY: number; spawnMarginX: number; barrierStop: number; barrierHitTicks: number; barrierDamage: number;
-    baseRange: number; baseHitTicks: number; baseDamage: number; steerBand: number; steerRate: number;
+    baseRange: number; baseHitTicks: number; baseDamage: number;
+    /** Half the width of the lane a wave comes down toward its side's gate (Batch 3). */
+    laneHalfWidth: number;
     dropRelocateBand: number; dropRelocateOffset: number; postOffset: number;
     /** Quiet ticks after a wave is cleared before the next may start. */
     waveQuietTicks: number; playerHitRange: number; playerHitTicks: number;
@@ -549,8 +551,6 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     barrier: {
       thickness: fp(param("barrier.thickness")), buildRange: fp(param("barrier.buildRange")), buildTicks: ticks(param("barrier.buildInterval")),
       hp: c.structures["struct.barrier"]!.hp!, gateHp: c.structures["struct.gate"]!.hp!, costPerSection: int("barrier.costPerSection"),
-      // Repair price as a per-mille share of costPerSection; 0 disables repair.
-      repairPm: Math.max(0, Math.round(param("barrier.repairK") * 1000)),
     },
     drops: { pickupRange: fp(param("drops.pickupRange")), scatterX: fp(param("drops.scatterX")), scatterY: fp(param("drops.scatterY")) },
     stock: { collapseTicks: Math.max(0, Math.round(param("stock.collapseSeconds") * TPS)) },
@@ -562,7 +562,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       spawnGapTicks: ticks(param("defense.spawnGap")), spawnY: fp(param("defense.spawnY")), spawnMarginX: fp(param("defense.spawnMarginX")),
       barrierStop: fp(param("defense.barrierStop")), barrierHitTicks: ticks(param("defense.barrierHitInterval")), barrierDamage: int("defense.barrierDamage"),
       baseRange: fp(param("defense.baseRange")), baseHitTicks: ticks(param("defense.baseHitInterval")), baseDamage: int("defense.baseDamage"),
-      steerBand: fp(param("defense.steerBand")), steerRate: ratio(param("defense.steerRate")),
+      laneHalfWidth: fp(param("defense.laneHalfWidth")),
       dropRelocateBand: fp(param("defense.dropRelocateBand")), dropRelocateOffset: fp(param("defense.dropRelocateOffset")), postOffset: fp(param("defense.postOffset")), waveQuietTicks: ticks(param("defense.waveQuiet")),
       playerHitRange: fp(param("defense.playerHitRange")), playerHitTicks: ticks(param("defense.playerHitInterval")),
     },

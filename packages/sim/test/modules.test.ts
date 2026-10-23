@@ -515,9 +515,10 @@ describe("defense, defenders, salvage upgrades, medical and hazards (level 4)", 
     walkTo(sim, at(240, 245), 4);
     idle(sim, 60, (e) => has(e, "barrier_built"));
     expect(line.sections[1]).toMatchObject({ built: true, hp: GATE_HP + 10, hpMax: GATE_HP + 10 });
-    // The tier-2 tower fires at the first wave.
+    // The tier-2 tower fires at an attacker in its range (out of the hero's own reach).
     walkPath(sim, [at(330, 400), at(330, 650), at(240, 650)]);
-    const ev = idle(sim, 70 * TPS, (e) => all(e, "hit").some((h) => h.by === "structure"));
+    sim.state.hostiles.push({ id: 900, type: "hostile.raider_humanoid", pos: at(130, 210), hp: 4, hpMax: 4, side: "n", target: "core", acc: 0 });
+    const ev = idle(sim, 5 * TPS, (e) => all(e, "hit").some((h) => h.by === "structure"));
     expect(all(ev, "hit").some((h) => h.by === "structure" && h.target === "hostile")).toBe(true);
     expect(tower.acc).toBeLessThanOrEqual(sim.compiled.structures["struct.ranged_defense"]!.tiers![1]!.rateTicks);
   });

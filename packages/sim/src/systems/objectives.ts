@@ -160,7 +160,8 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
   no_angry_customers: ({ st, o }) => guard(o, st.stats.customersAngry > 0),
   no_injuries: ({ st, o }) => guard(o, st.stats.injured > 0),
   hp_floor: ({ st, p, o }) => guard(o, st.meters.baseHealth * 100 < num(p, "pct") * st.meters.baseHealthMax),
-  no_wall_lost: ({ st, o }) => guard(o, st.stats.barriersLost > 0),
+  // only gates can break (Batch 3)
+  gate_held: ({ st, o }) => guard(o, st.stats.barriersLost > 0),
   no_stockpile_overload: ({ st, cp, o }) => guard(o,
     // Converter outputs only: a full kiosk shelf is the healthy state, and the warehouse has no cap.
     st.converters.some((cv) => cv.out >= cp.converters[cv.type]!.outCap)),

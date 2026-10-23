@@ -332,6 +332,7 @@ export interface Stats {
   built: number;
   rescued: number;
   injured: number;
+  /** Gates broken (walls cannot break since Batch 3). */
   barriersLost: number;
   lifelineLowTicks: number;
   concurrentDemandTicks: number;
@@ -381,6 +382,8 @@ export interface Stats {
   /** Goods delivered by haulers. */
   hauled: number;
   kills: number;
+  /** Hostile kills by who landed the last hit (player, resident, structure); created on the first kill (Batch 3). */
+  killsBy?: Record<string, number>;
   bossKills: number;
   preyKilled: number;
   /** Bites taken from dangerous animals, by the player or a worker. */

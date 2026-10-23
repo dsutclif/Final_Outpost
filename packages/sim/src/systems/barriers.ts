@@ -2,13 +2,7 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { FP, isqrt, mulDiv, type Vec } from "../fixed.js";
 import type { BarrierSectionState, BarrierState, HostileState, State } from "../state.js";
-import { countOf, hint, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
-
-/** Units a repair (or rebuild of a destroyed section) costs: ceil(costPerSection * repairK); 0 when repair is off. */
-export const repairCost = (st: State, line: BarrierState): number => {
-  const pm = st.params["barrier.repairPm"] ?? 0;
-  return pm > 0 ? Math.max(1, Math.ceil((line.costPerSection * pm) / 1000)) : 0;
-};
+import { hint, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
 
 export const sectionHpMax = (st: State, gate: boolean): number =>
   gate ? st.params["barrier.gateHpMax"]! : st.params["barrier.hpMax"]!;
@@ -19,7 +13,6 @@ export function buildSection(st: State, cp: Compiled, line: BarrierState, s: Bar
   s.hpMax = sectionHpMax(st, s.gate);
   s.hp = s.hpMax;
   s.paid = line.costPerSection;
-  delete s.broken;
   if (!s.gate) unstick(st, cp, s);
 }
 
@@ -39,17 +32,21 @@ function unstick(st: State, cp: Compiled, s: BarrierSectionState): void {
   p.y = c.y + mulDiv(dy, r + 1, d);
 }
 
+/** Only gates take damage (walls cannot be broken, Batch 3), and a broken gate stays broken for good. */
 export function breakSection(st: State, line: BarrierState, idx: number, out: SimEvent[]): void {
   const s = line.sections[idx]!;
   s.built = false;
   s.hp = 0;
   s.paid = 0;
-  if ((st.params["barrier.repairPm"] ?? 0) > 0) s.broken = true;
+  s.broken = true;
   out.push({ t: "barrier_broken", line: line.id, section: idx });
   hint(st, out, "barrier_broken");
 }
 
-/** Walking along an unbuilt section while carrying the line's resource pays for it one unit per interval. */
+/**
+ * Walking along an unbuilt section while carrying the line's resource pays for it one unit per interval.
+ * Nothing is repaired and a broken gate is never rebuilt (Batch 3: the gate cannot be repaired).
+ */
 export function stepBarrierBuild(st: State, cp: Compiled, out: SimEvent[]): void {
   const p = st.player;
   p.buildCd = stepDown(p.buildCd);
@@ -58,20 +55,7 @@ export function stepBarrierBuild(st: State, cp: Compiled, out: SimEvent[]): void
     const cap = cp.resources[line.res]?.cap ?? null;
     for (let i = 0; i < line.sections.length; i++) {
       const s = line.sections[i]!;
-      if (!nearSegment(p.pos, s.a, s.b, cp.barrier.buildRange)) continue;
-      const rc = repairCost(st, line);
-      if (s.built) {
-        // Repair: a damaged standing section is restored in one payment, never partially charged.
-        if (rc === 0 || s.hp >= s.hpMax) continue;
-        const have = cap === null ? st.currency : countOf(p.stack, line.res);
-        if (have < rc) { hint(st, out, "barrier_damaged"); continue; }
-        for (let k = 0; k < rc; k++) { if (cap === null) st.currency--; else take(p.stack, line.res); }
-        s.hp = s.hpMax;
-        p.buildCd = cp.barrier.buildTicks;
-        out.push({ t: "barrier_repaired", line: line.id, section: i, cost: rc, rebuilt: false });
-        return;
-      }
-      const need = s.broken && rc > 0 ? rc : line.costPerSection;
+      if (s.built || s.broken || !nearSegment(p.pos, s.a, s.b, cp.barrier.buildRange)) continue;
       // Currency lives in state.currency; everything else comes out of the backpack.
       if (cap === null) {
         if (st.currency <= 0) continue;
@@ -79,12 +63,10 @@ export function stepBarrierBuild(st: State, cp: Compiled, out: SimEvent[]): void
       } else if (!take(p.stack, line.res)) continue;
       s.paid++;
       p.buildCd = cp.barrier.buildTicks;
-      out.push({ t: "barrier_progress", line: line.id, section: i, paid: s.paid, cost: need });
-      if (s.paid >= need) {
-        const rebuilt = s.broken === true && rc > 0;
+      out.push({ t: "barrier_progress", line: line.id, section: i, paid: s.paid, cost: line.costPerSection });
+      if (s.paid >= line.costPerSection) {
         buildSection(st, cp, line, s);
         out.push({ t: "barrier_built", line: line.id, section: i });
-        if (rebuilt) out.push({ t: "barrier_repaired", line: line.id, section: i, cost: need, rebuilt: true });
       }
       return;
     }
@@ -166,6 +148,25 @@ export function attackedSide(st: State): Side | null {
   return best;
 }
 
+/**
+ * The gate attackers from a side make for: of the gate sections facing that side, the one nearest the
+ * core (a trader gate further along the same side is left alone); null when that side has no gate.
+ */
+export function attackGate(st: State, side: Side): { line: BarrierState; idx: number } | null {
+  let best: { line: BarrierState; idx: number } | null = null, bd = 0;
+  for (const line of st.barriers) {
+    for (let i = 0; i < line.sections.length; i++) {
+      const s = line.sections[i]!;
+      if (!s.gate || sectionSide(st, s) !== side) continue;
+      const dx = (s.a.x + s.b.x) / 2 - st.core.pos.x, dy = (s.a.y + s.b.y) / 2 - st.core.pos.y, d = dx * dx + dy * dy;
+      if (!best || d < bd) { best = { line, idx: i }; bd = d; }
+    }
+  }
+  return best;
+}
+
+export const sectionMid = (s: BarrierSectionState): Vec => ({ x: (s.a.x + s.b.x) >> 1, y: (s.a.y + s.b.y) >> 1 });
+
 export function guardPost(st: State, cp: Compiled, k: number, side: Side | null = null): Vec {
   const line = st.barriers[0];
   if (!line) return { ...st.core.pos };
@@ -175,10 +176,21 @@ export function guardPost(st: State, cp: Compiled, k: number, side: Side | null 
   for (const s of line.sections) pts.push(lerp(s, 1, 2));
   for (let i = 1; i < line.sections.length; i++) pts.push({ p: { ...line.sections[i]!.a }, s: line.sections[i]!, joint: true });
   for (const s of line.sections) { pts.push(lerp(s, 1, 4)); pts.push(lerp(s, 3, 4)); }
-  // rallying: the mid and quarter posts of the sections facing that side (a joint may be a ring corner)
   if (side !== null) {
-    const facing = pts.filter((q) => !q.joint && sectionSide(st, q.s) === side);
-    if (facing.length > 0) pts = facing;
+    // rallying: attackers only hit the gate (Batch 3), so the guards stand inside that side's attack gate
+    // and the wall either side of it; without one, the mid and quarter posts of the sections facing that side
+    const g = attackGate(st, side);
+    if (g) {
+      const n = g.line.sections.length, at = (i: number) => g.line.sections[i]!;
+      const gs = at(g.idx), prev = at((g.idx + n - 1) % n), next = at((g.idx + 1) % n);
+      const near = [lerp(gs, 1, 2), lerp(gs, 1, 4), lerp(gs, 3, 4)];
+      if ((g.line.closed || g.idx > 0) && sectionSide(st, prev) === side) near.push(lerp(prev, 3, 4));
+      if ((g.line.closed || g.idx < n - 1) && sectionSide(st, next) === side) near.push(lerp(next, 1, 4));
+      pts = near;
+    } else {
+      const facing = pts.filter((q) => !q.joint && sectionSide(st, q.s) === side);
+      if (facing.length > 0) pts = facing;
+    }
   }
   const { p: base, s } = pts[k % pts.length]!;
   let nx = -(s.b.y - s.a.y), ny = s.b.x - s.a.x;

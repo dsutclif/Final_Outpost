@@ -1,47 +1,64 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { FP, isqrt, mulDiv, within, type Vec } from "../fixed.js";
+import { isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between } from "../rng.js";
 import type { HostileState, State } from "../state.js";
-import { breakSection, firstCrossing, outsideLine } from "./barriers.js";
+import { attackGate, breakSection, firstCrossing, outsideLines, sectionMid, sectionSide } from "./barriers.js";
 import { hitHostile, nearestHostile } from "./combat.js";
-import { canTake, hint, nearSegment, stepDown, walkAround } from "./common.js";
+import { canTake, hint, stepDown, walkAround } from "./common.js";
 import { dropTow } from "./lasso.js";
 
 type Side = HostileState["side"];
 
-/** A spawn point just beyond the given map edge. `defense.spawnY` is the (negative) distance outside it. */
+/**
+ * A spawn point just beyond the given map edge. `defense.spawnY` is the (negative) distance outside it.
+ * With an attack gate on that side the wave comes down a narrow lane in line with it, spread
+ * laneHalfWidth either way (Batch 3: attackers funnel to the gate); otherwise anywhere along the side.
+ */
 function spawnPoint(st: State, cp: Compiled, side: Side): Vec {
   const D = cp.defense, W = cp.map.w, H = cp.map.h;
-  const along = (len: number): number => between(st.rng, D.spawnMarginX, len - D.spawnMarginX);
+  const g = attackGate(st, side);
+  const mid = g ? sectionMid(g.line.sections[g.idx]!) : null;
+  const along = (len: number, c: number | null): number => (c === null
+    ? between(st.rng, D.spawnMarginX, len - D.spawnMarginX)
+    : Math.max(0, Math.min(len, c + between(st.rng, -D.laneHalfWidth, D.laneHalfWidth))));
   switch (side) {
-    case "n": return { x: along(W), y: D.spawnY };
-    case "s": return { x: along(W), y: H - D.spawnY };
-    case "w": return { x: D.spawnY, y: along(H) };
-    case "e": return { x: W - D.spawnY, y: along(H) };
+    case "n": return { x: along(W, mid && mid.x), y: D.spawnY };
+    case "s": return { x: along(W, mid && mid.x), y: H - D.spawnY };
+    case "w": return { x: D.spawnY, y: along(H, mid && mid.y) };
+    case "e": return { x: W - D.spawnY, y: along(H, mid && mid.y) };
   }
 }
 
 /**
- * Where a hostile walks this tick. Until it is past an open barrier line (outside it, or within
- * steerBand of it) it drifts only slightly sideways toward the core, so attackers meet the wall
- * spread out along their attack side; after that, and always around a closed ring, it heads
- * straight for the core.
+ * Where a hostile walks this tick (Batch 3). Walls cannot be broken, so from outside the barrier it makes
+ * for the nearest opening facing its attack side (an unbuilt wall section, or its gate once broken), else
+ * for that side's gate, which it hits until it breaks; once inside it heads straight for the core.
  */
 function walkTarget(st: State, cp: Compiled, h: HostileState): Vec {
-  const D = cp.defense, c = st.core.pos;
-  const approaching = st.barriers.some((line) => !line.closed
-    && (outsideLine(st, line, h.pos) || line.sections.some((s) => nearSegment(h.pos, s.a, s.b, D.steerBand))));
-  if (!approaching) return c;
-  if (h.side === "n" || h.side === "s") return { x: h.pos.x + mulDiv(c.x - h.pos.x, D.steerRate, FP), y: c.y };
-  return { x: c.x, y: h.pos.y + mulDiv(c.y - h.pos.y, D.steerRate, FP) };
+  if (st.barriers.length === 0 || !outsideLines(st, h.pos)) return st.core.pos;
+  // An opening is walked through: aim a stand-off past its middle, toward the core.
+  const through = (m: Vec): Vec => {
+    const dx = st.core.pos.x - m.x, dy = st.core.pos.y - m.y, d = isqrt(dx * dx + dy * dy);
+    const k = 2 * cp.defense.barrierStop;
+    return d <= k ? st.core.pos : { x: m.x + mulDiv(dx, k, d), y: m.y + mulDiv(dy, k, d) };
+  };
+  let best: Vec | null = null, bd = 0;
+  for (const line of st.barriers) for (const s of line.sections) {
+    if (s.built || sectionSide(st, s) !== h.side) continue;
+    const m = sectionMid(s), dx = m.x - h.pos.x, dy = m.y - h.pos.y, d = dx * dx + dy * dy;
+    if (!best || d < bd) { best = m; bd = d; }
+  }
+  if (best) return through(best);
+  const g = attackGate(st, h.side);
+  return g ? sectionMid(g.line.sections[g.idx]!) : st.core.pos;
 }
 
 /**
  * One wave at a time: a wave starts at its tick, but never while the last one is still on the field,
  * and only after a quiet spell once it is cleared (Doug, 2026-10-18).
- * Waves spawn beyond their attack side(s); hostiles walk to the core, stop at any built section
- * (gates included) their next step would cross, hit it until it breaks, then hit the base.
+ * Waves spawn beyond their attack side(s); hostiles walk to their gate (or an opening), hit the gate
+ * until it breaks, then go on to hit the base.
  */
 export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   const W = st.waves;
@@ -69,6 +86,8 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
     // Look one step plus the stand-off distance ahead; a built section in the way stops the walk.
     const look = def.speed + D.barrierStop;
     const ahead = d === 0 ? null : firstCrossing(st, h.pos, { x: h.pos.x + mulDiv(dx, look, d), y: h.pos.y + mulDiv(dy, look, d) });
+    // A standing wall only blocks (walls cannot be broken); a gate in the way is hit until it breaks.
+    if (ahead && !ahead.line.sections[ahead.idx]!.gate) { h.target = "core"; continue; }
     if (ahead) {
       h.target = "barrier";
       h.acc = stepDown(h.acc);

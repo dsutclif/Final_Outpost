@@ -13,13 +13,13 @@ const padEnt = (cp: Compiled, pad: PadState): HireEnt | BuildEnt => cp.entityByI
 
 const padDone = (st: State, id: string): boolean => st.pads.some((p) => p.id === id && p.done) || st.built.includes(id);
 
-/** Visibility (required pad done) and locks (core level, idle resident) are recomputed every tick for renderers. */
+/** Visibility (required pad done, enough waves started) and locks (core level, idle resident) are recomputed every tick for renderers. */
 export function refreshPads(st: State, cp: Compiled): void {
   const idle = idleResidents(st).length;
   for (const pad of st.pads) {
     const e = padEnt(cp, pad);
     const req = e.requires;
-    pad.visible = !(req?.pad !== undefined && !padDone(st, req.pad));
+    pad.visible = !(req?.pad !== undefined && !padDone(st, req.pad)) && !(req?.wave !== undefined && st.waves.idx < req.wave);
     // manual first: the first hire of a job kind waits until the player has done that job by hand
     if (pad.visible && e.type === "pad.hire" && e.manual) { const job = jobOf(cp, e); if (job && !jobDone(st, job)) pad.visible = false; }
     pad.locked = (req?.coreLevel !== undefined && st.core.level < req.coreLevel) || (e.type === "pad.hire" && idle === 0);

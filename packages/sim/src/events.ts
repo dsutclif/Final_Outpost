@@ -37,7 +37,7 @@ export type SimEvent =
   | { t: "downed"; at: Vec }
   | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier" | "player" | "resident"; id: number; at: Vec; by: "player" | "resident" | "structure" | "hostile" | "animal" }
   | { t: "shot"; from: Vec; to: Vec; id: number }
-  | { t: "died"; kind: string; id: number; at: Vec }
+  | { t: "died"; kind: string; id: number; at: Vec; by?: "player" | "resident" | "structure" }
   | { t: "drop"; res: string; at: Vec }
   | { t: "picked"; res: string; at: Vec; by?: number }
   | { t: "wave_started"; idx: number }
