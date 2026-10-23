@@ -153,7 +153,8 @@ describe("ranged player attack", () => {
   });
 
   it("targets the nearest hostile, ties going to the lower id, and fires on its interval while moving", () => {
-    const sim = sim0();
+    // the core ring (walkThrough 0) holds the player in place so the hostiles stay in range while it pushes on
+    const sim = newSim({ params: { ...(LEVEL_2 as { params?: Record<string, number> }).params, "player.walkThrough": 0 } }, LEVEL_2);
     const p = sim.state.player.pos;
     sim.state.hostiles.push(hostile(5, p.x - fp(70), p.y, 9) as never, hostile(4, p.x + fp(70), p.y, 9) as never, hostile(3, p.x, p.y + fp(85), 9) as never);
     const first = all(sim.step({ dx: 0, dy: -FP }), "shot");

@@ -8,6 +8,7 @@ import {
   Frustum,
   Group,
   Matrix4,
+  Material,
   Mesh,
   MeshBasicMaterial,
   MeshLambertMaterial,
@@ -93,6 +94,9 @@ interface Placed { key: string; model: Model; born: number; seen: boolean; data:
 
 const PITCH = (PITCH_DEG * Math.PI) / 180, YAW = (YAW_DEG * Math.PI) / 180;
 const SAFE_RING_K = 1;
+/** Buildings the player walks through (sim player.walkThrough): they fade while the player stands inside. Walls, gates and turrets stay solid. */
+const SEE_THROUGH = /^(sink|conv|struct).(?!gate$|ranged_defense$|conveyor$)/;
+const FADE_TO = 0.28;
 const v3 = (x = 0, y = 0, z = 0): Vector3 => new Vector3(x, y, z);
 const tmpM = new Matrix4(), tmpV = new Vector3(), tmpV2 = new Vector3();
 const clamp01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x);
@@ -720,6 +724,7 @@ export class Renderer3D implements Renderer {
     this.syncCharacters(state, a, pl, dt);
     this.syncLasso(state, a, pl, dt);
     this.syncMarks(state, pl);
+    this.fadeUnderPlayer(pl, dt);
 
     for (const [k, p] of this.placed) if (!p.seen) { this.removePlaced(p); this.placed.delete(k); }
     this.drawDiscovery(pl);
@@ -800,10 +805,12 @@ export class Renderer3D implements Renderer {
       model.root.updateMatrixWorld(true);
       tmpBox.setFromObject(model.root);
       const h = tmpBox.isEmpty() ? 1 : Math.max(0.2, tmpBox.max.y);
+      // the ground the model covers (art units, about the root), for the walk-through fade
+      const foot = tmpBox.isEmpty() ? undefined : { x0: tmpBox.min.x, x1: tmpBox.max.x, z0: tmpBox.min.z, z1: tmpBox.max.z };
       model.root.scale.setScalar(ART_M);
       this.applyShadows(model.root);
       this.dynamic.add(model.root);
-      p = { key, model, born: this.synced && !this.quiet.delete(key) ? this.t : -Infinity, seen: true, data: { id, h: h * ART_M }, sprites: [], extra: [] };
+      p = { key, model, born: this.synced && !this.quiet.delete(key) ? this.t : -Infinity, seen: true, data: { id, h: h * ART_M, ...(foot && SEE_THROUGH.test(id) ? { foot } : {}) }, sprites: [], extra: [] };
       this.placed.set(key, p);
     }
     p.seen = true;
@@ -814,6 +821,40 @@ export class Renderer3D implements Renderer {
     const k = this.devBuildScale !== 1 && building && id !== "struct.conveyor" ? this.devBuildScale : 1;
     this.popScale(p, ART_M * k);
     return p;
+  }
+
+  /** Fade a building to see-through while the player stands inside its footprint, and restore it on leaving. */
+  private fadeUnderPlayer(pl: V, dt: number): void {
+    const walk = this.cp?.player.walkThrough ?? false;
+    for (const p of this.placed.values()) {
+      const foot = p.data["foot"] as { x0: number; x1: number; z0: number; z1: number } | undefined;
+      if (!foot) continue;
+      const r = p.model.root;
+      const sc = r.scale.x;
+      const inside = walk && pl.x >= r.position.x + foot.x0 * sc && pl.x <= r.position.x + foot.x1 * sc && pl.y >= r.position.z + foot.z0 * sc && pl.y <= r.position.z + foot.z1 * sc;
+      const cur = (p.data["fade"] as number | undefined) ?? 1;
+      if (cur === 1 && !inside) continue;
+      const next = inside ? Math.max(FADE_TO, cur - dt * 6) : Math.min(1, cur + dt * 4);
+      p.data["fade"] = next;
+      let mats = p.data["fadeMats"] as { m: Material; transparent: boolean; opacity: number; depthWrite: boolean }[] | undefined;
+      if (!mats) {
+        // own copies, so a shared material never fades another building
+        mats = [];
+        r.traverse((o) => {
+          const mesh = o as Mesh;
+          if (!mesh.isMesh) return;
+          const cl = (m: Material): Material => { const c = m.clone(); mats!.push({ m: c, transparent: c.transparent, opacity: c.opacity, depthWrite: c.depthWrite }); return c; };
+          mesh.material = Array.isArray(mesh.material) ? mesh.material.map(cl) : cl(mesh.material);
+        });
+        p.data["fadeMats"] = mats;
+      }
+      for (const e of mats) {
+        const was = e.m.transparent;
+        if (next >= 1) { e.m.transparent = e.transparent; e.m.opacity = e.opacity; e.m.depthWrite = e.depthWrite; }
+        else { e.m.transparent = true; e.m.opacity = e.opacity * next; e.m.depthWrite = false; }
+        if (e.m.transparent !== was) e.m.needsUpdate = true;
+      }
+    }
   }
 
   /** Squash-and-stretch pop for anything that appeared after the level loaded (0 -> 1.15 -> 1, 400 ms). */

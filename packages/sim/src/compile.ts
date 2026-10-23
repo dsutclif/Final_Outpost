@@ -211,7 +211,9 @@ export interface Compiled {
   resources: Record<string, CompiledResource>;
   player: { speed: number; radius: number; actTicks: number; attackTicks: number; attackRange: number; attackDamage: number; rangedRange: number; rangedTicks: number; hp: number; healDelayTicks: number; healTicks: number; downTicks: number;
     /** Loadout (backlog R4): gathering speed in percent of each node's rate, and extra carry per resource. */
-    gatherSpeed: number; carryBonus: number };
+    gatherSpeed: number; carryBonus: number;
+    /** true: the player walks through buildings (core included); walls, gates and turrets stay solid. false: the core keeps its exclusion radius. */
+    walkThrough: boolean };
   core: {
     range: number;
     accepts: Record<string, number>;
@@ -502,6 +504,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       downTicks: ticks(param("player.downSeconds")),
       gatherSpeed: Math.max(1, int("player.gatherSpeed")),
       carryBonus: int("player.carryBonus"),
+      walkThrough: int("player.walkThrough") !== 0,
     },
     core,
     nodes,

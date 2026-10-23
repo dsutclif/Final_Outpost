@@ -20,7 +20,7 @@ import defaults from "../data/defaults.json";
 export * from "./schema.js";
 export * from "./manifest.js";
 
-export const CONTENT_VERSION = "0.12.0";
+export const CONTENT_VERSION = "0.13.0";
 
 /** The validated content set. Parsing happens once at import time. */
 export const content: Content = Content.parse({

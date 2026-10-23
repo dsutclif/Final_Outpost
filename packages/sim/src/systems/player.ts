@@ -34,7 +34,7 @@ export function movePlayer(st: State, cp: Compiled, input: Input): void {
   // Nobody stands on the core: push out to the exclusion radius.
   const c = st.core;
   const d = dist(p.pos, c.pos);
-  if (d < cp.core.exclusion) {
+  if (!cp.player.walkThrough && d < cp.core.exclusion) {
     if (d === 0) p.pos.y = c.pos.y + cp.core.exclusion;
     else {
       p.pos.x = c.pos.x + mulDiv(p.pos.x - c.pos.x, cp.core.exclusion, d);

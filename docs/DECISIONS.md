@@ -175,3 +175,10 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     pad's spot, which is free once the tower stands. Pads no longer snap to the 10-unit lot step.
 10. **Goal building id.** The prototype's "Lodge" and "Trading Post" are the same
     function: `struct.landmark`.
+11. **Player walks through buildings (engine 0.13.0, R4 batch 3).** Param `player.walkThrough` (default 1).
+    In the sim the only building that ever held the player out was the core's exclusion ring (every
+    other station is walk-over already; the solid footprints live in the generator's trader route and
+    layout, so workers/traders/customers are unchanged); with 1 the ring is off and the bot's nav stops
+    treating the core as an obstacle. Walls, gates and turrets stay solid (`blockedAt`). The 3D renderer
+    fades a building to see-through while the player stands in its footprint (not gates, turrets or
+    belts). 0 restores the ring.

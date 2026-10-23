@@ -37,7 +37,7 @@ export class Nav {
     this.key = k;
     this.pathKey = "";
     const cp = this.cp, r = cp.player.radius;
-    const coreR = cp.core.exclusion + 6 * FP;
+    const coreR = cp.player.walkThrough ? 0 : cp.core.exclusion + 6 * FP;
     for (let j = 0; j < this.h; j++) {
       for (let i = 0; i < this.w; i++) {
         const x = i * CELL + CELL / 2, y = j * CELL + CELL / 2;
