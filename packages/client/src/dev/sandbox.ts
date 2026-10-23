@@ -18,7 +18,7 @@ const params = new URLSearchParams(location.search);
 const LEVELS = 60;
 const reqs = sequenceRange(1, LEVELS);
 const baseFootprints = structuredClone(GEN.footprints);
-const sizedKey = (k: string) => /^(sink|conv|struct)\./.test(k);
+const sizedKey = (k: string) => /^(sink|conv|struct)\./.test(k) || k === "node.food_source";
 
 interface Knob { key: string; label: string; min: number; max: number; step: number; def: number; rebuild: boolean }
 const KNOBS: Knob[] = [

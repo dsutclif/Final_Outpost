@@ -815,9 +815,9 @@ export class Renderer3D implements Renderer {
     return p;
   }
 
-  /** Size multiplier for a placed id: the dev building scale on buildings (not belts or gates), else 1. */
+  /** Size multiplier for a placed id: the dev building scale on buildings and the greenhouse dome (not belts or gates), else 1. */
   private buildK(id: string): number {
-    return this.devBuildScale !== 1 && /^(sink|conv|struct)./.test(id) && id !== "struct.gate" && id !== "struct.conveyor" ? this.devBuildScale : 1;
+    return this.devBuildScale !== 1 && (/^(sink|conv|struct)\./.test(id) || id === "node.food_source") && id !== "struct.gate" && id !== "struct.conveyor" ? this.devBuildScale : 1;
   }
 
   /** Squash-and-stretch pop for anything that appeared after the level loaded (0 -> 1.15 -> 1, 400 ms). */
