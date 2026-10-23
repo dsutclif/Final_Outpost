@@ -111,6 +111,15 @@ Other:
   should cover it. Revisit if it still feels like a slog.
 - Backlog 1 (no models per level): already true; was a symptom of 12.
 
+## Open items from the Batch 3 regeneration (2026-10-23)
+
+- Shelter difficulty after the compact layout: fields pulled in shorten the fuel runs. L44 rated
+  D=0.017 at full pressure and only builds with an always-earned second star (time-fixed goals now
+  allow one when no harder challenge exists); shelter mean D 0.34 against a 0.44 target.
+- Defence may now be too easy: good, human-view and weak bots take 3 stars on nearly every defend
+  level and the human-view bot breaks the gate once in 54 runs; the player lands 6-17% of kills.
+  Doug to playtest before any retune.
+
 ## Open questions
 
 - Can the gate be upgraded for more HP, even though it cannot be repaired? (asked 2026-10-22)

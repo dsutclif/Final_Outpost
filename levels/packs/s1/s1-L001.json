@@ -1,6 +1,6 @@
 {
   "id": "s1-L001",
-  "seed": 722945258,
+  "seed": 1068679765,
   "engineVersion": "0.13.0",
   "contentVersion": "0.13.0",
   "map": {
@@ -40,71 +40,71 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        106,
-        447
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        125,
-        473
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        144,
-        451
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        117,
-        419
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        153,
-        487
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        75,
-        450
+        179,
+        494
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         169,
-        430
+        463
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        98,
-        489
+        155,
+        525
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        150,
+        494
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        187,
+        423
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        155,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        133,
+        468
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        122,
+        512
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        160,
+        186,
+        377
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        144,
         392
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        58,
-        412
       ]
     }
   ],
@@ -113,10 +113,10 @@
   "events": [],
   "params": {
     "start.currency": 0,
-    "core.burn": 2.2,
+    "core.burn": 2.1,
     "housing.base": 2,
-    "lots.block": 160,
-    "lots.street": 40,
+    "lots.block": 60,
+    "lots.street": 0,
     "level.budgetSeconds": 150
   },
   "goal": {
@@ -136,15 +136,15 @@
     },
     {
       "id": "challenge2",
-      "kind": "heat_floor",
-      "params": {
-        "pct": 40
-      }
+      "kind": "settlement_never_freezes",
+      "params": {}
     },
     {
       "id": "challenge",
-      "kind": "no_colonist_freezes",
-      "params": {}
+      "kind": "heat_floor",
+      "params": {
+        "pct": 35
+      }
     }
   ],
   "fail": [
@@ -160,9 +160,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.042,
+    "difficulty": 0.034,
     "fun": 0.137,
-    "botMargin": 0.405,
+    "botMargin": 0.411,
     "botsPassed": [
       "good",
       "average",
@@ -172,7 +172,9 @@
     "stars": {
       "good": 3,
       "median": 3,
-      "goodAll": 1
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
     }
   }
 }

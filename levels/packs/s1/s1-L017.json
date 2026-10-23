@@ -1,6 +1,6 @@
 {
   "id": "s1-L017",
-  "seed": 327552485,
+  "seed": 729929710,
   "engineVersion": "0.13.0",
   "contentVersion": "0.13.0",
   "map": {
@@ -37,56 +37,63 @@
         500
       ],
       "params": {
-        "fuel": 9,
+        "fuel": 11,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        281,
-        468
+        276,
+        482
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        290,
-        499
+        288,
+        451
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        294,
-        442
+        280,
+        523
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        297,
-        529
+        309,
+        507
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         317,
-        410
+        479
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        316,
-        483
+        306,
+        536
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        279,
+        284,
+        419
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        313,
         416
       ]
     },
@@ -147,64 +154,64 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        68,
-        138
+        152,
+        245
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        312,
-        207
+        412,
+        218
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        357,
-        77
+        141,
+        101
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        212,
-        129
+        370,
+        128
       ]
     },
     {
       "type": "capture.recruit_container",
-      "at": [
-        261,
-        46
-      ]
-    },
-    {
-      "type": "capture.supply_crate",
       "at": [
         424,
-        612
+        473
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        66,
-        285
+        247,
+        67
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        233,
-        268
+        339,
+        40
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        424,
-        366
+        44,
+        279
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        436,
+        596
       ]
     },
     {
@@ -217,23 +224,35 @@
         150
       ],
       "animal": "node.prey",
-      "n": 3
+      "n": 2
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey_danger",
+      "rect": [
+        373,
+        380,
+        87,
+        150
+      ],
+      "animal": "node.prey_dangerous",
+      "n": 1
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
+    "start.currency": 3,
     "core.burn": 2.2,
     "housing.base": 7,
-    "lots.block": 160,
-    "lots.street": 40,
-    "level.budgetSeconds": 340
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 290
   },
   "goal": {
     "type": "hunt",
-    "n": 36
+    "n": 27
   },
   "family": "rescue",
   "objectives": [
@@ -241,20 +260,22 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 36
+        "n": 27
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 293
+        "seconds": 241
       }
     },
     {
       "id": "challenge",
-      "kind": "rescue_all",
-      "params": {}
+      "kind": "tow_trip",
+      "params": {
+        "n": 3
+      }
     }
   ],
   "fail": [
@@ -270,9 +291,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.296,
-    "fun": 0.552,
-    "botMargin": 0.467,
+    "difficulty": 0.347,
+    "fun": 0.563,
+    "botMargin": 0.484,
     "botsPassed": [
       "good",
       "average",
@@ -283,7 +304,9 @@
     "stars": {
       "good": 3,
       "median": 3,
-      "goodAll": 1
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
     }
   }
 }

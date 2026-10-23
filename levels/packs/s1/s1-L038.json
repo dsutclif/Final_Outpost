@@ -45,24 +45,24 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        302,
-        680
+        285,
+        703
       ],
       "sells": [
         "res.food_raw_1"
       ],
       "route": [
         [
-          225,
+          207,
           920
         ],
         [
-          225,
+          207,
           897
         ],
         [
-          226,
-          782
+          209,
+          805
         ]
       ]
     },
@@ -70,93 +70,93 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        299,
-        440
+        323,
+        451
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        147,
-        445
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        175,
-        456
+        182,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         185,
-        498
+        483
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        159,
-        484
+        149,
+        520
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        185,
-        424
+        151,
+        488
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        479
+        165,
+        462
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        121,
-        432
+        230,
+        442
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        118,
+        523
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         208,
-        456
+        421
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        153,
-        414
+        113,
+        493
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        90,
-        469
+        169,
+        418
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        93,
-        512
+        128,
+        440
       ]
     },
     {
       "type": "zone.blocked",
       "id": "rubble0",
       "rect": [
-        71,
-        307,
+        280,
+        329,
         120,
         70
       ]
@@ -164,30 +164,30 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        96,
-        342
+        305,
+        364
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        131,
-        342
+        340,
+        364
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        166,
-        342
+        375,
+        364
       ]
     },
     {
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        173,
-        579
+        152,
+        583
       ],
       "cost": {
         "res.currency": 28
@@ -198,8 +198,8 @@
       "type": "pad.build",
       "id": "core_level1",
       "at": [
-        319,
-        563
+        326,
+        568
       ],
       "cost": {
         "res.currency": 40
@@ -213,8 +213,8 @@
       "type": "pad.build",
       "id": "clear0",
       "at": [
-        45,
-        377
+        386,
+        435
       ],
       "cost": {
         "res.currency": 17
@@ -240,12 +240,12 @@
     "start.currency": 4,
     "core.burn": 2.4,
     "housing.base": 2,
-    "lots.block": 160,
-    "lots.street": 40,
+    "lots.block": 60,
+    "lots.street": 0,
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 290
+    "level.budgetSeconds": 280
   },
   "goal": {
     "type": "core_level",
@@ -271,7 +271,7 @@
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 45
+        "pct": 40
       }
     }
   ],
@@ -288,9 +288,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.715,
-    "fun": 0.672,
-    "botMargin": 0.53,
+    "difficulty": 0.756,
+    "fun": 0.745,
+    "botMargin": 0.516,
     "botsPassed": [
       "good",
       "average",
@@ -300,7 +300,9 @@
     "stars": {
       "good": 3,
       "median": 3,
-      "goodAll": 1
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
     }
   }
 }

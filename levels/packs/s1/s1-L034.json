@@ -38,64 +38,64 @@
         510
       ],
       "params": {
-        "fuel": 9,
+        "fuel": 10,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        179,
-        458
+        205,
+        493
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        207,
-        471
+        208,
+        463
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        207,
-        441
+        205,
+        534
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        194,
-        517
+        181,
+        475
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        196,
-        408
+        176,
+        513
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        163,
+        203,
         431
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        178,
-        489
+        167,
+        436
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        167,
-        530
+        189,
+        396
       ]
     },
     {
@@ -247,13 +247,13 @@
     "start.currency": 1,
     "core.burn": 2.1,
     "housing.base": 7,
-    "lots.block": 160,
-    "lots.street": 40,
-    "level.budgetSeconds": 320
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 340
   },
   "goal": {
     "type": "hunt",
-    "n": 25
+    "n": 27
   },
   "family": "rescue",
   "objectives": [
@@ -261,14 +261,14 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 25
+        "n": 27
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 287
+        "seconds": 297
       }
     },
     {
@@ -292,9 +292,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.504,
-    "fun": 0.761,
-    "botMargin": 0.444,
+    "difficulty": 0.47,
+    "fun": 0.868,
+    "botMargin": 0.455,
     "botsPassed": [
       "good",
       "average",
@@ -305,7 +305,9 @@
     "stars": {
       "good": 3,
       "median": 3,
-      "goodAll": 1
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
     }
   }
 }

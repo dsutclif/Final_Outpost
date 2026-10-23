@@ -22,7 +22,8 @@ describe.skipIf(!present)("level pack s1", () => {
   it("is pinned to the running engine and content versions", () => {
     expect(pack.engineVersion).toBe(ENGINE_VERSION);
     expect(pack.contentVersion).toBe(CONTENT_VERSION);
-    expect(pack.levels.length).toBeGreaterThanOrEqual(60);
+    // 50 levels since Batch 3 (BACKLOG-R4); the level supply builds on from 51
+    expect(pack.levels.length).toBeGreaterThanOrEqual(50);
   });
 
   it("every level parses, cross-checks against content and matches its pack entry", () => {
@@ -44,11 +45,12 @@ describe.skipIf(!present)("level pack s1", () => {
     }
   });
 
-  it("levels 1-5 are the family story in order, and every family appears equally often", () => {
+  it("levels 1-5 are the family story in order, and every family appears about equally often", () => {
     expect(pack.levels.slice(0, 5).map((e) => e.family)).toEqual(["shelter", "rescue", "harvest", "industrialize", "defend"]);
     const counts: Record<string, number> = {};
     for (const e of pack.levels) counts[e.family] = (counts[e.family] ?? 0) + 1;
-    for (const f of ["shelter", "rescue", "harvest", "industrialize", "defend"]) expect(counts[f]).toBe(pack.levels.length / 5);
+    // every 10th level is a two-family finale led by one family in turn, so a pack that ends mid-cycle is off by one
+    for (const f of ["shelter", "rescue", "harvest", "industrialize", "defend"]) expect(Math.abs(counts[f]! - pack.levels.length / 5), f).toBeLessThanOrEqual(1);
   });
 
   it("barrier lines appear only on defend and rescue levels, as closed rings", () => {

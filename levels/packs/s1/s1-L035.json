@@ -37,7 +37,7 @@
         450
       ],
       "params": {
-        "fuel": 9,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -54,11 +54,15 @@
       "route": [
         [
           500,
-          291
+          273
         ],
         [
           477,
-          291
+          273
+        ],
+        [
+          291,
+          273
         ],
         [
           279,
@@ -70,93 +74,86 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        315,
-        611
+        299,
+        612
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        152,
-        567
+        218,
+        516
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        156,
-        597
+        174,
+        519
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        183,
-        561
+        197,
+        557
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        186,
-        532
+        147,
+        507
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        157,
-        535
+        226,
+        554
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        221,
+        168,
         549
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        125,
-        550
+        224,
+        586
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        194,
-        598
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        121,
-        593
+        130,
+        532
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        109,
-        511
+        185,
+        595
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        155,
-        636
+        120,
+        572
       ]
     },
     {
       "type": "node.food_source",
       "id": "food2",
       "at": [
-        386,
-        615
+        383,
+        618
       ],
       "enabled": false
     },
@@ -164,8 +161,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        177,
-        483
+        173,
+        464
       ],
       "cost": {
         "res.currency": 11
@@ -181,8 +178,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        291,
-        519
+        306,
+        508
       ],
       "cost": {
         "res.currency": 16
@@ -218,8 +215,8 @@
       "type": "pad.build",
       "id": "unlock_food2",
       "at": [
-        386,
-        615
+        383,
+        618
       ],
       "cost": {
         "res.currency": 20
@@ -234,8 +231,8 @@
       "type": "pad.hire",
       "id": "hire_food2",
       "at": [
-        411,
-        523
+        405,
+        518
       ],
       "cost": {
         "res.currency": 20
@@ -268,18 +265,18 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.3,
+    "start.currency": 0,
+    "core.burn": 2.1,
     "housing.base": 6,
-    "lots.block": 160,
-    "lots.street": 40,
-    "customers.spawn": 3.2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.impatientShare": 0.32,
-    "customers.premiumShare": 0.16,
-    "customers.bulkShare": 0.15,
-    "level.budgetSeconds": 350
+    "customers.impatientShare": 0.34,
+    "customers.premiumShare": 0.17,
+    "customers.bulkShare": 0.16,
+    "level.budgetSeconds": 340
   },
   "goal": {
     "type": "streak",
@@ -298,7 +295,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 288
+        "seconds": 294
       }
     },
     {
@@ -321,8 +318,8 @@
   },
   "rating": {
     "difficulty": 0.612,
-    "fun": 0.809,
-    "botMargin": 0.49,
+    "fun": 0.817,
+    "botMargin": 0.459,
     "botsPassed": [
       "good",
       "average",
@@ -331,9 +328,11 @@
       "floor"
     ],
     "stars": {
-      "good": 2.6,
-      "median": 2.67,
-      "goodAll": 0.6
+      "good": 2.5,
+      "median": 2.33,
+      "goodAll": 0.5,
+      "human": 2.67,
+      "humanAll": 0.67
     }
   }
 }

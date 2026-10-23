@@ -1,6 +1,6 @@
 {
   "id": "s1-L045",
-  "seed": 196658801,
+  "seed": 282029871,
   "engineVersion": "0.13.0",
   "contentVersion": "0.13.0",
   "map": {
@@ -75,85 +75,50 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        312,
-        450
+        161,
+        511
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        141,
-        514
+        191,
+        583
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        173,
-        524
+        146,
+        581
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        177,
-        493
+        98,
+        550
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        134,
-        483
+        98,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        139,
-        544
+        96,
+        583
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        174,
-        553
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        170,
-        458
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        106,
-        508
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        109,
-        552
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        176,
-        582
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        125,
-        437
+        107,
+        451
       ]
     },
     {
@@ -234,50 +199,50 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        86,
-        143
+        316,
+        148
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        187,
-        79
+        318,
+        42
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        376,
-        73
+        90,
+        169
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        305,
-        219
+        165,
+        105
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        278,
-        66
+        183,
+        205
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        216,
-        241
+        50,
+        87
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        430,
-        185
+        425,
+        44
       ]
     },
     {
@@ -290,7 +255,19 @@
         150
       ],
       "animal": "node.prey",
-      "n": 3
+      "n": 2
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey_danger",
+      "rect": [
+        440,
+        350,
+        60,
+        150
+      ],
+      "animal": "node.prey_dangerous",
+      "n": 1
     }
   ],
   "people": [],
@@ -298,18 +275,18 @@
   "events": [],
   "params": {
     "start.currency": 4,
-    "core.burn": 2.3,
+    "core.burn": 2.4,
     "housing.base": 6,
-    "lots.block": 160,
-    "lots.street": 40,
-    "customers.spawn": 2.9,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 310
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "protein",
-    "n": 35
+    "n": 38
   },
   "family": "rescue",
   "objectives": [
@@ -317,20 +294,22 @@
       "id": "main",
       "kind": "protein",
       "params": {
-        "n": 35
+        "n": 38
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 235
+        "seconds": 242
       }
     },
     {
       "id": "challenge",
-      "kind": "rescue_all",
-      "params": {}
+      "kind": "tow_full_trip",
+      "params": {
+        "n": 3
+      }
     }
   ],
   "fail": [
@@ -346,9 +325,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.619,
-    "fun": 0.76,
-    "botMargin": 0.578,
+    "difficulty": 0.785,
+    "fun": 0.831,
+    "botMargin": 0.567,
     "botsPassed": [
       "good",
       "average",
@@ -357,8 +336,10 @@
     ],
     "stars": {
       "good": 3,
-      "median": 3,
-      "goodAll": 1
+      "median": 2.67,
+      "goodAll": 1,
+      "human": 2,
+      "humanAll": 0.67
     }
   }
 }

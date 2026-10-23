@@ -15,7 +15,7 @@
         "sales"
       ],
       "goal": "heat_hold",
-      "rating": 0.042,
+      "rating": 0.034,
       "fun": 0.137,
       "target": 0.11
     },
@@ -34,8 +34,8 @@
         "sales"
       ],
       "goal": "rescue",
-      "rating": 0.082,
-      "fun": 0.214,
+      "rating": 0.079,
+      "fun": 0.23,
       "target": 0.122
     },
     {
@@ -52,8 +52,8 @@
         "workers"
       ],
       "goal": "earn",
-      "rating": 0.143,
-      "fun": 0.873,
+      "rating": 0.132,
+      "fun": 0.897,
       "target": 0.134
     },
     {
@@ -71,8 +71,8 @@
         "workers"
       ],
       "goal": "produce",
-      "rating": 0.999,
-      "fun": 0.755,
+      "rating": 0.991,
+      "fun": 0.709,
       "target": 0.146
     },
     {
@@ -85,13 +85,15 @@
         "build_pads",
         "carry",
         "core",
+        "defenders",
         "defense",
         "gather",
-        "sales"
+        "sales",
+        "workers"
       ],
       "goal": "waves",
-      "rating": 0.138,
-      "fun": 0.437,
+      "rating": 0.118,
+      "fun": 0.282,
       "target": 0.158
     },
     {
@@ -108,8 +110,8 @@
         "sales"
       ],
       "goal": "house_all",
-      "rating": 0.192,
-      "fun": 0.802,
+      "rating": 0.194,
+      "fun": 0.77,
       "target": 0.171
     },
     {
@@ -128,8 +130,8 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.154,
-      "fun": 0.851,
+      "rating": 0.16,
+      "fun": 0.745,
       "target": 0.183
     },
     {
@@ -148,8 +150,8 @@
         "workers"
       ],
       "goal": "serve_premium",
-      "rating": 0.187,
-      "fun": 0.761,
+      "rating": 0.158,
+      "fun": 0.792,
       "target": 0.195
     },
     {
@@ -167,8 +169,8 @@
         "workers"
       ],
       "goal": "converter_level",
-      "rating": 0.207,
-      "fun": 0.901,
+      "rating": 0.19,
+      "fun": 0.903,
       "target": 0.207
     },
     {
@@ -181,14 +183,16 @@
         "build_pads",
         "carry",
         "core",
+        "defenders",
         "defense",
         "gather",
         "sales",
-        "salvage_upgrades"
+        "salvage_upgrades",
+        "workers"
       ],
       "goal": "turret_level",
-      "rating": 0.201,
-      "fun": 0.262,
+      "rating": 0.249,
+      "fun": 0.45,
       "target": 0.219
     },
     {
@@ -207,8 +211,8 @@
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.15,
-      "fun": 0.538,
+      "rating": 0.142,
+      "fun": 0.581,
       "target": 0.231
     },
     {
@@ -228,8 +232,8 @@
         "sales"
       ],
       "goal": "rescue_before_freeze",
-      "rating": 0.326,
-      "fun": 0.791,
+      "rating": 0.318,
+      "fun": 0.768,
       "target": 0.243
     },
     {
@@ -246,8 +250,8 @@
         "workers"
       ],
       "goal": "bulk_order",
-      "rating": 0.293,
-      "fun": 0.913,
+      "rating": 0.335,
+      "fun": 0.886,
       "target": 0.255
     },
     {
@@ -267,8 +271,8 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.308,
-      "fun": 0.833,
+      "rating": 0.229,
+      "fun": 0.774,
       "target": 0.267
     },
     {
@@ -284,14 +288,13 @@
         "defenders",
         "defense",
         "gather",
-        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
       "goal": "boss",
-      "rating": 0.671,
-      "fun": 0.191,
+      "rating": 0.309,
+      "fun": 0.253,
       "target": 0.279
     },
     {
@@ -310,8 +313,8 @@
         "sales"
       ],
       "goal": "clear_zones",
-      "rating": 0.444,
-      "fun": 0.748,
+      "rating": 0.249,
+      "fun": 0.82,
       "target": 0.332
     },
     {
@@ -330,8 +333,8 @@
         "sales"
       ],
       "goal": "hunt",
-      "rating": 0.296,
-      "fun": 0.552,
+      "rating": 0.347,
+      "fun": 0.563,
       "target": 0.344
     },
     {
@@ -349,8 +352,8 @@
         "workers"
       ],
       "goal": "currency",
-      "rating": 0.308,
-      "fun": 0.908,
+      "rating": 0.364,
+      "fun": 0.886,
       "target": 0.356
     },
     {
@@ -369,8 +372,8 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.345,
-      "fun": 0.938,
+      "rating": 0.36,
+      "fun": 0.949,
       "target": 0.368
     },
     {
@@ -391,8 +394,8 @@
         "workers"
       ],
       "goal": "core_level",
-      "rating": 0.34,
-      "fun": 0.87,
+      "rating": 0.41,
+      "fun": 0.873,
       "target": 0.38
     },
     {
@@ -405,14 +408,16 @@
         "build_pads",
         "carry",
         "core",
+        "defenders",
         "defense",
         "gather",
         "sales",
-        "salvage_upgrades"
+        "salvage_upgrades",
+        "workers"
       ],
       "goal": "waves_survived",
-      "rating": 0.366,
-      "fun": 0.209,
+      "rating": 0.413,
+      "fun": 0.043,
       "target": 0.4
     },
     {
@@ -429,8 +434,8 @@
         "sales"
       ],
       "goal": "population",
-      "rating": 0.395,
-      "fun": 0.867,
+      "rating": 0.355,
+      "fun": 0.868,
       "target": 0.45
     },
     {
@@ -450,8 +455,8 @@
         "sales"
       ],
       "goal": "rescue_all",
-      "rating": 0.691,
-      "fun": 0.754,
+      "rating": 0.862,
+      "fun": 0.852,
       "target": 0.494
     },
     {
@@ -470,8 +475,8 @@
         "workers"
       ],
       "goal": "earn_within",
-      "rating": 0.505,
-      "fun": 0.772,
+      "rating": 0.579,
+      "fun": 0.766,
       "target": 0.538
     },
     {
@@ -491,8 +496,8 @@
         "workers"
       ],
       "goal": "automate",
-      "rating": 0.563,
-      "fun": 0.923,
+      "rating": 0.453,
+      "fun": 0.828,
       "target": 0.581
     },
     {
@@ -508,14 +513,13 @@
         "defenders",
         "defense",
         "gather",
-        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.787,
-      "fun": 0.102,
+      "rating": 0.195,
+      "fun": 0.253,
       "target": 0.625
     },
     {
@@ -533,8 +537,8 @@
         "sales"
       ],
       "goal": "clear_zones",
-      "rating": 0.566,
-      "fun": 0.864,
+      "rating": 0.801,
+      "fun": 0.904,
       "target": 0.669
     },
     {
@@ -553,8 +557,8 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.68,
-      "fun": 0.803,
+      "rating": 0.736,
+      "fun": 0.753,
       "target": 0.713
     },
     {
@@ -572,8 +576,8 @@
         "workers"
       ],
       "goal": "sell",
-      "rating": 0.783,
-      "fun": 0.903,
+      "rating": 0.998,
+      "fun": 0.902,
       "target": 0.756
     },
     {
@@ -595,8 +599,8 @@
         "workers"
       ],
       "goal": "rescue",
-      "rating": 0.691,
-      "fun": 0.846,
+      "rating": 0.701,
+      "fun": 0.889,
       "target": 0.8
     },
     {
@@ -614,8 +618,8 @@
         "workers"
       ],
       "goal": "converters_running",
-      "rating": 0.167,
-      "fun": 0.943,
+      "rating": 0.068,
+      "fun": 0.941,
       "target": 0.4
     },
     {
@@ -628,15 +632,16 @@
         "build_pads",
         "carry",
         "core",
+        "defenders",
         "defense",
         "gather",
-        "medical",
         "sales",
-        "salvage_upgrades"
+        "salvage_upgrades",
+        "workers"
       ],
       "goal": "survive",
-      "rating": 0.439,
-      "fun": 0.047,
+      "rating": 0.572,
+      "fun": 0.049,
       "target": 0.45
     },
     {
@@ -653,8 +658,8 @@
         "sales"
       ],
       "goal": "admit",
-      "rating": 0.035,
-      "fun": 0.811,
+      "rating": 0.033,
+      "fun": 0.783,
       "target": 0.494
     },
     {
@@ -673,8 +678,8 @@
         "sales"
       ],
       "goal": "hunt",
-      "rating": 0.504,
-      "fun": 0.761,
+      "rating": 0.47,
+      "fun": 0.868,
       "target": 0.538
     },
     {
@@ -694,7 +699,7 @@
       ],
       "goal": "streak",
       "rating": 0.612,
-      "fun": 0.809,
+      "fun": 0.817,
       "target": 0.581
     },
     {
@@ -713,8 +718,8 @@
         "workers"
       ],
       "goal": "haul",
-      "rating": 0.61,
-      "fun": 0.771,
+      "rating": 0.618,
+      "fun": 0.766,
       "target": 0.625
     },
     {
@@ -735,8 +740,8 @@
         "workers"
       ],
       "goal": "waves",
-      "rating": 0.689,
-      "fun": 0.434,
+      "rating": 0.285,
+      "fun": 0.409,
       "target": 0.669
     },
     {
@@ -755,8 +760,8 @@
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.715,
-      "fun": 0.672,
+      "rating": 0.756,
+      "fun": 0.745,
       "target": 0.713
     },
     {
@@ -776,8 +781,8 @@
         "sales"
       ],
       "goal": "rescue_before_freeze",
-      "rating": 0.745,
-      "fun": 0.831,
+      "rating": 0.773,
+      "fun": 0.834,
       "target": 0.756
     },
     {
@@ -798,8 +803,8 @@
         "workers"
       ],
       "goal": "unlock",
-      "rating": 0.783,
-      "fun": 0.889,
+      "rating": 0.851,
+      "fun": 0.626,
       "target": 0.8
     },
     {
@@ -818,8 +823,8 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.354,
-      "fun": 0.892,
+      "rating": 0.404,
+      "fun": 0.9,
       "target": 0.4
     },
     {
@@ -838,8 +843,8 @@
         "workers"
       ],
       "goal": "build",
-      "rating": 0.208,
-      "fun": 0.875,
+      "rating": 0.408,
+      "fun": 0.908,
       "target": 0.45
     },
     {
@@ -855,14 +860,13 @@
         "defenders",
         "defense",
         "gather",
-        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
       "goal": "boss",
-      "rating": 0.797,
-      "fun": 0.098,
+      "rating": 0.493,
+      "fun": 0.304,
       "target": 0.494
     },
     {
@@ -879,8 +883,8 @@
         "sales"
       ],
       "goal": "survive",
-      "rating": 0.025,
-      "fun": 0.643,
+      "rating": 0.023,
+      "fun": 0.704,
       "target": 0.538
     },
     {
@@ -899,8 +903,8 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.619,
-      "fun": 0.76,
+      "rating": 0.785,
+      "fun": 0.831,
       "target": 0.581
     },
     {
@@ -917,8 +921,8 @@
         "sales"
       ],
       "goal": "shelves_full",
-      "rating": 0.641,
-      "fun": 0.681,
+      "rating": 0.601,
+      "fun": 0.753,
       "target": 0.625
     },
     {
@@ -938,8 +942,8 @@
         "workers"
       ],
       "goal": "chain",
-      "rating": 0.561,
-      "fun": 0.955,
+      "rating": 0.654,
+      "fun": 0.892,
       "target": 0.669
     },
     {
@@ -955,14 +959,13 @@
         "defenders",
         "defense",
         "gather",
-        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
       "goal": "waves_survived",
-      "rating": 0.757,
-      "fun": 0.469,
+      "rating": 0.835,
+      "fun": 0.123,
       "target": 0.713
     },
     {
@@ -981,8 +984,8 @@
         "sales"
       ],
       "goal": "clear_zones",
-      "rating": 0.784,
-      "fun": 0.505,
+      "rating": 0.78,
+      "fun": 0.524,
       "target": 0.756
     },
     {
@@ -1003,210 +1006,8 @@
         "workers"
       ],
       "goal": "produce",
-      "rating": 0.899,
-      "fun": 0.936,
-      "target": 0.8
-    },
-    {
-      "id": "s1-L051",
-      "file": "s1-L051.json",
-      "title": "Stasis Pods and No One Left",
-      "family": "rescue",
-      "modules": [
-        "barrier_lines",
-        "build_pads",
-        "carry",
-        "core",
-        "gather",
-        "lasso",
-        "sales"
-      ],
-      "goal": "rescue_all",
-      "rating": 0.138,
-      "fun": 0.796,
-      "target": 0.4
-    },
-    {
-      "id": "s1-L052",
-      "file": "s1-L052.json",
-      "title": "Vaults and Paydays",
-      "family": "harvest",
-      "modules": [
-        "build_pads",
-        "carry",
-        "core",
-        "gather",
-        "sales",
-        "source_gating",
-        "workers"
-      ],
-      "goal": "earn",
-      "rating": 0.073,
-      "fun": 0.884,
-      "target": 0.45
-    },
-    {
-      "id": "s1-L053",
-      "file": "s1-L053.json",
-      "title": "Presses and Upgrades",
-      "family": "industrialize",
-      "modules": [
-        "build_pads",
-        "carry",
-        "converters",
-        "core",
-        "gather",
-        "sales",
-        "workers"
-      ],
-      "goal": "converter_level",
-      "rating": 0.486,
-      "fun": 0.909,
-      "target": 0.494
-    },
-    {
-      "id": "s1-L054",
-      "file": "s1-L054.json",
-      "title": "Scrap and New Hands",
-      "family": "defend",
-      "modules": [
-        "barrier_lines",
-        "build_pads",
-        "carry",
-        "core",
-        "defenders",
-        "defense",
-        "gather",
-        "sales",
-        "salvage_upgrades",
-        "workers"
-      ],
-      "goal": "hire",
-      "rating": 0.547,
-      "fun": 0.136,
-      "target": 0.538
-    },
-    {
-      "id": "s1-L055",
-      "file": "s1-L055.json",
-      "title": "Domes and Building Spree",
-      "family": "shelter",
-      "modules": [
-        "build_pads",
-        "carry",
-        "core",
-        "gather",
-        "hazard_events",
-        "housing",
-        "sales"
-      ],
-      "goal": "build_count",
-      "rating": 0.558,
-      "fun": 0.676,
-      "target": 0.581
-    },
-    {
-      "id": "s1-L056",
-      "file": "s1-L056.json",
-      "title": "Stasis Pods and Cargo",
-      "family": "rescue",
-      "modules": [
-        "barrier_lines",
-        "build_pads",
-        "carry",
-        "core",
-        "gather",
-        "lasso",
-        "sales"
-      ],
-      "goal": "crates",
-      "rating": 0.457,
-      "fun": 0.921,
-      "target": 0.625
-    },
-    {
-      "id": "s1-L057",
-      "file": "s1-L057.json",
-      "title": "Hurried Traders and VIPs",
-      "family": "harvest",
-      "modules": [
-        "build_pads",
-        "carry",
-        "core",
-        "customer_variety",
-        "gather",
-        "sales",
-        "workers"
-      ],
-      "goal": "serve_premium",
-      "rating": 0.711,
-      "fun": 0.954,
-      "target": 0.669
-    },
-    {
-      "id": "s1-L058",
-      "file": "s1-L058.json",
-      "title": "Warehouses and Reserves",
-      "family": "industrialize",
-      "modules": [
-        "build_pads",
-        "carry",
-        "converters",
-        "conveyors",
-        "core",
-        "gather",
-        "sales",
-        "supply_routing",
-        "workers"
-      ],
-      "goal": "stockpile",
-      "rating": 0.692,
-      "fun": 0.885,
-      "target": 0.713
-    },
-    {
-      "id": "s1-L059",
-      "file": "s1-L059.json",
-      "title": "Rust and Endurance",
-      "family": "defend",
-      "modules": [
-        "barrier_lines",
-        "build_pads",
-        "carry",
-        "core",
-        "defenders",
-        "defense",
-        "gather",
-        "medical",
-        "sales",
-        "salvage_upgrades",
-        "workers"
-      ],
-      "goal": "survive",
-      "rating": 0.713,
-      "fun": 0.609,
-      "target": 0.756
-    },
-    {
-      "id": "s1-L060",
-      "file": "s1-L060.json",
-      "title": "Rust and Hardpoints",
-      "family": "defend",
-      "secondary": "shelter",
-      "modules": [
-        "barrier_lines",
-        "build_pads",
-        "carry",
-        "core",
-        "defense",
-        "gather",
-        "housing",
-        "sales",
-        "salvage_upgrades"
-      ],
-      "goal": "turret_level",
       "rating": 0.907,
-      "fun": 0.535,
+      "fun": 0.933,
       "target": 0.8
     }
   ]

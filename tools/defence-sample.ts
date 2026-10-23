@@ -16,5 +16,7 @@ for (const f of process.argv.slice(2).filter((a) => a.endsWith(".json"))) {
   console.log(`${m.id} ${m.goal.type} D=${m.rating?.difficulty} F=${m.rating?.fun} waves ${m.waves.map((w: { t: number; counts: Record<string, number> }) => `${w.t}s:${Object.values(w.counts).reduce((a, b) => a + b, 0)}`).join(" ")}  sockets ${ladder.filter((e: { build: string }) => e.build === "struct.ranged_defense").length} ladder ${ladderCost} salvage`);
   console.log(row("good", PROFILES["good"]!, 6));
   console.log(row("human", HUMAN, 6));
-  console.log(row("avg", PROFILES["average"]!, 3));
+  console.log(row("weak", PROFILES["weak"]!, 3));
+  console.log(row("novice", PROFILES["novice"]!, 3));
+  console.log(row("floor", PROFILES["floor"]!, 3));
 }

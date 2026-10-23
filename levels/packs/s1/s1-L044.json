@@ -1,6 +1,6 @@
 {
   "id": "s1-L044",
-  "seed": 1043834734,
+  "seed": 1447351011,
   "engineVersion": "0.13.0",
   "contentVersion": "0.13.0",
   "map": {
@@ -44,8 +44,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        327,
-        618
+        332,
+        597
       ],
       "sells": [
         "res.food_raw_1"
@@ -60,8 +60,12 @@
           897
         ],
         [
-          251,
-          720
+          249,
+          699
+        ],
+        [
+          256,
+          699
         ]
       ]
     },
@@ -69,78 +73,85 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        153,
-        604
+        165,
+        599
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
-        438
+        196,
+        456
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        151,
-        421
+        185,
+        488
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        149,
-        450
+        167,
+        456
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        117,
-        408
+        194,
+        425
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        183,
-        461
+        155,
+        505
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        187,
-        421
+        163,
+        427
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        105,
-        464
+        145,
+        477
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        138,
-        479
+        196,
+        393
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        504
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        71,
-        432
+        104,
+        470
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        143,
-        378
+        125,
+        418
       ]
     },
     {
@@ -151,27 +162,27 @@
         810
       ],
       "arrivals": {
-        "every": 20,
+        "every": 19,
         "total": 5
       }
     },
     {
       "type": "zone.terrain",
       "id": "terrain0",
-      "kind": "chasm",
+      "kind": "ridge",
       "rect": [
-        277,
-        206,
-        61,
-        31
+        233,
+        225,
+        98,
+        21
       ]
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        340,
-        465
+        450,
+        530
       ],
       "cost": {
         "res.currency": 16
@@ -182,8 +193,8 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        80,
-        580
+        90,
+        590
       ],
       "cost": {
         "res.currency": 19
@@ -194,8 +205,8 @@
       "type": "pad.build",
       "id": "housing2",
       "at": [
-        330,
-        785
+        300,
+        700
       ],
       "cost": {
         "res.currency": 22
@@ -214,11 +225,11 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
+    "start.currency": 1,
     "core.burn": 2.1,
     "housing.base": 2,
-    "lots.block": 160,
-    "lots.street": 40,
+    "lots.block": 60,
+    "lots.street": 0,
     "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
@@ -239,15 +250,15 @@
     },
     {
       "id": "challenge2",
-      "kind": "heat_floor",
-      "params": {
-        "pct": 35
-      }
+      "kind": "settlement_never_freezes",
+      "params": {}
     },
     {
       "id": "challenge",
-      "kind": "settlement_never_freezes",
-      "params": {}
+      "kind": "heat_floor",
+      "params": {
+        "pct": 30
+      }
     }
   ],
   "fail": [
@@ -263,9 +274,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.025,
-    "fun": 0.643,
-    "botMargin": 0.67,
+    "difficulty": 0.023,
+    "fun": 0.704,
+    "botMargin": 0.679,
     "botsPassed": [
       "good",
       "average",
@@ -276,7 +287,9 @@
     "stars": {
       "good": 3,
       "median": 3,
-      "goodAll": 1
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
     }
   }
 }

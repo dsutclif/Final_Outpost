@@ -301,7 +301,8 @@ function overLoopCap(ms: Measurement): boolean {
   return !(ms.loopKey.includes(">sink.core") && !coreHire);
 }
 
-function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string[], seed: number, teach = false, human: readonly BotResult[] | null = null, log: (line: string) => void = () => {}): string | null {
+/** Exported for tests. */
+export function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string[], seed: number, teach = false, human: readonly BotResult[] | null = null, log: (line: string) => void = () => {}): string | null {
   const fam = m.family as Family;
   const good = ms.runs["good"]!;
   const ladder = Object.values(ms.runs).flat();
@@ -324,8 +325,12 @@ function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly string
   let second: Obj;
   // Goals that finish on the clock (or after a fixed hold) leave no room for a time star: a second challenge instead.
   if (TIME_FIXED_GOALS.has(kind) || kind === "heat_hold") {
-    if (ordered.length < 2) return "time-fixed goal needs two family challenges";
-    second = { ...ordered[1]!, id: "challenge2" };
+    // With no second challenge the ladder can miss, an always-earned one stands in (as tutorial levels may
+    // keep an easy star): an easy level still gets its three stars (Batch 3, L44 after the compact layout).
+    const easy = rot(all.filter((o) => !ordered.includes(o)));
+    const pick = ordered[1] ?? easy[0];
+    if (!pick) return "time-fixed goal needs two family challenges";
+    second = { ...pick, id: "challenge2" };
   } else {
     const tMax = Math.max(...good.map((r) => r.goalTicks)) / 30;
     // Never tighter than 1.15x the good bot's median finish: humans are slower than the bot.

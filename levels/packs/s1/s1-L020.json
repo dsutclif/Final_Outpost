@@ -1,6 +1,6 @@
 {
   "id": "s1-L020",
-  "seed": 64818687,
+  "seed": 1788831366,
   "engineVersion": "0.13.0",
   "contentVersion": "0.13.0",
   "map": {
@@ -46,24 +46,24 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        327,
-        608
+        328,
+        584
       ],
       "sells": [
         "res.food_raw_1"
       ],
       "route": [
         [
-          249,
+          255,
           920
         ],
         [
-          249,
+          255,
           897
         ],
         [
-          251,
-          710
+          252,
+          686
         ]
       ]
     },
@@ -71,100 +71,93 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        142,
-        580
+        152,
+        568
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        133,
-        452
+        197,
+        464
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        162,
-        467
+        163,
+        476
       ]
     },
     {
       "type": "node.fuel_scrap",
-      "at": [
-        189,
-        482
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        189,
-        450
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        151,
-        496
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        157,
-        425
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        109,
-        486
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        127,
-        423
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        195,
-        526
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        97,
-        449
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        149,
-        385
-      ]
-    },
-    {
-      "type": "node.material_source",
       "at": [
         188,
-        390
+        430
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        144,
+        451
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        207,
+        399
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        167,
+        409
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        473
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        204,
+        498
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        123,
+        431
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        122,
+        391
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        72,
+        522
       ]
     },
     {
       "type": "zone.blocked",
       "id": "rubble0",
       "rect": [
-        173,
-        272,
+        65,
+        264,
         120,
         70
       ]
@@ -172,33 +165,33 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        198,
-        307
+        90,
+        299
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        233,
-        307
+        125,
+        299
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        268,
-        307
+        160,
+        299
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        217,
-        573
+        336,
+        447
       ],
       "cost": {
-        "res.currency": 9
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -211,8 +204,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        207,
-        628
+        209,
+        636
       ],
       "cost": {
         "res.currency": 14
@@ -229,11 +222,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        327,
-        732
+        328,
+        708
       ],
       "cost": {
-        "res.currency": 20
+        "res.currency": 22
       },
       "role": {
         "role": "role.cashier",
@@ -245,11 +238,11 @@
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        327,
-        468
+        385,
+        450
       ],
       "cost": {
-        "res.currency": 28
+        "res.currency": 30
       },
       "build": "sink.core.level"
     },
@@ -257,11 +250,11 @@
       "type": "pad.build",
       "id": "core_level1",
       "at": [
-        382,
-        489
+        438,
+        541
       ],
       "cost": {
-        "res.currency": 40
+        "res.currency": 42
       },
       "build": "sink.core.level",
       "requires": {
@@ -272,11 +265,11 @@
       "type": "pad.build",
       "id": "clear0",
       "at": [
-        251,
-        379
+        68,
+        392
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 18
       },
       "build": "zone.clear",
       "target": "rubble0",
@@ -309,12 +302,12 @@
     }
   ],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.4,
+    "start.currency": 3,
+    "core.burn": 2.3,
     "housing.base": 6,
-    "lots.block": 160,
-    "lots.street": 40,
-    "customers.spawn": 3,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "customers.bulkShare": 0.18,
@@ -337,14 +330,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 195
+        "seconds": 210
       }
     },
     {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 45
+        "pct": 40
       }
     }
   ],
@@ -361,9 +354,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.34,
-    "fun": 0.87,
-    "botMargin": 0.553,
+    "difficulty": 0.41,
+    "fun": 0.873,
+    "botMargin": 0.523,
     "botsPassed": [
       "good",
       "average",
@@ -374,7 +367,9 @@
     "stars": {
       "good": 3,
       "median": 3,
-      "goodAll": 1
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
     }
   }
 }
