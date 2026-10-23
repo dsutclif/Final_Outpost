@@ -8,7 +8,7 @@ import level3 from "../../../levels/golden/proto-L003.json";
 import level4 from "../../../levels/golden/proto-L004.json";
 import { MAX_DRAW_CALLS, MAX_TRIANGLES, createCamera } from "../src/index.js";
 import { Renderer3D, type GLLike } from "../src/renderer.js";
-import { ART_M } from "../src/units.js";
+import { ART_M, BUILD_K } from "../src/units.js";
 
 // The renderer runs headless here: three's scene graph is real, WebGLRenderer is replaced by
 // a recording fake (never instantiated), and the DOM is a minimal stand-in whose 2D canvas
@@ -148,7 +148,7 @@ describe("Renderer3D (fake WebGL)", () => {
     const roots: Object3D[] = [];
     out.r.three.scene.traverse((o) => { if (o.name === "conv.food_processor" && !o.userData["ghost"]) roots.push(o); });
     expect(roots.length).toBeGreaterThan(0);
-    for (const o of roots) expect(o.scale.y).toBeCloseTo(ART_M, 0);
+    for (const o of roots) expect(o.scale.y).toBeCloseTo(ART_M * BUILD_K, 0);
     out.r.dispose();
   });
 

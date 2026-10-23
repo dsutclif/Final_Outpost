@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { FP, createSim, type State } from "@fo/sim";
-import { HUMAN, LADDER, PROFILES, Perception, VIEW, playBot } from "../src/index.js";
+import { HUMAN, LADDER, PROFILES, Perception, VIEW, playBot, viewFor } from "../src/index.js";
+import { LOOK } from "@fo/content";
 import level1 from "../../../levels/golden/proto-L001.json";
 import level4 from "../../../levels/golden/proto-L004.json";
 
@@ -21,7 +22,8 @@ describe("human-view perception", () => {
   it("matches the 3D camera in units.ts", () => {
     expect(VIEW.pitchDeg).toBe(unit("PITCH_DEG"));
     expect(VIEW.yawDeg).toBe(unit("YAW_DEG"));
-    expect(VIEW.viewW).toBe(Math.round(unit("VIEW_W") * (VIEW as unknown as { groundK: number }).groundK));
+    expect(VIEW.viewW).toBe(Math.round(LOOK.viewW.default * LOOK.groundK));
+    expect(viewFor("defend").viewW).toBeGreaterThan(VIEW.viewW);
   });
 
   it("sees the screen box around the hero and nothing beyond its sides", () => {

@@ -1,4 +1,4 @@
-import { content as defaultContent, type Content, type Manifest } from "@fo/content";
+import { LOOK, content as defaultContent, type Content, type Manifest } from "@fo/content";
 import { FP, TPS, beltEnds, collapseSecondsLeft, padCost, compile, converterStockKey, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
 import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
@@ -54,7 +54,7 @@ import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
-import { ART_M, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, VIEW_W, YAW_DEG, textSprite, type QualityTier } from "./units.js";
+import { ART_M, BUILD_K, CHAR_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, YAW_DEG, viewWFor, textSprite, type QualityTier } from "./units.js";
 
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
 const SHELF_K = 1.05 / ITEM_K;
@@ -800,16 +800,16 @@ export class Renderer3D implements Renderer {
 
   /** Dev-only camera override for framing experiments (degrees, world units); null in the game. */
   camOverride: { pitch: number; yaw: number; fov: number; viewW: number } | null = null;
-  /** Dev-only building size multiplier (layout sandbox); 1 in the game. */
-  devBuildScale = 1;
-  /** Dev-only character size multiplier (layout sandbox); 1 in the game. */
-  devCharScale = 1;
-  /** Dev-only multiplier on units.ts TEXT (layout sandbox); 1 in the game. */
-  devTextScale = 1;
+  /** Building size multiplier: units.ts BUILD_K in the game, overridden by the layout sandbox. */
+  devBuildScale = BUILD_K;
+  /** Character size multiplier: units.ts CHAR_K in the game, overridden by the layout sandbox. */
+  devCharScale = CHAR_K;
+  /** Multiplier on units.ts TEXT: look.json textScale in the game, overridden by the layout sandbox. */
+  devTextScale = LOOK.textScale;
 
   private followCamera(cam: Camera, target: V, dt: number): void {
     const o = this.camOverride;
-    const viewW = o?.viewW ?? VIEW_W, pitch = o ? (o.pitch * Math.PI) / 180 : PITCH, yaw = o ? (o.yaw * Math.PI) / 180 : YAW;
+    const viewW = o?.viewW ?? viewWFor(this.manifest.family), pitch = o ? (o.pitch * Math.PI) / 180 : PITCH, yaw = o ? (o.yaw * Math.PI) / 180 : YAW;
     const fov = o?.fov ?? FOV_DEG;
     if (this.camera.fov !== fov) this.camera.fov = fov;
     const W = this.manifest.map.w, H = this.manifest.map.h;
@@ -1120,11 +1120,11 @@ export class Renderer3D implements Renderer {
     if (rig) {
       const cheer = (this.cheerUntil.get(`c:${c.id}`) ?? 0) > this.t;
       this.rigged!.add(`c:${c.id}`, c.kind, rig, { moving, hurried: c.kind.endsWith("impatient"), cheer }, pos.x, pos.y, yaw, ART_M * look.scale * this.devCharScale / 0.9);
-      this.blobs!.add(pos.x, pos.y, 10 * look.scale);
+      this.blobs!.add(pos.x, pos.y, 10 * look.scale * this.devCharScale);
     } else this.addCharacter(look, anim, pos, yaw, null);
     // a bulk trader wheels its order away on the cart (angry ones leave empty-handed)
-    if (look.push && !queued && !c.angry) this.cartLoad(c, pos, yaw, look.scale);
-    this.candidatePt(c.kind, pos.x, pos.y, ART_M * look.scale * 1.9);
+    if (look.push && !queued && !c.angry) this.cartLoad(c, pos, yaw, look.scale * this.devCharScale);
+    this.candidatePt(c.kind, pos.x, pos.y, ART_M * look.scale * this.devCharScale * 1.9);
     if (queued) {
       // order bubble with the patience arc
       const pk = Math.round(clamp01(c.patience / Math.max(1, c.patienceMax)) * 10);
@@ -1132,7 +1132,7 @@ export class Renderer3D implements Renderer {
       const sv = serving && serving.customer === c.id ? Math.round(clamp01(serving.ticks / Math.max(1, serving.of)) * 8) : -1;
       const ok = this.labels.apply(sp, `ord|${c.res}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), textSprite(TEXT.main, 52, 120));
       sp.visible = ok;
-      sp.position.set(pos.x, ART_M * look.scale * 1.55, pos.y);
+      sp.position.set(pos.x, ART_M * look.scale * this.devCharScale * 1.55, pos.y);
     }
   }
 
@@ -1895,14 +1895,14 @@ export class Renderer3D implements Renderer {
     const pyaw = this.faceAct("player", pl, yaw, pmove);
     if (prig) {
       this.rigged!.add("player", "unit.player", prig, { moving: pmove, hurried: false, run: true, cheer: anim.cheer > 0, act: this.actOf("player")?.act, speed: this.moving }, pl.x, pl.y, pyaw, ART_M * look.scale * this.devCharScale / 0.9);
-      this.blobs!.add(pl.x, pl.y, 10 * look.scale);
+      this.blobs!.add(pl.x, pl.y, 10 * look.scale * this.devCharScale);
     } else this.addCharacter(look, anim, pl, yaw, t.frost);
-    this.backStack(s.player.stack, pl, pyaw, look.scale, this.moving, v, true);
+    this.backStack(s.player.stack, pl, pyaw, look.scale * this.devCharScale, this.moving, v, true);
     // the hero's health shows over their head only while hurt (animal bites)
     const hpMax = this.cp?.player.hp ?? 0;
     if (hpMax > 0 && s.player.hp < hpMax) {
       const k = s.player.hp / hpMax;
-      this.barTag(pl.x, ART_M * look.scale * 1.6, pl.y, k, k > 0.5 ? t.ok : t.danger, 8);
+      this.barTag(pl.x, ART_M * look.scale * this.devCharScale * 1.6, pl.y, k, k > 0.5 ? t.ok : t.danger, 8);
     }
 
     for (const r of s.residents) {
@@ -1935,10 +1935,10 @@ export class Renderer3D implements Renderer {
         this.blobs!.add(pos.x, pos.y, 10 * rl.scale);
       } else this.addCharacter(rl, an, pos, ry, t.frost);
       // a carry clip holds the goods in front of the chest; everyone else wears them on the back
-      if (carrying) this.backStack(new Array<string>(Math.min(6, r.n)).fill(r.carry!), pos, ryaw, rl.scale, sp, rv, false, !!rrig?.clips?.["carry"] && moving);
+      if (carrying) this.backStack(new Array<string>(Math.min(6, r.n)).fill(r.carry!), pos, ryaw, rl.scale * this.devCharScale, sp, rv, false, !!rrig?.clips?.["carry"] && moving);
       // frost meter over a colonist while the reactor is out (resident.frost, 0..1000)
       const frost = r.frost;
-      if (typeof frost === "number" && frost > 0 && !dead) this.barTag(pos.x, ART_M * rl.scale * 1.45, pos.y, frost / 1000, t.frost, 7);
+      if (typeof frost === "number" && frost > 0 && !dead) this.barTag(pos.x, ART_M * rl.scale * this.devCharScale * 1.45, pos.y, frost / 1000, t.frost, 7);
     }
 
     // soldiers from a Lv2 guard post (Batch 3): drawn as guards, with a health bar once hit
@@ -1977,11 +1977,11 @@ export class Renderer3D implements Renderer {
         this.rigged!.add(key, h.type, hrig, { moving, hurried: false, cheer: false, speed: an.speed, act: h.target !== "core" ? "shoot" : undefined }, at.x, at.y, hy, ART_M * hl.scale * this.devCharScale / 0.9);
         this.blobs!.add(at.x, at.y, hl.kind === "creature" ? 16 * hl.scale : 10 * hl.scale);
       } else this.addCharacter(hl, an, at, hy, null);
-      this.candidatePt(h.type, pos.x, pos.y, ART_M * hl.scale * 1.8);
+      this.candidatePt(h.type, pos.x, pos.y, ART_M * hl.scale * this.devCharScale * 1.8);
       // health bar over bosses (content `boss` flag) and wounded attackers
       const hpMax = h.hpMax;
       const boss = !!this.cp?.hostiles[h.type]?.boss;
-      if (hpMax > 0 && (boss || h.hp < hpMax)) this.barTag(pos.x, ART_M * hl.scale * (boss ? 1.9 : 1.5), pos.y, h.hp / hpMax, t.danger, boss ? 12 : 6);
+      if (hpMax > 0 && (boss || h.hp < hpMax)) this.barTag(pos.x, ART_M * hl.scale * this.devCharScale * (boss ? 1.9 : 1.5), pos.y, h.hp / hpMax, t.danger, boss ? 12 : 6);
     }
 
     for (const p of s.prey) {
@@ -2003,7 +2003,7 @@ export class Renderer3D implements Renderer {
         this.rigged!.add(key, prig.id, prig, { moving: Math.hypot(pv.x, pv.y) > 0.05, hurried: false, cheer: false, speed: an.speed }, pos.x, pos.y, py, ART_M * look2.scale * this.devCharScale / 0.9);
         this.blobs!.add(pos.x, pos.y, 10 * look2.scale);
       } else this.addCharacter(look2, an, pos, py, null);
-      this.candidatePt(preyId, pos.x, pos.y, ART_M * look2.scale * 1.6);
+      this.candidatePt(preyId, pos.x, pos.y, ART_M * look2.scale * this.devCharScale * 1.6);
     }
     // order bubbles of customers that left the queue
     for (const [k, b] of this.bubbles) if (b.seen !== this.frameNo) { this.dynamic.remove(b.s); this.bubbles.delete(k); }
@@ -2578,7 +2578,7 @@ export class Renderer3D implements Renderer {
       case "sold": {
         const pay = Number(e["pay"] ?? 0);
         this.cheerUntil.set(`c:${String(e["customer"])}`, this.t + 1.9);
-        fx.floater(ft("sold"), white, up(at, ART_M * 1.6), 40);
+        fx.floater(ft("sold"), white, up(at, ART_M * this.devCharScale * 1.6), 40);
         fx.floater(`+${pay}`, gold, up(at, ART_M * 1.1), 48);
         fx.burst(up(at, ART_M), [gold, mix(gold, t.structure, 0.5)], e["premium"] ? 14 : 7, 70, 200, 4);
         const pile = this.world?.sales ? this.wv(this.world.sales.pile) : at;

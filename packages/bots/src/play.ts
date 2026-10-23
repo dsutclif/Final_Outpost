@@ -3,7 +3,7 @@ import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, attackedSide, crea
 import { Brain } from "./brain.js";
 import { TIME_FIXED_GOALS, planBot, type Plan } from "./plan.js";
 import { withLearning, type BotProfile } from "./profiles.js";
-import { Perception } from "./view.js";
+import { Perception, viewFor } from "./view.js";
 
 /** Content default of `level.budgetSeconds`, kept as a named export for callers. */
 export const DEFAULT_TIME_BUDGET_SECONDS: number = defaultContent.defaults["level.budgetSeconds"] ?? 300;
@@ -270,7 +270,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const rng = seedRng((seed * 2654435761 + hashName(profile.name)) >>> 0);
   const brain = new Brain(cp, plan, profile, rng);
   // The human-view bot decides from what is on screen; the sim and every statistic below read the real state.
-  const eyes = profile.view ? new Perception() : null;
+  const eyes = profile.view ? new Perception(viewFor(cp.manifest.family)) : null;
   eyes?.overview(st);
 
   const goal = cp.manifest.goal;

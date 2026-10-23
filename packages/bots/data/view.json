@@ -1,8 +1,6 @@
 {
-  "_doc": "What the human-view bot can see (Batch 2, BACKLOG-R4). The camera box mirrors packages/render-3d/src/units.ts (the bots never import render code; packages/bots/test/view.test.ts checks these against it). viewW is the ground width across the screen in world units: units.ts VIEW_W at the look point times groundK, the wider ground toward the top edge (the mean is about 1.33x). aspect is the play area's height over width on a portrait phone (390x844 less the HUD rows). heroShift is the share of the screen height the look point sits above the hero (renderer followCamera).",
-  "viewW": 319,
-  "groundK": 1.33,
-  "aspect": 2.0,
+  "_doc": "What the human-view bot can see (Batch 2, BACKLOG-R4). The camera box mirrors packages/render-3d/src/units.ts (the bots never import render code; packages/bots/test/view.test.ts checks these against it). The ground width comes from @fo/content data/look.json (viewW by level family times groundK, the mean of the wider ground toward the top edge). aspect is the play area's height over width on a portrait phone (390x844 less the HUD rows). heroShift is the share of the screen height the look point sits above the hero (renderer followCamera).",
+  "aspect": 2,
   "heroShift": 0.05,
   "pitchDeg": 30,
   "yawDeg": 45,

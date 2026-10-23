@@ -16,6 +16,7 @@ import goals from "../data/goals.json";
 import objectives from "../data/objectives.json";
 import modules from "../data/modules.json";
 import defaults from "../data/defaults.json";
+import look from "../data/look.json";
 
 export * from "./schema.js";
 export * from "./manifest.js";
@@ -44,3 +45,10 @@ export const content: Content = Content.parse({
   defaults,
 });
 checkContentRefs(content);
+
+/** Look and layout scale shared by the generator, 3D renderer and human-view bot (data/look.json). */
+export const LOOK = look as {
+  buildScale: number; charScale: number; textScale: number; viewW: Record<string, number> & { default: number }; groundK: number;
+};
+/** Ground width across the screen for a level family (world units at the look point). */
+export const viewWidth = (family?: string): number => (family && LOOK.viewW[family]) || LOOK.viewW.default;

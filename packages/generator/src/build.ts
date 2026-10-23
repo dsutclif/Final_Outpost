@@ -1,4 +1,4 @@
-import { CONTENT_VERSION, content as defaultContent, type Content, type Manifest } from "@fo/content";
+import { CONTENT_VERSION, LOOK, content as defaultContent, type Content, type Manifest } from "@fo/content";
 import { ENGINE_VERSION, createSim, salesLayout, type Compiled } from "@fo/sim";
 import { planBot } from "@fo/bots";
 import templatesData from "../data/templates.json";
@@ -77,6 +77,14 @@ export const GEN = genData as unknown as {
   terrain: TerrainData;
   search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number; loopCap: number; loopHireCut: number; loopEaseSteps: number; loopBurnEase: number; loopLengthCut: number; loopStartCurrency: number };
 };
+
+/** Footprints of what the renderer draws larger (look.json buildScale: buildings and the greenhouse dome) grow with it. */
+export const isSizedFootprint = (k: string): boolean => /^(sink|conv|struct)\./.test(k) || k === "node.food_source";
+for (const [k, b] of Object.entries(GEN.footprints)) if (isSizedFootprint(k)) GEN.footprints[k] = b.map((v) => Math.round(v * LOOK.buildScale)) as typeof b;
+// hire pads stand just outside their building, so their offsets from its centre grow with it
+const scaleOff = (o: [number, number]): [number, number] => [Math.round(o[0] * LOOK.buildScale), Math.round(o[1] * LOOK.buildScale)];
+for (const m of [GEN.crewStations, GEN.depotCrewStations] as Record<string, [number, number]>[]) for (const k of Object.keys(m)) m[k] = scaleOff(m[k]!);
+GEN.corePadBeside = scaleOff(GEN.corePadBeside);
 
 /** A generated time target (seconds) widened by the data factor; `step` rounds to that many seconds (1 = whole seconds). */
 export const timeTarget = (seconds: number, step = 1): number => Math.round((seconds * GEN.timeTargetK) / step) * step;
