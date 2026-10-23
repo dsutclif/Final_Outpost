@@ -17,8 +17,9 @@ const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) 
 const params = new URLSearchParams(location.search);
 const LEVELS = 60;
 const reqs = sequenceRange(1, LEVELS);
-const baseFootprints = structuredClone(GEN.footprints);
+// the footprints in generator.json already carry GEN.buildScale; undo it so the slider is absolute
 const sizedKey = (k: string) => /^(sink|conv|struct)\./.test(k) || k === "node.food_source";
+const baseFootprints = Object.fromEntries(Object.entries(GEN.footprints).map(([k, b]) => [k, sizedKey(k) ? b.map((v) => v / GEN.buildScale) : b])) as typeof GEN.footprints;
 
 interface Knob { key: string; label: string; min: number; max: number; step: number; def: number; rebuild: boolean }
 const KNOBS: Knob[] = [
@@ -26,7 +27,7 @@ const KNOBS: Knob[] = [
   { key: "pull", label: "Pull to core", min: 0, max: 8, step: 0.1, def: GEN.spacing.corePull, rebuild: true },
   { key: "fpull", label: "Pull fields in", min: 0, max: 0.9, step: 0.05, def: GEN.spacing.fieldPull ?? 0, rebuild: true },
   { key: "char", label: "Character size", min: 0.5, max: 2, step: 0.05, def: 1, rebuild: false },
-  { key: "size", label: "Building size", min: 0.6, max: 1.5, step: 0.05, def: 1, rebuild: true },
+  { key: "size", label: "Building size", min: 0.6, max: 1.5, step: 0.05, def: GEN.buildScale, rebuild: true },
   { key: "zoom", label: "View width", min: 100, max: 450, step: 10, def: VIEW_W, rebuild: false },
   { key: "text", label: "Text size", min: 0.6, max: 1.8, step: 0.05, def: 1, rebuild: false },
 ];

@@ -53,7 +53,7 @@ import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
-import { ART_M, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, VIEW_W, YAW_DEG, textSprite, type QualityTier } from "./units.js";
+import { ART_M, BUILD_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, VIEW_W, YAW_DEG, textSprite, type QualityTier } from "./units.js";
 
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
 const SHELF_K = 1.05 / ITEM_K;
@@ -746,8 +746,8 @@ export class Renderer3D implements Renderer {
 
   /** Dev-only camera override for framing experiments (degrees, world units); null in the game. */
   camOverride: { pitch: number; yaw: number; fov: number; viewW: number } | null = null;
-  /** Dev-only building size multiplier (layout sandbox); 1 in the game. */
-  devBuildScale = 1;
+  /** Building size multiplier: units.ts BUILD_K in the game, overridden by the layout sandbox. */
+  devBuildScale = BUILD_K;
   /** Dev-only character size multiplier (layout sandbox); 1 in the game. */
   devCharScale = 1;
   /** Dev-only multiplier on units.ts TEXT (layout sandbox); 1 in the game. */

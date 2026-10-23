@@ -6,6 +6,8 @@
 
 /** World units per art metre: the hero stands about as tall as the 2D figure (28 units). */
 export const ART_M = 28;
+/** Building size multiplier (docs/BACKLOG-R4.md batch 0). Keep equal to generator.json buildScale, which is baked into its footprints. */
+export const BUILD_K = 1.1;
 
 /** Resource item size, art metres to world units (R3 item 6: big chunky items, about half the hero tall in a stack of two). */
 export const ITEM_K = 1.35;

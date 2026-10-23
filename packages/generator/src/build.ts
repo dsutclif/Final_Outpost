@@ -44,6 +44,8 @@ export const GEN = genData as unknown as {
   traderRoute: { cell: number; clear: number; door: number };
   lots: { block: number; street: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
+  /** Building size multiplier already baked into the footprints below; the 3D renderer draws buildings at this scale (units.ts BUILD_K). */
+  buildScale: number;
   footprints: Record<string, [number, number, number, number]>;
   /** Hire pad offsets from a converter's centre for its input worker, operator and output worker. */
   crewStations: Record<"in" | "op" | "out", [number, number]>;
