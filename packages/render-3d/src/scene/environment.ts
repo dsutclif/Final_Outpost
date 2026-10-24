@@ -44,7 +44,8 @@ export interface Lots { x: number; z: number; block: number; street: number }
 /** An attack road (Batch 3): packed dirt from a gate (a) out past the map edge (b), w wide. */
 export interface Road { ax: number; az: number; bx: number; bz: number; w: number }
 /** Key light: low and from the left so structures throw long shadows; ambient stays low for contrast. */
-const SUN = 3.3, SUN_OFS = [-400, 460, 140] as const, HEMI = 1.15, HEMI_LOW = 2.2;
+export const SUN = 3.3, SUN_OFS = [-400, 460, 140] as const, HEMI = 1.15;
+const HEMI_LOW = 2.2;
 
 /** Value noise in [0,1] over the plane, seeded by the level. */
 function noise(x: number, y: number, seed: number): number {
