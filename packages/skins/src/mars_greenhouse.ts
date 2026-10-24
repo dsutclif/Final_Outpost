@@ -648,6 +648,7 @@ export const marsGreenhouse: Skin = {
       lasso: "Walk a loop around the pod",
       tow: "Tow the pod home",
       gate: "Leave through the airlock",
+      gateIn: "Head back in through the airlock",
       hunt: "Hunt a hopper",
     },
     loseTips: {

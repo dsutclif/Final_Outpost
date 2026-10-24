@@ -47,5 +47,5 @@ export interface RenderStats {
 /** A coach mark: target in world units and the line to show (same shape as render-2d's). */
 export interface CoachMark { key: string; at: { x: number; y: number }; text: string }
 
-/** A guide mark: where the player's next step is (world units) and the one line that says what to do. */
-export interface GuideMark { key: string; at: { x: number; y: number }; text: string }
+/** A guide mark: where the player's next step is (world units), the one line that says what to do, and the walk there (corner points, ending at the step's final spot). */
+export interface GuideMark { key: string; at: { x: number; y: number }; text: string; path?: { x: number; y: number }[] | undefined }

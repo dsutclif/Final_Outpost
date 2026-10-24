@@ -5,9 +5,9 @@ import { guideText, nameOf, workerName, type Skin, type WorkerVars } from "@fo/s
 
 // Guide arrows: every half second ask the bot controller (packages/bots, loaded on demand) what
 // a perfect player would do next from the current state (Brain.suggest, which reads the state
-// without advancing the controller), and hand the renderer that one target and a one-line
-// instruction. A suggestion is held for a short while so two near-equal steps do not make the
-// arrow flicker; reactor and raid steps cut in at once.
+// without advancing the controller), and hand the renderer that step's target, the walk there
+// and a one-line instruction. The brain keeps naming a step until it is done (reactor and raid
+// steps cut in), so the arrow never swaps tasks midway.
 
 /** Seconds without progress toward the level goals before the arrow shows on any level (Doug, backlog R4 item 9). */
 export const STUCK_SECONDS = 20;
@@ -35,23 +35,18 @@ export class StuckTimer {
   }
 }
 
-export interface GuideTarget { key: string; at: { x: number; y: number }; text: string; kind: string }
+export interface GuideTarget { key: string; at: { x: number; y: number }; text: string; kind: string; path: { x: number; y: number }[] }
 
-export interface SuggestionLike { kind: string; target: { x: number; y: number }; key: string }
+export interface SuggestionLike { kind: string; target: { x: number; y: number }; key: string; path?: { x: number; y: number }[] }
 interface BrainLike {
   suggest(st: State, cp: Compiled): SuggestionLike | null;
 }
 
 /** Ticks between asks (about half a second at 30 tps). */
 const EVERY = 15;
-/** A suggestion is kept at least this long unless it is done or something urgent replaces it. */
-const HOLD = 60;
-/** Steps that outrank whatever is held. */
-const URGENT = new Set(["feed", "fight"]);
 
 export class Guide {
   private last = -1000;
-  private since = 0;
   private out: GuideTarget | null = null;
   private constructor(private readonly brain: BrainLike, private readonly cp: Compiled) {}
 
@@ -75,12 +70,11 @@ export class Guide {
     if (!sug) return (this.out = null);
     const kind = sug.kind;
     const key = sug.key;
-    if (this.out && this.out.key !== key && st.tick - this.since < HOLD && !URGENT.has(kind)) return this.out;
     // A step whose text cannot be made still points the way, so the arrow never freezes on the previous step.
     let text: string;
     try { text = this.text(st, skin, kind, key.slice(kind.length + 1)); } catch { text = guideText(skin, kind === "pay" ? "padAny" : kind); }
-    if (this.out?.key !== key) this.since = st.tick;
-    this.out = { key, at: { x: sug.target.x / FP, y: sug.target.y / FP }, text, kind };
+    const path = (sug.path ?? [sug.target]).map((q) => ({ x: q.x / FP, y: q.y / FP }));
+    this.out = { key, at: { x: sug.target.x / FP, y: sug.target.y / FP }, text, kind, path };
     return this.out;
   }
 

@@ -1,13 +1,18 @@
 import {
-  BufferGeometry, Color, ConeGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, RingGeometry, type Scene,
+  BufferGeometry, Color, ConeGeometry, Float32BufferAttribute, InstancedMesh, Mesh, MeshBasicMaterial, Object3D, RingGeometry, type Scene,
 } from "three";
 
-// Flat and floating marks the renderer adds on top of the scene: the guide arrow on the ground
-// beside the hero with a bouncing marker over its target, the green ring that marks the hero, and
+// Flat and floating marks the renderer adds on top of the scene: the guide trail of chevrons on
+// the ground from the hero to the next step with a bouncing marker over its target, the green ring that marks the hero, and
 // the frost ring that drains around the reactor while it is out of fuel. Pure visuals; nothing here is pickable or blocks input.
 
 const mat = (color: string, opacity: number): MeshBasicMaterial =>
   new MeshBasicMaterial({ color: new Color(color), transparent: true, opacity, depthWrite: false, depthTest: false, toneMapped: false, side: 2 });
+
+/** Guide trail: chevrons this far apart (world units), starting past the hero ring and stopping short of the marker. */
+const STEP = 15, START = 20, END_GAP = 10, MAX_CHEVRONS = 160;
+/** The bright band: its spacing along the trail (world units) and how many times a second it passes a point. */
+const PULSE_LEN = 110, PULSE_SPEED = 1.1;
 
 /** A flat arrow pointing along +x on the ground plane (y up), about 32 units long. */
 function arrowGeometry(): BufferGeometry {
@@ -25,8 +30,11 @@ function arrowGeometry(): BufferGeometry {
 export interface MarkColors { interactive: string; accent: string; frost: string; ink: string; hero: string }
 
 export class GroundMarks {
-  private readonly arrow: Mesh;
-  private readonly arrowEdge: Mesh;
+  private readonly trail: InstancedMesh;
+  private readonly dummy = new Object3D();
+  private readonly tint = new Color();
+  private readonly dim: Color;
+  private readonly bright: Color;
   private readonly marker: Mesh;
   private readonly track: Mesh;
   private readonly heroRing: Mesh;
@@ -35,9 +43,11 @@ export class GroundMarks {
   private arcR = 0;
 
   constructor(private readonly scene: Scene, private readonly c: MarkColors) {
-    const ag = arrowGeometry();
-    this.arrowEdge = new Mesh(ag, mat(c.ink, 0.55));
-    this.arrow = new Mesh(ag, mat(c.interactive, 0.95));
+    this.bright = new Color(c.interactive);
+    this.dim = new Color(c.interactive).lerp(new Color(c.ink), 0.45);
+    this.trail = new InstancedMesh(arrowGeometry(), mat("#ffffff", 0.9), MAX_CHEVRONS);
+    this.trail.setColorAt(0, this.bright);
+    this.trail.count = 0;
     this.marker = new Mesh(new ConeGeometry(7, 15, 4).rotateX(Math.PI), mat(c.interactive, 0.95));
     this.track = new Mesh(new RingGeometry(1, 1, 8), mat(c.frost, 0.22));
     this.arc = new Mesh(new RingGeometry(1, 1, 8), mat(c.frost, 0.9));
@@ -45,36 +55,65 @@ export class GroundMarks {
     const heroMat = mat(c.hero, 0.9);
     heroMat.depthTest = true;
     this.heroRing = new Mesh(new RingGeometry(11, 14, 40).rotateX(-Math.PI / 2), heroMat);
-    for (const m of [this.arrowEdge, this.arrow, this.marker, this.track, this.arc, this.heroRing]) {
+    for (const m of [this.trail, this.marker, this.track, this.arc, this.heroRing]) {
       m.visible = false;
       m.frustumCulled = false;
       m.renderOrder = 9;
       scene.add(m);
     }
-    this.arrowEdge.renderOrder = 8;
-    this.arrowEdge.scale.setScalar(1.28);
   }
 
-  /** Arrow beside the hero toward (tx,tz), bouncing marker over the target; `on` false hides both. */
-  guide(hx: number, hz: number, tx: number, tz: number, t: number, on: boolean, markerY: number): void {
-    const dx = tx - hx, dz = tz - hz, d = Math.hypot(dx, dz);
-    const show = on && d > 1;
+  /**
+   * Bouncing marker over the target (tx,tz) and a trail of chevrons on the ground along the whole
+   * walk there (`path`, corner points; a straight line when absent), with a pulse running from the
+   * hero toward the end. `on` false hides both.
+   */
+  guide(hx: number, hz: number, tx: number, tz: number, t: number, on: boolean, markerY: number, path?: readonly { x: number; y: number }[]): void {
     this.marker.visible = on;
     if (on) {
       this.marker.position.set(tx, markerY + 8 + Math.abs(Math.sin(t * 4.2)) * 9, tz);
       this.marker.rotation.y = t * 1.6;
     }
-    // the ground arrow leads the way only while the target is a walk away
-    const far = show && d > 46;
-    this.arrow.visible = this.arrowEdge.visible = far;
-    if (far) {
-      const yaw = -Math.atan2(dz, dx), off = 34 + Math.sin(t * 5) * 3.5;
-      for (const m of [this.arrow, this.arrowEdge]) {
-        m.position.set(hx + (dx / d) * off, 1.4, hz + (dz / d) * off);
-        m.rotation.y = yaw;
-      }
-      this.arrow.scale.setScalar(1);
+    // the route was planned up to half a second ago: drop corners the hero has already passed
+    const pts = path && path.length ? [...path] : [{ x: tx, y: tz }];
+    while (pts.length > 1) {
+      const a = pts[0]!, b = pts[1]!;
+      if (Math.hypot(b.x - hx, b.y - hz) >= Math.hypot(b.x - a.x, b.y - a.y)) break;
+      pts.shift();
     }
+    let n = 0;
+    if (on) {
+      // walk the polyline from just past the hero ring to just short of the end, one chevron per STEP
+      let px = hx, pz = hz, along = 0, next = START;
+      for (const q of pts) {
+        const dx = q.x - px, dz = q.y - pz, L = Math.hypot(dx, dz);
+        if (L < 1e-3) continue;
+        const yaw = -Math.atan2(dz, dx);
+        while (next <= along + L && n < MAX_CHEVRONS) {
+          const k = (next - along) / L;
+          this.dummy.position.set(px + dx * k, 1.3, pz + dz * k);
+          this.dummy.rotation.set(0, yaw, 0);
+          // a bright band travels outward along the trail; the rest stays dim
+          const w = Math.max(0, Math.cos(((next / PULSE_LEN) - t * PULSE_SPEED) * Math.PI * 2));
+          const pulse = w * w * w;
+          this.dummy.scale.setScalar(0.5 + 0.2 * pulse);
+          this.dummy.updateMatrix();
+          this.trail.setMatrixAt(n, this.dummy.matrix);
+          this.trail.setColorAt(n, this.tint.copy(this.dim).lerp(this.bright, 0.35 + 0.65 * pulse));
+          n++;
+          next += STEP;
+        }
+        along += L;
+        px = q.x;
+        pz = q.y;
+      }
+      // the last chevron would sit under the marker: leave a gap there
+      while (n > 0 && along - (START + (n - 1) * STEP) < END_GAP) n--;
+    }
+    this.trail.count = n;
+    this.trail.visible = n > 0;
+    this.trail.instanceMatrix.needsUpdate = true;
+    if (this.trail.instanceColor) this.trail.instanceColor.needsUpdate = true;
   }
 
   /** Green ring on the ground under the hero, so the player always finds their character. */
@@ -107,11 +146,10 @@ export class GroundMarks {
   }
 
   dispose(): void {
-    for (const m of [this.arrow, this.marker, this.track, this.arc, this.heroRing]) {
+    for (const m of [this.trail, this.marker, this.track, this.arc, this.heroRing]) {
       m.geometry.dispose();
       (m.material as MeshBasicMaterial).dispose();
+      this.scene.remove(m);
     }
-    (this.arrowEdge.material as MeshBasicMaterial).dispose();
-    for (const m of [this.arrowEdge, this.arrow, this.marker, this.track, this.arc, this.heroRing]) this.scene.remove(m);
   }
 }

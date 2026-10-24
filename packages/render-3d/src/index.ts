@@ -49,4 +49,4 @@ export async function loadRenderer3D(opts: LoadRenderer3DOptions = {}): Promise<
 export function preloadRenderer3D(): Promise<unknown> {
   return import("./renderer.js");
 }
-export { setMeshyBrightness } from "./assets/meshy.js";
+

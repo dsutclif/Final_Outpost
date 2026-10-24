@@ -158,6 +158,29 @@ export class Nav {
     return this.path[0]!;
   }
 
+  /**
+   * The whole walk from `from` to `to` as a few corner points (ending at `to`, start excluded):
+   * the grid path pulled tight so it only bends where a wall is in the way. For guide arrows; the
+   * steering path above is left alone.
+   */
+  route(from: Vec, to: Vec): Vec[] {
+    const goal = this.free(to);
+    if (this.los(from, goal, [])) return [goal];
+    if (!this.reachable(from, goal)) return [goal];
+    const raw = this.astar(from, goal, []);
+    if (raw.length === 0) return [goal];
+    const out: Vec[] = [];
+    let at = from, i = 0;
+    while (i < raw.length) {
+      let k = i;
+      for (let j = raw.length - 1; j > i; j--) if (this.los(at, raw[j]!, [])) { k = j; break; }
+      at = raw[k]!;
+      out.push(at);
+      i = k + 1;
+    }
+    return out;
+  }
+
   private onPath(p: Vec): boolean {
     for (let k = 0; k < this.path.length && k < 6; k++) {
       const q = this.path[k]!;

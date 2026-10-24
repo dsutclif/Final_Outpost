@@ -671,7 +671,7 @@ export class Renderer3D implements Renderer {
 
   /** Guide arrow target (world units) and its instruction, or null. Purely visual; never blocks input. */
   setGuide(g: GuideMark | null): void {
-    if (g && this.guideMark && g.key === this.guideMark.key) { this.guideMark.at = g.at; this.guideMark.text = g.text; return; }
+    if (g && this.guideMark && g.key === this.guideMark.key) { this.guideMark.at = g.at; this.guideMark.text = g.text; this.guideMark.path = g.path; return; }
     this.guideMark = g ? { ...g } : null;
   }
 
@@ -2056,7 +2056,7 @@ export class Renderer3D implements Renderer {
     const m = this.marks;
     if (!m) return;
     const g = this.guideMark && !s.over ? this.guideMark : null;
-    m.guide(pl.x, pl.y, g?.at.x ?? 0, g?.at.y ?? 0, this.t, !!g, ART_M * 1.9);
+    m.guide(pl.x, pl.y, g?.at.x ?? 0, g?.at.y ?? 0, this.t, !!g, ART_M * 1.9, g?.path);
     m.hero(pl.x, pl.y, this.t, !s.over);
     if (g) {
       let sp = this.guideSprite;
@@ -3079,3 +3079,4 @@ export class Renderer3D implements Renderer {
 export const createRenderer3D = (opts?: Renderer3DOptions): Renderer3D => new Renderer3D(opts);
 
 export { renderThumbnails } from "./thumbs.js";
+export { setMeshyBrightness } from "./assets/meshy.js";

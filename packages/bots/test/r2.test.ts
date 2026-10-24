@@ -114,4 +114,32 @@ describe("suggest() for guide arrows", () => {
     expect(sawTow).toBe(true);
     expect(brain.current).toBeDefined();
   });
+
+  it("a guide-only brain says out or back in by the player's side, routes the whole walk, and holds a step until it is done", () => {
+    const sim = createSim(rescue);
+    const bot = new Brain(sim.compiled, planBot(rescue), { ...good, reactionTicks: 0 }, seedRng(1));
+    // the client's guide: never ticked, only asked
+    const guide = new Brain(sim.compiled, planBot(rescue), { ...good, reactionTicks: 0 }, seedRng(1));
+    const inside = (p: { x: number; y: number }) => (guide as unknown as { insideRings(p: unknown): boolean }).insideRings(p);
+    let out = 0, back = 0, prev: string | null = null, swaps = 0;
+    for (let t = 0; t < 30 * 60 && !sim.state.over; t++) {
+      const inp = bot.tick(sim.state);
+      if (t % 15 === 0) {
+        const sg = guide.suggest(sim.state, sim.compiled);
+        if (sg) {
+          expect(sg.path.length).toBeGreaterThan(0);
+          if (sg.kind === "gate") { out++; expect(inside(sim.state.player.pos)).toBe(true); }
+          if (sg.kind === "gateIn") { back++; expect(inside(sim.state.player.pos)).toBe(false); }
+          const task = sg.key.slice(sg.key.indexOf(":") + 1);
+          if (prev !== null && task !== prev) swaps++;
+          prev = task;
+        }
+      }
+      sim.step(inp);
+    }
+    expect(out).toBeGreaterThan(0);
+    expect(back).toBeGreaterThan(0);
+    // one task at a time: far fewer changes than asks
+    expect(swaps).toBeLessThan(20);
+  });
 });

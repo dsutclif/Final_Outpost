@@ -25,10 +25,11 @@ export interface Task {
 
 export interface Target { pos: Vec; r: number }
 
-/** Step kinds the client's guide arrows name. "gate" means: leave (or re-enter) the ring through a gate first. */
-export type SuggestKind = "gather" | "feed" | "stock" | "register" | "pile" | "pay" | "tow" | "gate" | "barrier" | "operate"
+/** Step kinds the client's guide arrows name. "gate" means: leave the ring through a gate first; "gateIn": come back in through one. */
+export type SuggestKind = "gather" | "feed" | "stock" | "register" | "pile" | "pay" | "tow" | "gate" | "gateIn" | "barrier" | "operate"
   | "deposit" | "fetch" | "drop" | "admit" | "fight" | "hunt";
-export interface Suggestion { kind: SuggestKind; target: Vec; key: string }
+/** `path`: the walk from the player to the step's final spot (through the gate on a "gate" step), corner points only. */
+export interface Suggestion { kind: SuggestKind; target: Vec; key: string; path: Vec[] }
 
 const U = FP;
 const d2 = (a: Vec, b: Vec): number => (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
@@ -53,6 +54,8 @@ export class Brain {
   private pending: { task: Task; at: number } | null = null;
   private since = 0;
   private lasso: LassoMem | null = null;
+  /** The step suggest() last named while idle: kept until it is done, so the guide never swaps tasks midway. */
+  private held: Task | null = null;
   /** Hires bought per repeatable pad. */
   readonly hiresByPad: Record<string, number> = {};
   private skip = new Set<string>();
@@ -685,32 +688,51 @@ export class Brain {
   /**
    * The next step for a guide arrow: the current task (or, while idle, the best-scored one) and its
    * target, read from the live state without advancing the controller. When the target lies on the
-   * other side of a closed ring from the player, the step is "gate" and points at the nearest gate.
+   * other side of a closed ring from the player, the step is "gate" (out) or "gateIn" (back in) and
+   * points at the gate the walk goes through. While idle (the client's guide never ticks this brain)
+   * a step once named is held until it is done; only feeding the reactor or a fight cuts in.
    */
   suggest(st: State, _cp?: Compiled): Suggestion | null {
     this.nav.refresh(st);
+    const p = st.player.pos;
+    const urgent = (k: TaskKind) => k === "feed" || k === "fight";
     let task = this.current;
     let tgt = task.kind === "wait" ? null : this.resolveQuiet(st, task);
     if (!tgt) {
       const best = [...this.score(st)].filter((t) => t.kind !== "wait").sort((a, b) => b.score - a.score)[0];
-      if (!best) return null;
-      task = best;
-      if (best.kind === "lasso" && best.key === "start") {
-        const c = this.pickCapture(st, st.player.pos, null);
-        tgt = c ? { pos: c.pos, r: 0 } : null;
-      } else tgt = this.resolveQuiet(st, best);
-    }
+      const held = this.held;
+      // out past the walls, a gather step stays with the source out there (no turning back for the warehouse)
+      const heldTgt = held && (!best || !urgent(best.kind) || urgent(held.kind))
+        ? this.resolveQuiet(st, (held.kind === "gather" || held.kind === "fuel") && !this.insideRings(p) ? { ...held, nodeOnly: true } : held)
+        : null;
+      if (held && heldTgt) { task = held; tgt = heldTgt; }
+      else {
+        this.held = null;
+        if (!best) return null;
+        task = best;
+        if (best.kind === "lasso" && best.key === "start") {
+          const c = this.pickCapture(st, p, null);
+          tgt = c ? { pos: c.pos, r: 0 } : null;
+        } else tgt = this.resolveQuiet(st, best);
+        if (tgt) this.held = { ...best };
+      }
+    } else this.held = null;
     if (!tgt) return null;
     const map: Partial<Record<TaskKind, SuggestKind>> = { fuel: "gather", lasso: "tow" };
     let kind = (map[task.kind] ?? task.kind) as SuggestKind;
     let target = tgt.pos;
     // the bot works a machine from a spot that also reaches the hopper; a player is shown the operator plate itself
     if (task.kind === "operate") { const cv = st.converters.find((c) => c.id === task.key); if (cv) target = cv.operatorPos; }
-    if (this.rings.length > 0 && this.insideRings(st.player.pos) !== this.insideRings(target) && task.kind !== "fight") {
-      const g = this.nearestGate(st, st.player.pos);
-      if (g) { kind = "gate"; target = g; }
+    const path = this.nav.route(p, target);
+    const inside = this.insideRings(p);
+    if (this.rings.length > 0 && inside !== this.insideRings(target) && task.kind !== "fight") {
+      // the gate the walk crosses: nearest to where the route first changes sides of the ring
+      let cross = p;
+      for (const q of path) { if (this.insideRings(q) !== inside) break; cross = q; }
+      const g = this.nearestGate(st, cross);
+      if (g) { kind = inside ? "gate" : "gateIn"; target = g; }
     }
-    return { kind, target: { ...target }, key: `${kind}:${task.key}` };
+    return { kind, target: { ...target }, key: `${kind}:${task.key}`, path };
   }
 
   /** resolve() without disturbing the lasso memory. */

@@ -3,8 +3,8 @@ import { DEFAULT_SKIN, getSkin } from "@fo/skins";
 import { LOOK } from "@fo/content";
 import { GEN, buildLevel, knobsFor, templateById, type Built } from "@fo/generator";
 import { closure, sequenceRange } from "@fo/sequencer";
-import { PITCH_DEG, YAW_DEG, FOV_DEG, VIEW_W, createCamera, screenToWorld, setMeshyBrightness } from "@fo/render-3d";
-import { Renderer3D } from "@fo/render-3d/renderer";
+import { PITCH_DEG, YAW_DEG, FOV_DEG, VIEW_W, createCamera, screenToWorld } from "@fo/render-3d";
+import { Renderer3D, setMeshyBrightness } from "@fo/render-3d/renderer";
 
 // Layout sandbox (docs/BACKLOG-R4.md batch 0): rebuilds a sequenced level's layout with the real
 // generator in the browser, with the data defaults, completes
