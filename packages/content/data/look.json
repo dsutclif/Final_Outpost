@@ -1,8 +1,9 @@
 {
-  "_doc": "Look and layout scale shared by the generator, the 3D renderer and the human-view bot (Doug, BACKLOG-R4 batch 3). buildScale multiplies the footprints of sink/conv/struct/food nodes in the generator and the models in the renderer, so a change is one edit plus a pack rebuild. charScale draws every character larger (the over-head labels and bars rise with it); textScale multiplies units.ts TEXT. viewW is the ground width across the screen in world units at the look point, by level family (default when a family is not listed); the bot's view box is viewW x groundK (the mean of the wider ground toward the top edge).",
+  "_doc": "Look and layout scale shared by the generator, the 3D renderer and the human-view bot (Doug, BACKLOG-R4 batch 3). buildScale multiplies the footprints of sink/conv/struct/food nodes in the generator and the models in the renderer, so a change is one edit plus a pack rebuild. charScale draws every character larger (the over-head labels and bars rise with it); textScale multiplies units.ts TEXT. viewW is the ground width across the screen in world units at the look point, by level family (default when a family is not listed); the bot's view box is viewW x groundK (the mean of the wider ground toward the top edge). modelBrightness multiplies the colour of every loaded Meshy GLB model (1 = as authored; raise it if models look darker in game than in the source art).",
   "buildScale": 1.2,
   "charScale": 1.9,
   "textScale": 1,
+  "modelBrightness": 1,
   "viewW": { "default": 210, "defend": 300, "industrialize": 300 },
   "groundK": 1.33
 }

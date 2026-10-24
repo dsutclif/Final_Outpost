@@ -1,4 +1,5 @@
 import { BufferAttribute, BufferGeometry, Euler, Group, Matrix4, Quaternion, Vector3, type AnimationClip, type Material, type Mesh, type Object3D } from "three";
+import { LOOK } from "@fo/content";
 import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { AnchorName } from "../ids.js";
 import { disposeGeo, getAnchor, type Model } from "./common.js";
@@ -90,6 +91,21 @@ const clips = new Map<string, AnimationClip[]>();
 const pending = new Map<string, Promise<void>>();
 let loader: Promise<GLTFLoader> | null = null;
 let enabled = true;
+
+let brightness = LOOK.modelBrightness;
+
+/** Multiply the colour of every loaded Meshy model (live; later loads pick it up in prepare). */
+export function setMeshyBrightness(k: number): void {
+  brightness = k;
+  for (const group of [cache, outlines]) for (const scene of group.values()) tint(scene);
+}
+
+function tint(scene: Group): void {
+  scene.traverse((o) => {
+    const m = (o as Mesh).material as Material | Material[] | undefined;
+    for (const x of Array.isArray(m) ? m : m ? [m] : []) (x as Material & { color?: { setScalar(k: number): unknown } }).color?.setScalar(brightness);
+  });
+}
 
 /** Dev switch: false keeps every code model (budget comparisons). */
 export function setMeshyEnabled(on: boolean): void { enabled = on; }
@@ -262,6 +278,7 @@ export function loadMeshy(onLoad?: (e: MeshyEntry) => void, ids?: ReadonlySet<st
  * Outlines carry positions only and are drawn lit, so they get flat normals here.
  */
 function prepare(scene: Group, flat = false): void {
+  tint(scene);
   scene.traverse((o) => {
     const m = o as Mesh;
     if (!m.isMesh) return;

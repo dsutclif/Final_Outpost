@@ -48,7 +48,7 @@ checkContentRefs(content);
 
 /** Look and layout scale shared by the generator, 3D renderer and human-view bot (data/look.json). */
 export const LOOK = look as {
-  buildScale: number; charScale: number; textScale: number; viewW: Record<string, number> & { default: number }; groundK: number;
+  buildScale: number; charScale: number; textScale: number; modelBrightness: number; viewW: Record<string, number> & { default: number }; groundK: number;
 };
 /** Ground width across the screen for a level family (world units at the look point). */
 export const viewWidth = (family?: string): number => (family && LOOK.viewW[family]) || LOOK.viewW.default;
