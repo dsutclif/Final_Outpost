@@ -328,7 +328,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- unsupported device ---------- */
 
-.card.unsupported { margin-top: 18px; }
+.card.unsupported, .card.choice { margin-top: 18px; }
 .card.unsupported h2 { font-size: 22px; }
 
 /* ---------- star objectives (round 2): strip, intro list, result list ---------- */

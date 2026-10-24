@@ -16,7 +16,8 @@ import { webPlatform, type Platform } from "./platform.js";
 import { progressReport, reportProgress } from "./supply.js";
 import { chapters, isUnlocked, nextLevel, starText } from "./progress.js";
 import { PROBE_SEC, autoTier, createRenderer, thumbnails, warm3D, webglAvailable, type GameRenderer, type Tier } from "./render.js";
-import { DEFAULT_PROGRESS, type Progress, type SaveStore, type Settings } from "./save.js";
+import type { ReleaseInfo } from "./pwa.js";
+import { DEFAULT_PROGRESS, PROGRESS_EPOCH, type Progress, type ProgressMode, type SaveStore, type Settings } from "./save.js";
 import type { TelemetryQueue } from "./telemetry.js";
 import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
@@ -140,6 +141,10 @@ export class App {
   private settingsFrom: Screen = "title";
   private offline = -1;
   updateReady = false;
+  /** The waiting build's release notes; null when release.json could not be read. */
+  private release: ReleaseInfo | null = null;
+  /** The update notice has been shown (or dismissed) this app open. */
+  private updateNoticed = false;
 
   private readonly el: {
     app: HTMLElement; hud: HTMLElement; lvlName: HTMLElement; goal: HTMLElement; chips: HTMLElement; menuBtn: HTMLButtonElement; retryBtn: HTMLButtonElement; gearBtn: HTMLButtonElement;
@@ -180,6 +185,11 @@ export class App {
     this.last = performance.now();
     requestAnimationFrame(this.frame);
     if (!webglAvailable(this.el.app.ownerDocument)) { this.show("unsupported"); return; }
+    // first boot after an update that changed the levels: nothing is written until the player picks
+    if (await this.deps.store.progressChoicePending()) {
+      this.progress = await this.deps.store.getProgress(await this.askProgressChoice());
+      await this.deps.store.setProgress(this.progress);
+    }
     this.show("title");
     if (this.deps.justUpdated) this.continueToast();
     warm3D();
@@ -303,7 +313,35 @@ export class App {
     t.hidden = false;
     this.wire(t, Object.fromEntries(Object.entries(actions).map(([k, fn]) => [k, () => { t.hidden = true; fn(); }])));
     if (this.toastTimer) clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => { t.hidden = true; }, ms);
+    // ms 0: stays until one of its buttons is tapped
+    this.toastTimer = ms > 0 ? setTimeout(() => { t.hidden = true; }, ms) : null;
+  }
+
+  /** A new build is waiting: its notes, a line when it changes the levels, Update now or Later. */
+  private updateNotice(): void {
+    this.updateNoticed = true;
+    const s = this.skin, notes = this.release?.notes ?? [];
+    const levelsChange = this.release !== null && this.release.epoch !== PROGRESS_EPOCH;
+    this.toast(`<span>${esc(uiText(s, "updateReady"))}</span>`
+      + notes.map((n) => `<span class="note">${esc(n)}</span>`).join("")
+      + (levelsChange ? `<span class="note">${esc(uiText(s, "updateLevelsChange"))}</span>` : "")
+      + `<button class="go small" data-a="go">${esc(uiText(s, "updateNow"))}</button><button class="small" data-a="x">${esc(uiText(s, "updateLater"))}</button>`, {
+      go: () => { this.deps.applyUpdate?.(); },
+      // Later: the title keeps an Update button; a cold start installs it anyway
+      x: () => undefined,
+    }, 0);
+  }
+
+  /** Keep level progress from the older pack, or start the levels over. */
+  private askProgressChoice(): Promise<ProgressMode> {
+    const ov = this.el.ov["title"]!, s = this.skin;
+    for (const [k, el] of Object.entries(this.el.ov)) el.hidden = k !== "title";
+    ov.innerHTML = `<div class="title-wrap">
+        <div class="card center choice"><h2>${esc(uiText(s, "progressChoiceTitle"))}</h2><p>${esc(uiText(s, "progressChoiceBody"))}</p>
+          <button class="go wide-btn" data-a="keep">${esc(uiText(s, "keepProgress"))}</button>
+          <button class="wide-btn" data-a="reset">${esc(uiText(s, "startOver"))}</button></div>
+      </div>`;
+    return new Promise((done) => this.wire(ov, { keep: () => done("keep"), reset: () => done("reset") }));
   }
 
   /** After a service-worker update: offer to jump back into the next level. */
@@ -456,10 +494,14 @@ export class App {
 
   // ------------------------------------------------------------------ screens
 
-  /** A new build is waiting: apply it now when no level is in progress, else at the next menu. */
-  offerUpdate(): void {
+  /** A new build is waiting: offer it now when no level is in progress, else at the next menu. */
+  offerUpdate(info: ReleaseInfo | null = null): void {
     this.updateReady = true;
-    if ((this.screen === "title" || this.screen === "levels") && !this.session) this.deps.applyUpdate?.();
+    this.release = info ?? this.release;
+    if ((this.screen === "title" || this.screen === "levels") && !this.session) {
+      this.updateNotice();
+      if (this.screen === "title") this.renderTitle();
+    }
   }
 
   private show(screen: Screen): void {
@@ -471,7 +513,7 @@ export class App {
     this.el.debug.hidden = !this.settings.debug || !this.session;
     this.el.app.classList.toggle("nohud", !this.session || screen === "title" || screen === "levels" || screen === "unsupported");
     if (screen !== "playing") this.el.inspect.hidden = true;
-    if ((screen === "title" || screen === "levels") && this.updateReady && this.deps.applyUpdate?.()) return;
+    if ((screen === "title" || screen === "levels") && this.updateReady && !this.updateNoticed) this.updateNotice();
     if (screen === "title") this.renderTitle();
     else this.title?.stop();
     if (screen === "levels") { this.renderLevels(); void this.refreshLevels(); }
@@ -497,7 +539,7 @@ export class App {
           <button class="go big play" data-a="play"><span>${esc(uiText(s, "play"))}</span>${next ? `<small>${esc(uiText(s, "levelWord"))} ${next.index + 1}</small>` : ""}</button>
           <div class="row"><button data-a="levels">${esc(uiText(s, "levels"))}${this.levels.length ? ` <small class="count">${cleared}/${this.levels.length}</small>` : ""}</button><button data-a="settings">${esc(uiText(s, "settings"))}</button></div>
         </div>
-        ${this.updateReady ? `<p class="note">${esc(uiText(s, "updateReady"))}</p>` : ""}
+        ${this.updateReady ? `<button class="small" data-a="update">${esc(uiText(s, "updateNow"))}</button>` : ""}
       </div>`;
     if (!this.title) this.title = new TitleBackdrop(ov, this.skin);
     else this.title.attach();
@@ -506,6 +548,7 @@ export class App {
       play: () => { const m = nextLevel(this.levels, this.progress); if (m) void this.openLevel(m); else this.show("levels"); },
       levels: () => this.show("levels"),
       settings: () => this.show("settings"),
+      update: () => { this.deps.applyUpdate?.(); },
     });
   }
 

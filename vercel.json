@@ -24,6 +24,15 @@
       ]
     },
     {
+      "source": "/release.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
       "source": "/levels/packs/(index|.*/pack).json",
       "headers": [
         {

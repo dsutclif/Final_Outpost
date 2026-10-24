@@ -1,4 +1,4 @@
-import type { Progress, SaveStore, Settings, TelemetryAttempt, TelemetryRow } from "./save.js";
+import type { Progress, ProgressMode, SaveStore, Settings, TelemetryAttempt, TelemetryRow } from "./save.js";
 
 // Thin platform layer: the same calls in the browser and inside the Capacitor shell. Native
 // plugins load by dynamic import only when the Capacitor bridge says it is native, so the web
@@ -87,7 +87,8 @@ export class MirroredStore implements SaveStore {
 
   /** Restore progress and settings from the mirror when IndexedDB has none. */
   async restore(): Promise<boolean> {
-    const p = await this.inner.getProgress();
+    // "keep": an older-epoch save still waiting for the player's choice is not empty
+    const p = await this.inner.getProgress("keep");
     const empty = !p.current && !Object.keys(p.cleared).length;
     if (!empty) return false;
     const raw = await this.kv.get(MIRROR_KEY);
@@ -105,7 +106,8 @@ export class MirroredStore implements SaveStore {
     await this.kv.set(MIRROR_KEY, JSON.stringify({ progress, settings }));
   }
 
-  getProgress(): Promise<Progress> { return this.inner.getProgress(); }
+  getProgress(mode?: ProgressMode): Promise<Progress> { return this.inner.getProgress(mode); }
+  progressChoicePending(): Promise<boolean> { return this.inner.progressChoicePending(); }
   async setProgress(p: Progress): Promise<void> { await this.inner.setProgress(p); await this.mirror(); }
   getSettings(): Promise<Settings> { return this.inner.getSettings(); }
   async setSettings(s: Settings): Promise<void> { await this.inner.setSettings(s); await this.mirror(); }

@@ -7,7 +7,7 @@ import "./style.css";
 import { App } from "./app.js";
 import { allLevels } from "./levels.js";
 import { MirroredStore, createPlatform } from "./platform.js";
-import { setupPwa } from "./pwa.js";
+import { setupPwa, type ReleaseInfo } from "./pwa.js";
 import { openSaves } from "./save.js";
 import { TelemetryQueue } from "./telemetry.js";
 
@@ -37,7 +37,8 @@ async function boot(): Promise<void> {
   const telemetry = new TelemetryQueue(store, import.meta.env.VITE_TELEMETRY_URL || undefined);
   let app: App | null = null;
   // the waiting worker can be found before the app exists; the check after start() covers that
-  const pwa = setupPwa(() => app?.offerUpdate());
+  let release: ReleaseInfo | null = null;
+  const pwa = setupPwa((info) => { release = info; app?.offerUpdate(info); });
   // every pack under levels/packs that matches this engine/content version
   const packsBase = `${import.meta.env.BASE_URL}levels/packs`.replace(/\/{2,}/g, "/");
   const source = await allLevels(packsBase);
@@ -51,7 +52,7 @@ async function boot(): Promise<void> {
     },
   });
   await app.start();
-  if (pwa.ready) app.offerUpdate();
+  if (pwa.ready) app.offerUpdate(release);
   if (import.meta.env.DEV) {
     (window as unknown as { __fo: App }).__fo = app;
     void import("./dev/playtest.js").then((m) => m.installPlaytest(app!));

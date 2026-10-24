@@ -227,3 +227,10 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     treating the core as an obstacle. Walls, gates and turrets stay solid (`blockedAt`). The 3D renderer
     fades a building to see-through while the player stands in its footprint (not gates, turrets or
     belts). 0 restores the ring.
+12. **Updates ask first; level progress survives a new pack by choice.** A waiting build shows its
+    notes (`packages/client/release-notes.json`, stamped into `release.json` with `PROGRESS_EPOCH`) with
+    Update now / Later on menu screens; it never installs itself (a cold start still does). On the first
+    boot after a `PROGRESS_EPOCH` bump, a save with level progress asks: keep level progress (cleared
+    levels and Play's level carry over; times, stars and tries start fresh) or start over. Nothing is
+    written until the player picks. Keeping the old levels themselves was ruled out: every engine change
+    would have to keep every old pack playable.

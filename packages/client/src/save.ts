@@ -1,4 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import { PROGRESS_EPOCH } from "./epoch.js";
 import { normalizeTimeTargetPct } from "./timetarget.js";
 
 // Saves in IndexedDB: progress, settings and the telemetry queue. Every read merges with
@@ -26,12 +27,10 @@ export interface Progress {
   epoch?: number;
 }
 
-/**
- * Bumped when a regenerated pack reuses level ids for different levels (alpha rule: progress resets to
- * L1). A save from an older epoch keeps its coach marks and discoveries; its level progress is cleared.
- * 2: Batch 3 (engine 0.13.0), the 50-level pack.
- */
-export const PROGRESS_EPOCH = 2;
+export { PROGRESS_EPOCH };
+
+/** What happens to level progress from an older epoch; the player picks on the first boot after the update. */
+export type ProgressMode = "keep" | "reset";
 
 export interface Settings {
   haptics: boolean;
@@ -74,7 +73,10 @@ const DB_NAME = "farthest-outpost";
 const DB_VERSION = 1;
 
 export interface SaveStore {
-  getProgress(): Promise<Progress>;
+  /** Progress merged with defaults; `mode` applies only to a save from an older epoch. */
+  getProgress(mode?: ProgressMode): Promise<Progress>;
+  /** The save holds level progress from an older epoch, so the player should choose a ProgressMode. */
+  progressChoicePending(): Promise<boolean>;
   setProgress(p: Progress): Promise<void>;
   getSettings(): Promise<Settings>;
   setSettings(s: Settings): Promise<void>;
@@ -84,10 +86,21 @@ export interface SaveStore {
   readonly persistent: boolean;
 }
 
-export function mergeProgress(raw: unknown): Progress {
+/** True when `raw` is an older-epoch save with level progress worth asking about. */
+export function needsProgressChoice(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") return false;
+  const r = raw as Partial<Progress>;
+  return r.epoch !== PROGRESS_EPOCH && (Object.keys(r.cleared ?? {}).length > 0 || typeof r.current === "string");
+}
+
+export function mergeProgress(raw: unknown, mode: ProgressMode = "reset"): Progress {
   const r0 = (raw && typeof raw === "object" ? raw : {}) as Partial<Progress>;
-  // an older pack generation: level progress starts over, what the player has learned stays
-  const r: Partial<Progress> = raw && r0.epoch !== PROGRESS_EPOCH ? { ...(r0.coach ? { coach: r0.coach } : {}), ...(r0.discovered ? { discovered: r0.discovered } : {}) } : r0;
+  // an older pack generation: what the player has learned stays; "keep" also carries which levels are
+  // cleared and where Play continues, but not times, stars or tries earned on the old layouts
+  const learned: Partial<Progress> = { ...(r0.coach ? { coach: r0.coach } : {}), ...(r0.discovered ? { discovered: r0.discovered } : {}) };
+  const r: Partial<Progress> = !raw || r0.epoch === PROGRESS_EPOCH ? r0
+    : mode === "keep" ? { ...learned, cleared: r0.cleared ?? {}, current: r0.current ?? null }
+    : learned;
   return {
     epoch: PROGRESS_EPOCH,
     cleared: { ...(r.cleared ?? {}) },
@@ -113,7 +126,8 @@ export function mergeSettings(raw: unknown): Settings {
 
 class IdbStore implements SaveStore {
   constructor(private readonly db: IDBPDatabase<FoDB>, readonly persistent: boolean) {}
-  async getProgress(): Promise<Progress> { return mergeProgress(await this.db.get("kv", "progress")); }
+  async getProgress(mode?: ProgressMode): Promise<Progress> { return mergeProgress(await this.db.get("kv", "progress"), mode); }
+  async progressChoicePending(): Promise<boolean> { return needsProgressChoice(await this.db.get("kv", "progress")); }
   async setProgress(p: Progress): Promise<void> { await this.db.put("kv", p, "progress"); }
   async getSettings(): Promise<Settings> { return mergeSettings(await this.db.get("kv", "settings")); }
   async setSettings(s: Settings): Promise<void> { await this.db.put("kv", s, "settings"); }
@@ -134,7 +148,8 @@ export class MemoryStore implements SaveStore {
   private settings: unknown = null;
   private rows: TelemetryRow[] = [];
   readonly persistent = false;
-  async getProgress(): Promise<Progress> { return mergeProgress(this.progress); }
+  async getProgress(mode?: ProgressMode): Promise<Progress> { return mergeProgress(this.progress, mode); }
+  async progressChoicePending(): Promise<boolean> { return needsProgressChoice(this.progress); }
   async setProgress(p: Progress): Promise<void> { this.progress = structuredClone(p); }
   async getSettings(): Promise<Settings> { return mergeSettings(this.settings); }
   async setSettings(s: Settings): Promise<void> { this.settings = { ...s }; }

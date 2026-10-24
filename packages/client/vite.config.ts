@@ -5,6 +5,7 @@ import { defineConfig, type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 // Relative import: the config is bundled by esbuild, and this file only imports types.
 import { marsGreenhouse as skin } from "../skins/src/mars_greenhouse";
+import { PROGRESS_EPOCH } from "./src/epoch";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PACKS = resolve(here, "../../levels/packs");
@@ -50,6 +51,20 @@ function levelPacks(): Plugin {
   };
 }
 
+/**
+ * dist/release.json: the epoch and notes the running build shows when this build is waiting
+ * (pwa.ts). Notes come from release-notes.json; edit them before pushing a release.
+ */
+function releaseInfo(): Plugin {
+  return {
+    name: "fo-release",
+    generateBundle() {
+      const notes = (JSON.parse(readFileSync(resolve(here, "release-notes.json"), "utf8")) as { notes?: string[] }).notes ?? [];
+      this.emitFile({ type: "asset", fileName: "release.json", source: JSON.stringify({ epoch: PROGRESS_EPOCH, notes }) });
+    },
+  };
+}
+
 export default defineConfig({
   // GitHub Pages serves from /<repo>/; CI sets BASE_PATH, local builds stay at the root.
   base: process.env.BASE_PATH ?? "/",
@@ -62,6 +77,7 @@ export default defineConfig({
   },
   plugins: [
     levelPacks(),
+    releaseInfo(),
     VitePWA({
       registerType: "prompt",
       injectRegister: false,

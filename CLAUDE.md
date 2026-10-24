@@ -68,7 +68,8 @@ pnpm levels:check  # replay every pack level with the bot ladder (~30 s)
 - **Pushing:** this repo is Doug's alone; commit and push freely, no PR needed.
 - **Engine bumps:** any rules change bumps `ENGINE_VERSION`, re-pins `levels/golden` and
   `levels/packs/s1`, then `pnpm levels:check` must stay clean. Level URLs carry the pack hash, and a
-  waiting service worker applies itself on menu screens, so players pick up new packs automatically.
+  waiting service worker offers itself on menu screens (Update now / Later); edit
+  `packages/client/release-notes.json` before pushing a release, since its notes are what players see.
 - **Models:** Doug wants cheaper models where they fit: Opus for large judgment-heavy work, Sonnet
   for narrow fixes, playtests and docs, Haiku for mechanical checks. Lean briefs that point at
   specific docs/files rather than the whole spec. If a usage limit stops an agent, resume it.

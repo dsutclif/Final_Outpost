@@ -89,4 +89,39 @@ describe("progress epoch (alpha rule: a regenerated pack restarts at L1)", () =>
     const same = mergeProgress({ ...old, epoch: PROGRESS_EPOCH });
     expect(same.cleared).toEqual({ "s1-L001": true });
   });
+
+  it("keep mode carries cleared levels and Play's level, not times, stars or tries", async () => {
+    const { mergeProgress, PROGRESS_EPOCH } = await import("../src/save.js");
+    const old = { epoch: PROGRESS_EPOCH - 1, cleared: { "s1-L001": true }, best: { "s1-L001": 900 }, stars: { "s1-L001": 3 }, starSet: { "s1-L001": ["main"] }, tries: { "s1-L001": 2 }, quits: { "s1-L002": 1 }, current: "s1-L002", coach: { move: 3 }, discovered: { "node.food_source": true } };
+    const m = mergeProgress(old, "keep");
+    expect(m.epoch).toBe(PROGRESS_EPOCH);
+    expect(m.cleared).toEqual({ "s1-L001": true });
+    expect(m.current).toBe("s1-L002");
+    expect([m.best, m.stars, m.starSet, m.tries, m.quits]).toEqual([{}, {}, {}, {}, {}]);
+    expect(m.coach).toEqual({ move: 3 });
+    expect(m.discovered).toEqual({ "node.food_source": true });
+    // a current-epoch save ignores the mode
+    expect(mergeProgress({ ...old, epoch: PROGRESS_EPOCH }, "keep").stars).toEqual({ "s1-L001": 3 });
+  });
+
+  it("asks only for an older-epoch save that has level progress", async () => {
+    const { needsProgressChoice, PROGRESS_EPOCH } = await import("../src/save.js");
+    expect(needsProgressChoice(null)).toBe(false); // fresh install
+    expect(needsProgressChoice({ cleared: {}, current: null, coach: { move: 1 } })).toBe(false); // nothing cleared
+    expect(needsProgressChoice({ cleared: { L0: true } })).toBe(true); // no epoch field: the first generation
+    expect(needsProgressChoice({ epoch: PROGRESS_EPOCH - 1, cleared: {}, current: "L0" })).toBe(true);
+    expect(needsProgressChoice({ epoch: PROGRESS_EPOCH, cleared: { L0: true } })).toBe(false);
+  });
+
+  it("the native mirror does not overwrite an older-epoch save waiting for the choice", async () => {
+    const { MirroredStore } = await import("../src/platform.js");
+    const { MemoryStore, PROGRESS_EPOCH } = await import("../src/save.js");
+    const kv = new Map<string, string>([["fo-save-v1", JSON.stringify({ progress: { cleared: { other: true }, epoch: PROGRESS_EPOCH } })]]);
+    const inner = new MemoryStore();
+    await inner.setProgress({ ...prog({ cleared: { L0: true }, current: "L1" }), epoch: PROGRESS_EPOCH - 1 });
+    const store = new MirroredStore(inner, { get: async (k) => kv.get(k) ?? null, set: async (k, v) => { kv.set(k, v); } });
+    expect(await store.restore()).toBe(false);
+    expect(await store.progressChoicePending()).toBe(true);
+    expect((await store.getProgress("keep")).cleared).toEqual({ L0: true });
+  });
 });
