@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./renderer": "./src/renderer.ts",
+    "./table": "./src/assetTable.ts",
     "./lab": "./src/lab.ts"
   },
   "scripts": {

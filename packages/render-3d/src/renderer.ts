@@ -423,7 +423,7 @@ export class Renderer3D implements Renderer {
     this.gl = this.createGL(canvas);
     this.gl.outputColorSpace = SRGBColorSpace;
     this.gl.toneMapping = ACESFilmicToneMapping;
-    this.gl.toneMappingExposure = 1.35;
+    this.gl.toneMappingExposure = EXPOSURE;
 
     const make: CanvasMaker | null = typeof doc.createElement === "function"
       ? (w, h) => {
@@ -3080,3 +3080,7 @@ export const createRenderer3D = (opts?: Renderer3DOptions): Renderer3D => new Re
 
 export { renderThumbnails } from "./thumbs.js";
 export { setMeshyBrightness } from "./assets/meshy.js";
+export { SUN, SUN_OFS, HEMI } from "./scene/environment.js";
+export { deriveTokens } from "./tokens.js";
+/** Tone-mapping exposure of the game camera. */
+export const EXPOSURE = 1.35;
