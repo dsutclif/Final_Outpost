@@ -1,0 +1,383 @@
+<title>Outpost Header Options</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600;700&display=swap">
+<style>
+/* Layout: a row of phone-width frames, each the top of the game screen, measured live. Tokens copied from packages/client/src/style.css. */
+:root {
+  --bg: #141618; --panel: #26292c; --panel-alt: #33373b; --ink: #ebe8e1; --muted: #9b988f;
+  --accent: #ff9a3c; --bad: #e2543c; --gold: #ffcb3d; --sand: #b89a74; --sand-dark: #8f7556; --ok: #5fd38a;
+  --display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --plate: inset 0 1px 0 rgba(255,255,255,.09), inset 0 -2px 0 rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.55);
+  --hazard: repeating-linear-gradient(-45deg, var(--accent) 0 7px, #16171a 7px 14px);
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 48px; }
+.intro { max-width: 70ch; display: grid; gap: 8px; margin-bottom: 26px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 34px; letter-spacing: .01em; margin: 0; text-wrap: balance; }
+.intro p { margin: 0; color: var(--muted); line-height: 1.5; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 28px 22px; }
+.opt { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.opt h2 { font-family: var(--display); font-weight: 800; font-size: 22px; margin: 0; display: flex; gap: 10px; align-items: baseline; }
+.opt h2 .tag { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.opt p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.meas { font-family: var(--display); font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.meas b { color: var(--ok); }
+.meas b.worse { color: var(--muted); }
+
+/* phone: 360 wide, top 330px of the screen */
+.phone { width: 100%; max-width: 360px; height: 330px; border-radius: 18px; overflow: hidden; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 0 2px #2c2f33, 0 14px 30px rgba(0,0,0,.5); background: var(--bg); }
+.world { flex: 1; position: relative; background:
+  radial-gradient(circle at 30% 40%, rgba(0,0,0,.18) 0 2px, transparent 3px) 0 0/38px 31px,
+  radial-gradient(circle at 70% 20%, rgba(0,0,0,.14) 0 1.5px, transparent 2.5px) 0 0/27px 23px,
+  linear-gradient(180deg, var(--sand), var(--sand-dark)); }
+.world::after { content: "map"; position: absolute; right: 10px; bottom: 8px; font: 700 11px var(--display); letter-spacing: .14em; text-transform: uppercase; color: rgba(0,0,0,.35); }
+.reactor { position: absolute; left: 50%; bottom: 26px; width: 66px; height: 44px; margin-left: -33px; border-radius: 50% 50% 8px 8px; background: #3c3f42; box-shadow: inset 0 6px 0 #55595d; }
+.reactor::before { content: ""; position: absolute; left: 21px; top: -8px; width: 24px; height: 24px; border-radius: 50%; background: #ffe58a; box-shadow: 0 0 16px #ffd34d; }
+
+/* shared HUD parts, same look as the game */
+.hud { background: linear-gradient(180deg, #2d3134, var(--panel)); position: relative; border-bottom: 1px solid #0b0c0d; box-shadow: 0 3px 10px rgba(0,0,0,.45); z-index: 2; }
+.hud::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 3px; background: var(--hazard); opacity: .85; }
+.lbl { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.goal { font-family: var(--display); font-weight: 700; font-size: 19px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-family: var(--display); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; background: var(--panel-alt); border-radius: 3px; padding: 1px 8px; line-height: 1.5; box-shadow: var(--plate); white-space: nowrap; }
+.coin { width: 13px; height: 13px; border-radius: 50%; background: var(--gold); flex: none; }
+.track { width: 48px; height: 9px; background: #0f1012; position: relative; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.track i { position: absolute; inset: 0 50% 0 0; background: var(--accent); }
+.track s { position: absolute; top: 0; bottom: 0; left: 35%; width: 2px; background: #fff; opacity: .7; }
+.btn { font-family: var(--display); font-weight: 800; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); background: var(--panel-alt); border: 0; border-radius: 4px; box-shadow: var(--plate); padding: 0 10px; height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: none; }
+.btn.sq { width: 34px; padding: 0; }
+.btn svg { width: 16px; height: 16px; }
+.obj { font-family: var(--display); font-weight: 700; font-size: 13px; background: #1b1d20; border-radius: 3px; padding: 0 6px; line-height: 1.6; box-shadow: var(--plate); white-space: nowrap; }
+.star { color: #5d6166; font-size: 15px; line-height: 1; }
+.star.on { color: var(--gold); }
+.goalbar { height: 5px; background: #0f1012; border-radius: 1px; overflow: hidden; }
+.goalbar i { display: block; height: 100%; width: 22%; background: var(--accent); }
+.row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+
+/* A: today */
+.a .hud { padding: 6px 10px 7px; display: grid; gap: 5px; }
+.a .top { display: flex; gap: 6px; align-items: flex-start; }
+.a .top .g { flex: 1; min-width: 0; }
+.a .objs { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* B: one line */
+.b .hud { padding: 6px 8px 7px; display: grid; gap: 5px; }
+.b .goal { font-size: 17px; flex: 1; }
+.b .stars { display: inline-flex; gap: 1px; }
+
+/* C: two lines, no labels */
+.c .hud { padding: 6px 8px 6px; display: grid; gap: 5px; }
+.c .goalwrap { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.c .goal { font-size: 17px; }
+
+/* D: floating over the map */
+.d .phone { position: relative; }
+.d .world { position: absolute; inset: 0; }
+.float { position: absolute; z-index: 2; }
+.d .card { top: 8px; left: 8px; right: 50px; background: rgba(30,32,35,.86); border-radius: 4px; box-shadow: var(--plate); padding: 5px 8px 6px; display: grid; gap: 4px; backdrop-filter: blur(3px); }
+.d .goal { font-size: 16px; }
+.d .menu { top: 8px; right: 8px; }
+.d .res { top: 72px; left: 8px; display: flex; gap: 5px; }
+.d .res .chip { background: rgba(51,55,59,.9); }
+
+/* menu sheet preview used by B, C, D */
+.sheet { font-size: 13px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sheet .btn { height: 28px; font-size: 13px; }
+
+/* ---------- starting fresh: plain type over the map, semantic colour only ---------- */
+.fresh { --cool: #7fd7ff; --warm: #ffb547; --danger: #ff6a55; --glass: rgba(14, 16, 18, .62); }
+.world.plain::after { content: none; }
+.fx-menu { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: var(--glass); color: #fff; display: grid; place-items: center; font-size: 18px; z-index: 3; }
+.fx-menu.inline { position: static; flex: none; }
+.fx-reactor { position: absolute; left: 50%; top: 52%; width: 130px; height: 130px; transform: translate(-50%, -50%); }
+.ring { position: absolute; inset: 0; transform: rotate(-90deg); overflow: visible; }
+.ring-bg { fill: none; stroke: rgba(0,0,0,.35); stroke-width: 9; }
+.ring-fill { fill: none; stroke: var(--warm); stroke-width: 9; stroke-linecap: round; }
+.ring-tick { stroke-width: 3; }
+.ring-tick.goal { stroke: #fff; }
+.ring-tick.floor { stroke: var(--danger); }
+.core { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: radial-gradient(circle, #fff3c4, #ffc94a 55%, #a86d14); box-shadow: 0 0 22px #ffcf5a; }
+.fx-num { position: absolute; left: 50%; top: -30px; transform: translateX(-50%); font: 800 24px/1 var(--display); color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,.7); text-align: center; white-space: nowrap; }
+.fx-num small { display: block; font: 700 11px var(--body); letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.8); margin-top: 2px; }
+.fx-hero { position: absolute; left: 22%; bottom: 34px; width: 16px; height: 34px; border-radius: 8px 8px 4px 4px; background: #d8d2c4; box-shadow: 0 0 0 3px rgba(95, 211, 138, .9); }
+.fx-coins { position: absolute; left: 50%; bottom: 42px; transform: translateX(-50%); display: inline-flex; gap: 4px; align-items: center; font: 800 15px var(--display); color: #fff; background: var(--glass); padding: 1px 7px; border-radius: 10px; white-space: nowrap; }
+.rail { height: 6px; background: rgba(255,255,255,.12); position: relative; flex: none; z-index: 3; }
+.rail i { position: absolute; inset: 0 auto 0 0; background: var(--warm); }
+.rail-star { position: absolute; top: -1px; transform: translateX(-50%); font-size: 13px; line-height: 1; color: #fff; text-shadow: 0 1px 3px #000; }
+.rail-star.end { transform: translateX(-100%); }
+.fx-line { position: absolute; left: 10px; right: 50px; top: 10px; font: 600 15px/1.3 var(--body); color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
+.fx-line b { color: var(--warm); }
+.states { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.states figure { margin: 0; display: grid; gap: 6px; min-width: 0; }
+.states figcaption { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.phone.mini { height: 190px; border-radius: 12px; }
+.phone.mini .fx-menu { width: 24px; height: 24px; font-size: 14px; top: 6px; right: 6px; }
+.phone.mini .reactor { transform: scale(.7); bottom: 12px; }
+.fx-pill { position: absolute; left: 6px; top: 6px; right: 34px; font: 800 12px/1.2 var(--display); color: #fff; background: var(--glass); border-radius: 10px; padding: 3px 7px; width: fit-content; max-width: calc(100% - 40px); }
+.fx-pill.bad { background: rgba(170, 40, 25, .85); }
+.fx-toast { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); font: 800 12px var(--display); color: #1b1300; background: var(--gold); border-radius: 10px; padding: 3px 8px; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.4); }
+.frosty { box-shadow: inset 0 0 26px 8px rgba(160, 220, 255, .75); }
+.sentence { display: flex; gap: 10px; align-items: center; padding: 10px 12px; background: #101214; flex: none; z-index: 3; }
+.sentence p { margin: 0; font: 600 16px/1.3 var(--body); color: #f2efe8; min-width: 0; }
+.sentence b { color: #fff; }
+.sentence b.warm { color: var(--warm); }
+.sentence .fx-menu { background: #2a2d31; }
+
+/* E revised */
+.e2 figure { align-content: start; }
+.e2 .phone.mini { height: 210px; }
+.r2 { background: #101214; padding: 5px 6px 5px; display: grid; gap: 4px; flex: none; z-index: 3; }
+.r2-top { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.r2 .bar { flex: 1; min-width: 0; height: 18px; position: relative; background: #2a2d31; border-radius: 3px; overflow: hidden; display: flex; gap: 2px; }
+.r2 .bar > i { display: block; }
+.r2 .bar.hold > i { position: absolute; inset: 0 auto 0 0; background: #c9821f; }
+.r2 .bar.steps > i { flex: 1; background: #3a3e43; position: relative; }
+.r2 .bar.steps > i.full { background: #c9821f; }
+.r2 .bar.steps > i.part { background: linear-gradient(90deg, #8a5a17 calc(var(--k) * 100%), #3a3e43 0); }
+.r2 .bar span { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 5px; font: 700 10.5px/1 var(--display); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px #000; }
+.r2 .st { display: inline-flex; gap: 1px; flex: none; }
+.r2 .st b { font-size: 12px; line-height: 1; color: #6a6e73; }
+.r2 .st b.hold { color: transparent; -webkit-text-stroke: 1px var(--gold); }
+.r2 .st b.lost { color: #6a6e73; text-decoration: line-through; text-decoration-color: var(--bad); text-decoration-thickness: 2px; }
+.r2 .st b.time { font: 800 10px/1 var(--display); color: #fff; background: #2a2d31; border-radius: 3px; padding: 2px 3px; }
+.r2 .mb { width: 18px; height: 18px; border-radius: 50%; background: #2a2d31; color: #fff; font-size: 11px; display: grid; place-items: center; flex: none; }
+.r2-vit { display: flex; gap: 6px; align-items: center; font: 800 10.5px/1 var(--display); color: #fff; flex-wrap: wrap; }
+.r2-vit > span { display: inline-flex; gap: 3px; align-items: center; }
+.r2-vit .coin { width: 9px; height: 9px; }
+.r2-vit em { width: 34px; height: 6px; background: #2a2d31; position: relative; display: inline-block; border-radius: 1px; overflow: hidden; }
+.r2-vit em i { position: absolute; inset: 0 auto 0 0; background: #c9821f; }
+.r2-vit em.red i { background: var(--bad); }
+.r2-vit em s { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; opacity: .8; }
+.walk { font-size: 14px; color: var(--muted); line-height: 1.5; }
+.walk summary { cursor: pointer; color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 16px; }
+.walk summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.walk ol, .walk ul { padding-left: 20px; margin: 8px 0 0; display: grid; gap: 6px; }
+.walk b { color: var(--ink); }
+
+@media (prefers-reduced-motion: no-preference) { .star.on { animation: pop .6s ease-out; } @keyframes pop { 40% { transform: scale(1.4); } } }
+</style>
+
+<div class="intro">
+  <h1>Header options for the play screen</h1>
+  <p>Each frame is the top 330 px of a 360 px-wide phone running Level 1, First Light. The number under each frame is the header's real height, measured in this page, and how much map it gives back compared with today.</p>
+  <p>Today the main goal appears twice (as the title and again as the first star chip), the three star chips wrap onto two lines, and Settings, Levels and Retry take three full-size buttons.</p>
+</div>
+
+<div class="grid">
+
+  <section class="opt a" data-base>
+    <h2>Today <span class="tag">for reference</span></h2>
+    <div class="phone"><header class="hud">
+      <div class="top">
+        <div class="g"><div class="lbl">Level 1 · First Light</div><div class="goal">Keep heat above 70% for 1:25</div></div>
+        <button class="btn sq" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M5 19l3-3M16 8l3-3" stroke="currentColor" stroke-width="2.4"/></svg></button>
+        <button class="btn">Levels</button><button class="btn">Retry</button>
+      </div>
+      <div class="objs"><span class="obj">Keep heat above 70% for 1:25</span><span class="obj">The reactor never runs dry</span><span class="obj">Heat never below 35%</span></div>
+      <div class="row"><span class="chip"><span class="coin"></span>0</span><span class="chip">Heat 10/20 <span class="track"><i></i><s></s></span></span></div>
+    </header><div class="world"><div class="reactor"></div></div></div>
+    <div class="meas"></div>
+    <p>Four rows: level name, goal, star chips (two lines on a phone), resources.</p>
+  </section>
+
+  <section class="opt b">
+    <h2>A · One strip <span class="tag">smallest</span></h2>
+    <div class="phone"><header class="hud">
+      <div class="row">
+        <span class="goal">Heat above 70% · 0:00 / 1:25</span>
+        <span class="stars" aria-label="Stars: 0 of 3"><span class="star">★</span><span class="star">★</span><span class="star">★</span></span>
+        <button class="btn sq" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.6"/></svg></button>
+      </div>
+      <div class="row"><span class="chip"><span class="coin"></span>0</span><span class="chip">Heat 10/20 <span class="track"><i></i><s></s></span></span></div>
+    </header><div class="world"><div class="reactor"></div></div></div>
+    <div class="meas"></div>
+    <p>The goal carries its own progress. The three star objectives become three star icons: tap them to see the list, and each fills gold as it is earned (a red slash when one is lost). Settings, Levels and Retry move into one menu button. The level name stays on the intro card.</p>
+  </section>
+
+  <section class="opt c">
+    <h2>B · Goal with a bar <span class="tag">clearest</span></h2>
+    <div class="phone"><header class="hud">
+      <div class="row">
+        <div class="goalwrap"><span class="goal">Keep heat above 70% for 1:25</span><div class="goalbar"><i></i></div></div>
+        <button class="btn sq" aria-label="Retry"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2-5" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M4 3v5h5" fill="none" stroke="currentColor" stroke-width="2.6"/></svg></button>
+        <button class="btn sq" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.6"/></svg></button>
+      </div>
+      <div class="row"><span class="chip"><span class="coin"></span>0</span><span class="chip">Heat 10/20 <span class="track"><i></i><s></s></span></span><span style="flex:1"></span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+    </header><div class="world"><div class="reactor"></div></div></div>
+    <div class="meas"></div>
+    <p>Same rows as A, but the goal keeps its full wording with a thin progress bar under it, and Retry keeps its own button since it is the one players reach for mid-level. Stars sit at the right end of the resource row.</p>
+  </section>
+
+  <section class="opt d">
+    <h2>C · Floating <span class="tag">most map</span></h2>
+    <div class="phone">
+      <div class="world"><div class="reactor"></div></div>
+      <div class="float card">
+        <div class="row"><span class="goal" style="flex:1">Heat above 70% for 1:25</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+        <div class="goalbar"><i></i></div>
+      </div>
+      <button class="float btn sq menu" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.6"/></svg></button>
+      <div class="float res"><span class="chip"><span class="coin"></span>0</span><span class="chip">Heat 10/20 <span class="track"><i></i><s></s></span></span></div>
+    </div>
+    <div class="meas"></div>
+    <p>No header bar at all: the map runs to the top of the screen and small translucent plates sit over it. Gives back the most ground, but the plates cover the top edge of the map, and the camera would need to aim slightly lower so the hero is never hidden behind them.</p>
+  </section>
+</div>
+
+<div class="intro" style="margin-top:30px">
+  <h1 style="font-size:24px">What moves where</h1>
+  <p><b style="color:var(--ink)">Menu button</b> (A, B, C): opens a small sheet with Retry, Levels and Settings, plus the full star list and the level name. <b style="color:var(--ink)">Stars</b>: tapping the three star icons opens the same list. <b style="color:var(--ink)">Level name</b>: shown on the intro card and in the menu, not during play.</p>
+  <div class="sheet">Menu sheet: <button class="btn">Retry</button><button class="btn">Levels</button><button class="btn">Settings</button></div>
+</div>
+
+<div class="intro" style="margin-top:44px">
+  <h1>Starting fresh</h1>
+  <p>These ignore the current plated look and start from one question: what does the player need to know right now, and where are their eyes? On Level 1 the answer is the reactor's heat, how close it is to 70%, and how long it must stay there. Coins and stars matter less from moment to moment.</p>
+</div>
+
+<div class="grid fresh">
+
+  <section class="opt">
+    <h2>D · Gauges in the world <span class="tag">no header</span></h2>
+    <div class="phone"><div class="world plain">
+      <div class="fx-menu" aria-label="Menu">≡</div>
+      <div class="fx-reactor">
+        <svg viewBox="0 0 120 120" class="ring" aria-hidden="true">
+          <circle cx="60" cy="60" r="50" class="ring-bg"/>
+          <circle cx="60" cy="60" r="50" class="ring-fill" pathLength="100" stroke-dasharray="50 100"/>
+          <line x1="60" y1="4" x2="60" y2="18" class="ring-tick goal" transform="rotate(252 60 60)"/>
+          <line x1="60" y1="4" x2="60" y2="18" class="ring-tick floor" transform="rotate(126 60 60)"/>
+        </svg>
+        <div class="core"></div>
+        <div class="fx-num">50%<small>need 70%</small></div>
+      </div>
+      <div class="fx-hero"><span class="fx-coins"><span class="coin"></span>12</span></div>
+    </div></div>
+    <div class="meas fixed">Header: 0 px · <b>all of it back</b></div>
+    <p>Heat is drawn as a ring around the reactor itself, with a mark at 70% (the goal) and at 35% (the star floor). The 1:25 clock appears inside the ring once heat crosses 70%. Coins ride above the hero, since you only care about them when you are carrying or spending. The information sits where you are already looking.</p>
+  </section>
+
+  <section class="opt">
+    <h2>E · Progress rail <span class="tag">6 px</span></h2>
+    <div class="phone"><div class="rail" aria-label="Goal progress">
+        <i style="width:22%"></i>
+        <span class="rail-star" style="left:33%" title="Reactor never runs dry">★</span>
+        <span class="rail-star" style="left:66%" title="Heat never below 35%">★</span>
+        <span class="rail-star end" style="left:100%" title="Goal">★</span>
+      </div>
+      <div class="world plain">
+        <div class="fx-line">Heat 50% · <b>feed the reactor to 70%</b> to start the clock</div>
+        <div class="fx-menu" aria-label="Menu">≡</div>
+        <div class="reactor"></div>
+      </div>
+    </div>
+    <div class="meas" id="railMeas"></div>
+    <p>The whole goal is one thin bar along the top edge of the screen that fills as the level progresses, with stars sitting on it where they are earned. Under it, one sentence says what to do next. Everything else waits in the menu.</p>
+  </section>
+
+  <section class="opt">
+    <h2>E, revised · Rail that changes by goal <span class="tag">after the walkthrough below</span></h2>
+    <div class="states e2">
+      <figure><div class="phone mini"><div class="r2">
+          <div class="r2-top"><div class="bar hold"><i style="width:48%"></i><span>Heat ≥ 70% · 0:41 / 1:25</span></div><span class="st"><b class="hold">★</b><b class="hold">★</b><b>☆</b></span><span class="mb">≡</span></div>
+          <div class="r2-vit"><span><span class="coin"></span>12</span><span class="v">Heat <em><i style="width:76%"></i><s style="left:35%"></s></em></span></div>
+        </div><div class="world plain"><div class="reactor"></div></div></div>
+        <figcaption>L1 hold goal: fills while heat holds, snaps back if it drops</figcaption></figure>
+      <figure><div class="phone mini"><div class="r2">
+          <div class="r2-top"><div class="bar steps"><i class="full"></i><i class="part" style="--k:.55"></i><i></i><span>Reactor Lv 2/3 · 66/120 for Lv 3</span></div><span class="st"><b class="time">2:01</b><b class="hold">★</b></span><span class="mb">≡</span></div>
+          <div class="r2-vit"><span><span class="coin"></span>66</span><span class="v">Heat <em><i style="width:58%"></i><s style="left:50%"></s></em></span></div>
+        </div><div class="world plain"><div class="reactor"></div></div></div>
+        <figcaption>L11 upgrade goal: one segment per level, the open one fills with credits saved</figcaption></figure>
+      <figure><div class="phone mini"><div class="r2">
+          <div class="r2-top"><div class="bar steps waves"><i class="full"></i><i class="full"></i><i class="part" style="--k:.3"></i><i></i><i></i><span>Wave 3 of 5 · next in 0:18</span></div><span class="st"><b class="hold">★</b><b class="lost">★</b></span><span class="mb">≡</span></div>
+          <div class="r2-vit"><span><span class="coin"></span>40</span><span class="v">Heat <em><i style="width:64%"></i></em></span><span class="v">Walls <em class="red"><i style="width:72%"></i><s style="left:80%"></s></em></span></div>
+        </div><div class="world plain"><div class="reactor"></div></div></div>
+        <figcaption>L5 defend: wave segments, wall health joins the vitals, the 80% star is already lost</figcaption></figure>
+    </div>
+    <div class="meas" id="r2Meas"></div>
+    <p>Two short rows instead of one rail. Top: the goal bar, drawn to suit the goal, with its words and numbers inside it, then the stars, then the menu. Bottom: the things that can lose the level or that you spend, which never leave the screen.</p>
+    <details class="walk" open>
+      <summary>Why the original E fails, level by level</summary>
+      <ol>
+        <li><b>The stars don't belong on the goal bar.</b> Placing stars along the rail assumes they unlock as the goal fills. In the real levels they are separate things. "Beat 2:38" (L3, L4, L8 and most others) is a race against the clock. "Never runs dry" or "no angry customers" (L1, L8, L13) can only be lost, never earned midway. "20-sale streak" (L3, L40) is a counter of its own. A star drawn at 33% of the goal bar would point at nothing.</li>
+        <li><b>Heat vanishes.</b> Every level can be lost by the reactor running dry, but the rail only shows the main goal. On L1 the sentence mentions heat because heat is the goal. On L18 (earn 237 credits) the sentence would talk about credits, and the player would have no idea the reactor is draining until the frost hits. The same goes for wall health on defend levels (L5, L37 fail on it).</li>
+        <li><b>Coins vanish.</b> Nearly every level is about buying pads. Without a visible balance the player can't tell whether to keep gathering or go and spend.</li>
+        <li><b>A plain fill bar misreads most goals.</b> It works for counts (L4: 12 of 23 meals, L17: hunt 27) and for survive timers (L32). It fails for:
+          <ul>
+            <li><b>Hold goals</b> (L1 heat for 1:25, L25 automate 36 s, L31 two machines running 15 s, L35 80-sale streak). Progress resets when the condition breaks, so the bar would silently jump back to zero. It also sits empty for the whole first minute of L1 while heat climbs to 70%, telling the player nothing.</li>
+            <li><b>Few-step goals</b> (L11, L20 reactor to level 3; L10 turret level 3; L40 unlock 2; L16 clear 1 zone; L42 build the landmark; L15 kill 1 boss). The bar moves in two or three big jumps and sits still in between, while the useful information is how close you are to affording the next step.</li>
+            <li><b>Waves</b> (L5, L37). Steps again, and the thing to watch between waves is the countdown.</li>
+          </ul></li>
+        <li><b>6 px at the very top edge is too thin.</b> On an iPhone it sits beside the Dynamic Island and status bar, it can't hold a label, and it's too thin to tap for details.</li>
+        <li><b>The sentence is often empty.</b> Guide instructions only show on levels 1–5, or when you seem stuck. After that the line would be blank or would repeat the goal.</li>
+      </ol>
+    </details>
+    <details class="walk">
+      <summary>How the revised bar draws each kind of goal</summary>
+      <ul>
+        <li><b>Counts</b> (earn, produce, sell, rescue, hunt, haul, hire, admit, population, meals, chains, orders, premium guests): a fill with "12/23 meals" inside it, plus a tick per unit when the target is 10 or less (rescue 4).</li>
+        <li><b>Holds</b> (heat hold, automate, machines running, survive, earn within a time, streak): the bar names the condition and fills while it holds. When it breaks, the bar flashes and drains back, so the reset is visible instead of silent. Before the condition is first met, the bar shows how far off it is ("Heat 50% → 70%").</li>
+        <li><b>Steps</b> (reactor, machine or turret levels, unlocks, zones, landmark, boss, waves): one segment per step. The open segment fills with credits saved toward the next purchase, with boss health, or with the countdown to the next wave.</li>
+        <li><b>Stars</b> sit beside the bar with a state each: open (☆), holding (an outline that can still be lost), earned (gold ★), lost (struck through). The time star shows its countdown in place of the icon.</li>
+        <li><b>Vitals</b> under the bar: coins always, heat always, wall health on defend levels, each with its star floor marked. They pulse red when near a loss. This row is where F's "quiet" idea could still apply to anything else.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="opt">
+    <h2>F · Quiet HUD <span class="tag">shows only what changed</span></h2>
+    <div class="states">
+      <figure><div class="phone mini"><div class="world plain">
+        <div class="fx-pill">Heat 50% → 70%</div><div class="fx-menu" aria-label="Menu">≡</div><div class="reactor"></div>
+      </div></div><figcaption>Calm: one pill</figcaption></figure>
+      <figure><div class="phone mini"><div class="world plain frosty">
+        <div class="fx-pill bad">Heat 38% · floor is 35%</div><div class="fx-menu" aria-label="Menu">≡</div><div class="reactor"></div>
+      </div></div><figcaption>At risk: red pill, frost on the edges</figcaption></figure>
+      <figure><div class="phone mini"><div class="world plain">
+        <div class="fx-pill">Heat 72% · 0:41 left</div><div class="fx-toast">★ Reactor never ran dry</div><div class="fx-menu" aria-label="Menu">≡</div><div class="reactor"></div>
+      </div></div><figcaption>Star earned: a toast, then gone</figcaption></figure>
+    </div>
+    <p>Nothing stays on screen that isn't changing or at risk. A coin count slides in when you pick some up or step on a pad and fades after a few seconds. When something goes wrong, the edges of the screen frost over, so you feel the danger before you read it.</p>
+  </section>
+
+  <section class="opt">
+    <h2>G · One live sentence <span class="tag">plain words</span></h2>
+    <div class="phone"><div class="sentence">
+        <span class="fx-menu inline" aria-label="Menu">≡</span>
+        <p>Heat is <b class="warm">50%</b>. Get it to <b>70%</b> and hold it for <b>1:25</b>.</p>
+      </div>
+      <div class="world plain"><div class="reactor"></div></div>
+    </div>
+    <div class="meas"></div>
+    <p>A single line written for this moment and rewritten as things change: "Hold it: 0:41 left", "Heat is falling, feed the reactor". It reads like a teammate talking, and it can absorb the guide arrow's instruction too, so there is one place to look for what to do.</p>
+  </section>
+</div>
+
+<div class="intro" style="margin-top:30px">
+  <h1 style="font-size:24px">Mixing them</h1>
+  <p>These combine well. D's ring on the reactor and G's sentence together would cover Level 1 with no header at all, and F's quiet rule (show it only when it changes) can apply to any of A–G. Defend levels would put the wall's health on the walls and wave timing in the sentence the same way.</p>
+</div>
+
+<script>
+const base = document.querySelector("[data-base] .hud").offsetHeight;
+const rail = document.querySelector(".rail");
+document.getElementById("railMeas").innerHTML = `Header: ${rail.offsetHeight} px rail · <b>${base - rail.offsetHeight} px more map</b>`;
+// the mini frames are drawn at about 58% of a phone's width, so scale their header back up to compare
+const r2 = document.querySelector(".r2");
+const r2h = Math.round(r2.offsetHeight * 360 / r2.closest(".phone").offsetWidth);
+document.getElementById("r2Meas").innerHTML = `Header: about ${r2h} px at phone size · <b>${base - r2h} px more map (−${Math.round(((base - r2h) / base) * 100)}%)</b>`;
+const sent = document.querySelector(".sentence");
+const sm = sent && sent.closest(".opt").querySelector(".meas");
+if (sm) sm.innerHTML = `Header: ${sent.offsetHeight} px · <b>${base - sent.offsetHeight} px more map (−${Math.round(((base - sent.offsetHeight) / base) * 100)}%)</b>`;
+for (const opt of document.querySelectorAll(".grid:not(.fresh) .opt")) {
+  const hud = opt.querySelector(".hud");
+  const h = hud ? hud.offsetHeight : 0;
+  const m = opt.querySelector(".meas");
+  if (opt.hasAttribute("data-base")) { m.innerHTML = `Header: ${h} px`; continue; }
+  const saved = base - h;
+  m.innerHTML = hud
+    ? `Header: ${h} px · <b>${saved} px more map (−${Math.round((saved / base) * 100)}%)</b>`
+    : `Header: 0 px · <b>${base} px more map (−100%)</b>, plates float over the map`;
+}
+</script>

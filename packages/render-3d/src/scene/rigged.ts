@@ -1,4 +1,4 @@
-import { AnimationClip, AnimationMixer, Box3, Euler, Matrix4, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack, type AnimationAction, type Bone, type BufferGeometry, type Mesh, type Object3D, type SkinnedMesh } from "three";
+import { AnimationClip, AnimationMixer, Box3, Euler, Matrix4, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack, type AnimationAction, type Bone, type BufferGeometry, type Material, type Mesh, type Object3D, type SkinnedMesh } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { meshyCharacters, meshyGeometry, meshyLoaded, meshyRig, meshyScene, type MeshyEntry, type MeshyHeld } from "../assets/meshy.js";
 
@@ -15,6 +15,10 @@ import { meshyCharacters, meshyGeometry, meshyLoaded, meshyRig, meshyScene, type
 // handle from the left hand through the right), then ride the right hand in every clip. Files
 // with no clips at all (the many-legged creatures) walk by code: each leg swings and lifts in an
 // alternating gait.
+//
+// Two still states replace the code-built poses: frozen (every colour mapped onto an ice-blue
+// ramp by brightness, the body held in its idle pose, a short shiver every few seconds) and lying
+// (tipped onto its back on the med bay bed). Neither needs another file or clip.
 
 /** What the renderer knows about a character this frame; the clip is picked from it. */
 export interface RigState {
@@ -30,6 +34,10 @@ export interface RigState {
   act?: string | undefined;
   /** Carrying goods (a `carry` clip, if the file has one, replaces the walk). */
   carry?: boolean;
+  /** Frozen solid: ice-blue, held still, shivers now and then. */
+  frozen?: boolean;
+  /** Lying on its back (the med bay), held still. */
+  lying?: boolean;
 }
 
 interface Prop { obj: Object3D; when?: string[] }
@@ -54,11 +62,36 @@ interface Inst {
   altLast: number;
   /** Props still loading when this copy was made: it is rebuilt once they land. */
   missing: string[];
+  /** Drawn in ice (materials swapped); held still in a pose (frozen or lying). */
+  ice: boolean;
+  still: boolean;
+  /** Seconds into the shiver cycle this copy starts at, so a frozen crowd does not shiver in step. */
+  beat: number;
 }
 
 interface Leg { bone: Bone; rest: Quaternion; parent: Quaternion; out: Vector3; offset: number }
 
 const FADE = 0.25;
+/** Frozen shiver: one burst of SHIVER_LEN seconds every SHIVER_EVERY, sideways by SHIVER_AMP art metres. */
+const SHIVER_EVERY = 10, SHIVER_LEN = 0.5, SHIVER_AMP = 0.035;
+/** Lying: the body rests this high (art metres), on the bed rather than in the floor. */
+const BED_LIFT = 0.12;
+
+/** Ice copy of a material: its colours (texture included) remapped by brightness onto a dark-to-pale blue ramp. */
+const iceMats = new WeakMap<Material, Material>();
+function iceOf(src: Material): Material {
+  let m = iceMats.get(src);
+  if (m) return m;
+  m = src.clone();
+  m.onBeforeCompile = (sh) => {
+    sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", `#include <map_fragment>
+      float iceL = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+      diffuseColor.rgb = mix(vec3(0.10, 0.24, 0.48), vec3(0.80, 0.93, 1.0), smoothstep(0.0, 0.7, iceL));`);
+  };
+  m.customProgramCacheKey = () => "ice";
+  iceMats.set(src, m);
+  return m;
+}
 const d2r = Math.PI / 180;
 const UP = new Vector3(0, 1, 0), FWD = new Vector3(0, 0, 1);
 const tmpA = new Vector3(), tmpB = new Vector3(), tmpC = new Vector3(), tmpQ = new Quaternion(), tmpQ2 = new Quaternion(), tmpQ3 = new Quaternion();
@@ -110,6 +143,7 @@ const boneOf = (root: Object3D, name: string): Bone | undefined =>
 
 export class Rigged {
   private pool = new Map<string, Inst>();
+  private clock = 0;
 
   constructor(private readonly parent: Object3D) {}
 
@@ -132,6 +166,9 @@ export class Rigged {
     if (inst && ((inst.missing.length && inst.missing.every(meshyLoaded)) || inst.id !== id)) { this.parent.remove(inst.root); inst.mixer.stopAllAction(); inst = undefined; }
     if (!inst) {
       inst = this.make(id, e);
+      let hsh = 0;
+      for (let k = 0; k < key.length; k++) hsh = (hsh * 31 + key.charCodeAt(k)) % 1000;
+      inst.beat = (hsh / 1000) * SHIVER_EVERY;
       this.pool.set(key, inst);
     }
     inst.seen = true;
@@ -140,8 +177,28 @@ export class Rigged {
     // art metres per model unit: by body length for long, low creatures (the hoppers), else by height
     const h = e.length ? e.length / ((b.scene.userData["length"] as number) || 1) : (e.height ?? 1.1) / ((b.scene.userData["height"] as number) || 1.7);
     inst.root.position.set(x, 0, z);
-    inst.root.rotation.y = yaw;
+    inst.root.rotation.set(0, yaw, 0, "YXZ");
     inst.root.scale.setScalar(scale * h);
+    const frozen = !!s.frozen, lying = !!s.lying && !frozen;
+    if (frozen !== inst.ice) this.setIce(inst, frozen);
+    if (frozen || lying) {
+      this.hold(inst, e);
+      if (lying) {
+        // on its back, face up
+        inst.root.rotation.x = -Math.PI / 2;
+        inst.root.position.y = BED_LIFT * scale;
+      } else {
+        // a burst of shivering every SHIVER_EVERY seconds, side to side, dying away
+        const t = (this.clock + inst.beat) % SHIVER_EVERY;
+        if (t < SHIVER_LEN) {
+          const k = Math.sin(t * 90) * SHIVER_AMP * scale * (1 - t / SHIVER_LEN);
+          inst.root.position.x += Math.cos(yaw) * k;
+          inst.root.position.z -= Math.sin(yaw) * k;
+        }
+      }
+      return;
+    }
+    if (inst.still) { inst.still = false; inst.mixer.timeScale = 1; }
     if (inst.legs) {
       inst.root.userData["speed"] = s.moving ? Math.max(0.35, s.speed ?? 1) : 0;
       return;
@@ -167,6 +224,7 @@ export class Rigged {
 
   /** Advance every visible character's clips; hide the ones not placed this frame. */
   end(dt: number): void {
+    this.clock += dt;
     for (const [k, i] of this.pool) {
       if (!i.seen) {
         // gone for good after a while; a hidden copy costs nothing to draw
@@ -177,6 +235,7 @@ export class Rigged {
         continue;
       }
       i.root.userData["idle"] = 0;
+      if (i.still) continue;
       if (i.legs) { this.gait(i, dt); continue; }
       i.mixer.update(dt);
       if (i.grip) this.reach(i);
@@ -240,7 +299,7 @@ export class Rigged {
       if (!idles.has(e.file)) idles.set(e.file, idleFrom(walk));
       actions.set("__idle", mixer.clipAction(idles.get(e.file)!));
     }
-    const inst: Inst = { id, root, mixer, actions, current: "", seen: true, grip: null, arms: [], props: [], shield: null, legs: null, phase: 0, altLast: 0, missing: [] };
+    const inst: Inst = { id, root, mixer, actions, current: "", seen: true, grip: null, arms: [], props: [], shield: null, legs: null, phase: 0, altLast: 0, missing: [], ice: false, still: false, beat: 0 };
     root.updateMatrixWorld(true);
     if (!rig.clips.length) inst.legs = legsOf(root, height);
     if (e.shieldArm) inst.shield = this.shieldPose(root);
@@ -370,6 +429,33 @@ export class Rigged {
       l.bone.quaternion.copy(tmpQ3);
     }
     if (!still) i.root.position.y += Math.abs(Math.sin(i.phase)) * 0.6;
+  }
+
+  /** Swap every mesh of this copy to its ice material, or back. */
+  private setIce(i: Inst, on: boolean): void {
+    i.ice = on;
+    i.root.traverse((o) => {
+      const m = o as Mesh;
+      if (!m.isMesh) return;
+      if (on) { m.userData["warm"] = m.material; m.material = Array.isArray(m.material) ? m.material.map(iceOf) : iceOf(m.material); }
+      else if (m.userData["warm"]) { m.material = m.userData["warm"] as Material; delete m.userData["warm"]; }
+    });
+  }
+
+  /** Hold the idle pose: snapped in at once (a fade would stall half-way with the clock stopped), props put away. */
+  private hold(i: Inst, e: MeshyEntry): void {
+    if (i.still) return;
+    i.still = true;
+    for (const p of i.props) p.obj.visible = false;
+    if (i.legs) return;
+    const name = e.clips?.["idle"] ?? "__idle";
+    i.mixer.stopAllAction();
+    i.mixer.timeScale = 1;
+    i.current = "";
+    const a = i.actions.get(name);
+    if (a) { a.reset().play(); i.current = name; }
+    i.mixer.update(0);
+    i.mixer.timeScale = 0;
   }
 
   private play(i: Inst, name: string): void {

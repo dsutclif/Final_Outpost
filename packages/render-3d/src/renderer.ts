@@ -1920,8 +1920,8 @@ export class Renderer3D implements Renderer {
       if (dead) { an.ice = 1; an.speed = 0; }
       if (r.status === "injured") { an.speed *= 0.6; an.hit = 0.2 + 0.2 * Math.sin(this.t * 6); }
       if (r.status === "healing") an.down = 1;
-      // rigged once loaded, except the frozen and those lying in the med bay (the code figure poses those)
-      const rrig = dead || r.status === "healing" ? undefined : this.rigged?.entryFor(id);
+      // rigged once loaded; the frozen turn to ice and the med bay patients lie on their backs (rigged.ts)
+      const rrig = this.rigged?.entryFor(id);
       const moving = sp > 0.05;
       // an operator standing at a running machine works it (its `work` clips, facing the machine)
       if (!moving && r.status === "ok" && rrig?.clips?.["work"]) {
@@ -1931,7 +1931,7 @@ export class Renderer3D implements Renderer {
       const ryaw = this.faceAct(key, pos, ry, moving);
       const carrying = !!r.carry && r.n > 0;
       if (rrig) {
-        this.rigged!.add(key, id, rrig, { moving, hurried: false, cheer: an.cheer > 0, act: this.actOf(key)?.act, carry: carrying, speed: sp }, pos.x, pos.y, ryaw, ART_M * rl.scale * this.devCharScale / 0.9);
+        this.rigged!.add(key, id, rrig, { moving: moving && !dead, hurried: false, cheer: an.cheer > 0, act: this.actOf(key)?.act, carry: carrying, speed: sp, frozen: dead, lying: r.status === "healing" }, pos.x, pos.y, ryaw, ART_M * rl.scale * this.devCharScale / 0.9);
         this.blobs!.add(pos.x, pos.y, 10 * rl.scale);
       } else this.addCharacter(rl, an, pos, ry, t.frost);
       // a carry clip holds the goods in front of the chest; everyone else wears them on the back
