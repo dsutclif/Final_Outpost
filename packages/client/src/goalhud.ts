@@ -290,7 +290,7 @@ export class GoalHud {
       b.setAttribute("aria-label", t.label);
       b.hidden = hidden && i !== next;
       b.className = `gdisc ${t.state}${i === next ? " next" : ""}${b.classList.contains("alert") ? " alert" : ""}`;
-      b.innerHTML = i === next && hidden ? "" : goalIcon(t) + (t.count && t.state === "open" ? `<span class="gnum">${t.count}</span>` : "");
+      b.innerHTML = i === next && hidden ? "" : goalIcon(t, 50) + (t.count && t.state === "open" ? `<span class="gnum">${t.count}</span>` : "");
       // a goal just won or lost: a short flash
       if (was && was !== "hidden" && JSON.parse(was)[0] !== t.state) { b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
     });
