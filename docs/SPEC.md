@@ -440,7 +440,7 @@ Camera: fixed tilted three-quarter view (about 50 degrees), slight perspective, 
 Models: low-poly GLB models in the chosen shading model; instanced nodes, scatter and items; one shared character skeleton for player, workers, customers and raiders, with each skin supplying its own character bodies (see Asset pipeline and art direction).
 Lighting: the core is a real light source whose radius matches the safe radius; soft blob shadows; night and hazard events as lighting and particle presets.
 Juice (the ad feel): items arc onto the back stack and wobble; currency flies to the HUD; buildings rise with a squash-and-stretch pop; recruit containers show the recruit inside and visibly open on release; the lasso line sags and swings (verlet rope); hit flashes and knockback on enemies.
-Performance budget: under 60k triangles on screen, under 100 draw calls, texture atlas per skin, 30 fps floor on a mid-range phone.
+Performance budget: under 600k triangles on screen (was 60k; see DECISIONS 13), under 100 draw calls, texture atlas per skin, 30 fps floor on a mid-range phone.
 Renderer contract (both phases)
 Call
 Purpose
@@ -643,7 +643,7 @@ Palette tokens per skin: ground, structure, accent, interactive highlight, dange
 Readability: every id rendered about 40 px tall from the game camera must stay recognizable, and roles must have distinct silhouettes.
 Golden screenshots: CI renders every id in every skin and visual state from the game camera; a diff above threshold needs approval, alongside the existing missing-key check.
 Performance tiers and asset lab
-The 60k-triangle scene budget splits by class (table above) and scales by device tier.
+The scene budget (600k triangles, DECISIONS 13) scales by device tier; the per-class table above applies to the code-built fallback models.
 Tier
 Changes
 Low

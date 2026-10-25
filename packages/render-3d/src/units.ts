@@ -88,7 +88,8 @@ export const TIERS: Readonly<Record<QualityTier, TierSettings>> = {
 
 /** Scene budgets (docs/SPEC.md "Performance budget"). */
 export const MAX_DRAW_CALLS = 100;
-export const MAX_TRIANGLES = 60_000;
+/** iPhone 17 target (decision 13): about twice the busiest golden scene (314k), so a runaway build still shows. */
+export const MAX_TRIANGLES = 600_000;
 
 /** How far past each map edge the camera may travel, world units, so ground shows around the play field. */
 export const VIEW_MARGIN = 60;

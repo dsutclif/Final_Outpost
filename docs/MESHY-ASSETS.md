@@ -98,8 +98,7 @@ rebuilds one. No Blender: the bake runs in Node (meshoptimizer, watlas, three-me
   normals with a 40° crease (curves shade round, hard edges stay hard). Meshy's non-manifold
   joins stall a strict pass near 70k, so it runs permissive. Level-1 core (1M source triangles):
   1 cm → 4.8k, **5 mm → 9.2k (chosen)**, 2.5 mm → 18k (no visible gain over 5 mm at the game
-  angle); about 480 KB. **Every model now uses 5 mm** (the smelter keeps its old 3,000-triangle
-  build until `Smelter.glb` is back in `3D Models/`). Rigged characters too: `error` is scaled
+  angle); about 480 KB. **Every model now uses 5 mm** (smelter 9.2k, from `Smelter-re-download.glb`). Rigged characters too: `error` is scaled
   from art metres to the bind pose by `height` (or `length`, the longest side), and each vertex
   smooth() splits keeps its source vertex's skin weights (four strongest joints). Results:
   characters 2.0-3.8k (boss 7.1k) from ~10k remeshes; buildings 3.4-10.6k; cores 9.2k / 20.7k /
@@ -136,7 +135,11 @@ rebuilds one. No Blender: the bake runs in Node (meshoptimizer, watlas, three-me
   **After the 5 mm rebuild (2026-10-24)**, same view: 314k triangles and 58 draw calls, 60 fps on
   the desktop harness. Most of it: 13 building bodies (~113k), 14 rigged characters (~41k), the
   four wreck / scrap-field decor pieces (~131k with two copies each), six wall sections (18k). The
-  60k cap (`MAX_TRIANGLES`) no longer describes the Meshy scene; the iPhone 17 is the target.
+  60k cap is gone: `MAX_TRIANGLES` is now 600k (DECISIONS 13), a ceiling for runaway builds.
+- **Shared files.** Entries may share a `file` (decor reused as a per-level node) only if their
+  source and fit match; the build checks that, builds it once, and adds an outline if any of them
+  is a building. The level-3 salvage pile (2.8 m) has its own `node.salvage_pile.l3`, since the
+  border wreck is fitted at 3.2 m.
 
 **Adding the next batch:** drop the GLBs in `Asset workflow/3D Models/` (Gemini image in
 `Solo Mock Ups/`) and ask Claude to bring them in. Claude adds one entry per model to `meshy.json`

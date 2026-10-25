@@ -234,3 +234,10 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     levels and Play's level carry over; times, stars and tries start fresh) or start over. Nothing is
     written until the player picks. Keeping the old levels themselves was ruled out: every engine change
     would have to keep every old pack playable.
+13. **Scene budget 600k triangles; Meshy models by shape tolerance (2026-10-24).** Doug plays on an
+    iPhone 17 and download size doesn't matter, so the 60k scene cap (sized for the faceted code
+    models, never measured on a phone) is replaced by `MAX_TRIANGLES = 600_000`: about twice the
+    busiest golden scene after every Meshy model moved to a 5 mm shape tolerance with smooth normals
+    (314k triangles, 58 draw calls). It is a ceiling that catches a runaway build, not a target to
+    trim to. The per-class `TRI_BUDGET` stays for the code-built fallback models. See
+    `docs/MESHY-ASSETS.md` "Shape tolerance".

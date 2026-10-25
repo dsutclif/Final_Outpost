@@ -72,21 +72,21 @@
     }
   },
   "conv.material_processor": {
-    "hash": "537adb376d",
-    "tris": 2992,
-    "bytes": 221868,
+    "hash": "c32e01f553",
+    "tris": 9150,
+    "bytes": 547612,
     "bounds": [
-      -0.8,
-      0,
       -1,
-      0.8,
-      1.214,
-      1
+      0,
+      -0.766,
+      1,
+      1.215,
+      0.766
     ],
     "outline": {
-      "hash": "1bd00eed1d",
+      "hash": "4ef6988b4d",
       "tris": 250,
-      "bytes": 3700
+      "bytes": 3652
     }
   },
   "conv.food_processor": {
@@ -1173,5 +1173,23 @@
       0.003,
       0.004
     ]
+  },
+  "node.salvage_pile.l3": {
+    "hash": "dc822491e2",
+    "tris": 21122,
+    "bytes": 845172,
+    "bounds": [
+      -1.4,
+      0,
+      -1.223,
+      1.4,
+      1.382,
+      1.223
+    ],
+    "outline": {
+      "hash": "9a3559584e",
+      "tris": 250,
+      "bytes": 3496
+    }
   }
 }

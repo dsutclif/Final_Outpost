@@ -469,7 +469,7 @@ async function build(e: MeshyEntry): Promise<void> {
     writeFileSync(join(OUT, `${e.file}.lod.glb`), lod);
     built[e.file]!.lod = { hash: hash(lod), tris: small.idx.length / 3, bytes: lod.byteLength };
   }
-  if (!e.kind && !e.batch) {
+  if (outlined.has(e.file)) {
     const ghost = lowPoly(src, e.outlineTris ?? 250);
     const outline = await writeOutline(ghost);
     writeFileSync(join(OUT, `${e.file}.outline.glb`), outline);
@@ -478,5 +478,15 @@ async function build(e: MeshyEntry): Promise<void> {
   console.log(`${e.file}: ${src.idx.length / 3} → ${low.idx.length / 3} tris (outline ${built[e.file]!.outline?.tris ?? 0}, lod ${built[e.file]!.lod?.tris ?? 0}), ${(glb.byteLength / 1024).toFixed(0)} KB, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 }
 
-for (const e of config.models) if (!only.length || only.includes(e.file)) await build(e);
+// Entries may share a file (decor reused as a per-level node): same source and fit, so it is built
+// once, with an outline if any of them is a building (props and wall sections get none).
+const FIT = ["src", "yaw", "width", "height", "length", "offset", "error", "tris", "texture", "tint", "decal", "rough", "metal", "lod"] as const;
+const first = new Map<string, MeshyEntry>(), outlined = new Set<string>();
+for (const e of config.models) {
+  const f = first.get(e.file);
+  if (!f) first.set(e.file, e);
+  else for (const k of FIT) if (JSON.stringify(f[k]) !== JSON.stringify(e[k])) throw new Error(`${e.file}: entries sharing the file differ in ${k}; give one its own file`);
+  if (!e.kind && !e.batch) outlined.add(e.file);
+}
+for (const e of first.values()) if (!only.length || only.includes(e.file)) await build(e);
 writeFileSync(BUILT, JSON.stringify(built, null, 2) + "\n");
