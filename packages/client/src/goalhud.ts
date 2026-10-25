@@ -9,7 +9,8 @@ import { liveObjectives, manifestObjectives } from "./objectives.js";
 // right, and one floating icon per goal. Each icon is a glyph saying what the goal is about plus
 // up to three channels that always mean the same thing: an inner fill (amount), an outer ring
 // (time: amber fills while a condition holds, blue empties toward a deadline) and pips (steps).
-// A won goal turns into a gold star, a lost one goes grey and cracks. Urgent trouble frosts the
+// A count goal shows its target number beside the icon (the fill shows how far along it is).
+// A won goal turns into a gold star; a missed one goes grey with a line through it. Urgent trouble frosts the
 // screen edges while the one thing in danger pulses and shakes (the app vibrates in step).
 // Everything visual is classes; style.css colours them from the skin.
 
@@ -31,6 +32,8 @@ export interface GoalToken {
   pie?: number;
   /** Near the end of a deadline: the time marks turn red. */
   warn?: boolean;
+  /** Count goals: the target, drawn as a number beside the icon. */
+  count?: number;
   state: "open" | "done" | "failed";
   /** About to be missed (drives the urgent alert). */
   risk: boolean;
@@ -124,6 +127,7 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     t.pips = { n: o.target, done: Math.min(o.progress, o.target), part: 0 };
   } else {
     t.fill = o.done ? 1 : frac;
+    if (o.target > 1) t.count = o.target;
   }
   return t;
 }
@@ -216,12 +220,12 @@ export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, 
 }
 
 const STAR = '<svg class="gstar" width="46" height="46" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8l3.1 6.4 7 .9-5.1 4.9 1.3 6.9L12 17.6l-6.3 3.3 1.3-6.9-5.1-4.9 7-.9z"/><path class="hl" d="M12 4.5l2.1 4.3"/></svg>';
-const CRACK = '<svg class="gcrack" viewBox="0 0 50 50" aria-hidden="true"><path d="M30 4l-6 13 7 6-9 9 4 14"/><path d="M24 17l-8-3M31 23l9-2"/></svg>';
+const SLASH = '<svg class="gslash" viewBox="0 0 50 50" aria-hidden="true"><path d="M41 9L9 41"/></svg>';
 
-/** The icon's inner markup for its state: the meter, a gold star once won, cracked grey once lost. */
+/** The icon's inner markup for its state: the meter, a gold star once won, grey and struck through once missed. */
 export function goalIcon(t: GoalToken, size = 40): string {
   if (t.state === "done") return STAR;
-  return tokenSvg(t, size) + (t.state === "failed" ? CRACK : "");
+  return tokenSvg(t, size) + (t.state === "failed" ? SLASH : "");
 }
 
 // ------------------------------------------------------------------ DOM
@@ -270,7 +274,7 @@ export class GoalHud {
     const doc = this.el.goals.ownerDocument;
     tokens.forEach((t, i) => {
       const hidden = i >= slots;
-      const key = hidden ? "hidden" : JSON.stringify([t.state, t.fill !== undefined ? q(t.fill) : null, t.ring ? q(t.ring.k) : null, t.pie !== undefined ? q(t.pie) : null, t.pips, t.warn, t.tick, i === next]);
+      const key = hidden ? "hidden" : JSON.stringify([t.count ?? 0, t.state, t.fill !== undefined ? q(t.fill) : null, t.ring ? q(t.ring.k) : null, t.pie !== undefined ? q(t.pie) : null, t.pips, t.warn, t.tick, i === next]);
       let b = this.el.goals.children[i] as HTMLButtonElement | undefined;
       if (!b) {
         b = doc.createElement("button");
@@ -286,7 +290,7 @@ export class GoalHud {
       b.setAttribute("aria-label", t.label);
       b.hidden = hidden && i !== next;
       b.className = `gdisc ${t.state}${i === next ? " next" : ""}${b.classList.contains("alert") ? " alert" : ""}`;
-      b.innerHTML = i === next && hidden ? "" : goalIcon(t);
+      b.innerHTML = i === next && hidden ? "" : goalIcon(t) + (t.count && t.state === "open" ? `<span class="gnum">${t.count}</span>` : "");
       // a goal just won or lost: a short flash
       if (was && was !== "hidden" && JSON.parse(was)[0] !== t.state) { b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
     });

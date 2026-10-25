@@ -1118,9 +1118,11 @@ export class App {
     const idx = s.sim.state.objectives.findIndex((o) => o.id === e.id);
     this.synth.play(e.done ? "star" : "miss");
     // the level runs on for the open stars once the main goal is done (it ends on its slowest goal)
-    if (idx === 0 && e.done && liveObjectives(s.sim.state, s.manifest, this.skin).some((o, k) => k > 0 && !o.done && !o.failed)) {
+    const views = liveObjectives(s.sim.state, s.manifest, this.skin);
+    if (idx === 0 && e.done && views.some((o, k) => k > 0 && !o.done && !o.failed)) {
       this.starToast(uiText(this.skin, "goalDone"), uiText(this.skin, "goalDoneLine"));
     }
+    if (idx > 0 && e.done && views[idx]) this.starToast(uiText(this.skin, "starEarned"), views[idx]!.label);
   }
 
   private starToast(title: string, line: string): void {

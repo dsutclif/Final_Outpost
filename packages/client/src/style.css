@@ -67,7 +67,8 @@ body {
 .gdisc.sel { box-shadow: 0 0 0 2px #fff, 0 6px 14px rgba(0, 0, 0, 0.35); }
 .gdisc.next { background: rgba(18, 20, 23, 0.4); box-shadow: 0 0 0 2px var(--accent), 0 0 14px rgba(255, 154, 60, 0.6); }
 .gdisc.done { background: none; box-shadow: none; }
-.gdisc.failed { filter: grayscale(1) brightness(0.75); opacity: 0.8; }
+.gdisc.failed .gtok { filter: grayscale(1) brightness(0.75); opacity: 0.8; }
+.gnum { position: absolute; left: calc(100% - 6px); bottom: -2px; font: 800 13px/1 var(--display); color: #fff; background: rgba(18, 20, 23, 0.82); padding: 3px 6px; border-radius: 8px; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12); pointer-events: none; }
 .gdisc.flash { animation: gflash 0.7s ease-out; }
 @keyframes gflash { 0% { transform: scale(1); } 35% { transform: scale(1.3); } 100% { transform: scale(1); } }
 /* the icon: body, amount, outline, marks; ring and pips around it */
@@ -92,8 +93,8 @@ body {
 .gstar path { fill: var(--gold); stroke: #fff4c8; stroke-width: 0.8; stroke-linejoin: round; }
 .gstar .hl { fill: none; stroke: #fff; stroke-width: 1; stroke-linecap: round; opacity: 0.7; }
 .gstar { filter: drop-shadow(0 0 8px rgba(255, 200, 70, 0.75)) drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35)); }
-.gcrack { position: absolute; inset: 0; width: 100%; height: 100%; }
-.gcrack path { fill: none; stroke: #e9e6df; stroke-width: 2; stroke-linejoin: round; }
+.gslash { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gslash path { fill: none; stroke: var(--bad); stroke-width: 3.5; stroke-linecap: round; }
 /* a goal's sentence, under the icons until the next tap */
 .gbubble {
   position: absolute; z-index: 1; top: calc(env(safe-area-inset-top, 0px) + 112px); left: 14px; right: 14px; pointer-events: none;
@@ -395,7 +396,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- first-touch toast and tap-to-inspect card (never block input) ---------- */
 .ftoast {
-  position: absolute; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 112px); transform: translateX(-50%); z-index: 4; pointer-events: none;
+  position: absolute; left: 0; right: 0; margin-inline: auto; width: fit-content; top: calc(env(safe-area-inset-top, 0px) + 112px); z-index: 4; pointer-events: none;
   max-width: calc(100% - 32px); background: rgba(16, 18, 20, 0.9); color: #ebe8e1; border-radius: var(--r); padding: 6px 12px; border-left: 3px solid var(--interactive);
   display: grid; gap: 1px; text-align: center; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }

@@ -34,15 +34,17 @@ describe("goal icons", () => {
     expect(t.map((x) => x.glyph)).toEqual(["meat", "stopwatch", "pod"]);
     expect(t[1]!.pie).toBeCloseTo(1);
     expect(t[2]!.pips).toEqual({ n: 3, done: 0, part: 0 });
+    // only count goals carry a number: protein shows its target, the stopwatch and pips do not
+    expect(t.map((x) => x.count)).toEqual([31, undefined, undefined]);
   });
 
-  it("L5: waves are pips; won goals draw a star and lost ones crack", () => {
+  it("L5: waves are pips; won goals draw a star and missed ones are struck through", () => {
     const { sim, m, cp } = level(5);
     const t = goalTokens(sim.state, m, cp, skin);
     expect(t[0]!.glyph).toBe("waves");
     expect(t[0]!.pips?.n).toBeGreaterThan(1);
     expect(goalIcon({ ...t[1]!, state: "done" })).toContain("gstar");
-    expect(goalIcon({ ...t[1]!, state: "failed" })).toContain("gcrack");
+    expect(goalIcon({ ...t[1]!, state: "failed" })).toContain("gslash");
   });
 });
 

@@ -1,5 +1,6 @@
 {
   "notes": [
+    "Goal icons now show their target number beside them (the icon fills as you get there). Missed goals go grey with a line through them, and earning a star pops up a note again.",
     "A cleaner screen: the top bar is gone. A thin heat bar runs along the top, and each goal floats as an icon that turns into a star when you earn it.",
     "Each level now introduces its goals one at a time. Tap a goal icon any time to read it again, or tap the level name for the menu.",
     "When something is about to go wrong, the screen frosts over and the goal in danger pulses, with a buzz on phones that support it.",
