@@ -98,7 +98,16 @@ rebuilds one. No Blender: the bake runs in Node (meshoptimizer, watlas, three-me
   normals with a 40° crease (curves shade round, hard edges stay hard). Meshy's non-manifold
   joins stall a strict pass near 70k, so it runs permissive. Level-1 core (1M source triangles):
   1 cm → 4.8k, **5 mm → 9.2k (chosen)**, 2.5 mm → 18k (no visible gain over 5 mm at the game
-  angle); about 480 KB. Only the level-1 core uses it so far, as the trial.
+  angle); about 480 KB. **Every model now uses 5 mm** (the smelter keeps its old 3,000-triangle
+  build until `Smelter.glb` is back in `3D Models/`). Rigged characters too: `error` is scaled
+  from art metres to the bind pose by `height` (or `length`, the longest side), and each vertex
+  smooth() splits keeps its source vertex's skin weights (four strongest joints). Results:
+  characters 2.0-3.8k (boss 7.1k) from ~10k remeshes; buildings 3.4-10.6k; cores 9.2k / 20.7k /
+  29.9k; grow dome 29.4k (at the 30k ceiling); wrecks and scrap fields 11-24k; wall sections
+  3.0k (reinforced 4.8k); held props 100-2,100 (crowd tool-slot `lod` builds unchanged); items
+  40-11.6k. All GLBs: 10.8 MB → 29.7 MB. Walls repeat most: at the game angle the plain wall
+  looks the same at 2 cm (892) as at 5 mm, but the reinforced one loses its spike and rib edges,
+  so 5 mm stays everywhere for now (1 cm: 1,682 / 2,370 if walls ever need trimming).
 - **Fit.** `yaw` turns the model so its working side faces +z (the core's hopper and each
   converter's input toward the deposit side), `width` scales its widest ground side to art
   metres, and the pivot goes to the ground centre. `render-3d/test/footprints.test.ts` keeps every
@@ -124,6 +133,10 @@ rebuilds one. No Blender: the bake runs in Node (meshoptimizer, watlas, three-me
   guards built: 64k triangles and 70 draw calls (code models 57.9k, 72). Batch 2 adds about 1.6k
   of that (doors, wall tiles, prop LODs); the rest is batch 1's core (3,000 vs 1,100 code) and
   two turret bases (1,600 each), which a lower `tris` and a rebuild would bring back under 60k.
+  **After the 5 mm rebuild (2026-10-24)**, same view: 314k triangles and 58 draw calls, 60 fps on
+  the desktop harness. Most of it: 13 building bodies (~113k), 14 rigged characters (~41k), the
+  four wreck / scrap-field decor pieces (~131k with two copies each), six wall sections (18k). The
+  60k cap (`MAX_TRIANGLES`) no longer describes the Meshy scene; the iPhone 17 is the target.
 
 **Adding the next batch:** drop the GLBs in `Asset workflow/3D Models/` (Gemini image in
 `Solo Mock Ups/`) and ask Claude to bring them in. Claude adds one entry per model to `meshy.json`

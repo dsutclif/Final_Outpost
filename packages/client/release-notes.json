@@ -1,3 +1,5 @@
 {
-  "notes": ["The level 1 reactor core is now smooth and far more detailed, a trial for sharper models everywhere."]
+  "notes": [
+    "Every model is now smooth and far more detailed: buildings, characters, walls, items and scenery."
+  ]
 }

@@ -18,9 +18,9 @@
     }
   },
   "sink.core.l2": {
-    "hash": "045f7ae5b3",
-    "tris": 2932,
-    "bytes": 233244,
+    "hash": "49a77d4d09",
+    "tris": 20652,
+    "bytes": 1021724,
     "bounds": [
       -1.072,
       0,
@@ -36,9 +36,9 @@
     }
   },
   "sink.core.l3": {
-    "hash": "c83ffa82bd",
-    "tris": 2932,
-    "bytes": 263080,
+    "hash": "753957b6d4",
+    "tris": 29888,
+    "bytes": 1503580,
     "bounds": [
       -1.142,
       0,
@@ -54,9 +54,9 @@
     }
   },
   "sink.sales_point": {
-    "hash": "5cd0957663",
-    "tris": 2990,
-    "bytes": 230672,
+    "hash": "ac0cde21bd",
+    "tris": 10608,
+    "bytes": 585104,
     "bounds": [
       -1.2,
       0,
@@ -90,9 +90,9 @@
     }
   },
   "conv.food_processor": {
-    "hash": "fdadf1e04e",
-    "tris": 2996,
-    "bytes": 229384,
+    "hash": "0bfb58273f",
+    "tris": 8486,
+    "bytes": 532380,
     "bounds": [
       -1,
       0,
@@ -108,9 +108,9 @@
     }
   },
   "conv.alloy_works": {
-    "hash": "4a76ab2895",
-    "tris": 3000,
-    "bytes": 241284,
+    "hash": "23deb9ce6d",
+    "tris": 6384,
+    "bytes": 440376,
     "bounds": [
       -1,
       0,
@@ -126,9 +126,9 @@
     }
   },
   "struct.ranged_defense.base": {
-    "hash": "3a5a797006",
-    "tris": 1590,
-    "bytes": 187508,
+    "hash": "1c49ff8f9c",
+    "tris": 5064,
+    "bytes": 368100,
     "bounds": [
       -0.65,
       0,
@@ -144,9 +144,9 @@
     }
   },
   "struct.gate": {
-    "hash": "b1518507e9",
-    "tris": 650,
-    "bytes": 66160,
+    "hash": "97ea0c9044",
+    "tris": 4148,
+    "bytes": 209960,
     "bounds": [
       -1.35,
       0,
@@ -162,9 +162,9 @@
     }
   },
   "struct.gate.door": {
-    "hash": "b07791ef7c",
-    "tris": 250,
-    "bytes": 64756,
+    "hash": "032a4df209",
+    "tris": 3508,
+    "bytes": 196796,
     "bounds": [
       -0.95,
       0,
@@ -180,9 +180,9 @@
     }
   },
   "struct.housing": {
-    "hash": "b1435609e2",
-    "tris": 1272,
-    "bytes": 169216,
+    "hash": "1eac9f3ad9",
+    "tris": 7478,
+    "bytes": 450224,
     "bounds": [
       -1,
       0,
@@ -198,9 +198,9 @@
     }
   },
   "struct.medical": {
-    "hash": "025d1857b9",
-    "tris": 1380,
-    "bytes": 247300,
+    "hash": "a70aec8b63",
+    "tris": 6270,
+    "bytes": 479856,
     "bounds": [
       -0.995,
       0,
@@ -216,9 +216,9 @@
     }
   },
   "struct.depot": {
-    "hash": "cd856c5471",
-    "tris": 1398,
-    "bytes": 178480,
+    "hash": "8ab2aa957e",
+    "tris": 8490,
+    "bytes": 474656,
     "bounds": [
       -0.952,
       0,
@@ -234,9 +234,9 @@
     }
   },
   "struct.barrier": {
-    "hash": "2508f73a7c",
-    "tris": 160,
-    "bytes": 56296,
+    "hash": "1f97f658c4",
+    "tris": 3010,
+    "bytes": 160764,
     "bounds": [
       -1.461,
       0,
@@ -247,9 +247,9 @@
     ]
   },
   "struct.barrier.reinforced": {
-    "hash": "b36b98796b",
-    "tris": 218,
-    "bytes": 64728,
+    "hash": "78c534f00b",
+    "tris": 4834,
+    "bytes": 241624,
     "bounds": [
       -0.922,
       0,
@@ -260,9 +260,9 @@
     ]
   },
   "struct.ranged_defense.head1": {
-    "hash": "aad6ca0cd1",
-    "tris": 448,
-    "bytes": 48120,
+    "hash": "90021c8e6a",
+    "tris": 1478,
+    "bytes": 103604,
     "bounds": [
       -0.229,
       0,
@@ -278,9 +278,9 @@
     }
   },
   "struct.ranged_defense.head2": {
-    "hash": "a0765f0b46",
-    "tris": 578,
-    "bytes": 58392,
+    "hash": "b502944e80",
+    "tris": 4814,
+    "bytes": 253152,
     "bounds": [
       -0.326,
       0,
@@ -296,9 +296,9 @@
     }
   },
   "struct.ranged_defense.head3": {
-    "hash": "4b22d67943",
-    "tris": 600,
-    "bytes": 58024,
+    "hash": "5f2e187124",
+    "tris": 4316,
+    "bytes": 229996,
     "bounds": [
       -0.44,
       0,
@@ -314,9 +314,9 @@
     }
   },
   "prop.rifle_guard": {
-    "hash": "54ac30d01c",
-    "tris": 600,
-    "bytes": 29708,
+    "hash": "b1ddc2df60",
+    "tris": 481,
+    "bytes": 35232,
     "bounds": [
       -0.275,
       0,
@@ -332,9 +332,9 @@
     }
   },
   "prop.shield_guard": {
-    "hash": "85c0aabeaf",
-    "tris": 1000,
-    "bytes": 37644,
+    "hash": "c0759c3cbe",
+    "tris": 473,
+    "bytes": 37040,
     "bounds": [
       -0.167,
       0,
@@ -350,9 +350,9 @@
     }
   },
   "prop.pickaxe": {
-    "hash": "b2ae136e5d",
-    "tris": 599,
-    "bytes": 23124,
+    "hash": "3f0c021e33",
+    "tris": 384,
+    "bytes": 25788,
     "bounds": [
       -0.218,
       0,
@@ -368,9 +368,9 @@
     }
   },
   "prop.wrench": {
-    "hash": "fc0dc5beee",
-    "tris": 600,
-    "bytes": 24384,
+    "hash": "1af55fe3de",
+    "tris": 98,
+    "bytes": 14260,
     "bounds": [
       -0.15,
       0,
@@ -386,9 +386,9 @@
     }
   },
   "prop.rifle_raider": {
-    "hash": "9649693fd5",
-    "tris": 596,
-    "bytes": 29132,
+    "hash": "2613bee70d",
+    "tris": 423,
+    "bytes": 32576,
     "bounds": [
       -0.25,
       0,
@@ -404,9 +404,9 @@
     }
   },
   "prop.minigun": {
-    "hash": "edd51083b2",
-    "tris": 999,
-    "bytes": 45460,
+    "hash": "5a0dd7ffae",
+    "tris": 1098,
+    "bytes": 69488,
     "bounds": [
       -0.325,
       0,
@@ -422,9 +422,9 @@
     }
   },
   "prop.hover_cart": {
-    "hash": "cc9e792065",
-    "tris": 1500,
-    "bytes": 76444,
+    "hash": "e2bfa23274",
+    "tris": 2059,
+    "bytes": 127588,
     "bounds": [
       -0.5,
       0,
@@ -440,9 +440,9 @@
     }
   },
   "prop.briefcase_gold": {
-    "hash": "fee6501884",
-    "tris": 600,
-    "bytes": 30456,
+    "hash": "77344ff4a8",
+    "tris": 571,
+    "bytes": 42212,
     "bounds": [
       -0.16,
       0,
@@ -458,22 +458,22 @@
     }
   },
   "unit.customer": {
-    "hash": "0a4ea16c83",
-    "tris": 998,
-    "bytes": 621476,
+    "hash": "8c9b7dac89",
+    "tris": 2882,
+    "bytes": 882272,
     "bounds": [
-      -0.519,
-      0.004,
-      -0.299,
-      0.524,
-      1.694,
-      0.298
+      -0.528,
+      0,
+      -0.297,
+      0.529,
+      1.692,
+      0.299
     ]
   },
   "prop.rifle_ranger": {
-    "hash": "176e17af1a",
-    "tris": 492,
-    "bytes": 21912,
+    "hash": "efde3e652e",
+    "tris": 964,
+    "bytes": 54020,
     "bounds": [
       -0.3,
       0,
@@ -489,9 +489,9 @@
     }
   },
   "prop.shovel": {
-    "hash": "478642909b",
-    "tris": 384,
-    "bytes": 24160,
+    "hash": "c2cf85927c",
+    "tris": 488,
+    "bytes": 37720,
     "bounds": [
       -0.25,
       0,
@@ -507,9 +507,9 @@
     }
   },
   "prop.scythe": {
-    "hash": "e7b4dd648a",
-    "tris": 382,
-    "bytes": 23808,
+    "hash": "5f27184928",
+    "tris": 630,
+    "bytes": 46428,
     "bounds": [
       -0.174,
       0,
@@ -525,178 +525,178 @@
     }
   },
   "unit.player": {
-    "hash": "1a21c0d3ca",
-    "tris": 998,
-    "bytes": 710480,
+    "hash": "5d79424010",
+    "tris": 2437,
+    "bytes": 928496,
     "bounds": [
-      -0.511,
+      -0.522,
       0.001,
       -0.262,
       0.522,
-      1.595,
+      1.699,
       0.315
     ]
   },
   "role.supplier": {
-    "hash": "437c26d060",
-    "tris": 996,
-    "bytes": 511232,
+    "hash": "d139c1feec",
+    "tris": 3332,
+    "bytes": 822912,
     "bounds": [
-      -0.571,
+      -0.584,
       0,
-      -0.289,
+      -0.294,
       0.586,
       1.698,
-      0.294
+      0.298
     ]
   },
   "role.defender": {
-    "hash": "17b35bf19e",
-    "tris": 996,
-    "bytes": 303968,
+    "hash": "6f09414091",
+    "tris": 3658,
+    "bytes": 666888,
     "bounds": [
       -0.487,
       0,
-      -0.3,
-      0.482,
-      1.696,
+      -0.301,
+      0.485,
+      1.698,
       0.302
     ]
   },
   "role.medic": {
-    "hash": "af57a36175",
-    "tris": 1000,
-    "bytes": 417224,
+    "hash": "30b29aab36",
+    "tris": 3314,
+    "bytes": 715488,
     "bounds": [
-      -0.579,
+      -0.592,
       0.001,
-      -0.309,
+      -0.316,
       0.592,
       1.697,
-      0.316
+      0.317
     ]
   },
   "role.hauler": {
-    "hash": "b66bc29f75",
-    "tris": 997,
-    "bytes": 226740,
+    "hash": "d649e702bf",
+    "tris": 3809,
+    "bytes": 594760,
     "bounds": [
-      -0.569,
+      -0.573,
       0,
-      -0.326,
+      -0.327,
       0.573,
       1.7,
-      0.321
+      0.324
     ]
   },
   "role.idle": {
-    "hash": "1a2243f77b",
-    "tris": 976,
-    "bytes": 280496,
+    "hash": "022e4cd382",
+    "tris": 3038,
+    "bytes": 566416,
     "bounds": [
       -0.53,
-      0.001,
-      -0.202,
-      0.528,
+      0,
+      -0.207,
+      0.531,
       1.698,
-      0.207
+      0.208
     ]
   },
   "role.cashier": {
-    "hash": "d8cde1d55a",
-    "tris": 996,
-    "bytes": 215684,
+    "hash": "a33f6858b6",
+    "tris": 2397,
+    "bytes": 425860,
     "bounds": [
       -0.483,
       0.003,
       -0.21,
-      0.477,
-      1.697,
+      0.483,
+      1.7,
       0.207
     ]
   },
   "role.server": {
-    "hash": "fa5a7c02d8",
-    "tris": 988,
-    "bytes": 278240,
+    "hash": "64388d1b32",
+    "tris": 3040,
+    "bytes": 564924,
     "bounds": [
-      -0.508,
-      0.001,
-      -0.154,
-      0.501,
-      1.683,
+      -0.511,
+      0,
+      -0.169,
+      0.508,
+      1.698,
       0.17
     ]
   },
   "role.hunter": {
-    "hash": "3717d2c801",
-    "tris": 981,
-    "bytes": 380948,
+    "hash": "de0b0cda36",
+    "tris": 3715,
+    "bytes": 767624,
     "bounds": [
-      -0.506,
-      0.004,
-      -0.291,
+      -0.513,
+      0.001,
+      -0.295,
       0.514,
-      1.585,
-      0.296
+      1.7,
+      0.297
     ]
   },
   "hostile.raider_humanoid": {
-    "hash": "034fd4b00e",
-    "tris": 996,
-    "bytes": 198176,
+    "hash": "cd22b70290",
+    "tris": 3266,
+    "bytes": 508496,
     "bounds": [
       -0.55,
-      0.004,
-      -0.202,
-      0.549,
-      1.686,
-      0.198
+      0.001,
+      -0.205,
+      0.553,
+      1.7,
+      0.204
     ]
   },
   "hostile.boss": {
-    "hash": "00fa877de5",
-    "tris": 996,
-    "bytes": 328440,
+    "hash": "72103b40d7",
+    "tris": 7077,
+    "bytes": 1123976,
     "bounds": [
-      -0.669,
-      0.003,
-      -0.353,
-      0.67,
-      1.694,
-      0.355
+      -0.68,
+      0,
+      -0.358,
+      0.678,
+      1.7,
+      0.358
     ]
   },
   "hostile.creature": {
-    "hash": "ab1ea1b652",
-    "tris": 1000,
-    "bytes": 125508,
+    "hash": "aeb46ce0c3",
+    "tris": 3145,
+    "bytes": 429064,
     "bounds": [
       -1.449,
       0,
-      -1.706,
+      -1.708,
       1.449,
-      1.691,
-      1.707
+      1.7,
+      1.708
     ]
   },
   "hostile.swarmling": {
-    "hash": "fc1ba86ada",
-    "tris": 690,
-    "bytes": 74680,
+    "hash": "78f595d6f5",
+    "tris": 2841,
+    "bytes": 363732,
     "bounds": [
-      -1.541,
-      0.025,
-      -1.548,
-      1.429,
-      1.548,
-      1.643
+      -1.569,
+      0.003,
+      -1.645,
+      1.574,
+      1.58,
+      1.75
     ]
   },
   "res.material_basic": {
-    "hash": "75e1f5e7ca",
-    "tris": 300,
-    "bytes": 21864,
+    "hash": "d0c0b8146a",
+    "tris": 652,
+    "bytes": 45036,
     "bounds": [
       -0.21,
       0,
@@ -707,9 +707,9 @@
     ]
   },
   "decor.scrap_field": {
-    "hash": "3563ecf47b",
-    "tris": 686,
-    "bytes": 57960,
+    "hash": "7434c00fb6",
+    "tris": 18168,
+    "bytes": 804036,
     "bounds": [
       -0.867,
       0,
@@ -717,12 +717,17 @@
       0.867,
       0.404,
       0.9
-    ]
+    ],
+    "outline": {
+      "hash": "1d85fda879",
+      "tris": 250,
+      "bytes": 2892
+    }
   },
   "prop.medkit": {
-    "hash": "dc9a5c9660",
-    "tris": 498,
-    "bytes": 30752,
+    "hash": "72598b4a73",
+    "tris": 1408,
+    "bytes": 85928,
     "bounds": [
       -0.15,
       0,
@@ -738,9 +743,9 @@
     }
   },
   "struct.barracks": {
-    "hash": "53791cde55",
-    "tris": 1398,
-    "bytes": 178972,
+    "hash": "e60fe5c22b",
+    "tris": 3406,
+    "bytes": 283632,
     "bounds": [
       -0.513,
       0,
@@ -756,9 +761,9 @@
     }
   },
   "node.food_source": {
-    "hash": "b3b961302f",
-    "tris": 1576,
-    "bytes": 221956,
+    "hash": "e8e7624a69",
+    "tris": 29370,
+    "bytes": 1878576,
     "bounds": [
       -1.037,
       0,
@@ -774,9 +779,9 @@
     }
   },
   "capture.recruit_container": {
-    "hash": "5de6b46f22",
-    "tris": 900,
-    "bytes": 159712,
+    "hash": "859940fb2b",
+    "tris": 3946,
+    "bytes": 311556,
     "bounds": [
       -0.55,
       0,
@@ -792,9 +797,9 @@
     }
   },
   "capture.supply_crate": {
-    "hash": "89697784db",
-    "tris": 590,
-    "bytes": 54496,
+    "hash": "ba8b1b6380",
+    "tris": 1810,
+    "bytes": 116996,
     "bounds": [
       -0.425,
       0,
@@ -810,9 +815,9 @@
     }
   },
   "zone.blocked": {
-    "hash": "1b9ab3f1e1",
-    "tris": 496,
-    "bytes": 70592,
+    "hash": "6762f5512e",
+    "tris": 3426,
+    "bytes": 226588,
     "bounds": [
       -0.5,
       0,
@@ -823,9 +828,9 @@
     ]
   },
   "res.material_refined": {
-    "hash": "0df3819a16",
-    "tris": 200,
-    "bytes": 5228,
+    "hash": "a67dba905d",
+    "tris": 40,
+    "bytes": 3664,
     "bounds": [
       -0.2,
       0,
@@ -836,9 +841,9 @@
     ]
   },
   "res.fuel_dense": {
-    "hash": "924d08d4eb",
-    "tris": 299,
-    "bytes": 21308,
+    "hash": "df4e506694",
+    "tris": 1113,
+    "bytes": 61464,
     "bounds": [
       -0.2,
       0,
@@ -849,9 +854,9 @@
     ]
   },
   "res.food_raw_1": {
-    "hash": "2d2db0cf35",
-    "tris": 288,
-    "bytes": 18216,
+    "hash": "192604f328",
+    "tris": 4722,
+    "bytes": 280360,
     "bounds": [
       -0.2,
       0,
@@ -862,9 +867,9 @@
     ]
   },
   "res.food_raw_2": {
-    "hash": "14c6b6bfab",
-    "tris": 250,
-    "bytes": 11676,
+    "hash": "7fc6e174ab",
+    "tris": 204,
+    "bytes": 15044,
     "bounds": [
       -0.2,
       0,
@@ -875,9 +880,9 @@
     ]
   },
   "res.food_raw_2.ground": {
-    "hash": "a22a33c0fd",
-    "tris": 250,
-    "bytes": 30032,
+    "hash": "28fa0d4d18",
+    "tris": 150,
+    "bytes": 29384,
     "bounds": [
       -0.21,
       0,
@@ -888,9 +893,9 @@
     ]
   },
   "res.food_prepared": {
-    "hash": "4b6a0a4b54",
-    "tris": 248,
-    "bytes": 10436,
+    "hash": "aacc10f6f2",
+    "tris": 714,
+    "bytes": 35140,
     "bounds": [
       -0.19,
       0,
@@ -901,9 +906,9 @@
     ]
   },
   "res.salvage": {
-    "hash": "6af54d6f78",
-    "tris": 798,
-    "bytes": 34268,
+    "hash": "ad7e3235ce",
+    "tris": 11556,
+    "bytes": 596176,
     "bounds": [
       -0.18,
       0,
@@ -914,9 +919,9 @@
     ]
   },
   "res.currency": {
-    "hash": "37f7fb8700",
-    "tris": 250,
-    "bytes": 22156,
+    "hash": "6a6cbee878",
+    "tris": 168,
+    "bytes": 22468,
     "bounds": [
       -0.15,
       0,
@@ -927,9 +932,9 @@
     ]
   },
   "decor.ship_scrap": {
-    "hash": "844c1619fb",
-    "tris": 342,
-    "bytes": 67196,
+    "hash": "0d541b7d00",
+    "tris": 10976,
+    "bytes": 513704,
     "bounds": [
       -0.9,
       0,
@@ -937,12 +942,17 @@
       0.9,
       0.465,
       0.755
-    ]
+    ],
+    "outline": {
+      "hash": "0d55172561",
+      "tris": 230,
+      "bytes": 3004
+    }
   },
   "decor.ship_wreck": {
-    "hash": "2446288105",
-    "tris": 498,
-    "bytes": 59548,
+    "hash": "389e1daf75",
+    "tris": 24270,
+    "bytes": 950348,
     "bounds": [
       -1.6,
       0,
@@ -953,9 +963,9 @@
     ]
   },
   "node.material_source": {
-    "hash": "cb5a21de89",
-    "tris": 900,
-    "bytes": 191500,
+    "hash": "8ec8065715",
+    "tris": 8472,
+    "bytes": 548840,
     "bounds": [
       -0.93,
       0,
@@ -971,9 +981,9 @@
     }
   },
   "node.fuel_scrap": {
-    "hash": "35b469c887",
-    "tris": 396,
-    "bytes": 39952,
+    "hash": "d2969eec89",
+    "tris": 3826,
+    "bytes": 188576,
     "bounds": [
       -0.475,
       0,
@@ -989,9 +999,9 @@
     }
   },
   "res.component": {
-    "hash": "006be01d6b",
-    "tris": 300,
-    "bytes": 22028,
+    "hash": "ada700c6ac",
+    "tris": 2430,
+    "bytes": 130260,
     "bounds": [
       -0.2,
       0,
@@ -1002,9 +1012,9 @@
     ]
   },
   "decor.crystal_scrap": {
-    "hash": "3e5753f06d",
-    "tris": 568,
-    "bytes": 57280,
+    "hash": "6ed6b05903",
+    "tris": 12374,
+    "bytes": 552032,
     "bounds": [
       -0.9,
       0,
@@ -1015,9 +1025,9 @@
     ]
   },
   "zone.prey.l1": {
-    "hash": "28181533a0",
-    "tris": 696,
-    "bytes": 70948,
+    "hash": "d0d5759454",
+    "tris": 9680,
+    "bytes": 490916,
     "bounds": [
       -0.8,
       0,
@@ -1033,9 +1043,9 @@
     }
   },
   "zone.prey.l2": {
-    "hash": "9507dab8ac",
-    "tris": 500,
-    "bytes": 53500,
+    "hash": "412c36ec85",
+    "tris": 5000,
+    "bytes": 254700,
     "bounds": [
       -0.8,
       0,
@@ -1051,9 +1061,9 @@
     }
   },
   "struct.conveyor.segment": {
-    "hash": "e34151173a",
-    "tris": 384,
-    "bytes": 35288,
+    "hash": "4571d06f89",
+    "tris": 5768,
+    "bytes": 268636,
     "bounds": [
       -0.75,
       0,
@@ -1064,9 +1074,9 @@
     ]
   },
   "struct.conveyor.drive": {
-    "hash": "241af391c1",
-    "tris": 482,
-    "bytes": 41896,
+    "hash": "5eca640a3b",
+    "tris": 4100,
+    "bytes": 199776,
     "bounds": [
       -0.7,
       0,
@@ -1077,9 +1087,9 @@
     ]
   },
   "struct.conveyor.corner": {
-    "hash": "ec2bf12bb9",
-    "tris": 398,
-    "bytes": 35220,
+    "hash": "912bc60f36",
+    "tris": 2356,
+    "bytes": 133468,
     "bounds": [
       -0.3,
       0,
@@ -1090,9 +1100,9 @@
     ]
   },
   "node.fuel_deposit": {
-    "hash": "af5a8bb015",
-    "tris": 900,
-    "bytes": 61100,
+    "hash": "85e2019953",
+    "tris": 7438,
+    "bytes": 356132,
     "bounds": [
       -0.7,
       0,
@@ -1108,9 +1118,9 @@
     }
   },
   "struct.landmark": {
-    "hash": "f769d5873a",
-    "tris": 2400,
-    "bytes": 219524,
+    "hash": "b76bb87b6b",
+    "tris": 17126,
+    "bytes": 803076,
     "bounds": [
       -2.2,
       0,
@@ -1126,22 +1136,22 @@
     }
   },
   "role.operator": {
-    "hash": "b2cb57949b",
-    "tris": 1000,
-    "bytes": 452948,
+    "hash": "529a38505f",
+    "tris": 3410,
+    "bytes": 780100,
     "bounds": [
       -0.536,
       0.001,
-      -0.284,
-      0.526,
+      -0.29,
+      0.536,
       1.697,
-      0.287
+      0.288
     ]
   },
   "node.prey_dangerous": {
-    "hash": "dd1344ef89",
-    "tris": 798,
-    "bytes": 173772,
+    "hash": "542e70dd51",
+    "tris": 1974,
+    "bytes": 376092,
     "bounds": [
       -0.001,
       0,
@@ -1152,9 +1162,9 @@
     ]
   },
   "node.prey": {
-    "hash": "526adb07a0",
-    "tris": 800,
-    "bytes": 160328,
+    "hash": "c42b23dadf",
+    "tris": 2962,
+    "bytes": 469208,
     "bounds": [
       -0.002,
       0,

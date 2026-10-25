@@ -33,6 +33,8 @@ const OUT = join(ROOT, "packages/client/public/models");
 export interface MeshyEntry {
   file: string; src: string; id: string; level?: number;
   yaw?: number; width?: number; height?: number; offset?: [number, number];
+  /** Characters: art metres along the body instead of height (the hoppers). */
+  length?: number;
   tris?: number; texture?: number; outlineTris?: number;
   /**
    * Simplify to a shape tolerance instead of a triangle count: the low mesh strays at most this far
@@ -186,9 +188,9 @@ function unwrap(low: { pos: Float32Array; idx: Uint32Array }, size: number): { p
 /**
  * Smooth normals with a crease: each corner averages the faces round its position (across UV seams)
  * that turn less than `crease` degrees from its own, so curves shade round and hard edges stay hard.
- * Vertices split where one position needs two normals.
+ * Vertices split where one position needs two normals; `from` is each output vertex's input vertex.
  */
-function smooth(low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, crease = 40): { pos: Float32Array; uv: Float32Array; nrm: Float32Array; idx: Uint32Array } {
+function smooth(low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, crease = 40): { pos: Float32Array; uv: Float32Array; nrm: Float32Array; idx: Uint32Array; from: Uint32Array } {
   const nTri = low.idx.length / 3, area = new Float32Array(nTri * 3), unit = new Float32Array(nTri * 3);
   const a = new Vector3(), b = new Vector3(), c = new Vector3();
   for (let t = 0; t < nTri; t++) {
@@ -206,7 +208,7 @@ function smooth(low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, 
     l.push(t);
   }
   const cos = Math.cos((crease * Math.PI) / 180), split = new Map<string, number>();
-  const pos: number[] = [], uv: number[] = [], nrm: number[] = [], idx = new Uint32Array(low.idx.length);
+  const pos: number[] = [], uv: number[] = [], nrm: number[] = [], from: number[] = [], idx = new Uint32Array(low.idx.length);
   for (let t = 0; t < nTri; t++) for (let k = 0; k < 3; k++) {
     const v = low.idx[t * 3 + k]!;
     a.set(0, 0, 0);
@@ -222,10 +224,11 @@ function smooth(low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, 
       pos.push(low.pos[v * 3]!, low.pos[v * 3 + 1]!, low.pos[v * 3 + 2]!);
       uv.push(low.uv[v * 2]!, low.uv[v * 2 + 1]!);
       nrm.push(a.x, a.y, a.z);
+      from.push(v);
     }
     idx[t * 3 + k] = j;
   }
-  return { pos: new Float32Array(pos), uv: new Float32Array(uv), nrm: new Float32Array(nrm), idx };
+  return { pos: new Float32Array(pos), uv: new Float32Array(uv), nrm: new Float32Array(nrm), idx, from: Uint32Array.from(from) };
 }
 
 type Paint =(p: Vector3, n: Vector3, rgba: Buffer, o: number) => void;
@@ -369,10 +372,10 @@ async function writeOutline(low: { pos: Float32Array; idx: Uint32Array }): Promi
 /**
  * A rigged character (Meshy Remesh + Animate): the same shape-only bake, but in bind-pose space
  * and with each kept vertex's skin weights carried over from the original (simplification only
- * keeps original vertices), cut to the four strongest joints. The skeleton, bind matrices and
+ * keeps original vertices; smooth() splits map back through `from`), cut to the four strongest joints. The skeleton, bind matrices and
  * clips stay as they are; keyframes are resampled. No fit: the renderer scales it to `height`.
  */
-async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8Array; tris: number; bounds: BuiltEntry["bounds"] }> {
+async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8Array; tris: number; srcTris: number; bounds: BuiltEntry["bounds"] }> {
   const doc = await io.read(path);
   const prims = doc.getRoot().listMeshes().flatMap((m) => m.listPrimitives());
   const prim = prims.find((p) => p.getAttribute("JOINTS_0"));
@@ -396,11 +399,20 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
   const up = hi - lo < 0.1 ? 1.7 / (hi - lo) : 1;
   if (up !== 1) for (let i = 0; i < src.pos.length; i++) src.pos[i]! *= up;
   const size = e.texture ?? 512;
-  const low = lowPoly(src, e.tris ?? 3000);
-  const out = unwrap(low, size);
+  // `error` is in art metres; the renderer scales the bind pose to `height` (or `length`, the longest side)
+  let err = e.error;
+  if (err !== undefined) {
+    const r = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < src.pos.length; i += 3) for (let k = 0; k < 3; k++) { r[k] = Math.min(r[k]!, src.pos[i + k]!); r[k + 3] = Math.max(r[k + 3]!, src.pos[i + k]!); }
+    const span = e.length ? Math.max(r[3]! - r[0]!, r[4]! - r[1]!, r[5]! - r[2]!) : r[4]! - r[1]!;
+    err *= span / (e.length ?? e.height ?? 1.1);
+  }
+  const low = lowPoly(src, e.tris ?? (err !== undefined ? 30000 : 3000), err);
+  const flat = unwrap(low, size);
+  const out = err !== undefined ? smooth(flat) : { ...flat, nrm: undefined, from: undefined };
   const n = out.pos.length / 3, joints = new Uint16Array(n * 4), weights = new Float32Array(n * 4);
   for (let v = 0; v < n; v++) {
-    const o = low.orig[out.xref[v]!]!;
+    const o = low.orig[flat.xref[out.from ? out.from[v]! : v]!]!;
     const all = sets.flatMap(([j, w]) => j[o]!.map((jj, k) => [jj, w[o]![k]!] as const)).filter(([, w]) => w > 0).sort((a, b) => b[1] - a[1]).slice(0, 4);
     const sum = all.reduce((t, [, w]) => t + w, 0) || 1;
     all.forEach(([jj, w], k) => { joints[v * 4 + k] = jj; weights[v * 4 + k] = w / sum; });
@@ -415,6 +427,7 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
     .setAttribute("TEXCOORD_0", doc.createAccessor().setType("VEC2").setArray(new Float32Array(out.uv)).setBuffer(buf))
     .setAttribute("JOINTS_0", doc.createAccessor().setType("VEC4").setArray(joints).setBuffer(buf))
     .setAttribute("WEIGHTS_0", doc.createAccessor().setType("VEC4").setArray(weights).setBuffer(buf))
+    .setAttribute("NORMAL", out.nrm ? doc.createAccessor().setType("VEC3").setArray(new Float32Array(out.nrm)).setBuffer(buf) : null)
     .setIndices(doc.createAccessor().setType("SCALAR").setArray(n < 65536 ? Uint16Array.from(out.idx) : new Uint32Array(out.idx)).setBuffer(buf));
   const tex = doc.createTexture("albedo").setImage(new Uint8Array(webp)).setMimeType("image/webp");
   prim.getMaterial()!.setBaseColorTexture(tex).setNormalTexture(null).setMetallicRoughnessTexture(null).setOcclusionTexture(null).setEmissiveTexture(null)
@@ -425,7 +438,7 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
   await doc.transform(resample(), prune(), dedup());
   const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
   for (let i = 0; i < out.pos.length; i += 3) for (let k = 0; k < 3; k++) { b[k] = Math.min(b[k]!, out.pos[i + k]!); b[k + 3] = Math.max(b[k + 3]!, out.pos[i + k]!); }
-  return { glb: await io.writeBinary(doc), tris: out.idx.length / 3, bounds: b.map((v) => Math.round(v * 1000) / 1000) as BuiltEntry["bounds"] };
+  return { glb: await io.writeBinary(doc), tris: out.idx.length / 3, srcTris: src.idx.length / 3, bounds: b.map((v) => Math.round(v * 1000) / 1000) as BuiltEntry["bounds"] };
 }
 
 async function build(e: MeshyEntry): Promise<void> {
@@ -436,7 +449,7 @@ async function build(e: MeshyEntry): Promise<void> {
     const c = await buildCharacter(e, path);
     writeFileSync(join(OUT, `${e.file}.glb`), c.glb);
     built[e.file] = { hash: createHash("sha1").update(c.glb).digest("hex").slice(0, 10), tris: c.tris, bytes: c.glb.byteLength, bounds: c.bounds };
-    console.log(`${e.file}: rigged, ${c.tris} tris, ${(c.glb.byteLength / 1024).toFixed(0)} KB, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+    console.log(`${e.file}: rigged, ${c.srcTris} → ${c.tris} tris, ${(c.glb.byteLength / 1024).toFixed(0)} KB, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
     return;
   }
   const t0 = Date.now();
