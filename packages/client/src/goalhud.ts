@@ -11,7 +11,7 @@ import { liveObjectives, manifestObjectives } from "./objectives.js";
 // (time: amber fills while a condition holds, blue empties toward a deadline) and pips (steps).
 // Every tracker shows its current number (Doug, 2026-10-25): the count so far, the steps done, the
 // seconds held, a guarded meter's %, with the target after a slash for counts and holds. It sits just
-// below the icon so the glyph stays readable; only the stopwatch counts its last 30 seconds on its face.
+// below the icon so the glyph stays readable; only the stopwatch shows its time left on its face.
 // A won goal turns into a gold star; a missed one goes grey with a line through it. Urgent trouble frosts the
 // screen edges while the one thing in danger pulses and shakes (the app vibrates in step).
 // Everything visual is classes; style.css colours them from the skin.
@@ -119,8 +119,9 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     const left = Math.max(0, o.target - o.progress);
     t.pie = o.target > 0 ? left / o.target : 1;
     t.warn = left <= WARN_SECONDS * TPS;
-    // the last stretch: the face counts its seconds and its pie sweeps just those, full at FACE_SECONDS
-    if (left > 0 && left <= FACE_SECONDS * TPS && t.state === "open") { t.inner = String(Math.ceil(left / TPS)); t.pie = left / (FACE_SECONDS * TPS); }
+    // the face always shows the time left (Doug, 2026-10-25); in the last stretch its pie sweeps just those seconds
+    if (left > 0 && t.state === "open") t.inner = clock(Math.ceil(left / TPS) * TPS);
+    if (left > 0 && left <= FACE_SECONDS * TPS && t.state === "open") t.pie = left / (FACE_SECONDS * TPS);
     t.risk = t.warn && t.state === "open";
   } else if (HOLD_KINDS.has(o.kind)) {
     t.ring = { mode: "hold", k: frac };

@@ -1,6 +1,7 @@
 {
   "notes": [
-    "Every goal now shows its number just below its icon (how many so far, seconds held, or how full its meter is), and the customer face smiles or frowns with your traders' patience. In the last 30 seconds the stopwatch counts down on its face.",
+    "Every goal shows its number below its icon, and the stopwatch shows the time left on its face. Credits now sit top left and the level number top right.",
+    "Earning a star pops up \"Star achieved:\" with the goal.",
     "One slim row at the top: level number, your goals, and your credits (now shown as the real credit coin).",
     "\"Never let it happen\" goals show how close you are to losing them: the face drains with your most impatient trader, the gate with your weakest gate, and so on.",
     "Goal icons and the level name float on their own with no backgrounds. Goal icons show their target number beside them (the icon fills as you get there). Missed goals go grey with a line through them, and earning a star pops up a note again.",

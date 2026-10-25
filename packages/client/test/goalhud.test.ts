@@ -36,8 +36,8 @@ describe("goal icons", () => {
     expect(t[2]!.pips).toEqual({ n: 3, done: 0, part: 0 });
     // only count goals carry a number: protein shows its target, the stopwatch and pips do not
     expect(t.map((x) => x.beside)).toEqual(["31", undefined, undefined]);
-    // every tracker shows its current number inside: 0 protein, no seconds yet on the stopwatch, 0 trips
-    expect(t.map((x) => x.inner)).toEqual(["0", undefined, "0"]);
+    // every tracker shows its current number: 0 protein, the stopwatch's full 3:57, 0 trips
+    expect(t.map((x) => x.inner)).toEqual(["0", "3:57", "0"]);
   });
 
   it("L5: waves are pips; won goals draw a star and missed ones are struck through", () => {
@@ -85,16 +85,19 @@ describe("never-goals fill from whatever is closest to breaking them", () => {
 });
 
 describe("stopwatch face", () => {
-  it("shows the whole seconds left only in the last 30", () => {
+  it("always shows the time left; the pie sweeps just the last 30 seconds", () => {
     const { sim, m, cp } = level(7);
     const st = sim.state;
     const time = st.objectives.find((o) => o.kind === "time_target")!;
     time.target = 3000;
-    time.progress = 3000 - 31 * TPS;
-    expect(goalTokens(st, m, cp, skin).find((t) => t.id === time.id)!.inner).toBeUndefined();
+    time.progress = 3000 - 125 * TPS;
+    const early = goalTokens(st, m, cp, skin).find((t) => t.id === time.id)!;
+    expect(early.inner).toBe("2:05");
+    expect(early.pie).toBeCloseTo(125 * TPS / 3000, 2);
     time.progress = 3000 - 28 * TPS + 5;
     const t = goalTokens(st, m, cp, skin).find((x) => x.id === time.id)!;
     expect(t.inner).toBe("28");
+    expect(t.pie).toBeCloseTo(28 / 30, 1);
     expect(goalIcon(t)).toContain(">28</text>");
   });
 });

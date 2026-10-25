@@ -525,7 +525,7 @@ export const marsGreenhouse: Skin = {
       dismiss: "Later",
       starsTitle: "Stars",
       starsHint: "Win the mission, then earn up to three stars.",
-      starEarned: "Star earned",
+      starEarned: "Star achieved:",
       starMissed: "Missed",
       goalDone: "Goal complete",
       goalDoneLine: "Finish the open stars",

@@ -1119,12 +1119,9 @@ export class App {
     if (s.sim.state.over) return;
     const idx = s.sim.state.objectives.findIndex((o) => o.id === e.id);
     this.synth.play(e.done ? "star" : "miss");
-    // the level runs on for the open stars once the main goal is done (it ends on its slowest goal)
+    // every goal won is a star: "Star achieved:" and the goal (Doug, 2026-10-25)
     const views = liveObjectives(s.sim.state, s.manifest, this.skin);
-    if (idx === 0 && e.done && views.some((o, k) => k > 0 && !o.done && !o.failed)) {
-      this.starToast(uiText(this.skin, "goalDone"), uiText(this.skin, "goalDoneLine"));
-    }
-    if (idx > 0 && e.done && views[idx]) this.starToast(uiText(this.skin, "starEarned"), views[idx]!.label);
+    if (e.done && views[idx]) this.starToast(uiText(this.skin, "starEarned"), views[idx]!.label);
   }
 
   private starToast(title: string, line: string): void {
@@ -1195,9 +1192,9 @@ const TEMPLATE = `
       <div class="rail" id="heatRail"><i></i></div>
       <div class="rail walls" id="wallRail" hidden><i></i></div>
       <div class="frow">
-        <button class="fname" id="lvlName" type="button"></button>
-        <div class="fgoals" id="goals"></div>
         <span class="fcash" id="cash"><span class="cic"></span><b></b></span>
+        <div class="fgoals" id="goals"></div>
+        <button class="fname" id="lvlName" type="button"></button>
       </div>
       <div class="gbubble" id="gbubble" hidden></div>
       <button class="fcorner l" id="retryBtn" type="button" aria-label="Retry"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2.1-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M4 3.5v5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
