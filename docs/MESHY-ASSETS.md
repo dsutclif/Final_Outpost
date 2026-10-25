@@ -91,6 +91,14 @@ rebuilds one. No Blender: the bake runs in Node (meshoptimizer, watlas, three-me
   Output: positions, UVs and one 1024 px WebP base colour, quantized, about 200-240 KB per model.
   No normal or metal/roughness maps: three flat-shades it (no normals in the file), matching the
   code models' faceted look.
+- **Shape tolerance (`error`, 2026-10-24).** Replacing the code models frees the faceted look, and
+  the 60k scene budget was set to match them, not measured. An entry with `error` (art metres)
+  simplifies until the shape would stray further than that from the original, so each model keeps
+  the triangles its shape needs; `tris` becomes a ceiling (default 30,000). It also writes smooth
+  normals with a 40° crease (curves shade round, hard edges stay hard). Meshy's non-manifold
+  joins stall a strict pass near 70k, so it runs permissive. Level-1 core (1M source triangles):
+  1 cm → 4.8k, **5 mm → 9.2k (chosen)**, 2.5 mm → 18k (no visible gain over 5 mm at the game
+  angle); about 480 KB. Only the level-1 core uses it so far, as the trial.
 - **Fit.** `yaw` turns the model so its working side faces +z (the core's hopper and each
   converter's input toward the deposit side), `width` scales its widest ground side to art
   metres, and the pivot goes to the ground centre. `render-3d/test/footprints.test.ts` keeps every

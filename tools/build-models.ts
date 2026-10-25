@@ -34,6 +34,12 @@ export interface MeshyEntry {
   file: string; src: string; id: string; level?: number;
   yaw?: number; width?: number; height?: number; offset?: [number, number];
   tris?: number; texture?: number; outlineTris?: number;
+  /**
+   * Simplify to a shape tolerance instead of a triangle count: the low mesh strays at most this far
+   * (fitted art metres) from the original, keeping whatever triangles that takes; `tris` is then
+   * only a ceiling (default 30000). Also turns on smooth normals (see smooth()).
+   */
+  error?: number;
   /** Recolour the base colour before baking ("gold": brushed warm gold, darks kept). */
   tint?: "gold";
   /** Lettering on the broad faces: text and [x0, y0, x1, y1] (fitted art metres), see lettering(). */
@@ -136,12 +142,20 @@ function fit(pos: Float32Array, e: MeshyEntry): BuiltEntry["bounds"] {
 }
 
 /** Shape-only simplification: weld by position (UV seams gone), then meshopt to the target. */
-function lowPoly(src: Src, target: number): { pos: Float32Array; idx: Uint32Array; orig: Uint32Array } {
+function lowPoly(src: Src, target: number, error?: number): { pos: Float32Array; idx: Uint32Array; orig: Uint32Array } {
   const remap = MeshoptSimplifier.generatePositionRemap(src.pos, 3);
   const idx = src.idx.map((i) => remap[i]!);
-  let [out] = MeshoptSimplifier.simplify(idx, src.pos, 3, target * 3, 1);
-  // non-manifold joins (common in Meshy output) lock vertices; a permissive pass lets those go too
-  if (out.length > target * 3.3) [out] = MeshoptSimplifier.simplify(out, src.pos, 3, target * 3, 1, ["Permissive"]);
+  let out: Uint32Array;
+  if (error !== undefined) {
+    // as far as the tolerance allows (Prune drops loose specks smaller than it; Permissive lets the
+    // non-manifold joins go, which otherwise stall it near 70k); target is a ceiling
+    [out] = MeshoptSimplifier.simplify(idx, src.pos, 3, 0, error, ["ErrorAbsolute", "Prune", "Permissive"]);
+    if (out.length > target * 3) [out] = MeshoptSimplifier.simplify(out, src.pos, 3, target * 3, 1, ["ErrorAbsolute", "Permissive"]);
+  } else {
+    [out] = MeshoptSimplifier.simplify(idx, src.pos, 3, target * 3, 1);
+    // non-manifold joins (common in Meshy output) lock vertices; a permissive pass lets those go too
+    if (out.length > target * 3.3) [out] = MeshoptSimplifier.simplify(out, src.pos, 3, target * 3, 1, ["Permissive"]);
+  }
   const used = new Map<number, number>();
   const outIdx = out.map((i) => { let j = used.get(i); if (j === undefined) used.set(i, j = used.size); return j; });
   const pos = new Float32Array(used.size * 3), orig = new Uint32Array(used.size);
@@ -169,7 +183,52 @@ function unwrap(low: { pos: Float32Array; idx: Uint32Array }, size: number): { p
   return { pos, uv, idx, xref };
 }
 
-type Paint = (p: Vector3, n: Vector3, rgba: Buffer, o: number) => void;
+/**
+ * Smooth normals with a crease: each corner averages the faces round its position (across UV seams)
+ * that turn less than `crease` degrees from its own, so curves shade round and hard edges stay hard.
+ * Vertices split where one position needs two normals.
+ */
+function smooth(low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, crease = 40): { pos: Float32Array; uv: Float32Array; nrm: Float32Array; idx: Uint32Array } {
+  const nTri = low.idx.length / 3, area = new Float32Array(nTri * 3), unit = new Float32Array(nTri * 3);
+  const a = new Vector3(), b = new Vector3(), c = new Vector3();
+  for (let t = 0; t < nTri; t++) {
+    a.fromArray(low.pos, low.idx[t * 3]! * 3); b.fromArray(low.pos, low.idx[t * 3 + 1]! * 3); c.fromArray(low.pos, low.idx[t * 3 + 2]! * 3);
+    c.sub(b); b.sub(a); b.cross(c);
+    b.toArray(area, t * 3);
+    b.normalize().toArray(unit, t * 3);
+  }
+  const key = (v: number): string => `${low.pos[v * 3]!.toFixed(5)},${low.pos[v * 3 + 1]!.toFixed(5)},${low.pos[v * 3 + 2]!.toFixed(5)}`;
+  const around = new Map<string, number[]>();
+  for (let t = 0; t < nTri; t++) for (let k = 0; k < 3; k++) {
+    const id = key(low.idx[t * 3 + k]!);
+    let l = around.get(id);
+    if (!l) around.set(id, l = []);
+    l.push(t);
+  }
+  const cos = Math.cos((crease * Math.PI) / 180), split = new Map<string, number>();
+  const pos: number[] = [], uv: number[] = [], nrm: number[] = [], idx = new Uint32Array(low.idx.length);
+  for (let t = 0; t < nTri; t++) for (let k = 0; k < 3; k++) {
+    const v = low.idx[t * 3 + k]!;
+    a.set(0, 0, 0);
+    for (const f of around.get(key(v))!) {
+      if (unit[f * 3]! * unit[t * 3]! + unit[f * 3 + 1]! * unit[t * 3 + 1]! + unit[f * 3 + 2]! * unit[t * 3 + 2]! < cos) continue;
+      a.x += area[f * 3]!; a.y += area[f * 3 + 1]!; a.z += area[f * 3 + 2]!;
+    }
+    a.normalize();
+    const id = `${v}|${a.x.toFixed(3)},${a.y.toFixed(3)},${a.z.toFixed(3)}`;
+    let j = split.get(id);
+    if (j === undefined) {
+      split.set(id, j = pos.length / 3);
+      pos.push(low.pos[v * 3]!, low.pos[v * 3 + 1]!, low.pos[v * 3 + 2]!);
+      uv.push(low.uv[v * 2]!, low.uv[v * 2 + 1]!);
+      nrm.push(a.x, a.y, a.z);
+    }
+    idx[t * 3 + k] = j;
+  }
+  return { pos: new Float32Array(pos), uv: new Float32Array(uv), nrm: new Float32Array(nrm), idx };
+}
+
+type Paint =(p: Vector3, n: Vector3, rgba: Buffer, o: number) => void;
 
 /**
  * Lettering projected onto a model's broad faces (both sides of a flat object, like a case):
@@ -277,8 +336,8 @@ function dilate(img: Buffer, size: number, passes: number): void {
   for (let o = 0; o < img.length; o += 4) if (!img[o + 3]) { img[o] = r / k; img[o + 1] = g / k; img[o + 2] = b / k; img[o + 3] = 255; }
 }
 
-/** A one-mesh GLB: positions and UVs only (no normals: three flat-shades it, like the code models). */
-async function writeGlb(low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, rgba: Buffer, size: number, e: MeshyEntry): Promise<Uint8Array> {
+/** A one-mesh GLB: positions, UVs and smooth normals if given (without them three flat-shades it). */
+async function writeGlb(low: { pos: Float32Array; uv: Float32Array; nrm?: Float32Array; idx: Uint32Array }, rgba: Buffer, size: number, e: MeshyEntry): Promise<Uint8Array> {
   const doc = new Document();
   doc.createExtension(EXTTextureWebP).setRequired(true);
   const buf = doc.createBuffer();
@@ -290,6 +349,7 @@ async function writeGlb(low: { pos: Float32Array; uv: Float32Array; idx: Uint32A
     .setAttribute("TEXCOORD_0", doc.createAccessor().setType("VEC2").setArray(new Float32Array(low.uv)).setBuffer(buf))
     .setIndices(doc.createAccessor().setType("SCALAR").setArray(low.idx.length / 3 < 65536 && low.pos.length / 3 < 65536 ? Uint16Array.from(low.idx) : new Uint32Array(low.idx)).setBuffer(buf))
     .setMaterial(mat);
+  if (low.nrm) prim.setAttribute("NORMAL", doc.createAccessor().setType("VEC3").setArray(new Float32Array(low.nrm)).setBuffer(buf));
   doc.createScene().addChild(doc.createNode("body").setMesh(doc.createMesh("body").addPrimitive(prim)));
   await doc.transform(quantize());
   return io.writeBinary(doc);
@@ -384,7 +444,8 @@ async function build(e: MeshyEntry): Promise<void> {
   const bounds = fit(src.pos, e);
   const paint = e.decal ? await lettering(e.decal.text, e.decal.box) : undefined;
   const size = e.texture ?? 1024;
-  const low = unwrap(lowPoly(src, e.tris ?? 3000), size);
+  const unwrapped = unwrap(lowPoly(src, e.tris ?? (e.error !== undefined ? 30000 : 3000), e.error), size);
+  const low = e.error !== undefined ? smooth(unwrapped) : unwrapped;
   const glb = await writeGlb(low, bake(src, low, size, paint), size, e);
   writeFileSync(join(OUT, `${e.file}.glb`), glb);
   const hash = (b: Uint8Array): string => createHash("sha1").update(b).digest("hex").slice(0, 10);
