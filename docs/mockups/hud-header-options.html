@@ -16,7 +16,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--body); paddi
 .intro { max-width: 70ch; display: grid; gap: 8px; margin-bottom: 26px; }
 h1 { font-family: var(--display); font-weight: 800; font-size: 34px; letter-spacing: .01em; margin: 0; text-wrap: balance; }
 .intro p { margin: 0; color: var(--muted); line-height: 1.5; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 28px 22px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 28px 22px; }
 .opt { display: grid; gap: 10px; align-content: start; min-width: 0; }
 .opt h2 { font-family: var(--display); font-weight: 800; font-size: 22px; margin: 0; display: flex; gap: 10px; align-items: baseline; }
 .opt h2 .tag { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
@@ -358,6 +358,611 @@ h1 { font-family: var(--display); font-weight: 800; font-size: 34px; letter-spac
   <h1 style="font-size:24px">Mixing them</h1>
   <p>These combine well. D's ring on the reactor and G's sentence together would cover Level 1 with no header at all, and F's quiet rule (show it only when it changes) can apply to any of A–G. Defend levels would put the wall's health on the walls and wave timing in the sentence the same way.</p>
 </div>
+
+<div class="intro tk-intro" style="margin-top:48px">
+  <h1>Goal tokens</h1>
+  <p>E's single rail split into three tokens: the goal and its two stars. Each token is a small glyph saying what it is about, plus up to three channels that always mean the same thing. The glyph and the channels carry the information; text appears only as a number beside a count.</p>
+</div>
+
+<section class="tk">
+  <h2 class="tk-h">The three channels</h2>
+  <div class="tk-legend" id="tkLegend"></div>
+
+  <h2 class="tk-h">Glyphs</h2>
+  <div class="tk-glyphs" id="tkGlyphs"></div>
+
+  <h2 class="tk-h">On real levels</h2>
+  <div class="tk-levels" id="tkLevels"></div>
+</section>
+
+<style>
+.tk { --tk-amber: #ffb547; --tk-cool: #7fd7ff; --tk-red: #ff6a55; --tk-line: #e8e4dc; --tk-empty: #2a2d31; --tk-dim: #6a6e73; --tk-bar: #101214;
+  display: grid; gap: 14px; max-width: 1100px; }
+.tk-h { font-family: var(--display); font-weight: 800; font-size: 20px; margin: 18px 0 0; }
+.tk-legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr)); gap: 12px; }
+.tk-card { background: var(--panel); border-radius: 6px; padding: 12px; display: grid; gap: 8px; align-content: start; }
+.tk-card .tk-pair { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.tk-card b { font-family: var(--display); font-size: 17px; font-weight: 800; }
+.tk-card p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.tk-card small { display: block; font-size: 11px; color: var(--muted); text-align: center; }
+.tk-glyphs { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.tk-glyphs figure { margin: 0; background: var(--panel); border-radius: 6px; padding: 8px 4px 6px; display: grid; justify-items: center; gap: 4px; }
+.tk-glyphs figcaption { font-size: 11.5px; color: var(--muted); text-align: center; line-height: 1.2; }
+.tk-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 22px 18px; }
+.tk-lv { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.tk-lv h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 18px; }
+.tk-lv h3 span { color: var(--muted); font-weight: 700; font-size: 14px; margin-left: 6px; }
+.tk-phone { width: 100%; max-width: 360px; border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 2px #2c2f33; background: var(--sand-dark); }
+.tk-row { background: var(--tk-bar); display: flex; align-items: center; gap: 6px; padding: 5px 8px; min-height: 0; }
+.tk-row .tk-goal { display: flex; align-items: center; gap: 3px; }
+.tk-row svg { flex: none; }
+.tk-row { overflow: hidden; }
+.tk-row .tk-num { font: 800 15px/1 var(--display); color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tk-row .tk-num small { color: var(--muted); font-size: 12px; }
+.tk-row .tk-sep { width: 1px; align-self: stretch; background: #2c2f33; margin: 4px 2px; }
+.tk-row .tk-vit { display: flex; align-items: center; gap: 2px; font: 800 13px/1 var(--display); color: #fff; white-space: nowrap; }
+.tk-row .tk-sp { flex: 1; }
+.tk-row .tk-menu { width: 26px; height: 26px; border-radius: 50%; background: #2a2d31; color: #fff; display: grid; place-items: center; font-size: 15px; flex: none; }
+.tk-map { height: 70px; background:
+  radial-gradient(circle at 30% 40%, rgba(0,0,0,.18) 0 2px, transparent 3px) 0 0/38px 31px,
+  linear-gradient(180deg, var(--sand), var(--sand-dark)); }
+.tk-key { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+.tk-key li { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); line-height: 1.35; }
+.tk-key li svg { flex: none; }
+.tk-key li b { color: var(--ink); font-weight: 600; }
+.tk-meas { font-family: var(--display); font-weight: 700; font-size: 14px; color: var(--ink); }
+.tk-meas b { color: var(--ok); }
+</style>
+
+<script>
+(() => {
+  const C = { amber: "#ffb547", cool: "#7fd7ff", red: "#ff6a55", line: "#e8e4dc", empty: "#2a2d31", dim: "#6a6e73", gold: "#ffcb3d" };
+  let uid = 0;
+
+  // Glyphs on a 24x24 grid: filled shapes (the inner fill clips to them) plus optional detail strokes.
+  const G = {
+    thermo: { shape: '<rect x="9.5" y="2" width="5" height="14" rx="2.5"/><circle cx="12" cy="18" r="4.2"/>', fillTop: 2, fillBot: 22.2 },
+    coin: { shape: '<circle cx="12" cy="12" r="9"/>', detail: '<path d="M12 7.5v9M9.8 9.5h3.6a1.6 1.6 0 0 1 0 3.2h-2.8a1.6 1.6 0 0 0 0 3.2h3.6" fill="none" stroke-width="1.4"/>' },
+    crate: { shape: '<rect x="4" y="6" width="16" height="14" rx="1.5"/>', detail: '<path d="M4 10.5h16M10 6v4.5M14 6v4.5" fill="none" stroke-width="1.3"/>' },
+    colonist: { shape: '<circle cx="12" cy="7" r="4"/><path d="M4.5 21v-2.5a5 5 0 0 1 5-5h5a5 5 0 0 1 5 5V21z"/>' },
+    pod: { shape: '<rect x="6.5" y="3" width="11" height="18" rx="5.5"/>', detail: '<path d="M9 9h6" fill="none" stroke-width="1.3"/>' },
+    flame: { shape: '<path d="M12 2.5c1 3.5 5.5 6 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.6-5.4.3 1.6 1 2.6 2 3.1C10.6 8.6 11 5.4 12 2.5z"/>' },
+    upgrade: { shape: '<path d="M12 3l7 7h-4.2v4.5H9.2V10H5z"/><rect x="5" y="17" width="14" height="3.5" rx="1"/>' },
+    shield: { shape: '<path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z"/>' },
+    gate: { shape: '<path d="M3.5 21V10a8.5 8.5 0 0 1 17 0v11h-5v-8a3.5 3.5 0 0 0-7 0v8z"/>' },
+    waves: { shape: '<path d="M4 4l8 5 8-5v4.5l-8 5-8-5z"/><path d="M4 11.5l8 5 8-5V16l-8 5-8-5z"/>' },
+    skull: { shape: '<path d="M12 2.5a8.5 8.5 0 0 0-8.5 8.5c0 3 1.4 5 3.5 6.2V21h10v-3.8c2.1-1.2 3.5-3.2 3.5-6.2A8.5 8.5 0 0 0 12 2.5z"/>', detail: '<circle cx="8.8" cy="11.5" r="2" fill="#101214" stroke="none"/><circle cx="15.2" cy="11.5" r="2" fill="#101214" stroke="none"/>' },
+    face: { shape: '<circle cx="12" cy="12" r="9"/>', detail: '<circle cx="9" cy="10" r="1.2" fill="#101214" stroke="none"/><circle cx="15" cy="10" r="1.2" fill="#101214" stroke="none"/><path d="M8.5 15.5q3.5 -3 7 0" fill="none" stroke="#101214" stroke-width="1.5"/>' },
+    chain: { shape: '<rect x="2.5" y="8.5" width="11" height="7" rx="3.5"/><rect x="10.5" y="8.5" width="11" height="7" rx="3.5"/>' },
+    stopwatch: { shape: '<circle cx="12" cy="13.5" r="8.5"/><rect x="10" y="1.5" width="4" height="2.5" rx="1"/>' },
+  };
+
+  /**
+   * One token. o: { g: glyph, fill: 0..1 amount (inner fill), tick: 0..1 a line on the glyph (target/floor),
+   * ring: { mode: "hold"|"deadline", k: 0..1, warn }, pips: { n, done, part }, badge: "open"|"holding"|"earned"|"lost",
+   * pie: 0..1 (stopwatch face, time left), size }.
+   */
+  function token(o) {
+    const s = o.size ?? 44, id = "tk" + (uid++);
+    const g = G[o.g];
+    const H = o.pips ? 52 : 44;
+    let out = `<svg width="${s}" height="${(s * H) / 44}" viewBox="0 0 44 ${H}" aria-hidden="true">`;
+    // ring track and time ring
+    if (o.ring) {
+      const r = 20, L = 2 * Math.PI * r;
+      out += `<circle cx="22" cy="22" r="${r}" fill="none" stroke="${C.empty}" stroke-width="3"/>`;
+      const col = o.ring.mode === "hold" ? C.amber : o.ring.warn ? C.red : C.cool;
+      out += `<circle cx="22" cy="22" r="${r}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${(o.ring.k * L).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 22 22)"/>`;
+    }
+    // glyph: empty body, the amount filled from the bottom, then its outline and detail
+    out += `<g transform="${o.ring ? "translate(10 10)" : "translate(5 5) scale(1.42)"}"><defs><clipPath id="${id}">${g.shape}</clipPath></defs>`;
+    out += `<g fill="${C.empty}">${g.shape}</g>`;
+    if (o.fill !== undefined) {
+      const top = g.fillTop ?? 2, bot = g.fillBot ?? 22, y = bot - (bot - top) * o.fill;
+      out += `<rect x="0" y="${y.toFixed(1)}" width="24" height="${(24 - y).toFixed(1)}" fill="${o.fillColor ?? C.amber}" clip-path="url(#${id})"/>`;
+    }
+    if (o.pie !== undefined) {
+      // stopwatch face: the time left as a pie that empties clockwise
+      const a = o.pie * 2 * Math.PI, r = 6.6, cx = 12, cy = 13.5;
+      const x = cx + r * Math.sin(a), y = cy - r * Math.cos(a), big = o.pie > 0.5 ? 1 : 0;
+      const col = o.warn ? C.red : C.cool;
+      out += o.pie >= 0.999 ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${col}"/>` : `<path d="M${cx} ${cy}V${cy - r}A${r} ${r} 0 ${big} 1 ${x.toFixed(2)} ${y.toFixed(2)}z" fill="${col}"/>`;
+    }
+    out += `<g fill="none" stroke="${C.line}" stroke-width="1.4" stroke-linejoin="round">${g.shape}</g>`;
+    if (g.detail) out += `<g stroke="${C.line}" fill="none">${g.detail}</g>`;
+    if (o.tick !== undefined) {
+      const top = g.fillTop ?? 2, bot = g.fillBot ?? 22, y = bot - (bot - top) * o.tick;
+      out += `<line x1="${o.g === "thermo" ? 7 : 2}" x2="${o.g === "thermo" ? 17 : 22}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${o.tickColor ?? "#fff"}" stroke-width="1.6"/>`;
+    }
+    out += `</g>`;
+    // pips: one per step, the open one part-filled
+    if (o.pips) {
+      const { n, done, part = 0 } = o.pips, w = 6, gap = 2, x0 = 22 - (n * w + (n - 1) * gap) / 2;
+      for (let i = 0; i < n; i++) {
+        const x = x0 + i * (w + gap);
+        out += `<rect x="${x}" y="46" width="${w}" height="4" rx="1" fill="${C.empty}"/>`;
+        const k = i < done ? 1 : i === done ? part : 0;
+        if (k > 0) out += `<rect x="${x}" y="46" width="${(w * k).toFixed(1)}" height="4" rx="1" fill="${i < done ? C.amber : "#b07a25"}"/>`;
+      }
+    }
+    // star badge in the corner
+    if (o.badge) {
+      const star = (cx, cy, r) => { let p = ""; for (let i = 0; i < 10; i++) { const a = (i * Math.PI) / 5 - Math.PI / 2, rr = i % 2 ? r * 0.45 : r; p += `${i ? "L" : "M"}${(cx + rr * Math.cos(a)).toFixed(2)} ${(cy + rr * Math.sin(a)).toFixed(2)}`; } return p + "z"; };
+      const d = star(37, 7, 6.5);
+      out += `<circle cx="37" cy="7.4" r="7.6" fill="#101214"/>`;
+      if (o.badge === "earned") out += `<path d="${d}" fill="${C.gold}"/>`;
+      else if (o.badge === "holding") out += `<path d="${d}" fill="none" stroke="${C.gold}" stroke-width="1.4" stroke-linejoin="round"/>`;
+      else if (o.badge === "lost") out += `<path d="${d}" fill="${C.dim}"/><line x1="31" y1="13" x2="43" y2="1" stroke="${C.red}" stroke-width="2"/>`;
+      else out += `<path d="${d}" fill="none" stroke="${C.dim}" stroke-width="1.4" stroke-linejoin="round"/>`;
+    }
+    return out + `</svg>`;
+  }
+  window.tkToken = token;
+  window.tkGlyphs = G;
+  const vitCoin = (n) => `<span class="tk-vit">${token({ g: "coin", fill: 1, fillColor: C.gold, size: 22 })}${n}</span>`;
+  const vitHeat = (k, floor) => `<span class="tk-vit">${token({ g: "thermo", fill: k, tick: floor, tickColor: C.red, size: 22 })}${Math.round(k * 100)}%</span>`;
+  const vitWall = (k, floor) => `<span class="tk-vit">${token({ g: "shield", fill: k, fillColor: C.red, tick: floor, size: 22 })}${Math.round(k * 100)}%</span>`;
+
+  // ---- legend
+  document.getElementById("tkLegend").innerHTML = [
+    { t: "Inner fill = amount", p: "The glyph fills from the bottom like liquid, and drains when the amount drops. A number sits beside it when the target is over 5.",
+      ex: [[{ g: "crate", fill: 0.25 }, "5 of 23"], [{ g: "crate", fill: 0.7 }, "16 of 23"], [{ g: "thermo", fill: 0.5, tick: 0.7 }, "heat 50%, target line 70%"]] },
+    { t: "Outer ring = time", p: "Amber filling clockwise: hold it this long. Blue emptying like a pinwheel: time left before a deadline, turning red near the end.",
+      ex: [[{ g: "thermo", fill: 0.78, tick: 0.7, ring: { mode: "hold", k: 0.45 } }, "held 0:38 of 1:25"], [{ g: "coin", fill: 0.4, ring: { mode: "deadline", k: 0.6 } }, "race: 60% of the time left"], [{ g: "stopwatch", pie: 0.12, warn: true }, "time star, nearly out"]] },
+    { t: "Pips = steps", p: "One pip per level, wave or unlock. The open pip fills partway with credits saved toward it, boss damage, or the wave countdown.",
+      ex: [[{ g: "upgrade", pips: { n: 3, done: 1, part: 0.55 } }, "Lv 2 of 3, 55% saved"], [{ g: "waves", pips: { n: 5, done: 2, part: 0.3 } }, "wave 3 of 5 coming"]] },
+    { t: "Badge = star state", p: "Stars only. Hollow grey while open, gold outline while a \"never\" star is still holding, solid gold when earned, struck through when lost.",
+      ex: [[{ g: "flame", fill: 0.6, badge: "holding" }, "holding"], [{ g: "stopwatch", pie: 0.5, badge: "open" }, "open"], [{ g: "chain", fill: 1, badge: "earned" }, "earned"], [{ g: "face", fill: 0.3, badge: "lost" }, "lost"]] },
+  ].map((c) => `<div class="tk-card"><b>${c.t}</b><div class="tk-pair">${c.ex.map(([o, cap]) => `<div>${token(o)}<small>${cap}</small></div>`).join("")}</div><p>${c.p}</p></div>`).join("");
+
+  // ---- glyphs
+  document.getElementById("tkGlyphs").innerHTML = [
+    ["thermo", "Heat"], ["flame", "Reactor fuel"], ["coin", "Credits"], ["crate", "Goods, meals, stock"], ["colonist", "Colonists, hires"], ["pod", "Pods, rescues"],
+    ["upgrade", "Upgrades, unlocks"], ["shield", "Walls"], ["gate", "Gate"], ["waves", "Raid waves"], ["skull", "Boss"], ["face", "Customers"], ["chain", "Streaks"], ["stopwatch", "Time star"],
+  ].map(([g, cap]) => `<figure>${token({ g, fill: 0.55 })}<figcaption>${cap}</figcaption></figure>`).join("");
+
+  // ---- levels: [goal token, its number], two stars, vitals, then what each token says
+  const levels = [
+    { n: "L1", name: "First Light", goal: [{ g: "thermo", fill: 0.78, tick: 0.7, ring: { mode: "hold", k: 0.45 } }, "0:38<small>/1:25</small>"],
+      stars: [{ g: "flame", fill: 0.62, badge: "holding" }, { g: "thermo", fill: 0.78, tick: 0.35, tickColor: C.red, badge: "holding" }],
+      vit: vitCoin(4), noHeat: true,
+      key: [[0, "Keep heat above the white line (70%). The ring fills while it stays there: 38 s of 1:25 so far. Drop below and it drains."],
+        [1, "Star: the reactor never runs dry. Still holding."], [2, "Star: heat never below the red line (35%). Still holding."]],
+      note: "The goal and a star are both thermometers, so the heat vital drops out of the row." },
+    { n: "L11", name: "reactor to level 3", goal: [{ g: "upgrade", pips: { n: 3, done: 1, part: 0.55 } }, "<small>Lv</small>2<small>/3</small>"],
+      stars: [{ g: "stopwatch", pie: 0.74, badge: "open" }, { g: "thermo", fill: 0.58, tick: 0.5, tickColor: C.red, badge: "holding" }],
+      vit: vitCoin(66), noHeat: true,
+      key: [[0, "Upgrade the reactor to level 3. Level 2 done; 66 of 120 credits saved for the next."],
+        [1, "Star: finish before the stopwatch empties (2:01 of 2:44 left)."], [2, "Star: heat never below 50%. Holding, at 58%."]] },
+    { n: "L5", name: "defend", goal: [{ g: "waves", pips: { n: 5, done: 2, part: 0.3 } }, "<small>wave</small>3<small>/5</small>"],
+      stars: [{ g: "shield", fill: 0.72, fillColor: C.red, tick: 0.8, badge: "lost" }, { g: "gate", fill: 1, badge: "holding" }],
+      vit: vitCoin(40) + vitHeat(0.64), noHeat: true,
+      key: [[0, "Hold off 5 waves. Two beaten; the third arrives when its pip fills."],
+        [1, "Star: walls never below 80%. Lost: they are at 72%."], [2, "Star: the gate is never breached. Holding."]],
+      note: "Wall health is the shield star itself, so it needs no separate vital." },
+    { n: "L24", name: "earn within a time", goal: [{ g: "coin", fill: 0.41, ring: { mode: "deadline", k: 0.38 } }, "122<small>/299</small>"],
+      stars: [{ g: "stopwatch", pie: 0.55, badge: "open" }, { g: "face", fill: 1, badge: "holding" }],
+      vit: vitCoin(122) + vitHeat(0.7),
+      key: [[0, "Earn 299 credits within 1:43. 122 so far; the blue ring shows 39 s of the window left."],
+        [1, "Star: finish before 2:24 overall."], [2, "Star: no angry customers. Holding."]],
+      note: "Amount and clock share one glyph without clashing: fill is the amount, ring is the time." },
+    { n: "L35", name: "sales streak", goal: [{ g: "chain", fill: 0.15, ring: { mode: "hold", k: 0.15 } }, "12<small>/80</small>"],
+      stars: [{ g: "stopwatch", pie: 0.18, warn: true, badge: "open" }, { g: "face", fill: 0.3, badge: "lost" }],
+      vit: vitCoin(31) + vitHeat(0.46),
+      key: [[0, "Make 80 sales in a row. 12 so far; a missed sale breaks the chain and the count drops to 0."],
+        [1, "Star: beat the clock. Under 15 s left, so it turns red."], [2, "Star: no angry customers. Lost."]] },
+  ];
+  document.getElementById("tkLevels").innerHTML = levels.map((L) => {
+    const toks = [token(L.goal[0]), ...L.stars.map((s) => token(s))];
+    const row = `<div class="tk-row"><span class="tk-goal">${toks[0]}<span class="tk-num">${L.goal[1]}</span></span>${toks[1]}${toks[2]}<span class="tk-sep"></span>${L.vit}<span class="tk-sp"></span><span class="tk-menu">≡</span></div>`;
+    const mini = (i) => i === 0 ? token({ ...L.goal[0], size: 26, badge: undefined }) : token({ ...L.stars[i - 1], size: 26 });
+    return `<div class="tk-lv"><h3>${L.n}<span>${L.name}</span></h3><div class="tk-phone">${row}<div class="tk-map"></div></div>
+      <ul class="tk-key">${L.key.map(([i, t]) => `<li>${mini(i)}<span>${t}</span></li>`).join("")}</ul>${L.note ? `<p style="margin:0;font-size:13px;color:var(--muted)">${L.note}</p>` : ""}</div>`;
+  }).join("");
+
+  // measured: the row's height against today's header (the first frame on this page)
+  const todayHud = document.querySelector("[data-base] .hud");
+  const row = document.querySelector(".tk-row");
+  if (todayHud && row) {
+    const k = 360 / row.parentElement.offsetWidth, h = Math.round(row.offsetHeight * k), base = todayHud.offsetHeight;
+    const m = document.createElement("p");
+    m.className = "tk-meas";
+    m.innerHTML = `Row height at phone size: ${h} px · <b>${base - h} px more map than today (−${Math.round(((base - h) / base) * 100)}%)</b>`;
+    document.getElementById("tkLevels").before(m);
+  }
+})();
+</script>
+
+<div class="intro" style="margin-top:48px">
+  <h1>Learn once, then icons only</h1>
+  <p>Each level opens by showing its three goals one at a time, full sentence beside a large icon, with the icon's place in the top bar outlined. Tap to see the next. After the third, play starts and the bar shows icons alone. Tapping an icon brings its sentence back until the next tap. A heat bar runs across the very top on every level.</p>
+  <p>Read each strip left to right. Each level also shows one of three ways to warn that a level or star is about to be lost. Assumed here: coins stay as a number in the bar, and the heat bar marks the level's heat lines (white for a goal, red for a floor).</p>
+</div>
+<div id="wkLevels" class="wk"></div>
+
+<style>
+.wk { display: grid; gap: 34px; }
+.wk-lv { display: grid; gap: 10px; min-width: 0; }
+.wk-lv > h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 22px; }
+.wk-lv > h2 span { color: var(--muted); font-size: 15px; font-weight: 700; margin-left: 6px; }
+.wk-lv > p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; max-width: 75ch; }
+.wk-strip { display: flex; gap: 14px; overflow-x: auto; padding: 4px 2px 12px; scroll-snap-type: x mandatory; }
+.wk-f { flex: none; width: 240px; display: grid; gap: 6px; scroll-snap-align: start; align-content: start; }
+.wk-f > b { font-family: var(--display); font-weight: 800; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
+.wk-f > p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+.wk-ph { position: relative; height: 420px; border-radius: 16px; overflow: hidden; box-shadow: 0 0 0 2px #2c2f33; background:
+  radial-gradient(circle at 30% 40%, rgba(0,0,0,.18) 0 2px, transparent 3px) 0 0/38px 31px, linear-gradient(180deg, var(--sand), var(--sand-dark)); }
+/* the base on the map */
+.wk-base { position: absolute; left: 50%; top: 58%; width: 150px; height: 90px; transform: translate(-50%, -50%) skewX(-18deg); background: rgba(60,62,66,.55); border-radius: 6px; }
+.wk-core { position: absolute; left: 50%; top: 55%; width: 40px; height: 30px; margin: -15px 0 0 -20px; border-radius: 50% 50% 6px 6px; background: #3c3f42; box-shadow: inset 0 5px 0 #55595d; }
+.wk-core::before { content: ""; position: absolute; left: 12px; top: -6px; width: 16px; height: 16px; border-radius: 50%; background: #ffe58a; box-shadow: 0 0 12px #ffd34d; }
+.wk-hero { position: absolute; left: 34%; top: 66%; width: 10px; height: 22px; border-radius: 5px 5px 3px 3px; background: #d8d2c4; box-shadow: 0 0 0 2px rgba(95,211,138,.9); }
+.wk-wall { position: absolute; left: 6%; right: 6%; top: 40%; height: 6px; background: #5b5348; transform: skewY(-8deg); }
+/* the top: heat bar, then the icon row */
+.wk-top { position: absolute; left: 0; right: 0; top: 0; z-index: 3; }
+.wk-heat { height: 9px; background: #1a1c1f; position: relative; }
+.wk-heat i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #e8862c, #ffb547); }
+.wk-heat s { position: absolute; top: -1px; bottom: -1px; width: 2px; background: #fff; }
+.wk-heat s.floor { background: var(--bad); }
+.wk-row { background: rgba(16,18,20,.92); display: flex; align-items: center; gap: 4px; padding: 3px 6px; }
+.wk-row svg { flex: none; }
+.wk-row .slot { width: 36px; min-height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center; }
+.wk-row .slot.next { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.wk-row .slot.empty { outline: 1px dashed #4a4e53; outline-offset: -4px; }
+.wk-row .num { font: 800 13px/1 var(--display); color: #fff; white-space: nowrap; margin-right: 2px; }
+.wk-row .num small { color: var(--muted); font-size: 10px; }
+.wk-row .sp { flex: 1; }
+.wk-row .coins { display: flex; align-items: center; gap: 2px; font: 800 13px/1 var(--display); color: #fff; }
+.wk-row .menu { width: 22px; height: 22px; border-radius: 50%; background: #2a2d31; color: #fff; display: grid; place-items: center; font-size: 12px; flex: none; }
+/* intro card */
+.wk-dim { position: absolute; inset: 0; background: rgba(8,9,10,.62); z-index: 2; }
+.wk-card { position: absolute; left: 14px; right: 14px; top: 34%; z-index: 4; display: grid; justify-items: center; gap: 10px; text-align: center; color: #fff; }
+.wk-card .kind { font: 800 11px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.wk-card .say { font: 600 17px/1.3 var(--body); text-wrap: balance; }
+.wk-card .tap { font: 600 11.5px var(--body); color: rgba(255,255,255,.6); display: flex; gap: 6px; align-items: center; }
+.wk-card .dots { display: inline-flex; gap: 4px; }
+.wk-card .dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.3); }
+.wk-card .dots i.on { background: #fff; }
+/* tapped icon */
+.wk-bubble { position: absolute; z-index: 4; top: 56px; left: 10px; right: 10px; background: #f2efe8; color: #16181a; border-radius: 8px; padding: 8px 10px; font: 600 13.5px/1.35 var(--body); box-shadow: 0 6px 16px rgba(0,0,0,.4); }
+.wk-bubble::before { content: ""; position: absolute; top: -6px; left: var(--x, 30px); width: 12px; height: 12px; background: #f2efe8; transform: rotate(45deg); }
+.wk-bubble small { display: block; color: #6c6a64; font-size: 11px; margin-top: 3px; font-weight: 600; }
+.wk-row .slot.lit { background: rgba(255,255,255,.14); }
+/* alert A: frost creeping in, heat bar flashing red, the token shaking */
+.al-frost { position: absolute; inset: 0; z-index: 1; pointer-events: none; box-shadow: inset 0 0 40px 16px rgba(170,225,255,.85); background: radial-gradient(ellipse at center, transparent 55%, rgba(200,235,255,.25)); }
+.al-heat i { background: var(--bad) !important; }
+.wk-row .slot.danger { background: rgba(226,84,60,.35); box-shadow: 0 0 0 2px var(--bad); }
+.al-shake { position: absolute; z-index: 4; font: 800 10px var(--display); color: var(--bad); }
+/* alert B: the token drops out of the bar as a big countdown */
+.al-pop { position: absolute; z-index: 4; top: 66px; left: 62px; background: rgba(16,18,20,.94); border-radius: 12px; padding: 8px 14px 8px 8px; display: flex; align-items: center; gap: 8px; box-shadow: 0 0 0 2px var(--bad), 0 8px 20px rgba(0,0,0,.5); }
+.al-pop b { font: 800 30px/1 var(--display); color: var(--bad); font-variant-numeric: tabular-nums; }
+.al-pop .tether { position: absolute; left: var(--tx, 50%); top: -14px; width: 2px; height: 14px; background: var(--bad); }
+.wk-row .slot.away { opacity: .25; }
+/* alert C: an edge arrow to the trouble, plus the token blinking */
+.al-arrow { position: absolute; z-index: 3; right: 6px; top: 46%; display: flex; align-items: center; gap: 4px; flex-direction: row-reverse; }
+.al-arrow .chev { width: 0; height: 0; border-top: 16px solid transparent; border-bottom: 16px solid transparent; border-left: 22px solid var(--bad); filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
+.al-arrow .mini { background: rgba(16,18,20,.9); border-radius: 50%; padding: 2px; box-shadow: 0 0 0 2px var(--bad); display: grid; }
+.al-hit { position: absolute; z-index: 2; right: -10px; top: 38%; width: 70px; height: 50px; border-radius: 50%; background: radial-gradient(circle, rgba(226,84,60,.55), transparent 70%); }
+.wk-row .slot.blink { box-shadow: 0 0 0 2px var(--bad); background: rgba(226,84,60,.2); }
+.wk-cmp { background: var(--panel); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; max-width: 900px; }
+.wk-cmp h3 { margin: 0; font-family: var(--display); font-size: 18px; }
+.wk-cmp ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.wk-cmp b { color: var(--ink); }
+</style>
+
+<script>
+(() => {
+  const T = window.tkToken;
+  if (!T) return;
+  const C = { red: "#ff6a55", gold: "#ffcb3d" };
+  const coin = (n) => `<span class="coins">${T({ g: "coin", fill: 1, fillColor: C.gold, size: 18 })}${n}</span>`;
+  const heatBar = (k, lines, cls = "") => `<div class="wk-heat ${cls}"><i style="width:${k * 100}%"></i>${lines.map(([p, f]) => `<s class="${f ? "floor" : ""}" style="left:${p * 100}%"></s>`).join("")}</div>`;
+
+  /** The top bar: heat, then three slots (goal with its number, two stars), coins, menu. `mode` per slot: "", next, empty, lit, danger, away, blink. */
+  function top(L, opt = {}) {
+    const st = opt.state ?? L.play;
+    const slot = (i) => {
+      const m = opt.slots?.[i] ?? "";
+      const tok = m === "empty" ? "" : T({ ...st[i], size: 36 });
+      const num = i === 0 && m !== "empty" && L.num ? `<span class="num">${st.num ?? L.num}</span>` : "";
+      return `<span class="slot ${m}">${tok}</span>${num}`;
+    };
+    return `<div class="wk-top">${heatBar(opt.heat ?? L.heat, L.lines, opt.heatCls)}<div class="wk-row">${slot(0)}${slot(1)}${slot(2)}<span class="sp"></span>${coin(opt.coins ?? L.coins)}<span class="menu">≡</span></div></div>`;
+  }
+  const map = (L) => `${L.wall ? '<div class="wk-wall"></div>' : ""}<div class="wk-base"></div><div class="wk-core"></div><div class="wk-hero"></div>`;
+  const kinds = ["Goal", "Star", "Star"];
+
+  function intro(L, i) {
+    const slots = [0, 1, 2].map((k) => (k < i ? "" : k === i ? "next" : "empty"));
+    return `<div class="wk-ph">${map(L)}<div class="wk-dim"></div>${top(L, { slots, state: L.start })}
+      <div class="wk-card"><span class="kind">${kinds[i]}</span>${T({ ...L.start[i], size: 96 })}<div class="say">${L.say[i]}</div>
+      <div class="tap"><span class="dots">${[0, 1, 2].map((k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</span>${i < 2 ? "Tap for the next" : "Tap to start"}</div></div></div>`;
+  }
+  const play = (L) => `<div class="wk-ph">${map(L)}${top(L)}</div>`;
+  function tapped(L, i) {
+    const slots = [0, 1, 2].map((k) => (k === i ? "lit" : ""));
+    const x = [22, 70, 110][i] ?? 30;
+    return `<div class="wk-ph">${map(L)}${top(L, { slots })}<div class="wk-bubble" style="--x:${x}px">${L.say[i]}<small>Tap anywhere to close</small></div></div>`;
+  }
+
+  const levels = [
+    {
+      id: "L1", name: "First Light · keep heat above 70% for 1:25",
+      heat: 0.62, lines: [[0.7, false], [0.35, true]], coins: 4, num: "0:00",
+      start: [{ g: "thermo", fill: 0.5, tick: 0.7, ring: { mode: "hold", k: 0 } }, { g: "flame", fill: 0.6, badge: "holding" }, { g: "thermo", fill: 0.5, tick: 0.35, tickColor: C.red, badge: "holding" }],
+      play: [{ g: "thermo", fill: 0.78, tick: 0.7, ring: { mode: "hold", k: 0.45 } }, { g: "flame", fill: 0.62, badge: "holding" }, { g: "thermo", fill: 0.78, tick: 0.35, tickColor: C.red, badge: "holding" }],
+      say: ["Keep heat above the line (70%) for 1:25. The ring fills while you stay above it.", "Star: never let the reactor run dry.", "Star: never let heat drop below 35%."],
+      tap: 2,
+      alert: {
+        name: "Alert A · Frost creeps in",
+        how: "Heat has fallen to 38%, three points above the star's floor. The screen edges frost over, the heat bar turns red, and the star at risk glows red and shakes. Nothing to read: the cold itself is the warning.",
+        frame(L) {
+          const state = [{ ...L.play[0], fill: 0.38, ring: { mode: "hold", k: 0 } }, { ...L.play[1], fill: 0.3 }, { ...L.play[2], fill: 0.38 }];
+          state.num = "0:00";
+          return `<div class="wk-ph">${map(L)}<div class="al-frost"></div>${top(L, { state, heat: 0.38, heatCls: "al-heat", slots: ["", "", "danger"] })}</div>`;
+        },
+      },
+    },
+    {
+      id: "L11", name: "reactor to level 3",
+      heat: 0.58, lines: [[0.5, true]], coins: 66, num: "<small>Lv</small>2",
+      start: [{ g: "upgrade", pips: { n: 3, done: 0, part: 0 } }, { g: "stopwatch", pie: 1, badge: "open" }, { g: "thermo", fill: 0.6, tick: 0.5, tickColor: C.red, badge: "holding" }],
+      play: [{ g: "upgrade", pips: { n: 3, done: 1, part: 0.55 } }, { g: "stopwatch", pie: 0.74, badge: "open" }, { g: "thermo", fill: 0.58, tick: 0.5, tickColor: C.red, badge: "holding" }],
+      say: ["Upgrade the reactor to level 3. Each pip is a level; the open one fills as you save credits for it.", "Star: finish before the stopwatch runs out (2:44).", "Star: never let heat drop below 50%."],
+      tap: 0,
+      alert: {
+        name: "Alert B · The icon steps forward",
+        how: "15 seconds left on the time star. Its icon leaves the bar and drops onto the map as a big red countdown, tied to its empty slot, and stays until the star is won or lost. Best for things a number says clearly: time left, walls left.",
+        frame(L) {
+          const state = [{ ...L.play[0], pips: { n: 3, done: 1, part: 0.9 } }, { g: "stopwatch", pie: 0.09, warn: true, badge: "open" }, L.play[2]];
+          state.num = "<small>Lv</small>2";
+          return `<div class="wk-ph">${map(L)}${top(L, { state, slots: ["", "away", ""] })}<div class="al-pop" style="--tx:31px"><span class="tether"></span>${T({ g: "stopwatch", pie: 0.09, warn: true, size: 46 })}<b>0:15</b></div></div>`;
+        },
+      },
+    },
+    {
+      id: "L5", name: "defend · hold off 5 waves",
+      heat: 0.64, lines: [], coins: 40, num: "3<small>/5</small>", wall: true,
+      start: [{ g: "waves", pips: { n: 5, done: 0, part: 0 } }, { g: "shield", fill: 1, fillColor: C.red, tick: 0.8, badge: "holding" }, { g: "gate", fill: 1, badge: "holding" }],
+      play: [{ g: "waves", pips: { n: 5, done: 2, part: 0.3 } }, { g: "shield", fill: 0.9, fillColor: C.red, tick: 0.8, badge: "holding" }, { g: "gate", fill: 1, badge: "holding" }],
+      say: ["Hold off 5 raid waves. Each pip is a wave; the next fills as it approaches.", "Star: never let the walls fall below 80%.", "Star: never let raiders through the gate."],
+      tap: 1,
+      alert: {
+        name: "Alert C · Point to the trouble",
+        how: "Walls at 82%, two points above the star's line, and the damage is off screen. A red arrow at the screen edge carries the shield icon and points at the wall under attack; the star's slot blinks. The phone gives one short buzz. It says where to go, not just that something is wrong.",
+        frame(L) {
+          const state = [L.play[0], { g: "shield", fill: 0.82, fillColor: C.red, tick: 0.8, badge: "holding" }, L.play[2]];
+          state.num = "3<small>/5</small>";
+          return `<div class="wk-ph">${map(L)}<div class="al-hit"></div>${top(L, { state, slots: ["", "blink", ""] })}<div class="al-arrow"><span class="chev"></span><span class="mini">${T({ g: "shield", fill: 0.82, fillColor: C.red, tick: 0.8, size: 30 })}</span></div></div>`;
+        },
+      },
+    },
+  ];
+
+  document.getElementById("wkLevels").innerHTML = levels.map((L) => {
+    const frames = [
+      ["1 of 3 · the goal", intro(L, 0), "The map dims. The goal's icon is shown large with its sentence; its place in the bar is outlined."],
+      ["2 of 3 · first star", intro(L, 1), "The goal's icon now sits in the bar. The next slot is outlined."],
+      ["3 of 3 · second star", intro(L, 2), "Last one. The next tap starts the level."],
+      ["Playing", play(L), "Icons only. The heat bar runs across the very top on every level."],
+      ["Tapped an icon", tapped(L, L.tap), "Its sentence comes back under the bar until the next tap anywhere."],
+      [L.alert.name, L.alert.frame(L), L.alert.how],
+    ];
+    return `<section class="wk-lv"><h2>${L.id}<span>${L.name}</span></h2><div class="wk-strip">${frames.map(([b, ph, p]) => `<div class="wk-f"><b>${b}</b>${ph}<p>${p}</p></div>`).join("")}</div></section>`;
+  }).join("") + `<div class="wk-cmp"><h3>The three alerts side by side</h3><ul>
+    <li><b>A · Frost creeps in</b> fits anything about heat or the reactor. It is felt more than read and needs no new UI, but it can't say <i>which</i> star is at risk on its own, so the token glows too.</li>
+    <li><b>B · The icon steps forward</b> fits countdowns. It is the clearest of the three and can't be missed, but it covers part of the map, so it should only appear in the last stretch (here, 15 s).</li>
+    <li><b>C · Point to the trouble</b> fits anything with a place: a wall, a gate, a pod freezing, a machine about to overflow. It is the only one that tells the player where to walk.</li>
+    <li>Any of them can scale between a star at risk (soft: glow, one buzz) and the level about to be lost (strong: plus a sound and a pulsing heat bar).</li></ul></div>`;
+})();
+</script>
+
+<div class="intro" id="floatIntro" style="margin-top:56px">
+  <h1>Floating goals under the heat bar</h1>
+  <p>Level 7, Hunters' Moon: hunt 31 protein, finish in 3:57, make 3 tow trips. A thin heat rail runs along the top edge, as in the first E mockup. Under it, the level's name sits small at the top left (tap it for the menu) and the coin count at the top right (scrap on defence levels). The three goal icons float below them, with no frame and no text. A goal turns into a gold star when it's won; one that can no longer be won goes grey and cracks. Retry and Settings float in the bottom corners as bare icons.</p>
+  <p>Urgent alerts use the frost from Alert A: the screen edges ice over, and the one thing in danger pulses and shakes while the phone vibrates. That's a goal icon when a goal is about to be missed, or the heat bar when the colony is about to freeze. The two alert frames move; everything else is still.</p>
+</div>
+<div class="fl" id="flStrips"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="flGrain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.25  0 0 0 0 0.18  0 0 0 0 0.10  0 0 0 0.55 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+    <filter id="flDunes" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.035" numOctaves="3" seed="9" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.30  0 0 0 0 0.18  0 0 0 0.45 -0.08"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+    <filter id="flSoft"><feGaussianBlur stdDeviation="3"/></filter>
+    <filter id="flIce" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="turbulence" baseFrequency="0.06" numOctaves="2" seed="2" result="t"/>
+      <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.85  0 0 0 0 0.94  0 0 0 0 1  0 0 0 1.4 -0.5"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+    <radialGradient id="flGlow"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffc24a" stop-opacity=".55"/><stop offset="1" stop-color="#ff9a3c" stop-opacity="0"/></radialGradient>
+    <radialGradient id="flOrb" cx=".4" cy=".35"><stop offset="0" stop-color="#fff7d6"/><stop offset=".5" stop-color="#ffcf55"/><stop offset="1" stop-color="#c77a12"/></radialGradient>
+    <linearGradient id="flSand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c7a67c"/><stop offset="1" stop-color="#a5865f"/></linearGradient>
+    <linearGradient id="flSlab" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c6a66"/><stop offset="1" stop-color="#4a4844"/></linearGradient>
+    <linearGradient id="flDome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6e2da"/><stop offset="1" stop-color="#9c978e"/></linearGradient>
+    <radialGradient id="flFrost" cx=".5" cy=".5" r=".75"><stop offset=".55" stop-color="#cfefff" stop-opacity="0"/><stop offset=".85" stop-color="#cfefff" stop-opacity=".55"/><stop offset="1" stop-color="#f2fbff" stop-opacity=".95"/></radialGradient>
+    <linearGradient id="flGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff1a8"/><stop offset=".45" stop-color="#ffcb3d"/><stop offset="1" stop-color="#d98a12"/></linearGradient>
+    <linearGradient id="flHeat" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e2543c"/><stop offset=".35" stop-color="#ff8a2c"/><stop offset="1" stop-color="#ffc247"/></linearGradient>
+  </defs>
+</svg>
+
+<style>
+.fl { display: grid; gap: 40px; }
+.fl-lv { display: grid; gap: 10px; min-width: 0; }
+.fl-lv > h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 22px; }
+.fl-lv > h2 span { color: var(--muted); font-size: 15px; font-weight: 700; margin-left: 6px; }
+.fl-strip { display: flex; gap: 16px; overflow-x: auto; padding: 4px 2px 14px; scroll-snap-type: x mandatory; }
+.fl-f { flex: none; width: 250px; display: grid; gap: 7px; scroll-snap-align: start; align-content: start; }
+.fl-f > b { font-family: var(--display); font-weight: 800; font-size: 14px; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); }
+.fl-f > p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.fl-ph { position: relative; width: 250px; height: 460px; border-radius: 22px; overflow: hidden; background: #a5865f; box-shadow: 0 0 0 3px #222427, 0 0 0 4px #3a3d41, 0 18px 34px rgba(0,0,0,.55); isolation: isolate; }
+.fl-ph > svg.scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* heat bar along the top edge */
+.fl-heat { position: absolute; left: 0; right: 0; top: 0; height: 6px; z-index: 5; background: rgba(20,22,25,.32); }
+.fl-heat i { position: absolute; left: 0; top: 0; bottom: 0; background: #ffb547; }
+.fl-heat s { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; opacity: .9; }
+.fl-name { position: absolute; z-index: 5; top: 14px; left: 10px; display: flex; align-items: center; gap: 4px; font: 800 13px/1 var(--display); letter-spacing: .02em; color: #fff; background: rgba(18,20,23,.72); padding: 5px 8px 5px 9px; border-radius: 12px; box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
+.fl-name::after { content: ""; width: 5px; height: 5px; border: solid #fff; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg) translateY(-2px); opacity: .75; margin-left: 2px; }
+.fl-name.open { background: rgba(255,154,60,.92); color: #1b1206; }
+.fl-name.open::after { border-color: #1b1206; transform: rotate(-135deg) translateY(-1px); }
+.fl-cash { position: absolute; z-index: 5; top: 14px; right: 10px; display: flex; align-items: center; gap: 4px; font: 800 15px/1 var(--display); color: #fff; background: rgba(18,20,23,.72); padding: 4px 9px 4px 5px; border-radius: 12px; box-shadow: 0 0 0 1px rgba(255,255,255,.12); font-variant-numeric: tabular-nums; }
+.fl-corner { position: absolute; z-index: 5; bottom: 14px; width: 42px; height: 42px; display: grid; place-items: center; color: #fff; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.6)) drop-shadow(0 0 5px rgba(0,0,0,.3)); }
+.fl-corner.l { left: 12px; } .fl-corner.r { right: 12px; }
+.fl-corner svg { width: 26px; height: 26px; }
+/* the floating goals */
+.fl-goals { position: absolute; left: 0; right: 0; top: 46px; z-index: 5; display: flex; justify-content: space-around; padding: 0 18px; }
+.fl-disc { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; position: relative;
+  background: radial-gradient(circle at 50% 35%, rgba(44,48,53,.86), rgba(18,20,23,.86)); box-shadow: 0 0 0 1px rgba(255,255,255,.14), 0 6px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12); }
+.fl-disc svg { display: block; }
+.fl-disc.star { background: none; box-shadow: none; }
+.fl-disc.star svg { filter: drop-shadow(0 0 8px rgba(255,200,70,.75)) drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+.fl-disc.lost { filter: grayscale(1) brightness(.75); opacity: .8; }
+.fl-disc.lost .crack { position: absolute; inset: 0; }
+.fl-disc.sel { box-shadow: 0 0 0 2px #fff, 0 6px 14px rgba(0,0,0,.35); }
+/* variant: goals inside the heat bar */
+.fl-bar2 { position: absolute; left: 8px; right: 8px; top: 48px; height: 50px; z-index: 5; border-radius: 26px; overflow: hidden;
+  background: rgba(18,20,23,.78); box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 6px 14px rgba(0,0,0,.35); display: flex; align-items: center; justify-content: space-around; padding: 0 6px; }
+.fl-bar2 > i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(226,84,60,.55), rgba(255,138,44,.5) 35%, rgba(255,194,71,.5)); }
+.fl-bar2 > i::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: #ffd27a; box-shadow: 0 0 8px #ffb547; }
+.fl-bar2 .fl-disc { width: 40px; height: 40px; background: rgba(14,15,17,.7); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); z-index: 1; }
+.fl-bar2 .fl-disc.star { background: none; box-shadow: none; }
+/* tapped: sentence bubble */
+.fl-bubble { position: absolute; z-index: 6; top: 112px; left: 14px; right: 14px; background: rgba(250,248,243,.97); color: #17191b; border-radius: 12px; padding: 10px 12px; font: 600 14px/1.35 var(--body); box-shadow: 0 10px 24px rgba(0,0,0,.35); }
+.fl-bubble::before { content: ""; position: absolute; top: -7px; left: var(--x, 40px); width: 14px; height: 14px; background: rgba(250,248,243,.97); transform: rotate(45deg); border-radius: 2px; }
+.fl-bubble small { display: block; color: #77746d; font-size: 11.5px; margin-top: 4px; }
+/* menu sheet pulled down from the handle */
+.fl-sheet { position: absolute; left: 0; right: 0; top: 42px; z-index: 6; background: rgba(24,26,29,.97); border-radius: 0 0 18px 18px; padding: 16px 16px 14px; display: grid; gap: 10px; box-shadow: 0 14px 30px rgba(0,0,0,.5); }
+.fl-sheet .eyebrow { font: 800 11px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.fl-sheet h4 { margin: -6px 0 0; font: 800 24px/1.1 var(--display); color: #fff; }
+.fl-sheet .goals { display: grid; gap: 6px; }
+.fl-sheet .goals div { display: flex; align-items: center; gap: 8px; font: 600 12.5px/1.3 var(--body); color: #d8d4cc; }
+.fl-sheet .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fl-sheet .btns span { text-align: center; font: 800 13px var(--display); letter-spacing: .04em; text-transform: uppercase; color: #fff; background: #33373b; border-radius: 8px; padding: 9px 0; }
+.fl-sheet .btns span.go { background: var(--accent); color: #1b1206; }
+.fl-sheet .grab { width: 30px; height: 4px; border-radius: 2px; background: #555a60; justify-self: center; margin-top: 2px; }
+.fl-dim { position: absolute; inset: 0; z-index: 5; background: rgba(0,0,0,.35); }
+/* coins beside the hero */
+.fl-coins { position: absolute; z-index: 4; font: 800 13px/1 var(--display); color: #fff; background: rgba(18,20,23,.75); padding: 2px 6px; border-radius: 8px; }
+/* urgent: frost overlay and the item pulsing + shaking, with vibration marks */
+.fl-frost { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.fl-buzz { position: absolute; inset: -9px; pointer-events: none; }
+.fl-buzz::before, .fl-buzz::after { content: ""; position: absolute; top: 50%; width: 8px; height: 22px; margin-top: -11px; border: 2px solid rgba(255,255,255,.85); border-color: transparent rgba(255,255,255,.85) transparent transparent; border-radius: 50%; }
+.fl-buzz::before { left: -6px; transform: scaleX(-1); }
+.fl-buzz::after { right: -6px; }
+.fl-alert { box-shadow: 0 0 0 2px #ff6a55, 0 0 18px rgba(255,106,85,.75), 0 6px 14px rgba(0,0,0,.35) !important; }
+.fl-heat.fl-alert { height: 8px; background: #1f7fc2; box-shadow: 0 0 10px 2px rgba(31,127,194,.8) !important; }
+.fl-heat.fl-alert i { background: #e6f7ff !important; box-shadow: 0 0 8px #fff; }
+@media (prefers-reduced-motion: no-preference) {
+  .fl-alert { animation: flPulse 1s ease-in-out infinite; }
+  .fl-alert > svg, .fl-heat.fl-alert i { animation: flShake .5s linear infinite; }
+  .fl-buzz { animation: flBuzz .5s steps(2) infinite; }
+  @keyframes flPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+  @keyframes flShake { 0%, 100% { translate: 0 0; } 20% { translate: -2px 0; } 40% { translate: 2px 0; } 60% { translate: -1.5px 0; } 80% { translate: 1.5px 0; } }
+  @keyframes flBuzz { 50% { opacity: .2; } }
+}
+.fl-notes { background: var(--panel); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; max-width: 900px; }
+.fl-notes h3 { margin: 0; font-family: var(--display); font-size: 18px; }
+.fl-notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.fl-notes b { color: var(--ink); }
+</style>
+
+<script>
+(() => {
+  const T = window.tkToken, G = window.tkGlyphs;
+  if (!T || !G) return;
+  // protein: a drumstick
+  G.meat = { shape: '<path d="M14.5 3.2a6.3 6.3 0 0 1 6.3 6.3c0 4.4-4.3 7.2-8.3 7.2l-2.2 2.2a2.3 2.3 0 1 1-2.9 2.9 2.3 2.3 0 1 1-2.9-2.9l2.2-2.2C6.7 12.7 9.4 3.2 14.5 3.2z"/>' };
+
+  // ---------- the map: sand, a base, the reactor, habs, hopper flats, pods, the hero with coins
+  function scene(o = {}) {
+    const hx = 92, hy = 318;
+    const tiles = [];
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      const x = 125 + (i - j) * 22, y = 252 + (i + j) * 12;
+      tiles.push(`<path d="M${x} ${y}l22 12-22 12-22-12z" fill="url(#flSlab)" stroke="#3d3b38" stroke-width=".8"/>`);
+    }
+    const rock = (x, y, r) => `<ellipse cx="${x}" cy="${y + 2}" rx="${r * 1.2}" ry="${r * .5}" fill="#000" opacity=".18"/><path d="M${x - r} ${y}q${r * .3} ${-r * 1.1} ${r} ${-r * 1.0}q${r * .8} 0 ${r} ${r}z" fill="#7a6650"/>`;
+    const pod = (x, y) => `<ellipse cx="${x}" cy="${y + 9}" rx="13" ry="4" fill="#000" opacity=".2"/><rect x="${x - 8}" y="${y - 12}" width="16" height="22" rx="8" fill="#d9eef8" stroke="#8cc4dd" stroke-width="1.2"/><rect x="${x - 4}" y="${y - 6}" width="8" height="6" rx="3" fill="#7fd7ff" opacity=".8"/>`;
+    const hopper = (x, y, flip) => `<g transform="translate(${x} ${y}) scale(${flip ? -1 : 1} 1)"><ellipse cx="0" cy="6" rx="10" ry="3" fill="#000" opacity=".2"/><ellipse cx="0" cy="0" rx="9" ry="6" fill="#8a6a4a"/><circle cx="7" cy="-3" r="3.5" fill="#9b7955"/><path d="M-6 4l-4 5M4 4l3 5" stroke="#5a4532" stroke-width="1.6"/></g>`;
+    const coins = o.coins ? Array.from({ length: 4 }, (_, k) => `<ellipse cx="${hx + 20}" cy="${hy + 4 - k * 3}" rx="6" ry="2.6" fill="url(#flGold)" stroke="#b77810" stroke-width=".6"/>`).join("") : "";
+    return `<svg class="scene" viewBox="0 0 250 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect width="250" height="460" fill="url(#flSand)"/>
+      <rect width="250" height="460" fill="#fff" filter="url(#flDunes)"/>
+      <rect width="250" height="460" fill="#fff" filter="url(#flGrain)" opacity=".7"/>
+      ${rock(30, 150, 9)}${rock(210, 120, 7)}${rock(40, 420, 10)}${rock(225, 400, 8)}${rock(180, 190, 5)}
+      ${pod(205, 160)}${pod(40, 215)}
+      ${hopper(70, 130, false)}${hopper(160, 105, true)}
+      <ellipse cx="125" cy="300" rx="100" ry="40" fill="#000" opacity=".12" filter="url(#flSoft)"/>
+      ${tiles.join("")}
+      <g><ellipse cx="78" cy="270" rx="20" ry="8" fill="#000" opacity=".2"/><path d="M58 268a20 18 0 0 1 40 0z" fill="url(#flDome)"/><rect x="73" y="259" width="10" height="9" rx="2" fill="#4b6b7a"/></g>
+      <g><ellipse cx="172" cy="270" rx="18" ry="7" fill="#000" opacity=".2"/><path d="M154 268a18 16 0 0 1 36 0z" fill="url(#flDome)"/><rect x="167" y="260" width="9" height="8" rx="2" fill="#4b6b7a"/></g>
+      <circle cx="125" cy="268" r="46" fill="url(#flGlow)"/>
+      <g><ellipse cx="125" cy="298" rx="22" ry="8" fill="#000" opacity=".25"/><path d="M104 296v-20h42v20a21 7 0 0 1-42 0z" fill="#3e4144"/><ellipse cx="125" cy="276" rx="21" ry="7" fill="#5a5e62"/><circle cx="125" cy="268" r="10" fill="url(#flOrb)"/></g>
+      <g><ellipse cx="${hx}" cy="${hy + 8}" rx="13" ry="5" fill="none" stroke="#5fd38a" stroke-width="2.4" opacity=".95"/>
+        <ellipse cx="${hx}" cy="${hy + 8}" rx="8" ry="3" fill="#000" opacity=".25"/>
+        <rect x="${hx - 6}" y="${hy - 12}" width="12" height="19" rx="5" fill="#e3ddd0"/><rect x="${hx - 8}" y="${hy - 9}" width="4" height="9" rx="2" fill="#bdb6a6"/>
+        <circle cx="${hx}" cy="${hy - 16}" r="6.5" fill="#efe9dc"/><path d="M${hx - 4} ${hy - 17}h8a3 3 0 0 1-3 3h-2a3 3 0 0 1-3-3z" fill="#2c4a63"/></g>
+      ${coins}
+    </svg>`;
+  }
+  const frost = (k = 1) => `<svg class="fl-frost" viewBox="0 0 250 460" preserveAspectRatio="none" aria-hidden="true" style="opacity:${k}">
+    <rect width="250" height="460" fill="url(#flFrost)"/>
+    <mask id="flm${k}"><rect width="250" height="460" fill="url(#flFrost)"/></mask>
+    <rect width="250" height="460" fill="#fff" filter="url(#flIce)" mask="url(#flm${k})" opacity=".8"/></svg>`;
+
+  const star = (s = 46) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8l3.1 6.4 7 .9-5.1 4.9 1.3 6.9L12 17.6l-6.3 3.3 1.3-6.9-5.1-4.9 7-.9z" fill="url(#flGold)" stroke="#fff4c8" stroke-width=".8" stroke-linejoin="round"/><path d="M12 4.5l2.1 4.3" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".7"/></svg>`;
+  const crack = `<svg class="crack" viewBox="0 0 50 50" aria-hidden="true"><path d="M30 4l-6 13 7 6-9 9 4 14" fill="none" stroke="#e9e6df" stroke-width="2" stroke-linejoin="round"/><path d="M24 17l-8-3M31 23l9-2" fill="none" stroke="#e9e6df" stroke-width="1.4"/></svg>`;
+
+  // goal states: protein (count), time (deadline), tow trips (pips)
+  const G0 = { protein: { g: "meat", fill: 0.45 }, time: { g: "stopwatch", pie: 0.62 }, tow: { g: "pod", pips: { n: 3, done: 1 } } };
+  const say = ["Hunt 31 protein: walk into rock hoppers, then pick up what they drop.", "Finish within 3:57. The stopwatch empties as time runs out.", "Make 3 tow trips: loop a pod and bring it home through the airlock."];
+
+  function disc(t, cls = "", extra = "", size = 40) {
+    if (t === "star") return `<span class="fl-disc star ${cls}">${star(size + 6)}</span>`;
+    return `<span class="fl-disc ${cls}">${T({ ...t, size })}${extra}</span>`;
+  }
+  function goals(set, layout, heat, alert) {
+    const parts = set.map(([t, cls, extra]) => disc(t, cls, extra, layout === "bar" ? 34 : 40)).join("");
+    if (layout === "bar") return `<div class="fl-bar2"><i style="width:${heat * 100}%"></i>${parts}</div>`;
+    return `<div class="fl-heat ${alert === "heat" ? "fl-alert" : ""}"><i style="width:${heat * 100}%"></i>${alert === "heat" ? '<span class="fl-buzz"></span>' : ""}</div><div class="fl-goals">${parts}</div>`;
+  }
+  const retry = '<svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.1-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M4 3.5v5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const gear = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4L10.7 6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>';
+  const chrome = (open) => `<span class="fl-name ${open ? "open" : ""}">Hunters' Moon</span><span class="fl-cash">${T({ g: "coin", fill: 1, fillColor: "#ffcb3d", size: 20 })}12</span><span class="fl-corner l" aria-label="Retry">${retry}</span><span class="fl-corner r" aria-label="Settings">${gear}</span>`;
+  const phone = (inner, o = {}) => `<div class="fl-ph">${scene({})}${o.frost ? frost(o.frost) : ""}${inner}${chrome(o.open)}</div>`;
+
+  function frames(layout) {
+    const P = G0;
+    const base = [[P.protein], [P.time], [P.tow]];
+    const out = [];
+    out.push(["Playing", phone(goals(base, layout, 0.72)), layout === "bar" ? "The three icons sit inside the heat bar, which fills behind them." : "Heat rail along the top edge; level name top left, coins top right; the three goals float below. Retry and Settings as bare icons in the bottom corners."]);
+    out.push(["Tapped an icon", phone(goals([[P.protein], [P.time, "sel"], [P.tow]], layout, 0.72) + `<div class="fl-bubble" style="--x:${layout === "bar" ? 110 : 112}px">${say[1]}<small>Tap anywhere to close</small></div>`), "The sentence from the intro comes back until the next tap."]);
+    out.push(["Goal won", phone(goals([[{ ...P.protein, fill: 0.7 }], [{ ...P.time, pie: 0.41 }], ["star"]], layout, 0.66)), "Third tow trip done: the pod icon becomes a gold star in its place."]);
+    out.push(["Goal missed", phone(goals([[{ ...P.protein, fill: 0.9 }], [{ g: "stopwatch", pie: 0 }, "lost", crack], ["star"]], layout, 0.6)), "Time ran out before 31 protein: the stopwatch goes grey and cracks. The level carries on."]);
+    out.push(["Urgent · goal at risk", phone(goals([[{ ...P.protein, fill: 0.86 }], [{ g: "stopwatch", pie: 0.05, warn: true }, "fl-alert", '<span class="fl-buzz"></span>'], ["star"]], layout, 0.62), { frost: 0.75 }), "Ten seconds left on the clock: the edges frost, the stopwatch pulses and shakes, and the phone vibrates in time with it."]);
+    out.push(["Urgent · colony freezing", phone(goals([[{ ...P.protein, fill: 0.5 }], [{ ...P.time, pie: 0.5 }], [P.tow]], layout, 0.07, layout === "bar" ? null : "heat"), { frost: 1 }), layout === "bar" ? "Heat nearly gone. With the bar holding the icons, the whole bar has to shake, which drags the goals along with it." : "Heat nearly gone: heavier frost, and the heat rail turns ice-blue, glows, pulses and shakes with the vibration."]);
+    if (layout === "top") out.push(["Tapped the level name", `<div class="fl-ph">${scene({})}<div class="fl-dim"></div><div class="fl-heat"><i style="width:72%"></i></div><div class="fl-sheet"><span class="eyebrow">Level 7</span><h4>Hunters' Moon</h4><div class="goals">${[P.protein, P.time, P.tow].map((t, k) => `<div>${T({ ...t, size: 26 })}<span>${say[k]}</span></div>`).join("")}</div><div class="btns"><span>All levels</span><span class="go">Resume</span></div></div>${chrome(true)}</div>`, "The menu drops from the name: all three goals in words, the level list, and Resume. Play pauses while it's open. Retry and Settings stay in their corners."]);
+    return out;
+  }
+
+  const strips = [["Heat rail on top, goals floating under it", "Level 7", "top"]];
+  document.getElementById("flStrips").innerHTML = strips.map(([t, sub, layout]) =>
+    `<section class="fl-lv"><h2>${t}<span>${sub}</span></h2><div class="fl-strip">${frames(layout).map(([b, ph, p]) => `<div class="fl-f"><b>${b}</b>${ph}<p>${p}</p></div>`).join("")}</div></section>`).join("") +
+    `<div class="fl-notes"><h3>Notes</h3><ul>
+      <li><b>Corners:</b> name top left, coins top right (scrap on defence levels), Retry bottom left, Settings bottom right. The thumb that steers stays clear of all four, but Retry needs a confirm step ("Restart the level?") so a stray tap never wipes a run.</li>
+      <li><b>No numbers on the icons.</b> Protein shows as a fill and tow trips as pips under the pod. If the fill turns out too vague for counts like 31 protein, a small number could sit under that one icon.</li>
+      <li><b>One urgent item at a time.</b> If two things are about to fail, the one that loses the level (heat) takes the pulse; the goal icon gets a steady red ring.</li>
+      <li><b>The vibration</b> follows the pulse: one short buzz per beat for a goal, a longer, stronger one for the colony freezing, and it stops when the danger passes.</li>
+    </ul></div>`;
+})();
+</script>
 
 <script>
 const base = document.querySelector("[data-base] .hud").offsetHeight;
