@@ -11,7 +11,7 @@ const asNum = Number(params.get("b"));
 let bright = params.has("b") && Number.isFinite(asNum) ? Math.max(0.5, Math.min(3, asNum)) : BRIGHT_DEF;
 
 const stage = $("stage");
-const table = createAssetTable(stage, $("labels"), bright);
+const table = createAssetTable(stage, bright);
 
 const bInp = $<HTMLInputElement>("bright"), bOut = $("brightOut");
 bInp.value = String(bright);

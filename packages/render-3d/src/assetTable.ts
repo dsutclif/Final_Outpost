@@ -29,7 +29,7 @@ export interface AssetTable {
   dispose(): void;
 }
 
-export function createAssetTable(stage: HTMLElement, labelsEl: HTMLElement, brightness: number): AssetTable {
+export function createAssetTable(stage: HTMLElement, brightness: number): AssetTable {
   const t = deriveTokens(getSkin(DEFAULT_SKIN));
   const canvas = document.createElement("canvas");
   canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none";
@@ -58,7 +58,6 @@ export function createAssetTable(stage: HTMLElement, labelsEl: HTMLElement, brig
   const camera = new PerspectiveCamera(FOV_DEG, 1, 10, 6000);
   const look = new Vector3();
   let viewW = 300, tableW = 300, tableH = 300;
-  const labels: { el: HTMLElement; at: Vector3 }[] = [];
   const mixers: AnimationMixer[] = [];
   const models = new Group();
   scene.add(models);
@@ -117,17 +116,12 @@ export function createAssetTable(stage: HTMLElement, labelsEl: HTMLElement, brig
     const rowMax = Math.max(220, (portrait ? 3.2 : 7) * median(boxes.map((b) => b.max.x - b.min.x + GAP)));
     // flow rows left to right; a row is as deep as its deepest model
     let x = 0, z = 0, rowD = 0, maxX = 0;
-    items.forEach(({ e, g }, i) => {
+    items.forEach(({ g }, i) => {
       const b = boxes[i]!, w = b.max.x - b.min.x, d = b.max.z - b.min.z;
-      if (x > 0 && x + w > rowMax) { x = 0; z += rowD + GAP + 24; rowD = 0; }
+      if (x > 0 && x + w > rowMax) { x = 0; z += rowD + GAP; rowD = 0; }
       g.position.set(x - b.min.x, -b.min.y, z - b.min.z);
       g.traverse((o) => { if ((o as Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } });
       models.add(g);
-      const el = document.createElement("div");
-      el.className = "lbl";
-      el.textContent = e.id + (e.level ? ` L${e.level}` : "");
-      labelsEl.appendChild(el);
-      labels.push({ el, at: new Vector3(x + w / 2, 0, z + d + 8) });
       x += w + GAP;
       rowD = Math.max(rowD, d);
       maxX = Math.max(maxX, x);
@@ -149,7 +143,6 @@ export function createAssetTable(stage: HTMLElement, labelsEl: HTMLElement, brig
   }
 
   let raf = 0, last = performance.now();
-  const tmp = new Vector3();
   function frame(now: number): void {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(0.1, (now - last) / 1000);
@@ -174,13 +167,6 @@ export function createAssetTable(stage: HTMLElement, labelsEl: HTMLElement, brig
     (scene.fog as Fog).far = d + 2570;
     ground.position.set(look.x, 0, look.z);
     gl.render(scene, camera);
-    const w = stage.clientWidth, h = stage.clientHeight;
-    for (const l of labels) {
-      tmp.copy(l.at).project(camera);
-      const on = tmp.z < 1 && Math.abs(tmp.x) < 1.15 && Math.abs(tmp.y) < 1.15;
-      l.el.style.display = on ? "block" : "none";
-      if (on) l.el.style.transform = `translate(-50%,0) translate(${((tmp.x + 1) / 2) * w}px,${((1 - tmp.y) / 2) * h}px)`;
-    }
   }
 
   setMeshyBrightness(brightness);
