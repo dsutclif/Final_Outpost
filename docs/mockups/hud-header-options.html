@@ -964,6 +964,108 @@ h1 { font-family: var(--display); font-weight: 800; font-size: 34px; letter-spac
 })();
 </script>
 
+<div class="intro" id="rowIntro" style="margin-top:56px">
+  <h1>Goals in one row with the name and coins</h1>
+  <p>The level name, the three goal icons and the coin count share a single row under the heat rail. Rows are drawn at real phone widths (375 px, an iPhone SE or mini; 430 px, the largest iPhones) with the game's sizes: the name in 17 px type, 56 px icon slots, the coin pill as it is now. Each row measures itself and says whether everything fits without touching.</p>
+</div>
+<div class="rw" id="rwRows"></div>
+
+<style>
+.rw { display: grid; gap: 28px; }
+.rw-grp { display: grid; gap: 10px; min-width: 0; }
+.rw-grp > h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 20px; }
+.rw-grp > h2 span { color: var(--muted); font-size: 14px; font-weight: 700; margin-left: 6px; }
+.rw-scroll { overflow-x: auto; padding-bottom: 6px; display: grid; gap: 14px; }
+.rw-item { display: grid; gap: 6px; justify-items: start; }
+.rw-cap { font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.rw-cap b { color: var(--ink); font-weight: 600; }
+.rw-cap .ok, .rw-cap .no { font: 800 12px var(--display); letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; }
+.rw-cap .ok { background: rgba(95, 211, 138, .18); color: var(--ok); }
+.rw-cap .no { background: rgba(226, 84, 60, .2); color: #ff8a72; }
+.rw-ph { position: relative; height: 92px; flex: none; border-radius: 14px 14px 0 0; overflow: hidden; background: #b39470; box-shadow: 0 0 0 2px #2c2f33; }
+.rw-ph svg.bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rw-rail { position: absolute; left: 0; right: 0; top: 0; height: 6px; background: rgba(20,22,25,.32); }
+.rw-rail i { position: absolute; left: 0; top: 0; bottom: 0; width: 64%; background: #ffb547; }
+.rw-row { position: absolute; left: 10px; right: 10px; top: 16px; display: flex; align-items: center; gap: 6px; }
+.rw-name { flex: none; font: 800 17px/1 var(--display); letter-spacing: .02em; color: #fff; white-space: nowrap; display: flex; align-items: center; gap: 5px;
+  filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.6)) drop-shadow(0 0 5px rgba(0,0,0,.3)); }
+.rw-name::after { content: ""; width: 5px; height: 5px; border: solid #fff; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg) translateY(-2px); opacity: .75; }
+.rw-name.lv { font-size: 19px; letter-spacing: .04em; }
+.rw-goals { flex: 1; min-width: 0; display: flex; justify-content: space-evenly; align-items: center; }
+.rw-slot { flex: none; width: 56px; height: 56px; display: grid; place-items: center; position: relative; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.6)) drop-shadow(0 0 5px rgba(0,0,0,.3)); }
+.rw-slot .num { position: absolute; left: calc(100% - 6px); bottom: 4px; font: 800 15px/1 var(--display); color: #fff; }
+.rw-cash { flex: none; display: flex; align-items: center; gap: 4px; font: 800 16px/1 var(--display); color: #fff; background: rgba(18,20,23,.72); padding: 3px 10px 3px 4px; border-radius: 13px; box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
+.rw-ph.clash .rw-row { outline: 2px dashed rgba(255,106,85,.9); outline-offset: 3px; }
+.rw-notes { background: var(--panel); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; max-width: 900px; }
+.rw-notes h3 { margin: 0; font-family: var(--display); font-size: 18px; }
+.rw-notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.rw-notes b { color: var(--ink); }
+</style>
+
+<script>
+(() => {
+  const T = window.tkToken, G = window.tkGlyphs;
+  if (!T || !G) return;
+  G.meat ??= { shape: '<path d="M14.5 3.2a6.3 6.3 0 0 1 6.3 6.3c0 4.4-4.3 7.2-8.3 7.2l-2.2 2.2a2.3 2.3 0 1 1-2.9 2.9 2.3 2.3 0 1 1-2.9-2.9l2.2-2.2C6.7 12.7 9.4 3.2 14.5 3.2z"/>' };
+  const bg = `<svg class="bg" viewBox="0 0 400 92" preserveAspectRatio="none" aria-hidden="true"><rect width="400" height="92" fill="url(#flSand)"/><rect width="400" height="92" fill="#fff" filter="url(#flDunes)"/><rect width="400" height="92" fill="#fff" filter="url(#flGrain)" opacity=".7"/></svg>`;
+  const coin = T({ g: "coin", fill: 1, fillColor: "#ffcb3d", size: 22 });
+  const slot = (t, num) => `<span class="rw-slot">${T({ ...t, size: 50 })}${num ? `<span class="num">${num}</span>` : ""}</span>`;
+
+  // three real levels: a short, a middling and the longest title in the pack
+  const LV = [
+    { n: 10, name: "Gun Line", goals: [slot({ g: "upgrade", pips: { n: 3, done: 1 } }), slot({ g: "stopwatch", pie: 0.7 }), slot({ g: "gate", fill: 1 })], cash: 40 },
+    { n: 7, name: "Hunters' Moon", goals: [slot({ g: "meat", fill: 0.4 }, 31), slot({ g: "stopwatch", pie: 0.62 }), slot({ g: "pod", pips: { n: 3, done: 1 } })], cash: 12 },
+    { n: 24, name: "Locked Caches and Beat the Clock", goals: [slot({ g: "coin", fill: 0.41, ring: { mode: "deadline", k: 0.4 } }, 299), slot({ g: "stopwatch", pie: 0.55 }), slot({ g: "face", fill: 1 })], cash: 122 },
+  ];
+  const row = (L, label, w) => `<div class="rw-item"><div class="rw-ph" style="width:${w}px">${bg}<div class="rw-rail"><i></i></div>
+      <div class="rw-row"><span class="rw-name ${label.startsWith("LV") ? "lv" : ""}">${label}</span><span class="rw-goals">${L.goals.join("")}</span><span class="rw-cash">${coin}${L.cash}</span></div></div>
+      <div class="rw-cap"><b>${w} px</b> · Level ${L.n} · <span class="fit"></span></div></div>`;
+
+  const groups = [
+    ["Level name", "as it is now", (L) => L.name],
+    ["Level number", "LV.7 style", (L) => `LV.${L.n}`],
+  ];
+  document.getElementById("rwRows").innerHTML = groups.map(([t, sub, lab]) =>
+    `<section class="rw-grp"><h2>${t}<span>${sub}</span></h2><div class="rw-scroll">${LV.map((L) => [375, 430].map((w) => row(L, lab(L), w)).join("")).join("")}</div></section>`).join("") +
+    `<div class="rw-notes"><h3>Result</h3><ul id="rwResult"></ul></div>`;
+
+  // measure: everything fits when the name, the three slots (plus the count number) and the coin pill sit apart
+  const res = { name: { ok: 0, all: 0 }, lv: { ok: 0, all: 0 } };
+  for (const item of document.querySelectorAll(".rw-item")) {
+    const ph = item.querySelector(".rw-ph"), name = item.querySelector(".rw-name"), cash = item.querySelector(".rw-cash"), slots = [...item.querySelectorAll(".rw-slot")];
+    const nums = [...item.querySelectorAll(".num")];
+    const nr = name.getBoundingClientRect(), cr = cash.getBoundingClientRect();
+    const first = slots[0].getBoundingClientRect(), last = slots[2].getBoundingClientRect();
+    const lastNum = nums.length && nums[nums.length - 1].closest(".rw-slot") === slots[2] ? nums[nums.length - 1].getBoundingClientRect().right : 0;
+    const rightEdge = Math.max(last.right - 6, lastNum);
+    const fits = nr.right + 2 <= first.left + 6 && rightEdge + 2 <= cr.left;
+    const kind = name.classList.contains("lv") ? "lv" : "name";
+    res[kind].all++; if (fits) res[kind].ok++;
+    ph.classList.toggle("clash", !fits);
+    item.querySelector(".fit").outerHTML = fits ? '<span class="ok">fits</span>' : '<span class="no">too tight</span>';
+  }
+  // every title in the pack: does it leave room for the three icons (and a count number) and the coin pill?
+  const TITLES = ["First Light","Pods in the Dust","Green Shoots","The Smelter","First Raid","Roof Overhead","Hunters' Moon","Open Vault","Second Gear","Gun Line","Rising Flares","Thin Ice","Big Orders","Warehouse Rush","The Titan","Hab Pods and Sweep","Drift Cables and The Hunt","Vaults and Ledgers","Conveyors and Hiring Drive","Storms and Power Up","Wreckage and Long Night","Sleepers and Colonists","Drift Cables and Every Pod","Locked Caches and Beat the Clock","Couriers and Hands Off","Wreckage and Hiring Drive","Reactors and Sweep","Stasis Pods and Protein Run","Sealed Veins and Sold Out","Tow Lines and Last Calls","Smelters and Full Steam","Scrap and Make It Through","Domes and Open Gates","Drift Cables and Game Trails","Vaults and Hot Streak","Warehouses and Long Hauls","Wreckage and Hold Fast","Storms and Brighter Cores","Stasis Pods and Thin Ice","Vaults and Open Sesame","Vaults and New Hands","Warehouses and Scaffolds","Wreckage and Titan Night","Hab Pods and Endurance","Tow Lines and Hunters' Larder","Hoppers and Full Shelves","Conveyors and Supply Lines","Rust and Survivors","Flares and Sweep","Warehouses and Assembly"];
+  const probe = (w) => {
+    const item = [...document.querySelectorAll(".rw-item")].find((i) => i.querySelector(".rw-name.lv") && i.querySelector(".rw-ph").offsetWidth === w);
+    const row = item.querySelector(".rw-row"), cash = item.querySelector(".rw-cash");
+    // room for the name: the row, less the coin pill, three slots, a count number and the gaps between them
+    const room = row.offsetWidth - cash.offsetWidth - 3 * 56 - 24 - 3 * 6;
+    const m = document.createElement("span");
+    m.className = "rw-name"; m.style.cssText = "position:absolute;visibility:hidden";
+    row.appendChild(m);
+    const fit = TITLES.filter((t) => { m.textContent = t; return m.offsetWidth <= room; }).length;
+    m.remove();
+    return fit;
+  };
+  const f375 = probe(375), f430 = probe(430);
+  document.getElementById("rwResult").innerHTML = `
+    <li><b>Level name:</b> of the pack's ${TITLES.length} titles, ${f375} fit on a 375 px phone and ${f430} on a 430 px one. Names up to about "Hunters' Moon" fit; the long two-part titles ("Locked Caches and Beat the Clock") run into the icons on every phone.</li>
+    <li><b>Level number:</b> fits on ${res.lv.ok} of ${res.lv.all} rows, with room to spare, so the row works on every phone and every level.</li>
+    <li><b>Recommendation:</b> LV.7 in the row, always. Switching between name and number by length would make the row jump around from level to level. The name stays on the intro card and at the top of the menu, which still opens by tapping LV.7.</li>`;
+})();
+</script>
+
 <script>
 const base = document.querySelector("[data-base] .hud").offsetHeight;
 const rail = document.querySelector(".rail");
