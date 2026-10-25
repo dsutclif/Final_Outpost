@@ -1,6 +1,6 @@
 {
   "notes": [
     "Every model is now smooth and far more detailed: buildings, characters, walls, items and scenery.",
-    "The smelter and the level 3 wreck now match the rest."
+    "Walls and rockslides are lit properly again (they showed as black shapes)."
   ]
 }

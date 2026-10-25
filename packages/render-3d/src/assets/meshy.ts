@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Euler, Group, Matrix4, Quaternion, Vector3, type AnimationClip, type Material, type Mesh, type Object3D } from "three";
+import { BufferAttribute, BufferGeometry, Euler, Group, Matrix3, Matrix4, Quaternion, Vector3, type AnimationClip, type Material, type Mesh, type Object3D } from "three";
 import { LOOK } from "@fo/content";
 import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { AnchorName } from "../ids.js";
@@ -181,6 +181,13 @@ export function meshyGeometry(file: string): { geo: BufferGeometry; mat: Materia
     const t = new Float32Array(uv.count * 2);
     for (let i = 0; i < uv.count; i++) { t[i * 2] = uv.getX(i); t[i * 2 + 1] = uv.getY(i); }
     geo.setAttribute("uv", new BufferAttribute(t, 2));
+  }
+  // smooth-normal builds: without them the GLB's material (not flat-shaded) lights the copy black
+  const n = m.geometry.getAttribute("normal");
+  if (n) {
+    const nm = new Matrix3().getNormalMatrix(m.matrixWorld), out = new Float32Array(n.count * 3);
+    for (let i = 0; i < n.count; i++) v.fromBufferAttribute(n, i).applyMatrix3(nm).normalize().toArray(out, i * 3);
+    geo.setAttribute("normal", new BufferAttribute(out, 3));
   }
   if (m.geometry.index) geo.setIndex(new BufferAttribute(Uint32Array.from(m.geometry.index.array), 1));
   geo.computeBoundingBox();
