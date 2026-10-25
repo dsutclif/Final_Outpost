@@ -9,9 +9,9 @@ import { liveObjectives, manifestObjectives } from "./objectives.js";
 // right, and one floating icon per goal. Each icon is a glyph saying what the goal is about plus
 // up to three channels that always mean the same thing: an inner fill (amount), an outer ring
 // (time: amber fills while a condition holds, blue empties toward a deadline) and pips (steps).
-// Every tracker shows its current number inside the icon (Doug, 2026-10-25): the count so far, the
-// steps done, the seconds held, a guarded meter's %, a deadline's last 30 seconds; counts and holds
-// also show their target beside it.
+// Every tracker shows its current number (Doug, 2026-10-25): the count so far, the steps done, the
+// seconds held, a guarded meter's %, with the target after a slash for counts and holds. It sits just
+// below the icon so the glyph stays readable; only the stopwatch counts its last 30 seconds on its face.
 // A won goal turns into a gold star; a missed one goes grey with a line through it. Urgent trouble frosts the
 // screen edges while the one thing in danger pulses and shakes (the app vibrates in step).
 // Everything visual is classes; style.css colours them from the skin.
@@ -34,10 +34,12 @@ export interface GoalToken {
   pie?: number;
   /** Near the end of a deadline: the time marks turn red. */
   warn?: boolean;
-  /** The current number, drawn inside the icon. */
+  /** The current number (under the icon; on the stopwatch's face). */
   inner?: string;
-  /** The target, drawn beside the icon (counts and holds). */
+  /** The target, after the current number (counts and holds). */
   beside?: string;
+  /** The face shows a mood that follows the fill (happy, flat, cross), as for traders' patience. */
+  mood?: boolean;
   state: "open" | "done" | "failed";
   /** About to be missed (drives the urgent alert). */
   risk: boolean;
@@ -135,6 +137,7 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     if (pct !== null) { t.tick = pct; t.floor = true; }
     // the guarded meter as a %; how near a threat is has no number worth reading
     if (o.kind !== "no_injuries" && t.fill !== undefined) t.inner = String(Math.round(t.fill * 100));
+    if (o.kind === "no_angry_customers") t.mood = true;
     if (t.state === "open") {
       if (pct !== null && t.fill !== undefined) t.risk = t.fill - pct < FLOOR_MARGIN;
       else if (o.kind === "settlement_never_freezes") t.risk = heat < FREEZE_WARN;
@@ -236,7 +239,7 @@ const GLYPHS: Record<Glyph, { shape: string; detail?: string; top?: number; bot?
   gate: { num: [12, 9.5], shape: '<path d="M3.5 21V10a8.5 8.5 0 0 1 17 0v11h-5v-8a3.5 3.5 0 0 0-7 0v8z"/>' },
   waves: { shape: '<path d="M4 4l8 5 8-5v4.5l-8 5-8-5z"/><path d="M4 11.5l8 5 8-5V16l-8 5-8-5z"/>' },
   skull: { shape: '<path d="M12 2.5a8.5 8.5 0 0 0-8.5 8.5c0 3 1.4 5 3.5 6.2V21h10v-3.8c2.1-1.2 3.5-3.2 3.5-6.2A8.5 8.5 0 0 0 12 2.5z"/>', detail: '<circle class="gd" cx="8.8" cy="11.5" r="2"/><circle class="gd" cx="15.2" cy="11.5" r="2"/>' },
-  face: { shape: '<circle cx="12" cy="12" r="9"/>', detail: '<circle class="gd" cx="9" cy="10" r="1.2"/><circle class="gd" cx="15" cy="10" r="1.2"/><path class="gds" d="M8.5 15.5q3.5 -3 7 0"/>' },
+  face: { shape: '<circle cx="12" cy="12" r="9"/>', detail: '<circle class="gd" cx="9" cy="10" r="1.2"/><circle class="gd" cx="15" cy="10" r="1.2"/><path class="gds" d="M8.5 14q3.5 3.2 7 0"/>' },
   chain: { shape: '<rect x="2.5" y="8.5" width="11" height="7" rx="3.5"/><rect x="10.5" y="8.5" width="11" height="7" rx="3.5"/>' },
   stopwatch: { num: [12, 13.8], shape: '<circle cx="12" cy="13.5" r="8.5"/><rect x="10" y="1.5" width="4" height="2.5" rx="1"/>' },
   gear: { shape: '<path d="M10.2 2h3.6l.5 2.6 1.9.8 2.2-1.5 2.5 2.5-1.5 2.2.8 1.9 2.6.5v3.6l-2.6.5-.8 1.9 1.5 2.2-2.5 2.5-2.2-1.5-1.9.8-.5 2.6h-3.6l-.5-2.6-1.9-.8-2.2 1.5-2.5-2.5 1.5-2.2-.8-1.9L1.9 13.8v-3.6l2.6-.5.8-1.9-1.5-2.2 2.5-2.5 2.2 1.5 1.9-.8z"/>', detail: '<circle class="gd" cx="12" cy="12" r="3"/>' },
@@ -245,6 +248,11 @@ const GLYPHS: Record<Glyph, { shape: string; detail?: string; top?: number; bot?
 };
 
 let uid = 0;
+
+function faceDetail(k: number): string {
+  const mouth = k > 0.5 ? "M8.5 14q3.5 3.2 7 0" : k > 0.2 ? "M8.8 15.2h6.4" : "M8.5 15.5q3.5 -3 7 0";
+  return `<circle class="gd" cx="9" cy="10" r="1.2"/><circle class="gd" cx="15" cy="10" r="1.2"/><path class="gds" d="${mouth}"/>`;
+}
 
 /** One goal icon as SVG (44x44, or 44x52 with pips). */
 export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, size = 44): string {
@@ -268,8 +276,10 @@ export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, 
     if (t.pie >= 0.999) s += `<circle class="${cls}" cx="${cx}" cy="${cy}" r="${r}"/>`;
     else if (t.pie > 0.001) s += `<path class="${cls}" d="M${cx} ${cy}V${cy - r}A${r} ${r} 0 ${t.pie > 0.5 ? 1 : 0} 1 ${x.toFixed(2)} ${y.toFixed(2)}z"/>`;
   }
-  s += `<g class="g-line">${g.shape}</g>${g.detail ?? ""}`;
-  if (t.inner !== undefined) {
+  // a face with a mood smiles while its fill is high and frowns near empty
+  const detail = t.mood && t.glyph === "face" ? faceDetail(t.fill ?? 1) : g.detail ?? "";
+  s += `<g class="g-line">${g.shape}</g>${detail}`;
+  if (t.inner !== undefined && t.glyph === "stopwatch") {
     const [nx, ny] = g.num ?? [12, 12.5];
     s += `<text class="g-secs${t.inner.length > 2 ? " long" : ""}" x="${nx}" y="${ny}" text-anchor="middle" dominant-baseline="central">${t.inner}</text>`;
   }
@@ -365,7 +375,7 @@ export class GoalHud {
       b.setAttribute("aria-label", t.label);
       b.hidden = hidden && i !== next;
       b.className = `gdisc ${t.state}${i === next ? " next" : ""}${b.classList.contains("alert") ? " alert" : ""}`;
-      b.innerHTML = i === next && hidden ? "" : goalIcon(t, 50) + (t.beside && t.state === "open" ? `<span class="gnum">${t.beside}</span>` : "");
+      b.innerHTML = i === next && hidden ? "" : goalIcon(t, 50) + (t.state === "open" && t.inner !== undefined && t.glyph !== "stopwatch" ? `<span class="gnum${t.pips ? " low" : ""}">${t.inner}${t.beside ? `<small>/${t.beside}</small>` : ""}</span>` : "");
       // a goal just won or lost: a short flash
       if (was && was !== "hidden" && JSON.parse(was)[0] !== t.state) { b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
     });
