@@ -3,7 +3,7 @@
   "buildScale": 1.2,
   "charScale": 1.9,
   "textScale": 1,
-  "modelBrightness": 1,
+  "modelBrightness": 2,
   "viewW": { "default": 210, "defend": 300, "industrialize": 300 },
   "groundK": 1.33
 }
