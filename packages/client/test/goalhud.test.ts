@@ -81,3 +81,18 @@ describe("never-goals fill from whatever is closest to breaking them", () => {
     expect(face.fill).toBeCloseTo(0.25, 2);
   });
 });
+
+describe("stopwatch face", () => {
+  it("shows the whole seconds left only in the last 30", () => {
+    const { sim, m, cp } = level(7);
+    const st = sim.state;
+    const time = st.objectives.find((o) => o.kind === "time_target")!;
+    time.target = 3000;
+    time.progress = 3000 - 31 * TPS;
+    expect(goalTokens(st, m, cp, skin).find((t) => t.id === time.id)!.secs).toBeUndefined();
+    time.progress = 3000 - 28 * TPS + 5;
+    const t = goalTokens(st, m, cp, skin).find((x) => x.id === time.id)!;
+    expect(t.secs).toBe(28);
+    expect(goalIcon(t)).toContain(">28</text>");
+  });
+});

@@ -34,6 +34,8 @@ export interface GoalToken {
   warn?: boolean;
   /** Count goals: the target, drawn as a number beside the icon. */
   count?: number;
+  /** Deadlines in their last stretch: whole seconds left, drawn on the stopwatch face. */
+  secs?: number;
   state: "open" | "done" | "failed";
   /** About to be missed (drives the urgent alert). */
   risk: boolean;
@@ -56,6 +58,8 @@ const GLYPH_OF: Record<string, Glyph> = {
 const HOLD_KINDS = new Set(["heat_hold", "survive", "automate", "converters_running"]);
 /** Seconds left on a deadline when it turns red and counts as at risk. */
 const WARN_SECONDS = 15;
+/** Seconds left on a deadline when the stopwatch face starts showing the count (Doug, 2026-10-25). */
+const FACE_SECONDS = 30;
 /** How close (0..1 of the meter) a floor star may get before it counts as at risk. */
 const FLOOR_MARGIN = 0.06;
 /** Heat (0..1 of the reactor cap) below which the colony counts as about to freeze. */
@@ -110,6 +114,8 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     const left = Math.max(0, o.target - o.progress);
     t.pie = o.target > 0 ? left / o.target : 1;
     t.warn = left <= WARN_SECONDS * TPS;
+    // the last stretch: the face counts its seconds and its pie sweeps just those, full at FACE_SECONDS
+    if (left > 0 && left <= FACE_SECONDS * TPS && t.state === "open") { t.secs = Math.ceil(left / TPS); t.pie = left / (FACE_SECONDS * TPS); }
     t.risk = t.warn && t.state === "open";
   } else if (HOLD_KINDS.has(o.kind)) {
     t.ring = { mode: "hold", k: frac };
@@ -244,13 +250,15 @@ export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, 
     s += `<rect class="g-amt" x="0" y="${y.toFixed(1)}" width="24" height="${(24 - y).toFixed(1)}" clip-path="url(#${id})"/>`;
   }
   if (t.pie !== undefined) {
-    const a = clamp01(t.pie) * 2 * Math.PI, r = 6.6, cx = 12, cy = 13.5;
+    // with the seconds on it the pie fills the whole face, so the number has room
+    const a = clamp01(t.pie) * 2 * Math.PI, r = t.secs !== undefined ? 7.6 : 6.6, cx = 12, cy = 13.5;
     const x = cx + r * Math.sin(a), y = cy - r * Math.cos(a);
     const cls = `g-pie${t.warn ? " warn" : ""}`;
     if (t.pie >= 0.999) s += `<circle class="${cls}" cx="${cx}" cy="${cy}" r="${r}"/>`;
     else if (t.pie > 0.001) s += `<path class="${cls}" d="M${cx} ${cy}V${cy - r}A${r} ${r} 0 ${t.pie > 0.5 ? 1 : 0} 1 ${x.toFixed(2)} ${y.toFixed(2)}z"/>`;
   }
   s += `<g class="g-line">${g.shape}</g>${g.detail ?? ""}`;
+  if (t.secs !== undefined) s += `<text class="g-secs" x="12" y="14" text-anchor="middle" dominant-baseline="central">${t.secs}</text>`;
   if (t.tick !== undefined) {
     const top = g.top ?? 2, bot = g.bot ?? 22, y = bot - (bot - top) * t.tick, narrow = t.glyph === "thermo";
     s += `<line class="g-tick${t.floor ? " floor" : ""}" x1="${narrow ? 7 : 2}" x2="${narrow ? 17 : 22}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/>`;
@@ -326,7 +334,7 @@ export class GoalHud {
     const doc = this.el.goals.ownerDocument;
     tokens.forEach((t, i) => {
       const hidden = i >= slots;
-      const key = hidden ? "hidden" : JSON.stringify([t.count ?? 0, t.state, t.fill !== undefined ? q(t.fill) : null, t.ring ? q(t.ring.k) : null, t.pie !== undefined ? q(t.pie) : null, t.pips, t.warn, t.tick, i === next]);
+      const key = hidden ? "hidden" : JSON.stringify([t.count ?? 0, t.secs ?? -1, t.state, t.fill !== undefined ? q(t.fill) : null, t.ring ? q(t.ring.k) : null, t.pie !== undefined ? q(t.pie) : null, t.pips, t.warn, t.tick, i === next]);
       let b = this.el.goals.children[i] as HTMLButtonElement | undefined;
       if (!b) {
         b = doc.createElement("button");

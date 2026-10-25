@@ -87,6 +87,7 @@ body {
 .gtok .g-ring.warn, .gtok .g-pie.warn { stroke: var(--bad); fill: var(--bad); }
 .gtok .g-ring.warn { fill: none; }
 .gtok .g-pie { fill: var(--interactive); }
+.gtok .g-secs { fill: #fff; font: 800 9.5px var(--display); stroke: rgba(16, 18, 20, 0.85); stroke-width: 1.4px; paint-order: stroke; }
 .gtok .g-pip { fill: rgba(255, 255, 255, 0.22); }
 .gtok .g-pip.on { fill: var(--accent); }
 .gtok .g-pip.part { fill: var(--go-shade); }
