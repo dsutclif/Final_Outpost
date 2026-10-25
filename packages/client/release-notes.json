@@ -1,5 +1,7 @@
 {
   "notes": [
+    "One slim row at the top: level number, your goals, and your credits (now shown as the real credit coin).",
+    "\"Never let it happen\" goals show how close you are to losing them: the face drains with your most impatient trader, the gate with your weakest gate, and so on.",
     "Goal icons and the level name float on their own with no backgrounds. Goal icons show their target number beside them (the icon fills as you get there). Missed goals go grey with a line through them, and earning a star pops up a note again.",
     "A cleaner screen: the top bar is gone. A thin heat bar runs along the top, and each goal floats as an icon that turns into a star when you earn it.",
     "Each level now introduces its goals one at a time. Tap a goal icon any time to read it again, or tap the level name for the menu.",

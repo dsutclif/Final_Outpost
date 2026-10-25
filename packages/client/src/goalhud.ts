@@ -1,5 +1,5 @@
 import type { Manifest } from "@fo/content";
-import { TPS, type Compiled, type ObjectiveState, type State } from "@fo/sim";
+import { FP, TPS, type Compiled, type ObjectiveState, type State } from "@fo/sim";
 import type { Skin } from "@fo/skins";
 import { liveObjectives, manifestObjectives } from "./objectives.js";
 
@@ -62,6 +62,10 @@ const FLOOR_MARGIN = 0.06;
 const FREEZE_WARN = 0.15;
 /** Wall health (0..1) below which the level counts as about to be lost. */
 const WALL_WARN = 0.25;
+/** A "never" goal whose nearest cause has this little margin left (0..1) counts as at risk. */
+const GUARD_WARN = 0.2;
+/** No-injuries: a threat this far (world units) from every colonist reads as a full icon. */
+const THREAT_RANGE = 150;
 
 const clamp01 = (x: number): number => Math.max(0, Math.min(1, x));
 
@@ -113,13 +117,15 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     else t.fill = 1;
   } else if (guard) {
     // never-breached guards: show the meter they guard, with the line when there is one
+    const driver = guardDriver(o.kind, st, cp);
     if (o.kind === "heat_floor" || o.kind === "settlement_never_freezes") t.fill = heat;
     else if (o.kind === "hp_floor" && walls !== null) t.fill = walls;
-    else t.fill = o.failed ? 0 : 1;
+    else t.fill = o.failed ? 0 : driver ?? 1;
     if (pct !== null) { t.tick = pct; t.floor = true; }
     if (t.state === "open") {
       if (pct !== null && t.fill !== undefined) t.risk = t.fill - pct < FLOOR_MARGIN;
       else if (o.kind === "settlement_never_freezes") t.risk = heat < FREEZE_WARN;
+      else if (driver !== null) t.risk = driver < GUARD_WARN;
     }
   } else if (o.kind === "waves" || o.kind === "waves_survived") {
     t.pips = { n: Math.max(1, Math.min(8, o.target)), done: Math.min(o.progress, o.target), part: waveCountdown(st, cp) };
@@ -130,6 +136,48 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     if (o.target > 1) t.count = o.target;
   }
   return t;
+}
+
+/**
+ * A "never" goal's margin 0..1 from whatever is closest to breaking it (Doug, 2026-10-25), so the
+ * icon drains as the danger grows: the most impatient trader's patience, the weakest gate's
+ * strength, the coldest colonist's warmth, room left on the fullest machine tray, or how far the
+ * nearest raider or dangerous animal is from any colonist. Null for goals without one.
+ */
+function guardDriver(kind: string, st: State, cp: Compiled | null): number | null {
+  switch (kind) {
+    case "no_angry_customers": {
+      let k = 1;
+      for (const c of st.sales?.queue ?? []) if (!c.angry && c.patienceMax > 0) k = Math.min(k, c.patience / c.patienceMax);
+      return clamp01(k);
+    }
+    case "gate_held": {
+      let k = 1;
+      for (const b of st.barriers) for (const s of b.sections) if (s.gate && s.built && s.hpMax > 0) k = Math.min(k, s.hp / s.hpMax);
+      return clamp01(k);
+    }
+    case "no_colonist_freezes": {
+      let f = 0;
+      for (const r of st.residents) if (r.status !== "frozen" && r.status !== "dead") f = Math.max(f, r.frost ?? 0);
+      return clamp01(1 - f / 1000);
+    }
+    case "no_stockpile_overload": {
+      let f = 0;
+      for (const cv of st.converters) { const cap = cp?.converters[cv.type]?.outCap ?? 0; if (cap > 0) f = Math.max(f, cv.out / cap); }
+      return clamp01(1 - f);
+    }
+    case "no_injuries": {
+      const threats = st.hostiles.map((h) => h.pos);
+      for (const p of st.prey) if (p.alive && (cp?.animals[st.preyZones[p.zone]?.animal ?? ""]?.aggroRange ?? 0) > 0) threats.push(p.pos);
+      let d = Infinity;
+      for (const r of st.residents) {
+        if (r.status !== "ok") continue;
+        for (const q of threats) d = Math.min(d, Math.hypot(q.x - r.pos.x, q.y - r.pos.y));
+      }
+      return d === Infinity ? 1 : clamp01(d / (THREAT_RANGE * FP));
+    }
+  }
+  return null;
 }
 
 /** The next wave's approach 0..1 (fills the open wave pip), 0 while a wave is on. */
@@ -160,7 +208,8 @@ export function alertOf(st: State, m: Manifest, cp: Compiled | null, tokens: rea
 const GLYPHS: Record<Glyph, { shape: string; detail?: string; top?: number; bot?: number }> = {
   thermo: { shape: '<rect x="9.5" y="2" width="5" height="14" rx="2.5"/><circle cx="12" cy="18" r="4.2"/>', bot: 22.2 },
   flame: { shape: '<path d="M12 2.5c1 3.5 5.5 6 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.6-5.4.3 1.6 1 2.6 2 3.1C10.6 8.6 11 5.4 12 2.5z"/>' },
-  coin: { shape: '<circle cx="12" cy="12" r="9"/>', detail: '<path class="gl" d="M12 7.5v9M9.8 9.5h3.6a1.6 1.6 0 0 1 0 3.2h-2.8a1.6 1.6 0 0 0 0 3.2h3.6"/>' },
+  // the credit coin: an octagon with the hexagonal C cut into it, as on the model
+  coin: { shape: '<path d="M8.3 3h7.4L21 8.3v7.4L15.7 21H8.3L3 15.7V8.3z"/>', detail: '<path class="gc" d="M15.6 9.9L13.8 7.6H10.2L7.9 10.3v3.4l2.3 2.7h3.6l1.8-2.3"/>' },
   crate: { shape: '<rect x="4" y="6" width="16" height="14" rx="1.5"/>', detail: '<path class="gl" d="M4 10.5h16M10 6v4.5M14 6v4.5"/>' },
   meat: { shape: '<path d="M14.5 3.2a6.3 6.3 0 0 1 6.3 6.3c0 4.4-4.3 7.2-8.3 7.2l-2.2 2.2a2.3 2.3 0 1 1-2.9 2.9 2.3 2.3 0 1 1-2.9-2.9l2.2-2.2C6.7 12.7 9.4 3.2 14.5 3.2z"/>' },
   colonist: { shape: '<circle cx="12" cy="7" r="4"/><path d="M4.5 21v-2.5a5 5 0 0 1 5-5h5a5 5 0 0 1 5 5V21z"/>' },
@@ -252,7 +301,10 @@ export class GoalHud {
     this.shown = this.target = currency;
     this.first = true;
     this.el.cash.classList.toggle("scrap", scrap);
-    this.el.cash.querySelector(".cic")!.innerHTML = tokenSvg({ glyph: scrap ? "scrap" : "coin", fill: 1 }, 22);
+    // coins: the credit model itself, rendered flat once (public/ui/coin.png); scrap keeps its glyph
+    const cic = this.el.cash.querySelector(".cic")!;
+    if (scrap) cic.innerHTML = tokenSvg({ glyph: "scrap", fill: 1 }, 22);
+    else cic.innerHTML = `<img src="${new URL("ui/coin.png", this.el.cash.ownerDocument.baseURI).href}" alt="" width="26" height="26">`;
     this.closeBubble();
     this.setAlert({ kind: "none" });
   }

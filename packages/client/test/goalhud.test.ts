@@ -60,3 +60,24 @@ describe("urgent alert", () => {
     expect(alertOf(st, m, cp, goalTokens(st, m, cp, skin)).kind).toBe("heat");
   });
 });
+
+describe("never-goals fill from whatever is closest to breaking them", () => {
+  it("the gate star drains with the weakest gate, the customer star with the most impatient trader", () => {
+    const { sim, m, cp } = level(5);
+    const st = sim.state;
+    const gates = st.barriers.flatMap((b) => b.sections).filter((s) => s.gate);
+    expect(gates.length).toBeGreaterThan(0);
+    for (const s of gates) { s.built = true; s.hp = s.hpMax; }
+    gates[0]!.hp = Math.round(gates[0]!.hpMax * 0.1);
+    const gate = goalTokens(st, m, cp, skin).find((t) => t.glyph === "gate")!;
+    expect(gate.fill).toBeCloseTo(0.1, 1);
+    expect(gate.risk).toBe(true);
+
+    const h = level(8);
+    const q = h.sim.state.sales!.queue;
+    q.push({ ...(q[0] ?? {}), id: 999, kind: "unit.customer", res: "res.food_raw_1", want: 1, patience: 30, patienceMax: 120, pos: { x: 0, y: 0 }, angry: false } as never);
+    const id = h.sim.state.objectives.find((o) => o.kind === "no_angry_customers")!.id;
+    const face = goalTokens(h.sim.state, h.m, h.cp, skin).find((t) => t.id === id)!;
+    expect(face.fill).toBeCloseTo(0.25, 2);
+  });
+});

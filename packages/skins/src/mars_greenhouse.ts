@@ -499,6 +499,7 @@ export const marsGreenhouse: Skin = {
       freezesIn: "Colony freezes in {t}",
       resume: "Resume",
       allLevels: "All levels",
+      levelShort: "LV.{n}",
       restartAsk: "Restart?",
       introNext: "Tap for the next",
       introPlay: "Tap to play",

@@ -773,7 +773,9 @@ export class App {
     void this.deps.store.setProgress(this.progress);
     const t = levelText(this.session.manifest, this.skin, meta.index, this.seenBefore(meta));
     const named = !!levelTitle(this.skin, this.session.manifest);
-    this.el.lvlName.textContent = named ? t.title : `${uiText(this.skin, "levelWord")} ${meta.index + 1}`;
+    // the number fits beside the goals on every phone; the name lives on the intro card and in the menu
+    this.el.lvlName.textContent = uiText(this.skin, "levelShort", { n: meta.index + 1 });
+    this.el.lvlName.setAttribute("aria-label", named ? `${uiText(this.skin, "levelWord")} ${meta.index + 1} · ${t.title}` : t.title);
     this.hud.reset(sim.state.currency, this.scrapLevel(this.session.manifest));
     this.introStep = 0;
     this.renderIntro(t);
@@ -1192,9 +1194,11 @@ const TEMPLATE = `
     <div class="fhud">
       <div class="rail" id="heatRail"><i></i></div>
       <div class="rail walls" id="wallRail" hidden><i></i></div>
-      <button class="fname" id="lvlName" type="button"></button>
-      <span class="fcash" id="cash"><span class="cic"></span><b></b></span>
-      <div class="fgoals" id="goals"></div>
+      <div class="frow">
+        <button class="fname" id="lvlName" type="button"></button>
+        <div class="fgoals" id="goals"></div>
+        <span class="fcash" id="cash"><span class="cic"></span><b></b></span>
+      </div>
       <div class="gbubble" id="gbubble" hidden></div>
       <button class="fcorner l" id="retryBtn" type="button" aria-label="Retry"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2.1-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M4 3.5v5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="fcorner r" id="gearBtn" type="button" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4L10.7 6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>

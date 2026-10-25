@@ -44,22 +44,23 @@ body {
 .rail.walls { top: calc(env(safe-area-inset-top, 0px) + 6px); height: 4px; }
 .rail.walls > i { background: var(--bad); }
 .rail.walls.hit > i { animation: blink 0.15s 3 alternate; }
-.fhud .fname, .fcash {
-  position: absolute; top: calc(env(safe-area-inset-top, 0px) + 14px); display: flex; align-items: center; gap: 4px;
-  font-family: var(--display); font-weight: 800; color: #fff; border-radius: 13px;
-}
+/* one row under the rail: LV.N on the left, the goals in the middle, the coin count on the right */
+.frow { position: absolute; left: calc(10px + env(safe-area-inset-left, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); top: calc(env(safe-area-inset-top, 0px) + 10px); display: flex; align-items: center; gap: 6px; }
+.fhud .frow > * { pointer-events: auto; }
+.fhud .fname, .fcash { flex: none; display: flex; align-items: center; gap: 4px; font-family: var(--display); font-weight: 800; color: #fff; border-radius: 13px; }
 .fcash { background: rgba(18, 20, 23, 0.72); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12); }
 /* bare over the map, like Retry and Settings: a soft shadow keeps them readable on light ground */
 .fhud .fname, .fhud .gdisc, .gnum { filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 5px rgba(0, 0, 0, 0.3)); }
-.fhud .fname { left: calc(10px + env(safe-area-inset-left, 0px)); max-width: 46%; font-size: 17px; letter-spacing: 0.02em; padding: 4px 2px; }
+.fhud .fname { font-size: 19px; letter-spacing: 0.04em; padding: 4px 2px; }
 .fhud .fname { color: #fff; }
 .fname::after { content: ""; flex: none; width: 5px; height: 5px; border: solid #fff; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg) translateY(-2px); opacity: 0.75; margin-left: 3px; }
-.fname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.fname { white-space: nowrap; display: block; }
 .fname::after { display: inline-block; vertical-align: middle; }
-.fcash { right: calc(10px + env(safe-area-inset-right, 0px)); font-size: 16px; padding: 3px 10px 3px 4px; font-variant-numeric: tabular-nums; }
+.fcash { font-size: 16px; padding: 3px 10px 3px 4px; font-variant-numeric: tabular-nums; }
 .fcash .cic { display: grid; }
+.fcash .cic img { width: 26px; height: 26px; display: block; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); }
 .fcash.pulse { animation: pulse 0.25s ease-out; }
-.fgoals { position: absolute; left: 0; right: 0; top: calc(env(safe-area-inset-top, 0px) + 48px); display: flex; justify-content: space-around; padding: 0 18px; }
+.fgoals { flex: 1; min-width: 0; display: flex; justify-content: space-evenly; align-items: center; pointer-events: none; }
 .fhud .gdisc { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; position: relative; padding: 0; border: 0; }
 .gdisc[hidden] { display: grid; visibility: hidden; }
 .gdisc.sel { box-shadow: 0 0 0 2px #fff; }
@@ -74,6 +75,7 @@ body {
 .gtok .g-amt { fill: var(--accent); }
 .gtok .g-line { fill: none; stroke: #e8e4dc; stroke-width: 1.4; stroke-linejoin: round; }
 .gtok .gl { fill: none; stroke: #e8e4dc; stroke-width: 1.3; }
+.gtok .gc { fill: none; stroke: #e8e4dc; stroke-width: 2.4; stroke-linejoin: round; }
 .gtok .gd { fill: #101214; }
 .gtok .gds { fill: none; stroke: #101214; stroke-width: 1.5; }
 .gtok .g-tick { stroke: #fff; stroke-width: 1.6; }
@@ -95,7 +97,7 @@ body {
 .gslash path { fill: none; stroke: var(--bad); stroke-width: 3.5; stroke-linecap: round; }
 /* a goal's sentence, under the icons until the next tap */
 .gbubble {
-  position: absolute; z-index: 1; top: calc(env(safe-area-inset-top, 0px) + 112px); left: 14px; right: 14px; pointer-events: none;
+  position: absolute; z-index: 1; top: calc(env(safe-area-inset-top, 0px) + 80px); left: 14px; right: 14px; pointer-events: none;
   background: rgba(250, 248, 243, 0.97); color: #17191b; border-radius: 12px; padding: 10px 12px; font: 600 15px/1.35 var(--body);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
 }
@@ -394,7 +396,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- first-touch toast and tap-to-inspect card (never block input) ---------- */
 .ftoast {
-  position: absolute; left: 0; right: 0; margin-inline: auto; width: fit-content; top: calc(env(safe-area-inset-top, 0px) + 112px); z-index: 4; pointer-events: none;
+  position: absolute; left: 0; right: 0; margin-inline: auto; width: fit-content; top: calc(env(safe-area-inset-top, 0px) + 80px); z-index: 4; pointer-events: none;
   max-width: calc(100% - 32px); background: rgba(16, 18, 20, 0.9); color: #ebe8e1; border-radius: var(--r); padding: 6px 12px; border-left: 3px solid var(--interactive);
   display: grid; gap: 1px; text-align: center; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
