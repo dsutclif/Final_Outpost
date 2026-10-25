@@ -9,7 +9,9 @@ import { liveObjectives, manifestObjectives } from "./objectives.js";
 // right, and one floating icon per goal. Each icon is a glyph saying what the goal is about plus
 // up to three channels that always mean the same thing: an inner fill (amount), an outer ring
 // (time: amber fills while a condition holds, blue empties toward a deadline) and pips (steps).
-// A count goal shows its target number beside the icon (the fill shows how far along it is).
+// Every tracker shows its current number inside the icon (Doug, 2026-10-25): the count so far, the
+// steps done, the seconds held, a guarded meter's %, a deadline's last 30 seconds; counts and holds
+// also show their target beside it.
 // A won goal turns into a gold star; a missed one goes grey with a line through it. Urgent trouble frosts the
 // screen edges while the one thing in danger pulses and shakes (the app vibrates in step).
 // Everything visual is classes; style.css colours them from the skin.
@@ -32,10 +34,10 @@ export interface GoalToken {
   pie?: number;
   /** Near the end of a deadline: the time marks turn red. */
   warn?: boolean;
-  /** Count goals: the target, drawn as a number beside the icon. */
-  count?: number;
-  /** Deadlines in their last stretch: whole seconds left, drawn on the stopwatch face. */
-  secs?: number;
+  /** The current number, drawn inside the icon. */
+  inner?: string;
+  /** The target, drawn beside the icon (counts and holds). */
+  beside?: string;
   state: "open" | "done" | "failed";
   /** About to be missed (drives the urgent alert). */
   risk: boolean;
@@ -72,6 +74,7 @@ const GUARD_WARN = 0.2;
 const THREAT_RANGE = 150;
 
 const clamp01 = (x: number): number => Math.max(0, Math.min(1, x));
+const clock = (ticks: number): string => { const t = Math.round(ticks / TPS); return t >= 60 ? `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}` : String(t); };
 
 /** Reactor heat 0..1: fuel over the current level's cap (what the heat goals talk about). */
 export function heatOf(st: State, cp: Compiled | null): number {
@@ -115,12 +118,14 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     t.pie = o.target > 0 ? left / o.target : 1;
     t.warn = left <= WARN_SECONDS * TPS;
     // the last stretch: the face counts its seconds and its pie sweeps just those, full at FACE_SECONDS
-    if (left > 0 && left <= FACE_SECONDS * TPS && t.state === "open") { t.secs = Math.ceil(left / TPS); t.pie = left / (FACE_SECONDS * TPS); }
+    if (left > 0 && left <= FACE_SECONDS * TPS && t.state === "open") { t.inner = String(Math.ceil(left / TPS)); t.pie = left / (FACE_SECONDS * TPS); }
     t.risk = t.warn && t.state === "open";
   } else if (HOLD_KINDS.has(o.kind)) {
     t.ring = { mode: "hold", k: frac };
     if (o.kind === "heat_hold") { t.fill = heat; if (pct !== null) t.tick = pct; }
     else t.fill = 1;
+    t.inner = String(Math.floor(Math.min(o.progress, o.target) / TPS));
+    t.beside = clock(o.target);
   } else if (guard) {
     // never-breached guards: show the meter they guard, with the line when there is one
     const driver = guardDriver(o.kind, st, cp);
@@ -128,6 +133,8 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     else if (o.kind === "hp_floor" && walls !== null) t.fill = walls;
     else t.fill = o.failed ? 0 : driver ?? 1;
     if (pct !== null) { t.tick = pct; t.floor = true; }
+    // the guarded meter as a %; how near a threat is has no number worth reading
+    if (o.kind !== "no_injuries" && t.fill !== undefined) t.inner = String(Math.round(t.fill * 100));
     if (t.state === "open") {
       if (pct !== null && t.fill !== undefined) t.risk = t.fill - pct < FLOOR_MARGIN;
       else if (o.kind === "settlement_never_freezes") t.risk = heat < FREEZE_WARN;
@@ -135,11 +142,14 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     }
   } else if (o.kind === "waves" || o.kind === "waves_survived") {
     t.pips = { n: Math.max(1, Math.min(8, o.target)), done: Math.min(o.progress, o.target), part: waveCountdown(st, cp) };
+    t.inner = String(t.pips.done);
   } else if (o.target >= 2 && o.target <= 5) {
     t.pips = { n: o.target, done: Math.min(o.progress, o.target), part: 0 };
+    t.inner = String(t.pips.done);
   } else {
     t.fill = o.done ? 1 : frac;
-    if (o.target > 1) t.count = o.target;
+    t.inner = String(Math.min(o.progress, o.target));
+    if (o.target > 1) t.beside = String(o.target);
   }
   return t;
 }
@@ -211,23 +221,24 @@ export function alertOf(st: State, m: Manifest, cp: Compiled | null, tokens: rea
 // ------------------------------------------------------------------ drawing
 
 /** Glyph shapes on a 24x24 grid: `shape` is the body (the fill clips to it), `detail` marks drawn over it. */
-const GLYPHS: Record<Glyph, { shape: string; detail?: string; top?: number; bot?: number }> = {
-  thermo: { shape: '<rect x="9.5" y="2" width="5" height="14" rx="2.5"/><circle cx="12" cy="18" r="4.2"/>', bot: 22.2 },
-  flame: { shape: '<path d="M12 2.5c1 3.5 5.5 6 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.6-5.4.3 1.6 1 2.6 2 3.1C10.6 8.6 11 5.4 12 2.5z"/>' },
+/** `num`: where a glyph's number sits (centre, 24-grid), when not the middle. */
+const GLYPHS: Record<Glyph, { shape: string; detail?: string; top?: number; bot?: number; num?: [number, number] }> = {
+  thermo: { shape: '<rect x="9.5" y="2" width="5" height="14" rx="2.5"/><circle cx="12" cy="18" r="4.2"/>', bot: 22.2, num: [12, 17.6] },
+  flame: { num: [12, 14.6], shape: '<path d="M12 2.5c1 3.5 5.5 6 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.6-5.4.3 1.6 1 2.6 2 3.1C10.6 8.6 11 5.4 12 2.5z"/>' },
   // the credit coin: an octagon with the hexagonal C cut into it, as on the model
   coin: { shape: '<path d="M8.3 3h7.4L21 8.3v7.4L15.7 21H8.3L3 15.7V8.3z"/>', detail: '<path class="gc" d="M15.6 9.9L13.8 7.6H10.2L7.9 10.3v3.4l2.3 2.7h3.6l1.8-2.3"/>' },
   crate: { shape: '<rect x="4" y="6" width="16" height="14" rx="1.5"/>', detail: '<path class="gl" d="M4 10.5h16M10 6v4.5M14 6v4.5"/>' },
-  meat: { shape: '<path d="M14.5 3.2a6.3 6.3 0 0 1 6.3 6.3c0 4.4-4.3 7.2-8.3 7.2l-2.2 2.2a2.3 2.3 0 1 1-2.9 2.9 2.3 2.3 0 1 1-2.9-2.9l2.2-2.2C6.7 12.7 9.4 3.2 14.5 3.2z"/>' },
-  colonist: { shape: '<circle cx="12" cy="7" r="4"/><path d="M4.5 21v-2.5a5 5 0 0 1 5-5h5a5 5 0 0 1 5 5V21z"/>' },
+  meat: { num: [14, 9.6], shape: '<path d="M14.5 3.2a6.3 6.3 0 0 1 6.3 6.3c0 4.4-4.3 7.2-8.3 7.2l-2.2 2.2a2.3 2.3 0 1 1-2.9 2.9 2.3 2.3 0 1 1-2.9-2.9l2.2-2.2C6.7 12.7 9.4 3.2 14.5 3.2z"/>' },
+  colonist: { num: [12, 17.4], shape: '<circle cx="12" cy="7" r="4"/><path d="M4.5 21v-2.5a5 5 0 0 1 5-5h5a5 5 0 0 1 5 5V21z"/>' },
   pod: { shape: '<rect x="6.5" y="3" width="11" height="18" rx="5.5"/>', detail: '<path class="gl" d="M9 9h6"/>' },
-  upgrade: { shape: '<path d="M12 3l7 7h-4.2v4.5H9.2V10H5z"/><rect x="5" y="17" width="14" height="3.5" rx="1"/>' },
-  shield: { shape: '<path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z"/>' },
-  gate: { shape: '<path d="M3.5 21V10a8.5 8.5 0 0 1 17 0v11h-5v-8a3.5 3.5 0 0 0-7 0v8z"/>' },
+  upgrade: { num: [12, 11], shape: '<path d="M12 3l7 7h-4.2v4.5H9.2V10H5z"/><rect x="5" y="17" width="14" height="3.5" rx="1"/>' },
+  shield: { num: [12, 11.5], shape: '<path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z"/>' },
+  gate: { num: [12, 9.5], shape: '<path d="M3.5 21V10a8.5 8.5 0 0 1 17 0v11h-5v-8a3.5 3.5 0 0 0-7 0v8z"/>' },
   waves: { shape: '<path d="M4 4l8 5 8-5v4.5l-8 5-8-5z"/><path d="M4 11.5l8 5 8-5V16l-8 5-8-5z"/>' },
   skull: { shape: '<path d="M12 2.5a8.5 8.5 0 0 0-8.5 8.5c0 3 1.4 5 3.5 6.2V21h10v-3.8c2.1-1.2 3.5-3.2 3.5-6.2A8.5 8.5 0 0 0 12 2.5z"/>', detail: '<circle class="gd" cx="8.8" cy="11.5" r="2"/><circle class="gd" cx="15.2" cy="11.5" r="2"/>' },
   face: { shape: '<circle cx="12" cy="12" r="9"/>', detail: '<circle class="gd" cx="9" cy="10" r="1.2"/><circle class="gd" cx="15" cy="10" r="1.2"/><path class="gds" d="M8.5 15.5q3.5 -3 7 0"/>' },
   chain: { shape: '<rect x="2.5" y="8.5" width="11" height="7" rx="3.5"/><rect x="10.5" y="8.5" width="11" height="7" rx="3.5"/>' },
-  stopwatch: { shape: '<circle cx="12" cy="13.5" r="8.5"/><rect x="10" y="1.5" width="4" height="2.5" rx="1"/>' },
+  stopwatch: { num: [12, 13.8], shape: '<circle cx="12" cy="13.5" r="8.5"/><rect x="10" y="1.5" width="4" height="2.5" rx="1"/>' },
   gear: { shape: '<path d="M10.2 2h3.6l.5 2.6 1.9.8 2.2-1.5 2.5 2.5-1.5 2.2.8 1.9 2.6.5v3.6l-2.6.5-.8 1.9 1.5 2.2-2.5 2.5-2.2-1.5-1.9.8-.5 2.6h-3.6l-.5-2.6-1.9-.8-2.2 1.5-2.5-2.5 1.5-2.2-.8-1.9L1.9 13.8v-3.6l2.6-.5.8-1.9-1.5-2.2 2.5-2.5 2.2 1.5 1.9-.8z"/>', detail: '<circle class="gd" cx="12" cy="12" r="3"/>' },
   flag: { shape: '<path d="M5 2.5h2v19H5z"/><path d="M7 3.5h12l-3 4 3 4H7z"/>' },
   scrap: { shape: '<path d="M3 17l4-9 5 3 3-6 6 12-4 4H6z"/>', detail: '<path class="gl" d="M9 13l3 2M15 11l-1 4"/>' },
@@ -251,14 +262,17 @@ export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, 
   }
   if (t.pie !== undefined) {
     // with the seconds on it the pie fills the whole face, so the number has room
-    const a = clamp01(t.pie) * 2 * Math.PI, r = t.secs !== undefined ? 7.6 : 6.6, cx = 12, cy = 13.5;
+    const a = clamp01(t.pie) * 2 * Math.PI, r = t.inner !== undefined ? 7.6 : 6.6, cx = 12, cy = 13.5;
     const x = cx + r * Math.sin(a), y = cy - r * Math.cos(a);
     const cls = `g-pie${t.warn ? " warn" : ""}`;
     if (t.pie >= 0.999) s += `<circle class="${cls}" cx="${cx}" cy="${cy}" r="${r}"/>`;
     else if (t.pie > 0.001) s += `<path class="${cls}" d="M${cx} ${cy}V${cy - r}A${r} ${r} 0 ${t.pie > 0.5 ? 1 : 0} 1 ${x.toFixed(2)} ${y.toFixed(2)}z"/>`;
   }
   s += `<g class="g-line">${g.shape}</g>${g.detail ?? ""}`;
-  if (t.secs !== undefined) s += `<text class="g-secs" x="12" y="14" text-anchor="middle" dominant-baseline="central">${t.secs}</text>`;
+  if (t.inner !== undefined) {
+    const [nx, ny] = g.num ?? [12, 12.5];
+    s += `<text class="g-secs${t.inner.length > 2 ? " long" : ""}" x="${nx}" y="${ny}" text-anchor="middle" dominant-baseline="central">${t.inner}</text>`;
+  }
   if (t.tick !== undefined) {
     const top = g.top ?? 2, bot = g.bot ?? 22, y = bot - (bot - top) * t.tick, narrow = t.glyph === "thermo";
     s += `<line class="g-tick${t.floor ? " floor" : ""}" x1="${narrow ? 7 : 2}" x2="${narrow ? 17 : 22}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/>`;
@@ -282,7 +296,8 @@ const SLASH = '<svg class="gslash" viewBox="0 0 50 50" aria-hidden="true"><path 
 /** The icon's inner markup for its state: the meter, a gold star once won, grey and struck through once missed. */
 export function goalIcon(t: GoalToken, size = 40): string {
   if (t.state === "done") return STAR;
-  return tokenSvg(t, size) + (t.state === "failed" ? SLASH : "");
+  const { inner, ...rest } = t;
+  return tokenSvg(t.state === "open" && inner !== undefined ? { ...rest, inner } : rest, size) + (t.state === "failed" ? SLASH : "");
 }
 
 // ------------------------------------------------------------------ DOM
@@ -334,7 +349,7 @@ export class GoalHud {
     const doc = this.el.goals.ownerDocument;
     tokens.forEach((t, i) => {
       const hidden = i >= slots;
-      const key = hidden ? "hidden" : JSON.stringify([t.count ?? 0, t.secs ?? -1, t.state, t.fill !== undefined ? q(t.fill) : null, t.ring ? q(t.ring.k) : null, t.pie !== undefined ? q(t.pie) : null, t.pips, t.warn, t.tick, i === next]);
+      const key = hidden ? "hidden" : JSON.stringify([t.inner ?? "", t.beside ?? "", t.state, t.fill !== undefined ? q(t.fill) : null, t.ring ? q(t.ring.k) : null, t.pie !== undefined ? q(t.pie) : null, t.pips, t.warn, t.tick, i === next]);
       let b = this.el.goals.children[i] as HTMLButtonElement | undefined;
       if (!b) {
         b = doc.createElement("button");
@@ -350,7 +365,7 @@ export class GoalHud {
       b.setAttribute("aria-label", t.label);
       b.hidden = hidden && i !== next;
       b.className = `gdisc ${t.state}${i === next ? " next" : ""}${b.classList.contains("alert") ? " alert" : ""}`;
-      b.innerHTML = i === next && hidden ? "" : goalIcon(t, 50) + (t.count && t.state === "open" ? `<span class="gnum">${t.count}</span>` : "");
+      b.innerHTML = i === next && hidden ? "" : goalIcon(t, 50) + (t.beside && t.state === "open" ? `<span class="gnum">${t.beside}</span>` : "");
       // a goal just won or lost: a short flash
       if (was && was !== "hidden" && JSON.parse(was)[0] !== t.state) { b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
     });
