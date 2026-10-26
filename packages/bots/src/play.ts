@@ -56,6 +56,8 @@ export interface BotTrace {
   ladderLeft: number;
   /** Goods the player took back out of the warehouse. */
   depotPicks: number;
+  /** Story mechanics: ticks until a dark core was lit (-1: none was dark or it never lit), crew who joined, empty pods opened, bosses that broke off. */
+  story: { litTicks: number; joined: number; decoys: number; retreats: number };
   /** Share of guard-seconds under attack spent within reach of a post on the attacked side (-1: never tested). */
   rallyShare: number;
   injuries: number;
@@ -241,6 +243,7 @@ export interface BotResult {
 const PROGRESS_EVENTS: ReadonlySet<SimEvent["t"]> = new Set<SimEvent["t"]>([
   "pad_paid", "built", "hired", "unlocked", "core_upgraded", "zone_cleared", "captured", "released", "recruit_arrived",
   "moved_in", "barrier_progress", "barrier_built", "wave_cleared", "died", "crate_delivered",
+  "core_lit", "joined", "decoy_opened", "retreated",
 ]);
 
 const SALES_GOALS: ReadonlySet<string> = new Set(["currency", "sell", "earn", "serve_premium", "streak", "sell_each", "earn_within", "bulk_order", "shelves_full", "automate"]);
@@ -441,6 +444,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     playerKillShare: s.kills > 0 ? (s.killsBy?.["player"] ?? 0) / s.kills : -1,
     ladderLeft: ladderLeft(st, cp),
     depotPicks: st.stats.depotPicked ?? 0,
+    story: { litTicks: s.litTick ?? -1, joined: s.joined ?? 0, decoys: s.decoysOpened ?? 0, retreats: s.retreats ?? 0 },
     rallyShare: rallyN > 0 ? rallyOn / rallyN : -1,
     injuries: s.injured,
     animalHits: s.animalHits,

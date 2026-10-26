@@ -1,0 +1,386 @@
+{
+ "id": "story-L004",
+ "seed": 1004,
+ "engineVersion": "0.13.0",
+ "contentVersion": "0.13.0",
+ "map": {
+  "w": 480,
+  "h": 900,
+  "zones": [
+   "base",
+   "sources-w",
+   "sources-e",
+   "shop-se",
+   "landmark-sw"
+  ]
+ },
+ "modules": [
+  "build_pads",
+  "carry",
+  "converters",
+  "core",
+  "gather",
+  "sales",
+  "workers"
+ ],
+ "start": [
+  240,
+  592
+ ],
+ "entities": [
+  {
+   "type": "sink.core",
+   "id": "core",
+   "at": [
+    240,
+    500
+   ],
+   "params": {
+    "fuel": 15,
+    "level": 1
+   }
+  },
+  {
+   "type": "sink.sales_point",
+   "id": "shop",
+   "at": [
+    296,
+    645
+   ],
+   "sells": [
+    "res.food_raw_1",
+    "res.food_prepared"
+   ],
+   "route": [
+    [
+     237,
+     920
+    ],
+    [
+     237,
+     897
+    ],
+    [
+     235,
+     645
+    ]
+   ]
+  },
+  {
+   "type": "node.food_source",
+   "id": "food1",
+   "at": [
+    348,
+    465
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    155,
+    479
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    160,
+    527
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    147,
+    442
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    126,
+    511
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    113,
+    485
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    159,
+    412
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    111,
+    536
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    115,
+    443
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    90,
+    512
+   ]
+  },
+  {
+   "type": "node.material_source",
+   "at": [
+    84,
+    411
+   ]
+  },
+  {
+   "type": "node.material_source",
+   "at": [
+    80,
+    461
+   ]
+  },
+  {
+   "type": "node.food_source",
+   "id": "food_g",
+   "at": [
+    37,
+    587
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "terrain0",
+   "kind": "ridge",
+   "rect": [
+    331,
+    156,
+    20,
+    91
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "terrain1",
+   "kind": "ridge",
+   "rect": [
+    76,
+    156,
+    134,
+    20
+   ]
+  },
+  {
+   "type": "pad.hire",
+   "id": "hire_core",
+   "at": [
+    217,
+    610
+   ],
+   "cost": {
+    "res.currency": 7
+   },
+   "role": {
+    "role": "role.supplier",
+    "from": "node.fuel_scrap",
+    "to": "sink.core"
+   },
+   "manual": true
+  },
+  {
+   "type": "pad.hire",
+   "id": "hire_food",
+   "at": [
+    348,
+    526
+   ],
+   "cost": {
+    "res.currency": 11
+   },
+   "role": {
+    "role": "role.supplier",
+    "from": "node.food_source",
+    "to": "sink.sales_point",
+    "node": "food1"
+   },
+   "manual": true
+  },
+  {
+   "type": "pad.hire",
+   "id": "hire_cashier",
+   "at": [
+    296,
+    744
+   ],
+   "cost": {
+    "res.currency": 16
+   },
+   "role": {
+    "role": "role.cashier",
+    "to": "sink.sales_point"
+   },
+   "manual": true
+  },
+  {
+   "type": "pad.build",
+   "id": "grill",
+   "at": [
+    140,
+    650
+   ],
+   "cost": {
+    "res.currency": 11
+   },
+   "build": "conv.food_processor"
+  },
+  {
+   "type": "pad.hire",
+   "id": "feeder",
+   "at": [
+    140,
+    739
+   ],
+   "cost": {
+    "res.currency": 9
+   },
+   "role": {
+    "role": "role.supplier",
+    "from": "node.food_source",
+    "to": "conv.food_processor",
+    "node": "food_g"
+   },
+   "requires": {
+    "pad": "grill"
+   },
+   "manual": true
+  },
+  {
+   "type": "pad.hire",
+   "id": "cook",
+   "at": [
+    140,
+    739
+   ],
+   "cost": {
+    "res.currency": 9
+   },
+   "role": {
+    "role": "role.operator",
+    "to": "conv.food_processor"
+   },
+   "requires": {
+    "pad": "feeder"
+   },
+   "manual": true
+  },
+  {
+   "type": "pad.hire",
+   "id": "server",
+   "at": [
+    140,
+    739
+   ],
+   "cost": {
+    "res.currency": 9
+   },
+   "role": {
+    "role": "role.server",
+    "from": "conv.food_processor",
+    "to": "sink.sales_point"
+   },
+   "requires": {
+    "pad": "cook"
+   },
+   "manual": true
+  }
+ ],
+ "people": [
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  }
+ ],
+ "waves": [],
+ "events": [],
+ "params": {
+  "start.currency": 8,
+  "core.burn": 2.8,
+  "housing.base": 10,
+  "lots.block": 60,
+  "lots.street": 0,
+  "customers.spawn": 2.7,
+  "customers.orderMin": 1,
+  "customers.orderMax": 2,
+  "level.budgetSeconds": 300
+ },
+ "goal": {
+  "type": "automate",
+  "seconds": 20
+ },
+ "family": "industrialize",
+ "objectives": [
+  {
+   "id": "main",
+   "kind": "automate",
+   "params": {
+    "seconds": 20
+   }
+  },
+  {
+   "id": "time",
+   "kind": "time_target",
+   "params": {
+    "seconds": 115
+   }
+  },
+  {
+   "id": "challenge",
+   "kind": "no_stockpile_overload",
+   "params": {}
+  }
+ ],
+ "fail": [
+  "meter.lifeline"
+ ],
+ "guide": "always",
+ "text": {
+  "mars_greenhouse": {
+   "title": "Halcyon Works",
+   "goal": "Make the town run itself",
+   "tips": [
+    "Five of us, doing the work of nine. Build a town that runs itself."
+   ]
+  }
+ }
+}

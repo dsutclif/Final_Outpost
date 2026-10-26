@@ -42,6 +42,8 @@ export interface Measurement {
   ladderLeft: number;
   /** Mean goods the reference bot took back out of the warehouse per run. */
   depotPicks: number;
+  /** Story mechanics over the reference runs: mean seconds to light a dark core (-1: no dark core), and mean crew joined, decoys opened, bosses that broke off. */
+  story: { litSeconds: number; joined: number; decoys: number; retreats: number };
   /** Mean share of guard-seconds under attack spent on the attacked side (-1 where no guard ever rallied). */
   rallyShare: number;
   /** Longest time, in seconds, any stock sat at cap in any reference-bot run (0 when none did). */
@@ -93,11 +95,17 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const lefts = runs[REFERENCE]!.map((r) => r.trace.ladderLeft).filter((x) => x >= 0);
   const ladderLeft = lefts.length > 0 ? mean(lefts) : -1;
   const depotPicks = mean(runs[REFERENCE]!.map((r) => r.trace.depotPicks));
+  const storyRuns = runs[REFERENCE]!.map((r) => r.trace.story);
+  const lit = storyRuns.map((x) => x.litTicks).filter((t) => t >= 0);
+  const story = {
+    litSeconds: lit.length > 0 ? mean(lit) / 30 : -1,
+    joined: mean(storyRuns.map((x) => x.joined)), decoys: mean(storyRuns.map((x) => x.decoys)), retreats: mean(storyRuns.map((x) => x.retreats)),
+  };
   const rallied = runs[REFERENCE]!.map((r) => r.trace.rallyShare).filter((x) => x >= 0);
   const rallyShare = rallied.length > 0 ? mean(rallied) : -1;
   const capHoldMax = Math.max(0, ...runs[REFERENCE]!.map((r) => r.trace.capHoldMax));
   const worst = runs[REFERENCE]!.reduce((a, r) => (r.trace.loopMax > a.trace.loopMax ? r : a));
-  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, rallyShare, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, terrain: terrainStats(manifest), budgetTicks, template, history };
+  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, story, rallyShare, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, terrain: terrainStats(manifest), budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,

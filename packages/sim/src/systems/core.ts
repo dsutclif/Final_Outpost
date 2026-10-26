@@ -22,6 +22,7 @@ export function safeRadius(st: State, cp: Compiled): number {
 /** Burn fuel on a fixed interval (faster under a hazard). The lifeline and frost follow in freeze.ts. */
 export function stepCore(st: State, cp: Compiled, out: SimEvent[]): void {
   const c = st.core;
+  if (c.dormant) return; // a dark core burns nothing until its first fuel lights it
   // The accumulator counts FP per tick, so a hazard can scale the burn by a ratio exactly.
   c.burnAcc += hazardActive(st) ? cp.hazard.burnMul : FP;
   const threshold = cp.core.burnTicks * FP;
@@ -43,7 +44,10 @@ export function feedCoreWith(st: State, cp: Compiled, res: string, out: SimEvent
   if (c.fuel >= cap) return false;
   const before = c.fuel;
   c.fuel = Math.min(cap, c.fuel + value);
-  if (before === 0 && c.fuel > 0) out.push({ t: "core_fuel_restored" });
+  if (c.dormant) {
+    delete c.dormant;
+    out.push({ t: "core_lit", at: { ...c.pos } });
+  } else if (before === 0 && c.fuel > 0) out.push({ t: "core_fuel_restored" });
   const ev: SimEvent = { t: "deposited", res, to: "sink.core", at: { ...c.pos } };
   if (by !== undefined) ev.by = by;
   out.push(ev);

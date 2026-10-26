@@ -20,6 +20,8 @@ export const FROST_MAX = 1000;
  */
 export function stepFreeze(st: State, cp: Compiled, out: SimEvent[]): void {
   const F = st.freeze, c = st.core;
+  // A dark core (manifest lit: false) has not started its countdown: the lifeline holds until it is lit.
+  if (c.dormant) { st.meters.lifeline = c.lifeline; return; }
   if (c.fuel > 0) {
     F.active = false;
     F.lossAt = -1;

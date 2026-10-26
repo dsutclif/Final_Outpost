@@ -1,0 +1,189 @@
+{
+ "id": "story-L001",
+ "seed": 1001,
+ "engineVersion": "0.13.0",
+ "contentVersion": "0.13.0",
+ "map": {
+  "w": 480,
+  "h": 900,
+  "zones": [
+   "base",
+   "sources-w",
+   "sources-e",
+   "shop-se",
+   "landmark-sw"
+  ]
+ },
+ "modules": [
+  "carry",
+  "core",
+  "gather",
+  "hazard_events",
+  "sales"
+ ],
+ "start": [
+  330,
+  610
+ ],
+ "entities": [
+  {
+   "type": "sink.core",
+   "id": "core",
+   "at": [
+    240,
+    500
+   ],
+   "params": {
+    "fuel": 0,
+    "level": 1,
+    "lit": false
+   }
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    153,
+    492
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    153,
+    453
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    159,
+    528
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    129,
+    471
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    130,
+    516
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    164,
+    420
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    125,
+    434
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    106,
+    491
+   ]
+  },
+  {
+   "type": "node.material_source",
+   "at": [
+    89,
+    452
+   ]
+  },
+  {
+   "type": "node.material_source",
+   "at": [
+    96,
+    537
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    318,
+    596
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    298,
+    584
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    278,
+    574
+   ]
+  }
+ ],
+ "people": [],
+ "waves": [],
+ "events": [
+  {
+   "type": "event.hazard",
+   "warnAt": 20,
+   "start": 28,
+   "end": 48
+  }
+ ],
+ "params": {
+  "start.currency": 0,
+  "core.burn": 2.1,
+  "housing.base": 2,
+  "lots.block": 60,
+  "lots.street": 0,
+  "level.budgetSeconds": 90,
+  "core.grace": 45
+ },
+ "goal": {
+  "type": "hazard_survive"
+ },
+ "family": "shelter",
+ "objectives": [
+  {
+   "id": "main",
+   "kind": "hazard_survive",
+   "params": {}
+  },
+  {
+   "id": "challenge2",
+   "kind": "settlement_never_freezes",
+   "params": {}
+  },
+  {
+   "id": "challenge",
+   "kind": "fuel_full",
+   "params": {
+    "seconds": 28
+   }
+  }
+ ],
+ "fail": [
+  "meter.lifeline"
+ ],
+ "guide": "always",
+ "text": {
+  "mars_greenhouse": {
+   "title": "Cold Start",
+   "goal": "Light the reactor and ride out the storm",
+   "tips": [
+    "Reactor at 4%. Anyone awake?"
+   ]
+  }
+ }
+}

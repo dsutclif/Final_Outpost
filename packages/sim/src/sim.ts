@@ -119,6 +119,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
     won: null,
     reason: null,
   };
+  if (coreEnt.params.lit === false) state.core.dormant = true;
 
   let nextCapture = 0;
   for (const e of m.entities) {
@@ -188,6 +189,8 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
         } else if (t.startsWith("capture.")) {
           const freeze = "freeze" in e && e.freeze !== undefined ? (e.freeze > 0 ? ticks(e.freeze) : 0) : cp.lassoables[t]!.freezeTicks;
           const c: CaptureState = { id: nextCapture++, type: t, pos: vec(e.at), state: "idle", timer: 0, freezeTicks: freeze };
+          if ("joins" in e && e.joins) c.joins = { role: e.joins.role, from: e.joins.from ?? null, to: e.joins.to ?? null, node: e.joins.node ?? null };
+          if ("decoy" in e && e.decoy) c.decoy = true;
           state.captures.push(c);
         }
       }

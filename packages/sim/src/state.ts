@@ -57,6 +57,8 @@ export interface CoreState {
   burnAcc: number;
   /** meter.lifeline in parts per million of full. */
   lifeline: number;
+  /** Set (true) while a manifest-dark core waits for its first fuel: no burn, no countdown. */
+  dormant?: boolean;
 }
 
 export interface CustomerState {
@@ -210,6 +212,10 @@ export interface CaptureState {
   timer: number;
   /** Ticks left before it freezes over and is lost (while idle or towed); 0 = no freeze timer. */
   freezeTicks: number;
+  /** The recruit's job on release (a crew member who starts work at once); absent = idle colonist. */
+  joins?: { role: string; from: string | null; to: string | null; node: string | null };
+  /** An empty pod: towed like any other, opens with nobody inside, never counts as a rescue. */
+  decoy?: boolean;
 }
 
 export interface PreyState {
@@ -240,6 +246,8 @@ export interface HostileState {
   /** "core" while walking in, "barrier" while hitting a section, "base" while attacking the core, "troop" while fighting a soldier. */
   target: "core" | "barrier" | "base" | "troop";
   acc: number;
+  /** Hp at or below which it breaks off and retreats (a wave's bossRetreat); absent = fights to the end. */
+  retreatHp?: number;
 }
 
 /** A soldier trained by a guard post (Batch 3): fights hostiles hand to hand and can die. */
@@ -289,7 +297,7 @@ export interface MetersState {
 
 export interface WavesState {
   idx: number;
-  pending: { tick: number; type: string; side: "n" | "e" | "s" | "w" }[];
+  pending: { tick: number; type: string; side: "n" | "e" | "s" | "w"; retreatPct?: number }[];
   /** True once a wave has spawned until every hostile is dead. */
   active: boolean;
   /** No wave starts before this tick (a quiet spell after the last one was cleared). */
@@ -399,6 +407,11 @@ export interface Stats {
   /** Hostile kills by who landed the last hit (player, resident, structure); created on the first kill (Batch 3). */
   killsBy?: Record<string, number>;
   bossKills: number;
+  /** Story mechanics (rater metrics), created on first use: tick the dormant core was lit, crew who joined straight into a job, empty pods opened, hostiles that retreated. */
+  litTick?: number;
+  joined?: number;
+  decoysOpened?: number;
+  retreats?: number;
   preyKilled: number;
   /** Bites taken from dangerous animals, by the player or a worker. */
   animalHits: number;
@@ -459,6 +472,8 @@ export interface State {
   captures: CaptureState[];
   prey: PreyState[];
   hostiles: HostileState[];
+  /** Hostiles that broke off (bossRetreat), walking back to their edge: out of the fight, drawn until they leave. Created on first use. */
+  fleeing?: HostileState[];
   nextHostileId: number;
   /** Soldiers from guard posts (Batch 3); created with the first one. */
   troops?: TroopState[];

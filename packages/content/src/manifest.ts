@@ -26,7 +26,8 @@ const base = { id: EntityRef.optional(), at: Point };
 export const CoreEntity = z.object({
   ...base,
   type: z.literal("sink.core"),
-  params: z.object({ fuel: z.number().int().nonnegative(), level: z.number().int().positive().default(1) }),
+  // lit: false starts the core dark: no burn and no reactor-out countdown until its first fuel lights it.
+  params: z.object({ fuel: z.number().int().nonnegative(), level: z.number().int().positive().default(1), lit: z.boolean().optional() }),
 });
 export const NodeEntity = z.object({
   ...base,
@@ -92,6 +93,10 @@ export const CaptureEntity = z.object({
   type: CaptureId,
   // Seconds before it freezes over and is lost; overrides the lassoable's freezeTime (0 = never).
   freeze: z.number().nonnegative().optional(),
+  // Story pods: the recruit starts this job on release (no hire pad), or the pod opens empty and
+  // never counts as a rescue. Recruit lassoables only.
+  joins: RoleBinding.optional(),
+  decoy: z.boolean().optional(),
 });
 // Barrier lines: contiguous sections, each built by walking along it with the line's resource.
 export const BarrierSection = z.object({
@@ -175,6 +180,8 @@ export const Wave = z.object({
   side: z.union([Side, z.array(Side).min(1)]).optional(),
   // Seconds between spawns; defaults to defense.spawnGap.
   gap: z.number().positive().optional(),
+  // Boss-flag hostiles of this wave break off at this percent of their hp and walk back to their edge.
+  bossRetreat: z.number().int().min(1).max(99).optional(),
 });
 export const LevelEvent = z.object({
   type: EventId,
@@ -262,6 +269,10 @@ export const Manifest = z.object({
   objectives: z.array(Objective).optional(),
   fail: z.array(MeterId).min(1),
   rating: Rating.optional(),
+  // Client only, never read by the sim: "always" shows the guide arrow from the first tick (story
+  // levels); "night" lighting for the 3D renderer.
+  guide: z.literal("always").optional(),
+  lighting: z.enum(["day", "night"]).optional(),
   // Player-facing text per skin id. Never read by the sim.
   text: z.record(z.string(), SkinText).default({}),
 });
@@ -401,7 +412,13 @@ export function checkManifest(m: Manifest, c: Content): void {
           if (!c.structures[t]) fail(`unknown structure type ${t}`);
           if ("arrivals" in e && e.arrivals && t !== "struct.gate") fail(`only struct.gate takes arrivals`);
         }
-        else if (t.startsWith("capture.")) { if (!c.lassoables[t]) fail(`unknown lassoable ${t}`); }
+        else if (t.startsWith("capture.")) {
+          if (!c.lassoables[t]) fail(`unknown lassoable ${t}`);
+          const cap = e as z.infer<typeof CaptureEntity>;
+          if ((cap.joins || cap.decoy) && c.lassoables[t]!.result !== "recruit") fail(`${t}: joins and decoy need a recruit lassoable`);
+          if (cap.joins && cap.decoy) fail(`${t}: a decoy pod has nobody to join`);
+          if (cap.joins) checkBinding(`capture ${cap.id ?? t}`, cap.joins);
+        }
         else fail(`unknown entity type ${t}`);
       }
     }
@@ -421,6 +438,7 @@ export function checkManifest(m: Manifest, c: Content): void {
   }
   for (const [k, p] of m.people.entries()) checkBinding(`person ${k}`, p);
   for (const w of m.waves) for (const h of Object.keys(w.counts)) if (!c.hostiles[h]) fail(`wave spawns unknown hostile ${h}`);
+  for (const w of m.waves) if (w.bossRetreat !== undefined && !Object.keys(w.counts).some((h) => c.hostiles[h]?.boss)) fail(`bossRetreat needs a boss in its wave`);
   for (const ev of m.events) {
     if (!c.events[ev.type]) fail(`unknown event ${ev.type}`);
     if (!(ev.warnAt <= ev.start && ev.start < ev.end)) fail(`event ${ev.type} must have warnAt <= start < end`);

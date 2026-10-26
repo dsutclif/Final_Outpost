@@ -75,6 +75,10 @@ export class Environment {
   private readonly m = new Matrix4();
   /** 0..1 storm blend (eased toward the hazard phase). */
   storminess = 0;
+  /** Manifest lighting "night": a dark blue sky and fog, a dim cool moon for the key light, the core glow carrying the scene. */
+  night = false;
+  private readonly cNight = new Color(0x1b2231);
+  private readonly cMoon = new Color(0x9fb4d8);
 
   constructor(private readonly scene: Scene, readonly W: number, readonly H: number, private readonly t: Tokens, private readonly mats: MaterialSet, private readonly seed: number, sites: readonly Site[] = [], private readonly lots: Lots | null = null, roads: readonly Road[] = []) {
     this.cFog = new Color(t.fog);
@@ -335,7 +339,7 @@ export class Environment {
     const glow = (0.25 + 0.75 * fuelK) * flicker;
     this.coreLight.position.set(core.x, 2.2 * ART_M, core.z);
     this.coreLight.distance = Math.max(10, safeR * 1.25);
-    this.coreLight.intensity = (fuelK > 0 ? 70 : 8) * glow * (1 + this.storminess * 0.6);
+    this.coreLight.intensity = (fuelK > 0 ? 70 : 8) * glow * (1 + this.storminess * 0.6) * (this.night ? 1.6 : 1);
     this.pool.position.set(core.x, 0.8, core.z);
     this.pool.scale.setScalar(Math.max(1, safeR * 1.08));
     (this.pool.material as MeshBasicMaterial).opacity = 0.18 + 0.32 * glow;
@@ -346,15 +350,16 @@ export class Environment {
     const target = hazard === "active" ? 1 : hazard === "warning" ? 0.25 : 0;
     this.storminess += (target - this.storminess) * Math.min(1, dt * 1.5);
     const s = this.storminess;
-    this.tmp.copy(this.cFog).lerp(this.cStorm, s);
+    this.tmp.copy(this.night ? this.cNight : this.cFog).lerp(this.cStorm, s * (this.night ? 0.3 : 1));
     this.fog.color.copy(this.tmp);
     (this.scene.background as Color).copy(this.tmp);
     // fog is measured from the camera, which sits far back for the near-flat view
     this.fog.near = camDist + 570 - s * 700;
     this.fog.far = camDist + 2570 - s * 1700;
     const dim = 1 - s * 0.4;
-    this.sun.intensity = SUN * dim;
-    this.hemi.color.copy(this.cSky).lerp(this.cStorm, s);
+    this.sun.intensity = SUN * dim * (this.night ? 0.3 : 1);
+    if (this.night) this.sun.color.copy(this.cMoon);
+    this.hemi.color.copy(this.night ? this.cNight : this.cSky).lerp(this.cStorm, s);
 
     this.storm.begin();
     if (s > 0.05) {

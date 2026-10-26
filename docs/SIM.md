@@ -372,6 +372,22 @@ injuries).
 - Hazard burn: the accumulator adds `hazard.burnMultiplier` (FP) per tick against
   `burnTicks × FP`, which reproduces the prototype's `2.4 / 2.6` interval exactly.
 
+## Story mechanics (DECISIONS 14)
+
+Data options on existing modules, used by the story levels (`levels/story`) and open to any level.
+New state is optional and only set when a level uses it, so other levels are unchanged.
+
+| Option | Manifest | Rules | State / events | Stats (rater metric) |
+|---|---|---|---|---|
+| Dark core | `sink.core` `params.lit: false` | No burn (`stepCore`) and no reactor-out countdown (`stepFreeze`, lifeline held) until the first fuel; that deposit lights it instead of `core_fuel_restored`. A dark start is not a fuel-out, nor counted in `heatMin` or the low-core demand. | `core.dormant`; `core_lit {at}` | `litTick` (rater `story.litSeconds`) |
+| Crew pod | `capture.*` `joins: {role, from?, to?, node?}` (recruit lassoables) | On release the recruit takes that job at once, as if hired (no pad, no cost; guards get a post) and never waits for a hab pod. Counts as a rescue, not a hire. | `captures[].joins`; `joined {capture, resident, role}` | `joined` |
+| Decoy pod | `capture.*` `decoy: true` (recruit lassoables; not with `joins`) | Towed like a pod; opens empty: no resident, no `released`. Not a rescue and not a pod left for `rescue_all`, `rescue_before_freeze` or `house_all`. Bots never make a trip for one. | `captures[].decoy`; `decoy_opened {capture, at}` | `decoysOpened` |
+| Retreating boss | wave `bossRetreat: 1..99` (needs a boss in that wave) | Boss-flag hostiles of the wave break off at that percent of their hp: they leave `hostiles` at once (so nothing targets them and the wave can clear), drop their loot, and walk straight off their attack edge in `fleeing`. They count as kills and boss kills. | `hostiles[].retreatHp`, `fleeing[]`, `waves.pending[].retreatPct`; `retreated {kind, id, at}` | `retreats` |
+| Night | top-level `lighting: "night"` | Renderer only: dark blue sky and fog, dim cool moon, brighter core glow. | | |
+| Guide | top-level `guide: "always"` | Client only: the guide arrow shows from the first tick. | | |
+
+`stepFleeing` runs inside `stepDefense`, after the hostile loop.
+
 ## Adding a module
 
 1. Content: add the registry entries and any new param defaults in `packages/content/data`, a

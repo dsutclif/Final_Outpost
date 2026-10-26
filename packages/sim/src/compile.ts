@@ -192,6 +192,8 @@ export interface CompiledWave {
   /** Attack sides; spawn k comes from sides[k % length]. */
   sides: ("n" | "e" | "s" | "w")[];
   gapTicks: number;
+  /** Boss-flag hostiles break off at this percent of their hp (manifest bossRetreat). */
+  retreatPct?: number;
 }
 
 export interface CompiledEvent {
@@ -480,7 +482,9 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     const types: string[] = [];
     for (const [type, n] of Object.entries(w.counts)) for (let i = 0; i < n; i++) types.push(type);
     const sides: CompiledWave["sides"] = w.side === undefined ? ["n"] : Array.isArray(w.side) ? [...w.side] : [w.side];
-    return { tick: ticks(w.t), types, sides, gapTicks: ticks(w.gap ?? param("defense.spawnGap")) };
+    const cw: CompiledWave = { tick: ticks(w.t), types, sides, gapTicks: ticks(w.gap ?? param("defense.spawnGap")) };
+    if (w.bossRetreat !== undefined) cw.retreatPct = w.bossRetreat;
+    return cw;
   });
   const objectives: CompiledObjective[] = manifest.objectives && manifest.objectives.length > 0
     ? manifest.objectives.map((o) => ({ id: o.id, kind: o.kind, params: { ...o.params } }))

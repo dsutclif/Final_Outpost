@@ -1013,7 +1013,8 @@ export class App {
 
   /** Load the guide (and with it the bot controller chunk) only where arrows will show. */
   private startGuide(s: Session): void {
-    s.guideOn = s.meta.index < GUIDE_LEVELS || this.settings.guide;
+    // story levels (manifest guide "always") point the way from the first tick, whatever the setting
+    s.guideOn = s.manifest.guide === "always" || s.meta.index < GUIDE_LEVELS || this.settings.guide;
     if ((!s.guideOn && !this.settings.stuckArrow) || s.guide) return;
     void Guide.create(s.manifest, s.sim.compiled).then((g) => { if (this.session === s) s.guide = g; });
   }

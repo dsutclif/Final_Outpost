@@ -40,6 +40,14 @@ export function nearestDangerousPrey(st: State, cp: Compiled, p: Vec, r: number)
 export function hitHostile(st: State, cp: Compiled, h: HostileState, dmg: number, by: Attacker, out: SimEvent[]): void {
   h.hp -= dmg;
   out.push({ t: "hit", target: "hostile", id: h.id, at: { ...h.pos }, by });
+  if (h.hp > 0 && h.retreatHp !== undefined && h.hp <= h.retreatHp) {
+    // A boss breaking off leaves the fight at once (counts as beaten) and drops its loot as it turns.
+    st.hostiles = st.hostiles.filter((x) => x !== h);
+    (st.fleeing ??= []).push(h);
+    out.push({ t: "retreated", kind: h.type, id: h.id, at: { ...h.pos } });
+    spawnDrops(st, cp, cp.hostiles[h.type]!.drops, h.pos, out);
+    return;
+  }
   if (h.hp > 0) return;
   st.hostiles = st.hostiles.filter((x) => x !== h);
   out.push({ t: "died", kind: h.type, id: h.id, at: { ...h.pos }, by });
