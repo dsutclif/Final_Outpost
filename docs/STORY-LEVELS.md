@@ -303,6 +303,7 @@ re-renders from code (no hand-keyed Blender files to maintain). Built 2026-10-26
 | Script | Does |
 |---|---|
 | `prep.py` | Reduces Doug's raw Meshy models (Halcyon flying and wreck, helmet, Bay 5 bust) to 200–400k triangles into `cache/` (gitignored). Run once after the source files change. |
+| `site_prep.py` | The crash-site wreck: Doug's wreck at 60 m with the loose debris in front of the hull break removed (`cache/halcyon_wreck_site.glb`), so the deck set and cameras have room. Run after `prep.py`. |
 | `lib.py` | Shared kit: models placed in metres, sand, seeded ridges, sky and bounded haze, sun, reactor glow, bloom, dust motes that loop seamlessly, rig poses (Mixamo bones), the in-game camera. |
 | `title.py` | Landing screen. `--quick` preview, default 1080×1920 still, `--frames` the 180-frame loop, `--check` seam frames. |
 | `crash.py` | `crash_open`, four shots; `--shot N`, `--quick`, `--check`. |
@@ -326,7 +327,7 @@ client should still cross-fade 0.3 s to hide the renderer change.
 |---|---|---|---|
 | `title_loop` | Landing screen | 6 s seamless loop | Dusk over the outpost: reactor glow breathing, a crewmate mining, the medic and commander breathing, dust drifting, the pulse beating twice on the ridge. Title and Play over it. |
 | `title_still` | Landing fallback, store art | still | Frame 1 of the loop at 1080×1920. |
-| `crash_open` | Before level 1 | 7.5 s | 1 the Halcyon dives through the storm; the pulse flashes and the engines cut out. 2 wide: it hits the plain, flash, dust plume. 3 inside the wreck by red emergency light: four sealed pods (bays five to eight, the crew-gap clue) and the commander's pod venting; the commander staggers out of the steam. 4 daylight: the commander drops from the breach, lands, stands, and the camera cranes out to the game view over the dark reactor. |
+| `crash_open` | Before level 1 | 12.5 s | 1 the Halcyon dives through the storm; the pulse flashes and the engines cut out. 2 wide: it hits the plain, flash, dust plume. 3 dawn: the broken wreck (Doug's model) on the plain, red emergency light in the hull break. 4 a torn deck section by the break: four sealed pods (bays five to eight, the crew-gap clue) and the commander's pod knocked askew; it vents, the lid swings open, the commander sits up, climbs over the rim, slides off and walks to the deck edge. 5 the commander drops to the sand, stands, and the camera cranes out to the game view over the dark reactor, the wreck behind. |
 | `helmet_reveal` | After level 5's win | 4 s | Night. The lieutenant's helmet (Halcyon-issue, painted black, white and gold showing through) where it fell, dust settling; the camera creeps in and tips down to the ID card that slipped out: BAY 5, FIRST OFFICER. |
 
 The commander's own pod failed to eject, which is why they wake in the wreck (agreed with Doug

@@ -36,7 +36,8 @@ def reset(w=1080, h=1920, fps=30):
     sc.render.resolution_x, sc.render.resolution_y, sc.render.fps = w, h, fps
     sc.eevee.taa_render_samples = 48
     for attr, val in (("use_shadows", True), ("use_raytracing", True), ("volumetric_end", 600.0),
-                      ("volumetric_tile_size", "4"), ("use_gtao", True), ("use_volumetric_shadows", False)):
+                      ("volumetric_tile_size", "4"), ("use_gtao", True), ("use_volumetric_shadows", False),
+                      ("shadow_pool_size", "1536")):
         if hasattr(sc.eevee, attr):
             try: setattr(sc.eevee, attr, val)
             except Exception: pass
@@ -69,7 +70,7 @@ def _import(path):
     return new, roots
 
 
-def place(path, at=(0, 0, 0), yaw=0.0, size=None, height=None, name=None):
+def place(path, at=(0, 0, 0), yaw=0.0, size=None, height=None, name=None, exact=False):
     """Import a GLB, scale it so its largest horizontal extent is `size` (or its height is
     `height`) metres, stand it on the ground at `at`, turned `yaw` degrees. Returns the root."""
     if not os.path.isabs(path):
@@ -94,7 +95,7 @@ def place(path, at=(0, 0, 0), yaw=0.0, size=None, height=None, name=None):
     k = 1.0
     if height: k = height / max(ext.z, 1e-6)
     elif size: k = size / max(ext.x, ext.y, 1e-6)
-    for r in roots:
+    for r in ([] if exact else roots):  # exact: the file is already in metres and in place
         r.location = (r.location - Vector(((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, lo.z)))
     root.scale = (k, k, k)
     root.location = at
