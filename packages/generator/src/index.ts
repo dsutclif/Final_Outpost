@@ -8,7 +8,7 @@ import { GEN, TEMPLATES, buildLevel, knobsFor, templateById, timeTarget, type Bu
 import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
 
-export { TEMPLATES, GEN, isSizedFootprint, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
+export { TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
 export { skinText, dedupeTitles } from "./text.js";
 export { Placer, unreadablePairs } from "./layout.js";
@@ -602,3 +602,4 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
   }
   return null;
 }
+export { BASE_BUILD_SCALE, GAME_PAD, PLOT_PADS, computePlots, modelBounds, type PlotData, type PlotInput } from "./plots.js";

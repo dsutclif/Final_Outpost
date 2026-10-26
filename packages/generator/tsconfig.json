@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "../..", "outDir": "dist", "types": ["node"] },
-  "include": ["src/**/*.ts", "test/**/*.ts", "data/*.json", "../../levels/**/*.json"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "data/*.json", "../../levels/**/*.json", "../render-3d/src/assets/meshy.json", "../render-3d/src/assets/meshy.built.json"],
   "references": [{ "path": "../content" }, { "path": "../sim" }, { "path": "../bots" }, { "path": "../rater" }, { "path": "../sequencer" }, { "path": "../skins" }]
 }

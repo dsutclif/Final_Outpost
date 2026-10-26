@@ -20,6 +20,7 @@
   },
   "duplicateWindow": 10,
   "storyLength": 5,
+  "storyTaught": ["dust_storms", "rockslides", "hunting", "source_unlocks", "turrets", "salvage_upgrades", "defenders", "bosses"],
   "introLength": 15,
   "templates": ["crossroads", "west_fields", "east_fields", "north_fields", "south_fields", "corridor", "crescent"],
   "implies": { "workers": ["build_pads"] },

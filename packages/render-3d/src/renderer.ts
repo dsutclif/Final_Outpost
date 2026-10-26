@@ -1,4 +1,4 @@
-import { LOOK, content as defaultContent, type Content, type Manifest } from "@fo/content";
+import { LOOK, PLOT, modelScaleFor, content as defaultContent, type Content, type Manifest } from "@fo/content";
 import { FP, TPS, beltEnds, collapseSecondsLeft, padCost, compile, converterStockKey, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
 import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
@@ -34,12 +34,12 @@ import {
   type ToneMapping,
 } from "three";
 import { lookFor, type Anim, type Look } from "./assets/characters.js";
-import { disposeGeo, getAnchor, model, type BuildCtx, type Model } from "./assets/common.js";
+import { disposeGeo, getAnchor, mesh, model, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
 import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
-import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
+import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
 import { LEAD_WEIGHT, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder } from "./geom.js";
@@ -802,6 +802,12 @@ export class Renderer3D implements Renderer {
   camOverride: { pitch: number; yaw: number; fov: number; viewW: number } | null = null;
   /** Building size multiplier: units.ts BUILD_K in the game, overridden by the layout sandbox. */
   devBuildScale = BUILD_K;
+  /** Per-building size multipliers (look.json modelScale) on top of devBuildScale; the layout sandbox swaps in alignedScale. */
+  devModelScale: Record<string, number> = LOOK.modelScale;
+  /** Pad plate size multiplier: the plot layout's pad (content plot.json) over the 49-unit plate, else 1; the layout sandbox sets its own. */
+  devPadScale = PLOT ? PLOT.render.pad / 49 : 1;
+  /** Plot layout: machines' operator plates drawn this many world units across at their sim spot (null: built into the model). */
+  devPlateSize: number | null = PLOT ? PLOT.render.plate : null;
   /** Character size multiplier: units.ts CHAR_K in the game, overridden by the layout sandbox. */
   devCharScale = CHAR_K;
   /** Multiplier on units.ts TEXT: look.json textScale in the game, overridden by the layout sandbox. */
@@ -869,13 +875,14 @@ export class Renderer3D implements Renderer {
     const building = /^(sink|conv|struct)\./.test(id) && id !== "struct.gate";
     // buildings stand on the concrete slabs, not sunk into them (Doug, backlog R4 item 7)
     if (building) p.model.root.position.y += SLAB_TOP;
-    this.popScale(p, ART_M * this.buildK(id));
+    this.popScale(p, ART_M * this.buildK(id, level));
     return p;
   }
 
-  /** Size multiplier for a placed id: the dev building scale on buildings and the greenhouse dome (not belts or gates), else 1. */
-  private buildK(id: string): number {
-    return this.devBuildScale !== 1 && (/^(sink|conv|struct)\./.test(id) || id === "node.food_source") && id !== "struct.gate" && id !== "struct.conveyor" ? this.devBuildScale : 1;
+  /** Size multiplier for a placed id: the building scale times its own modelScale on buildings and the greenhouse dome (not belts or gates), else 1. */
+  private buildK(id: string, level = 1): number {
+    const sized = (/^(sink|conv|struct)\./.test(id) || id === "node.food_source") && id !== "struct.gate" && id !== "struct.conveyor";
+    return sized ? this.devBuildScale * modelScaleFor(this.devModelScale, id, level) : 1;
   }
 
   /** Fade a building to see-through while the player stands inside its footprint, and restore it on leaving. */
@@ -1264,6 +1271,27 @@ export class Renderer3D implements Renderer {
     doors.children.forEach((d) => { d.position.y = -k * 1.62; });
   }
 
+  /**
+   * Plot layout: the machine's built-in operator plate and pickup tray scale with the building and sit at
+   * the content offsets it was built with; instead draw them at the sim's operator and pickup spots, a fixed
+   * size (devPlateSize world units across the operator plate).
+   */
+  private fixedPlates(p: Placed, op: V, pick: V): void {
+    const builtIn = p.model.root.getObjectByName("plates");
+    if (builtIn) builtIn.visible = false;
+    const d = this.devPlateSize!;
+    let plate = p.extra[6] as Mesh | undefined, tray = p.extra[7] as Mesh | undefined;
+    if (!plate) {
+      // stationPlate is 1 art m across; the tray is the converter's 0.7 m plate
+      plate = mesh(stationPlate(new GeoBuilder(), this.tokens).build(), this.bctx!.mats.panel, "plate");
+      tray = mesh(new GeoBuilder().rbox(0.7, 0.14, 0.7, 0.05, this.tokens.structureDark, { at: [0, 0.08, 0] }, 1).build(), this.bctx!.mats.panel, "tray");
+      this.dynamic.add(plate, tray);
+      p.extra[6] = plate; p.extra[7] = tray;
+    }
+    plate.position.copy(this.wv(op)); plate.scale.setScalar(d);
+    tray!.position.copy(this.wv(pick)); tray!.scale.setScalar(d);
+  }
+
   private syncConverters(s: State): void {
     const items = this.items!;
     this.workSpots.length = 0;
@@ -1271,7 +1299,7 @@ export class Renderer3D implements Renderer {
       const p = this.place(`cv:${cv.id}:${cv.level}`, cv.type, this.wv(cv.pos), cv.level);
       this.candidate(cv.type, p);
       const popAge = this.fx!.popAge(`cv:${cv.id}`);
-      p.model.root.scale.setScalar(ART_M * this.buildK(cv.type) * (popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1));
+      p.model.root.scale.setScalar(ART_M * this.buildK(cv.type, cv.level) * (popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1));
       // each finished unit thumps the machine: a short squash down and out
       const thump = this.fx!.popAge(`cvw:${cv.id}`);
       if (thump < 0.3) {
@@ -1280,6 +1308,7 @@ export class Renderer3D implements Renderer {
         p.model.root.scale.x *= 1 + 0.035 * q;
         p.model.root.scale.z *= 1 + 0.035 * q;
       }
+      if (this.devPlateSize !== null) this.fixedPlates(p, cv.operatorPos, cv.pickupPos);
       const def = this.content.converters[cv.type] as { outCap?: number; range?: number; role?: string; output?: string; rate?: number; upgradeRates?: number[] } | undefined;
       const manned = this.converterManned(s, cv, def);
       const blocked = cv.out >= (def?.outCap ?? 99);
@@ -1489,7 +1518,7 @@ export class Renderer3D implements Renderer {
       const at = this.wv(pad.pos);
       const p = this.place(`pad:${pad.id}`, pad.type, at, 1);
       if (big && p.data["big"] === undefined) { p.data["big"] = true; }
-      const sc = big ? 1.4 : 1;
+      const sc = (big ? 1.4 : 1) * this.devPadScale;
       this.popScale(p, ART_M, sc, sc);
       const cost = this.liveCost(s, pad.id) ?? info?.cost ?? {};
       const total = Object.values(cost).reduce((x, y) => x + y, 0) || 1;
@@ -1952,10 +1981,10 @@ export class Renderer3D implements Renderer {
       const trig = this.rigged?.entryFor("role.defender");
       const fighting = s.hostiles.some((h) => (h.pos.x - tr.pos.x) ** 2 + (h.pos.y - tr.pos.y) ** 2 < (30 * FP) ** 2);
       if (trig) {
-        this.rigged!.add(key, "role.defender", trig, { moving: sp > 0.05, hurried: false, cheer: false, speed: sp, act: fighting ? "shoot" : undefined }, pos.x, pos.y, ty, ART_M * tl.scale / 0.9);
+        this.rigged!.add(key, "role.defender", trig, { moving: sp > 0.05, hurried: false, cheer: false, speed: sp, act: fighting ? "shoot" : undefined }, pos.x, pos.y, ty, ART_M * tl.scale * this.devCharScale / 0.9);
         this.blobs!.add(pos.x, pos.y, 10 * tl.scale);
       } else this.addCharacter(tl, this.anim(key, sp, false), pos, ty, null);
-      if (tr.hp < tr.hpMax) this.barTag(pos.x, ART_M * tl.scale * 1.5, pos.y, tr.hp / tr.hpMax, t.ok, 6);
+      if (tr.hp < tr.hpMax) this.barTag(pos.x, ART_M * tl.scale * this.devCharScale * 1.5, pos.y, tr.hp / tr.hpMax, t.ok, 6);
     }
 
     for (const h of s.hostiles) {
@@ -3079,7 +3108,7 @@ export class Renderer3D implements Renderer {
 export const createRenderer3D = (opts?: Renderer3DOptions): Renderer3D => new Renderer3D(opts);
 
 export { renderThumbnails } from "./thumbs.js";
-export { setMeshyBrightness } from "./assets/meshy.js";
+export { meshyBounds, meshyFor, setMeshyBrightness } from "./assets/meshy.js";
 export { SUN, SUN_OFS, HEMI } from "./scene/environment.js";
 export { deriveTokens } from "./tokens.js";
 /** Tone-mapping exposure of the game camera. */

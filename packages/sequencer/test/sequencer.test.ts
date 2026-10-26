@@ -37,8 +37,10 @@ describe("sequencer (level families, REDESIGN-R2 §5)", () => {
         expect(r.features).toContain(f);
       }
     }
+    // every feature is taught once: by the hand-made story levels (storyTaught) or introduced here, never re-introduced
     const introduced = new Set(intro.flatMap((r) => r.features));
-    for (const f of Object.keys(cfg.features)) expect({ f, introduced: introduced.has(f) }).toEqual({ f, introduced: true });
+    for (const f of Object.keys(cfg.features)) expect({ f, taught: introduced.has(f) || cfg.storyTaught.includes(f) }).toEqual({ f, taught: true });
+    for (const r of intro) for (const f of r.introduced) expect(cfg.storyTaught).not.toContain(f);
     // Each intro goal exercises a newly introduced feature.
     for (const r of intro) expect(cfg.goals[r.goalId]!.needs.some((n) => r.introduced.includes(n) || r.features.includes(n)) || cfg.goals[r.goalId]!.needs.length === 0).toBe(true);
   });

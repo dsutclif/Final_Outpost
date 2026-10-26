@@ -11,7 +11,9 @@ export type Pt = readonly [number, number];
 
 /** [x0, y0, x1, y1] in world units. */
 export type Box = readonly [number, number, number, number];
-export interface Station { id: string; x: number; y: number; r: number; key: boolean; on?: string | undefined; tight?: boolean | undefined; fp?: Box | undefined; solid?: boolean | undefined }
+export interface Station { id: string; x: number; y: number; r: number; key: boolean; on?: string | undefined; tight?: boolean | undefined; fp?: Box | undefined; solid?: boolean | undefined;
+  /** First footprint key (the entity type for a building), for tools that draw the layout. */
+  kind?: string | undefined }
 /** A spot the player stands on to act (register, pile, operator): no station radius may cover it. */
 export interface Spot { id: string; x: number; y: number; r: number }
 
@@ -39,6 +41,8 @@ export interface PlaceOpts {
   fp?: string | readonly string[];
   /** Fixed worker slots (offsets from the centre) that are part of this placement: each must be free for a pad of radius r, and is reserved with it. */
   slots?: { id: string; dx: number; dy: number; r: number; fp: string | readonly string[] }[];
+  /** Plot layout: a spot where the slots (and spots) are blocked may still take them mirrored left to right. */
+  mirror?: boolean;
   /** The station sits on a wall (a belt's own build pad): the wall test is skipped. */
   onWall?: boolean;
   /** false: rank by `near` alone, without the pull toward the core (a pad that must hug what it serves). */
@@ -62,6 +66,10 @@ export class Placer {
   readonly walls: [Pt, Pt][] = [];
   /** Lots and streets: streets cross at the core and repeat every block + street, lots between them (null: off). */
   lots: { block: number; street: number } | null = null;
+  /** Plot layout: footprints keep off standing spots, not just station centres (off for packs). */
+  boxSpots = false;
+  /** The last place() call that found no valid spot: what it was and where it searched (the layout sandbox draws it). */
+  lastMiss: { id: string; r: number; regions: readonly Rect[]; fp: Box | undefined } | null = null;
   constructor(readonly rand: Rand, readonly margin: number, readonly standR: number,
     readonly bounds: Rect, readonly core: Pt, readonly screen: readonly [number, number, number?], readonly c: Content = defaultContent,
     readonly footprints: Readonly<Record<string, Box>> = {}, readonly footprintGap = 0,
@@ -128,6 +136,11 @@ export class Placer {
       }
     }
     for (const sp of this.spots) if (dist(p, [sp.x, sp.y]) < r + sp.r) return false;
+    // plot layout: a footprint may not cover a standing spot either (the queue's first square stays reachable)
+    if (this.boxSpots && fb) for (const sp of this.spots) {
+      const dx = Math.max(fb[0] - sp.x, 0, sp.x - fb[2]), dy = Math.max(fb[1] - sp.y, 0, sp.y - fb[3]);
+      if (sp.id !== "start" && Math.hypot(dx, dy) < sp.r) return false;
+    }
     for (const o of opts.spots ?? []) {
       const q: Pt = [p[0] + o.dx, p[1] + o.dy];
       if (!inRect(q, this.bounds)) return false;
@@ -159,18 +172,27 @@ export class Placer {
     // a building goes in a lot whenever some valid spot is in one (flat pads and gatherables may use the streets)
     const lot = this.lots !== null && this.building(opts.fp);
     const inLot: Pt[] = [];
+    // a plot's pads may take the mirror layout where the usual one is blocked; remember which a spot needs
+    const mirrored: PlaceOpts | null = opts.mirror && (opts.slots || opts.spots)
+      ? { ...opts, ...(opts.slots ? { slots: opts.slots.map((o) => ({ ...o, dx: -o.dx })) } : {}), ...(opts.spots ? { spots: opts.spots.map((o) => ({ ...o, dx: -o.dx })) } : {}) } : null;
+    const flip = new Set<string>();
     for (let i = 0; i < n; i++) {
       const rg = regions[i % regions.length]!;
       // buildings on a lot grid snap to a 10-unit step so neighbours line up
       const q = (v: number) => (lot ? Math.round(v / 10) * 10 : Math.round(v));
       const raw: Pt = [q(rg[0] + this.rand.float() * rg[2]), q(rg[1] + this.rand.float() * rg[3])];
-      const valid = (p: Pt) => (!opts.key || this.onScreen(p)) && this.ok(id, p, r, opts) && (!opts.accept || opts.accept(p));
+      const fits = (p: Pt, o: PlaceOpts) => (!o.key || this.onScreen(p)) && this.ok(id, p, r, o) && (!o.accept || o.accept(p));
+      const valid = (p: Pt) => {
+        if (fits(p, opts)) return true;
+        if (mirrored && fits(p, mirrored)) { flip.add(`${p[0]},${p[1]}`); return true; }
+        return false;
+      };
       const lp = lot ? this.toLot(raw, opts.fp) : raw;
       if (lot && valid(lp)) inLot.push(lp);
       else if (valid(raw)) cands.push(raw);
     }
     if (inLot.length > 0) cands.splice(0, cands.length, ...inLot);
-    if (cands.length === 0) return null;
+    if (cands.length === 0) { this.lastMiss = { id, r, regions, fp: this.box([0, 0], opts.fp) }; return null; }
     let best: Pt;
     if (opts.reach) {
       const from = opts.reach.from;
@@ -182,14 +204,15 @@ export class Placer {
       const cost = (q: Pt) => dist(q, nr) + w * dist(q, this.core);
       best = cands.reduce((a, b) => (cost(b) < cost(a) ? b : a));
     } else best = cands[0]!;
-    this.add(id, best, r, opts);
+    this.add(id, best, r, mirrored && flip.has(`${best[0]},${best[1]}`) ? mirrored : opts);
     return best;
   }
 
   add(id: string, p: Pt, r: number, opts: PlaceOpts = {}): void {
     // a footprint with anything beyond a flat pad stands up off the ground (traders walk around it)
     const solid = (opts.fp === undefined ? [] : typeof opts.fp === "string" ? [opts.fp] : opts.fp).some((k) => !k.startsWith("pad"));
-    this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight, fp: this.box(p, opts.fp), solid });
+    this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight, fp: this.box(p, opts.fp), solid,
+      kind: typeof opts.fp === "string" ? opts.fp : opts.fp?.[0] });
     for (const o of opts.slots ?? []) {
       const q: Pt = [p[0] + o.dx, p[1] + o.dy];
       this.stations.push({ id: `${id}:${o.id}`, x: q[0], y: q[1], r: o.r, key: true, fp: this.box(q, o.fp) });

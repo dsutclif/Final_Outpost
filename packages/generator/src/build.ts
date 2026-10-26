@@ -1,4 +1,4 @@
-import { CONTENT_VERSION, LOOK, content as defaultContent, type Content, type Manifest } from "@fo/content";
+import { CONTENT_VERSION, LOOK, PLOT, maxModelScale, content as defaultContent, type PlotFile, type Content, type Manifest } from "@fo/content";
 import { ENGINE_VERSION, createSim, salesLayout, type Compiled } from "@fo/sim";
 import { planBot } from "@fo/bots";
 import templatesData from "../data/templates.json";
@@ -47,6 +47,13 @@ export const GEN = genData as unknown as {
   footprints: Record<string, [number, number, number, number]>;
   /** Hire pad offsets from a converter's centre for its input worker, operator and output worker. */
   crewStations: Record<"in" | "op" | "out", [number, number]>;
+  /**
+   * Plot layout (Doug's plot plan, 2026-10-25), off unless a tool sets it (the layout sandbox does; packs
+   * never do): per building type, the pad slots of its plot as offsets from its centre. Each building then
+   * reserves its slots (mirrored if blocked), and its pads stand on them: a machine's workers and upgrade
+   * share its one staff slot, chained in hire order. Footprints are set alongside it by the same tool.
+   */
+  plots?: Record<string, { slots: { id: string; dx: number; dy: number }[] }> | null;
   /** Share of the way from the template's kiosk spot toward the core where the kiosk search centres. */
   shopPull: number;
   /** Most fuel nodes in the main forest on industrialize levels (their machines need the room). */
@@ -80,11 +87,39 @@ export const GEN = genData as unknown as {
 
 /** Footprints of what the renderer draws larger (look.json buildScale: buildings and the greenhouse dome) grow with it. */
 export const isSizedFootprint = (k: string): boolean => /^(sink|conv|struct)\./.test(k) || k === "node.food_source";
-for (const [k, b] of Object.entries(GEN.footprints)) if (isSizedFootprint(k)) GEN.footprints[k] = b.map((v) => Math.round(v * LOOK.buildScale)) as typeof b;
-// hire pads stand just outside their building, so their offsets from its centre grow with it
-const scaleOff = (o: [number, number]): [number, number] => [Math.round(o[0] * LOOK.buildScale), Math.round(o[1] * LOOK.buildScale)];
-for (const m of [GEN.crewStations, GEN.depotCrewStations] as Record<string, [number, number]>[]) for (const k of Object.keys(m)) m[k] = scaleOff(m[k]!);
-GEN.corePadBeside = scaleOff(GEN.corePadBeside);
+const GEN_BASE = structuredClone({ footprints: GEN.footprints, crewStations: GEN.crewStations, depotCrewStations: GEN.depotCrewStations, corePadBeside: GEN.corePadBeside, beltGap: GEN.beltGap });
+let convAtLoad = 0;
+/**
+ * Size the footprints and hire-pad offsets for a building scale and per-building multipliers
+ * (look.json buildScale and modelScale); each footprint takes its building's largest level. Run
+ * once at load with look.json; the layout sandbox runs it again with its slider values.
+ */
+export function applyLookScale(buildScale: number, modelScale: Record<string, number>): void {
+  const k = (id: string): number => buildScale * maxModelScale(modelScale, id);
+  for (const [id, b] of Object.entries(GEN_BASE.footprints)) GEN.footprints[id] = (isSizedFootprint(id) ? b.map((v) => Math.round(v * k(id))) : [...b]) as typeof b;
+  // hire pads stand just outside their building, so their offsets from its centre grow with it
+  const off = (o: [number, number], s: number): [number, number] => [Math.round(o[0] * s), Math.round(o[1] * s)];
+  const conv = Math.max(...Object.keys(GEN_BASE.footprints).filter((id) => id.startsWith("conv.")).map(k));
+  for (const s of Object.keys(GEN_BASE.crewStations) as (keyof typeof GEN.crewStations)[]) GEN.crewStations[s] = off(GEN_BASE.crewStations[s], conv);
+  for (const s of Object.keys(GEN_BASE.depotCrewStations) as (keyof typeof GEN.depotCrewStations)[]) GEN.depotCrewStations[s] = off(GEN_BASE.depotCrewStations[s], k("struct.depot"));
+  GEN.corePadBeside = off(GEN_BASE.corePadBeside, k("sink.core"));
+  // the belt gap was tuned at look.json's sizes (unscaled data), so it follows the converters from there
+  convAtLoad ||= conv;
+  GEN.beltGap = Math.round(GEN_BASE.beltGap * (conv / convAtLoad));
+}
+applyLookScale(LOOK.buildScale, LOOK.modelScale);
+/** The cashier pad offsets before any plot layout (the layout sandbox works plots out from them). */
+export const GEN_CASHIER_BASE = structuredClone(GEN.cashierPads);
+/**
+ * Turn the plot layout on with its data (content/data/plot.json, or the layout sandbox's live plots) or off (null).
+ * Run after applyLookScale, whose footprints it overrides for the plotted buildings and pads.
+ */
+export function applyPlotLayout(g: PlotFile["generator"] | null): void {
+  GEN.plots = g ? g.plots : null;
+  GEN.cashierPads = structuredClone(g ? g.cashierPads : GEN_CASHIER_BASE);
+  if (g) for (const [k, b] of Object.entries(g.footprints)) GEN.footprints[k] = [...b];
+}
+applyPlotLayout(PLOT?.generator ?? null);
 
 /** A generated time target (seconds) widened by the data factor; `step` rounds to that many seconds (1 = whole seconds). */
 export const timeTarget = (seconds: number, step = 1): number => Math.round((seconds * GEN.timeTargetK) / step) * step;
@@ -123,7 +158,26 @@ export interface BuildInput {
 /** How index.ts finishes the goal: `rate` goals get N from a probe run, `fill` goals their deadline. */
 export type Sizing = "fixed" | "rate" | "fill" | "cost";
 
-export interface Built { manifest: Manifest; flow: Flow; stations: Placer["stations"]; notes: string[]; sizing: Sizing; queue: Pt[] }
+export interface Built { manifest: Manifest; flow: Flow; stations: Placer["stations"]; notes: string[]; sizing: Sizing; queue: Pt[]; layout: LayoutSnapshot }
+
+/** Everything the placer knew (world units, the manifest's frame): the layout sandbox draws it as a plan. */
+export interface LayoutSnapshot {
+  stations: Placer["stations"]; spots: Placer["spots"]; blocked: Rect[]; walls: [Pt, Pt][]; bounds: Rect; core: Pt;
+  screen: readonly [number, number, number?]; lots: Placer["lots"]; miss: Placer["lastMiss"];
+}
+/** A layout the generator gave up on, with the partial layout at the moment it failed (when the placer had started). */
+export class LayoutError extends Error {
+  constructor(message: string, readonly layout?: LayoutSnapshot) { super(message); }
+}
+const snapshot = (P: Placer, d = 0): LayoutSnapshot => {
+  const pt = (p: Pt): Pt => [p[0] + d, p[1] + d];
+  const rect = (r: Rect): Rect => [r[0] + d, r[1] + d, r[2], r[3]];
+  return {
+    stations: P.stations, spots: P.spots.map((s) => ({ ...s, x: s.x + d, y: s.y + d })), blocked: P.blocked.map(rect),
+    walls: P.walls.map(([a, b]) => [pt(a), pt(b)]), bounds: rect(P.bounds), core: pt(P.core), screen: P.screen, lots: P.lots,
+    miss: P.lastMiss && { ...P.lastMiss, regions: P.lastMiss.regions.map(rect) },
+  };
+};
 
 type Ent = Record<string, unknown> & { type: string };
 
@@ -142,8 +196,12 @@ const FILL_GOALS = new Set(["fuel_full"]);
 
 // One compiled stub supplies the content's sales offsets to salesLayout (they do not depend on the level).
 let stubCp: Compiled | null = null;
+/** The kiosk content the stub was compiled from: a tool that edits it (the layout sandbox) gets a fresh stub. */
+let stubKey = "";
 function salesSpots(stall: Pt, core: Pt, c: Content, side = 0): { register: Pt; pile: Pt; queue: Pt[] } {
-  if (!stubCp) {
+  const key = JSON.stringify(c.sinks["sink.sales_point"]);
+  if (!stubCp || key !== stubKey) {
+    stubKey = key;
     stubCp = createSim({
       id: "stub", seed: 1, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION, map: { w: 480, h: 900, zones: [] },
       modules: ["carry", "gather", "core", "sales"], start: [240, 500],
@@ -233,7 +291,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     core: (c.sinks["sink.core"] as { range: number }).range, shop: (c.sinks["sink.sales_point"] as { range: number }).range,
     conv: c.converters["conv.food_processor"]!.range,
   };
-  const fail = (why: string): never => { throw new Error(why); };
+  let placer: Placer | null = null;
+  const fail = (why: string): never => { throw new LayoutError(why, placer ? snapshot(placer) : undefined); };
   const ents: Ent[] = [];
   const pads: Ent[] = [];
   const pad = (e: Ent) => { pads.push(e); return e; };
@@ -258,11 +317,31 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const pullRect = (r: Rect): Rect => fp0 === 0 ? r
     : [Math.round(r[0] + (core[0] - (r[0] + r[2] / 2)) * fp0), Math.round(r[1] + (core[1] - (r[1] + r[3] / 2)) * fp0), r[2], r[3]];
   const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, [S.screen[0], S.screen[1], S.screenRadius], c, GEN.footprints, S.footprintGap, S.corePull);
+  placer = P;
   if (ring) ring.points.forEach((p, i) => P.walls.push([p, ring!.points[(i + 1) % ring!.points.length]!]));
   P.lots = GEN.lots;
+  // Plot layout (GEN.plots, set only by the layout sandbox): a building's pad slots come with its placement
+  const plotOn = !!GEN.plots;
+  P.boxSpots = plotOn;
+  const plotSlots = (type: string) => (GEN.plots?.[type]?.slots ?? []).map((o) => ({ id: o.id, dx: o.dx, dy: o.dy, r: R.pad, fp: "pad" }));
+  const plotOpts = (type: string) => (plotOn && GEN.plots?.[type] ? { slots: plotSlots(type), mirror: true } : {});
+  const slotAt = (owner: string, slot: string): Pt => {
+    const s = P.stations.find((x) => x.id === `${owner}:${slot}`);
+    return s ? [s.x, s.y] : fail(`no ${slot} slot on ${owner}`);
+  };
 
-  P.add("core", core, R.core, { key: true, fp: "sink.core" });
-  const startPt: Pt = [core[0] + tpl.start[0], Math.max(inner[1] + 10, Math.min(inner[1] + inner[3] - 10, core[1] + tpl.start[1]))];
+  let startPt: Pt = [core[0] + tpl.start[0], Math.max(inner[1] + 10, Math.min(inner[1] + inner[3] - 10, core[1] + tpl.start[1]))];
+  // plot layout: the core's pads take whichever side keeps the player's start clear, else the start steps out in front of them
+  let coreSlots = plotOn ? plotSlots("sink.core") : [];
+  if (plotOn) {
+    const clearOf = (sl: typeof coreSlots) => sl.every((o) => dist([core[0] + o.dx, core[1] + o.dy], startPt) >= R.pad + 4);
+    const flipped = coreSlots.map((o) => ({ ...o, dx: -o.dx }));
+    if (!clearOf(coreSlots)) {
+      if (clearOf(flipped)) coreSlots = flipped;
+      else startPt = [core[0], Math.round(core[1] + Math.max(...coreSlots.map((o) => o.dy)) + R.pad + 24)];
+    }
+  }
+  P.add("core", core, R.core, { key: true, fp: "sink.core", ...(plotOn ? { slots: coreSlots } : {}) });
   P.spot("start", startPt, 18);
 
   // ---------- core ----------
@@ -301,12 +380,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           const ok = ((): { slot: number } | null => {
             // inside a ring the whole line stands inside it too (traders reach it through the gate)
             const onScreen = (q: Pt) => P.onScreen(q) && q[0] >= 14 && q[0] <= 466 && q[1] >= 14 && q[1] <= 886 && (!ring || inRect(q, inner));
-            if (![sp.register, sp.pile, ...sp.queue].every(onScreen)) { why.screen++; return null; }
+            // plot layout: only the queue's first square belongs to the kiosk's plot; the rest of the line waits outside it and bends
+            const qOwn = plotOn ? sp.queue.slice(0, 1) : sp.queue;
+            if (![sp.register, sp.pile, ...qOwn].every(onScreen)) { why.screen++; return null; }
             const clear = (q: Pt, r: number) => P.stations.every((s) => dist(q, [s.x, s.y]) >= s.r + r) && P.spots.every((s) => s.id === "start" || dist(q, [s.x, s.y]) >= s.r + r)
               && P.walls.every((w) => segDist(q, w[0], w[1]) >= r + 2);
             if (!clear(sp.register, S.standR)) { why.reg++; return null; }
             if (!clear(sp.pile, S.standR)) { why.pile++; return null; }
-            if (!sp.queue.every((q) => clear(q, 10))) { why.clear++; if (process.env["FO_DEBUG"]) console.log(JSON.stringify({ p, q: sp.queue, st: P.stations.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id), sp: P.spots.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id) })); return null; }
+            if (!qOwn.every((q) => clear(q, 10))) { why.clear++; if (process.env["FO_DEBUG"]) console.log(JSON.stringify({ p, q: sp.queue, st: P.stations.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id), sp: P.spots.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id) })); return null; }
             // The cashier's slot (south of the clerk spot) belongs to the kiosk's placement: it must be free for a pad
             // and stay out of the queue lane and the clerk/pile spots; reserved below even if the pad is never hired.
             let slot = 0;
@@ -316,7 +397,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
                 if (sb && cb && cb[0] < sb[2] + S.footprintGap && sb[0] < cb[2] + S.footprintGap && cb[1] < sb[3] + S.footprintGap && sb[1] < cb[3] + S.footprintGap) return false;
                 return P.ok("hire_cashier", cs, R.pad, { key: true, fp: "pad", hugWall: true }) && onScreen(cs)
                   && dist(cs, sp.register) >= R.pad + S.standR && dist(cs, sp.pile) >= R.pad + S.standR
-                  && !sp.queue.some((q) => dist(cs, q) < R.pad + 12 + 10);
+                  && !qOwn.some((q) => dist(cs, q) < R.pad + 12 + 10);
               };
               slot = GEN.cashierPads.findIndex((_, k) => fits(cashierAt(p, sp.register, k)));
               if (slot < 0) { why.clear++; return null; }
@@ -336,7 +417,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     shopAt = best.p; register = best.sp.register; queue = best.sp.queue;
     P.add("shop", shopAt, R.shop, { key: true, fp: "sink.sales_point" });
     P.spot("register", best.sp.register); P.spot("pile", best.sp.pile);
-    best.sp.queue.forEach((q, k) => P.spot(`queue${k}`, q, 12));
+    (plotOn ? best.sp.queue.slice(0, 1) : best.sp.queue).forEach((q, k) => P.spot(`queue${k}`, q, 12));
     cashierSlot = best.slot;
     clerkSide = best.side;
     if (hasCashierSlot) P.add("shop:cashier", cashierAt(shopAt, register, cashierSlot), R.pad, { key: true, fp: "pad" });
@@ -344,7 +425,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ents.push({ type: "sink.sales_point", id: "shop", at: [...shopAt], sells });
     const fr = tpl.fields.food;
     const foodRegion: Rect = ring ? inner : pullRect([fr[0], fr[1], fr[2], fr[3]]);
-    food1 = P.place("food1", R.food, foodRegion, { near: [(shopAt[0] + core[0]) / 2 + (shopAt[0] > core[0] ? 60 : -60), shopAt[1] - 40], key: true, samples: 160, fp: "node.food_source" })
+    food1 = P.place("food1", R.food, foodRegion, { near: [(shopAt[0] + core[0]) / 2 + (shopAt[0] > core[0] ? 60 : -60), shopAt[1] - 40], key: true, samples: 160, fp: "node.food_source", ...plotOpts("node.food_source") })
       ?? fail("no room for food");
     ents.push({ type: "node.food_source", id: "food1", at: [...food1] });
   }
@@ -383,14 +464,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   if (K.forest >= 11 && !ring && !busy) placeForest("grove", [-forestDir[0], -forestDir[1]], K.forestReach + 10, 5, 0);
 
   // A pad's ground footprint is its plate plus whatever it builds once paid, so nothing is placed where the building will stand.
-  const placePad = (id: string, near: Pt, opts: { big?: boolean; region?: Rect; on?: string; build?: string; slots?: { id: string; dx: number; dy: number; r: number; fp: string }[] } = {}): Pt => {
+  const placePad = (id: string, near: Pt, opts: { big?: boolean; region?: Rect; on?: string; build?: string; slots?: { id: string; dx: number; dy: number; r: number; fp: string }[]; mirror?: boolean } = {}): Pt => {
     const r = opts.big ? R.big : R.pad;
     const region: Rect = opts.region ?? [near[0] - 100, near[1] - 100, 200, 200];
     const fp = [opts.big ? "pad.big" : "pad", ...(opts.build ? [opts.build] : [])];
     // plain pads stand by what they serve; only a pad that raises a building leans toward the core
     const pull = !!opts.build;
-    const p = P.place(id, r, region, { near, key: true, fp, pull, samples: 600, ...(opts.on ? { on: opts.on } : {}), ...(opts.slots ? { slots: opts.slots } : {}) })
-      ?? P.place(id, r, inner, { near, key: true, samples: opts.slots ? 3000 : 260, fp, pull, ...(opts.on ? { on: opts.on } : {}), ...(opts.slots ? { slots: opts.slots } : {}) });
+    const p = P.place(id, r, region, { near, key: true, fp, pull, samples: 600, ...(opts.on ? { on: opts.on } : {}), ...(opts.slots ? { slots: opts.slots } : {}), ...(opts.mirror ? { mirror: true } : {}) })
+      ?? P.place(id, r, inner, { near, key: true, samples: opts.slots ? 3000 : 260, fp, pull, ...(opts.on ? { on: opts.on } : {}), ...(opts.slots ? { slots: opts.slots } : {}), ...(opts.mirror ? { mirror: true } : {}) });
     return p ?? fail(`no room for pad ${id}`);
   };
   // A machine's hire pads stand where each worker will work (R3 playtest), still together around it:
@@ -403,6 +484,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   };
   const crewSlots = (only?: readonly ("in" | "op" | "out")[]) => (["in", "op", "out"] as const).filter((k) => !only || only.includes(k))
     .map((k) => ({ id: k, dx: GEN.crewStations[k][0], dy: GEN.crewStations[k][1], r: R.pad, fp: "pad" }));
+  /** A machine's reserved pad slots: its plot slots in the plot layout, else the crew stations. */
+  const machineSlots = (type: string, only?: readonly ("in" | "op" | "out")[]) => (plotOn ? plotSlots(type) : crewSlots(only));
   const forestC: Pt = [core[0] + forestDir[0] * K.forestReach, core[1] + forestDir[1] * K.forestReach];
   // A collector's pad stands beside the source it gathers from (playtest after 0.8.0), just clear of the
   // node nearest where the goods go, on that side; operators and output workers stay at their machine.
@@ -418,14 +501,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const workers = has("workers") && shopAt !== null;
   // Batch 3: a defend level's town runs itself too: the reactor's ore hauler is hired with scrap.
   if (fams.has("defend") && !workers && has("workers")) {
-    const a = placePad("hire_core", besideSource("node.fuel_scrap", core));
+    const a = plotOn ? slotAt("core", "collector") : placePad("hire_core", besideSource("node.fuel_scrap", core));
     pad({ type: "pad.hire", id: "hire_core", at: [...a], cost: { "res.salvage": salv("salvage.hireCore") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "sink.core" } });
   }
   let hireCashier: Ent | null = null;
   if (workers && shopAt && food1 && register) {
-    const a = placePad("hire_core", besideSource("node.fuel_scrap", core));
+    const a = plotOn ? slotAt("core", "collector") : placePad("hire_core", besideSource("node.fuel_scrap", core));
     pad({ type: "pad.hire", id: "hire_core", at: [...a], cost: { "res.currency": cost("hire.core") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "sink.core" } });
-    const b = placePad("hire_food", besideSource("node.food_source", shopAt, food1));
+    const b = plotOn ? slotAt("food1", "staff") : placePad("hire_food", besideSource("node.food_source", shopAt, food1));
     pad({ type: "pad.hire", id: "hire_food", at: [...b], cost: { "res.currency": cost("hire.food") }, role: { role: "role.supplier", from: "node.food_source", to: "sink.sales_point", node: "food1" } });
     // the cashier's pad is exactly on its slot, south of the clerk spot (reserved with the kiosk)
     const cpos: Pt | null = hasCashierSlot ? cashierAt(shopAt, register, cashierSlot) : null;
@@ -438,12 +521,12 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const n = goal === "unlock" && K.costScale > 1.05 ? 2 : 1;
     for (let k = 0; k < n; k++) {
       const id = `food${k + 2}`;
-      const f = P.place(id, R.food, ring ? inner : pullRect(tpl.fields.food), { near: food1, samples: 160, key: true, fp: "node.food_source" }) ?? fail("no room for the gated food source");
+      const f = P.place(id, R.food, ring ? inner : pullRect(tpl.fields.food), { near: food1, samples: 160, key: true, fp: "node.food_source", ...plotOpts("node.food_source") }) ?? fail("no room for the gated food source");
       ents.push({ type: "node.food_source", id, at: [...f], enabled: false });
       P.add(`unlock_${id}`, f, R.pad, { key: true, on: id });
       pad({ type: "pad.build", id: `unlock_${id}`, at: [...f], cost: { "res.currency": cost("unlock") + 5 * k }, build: "node.enable", target: id, ...(workers ? { requires: { pad: "hire_food" } } : {}) });
       if (workers && goal !== "unlock") {
-        const h = placePad(`hire_${id}`, besideSource("node.food_source", shopAt, f));
+        const h = plotOn ? slotAt(id, "staff") : placePad(`hire_${id}`, besideSource("node.food_source", shopAt, f));
         pad({ type: "pad.hire", id: `hire_${id}`, at: [...h], cost: { "res.currency": cost("hire.food2") }, role: { role: "role.supplier", from: "node.food_source", to: "sink.sales_point", node: id }, requires: { pad: `unlock_${id}` } });
       }
       gated++;
@@ -460,26 +543,29 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   let saw = false, alloy = false;
   if (indus && shopAt && food1) {
     // the search area reaches well past the kiosk on every side: its own footprint fills the middle
-    const g = P.place("grill", R.conv, ring ? inner : [shopAt[0] - 250, shopAt[1] - 280, 500, 440], { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), slots: crewSlots(["op", "out"]), samples: 2000, fp: "conv.food_processor" })
-      ?? P.place("grill", R.conv, inner, { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), slots: crewSlots(["op", "out"]), samples: 4000, fp: "conv.food_processor" })
+    const gSlots = plotOn ? plotOpts("conv.food_processor") : { slots: crewSlots(["op", "out"]) };
+    const g = P.place("grill", R.conv, ring ? inner : [shopAt[0] - 250, shopAt[1] - 280, 500, 440], { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), ...gSlots, samples: 2000, fp: "conv.food_processor" })
+      ?? P.place("grill", R.conv, inner, { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), ...gSlots, samples: 4000, fp: "conv.food_processor" })
       ?? fail("no room for the food processor");
     pad({ type: "pad.build", id: "grill", at: [...g], cost: { "res.currency": cost("grill") }, build: "conv.food_processor" });
     // The food processor's feeder has its own field, so the shelf's farm worker does not starve it.
     const fg = P.place("food_g", R.food, ring ? inner : [g[0] - 160, g[1] - 160, 320, 320], { near: [g[0] - 70, g[1] - 60], key: true, samples: 200, fp: "node.food_source" }) ?? food1;
     if (fg !== food1) ents.push({ type: "node.food_source", id: "food_g", at: [...fg] });
     // Hire order per machine: input worker, operator, output worker.
-    const fd = placePad("feeder", besideSource("node.food_source", g, fg));
+    // plot layout: the Galley's one staff slot hires the Dome collector, the cook and the server in turn, then upgrades
+    const gStaff = plotOn ? slotAt("grill", "staff") : null;
+    const fd = gStaff ?? placePad("feeder", besideSource("node.food_source", g, fg));
     pad({ type: "pad.hire", id: "feeder", at: [...fd], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.food_source", to: "conv.food_processor", node: fg === food1 ? "food1" : "food_g" }, requires: { pad: "grill" } });
-    const cook = stationPad(g, "op");
+    const cook = gStaff ?? stationPad(g, "op");
     pad({ type: "pad.hire", id: "cook", at: [...cook], cost: { "res.currency": cost("hire.cook") }, role: { role: "role.operator", to: "conv.food_processor" }, requires: { pad: "feeder" } });
-    const sv = stationPad(g, "out");
+    const sv = gStaff ?? stationPad(g, "out");
     pad({ type: "pad.hire", id: "server", at: [...sv], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.food_processor", to: "sink.sales_point" }, requires: { pad: "cook" } });
     sells.push("res.food_prepared");
     if (feat.has("converter_levels")) {
-      const lp = placePad("grill_level", [g[0] + 70, g[1] - 40]);
+      const lp = gStaff ?? placePad("grill_level", [g[0] + 70, g[1] - 40]);
       // Repeatable only when the goal needs more than one level: a repeatable pad is never "done", so nothing could require it.
       const rep = goal === "converter_level" && K.costScale > 1.15;
-      pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", requires: { pad: "grill" }, ...(rep ? { repeatable: true } : {}) });
+      pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", requires: { pad: gStaff ? "server" : "grill" }, ...(rep ? { repeatable: true } : {}) });
     }
     if (feat.has("material_processor")) {
       saw = true;
@@ -494,7 +580,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         const from: Pt = [sp[0] + pk0[0], sp[1] + pk0[1]];
         for (const [ox, oy] of GEN.beltPairs) {
           const q: Pt = [sp[0] + Math.round(ox * GEN.beltGap), sp[1] + Math.round(oy * GEN.beltGap)], mid = toward(from, q, 0.5);
-          if (!P.ok("alloy", q, R.conv, { key: true, spots: convSpots("conv.alloy_works"), slots: crewSlots(["op", "out"]), fp: "conv.alloy_works" })) continue;
+          if (!P.ok("alloy", q, R.conv, { key: true, spots: convSpots("conv.alloy_works"), slots: machineSlots("conv.alloy_works", ["op", "out"]), fp: "conv.alloy_works" })) continue;
           if (P.stations.some((st) => !st.tight && segDist([st.x, st.y], from, q) < st.r + 8)) continue;
           if (!P.ok("belt", mid, R.pad, { key: true, fp: ["pad"], onWall: true })) continue;
           pairAt.set(`${sp[0]},${sp[1]}`, q);
@@ -502,7 +588,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         }
         return false;
       };
-      const sawOpts = { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), slots: crewSlots(["op"]), fp: "conv.material_processor", ...(belted ? { accept: pairOk } : {}) };
+      const sawOpts = { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), slots: machineSlots("conv.material_processor", ["op"]), mirror: plotOn, fp: "conv.material_processor", ...(belted ? { accept: pairOk } : {}) };
       let s0 = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...sawOpts, samples: 2000 })
         ?? P.place("saw", R.conv, inner, { ...sawOpts, samples: 4000 });
       if (!s0 && belted) {
@@ -511,16 +597,17 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         feat.delete("conveyors");
         const { accept: _pair, ...plainBase } = sawOpts as typeof sawOpts & { accept?: unknown };
         void _pair;
-        const plain = { ...plainBase, slots: crewSlots(["op"]) };
+        const plain = { ...plainBase, slots: machineSlots("conv.material_processor", ["op"]) };
         s0 = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...plain, samples: 2000 })
           ?? P.place("saw", R.conv, inner, { ...plain, samples: 4000 });
       }
       const s: Pt = s0 ?? fail("no room for the material processor");
       pad({ type: "pad.build", id: "saw", at: [...s], cost: { "res.currency": cost("saw") }, build: "conv.material_processor" });
       // Every converter has a feed path: a worker brings fuel scrap to the material processor (hired first).
-      const sf = placePad("saw_feeder", besideSource("node.fuel_scrap", s));
+      const sStaff = plotOn ? slotAt("saw", "staff") : null;
+      const sf = sStaff ?? placePad("saw_feeder", besideSource("node.fuel_scrap", s));
       pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "saw" } });
-      const sw = stationPad(s, "op");
+      const sw = sStaff ?? stationPad(s, "op");
       pad({ type: "pad.hire", id: "sawyer", at: [...sw], cost: { "res.currency": cost("hire.sawyer") }, role: { role: "role.operator", to: "conv.material_processor" }, requires: { pad: "saw_feeder" } });
       if (feat.has("tier2")) {
         alloy = true;
@@ -537,10 +624,10 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           const mb = P.box(mid, "pad")!, g = S.footprintGap;
           const clash = (u: Box | undefined) => !!u && mb[0] < u[2] + g && u[0] < mb[2] + g && mb[1] < u[3] + g && u[1] < mb[3] + g;
           return dist(mid, q) >= Math.max(R.conv, R.pad) + S.margin && !clash(P.box(q, "conv.alloy_works"))
-            && crewSlots().every((o) => { const sq: Pt = [q[0] + o.dx, q[1] + o.dy]; return dist(mid, sq) >= R.pad + S.margin && !clash(P.box(sq, "pad")); });
+            && machineSlots("conv.alloy_works").every((o) => { const sq: Pt = [q[0] + o.dx, q[1] + o.dy]; return dist(mid, sq) >= R.pad + S.margin && !clash(P.box(sq, "pad")); });
         };
         // with a belt the belt is the parts works' input (no input hauler), so only its operator and output slots
-        const alloyOpts = { near: feat.has("conveyors") ? beside : toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), slots: crewSlots(belted ? ["op", "out"] : undefined), fp: "conv.alloy_works", ...(feat.has("conveyors") ? { accept: beltOk } : {}) };
+        const alloyOpts = { near: feat.has("conveyors") ? beside : toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), slots: machineSlots("conv.alloy_works", belted ? ["op", "out"] : undefined), mirror: plotOn, fp: "conv.alloy_works", ...(feat.has("conveyors") ? { accept: beltOk } : {}) };
         // with a belt the pair check already cleared the exact spot beside the smelter
         const a = (belted ? P.place("alloy", R.conv, [beside[0] - 1, beside[1] - 1, 2, 2], { ...alloyOpts, near: beside, samples: 40 }) : null)
           ?? P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { ...alloyOpts, samples: 8000 })
@@ -549,13 +636,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         pad({ type: "pad.build", id: "alloy", at: [...a], cost: { "res.currency": cost("alloy") }, build: "conv.alloy_works", requires: { pad: "sawyer" } });
         // a belt arrives at the hopper side, so with one the input worker stands lower, off its path
         // input worker, unless a belt feeds the parts works (it is then the input step; see below)
+        const aStaff = plotOn ? slotAt("alloy", "staff") : null;
         if (!belted) {
-          const rc = stationPad(a, "in");
+          const rc = aStaff ?? stationPad(a, "in");
           pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
         }
-        const sm = stationPad(a, "op");
+        const sm = aStaff ?? stationPad(a, "op");
         pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: { pad: belted ? "belt" : "refined_carrier" } });
-        const cs = stationPad(a, "out");
+        const cs = aStaff ?? stationPad(a, "out");
         pad({ type: "pad.hire", id: "component_server", at: [...cs], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.alloy_works", to: "sink.sales_point" }, requires: { pad: "smith" } });
         if (feat.has("conveyors")) {
           // The step after haulers (R3 item 16): a belt from the smelter's tray to the parts works,
@@ -585,15 +673,17 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       ...(["out"] as const).map((k) => ({ id: k, dx: GEN.depotCrewStations[k][0], dy: GEN.depotCrewStations[k][1], r: R.pad, fp: "pad" })),
       ...[dDef.dropOffset ?? [0, 0], ...(dDef.pickupOffsets ?? [])].map((o, k) => ({ id: k === 0 ? "drop" : `pick${k - 1}`, dx: o[0], dy: o[1], r: dDef.padRange ?? R.pad, fp: "pad" })),
     ];
-    const dp = placePad("depot", tpl.depot, { build: "struct.depot", slots: dSlots });
+    // plot layout: one staff slot, the courier (hauler) first, then the input collector; the player only drops here
+    const dp = placePad("depot", tpl.depot, { build: "struct.depot", ...(plotOn ? plotOpts("struct.depot") : { slots: dSlots }) });
     pad({ type: "pad.build", id: "depot", at: [...dp], cost: { "res.currency": cost("depot") }, build: "struct.depot" });
-    const ds = placePad("depot_supplier", besideSource("node.fuel_scrap", dp));
-    pad({ type: "pad.hire", id: "depot_supplier", at: [...ds], cost: { "res.currency": cost("hire.depotSupplier") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "store.depot" }, requires: { pad: "depot" } });
+    const dStaff = plotOn ? slotAt("depot", "staff") : null;
     // Haulers drain the depot, so a stockpile goal has none.
-    if (goal !== "stockpile") {
-      const hl: Pt = [dp[0] + GEN.depotCrewStations.out[0], dp[1] + GEN.depotCrewStations.out[1]];
-      pad({ type: "pad.hire", id: "hauler", at: [...hl], cost: { "res.currency": cost("hire.hauler") }, role: { role: "role.hauler", from: "store.depot" }, requires: { pad: "depot" } });
-    }
+    const hauls = goal !== "stockpile";
+    const hauler = (at: Pt) => pad({ type: "pad.hire", id: "hauler", at: [...at], cost: { "res.currency": cost("hire.hauler") }, role: { role: "role.hauler", from: "store.depot" }, requires: { pad: "depot" } });
+    if (dStaff && hauls) hauler(dStaff);
+    const ds = dStaff ?? placePad("depot_supplier", besideSource("node.fuel_scrap", dp));
+    pad({ type: "pad.hire", id: "depot_supplier", at: [...ds], cost: { "res.currency": cost("hire.depotSupplier") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "store.depot" }, requires: { pad: dStaff && hauls ? "hauler" : "depot" } });
+    if (!dStaff && hauls) hauler([dp[0] + GEN.depotCrewStations.out[0], dp[1] + GEN.depotCrewStations.out[1]]);
   }
 
   // ---------- shelter mechanics ----------
@@ -609,8 +699,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     // A core-level goal with rubble needs a second level pad to hang the clearing pad from.
     const nLv = goal === "core_level" && (K.costScale > 1.1 || feat.has("rockslides")) ? 2 : 1;
     for (let k = 0; k < nLv; k++) {
-      const lp = placePad(`core_level${k}`, [core[0] + (k === 0 ? -1 : 1) * GEN.corePadBeside[0], core[1] + GEN.corePadBeside[1]], { region: [core[0] - 130, core[1] - 60, 260, 170] });
-      corePads.push(pad({ type: "pad.build", id: `core_level${k}`, at: [...lp], cost: { "res.currency": cost("core.level") + 12 * k }, build: "sink.core.level" }));
+      // plot layout: one upgrade slot on the core's plot takes L2, then L3
+      const lp = plotOn ? slotAt("core", "upgrade") : placePad(`core_level${k}`, [core[0] + (k === 0 ? -1 : 1) * GEN.corePadBeside[0], core[1] + GEN.corePadBeside[1]], { region: [core[0] - 130, core[1] - 60, 260, 170] });
+      corePads.push(pad({ type: "pad.build", id: `core_level${k}`, at: [...lp], cost: { "res.currency": cost("core.level") + 12 * k }, build: "sink.core.level", ...(plotOn && k > 0 ? { requires: { pad: `core_level${k - 1}` } } : {}) }));
     }
   }
   let zones = 0;
@@ -930,12 +1021,12 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       // away from the attack gates, where the turret sockets go
       const away = sides.reduce((v, sd) => [v[0] - (sd === "e" ? 1 : sd === "w" ? -1 : 0), v[1] - (sd === "s" ? 1 : sd === "n" ? -1 : 0)] as Pt, [0, 0] as Pt);
       const aw = Math.hypot(away[0], away[1]) || 1, bkDir: Pt = Math.hypot(away[0], away[1]) > 0 ? [away[0] / aw, away[1] / aw] : [-0.7, 0.7];
-      const bk = placePad("barracks", [Math.round(core[0] + bkDir[0] * 110), Math.round(core[1] + bkDir[1] * 110)], { build: "struct.barracks" });
+      const bk = placePad("barracks", [Math.round(core[0] + bkDir[0] * 110), Math.round(core[1] + bkDir[1] * 110)], { build: "struct.barracks", ...plotOpts("struct.barracks") });
       ents.push({ type: "struct.barracks", id: "barracks", at: [...bk] });
-      const tr = placePad("train", [bk[0], bk[1] + 70]);
+      const tr = plotOn ? slotAt("barracks", "staff") : placePad("train", [bk[0], bk[1] + 70]);
       pad({ type: "pad.hire", id: "train", at: [...tr], cost: { "res.salvage": salv("salvage.train") }, role: { role: "role.defender" }, repeatable: true });
       // Lv2 guard post: trains soldiers on its own at a steady beat (content struct.barracks troops)
-      const bu = placePad("barracks_up", [bk[0] + 70, bk[1]]);
+      const bu = plotOn ? slotAt("barracks", "upgrade") : placePad("barracks_up", [bk[0] + 70, bk[1]]);
       pad({ type: "pad.build", id: "barracks_up", at: [...bu], cost: { "res.salvage": salv("salvage.barracksUp") }, build: "struct.barracks.t2", target: "barracks" });
     }
     if (feat.has("med_bay")) {
@@ -1125,8 +1216,10 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       return pts.map((a, i) => ({ a, b: pts[(i + 1) % pts.length]!, gate: gates.has(i) }));
     });
     // the route ends on the last queue slot (clear of every wall), so the walk along the line stays inside
-    const tail = queue[queue.length - 1]!;
-    const route = traderRoute({ w: 480, h: 900, solid: [...solid, P.box(shopAt, "sink.sales_point")!], walls, clear: RT.clear, door: RT.door, cell: RT.cell }, tail);
+    // (plot layout: the line bends round whatever stands there, so the route only has to reach one of its squares)
+    const world = { w: 480, h: 900, solid: [...solid, P.box(shopAt, "sink.sales_point")!], walls, clear: RT.clear, door: RT.door, cell: RT.cell };
+    const route = plotOn ? queue.reduce<ReturnType<typeof traderRoute>>((got, q) => got ?? traderRoute(world, q), null)
+      : traderRoute(world, queue[queue.length - 1]!);
     if (!route) fail("no trader route from the map edge to the line");
     ents.find((e) => e.id === "shop")!["route"] = route;
   }
@@ -1342,7 +1435,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const d = GEN.defendRoad.pad;
     padMap(m, d);
     for (const s of P.stations) { s.x += d; s.y += d; if (s.fp) s.fp = [s.fp[0] + d, s.fp[1] + d, s.fp[2] + d, s.fp[3] + d]; }
-    return { manifest: m, flow, stations: P.stations, notes, sizing, queue: queue.map((q) => [q[0] + d, q[1] + d] as Pt) };
+    return { manifest: m, flow, stations: P.stations, notes, sizing, queue: queue.map((q) => [q[0] + d, q[1] + d] as Pt), layout: snapshot(P, d) };
   }
-  return { manifest: m, flow, stations: P.stations, notes, sizing, queue };
+  return { manifest: m, flow, stations: P.stations, notes, sizing, queue, layout: snapshot(P) };
 }

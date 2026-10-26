@@ -208,6 +208,47 @@ describe("strict crew slots", () => {
     saw: [["sawyer", "op"]],
     alloy: [["refined_carrier", "in"], ["smith", "op"], ["component_server", "out"]],
   };
+  // Plot layout (look.json plotLayout): every pad of a building stands on one of its plot slots, as laid out or
+  // mirrored, and the pads sharing a machine's staff slot are chained in hire order so one shows at a time.
+  const plotPads: Record<string, { owner: string; type: string; slot: string; after?: string }[]> = {
+    feeder: [{ owner: "grill", type: "conv.food_processor", slot: "staff", after: "grill" }],
+    cook: [{ owner: "grill", type: "conv.food_processor", slot: "staff", after: "feeder" }],
+    server: [{ owner: "grill", type: "conv.food_processor", slot: "staff", after: "cook" }],
+    grill_level: [{ owner: "grill", type: "conv.food_processor", slot: "staff", after: "server" }],
+    saw_feeder: [{ owner: "saw", type: "conv.material_processor", slot: "staff", after: "saw" }],
+    sawyer: [{ owner: "saw", type: "conv.material_processor", slot: "staff", after: "saw_feeder" }],
+    refined_carrier: [{ owner: "alloy", type: "conv.alloy_works", slot: "staff", after: "alloy" }],
+    smith: [{ owner: "alloy", type: "conv.alloy_works", slot: "staff" }],
+    component_server: [{ owner: "alloy", type: "conv.alloy_works", slot: "staff", after: "smith" }],
+    hauler: [{ owner: "depot", type: "struct.depot", slot: "staff", after: "depot" }],
+    depot_supplier: [{ owner: "depot", type: "struct.depot", slot: "staff" }],
+    hire_core: [{ owner: "core", type: "sink.core", slot: "collector" }],
+    core_level0: [{ owner: "core", type: "sink.core", slot: "upgrade" }],
+    core_level1: [{ owner: "core", type: "sink.core", slot: "upgrade", after: "core_level0" }],
+    hire_food: [{ owner: "food1", type: "node.food_source", slot: "staff" }],
+    train: [{ owner: "barracks", type: "struct.barracks", slot: "staff" }],
+    barracks_up: [{ owner: "barracks", type: "struct.barracks", slot: "upgrade" }],
+  };
+  it.runIf(!!GEN.plots)("puts every building's pads on its plot slots, its staff pads chained in hire order", () => {
+    let checked = 0;
+    for (const i of [3, 5, 8, 9, 10, 14, 19, 25, 30, 47]) {
+      const b = build(i);
+      if (!b) continue;
+      const ents = b.manifest.entities as (E & { requires?: { pad?: string } })[];
+      const at = new Map<string, [number, number]>();
+      for (const e of ents) if (e.id && e.at) at.set(e.id, e.at);
+      for (const e of ents) {
+        const rule = e.id ? plotPads[e.id]?.[0] : undefined;
+        if (!rule || !e.at) continue;
+        const o = at.get(rule.owner)!, s = GEN.plots![rule.type]!.slots.find((x) => x.id === rule.slot)!;
+        const ok = [1, -1].some((m) => e.at![0] === o[0] + m * s.dx && e.at![1] === o[1] + s.dy);
+        expect([e.id, ok]).toEqual([e.id, true]);
+        if (rule.after && at.has(rule.after)) expect([e.id, e.requires?.pad]).toEqual([e.id, rule.after]);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(10);
+  }, 120_000);
   // Collectors (the machine's and the warehouse's input workers) stand by their source instead: see below.
   it("puts every crew pad exactly at its machine's slot offset, the belt pad on the belt and the cashier past the clerk", () => {
     let machines = 0, belts = 0, cashiers = 0, depots = 0;
@@ -216,7 +257,8 @@ describe("strict crew slots", () => {
       if (!b) continue;
       const at = new Map<string, [number, number]>();
       for (const e of b.manifest.entities as E[]) if (e.id && e.at) at.set(e.id, e.at);
-      for (const [m, slots] of Object.entries(crew)) {
+      // (plot layout: crew pads stand on plot slots instead, checked above)
+      for (const [m, slots] of GEN.plots ? [] : Object.entries(crew)) {
         const mp = at.get(m);
         if (!mp) continue;
         machines++;
@@ -229,7 +271,7 @@ describe("strict crew slots", () => {
       const dp = at.get("depot");
       for (const [id, slot] of [["hauler", "out"]] as const) {
         const p = at.get(id);
-        if (dp && p) { depots++; expect(p).toEqual([dp[0] + GEN.depotCrewStations[slot][0], dp[1] + GEN.depotCrewStations[slot][1]]); }
+        if (dp && p) { depots++; if (!GEN.plots) expect(p).toEqual([dp[0] + GEN.depotCrewStations[slot][0], dp[1] + GEN.depotCrewStations[slot][1]]); }
       }
       const belt = at.get("belt"), saw = at.get("saw"), alloy = at.get("alloy");
       if (belt && saw && alloy) {
@@ -247,7 +289,7 @@ describe("strict crew slots", () => {
         expect(GEN.cashierPads.some((o) => cashier[0] === reg[0] + o[0] && cashier[1] === reg[1] + dir * o[1])).toBe(true);
       }
     }
-    expect(machines).toBeGreaterThan(0);
+    if (!GEN.plots) expect(machines).toBeGreaterThan(0);
     expect(cashiers).toBeGreaterThan(0);
     expect(belts + depots).toBeGreaterThan(0);
   }, 120_000);
@@ -293,7 +335,8 @@ describe("generate (search + rating + stars)", () => {
 
 describe("collector pads", () => {
   type E = { id?: string; type: string; at?: [number, number]; role?: { role: string; from?: string; node?: string } };
-  it("stand beside the source they gather from", () => {
+  // plot layout: a collector is hired on the plot of the building it delivers to (the strict slot test above)
+  it.runIf(!GEN.plots)("stand beside the source they gather from", () => {
     let n = 0, beside = 0;
     for (const i of [4, 8, 9, 14, 19, 25, 47]) {
       const b = build(i);

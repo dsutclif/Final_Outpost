@@ -1,8 +1,10 @@
+import { LOOK, PLOT, modelScaleFor } from "@fo/content";
 import { marsGreenhouse } from "@fo/skins";
 import { Box3 } from "three";
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { createBuildCtx } from "../src/assets/context.js";
+import { meshyBounds, meshyFor } from "../src/assets/meshy.js";
 import { buildModel } from "../src/assets/registry.js";
 import { ART_M } from "../src/units.js";
 
@@ -16,8 +18,24 @@ const OCCLUDE = 1 / Math.tan((50 * Math.PI) / 180);
 const ctx = createBuildCtx(marsGreenhouse);
 
 describe("generator footprints", () => {
-  for (const [id, [x0, y0, x1, y1]] of Object.entries(fp)) {
+  // Plot layout (look.json plotLayout): a plotted building's footprint is content/data/plot.json's, measured from the
+  // Meshy model the game shows at its in-game size; it must cover that model (every level for the core) and the ground it hides.
+  for (const [id, [x0, y0, x1, y1]] of Object.entries(PLOT?.generator.footprints ?? {})) {
     if (id === "pad" || id === "pad.big") continue;
+    it(`plot: ${id} covers its drawn model`, () => {
+      for (const lv of id === "sink.core" ? [1, 2, 3] : [1]) {
+        const e = meshyFor(id, lv), mb = e && meshyBounds(e.file);
+        expect(mb).toBeDefined();
+        const k = ART_M * LOOK.buildScale * modelScaleFor(LOOK.modelScale, id, lv), h = (mb![4]! - mb![1]!) * k;
+        expect(x0).toBeLessThanOrEqual(Math.floor(mb![0]! * k) + 1);
+        expect(x1).toBeGreaterThanOrEqual(Math.ceil(mb![3]! * k) - 1);
+        expect(y1).toBeGreaterThanOrEqual(Math.ceil(mb![5]! * k) - 1);
+        expect(y0).toBeLessThanOrEqual(Math.floor(mb![2]! * k - OCCLUDE * h) + 1);
+      }
+    });
+  }
+  for (const [id, [x0, y0, x1, y1]] of Object.entries(fp)) {
+    if (id === "pad" || id === "pad.big" || PLOT?.generator.footprints[id]) continue;
     it(`${id} covers its model`, () => {
       const m = buildModel(id, ctx);
       m.root.updateMatrixWorld(true);

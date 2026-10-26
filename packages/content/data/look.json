@@ -1,9 +1,20 @@
 {
-  "_doc": "Look and layout scale shared by the generator, the 3D renderer and the human-view bot (Doug, BACKLOG-R4 batch 3). buildScale multiplies the footprints of sink/conv/struct/food nodes in the generator and the models in the renderer, so a change is one edit plus a pack rebuild. charScale draws every character larger (the over-head labels and bars rise with it); textScale multiplies units.ts TEXT. viewW is the ground width across the screen in world units at the look point, by level family (default when a family is not listed); the bot's view box is viewW x groundK (the mean of the wider ground toward the top edge). modelBrightness multiplies the colour of every loaded Meshy GLB model (1 = as authored; raise it if models look darker in game than in the source art).",
-  "buildScale": 1.2,
-  "charScale": 1.9,
-  "textScale": 1,
+  "_doc": "Look and layout scale shared by the generator, the 3D renderer and the human-view bot (Doug, BACKLOG-R4 batch 3). buildScale multiplies the footprints of sink/conv/struct/food nodes in the generator and the models in the renderer, so a change is one edit plus a pack rebuild. charScale draws every character larger (the over-head labels and bars rise with it); textScale multiplies units.ts TEXT. viewW is the ground width across the screen in world units at the look point, by level family (default when a family is not listed); the bot's view box is viewW x groundK (the mean of the wider ground toward the top edge). modelBrightness multiplies the colour of every loaded Meshy GLB model (1 = as authored; raise it if models look darker in game than in the source art). modelScale multiplies one building's size on top of buildScale (renderer models and generator footprints; key 'id' or 'id:level', a missing id is 1; the footprint takes the largest level). alignedScale is the size set matched by doorways to the kiosk (Doug, 2026-10-25: kiosk x1.37 so its roofline matches the three processors, its door-matched neighbours sized from its old fit; core L1 x2.35 as in the scale mockup, core L2/L3 at 1.25x/1.5x L1's height); the layout sandbox's Aligned sizes toggle shows it. Doug's sandbox values (2026-10-25) are locked: modelScale = alignedScale, buildScale 0.7, charScale 1.5, textScale 0.75, viewW 170. plotLayout (Doug's plot plan): on = each building's pads on fixed slots of its plot (content/data/plot.json, rebuilt by pnpm plots:build after any change here); pad = pad plate across in world units; plateK = a machine operator's plate across as a multiple of the player's width.",
+  "buildScale": 0.7,
+  "modelScale": {
+    "sink.sales_point": 1.37, "sink.core": 2.35, "sink.core:2": 2.297, "sink.core:3": 2.787,
+    "struct.housing": 1.61, "struct.medical": 2.4, "struct.barracks": 2.59, "struct.depot": 2.57, "struct.landmark": 1.98,
+    "node.food_source": 1.82, "conv.material_processor": 2.83, "conv.food_processor": 2.83, "conv.alloy_works": 2.83
+  },
+  "alignedScale": {
+    "sink.sales_point": 1.37, "sink.core": 2.35, "sink.core:2": 2.297, "sink.core:3": 2.787,
+    "struct.housing": 1.61, "struct.medical": 2.4, "struct.barracks": 2.59, "struct.depot": 2.57, "struct.landmark": 1.98,
+    "node.food_source": 1.82, "conv.material_processor": 2.83, "conv.food_processor": 2.83, "conv.alloy_works": 2.83
+  },
+  "plotLayout": { "on": true, "pad": 36, "plateK": 1.25 },
+  "charScale": 1.5,
+  "textScale": 0.75,
   "modelBrightness": 2,
-  "viewW": { "default": 210, "defend": 300, "industrialize": 300 },
+  "viewW": { "default": 170, "defend": 300, "industrialize": 170 },
   "groundK": 1.33
 }

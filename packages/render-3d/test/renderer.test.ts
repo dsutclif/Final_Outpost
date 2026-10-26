@@ -1,4 +1,4 @@
-import { CONTENT_VERSION } from "@fo/content";
+import { CONTENT_VERSION, LOOK, modelScaleFor } from "@fo/content";
 import { ENGINE_VERSION, FP, createSim, type Input, type SimEvent } from "@fo/sim";
 import { SKINS, marsGreenhouse } from "@fo/skins";
 import { Matrix4, type InstancedMesh, type Object3D } from "three";
@@ -148,7 +148,8 @@ describe("Renderer3D (fake WebGL)", () => {
     const roots: Object3D[] = [];
     out.r.three.scene.traverse((o) => { if (o.name === "conv.food_processor" && !o.userData["ghost"]) roots.push(o); });
     expect(roots.length).toBeGreaterThan(0);
-    for (const o of roots) expect(o.scale.y).toBeCloseTo(ART_M * BUILD_K, 0);
+    // the building scale times the galley's own size multiplier (look.json modelScale)
+    for (const o of roots) expect(o.scale.y).toBeCloseTo(ART_M * BUILD_K * modelScaleFor(LOOK.modelScale, "conv.food_processor"), 0);
     out.r.dispose();
   });
 

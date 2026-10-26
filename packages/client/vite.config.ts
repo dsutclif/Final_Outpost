@@ -72,8 +72,8 @@ export default defineConfig({
   preview: { host: "0.0.0.0", port: 5181 },
   build: {
     outDir: "dist", target: "es2022", sourcemap: false, chunkSizeWarningLimit: 800,
-    // sandbox.html: the layout sandbox dev page (docs/BACKLOG-R4.md batch 0), unlinked from the game
-    rollupOptions: { input: { main: resolve(here, "index.html"), sandbox: resolve(here, "sandbox.html") } },
+    // sandbox.html (asset table) and layout.html (layout sandbox, docs/BACKLOG-R4.md batch 0): dev pages, unlinked from the game
+    rollupOptions: { input: { main: resolve(here, "index.html"), sandbox: resolve(here, "sandbox.html"), layout: resolve(here, "layout.html") } },
   },
   plugins: [
     levelPacks(),
@@ -105,13 +105,13 @@ export default defineConfig({
         // Levels stay on the runtime routes below: the app prefetches every level while online and
         // polls pack.json for new batches, which a precached copy would hide.
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest,woff2}", "models/**/*.glb"],
-        globIgnores: ["store/**", "sandbox.html", "assets/sandbox-*.js", "dev/**", "levels/**"],
+        globIgnores: ["store/**", "sandbox.html", "assets/sandbox-*.js", "layout.html", "assets/layout-*.js", "dev/**", "levels/**"],
         ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // the first visit's page is controlled at once, so nothing it loads misses the cache
         clientsClaim: true,
         navigateFallback: "index.html",
-        navigateFallbackDenylist: [/\/levels\//, /privacy\.html$/, /sandbox\.html$/],
+        navigateFallbackDenylist: [/\/levels\//, /privacy\.html$/, /sandbox\.html$/, /layout\.html$/],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {

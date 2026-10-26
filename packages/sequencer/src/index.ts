@@ -7,7 +7,9 @@ import data from "../data/sequencer.json";
 // rule reads data/sequencer.json or content (modules.json); nothing names a level.
 //
 // Arc: levels 1-5 teach the five families in story order (shelter, rescue, harvest, industrialize,
-// defend); levels 6-15 add each family's deeper mechanics inside the family, two levels per family;
+// defend); since the story levels (Doug, 2026-10-26) these are the hand-made levels/story manifests,
+// so packs are generated from level 6, and `storyTaught` lists what those five already taught.
+// Levels 6-15 add each family's deeper mechanics inside the family, two levels per family;
 // after that the families rotate, with a two-family finale every 10th level.
 
 export type Family = "shelter" | "rescue" | "harvest" | "industrialize" | "defend";
@@ -32,6 +34,11 @@ export interface SequencerConfig {
   adapt: AdaptConfig;
   duplicateWindow: number;
   storyLength: number;
+  /**
+   * Features the hand-made story levels (1..storyLength, levels/story) already teach (docs/STORY-LEVELS.md):
+   * the intro arc does not introduce them again, and every family can use them from the first generated level.
+   */
+  storyTaught: string[];
   introLength: number;
   templates: string[];
   implies: Record<string, string[]>;
@@ -229,7 +236,9 @@ export function slotFor(index: number, cfg: SequencerConfig = DEFAULT_CONFIG): S
     const k = index - cfg.storyLength - 1;
     const fam = F[k % F.length]!;
     const round = Math.floor(k / F.length);
-    return { family: fam, secondary: null, phase: "intro", introduced: [...(cfg.families[fam].intro[round] ?? [])] };
+    // a feature the story levels already taught is not introduced again
+    const introduced = (cfg.families[fam].intro[round] ?? []).filter((f) => !cfg.storyTaught.includes(f));
+    return { family: fam, secondary: null, phase: "intro", introduced };
   }
   if (index % cfg.blockLength === 0) {
     const [a, b] = cfg.finales[(index / cfg.blockLength - 2 + cfg.finales.length) % cfg.finales.length]!;
@@ -243,7 +252,7 @@ export function slotFor(index: number, cfg: SequencerConfig = DEFAULT_CONFIG): S
 
 /** Features a family has unlocked by level `index`. */
 export function unlockedFeatures(family: Family, index: number, cfg: SequencerConfig = DEFAULT_CONFIG): string[] {
-  const out: string[] = [];
+  const out: string[] = index > cfg.storyLength ? cfg.storyTaught.filter((f) => cfg.features[f]?.family === family) : [];
   for (let i = cfg.storyLength + 1; i <= Math.min(index, cfg.introLength); i++) {
     const s = slotFor(i, cfg);
     if (s.family === family) out.push(...s.introduced);

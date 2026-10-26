@@ -116,6 +116,15 @@ function build(st: State, cp: Compiled, pad: PadState, e: HireEnt | BuildEnt, ou
   else pad.done = true;
 }
 
+/**
+ * Dev tools only (the layout sandbox's end-state preview): complete a pad now, ignoring its cost,
+ * visibility and locks. A hire pad still needs an idle resident. Never called by the game or bots.
+ */
+export function forceBuildPad(st: State, cp: Compiled, id: string, out: SimEvent[] = []): void {
+  const pad = st.pads.find((p) => p.id === id);
+  if (pad && !pad.done) build(st, cp, pad, padEnt(cp, pad), out);
+}
+
 function convMaxed(st: State, cp: Compiled, id: string | undefined): boolean {
   const cv = st.converters.find((c) => c.id === id);
   return !cv || cv.level >= cp.converters[cv.type]!.rateTicksByLevel.length;

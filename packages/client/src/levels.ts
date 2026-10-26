@@ -1,7 +1,7 @@
 import { CONTENT_VERSION, Manifest as ManifestSchema, type Manifest } from "@fo/content";
 import { ENGINE_VERSION } from "@fo/sim";
 
-// Where levels come from: the golden manifests bundled in the shell, then generated packs
+// Where levels come from: the hand-made story levels (1-5) bundled in the shell, then generated packs
 // served as static files (Contract 5: levels/packs/<pack>/pack.json plus one manifest JSON per
 // level). The service worker caches pack fetches (CacheFirst on /levels/); prefetchLevels()
 // warms that cache ahead of the player so the next levels play offline.
@@ -62,6 +62,15 @@ export class StaticLevelSource implements LevelSource {
 /** The prototype levels under levels/golden, bundled into the app shell. */
 export function goldenLevelSource(): StaticLevelSource {
   const mods = import.meta.glob("../../../levels/golden/*.json", { eager: true, import: "default" });
+  return new StaticLevelSource(Object.values(mods));
+}
+
+/**
+ * The five hand-made story levels under levels/story (docs/STORY-LEVELS.md), bundled into the app shell so
+ * the first session never waits on a pack download; they open the level grid, and packs start at level 6.
+ */
+export function storyLevelSource(): StaticLevelSource {
+  const mods = import.meta.glob("../../../levels/story/*.json", { eager: true, import: "default" });
   return new StaticLevelSource(Object.values(mods));
 }
 
@@ -207,12 +216,12 @@ export class ChainLevelSource implements LevelSource {
 }
 
 /**
- * Every compatible pack the server lists. The prototype (golden) levels are a dev-build extra,
- * listed after the packs so level 1 is always the first pack level; shipped builds never show them.
+ * The story levels, then every compatible pack the server lists. The prototype (golden) levels are a
+ * dev-build extra, listed after the packs; shipped builds never show them.
  */
 export async function allLevels(base: string, fetchFn?: FetchFn, includeGolden: boolean = import.meta.env.DEV): Promise<ChainLevelSource> {
   const packs = await discoverPacks(base, fetchFn);
-  return new ChainLevelSource(includeGolden ? [...packs, goldenLevelSource()] : packs);
+  return new ChainLevelSource([storyLevelSource(), ...packs, ...(includeGolden ? [goldenLevelSource()] : [])]);
 }
 
 // ------------------------------------------------------------------ offline cache

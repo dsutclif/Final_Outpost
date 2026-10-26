@@ -14,7 +14,8 @@
     "levels:build": "vite-node tools/build-levels.ts --",
     "levels:check": "vite-node tools/regress-levels.ts --",
     "levels:next": "vite-node tools/levels-next.ts --",
-    "models:build": "vite-node tools/build-models.ts --"
+    "models:build": "vite-node tools/build-models.ts --",
+    "plots:build": "vite-node tools/build-plots.ts --"
   },
   "devDependencies": {
     "@capacitor/android": "^7.6.9",
