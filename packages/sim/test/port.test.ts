@@ -3,6 +3,10 @@ import { content } from "@fo/content";
 import { IMPLEMENTED_MODULES, METER_MAX, TPS, createSim } from "../src/index.js";
 import { LEVELS, at, idle, newSim, walkTo } from "./helpers.js";
 
+// the kiosk at (330, 570): its clerk spot, coin pile and queue head follow content's offsets (the plot layout moves them)
+const KS = content.sinks["sink.sales_point"] as unknown as { registerOffset: [number, number]; pileOffset: [number, number]; queueOffset: [number, number] };
+const REG = at(330, 570 + KS.registerOffset[1]), PILE = at(330 + Math.abs(KS.pileOffset[0]), 570 + KS.pileOffset[1]);
+
 // Each test walks the prototype's level 1 the way a player would and checks the
 // ported rules: gather to the per-type cap, feed the core, stock the shelf, sell
 // at the register, collect the pile, and lose when the core goes out.
@@ -75,10 +79,10 @@ describe("prototype level 1 port", () => {
     expect(sim.state.sales!.shelf["res.food_raw_1"]).toBe(6);
     expect(sim.state.player.stack.length).toBe(0);
 
-    // The clerk pad is 54 units from the counter on the camera side (south); stand on it and wait.
+    // The clerk pad is on the camera side (south) of the counter; stand on it and wait.
     // Customers queued while the shelf was being stocked, so sales can start as the player steps in.
-    expect(sim.state.sales!.register).toEqual(at(330, 624));
-    const ev = [...walkTo(sim, at(330, 624), 10), ...idle(sim, 60 * TPS, (e) => e.some((x) => x.t === "sold"))];
+    expect(sim.state.sales!.register).toEqual(REG);
+    const ev = [...walkTo(sim, REG, 10), ...idle(sim, 60 * TPS, (e) => e.some((x) => x.t === "sold"))];
     const sales = ev.filter((e) => e.t === "sold");
     expect(sales.length).toBeGreaterThan(0);
     let paid = 0;
@@ -91,8 +95,8 @@ describe("prototype level 1 port", () => {
     expect(sim.state.sales!.pileN).toBe(paid);
     expect(sim.state.currency).toBe(0);
 
-    expect(sim.state.sales!.pile).toEqual(at(392, 624));
-    const got = [...walkTo(sim, at(392, 624), 20), ...idle(sim, 5)];
+    expect(sim.state.sales!.pile).toEqual(PILE);
+    const got = [...walkTo(sim, PILE, 20), ...idle(sim, 5)];
     expect(got.some((e) => e.t === "collected")).toBe(true);
     expect(sim.state.currency + sim.state.sales!.pileN).toBeGreaterThanOrEqual(paid);
     expect(sim.state.currency).toBeGreaterThanOrEqual(paid);

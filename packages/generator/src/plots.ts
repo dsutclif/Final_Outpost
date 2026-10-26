@@ -141,9 +141,11 @@ export function computePlots(inp: PlotInput): PlotData {
     if (type.startsWith("conv.")) {
       // operator on the front edge; the pickup tray (0.7 of the operator plate across) wholly inside the front corner
       const r = Math.min(0.35 * plate, (b[2] - b[0]) / 4 - 2);
+      // the deposit reach (from the centre) stays the base one, not scaled with the bigger machine: a wider reach
+      // swallows goods the player is only carrying past (the good bot lost its lead on golden level 3 at 50)
       const cB = base.converters[type] as unknown as { range: number };
       converters[type] = {
-        range: Math.round(cB.range * rel(type)),
+        range: cB.range,
         operatorOffset: [cx, front],
         pickupOffset: [Math.round(b[2] - r - 3), Math.round(Math.max(b[1] + r + 3, b[3] - plate / 2 - r - 3))],
       };
