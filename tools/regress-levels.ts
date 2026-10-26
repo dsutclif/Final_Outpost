@@ -1,11 +1,11 @@
 import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { cpus } from "node:os";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { HUMAN, LADDER, playBot } from "../packages/bots/src/index.js";
 
-// pnpm levels:check [--pack levels/packs/s1] [--jobs N] [--seeds 10] [--others 3] [--strict-stars]
+// pnpm levels:check [--pack levels/packs/s1 | levels/story] [--jobs N] [--seeds 10] [--others 3] [--strict-stars]
 //
 // Bot regression over a shipped pack: every level replayed by the whole ladder (10 seeds for the
 // reference bot, 3 for each other rung). Fails when any run stalls or the reference bot does not win
@@ -92,7 +92,10 @@ function runChild(args: string[]): Promise<string> {
 }
 
 async function main(): Promise<void> {
-  const pack = JSON.parse(readFileSync(join(packDir, "pack.json"), "utf8")) as { id: string; levels: { id: string; file: string }[] };
+  // a folder of hand-made levels with no pack.json (levels/story) replays every manifest in it
+  const pack = existsSync(join(packDir, "pack.json"))
+    ? JSON.parse(readFileSync(join(packDir, "pack.json"), "utf8")) as { id: string; levels: { id: string; file: string }[] }
+    : { id: basename(packDir), levels: readdirSync(packDir).filter((f) => f.endsWith(".json")).sort().map((f) => ({ id: f.replace(/\.json$/, ""), file: f })) };
   const jobs = Number(arg("--jobs", String(Math.max(1, cpus().length - 2))));
   const seeds = arg("--seeds", "10")!, others = arg("--others", "3")!;
   const t0 = Date.now();
