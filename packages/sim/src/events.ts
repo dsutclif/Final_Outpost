@@ -11,6 +11,8 @@ export type SimEvent =
   | { t: "collected"; res: string; n: number; at: Vec }
   | { t: "core_fuel_out" }
   | { t: "core_fuel_restored" }
+  // a dormant core took its first fuel and lit
+  | { t: "core_lit"; at: Vec }
   | { t: "hint"; key: HintKey }
   | { t: "pile_collapsed"; conv: string }
   | { t: "level_end"; won: boolean; reason: string }
@@ -29,6 +31,9 @@ export type SimEvent =
   | { t: "pod_lost"; capture: number; at: Vec }
   | { t: "tow_dropped"; capture: number; at: Vec; reason: "hit" | "slack" }
   | { t: "crate_delivered"; capture: number; at: Vec; bundle: Record<string, number> }
+  // story pods: a crew member who starts work on release, an empty pod
+  | { t: "joined"; capture: number; resident: number; role: string }
+  | { t: "decoy_opened"; capture: number; at: Vec }
   // reactor-out countdown
   | { t: "froze"; resident: number; at: Vec }
   // objectives: emitted when one becomes done or failed
@@ -44,6 +49,7 @@ export type SimEvent =
   | { t: "wave_started"; idx: number }
   | { t: "boss_spawned"; id: number; kind: string; at: Vec }
   | { t: "wave_cleared"; idx: number }
+  | { t: "retreated"; kind: string; id: number; at: Vec }
   | { t: "barrier_progress"; line: string; section: number; paid: number; cost: number }
   | { t: "barrier_built"; line: string; section: number }
   | { t: "barrier_broken"; line: string; section: number }
@@ -81,5 +87,5 @@ export const ACTION_EVENTS: ReadonlySet<SimEvent["t"]> = new Set<SimEvent["t"]>(
 /** Event types the rater treats as rewards. */
 export const REWARD_EVENTS: ReadonlySet<SimEvent["t"]> = new Set<SimEvent["t"]>([
   "sold", "built", "hired", "unlocked", "core_upgraded", "zone_cleared", "released", "recruit_arrived", "barrier_built", "wave_cleared",
-  "crate_delivered",
+  "crate_delivered", "core_lit", "joined", "decoy_opened", "retreated",
 ]);

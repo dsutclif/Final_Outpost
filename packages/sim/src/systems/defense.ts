@@ -64,16 +64,21 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   const W = st.waves;
   const wave = cp.waves[W.idx];
   if (wave && st.tick >= wave.tick && !W.active && st.tick >= W.quietUntil) {
-    wave.types.forEach((type, k) => W.pending.push({ tick: st.tick + k * wave.gapTicks, type, side: wave.sides[k % wave.sides.length]! }));
+    wave.types.forEach((type, k) => {
+      const p: (typeof W.pending)[number] = { tick: st.tick + k * wave.gapTicks, type, side: wave.sides[k % wave.sides.length]! };
+      if (wave.retreatPct !== undefined && cp.hostiles[type]!.boss) p.retreatPct = wave.retreatPct;
+      W.pending.push(p);
+    });
     W.idx++;
     W.active = true;
     out.push({ t: "wave_started", idx: W.idx });
     hint(st, out, "wave_incoming");
   }
   while (W.pending.length > 0 && st.tick >= W.pending[0]!.tick) {
-    const { type, side } = W.pending.shift()!;
+    const { type, side, retreatPct } = W.pending.shift()!;
     const def = cp.hostiles[type]!;
     const h: HostileState = { id: st.nextHostileId++, type, pos: spawnPoint(st, cp, side), hp: def.hp, hpMax: def.hp, side, target: "core", acc: 0 };
+    if (retreatPct !== undefined) h.retreatHp = Math.max(1, mulDiv(def.hp, retreatPct, 100));
     st.hostiles.push(h);
     if (def.boss) out.push({ t: "boss_spawned", id: h.id, kind: type, at: { ...h.pos } });
   }
@@ -136,6 +141,7 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
     walkAround(st, cp, h.pos, goal, def.speed);
   }
 
+  stepFleeing(st, cp);
   hitPlayer(st, cp, out);
   stepTroops(st, cp, out);
 
@@ -239,3 +245,19 @@ function hitPlayer(st: State, cp: Compiled, out: SimEvent[]): void {
 
 export const wavesDone = (st: State, cp: Compiled): boolean =>
   cp.waves.length > 0 && st.waves.idx >= cp.waves.length && st.waves.pending.length === 0 && st.hostiles.length === 0;
+
+/** Retreating hostiles walk straight back out past their attack edge and are gone once they reach it. */
+function stepFleeing(st: State, cp: Compiled): void {
+  const F = st.fleeing;
+  if (!F || F.length === 0) return;
+  const D = cp.defense, W = cp.map.w, H = cp.map.h;
+  for (const h of [...F]) {
+    const goal: Vec = h.side === "n" ? { x: h.pos.x, y: D.spawnY } : h.side === "s" ? { x: h.pos.x, y: H - D.spawnY }
+      : h.side === "w" ? { x: D.spawnY, y: h.pos.y } : { x: W - D.spawnY, y: h.pos.y };
+    const speed = cp.hostiles[h.type]!.speed;
+    const dx = goal.x - h.pos.x, dy = goal.y - h.pos.y, d = isqrt(dx * dx + dy * dy);
+    if (d <= speed) { F.splice(F.indexOf(h), 1); continue; }
+    h.pos.x += mulDiv(dx, speed, d);
+    h.pos.y += mulDiv(dy, speed, d);
+  }
+}

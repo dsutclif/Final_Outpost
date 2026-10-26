@@ -50,7 +50,7 @@ const byDeadline = (c: Ctx, progress: number, target: number, deadline: number):
 
 const heatAtLeast = (st: State, cp: Compiled, pct: number): boolean => st.core.fuel * 100 >= pct * coreFuelCap(st, cp);
 const recruitPods = (st: State, cp: Compiled): number =>
-  st.captures.filter((c) => cp.lassoables[c.type]?.result === "recruit").length;
+  st.captures.filter((c) => cp.lassoables[c.type]?.result === "recruit" && !c.decoy).length;
 const turretLevel = (st: State, cp: Compiled): number =>
   st.structures.reduce((m, s) => (cp.structures[s.type]?.tiers ? Math.max(m, s.level) : m), 0);
 const sections = (st: State): { total: number; built: number } => {
@@ -156,7 +156,8 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
   },
   settlement_never_freezes: ({ st, o }) => guard(o, st.stats.fuelOuts > 0),
   no_colonist_freezes: ({ st, o }) => guard(o, st.stats.froze > 0),
-  heat_floor: ({ st, cp, p, o }) => guard(o, !heatAtLeast(st, cp, num(p, "pct"))),
+  // a dark core (lit: false) has no heat to keep yet: the floor starts when it is lit
+  heat_floor: ({ st, cp, p, o }) => guard(o, !st.core.dormant && !heatAtLeast(st, cp, num(p, "pct"))),
   no_angry_customers: ({ st, o }) => guard(o, st.stats.customersAngry > 0),
   no_injuries: ({ st, o }) => guard(o, st.stats.injured > 0),
   hp_floor: ({ st, p, o }) => guard(o, st.meters.baseHealth * 100 < num(p, "pct") * st.meters.baseHealthMax),

@@ -461,6 +461,7 @@ export class Renderer3D implements Renderer {
     const block = manifest.params["lots.block"] ?? 0, street = manifest.params["lots.street"] ?? 0;
     const lots = block > 0 && core?.at ? { x: core.at[0], z: core.at[1], block, street } : null;
     this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots, this.cp ? attackRoads(this.cp) : []);
+    this.env.night = manifest.lighting === "night";
     this.fx = new Fx(mats.particle, this.scene, this.labels);
     this.fx.onCoinLanded = this.coinCb;
     this.crowd = new Crowd(this.bctx.parts, mats.std, this.scene);
@@ -1987,7 +1988,7 @@ export class Renderer3D implements Renderer {
       if (tr.hp < tr.hpMax) this.barTag(pos.x, ART_M * tl.scale * this.devCharScale * 1.5, pos.y, tr.hp / tr.hpMax, t.ok, 6);
     }
 
-    for (const h of s.hostiles) {
+    for (const h of [...s.hostiles, ...(s.fleeing ?? [])]) { // a boss breaking off (bossRetreat) stays drawn until it leaves
       const key = `h:${h.id}`;
       const pos = this.interp.pos(key, h.pos, a);
       const hv = this.interp.vel(key);

@@ -21,10 +21,20 @@ export function stepHousing(st: State, cp: Compiled, out: SimEvent[]): void {
     if (c.state !== "releasing") continue;
     c.timer--;
     if (c.timer > 0) continue;
+    st.captures.splice(st.captures.indexOf(c), 1);
+    if (c.decoy) { out.push({ t: "decoy_opened", capture: c.id, at: { ...c.pos } }); continue; }
     const r = newResident(st, c.pos, "idle", "ok", "rescue");
     admitRecruit(st, cp, r, out);
     out.push({ t: "released", capture: c.id, resident: r.id, at: { ...c.pos } });
-    st.captures.splice(st.captures.indexOf(c), 1);
+    // A crew pod: the recruit goes straight to its job, as if hired (no pad, no cost). Crew bunk in
+    // the ship, so they never queue for a hab pod.
+    if (c.joins) {
+      if (r.status === "waiting") { r.status = "ok"; out.push({ t: "moved_in", resident: r.id }); }
+      r.role = c.joins.role;
+      r.assign = { from: c.joins.from, to: c.joins.to, node: c.joins.node, post: null };
+      if (cp.roles[r.role]?.behavior === "guard") r.assign.post = st.residents.filter((x) => x.role === r.role).length - 1;
+      out.push({ t: "joined", capture: c.id, resident: r.id, role: r.role });
+    }
   }
 }
 

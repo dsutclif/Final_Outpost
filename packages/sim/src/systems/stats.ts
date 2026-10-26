@@ -67,6 +67,15 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
       case "recruit_arrived": s.admitted++; break;
       case "zone_cleared": s.zonesCleared++; break;
       case "hazard_end": s.hazardsSurvived++; break;
+      case "core_lit": s.litTick = st.tick; break;
+      case "joined": s.joined = (s.joined ?? 0) + 1; break;
+      case "decoy_opened": s.decoysOpened = (s.decoysOpened ?? 0) + 1; break;
+      case "retreated":
+        // A boss that breaks off is beaten as far as goals go.
+        s.kills++;
+        if (cp.hostiles[e.kind]?.boss) s.bossKills++;
+        s.retreats = (s.retreats ?? 0) + 1;
+        break;
       default: break;
     }
     if (ACTION_EVENTS.has(e.t)) acted = true;
@@ -76,7 +85,7 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
   if (!st.player.moving && !acted) s.idleTicks++;
   if (st.core.lifeline < mulDiv(METER_MAX, cp.stats.lifelineLow, FP)) s.lifelineLowTicks++;
   const heat = mulDiv(st.core.fuel, 1000, coreFuelCap(st, cp));
-  if (heat < s.heatMin) s.heatMin = heat;
+  if (heat < s.heatMin && !st.core.dormant) s.heatMin = heat;
   if (demands(st, cp) >= 2) s.concurrentDemandTicks++;
 }
 
@@ -109,7 +118,7 @@ function recordReward(st: State): void {
 /** Stations that need the player right now: a low core, a servable customer at an unstaffed register, an unoperated converter with inputs. */
 function demands(st: State, cp: Compiled): number {
   let n = 0;
-  if (st.core.fuel * FP < coreFuelCap(st, cp) * cp.stats.coreLowFill) n++;
+  if (!st.core.dormant && st.core.fuel * FP < coreFuelCap(st, cp) * cp.stats.coreLowFill) n++;
   const sales = st.sales;
   if (sales) {
     const servable = sales.queue.some((q) => (sales.shelf[q.res] ?? 0) >= q.want);

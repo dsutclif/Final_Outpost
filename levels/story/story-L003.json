@@ -1,0 +1,445 @@
+{
+ "id": "story-L003",
+ "seed": 1003,
+ "engineVersion": "0.13.0",
+ "contentVersion": "0.13.0",
+ "map": {
+  "w": 480,
+  "h": 900,
+  "zones": [
+   "base",
+   "sources-e",
+   "food-se",
+   "shop-w",
+   "landmark-sw"
+  ]
+ },
+ "modules": [
+  "blocked_zones",
+  "build_pads",
+  "carry",
+  "core",
+  "core_levels",
+  "gather",
+  "hunting",
+  "sales",
+  "source_gating",
+  "workers"
+ ],
+ "start": [
+  218,
+  592
+ ],
+ "entities": [
+  {
+   "type": "sink.core",
+   "id": "core",
+   "at": [
+    218,
+    500
+   ],
+   "params": {
+    "fuel": 17,
+    "level": 1
+   }
+  },
+  {
+   "type": "sink.sales_point",
+   "id": "shop",
+   "at": [
+    140,
+    575
+   ],
+   "sells": [
+    "res.food_raw_1",
+    "res.food_raw_2"
+   ],
+   "route": [
+    [
+     -20,
+     645
+    ],
+    [
+     3,
+     645
+    ],
+    [
+     201,
+     643
+    ]
+   ]
+  },
+  {
+   "type": "node.food_source",
+   "id": "food1",
+   "at": [
+    317,
+    565
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    297,
+    487
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    301,
+    456
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    305,
+    425
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    335,
+    486
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    342,
+    452
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    364,
+    487
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    338,
+    420
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    318,
+    396
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    370,
+    518
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    372,
+    445
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    373,
+    404
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    142,
+    467
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    97,
+    469
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    87,
+    504
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    84,
+    535
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    83,
+    572
+   ]
+  },
+  {
+   "type": "node.food_source",
+   "id": "food2",
+   "at": [
+    422,
+    569
+   ],
+   "enabled": false
+  },
+  {
+   "type": "pad.hire",
+   "id": "hire_core",
+   "at": [
+    195,
+    610
+   ],
+   "cost": {
+    "res.currency": 7
+   },
+   "role": {
+    "role": "role.supplier",
+    "from": "node.fuel_scrap",
+    "to": "sink.core"
+   },
+   "manual": true
+  },
+  {
+   "type": "pad.hire",
+   "id": "hire_food",
+   "at": [
+    317,
+    626
+   ],
+   "cost": {
+    "res.currency": 10
+   },
+   "role": {
+    "role": "role.supplier",
+    "from": "node.food_source",
+    "to": "sink.sales_point",
+    "node": "food1"
+   },
+   "manual": true
+  },
+  {
+   "type": "pad.hire",
+   "id": "hire_cashier",
+   "at": [
+    140,
+    674
+   ],
+   "cost": {
+    "res.currency": 15
+   },
+   "role": {
+    "role": "role.cashier",
+    "to": "sink.sales_point"
+   },
+   "requires": {
+    "pad": "clear0"
+   },
+   "manual": true
+  },
+  {
+   "type": "pad.build",
+   "id": "unlock_food2",
+   "at": [
+    422,
+    569
+   ],
+   "cost": {
+    "res.currency": 10
+   },
+   "build": "node.enable",
+   "target": "food2",
+   "requires": {
+    "pad": "clear0"
+   }
+  },
+  {
+   "type": "pad.hire",
+   "id": "hire_food2",
+   "at": [
+    422,
+    630
+   ],
+   "cost": {
+    "res.currency": 13
+   },
+   "role": {
+    "role": "role.supplier",
+    "from": "node.food_source",
+    "to": "sink.sales_point",
+    "node": "food2"
+   },
+   "requires": {
+    "pad": "unlock_food2"
+   }
+  },
+  {
+   "type": "zone.prey",
+   "id": "flats",
+   "rect": [
+    20,
+    300,
+    130,
+    100
+   ],
+   "animal": "node.prey",
+   "n": 3
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge_n",
+   "kind": "ridge",
+   "rect": [
+    0,
+    278,
+    182,
+    22
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge_s",
+   "kind": "ridge",
+   "rect": [
+    0,
+    400,
+    182,
+    22
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge_e1",
+   "kind": "ridge",
+   "rect": [
+    158,
+    300,
+    24,
+    24
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge_e2",
+   "kind": "ridge",
+   "rect": [
+    158,
+    376,
+    24,
+    24
+   ]
+  },
+  {
+   "type": "zone.blocked",
+   "id": "rockslide",
+   "rect": [
+    154,
+    324,
+    32,
+    52
+   ]
+  },
+  {
+   "type": "pad.build",
+   "id": "clear0",
+   "at": [
+    214,
+    350
+   ],
+   "cost": {
+    "res.currency": 12
+   },
+   "build": "zone.clear",
+   "target": "rockslide"
+  }
+ ],
+ "people": [
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  }
+ ],
+ "waves": [],
+ "events": [],
+ "params": {
+  "start.currency": 0,
+  "core.burn": 3,
+  "housing.base": 8,
+  "lots.block": 60,
+  "lots.street": 0,
+  "customers.spawn": 2.5,
+  "customers.orderMin": 1,
+  "customers.orderMax": 2,
+  "level.budgetSeconds": 300
+ },
+ "goal": {
+  "type": "earn",
+  "n": 150
+ },
+ "family": "harvest",
+ "objectives": [
+  {
+   "id": "main",
+   "kind": "earn",
+   "params": {
+    "n": 150
+   }
+  },
+  {
+   "id": "time",
+   "kind": "time_target",
+   "params": {
+    "seconds": 112
+   }
+  },
+  {
+   "id": "challenge",
+   "kind": "unlock",
+   "params": {
+    "n": 1
+   }
+  }
+ ],
+ "fail": [
+  "meter.lifeline"
+ ],
+ "guide": "always",
+ "text": {
+  "mars_greenhouse": {
+   "title": "Open for Trade",
+   "goal": "Earn credits from the traders",
+   "tips": [
+    "Traders on the road. They saw our heat."
+   ]
+  }
+ }
+}

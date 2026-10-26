@@ -241,3 +241,25 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     (314k triangles, 58 draw calls). It is a ceiling that catches a runaway build, not a target to
     trim to. The per-class `TRI_BUDGET` stays for the code-built fallback models. See
     `docs/MESHY-ASSETS.md` "Shape tolerance".
+14. **Story levels 1–5 are fixed, hand-made levels (2026-10-25/26).** Agreed with Doug; the plan is
+    `docs/STORY-LEVELS.md` ("The Empty Bay": story versions 2 and 3 combined) and the per-feature
+    intros are `docs/STORY-FIRSTS.md`.
+    - Levels 1–5 are `levels/story/story-L001..005.json`, not generated: shelter (wake, light the
+      reactor, ride out a storm), rescue (tow the crew pods home), harvest (clear the rockslide to the
+      hopper flats, trade with the earlier settlements), industrialize (a town that runs itself), defend
+      (night attack from the ridge). They are bot-verified and pinned like golden levels. The generated
+      pack starts at level 6; the sequencer's `storyTaught` list holds what levels 1–5 already teach.
+    - Five mechanics, each a data option on an existing module, never keyed by level id:
+      a dark core (`sink.core` `params.lit: false`: no burn and no reactor-out countdown until its
+      first fuel lights it, `core_lit`); crew pods (`capture.*` `joins: <role binding>`: the recruit
+      starts that job on release and never waits for a hab pod, `joined`); decoy pods (`decoy: true`:
+      towed like a pod, opens empty, never a rescue or a pod left, `decoy_opened`); a retreating boss
+      (wave `bossRetreat`: boss-flag hostiles break off at that percent of their hp, count as beaten,
+      drop their loot and walk off their edge in `state.fleeing`, `retreated`); night lighting
+      (manifest `lighting: "night"`, renderer only).
+    - Manifest `guide: "always"` shows the guide arrow from the first tick on story levels (and their
+      replays), whatever the arrow setting; generated levels keep the 20 s stuck rule.
+    - Replays of story levels skip the cinematics and camera beats (when the story director lands).
+    - **Hard rule 1, amended:** no level-specific code in the sim, bots, generator or rater. The client
+      may register named cinematics and the skin may carry story cues keyed by level id; neither may
+      change sim state. Cinematics and the story director (barks, camera beats) are deferred.

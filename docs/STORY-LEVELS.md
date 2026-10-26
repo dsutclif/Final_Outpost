@@ -344,3 +344,28 @@ or if video fails. Videos join the service-worker precache. Tap to skip; never s
 **Still to do.** Wire the videos into the client (title screen, level 1 intro, level 5 result),
 put the Halcyon wreck model into the game for level 1, and re-check the hand-off frame once level 1
 is authored.
+
+## Built (2026-10-26)
+
+`levels/story/story-L001..005.json`, laid out by the generator's plot code for each level's family
+and features, then finished by hand. All five pass `pnpm levels:check --pack levels/story`: every
+rung of the bot ladder wins every level, and the human-view bot earns the star bar on all five.
+Where the build differs from the plan above:
+
+- **L1** about 48 s (one storm, warn 20 s, 28–48 s). Stars: survive · reactor never goes out · fill
+  the reactor by 28 s ("Fill me up, now"). Core grace 45 s, so a slow first trip is forgiven.
+- **L2** 19–28 s for every rung (well under the 60 s bar). Crew pods: Pip and Rhee feed the reactor
+  (there is no medic role; medics come from the med bay later), Okafor guards the wall ring, Tam stays a
+  colonist (no fields yet). The decoy is the old Meridian pod; bots never tow it. Stars: all pods ·
+  under 24 s · three in one trip.
+- **L3** about 100 s. The hopper flats sit in a ridged hollow whose only gap is the rockslide; greens
+  pay for clearing it, then protein, then a second field (the third star is "unlock a source"). The
+  reactor-upgrade pad from the draft was removed (the module stays: rockslides require it).
+- **L4** about 100 s: build the galley, staff it (feeder, cook, runner on one staff slot), hand the
+  kiosk to a clerk; `automate` 20 s. Stars: town runs itself · under 115 s · no stockpile overload.
+- **L5** about 140 s at night, waves from the west (the ridge side of this layout): 3 raiders, then
+  a swarm, then the lieutenant (`bossRetreat` 25) with a bigger swarm. Two wall towers and the guard
+  post; no tower upgrades (left for the generated levels). Stars: hold · Colony HP ≥ 80% · gate held.
+- Not built yet (deferred with the cinematics): the dark reactor's frost vignette and ignition flare,
+  the older look of the Meridian decoy pod, crew names over the joined workers, and the story text
+  beyond each level's title and one-line hook.

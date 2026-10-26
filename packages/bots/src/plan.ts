@@ -196,7 +196,10 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
   // ---------- goal ----------
   const barriers: BarrierTask[] = [];
   const g = goal as { type: string; n?: number; k?: number; target?: string; res?: string; role?: string; build?: string };
-  const recruitsTotal = m.entities.filter((e) => e.type === "capture.recruit_container").length + gateArrivals(m);
+  // Story pods: an empty decoy is nobody to house, and crew who join go straight to a job.
+  const pods = m.entities.filter((e) => e.type === "capture.recruit_container" && !("decoy" in e && e.decoy));
+  const recruitsTotal = pods.length + gateArrivals(m);
+  const idleRecruits = pods.filter((e) => !("joins" in e && e.joins)).length + gateArrivals(m);
   const slotsBase = m.params["housing.base"] ?? c.defaults["housing.base"] ?? 0;
   const perHousing = m.params["housing.perBuilding"] ?? c.defaults["housing.perBuilding"] ?? 0;
   const housingPads = pads.filter((p): p is BuildEnt => p.type === "pad.build" && p.build === "struct.housing")
@@ -270,6 +273,9 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
     }
     default: break;
   }
+  // An unlock star (not the main goal): open that many sources too, off the goal path.
+  const unlockStar = goal.type !== "unlock" ? objectives.find((o) => o.kind === "unlock") : undefined;
+  if (unlockStar) buildPads("node.enable").slice(0, Number(unlockStar.params["n"] ?? 1)).forEach((p) => add(p.id, "objective"));
   // Lasso goals: captives behind a blocked zone (the pass) need it cleared.
   const LASSO_GOALS = ["rescue", "rescue_all", "tow_trip", "rescue_before_freeze", "tow_full_trip", "crates", "rescue_housed", "house_all"];
   if (LASSO_GOALS.includes(g.type) && reachableCaptures(m).behind > 0) for (const p of buildPads("zone.clear")) add(p.id, "goal", { goalPath: true });
@@ -288,7 +294,7 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
       const trainers = hires.filter((h) => role(h.role.role)?.behavior === "guard");
       // With a med bay, two colonists stay untrained so injuries (and healing) still happen.
       const medic = pads.some((p) => p.type === "pad.build" && p.build === "struct.medical") ? 2 : 0;
-      const idle = Math.max(1, m.people.filter((p) => p.role === "idle").length + recruitsTotal - medic);
+      const idle = Math.max(1, m.people.filter((p) => p.role === "idle").length + idleRecruits - medic);
       for (const t of trainers) add(t.id, "defense", { repeat: t.repeatable ? Math.max(1, idle) : 1 });
     }
     const salvage = m.waves.some((w) => Object.keys(w.counts).some((h) => Object.keys(c.hostiles[h]?.drops ?? {}).some((r) => r !== "res.currency" && !sells.includes(r))));

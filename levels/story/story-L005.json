@@ -1,0 +1,442 @@
+{
+ "id": "story-L005",
+ "seed": 1005,
+ "engineVersion": "0.13.0",
+ "contentVersion": "0.13.0",
+ "map": {
+  "w": 1200,
+  "h": 1620,
+  "zones": [
+   "base",
+   "sources-sw",
+   "food-se",
+   "shop-ne",
+   "landmark-s"
+  ]
+ },
+ "modules": [
+  "barrier_lines",
+  "build_pads",
+  "carry",
+  "core",
+  "defenders",
+  "defense",
+  "gather",
+  "sales",
+  "workers"
+ ],
+ "start": [
+  600,
+  720
+ ],
+ "entities": [
+  {
+   "type": "sink.core",
+   "id": "core",
+   "at": [
+    600,
+    810
+   ],
+   "params": {
+    "fuel": 15,
+    "level": 1
+   }
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    518,
+    841
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    503,
+    816
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    506,
+    872
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    531,
+    902
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    478,
+    834
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    546,
+    929
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    495,
+    906
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    612,
+    959
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    510,
+    948
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    606,
+    889
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    565,
+    955
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "at": [
+    480,
+    942
+   ]
+  },
+  {
+   "type": "barrier.line",
+   "id": "ring",
+   "res": "res.salvage",
+   "costPerSection": 1,
+   "points": [
+    [
+     435,
+     585
+    ],
+    [
+     501,
+     585
+    ],
+    [
+     567,
+     585
+    ],
+    [
+     633,
+     585
+    ],
+    [
+     699,
+     585
+    ],
+    [
+     765,
+     585
+    ],
+    [
+     765,
+     675
+    ],
+    [
+     765,
+     765
+    ],
+    [
+     765,
+     855
+    ],
+    [
+     765,
+     945
+    ],
+    [
+     765,
+     1035
+    ],
+    [
+     699,
+     1035
+    ],
+    [
+     633,
+     1035
+    ],
+    [
+     567,
+     1035
+    ],
+    [
+     501,
+     1035
+    ],
+    [
+     435,
+     1035
+    ],
+    [
+     435,
+     945
+    ],
+    [
+     435,
+     855
+    ],
+    [
+     435,
+     765
+    ],
+    [
+     435,
+     675
+    ]
+   ],
+   "closed": true,
+   "gates": [
+    17
+   ],
+   "prebuilt": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    17,
+    19
+   ]
+  },
+  {
+   "type": "node.salvage_pile",
+   "at": [
+    137,
+    543
+   ]
+  },
+  {
+   "type": "node.salvage_pile",
+   "at": [
+    963,
+    1157
+   ]
+  },
+  {
+   "type": "node.salvage_pile",
+   "at": [
+    1027,
+    490
+   ]
+  },
+  {
+   "type": "node.salvage_pile",
+   "at": [
+    1022,
+    821
+   ]
+  },
+  {
+   "type": "struct.barracks",
+   "id": "barracks",
+   "at": [
+    690,
+    810
+   ]
+  },
+  {
+   "type": "pad.hire",
+   "id": "hire_core",
+   "at": [
+    577,
+    920
+   ],
+   "cost": {
+    "res.salvage": 5
+   },
+   "role": {
+    "role": "role.supplier",
+    "from": "node.fuel_scrap",
+    "to": "sink.core"
+   },
+   "manual": true
+  },
+  {
+   "type": "pad.build",
+   "id": "tower_w1",
+   "at": [
+    375,
+    745
+   ],
+   "cost": {
+    "res.salvage": 8
+   },
+   "build": "struct.ranged_defense",
+   "site": [
+    375,
+    695
+   ]
+  },
+  {
+   "type": "pad.build",
+   "id": "tower_w2",
+   "at": [
+    375,
+    869
+   ],
+   "cost": {
+    "res.salvage": 8
+   },
+   "build": "struct.ranged_defense",
+   "site": [
+    375,
+    925
+   ]
+  },
+  {
+   "type": "pad.hire",
+   "id": "train",
+   "at": [
+    690,
+    873
+   ],
+   "cost": {
+    "res.salvage": 5
+   },
+   "role": {
+    "role": "role.defender"
+   },
+   "repeatable": true,
+   "manual": true
+  }
+ ],
+ "people": [
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  },
+  {
+   "role": "idle"
+  }
+ ],
+ "waves": [
+  {
+   "t": 15,
+   "counts": {
+    "hostile.raider_humanoid": 3
+   },
+   "side": "w",
+   "gap": 1.6
+  },
+  {
+   "t": 60,
+   "counts": {
+    "hostile.swarmling": 16,
+    "hostile.raider_humanoid": 4
+   },
+   "side": "w",
+   "gap": 0.7
+  },
+  {
+   "t": 110,
+   "counts": {
+    "hostile.swarmling": 30,
+    "hostile.raider_humanoid": 7,
+    "hostile.boss": 1
+   },
+   "side": "w",
+   "gap": 0.5,
+   "bossRetreat": 25
+  }
+ ],
+ "events": [],
+ "params": {
+  "start.currency": 8,
+  "core.burn": 2.8,
+  "housing.base": 8,
+  "lots.block": 60,
+  "lots.street": 0,
+  "meters.baseHealth": 11,
+  "pads.defenceGrowth": 1.08,
+  "level.budgetSeconds": 300
+ },
+ "goal": {
+  "type": "waves"
+ },
+ "family": "defend",
+ "objectives": [
+  {
+   "id": "main",
+   "kind": "waves",
+   "params": {}
+  },
+  {
+   "id": "challenge2",
+   "kind": "hp_floor",
+   "params": {
+    "pct": 80
+   }
+  },
+  {
+   "id": "challenge",
+   "kind": "gate_held",
+   "params": {}
+  }
+ ],
+ "fail": [
+  "meter.lifeline",
+  "meter.base_health"
+ ],
+ "guide": "always",
+ "lighting": "night",
+ "text": {
+  "mars_greenhouse": {
+   "title": "First Watch",
+   "goal": "Hold the town through the night",
+   "tips": [
+    "Lights on the ridge. Coming this way."
+   ]
+  }
+ }
+}
