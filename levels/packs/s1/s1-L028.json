@@ -1,8 +1,8 @@
 {
   "id": "s1-L028",
-  "seed": 53150105,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "seed": 79518685,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -37,123 +37,57 @@
         500
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 11,
         "level": 1
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.fuel_scrap",
       "at": [
-        321,
-        586
-      ],
-      "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
-      ],
-      "route": [
-        [
-          500,
-          645
-        ],
-        [
-          477,
-          645
-        ],
-        [
-          405,
-          645
-        ],
-        [
-          245,
-          688
-        ]
-      ]
-    },
-    {
-      "type": "node.food_source",
-      "id": "food1",
-      "at": [
-        323,
-        433
+        156,
+        503
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        174,
-        492
+        160,
+        533
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        178,
-        530
+        221,
+        421
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        163,
-        464
+        157,
+        467
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        177,
-        433
+        159,
+        436
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        151,
-        512
+        164,
+        406
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        128,
-        493
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        137,
-        444
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        149,
-        542
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        114,
-        539
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        183,
-        404
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        138,
-        404
+        191,
+        420
       ]
     },
     {
@@ -163,58 +97,41 @@
       "costPerSection": 1,
       "points": [
         [
-          60,
-          300
+          105,
+          350
         ],
         [
-          180,
-          300
+          240,
+          350
         ],
         [
-          300,
-          300
+          375,
+          350
         ],
         [
-          420,
-          300
+          375,
+          500
         ],
         [
-          420,
-          433
+          375,
+          650
         ],
         [
-          420,
-          567
+          240,
+          650
         ],
         [
-          420,
-          700
+          105,
+          650
         ],
         [
-          300,
-          700
-        ],
-        [
-          180,
-          700
-        ],
-        [
-          60,
-          700
-        ],
-        [
-          60,
-          567
-        ],
-        [
-          60,
-          433
+          105,
+          500
         ]
       ],
       "closed": true,
       "gates": [
-        1,
-        5
+        1
       ],
       "prebuilt": [
         0,
@@ -224,52 +141,48 @@
         4,
         5,
         6,
-        7,
-        8,
-        9,
-        10,
-        11
+        7
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        71,
-        189
+        146,
+        56
       ],
-      "freeze": 124
+      "freeze": 136
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        88,
-        71
+        405,
+        206
       ],
-      "freeze": 155
+      "freeze": 140
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        241,
-        85
+        444,
+        455
       ],
-      "freeze": 168
+      "freeze": 142
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        345,
-        231
+        64,
+        213
       ],
-      "freeze": 170
+      "freeze": 176
     },
     {
       "type": "zone.prey",
       "id": "prey",
       "rect": [
-        440,
-        330,
-        60,
+        395,
+        380,
+        65,
         150
       ],
       "animal": "node.prey",
@@ -279,9 +192,9 @@
       "type": "zone.prey",
       "id": "prey_danger",
       "rect": [
-        440,
-        330,
-        60,
+        395,
+        380,
+        65,
         150
       ],
       "animal": "node.prey_dangerous",
@@ -292,40 +205,39 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
-    "core.burn": 2.5,
+    "start.currency": 3,
+    "core.burn": 2.4,
     "housing.base": 6,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 2.9,
-    "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "level.budgetSeconds": 350
+    "level.budgetSeconds": 340
   },
   "goal": {
-    "type": "protein",
-    "n": 34
+    "type": "hunt",
+    "n": 31
   },
   "family": "rescue",
   "objectives": [
     {
       "id": "main",
-      "kind": "protein",
+      "kind": "hunt",
       "params": {
-        "n": 34
+        "n": 31
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 220
+        "seconds": 330
       }
     },
     {
       "id": "challenge",
-      "kind": "rescue_all",
-      "params": {}
+      "kind": "tow_trip",
+      "params": {
+        "n": 2
+      }
     }
   ],
   "fail": [
@@ -333,17 +245,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Stasis Pods and Protein Run",
-      "goal": "protein",
+      "title": "Stasis Pods and The Hunt",
+      "goal": "hunt",
       "tips": [
         "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.736,
-    "fun": 0.753,
-    "botMargin": 0.622,
+    "difficulty": 0.704,
+    "fun": 0.714,
+    "botMargin": 0.519,
     "botsPassed": [
       "good",
       "average",
@@ -354,8 +266,8 @@
       "good": 3,
       "median": 3,
       "goodAll": 1,
-      "human": 3,
-      "humanAll": 1
+      "human": 2.5,
+      "humanAll": 0.83
     }
   }
 }

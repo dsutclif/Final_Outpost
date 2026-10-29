@@ -1,8 +1,8 @@
 {
   "id": "s1-L007",
   "seed": 785681512,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -20,7 +20,6 @@
     "carry",
     "core",
     "gather",
-    "hunting",
     "lasso",
     "sales"
   ],
@@ -37,88 +36,64 @@
         560
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 9,
         "level": 1
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
+      "type": "node.fuel_scrap",
       "at": [
-        323,
-        630
-      ],
-      "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
-      ],
-      "route": [
-        [
-          500,
-          705
-        ],
-        [
-          477,
-          705
-        ],
-        [
-          405,
-          705
-        ],
-        [
-          247,
-          732
-        ]
-      ]
-    },
-    {
-      "type": "node.food_source",
-      "id": "food1",
-      "at": [
-        160,
-        535
+        165,
+        546
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        220,
-        440
+        239,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        179,
-        442
+        162,
+        505
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        258,
-        442
+        205,
+        476
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        146,
-        436
+        173,
+        450
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        122,
-        418
+        228,
+        452
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        197,
-        415
+        142,
+        448
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        141,
+        526
       ]
     },
     {
@@ -128,58 +103,41 @@
       "costPerSection": 1,
       "points": [
         [
-          60,
-          360
+          105,
+          410
         ],
         [
-          180,
-          360
+          240,
+          410
         ],
         [
-          300,
-          360
+          375,
+          410
         ],
         [
-          420,
-          360
+          375,
+          560
         ],
         [
-          420,
-          493
+          375,
+          710
         ],
         [
-          420,
-          627
+          240,
+          710
         ],
         [
-          420,
-          760
+          105,
+          710
         ],
         [
-          300,
-          760
-        ],
-        [
-          180,
-          760
-        ],
-        [
-          60,
-          760
-        ],
-        [
-          60,
-          627
-        ],
-        [
-          60,
-          493
+          105,
+          560
         ]
       ],
       "closed": true,
       "gates": [
-        1,
-        5
+        1
       ],
       "prebuilt": [
         0,
@@ -189,115 +147,94 @@
         4,
         5,
         6,
-        7,
-        8,
-        9,
-        10,
-        11
+        7
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        200,
-        94
+        141,
+        167
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        122,
-        150
+        41,
+        220
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        238,
-        190
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        356,
-        267
+        427,
+        212
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        425,
-        46
+        261,
+        87
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        422,
-        177
+        410,
+        63
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        325,
-        97
+        315,
+        202
       ]
     },
     {
-      "type": "zone.prey",
-      "id": "prey",
-      "rect": [
-        440,
-        390,
-        60,
-        150
-      ],
-      "animal": "node.prey",
-      "n": 3
+      "type": "capture.supply_crate",
+      "at": [
+        216,
+        295
+      ]
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.6,
-    "housing.base": 6,
+    "start.currency": 1,
+    "core.burn": 2.2,
+    "housing.base": 5,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 2.8,
-    "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "level.budgetSeconds": 430
+    "level.budgetSeconds": 80
   },
   "goal": {
-    "type": "protein",
-    "n": 31
+    "type": "crates",
+    "n": 4
   },
   "family": "rescue",
   "objectives": [
     {
       "id": "main",
-      "kind": "protein",
+      "kind": "crates",
       "params": {
-        "n": 31
+        "n": 4
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 237
+        "seconds": 55
       }
     },
     {
       "id": "challenge",
-      "kind": "tow_trip",
-      "params": {
-        "n": 3
-      }
+      "kind": "rescue_all",
+      "params": {}
     }
   ],
   "fail": [
@@ -305,17 +242,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hunters' Moon",
-      "goal": "protein",
+      "title": "Tow Lines and Cargo",
+      "goal": "crates",
       "tips": [
-        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
+        "Feed ore to the reactor. If it runs dry, the colony starts to freeze."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.16,
-    "fun": 0.745,
-    "botMargin": 0.677,
+    "difficulty": 0.098,
+    "fun": 0.633,
+    "botMargin": 0.584,
     "botsPassed": [
       "good",
       "average",

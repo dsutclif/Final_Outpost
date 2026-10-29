@@ -1,101 +1,8 @@
 {
   "id": "s1",
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "levels": [
-    {
-      "id": "s1-L001",
-      "file": "s1-L001.json",
-      "title": "First Light",
-      "family": "shelter",
-      "modules": [
-        "carry",
-        "core",
-        "gather",
-        "sales"
-      ],
-      "goal": "heat_hold",
-      "rating": 0.034,
-      "fun": 0.137,
-      "target": 0.11
-    },
-    {
-      "id": "s1-L002",
-      "file": "s1-L002.json",
-      "title": "Pods in the Dust",
-      "family": "rescue",
-      "modules": [
-        "barrier_lines",
-        "build_pads",
-        "carry",
-        "core",
-        "gather",
-        "lasso",
-        "sales"
-      ],
-      "goal": "rescue",
-      "rating": 0.079,
-      "fun": 0.23,
-      "target": 0.122
-    },
-    {
-      "id": "s1-L003",
-      "file": "s1-L003.json",
-      "title": "Green Shoots",
-      "family": "harvest",
-      "modules": [
-        "build_pads",
-        "carry",
-        "core",
-        "gather",
-        "sales",
-        "workers"
-      ],
-      "goal": "earn",
-      "rating": 0.132,
-      "fun": 0.897,
-      "target": 0.134
-    },
-    {
-      "id": "s1-L004",
-      "file": "s1-L004.json",
-      "title": "The Smelter",
-      "family": "industrialize",
-      "modules": [
-        "build_pads",
-        "carry",
-        "converters",
-        "core",
-        "gather",
-        "sales",
-        "workers"
-      ],
-      "goal": "produce",
-      "rating": 0.991,
-      "fun": 0.709,
-      "target": 0.146
-    },
-    {
-      "id": "s1-L005",
-      "file": "s1-L005.json",
-      "title": "First Raid",
-      "family": "defend",
-      "modules": [
-        "barrier_lines",
-        "build_pads",
-        "carry",
-        "core",
-        "defenders",
-        "defense",
-        "gather",
-        "sales",
-        "workers"
-      ],
-      "goal": "waves",
-      "rating": 0.118,
-      "fun": 0.282,
-      "target": 0.158
-    },
     {
       "id": "s1-L006",
       "file": "s1-L006.json",
@@ -110,14 +17,14 @@
         "sales"
       ],
       "goal": "house_all",
-      "rating": 0.194,
-      "fun": 0.77,
+      "rating": 0.21,
+      "fun": 0.786,
       "target": 0.171
     },
     {
       "id": "s1-L007",
       "file": "s1-L007.json",
-      "title": "Hunters' Moon",
+      "title": "Tow Lines and Cargo",
       "family": "rescue",
       "modules": [
         "barrier_lines",
@@ -125,13 +32,12 @@
         "carry",
         "core",
         "gather",
-        "hunting",
         "lasso",
         "sales"
       ],
-      "goal": "protein",
-      "rating": 0.16,
-      "fun": 0.745,
+      "goal": "crates",
+      "rating": 0.098,
+      "fun": 0.633,
       "target": 0.183
     },
     {
@@ -146,12 +52,11 @@
         "customer_variety",
         "gather",
         "sales",
-        "source_gating",
         "workers"
       ],
       "goal": "serve_premium",
-      "rating": 0.158,
-      "fun": 0.792,
+      "rating": 0.123,
+      "fun": 0.901,
       "target": 0.195
     },
     {
@@ -169,8 +74,8 @@
         "workers"
       ],
       "goal": "converter_level",
-      "rating": 0.19,
-      "fun": 0.903,
+      "rating": 0.167,
+      "fun": 0.916,
       "target": 0.207
     },
     {
@@ -191,8 +96,8 @@
         "workers"
       ],
       "goal": "turret_level",
-      "rating": 0.249,
-      "fun": 0.45,
+      "rating": 0.248,
+      "fun": 0.454,
       "target": 0.219
     },
     {
@@ -201,18 +106,16 @@
       "title": "Rising Flares",
       "family": "shelter",
       "modules": [
-        "blocked_zones",
         "build_pads",
         "carry",
         "core",
         "core_levels",
         "gather",
-        "hazard_events",
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.142,
-      "fun": 0.581,
+      "rating": 0.185,
+      "fun": 0.869,
       "target": 0.231
     },
     {
@@ -232,8 +135,8 @@
         "sales"
       ],
       "goal": "rescue_before_freeze",
-      "rating": 0.318,
-      "fun": 0.768,
+      "rating": 0.394,
+      "fun": 0.805,
       "target": 0.243
     },
     {
@@ -250,8 +153,8 @@
         "workers"
       ],
       "goal": "bulk_order",
-      "rating": 0.335,
-      "fun": 0.886,
+      "rating": 0.269,
+      "fun": 0.899,
       "target": 0.255
     },
     {
@@ -271,14 +174,14 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.229,
-      "fun": 0.774,
+      "rating": 0.246,
+      "fun": 0.846,
       "target": 0.267
     },
     {
       "id": "s1-L015",
       "file": "s1-L015.json",
-      "title": "The Titan",
+      "title": "Wreckage and Hardpoints",
       "family": "defend",
       "modules": [
         "barrier_lines",
@@ -292,9 +195,9 @@
         "salvage_upgrades",
         "workers"
       ],
-      "goal": "boss",
-      "rating": 0.309,
-      "fun": 0.253,
+      "goal": "turret_level",
+      "rating": 0.275,
+      "fun": 0.234,
       "target": 0.279
     },
     {
@@ -309,18 +212,19 @@
         "core",
         "core_levels",
         "gather",
+        "hazard_events",
         "housing",
         "sales"
       ],
       "goal": "clear_zones",
-      "rating": 0.249,
-      "fun": 0.82,
+      "rating": 0.332,
+      "fun": 0.6,
       "target": 0.332
     },
     {
       "id": "s1-L017",
       "file": "s1-L017.json",
-      "title": "Drift Cables and The Hunt",
+      "title": "Drift Cables and Protein Run",
       "family": "rescue",
       "modules": [
         "barrier_lines",
@@ -332,9 +236,9 @@
         "lasso",
         "sales"
       ],
-      "goal": "hunt",
-      "rating": 0.347,
-      "fun": 0.563,
+      "goal": "protein",
+      "rating": 0.256,
+      "fun": 0.807,
       "target": 0.344
     },
     {
@@ -346,14 +250,14 @@
         "build_pads",
         "carry",
         "core",
+        "customer_variety",
         "gather",
         "sales",
-        "source_gating",
         "workers"
       ],
       "goal": "currency",
-      "rating": 0.364,
-      "fun": 0.886,
+      "rating": 0.322,
+      "fun": 0.902,
       "target": 0.356
     },
     {
@@ -372,30 +276,29 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.36,
+      "rating": 0.332,
       "fun": 0.949,
       "target": 0.368
     },
     {
       "id": "s1-L020",
       "file": "s1-L020.json",
-      "title": "Storms and Power Up",
+      "title": "Hab Pods and Building Spree",
       "family": "shelter",
       "secondary": "harvest",
       "modules": [
-        "blocked_zones",
         "build_pads",
         "carry",
         "core",
         "core_levels",
         "gather",
-        "hazard_events",
+        "housing",
         "sales",
         "workers"
       ],
-      "goal": "core_level",
-      "rating": 0.41,
-      "fun": 0.873,
+      "goal": "build_count",
+      "rating": 0.428,
+      "fun": 0.775,
       "target": 0.38
     },
     {
@@ -416,26 +319,28 @@
         "workers"
       ],
       "goal": "waves_survived",
-      "rating": 0.413,
-      "fun": 0.043,
+      "rating": 0.382,
+      "fun": 0.102,
       "target": 0.4
     },
     {
       "id": "s1-L022",
       "file": "s1-L022.json",
-      "title": "Sleepers and Colonists",
+      "title": "Flares and Power Up",
       "family": "shelter",
       "modules": [
+        "blocked_zones",
         "build_pads",
         "carry",
         "core",
+        "core_levels",
         "gather",
-        "housing",
+        "hazard_events",
         "sales"
       ],
-      "goal": "population",
-      "rating": 0.355,
-      "fun": 0.868,
+      "goal": "core_level",
+      "rating": 0.483,
+      "fun": 0.66,
       "target": 0.45
     },
     {
@@ -455,8 +360,8 @@
         "sales"
       ],
       "goal": "rescue_all",
-      "rating": 0.862,
-      "fun": 0.852,
+      "rating": 0.723,
+      "fun": 0.839,
       "target": 0.494
     },
     {
@@ -475,8 +380,8 @@
         "workers"
       ],
       "goal": "earn_within",
-      "rating": 0.579,
-      "fun": 0.766,
+      "rating": 0.551,
+      "fun": 0.795,
       "target": 0.538
     },
     {
@@ -496,14 +401,14 @@
         "workers"
       ],
       "goal": "automate",
-      "rating": 0.453,
-      "fun": 0.828,
+      "rating": 0.67,
+      "fun": 0.853,
       "target": 0.581
     },
     {
       "id": "s1-L026",
       "file": "s1-L026.json",
-      "title": "Wreckage and Hiring Drive",
+      "title": "Wreckage and Endurance",
       "family": "defend",
       "modules": [
         "barrier_lines",
@@ -517,34 +422,33 @@
         "salvage_upgrades",
         "workers"
       ],
-      "goal": "hire",
-      "rating": 0.195,
-      "fun": 0.253,
+      "goal": "survive",
+      "rating": 0.657,
+      "fun": 0.091,
       "target": 0.625
     },
     {
       "id": "s1-L027",
       "file": "s1-L027.json",
-      "title": "Reactors and Sweep",
+      "title": "Hab Pods and Admissions",
       "family": "shelter",
       "modules": [
-        "blocked_zones",
         "build_pads",
         "carry",
         "core",
-        "core_levels",
         "gather",
+        "housing",
         "sales"
       ],
-      "goal": "clear_zones",
-      "rating": 0.801,
-      "fun": 0.904,
+      "goal": "admit",
+      "rating": 0.216,
+      "fun": 0.868,
       "target": 0.669
     },
     {
       "id": "s1-L028",
       "file": "s1-L028.json",
-      "title": "Stasis Pods and Protein Run",
+      "title": "Stasis Pods and The Hunt",
       "family": "rescue",
       "modules": [
         "barrier_lines",
@@ -556,29 +460,10 @@
         "lasso",
         "sales"
       ],
-      "goal": "protein",
-      "rating": 0.736,
-      "fun": 0.753,
+      "goal": "hunt",
+      "rating": 0.704,
+      "fun": 0.714,
       "target": 0.713
-    },
-    {
-      "id": "s1-L029",
-      "file": "s1-L029.json",
-      "title": "Sealed Veins and Sold Out",
-      "family": "harvest",
-      "modules": [
-        "build_pads",
-        "carry",
-        "core",
-        "gather",
-        "sales",
-        "source_gating",
-        "workers"
-      ],
-      "goal": "sell",
-      "rating": 0.998,
-      "fun": 0.902,
-      "target": 0.756
     },
     {
       "id": "s1-L030",
@@ -599,8 +484,8 @@
         "workers"
       ],
       "goal": "rescue",
-      "rating": 0.701,
-      "fun": 0.889,
+      "rating": 0.961,
+      "fun": 0.761,
       "target": 0.8
     },
     {
@@ -618,14 +503,14 @@
         "workers"
       ],
       "goal": "converters_running",
-      "rating": 0.068,
-      "fun": 0.941,
+      "rating": 0.087,
+      "fun": 0.967,
       "target": 0.4
     },
     {
       "id": "s1-L032",
       "file": "s1-L032.json",
-      "title": "Scrap and Make It Through",
+      "title": "Scrap and Titan Night",
       "family": "defend",
       "modules": [
         "barrier_lines",
@@ -639,15 +524,15 @@
         "salvage_upgrades",
         "workers"
       ],
-      "goal": "survive",
-      "rating": 0.572,
-      "fun": 0.049,
+      "goal": "boss",
+      "rating": 0.45,
+      "fun": 0.109,
       "target": 0.45
     },
     {
       "id": "s1-L033",
       "file": "s1-L033.json",
-      "title": "Domes and Open Gates",
+      "title": "Domes and New Arrivals",
       "family": "shelter",
       "modules": [
         "build_pads",
@@ -657,15 +542,15 @@
         "housing",
         "sales"
       ],
-      "goal": "admit",
-      "rating": 0.033,
-      "fun": 0.783,
+      "goal": "population",
+      "rating": 0.557,
+      "fun": 0.859,
       "target": 0.494
     },
     {
       "id": "s1-L034",
       "file": "s1-L034.json",
-      "title": "Drift Cables and Game Trails",
+      "title": "Drift Cables and Hunters' Larder",
       "family": "rescue",
       "modules": [
         "barrier_lines",
@@ -677,9 +562,9 @@
         "lasso",
         "sales"
       ],
-      "goal": "hunt",
-      "rating": 0.47,
-      "fun": 0.868,
+      "goal": "protein",
+      "rating": 0.748,
+      "fun": 0.827,
       "target": 0.538
     },
     {
@@ -698,8 +583,8 @@
         "workers"
       ],
       "goal": "streak",
-      "rating": 0.612,
-      "fun": 0.817,
+      "rating": 0.6,
+      "fun": 0.724,
       "target": 0.581
     },
     {
@@ -718,8 +603,8 @@
         "workers"
       ],
       "goal": "haul",
-      "rating": 0.618,
-      "fun": 0.766,
+      "rating": 0.387,
+      "fun": 0.79,
       "target": 0.625
     },
     {
@@ -740,14 +625,14 @@
         "workers"
       ],
       "goal": "waves",
-      "rating": 0.285,
-      "fun": 0.409,
+      "rating": 0.268,
+      "fun": 0.454,
       "target": 0.669
     },
     {
       "id": "s1-L038",
       "file": "s1-L038.json",
-      "title": "Storms and Brighter Cores",
+      "title": "Storms and Sweep",
       "family": "shelter",
       "modules": [
         "blocked_zones",
@@ -759,9 +644,9 @@
         "hazard_events",
         "sales"
       ],
-      "goal": "core_level",
-      "rating": 0.756,
-      "fun": 0.745,
+      "goal": "clear_zones",
+      "rating": 0.745,
+      "fun": 0.736,
       "target": 0.713
     },
     {
@@ -781,14 +666,14 @@
         "sales"
       ],
       "goal": "rescue_before_freeze",
-      "rating": 0.773,
-      "fun": 0.834,
+      "rating": 0.801,
+      "fun": 0.793,
       "target": 0.756
     },
     {
       "id": "s1-L040",
       "file": "s1-L040.json",
-      "title": "Vaults and Open Sesame",
+      "title": "Vaults and Market Day",
       "family": "harvest",
       "secondary": "industrialize",
       "modules": [
@@ -802,9 +687,9 @@
         "source_gating",
         "workers"
       ],
-      "goal": "unlock",
-      "rating": 0.851,
-      "fun": 0.626,
+      "goal": "sell",
+      "rating": 0.999,
+      "fun": 0.933,
       "target": 0.8
     },
     {
@@ -823,8 +708,8 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.404,
-      "fun": 0.9,
+      "rating": 0.336,
+      "fun": 0.872,
       "target": 0.4
     },
     {
@@ -843,14 +728,14 @@
         "workers"
       ],
       "goal": "build",
-      "rating": 0.408,
-      "fun": 0.908,
+      "rating": 0.401,
+      "fun": 0.935,
       "target": 0.45
     },
     {
       "id": "s1-L043",
       "file": "s1-L043.json",
-      "title": "Wreckage and Titan Night",
+      "title": "Wreckage and New Hands",
       "family": "defend",
       "modules": [
         "barrier_lines",
@@ -864,9 +749,9 @@
         "salvage_upgrades",
         "workers"
       ],
-      "goal": "boss",
-      "rating": 0.493,
-      "fun": 0.304,
+      "goal": "hire",
+      "rating": 0.497,
+      "fun": 0.149,
       "target": 0.494
     },
     {
@@ -883,14 +768,14 @@
         "sales"
       ],
       "goal": "survive",
-      "rating": 0.023,
-      "fun": 0.704,
+      "rating": 0.024,
+      "fun": 0.735,
       "target": 0.538
     },
     {
       "id": "s1-L045",
       "file": "s1-L045.json",
-      "title": "Tow Lines and Hunters' Larder",
+      "title": "Tow Lines and Game Trails",
       "family": "rescue",
       "modules": [
         "barrier_lines",
@@ -902,54 +787,33 @@
         "lasso",
         "sales"
       ],
-      "goal": "protein",
-      "rating": 0.785,
-      "fun": 0.831,
+      "goal": "hunt",
+      "rating": 0.616,
+      "fun": 0.432,
       "target": 0.581
     },
     {
       "id": "s1-L046",
       "file": "s1-L046.json",
-      "title": "Hoppers and Full Shelves",
+      "title": "Blueprints and Earnings",
       "family": "harvest",
       "modules": [
         "build_pads",
         "carry",
         "core",
         "gather",
-        "hunting",
-        "sales"
-      ],
-      "goal": "shelves_full",
-      "rating": 0.601,
-      "fun": 0.753,
-      "target": 0.625
-    },
-    {
-      "id": "s1-L047",
-      "file": "s1-L047.json",
-      "title": "Conveyors and Supply Lines",
-      "family": "industrialize",
-      "modules": [
-        "build_pads",
-        "carry",
-        "converters",
-        "conveyors",
-        "core",
-        "gather",
         "sales",
-        "supply_routing",
         "workers"
       ],
-      "goal": "chain",
-      "rating": 0.654,
-      "fun": 0.892,
-      "target": 0.669
+      "goal": "earn",
+      "rating": 0.637,
+      "fun": 0.912,
+      "target": 0.625
     },
     {
       "id": "s1-L048",
       "file": "s1-L048.json",
-      "title": "Rust and Survivors",
+      "title": "Rust and Hardpoints",
       "family": "defend",
       "modules": [
         "barrier_lines",
@@ -963,15 +827,15 @@
         "salvage_upgrades",
         "workers"
       ],
-      "goal": "waves_survived",
-      "rating": 0.835,
-      "fun": 0.123,
+      "goal": "turret_level",
+      "rating": 0.824,
+      "fun": 0.289,
       "target": 0.713
     },
     {
       "id": "s1-L049",
       "file": "s1-L049.json",
-      "title": "Flares and Sweep",
+      "title": "Flares and Brighter Cores",
       "family": "shelter",
       "modules": [
         "blocked_zones",
@@ -983,9 +847,9 @@
         "hazard_events",
         "sales"
       ],
-      "goal": "clear_zones",
-      "rating": 0.78,
-      "fun": 0.524,
+      "goal": "core_level",
+      "rating": 0.732,
+      "fun": 0.531,
       "target": 0.756
     },
     {
@@ -1006,8 +870,8 @@
         "workers"
       ],
       "goal": "produce",
-      "rating": 0.907,
-      "fun": 0.933,
+      "rating": 0.46,
+      "fun": 0.802,
       "target": 0.8
     }
   ]

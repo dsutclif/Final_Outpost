@@ -13,7 +13,9 @@ export type Pt = readonly [number, number];
 export type Box = readonly [number, number, number, number];
 export interface Station { id: string; x: number; y: number; r: number; key: boolean; on?: string | undefined; tight?: boolean | undefined; fp?: Box | undefined; solid?: boolean | undefined;
   /** First footprint key (the entity type for a building), for tools that draw the layout. */
-  kind?: string | undefined }
+  kind?: string | undefined;
+  /** Plot layout: the drawn model alone (no hidden ground behind it), which packed gatherables must clear. */
+  body?: Box | undefined }
 /** A spot the player stands on to act (register, pile, operator): no station radius may cover it. */
 export interface Spot { id: string; x: number; y: number; r: number }
 
@@ -68,6 +70,8 @@ export class Placer {
   lots: { block: number; street: number } | null = null;
   /** Plot layout: footprints keep off standing spots, not just station centres (off for packs). */
   boxSpots = false;
+  /** Plot layout: model boxes without their hidden ground, by footprint key; a packed gatherable only has to clear these. */
+  bodies: Readonly<Record<string, Box>> | null = null;
   /** The last place() call that found no valid spot: what it was and where it searched (the layout sandbox draws it). */
   lastMiss: { id: string; r: number; regions: readonly Rect[]; fp: Box | undefined } | null = null;
   constructor(readonly rand: Rand, readonly margin: number, readonly standR: number,
@@ -131,8 +135,8 @@ export class Placer {
       if (dist(p, [s.x, s.y]) < Math.max(r, s.r) + m) return false;
       // drawn models never overlap (packed forest nodes excepted)
       if (fb && s.fp && !(opts.tight && s.tight)) {
-        const g = this.footprintGap;
-        if (fb[0] < s.fp[2] + g && s.fp[0] < fb[2] + g && fb[1] < s.fp[3] + g && s.fp[1] < fb[3] + g) return false;
+        const g = this.footprintGap, o = (opts.tight && s.body) || s.fp;
+        if (fb[0] < o[2] + g && o[0] < fb[2] + g && fb[1] < o[3] + g && o[1] < fb[3] + g) return false;
       }
     }
     for (const sp of this.spots) if (dist(p, [sp.x, sp.y]) < r + sp.r) return false;
@@ -211,8 +215,10 @@ export class Placer {
   add(id: string, p: Pt, r: number, opts: PlaceOpts = {}): void {
     // a footprint with anything beyond a flat pad stands up off the ground (traders walk around it)
     const solid = (opts.fp === undefined ? [] : typeof opts.fp === "string" ? [opts.fp] : opts.fp).some((k) => !k.startsWith("pad"));
-    this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight, fp: this.box(p, opts.fp), solid,
-      kind: typeof opts.fp === "string" ? opts.fp : opts.fp?.[0] });
+    const kind = typeof opts.fp === "string" ? opts.fp : opts.fp?.find((k) => this.bodies?.[k]) ?? opts.fp?.[0];
+    const bb = kind ? this.bodies?.[kind] : undefined;
+    this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight, fp: this.box(p, opts.fp), solid, kind,
+      body: bb && [p[0] + bb[0], p[1] + bb[1], p[0] + bb[2], p[1] + bb[3]] });
     for (const o of opts.slots ?? []) {
       const q: Pt = [p[0] + o.dx, p[1] + o.dy];
       this.stations.push({ id: `${id}:${o.id}`, x: q[0], y: q[1], r: o.r, key: true, fp: this.box(q, o.fp) });

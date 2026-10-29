@@ -54,6 +54,8 @@ export const GEN = genData as unknown as {
    * share its one staff slot, chained in hire order. Footprints are set alongside it by the same tool.
    */
   plots?: Record<string, { slots: { id: string; dx: number; dy: number }[] }> | null;
+  /** Plot layout: each plotted building's model box without the ground it hides (gatherables may lie there). */
+  plotBodies?: Record<string, [number, number, number, number]> | null;
   /** Share of the way from the template's kiosk spot toward the core where the kiosk search centres. */
   shopPull: number;
   /** Most fuel nodes in the main forest on industrialize levels (their machines need the room). */
@@ -116,6 +118,7 @@ export const GEN_CASHIER_BASE = structuredClone(GEN.cashierPads);
  */
 export function applyPlotLayout(g: PlotFile["generator"] | null): void {
   GEN.plots = g ? g.plots : null;
+  GEN.plotBodies = g?.bodies ?? null;
   GEN.cashierPads = structuredClone(g ? g.cashierPads : GEN_CASHIER_BASE);
   if (g) for (const [k, b] of Object.entries(g.footprints)) GEN.footprints[k] = [...b];
 }
@@ -323,6 +326,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   // Plot layout (GEN.plots, set only by the layout sandbox): a building's pad slots come with its placement
   const plotOn = !!GEN.plots;
   P.boxSpots = plotOn;
+  P.bodies = plotOn ? GEN.plotBodies ?? null : null;
   const plotSlots = (type: string) => (GEN.plots?.[type]?.slots ?? []).map((o) => ({ id: o.id, dx: o.dx, dy: o.dy, r: R.pad, fp: "pad" }));
   const plotOpts = (type: string) => (plotOn && GEN.plots?.[type] ? { slots: plotSlots(type), mirror: true } : {});
   const slotAt = (owner: string, slot: string): Pt => {

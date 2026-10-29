@@ -1,6 +1,7 @@
 {
   "notes": [
-    "Every model is now smooth and far more detailed: buildings, characters, walls, items and scenery.",
-    "Walls and rockslides are lit properly again (they showed as black shapes)."
+    "Five new story missions open the game, and every mission after them has been rebuilt: please pick your starting point when asked.",
+    "Buildings are sized to match each other, and each one keeps its hire and upgrade pads right in front of it; a machine's workers are hired one after another on a single pad.",
+    "Soldiers trained at an upgraded guard post are full size."
   ]
 }

@@ -22,7 +22,7 @@ import plot from "../data/plot.json";
 export * from "./schema.js";
 export * from "./manifest.js";
 
-export const CONTENT_VERSION = "0.13.0";
+export const CONTENT_VERSION = "0.14.0";
 
 const raw = {
   version: CONTENT_VERSION,
@@ -48,7 +48,7 @@ const raw = {
 /** Plot layout data (data/plot.json, written by pnpm plots:build): the generator's slots and footprints, the renderer's pad sizes. */
 export interface PlotFile {
   content: Record<"converters" | "structures" | "sinks" | "defaults", Record<string, unknown>>;
-  generator: { footprints: Record<string, [number, number, number, number]>; plots: Record<string, { slots: { id: string; dx: number; dy: number }[] }>; cashierPads: [number, number][] };
+  generator: { footprints: Record<string, [number, number, number, number]>; bodies?: Record<string, [number, number, number, number]>; plots: Record<string, { slots: { id: string; dx: number; dy: number }[] }>; cashierPads: [number, number][] };
   render: { pad: number; plate: number };
 }
 const plotFile = plot as unknown as Partial<PlotFile>;

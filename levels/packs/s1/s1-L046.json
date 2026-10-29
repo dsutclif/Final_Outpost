@@ -1,8 +1,8 @@
 {
   "id": "s1-L046",
-  "seed": 1335281702,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "seed": 973226322,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -19,8 +19,8 @@
     "carry",
     "core",
     "gather",
-    "hunting",
-    "sales"
+    "sales",
+    "workers"
   ],
   "start": [
     240,
@@ -43,25 +43,24 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        307,
-        622
+        300,
+        646
       ],
       "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
+        "res.food_raw_1"
       ],
       "route": [
         [
-          231,
-          920
+          -20,
+          645
         ],
         [
-          231,
-          897
+          3,
+          645
         ],
         [
-          231,
-          724
+          239,
+          646
         ]
       ]
     },
@@ -69,135 +68,158 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        341,
-        470
+        344,
+        465
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        169,
-        479
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        154,
+        156,
         509
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        171,
-        439
+        156,
+        456
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        137,
-        477
+        133,
+        481
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        117,
-        513
+        127,
+        448
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        172,
-        535
+        158,
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        141,
-        441
+        112,
+        504
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        108,
-        467
+        138,
+        532
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        101,
+        469
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        165,
-        390
+        113,
+        411
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        121,
-        395
+        84,
+        532
       ]
     },
     {
-      "type": "zone.prey",
-      "id": "prey",
-      "rect": [
-        20,
-        600,
-        140,
-        120
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        344,
+        526
       ],
-      "animal": "node.prey",
-      "n": 1
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      },
+      "manual": true
     },
     {
-      "type": "zone.prey",
-      "id": "prey_danger",
-      "rect": [
-        20,
-        600,
-        140,
-        120
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        300,
+        745
       ],
-      "animal": "node.prey_dangerous",
-      "n": 2
+      "cost": {
+        "res.currency": 22
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      },
+      "manual": true
     }
   ],
-  "people": [],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
-    "core.burn": 2.3,
-    "housing.base": 2,
+    "start.currency": 1,
+    "core.burn": 2.1,
+    "housing.base": 5,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3.2,
+    "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "customers.bulkShare": 0.16,
-    "level.budgetSeconds": 80
+    "level.budgetSeconds": 350
   },
   "goal": {
-    "type": "shelves_full"
+    "type": "earn",
+    "n": 372
   },
   "family": "harvest",
   "objectives": [
     {
       "id": "main",
-      "kind": "shelves_full",
-      "params": {}
+      "kind": "earn",
+      "params": {
+        "n": 372
+      }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 52
+        "seconds": 284
       }
     },
     {
@@ -211,17 +233,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hoppers and Full Shelves",
-      "goal": "shelves_full",
+      "title": "Blueprints and Earnings",
+      "goal": "earn",
       "tips": [
-        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
+        "Stand on a Hire pad to put a free colonist to work. They gather and deliver on their own."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.601,
-    "fun": 0.753,
-    "botMargin": 0.601,
+    "difficulty": 0.637,
+    "fun": 0.912,
+    "botMargin": 0.416,
     "botsPassed": [
       "good",
       "average",
@@ -230,10 +252,10 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.33,
+      "median": 2.67,
       "goodAll": 1,
-      "human": 2.67,
-      "humanAll": 0.67
+      "human": 3,
+      "humanAll": 1
     }
   }
 }

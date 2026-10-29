@@ -1,8 +1,8 @@
 {
   "id": "s1-L027",
-  "seed": 561101499,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "seed": 144597288,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -15,12 +15,11 @@
     ]
   },
   "modules": [
-    "blocked_zones",
     "build_pads",
     "carry",
     "core",
-    "core_levels",
     "gather",
+    "housing",
     "sales"
   ],
   "start": [
@@ -36,7 +35,7 @@
         560
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -44,24 +43,24 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        292,
-        694
+        295,
+        712
       ],
       "sells": [
         "res.food_raw_1"
       ],
       "route": [
         [
-          219,
+          237,
           920
         ],
         [
-          219,
+          237,
           897
         ],
         [
-          216,
-          796
+          234,
+          712
         ]
       ]
     },
@@ -69,233 +68,132 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        327,
-        449
+        339,
+        454
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        178,
-        510
+        152,
+        502
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        148,
-        520
+        160,
+        456
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        172,
+        134,
+        478
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        109,
+        501
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        212,
+        418
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        175,
+        417
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        137,
+        435
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        96,
         470
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
-        203,
-        446
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        118,
-        500
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        145,
-        486
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        150,
-        444
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        232,
-        437
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        210,
-        409
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        179,
-        420
+        212,
+        379
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        113,
-        461
+        142,
+        395
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "struct.gate",
+      "id": "gate",
       "at": [
-        158,
-        385
-      ]
-    },
-    {
-      "type": "zone.blocked",
-      "id": "rubble0",
-      "rect": [
-        286,
-        318,
-        120,
-        70
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        311,
-        353
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        346,
-        353
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        381,
-        353
-      ]
-    },
-    {
-      "type": "zone.blocked",
-      "id": "rubble1",
-      "rect": [
-        340,
-        539,
-        120,
-        70
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        365,
-        574
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        400,
-        574
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        435,
-        574
-      ]
-    },
-    {
-      "type": "pad.build",
-      "id": "core_level0",
-      "at": [
-        156,
-        581
+        240,
+        860
       ],
-      "cost": {
-        "res.currency": 29
-      },
-      "build": "sink.core.level"
-    },
-    {
-      "type": "pad.build",
-      "id": "clear0",
-      "at": [
-        389,
-        428
-      ],
-      "cost": {
-        "res.currency": 17
-      },
-      "build": "zone.clear",
-      "target": "rubble0",
-      "requires": {
-        "coreLevel": 2
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "clear1",
-      "at": [
-        401,
-        654
-      ],
-      "cost": {
-        "res.currency": 17
-      },
-      "build": "zone.clear",
-      "target": "rubble1",
-      "requires": {
-        "coreLevel": 2
+      "arrivals": {
+        "every": 19,
+        "total": 5
       }
     }
   ],
-  "people": [],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 2,
-    "core.burn": 2.4,
-    "housing.base": 2,
+    "start.currency": 0,
+    "core.burn": 2.1,
+    "housing.base": 9,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3.1,
+    "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 180
+    "level.budgetSeconds": 150
   },
   "goal": {
-    "type": "clear_zones",
-    "n": 2
+    "type": "admit",
+    "n": 5
   },
   "family": "shelter",
   "objectives": [
     {
       "id": "main",
-      "kind": "clear_zones",
+      "kind": "admit",
       "params": {
-        "n": 2
+        "n": 5
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 134
+        "seconds": 143
       }
     },
     {
@@ -309,25 +207,26 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Reactors and Sweep",
-      "goal": "clear_zones",
+      "title": "Hab Pods and Admissions",
+      "goal": "admit",
       "tips": [
-        "Upgrade the reactor for a bigger heat ring and new build sites."
+        "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.801,
-    "fun": 0.904,
-    "botMargin": 0.542,
+    "difficulty": 0.216,
+    "fun": 0.868,
+    "botMargin": 0.412,
     "botsPassed": [
       "good",
       "average",
-      "weak"
+      "weak",
+      "novice"
     ],
     "stars": {
       "good": 3,
-      "median": 2.33,
+      "median": 3,
       "goodAll": 1,
       "human": 3,
       "humanAll": 1

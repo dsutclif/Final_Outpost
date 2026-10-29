@@ -1,8 +1,8 @@
 {
   "id": "s1-L033",
-  "seed": 1817121508,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "seed": 1938526834,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -35,7 +35,7 @@
         450
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        352,
-        389
+        351,
+        401
       ],
       "sells": [
         "res.food_raw_1"
@@ -52,19 +52,15 @@
       "route": [
         [
           500,
-          273
+          297
         ],
         [
           477,
-          273
+          297
         ],
         [
-          291,
-          273
-        ],
-        [
-          276,
-          287
+          290,
+          299
         ]
       ]
     },
@@ -72,92 +68,85 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        298,
-        595
+        320,
+        591
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        238,
-        518
+        164,
+        500
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        200,
-        505
+        182,
+        547
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        162,
-        501
+        153,
+        531
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        207,
-        546
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        235,
-        556
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        171,
-        540
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        136,
-        520
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        174,
-        572
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        113,
-        492
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        209,
-        575
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        129,
+        155,
         561
       ]
     },
     {
+      "type": "node.fuel_scrap",
+      "at": [
+        208,
+        529
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        503
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        181,
+        584
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        210,
+        591
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        118,
+        537
+      ]
+    },
+    {
       "type": "node.material_source",
       "at": [
-        194,
-        615
+        138,
+        599
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        199,
+        638
       ]
     },
     {
@@ -177,21 +166,21 @@
       "id": "terrain0",
       "kind": "ridge",
       "rect": [
-        137,
-        745,
-        17,
-        102
+        269,
+        798,
+        97,
+        18
       ]
     },
     {
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        380,
-        500
+        390,
+        520
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 14
       },
       "build": "struct.housing"
     },
@@ -199,11 +188,11 @@
       "type": "pad.build",
       "id": "housing1",
       "at": [
-        150,
-        450
+        140,
+        460
       ],
       "cost": {
-        "res.currency": 18
+        "res.currency": 17
       },
       "build": "struct.housing"
     }
@@ -219,41 +208,41 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
+    "start.currency": 2,
     "core.burn": 2.2,
     "housing.base": 2,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3,
+    "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 130
+    "level.budgetSeconds": 140
   },
   "goal": {
-    "type": "admit",
-    "n": 4
+    "type": "population",
+    "n": 6
   },
   "family": "shelter",
   "objectives": [
     {
       "id": "main",
-      "kind": "admit",
+      "kind": "population",
       "params": {
-        "n": 4
+        "n": 6
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 101
+        "seconds": 105
       }
     },
     {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 45
+        "pct": 40
       }
     }
   ],
@@ -262,23 +251,21 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Domes and Open Gates",
-      "goal": "admit",
+      "title": "Domes and New Arrivals",
+      "goal": "Grow the colony to 6 colonists",
       "tips": [
         "New colonists need a bed. Build hab pods so they can move in."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.033,
-    "fun": 0.783,
-    "botMargin": 0.513,
+    "difficulty": 0.557,
+    "fun": 0.859,
+    "botMargin": 0.547,
     "botsPassed": [
       "good",
       "average",
-      "weak",
-      "novice",
-      "floor"
+      "weak"
     ],
     "stars": {
       "good": 3,

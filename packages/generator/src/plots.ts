@@ -67,7 +67,7 @@ export interface PlotData {
     defaults: { "pads.range": number; "pads.bigRange": number };
   };
   /** Read by the generator (GEN.plots, footprints, cashier pads). */
-  generator: { footprints: Record<string, Box4>; plots: Record<string, { slots: { id: string; dx: number; dy: number }[] }>; cashierPads: Pair[] };
+  generator: { footprints: Record<string, Box4>; bodies: Record<string, Box4>; plots: Record<string, { slots: { id: string; dx: number; dy: number }[] }>; cashierPads: Pair[] };
   /** Read by the 3D renderer: pad plate and operator plate across (world units). */
   render: { pad: number; plate: number };
 }
@@ -128,6 +128,8 @@ export function computePlots(inp: PlotInput): PlotData {
     "pad.big": [-Math.round(P * 0.7), -Math.round(P * 0.7), Math.round(P * 0.7), Math.round(P * 0.7)],
   };
   const plots: PlotData["generator"]["plots"] = {};
+  // the model alone, without the ground it hides: gatherables may lie in a building's shadow, pads and buildings may not
+  const bodies: Record<string, Box4> = {};
   const dB = base.structures["struct.depot"] as unknown as { range: number; dropOffset: Pair; pickupOffsets: Pair[] };
   const depot = { range: Math.round(dB.range * rel("struct.depot")), dropOffset: mul(dB.dropOffset, rel("struct.depot")), pickupOffsets: dB.pickupOffsets.map((p) => mul(p, rel("struct.depot"))) };
   let heal = mul((base.structures["struct.medical"] as unknown as { healOffset: Pair }).healOffset, rel("struct.medical"));
@@ -136,6 +138,7 @@ export function computePlots(inp: PlotInput): PlotData {
     if (!mb) continue;
     const b = mb.b;
     footprints[type] = [Math.round(b[0]), Math.round(b[1] - OCCLUDE * mb.h), Math.round(b[2]), Math.round(b[3])];
+    bodies[type] = [Math.round(b[0]), Math.round(b[1]), Math.round(b[2]), Math.round(b[3])];
     plots[type] = { slots: slotsFor(b, def.pads, def.edge) };
     const cx = Math.round((b[0] + b[2]) / 2), front = Math.round(b[3]);
     if (type.startsWith("conv.")) {
@@ -169,7 +172,7 @@ export function computePlots(inp: PlotInput): PlotData {
       sinks: { "sink.sales_point": { registerOffset: mul(kB.registerOffset, k), pileOffset: mul(kB.pileOffset, k), queueOffset: mul(kB.queueOffset, k) } },
       defaults: { "pads.range": padRange, "pads.bigRange": Math.round(P * 0.8) },
     },
-    generator: { footprints, plots, cashierPads },
+    generator: { footprints, bodies, plots, cashierPads },
     render: { pad: P, plate },
   };
 }

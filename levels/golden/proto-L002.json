@@ -1,8 +1,8 @@
 {
   "id": "proto-L002",
   "seed": 2,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": { "w": 480, "h": 900, "zones": ["base", "sources-w", "outer-n", "outer-s", "gate"] },
   "modules": ["carry", "gather", "core", "sales", "workers", "build_pads", "barrier_lines", "lasso", "housing", "core_levels", "blocked_zones"],
   "start": [240, 560],

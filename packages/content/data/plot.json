@@ -59,6 +59,18 @@
       "struct.housing": [-32, -57, 32, 23],
       "struct.landmark": [-85, -138, 85, 68]
     },
+    "bodies": {
+      "sink.core": [-62, -66, 62, 66],
+      "conv.food_processor": [-55, -44, 55, 44],
+      "conv.material_processor": [-55, -42, 55, 42],
+      "conv.alloy_works": [-55, -33, 55, 33],
+      "node.food_source": [-37, -39, 37, 39],
+      "struct.depot": [-48, -55, 48, 50],
+      "struct.barracks": [-26, -41, 26, 41],
+      "struct.medical": [-47, -31, 36, 31],
+      "struct.housing": [-32, -26, 32, 23],
+      "struct.landmark": [-85, -68, 85, 68]
+    },
     "plots": {
       "sink.core": {
         "slots": [
