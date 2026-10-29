@@ -1,8 +1,8 @@
 {
   "id": "s1-L049",
   "seed": 2061895893,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -45,24 +45,24 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        308,
-        692
+        300,
+        714
       ],
       "sells": [
         "res.food_raw_1"
       ],
       "route": [
         [
-          231,
+          237,
           920
         ],
         [
-          231,
+          237,
           897
         ],
         [
-          232,
-          794
+          239,
+          714
         ]
       ]
     },
@@ -70,99 +70,99 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        320,
+        338,
         454
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        168,
-        522
+        153,
+        499
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        166,
-        490
+        123,
+        518
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        186,
-        451
+        162,
+        458
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        123,
+        476
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         134,
-        518
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        228,
-        443
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        149,
-        465
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        116,
-        488
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        149,
-        436
+        447
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         201,
+        422
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        161,
         423
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        228,
-        411
+        87,
+        489
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        105,
-        518
+        221,
+        398
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        169,
+        83,
+        522
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        178,
         392
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        104,
-        441
+        90,
+        439
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        128,
+        390
       ]
     },
     {
@@ -197,42 +197,11 @@
       ]
     },
     {
-      "type": "zone.blocked",
-      "id": "rubble1",
-      "rect": [
-        53,
-        699,
-        120,
-        70
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        78,
-        734
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        113,
-        734
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        148,
-        734
-      ]
-    },
-    {
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        152,
-        577
+        263,
+        670
       ],
       "cost": {
         "res.currency": 30
@@ -241,10 +210,25 @@
     },
     {
       "type": "pad.build",
+      "id": "core_level1",
+      "at": [
+        263,
+        670
+      ],
+      "cost": {
+        "res.currency": 42
+      },
+      "build": "sink.core.level",
+      "requires": {
+        "pad": "clear0"
+      }
+    },
+    {
+      "type": "pad.build",
       "id": "clear0",
       "at": [
-        385,
-        398
+        284,
+        416
       ],
       "cost": {
         "res.currency": 18
@@ -252,23 +236,8 @@
       "build": "zone.clear",
       "target": "rubble0",
       "requires": {
-        "coreLevel": 2
-      }
-    },
-    {
-      "type": "pad.build",
-      "id": "clear1",
-      "at": [
-        113,
-        652
-      ],
-      "cost": {
-        "res.currency": 18
-      },
-      "build": "zone.clear",
-      "target": "rubble1",
-      "requires": {
-        "coreLevel": 2
+        "coreLevel": 2,
+        "pad": "core_level0"
       }
     }
   ],
@@ -291,26 +260,26 @@
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 250
+    "level.budgetSeconds": 360
   },
   "goal": {
-    "type": "clear_zones",
-    "n": 2
+    "type": "core_level",
+    "n": 3
   },
   "family": "shelter",
   "objectives": [
     {
       "id": "main",
-      "kind": "clear_zones",
+      "kind": "core_level",
       "params": {
-        "n": 2
+        "n": 3
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 181
+        "seconds": 262
       }
     },
     {
@@ -324,17 +293,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Flares and Sweep",
-      "goal": "clear_zones",
+      "title": "Flares and Brighter Cores",
+      "goal": "core_level",
       "tips": [
         "A dust storm burns fuel fast. Fill the reactor before it hits."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.78,
-    "fun": 0.524,
-    "botMargin": 0.559,
+    "difficulty": 0.732,
+    "fun": 0.531,
+    "botMargin": 0.546,
     "botsPassed": [
       "good",
       "average",

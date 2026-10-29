@@ -1,8 +1,8 @@
 {
   "id": "s1-L021",
-  "seed": 324504251,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "seed": 947688279,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 1200,
     "h": 1620,
@@ -39,92 +39,64 @@
         860
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 14,
         "level": 1
       }
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        541,
-        848
+        525,
+        844
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        538,
-        883
+        523,
+        888
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        514,
-        828
+        505,
+        816
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        545,
-        913
+        485,
+        850
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        539,
-        794
+        493,
+        891
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        502,
-        893
+        523,
+        772
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        514,
-        859
+        471,
+        817
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        510,
-        790
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        533,
-        764
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        486,
-        847
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        479,
-        781
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        473,
-        820
+        488,
+        787
       ]
     },
     {
@@ -221,13 +193,11 @@
       ],
       "prebuilt": [
         0,
-        1,
         2,
-        3,
         4,
+        5,
         6,
         7,
-        8,
         9,
         10,
         11,
@@ -244,52 +214,67 @@
     {
       "type": "node.salvage_pile",
       "at": [
-        878,
-        478
+        910,
+        466
       ]
     },
     {
       "type": "node.salvage_pile",
       "at": [
-        282,
-        435
+        317,
+        1130
       ]
     },
     {
       "type": "node.salvage_pile",
       "at": [
-        157,
-        1020
+        987,
+        1019
       ]
     },
     {
       "type": "node.salvage_pile",
       "at": [
-        324,
-        1218
-      ]
-    },
-    {
-      "type": "node.salvage_pile",
-      "at": [
-        193,
-        603
+        681,
+        420
       ]
     },
     {
       "type": "struct.barracks",
       "id": "barracks",
       "at": [
-        590,
-        1000
+        690,
+        870
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        419,
+        494,
+        17,
+        87
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "ridge",
+      "rect": [
+        405,
+        423,
+        135,
+        17
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        665,
-        877
+        577,
+        970
       ],
       "cost": {
         "res.salvage": 5
@@ -306,7 +291,7 @@
       "id": "tower_e1",
       "at": [
         825,
-        812
+        795
       ],
       "cost": {
         "res.salvage": 8
@@ -322,7 +307,7 @@
       "id": "tower_e1_up",
       "at": [
         825,
-        812
+        795
       ],
       "cost": {
         "res.salvage": 16
@@ -338,7 +323,7 @@
       "id": "tower_e1_up3",
       "at": [
         825,
-        812
+        795
       ],
       "cost": {
         "res.salvage": 32
@@ -354,7 +339,7 @@
       "id": "tower_e2",
       "at": [
         825,
-        896
+        919
       ],
       "cost": {
         "res.salvage": 8
@@ -370,7 +355,7 @@
       "id": "tower_e2_up",
       "at": [
         825,
-        896
+        919
       ],
       "cost": {
         "res.salvage": 16
@@ -386,7 +371,7 @@
       "id": "tower_e2_up3",
       "at": [
         825,
-        896
+        919
       ],
       "cost": {
         "res.salvage": 32
@@ -402,7 +387,7 @@
       "id": "tower_e3",
       "at": [
         900,
-        812
+        795
       ],
       "cost": {
         "res.salvage": 8
@@ -421,7 +406,7 @@
       "id": "tower_e3_up",
       "at": [
         900,
-        812
+        795
       ],
       "cost": {
         "res.salvage": 16
@@ -437,7 +422,7 @@
       "id": "tower_e3_up3",
       "at": [
         900,
-        812
+        795
       ],
       "cost": {
         "res.salvage": 32
@@ -453,7 +438,7 @@
       "id": "tower_e4",
       "at": [
         900,
-        896
+        919
       ],
       "cost": {
         "res.salvage": 8
@@ -472,7 +457,7 @@
       "id": "tower_e4_up",
       "at": [
         900,
-        896
+        919
       ],
       "cost": {
         "res.salvage": 16
@@ -488,7 +473,7 @@
       "id": "tower_e4_up3",
       "at": [
         900,
-        896
+        919
       ],
       "cost": {
         "res.salvage": 32
@@ -503,7 +488,7 @@
       "type": "pad.build",
       "id": "tower_n1",
       "at": [
-        548,
+        538,
         575
       ],
       "cost": {
@@ -519,7 +504,7 @@
       "type": "pad.build",
       "id": "tower_n1_up",
       "at": [
-        548,
+        538,
         575
       ],
       "cost": {
@@ -535,7 +520,7 @@
       "type": "pad.build",
       "id": "tower_n1_up3",
       "at": [
-        548,
+        538,
         575
       ],
       "cost": {
@@ -551,7 +536,7 @@
       "type": "pad.build",
       "id": "tower_n2",
       "at": [
-        652,
+        662,
         575
       ],
       "cost": {
@@ -567,7 +552,7 @@
       "type": "pad.build",
       "id": "tower_n2_up",
       "at": [
-        652,
+        662,
         575
       ],
       "cost": {
@@ -583,7 +568,7 @@
       "type": "pad.build",
       "id": "tower_n2_up3",
       "at": [
-        652,
+        662,
         575
       ],
       "cost": {
@@ -599,8 +584,8 @@
       "type": "pad.build",
       "id": "tower_n3",
       "at": [
-        548,
-        476
+        538,
+        500
       ],
       "cost": {
         "res.salvage": 8
@@ -608,7 +593,7 @@
       "build": "struct.ranged_defense",
       "site": [
         500,
-        476
+        500
       ],
       "requires": {
         "wave": 1
@@ -618,8 +603,8 @@
       "type": "pad.build",
       "id": "tower_n3_up",
       "at": [
-        548,
-        476
+        538,
+        500
       ],
       "cost": {
         "res.salvage": 16
@@ -634,8 +619,8 @@
       "type": "pad.build",
       "id": "tower_n3_up3",
       "at": [
-        548,
-        476
+        538,
+        500
       ],
       "cost": {
         "res.salvage": 32
@@ -650,8 +635,8 @@
       "type": "pad.build",
       "id": "tower_n4",
       "at": [
-        652,
-        476
+        662,
+        500
       ],
       "cost": {
         "res.salvage": 8
@@ -659,7 +644,7 @@
       "build": "struct.ranged_defense",
       "site": [
         700,
-        476
+        500
       ],
       "requires": {
         "wave": 1
@@ -669,8 +654,8 @@
       "type": "pad.build",
       "id": "tower_n4_up",
       "at": [
-        652,
-        476
+        662,
+        500
       ],
       "cost": {
         "res.salvage": 16
@@ -685,8 +670,8 @@
       "type": "pad.build",
       "id": "tower_n4_up3",
       "at": [
-        652,
-        476
+        662,
+        500
       ],
       "cost": {
         "res.salvage": 32
@@ -701,8 +686,8 @@
       "type": "pad.hire",
       "id": "train",
       "at": [
-        650,
-        1042
+        690,
+        933
       ],
       "cost": {
         "res.salvage": 5
@@ -717,8 +702,8 @@
       "type": "pad.build",
       "id": "barracks_up",
       "at": [
-        667,
-        991
+        690,
+        979
       ],
       "cost": {
         "res.salvage": 40
@@ -748,34 +733,34 @@
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 24
+        "hostile.swarmling": 28
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 73,
+      "t": 72,
       "counts": {
-        "hostile.swarmling": 41,
-        "hostile.raider_humanoid": 6
+        "hostile.swarmling": 47,
+        "hostile.raider_humanoid": 7
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 126,
+      "t": 124,
       "counts": {
-        "hostile.swarmling": 108,
-        "hostile.raider_humanoid": 20
+        "hostile.swarmling": 124,
+        "hostile.raider_humanoid": 23
       },
       "side": "e",
       "gap": 0.45
     },
     {
-      "t": 180,
+      "t": 176,
       "counts": {
-        "hostile.swarmling": 157,
-        "hostile.raider_humanoid": 31
+        "hostile.swarmling": 180,
+        "hostile.raider_humanoid": 35
       },
       "side": "n",
       "gap": 0.45
@@ -783,12 +768,12 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.7,
+    "start.currency": 6,
+    "core.burn": 2.6,
     "housing.base": 7,
     "lots.block": 60,
     "lots.street": 0,
-    "meters.baseHealth": 11,
+    "meters.baseHealth": 10,
     "pads.defenceGrowth": 1.08,
     "level.budgetSeconds": 340
   },
@@ -807,13 +792,15 @@
     },
     {
       "id": "challenge2",
-      "kind": "gate_held",
+      "kind": "no_injuries",
       "params": {}
     },
     {
       "id": "challenge",
-      "kind": "no_injuries",
-      "params": {}
+      "kind": "hp_floor",
+      "params": {
+        "pct": 80
+      }
     }
   ],
   "fail": [
@@ -830,21 +817,22 @@
     }
   },
   "rating": {
-    "difficulty": 0.413,
-    "fun": 0.043,
+    "difficulty": 0.382,
+    "fun": 0.102,
     "botMargin": 0.999,
     "botsPassed": [
       "good",
       "average",
       "weak",
+      "novice",
       "floor"
     ],
     "stars": {
       "good": 3,
       "median": 3,
       "goodAll": 1,
-      "human": 2.83,
-      "humanAll": 0.83
+      "human": 3,
+      "humanAll": 1
     }
   }
 }

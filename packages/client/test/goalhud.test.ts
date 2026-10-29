@@ -10,15 +10,25 @@ import { alertOf, goalIcon, goalTokens } from "../src/goalhud.js";
 // glyph and its channels, and the urgent alert picks the colony freezing over a goal at risk.
 
 const skin = getSkin(DEFAULT_SKIN);
-const level = (n: number) => {
-  const raw = JSON.parse(readFileSync(resolve(__dirname, `../../../levels/packs/s1/s1-L${String(n).padStart(3, "0")}.json`), "utf8"));
-  const sim = createSim((raw.manifest ?? raw) as Manifest);
+// levels 1-5 are the hand-made story levels; the pack holds 6-50 (regenerated, so goals are picked by kind)
+const level = (n: number, over?: Partial<Manifest>) => {
+  const file = n <= 5 ? `story/story-L${String(n).padStart(3, "0")}.json` : `packs/s1/s1-L${String(n).padStart(3, "0")}.json`;
+  const raw = JSON.parse(readFileSync(resolve(__dirname, `../../../levels/${file}`), "utf8"));
+  const sim = createSim({ ...(raw.manifest ?? raw), ...over } as Manifest);
   return { sim, m: sim.compiled.manifest, cp: sim.compiled };
 };
 
 describe("goal icons", () => {
   it("L1: heat hold is a thermometer with a hold ring and its 70% line; the stars guard fuel and the 35% floor", () => {
-    const { sim, m, cp } = level(1);
+    // no shipped level holds heat any more, so the first story level is given one
+    const { sim, m, cp } = level(1, {
+      goal: { type: "heat_hold", pct: 70, seconds: 85 },
+      objectives: [
+        { id: "main", kind: "heat_hold", params: { pct: 70, seconds: 85 } },
+        { id: "challenge2", kind: "settlement_never_freezes", params: {} },
+        { id: "challenge", kind: "heat_floor", params: { pct: 35 } },
+      ],
+    } as Partial<Manifest>);
     const t = goalTokens(sim.state, m, cp, skin);
     expect(t.map((x) => x.glyph)).toEqual(["thermo", "flame", "thermo"]);
     expect(t[0]!.ring?.mode).toBe("hold");
@@ -28,16 +38,16 @@ describe("goal icons", () => {
     expect(t.every((x) => x.label.length > 0)).toBe(true);
   });
 
-  it("L7: protein fills, the time star is a full stopwatch at the start, tow trips are three pips", () => {
-    const { sim, m, cp } = level(7);
+  it("protein fills, the time star is a full stopwatch at the start, tow trips are three pips", () => {
+    const { sim, m, cp } = level(34);
     const t = goalTokens(sim.state, m, cp, skin);
     expect(t.map((x) => x.glyph)).toEqual(["meat", "stopwatch", "pod"]);
     expect(t[1]!.pie).toBeCloseTo(1);
     expect(t[2]!.pips).toEqual({ n: 3, done: 0, part: 0 });
     // only count goals carry a number: protein shows its target, the stopwatch and pips do not
     expect(t.map((x) => x.beside)).toEqual(["31", undefined, undefined]);
-    // every tracker shows its current number: 0 protein, the stopwatch's full 3:57, 0 trips
-    expect(t.map((x) => x.inner)).toEqual(["0", "3:57", "0"]);
+    // every tracker shows its current number: 0 protein, the stopwatch's full 3:55, 0 trips
+    expect(t.map((x) => x.inner)).toEqual(["0", "3:55", "0"]);
   });
 
   it("L5: waves are pips; won goals draw a star and missed ones are struck through", () => {
@@ -52,7 +62,7 @@ describe("goal icons", () => {
 
 describe("urgent alert", () => {
   it("names a goal about to be missed, and the colony freezing ahead of it", () => {
-    const { sim, m, cp } = level(7);
+    const { sim, m, cp } = level(34);
     const st = sim.state;
     const time = st.objectives.find((o) => o.kind === "time_target")!;
     time.target = 600;
@@ -86,7 +96,7 @@ describe("never-goals fill from whatever is closest to breaking them", () => {
 
 describe("stopwatch face", () => {
   it("always shows the time left; the pie sweeps just the last 30 seconds", () => {
-    const { sim, m, cp } = level(7);
+    const { sim, m, cp } = level(34);
     const st = sim.state;
     const time = st.objectives.find((o) => o.kind === "time_target")!;
     time.target = 3000;

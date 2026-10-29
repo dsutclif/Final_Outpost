@@ -1,8 +1,8 @@
 {
   "id": "s1-L022",
   "seed": 397381672,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -16,11 +16,13 @@
     ]
   },
   "modules": [
+    "blocked_zones",
     "build_pads",
     "carry",
     "core",
+    "core_levels",
     "gather",
-    "housing",
+    "hazard_events",
     "sales"
   ],
   "start": [
@@ -36,7 +38,7 @@
         510
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -44,28 +46,28 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        330,
-        596
+        328,
+        591
       ],
       "sells": [
         "res.food_raw_1"
       ],
       "route": [
         [
-          249,
-          920
+          500,
+          633
         ],
         [
-          249,
-          897
+          477,
+          633
         ],
         [
-          249,
-          699
+          273,
+          633
         ],
         [
-          254,
-          698
+          267,
+          591
         ]
       ]
     },
@@ -80,175 +82,251 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        207,
+        184,
+        485
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        182,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        157,
+        498
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        165,
+        455
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        137,
         471
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        166,
-        495
+        150,
+        422
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        203,
-        437
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        169,
-        462
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        171,
-        418
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        197,
+        125,
         499
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        206,
+        175,
+        401
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        115,
+        440
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        105,
+        474
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        202,
+        372
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        141,
+        378
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        89,
         408
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        143,
-        477
+        403,
+        545
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        146,
-        434
+        405,
+        516
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        162,
-        376
+        419,
+        581
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        106,
-        453
+        438,
+        543
       ]
     },
     {
-      "type": "struct.gate",
-      "id": "gate",
+      "type": "node.fuel_scrap",
+      "at": [
+        437,
+        513
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble0",
+      "rect": [
+        167,
+        735,
+        120,
+        70
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        192,
+        770
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        227,
+        770
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
       "at": [
         262,
-        810
+        770
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level0",
+      "at": [
+        285,
+        620
       ],
-      "arrivals": {
-        "every": 19,
-        "total": 5
+      "cost": {
+        "res.currency": 26
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level1",
+      "at": [
+        285,
+        620
+      ],
+      "cost": {
+        "res.currency": 38
+      },
+      "build": "sink.core.level",
+      "requires": {
+        "pad": "clear0"
       }
     },
     {
       "type": "pad.build",
-      "id": "housing0",
+      "id": "clear0",
       "at": [
-        450,
-        520
+        231,
+        691
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 16
       },
-      "build": "struct.housing"
-    },
-    {
-      "type": "pad.build",
-      "id": "housing1",
-      "at": [
-        90,
-        550
-      ],
-      "cost": {
-        "res.currency": 18
-      },
-      "build": "struct.housing"
-    },
-    {
-      "type": "pad.build",
-      "id": "housing2",
-      "at": [
-        300,
-        700
-      ],
-      "cost": {
-        "res.currency": 21
-      },
-      "build": "struct.housing"
+      "build": "zone.clear",
+      "target": "rubble0",
+      "requires": {
+        "coreLevel": 2,
+        "pad": "core_level0"
+      }
     }
   ],
-  "people": [
-    {
-      "role": "idle"
-    },
-    {
-      "role": "idle"
-    }
-  ],
+  "people": [],
   "waves": [],
-  "events": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 51,
+      "start": 59,
+      "end": 81
+    }
+  ],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.3,
+    "start.currency": 5,
+    "core.burn": 2.6,
     "housing.base": 2,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3.1,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "level.budgetSeconds": 170
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 280
   },
   "goal": {
-    "type": "population",
-    "n": 7
+    "type": "core_level",
+    "n": 3
   },
   "family": "shelter",
   "objectives": [
     {
       "id": "main",
-      "kind": "population",
+      "kind": "core_level",
       "params": {
-        "n": 7
+        "n": 3
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 134
+        "seconds": 178
       }
     },
     {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 40
+        "pct": 45
       }
     }
   ],
@@ -257,17 +335,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Sleepers and Colonists",
-      "goal": "Grow the colony to 7 colonists",
+      "title": "Flares and Power Up",
+      "goal": "core_level",
       "tips": [
-        "New colonists need a bed. Build hab pods so they can move in."
+        "A dust storm burns fuel fast. Fill the reactor before it hits."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.355,
-    "fun": 0.868,
-    "botMargin": 0.511,
+    "difficulty": 0.483,
+    "fun": 0.66,
+    "botMargin": 0.6,
     "botsPassed": [
       "good",
       "average",

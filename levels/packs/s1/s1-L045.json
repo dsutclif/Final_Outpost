@@ -1,8 +1,8 @@
 {
   "id": "s1-L045",
-  "seed": 282029871,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "seed": 196658801,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -42,83 +42,45 @@
       }
     },
     {
-      "type": "sink.sales_point",
-      "id": "shop",
-      "at": [
-        305,
-        600
-      ],
-      "sells": [
-        "res.food_raw_1",
-        "res.food_raw_2"
-      ],
-      "route": [
-        [
-          500,
-          663
-        ],
-        [
-          477,
-          663
-        ],
-        [
-          405,
-          663
-        ],
-        [
-          229,
-          702
-        ]
-      ]
-    },
-    {
-      "type": "node.food_source",
-      "id": "food1",
+      "type": "node.fuel_scrap",
       "at": [
         161,
-        511
+        495
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        191,
-        583
+        155,
+        547
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        146,
-        581
+        163,
+        463
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        98,
-        550
+        228,
+        441
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        98,
-        480
+        198,
+        437
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        96,
-        583
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        107,
-        451
+        142,
+        575
       ]
     },
     {
@@ -128,58 +90,41 @@
       "costPerSection": 1,
       "points": [
         [
-          60,
-          320
+          105,
+          370
         ],
         [
-          180,
-          320
+          240,
+          370
         ],
         [
-          300,
-          320
+          375,
+          370
         ],
         [
-          420,
-          320
+          375,
+          520
         ],
         [
-          420,
-          453
+          375,
+          670
         ],
         [
-          420,
-          587
+          240,
+          670
         ],
         [
-          420,
-          720
+          105,
+          670
         ],
         [
-          300,
-          720
-        ],
-        [
-          180,
-          720
-        ],
-        [
-          60,
-          720
-        ],
-        [
-          60,
-          587
-        ],
-        [
-          60,
-          453
+          105,
+          520
         ]
       ],
       "closed": true,
       "gates": [
-        1,
-        5
+        1
       ],
       "prebuilt": [
         0,
@@ -189,85 +134,69 @@
         4,
         5,
         6,
-        7,
-        8,
-        9,
-        10,
-        11
+        7
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        316,
-        148
+        191,
+        257
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        318,
-        42
+        338,
+        214
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        90,
-        169
+        229,
+        106
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        165,
-        105
+        71,
+        297
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        183,
-        205
+        431,
+        273
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        50,
-        87
+        98,
+        101
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        425,
-        44
+        382,
+        45
       ]
     },
     {
       "type": "zone.prey",
       "id": "prey",
       "rect": [
-        440,
-        350,
-        60,
+        395,
+        400,
+        65,
         150
       ],
       "animal": "node.prey",
-      "n": 2
-    },
-    {
-      "type": "zone.prey",
-      "id": "prey_danger",
-      "rect": [
-        440,
-        350,
-        60,
-        150
-      ],
-      "animal": "node.prey_dangerous",
-      "n": 1
+      "n": 3
     }
   ],
   "people": [],
@@ -275,41 +204,36 @@
   "events": [],
   "params": {
     "start.currency": 4,
-    "core.burn": 2.4,
+    "core.burn": 2.3,
     "housing.base": 6,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3,
-    "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "level.budgetSeconds": 350
+    "level.budgetSeconds": 320
   },
   "goal": {
-    "type": "protein",
-    "n": 38
+    "type": "hunt",
+    "n": 27
   },
   "family": "rescue",
   "objectives": [
     {
       "id": "main",
-      "kind": "protein",
+      "kind": "hunt",
       "params": {
-        "n": 38
+        "n": 27
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 242
+        "seconds": 315
       }
     },
     {
       "id": "challenge",
-      "kind": "tow_full_trip",
-      "params": {
-        "n": 3
-      }
+      "kind": "rescue_all",
+      "params": {}
     }
   ],
   "fail": [
@@ -317,17 +241,17 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Tow Lines and Hunters' Larder",
-      "goal": "protein",
+      "title": "Tow Lines and Game Trails",
+      "goal": "hunt",
       "tips": [
         "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.785,
-    "fun": 0.831,
-    "botMargin": 0.567,
+    "difficulty": 0.616,
+    "fun": 0.432,
+    "botMargin": 0.535,
     "botsPassed": [
       "good",
       "average",
@@ -336,10 +260,10 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.67,
+      "median": 3,
       "goodAll": 1,
-      "human": 2,
-      "humanAll": 0.67
+      "human": 3,
+      "humanAll": 1
     }
   }
 }

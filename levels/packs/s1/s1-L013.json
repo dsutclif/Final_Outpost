@@ -1,8 +1,8 @@
 {
   "id": "s1-L013",
   "seed": 1157148896,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -35,7 +35,7 @@
         450
       ],
       "params": {
-        "fuel": 9,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        359,
-        397
+        363,
+        420
       ],
       "sells": [
         "res.food_raw_1"
@@ -52,19 +52,19 @@
       "route": [
         [
           500,
-          279
+          315
         ],
         [
           477,
-          279
+          315
         ],
         [
-          297,
-          279
+          303,
+          315
         ],
         [
-          283,
-          295
+          302,
+          318
         ]
       ]
     },
@@ -72,89 +72,96 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        294,
-        589
+        321,
+        610
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        221,
-        511
+        183,
+        538
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        182,
-        503
+        157,
+        513
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        224,
+        185,
+        571
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        155,
         546
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        192,
+        127,
+        511
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        216,
+        592
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        185,
+        600
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        107,
         533
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        161,
-        531
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        196,
-        562
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        145,
-        506
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        166,
-        560
+        156,
+        589
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        106,
-        517
+        117,
+        595
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        203,
-        601
+        210,
+        634
       ]
     },
     {
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        173,
-        448
+        217,
+        560
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 11
       },
       "role": {
         "role": "role.supplier",
@@ -167,8 +174,8 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        306,
-        491
+        321,
+        671
       ],
       "cost": {
         "res.currency": 16
@@ -185,8 +192,8 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        359,
-        521
+        363,
+        519
       ],
       "cost": {
         "res.currency": 24
@@ -212,7 +219,7 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
+    "start.currency": 1,
     "core.burn": 2.1,
     "housing.base": 5,
     "lots.block": 60,
@@ -221,7 +228,7 @@
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "customers.bulkShare": 0.17,
-    "level.budgetSeconds": 320
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "bulk_order",
@@ -240,7 +247,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 311
+        "seconds": 319
       }
     },
     {
@@ -262,9 +269,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.335,
-    "fun": 0.886,
-    "botMargin": 0.431,
+    "difficulty": 0.269,
+    "fun": 0.899,
+    "botMargin": 0.485,
     "botsPassed": [
       "good",
       "average",

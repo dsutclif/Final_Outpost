@@ -95,7 +95,8 @@ describe("workers and build pads (level 1)", () => {
     const sim = newSim({ params: { ...LEVEL_1.params, "pads.dwell": 0 } });
     grant(sim, { currency: 8 });
     expect(sim.compiled.pads.dwellTicks).toBe(0);
-    const ev = walkTo(sim, at(160, 430), 29);
+    // just inside the pad's pay range, wherever content sets it
+    const ev = walkTo(sim, at(160, 430), Math.floor(sim.compiled.pads.range / FP) - 1);
     const more = idle(sim, 2);
     expect(all([...ev, ...more], "pad_paid").length).toBeGreaterThan(0);
   });

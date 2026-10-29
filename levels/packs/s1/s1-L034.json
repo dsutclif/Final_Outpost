@@ -1,8 +1,8 @@
 {
   "id": "s1-L034",
   "seed": 304161225,
-  "engineVersion": "0.13.0",
-  "contentVersion": "0.13.0",
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -38,64 +38,116 @@
         510
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 12,
         "level": 1
       }
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "sink.sales_point",
+      "id": "shop",
       "at": [
-        205,
-        493
+        369,
+        597
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ],
+      "route": [
+        [
+          500,
+          639
+        ],
+        [
+          477,
+          639
+        ],
+        [
+          315,
+          639
+        ],
+        [
+          308,
+          597
+        ]
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.food_source",
+      "id": "food1",
       "at": [
-        208,
-        463
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        205,
-        534
+        360,
+        434
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         181,
-        475
+        498
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        176,
-        513
+        187,
+        461
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        203,
-        431
+        186,
+        532
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        167,
-        436
+        185,
+        430
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        189,
-        396
+        155,
+        515
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        159,
+        477
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        134,
+        494
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        138,
+        446
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        166,
+        407
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        134,
+        539
       ]
     },
     {
@@ -105,41 +157,58 @@
       "costPerSection": 1,
       "points": [
         [
-          127,
-          360
+          82,
+          310
         ],
         [
-          262,
-          360
+          202,
+          310
         ],
         [
-          397,
-          360
+          322,
+          310
         ],
         [
-          397,
-          510
+          442,
+          310
         ],
         [
-          397,
-          660
+          442,
+          443
         ],
         [
-          262,
-          660
+          442,
+          577
         ],
         [
-          127,
-          660
+          442,
+          710
         ],
         [
-          127,
-          510
+          322,
+          710
+        ],
+        [
+          202,
+          710
+        ],
+        [
+          82,
+          710
+        ],
+        [
+          82,
+          577
+        ],
+        [
+          82,
+          443
         ]
       ],
       "closed": true,
       "gates": [
-        1
+        1,
+        5
       ],
       "prebuilt": [
         0,
@@ -149,70 +218,60 @@
         4,
         5,
         6,
-        7
+        7,
+        8,
+        9,
+        10,
+        11
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        252,
-        291
+        257,
+        240
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        412,
-        60
+        378,
+        88
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        262,
-        168
+        417,
+        234
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        117,
-        122
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        39,
-        610
+        158,
+        195
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        362,
-        136
+        38,
+        186
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        345,
-        257
+        160,
+        46
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        63,
-        295
-      ]
-    },
-    {
-      "type": "capture.supply_crate",
-      "at": [
-        172,
-        216
+        266,
+        141
       ]
     },
     {
@@ -220,55 +279,58 @@
       "id": "prey",
       "rect": [
         20,
-        390,
-        87,
+        340,
+        60,
         150
       ],
       "animal": "node.prey",
-      "n": 1
+      "n": 2
     },
     {
       "type": "zone.prey",
       "id": "prey_danger",
       "rect": [
         20,
-        390,
-        87,
+        340,
+        60,
         150
       ],
       "animal": "node.prey_dangerous",
-      "n": 2
+      "n": 1
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.1,
-    "housing.base": 7,
+    "start.currency": 4,
+    "core.burn": 2.5,
+    "housing.base": 6,
     "lots.block": 60,
     "lots.street": 0,
+    "customers.spawn": 3,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
     "level.budgetSeconds": 340
   },
   "goal": {
-    "type": "hunt",
-    "n": 27
+    "type": "protein",
+    "n": 31
   },
   "family": "rescue",
   "objectives": [
     {
       "id": "main",
-      "kind": "hunt",
+      "kind": "protein",
       "params": {
-        "n": 27
+        "n": 31
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 297
+        "seconds": 235
       }
     },
     {
@@ -284,23 +346,22 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Drift Cables and Game Trails",
-      "goal": "hunt",
+      "title": "Drift Cables and Hunters' Larder",
+      "goal": "protein",
       "tips": [
         "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.47,
-    "fun": 0.868,
-    "botMargin": 0.455,
+    "difficulty": 0.748,
+    "fun": 0.827,
+    "botMargin": 0.577,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
       "good": 3,

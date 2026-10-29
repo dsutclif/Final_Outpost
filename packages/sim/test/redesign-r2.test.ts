@@ -7,6 +7,10 @@ import {
 } from "../src/index.js";
 import { LEVELS, LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, at, grant, idle, newSim, walkPath, walkTo } from "./helpers.js";
 
+// the kiosk at (330, 570): its clerk spot, coin pile and queue head follow content's offsets (the plot layout moves them)
+const KS = content.sinks["sink.sales_point"] as unknown as { registerOffset: [number, number]; pileOffset: [number, number]; queueOffset: [number, number] };
+const REG = at(330, 570 + KS.registerOffset[1]), PILE = at(330 + Math.abs(KS.pileOffset[0]), 570 + KS.pileOffset[1]);
+
 // Redesign round 2 (docs/REDESIGN-R2.md): phantom sales, clerk pad and queue side, stocked queue,
 // fuel scrap, reactor-out freeze, perimeter rings and attack sides, swarm/boss economy, star
 // objectives, and the starred features (pod freeze, tow loss, crates, bulk orders, tier-2 and
@@ -101,9 +105,9 @@ describe("clerk pad and queue side", () => {
   it("level 1: the clerk pad sits on the camera side of the kiosk; the line forms toward the map interior and grows away from the core", () => {
     const sim = newSim();
     const s = sim.state.sales!;
-    expect(s.register).toEqual(at(330, 624));
-    expect(s.pile).toEqual(at(392, 624));
-    expect(s.queueAt).toEqual(at(254, 570));
+    expect(s.register).toEqual(REG);
+    expect(s.pile).toEqual(PILE);
+    expect(s.queueAt).toEqual(at(330 - Math.abs(KS.queueOffset[0]), 570 + KS.queueOffset[1]));
     expect(s.queueStep).toEqual(at(0, 34));
     expect(s.edgeX).toBe(fp(500));
   });
