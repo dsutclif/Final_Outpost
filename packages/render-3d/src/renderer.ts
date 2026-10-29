@@ -37,7 +37,7 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { disposeGeo, getAnchor, mesh, model, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
-import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
+import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
@@ -88,6 +88,11 @@ interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, num
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
+/** Drone: size against a character, hover height, and the four rotor mounts [x, z] / height (drone-model art metres). */
+const DRONE_K = 1;
+const DRONE_HOVER = 0.9;
+const DRONE_ROTOR_Y = 0.36;
+const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.27, 0.38], [-0.27, 0.38], [0.27, -0.38], [-0.27, -0.38]];
 /** Decor that looks like scrap: left out where scrap heaps can be picked over. */
 const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.ship_wreck", "decor.scrap_field"]);
 /** Items drawn per carried column at most. */
@@ -229,30 +234,51 @@ const GATHER_ACT: Readonly<Record<string, string>> = {
   "node.material_source": "mine", "node.food_source": "reap", "node.fuel_deposit": "pick", "node.fuel_scrap": "mine",
 };
 
+/** The gate an attacked side's wave heads for: of that side's gates the one nearest the core, as the sim picks it. */
+function attackGatePoint(cp: Compiled, sd: string): [number, number] | null {
+  const core = cp.manifest.entities.find((e) => e.type === "sink.core");
+  if (!core) return null;
+  const [cx, cz] = core.at;
+  let best: [number, number] | null = null, bd = Infinity;
+  for (const e of cp.manifest.entities) {
+    if (e.type !== "barrier.line") continue;
+    for (const s of e.sections) {
+      if (!s.gate) continue;
+      const mx = (s.a[0] + s.b[0]) / 2, mz = (s.a[1] + s.b[1]) / 2, dx = mx - cx, dz = mz - cz;
+      const side = Math.abs(dz) >= Math.abs(dx) ? (dz < 0 ? "n" : "s") : dx < 0 ? "w" : "e";
+      if (side !== sd) continue;
+      const d = dx * dx + dz * dz;
+      if (d < bd) { bd = d; best = [mx, mz]; }
+    }
+  }
+  return best;
+}
+
+/**
+ * Where attackers of a side enter the game space (sim defense.ts spawnPoint without its random spread): just
+ * beyond the edge by defense.spawnY, down the lane in line with that side's gate, else `along` (the hero's place).
+ */
+function spawnPointOf(cp: Compiled, sd: string, along: { x: number; y: number }): { x: number; y: number } {
+  const W = cp.manifest.map.w, H = cp.manifest.map.h, y = cp.defense.spawnY / FP;
+  const g = attackGatePoint(cp, sd);
+  switch (sd) {
+    case "n": return { x: g ? g[0] : along.x, y };
+    case "s": return { x: g ? g[0] : along.x, y: H - y };
+    case "w": return { x: y, y: g ? g[1] : along.y };
+    default: return { x: W - y, y: g ? g[1] : along.y };
+  }
+}
+
 /**
  * The attack roads (Batch 3): from each attacked side's gate (of its gates the one nearest the core, as the
  * sim picks it) straight out past the map edge, as wide as the lane the waves come down.
  */
 function attackRoads(cp: Compiled): Road[] {
-  const core = cp.manifest.entities.find((e) => e.type === "sink.core");
-  if (!core) return [];
-  const [cx, cz] = core.at;
   const sides = new Set(cp.waves.flatMap((w) => w.sides));
   const W = cp.manifest.map.w, H = cp.manifest.map.h, w = Math.max(30, (cp.defense.laneHalfWidth / FP) * 2 + 16);
   const out: Road[] = [];
   for (const sd of sides) {
-    let best: [number, number] | null = null, bd = Infinity;
-    for (const e of cp.manifest.entities) {
-      if (e.type !== "barrier.line") continue;
-      for (const s of e.sections) {
-        if (!s.gate) continue;
-        const mx = (s.a[0] + s.b[0]) / 2, mz = (s.a[1] + s.b[1]) / 2, dx = mx - cx, dz = mz - cz;
-        const side = Math.abs(dz) >= Math.abs(dx) ? (dz < 0 ? "n" : "s") : dx < 0 ? "w" : "e";
-        if (side !== sd) continue;
-        const d = dx * dx + dz * dz;
-        if (d < bd) { bd = d; best = [mx, mz]; }
-      }
-    }
+    const best = attackGatePoint(cp, sd);
     if (!best) continue;
     const [ax, az] = best, far = 400;
     const [bx, bz] = sd === "n" ? [ax, -far] : sd === "s" ? [ax, H + far] : sd === "w" ? [-far, az] : [W + far, az];
@@ -290,6 +316,8 @@ export class Renderer3D implements Renderer {
   private raycaster = new Raycaster();
   private geos: BufferGeometry[] = [];
   private dynamic = new Group();
+  /** Lv2 guard post troops drawn as drones: body and four rotors per drone. */
+  private drones = new Map<string, { root: Group; body: Group; rotors: Group[]; seen: number }>();
   private placed = new Map<string, Placed>();
   /** Keys rebuilt because their GLB landed: they reappear without the pop. */
   private quiet = new Set<string>();
@@ -306,7 +334,7 @@ export class Renderer3D implements Renderer {
   /** What a rigged character is doing (a clip key: mine, reap, pick, dig, shoot), until when, and at what. */
   private acts = new Map<string, { act: string; until: number; at?: V }>();
   /** Operator spots of the converters running this frame (world), with the machine they face. */
-  private workSpots: { op: V; at: V }[] = [];
+  private workSpots: { op: V; at: V; working: boolean }[] = [];
   private quality: QualityTier;
   private cssW = 400;
   private cssH = 700;
@@ -615,6 +643,7 @@ export class Renderer3D implements Renderer {
         label = workerName(this.skin, what, worker.vars);
       }
       if (kind === "build" && what === "node.enable") label = uiText(this.skin, "unlock", { name: targetType ? name(targetType) : "" }).trim();
+      else if (kind === "build" && what === "conv.level" && targetType) label = uiText(this.skin, "upgradeTo", { name: name(targetType) });
       else if (kind === "build" && what === "sink.core.level") label = uiText(this.skin, "coreLevel", { n: 2 });
       else if (kind === "build" && what === "zone.clear") label = uiText(this.skin, "clear", { name: name("zone.blocked") });
       const info: PadInfo = { id: e.id, kind, cost: { ...e.cost }, label, big: e.type === "pad.build" ? e.big : false, what };
@@ -784,6 +813,7 @@ export class Renderer3D implements Renderer {
     this.items.end();
     this.crowd.end();
     this.rigged?.end(dt);
+    for (const [k, d] of this.drones) if (d.seen !== this.frameNo) { this.dynamic.remove(d.root); this.drones.delete(k); }
     this.blobs.end();
     for (const b of Object.values(this.walls!)) b.end();
 
@@ -1047,6 +1077,8 @@ export class Renderer3D implements Renderer {
     this.candidate("sink.sales_point", kiosk);
     // the clerk pad: whoever stands on it (hero or clerk) rings up the queue; no register object
     const reg = this.place("register", "sink.sales_point.register", this.wv(sales.register));
+    // every standing plate (clerk, operator, pickup, drop-off) draws at the one plot plate size
+    if (this.devPlateSize !== null) reg.model.root.scale.setScalar(this.devPlateSize);
     this.candidate("sink.sales_point.register", reg, ART_M * 0.55);
     this.shelfCrates(sales, kiosk);
     // the currency pile by the clerk pad
@@ -1175,6 +1207,12 @@ export class Renderer3D implements Renderer {
       // scrap heaps take the scrap models in turn (ship scrap, scrap field, wreck): every scrap on such a level is pickable
       const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? 1 + (i % 3) : 1);
       if (n.enabled) this.candidate(n.type, p);
+      // a locked grow dome is an unbuilt thing like any other: the blue blueprint, with its unlock pad
+      const ghosted = !n.enabled && n.type === "node.food_source";
+      p.model.root.visible = !ghosted;
+      if (ghosted) {
+        this.syncGhost(p, n.type, this.wv(n.pos), 0);
+      } else this.hideGhost(p);
       const body = p.model.parts["body"] as Mesh | undefined;
       const steps = body?.userData["steps"] as number[] | undefined;
       // a Meshy pile has no draw-range steps, so it settles lower as its stock runs down
@@ -1199,7 +1237,7 @@ export class Renderer3D implements Renderer {
       if (glass) glass.visible = true;
       // a locked node shows a padlock-style label until its unlock pad completes
       const sp = this.sprite(p, 0);
-      if (!n.enabled) {
+      if (!n.enabled && !ghosted) {
         const txt = uiText(this.skin, "locked");
         sp.visible = this.labels.apply(sp, `lock|${txt}`, () => this.labels.text(txt, this.tokens.paper.panel, 34), textSprite(TEXT.sub, 34, 34 * 1.45));
         sp.position.set(p.model.root.position.x, ART_M * 2.2, p.model.root.position.z); // above the unlock pad's label
@@ -1316,7 +1354,8 @@ export class Renderer3D implements Renderer {
       const working = manned && cv.inQ.length > 0 && !blocked;
       // the unit going in next, for the conversion animation (the sim has already taken it when it reports)
       if (cv.inQ[0]) p.data["front"] = cv.inQ[0];
-      if (working) this.workSpots.push({ op: { x: cv.operatorPos.x / FP, y: cv.operatorPos.y / FP }, at: { x: cv.pos.x / FP, y: cv.pos.y / FP } });
+      // every machine has a spot: its operator faces it whether or not it runs
+      this.workSpots.push({ op: { x: cv.operatorPos.x / FP, y: cv.operatorPos.y / FP }, at: { x: cv.pos.x / FP, y: cv.pos.y / FP }, working });
       if (working) {
         // progress toward the next unit over the machine
         const sec = (cv.level > 1 ? def?.upgradeRates?.[cv.level - 2] : undefined) ?? def?.rate ?? 1;
@@ -1480,7 +1519,7 @@ export class Renderer3D implements Renderer {
       m.visible = !!mat;
       const w = this.wv({ x: d.pos.x + o[0] * FP, y: d.pos.y + o[1] * FP });
       m.position.set(w.x, 2.4, w.z);
-      m.scale.setScalar(2 * (def?.padRange ?? 20) * 1.1);
+      m.scale.setScalar(this.devPlateSize ?? 2 * (def?.padRange ?? 20) * 1.1);
     });
     for (let i = offs.length; i < this.depotPads.length; i++) this.depotPads[i]!.visible = false;
   }
@@ -1622,14 +1661,15 @@ export class Renderer3D implements Renderer {
       g.userData["ghost"] = mat;
       g.userData["what"] = what;
       g.userData["h"] = tmpBox.isEmpty() ? 1 : Math.max(0.3, tmpBox.max.y);
-      g.scale.setScalar(ART_M);
       this.dynamic.add(g);
       p.extra[3] = g;
     }
     g.visible = true;
-    g.position.set(at.x, 0, at.z);
+    // the same size chain as the built model (look buildScale, modelScale, aligned sizes) and the same slab lift
+    g.scale.setScalar(ART_M * this.buildK(what, 1));
+    g.position.set(at.x, /^(sink|conv|struct)./.test(what) && what !== "struct.gate" ? SLAB_TOP : 0, at.z);
     (g.userData["ghost"] as MeshLambertMaterial).opacity = 0.5 + 0.3 * fill + 0.06 * Math.sin(this.t * 3 + at.x);
-    return g.userData["h"] as number;
+    return (g.userData["h"] as number) * this.buildK(what, 1);
   }
 
   /**
@@ -1953,10 +1993,10 @@ export class Renderer3D implements Renderer {
       // rigged once loaded; the frozen turn to ice and the med bay patients lie on their backs (rigged.ts)
       const rrig = this.rigged?.entryFor(id);
       const moving = sp > 0.05;
-      // an operator standing at a running machine works it (its `work` clips, facing the machine)
-      if (!moving && r.status === "ok" && rrig?.clips?.["work"]) {
+      // an operator standing at a machine faces it; at a running one it works it (its `work` clips, if the rig has them)
+      if (!moving && r.status === "ok") {
         const w = this.workSpots.find((ws) => (ws.op.x - pos.x) ** 2 + (ws.op.y - pos.y) ** 2 < (ART_M * 0.6) ** 2);
-        if (w) this.acts.set(key, { act: "work", until: this.t + 0.3, at: w.at });
+        if (w) this.acts.set(key, { act: w.working && rrig?.clips?.["work"] ? "work" : "face", until: this.t + 0.3, at: w.at });
       }
       const ryaw = this.faceAct(key, pos, ry, moving);
       const carrying = !!r.carry && r.n > 0;
@@ -1981,6 +2021,13 @@ export class Renderer3D implements Renderer {
       const ty = this.faceFrom(key, tv);
       const trig = this.rigged?.entryFor("role.defender");
       const fighting = s.hostiles.some((h) => (h.pos.x - tr.pos.x) ** 2 + (h.pos.y - tr.pos.y) ** 2 < (30 * FP) ** 2);
+      // the post makes drones (hired guards are the humans): the guard shows only until the drone models land
+      const lift = this.placeDrone(key, pos.x, pos.y, ty, fighting);
+      if (lift !== null) {
+        this.blobs!.add(pos.x, pos.y, 9);
+        if (tr.hp < tr.hpMax) this.barTag(pos.x, lift + ART_M * 0.5, pos.y, tr.hp / tr.hpMax, t.ok, 6);
+        continue;
+      }
       if (trig) {
         this.rigged!.add(key, "role.defender", trig, { moving: sp > 0.05, hurried: false, cheer: false, speed: sp, act: fighting ? "shoot" : undefined }, pos.x, pos.y, ty, ART_M * tl.scale * this.devCharScale / 0.9);
         this.blobs!.add(pos.x, pos.y, 10 * tl.scale);
@@ -2040,6 +2087,37 @@ export class Renderer3D implements Renderer {
     void items; void dt;
   }
 
+  /** A drone hovering at (x, z): drawn from the loaded drone and rotor models, rotors spinning. Returns its top height, or null while they are not loaded. */
+  private placeDrone(key: string, x: number, z: number, yaw: number, fighting: boolean): number | null {
+    let d = this.drones.get(key);
+    if (!d) {
+      const body = meshyScene("unit.drone");
+      if (!body || !meshyScene("unit.drone.rotor")) return null;
+      const root = new Group(), holder = new Group();
+      holder.add(body);
+      root.add(holder);
+      const rotors = DRONE_ROTORS.map(([rx, rz]) => {
+        const r = new Group();
+        r.add(meshyScene("unit.drone.rotor")!);
+        r.position.set(rx, DRONE_ROTOR_Y, rz);
+        holder.add(r);
+        return r;
+      });
+      root.scale.setScalar(ART_M * this.devCharScale * DRONE_K);
+      this.dynamic.add(root);
+      d = { root, body: holder, rotors, seen: 0 };
+      this.drones.set(key, d);
+    }
+    d.seen = this.frameNo;
+    d.root.visible = true;
+    d.root.position.set(x, 0, z);
+    d.root.rotation.y = yaw;
+    const bob = Math.sin(this.t * (fighting ? 7 : 3) + x * 0.1) * (fighting ? 0.06 : 0.1);
+    d.body.position.y = DRONE_HOVER + bob;
+    d.rotors.forEach((r, i) => { r.rotation.y = this.t * 38 * (i % 2 ? 1 : -1); });
+    return ART_M * this.devCharScale * DRONE_K * (DRONE_HOVER + 0.6);
+  }
+
   /**
    * Items on a character's back. The hero's pack is one column per resource, side by side in a
    * fixed (content) order, each up to its carry cap, with a MAX tag over any full column; a worker
@@ -2068,8 +2146,9 @@ export class Renderer3D implements Renderer {
       const h = items.height(res) * k;
       let y = (front ? 0.55 : 0.72) * s, wx = 0, wz = 0;
       for (let i = 0; i < n; i++) {
-        const w = Math.sin(this.t * 9 - i * 0.55 - ci * 0.7) * i * 0.3 * (0.3 + moving);
-        const lb = -lean * i * 0.5;
+        // a carry clip's hold is rigid: the goods ride with the rig, no wobble or lean
+        const w = front ? 0 : Math.sin(this.t * 9 - i * 0.55 - ci * 0.7) * i * 0.3 * (0.3 + moving);
+        const lb = front ? 0 : -lean * i * 0.5;
         wx = rx * w + fx * lb; wz = rz * w + fz * lb;
         items.add(res, bx + wx, y, bz + wz, yaw + i * 0.2, k);
         y += h;
@@ -2429,12 +2508,11 @@ export class Renderer3D implements Renderer {
     const nw = this.nextWave(w);
     const wave = this.cp?.waves[w.waves?.idx ?? -1];
     if (nw && wave && nw.s <= 6 && sectors.size === 0) {
-      const pl = w.player.pos, W = this.manifest.map.w, H = this.manifest.map.h;
-      const edge = { n: { x: pl.x / FP, y: -40 }, s: { x: pl.x / FP, y: H + 40 }, e: { x: W + 40, y: pl.y / FP }, w: { x: -40, y: pl.y / FP } };
+      const pl = { x: w.player.pos.x / FP, y: w.player.pos.y / FP };
       const counts = new Map<string, number>();
       wave.types.forEach((_, i) => { const sd = wave.sides[i % wave.sides.length]!; counts.set(sd, (counts.get(sd) ?? 0) + 1); });
       for (const [sd, n] of counts) {
-        const e = edge[sd as keyof typeof edge];
+        const e = spawnPointOf(this.cp!, sd, pl);
         targets.push({ p: this.toScreen(v3(e.x, 10, e.y)), color: t.danger, icon: "hostile", big: true, n });
       }
     }

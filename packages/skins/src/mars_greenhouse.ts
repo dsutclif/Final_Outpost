@@ -455,6 +455,7 @@ export const marsGreenhouse: Skin = {
       needsHousing: "NEEDS POD",
       needsCoreLevel: "Needs Reactor Lv{n}",
       unlock: "Unlock {name}",
+      upgradeTo: "Upgrade {name}",
       coreLevel: "Reactor Lv{n}",
       clear: "Clear {name}",
       updateReady: "Update ready",
