@@ -2068,8 +2068,9 @@ export class Renderer3D implements Renderer {
       const h = items.height(res) * k;
       let y = (front ? 0.55 : 0.72) * s, wx = 0, wz = 0;
       for (let i = 0; i < n; i++) {
-        const w = Math.sin(this.t * 9 - i * 0.55 - ci * 0.7) * i * 0.3 * (0.3 + moving);
-        const lb = -lean * i * 0.5;
+        // a carry clip's hold is rigid: the goods ride with the rig, no wobble or lean
+        const w = front ? 0 : Math.sin(this.t * 9 - i * 0.55 - ci * 0.7) * i * 0.3 * (0.3 + moving);
+        const lb = front ? 0 : -lean * i * 0.5;
         wx = rx * w + fx * lb; wz = rz * w + fz * lb;
         items.add(res, bx + wx, y, bz + wz, yaw + i * 0.2, k);
         y += h;
