@@ -89,7 +89,8 @@ class StepOver(Take):
         peak = max(range(len(lifts)), key=lambda i: lifts[i])
         start = peak
         while start > 0 and lifts[start] - ground > 0.04: start -= 1
-        self.a = max(0, start - 3)
+        # keep one stride of the walk-in: standing up at the hips leaves the tub's foot end a short step away
+        self.a = max(0, start - 3 - int(os.environ.get("STEP_LEAD", 22)))
         # end: both feet down again after the second foot's step
         end = peak
         later = [i for i in range(peak, len(lifts)) if lifts[i] - ground > 0.12]
@@ -104,7 +105,7 @@ class StepOver(Take):
         for side, prefix in (("l", "Left"), ("r", "Right")):
             lift = (foot_z(seg, side) - self.foot_floor) / max(self.peak_lift, 1e-3)
             if lift <= 0.02: continue
-            ang = math.radians(32) * smooth(lift)  # up to 32 degrees more hip flexion at the top of the step
+            ang = math.radians(float(os.environ.get("STEP_LIFT", 45))) * smooth(lift)  # extra hip flexion at the top of the step
             # swing the whole leg forward-up about the hip's left-right axis (whichever way raises the knee)
             for sign in (1, -1):
                 rot = Matrix.Rotation(sign * ang, 3, right)
@@ -249,17 +250,6 @@ for f, row in enumerate(TL):
             toes = [arm.matrix_world @ arm.pose.bones[retarget.P + n].tail for n in ("LeftToeBase", "RightToeBase")]
             takeoff = (row[3].copy(), toes)
 
-# the pod: a low tub round the lying body, its front rim on the line the step crosses
-xs = [p.x for p in lying_pts]; ys = [p.y for p in lying_pts]
-x0, x1, y0, y1 = min(xs) - 0.15, max(xs) + 0.15, min(ys) - 0.12, max(ys) + 0.12
-step_dir = Vector((math.cos(heading(TL[next(i for i, r in enumerate(TL) if r[0] == k_step)][2][1])),
-                   math.sin(heading(TL[next(i for i, r in enumerate(TL) if r[0] == k_step)][2][1])), 0))
-ax = max((Vector((1, 0, 0)), Vector((-1, 0, 0)), Vector((0, 1, 0)), Vector((0, -1, 0))), key=lambda a: a.dot(step_dir))
-if ax.x > 0.5: x1 = step_peak.x
-elif ax.x < -0.5: x0 = step_peak.x
-elif ax.y > 0.5: y1 = step_peak.y
-else: y0 = step_peak.y
-RIM_H = round(min(0.42, max(0.2, best_lift * 0.6)), 2)
 WALL_T = 0.08
 walls = []
 
@@ -270,13 +260,6 @@ def box(name, cx, cy, cz, sx, sy, sz, color):
     o.name, o.scale, o.color = name, (sx, sy, sz), color
     return o
 
-
-wall_c = (0.45, 0.5, 0.58, 1)
-for nm, cx, cy, sx, sy in (("rim_x0", x0 - WALL_T / 2, (y0 + y1) / 2, WALL_T, y1 - y0 + 2 * WALL_T),
-                           ("rim_x1", x1 + WALL_T / 2, (y0 + y1) / 2, WALL_T, y1 - y0 + 2 * WALL_T),
-                           ("rim_y0", (x0 + x1) / 2, y0 - WALL_T / 2, x1 - x0, WALL_T),
-                           ("rim_y1", (x0 + x1) / 2, y1 + WALL_T / 2, x1 - x0, WALL_T)):
-    walls.append(box(nm, cx, cy, RIM_H / 2, sx, sy, RIM_H, wall_c))
 
 # the deck ends at the takeoff line, the sand lies DROP_H below
 t_pos, t_toes = takeoff
@@ -299,35 +282,106 @@ def support(p):
     return 0.0 if p.dot(jump_dir) <= edge_d else -DROP_H
 
 
-# pass 2: lock feet to the ground in contact frames, key every frame, check every frame
-locks, report = [], []
+# pass 2: ground lock. In contact frames the lowest point of the suit sits on the deck or sand; in
+# any frame it may never go below them. Smoothing runs only inside stretches of contact, so a foot
+# never sinks while the lock eases.
+raw, floor_need, contact = [], [], []
 for f, row in enumerate(TL):
     place(row)
     bpy.context.view_layer.update()
+    low = min(mesh_points(), key=lambda v: v.z)
+    need = support(low) - low.z
+    on = row[4] is True
+    if row[4] is None:          # the drop: on the ledge before takeoff, on the sand after landing
+        bm = body_min(row[5].clip.pose(row[6])[0])
+        on = abs(bm - drop.floor) < 0.05 or bm - drop.ground() < 0.05
+    raw.append(need if on else 0.0)
+    floor_need.append(need)
+    contact.append(on)
+sm = []
+for i in range(N):
+    if contact[i]:
+        win = [raw[j] for j in range(max(0, i - 3), min(N, i + 4)) if contact[j] and TL[j][0] == TL[i][0]]
+        v = sum(win) / len(win)
+    else:
+        v = raw[i]
+    sm.append(max(v, floor_need[i]))  # never below the ground
+
+# the pod: a low tub fitted round the whole get-up; its rim on the step line where the feet clear
+# it highest, and just lower than that
+getup_pts, step_frames = [], []
+for f, row in enumerate(TL):
+    if row[0] not in (0, k_step, k_step + 1): continue
+    place(row, sm[f])
+    bpy.context.view_layer.update()
     pts = mesh_points()
-    low = min(pts, key=lambda v: v.z)
-    dz = 0.0
-    if row[4] is True:          # the performer was on the ground: put the body on ours
-        dz = support(low) - low.z
-    elif row[4] is None:        # the drop: on the ledge before takeoff, on the sand after landing
-        seg, _, _ = row[5].clip.pose(row[6])
-        bm = body_min(seg)
-        if abs(bm - drop.floor) < 0.05 or bm - drop.ground() < 0.05:
-            dz = support(low) - low.z
-    locks.append(dz)
-# smooth the lock so contact changes never pop
-sm = [sum(locks[max(0, i - 3):i + 4]) / len(locks[max(0, i - 3):i + 4]) for i in range(N)]
+    if row[0] == 0: getup_pts += pts[::5]
+    else: step_frames.append(pts[::2])  # the step and the walk after it: the rim must clear both
+# which way the step actually travels (the pelvis from the first to the last step frame)
+step_rows = [r for r in TL if r[0] == k_step]
+step_dir = step_rows[-1][3] - step_rows[0][3]; step_dir.z = 0
+ax = max((Vector((1, 0, 0)), Vector((-1, 0, 0)), Vector((0, 1, 0)), Vector((0, -1, 0))), key=lambda a: a.dot(step_dir))
+lat = Vector((-ax.y, ax.x, 0))
+g_along = [p.dot(ax) for p in getup_pts]; g_lat = [p.dot(lat) for p in getup_pts]
+lat0, lat1 = min(g_lat) - 0.1, max(g_lat) + 0.1
+lying = [p for p in getup_pts[:200]]
+foot_peaks = [max(pts, key=lambda p: p.z) for pts in step_frames]
+pk = max(foot_peaks, key=lambda p: p.z)
+print(f"GEO getup along {min(g_along):.2f}..{max(g_along):.2f} lat {min(g_lat):.2f}..{max(g_lat):.2f}; step travel {step_dir.length:.2f} m; foot peak along {pk.dot(ax):.2f} z {pk.z:.2f}; step pelvis along {step_rows[0][3].dot(ax):.2f}->{step_rows[-1][3].dot(ax):.2f}; walk pelvis along end {[r for r in TL if r[0] == k_step + 1][-1][3].dot(ax):.2f}")
+back = min(g_along) - 0.1
+best_c, best_clear = None, -1.0
+c = max(g_along) + WALL_T / 2 + 0.02
+while c < max(g_along) + 1.5:
+    clear = 9.0
+    for pts in step_frames:
+        cross = [p.z for p in pts if abs(p.dot(ax) - c) < WALL_T / 2 and lat0 - WALL_T < p.dot(lat) < lat1 + WALL_T]
+        if cross: clear = min(clear, min(cross))
+    if clear > best_clear: best_c, best_clear = c, clear
+    c += 0.02
+RIM_H = round(max(0.12, min(0.42, best_clear - 0.04)), 2)
+front = best_c - WALL_T / 2
+print(f"RIM at {front:.2f} along the step, clearance {best_clear:.2f} m, height {RIM_H} m")
+wall_c = (0.45, 0.5, 0.58, 1)
+
+
+def wall(nm, a0, a1, l0, l1):
+    """A rim wall spanning along-step a0..a1 and lateral l0..l1, in world axes."""
+    ca, cl = (a0 + a1) / 2, (l0 + l1) / 2
+    centre = ax * ca + lat * cl
+    sa, sl = a1 - a0, l1 - l0
+    size = Vector((abs(ax.x) * sa + abs(lat.x) * sl, abs(ax.y) * sa + abs(lat.y) * sl, RIM_H))
+    walls.append(box(nm, centre.x, centre.y, RIM_H / 2, size.x, size.y, size.z, wall_c))
+
+
+lo_a, hi_a = min(back, front), max(back, front)
+wall("rim_front", front, front + WALL_T, lat0 - WALL_T, lat1 + WALL_T)
+wall("rim_back", back - WALL_T, back, lat0 - WALL_T, lat1 + WALL_T)
+wall("rim_l0", lo_a, hi_a, lat0 - WALL_T, lat0)
+wall("rim_l1", lo_a, hi_a, lat1, lat1 + WALL_T)
+x0, x1 = min(w.location.x - w.scale.x / 2 for w in walls), max(w.location.x + w.scale.x / 2 for w in walls)
+y0, y1 = min(w.location.y - w.scale.y / 2 for w in walls), max(w.location.y + w.scale.y / 2 for w in walls)
 for f, row in enumerate(TL):
     place(row, sm[f])
     for b in arm.pose.bones:
         b.keyframe_insert("rotation_quaternion", frame=f + 1)
         if b.name == retarget.P + "Hips": b.keyframe_insert("location", frame=f + 1)
+report = []
 # pass 3: play the keyed animation back and check every frame
 for f, row in enumerate(TL):
     sc.frame_set(f + 1)
     pts = mesh_points()
     low = min(pts, key=lambda v: v.z)
     gap = low.z - support(low)
+    if contact[f] and abs(gap) > 0.015:  # settle: re-key this frame onto the ground and measure again
+        sm[f] -= gap
+        place(row, sm[f])
+        for b in arm.pose.bones:
+            b.keyframe_insert("rotation_quaternion", frame=f + 1)
+            if b.name == retarget.P + "Hips": b.keyframe_insert("location", frame=f + 1)
+        sc.frame_set(f + 1)
+        pts = mesh_points()
+        low = min(pts, key=lambda v: v.z)
+        gap = low.z - support(low)
     issues = []
     if row[4] is True and gap > 0.04: issues.append(f"floating {gap * 100:.0f} cm")
     if gap < -0.04: issues.append(f"sinking {-gap * 100:.0f} cm")
@@ -336,7 +390,6 @@ for f, row in enumerate(TL):
         lo_, hi_ = w.location - w.scale / 2, w.location + w.scale / 2
         inside += sum(1 for p in pts[::3] if lo_.x < p.x < hi_.x and lo_.y < p.y < hi_.y and lo_.z < p.z < hi_.z)
     if inside > 0: issues.append(f"{inside} suit points inside the pod rim")
-    if f % 15 == 0: print(f"DBG f{f + 1} {takes[row[0]].name} clipf {row[6]} contact {row[4]} low {low.z:.3f} support {support(low):.2f} gap {gap:.3f} lock {sm[f]:.3f} pelvis_z {row[3].z:.2f}")
     if issues: report.append(f"f{f + 1:04d} [{takes[row[0]].name}] " + "; ".join(issues))
 
 sc.frame_start, sc.frame_end = 1, N
@@ -346,14 +399,21 @@ with open(os.path.join(lib.OUT, "pod_exit_check.txt"), "w") as fh:
     fh.write(f"{len(report)} frames with issues\n" + "\n".join(report) + "\n")
 print(f"POD_EXIT {N} frames, rim {RIM_H} m, drop {DROP_H:.2f} m, {len(report)} frames flagged")
 
-# cameras: front, side, top, and a low three-quarter shot camera, all following the pelvis
-centre = sum((r[3] for r in TL), Vector()) / N
-cams = {
-    "front": lib.camera(centre + Vector((0, -7.5, 1.2)), centre + Vector((0, 0, 0.3)), lens=30, name="front"),
-    "side": lib.camera(centre + Vector((7.5, 0, 1.2)), centre + Vector((0, 0, 0.3)), lens=30, name="side"),
-    "top": lib.camera(centre + Vector((0, 0, 12)), centre, lens=30, name="top"),
-    "shot": lib.camera(Vector((x0 - 1.8, y0 - 2.6, 1.3)), Vector(((x0 + x1) / 2, (y0 + y1) / 2, 0.6)), lens=32, name="shot"),
-}
+# cameras: front, side, top and a low three-quarter view, all riding on a follower that tracks the
+# commander's pelvis (smoothed), so nothing leaves frame
+follow = bpy.data.objects.new("follow", None)
+sc.collection.objects.link(follow)
+K = 12
+for f in range(N):
+    ps = [TL[j][3] for j in range(max(0, f - K), min(N, f + K + 1))]
+    c = sum(ps, Vector()) / len(ps)
+    follow.location = (c.x, c.y, max(0.5, c.z) - 0.2)
+    follow.keyframe_insert("location", frame=f + 1)
+cams = {}
+for name, off, lens in (("front", (0, -6.0, 0.9), 30), ("side", (6.0, 0, 0.9), 30), ("top", (0, 0.01, 9.0), 30), ("shot", (-2.4, -3.4, 0.6), 30)):
+    cam = lib.camera(Vector(off), Vector((0, 0, 0)), lens=lens, name=name)
+    cam.parent = follow
+    cams[name] = cam
 if "--check" in args:
     for name, cam in cams.items():
         sc.camera = cam
