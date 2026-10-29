@@ -67,6 +67,9 @@ class Rig:
         self.hips_rest = b[P + "Hips"].matrix_local.copy()
         self.up_rest = (head("Spine1") - b[P + "Spine"].head_local).normalized()
         self.right_rest = (head("RightUpLeg") - head("LeftUpLeg")).normalized()
+        # the chest: torso up (spine base to neck) and shoulder line, for driving the spine as one piece
+        self.chest_up_rest = (head("Neck") - head("Spine")).normalized()
+        self.chest_right_rest = (head("RightArm") - head("LeftArm")).normalized()
         world = lambda v: self.A @ v
         self.leg_world = (world(head("LeftUpLeg")) - world(head("LeftFoot"))).length
 
@@ -80,6 +83,14 @@ class Rig:
         hips_head = mid + R @ (self.hips_rest.translation - self.hip_mid_rest)
         want = {}
         want["Hips"] = Matrix.Translation(hips_head) @ (R @ self.hips_rest.to_3x3()).to_4x4()
+        # The spine bends as one smooth piece from the hips' turn to the chest's, so the backpack (skinned
+        # half to Spine, half to Spine1) moves almost rigidly instead of shearing between two bones.
+        spine_share = {"Spine": 0.45, "Spine1": 0.85, "Spine2": 1.0}
+        Dc = None
+        if "_chest_up" in dirs:
+            cu, cr = (self.Ai3 @ dirs["_chest_up"]).normalized(), (self.Ai3 @ dirs["_chest_right"]).normalized()
+            Dc = frame3(cu, cr) @ frame3(self.chest_up_rest, self.chest_right_rest).transposed()
+        qh, qc = R.to_quaternion(), (Dc.to_quaternion() if Dc is not None else None)
         order = ["Hips"] + [c[0] for c in CHAIN]
         parent = {c[0]: pb[P + c[0]].parent.name.replace(P, "") for c in CHAIN}
         for name in order[1:]:
@@ -89,6 +100,10 @@ class Rig:
                 Mp = self._inherit(par, want, parent)
                 want[par] = Mp
             Minh = Mp @ self.rest[P + par].inverted() @ self.rest[P + name]
+            if qc is not None and name in spine_share:
+                D = qh.slerp(qc, spine_share[name]).to_matrix()
+                want[name] = Matrix.Translation(Minh.translation) @ (D @ self.rest[P + name].to_3x3()).to_4x4()
+                continue
             R_inh = Minh.to_3x3().normalized()
             v_cur = R_inh @ self.vrest[name]
             tgt = (self.Ai3 @ dirs[name]).normalized() if name in dirs else v_cur.normalized()
@@ -117,5 +132,8 @@ class Rig:
 
 
 def mocap_dirs(seg):
-    """Mixamo bone -> world direction from one CMU pose."""
-    return {name: seg_dir(seg, src) for name, src, _ in CHAIN}
+    """Mixamo bone -> world direction from one CMU pose, plus the chest frame (_chest_up, _chest_right)."""
+    d = {name: seg_dir(seg, src) for name, src, _ in CHAIN}
+    d["_chest_up"] = seg["thorax"][1] - seg["lowerback"][0]
+    d["_chest_right"] = seg["rhumerus"][0] - seg["lhumerus"][0]
+    return d

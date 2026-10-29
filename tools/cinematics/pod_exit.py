@@ -16,7 +16,7 @@ import lib, mocap, retarget
 
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 FADE = 10                # crossfade frames between takes
-UPRIGHT_BONES = ("Spine", "Spine1", "Spine2", "Neck", "Head", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg")
+UPRIGHT_BONES = ("Spine", "Spine1", "Spine2", "Neck", "Head", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg", "_chest_up")
 DOWN, UP = Vector((0, 0, -1)), Vector((0, 0, 1))
 
 
@@ -37,7 +37,7 @@ def upright(dirs, frame, w):
     """Blend the spine toward vertical and the legs toward straight down, by w (0..1)."""
     out = dict(dirs)
     for n in UPRIGHT_BONES:
-        target = DOWN if ("Leg" in n) else UP
+        target = DOWN if ("Leg" in n) else UP  # _chest_up straightens with the spine
         out[n] = slerp_dir(dirs[n], target, w)
     up, right = frame
     return out, (slerp_dir(up, UP, w), right)
@@ -414,7 +414,16 @@ for name, off, lens in (("front", (0, -6.0, 0.9), 30), ("side", (6.0, 0, 0.9), 3
     cam = lib.camera(Vector(off), Vector((0, 0, 0)), lens=lens, name=name)
     cam.parent = follow
     cams[name] = cam
-if "--check" in args:
+if "--close" in args:  # close side-on stills of the given frames (e.g. to inspect the backpack)
+    sc.render.resolution_x, sc.render.resolution_y = 420, 640
+    for k, off in enumerate(((2.6, 0, 0.5), (0, 2.6, 0.5), (-2.6, 0, 0.5), (0, -2.6, 0.5))):
+        cam = lib.camera(Vector(off), Vector((0, 0, 0.35)), lens=40, name=f"close{k}")
+        cam.parent = follow
+        sc.camera = cam
+        for f in (int(x) for x in args[args.index("--close") + 1].split(",")):
+            sc.frame_set(f)
+            lib.render_still(os.path.join(lib.OUT, f"close_{f:04d}_{k}.png"))
+elif "--check" in args:
     for name, cam in cams.items():
         sc.camera = cam
         for f in (1, N // 4, N // 2, 3 * N // 4, N):
