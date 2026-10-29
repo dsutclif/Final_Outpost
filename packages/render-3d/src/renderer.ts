@@ -70,6 +70,8 @@ export interface GLLike {
   setPixelRatio(r: number): void;
   setSize(w: number, h: number, updateStyle?: boolean): void;
   render(scene: Scene, camera: ThreeCamera): void;
+  /** Builds shader programs ahead of use (three's WebGLRenderer has it; test fakes may not). */
+  compileAsync?(scene: Object3D, camera: ThreeCamera, targetScene?: Scene | null): Promise<unknown>;
   dispose(): void;
 }
 
@@ -103,12 +105,32 @@ interface Placed { key: string; model: Model; born: number; seen: boolean; data:
 
 const PITCH = (PITCH_DEG * Math.PI) / 180, YAW = (YAW_DEG * Math.PI) / 180;
 const SAFE_RING_K = 1;
-/** Buildings the player walks through (sim player.walkThrough): they fade while the player stands inside. Walls, gates and turrets stay solid. */
-const SEE_THROUGH = /^(sink|conv|struct).(?!gate$|ranged_defense$|conveyor$)/;
+/** Never fade: gates belong to the (instanced, always solid) walls, belts and barriers are flat. Wall turrets are dropped at their call site. */
+const NO_FADE = /^(struct\.(gate|conveyor)$|barrier\.)/;
 const FADE_TO = 0.28;
+/**
+ * What of a placed model can hide the hero (backlog R5 #4), in art units about its root: the ground
+ * box and top of every mesh rising above half the hero's height, and the see-through material copies
+ * swapped in while it fades (made and compiled at placement, so a fade never recompiles a shader).
+ */
+interface Occ { x0: number; x1: number; z0: number; z1: number; top: number; fade: number; on: boolean; swaps: [Mesh, Material | Material[], Material | Material[]][]; see: { m: Material; a: number }[] }
 const v3 = (x = 0, y = 0, z = 0): Vector3 => new Vector3(x, y, z);
 const tmpM = new Matrix4(), tmpV = new Vector3(), tmpV2 = new Vector3();
 const clamp01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x);
+
+/** Whether the segment from (px, pz) along (dx, dz) touches the box [x0, x1] x [z0, z1] (slab test). */
+function segHitsBox(px: number, pz: number, dx: number, dz: number, x0: number, x1: number, z0: number, z1: number): boolean {
+  if (x0 > x1 || z0 > z1) return false;
+  let t0 = 0, t1 = 1;
+  for (const [p, d, lo, hi] of [[px, dx, x0, x1], [pz, dz, z0, z1]]) {
+    if (Math.abs(d!) < 1e-9) { if (p! < lo! || p! > hi!) return false; continue; }
+    let a = (lo! - p!) / d!, b = (hi! - p!) / d!;
+    if (a > b) [a, b] = [b, a];
+    t0 = Math.max(t0, a); t1 = Math.min(t1, b);
+    if (t0 > t1) return false;
+  }
+  return true;
+}
 const tmpBox = new Box3();
 /** Meshy wall sections below half hp: darker, on top of the broken silhouette. */
 const CRACKED = new Color(0.78, 0.74, 0.7);
@@ -803,7 +825,7 @@ export class Renderer3D implements Renderer {
     this.syncCharacters(state, a, pl, dt);
     this.syncLasso(state, a, pl, dt);
     this.syncMarks(state, pl);
-    this.fadeUnderPlayer(pl, dt);
+    this.fadeOccluders(pl, dt);
 
     for (const [k, p] of this.placed) if (!p.seen) { this.removePlaced(p); this.placed.delete(k); }
     this.drawDiscovery(pl);
@@ -893,12 +915,11 @@ export class Renderer3D implements Renderer {
       model.root.updateMatrixWorld(true);
       tmpBox.setFromObject(model.root);
       const h = tmpBox.isEmpty() ? 1 : Math.max(0.2, tmpBox.max.y);
-      // the ground the model covers (art units, about the root), for the walk-through fade
-      const foot = tmpBox.isEmpty() ? undefined : { x0: tmpBox.min.x, x1: tmpBox.max.x, z0: tmpBox.min.z, z1: tmpBox.max.z };
+      const occ = NO_FADE.test(id) || model.root.userData["ghost"] ? undefined : this.occluder(model.root, ART_M * this.buildK(id, level));
       model.root.scale.setScalar(ART_M);
       this.applyShadows(model.root);
       this.dynamic.add(model.root);
-      p = { key, model, born: this.synced && !this.quiet.delete(key) ? this.t : -Infinity, seen: true, data: { id, h: h * ART_M, ...(foot && SEE_THROUGH.test(id) ? { foot } : {}) }, sprites: [], extra: [] };
+      p = { key, model, born: this.synced && !this.quiet.delete(key) ? this.t : -Infinity, seen: true, data: { id, h: h * ART_M, ...(occ ? { occ } : {}) }, sprites: [], extra: [] };
       this.placed.set(key, p);
     }
     p.seen = true;
@@ -916,37 +937,64 @@ export class Renderer3D implements Renderer {
     return sized ? this.devBuildScale * modelScaleFor(this.devModelScale, id, level) : 1;
   }
 
-  /** Fade a building to see-through while the player stands inside its footprint, and restore it on leaving. */
-  private fadeUnderPlayer(pl: V, dt: number): void {
-    const walk = this.cp?.player.walkThrough ?? false;
+  /** The hiding part of a freshly built model (root still at the origin, unscaled), or none when nothing on it stands taller than half the hero. */
+  private occluder(root: Object3D, sc: number): Occ | undefined {
+    const half = (0.5 * ART_M * this.devCharScale) / sc;
+    const box = new Box3();
+    const meshes: Mesh[] = [];
+    root.traverse((o) => {
+      const m = o as Mesh;
+      if (!m.isMesh) return;
+      meshes.push(m);
+      tmpBox.setFromObject(m);
+      if (!tmpBox.isEmpty() && tmpBox.max.y > half) box.union(tmpBox);
+    });
+    if (box.isEmpty()) return undefined;
+    const occ: Occ = { x0: box.min.x, x1: box.max.x, z0: box.min.z, z1: box.max.z, top: box.max.y, fade: 1, on: false, swaps: [], see: [] };
+    // own see-through copies, so a shared material never fades another building; made now with their
+    // programs compiled in the background, because flipping `transparent` later recompiles on the spot
+    const warm = new Group();
+    const see = (m: Material): Material => { const c = m.clone(); c.transparent = true; c.depthWrite = false; occ.see.push({ m: c, a: m.opacity }); return c; };
+    for (const m of meshes) {
+      const f = Array.isArray(m.material) ? m.material.map(see) : see(m.material);
+      occ.swaps.push([m, m.material, f]);
+      warm.add(new Mesh(m.geometry, f));
+    }
+    void this.gl?.compileAsync?.(warm, this.camera, this.scene).catch(() => undefined);
+    return occ;
+  }
+
+  /**
+   * Fade whatever stands between the hero and the camera (backlog R5 #4). The camera angle is fixed, so
+   * an object hides the hero when the ground line from the hero's feet toward the camera crosses its
+   * box before the sight line has climbed past its top less half the hero's height: one 2D test per
+   * object, no raycasts. In front of a building or beside it never fades it; standing inside does.
+   */
+  private fadeOccluders(pl: V, dt: number): void {
+    const cx = this.camera.position.x - this.look.x, cz = this.camera.position.z - this.look.z;
+    const flat = Math.hypot(cx, cz) || 1;
+    const ux = cx / flat, uz = cz / flat, slope = Math.max(0.05, (this.camera.position.y - this.look.y) / flat);
+    const half = 0.5 * ART_M * this.devCharScale;
     for (const p of this.placed.values()) {
-      const foot = p.data["foot"] as { x0: number; x1: number; z0: number; z1: number } | undefined;
-      if (!foot) continue;
+      const o = p.data["occ"] as Occ | undefined;
+      if (!o) continue;
       const r = p.model.root;
-      const sc = r.scale.x;
-      const inside = walk && pl.x >= r.position.x + foot.x0 * sc && pl.x <= r.position.x + foot.x1 * sc && pl.y >= r.position.z + foot.z0 * sc && pl.y <= r.position.z + foot.z1 * sc;
-      const cur = (p.data["fade"] as number | undefined) ?? 1;
-      if (cur === 1 && !inside) continue;
-      const next = inside ? Math.max(FADE_TO, cur - dt * 6) : Math.min(1, cur + dt * 4);
-      p.data["fade"] = next;
-      let mats = p.data["fadeMats"] as { m: Material; transparent: boolean; opacity: number; depthWrite: boolean }[] | undefined;
-      if (!mats) {
-        // own copies, so a shared material never fades another building
-        mats = [];
-        r.traverse((o) => {
-          const mesh = o as Mesh;
-          if (!mesh.isMesh) return;
-          const cl = (m: Material): Material => { const c = m.clone(); mats!.push({ m: c, transparent: c.transparent, opacity: c.opacity, depthWrite: c.depthWrite }); return c; };
-          mesh.material = Array.isArray(mesh.material) ? mesh.material.map(cl) : cl(mesh.material);
-        });
-        p.data["fadeMats"] = mats;
+      const reach = (r.position.y + o.top * r.scale.y - half) / slope;
+      let hidden = false;
+      if (r.visible && reach > 0) {
+        // into the root's frame: undo its turn, then its per-axis scale
+        const c = Math.cos(r.rotation.y), s = Math.sin(r.rotation.y);
+        const wx = pl.x - r.position.x, wz = pl.y - r.position.z;
+        const sx = r.scale.x || 1, sz = r.scale.z || 1;
+        // grazing a corner is not hiding: shrink the box by a third of half the hero's height
+        const ix = (0.3 * half) / sx, iz = (0.3 * half) / sz;
+        hidden = segHitsBox((wx * c - wz * s) / sx, (wx * s + wz * c) / sz, ((ux * c - uz * s) * reach) / sx, ((ux * s + uz * c) * reach) / sz, o.x0 + ix, o.x1 - ix, o.z0 + iz, o.z1 - iz);
       }
-      for (const e of mats) {
-        const was = e.m.transparent;
-        if (next >= 1) { e.m.transparent = e.transparent; e.m.opacity = e.opacity; e.m.depthWrite = e.depthWrite; }
-        else { e.m.transparent = true; e.m.opacity = e.opacity * next; e.m.depthWrite = false; }
-        if (e.m.transparent !== was) e.m.needsUpdate = true;
-      }
+      if (o.fade === 1 && !hidden) continue;
+      o.fade = hidden ? Math.max(FADE_TO, o.fade - dt * 6) : Math.min(1, o.fade + dt * 4);
+      const on = o.fade < 1;
+      if (on !== o.on) { for (const [m, solid, see] of o.swaps) m.material = on ? see : solid; o.on = on; }
+      if (on) for (const e of o.see) e.m.opacity = e.a * o.fade;
     }
   }
 
@@ -1023,6 +1071,11 @@ export class Renderer3D implements Renderer {
 
   private removePlaced(p: Placed): void {
     this.dynamic.remove(p.model.root);
+    const occ = p.data["occ"] as Occ | undefined;
+    if (occ) {
+      for (const [m, solid] of occ.swaps) m.material = solid;
+      for (const e of occ.see) e.m.dispose();
+    }
     p.model.root.traverse((o) => {
       const m = o as Mesh;
       if (!m.isMesh) return;
@@ -1261,6 +1314,8 @@ export class Renderer3D implements Renderer {
       const site = this.pads.get(st.id)?.site;
       const onWall = st.type === "struct.ranged_defense" && !!site && this.onWallAt(site, s);
       const p = this.place(key, st.type, this.wv(st.pos), st.level, onWall ? (ctx) => this.wallTurret(ctx) : undefined);
+      // a wall turret stays solid with its wall
+      if (onWall) delete p.data["occ"];
       this.candidate(st.type, p);
       if (st.type === "struct.ranged_defense") this.aimTurret(p, st, s);
       const lights = p.model.parts["lights"];
