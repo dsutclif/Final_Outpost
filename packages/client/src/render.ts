@@ -85,8 +85,8 @@ export const warm3D = (): void => { void preloadRenderer3D().catch(() => undefin
 /** Render small thumbnails of canonical ids (field guide); empty when the chunk or WebGL fails. */
 export async function thumbnails(ids: readonly string[], skin: Skin, px = 96): Promise<Map<string, string>> {
   try {
-    const mod = await preloadRenderer3D() as { renderThumbnails?: (ids: readonly string[], skin: Skin, px: number) => Map<string, string> };
-    return mod.renderThumbnails?.(ids, skin, px) ?? new Map();
+    const mod = await preloadRenderer3D() as { renderThumbnails?: (ids: readonly string[], skin: Skin, px: number) => Promise<Map<string, string>> };
+    return (await mod.renderThumbnails?.(ids, skin, px)) ?? new Map();
   } catch { return new Map(); }
 }
 
