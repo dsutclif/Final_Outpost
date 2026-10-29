@@ -61,13 +61,13 @@
     { "file": "unit.player", "src": "Commander_All_Animations.glb", "id": "unit.player", "kind": "character", "error": 0.005, "texture": 512, "height": 0.9,
       "clips": { "walk": "Walking", "run": "Running", "mine": "Heavy_Hammer_Swing", "reap": "Female_Crouch_Pick_Fruit_Basket_Stand", "pick": "Female_Crouch_Pick_Fruit_Basket_Stand", "dig": "01a14f4e-e9f9-75ae-ad40-820430ea8db1", "shoot": "01a14f15-3c1b-7703-a977-8d99f78adbc1", "shootMove": "Run_and_Shoot" },
       "held": { "*": [
-        { "prop": "prop.pickaxe", "align": "tool", "clip": "Heavy_Hammer_Swing", "axis": [0, 1, 0], "side": [1, 0, 0], "hold": [0, 0.03, 0], "when": ["mine"] },
+        { "prop": "prop.pickaxe", "align": "tool", "clip": "Heavy_Hammer_Swing", "axis": [0, 1, 0], "side": [0.09, 0, 1], "hold": [0, 0.03, 0], "when": ["mine"] },
         { "prop": "prop.shovel", "align": "tool", "clip": "01a14f4e-e9f9-75ae-ad40-820430ea8db1", "when": ["dig"] },
         { "prop": "prop.rifle_guard", "align": "gun", "clip": "Run_and_Shoot", "axis": [-1, 0, 0], "hold": [0.1, 0.06, 0], "when": ["shoot"] }] } },
     { "file": "role.supplier", "src": "Hauler_All_Animations.glb", "id": "role.supplier", "kind": "character", "error": 0.005, "texture": 512, "height": 1.1,
       "clips": { "walk": "Walking", "run": "Running", "mine": "Heavy_Hammer_Swing", "reap": "Female_Crouch_Pick_Fruit_Basket_Stand", "pick": "Female_Crouch_Pick_Fruit_Basket_Stand", "dig": "01a14f4e-e9f9-75ae-ad40-820430ea8db1" },
       "held": { "*": [
-        { "prop": "prop.pickaxe", "align": "tool", "clip": "Heavy_Hammer_Swing", "axis": [0, 1, 0], "side": [1, 0, 0], "hold": [0, 0.03, 0], "when": ["mine"] },
+        { "prop": "prop.pickaxe", "align": "tool", "clip": "Heavy_Hammer_Swing", "axis": [0, 1, 0], "side": [0.17, 0, 0.98], "hold": [0, 0.03, 0], "when": ["mine"] },
         { "prop": "prop.shovel", "align": "tool", "clip": "01a14f4e-e9f9-75ae-ad40-820430ea8db1", "when": ["dig"] }] } },
     { "file": "role.defender", "src": "Guard_All_Animations.glb", "id": "role.defender", "kind": "character", "error": 0.005, "texture": 512, "height": 1.1, "shieldArm": true,
       "clips": { "walk": "Walking", "run": "Running", "shoot": "Rifle_Charge_inplace", "shootMove": "Run_and_Shoot" },
