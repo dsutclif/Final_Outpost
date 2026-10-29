@@ -1175,6 +1175,13 @@ export class Renderer3D implements Renderer {
       // scrap heaps take the scrap models in turn (ship scrap, scrap field, wreck): every scrap on such a level is pickable
       const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? 1 + (i % 3) : 1);
       if (n.enabled) this.candidate(n.type, p);
+      // a locked grow dome is an unbuilt thing like any other: the blue blueprint, with its unlock pad
+      const ghosted = !n.enabled && n.type === "node.food_source";
+      p.model.root.visible = !ghosted;
+      if (ghosted) {
+        this.syncGhost(p, n.type, this.wv(n.pos), 0);
+        (p.extra[3] as Group).scale.setScalar(ART_M * this.buildK(n.type));
+      } else this.hideGhost(p);
       const body = p.model.parts["body"] as Mesh | undefined;
       const steps = body?.userData["steps"] as number[] | undefined;
       // a Meshy pile has no draw-range steps, so it settles lower as its stock runs down
@@ -1199,7 +1206,7 @@ export class Renderer3D implements Renderer {
       if (glass) glass.visible = true;
       // a locked node shows a padlock-style label until its unlock pad completes
       const sp = this.sprite(p, 0);
-      if (!n.enabled) {
+      if (!n.enabled && !ghosted) {
         const txt = uiText(this.skin, "locked");
         sp.visible = this.labels.apply(sp, `lock|${txt}`, () => this.labels.text(txt, this.tokens.paper.panel, 34), textSprite(TEXT.sub, 34, 34 * 1.45));
         sp.position.set(p.model.root.position.x, ART_M * 2.2, p.model.root.position.z); // above the unlock pad's label
