@@ -615,6 +615,7 @@ export class Renderer3D implements Renderer {
         label = workerName(this.skin, what, worker.vars);
       }
       if (kind === "build" && what === "node.enable") label = uiText(this.skin, "unlock", { name: targetType ? name(targetType) : "" }).trim();
+      else if (kind === "build" && what === "conv.level" && targetType) label = uiText(this.skin, "upgradeTo", { name: name(targetType) });
       else if (kind === "build" && what === "sink.core.level") label = uiText(this.skin, "coreLevel", { n: 2 });
       else if (kind === "build" && what === "zone.clear") label = uiText(this.skin, "clear", { name: name("zone.blocked") });
       const info: PadInfo = { id: e.id, kind, cost: { ...e.cost }, label, big: e.type === "pad.build" ? e.big : false, what };
