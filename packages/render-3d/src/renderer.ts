@@ -1048,6 +1048,8 @@ export class Renderer3D implements Renderer {
     this.candidate("sink.sales_point", kiosk);
     // the clerk pad: whoever stands on it (hero or clerk) rings up the queue; no register object
     const reg = this.place("register", "sink.sales_point.register", this.wv(sales.register));
+    // every standing plate (clerk, operator, pickup, drop-off) draws at the one plot plate size
+    if (this.devPlateSize !== null) reg.model.root.scale.setScalar(this.devPlateSize);
     this.candidate("sink.sales_point.register", reg, ART_M * 0.55);
     this.shelfCrates(sales, kiosk);
     // the currency pile by the clerk pad
@@ -1489,7 +1491,7 @@ export class Renderer3D implements Renderer {
       m.visible = !!mat;
       const w = this.wv({ x: d.pos.x + o[0] * FP, y: d.pos.y + o[1] * FP });
       m.position.set(w.x, 2.4, w.z);
-      m.scale.setScalar(2 * (def?.padRange ?? 20) * 1.1);
+      m.scale.setScalar(this.devPlateSize ?? 2 * (def?.padRange ?? 20) * 1.1);
     });
     for (let i = offs.length; i < this.depotPads.length; i++) this.depotPads[i]!.visible = false;
   }
