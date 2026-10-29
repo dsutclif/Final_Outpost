@@ -36,29 +36,33 @@ Code locations were checked on 2026-10-29 against main at c51c793; re-check befo
 
 ## Sprint 1: renderer and HUD (no engine bump, no rebuild)
 
+Landed 2026-10-29 (branches renderer-sprint1, r5-hud). Light checks only: #31 compared on one ghost
+(L009 Galley), and level 2/3 pads still show the level 1 ghost size; #11 thumbnails not opened in the
+field guide; #22 dashes sit under the gate defense meter (the waves icon keeps its own pips).
+
 Renderer session (sequential):
-- [ ] **#1 carry.** Front-carried items follow the NPC exactly: same yaw as the rig, no
+- [x] **#1 carry.** Front-carried items follow the NPC exactly: same yaw as the rig, no
       wobble/lean (`render-3d/src/renderer.ts` backStack ~2048, called ~1930/1968); retune the
       front offset for charScale 1.5. Ideally parent to the chest bone (`rigged.ts:356`).
-- [ ] **#17 operators face their machine**, whether or not it is working and whether or not the rig
+- [x] **#17 operators face their machine**, whether or not it is working and whether or not the rig
       has a work clip (renderer.ts ~1956, workSpots ~1319).
-- [ ] **#9 locked grow dome** draws as the blue ghost outline with its pad, like other unbuilt
+- [x] **#9 locked grow dome** draws as the blue ghost outline with its pad, like other unbuilt
       things (renderer.ts syncNodes ~1172-1205, ghostable ~1580).
-- [ ] **#31 ghost size** (added 2026-10-29). Blue unbuilt silhouettes of buildings and machines are
+- [x] **#31 ghost size** (added 2026-10-29). Blue unbuilt silhouettes of buildings and machines are
       no longer the same size as the built models since the size and zoom changes; ghosts must use
       the same scale chain as the built model (buildScale, modelScale/alignedScale, Kiosk 1.37 etc.;
       renderer.ts ghostModel/syncGhost ~1591-1631). Do together with #9.
-- [ ] **#10 sand** colour tied to model brightness so code sand matches the hopper-hole sand.
-- [ ] **#5 upgrade pad labels** name what they upgrade (renderer.ts ~603-626, skin string).
-- [ ] **Scrap sizes.** Each scrap piece is one size everywhere: Ship_Scrap_2 is width 2.8 as a
+- [x] **#10 sand** colour tied to model brightness so code sand matches the hopper-hole sand.
+- [x] **#5 upgrade pad labels** name what they upgrade (renderer.ts ~603-626, skin string).
+- [x] **Scrap sizes.** Each scrap piece is one size everywhere: Ship_Scrap_2 is width 2.8 as a
       collectible and 3.2 as decor (`decor.ship_wreck`); unify in meshy.json. Others already match.
-- [ ] **#30a standing plates one size.** Operator, cashier, queue, pickup and drop-off plates
+- [x] **#30a standing plates one size.** Operator, cashier, queue, pickup and drop-off plates
       all draw at one consistent size: today `fixedPlates` (renderer.ts:1276-1293) uses 45, depot pads
       2 x padRange x 1.1 (~1483), and kiosk plates are part of the scaled model.
-- [ ] **#19 attack flags** point at where attackers enter the game space: the spawn point
+- [x] **#19 attack flags** point at where attackers enter the game space: the spawn point
       derived from `state.waves.pending[].side` / `cp.waves[idx].sides` plus `defense.spawnY` and the
       lane (`sim/systems/defense.ts:18` spawnPoint), not a screen edge or the gate. Renderer only.
-- [ ] **#2 drones.** A level 2 guard hut makes drones (there are no automatic human troops; hired
+- [x] **#2 drones.** A level 2 guard hut makes drones (there are no automatic human troops; hired
       guards are the only humans). Add Doug's drone, rotor (4 per drone, spinning) and level 2 guard
       hut models from the 3D models folder; troops render as drones.
 - [ ] **#4 occlusion fade** (Opus, after the above). Because the camera angle is fixed, give each
@@ -69,11 +73,11 @@ Renderer session (sequential):
       risk (in addition to the existing icons; goalhud.ts alertOf ~216, warnArt renderer.ts ~1373).
 
 HUD session (parallel):
-- [ ] **#13 + #22 waves.** The meter reads "Wave x/y" before and during waves, with one dash per
+- [x] **#13 + #22 waves.** The meter reads "Wave x/y" before and during waves, with one dash per
       wave under the gate meter (`client/src/hud.ts:62-77`).
-- [ ] **#14 no free settlers.** Standing on a hire pad with no free settler shows "No free settlers"
+- [x] **#14 no free settlers.** Standing on a hire pad with no free settler shows "No free settlers"
       at once (hint `no_idle_resident` exists, `sim/systems/pads.ts:63`; show it on arrival).
-- [ ] **#11 field guide** thumbnails use the current GLBs: await `loadMeshy` before rendering
+- [x] **#11 field guide** thumbnails use the current GLBs: await `loadMeshy` before rendering
       (`render-3d/src/thumbs.ts:34`, `client/src/render.ts:86`).
 
 ## Sprint 2: rules batch, engine 0.15.0, one rebuild

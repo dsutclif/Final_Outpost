@@ -1,7 +1,10 @@
 {
   "notes": [
-    "Five new story missions open the game, and every mission after them has been rebuilt: please pick your starting point when asked.",
-    "Buildings are sized to match each other, and each one keeps its hire and upgrade pads right in front of it; a machine's workers are hired one after another on a single pad.",
-    "Soldiers trained at an upgraded guard post are full size."
+    "An upgraded guard post now launches drones with spinning rotors, from a new guard hut with a drone pad on its roof.",
+    "Blueprints of unbuilt buildings match the size of the finished building, and a locked grow dome shows as a blueprint with its unlock pad.",
+    "Carried goods stay in workers' arms, operators face their machines, and machine upgrade pads say what they upgrade.",
+    "Raid flags point to where attackers will actually enter, and the gate meter shows one dash per wave.",
+    "Stepping on a hire pad with no free settlers now says so straight away.",
+    "The field guide shows the current models, and pickaxes now strike blade-down."
   ]
 }
