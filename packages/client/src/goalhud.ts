@@ -136,6 +136,8 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     else if (o.kind === "hp_floor" && walls !== null) t.fill = walls;
     else t.fill = o.failed ? 0 : driver ?? 1;
     if (pct !== null) { t.tick = pct; t.floor = true; }
+    // one dash per wave under the gate meter: cleared ones full, the open one showing the approach or the raid's progress
+    if (o.kind === "gate_held" && cp?.waves.length) t.pips = gatePips(st, cp);
     // the guarded meter as a %; how near a threat is has no number worth reading
     if (o.kind !== "no_injuries" && t.fill !== undefined) t.inner = String(Math.round(t.fill * 100));
     if (o.kind === "no_angry_customers") t.mood = true;
@@ -147,7 +149,7 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
   } else if (o.kind === "waves" || o.kind === "waves_survived") {
     // "Wave x/y": x is the wave coming or under way, so the goal reads 1/y before the first raid
     const w = st.waves;
-    t.pips = { n: Math.max(1, Math.min(12, o.target)), done: Math.min(o.progress, o.target), part: waveCountdown(st, cp) };
+    t.pips = { n: Math.max(1, Math.min(8, o.target)), done: Math.min(o.progress, o.target), part: waveCountdown(st, cp) };
     t.inner = String(Math.min(o.target, Math.max(1, (w?.idx ?? 0) + (w?.active ? 0 : 1))));
     t.beside = String(o.target);
   } else if (o.target >= 2 && o.target <= 5) {
@@ -201,6 +203,15 @@ function guardDriver(kind: string, st: State, cp: Compiled | null): number | nul
     }
   }
   return null;
+}
+
+/** Wave dashes for the gate meter: the open dash fills toward the next raid, then with the raiders downed. */
+function gatePips(st: State, cp: Compiled): { n: number; done: number; part: number } {
+  const w = st.waves, n = cp.waves.length;
+  if (!w) return { n, done: 0, part: 0 };
+  if (!w.active) return { n, done: Math.min(w.idx, n), part: waveCountdown(st, cp) };
+  const size = Math.max(1, cp.waves[w.idx - 1]?.types.length ?? 1);
+  return { n, done: Math.max(0, w.idx - 1), part: clamp01(1 - (st.hostiles.length + w.pending.length) / size) };
 }
 
 /** The next wave's approach 0..1 (fills the open wave pip), 0 while a wave is on. */
@@ -293,7 +304,7 @@ export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, 
   }
   s += "</g>";
   if (t.pips) {
-    const { n, done, part } = t.pips, w = n > 8 ? 2 : n > 5 ? 4 : 6, gap = 2, x0 = 22 - (n * w + (n - 1) * gap) / 2;
+    const { n, done, part } = t.pips, w = n > 5 ? 4 : 6, gap = 2, x0 = 22 - (n * w + (n - 1) * gap) / 2;
     for (let i = 0; i < n; i++) {
       const x = x0 + i * (w + gap);
       s += `<rect class="g-pip" x="${x}" y="46" width="${w}" height="4" rx="1"/>`;
