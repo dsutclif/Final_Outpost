@@ -229,30 +229,51 @@ const GATHER_ACT: Readonly<Record<string, string>> = {
   "node.material_source": "mine", "node.food_source": "reap", "node.fuel_deposit": "pick", "node.fuel_scrap": "mine",
 };
 
+/** The gate an attacked side's wave heads for: of that side's gates the one nearest the core, as the sim picks it. */
+function attackGatePoint(cp: Compiled, sd: string): [number, number] | null {
+  const core = cp.manifest.entities.find((e) => e.type === "sink.core");
+  if (!core) return null;
+  const [cx, cz] = core.at;
+  let best: [number, number] | null = null, bd = Infinity;
+  for (const e of cp.manifest.entities) {
+    if (e.type !== "barrier.line") continue;
+    for (const s of e.sections) {
+      if (!s.gate) continue;
+      const mx = (s.a[0] + s.b[0]) / 2, mz = (s.a[1] + s.b[1]) / 2, dx = mx - cx, dz = mz - cz;
+      const side = Math.abs(dz) >= Math.abs(dx) ? (dz < 0 ? "n" : "s") : dx < 0 ? "w" : "e";
+      if (side !== sd) continue;
+      const d = dx * dx + dz * dz;
+      if (d < bd) { bd = d; best = [mx, mz]; }
+    }
+  }
+  return best;
+}
+
+/**
+ * Where attackers of a side enter the game space (sim defense.ts spawnPoint without its random spread): just
+ * beyond the edge by defense.spawnY, down the lane in line with that side's gate, else `along` (the hero's place).
+ */
+function spawnPointOf(cp: Compiled, sd: string, along: { x: number; y: number }): { x: number; y: number } {
+  const W = cp.manifest.map.w, H = cp.manifest.map.h, y = cp.defense.spawnY / FP;
+  const g = attackGatePoint(cp, sd);
+  switch (sd) {
+    case "n": return { x: g ? g[0] : along.x, y };
+    case "s": return { x: g ? g[0] : along.x, y: H - y };
+    case "w": return { x: y, y: g ? g[1] : along.y };
+    default: return { x: W - y, y: g ? g[1] : along.y };
+  }
+}
+
 /**
  * The attack roads (Batch 3): from each attacked side's gate (of its gates the one nearest the core, as the
  * sim picks it) straight out past the map edge, as wide as the lane the waves come down.
  */
 function attackRoads(cp: Compiled): Road[] {
-  const core = cp.manifest.entities.find((e) => e.type === "sink.core");
-  if (!core) return [];
-  const [cx, cz] = core.at;
   const sides = new Set(cp.waves.flatMap((w) => w.sides));
   const W = cp.manifest.map.w, H = cp.manifest.map.h, w = Math.max(30, (cp.defense.laneHalfWidth / FP) * 2 + 16);
   const out: Road[] = [];
   for (const sd of sides) {
-    let best: [number, number] | null = null, bd = Infinity;
-    for (const e of cp.manifest.entities) {
-      if (e.type !== "barrier.line") continue;
-      for (const s of e.sections) {
-        if (!s.gate) continue;
-        const mx = (s.a[0] + s.b[0]) / 2, mz = (s.a[1] + s.b[1]) / 2, dx = mx - cx, dz = mz - cz;
-        const side = Math.abs(dz) >= Math.abs(dx) ? (dz < 0 ? "n" : "s") : dx < 0 ? "w" : "e";
-        if (side !== sd) continue;
-        const d = dx * dx + dz * dz;
-        if (d < bd) { bd = d; best = [mx, mz]; }
-      }
-    }
+    const best = attackGatePoint(cp, sd);
     if (!best) continue;
     const [ax, az] = best, far = 400;
     const [bx, bz] = sd === "n" ? [ax, -far] : sd === "s" ? [ax, H + far] : sd === "w" ? [-far, az] : [W + far, az];
@@ -2441,12 +2462,11 @@ export class Renderer3D implements Renderer {
     const nw = this.nextWave(w);
     const wave = this.cp?.waves[w.waves?.idx ?? -1];
     if (nw && wave && nw.s <= 6 && sectors.size === 0) {
-      const pl = w.player.pos, W = this.manifest.map.w, H = this.manifest.map.h;
-      const edge = { n: { x: pl.x / FP, y: -40 }, s: { x: pl.x / FP, y: H + 40 }, e: { x: W + 40, y: pl.y / FP }, w: { x: -40, y: pl.y / FP } };
+      const pl = { x: w.player.pos.x / FP, y: w.player.pos.y / FP };
       const counts = new Map<string, number>();
       wave.types.forEach((_, i) => { const sd = wave.sides[i % wave.sides.length]!; counts.set(sd, (counts.get(sd) ?? 0) + 1); });
       for (const [sd, n] of counts) {
-        const e = edge[sd as keyof typeof edge];
+        const e = spawnPointOf(this.cp!, sd, pl);
         targets.push({ p: this.toScreen(v3(e.x, 10, e.y)), color: t.danger, icon: "hostile", big: true, n });
       }
     }
