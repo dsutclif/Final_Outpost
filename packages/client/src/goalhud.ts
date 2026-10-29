@@ -145,8 +145,11 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
       else if (driver !== null) t.risk = driver < GUARD_WARN;
     }
   } else if (o.kind === "waves" || o.kind === "waves_survived") {
-    t.pips = { n: Math.max(1, Math.min(8, o.target)), done: Math.min(o.progress, o.target), part: waveCountdown(st, cp) };
-    t.inner = String(t.pips.done);
+    // "Wave x/y": x is the wave coming or under way, so the goal reads 1/y before the first raid
+    const w = st.waves;
+    t.pips = { n: Math.max(1, Math.min(12, o.target)), done: Math.min(o.progress, o.target), part: waveCountdown(st, cp) };
+    t.inner = String(Math.min(o.target, Math.max(1, (w?.idx ?? 0) + (w?.active ? 0 : 1))));
+    t.beside = String(o.target);
   } else if (o.target >= 2 && o.target <= 5) {
     t.pips = { n: o.target, done: Math.min(o.progress, o.target), part: 0 };
     t.inner = String(t.pips.done);
@@ -290,7 +293,7 @@ export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, 
   }
   s += "</g>";
   if (t.pips) {
-    const { n, done, part } = t.pips, w = n > 5 ? 4 : 6, gap = 2, x0 = 22 - (n * w + (n - 1) * gap) / 2;
+    const { n, done, part } = t.pips, w = n > 8 ? 2 : n > 5 ? 4 : 6, gap = 2, x0 = 22 - (n * w + (n - 1) * gap) / 2;
     for (let i = 0; i < n; i++) {
       const x = x0 + i * (w + gap);
       s += `<rect class="g-pip" x="${x}" y="46" width="${w}" height="4" rx="1"/>`;
