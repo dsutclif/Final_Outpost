@@ -60,7 +60,7 @@ pnpm levels:check  # replay every pack level with the bot ladder (~30 s)
 
 - **Read first:** `docs/DECISIONS.md` (overrides the spec), `docs/REDESIGN-R2.md` (latest agreed
   design), `README.md` status. Doug's feedback rounds are recorded there, not in chat history.
-  The current round's work ledger is `docs/BACKLOG-R4.md`; tick items there as they land.
+  The current round's work ledger is `docs/BACKLOG-R5.md`; tick items there as they land.
 - **Hosting:** GitHub `dsutclif/Final_Outpost` (public), Vercel auto-deploys `main` to
   https://final-outpost-rho.vercel.app (`vercel.json`; root build copies the client into `./dist`).
   Doug plays on an iPhone from that URL. After pushing, wait for the new `assets/index-*.js` to
