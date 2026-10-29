@@ -6,8 +6,8 @@ import { Coach, toWorld } from "./coach.js";
 import { isNew, nearbyPassive, touchedBy } from "./discovery.js";
 import { Haptics, Synth } from "./feedback.js";
 import { Guide, StuckTimer, type GuideTarget } from "./guide.js";
-import { iconSvg, introObjectives, liveObjectives } from "./objectives.js";
-import { HudView, hudModel } from "./hud.js";
+import { iconSvg, liveObjectives } from "./objectives.js";
+import { GoalHud, alertOf, goalIcon, goalTokens, type Alert } from "./goalhud.js";
 import { InputController } from "./input.js";
 import { offlineReady, prefetchLevels, type LevelMeta, type LevelSource } from "./levels.js";
 import { FixedStepper } from "./loop.js";
@@ -25,7 +25,7 @@ import { TitleBackdrop } from "./title.js";
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
 // and the glue between sim, renderer, input, saves, telemetry and feedback.
 
-type Screen = "title" | "levels" | "intro" | "playing" | "result" | "settings" | "error" | "unsupported";
+type Screen = "title" | "levels" | "intro" | "menu" | "playing" | "result" | "settings" | "error" | "unsupported";
 
 interface Session {
   meta: LevelMeta;
@@ -56,6 +56,9 @@ interface Session {
    */
   overview: { k: number; go: boolean; x: number; y: number; zoom: number } | null;
 }
+
+/** Milliseconds between buzzes while an urgent alert is on. */
+const ALERT_BUZZ_MS = 1000;
 
 /** The first levels of the progression always show guide arrows. */
 const GUIDE_LEVELS = 5;
@@ -121,12 +124,17 @@ export class App {
   private readonly input: InputController;
   private readonly haptics: Haptics;
   private readonly synth = new Synth();
-  private readonly hud: HudView;
+  private readonly hud: GoalHud;
+  /** Intro: which goal is being introduced (they appear in the HUD one at a time). */
+  private introStep = 0;
+  private alert: Alert = { kind: "none" };
+  private alertKey = "none";
+  private buzzAt = 0;
+  private retryArmed: ReturnType<typeof setTimeout> | null = null;
   private readonly platform: Platform;
   private title: TitleBackdrop | null = null;
   private last = 0;
   private hidden = false;
-  private hudKey = "";
   private fps = 60;
   private hashCache = { tick: -1, hash: "" };
   private resultTimer: ReturnType<typeof setTimeout> | null = null;
@@ -147,9 +155,9 @@ export class App {
   private updateNoticed = false;
 
   private readonly el: {
-    app: HTMLElement; hud: HTMLElement; lvlName: HTMLElement; goal: HTMLElement; chips: HTMLElement; menuBtn: HTMLButtonElement; retryBtn: HTMLButtonElement; gearBtn: HTMLButtonElement;
+    app: HTMLElement; lvlName: HTMLButtonElement; retryBtn: HTMLButtonElement; gearBtn: HTMLButtonElement; goals: HTMLElement;
     stage: HTMLElement; world: HTMLElement; debug: HTMLElement; ov: Record<string, HTMLElement>; rotate: HTMLElement; loading: HTMLElement; toast: HTMLElement;
-    ftoast: HTMLElement; tapstart: HTMLElement; inspect: HTMLElement; objectives: HTMLElement;
+    ftoast: HTMLElement; tapstart: HTMLElement; inspect: HTMLElement;
   };
 
   /** Where levels come from; replaced when a newer set of packs is found (refreshLevels). */
@@ -158,12 +166,12 @@ export class App {
     this.source = deps.source;
     root.innerHTML = TEMPLATE;
     const ov: Record<string, HTMLElement> = {};
-    for (const k of ["title", "levels", "intro", "result", "settings", "error", "unsupported"]) ov[k] = $(root, `#ov-${k}`);
+    for (const k of ["title", "levels", "intro", "menu", "result", "settings", "error", "unsupported"]) ov[k] = $(root, `#ov-${k}`);
     this.el = {
-      app: $(root, ".app"), hud: $(root, ".hud"), lvlName: $(root, "#lvlName"), goal: $(root, "#goalTxt"), chips: $(root, "#chips"),
-      menuBtn: $<HTMLButtonElement>(root, "#menuBtn"), retryBtn: $<HTMLButtonElement>(root, "#retryBtn"), gearBtn: $<HTMLButtonElement>(root, "#gearBtn"), stage: $(root, "#stage"), world: $(root, "#world"),
+      app: $(root, ".app"), lvlName: $<HTMLButtonElement>(root, "#lvlName"), goals: $(root, "#goals"),
+      retryBtn: $<HTMLButtonElement>(root, "#retryBtn"), gearBtn: $<HTMLButtonElement>(root, "#gearBtn"), stage: $(root, "#stage"), world: $(root, "#world"),
       debug: $(root, "#debug"), ov, rotate: $(root, ".rotate"), loading: $(root, "#loading"), toast: $(root, "#toast"),
-      ftoast: $(root, "#ftoast"), tapstart: $(root, "#tapstart"), inspect: $(root, "#inspect"), objectives: $(root, "#objectives"),
+      ftoast: $(root, "#ftoast"), tapstart: $(root, "#tapstart"), inspect: $(root, "#inspect"),
     };
     this.platform = deps.platform ?? webPlatform();
     this.haptics = new Haptics((ms) => this.platform.haptic(ms));
@@ -171,7 +179,7 @@ export class App {
     this.input.onTap = (x, y) => this.inspectAt(x, y);
     // the first touch on the level-start overview starts play
     this.el.stage.addEventListener("pointerdown", () => { const o = this.session?.overview; if (o && !o.go && this.screen === "playing") { o.go = true; this.el.tapstart.hidden = true; } }, { passive: true });
-    this.hud = new HudView(this.el.chips);
+    this.hud = new GoalHud({ heat: $(root, "#heatRail"), walls: $(root, "#wallRail"), goals: this.el.goals, cash: $(root, "#cash"), cashN: $(root, "#cash b"), bubble: $(root, "#gbubble"), frost: $(root, "#frost") });
     this.bindChrome();
   }
 
@@ -205,9 +213,30 @@ export class App {
     this.platform.onPause(() => this.setHidden(true));
     this.platform.onResume(() => this.setHidden(false));
     if (this.platform.native) doc.addEventListener("visibilitychange", () => this.setHidden(doc.visibilityState === "hidden"));
-    this.el.menuBtn.addEventListener("click", () => this.quitToLevels());
-    // in-play Retry: the same restart as the result card Retry
-    this.el.retryBtn.addEventListener("click", () => { const m = this.session?.meta; if (m && this.screen !== "settings") void this.openLevel(m); });
+    // the level name opens the menu (goals in words, all levels, resume); play pauses meanwhile
+    this.el.lvlName.addEventListener("click", () => {
+      if (this.screen === "menu") this.show("playing");
+      else if (this.session && !this.session.ended && (this.screen === "playing" || this.screen === "intro")) { this.renderMenu(); this.show("menu"); }
+    });
+    // in-play Retry: a first tap asks, a second within a few seconds restarts (a stray thumb never wipes a run)
+    this.el.retryBtn.addEventListener("click", () => {
+      const m = this.session?.meta;
+      if (!m || this.screen === "settings") return;
+      if (this.retryArmed) { this.disarmRetry(); void this.openLevel(m); return; }
+      this.el.retryBtn.classList.add("armed");
+      this.retryArmed = setTimeout(() => this.disarmRetry(), 2500);
+    });
+    // a goal icon shows its sentence until the next tap anywhere
+    this.el.goals.addEventListener("click", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>(".gdisc");
+      if (!b || this.screen !== "playing") return;
+      const i = Number(b.dataset["i"]);
+      if (this.hud.bubbleOpen) this.hud.closeBubble(); else this.hud.showBubble(i);
+      e.stopPropagation();
+    });
+    doc.addEventListener("pointerdown", (e) => {
+      if (this.hud.bubbleOpen && !(e.target as HTMLElement).closest(".gdisc")) this.hud.closeBubble();
+    }, { capture: true, passive: true });
     // the in-level gear opens Settings over any level screen and pauses play; Back resumes
     this.el.gearBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -220,7 +249,7 @@ export class App {
     });
     // long-press the level name to toggle the debug overlay (no keyboard on phones)
     let lp: ReturnType<typeof setTimeout> | null = null;
-    const title = this.el.lvlName.parentElement!;
+    const title = this.el.lvlName;
     title.addEventListener("pointerdown", () => { lp = setTimeout(() => this.toggleDebug(), 600); });
     for (const t of ["pointerup", "pointerleave", "pointercancel"]) title.addEventListener(t, () => { if (lp) clearTimeout(lp); lp = null; });
     const ro = new ResizeObserver(() => this.resize());
@@ -260,8 +289,8 @@ export class App {
     const meta = this.el.app.ownerDocument.querySelector('meta[name="theme-color"]');
     meta?.setAttribute("content", this.skin.themeColor);
     this.platform.statusBar(true, p.ui.bg);
-    this.el.menuBtn.textContent = uiText(this.skin, "levels");
-    this.el.retryBtn.textContent = uiText(this.skin, "retry");
+    this.el.retryBtn.setAttribute("aria-label", uiText(this.skin, "retry"));
+    this.el.retryBtn.dataset["ask"] = uiText(this.skin, "restartAsk");
     this.el.gearBtn.setAttribute("aria-label", uiText(this.skin, "settings"));
     $(this.el.rotate, "p").textContent = uiText(this.skin, "rotate");
     this.title?.setSkin(this.skin);
@@ -381,7 +410,7 @@ export class App {
       return;
     }
     r.hudAnchor = () => this.coinTarget();
-    r.onCoinLanded = () => this.hud.pulse("currency");
+    r.onCoinLanded = () => this.hud.pulse();
     r.setQuality(this.qualityTier());
     r.setDiscovery((id) => isNew(this.progress.discovered)(id));
     s.renderer = r;
@@ -512,6 +541,8 @@ export class App {
     if (screen !== "playing") this.input.release();
     this.el.debug.hidden = !this.settings.debug || !this.session;
     this.el.app.classList.toggle("nohud", !this.session || screen === "title" || screen === "levels" || screen === "unsupported");
+    this.el.app.classList.toggle("introducing", screen === "intro");
+    if (screen !== "playing") this.hud.closeBubble();
     if (screen !== "playing") this.el.inspect.hidden = true;
     if ((screen === "title" || screen === "levels") && this.updateReady && !this.updateNoticed) this.updateNotice();
     if (screen === "title") this.renderTitle();
@@ -742,35 +773,62 @@ export class App {
     void this.deps.store.setProgress(this.progress);
     const t = levelText(this.session.manifest, this.skin, meta.index, this.seenBefore(meta));
     const named = !!levelTitle(this.skin, this.session.manifest);
-    this.el.lvlName.textContent = named ? `${uiText(this.skin, "levelWord")} ${meta.index + 1} · ${t.title}` : t.title;
-    this.hudKey = "";
-    this.hud.reset(sim.state.currency);
+    // the number fits beside the goals on every phone; the name lives on the intro card and in the menu
+    this.el.lvlName.textContent = uiText(this.skin, "levelShort", { n: meta.index + 1 });
+    this.el.lvlName.setAttribute("aria-label", named ? `${uiText(this.skin, "levelWord")} ${meta.index + 1} · ${t.title}` : t.title);
+    this.hud.reset(sim.state.currency, this.scrapLevel(this.session.manifest));
+    this.introStep = 0;
     this.renderIntro(t);
     this.show("intro");
     void this.prefetch();
   }
 
+  /**
+   * The level intro: its goals one at a time, each as a large icon with its full sentence while its
+   * place in the HUD is outlined (Doug, 2026-10-25). A tap shows the next; after the last, play
+   * starts. The first card also names the level and carries the mission tips.
+   */
   private renderIntro(t: { title: string; goal: string; tips: string[] }): void {
-    const ov = this.el.ov["intro"]!, s = this.skin, meta = this.session!.meta;
+    const ov = this.el.ov["intro"]!, s = this.skin, sess = this.session!, meta = sess.meta;
+    const tokens = goalTokens(sess.sim.state, sess.manifest, sess.sim.compiled, s);
+    const steps = tokens.length ? tokens.map((k) => ({ icon: goalIcon({ ...k, state: "open" }, 96), say: k.label })) : [{ icon: "", say: t.goal }];
+    const i = Math.min(this.introStep, steps.length - 1), step = steps[i]!, last = i === steps.length - 1;
     const best = this.progress.best[meta.id];
     const stars = this.starCount(meta.id);
-    const objs = introObjectives(this.session!.manifest, s);
-    ov.innerHTML = `<div class="card intro">
-      <div class="lbl">${esc(uiText(s, "levelWord"))} ${meta.index + 1} / ${this.levels.length}${best !== undefined ? ` · ${esc(uiText(s, "best"))} ${formatTicks(best)}` : ""}${stars ? ` · <span class="stars">${starText(stars)}</span>` : ""}</div>
-      <h2>${esc(t.title)}</h2>
-      <p class="goal-line"><span class="goal-ic"></span><b>${esc(uiText(s, "goal"))}:</b> ${esc(t.goal)}</p>
-      ${objs.length ? `<p class="objhead">${esc(uiText(s, "starsTitle"))}</p><ul class="objlist">${objs.map((o) => `<li>${iconSvg(o.icon)}<span class="otxt">${esc(o.label)}</span><span class="ost">\u2605</span></li>`).join("")}</ul>` : ""}
-      <p class="lead">${esc(uiText(s, "introLead"))}</p>
-      <ul>${t.tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
-      ${meta.index === 0 ? `<p class="how">${esc(uiText(s, "howTo"))}</p>` : ""}
-      <button class="go big" data-a="start">${esc(uiText(s, "start"))}</button>
-      <div class="row"><button data-a="levels" class="small">${esc(uiText(s, "levels"))}</button><button data-a="settings" class="small">${esc(uiText(s, "settings"))}</button></div>
-    </div>`;
-    this.wire(ov, {
-      start: () => { if (this.session) this.startOverview(this.session); this.show("playing"); },
-      levels: () => { this.endSession(); this.show("levels"); },
-      settings: () => this.show("settings"),
-    });
+    const head = i === 0 ? `<div class="lbl">${esc(uiText(s, "levelWord"))} ${meta.index + 1} / ${this.levels.length}${best !== undefined ? ` · ${esc(uiText(s, "best"))} ${formatTicks(best)}` : ""}${stars ? ` · <span class="stars">${starText(stars)}</span>` : ""}</div><h2>${esc(t.title)}</h2>` : "";
+    const tips = i === 0 && t.tips.length ? `<ul class="itips">${t.tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${meta.index === 0 ? `<p class="how">${esc(uiText(s, "howTo"))}</p>` : ""}` : "";
+    ov.innerHTML = `<div class="gintro">${head}<div class="gicon">${step.icon}</div><p class="gsay">${esc(step.say)}</p>${tips}
+      <p class="gtap"><span class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</span>${esc(uiText(s, last ? "introPlay" : "introNext"))}</p></div>`;
+    ov.onclick = () => {
+      if (!this.session || this.screen !== "intro") return;
+      if (!last) { this.introStep = i + 1; this.renderIntro(t); return; }
+      this.introStep = steps.length;
+      this.startOverview(this.session);
+      this.show("playing");
+    };
+  }
+
+  /** The menu under the level name: the goals in words with their state, all levels, resume. */
+  private renderMenu(): void {
+    const ov = this.el.ov["menu"]!, s = this.skin, sess = this.session!, meta = sess.meta;
+    const t = levelText(sess.manifest, s, meta.index, this.seenBefore(meta));
+    const tokens = goalTokens(sess.sim.state, sess.manifest, sess.sim.compiled, s);
+    ov.innerHTML = `<div class="gmenu"><div class="lbl">${esc(uiText(s, "levelWord"))} ${meta.index + 1}</div><h2>${esc(t.title)}</h2>
+      <ul class="mgoals">${tokens.map((k) => `<li class="${k.state}"><span class="mic">${goalIcon(k, 34)}</span><span>${esc(k.label)}</span></li>`).join("")}</ul>
+      <div class="row"><button data-a="levels">${esc(uiText(s, "allLevels"))}</button><button class="go" data-a="resume">${esc(uiText(s, "resume"))}</button></div></div>`;
+    this.wire(ov, { levels: () => this.quitToLevels(true), resume: () => this.show("playing") });
+    ov.onclick = (e) => { if (e.target === ov) this.show("playing"); };
+  }
+
+  private disarmRetry(): void {
+    if (this.retryArmed) clearTimeout(this.retryArmed);
+    this.retryArmed = null;
+    this.el.retryBtn.classList.remove("armed");
+  }
+
+  /** Defence levels pay with scrap the player carries: the HUD counts that instead of coins. */
+  private scrapLevel(m: Manifest): boolean {
+    return m.entities.some((e) => !!(e as { cost?: Record<string, number> }).cost?.["res.salvage"]);
   }
 
   private showError(meta: LevelMeta, err: unknown): void {
@@ -783,9 +841,9 @@ export class App {
     this.show("error");
   }
 
-  private quitToLevels(): void {
+  private quitToLevels(fromMenu = false): void {
     const s = this.session;
-    if (s && !s.ended && this.screen === "playing") {
+    if (s && !s.ended && (this.screen === "playing" || fromMenu)) {
       const quits = (this.progress.quits[s.meta.id] ?? 0) + 1;
       this.progress.quits[s.meta.id] = quits;
       this.countTry(s.meta.id);
@@ -798,6 +856,7 @@ export class App {
 
   private endSession(): void {
     this.el.tapstart.hidden = true;
+    this.disarmRetry();
     if (this.resultTimer) { clearTimeout(this.resultTimer); this.resultTimer = null; }
     this.session?.renderer.dispose();
     this.session = null;
@@ -953,6 +1012,7 @@ export class App {
     s.renderer.sync(s.sim.state, playing ? s.stepper.alpha : 0, s.cam);
     this.updateHud(s);
     this.hud.tick(Math.min(0.1, dt / 1000));
+    this.updateAlert(s, playing, now);
     if (this.settings.debug) this.updateDebug(s);
   };
 
@@ -1049,7 +1109,7 @@ export class App {
     if (s.coach.onEvent(e, s.sim.compiled).length) this.saveProgressSoon();
     const touched = touchedBy(e, s.sim.state);
     if (touched.length) this.discover(touched);
-    if (e.t === "hit" && e.target === "base") this.hud.hit("baseHealth");
+    if (e.t === "hit" && e.target === "base") this.hud.hit();
     if (e.t === "wave_cleared") s.wavesCleared++;
     if (e.t === "objective") this.objectiveEvent(s, e);
     if (e.t === "level_end") this.finish(e.won, e.reason);
@@ -1058,19 +1118,11 @@ export class App {
   /** A star objective became done or failed: flash its chip and chime (the level-end settle stays quiet). */
   private objectiveEvent(s: Session, e: { id: string; done: boolean; failed: boolean }): void {
     if (s.sim.state.over) return;
-    this.hudKey = ""; // repaint the strip now
     const idx = s.sim.state.objectives.findIndex((o) => o.id === e.id);
     this.synth.play(e.done ? "star" : "miss");
-    setTimeout(() => {
-      const el = this.el.objectives.querySelector<HTMLElement>(`[data-id="${CSS.escape(e.id)}"]`);
-      el?.classList.remove("flash"); void el?.offsetWidth; el?.classList.add("flash");
-    }, 0);
-    // the level runs on for the open stars once the main goal is done (it ends on its slowest goal)
-    if (idx === 0 && e.done) this.starToast(uiText(this.skin, "goalDone"), uiText(this.skin, "goalDoneLine"));
-    if (idx > 0) {
-      const v = liveObjectives(s.sim.state, s.manifest, this.skin)[idx];
-      if (v) this.starToast(e.done ? uiText(this.skin, "starEarned") : uiText(this.skin, "starMissed"), v.label);
-    }
+    // every goal won is a star: "Star achieved:" and the goal (Doug, 2026-10-25)
+    const views = liveObjectives(s.sim.state, s.manifest, this.skin);
+    if (e.done && views[idx]) this.starToast(uiText(this.skin, "starEarned"), views[idx]!.label);
   }
 
   private starToast(title: string, line: string): void {
@@ -1085,24 +1137,34 @@ export class App {
   }
 
   private updateHud(s: Session): void {
-    const model = hudModel(s.sim.state, s.manifest, s.sim.compiled, this.skin);
-    const key = model.goal + JSON.stringify(model.chips) + JSON.stringify(model.objectives);
-    if (key === this.hudKey) return;
-    this.hudKey = key;
-    if (this.el.goal.textContent !== model.goal) this.el.goal.textContent = model.goal;
-    this.hud.render(model);
-    // objective strip under the goal line: only when the sim reports objectives
-    const ob = this.el.objectives;
-    ob.hidden = model.objectives.length === 0;
-    ob.innerHTML = model.objectives.map((o) => `<span class="obj${o.done ? " done" : ""}${o.failed ? " failed" : ""}" data-id="${esc(o.id)}">${esc(o.label)}${o.counter ? `<span class="cnt">${esc(o.counter)}</span>` : ""}</span>`).join("");
+    const st = s.sim.state;
+    const cash = this.scrapLevel(s.manifest) ? st.player.stack.filter((r) => r === "res.salvage").length : st.currency;
+    // during the intro the goals arrive one by one: earlier ones shown, the current one's slot outlined
+    const intro = this.screen === "intro";
+    this.hud.render(st, s.manifest, s.sim.compiled, this.skin, cash, intro ? this.introStep : Infinity, intro ? this.introStep : -1);
   }
 
-  /** Where coins fly: the currency chip, in stage px (both renderers use this). */
+  /**
+   * Urgent trouble (Alert A, Doug 2026-10-25): the screen edges frost and the one thing in danger
+   * pulses and shakes, the heat rail when the colony is about to freeze, else the walls, else a goal
+   * about to be missed; the phone buzzes once a second in step with it.
+   */
+  private updateAlert(s: Session, playing: boolean, now: number): void {
+    const st = s.sim.state;
+    const a = playing ? alertOf(st, s.manifest, s.sim.compiled, goalTokens(st, s.manifest, s.sim.compiled, this.skin)) : { kind: "none" as const };
+    const key = a.kind === "goal" ? `goal:${a.id}` : a.kind;
+    if (key !== this.alertKey) { this.alertKey = key; this.alert = a; this.hud.setAlert(a); this.buzzAt = 0; }
+    if (this.alert.kind === "none" || now - this.buzzAt < ALERT_BUZZ_MS) return;
+    this.buzzAt = now;
+    this.haptics.pulse(this.alert.kind === "goal" ? [25] : [60, 60, 60]);
+  }
+
+  /** Where coins fly: the cash count, in stage px (both renderers use this). */
   private coinTarget(): { x: number; y: number } {
-    const chip = this.hud.anchor("currency");
+    const chip = this.hud.anchor();
     const st = this.el.stage.getBoundingClientRect();
-    if (!chip) return { x: 30, y: -20 };
     const r = chip.getBoundingClientRect();
+    if (!r.width) return { x: st.width - 40, y: 20 };
     return { x: r.left + 14 - st.left, y: r.top + r.height / 2 - st.top };
   }
 
@@ -1124,20 +1186,25 @@ const esc = (s: string): string => s.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;"
 
 const TEMPLATE = `
 <div class="app nohud">
-  <header class="hud">
-    <div class="hrow">
-      <div class="goal"><div class="lbl" id="lvlName"></div><div class="txt" id="goalTxt"></div><div class="objectives" id="objectives" hidden></div></div>
-      <button class="gearBtn" id="gearBtn" aria-label="Settings"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4L10.7 6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
-      <button class="menuBtn" id="menuBtn" aria-label="Levels">Levels</button>
-      <button class="menuBtn" id="retryBtn" aria-label="Retry">Retry</button>
-    </div>
-    <div class="chips" id="chips"></div>
-  </header>
   <main class="stage" id="stage">
     <div class="world" id="world"></div>
+    <div class="frost" id="frost"></div>
+    <div class="fhud">
+      <div class="rail" id="heatRail"><i></i></div>
+      <div class="rail walls" id="wallRail" hidden><i></i></div>
+      <div class="frow">
+        <span class="fcash" id="cash"><span class="cic"></span><b></b></span>
+        <div class="fgoals" id="goals"></div>
+        <button class="fname" id="lvlName" type="button"></button>
+      </div>
+      <div class="gbubble" id="gbubble" hidden></div>
+      <button class="fcorner l" id="retryBtn" type="button" aria-label="Retry"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2.1-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M4 3.5v5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="fcorner r" id="gearBtn" type="button" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4L10.7 6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
+    </div>
     <div class="overlay" id="ov-title" hidden></div>
     <div class="overlay" id="ov-levels" hidden></div>
     <div class="overlay" id="ov-intro" hidden></div>
+    <div class="overlay" id="ov-menu" hidden></div>
     <div class="overlay" id="ov-result" hidden></div>
     <div class="overlay" id="ov-settings" hidden></div>
     <div class="overlay" id="ov-error" hidden></div>
