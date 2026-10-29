@@ -37,7 +37,7 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { disposeGeo, getAnchor, mesh, model, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
-import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyTools, type MeshyEntry } from "./assets/meshy.js";
+import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
@@ -88,6 +88,11 @@ interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, num
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
+/** Drone: size against a character, hover height, and the four rotor mounts [x, z] / height (drone-model art metres). */
+const DRONE_K = 1;
+const DRONE_HOVER = 0.9;
+const DRONE_ROTOR_Y = 0.36;
+const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.27, 0.38], [-0.27, 0.38], [0.27, -0.38], [-0.27, -0.38]];
 /** Decor that looks like scrap: left out where scrap heaps can be picked over. */
 const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.ship_wreck", "decor.scrap_field"]);
 /** Items drawn per carried column at most. */
@@ -311,6 +316,8 @@ export class Renderer3D implements Renderer {
   private raycaster = new Raycaster();
   private geos: BufferGeometry[] = [];
   private dynamic = new Group();
+  /** Lv2 guard post troops drawn as drones: body and four rotors per drone. */
+  private drones = new Map<string, { root: Group; body: Group; rotors: Group[]; seen: number }>();
   private placed = new Map<string, Placed>();
   /** Keys rebuilt because their GLB landed: they reappear without the pop. */
   private quiet = new Set<string>();
@@ -806,6 +813,7 @@ export class Renderer3D implements Renderer {
     this.items.end();
     this.crowd.end();
     this.rigged?.end(dt);
+    for (const [k, d] of this.drones) if (d.seen !== this.frameNo) { this.dynamic.remove(d.root); this.drones.delete(k); }
     this.blobs.end();
     for (const b of Object.values(this.walls!)) b.end();
 
@@ -2013,6 +2021,13 @@ export class Renderer3D implements Renderer {
       const ty = this.faceFrom(key, tv);
       const trig = this.rigged?.entryFor("role.defender");
       const fighting = s.hostiles.some((h) => (h.pos.x - tr.pos.x) ** 2 + (h.pos.y - tr.pos.y) ** 2 < (30 * FP) ** 2);
+      // the post makes drones (hired guards are the humans): the guard shows only until the drone models land
+      const lift = this.placeDrone(key, pos.x, pos.y, ty, fighting);
+      if (lift !== null) {
+        this.blobs!.add(pos.x, pos.y, 9);
+        if (tr.hp < tr.hpMax) this.barTag(pos.x, lift + ART_M * 0.5, pos.y, tr.hp / tr.hpMax, t.ok, 6);
+        continue;
+      }
       if (trig) {
         this.rigged!.add(key, "role.defender", trig, { moving: sp > 0.05, hurried: false, cheer: false, speed: sp, act: fighting ? "shoot" : undefined }, pos.x, pos.y, ty, ART_M * tl.scale * this.devCharScale / 0.9);
         this.blobs!.add(pos.x, pos.y, 10 * tl.scale);
@@ -2070,6 +2085,37 @@ export class Renderer3D implements Renderer {
     // order bubbles of customers that left the queue
     for (const [k, b] of this.bubbles) if (b.seen !== this.frameNo) { this.dynamic.remove(b.s); this.bubbles.delete(k); }
     void items; void dt;
+  }
+
+  /** A drone hovering at (x, z): drawn from the loaded drone and rotor models, rotors spinning. Returns its top height, or null while they are not loaded. */
+  private placeDrone(key: string, x: number, z: number, yaw: number, fighting: boolean): number | null {
+    let d = this.drones.get(key);
+    if (!d) {
+      const body = meshyScene("unit.drone");
+      if (!body || !meshyScene("unit.drone.rotor")) return null;
+      const root = new Group(), holder = new Group();
+      holder.add(body);
+      root.add(holder);
+      const rotors = DRONE_ROTORS.map(([rx, rz]) => {
+        const r = new Group();
+        r.add(meshyScene("unit.drone.rotor")!);
+        r.position.set(rx, DRONE_ROTOR_Y, rz);
+        holder.add(r);
+        return r;
+      });
+      root.scale.setScalar(ART_M * this.devCharScale * DRONE_K);
+      this.dynamic.add(root);
+      d = { root, body: holder, rotors, seen: 0 };
+      this.drones.set(key, d);
+    }
+    d.seen = this.frameNo;
+    d.root.visible = true;
+    d.root.position.set(x, 0, z);
+    d.root.rotation.y = yaw;
+    const bob = Math.sin(this.t * (fighting ? 7 : 3) + x * 0.1) * (fighting ? 0.06 : 0.1);
+    d.body.position.y = DRONE_HOVER + bob;
+    d.rotors.forEach((r, i) => { r.rotation.y = this.t * 38 * (i % 2 ? 1 : -1); });
+    return ART_M * this.devCharScale * DRONE_K * (DRONE_HOVER + 0.6);
   }
 
   /**
