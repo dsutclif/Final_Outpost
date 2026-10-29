@@ -44,6 +44,10 @@ Renderer session (sequential):
       has a work clip (renderer.ts ~1956, workSpots ~1319).
 - [ ] **#9 locked grow dome** draws as the blue ghost outline with its pad, like other unbuilt
       things (renderer.ts syncNodes ~1172-1205, ghostable ~1580).
+- [ ] **#31 ghost size** (added 2026-10-29). Blue unbuilt silhouettes of buildings and machines are
+      no longer the same size as the built models since the size and zoom changes; ghosts must use
+      the same scale chain as the built model (buildScale, modelScale/alignedScale, Kiosk 1.37 etc.;
+      renderer.ts ghostModel/syncGhost ~1591-1631). Do together with #9.
 - [ ] **#10 sand** colour tied to model brightness so code sand matches the hopper-hole sand.
 - [ ] **#5 upgrade pad labels** name what they upgrade (renderer.ts ~603-626, skin string).
 - [ ] **Scrap sizes.** Each scrap piece is one size everywhere: Ship_Scrap_2 is width 2.8 as a
