@@ -3,16 +3,18 @@ import { Box3, Color, DirectionalLight, HemisphereLight, Mesh, PerspectiveCamera
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { disposeGeo } from "./assets/common.js";
 import { buildModel } from "./assets/registry.js";
+import { loadMeshy } from "./assets/meshy.js";
 
 // Field-guide thumbnails: each canonical id's model rendered once, three-quarter view, on a
 // transparent square. One short-lived WebGL context for the whole batch.
 
 const box = new Box3(), size = new Vector3(), centre = new Vector3();
 
-/** Data URLs (PNG) keyed by id; ids that fail to build are skipped. Empty without WebGL. */
-export function renderThumbnails(ids: readonly string[], skin: Skin, px = 96, doc: Document = document): Map<string, string> {
+/** Data URLs (PNG) keyed by id; ids that fail to build are skipped. Empty without WebGL. Waits for the GLBs so thumbnails match the game. */
+export async function renderThumbnails(ids: readonly string[], skin: Skin, px = 96, doc: Document = document): Promise<Map<string, string>> {
   const out = new Map<string, string>();
   if (!ids.length) return out;
+  await loadMeshy();
   const canvas = doc.createElement("canvas");
   const dpr = 2;
   canvas.width = canvas.height = px * dpr;
