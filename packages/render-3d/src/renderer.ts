@@ -306,7 +306,7 @@ export class Renderer3D implements Renderer {
   /** What a rigged character is doing (a clip key: mine, reap, pick, dig, shoot), until when, and at what. */
   private acts = new Map<string, { act: string; until: number; at?: V }>();
   /** Operator spots of the converters running this frame (world), with the machine they face. */
-  private workSpots: { op: V; at: V }[] = [];
+  private workSpots: { op: V; at: V; working: boolean }[] = [];
   private quality: QualityTier;
   private cssW = 400;
   private cssH = 700;
@@ -1316,7 +1316,8 @@ export class Renderer3D implements Renderer {
       const working = manned && cv.inQ.length > 0 && !blocked;
       // the unit going in next, for the conversion animation (the sim has already taken it when it reports)
       if (cv.inQ[0]) p.data["front"] = cv.inQ[0];
-      if (working) this.workSpots.push({ op: { x: cv.operatorPos.x / FP, y: cv.operatorPos.y / FP }, at: { x: cv.pos.x / FP, y: cv.pos.y / FP } });
+      // every machine has a spot: its operator faces it whether or not it runs
+      this.workSpots.push({ op: { x: cv.operatorPos.x / FP, y: cv.operatorPos.y / FP }, at: { x: cv.pos.x / FP, y: cv.pos.y / FP }, working });
       if (working) {
         // progress toward the next unit over the machine
         const sec = (cv.level > 1 ? def?.upgradeRates?.[cv.level - 2] : undefined) ?? def?.rate ?? 1;
@@ -1953,10 +1954,10 @@ export class Renderer3D implements Renderer {
       // rigged once loaded; the frozen turn to ice and the med bay patients lie on their backs (rigged.ts)
       const rrig = this.rigged?.entryFor(id);
       const moving = sp > 0.05;
-      // an operator standing at a running machine works it (its `work` clips, facing the machine)
-      if (!moving && r.status === "ok" && rrig?.clips?.["work"]) {
+      // an operator standing at a machine faces it; at a running one it works it (its `work` clips, if the rig has them)
+      if (!moving && r.status === "ok") {
         const w = this.workSpots.find((ws) => (ws.op.x - pos.x) ** 2 + (ws.op.y - pos.y) ** 2 < (ART_M * 0.6) ** 2);
-        if (w) this.acts.set(key, { act: "work", until: this.t + 0.3, at: w.at });
+        if (w) this.acts.set(key, { act: w.working && rrig?.clips?.["work"] ? "work" : "face", until: this.t + 0.3, at: w.at });
       }
       const ryaw = this.faceAct(key, pos, ry, moving);
       const carrying = !!r.carry && r.n > 0;
