@@ -50,8 +50,11 @@ def frame3(up, right):
 
 
 class Rig:
-    def __init__(self, arm):
+    def __init__(self, arm, trunk_pitch=0.0):
         self.arm = arm
+        # Neutral back (Doug): hips and spine turn as one rigid trunk; trunk_pitch (radians, about the
+        # shoulder line) is calibrated so a standing frame stands straight in profile.
+        self.trunk_pitch = trunk_pitch
         self.A = arm.matrix_world.copy()
         self.Ai = self.A.inverted()
         self.Ai3 = self.Ai.to_3x3().normalized()
@@ -83,14 +86,17 @@ class Rig:
         hips_head = mid + R @ (self.hips_rest.translation - self.hip_mid_rest)
         want = {}
         want["Hips"] = Matrix.Translation(hips_head) @ (R @ self.hips_rest.to_3x3()).to_4x4()
-        # The spine bends as one smooth piece from the hips' turn to the chest's, so the backpack (skinned
-        # half to Spine, half to Spine1) moves almost rigidly instead of shearing between two bones.
-        spine_share = {"Spine": 0.45, "Spine1": 0.85, "Spine2": 1.0}
-        Dc = None
+        # Neutral back: with a chest frame, the hips and all three spine bones take the chest's turn (pitched by
+        # the calibration), so the trunk never bends or arches; legs, arms and head keep their capture.
+        D = None
         if "_chest_up" in dirs:
             cu, cr = (self.Ai3 @ dirs["_chest_up"]).normalized(), (self.Ai3 @ dirs["_chest_right"]).normalized()
-            Dc = frame3(cu, cr) @ frame3(self.chest_up_rest, self.chest_right_rest).transposed()
-        qh, qc = R.to_quaternion(), (Dc.to_quaternion() if Dc is not None else None)
+            cu = Matrix.Rotation(self.trunk_pitch, 3, cr) @ cu
+            D = frame3(cu, cr) @ frame3(self.chest_up_rest, self.chest_right_rest).transposed()
+            R = D
+            hips_head = mid + R @ (self.hips_rest.translation - self.hip_mid_rest)
+            want["Hips"] = Matrix.Translation(hips_head) @ (R @ self.hips_rest.to_3x3()).to_4x4()
+        trunk = ("Spine", "Spine1", "Spine2")
         order = ["Hips"] + [c[0] for c in CHAIN]
         parent = {c[0]: pb[P + c[0]].parent.name.replace(P, "") for c in CHAIN}
         for name in order[1:]:
@@ -100,8 +106,7 @@ class Rig:
                 Mp = self._inherit(par, want, parent)
                 want[par] = Mp
             Minh = Mp @ self.rest[P + par].inverted() @ self.rest[P + name]
-            if qc is not None and name in spine_share:
-                D = qh.slerp(qc, spine_share[name]).to_matrix()
+            if D is not None and name in trunk:
                 want[name] = Matrix.Translation(Minh.translation) @ (D @ self.rest[P + name].to_3x3()).to_4x4()
                 continue
             R_inh = Minh.to_3x3().normalized()

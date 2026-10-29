@@ -53,9 +53,10 @@ def body_min(seg):
 
 # ---------------------------------------------------------------- takes and their edits
 class Take:
-    def __init__(self, name, a, b, src_fps=120):
-        self.clip = mocap.Clip(name, src_fps=src_fps)
-        self.name, self.a, self.b = name, a, min(b, len(self.clip))
+    def __init__(self, name, a, b, src_fps=120, slow=1):
+        # slow: play the take that many times slower (frames a..b stay in 30 fps clip time)
+        self.clip = mocap.Clip(name, src_fps=src_fps, fps=30 * slow)
+        self.name, self.a, self.b = name, a * slow, min(b * slow, len(self.clip))
         seg0, _, _ = self.clip.pose(0)
         self.leg = (seg0["lfemur"][1] - seg0["lfemur"][0]).length + (seg0["ltibia"][1] - seg0["ltibia"][0]).length
         self.floor = None  # height the body is placed from (a ledge take overrides it)
@@ -128,7 +129,7 @@ class Look(Take):
 
 def build_takes():
     # stick preview windows: drop showed clip frames 165..435; Doug: "from 0:04" -> 165 + 120
-    return [GetUp("140_08", 0, 224), StepOver("143_15", 0, 10_000), Take("139_19", 0, 75),
+    return [GetUp("140_08", 0, 224), StepOver("143_15", 0, 10_000), Take("139_19", 0, 75, slow=2),
             Drop("82_02", 285, 435), Look("77_01", 0, 90, src_fps=60)]
 
 
@@ -227,6 +228,43 @@ def mesh_points():
     ev.to_mesh_clear()
     return pts
 
+
+# Calibrate the neutral back in profile: at the upright frame that ends the get-up, find the trunk pitch
+# that stands the commander straight (hips to neck vertical, seen side-on), then keep it for every frame.
+ref = max(i for i, r in enumerate(TL) if r[0] == 0)
+
+
+def lean(pitch):
+    rig.trunk_pitch = pitch
+    place(TL[ref])
+    bpy.context.view_layer.update()
+    pbs, mw = arm.pose.bones, arm.matrix_world
+    hip, neck = mw @ pbs[retarget.P + "Hips"].head, mw @ pbs[retarget.P + "Neck"].head
+    up, right = TL[ref][2]
+    fwd = up.cross(right).normalized()
+    v = neck - hip
+    return math.atan2(v.dot(fwd), v.dot(Vector((0, 0, 1))))
+
+
+lo_p, hi_p = -0.7, 0.7
+if lean(lo_p) * lean(hi_p) > 0: raise SystemExit("trunk calibration: no upright pitch in range")
+for _ in range(40):
+    m = (lo_p + hi_p) / 2
+    if (lean(m) > 0) == (lean(lo_p) > 0): lo_p = m
+    else: hi_p = m
+TRUNK_PITCH = (lo_p + hi_p) / 2
+print(f"TRUNK pitch {math.degrees(TRUNK_PITCH):.1f} deg (lean at 0: {math.degrees(lean(0.0)):.1f} deg)")
+if "--calib" in args:  # profile stills at the reference frame: uncorrected, two tries, and the result
+    up, right = TL[ref][2]
+    pel = TL[ref][3]
+    cam = lib.camera(pel + right.normalized() * 3.2 + Vector((0, 0, 0.6)), pel + Vector((0, 0, 0.55)), lens=40, name="profile")
+    sc.camera = cam
+    sc.render.resolution_x, sc.render.resolution_y = 360, 600
+    for k, pt in enumerate((0.0, TRUNK_PITCH / 2, TRUNK_PITCH * 1.5, TRUNK_PITCH)):
+        rig.trunk_pitch = pt
+        place(TL[ref])
+        lib.render_still(os.path.join(lib.OUT, f"calib_{k}.png"))
+rig.trunk_pitch = TRUNK_PITCH
 
 # pass 1: pose everything unlocked, measure the set from where the body goes
 k_drop = next(k for k, t in enumerate(takes) if isinstance(t, Drop))
