@@ -1212,7 +1212,6 @@ export class Renderer3D implements Renderer {
       p.model.root.visible = !ghosted;
       if (ghosted) {
         this.syncGhost(p, n.type, this.wv(n.pos), 0);
-        (p.extra[3] as Group).scale.setScalar(ART_M * this.buildK(n.type));
       } else this.hideGhost(p);
       const body = p.model.parts["body"] as Mesh | undefined;
       const steps = body?.userData["steps"] as number[] | undefined;
@@ -1662,14 +1661,15 @@ export class Renderer3D implements Renderer {
       g.userData["ghost"] = mat;
       g.userData["what"] = what;
       g.userData["h"] = tmpBox.isEmpty() ? 1 : Math.max(0.3, tmpBox.max.y);
-      g.scale.setScalar(ART_M);
       this.dynamic.add(g);
       p.extra[3] = g;
     }
     g.visible = true;
-    g.position.set(at.x, 0, at.z);
+    // the same size chain as the built model (look buildScale, modelScale, aligned sizes) and the same slab lift
+    g.scale.setScalar(ART_M * this.buildK(what, 1));
+    g.position.set(at.x, /^(sink|conv|struct)./.test(what) && what !== "struct.gate" ? SLAB_TOP : 0, at.z);
     (g.userData["ghost"] as MeshLambertMaterial).opacity = 0.5 + 0.3 * fill + 0.06 * Math.sin(this.t * 3 + at.x);
-    return g.userData["h"] as number;
+    return (g.userData["h"] as number) * this.buildK(what, 1);
   }
 
   /**
