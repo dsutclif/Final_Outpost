@@ -41,7 +41,7 @@ import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntri
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
-import { LEAD_WEIGHT, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
+import { LEAD_WEIGHT, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder } from "./geom.js";
 import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
@@ -383,6 +383,7 @@ export class Renderer3D implements Renderer {
   private coachDom: DomCoach | null = null;
   private coach: (CoachMark & { since: number }) | null = null;
   private guideMark: GuideMark | null = null;
+  private alertMarks: readonly AlertMark[] = [];
   private marks: GroundMarks | null = null;
   private guideSprite: Sprite | null = null;
   private lowFuelSaid = false;
@@ -733,6 +734,9 @@ export class Renderer3D implements Renderer {
     this.coach = c ? { ...c, since: this.t } : null;
   }
 
+  /** The things the current urgent alert is about: a danger marker floats over each (backlog R5 #16). */
+  setAlertMarks(marks: readonly AlertMark[]): void { this.alertMarks = marks; }
+
   /** Jump the camera onto the hero on the next sync (after a teleport or a scripted run). */
   snapCamera(): void { this.camReady = false; }
 
@@ -825,6 +829,7 @@ export class Renderer3D implements Renderer {
     this.syncCharacters(state, a, pl, dt);
     this.syncLasso(state, a, pl, dt);
     this.syncMarks(state, pl);
+    this.drawAlertMarks(state, a);
     this.fadeOccluders(pl, dt);
 
     for (const [k, p] of this.placed) if (!p.seen) { this.removePlaced(p); this.placed.delete(k); }
@@ -3140,6 +3145,30 @@ export class Renderer3D implements Renderer {
     if (!sp) { sp = new Sprite(); sp.renderOrder = 14; this.dynamic.add(sp); this.tagSprites.push(sp); }
     this.tagUsed++;
     return sp;
+  }
+
+  /** A bobbing red "!" over each thing the urgent alert is about, above its model or head. */
+  private drawAlertMarks(s: State, a: number): void {
+    const top = (key: string): Vector3 | null => {
+      const p = this.placed.get(key);
+      if (!p) return null;
+      const r = p.model.root;
+      return v3(r.position.x, r.position.y + ((p.data["h"] as number) / ART_M) * r.scale.y, r.position.z);
+    };
+    const head = (key: string, pos: V): Vector3 => { const q = this.interp.pos(key, pos, a); return v3(q.x, ART_M * this.devCharScale, q.y); };
+    for (const m of this.alertMarks) {
+      let at: Vector3 | null = null;
+      if (m.kind === "core") at = top(`core:${s.core.level}`);
+      else if (m.kind === "gate") at = top(`gate:${m.barrier}:${m.section}`);
+      else if (m.kind === "converter") { const cv = s.converters.find((c) => c.id === m.id); if (cv) at = top(`cv:${cv.id}:${cv.level}`); }
+      else if (m.kind === "resident") { const r = s.residents.find((x) => x.id === m.id); if (r) at = head(`r:${r.id}`, r.pos); }
+      else { const i = s.sales?.queue.findIndex((c) => c.id === m.id) ?? -1; if (i >= 0) at = head(`q:${i}`, s.sales!.queue[i]!.pos); }
+      if (!at) continue;
+      const sp = this.nextTag();
+      // as big as a top-of-screen goal icon, so the two read as the same alert
+      sp.visible = this.labels.apply(sp, "alert|!", () => this.warnArt("!", this.tokens.danger), 34);
+      sp.position.set(at.x, at.y + 12 + Math.abs(Math.sin(this.t * 5)) * 5, at.z);
+    }
   }
 
   /** "MAX" over a full column of the hero's pack. */
