@@ -20,6 +20,7 @@ import {
   type Scene,
 } from "three";
 import { mix } from "@fo/skins";
+import { meshyBrightness } from "../assets/meshy.js";
 import { hash01 } from "../assets/scatter.js";
 import { GeoBuilder } from "../geom.js";
 import type { MaterialSet } from "../materials.js";
@@ -146,7 +147,8 @@ export class Environment {
     const t = this.t, out = new Group();
     out.name = "roads";
     // trodden lighter than the sand around it, with dark ruts at the edges
-    const mid = new Color(t.groundAlt).lerp(new Color(t.sun), 0.22), edge = new Color(t.groundDark).lerp(new Color(t.ground), 0.3);
+    const k = 1 + 0.5 * (meshyBrightness() - 1);
+    const mid = new Color(t.groundAlt).lerp(new Color(t.sun), 0.22).multiplyScalar(k), edge = new Color(t.groundDark).lerp(new Color(t.ground), 0.3).multiplyScalar(k);
     for (const r of roads) {
       const dx = r.bx - r.ax, dz = r.bz - r.az, L = Math.hypot(dx, dz);
       if (L === 0) continue;
@@ -181,7 +183,9 @@ export class Environment {
     geo.translate(W / 2, 0, H / 2);
     const pos = geo.getAttribute("position");
     const col = new Float32Array(pos.count * 3);
-    const g0 = new Color(t.ground), g1 = new Color(t.groundAlt), g2 = new Color(t.groundDark), c = new Color();
+    // the sand tracks the models: half of any change to model brightness (their sand patches read ~1.5x the bare ground at 2)
+    const k = 1 + 0.5 * (meshyBrightness() - 1);
+    const g0 = new Color(t.ground).multiplyScalar(k), g1 = new Color(t.groundAlt).multiplyScalar(k), g2 = new Color(t.groundDark).multiplyScalar(k), c = new Color();
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i), z = pos.getZ(i);
       const n = noise(x / 90, z / 90, seed) * 0.65 + noise(x / 28, z / 28, seed + 3) * 0.35;

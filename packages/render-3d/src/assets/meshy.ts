@@ -100,6 +100,9 @@ export function setMeshyBrightness(k: number): void {
   for (const group of [cache, outlines]) for (const scene of group.values()) tint(scene);
 }
 
+/** The current model brightness multiplier (the ground follows it so code sand matches the sand painted into models). */
+export const meshyBrightness = (): number => brightness;
+
 function tint(scene: Group): void {
   scene.traverse((o) => {
     const m = (o as Mesh).material as Material | Material[] | undefined;
