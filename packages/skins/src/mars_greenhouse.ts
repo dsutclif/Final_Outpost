@@ -340,7 +340,7 @@ export const marsGreenhouse: Skin = {
       core_full: "The reactor is full",
       stand_at_register: "Stand on the clerk pad to sell",
       not_enough_currency: "Not enough credits",
-      no_idle_resident: "No free colonist to assign",
+      no_idle_resident: "No free settlers",
       needs_core_level: "Upgrade the reactor first",
       input_full: "Input hopper is full",
       operate_converter: "Stand on the operator spot to run it",

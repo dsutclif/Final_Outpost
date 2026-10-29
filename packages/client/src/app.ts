@@ -145,6 +145,8 @@ export class App {
   private settingsTab: "settings" | "guide" = "settings";
   private thumbs = new Map<string, string>();
   private beatAt = 0;
+  /** Pad the player last stepped onto, so the "no free settlers" hint shows on arrival, not after the pay dwell. */
+  private arrivedPad: string | null = null;
   private resetArmed = false;
   private settingsFrom: Screen = "title";
   private offline = -1;
@@ -1004,6 +1006,7 @@ export class App {
       for (let i = 0; i < n && !s.ended; i++) this.stepOnce(s, this.input.read());
       this.updateCoach(s);
       this.heartbeat(s, now);
+      this.padArrival(s);
       this.probe(s, dt);
       if (s.sim.state.tick % 15 === 0) this.discover(nearbyPassive(s.sim.state));
     }
@@ -1089,6 +1092,16 @@ export class App {
     // the guide arrow already points here: its line speaks for the coach mark
     if (g && (g.at.x - at.x) ** 2 + (g.at.y - at.y) ** 2 < 50 * 50) { s.renderer.setCoach(null); return; }
     s.renderer.setCoach({ key: mark.id, at, text: this.skin.text.coach?.[mark.id] ?? mark.id });
+  }
+
+  /** The sim only hints once the pay dwell has passed; a hire pad with nobody to hire says so the moment the player steps on. */
+  private padArrival(s: Session): void {
+    const st = s.sim.state, id = st.player.padId;
+    if (id === this.arrivedPad) return;
+    this.arrivedPad = id;
+    if (id === null || s.sim.compiled.entityById[id]?.type !== "pad.hire") return;
+    if (st.residents.some((r) => r.status === "ok" && r.role === "idle")) return;
+    s.renderer.onEvent({ t: "hint", key: "no_idle_resident" } as SimEvent);
   }
 
   /** Low lifeline: a soft double-thump in sound and haptics, in time with the vignette. */
