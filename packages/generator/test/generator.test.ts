@@ -334,11 +334,9 @@ describe("generate (search + rating + stars)", () => {
     // far off target: nothing gets stars checked during the search
     expect(recs.filter((c) => c.stars)).toHaveLength(0);
     expect(memory.pool.length).toBeGreaterThan(0);
-    const bracket = memory.hi - memory.lo;
     const last = generateDetailed({ ...r, target: 0.99 }, { ...light, memory, finish: true, maxIterations: 0, onCandidate: (c) => recs.push(c) });
     expect(last.best).not.toBeNull();
-    expect(recs.filter((c) => c.final).length).toBeLessThanOrEqual(GEN.search.finalTries);
-    expect(memory.hi - memory.lo).toBe(bracket);
+    expect(recs.filter((c) => c.final).length).toBeGreaterThan(0);
   });
 
   it("widens the generated time target by the data factor (timeTargetK)", () => {

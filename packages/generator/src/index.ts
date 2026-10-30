@@ -57,10 +57,7 @@ export interface GenOptions {
 
 /** One level's search across its attempts: the pressure bracket, what was learned, and the candidates awaiting verification. */
 export interface SearchMemory {
-  started: boolean;
-  lo: number;
-  hi: number;
-  /** Times the bracket closed and was reopened. */
+  /** Times the bracket closed and was reopened, over all attempts. */
   widened: number;
   /** The target is out of reach: no point in further attempts. */
   exhausted: boolean;
@@ -72,7 +69,7 @@ export interface SearchMemory {
   pool: { m: Manifest; p: number; err: number; seed: number; knobs: Record<string, number> }[];
 }
 
-export const newSearchMemory = (): SearchMemory => ({ started: false, lo: 0, hi: 1, widened: 0, exhausted: false, ease: 0, dropped: new Set(), droppedMods: new Set(), best: null, pool: [] });
+export const newSearchMemory = (): SearchMemory => ({ widened: 0, exhausted: false, ease: 0, dropped: new Set(), droppedMods: new Set(), best: null, pool: [] });
 
 /** Star bar for the human-view bot (generator.json humanStars); levels:check reads the same block. */
 export const HUMAN_STARS = genData.humanStars as { seeds: number; minEarned: number; regressTolerance: number };
@@ -412,9 +409,12 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   const humanStars = opts.humanStars ?? true;
 
   const memory = opts.memory ?? newSearchMemory();
-  let { lo, hi, best } = memory;
-  let p = memory.started ? (lo + hi) / 2 : clamp01((req.target - 0.08) / 0.8);
-  memory.started = true;
+  let { best } = memory;
+  // D is not monotone in p across seeds, so a retry searches around its closest candidate, not inside the last bracket.
+  const closest = memory.pool.reduce<SearchMemory["pool"][number] | null>((a, e) => (!a || e.err < a.err ? e : a), null);
+  let lo = closest ? Math.max(0, closest.p - S.retrySpan) : 0;
+  let hi = closest ? Math.min(1, closest.p + S.retrySpan) : 1;
+  let p = closest ? closest.p : clamp01((req.target - 0.08) / 0.8);
   const mrand = rand.fork("mutate");
   // Repeated-loop lever: 0..1 share of the worker hire price cut, raised after each `repetitive` reject.
   let ease = memory.ease;
@@ -431,7 +431,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     rec!.rating = { D: round3(r.D), F: round3(r.F), feasible: r.feasible, margin: r.margin, winRate: r.winRate, loopMax: ms.loopMax, ladderLeft: ms.ladderLeft, idleModules: r.evidence.idleModules, budget: m.params["level.budgetSeconds"] };
     return { ms, r };
   };
-  const saveMemory = () => { Object.assign(memory, { lo, hi, best, ease }); };
+  const saveMemory = () => { Object.assign(memory, { best, ease }); };
 
   /** The full check: full rating, idle elements, stars, spare pads. Done when the level can ship. */
   const verify = (m: Manifest, p: number, seed: number): { r: Rating; done?: GenDetail; repetitive?: boolean } => {
@@ -495,8 +495,9 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     flush();
     if (hi - lo < 0.02) {
       memory.widened++;
-      // Closed twice with something to show: the target is out of this level's reach, so stop searching.
-      if (memory.widened >= S.maxWidens && (memory.pool.length > 0 || best)) { memory.exhausted = true; log(`  it${it} target out of reach, stopping`); break; }
+      // Closed repeatedly and still far off: the target is out of this level's reach, so stop searching.
+      const nearest = Math.min(best?.err ?? 1, ...memory.pool.map((e) => e.err));
+      if (memory.widened >= S.maxWidens && nearest > S.outOfReachErr) { memory.exhausted = true; log(`  it${it} target out of reach, stopping`); break; }
       lo = Math.max(0, lo - 0.15); hi = Math.min(1, hi + 0.15);
     }
     stats.iterations++;
@@ -584,7 +585,8 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     if (flags.includes("trivial")) { lo = p; p = (p + hi) / 2; continue; }
     if (hardFlags.length > 0) { p = clamp01(p + (mrand.float() - 0.5) * 0.2); continue; }
     const err = Math.abs(r.D - req.target);
-    if (err <= tol) {
+    // Quick ratings are noisy: a near miss may be on target on the full one.
+    if (err <= S.verifyWithin) {
       const v = verify(m, p, req.seed);
       if (v.done) { saveMemory(); return v.done; }
       if (v.repetitive) continue;
@@ -600,8 +602,11 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   flush();
   if (opts.finish ?? true) {
     const pool = [...memory.pool].sort((x, y) => x.err - y.err);
-    for (const e of pool.slice(0, S.finalTries)) {
-      if (best && e.err >= best.err) break;
+    let tries = 0;
+    // With nothing to ship yet, keep going: a level with no candidate is the worst outcome.
+    for (const e of pool) {
+      if (best && (e.err >= best.err || tries >= S.finalTries)) break;
+      tries++;
       stats.iterations++;
       rec = { iteration: stats.iterations - 1, p: round3(e.p), knobs: e.knobs, rejects: [], kept: false, shipped: false, final: true, settings: candidateSettings(e.m, c) };
       recAt = Date.now();
@@ -611,7 +616,6 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       if (!v.done && !best && dropped.size > known) { dropPads(e.m, dropped); v = verify(e.m, e.p, e.seed); }
       if (v.done) { saveMemory(); return v.done; }
       flush();
-      if (best) break;
     }
   }
   saveMemory();
