@@ -366,7 +366,7 @@
   },
   {
    "id": "challenge",
-   "kind": "no_stockpile_overload",
+   "kind": "no_angry_customers",
    "params": {}
   }
  ],
