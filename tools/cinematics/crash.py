@@ -527,6 +527,7 @@ for n in ([only] if only else SHOTS):
             continue
         # render the pod sequence in its own numbering, then append it to crash_open after shot 3
         pod_dir = os.path.join(lib.OUT, "crash_pod")
+        sc.render.use_overwrite = False  # a resumed render skips the frames already on disk
         lib.render_frames(pod_dir, 1, edit[-1][2])
         os.makedirs(FOLDER, exist_ok=True)
         for f in os.listdir(FOLDER):
