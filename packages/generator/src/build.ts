@@ -73,7 +73,7 @@ export const GEN = genData as unknown as {
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
-  defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
+  defendWaves: { maxPoints: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
   scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
@@ -86,6 +86,18 @@ export const GEN = genData as unknown as {
   terrain: TerrainData;
   search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number; humanCheck: { seeds: number; minWins: number }; verifyWithin: number; finalTries: number; maxWidens: number; outOfReachErr: number; loopCap: number; loopHireCut: number; loopEaseSteps: number; loopBurnEase: number; loopLengthCut: number; loopStartCurrency: number };
 };
+
+/** A wave's strength: the HP of everything in it. */
+export const wavePoints = (counts: Record<string, number>, c: Content): number =>
+  Object.entries(counts).reduce((t, [h, n]) => t + n * (c.hostiles[h]?.hp ?? 0), 0);
+
+/** No wave above max points (rule 7, docs/LEVEL-RULES.md): swarmlings make up the difference, being the numbers of a wave. */
+export function capWavePoints(waves: readonly { counts: Record<string, number> }[], c: Content, max: number): void {
+  for (const w of waves) {
+    const over = wavePoints(w.counts, c) - max;
+    if (over > 0 && w.counts["hostile.swarmling"]) w.counts["hostile.swarmling"] = Math.max(0, w.counts["hostile.swarmling"] - over);
+  }
+}
 
 /** Footprints of what the renderer draws larger (look.json buildScale: buildings and the greenhouse dome) grow with it. */
 export const isSizedFootprint = (k: string): boolean => /^(sink|conv|struct)\./.test(k) || k === "node.food_source";
@@ -1409,6 +1421,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       if (w.gap === DW.lateGap && n < prev * DW.lateStep) w.counts["hostile.swarmling"] = Math.ceil(prev * DW.lateStep);
       prev = w.counts["hostile.swarmling"] ?? 0;
     }
+    capWavePoints(waves, c, DW.maxPoints);
   }
   if ((feat.has("gate_arrivals") || housingOn) && !workers) extra = Math.max(extra, 2);
 

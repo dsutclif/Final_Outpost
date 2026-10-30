@@ -1,6 +1,6 @@
 {
   "hostile.creature": { "hp": 3, "speed": 44, "drops": { "res.food_raw_2": 2 } },
-  "hostile.raider_humanoid": { "hp": 4, "speed": 36, "drops": { "res.salvage": 2 } },
+  "hostile.raider_humanoid": { "hp": 4, "speed": 36, "drops": { "res.salvage": 4 } },
   "hostile.swarmling": { "hp": 1, "speed": 62, "drops": { "res.salvage": 1 } },
-  "hostile.boss": { "hp": 36, "speed": 20, "drops": { "res.salvage": 10 }, "damage": 4, "boss": true }
+  "hostile.boss": { "hp": 36, "speed": 20, "drops": { "res.salvage": 36 }, "damage": 4, "boss": true }
 }

@@ -17,7 +17,7 @@ const WIDTHS: Record<string, number> = {
   pads: 3, hires: 2, currencyCost: 50, salvageCost: 50, fuelNodes: 2, captures: 1,
   burn: 0.2, baseHealth: 1, startCurrency: 5,
   podFreeze: 20, spawn: 0.2, costScale: 0.1, length: 30, margin: 0.1,
-  waves: 1, peakWave: 25, towers: 2, perTower: 5, dropShare: 0.1, firstWave: 10,
+  waves: 1, peakWave: 25, peakPoints: 25, towers: 2, perTower: 5, dropShare: 0.1, firstWave: 10,
 };
 
 /** A line of the raw log (the fields used here). */
@@ -26,7 +26,7 @@ export interface RawCandidate {
   p: number; knobs: Record<string, number>; rejects: string[]; why?: string; kept: boolean; shipped: boolean; final?: boolean; ms?: number;
   settings?: {
     params: Record<string, number>; pads: number; hires: number; towers: number; salvageCost: number; currencyCost: number;
-    fuelNodes: number; captures: number; waveTimes: number[]; waveSizes: number[]; waveDrops: number[];
+    fuelNodes: number; captures: number; waveTimes: number[]; waveSizes: number[]; waveDrops: number[]; wavePoints?: number[];
   };
   quick?: { seconds: number }[];
   rating?: { D: number; F: number; loopMax: number; ladderLeft: number; idleModules: string[]; budget?: number };
@@ -65,7 +65,7 @@ export function settingsOf(c: RawCandidate): Record<string, number> {
     if (s.waveSizes.length > 0) {
       const peak = Math.max(...s.waveSizes);
       const before = s.waveDrops.slice(0, -1).reduce((t, n) => t + n, 0);
-      Object.assign(out, { waves: s.waveSizes.length, peakWave: peak, towers: s.towers, firstWave: s.waveTimes[0],
+      Object.assign(out, { waves: s.waveSizes.length, peakWave: peak, ...(s.wavePoints ? { peakPoints: Math.max(...s.wavePoints) } : {}), towers: s.towers, firstWave: s.waveTimes[0],
         ...(s.towers > 0 ? { perTower: peak / s.towers } : {}), ...(s.salvageCost > 0 ? { dropShare: before / s.salvageCost } : {}) });
     }
   }

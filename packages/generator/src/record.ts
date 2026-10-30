@@ -1,4 +1,5 @@
 import type { Content, Manifest } from "@fo/content";
+import { wavePoints } from "./build.js";
 
 /**
  * One search iteration, whatever became of it: what was built and how far it got. levels:build appends
@@ -38,7 +39,7 @@ export interface CandidateSettings {
   towers: number; towerLv2: number; towerLv3: number; barracksUp: number;
   ladderSalvage: number; salvageCost: number; currencyCost: number;
   walls: number; scrapHeaps: number; fuelNodes: number; captures: number; events: number;
-  waveTimes: number[]; waveSizes: number[]; waveDrops: number[];
+  waveTimes: number[]; waveSizes: number[]; waveDrops: number[]; wavePoints: number[];
 }
 
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
@@ -63,6 +64,7 @@ export function candidateSettings(m: Manifest, c: Content): CandidateSettings {
     walls: count("barrier.line"), scrapHeaps: count("node.salvage_pile"), fuelNodes: count("node.fuel_scrap"),
     captures: m.entities.filter((e) => e.type.startsWith("capture.")).length, events: m.events.length,
     waveTimes: m.waves.map((w) => w.t),
+    wavePoints: m.waves.map((w) => wavePoints(w.counts as Record<string, number>, c)),
     waveSizes: counts.map((w) => w.reduce((t, [, n]) => t + n, 0)),
     waveDrops: counts.map((w) => w.reduce((t, [id, n]) => t + n * ((c.hostiles[id] as { drops?: Record<string, number> } | undefined)?.drops?.["res.salvage"] ?? 0), 0)),
   };

@@ -4,7 +4,7 @@ import { createSim, outsideLines, pointInPoly, salesLayout, fp } from "@fo/sim";
 import { planBot } from "@fo/bots";
 import { closure, sequenceRange } from "@fo/sequencer";
 import type { CandidateRecord } from "../src/index.js";
-import { buildLevel, flowModel, generate, generateDetailed, idleFeatures, knobsFor, newSearchMemory, skinText, templateById, unreadablePairs, timeTarget, TEMPLATES, GEN } from "../src/index.js";
+import { buildLevel, capWavePoints, flowModel, generate, generateDetailed, idleFeatures, knobsFor, newSearchMemory, skinText, templateById, unreadablePairs, timeTarget, TEMPLATES, GEN } from "../src/index.js";
 
 const reqs = sequenceRange(1, 60);
 const build = (i: number, p = 0.3) => {
@@ -337,6 +337,14 @@ describe("generate (search + rating + stars)", () => {
     const last = generateDetailed({ ...r, target: 0.99 }, { ...light, memory, finish: true, maxIterations: 0, onCandidate: (c) => recs.push(c) });
     expect(last.best).not.toBeNull();
     expect(recs.filter((c) => c.final).length).toBeGreaterThan(0);
+  });
+
+  it("caps a wave's points by trimming swarmlings, and pays out what a wave is worth", () => {
+    const waves = [{ counts: { "hostile.swarmling": 300, "hostile.raider_humanoid": 40 } }, { counts: { "hostile.swarmling": 10 } }];
+    capWavePoints(waves, content, 375);
+    expect(waves[0]!.counts["hostile.swarmling"]).toBe(215);
+    expect(waves[1]!.counts["hostile.swarmling"]).toBe(10);
+    for (const h of Object.values(content.hostiles)) if (h.drops["res.salvage"]) expect(h.drops["res.salvage"]).toBe(h.hp);
   });
 
   it("drops an idle feature, unless the level introduces it or its goal needs it", () => {
