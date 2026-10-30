@@ -1,0 +1,273 @@
+{
+  "id": "s1-L084",
+  "seed": 951364260,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-e",
+      "food-se",
+      "shop-w",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    218,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        218,
+        500
+      ],
+      "params": {
+        "fuel": 9,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        301,
+        478
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        295,
+        518
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        258,
+        420
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        235,
+        402
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        301,
+        447
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        289,
+        411
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          83,
+          350
+        ],
+        [
+          218,
+          350
+        ],
+        [
+          353,
+          350
+        ],
+        [
+          353,
+          500
+        ],
+        [
+          353,
+          650
+        ],
+        [
+          218,
+          650
+        ],
+        [
+          83,
+          650
+        ],
+        [
+          83,
+          500
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        370,
+        37
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        292,
+        216
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        49,
+        81
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        397,
+        190
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        415,
+        363
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        205,
+        80
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        41,
+        274
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        423,
+        551
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        191,
+        186
+      ]
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 1,
+    "core.burn": 2.1,
+    "housing.base": 7,
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 80
+  },
+  "goal": {
+    "type": "rescue",
+    "n": 5
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "rescue",
+      "params": {
+        "n": 5
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 70
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "tow_full_trip",
+      "params": {
+        "n": 3
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Tow Lines and Rescue",
+      "goal": "rescue",
+      "tips": [
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.161,
+    "fun": 0.739,
+    "botMargin": 0.456,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}
