@@ -27,8 +27,9 @@ export function movePlayer(st: State, cp: Compiled, input: Input): void {
     else { p.hp++; p.healCd = cp.player.healTicks; }
   }
   const r = cp.player.radius;
-  const nx = clamp(p.pos.x + mulDiv(dir.x, speed, FP), r, cp.map.w - r);
-  const ny = clamp(p.pos.y + mulDiv(dir.y, speed, FP), r, cp.map.h - r);
+  const wb = cp.player.walkBox;
+  const nx = clamp(p.pos.x + mulDiv(dir.x, speed, FP), wb.x0 + r, wb.x1 - r);
+  const ny = clamp(p.pos.y + mulDiv(dir.y, speed, FP), wb.y0 + r, wb.y1 - r);
   if (!blockedAt(st, cp, nx, p.pos.y)) p.pos.x = nx;
   if (!blockedAt(st, cp, p.pos.x, ny)) p.pos.y = ny;
   // Nobody stands on the core: push out to the exclusion radius.

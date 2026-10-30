@@ -3,7 +3,7 @@ import type { SimEvent } from "../events.js";
 import { FP, mulDiv, within, type Vec } from "../fixed.js";
 import type { ConverterState, DropState, HostileState, NodeState, PreyState, ResidentState, State } from "../state.js";
 import { attackGate, attackedSide, guardPost, outsideLines, sectionMid } from "./barriers.js";
-import { hitHostile, hitPrey, nearestHostile } from "./combat.js";
+import { clearLine, hitHostile, hitPrey, nearestHostile } from "./combat.js";
 import { depotPut, moveAgent, ringPoint, stepDown } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
 
@@ -172,8 +172,11 @@ function hunterStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRol
   }
   // Hunters take the dangerous variants of their quarry too (and risk a bite for it).
   const zones = st.preyZones.map((z, i) => (z.animal === r.assign.from || cp.animals[z.animal]?.variantOf === r.assign.from ? i : -1));
-  const prey: PreyState | null = closest(r.pos, st.prey.filter((d) => d.alive && zones.includes(d.zone)));
+  // Quarry with a clear line is preferred; a wall in the way means walking on (to the gate) before the shot.
+  const quarry = st.prey.filter((d) => d.alive && zones.includes(d.zone));
+  const prey: PreyState | null = closest(r.pos, quarry.filter((d) => clearLine(st, r.pos, d.pos))) ?? closest(r.pos, quarry);
   if (!prey) { if (r.n > 0) r.mode = "deliver"; return; }
+  if (!clearLine(st, r.pos, prey.pos)) { moveAgent(st, cp, r.pos, prey.pos, role.speed, cp.residents.arrive); return; }
   if (!within(r.pos, prey.pos, role.attackRange) && !moveAgent(st, cp, r.pos, prey.pos, role.speed, role.attackRange)) return;
   if (!ready(r, role.attackTicks)) return;
   hitPrey(st, cp, prey, role.damage, "resident", out);
