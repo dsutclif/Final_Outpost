@@ -120,7 +120,6 @@
     "hire": { "family": "harvest", "needs": [], "anchor": true },
     "earn_within": { "family": "harvest", "needs": [], "anchor": true },
     "bulk_order": { "family": "harvest", "needs": ["bulk_orders"], "anchor": true },
-    "shelves_full": { "family": "harvest", "needs": [], "adds": ["hunting"], "avoid": ["source_unlocks"], "anchor": true },
 
     "produce": { "family": "industrialize", "needs": [], "anchor": true },
     "converters_running": { "family": "industrialize", "needs": ["tier2"], "anchor": true },
