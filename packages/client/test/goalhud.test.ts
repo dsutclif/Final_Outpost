@@ -4,7 +4,7 @@ import type { Manifest } from "@fo/content";
 import { TPS, createSim } from "@fo/sim";
 import { DEFAULT_SKIN, getSkin } from "@fo/skins";
 import { describe, expect, it } from "vitest";
-import { alertOf, goalIcon, goalTokens } from "../src/goalhud.js";
+import { alertMarks, alertOf, goalIcon, goalTokens } from "../src/goalhud.js";
 
 // The floating HUD's goal icons (docs/mockups/hud-header-options.html): each goal kind maps to a
 // glyph and its channels, and the urgent alert picks the colony freezing over a goal at risk.
@@ -70,6 +70,28 @@ describe("urgent alert", () => {
     expect(alertOf(st, m, cp, goalTokens(st, m, cp, skin))).toEqual({ kind: "goal", id: time.id });
     st.core.fuel = 0;
     expect(alertOf(st, m, cp, goalTokens(st, m, cp, skin)).kind).toBe("heat");
+  });
+
+  it("marks the thing at risk in the world: the reactor, the weakest gate, the most impatient trader (R5 #16)", () => {
+    const { sim, m, cp } = level(34);
+    const st = sim.state;
+    st.core.fuel = 0;
+    expect(alertMarks(alertOf(st, m, cp, goalTokens(st, m, cp, skin)), st)).toEqual([{ kind: "core" }]);
+    expect(alertMarks({ kind: "none" }, st)).toEqual([]);
+
+    const g = level(5).sim.state;
+    const b = g.barriers.find((x) => x.sections.some((s) => s.gate))!;
+    for (const s of b.sections) { s.built = true; s.hp = s.hpMax; }
+    const i = b.sections.findIndex((s) => s.gate);
+    b.sections[i]!.hp = 1;
+    expect(alertMarks({ kind: "walls" }, g)).toEqual([{ kind: "gate", barrier: b.id, section: i }]);
+
+    const h = level(8);
+    const q = h.sim.state.sales!.queue;
+    const base = { kind: "unit.customer", res: "res.food_raw_1", want: 1, patienceMax: 120, pos: { x: 0, y: 0 }, angry: false };
+    q.push({ ...base, id: 998, patience: 90 } as never, { ...base, id: 999, patience: 10 } as never);
+    const id = h.sim.state.objectives.find((o) => o.kind === "no_angry_customers")!.id;
+    expect(alertMarks({ kind: "goal", id }, h.sim.state)).toEqual([{ kind: "customer", id: 999 }]);
   });
 });
 

@@ -2,10 +2,10 @@
 // nothing, and loadRenderer3D() pulls three.js in a separate chunk, so the app shell boots
 // (title, menus, the unsupported-device screen) without downloading it.
 
-import type { RenderStats, Renderer } from "./contract.js";
+import type { AlertMark, RenderStats, Renderer } from "./contract.js";
 import type { QualityTier } from "./units.js";
 
-export type { Camera, CoachMark, GuideMark, RenderStats, Renderer } from "./contract.js";
+export type { AlertMark, Camera, CoachMark, GuideMark, RenderStats, Renderer } from "./contract.js";
 export { createCamera, LEAD_WEIGHT } from "./contract.js";
 export { ART_M, BUILD_K, CHAR_K, viewWFor, FOV_DEG, PITCH_DEG, YAW_DEG, VIEW_W, TEXT, screenToWorld, worldToScreenPlane, QUALITY_TIERS, TIERS, MAX_DRAW_CALLS, MAX_TRIANGLES, type QualityTier, type TierSettings } from "./units.js";
 export { TRI_BUDGET, CLASS_ANCHORS, ANCHOR_NAMES, modelIds, type AssetClass, type AnchorName } from "./ids.js";
@@ -21,6 +21,8 @@ export interface Renderer3DHandle extends Renderer {
   setCoach(c: { key: string; at: { x: number; y: number }; text: string } | null): void;
   /** Guide arrow target (world units) with its one-line instruction, or null to hide it. */
   setGuide(g: { key: string; at: { x: number; y: number }; text: string } | null): void;
+  /** The things the current urgent alert is about (a danger marker floats over each); empty for none. */
+  setAlertMarks(marks: readonly AlertMark[]): void;
   /** Jump the camera onto the hero on the next sync. */
   snapCamera(): void;
   /** World point (world units, on the ground) to mount CSS px, with the last camera. */

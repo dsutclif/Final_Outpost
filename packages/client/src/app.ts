@@ -7,7 +7,7 @@ import { isNew, nearbyPassive, touchedBy } from "./discovery.js";
 import { Haptics, Synth } from "./feedback.js";
 import { Guide, StuckTimer, type GuideTarget } from "./guide.js";
 import { iconSvg, liveObjectives } from "./objectives.js";
-import { GoalHud, alertOf, goalIcon, goalTokens, type Alert } from "./goalhud.js";
+import { GoalHud, alertMarks, alertOf, goalIcon, goalTokens, type Alert } from "./goalhud.js";
 import { InputController } from "./input.js";
 import { offlineReady, prefetchLevels, type LevelMeta, type LevelSource } from "./levels.js";
 import { FixedStepper } from "./loop.js";
@@ -1191,6 +1191,8 @@ export class App {
     const a = playing ? alertOf(st, s.manifest, s.sim.compiled, goalTokens(st, s.manifest, s.sim.compiled, this.skin)) : { kind: "none" as const };
     const key = a.kind === "goal" ? `goal:${a.id}` : a.kind;
     if (key !== this.alertKey) { this.alertKey = key; this.alert = a; this.hud.setAlert(a); this.buzzAt = 0; }
+    // and over the thing at risk in the world (backlog R5 #16); re-picked each frame, as the coldest colonist changes
+    s.renderer.setAlertMarks(alertMarks(a, st));
     if (this.alert.kind === "none" || now - this.buzzAt < ALERT_BUZZ_MS) return;
     this.buzzAt = now;
     this.haptics.pulse(this.alert.kind === "goal" ? [25] : [60, 60, 60]);

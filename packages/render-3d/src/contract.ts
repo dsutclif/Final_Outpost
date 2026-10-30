@@ -47,5 +47,16 @@ export interface RenderStats {
 /** A coach mark: target in world units and the line to show (same shape as render-2d's). */
 export interface CoachMark { key: string; at: { x: number; y: number }; text: string }
 
+/**
+ * What an urgent alert is about (backlog R5 #16): the renderer floats a danger marker over it, beside
+ * the top-of-screen icon. Named, not placed, so the marker follows a moving colonist or customer.
+ */
+export type AlertMark =
+  | { kind: "core" }
+  | { kind: "gate"; barrier: string; section: number }
+  | { kind: "converter"; id: string }
+  | { kind: "resident"; id: number }
+  | { kind: "customer"; id: number };
+
 /** A guide mark: where the player's next step is (world units), the one line that says what to do, and the walk there (corner points, ending at the step's final spot). */
 export interface GuideMark { key: string; at: { x: number; y: number }; text: string; path?: { x: number; y: number }[] | undefined }
