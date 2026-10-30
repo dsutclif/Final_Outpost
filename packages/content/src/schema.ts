@@ -230,7 +230,7 @@ export type ConverterDef = z.infer<typeof ConverterDef>;
 
 // ---------- Roles (worker behaviour templates) ----------
 export const RoleDef = z.object({
-  behavior: z.enum(["gather_deliver", "stand_at", "collect_deliver", "hunt", "guard", "haul"]),
+  behavior: z.enum(["gather_deliver", "stand_at", "collect_deliver", "hunt", "guard", "haul", "medic"]),
   speed: units,
   carry: z.number().int().positive().optional(),
   gatherInterval: seconds.optional(),
@@ -238,6 +238,10 @@ export const RoleDef = z.object({
   attackInterval: seconds.optional(),
   attackRange: units.optional(),
   damage: z.number().int().positive().optional(),
+  // Guards: health (the commander's); at guards.downPct of it they stop fighting until healed (R5 #26).
+  hp: z.number().int().positive().optional(),
+  // Medics: seconds to patch up a downed guard where it fell.
+  healInterval: seconds.optional(),
   // Guards: leave their post for the wall on the side under attack, and come back when it is clear.
   rally: z.boolean().default(false),
   // Guards: march out through the gate to meet a wave on the field, back to their posts once it is gone (Batch 3).

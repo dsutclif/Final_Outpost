@@ -105,7 +105,10 @@ export default defineConfig({
         // Levels stay on the runtime routes below: the app prefetches every level while online and
         // polls pack.json for new batches, which a precached copy would hide.
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest,woff2}", "models/**/*.glb"],
-        globIgnores: ["store/**", "sandbox.html", "assets/sandbox-*.js", "layout.html", "assets/layout-*.js", "dev/**", "levels/**"],
+        globIgnores: ["store/**", "sandbox.html", "assets/sandbox-*.js", "layout.html", "assets/layout-*.js", "dev/**", "levels/**", "assets/*.poster-*.png"],
+        // Cinematic videos (src/cinematics) are not precached: the globs above never match .mp4, which keeps the
+        // install small and keeps the worker out of the way of iOS Safari range requests. Offline they simply
+        // fail to load and the client skips ahead (cinematics.ts); the title falls back to its canvas backdrop.
         ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // the first visit's page is controlled at once, so nothing it loads misses the cache

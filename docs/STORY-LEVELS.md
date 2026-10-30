@@ -306,19 +306,22 @@ re-renders from code (no hand-keyed Blender files to maintain). Built 2026-10-26
 | `site_prep.py` | The crash-site wreck: Doug's wreck at 60 m with the loose debris in front of the hull break removed (`cache/halcyon_wreck_site.glb`), so the deck set and cameras have room. Run after `prep.py`. |
 | `lib.py` | Shared kit: models placed in metres, sand, seeded ridges, sky and bounded haze, sun, reactor glow, bloom, dust motes that loop seamlessly, rig poses (Mixamo bones), the in-game camera. |
 | `title.py` | Landing screen. `--quick` preview, default 1080×1920 still, `--frames` the 180-frame loop, `--check` seam frames. |
-| `crash.py` | `crash_open`, four shots; `--shot N`, `--quick`, `--check`. |
+| `crash.py` | `crash_open`: shots 1–3, then the pod sequence (shot 4) cut across four cameras and appended after frame 165; `--shot N`, `--quick`, `--check`. |
+| `mocap.py`, `retarget.py`, `pod_exit.py` | CMU motion capture (ASF/AMC in `mocap/`, gitignored) retargeted onto the commander's Mixamo rig with a rigid, profile-calibrated trunk (Doug: neutral back). `pod_exit.perform()` chains Doug's five takes (get up 140_08, step over 143_15, limp 139_19 at half speed, jump down 82_02, look round 77_01), locks feet to the ground, fits the pod rim and deck drop to the motion and checks every frame; run on its own it renders a flat-grey four-view preview. `stick.py` and `tile.py` are its review tools. |
 | `helmet.py` | `helmet_reveal`; `--quick`, `--check`. |
 | `badge.py` | Re-letters the ID card (`assets/badge_commander.jpg` → `assets/badge_bay5.png`) in Barlow. |
 | `encode.py` | Frame folder → H.264 MP4 (yuv420p, 30 fps) plus a poster PNG, with Blender's own FFmpeg. |
 | `contact.py`, `posetest.py`, `inspect.py` | Review sheets, a rig pose lab, a GLB report. |
 
-Output goes to `tools/cinematics/out/` (gitignored); finished MP4s get copied into the client
-when the director and title screen are wired up.
+Output goes to `tools/cinematics/out/` (gitignored); finished MP4s and posters are copied into
+`packages/client/src/cinematics/` (same file names), which the client imports so Vite fingerprints
+them: a re-render just replaces the file and ships with the next push.
 
 **Seamless hand-off.** `crash_open` ends on the game camera (30° pitch, 45° yaw, near-
 orthographic) centred on the commander at 7.3 m across (look.json viewW 170 = 4 hero heights),
 so the last video frame and the first live frame line up. Level 1's manifest must put the
-commander, the dark reactor and the ore trail where the shot does (`crash.py` `shot4`); the
+commander, the dark reactor and the ore trail where the shot does (`crash.py` `shot4`: the reactor
+3.3 m left and 2.4 m toward camera of the landing spot, the ore between); the
 client should still cross-fade 0.3 s to hide the renderer change.
 
 **Shots.**
@@ -327,7 +330,7 @@ client should still cross-fade 0.3 s to hide the renderer change.
 |---|---|---|---|
 | `title_loop` | Landing screen | 6 s seamless loop | Dusk over the outpost: reactor glow breathing, a crewmate mining, the medic and commander breathing, dust drifting, the pulse beating twice on the ridge. Title and Play over it. |
 | `title_still` | Landing fallback, store art | still | Frame 1 of the loop at 1080×1920. |
-| `crash_open` | Before level 1 | 12.5 s | 1 the Halcyon dives through the storm; the pulse flashes and the engines cut out. 2 wide: it hits the plain, flash, dust plume. 3 dawn: the broken wreck (Doug's model) on the plain, red emergency light in the hull break. 4 a torn deck section by the break: four sealed pods (bays five to eight, the crew-gap clue) and the commander's pod knocked askew; it vents, the lid swings open, the commander sits up, climbs over the rim, slides off and walks to the deck edge. 5 the commander drops to the sand, stands, and the camera cranes out to the game view over the dark reactor, the wreck behind. |
+| `crash_open` | Before level 1 | about 29 s | 1 the Halcyon dives through the storm; the pulse flashes and the engines cut out. 2 wide: it hits the plain, flash, dust plume. 3 dawn: the broken wreck (Doug's model) on the plain, red emergency light in the hull break. 4 a torn deck plate by the break with five pods sunk into it (four sealed: bays five to eight, the crew-gap clue). The commander's pod vents and the lid swings back; in motion capture they get up, step out over the rim, limp to the plate's edge, jump down to the sand and look round, and the camera cranes out to the game view over the dark reactor, the wreck behind. |
 | `helmet_reveal` | After level 5's win | 4 s | Night. The lieutenant's helmet (Halcyon-issue, painted black, white and gold showing through) where it fell, dust settling; the camera creeps in and tips down to the ID card that slipped out: BAY 5, FIRST OFFICER. |
 
 The commander's own pod failed to eject, which is why they wake in the wreck (agreed with Doug
@@ -340,11 +343,16 @@ The in-level beats (ignition, pod thaw, town pull-back, red visors on the ridge)
 **Format.** Portrait 720×1280 at 30 fps, H.264 MP4 with a poster PNG; title loop about 1.2 MB,
 the others about 2 MB. Played muted with `playsinline` (iOS autoplay rule) and the game's own
 sound stings on top. The canvas backdrop in `title.ts` stays as the fallback while the loop loads
-or if video fails. Videos join the service-worker precache. Tap to skip; never shown on replay.
+or if video fails. Videos stay out of the service-worker precache (install size, and iOS Safari
+range requests); offline they fail fast and the game carries on. Tap to skip; never shown on replay.
 
-**Still to do.** Wire the videos into the client (title screen, level 1 intro, level 5 result),
-put the Halcyon wreck model into the game for level 1, and re-check the hand-off frame once level 1
-is authored.
+**Wired (2026-10-29).** `packages/client/src/cinematics.ts` registers them by story level id
+(`story-L001` before: `crash_open`; `story-L005` after the win: `helmet_reveal`); the title screen plays
+`title_loop` over its canvas. Seen flags live in `Progress.cinematics`; a failed or stalled video is
+not marked seen. Dev: `__fo.debugCinematic("crash_open")`.
+
+**Still to do.** Put the Halcyon wreck model into the game for level 1, and re-check the hand-off
+frame against level 1's layout.
 
 ## Built (2026-10-26)
 

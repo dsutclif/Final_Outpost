@@ -186,288 +186,310 @@ def timeline(takes, scale_of):
     return out
 
 
-# ---------------------------------------------------------------- scene
-sc = lib.reset(640, 360)
-sc.render.engine = "BLENDER_WORKBENCH"
-sc.display.shading.light = "STUDIO"
-sc.display.shading.color_type = "OBJECT"
-sc.view_settings.view_transform = "Standard"
-lib.sky(horizon="#d6d6d6", zenith="#c8c8c8", haze=0)
-sc.world.color = (0.84, 0.84, 0.84)
+# ---------------------------------------------------------------- the performance
+def perform(root, pre=0, calib=False):
+    """Key the pod exit onto a placed commander (at the origin, unturned) from frame 1 + pre (frames
+    1..pre hold the first pose) and fit the set to it. The motion's frame: deck top at z 0, the sand
+    DROP_H below, the commander lying along -X at the origin. Returns the motion and the set's fit;
+    the flat grey set it builds (deck, sand, rim walls) is for the preview and checks."""
+    sc = bpy.context.scene
 
-root = lib.place("unit.player", at=(0, 0, 0), height=1.8, name="commander")
-lib.still(root)
-arm = bpy.data.objects[root["armature"]]
-# the skinned suit (the file also carries a helper sphere, hidden here)
-body = next(bpy.data.objects[n] for n in root["meshes"] if any(m.type == "ARMATURE" for m in bpy.data.objects[n].modifiers))
-for n in root["meshes"]:
-    if bpy.data.objects[n] is not body: bpy.data.objects[n].hide_render = True
-body.color = (0.62, 0.6, 0.57, 1)
-bpy.context.view_layer.update()  # place() scaled the model: the rig must read its final world matrix
-rig = retarget.Rig(arm)
-takes = build_takes()
-TL = timeline(takes, lambda t: rig.leg_world / t.leg)
-N = len(TL)
+    arm = bpy.data.objects[root["armature"]]
+    # the skinned suit (the file also carries a helper sphere, hidden here)
+    body = next(bpy.data.objects[n] for n in root["meshes"] if any(m.type == "ARMATURE" for m in bpy.data.objects[n].modifiers))
+    for n in root["meshes"]:
+        if bpy.data.objects[n] is not body: bpy.data.objects[n].hide_render = True
+    body.color = (0.62, 0.6, 0.57, 1)
+    bpy.context.view_layer.update()  # place() scaled the model: the rig must read its final world matrix
+    rig = retarget.Rig(arm)
+    takes = build_takes()
+    TL = timeline(takes, lambda t: rig.leg_world / t.leg)
+    N = len(TL)
 
-# Fit the set to the motion. Ledge drop height (commander scale) from the drop take.
-drop = next(t for t in takes if isinstance(t, Drop))
-DROP_H = drop.floor * rig.leg_world / drop.leg
+    # Fit the set to the motion. Ledge drop height (commander scale) from the drop take.
+    drop = next(t for t in takes if isinstance(t, Drop))
+    DROP_H = drop.floor * rig.leg_world / drop.leg
 
 
-def place(frame_row, lock_dz=0.0):
-    _, dirs, fr, p, _, _, _ = frame_row
-    rig.pose(dirs, fr, p + Vector((0, 0, lock_dz)))
+    def place(frame_row, lock_dz=0.0):
+        _, dirs, fr, p, _, _, _ = frame_row
+        rig.pose(dirs, fr, p + Vector((0, 0, lock_dz)))
 
 
-def mesh_points():
-    dg = bpy.context.evaluated_depsgraph_get()
-    ev = body.evaluated_get(dg)
-    me = ev.to_mesh()
-    mw = ev.matrix_world
-    pts = [mw @ v.co for v in me.vertices]
-    ev.to_mesh_clear()
-    return pts
+    def mesh_points():
+        dg = bpy.context.evaluated_depsgraph_get()
+        ev = body.evaluated_get(dg)
+        me = ev.to_mesh()
+        mw = ev.matrix_world
+        pts = [mw @ v.co for v in me.vertices]
+        ev.to_mesh_clear()
+        return pts
 
 
-# Calibrate the neutral back in profile: at the upright frame that ends the get-up, find the trunk pitch
-# that stands the commander straight (hips to neck vertical, seen side-on), then keep it for every frame.
-ref = max(i for i, r in enumerate(TL) if r[0] == 0)
+    # Calibrate the neutral back in profile: at the upright frame that ends the get-up, find the trunk pitch
+    # that stands the commander straight (hips to neck vertical, seen side-on), then keep it for every frame.
+    ref = max(i for i, r in enumerate(TL) if r[0] == 0)
 
 
-def lean(pitch):
-    rig.trunk_pitch = pitch
-    place(TL[ref])
-    bpy.context.view_layer.update()
-    pbs, mw = arm.pose.bones, arm.matrix_world
-    hip, neck = mw @ pbs[retarget.P + "Hips"].head, mw @ pbs[retarget.P + "Neck"].head
-    up, right = TL[ref][2]
-    fwd = up.cross(right).normalized()
-    v = neck - hip
-    return math.atan2(v.dot(fwd), v.dot(Vector((0, 0, 1))))
-
-
-lo_p, hi_p = -0.7, 0.7
-if lean(lo_p) * lean(hi_p) > 0: raise SystemExit("trunk calibration: no upright pitch in range")
-for _ in range(40):
-    m = (lo_p + hi_p) / 2
-    if (lean(m) > 0) == (lean(lo_p) > 0): lo_p = m
-    else: hi_p = m
-TRUNK_PITCH = (lo_p + hi_p) / 2
-print(f"TRUNK pitch {math.degrees(TRUNK_PITCH):.1f} deg (lean at 0: {math.degrees(lean(0.0)):.1f} deg)")
-if "--calib" in args:  # profile stills at the reference frame: uncorrected, two tries, and the result
-    up, right = TL[ref][2]
-    pel = TL[ref][3]
-    cam = lib.camera(pel + right.normalized() * 3.2 + Vector((0, 0, 0.6)), pel + Vector((0, 0, 0.55)), lens=40, name="profile")
-    sc.camera = cam
-    sc.render.resolution_x, sc.render.resolution_y = 360, 600
-    for k, pt in enumerate((0.0, TRUNK_PITCH / 2, TRUNK_PITCH * 1.5, TRUNK_PITCH)):
-        rig.trunk_pitch = pt
+    def lean(pitch):
+        rig.trunk_pitch = pitch
         place(TL[ref])
-        lib.render_still(os.path.join(lib.OUT, f"calib_{k}.png"))
-rig.trunk_pitch = TRUNK_PITCH
+        bpy.context.view_layer.update()
+        pbs, mw = arm.pose.bones, arm.matrix_world
+        hip, neck = mw @ pbs[retarget.P + "Hips"].head, mw @ pbs[retarget.P + "Neck"].head
+        up, right = TL[ref][2]
+        fwd = up.cross(right).normalized()
+        v = neck - hip
+        return math.atan2(v.dot(fwd), v.dot(Vector((0, 0, 1))))
 
-# pass 1: pose everything unlocked, measure the set from where the body goes
-k_drop = next(k for k, t in enumerate(takes) if isinstance(t, Drop))
-k_step = next(k for k, t in enumerate(takes) if isinstance(t, StepOver))
-lying_pts, step_peak, takeoff = [], None, None
-best_lift = -1
-for f, row in enumerate(TL):
-    place(row)
-    bpy.context.view_layer.update()
-    if row[0] == 0 and row[6] < 20:
-        lying_pts += mesh_points()[::7]
-    if row[0] == k_step:
+
+    lo_p, hi_p = -0.7, 0.7
+    if lean(lo_p) * lean(hi_p) > 0: raise SystemExit("trunk calibration: no upright pitch in range")
+    for _ in range(40):
+        m = (lo_p + hi_p) / 2
+        if (lean(m) > 0) == (lean(lo_p) > 0): lo_p = m
+        else: hi_p = m
+    TRUNK_PITCH = (lo_p + hi_p) / 2
+    print(f"TRUNK pitch {math.degrees(TRUNK_PITCH):.1f} deg (lean at 0: {math.degrees(lean(0.0)):.1f} deg)")
+    if calib:  # profile stills at the reference frame: uncorrected, two tries, and the result
+        up, right = TL[ref][2]
+        pel = TL[ref][3]
+        cam = lib.camera(pel + right.normalized() * 3.2 + Vector((0, 0, 0.6)), pel + Vector((0, 0, 0.55)), lens=40, name="profile")
+        sc.camera = cam
+        sc.render.resolution_x, sc.render.resolution_y = 360, 600
+        for k, pt in enumerate((0.0, TRUNK_PITCH / 2, TRUNK_PITCH * 1.5, TRUNK_PITCH)):
+            rig.trunk_pitch = pt
+            place(TL[ref])
+            lib.render_still(os.path.join(lib.OUT, f"calib_{k}.png"))
+    rig.trunk_pitch = TRUNK_PITCH
+
+    # pass 1: pose everything unlocked, measure the set from where the body goes
+    k_drop = next(k for k, t in enumerate(takes) if isinstance(t, Drop))
+    k_step = next(k for k, t in enumerate(takes) if isinstance(t, StepOver))
+    lying_pts, step_peak, takeoff = [], None, None
+    best_lift = -1
+    for f, row in enumerate(TL):
+        place(row)
+        bpy.context.view_layer.update()
+        if row[0] == 0 and row[6] < 20:
+            lying_pts += mesh_points()[::7]
+        if row[0] == k_step:
+            pts = mesh_points()
+            lo = min(p.z for p in pts)
+            feet = [arm.matrix_world @ arm.pose.bones[retarget.P + n].tail for n in ("LeftToeBase", "RightToeBase")]
+            top = max(feet, key=lambda v: v.z)
+            if top.z - lo > best_lift: best_lift, step_peak = top.z - lo, top.copy()
+        if row[0] == k_drop and takeoff is None:
+            seg, _, _ = row[5].clip.pose(row[6])
+            if body_min(seg) < drop.floor - 0.06:  # feet have left the ledge
+                toes = [arm.matrix_world @ arm.pose.bones[retarget.P + n].tail for n in ("LeftToeBase", "RightToeBase")]
+                takeoff = (row[3].copy(), toes)
+
+    WALL_T = 0.08
+    walls = []
+
+
+    def box(name, cx, cy, cz, sx, sy, sz, color):
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(cx, cy, cz))
+        o = bpy.context.object
+        o.name, o.scale, o.color = name, (sx, sy, sz), color
+        return o
+
+
+    # the deck ends at the takeoff line, the sand lies DROP_H below
+    t_pos, t_toes = takeoff
+    jump_dir = (TL[-1][3] - t_pos); jump_dir.z = 0; jump_dir.normalize()
+    edge_d = max(v.dot(jump_dir) for v in t_toes) + 0.02  # just past the toes at takeoff
+    deck_c, sand_c = (0.55, 0.55, 0.57, 1), (0.66, 0.6, 0.5, 1)
+    deck = box("deck", 0, 0, -DROP_H / 2, 40, 40, DROP_H, deck_c)
+    cut = box("cut", 0, 0, -DROP_H / 2, 40, 40, DROP_H + 0.02, deck_c)
+    cut.rotation_euler = (0, 0, math.atan2(jump_dir.y, jump_dir.x))
+    cut.location = Vector((0, 0, -DROP_H / 2)) + jump_dir * (edge_d + 20)
+    mod = deck.modifiers.new("edge", "BOOLEAN")
+    mod.object, mod.operation = cut, "DIFFERENCE"
+    bpy.context.view_layer.objects.active = deck
+    bpy.ops.object.modifier_apply(modifier="edge")
+    bpy.data.objects.remove(cut)
+    sand = box("sand", 0, 0, -DROP_H - 0.05, 60, 60, 0.1, sand_c)
+
+
+    def support(p):
+        return 0.0 if p.dot(jump_dir) <= edge_d else -DROP_H
+
+
+    # pass 2: ground lock. In contact frames the lowest point of the suit sits on the deck or sand; in
+    # any frame it may never go below them. Smoothing runs only inside stretches of contact, so a foot
+    # never sinks while the lock eases.
+    raw, floor_need, contact = [], [], []
+    for f, row in enumerate(TL):
+        place(row)
+        bpy.context.view_layer.update()
+        low = min(mesh_points(), key=lambda v: v.z)
+        need = support(low) - low.z
+        on = row[4] is True
+        if row[4] is None:          # the drop: on the ledge before takeoff, on the sand after landing
+            bm = body_min(row[5].clip.pose(row[6])[0])
+            on = abs(bm - drop.floor) < 0.05 or bm - drop.ground() < 0.05
+        raw.append(need if on else 0.0)
+        floor_need.append(need)
+        contact.append(on)
+    sm = []
+    for i in range(N):
+        if contact[i]:
+            win = [raw[j] for j in range(max(0, i - 3), min(N, i + 4)) if contact[j] and TL[j][0] == TL[i][0]]
+            v = sum(win) / len(win)
+        else:
+            v = raw[i]
+        sm.append(max(v, floor_need[i]))  # never below the ground
+
+    # the pod: a low tub fitted round the whole get-up; its rim on the step line where the feet clear
+    # it highest, and just lower than that
+    getup_pts, step_frames = [], []
+    for f, row in enumerate(TL):
+        if row[0] not in (0, k_step, k_step + 1): continue
+        place(row, sm[f])
+        bpy.context.view_layer.update()
         pts = mesh_points()
-        lo = min(p.z for p in pts)
-        feet = [arm.matrix_world @ arm.pose.bones[retarget.P + n].tail for n in ("LeftToeBase", "RightToeBase")]
-        top = max(feet, key=lambda v: v.z)
-        if top.z - lo > best_lift: best_lift, step_peak = top.z - lo, top.copy()
-    if row[0] == k_drop and takeoff is None:
-        seg, _, _ = row[5].clip.pose(row[6])
-        if body_min(seg) < drop.floor - 0.06:  # feet have left the ledge
-            toes = [arm.matrix_world @ arm.pose.bones[retarget.P + n].tail for n in ("LeftToeBase", "RightToeBase")]
-            takeoff = (row[3].copy(), toes)
-
-WALL_T = 0.08
-walls = []
-
-
-def box(name, cx, cy, cz, sx, sy, sz, color):
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(cx, cy, cz))
-    o = bpy.context.object
-    o.name, o.scale, o.color = name, (sx, sy, sz), color
-    return o
-
-
-# the deck ends at the takeoff line, the sand lies DROP_H below
-t_pos, t_toes = takeoff
-jump_dir = (TL[-1][3] - t_pos); jump_dir.z = 0; jump_dir.normalize()
-edge_d = max(v.dot(jump_dir) for v in t_toes) + 0.02  # just past the toes at takeoff
-deck_c, sand_c = (0.55, 0.55, 0.57, 1), (0.66, 0.6, 0.5, 1)
-deck = box("deck", 0, 0, -DROP_H / 2, 40, 40, DROP_H, deck_c)
-cut = box("cut", 0, 0, -DROP_H / 2, 40, 40, DROP_H + 0.02, deck_c)
-cut.rotation_euler = (0, 0, math.atan2(jump_dir.y, jump_dir.x))
-cut.location = Vector((0, 0, -DROP_H / 2)) + jump_dir * (edge_d + 20)
-mod = deck.modifiers.new("edge", "BOOLEAN")
-mod.object, mod.operation = cut, "DIFFERENCE"
-bpy.context.view_layer.objects.active = deck
-bpy.ops.object.modifier_apply(modifier="edge")
-bpy.data.objects.remove(cut)
-box("sand", 0, 0, -DROP_H - 0.05, 60, 60, 0.1, sand_c)
+        if row[0] == 0: getup_pts += pts[::5]
+        else: step_frames.append(pts[::2])  # the step and the walk after it: the rim must clear both
+    # which way the step actually travels (the pelvis from the first to the last step frame)
+    step_rows = [r for r in TL if r[0] == k_step]
+    step_dir = step_rows[-1][3] - step_rows[0][3]; step_dir.z = 0
+    ax = max((Vector((1, 0, 0)), Vector((-1, 0, 0)), Vector((0, 1, 0)), Vector((0, -1, 0))), key=lambda a: a.dot(step_dir))
+    lat = Vector((-ax.y, ax.x, 0))
+    g_along = [p.dot(ax) for p in getup_pts]; g_lat = [p.dot(lat) for p in getup_pts]
+    lat0, lat1 = min(g_lat) - 0.1, max(g_lat) + 0.1
+    lying = [p for p in getup_pts[:200]]
+    foot_peaks = [max(pts, key=lambda p: p.z) for pts in step_frames]
+    pk = max(foot_peaks, key=lambda p: p.z)
+    print(f"GEO getup along {min(g_along):.2f}..{max(g_along):.2f} lat {min(g_lat):.2f}..{max(g_lat):.2f}; step travel {step_dir.length:.2f} m; foot peak along {pk.dot(ax):.2f} z {pk.z:.2f}; step pelvis along {step_rows[0][3].dot(ax):.2f}->{step_rows[-1][3].dot(ax):.2f}; walk pelvis along end {[r for r in TL if r[0] == k_step + 1][-1][3].dot(ax):.2f}")
+    back = min(g_along) - 0.1
+    best_c, best_clear = None, -1.0
+    c = max(g_along) + WALL_T / 2 + 0.02
+    while c < max(g_along) + 1.5:
+        clear = 9.0
+        for pts in step_frames:
+            cross = [p.z for p in pts if abs(p.dot(ax) - c) < WALL_T / 2 and lat0 - WALL_T < p.dot(lat) < lat1 + WALL_T]
+            if cross: clear = min(clear, min(cross))
+        if clear > best_clear: best_c, best_clear = c, clear
+        c += 0.02
+    RIM_H = round(max(0.12, min(0.42, best_clear - 0.04)), 2)
+    front = best_c - WALL_T / 2
+    print(f"RIM at {front:.2f} along the step, clearance {best_clear:.2f} m, height {RIM_H} m")
+    wall_c = (0.45, 0.5, 0.58, 1)
 
 
-def support(p):
-    return 0.0 if p.dot(jump_dir) <= edge_d else -DROP_H
+    def wall(nm, a0, a1, l0, l1):
+        """A rim wall spanning along-step a0..a1 and lateral l0..l1, in world axes."""
+        ca, cl = (a0 + a1) / 2, (l0 + l1) / 2
+        centre = ax * ca + lat * cl
+        sa, sl = a1 - a0, l1 - l0
+        size = Vector((abs(ax.x) * sa + abs(lat.x) * sl, abs(ax.y) * sa + abs(lat.y) * sl, RIM_H))
+        walls.append(box(nm, centre.x, centre.y, RIM_H / 2, size.x, size.y, size.z, wall_c))
 
 
-# pass 2: ground lock. In contact frames the lowest point of the suit sits on the deck or sand; in
-# any frame it may never go below them. Smoothing runs only inside stretches of contact, so a foot
-# never sinks while the lock eases.
-raw, floor_need, contact = [], [], []
-for f, row in enumerate(TL):
-    place(row)
-    bpy.context.view_layer.update()
-    low = min(mesh_points(), key=lambda v: v.z)
-    need = support(low) - low.z
-    on = row[4] is True
-    if row[4] is None:          # the drop: on the ledge before takeoff, on the sand after landing
-        bm = body_min(row[5].clip.pose(row[6])[0])
-        on = abs(bm - drop.floor) < 0.05 or bm - drop.ground() < 0.05
-    raw.append(need if on else 0.0)
-    floor_need.append(need)
-    contact.append(on)
-sm = []
-for i in range(N):
-    if contact[i]:
-        win = [raw[j] for j in range(max(0, i - 3), min(N, i + 4)) if contact[j] and TL[j][0] == TL[i][0]]
-        v = sum(win) / len(win)
-    else:
-        v = raw[i]
-    sm.append(max(v, floor_need[i]))  # never below the ground
-
-# the pod: a low tub fitted round the whole get-up; its rim on the step line where the feet clear
-# it highest, and just lower than that
-getup_pts, step_frames = [], []
-for f, row in enumerate(TL):
-    if row[0] not in (0, k_step, k_step + 1): continue
-    place(row, sm[f])
-    bpy.context.view_layer.update()
-    pts = mesh_points()
-    if row[0] == 0: getup_pts += pts[::5]
-    else: step_frames.append(pts[::2])  # the step and the walk after it: the rim must clear both
-# which way the step actually travels (the pelvis from the first to the last step frame)
-step_rows = [r for r in TL if r[0] == k_step]
-step_dir = step_rows[-1][3] - step_rows[0][3]; step_dir.z = 0
-ax = max((Vector((1, 0, 0)), Vector((-1, 0, 0)), Vector((0, 1, 0)), Vector((0, -1, 0))), key=lambda a: a.dot(step_dir))
-lat = Vector((-ax.y, ax.x, 0))
-g_along = [p.dot(ax) for p in getup_pts]; g_lat = [p.dot(lat) for p in getup_pts]
-lat0, lat1 = min(g_lat) - 0.1, max(g_lat) + 0.1
-lying = [p for p in getup_pts[:200]]
-foot_peaks = [max(pts, key=lambda p: p.z) for pts in step_frames]
-pk = max(foot_peaks, key=lambda p: p.z)
-print(f"GEO getup along {min(g_along):.2f}..{max(g_along):.2f} lat {min(g_lat):.2f}..{max(g_lat):.2f}; step travel {step_dir.length:.2f} m; foot peak along {pk.dot(ax):.2f} z {pk.z:.2f}; step pelvis along {step_rows[0][3].dot(ax):.2f}->{step_rows[-1][3].dot(ax):.2f}; walk pelvis along end {[r for r in TL if r[0] == k_step + 1][-1][3].dot(ax):.2f}")
-back = min(g_along) - 0.1
-best_c, best_clear = None, -1.0
-c = max(g_along) + WALL_T / 2 + 0.02
-while c < max(g_along) + 1.5:
-    clear = 9.0
-    for pts in step_frames:
-        cross = [p.z for p in pts if abs(p.dot(ax) - c) < WALL_T / 2 and lat0 - WALL_T < p.dot(lat) < lat1 + WALL_T]
-        if cross: clear = min(clear, min(cross))
-    if clear > best_clear: best_c, best_clear = c, clear
-    c += 0.02
-RIM_H = round(max(0.12, min(0.42, best_clear - 0.04)), 2)
-front = best_c - WALL_T / 2
-print(f"RIM at {front:.2f} along the step, clearance {best_clear:.2f} m, height {RIM_H} m")
-wall_c = (0.45, 0.5, 0.58, 1)
-
-
-def wall(nm, a0, a1, l0, l1):
-    """A rim wall spanning along-step a0..a1 and lateral l0..l1, in world axes."""
-    ca, cl = (a0 + a1) / 2, (l0 + l1) / 2
-    centre = ax * ca + lat * cl
-    sa, sl = a1 - a0, l1 - l0
-    size = Vector((abs(ax.x) * sa + abs(lat.x) * sl, abs(ax.y) * sa + abs(lat.y) * sl, RIM_H))
-    walls.append(box(nm, centre.x, centre.y, RIM_H / 2, size.x, size.y, size.z, wall_c))
-
-
-lo_a, hi_a = min(back, front), max(back, front)
-wall("rim_front", front, front + WALL_T, lat0 - WALL_T, lat1 + WALL_T)
-wall("rim_back", back - WALL_T, back, lat0 - WALL_T, lat1 + WALL_T)
-wall("rim_l0", lo_a, hi_a, lat0 - WALL_T, lat0)
-wall("rim_l1", lo_a, hi_a, lat1, lat1 + WALL_T)
-x0, x1 = min(w.location.x - w.scale.x / 2 for w in walls), max(w.location.x + w.scale.x / 2 for w in walls)
-y0, y1 = min(w.location.y - w.scale.y / 2 for w in walls), max(w.location.y + w.scale.y / 2 for w in walls)
-for f, row in enumerate(TL):
-    place(row, sm[f])
-    for b in arm.pose.bones:
-        b.keyframe_insert("rotation_quaternion", frame=f + 1)
-        if b.name == retarget.P + "Hips": b.keyframe_insert("location", frame=f + 1)
-report = []
-# pass 3: play the keyed animation back and check every frame
-for f, row in enumerate(TL):
-    sc.frame_set(f + 1)
-    pts = mesh_points()
-    low = min(pts, key=lambda v: v.z)
-    gap = low.z - support(low)
-    if contact[f] and abs(gap) > 0.015:  # settle: re-key this frame onto the ground and measure again
-        sm[f] -= gap
+    lo_a, hi_a = min(back, front), max(back, front)
+    wall("rim_front", front, front + WALL_T, lat0 - WALL_T, lat1 + WALL_T)
+    wall("rim_back", back - WALL_T, back, lat0 - WALL_T, lat1 + WALL_T)
+    wall("rim_l0", lo_a, hi_a, lat0 - WALL_T, lat0)
+    wall("rim_l1", lo_a, hi_a, lat1, lat1 + WALL_T)
+    x0, x1 = min(w.location.x - w.scale.x / 2 for w in walls), max(w.location.x + w.scale.x / 2 for w in walls)
+    y0, y1 = min(w.location.y - w.scale.y / 2 for w in walls), max(w.location.y + w.scale.y / 2 for w in walls)
+    for f, row in enumerate(TL):
         place(row, sm[f])
         for b in arm.pose.bones:
-            b.keyframe_insert("rotation_quaternion", frame=f + 1)
-            if b.name == retarget.P + "Hips": b.keyframe_insert("location", frame=f + 1)
-        sc.frame_set(f + 1)
+            b.keyframe_insert("rotation_quaternion", frame=f + 1 + pre)
+            if b.name == retarget.P + "Hips": b.keyframe_insert("location", frame=f + 1 + pre)
+    report = []
+    # pass 3: play the keyed animation back and check every frame
+    for f, row in enumerate(TL):
+        sc.frame_set(f + 1 + pre)
         pts = mesh_points()
         low = min(pts, key=lambda v: v.z)
         gap = low.z - support(low)
-    issues = []
-    if row[4] is True and gap > 0.04: issues.append(f"floating {gap * 100:.0f} cm")
-    if gap < -0.04: issues.append(f"sinking {-gap * 100:.0f} cm")
-    inside = 0
-    for w in walls:
-        lo_, hi_ = w.location - w.scale / 2, w.location + w.scale / 2
-        inside += sum(1 for p in pts[::3] if lo_.x < p.x < hi_.x and lo_.y < p.y < hi_.y and lo_.z < p.z < hi_.z)
-    if inside > 0: issues.append(f"{inside} suit points inside the pod rim")
-    if issues: report.append(f"f{f + 1:04d} [{takes[row[0]].name}] " + "; ".join(issues))
+        if contact[f] and abs(gap) > 0.015:  # settle: re-key this frame onto the ground and measure again
+            sm[f] -= gap
+            place(row, sm[f])
+            for b in arm.pose.bones:
+                b.keyframe_insert("rotation_quaternion", frame=f + 1 + pre)
+                if b.name == retarget.P + "Hips": b.keyframe_insert("location", frame=f + 1 + pre)
+            sc.frame_set(f + 1 + pre)
+            pts = mesh_points()
+            low = min(pts, key=lambda v: v.z)
+            gap = low.z - support(low)
+        issues = []
+        if row[4] is True and gap > 0.04: issues.append(f"floating {gap * 100:.0f} cm")
+        if gap < -0.04: issues.append(f"sinking {-gap * 100:.0f} cm")
+        inside = 0
+        for w in walls:
+            lo_, hi_ = w.location - w.scale / 2, w.location + w.scale / 2
+            inside += sum(1 for p in pts[::3] if lo_.x < p.x < hi_.x and lo_.y < p.y < hi_.y and lo_.z < p.z < hi_.z)
+        if inside > 0: issues.append(f"{inside} suit points inside the pod rim")
+        if issues: report.append(f"f{f + 1:04d} [{takes[row[0]].name}] " + "; ".join(issues))
 
-sc.frame_start, sc.frame_end = 1, N
-os.makedirs(lib.OUT, exist_ok=True)
-with open(os.path.join(lib.OUT, "pod_exit_check.txt"), "w") as fh:
-    fh.write(f"{N} frames; rim {RIM_H} m; drop {DROP_H:.2f} m; takes " + ", ".join(f"{t.name} [{t.a}:{t.b}]" for t in takes) + "\n")
-    fh.write(f"{len(report)} frames with issues\n" + "\n".join(report) + "\n")
-print(f"POD_EXIT {N} frames, rim {RIM_H} m, drop {DROP_H:.2f} m, {len(report)} frames flagged")
+    sc.frame_start, sc.frame_end = 1, N + pre
+    os.makedirs(lib.OUT, exist_ok=True)
+    with open(os.path.join(lib.OUT, "pod_exit_check.txt"), "w") as fh:
+        fh.write(f"{N} frames; rim {RIM_H} m; drop {DROP_H:.2f} m; takes " + ", ".join(f"{t.name} [{t.a}:{t.b}]" for t in takes) + "\n")
+        fh.write(f"{len(report)} frames with issues\n" + "\n".join(report) + "\n")
+    print(f"POD_EXIT {N} frames, rim {RIM_H} m, drop {DROP_H:.2f} m, {len(report)} frames flagged")
+    if pre:  # hold the lying pose before the motion starts
+        for f in (1, pre + 1):
+            sc.frame_set(f)
+            place(TL[0], sm[0])
+            for b in arm.pose.bones:
+                b.keyframe_insert("rotation_quaternion", frame=f)
+                if b.name == retarget.P + "Hips": b.keyframe_insert("location", frame=f)
+    starts = [next(i for i, r in enumerate(TL) if r[0] == k) for k in range(len(takes))]
+    return dict(N=N, TL=TL, takes=takes, starts=starts, arm=arm, body=body, ax=ax, lat=lat, back=back, front=front,
+                lat0=lat0, lat1=lat1, WALL_T=WALL_T, RIM_H=RIM_H, DROP_H=DROP_H, jump_dir=jump_dir, edge_d=edge_d,
+                walls=walls, deck=deck, sand=sand, report=report)
 
-# cameras: front, side, top and a low three-quarter view, all riding on a follower that tracks the
-# commander's pelvis (smoothed), so nothing leaves frame
-follow = bpy.data.objects.new("follow", None)
-sc.collection.objects.link(follow)
-K = 12
-for f in range(N):
-    ps = [TL[j][3] for j in range(max(0, f - K), min(N, f + K + 1))]
-    c = sum(ps, Vector()) / len(ps)
-    follow.location = (c.x, c.y, max(0.5, c.z) - 0.2)
-    follow.keyframe_insert("location", frame=f + 1)
-cams = {}
-for name, off, lens in (("front", (0, -6.0, 0.9), 30), ("side", (6.0, 0, 0.9), 30), ("top", (0, 0.01, 9.0), 30), ("shot", (-2.4, -3.4, 0.6), 30)):
-    cam = lib.camera(Vector(off), Vector((0, 0, 0)), lens=lens, name=name)
-    cam.parent = follow
-    cams[name] = cam
-if "--close" in args:  # close side-on stills of the given frames (e.g. to inspect the backpack)
-    sc.render.resolution_x, sc.render.resolution_y = 420, 640
-    for k, off in enumerate(((2.6, 0, 0.5), (0, 2.6, 0.5), (-2.6, 0, 0.5), (0, -2.6, 0.5))):
-        cam = lib.camera(Vector(off), Vector((0, 0, 0.35)), lens=40, name=f"close{k}")
+
+# ---------------------------------------------------------------- preview
+if __name__ == "__main__":
+    sc = lib.reset(640, 360)
+    sc.render.engine = "BLENDER_WORKBENCH"
+    sc.display.shading.light = "STUDIO"
+    sc.display.shading.color_type = "OBJECT"
+    sc.view_settings.view_transform = "Standard"
+    lib.sky(horizon="#d6d6d6", zenith="#c8c8c8", haze=0)
+    sc.world.color = (0.84, 0.84, 0.84)
+    root = lib.place("unit.player", at=(0, 0, 0), height=1.8, name="commander")
+    lib.still(root)
+    res = perform(root, calib="--calib" in args)
+    N, TL = res["N"], res["TL"]
+    # cameras: front, side, top and a low three-quarter view, all riding on a follower that tracks the
+    # commander's pelvis (smoothed), so nothing leaves frame
+    follow = bpy.data.objects.new("follow", None)
+    sc.collection.objects.link(follow)
+    K = 12
+    for f in range(N):
+        ps = [TL[j][3] for j in range(max(0, f - K), min(N, f + K + 1))]
+        c = sum(ps, Vector()) / len(ps)
+        follow.location = (c.x, c.y, max(0.5, c.z) - 0.2)
+        follow.keyframe_insert("location", frame=f + 1)
+    cams = {}
+    for name, off, lens in (("front", (0, -6.0, 0.9), 30), ("side", (6.0, 0, 0.9), 30), ("top", (0, 0.01, 9.0), 30), ("shot", (-2.4, -3.4, 0.6), 30)):
+        cam = lib.camera(Vector(off), Vector((0, 0, 0)), lens=lens, name=name)
         cam.parent = follow
-        sc.camera = cam
-        for f in (int(x) for x in args[args.index("--close") + 1].split(",")):
-            sc.frame_set(f)
-            lib.render_still(os.path.join(lib.OUT, f"close_{f:04d}_{k}.png"))
-elif "--check" in args:
-    for name, cam in cams.items():
-        sc.camera = cam
-        for f in (1, N // 4, N // 2, 3 * N // 4, N):
-            sc.frame_set(f)
-            lib.render_still(os.path.join(lib.OUT, f"pod_{name}_{f:04d}.png"))
-else:
-    for name, cam in cams.items():
-        sc.camera = cam
-        lib.render_frames(os.path.join(lib.OUT, f"pod_view_{name}"), 1, N)
+        cams[name] = cam
+    if "--close" in args:  # close side-on stills of the given frames (e.g. to inspect the backpack)
+        sc.render.resolution_x, sc.render.resolution_y = 420, 640
+        for k, off in enumerate(((2.6, 0, 0.5), (0, 2.6, 0.5), (-2.6, 0, 0.5), (0, -2.6, 0.5))):
+            cam = lib.camera(Vector(off), Vector((0, 0, 0.35)), lens=40, name=f"close{k}")
+            cam.parent = follow
+            sc.camera = cam
+            for f in (int(x) for x in args[args.index("--close") + 1].split(",")):
+                sc.frame_set(f)
+                lib.render_still(os.path.join(lib.OUT, f"close_{f:04d}_{k}.png"))
+    elif "--check" in args:
+        for name, cam in cams.items():
+            sc.camera = cam
+            for f in (1, N // 4, N // 2, 3 * N // 4, N):
+                sc.frame_set(f)
+                lib.render_still(os.path.join(lib.OUT, f"pod_{name}_{f:04d}.png"))
+    else:
+        for name, cam in cams.items():
+            sc.camera = cam
+            lib.render_frames(os.path.join(lib.OUT, f"pod_view_{name}"), 1, N)
