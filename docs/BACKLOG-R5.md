@@ -39,6 +39,9 @@ Code locations were checked on 2026-10-29 against main at c51c793; re-check befo
 Landed 2026-10-29 (branches renderer-sprint1, r5-hud). Light checks only: #31 compared on one ghost
 (L009 Galley), and level 2/3 pads still show the level 1 ghost size; #11 thumbnails not opened in the
 field guide; #22 dashes sit under the gate defense meter (the waves icon keeps its own pips).
+#4 and #16 landed 2026-10-29 (branch r5-occlusion), checked in the browser pane only: phone frame rate
+not measured; buildings also fade while the hero is inside them; on an overloaded machine the new
+marker sits above the existing full-tray "!".
 
 Renderer session (sequential):
 - [x] **#1 carry.** Front-carried items follow the NPC exactly: same yaw as the rig, no
@@ -65,11 +68,11 @@ Renderer session (sequential):
 - [x] **#2 drones.** A level 2 guard hut makes drones (there are no automatic human troops; hired
       guards are the only humans). Add Doug's drone, rotor (4 per drone, spinning) and level 2 guard
       hut models from the 3D models folder; troops render as drones.
-- [ ] **#4 occlusion fade** (Opus, after the above). Because the camera angle is fixed, give each
+- [x] **#4 occlusion fade** (Opus, after the above). Because the camera angle is fixed, give each
       object type a precomputed ground "occlusion shadow" area; an object fades only when the player
       stands inside its area. No raycasts; nothing fades when the player is in front of it. Avoid
       shader recompiles on toggle (renderer.ts fadeUnderPlayer ~890-920).
-- [ ] **#16 world alerts.** When a top-of-screen alert fires, also mark the object or character at
+- [x] **#16 world alerts.** When a top-of-screen alert fires, also mark the object or character at
       risk (in addition to the existing icons; goalhud.ts alertOf ~216, warnArt renderer.ts ~1373).
 
 HUD session (parallel):
