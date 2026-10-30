@@ -38,6 +38,13 @@
     "attackInterval": 0.7,
     "attackRange": 75,
     "damage": 1,
+    "hp": 10,
+    "cost": { "res.salvage": 4 }
+  },
+  "role.medic": {
+    "behavior": "medic",
+    "speed": 80,
+    "healInterval": 4,
     "cost": { "res.salvage": 4 }
   },
   "role.hauler": {

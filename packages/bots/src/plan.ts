@@ -1,3 +1,4 @@
+import medicData from "../data/medic.json";
 import { Manifest as ManifestSchema, content as defaultContent, type Content, type Manifest } from "@fo/content";
 
 // The planner turns a manifest into a build order, from data only: the goal and its requirement
@@ -5,7 +6,7 @@ import { Manifest as ManifestSchema, content as defaultContent, type Content, ty
 // waves exist, and conditional steps (medical once injuries happen, housing once recruits wait).
 // It also derives the controller's policies from the goal and the star objectives (REDESIGN-R2 §6).
 
-export type StepWhen = "always" | "injuries" | "waiting";
+export type StepWhen = "always" | "injuries" | "waiting" | "guards";
 
 export interface PlanStep {
   pad: string;
@@ -100,6 +101,12 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
   const objectives = m.objectives ?? [];
   const kinds = new Set(objectives.map((o) => o.kind));
   kinds.add(goal.type);
+
+  // R5 #26: a medic is hired once a guard is out when no med bay is near the gates (guards fall there); else it waits like the med bay.
+  const gates = m.entities.flatMap((e) => (e.type === "barrier.line" ? e.sections.filter((s) => s.gate).map((s) => [(s.a[0] + s.b[0]) / 2, (s.a[1] + s.b[1]) / 2]) : []));
+  const bays = pads.filter((p) => p.type === "pad.build" && p.build === "struct.medical");
+  const nearBay = bays.some((b) => (gates.length > 0 ? gates : [coreAt]).some((g) => Math.hypot(b.at[0] - g[0]!, b.at[1] - g[1]!) <= medicData.farBay));
+  const medicWhen: StepWhen = nearBay ? "injuries" : "guards";
 
   const steps: PlanStep[] = [];
   const inPlan = new Set<string>();
@@ -284,6 +291,7 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
   for (const p of pads) {
     if (p.type === "pad.build" && p.build === "struct.medical") add(p.id, "medical", { when: "injuries" });
   }
+  for (const h of hires) if (role(h.role.role)?.behavior === "medic") add(h.id, "medical", { when: medicWhen });
   // On defend goals without a goal pad the towers are the goal path (the anchor anything else hangs from).
   const towerGoal = defenseOn && !["turret_level", "hire", "build"].includes(g.type);
   if (defenseOn) {
@@ -322,6 +330,7 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
   for (const p of pads) {
     if (p.type === "pad.build" && p.build === "struct.medical") add(p.id, "medical", { when: "injuries" });
   }
+  for (const h of hires) if (role(h.role.role)?.behavior === "medic") add(h.id, "medical", { when: medicWhen });
   for (const p of housingPads) add(p.id, "housing", { when: "waiting" });
   for (const p of pads) {
     if (p.type === "pad.build" && p.build === "struct.depot") {

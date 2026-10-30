@@ -56,6 +56,10 @@ export type SimEvent =
   | { t: "injured"; resident: number }
   | { t: "animal_charge"; id: number; at: Vec }
   | { t: "healed"; resident: number }
+  // R5 #26: a guard at downPct health stops fighting (not an injury); a guard hit again while down, or with no way to heal, dies
+  | { t: "guard_down"; resident: number; at: Vec }
+  | { t: "guard_died"; resident: number; at: Vec }
+  | { t: "medic_heal"; resident: number; by: number; at: Vec }
   // hazards
   | { t: "hazard_warning"; start: number }
   | { t: "hazard_start"; end: number }

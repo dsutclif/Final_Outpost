@@ -1,0 +1,4 @@
+{
+  "_doc": "When the planner hires a medic (R5 #26). With guards on the level and no med bay pad, or one whose pad stands further than farBay units from the nearest gate (where guards fall), the medic is hired as soon as a guard is out; otherwise it waits for the first injury or downed guard, like the med bay.",
+  "farBay": 200
+}

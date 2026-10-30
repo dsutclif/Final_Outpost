@@ -97,7 +97,9 @@ export class Brain {
   }
 
   private whenHolds(st: State, s: PlanStep): boolean {
-    if (s.when === "injuries") return st.stats.injured > 0;
+    // a guard going down is not an injury, but it needs the med bay (or a medic) just the same (R5 #26)
+    if (s.when === "injuries") return st.stats.injured > 0 || (st.stats.guardsDown ?? 0) > 0;
+    if (s.when === "guards") return st.residents.some((r) => this.cp.roles[r.role]?.behavior === "guard");
     if (s.when === "waiting") return st.residents.some((r) => r.status === "waiting");
     return true;
   }
