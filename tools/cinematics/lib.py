@@ -70,9 +70,11 @@ def _import(path):
     return new, roots
 
 
-def place(path, at=(0, 0, 0), yaw=0.0, size=None, height=None, name=None, exact=False):
+def place(path, at=(0, 0, 0), yaw=0.0, size=None, height=None, name=None, exact=False, rigged=False):
     """Import a GLB, scale it so its largest horizontal extent is `size` (or its height is
-    `height`) metres, stand it on the ground at `at`, turned `yaw` degrees. Returns the root."""
+    `height`) metres, stand it on the ground at `at`, turned `yaw` degrees. Returns the root.
+    rigged: drop the rig's stray Icosphere and measure the skinned body itself; its bound box
+    otherwise lifts the character off the ground and shrinks it."""
     if not os.path.isabs(path):
         cached = os.path.join(CACHE, path + ".glb")
         path = cached if os.path.exists(cached) else os.path.join(MODELS, path + ".glb")
@@ -80,6 +82,11 @@ def place(path, at=(0, 0, 0), yaw=0.0, size=None, height=None, name=None, exact=
         print("MISSING model", path)
         return None
     new, roots = _import(path)
+    if rigged:
+        for o in [o for o in new if o.name.startswith("Icosphere")]:
+            new.remove(o)
+            if o in roots: roots.remove(o)
+            bpy.data.objects.remove(o)
     root = bpy.data.objects.new(name or os.path.basename(path), None)
     bpy.context.scene.collection.objects.link(root)
     for r in roots:
@@ -88,8 +95,12 @@ def place(path, at=(0, 0, 0), yaw=0.0, size=None, height=None, name=None, exact=
     lo, hi = Vector((1e9,) * 3), Vector((-1e9,) * 3)
     for o in new:
         if o.type == "MESH":
-            for c in o.bound_box:
-                w = o.matrix_world @ Vector(c)
+            if rigged:
+                ev = o.evaluated_get(bpy.context.evaluated_depsgraph_get())
+                pts = [ev.matrix_world @ v.co for v in ev.to_mesh().vertices]
+            else:
+                pts = [o.matrix_world @ Vector(c) for c in o.bound_box]
+            for w in pts:
                 lo = Vector(map(min, lo, w)); hi = Vector(map(max, hi, w))
     ext = hi - lo
     k = 1.0
@@ -153,6 +164,91 @@ def pose(root, bones, frame=None):
         pb.rotation_euler = tuple(math.radians(d) for d in deg)
         if frame is not None:
             pb.keyframe_insert("rotation_euler", frame=frame)
+
+
+def cycles(clip, n, loop):
+    """Playback speed fitting n whole plays of a clip into a loop. Measured here, since an import
+    rescales clip frames to the scene's frame rate."""
+    act = next(a for a in bpy.data.actions if a.name.startswith(clip))
+    return (act.frame_range[1] - act.frame_range[0]) * n / loop
+
+
+def bake_cycle(root, clip, end, loop, n, recover):
+    """Key n plays of a clip that doesn't close on itself (the swing ends far from where it
+    starts): frames 0..end played once per loop/n, the last `recover` easing back to the start."""
+    arm = bpy.data.objects[root["armature"]]
+    act = next(a for a in bpy.data.actions if a.name.startswith(clip))
+    ad = arm.animation_data or arm.animation_data_create()
+    ad.action = act
+    if hasattr(ad, "action_slot") and ad.action_slot is None and getattr(act, "slots", None):
+        ad.action_slot = act.slots[0]
+    sc = bpy.context.scene
+    snaps = []
+    for f in range(end + 1):
+        sc.frame_set(f)
+        snaps.append({pb.name: (pb.location.copy(), pb.rotation_quaternion.copy()) for pb in arm.pose.bones})
+    ad.action = None
+    def mix(a, b, u):
+        return {k: (a[k][0].lerp(b[k][0], u), a[k][1].slerp(b[k][1], u)) for k in a}
+    period = loop // n
+    play = period - recover
+    for c in range(n):
+        for i in range(period + 1):
+            if i < play:
+                s = i / play * end
+                pose_now = mix(snaps[int(s)], snaps[min(int(s) + 1, end)], s - int(s))
+            else:
+                u = (i - play) / recover
+                pose_now = mix(snaps[end], snaps[0], u * u * (3 - 2 * u))
+            for pb in arm.pose.bones:
+                pb.location, pb.rotation_quaternion = pose_now[pb.name]
+                pb.keyframe_insert("location", frame=1 + c * period + i)
+                pb.keyframe_insert("rotation_quaternion", frame=1 + c * period + i)
+    return 1 + play  # the first strike's scene frame
+
+
+def hold(root, prop, clip, frame, gun=False, axis=(0, 1, 0), side=(0, 1, 0), grip=(0, 0, 0), k=1.0, want=None):
+    """Put a prop in a rigged character's right hand the way the game does (render-3d rigged.ts
+    calibrate): lined up between the hands at `frame` of `clip`. axis, side and grip are in the
+    prop file's glTF coordinates, as in meshy.json; `side` turns toward world direction `want` if
+    given. Call before animating. Returns the prop's holder."""
+    g2b = lambda v: Vector((v[0], -v[2], v[1]))
+    sc = bpy.context.scene
+    arm = bpy.data.objects[root["armature"]]
+    act = next(a for a in bpy.data.actions if a.name.startswith(clip))
+    ad = arm.animation_data or arm.animation_data_create()
+    ad.action = act
+    if hasattr(ad, "action_slot") and ad.action_slot is None and getattr(act, "slots", None):
+        ad.action_slot = act.slots[0]
+    sc.frame_set(int(frame))
+    bpy.context.view_layer.update()
+    rh = arm.pose.bones["mixamorig:RightHand"]
+    R = arm.matrix_world @ rh.head
+    L = arm.matrix_world @ arm.pose.bones["mixamorig:LeftHand"].head
+    d = ((L - R) if gun else (R - L)).normalized()
+    want = Vector(want) if want else Vector((0, 0, 1)) if gun else root.matrix_world.to_3x3().normalized() @ Vector((0, -1, 0))
+    want = (want - d * want.dot(d)).normalized()
+    a = g2b(axis).normalized()
+    s = g2b(side)
+    s = (s - a * s.dot(a)).normalized()
+    from mathutils import Matrix
+    basis = lambda x, y: Matrix((x, y, x.cross(y))).transposed()
+    rot = basis(d, want) @ basis(a, s).transposed()
+    at = (R if gun else L) - rot @ (g2b(grip) * k)
+    M = Matrix.Translation(at) @ rot.to_4x4() @ Matrix.Diagonal((k, k, k, 1))
+    new, roots = _import(os.path.join(MODELS, prop + ".glb"))
+    holder = bpy.data.objects.new(prop, None)
+    sc.collection.objects.link(holder)
+    for r in roots:
+        r.parent = holder
+    holder.parent = arm
+    holder.parent_type = "BONE"
+    holder.parent_bone = rh.name
+    bpy.context.view_layer.update()
+    holder.matrix_world = M
+    bpy.context.view_layer.update()
+    ad.action = None
+    return holder
 
 
 STAND = {"LeftArm": (0, 0, -32), "RightArm": (0, 0, 32), "LeftForeArm": (0, 0, -8), "RightForeArm": (0, 0, 8)}

@@ -1,5 +1,6 @@
 {
   "notes": [
-    "Fixed what was holding up new missions, so more will start arriving as you play."
+    "The landing screen has more going on: a hauler now picks at the crystal ore with a real pick, and a ranger fires on a spiked hopper.",
+    "Everyone on the landing screen now stands on the ground and casts a shadow."
   ]
 }
