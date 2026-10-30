@@ -1,7 +1,7 @@
 {
   "id": "s1-051",
-  "engineVersion": "0.14.0",
-  "contentVersion": "0.14.0",
+  "engineVersion": "0.15.0",
+  "contentVersion": "0.15.0",
   "levels": [
     {
       "id": "s1-L051",
@@ -56,8 +56,8 @@
         "workers"
       ],
       "goal": "converter_level",
-      "rating": 0.549,
-      "fun": 0.941,
+      "rating": 0.48,
+      "fun": 0.912,
       "target": 0.494
     },
     {
@@ -78,8 +78,8 @@
         "workers"
       ],
       "goal": "waves_survived",
-      "rating": 0.584,
-      "fun": 0.106,
+      "rating": 0.528,
+      "fun": 0.145,
       "target": 0.538
     },
     {
@@ -156,8 +156,8 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.682,
-      "fun": 0.889,
+      "rating": 0.653,
+      "fun": 0.864,
       "target": 0.713
     },
     {
@@ -173,13 +173,14 @@
         "defenders",
         "defense",
         "gather",
+        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
       "goal": "survive",
-      "rating": 0.723,
-      "fun": 0.218,
+      "rating": 0.707,
+      "fun": 0.182,
       "target": 0.756
     },
     {
@@ -257,8 +258,8 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.495,
-      "fun": 0.823,
+      "rating": 0.453,
+      "fun": 0.862,
       "target": 0.538
     },
     {
@@ -274,13 +275,14 @@
         "defenders",
         "defense",
         "gather",
+        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
       "goal": "waves",
-      "rating": 0.289,
-      "fun": 0.786,
+      "rating": 0.437,
+      "fun": 0.437,
       "target": 0.581
     },
     {
@@ -298,8 +300,8 @@
         "sales"
       ],
       "goal": "hazard_survive",
-      "rating": 0.05,
-      "fun": 0.487,
+      "rating": 0.052,
+      "fun": 0.31,
       "target": 0.625
     },
     {
@@ -320,6 +322,25 @@
       "rating": 0.661,
       "fun": 0.974,
       "target": 0.669
+    },
+    {
+      "id": "s1-L068",
+      "file": "s1-L068.json",
+      "title": "Sealed Veins and Bulk Orders",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "bulk_order",
+      "rating": 0.675,
+      "fun": 0.913,
+      "target": 0.713
     }
   ],
   "dropped": [
@@ -329,11 +350,9 @@
       "family": "defend",
       "secondary": "shelter",
       "rejects": {
-        "layout": 234,
-        "infeasible": 14,
-        "idleModule": 54,
-        "repetitive": 19,
-        "trivial": 3
+        "layout": 239,
+        "infeasible": 26,
+        "idleModule": 43
       }
     }
   ],

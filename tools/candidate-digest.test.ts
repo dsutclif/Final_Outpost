@@ -10,7 +10,7 @@ const cand = (over: Partial<RawCandidate> = {}): RawCandidate => ({
 });
 const line = (c: RawCandidate) => JSON.stringify(c) + "\n";
 const setup = () => { const dir = mkdtempSync(join(tmpdir(), "digest-")); return { raw: join(dir, "s1.jsonl"), out: join(dir, "digest") }; };
-const read = (out: string, day: string) => JSON.parse(readFileSync(join(out, `${day}.json`), "utf8")) as Digest;
+const read = (out: string, day: string) => JSON.parse(readFileSync(join(out, `${day}.s1.json`), "utf8")) as Digest;
 const NOW = Date.parse("2026-10-30T13:00:00.000Z");
 
 describe("candidate digest", () => {

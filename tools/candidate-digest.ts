@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 // pnpm levels:digest
 //
 // levels/candidates/<pack>.jsonl (gitignored) grows by megabytes a build. This folds it into one small
-// file per day, levels/candidates/digest/<YYYY-MM-DD>.json (committed): outcome counts and pass/fail
+// file per day and pack, levels/candidates/digest/<YYYY-MM-DD>.<pack>.json (committed; a file per pack because
+// GitHub Actions and local builds land on the same day and one-line files cannot merge): outcome counts and pass/fail
 // histograms of the settings rules are written against. levels:build runs it after every build.
 // A run already in a day's digest is never counted twice. Raw records older than KEEP_DAYS are dropped.
 
@@ -118,12 +119,16 @@ export function digestLog(rawPath: string, digestDir: string, now = Date.now()):
   const load = (day: string): Digest => {
     let d = open.get(day);
     if (!d) {
-      const p = join(digestDir, `${day}.json`);
+      const p = join(digestDir, `${day}.${pack}.json`);
       d = existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) as Digest : emptyDigest(day);
       open.set(day, d);
     }
     return d;
   };
+  // A run counts once across all of a day's files, the older shared one included.
+  const dayRuns = (day: string): string[] => (existsSync(digestDir) ? readdirSync(digestDir) : [])
+    .filter((f) => f === `${day}.json` || f.startsWith(`${day}.`))
+    .flatMap((f) => (JSON.parse(readFileSync(join(digestDir, f), "utf8")) as Digest).runs);
   const touched = new Set<string>();
   const kept: string[] = [];
   const cutoff = now - KEEP_DAYS * 86_400_000;
@@ -133,7 +138,7 @@ export function digestLog(rawPath: string, digestDir: string, now = Date.now()):
     const d = load(day);
     const runKey = `${pack}@${c.run}`;
     // a run is new only if the digest did not list it when this pass began
-    if (!seen.has(runKey)) seen.set(runKey, !d.runs.includes(runKey));
+    if (!seen.has(runKey)) seen.set(runKey, !dayRuns(day).includes(runKey));
     if (seen.get(runKey)) {
       addCandidate(d, pack, c);
       if (!d.runs.includes(runKey)) d.runs.push(runKey);
@@ -143,7 +148,7 @@ export function digestLog(rawPath: string, digestDir: string, now = Date.now()):
     if (Date.parse(c.run) >= cutoff) kept.push(line);
   }
   mkdirSync(digestDir, { recursive: true });
-  for (const day of touched) writeFileSync(join(digestDir, `${day}.json`), stableJson(open.get(day)!) + "\n");
+  for (const day of touched) writeFileSync(join(digestDir, `${day}.${pack}.json`), stableJson(open.get(day)!) + "\n");
   if (kept.length < lines.length) {
     writeFileSync(`${rawPath}.tmp`, kept.length > 0 ? kept.join("\n") + "\n" : "");
     renameSync(`${rawPath}.tmp`, rawPath);

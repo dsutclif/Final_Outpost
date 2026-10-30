@@ -6,7 +6,7 @@ nonlinear sim, so `levels:check` stays as the final safety check.
 
 ## Data
 
-- `levels/candidates/digest/<YYYY-MM-DD>.json` (committed): one file per day with builds. Outcome counts by family,
+- `levels/candidates/digest/<YYYY-MM-DD>.<pack>.json` (committed): one file per day and pack with builds. Outcome counts by family,
   goal and reject reason, the D range reached per level, and `hist|family|setting|bin|outcome` counters for every
   setting the rules use. See `tools/candidate-digest.ts`.
 - `levels/candidates/<pack>.jsonl` (gitignored): raw records of local builds, kept 14 days. GitHub Actions builds

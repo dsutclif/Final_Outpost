@@ -102,7 +102,7 @@ The search starts at the pressure where the goal has landed nearest its target (
 `generateDetailed` reports every search iteration through `onCandidate`: knobs, the settings a rule could be
 written against (wave sizes and drops, towers, costs, health), the good bot's quick runs, the rating, rejects,
 objectives, and whether it was kept or shipped. `levels:build` appends them to `levels/candidates/<pack>.jsonl`
-(gitignored, 14 days kept) and folds them into `levels/candidates/digest/<day>.json` (committed): outcome counts
+(gitignored, 14 days kept) and folds them into `levels/candidates/digest/<day>.<pack>.json` (committed): outcome counts
 and per-family histograms of each setting by outcome, so failed and passing candidates can be compared across builds.
 The raw log is never committed, because git history would keep it forever. `pnpm levels:digest` folds it by hand.
 
