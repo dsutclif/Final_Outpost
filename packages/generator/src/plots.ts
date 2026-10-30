@@ -19,9 +19,9 @@ const ART_M = 28;
 /** Each building's plot pads: a machine's one staff slot takes its workers in order; its upgrade has its own slot beside it (R5 #6). */
 export const PLOT_PADS: Record<string, { pads: { id: string; side?: "L" }[]; edge: boolean }> = {
   "sink.core": { pads: [{ id: "collector", side: "L" }, { id: "upgrade" }], edge: true },
-  "conv.food_processor": { pads: [{ id: "staff" }, { id: "upgrade" }], edge: true },
-  "conv.material_processor": { pads: [{ id: "staff" }, { id: "upgrade" }], edge: true },
-  "conv.alloy_works": { pads: [{ id: "staff" }, { id: "upgrade" }], edge: true },
+  "conv.food_processor": { pads: [{ id: "upgrade" }, { id: "staff" }], edge: true },
+  "conv.material_processor": { pads: [{ id: "upgrade" }, { id: "staff" }], edge: true },
+  "conv.alloy_works": { pads: [{ id: "upgrade" }, { id: "staff" }], edge: true },
   "node.food_source": { pads: [{ id: "staff" }], edge: false },
   "struct.depot": { pads: [{ id: "staff" }], edge: true },
   "struct.barracks": { pads: [{ id: "staff" }, { id: "upgrade" }], edge: false },

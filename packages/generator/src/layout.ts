@@ -43,7 +43,7 @@ export interface PlaceOpts {
   fp?: string | readonly string[];
   /** Fixed worker slots (offsets from the centre) that are part of this placement: each must be free for a pad of radius r, and is reserved with it. */
   slots?: { id: string; dx: number; dy: number; r: number; fp: string | readonly string[] }[];
-  /** Plot layout: a spot where the slots (and spots) are blocked may still take them mirrored left to right. */
+  /** Plot layout: a spot where the slots are blocked may still take them mirrored left to right (standing spots stay: the sim never flips a machine). */
   mirror?: boolean;
   /** The station sits on a wall (a belt's own build pad): the wall test is skipped. */
   onWall?: boolean;
@@ -177,8 +177,7 @@ export class Placer {
     const lot = this.lots !== null && this.building(opts.fp);
     const inLot: Pt[] = [];
     // a plot's pads may take the mirror layout where the usual one is blocked; remember which a spot needs
-    const mirrored: PlaceOpts | null = opts.mirror && (opts.slots || opts.spots)
-      ? { ...opts, ...(opts.slots ? { slots: opts.slots.map((o) => ({ ...o, dx: -o.dx })) } : {}), ...(opts.spots ? { spots: opts.spots.map((o) => ({ ...o, dx: -o.dx })) } : {}) } : null;
+    const mirrored: PlaceOpts | null = opts.mirror && opts.slots ? { ...opts, slots: opts.slots.map((o) => ({ ...o, dx: -o.dx })) } : null;
     const flip = new Set<string>();
     for (let i = 0; i < n; i++) {
       const rg = regions[i % regions.length]!;

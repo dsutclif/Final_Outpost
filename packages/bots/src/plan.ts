@@ -367,7 +367,9 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
     fillCore: goal.type === "fuel_full",
     serveFirst: kinds.has("no_angry_customers") || kinds.has("streak"),
     holdShelf: goal.type === "shelves_full",
-    noOverload: kinds.has("no_stockpile_overload"),
+    // A pile left at its cap collapses and loses the level (stock.collapseSeconds), star or not (R5 #7 dropped the star).
+    noOverload: kinds.has("no_stockpile_overload") || (Number(m.params["stock.collapseSeconds"] ?? c.defaults["stock.collapseSeconds"] ?? 0) > 0
+      && (m.entities.some((e) => e.type.startsWith("conv.")) || pads.some((p) => p.type === "pad.build" && p.build.startsWith("conv.") && p.build !== "conv.level"))),
     handsOff: goal.type === "automate",
     collect: kinds.has("salvage") ? ["res.salvage"] : [],
     hunt: goal.type === "hunt" || goal.type === "protein",

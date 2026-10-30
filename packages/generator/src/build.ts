@@ -565,7 +565,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const fg = P.place("food_g", R.food, ring ? inner : [g[0] - 160, g[1] - 160, 320, 320], { near: [g[0] - 70, g[1] - 60], key: true, samples: 200, fp: "node.food_source" }) ?? food1;
     if (fg !== food1) ents.push({ type: "node.food_source", id: "food_g", at: [...fg] });
     // Hire order per machine: input worker, operator, output worker.
-    // plot layout: the Galley's staff slot hires the Dome collector, the cook and the server in turn; its upgrade has a slot of its own
+    // plot layout: the Galley's staff slot hires the Dome collector, the cook and the server in turn; its upgrade (after the server, as before) has a slot of its own
     const gStaff = plotOn ? slotAt("grill", "staff") : null;
     const fd = gStaff ?? placePad("feeder", besideSource("node.food_source", g, fg));
     pad({ type: "pad.hire", id: "feeder", at: [...fd], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.food_source", to: "conv.food_processor", node: fg === food1 ? "food1" : "food_g" }, requires: { pad: "grill" } });
@@ -578,7 +578,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       const lp = plotOn ? slotAt("grill", "upgrade") : placePad("grill_level", [g[0] + 70, g[1] - 40]);
       // Repeatable only when the goal needs more than one level: a repeatable pad is never "done", so nothing could require it.
       const rep = goal === "converter_level" && K.costScale > 1.15;
-      pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", requires: { pad: "grill" }, ...(rep ? { repeatable: true } : {}) });
+      pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", requires: { pad: gStaff ? "server" : "grill" }, ...(rep ? { repeatable: true } : {}) });
     }
     if (feat.has("material_processor")) {
       saw = true;

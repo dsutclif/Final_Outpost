@@ -89,12 +89,12 @@
       "conv.food_processor": {
         "slots": [
           {
-            "id": "staff",
+            "id": "upgrade",
             "dx": -23,
             "dy": 89
           },
           {
-            "id": "upgrade",
+            "id": "staff",
             "dx": 23,
             "dy": 89
           }
@@ -103,12 +103,12 @@
       "conv.material_processor": {
         "slots": [
           {
-            "id": "staff",
+            "id": "upgrade",
             "dx": -23,
             "dy": 87
           },
           {
-            "id": "upgrade",
+            "id": "staff",
             "dx": 23,
             "dy": 87
           }
@@ -117,12 +117,12 @@
       "conv.alloy_works": {
         "slots": [
           {
-            "id": "staff",
+            "id": "upgrade",
             "dx": -23,
             "dy": 77
           },
           {
-            "id": "upgrade",
+            "id": "staff",
             "dx": 23,
             "dy": 77
           }
