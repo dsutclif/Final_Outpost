@@ -1,8 +1,8 @@
 {
   "id": "s1-L032",
   "seed": 1676619851,
-  "engineVersion": "0.15.0",
-  "contentVersion": "0.15.0",
+  "engineVersion": "0.16.0",
+  "contentVersion": "0.16.0",
   "map": {
     "w": 1200,
     "h": 1620,
@@ -211,7 +211,6 @@
         2,
         4,
         5,
-        6,
         7,
         9,
         10,
@@ -292,7 +291,7 @@
         990
       ],
       "cost": {
-        "res.salvage": 2
+        "res.salvage": 3
       },
       "role": {
         "role": "role.supplier",
@@ -309,7 +308,7 @@
         595
       ],
       "cost": {
-        "res.salvage": 4
+        "res.salvage": 5
       },
       "build": "struct.ranged_defense",
       "site": [
@@ -325,7 +324,7 @@
         595
       ],
       "cost": {
-        "res.salvage": 9
+        "res.salvage": 10
       },
       "build": "struct.ranged_defense.t2",
       "target": "tower_n1",
@@ -341,7 +340,7 @@
         595
       ],
       "cost": {
-        "res.salvage": 18
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n1",
@@ -357,7 +356,7 @@
         595
       ],
       "cost": {
-        "res.salvage": 4
+        "res.salvage": 5
       },
       "build": "struct.ranged_defense",
       "site": [
@@ -373,7 +372,7 @@
         595
       ],
       "cost": {
-        "res.salvage": 9
+        "res.salvage": 10
       },
       "build": "struct.ranged_defense.t2",
       "target": "tower_n2",
@@ -389,7 +388,7 @@
         595
       ],
       "cost": {
-        "res.salvage": 18
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n2",
@@ -405,7 +404,7 @@
         520
       ],
       "cost": {
-        "res.salvage": 4
+        "res.salvage": 5
       },
       "build": "struct.ranged_defense",
       "site": [
@@ -424,7 +423,7 @@
         520
       ],
       "cost": {
-        "res.salvage": 9
+        "res.salvage": 10
       },
       "build": "struct.ranged_defense.t2",
       "target": "tower_n3",
@@ -440,7 +439,7 @@
         520
       ],
       "cost": {
-        "res.salvage": 18
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n3",
@@ -456,7 +455,7 @@
         520
       ],
       "cost": {
-        "res.salvage": 4
+        "res.salvage": 5
       },
       "build": "struct.ranged_defense",
       "site": [
@@ -475,7 +474,7 @@
         520
       ],
       "cost": {
-        "res.salvage": 9
+        "res.salvage": 10
       },
       "build": "struct.ranged_defense.t2",
       "target": "tower_n4",
@@ -491,7 +490,7 @@
         520
       ],
       "cost": {
-        "res.salvage": 18
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n4",
@@ -507,7 +506,7 @@
         815
       ],
       "cost": {
-        "res.salvage": 4
+        "res.salvage": 5
       },
       "build": "struct.ranged_defense",
       "site": [
@@ -523,7 +522,7 @@
         815
       ],
       "cost": {
-        "res.salvage": 9
+        "res.salvage": 10
       },
       "build": "struct.ranged_defense.t2",
       "target": "tower_e1",
@@ -539,7 +538,7 @@
         815
       ],
       "cost": {
-        "res.salvage": 18
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_e1",
@@ -555,7 +554,7 @@
         939
       ],
       "cost": {
-        "res.salvage": 4
+        "res.salvage": 5
       },
       "build": "struct.ranged_defense",
       "site": [
@@ -571,7 +570,7 @@
         939
       ],
       "cost": {
-        "res.salvage": 9
+        "res.salvage": 10
       },
       "build": "struct.ranged_defense.t2",
       "target": "tower_e2",
@@ -587,7 +586,7 @@
         939
       ],
       "cost": {
-        "res.salvage": 18
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_e2",
@@ -603,7 +602,7 @@
         815
       ],
       "cost": {
-        "res.salvage": 4
+        "res.salvage": 5
       },
       "build": "struct.ranged_defense",
       "site": [
@@ -622,7 +621,7 @@
         815
       ],
       "cost": {
-        "res.salvage": 9
+        "res.salvage": 10
       },
       "build": "struct.ranged_defense.t2",
       "target": "tower_e3",
@@ -638,7 +637,7 @@
         815
       ],
       "cost": {
-        "res.salvage": 18
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_e3",
@@ -654,7 +653,7 @@
         939
       ],
       "cost": {
-        "res.salvage": 4
+        "res.salvage": 5
       },
       "build": "struct.ranged_defense",
       "site": [
@@ -673,7 +672,7 @@
         939
       ],
       "cost": {
-        "res.salvage": 9
+        "res.salvage": 10
       },
       "build": "struct.ranged_defense.t2",
       "target": "tower_e4",
@@ -689,7 +688,7 @@
         939
       ],
       "cost": {
-        "res.salvage": 18
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_e4",
@@ -705,7 +704,7 @@
         953
       ],
       "cost": {
-        "res.salvage": 2
+        "res.salvage": 3
       },
       "role": {
         "role": "role.defender"
@@ -721,7 +720,7 @@
         999
       ],
       "cost": {
-        "res.salvage": 23
+        "res.salvage": 25
       },
       "build": "struct.barracks.t2",
       "target": "barracks"
@@ -762,50 +761,50 @@
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 22
+        "hostile.swarmling": 24
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 76,
+      "t": 73,
       "counts": {
-        "hostile.swarmling": 37,
+        "hostile.swarmling": 40,
         "hostile.raider_humanoid": 6
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 131,
+      "t": 126,
       "counts": {
-        "hostile.swarmling": 194,
-        "hostile.raider_humanoid": 19
+        "hostile.swarmling": 165,
+        "hostile.raider_humanoid": 20
       },
       "side": "n",
-      "gap": 0.35
+      "gap": 0.4
     },
     {
-      "t": 187,
+      "t": 179,
       "counts": {
-        "hostile.swarmling": 282,
-        "hostile.raider_humanoid": 28,
+        "hostile.swarmling": 219,
+        "hostile.raider_humanoid": 30,
         "hostile.boss": 1
       },
       "side": "e",
-      "gap": 0.24
+      "gap": 0.3
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.7,
+    "start.currency": 6,
+    "core.burn": 2.6,
     "housing.base": 7,
     "lots.block": 60,
     "lots.street": 0,
     "meters.baseHealth": 10,
     "pads.defenceGrowth": 1,
-    "level.budgetSeconds": 850
+    "level.budgetSeconds": 880
   },
   "goal": {
     "type": "boss",
@@ -847,9 +846,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.431,
-    "fun": 0.178,
-    "botMargin": 0.619,
+    "difficulty": 0.448,
+    "fun": 0.085,
+    "botMargin": 0.641,
     "botsPassed": [
       "good",
       "average",

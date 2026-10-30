@@ -1,0 +1,398 @@
+{
+  "id": "s1-L040",
+  "seed": 1780247755,
+  "engineVersion": "0.16.0",
+  "contentVersion": "0.16.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-e",
+      "food-se",
+      "shop-w",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "converters",
+    "core",
+    "customer_variety",
+    "gather",
+    "sales",
+    "source_gating",
+    "workers"
+  ],
+  "start": [
+    218,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        218,
+        500
+      ],
+      "params": {
+        "fuel": 12,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        133,
+        574
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_prepared",
+        "res.component"
+      ],
+      "route": [
+        [
+          -20,
+          615
+        ],
+        [
+          3,
+          615
+        ],
+        [
+          195,
+          615
+        ],
+        [
+          194,
+          608
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        324,
+        559
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        300,
+        486
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        303,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        268,
+        419
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        336,
+        466
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        296,
+        410
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        272,
+        390
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        329,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        357,
+        489
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        372,
+        450
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        393,
+        505
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        338,
+        393
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food2",
+      "at": [
+        407,
+        596
+      ],
+      "enabled": false
+    },
+    {
+      "type": "node.food_source",
+      "id": "food3",
+      "at": [
+        322,
+        706
+      ],
+      "enabled": false
+    },
+    {
+      "type": "node.food_source",
+      "id": "food_g",
+      "at": [
+        192,
+        332
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        317,
+        171,
+        17,
+        131
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        324,
+        620
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        133,
+        673
+      ],
+      "cost": {
+        "res.currency": 22
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.build",
+      "id": "unlock_food2",
+      "at": [
+        407,
+        596
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "build": "node.enable",
+      "target": "food2",
+      "requires": {
+        "pad": "hire_food"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "unlock_food3",
+      "at": [
+        322,
+        706
+      ],
+      "cost": {
+        "res.currency": 23
+      },
+      "build": "node.enable",
+      "target": "food3",
+      "requires": {
+        "pad": "hire_food"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "grill",
+      "at": [
+        70,
+        440
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "build": "conv.food_processor"
+    },
+    {
+      "type": "pad.build",
+      "id": "saw",
+      "at": [
+        230,
+        730
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "build": "conv.material_processor"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 4,
+    "core.burn": 2.4,
+    "housing.base": 13,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "customers.impatientShare": 0.27,
+    "customers.premiumShare": 0.19,
+    "customers.bulkShare": 0.19,
+    "level.budgetSeconds": 290
+  },
+  "goal": {
+    "type": "unlock",
+    "n": 2
+  },
+  "family": "harvest",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "unlock",
+      "params": {
+        "n": 2
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 237
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "streak",
+      "params": {
+        "n": 20
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Vaults and Open Sesame",
+      "goal": "unlock",
+      "tips": [
+        "Some grow domes start locked. Unlock them with credits on their pad."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.983,
+    "fun": 0.635,
+    "botMargin": 0.786,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

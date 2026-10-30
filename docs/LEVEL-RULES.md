@@ -18,6 +18,14 @@ Sweep findings: quick-check pass rate is shelter 99%, rescue 85%, harvest 79%, i
 On 20 of 55 levels the target D was outside anything that goal reached. About 30 levels jump by 0.3 D or more
 between neighbouring candidates in pressure order. Defend takes 58% of build time.
 
+## Status
+
+Done in engine 0.16.0: rule 7; only the closest candidates get the full check; a fresh search per seed; an early human-view
+check that lowers pressure; idle features dropped; a search start table per goal (`data/start.json`). Result on levels 6-50:
+526 → 179 CPU-seconds per level, no level failed (6 of 45 did in the 0.14.0 baseline), but mean D error rose from 0.073 to
+0.094 on the levels both builds made. Not done: one-setting-per-step search, solve-first building, layout first. Mirrored
+levels (no value after the table). Open: defend fun scores sit around 0.15 against a 0.4 threshold.
+
 ## Rules, most to least recommended
 
 Tags: M measured (correlation; pressure moves most settings together), D derived from content numbers, J judgement.
@@ -31,7 +39,7 @@ Tags: M measured (correlation; pressure moves most settings together), D derived
 | 4 | Static buy-order check: `cumulative income(t) ≥ cumulative cost(t)` at every step | Replaces the bot's deadlock and stall check | D |
 | 5 | `T̂ = Σ(distance/155 + items × interval + wait for money)` | Everything time-based depends on it | D |
 | 6 | `budget = T̂ / 0.41` | Median bot-time share of budget on passing levels | M |
-| 7 | Defend: peak wave 225-375 points, never 450+, where points = enemy HP (swarmling 1, raider 4, boss 36). Doug: count enemy strength, not enemies. Doug: salvage drops are proportionate to HP, 1 per HP (raider 2 → 4, boss 10 → 36); not applied yet, and it is an engine bump | 0-24% infeasible below 375 points, 95% at 450+ (engine 0.14.0, points inferred from wave size and drops). Re-measure after the drop change, since rule 11 depends on drops too | M |
+| 7 | Defend: peak wave 225-375 points, never 450+, where points = enemy HP (swarmling 1, raider 4, boss 36). Doug: count enemy strength, not enemies. Doug: salvage drops are proportionate to HP, 1 per HP (raider 4, boss 36). Both applied in engine 0.16.0, as a 375-point cap inside R5's scrap budget | 0-24% infeasible below 375 points, 95% at 450+ (engine 0.14.0, points inferred from wave size and drops). Re-measure after the drop change, since rule 11 depends on drops too | M |
 | 8 | Defend: `towers ≥ peak wave / 30` (8 sockets in that band) | 3% infeasible at ≤30 per tower, 15% at ≤40 | M |
 | 9 | Defend: base health 9-10 | 2% infeasible at ≥10; 11+ tends towards trivial | M |
 | 10 | Defend: p between 0.3 and 0.6 | 33 of 40 infeasible at p ≥ 0.7; easy-end flags cluster at 0.1-0.3 | M |

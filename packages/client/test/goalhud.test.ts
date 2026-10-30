@@ -45,9 +45,9 @@ describe("goal icons", () => {
     expect(t[1]!.pie).toBeCloseTo(1);
     expect(t[2]!.pips).toEqual({ n: 3, done: 0, part: 0 });
     // only count goals carry a number: protein shows its target, the stopwatch and pips do not
-    expect(t.map((x) => x.beside)).toEqual(["30", undefined, undefined]);
-    // every tracker shows its current number: 0 protein, the stopwatch's full 5:15, 0 trips
-    expect(t.map((x) => x.inner)).toEqual(["0", "5:15", "0"]);
+    expect(t.map((x) => x.beside)).toEqual(["25", undefined, undefined]);
+    // every tracker shows its current number: 0 protein, the stopwatch's full 4:04, 0 trips
+    expect(t.map((x) => x.inner)).toEqual(["0", "4:04", "0"]);
   });
 
   it("L5: waves are pips; won goals draw a star and missed ones are struck through", () => {

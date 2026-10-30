@@ -1,8 +1,8 @@
 {
   "id": "s1-L044",
-  "seed": 504436250,
-  "engineVersion": "0.15.0",
-  "contentVersion": "0.15.0",
+  "seed": 1664954184,
+  "engineVersion": "0.16.0",
+  "contentVersion": "0.16.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -44,8 +44,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        332,
-        590
+        335,
+        584
       ],
       "sells": [
         "res.food_raw_1"
@@ -53,19 +53,23 @@
       "route": [
         [
           500,
-          633
+          627
         ],
         [
           477,
-          633
+          627
         ],
         [
-          279,
-          633
+          285,
+          627
         ],
         [
-          271,
-          590
+          273,
+          591
+        ],
+        [
+          274,
+          584
         ]
       ]
     },
@@ -73,78 +77,78 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        159,
+        161,
         594
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        187,
-        487
+        182,
+        472
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        201,
+        196,
         431
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        163,
-        445
+        171,
+        499
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        503
+        170,
+        444
       ]
     },
     {
       "type": "node.fuel_scrap",
+      "at": [
+        141,
+        477
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        193,
+        389
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        141,
+        437
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        170,
+        412
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        101,
+        467
+      ]
+    },
+    {
+      "type": "node.material_source",
       "at": [
         140,
-        481
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        133,
-        452
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        187,
-        399
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        159,
-        408
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        99,
-        429
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        195,
-        360
+        385
       ]
     },
     {
@@ -176,7 +180,7 @@
       "id": "housing1",
       "at": [
         90,
-        530
+        560
       ],
       "cost": {
         "res.currency": 19
@@ -187,7 +191,7 @@
       "type": "pad.build",
       "id": "housing2",
       "at": [
-        270,
+        300,
         700
       ],
       "cost": {
@@ -207,19 +211,19 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
+    "start.currency": 2,
     "core.burn": 2.1,
     "housing.base": 2,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3.2,
+    "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 360
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "survive",
-    "seconds": 200
+    "seconds": 190
   },
   "family": "shelter",
   "objectives": [
@@ -227,20 +231,20 @@
       "id": "main",
       "kind": "survive",
       "params": {
-        "seconds": 200
+        "seconds": 190
       }
     },
     {
       "id": "challenge2",
-      "kind": "no_colonist_freezes",
-      "params": {}
-    },
-    {
-      "id": "challenge",
       "kind": "heat_floor",
       "params": {
         "pct": 30
       }
+    },
+    {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
     }
   ],
   "fail": [
@@ -257,8 +261,8 @@
   },
   "rating": {
     "difficulty": 0.023,
-    "fun": 0.697,
-    "botMargin": 0.68,
+    "fun": 0.768,
+    "botMargin": 0.681,
     "botsPassed": [
       "good",
       "average",

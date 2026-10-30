@@ -416,7 +416,7 @@ export function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly
 }
 
 /** Where the search starts: the pressure at which the goal has landed nearest the target (data/start.json, tools/start-table.ts). */
-export function startPressure(goal: string, target: number, table: Record<string, [number, number][]> = startData.goals as Record<string, [number, number][]>): number {
+export function startPressure(goal: string, target: number, table: Record<string, [number, number][]> = startData.goals as unknown as Record<string, [number, number][]>): number {
   const rows = table[goal];
   if (!rows || rows.length === 0) return clamp01((target - 0.08) / 0.8);
   return rows.reduce((a, r) => (Math.abs(r[1] - target) < Math.abs(a[1] - target) ? r : a))[0];
@@ -725,6 +725,8 @@ function verifyStars(m: Manifest, c: Content, human = false): { summary: StarSum
       sum += r.stars;
       // Star policies (salvage collection, tow targets) change play, so feasibility is re-checked on the final objectives.
       if (prof.name === "good" && (!r.won || r.margin < 0.2)) feasible = false;
+      // Star policies can also strand a rung: levels:check fails a stall on the final objectives, so this does too.
+      if (r.stalls > 0) feasible = false;
       if (prof.name === "good" && r.stars === 3) { goodAll++; goodAny++; }
     }
     byRung[prof.name] = Math.round((sum / n) * 100) / 100;

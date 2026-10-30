@@ -1,8 +1,8 @@
 {
   "id": "s1-L031",
   "seed": 1333824668,
-  "engineVersion": "0.15.0",
-  "contentVersion": "0.15.0",
+  "engineVersion": "0.16.0",
+  "contentVersion": "0.16.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -82,78 +82,78 @@
     {
       "type": "node.fuel_scrap",
       "at": [
+        295,
+        495
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        306,
+        460
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
         293,
-        475
+        427
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        325,
-        490
+        334,
+        486
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        316,
-        456
+        342,
+        458
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        298,
-        433
+        322,
+        432
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        346,
-        457
+        277,
+        398
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        276,
-        406
+        310,
+        393
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        337,
-        428
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        315,
-        392
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        371,
-        499
+        366,
+        501
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        380,
-        430
+        375,
+        432
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        407,
-        480
+        399,
+        478
       ]
     },
     {
@@ -188,7 +188,7 @@
         450
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 13
       },
       "build": "conv.food_processor",
       "requires": {
@@ -330,7 +330,7 @@
         720
       ],
       "cost": {
-        "res.currency": 23
+        "res.currency": 22
       },
       "build": "conv.alloy_works",
       "requires": {
@@ -438,7 +438,7 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 3,
+    "start.currency": 2,
     "core.burn": 2.3,
     "housing.base": 14,
     "lots.block": 60,
@@ -446,12 +446,12 @@
     "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 990
+    "level.budgetSeconds": 1260
   },
   "goal": {
     "type": "converters_running",
     "k": 2,
-    "seconds": 16
+    "seconds": 17
   },
   "family": "industrialize",
   "objectives": [
@@ -460,14 +460,14 @@
       "kind": "converters_running",
       "params": {
         "k": 2,
-        "seconds": 16
+        "seconds": 17
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 773
+        "seconds": 1050
       }
     },
     {
@@ -489,21 +489,20 @@
     }
   },
   "rating": {
-    "difficulty": 0.354,
+    "difficulty": 0.593,
     "fun": 0.939,
-    "botMargin": 0.612,
+    "botMargin": 0.675,
     "botsPassed": [
       "good",
       "average",
-      "weak",
-      "novice"
+      "weak"
     ],
     "stars": {
       "good": 3,
       "median": 3,
       "goodAll": 1,
-      "human": 2.83,
-      "humanAll": 0.83
+      "human": 3,
+      "humanAll": 1
     }
   }
 }

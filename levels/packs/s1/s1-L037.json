@@ -1,8 +1,8 @@
 {
   "id": "s1-L037",
   "seed": 787545886,
-  "engineVersion": "0.15.0",
-  "contentVersion": "0.15.0",
+  "engineVersion": "0.16.0",
+  "contentVersion": "0.16.0",
   "map": {
     "w": 1200,
     "h": 1620,
@@ -39,7 +39,7 @@
         860
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 16,
         "level": 1
       }
     },
@@ -218,6 +218,7 @@
         3,
         4,
         5,
+        6,
         7,
         9,
         10,
@@ -542,59 +543,51 @@
   ],
   "waves": [
     {
-      "t": 6,
-      "counts": {
-        "hostile.swarmling": 12
-      },
-      "side": "e",
-      "gap": 0.12
-    },
-    {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 25
+        "hostile.swarmling": 20
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 72,
+      "t": 78,
       "counts": {
-        "hostile.swarmling": 42,
-        "hostile.raider_humanoid": 6
+        "hostile.swarmling": 34,
+        "hostile.raider_humanoid": 5
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 125,
+      "t": 136,
       "counts": {
-        "hostile.swarmling": 218,
-        "hostile.raider_humanoid": 21
+        "hostile.swarmling": 224,
+        "hostile.raider_humanoid": 17
       },
       "side": "e",
       "gap": 0.31
     },
     {
-      "t": 177,
+      "t": 194,
       "counts": {
-        "hostile.swarmling": 318,
-        "hostile.raider_humanoid": 32
+        "hostile.swarmling": 271,
+        "hostile.raider_humanoid": 26
       },
       "side": "e",
-      "gap": 0.21
+      "gap": 0.25
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 7,
-    "core.burn": 2.6,
+    "start.currency": 9,
+    "core.burn": 2.9,
     "housing.base": 8,
     "lots.block": 60,
     "lots.street": 0,
-    "meters.baseHealth": 10,
-    "pads.defenceGrowth": 1.01,
-    "level.budgetSeconds": 520
+    "meters.baseHealth": 11,
+    "pads.defenceGrowth": 1.03,
+    "level.budgetSeconds": 700
   },
   "goal": {
     "type": "waves"
@@ -633,17 +626,17 @@
     }
   },
   "rating": {
-    "difficulty": 0.581,
-    "fun": 0.602,
-    "botMargin": 0.999,
+    "difficulty": 0.609,
+    "fun": 0.802,
+    "botMargin": 1,
     "botsPassed": [
       "good",
       "average",
-      "weak"
+      "novice"
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 1,
       "goodAll": 1,
       "human": 3,
       "humanAll": 1
