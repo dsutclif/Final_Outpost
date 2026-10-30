@@ -22,6 +22,10 @@ export interface CandidateRecord {
   kept: boolean;
   /** On target: the search ended on it. */
   shipped: boolean;
+  /** Verified after the search, as one of the closest candidates. */
+  final?: boolean;
+  /** Time spent on this iteration. */
+  ms?: number;
 }
 
 export interface CandidateSettings {

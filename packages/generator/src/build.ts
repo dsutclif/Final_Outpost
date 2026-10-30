@@ -84,7 +84,7 @@ export const GEN = genData as unknown as {
   conveyorGoals: string[];
   /** Geography: how often and how a level gets ridges, outcrops and chasms (terrain.ts). */
   terrain: TerrainData;
-  search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number; loopCap: number; loopHireCut: number; loopEaseSteps: number; loopBurnEase: number; loopLengthCut: number; loopStartCurrency: number };
+  search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number; finalTries: number; maxWidens: number; loopCap: number; loopHireCut: number; loopEaseSteps: number; loopBurnEase: number; loopLengthCut: number; loopStartCurrency: number };
 };
 
 /** Footprints of what the renderer draws larger (look.json buildScale: buildings and the greenhouse dome) grow with it. */

@@ -31,7 +31,7 @@ describe("candidate digest", () => {
 
   it("counts a run once however often it is digested, and adds later runs to the day", () => {
     const { raw, out } = setup();
-    writeFileSync(raw, line(cand({ rejects: ["infeasible"] })) + line(cand({ kept: true })));
+    writeFileSync(raw, line(cand({ rejects: ["infeasible"] })) + line(cand({ kept: true, ms: 40 })));
     expect(digestLog(raw, out, NOW)).toEqual(["2026-10-30"]);
     expect(digestLog(raw, out, NOW)).toEqual([]);
     expect(read(out, "2026-10-30").candidates).toBe(2);
@@ -41,6 +41,7 @@ describe("candidate digest", () => {
     expect(d.candidates).toBe(3);
     expect(d.runs).toHaveLength(2);
     expect(d.counts["family|defend|infeasible"]).toBe(1);
+    expect(d.counts["ms|defend|kept"]).toBe(40);
     expect(d.levels["s1:26"]!.shipped).toBe(1);
   });
 

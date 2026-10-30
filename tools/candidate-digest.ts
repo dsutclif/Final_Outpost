@@ -23,7 +23,7 @@ const WIDTHS: Record<string, number> = {
 /** A line of the raw log (the fields used here). */
 export interface RawCandidate {
   run: string; engine: string; index: number; family: string; goalType: string; target: number;
-  p: number; knobs: Record<string, number>; rejects: string[]; why?: string; kept: boolean; shipped: boolean;
+  p: number; knobs: Record<string, number>; rejects: string[]; why?: string; kept: boolean; shipped: boolean; final?: boolean; ms?: number;
   settings?: {
     params: Record<string, number>; pads: number; hires: number; towers: number; salvageCost: number; currencyCost: number;
     fuelNodes: number; captures: number; waveTimes: number[]; waveSizes: number[]; waveDrops: number[];
@@ -40,7 +40,7 @@ export interface Digest {
   runs: string[];
   engines: string[];
   candidates: number;
-  /** Flat counters: family|f|outcome, goal|g|outcome, reject|r, why|text, idle|f|what, hist|f|setting|bin|outcome. */
+  /** Flat counters: family|f|outcome, goal|g|outcome, reject|r, why|text, idle|f|what, hist|f|setting|bin|outcome, and ms|f|outcome for time spent. */
   counts: Record<string, number>;
   /** By build target ("<pack>:<index>" keys): the D range the search reached. */
   levels: Record<string, LevelDigest>;
@@ -91,6 +91,7 @@ export function addCandidate(d: Digest, pack: string, c: RawCandidate): void {
   d.candidates++;
   add(`family|${c.family}|${o}`);
   add(`goal|${c.goalType}|${o}`);
+  if (c.ms !== undefined) d.counts[`ms|${c.family}|${c.final ? "final" : o}`] = (d.counts[`ms|${c.family}|${c.final ? "final" : o}`] ?? 0) + c.ms;
   c.rejects.forEach((r) => add(`reject|${r}`));
   // numbers and ids vary per level: the shape of the message is what repeats
   if (c.why) add(`why|${c.why.replace(/[-0-9.]+/g, "#").slice(0, 80)}`);

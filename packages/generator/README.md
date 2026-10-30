@@ -81,7 +81,10 @@ means.
 
 As before: the pressure p drives every knob, bisected on D against `data/reference.json` (recomputed by
 `levels:build --calibrate`), knobs jittered by ±0.12 per iteration, quick rating 4 + 2 seeds, full
-rating 10 + 3. The closest clean candidate ships when none lands within ±0.05 of the target.
+rating 10 + 3. Only a candidate within ±0.05 on the quick rating gets the full check during the search; the rest wait
+in a pool, and when the search ends the closest are checked in turn until one passes (`search.finalTries`), which ships
+as off target. Retries share the search (`SearchMemory`): the pressure bracket, dropped pads and the pool. When the
+bracket has closed `search.maxWidens` times with a candidate in hand, the target is out of reach and the search stops.
 
 ## Candidate log
 

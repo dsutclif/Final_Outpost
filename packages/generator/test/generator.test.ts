@@ -4,7 +4,7 @@ import { createSim, outsideLines, pointInPoly, salesLayout, fp } from "@fo/sim";
 import { planBot } from "@fo/bots";
 import { closure, sequenceRange } from "@fo/sequencer";
 import type { CandidateRecord } from "../src/index.js";
-import { buildLevel, flowModel, generate, generateDetailed, knobsFor, skinText, templateById, unreadablePairs, timeTarget, TEMPLATES, GEN } from "../src/index.js";
+import { buildLevel, flowModel, generate, generateDetailed, knobsFor, newSearchMemory, skinText, templateById, unreadablePairs, timeTarget, TEMPLATES, GEN } from "../src/index.js";
 
 const reqs = sequenceRange(1, 60);
 const build = (i: number, p = 0.3) => {
@@ -321,6 +321,24 @@ describe("generate (search + rating + stars)", () => {
     expect(recs.flatMap((c) => c.rejects).length).toBe(Object.values(a.stats.rejects).reduce((t, n) => t + n, 0));
     expect(recs.some((c) => c.kept)).toBe(true);
     expect(recs.every((c) => Object.keys(c.knobs).length > 0)).toBe(true);
+  });
+
+  it("fully checks only the closest off-target candidates, and shares the search across attempts", () => {
+    const r = reqs[0]!;
+    const light = { seeds: { quick: { ref: 2, other: 1 }, full: { ref: 3, other: 1 } }, maxIterations: 8 };
+    const recs: CandidateRecord[] = [];
+    const memory = newSearchMemory();
+    const first = generateDetailed({ ...r, target: 0.99 }, { ...light, memory, finish: false, onCandidate: (c) => recs.push(c) });
+    expect(first.manifest).toBeNull();
+    expect(recs.filter((c) => c.final)).toHaveLength(0);
+    // far off target: nothing gets stars checked during the search
+    expect(recs.filter((c) => c.stars)).toHaveLength(0);
+    expect(memory.pool.length).toBeGreaterThan(0);
+    const bracket = memory.hi - memory.lo;
+    const last = generateDetailed({ ...r, target: 0.99 }, { ...light, memory, finish: true, maxIterations: 0, onCandidate: (c) => recs.push(c) });
+    expect(last.best).not.toBeNull();
+    expect(recs.filter((c) => c.final).length).toBeLessThanOrEqual(GEN.search.finalTries);
+    expect(memory.hi - memory.lo).toBe(bracket);
   });
 
   it("widens the generated time target by the data factor (timeTargetK)", () => {

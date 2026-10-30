@@ -49,7 +49,30 @@ export interface GenOptions {
   humanStars?: boolean;
   /** Called once per search iteration with what was built and what became of it. */
   onCandidate?: (rec: CandidateRecord) => void;
+  /** What earlier attempts at this level learned: pass the same one to each retry. */
+  memory?: SearchMemory;
+  /** Fully verify the closest candidates when the search ends. False on all but a level's last attempt. */
+  finish?: boolean;
 }
+
+/** One level's search across its attempts: the pressure bracket, what was learned, and the candidates awaiting verification. */
+export interface SearchMemory {
+  started: boolean;
+  lo: number;
+  hi: number;
+  /** Times the bracket closed and was reopened. */
+  widened: number;
+  /** The target is out of reach: no point in further attempts. */
+  exhausted: boolean;
+  ease: number;
+  dropped: Set<string>;
+  droppedMods: Set<string>;
+  best: Candidate | null;
+  /** Clean on the quick rating but off target, so not yet worth the full verification. */
+  pool: { m: Manifest; p: number; err: number; seed: number; knobs: Record<string, number> }[];
+}
+
+export const newSearchMemory = (): SearchMemory => ({ started: false, lo: 0, hi: 1, widened: 0, exhausted: false, ease: 0, dropped: new Set(), droppedMods: new Set(), best: null, pool: [] });
 
 /** Star bar for the human-view bot (generator.json humanStars); levels:check reads the same block. */
 export const HUMAN_STARS = genData.humanStars as { seeds: number; minEarned: number; regressTolerance: number };
@@ -380,32 +403,108 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   const id = req.id ?? `gen-${req.seed}`;
   const stats: GenStats = { iterations: 0, rejects: {}, ratings: 0 };
   let rec: CandidateRecord | null = null;
-  const flush = () => { if (rec) opts.onCandidate?.(rec); rec = null; };
+  let recAt = 0;
+  const flush = () => { if (rec) { rec.ms = Date.now() - recAt; opts.onCandidate?.(rec); } rec = null; };
   const reject = (k: string) => { stats.rejects[k] = (stats.rejects[k] ?? 0) + 1; rec?.rejects.push(k); };
   const log = opts.log ?? (() => {});
   const history = opts.history ?? [];
   const allowed = req.challenges ?? [];
   const humanStars = opts.humanStars ?? true;
 
-  let lo = 0, hi = 1;
-  let p = clamp01((req.target - 0.08) / 0.8);
-  let best: Candidate | null = null;
+  const memory = opts.memory ?? newSearchMemory();
+  let { lo, hi, best } = memory;
+  let p = memory.started ? (lo + hi) / 2 : clamp01((req.target - 0.08) / 0.8);
+  memory.started = true;
   const mrand = rand.fork("mutate");
   // Repeated-loop lever: 0..1 share of the worker hire price cut, raised after each `repetitive` reject.
-  let ease = 0;
+  let ease = memory.ease;
   // Optional pads the winning bot never needed; left out of later builds (see dropPads).
-  const dropped = new Set<string>();
+  const dropped = memory.dropped;
   // Same for the workers module when nothing on the level ever needs a worker (a shelves goal filled by hand).
-  const droppedMods = new Set<string>();
+  const droppedMods = memory.droppedMods;
   const easeUp = (): boolean => { if (ease >= 1) return false; ease = Math.min(1, ease + 1 / S.loopEaseSteps); return true; };
 
-  for (let it = 0; it < maxIt; it++) {
+  const rateIt = (m: Manifest, seeds: { ref: number; other: number }) => {
+    stats.ratings++;
+    const ms = measure(m, { content: c, refSeeds: seeds.ref, otherSeeds: seeds.other, history });
+    const r = score(ms, { content: c, reference });
+    rec!.rating = { D: round3(r.D), F: round3(r.F), feasible: r.feasible, margin: r.margin, winRate: r.winRate, loopMax: ms.loopMax, ladderLeft: ms.ladderLeft, idleModules: r.evidence.idleModules, budget: m.params["level.budgetSeconds"] };
+    return { ms, r };
+  };
+  const saveMemory = () => { Object.assign(memory, { lo, hi, best, ease }); };
+
+  /** The full check: full rating, idle elements, stars, spare pads. Done when the level can ship. */
+  const verify = (m: Manifest, p: number, seed: number): { r: Rating; done?: GenDetail; repetitive?: boolean } => {
+      const { ms, r } = rateIt(m, opts.seeds?.full ?? S.fullSeeds);
+      const err = Math.abs(r.D - req.target);
+      if (overLoopCap(ms)) {
+        reject("repetitive");
+        easeUp();
+        log(`  it${rec!.iteration} repetitive on the full ladder: ${ms.loopMax} x ${ms.loopKey}`);
+        return { r, repetitive: true };
+      }
+      const idle = idleElements(m, ms.runs["good"]!);
+      rec!.idleElements = idle;
+      if (!r.ok) Object.entries(r.filters).filter(([, v]) => v).forEach(([k]) => reject(k));
+      else if (idle.length > 0) {
+        reject("idleElement");
+        // Optional automation the winning bot never needed (manual-first and the automation tax make the
+        // late extras not worth buying): later builds of this level leave those pads out.
+        const extra = idle.map((s) => s.startsWith("pad ") ? m.entities.find((e) => "id" in e && e.id === s.slice(4)) : undefined);
+        if (extra.every((e) => e && optionalPad(e, c))) for (const e of extra) {
+          dropped.add((e as { id: string }).id);
+          // a dropped med bay leaves the medical module with nothing to do
+          if (e!.type === "pad.build" && e!.build === "struct.medical") droppedMods.add("medical");
+        }
+        log(`  it${rec!.iteration} idle elements: ${idle.join(", ")}${dropped.size > 0 ? ` (dropping ${[...dropped].join(", ")})` : ""}`);
+      }
+      else {
+        const human = humanStars ? playHuman(m, c) : null;
+        const why2 = settleObjectives(m, ms, allowed, seed, req.phase === "teach", human, (s) => log(`  it${rec!.iteration} ${s}`));
+        rec!.objectives = (m.objectives ?? []).map((o) => ({ kind: o.kind, params: o.params as Record<string, number | string> }));
+        if (why2) { rec!.why = why2; reject("objectives"); log(`  it${rec!.iteration} objectives: ${why2}`); }
+        else {
+          const v = verifyStars(m, c, humanStars);
+          rec!.stars = v.byRung;
+          if (!v.feasible) { reject("infeasible"); log(`  it${rec!.iteration} good bot loses or wins narrowly on the final objectives`); }
+          else if (!v.starsOk) { reject("stars"); log(`  it${rec!.iteration} ${humanStars ? `human-view bot misses a star on more than ${HUMAN_STARS.seeds - HUMAN_STARS.minEarned} of ${HUMAN_STARS.seeds} seeds or never earns all three` : "good bot never earns all three stars"}`); }
+          else {
+            // No pad the level can be finished (stars included) without: re-rate the trimmed level and keep it if it still passes.
+            let fin = { m, r, v, err };
+            const lean = spareCut(m, c);
+            if (lean) {
+              stats.ratings++;
+              const ms2 = measure(lean, { content: c, refSeeds: (opts.seeds?.full ?? S.fullSeeds).ref, otherSeeds: (opts.seeds?.full ?? S.fullSeeds).other, history });
+              const r2 = score(ms2, { content: c, reference });
+              const v2 = r2.ok && !overLoopCap(ms2) && idleElements(lean, ms2.runs["good"]!).length === 0 ? verifyStars(lean, c, humanStars) : null;
+              if (v2 && v2.feasible && v2.starsOk) fin = { m: lean, r: r2, v: v2, err: Math.abs(r2.D - req.target) };
+              log(`  it${rec!.iteration} spare pads: ${m.entities.filter((e) => "id" in e && !lean.entities.some((x) => "id" in x && x.id === e.id)).map((e) => (e as { id: string }).id).join(", ")}${fin.m === lean ? " dropped" : " kept (the trimmed level fails)"}`);
+            }
+            attachRating(fin.m, fin.r, req.introduced ?? [], fin.v.summary);
+            const cand: Candidate = { manifest: fin.m, rating: fin.r, p, err: fin.err, stars: fin.v.summary, starsByRung: fin.v.byRung };
+            if (!best || cand.err < best.err) { best = cand; rec!.kept = true; }
+            if (fin.err <= tol && fin.r.F >= fmin) { rec!.shipped = true; flush(); return { r, done: { manifest: fin.m, best: cand, stats } }; }
+            if (fin.err <= tol) reject("lowFun"); else reject("offTarget");
+          }
+        }
+      }
+      return { r };
+  };
+
+  for (let it = 0; it < maxIt && !memory.exhausted; it++) {
     flush();
+    if (hi - lo < 0.02) {
+      memory.widened++;
+      // Closed twice with something to show: the target is out of this level's reach, so stop searching.
+      if (memory.widened >= S.maxWidens && (memory.pool.length > 0 || best)) { memory.exhausted = true; log(`  it${it} target out of reach, stopping`); break; }
+      lo = Math.max(0, lo - 0.15); hi = Math.min(1, hi + 0.15);
+    }
     stats.iterations++;
     const mut: Record<string, number> = {};
     if (it > 0) for (const k of Object.keys(GEN.knobs)) mut[k] = (mrand.float() * 2 - 1) * GEN.jitter;
     const knobs = knobsFor(p, mut);
     rec = { iteration: it, p: round3(p), knobs: {}, rejects: [], kept: false, shipped: false };
+    recAt = Date.now();
     // Levers against a repeated player loop, scaled by how often the search has had to ease it:
     // a slower burn (fewer core feeding trips), a shorter level (fewer trips overall), a little
     // more starting currency (the first worker hire arrives sooner). Hire prices ease in buildLevel.
@@ -450,15 +549,10 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       const tMax = Math.max(...quick.map((r) => r.goalTicks)) / 30;
       m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(60, Math.round(tMax / (1 - knobs.margin) / 10) * 10)), 10);
     }
-    const rateIt = (seeds: { ref: number; other: number }) => {
-      stats.ratings++;
-      const ms = measure(m, { content: c, refSeeds: seeds.ref, otherSeeds: seeds.other, history });
-      const r = score(ms, { content: c, reference });
-      rec!.rating = { D: round3(r.D), F: round3(r.F), feasible: r.feasible, margin: r.margin, winRate: r.winRate, loopMax: ms.loopMax, ladderLeft: ms.ladderLeft, idleModules: r.evidence.idleModules, budget: m.params["level.budgetSeconds"] };
-      return { ms, r };
-    };
     log(`  it${it} good=${quick.map((q) => Math.round(q.goalTicks / 30)).join("/")}s budget=${m.params["level.budgetSeconds"]} goal=${JSON.stringify(m.goal)}`);
-    let { ms, r } = rateIt(opts.seeds?.quick ?? S.quickSeeds);
+    const quickRating = rateIt(m, opts.seeds?.quick ?? S.quickSeeds);
+    const ms = quickRating.ms;
+    let r = quickRating.r;
     const flags = Object.entries(r.filters).filter(([, v]) => v).map(([k]) => k);
     log(`  it${it} p=${p.toFixed(2)} D=${r.D.toFixed(3)} F=${r.F.toFixed(3)} feasible=${r.feasible} loopMax=${ms.loopMax} [${ms.loopKey}] ${flags.join(",")} ${r.evidence.idleModules.join(",")}`);
     flags.forEach(reject);
@@ -489,67 +583,38 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     if (!r.feasible || hardFlags.includes("stall")) { hi = p; p = (lo + p) / 2; continue; }
     if (flags.includes("trivial")) { lo = p; p = (p + hi) / 2; continue; }
     if (hardFlags.length > 0) { p = clamp01(p + (mrand.float() - 0.5) * 0.2); continue; }
-    const close = Math.abs(r.D - req.target) <= tol;
-    if (close || best === null || Math.abs(r.D - req.target) < best.err) {
-      ({ ms, r } = rateIt(opts.seeds?.full ?? S.fullSeeds));
-      const err = Math.abs(r.D - req.target);
-      if (overLoopCap(ms)) {
-        reject("repetitive");
-        easeUp();
-        log(`  it${it} repetitive on the full ladder: ${ms.loopMax} x ${ms.loopKey}`);
-        continue;
-      }
-      const idle = idleElements(m, ms.runs["good"]!);
-      rec.idleElements = idle;
-      if (!r.ok) Object.entries(r.filters).filter(([, v]) => v).forEach(([k]) => reject(k));
-      else if (idle.length > 0) {
-        reject("idleElement");
-        // Optional automation the winning bot never needed (manual-first and the automation tax make the
-        // late extras not worth buying): later builds of this level leave those pads out.
-        const extra = idle.map((s) => s.startsWith("pad ") ? m.entities.find((e) => "id" in e && e.id === s.slice(4)) : undefined);
-        if (extra.every((e) => e && optionalPad(e, c))) for (const e of extra) {
-          dropped.add((e as { id: string }).id);
-          // a dropped med bay leaves the medical module with nothing to do
-          if (e!.type === "pad.build" && e!.build === "struct.medical") droppedMods.add("medical");
-        }
-        log(`  it${it} idle elements: ${idle.join(", ")}${dropped.size > 0 ? ` (dropping ${[...dropped].join(", ")})` : ""}`);
-      }
-      else {
-        const human = humanStars ? playHuman(m, c) : null;
-        const why2 = settleObjectives(m, ms, allowed, req.seed, req.phase === "teach", human, (s) => log(`  it${it} ${s}`));
-        rec.objectives = (m.objectives ?? []).map((o) => ({ kind: o.kind, params: o.params as Record<string, number | string> }));
-        if (why2) { rec.why = why2; reject("objectives"); log(`  it${it} objectives: ${why2}`); }
-        else {
-          const v = verifyStars(m, c, humanStars);
-          rec.stars = v.byRung;
-          if (!v.feasible) { reject("infeasible"); log(`  it${it} good bot loses or wins narrowly on the final objectives`); }
-          else if (!v.starsOk) { reject("stars"); log(`  it${it} ${humanStars ? `human-view bot misses a star on more than ${HUMAN_STARS.seeds - HUMAN_STARS.minEarned} of ${HUMAN_STARS.seeds} seeds or never earns all three` : "good bot never earns all three stars"}`); }
-          else {
-            // No pad the level can be finished (stars included) without: re-rate the trimmed level and keep it if it still passes.
-            let fin = { m, r, v, err };
-            const lean = spareCut(m, c);
-            if (lean) {
-              stats.ratings++;
-              const ms2 = measure(lean, { content: c, refSeeds: (opts.seeds?.full ?? S.fullSeeds).ref, otherSeeds: (opts.seeds?.full ?? S.fullSeeds).other, history });
-              const r2 = score(ms2, { content: c, reference });
-              const v2 = r2.ok && !overLoopCap(ms2) && idleElements(lean, ms2.runs["good"]!).length === 0 ? verifyStars(lean, c, humanStars) : null;
-              if (v2 && v2.feasible && v2.starsOk) fin = { m: lean, r: r2, v: v2, err: Math.abs(r2.D - req.target) };
-              log(`  it${it} spare pads: ${m.entities.filter((e) => "id" in e && !lean.entities.some((x) => "id" in x && x.id === e.id)).map((e) => (e as { id: string }).id).join(", ")}${fin.m === lean ? " dropped" : " kept (the trimmed level fails)"}`);
-            }
-            attachRating(fin.m, fin.r, req.introduced ?? [], fin.v.summary);
-            const cand: Candidate = { manifest: fin.m, rating: fin.r, p, err: fin.err, stars: fin.v.summary, starsByRung: fin.v.byRung };
-            if (!best || cand.err < best.err) { best = cand; rec.kept = true; }
-            if (fin.err <= tol && fin.r.F >= fmin) { rec.shipped = true; flush(); return { manifest: fin.m, best: cand, stats }; }
-            if (fin.err <= tol) reject("lowFun"); else reject("offTarget");
-          }
-        }
-      }
-    } else reject("offTarget");
+    const err = Math.abs(r.D - req.target);
+    if (err <= tol) {
+      const v = verify(m, p, req.seed);
+      if (v.done) { saveMemory(); return v.done; }
+      if (v.repetitive) continue;
+      r = v.r;
+    } else {
+      // Most candidates this far off never ship: the full check waits for the closest when the search ends.
+      reject("offTarget");
+      memory.pool.push({ m, p, err, seed: req.seed, knobs: rec.knobs });
+    }
     if (r.D < req.target) lo = p; else hi = p;
     p = (lo + hi) / 2;
-    if (hi - lo < 0.02) { lo = Math.max(0, lo - 0.15); hi = Math.min(1, hi + 0.15); }
   }
   flush();
+  if (opts.finish ?? true) {
+    const pool = [...memory.pool].sort((x, y) => x.err - y.err);
+    for (const e of pool.slice(0, S.finalTries)) {
+      if (best && e.err >= best.err) break;
+      stats.iterations++;
+      rec = { iteration: stats.iterations - 1, p: round3(e.p), knobs: e.knobs, rejects: [], kept: false, shipped: false, final: true, settings: candidateSettings(e.m, c) };
+      recAt = Date.now();
+      const known = dropped.size;
+      let v = verify(e.m, e.p, e.seed);
+      // Pads the winning runs never used: this level without them is still the closest candidate.
+      if (!v.done && !best && dropped.size > known) { dropPads(e.m, dropped); v = verify(e.m, e.p, e.seed); }
+      if (v.done) { saveMemory(); return v.done; }
+      flush();
+      if (best) break;
+    }
+  }
+  saveMemory();
   return { manifest: null, best, stats };
 }
 
