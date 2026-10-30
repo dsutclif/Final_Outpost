@@ -1,8 +1,8 @@
 {
   "id": "s1-L006",
   "seed": 39245116,
-  "engineVersion": "0.14.0",
-  "contentVersion": "0.14.0",
+  "engineVersion": "0.15.0",
+  "contentVersion": "0.15.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -79,85 +79,92 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        316,
-        468
+        302,
+        489
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        303,
+        310,
+        451
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        270,
+        408
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        298,
+        418
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        346,
+        457
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        329,
         426
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        347,
-        482
+        332,
+        488
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        348,
-        435
+        293,
+        386
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        319,
-        395
+        368,
+        478
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        372,
-        460
+        322,
+        393
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        372,
-        510
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        351,
-        405
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        397,
-        485
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        404,
-        515
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        380,
-        411
+        361,
+        429
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        408,
-        439
+        394,
+        522
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        411,
+        470
       ]
     },
     {
@@ -176,8 +183,8 @@
       "type": "pad.build",
       "id": "housing0",
       "at": [
-        390,
-        590
+        240,
+        690
       ],
       "cost": {
         "res.currency": 14
@@ -256,8 +263,8 @@
     }
   },
   "rating": {
-    "difficulty": 0.21,
-    "fun": 0.786,
+    "difficulty": 0.211,
+    "fun": 0.808,
     "botMargin": 0.582,
     "botsPassed": [
       "good",

@@ -45,9 +45,9 @@ describe("goal icons", () => {
     expect(t[1]!.pie).toBeCloseTo(1);
     expect(t[2]!.pips).toEqual({ n: 3, done: 0, part: 0 });
     // only count goals carry a number: protein shows its target, the stopwatch and pips do not
-    expect(t.map((x) => x.beside)).toEqual(["31", undefined, undefined]);
-    // every tracker shows its current number: 0 protein, the stopwatch's full 3:55, 0 trips
-    expect(t.map((x) => x.inner)).toEqual(["0", "3:55", "0"]);
+    expect(t.map((x) => x.beside)).toEqual(["30", undefined, undefined]);
+    // every tracker shows its current number: 0 protein, the stopwatch's full 5:15, 0 trips
+    expect(t.map((x) => x.inner)).toEqual(["0", "5:15", "0"]);
   });
 
   it("L5: waves are pips; won goals draw a star and missed ones are struck through", () => {
@@ -95,7 +95,7 @@ describe("urgent alert", () => {
     expect(marks(g).filter((k) => k.kind === "gate")).toEqual([gate]);
 
     // the freeze and a trader running out of patience show together; the most impatient trader only
-    const h = level(8);
+    const h = level(13);
     const q = h.sim.state.sales!.queue;
     const base = { kind: "unit.customer", res: "res.food_raw_1", want: 1, patienceMax: 120, pos: { x: 0, y: 0 }, angry: false };
     q.push({ ...base, id: 998, patience: 15 } as never, { ...base, id: 999, patience: 10 } as never);
@@ -116,7 +116,7 @@ describe("never-goals fill from whatever is closest to breaking them", () => {
     expect(gate.fill).toBeCloseTo(0.1, 1);
     expect(gate.risk).toBe(true);
 
-    const h = level(8);
+    const h = level(13);
     const q = h.sim.state.sales!.queue;
     q.push({ ...(q[0] ?? {}), id: 999, kind: "unit.customer", res: "res.food_raw_1", want: 1, patience: 30, patienceMax: 120, pos: { x: 0, y: 0 }, angry: false } as never);
     const id = h.sim.state.objectives.find((o) => o.kind === "no_angry_customers")!.id;

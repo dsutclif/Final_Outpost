@@ -1,8 +1,8 @@
 {
   "id": "s1-L028",
   "seed": 79518685,
-  "engineVersion": "0.14.0",
-  "contentVersion": "0.14.0",
+  "engineVersion": "0.15.0",
+  "contentVersion": "0.15.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -150,7 +150,7 @@
         146,
         56
       ],
-      "freeze": 136
+      "freeze": 127
     },
     {
       "type": "capture.recruit_container",
@@ -158,7 +158,7 @@
         405,
         206
       ],
-      "freeze": 140
+      "freeze": 131
     },
     {
       "type": "capture.recruit_container",
@@ -166,7 +166,7 @@
         444,
         455
       ],
-      "freeze": 142
+      "freeze": 133
     },
     {
       "type": "capture.recruit_container",
@@ -174,7 +174,15 @@
         64,
         213
       ],
-      "freeze": 176
+      "freeze": 167
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        43,
+        465
+      ],
+      "freeze": 167
     },
     {
       "type": "zone.prey",
@@ -186,7 +194,7 @@
         150
       ],
       "animal": "node.prey",
-      "n": 2
+      "n": 1
     },
     {
       "type": "zone.prey",
@@ -198,23 +206,23 @@
         150
       ],
       "animal": "node.prey_dangerous",
-      "n": 1
+      "n": 2
     }
   ],
   "people": [],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 3,
-    "core.burn": 2.4,
-    "housing.base": 6,
+    "start.currency": 2,
+    "core.burn": 2.3,
+    "housing.base": 7,
     "lots.block": 60,
     "lots.street": 0,
     "level.budgetSeconds": 340
   },
   "goal": {
     "type": "hunt",
-    "n": 31
+    "n": 18
   },
   "family": "rescue",
   "objectives": [
@@ -222,14 +230,14 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 31
+        "n": 18
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 330
+        "seconds": 290
       }
     },
     {
@@ -253,21 +261,22 @@
     }
   },
   "rating": {
-    "difficulty": 0.704,
-    "fun": 0.714,
-    "botMargin": 0.519,
+    "difficulty": 0.496,
+    "fun": 0.868,
+    "botMargin": 0.613,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,
       "median": 3,
       "goodAll": 1,
-      "human": 2.5,
-      "humanAll": 0.83
+      "human": 2.33,
+      "humanAll": 0.67
     }
   }
 }

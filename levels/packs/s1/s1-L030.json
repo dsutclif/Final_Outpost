@@ -1,8 +1,8 @@
 {
   "id": "s1-L030",
   "seed": 578494946,
-  "engineVersion": "0.14.0",
-  "contentVersion": "0.14.0",
+  "engineVersion": "0.15.0",
+  "contentVersion": "0.15.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -114,15 +114,15 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        100,
-        528
+        201,
+        439
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        107,
-        577
+        104,
+        546
       ]
     },
     {
@@ -130,6 +130,13 @@
       "at": [
         100,
         452
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        98,
+        580
       ]
     },
     {
@@ -417,9 +424,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.961,
+    "difficulty": 0.96,
     "fun": 0.761,
-    "botMargin": 0.479,
+    "botMargin": 0.481,
     "botsPassed": [
       "good",
       "average",

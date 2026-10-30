@@ -222,3 +222,13 @@ describe("leash (R5 #23)", () => {
     expect(worst).toBeGreaterThan(150 * FP);
   });
 });
+
+describe("strike size (Doug, R5 #26)", () => {
+  it("no attacker's single strike exceeds a guard's full health", () => {
+    const { compiled: cp } = createSim(level());
+    const guards = Object.values(cp.content.roles as Loose).filter((r: Loose) => r["behavior"] === "guard" && r["hp"] !== undefined);
+    expect(guards.length).toBeGreaterThan(0);
+    const guardHp = Math.min(...guards.map((r: Loose) => r["hp"] as number));
+    for (const [id, h] of Object.entries(cp.hostiles)) expect(h.damage, id).toBeLessThanOrEqual(guardHp);
+  });
+});

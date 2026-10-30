@@ -1,8 +1,8 @@
 {
   "id": "s1-L038",
   "seed": 1094709853,
-  "engineVersion": "0.14.0",
-  "contentVersion": "0.14.0",
+  "engineVersion": "0.15.0",
+  "contentVersion": "0.15.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -84,78 +84,85 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        152,
-        483
+        225,
+        479
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        159,
+        475
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        127,
+        528
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        468
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        235,
+        448
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        168,
+        446
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        213,
+        427
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        140,
+        501
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         130,
-        531
+        464
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        163,
-        450
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        134,
-        460
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        111,
-        506
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        227,
-        419
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        163,
-        421
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        91,
-        529
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        196,
-        421
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        100,
-        443
+        104,
+        500
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        127,
-        403
+        177,
+        405
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        219,
+        386
       ]
     },
     {
@@ -260,7 +267,7 @@
       "type": "event.hazard",
       "warnAt": 4,
       "start": 12,
-      "end": 34
+      "end": 52
     }
   ],
   "params": {
@@ -272,7 +279,7 @@
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 170
+    "level.budgetSeconds": 220
   },
   "goal": {
     "type": "clear_zones",
@@ -291,7 +298,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 120
+        "seconds": 151
       }
     },
     {
@@ -315,9 +322,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.745,
-    "fun": 0.736,
-    "botMargin": 0.571,
+    "difficulty": 0.715,
+    "fun": 0.556,
+    "botMargin": 0.588,
     "botsPassed": [
       "good",
       "average",
