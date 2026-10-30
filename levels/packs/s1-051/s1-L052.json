@@ -1,0 +1,306 @@
+{
+  "id": "s1-L052",
+  "seed": 943350197,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-ne",
+      "fuel-w",
+      "shop-s"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "customer_variety",
+    "gather",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    240,
+    652
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        560
+      ],
+      "params": {
+        "fuel": 11,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        310,
+        707
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "route": [
+        [
+          249,
+          920
+        ],
+        [
+          249,
+          897
+        ],
+        [
+          249,
+          707
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        339,
+        453
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
+        520
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        199,
+        467
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
+        487
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        226,
+        455
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        136,
+        511
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        183,
+        441
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        127,
+        483
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        221,
+        422
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        147,
+        461
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        107,
+        510
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        190,
+        410
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        142,
+        421
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        86,
+        464
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        217,
+        670
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "sink.core"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        339,
+        514
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        310,
+        806
+      ],
+      "cost": {
+        "res.currency": 22
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      },
+      "manual": true
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 2,
+    "core.burn": 2.4,
+    "housing.base": 6,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.1,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "customers.impatientShare": 0.29,
+    "customers.premiumShare": 0.2,
+    "level.budgetSeconds": 320
+  },
+  "goal": {
+    "type": "serve_premium",
+    "n": 14
+  },
+  "family": "harvest",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "serve_premium",
+      "params": {
+        "n": 14
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 353
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "streak",
+      "params": {
+        "n": 20
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hurried Traders and Guests",
+      "goal": "Serve 14 VIP traders",
+      "tips": [
+        "Hurried traders leave fast and gold VIP traders pay double."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.5,
+    "fun": 0.936,
+    "botMargin": 0.478,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

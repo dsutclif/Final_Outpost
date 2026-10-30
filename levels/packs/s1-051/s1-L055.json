@@ -1,0 +1,290 @@
+{
+  "id": "s1-L055",
+  "seed": 2110915574,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "sources-e",
+      "shop-se",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "housing",
+    "sales"
+  ],
+  "start": [
+    240,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        500
+      ],
+      "params": {
+        "fuel": 12,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        308,
+        646
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "route": [
+        [
+          -20,
+          663
+        ],
+        [
+          3,
+          663
+        ],
+        [
+          207,
+          663
+        ],
+        [
+          247,
+          646
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        338,
+        484
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        165,
+        501
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
+        463
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        163,
+        539
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        134,
+        488
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        158,
+        432
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        455
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        131,
+        530
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        183,
+        400
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        103,
+        488
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        148,
+        401
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        89,
+        533
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        104,
+        398
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        240,
+        800
+      ],
+      "arrivals": {
+        "every": 17,
+        "total": 4
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level0",
+      "at": [
+        263,
+        610
+      ],
+      "cost": {
+        "res.currency": 29
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        410,
+        520
+      ],
+      "cost": {
+        "res.currency": 14
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing1",
+      "at": [
+        160,
+        630
+      ],
+      "cost": {
+        "res.currency": 17
+      },
+      "build": "struct.housing",
+      "requires": {
+        "pad": "core_level0"
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 4,
+    "core.burn": 2.4,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 180
+  },
+  "goal": {
+    "type": "house_all"
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "house_all",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 129
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_colonist_freezes",
+      "params": {}
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Domes and Roof Overhead",
+      "goal": "house_all",
+      "tips": [
+        "New colonists need a bed. Build hab pods so they can move in."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.564,
+    "fun": 0.771,
+    "botMargin": 0.561,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

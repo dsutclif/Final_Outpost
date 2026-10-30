@@ -1,0 +1,310 @@
+{
+  "id": "s1-L066",
+  "seed": 1827931580,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-sw",
+      "fuel-ne",
+      "shop-e",
+      "landmark-se"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "hazard_events",
+    "housing",
+    "sales"
+  ],
+  "start": [
+    262,
+    602
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        262,
+        510
+      ],
+      "params": {
+        "fuel": 9,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        336,
+        580
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "route": [
+        [
+          500,
+          621
+        ],
+        [
+          477,
+          621
+        ],
+        [
+          285,
+          621
+        ],
+        [
+          275,
+          614
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        153,
+        603
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        187,
+        466
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        183,
+        502
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        196,
+        423
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        155,
+        493
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        157,
+        459
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        166,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        124,
+        504
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        132,
+        439
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        171,
+        376
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        96,
+        464
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        262,
+        810
+      ],
+      "arrivals": {
+        "every": 20,
+        "total": 5
+      }
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        327,
+        159,
+        18,
+        88
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "ridge",
+      "rect": [
+        74,
+        825,
+        130,
+        18
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        430,
+        530
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing1",
+      "at": [
+        80,
+        580
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing2",
+      "at": [
+        290,
+        700
+      ],
+      "cost": {
+        "res.currency": 21
+      },
+      "build": "struct.housing"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 52,
+      "start": 60,
+      "end": 82
+    },
+    {
+      "type": "event.hazard",
+      "warnAt": 132,
+      "start": 140,
+      "end": 162
+    }
+  ],
+  "params": {
+    "start.currency": 0,
+    "core.burn": 2.2,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.2,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 310
+  },
+  "goal": {
+    "type": "hazard_survive"
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "hazard_survive",
+      "params": {}
+    },
+    {
+      "id": "challenge2",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 30
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hab Pods",
+      "goal": "hazard_survive",
+      "tips": [
+        "New colonists need a bed. Build hab pods so they can move in."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.05,
+    "fun": 0.487,
+    "botMargin": 0.77,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2.67,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

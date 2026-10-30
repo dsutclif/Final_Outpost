@@ -1,0 +1,362 @@
+{
+  "id": "s1-L061",
+  "seed": 1398726059,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-sw",
+      "food-se",
+      "shop-ne",
+      "landmark-s"
+    ]
+  },
+  "modules": [
+    "blocked_zones",
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "sales"
+  ],
+  "start": [
+    240,
+    360
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        450
+      ],
+      "params": {
+        "fuel": 14,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        355,
+        408
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "route": [
+        [
+          500,
+          285
+        ],
+        [
+          477,
+          285
+        ],
+        [
+          315,
+          285
+        ],
+        [
+          303,
+          309
+        ],
+        [
+          294,
+          306
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        323,
+        590
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        158,
+        482
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        177,
+        541
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        150,
+        512
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        478
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        560
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        124,
+        538
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        177,
+        579
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        222,
+        601
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        102,
+        519
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        129,
+        577
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        192,
+        611
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        101,
+        564
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        126,
+        621
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        284,
+        364
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        293,
+        333
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        246,
+        314
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        277,
+        302
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        340,
+        310
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble0",
+      "rect": [
+        141,
+        186,
+        120,
+        70
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        166,
+        221
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        201,
+        221
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        236,
+        221
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        278,
+        74,
+        91,
+        17
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "ridge",
+      "rect": [
+        427,
+        716,
+        19,
+        133
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level0",
+      "at": [
+        263,
+        560
+      ],
+      "cost": {
+        "res.currency": 26
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "clear0",
+      "at": [
+        203,
+        298
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "build": "zone.clear",
+      "target": "rubble0",
+      "requires": {
+        "coreLevel": 2
+      }
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 6,
+    "core.burn": 2.6,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 2.8,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 110
+  },
+  "goal": {
+    "type": "clear_zones",
+    "n": 1
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "clear_zones",
+      "params": {
+        "n": 1
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 73
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_colonist_freezes",
+      "params": {}
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Reactors and Sweep",
+      "goal": "clear_zones",
+      "tips": [
+        "Upgrade the reactor for a bigger heat ring and new build sites."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.416,
+    "fun": 0.678,
+    "botMargin": 0.595,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 2.67,
+      "humanAll": 0.67
+    }
+  }
+}
