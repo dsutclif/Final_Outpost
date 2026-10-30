@@ -33,6 +33,8 @@ export function checkEnd(st: State, cp: Compiled, out: SimEvent[]): void {
     if (pile !== null) { out.push({ t: "pile_collapsed", conv: pile }); why = "pile_collapse"; }
   }
   if (why === null && cp.timerTicks > 0 && st.tick >= cp.timerTicks) why = "timer";
+  // R5 #21: nothing can win the level once the main goal has failed.
+  if (why === null && main?.failed) why = "goal_failed";
   // Batch 3: a level with attack waves runs until the last one is cleared, so the defence is built and held to the end.
   const wavesLeft = cp.waves.length > 0 && !wavesDone(st, cp);
   if (why !== null && FAILS[why] && wavesLeft) won = false;

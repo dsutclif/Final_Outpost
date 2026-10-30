@@ -1,5 +1,5 @@
 import { CONTENT_VERSION, type Manifest } from "@fo/content";
-import { ENGINE_VERSION, FP, IMPLEMENTED_MODULES, METER_MAX, createSim, starsOf, type Sim, type SimEvent } from "@fo/sim";
+import { ENGINE_VERSION, FP, IMPLEMENTED_MODULES, METER_MAX, createSim, mainGoalDead, starsOf, type Sim, type SimEvent } from "@fo/sim";
 import { viewWFor, createCamera, worldToScreenPlane, type Camera } from "@fo/render-3d";
 import { getSkin, levelTitle, nameOf, purposeOf, uiText, type Skin } from "@fo/skins";
 import { Coach, toWorld } from "./coach.js";
@@ -37,6 +37,8 @@ interface Session {
   stepper: FixedStepper;
   coach: Coach;
   ended: boolean;
+  /** The player has been told the main goal is out of reach (asked once a level, R5 #21). */
+  deadEndAsked?: boolean;
   /** Currency gained over the attempt (collected from the register and picked up). */
   earned: number;
   lastCurrency: number;
@@ -993,6 +995,16 @@ export class App {
     });
   }
 
+  /** R5 #21: the main goal is out of reach. The level stays open: the player may still want to look around. */
+  private askDeadEnd(s: Session): void {
+    s.deadEndAsked = true;
+    const ov = this.el.ov["result"]!, sk = this.skin;
+    ov.innerHTML = `<div class="card center result lost"><h2>${esc(uiText(sk, "deadEndTitle"))}</h2><p>${esc(uiText(sk, "deadEndBody"))}</p>
+      <div class="row"><button data-a="keep">${esc(uiText(sk, "keepPlaying"))}</button><button data-a="retry" class="go">${esc(uiText(sk, "restart"))}</button></div></div>`;
+    this.wire(ov, { keep: () => this.show("playing"), retry: () => void this.openLevel(s.meta) });
+    this.show("result");
+  }
+
   /** Dev hook: step the running level by hand (hidden panes and tests get no rAF). */
   debugAdvance(ticks: number, input = { dx: 0, dy: 0 }): number {
     const s = this.session;
@@ -1043,6 +1055,7 @@ export class App {
 
   private stepOnce(s: Session, input: { dx: number; dy: number }): void {
     for (const e of s.sim.step(input)) this.handleEvent(s, e);
+    if (!s.ended && !s.deadEndAsked && mainGoalDead(s.sim.state, s.sim.compiled)) this.askDeadEnd(s);
     const cur = s.sim.state.currency;
     if (cur > s.lastCurrency) s.earned += cur - s.lastCurrency;
     s.lastCurrency = cur;
