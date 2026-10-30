@@ -322,8 +322,8 @@ them: a re-render just replaces the file and ships with the next push.
 **Seamless hand-off.** `crash_open` ends on the game camera (30° pitch, 45° yaw, near-
 orthographic) centred on the commander at 7.3 m across (look.json viewW 170 = 4 hero heights),
 so the last video frame and the first live frame line up. Level 1's manifest must put the
-commander, the dark reactor and the ore trail where the shot does (`crash.py` `shot4`: the reactor
-3.3 m left and 2.4 m toward camera of the landing spot, the ore between); the
+commander and the ore trail where the shot does (`crash.py` `shot4`); the dark reactor is not in the
+film, since the player walks to it in level 1 (Doug, 2026-10-30); the
 client should still cross-fade 0.3 s to hide the renderer change.
 
 **Shots.**
@@ -332,7 +332,7 @@ client should still cross-fade 0.3 s to hide the renderer change.
 |---|---|---|---|
 | `title_loop` | Landing screen | 6 s seamless loop | Dusk over the outpost: reactor glow breathing, a crewmate mining, the medic and commander breathing, dust drifting, the pulse beating twice on the ridge. Title and Play over it. |
 | `title_still` | Landing fallback, store art | still | Frame 1 of the loop at 1080×1920. |
-| `crash_open` | Before level 1 | about 29 s | 1 the Halcyon dives through the storm; the pulse flashes and the engines cut out. 2 wide: it hits the plain, flash, dust plume. 3 dawn: the broken wreck (Doug's model) on the plain, red emergency light in the hull break. 4 a torn deck plate by the break with five of Doug's stasis pods sunk into it (four sealed under frosted glass: bays five to eight, the crew-gap clue). The commander's pod vents, its glass already cracked; it swings back along its long edge as they sit up; in motion capture they get up, turn, step out over the side wall, limp to the plate's edge, jump down to the sand and look round, and the camera cranes out to the game view over the dark reactor, the wreck behind. |
+| `crash_open` | Before level 1 | about 29 s | 1 the Halcyon dives through the storm; the pulse flashes and the engines cut out. 2 wide: it hits the plain, flash, dust plume. 3 dawn: the broken wreck (Doug's model) on the plain, red emergency light in the hull break. 4 a torn deck plate by the break with five of Doug's stasis pods sunk into it (four sealed under frosted glass: bays five to eight, the crew-gap clue). The commander's pod vents, its glass already cracked; it swings back along its long edge as they sit up; in motion capture they get up, turn, step out over the side wall, limp to the plate's edge, jump down to the sand and look round, and the camera cranes out to the game view, the wreck behind. |
 | `helmet_reveal` | After level 5's win | 4 s | Night. The lieutenant's helmet (Halcyon-issue, painted black, white and gold showing through) where it fell, dust settling; the camera creeps in and tips down to the ID card that slipped out: BAY 5, FIRST OFFICER. |
 
 The commander's own pod failed to eject, which is why they wake in the wreck (agreed with Doug
