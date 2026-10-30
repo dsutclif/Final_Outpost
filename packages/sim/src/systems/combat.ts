@@ -2,6 +2,7 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { within, type Vec } from "../fixed.js";
 import type { HostileState, PreyState, State } from "../state.js";
+import { firstCrossing } from "./barriers.js";
 import { spawnDrops } from "./common.js";
 
 export type Attacker = "player" | "resident" | "structure" | "troop";
@@ -16,12 +17,15 @@ export function nearestHostile(st: State, p: Vec, r: number): HostileState | nul
   return best;
 }
 
+/** A shot at prey needs a clear line: no built wall section between the shooter and the animal (hostiles are shot over walls). */
+export const clearLine = (st: State, a: Vec, b: Vec): boolean => firstCrossing(st, a, b) === null;
+
 export function nearestPrey(st: State, p: Vec, r: number): PreyState | null {
   let best: PreyState | null = null, bd = r * r;
   for (const d of st.prey) {
     if (!d.alive) continue;
     const dx = d.pos.x - p.x, dy = d.pos.y - p.y, d2 = dx * dx + dy * dy;
-    if (d2 < bd) { bd = d2; best = d; }
+    if (d2 < bd && clearLine(st, p, d.pos)) { bd = d2; best = d; }
   }
   return best;
 }
@@ -32,7 +36,7 @@ export function nearestDangerousPrey(st: State, cp: Compiled, p: Vec, r: number)
   for (const d of st.prey) {
     if (!d.alive || cp.animals[st.preyZones[d.zone]!.animal]!.aggroRange <= 0) continue;
     const dx = d.pos.x - p.x, dy = d.pos.y - p.y, d2 = dx * dx + dy * dy;
-    if (d2 < bd) { bd = d2; best = d; }
+    if (d2 < bd && clearLine(st, p, d.pos)) { bd = d2; best = d; }
   }
   return best;
 }

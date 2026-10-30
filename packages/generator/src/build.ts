@@ -1229,6 +1229,24 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     return m;
   };
 
+  // Hopper flats stay within zones.preyReach of the walls (a fixed design setting): a flat further out slides
+  // toward the wall box until it is in reach. Levels without walls keep their template flats.
+  {
+    const reach = c.defaults["zones.preyReach"]!;
+    const wallPts = ents.filter((e) => e.type === "barrier.line").flatMap((e) => e["points"] as Pt[]);
+    if (wallPts.length > 0) {
+      const wx0 = Math.min(...wallPts.map((q) => q[0])), wx1 = Math.max(...wallPts.map((q) => q[0]));
+      const wy0 = Math.min(...wallPts.map((q) => q[1])), wy1 = Math.max(...wallPts.map((q) => q[1]));
+      for (const e of ents) if (e.type === "zone.prey" && Array.isArray(e["rect"])) {
+        const r = e["rect"] as number[];
+        const gx = Math.max(wx0 - (r[0]! + r[2]!), r[0]! - wx1, 0), gy = Math.max(wy0 - (r[1]! + r[3]!), r[1]! - wy1, 0);
+        if (Math.max(gx, gy) <= reach) continue;
+        if (gx > reach) r[0] = r[0]! + (r[0]! > wx1 ? -(gx - reach) : gx - reach);
+        if (gy > reach) r[1] = r[1]! + (r[1]! > wy1 ? -(gy - reach) : gy - reach);
+      }
+    }
+  }
+
   // ---------- geography (R3 item 17): impassable ridges, outcrops and chasms on some levels ----------
   // Placed last so every station is where it would be without terrain; its own random stream leaves other draws alone.
   {
