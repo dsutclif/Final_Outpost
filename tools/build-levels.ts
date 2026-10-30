@@ -88,7 +88,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   }
   const pick = shipped ?? best;
   if (!pick) {
-    process.stdout.write(`RESULT ${JSON.stringify({ index, id: req.id, failed: true, rejects, seconds: (Date.now() - t0) / 1000 })}\n`);
+    process.stdout.write(`RESULT ${JSON.stringify({ index, id: req.id, family: req.family, secondary: req.secondary, failed: true, rejects, seconds: (Date.now() - t0) / 1000 })}\n`);
     return;
   }
   const m = pick.manifest;
@@ -167,10 +167,12 @@ async function main(): Promise<void> {
   console.log(`building ${packId} levels ${from}-${to} with ${jobs} jobs`);
   const results: LevelResult[] = [];
   const failed: { index: number; rejects: unknown }[] = [];
+  // Levels whose every seed failed. A crashed worker is not one: it says nothing about the level.
+  const dropped: { index: number; id: unknown; family: unknown; secondary: unknown; rejects: unknown }[] = [];
   const offset = arg("--target-offset", "0")!;
   await pool(indices, jobs, (i) => runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--target-offset", offset, ...(verbose ? ["--verbose"] : [])]), (i, out) => {
     const r = parseResult(out);
-    if (!r || r["failed"]) { failed.push({ index: i, rejects: r?.["rejects"] }); console.log(`  L${i}: FAILED ${JSON.stringify(r?.["rejects"] ?? {})}`); return; }
+    if (!r || r["failed"]) { failed.push({ index: i, rejects: r?.["rejects"] }); if (r) dropped.push({ index: i, id: r["id"], family: r["family"], secondary: r["secondary"] ?? null, rejects: r["rejects"] }); console.log(`  L${i}: FAILED ${JSON.stringify(r?.["rejects"] ?? {})}`); return; }
     const lr = r as unknown as LevelResult;
     results.push(lr);
     console.log(`  L${i} ${lr.onTarget ? "ok " : "off"} D=${lr.D.toFixed(3)} (target ${lr.target}) F=${lr.F.toFixed(3)} ${lr.seconds.toFixed(0)}s`);
@@ -200,7 +202,7 @@ async function main(): Promise<void> {
   }
   for (const e of byId.values()) e.title = titles[e.id]!;
   const levels = [...byId.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
-  writeFileSync(packPath, JSON.stringify({ id: packId, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION, levels }, null, 2) + "\n");
+  writeFileSync(packPath, JSON.stringify({ id: packId, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION, levels, ...(dropped.length > 0 ? { dropped: dropped.sort((a, b) => a.index - b.index) } : {}) }, null, 2) + "\n");
 
   // levels/packs/index.json lists the pack ids the client offers.
   const indexPath = join(dirname(outDir), "index.json");

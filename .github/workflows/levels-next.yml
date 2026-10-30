@@ -33,6 +33,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # A queued run must see the batches landed while it waited, not main as of its dispatch.
+          ref: main
           fetch-depth: 100
       # The endpoint cannot tell a real player from a made-up report, so cap the supply's growth.
       - name: Daily cap (6 batches)

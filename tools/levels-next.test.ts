@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { keepContiguous, planBatch } from "./levels-next.js";
+import { CONTENT_VERSION } from "../packages/content/src/index.js";
+import { ENGINE_VERSION } from "../packages/sim/src/index.js";
+import { batchUsable, planBatch, published } from "./levels-next.js";
 
 describe("level supply planning", () => {
-  const pub = { count: 60, offset: 0 };
+  const pub = { count: 60, top: 60, offset: 0 };
 
   it("never plans past `ahead` levels beyond the player", () => {
     for (const cleared of [0, 5, 30, 59, 60]) {
@@ -17,7 +19,7 @@ describe("level supply planning", () => {
 
   it("builds the next contiguous batch, capped by the batch size", () => {
     expect(planBatch(pub, 60, [], 60, 20)).toMatchObject({ from: 61, to: 80, packId: "s1-061" });
-    expect(planBatch({ count: 80, offset: 0 }, 60, [], 60, 20)).toMatchObject({ from: 81, to: 100 });
+    expect(planBatch({ count: 80, top: 80, offset: 0 }, 60, [], 60, 20)).toMatchObject({ from: 81, to: 100 });
   });
 
   it("skips gaps smaller than the minimum batch", () => {
@@ -30,27 +32,43 @@ describe("level supply planning", () => {
   });
 });
 
-describe("keepContiguous", () => {
-  const make = (nums: number[]) => {
+describe("level numbering past gaps", () => {
+  const packs = (files: Record<string, object>) => {
     const root = mkdtempSync(join(tmpdir(), "packs-"));
-    mkdirSync(join(root, "s1-081"));
-    for (const n of nums) writeFileSync(join(root, "s1-081", `s1-L${n}.json`), "{}");
-    writeFileSync(join(root, "s1-081", "pack.json"), JSON.stringify({ id: "s1-081", levels: nums.map((n) => ({ id: `s1-L${n}`, file: `s1-L${n}.json` })) }));
-    writeFileSync(join(root, "index.json"), JSON.stringify({ packs: ["s1", "s1-081"] }));
+    for (const [id, body] of Object.entries(files)) {
+      mkdirSync(join(root, id));
+      writeFileSync(join(root, id, "pack.json"), JSON.stringify({ id, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION, ...body }));
+    }
+    writeFileSync(join(root, "index.json"), JSON.stringify({ packs: Object.keys(files) }));
     return root;
   };
+  const ids = (...ns: number[]) => ns.map((n) => ({ id: `s1-L${String(n).padStart(3, "0")}` }));
 
-  it("stops at the first missing level and removes the files after it", () => {
-    const root = make([81, 82, 83, 85, 86]);
-    expect(keepContiguous(root, "s1-081", 81)).toBe(3);
-    expect(JSON.parse(readFileSync(join(root, "s1-081", "pack.json"), "utf8")).levels.map((l: { id: string }) => l.id)).toEqual(["s1-L81", "s1-L82", "s1-L83"]);
-    expect(existsSync(join(root, "s1-081", "s1-L85.json"))).toBe(false);
+  it("starts after the highest number, not the level count", () => {
+    const pub = published(packs({ s1: { levels: ids(6, 7, 9, 10) } }));
+    expect(pub).toMatchObject({ count: 4, top: 10 });
+    expect(planBatch(pub, 4, [], 60, 20)).toMatchObject({ from: 11, packId: "s1-011" });
   });
 
-  it("drops the pack and its index entry when the first level failed", () => {
-    const root = make([82, 83]);
-    expect(keepContiguous(root, "s1-081", 81)).toBe(0);
-    expect(existsSync(join(root, "s1-081"))).toBe(false);
-    expect(JSON.parse(readFileSync(join(root, "index.json"), "utf8")).packs).toEqual(["s1"]);
+  it("never retries a dropped level, even at the end of a batch", () => {
+    const pub = published(packs({ s1: { levels: ids(6, 7) }, "s1-008": { levels: ids(8), dropped: [{ index: 9 }, { index: 10 }] }, "s1-011": { levels: [], dropped: [{ index: 11 }] } }));
+    expect(pub).toMatchObject({ count: 3, top: 11 });
+    expect(planBatch(pub, 3, [], 60, 20)).toMatchObject({ from: 12 });
+  });
+});
+
+describe("batchUsable", () => {
+  it("keeps a batch with any built level", () => {
+    expect(batchUsable({ levels: [{ id: "s1-L052" }], dropped: [{ index: 51 }] }, 20)).toBe(true);
+  });
+
+  it("keeps a fully dropped batch so the supply moves on", () => {
+    expect(batchUsable({ levels: [], dropped: [{ index: 51 }, { index: 52 }] }, 2)).toBe(true);
+  });
+
+  it("rejects a build that broke", () => {
+    expect(batchUsable(null, 2)).toBe(false);
+    expect(batchUsable({ levels: [] }, 2)).toBe(false);
+    expect(batchUsable({ levels: [], dropped: [{ index: 51 }] }, 2)).toBe(false);
   });
 });
