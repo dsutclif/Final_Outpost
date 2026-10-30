@@ -1,23 +1,24 @@
-# crash_open: the cinematic before level 1 (docs/STORY-LEVELS.md). 12.5 s at 30 fps:
+# crash_open: the cinematic before level 1 (docs/STORY-LEVELS.md), 30 fps:
 #   1 descent    f1-75     the Halcyon dives through the storm; the pulse flashes, the engines cut out
 #   2 impact     f76-105   wide: it hits the plain; flash, dust plume, camera shake
 #   3 the wreck  f106-165  dawn: the broken Halcyon on the plain, red light glowing in the break
-#   4 the pod    f166-300  a torn deck by the break, five pods (four still sealed: bays five to
-#                          eight); the commander's pod vents, the lid swings open, they sit up, swing
-#                          their legs over the rim, slide off and stagger to the deck edge
-#   5 the drop   f301-375  the commander drops to the sand, stands, and the camera cranes out to the
-#                          game camera over the dark reactor
+#   4 the pod    f166-     a torn deck plate by the break, five pods sunk in it (four still sealed:
+#                          bays five to eight). The commander's pod vents and the lid swings back; the
+#                          commander gets up, steps out over the rim, limps to the plate's edge, jumps
+#                          down to the sand and looks round, and the camera cranes out to the game
+#                          camera over the dark reactor. Motion capture (pod_exit.py), cut across
+#                          four cameras.
 # blender -b --factory-startup -P tools/cinematics/crash.py -- [--shot N] [--quick] [--check]
-import math, os, sys
+import math, os, shutil, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
-from mathutils import Vector
-import lib
+from mathutils import Matrix, Vector
+import lib, pod_exit
 
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 quick = "--quick" in args
 only = int(args[args.index("--shot") + 1]) if "--shot" in args else None
-SHOTS = {1: (1, 75), 2: (76, 105), 3: (106, 165), 4: (166, 300), 5: (301, 375)}
+SHOTS = {1: (1, 75), 2: (76, 105), 3: (106, 165), 4: None}
 FOLDER = os.path.join(lib.OUT, "crash_open")
 SIZE = (360, 640) if quick else (720, 1280)
 
@@ -147,19 +148,295 @@ def shot2():
     shake(cam, 86, 100, 2.5, seed=5)
 
 
-# ---------------------------------------------------------------- the crash site (shots 3-5)
+# ---------------------------------------------------------------- the crash site (shots 3-4)
 # Doug's wreck at 60 m, nose -X, lying across the plain; the hull broke in two at x = 12. A torn
-# deck section spills out of the break with five cryo pods on it (the commander's nearest the
-# camera; the other four sealed: bays five to eight). Shared by shots 3, 4 and 5 so the geography
-# holds from the establishing shot to the hand-off.
-DECK_Z = 1.5                       # deck top, metres above the sand
-PODS_X = (10.6, 12.0, 13.4, 14.8)  # the four sealed pods (bays five to eight)
-POD_Y = -3.6                       # pods lie along Y (head end toward the hull)
-POD = Vector((8.1, -4.3, DECK_Z))   # the commander's pod, knocked askew
-POD_YAW = -55.0                    # its turn, degrees: its open side faces the camera
-EDGE = Vector((8.3, -5.9, DECK_Z))  # where the commander stands at the deck's front edge
-END = Vector((8.1, -8.0, 0.0))       # where they land on the sand: the hand-off spot
-CUT = 0.55                         # the pod opens at this fraction of its height
+# deck plate lies on the sand by the break with five cryo pods sunk into it (the commander's open,
+# four sealed: bays five to eight). The deck, the pods and the drop to the sand are fitted to the
+# commander's motion capture (pod_exit.perform), which is built in its own frame (deck top at z 0,
+# the commander lying along -X at the origin) and turned onto the plain by the `stage` empty.
+CUT = 0.55            # the pod opens at this fraction of its height
+PRE = 45              # frames the commander lies still while the seal blows and the lid swings open
+POD_AT = Vector((8.4, -7.6))  # the commander's pod on the plain
+WALK = -90.0          # degrees: the way they walk out, over the plain away from the hull
+POD_ON = 166          # crash_open frame where the pod shot starts
+
+
+def model_pod(name, stage, centre, long_along, size_long, size_short, rim_h):
+    """A pod model sunk into the deck: centred on `centre` (stage frame), its long axis along
+    `long_along` (a stage axis), its CUT line at rim_h. Returns the root and its scaled height."""
+    root = lib.place("capture.recruit_container", at=(0, 0, 0), name=name)
+    bpy.context.view_layer.update()
+    lo, hi = Vector((1e9,) * 3), Vector((-1e9,) * 3)
+    for o in root.children_recursive:
+        if o.type == "MESH":
+            for c in o.bound_box:
+                w = o.matrix_world @ Vector(c)
+                lo = Vector(map(min, lo, w)); hi = Vector(map(max, hi, w))
+    ext = hi - lo
+    long_x = ext.x >= ext.y
+    k_long = size_long / (ext.x if long_x else ext.y)
+    k_short = size_short / (ext.y if long_x else ext.x)
+    root.scale = (k_long, k_short, k_long) if long_x else (k_short, k_long, k_long)
+    root.rotation_euler = (0, 0, math.atan2(long_along.y, long_along.x))
+    height = ext.z * k_long
+    root.location = (centre.x, centre.y, rim_h - CUT * height)
+    root.parent = stage
+    return root, height
+
+
+def split_lid(root):
+    """Cut a pod into its tub and lid at CUT of its height. Returns the lid objects."""
+    import bmesh
+    lids = []
+    for name in root["meshes"]:
+        tub = bpy.data.objects[name]
+        lid = tub.copy()
+        lid.data = tub.data.copy()
+        bpy.context.scene.collection.objects.link(lid)
+        zs = [v.co.z for v in tub.data.vertices]
+        cut = min(zs) + (max(zs) - min(zs)) * CUT
+        for ob, clear_outer in ((tub, True), (lid, False)):
+            bm = bmesh.new()
+            bm.from_mesh(ob.data)
+            bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(0, 0, cut),
+                                   plane_no=(0, 0, 1), clear_outer=clear_outer, clear_inner=not clear_outer)
+            bm.to_mesh(ob.data)
+            bm.free()
+        lids.append(lid)
+    return lids
+
+
+def crash_site():
+    """The wreck, the deck plate, the pods and the commander keyed with the pod exit. Returns the
+    pieces the shots need (all positions in the world)."""
+    sc = bpy.context.scene
+    lib.place("halcyon_wreck_site", exact=True, name="wreck")
+    cmd = lib.place("unit.player", at=(0, 0, 0), height=1.8, name="commander")
+    lib.still(cmd)
+    P = pod_exit.perform(cmd, pre=PRE)
+    for o in P["walls"] + [P["deck"], P["sand"]]:
+        bpy.data.objects.remove(o)
+    TL, N, starts = P["TL"], P["N"], P["starts"]
+    ax, lat, WT, RIM = P["ax"], P["lat"], P["WALL_T"], P["RIM_H"]
+    a0, a1 = P["back"] - WT, P["front"] + WT          # the tub's outside, along the step
+    l0, l1 = P["lat0"] - WT, P["lat1"] + WT           # and across it
+    centre = ax * ((a0 + a1) / 2) + lat * ((l0 + l1) / 2)
+    width, length = a1 - a0, l1 - l0
+    # turn the motion's frame onto the plain: the whole walk heads WALK, the pod sits at POD_AT
+    travel = TL[-1][3] - TL[0][3]
+    yaw = math.radians(WALK) - math.atan2(travel.y, travel.x)
+    stage = bpy.data.objects.new("stage", None)
+    sc.collection.objects.link(stage)
+    stage.rotation_euler = (0, 0, yaw)
+    c_w = Matrix.Rotation(yaw, 3, "Z") @ Vector((centre.x, centre.y, 0))
+    stage.location = (POD_AT.x - c_w.x, POD_AT.y - c_w.y, P["DROP_H"])
+    cmd.parent = stage
+    bpy.context.view_layer.update()
+    W = lambda v: stage.matrix_world @ Vector(v)
+    Wd = lambda v: (stage.matrix_world.to_3x3() @ Vector(v)).normalized()
+
+    # the commander's pod (cut open, lid on a hinge along its back rim) and four sealed ones beside it
+    long_axis = lat if length >= width else ax
+    pod, pod_h = model_pod("pod", stage, centre, long_axis, max(width, length), min(width, length), RIM)
+    lids = split_lid(pod)
+    hinge = bpy.data.objects.new("hinge", None)
+    sc.collection.objects.link(hinge)
+    hinge.parent = stage
+    hinge.location = ax * a0 + lat * ((l0 + l1) / 2) + Vector((0, 0, RIM))
+    bpy.context.view_layer.update()
+    for lid in lids:
+        mw = lid.matrix_world.copy()
+        lid.parent = hinge
+        lid.matrix_world = mw
+    # the lid swings back over the hull side: about the hinge line, whichever way lifts its far edge back
+    probe = ax * (width / 2) + Vector((0, 0, 0.2))
+    turn = 1 if (Matrix.Rotation(math.radians(110), 3, lat) @ probe).dot(ax) < 0 else -1
+    axis_i = 0 if abs(lat.x) > 0.5 else 1
+    lid_sign = turn * (1 if (lat.x if axis_i == 0 else lat.y) > 0 else -1)
+
+    def lid_at(deg):
+        e = [0.0, 0.0, 0.0]
+        e[axis_i] = math.radians(deg) * lid_sign
+        return tuple(e)
+    hinge.rotation_euler = lid_at(0)
+    bpy.ops.mesh.primitive_cube_add(size=1)
+    pad = bpy.context.object
+    pad.parent = stage
+    pad.location = centre + Vector((0, 0, 0.0015))
+    pad.rotation_euler = (0, 0, math.atan2(long_axis.y, long_axis.x))
+    pad.scale = (max(width, length) - 2.2 * WT, min(width, length) - 2.2 * WT, 0.003)
+    pad.data.materials.append(lib.mat("padding", "#2b2f33", rough=0.8))
+    # sealed pods: one alongside (end to end) toward the hull break, three in the row behind
+    s_lat = 1 if Wd(lat).x > 0 else -1
+    step_a, step_l = width + 0.45, length + 0.5
+    sealed = [centre + lat * (s_lat * step_l)] + [centre - ax * step_a + lat * (s_lat * j * step_l) for j in (0, 1, 2)]
+    for i, c in enumerate(sealed):
+        model_pod(f"bay{5 + i}", stage, c, long_axis, max(width, length), min(width, length), RIM)
+
+    # the deck plate: from behind the pods to the takeoff edge, wide enough for everything on it
+    u = P["jump_dir"].copy(); u.z = 0; u.normalize()
+    v = Vector((-u.y, u.x, 0))
+    pts = [r[3] for r in TL[:starts[3]]]
+    for c in [centre] + sealed:
+        for sa in (-1, 1):
+            for sl in (-1, 1):
+                pts.append(c + ax * (sa * width / 2) + lat * (sl * length / 2))
+    us, vs = [p.dot(u) for p in pts], [p.dot(v) for p in pts]
+    u0, u1 = min(us) - 1.4, P["edge_d"]
+    v0, v1 = min(vs) - 1.6, max(vs) + 1.6
+    D = P["DROP_H"]
+    bpy.ops.mesh.primitive_cube_add(size=1)
+    deck = bpy.context.object
+    deck.name = "deck"
+    deck.parent = stage
+    deck.location = u * ((u0 + u1) / 2) + v * ((v0 + v1) / 2) + Vector((0, 0, -D / 2))
+    deck.rotation_euler = (0, 0, math.atan2(u.y, u.x))
+    deck.scale = (u1 - u0, v1 - v0, D)
+    deck.data.materials.append(panel_steel())
+    bpy.ops.mesh.primitive_cube_add(size=1)
+    stripe = bpy.context.object
+    stripe.parent = stage
+    stripe.location = u * (u1 - 0.09) + v * ((v0 + v1) / 2) + Vector((0, 0, 0.001))
+    stripe.rotation_euler = deck.rotation_euler
+    stripe.scale = (0.12, v1 - v0, 0.004)
+    stripe.data.materials.append(lib.mat("hazard", "#c8a23a", rough=0.6))
+    bpy.context.view_layer.update()
+
+    end = W(TL[-1][3]); end.z = 0
+    edge_mid = W(u * u1 + v * ((v0 + v1) / 2)); edge_mid.z = 0
+    U, V = Wd(u), Wd(v)
+    for dv, yaw_s in ((-0.45, 20), (0.42, -35)):  # debris at the foot of the plate, clear of the landing
+        p = edge_mid + U * 1.2 + V * ((v1 - v0) * dv)
+        lib.place("decor.ship_scrap", at=(p.x, p.y, 0), yaw=yaw_s, size=1.6)
+    lib.rocks(n=160, x=(-6, 26), y=(-21, -9), size=(0.04, 0.22), seed=17)
+    for o in bpy.data.objects:  # no stone under the landing or the look-around
+        if o.name.startswith("rock") and (Vector((o.location.x, o.location.y, 0)) - end).length < 1.6:
+            o.hide_render = True
+    pelvis = [W(TL[min(N - 1, max(0, f - 1 - PRE))][3]) for f in range(1, N + PRE + 1)]
+    return dict(P=P, cmd=cmd, stage=stage, W=W, Wd=Wd, hinge=hinge, lid_at=lid_at, rim=RIM, pod=W(centre),
+                end=end, U=U, ax=Wd(ax), lat=Wd(lat), pelvis=pelvis, starts=starts, N=N)
+
+
+def follower(pelvis, k=12, name="follow"):
+    """An empty on the commander's pelvis, smoothed over 2k+1 frames, for cameras to track."""
+    e = bpy.data.objects.new(name, None)
+    bpy.context.scene.collection.objects.link(e)
+    n = len(pelvis)
+    for f in range(n):
+        ps = pelvis[max(0, f - k):min(n, f + k + 1)]
+        e.location = sum(ps, Vector()) / len(ps)
+        e.keyframe_insert("location", frame=f + 1)
+    return e
+
+
+# ---------------------------------------------------------------- 3 establishing
+def shot3():
+    dawn()
+    S = crash_site()
+    for n in S["cmd"]["meshes"]:  # still sealed in the pod
+        bpy.data.objects[n].hide_render = True
+    lib.point((12, -1.5, 3.2), "#ff3424", 4000, radius=0.6, name="emergency")
+    lib.dust(n=260, x=(-20, 40), y=(-45, -10), z=(0, 6), loop=60, wind=(6, 1, 0.2), seed=41, color="#c9b393")
+    cam = lib.camera((48, -52, 9), (12, -2, 3), lens=30)
+    key(cam, "location", [(106, Vector((48, -52, 9))), (165, Vector((33, -33, 6.5)))])
+
+
+# ---------------------------------------------------------------- 4 the pod, the walk, the drop
+def shot4():
+    """The pod sequence in its own frame numbers (1 .. PRE + N); EDIT says which camera holds which
+    frames. Returns the edit: [(camera, first frame, last frame)]."""
+    sc = bpy.context.scene
+    dawn()
+    S = crash_site()
+    N, st, pel = S["N"], S["starts"], S["pelvis"]
+    F = lambda row: row + 1 + PRE  # scene frame of a motion row
+    pod, rim = S["pod"], S["rim"]
+    red = lib.point((10.5, -1.2, 3.6), "#ff3424", 0, radius=0.3, name="emergency")
+    for f in range(1, N + PRE + 1, 2):
+        red.data.energy = 900 + 700 * math.sin(f / 30 * 6.283)
+        red.data.keyframe_insert("energy", frame=f)
+    # the seal blows: a cold flash, steam, the lid swings back on its hinge
+    seal = lib.point((pod.x, pod.y, pod.z + rim + 0.4), "#cfe6ff", 0, radius=0.5, name="seal")
+    key(seal.data, "energy", [(4, 0), (6, 2600), (30, 250), (90, 0)])
+    key(S["hinge"], "rotation_euler", [(7, S["lid_at"](0)), (11, S["lid_at"](8)), (30, S["lid_at"](112))])
+    for i, (dx, dy, r) in enumerate(((0, 0.3, 0.6), (-0.3, -0.5, 0.5), (0.25, 0.8, 0.55), (0, -0.2, 0.75))):
+        s, d = blob(pod + S["lat"] * dy + S["ax"] * dx + Vector((0, 0, rim + 0.25)), 1, "#e8eef2", 0.0, f"steam{i}")
+        key(s, "scale", [(6 + i * 2, Vector((r, r, r * 0.7))), (50, Vector((r * 2.6, r * 2.6, r * 2.8)))])
+        for f, val in ((5 + i * 2, 0.0), (8 + i * 2, 1.9), (35, 0.4), (70, 0.0)):
+            d.default_value = val
+            d.keyframe_insert("default_value", frame=f)
+    # the landing: a puff of dust where the feet hit the sand
+    drop_rows = range(st[3], st[4])
+    r_land = min(drop_rows, key=lambda r: pel[F(r) - 1].z)
+    end = S["end"]
+    land, dd = blob(end + Vector((0, 0, 0.15)), 1, "#c9b089", 0.0, "landing")
+    key(land, "scale", [(F(r_land) - 4, Vector((0.4, 0.4, 0.15))), (F(r_land) + 16, Vector((2.4, 2.4, 0.6)))])
+    for f, val in ((F(r_land) - 5, 0.0), (F(r_land) - 3, 0.8), (F(r_land) + 16, 0.0)):
+        dd.default_value = val
+        dd.keyframe_insert("default_value", frame=f)
+    # level 1's start: the dark reactor off to the commander's left, a trail of ore toward it; they
+    # stay out of the earlier cuts (the limp camera stands where they are) and appear with the drop
+    props = [lib.place("sink.core.l1", at=tuple(end + Vector((-3.3, -2.4, 0))), size=4.5, name="reactor")]
+    for i, off in enumerate(((-0.9, -0.6), (-1.6, -1.1), (-2.2, -1.6))):
+        props.append(lib.place("node.material_source", at=tuple(end + Vector((off[0], off[1], 0))), yaw=30 * i, size=0.9))
+    for o in [o for p in props for o in p.children_recursive]:
+        for f, hide in ((1, True), (F(st[3]), False)):
+            o.hide_render = hide
+            o.keyframe_insert("hide_render", frame=f)
+
+    follow = follower(pel)
+    A, L = S["ax"], S["lat"]
+    lat_out = L if L.y < 0 else -L  # the side of the pod away from the hull
+    deck_z = pod.z
+
+    def tracked(name, at, lens, target=follow, dof=False):
+        cam = lib.camera(at, pel[0], lens=lens, name=name)
+        tt = cam.constraints.new("TRACK_TO")
+        tt.target, tt.track_axis, tt.up_axis = target, "TRACK_NEGATIVE_Z", "UP_Y"
+        if dof:
+            cam.data.dof.use_dof = True
+            cam.data.dof.focus_object = target
+            cam.data.dof.aperture_fstop = 2.8
+        return cam
+    # 1 close on the pod, from its open side: the seal, the lid, sitting up
+    c1 = tracked("podcam", pod + A * 2.4 + lat_out * 1.3 + Vector((0, 0, 1.45)), 32, dof=True)
+    # 2 low in front: standing, the step over the rim, the first limping steps toward camera
+    c2 = tracked("standcam", pod + A * 4.6 + lat_out * 1.6 + Vector((0, 0, 0.75)), 30)
+    # 3 alongside the limp, riding with it
+    walk = pel[F(st[3]) - 1] - pel[F(st[2]) - 1]; walk.z = 0
+    side = walk.cross(Vector((0, 0, 1))).normalized()
+    if side.y > 0: side = -side
+    c3 = tracked("limpcam", Vector(), 30)
+    c3.parent = follow
+    c3.location = side * 3.6 + walk.normalized() * 1.6 + Vector((0, 0, 0.5))
+    # 4 down on the sand, the drop toward camera, then the crane out to the game view
+    U = S["U"]
+    start = end + U * 4.2 + Vector((-U.y, U.x, 0)) * 2.0 + Vector((0, 0, 0.6))
+    c4 = tracked("dropcam", start, 30)
+    f_crane0 = F(st[4]) + 10
+    crane = crane_path(start, end + Vector((0, 0, 0.9)), f_crane0, N + PRE)
+    key(c4, "location", [(F(st[3]), start), (f_crane0, start)] + [(f, p) for f, p, _ in crane], "LINEAR")
+    key(c4.data, "lens", [(F(st[3]), 30), (f_crane0, 30)] + [(f, l) for f, _, l in crane], "LINEAR")
+    # the crane ends on a fixed point (the hand-off), so the last frames track a still target
+    aim = bpy.data.objects.new("aim", None)
+    sc.collection.objects.link(aim)
+    aim.parent = follow
+    key(aim, "location", [(f_crane0, Vector((0, 0, 0)))])
+    tt = c4.constraints["Track To"]
+    tt.target = aim
+    hand = end + Vector((0, 0, 0.9))
+    for f in range(f_crane0, N + PRE + 1):  # ease the aim from the commander onto the hand-off point
+        t = (f - f_crane0) / max(1, N + PRE - f_crane0)
+        sc.frame_set(f)
+        aim.location = (hand - follow.location) * (t * t * (3 - 2 * t))
+        aim.keyframe_insert("location", frame=f)
+    shake(c4, F(r_land), F(r_land) + 8, 0.04, seed=9)
+    sc.render.motion_blur_shutter = 0.3
+    edit = [(c1, 1, F(130)), (c2, F(130) + 1, F(st[2]) + 34), (c3, F(st[2]) + 35, F(st[3]) - 1), (c4, F(st[3]), N + PRE)]
+    for cam, f0, _ in edit:
+        m = sc.timeline_markers.new(cam.name, frame=f0)
+        m.camera = cam
+    return edit
 
 
 def dawn():
@@ -199,198 +476,8 @@ def panel_steel(name="deckplate"):
     return m
 
 
-def open_pod(root):
-    """Cut a pod model into a tub and a lid at CUT of its height; the lid hangs on a hinge along its
-    -X rim (the side away from the camera). Returns the hinge (rotate it about Y, negative, to
-    open), the rim height and the pod's bounds, all before the pod is turned (long axis Y)."""
-    import bmesh
-    for name in root["meshes"]:
-        tub = bpy.data.objects[name]
-        lid = tub.copy()
-        lid.data = tub.data.copy()
-        bpy.context.scene.collection.objects.link(lid)
-        zs = [v.co.z for v in tub.data.vertices]
-        cut = min(zs) + (max(zs) - min(zs)) * CUT
-        for ob, clear_outer in ((tub, True), (lid, False)):
-            bm = bmesh.new()
-            bm.from_mesh(ob.data)
-            bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(0, 0, cut),
-                                   plane_no=(0, 0, 1), clear_outer=clear_outer, clear_inner=not clear_outer)
-            bm.to_mesh(ob.data)
-            bm.free()
-    bpy.context.view_layer.update()
-    lo, hi = Vector((1e9,) * 3), Vector((-1e9,) * 3)
-    for o in root.children_recursive:
-        if o.type == "MESH":
-            for c in o.bound_box:
-                w = o.matrix_world @ Vector(c)
-                lo = Vector(map(min, lo, w)); hi = Vector(map(max, hi, w))
-    rim_z = lo.z + (hi.z - lo.z) * CUT
-    hinge = bpy.data.objects.new("hinge", None)
-    bpy.context.scene.collection.objects.link(hinge)
-    hinge.location = (lo.x, (lo.y + hi.y) / 2, rim_z)
-    bpy.context.view_layer.update()
-    lid.parent = hinge
-    lid.matrix_parent_inverse = hinge.matrix_world.inverted()
-    # dark padding inside the tub so the hollow shell reads as a bed
-    bpy.ops.mesh.primitive_cube_add(size=1, location=((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, lo.z + 0.2))
-    pad = bpy.context.object
-    pad.scale = ((hi.x - lo.x) * 0.72, (hi.y - lo.y) * 0.86, 0.22)
-    pad.data.materials.append(lib.mat("padding", "#2b2f33", rough=0.8))
-    # turn the whole pod (tub, lid hinge, padding) about its centre: knocked askew in the crash
-    rig = bpy.data.objects.new("podrig", None)
-    bpy.context.scene.collection.objects.link(rig)
-    rig.location = POD
-    bpy.context.view_layer.update()
-    for o in (root, hinge, pad):
-        o.parent = rig
-        o.matrix_parent_inverse = rig.matrix_world.inverted()
-    rig.rotation_euler = (0, 0, math.radians(POD_YAW))
-    return hinge, rim_z, lo, hi
 
-
-def turned(v):
-    """A point given in the pod's unturned frame, in the world (the pod turns POD_YAW about POD)."""
-    from mathutils import Matrix
-    return POD + Matrix.Rotation(math.radians(POD_YAW), 3, "Z") @ (Vector(v) - POD)
-
-
-def crash_site(open_lid=False):
-    """The wreck, the torn deck section and the pods. Returns the commander's pod hinge and rim."""
-    lib.place("halcyon_wreck_site", exact=True, name="wreck")
-    # the torn deck: a hull section resting on the sand, spilling out of the break
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(11.8, -3.7, DECK_Z / 2))
-    deck = bpy.context.object
-    deck.name = "deck"
-    deck.scale = (10.2, 5.0, DECK_Z)
-    deck.rotation_euler = (math.radians(1.5), math.radians(-2), 0)
-    deck.data.materials.append(panel_steel())
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(11.8, -6.22, DECK_Z - 0.02))
-    stripe = bpy.context.object
-    stripe.scale = (10.2, 0.12, 0.05)
-    stripe.data.materials.append(lib.mat("hazard", "#c8a23a", rough=0.6))
-    for x, yaw in ((10.4, 20), (13.6, -35), (16.4, 70)):  # debris at the foot of the section
-        lib.place("decor.ship_scrap", at=(x, -7.0, 0), yaw=yaw, size=1.8)
-    lib.rocks(n=160, x=(-6, 26), y=(-16, -6.5), size=(0.04, 0.3), seed=17)
-    for x in PODS_X:
-        lib.place("capture.recruit_container", at=(x, POD_Y, DECK_Z), yaw=90, size=2.4)
-    pod = lib.place("capture.recruit_container", at=tuple(POD), yaw=90, size=2.4, name="pod")
-    hinge, rim_z, lo, hi = open_pod(pod)
-    if open_lid:
-        hinge.rotation_euler = (0, math.radians(-112), 0)
-    return hinge, rim_z, lo, hi
-
-
-def hip_height(root):
-    arm = bpy.data.objects[root["armature"]]
-    bpy.context.view_layer.update()
-    return (arm.matrix_world @ arm.data.bones["mixamorig:Hips"].head_local).z - root.location.z
-
-
-def pivoted(root, at):
-    """Hang a character from an empty at its hips, so whole-body turns pivot about the pelvis."""
-    hz = hip_height(root)
-    pivot = bpy.data.objects.new("pivot", None)
-    bpy.context.scene.collection.objects.link(pivot)
-    pivot.location = at
-    root.parent = pivot
-    root.matrix_parent_inverse.identity()
-    root.location = (0, 0, -hz)
-    root.rotation_euler = (0, 0, 0)
-    return pivot, hz
-
-
-# ---------------------------------------------------------------- 3 establishing
-def shot3():
-    dawn()
-    crash_site()
-    # the emergency light still glowing red in the break
-    lib.point((12, -1.5, 3.2), "#ff3424", 4000, radius=0.6, name="emergency")
-    lib.dust(n=260, x=(-20, 40), y=(-45, -10), z=(0, 6), loop=60, wind=(6, 1, 0.2), seed=41, color="#c9b393")
-    cam = lib.camera((48, -52, 9), (12, -2, 3), lens=30)
-    key(cam, "location", [(106, Vector((48, -52, 9))), (165, Vector((33, -33, 6.5)))])
-
-
-# ---------------------------------------------------------------- 4 pod
-def shot4():
-    sc = bpy.context.scene
-    dawn()
-    hinge, rim_z, lo, hi = crash_site()
-    lib.point((10.5, -1.2, 3.6), "#ff3424", 0, radius=0.3, name="emergency")
-    red = bpy.data.objects["emergency"]
-    for f in range(166, 301):
-        red.data.energy = 900 + 700 * math.sin((f - 166) / 30 * 6.283)
-        red.data.keyframe_insert("energy", frame=f)
-    # the seal blows: a cold flash, steam, the lid swings over on its hinge
-    seal = lib.point((POD.x, POD.y, rim_z + 0.4), "#cfe6ff", 0, radius=0.5, name="seal")
-    key(seal.data, "energy", [(171, 0), (173, 2600), (195, 250), (300, 120)])
-    key(hinge, "rotation_euler", [(174, (0, 0, 0)), (178, (0, math.radians(-8), 0)), (196, (0, math.radians(-112), 0))])
-    for i, (dx, dy, r) in enumerate(((0, 0.3, 0.6), (-0.3, -0.5, 0.5), (0.25, 0.8, 0.55), (0, -0.2, 0.75))):
-        s, d = blob((POD.x + dx, POD.y + dy, rim_z + 0.25), 1, "#e8eef2", 0.0, f"steam{i}")
-        key(s, "scale", [(173 + i * 2, Vector((r, r, r * 0.7))), (215, Vector((r * 2.6, r * 2.6, r * 2.8)))])
-        for f, v in ((172 + i * 2, 0.0), (175 + i * 2, 1.9), (200, 0.4), (230, 0.0)):
-            d.default_value = v
-            d.keyframe_insert("default_value", frame=f)
-
-    # the commander: lying in the pod on their back (head toward the hull), sits up, swings their
-    # legs over the near rim, slides off, staggers to the deck edge and looks out over the plain
-    cmd = lib.place("unit.player", at=(0, 0, 0), yaw=0, height=1.8, name="commander")
-    lib.still(cmd)
-    pivot, hz = pivoted(cmd, (POD.x, POD.y - 0.15, lo.z + 0.27))
-    arms_down = {"LeftArm": (0, 0, -32), "RightArm": (0, 0, 32)}
-    lying = {**arms_down, "Neck": (-8, 0, 0)}
-    rising = {"LeftUpLeg": (-60, 0, 0), "RightUpLeg": (-60, 0, 0), "Spine": (18, 0, 0), "Spine1": (10, 0, 0),
-              "LeftArm": (-25, 0, -40), "RightArm": (-25, 0, 40), "LeftForeArm": (0, 0, -40), "RightForeArm": (0, 0, 40)}
-    sitting = {"LeftUpLeg": (-88, 0, 0), "RightUpLeg": (-88, 0, 0), "Spine": (6, 0, 0), "Neck": (10, 0, 0),
-               "LeftArm": (10, 0, -35), "RightArm": (10, 0, 35)}
-    dazed = {**sitting, "Neck": (14, 12, 0), "Head": (6, 10, 0)}
-    on_rim = {"LeftUpLeg": (-85, 0, 0), "RightUpLeg": (-80, 0, 0), "LeftLeg": (95, 0, 0), "RightLeg": (88, 0, 0),
-              "Spine": (12, 0, 0), "LeftArm": (-35, 0, -20), "RightArm": (-35, 0, 20), "LeftForeArm": (0, 0, -25), "RightForeArm": (0, 0, 25)}
-    sliding = {"LeftUpLeg": (-40, 0, 0), "RightUpLeg": (-30, 0, 0), "LeftLeg": (45, 0, 0), "RightLeg": (35, 0, 0),
-               "Spine": (22, 0, 0), "LeftArm": (-30, 0, -30), "RightArm": (-30, 0, 30)}
-    crouch = {"LeftUpLeg": (-35, 0, 0), "RightUpLeg": (-30, 0, 0), "LeftLeg": (50, 0, 0), "RightLeg": (45, 0, 0),
-              "Spine": (24, 0, 0), "LeftArm": (15, 0, -40), "RightArm": (15, 0, 40)}
-    stepL = {"LeftUpLeg": (-32, 0, 0), "LeftLeg": (22, 0, 0), "RightUpLeg": (14, 0, 0), "RightLeg": (18, 0, 0),
-             "Spine": (14, 0, 0), "LeftArm": (-18, 0, -40), "RightArm": (22, 0, 40)}
-    stepR = {"RightUpLeg": (-32, 0, 0), "RightLeg": (22, 0, 0), "LeftUpLeg": (14, 0, 0), "LeftLeg": (18, 0, 0),
-             "Spine": (10, 0, 0), "LeftArm": (22, 0, -40), "RightArm": (-18, 0, 40)}
-    stand = {**lib.STAND, "Spine": (4, 0, 0)}
-    look = {**stand, "Neck": (0, 18, 0), "Head": (-4, 16, 0)}
-    poses = [(166, lying), (200, lying), (212, rising), (224, sitting), (232, dazed), (240, sitting), (252, on_rim),
-             (258, on_rim), (266, sliding), (272, crouch), (280, stepL), (287, stepR), (293, stand), (300, look)]
-    for f, p in poses:
-        lib.pose(cmd, p, frame=f)
-    # positions in the pod's unturned frame (long axis Y, head end +Y; they climb out over its +X
-    # side, the side facing the camera), then turned into the world
-    sit_hips = turned((POD.x, POD.y - 0.15, lo.z + 0.27))
-    rim = turned((hi.x + 0.05, POD.y - 0.2, rim_z + 0.12))
-    off = turned((hi.x + 0.5, POD.y - 0.3, DECK_Z + hz * 0.78))
-    off.z = DECK_Z + hz * 0.78
-    step1 = Vector(((off.x + EDGE.x) / 2 + 0.05, (off.y + EDGE.y) / 2, DECK_Z + hz * 0.96))
-    key(pivot, "location", [(166, sit_hips), (224, sit_hips + Vector((0, 0, 0.12))), (240, sit_hips + Vector((0, 0, 0.12))),
-                            (252, rim), (258, rim), (268, off), (272, off), (282, step1),
-                            (293, EDGE + Vector((0, 0, hz))), (300, EDGE + Vector((0, 0, hz)))])
-    # euler XYZ: X tips the body back to lying (face up, head along the pod); Z turns it with the pod,
-    # then a further +90 to face out over the +X rim, then square to the plain (0 faces -Y)
-    yaw = math.radians(POD_YAW)
-    key(pivot, "rotation_euler", [(166, (math.radians(-90), 0, yaw)), (200, (math.radians(-90), 0, yaw)),
-                                  (224, (0, 0, yaw)), (240, (0, 0, yaw)), (252, (0, 0, yaw + math.radians(90))),
-                                  (268, (0, 0, yaw + math.radians(90))), (285, (0, 0, math.radians(8))), (300, (0, 0, 0))])
-    # camera: in front of the pod's open side, the other pods and the break behind; it eases in
-    aim = bpy.data.objects.new("aim", None)
-    sc.collection.objects.link(aim)
-    key(aim, "location", [(166, Vector((POD.x, POD.y, rim_z + 0.1))), (224, sit_hips + Vector((0, 0, 0.5))),
-                          (258, rim + Vector((0, 0, 0.4))), (293, EDGE + Vector((0, 0, 1.4))), (300, EDGE + Vector((0, 0, 1.45)))])
-    cam = lib.camera((11.6, -10.0, 2.6), (POD.x, POD.y, 2.2), lens=40)
-    key(cam, "location", [(166, Vector((11.6, -10.0, 2.6))), (300, Vector((11.0, -9.3, 2.5)))])
-    tt = cam.constraints.new("TRACK_TO")
-    tt.target, tt.track_axis, tt.up_axis = aim, "TRACK_NEGATIVE_Z", "UP_Y"
-    cam.data.dof.use_dof = True
-    cam.data.dof.focus_object = aim
-    cam.data.dof.aperture_fstop = 2.8
-
-
-# ---------------------------------------------------------------- 5 drop
+# ---------------------------------------------------------------- the crane to the game view
 def crane_path(start, target, f0, f1, view_w=7.3, dist_end=95.0):
     """Per-frame (frame, position, lens) for a dolly-zoom crane from `start` to the in-game view
     of `target` (render-3d: 30° pitch, camera toward +x -y at 45°, near-orthographic). Distance
@@ -417,65 +504,41 @@ def crane_path(start, target, f0, f1, view_w=7.3, dist_end=95.0):
     return out
 
 
-def shot5():
-    sc = bpy.context.scene
-    dawn()
-    crash_site(open_lid=True)
-    # level 1's start: the dark reactor off to the commander's left, a trail of ore toward it
-    lib.place("sink.core.l1", at=(2.4, -9.2, 0), size=4.5, name="reactor")
-    for i, (x, y) in enumerate(((7.0, -8.4), (5.9, -8.8), (4.9, -9.1))):
-        lib.place("node.material_source", at=(x, y, 0), yaw=30 * i, size=0.9)
-    cmd = lib.place("unit.player", at=(0, 0, 0), yaw=0, height=1.8, name="commander")
-    lib.still(cmd)
-    pivot, hz = pivoted(cmd, EDGE)
-    crouch = {"LeftUpLeg": (-75, 0, 0), "RightUpLeg": (-70, 0, 0), "LeftLeg": (110, 0, 0), "RightLeg": (105, 0, 0),
-              "Spine": (22, 0, 0), "LeftArm": (35, 0, -40), "RightArm": (35, 0, 40)}
-    tuck = {**crouch, "LeftUpLeg": (-45, 0, 0), "RightUpLeg": (-35, 0, 0), "LeftLeg": (60, 0, 0), "RightLeg": (50, 0, 0),
-            "Spine": (10, 0, 0), "LeftArm": (10, 0, 10), "RightArm": (10, 0, -10)}
-    look = {**lib.STAND, "Neck": (0, -20, 0), "Head": (5, -25, 0)}  # toward the dark reactor
-    for f, p in ((301, lib.STAND), (304, crouch), (309, crouch), (313, tuck), (319, tuck), (322, crouch), (330, crouch),
-                 (342, lib.STAND), (375, look)):
-        lib.pose(cmd, p, frame=f)
-    dip = hz * 0.55
-    key(pivot, "location", [(301, EDGE + Vector((0, 0, hz))), (304, EDGE + Vector((0, 0, hz - dip))), (309, EDGE + Vector((0, -0.2, hz - dip))),
-                            (314, Vector((8.2, -6.8, DECK_Z + hz + 0.25))), (320, END + Vector((0, 0, hz))),
-                            (323, END + Vector((0, 0, hz - dip))), (330, END + Vector((0, 0, hz - dip))), (342, END + Vector((0, 0, hz)))])
-    key(pivot, "rotation_euler", [(301, (0, 0, 0)), (342, (0, 0, 0)), (360, (0, 0, math.radians(-30)))])
-    land, dd = blob(END + Vector((0, 0, 0.2)), 1, "#c9b089", 0.0, "landing")
-    key(land, "scale", [(320, Vector((0.4, 0.4, 0.15))), (340, Vector((2.6, 2.6, 0.7)))])
-    for f, v in ((319, 0.0), (321, 0.9), (340, 0.0)):
-        dd.default_value = v
-        dd.keyframe_insert("default_value", frame=f)
-    aim = bpy.data.objects.new("aim", None)
-    sc.collection.objects.link(aim)
-    key(aim, "location", [(301, EDGE + Vector((0, 0, 1.2))), (314, Vector((8.2, -6.8, DECK_Z + 1.2))),
-                          (322, END + Vector((0, 0, 0.9))), (375, END + Vector((0, 0, 0.9)))])
-    cam = lib.camera((3.4, -12.5, 1.3), (7.8, -5.5, 2.2), lens=30, name="shotcam")
-    start = Vector((3.6, -12.2, 1.35))
-    crane = crane_path(start, END + Vector((0, 0, 0.9)), 336, 375)
-    key(cam, "location", [(301, Vector((3.4, -12.5, 1.3))), (336, start)] + [(f, p) for f, p, _ in crane], "LINEAR")
-    key(cam.data, "lens", [(301, 30), (336, 30)] + [(f, l) for f, _, l in crane], "LINEAR")
-    tt = cam.constraints.new("TRACK_TO")
-    tt.target, tt.track_axis, tt.up_axis = aim, "TRACK_NEGATIVE_Z", "UP_Y"
-    sc.render.motion_blur_shutter = 0.3
-    shake(cam, 320, 328, 0.06, seed=9)
-
 
 def build(n):
     sc = lib.reset(*SIZE)
     if quick:
         sc.eevee.taa_render_samples = 12
     lib.bloom(threshold=1.0, size=7)
-    {1: shot1, 2: shot2, 3: shot3, 4: shot4, 5: shot5}[n]()
+    edit = {1: shot1, 2: shot2, 3: shot3, 4: shot4}[n]()
     sc.render.use_motion_blur = not quick
-    return sc
+    return sc, edit
 
 
 for n in ([only] if only else SHOTS):
+    sc, edit = build(n)
+    if n == 4:
+        if "--check" in args:  # first, middle and last frame of each cut
+            for cam, f0, f1 in edit:
+                sc.camera = cam
+                for f in (f0, (f0 + f1) // 2, f1):
+                    sc.frame_set(f)
+                    lib.render_still(os.path.join(lib.OUT, f"crash_4_{f:03d}.png"))
+            continue
+        # render the pod sequence in its own numbering, then append it to crash_open after shot 3
+        pod_dir = os.path.join(lib.OUT, "crash_pod")
+        lib.render_frames(pod_dir, 1, edit[-1][2])
+        os.makedirs(FOLDER, exist_ok=True)
+        for f in os.listdir(FOLDER):
+            if f.startswith("f_") and int(f[2:6]) >= POD_ON:
+                os.remove(os.path.join(FOLDER, f))
+        for f in range(1, edit[-1][2] + 1):
+            shutil.copy(os.path.join(pod_dir, f"f_{f:04d}.png"), os.path.join(FOLDER, f"f_{POD_ON - 1 + f:04d}.png"))
+        print("crash_open frames", POD_ON - 1 + edit[-1][2])
+        continue
     f0, f1 = SHOTS[n]
-    sc = build(n)
     if "--check" in args:  # three frames per shot
-        for f in (f0, (f0 + f1) // 2, f1) + ((200, 224, 252, 268, 287) if n == 4 else (322, 345, 360) if n == 5 else ()):
+        for f in (f0, (f0 + f1) // 2, f1):
             sc.frame_set(f)
             lib.render_still(os.path.join(lib.OUT, f"crash_{n}_{f:03d}.png"))
     else:

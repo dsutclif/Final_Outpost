@@ -1,4 +1,5 @@
 import { alpha, mix, type Skin } from "@fo/skins";
+import { TITLE_LOOP_VIDEO } from "./cinematics.js";
 
 // Animated title backdrop drawn on canvas from the skin palette: hazy sky, a low sun,
 // three parallax dune bands, a lit outpost of domes on the middle ridge, a reactor glow
@@ -8,6 +9,8 @@ interface Mote { x: number; y: number; s: number; v: number }
 
 export class TitleBackdrop {
   private canvas: HTMLCanvasElement;
+  /** The pre-rendered loop (title_loop): hidden until frames flow; the canvas is the fallback if it fails. */
+  private video: HTMLVideoElement | null = null;
   private g: CanvasRenderingContext2D | null;
   private raf = 0;
   private t0 = 0;
@@ -23,6 +26,7 @@ export class TitleBackdrop {
     this.canvas = doc.createElement("canvas");
     this.canvas.className = "title-bg";
     host.prepend(this.canvas);
+    this.makeVideo();
     this.g = this.canvas.getContext("2d");
     for (let i = 0; i < 60; i++) this.motes.push({ x: Math.random(), y: Math.random(), s: 0.5 + Math.random() * 1.8, v: 0.3 + Math.random() * 0.9 });
     for (let i = 0; i < 40; i++) this.stars.push({ x: Math.random(), y: Math.random() * 0.35, r: Math.random() * 1.1 + 0.3 });
@@ -30,8 +34,34 @@ export class TitleBackdrop {
 
   setSkin(skin: Skin): void { this.skin = skin; this.sky = null; }
 
-  /** Re-insert the canvas after the host's markup was replaced. */
-  attach(): void { if (this.canvas.parentElement !== this.host || this.host.firstChild !== this.canvas) this.host.prepend(this.canvas); }
+  private makeVideo(): void {
+    if (typeof HTMLVideoElement === "undefined") return;
+    const v = this.host.ownerDocument.createElement("video");
+    v.className = "title-video";
+    v.muted = true;
+    v.defaultMuted = true;
+    v.loop = true;
+    v.autoplay = true;
+    v.playsInline = true;
+    v.setAttribute("muted", "");
+    v.setAttribute("playsinline", "");
+    v.setAttribute("webkit-playsinline", "");
+    v.setAttribute("aria-hidden", "true");
+    v.preload = "auto";
+    v.src = TITLE_LOOP_VIDEO;
+    // visible only while frames flow; on an error or a stall the canvas shows through
+    v.addEventListener("playing", () => v.classList.add("on"));
+    v.addEventListener("waiting", () => v.classList.remove("on"));
+    v.addEventListener("error", () => { v.remove(); this.video = null; });
+    this.video = v;
+    this.canvas.after(v);
+  }
+
+  /** Re-insert the canvas (and loop video) after the host's markup was replaced. */
+  attach(): void {
+    if (this.canvas.parentElement !== this.host || this.host.firstChild !== this.canvas) this.host.prepend(this.canvas);
+    if (this.video && this.video.parentElement !== this.host) this.canvas.after(this.video);
+  }
 
   start(): void {
     if (this.raf) return;
@@ -41,9 +71,12 @@ export class TitleBackdrop {
       this.draw((now - this.t0) / 1000);
     };
     this.raf = requestAnimationFrame(loop);
+    const p = this.video?.play();
+    if (p) p.catch(() => { /* autoplay refused (low power mode): the canvas keeps showing */ });
   }
 
   stop(): void {
+    this.video?.pause();
     if (this.raf) cancelAnimationFrame(this.raf);
     this.raf = 0;
   }

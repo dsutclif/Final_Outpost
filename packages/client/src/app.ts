@@ -21,6 +21,7 @@ import { DEFAULT_PROGRESS, PROGRESS_EPOCH, type Progress, type ProgressMode, typ
 import type { TelemetryQueue } from "./telemetry.js";
 import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
+import { cinematicFor, playCinematic, type CinematicId } from "./cinematics.js";
 
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
 // and the glue between sim, renderer, input, saves, telemetry and feedback.
@@ -782,8 +783,22 @@ export class App {
     this.introStep = 0;
     this.renderIntro(t);
     this.show("intro");
+    // the level-start cinematic covers the intro card and cross-fades out into it (first play only)
+    const pre = cinematicFor(meta.id, "before", this.progress.cinematics);
+    if (pre) await this.cinematic(pre);
     void this.prefetch();
   }
+
+  /** Play a cinematic full-screen once: ended or skipped saves it as seen; an error or stall just continues. */
+  private async cinematic(id: CinematicId, force = false): Promise<void> {
+    const r = await playCinematic(this.el.app, id, { skipLabel: uiText(this.skin, "skip") });
+    if (r === "failed" || force) return;
+    this.progress.cinematics[id] = true;
+    void this.deps.store.setProgress(this.progress);
+  }
+
+  /** Dev hook: play a cinematic now whether or not it was seen, without saving it as seen. */
+  debugCinematic(id: CinematicId): Promise<void> { return this.cinematic(id, true); }
 
   /**
    * The level intro: its goals one at a time, each as a large icon with its full sentence while its
@@ -896,7 +911,16 @@ export class App {
     void this.deps.telemetry.record(this.attempt(s, won ? "win" : "lose", reason, this.progress.quits[id] ?? 0));
     // let the confetti land before the card covers the stage
     const newBest = won && prevBest !== undefined && ticks < prevBest;
-    this.resultTimer = setTimeout(() => { this.renderResult(won, reason, ticks, newBest, stars); this.show("result"); }, won ? 1500 : 1000);
+    const post = won ? cinematicFor(id, "afterWin", this.progress.cinematics) : null;
+    this.resultTimer = setTimeout(() => {
+      this.resultTimer = null;
+      void (async () => {
+        if (post) await this.cinematic(post);
+        if (this.session !== s) return;
+        this.renderResult(won, reason, ticks, newBest, stars);
+        this.show("result");
+      })();
+    }, won ? 1500 : 1000);
     if (won) void this.prefetch();
   }
 

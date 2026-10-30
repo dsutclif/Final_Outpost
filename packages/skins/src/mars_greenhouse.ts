@@ -504,6 +504,7 @@ export const marsGreenhouse: Skin = {
       restartAsk: "Restart?",
       introNext: "Tap for the next",
       introPlay: "Tap to play",
+      skip: "Skip",
       tabSettings: "Settings",
       tabGuide: "Field guide",
       guideEmpty: "Use things in a mission to add them here.",

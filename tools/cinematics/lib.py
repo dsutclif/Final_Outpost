@@ -37,7 +37,7 @@ def reset(w=1080, h=1920, fps=30):
     sc.eevee.taa_render_samples = 48
     for attr, val in (("use_shadows", True), ("use_raytracing", True), ("volumetric_end", 600.0),
                       ("volumetric_tile_size", "4"), ("use_gtao", True), ("use_volumetric_shadows", False),
-                      ("shadow_pool_size", "1536")):
+                      ("shadow_pool_size", "1024")):
         if hasattr(sc.eevee, attr):
             try: setattr(sc.eevee, attr, val)
             except Exception: pass

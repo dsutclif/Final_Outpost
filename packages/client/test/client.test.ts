@@ -151,7 +151,7 @@ describe("level text, HUD model and level sources", () => {
 describe("saves and feedback", () => {
   it("migrates from nothing and keeps new setting defaults", async () => {
     const s = new MemoryStore();
-    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {}, epoch: PROGRESS_EPOCH });
+    expect(await s.getProgress()).toEqual({ cleared: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {}, cinematics: {}, epoch: PROGRESS_EPOCH });
     expect((await s.getSettings()).haptics).toBe(true);
     expect(mergeSettings({ sound: false }).sound).toBe(false);
     expect("renderer" in mergeSettings({ sound: false, renderer: "2d", rendererChosen: true })).toBe(false);
