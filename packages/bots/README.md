@@ -191,7 +191,7 @@ Barrier sections are ordered attack-facing first (from the waves' sides).
 | `fillCore` | fuel_full | Keep topping the core up |
 | `serveFirst` | no angry customers, streak | Serve (79 when someone is half out of patience) and stock wanted goods before other work |
 | `holdShelf` | shelves_full | Stock from the far side of the shelf, out of the clerk pad's reach; no cashier until after the goal |
-| `noOverload` | no_stockpile_overload | Stop stocking at the shelf cap; fetch converter output before it caps |
+| `noOverload` | no_stockpile_overload, or any level with a converter while stock collapse is on | Stop stocking at the shelf cap; fetch converter output before it caps |
 | `handsOff` | automate | Once every plan step is done and the economy runs itself, deposit nothing (fuel emergencies aside) |
 | `collect` | salvage goals | Pick up salvage drops even when nothing needs them |
 | `hunt` | hunt, protein | Hunt for its own sake |

@@ -5,6 +5,7 @@ import type { ObjectiveState, State } from "../state.js";
 import { inBase, population } from "./common.js";
 import { converterRunnable, operated } from "./converters.js";
 import { coreFuelCap } from "./core.js";
+import { objectiveDead } from "./deadends.js";
 import { wavesDone } from "./defense.js";
 
 // Objectives are a registry like the old goal predicates: each kind turns state and stats into
@@ -180,6 +181,8 @@ function evaluate(st: State, cp: Compiled, def: CompiledObjective, o: ObjectiveS
   }
   const done = kind({ st, cp, p: def.params, o, main });
   if (done && !o.failed) { o.done = true; o.doneTick = st.tick; }
+  // R5 #21: a star out of reach is lost now; the main goal stays open, because the player decides (mainGoalDead).
+  else if (o !== main && objectiveDead(st, cp, def.kind, def.params, o)) o.failed = true;
   if (o.done || o.failed) out.push({ t: "objective", id: o.id, kind: o.kind, done: o.done, failed: o.failed });
 }
 
@@ -205,4 +208,5 @@ export const objectiveSettled = (cp: Compiled, o: ObjectiveState, i: number): bo
   o.done || o.failed || (cp.content.objectives[cp.objectives[i]!.kind]?.guard ?? false);
 
 /** Stars earned: objectives done (meaningful once the level is over). */
-export const starsOf = (st: State): number => st.objectives.filter((o) => o.done).length;
+/** A lost level earns none, whatever was done before it fell. */
+export const starsOf = (st: State): number => (st.won === false ? 0 : st.objectives.filter((o) => o.done).length);

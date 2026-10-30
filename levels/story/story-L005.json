@@ -1,8 +1,8 @@
 {
  "id": "story-L005",
  "seed": 1005,
- "engineVersion": "0.15.0",
- "contentVersion": "0.15.0",
+ "engineVersion": "0.16.0",
+ "contentVersion": "0.16.0",
  "map": {
   "w": 1200,
   "h": 1620,
@@ -338,6 +338,20 @@
    },
    "repeatable": true,
    "manual": true
+  },
+  {
+   "type": "pad.hire",
+   "id": "medic_hire",
+   "at": [
+    390,
+    985
+   ],
+   "cost": {
+    "res.salvage": 4
+   },
+   "role": {
+    "role": "role.medic"
+   }
   }
  ],
  "people": [
@@ -364,7 +378,7 @@
   {
    "t": 15,
    "counts": {
-    "hostile.raider_humanoid": 3
+    "hostile.raider_humanoid": 4
    },
    "side": "w",
    "gap": 1.6
@@ -372,8 +386,8 @@
   {
    "t": 60,
    "counts": {
-    "hostile.swarmling": 16,
-    "hostile.raider_humanoid": 4
+    "hostile.swarmling": 21,
+    "hostile.raider_humanoid": 7
    },
    "side": "w",
    "gap": 0.7

@@ -1,8 +1,8 @@
 {
   "id": "s1-L037",
   "seed": 787545886,
-  "engineVersion": "0.14.0",
-  "contentVersion": "0.14.0",
+  "engineVersion": "0.15.0",
+  "contentVersion": "0.15.0",
   "map": {
     "w": 1200,
     "h": 1620,
@@ -39,7 +39,7 @@
         860
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -67,8 +67,8 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        496,
-        859
+        563,
+        776
       ]
     },
     {
@@ -81,15 +81,15 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        524,
-        779
+        492,
+        872
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        496,
-        894
+        491,
+        841
       ]
     },
     {
@@ -102,15 +102,22 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        471,
-        826
+        534,
+        779
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        474,
-        782
+        489,
+        903
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        497,
+        768
       ]
     },
     {
@@ -497,6 +504,20 @@
       },
       "build": "struct.barracks.t2",
       "target": "barracks"
+    },
+    {
+      "type": "pad.hire",
+      "id": "medic_hire",
+      "at": [
+        810,
+        1030
+      ],
+      "cost": {
+        "res.salvage": 4
+      },
+      "role": {
+        "role": "role.medic"
+      }
     }
   ],
   "people": [
@@ -531,49 +552,49 @@
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 26
+        "hostile.swarmling": 25
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 75,
+      "t": 72,
       "counts": {
-        "hostile.swarmling": 44,
-        "hostile.raider_humanoid": 7
+        "hostile.swarmling": 42,
+        "hostile.raider_humanoid": 6
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 130,
+      "t": 125,
       "counts": {
-        "hostile.swarmling": 117,
-        "hostile.raider_humanoid": 22
+        "hostile.swarmling": 218,
+        "hostile.raider_humanoid": 21
       },
       "side": "e",
-      "gap": 0.45
+      "gap": 0.31
     },
     {
-      "t": 185,
+      "t": 177,
       "counts": {
-        "hostile.swarmling": 170,
-        "hostile.raider_humanoid": 33
+        "hostile.swarmling": 318,
+        "hostile.raider_humanoid": 32
       },
       "side": "e",
-      "gap": 0.45
+      "gap": 0.21
     }
   ],
   "events": [],
   "params": {
     "start.currency": 7,
-    "core.burn": 2.7,
+    "core.burn": 2.6,
     "housing.base": 8,
     "lots.block": 60,
     "lots.street": 0,
     "meters.baseHealth": 10,
-    "pads.defenceGrowth": 1.08,
-    "level.budgetSeconds": 600
+    "pads.defenceGrowth": 1.01,
+    "level.budgetSeconds": 520
   },
   "goal": {
     "type": "waves"
@@ -587,9 +608,9 @@
     },
     {
       "id": "challenge2",
-      "kind": "hp_floor",
+      "kind": "hire",
       "params": {
-        "pct": 80
+        "n": 6
       }
     },
     {
@@ -612,14 +633,13 @@
     }
   },
   "rating": {
-    "difficulty": 0.268,
-    "fun": 0.454,
+    "difficulty": 0.581,
+    "fun": 0.602,
     "botMargin": 0.999,
     "botsPassed": [
       "good",
       "average",
-      "weak",
-      "novice"
+      "weak"
     ],
     "stars": {
       "good": 3,

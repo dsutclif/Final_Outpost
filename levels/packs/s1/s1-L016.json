@@ -1,8 +1,8 @@
 {
   "id": "s1-L016",
   "seed": 1235648501,
-  "engineVersion": "0.14.0",
-  "contentVersion": "0.14.0",
+  "engineVersion": "0.15.0",
+  "contentVersion": "0.15.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -78,85 +78,99 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        154,
-        538
+        230,
+        480
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        161,
-        508
+        159,
+        543
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        163,
-        479
+        191,
+        462
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        129,
-        515
+        139,
+        519
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        152,
+        157,
+        492
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        241,
         451
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        105,
-        551
+        128,
+        547
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        131,
-        478
+        214,
+        437
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        102,
-        504
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        226,
-        420
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        168,
-        419
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        105,
-        452
+        166,
+        439
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         127,
-        422
+        471
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        104,
+        503
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        231,
+        411
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        195,
+        414
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        131,
+        415
       ]
     },
     {
@@ -280,7 +294,7 @@
       "type": "event.hazard",
       "warnAt": 0,
       "start": 5,
-      "end": 27
+      "end": 51
     }
   ],
   "params": {
@@ -292,7 +306,7 @@
     "customers.spawn": 2.7,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "level.budgetSeconds": 210
+    "level.budgetSeconds": 290
   },
   "goal": {
     "type": "clear_zones",
@@ -311,14 +325,14 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 99
+        "seconds": 139
       }
     },
     {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 50
+        "pct": 45
       }
     }
   ],
@@ -335,9 +349,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.332,
-    "fun": 0.6,
-    "botMargin": 0.704,
+    "difficulty": 0.334,
+    "fun": 0.461,
+    "botMargin": 0.7,
     "botsPassed": [
       "good",
       "average",

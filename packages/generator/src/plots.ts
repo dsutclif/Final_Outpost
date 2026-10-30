@@ -16,12 +16,12 @@ export const GAME_PAD = 49;
 const OCCLUDE = 1 / Math.tan((50 * Math.PI) / 180);
 const ART_M = 28;
 
-/** Each building's plot pads: a machine's one staff slot takes its workers in order, then its upgrade. */
+/** Each building's plot pads: a machine's one staff slot takes its workers in order; its upgrade has its own slot beside it (R5 #6). */
 export const PLOT_PADS: Record<string, { pads: { id: string; side?: "L" }[]; edge: boolean }> = {
   "sink.core": { pads: [{ id: "collector", side: "L" }, { id: "upgrade" }], edge: true },
-  "conv.food_processor": { pads: [{ id: "staff" }], edge: true },
-  "conv.material_processor": { pads: [{ id: "staff" }], edge: true },
-  "conv.alloy_works": { pads: [{ id: "staff" }], edge: true },
+  "conv.food_processor": { pads: [{ id: "upgrade" }, { id: "staff" }], edge: true },
+  "conv.material_processor": { pads: [{ id: "upgrade" }, { id: "staff" }], edge: true },
+  "conv.alloy_works": { pads: [{ id: "upgrade" }, { id: "staff" }], edge: true },
   "node.food_source": { pads: [{ id: "staff" }], edge: false },
   "struct.depot": { pads: [{ id: "staff" }], edge: true },
   "struct.barracks": { pads: [{ id: "staff" }, { id: "upgrade" }], edge: false },
@@ -142,7 +142,8 @@ export function computePlots(inp: PlotInput): PlotData {
     plots[type] = { slots: slotsFor(b, def.pads, def.edge) };
     const cx = Math.round((b[0] + b[2]) / 2), front = Math.round(b[3]);
     if (type.startsWith("conv.")) {
-      // operator on the front edge; the pickup tray (0.7 of the operator plate across) wholly inside the front corner
+      // operator on the front edge; the pickup tray (0.7 of the operator plate across) at the front right end, on the
+      // front edge too, just clear of the operator plate (R5 #30b: the player stands at the edge, not inside the machine)
       const r = Math.min(0.35 * plate, (b[2] - b[0]) / 4 - 2);
       // the deposit reach (from the centre) stays the base one, not scaled with the bigger machine: a wider reach
       // swallows goods the player is only carrying past (the good bot lost its lead on golden level 3 at 50)
@@ -150,7 +151,7 @@ export function computePlots(inp: PlotInput): PlotData {
       converters[type] = {
         range: cB.range,
         operatorOffset: [cx, front],
-        pickupOffset: [Math.round(b[2] - r - 3), Math.round(Math.max(b[1] + r + 3, b[3] - plate / 2 - r - 3))],
+        pickupOffset: [Math.round(Math.max(b[2] - r - 3, cx + plate / 2 + G + r)), front],
       };
     }
     if (type === "struct.depot") depot.dropOffset = [cx, front];

@@ -1,8 +1,8 @@
 {
   "id": "s1-L045",
   "seed": 196658801,
-  "engineVersion": "0.14.0",
-  "contentVersion": "0.14.0",
+  "engineVersion": "0.15.0",
+  "contentVersion": "0.15.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -262,8 +262,8 @@
       "good": 3,
       "median": 3,
       "goodAll": 1,
-      "human": 3,
-      "humanAll": 1
+      "human": 2.5,
+      "humanAll": 0.83
     }
   }
 }

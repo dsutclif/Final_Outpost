@@ -215,7 +215,7 @@ describe("strict crew slots", () => {
     feeder: [{ owner: "grill", type: "conv.food_processor", slot: "staff", after: "grill" }],
     cook: [{ owner: "grill", type: "conv.food_processor", slot: "staff", after: "feeder" }],
     server: [{ owner: "grill", type: "conv.food_processor", slot: "staff", after: "cook" }],
-    grill_level: [{ owner: "grill", type: "conv.food_processor", slot: "staff", after: "server" }],
+    grill_level: [{ owner: "grill", type: "conv.food_processor", slot: "upgrade", after: "server" }],
     saw_feeder: [{ owner: "saw", type: "conv.material_processor", slot: "staff", after: "saw" }],
     sawyer: [{ owner: "saw", type: "conv.material_processor", slot: "staff", after: "saw_feeder" }],
     refined_carrier: [{ owner: "alloy", type: "conv.alloy_works", slot: "staff", after: "alloy" }],
@@ -241,8 +241,12 @@ describe("strict crew slots", () => {
       for (const e of ents) {
         const rule = e.id ? plotPads[e.id]?.[0] : undefined;
         if (!rule || !e.at) continue;
-        const o = at.get(rule.owner)!, s = GEN.plots![rule.type]!.slots.find((x) => x.id === rule.slot)!;
-        const ok = [1, -1].some((m) => e.at![0] === o[0] + m * s.dx && e.at![1] === o[1] + s.dy);
+        const o = at.get(rule.owner)!, slots = GEN.plots![rule.type]!.slots, s = slots.find((x) => x.id === rule.slot)!;
+        // R5 #6: a machine without its level pad on this level closes its staff slot up to the middle of the row
+        const up = slots.find((x) => x.id === "upgrade");
+        const unused = rule.type.startsWith("conv.") && up && !(rule.owner === "grill" && at.has("grill_level"));
+        const dx = unused && rule.slot === "staff" && up.dy === s.dy ? Math.round((s.dx + up.dx) / 2) : s.dx;
+        const ok = [1, -1].some((m) => e.at![0] === o[0] + m * dx && e.at![1] === o[1] + s.dy);
         expect([e.id, ok]).toEqual([e.id, true]);
         if (rule.after && at.has(rule.after)) expect([e.id, e.requires?.pad]).toEqual([e.id, rule.after]);
         checked++;

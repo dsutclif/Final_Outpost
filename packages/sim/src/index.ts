@@ -14,6 +14,7 @@ export { REWARD_GAP_EDGES, REWARD_RING } from "./systems/stats.js";
 export { salesLayout, type SalesLayout } from "./systems/sales.js";
 export { FROST_MAX } from "./systems/freeze.js";
 export { OBJECTIVE_KINDS, starsOf } from "./systems/objectives.js";
+export { mainGoalDead, objectiveDead, scrapLeft } from "./systems/deadends.js";
 export { segCross, playerCap, gatherTicks } from "./systems/common.js";
 export { collapseSecondsLeft, converterStockKey } from "./systems/stock.js";
 export { rateTicks } from "./systems/converters.js";

@@ -132,6 +132,10 @@ export interface CompiledRole {
   damage: number;
   rally: boolean;
   sortie: boolean;
+  /** Guards: full health (0 = cannot be hurt). */
+  hp: number;
+  /** Medics: ticks to heal a downed guard in place. */
+  healTicks: number;
 }
 
 export interface CompiledCustomerDef {
@@ -205,6 +209,29 @@ export interface CompiledEvent {
 
 export type ManifestEntity = Manifest["entities"][number];
 
+/**
+ * The settlement is every placed entity except the hunting flats and terrain (which roam outside it):
+ * the box around their points, grown by `margin` on every side and kept inside the map.
+ */
+export function walkBox(manifest: Manifest, margin: number): { x0: number; y0: number; x1: number; y1: number } {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const add = (x: number, y: number, w = 0, h = 0): void => {
+    x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x + w); y1 = Math.max(y1, y + h);
+  };
+  const pt = (v: unknown): void => { if (Array.isArray(v) && typeof v[0] === "number" && typeof v[1] === "number") add(v[0], v[1]); };
+  for (const e of manifest.entities as unknown as Record<string, unknown>[]) {
+    if (e["type"] === "zone.prey" || e["type"] === "zone.terrain") continue;
+    pt(e["at"]); pt(e["site"]);
+    if (Array.isArray(e["points"])) e["points"].forEach(pt);
+    const r = e["rect"];
+    if (Array.isArray(r) && r.length === 4) add(r[0] as number, r[1] as number, r[2] as number, r[3] as number);
+  }
+  pt(manifest.start);
+  const W = fp(manifest.map.w), H = fp(manifest.map.h);
+  if (x0 === Infinity) return { x0: 0, y0: 0, x1: W, y1: H };
+  return { x0: Math.max(0, fp(x0) - margin), y0: Math.max(0, fp(y0) - margin), x1: Math.min(W, fp(x1) + margin), y1: Math.min(H, fp(y1) + margin) };
+}
+
 export interface Compiled {
   manifest: Manifest;
   content: Content;
@@ -217,7 +244,9 @@ export interface Compiled {
     /** Loadout (backlog R4): gathering speed in percent of each node's rate, and extra carry per resource. */
     gatherSpeed: number; carryBonus: number;
     /** true: the player walks through buildings (core included); walls, gates and turrets stay solid. false: the core keeps its exclusion radius. */
-    walkThrough: boolean };
+    walkThrough: boolean;
+    /** Walkable box: the settlement's bounding box grown by player.walkMargin, kept inside the map (a fixed design setting, not per level). */
+    walkBox: { x0: number; y0: number; x1: number; y1: number } };
   core: {
     range: number;
     accepts: Record<string, number>;
@@ -256,6 +285,8 @@ export interface Compiled {
     idleSpeed: number; idleRadiusX: number; idleRadiusY: number; waitingSpeed: number; gateSpeed: number; injuredSpeed: number; selfHealTicks: number;
     arrive: number; workRange: number; coreDeliverRange: number; seekDropRange: number;
   };
+  /** R5 #26: guards stop fighting at downPct of their health; healable = the level has a med bay or a medic (else a downed guard dies). */
+  guards: { downPct: number; healable: boolean };
   waiting: Vec;
   gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
   zones: { blockMargin: number };
@@ -390,6 +421,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       behavior: r.behavior, speed: perTick(r.speed), carry: r.carry ?? 1,
       gatherTicks: ticks(r.gatherInterval ?? 0), deliverTicks: ticks(r.deliverInterval ?? 0),
       attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1, rally: r.rally, sortie: r.sortie,
+      hp: r.hp ?? 0, healTicks: r.healInterval === undefined ? 0 : ticks(r.healInterval),
     };
   }
   const consumers: Record<string, CompiledConsumer> = {};
@@ -521,6 +553,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       gatherSpeed: Math.max(1, int("player.gatherSpeed")),
       carryBonus: int("player.carryBonus"),
       walkThrough: int("player.walkThrough") !== 0,
+      walkBox: walkBox(manifest, fp(param("player.walkMargin"))),
     },
     core,
     nodes,
@@ -562,6 +595,12 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       selfHealTicks: manifest.entities.some((e) => (e.type === "pad.build" && e.build === "struct.medical") || e.type === "struct.medical") ? 0 : ticks(param("residents.selfHealSeconds")),
       arrive: fp(param("residents.arrive")), workRange: fp(param("residents.workRange")), coreDeliverRange: fp(param("residents.coreDeliverRange")),
       seekDropRange: fp(param("residents.seekDropRange")),
+    },
+    guards: {
+      downPct: int("guards.downPct"),
+      healable: manifest.entities.some((e) => (e.type === "pad.build" && e.build === "struct.medical") || e.type === "struct.medical"
+        || (e.type === "pad.hire" && roles[e.role.role]?.behavior === "medic") || ("joins" in e && !!e.joins && roles[e.joins.role]?.behavior === "medic"))
+        || manifest.people.some((p) => roles[p.role]?.behavior === "medic"),
     },
     waiting,
     gate,

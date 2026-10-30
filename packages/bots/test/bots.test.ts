@@ -38,6 +38,16 @@ describe("planner", () => {
     expect(medic?.when).toBe("injuries");
     expect(p.steps.find((s) => s.pad === "train")!.repeat).toBeGreaterThan(1);
   });
+
+  it("hires a medic once a guard is out when no med bay is near the gate, else waits like the med bay (R5 #26)", () => {
+    const medic = { type: "pad.hire", id: "hire_medic", at: [60, 760], cost: { "res.currency": 5 }, role: { role: "role.medic" } };
+    const when = (ents: unknown[]) => planBot({ ...level4, entities: ents } as never).steps.find((s) => s.pad === "hire_medic")?.when;
+    // level 4's med bay pad stands far down the map from the north gate
+    expect(when([...level4.entities, medic])).toBe("guards");
+    expect(when([...level4.entities.filter((e) => !("build" in e && e.build === "struct.medical")), medic])).toBe("guards");
+    const near = level4.entities.map((e) => ("build" in e && e.build === "struct.medical" ? { ...e, at: [240, 300] } : e));
+    expect(when([...near, medic])).toBe("injuries");
+  });
 });
 
 describe("good bot on the golden levels", () => {

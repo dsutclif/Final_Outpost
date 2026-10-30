@@ -6,5 +6,7 @@
  * (cleared levels and the current one) carries over or starts again at L1.
  * 2: Batch 3 (engine 0.13.0), the 50-level pack.
  * 3: Story levels 1-5 and the plot layout (engine 0.14.0): levels 6-50 regenerated.
+ * 4: Backlog round 5 rules (engine 0.15.0): levels 6-50 regenerated.
+ * 5: Enemy drops match HP (engine 0.16.0): levels 6-50 regenerated.
  */
-export const PROGRESS_EPOCH = 3;
+export const PROGRESS_EPOCH = 5;

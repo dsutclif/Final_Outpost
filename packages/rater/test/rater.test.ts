@@ -47,6 +47,16 @@ describe("golden ratings", () => {
   });
 });
 
+describe("guard loss (R5 #26)", () => {
+  it("is -1 without guards and a share of fielded guards on a defend level", () => {
+    expect(measure(level1, FAST).guardLoss).toBe(-1);
+    const g = measure(level4, FAST).guardLoss;
+    expect(g === -1 || (g >= 0 && g <= 1)).toBe(true);
+    const s = measure(level4, FAST).medicShare;
+    expect(s === -1 || (s >= 0 && s <= 1)).toBe(true);
+  });
+});
+
 describe("quality filters", () => {
   it("idle module: level 1's source gating is never needed on a winning path", () => {
     const r = rate(level1, FAST);

@@ -11,6 +11,7 @@ import { candidateSettings, roundKnobs, type CandidateRecord } from "./record.js
 
 export { capWavePoints, wavePoints, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
+export { scrapBudget, scrapNeed, waveScrap } from "./budget.js";
 export { skinText, dedupeTitles } from "./text.js";
 export { Placer, unreadablePairs } from "./layout.js";
 export type { CandidateRecord, CandidateSettings } from "./record.js";
@@ -108,6 +109,21 @@ export function generate(req: GenRequest, opts: GenOptions = {}): Manifest | nul
 }
 
 const REF = PROFILES["good"]!;
+
+/**
+ * R5 #29 no-help storm check: the good bot plays up to a storm's start, then the player stands still (the
+ * hauler and other hires carry on). The run must lose before that storm ends. Returns the first storm the
+ * colony rides out without help, or null when every storm is deadly.
+ */
+export function stormSurvivedIdle(m: Manifest, c: Content = defaultContent): number | null {
+  for (let i = 0; i < m.events.length; i++) {
+    const e = m.events[i]!;
+    if (e.type !== "event.hazard") continue;
+    const r = playBot(m, REF, 1, { content: c, timeBudgetSeconds: 900, idleFrom: e.start * 30, maxTicks: e.end * 30 });
+    if (r.won || r.reason === "budget" || r.ticks > e.end * 30) return i;
+  }
+  return null;
+}
 const MEDIAN_RUNG = LADDER[Math.floor(LADDER.length / 2)]!.name;
 const HUGE = 1_000_000;
 /** Probe lengths, as multiples of the level length, tried in turn when the bot falls short of the goal. */
@@ -269,11 +285,15 @@ function earned(o: Obj, r: BotResult): boolean {
     case "admit": return s.admitted >= Number(o.params["n"]);
     case "kills": return s.kills >= Number(o.params["n"]);
     case "salvage": return s.salvage >= Number(o.params["n"]);
+    case "turret_level": return s.turretMax >= Number(o.params["n"]);
     default: return false;
   }
 }
 
 /** Star-parameter caps: extreme challenges the good bot can hit are still unfair for people. */
+/** The kinds a defend level's second star comes from in place of a time star (R5 #20). */
+const DEFEND_SECOND = ["hire", "turret_level", "salvage"] as const;
+
 export const STAR_CAPS = { streak: 20, hpFloor: 80, heatFloor: 50, timeSlack: 1.15 } as const;
 
 const pctile = (xs: number[], q: number) => { const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.max(0, Math.floor(q * (s.length - 1))))] ?? 0; };
@@ -301,6 +321,7 @@ function challengeCandidates(fam: Family, goodRuns: BotResult[], allowed: readon
       case "rescue": { const n = Math.floor(pctile(S.map((s) => s.rescued), 0.3)); if (n >= 2) add(k, { n }); break; }
       case "streak": { const n = Math.floor(pctile(S.map((s) => s.streakMax), 0.3) * 0.9); if (n >= 4) add(k, { n: Math.min(STAR_CAPS.streak, n) }); break; }
       case "hire": { const n = Math.floor(pctile(S.map((s) => s.hired), 0.3)); if (n >= 2) add(k, { n }); break; }
+      case "turret_level": { const n = Math.floor(pctile(S.map((s) => s.turretMax), 0.3)); if (n >= 2) add(k, { n }); break; }
       default: add(k);
     }
   }
@@ -346,6 +367,18 @@ export function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly
   const ordered = [...rot(cands.filter((o) => allowed.indexOf(o.kind) < 3)), ...rot(cands.filter((o) => allowed.indexOf(o.kind) >= 3))];
   if (ordered.length === 0) return `no family challenge the ${human ? "human-view" : "good"} bot earns that the ladder can miss`;
   let second: Obj;
+  if (fam === "defend") {
+    // R5 #20: a defend level ends on the wave clock, so it gets no time star: a defence purchase star instead,
+    // the easiest the human-view (or good) bot earns (the one the most ladder runs earn too).
+    const picks = challengeCandidates(fam, human ? [...human] : good, DEFEND_SECOND, kind)
+      .filter((o) => o.kind !== ordered[0]!.kind && (human ? humanOk(o) : goodShare(o) >= 0.6));
+    const easiest = picks.map((o) => ({ o, n: ladder.filter((r) => earned(o, r)).length })).sort((a, b) => b.n - a.n)[0]?.o;
+    log(`defend second: ${picks.map((o) => `${o.kind}${JSON.stringify(o.params)}`).join("; ") || "none"}`);
+    const pick = easiest ?? ordered[1];
+    if (!pick) return "defend level needs a hire, turret level or salvage star";
+    m.objectives = [m.objectives![0]!, { ...pick, id: "challenge2" }, { ...ordered[0]!, id: "challenge" }];
+    return null;
+  }
   // Goals that finish on the clock (or after a fixed hold) leave no room for a time star: a second challenge instead.
   if (TIME_FIXED_GOALS.has(kind) || kind === "heat_hold") {
     // With no second challenge the ladder can miss, an always-earned one stands in (as tutorial levels may
@@ -365,9 +398,7 @@ export function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly
       const med = ms.runs[MEDIAN_RUNG]!.filter((r) => r.won).map((r) => r.goalTicks / 30);
       const t = med.length > 0 ? Math.floor(Math.min(...med) / 5) * 5 : 0;
       if (t > tMax && t >= floorSec) second.params["seconds"] = t;
-      // Defend levels end on the wave clock, so every rung can finish together: a second challenge instead.
-      if (!nonTrivial(second) && fam === "defend" && ordered.length >= 2) second = { ...ordered[1]!, id: "challenge2" };
-      else if (!nonTrivial(second)) return "time target trivially met";
+      if (!nonTrivial(second)) return "time target trivially met";
     }
   }
   // The player-facing allowance is longer than the bot-derived finish time (data factor).
@@ -551,8 +582,21 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
         quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
       }
     }
-    rec.settings = candidateSettings(m, c);
-    rec.quick = quick.map((q) => ({ won: q.won, reason: q.reason, seconds: Math.round(q.goalTicks / 30), hpMin: q.runStats.hpMin, salvage: q.runStats.salvage, kills: q.runStats.kills }));
+    const record = () => { if (!rec) return; rec.settings = candidateSettings(m, c); rec.quick = quick.map((q) => ({ won: q.won, reason: q.reason, seconds: Math.round(q.goalTicks / 30), hpMin: q.runStats.hpMin, salvage: q.runStats.salvage, kills: q.runStats.kills })); };
+    record();
+    // R5 #29: every storm must be deadly without the player's help; storms the hauler alone survives last longer.
+    if (quick.every((r) => r.won) && m.events.some((e) => e.type === "event.hazard")) {
+      let grew = false;
+      for (let k = 0; stormSurvivedIdle(m, c) !== null && k < 20; k++) {
+        const i = stormSurvivedIdle(m, c)!, e = m.events[i]!;
+        if (e.end - e.start + GEN.storms.growStep > GEN.storms.maxDuration) break;
+        m.events[i] = { ...e, end: e.end + GEN.storms.growStep };
+        grew = true;
+      }
+      const left = stormSurvivedIdle(m, c);
+      if (left !== null) { reject("storm"); log(`  it${it} p=${p.toFixed(2)} storm ${left} survived with no help`); hi = p; p = (lo + p) / 2; continue; }
+      if (grew) { quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 })); record(); }
+    }
     if (quick.some((r) => !r.won)) {
       reject("infeasible");
       log(`  it${it} p=${p.toFixed(2)} good bot lost (${quick.map((r) => `${r.reason}@${Math.round(r.ticks / 30)}s`).join(",")}) goal=${JSON.stringify(m.goal)}`);

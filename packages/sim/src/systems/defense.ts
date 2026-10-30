@@ -7,6 +7,7 @@ import { attackGate, breakSection, firstCrossing, outsideLines, sectionMid, sect
 import { hitHostile, nearestHostile } from "./combat.js";
 import { hint, moveAgent, ringPoint, stepDown, walkAround } from "./common.js";
 import { dropTow } from "./lasso.js";
+import { hitGuard, leashedMove, nearestGuard } from "./guards.js";
 
 type Side = HostileState["side"];
 
@@ -100,6 +101,14 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
           out.push({ t: "died", kind: "unit.troop", id: foe.id, at: { ...foe.pos } });
         }
       }
+      continue;
+    }
+    // R5 #26: a guard in reach is fought too (it has health now)
+    const guard = nearestGuard(st, cp, h.pos, D.troopContact);
+    if (guard) {
+      h.target = "troop";
+      h.acc = stepDown(h.acc);
+      if (h.acc <= 0) { h.acc = D.barrierHitTicks; hitGuard(st, cp, guard, def.damage, out); }
       continue;
     }
     const goal = walkTarget(st, cp, h);
@@ -217,7 +226,7 @@ function stepTroops(st: State, cp: Compiled, out: SimEvent[]): void {
       const g = nearestGateMid(st, t.pos);
       if (g && !within(t.pos, g, cp.defense.barrierStop)) goal = g;
     }
-    moveAgent(st, cp, t.pos, goal, T.speed, cp.residents.arrive);
+    leashedMove(st, cp, t.pos, goal, T.speed, cp.residents.arrive);
   }
 }
 

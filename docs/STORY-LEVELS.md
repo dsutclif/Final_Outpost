@@ -322,8 +322,8 @@ them: a re-render just replaces the file and ships with the next push.
 **Seamless hand-off.** `crash_open` ends on the game camera (30° pitch, 45° yaw, near-
 orthographic) centred on the commander at 7.3 m across (look.json viewW 170 = 4 hero heights),
 so the last video frame and the first live frame line up. Level 1's manifest must put the
-commander, the dark reactor and the ore trail where the shot does (`crash.py` `shot4`: the reactor
-3.3 m left and 2.4 m toward camera of the landing spot, the ore between); the
+commander and the ore trail where the shot does (`crash.py` `shot4`); the dark reactor is not in the
+film, since the player walks to it in level 1 (Doug, 2026-10-30); the
 client should still cross-fade 0.3 s to hide the renderer change.
 
 **Shots.**
@@ -332,7 +332,7 @@ client should still cross-fade 0.3 s to hide the renderer change.
 |---|---|---|---|
 | `title_loop` | Landing screen | 6 s seamless loop | Dusk over the outpost: reactor glow breathing, a crewmate mining, the medic and commander breathing, dust drifting, the pulse beating twice on the ridge. Title and Play over it. |
 | `title_still` | Landing fallback, store art | still | Frame 1 of the loop at 1080×1920. |
-| `crash_open` | Before level 1 | about 29 s | 1 the Halcyon dives through the storm; the pulse flashes and the engines cut out. 2 wide: it hits the plain, flash, dust plume. 3 dawn: the broken wreck (Doug's model) on the plain, red emergency light in the hull break. 4 a torn deck plate by the break with five of Doug's stasis pods sunk into it (four sealed under frosted glass: bays five to eight, the crew-gap clue). The commander's pod vents, its glass already cracked; it swings back along its long edge as they sit up; in motion capture they get up, turn, step out over the side wall, limp to the plate's edge, jump down to the sand and look round, and the camera cranes out to the game view over the dark reactor, the wreck behind. |
+| `crash_open` | Before level 1 | about 29 s | 1 the Halcyon dives through the storm; the pulse flashes and the engines cut out. 2 wide: it hits the plain, flash, dust plume. 3 dawn: the broken wreck (Doug's model) on the plain, red emergency light in the hull break. 4 a torn deck plate by the break with five of Doug's stasis pods sunk into it (four sealed under frosted glass: bays five to eight, the crew-gap clue). The commander's pod vents, its glass already cracked; it swings back along its long edge as they sit up; in motion capture they get up, turn, step out over the side wall, limp to the plate's edge, jump down to the sand and look round, and the camera cranes out to the game view, the wreck behind. |
 | `helmet_reveal` | After level 5's win | 4 s | Night. The lieutenant's helmet (Halcyon-issue, painted black, white and gold showing through) where it fell, dust settling; the camera creeps in and tips down to the ID card that slipped out: BAY 5, FIRST OFFICER. |
 
 The commander's own pod failed to eject, which is why they wake in the wreck (agreed with Doug
@@ -363,8 +363,8 @@ and features, then finished by hand. All five pass `pnpm levels:check --pack lev
 rung of the bot ladder wins every level, and the human-view bot earns the star bar on all five.
 Where the build differs from the plan above:
 
-- **L1** about 48 s (one storm, warn 20 s, 28–48 s). Stars: survive · reactor never goes out · fill
-  the reactor by 28 s ("Fill me up, now"). Core grace 45 s, so a slow first trip is forgiven.
+- **L1** about 60 s (one storm, warn 20 s, 28–60 s; a full tank left alone dies before it ends, R5 #29). Stars: survive · reactor never goes out · fill
+  the reactor by 28 s ("Fill me up, now"). Core grace 15 s, so a slow second trip is forgiven.
 - **L2** 19–28 s for every rung (well under the 60 s bar). Crew pods: Pip and Rhee feed the reactor
   (there is no medic role; medics come from the med bay later), Okafor guards the wall ring, Tam stays a
   colonist (no fields yet). The decoy is the old Meridian pod; bots never tow it. Stars: all pods ·
@@ -373,10 +373,10 @@ Where the build differs from the plan above:
   pay for clearing it, then protein, then a second field (the third star is "unlock a source"). The
   reactor-upgrade pad from the draft was removed (the module stays: rockslides require it).
 - **L4** about 100 s: build the galley, staff it (feeder, cook, runner on one staff slot), hand the
-  kiosk to a clerk; `automate` 20 s. Stars: town runs itself · under 115 s · no stockpile overload.
+  kiosk to a clerk; `automate` 20 s. Stars: town runs itself · under 115 s · no angry customers (R5 #7).
 - **L5** about 140 s at night, waves from the west (the ridge side of this layout): 3 raiders, then
   a swarm, then the lieutenant (`bossRetreat` 25) with a bigger swarm. Two wall towers and the guard
-  post; no tower upgrades (left for the generated levels). Stars: hold · Colony HP ≥ 80% · gate held.
+  post; no tower upgrades (left for the generated levels). Stars: hold · Colony HP ≥ 80% · gate held. Waves drop the 43 scrap every purchase costs, and a medic can be hired outside the west gate (R5).
 - Not built yet (deferred with the cinematics): the dark reactor's frost vignette and ignition flare,
   the older look of the Meridian decoy pod, crew names over the joined workers, and the story text
   beyond each level's title and one-line hook.

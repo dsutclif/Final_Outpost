@@ -18,6 +18,7 @@ args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 FADE = 10                # crossfade frames between takes
 STEP_TURN = 0            # degrees the step-over turns from the way the get-up faces (crash.py: 90, a long-side pod)
 TURN_FRAMES = 22         # over the stride before the step
+LAND_CLEAR = 0.12        # metres between the plate's edge and the feet after the jump
 UPRIGHT_BONES = ("Spine", "Spine1", "Spine2", "Neck", "Head", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg", "_chest_up")
 DOWN, UP = Vector((0, 0, -1)), Vector((0, 0, 1))
 
@@ -291,7 +292,7 @@ def perform(root, pre=0, calib=False):
             seg, _, _ = row[5].clip.pose(row[6])
             if body_min(seg) < drop.floor - 0.06:  # feet have left the ledge
                 toes = [arm.matrix_world @ arm.pose.bones[retarget.P + n].tail for n in ("LeftToeBase", "RightToeBase")]
-                takeoff = (row[3].copy(), toes)
+                takeoff = (row[3].copy(), toes, f)
 
     WALL_T = 0.08
     walls = []
@@ -305,7 +306,7 @@ def perform(root, pre=0, calib=False):
 
 
     # the deck ends at the takeoff line, the sand lies DROP_H below
-    t_pos, t_toes = takeoff
+    t_pos, t_toes, r_takeoff = takeoff
     jump_dir = (TL[-1][3] - t_pos); jump_dir.z = 0; jump_dir.normalize()
     edge_d = max(v.dot(jump_dir) for v in t_toes) + 0.02  # just past the toes at takeoff
     deck_c, sand_c = (0.55, 0.55, 0.57, 1), (0.66, 0.6, 0.5, 1)
@@ -321,8 +322,24 @@ def perform(root, pre=0, calib=False):
     sand = box("sand", 0, 0, -DROP_H - 0.05, 60, 60, 0.1, sand_c)
 
 
-    def support(p):
-        return 0.0 if p.dot(jump_dir) <= edge_d else -DROP_H
+    # Once landed they are on the sand whatever is under their lowest point: a foot near the edge must
+    # not flip the ground lock between sand and deck. They also land just clear of the plate: what's
+    # still needed is added over the flight.
+    r_land = next(f for f in range(r_takeoff + 1, N) if TL[f][0] != k_drop or body_min(TL[f][5].clip.pose(TL[f][6])[0]) - drop.ground() < 0.05)
+    closest = 1e9
+    for row in TL[r_land:]:
+        place(row)
+        bpy.context.view_layer.update()
+        pts = mesh_points()
+        low_z = min(p.z for p in pts)
+        closest = min(closest, min(p.dot(jump_dir) for p in pts if p.z < low_z + 0.5))
+    land_out = max(0.0, edge_d + LAND_CLEAR - closest)
+    for f in range(r_takeoff + 1, N):
+        TL[f][3] = TL[f][3] + jump_dir * (land_out * smooth((f - r_takeoff) / (r_land - r_takeoff)))
+    print(f"LAND row {r_land}: moved {land_out * 100:.0f} cm further from the plate")
+
+    def support(p, f):
+        return -DROP_H if f >= r_land or p.dot(jump_dir) > edge_d else 0.0
 
 
     # pass 2: ground lock. In contact frames the lowest point of the suit sits on the deck or sand; in
@@ -333,7 +350,7 @@ def perform(root, pre=0, calib=False):
         place(row)
         bpy.context.view_layer.update()
         low = min(mesh_points(), key=lambda v: v.z)
-        need = support(low) - low.z
+        need = support(low, f) - low.z
         on = row[4] is True
         if row[4] is None:          # the drop: on the ledge before takeoff, on the sand after landing
             bm = body_min(row[5].clip.pose(row[6])[0])
@@ -414,7 +431,7 @@ def perform(root, pre=0, calib=False):
         sc.frame_set(f + 1 + pre)
         pts = mesh_points()
         low = min(pts, key=lambda v: v.z)
-        gap = low.z - support(low)
+        gap = low.z - support(low, f)
         if contact[f] and abs(gap) > 0.015:  # settle: re-key this frame onto the ground and measure again
             sm[f] -= gap
             place(row, sm[f])
@@ -424,7 +441,7 @@ def perform(root, pre=0, calib=False):
             sc.frame_set(f + 1 + pre)
             pts = mesh_points()
             low = min(pts, key=lambda v: v.z)
-            gap = low.z - support(low)
+            gap = low.z - support(low, f)
         issues = []
         if row[4] is True and gap > 0.04: issues.append(f"floating {gap * 100:.0f} cm")
         if gap < -0.04: issues.append(f"sinking {-gap * 100:.0f} cm")
@@ -440,6 +457,9 @@ def perform(root, pre=0, calib=False):
     with open(os.path.join(lib.OUT, "pod_exit_check.txt"), "w") as fh:
         fh.write(f"{N} frames; rim {RIM_H} m; drop {DROP_H:.2f} m; takes " + ", ".join(f"{t.name} [{t.a}:{t.b}]" for t in takes) + "\n")
         fh.write(f"{len(report)} frames with issues\n" + "\n".join(report) + "\n")
+    heights = [TL[f][3].z + sm[f] for f in range(N)]
+    steps = sorted(((abs(heights[f] - heights[f - 1]), f) for f in range(r_land + 1, N)), reverse=True)[:4]
+    print("LOCK after landing, largest pelvis steps between frames: " + ", ".join(f"{d * 100:.1f} cm at row {f}" for d, f in steps))
     print(f"POD_EXIT {N} frames, rim {RIM_H} m, drop {DROP_H:.2f} m, {len(report)} frames flagged")
     if pre:  # hold the lying pose before the motion starts
         for f in (1, pre + 1):

@@ -3,9 +3,10 @@ import type { SimEvent } from "../events.js";
 import { FP, mulDiv, within, type Vec } from "../fixed.js";
 import type { ConverterState, DropState, HostileState, NodeState, PreyState, ResidentState, State } from "../state.js";
 import { attackGate, attackedSide, guardPost, outsideLines, sectionMid } from "./barriers.js";
-import { hitHostile, hitPrey, nearestHostile } from "./combat.js";
+import { clearLine, hitHostile, hitPrey, nearestHostile } from "./combat.js";
 import { depotPut, moveAgent, ringPoint, stepDown } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
+import { downedGuardStep, healedGuard, leashedMove, medicStep } from "./guards.js";
 
 // Residents are data-driven state machines: a role id picks the behaviour, the assignment
 // supplies what to take and where to deliver. Gatherers fill up, then deliver until empty,
@@ -19,6 +20,7 @@ function stepResident(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]
   switch (r.status) {
     case "frozen": case "towed": case "releasing": case "arriving": case "waiting": case "dead": return;
     case "injured": {
+      if (downedGuardStep(st, cp, r)) return;
       const med = st.structures.find((s) => s.type === "struct.medical");
       // On a level without a med bay the injured mend on their own, slowly; otherwise they wait for it.
       if (!med) {
@@ -34,7 +36,7 @@ function stepResident(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]
     }
     case "healing":
       r.timer = stepDown(r.timer);
-      if (r.timer <= 0) { r.status = "ok"; out.push({ t: "healed", resident: r.id }); }
+      if (r.timer <= 0) { r.status = "ok"; healedGuard(r); out.push({ t: "healed", resident: r.id }); }
       return;
     case "ok": break;
   }
@@ -50,6 +52,7 @@ function stepResident(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]
     case "hunt": return hunterStep(st, cp, r, role, out);
     case "guard": return guardStep(st, cp, r, role, out);
     case "haul": return haulerStep(st, cp, r, role, out);
+    case "medic": return medicStep(st, cp, r, role, out);
   }
 }
 
@@ -172,8 +175,11 @@ function hunterStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRol
   }
   // Hunters take the dangerous variants of their quarry too (and risk a bite for it).
   const zones = st.preyZones.map((z, i) => (z.animal === r.assign.from || cp.animals[z.animal]?.variantOf === r.assign.from ? i : -1));
-  const prey: PreyState | null = closest(r.pos, st.prey.filter((d) => d.alive && zones.includes(d.zone)));
+  // Quarry with a clear line is preferred; a wall in the way means walking on (to the gate) before the shot.
+  const quarry = st.prey.filter((d) => d.alive && zones.includes(d.zone));
+  const prey: PreyState | null = closest(r.pos, quarry.filter((d) => clearLine(st, r.pos, d.pos))) ?? closest(r.pos, quarry);
   if (!prey) { if (r.n > 0) r.mode = "deliver"; return; }
+  if (!clearLine(st, r.pos, prey.pos)) { moveAgent(st, cp, r.pos, prey.pos, role.speed, cp.residents.arrive); return; }
   if (!within(r.pos, prey.pos, role.attackRange) && !moveAgent(st, cp, r.pos, prey.pos, role.speed, role.attackRange)) return;
   if (!ready(r, role.attackTicks)) return;
   hitPrey(st, cp, prey, role.damage, "resident", out);
@@ -205,7 +211,7 @@ function guardStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole
     if (target) {
       const g = outsideLines(st, target.pos) && !out ? attackGate(st, target.side) : null;
       const door = g ? sectionMid(g.line.sections[g.idx]!) : outsideLines(st, target.pos) && !out ? nearestGate(st, target.pos) : null;
-      moveAgent(st, cp, r.pos, door && !within(r.pos, door, cp.defense.barrierStop) ? door : target.pos, role.speed, cp.residents.arrive);
+      leashedMove(st, cp, r.pos, door && !within(r.pos, door, cp.defense.barrierStop) ? door : target.pos, role.speed, cp.residents.arrive);
       return;
     }
     if (out) {
