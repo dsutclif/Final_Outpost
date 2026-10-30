@@ -40,6 +40,19 @@ describe("R5 defend scrap budget", () => {
     expect(scrapNeed(pads, 4, 2, 2, content)).toBe(4 + 7 + 5 + 10 + 40 + 160);
   });
 
+  it("no wave takes longer to spawn than the good bot can clear, however far it grew", () => {
+    let waves = 0;
+    for (const r of reqs.filter((x) => x.family === "defend")) {
+      const b = build(reqs.indexOf(r) + 1);
+      for (const w of b?.manifest.waves ?? []) {
+        const n = Object.values(w.counts).reduce((a, x) => a + x, 0);
+        expect(n * (w.gap ?? 0), r.id).toBeLessThanOrEqual(GEN.defendWaves.spawnMax + GEN.defendWaves.minGap * 40);
+        waves++;
+      }
+    }
+    expect(waves).toBeGreaterThan(0);
+  }, 120_000);
+
   it("every defend level's attackers drop enough scrap for every purchase on it", () => {
     const defend = reqs.filter((r) => r.family === "defend").slice(0, 4);
     expect(defend.length).toBeGreaterThan(0);

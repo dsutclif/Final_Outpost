@@ -74,7 +74,7 @@ export const GEN = genData as unknown as {
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
-  defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
+  defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
   storms: { warn: number; duration: number; growStep: number; maxDuration: number };
@@ -1442,17 +1442,25 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const walls = plan0.barriers.reduce((a, b) => a + (b.res === "res.salvage" ? b.cost : 0), 0);
     const guardsN = Math.max(FIRST_GUARDS, goal === "hire" ? Number(gparams["n"] ?? 0) : 0);
     const fullAt = (g: number) => scrapNeed(pads, walls, guardsN, g, c);
-    for (let k = 0; k < DW.fullGrowMax && waveScrap(waves, c) < fullAt(defGrowth); k++) grow(growing);
     // Grown early raids must not outsize the packed waves after them: each of those stays lateStep bigger.
-    let prev = 0;
-    for (const w of waves) {
-      if (!regular.has(w)) continue;
-      const n = w.counts["hostile.swarmling"] ?? 0;
-      if (w.gap === DW.lateGap && n < prev * DW.lateStep) w.counts["hostile.swarmling"] = Math.ceil(prev * DW.lateStep);
-      prev = w.counts["hostile.swarmling"] ?? 0;
-    }
+    const shape = () => {
+      let prev = 0;
+      for (const w of waves) {
+        if (!regular.has(w)) continue;
+        const n = w.counts["hostile.swarmling"] ?? 0;
+        if (w.gap === DW.lateGap && n < prev * DW.lateStep) w.counts["hostile.swarmling"] = Math.ceil(prev * DW.lateStep);
+        prev = w.counts["hostile.swarmling"] ?? 0;
+      }
+    };
+    shape();
+    // A wave's attackers arrive one by one, and a bigger wave has to finish arriving in time to be cleared: it grows
+    // only as far as spawnMax seconds at the tightest gap, and its gap tightens to fit.
+    const size = (w: (typeof waves)[number]) => Object.values(w.counts).reduce((a, n) => a + n, 0);
+    const room = () => Math.max(...waves.filter((w) => regular.has(w)).map(size)) * 1.25 * DW.minGap <= DW.spawnMax;
+    for (let k = 0; k < DW.fullGrowMax && waveScrap(waves, c) < fullAt(defGrowth) && room(); k++) { grow(growing); shape(); }
+    for (const w of waves) if (regular.has(w) && size(w) * w.gap! > DW.spawnMax) w.gap = Math.max(DW.minGap, Math.floor((DW.spawnMax / size(w)) * 100) / 100);
     // Waves alone would take thousands of attackers (rising prices make the full ladder several times its base
-    // price): past fullGrowMax the level's price growth eases toward none, then its scrap prices scale down to the drops.
+    // price): what they cannot pay within spawnMax, the level's price growth eases to cover, and only then its scrap prices.
     const drops = waveScrap(waves, c);
     while (defGrowth > 1 && fullAt(defGrowth) > drops) defGrowth = Math.max(1, Math.round((defGrowth - DW.growthStep) * 1000) / 1000);
     for (let k = 0; k < 8 && fullAt(defGrowth) > drops; k++) {
