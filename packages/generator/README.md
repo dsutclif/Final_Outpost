@@ -87,6 +87,10 @@ checked in turn: up to `search.finalTries` once one has passed, without limit be
 with a new seed, since a seed changes the range of D it can reach; `SearchMemory` carries the pool and dropped pads across
 them. An attempt ends early when its bracket has closed `search.maxWidens` times and nothing is within `search.outOfReachErr`.
 
+Two checks steer the search before the costly ones. A level the human-view bot wins on fewer than `search.humanCheck.minWins`
+of its seeds is too hard for a person, so pressure comes down. A feature whose modules no winning run used is left out of
+later builds, unless the level introduces it or its goal needs it.
+
 ## Candidate log
 
 `generateDetailed` reports every search iteration through `onCandidate`: knobs, the settings a rule could be

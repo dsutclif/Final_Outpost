@@ -3,7 +3,7 @@ import { HUMAN, LADDER, PROFILES, TIME_FIXED_GOALS, playBot, type BotResult } fr
 import { measure, score, type Metrics, type Rating, type ReferenceStats, type HistoryEntry as RaterHistory, type Measurement } from "@fo/rater";
 import referenceData from "../data/reference.json";
 import genData from "../data/generator.json";
-import { closure, conflicts } from "@fo/sequencer";
+import { DEFAULT_CONFIG, closure, conflicts } from "@fo/sequencer";
 import { GEN, TEMPLATES, buildLevel, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
@@ -60,12 +60,13 @@ export interface SearchMemory {
   ease: number;
   dropped: Set<string>;
   droppedMods: Set<string>;
+  droppedFeatures: Set<string>;
   best: Candidate | null;
   /** Clean on the quick rating but off target, so not yet worth the full verification. */
   pool: { m: Manifest; p: number; err: number; seed: number; knobs: Record<string, number> }[];
 }
 
-export const newSearchMemory = (): SearchMemory => ({ ease: 0, dropped: new Set(), droppedMods: new Set(), best: null, pool: [] });
+export const newSearchMemory = (): SearchMemory => ({ ease: 0, dropped: new Set(), droppedMods: new Set(), droppedFeatures: new Set(), best: null, pool: [] });
 
 /** Star bar for the human-view bot (generator.json humanStars); levels:check reads the same block. */
 export const HUMAN_STARS = genData.humanStars as { seeds: number; minEarned: number; regressTolerance: number };
@@ -380,6 +381,20 @@ export function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly
   return null;
 }
 
+/** Optional features of a request whose modules went unused. Exported for tests. */
+export function idleFeatures(req: GenRequest, idleModules: readonly string[]): string[] {
+  const cfg = DEFAULT_CONFIG;
+  const goal = cfg.goals[req.goalType];
+  const kept = new Set([...(req.introduced ?? []), ...(goal?.needs ?? []), ...(goal?.adds ?? [])]);
+  const features = req.features ?? [];
+  return features.filter((f) => {
+    const ms = cfg.features[f]?.modules ?? [];
+    if (kept.has(f) || !ms.some((x) => idleModules.includes(x))) return false;
+    // what another feature of the level brings along stays
+    return !features.some((o) => o !== f && (cfg.features[o]?.with ?? []).includes(f));
+  });
+}
+
 export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDetail {
   const c = opts.content ?? defaultContent;
   const S = GEN.search;
@@ -417,6 +432,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   const dropped = memory.dropped;
   // Same for the workers module when nothing on the level ever needs a worker (a shelves goal filled by hand).
   const droppedMods = memory.droppedMods;
+  const droppedFeatures = memory.droppedFeatures;
   const easeUp = (): boolean => { if (ease >= 1) return false; ease = Math.min(1, ease + 1 / S.loopEaseSteps); return true; };
 
   const rateIt = (m: Manifest, seeds: { ref: number; other: number }) => {
@@ -512,7 +528,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     let why = "";
     for (let salt = 0; salt < S.layoutTries && !built; salt++) {
       try {
-        built = buildLevel({ id, seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods.filter((x) => !droppedMods.has(x)), template: tpl, knobs, hireEase: ease, content: c }, salt);
+        built = buildLevel({ id, seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: (req.features ?? []).filter((f) => !droppedFeatures.has(f)), goalType: req.goalType, modules: mods.filter((x) => !droppedMods.has(x)), template: tpl, knobs, hireEase: ease, content: c }, salt);
       } catch (e) { why = (e as Error).message; reject(why.startsWith("flow") ? "flow" : "layout"); }
     }
     if (!built) { rec.why = why; log(`  it${it} p=${p.toFixed(2)} build failed: ${why}`); hi = p; p = (lo + p) / 2; continue; }
@@ -545,6 +561,17 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       const tMax = Math.max(...quick.map((r) => r.goalTicks)) / 30;
       m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(60, Math.round(tMax / (1 - knobs.margin) / 10) * 10)), 10);
     }
+    // A level the human-view bot cannot win is too hard for a person, however well the good bot does: ease off now, before the costly checks.
+    if (humanStars) {
+      const wins = Array.from({ length: S.humanCheck.seeds }, (_, i) => playBot(m, HUMAN, i + 1, { content: c })).filter((h) => h.won).length;
+      rec.humanWins = wins;
+      if (wins < S.humanCheck.minWins) {
+        reject("humanLost");
+        log(`  it${it} p=${p.toFixed(2)} human-view bot won ${wins} of ${S.humanCheck.seeds}`);
+        hi = p; p = (lo + p) / 2;
+        continue;
+      }
+    }
     log(`  it${it} good=${quick.map((q) => Math.round(q.goalTicks / 30)).join("/")}s budget=${m.params["level.budgetSeconds"]} goal=${JSON.stringify(m.goal)}`);
     const quickRating = rateIt(m, opts.seeds?.quick ?? S.quickSeeds);
     const ms = quickRating.ms;
@@ -564,6 +591,12 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       && !mods.some((x) => !droppedMods.has(x) && x !== "workers" && c.modules[x]?.requires?.includes("workers"))) {
       droppedMods.add("workers");
       log(`  it${it} no worker needed: dropping the workers module`);
+    }
+    // The same for a mechanic nobody needed, unless the level exists to teach it or its goal needs it: later builds leave it out.
+    for (const f of idleFeatures(req, idleMods)) {
+      droppedFeatures.add(f);
+      for (const x of DEFAULT_CONFIG.features[f]!.modules) if (idleMods.includes(x)) droppedMods.add(x);
+      log(`  it${it} nobody used ${f}: dropping it`);
     }
     // No more than loopCap identical player trips in a row (see overLoopCap): a 6th repeat must be unnecessary, so the
     // level has to give a worker (cheaper hire pads here), a bigger carry, or a cheaper cost.

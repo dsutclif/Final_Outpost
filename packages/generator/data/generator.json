@@ -110,6 +110,7 @@
     "quickSeeds": { "ref": 4, "other": 2 },
     "fullSeeds": { "ref": 10, "other": 3 },
     "layoutTries": 40,
+    "humanCheck": { "seeds": 3, "minWins": 2 },
     "verifyWithin": 0.07,
     "finalTries": 3,
     "maxWidens": 2,

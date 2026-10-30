@@ -12,6 +12,8 @@ export interface CandidateRecord {
   rejects: string[];
   why?: string;
   settings?: CandidateSettings;
+  /** Wins of the human-view bot in its early check. */
+  humanWins?: number;
   /** The good bot's quick seeds. */
   quick?: { won: boolean; reason: string; seconds: number; hpMin: number; salvage: number; kills: number }[];
   rating?: { D: number; F: number; feasible: boolean; margin: Record<string, number>; winRate: Record<string, number>; loopMax: number; ladderLeft: number; idleModules: string[]; budget: number | undefined };

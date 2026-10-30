@@ -4,7 +4,7 @@ import { createSim, outsideLines, pointInPoly, salesLayout, fp } from "@fo/sim";
 import { planBot } from "@fo/bots";
 import { closure, sequenceRange } from "@fo/sequencer";
 import type { CandidateRecord } from "../src/index.js";
-import { buildLevel, flowModel, generate, generateDetailed, knobsFor, newSearchMemory, skinText, templateById, unreadablePairs, timeTarget, TEMPLATES, GEN } from "../src/index.js";
+import { buildLevel, flowModel, generate, generateDetailed, idleFeatures, knobsFor, newSearchMemory, skinText, templateById, unreadablePairs, timeTarget, TEMPLATES, GEN } from "../src/index.js";
 
 const reqs = sequenceRange(1, 60);
 const build = (i: number, p = 0.3) => {
@@ -337,6 +337,14 @@ describe("generate (search + rating + stars)", () => {
     const last = generateDetailed({ ...r, target: 0.99 }, { ...light, memory, finish: true, maxIterations: 0, onCandidate: (c) => recs.push(c) });
     expect(last.best).not.toBeNull();
     expect(recs.filter((c) => c.final).length).toBeGreaterThan(0);
+  });
+
+  it("drops an idle feature, unless the level introduces it or its goal needs it", () => {
+    const base = { target: 0.5, family: "harvest" as const, modules: [], seed: 1 };
+    expect(idleFeatures({ ...base, goalType: "sell", features: ["source_unlocks"] }, ["source_gating"])).toEqual(["source_unlocks"]);
+    expect(idleFeatures({ ...base, goalType: "sell", features: ["source_unlocks"] }, ["workers"])).toEqual([]);
+    expect(idleFeatures({ ...base, goalType: "unlock", features: ["source_unlocks"] }, ["source_gating"])).toEqual([]);
+    expect(idleFeatures({ ...base, goalType: "sell", features: ["source_unlocks"], introduced: ["source_unlocks"] }, ["source_gating"])).toEqual([]);
   });
 
   it("widens the generated time target by the data factor (timeTargetK)", () => {
