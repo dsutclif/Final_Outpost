@@ -181,7 +181,7 @@ def crash_site():
     ax, lat, RIM = P["ax"], P["lat"], P["RIM_H"]
     v1 = json.load(open(FIRST))
     # turn the motion's frame onto the plain: fit the limp, drop and look onto the first render's path
-    rows = range(starts[2], N)
+    rows = range(starts[2], starts[3])  # the limp: the jump now lands a little further out than it did
     src = [Vector((TL[r][3].x, TL[r][3].y)) for r in rows]
     dst = [Vector(v1["pelvis"][r + PRE][:2]) for r in rows]
     cs, cd = sum(src, Vector((0, 0))) / len(src), sum(dst, Vector((0, 0))) / len(dst)
@@ -267,7 +267,8 @@ def crash_site():
         ext.matrix_world = deck.matrix_world @ Matrix.Translation(((x0 + x1) / 2, (y0 + y1) / 2, -0.002 / s.z)) @ Matrix.Diagonal((x1 - x0, y1 - y0, 1, 1))
         ext.data.materials.append(deck.data.materials[0])
         pods.append(ext)
-    end, U = Vector(v1["end"]), Vector(v1["U"])
+    end, U = W(TL[-1][3]), Vector(v1["U"])
+    end.z = 0
     lib.rocks(n=160, x=(-6, 26), y=(-21, -9), size=(0.04, 0.22), seed=17)
     for o in bpy.data.objects:  # no stone under the landing or the look-around
         if o.name.startswith("rock") and (Vector((o.location.x, o.location.y, 0)) - end).length < 1.6:
@@ -346,9 +347,9 @@ def shot4():
     for f, val in ((F(r_land) - 5, 0.0), (F(r_land) - 3, 0.8), (F(r_land) + 16, 0.0)):
         dd.default_value = val
         dd.keyframe_insert("default_value", frame=f)
-    # level 1's start: the dark reactor off to the commander's left, a trail of ore toward it; they
-    # stay out of the earlier cuts (the limp camera stands where they are) and appear with the drop
-    props = [lib.place("sink.core.l1", at=tuple(end + Vector((-3.3, -2.4, 0))), size=4.5, name="reactor")]
+    # a trail of ore off to the commander's left, leading out of shot toward the dark reactor (level 1
+    # has them walk to it, so it isn't in the film); out of the earlier cuts, where the limp camera stands
+    props = []
     for i, off in enumerate(((-0.9, -0.6), (-1.6, -1.1), (-2.2, -1.6))):
         props.append(lib.place("node.material_source", at=tuple(end + Vector((off[0], off[1], 0))), yaw=30 * i, size=0.9))
     for o in [o for p in props for o in p.children_recursive]:
