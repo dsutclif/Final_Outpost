@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { FP, TPS, createSim, within, type ResidentState, type SimEvent } from "../src/index.js";
+import { FP, TPS, createSim, starsOf, within, type ResidentState, type SimEvent } from "../src/index.js";
 import { leashReach, wallDist } from "../src/systems/guards.js";
 import { outsideLines } from "../src/systems/barriers.js";
 import { LEVEL_4 } from "./helpers.js";
@@ -65,8 +65,32 @@ describe("guards have health (R5 #26)", () => {
     expect(st.objectives.find((o) => o.id === "safe")!.failed).toBe(false);
   });
 
-  it("a downed guard hit again dies", () => {
+  it("a guard lying where it fell is passed over, so the medic can reach it through a wave", () => {
+    const { sim, st, g } = setup({ medBay: false, medic: true });
+    const m = st.residents.find((r) => r.role === "idle" && r !== g)!;
+    m.role = "role.medic";
+    const h = attacker(st, g);
+    const keep = () => { h.pos = { ...g.pos }; h.hp = 999; };
+    runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, keep);
+    const ev = runUntil(sim, (e) => e.some((x) => x.t === "medic_heal"), 60 * TPS, keep);
+    expect(ev.some((e) => e.t === "medic_heal" && e.resident === g.id)).toBe(true);
+    expect(ev.some((e) => e.t === "guard_died")).toBe(false);
+    expect(st.residents.includes(g)).toBe(true);
+  });
+
+  it("a single big hit puts a guard down, not dead", () => {
+    const { sim, st, cp, g } = setup();
+    cp.hostiles["hostile.raider_humanoid"]!.damage = 99;
+    const h = attacker(st, g);
+    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_down" || x.t === "guard_died"), 10 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
+    expect(ev.some((e) => e.t === "guard_down")).toBe(true);
+    expect(ev.some((e) => e.t === "guard_died")).toBe(false);
+  });
+
+  it("a guard hit on its way to the med bay dies", () => {
     const { sim, st, g } = setup();
+    const pad = st.pads.find((p) => p.id === "medic")!;
+    st.structures.push({ id: "medic", type: "struct.medical", pos: { ...pad.pos }, level: 1, acc: 0 });
     const h = attacker(st, g);
     runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
     const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_died"), 10 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
@@ -125,13 +149,32 @@ describe("guards have health (R5 #26)", () => {
       for (let i = 0; i < 40 * TPS; i++) {
         if (i % (gap + 1) === 0) { h.pos = { ...g.pos }; h.hp = 999; } else h.pos = { x: 0, y: 0 };
         sim.step({ dx: 0, dy: 0 });
-        if (!st.residents.includes(g)) break;
+        // once down it is passed over, and a hostile left by the core hits the base (real injuries, not this rule)
+        if (!st.residents.includes(g) || g.status !== "ok") break;
         const hp = g.hp ?? max;
         expect(hp).toBeLessThanOrEqual(max);
         if (g.status === "ok") expect(hp * 100).toBeGreaterThan(cp.guards.downPct * max);
       }
       expect(st.stats.injured).toBe(0);
     }), { numRuns: 10 });
+  });
+});
+
+describe("a fall with waves still to come", () => {
+  it("is a loss with no stars even after the main goal", () => {
+    const sim = createSim({
+      ...level(), goal: { type: "survive", seconds: 1 }, fail: ["meter.base_health"], waves: [{ t: 9999, counts: { "hostile.swarmling": 1 } }],
+      objectives: [{ id: "main", kind: "survive", params: { seconds: 1 } }, { id: "a", kind: "gate_held", params: {} }, { id: "b", kind: "hp_floor", params: { pct: 1 } }],
+    });
+    for (let i = 0; i < 2 * TPS; i++) sim.step({ dx: 0, dy: 0 });
+    expect(sim.state.objectives[0]!.done).toBe(true);
+    expect(sim.state.over).toBe(false);
+    sim.state.meters.baseHealth = 0;
+    sim.step({ dx: 0, dy: 0 });
+    expect(sim.state.over).toBe(true);
+    expect(sim.state.won).toBe(false);
+    expect(sim.state.reason).toBe("meter.base_health");
+    expect(starsOf(sim.state)).toBe(0);
   });
 });
 

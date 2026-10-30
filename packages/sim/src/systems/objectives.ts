@@ -205,4 +205,5 @@ export const objectiveSettled = (cp: Compiled, o: ObjectiveState, i: number): bo
   o.done || o.failed || (cp.content.objectives[cp.objectives[i]!.kind]?.guard ?? false);
 
 /** Stars earned: objectives done (meaningful once the level is over). */
-export const starsOf = (st: State): number => st.objectives.filter((o) => o.done).length;
+/** A lost level earns none, whatever was done before it fell. */
+export const starsOf = (st: State): number => (st.won === false ? 0 : st.objectives.filter((o) => o.done).length);

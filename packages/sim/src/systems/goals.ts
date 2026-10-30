@@ -21,11 +21,12 @@ const FAILS: Record<string, (st: State, cp: Compiled) => boolean> = {
  * The level ends on its slowest goal: once the main goal (objective 0, which mirrors the manifest goal)
  * is done, it ends when every objective is done or can no longer be done, or when the overtime runs
  * out, and never while attack waves are still to come (Batch 3). Fails, a pile collapse and the timer still end it early: a loss before the main goal, a win
- * after it (the open stars are lost).
+ * after it (the open stars are lost). The exception: a fail while attack waves are still to come is a loss even after
+ * the main goal, since the defence has to hold to the end (R5).
  */
 export function checkEnd(st: State, cp: Compiled, out: SimEvent[]): void {
   const main = st.objectives[0];
-  const won = main?.done ?? false;
+  let won = main?.done ?? false;
   let why = cp.manifest.fail.find((f) => FAILS[f]?.(st, cp)) ?? null;
   if (why === null) {
     const pile = collapsedConverter(st, cp);
@@ -34,6 +35,7 @@ export function checkEnd(st: State, cp: Compiled, out: SimEvent[]): void {
   if (why === null && cp.timerTicks > 0 && st.tick >= cp.timerTicks) why = "timer";
   // Batch 3: a level with attack waves runs until the last one is cleared, so the defence is built and held to the end.
   const wavesLeft = cp.waves.length > 0 && !wavesDone(st, cp);
+  if (why !== null && FAILS[why] && wavesLeft) won = false;
   if (why === null && won && !wavesLeft && (st.tick - main!.doneTick >= cp.overtimeTicks || st.objectives.every((o, i) => objectiveSettled(cp, o, i)))) why = "goal";
   if (why === null) return;
   endLevel(st, out, won, won ? "goal" : why);

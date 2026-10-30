@@ -7,15 +7,20 @@ import { moveAgent, ringPoint } from "./common.js";
 
 // R5 #26 (Doug): hired guards have the commander's health. At guards.downPct of it they stop fighting until
 // healed: a medic patches them up where they fell, or (with no medic) they walk to the med bay. With neither
-// on the level, or if hit again while down, they die. A guard going down is not a settler injury.
+// on the level, or if hit again on the way to the bay, they die. A guard lying where it fell is passed over, so the
+// medic can reach it through a wave. A guard going down is not a settler injury.
 
 const isGuard = (cp: Compiled, r: ResidentState): boolean => cp.roles[r.role]?.behavior === "guard" && cp.roles[r.role]!.hp > 0;
 
-/** Nearest guard strictly within r of p that hostiles can hit: fighting, or down (walking, waiting or being healed). */
+/** Walking to the med bay: the one time a downed guard can be hit. */
+const onTheWay = (st: State, cp: Compiled, g: ResidentState): boolean =>
+  g.status === "injured" && !hasMedic(st, cp) && st.structures.some((s) => s.type === "struct.medical");
+
+/** Nearest guard strictly within r of p that hostiles can hit: fighting, or on its way to the med bay. */
 export function nearestGuard(st: State, cp: Compiled, p: Vec, r: number): ResidentState | null {
   let best: ResidentState | null = null, bd = r * r;
   for (const g of st.residents) {
-    if ((g.status !== "ok" && g.status !== "injured" && g.status !== "healing") || !isGuard(cp, g)) continue;
+    if ((g.status !== "ok" && !onTheWay(st, cp, g)) || !isGuard(cp, g)) continue;
     const dx = g.pos.x - p.x, dy = g.pos.y - p.y, d = dx * dx + dy * dy;
     if (d < bd) { bd = d; best = g; }
   }
@@ -25,8 +30,9 @@ export function nearestGuard(st: State, cp: Compiled, p: Vec, r: number): Reside
 export function hitGuard(st: State, cp: Compiled, g: ResidentState, dmg: number, out: SimEvent[]): void {
   const hpMax = cp.roles[g.role]!.hp;
   out.push({ t: "hit", target: "resident", id: g.id, at: { ...g.pos }, by: "hostile" });
-  const hp = (g.hp ?? hpMax) - dmg;
-  if (g.status !== "ok" || hp <= 0) return killGuard(st, g, out);
+  if (g.status !== "ok") return killGuard(st, g, out);
+  // a big hit stops at 1: going down comes first, whatever hit it
+  const hp = Math.max(1, (g.hp ?? hpMax) - dmg);
   g.hp = hp;
   if (hp * 100 > cp.guards.downPct * hpMax) return;
   if (!cp.guards.healable) return killGuard(st, g, out);
