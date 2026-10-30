@@ -7,11 +7,13 @@ import { closure, conflicts } from "@fo/sequencer";
 import { GEN, TEMPLATES, buildLevel, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
+import { candidateSettings, roundKnobs, type CandidateRecord } from "./record.js";
 
 export { TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
 export { skinText, dedupeTitles } from "./text.js";
 export { Placer, unreadablePairs } from "./layout.js";
+export type { CandidateRecord, CandidateSettings } from "./record.js";
 
 /** Contract 5 request, from the sequencer (family, features, goal kind, modules). */
 export interface GenRequest {
@@ -45,6 +47,8 @@ export interface GenOptions {
   seeds?: { quick: { ref: number; other: number }; full: { ref: number; other: number } };
   /** Stars must be earned by the human-view bot (default). False: the good bot's old rule, for comparisons. */
   humanStars?: boolean;
+  /** Called once per search iteration with what was built and what became of it. */
+  onCandidate?: (rec: CandidateRecord) => void;
 }
 
 /** Star bar for the human-view bot (generator.json humanStars); levels:check reads the same block. */
@@ -375,7 +379,9 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   const tpl = templateById(tplId);
   const id = req.id ?? `gen-${req.seed}`;
   const stats: GenStats = { iterations: 0, rejects: {}, ratings: 0 };
-  const reject = (k: string) => { stats.rejects[k] = (stats.rejects[k] ?? 0) + 1; };
+  let rec: CandidateRecord | null = null;
+  const flush = () => { if (rec) opts.onCandidate?.(rec); rec = null; };
+  const reject = (k: string) => { stats.rejects[k] = (stats.rejects[k] ?? 0) + 1; rec?.rejects.push(k); };
   const log = opts.log ?? (() => {});
   const history = opts.history ?? [];
   const allowed = req.challenges ?? [];
@@ -394,16 +400,19 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   const easeUp = (): boolean => { if (ease >= 1) return false; ease = Math.min(1, ease + 1 / S.loopEaseSteps); return true; };
 
   for (let it = 0; it < maxIt; it++) {
+    flush();
     stats.iterations++;
     const mut: Record<string, number> = {};
     if (it > 0) for (const k of Object.keys(GEN.knobs)) mut[k] = (mrand.float() * 2 - 1) * GEN.jitter;
     const knobs = knobsFor(p, mut);
+    rec = { iteration: it, p: round3(p), knobs: {}, rejects: [], kept: false, shipped: false };
     // Levers against a repeated player loop, scaled by how often the search has had to ease it:
     // a slower burn (fewer core feeding trips), a shorter level (fewer trips overall), a little
     // more starting currency (the first worker hire arrives sooner). Hire prices ease in buildLevel.
     knobs.burn *= 1 + S.loopBurnEase * ease;
     knobs.length *= 1 - S.loopLengthCut * ease;
     knobs.startCurrency += S.loopStartCurrency * ease;
+    rec.knobs = roundKnobs(knobs as unknown as Record<string, number>);
     let built: Built | null = null;
     let why = "";
     for (let salt = 0; salt < S.layoutTries && !built; salt++) {
@@ -411,10 +420,11 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
         built = buildLevel({ id, seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods.filter((x) => !droppedMods.has(x)), template: tpl, knobs, hireEase: ease, content: c }, salt);
       } catch (e) { why = (e as Error).message; reject(why.startsWith("flow") ? "flow" : "layout"); }
     }
-    if (!built) { log(`  it${it} p=${p.toFixed(2)} build failed: ${why}`); hi = p; p = (lo + p) / 2; continue; }
+    if (!built) { rec.why = why; log(`  it${it} p=${p.toFixed(2)} build failed: ${why}`); hi = p; p = (lo + p) / 2; continue; }
     const m = built.manifest;
     if (dropped.size > 0) dropPads(m, dropped);
     const sz = sizeGoal(built, c, knobs.length);
+    rec.settings = candidateSettings(m, c);
     if (sz) { reject("probe"); log(`  it${it} p=${p.toFixed(2)} ${sz}`); hi = p; p = (lo + p) / 2; continue; }
     let quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
     // Hazards must land while the level is still running: pull them in when the good bot finishes early.
@@ -428,6 +438,8 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
         quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
       }
     }
+    rec.settings = candidateSettings(m, c);
+    rec.quick = quick.map((q) => ({ won: q.won, reason: q.reason, seconds: Math.round(q.goalTicks / 30), hpMin: q.runStats.hpMin, salvage: q.runStats.salvage, kills: q.runStats.kills }));
     if (quick.some((r) => !r.won)) {
       reject("infeasible");
       log(`  it${it} p=${p.toFixed(2)} good bot lost (${quick.map((r) => `${r.reason}@${Math.round(r.ticks / 30)}s`).join(",")}) goal=${JSON.stringify(m.goal)}`);
@@ -441,7 +453,9 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     const rateIt = (seeds: { ref: number; other: number }) => {
       stats.ratings++;
       const ms = measure(m, { content: c, refSeeds: seeds.ref, otherSeeds: seeds.other, history });
-      return { ms, r: score(ms, { content: c, reference }) };
+      const r = score(ms, { content: c, reference });
+      rec!.rating = { D: round3(r.D), F: round3(r.F), feasible: r.feasible, margin: r.margin, winRate: r.winRate, loopMax: ms.loopMax, ladderLeft: ms.ladderLeft, idleModules: r.evidence.idleModules, budget: m.params["level.budgetSeconds"] };
+      return { ms, r };
     };
     log(`  it${it} good=${quick.map((q) => Math.round(q.goalTicks / 30)).join("/")}s budget=${m.params["level.budgetSeconds"]} goal=${JSON.stringify(m.goal)}`);
     let { ms, r } = rateIt(opts.seeds?.quick ?? S.quickSeeds);
@@ -486,6 +500,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
         continue;
       }
       const idle = idleElements(m, ms.runs["good"]!);
+      rec.idleElements = idle;
       if (!r.ok) Object.entries(r.filters).filter(([, v]) => v).forEach(([k]) => reject(k));
       else if (idle.length > 0) {
         reject("idleElement");
@@ -502,9 +517,11 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       else {
         const human = humanStars ? playHuman(m, c) : null;
         const why2 = settleObjectives(m, ms, allowed, req.seed, req.phase === "teach", human, (s) => log(`  it${it} ${s}`));
-        if (why2) { reject("objectives"); log(`  it${it} objectives: ${why2}`); }
+        rec.objectives = (m.objectives ?? []).map((o) => ({ kind: o.kind, params: o.params as Record<string, number | string> }));
+        if (why2) { rec.why = why2; reject("objectives"); log(`  it${it} objectives: ${why2}`); }
         else {
           const v = verifyStars(m, c, humanStars);
+          rec.stars = v.byRung;
           if (!v.feasible) { reject("infeasible"); log(`  it${it} good bot loses or wins narrowly on the final objectives`); }
           else if (!v.starsOk) { reject("stars"); log(`  it${it} ${humanStars ? `human-view bot misses a star on more than ${HUMAN_STARS.seeds - HUMAN_STARS.minEarned} of ${HUMAN_STARS.seeds} seeds or never earns all three` : "good bot never earns all three stars"}`); }
           else {
@@ -521,8 +538,8 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
             }
             attachRating(fin.m, fin.r, req.introduced ?? [], fin.v.summary);
             const cand: Candidate = { manifest: fin.m, rating: fin.r, p, err: fin.err, stars: fin.v.summary, starsByRung: fin.v.byRung };
-            if (!best || cand.err < best.err) best = cand;
-            if (fin.err <= tol && fin.r.F >= fmin) return { manifest: fin.m, best: cand, stats };
+            if (!best || cand.err < best.err) { best = cand; rec.kept = true; }
+            if (fin.err <= tol && fin.r.F >= fmin) { rec.shipped = true; flush(); return { manifest: fin.m, best: cand, stats }; }
             if (fin.err <= tol) reject("lowFun"); else reject("offTarget");
           }
         }
@@ -532,6 +549,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     p = (lo + hi) / 2;
     if (hi - lo < 0.02) { lo = Math.max(0, lo - 0.15); hi = Math.min(1, hi + 0.15); }
   }
+  flush();
   return { manifest: null, best, stats };
 }
 

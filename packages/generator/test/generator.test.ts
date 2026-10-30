@@ -3,6 +3,7 @@ import { content, checkManifest, Manifest as ManifestSchema } from "@fo/content"
 import { createSim, outsideLines, pointInPoly, salesLayout, fp } from "@fo/sim";
 import { planBot } from "@fo/bots";
 import { closure, sequenceRange } from "@fo/sequencer";
+import type { CandidateRecord } from "../src/index.js";
 import { buildLevel, flowModel, generate, generateDetailed, knobsFor, skinText, templateById, unreadablePairs, timeTarget, TEMPLATES, GEN } from "../src/index.js";
 
 const reqs = sequenceRange(1, 60);
@@ -307,6 +308,19 @@ describe("generate (search + rating + stars)", () => {
     expect((m.rating as { difficulty: number }).difficulty).toBeGreaterThan(0);
     expect(m.objectives!.map((o) => o.kind)).not.toContain("time_target"); // heat_hold: two heat challenges
     expect(m.text["mars_greenhouse"]!.title.length).toBeGreaterThan(0);
+  });
+
+  it("reports every search iteration to onCandidate without changing the result", () => {
+    const r = reqs[0]!;
+    const light = { seeds: { quick: { ref: 2, other: 1 }, full: { ref: 3, other: 1 } }, maxIterations: 8 };
+    const recs: CandidateRecord[] = [];
+    const a = generateDetailed(r, { ...light, onCandidate: (c) => recs.push(c) });
+    const b = generateDetailed(r, light);
+    expect(a.best!.manifest).toEqual(b.best!.manifest);
+    expect(recs.length).toBe(a.stats.iterations);
+    expect(recs.flatMap((c) => c.rejects).length).toBe(Object.values(a.stats.rejects).reduce((t, n) => t + n, 0));
+    expect(recs.some((c) => c.kept)).toBe(true);
+    expect(recs.every((c) => Object.keys(c.knobs).length > 0)).toBe(true);
   });
 
   it("widens the generated time target by the data factor (timeTargetK)", () => {

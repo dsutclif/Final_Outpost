@@ -14,6 +14,7 @@
     "levels:build": "vite-node tools/build-levels.ts --",
     "levels:check": "vite-node tools/regress-levels.ts --",
     "levels:repin": "vite-node tools/repin-levels.ts --",
+    "levels:digest": "vite-node tools/candidate-digest.ts -- --digest",
     "levels:next": "vite-node tools/levels-next.ts --",
     "models:build": "vite-node tools/build-models.ts --",
     "plots:build": "vite-node tools/build-plots.ts --"

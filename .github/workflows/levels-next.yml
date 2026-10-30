@@ -61,7 +61,7 @@ jobs:
           if [ -z "$(git status --porcelain levels/packs)" ]; then echo "no new levels"; exit 0; fi
           git config user.name "level-supply[bot]"
           git config user.email "level-supply@users.noreply.github.com"
-          git add levels/packs
+          git add levels/packs levels/candidates
           git commit -m "Levels: next batch for a player at level ${{ inputs.cleared }}"
           git pull --rebase origin main
           git push origin HEAD:main

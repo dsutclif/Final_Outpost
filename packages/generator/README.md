@@ -83,6 +83,15 @@ As before: the pressure p drives every knob, bisected on D against `data/referen
 `levels:build --calibrate`), knobs jittered by ±0.12 per iteration, quick rating 4 + 2 seeds, full
 rating 10 + 3. The closest clean candidate ships when none lands within ±0.05 of the target.
 
+## Candidate log
+
+`generateDetailed` reports every search iteration through `onCandidate`: knobs, the settings a rule could be
+written against (wave sizes and drops, towers, costs, health), the good bot's quick runs, the rating, rejects,
+objectives, and whether it was kept or shipped. `levels:build` appends them to `levels/candidates/<pack>.jsonl`
+(gitignored, 14 days kept) and folds them into `levels/candidates/digest/<day>.json` (committed): outcome counts
+and per-family histograms of each setting by outcome, so failed and passing candidates can be compared across builds.
+The raw log is never committed, because git history would keep it forever. `pnpm levels:digest` folds it by hand.
+
 ## Known limits
 
 - The sim gathers from the first node in range and stops there when that resource is full, so the

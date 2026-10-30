@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { cpus } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,8 +7,9 @@ import { CONTENT_VERSION } from "../packages/content/src/index.js";
 import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { computeReference, type HistoryEntry, type Measurement, type Metrics } from "../packages/rater/src/index.js";
 import { sequenceRange, type LevelRequest } from "../packages/sequencer/src/index.js";
-import { calibrationSample, dedupeTitles, generateDetailed, templateById, type Candidate } from "../packages/generator/src/index.js";
+import { calibrationSample, dedupeTitles, generateDetailed, templateById, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
+import { digestLog } from "./candidate-digest.js";
 
 // pnpm levels:build --from 1 --to 60 --out levels/packs/s1 [--jobs N] [--retries N] [--calibrate] [--verbose]
 //   [--target-offset X] [--no-doc]
@@ -20,6 +21,9 @@ import { hashStr, mix } from "../packages/generator/src/rand.js";
 // as off target. `--calibrate` first measures one unsearched sample per level and rewrites the
 // generator's reference stats (packages/generator/data/reference.json). `--target-offset` shifts every
 // level's target difficulty (batch tuning, tools/levels-next.ts); `--no-doc` leaves docs/LEVELS.md alone.
+// Every search iteration, rejected or not, is appended to levels/candidates/<pack>.jsonl (outside
+// levels/packs, which the client serves; gitignored) and folded into a small daily digest for working
+// out up-front generation rules (tools/candidate-digest.ts).
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -77,16 +81,19 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   let shipped: Candidate | null = null;
   const rejects: Record<string, number> = {};
   let ratings = 0, attempts = 0;
+  const candidates: (CandidateRecord & { attempt: number; seed: number })[] = [];
   for (let k = 0; k <= retries && !shipped; k++) {
     attempts++;
     const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
-    const d = generateDetailed({ ...req, seed }, { history, ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
+    const d = generateDetailed({ ...req, seed }, { history, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
     for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
     ratings += d.stats.ratings;
     if (d.manifest && d.best) shipped = d.best;
     if (d.best && (!best || d.best.err < best.err)) best = d.best;
   }
   const pick = shipped ?? best;
+  const level = { index, id: req.id, family: req.family, secondary: req.secondary, features: req.features, goalType: req.goalType, template: req.template, target: req.target };
+  process.stdout.write(`CANDIDATES ${JSON.stringify(candidates.map((c) => ({ ...level, ...c })))}\n`);
   if (!pick) {
     process.stdout.write(`RESULT ${JSON.stringify({ index, id: req.id, family: req.family, secondary: req.secondary, failed: true, rejects, seconds: (Date.now() - t0) / 1000 })}\n`);
     return;
@@ -170,13 +177,19 @@ async function main(): Promise<void> {
   // Levels whose every seed failed. A crashed worker is not one: it says nothing about the level.
   const dropped: { index: number; id: unknown; family: unknown; secondary: unknown; rejects: unknown }[] = [];
   const offset = arg("--target-offset", "0")!;
+  const candPath = join(root, "levels", "candidates", `${packId}.jsonl`);
+  mkdirSync(dirname(candPath), { recursive: true });
+  const run = new Date(t0).toISOString();
   await pool(indices, jobs, (i) => runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--target-offset", offset, ...(verbose ? ["--verbose"] : [])]), (i, out) => {
     const r = parseResult(out);
+    const cands = out.split("\n").find((l) => l.startsWith("CANDIDATES "));
+    if (cands) appendFileSync(candPath, (JSON.parse(cands.slice(11)) as object[]).map((c) => JSON.stringify({ run, engine: ENGINE_VERSION, content: CONTENT_VERSION, ...c })).join("\n") + "\n");
     if (!r || r["failed"]) { failed.push({ index: i, rejects: r?.["rejects"] }); if (r) dropped.push({ index: i, id: r["id"], family: r["family"], secondary: r["secondary"] ?? null, rejects: r["rejects"] }); console.log(`  L${i}: FAILED ${JSON.stringify(r?.["rejects"] ?? {})}`); return; }
     const lr = r as unknown as LevelResult;
     results.push(lr);
     console.log(`  L${i} ${lr.onTarget ? "ok " : "off"} D=${lr.D.toFixed(3)} (target ${lr.target}) F=${lr.F.toFixed(3)} ${lr.seconds.toFixed(0)}s`);
   });
+  digestLog(candPath, join(dirname(candPath), "digest"));
   results.sort((a, b) => a.index - b.index);
 
   // pack.json: merge with any levels already in the pack outside this range.
