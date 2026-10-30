@@ -469,7 +469,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
         quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
       }
     }
-    const record = () => { rec.settings = candidateSettings(m, c); rec.quick = quick.map((q) => ({ won: q.won, reason: q.reason, seconds: Math.round(q.goalTicks / 30), hpMin: q.runStats.hpMin, salvage: q.runStats.salvage, kills: q.runStats.kills })); };
+    const record = () => { if (!rec) return; rec.settings = candidateSettings(m, c); rec.quick = quick.map((q) => ({ won: q.won, reason: q.reason, seconds: Math.round(q.goalTicks / 30), hpMin: q.runStats.hpMin, salvage: q.runStats.salvage, kills: q.runStats.kills })); };
     record();
     // R5 #29: every storm must be deadly without the player's help; storms the hauler alone survives last longer.
     if (quick.every((r) => r.won) && m.events.some((e) => e.type === "event.hazard")) {

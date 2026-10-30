@@ -16,9 +16,10 @@ const L1 = withTerrain(level1 as { entities: unknown[] }, [
   { id: "terrain0", kind: "ridge", rect: [285, 480, 18, 90] },
   { id: "terrain1", kind: "chasm", rect: [300, 290, 70, 40] },
 ]);
-// L004: a long ridge across the hostiles' lane.
+// L004: a ridge beside the hostiles' lanes. Generated levels keep lanes clear (generator laneClear): attackers stuck
+// behind terrain across a lane would stay out of reach of leashed guards and drones (R5 #23), and the wave would never end.
 const L4 = withTerrain(level4 as { entities: unknown[] }, [
-  { id: "terrain0", kind: "ridge", rect: [90, 90, 300, 20] },
+  { id: "terrain0", kind: "ridge", rect: [370, 90, 100, 20] },
   { id: "terrain1", kind: "outcrop", rect: [200, 150, 60, 50] },
 ]);
 
@@ -40,7 +41,7 @@ describe("bots and terrain", () => {
     }
   });
 
-  it("the good bot still wins a defend level with a ridge in the hostiles' lane", () => {
+  it("the good bot still wins a defend level with a ridge beside the hostiles' lanes", () => {
     const r = playBot(L4, good, 1);
     expect(r.won, r.reason).toBe(true);
   });
