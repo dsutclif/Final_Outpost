@@ -97,7 +97,9 @@ export class Brain {
   }
 
   private whenHolds(st: State, s: PlanStep): boolean {
-    if (s.when === "injuries") return st.stats.injured > 0;
+    // a guard going down is not an injury, but it needs the med bay (or a medic) just the same (R5 #26)
+    if (s.when === "injuries") return st.stats.injured > 0 || (st.stats.guardsDown ?? 0) > 0;
+    if (s.when === "guards") return st.residents.some((r) => this.cp.roles[r.role]?.behavior === "guard");
     if (s.when === "waiting") return st.residents.some((r) => r.status === "waiting");
     return true;
   }
@@ -113,6 +115,8 @@ export class Brain {
       if (this.stepDone(st, s) || !this.whenHolds(st, s) || this.skip.has(s.pad)) continue;
       const pad = st.pads.find((p) => p.id === s.pad)!;
       if (!pad.visible || pad.locked) continue;
+      // Help for the hurt jumps the defence ladder (R5 #26): a medic or med bay after every tower would never come.
+      if (s.reason === "medical") return { step: s, pad };
       first ??= { step: s, pad };
       if (this.ladderRank(s) < 0) { if (first.step === s) return first; continue; }
       const k = this.ladderKey(st, s, pad);

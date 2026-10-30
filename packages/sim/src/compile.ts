@@ -132,6 +132,10 @@ export interface CompiledRole {
   damage: number;
   rally: boolean;
   sortie: boolean;
+  /** Guards: full health (0 = cannot be hurt). */
+  hp: number;
+  /** Medics: ticks to heal a downed guard in place. */
+  healTicks: number;
 }
 
 export interface CompiledCustomerDef {
@@ -256,6 +260,8 @@ export interface Compiled {
     idleSpeed: number; idleRadiusX: number; idleRadiusY: number; waitingSpeed: number; gateSpeed: number; injuredSpeed: number; selfHealTicks: number;
     arrive: number; workRange: number; coreDeliverRange: number; seekDropRange: number;
   };
+  /** R5 #26: guards stop fighting at downPct of their health; healable = the level has a med bay or a medic (else a downed guard dies). */
+  guards: { downPct: number; healable: boolean };
   waiting: Vec;
   gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
   zones: { blockMargin: number };
@@ -390,6 +396,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       behavior: r.behavior, speed: perTick(r.speed), carry: r.carry ?? 1,
       gatherTicks: ticks(r.gatherInterval ?? 0), deliverTicks: ticks(r.deliverInterval ?? 0),
       attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1, rally: r.rally, sortie: r.sortie,
+      hp: r.hp ?? 0, healTicks: r.healInterval === undefined ? 0 : ticks(r.healInterval),
     };
   }
   const consumers: Record<string, CompiledConsumer> = {};
@@ -562,6 +569,12 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       selfHealTicks: manifest.entities.some((e) => (e.type === "pad.build" && e.build === "struct.medical") || e.type === "struct.medical") ? 0 : ticks(param("residents.selfHealSeconds")),
       arrive: fp(param("residents.arrive")), workRange: fp(param("residents.workRange")), coreDeliverRange: fp(param("residents.coreDeliverRange")),
       seekDropRange: fp(param("residents.seekDropRange")),
+    },
+    guards: {
+      downPct: int("guards.downPct"),
+      healable: manifest.entities.some((e) => (e.type === "pad.build" && e.build === "struct.medical") || e.type === "struct.medical"
+        || (e.type === "pad.hire" && roles[e.role.role]?.behavior === "medic") || ("joins" in e && !!e.joins && roles[e.joins.role]?.behavior === "medic"))
+        || manifest.people.some((p) => roles[p.role]?.behavior === "medic"),
     },
     waiting,
     gate,

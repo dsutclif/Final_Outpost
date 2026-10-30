@@ -135,6 +135,8 @@ export interface ResidentState {
   frost: number;
   /** How the resident joined: in the manifest's people, released from a pod, or admitted at the gate. */
   origin: "start" | "rescue" | "gate";
+  /** Guards only, once first hit: health left (absent = full, the role's hp). */
+  hp?: number;
 }
 
 export interface PadState {
@@ -412,6 +414,11 @@ export interface Stats {
   joined?: number;
   decoysOpened?: number;
   retreats?: number;
+  /** Guards that went down, and guards lost (R5 #26), created on first use. */
+  guardsDown?: number;
+  guardsLost?: number;
+  /** Downed guards a medic healed where they fell. */
+  medicHeals?: number;
   preyKilled: number;
   /** Bites taken from dangerous animals, by the player or a worker. */
   animalHits: number;
