@@ -46,16 +46,22 @@ lib.place("node.material_source", at=(-1.8, -6.5, 0), yaw=70, size=1.1)
 # the crew at work: a hauler picking at the ore pile by the wreckage (-5.5, 1)
 CREW = 1.5  # metres
 PROP_K = CREW / 1.1  # props are fitted to the game's 1.1 m characters (meshy.json)
-w = lib.place("role.supplier", at=(-4.8, 0.75, 0), yaw=-109, height=CREW, rigged=True)
+w = lib.place("role.supplier", at=(-4.8, 1.4, 0), yaw=-60, height=CREW, rigged=True)
 # the pick's sharp end is its file's -x: fitted at the bottom of the swing, pointing at the ground
 STRIKE = 53
-pick = lib.hold(w, "prop.pickaxe", "Heavy_Hammer_Swing", STRIKE, side=(-1, 0, 0), grip=(0, 0.03, 0), k=PROP_K, want=(0, 0, -1))
-strike = lib.bake_cycle(w, "Heavy_Hammer_Swing", STRIKE, LOOP, n=3, recover=12)  # three swings per loop
+pick = lib.hold(w, "prop.pickaxe", "Heavy_Hammer_Swing", STRIKE, side=(-1, 0, 0), grip=(0, 0.03, 0), k=PROP_K * 1.25, want=(0, 0, -1), palm=True)
+lib.brighten(pick, 2.6)  # dark steel on a dark suit vanishes at this distance
+strike = lib.bake_cycle(w, "Heavy_Hammer_Swing", STRIKE, LOOP, n=3, recover=12, grip=55)  # three swings per loop
 
 # a ranger shooting a spiked hopper
-HOPPER = (3.0, 9.0, 0)
+# One hopper per loop: it comes in from off screen under fire, drops, fades, and the next starts as the loop does.
+HOP_FROM, HOP_TO, HOP_Y = 9.5, 3.0, 9.0
+DIES, ROLLED, FADE_FROM, FADE_TO = 130, 146, 150, 178
+def hopper_at(f):
+    u = min(1.0, (f - 1) / (DIES - 1))
+    return Vector((HOP_FROM + (HOP_TO - HOP_FROM) * u, HOP_Y, 0.55))
 r = lib.place("role.hunter", at=(-0.2, 9.7, 0), yaw=103, height=CREW, rigged=True)
-SHOTS = (20, 65, 110, 155)
+SHOTS = (48, 66, 84, 102, 120, 128)
 rifle = lib.hold(r, "prop.rifle_ranger", "Run_and_Shoot", 1 + 0.3 * 21, gun=True, axis=(-1, 0, 0), side=(0, 1, 0), grip=(0.1, 0.05, 0), k=PROP_K)
 # the muzzle: the middle of the model's front end (its file's -x)
 pts = [c.matrix_local @ v.co for c in rifle.children_recursive if c.type == "MESH" for v in c.data.vertices]
@@ -66,23 +72,39 @@ bpy.context.scene.collection.objects.link(muzzle)
 muzzle.parent = rifle
 muzzle.location = sum(tip, Vector()) / len(tip)
 lib.animate(r, "01a14f15", speed=lib.cycles("01a14f15", 2, LOOP))
-h = lib.place("node.prey_dangerous", at=HOPPER, yaw=-80, size=1.2, rigged=True)
-lib.animate(h, "Armature|Unreal Take", speed=lib.cycles("Armature|Unreal Take", 6, LOOP))
-# aim: turn the ranger, then the rifle in the hands, until the barrel points at the hopper
-target = Vector(HOPPER) + Vector((0, 0, 0.55))
+h = lib.place("node.prey_dangerous", at=(HOP_FROM, HOP_Y, 0), yaw=-90, size=1.2, rigged=True)
+HOPS = 5
+hop = lib.animate(h, "Armature|Unreal Take", speed=lib.cycles("Armature|Unreal Take", HOPS, DIES - 1))
+hop.repeat = HOPS
+hop.extrapolation = "HOLD"  # the last hop's pose, for the body to fall from
+lib.settle(h, 1)
+hz = h.location.z
+for f, x, z, roll in ((1, HOP_FROM, hz, 0), (DIES, HOP_TO, hz, 0), (ROLLED, HOP_TO, hz - 0.05, 100), (LOOP, HOP_TO, hz - 0.05, 100)):
+    h.location = (x, HOP_Y, z)
+    h.rotation_euler = (0, math.radians(roll), math.radians(-90))
+    h.keyframe_insert("location", frame=f)
+    h.keyframe_insert("rotation_euler", frame=f)
+for fc in lib.fcurves(h):
+    for kp in fc.keyframe_points:
+        kp.interpolation = "LINEAR"
+for name in h["meshes"]:
+    for m in bpy.data.objects[name].data.materials:
+        b = m.node_tree.nodes["Principled BSDF"].inputs["Alpha"]
+        for link in list(b.links): m.node_tree.links.remove(link)
+        for f, v in ((1, 1), (FADE_FROM, 1), (FADE_TO, 0)):
+            b.default_value = v
+            b.keyframe_insert("default_value", frame=f)
+# aim: turn the ranger toward the middle of the hopper's walk; the rifle follows it shot by shot below
 barrel = lambda: -rifle.matrix_world.to_3x3().col[0].normalized()
-def at_first_shot():
-    sc.frame_set(SHOTS[0])
+def muzzle_at(f):
+    sc.frame_set(f)
     bpy.context.view_layer.update()
     return muzzle.matrix_world.translation.copy()
-to = target - at_first_shot()
+mid = SHOTS[len(SHOTS) // 2]
+to = hopper_at(mid) - muzzle_at(mid)
 b = barrel()
 r.rotation_euler.z += math.atan2(to.y, to.x) - math.atan2(b.y, b.x)
-to = target - at_first_shot()
-p = rifle.matrix_world.translation.copy()
-rifle.matrix_world = Matrix.Translation(p) @ barrel().rotation_difference(to).to_matrix().to_4x4() @ Matrix.Translation(-p) @ rifle.matrix_world
-at_first_shot()
-print("aim error", barrel().angle(target - muzzle.matrix_world.translation))
+lib.settle(w, 1); lib.settle(r, 1)
 
 # the wreck on the plain, a big broken silhouette left of the colony
 lib.place("halcyon_wreck", at=(-40, 85, 0), yaw=35, size=80)
@@ -96,6 +118,14 @@ bpy.context.object.data.materials.append(lib.mat("pulse", "#ffffff", emit="#d8f2
 # the commander, foreground right, looking toward the ridge
 cmd = lib.place("unit.player", at=(-0.1, -9.0, 0), yaw=165, height=CREW, name="commander", rigged=True)
 lib.still(cmd); lib.pose(cmd, lib.STAND)
+lib.settle(cmd, 1)
+# nothing crowding the boots, and a soft dark patch tying each of the crew to the ground
+for o in [o for o in bpy.data.objects if o.name.startswith("Ico") and o.type == "MESH" and o.dimensions.x > 0.05]:
+    if (o.location.xy - cmd.location.xy).length < 1.3:
+        bpy.data.objects.remove(o)
+lib.contact(cmd.location, 0.55)
+lib.contact(w.location, 0.55)
+lib.contact(r.location, 0.55)
 
 lib.camera((-1.6, -14.6, 1.15), (-1.0, 40, 7.2), lens=30)
 
@@ -129,15 +159,21 @@ flash = lib.point((0, 0, 0), "#ffc27a", 0, radius=0.1, name="muzzle_flash")
 tracer.scale = (0, 0, 0)
 tracer.keyframe_insert("scale", frame=1)
 flash.data.keyframe_insert("energy", frame=1)
+first = None
 for f in SHOTS:
-    sc.frame_set(f)
+    a = muzzle_at(f)
+    p = rifle.matrix_world.translation.copy()
+    rifle.matrix_world = Matrix.Translation(p) @ barrel().rotation_difference(hopper_at(f) - a).to_matrix().to_4x4() @ Matrix.Translation(-p) @ rifle.matrix_world
     bpy.context.view_layer.update()
+    first = first or (rifle.location.copy(), rifle.rotation_euler.copy())
+    rifle.keyframe_insert("location", frame=f)
+    rifle.keyframe_insert("rotation_euler", frame=f)
     a = muzzle.matrix_world.translation.copy()
     aim = barrel()
-    print("shot", f, "muzzle", a, "misses the target by", (target - a - aim * (target - a).dot(aim)).length)
+    print("shot", f, "muzzle", a, "misses the hopper by", (hopper_at(f) - a - aim * (hopper_at(f) - a).dot(aim)).length)
     tracer.location = a
     tracer.rotation_euler = aim.to_track_quat("Z", "Y").to_euler()
-    tracer.scale = (1, 1, (target - a).dot(aim))
+    tracer.scale = (1, 1, (hopper_at(f) - a).dot(aim))
     flash.location = a
     for o, path in ((tracer, "location"), (tracer, "rotation_euler"), (tracer, "scale"), (flash, "location")):
         o.keyframe_insert(path, frame=f)
@@ -151,20 +187,24 @@ for o in (tracer, flash, flash.data):
     for fc in lib.fcurves(o):
         for kp in fc.keyframe_points:
             kp.interpolation = "CONSTANT"
+rifle.location, rifle.rotation_euler = first  # back where the loop starts
+for f in (1, LOOP + 1):
+    rifle.keyframe_insert("location", frame=f)
+    rifle.keyframe_insert("rotation_euler", frame=f)
 lib.dust(n=220, x=(-9, 9), y=(-11, 6), z=(0.05, 2.2), loop=LOOP, wind=(2.2, 0.4, 0.15), seed=11)
 sc.render.use_motion_blur = frames
 sc.frame_set(1)
 
-if "--close" in args:  # the crew up close: the pick through one swing, the ranger's aim
+if "--close" in args:  # from the shot's own camera, zoomed: the pick, the commander's feet, the hopper
     cam = bpy.context.scene.camera
-    for f in (1, 28, strike - 3, strike, strike + 6):
-        sc.frame_set(f)
-        cam.location = (-3.0, -2.9, 1.0); lib.aim(cam, (-4.8, 0.8, 0.7))
-        lib.render_still(os.path.join(lib.OUT, "title_close", f"pick_{f:03d}.png"))
-    for f in (1, SHOTS[0], SHOTS[1]):
-        sc.frame_set(f)
-        cam.location = (0.5, 8.0, 1.1); lib.aim(cam, (0.25, 9.6, 1.0))
-        lib.render_still(os.path.join(lib.OUT, "title_close", f"ranger_{f:03d}.png"))
+    def shots(name, look, lens, fs):
+        lib.aim(cam, look)
+        cam.data.lens = lens
+        for f in fs:
+            sc.frame_set(f)
+            lib.render_still(os.path.join(lib.OUT, "title_close", f"{name}_{f:03d}.png"))
+    shots("pick", (-5.1, 1.2, 0.55), 330, (28, strike - 6, strike - 3, strike, strike + 3))
+    shots("feet", (0.2, -9.0, 0.2), 90, (1,))
 elif "--check" in args:  # seam check: frame 181 must equal frame 1
     for f in (1, 40, 100, 181):
         sc.frame_set(f)

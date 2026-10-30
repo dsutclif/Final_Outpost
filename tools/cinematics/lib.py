@@ -2,7 +2,7 @@
 # haze, low sun, reactor glow, camera helpers and render settings. Shots import this and stay
 # data-like: what goes where, and where the camera looks.
 import math, os, bpy
-from mathutils import Vector
+from mathutils import Quaternion, Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
@@ -137,6 +137,62 @@ def animate(root, clip, start=1, speed=1.0, hold=False):
     return strip
 
 
+def settle(root, frame=1):
+    """Stand a rigged character's lowest point on the ground at `frame`, posed as it will be seen."""
+    sc = bpy.context.scene
+    sc.frame_set(frame)
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    low = 1e9
+    for name in root["meshes"]:
+        ev = bpy.data.objects[name].evaluated_get(dg)
+        low = min(low, min((ev.matrix_world @ v.co).z for v in ev.to_mesh().vertices))
+    print("settle", root.name, "was", round(low, 3), "off the ground")
+    root.location.z -= low
+
+
+def brighten(holder, k):
+    """Multiply the base colour of everything under a prop's holder."""
+    for o in holder.children_recursive:
+        if o.type != "MESH":
+            continue
+        for m in o.data.materials:
+            nt = m.node_tree
+            b = nt.nodes["Principled BSDF"].inputs["Base Color"]
+            mul = nt.nodes.new("ShaderNodeVectorMath")
+            mul.operation = "SCALE"
+            mul.inputs["Scale"].default_value = k
+            if b.links:
+                nt.links.new(b.links[0].from_socket, mul.inputs[0])
+            else:
+                mul.inputs[0].default_value = b.default_value[:3]
+            nt.links.new(mul.outputs[0], b)
+
+
+def contact(at, radius, strength=0.6):
+    """A soft dark patch on the ground: the contact shadow a low sun alone doesn't give."""
+    bpy.ops.mesh.primitive_plane_add(size=2, location=(at[0], at[1], 0.004))
+    o = bpy.context.object
+    o.scale = (radius, radius, 1)
+    m = bpy.data.materials.new("contact")
+    m.use_nodes = True
+    nt = m.node_tree
+    b = nt.nodes["Principled BSDF"]
+    b.inputs["Base Color"].default_value = (0.01, 0.007, 0.005, 1)
+    b.inputs["Roughness"].default_value = 1
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    grad = nt.nodes.new("ShaderNodeTexGradient"); grad.gradient_type = "SPHERICAL"
+    mr = nt.nodes.new("ShaderNodeMapRange")
+    mr.interpolation_type = "SMOOTHSTEP"
+    mr.inputs["To Max"].default_value = strength
+    nt.links.new(tc.outputs["Object"], grad.inputs["Vector"])
+    nt.links.new(grad.outputs["Fac"], mr.inputs["Value"])
+    nt.links.new(mr.outputs["Result"], b.inputs["Alpha"])
+    o.data.materials.append(m)
+    o.visible_shadow = False
+    return o
+
+
 def still(root):
     """No clip: hold the rig in its rest pose (then shape it with pose())."""
     arm = bpy.data.objects.get(root["armature"])
@@ -173,9 +229,10 @@ def cycles(clip, n, loop):
     return (act.frame_range[1] - act.frame_range[0]) * n / loop
 
 
-def bake_cycle(root, clip, end, loop, n, recover):
+def bake_cycle(root, clip, end, loop, n, recover, grip=0.0):
     """Key n plays of a clip that doesn't close on itself (the swing ends far from where it
-    starts): frames 0..end played once per loop/n, the last `recover` easing back to the start."""
+    starts): frames 0..end played once per loop/n, the last `recover` easing back to the start.
+    grip: degrees to curl the fingers, for a clip made with open hands."""
     arm = bpy.data.objects[root["armature"]]
     act = next(a for a in bpy.data.actions if a.name.startswith(clip))
     ad = arm.animation_data or arm.animation_data_create()
@@ -187,6 +244,12 @@ def bake_cycle(root, clip, end, loop, n, recover):
     for f in range(end + 1):
         sc.frame_set(f)
         snaps.append({pb.name: (pb.location.copy(), pb.rotation_quaternion.copy()) for pb in arm.pose.bones})
+    if grip:
+        curl = Quaternion((1, 0, 0), math.radians(grip))
+        for snap in snaps:
+            for name, (loc, rot) in snap.items():
+                if "Hand" in name and any(d in name for d in ("Index", "Middle", "Ring", "Pinky")):
+                    snap[name] = (loc, rot @ curl)
     ad.action = None
     def mix(a, b, u):
         return {k: (a[k][0].lerp(b[k][0], u), a[k][1].slerp(b[k][1], u)) for k in a}
@@ -207,11 +270,12 @@ def bake_cycle(root, clip, end, loop, n, recover):
     return 1 + play  # the first strike's scene frame
 
 
-def hold(root, prop, clip, frame, gun=False, axis=(0, 1, 0), side=(0, 1, 0), grip=(0, 0, 0), k=1.0, want=None):
+def hold(root, prop, clip, frame, gun=False, axis=(0, 1, 0), side=(0, 1, 0), grip=(0, 0, 0), k=1.0, want=None, palm=False):
     """Put a prop in a rigged character's right hand the way the game does (render-3d rigged.ts
     calibrate): lined up between the hands at `frame` of `clip`. axis, side and grip are in the
     prop file's glTF coordinates, as in meshy.json; `side` turns toward world direction `want` if
-    given. Call before animating. Returns the prop's holder."""
+    given; palm lines it up through the palms rather than the wrists. Call before animating. Returns
+    the prop's holder."""
     g2b = lambda v: Vector((v[0], -v[2], v[1]))
     sc = bpy.context.scene
     arm = bpy.data.objects[root["armature"]]
@@ -223,8 +287,9 @@ def hold(root, prop, clip, frame, gun=False, axis=(0, 1, 0), side=(0, 1, 0), gri
     sc.frame_set(int(frame))
     bpy.context.view_layer.update()
     rh = arm.pose.bones["mixamorig:RightHand"]
-    R = arm.matrix_world @ rh.head
-    L = arm.matrix_world @ arm.pose.bones["mixamorig:LeftHand"].head
+    bones = ("mixamorig:RightHandMiddle1", "mixamorig:LeftHandMiddle1") if palm else ("mixamorig:RightHand", "mixamorig:LeftHand")
+    R = arm.matrix_world @ arm.pose.bones[bones[0]].head
+    L = arm.matrix_world @ arm.pose.bones[bones[1]].head
     d = ((L - R) if gun else (R - L)).normalized()
     want = Vector(want) if want else Vector((0, 0, 1)) if gun else root.matrix_world.to_3x3().normalized() @ Vector((0, -1, 0))
     want = (want - d * want.dot(d)).normalized()
