@@ -1,0 +1,266 @@
+{
+  "id": "s1-L056",
+  "seed": 530782890,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-sw",
+      "fuel-ne",
+      "shop-e",
+      "landmark-se"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    262,
+    602
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        262,
+        510
+      ],
+      "params": {
+        "fuel": 9,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        186,
+        525
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        185,
+        469
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        232,
+        427
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        166,
+        495
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        187,
+        439
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        245,
+        399
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        200,
+        404
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          127,
+          360
+        ],
+        [
+          262,
+          360
+        ],
+        [
+          397,
+          360
+        ],
+        [
+          397,
+          510
+        ],
+        [
+          397,
+          660
+        ],
+        [
+          262,
+          660
+        ],
+        [
+          127,
+          660
+        ],
+        [
+          127,
+          510
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        41,
+        295
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        408,
+        270
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        316,
+        246
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        371,
+        107
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        259,
+        112
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        58,
+        646
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        152,
+        144
+      ]
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 1,
+    "core.burn": 2.1,
+    "housing.base": 5,
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 80
+  },
+  "goal": {
+    "type": "crates",
+    "n": 4
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "crates",
+      "params": {
+        "n": 4
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 69
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "tow_full_trip",
+      "params": {
+        "n": 3
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Stasis Pods and Cargo",
+      "goal": "crates",
+      "tips": [
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.458,
+    "fun": 0.882,
+    "botMargin": 0.471,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}
