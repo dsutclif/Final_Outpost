@@ -803,7 +803,7 @@ export class App {
   /**
    * The level intro: its goals one at a time, each as a large icon with its full sentence while its
    * place in the HUD is outlined (Doug, 2026-10-25). A tap shows the next; after the last, play
-   * starts. The first card also names the level and carries the mission tips.
+   * starts. Each tap first slides the icon into that slot (R5 #24). The first card also names the level and carries the mission tips.
    */
   private renderIntro(t: { title: string; goal: string; tips: string[] }): void {
     const ov = this.el.ov["intro"]!, s = this.skin, sess = this.session!, meta = sess.meta;
@@ -816,13 +816,47 @@ export class App {
     const tips = i === 0 && t.tips.length ? `<ul class="itips">${t.tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${meta.index === 0 ? `<p class="how">${esc(uiText(s, "howTo"))}</p>` : ""}` : "";
     ov.innerHTML = `<div class="gintro">${head}<div class="gicon">${step.icon}</div><p class="gsay">${esc(step.say)}</p>${tips}
       <p class="gtap"><span class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</span>${esc(uiText(s, last ? "introPlay" : "introNext"))}</p></div>`;
-    ov.onclick = () => {
+    const advance = (): void => {
       if (!this.session || this.screen !== "intro") return;
       if (!last) { this.introStep = i + 1; this.renderIntro(t); return; }
       this.introStep = steps.length;
       this.startOverview(this.session);
       this.show("playing");
     };
+    this.updateHud(sess); // the card's slot must be there at once: its icon flies to it
+    let skipSlide: (() => void) | null = null;
+    ov.onclick = () => {
+      if (skipSlide) { skipSlide(); return; } // a tap during the slide goes straight on
+      skipSlide = this.slideGoalIcon(ov, i, advance);
+    };
+  }
+
+  /** A goal card's icon flies to its slot in the HUD, then `done` runs. Returns a call that ends it early (null: no slide, already done). */
+  private slideGoalIcon(ov: HTMLElement, slot: number, done: () => void): (() => void) | null {
+    const icon = ov.querySelector<HTMLElement>(".gicon");
+    const target = this.el.goals.children[slot];
+    const still = ov.ownerDocument.defaultView?.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (!icon || !target || still || typeof icon.animate !== "function") { done(); return null; }
+    const from = icon.getBoundingClientRect(), to = target.getBoundingClientRect();
+    if (!from.width || !to.width) { done(); return null; }
+    const fly = icon.cloneNode(true) as HTMLElement;
+    fly.classList.add("gfly");
+    Object.assign(fly.style, { left: `${from.left}px`, top: `${from.top}px`, width: `${from.width}px`, height: `${from.height}px` });
+    this.el.app.append(fly);
+    icon.style.visibility = "hidden";
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2), dy = to.top + to.height / 2 - (from.top + from.height / 2);
+    const a = fly.animate([{ transform: "none" }, { transform: `translate(${dx}px, ${dy}px) scale(${to.width / from.width})` }],
+      { duration: 420, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" });
+    let over = false;
+    const end = (): void => {
+      if (over) return;
+      over = true;
+      a.cancel();
+      fly.remove();
+      done();
+    };
+    a.onfinish = end;
+    return end;
   }
 
   /** The menu under the level name: the goals in words with their state, all levels, resume. */

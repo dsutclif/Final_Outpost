@@ -426,7 +426,7 @@ export class GoalHud {
     const doc = this.el.goals.ownerDocument;
     tokens.forEach((t, i) => {
       const hidden = i >= slots;
-      const key = hidden ? "hidden" : JSON.stringify([t.inner ?? "", t.beside ?? "", t.state, t.fill !== undefined ? q(t.fill) : null, t.ring ? q(t.ring.k) : null, t.pie !== undefined ? q(t.pie) : null, t.pips, t.warn, t.tick, i === next]);
+      const key = hidden ? (i === next ? "hidden next" : "hidden") : JSON.stringify([t.inner ?? "", t.beside ?? "", t.state, t.fill !== undefined ? q(t.fill) : null, t.ring ? q(t.ring.k) : null, t.pie !== undefined ? q(t.pie) : null, t.pips, t.warn, t.tick, i === next]);
       let b = this.el.goals.children[i] as HTMLButtonElement | undefined;
       if (!b) {
         b = doc.createElement("button");
@@ -444,7 +444,7 @@ export class GoalHud {
       b.className = `gdisc ${t.state}${i === next ? " next" : ""}${b.classList.contains("alert") ? " alert" : ""}`;
       b.innerHTML = i === next && hidden ? "" : goalIcon(t, 50) + (t.state === "open" && t.inner !== undefined && t.glyph !== "stopwatch" ? `<span class="gnum${t.pips ? " low" : ""}">${t.inner}${t.beside ? `<small>/${t.beside}</small>` : ""}</span>` : "");
       // a goal just won or lost: a short flash
-      if (was && was !== "hidden" && JSON.parse(was)[0] !== t.state) { b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
+      if (was && !was.startsWith("hidden") && JSON.parse(was)[0] !== t.state) { b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
     });
     while (this.el.goals.children.length > tokens.length) this.el.goals.lastElementChild!.remove();
     if (this.open !== null) this.paintBubble();

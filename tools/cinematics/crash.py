@@ -13,7 +13,8 @@ import math, os, shutil, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
 from mathutils import Matrix, Vector
-import lib, pod_exit
+import cryo_pod, lib, pod_exit
+from retarget import P as retarget_P
 
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 quick = "--quick" in args
@@ -154,167 +155,126 @@ def shot2():
 # four sealed: bays five to eight). The deck, the pods and the drop to the sand are fitted to the
 # commander's motion capture (pod_exit.perform), which is built in its own frame (deck top at z 0,
 # the commander lying along -X at the origin) and turned onto the plain by the `stage` empty.
-CUT = 0.55            # the pod opens at this fraction of its height
 PRE = 45              # frames the commander lies still while the seal blows and the lid swings open
-POD_AT = Vector((8.4, -7.6))  # the commander's pod on the plain
-WALK = -90.0          # degrees: the way they walk out, over the plain away from the hull
 POD_ON = 166          # crash_open frame where the pod shot starts
-
-
-def model_pod(name, stage, centre, long_along, size_long, size_short, rim_h):
-    """A pod model sunk into the deck: centred on `centre` (stage frame), its long axis along
-    `long_along` (a stage axis), its CUT line at rim_h. Returns the root and its scaled height."""
-    root = lib.place("capture.recruit_container", at=(0, 0, 0), name=name)
-    bpy.context.view_layer.update()
-    lo, hi = Vector((1e9,) * 3), Vector((-1e9,) * 3)
-    for o in root.children_recursive:
-        if o.type == "MESH":
-            for c in o.bound_box:
-                w = o.matrix_world @ Vector(c)
-                lo = Vector(map(min, lo, w)); hi = Vector(map(max, hi, w))
-    ext = hi - lo
-    long_x = ext.x >= ext.y
-    k_long = size_long / (ext.x if long_x else ext.y)
-    k_short = size_short / (ext.y if long_x else ext.x)
-    root.scale = (k_long, k_short, k_long) if long_x else (k_short, k_long, k_long)
-    root.rotation_euler = (0, 0, math.atan2(long_along.y, long_along.x))
-    height = ext.z * k_long
-    root.location = (centre.x, centre.y, rim_h - CUT * height)
-    root.parent = stage
-    return root, height
-
-
-def split_lid(root):
-    """Cut a pod into its tub and lid at CUT of its height. Returns the lid objects."""
-    import bmesh
-    lids = []
-    for name in root["meshes"]:
-        tub = bpy.data.objects[name]
-        lid = tub.copy()
-        lid.data = tub.data.copy()
-        bpy.context.scene.collection.objects.link(lid)
-        zs = [v.co.z for v in tub.data.vertices]
-        cut = min(zs) + (max(zs) - min(zs)) * CUT
-        for ob, clear_outer in ((tub, True), (lid, False)):
-            bm = bmesh.new()
-            bm.from_mesh(ob.data)
-            bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(0, 0, cut),
-                                   plane_no=(0, 0, 1), clear_outer=clear_outer, clear_inner=not clear_outer)
-            bm.to_mesh(ob.data)
-            bm.free()
-        lids.append(lid)
-    return lids
+POD_SINK = 0.07       # metres the pod's side walls sit below the rim height the step-over clears
+POD_BACK = 0.0        # metres the pod sits back from the fitted rim (any further and the boots meet the inner wall)
+# The first render's set and path (crash_v1_set.json, from the 5cbc1b7 version): the stage is
+# placed so everything from the limp on lands exactly where it did then, on the same deck plate, so
+# frames with no pod in view keep their first render.
+FIRST = os.path.join(lib.HERE, "crash_v1_set.json")
 
 
 def crash_site():
     """The wreck, the deck plate, the pods and the commander keyed with the pod exit. Returns the
     pieces the shots need (all positions in the world)."""
+    import json
     sc = bpy.context.scene
     lib.place("halcyon_wreck_site", exact=True, name="wreck")
     cmd = lib.place("unit.player", at=(0, 0, 0), height=1.8, name="commander")
     lib.still(cmd)
+    pod_exit.STEP_TURN = 90  # stand, turn to the pod's long side, step out over it (the end caps are tall)
     P = pod_exit.perform(cmd, pre=PRE)
     for o in P["walls"] + [P["deck"], P["sand"]]:
         bpy.data.objects.remove(o)
     TL, N, starts = P["TL"], P["N"], P["starts"]
-    ax, lat, WT, RIM = P["ax"], P["lat"], P["WALL_T"], P["RIM_H"]
-    a0, a1 = P["back"] - WT, P["front"] + WT          # the tub's outside, along the step
-    l0, l1 = P["lat0"] - WT, P["lat1"] + WT           # and across it
-    centre = ax * ((a0 + a1) / 2) + lat * ((l0 + l1) / 2)
-    width, length = a1 - a0, l1 - l0
-    # turn the motion's frame onto the plain: the whole walk heads WALK, the pod sits at POD_AT
-    travel = TL[-1][3] - TL[0][3]
-    yaw = math.radians(WALK) - math.atan2(travel.y, travel.x)
+    ax, lat, RIM = P["ax"], P["lat"], P["RIM_H"]
+    v1 = json.load(open(FIRST))
+    # turn the motion's frame onto the plain: fit the limp, drop and look onto the first render's path
+    rows = range(starts[2], N)
+    src = [Vector((TL[r][3].x, TL[r][3].y)) for r in rows]
+    dst = [Vector(v1["pelvis"][r + PRE][:2]) for r in rows]
+    cs, cd = sum(src, Vector((0, 0))) / len(src), sum(dst, Vector((0, 0))) / len(dst)
+    yaw = math.atan2(sum((s - cs).x * (d - cd).y - (s - cs).y * (d - cd).x for s, d in zip(src, dst)),
+                     sum((s - cs).dot(d - cd) for s, d in zip(src, dst)))
     stage = bpy.data.objects.new("stage", None)
     sc.collection.objects.link(stage)
     stage.rotation_euler = (0, 0, yaw)
-    c_w = Matrix.Rotation(yaw, 3, "Z") @ Vector((centre.x, centre.y, 0))
-    stage.location = (POD_AT.x - c_w.x, POD_AT.y - c_w.y, P["DROP_H"])
+    c_w = Matrix.Rotation(yaw, 2) @ cs
+    stage.location = (cd.x - c_w.x, cd.y - c_w.y, P["DROP_H"])
     cmd.parent = stage
     bpy.context.view_layer.update()
     W = lambda v: stage.matrix_world @ Vector(v)
     Wd = lambda v: (stage.matrix_world.to_3x3() @ Vector(v)).normalized()
+    err = max((W(TL[r][3]) - Vector(v1["pelvis"][r + PRE])).length for r in rows)
+    print(f"STAGE fit to the first render: worst pelvis offset {err * 100:.1f} cm")
 
-    # the commander's pod (cut open, lid on a hinge along its back rim) and four sealed ones beside it
+    # Doug's stasis pod (cryo_pod.py), scaled to fit the commander lying down and sunk to its cradle;
+    # its open (+y) side faces the step-out, its cavity's front wall stands where the capture's step
+    # clears the rim, and its glass hinges along the back long edge. Four sealed copies sit behind it.
+    width, length = P["front"] - P["back"], P["lat1"] - P["lat0"]
     long_axis = lat if length >= width else ax
-    pod, pod_h = model_pod("pod", stage, centre, long_axis, max(width, length), min(width, length), RIM)
-    lids = split_lid(pod)
-    hinge = bpy.data.objects.new("hinge", None)
-    sc.collection.objects.link(hinge)
-    hinge.parent = stage
-    hinge.location = ax * a0 + lat * ((l0 + l1) / 2) + Vector((0, 0, RIM))
-    bpy.context.view_layer.update()
-    for lid in lids:
-        mw = lid.matrix_world.copy()
-        lid.parent = hinge
-        lid.matrix_world = mw
-    # the lid swings back over the hull side: about the hinge line, whichever way lifts its far edge back
-    probe = ax * (width / 2) + Vector((0, 0, 0.2))
-    turn = 1 if (Matrix.Rotation(math.radians(110), 3, lat) @ probe).dot(ax) < 0 else -1
-    axis_i = 0 if abs(lat.x) > 0.5 else 1
-    lid_sign = turn * (1 if (lat.x if axis_i == 0 else lat.y) > 0 else -1)
+    across = ax if long_axis is lat else lat
+    # the step clears the capture's 8 cm test wall; the real side wall is thicker, so it sits lower still
+    pod, hinge, glass, dims = cryo_pod.build("pod", max(width, length), min(width, length), RIM - POD_SINK)
+    x_dir = long_axis if long_axis.cross(across).z > 0 else -long_axis
+    mid_long = (P["lat0"] + P["lat1"]) / 2 if long_axis is lat else (P["back"] + P["front"]) / 2
+    pod_centre = long_axis * mid_long + across * (P["front"] - dims["half_wid"] - POD_BACK)
+    pod.parent = stage
+    pod.location = pod_centre
+    pod.rotation_euler = (0, 0, math.atan2(x_dir.y, x_dir.x))
+    lid_at = lambda deg: (math.radians(deg), 0, 0)
+    hinge.rotation_euler = lid_at(10)  # cracked open from the first frame
+    plo, phi = Vector(map(min, *[v.co for v in pod.data.vertices])), Vector(map(max, *[v.co for v in pod.data.vertices]))
+    s_long = 1 if Wd(long_axis).x > 0 else -1  # the second column of pods toward the hull break (+x)
+    step_a, step_l = (phi.y - plo.y) + 0.4, (phi.x - plo.x) + 0.45
+    sealed_at = [pod_centre - across * (step_a * i) + long_axis * (s_long * step_l * j) for i, j in ((0, 1), (1, 0), (1, 1), (1, -1))]
+    pods = [pod, glass]
+    for i, c in enumerate(sealed_at):
+        p2 = pod.copy()
+        sc.collection.objects.link(p2)
+        p2.name = f"bay{5 + i}"
+        p2.parent, p2.location = stage, c
+        for ch in pod.children:
+            c2 = ch.copy()
+            sc.collection.objects.link(c2)
+            c2.parent = p2
+            if ch is hinge:
+                c2.rotation_euler = lid_at(0)
+                g2 = glass.copy()
+                sc.collection.objects.link(g2)
+                g2.parent = c2
+                pods.append(g2)
+        pods.append(p2)
 
-    def lid_at(deg):
-        e = [0.0, 0.0, 0.0]
-        e[axis_i] = math.radians(deg) * lid_sign
-        return tuple(e)
-    hinge.rotation_euler = lid_at(0)
-    bpy.ops.mesh.primitive_cube_add(size=1)
-    pad = bpy.context.object
-    pad.parent = stage
-    pad.location = centre + Vector((0, 0, 0.0015))
-    pad.rotation_euler = (0, 0, math.atan2(long_axis.y, long_axis.x))
-    pad.scale = (max(width, length) - 2.2 * WT, min(width, length) - 2.2 * WT, 0.003)
-    pad.data.materials.append(lib.mat("padding", "#2b2f33", rough=0.8))
-    # sealed pods: one alongside (end to end) toward the hull break, three in the row behind
-    s_lat = 1 if Wd(lat).x > 0 else -1
-    step_a, step_l = width + 0.45, length + 0.5
-    sealed = [centre + lat * (s_lat * step_l)] + [centre - ax * step_a + lat * (s_lat * j * step_l) for j in (0, 1, 2)]
-    for i, c in enumerate(sealed):
-        model_pod(f"bay{5 + i}", stage, c, long_axis, max(width, length), min(width, length), RIM)
-
-    # the deck plate: from behind the pods to the takeoff edge, wide enough for everything on it
-    u = P["jump_dir"].copy(); u.z = 0; u.normalize()
-    v = Vector((-u.y, u.x, 0))
-    pts = [r[3] for r in TL[:starts[3]]]
-    for c in [centre] + sealed:
-        for sa in (-1, 1):
-            for sl in (-1, 1):
-                pts.append(c + ax * (sa * width / 2) + lat * (sl * length / 2))
-    us, vs = [p.dot(u) for p in pts], [p.dot(v) for p in pts]
-    u0, u1 = min(us) - 1.4, P["edge_d"]
-    v0, v1 = min(vs) - 1.6, max(vs) + 1.6
-    D = P["DROP_H"]
+    # the deck plate, its hazard stripe and the debris below its edge, as in the first render
+    M = lambda name: Matrix(v1["objs"][name])
     bpy.ops.mesh.primitive_cube_add(size=1)
     deck = bpy.context.object
     deck.name = "deck"
-    deck.parent = stage
-    deck.location = u * ((u0 + u1) / 2) + v * ((v0 + v1) / 2) + Vector((0, 0, -D / 2))
-    deck.rotation_euler = (0, 0, math.atan2(u.y, u.x))
-    deck.scale = (u1 - u0, v1 - v0, D)
+    deck.matrix_world = M("deck")
     deck.data.materials.append(panel_steel())
     bpy.ops.mesh.primitive_cube_add(size=1)
     stripe = bpy.context.object
-    stripe.parent = stage
-    stripe.location = u * (u1 - 0.09) + v * ((v0 + v1) / 2) + Vector((0, 0, 0.001))
-    stripe.rotation_euler = deck.rotation_euler
-    stripe.scale = (0.12, v1 - v0, 0.004)
+    stripe.matrix_world = M("Cube.001")
     stripe.data.materials.append(lib.mat("hazard", "#c8a23a", rough=0.6))
+    for name in ("decor.ship_scrap.glb", "decor.ship_scrap.glb.001"):
+        lib.place("decor.ship_scrap", size=1.6).matrix_world = M(name)
     bpy.context.view_layer.update()
-
-    end = W(TL[-1][3]); end.z = 0
-    edge_mid = W(u * u1 + v * ((v0 + v1) / 2)); edge_mid.z = 0
-    U, V = Wd(u), Wd(v)
-    for dv, yaw_s in ((-0.45, 20), (0.42, -35)):  # debris at the foot of the plate, clear of the landing
-        p = edge_mid + U * 1.2 + V * ((v1 - v0) * dv)
-        lib.place("decor.ship_scrap", at=(p.x, p.y, 0), yaw=yaw_s, size=1.6)
+    inv = deck.matrix_world.inverted()
+    corners = [inv @ W(c + x_dir * sx + x_dir.cross(Vector((0, 0, -1))) * sy)
+               for c in [pod_centre] + sealed_at for sx in (plo.x, phi.x) for sy in (plo.y, phi.y)]
+    over = [q for q in corners if abs(q.x) > 0.5 or abs(q.y) > 0.5]
+    print(f"DECK pod corners off the plate: {len(over)}")
+    if over:  # a second plate under all the pods, its top a hair lower, where they overhang the first
+        s = deck.matrix_world.to_scale()
+        mx, my = 0.4 / s.x, 0.4 / s.y
+        x0, x1 = min(q.x for q in corners) - mx, min(max(q.x for q in corners) + mx, 0.5 - 1.5 / s.x)
+        y0, y1 = min(q.y for q in corners) - my, max(q.y for q in corners) + my
+        bpy.ops.mesh.primitive_cube_add(size=1)
+        ext = bpy.context.object
+        ext.name = "deck_ext"
+        ext.matrix_world = deck.matrix_world @ Matrix.Translation(((x0 + x1) / 2, (y0 + y1) / 2, -0.002 / s.z)) @ Matrix.Diagonal((x1 - x0, y1 - y0, 1, 1))
+        ext.data.materials.append(deck.data.materials[0])
+        pods.append(ext)
+    end, U = Vector(v1["end"]), Vector(v1["U"])
     lib.rocks(n=160, x=(-6, 26), y=(-21, -9), size=(0.04, 0.22), seed=17)
     for o in bpy.data.objects:  # no stone under the landing or the look-around
         if o.name.startswith("rock") and (Vector((o.location.x, o.location.y, 0)) - end).length < 1.6:
             o.hide_render = True
     pelvis = [W(TL[min(N - 1, max(0, f - 1 - PRE))][3]) for f in range(1, N + PRE + 1)]
-    return dict(P=P, cmd=cmd, stage=stage, W=W, Wd=Wd, hinge=hinge, lid_at=lid_at, rim=RIM, pod=W(centre),
-                end=end, U=U, ax=Wd(ax), lat=Wd(lat), pelvis=pelvis, starts=starts, N=N)
+    return dict(P=P, cmd=cmd, stage=stage, W=W, Wd=Wd, hinge=hinge, lid_at=lid_at, rim=RIM, pod=W(pod_centre), pods=pods,
+                end=end, U=U, ax=Wd(across), lat=Wd(long_axis), pelvis=pelvis, starts=starts, N=N)
 
 
 def follower(pelvis, k=12, name="follow"):
@@ -335,6 +295,7 @@ def shot3():
     S = crash_site()
     for n in S["cmd"]["meshes"]:  # still sealed in the pod
         bpy.data.objects[n].hide_render = True
+    S["hinge"].rotation_euler = S["lid_at"](0)  # still sealed
     lib.point((12, -1.5, 3.2), "#ff3424", 4000, radius=0.6, name="emergency")
     lib.dust(n=260, x=(-20, 40), y=(-45, -10), z=(0, 6), loop=60, wind=(6, 1, 0.2), seed=41, color="#c9b393")
     cam = lib.camera((48, -52, 9), (12, -2, 3), lens=30)
@@ -358,7 +319,18 @@ def shot4():
     # the seal blows: a cold flash, steam, the lid swings back on its hinge
     seal = lib.point((pod.x, pod.y, pod.z + rim + 0.4), "#cfe6ff", 0, radius=0.5, name="seal")
     key(seal.data, "energy", [(4, 0), (6, 2600), (30, 250), (90, 0)])
-    key(S["hinge"], "rotation_euler", [(7, S["lid_at"](0)), (11, S["lid_at"](8)), (30, S["lid_at"](112))])
+    # the glass: cracked from the first frame, a jolt as the seal blows, then it swings fully open
+    # while the commander sits up, finishing before their head reaches its old closed height
+    arm, head_z = S["P"]["arm"], []
+    head = arm.pose.bones[retarget_P + "Head"]
+    for r in range(st[1]):
+        sc.frame_set(F(r))
+        head_z.append((arm.matrix_world @ head.head).z - pod.z)
+    r_up = next((r for r, z in enumerate(head_z) if z > 0.5), st[1] - 1)
+    f_open = max(16, F(r_up) - 40)
+    key(S["hinge"], "rotation_euler", [(1, S["lid_at"](10)), (6, S["lid_at"](10)), (8, S["lid_at"](16)), (f_open, S["lid_at"](16)),
+                                        (F(r_up) - 6, S["lid_at"](118))])
+    print(f"LID opens frames {f_open}..{F(r_up) - 6} (head up at {F(r_up)})")
     for i, (dx, dy, r) in enumerate(((0, 0.3, 0.6), (-0.3, -0.5, 0.5), (0.25, 0.8, 0.55), (0, -0.2, 0.75))):
         s, d = blob(pod + S["lat"] * dy + S["ax"] * dx + Vector((0, 0, rim + 0.25)), 1, "#e8eef2", 0.0, f"steam{i}")
         key(s, "scale", [(6 + i * 2, Vector((r, r, r * 0.7))), (50, Vector((r * 2.6, r * 2.6, r * 2.8)))])
@@ -399,7 +371,7 @@ def shot4():
             cam.data.dof.aperture_fstop = 2.8
         return cam
     # 1 close on the pod, from its open side: the seal, the lid, sitting up
-    c1 = tracked("podcam", pod + A * 2.4 + lat_out * 1.3 + Vector((0, 0, 1.45)), 32, dof=True)
+    c1 = tracked("podcam", pod + A * 3.3 + lat_out * 1.7 + Vector((0, 0, 1.75)), 32, dof=True)
     # 2 low in front: standing, the step over the rim, the first limping steps toward camera
     c2 = tracked("standcam", pod + A * 4.6 + lat_out * 1.6 + Vector((0, 0, 0.75)), 30)
     # 3 alongside the limp, riding with it
@@ -436,7 +408,8 @@ def shot4():
     for cam, f0, _ in edit:
         m = sc.timeline_markers.new(cam.name, frame=f0)
         m.camera = cam
-    return edit
+    S["edit"] = edit
+    return S
 
 
 def dawn():
@@ -510,32 +483,78 @@ def build(n):
     if quick:
         sc.eevee.taa_render_samples = 12
     lib.bloom(threshold=1.0, size=7)
-    edit = {1: shot1, 2: shot2, 3: shot3, 4: shot4}[n]()
+    S = {1: shot1, 2: shot2, 3: shot3, 4: shot4}[n]()
     sc.render.use_motion_blur = not quick
-    return sc, edit
+    return sc, S
 
 
 for n in ([only] if only else SHOTS):
-    sc, edit = build(n)
+    sc, S = build(n)
     if n == 4:
-        if "--check" in args:  # first, middle and last frame of each cut
+        edit = S["edit"]
+        last = edit[-1][2]
+        if "--check" in args:  # first, middle and last frame of each cut, and the body against the pod and glass
+            body = S["P"]["body"]
+            hits = []
+            for f in range(1, S["edit"][2][1], 2):
+                sc.frame_set(f)
+                spots = []
+                k = cryo_pod.collisions(body, S["pods"][:2], S["pod"].z, spots)
+                if k:
+                    hits.append(f"{f}:{k}")
+                    inv = S["pods"][0].matrix_world.inverted()
+                    loc = [inv @ c for _, c in spots]
+                    mid = sum(loc, Vector()) / len(loc)
+                    print(f"  f{f}: {spots[0][0]} around pod-frame ({mid.x:.2f}, {mid.y:.2f}, {mid.z:.2f}), z {min(q.z for q in loc):.2f}..{max(q.z for q in loc):.2f}")
+            print("POD HITS", len(hits), " ".join(hits))  # boot soles brushing the outer flank at deck level are expected
+            if "--close" in args:  # side-on stills along the pod's long axis at the given frames
+                sc.timeline_markers.clear()
+                for k, side in enumerate((S["lat"], -S["lat"])):
+                    cam = lib.camera(S["pod"] + side * 2.2 + S["ax"] * 0.5 + Vector((0, 0, 0.35)), S["pod"] + S["ax"] * 0.5 + Vector((0, 0, 0.3)), lens=35, name=f"close{k}")
+                    sc.camera = cam
+                    for f in (int(x) for x in args[args.index("--close") + 1].split(",")):
+                        sc.frame_set(f)
+                        lib.render_still(os.path.join(lib.OUT, f"podclose_{f:03d}_{k}.png"))
+                continue
             for cam, f0, f1 in edit:
                 sc.camera = cam
                 for f in (f0, (f0 + f1) // 2, f1):
                     sc.frame_set(f)
                     lib.render_still(os.path.join(lib.OUT, f"crash_4_{f:03d}.png"))
             continue
-        # render the pod sequence in its own numbering, then append it to crash_open after shot 3
         pod_dir = os.path.join(lib.OUT, "crash_pod")
+        if "--pods-only" in args:
+            # redo only the frames where a pod could be in view (its box inside the camera frame), keeping the rest
+            from bpy_extras.object_utils import world_to_camera_view
+            redo = []
+            for f in range(1, last + 1):
+                sc.frame_set(f)
+                cam = sc.camera
+                for o in S["pods"]:
+                    pts = [world_to_camera_view(sc, cam, o.matrix_world @ Vector(c)) for c in o.bound_box]
+                    xs, ys = [p.x for p in pts], [p.y for p in pts]
+                    if max(p.z for p in pts) > 0 and max(xs) > -0.05 and min(xs) < 1.05 and max(ys) > -0.05 and min(ys) < 1.05:
+                        redo.append(f)
+                        break
+            for f in redo:
+                p = os.path.join(pod_dir, f"f_{f:04d}.png")
+                if os.path.exists(p): os.remove(p)
+            print("POD FRAMES", len(redo), "of", last)
+        # render the pod sequence in its own numbering, then append it to crash_open after shot 3
         sc.render.use_overwrite = False  # a resumed render skips the frames already on disk
-        lib.render_frames(pod_dir, 1, edit[-1][2])
+        # --range A,B renders only those frames: long sessions corrupt frames on this GPU, so a driver
+        # script runs short ones; the sequence is appended once every frame exists
+        a, b = (int(x) for x in args[args.index("--range") + 1].split(",")) if "--range" in args else (1, last)
+        lib.render_frames(pod_dir, a, min(b, last))
+        if any(not os.path.exists(os.path.join(pod_dir, f"f_{f:04d}.png")) for f in range(1, last + 1)):
+            continue
         os.makedirs(FOLDER, exist_ok=True)
         for f in os.listdir(FOLDER):
             if f.startswith("f_") and int(f[2:6]) >= POD_ON:
                 os.remove(os.path.join(FOLDER, f))
-        for f in range(1, edit[-1][2] + 1):
+        for f in range(1, last + 1):
             shutil.copy(os.path.join(pod_dir, f"f_{f:04d}.png"), os.path.join(FOLDER, f"f_{POD_ON - 1 + f:04d}.png"))
-        print("crash_open frames", POD_ON - 1 + edit[-1][2])
+        print("crash_open frames", POD_ON - 1 + last)
         continue
     f0, f1 = SHOTS[n]
     if "--check" in args:  # three frames per shot

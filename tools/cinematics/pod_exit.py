@@ -16,6 +16,8 @@ import lib, mocap, retarget
 
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 FADE = 10                # crossfade frames between takes
+STEP_TURN = 0            # degrees the step-over turns from the way the get-up faces (crash.py: 90, a long-side pod)
+TURN_FRAMES = 22         # over the stride before the step
 UPRIGHT_BONES = ("Spine", "Spine1", "Spine2", "Neck", "Head", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg", "_chest_up")
 DOWN, UP = Vector((0, 0, -1)), Vector((0, 0, 1))
 
@@ -156,13 +158,19 @@ def timeline(takes, scale_of):
         else:
             h_a = heading(right_a)
             want = head_end
+            rot_from = None
             if isinstance(t, StepOver):  # step straight out over a side wall: snap to the nearest axis
                 want = round(want / (math.pi / 2)) * (math.pi / 2)
+                if STEP_TURN:  # pivot through the stride before the step, so it crosses a long side wall
+                    rot_from = want - h_a
+                    want += math.radians(STEP_TURN)
             rot_z = want - h_a
             base = pos_end.copy()
         R = Matrix.Rotation(rot_z, 3, "Z")
         z0 = t.floor if t.floor is not None else t.ground()
         for j, i in enumerate(t.frames()):
+            if k > 0 and rot_from is not None:
+                R = Matrix.Rotation(rot_from + (rot_z - rot_from) * smooth(j / TURN_FRAMES), 3, "Z")
             seg, _, _ = t.clip.pose(i)
             c, up, right = retarget.pelvis(seg)
             dirs = retarget.mocap_dirs(seg)

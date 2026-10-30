@@ -50,8 +50,13 @@ export class TitleBackdrop {
     v.preload = "auto";
     v.src = TITLE_LOOP_VIDEO;
     // visible only while frames flow; on an error or a stall the canvas shows through
-    v.addEventListener("playing", () => v.classList.add("on"));
-    v.addEventListener("waiting", () => v.classList.remove("on"));
+    // (the loop's restart fires a brief "waiting" every pass, so only a stall that lasts hides it)
+    let stall: ReturnType<typeof setTimeout> | undefined;
+    v.addEventListener("playing", () => { clearTimeout(stall); v.classList.add("on"); });
+    v.addEventListener("waiting", () => {
+      clearTimeout(stall);
+      stall = setTimeout(() => { if (v.paused || v.readyState < 3) v.classList.remove("on"); }, 1200);
+    });
     v.addEventListener("error", () => { v.remove(); this.video = null; });
     this.video = v;
     this.canvas.after(v);

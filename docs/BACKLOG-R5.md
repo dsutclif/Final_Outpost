@@ -28,7 +28,7 @@ Code locations were checked on 2026-10-29 against main at c51c793; re-check befo
 
 ## Handed to the story session (pending its answer)
 
-- [ ] **#24 goal icon slide.** After each intro goal card, a tap slides its icon into its HUD slot
+- [x] **#24 goal icon slide.** After each intro goal card, a tap slides its icon into its HUD slot
       before the next card (`client/src/app.ts:791` renderIntro; HUD slots in goalhud.ts).
 - [ ] **#25 hire after doing it by hand.** The hire pad shows as a locked ghost with "do it by hand
       first" until the job is done manually. The rule already exists (`sim/systems/economy.ts:7-29`);

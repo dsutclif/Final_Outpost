@@ -13,6 +13,8 @@ MODELS = {
     "halcyon_wreck": ("Halcyon_Wreck.glb", 400_000),
     "commander_bust": ("Commander Bust model.glb", 250_000),
     "helmet": ("Helmet_model for intro scene.glb", 200_000),
+    "cryo_pod": ("Statis Pod no Glass.glb", 300_000),
+    "cryo_glass": ("Stasis Pod Glass.glb", 200_000),
 }
 
 os.makedirs(OUT, exist_ok=True)
