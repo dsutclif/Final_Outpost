@@ -39,7 +39,7 @@
     "housing": 12, "core.level": 25, "zone": 15, "grill": 12, "hire.cook": 10, "hire.server": 10,
     "hire.feeder": 10, "saw": 15, "hire.sawyer": 10, "hire.hunter": 12, "depot": 20, "hire.hauler": 10,
     "hire.depotSupplier": 10, "alloy": 20, "hire.smith": 10, "conv.level": 18, "belt": 16,
-    "salvage.tower": 8, "salvage.towerUp": 16, "salvage.towerUp3": 32, "salvage.train": 5, "salvage.medic": 15, "salvage.hireCore": 5, "salvage.barracksUp": 40
+    "salvage.tower": 8, "salvage.towerUp": 16, "salvage.towerUp3": 32, "salvage.train": 5, "salvage.medic": 15, "salvage.hireMedic": 4, "salvage.hireCore": 5, "salvage.barracksUp": 40
   },
   "rings": {
     "_doc": "Half extents of the perimeter ring around the core (world units), and sections per side (top/bottom, left/right).",
@@ -72,6 +72,10 @@
   "scrapHeaps": {
     "_doc": "Batch 3 (Doug): on a share (chance) of defend levels, n scrap heaps (node.salvage_pile, a little scrap each, never regrowing) lie out in the wilds beyond the wall, at least outside units past the ring and within band of that, and roadGap clear of every attack road, so the player scavenges for the first defences.",
     "chance": 0.8, "n": [3, 5], "outside": 70, "band": 240, "roadGap": 80
+  },
+  "medicPad": {
+    "_doc": "R5 (Doug): on a defend level with guards and no med bay within the bots' farBay of a gate, a medic's hire pad stands outside the wall by an attack gate and off its road: wanted at [u, v] in the gate's frame (either side), kept at most near units from the gate's middle.",
+    "u": 170, "v": 45, "near": 210
   },
   "defendSockets": {
     "_doc": "Batch 3 turret sockets inside the wall at each attack gate (none since Doug's playtest: the road pairs outside are enough): startInside per gate, at spots [u, v] in the gate's frame (u along the wall from the gate's middle, v outward, negative = inside; east and west gates use insideEW, the tower footprint being long along y). A site keeps edge from the (padded) map edge, wallClear from every wall, laneClear from every attack lane and siteR from every station centre; search is how far it may drift from the wanted spot. Gatherables on a socket's tower or pad give way, while more than keepForest ore scrap nodes are left.",

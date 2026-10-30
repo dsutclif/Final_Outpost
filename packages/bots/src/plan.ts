@@ -85,6 +85,9 @@ export const TIME_FIXED_GOALS: ReadonlySet<string> = new Set(["waves", "waves_su
 
 const SIDE_DIR: Record<string, [number, number]> = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
 
+/** How far a med bay pad may stand from a gate and still serve the guards who fall there (R5 #26). */
+export const MEDIC_FAR_BAY = medicData.farBay;
+
 export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan {
   const m = ManifestSchema.parse(manifestIn);
   const pads = m.entities.filter((e): e is PadEnt => e.type === "pad.hire" || e.type === "pad.build");
@@ -301,7 +304,7 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
     if (scaling) {
       const trainers = hires.filter((h) => role(h.role.role)?.behavior === "guard");
       // With a med bay, two colonists stay untrained so injuries (and healing) still happen.
-      const medic = pads.some((p) => p.type === "pad.build" && p.build === "struct.medical") ? 2 : 0;
+      const medic = (pads.some((p) => p.type === "pad.build" && p.build === "struct.medical") ? 2 : 0) + hires.filter((h) => role(h.role.role)?.behavior === "medic").length;
       const idle = Math.max(1, m.people.filter((p) => p.role === "idle").length + idleRecruits - medic);
       for (const t of trainers) add(t.id, "defense", { repeat: t.repeatable ? Math.max(1, idle) : 1 });
     }

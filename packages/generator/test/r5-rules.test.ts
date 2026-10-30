@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { content, PLOT } from "@fo/content";
+import { content, PLOT, Manifest as ManifestSchema, type Manifest } from "@fo/content";
+import { MEDIC_FAR_BAY, PROFILES, planBot, playBot } from "@fo/bots";
 import { closure, sequenceRange } from "@fo/sequencer";
 import sequencerData from "../../sequencer/data/sequencer.json";
 import { buildLevel, knobsFor, scrapBudget, scrapNeed, stormSurvivedIdle, templateById, CHALLENGE_PLACEHOLDER, GEN } from "../src/index.js";
@@ -48,6 +49,55 @@ describe("R5 defend scrap budget", () => {
       const { need, drops } = scrapBudget(b.manifest, content);
       expect(drops, r.id).toBeGreaterThanOrEqual(need);
     }
+  }, 120_000);
+});
+
+describe("R5 medic pad", () => {
+  const guarded = reqs.map((r, i) => ({ r, i })).filter(({ r }) => r.family === "defend" && closure(r.modules).includes("defenders"));
+  const gatesOf = (m: Manifest) => m.entities.flatMap((e) => (e.type === "barrier.line" ? e.sections.filter((s) => s.gate).map((s) => [(s.a[0] + s.b[0]) / 2, (s.a[1] + s.b[1]) / 2] as [number, number]) : []));
+  const padOf = (m: Manifest) => m.entities.find((e) => "id" in e && e.id === "medic_hire") as { at: [number, number]; cost: Record<string, number> } | undefined;
+  // the built manifest keeps the raw ring; the schema turns it into sections
+  const parsed = (m: Manifest) => ManifestSchema.parse(m);
+
+  it("stands outside the wall, near a gate, off the road, wherever no med bay is near a gate", () => {
+    let placed = 0;
+    expect(guarded.length).toBeGreaterThan(0);
+    for (const { r, i } of guarded) {
+      const built = build(i + 1)?.manifest;
+      if (!built) continue;
+      const m = parsed(built);
+      const gates = gatesOf(m), bay = m.entities.find((e) => e.type === "pad.build" && e.build === "struct.medical") as { at: [number, number] } | undefined;
+      const bayNear = !!bay && gates.some((g) => Math.hypot(bay.at[0] - g[0], bay.at[1] - g[1]) <= MEDIC_FAR_BAY);
+      const med = padOf(m);
+      expect(!!med, r.id).toBe(!bayNear);
+      if (!med) continue;
+      placed++;
+      const line = m.entities.find((e) => e.type === "barrier.line") as unknown as { sections: { a: [number, number] }[] };
+      const xs = line.sections.map((s) => s.a[0]), ys = line.sections.map((s) => s.a[1]);
+      const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+      expect(med.at[0] < x0 || med.at[0] > x1 || med.at[1] < y0 || med.at[1] > y1, `${r.id} outside the wall`).toBe(true);
+      expect(Math.min(...gates.map((g) => Math.hypot(med.at[0] - g[0], med.at[1] - g[1]))), r.id).toBeLessThanOrEqual(GEN.medicPad.near);
+      // the road runs straight out of a gate: past that gate, keep off it, measured across the road
+      for (const g of gates) {
+        const ew = g[0] === x0 || g[0] === x1;
+        const out = ew ? Math.sign(g[0] - (x0 + x1) / 2) : Math.sign(g[1] - (y0 + y1) / 2);
+        const beyond = (ew ? med.at[0] - g[0] : med.at[1] - g[1]) * out > 0;
+        if (beyond) expect(Math.abs(ew ? med.at[1] - g[1] : med.at[0] - g[0]), `${r.id} off the road`).toBeGreaterThanOrEqual(GEN.defendSockets.laneClear);
+      }
+    }
+    expect(placed).toBeGreaterThan(0);
+  }, 120_000);
+
+  it("is in the scrap budget, and the good bot reaches and hires it", () => {
+    const { r, i } = guarded.find(({ i }) => { const m = build(i + 1)?.manifest; return !!m && !!padOf(m); })!;
+    const m = build(i + 1)!.manifest;
+    expect(scrapBudget(m, content).drops, r.id).toBeGreaterThanOrEqual(scrapBudget(m, content).need);
+    const without = structuredClone(m);
+    without.entities = without.entities.filter((e) => !("id" in e && e.id === "medic_hire"));
+    expect(scrapBudget(m, content).need).toBeGreaterThan(scrapBudget(without, content).need);
+    expect(planBot(m, content).steps.find((s) => s.pad === "medic_hire")?.when).toBe("guards");
+    const run = playBot(m, PROFILES["good"]!, 1, { content, timeBudgetSeconds: 900 });
+    expect(run.used.pads, r.id).toContain("medic_hire");
   }, 120_000);
 });
 

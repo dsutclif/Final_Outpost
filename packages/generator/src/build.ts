@@ -1,6 +1,6 @@
 import { CONTENT_VERSION, LOOK, PLOT, maxModelScale, content as defaultContent, type PlotFile, type Content, type Manifest } from "@fo/content";
 import { ENGINE_VERSION, createSim, salesLayout, type Compiled } from "@fo/sim";
-import { planBot } from "@fo/bots";
+import { MEDIC_FAR_BAY, planBot } from "@fo/bots";
 import templatesData from "../data/templates.json";
 import genData from "../data/generator.json";
 import { flowModel, type Flow } from "./flow.js";
@@ -80,6 +80,7 @@ export const GEN = genData as unknown as {
   storms: { warn: number; duration: number; growStep: number; maxDuration: number };
   scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
+  medicPad: { u: number; v: number; near: number };
   defendSockets: { keepForest: number; startInside: number; inside: [number, number][]; insideEW: [number, number][]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number };
   /** Batch 3: the padded defend map and the socket-lined roads; see generator.json. */
   defendRoad: { pad: number; maxPairs: number; first: number; step: number; towerU: number; towerUEW: number; endGap: number; priceGrowth: number };
@@ -839,6 +840,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   /** Attack lanes (gate middle, then a point past the map edge), kept clear of terrain. */
   const lanes: [Pt, Pt][] = [];
   const regular = new Set<(typeof waves)[number]>();
+  /** Attack-gate spot for a medic's hire pad (R5): needs the socket search, so it is set inside the sockets block. */
+  let medicSpot: () => Pt | null = () => null;
+  let medicHire = false;
   if (defend && ring) {
     const all: ("n" | "e" | "s" | "w")[] = ["n", "e", "w", "s"];
     // a two-family finale splits attention with its other family: at most two attack sides there
@@ -1012,6 +1016,15 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         }
         if (opened === 0) fail(`no room for a turret socket on the ${sd} road`);
       }
+      // A medic's pad (Doug): outside the wall, beside an attack gate, off its road.
+      medicSpot = () => {
+        const MP = GEN.medicPad;
+        for (const { m, o, al } of gates) for (const sg of [1, -1]) {
+          const q = find(m, al, o, [sg * MP.u, MP.v], "pad", R.pad + S.margin, false);
+          if (q && dist(q, m) <= MP.near) return q;
+        }
+        return null;
+      };
       // Scrap heaps out in the wilds beyond the wall, off the roads: the player scavenges them for the first
       // defences (Doug). Their own random stream, so the rest of the level never shifts.
       const SH = GEN.scrapHeaps, hr = new Rand(mix(inp.seed >>> 0, hashStr("scrapHeaps")));
@@ -1045,6 +1058,17 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     if (feat.has("med_bay")) {
       const md = placePad("medic", [core[0] + 100, core[1] + 110], { build: "struct.medical" });
       pad({ type: "pad.build", id: "medic", at: [...md], cost: { "res.salvage": salv("salvage.medic") }, build: "struct.medical" });
+    }
+    if (guards) {
+      // Guards fall at the gates: with no med bay near one, a medic can be hired there (the bots' rule, plan.ts).
+      const bay = feat.has("med_bay") && has("medical") ? pads.find((p) => p.build === "struct.medical") : undefined;
+      const gateMids = ringGates.map((i) => { const a = ring!.points[i]!, b = ring!.points[(i + 1) % ring!.points.length]!; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as Pt; });
+      if (!bay || !gateMids.some((g) => dist(bay.at as Pt, g) <= MEDIC_FAR_BAY)) {
+        const q = medicSpot() ?? fail("no room for the medic's pad by a gate");
+        P.add("medic_hire", q, R.pad, { fp: ["pad"] });
+        pad({ type: "pad.hire", id: "medic_hire", at: [...q], cost: { "res.salvage": salv("salvage.hireMedic") }, role: { role: "role.medic" } });
+        medicHire = true;
+      }
     }
 
     const DW = GEN.defendWaves;
@@ -1255,7 +1279,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   let plan0 = planBot(draft, c);
   const planned = () => new Set(plan0.steps.filter((s) => s.when === "always").map((s) => s.pad));
   // Medical waits for injuries; housing pads wait for recruits unless the goal ends first (then they are chained).
-  const conditional = (p: Ent) => p.build === "struct.medical";
+  const conditional = (p: Ent) => p.build === "struct.medical" || (p.role as { role?: string } | undefined)?.role === "role.medic";
   // Pads the plan would only reach after the goal is done count as unplanned too: the level ends at the goal.
   const lastGoal = plan0.steps.map((s, i) => (s.goalPath && s.when === "always" ? i : -1)).reduce((a, b) => Math.max(a, b), -1);
   const late = lastGoal >= 0 ? new Set(plan0.steps.filter((s, i) => i > lastGoal && s.when === "always").map((s) => s.pad)) : new Set<string>();
@@ -1377,6 +1401,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   if (defend) extra = Math.max(extra, 3);
   // Injuries need colonists who are not defenders, or the med bay never has a patient.
   if (feat.has("med_bay") && guards) extra += 2;
+  // The medic is a colonist too.
+  if (medicHire) extra += 1;
   // Injured colonists cannot be trained, so a train-N goal keeps a few spare.
   if (goal === "hire" && fam === "defend") extra += 3;
 
