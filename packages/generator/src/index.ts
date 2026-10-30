@@ -61,12 +61,14 @@ export interface SearchMemory {
   dropped: Set<string>;
   droppedMods: Set<string>;
   droppedFeatures: Set<string>;
+  /** A candidate on target but short on fun exists: this attempt is the last, since more seeds rarely raise fun. */
+  settled: boolean;
   best: Candidate | null;
   /** Clean on the quick rating but off target, so not yet worth the full verification. */
   pool: { m: Manifest; p: number; err: number; seed: number; knobs: Record<string, number> }[];
 }
 
-export const newSearchMemory = (): SearchMemory => ({ ease: 0, dropped: new Set(), droppedMods: new Set(), droppedFeatures: new Set(), best: null, pool: [] });
+export const newSearchMemory = (): SearchMemory => ({ ease: 0, dropped: new Set(), droppedMods: new Set(), droppedFeatures: new Set(), settled: false, best: null, pool: [] });
 
 /** Star bar for the human-view bot (generator.json humanStars); levels:check reads the same block. */
 export const HUMAN_STARS = genData.humanStars as { seeds: number; minEarned: number; regressTolerance: number };
@@ -495,7 +497,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
             const cand: Candidate = { manifest: fin.m, rating: fin.r, p, err: fin.err, stars: fin.v.summary, starsByRung: fin.v.byRung };
             if (!best || cand.err < best.err) { best = cand; rec!.kept = true; }
             if (fin.err <= tol && fin.r.F >= fmin) { rec!.shipped = true; flush(); return { r, done: { manifest: fin.m, best: cand, stats } }; }
-            if (fin.err <= tol) reject("lowFun"); else reject("offTarget");
+            if (fin.err <= tol) { reject("lowFun"); memory.settled = true; } else reject("offTarget");
           }
         }
       }

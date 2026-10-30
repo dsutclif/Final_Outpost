@@ -83,7 +83,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   let ratings = 0, attempts = 0;
   const candidates: (CandidateRecord & { attempt: number; seed: number })[] = [];
   const memory = newSearchMemory();
-  for (let k = 0; k <= retries && !shipped; k++) {
+  for (let k = 0; k <= retries && !shipped && !memory.settled; k++) {
     attempts++;
     const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
     const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
