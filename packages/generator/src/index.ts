@@ -3,6 +3,7 @@ import { HUMAN, LADDER, PROFILES, TIME_FIXED_GOALS, playBot, type BotResult } fr
 import { measure, score, type Metrics, type Rating, type ReferenceStats, type HistoryEntry as RaterHistory, type Measurement } from "@fo/rater";
 import referenceData from "../data/reference.json";
 import genData from "../data/generator.json";
+import startData from "../data/start.json";
 import { DEFAULT_CONFIG, closure, conflicts } from "@fo/sequencer";
 import { GEN, TEMPLATES, buildLevel, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
@@ -414,6 +415,13 @@ export function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly
   return null;
 }
 
+/** Where the search starts: the pressure at which the goal has landed nearest the target (data/start.json, tools/start-table.ts). */
+export function startPressure(goal: string, target: number, table: Record<string, [number, number][]> = startData.goals as Record<string, [number, number][]>): number {
+  const rows = table[goal];
+  if (!rows || rows.length === 0) return clamp01((target - 0.08) / 0.8);
+  return rows.reduce((a, r) => (Math.abs(r[1] - target) < Math.abs(a[1] - target) ? r : a))[0];
+}
+
 /** Optional features of a request whose modules went unused. Exported for tests. */
 export function idleFeatures(req: GenRequest, idleModules: readonly string[]): string[] {
   const cfg = DEFAULT_CONFIG;
@@ -456,7 +464,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   let { best } = memory;
   // A new seed can reach a different range of D, so each attempt searches afresh and only the candidates carry over.
   let lo = 0, hi = 1;
-  let p = clamp01((req.target - 0.08) / 0.8);
+  let p = startPressure(req.goalType, req.target);
   let widened = 0;
   const mrand = rand.fork("mutate");
   // Repeated-loop lever: 0..1 share of the worker hire price cut, raised after each `repetitive` reject.

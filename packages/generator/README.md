@@ -94,6 +94,9 @@ Two checks steer the search before the costly ones. A level the human-view bot w
 of its seeds is too hard for a person, so pressure comes down. A feature whose modules no winning run used is left out of
 later builds, unless the level introduces it or its goal needs it.
 
+The search starts at the pressure where the goal has landed nearest its target (`data/start.json`, written by
+`pnpm levels:start-table <raw log>` after a full build on a new engine).
+
 ## Candidate log
 
 `generateDetailed` reports every search iteration through `onCandidate`: knobs, the settings a rule could be
