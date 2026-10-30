@@ -1,5 +1,6 @@
 import type { Manifest } from "@fo/content";
 import { FP, TPS, type Compiled, type ObjectiveState, type State } from "@fo/sim";
+import type { AlertMark } from "@fo/render-3d";
 import type { Skin } from "@fo/skins";
 import { liveObjectives, manifestObjectives } from "./objectives.js";
 
@@ -234,6 +235,57 @@ export function alertOf(st: State, m: Manifest, cp: Compiled | null, tokens: rea
   if (w !== null && w < WALL_WARN) return { kind: "walls" };
   const g = tokens.find((t) => t.risk);
   return g ? { kind: "goal", id: g.id } : { kind: "none" };
+}
+
+/**
+ * What in the world an alert is about (backlog R5 #16), for the danger marker the renderer floats over
+ * it: the reactor when the colony is freezing, the weakest gate when the walls are falling, and for a
+ * goal the same thing its icon drains from (guardDriver). A plain deadline has nothing to point at.
+ */
+export function alertMarks(a: Alert, st: State): AlertMark[] {
+  if (a.kind === "none") return [];
+  if (a.kind === "heat") return [{ kind: "core" }];
+  if (a.kind === "walls") return weakestGate(st);
+  switch (st.objectives?.find((o) => o.id === a.id)?.kind) {
+    case "heat_hold": case "heat_floor": case "settlement_never_freezes": case "fuel_full": return [{ kind: "core" }];
+    case "hp_floor": case "gate_held": return weakestGate(st);
+    case "no_angry_customers": {
+      let best: { id: number; k: number } | null = null;
+      for (const c of st.sales?.queue ?? []) if (!c.angry && c.patienceMax > 0 && (!best || c.patience / c.patienceMax < best.k)) best = { id: c.id, k: c.patience / c.patienceMax };
+      return best ? [{ kind: "customer", id: best.id }] : [];
+    }
+    case "no_colonist_freezes": {
+      let best: { id: number; f: number } | null = null;
+      for (const r of st.residents) if (r.status !== "frozen" && r.status !== "dead" && (r.frost ?? 0) > (best?.f ?? 0)) best = { id: r.id, f: r.frost ?? 0 };
+      return best ? [{ kind: "resident", id: best.id }] : [];
+    }
+    case "no_stockpile_overload": {
+      let best: { id: string; out: number } | null = null;
+      for (const cv of st.converters) if (cv.out > (best?.out ?? 0)) best = { id: cv.id, out: cv.out };
+      return best ? [{ kind: "converter", id: best.id }] : [];
+    }
+    case "no_injuries": {
+      const threats = st.hostiles.map((h) => h.pos);
+      for (const p of st.prey) if (p.alive) threats.push(p.pos);
+      let best: { id: number; d: number } | null = null;
+      for (const r of st.residents) {
+        if (r.status !== "ok") continue;
+        for (const q of threats) { const d = Math.hypot(q.x - r.pos.x, q.y - r.pos.y); if (!best || d < best.d) best = { id: r.id, d }; }
+      }
+      return best ? [{ kind: "resident", id: best.id }] : [];
+    }
+  }
+  return [];
+}
+
+/** The weakest built gate, else the reactor (raiders that get through hit the base). */
+function weakestGate(st: State): AlertMark[] {
+  let best: { barrier: string; section: number; k: number } | null = null;
+  for (const b of st.barriers) for (let i = 0; i < b.sections.length; i++) {
+    const s = b.sections[i]!;
+    if (s.gate && s.built && s.hpMax > 0 && (!best || s.hp / s.hpMax < best.k)) best = { barrier: b.id, section: i, k: s.hp / s.hpMax };
+  }
+  return best ? [{ kind: "gate", barrier: best.barrier, section: best.section }] : [{ kind: "core" }];
 }
 
 // ------------------------------------------------------------------ drawing

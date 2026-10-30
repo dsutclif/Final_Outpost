@@ -1,6 +1,6 @@
 import type { Manifest } from "@fo/content";
 import type { SimEvent, State } from "@fo/sim";
-import { loadRenderer3D, preloadRenderer3D, type Camera, type CoachMark, type GuideMark } from "@fo/render-3d";
+import { loadRenderer3D, preloadRenderer3D, type AlertMark, type Camera, type CoachMark, type GuideMark } from "@fo/render-3d";
 import type { Skin } from "@fo/skins";
 
 // The client's face of the 3D renderer. three.js stays in its own chunk: only
@@ -17,6 +17,7 @@ export interface GameRenderer {
   setQuality(q: Tier): void;
   setCoach(c: CoachMark | null): void;
   setGuide(g: GuideMark | null): void;
+  setAlertMarks(marks: readonly AlertMark[]): void;
   snapCamera(): void;
   /** World point (world units) to mount CSS px with the last camera. */
   worldToScreen(p: { x: number; y: number }, height?: number): { x: number; y: number };
@@ -62,6 +63,7 @@ class Wrap3D implements GameRenderer {
   setQuality(q: Tier): void { if (this.r.getQuality() !== q) this.r.setQuality(q); }
   setCoach(c: CoachMark | null): void { this.r.setCoach(c); }
   setGuide(g: GuideMark | null): void { this.r.setGuide(g); }
+  setAlertMarks(marks: readonly AlertMark[]): void { this.r.setAlertMarks(marks); }
   snapCamera(): void { this.r.snapCamera(); }
   worldToScreen(p: { x: number; y: number }, h = 0): { x: number; y: number } { return this.r.worldToScreen(p, h); }
   pick(x: number, y: number): string | null { return this.r.pick(x, y); }
