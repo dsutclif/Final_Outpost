@@ -1,6 +1,11 @@
 {
   "notes": [
-    "On the landing screen, spiked hoppers now charge in from the edge and fall to the ranger's fire, one after another.",
-    "The hauler keeps a firm grip on the pick through every swing, and the commander's boots are planted on the ground."
+    "Hired guards are now as tough as the commander. At a quarter health they drop out of the fight until a medic reaches them, or walk to the med bay. Levels 6 to 50 are rebuilt for the new rules, so you can keep your progress or start over.",
+    "Medics are new: hire one outside the walls near a gate and they heal fallen guards where they lie.",
+    "Guards and drones now stay within your turrets' reach, and defend levels drop enough scrap to buy everything, with bigger waves and a new star in place of the time limit.",
+    "Every danger now gets a red marker, with an arrow at the screen edge when it's off screen.",
+    "If a level can't be won any more, you can restart or keep playing. A star you can no longer earn is marked lost straight away, and if the base falls with raids still to come, the level is lost.",
+    "No more shooting prey through walls, the walkable area is now a fixed distance past your settlement, and storms can now destroy the reactor unless you help keep it fuelled.",
+    "The overflow star is gone, machines have their own upgrade pads, and pickup trays sit at the machine's edge."
   ]
 }

@@ -85,47 +85,55 @@ HUD session (parallel):
 
 ## Sprint 2: rules batch, engine 0.15.0, one rebuild
 
+Landed 2026-10-30 (branch r5-integrate). Doug's additions: medic hire pads sit outside the walls, near a gate, off the road;
+no single strike exceeds a guard's full health (a strike may kill a drone; a test holds this); one big hit downs a guard
+rather than killing it, and attackers pass over downed guards. Scrap budget: waves grow first, price cuts only for the rest.
+A base falling with waves left is a loss. Pack: 42 of 45 levels; L029, L040, L047 failed generation and are dropped, L028
+(D 0.50, target 0.71) and L050 (D 0.30, target 0.80) ship well under target, 16 others are off target. Attackers stuck behind
+terrain across a lane would never be killed under the leash; generated levels keep lanes clear, hand-made ones must too.
+#4 and #16 phone check: no frame rate or lag issues (Doug).
+
 Guards session (Opus):
-- [ ] **#26 guards.** Hired guards have the commander's health and damage (much stronger than drones).
+- [x] **#26 guards.** Hired guards have the commander's health and damage (much stronger than drones).
       At 25% health they stop fighting until healed. The medic heals them where they fell, or they walk
       to the med bay; with neither on the level, or if hit again on the way, they die. Guard injuries
       do not count against "no settlers injured" (`sim/systems/defense.ts:131`, `hunting.ts:56-63`,
-      `residents.ts:21-37`, `stats.ts:34`, `objectives.ts:162`). Builds on the story session's medic.
-- [ ] **#23 leash.** Guards and drones go no further from the wall than the farthest built turret's
+      `residents.ts:21-37`, `stats.ts:34`, `objectives.ts:162`). Adds `role.medic` (no sim medic existed).
+- [x] **#23 leash.** Guards and drones go no further from the wall than the farthest built turret's
       reach (residents.ts guardStep ~198-215, defense.ts stepTroops ~194-221). Keep today's behaviour
       when there is no turret.
 
 World session (Sonnet):
-- [ ] **#27 no shooting prey through walls.** Prey shots need a clear line (`barriers.ts`
+- [x] **#27 no shooting prey through walls.** Prey shots need a clear line (`barriers.ts`
       firstCrossing) for the player (`player.ts:184-209`) and hunters (`residents.ts:163-180`). Hostiles
       are unchanged: firing over walls at attackers is how defence works.
-- [ ] **#15a walkable area.** A fixed design setting in content data, not worked out per level: the
+- [x] **#15a walkable area.** A fixed design setting in content data, not worked out per level: the
       player can walk 1 screen width (current zoom, converted once to world units) past the settlement
       edge in every direction; hopper flats sit within 0.5 screen width of the walls.
 
 Generator session (Opus):
-- [ ] **#7 drop the overflow goal** (`no_stockpile_overload`): remove it from
+- [x] **#7 drop the overflow goal** (`no_stockpile_overload`): remove it from
       `sequencer/data/sequencer.json:84` and the placeholder (generator build.ts:192); keep the kind in
       the registry so old manifests load.
-- [ ] **#20 defend levels get no time star** (generator/index.ts:334-358). Replace it with the easiest
+- [x] **#20 defend levels get no time star** (generator/index.ts:334-358). Replace it with the easiest
       fit from existing kinds, no new sim kind: `hire` {n} (build x guards), `turret_level` {n}, or
       `salvage` {n}. A "task within a deadline" kind would need a new sim kind; avoid unless needed.
-- [ ] **Defend scrap budget.** Every defend level's attackers drop enough scrap for all upgrades and
+- [x] **Defend scrap budget.** Every defend level's attackers drop enough scrap for all upgrades and
       purchases on the level; waves grow if needed. A generator check, not a playtest.
-- [ ] **#29 storm.** On storm levels, the hauler alone cannot keep the core alive through the storm;
+- [x] **#29 storm.** On storm levels, the hauler alone cannot keep the core alive through the storm;
       the core dies before the storm ends unless the player helps. A generator/rater check that a
       no-help run loses; the bots haul during storms.
-- [ ] **#6 machine upgrade pads.** The core and barracks already have their own upgrade slot; machine
+- [x] **#6 machine upgrade pads.** The core and barracks already have their own upgrade slot; machine
       upgrade pads still share the staff slot (`generator/src/plots.ts:22-24`, build.ts:569-572). Give
       each machine its own upgrade slot beside it.
-- [ ] **#30b standing spots at the ends.** Pickup/drop-off spots sit at the machine ends, not deep
+- [x] **#30b standing spots at the ends.** Pickup/drop-off spots sit at the machine ends, not deep
       inside (plots.ts:138-158 pickup y; food processor pickupOffset [37,3] vs front edge 44). Then
       `pnpm plots:build`. Story levels need a review of pad positions and kiosk routes afterwards.
 
 After merge (main session, Opus):
-- [ ] **#21 cannot win.** End lost when the main goal has failed (`sim/systems/goals.ts:26-41`), plus
+- [x] **#21 cannot win.** End lost when the main goal has failed (`sim/systems/goals.ts:26-41`), plus
       provable dead ends for turret_level, hire and salvage only; show Restart / Keep playing.
-- [ ] Bump ENGINE/CONTENT_VERSION, `levels:build` (background), `levels:check`, fix rejects, repin
+- [x] Bump ENGINE/CONTENT_VERSION, `levels:build` (background), `levels:check`, fix rejects, repin
       golden + story levels; the story session re-checks levels 1-5; release notes; deploy.
 
 ## Sprint 3
