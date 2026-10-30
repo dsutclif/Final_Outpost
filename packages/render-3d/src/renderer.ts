@@ -2552,16 +2552,18 @@ export class Renderer3D implements Renderer {
     // one big threat pointer per direction (eight sectors around the screen centre), with a count,
     // aimed at the nearest off-screen attacker that way
     const cx = this.cssW / 2, cy = this.cssH / 2;
+    const toSector = (map: Map<number, { p: V; d2: number; n: number }>, sp: V): void => {
+      if (sp.x > 0 && sp.x < this.cssW && sp.y > 0 && sp.y < this.cssH) return;
+      const k = ((Math.round(Math.atan2(sp.y - cy, sp.x - cx) / (Math.PI / 4)) % 8) + 8) % 8;
+      const d2 = (sp.x - cx) ** 2 + (sp.y - cy) ** 2;
+      const sec = map.get(k);
+      if (!sec) map.set(k, { p: sp, d2, n: 1 });
+      else { sec.n++; if (d2 < sec.d2) { sec.p = sp; sec.d2 = d2; } }
+    };
     const sectors = new Map<number, { p: V; d2: number; n: number }>();
     for (const h of w.hostiles) {
       const q = this.interp.pos(`h:${h.id}`, h.pos, 1);
-      const sp = this.toScreen(v3(q.x, 10, q.y));
-      if (sp.x > 0 && sp.x < this.cssW && sp.y > 0 && sp.y < this.cssH) continue;
-      const k = ((Math.round(Math.atan2(sp.y - cy, sp.x - cx) / (Math.PI / 4)) % 8) + 8) % 8;
-      const d2 = (sp.x - cx) ** 2 + (sp.y - cy) ** 2;
-      const sec = sectors.get(k);
-      if (!sec) sectors.set(k, { p: sp, d2, n: 1 });
-      else { sec.n++; if (d2 < sec.d2) { sec.p = sp; sec.d2 = d2; } }
+      toSector(sectors, this.toScreen(v3(q.x, 10, q.y)));
     }
     for (const sec of sectors.values()) targets.push({ p: sec.p, color: t.danger, icon: "hostile", big: true, n: sec.n });
     // a wave about to land: point at each side it comes from
@@ -2576,10 +2578,18 @@ export class Renderer3D implements Renderer {
         targets.push({ p: this.toScreen(v3(e.x, 10, e.y)), color: t.danger, icon: "hostile", big: true, n });
       }
     }
+    // whatever is at risk off screen (backlog R5 #16), ahead of the routine pointers so the pool never drops one;
+    // one per direction with a count, like the attackers, so nearby dangers don't stack
+    const risks = new Map<number, { p: V; d2: number; n: number }>();
+    for (const m of this.alertMarks) {
+      const top = this.alertMarkTop(m, w, 1);
+      if (top) toSector(risks, this.toScreen(top));
+    }
+    for (const sec of risks.values()) targets.push({ p: sec.p, color: t.danger, icon: "alert", n: sec.n });
     let pods = 0;
     for (const c of w.captures) if (c.state === "idle" && pods < 3) { targets.push({ p: at(c.pos), color: t.interactive, icon: "pod" }); pods++; }
     if (w.residents.some((r) => r.status === "arriving") && this.cp?.gate) targets.push({ p: at(this.cp.gate.pos), color: t.ok, icon: "person" });
-    if (w.core.fuel <= 3) targets.push({ p: at(w.core.pos, 20), color: t.accent, icon: "core" });
+    if (w.core.fuel <= 3 && !this.alertMarks.some((m) => m.kind === "core")) targets.push({ p: at(w.core.pos, 20), color: t.accent, icon: "core" });
     if ((w.sales?.pileN ?? 0) >= 10) targets.push({ p: at(w.sales!.pile), color: pal.res["res.currency"] ?? t.accent, icon: "coin" });
     for (const p of w.pads) {
       if (!this.pads.get(p.id)?.goal || p.done || !p.visible) continue;
@@ -3147,8 +3157,8 @@ export class Renderer3D implements Renderer {
     return sp;
   }
 
-  /** A bobbing red "!" over each thing the urgent alert is about, above its model or head. */
-  private drawAlertMarks(s: State, a: number): void {
+  /** World point above an alert mark's model or head; null while it is not in the scene. */
+  private alertMarkTop(m: AlertMark, s: State, a: number): Vector3 | null {
     const top = (key: string): Vector3 | null => {
       const p = this.placed.get(key);
       if (!p) return null;
@@ -3156,13 +3166,23 @@ export class Renderer3D implements Renderer {
       return v3(r.position.x, r.position.y + ((p.data["h"] as number) / ART_M) * r.scale.y, r.position.z);
     };
     const head = (key: string, pos: V): Vector3 => { const q = this.interp.pos(key, pos, a); return v3(q.x, ART_M * this.devCharScale, q.y); };
+    if (m.kind === "core") return top(`core:${s.core.level}`);
+    if (m.kind === "gate") return top(`gate:${m.barrier}:${m.section}`);
+    if (m.kind === "converter") { const cv = s.converters.find((c) => c.id === m.id); return cv ? top(`cv:${cv.id}:${cv.level}`) : null; }
+    if (m.kind === "resident") { const r = s.residents.find((x) => x.id === m.id); return r ? head(`r:${r.id}`, r.pos) : null; }
+    const i = s.sales?.queue.findIndex((c) => c.id === m.id) ?? -1;
+    return i >= 0 ? head(`q:${i}`, s.sales!.queue[i]!.pos) : null;
+  }
+
+  /** A bobbing red "!" over each thing an alert is about, above its model or head. */
+  private drawAlertMarks(s: State, a: number): void {
     for (const m of this.alertMarks) {
-      let at: Vector3 | null = null;
-      if (m.kind === "core") at = top(`core:${s.core.level}`);
-      else if (m.kind === "gate") at = top(`gate:${m.barrier}:${m.section}`);
-      else if (m.kind === "converter") { const cv = s.converters.find((c) => c.id === m.id); if (cv) at = top(`cv:${cv.id}:${cv.level}`); }
-      else if (m.kind === "resident") { const r = s.residents.find((x) => x.id === m.id); if (r) at = head(`r:${r.id}`, r.pos); }
-      else { const i = s.sales?.queue.findIndex((c) => c.id === m.id) ?? -1; if (i >= 0) at = head(`q:${i}`, s.sales!.queue[i]!.pos); }
+      // a machine shows one "!": once its tray is full, only its own warning (it keeps the off-screen arrow)
+      if (m.kind === "converter") {
+        const cv = s.converters.find((c) => c.id === m.id);
+        if (cv && cv.out >= ((this.content.converters[cv.type] as { outCap?: number } | undefined)?.outCap ?? 99)) continue;
+      }
+      const at = this.alertMarkTop(m, s, a);
       if (!at) continue;
       const sp = this.nextTag();
       // as big as a top-of-screen goal icon, so the two read as the same alert

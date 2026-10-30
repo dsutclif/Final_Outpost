@@ -238,15 +238,29 @@ export function alertOf(st: State, m: Manifest, cp: Compiled | null, tokens: rea
 }
 
 /**
- * What in the world an alert is about (backlog R5 #16), for the danger marker the renderer floats over
- * it: the reactor when the colony is freezing, the weakest gate when the walls are falling, and for a
- * goal the same thing its icon drains from (guardDriver). A plain deadline has nothing to point at.
+ * Everything in the world at risk of losing a star or the level right now (backlog R5 #16), for the
+ * danger markers the renderer floats over them: the reactor while the colony is freezing, the weakest
+ * gate while the walls are falling, and for each goal at risk the worst case its icon drains from
+ * (guardDriver). One mark per object. A plain deadline has nothing to point at.
  */
-export function alertMarks(a: Alert, st: State): AlertMark[] {
-  if (a.kind === "none") return [];
-  if (a.kind === "heat") return [{ kind: "core" }];
-  if (a.kind === "walls") return weakestGate(st);
-  switch (st.objectives?.find((o) => o.id === a.id)?.kind) {
+export function alertMarks(st: State, m: Manifest, cp: Compiled | null, tokens: readonly GoalToken[]): AlertMark[] {
+  if (st.over) return [];
+  const found: AlertMark[] = [];
+  if (st.freeze?.active || heatOf(st, cp) < FREEZE_WARN) found.push({ kind: "core" });
+  const w = wallsOf(st, m);
+  if (w !== null && w < WALL_WARN) found.push(...weakestGate(st));
+  for (const t of tokens) {
+    if (!t.risk) continue;
+    const kind = st.objectives?.find((o) => o.id === t.id)?.kind;
+    if (kind) found.push(...goalMark(kind, st, cp));
+  }
+  const seen = new Set<string>();
+  return found.filter((k) => { const key = JSON.stringify(k); if (seen.has(key)) return false; seen.add(key); return true; });
+}
+
+/** The worst case within one goal at risk: what its icon drains from. */
+function goalMark(kind: string, st: State, cp: Compiled | null): AlertMark[] {
+  switch (kind) {
     case "heat_hold": case "heat_floor": case "settlement_never_freezes": case "fuel_full": return [{ kind: "core" }];
     case "hp_floor": case "gate_held": return weakestGate(st);
     case "no_angry_customers": {
@@ -260,13 +274,13 @@ export function alertMarks(a: Alert, st: State): AlertMark[] {
       return best ? [{ kind: "resident", id: best.id }] : [];
     }
     case "no_stockpile_overload": {
-      let best: { id: string; out: number } | null = null;
-      for (const cv of st.converters) if (cv.out > (best?.out ?? 0)) best = { id: cv.id, out: cv.out };
+      let best: { id: string; k: number } | null = null;
+      for (const cv of st.converters) { const cap = cp?.converters[cv.type]?.outCap ?? 0; if (cap > 0 && cv.out / cap > (best?.k ?? 0)) best = { id: cv.id, k: cv.out / cap }; }
       return best ? [{ kind: "converter", id: best.id }] : [];
     }
     case "no_injuries": {
       const threats = st.hostiles.map((h) => h.pos);
-      for (const p of st.prey) if (p.alive) threats.push(p.pos);
+      for (const p of st.prey) if (p.alive && (cp?.animals[st.preyZones[p.zone]?.animal ?? ""]?.aggroRange ?? 0) > 0) threats.push(p.pos);
       let best: { id: number; d: number } | null = null;
       for (const r of st.residents) {
         if (r.status !== "ok") continue;
