@@ -86,7 +86,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   for (let k = 0; k <= retries && !shipped; k++) {
     attempts++;
     const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
-    const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retries || memory.exhausted, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
+    const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
     for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
     ratings += d.stats.ratings;
     if (d.manifest && d.best) shipped = d.best;

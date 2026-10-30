@@ -81,11 +81,11 @@ means.
 
 As before: the pressure p drives every knob, bisected on D against `data/reference.json` (recomputed by
 `levels:build --calibrate`), knobs jittered by ±0.12 per iteration, quick rating 4 + 2 seeds, full
-rating 10 + 3. Only a candidate within `search.verifyWithin` of the target on the quick rating gets the full check during
-the search; the rest wait in a pool. When the search ends the closest are checked in turn: up to `search.finalTries` once
-one has passed, without limit before that. Retries share the search (`SearchMemory`): each starts around the closest
-candidate so far (`search.retrySpan`), with the dropped pads and the pool. When the bracket has closed `search.maxWidens`
-times and nothing is within `search.outOfReachErr`, the target is out of reach and the search stops.
+rating 10 + 3. Only a candidate within `search.verifyWithin` of the target on the quick rating, and closer than the best
+so far, gets the full check during the search; the rest wait in a pool. When the level's last attempt ends the closest are
+checked in turn: up to `search.finalTries` once one has passed, without limit before that. Each attempt searches afresh
+with a new seed, since a seed changes the range of D it can reach; `SearchMemory` carries the pool and dropped pads across
+them. An attempt ends early when its bracket has closed `search.maxWidens` times and nothing is within `search.outOfReachErr`.
 
 ## Candidate log
 
