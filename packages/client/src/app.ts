@@ -1222,11 +1222,12 @@ export class App {
    */
   private updateAlert(s: Session, playing: boolean, now: number): void {
     const st = s.sim.state;
-    const a = playing ? alertOf(st, s.manifest, s.sim.compiled, goalTokens(st, s.manifest, s.sim.compiled, this.skin)) : { kind: "none" as const };
+    const tokens = playing ? goalTokens(st, s.manifest, s.sim.compiled, this.skin) : [];
+    const a = playing ? alertOf(st, s.manifest, s.sim.compiled, tokens) : { kind: "none" as const };
     const key = a.kind === "goal" ? `goal:${a.id}` : a.kind;
     if (key !== this.alertKey) { this.alertKey = key; this.alert = a; this.hud.setAlert(a); this.buzzAt = 0; }
-    // and over the thing at risk in the world (backlog R5 #16); re-picked each frame, as the coldest colonist changes
-    s.renderer.setAlertMarks(alertMarks(a, st));
+    // every danger, not just the one the top icon shows, is marked in the world (backlog R5 #16); re-picked each frame, as the coldest colonist changes
+    s.renderer.setAlertMarks(playing ? alertMarks(st, s.manifest, s.sim.compiled, tokens) : []);
     if (this.alert.kind === "none" || now - this.buzzAt < ALERT_BUZZ_MS) return;
     this.buzzAt = now;
     this.haptics.pulse(this.alert.kind === "goal" ? [25] : [60, 60, 60]);
