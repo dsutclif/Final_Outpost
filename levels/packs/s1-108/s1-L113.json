@@ -1,0 +1,245 @@
+{
+  "id": "s1-L113",
+  "seed": 1998951582,
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "food-sw",
+      "shop-e",
+      "landmark-se"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "hunting",
+    "sales"
+  ],
+  "start": [
+    262,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        262,
+        500
+      ],
+      "params": {
+        "fuel": 10,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        330,
+        575
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ],
+      "route": [
+        [
+          500,
+          621
+        ],
+        [
+          477,
+          621
+        ],
+        [
+          279,
+          621
+        ],
+        [
+          269,
+          575
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        155,
+        559
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        184,
+        472
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        177,
+        438
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        147,
+        464
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        147,
+        429
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        487
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        179,
+        409
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        113,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        146,
+        396
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        113,
+        426
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        96,
+        488
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        104,
+        383
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        74,
+        440
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        345,
+        360,
+        115,
+        130
+      ],
+      "animal": "node.prey",
+      "n": 3
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 3,
+    "core.burn": 2.3,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.1,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "customers.bulkShare": 0.17,
+    "level.budgetSeconds": 80
+  },
+  "goal": {
+    "type": "shelves_full"
+  },
+  "family": "harvest",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "shelves_full",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 53
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_angry_customers",
+      "params": {}
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hoppers and Stocked Up",
+      "goal": "shelves_full",
+      "tips": [
+        "Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.493,
+    "fun": 0.608,
+    "botMargin": 0.627,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 2.83,
+      "humanAll": 0.83
+    }
+  }
+}

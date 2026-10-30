@@ -1,0 +1,237 @@
+{
+  "id": "s1-108",
+  "engineVersion": "0.14.0",
+  "contentVersion": "0.14.0",
+  "levels": [
+    {
+      "id": "s1-L108",
+      "file": "s1-L108.json",
+      "title": "Hands Off",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "conveyors",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "automate",
+      "rating": 0.654,
+      "fun": 0.922,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L109",
+      "file": "s1-L109.json",
+      "title": "Scrap and Hiring Drive",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "hire",
+      "rating": 0.767,
+      "fun": 0.236,
+      "target": 0.756
+    },
+    {
+      "id": "s1-L110",
+      "file": "s1-L110.json",
+      "title": "Scrap and Survivors",
+      "family": "defend",
+      "secondary": "shelter",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "hazard_events",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "waves_survived",
+      "rating": 0.565,
+      "fun": 0.13,
+      "target": 0.8
+    },
+    {
+      "id": "s1-L111",
+      "file": "s1-L111.json",
+      "title": "Reactors and Brighter Cores",
+      "family": "shelter",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "sales"
+      ],
+      "goal": "core_level",
+      "rating": 0.439,
+      "fun": 0.862,
+      "target": 0.4
+    },
+    {
+      "id": "s1-L112",
+      "file": "s1-L112.json",
+      "title": "Stasis Pods and Thin Ice",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "lasso",
+        "sales"
+      ],
+      "goal": "rescue_before_freeze",
+      "rating": 0.472,
+      "fun": 0.881,
+      "target": 0.45
+    },
+    {
+      "id": "s1-L113",
+      "file": "s1-L113.json",
+      "title": "Hoppers and Stocked Up",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "hunting",
+        "sales"
+      ],
+      "goal": "shelves_full",
+      "rating": 0.493,
+      "fun": 0.608,
+      "target": 0.494
+    },
+    {
+      "id": "s1-L114",
+      "file": "s1-L114.json",
+      "title": "Conveyors and Stockpiles",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "supply_routing",
+        "workers"
+      ],
+      "goal": "stockpile",
+      "rating": 0.537,
+      "fun": 0.893,
+      "target": 0.538
+    },
+    {
+      "id": "s1-L115",
+      "file": "s1-L115.json",
+      "title": "Rust and Make It Through",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "survive",
+      "rating": 0.573,
+      "fun": 0.123,
+      "target": 0.581
+    },
+    {
+      "id": "s1-L116",
+      "file": "s1-L116.json",
+      "title": "Domes and Endurance",
+      "family": "shelter",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "hazard_events",
+        "housing",
+        "sales"
+      ],
+      "goal": "survive",
+      "rating": 0.055,
+      "fun": 0.437,
+      "target": 0.625
+    },
+    {
+      "id": "s1-L117",
+      "file": "s1-L117.json",
+      "title": "Tow Lines and Game Trails",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "hunting",
+        "lasso",
+        "sales"
+      ],
+      "goal": "hunt",
+      "rating": 0.62,
+      "fun": 0.861,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L118",
+      "file": "s1-L118.json",
+      "title": "Locked Caches and Profit",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "currency",
+      "rating": 0.729,
+      "fun": 0.796,
+      "target": 0.713
+    }
+  ],
+  "tuning": {
+    "offset": 0,
+    "reason": "adaptation off",
+    "meanStars": null,
+    "meanAttempts": null,
+    "samples": 10,
+    "cleared": 48
+  }
+}
