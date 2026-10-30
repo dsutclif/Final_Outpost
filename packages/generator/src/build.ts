@@ -8,6 +8,7 @@ import { Placer, dist, inRect, segDist, type Box, type Pt, type Rect } from "./l
 import { Rand, clamp01, hashStr, lerp, mix, round1, round2 } from "./rand.js";
 import { placeTerrain, type TerrainData } from "./terrain.js";
 import { traderRoute } from "./route.js";
+import { FIRST_GUARDS, scrapNeed, waveScrap } from "./budget.js";
 
 // Stages 2-4 of the spec, per level family (REDESIGN-R2 §6): layout from a template by constraint
 // placement (fuel forests near the base in every level, perimeter rings only where walls are needed),
@@ -73,9 +74,10 @@ export const GEN = genData as unknown as {
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
-  defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
+  defendWaves: { firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
+  storms: { warn: number; duration: number; growStep: number; maxDuration: number };
   scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
   defendSockets: { keepForest: number; startInside: number; inside: [number, number][]; insideEW: [number, number][]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number };
@@ -189,7 +191,7 @@ export const CHALLENGE_PLACEHOLDER: Record<Family, { kind: string; params: Recor
   shelter: { kind: "heat_floor", params: { pct: 25 } },
   rescue: { kind: "tow_full_trip", params: { n: 2 } },
   harvest: { kind: "no_angry_customers", params: {} },
-  industrialize: { kind: "no_stockpile_overload", params: {} },
+  industrialize: { kind: "settlement_never_freezes", params: {} },
   defend: { kind: "no_injuries", params: {} },
 };
 
@@ -242,8 +244,6 @@ const rectDist = (p: Pt, r: Rect): number => {
 
 const m0People = (_p: unknown[]): string[] => [];
 
-/** Guards the bot hires before any tower (bots brain.ts FIRST_GUARDS): part of the ladder's core. */
-const FIRST_GUARDS = 2;
 
 /** Move every position in the manifest by d on both axes and grow the map by d on every side. */
 function padMap(m: Manifest, d: number): void {
@@ -327,7 +327,16 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const plotOn = !!GEN.plots;
   P.boxSpots = plotOn;
   P.bodies = plotOn ? GEN.plotBodies ?? null : null;
-  const plotSlots = (type: string) => (GEN.plots?.[type]?.slots ?? []).map((o) => ({ id: o.id, dx: o.dx, dy: o.dy, r: R.pad, fp: "pad" }));
+  // a machine's upgrade slot is kept only where the level has its level pad (R5 #6: the food processor's, with converter levels)
+  const levelled = new Set(feat.has("converter_levels") ? ["conv.food_processor"] : []);
+  const plotSlots = (type: string) => {
+    const all = GEN.plots?.[type]?.slots ?? [];
+    const gone = all.find((o) => o.id === "upgrade" && type.startsWith("conv.") && !levelled.has(type));
+    // without it, the rest of its row closes up to stay centred on the machine
+    const row = gone ? all.filter((o) => o !== gone && o.dy === gone.dy) : [];
+    const shift = row.length > 0 ? (gone!.dx - Math.max(...row.map((o) => o.dx))) / 2 : 0;
+    return all.filter((o) => o !== gone).map((o) => ({ id: o.id, dx: Math.round(o.dx + (row.includes(o) ? shift : 0)), dy: o.dy, r: R.pad, fp: "pad" }));
+  };
   const plotOpts = (type: string) => (plotOn && GEN.plots?.[type] ? { slots: plotSlots(type), mirror: true } : {});
   const slotAt = (owner: string, slot: string): Pt => {
     const s = P.stations.find((x) => x.id === `${owner}:${slot}`);
@@ -556,7 +565,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const fg = P.place("food_g", R.food, ring ? inner : [g[0] - 160, g[1] - 160, 320, 320], { near: [g[0] - 70, g[1] - 60], key: true, samples: 200, fp: "node.food_source" }) ?? food1;
     if (fg !== food1) ents.push({ type: "node.food_source", id: "food_g", at: [...fg] });
     // Hire order per machine: input worker, operator, output worker.
-    // plot layout: the Galley's one staff slot hires the Dome collector, the cook and the server in turn, then upgrades
+    // plot layout: the Galley's staff slot hires the Dome collector, the cook and the server in turn; its upgrade has a slot of its own
     const gStaff = plotOn ? slotAt("grill", "staff") : null;
     const fd = gStaff ?? placePad("feeder", besideSource("node.food_source", g, fg));
     pad({ type: "pad.hire", id: "feeder", at: [...fd], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.food_source", to: "conv.food_processor", node: fg === food1 ? "food1" : "food_g" }, requires: { pad: "grill" } });
@@ -566,10 +575,10 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     pad({ type: "pad.hire", id: "server", at: [...sv], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.food_processor", to: "sink.sales_point" }, requires: { pad: "cook" } });
     sells.push("res.food_prepared");
     if (feat.has("converter_levels")) {
-      const lp = gStaff ?? placePad("grill_level", [g[0] + 70, g[1] - 40]);
+      const lp = plotOn ? slotAt("grill", "upgrade") : placePad("grill_level", [g[0] + 70, g[1] - 40]);
       // Repeatable only when the goal needs more than one level: a repeatable pad is never "done", so nothing could require it.
       const rep = goal === "converter_level" && K.costScale > 1.15;
-      pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", requires: { pad: gStaff ? "server" : "grill" }, ...(rep ? { repeatable: true } : {}) });
+      pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", requires: { pad: "grill" }, ...(rep ? { repeatable: true } : {}) });
     }
     if (feat.has("material_processor")) {
       saw = true;
@@ -1147,6 +1156,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const events: { type: string; warnAt: number; start: number; end: number }[] = [];
   const startCurrency = goal === "perimeter_before_wave1" ? 6 : Math.round(K.startCurrency);
 
+  // the level's defence price growth (pads.defenceGrowth): eased below defendRoad.priceGrowth when the drops cannot pay for the full ladder
+  let defGrowth = GEN.defendRoad.priceGrowth;
   const finish = (landmarkCost: number, refined: number, extraPeople: number): Manifest => {
     const ps: Ent[] = pads.map((p) => structuredClone(p));
     if (landmark) ps.find((p) => p.id === "landmark")!.cost = { "res.currency": landmarkCost, ...(refined > 0 ? { "res.material_refined": refined } : {}) };
@@ -1168,7 +1179,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     }
     if (has("customer_variety")) { params["customers.impatientShare"] = round2(K.impatient); params["customers.premiumShare"] = round2(K.premium); }
     if (feat.has("bulk_orders")) params["customers.bulkShare"] = round2(K.bulkShare);
-    if (defend) { params["meters.baseHealth"] = Math.round(K.baseHealth); params["pads.defenceGrowth"] = GEN.defendRoad.priceGrowth; }
+    if (defend) { params["meters.baseHealth"] = Math.round(K.baseHealth); params["pads.defenceGrowth"] = defGrowth; }
     const gp = { ...gparams };
     if (goal === "population") gp["n"] = nPeople + arrivals + pods;
     const g = { type: goal, ...gp } as Manifest["goal"];
@@ -1234,7 +1245,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const n = goal === "hazard_survive" && K.length > 150 ? 2 : 1;
     for (let k = 0; k < n; k++) {
       const start = Math.round(T * (n === 1 ? 0.4 : 0.3 + 0.4 * k));
-      events.push({ type: "event.hazard", warnAt: Math.max(0, start - 8), start, end: start + 22 });
+      events.push({ type: "event.hazard", warnAt: Math.max(0, start - GEN.storms.warn), start, end: start + GEN.storms.duration });
     }
   }
 
@@ -1401,6 +1412,11 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const spendable = () => waves.slice(0, -1);
     const growing = firstLate > 0 ? waves.slice(firstLate) : waves;
     for (let k = 0; k < 12 && dropsOf(spendable()) < need * DW.dropsPerNeed; k++) grow(growing);
+    // R5: the attackers pay for every upgrade and purchase on the level, not only the ladder's core.
+    const walls = plan0.barriers.reduce((a, b) => a + (b.res === "res.salvage" ? b.cost : 0), 0);
+    const guardsN = Math.max(FIRST_GUARDS, goal === "hire" ? Number(gparams["n"] ?? 0) : 0);
+    const fullAt = (g: number) => scrapNeed(pads, walls, guardsN, g, c);
+    for (let k = 0; k < DW.fullGrowMax && waveScrap(waves, c) < fullAt(defGrowth); k++) grow(growing);
     // Grown early raids must not outsize the packed waves after them: each of those stays lateStep bigger.
     let prev = 0;
     for (const w of waves) {
@@ -1409,6 +1425,18 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       if (w.gap === DW.lateGap && n < prev * DW.lateStep) w.counts["hostile.swarmling"] = Math.ceil(prev * DW.lateStep);
       prev = w.counts["hostile.swarmling"] ?? 0;
     }
+    // Waves alone would take thousands of attackers (rising prices make the full ladder several times its base
+    // price): past fullGrowMax the level's price growth eases toward none, then its scrap prices scale down to the drops.
+    const drops = waveScrap(waves, c);
+    while (defGrowth > 1 && fullAt(defGrowth) > drops) defGrowth = Math.max(1, Math.round((defGrowth - DW.growthStep) * 1000) / 1000);
+    for (let k = 0; k < 8 && fullAt(defGrowth) > drops; k++) {
+      const f = (drops / fullAt(defGrowth)) * 0.98;
+      for (const p of pads) {
+        const cs = p.cost as Record<string, number> | undefined;
+        if (cs?.["res.salvage"]) cs["res.salvage"] = Math.max(1, Math.floor(cs["res.salvage"] * f));
+      }
+    }
+    if (drops < fullAt(defGrowth)) fail(`scrap budget: waves drop ${drops} of ${fullAt(defGrowth)}`);
   }
   if ((feat.has("gate_arrivals") || housingOn) && !workers) extra = Math.max(extra, 2);
 

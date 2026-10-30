@@ -24,6 +24,8 @@ export interface BotOptions {
   recordInputs?: boolean;
   /** Reuse a plan computed earlier for the same manifest. */
   plan?: Plan;
+  /** From this tick on the player gives no input (stands still): the generator's no-help storm check. */
+  idleFrom?: number;
   /** Debug hook called after every tick. */
   onTick?: (st: State, brain: Brain, events: SimEvent[]) => void;
 }
@@ -194,6 +196,8 @@ export interface RunStats {
   admitted: number;
   kills: number;
   salvage: number;
+  /** Highest tier any ranged defense reached (0 without one). */
+  turretMax: number;
 }
 
 /** What the run used, for the generator's "every element is used" rule. */
@@ -306,7 +310,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   // back until the last one was cleared still get played (up to twice the cap).
   const cap = (): number => (st.objectives[0]?.done ? maxTicks + cp.overtimeTicks : st.waves.idx < cp.waves.length ? 2 * maxTicks : maxTicks);
   while (!st.over && st.tick < cap()) {
-    const inp = brain.tick(eyes ? eyes.see(st) : st);
+    const inp = st.tick >= (opts.idleFrom ?? Infinity) ? { dx: 0, dy: 0 } : brain.tick(eyes ? eyes.see(st) : st);
     if (opts.recordInputs) inputs.push(inp);
     const fuelBefore = st.core.fuel;
     const currencyBefore = st.currency;
@@ -470,6 +474,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     podsLeft: st.captures.filter((c) => cp.lassoables[c.type]?.result === "recruit").length, rescued: s.rescued,
     streakMax: s.streakMax, hired: s.hired, heatMean: heatSum / Math.max(1, heatN),
     admitted: s.admitted, kills: s.kills, salvage: s.salvage,
+    turretMax: st.structures.reduce((a, x) => (cp.structures[x.type]?.tiers ? Math.max(a, x.level) : a), 0),
   };
   const usedEl: ElementUse = {
     pads: st.pads.filter((p) => p.done || builtPads.has(p.id) || (brain.hiresByPad[p.id] ?? 0) > 0).map((p) => p.id),

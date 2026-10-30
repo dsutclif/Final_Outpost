@@ -5,17 +5,17 @@
       "conv.food_processor": {
         "range": 30,
         "operatorOffset": [0, 44],
-        "pickupOffset": [37, 3]
+        "pickupOffset": [42, 44]
       },
       "conv.material_processor": {
         "range": 30,
         "operatorOffset": [0, 42],
-        "pickupOffset": [37, 1]
+        "pickupOffset": [42, 42]
       },
       "conv.alloy_works": {
         "range": 30,
         "operatorOffset": [0, 33],
-        "pickupOffset": [37, -9]
+        "pickupOffset": [42, 33]
       }
     },
     "structures": {
@@ -90,7 +90,12 @@
         "slots": [
           {
             "id": "staff",
-            "dx": 0,
+            "dx": -23,
+            "dy": 89
+          },
+          {
+            "id": "upgrade",
+            "dx": 23,
             "dy": 89
           }
         ]
@@ -99,7 +104,12 @@
         "slots": [
           {
             "id": "staff",
-            "dx": 0,
+            "dx": -23,
+            "dy": 87
+          },
+          {
+            "id": "upgrade",
+            "dx": 23,
             "dy": 87
           }
         ]
@@ -108,7 +118,12 @@
         "slots": [
           {
             "id": "staff",
-            "dx": 0,
+            "dx": -23,
+            "dy": 77
+          },
+          {
+            "id": "upgrade",
+            "dx": 23,
             "dy": 77
           }
         ]
