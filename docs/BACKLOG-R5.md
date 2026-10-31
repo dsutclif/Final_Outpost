@@ -30,7 +30,7 @@ Code locations were checked on 2026-10-29 against main at c51c793; re-check befo
 
 - [x] **#24 goal icon slide.** After each intro goal card, a tap slides its icon into its HUD slot
       before the next card (`client/src/app.ts:791` renderIntro; HUD slots in goalhud.ts).
-- [ ] **#25 hire after doing it by hand.** The hire pad shows as a locked ghost with "do it by hand
+- [x] **#25 hire after doing it by hand.** The hire pad shows as a locked ghost with "do it by hand
       first" until the job is done manually. The rule already exists (`sim/systems/economy.ts:7-29`);
       try client-only first.
 
@@ -138,5 +138,8 @@ After merge (main session, Opus):
 
 ## Sprint 3
 
-- [ ] **#12 Help sheet** (bottom middle): level log, current guide step, Restart, and Skip level
+Landed 2026-10-30 (branches r5-hire-lock, r5-help). Browser checks only: not on an iPhone, the level log not seen filling in
+real play, the sheet not opened mid-raid, #25 checked with the job marked directly. The 2D renderer still hides #25 pads.
+
+- [x] **#12 Help sheet** (bottom middle): level log, current guide step, Restart, and Skip level
       (0 stars, flagged skipped, excluded from tuning; not offered on story levels for now).

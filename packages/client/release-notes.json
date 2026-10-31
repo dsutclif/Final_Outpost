@@ -1,6 +1,6 @@
 {
   "notes": [
-    "Tougher raiders and bosses now drop scrap to match their strength, and the very biggest waves are smaller.",
-    "Levels 6 to 50 are rebuilt, and three missions that had gone missing are back, so you can keep your progress or start over."
+    "A new Help button at the bottom of the screen shows your next step and a log of the level so far, with Restart and Skip level. A skipped level earns no stars, and you can come back and win it later.",
+    "Hire pads that need the job done by hand first now show as locked and say so, instead of staying hidden."
   ]
 }
