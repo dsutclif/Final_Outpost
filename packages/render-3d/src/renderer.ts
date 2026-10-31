@@ -1439,6 +1439,8 @@ export class Renderer3D implements Renderer {
       const dep = this.anchorWorld(p, "deposit", tmpV);
       cv.inQ.slice(0, 6).forEach((res, i) => items.add(res, dep.x + ((i % 3) - 1) * 6, dep.y - 4 + Math.floor(i / 3) * 6, dep.z + ((i * 5) % 3) - 1, i));
       const pick = this.anchorWorld(p, "pickup", tmpV2);
+      // plot layout: the tray stands at the sim's pickup spot (fixedPlates), so the output stack sits on it, not on the model's own anchor
+      if (this.devPlateSize !== null) { const w = this.wv(cv.pickupPos); pick.set(w.x, 0.15 * this.devPlateSize, w.z); }
       const outRes = def?.output ?? "res.food_prepared";
       // overstock collapse: the pile sways harder as the countdown runs down, then topples outward
       const left = this.cp ? collapseSecondsLeft(s, this.cp, converterStockKey(cv.id)) : null;
