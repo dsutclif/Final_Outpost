@@ -1,7 +1,7 @@
 {
   "id": "s1-051",
-  "engineVersion": "0.15.0",
-  "contentVersion": "0.15.0",
+  "engineVersion": "0.16.0",
+  "contentVersion": "0.16.0",
   "levels": [
     {
       "id": "s1-L051",
@@ -18,8 +18,8 @@
         "sales"
       ],
       "goal": "rescue_all",
-      "rating": 0.157,
-      "fun": 0.816,
+      "rating": 0.149,
+      "fun": 0.662,
       "target": 0.4
     },
     {
@@ -37,8 +37,8 @@
         "workers"
       ],
       "goal": "serve_premium",
-      "rating": 0.5,
-      "fun": 0.936,
+      "rating": 0.551,
+      "fun": 0.928,
       "target": 0.45
     },
     {
@@ -56,8 +56,8 @@
         "workers"
       ],
       "goal": "converter_level",
-      "rating": 0.48,
-      "fun": 0.912,
+      "rating": 0.492,
+      "fun": 0.913,
       "target": 0.494
     },
     {
@@ -78,8 +78,8 @@
         "workers"
       ],
       "goal": "waves_survived",
-      "rating": 0.528,
-      "fun": 0.145,
+      "rating": 0.557,
+      "fun": 0.113,
       "target": 0.538
     },
     {
@@ -116,14 +116,14 @@
         "sales"
       ],
       "goal": "crates",
-      "rating": 0.458,
-      "fun": 0.882,
+      "rating": 0.447,
+      "fun": 0.933,
       "target": 0.625
     },
     {
       "id": "s1-L057",
       "file": "s1-L057.json",
-      "title": "Sealed Veins and Open Sesame",
+      "title": "Sealed Veins and Credits",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -134,9 +134,9 @@
         "source_gating",
         "workers"
       ],
-      "goal": "unlock",
-      "rating": 0.557,
-      "fun": 0.729,
+      "goal": "currency",
+      "rating": 0.625,
+      "fun": 0.918,
       "target": 0.669
     },
     {
@@ -173,14 +173,13 @@
         "defenders",
         "defense",
         "gather",
-        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
       "goal": "survive",
-      "rating": 0.707,
-      "fun": 0.182,
+      "rating": 0.537,
+      "fun": 0.143,
       "target": 0.756
     },
     {
@@ -226,7 +225,7 @@
     {
       "id": "s1-L063",
       "file": "s1-L063.json",
-      "title": "Hurried Traders and Trade Winds",
+      "title": "Hurried Traders and Quick Credits",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -237,9 +236,9 @@
         "sales",
         "workers"
       ],
-      "goal": "currency",
-      "rating": 0.448,
-      "fun": 0.917,
+      "goal": "earn_within",
+      "rating": 0.436,
+      "fun": 0.818,
       "target": 0.494
     },
     {
@@ -258,8 +257,8 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.453,
-      "fun": 0.862,
+      "rating": 0.486,
+      "fun": 0.825,
       "target": 0.538
     },
     {
@@ -275,14 +274,13 @@
         "defenders",
         "defense",
         "gather",
-        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
       "goal": "waves",
-      "rating": 0.437,
-      "fun": 0.437,
+      "rating": 0.642,
+      "fun": 0.683,
       "target": 0.581
     },
     {
@@ -350,9 +348,11 @@
       "family": "defend",
       "secondary": "shelter",
       "rejects": {
-        "layout": 239,
-        "infeasible": 26,
-        "idleModule": 43
+        "layout": 260,
+        "idleModule": 57,
+        "infeasible": 8,
+        "humanLost": 5,
+        "trivial": 1
       }
     }
   ],

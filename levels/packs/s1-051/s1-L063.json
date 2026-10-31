@@ -1,8 +1,8 @@
 {
   "id": "s1-L063",
-  "seed": 835321469,
-  "engineVersion": "0.15.0",
-  "contentVersion": "0.15.0",
+  "seed": 1603035273,
+  "engineVersion": "0.16.0",
+  "contentVersion": "0.16.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -36,7 +36,7 @@
         560
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 16,
         "level": 1
       }
     },
@@ -44,24 +44,24 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        298,
-        705
+        303,
+        711
       ],
       "sells": [
         "res.food_raw_1"
       ],
       "route": [
         [
-          237,
+          243,
           920
         ],
         [
-          237,
+          243,
           897
         ],
         [
-          237,
-          705
+          242,
+          711
         ]
       ]
     },
@@ -69,85 +69,148 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        346,
-        455
+        355,
+        447
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        216,
-        480
+        163,
+        533
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        160,
-        497
+        233,
+        473
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        188,
-        459
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        160,
-        468
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        132,
-        481
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        204,
-        432
+        196,
+        478
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         149,
-        436
+        501
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        179,
-        414
+        168,
+        465
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        111,
+        134,
+        540
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        248,
+        446
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        209,
+        452
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        114,
         510
       ]
     },
     {
-      "type": "node.material_source",
+      "type": "node.fuel_scrap",
       "at": [
-        85,
-        470
+        127,
+        473
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        218,
+        417
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        144,
+        445
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        105,
+        540
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        218,
-        387
+        135,
+        407
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        179,
+        418
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        316,
+        580
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        347,
+        585
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        377,
+        618
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        319,
+        612
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        379,
+        673
       ]
     },
     {
@@ -158,7 +221,7 @@
         670
       ],
       "cost": {
-        "res.currency": 11
+        "res.currency": 7
       },
       "role": {
         "role": "role.supplier",
@@ -171,11 +234,11 @@
       "type": "pad.hire",
       "id": "hire_food",
       "at": [
-        346,
-        516
+        355,
+        508
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -189,11 +252,11 @@
       "type": "pad.hire",
       "id": "hire_cashier",
       "at": [
-        298,
-        804
+        303,
+        810
       ],
       "cost": {
-        "res.currency": 24
+        "res.currency": 15
       },
       "role": {
         "role": "role.cashier",
@@ -211,41 +274,49 @@
     },
     {
       "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
     }
   ],
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
-    "core.burn": 2.2,
-    "housing.base": 5,
+    "start.currency": 9,
+    "core.burn": 2.9,
+    "housing.base": 7,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3.2,
+    "customers.spawn": 2.6,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "customers.impatientShare": 0.34,
-    "customers.premiumShare": 0.15,
-    "level.budgetSeconds": 360
+    "customers.orderMax": 2,
+    "customers.impatientShare": 0.14,
+    "customers.premiumShare": 0.29,
+    "level.budgetSeconds": 290
   },
   "goal": {
-    "type": "currency",
-    "n": 397
+    "type": "earn_within",
+    "n": 226,
+    "seconds": 105
   },
   "family": "harvest",
   "objectives": [
     {
       "id": "main",
-      "kind": "currency",
+      "kind": "earn_within",
       "params": {
-        "n": 397
+        "n": 226,
+        "seconds": 105
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 307
+        "seconds": 154
       }
     },
     {
@@ -261,29 +332,28 @@
   ],
   "text": {
     "mars_greenhouse": {
-      "title": "Hurried Traders and Trade Winds",
-      "goal": "Bank 397 credits",
+      "title": "Hurried Traders and Quick Credits",
+      "goal": "earn_within",
       "tips": [
         "Hurried traders leave fast and gold VIP traders pay double."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.448,
-    "fun": 0.917,
-    "botMargin": 0.476,
+    "difficulty": 0.436,
+    "fun": 0.818,
+    "botMargin": 0.689,
     "botsPassed": [
       "good",
       "average",
-      "weak",
-      "novice"
+      "weak"
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2,
       "goodAll": 1,
-      "human": 3,
-      "humanAll": 1
+      "human": 2.5,
+      "humanAll": 0.83
     }
   }
 }

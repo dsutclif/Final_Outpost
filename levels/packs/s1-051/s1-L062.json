@@ -1,8 +1,8 @@
 {
   "id": "s1-L062",
   "seed": 577417692,
-  "engineVersion": "0.15.0",
-  "contentVersion": "0.15.0",
+  "engineVersion": "0.16.0",
+  "contentVersion": "0.16.0",
   "map": {
     "w": 480,
     "h": 900,
@@ -255,7 +255,7 @@
         121,
         41
       ],
-      "freeze": 168
+      "freeze": 169
     },
     {
       "type": "capture.recruit_container",
