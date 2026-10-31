@@ -24,12 +24,6 @@
 @keyframes sdlg-in { from { opacity: 0; transform: translateY(-6px); } }
 .sdlg-portrait { flex: none; width: 46px; height: 46px; border-radius: 50%; background: #2a2e34; }
 .sdlg-portrait[hidden] { display: none; }
-/* KILN's cloud of cold blue light, until a real portrait exists */
-.sdlg-portrait[data-portrait="kiln"] {
-  background: radial-gradient(circle at 50% 45%, #d6f1ff 0 12%, #6cc4ff 34%, rgba(38, 110, 190, 0.55) 62%, rgba(12, 30, 60, 0.9) 100%);
-  box-shadow: 0 0 12px rgba(108, 196, 255, 0.55); animation: sdlg-kiln 2.4s ease-in-out infinite;
-}
-@keyframes sdlg-kiln { 50% { box-shadow: 0 0 20px rgba(108, 196, 255, 0.9); } }
 .sdlg-body { flex: 1; min-width: 0; }
 .sdlg-who { font: 800 13px/1.2 var(--display); letter-spacing: 0.04em; color: var(--interactive); }
 .sdlg-who[hidden] { display: none; }
@@ -61,3 +55,35 @@
 .story-prompt h2 { margin: 0; color: #fff; font: 800 26px/1.2 var(--display); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8); }
 .story-prompt .story-retry { min-width: 230px; min-height: 66px; font: 800 24px/1 var(--display); border-radius: 16px; background: var(--accent); color: #1a1205; border: 0; }
 .story-prompt .story-other { min-height: 44px; background: none; color: #dfe5ea; border: 0; box-shadow: none; font-size: 15px; font-weight: 700; text-decoration: underline; }
+
+/* A glow at the screen edge toward something off screen */
+.story-glow { position: absolute; width: 74vmin; height: 74vmin; margin: -37vmin 0 0 -37vmin; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, var(--story-glow, #a9d8ff) 0, transparent 68%); mix-blend-mode: screen; }
+.story-glow[hidden] { display: none; }
+
+/* The ridge pulse: red light from one fixed screen side */
+.story-ridge { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(ellipse 85% 42% at 100% 32%, var(--story-ridge, #ff3b2e), transparent); }
+.story-ridge[data-side="left"] { background: radial-gradient(ellipse 85% 42% at 0 32%, var(--story-ridge, #ff3b2e), transparent); }
+.story-ridge[data-side="top"] { background: radial-gradient(ellipse 90% 30% at 50% 0, var(--story-ridge, #ff3b2e), transparent); }
+.story-ridge[data-side="bottom"] { background: radial-gradient(ellipse 90% 30% at 50% 100%, var(--story-ridge, #ff3b2e), transparent); }
+.story-ridge[hidden] { display: none; }
+
+/* Terminal readout: the reactor spirit's lines, low on the screen above the Help row, the live cloud beside them with no disc around it */
+.sdlg-term {
+  position: absolute; left: calc(10px + env(safe-area-inset-left, 0px)); right: calc(10px + env(safe-area-inset-right, 0px));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 74px); display: flex; align-items: center; gap: 8px; min-height: 76px; padding: 6px 12px 6px 4px;
+  border-radius: 4px; background: rgba(5, 12, 22, 0.92); border: 1px solid #4f9fe0; box-shadow: 0 0 10px rgba(79, 159, 224, 0.28);
+}
+.sdlg-term[hidden] { display: none; }
+.sdlg-term-cloud { flex: none; width: 72px; height: 72px; margin: -4px 0; }
+.sdlg-term-cloud[hidden] { display: none; }
+.sdlg-term-cloud canvas { display: block; width: 100%; height: 100%; }
+.sdlg-term-body { flex: 1; min-width: 0; }
+.sdlg-term-text { margin: 0; color: #bfe3ff; font: 500 14px/1.35 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.sdlg-term-text b { font-weight: 700; color: #7cc4ff; }
+.sdlg-term-cursor { display: inline-block; width: 0.6em; height: 1.05em; margin-left: 2px; vertical-align: text-bottom; background: #bfe3ff; animation: sdlg-blink 0.9s steps(2, jump-none) infinite; }
+@keyframes sdlg-blink { to { opacity: 0; } }
+.sdlg-term .sdlg-tap { color: #7cc4ff; }
+
+/* Banners sit below the star slots and the goal line */
+.story-on .fo-banner { top: calc(env(safe-area-inset-top, 0px) + 74px) !important; }

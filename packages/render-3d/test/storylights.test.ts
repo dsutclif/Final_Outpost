@@ -25,7 +25,7 @@ describe("story lights", () => {
   it("keeps the night floor and reaches full day", () => {
     const f = nightFloor(skin);
     expect(f.ambient).toBeGreaterThan(0.1);
-    expect(storyLighting(skin, t, 0).ambient).toBeCloseTo(f.ambient);
+    expect(storyLighting(skin, t, 0).ambient).toBeGreaterThanOrEqual(f.ambient);
     expect(storyLighting(skin, t, 1).ambient).toBeCloseTo(1);
     expect(storyLighting(skin, t, 1).sky).toBe(t.sky);
   });

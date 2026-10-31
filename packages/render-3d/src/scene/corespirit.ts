@@ -27,7 +27,7 @@ void main() {
 
 const FRAG = /* glsl */ `
 precision mediump float;
-uniform float uTime, uStrength, uBright, uGlitch, uAlpha, uSeed;
+uniform float uTime, uStrength, uBright, uGlitch, uAlpha, uSeed, uZoom, uDrift, uCoreK;
 uniform vec3 uDeep, uMid, uCore, uRed;
 varying vec2 vUv;
 float h(vec2 p) { p = fract(p * vec2(123.34, 456.21) + uSeed); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -41,20 +41,23 @@ float fbm(vec2 p) {
   return v;
 }
 void main() {
-  float S = clamp(uStrength, 0.0, 1.0) * 0.8 + 0.2;
-  float t = uTime * 0.16;
-  vec2 q = (vUv - 0.5) * 2.0;
+  float S = clamp(uStrength, 0.0, 1.0) * 0.6 + 0.4;
+  float t = uTime * 0.16 * uDrift;
+  vec2 q = (vUv - 0.5) * 2.0 * uZoom;
   q.x += uGlitch * (h(vec2(floor(uTime * 18.0), floor(q.y * 14.0))) - 0.5) * 0.18;
   float r = length(q);
-  vec2 o = vec2(fbm(q * 2.6 + vec2(0.0, -t * 1.7)), fbm(q * 2.6 + vec2(5.2, t)));
-  float d = fbm(q * 2.4 + 1.6 * o + vec2(t * 0.5, -t));
-  float mask = smoothstep(0.36 * S, 0.03, r + (0.5 - d) * 0.26);
-  float core = smoothstep(0.17 * S, 0.0, r + (0.5 - d) * 0.13);
+  // zoomed in, the noise stays finer than the zoom so billows still read
+  vec2 n = q / sqrt(uZoom);
+  vec2 o = vec2(fbm(n * 2.6 + vec2(0.0, -t * 1.7)), fbm(n * 2.6 + vec2(5.2, t)));
+  float d = fbm(n * 2.4 + 1.6 * o + vec2(t * 0.5, -t));
+  float mask = smoothstep(0.36 * S, 0.03, r + (0.5 - d) * 0.26 * (2.0 - uZoom));
+  float core = uCoreK * smoothstep(0.17 * S, 0.0, r + (0.5 - d) * 0.13);
   vec3 col = mix(uDeep, uMid, d);
   col = mix(col, uCore, core);
   col *= 1.0 + 0.9 * uBright;
-  col *= 0.94 + 0.06 * sin(vUv.y * 180.0 + uTime * 2.0);
+  col *= 0.94 + 0.06 * sin(vUv.y * 180.0 * uZoom + uTime * 2.0);
   col = mix(col, uRed * (0.6 + 0.8 * mask), uGlitch * 0.75);
+  mask *= smoothstep(1.0, 0.72, length(vUv - 0.5) * 2.0);
   gl_FragColor = vec4(col * mask, mask * uAlpha);
 }`;
 
@@ -70,7 +73,7 @@ void main() {
   gl_FragColor = vec4(uMid * a, a * uAlpha);
 }`;
 
-function spiritMaterial(c: SpiritColors, size: [number, number], seed: number): ShaderMaterial {
+function spiritMaterial(c: SpiritColors, size: [number, number], seed: number, look: { zoom: number; drift: number; core: number } = { zoom: 1, drift: 1, core: 1 }): ShaderMaterial {
   return new ShaderMaterial({
     vertexShader: VERT,
     fragmentShader: FRAG,
@@ -80,7 +83,7 @@ function spiritMaterial(c: SpiritColors, size: [number, number], seed: number): 
     uniforms: {
       uSize: { value: new Vector2(size[0], size[1]) },
       uTime: { value: 0 }, uStrength: { value: 1 }, uBright: { value: 0 }, uGlitch: { value: 0 },
-      uAlpha: { value: 1 }, uSeed: { value: seed },
+      uAlpha: { value: 1 }, uSeed: { value: seed }, uZoom: { value: look.zoom }, uDrift: { value: look.drift }, uCoreK: { value: look.core },
       uDeep: { value: new Color(c.spiritDeep) }, uMid: { value: new Color(c.spirit) },
       uCore: { value: new Color(c.spiritCore) }, uRed: { value: new Color(c.spiritGlitch) },
     },
@@ -91,7 +94,7 @@ function spiritMaterial(c: SpiritColors, size: [number, number], seed: number): 
 class Driver {
   state: SpiritState = "off";
   strength = 0;
-  private shown = 0; // smoothed strength (grows steadily)
+  shown = 0; // smoothed strength (grows steadily)
   fade = 0; // 0..1 overall alpha
   private bloomAt = -1;
   private lastT = 0;
@@ -228,12 +231,14 @@ export function createSpiritPortrait(
   const cam = new OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
   cam.position.z = 2;
   const quad = new PlaneGeometry(1, 1);
-  const mat = spiritMaterial(colors, [2, 2], 3.7);
+  // zoomed in so the billows and their drift are what you see at this size; a full white core would read as a ball
+  const mat = spiritMaterial(colors, [2, 2], 3.7, { zoom: 0.3, drift: 2.6, core: 0.3 });
   const mesh = new Mesh(quad, mat);
   mesh.frustumCulled = false;
   scene.add(mesh);
   const drv = new Driver(mat);
-  drv.strength = 1;
+  // at full size from its first frame: it only runs while a line is up, too briefly to grow into place
+  drv.strength = drv.shown = 1;
   drv.state = "speaking";
   return {
     canvas: gl.domElement,

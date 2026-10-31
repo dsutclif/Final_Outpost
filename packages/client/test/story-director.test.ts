@@ -302,3 +302,39 @@ describe("lineSeconds", () => {
     expect(lineSeconds("one two three four five six seven eight nine ten")).toBeCloseTo(3.5);
   });
 });
+
+describe("story director, level one's needs", () => {
+  it("skips only the walk's cues when a retry starts at the retry spot", () => {
+    const level = levelOf({ on: { start: true }, walk: true, do: [{ line: "walk", seconds: 1 }] }, cue({ start: true }, { line: "all", seconds: 1 }));
+    const log: string[] = [];
+    const view = { line: (l: { text: string }) => log.push(l.text), clearLine() {}, card() {}, clearCard() {}, onTap() {}, prompt() {}, clearPrompt() {}, hud() {}, goals() {}, dispose() {} } as unknown as StoryView;
+    const host = { cam: { x: 0, y: 0, zoom: 1, follow: true }, entityAt: () => null, film: () => Promise.resolve(), retry() {}, goalSettled() {} } as StoryHost;
+    new StoryDirector(storyOf(level), level, view, host, false, true).update(16, state());
+    expect(log).toEqual(["all"]);
+  });
+
+  it("carries world actions, and a nudge runs beside the lines", () => {
+    const h = harness(levelOf(cue({ start: true },
+      { dots: [{ at: [1, 2] }, { entity: "missing" }], period: 4 }, { ridge: "right", period: 4, k: 0.5 }, { ridgeFlash: 2 }, { spirit: "bloom" }, { edgeGlow: { at: [3, 4] } }, { guide: true }, { light: "dawn", seconds: 5 },
+      { camera: { to: { at: [50, 50] }, freeze: false, pan: 1, hold: 1, back: 1 } }, { line: "said", who: "kiln", seconds: 1 })));
+    h.d.update(16, state({ tick: 7 }));
+    const w = h.d.world;
+    expect(w.dots?.pts).toEqual([{ x: 1, y: 2 }]);
+    expect(w.ridge).toEqual({ side: "right", period: 4, k: 0.5 });
+    expect(w.flash?.n).toBe(2);
+    expect(w.spirit?.state).toBe("bloom");
+    expect(w.glow).toEqual({ x: 3, y: 4 });
+    expect(w.guideOff).toBe(false);
+    expect(w.light).toEqual({ preset: "dawn", seconds: 5, atTick: 7 });
+    expect(h.d.frozen).toBe(false);
+    expect(h.log.some((l) => l.startsWith("line:KILN:said"))).toBe(true);
+  });
+
+  it("shows a goal's own wording with the time left", () => {
+    const h = harness({ goals: [{ id: "a", label: "Hold on: {left}" }], cues: [] });
+    h.d.update(16, state({ objectives: [{ id: "a", progress: 0, target: 90 * 30 }] } as Partial<State>));
+    h.d.syncGoals([{ id: "a", state: "open", label: "generic" }]);
+    expect(h.current()).toBe("Hold on: 1:30");
+    expect(h.d.goalLabel("a")).toBe("Hold on");
+  });
+});

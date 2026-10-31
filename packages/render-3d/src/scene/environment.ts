@@ -371,7 +371,7 @@ export class Environment {
     const dim = 1 - s * 0.4;
     if (sl) {
       // a story level: the key light follows the sunrise, the ambient never drops below the night floor
-      this.sun.intensity = SUN * dim * Math.max(0.3, sl.sun);
+      this.sun.intensity = SUN * dim * Math.max(sl.moon, sl.sun);
       this.sun.color.set(sl.sunColor);
       this.hemi.intensity = this.hemiBase * Math.max(sl.ambient, 0.01);
       this.hemi.color.set(sl.sky).lerp(this.cSky, sl.ambient * 0.5).lerp(this.cStorm, s);

@@ -4,15 +4,9 @@
  "engineVersion": "0.18.0",
  "contentVersion": "0.18.0",
  "map": {
-  "w": 480,
-  "h": 900,
-  "zones": [
-   "base",
-   "sources-w",
-   "sources-e",
-   "shop-se",
-   "landmark-sw"
-  ]
+  "w": 820,
+  "h": 700,
+  "zones": []
  },
  "modules": [
   "carry",
@@ -22,16 +16,16 @@
   "sales"
  ],
  "start": [
-  330,
-  610
+  720,
+  320
  ],
  "entities": [
   {
    "type": "sink.core",
    "id": "core",
    "at": [
-    240,
-    500
+    220,
+    320
    ],
    "params": {
     "fuel": 0,
@@ -41,94 +35,201 @@
   },
   {
    "type": "node.fuel_scrap",
+   "id": "ore1",
    "at": [
-    153,
-    492
+    290,
+    390
    ]
   },
   {
    "type": "node.fuel_scrap",
+   "id": "ore2",
    "at": [
-    153,
-    453
+    268,
+    400
    ]
   },
   {
    "type": "node.fuel_scrap",
+   "id": "ore3",
    "at": [
-    159,
-    528
+    312,
+    412
    ]
   },
   {
    "type": "node.fuel_scrap",
+   "id": "ore4",
    "at": [
-    129,
-    471
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    130,
-    516
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    164,
+    250,
     420
    ]
   },
   {
    "type": "node.fuel_scrap",
+   "id": "ore5",
    "at": [
-    125,
-    434
+    290,
+    430
    ]
   },
   {
    "type": "node.fuel_scrap",
+   "id": "ore6",
    "at": [
-    106,
-    491
-   ]
-  },
-  {
-   "type": "node.material_source",
-   "at": [
-    89,
-    452
-   ]
-  },
-  {
-   "type": "node.material_source",
-   "at": [
-    96,
-    537
+    330,
+    392
    ]
   },
   {
    "type": "node.fuel_scrap",
+   "id": "ore7",
    "at": [
-    318,
-    596
+    270,
+    440
    ]
   },
   {
    "type": "node.fuel_scrap",
+   "id": "ore8",
    "at": [
-    298,
-    584
+    312,
+    450
    ]
   },
   {
    "type": "node.fuel_scrap",
+   "id": "ore9",
    "at": [
-    278,
-    574
+    345,
+    425
    ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore10",
+   "at": [
+    235,
+    445
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore11",
+   "at": [
+    330,
+    470
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore12",
+   "at": [
+    290,
+    470
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore13",
+   "at": [
+    355,
+    460
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore14",
+   "at": [
+    255,
+    475
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge1",
+   "kind": "ridge",
+   "rect": [
+    20,
+    165,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge2",
+   "kind": "ridge",
+   "rect": [
+    135,
+    165,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge3",
+   "kind": "ridge",
+   "rect": [
+    250,
+    165,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge4",
+   "kind": "ridge",
+   "rect": [
+    365,
+    165,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge5",
+   "kind": "ridge",
+   "rect": [
+    480,
+    165,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge6",
+   "kind": "ridge",
+   "rect": [
+    595,
+    165,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge7",
+   "kind": "ridge",
+   "rect": [
+    710,
+    165,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "decor.halcyon_wreck",
+   "id": "wreck",
+   "at": [
+    960,
+    420
+   ],
+   "yaw": 20
   }
  ],
  "people": [],
@@ -137,39 +238,46 @@
   {
    "type": "event.hazard",
    "warnAt": 20,
-   "start": 28,
-   "end": 60
+   "start": 25,
+   "end": 55
   }
  ],
+ "hazardsFromLit": true,
  "params": {
   "start.currency": 0,
-  "core.burn": 2.1,
+  "core.burn": 3.2,
   "housing.base": 2,
-  "lots.block": 60,
+  "lots.block": 0,
   "lots.street": 0,
-  "level.budgetSeconds": 90,
+  "level.budgetSeconds": 130,
   "core.grace": 15
  },
  "goal": {
-  "type": "hazard_survive"
+  "type": "survive",
+  "seconds": 90,
+  "fromLit": 1
  },
  "family": "shelter",
  "objectives": [
   {
    "id": "main",
-   "kind": "hazard_survive",
+   "kind": "survive",
+   "params": {
+    "seconds": 90,
+    "fromLit": 1
+   }
+  },
+  {
+   "id": "ignite",
+   "kind": "core_lit",
    "params": {}
   },
   {
-   "id": "challenge2",
-   "kind": "settlement_never_freezes",
-   "params": {}
-  },
-  {
-   "id": "challenge",
+   "id": "fill",
    "kind": "fuel_full",
    "params": {
-    "seconds": 28
+    "seconds": 30,
+    "fromLit": 1
    }
   }
  ],
@@ -177,13 +285,12 @@
   "meter.lifeline"
  ],
  "guide": "always",
+ "lighting": "night",
  "text": {
   "mars_greenhouse": {
    "title": "Cold Start",
-   "goal": "Light the reactor and ride out the storm",
-   "tips": [
-    "Reactor at 4%. Anyone awake?"
-   ]
+   "goal": "Restart the reactor and last till morning",
+   "tips": []
   }
  }
 }

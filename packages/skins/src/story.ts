@@ -77,7 +77,20 @@ export type StoryAction =
   | { ghost: StoryGhost }
   | { ghostOff: string }
   /** The large Try again prompt, with optional different wording. */
-  | { tryAgain: true; text?: string };
+  | { tryAgain: true; text?: string }
+  /** Small pulsing lights on the ground, replacing any before; `period` seconds a beat. */
+  | { dots: readonly StoryPlace[]; period?: number }
+  | { dotsOff: true }
+  /** Slow pulses from one fixed screen side, for as long as the level runs; `k` their strength, 0..1. */
+  | { ridge: "left" | "right" | "top" | "bottom"; period?: number; k?: number }
+  /** That many quick flashes from the ridge's side, on top of its slow pulse. */
+  | { ridgeFlash: number }
+  /** The reactor spirit: bloom out of the flare, glitch red, or an explicit state. */
+  | { spirit: "bloom" | "pulse" | "idle" | "fading" | "off" }
+  /** A glow on the screen edge toward a place off screen; it fades as the place comes into view. Null removes it. */
+  | { edgeGlow: StoryPlace | null }
+  /** Turn the guide arrows on or off (see StoryLevel.noGuide). */
+  | { guide: boolean };
 
 export interface StoryCue {
   /** Needed only when another cue's `after` names it. */
@@ -85,6 +98,8 @@ export interface StoryCue {
   on: StoryTrigger;
   do: readonly StoryAction[];
   repeat?: boolean;
+  /** Belongs to the walk from the level's start: skipped when an in-level retry starts at `retryFrom` instead. */
+  walk?: boolean;
 }
 
 /** One star slot, in display order. Goals show one at a time; one met early completes on its turn. */
@@ -95,6 +110,8 @@ export interface StoryGoal {
   tryAgain?: boolean;
   /** Wait for a `{ goal: id }` action before appearing. The slot still shows. */
   hold?: boolean;
+  /** The goal's wording here and on the result screen, instead of the skin's generic one. `{left}` is the time left on a timed goal. */
+  label?: string;
 }
 
 export interface StoryLevel {
@@ -106,12 +123,20 @@ export interface StoryLevel {
   intro?: boolean;
   /** No frost, buzz or heartbeat for a cold core until it is first lit (the walk to a dormant reactor). */
   calmUntilLit?: boolean;
+  /** The guide arrows stay off until a `{ guide: true }` action: the light in the world leads first. */
+  noGuide?: boolean;
+  /** Where the Try again prompt restarts the player (world units). The result screen's retry walks again from the start. */
+  retryFrom?: readonly [number, number];
 }
 
 export interface StorySpeaker {
   name: string;
   /** Portrait key; the dialogue style draws it. Omit for crew: faces are never assumed, only names. */
   portrait?: string;
+  /** Dialogue style for this speaker's lines (client/src/story/view.ts). Default: the skin's `dialogue`. */
+  dialogue?: string;
+  /** Speaks through the reactor spirit: the cloud brightens while this speaker's line is on screen, and the portrait is the live cloud. */
+  spirit?: boolean;
 }
 
 /** Wording the director's own UI needs. */
@@ -129,5 +154,7 @@ export interface SkinStory {
   speakers: Readonly<Record<string, StorySpeaker>>;
   /** Dialogue style name (client/src/story/view.ts). Default "strip". */
   dialogue?: string;
+  /** Lighting presets for `{ light }` actions: 0 full night to 1 sunrise. */
+  lights?: Readonly<Record<string, number>>;
   levels: Readonly<Record<string, StoryLevel>>;
 }

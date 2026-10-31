@@ -29,6 +29,8 @@ export interface GameRenderer {
   setDiscovery(isNew: ((id: string) => boolean) | null): void;
   /** Story presentation handle: world light, reactor spirit, camera beat. Null when the renderer is not 3D. */
   story(): StoryPresentation | null;
+  /** The reactor spirit's portrait on `canvas`; null when the renderer cannot draw one. */
+  spiritPortrait(canvas: HTMLCanvasElement): { readonly canvas: HTMLCanvasElement; update(t: number): void; dispose(): void } | null;
   hudAnchor: () => { x: number; y: number };
   onCoinLanded: (() => void) | null;
   /** Measured frame rate. */
@@ -76,6 +78,7 @@ class Wrap3D implements GameRenderer {
   get onCoinLanded(): (() => void) | null { return this.r.onCoinLanded; }
   set onCoinLanded(fn: (() => void) | null) { this.r.onCoinLanded = fn; }
   story(): StoryPresentation { return this.r.story(); }
+  spiritPortrait(canvas: HTMLCanvasElement) { return this.r.spiritPortrait(canvas); }
   fps(): number { return this.r.stats().fps; }
 }
 

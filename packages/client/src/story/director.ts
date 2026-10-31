@@ -1,4 +1,4 @@
-import { FP, type SimEvent, type State } from "@fo/sim";
+import { FP, TPS, type SimEvent, type State } from "@fo/sim";
 import type { SkinStory, StoryAction, StoryCameraBeat, StoryCue, StoryGhost, StoryGoal, StoryHudPart, StoryLevel, StoryPlace, StoryTrigger } from "@fo/skins";
 import { CameraBeatPlayer, type BeatCamera } from "./camera.js";
 
@@ -10,7 +10,7 @@ export interface StoryToken { id: string; state: "open" | "done" | "failed"; lab
 
 export type StarSlot = "empty" | "earned" | "cracked";
 
-export interface DialogueLine { name: string; text: string; portrait?: string | undefined; tag?: string | undefined; tap: boolean }
+export interface DialogueLine { name: string; text: string; portrait?: string | undefined; tag?: string | undefined; tap: boolean; style?: string | undefined }
 
 /** The DOM side; view.ts implements it, tests fake it. */
 export interface StoryView {
@@ -24,6 +24,8 @@ export interface StoryView {
   clearPrompt(): void;
   hud(hidden: ReadonlySet<StoryHudPart>): void;
   goals(slots: readonly StarSlot[], current: string | null): void;
+  /** Per frame, seconds on any clock: keeps a live portrait moving. */
+  frame?(t: number): void;
   dispose(): void;
 }
 
@@ -43,11 +45,22 @@ export interface StoryHost {
 
 /** What the renderer's wiring reads each frame; the director only ever replaces these values. */
 export interface StoryWorld {
-  light: { preset: string; seconds: number } | null;
-  ghosts: readonly StoryGhost[];
+  /** `atTick`: the sim tick it was asked for, so the change runs on sim time and a freeze holds it. */
+  light: { preset: string; seconds: number; atTick?: number } | null;
+  ghosts: readonly (StoryGhost & { pos: { x: number; y: number } })[];
+  dots: { pts: readonly { x: number; y: number }[]; period?: number | undefined } | null;
+  ridge: { side: "left" | "right" | "top" | "bottom"; period: number; k: number } | null;
+  /** `seq` counts requests, so the same request twice still reads as new. */
+  flash: { n: number; seq: number } | null;
+  spirit: { state: "bloom" | "pulse" | "idle" | "fading" | "off"; seq: number } | null;
+  glow: { x: number; y: number } | null;
+  guideOff: boolean;
+  /** A line by a spirit speaker is on screen. */
+  speaking: boolean;
 }
 
 const isBeat = (a: StoryAction): boolean => "camera" in a || "film" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
+const isWorld = (a: StoryAction): boolean => "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a;
 const CARD_SECONDS = 3;
 const GOAL_GAP_S = 0.7;
 const TAP_GUARD_MS = 250;
@@ -62,7 +75,10 @@ type Active =
 
 export class StoryDirector {
   /** Lighting and ghosts, for the renderer's wiring to read. */
-  world: StoryWorld = { light: null, ghosts: [] };
+  world: StoryWorld;
+  private tick = 0;
+  private seq = 0;
+  private nudge: CameraBeatPlayer | null = null;
   private started = false;
   private disposed = false;
   private readonly fired = new Set<StoryCue>();
@@ -81,16 +97,20 @@ export class StoryDirector {
   private readonly settled: StarSlot[];
   private readonly asked = new Set<string>();
   private tokens: readonly StoryToken[] = [];
+  private objectives: State["objectives"] = [];
   private paintKey = "";
 
   constructor(
     private readonly story: SkinStory,
     private readonly level: StoryLevel,
-    private readonly view: StoryView,
+    readonly view: StoryView,
     private readonly host: StoryHost,
     /** Played this level before: drop beats, keep lines. */
     private readonly replay: boolean,
+    /** This run started at the level's `retryFrom`, so the cues of the walk there do not fire. */
+    private readonly fromRetrySpot = false,
   ) {
+    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, guideOff: !!level.noGuide, speaking: false };
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
     view.hud(this.hidden);
@@ -103,6 +123,11 @@ export class StoryDirector {
 
   /** The director runs the goals display, so app.ts leaves star toasts to it. */
   get ownsGoals(): boolean { return this.level.goals.length > 0; }
+
+  /** A goal's own wording, where the level gives one, without the time left. */
+  goalLabel(id: string): string | undefined {
+    return this.level.goals.find((g) => g.id === id)?.label?.replace(/[:\s]*\{left\}/, "");
+  }
 
   /** Whether the goal cards and overview still play. */
   get keepsIntro(): boolean { return !!this.level.intro; }
@@ -146,6 +171,7 @@ export class StoryDirector {
   /** Call after each sim step. */
   afterTick(st: State): void {
     const p = st.player.pos;
+    this.tick = st.tick;
     for (const c of this.level.cues) {
       if (this.armed(c) && (this.timeReached(c.on, st) || this.playerNear(c.on, p.x / FP, p.y / FP))) this.fire(c, st);
     }
@@ -156,9 +182,12 @@ export class StoryDirector {
   update(dtMs: number, st: State): void {
     if (this.disposed) return;
     const dt = dtMs / 1000;
+    this.tick = st.tick;
+    this.objectives = st.objectives;
+    if (this.nudge?.step(dt)) this.nudge = null;
     if (!this.started) {
       this.started = true;
-      for (const c of this.level.cues) if ("start" in c.on) this.fire(c, st);
+      for (const c of this.level.cues) if ("start" in c.on && this.armed(c)) this.fire(c, st);
     }
     const a = this.active;
     if (a?.k === "timed") {
@@ -181,7 +210,7 @@ export class StoryDirector {
       });
     }
     const cur = this.currentGoal();
-    const label = this.over || !cur ? null : tokens.find((t) => t.id === cur.id)?.label ?? null;
+    const label = this.over || !cur ? null : this.goalText(cur, tokens);
     const key = `${this.settled.join()}|${label}`;
     if (key !== this.paintKey) { this.paintKey = key; this.view.goals(this.settled, label); }
   }
@@ -200,6 +229,7 @@ export class StoryDirector {
     if (this.disposed) return;
     this.disposed = true;
     if (this.active?.k === "camera") this.active.beat.stop();
+    this.nudge?.stop();
     this.active = null;
     this.queue.length = 0;
     this.view.onTap(null);
@@ -208,12 +238,16 @@ export class StoryDirector {
 
   // ------------------------------------------------------------------ cues
 
-  private armed(c: StoryCue): boolean { return !!c.repeat || !this.fired.has(c); }
+  private armed(c: StoryCue): boolean { return (!!c.repeat || !this.fired.has(c)) && !(c.walk && this.fromRetrySpot); }
 
   private fire(c: StoryCue, st: State): void {
     this.fired.add(c);
     if (c.id) this.firedAt.set(c.id, st.tick);
-    for (const a of c.do) if (!this.replay || !isBeat(a)) this.queue.push(a);
+    // light and world changes happen on their cue; only lines, beats and cards wait their turn
+    for (const a of c.do) {
+      if (isWorld(a)) this.start(a);
+      else if (!this.replay || !isBeat(a)) this.queue.push(a);
+    }
     this.pump();
   }
 
@@ -247,22 +281,26 @@ export class StoryDirector {
     if ("line" in a) {
       const sp = a.who !== undefined ? this.story.speakers[a.who] : undefined;
       const tap = !!a.tap && !this.replay;
-      this.view.line({ name: sp?.name ?? a.who ?? "", text: a.line, portrait: sp?.portrait, tap });
-      if (tap) this.waitTap(() => this.view.clearLine());
-      else this.timed(a.seconds ?? lineSeconds(a.line), () => this.view.clearLine());
+      this.view.line({ name: sp?.name ?? a.who ?? "", text: a.line, portrait: sp?.portrait, tap, style: sp?.dialogue });
+      this.world = { ...this.world, speaking: !!sp?.spirit };
+      const end = (): void => { this.view.clearLine(); this.world = { ...this.world, speaking: false }; };
+      if (tap) this.waitTap(end);
+      else this.timed(a.seconds ?? lineSeconds(a.line), end);
     } else if ("crew" in a) {
       this.view.line({ name: this.story.speakers[a.who]?.name ?? a.who, text: a.crew, tag: a.tag, tap: !this.replay });
       if (this.replay) this.timed(lineSeconds(a.crew), () => this.view.clearLine());
       else this.waitTap(() => this.view.clearLine());
     } else if ("camera" in a) {
       const to = this.place(a.camera.to);
-      if (to) this.active = { k: "camera", beat: new CameraBeatPlayer(this.host.cam, a.camera, to), freezes: a.camera.freeze !== false };
+      // a nudge during play runs beside the lines; a beat that pauses play holds the queue
+      if (to && a.camera.freeze === false) { this.nudge?.stop(); this.nudge = new CameraBeatPlayer(this.host.cam, a.camera, to); }
+      else if (to) this.active = { k: "camera", beat: new CameraBeatPlayer(this.host.cam, a.camera, to), freezes: true };
     } else if ("freeze" in a) {
       this.explicitFreeze = a.freeze;
     } else if ("tap" in a) {
       this.waitTap(() => {});
     } else if ("light" in a) {
-      this.world = { ...this.world, light: { preset: a.light, seconds: a.seconds ?? 0 } };
+      this.world = { ...this.world, light: { preset: a.light, seconds: a.seconds ?? 0, atTick: this.tick } };
     } else if ("film" in a) {
       const waiting: Active = { k: "wait", freezes: true };
       this.active = waiting;
@@ -280,11 +318,27 @@ export class StoryDirector {
     } else if ("day" in a) {
       this.showCard(a.day, a.sub, true, a.seconds);
     } else if ("ghost" in a) {
-      this.world = { ...this.world, ghosts: [...this.world.ghosts.filter((g) => g.id !== a.ghost.id), a.ghost] };
+      const pos = this.place(a.ghost.at);
+      if (pos) this.world = { ...this.world, ghosts: [...this.world.ghosts.filter((g) => g.id !== a.ghost.id), { ...a.ghost, pos }] };
     } else if ("ghostOff" in a) {
       this.world = { ...this.world, ghosts: this.world.ghosts.filter((g) => g.id !== a.ghostOff) };
     } else if ("tryAgain" in a) {
       this.openPrompt(a.text);
+    } else if ("dots" in a) {
+      const pts = a.dots.flatMap((p) => { const q = this.place(p); return q ? [q] : []; });
+      this.world = { ...this.world, dots: { pts, period: a.period } };
+    } else if ("dotsOff" in a) {
+      this.world = { ...this.world, dots: null };
+    } else if ("ridge" in a) {
+      this.world = { ...this.world, ridge: { side: a.ridge, period: a.period ?? 4, k: a.k ?? 0.6 } };
+    } else if ("ridgeFlash" in a) {
+      this.world = { ...this.world, flash: { n: a.ridgeFlash, seq: ++this.seq } };
+    } else if ("spirit" in a) {
+      this.world = { ...this.world, spirit: { state: a.spirit, seq: ++this.seq } };
+    } else if ("edgeGlow" in a) {
+      this.world = { ...this.world, glow: a.edgeGlow ? this.place(a.edgeGlow) : null };
+    } else if ("guide" in a) {
+      this.world = { ...this.world, guideOff: !a.guide };
     }
   }
 
@@ -338,6 +392,13 @@ export class StoryDirector {
     this.queue.push({ tryAgain: true });
   }
 
+  private goalText(g: StoryGoal, tokens: readonly StoryToken[]): string | null {
+    if (!g.label) return tokens.find((t) => t.id === g.id)?.label ?? null;
+    const o = this.objectives.find((x) => x.id === g.id);
+    const left = Math.ceil(Math.max(0, (o?.target ?? 0) - (o?.progress ?? 0)) / TPS);
+    return g.label.replace("{left}", `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`);
+  }
+
   private currentGoal(): StoryGoal | null {
     const g = this.level.goals[this.turn];
     return g && (!g.hold || this.released.has(g.id)) ? g : null;
@@ -352,7 +413,7 @@ export class StoryDirector {
     this.settled[this.turn] = t.state === "done" ? "earned" : "cracked";
     this.turn++;
     this.gap = GOAL_GAP_S;
-    this.host.goalSettled(t.label, t.state === "done");
+    this.host.goalSettled(this.goalLabel(t.id) ?? t.label, t.state === "done");
     this.syncGoals(this.tokens);
   }
 }

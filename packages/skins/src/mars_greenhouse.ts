@@ -768,7 +768,85 @@ export const marsGreenhouse: Skin = {
     "proto-L003": "Galley Rush",
     "proto-L004": "Raid Night",
   },
-  look3d: { saturation: 0.82, groundLift: 0.38, nightFloor: { ambient: 0.32, ridge: 0.3 } },
+  story: {
+    ui: { missed: "You missed it. Try again?", tryAgain: "Try again", keepPlaying: "Keep playing", seeResults: "See results", tapToContinue: "Tap to continue" },
+    speakers: {
+      commander: { name: "COMMANDER" },
+      kiln: { name: "KILN", portrait: "kiln", spirit: true, dialogue: "terminal" },
+    },
+    lights: { night: 0, firstLight: 0.3, sunrise: 1 },
+    levels: {
+      "story-L001": {
+        hide: ["credits", "fuel", "walls", "name", "retry", "settings", "help"],
+        calmUntilLit: true,
+        noGuide: true,
+        retryFrom: [300, 320],
+        goals: [
+          { id: "ignite", hold: true, label: "Restart the reactor" },
+          { id: "fill", tryAgain: true, label: "Fill the reactor in 30 s" },
+          { id: "main", hold: true, label: "Keep the reactor burning till morning: {left}" },
+        ],
+        cues: [
+          // the world: moonlit sand, the ridge's slow pulse on its fixed side, three lights around the dead reactor
+          { on: { start: true }, do: [
+            { light: "night" },
+            { ridge: "right", period: 4, k: 0.55 },
+            { dots: [{ at: [272, 300] }, { at: [226, 372] }, { at: [176, 296] }], period: 4 },
+            { edgeGlow: { entity: "core" } },
+          ] },
+          { id: "woke", on: { start: true }, walk: true, do: [
+            { line: "Oh no, what happened? Where is the rest of my crew?", who: "commander", seconds: 3 },
+            { line: "Wait, what's that light over there?", who: "commander", seconds: 2.2 },
+          ] },
+          // lost in the dark for long: the arrows come on anyway
+          { on: { after: "woke", ticks: 600 }, do: [{ guide: true }] },
+          { on: { near: { entity: "core" }, r: 120 }, do: [
+            { edgeGlow: null },
+            { dots: [{ at: [272, 300] }, { at: [226, 372] }, { at: [176, 296] }, { at: [292, 372] }], period: 4 },
+            { goal: "ignite" },
+            { guide: true },
+            { line: "This reactor is out of fuel. We'll have to collect some ore.", who: "commander" },
+          ] },
+          { id: "lit", on: { event: "core_lit" }, do: [
+            { dotsOff: true },
+            { edgeGlow: null },
+            { spirit: "bloom" },
+            { show: ["fuel", "settings"] },
+            { light: "firstLight", seconds: 55 },
+            { freeze: true },
+            { camera: { to: { entity: "core" }, pan: 0.5, hold: 0.3, back: 0.2, zoom: 0.8 } },
+            { line: "...Commander. You're late.", who: "kiln", seconds: 2.6 },
+            { freeze: false },
+          ] },
+          { on: { after: "lit", ticks: 45 }, do: [
+            { line: "Four pods still sealed in the wreck. I need power to open them.", who: "kiln" },
+            { line: "My first officer, Vale, is in there.", who: "commander" },
+          ] },
+          { on: { goal: "fill", is: "done" }, do: [
+            { goal: "main" },
+            { line: "Then don't let me go out before morning.", who: "kiln" },
+          ] },
+          { on: { goal: "fill", is: "failed" }, do: [
+            { goal: "main" },
+            { line: "Then don't let me go out before morning.", who: "kiln" },
+          ] },
+          { id: "storm", on: { event: "hazard_start" }, do: [] },
+          { on: { after: "storm", ticks: 450 }, do: [
+            { ridgeFlash: 2 },
+            { spirit: "pulse" },
+            { camera: { to: { entity: "ridge3" }, share: 0.2, pan: 0.35, hold: 1.5, back: 0.5, freeze: false } },
+            { line: "Something out there is calling.", who: "kiln" },
+          ] },
+          { on: { event: "hazard_end" }, do: [{ light: "sunrise", seconds: 35 }] },
+          { on: { event: "level_end", match: { won: false } }, do: [
+            { line: "Not yet...", who: "commander", seconds: 1.8 },
+            { tryAgain: true },
+          ] },
+        ],
+      },
+    },
+  },
+  look3d: { saturation: 0.82, groundLift: 0.38, nightFloor: { ambient: 0.32, ridge: 0.3 }, storyNight: { ambient: 0.52, moon: 0.5, moonColor: "#a9bfe6", dawnColor: "#ffc08f" } },
   audio: {
     gathered: "tick",
     deposited: "tock",

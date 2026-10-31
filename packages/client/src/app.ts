@@ -7,7 +7,7 @@ import { isNew, nearbyPassive, touchedBy } from "./discovery.js";
 import { Haptics, Synth } from "./feedback.js";
 import { Guide, StuckTimer, type GuideTarget } from "./guide.js";
 import { iconSvg, liveObjectives } from "./objectives.js";
-import { GoalHud, alertMarks, alertOf, goalIcon, goalTokens, type Alert } from "./goalhud.js";
+import { GoalHud, alertMarks, alertOf, goalIcon, goalTokens, heatOf, type Alert } from "./goalhud.js";
 import { InputController } from "./input.js";
 import { pushLog, logText, type LogLine } from "./levellog.js";
 import { offlineReady, prefetchLevels, type LevelMeta, type LevelSource } from "./levels.js";
@@ -23,7 +23,7 @@ import type { TelemetryQueue } from "./telemetry.js";
 import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
 import { FILM_VERSIONS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
-import { directorFor, type StoryDirector } from "./story/index.js";
+import { StoryStage, directorFor, type StoryDirector } from "./story/index.js";
 
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
 // and the glue between sim, renderer, input, saves, telemetry and feedback.
@@ -40,6 +40,7 @@ interface Session {
   coach: Coach;
   /** Story presentation for this level; null on levels without story data. Never touches the sim. */
   director: StoryDirector | null;
+  stage?: StoryStage | null;
   ended: boolean;
   /** The player has been told the main goal is out of reach (asked once a level, R5 #21). */
   deadEndAsked?: boolean;
@@ -767,12 +768,15 @@ export class App {
     return seen;
   }
 
-  private async openLevel(meta: LevelMeta): Promise<void> {
+  /** `retrying`: from the story's Try again prompt, which may restart closer in (StoryLevel.retryFrom). */
+  private async openLevel(meta: LevelMeta, retrying = false): Promise<void> {
     this.endSession();
+    const retryFrom = retrying ? this.skin.story?.levels[meta.id]?.retryFrom : undefined;
     let manifest: Manifest, sim: Sim;
     try {
       manifest = await this.source.load(meta.id);
       manifest = applyTimeTarget(manifest, this.settings.timeTargetPct);
+      if (retryFrom) manifest = { ...manifest, start: [retryFrom[0], retryFrom[1]] };
       sim = createSim(manifest);
     } catch (err) {
       this.showError(meta, err);
@@ -798,7 +802,8 @@ export class App {
     this.el.lvlName.setAttribute("aria-label", named ? `${uiText(this.skin, "levelWord")} ${meta.index + 1} · ${t.title}` : t.title);
     this.hud.reset(sim.state.currency, this.scrapLevel(this.session.manifest));
     const sess = this.session;
-    sess.director = this.storyDirector(sess);
+    sess.director = this.storyDirector(sess, !!retryFrom);
+    sess.stage = this.storyStage(sess);
     this.introStep = 0;
     const straightIn = !!sess.director && !sess.director.keepsIntro;
     if (straightIn) this.el.ov["intro"]!.textContent = ""; else this.renderIntro(t);
@@ -810,7 +815,13 @@ export class App {
     void this.prefetch();
   }
 
-  private storyDirector(s: Session): StoryDirector | null {
+  private storyStage(s: Session): StoryStage | null {
+    const story = this.skin.story, present = s.renderer.story();
+    if (!s.director || !story || !present) return null;
+    return new StoryStage(story, s.director, present, (p) => s.renderer.worldToScreen(p), this.el.ftoast.parentElement!, this.skin.palette.guideLight, this.skin.palette.ridgeRed);
+  }
+
+  private storyDirector(s: Session, fromRetrySpot: boolean): StoryDirector | null {
     const id = s.meta.id;
     return directorFor(this.skin, id, this.el.ftoast.parentElement!, {
       cam: s.cam,
@@ -820,12 +831,16 @@ export class App {
         return e?.rect ? { x: e.rect[0]! + e.rect[2]! / 2, y: e.rect[1]! + e.rect[3]! / 2 } : null;
       },
       film: async (f) => { if (filmDue(f, this.progress.cinematics)) await this.cinematic(f); },
-      retry: () => void this.openLevel(s.meta),
+      retry: () => void this.openLevel(s.meta, true),
       goalSettled: (label, done) => {
         this.synth.play(done ? "star" : "miss");
         if (done) this.starToast(uiText(this.skin, "starEarned"), label);
       },
-    }, !!this.progress.cleared[id] || (this.progress.tries[id] ?? 0) > 0);
+    // only a level already cleared is a replay: a retry after a loss keeps its beats and every line
+    }, !!this.progress.cleared[id], fromRetrySpot, (key) => {
+      const spirit = Object.values(this.skin.story?.speakers ?? {}).some((sp) => sp.portrait === key && sp.spirit);
+      return spirit ? s.renderer.spiritPortrait(this.el.ftoast.ownerDocument.createElement("canvas")) : null;
+    });
   }
 
   /** Play a cinematic full-screen once: ended or skipped saves it as seen; an error or stall just continues. */
@@ -948,6 +963,7 @@ export class App {
     this.el.tapstart.hidden = true;
     this.disarmRetry();
     if (this.resultTimer) { clearTimeout(this.resultTimer); this.resultTimer = null; }
+    this.session?.stage?.dispose();
     this.session?.director?.dispose();
     this.session?.renderer.dispose();
     this.session = null;
@@ -1012,7 +1028,7 @@ export class App {
     if (st.stats.sold > 0) stats.push([uiText(sk, "statSold"), String(st.stats.sold)]);
     if (s.sim.compiled.waves.length) stats.push([uiText(sk, "statRaids"), `${s.wavesCleared}/${s.sim.compiled.waves.length}`]);
     const rows = liveObjectives(st, s.manifest, sk);
-    const objList = won && rows.length ? `<ul class="objlist">${rows.map((o) => `<li class="${o.done ? "on" : "missed"}">${iconSvg(o.icon)}<span class="otxt">${esc(o.label)}</span><span class="omark">${o.done ? "\u2713" : esc(uiText(sk, "starMissed"))}</span><span class="ost">\u2605</span></li>`).join("")}</ul>` : "";
+    const objList = won && rows.length ? `<ul class="objlist">${rows.map((o) => `<li class="${o.done ? "on" : "missed"}">${iconSvg(o.icon)}<span class="otxt">${esc(s.director?.goalLabel(o.id) ?? o.label)}</span><span class="omark">${o.done ? "\u2713" : esc(uiText(sk, "starMissed"))}</span><span class="ost">\u2605</span></li>`).join("")}</ul>` : "";
     const starRow = won ? `<div class="starrow" aria-label="${esc(uiText(sk, "stars", { n: stars }))}">${[1, 2, 3].map((i) => `<span class="star${i <= stars ? " on" : ""}" style="animation-delay:${0.2 + i * 0.18}s">★</span>`).join("")}</div>` : "";
     ov.innerHTML = `<div class="card center result ${won ? "won" : "lost"}">
       ${won ? starRow : `<div class="badge">!</div>`}
@@ -1168,6 +1184,10 @@ export class App {
     }
     if (this.hidden) return;
     s.cam.lead = this.leadPoint(s);
+    if (s.stage) {
+      const r = this.el.stage.getBoundingClientRect();
+      s.stage.frame(s.sim.state, heatOf(s.sim.state, s.sim.compiled), now / 1000, r.width, r.height);
+    }
     s.renderer.sync(s.sim.state, playing ? s.stepper.alpha : 0, s.cam);
     this.updateHud(s);
     this.hud.tick(Math.min(0.1, dt / 1000));
@@ -1241,9 +1261,9 @@ export class App {
   private updateCoach(s: Session): void {
     const mark = s.coach.update(s.sim.state, s.sim.compiled);
     const stuck = this.settings.stuckArrow && s.stuck.stuck(s.sim.state);
-    s.guideTarget = (s.guideOn || stuck) && s.guide && !s.ended ? s.guide.update(s.sim.state, this.skin) : null;
+    s.guideTarget = (s.guideOn || stuck) && s.guide && !s.ended && !s.director?.world.guideOff ? s.guide.update(s.sim.state, this.skin) : null;
     s.renderer.setGuide(s.guideTarget);
-    if (!mark) { s.renderer.setCoach(null); return; }
+    if (!mark || s.director?.world.guideOff) { s.renderer.setCoach(null); return; }
     const at = toWorld(mark.at), g = s.guideTarget;
     // the guide arrow already points here: its line speaks for the coach mark
     if (g && (g.at.x - at.x) ** 2 + (g.at.y - at.y) ** 2 < 50 * 50) { s.renderer.setCoach(null); return; }

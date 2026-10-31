@@ -8,14 +8,20 @@ import type { StoryLights } from "./storylights.js";
 // Holds state and does no drawing of its own, so it runs in tests without a GL context.
 
 const MAX_PULSES = 2;
+const FLASH_S = 0.42;
 
 export class StoryPresent implements StoryPresentation {
   private dotPts: readonly { x: number; z: number }[] | null = null;
-  private dotOpts: { period?: number; lit?: boolean } = {};
+  private dotOpts: { period?: number; lit?: boolean; together?: boolean } = {};
   private readonly podDim = new Map<string, number>();
   private readonly lamps = new Map<string, { goal: boolean; k: number }>();
   private ridgeSide: RidgeSide | null = null;
   private ridgeK = 0;
+  ridgeGlow: { side: RidgeSide; k: number } | null = null;
+  private slow: { period: number; k: number } | null = null;
+  private flash: { at: number | null; n: number } | null = null;
+  /** Build ghosts for the renderer to place. */
+  ghostList: readonly { id: string; x: number; z: number; build?: string | undefined; price: number }[] = [];
   private target: number | null = null;
   private cur = 0;
   private snapNow = false;
@@ -33,7 +39,7 @@ export class StoryPresent implements StoryPresentation {
     bloom: () => { this.spiritState = "idle"; this.cloud.bloom(); },
   };
 
-  dots(pts: readonly { x: number; z: number }[] | null, opts: { period?: number; lit?: boolean } = {}): void {
+  dots(pts: readonly { x: number; z: number }[] | null, opts: { period?: number; lit?: boolean; together?: boolean } = {}): void {
     this.dotPts = pts && pts.length ? pts : null;
     this.dotOpts = opts;
     if (!this.dotPts) this.lights.groundDots([], 0);
@@ -53,7 +59,10 @@ export class StoryPresent implements StoryPresentation {
   flashLight(id: string, len = 1.2): void { this.lights.flashLight(id, this.now, len); }
   removeLight(id: string): void { this.lights.removeLight(id); this.lamps.delete(id); }
   tally(x: number, y: number, z: number, slots: TallySlots | null): void { this.lights.tally(x, y, z, slots); }
-  ridge(side: RidgeSide | null, k = 1): void { this.ridgeSide = side; this.ridgeK = side ? k : 0; }
+  ridge(side: RidgeSide | null, k = 1): void { this.ridgeSide = side; this.ridgeK = side ? k : 0; this.slow = null; }
+  ridgeSlow(side: RidgeSide | null, period: number, k: number): void { this.ridgeSide = side; this.ridgeK = 0; this.slow = side ? { period, k } : null; }
+  ridgeFlash(n: number): void { this.flash = { at: null, n }; }
+  ghosts(list: readonly { id: string; x: number; z: number; build?: string | undefined; price: number }[]): void { this.ghostList = list; }
   lighting(progress: number | null, snap = false): void { this.target = progress === null ? null : Math.max(0, Math.min(1, progress)); this.snapNow = snap; }
   beat(b: Omit<CameraBeat, "seconds"> & { seconds?: number } | null): void {
     this.beatReq = b ? { ...b, seconds: b.seconds ?? 2, until: this.now + (b.seconds ?? 2) } : null;
@@ -69,6 +78,19 @@ export class StoryPresent implements StoryPresentation {
   get lightingNow(): number | null { return this.target === null ? null : this.cur; }
   /** The spirit's cloud is hidden this frame by the pulse cap. */
   get cloudSuppressed(): boolean { return !this.allowed.has(5) && (this.spiritState === "speaking" || this.spiritState === "pulse"); }
+
+  /** The slow pulse follows the ground dots' own beat (cos cubed on the same clock); flashes ride over it. */
+  private ridgeNow(t: number): number {
+    let k = this.ridgeK;
+    if (this.slow) k = Math.max(k, this.slow.k * Math.max(0, Math.cos((t / this.slow.period) * Math.PI * 2)) ** 3);
+    if (this.flash) {
+      this.flash.at ??= t;
+      const u = (t - this.flash.at) / FLASH_S;
+      if (u >= this.flash.n) this.flash = null;
+      else k = Math.max(k, Math.sin((u % 1) * Math.PI));
+    }
+    return k;
+  }
 
   /** Per frame: t seconds on the renderer clock, dt seconds since the last frame, and the camera view on the ground. */
   frame(t: number, dt: number, cx: number, cz: number, halfW: number, halfH: number): void {
@@ -88,7 +110,8 @@ export class StoryPresent implements StoryPresentation {
     for (const [id, l] of this.lamps) this.lights.lightLevel(id, this.allowed.has(l.goal ? 1 : 3) ? l.k : 0);
     if (this.dotPts) this.lights.groundDots(this.dotPts, t, { ...this.dotOpts, lit: this.dotOpts.lit !== false && this.allowed.has(4) });
     this.lights.update(t);
-    this.lights.ridgePulse(this.ridgeSide ?? "right", this.ridgeSide ? this.ridgeK : 0, cx, cz, halfW, halfH);
+    this.ridgeGlow = this.ridgeSide ? { side: this.ridgeSide, k: this.ridgeNow(t) } : null;
+    this.lights.ridgePulse("right", 0, cx, cz, halfW, halfH);
   }
 }
 

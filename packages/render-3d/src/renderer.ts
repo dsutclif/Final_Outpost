@@ -47,7 +47,7 @@ import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Fx } from "./scene/fx.js";
 import { GroundMarks } from "./scene/groundmarks.js";
-import { createCoreSpirit, type CoreSpirit } from "./scene/corespirit.js";
+import { createCoreSpirit, createSpiritPortrait, type CoreSpirit, type SpiritPortrait } from "./scene/corespirit.js";
 import { StoryLights, nightFloor, storyLightColors, storyLighting } from "./scene/storylights.js";
 import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
@@ -104,8 +104,11 @@ const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.22, 0.37], [-0.
 const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.ship_wreck", "decor.scrap_field"]);
 
 /** Story handle before init: every call is dropped. */
+/** How far a dark core sits in the sand, in art metres. */
+const CORE_BURIED = 0.9;
+
 const NO_STORY: StoryPresentation = {
-  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, tally() {}, ridge() {}, lighting() {}, beat() {},
+  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {},
   spirit: { setState() {}, setStrength() {}, bloom() {} },
   beating: false,
 };
@@ -401,6 +404,7 @@ export class Renderer3D implements Renderer {
   private storyLights: StoryLights | null = null;
   private spirit: CoreSpirit | null = null;
   private storyP: StoryPresent | null = null;
+  private coreSink = 0;
   private storyDecor = new Group();
   private storyDecorDone = new Set<string>();
   /** Half the view on the ground along screen right and up, for the ridge pulse. */
@@ -535,6 +539,7 @@ export class Renderer3D implements Renderer {
       const at = (e as { at?: readonly [number, number] }).at;
       if (!at) return [];
       if (e.type === "pad.build" && (e as { build: string }).build.startsWith("struct.ranged_defense") && !inRings(at)) return [];
+      if (e.type === "sink.core" && (e as { params?: { lit?: boolean } }).params?.lit === false) return [];
       const r = e.type === "sink.core" ? 78 : e.type.startsWith("sink.") || e.type.startsWith("conv.") ? 62 : e.type === "pad.build" || e.type.startsWith("struct.") || e.type === "node.food_source" ? 48 : 0;
       return r ? [{ x: at[0], z: at[1], r, core: e.type === "sink.core" }] : [];
     });
@@ -580,7 +585,7 @@ export class Renderer3D implements Renderer {
     // story light and the reactor spirit: built idle, they show only once the director drives them
     this.storyLights = new StoryLights(this.scene, storyLightColors(this.tokens), make);
     const coreAt = (manifest.entities.find((e) => e.type === "sink.core") as { at?: readonly [number, number] } | undefined)?.at ?? [manifest.map.w / 2, manifest.map.h / 2];
-    this.spirit = createCoreSpirit(this.scene, this.tokens, { at: { x: coreAt[0], y: 0, z: coreAt[1] }, height: ART_M * 4.2, size: ART_M * 3.2, patch: ART_M * 2.6 });
+    this.spirit = createCoreSpirit(this.scene, this.tokens, { at: { x: coreAt[0], y: 0, z: coreAt[1] }, height: ART_M * 2.3, size: ART_M * 8, patch: ART_M * 2.6 });
     this.storyP = new StoryPresent(this.storyLights, this.spirit);
     this.buildDom(doc, mount);
 
@@ -785,6 +790,23 @@ export class Renderer3D implements Renderer {
     return this.storyP ?? NO_STORY;
   }
 
+  /** The reactor spirit's small copy on its own canvas, for the portrait beside its name. */
+  spiritPortrait(canvas: HTMLCanvasElement): SpiritPortrait {
+    return createSpiritPortrait(this.tokens, (c) => new WebGLRenderer({ canvas: c, alpha: true, antialias: false, powerPreference: "low-power" }) as unknown as GLLike, canvas, 144);
+  }
+
+  /** Blueprints the story director asked for, each with its price over it. */
+  private syncStoryGhosts(): void {
+    for (const g of this.storyP?.ghostList ?? []) {
+      if (!g.build) continue;
+      const what = g.build, p = this.place(`sg:${g.id}`, what, v3(g.x, 0, g.z), 1, (ctx) => this.ghostModel(what, ctx));
+      const sp = this.sprite(p, 0);
+      const label = nameOf(this.skin, what);
+      sp.visible = this.labels.apply(sp, `sg|${label}|${g.price}`, () => this.padLabelArt(label, [{ res: "res.currency", left: g.price }], false, ""), PAD_LABEL_H);
+      sp.position.set(g.x, ART_M * 2.2, g.z);
+    }
+  }
+
   /** Place the manifest's `decor.*` entities of this id from the loaded model, once. */
   private placeStoryDecor(e: MeshyEntry): void {
     if (this.storyDecorDone.has(e.id)) return;
@@ -890,6 +912,7 @@ export class Renderer3D implements Renderer {
     this.syncDepot(state);
     this.syncConveyors(state);
     this.syncPads(state);
+    this.syncStoryGhosts();
     this.syncBarriers(state);
     this.syncZones(state);
     this.syncCaptures(state, a);
@@ -1195,11 +1218,14 @@ export class Renderer3D implements Renderer {
   private syncCore(s: State): void {
     const p = this.place(`core:${s.core.level}`, "sink.core", this.wv(s.core.pos), s.core.level);
     this.candidate("sink.core", p);
+    // a dark core lies half buried and heaves itself out when it lights
+    this.coreSink = s.core.dormant ? 1 : Math.max(0, this.coreSink - 0.02);
+    if (this.coreSink > 0) p.model.root.position.y -= ART_M * CORE_BURIED * this.coreSink;
     const { orb, flame, spin } = p.model.parts;
     const k = this.fuelK;
     const out = s.core.fuel <= 0;
     const flicker = k < 0.25 ? 0.8 + 0.2 * Math.sin(this.t * 25) : 1;
-    if (orb) orb.scale.setScalar((out ? 0.35 : 0.55 + 0.5 * k) * flicker);
+    if (orb) { orb.visible = !s.core.dormant; orb.scale.setScalar((out ? 0.35 : 0.55 + 0.5 * k) * flicker); }
     if (flame) {
       flame.visible = !out && TIERS[this.quality].halos;
       const pulse = 1 + Math.sin(this.t * 6) * 0.06;
@@ -2684,7 +2710,8 @@ export class Renderer3D implements Renderer {
     let pods = 0;
     for (const c of w.captures) if (c.state === "idle" && pods < 3) { targets.push({ p: at(c.pos), color: t.interactive, icon: "pod" }); pods++; }
     if (w.residents.some((r) => r.status === "arriving") && this.cp?.gate) targets.push({ p: at(this.cp.gate.pos), color: t.ok, icon: "person" });
-    if (w.core.fuel <= 3 && !this.alertMarks.some((m) => m.kind === "core")) targets.push({ p: at(w.core.pos, 20), color: t.accent, icon: "core" });
+    // a dark core is found by the light in the world, not a pointer
+    if (w.core.fuel <= 3 && !w.core.dormant && !this.alertMarks.some((m) => m.kind === "core")) targets.push({ p: at(w.core.pos, 20), color: t.accent, icon: "core" });
     if ((w.sales?.pileN ?? 0) >= 10) targets.push({ p: at(w.sales!.pile), color: pal.res["res.currency"] ?? t.accent, icon: "coin" });
     for (const p of w.pads) {
       if (!this.pads.get(p.id)?.goal || p.done || !p.visible) continue;

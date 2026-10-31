@@ -35,6 +35,8 @@ export interface Renderer3DHandle extends Renderer {
   setDiscovery(isNew: ((id: string) => boolean) | null): void;
   /** Story presentation (world light, reactor spirit, camera beat); inactive until a story level uses it. */
   story(): StoryPresentation;
+  /** The reactor spirit's small copy, drawn on its own canvas. */
+  spiritPortrait(canvas: HTMLCanvasElement): { readonly canvas: HTMLCanvasElement; update(t: number): void; dispose(): void };
 }
 
 export interface LoadRenderer3DOptions {

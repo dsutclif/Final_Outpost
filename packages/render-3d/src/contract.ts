@@ -76,7 +76,7 @@ export interface CameraBeat { at: { x: number; y: number }; zoom?: number; secon
  */
 export interface StoryPresentation {
   /** Blue ground dots running toward the next step; null clears them. */
-  dots(pts: readonly { x: number; z: number }[] | null, opts?: { period?: number; lit?: boolean }): void;
+  dots(pts: readonly { x: number; z: number }[] | null, opts?: { period?: number; lit?: boolean; together?: boolean }): void;
   /** A pod's glow and beam; `dim` 1 full, 0 out, below 0 removes it. */
   pod(id: string, x: number, z: number, kind: "old" | "crew", dim: number): void;
   /** A point light: a warm lamp/window, or a one-shot goal light (own colour). */
@@ -88,6 +88,14 @@ export interface StoryPresentation {
   tally(x: number, y: number, z: number, slots: TallySlots | null): void;
   /** Red ridge pulse from one fixed screen side; null side or k 0 hides it. */
   ridge(side: RidgeSide | null, k?: number): void;
+  /** Slow pulses from that side, one per `period` seconds, in step with ground dots of the same period. */
+  ridgeSlow(side: RidgeSide | null, period: number, k: number): void;
+  /** The ridge pulse this frame, for a screen overlay: the side it comes from and its strength, 0..1. */
+  readonly ridgeGlow: { side: RidgeSide; k: number } | null;
+  /** `n` quick flashes from the ridge's side, over any slow pulse. */
+  ridgeFlash(n: number): void;
+  /** Build ghosts with their price; replaces any shown before. */
+  ghosts(list: readonly { id: string; x: number; z: number; build?: string | undefined; price: number }[]): void;
   /** Night-to-sunrise, 0..1 (eased toward; `snap` jumps); null turns story lighting off. */
   lighting(progress: number | null, snap?: boolean): void;
   /** The reactor spirit: starts off. */

@@ -101,17 +101,17 @@ export class StoryLights {
    * Ground dots at the given spots. They pulse in sequence (a light running along them), one beat
    * per `period` seconds; `lit` false shows them dim and still. Colour is the skin's guide light.
    */
-  groundDots(pts: readonly { x: number; z: number }[], t: number, opts: { period?: number; lit?: boolean } = {}): void {
+  groundDots(pts: readonly { x: number; z: number }[], t: number, opts: { period?: number; lit?: boolean; together?: boolean } = {}): void {
     const n = Math.min(pts.length, MAX_DOTS), period = opts.period ?? 1.6, lit = opts.lit ?? true;
     for (let i = 0; i < n; i++) {
       const p = pts[i]!;
-      const ph = (t / period - i / Math.max(1, n)) % 1;
+      const ph = (t / period - (opts.together ? 0 : i / Math.max(1, n))) % 1;
       const k = lit ? Math.pow(Math.max(0, Math.cos(ph * Math.PI * 2)), 3) : 0;
       this.dummy.position.set(p.x, 1.1, p.z);
       this.dummy.scale.setScalar(0.8 + 0.4 * k);
       this.dummy.updateMatrix();
       this.dots.setMatrixAt(i, this.dummy.matrix);
-      this.dots.setColorAt(i, this.tint.setScalar(0.3 + 0.7 * k).multiply(this.dotColor));
+      this.dots.setColorAt(i, this.tint.setScalar((opts.together ? 0.5 : 0.3) + (opts.together ? 0.5 : 0.7) * k).multiply(this.dotColor));
     }
     this.dots.count = n;
     this.dots.visible = n > 0;
@@ -247,10 +247,14 @@ export interface StoryLighting {
   skyTop: string;
   fog: string;
   sunColor: string;
+  /** Key light floor at full night (moonlight), 0-1 of day. */
+  moon: number;
 }
 
 /** Fallbacks when a skin sets no `look3d.nightFloor`. */
 const FLOOR_DEFAULT = { ambient: 0.3, ridge: 0.25 };
+/** Fallbacks for a director-run night, when a skin sets no `look3d.storyNight`. */
+const STORY_NIGHT_DEFAULT: { ambient: number; moon: number; moonColor: string; dawnColor?: string } = { ambient: 0.3, moon: 0.3, moonColor: "" };
 
 /** The raised night floor on its own: ambient and ridge minimums, from the skin's look tokens. */
 export function nightFloor(skin: Skin): { ambient: number; ridge: number } {
@@ -260,15 +264,16 @@ export function nightFloor(skin: Skin): { ambient: number; ridge: number } {
 /** Night-to-sunrise values for progress 0-1: sky, fog, key and ambient, floored at the skin's night floor. */
 export function storyLighting(skin: Skin, t: Tokens, progress: number): StoryLighting {
   const p = Math.max(0, Math.min(1, progress)), e = p * p * (3 - 2 * p);
-  const floor = nightFloor(skin);
+  const floor = nightFloor(skin), sn = skin.look3d?.storyNight ?? STORY_NIGHT_DEFAULT;
   const night = (c: string, k: number): string => mix(c, t.ink, k);
   return {
-    ambient: floor.ambient + (1 - floor.ambient) * e,
+    ambient: sn.ambient + (1 - sn.ambient) * e,
     sun: e,
     ridgeFloor: floor.ridge + (1 - floor.ridge) * e,
     sky: mix(night(t.sky, 0.82), t.sky, e),
     skyTop: mix(night(t.skyTop, 0.9), t.skyTop, e),
     fog: mix(night(t.fog, 0.82), t.fog, e),
-    sunColor: mix(night(t.sun, 0.5), t.sun, e),
+    sunColor: mix(sn.moonColor || night(t.sun, 0.5), sn.dawnColor || t.sun, e),
+    moon: sn.moon,
   };
 }
