@@ -1,4 +1,4 @@
-# Story levels 1–5: "The Late Wake" (draft for Doug's approval, updated 2026-10-31)
+# Story levels 1â€“5: "The Late Wake" (draft for Doug's approval, updated 2026-10-31)
 
 **Summary.** A pulse from the ridge scrambles the colony ship Halcyon's navigation and it crashes. The
 commander wakes alone in the wreck, relights the reactor, waking KILN, the voyage's AI support system, and
@@ -22,7 +22,7 @@ knows until the end of level 3.
 
 **What really happened (writers' reference; by the end of level 5 the player knows only that four crew resealed their pods empty and that a raider carries Vale's ID):** First Officer **Vale** (Bay 5) and the crew of bays 6, 7 and 8 began hearing a pulse from the ridge
 during cryo-watch, calling crew by bay number. Minutes before impact they let themselves out, closed and locked their empty pods from outside so the ship still read them
-as occupied, and ejected bays 1–4 so those crew would survive. Bay 9's eject jammed. Vale stood at the commander's
+as occupied, and ejected bays 1â€“4 so those crew would survive. Bay 9's eject jammed. Vale stood at the commander's
 glass, chose not to wake them, and left on the lander. Vale's people are now the red visors on the ridge, still spending
 Halcyon chips. **Saved for later levels:** who locked the bays and why, the ejects, Vale at the commander's glass, the pulse being a roll call of crew that is still calling the commander, what the pulse is, and whether Vale was saving the crew or discarding them.
 
@@ -32,7 +32,7 @@ trader who sizes everyone up.
 
 ## Build notes for all five levels
 
-- **Words:** every line either sets up the goal or moves the story. Each shows the speaker's name. Crew faces are never assumed: use names, not portraits.
+- **Words:** every line either sets up the goal or moves the story. KILN's lines use a terminal readout at the bottom of the screen, with the animated cloud beside them; other characters use a top strip with their name (Doug, 2026-10-31). Crew faces are never assumed: use names, not portraits.
 - **Goals:** three goals per level, one on screen at a time, all three star slots always visible. A goal met early completes
   when its turn comes. Objectives already latch (`objectives.ts`), so this is client display only, and the sim never blocks a goal behind another. No time or challenge stars.
 - **Missing a star:** a large centre-screen **You missed it. Try again?** appears only for goals that matter to the story's progress: L1 Fill the reactor and L2 Bring everyone home. Other missed stars just crack their slot and the next goal appears. The result screen offers **Try again for 3 stars** either way.
@@ -41,7 +41,7 @@ trader who sizes everyone up.
 - **Night needs moonlight:** the current night setting shows the sand as almost pure black. Raise it so the sand and ridge read faintly, or Doug's level 1 walk and the ridge pulses won't show.
 - **Films:** skippable with a tap. They play automatically the first time, again when a player resets levels for a new update, and again when that video itself is updated (each film has its own saved version). Replaying from the levels menu is in a separate backlog.
 - **Continuity:** each training level uses the map and buildings the last one left, and rescued crew keep the jobs they took. Levels after training don't carry over.
-- **Stock overload** is removed from levels 1–5 only: no overload star, and no collapse rule on these manifests (`stock.collapseSeconds` 0). Removing it from later levels is in a separate backlog, so `docs/STORY-FIRSTS.md` teaches it there for now.
+- **Stock overload** is removed from levels 1â€“5 only: no overload star, and no collapse rule on these manifests (`stock.collapseSeconds` 0). Removing it from later levels is in a separate backlog, so `docs/STORY-FIRSTS.md` teaches it there for now.
 
 ## Opening film: `crash_open` (about 18 s)
 
@@ -80,7 +80,7 @@ screen it will stay on in play, and no reactor in frame. Last frame matches the 
 
 **If the reactor dies:** frost closes in, the commander says "Not yet...", and a large Try again button retries from the reactor.
 
-## Level 2: Roll Call (60–90 s plus introductions, grey dawn)
+## Level 2: Roll Call (60â€“90 s plus introductions, grey dawn)
 
 *Teaches: the tow loop, towing several, stopping drops the tow, crew who work for you.*
 
@@ -90,12 +90,12 @@ screen it will stay on in play, and no reactor in frame. Last frame matches the 
    **Build:** one beam on screen, close; the rest are pulsing markers at the screen edge. The pods themselves glow, so in dim light or night they are the brightest thing around (use this in later night levels too).
 2. **Goal 1: Bring the nearest pod into the heat.** Near the pod, arrows on the ground curve in a circle around it. The player follows them, the loop closes, and the tow line catches the pod.
    **Build:** `rescue n:1`. The game captures by walking a closed loop, which isn't intuitive, so arrows must draw the circle every time a pod is uncaptured (mocked). A **tally above the commander's head** fills as pods are caught, three slots, so the limit of 3 is visible.
-3. In the heat, the frost melts and the pod opens. A shaking crewmate steps out: PIP · hauler. Play and the freeze timers pause while the name shows.
+3. In the heat, the frost melts and the pod opens. A shaking crewmate steps out: PIP Â· hauler. Play and the freeze timers pause while the name shows.
    **Pip: "Boss? Where is everyone?"** **Commander: "Feed the reactor. I'm going back out to find them."** Tap continues. Pip starts carrying ore, and the player sees they no longer have to.
 4. **Goal 2: Tow two at once.** Two beams stand close together, and the ground arrows circle both, so the player sees they can catch several at once. The tally shows two.
    **Build:** `tow_trip n:2`. Stopping for 2.5 s outside the heat already drops the whole tow (`lasso.slackTime`), so a stop shows the pods sliding away, with no text.
 5. **Goal 3: Bring everyone home before they freeze.** The remaining beams slowly dim as their timers run. Crew who arrive together thaw **one at a time**: play and timers pause, one introduction shows, and a tap brings the next. After the last, a tap restarts play.
-   **Rhee · medic: "How long was I under?"** **Okafor · guard: "Who's watching this camp?"** **Tam · picker: "Any word from home?"** Each then starts a small job.
+   **Rhee Â· medic: "How long was I under?"** **Okafor Â· guard: "Who's watching this camp?"** **Tam Â· picker: "Any word from home?"** Each then starts a small job.
    **Build:** `rescue_all` (main). Client pauses stepping during introductions, so sim and replays are unaffected. If a pod freezes, a large Try again retries the level; check it is forgiving on the bot ladder.
 6. Off the route, a fifth beam burns dull orange. Towed home, its glass swings open: nobody inside, still warm, strange markings. **Commander: "Whose pod is this?"** **KILN: "Not ours. Decades old."**
    **Build:** optional, `decoy`. The stasis pod and glass from `crash_open` (`cryo_pod`, `cryo_glass`), recoloured orange and reduced to game size as a level asset, with its glass as a separate moving piece and an empty interior.
@@ -175,7 +175,7 @@ screen it will stay on in play, and no reactor in frame. Last frame matches the 
    **Build:** retreat at 25% already exists but walks at unit speed; make it faster with the `run` animation clip. Drop the helmet inside the walkable area and apart from any scrap.
 6. The helmet lies on the sand, a small red light pulsing inside it. The player walks to it, the only thing left to do.
    **Build:** the existing helmet model as a level asset, reduced for the game. Walk-up trigger, then the film.
-7. **Film `helmet_reveal` (about 7 s):** the helmet rests on the sand in first light, its black paint scratched through to Halcyon white and gold. An ID card marked with the Halcyon's H fills the frame: **BAY 5 · FIRST OFFICER · VALE**, the same face. **Commander: "Vale?"** Text on black: **Why did you leave me?**
+7. **Film `helmet_reveal` (about 7 s):** the helmet rests on the sand in first light, its black paint scratched through to Halcyon white and gold. An ID card marked with the Halcyon's H fills the frame: **BAY 5 Â· FIRST OFFICER Â· VALE**, the same face. **Commander: "Vale?"** Text on black: **Why did you leave me?**
    **Build:** rebuild the current film. Helmet sitting on the sand, brighter light, sharp card with Vale's name.
 
 ## How to film the scenes
