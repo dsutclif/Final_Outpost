@@ -125,9 +125,9 @@ screen it will stay on in play, and no reactor in frame. Last frame matches the 
    **Build:** no lines; the pad's ghost and price explain it. Hub pad has no `requires`.
 7. **Goal 3: Build the habitat hub.** The last coins land and the hub rises. Its windows light up, the brightest thing on the map, and the crew walk inside.
    **Build:** `build target: hub` (main) on `struct.landmark`, price 150. Replaces `earn 150`.
-8. Sela comes over to settle up, holding out a worn coin stamped with the Halcyon's mark. **Commander: "Halcyon chips?"** **Sela: "Four in suits like yours still spend them."** **Commander: "We landed four days ago."** **Sela: "Friend. The Halcyon came down eleven years ago."**
+8. Sela comes over to settle up, holding out a worn coin stamped with the Halcyon's H. **Commander: "Halcyon chips?"** **Sela: "Four in suits like yours still spend them."** **Commander: "We landed four days ago."** **Sela: "Friend. The Halcyon came down eleven years ago."**
    Hold on the commander. The chip drops. The hub glows behind them. **Pip: "Boss? Eleven *years*?"** No answer. Cut to black.
-   **Build:** in-game scene, sim stopped after the win. The chip is the existing coin with the Halcyon's mark drawn on in code, shown as a close-up. The same mark appears on the ID card in level 5. No new coin models.
+   **Build:** in-game scene, sim stopped after the win. The chip is Doug's new H coin, which replaces the old coin everywhere in the game, shown as a close-up. The same H appears on the ID card in level 5.
 
 ## Level 4: Halcyon Works (about 2:30, morning to dusk)
 
@@ -175,7 +175,7 @@ screen it will stay on in play, and no reactor in frame. Last frame matches the 
    **Build:** retreat at 25% already exists but walks at unit speed; make it faster with the `run` animation clip. Drop the helmet inside the walkable area and apart from any scrap.
 6. The helmet lies on the sand, a small red light pulsing inside it. The player walks to it, the only thing left to do.
    **Build:** the existing helmet model as a level asset, reduced for the game. Walk-up trigger, then the film.
-7. **Film `helmet_reveal` (about 7 s):** the helmet rests on the sand in first light, its black paint scratched through to Halcyon white and gold. An ID card marked with the Halcyon's mark fills the frame: **BAY 5 · FIRST OFFICER · VALE**, the same face. **Commander: "Vale?"** Text on black: **Why did you leave me?**
+7. **Film `helmet_reveal` (about 7 s):** the helmet rests on the sand in first light, its black paint scratched through to Halcyon white and gold. An ID card marked with the Halcyon's H fills the frame: **BAY 5 · FIRST OFFICER · VALE**, the same face. **Commander: "Vale?"** Text on black: **Why did you leave me?**
    **Build:** rebuild the current film. Helmet sitting on the sand, brighter light, sharp card with Vale's name.
 
 ## How to film the scenes

@@ -3,23 +3,64 @@
 Story and level detail: `docs/STORY-LEVELS-V2.md`. Reviewed for token use, architecture, visual polish and story (agents); findings are worked in.
 Done: ground arrows, shipped across the whole game.
 
-## Order
+## Release phases
 
-Level 1 ships first as a complete slice for Doug to play, then 2, 3, 4, 5. Shared work is built only as far as the next level needs.
+Each phase is playable and goes live on its own. Later phases only replace placeholders; nothing is built twice.
 
-| Stage | Work | Model | Runs |
-|---|---|---|---|
-| 1 | **B** Rules batch | Opus | Alone first: everything tuned later depends on it |
-| 2 | **A** Director | Opus | After B, in parallel with C, D, E, F1 |
-| 2 | **C** World light | Sonnet | Exports a module; no `renderer.ts` edits |
-| 2 | **D** Reactor-spirit cloud | Sonnet | Exports a module; no `renderer.ts` edits |
-| 2 | **E** Assets | Sonnet; Haiku for reduction and export runs | Own files |
-| 2 | **F1** `crash_open` recut | Sonnet | Blender only; the file lands with level 1 |
-| 3 | **W** Wire C and D, the `run` clip and hidden captures into `renderer.ts` | Sonnet | One owner, after C and D |
-| 4 | **G1** Level 1 manifest, cues, text; ship with F1 | Sonnet | Needs B, A, C, D, W, wreck from E |
-| 5 | Doug's sign-off on level 1 (below) | | Blocks further levels |
-| 6 | **F2** Live-scene player, parity test on `empty_bays` | Sonnet | After A; touches `app.ts`, so not alongside A |
-| 7 | **G2–G5** Remaining levels, one push each | Sonnet | Needs F2, rest of E |
+### Phase 1: playable story, with text standing in for missing scenes
+
+Levels ship in order, each pushed live when ready: level 1, then 2, 3, 4, 5. Until a level ships, the player gets today's version of it.
+
+| Story moment | In Phase 1 |
+|---|---|
+| Crash | Existing `crash_open`, then fade to black into night |
+| Level 1–5 play | Full: all goals, lines, freezes, crew introductions, tally, Try again prompts, lighting changes, cloud, ground dots, pod glow and beams |
+| Old pod | Existing pod, tinted orange; opens with no one inside |
+| Empty bays | Text card over black |
+| Sela's arrival | Trader on foot with a lamp, using the existing trader model |
+| Eleven-year reveal | In-game lines, with the H coin close-up if the model has arrived |
+| Day 5 to DAY 4,023 | Text card |
+| Wreck | Reduced model in the map; level 4's walk needs it |
+| Flight recorder | Built in code |
+| Crash log | Text card |
+| Helmet | Reduced helmet in the sand, then the existing `helmet_reveal` video, then a text card naming Vale |
+
+Work: B, A, C, D, W, reduced wreck and helmet, G1–G5.
+
+### Phase 2: machinima
+
+Replaces the placeholders with scenes run live in the game engine. No levels change.
+
+- Buggy and wheels for Sela's arrival, with headlights.
+- Sela's reveal, staged with the camera.
+- `empty_bays`, built first as the quality check against `crash_open`. The others follow if Doug accepts it.
+- `crash_log`.
+- Old pod: the recoloured stasis pod with hinged glass.
+- Live helmet fall. The existing video remains unless the live version beats it.
+- Film versions in the save, so updated scenes replay.
+
+Work: rest of E, F2.
+
+### Phase 3: fully animated
+
+- `crash_open` recut to about 18 s, shot 4 at night, sand on the hull, OCCUPIED lights, captions, ridge pulse, matching the game camera.
+- `helmet_reveal` re-rendered with Vale's name and the H mark, if the live version didn't replace it.
+
+Work: F1, plus any helmet re-render.
+
+### Who builds what
+
+| Work | Model | Runs |
+|---|---|---|
+| **B** Rules batch | Opus | First, alone: everything tuned later depends on it |
+| **A** Director | Opus | After B, parallel with C, D, E |
+| **C** World light | Sonnet | Exports a module; no `renderer.ts` edits |
+| **D** Reactor-spirit cloud | Sonnet | Exports a module; no `renderer.ts` edits |
+| **E** Assets | Sonnet; Haiku for reduction runs | Own files |
+| **W** Wire C and D, the `run` clip and hidden captures into `renderer.ts` | Sonnet | One owner, after C and D |
+| **G1–G5** A level's manifest, cues and text, one push each | Sonnet | After A, B, W |
+| **F2** Live-scene player and scenes | Sonnet | After Phase 1; touches `app.ts` |
+| **F1** `crash_open` | Sonnet | Blender only |
 
 Briefs point at sections only: A: cue format in `STORY-LEVELS.md`, V2 beats. B: `CLAUDE.md` engine rules, `DECISIONS.md` #14, the list below. C, D: V2 lighting and cloud sections. E: `meshy.json`, the Assets list. F: `tools/cinematics`, Films below. G: one level's V2 section, manifest schema.
 
@@ -81,12 +122,13 @@ Port the agreed shader as `scene/corespirit.ts` (generic name, hard rule 6). Blu
 - **Wheels:** `Buggy Wheel.glb` reduced to about 3k, four placed per the `Mars Rover Buggy` mock-ups. Opposite side uses a pre-flipped copy with correct winding, hubs facing out. All roll at one ground-speed rate, in the same travel direction. Hub centres and radius checked against the body.
 - **Old pod:** `cryo_pod` and `cryo_glass` reduced and recoloured orange, glass hinged separately, interior empty.
 - **Helmet:** reduced for the game.
-- **Built in code:** flight recorder, Halcyon chip (design waiting on Doug's pick).
+- **H coin:** Doug's new Halcyon coin replaces `Credit Coin.glb` as `res.currency` everywhere (`meshy.json` source, `pnpm models:build`, re-render `public/ui/coin.png`). Same model in Sela's close-up. Waiting on the model file; `Halcyon Chip.jpg` is its reference.
+- **Built in code:** flight recorder.
 
 ## F: Films
 
-- **F1 `crash_open`:** another session removed the reactor; recut to about 18 s, shot 4 at night, sand on the hull, OCCUPIED lights, two captions, ridge pulse on its fixed side. Final shot rendered near-orthographic to match the game camera (30° pitch, 45° yaw), same grade and exposure, 0.5 s crossfade, with a last-frame versus first-frame comparison.
-- **F2 live scenes:** `empty_bays`, `crash_log`, Sela's reveal. `empty_bays` is built first as a parity test against `crash_open`; the others follow only if Doug accepts it. Filter applied, no lingering shots over 2.5 s.
+- **F1 `crash_open` (Phase 3):** another session removed the reactor; recut to about 18 s, shot 4 at night, sand on the hull, OCCUPIED lights, two captions, ridge pulse on its fixed side. Final shot rendered near-orthographic to match the game camera (30° pitch, 45° yaw), same grade and exposure, 0.5 s crossfade, with a last-frame versus first-frame comparison.
+- **F2 live scenes (Phase 2):** `empty_bays`, `crash_log`, Sela's reveal. `empty_bays` is built first as a parity test against `crash_open`; the others follow only if Doug accepts it. Filter applied, no lingering shots over 2.5 s.
 - **Helmet fall:** the existing rendered `helmet_reveal` video is the fallback, and stays the default until a live version beats it. It lacks Vale's name, so a re-render with the new card is a separate call.
 
 ## G: Levels
@@ -99,8 +141,7 @@ Each level's manifest and cue table cover every beat in its V2 section, which is
 
 ## Doug's sign-offs
 
-1. Before Stage 4: Halcyon chip design.
-2. On level 1: night brightness, light ranking, cloud in place.
-3. On F2: live scene against film quality.
-4. On level 3: reduced buggy.
-5. On level 5: live helmet or existing video.
+1. On level 1: night brightness, light ranking, cloud in place.
+2. On Phase 2's `empty_bays`: live scene against film quality.
+3. On Sela's arrival: reduced buggy.
+4. On the helmet: live helmet or existing video.
