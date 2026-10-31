@@ -52,7 +52,7 @@ import { Rigged } from "./scene/rigged.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
-import { heldForHand, padLockReason } from "./padlock.js";
+import { heldJob, padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
 import { ART_M, BUILD_K, CHAR_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, YAW_DEG, viewWFor, textSprite, type QualityTier } from "./units.js";
 
@@ -93,8 +93,8 @@ const BACK_PER_ROW = 3;
 /** Drone: size against a character, hover height, and the four rotor mounts [x, z] / height (drone-model art metres). */
 const DRONE_K = 1;
 const DRONE_HOVER = 0.9;
-const DRONE_ROTOR_Y = 0.36;
-const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.27, 0.38], [-0.27, 0.38], [0.27, -0.38], [-0.27, -0.38]];
+const DRONE_ROTOR_Y = 0.4;
+const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.22, 0.37], [-0.22, 0.37], [0.22, -0.37], [-0.22, -0.37]];
 /** Decor that looks like scrap: left out where scrap heaps can be picked over. */
 const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.ship_wreck", "decor.scrap_field"]);
 /** Items drawn per carried column at most. */
@@ -1439,6 +1439,8 @@ export class Renderer3D implements Renderer {
       const dep = this.anchorWorld(p, "deposit", tmpV);
       cv.inQ.slice(0, 6).forEach((res, i) => items.add(res, dep.x + ((i % 3) - 1) * 6, dep.y - 4 + Math.floor(i / 3) * 6, dep.z + ((i * 5) % 3) - 1, i));
       const pick = this.anchorWorld(p, "pickup", tmpV2);
+      // plot layout: the tray stands at the sim's pickup spot (fixedPlates), so the output stack sits on it, not on the model's own anchor
+      if (this.devPlateSize !== null) { const w = this.wv(cv.pickupPos); pick.set(w.x, 0.15 * this.devPlateSize, w.z); }
       const outRes = def?.output ?? "res.food_prepared";
       // overstock collapse: the pile sways harder as the countdown runs down, then topples outward
       const left = this.cp ? collapseSecondsLeft(s, this.cp, converterStockKey(cv.id)) : null;
@@ -1613,7 +1615,8 @@ export class Renderer3D implements Renderer {
       .map((pad) => pad.id));
     for (const pad of s.pads) {
       // a manual-first hire is hidden by the sim; it still shows, locked, so the player sees what it will unlock
-      const hold = !pad.done && !pad.visible && !!this.cp && heldForHand(s, this.cp, pad);
+      const holdJob = !pad.done && !pad.visible && this.cp ? heldJob(s, this.cp, pad) : null;
+      const hold = holdJob !== null;
       if (pad.done || (!pad.visible && !hold)) continue;
       const locked = pad.locked || hold;
       const info = this.pads.get(pad.id);
@@ -1647,7 +1650,7 @@ export class Renderer3D implements Renderer {
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
       if (!owed.length) owed.push({ res: "res.currency", left: 0 });
       const label = info?.label ?? nameOf(this.skin, pad.type);
-      const lockTxt = padLockReason(this.skin, info, locked, s.core.level, s.residents.filter((r) => r.status === "injured" || r.status === "healing").length, hold);
+      const lockTxt = padLockReason(this.skin, info, locked, s.core.level, s.residents.filter((r) => r.status === "injured" || r.status === "healing").length, holdJob ?? false);
       const rows = owed.length > PAD_PER_ROW ? 2 : 1;
       const artH = (rows === 2 ? PAD_ART_H2 : PAD_ART_H) + (lockTxt ? PAD_LOCK_H : 0);
       sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${locked}|${lockTxt}`, () => this.padLabelArt(label, owed, locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));

@@ -108,7 +108,7 @@
     { "file": "struct.barracks.l2", "src": "Lv 2 Guard Post.glb", "id": "struct.barracks", "level": 2, "error": 0.005, "yaw": 0, "width": 1.6, "replace": ["body"],
       "parts": {}, "anchors": {} },
     { "file": "unit.drone", "src": "Drone.glb", "id": "unit.drone", "kind": "prop", "error": 0.005, "texture": 512, "yaw": 0, "width": 1.0 },
-    { "file": "unit.drone.rotor", "src": "Drone Rotor.glb", "id": "unit.drone.rotor", "kind": "prop", "error": 0.005, "texture": 256, "yaw": 0, "width": 0.36 },
+    { "file": "unit.drone.rotor", "src": "Drone Rotor.glb", "id": "unit.drone.rotor", "kind": "prop", "error": 0.002, "texture": 256, "yaw": 0, "width": 0.15 },
     { "file": "node.food_source", "src": "Grow Dome.glb", "id": "node.food_source", "error": 0.005, "yaw": 0, "width": 2.2, "replace": ["body", "glass", "lamp"],
       "parts": {}, "anchors": {} },
     { "file": "capture.recruit_container", "src": "Stasis Pod.glb", "id": "capture.recruit_container", "error": 0.005, "yaw": 0, "width": 1.1, "replace": ["body", "glass"],
