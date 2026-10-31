@@ -94,6 +94,8 @@ const BACK_PER_ROW = 3;
 const DRONE_K = 1;
 const DRONE_HOVER = 0.9;
 const DRONE_ROTOR_Y = 0.285;
+/** Drone.glb has its muzzle and chin gun on -X; a quarter turn puts them at the +Z front every model flies toward. */
+const DRONE_FRONT_YAW = Math.PI / 2;
 const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.22, 0.37], [-0.22, 0.37], [0.22, -0.37], [-0.22, -0.37]];
 /** Decor that looks like scrap: left out where scrap heaps can be picked over. */
 const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.ship_wreck", "decor.scrap_field"]);
@@ -2162,6 +2164,7 @@ export class Renderer3D implements Renderer {
       const body = meshyScene("unit.drone");
       if (!body || !meshyScene("unit.drone.rotor")) return null;
       const root = new Group(), holder = new Group();
+      holder.rotation.y = DRONE_FRONT_YAW;
       holder.add(body);
       root.add(holder);
       const rotors = DRONE_ROTORS.map(([rx, rz]) => {
