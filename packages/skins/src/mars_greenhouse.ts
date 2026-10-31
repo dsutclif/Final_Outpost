@@ -493,6 +493,7 @@ export const marsGreenhouse: Skin = {
       needsPad: "After {name}",
       noIdle: "No free colonist",
       noIdleHurt: "{n} hurt, recovering",
+      doByHandFirst: "Do it by hand first",
       wall: "WALK HERE",
       gate: "AIRLOCK",
       arrivals: "ARRIVALS",

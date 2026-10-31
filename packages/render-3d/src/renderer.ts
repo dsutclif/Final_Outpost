@@ -52,7 +52,7 @@ import { Rigged } from "./scene/rigged.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
-import { padLockReason } from "./padlock.js";
+import { heldForHand, padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
 import { ART_M, BUILD_K, CHAR_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, YAW_DEG, viewWFor, textSprite, type QualityTier } from "./units.js";
 
@@ -1612,7 +1612,10 @@ export class Renderer3D implements Renderer {
       .slice(0, TIERS[this.quality].ghosts)
       .map((pad) => pad.id));
     for (const pad of s.pads) {
-      if (pad.done || !pad.visible) continue;
+      // a manual-first hire is hidden by the sim; it still shows, locked, so the player sees what it will unlock
+      const hold = !pad.done && !pad.visible && !!this.cp && heldForHand(s, this.cp, pad);
+      if (pad.done || (!pad.visible && !hold)) continue;
+      const locked = pad.locked || hold;
       const info = this.pads.get(pad.id);
       const big = info?.big ?? false;
       const at = this.wv(pad.pos);
@@ -1635,7 +1638,7 @@ export class Renderer3D implements Renderer {
       }
       const wk = info?.kind === "hire" ? info : undefined;
       const glyph = padGlyph(info, this.content.upgrades);
-      const dm = this.labels.meshMaterial(`pd|${fb}|${pad.locked}|${big}|${wk?.what ?? ""}|${wk?.worker?.res ?? ""}|${glyph}`, () => this.padDecalArt(fb / 24, pad.locked, big, wk?.what, wk?.worker?.res, glyph));
+      const dm = this.labels.meshMaterial(`pd|${fb}|${locked}|${big}|${wk?.what ?? ""}|${wk?.worker?.res ?? ""}|${glyph}`, () => this.padDecalArt(fb / 24, locked, big, wk?.what, wk?.worker?.res, glyph));
       if (dm) { decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
@@ -1644,10 +1647,10 @@ export class Renderer3D implements Renderer {
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
       if (!owed.length) owed.push({ res: "res.currency", left: 0 });
       const label = info?.label ?? nameOf(this.skin, pad.type);
-      const lockTxt = padLockReason(this.skin, info, pad.locked, s.core.level, s.residents.filter((r) => r.status === "injured" || r.status === "healing").length);
+      const lockTxt = padLockReason(this.skin, info, locked, s.core.level, s.residents.filter((r) => r.status === "injured" || r.status === "healing").length, hold);
       const rows = owed.length > PAD_PER_ROW ? 2 : 1;
       const artH = (rows === 2 ? PAD_ART_H2 : PAD_ART_H) + (lockTxt ? PAD_LOCK_H : 0);
-      sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${pad.locked}|${lockTxt}`, () => this.padLabelArt(label, owed, pad.locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
+      sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${locked}|${lockTxt}`, () => this.padLabelArt(label, owed, locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
       // a pad that places a new model shows its blueprint at full size, so a name never floats over nothing
       const ghostH = ghosts.has(pad.id) ? this.syncGhost(p, info!.what, info!.site ? v3(info!.site.x, 0, info!.site.y) : at, fill, !!info!.site && this.onWallAt(info!.site, s)) : this.hideGhost(p);
       // the belt's pad sits on the belt itself (generator: mid-run), so its name and price lie on the belt blueprint, not above it
@@ -1668,7 +1671,7 @@ export class Renderer3D implements Renderer {
         scaf.position.set(at.x, 0, at.z);
         scaf.scale.set(ART_M * sc, ART_M * (0.25 + fill * 1.6), ART_M * sc);
       } else if (scaf) scaf.visible = false;
-      this.padRing(p, s, pad, big, at);
+      if (hold) { const ring = p.extra[2]; if (ring) ring.visible = false; } else this.padRing(p, s, pad, big, at);
     }
   }
 
