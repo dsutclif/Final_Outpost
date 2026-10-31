@@ -1,8 +1,5 @@
 {
   "notes": [
-    "Guards now hold out as far as your farthest turret or turret pad, and they and your drones stay inside the playable area. A hurt guard lies down straight away to wait for help.",
-    "The field guide shows the current models for characters and goods.",
-    "World text is a size larger, and locked hire pads now say what to do, such as Kill a raider to unlock.",
-    "Finished goods sit on their machine's output pad, and drone rotors fit inside their guards."
+    "Drone rotors now spin inside their guard rings."
   ]
 }
