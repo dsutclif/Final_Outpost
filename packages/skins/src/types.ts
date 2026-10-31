@@ -16,6 +16,9 @@ export interface SkinPalette {
   accent: string;
   /** Interactive highlight: pads, rings, operator spots, pointers. */
   interactive: string;
+  /** Guide arrows on the ground: a soft shadow by day, a spot of light at night. */
+  guideShadow: string;
+  guideLight: string;
   danger: string;
   /** Positive state: staffed, healthy, cleared. */
   ok: string;

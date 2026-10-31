@@ -541,7 +541,7 @@ export class Renderer3D implements Renderer {
     this.padPlane = new PlaneGeometry(1, 1);
     this.padPlane.rotateX(-Math.PI / 2);
     this.buildLasso();
-    this.marks = new GroundMarks(this.scene, { interactive: this.tokens.interactive, accent: this.tokens.accent, frost: this.tokens.frost, ink: this.tokens.ink, hero: this.tokens.ok });
+    this.marks = new GroundMarks(this.scene, { interactive: this.tokens.interactive, accent: this.tokens.accent, frost: this.tokens.frost, ink: this.tokens.ink, hero: this.tokens.ok, shadow: this.tokens.guideShadow, light: this.tokens.guideLight }, this.env.night, make);
     this.guideSprite = null;
     this.guideMark = null;
     this.lowFuelSaid = false;
@@ -2228,7 +2228,7 @@ export class Renderer3D implements Renderer {
     const m = this.marks;
     if (!m) return;
     const g = this.guideMark && !s.over ? this.guideMark : null;
-    m.guide(pl.x, pl.y, g?.at.x ?? 0, g?.at.y ?? 0, this.t, !!g, ART_M * 1.9, g?.path);
+    m.guide(pl.x, pl.y, g?.at.x ?? 0, g?.at.y ?? 0, this.t, !!g, g?.path);
     m.hero(pl.x, pl.y, this.t, !s.over);
     if (g) {
       let sp = this.guideSprite;

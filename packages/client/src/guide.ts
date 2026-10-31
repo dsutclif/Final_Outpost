@@ -42,6 +42,24 @@ interface BrainLike {
   suggest(st: State, cp: Compiled): SuggestionLike | null;
 }
 
+/** Radius of the arrow circle drawn around a pod, in world units: wide enough to walk without touching it. */
+export const TOW_LOOP_R = 44;
+
+/**
+ * The walk to a pod, then once around it: towing starts by closing a loop, which nobody guesses, so the arrows draw it.
+ * The circle starts on the side the hero is coming from and leaves a gap so it reads as one lap.
+ */
+export function towLoopPath(path: readonly { x: number; y: number }[], hero: { x: number; y: number }, pod: { x: number; y: number }): { x: number; y: number }[] {
+  const start = Math.atan2(hero.y - pod.y, hero.x - pod.x);
+  const ring = Array.from({ length: 12 }, (_, i) => {
+    const a = start + (i / 12) * Math.PI * 2;
+    return { x: pod.x + TOW_LOOP_R * Math.cos(a), y: pod.y + TOW_LOOP_R * Math.sin(a) };
+  });
+  // the route's last point is the pod itself: stop outside the circle instead of crossing it
+  const walk = path.slice(0, -1).filter((q) => Math.hypot(q.x - pod.x, q.y - pod.y) > TOW_LOOP_R);
+  return [...walk, ...ring];
+}
+
 /** Ticks between asks (about half a second at 30 tps). */
 const EVERY = 15;
 
@@ -73,8 +91,13 @@ export class Guide {
     // A step whose text cannot be made still points the way, so the arrow never freezes on the previous step.
     let text: string;
     try { text = this.text(st, skin, kind, key.slice(kind.length + 1)); } catch { text = guideText(skin, kind === "pay" ? "padAny" : kind); }
-    const path = (sug.path ?? [sug.target]).map((q) => ({ x: q.x / FP, y: q.y / FP }));
-    this.out = { key, at: { x: sug.target.x / FP, y: sug.target.y / FP }, text, kind, path };
+    let path = (sug.path ?? [sug.target]).map((q) => ({ x: q.x / FP, y: q.y / FP }));
+    const at = { x: sug.target.x / FP, y: sug.target.y / FP };
+    // a tow step aimed at a pod still lying out there, rather than the walk home
+    if (kind === "tow" && st.captures.some((c) => c.state === "idle" && c.pos.x === sug.target.x && c.pos.y === sug.target.y)) {
+      path = towLoopPath(path, { x: st.player.pos.x / FP, y: st.player.pos.y / FP }, at);
+    }
+    this.out = { key, at, text, kind, path };
     return this.out;
   }
 

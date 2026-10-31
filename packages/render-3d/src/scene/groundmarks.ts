@@ -1,33 +1,39 @@
 import {
-  BufferGeometry, Color, ConeGeometry, Float32BufferAttribute, InstancedMesh, Mesh, MeshBasicMaterial, Object3D, RingGeometry, type Scene,
+  AdditiveBlending, CanvasTexture, Color, InstancedMesh, Mesh, MeshBasicMaterial, NoColorSpace, NormalBlending, Object3D, PlaneGeometry, RingGeometry, type Scene,
 } from "three";
 
 // Flat and floating marks the renderer adds on top of the scene: the guide trail of chevrons on
-// the ground from the hero to the next step with a bouncing marker over its target, the green ring that marks the hero, and
+// the ground from the hero to the next step (soft shadows by day, spots of light at night), the green ring that marks the hero, and
 // the frost ring that drains around the reactor while it is out of fuel. Pure visuals; nothing here is pickable or blocks input.
 
 const mat = (color: string, opacity: number): MeshBasicMaterial =>
   new MeshBasicMaterial({ color: new Color(color), transparent: true, opacity, depthWrite: false, depthTest: false, toneMapped: false, side: 2 });
 
 /** Guide trail: chevrons this far apart (world units), starting past the hero ring and stopping short of the marker. */
-const STEP = 15, START = 20, END_GAP = 10, MAX_CHEVRONS = 160;
+const STEP = 30, START = 24, END_GAP = 10, MAX_CHEVRONS = 160;
 /** The bright band: its spacing along the trail (world units) and how many times a second it passes a point. */
 const PULSE_LEN = 110, PULSE_SPEED = 1.1;
 
-/** A flat arrow pointing along +x on the ground plane (y up), about 32 units long. */
-function arrowGeometry(): BufferGeometry {
-  const g = new BufferGeometry();
-  // head (tip, two wings) and shaft (two triangles); x forward, z sideways
-  const v = [
-    18, 0, 0, 4, 0, -10, 4, 0, 10,
-    4, 0, -4.5, 4, 0, 4.5, -14, 0, 4.5,
-    4, 0, -4.5, -14, 0, 4.5, -14, 0, -4.5,
-  ];
-  g.setAttribute("position", new Float32BufferAttribute(v, 3));
-  return g;
+/** Soft-edged arrow pointing along +u, white on black, for an alpha map. shadowBlur, because iOS Safari has no canvas filter. */
+function arrowTexture(c: HTMLCanvasElement): CanvasTexture {
+  const x = c.getContext("2d")!;
+  x.fillStyle = "#000";
+  x.fillRect(0, 0, 256, 256);
+  x.shadowColor = "#fff";
+  x.shadowBlur = 18;
+  // the shape is drawn off canvas: only its blurred shadow lands, so the whole edge is soft
+  x.shadowOffsetX = 512;
+  x.fillStyle = "#fff";
+  x.beginPath();
+  for (const [px, py] of [[236, 128], [140, 44], [140, 94], [30, 94], [30, 162], [140, 162], [140, 212]] as const) x.lineTo(px - 512, py);
+  x.closePath();
+  x.fill();
+  const t = new CanvasTexture(c);
+  t.colorSpace = NoColorSpace;
+  return t;
 }
 
-export interface MarkColors { interactive: string; accent: string; frost: string; ink: string; hero: string }
+export interface MarkColors { interactive: string; accent: string; frost: string; ink: string; hero: string; shadow: string; light: string }
 
 export class GroundMarks {
   private readonly trail: InstancedMesh;
@@ -35,27 +41,31 @@ export class GroundMarks {
   private readonly tint = new Color();
   private readonly dim: Color;
   private readonly bright: Color;
-  private readonly marker: Mesh;
   private readonly track: Mesh;
   private readonly heroRing: Mesh;
   private arc: Mesh;
   private arcQ = -1;
   private arcR = 0;
 
-  constructor(private readonly scene: Scene, private readonly c: MarkColors) {
-    this.bright = new Color(c.interactive);
-    this.dim = new Color(c.interactive).lerp(new Color(c.ink), 0.45);
-    this.trail = new InstancedMesh(arrowGeometry(), mat("#ffffff", 0.9), MAX_CHEVRONS);
+  constructor(private readonly scene: Scene, private readonly c: MarkColors, night: boolean, make: ((w: number, h: number) => HTMLCanvasElement | null) | null) {
+    // near-black so the ground shows through by day; blue like the reactor's light by night
+    this.bright = new Color(night ? c.light : c.shadow);
+    this.dim = new Color(night ? c.light : c.shadow).lerp(new Color(c.ink), night ? 0.45 : 0);
+    const arrows = mat("#ffffff", night ? 0.9 : 0.55);
+    const art = make?.(256, 256);
+    if (art) arrows.alphaMap = arrowTexture(art);
+    arrows.depthTest = true; // buildings and characters stand in front of marks on the ground
+    arrows.blending = night ? AdditiveBlending : NormalBlending;
+    this.trail = new InstancedMesh(new PlaneGeometry(30, 26).rotateX(-Math.PI / 2), arrows, MAX_CHEVRONS);
     this.trail.setColorAt(0, this.bright);
     this.trail.count = 0;
-    this.marker = new Mesh(new ConeGeometry(7, 15, 4).rotateX(Math.PI), mat(c.interactive, 0.95));
     this.track = new Mesh(new RingGeometry(1, 1, 8), mat(c.frost, 0.22));
     this.arc = new Mesh(new RingGeometry(1, 1, 8), mat(c.frost, 0.9));
     // depth-tested, unlike the other marks, so walls and buildings in front still hide it
     const heroMat = mat(c.hero, 0.9);
     heroMat.depthTest = true;
     this.heroRing = new Mesh(new RingGeometry(11, 14, 40).rotateX(-Math.PI / 2), heroMat);
-    for (const m of [this.trail, this.marker, this.track, this.arc, this.heroRing]) {
+    for (const m of [this.trail, this.track, this.arc, this.heroRing]) {
       m.visible = false;
       m.frustumCulled = false;
       m.renderOrder = 9;
@@ -64,16 +74,11 @@ export class GroundMarks {
   }
 
   /**
-   * Bouncing marker over the target (tx,tz) and a trail of chevrons on the ground along the whole
+   * A trail of arrows on the ground to the target (tx,tz), along the whole
    * walk there (`path`, corner points; a straight line when absent), with a pulse running from the
-   * hero toward the end. `on` false hides both.
+   * hero toward the end. `on` false hides it.
    */
-  guide(hx: number, hz: number, tx: number, tz: number, t: number, on: boolean, markerY: number, path?: readonly { x: number; y: number }[]): void {
-    this.marker.visible = on;
-    if (on) {
-      this.marker.position.set(tx, markerY + 8 + Math.abs(Math.sin(t * 4.2)) * 9, tz);
-      this.marker.rotation.y = t * 1.6;
-    }
+  guide(hx: number, hz: number, tx: number, tz: number, t: number, on: boolean, path?: readonly { x: number; y: number }[]): void {
     // the route was planned up to half a second ago: drop corners the hero has already passed
     const pts = path && path.length ? [...path] : [{ x: tx, y: tz }];
     while (pts.length > 1) {
@@ -96,7 +101,7 @@ export class GroundMarks {
           // a bright band travels outward along the trail; the rest stays dim
           const w = Math.max(0, Math.cos(((next / PULSE_LEN) - t * PULSE_SPEED) * Math.PI * 2));
           const pulse = w * w * w;
-          this.dummy.scale.setScalar(0.5 + 0.2 * pulse);
+          this.dummy.scale.setScalar(0.92 + 0.16 * pulse);
           this.dummy.updateMatrix();
           this.trail.setMatrixAt(n, this.dummy.matrix);
           this.trail.setColorAt(n, this.tint.copy(this.dim).lerp(this.bright, 0.35 + 0.65 * pulse));
@@ -146,7 +151,8 @@ export class GroundMarks {
   }
 
   dispose(): void {
-    for (const m of [this.trail, this.marker, this.track, this.arc, this.heroRing]) {
+    (this.trail.material as MeshBasicMaterial).alphaMap?.dispose();
+    for (const m of [this.trail, this.track, this.arc, this.heroRing]) {
       m.geometry.dispose();
       (m.material as MeshBasicMaterial).dispose();
       this.scene.remove(m);

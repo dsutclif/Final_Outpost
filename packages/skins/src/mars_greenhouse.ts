@@ -289,6 +289,8 @@ export const marsGreenhouse: Skin = {
     structureDark: "#8e8c86",
     accent: "#ff9a3c",
     interactive: "#5cd8ff",
+    guideShadow: "#0a0705",
+    guideLight: "#a9d8ff",
     danger: "#ff5a3c",
     ok: "#62e39a",
     ink: "#1b1c1e",

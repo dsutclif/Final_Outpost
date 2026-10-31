@@ -14,6 +14,8 @@ export interface Tokens {
   structureDark: string;
   accent: string;
   interactive: string;
+  guideShadow: string;
+  guideLight: string;
   danger: string;
   ok: string;
   ink: string;
@@ -96,6 +98,8 @@ export function deriveTokens(skin: Skin): Tokens {
     structureDark: p.structureDark,
     accent: p.accent,
     interactive: p.interactive,
+    guideShadow: p.guideShadow,
+    guideLight: p.guideLight,
     danger: p.danger,
     ok: p.ok,
     ink: p.ink,

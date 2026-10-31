@@ -37,6 +37,8 @@ export const debugSkin: Skin = {
     structureDark: "#6e6e6e",
     accent: "#e0e0e0",
     interactive: "#f5f5f5",
+    guideShadow: "#000000",
+    guideLight: "#f5f5f5",
     danger: "#ff6b6b",
     ok: "#8be28b",
     ink: "#111111",
