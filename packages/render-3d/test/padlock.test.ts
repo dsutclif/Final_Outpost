@@ -42,3 +42,11 @@ describe("locked pad reason line", () => {
     expect(padLockReason(skin, { kind: "build" }, true, 1)).toBe("Locked");
   });
 });
+
+describe("held pad names its job", () => {
+  it("reads the job in the skin text", () => {
+    expect(padLockReason(skin, { kind: "hire" }, true, 1, 0, "guard")).toBe("Kill a raider to unlock");
+    expect(padLockReason(skin, { kind: "hire" }, true, 1, 0, "hunt")).toBe("Hunt a hopper to unlock");
+    expect(padLockReason(skin, { kind: "hire" }, true, 1, 0, "clerk")).toBe("Ring up a sale to unlock");
+  });
+});
