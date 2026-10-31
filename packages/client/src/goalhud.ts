@@ -309,8 +309,8 @@ function weakestGate(st: State): AlertMark[] {
 const GLYPHS: Record<Glyph, { shape: string; detail?: string; top?: number; bot?: number; num?: [number, number] }> = {
   thermo: { shape: '<rect x="9.5" y="2" width="5" height="14" rx="2.5"/><circle cx="12" cy="18" r="4.2"/>', bot: 22.2, num: [12, 17.6] },
   flame: { num: [12, 14.6], shape: '<path d="M12 2.5c1 3.5 5.5 6 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.6-5.4.3 1.6 1 2.6 2 3.1C10.6 8.6 11 5.4 12 2.5z"/>' },
-  // the credit coin: an octagon with the hexagonal C cut into it, as on the model
-  coin: { shape: '<path d="M8.3 3h7.4L21 8.3v7.4L15.7 21H8.3L3 15.7V8.3z"/>', detail: '<path class="gc" d="M15.6 9.9L13.8 7.6H10.2L7.9 10.3v3.4l2.3 2.7h3.6l1.8-2.3"/>' },
+  // the credit coin: an octagon with the Halcyon H cut into it, as on the model
+  coin: { shape: '<path d="M8.3 3h7.4L21 8.3v7.4L15.7 21H8.3L3 15.7V8.3z"/>', detail: '<path class="gc" d="M8.6 7.4v9.2M15.4 7.4v9.2M8.6 12h6.8"/>' },
   crate: { shape: '<rect x="4" y="6" width="16" height="14" rx="1.5"/>', detail: '<path class="gl" d="M4 10.5h16M10 6v4.5M14 6v4.5"/>' },
   meat: { num: [14, 9.6], shape: '<path d="M14.5 3.2a6.3 6.3 0 0 1 6.3 6.3c0 4.4-4.3 7.2-8.3 7.2l-2.2 2.2a2.3 2.3 0 1 1-2.9 2.9 2.3 2.3 0 1 1-2.9-2.9l2.2-2.2C6.7 12.7 9.4 3.2 14.5 3.2z"/>' },
   colonist: { num: [12, 17.4], shape: '<circle cx="12" cy="7" r="4"/><path d="M4.5 21v-2.5a5 5 0 0 1 5-5h5a5 5 0 0 1 5 5V21z"/>' },

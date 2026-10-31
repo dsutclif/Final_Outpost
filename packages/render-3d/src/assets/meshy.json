@@ -123,7 +123,7 @@
     { "file": "res.food_raw_2.ground", "src": "Protein Ground.glb", "id": "res.food_raw_2", "kind": "item", "ground": true, "error": 0.005, "texture": 256, "yaw": 0, "width": 0.42 },
     { "file": "res.food_prepared", "src": "Meal Tray.glb", "id": "res.food_prepared", "kind": "item", "error": 0.005, "texture": 256, "yaw": 0, "width": 0.38 },
     { "file": "res.salvage", "src": "Scrap Stackable.glb", "id": "res.salvage", "kind": "item", "error": 0.005, "texture": 256, "yaw": 0, "width": 0.36 },
-    { "file": "res.currency", "src": "Credit Coin.glb", "id": "res.currency", "kind": "item", "error": 0.005, "texture": 256, "yaw": 0, "width": 0.3, "tint": "gold", "metal": 0.55, "rough": 0.38 },
+    { "file": "res.currency", "src": "halcyon credit metal.glb", "id": "res.currency", "kind": "item", "error": 0.005, "texture": 256, "yaw": 0, "width": 0.3, "tint": "gold", "metal": 0.8, "rough": 0.32 },
     { "file": "decor.ship_scrap", "src": "Ship Scrap 1.glb", "id": "decor.ship_scrap", "kind": "decor", "error": 0.005, "texture": 512, "yaw": 0, "width": 1.8 },
     { "file": "decor.ship_scrap", "src": "Ship Scrap 1.glb", "id": "node.salvage_pile", "level": 1, "error": 0.005, "texture": 512, "yaw": 0, "width": 1.8, "replace": ["body"], "parts": {}, "anchors": {} },
     { "file": "decor.scrap_field", "src": "Ore Scrap 3.glb", "id": "node.salvage_pile", "level": 2, "error": 0.005, "texture": 512, "yaw": 0, "width": 1.8, "replace": ["body"], "parts": {}, "anchors": {} },
