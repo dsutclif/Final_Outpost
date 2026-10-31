@@ -477,3 +477,19 @@ button:disabled { opacity: 0.5; cursor: default; }
   background: rgba(10, 12, 14, 0.78); color: #fff; font: 700 17px/1.2 var(--display); letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; white-space: nowrap;
   animation: tapstart-pulse 1.4s ease-in-out infinite; z-index: 4; }
 @keyframes tapstart-pulse { 50% { opacity: 0.55; } }
+
+/* ---------- Help sheet (R5 #12): bottom-middle button and the paused sheet ---------- */
+.fhud .fhelp {
+  position: absolute; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); min-height: 40px; padding: 0 20px;
+  border-radius: 20px; background: rgba(18, 20, 23, 0.7); color: #fff; font: 800 15px var(--display); letter-spacing: 0.06em; text-transform: uppercase;
+}
+.help-card { max-height: calc(100% - 16px); display: flex; flex-direction: column; }
+.help-card h3 { margin: 6px 0 4px; font: 800 13px var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.help-card .helpstep { color: var(--ink); font-weight: 700; margin-bottom: 8px; }
+.helplog { list-style: none; padding: 0 !important; overflow-y: auto; flex: 1 1 auto; min-height: 60px; max-height: 32vh; font-size: 14px !important; }
+.helplog li { padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+.helplog time { display: inline-block; min-width: 46px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.helplog .empty { color: var(--muted); }
+.help-card .row button.armed { background: var(--bad); color: #fff; }
+.lvtile.skipped .sub { color: var(--muted); }
+.app.introducing .fhelp { display: none; }

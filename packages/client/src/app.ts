@@ -9,6 +9,7 @@ import { Guide, StuckTimer, type GuideTarget } from "./guide.js";
 import { iconSvg, liveObjectives } from "./objectives.js";
 import { GoalHud, alertMarks, alertOf, goalIcon, goalTokens, type Alert } from "./goalhud.js";
 import { InputController } from "./input.js";
+import { pushLog, logText, type LogLine } from "./levellog.js";
 import { offlineReady, prefetchLevels, type LevelMeta, type LevelSource } from "./levels.js";
 import { FixedStepper } from "./loop.js";
 import { TIME_TARGET_STEPS, applyTimeTarget, normalizeTimeTargetPct } from "./timetarget.js";
@@ -26,7 +27,7 @@ import { cinematicFor, playCinematic, type CinematicId } from "./cinematics.js";
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
 // and the glue between sim, renderer, input, saves, telemetry and feedback.
 
-type Screen = "title" | "levels" | "intro" | "menu" | "playing" | "result" | "settings" | "error" | "unsupported";
+type Screen = "title" | "levels" | "intro" | "menu" | "playing" | "result" | "settings" | "help" | "error" | "unsupported";
 
 interface Session {
   meta: LevelMeta;
@@ -58,6 +59,8 @@ interface Session {
    * player touches the screen, then it zooms in on the hero. 1 = fully out, easing to 0; null = off.
    */
   overview: { k: number; go: boolean; x: number; y: number; zoom: number } | null;
+  /** Milestones of this attempt for the Help sheet (R5 #12). */
+  log: LogLine[];
 }
 
 /** Milliseconds between buzzes while an urgent alert is on. */
@@ -160,7 +163,7 @@ export class App {
   private updateNoticed = false;
 
   private readonly el: {
-    app: HTMLElement; lvlName: HTMLButtonElement; retryBtn: HTMLButtonElement; gearBtn: HTMLButtonElement; goals: HTMLElement;
+    app: HTMLElement; lvlName: HTMLButtonElement; retryBtn: HTMLButtonElement; gearBtn: HTMLButtonElement; helpBtn: HTMLButtonElement; goals: HTMLElement;
     stage: HTMLElement; world: HTMLElement; debug: HTMLElement; ov: Record<string, HTMLElement>; rotate: HTMLElement; loading: HTMLElement; toast: HTMLElement;
     ftoast: HTMLElement; tapstart: HTMLElement; inspect: HTMLElement;
   };
@@ -171,10 +174,10 @@ export class App {
     this.source = deps.source;
     root.innerHTML = TEMPLATE;
     const ov: Record<string, HTMLElement> = {};
-    for (const k of ["title", "levels", "intro", "menu", "result", "settings", "error", "unsupported"]) ov[k] = $(root, `#ov-${k}`);
+    for (const k of ["title", "levels", "intro", "menu", "result", "settings", "help", "error", "unsupported"]) ov[k] = $(root, `#ov-${k}`);
     this.el = {
       app: $(root, ".app"), lvlName: $<HTMLButtonElement>(root, "#lvlName"), goals: $(root, "#goals"),
-      retryBtn: $<HTMLButtonElement>(root, "#retryBtn"), gearBtn: $<HTMLButtonElement>(root, "#gearBtn"), stage: $(root, "#stage"), world: $(root, "#world"),
+      retryBtn: $<HTMLButtonElement>(root, "#retryBtn"), gearBtn: $<HTMLButtonElement>(root, "#gearBtn"), helpBtn: $<HTMLButtonElement>(root, "#helpBtn"), stage: $(root, "#stage"), world: $(root, "#world"),
       debug: $(root, "#debug"), ov, rotate: $(root, ".rotate"), loading: $(root, "#loading"), toast: $(root, "#toast"),
       ftoast: $(root, "#ftoast"), tapstart: $(root, "#tapstart"), inspect: $(root, "#inspect"),
     };
@@ -248,6 +251,12 @@ export class App {
       if (this.screen === "settings") this.leaveSettings();
       else if (this.session) this.show("settings");
     });
+    // Help (R5 #12): level log, the guide's next step, Restart and Skip; play pauses while it is open
+    this.el.helpBtn.addEventListener("click", () => {
+      if (this.screen !== "playing" || !this.session || this.session.ended) return;
+      this.renderHelp();
+      this.show("help");
+    });
     doc.addEventListener("keydown", (e) => {
       if (e.key === "`") this.toggleDebug();
       if (e.key === "Escape" && this.screen === "playing") this.quitToLevels();
@@ -278,6 +287,7 @@ export class App {
 
   private applyTheme(): void {
     const p = this.skin.palette, st = this.el.app.ownerDocument.documentElement.style;
+    this.el.helpBtn.textContent = uiText(this.skin, "helpTitle");
     st.setProperty("--bg", p.ui.bg);
     st.setProperty("--panel", p.ui.panel);
     st.setProperty("--panel-alt", p.ui.panelAlt);
@@ -602,10 +612,12 @@ export class App {
       const open = isUnlocked(this.levels, l, this.progress, this.settings.debug);
       const best = this.progress.best[l.id];
       const stars = this.starCount(l.id);
-      const sub = cleared
+      const skipped = !cleared && !!this.progress.skipped[l.id];
+      const sub = skipped ? esc(uiText(s, "skipped"))
+        : cleared
         ? `<span class="stars" aria-label="${esc(uiText(s, "stars", { n: stars || 1 }))}">${starText(stars || 1)}</span>${best !== undefined ? `<span class="t">${esc(formatTicks(best))}</span>` : ""}`
         : open ? esc(uiText(s, "notPlayed")) : `<span class="lock" aria-hidden="true"></span>${esc(uiText(s, "locked"))}`;
-      return `<button class="lvtile${cleared ? " cleared" : ""}${open ? "" : " locked"}${l.id === next ? " next" : ""}" data-id="${esc(l.id)}" ${open ? "" : "disabled"}>
+      return `<button class="lvtile${cleared ? " cleared" : ""}${skipped ? " skipped" : ""}${open ? "" : " locked"}${l.id === next ? " next" : ""}" data-id="${esc(l.id)}" ${open ? "" : "disabled"}>
         <span class="num">${l.index + 1}</span>${l.family ? `<span class="fams">${[l.family, l.secondary].filter((f): f is string => !!f).map((f) => familyIcon(f, uiText(s, `family_${f}`))).join("")}</span>` : ""}
         <span class="name">${esc(this.titleOf(l).name)}</span>
         <span class="sub">${sub}</span>
@@ -769,7 +781,7 @@ export class App {
     this.session = {
       meta, manifest: sim.compiled.manifest, sim, renderer, cam: createCamera(), stepper: new FixedStepper(), coach, ended: false,
       earned: 0, lastCurrency: sim.state.currency, wavesCleared: 0, lifeMin: sim.state.meters.lifeline, played: 0,
-      guide: null, guideOn: false, guideTarget: null, stuck: new StuckTimer(), overview: null,
+      guide: null, guideOn: false, guideTarget: null, stuck: new StuckTimer(), overview: null, log: [],
     };
     this.attachRenderer(this.session, renderer);
     if (!this.session) return;
@@ -915,7 +927,7 @@ export class App {
     this.session = null;
   }
 
-  private attempt(s: Session, outcome: "win" | "lose" | "quit", reason: string, quits: number) {
+  private attempt(s: Session, outcome: "win" | "lose" | "quit" | "skip", reason: string, quits: number) {
     return {
       levelId: s.meta.id, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION,
       outcome, reason, ticks: s.sim.state.tick, quits, ts: Date.now(),
@@ -933,6 +945,7 @@ export class App {
     this.countTry(id);
     if (won) {
       this.progress.cleared[id] = true;
+      delete this.progress.skipped[id];
       if (prevBest === undefined || ticks < prevBest) this.progress.best[id] = ticks;
       // stars are the sim's objectives done at level end; the saved set is the best-ever union
       stars = starsOf(s.sim.state);
@@ -1003,6 +1016,45 @@ export class App {
       <div class="row"><button data-a="keep">${esc(uiText(sk, "keepPlaying"))}</button><button data-a="retry" class="go">${esc(uiText(sk, "restart"))}</button></div></div>`;
     this.wire(ov, { keep: () => this.show("playing"), retry: () => void this.openLevel(s.meta) });
     this.show("result");
+  }
+
+  /** R5 #12: the Help sheet over a paused level. Skip is for generated pack levels the player has not cleared, never story levels. */
+  private renderHelp(): void {
+    const s = this.session!, sk = this.skin, ov = this.el.ov["help"]!, id = s.meta.id;
+    if (!s.guide) void Guide.create(s.manifest, s.sim.compiled).then((g) => { if (this.session === s) { s.guide = g; if (this.screen === "help") this.renderHelp(); } });
+    const step = s.guide?.update(s.sim.state, sk)?.text;
+    const lines = [...s.log].reverse();
+    const canSkip = s.manifest.guide !== "always" && !this.progress.cleared[id];
+    ov.innerHTML = `<div class="card help-card">
+      <div class="card-head"><h2>${esc(uiText(sk, "helpTitle"))}</h2><button data-a="resume" class="small go">${esc(uiText(sk, "resume"))}</button></div>
+      <h3>${esc(uiText(sk, "helpStep"))}</h3>
+      <p class="helpstep">${esc(step ?? uiText(sk, "helpStepNone"))}</p>
+      <h3>${esc(uiText(sk, "helpLog"))}</h3>
+      <ul class="helplog">${lines.length ? lines.map((l) => `<li><time>${esc(formatTicks(l.tick))}</time>${esc(l.text)}</li>`).join("") : `<li class="empty">${esc(uiText(sk, "helpLogEmpty"))}</li>`}</ul>
+      <div class="row"><button data-a="restart">${esc(uiText(sk, "restart"))}</button>${canSkip ? `<button data-a="skip">${esc(uiText(sk, "skipLevel"))}</button>` : ""}</div>
+    </div>`;
+    this.wire(ov, {
+      resume: () => this.show("playing"),
+      restart: () => void this.openLevel(s.meta),
+      skip: () => {
+        const b = ov.querySelector<HTMLButtonElement>('[data-a="skip"]');
+        // a first tap asks, a second skips: a stray thumb never throws a level away
+        if (b && !b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = uiText(sk, "skipConfirm"); return; }
+        this.skipLevel(s);
+      },
+    });
+    ov.onclick = (e) => { if (e.target === ov) this.show("playing"); };
+  }
+
+  /** R5 #12: 0 stars, flagged skipped (never cleared, so tuning and the level supply ignore it), on to the next level. */
+  private skipLevel(s: Session): void {
+    const id = s.meta.id, next = this.levels[s.meta.index + 1];
+    this.progress.skipped[id] = true;
+    this.progress.current = next?.id ?? id;
+    void this.deps.store.setProgress(this.progress);
+    void this.deps.telemetry.record(this.attempt(s, "skip", "skip", this.progress.quits[id] ?? 0));
+    if (next) void this.openLevel(next);
+    else { this.endSession(); this.show("levels"); }
   }
 
   /** Dev hook: step the running level by hand (hidden panes and tests get no rAF). */
@@ -1196,7 +1248,17 @@ export class App {
     if (e.t === "hit" && e.target === "base") this.hud.hit();
     if (e.t === "wave_cleared") s.wavesCleared++;
     if (e.t === "objective") this.objectiveEvent(s, e);
+    this.logEvent(s, e);
     if (e.t === "level_end") this.finish(e.won, e.reason);
+  }
+
+  private logEvent(s: Session, e: SimEvent): void {
+    let goal = "";
+    if (e.t === "objective") {
+      const i = s.sim.state.objectives.findIndex((o) => o.id === e.id);
+      goal = liveObjectives(s.sim.state, s.manifest, this.skin)[i]?.label ?? "";
+    }
+    pushLog(s.log, s.sim.state.tick, logText(e, this.skin, s.sim.compiled, goal));
   }
 
   /** A star objective became done or failed: flash its chip and chime (the level-end settle stays quiet). */
@@ -1285,6 +1347,7 @@ const TEMPLATE = `
         <button class="fname" id="lvlName" type="button"></button>
       </div>
       <div class="gbubble" id="gbubble" hidden></div>
+      <button class="fhelp" id="helpBtn" type="button"></button>
       <button class="fcorner l" id="retryBtn" type="button" aria-label="Retry"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2.1-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M4 3.5v5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="fcorner r" id="gearBtn" type="button" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4L10.7 6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
     </div>
@@ -1294,6 +1357,7 @@ const TEMPLATE = `
     <div class="overlay" id="ov-menu" hidden></div>
     <div class="overlay" id="ov-result" hidden></div>
     <div class="overlay" id="ov-settings" hidden></div>
+    <div class="overlay" id="ov-help" hidden></div>
     <div class="overlay" id="ov-error" hidden></div>
     <div class="overlay" id="ov-unsupported" hidden></div>
     <div class="tapstart" id="tapstart" hidden></div>
