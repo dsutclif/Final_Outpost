@@ -1,0 +1,63 @@
+/* Story director UI (view.ts). Each dialogue style is a self-contained block; a new style adds its own. */
+.story-layer { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.story-hide { display: none !important; }
+
+/* Goals: one at a time, with every star slot always there */
+.story-on #goals { display: none; }
+.sgoals { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.fhud .frow > .sgoals { pointer-events: none; }
+.sslots { display: flex; gap: 4px; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6)); }
+.sslot path { fill: rgba(20, 22, 25, 0.45); stroke: rgba(255, 255, 255, 0.75); stroke-width: 1.4; stroke-linejoin: round; }
+.sslot.earned path { fill: var(--accent); stroke: #fff8ef; }
+.sslot.cracked path { fill: rgba(70, 72, 76, 0.75); stroke: rgba(255, 255, 255, 0.4); }
+.sslot.cracked path.crack { fill: none; stroke: #16181b; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.sgoal-now { max-width: 100%; text-align: center; color: #fff; font: 800 14px/1.2 var(--display); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85); }
+
+/* Style A: strip under the HUD */
+.sdlg-strip {
+  position: absolute; left: calc(10px + env(safe-area-inset-left, 0px)); right: calc(10px + env(safe-area-inset-right, 0px));
+  top: calc(env(safe-area-inset-top, 0px) + 74px); display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px;
+  border-radius: 12px; background: rgba(14, 16, 19, 0.86); color: #fff8ef; border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.sdlg-strip[hidden] { display: none; }
+.sdlg-strip.in { animation: sdlg-in 0.18s ease-out; }
+@keyframes sdlg-in { from { opacity: 0; transform: translateY(-6px); } }
+.sdlg-portrait { flex: none; width: 46px; height: 46px; border-radius: 50%; background: #2a2e34; }
+.sdlg-portrait[hidden] { display: none; }
+/* KILN's cloud of cold blue light, until a real portrait exists */
+.sdlg-portrait[data-portrait="kiln"] {
+  background: radial-gradient(circle at 50% 45%, #d6f1ff 0 12%, #6cc4ff 34%, rgba(38, 110, 190, 0.55) 62%, rgba(12, 30, 60, 0.9) 100%);
+  box-shadow: 0 0 12px rgba(108, 196, 255, 0.55); animation: sdlg-kiln 2.4s ease-in-out infinite;
+}
+@keyframes sdlg-kiln { 50% { box-shadow: 0 0 20px rgba(108, 196, 255, 0.9); } }
+.sdlg-body { flex: 1; min-width: 0; }
+.sdlg-who { font: 800 13px/1.2 var(--display); letter-spacing: 0.04em; color: var(--interactive); }
+.sdlg-who[hidden] { display: none; }
+.sdlg-tag { margin-left: 5px; font-weight: 700; color: #cfd6dd; letter-spacing: 0; }
+.sdlg-text { margin: 2px 0 0; font-size: 15px; font-weight: 600; line-height: 1.3; }
+.sdlg-tap { margin-top: 3px; font-size: 12px; font-weight: 700; color: #cfd6dd; text-align: right; }
+.sdlg-tap[hidden] { display: none; }
+/* star toasts sit clear of the strip */
+.story-talking .ftoast { top: calc(env(safe-area-inset-top, 0px) + 170px); }
+
+.story-tap { position: absolute; inset: 0; pointer-events: auto; touch-action: manipulation; }
+.story-tap[hidden] { display: none; }
+
+.story-card {
+  position: absolute; inset: 0; pointer-events: auto; background: #000; color: #fff8ef; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; animation: story-fade 0.35s ease-out;
+}
+.story-card[hidden] { display: none; }
+.story-card-text { margin: 0; font: 700 20px/1.35 var(--display); }
+.story-card-sub { margin: 0; font-size: 15px; color: #b9c0c8; }
+.story-card.day .story-card-text { font-size: 38px; font-weight: 800; letter-spacing: 0.06em; }
+@keyframes story-fade { from { opacity: 0; } }
+
+.story-prompt {
+  position: absolute; inset: 0; pointer-events: auto; background: rgba(6, 8, 12, 0.62); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; animation: story-fade 0.25s ease-out;
+}
+.story-prompt[hidden] { display: none; }
+.story-prompt h2 { margin: 0; color: #fff; font: 800 26px/1.2 var(--display); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8); }
+.story-prompt .story-retry { min-width: 230px; min-height: 66px; font: 800 24px/1 var(--display); border-radius: 16px; background: var(--accent); color: #1a1205; border: 0; }
+.story-prompt .story-other { min-height: 44px; background: none; color: #dfe5ea; border: 0; box-shadow: none; font-size: 15px; font-weight: 700; text-decoration: underline; }

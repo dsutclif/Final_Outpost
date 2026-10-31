@@ -25,8 +25,8 @@ export interface Progress {
   starSet: Record<string, string[]>;
   /** Canonical ids of object types the player has interacted with (discovery labels, field guide). */
   discovered: Record<string, true>;
-  /** Cinematics already shown (cinematics.ts ids); each plays once, never on replay. */
-  cinematics: Record<string, true>;
+  /** The version of each film last shown (cinematics.ts): plays when unseen, on a new version, or after a level reset. */
+  cinematics: Record<string, number>;
   /** Which pack generation the level progress belongs to (PROGRESS_EPOCH). */
   epoch?: number;
 }
@@ -101,9 +101,9 @@ export function mergeProgress(raw: unknown, mode: ProgressMode = "reset"): Progr
   const r0 = (raw && typeof raw === "object" ? raw : {}) as Partial<Progress>;
   // an older pack generation: what the player has learned stays; "keep" also carries which levels are
   // cleared and where Play continues, but not times, stars or tries earned on the old layouts
-  const learned: Partial<Progress> = { ...(r0.coach ? { coach: r0.coach } : {}), ...(r0.discovered ? { discovered: r0.discovered } : {}), ...(r0.cinematics ? { cinematics: r0.cinematics } : {}) };
+  const learned: Partial<Progress> = { ...(r0.coach ? { coach: r0.coach } : {}), ...(r0.discovered ? { discovered: r0.discovered } : {}) };
   const r: Partial<Progress> = !raw || r0.epoch === PROGRESS_EPOCH ? r0
-    : mode === "keep" ? { ...learned, cleared: r0.cleared ?? {}, skipped: r0.skipped ?? {}, current: r0.current ?? null }
+    : mode === "keep" ? { ...learned, ...(r0.cinematics ? { cinematics: r0.cinematics } : {}), cleared: r0.cleared ?? {}, skipped: r0.skipped ?? {}, current: r0.current ?? null }
     : learned;
   return {
     epoch: PROGRESS_EPOCH,
@@ -117,8 +117,15 @@ export function mergeProgress(raw: unknown, mode: ProgressMode = "reset"): Progr
     stars: { ...(r.stars ?? {}) },
     starSet: { ...(r.starSet ?? {}) },
     discovered: { ...(r.discovered ?? {}) },
-    cinematics: { ...(r.cinematics ?? {}) },
+    cinematics: filmVersions(r.cinematics),
   };
+}
+
+/** Saves from before film versions hold `true`: that was version 1. */
+function filmVersions(raw: unknown): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(raw ?? {})) if (v === true) out[k] = 1; else if (typeof v === "number") out[k] = v;
+  return out;
 }
 
 export function mergeSettings(raw: unknown): Settings {

@@ -4,6 +4,7 @@ import { marsGreenhouse } from "./mars_greenhouse.js";
 import type { Skin } from "./types.js";
 
 export type { Skin, SkinLook3D, SkinPalette, SkinText } from "./types.js";
+export type { SkinStory, StoryAction, StoryCameraBeat, StoryCue, StoryGhost, StoryGoal, StoryHudPart, StoryLevel, StoryPlace, StorySpeaker, StoryTrigger, StoryUi } from "./story.js";
 export { canonicalIds, CONTRACT_IDS, humanise } from "./ids.js";
 export { luminance, contrast, mix, alpha, parseHex, MIN_INTERACTIVE_CONTRAST } from "./color.js";
 export { marsGreenhouse, debugSkin };

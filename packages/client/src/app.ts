@@ -22,7 +22,8 @@ import { DEFAULT_PROGRESS, PROGRESS_EPOCH, type Progress, type ProgressMode, typ
 import type { TelemetryQueue } from "./telemetry.js";
 import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
-import { cinematicFor, playCinematic, type CinematicId } from "./cinematics.js";
+import { FILM_VERSIONS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
+import { directorFor, type StoryDirector } from "./story/index.js";
 
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
 // and the glue between sim, renderer, input, saves, telemetry and feedback.
@@ -37,6 +38,8 @@ interface Session {
   cam: Camera;
   stepper: FixedStepper;
   coach: Coach;
+  /** Story presentation for this level; null on levels without story data. Never touches the sim. */
+  director: StoryDirector | null;
   ended: boolean;
   /** The player has been told the main goal is out of reach (asked once a level, R5 #21). */
   deadEndAsked?: boolean;
@@ -779,7 +782,7 @@ export class App {
     if (!renderer) return;
     const coach = new Coach(sim.compiled.manifest.modules, this.progress.coach, undefined, !!sim.compiled.gate);
     this.session = {
-      meta, manifest: sim.compiled.manifest, sim, renderer, cam: createCamera(), stepper: new FixedStepper(), coach, ended: false,
+      meta, manifest: sim.compiled.manifest, sim, renderer, cam: createCamera(), stepper: new FixedStepper(), coach, director: null, ended: false,
       earned: 0, lastCurrency: sim.state.currency, wavesCleared: 0, lifeMin: sim.state.meters.lifeline, played: 0,
       guide: null, guideOn: false, guideTarget: null, stuck: new StuckTimer(), overview: null, log: [],
     };
@@ -794,20 +797,42 @@ export class App {
     this.el.lvlName.textContent = uiText(this.skin, "levelShort", { n: meta.index + 1 });
     this.el.lvlName.setAttribute("aria-label", named ? `${uiText(this.skin, "levelWord")} ${meta.index + 1} · ${t.title}` : t.title);
     this.hud.reset(sim.state.currency, this.scrapLevel(this.session.manifest));
+    const sess = this.session;
+    sess.director = this.storyDirector(sess);
     this.introStep = 0;
-    this.renderIntro(t);
+    const straightIn = !!sess.director && !sess.director.keepsIntro;
+    if (straightIn) this.el.ov["intro"]!.textContent = ""; else this.renderIntro(t);
     this.show("intro");
     // the level-start cinematic covers the intro card and cross-fades out into it (first play only)
     const pre = cinematicFor(meta.id, "before", this.progress.cinematics);
     if (pre) await this.cinematic(pre);
+    if (straightIn && this.session === sess && this.screen === "intro") this.show("playing");
     void this.prefetch();
+  }
+
+  private storyDirector(s: Session): StoryDirector | null {
+    const id = s.meta.id;
+    return directorFor(this.skin, id, this.el.ftoast.parentElement!, {
+      cam: s.cam,
+      entityAt: (eid) => {
+        const e = (s.manifest.entities as unknown as { id?: string; at?: number[]; rect?: number[] }[]).find((x) => x.id === eid);
+        if (e?.at) return { x: e.at[0]!, y: e.at[1]! };
+        return e?.rect ? { x: e.rect[0]! + e.rect[2]! / 2, y: e.rect[1]! + e.rect[3]! / 2 } : null;
+      },
+      film: async (f) => { if (filmDue(f, this.progress.cinematics)) await this.cinematic(f); },
+      retry: () => void this.openLevel(s.meta),
+      goalSettled: (label, done) => {
+        this.synth.play(done ? "star" : "miss");
+        if (done) this.starToast(uiText(this.skin, "starEarned"), label);
+      },
+    }, !!this.progress.cleared[id] || (this.progress.tries[id] ?? 0) > 0);
   }
 
   /** Play a cinematic full-screen once: ended or skipped saves it as seen; an error or stall just continues. */
   private async cinematic(id: CinematicId, force = false): Promise<void> {
     const r = await playCinematic(this.el.app, id, { skipLabel: uiText(this.skin, "skip") });
     if (r === "failed" || force) return;
-    this.progress.cinematics[id] = true;
+    this.progress.cinematics[id] = FILM_VERSIONS[id];
     void this.deps.store.setProgress(this.progress);
   }
 
@@ -923,6 +948,7 @@ export class App {
     this.el.tapstart.hidden = true;
     this.disarmRetry();
     if (this.resultTimer) { clearTimeout(this.resultTimer); this.resultTimer = null; }
+    this.session?.director?.dispose();
     this.session?.renderer.dispose();
     this.session = null;
   }
@@ -961,14 +987,15 @@ export class App {
     // let the confetti land before the card covers the stage
     const newBest = won && prevBest !== undefined && ticks < prevBest;
     const post = won ? cinematicFor(id, "afterWin", this.progress.cinematics) : null;
+    const showResult = async (): Promise<void> => {
+      if (post) await this.cinematic(post);
+      if (this.session !== s) return;
+      this.renderResult(won, reason, ticks, newBest, stars);
+      this.show("result");
+    };
     this.resultTimer = setTimeout(() => {
       this.resultTimer = null;
-      void (async () => {
-        if (post) await this.cinematic(post);
-        if (this.session !== s) return;
-        this.renderResult(won, reason, ticks, newBest, stars);
-        this.show("result");
-      })();
+      if (!s.director?.holdResult(() => void showResult())) void showResult();
     }, won ? 1500 : 1000);
     if (won) void this.prefetch();
   }
@@ -1107,6 +1134,7 @@ export class App {
 
   private stepOnce(s: Session, input: { dx: number; dy: number }): void {
     for (const e of s.sim.step(input)) this.handleEvent(s, e);
+    s.director?.afterTick(s.sim.state);
     if (!s.ended && !s.deadEndAsked && mainGoalDead(s.sim.state, s.sim.compiled)) this.askDeadEnd(s);
     const cur = s.sim.state.currency;
     if (cur > s.lastCurrency) s.earned += cur - s.lastCurrency;
@@ -1123,10 +1151,15 @@ export class App {
     const s = this.session;
     if (!s) return;
     const waiting = this.stepOverview(s, dt / 1000);
-    const playing = this.screen === "playing" && !this.hidden && !s.ended && !waiting;
+    if (this.screen === "playing" && !this.hidden && !waiting) s.director?.update(dt, s.sim.state);
+    const playing = this.screen === "playing" && !this.hidden && !s.ended && !waiting && !s.director?.frozen;
     if (playing) {
       const n = s.stepper.advance(dt);
-      for (let i = 0; i < n && !s.ended; i++) this.stepOnce(s, this.input.read());
+      for (let i = 0; i < n && !s.ended; i++) {
+        this.stepOnce(s, this.input.read());
+        // a cue froze play: stop here, and drop the time owed so it cannot overshoot
+        if (s.director?.frozen) { s.stepper.reset(); break; }
+      }
       this.updateCoach(s);
       this.heartbeat(s, now);
       this.padArrival(s);
@@ -1231,7 +1264,7 @@ export class App {
   private heartbeat(s: Session, now: number): void {
     const st = s.sim.state;
     const k = st.meters.lifeline / METER_MAX;
-    if (k >= 0.35 && st.core.fuel > 0) return;
+    if ((k >= 0.35 && st.core.fuel > 0) || s.director?.calm(st)) return;
     if (now < this.beatAt) return;
     this.beatAt = now + 1100;
     this.synth.play("beat");
@@ -1239,6 +1272,7 @@ export class App {
   }
 
   private handleEvent(s: Session, e: SimEvent): void {
+    s.director?.onEvent(e, s.sim.state);
     s.renderer.onEvent(e);
     this.haptics.play(e);
     this.synth.playEvent(e, this.skin);
@@ -1263,7 +1297,7 @@ export class App {
 
   /** A star objective became done or failed: flash its chip and chime (the level-end settle stays quiet). */
   private objectiveEvent(s: Session, e: { id: string; done: boolean; failed: boolean }): void {
-    if (s.sim.state.over) return;
+    if (s.sim.state.over || s.director?.ownsGoals) return;
     const idx = s.sim.state.objectives.findIndex((o) => o.id === e.id);
     this.synth.play(e.done ? "star" : "miss");
     // every goal won is a star: "Star achieved:" and the goal (Doug, 2026-10-25)
@@ -1287,7 +1321,8 @@ export class App {
     const cash = this.scrapLevel(s.manifest) ? st.player.stack.filter((r) => r === "res.salvage").length : st.currency;
     // during the intro the goals arrive one by one: earlier ones shown, the current one's slot outlined
     const intro = this.screen === "intro";
-    this.hud.render(st, s.manifest, s.sim.compiled, this.skin, cash, intro ? this.introStep : Infinity, intro ? this.introStep : -1);
+    const tokens = this.hud.render(st, s.manifest, s.sim.compiled, this.skin, cash, intro ? this.introStep : Infinity, intro ? this.introStep : -1);
+    s.director?.syncGoals(tokens);
   }
 
   /**
@@ -1297,12 +1332,14 @@ export class App {
    */
   private updateAlert(s: Session, playing: boolean, now: number): void {
     const st = s.sim.state;
-    const tokens = playing ? goalTokens(st, s.manifest, s.sim.compiled, this.skin) : [];
-    const a = playing ? alertOf(st, s.manifest, s.sim.compiled, tokens) : { kind: "none" as const };
+    const alarmed = playing && !s.director?.calm(st);
+    const all = alarmed ? goalTokens(st, s.manifest, s.sim.compiled, this.skin) : [];
+    const tokens = s.director?.visibleTokens(all) ?? all;
+    const a = alarmed ? alertOf(st, s.manifest, s.sim.compiled, tokens) : { kind: "none" as const };
     const key = a.kind === "goal" ? `goal:${a.id}` : a.kind;
     if (key !== this.alertKey) { this.alertKey = key; this.alert = a; this.hud.setAlert(a); this.buzzAt = 0; }
     // every danger, not just the one the top icon shows, is marked in the world (backlog R5 #16); re-picked each frame, as the coldest colonist changes
-    s.renderer.setAlertMarks(playing ? alertMarks(st, s.manifest, s.sim.compiled, tokens) : []);
+    s.renderer.setAlertMarks(alarmed ? alertMarks(st, s.manifest, s.sim.compiled, tokens) : []);
     if (this.alert.kind === "none" || now - this.buzzAt < ALERT_BUZZ_MS) return;
     this.buzzAt = now;
     this.haptics.pulse(this.alert.kind === "goal" ? [25] : [60, 60, 60]);

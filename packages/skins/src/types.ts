@@ -1,3 +1,5 @@
+import type { SkinStory } from "./story.js";
+
 // Contract 3: a skin is a data pack keyed by canonical id. It changes names, colours,
 // sprite/model keys, audio and story text; never ids, rules or level data.
 
@@ -134,6 +136,8 @@ export interface Skin {
   look3d?: SkinLook3D;
   /** Synth patch key per event key. */
   audio: Record<string, string>;
+  /** Story director data keyed by level id; levels without an entry have no director. */
+  story?: SkinStory;
   /** Draw the canonical-id label on every entity (debug skin). */
   labelAll?: boolean;
   /** Web app manifest theme colour. */
