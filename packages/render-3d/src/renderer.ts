@@ -93,8 +93,8 @@ const BACK_PER_ROW = 3;
 /** Drone: size against a character, hover height, and the four rotor mounts [x, z] / height (drone-model art metres). */
 const DRONE_K = 1;
 const DRONE_HOVER = 0.9;
-const DRONE_ROTOR_Y = 0.36;
-const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.27, 0.38], [-0.27, 0.38], [0.27, -0.38], [-0.27, -0.38]];
+const DRONE_ROTOR_Y = 0.4;
+const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.22, 0.37], [-0.22, 0.37], [0.22, -0.37], [-0.22, -0.37]];
 /** Decor that looks like scrap: left out where scrap heaps can be picked over. */
 const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.ship_wreck", "decor.scrap_field"]);
 /** Items drawn per carried column at most. */
