@@ -8,6 +8,8 @@ import { normalizeTimeTargetPct } from "./timetarget.js";
 
 export interface Progress {
   cleared: Record<string, true>;
+  /** Levels skipped from the Help sheet (R5 #12): they open the next level but are not cleared, have no stars and never count for tuning. */
+  skipped: Record<string, true>;
   /** Best winning time per level, in ticks. */
   best: Record<string, number>;
   /** Quit count per level. */
@@ -54,7 +56,7 @@ export interface TelemetryAttempt {
   levelId: string;
   engineVersion: string;
   contentVersion: string;
-  outcome: "win" | "lose" | "quit";
+  outcome: "win" | "lose" | "quit" | "skip";
   reason: string;
   ticks: number;
   quits: number;
@@ -63,7 +65,7 @@ export interface TelemetryAttempt {
 
 export interface TelemetryRow extends TelemetryAttempt { seq?: number; sent: boolean }
 
-export const DEFAULT_PROGRESS: Progress = { cleared: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {}, cinematics: {}, epoch: PROGRESS_EPOCH };
+export const DEFAULT_PROGRESS: Progress = { cleared: {}, skipped: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {}, cinematics: {}, epoch: PROGRESS_EPOCH };
 export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, stuckArrow: true, timeTargetPct: 100, probeFps: null };
 
 interface FoDB extends DBSchema {
@@ -101,11 +103,12 @@ export function mergeProgress(raw: unknown, mode: ProgressMode = "reset"): Progr
   // cleared and where Play continues, but not times, stars or tries earned on the old layouts
   const learned: Partial<Progress> = { ...(r0.coach ? { coach: r0.coach } : {}), ...(r0.discovered ? { discovered: r0.discovered } : {}), ...(r0.cinematics ? { cinematics: r0.cinematics } : {}) };
   const r: Partial<Progress> = !raw || r0.epoch === PROGRESS_EPOCH ? r0
-    : mode === "keep" ? { ...learned, cleared: r0.cleared ?? {}, current: r0.current ?? null }
+    : mode === "keep" ? { ...learned, cleared: r0.cleared ?? {}, skipped: r0.skipped ?? {}, current: r0.current ?? null }
     : learned;
   return {
     epoch: PROGRESS_EPOCH,
     cleared: { ...(r.cleared ?? {}) },
+    skipped: { ...(r.skipped ?? {}) },
     best: { ...(r.best ?? {}) },
     quits: { ...(r.quits ?? {}) },
     tries: { ...(r.tries ?? {}) },

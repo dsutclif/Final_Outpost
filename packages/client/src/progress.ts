@@ -38,17 +38,20 @@ export function starsFor(margin: number): 1 | 2 | 3 {
 
 export const starText = (n: number): string => "★".repeat(n) + "☆".repeat(Math.max(0, 3 - n));
 
-/** Level 0 is always open; each later level opens when the one before it is cleared. */
+/** Cleared or skipped: either way the player may move on to the next level. */
+export const passed = (p: Pick<Progress, "cleared" | "skipped">, id: string): boolean => !!p.cleared[id] || !!p.skipped?.[id];
+
+/** Level 0 is always open; each later level opens when the one before it is cleared or skipped. */
 export function isUnlocked(levels: readonly LevelMeta[], meta: LevelMeta, p: Progress, debug = false): boolean {
   if (meta.index === 0 || debug) return true;
   const prev = levels[meta.index - 1];
-  return !prev || !!p.cleared[prev.id];
+  return !prev || passed(p, prev.id);
 }
 
 /** Where Play continues: the saved current level if unlocked and uncleared, else the first uncleared unlocked one. */
 export function nextLevel(levels: readonly LevelMeta[], p: Progress): LevelMeta | undefined {
-  const cur = levels.find((l) => l.id === p.current && !p.cleared[l.id] && isUnlocked(levels, l, p));
-  return cur ?? levels.find((l) => !p.cleared[l.id] && isUnlocked(levels, l, p)) ?? levels[levels.length - 1];
+  const cur = levels.find((l) => l.id === p.current && !passed(p, l.id) && isUnlocked(levels, l, p));
+  return cur ?? levels.find((l) => !passed(p, l.id) && isUnlocked(levels, l, p)) ?? levels[levels.length - 1];
 }
 
 /** Levels in chapters of `size` (the grid draws a header before each). */
