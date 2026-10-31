@@ -48,7 +48,7 @@ export interface GoalToken {
 }
 
 const GLYPH_OF: Record<string, Glyph> = {
-  heat_hold: "thermo", heat_floor: "thermo", settlement_never_freezes: "flame", fuel_full: "flame", no_colonist_freezes: "colonist",
+  heat_hold: "thermo", heat_floor: "thermo", settlement_never_freezes: "flame", fuel_full: "flame", core_lit: "flame", no_colonist_freezes: "colonist",
   time_target: "stopwatch", earn: "coin", currency: "coin", earn_within: "coin", sell: "coin",
   produce: "crate", stockpile: "crate", haul: "crate", bulk_order: "crate", chain: "crate", shelves_full: "crate", no_stockpile_overload: "crate",
   salvage: "scrap", protein: "meat", hunt: "meat",
@@ -261,7 +261,7 @@ export function alertMarks(st: State, m: Manifest, cp: Compiled | null, tokens: 
 /** The worst case within one goal at risk: what its icon drains from. */
 function goalMark(kind: string, st: State, cp: Compiled | null): AlertMark[] {
   switch (kind) {
-    case "heat_hold": case "heat_floor": case "settlement_never_freezes": case "fuel_full": return [{ kind: "core" }];
+    case "heat_hold": case "heat_floor": case "settlement_never_freezes": case "fuel_full": case "core_lit": return [{ kind: "core" }];
     case "hp_floor": case "gate_held": return weakestGate(st);
     case "no_angry_customers": {
       let best: { id: number; k: number } | null = null;

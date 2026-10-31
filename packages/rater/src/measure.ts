@@ -42,8 +42,8 @@ export interface Measurement {
   ladderLeft: number;
   /** Mean goods the reference bot took back out of the warehouse per run. */
   depotPicks: number;
-  /** Story mechanics over the reference runs: mean seconds to light a dark core (-1: no dark core), and mean crew joined, decoys opened, bosses that broke off. */
-  story: { litSeconds: number; joined: number; decoys: number; retreats: number };
+  /** Story mechanics over the reference runs: mean seconds to light a dark core (-1: no dark core), and mean crew joined, decoys opened, bosses that broke off, items fetched. */
+  story: { litSeconds: number; joined: number; decoys: number; retreats: number; items: number };
   /** Mean share of guard-seconds under attack spent on the attacked side (-1 where no guard ever rallied). */
   rallyShare: number;
   /** Mean share of fielded guards lost per reference run (-1: no run fielded a guard). R5 #26: a level that throws guards away reads here. */
@@ -104,6 +104,7 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const story = {
     litSeconds: lit.length > 0 ? mean(lit) / 30 : -1,
     joined: mean(storyRuns.map((x) => x.joined)), decoys: mean(storyRuns.map((x) => x.decoys)), retreats: mean(storyRuns.map((x) => x.retreats)),
+    items: mean(storyRuns.map((x) => x.items)),
   };
   const rallied = runs[REFERENCE]!.map((r) => r.trace.rallyShare).filter((x) => x >= 0);
   const rallyShare = rallied.length > 0 ? mean(rallied) : -1;

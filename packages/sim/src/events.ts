@@ -30,7 +30,8 @@ export type SimEvent =
   | { t: "moved_in"; resident: number }
   | { t: "pod_lost"; capture: number; at: Vec }
   | { t: "tow_dropped"; capture: number; at: Vec; reason: "hit" | "slack" }
-  | { t: "crate_delivered"; capture: number; at: Vec; bundle: Record<string, number> }
+  | { t: "crate_delivered"; capture: number; at: Vec; bundle: Record<string, number>; item?: true }
+  | { t: "capture_revealed"; capture: number; at: Vec }
   // story pods: a crew member who starts work on release, an empty pod
   | { t: "joined"; capture: number; resident: number; role: string }
   | { t: "decoy_opened"; capture: number; at: Vec }

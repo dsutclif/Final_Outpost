@@ -1947,6 +1947,7 @@ export class Renderer3D implements Renderer {
 
   private syncCaptures(s: State, a: number): void {
     for (const c of s.captures) {
+      if (c.state === "hidden") continue;
       const key = `c:${c.id}`;
       const pos = this.interp.pos(key, c.pos, a);
       const p = this.place(`cap:${c.id}`, c.type, v3(pos.x, 0, pos.y));
@@ -2952,7 +2953,7 @@ export class Renderer3D implements Renderer {
         const keys = Object.keys(bundle);
         fx.burst(up(at, ART_M), [gold, t.accent, white, ...keys.map((k) => resToken(t, k))], 24, 140, 260, 5);
         fx.dustRing(at, t.accent, 18, 110, 7);
-        fx.floater(ft("crate_delivered"), white, up(at, ART_M * 2), 44);
+        fx.floater(ft(e["item"] ? "item_delivered" : "crate_delivered"), white, up(at, ART_M * 2), 44);
         for (const k of keys.slice(0, 3)) fx.arc(k, up(at, ART_M), () => this.playerBack(), 0.5, true);
         break;
       }

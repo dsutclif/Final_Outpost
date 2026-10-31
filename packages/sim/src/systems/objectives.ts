@@ -7,6 +7,7 @@ import { converterRunnable, operated } from "./converters.js";
 import { coreFuelCap } from "./core.js";
 import { objectiveDead } from "./deadends.js";
 import { wavesDone } from "./defense.js";
+import { staffedSources } from "./residents.js";
 
 // Objectives are a registry like the old goal predicates: each kind turns state and stats into
 // progress / target, and says when it is done or can no longer be done. Kinds and their params
@@ -49,9 +50,12 @@ const byDeadline = (c: Ctx, progress: number, target: number, deadline: number):
   return false;
 };
 
+/** fromLit: the tick a kind's seconds count from; undefined while the core waits to be lit, so nothing is done or failed. */
+const clockStart = (st: State, p: P): number | undefined => (num(p, "fromLit") > 0 ? st.stats.litTick : 0);
+
 const heatAtLeast = (st: State, cp: Compiled, pct: number): boolean => st.core.fuel * 100 >= pct * coreFuelCap(st, cp);
 const recruitPods = (st: State, cp: Compiled): number =>
-  st.captures.filter((c) => cp.lassoables[c.type]?.result === "recruit" && !c.decoy).length;
+  st.captures.filter((c) => cp.lassoables[c.type]?.result === "recruit" && !c.decoy && c.state !== "hidden").length;
 const turretLevel = (st: State, cp: Compiled): number =>
   st.structures.reduce((m, s) => (cp.structures[s.type]?.tiers ? Math.max(m, s.level) : m), 0);
 const sections = (st: State): { total: number; built: number } => {
@@ -67,7 +71,12 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
   build_count: ({ st, p, o }) => count(o, st.structures.filter((s) => s.type === str(p, "build")).length, num(p, "n")),
   hazard_survive: ({ st, cp, p, o }) => count(o, st.stats.hazardsSurvived, num(p, "n", cp.events.length)),
   heat_hold: ({ st, cp, p, o }) => hold(o, heatAtLeast(st, cp, num(p, "pct")), secs(p)),
-  fuel_full: (c) => byDeadline(c, c.st.core.fuel, coreFuelCap(c.st, c.cp), secs(c.p)),
+  core_lit: ({ st, o }) => count(o, st.stats.litTick !== undefined ? 1 : 0, 1),
+  fuel_full: (c) => {
+    const from = clockStart(c.st, c.p);
+    if (from === undefined) { count(c.o, c.st.core.fuel, coreFuelCap(c.st, c.cp)); return false; }
+    return byDeadline(c, c.st.core.fuel, coreFuelCap(c.st, c.cp), from + secs(c.p));
+  },
   admit: ({ st, p, o }) => count(o, st.stats.admitted, num(p, "n")),
   clear_zones: ({ st, p, o }) => count(o, st.stats.zonesCleared, num(p, "n")),
   house_all: ({ st, cp, o }) => {
@@ -77,7 +86,10 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
     count(o, housed, housed + pending);
     return pending === 0 && housed > 0;
   },
-  survive: ({ st, p, o }) => count(o, Math.min(st.tick, secs(p)), secs(p)),
+  survive: ({ st, p, o }) => {
+    const from = clockStart(st, p);
+    return count(o, from === undefined ? 0 : Math.min(st.tick - from, secs(p)), secs(p));
+  },
   // rescue
   rescue: ({ st, p, o }) => count(o, st.stats.rescued, num(p, "n")),
   rescue_all: ({ st, cp, o }) => {
@@ -122,7 +134,7 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
     return count(o, res === undefined ? st.stats.converted : st.stats.convertedBy[res] ?? 0, num(p, "n"));
   },
   converters_running: ({ st, cp, p, o }) =>
-    hold(o, st.converters.filter((cv) => converterRunnable(cp, cv) && operated(st, cp, cv)).length >= num(p, "k"), secs(p)),
+    hold(o, st.converters.filter((cv) => converterRunnable(cp, cv) && operated(st, cp, cv)).length + (num(p, "sources") > 0 ? staffedSources(st, cp) : 0) >= num(p, "k"), secs(p)),
   haul: ({ st, p, o }) => count(o, st.stats.hauled, num(p, "n")),
   chain: ({ st, p, o }) => count(o, st.stats.tier2Made, num(p, "n", 1)),
   automate: ({ st, p, o }) => count(o, st.stats.salesSinceDeposit > 0 ? Math.min(st.tick - st.stats.lastPlayerDeposit, secs(p)) : 0, secs(p)),

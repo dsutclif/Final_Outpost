@@ -75,6 +75,17 @@ function ready(r: ResidentState, ticks: number): boolean {
   return true;
 }
 
+/** Source nodes with a working gatherer bound to them right now. */
+export function staffedSources(st: State, cp: Compiled): number {
+  const nodes = new Set<NodeState>();
+  for (const r of st.residents) {
+    if (r.status !== "ok" || cp.roles[r.role]?.behavior !== "gather_deliver") continue;
+    const n = pickNode(st, cp, r);
+    if (n) nodes.add(n);
+  }
+  return nodes.size;
+}
+
 function pickNode(st: State, cp: Compiled, r: ResidentState): NodeState | null {
   if (r.assign.node !== null) {
     const n = st.nodes.find((x) => x.id === r.assign.node);

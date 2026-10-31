@@ -443,7 +443,8 @@ describe("objectives", () => {
       time_target: { seconds: 30 }, settlement_never_freezes: {}, no_colonist_freezes: {}, heat_floor: { pct: 25 }, no_angry_customers: {},
       no_injuries: {}, hp_floor: { pct: 50 }, gate_held: {}, no_stockpile_overload: {},
     };
-    const kinds = Object.keys(content.objectives).filter((k) => k !== "build");
+    // core_lit needs a dark core, which golden levels don't have (story.test covers it)
+    const kinds = Object.keys(content.objectives).filter((k) => k !== "build" && k !== "core_lit");
     expect(kinds.every((k) => params[k] !== undefined)).toBe(true);
     {
       const m = L as Loose;

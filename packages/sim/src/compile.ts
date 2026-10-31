@@ -64,7 +64,7 @@ export interface CompiledHostile {
 export interface CompiledLassoable {
   releaseTicks: number;
   towSpacing: number;
-  result: "recruit" | "bundle";
+  result: "recruit" | "bundle" | "item";
   bundle: Record<string, number>;
   /** 0 = never freezes over. */
   freezeTicks: number;
@@ -296,7 +296,7 @@ export interface Compiled {
   stock: { collapseTicks: number };
   convParams: { playerOperateRange: number; operatorRange: number; pickupRange: number; hintRange: number };
   defense: {
-    spawnGapTicks: number; spawnY: number; spawnMarginX: number; barrierStop: number; barrierHitTicks: number; barrierDamage: number;
+    spawnGapTicks: number; spawnY: number; fleeSpeed: number; spawnMarginX: number; barrierStop: number; barrierHitTicks: number; barrierDamage: number;
     baseRange: number; baseHitTicks: number; baseDamage: number;
     /** Half the width of the lane a wave comes down toward its side's gate (Batch 3). */
     laneHalfWidth: number;
@@ -617,7 +617,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       pickupRange: fp(param("converters.pickupRange")), hintRange: fp(param("converters.hintRange")),
     },
     defense: {
-      spawnGapTicks: ticks(param("defense.spawnGap")), spawnY: fp(param("defense.spawnY")), spawnMarginX: fp(param("defense.spawnMarginX")),
+      spawnGapTicks: ticks(param("defense.spawnGap")), spawnY: fp(param("defense.spawnY")), fleeSpeed: perTick(param("defense.fleeSpeed")), spawnMarginX: fp(param("defense.spawnMarginX")),
       barrierStop: fp(param("defense.barrierStop")), barrierHitTicks: ticks(param("defense.barrierHitInterval")), barrierDamage: int("defense.barrierDamage"),
       baseRange: fp(param("defense.baseRange")), baseHitTicks: ticks(param("defense.baseHitInterval")), baseDamage: int("defense.baseDamage"),
       laneHalfWidth: fp(param("defense.laneHalfWidth")), troopContact: fp(param("defense.troopContact")),

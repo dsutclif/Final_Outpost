@@ -121,6 +121,8 @@ registerModel("struct.barrier.cracked", (ctx) => buildWallPanel(ctx, true));
 
 registerModel("capture.recruit_container", (ctx) => buildStasisPod(ctx));
 registerModel("capture.supply_crate", (ctx) => buildSupplyCrate(ctx));
+// Stands in until the recorder's own model lands (STORY-LEVELS-V2-PLAN, Assets).
+registerModel("capture.recorder", (ctx) => buildSupplyCrate(ctx));
 registerModel("zone.blocked", (ctx) => buildRubble(ctx));
 registerModel("zone.terrain", (ctx) => buildTerrain(ctx));
 registerModel("zone.waiting", (ctx) => buildWaitingMarker(ctx));

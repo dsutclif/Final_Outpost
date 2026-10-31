@@ -103,8 +103,9 @@ export type HostileDef = z.infer<typeof HostileDef>;
 export const LassoableDef = z.object({
   release: z.enum(["inSafeRadius"]),
   releaseTime: seconds,
-  // "recruit": opens into a colonist after releaseTime; "bundle": pays `bundle` the moment it enters the safe radius.
-  result: z.enum(["recruit", "bundle"]),
+  // "recruit": opens into a colonist after releaseTime; "bundle": pays `bundle` the moment it enters the safe radius;
+  // "item": pays nothing on arrival and counts as a crate (a thing fetched for its own sake).
+  result: z.enum(["recruit", "bundle", "item"]),
   bundle: z.record(ResId, z.number().int().positive()).optional(),
   towSpacing: units,
   // Seconds an idle or towed one survives before it is lost (pod_lost). 0 = never; a manifest entity can override.
@@ -271,8 +272,8 @@ export const GoalDef = z.object({
 export const FAMILIES = ["shelter", "rescue", "harvest", "industrialize", "defend"] as const;
 export const Family = z.enum(FAMILIES);
 export type Family = z.infer<typeof Family>;
-// Param kinds; a trailing "?" marks an optional param.
-export const ObjectiveParamKind = z.enum(["int", "seconds", "pct", "res", "role", "struct", "pad", "int?", "seconds?", "pct?", "res?", "role?", "struct?", "pad?"]);
+// Param kinds; a trailing "?" marks an optional param. A flag is the number 1: params hold numbers and strings only.
+export const ObjectiveParamKind = z.enum(["int", "seconds", "pct", "res", "role", "struct", "pad", "int?", "seconds?", "pct?", "res?", "role?", "struct?", "pad?", "flag?"]);
 export const ObjectiveDef = z.object({
   description: z.string(),
   families: z.array(Family).default([]),
@@ -345,6 +346,7 @@ export function checkContentRefs(c: Content): void {
   }
   for (const [id, l] of Object.entries(c.lassoables)) {
     if (l.result === "bundle" && (!l.bundle || Object.keys(l.bundle).length === 0)) throw new Error(`lassoable ${id}: bundle result needs a bundle`);
+    if (l.result === "item" && l.bundle) throw new Error(`lassoable ${id}: an item pays nothing, so it takes no bundle`);
     for (const r of Object.keys(l.bundle ?? {})) if (!res.has(r)) throw new Error(`lassoable ${id} bundles unknown resource ${r}`);
   }
   const costs: [string, Record<string, number> | undefined][] = [

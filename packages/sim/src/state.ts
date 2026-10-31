@@ -210,7 +210,8 @@ export interface CaptureState {
   id: number;
   type: string;
   pos: Vec;
-  state: "idle" | "towed" | "releasing";
+  /** hidden: off the map until the `hiddenUntil` objective is done, then idle. */
+  state: "hidden" | "idle" | "towed" | "releasing";
   timer: number;
   /** Ticks left before it freezes over and is lost (while idle or towed); 0 = no freeze timer. */
   freezeTicks: number;
@@ -218,6 +219,8 @@ export interface CaptureState {
   joins?: { role: string; from: string | null; to: string | null; node: string | null };
   /** An empty pod: towed like any other, opens with nobody inside, never counts as a rescue. */
   decoy?: boolean;
+  /** Objective id that reveals a hidden capture. */
+  hiddenUntil?: string;
 }
 
 export interface PreyState {
@@ -413,6 +416,8 @@ export interface Stats {
   litTick?: number;
   joined?: number;
   decoysOpened?: number;
+  /** Item lassoables brought home (they also count in `crates`). */
+  itemsFetched?: number;
   retreats?: number;
   /** Guards that went down, and guards lost (R5 #26), created on first use. */
   guardsDown?: number;

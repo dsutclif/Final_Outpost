@@ -59,7 +59,7 @@ export interface BotTrace {
   /** Goods the player took back out of the warehouse. */
   depotPicks: number;
   /** Story mechanics: ticks until a dark core was lit (-1: none was dark or it never lit), crew who joined, empty pods opened, bosses that broke off. */
-  story: { litTicks: number; joined: number; decoys: number; retreats: number };
+  story: { litTicks: number; joined: number; decoys: number; retreats: number; items: number };
   /** Share of guard-seconds under attack spent within reach of a post on the attacked side (-1: never tested). */
   rallyShare: number;
   injuries: number;
@@ -288,7 +288,9 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const timeFixed = TIME_FIXED_GOALS.has(goal.type);
   const lastEvent = cp.manifest.events.reduce((a, e) => Math.max(a, e.end), 0) * TPS;
   const survive = goal.type === "survive" ? Math.round(((goal as { seconds?: number }).seconds ?? 0) * TPS) : 0;
-  const fixedEnd = Math.max(lastWave, lastEvent, survive);
+  // A schedule that counts from the lighting ends later by however long the bot took to light the core.
+  const litLate = cp.manifest.hazardsFromLit || "fromLit" in goal ? budgetTicks : 0;
+  const fixedEnd = Math.max(lastWave, lastEvent + (cp.manifest.hazardsFromLit ? litLate : 0), survive + litLate);
   const maxTicks = opts.maxTicks ?? (cp.timerTicks > 0 ? cp.timerTicks : timeFixed ? fixedEnd + WAVES_TAIL_SECONDS * TPS : budgetTicks);
 
   const inputs: Input[] = [];
@@ -450,7 +452,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     playerKillShare: s.kills > 0 ? (s.killsBy?.["player"] ?? 0) / s.kills : -1,
     ladderLeft: ladderLeft(st, cp),
     depotPicks: st.stats.depotPicked ?? 0,
-    story: { litTicks: s.litTick ?? -1, joined: s.joined ?? 0, decoys: s.decoysOpened ?? 0, retreats: s.retreats ?? 0 },
+    story: { litTicks: s.litTick ?? -1, joined: s.joined ?? 0, decoys: s.decoysOpened ?? 0, retreats: s.retreats ?? 0, items: s.itemsFetched ?? 0 },
     rallyShare: rallyN > 0 ? rallyOn / rallyN : -1,
     injuries: s.injured,
     guards: {
@@ -477,7 +479,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const runStats: RunStats = {
     heatMin: s.heatMin, hpMin, fuelOuts: s.fuelOuts, froze: s.froze, customersAngry: s.customersAngry, injured: s.injured,
     barriersLost: s.barriersLost, overload, tripBest: s.tripBest, tripBestClean: s.tripBestClean, podsLost: s.podsLost,
-    podsLeft: st.captures.filter((c) => cp.lassoables[c.type]?.result === "recruit").length, rescued: s.rescued,
+    podsLeft: st.captures.filter((c) => cp.lassoables[c.type]?.result === "recruit" && c.state !== "hidden").length, rescued: s.rescued,
     streakMax: s.streakMax, hired: s.hired, heatMean: heatSum / Math.max(1, heatN),
     admitted: s.admitted, kills: s.kills, salvage: s.salvage,
     turretMax: st.structures.reduce((a, x) => (cp.structures[x.type]?.tiers ? Math.max(a, x.level) : a), 0),

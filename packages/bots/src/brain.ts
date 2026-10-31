@@ -105,7 +105,7 @@ export class Brain {
   }
 
   private recruitsPending(st: State): boolean {
-    return st.timers.gateLeft > 0 || st.gateQueue.length > 0 || st.captures.some((c) => !c.decoy) || st.residents.some((r) => r.status === "waiting");
+    return st.timers.gateLeft > 0 || st.gateQueue.length > 0 || st.captures.some((c) => !c.decoy && c.state !== "hidden") || st.residents.some((r) => r.status === "waiting");
   }
 
   /** The first plan step that can take a payment now. */
@@ -575,7 +575,7 @@ export class Brain {
         || this.plan.steps.some((s) => s.reason === "housing" && !this.stepDone(st, s));
       // An empty decoy pod is worth nothing to a goal: the bot never makes a trip for one.
       const idle = st.captures.filter((c) => c.state === "idle" && !c.decoy && this.nav.reachable(p.pos, c.pos)
-        && (room || cp.lassoables[c.type]?.result === "bundle"));
+        && (room || cp.lassoables[c.type]?.result !== "recruit"));
       const timed = idle.some((c) => c.freezeTicks > 0);
       if (idle.length > 0) T("lasso", timed || this.pol.rescueAll ? 64 : 52, "start");
     }

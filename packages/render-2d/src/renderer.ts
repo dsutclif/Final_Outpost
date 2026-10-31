@@ -441,7 +441,7 @@ export class Renderer2D implements Renderer {
     for (const s of structs) jobs.push({ layer: 2, y: y(s.pos), type: s.type, e: s });
     for (const cv of w.converters ?? []) jobs.push({ layer: 2, y: y(cv.pos), type: cv.type, e: { ...cv, manned: this.converterManned(w, cv) } });
     if (w.depot) jobs.push({ layer: 2, y: y(w.depot.pos), type: "struct.depot", e: w.depot });
-    for (const c of w.captures ?? []) jobs.push({ layer: 2, y: dc.pos(`c:${c.id}`, c.pos).y, type: c.type, e: c });
+    for (const c of w.captures ?? []) if (c.state !== "hidden") jobs.push({ layer: 2, y: dc.pos(`c:${c.id}`, c.pos).y, type: c.type, e: c });
     for (const p of w.prey ?? []) if (p.alive) jobs.push({ layer: 2, y: dc.pos(`p:${p.id}`, p.pos).y, type: "unit.prey", e: p });
     for (const h of w.hostiles ?? []) jobs.push({ layer: 2, y: dc.pos(`h:${h.id}`, h.pos).y, type: h.type, e: h });
     for (const r of w.residents ?? []) jobs.push({ layer: 2, y: dc.pos(`r:${r.id}`, r.pos).y, type: "unit.resident", e: r });

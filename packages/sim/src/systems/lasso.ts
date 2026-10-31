@@ -76,6 +76,11 @@ export function stepLasso(st: State, cp: Compiled, out: SimEvent[]): void {
     p.tow.splice(p.tow.indexOf(id), 1);
     L.trip.delivered++;
     const def = cp.lassoables[c.type]!;
+    if (def.result === "item") {
+      st.captures.splice(st.captures.indexOf(c), 1);
+      out.push({ t: "crate_delivered", capture: c.id, at: { ...c.pos }, bundle: {}, item: true });
+      continue;
+    }
     if (def.result === "bundle") {
       // A supply crate pays on arrival: coins into hand, goods as drops to walk over.
       const items: Record<string, number> = {};
@@ -106,10 +111,20 @@ export function stepLasso(st: State, cp: Compiled, out: SimEvent[]): void {
   L.towing = [...p.tow];
 }
 
+/** After the objectives: a hidden capture whose objective is done appears, idle, where the manifest put it. */
+export function revealCaptures(st: State, out: SimEvent[]): void {
+  for (const c of st.captures) {
+    if (c.state !== "hidden" || !st.objectives.some((o) => o.id === c.hiddenUntil && o.done)) continue;
+    c.state = "idle";
+    delete c.hiddenUntil;
+    out.push({ t: "capture_revealed", capture: c.id, at: { ...c.pos } });
+  }
+}
+
 /** Pods with a freeze timer count down while idle or towed; at zero they are lost. */
 function freezePods(st: State, out: SimEvent[]): void {
   for (const c of [...st.captures]) {
-    if (c.freezeTicks <= 0 || c.state === "releasing") continue;
+    if (c.freezeTicks <= 0 || c.state === "releasing" || c.state === "hidden") continue;
     c.freezeTicks--;
     if (c.freezeTicks > 0) continue;
     if (c.state === "towed") {

@@ -64,7 +64,10 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
         } else if (cp.animals[e.kind]) s.preyKilled++;
         break;
       case "picked": if (e.res === "res.salvage") s.salvage++; break;
-      case "crate_delivered": s.crates++; break;
+      case "crate_delivered":
+        s.crates++;
+        if (e.item) s.itemsFetched = (s.itemsFetched ?? 0) + 1;
+        break;
       case "pod_lost": s.podsLost++; break;
       case "wave_cleared": s.wavesCleared++; break;
       case "recruit_arrived": s.admitted++; break;

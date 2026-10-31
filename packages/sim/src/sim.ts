@@ -15,6 +15,7 @@ import { stepDefense } from "./systems/defense.js";
 import { leashLine } from "./systems/guards.js";
 import { stepFreeze } from "./systems/freeze.js";
 import { initObjectives, stepObjectives } from "./systems/objectives.js";
+import { revealCaptures } from "./systems/lasso.js";
 import { checkEnd } from "./systems/goals.js";
 import { stepHazard } from "./systems/hazard.js";
 import { stepGate, stepHousing } from "./systems/housing.js";
@@ -28,7 +29,7 @@ import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStockCollapse } from "./systems/stock.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.17.0";
+export const ENGINE_VERSION = "0.18.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -192,6 +193,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           const c: CaptureState = { id: nextCapture++, type: t, pos: vec(e.at), state: "idle", timer: 0, freezeTicks: freeze };
           if ("joins" in e && e.joins) c.joins = { role: e.joins.role, from: e.joins.from ?? null, to: e.joins.to ?? null, node: e.joins.node ?? null };
           if ("decoy" in e && e.decoy) c.decoy = true;
+          if ("hiddenUntil" in e && e.hiddenUntil) { c.state = "hidden"; c.hiddenUntil = e.hiddenUntil; }
           state.captures.push(c);
         }
       }
@@ -245,6 +247,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       refreshPads(state, cp);
       stepStats(state, cp, out);
       stepObjectives(state, cp, out);
+      revealCaptures(state, out);
       checkEnd(state, cp, out);
       return out;
     },

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -11,12 +11,10 @@ import { PROFILES, playBot } from "@fo/bots";
 
 const packDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../../levels/packs/s1");
 const packFile = join(packDir, "pack.json");
-// An engine bump leaves the shipped pack pinned to the old engine until it is regenerated (Batch 3 lands
-// as one bump, then one regeneration): its checks wait for that pack. levels:check still replays it.
-const present = existsSync(packFile) && (JSON.parse(readFileSync(packFile, "utf8")) as { engineVersion: string }).engineVersion === ENGINE_VERSION;
+// A stale pack fails here rather than skipping: after a bump, `pnpm levels:repin` or a rebuild.
 
-describe.skipIf(!present)("level pack s1", () => {
-  const pack = present ? JSON.parse(readFileSync(packFile, "utf8")) as { id: string; engineVersion: string; contentVersion: string; levels: { id: string; file: string; title: string; family: string; modules: string[]; goal: string; rating: number }[] } : null!;
+describe("level pack s1", () => {
+  const pack = JSON.parse(readFileSync(packFile, "utf8")) as { id: string; engineVersion: string; contentVersion: string; levels: { id: string; file: string; title: string; family: string; modules: string[]; goal: string; rating: number }[] };
   const load = (file: string) => ManifestSchema.parse(JSON.parse(readFileSync(join(packDir, file), "utf8")));
 
   it("is pinned to the running engine and content versions", () => {
@@ -80,7 +78,7 @@ describe.skipIf(!present)("level pack s1", () => {
   });
 });
 
-describe.skipIf(!present)("pack titles", () => {
+describe("pack titles", () => {
   it("are unique and never fall back to the level id", async () => {
     const pack = JSON.parse(readFileSync(packFile, "utf8")) as { levels: { id: string; file: string; title: string }[] };
     const titles = pack.levels.map((e) => e.title);
@@ -101,7 +99,7 @@ describe.skipIf(!present)("pack titles", () => {
   });
 });
 
-describe.skipIf(!present)("star parameter caps", () => {
+describe("star parameter caps", () => {
   it("no shipped star objective exceeds the human-fair caps", async () => {
     const { STAR_CAPS } = await import("../src/index.js");
     const pack = JSON.parse(readFileSync(packFile, "utf8")) as { levels: { file: string }[] };

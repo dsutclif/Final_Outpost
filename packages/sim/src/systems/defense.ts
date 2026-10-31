@@ -263,7 +263,7 @@ function stepFleeing(st: State, cp: Compiled): void {
   for (const h of [...F]) {
     const goal: Vec = h.side === "n" ? { x: h.pos.x, y: D.spawnY } : h.side === "s" ? { x: h.pos.x, y: H - D.spawnY }
       : h.side === "w" ? { x: D.spawnY, y: h.pos.y } : { x: W - D.spawnY, y: h.pos.y };
-    const speed = cp.hostiles[h.type]!.speed;
+    const speed = D.fleeSpeed > 0 ? D.fleeSpeed : cp.hostiles[h.type]!.speed;
     const dx = goal.x - h.pos.x, dy = goal.y - h.pos.y, d = isqrt(dx * dx + dy * dy);
     if (d <= speed) { F.splice(F.indexOf(h), 1); continue; }
     h.pos.x += mulDiv(dx, speed, d);

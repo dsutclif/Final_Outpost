@@ -97,6 +97,8 @@ export const CaptureEntity = z.object({
   // never counts as a rescue. Recruit lassoables only.
   joins: RoleBinding.optional(),
   decoy: z.boolean().optional(),
+  // Not on the map (nothing can see, tow or count it) until this objective id is done.
+  hiddenUntil: z.string().min(1).optional(),
 });
 // Barrier lines: contiguous sections, each built by walking along it with the line's resource.
 export const BarrierSection = z.object({
@@ -192,7 +194,7 @@ export const LevelEvent = z.object({
 
 /** Goal types added for the level families; each is a main objective kind in content/data/objectives.json. */
 export const FAMILY_GOAL_TYPES = [
-  "core_level", "build_count", "hazard_survive", "heat_hold", "fuel_full", "admit", "clear_zones", "house_all", "survive",
+  "core_lit", "core_level", "build_count", "hazard_survive", "heat_hold", "fuel_full", "admit", "clear_zones", "house_all", "survive",
   "rescue", "rescue_all", "tow_trip", "rescue_before_freeze", "hunt", "protein", "rescue_housed", "tow_full_trip", "crates",
   "sell", "earn", "unlock", "shelves_full", "streak", "sell_each", "hire", "earn_within", "bulk_order",
   "produce", "converters_running", "haul", "chain", "automate", "stockpile", "converter_level",
@@ -209,6 +211,8 @@ export const GoalParams = {
   build: StructId.optional(),
   pct: z.number().min(0).max(100).optional(),
   seconds: z.number().positive().optional(),
+  fromLit: z.literal(1).optional(),
+  sources: z.literal(1).optional(),
 };
 export const Goal = z.union([
   z.discriminatedUnion("type", [
@@ -268,6 +272,8 @@ export const Manifest = z.object({
   family: Family.optional(),
   objectives: z.array(Objective).optional(),
   fail: z.array(MeterId).min(1),
+  // Hazard warn, start and end ticks count from the dark core being lit; an unlit core has no hazards.
+  hazardsFromLit: z.boolean().optional(),
   rating: Rating.optional(),
   // Client only, never read by the sim: "always" shows the guide arrow from the first tick (story
   // levels); "night" lighting for the 3D renderer.
@@ -284,6 +290,7 @@ const isBuild = (e: Entity): e is z.infer<typeof BuildPad> => e.type === "pad.bu
 /** Validate references between a manifest and the content set. Throws on the first failure. */
 export function checkManifest(m: Manifest, c: Content): void {
   const fail = (msg: string): never => { throw new Error(`${m.id}: ${msg}`); };
+  const darkCore = (): boolean => m.entities.some((e) => e.type === "sink.core" && "params" in e && (e.params as { lit?: boolean }).lit === false);
   // Objective kinds and their params are data (objectives.json); main goals must be main-capable kinds.
   const checkObjective = (where: string, kind: string, params: Record<string, number | string>, main: boolean): void => {
     const def = c.objectives[kind];
@@ -295,11 +302,13 @@ export function checkManifest(m: Manifest, c: Content): void {
       if (v === undefined) { if (!spec.endsWith("?")) fail(`${where}: ${kind} needs param ${k}`); continue; }
       const t = spec.replace("?", "");
       const ok = typeof v === "number"
-        ? (t === "int" && Number.isInteger(v) && v > 0) || (t === "seconds" && v > 0) || (t === "pct" && v >= 0 && v <= 100)
+        ? (t === "int" && Number.isInteger(v) && v > 0) || (t === "seconds" && v > 0) || (t === "pct" && v >= 0 && v <= 100) || (t === "flag" && v === 1)
         : (t === "res" && c.resources[v] !== undefined) || (t === "role" && c.roles[v] !== undefined)
           || (t === "struct" && c.structures[v] !== undefined) || (t === "pad" && m.entities.some((e) => isBuild(e) && e.id === v));
       if (!ok) fail(`${where}: param ${k} of ${kind} must be a valid ${t}`);
     }
+    // Waiting on a core that is never dark would wait for ever.
+    if ((kind === "core_lit" || params["fromLit"] !== undefined) && !darkCore()) fail(`${where}: ${kind} needs a dark core (lit: false)`);
   };
   for (const mod of m.modules) if (!c.modules[mod]) fail(`unknown module ${mod}`);
   const active = new Set(m.modules);
@@ -445,6 +454,7 @@ export function checkManifest(m: Manifest, c: Content): void {
   }
   if (active.has("defense") && (m.waves.length === 0 || barrierLines === 0)) fail(`defense needs waves and a barrier line`);
   if (active.has("hazard_events") && m.events.length === 0) fail(`hazard_events needs at least one event`);
+  if (m.hazardsFromLit && !darkCore()) fail(`hazardsFromLit needs a dark core (lit: false)`);
   if (active.has("hunting") && !m.entities.some((e) => e.type === "zone.prey")) fail(`hunting needs a zone.prey`);
   if (active.has("lasso") && !m.entities.some((e) => e.type.startsWith("capture."))) fail(`lasso needs a lassoable`);
   if (active.has("barrier_lines") && barrierLines === 0) fail(`barrier_lines needs a barrier.line`);
@@ -475,6 +485,15 @@ export function checkManifest(m: Manifest, c: Content): void {
         && Object.entries(gp).every(([k, v]) => main.params[k] === v);
       if (!same) fail(`objective ${main.id} must mirror the goal (${m.goal.type})`);
     }
+  }
+  for (const e of m.entities) {
+    if (!e.type.startsWith("capture.")) continue;
+    const until = (e as z.infer<typeof CaptureEntity>).hiddenUntil;
+    if (until === undefined) continue;
+    // A guard only settles when the level ends, so it could never reveal anything in play.
+    const o = (m.objectives ?? []).find((x) => x.id === until);
+    if (!o) fail(`${e.type}: hiddenUntil names unknown objective ${until}`);
+    else if (c.objectives[o.kind]?.guard) fail(`${e.type}: hiddenUntil cannot wait on guard objective ${until}`);
   }
   for (const k of Object.keys(m.params)) if (!(k in c.defaults)) fail(`param ${k} has no content default`);
 }

@@ -87,6 +87,7 @@
   "converters.hintRange": 90,
   "defense.spawnGap": 1.1,
   "defense.spawnY": -10,
+  "defense.fleeSpeed": 0,
   "defense.spawnMarginX": 30,
   "defense.barrierStop": 14,
   "defense.barrierHitInterval": 1,

@@ -266,6 +266,8 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
         .filter((p) => g.type !== "produce" || g.res === undefined || c.converters[p.build]?.output === g.res)
         .filter((p) => g.type !== "chain" || p.build === tierTwo(c));
       for (const p of convs) addConverter(p.build, "goal", true);
+      // sources: a staffed source node counts, so the gatherers are on the goal path too.
+      if (g.type === "converters_running" && (g as { sources?: number }).sources) for (const h of hires) if (role(h.role.role)?.behavior === "gather_deliver") add(h.id, "goal", { goalPath: true });
       break;
     }
     case "haul": case "stockpile": {
