@@ -23,8 +23,10 @@ const glowMat = (color: string, opacity: number): MeshBasicMaterial =>
 function softDisc(make: ((w: number, h: number) => HTMLCanvasElement | null) | null): CanvasTexture | null {
   const c = make?.(64, 64);
   const x = c?.getContext("2d");
-  if (!c || !x) return null;
+  const g0 = x as { createRadialGradient?: unknown } | null | undefined;
+  if (!c || !x || typeof g0?.createRadialGradient !== "function") return null;
   const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  if (typeof g?.addColorStop !== "function") return null;
   g.addColorStop(0, "#fff");
   g.addColorStop(1, "#000");
   x.fillStyle = g;

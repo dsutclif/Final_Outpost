@@ -1,6 +1,6 @@
 import type { Manifest } from "@fo/content";
 import type { SimEvent, State } from "@fo/sim";
-import { loadRenderer3D, preloadRenderer3D, type AlertMark, type Camera, type CoachMark, type GuideMark } from "@fo/render-3d";
+import { loadRenderer3D, preloadRenderer3D, type AlertMark, type Camera, type CoachMark, type GuideMark, type StoryPresentation } from "@fo/render-3d";
 import type { Skin } from "@fo/skins";
 
 // The client's face of the 3D renderer. three.js stays in its own chunk: only
@@ -27,6 +27,8 @@ export interface GameRenderer {
   inspect(x: number, y: number): { id: string; name: string; purpose: string } | null;
   /** Which types still show a discovery label (name + purpose); null shows none. */
   setDiscovery(isNew: ((id: string) => boolean) | null): void;
+  /** Story presentation handle: world light, reactor spirit, camera beat. Null when the renderer is not 3D. */
+  story(): StoryPresentation | null;
   hudAnchor: () => { x: number; y: number };
   onCoinLanded: (() => void) | null;
   /** Measured frame rate. */
@@ -73,6 +75,7 @@ class Wrap3D implements GameRenderer {
   set hudAnchor(fn: () => { x: number; y: number }) { this.r.hudAnchor = fn; }
   get onCoinLanded(): (() => void) | null { return this.r.onCoinLanded; }
   set onCoinLanded(fn: (() => void) | null) { this.r.onCoinLanded = fn; }
+  story(): StoryPresentation { return this.r.story(); }
   fps(): number { return this.r.stats().fps; }
 }
 

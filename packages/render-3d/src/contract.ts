@@ -60,3 +60,45 @@ export type AlertMark =
 
 /** A guide mark: where the player's next step is (world units), the one line that says what to do, and the walk there (corner points, ending at the step's final spot). */
 export interface GuideMark { key: string; at: { x: number; y: number }; text: string; path?: { x: number; y: number }[] | undefined }
+
+// ---------------------------------------------------------------- story presentation
+
+export type RidgeSide = "left" | "right" | "top" | "bottom";
+export type TallySlots = readonly ["empty" | "done" | "missed", "empty" | "done" | "missed", "empty" | "done" | "missed"];
+
+/** A camera beat: the view eases to `at` (world units) at `zoom` for `seconds` of renderer time, then returns to the hero. */
+export interface CameraBeat { at: { x: number; y: number }; zoom?: number; seconds: number }
+
+/**
+ * What the story director drives (client/src/story). All positions are world units (x, z on the
+ * ground; y up). Nothing here touches the sim. At most two things pulse at once, by rank: goal
+ * light, pods, lamps, ground dots, spirit cloud; the ridge always shows.
+ */
+export interface StoryPresentation {
+  /** Blue ground dots running toward the next step; null clears them. */
+  dots(pts: readonly { x: number; z: number }[] | null, opts?: { period?: number; lit?: boolean }): void;
+  /** A pod's glow and beam; `dim` 1 full, 0 out, below 0 removes it. */
+  pod(id: string, x: number, z: number, kind: "old" | "crew", dim: number): void;
+  /** A point light: a warm lamp/window, or a one-shot goal light (own colour). */
+  light(id: string, x: number, y: number, z: number, kind: "lamp" | "goal", intensity: number, goalColor?: string): void;
+  lightLevel(id: string, k: number): void;
+  flashLight(id: string, len?: number): void;
+  removeLight(id: string): void;
+  /** Three star slots over a spot; null hides them. */
+  tally(x: number, y: number, z: number, slots: TallySlots | null): void;
+  /** Red ridge pulse from one fixed screen side; null side or k 0 hides it. */
+  ridge(side: RidgeSide | null, k?: number): void;
+  /** Night-to-sunrise, 0..1 (eased toward; `snap` jumps); null turns story lighting off. */
+  lighting(progress: number | null, snap?: boolean): void;
+  /** The reactor spirit: starts off. */
+  spirit: {
+    setState(s: "idle" | "speaking" | "pulse" | "fading" | "off"): void;
+    /** 0..1 reactor strength. */
+    setStrength(k: number): void;
+    bloom(): void;
+  };
+  /** Ask the camera to look elsewhere for a while; null cancels. */
+  beat(b: (Omit<CameraBeat, "seconds"> & { seconds?: number }) | null): void;
+  /** True while a camera beat is running. */
+  readonly beating: boolean;
+}

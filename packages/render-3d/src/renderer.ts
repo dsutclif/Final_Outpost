@@ -41,12 +41,15 @@ import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntri
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
-import { LEAD_WEIGHT, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
+import { LEAD_WEIGHT, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder } from "./geom.js";
 import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Fx } from "./scene/fx.js";
 import { GroundMarks } from "./scene/groundmarks.js";
+import { createCoreSpirit, type CoreSpirit } from "./scene/corespirit.js";
+import { StoryLights, nightFloor, storyLightColors, storyLighting } from "./scene/storylights.js";
+import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
@@ -99,6 +102,13 @@ const DRONE_FRONT_YAW = Math.PI / 2;
 const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.22, 0.37], [-0.22, 0.37], [0.22, -0.37], [-0.22, -0.37]];
 /** Decor that looks like scrap: left out where scrap heaps can be picked over. */
 const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.ship_wreck", "decor.scrap_field"]);
+
+/** Story handle before init: every call is dropped. */
+const NO_STORY: StoryPresentation = {
+  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, tally() {}, ridge() {}, lighting() {}, beat() {},
+  spirit: { setState() {}, setStrength() {}, bloom() {} },
+  beating: false,
+};
 /** Items drawn per carried column at most. */
 const BACK_MAX_DRAWN = 30;
 
@@ -387,6 +397,14 @@ export class Renderer3D implements Renderer {
   private guideMark: GuideMark | null = null;
   private alertMarks: readonly AlertMark[] = [];
   private marks: GroundMarks | null = null;
+  /** Story world light, reactor spirit and the director's handle; built per level, never drawn until used. */
+  private storyLights: StoryLights | null = null;
+  private spirit: CoreSpirit | null = null;
+  private storyP: StoryPresent | null = null;
+  private storyDecor = new Group();
+  private storyDecorDone = new Set<string>();
+  /** Half the view on the ground along screen right and up, for the ridge pulse. */
+  private halfGround = { w: 300, h: 300 };
   private guideSprite: Sprite | null = null;
   private lowFuelSaid = false;
   private hintUntil = 0;
@@ -437,8 +455,10 @@ export class Renderer3D implements Renderer {
     this.tokens = this.bctx.t;
     // Meshy GLBs load in the background; whatever was placed with its code model is rebuilt as each lands
     const bctx = this.bctx;
-    void loadMeshy((e) => {
+    const onMeshy = (e: MeshyEntry): void => {
       if (this.bctx !== bctx) return;
+      // manifest decor.* entities (the Halcyon wreck) are placed where the level puts them
+      if (e.kind === "decor") { this.placeStoryDecor(e); if (e.unwired) return; }
       if (e.batch) { this.meshyWall(e); return; }
       if (e.kind === "prop") { for (const t of meshyTools(e)) this.crowd?.setPart(t.part, t.geo, t.mat); return; }
       // a level with scrap heaps shows no scrap as mere decoration (Doug: all visible scrap is pickable)
@@ -466,7 +486,12 @@ export class Renderer3D implements Renderer {
         (g.userData["ghost"] as MeshLambertMaterial).dispose();
         delete p.extra[3];
       }
-    }, meshyIdsFor(manifest));
+    };
+    void loadMeshy(onMeshy, meshyIdsFor(manifest));
+    // unwired decor and items load only when the manifest names them
+    const mtext = JSON.stringify(manifest);
+    const extra = new Set(meshyEntries().filter((e) => e.unwired && (e.kind === "decor" || e.kind === "item") && mtext.includes(`"${e.id}"`)).map((e) => e.id));
+    if (extra.size) void loadMeshy(onMeshy, extra, undefined, true);
     this.buildPadInfo();
 
     const doc = mount.ownerDocument;
@@ -491,6 +516,9 @@ export class Renderer3D implements Renderer {
 
     this.scene = new Scene();
     this.scene.add(this.dynamic = new Group());
+    this.storyDecor = new Group();
+    this.storyDecorDone.clear();
+    this.scene.add(this.storyDecor);
     const mats = this.bctx.mats;
     // concrete aprons under everything built (or to be built), paved back to the core
     // the closed rings: turret sockets out on the attack roads stand on bare ground (Batch 3), never paved
@@ -515,6 +543,8 @@ export class Renderer3D implements Renderer {
     const lots = block > 0 && core?.at ? { x: core.at[0], z: core.at[1], block, street } : null;
     this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots, this.cp ? attackRoads(this.cp) : []);
     this.env.night = manifest.lighting === "night";
+    // a manifest night keeps the measured floor, so sand and ridge still read
+    this.env.nightLift = this.env.night ? nightFloor(skin) : null;
     this.fx = new Fx(mats.particle, this.scene, this.labels);
     this.fx.onCoinLanded = this.coinCb;
     this.crowd = new Crowd(this.bctx.parts, mats.std, this.scene);
@@ -547,6 +577,11 @@ export class Renderer3D implements Renderer {
     this.guideSprite = null;
     this.guideMark = null;
     this.lowFuelSaid = false;
+    // story light and the reactor spirit: built idle, they show only once the director drives them
+    this.storyLights = new StoryLights(this.scene, storyLightColors(this.tokens), make);
+    const coreAt = (manifest.entities.find((e) => e.type === "sink.core") as { at?: readonly [number, number] } | undefined)?.at ?? [manifest.map.w / 2, manifest.map.h / 2];
+    this.spirit = createCoreSpirit(this.scene, this.tokens, { at: { x: coreAt[0], y: 0, z: coreAt[1] }, height: ART_M * 4.2, size: ART_M * 3.2, patch: ART_M * 2.6 });
+    this.storyP = new StoryPresent(this.storyLights, this.spirit);
     this.buildDom(doc, mount);
 
     this.interp.reset();
@@ -640,6 +675,9 @@ export class Renderer3D implements Renderer {
     this.coachDom?.dispose();
     this.marks?.dispose();
     this.marks = null;
+    this.storyLights?.dispose();
+    this.spirit?.dispose();
+    this.storyLights = null; this.spirit = null; this.storyP = null;
     this.guideSprite = null;
     this.guideMark = null;
     this.pointers = null;
@@ -741,6 +779,34 @@ export class Renderer3D implements Renderer {
 
   /** Jump the camera onto the hero on the next sync (after a teleport or a scripted run). */
   snapCamera(): void { this.camReady = false; }
+
+  /** The story director's handle (world light, reactor spirit, camera beat). Inert until called; safe before init (calls are dropped). */
+  story(): StoryPresentation {
+    return this.storyP ?? NO_STORY;
+  }
+
+  /** Place the manifest's `decor.*` entities of this id from the loaded model, once. */
+  private placeStoryDecor(e: MeshyEntry): void {
+    if (this.storyDecorDone.has(e.id)) return;
+    const at = this.manifest.entities.filter((d) => d.type === e.id) as unknown as { at?: readonly [number, number]; yaw?: number }[];
+    if (!at.length) return;
+    const g = meshyGeometry(e.file);
+    if (!g) return;
+    this.storyDecorDone.add(e.id);
+    g.geo.computeVertexNormals();
+    this.geos.push(g.geo);
+    const box = g.geo.boundingBox ?? (g.geo.computeBoundingBox(), g.geo.boundingBox!);
+    const k = ART_M * (e.width ?? 1.4) / Math.max(0.01, box.max.x - box.min.x, box.max.z - box.min.z);
+    for (const d of at) {
+      if (!d.at) continue;
+      const m = new Mesh(g.geo, g.mat);
+      m.position.set(d.at[0], 0, d.at[1]);
+      m.rotation.y = ((d.yaw ?? 0) * Math.PI) / 180;
+      m.scale.setScalar(k);
+      m.receiveShadow = true;
+      this.storyDecor.add(m);
+    }
+  }
 
   /** World point (world units on the ground, optional height) to mount CSS px, last camera. */
   worldToScreen(p: V, height = 0): V {
@@ -847,6 +913,14 @@ export class Renderer3D implements Renderer {
     for (const b of Object.values(this.walls!)) b.end();
 
     const coreW = this.wv(state.core.pos);
+    if (this.storyP && this.storyLights && this.spirit) {
+      const sp = this.storyP;
+      sp.frame(this.t, dt, this.look.x, this.look.z, this.halfGround.w, this.halfGround.h);
+      const sl = sp.lightingNow;
+      this.env.story = sl === null ? null : storyLighting(this.skin, this.tokens, sl);
+      this.spirit.update(this.t);
+      if (sp.cloudSuppressed) this.spirit.group.visible = false;
+    }
     this.env.update(dt, this.t, this.look, coreW, this.safeR * SAFE_RING_K, this.fuelK, state.hazard?.phase ?? "none", this.camera.position.distanceTo(this.look));
     this.updateDom(state);
     this.synced = true;
@@ -879,9 +953,13 @@ export class Renderer3D implements Renderer {
     const fov = o?.fov ?? FOV_DEG;
     if (this.camera.fov !== fov) this.camera.fov = fov;
     const W = this.manifest.map.w, H = this.manifest.map.h;
-    const z = cam.zoom || 1;
+    const beat = this.storyP?.activeBeat(this.t) ?? null;
+    const z = (beat?.zoom ?? cam.zoom) || 1;
+    if (beat) target = { x: beat.at.x, y: beat.at.y };
     const vw = viewW / z, vh = (viewW * this.cssH) / this.cssW / z;
     this.labels.screenK = vw / LABEL_VIEW_W;
+    this.halfGround.w = vw / 2;
+    this.halfGround.h = vh / 2 / Math.sin(pitch);
     this.labels.textK = this.devTextScale;
     if (cam.follow) {
       const lead = cam.lead;
@@ -1950,8 +2028,12 @@ export class Renderer3D implements Renderer {
       if (c.state === "hidden") continue;
       const key = `c:${c.id}`;
       const pos = this.interp.pos(key, c.pos, a);
-      const p = this.place(`cap:${c.id}`, c.type, v3(pos.x, 0, pos.y));
+      // an empty decoy pod has its own tinted model
+      const p = this.place(`cap:${c.id}`, c.decoy ? `${c.type}.decoy` : c.type, v3(pos.x, 0, pos.y));
       if (c.state === "idle") this.candidate(c.type, p);
+      // a flight recorder's locator beacon blinks
+      const bc = p.model.parts["beacon"];
+      if (bc) bc.visible = c.state !== "idle" || (this.t * 1.6 + c.id * 0.37) % 1 < 0.4;
       const lid = p.model.parts["lid"];
       const rt = (this.content.lassoables[c.type] as { releaseTime?: number } | undefined)?.releaseTime ?? 1.6;
       if (c.state === "releasing") {
@@ -2119,10 +2201,11 @@ export class Renderer3D implements Renderer {
       // knockback: shoved away from where it faces
       const kb = fk * 7;
       const hrig = this.rigged?.entryFor(h.type);
+      const flees = !!s.fleeing?.includes(h);
       const at = { x: pos.x - Math.sin(hy) * kb, y: pos.y - Math.cos(hy) * kb };
       if (hrig) {
         const moving = Math.hypot(hv.x, hv.y) > 0.05;
-        this.rigged!.add(key, h.type, hrig, { moving, hurried: false, cheer: false, speed: an.speed, act: h.target !== "core" ? "shoot" : undefined }, at.x, at.y, hy, ART_M * hl.scale * this.devCharScale / 0.9);
+        this.rigged!.add(key, h.type, hrig, { moving: moving || flees, hurried: false, cheer: false, run: flees, speed: an.speed, act: h.target !== "core" ? "shoot" : undefined }, at.x, at.y, hy, ART_M * hl.scale * this.devCharScale / 0.9);
         this.blobs!.add(at.x, at.y, hl.kind === "creature" ? 16 * hl.scale : 10 * hl.scale);
       } else this.addCharacter(hl, an, at, hy, null);
       this.candidatePt(h.type, pos.x, pos.y, ART_M * hl.scale * this.devCharScale * 1.8);

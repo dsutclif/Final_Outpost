@@ -25,6 +25,7 @@ import { hash01 } from "../assets/scatter.js";
 import { GeoBuilder } from "../geom.js";
 import type { MaterialSet } from "../materials.js";
 import type { Tokens } from "../tokens.js";
+import type { StoryLighting } from "./storylights.js";
 import { ART_M, type TierSettings } from "../units.js";
 import { Batch } from "./instancing.js";
 
@@ -78,6 +79,11 @@ export class Environment {
   storminess = 0;
   /** Manifest lighting "night": a dark blue sky and fog, a dim cool moon for the key light, the core glow carrying the scene. */
   night = false;
+  /** Measured night minimum (skin look3d.nightFloor, 0-1 of day): lifts a manifest night so sand and ridge still read. Null: the old night. */
+  nightLift: { ambient: number; ridge: number } | null = null;
+  /** Story lighting (night to sunrise, from `storyLighting`); replaces the night/day look while set. Null: off. */
+  story: StoryLighting | null = null;
+  private hemiBase = HEMI;
   private readonly cNight = new Color(0x1b2231);
   private readonly cMoon = new Color(0x9fb4d8);
 
@@ -327,7 +333,8 @@ export class Environment {
       this.sun.shadow.camera.updateProjectionMatrix();
     }
     // low tier: no key light, so the ambient carries more
-    this.hemi.intensity = tier.extraLights > 0 ? HEMI : HEMI_LOW;
+    this.hemiBase = tier.extraLights > 0 ? HEMI : HEMI_LOW;
+    this.hemi.intensity = this.hemiBase;
   }
 
   /**
@@ -343,7 +350,7 @@ export class Environment {
     const glow = (0.25 + 0.75 * fuelK) * flicker;
     this.coreLight.position.set(core.x, 2.2 * ART_M, core.z);
     this.coreLight.distance = Math.max(10, safeR * 1.25);
-    this.coreLight.intensity = (fuelK > 0 ? 70 : 8) * glow * (1 + this.storminess * 0.6) * (this.night ? 1.6 : 1);
+    this.coreLight.intensity = (fuelK > 0 ? 70 : 8) * glow * (1 + this.storminess * 0.6) * (this.story ? 1 + 0.6 * (1 - this.story.sun) : this.night ? 1.6 : 1);
     this.pool.position.set(core.x, 0.8, core.z);
     this.pool.scale.setScalar(Math.max(1, safeR * 1.08));
     (this.pool.material as MeshBasicMaterial).opacity = 0.18 + 0.32 * glow;
@@ -354,16 +361,27 @@ export class Environment {
     const target = hazard === "active" ? 1 : hazard === "warning" ? 0.25 : 0;
     this.storminess += (target - this.storminess) * Math.min(1, dt * 1.5);
     const s = this.storminess;
-    this.tmp.copy(this.night ? this.cNight : this.cFog).lerp(this.cStorm, s * (this.night ? 0.3 : 1));
+    const sl = this.story, dark = this.night || !!sl;
+    (sl ? this.tmp.set(sl.fog) : this.tmp.copy(this.night ? this.cNight : this.cFog)).lerp(this.cStorm, s * (dark ? 0.3 : 1));
     this.fog.color.copy(this.tmp);
     (this.scene.background as Color).copy(this.tmp);
     // fog is measured from the camera, which sits far back for the near-flat view
     this.fog.near = camDist + 570 - s * 700;
     this.fog.far = camDist + 2570 - s * 1700;
     const dim = 1 - s * 0.4;
-    this.sun.intensity = SUN * dim * (this.night ? 0.3 : 1);
-    if (this.night) this.sun.color.copy(this.cMoon);
-    this.hemi.color.copy(this.night ? this.cNight : this.cSky).lerp(this.cStorm, s);
+    if (sl) {
+      // a story level: the key light follows the sunrise, the ambient never drops below the night floor
+      this.sun.intensity = SUN * dim * Math.max(0.3, sl.sun);
+      this.sun.color.set(sl.sunColor);
+      this.hemi.intensity = this.hemiBase * Math.max(sl.ambient, 0.01);
+      this.hemi.color.set(sl.sky).lerp(this.cSky, sl.ambient * 0.5).lerp(this.cStorm, s);
+    } else {
+      this.sun.intensity = SUN * dim * (this.night ? Math.max(0.3, this.nightLift?.ambient ?? 0) : 1);
+      if (this.night) this.sun.color.copy(this.cMoon);
+      // a lifted night: the ambient colour moves toward the day sky by the floor, so sand and ridge still read
+      this.hemi.color.copy(this.night ? this.tmp.copy(this.cNight).lerp(this.cSky, (this.nightLift?.ambient ?? 0) * 0.6) : this.cSky).lerp(this.cStorm, s);
+      this.hemi.intensity = this.hemiBase;
+    }
 
     this.storm.begin();
     if (s > 0.05) {

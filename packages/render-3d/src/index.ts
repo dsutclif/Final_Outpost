@@ -2,10 +2,10 @@
 // nothing, and loadRenderer3D() pulls three.js in a separate chunk, so the app shell boots
 // (title, menus, the unsupported-device screen) without downloading it.
 
-import type { AlertMark, RenderStats, Renderer } from "./contract.js";
+import type { AlertMark, RenderStats, Renderer, StoryPresentation } from "./contract.js";
 import type { QualityTier } from "./units.js";
 
-export type { AlertMark, Camera, CoachMark, GuideMark, RenderStats, Renderer } from "./contract.js";
+export type { AlertMark, Camera, CameraBeat, CoachMark, GuideMark, RenderStats, Renderer, RidgeSide, StoryPresentation, TallySlots } from "./contract.js";
 export { createCamera, LEAD_WEIGHT } from "./contract.js";
 export { ART_M, BUILD_K, CHAR_K, viewWFor, FOV_DEG, PITCH_DEG, YAW_DEG, VIEW_W, TEXT, screenToWorld, worldToScreenPlane, QUALITY_TIERS, TIERS, MAX_DRAW_CALLS, MAX_TRIANGLES, type QualityTier, type TierSettings } from "./units.js";
 export { TRI_BUDGET, CLASS_ANCHORS, ANCHOR_NAMES, modelIds, type AssetClass, type AnchorName } from "./ids.js";
@@ -33,6 +33,8 @@ export interface Renderer3DHandle extends Renderer {
   inspect(x: number, y: number): { id: string; name: string; purpose: string } | null;
   /** Which types still show a floating discovery label (name + purpose); null shows none. */
   setDiscovery(isNew: ((id: string) => boolean) | null): void;
+  /** Story presentation (world light, reactor spirit, camera beat); inactive until a story level uses it. */
+  story(): StoryPresentation;
 }
 
 export interface LoadRenderer3DOptions {
