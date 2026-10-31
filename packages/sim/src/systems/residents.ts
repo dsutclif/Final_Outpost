@@ -6,7 +6,7 @@ import { attackGate, attackedSide, guardPost, outsideLines, sectionMid } from ".
 import { clearLine, hitHostile, hitPrey, nearestHostile } from "./combat.js";
 import { depotPut, moveAgent, ringPoint, stepDown } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
-import { downedGuardStep, healedGuard, leashedMove, medicStep } from "./guards.js";
+import { boxedMove, downedGuardStep, healedGuard, leashedMove, medicStep } from "./guards.js";
 
 // Residents are data-driven state machines: a role id picks the behaviour, the assignment
 // supplies what to take and where to deliver. Gatherers fill up, then deliver until empty,
@@ -216,10 +216,10 @@ function guardStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole
     }
     if (out) {
       const home = nearestGate(st, r.pos);
-      if (home && !within(r.pos, home, cp.defense.barrierStop)) { moveAgent(st, cp, r.pos, home, role.speed, cp.residents.arrive); return; }
+      if (home && !within(r.pos, home, cp.defense.barrierStop)) { boxedMove(st, cp, r.pos, home, role.speed, cp.residents.arrive); return; }
     }
   }
-  moveAgent(st, cp, r.pos, guardPost(st, cp, r.assign.post ?? 0, role.rally ? attackedSide(st) : null), role.speed, cp.residents.arrive);
+  boxedMove(st, cp, r.pos, guardPost(st, cp, r.assign.post ?? 0, role.rally ? attackedSide(st) : null), role.speed, cp.residents.arrive);
 }
 
 /** Middle of the gate section nearest p (any side), or null without gates. */

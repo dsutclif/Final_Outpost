@@ -1,14 +1,15 @@
+import { readFileSync } from "node:fs";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { FP, TPS, createSim, starsOf, within, type ResidentState, type SimEvent } from "../src/index.js";
-import { leashReach, wallDist } from "../src/systems/guards.js";
+import { wallDist } from "../src/systems/guards.js";
 import { outsideLines } from "../src/systems/barriers.js";
 import { LEVEL_4 } from "./helpers.js";
 
 // R5 #26 (Doug): hired guards have the commander's health; at 25% they stop fighting until healed. The medic heals
 // them where they fell, or they walk to the med bay; with neither on the level, or if hit again on the way, they die.
-// Guard injuries do not count against "no settlers injured". R5 #23: guards and drones stay within the farthest
-// built turret's reach of the wall; no turret, no leash.
+// Guard injuries do not count against "no settlers injured". R5 #23: guards and drones go no further past the wall
+// than the farthest turret space, built or not, and they and the medic never leave the walk box.
 
 type Loose = Record<string, any>;
 const base = LEVEL_4 as Loose;
@@ -179,47 +180,94 @@ describe("a fall with waves still to come", () => {
 });
 
 describe("leash (R5 #23)", () => {
-  const ring = (): Loose => ({
+  const isTurret = (e: Loose) => e.build === "struct.ranged_defense" || e.type === "struct.ranged_defense";
+  const ringWith = (sites: [number, number][]): Loose => ({
     ...base, id: "test-leash", waves: [{ t: 9999, counts: { "hostile.swarmling": 1 } }],
     entities: [
-      ...base.entities.filter((e: Loose) => e.type !== "barrier.line"),
+      ...base.entities.filter((e: Loose) => e.type !== "barrier.line" && !isTurret(e) && !String(e.build ?? "").startsWith("struct.ranged_defense")),
       { type: "barrier.line", id: "ring", res: "res.salvage", points: [[80, 260], [400, 260], [400, 640], [80, 640]], closed: true, gates: [0], prebuilt: [0, 1, 2, 3] },
+      ...sites.map(([x, y], i) => ({ type: "pad.build", id: "t" + i, at: [x + 20, y], site: [x, y], cost: { "res.salvage": 8 }, build: "struct.ranged_defense" })),
     ],
   });
 
-  function chase(turret: boolean, far: number) {
-    const sim = createSim(ring());
+  /** A guard and a drone chase a foe parked far up the north road; returns how far past the wall they got, and the map box. */
+  function chase(sites: [number, number][], far: number, built = 0) {
+    const sim = createSim(ringWith(sites));
     const st = sim.state, cp = sim.compiled;
-    if (turret) st.structures.push({ id: "tower0", type: "struct.ranged_defense", pos: { x: 130 * FP, y: 270 * FP }, level: 1, acc: 0 });
+    for (let i = 0; i < built; i++) st.structures.push({ id: "t" + i, type: "struct.ranged_defense", pos: { x: sites[i]![0] * FP, y: sites[i]![1] * FP }, level: 1, acc: 0 });
     const g = st.residents.find((r) => r.role === "idle")!;
     g.role = "role.defender";
     g.assign = { from: null, to: null, node: null, post: 0 };
-    st.troops = [{ id: 0, pos: { x: 240 * FP, y: 300 * FP }, hp: 99, hpMax: 99, acc: 0, home: "barracks" }];
     st.structures.push({ id: "barracks", type: "struct.barracks", pos: { x: 240 * FP, y: 300 * FP }, level: 2, acc: 999999 });
-    // a foe far up the north road that never closes in
+    st.troops = [{ id: 0, pos: { x: 240 * FP, y: 300 * FP }, hp: 99, hpMax: 99, acc: 0, home: "barracks" }];
     const foe = { id: 900, type: "hostile.swarmling", pos: { x: 240 * FP, y: (260 - far) * FP }, hp: 99, hpMax: 99, side: "n", target: "core", acc: 0 };
     st.hostiles.push(foe as never);
-    let worst = 0;
+    let worst = 0, drone = 0;
     for (let i = 0; i < 40 * TPS; i++) {
       foe.pos = { x: 240 * FP, y: (260 - far) * FP }; foe.hp = 99;
       sim.step({ dx: 0, dy: 0 });
-      for (const p of [g.pos, ...st.troops!.map((t) => t.pos)]) if (outsideLines(st, p)) worst = Math.max(worst, wallDist(st, p));
+      for (const p of [g.pos, st.troops![0]!.pos]) if (outsideLines(st, p)) worst = Math.max(worst, wallDist(st, p));
+      if (outsideLines(st, st.troops![0]!.pos)) drone = Math.max(drone, wallDist(st, st.troops![0]!.pos));
     }
-    return { worst, reach: leashReach(st, cp), cp };
+    return { worst, drone, line: cp.guards.leash, step: cp.roles["role.defender"]!.speed };
   }
 
-  it("property: with a turret, guards and drones never go further past the wall than its reach", () => {
-    fc.assert(fc.property(fc.integer({ min: 120, max: 250 }), (far) => {
-      const { worst, reach, cp } = chase(true, far);
-      expect(reach).not.toBeNull();
-      expect(worst).toBeLessThanOrEqual(reach! + cp.roles["role.defender"]!.speed);
+  it("the line is the farthest turret space past the wall, built or not", () => {
+    expect(chase([[100, 230], [300, 160]], 10).line).toBe(100 * FP);
+    const m = createSim(JSON.parse(readFileSync("levels/packs/s1/s1-L010.json", "utf8")) as Loose);
+    expect(m.state.structures.some((x) => x.type === "struct.ranged_defense")).toBe(false);
+    const sites = (m.compiled.manifest.entities as Loose[]).filter(isTurret).map((e) => ({ x: (e.site ?? e.at)[0] * FP, y: (e.site ?? e.at)[1] * FP }));
+    expect(sites.length).toBeGreaterThan(0);
+    expect(m.compiled.guards.leash).toBe(Math.max(...sites.map((p) => (outsideLines(m.state, p) ? wallDist(m.state, p) : 0))));
+  });
+
+  it("property: guards and drones hold at the line from the start, with no turret built", () => {
+    fc.assert(fc.property(fc.integer({ min: 120, max: 240 }), (far) => {
+      const { worst, line, step } = chase([[100, 230], [300, 160]], far);
+      expect(worst).toBeLessThanOrEqual(line! + step);
     }), { numRuns: 8 });
   });
 
-  it("without a turret there is no leash: they go out as far as today", () => {
-    const { worst, reach } = chase(false, 250);
-    expect(reach).toBeNull();
+  it("does not stop at the first turret: only the near one built, the drone still reaches the far space", () => {
+    const { drone, line, step } = chase([[100, 230], [300, 160]], 240, 1);
+    expect(line).toBe(100 * FP);
+    expect(drone).toBeGreaterThan(line! - 2 * step);
+    expect(drone).toBeGreaterThan(30 * FP);
+  });
+
+  it("a level with no turret space has no line", () => {
+    const { worst, line } = chase([], 240);
+    expect(line).toBeNull();
     expect(worst).toBeGreaterThan(150 * FP);
+  });
+
+  it("property: on s1-L010 with nothing built, guards, drones and the medic stay on the line and in the walk box", () => {
+    const m = JSON.parse(readFileSync("levels/packs/s1/s1-L010.json", "utf8")) as Loose;
+    fc.assert(fc.property(fc.integer({ min: 0, max: 1600 }), (y) => {
+      const sim = createSim(m);
+      const st = sim.state, cp = sim.compiled, wb = cp.player.walkBox;
+      const idle = st.residents.filter((r) => r.role === "idle");
+      const g = idle[0]!, d = idle[1]!, md = idle[2]!;
+      g.role = "role.defender"; g.assign = { from: null, to: null, node: null, post: 0 };
+      md.role = "role.medic";
+      d.role = "role.defender"; d.assign = { from: null, to: null, node: null, post: 1 };
+      st.structures.push({ id: "bk", type: "struct.barracks", pos: { ...st.core.pos }, level: 2, acc: 999999 });
+      st.troops = [{ id: 0, pos: { ...st.core.pos }, hp: 99, hpMax: 99, acc: 0, home: "bk" }];
+      // beyond the box, at the map edge where waves spawn
+      const foe = { id: 900, type: "hostile.raider_humanoid", pos: { x: 10 * FP, y: y * FP }, hp: 999, hpMax: 999, side: "w", target: "core", acc: 0 };
+      st.hostiles.push(foe as never);
+      for (let i = 0; i < 40 * TPS && !st.over; i++) {
+        foe.pos = { x: 10 * FP, y: y * FP }; foe.hp = 999;
+        // part way through, the second guard falls at the box edge and the medic walks out to it
+        if (i === 20 * TPS) { d.status = "injured"; d.hp = 2; d.pos = { x: wb.x0 + cp.player.radius, y: y * FP < wb.y0 ? wb.y0 + cp.player.radius : Math.min(y * FP, wb.y1 - cp.player.radius) }; }
+        sim.step({ dx: 0, dy: 0 });
+        for (const p of [g.pos, md.pos, d.pos, st.troops[0]!.pos]) {
+          expect(p.x).toBeGreaterThanOrEqual(wb.x0); expect(p.x).toBeLessThanOrEqual(wb.x1);
+          expect(p.y).toBeGreaterThanOrEqual(wb.y0); expect(p.y).toBeLessThanOrEqual(wb.y1);
+        }
+        for (const p of [g.pos, st.troops[0]!.pos]) if (outsideLines(st, p)) expect(wallDist(st, p)).toBeLessThanOrEqual(cp.guards.leash! + cp.roles["role.defender"]!.speed);
+      }
+    }), { numRuns: 6 });
   });
 });
 
