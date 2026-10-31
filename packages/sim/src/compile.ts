@@ -286,7 +286,7 @@ export interface Compiled {
     arrive: number; workRange: number; coreDeliverRange: number; seekDropRange: number;
   };
   /** R5 #26: guards stop fighting at downPct of their health; healable = the level has a med bay or a medic (else a downed guard dies). */
-  guards: { downPct: number; healable: boolean };
+  guards: { downPct: number; healable: boolean; leash: number | null };
   waiting: Vec;
   gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
   zones: { blockMargin: number };
@@ -598,6 +598,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     },
     guards: {
       downPct: int("guards.downPct"),
+      leash: null, // set by createSim, which has the wall geometry (systems/guards.ts leashLine)
       healable: manifest.entities.some((e) => (e.type === "pad.build" && e.build === "struct.medical") || e.type === "struct.medical"
         || (e.type === "pad.hire" && roles[e.role.role]?.behavior === "medic") || ("joins" in e && !!e.joins && roles[e.joins.role]?.behavior === "medic"))
         || manifest.people.some((p) => roles[p.role]?.behavior === "medic"),

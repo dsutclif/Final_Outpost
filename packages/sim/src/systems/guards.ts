@@ -1,6 +1,6 @@
 import type { Compiled, CompiledRole } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { isqrt, within, type Vec } from "../fixed.js";
+import { clamp, fp, isqrt, within, type Vec } from "../fixed.js";
 import type { ResidentState, State } from "../state.js";
 import { outsideLines } from "./barriers.js";
 import { moveAgent, ringPoint } from "./common.js";
@@ -15,6 +15,10 @@ const isGuard = (cp: Compiled, r: ResidentState): boolean => cp.roles[r.role]?.b
 /** Walking to the med bay: the one time a downed guard can be hit. */
 const onTheWay = (st: State, cp: Compiled, g: ResidentState): boolean =>
   g.status === "injured" && !hasMedic(st, cp) && st.structures.some((s) => s.type === "struct.medical");
+
+/** Shown lying down: being healed, or a downed guard not walking to the med bay (it lies where it fell, from the moment it falls). */
+export const lyingDown = (st: State, cp: Compiled, r: ResidentState): boolean =>
+  r.status === "healing" || (r.status === "injured" && isGuard(cp, r) && !onTheWay(st, cp, r));
 
 /** Nearest guard strictly within r of p that hostiles can hit: fighting, or on its way to the med bay. */
 export function nearestGuard(st: State, cp: Compiled, p: Vec, r: number): ResidentState | null {
@@ -58,7 +62,7 @@ export function downedGuardStep(st: State, cp: Compiled, r: ResidentState): bool
   if (!med) return true;
   const def = cp.structures[med.type]!;
   const spot = { x: med.pos.x + def.healOffset.x, y: med.pos.y + def.healOffset.y };
-  if (moveAgent(st, cp, r.pos, spot, cp.residents.injuredSpeed, cp.residents.arrive)) { r.status = "healing"; r.timer = def.healTicks; }
+  if (boxedMove(st, cp, r.pos, spot, cp.residents.injuredSpeed, cp.residents.arrive)) { r.status = "healing"; r.timer = def.healTicks; }
   return true;
 }
 
@@ -83,7 +87,7 @@ export function medicStep(st: State, cp: Compiled, r: ResidentState, role: Compi
   }
   if (patient) {
     // it stays beside the patient until it is back on its feet
-    if (moveAgent(st, cp, r.pos, patient.pos, role.speed, cp.residents.workRange) && patient.status === "injured") {
+    if (boxedMove(st, cp, r.pos, patient.pos, role.speed, cp.residents.workRange) && patient.status === "injured") {
       patient.status = "healing";
       patient.timer = role.healTicks;
       out.push({ t: "medic_heal", resident: patient.id, by: r.id, at: { ...patient.pos } });
@@ -92,7 +96,7 @@ export function medicStep(st: State, cp: Compiled, r: ResidentState, role: Compi
   }
   const med = st.structures.find((s) => s.type === "struct.medical");
   const home = med ? med.pos : ringPoint(st.core.pos, r.slot, cp.residents.idleRadiusX, cp.residents.idleRadiusY);
-  moveAgent(st, cp, r.pos, home, role.speed, med ? cp.residents.workRange : cp.residents.arrive);
+  boxedMove(st, cp, r.pos, home, role.speed, med ? cp.residents.workRange : cp.residents.arrive);
 }
 
 // ---------- R5 #23 leash ----------
@@ -114,32 +118,40 @@ export function wallDist(st: State, p: Vec): number {
   return best;
 }
 
-/**
- * How far past the wall guards and drones may go: the farthest any built turret reaches beyond it
- * (its range less its own distance from the wall). Null (no leash) without walls or turrets.
- */
-export function leashReach(st: State, cp: Compiled): number | null {
-  if (st.barriers.length === 0) return null;
-  let reach: number | null = null;
-  for (const s of st.structures) {
-    const tiers = cp.structures[s.type]?.tiers;
-    if (!tiers) continue;
-    const tier = tiers[Math.min(s.level, tiers.length) - 1]!;
-    reach = Math.max(reach ?? 0, tier.range - wallDist(st, s.pos));
-  }
-  return reach;
-}
-
 /** How far outside the wall p stands (0 inside it). */
 const pastWall = (st: State, p: Vec): number => (outsideLines(st, p) ? wallDist(st, p) : 0);
 
-/** moveAgent on a leash: a step that would take the agent further out past the leash is not taken. */
+/**
+ * The leash line (Doug, R5 #23): how far past the wall the farthest spot a turret can be built stands, built or
+ * not ("even a turret space is sufficient"), so it holds from the first tick. Null without walls or turret spaces.
+ * Set once when the sim is created.
+ */
+export function leashLine(st: State, cp: Compiled): number | null {
+  if (st.barriers.length === 0) return null;
+  let line: number | null = null;
+  for (const e of cp.manifest.entities) {
+    const type = e.type === "pad.build" ? e.build : e.type;
+    if (!cp.structures[type]?.tiers || !("at" in e)) continue;
+    const at = "site" in e && e.site ? e.site : e.at;
+    line = Math.max(line ?? 0, pastWall(st, { x: fp(at[0]), y: fp(at[1]) }));
+  }
+  return line;
+}
+
+/** moveAgent held inside the player's walk box, on every level. */
+export function boxedMove(st: State, cp: Compiled, pos: Vec, target: Vec, step: number, arrive: number): boolean {
+  const wb = cp.player.walkBox, r = cp.player.radius;
+  const inBox = { x: clamp(target.x, wb.x0 + r, wb.x1 - r), y: clamp(target.y, wb.y0 + r, wb.y1 - r) };
+  return moveAgent(st, cp, pos, inBox, step, arrive);
+}
+
+/** boxedMove on the leash: a step that would take the agent further out past the line is not taken. */
 export function leashedMove(st: State, cp: Compiled, pos: Vec, target: Vec, step: number, arrive: number): boolean {
-  const reach = leashReach(st, cp);
-  if (reach === null) return moveAgent(st, cp, pos, target, step, arrive);
+  const line = cp.guards.leash;
+  if (line === null) return boxedMove(st, cp, pos, target, step, arrive);
   const was = { x: pos.x, y: pos.y };
-  const arrived = moveAgent(st, cp, pos, target, step, arrive);
+  const arrived = boxedMove(st, cp, pos, target, step, arrive);
   const now = pastWall(st, pos);
-  if (now > reach && now > pastWall(st, was)) { pos.x = was.x; pos.y = was.y; return within(pos, target, arrive); }
+  if (now > line && now > pastWall(st, was)) { pos.x = was.x; pos.y = was.y; return within(pos, target, arrive); }
   return arrived;
 }

@@ -21,3 +21,4 @@ export { rateTicks } from "./systems/converters.js";
 export { beltEnds } from "./systems/conveyors.js";
 export { isAutomation, isDefence, jobDone, jobOf, padCost } from "./systems/economy.js";
 export { forceBuildPad } from "./systems/pads.js";
+export { lyingDown } from "./systems/guards.js";

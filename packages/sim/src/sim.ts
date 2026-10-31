@@ -12,6 +12,7 @@ import { stepConveyors } from "./systems/conveyors.js";
 import { stepManual } from "./systems/economy.js";
 import { safeRadius, stepCore } from "./systems/core.js";
 import { stepDefense } from "./systems/defense.js";
+import { leashLine } from "./systems/guards.js";
 import { stepFreeze } from "./systems/freeze.js";
 import { initObjectives, stepObjectives } from "./systems/objectives.js";
 import { checkEnd } from "./systems/goals.js";
@@ -210,6 +211,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
     if (cp.roles[p.role]?.behavior === "guard") r.assign.post = state.residents.filter((x) => x.role === p.role).length - 1;
   });
   refreshPads(state, cp);
+  cp.guards.leash = leashLine(state, cp);
 
   return {
     compiled: cp,
