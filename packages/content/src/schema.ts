@@ -12,6 +12,8 @@ export type StructId = `struct.${string}`;
 export const StructId = z.custom<StructId>((v) => typeof v === "string" && /^struct\.[a-z0-9_]+(\.[a-z0-9_]+)*$/.test(v), "struct id");
 export type CaptureId = `capture.${string}`;
 export const CaptureId = z.custom<CaptureId>((v) => typeof v === "string" && /^capture\.[a-z0-9_]+$/.test(v), "capture id");
+export type DecorId = `decor.${string}`;
+export const DecorId = z.custom<DecorId>((v) => typeof v === "string" && /^decor.[a-z0-9_]+$/.test(v), "decor id");
 // Registry keys stay plain strings, so the record is total rather than Partial.
 const NodeKey = idOf("node");
 const ConvKey = idOf("conv");

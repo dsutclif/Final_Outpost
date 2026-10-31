@@ -188,6 +188,8 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           state.structures.push(s);
           if (t === "struct.depot") state.depot = { pos: vec(e.at), stock: {}, stores: [] };
           applyEffects(state, def.effects, s);
+        } else if (t.startsWith("decor.")) {
+          // dressing only: the renderer places it from the manifest
         } else if (t.startsWith("capture.")) {
           const freeze = "freeze" in e && e.freeze !== undefined ? (e.freeze > 0 ? ticks(e.freeze) : 0) : cp.lassoables[t]!.freezeTicks;
           const c: CaptureState = { id: nextCapture++, type: t, pos: vec(e.at), state: "idle", timer: 0, freezeTicks: freeze };

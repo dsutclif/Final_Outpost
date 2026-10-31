@@ -220,7 +220,7 @@ export function walkBox(manifest: Manifest, margin: number): { x0: number; y0: n
   };
   const pt = (v: unknown): void => { if (Array.isArray(v) && typeof v[0] === "number" && typeof v[1] === "number") add(v[0], v[1]); };
   for (const e of manifest.entities as unknown as Record<string, unknown>[]) {
-    if (e["type"] === "zone.prey" || e["type"] === "zone.terrain") continue;
+    if (e["type"] === "zone.prey" || e["type"] === "zone.terrain" || String(e["type"]).startsWith("decor.")) continue;
     pt(e["at"]); pt(e["site"]);
     if (Array.isArray(e["points"])) e["points"].forEach(pt);
     const r = e["rect"];

@@ -133,13 +133,49 @@ export function buildSupplyCrate(ctx: BuildCtx): Model {
   return m;
 }
 
-/** Stasis pod with a sleeper inside; the lid lifts on release. */
-export function buildStasisPod(ctx: BuildCtx): Model {
+/**
+ * A flight recorder (capture.recorder): a chunky bevelled orange box with hazard stripes and a
+ * beacon that blinks. Part "beacon" is a clone of the glow material; the renderer pulses it.
+ */
+export function buildRecorder(ctx: BuildCtx): Model {
   const { t, mats } = ctx;
   const m = model("scatter");
+  const shell = t.accent, stripe = t.ink;
   const b = new GeoBuilder()
-    .rbox(1.0, 0.18, 0.7, 0.06, t.structureDark, { at: [0, 0.09, 0] }, 1)
-    .box(1.02, 0.06, 0.72, t.trim, { at: [0, 0.2, 0] })
+    .rbox(0.7, 0.42, 0.5, 0.09, shell, { at: [0, 0.21, 0] }, 1)
+    .rbox(0.74, 0.08, 0.54, 0.04, t.metalDark, { at: [0, 0.04, 0] }, 1)
+    // hazard stripes: diagonal bands across the front and back faces
+    .box(0.1, 0.3, 0.02, stripe, { at: [-0.22, 0.22, 0.255], rot: [0, 0, 0.6] })
+    .box(0.1, 0.3, 0.02, stripe, { at: [0, 0.22, 0.255], rot: [0, 0, 0.6] })
+    .box(0.1, 0.3, 0.02, stripe, { at: [0.22, 0.22, 0.255], rot: [0, 0, 0.6] })
+    .box(0.1, 0.3, 0.02, stripe, { at: [-0.22, 0.22, -0.255], rot: [0, 0, -0.6] })
+    .box(0.1, 0.3, 0.02, stripe, { at: [0, 0.22, -0.255], rot: [0, 0, -0.6] })
+    .box(0.1, 0.3, 0.02, stripe, { at: [0.22, 0.22, -0.255], rot: [0, 0, -0.6] })
+    // carry handle and a locator-beacon stub
+    .box(0.4, 0.04, 0.04, t.metal, { at: [0, 0.46, 0] })
+    .box(0.04, 0.06, 0.04, t.metal, { at: [-0.18, 0.43, 0] })
+    .box(0.04, 0.06, 0.04, t.metal, { at: [0.18, 0.43, 0] })
+    .cyl(0.03, 0.03, 0.1, 6, t.metalDark, { at: [0.25, 0.47, -0.15] });
+  m.root.add(mesh(b.build(), mats.std, "body"));
+  const glowMat = mats.glow.clone();
+  glowMat.color.set(t.danger);
+  const beacon = mesh(new GeoBuilder().sphere(0.05, 8, 6, WHITE).build(), glowMat, "beacon");
+  beacon.position.set(0.25, 0.55, -0.15);
+  m.root.add(beacon);
+  m.parts["beacon"] = beacon;
+  anchor(m.root, "interact", 0, 0, 0.6);
+  return m;
+}
+
+/** Stasis pod with a sleeper inside; the lid lifts on release. `decoy` tints it orange (an empty pod). */
+export function buildStasisPod(ctx: BuildCtx, decoy = false): Model {
+  const { t, mats } = ctx;
+  const m = model("scatter");
+  const base = decoy ? mix(t.structureDark, t.accent, 0.5) : t.structureDark;
+  const rim = decoy ? t.accent : t.trim;
+  const b = new GeoBuilder()
+    .rbox(1.0, 0.18, 0.7, 0.06, base, { at: [0, 0.09, 0] }, 1)
+    .box(1.02, 0.06, 0.72, rim, { at: [0, 0.2, 0] })
     // sleeper: a tiny suited figure lying inside
     .capsule(0.12, 0.35, t.suit, { at: [0.05, 0.36, 0], rot: [0, 0, Math.PI / 2] }, 1, 6)
     .sphere(0.13, 6, 5, t.suit, { at: [-0.32, 0.38, 0] })

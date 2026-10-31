@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  CaptureId, ConvId, EventId, Family, HostileId, MeterId, NodeId, ResId, RoleId, SinkId, StructId, STORE_DEPOT,
+  CaptureId, ConvId, DecorId, EventId, Family, HostileId, MeterId, NodeId, ResId, RoleId, SinkId, StructId, STORE_DEPOT,
   type Content,
 } from "./schema.js";
 
@@ -100,6 +100,13 @@ export const CaptureEntity = z.object({
   // Not on the map (nothing can see, tow or count it) until this objective id is done.
   hiddenUntil: z.string().min(1).optional(),
 });
+// Static dressing placed at a world position (the Halcyon wreck): no sim state, never blocks.
+export const DecorEntity = z.object({
+  ...base,
+  type: DecorId,
+  /** Degrees about the vertical axis. */
+  yaw: z.number().optional(),
+});
 // Barrier lines: contiguous sections, each built by walking along it with the line's resource.
 export const BarrierSection = z.object({
   a: Point,
@@ -161,7 +168,7 @@ export const PreyZoneEntity = z.object({
 
 export const Entity = z.union([
   CoreEntity, NodeEntity, SalesPointEntity, HirePad, BuildPad, ConverterEntity, StructureEntity,
-  CaptureEntity, BarrierLineEntity, ZoneEntity, TerrainEntity, PreyZoneEntity,
+  CaptureEntity, BarrierLineEntity, ZoneEntity, TerrainEntity, PreyZoneEntity, DecorEntity,
 ]);
 export type Entity = z.infer<typeof Entity>;
 
@@ -428,6 +435,7 @@ export function checkManifest(m: Manifest, c: Content): void {
           if (cap.joins && cap.decoy) fail(`${t}: a decoy pod has nobody to join`);
           if (cap.joins) checkBinding(`capture ${cap.id ?? t}`, cap.joins);
         }
+        else if (t.startsWith("decor.")) { /* dressing: the renderer shows what it has */ }
         else fail(`unknown entity type ${t}`);
       }
     }
