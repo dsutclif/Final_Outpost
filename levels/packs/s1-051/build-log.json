@@ -83,7 +83,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 34.504,
+  "seconds": 27.323,
   "seed": 900293734,
   "attempts": 7,
   "rejects": {
@@ -178,7 +178,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 182.417,
+  "seconds": 144.127,
   "seed": 52763692,
   "attempts": 7,
   "rejects": {
@@ -272,7 +272,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 176.791,
+  "seconds": 137.693,
   "seed": 358154072,
   "attempts": 6,
   "rejects": {
@@ -310,31 +310,29 @@
     "id": "challenge2",
     "kind": "salvage",
     "params": {
-     "n": 326
+     "n": 370
     }
    },
    {
     "id": "challenge",
-    "kind": "hp_floor",
-    "params": {
-     "pct": 80
-    }
+    "kind": "gate_held",
+    "params": {}
    }
   ],
   "stars": {
    "good": 3,
-   "median": 2.67,
+   "median": 2.33,
    "goodAll": 1,
-   "human": 2.67,
-   "humanAll": 0.67
+   "human": 2.83,
+   "humanAll": 0.83
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 2.67,
-   "novice": 2,
+   "weak": 2.33,
+   "novice": 2.67,
    "floor": 0,
-   "human": 2.67
+   "human": 2.83
   },
   "modules": [
    "barrier_lines",
@@ -351,21 +349,21 @@
   "goal": "waves_survived",
   "template": "west_fields",
   "target": 0.538,
-  "D": 0.5570422745760754,
-  "F": 0.11343526037371668,
+  "D": 0.5614720700182103,
+  "F": 0.07308936172623022,
   "onTarget": false,
   "margin": {
-   "good": 0.9900413385709822,
-   "average": 0.9778710009455754,
-   "weak": 0.8690818433285866,
-   "novice": 0.4201187408624027,
-   "floor": -0.22222222222222224
+   "good": 0.9938392506666801,
+   "average": 0.991746150527133,
+   "weak": 0.9859347706786236,
+   "novice": 0.986944473989543,
+   "floor": -0.3333333333333333
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
-   "novice": 0.6666666666666666,
+   "novice": 1,
    "floor": 0
   },
   "botsPassed": [
@@ -374,16 +372,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 1121.853,
-  "seed": 815116436,
-  "attempts": 5,
+  "seconds": 165.842,
+  "seed": 1298999431,
+  "attempts": 1,
   "rejects": {
-   "offTarget": 43,
-   "trivial": 3,
-   "infeasible": 3,
+   "offTarget": 8,
+   "trivial": 1,
    "lowFun": 1
   },
-  "ratings": 49
+  "ratings": 11
  },
  {
   "index": 55,
@@ -468,7 +465,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 4.08,
+  "seconds": 3.261,
   "seed": 2110915574,
   "attempts": 1,
   "rejects": {},
@@ -559,7 +556,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 22.723,
+  "seconds": 18.295,
   "seed": 1427777921,
   "attempts": 7,
   "rejects": {
@@ -651,7 +648,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 58.857,
+  "seconds": 47.011,
   "seed": 2047496721,
   "attempts": 5,
   "rejects": {
@@ -752,7 +749,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 295.279,
+  "seconds": 232.939,
   "seed": 288445413,
   "attempts": 7,
   "rejects": {
@@ -784,25 +781,27 @@
     "id": "main",
     "kind": "survive",
     "params": {
-     "seconds": 150
+     "seconds": 180
     }
    },
    {
     "id": "challenge2",
     "kind": "hire",
     "params": {
-     "n": 5
+     "n": 4
     }
    },
    {
     "id": "challenge",
-    "kind": "no_injuries",
-    "params": {}
+    "kind": "hp_floor",
+    "params": {
+     "pct": 80
+    }
    }
   ],
   "stars": {
    "good": 3,
-   "median": 2.67,
+   "median": 3,
    "goodAll": 1,
    "human": 3,
    "humanAll": 1
@@ -810,8 +809,8 @@
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 2.67,
-   "novice": 3,
+   "weak": 3,
+   "novice": 2.67,
    "floor": 1,
    "human": 3
   },
@@ -823,6 +822,7 @@
    "defenders",
    "defense",
    "gather",
+   "medical",
    "sales",
    "salvage_upgrades",
    "workers"
@@ -830,15 +830,15 @@
   "goal": "survive",
   "template": "south_fields",
   "target": 0.756,
-  "D": 0.5368445599419918,
-  "F": 0.14283557064943767,
+  "D": 0.6892141797192981,
+  "F": 0.20793631330648524,
   "onTarget": false,
   "margin": {
-   "good": 0.9916711663576846,
-   "average": 0.9912025311517922,
-   "weak": 0.9917893879338989,
-   "novice": 0.9912065455285789,
-   "floor": 0.13158978945388303
+   "good": 0.9988962914568791,
+   "average": 0.9957388010792257,
+   "weak": 0.9962970383471411,
+   "novice": 0.915652226685021,
+   "floor": -0.15178049238262656
   },
   "winRate": {
    "good": 1,
@@ -853,18 +853,125 @@
    "weak",
    "novice"
   ],
-  "seconds": 1003.106,
-  "seed": 1999906109,
+  "seconds": 748.807,
+  "seed": 1598010570,
   "attempts": 7,
   "rejects": {
-   "infeasible": 6,
-   "ladderSpent": 59,
-   "trivial": 6,
-   "offTarget": 5,
+   "infeasible": 3,
+   "trivial": 4,
+   "offTarget": 3,
    "idleModule": 1,
+   "ladderSpent": 60,
    "humanLost": 2
   },
-  "ratings": 65
+  "ratings": 67
+ },
+ {
+  "index": 60,
+  "id": "s1-L060",
+  "file": "s1-L060.json",
+  "title": "Rust and The Big One",
+  "phase": "finale",
+  "introduced": [],
+  "family": "defend",
+  "secondary": "shelter",
+  "features": [
+   "bosses",
+   "defenders",
+   "gate_arrivals",
+   "multi_side",
+   "salvage_upgrades",
+   "turrets"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "boss",
+    "params": {
+     "n": 1
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "salvage",
+    "params": {
+     "n": 315
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "hp_floor",
+    "params": {
+     "pct": 45
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 1,
+   "goodAll": 1,
+   "human": 2.83,
+   "humanAll": 0.83
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 1,
+   "novice": 3,
+   "floor": 2,
+   "human": 2.83
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "housing",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "boss",
+  "template": "corridor",
+  "target": 0.8,
+  "D": 0.9123014915857983,
+  "F": 0.5498339973124778,
+  "onTarget": false,
+  "margin": {
+   "good": 0.6532673267326733,
+   "average": 0.6534543454345435,
+   "weak": -0.45002200220022,
+   "novice": 0.6462046204620462,
+   "floor": 0.09588558855885587
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 0.3333333333333333,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "novice",
+   "floor"
+  ],
+  "seconds": 1088.524,
+  "seed": 1009995936,
+  "attempts": 7,
+  "rejects": {
+   "layout": 260,
+   "idleModule": 59,
+   "infeasible": 5,
+   "humanLost": 5,
+   "offTarget": 2,
+   "trivial": 1
+  },
+  "ratings": 62
  },
  {
   "index": 61,
@@ -950,7 +1057,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 2.846,
+  "seconds": 2.275,
   "seed": 1398726059,
   "attempts": 1,
   "rejects": {
@@ -1047,7 +1154,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 7.201,
+  "seconds": 5.908,
   "seed": 577417692,
   "attempts": 1,
   "rejects": {
@@ -1140,7 +1247,7 @@
    "average",
    "weak"
   ],
-  "seconds": 45.815,
+  "seconds": 36.426,
   "seed": 1603035273,
   "attempts": 7,
   "rejects": {
@@ -1238,7 +1345,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 141.539,
+  "seconds": 110.462,
   "seed": 1372321526,
   "attempts": 7,
   "rejects": {

@@ -1,7 +1,7 @@
 {
   "id": "s1-051",
-  "engineVersion": "0.17.0",
-  "contentVersion": "0.17.0",
+  "engineVersion": "0.18.0",
+  "contentVersion": "0.18.0",
   "levels": [
     {
       "id": "s1-L051",
@@ -78,8 +78,8 @@
         "workers"
       ],
       "goal": "waves_survived",
-      "rating": 0.557,
-      "fun": 0.113,
+      "rating": 0.561,
+      "fun": 0.073,
       "target": 0.538
     },
     {
@@ -173,14 +173,39 @@
         "defenders",
         "defense",
         "gather",
+        "medical",
         "sales",
         "salvage_upgrades",
         "workers"
       ],
       "goal": "survive",
-      "rating": 0.537,
-      "fun": 0.143,
+      "rating": 0.689,
+      "fun": 0.208,
       "target": 0.756
+    },
+    {
+      "id": "s1-L060",
+      "file": "s1-L060.json",
+      "title": "Rust and The Big One",
+      "family": "defend",
+      "secondary": "shelter",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "housing",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "boss",
+      "rating": 0.912,
+      "fun": 0.55,
+      "target": 0.8
     },
     {
       "id": "s1-L061",
@@ -343,16 +368,16 @@
   ],
   "dropped": [
     {
-      "index": 60,
-      "id": "s1-L060",
+      "index": 65,
+      "id": "s1-L065",
       "family": "defend",
-      "secondary": "shelter",
+      "secondary": null,
       "rejects": {
-        "layout": 260,
-        "idleModule": 57,
-        "infeasible": 8,
-        "humanLost": 5,
-        "trivial": 1
+        "ladderSpent": 33,
+        "infeasible": 38,
+        "trivial": 17,
+        "idleModule": 1,
+        "humanLost": 1
       }
     }
   ],
