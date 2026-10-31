@@ -16,6 +16,10 @@ export interface Tokens {
   interactive: string;
   guideShadow: string;
   guideLight: string;
+  podOld: string;
+  podCrew: string;
+  lampWarm: string;
+  ridgeRed: string;
   danger: string;
   ok: string;
   ink: string;
@@ -105,6 +109,10 @@ export function deriveTokens(skin: Skin): Tokens {
     interactive: p.interactive,
     guideShadow: p.guideShadow,
     guideLight: p.guideLight,
+    podOld: p.podOld,
+    podCrew: p.podCrew,
+    lampWarm: p.lampWarm,
+    ridgeRed: p.ridgeRed,
     danger: p.danger,
     ok: p.ok,
     ink: p.ink,

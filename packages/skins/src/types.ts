@@ -19,6 +19,11 @@ export interface SkinPalette {
   /** Guide arrows on the ground: a soft shadow by day, a spot of light at night. */
   guideShadow: string;
   guideLight: string;
+  /** Story-level world lights: old pod glow and beam (orange), crew pods (cold white), headlights and hub windows (warm), ridge pulse (red). */
+  podOld: string;
+  podCrew: string;
+  lampWarm: string;
+  ridgeRed: string;
   danger: string;
   /** Positive state: staffed, healthy, cleared. */
   ok: string;
@@ -84,6 +89,8 @@ export interface SkinLook3D {
   /** Mix the ground tones toward the sky haze on screen (0 = palette as is): pale sand under a
    *  strong key light while the checked palette keeps its darker, high-contrast ground. */
   groundLift?: number;
+  /** Measured minimum light at night so sand and ridge still read (0-1 of the day level). */
+  nightFloor?: { ambient: number; ridge: number };
 }
 
 export interface Skin {
