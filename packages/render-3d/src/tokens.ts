@@ -26,6 +26,11 @@ export interface Tokens {
   fog: string;
   /** Fog colour while the hazard event is active. */
   storm: string;
+  /** Reactor-spirit cloud colours; glitch is the raiders' visor colour. */
+  spiritDeep: string;
+  spirit: string;
+  spiritCore: string;
+  spiritGlitch: string;
   /** Key light tint (warm). */
   sun: string;
   /** Plasma core: outer glow and hot centre. */
@@ -108,6 +113,10 @@ export function deriveTokens(skin: Skin): Tokens {
     skyTop: mix(sky, p.interactive, 0.25),
     fog: sat(p.fog),
     storm: sat(p.storm),
+    spiritDeep: p.spiritDeep,
+    spirit: p.spirit,
+    spiritCore: p.spiritCore,
+    spiritGlitch: p.danger,
     sun: mix(p.structure, p.accent, 0.22),
     plasma: p.accent,
     plasmaHot: mix(p.accent, p.structure, 0.55),

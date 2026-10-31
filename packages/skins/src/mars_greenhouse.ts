@@ -300,6 +300,9 @@ export const marsGreenhouse: Skin = {
     sky: "#d8d1c2",
     fog: "#c4baa8",
     storm: "#a68862",
+    spiritDeep: "#0a339e",
+    spirit: "#38adff",
+    spiritCore: "#dbf7ff",
     res: {
       // Chunky and clearly coloured so carried goods read at a glance on sand and concrete;
       // the scene's look3d.saturation mutes them on screen without touching these checks.

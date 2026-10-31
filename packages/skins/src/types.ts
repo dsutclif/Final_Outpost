@@ -32,6 +32,10 @@ export interface SkinPalette {
   fog: string;
   /** Fog and haze while the hazard event is active (3D). */
   storm: string;
+  /** Reactor-spirit cloud: deep edge, body, and near-white core (3D). */
+  spiritDeep: string;
+  spirit: string;
+  spiritCore: string;
   /** One colour per resource id. */
   res: Record<string, string>;
   /** Body colour per role id (plus "role.idle"). */

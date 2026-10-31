@@ -46,6 +46,9 @@ export const debugSkin: Skin = {
     sky: "#bdbdbd",
     fog: "#8a8a8a",
     storm: "#6e6e6e",
+    spiritDeep: "#4a4a4a",
+    spirit: "#9a9a9a",
+    spiritCore: "#f0f0f0",
     res,
     role,
     ui: {
