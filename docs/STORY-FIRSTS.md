@@ -9,9 +9,9 @@ lines from a character, giving a story reason first and the how-to second, in th
 
 Moving, ore and the ore pile, the reactor, heat and the safe radius, dust storms (L1); the tow
 line, stasis pods, gentle pod freezing, crew who join as workers (L2); greens and the grow dome,
-the kiosk, clerk pad, credits, traders, rockslides, rock ridges, the hopper flats, rock hoppers
-and protein, source unlocks (L3); the galley and meals, hire pads (hauler, technician, picker,
-clerk), stock caps and pile collapse, automation (L4); night, walls and the airlock gate,
+the kiosk counter, credits, traders, rockslides, rock ridges, the hopper flats, rock hoppers
+and protein, source unlocks, the habitat hub (L3); the galley and meals, hire pads (hauler, technician, picker,
+clerk), automation (L4); night, walls and the airlock gate,
 raiders, scrap, wall turrets, guards and the guard post, Colony HP, a retreating boss (L5).
 
 ## How the triggers work
@@ -49,7 +49,6 @@ doesn't care.
 | `sink.core.level` (reactor levels) | L11 | view | KILN | "Upgrade me and I'll burn hotter and reach further. I'll remember more, too." (Mystery: each reactor level restores a KILN log fragment, shown as a win line.) |
 | `node.fuel_deposit` / `res.fuel_dense` (fuel cells) | when it appears | view | Pip | "Fuel cells from the Halcyon's stores. One of these is worth a pile of ore." |
 | `node.fuel_scrap` (ore scrap) | when it appears | view | Pip | "Loose ore scrap. Quick fuel, but it won't last." |
-| `struct.landmark` (habitat hub) | L42 | start | Sela | "Meridian has a habitat hub. Build one and the settlements will take you seriously." |
 
 ## Rescue
 
@@ -80,6 +79,7 @@ doesn't care.
 | `conv.material_processor` (smelter) / `res.material_refined` (alloy) | L9 | view | Pip | "A smelter. Feed it ore and it turns out alloy. The traders want that badly." |
 | `conv.level` (converter levels) | L9 | view | KILN | "Upgrade a machine and it works faster. Credits well spent." |
 | `conv.alloy_works` (parts works) / `res.component` | when it appears | view | Pip | "Parts works: alloy in, parts out. This is how the Halcyon was built." |
+| stock caps and pile collapse (until removed from later levels, separate backlog) | first time a machine's output is nearly full | event | Pip | "Machine's nearly full. Move that stock or it topples." |
 | tier-2 chain | L9 | start | KILN | "One machine feeds another now. Keep the first one running or the second one starves." |
 | `store.depot` (warehouse) / `role.hauler` (courier) | L14 | view | Pip | "A warehouse. Fill it once and the couriers carry it where it's needed." |
 | `struct.conveyor` | L14 | view | Tam | "A conveyor. Build it and the goods move themselves." |
@@ -96,7 +96,7 @@ doesn't care.
 | `hostile.swarmling` (dust mites) | first wave that has them | view | Okafor | "Dust mites. Weak alone, nasty in a swarm. Let the turrets work." |
 | `hostile.creature` (dust crawler) | first wave that has them | view | Rhee | "Crawlers. The ridge stirs them up. Don't let them reach the colony." |
 | `struct.medical` (med bay) / injuries | L15 | event: first colonist injured | Rhee | "We have wounded. Build me a med bay and I'll get them back on their feet." |
-| `hostile.boss` (raider warlord) | L15 | view | KILN | "That's no scavenger. That armour is Halcyon-issue." (Story: the first boss is the missing first officer; their face is the Bay Five ID photo. Win line: "Bay Five. You knew the way to our gates because you built them.") |
+| `hostile.boss` (raider warlord) | L15 | view | KILN | "That's Vale's armour. New helmet." (Story: the first boss is Vale, already named by the helmet in L5; their face is the Bay Five ID photo. Win line: "Bay Five. You knew the way to our gates because you built them.") |
 | `node.salvage_pile` / `node.salvage_source` (scrap heap, wreck) | when it appears | view | Pip | "Scrap from the wreck. Enough to start the defences before they arrive." |
 
 ## Family finales (every 10th level from 20)
@@ -106,7 +106,7 @@ each, from the director, keyed to the finale slot in the sequence (data, not lev
 
 | Finale | Signal thread | Crew-gap thread |
 |---|---|---|
-| L20 | Decode 25%: the pulse repeats a ship registry | KILN log: Bay Five pinged the ridge from cryo-watch |
+| L20 | Decode 25%: the pulse is a roll call, naming more than one ship | KILN log: Bay Five pinged the ridge from cryo-watch |
 | L30 | Decode 50%: every registry is a ship that came down here | Sela admits Meridian lost a crew the same way |
 | L40 | Decode 75%: the pulse is asking for something | A message from Bay Six, asking to come home |
 | L50 | Decode 100%: the coordinates of what lies beyond the ridge | Bay Six arrives at the gate, alone |
