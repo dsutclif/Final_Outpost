@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { FP, TPS, createSim, starsOf, within, type ResidentState, type SimEvent } from "../src/index.js";
+import { FP, TPS, createSim, lyingDown, starsOf, within, type ResidentState, type SimEvent } from "../src/index.js";
 import { wallDist } from "../src/systems/guards.js";
 import { outsideLines } from "../src/systems/barriers.js";
 import { LEVEL_4 } from "./helpers.js";
@@ -77,6 +77,24 @@ describe("guards have health (R5 #26)", () => {
     expect(ev.some((e) => e.t === "medic_heal" && e.resident === g.id)).toBe(true);
     expect(ev.some((e) => e.t === "guard_died")).toBe(false);
     expect(st.residents.includes(g)).toBe(true);
+  });
+
+  it("a downed guard lies down from the moment it falls, unless it is walking to a med bay", () => {
+    const fall = (opts: { medBay?: boolean; medic?: boolean }, built: boolean, hired: boolean) => {
+      const { sim, st, cp, g } = setup(opts);
+      if (hired) st.residents.find((r) => r.role === "idle" && r !== g)!.role = "role.medic";
+      if (built) st.structures.push({ id: "medic", type: "struct.medical", pos: { ...st.pads.find((p) => p.id === "medic")!.pos }, level: 1, acc: 0 });
+      expect(lyingDown(st, cp, g)).toBe(false);
+      const h = attacker(st, g);
+      runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
+      expect(g.status).toBe("injured");
+      return lyingDown(st, cp, g);
+    };
+    expect(fall({ medBay: false, medic: true }, false, true)).toBe(true); // the medic is on its way
+    expect(fall({ medBay: false, medic: true }, false, false)).toBe(true); // no medic hired yet
+    expect(fall({}, false, false)).toBe(true); // the bay is not built yet
+    expect(fall({}, true, true)).toBe(true); // a medic comes, even with a bay
+    expect(fall({}, true, false)).toBe(false); // it walks to the bay
   });
 
   it("a single big hit puts a guard down, not dead", () => {

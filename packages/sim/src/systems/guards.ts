@@ -16,6 +16,10 @@ const isGuard = (cp: Compiled, r: ResidentState): boolean => cp.roles[r.role]?.b
 const onTheWay = (st: State, cp: Compiled, g: ResidentState): boolean =>
   g.status === "injured" && !hasMedic(st, cp) && st.structures.some((s) => s.type === "struct.medical");
 
+/** Shown lying down: being healed, or a downed guard not walking to the med bay (it lies where it fell, from the moment it falls). */
+export const lyingDown = (st: State, cp: Compiled, r: ResidentState): boolean =>
+  r.status === "healing" || (r.status === "injured" && isGuard(cp, r) && !onTheWay(st, cp, r));
+
 /** Nearest guard strictly within r of p that hostiles can hit: fighting, or on its way to the med bay. */
 export function nearestGuard(st: State, cp: Compiled, p: Vec, r: number): ResidentState | null {
   let best: ResidentState | null = null, bd = r * r;

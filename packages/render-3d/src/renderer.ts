@@ -1,5 +1,5 @@
 import { LOOK, PLOT, modelScaleFor, content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { FP, TPS, beltEnds, collapseSecondsLeft, padCost, compile, converterStockKey, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
+import { FP, TPS, beltEnds, collapseSecondsLeft, lyingDown, padCost, compile, converterStockKey, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
 import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
   Box3,
@@ -2051,8 +2051,10 @@ export class Renderer3D implements Renderer {
       const dead = (r.status as string) === "dead" || r.status === "frozen";
       an.distress = dead ? 1 : this.distressFor(pos);
       if (dead) { an.ice = 1; an.speed = 0; }
-      if (r.status === "injured") { an.speed *= 0.6; an.hit = 0.2 + 0.2 * Math.sin(this.t * 6); }
-      if (r.status === "healing") an.down = 1;
+      // a guard down with a medic to wait for lies where it fell (sim lyingDown); only those walking to the bay limp
+      const lying = this.cp ? lyingDown(s, this.cp, r) : r.status === "healing";
+      if (r.status === "injured" && !lying) { an.speed *= 0.6; an.hit = 0.2 + 0.2 * Math.sin(this.t * 6); }
+      if (lying) an.down = 1;
       // rigged once loaded; the frozen turn to ice and the med bay patients lie on their backs (rigged.ts)
       const rrig = this.rigged?.entryFor(id);
       const moving = sp > 0.05;
@@ -2064,7 +2066,7 @@ export class Renderer3D implements Renderer {
       const ryaw = this.faceAct(key, pos, ry, moving);
       const carrying = !!r.carry && r.n > 0;
       if (rrig) {
-        this.rigged!.add(key, id, rrig, { moving: moving && !dead, hurried: false, cheer: an.cheer > 0, act: this.actOf(key)?.act, carry: carrying, speed: sp, frozen: dead, lying: r.status === "healing" }, pos.x, pos.y, ryaw, ART_M * rl.scale * this.devCharScale / 0.9);
+        this.rigged!.add(key, id, rrig, { moving: moving && !dead, hurried: false, cheer: an.cheer > 0, act: this.actOf(key)?.act, carry: carrying, speed: sp, frozen: dead, lying }, pos.x, pos.y, ryaw, ART_M * rl.scale * this.devCharScale / 0.9);
         this.blobs!.add(pos.x, pos.y, 10 * rl.scale);
       } else this.addCharacter(rl, an, pos, ry, t.frost);
       // a carry clip holds the goods in front of the chest; everyone else wears them on the back
