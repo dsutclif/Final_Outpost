@@ -1,12 +1,20 @@
 import type { Skin } from "@fo/skins";
-import { Box3, Color, DirectionalLight, HemisphereLight, Mesh, PerspectiveCamera, Scene, SRGBColorSpace, Vector3, WebGLRenderer } from "three";
+import { Box3, Color, DirectionalLight, HemisphereLight, Mesh, Object3D, PerspectiveCamera, Scene, SRGBColorSpace, Vector3, WebGLRenderer } from "three";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { disposeGeo } from "./assets/common.js";
 import { buildModel } from "./assets/registry.js";
-import { loadMeshy } from "./assets/meshy.js";
+import { clone as cloneRig } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { loadMeshy, meshyEntries, meshyRig } from "./assets/meshy.js";
 
 // Field-guide thumbnails: each canonical id's model rendered once, three-quarter view, on a
 // transparent square. One short-lived WebGL context for the whole batch.
+
+/** The game draws characters and props from their own GLBs rather than through buildModel, so the guide must too. */
+const kindScene = (id: string): Object3D | null => {
+  const e = meshyEntries().find((x) => x.id === id && x.kind && !x.slot);
+  const rig = e && meshyRig(e.file);
+  return rig ? cloneRig(rig.scene) : null;
+};
 
 const box = new Box3(), size = new Vector3(), centre = new Vector3();
 
@@ -32,9 +40,11 @@ export async function renderThumbnails(ids: readonly string[], skin: Skin, px = 
   const cam = new PerspectiveCamera(30, 1, 0.01, 100);
   try {
     for (const id of ids) {
-      let root;
-      try { root = buildModel(id, ctx).root; } catch { continue; }
-      if (root.userData["fallback"]) continue;
+      let root = kindScene(id);
+      if (!root) {
+        try { root = buildModel(id, ctx).root; } catch { continue; }
+        if (root.userData["fallback"]) continue;
+      }
       scene.add(root);
       root.rotation.y = -0.45;
       root.updateMatrixWorld(true);

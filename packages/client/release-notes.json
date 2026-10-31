@@ -1,7 +1,8 @@
 {
   "notes": [
-    "Guide arrows on the ground are now soft shadows by day and spots of light at night, and they circle stasis pods to show how to tow them.",
-    "A new Help button at the bottom of the screen shows your next step and a log of the level so far, with Restart and Skip level. A skipped level earns no stars, and you can come back and win it later.",
-    "Hire pads that need the job done by hand first now show as locked and say so, instead of staying hidden."
+    "Guards now hold out as far as your farthest turret or turret pad, and they and your drones stay inside the playable area. A hurt guard lies down straight away to wait for help.",
+    "The field guide shows the current models for characters and goods.",
+    "World text is a size larger, and locked hire pads now say what to do, such as Kill a raider to unlock.",
+    "Finished goods sit on their machine's output pad, and drone rotors fit inside their guards."
   ]
 }

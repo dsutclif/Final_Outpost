@@ -136,6 +136,14 @@ After merge (main session, Opus):
 - [x] Bump ENGINE/CONTENT_VERSION, `levels:build` (background), `levels:check`, fix rejects, repin
       golden + story levels; the story session re-checks levels 1-5; release notes; deploy.
 
+## Doug's phone playtest (2026-10-31)
+
+Engine 0.17.0, levels re-pinned without a rebuild (Doug). Leash line is the farthest turret or turret pad, built or not;
+guards, drones and the medic stay in the walk box; downed guards lie down at once unless walking to a med bay. textScale 0.8;
+lock text names the job; output stack on the pickup pad; rotors sized to the guard rings (output stack and rotor fit not seen
+on screen). #11 fixed properly: characters, items and decor thumbnails now use their GLBs. Still open: #31 level 2/3 pads
+show the level 1 ghost size; the medic has no route through gates.
+
 ## Sprint 3
 
 Landed 2026-10-30 (branches r5-hire-lock, r5-help). Browser checks only: not on an iPhone, the level log not seen filling in
