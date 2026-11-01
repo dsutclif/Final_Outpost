@@ -55,9 +55,9 @@ export interface StoryWorld {
   /** `seq` counts requests, so the same request twice still reads as new. */
   flash: { n: number; seq: number } | null;
   spirit: { state: "bloom" | "pulse" | "idle" | "fading" | "off"; seq: number } | null;
-  glow: { x: number; y: number } | null;
+  glow: { x: number; y: number; size?: number; strength?: number } | null;
   /** The cloud floats beside the hero (see StoryAction spiritFollow); null: over the reactor. */
-  follow: { right: number; up: number; lag?: number; delay?: number; height?: number } | null;
+  follow: { right: number; up: number; lag?: number; delay?: number; height?: number; size?: number } | null;
   guideOff: boolean;
   /** A line by a spirit speaker is on screen. */
   speaking: boolean;
@@ -371,7 +371,8 @@ export class StoryDirector {
     } else if ("spiritFollow" in a) {
       this.world = { ...this.world, follow: a.spiritFollow || null };
     } else if ("edgeGlow" in a) {
-      this.world = { ...this.world, glow: a.edgeGlow ? this.place(a.edgeGlow) : null };
+      const g = a.edgeGlow ? this.place(a.edgeGlow) : null;
+      this.world = { ...this.world, glow: g && a.edgeGlow ? { ...g, ...(a.edgeGlow.size !== undefined ? { size: a.edgeGlow.size } : {}), ...(a.edgeGlow.strength !== undefined ? { strength: a.edgeGlow.strength } : {}) } : null };
     } else if ("guide" in a) {
       this.world = { ...this.world, guideOff: !a.guide };
     }

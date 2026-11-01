@@ -3,8 +3,10 @@ import { FP, TPS, beltEnds, collapseSecondsLeft, lyingDown, padCost, compile, co
 import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
   Box3,
+  BoxGeometry,
   BufferAttribute,
   Color,
+  DataTexture,
   Frustum,
   Group,
   Matrix4,
@@ -12,6 +14,9 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshLambertMaterial,
+  MeshStandardMaterial,
+  RepeatWrapping,
+  RGBAFormat,
   ACESFilmicToneMapping,
   Object3D,
   PCFShadowMap,
@@ -523,6 +528,7 @@ export class Renderer3D implements Renderer {
     this.storyDecor = new Group();
     this.storyDecorDone.clear();
     this.scene.add(this.storyDecor);
+    this.buildDeckPlates();
     const mats = this.bctx.mats;
     // concrete aprons under everything built (or to be built), paved back to the core
     // the closed rings: turret sockets out on the attack roads stand on bare ground (Batch 3), never paved
@@ -810,7 +816,7 @@ export class Renderer3D implements Renderer {
   /** Place the manifest's `decor.*` entities of this id from the loaded model, once. */
   private placeStoryDecor(e: MeshyEntry): void {
     if (this.storyDecorDone.has(e.id)) return;
-    const at = this.manifest.entities.filter((d) => d.type === e.id) as unknown as { at?: readonly [number, number]; yaw?: number }[];
+    const at = this.manifest.entities.filter((d) => d.type === e.id) as unknown as { at?: readonly [number, number]; yaw?: number; lift?: number; roll?: number; scale?: number }[];
     if (!at.length) return;
     const g = meshyGeometry(e.file);
     if (!g) return;
@@ -822,9 +828,47 @@ export class Renderer3D implements Renderer {
     for (const d of at) {
       if (!d.at) continue;
       const m = new Mesh(g.geo, g.mat);
-      m.position.set(d.at[0], 0, d.at[1]);
-      m.rotation.y = ((d.yaw ?? 0) * Math.PI) / 180;
-      m.scale.setScalar(k);
+      m.position.set(d.at[0], d.lift ?? 0, d.at[1]);
+      // turned about the vertical, then swung about its own sideways axis (a lid open on its hinge)
+      m.rotation.order = "YXZ";
+      m.rotation.set(((d.roll ?? 0) * Math.PI) / 180, ((d.yaw ?? 0) * Math.PI) / 180, 0);
+      m.scale.setScalar(k * (d.scale ?? 1));
+      m.receiveShadow = true;
+      this.storyDecor.add(m);
+    }
+  }
+
+  /**
+   * The manifest's decor.deck_plate entities: slabs built in code (the torn deck plate the crash film ends on).
+   * `size` is width, depth and thickness in world units, `lift` the height of the underside, `color` the steel.
+   */
+  private buildDeckPlates(): void {
+    const plates = this.manifest.entities.filter((d) => d.type === "decor.deck_plate") as unknown as { at?: readonly [number, number]; yaw?: number; lift?: number; size?: readonly [number, number, number]; color?: string }[];
+    if (!plates.length) return;
+    const cell = 12, px = new Uint8Array(cell * cell * 4);
+    // one panel: a plate of steel with a dark seam along two edges, tiled over the slab
+    for (let y = 0; y < cell; y++) for (let x = 0; x < cell; x++) {
+      const seam = x === 0 || y === 0, o = (y * cell + x) * 4, g = seam ? 215 : 238 + ((x * 7 + y * 13) % 5) * 4;
+      px[o] = px[o + 1] = px[o + 2] = g; px[o + 3] = 255;
+    }
+    const base = new DataTexture(px, cell, cell, RGBAFormat);
+    base.wrapS = base.wrapT = RepeatWrapping;
+    base.needsUpdate = true;
+    const panel = ART_M * 1.25 * 1.35;
+    for (const d of plates) {
+      if (!d.at || !d.size) continue;
+      const [w, dp, h] = d.size;
+      const tex = base.clone();
+      tex.repeat.set(w / panel, dp / panel);
+      tex.needsUpdate = true;
+      const mat = new MeshStandardMaterial({ color: new Color(d.color ?? "#a9acb8"), map: d.color ? null : tex, metalness: 0.08, roughness: 0.8 });
+      const geo = new BoxGeometry(w, h, dp);
+      // the geometry list is disposed with the level; the texture and material ride along on its dispose event
+      geo.addEventListener("dispose", () => { tex.dispose(); mat.dispose(); });
+      this.geos.push(geo);
+      const m = new Mesh(geo, mat);
+      m.position.set(d.at[0], (d.lift ?? 0) + h / 2, d.at[1]);
+      m.rotation.set(0, ((d.yaw ?? 0) * Math.PI) / 180, 0);
       m.receiveShadow = true;
       this.storyDecor.add(m);
     }

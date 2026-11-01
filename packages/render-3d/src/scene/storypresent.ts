@@ -32,8 +32,8 @@ export class StoryPresent implements StoryPresentation {
   allowed = new Set<number>([1, 2, 3, 4, 5]);
   /** Entities the renderer keeps solid (see StoryPresentation.solid). */
   solidIds: ReadonlySet<string> = new Set();
-  private follow: { right: number; up: number; lag: number; height: number } | null = null;
-  private cloudAt: { x: number; z: number; h: number } | null = null;
+  private follow: { right: number; up: number; lag: number; height: number; size: number } | null = null;
+  private cloudAt: { x: number; z: number; h: number; k: number } | null = null;
 
   /** `home`: where the cloud floats over the reactor, and its height there. */
   constructor(private readonly lights: StoryLights, private readonly cloud: CoreSpirit, private readonly home: { x: number; z: number; h: number } = { x: 0, z: 0, h: 0 }) {}
@@ -89,18 +89,19 @@ export class StoryPresent implements StoryPresentation {
 
   /** Drift the cloud toward the hero's side (soft lag) or back over the reactor. */
   private moveCloud(dt: number, hero?: { x: number; z: number }): void {
-    const cur = (this.cloudAt ??= { ...this.home });
-    let tx = this.home.x, tz = this.home.z, th = this.home.h, lag = 0.8;
+    const cur = (this.cloudAt ??= { ...this.home, k: 1 });
+    let tx = this.home.x, tz = this.home.z, th = this.home.h, tk = 1, lag = 0.8;
     if (this.follow && hero) {
       const a = screenAxes();
       tx = hero.x + a.right.x * this.follow.right + a.up.x * this.follow.up;
       tz = hero.z + a.right.z * this.follow.right + a.up.z * this.follow.up;
       th = this.follow.height;
+      tk = this.follow.size;
       lag = Math.max(0.05, this.follow.lag);
     }
     const k = 1 - Math.exp(-dt / lag);
-    cur.x += (tx - cur.x) * k; cur.z += (tz - cur.z) * k; cur.h += (th - cur.h) * k;
-    this.cloud.moveTo(cur.x, cur.z, cur.h);
+    cur.x += (tx - cur.x) * k; cur.z += (tz - cur.z) * k; cur.h += (th - cur.h) * k; cur.k += (tk - cur.k) * k;
+    this.cloud.moveTo(cur.x, cur.z, cur.h, cur.k);
   }
 
   /** The slow pulse follows the ground dots' own beat (cos cubed on the same clock); flashes ride over it. */

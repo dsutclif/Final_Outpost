@@ -794,7 +794,7 @@ export const marsGreenhouse: Skin = {
             { light: "night" },
             { ridge: "right", period: 4, k: 0.4 },
             { dots: [{ at: [272, 300] }, { at: [226, 372] }, { at: [176, 296] }], period: 4 },
-            { edgeGlow: { entity: "core" } },
+            { edgeGlow: { entity: "core", size: 30, strength: 0.32 } },
           ] },
           { id: "woke", on: { start: true }, walk: true, do: [
             { line: "Oh no, what happened? Where is the rest of my crew?", who: "commander", seconds: 3 },
@@ -814,7 +814,7 @@ export const marsGreenhouse: Skin = {
             { edgeGlow: null },
             { spirit: "bloom" },
             // after the bloom above the flare, the cloud drifts to float beside the commander
-            { spiritFollow: { right: 40, up: 6, lag: 0.9, delay: 1.4, height: 40 } },
+            { spiritFollow: { right: 78, up: 22, lag: 0.9, delay: 1.4, height: 105, size: 2.2 } },
             { show: ["fuel", "settings"] },
             { light: "firstLight", seconds: 55 },
             { freeze: true },

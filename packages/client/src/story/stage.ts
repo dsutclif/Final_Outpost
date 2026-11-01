@@ -80,7 +80,7 @@ export class StoryStage {
     if (rg) { this.ridgeEl.dataset["side"] = rg.side; this.ridgeEl.style.opacity = String(rg.k); }
     if (w.follow !== (seen.follow ?? null)) { seen.follow = w.follow; this.followFrom = now; }
     const f = w.follow;
-    p.spirit.follow(f && now - this.followFrom >= (f.delay ?? 0) ? { right: f.right, up: f.up, lag: f.lag ?? 0.9, height: f.height ?? 40 } : null);
+    p.spirit.follow(f && now - this.followFrom >= (f.delay ?? 0) ? { right: f.right, up: f.up, lag: f.lag ?? 0.9, height: f.height ?? 40, size: f.size ?? 1 } : null);
     this.spirit(w, fuelK, now);
     this.glow(w, st, now, viewW, viewH);
     this.director.view.frame?.(now);
@@ -117,7 +117,10 @@ export class StoryStage {
     el.hidden = false;
     el.style.left = `${hero.x + dx * k}px`;
     el.style.top = `${hero.y + dy * k}px`;
-    el.style.opacity = String(shown * (0.5 + 0.4 * beat));
+    const size = w.glow.size ?? 36;
+    el.style.width = el.style.height = `${size}vmin`;
+    el.style.margin = `${-size / 2}vmin 0 0 ${-size / 2}vmin`;
+    el.style.opacity = String(shown * (w.glow.strength ?? 0.4) * (0.55 + 0.45 * beat));
   }
 
   dispose(): void { this.glowEl.remove(); this.ridgeEl.remove(); }

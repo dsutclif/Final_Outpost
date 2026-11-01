@@ -57,8 +57,8 @@
 .story-prompt .story-other { min-height: 44px; background: none; color: #dfe5ea; border: 0; box-shadow: none; font-size: 15px; font-weight: 700; text-decoration: underline; }
 
 /* A glow at the screen edge toward something off screen */
-.story-glow { position: absolute; width: 74vmin; height: 74vmin; margin: -37vmin 0 0 -37vmin; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, var(--story-glow, #a9d8ff) 0, transparent 68%); mix-blend-mode: screen; }
+.story-glow { position: absolute; width: 36vmin; height: 36vmin; margin: -18vmin 0 0 -18vmin; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, var(--story-glow, #a9d8ff) 0, transparent 70%); mix-blend-mode: screen; }
 .story-glow[hidden] { display: none; }
 
 /* The ridge pulse: a short red flare hugging one screen side, little reach, never a wash over the whole screen */

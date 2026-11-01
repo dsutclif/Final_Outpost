@@ -13,8 +13,16 @@ import titleLoopVideo from "./cinematics/title_loop.mp4";
 
 export type CinematicId = "crash_open" | "helmet_reveal";
 
-export const CINEMATICS: Record<CinematicId, { video: string; poster: string }> = {
-  crash_open: { video: crashOpenVideo, poster: crashOpenPoster },
+/**
+ * A film's hand-off into play: `fadeMs` the cross-fade into the level, and `grade` a CSS grade on the
+ * video's closing `seconds` (no re-render) so its last frame lands in the level's own light. brightness and
+ * saturate are the filter values reached at the very end (1 = untouched).
+ */
+export interface FilmInfo { video: string; poster: string; fadeMs?: number; grade?: { seconds: number; brightness: number; saturate: number } }
+
+export const CINEMATICS: Record<CinematicId, FilmInfo> = {
+  // the film ends warm and bright; level 1 opens in moonlit night, its sand about half as bright
+  crash_open: { video: crashOpenVideo, poster: crashOpenPoster, fadeMs: 500, grade: { seconds: 2.5, brightness: 0.5, saturate: 0.88 } },
   helmet_reveal: { video: helmetRevealVideo, poster: helmetRevealPoster },
 };
 
@@ -64,9 +72,9 @@ export interface PlayOptions {
  * fadeMs (0.3 s) while the promise resolves, so the next screen is mounted under the fade.
  */
 export function playCinematic(host: HTMLElement, id: CinematicId, opts: PlayOptions = {}): Promise<CinematicResult> {
-  const { skipLabel = "Skip", startMs = 5000, stallMs = 3500, fadeMs = 300 } = opts;
   const doc = host.ownerDocument;
   const c = CINEMATICS[id];
+  const { skipLabel = "Skip", startMs = 5000, stallMs = 3500, fadeMs = c.fadeMs ?? 300 } = opts;
   const wrap = doc.createElement("div");
   wrap.className = "cine";
   wrap.setAttribute("role", "dialog");
@@ -91,12 +99,14 @@ export function playCinematic(host: HTMLElement, id: CinematicId, opts: PlayOpti
 
   return new Promise<CinematicResult>((resolve) => {
     let done = false;
+    let raf = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const release = (): void => { wrap.remove(); v.removeAttribute("src"); v.load(); };
     const finish = (r: CinematicResult): void => {
       if (done) return;
       done = true;
       clearTimeout(timer);
+      cancelAnimationFrame(raf);
       v.pause();
       if (r === "failed") { release(); resolve(r); return; }
       wrap.style.transition = `opacity ${fadeMs}ms linear`;
@@ -107,6 +117,17 @@ export function playCinematic(host: HTMLElement, id: CinematicId, opts: PlayOpti
       setTimeout(release, fadeMs + 50);
     };
     const arm = (ms: number): void => { clearTimeout(timer); timer = setTimeout(() => finish("failed"), ms); };
+    // the closing grade: ease the picture toward the level's light over the last seconds
+    const g = c.grade;
+    const grade = (): void => {
+      if (done || !g) return;
+      const left = (v.duration || Infinity) - v.currentTime;
+      const k = Math.max(0, Math.min(1, 1 - left / g.seconds));
+      const e = k * k * (3 - 2 * k);
+      v.style.filter = e > 0 ? `brightness(${(1 - (1 - g.brightness) * e).toFixed(3)}) saturate(${(1 - (1 - g.saturate) * e).toFixed(3)})` : "";
+      raf = requestAnimationFrame(grade);
+    };
+    if (g) v.addEventListener("playing", () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(grade); }, { once: true });
     wrap.addEventListener("click", () => finish("skipped"));
     v.addEventListener("ended", () => finish("ended"));
     v.addEventListener("error", () => finish("failed"));

@@ -41,7 +41,7 @@ float fbm(vec2 p) {
   return v;
 }
 void main() {
-  float S = clamp(uStrength, 0.0, 1.0) * 0.6 + 0.4;
+  float S = clamp(uStrength, 0.0, 1.0) * 0.3 + 0.8;
   float t = uTime * 0.16 * uDrift;
   vec2 q = (vUv - 0.5) * 2.0 * uZoom;
   q.x += uGlitch * (h(vec2(floor(uTime * 18.0), floor(q.y * 14.0))) - 0.5) * 0.18;
@@ -128,7 +128,7 @@ class Driver {
     const scale = this.state === "off" ? 0 : 1 - (1 - bk) * (1 - bk);
     // Low fuel: small, dim, unsteady (flicker grows as strength drops).
     const weak = 1 - this.shown;
-    const flick = 1 - weak * 0.5 * (0.5 + 0.5 * Math.sin(t * 17 + Math.sin(t * 5.3) * 3));
+    const flick = 1 - weak * 0.3 * (0.5 + 0.5 * Math.sin(t * 17 + Math.sin(t * 5.3) * 3));
     u.uTime!.value = t;
     u.uStrength!.value = this.shown;
     const flash = bk < 1 ? (1 - bk) * 1.5 : 0;
@@ -136,7 +136,7 @@ class Driver {
     u.uBright!.value = Math.min(1.5, syll * 0.7 + flash);
     const beat = (t - this.pulseAt) * 2.5; // two beats, about 0.8 s
     u.uGlitch!.value = this.state === "pulse" && beat < 2 ? (Math.floor(beat) % 2 === 0 ? 1 : 0.5) : 0;
-    u.uAlpha!.value = this.fade * flick * (0.55 + 0.45 * this.shown);
+    u.uAlpha!.value = this.fade * flick * (0.8 + 0.2 * this.shown);
     if (this.state === "fading" && this.fade <= 0) this.state = "off";
     return scale;
   }
@@ -149,8 +149,8 @@ export interface CoreSpirit {
   setStrength(k: number): void;
   /** Blooms out of the ignition flare. */
   bloom(): void;
-  /** Moves the cloud and its ground patch (world x, z); `height` lifts the cloud above the ground. */
-  moveTo(x: number, z: number, height?: number): void;
+  /** Moves the cloud and its ground patch (world x, z); `height` lifts the cloud above the ground, `size` scales both (1 = as made). */
+  moveTo(x: number, z: number, height?: number, size?: number): void;
   /** Seconds, any monotonic clock. */
   update(t: number): void;
   dispose(): void;
@@ -190,6 +190,7 @@ export function createCoreSpirit(parent: Object3D, colors: SpiritColors, opts: C
   patch.scale.set(pr, pr, 1);
   patch.renderOrder = 19;
   group.add(patch, cloud);
+  let userK = 1;
   group.visible = false;
   parent.add(group);
   const drv = new Driver(cloudMat);
@@ -198,11 +199,14 @@ export function createCoreSpirit(parent: Object3D, colors: SpiritColors, opts: C
     setState: (s) => drv.setState(s),
     setStrength: (k) => { drv.strength = Math.max(0, Math.min(1, k)); },
     bloom: () => drv.bloom(),
-    moveTo(x, z, height) { group.position.x = x; group.position.z = z; if (height !== undefined) cloud.position.y = height; },
+    moveTo(x, z, height, size) { group.position.x = x; group.position.z = z; if (height !== undefined) cloud.position.y = height; if (size !== undefined) userK = size; },
     update(t) {
       const scale = drv.step(t);
       group.visible = drv.state !== "off" || drv.fade > 0.001;
       cloud.scale.set(scale, scale, 1);
+      // the billboard shader sizes itself from uSize (object scale does not reach it)
+      cloudMat.uniforms.uSize!.value.set(size * userK, size * userK);
+      patch.scale.set(pr * userK, pr * userK, 1);
       patchMat.uniforms.uTime!.value = t;
       patchMat.uniforms.uAlpha!.value = drv.fade * scale * (0.25 + 0.5 * drv.strength);
     },

@@ -105,7 +105,7 @@ export interface StoryPresentation {
     setStrength(k: number): void;
     bloom(): void;
     /** Float beside the hero at a screen-aligned ground offset with a soft lag (ground units); null goes home to the reactor. */
-    follow(f: { right: number; up: number; lag: number; height: number } | null): void;
+    follow(f: { right: number; up: number; lag: number; height: number; size: number } | null): void;
   };
   /** Entity ids the renderer keeps solid (never faded) when the hero stands among them. */
   solid(ids: readonly string[]): void;

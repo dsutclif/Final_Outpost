@@ -92,9 +92,12 @@ export type StoryAction =
    * units: `right` toward the screen's right, `up` toward its top) with a soft lag, its ground patch with it.
    * `delay` seconds first, so the bloom stays above the reactor. `false` sends it home.
    */
-  | { spiritFollow: { right: number; up: number; lag?: number; delay?: number; height?: number } | false }
-  /** A glow on the screen edge toward a place off screen; it fades as the place comes into view. Null removes it. */
-  | { edgeGlow: StoryPlace | null }
+  | { spiritFollow: { right: number; up: number; lag?: number; delay?: number; height?: number; size?: number } | false }
+  /**
+   * A glow on the screen edge toward a place off screen; it fades as the place comes into view. Null removes it.
+   * `size` is the disc across in vmin (default 36), `strength` its peak opacity, 0..1 (default 0.4).
+   */
+  | { edgeGlow: (StoryPlace & { size?: number; strength?: number }) | null }
   /** Turn the guide arrows on or off (see StoryLevel.noGuide). */
   | { guide: boolean };
 

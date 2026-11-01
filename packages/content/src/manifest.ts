@@ -106,6 +106,16 @@ export const DecorEntity = z.object({
   type: DecorId,
   /** Degrees about the vertical axis. */
   yaw: z.number().optional(),
+  /** World units the base sits above (+) or below (-) the ground: a pod sunk into its deck. */
+  lift: z.number().optional(),
+  /** Degrees about its own sideways axis after the yaw: a lid swung open on its hinge. */
+  roll: z.number().optional(),
+  /** Multiplier on the model's catalogue size. */
+  scale: z.number().positive().optional(),
+  /** decor.deck_plate only: width, depth and thickness in world units, built in code. */
+  size: z.tuple([z.number().positive(), z.number().positive(), z.number().positive()]).optional(),
+  /** decor.deck_plate only: surface colour (default deck steel). */
+  color: z.string().optional(),
 });
 // Barrier lines: contiguous sections, each built by walking along it with the line's resource.
 export const BarrierSection = z.object({
