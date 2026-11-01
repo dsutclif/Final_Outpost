@@ -1,0 +1,201 @@
+{
+  "id": "s1-081",
+  "engineVersion": "0.18.0",
+  "contentVersion": "0.18.0",
+  "levels": [
+    {
+      "id": "s1-L081",
+      "file": "s1-L081.json",
+      "title": "All Lines Up",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "conveyors",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "converters_running",
+      "rating": 0.355,
+      "fun": 0.761,
+      "target": 0.4
+    },
+    {
+      "id": "s1-L082",
+      "file": "s1-L082.json",
+      "title": "Scrap and Survivors",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "waves_survived",
+      "rating": 0.444,
+      "fun": 0.163,
+      "target": 0.45
+    },
+    {
+      "id": "s1-L084",
+      "file": "s1-L084.json",
+      "title": "Tow Lines and Rescue",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "lasso",
+        "sales"
+      ],
+      "goal": "rescue",
+      "rating": 0.161,
+      "fun": 0.739,
+      "target": 0.538
+    },
+    {
+      "id": "s1-L085",
+      "file": "s1-L085.json",
+      "title": "Vaults and Unsealed",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "unlock",
+      "rating": 0.4,
+      "fun": 0.531,
+      "target": 0.581
+    },
+    {
+      "id": "s1-L086",
+      "file": "s1-L086.json",
+      "title": "Conveyors and Output",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "supply_routing",
+        "workers"
+      ],
+      "goal": "produce",
+      "rating": 1,
+      "fun": 0.891,
+      "target": 0.625
+    },
+    {
+      "id": "s1-L087",
+      "file": "s1-L087.json",
+      "title": "Wreckage and Make It Through",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "medical",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "survive",
+      "rating": 0.958,
+      "fun": 0.196,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L088",
+      "file": "s1-L088.json",
+      "title": "Reactors and Power Up",
+      "family": "shelter",
+      "modules": [
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "sales"
+      ],
+      "goal": "core_level",
+      "rating": 0.721,
+      "fun": 0.814,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L089",
+      "file": "s1-L089.json",
+      "title": "Stasis Pods and Game Trails",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "hunting",
+        "lasso",
+        "sales"
+      ],
+      "goal": "hunt",
+      "rating": 0.658,
+      "fun": 0.848,
+      "target": 0.756
+    }
+  ],
+  "dropped": [
+    {
+      "index": 83,
+      "id": "s1-L083",
+      "family": "shelter",
+      "secondary": null,
+      "rejects": {
+        "offTarget": 42,
+        "storm": 1,
+        "idleElement": 42
+      }
+    },
+    {
+      "index": 90,
+      "id": "s1-L090",
+      "family": "harvest",
+      "secondary": "industrialize",
+      "rejects": {
+        "layout": 30,
+        "probe": 70
+      }
+    }
+  ],
+  "tuning": {
+    "offset": 0,
+    "reason": "adaptation off",
+    "meanStars": null,
+    "meanAttempts": null,
+    "samples": 10,
+    "cleared": 24
+  }
+}
