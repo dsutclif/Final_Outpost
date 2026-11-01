@@ -1,6 +1,6 @@
 import type { CameraBeat, RidgeSide, StoryPresentation, TallySlots } from "../contract.js";
 import type { CoreSpirit } from "./corespirit.js";
-import type { StoryLights } from "./storylights.js";
+import { screenAxes, type StoryLights } from "./storylights.js";
 
 // The story director's face of the renderer: world-unit calls in, StoryLights and CoreSpirit calls
 // out, with the pulse cap applied. Plan C ranks: 1 goal light, 2 pods, 3 lamps and windows, 4 ground
@@ -30,13 +30,21 @@ export class StoryPresent implements StoryPresentation {
   private now = 0;
   /** Ranks (1-5) allowed to pulse this frame; set by frame(). */
   allowed = new Set<number>([1, 2, 3, 4, 5]);
+  /** Entities the renderer keeps solid (see StoryPresentation.solid). */
+  solidIds: ReadonlySet<string> = new Set();
+  private follow: { right: number; up: number; lag: number; height: number } | null = null;
+  private cloudAt: { x: number; z: number; h: number } | null = null;
 
-  constructor(private readonly lights: StoryLights, private readonly cloud: CoreSpirit) {}
+  /** `home`: where the cloud floats over the reactor, and its height there. */
+  constructor(private readonly lights: StoryLights, private readonly cloud: CoreSpirit, private readonly home: { x: number; z: number; h: number } = { x: 0, z: 0, h: 0 }) {}
+
+  solid(ids: readonly string[]): void { this.solidIds = new Set(ids); }
 
   readonly spirit: StoryPresentation["spirit"] = {
     setState: (s) => { this.spiritState = s; this.cloud.setState(s); },
     setStrength: (k) => this.cloud.setStrength(k),
     bloom: () => { this.spiritState = "idle"; this.cloud.bloom(); },
+    follow: (f) => { this.follow = f; },
   };
 
   dots(pts: readonly { x: number; z: number }[] | null, opts: { period?: number; lit?: boolean; together?: boolean } = {}): void {
@@ -79,6 +87,22 @@ export class StoryPresent implements StoryPresentation {
   /** The spirit's cloud is hidden this frame by the pulse cap. */
   get cloudSuppressed(): boolean { return !this.allowed.has(5) && (this.spiritState === "speaking" || this.spiritState === "pulse"); }
 
+  /** Drift the cloud toward the hero's side (soft lag) or back over the reactor. */
+  private moveCloud(dt: number, hero?: { x: number; z: number }): void {
+    const cur = (this.cloudAt ??= { ...this.home });
+    let tx = this.home.x, tz = this.home.z, th = this.home.h, lag = 0.8;
+    if (this.follow && hero) {
+      const a = screenAxes();
+      tx = hero.x + a.right.x * this.follow.right + a.up.x * this.follow.up;
+      tz = hero.z + a.right.z * this.follow.right + a.up.z * this.follow.up;
+      th = this.follow.height;
+      lag = Math.max(0.05, this.follow.lag);
+    }
+    const k = 1 - Math.exp(-dt / lag);
+    cur.x += (tx - cur.x) * k; cur.z += (tz - cur.z) * k; cur.h += (th - cur.h) * k;
+    this.cloud.moveTo(cur.x, cur.z, cur.h);
+  }
+
   /** The slow pulse follows the ground dots' own beat (cos cubed on the same clock); flashes ride over it. */
   private ridgeNow(t: number): number {
     let k = this.ridgeK;
@@ -93,8 +117,9 @@ export class StoryPresent implements StoryPresentation {
   }
 
   /** Per frame: t seconds on the renderer clock, dt seconds since the last frame, and the camera view on the ground. */
-  frame(t: number, dt: number, cx: number, cz: number, halfW: number, halfH: number): void {
+  frame(t: number, dt: number, cx: number, cz: number, halfW: number, halfH: number, hero?: { x: number; z: number }): void {
     this.now = t;
+    this.moveCloud(dt, hero);
     if (this.target !== null) this.cur = this.snapNow ? this.target : this.cur + (this.target - this.cur) * Math.min(1, dt * 1.5);
     this.snapNow = false;
     this.lights.setProgress(this.cur);

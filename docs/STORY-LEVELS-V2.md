@@ -32,13 +32,15 @@ trader who sizes everyone up.
 
 ## Build notes for all five levels
 
+- **Every line pauses play (2026-11-01):** the sim stops stepping for every line of every speaker, in all story levels, until a tap. A tap on a line still typing completes it first; the next tap moves on. Line `seconds` no longer run a line out. Replays keep the pause. Goal stars do not wait for a line: the star and next goal label land at the moment (ignition), then the line. Coach hints ("Your pack is full of that") and coach marks stay quiet during any line, card, film or camera beat. Code: `StoryDirector.waitTap`, `StoryView.finishLine`.
 - **Words:** every line either sets up the goal or moves the story. KILN's lines use a terminal readout at the bottom of the screen, with the animated cloud beside them; other characters use a top strip with their name (Doug, 2026-10-31). Crew faces are never assumed: use names, not portraits.
 - **Goals:** three goals per level, one on screen at a time, all three star slots always visible. A goal met early completes
   when its turn comes. Objectives already latch (`objectives.ts`), so this is client display only, and the sim never blocks a goal behind another. No time or challenge stars.
 - **Missing a star:** a large centre-screen **You missed it. Try again?** appears only for goals that matter to the story's progress: L1 Fill the reactor and L2 Bring everyone home. Other missed stars just crack their slot and the next goal appears. The result screen offers **Try again for 3 stars** either way.
 - **Guide:** lights in the world first, then KILN's lines. Ground arrows are always on, drawn as soft **shadows by day and light spots by night**, and circling any pod to show the tow loop. Built and live across the whole game (2026-10-31).
 - **Lighting changes:** each level gradually changes its lighting as it plays, for example night slowly turning to sunrise, driven by level progress in the client. Night is used to make one light the obvious next step.
-- **Night needs moonlight:** the current night setting shows the sand as almost pure black. Raise it so the sand and ridge read faintly, or Doug's level 1 walk and the ridge pulses won't show.
+- **Night needs moonlight:** story nights match level 5's night (sun 0.32, ambient about 0.44 in `look3d.storyNight`) so sand and ridge read faintly and the glow is the obvious thing. The ridge flare is a short red side pulse with little reach, never a wash over the screen.
+- **Hand-off from `crash_open` (2026-11-01):** level 1 opens zoomed out (`openZoom`, 0.6) so the commander is the film's last-frame size at the same screen spot, holds until the first step, then eases in. The wreck sits up and to the right behind the ridge, where the film's deck stands. Not matched: the film's last frame is graded warm brown and the game's night is cool blue-grey; the film shows the deck, pods and three ore piles close up (the game wreck is the whole hull, seen far off); and the commander's starting facing is not set by data.
 - **Films:** skippable with a tap. They play automatically the first time, again when a player resets levels for a new update, and again when that video itself is updated (each film has its own saved version). Replaying from the levels menu is in a separate backlog.
 - **Continuity:** each training level uses the map and buildings the last one left, and rescued crew keep the jobs they took. Levels after training don't carry over.
 - **Stock overload** is removed from levels 1â€“5 only: no overload star, and no collapse rule on these manifests (`stock.collapseSeconds` 0). Removing it from later levels is in a separate backlog, so `docs/STORY-FIRSTS.md` teaches it there for now.
@@ -218,8 +220,11 @@ Everything else appears through the first-appearance intros in `docs/STORY-FIRST
 
 ## How KILN appears (look agreed by Doug, 2026-10-30)
 
-A computer-generated cloud of light floating just above the reactor (layered moving noise, no model or
-video), with a small copy beside KILN's name when KILN speaks away from the reactor.
+A computer-generated cloud of light (layered moving noise, no model or video), with a small copy beside
+KILN's name when KILN speaks. **Where it floats (changed 2026-11-01):** it blooms above the reactor out of the
+flare, then after about 1.4 s drifts to the player and floats beside them at a fixed screen-side offset (data:
+`spiritFollow` right/up ground units, height, lag), following with a soft lag; the ground patch moves with it.
+Above the reactor it was lost in the fire. The small portrait uses a softer noise and edge so it has no hard blocks.
 
 - **Colour:** cold, artificial light, not fire: deep blue through electric blue to a near-white centre, with
   very faint moving scan lines. The glowing patch on the ground under it uses the same blue.

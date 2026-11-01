@@ -1182,6 +1182,7 @@ export class App {
       this.probe(s, dt);
       if (s.sim.state.tick % 15 === 0) this.discover(nearbyPassive(s.sim.state));
     }
+    else if (s.director?.busy) s.renderer.setCoach(null);
     if (this.hidden) return;
     s.cam.lead = this.leadPoint(s);
     if (s.stage) {
@@ -1263,7 +1264,7 @@ export class App {
     const stuck = this.settings.stuckArrow && s.stuck.stuck(s.sim.state);
     s.guideTarget = (s.guideOn || stuck) && s.guide && !s.ended && !s.director?.world.guideOff ? s.guide.update(s.sim.state, this.skin) : null;
     s.renderer.setGuide(s.guideTarget);
-    if (!mark || s.director?.world.guideOff) { s.renderer.setCoach(null); return; }
+    if (!mark || s.director?.world.guideOff || s.director?.busy) { s.renderer.setCoach(null); return; }
     const at = toWorld(mark.at), g = s.guideTarget;
     // the guide arrow already points here: its line speaks for the coach mark
     if (g && (g.at.x - at.x) ** 2 + (g.at.y - at.y) ** 2 < 50 * 50) { s.renderer.setCoach(null); return; }
@@ -1293,6 +1294,8 @@ export class App {
 
   private handleEvent(s: Session, e: SimEvent): void {
     s.director?.onEvent(e, s.sim.state);
+    // coach hints ("Your pack is full of that") never talk over a line or a story beat
+    if (e.t === "hint" && s.director?.busy) return;
     s.renderer.onEvent(e);
     this.haptics.play(e);
     this.synth.playEvent(e, this.skin);

@@ -68,7 +68,7 @@ export class StoryLights {
     this.dotColor = new Color(c.dot);
     const dm = glowMat(c.dot, 0.9);
     if (this.soft) dm.alphaMap = this.soft;
-    this.dots = new InstancedMesh(new CircleGeometry(7, 20).rotateX(-Math.PI / 2), dm, MAX_DOTS);
+    this.dots = new InstancedMesh(new CircleGeometry(11, 24).rotateX(-Math.PI / 2), dm, MAX_DOTS);
     this.dots.setColorAt(0, this.dotColor);
     this.dots.count = 0;
     // ridge wash: a quad fading from full at one edge to nothing, via vertex alpha

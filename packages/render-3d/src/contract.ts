@@ -104,7 +104,11 @@ export interface StoryPresentation {
     /** 0..1 reactor strength. */
     setStrength(k: number): void;
     bloom(): void;
+    /** Float beside the hero at a screen-aligned ground offset with a soft lag (ground units); null goes home to the reactor. */
+    follow(f: { right: number; up: number; lag: number; height: number } | null): void;
   };
+  /** Entity ids the renderer keeps solid (never faded) when the hero stands among them. */
+  solid(ids: readonly string[]): void;
   /** Ask the camera to look elsewhere for a while; null cancels. */
   beat(b: (Omit<CameraBeat, "seconds"> & { seconds?: number }) | null): void;
   /** True while a camera beat is running. */

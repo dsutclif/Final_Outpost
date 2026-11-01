@@ -108,8 +108,8 @@ const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.shi
 const CORE_BURIED = 0.9;
 
 const NO_STORY: StoryPresentation = {
-  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {},
-  spirit: { setState() {}, setStrength() {}, bloom() {} },
+  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {},
+  spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
 };
 /** Items drawn per carried column at most. */
@@ -586,7 +586,7 @@ export class Renderer3D implements Renderer {
     this.storyLights = new StoryLights(this.scene, storyLightColors(this.tokens), make);
     const coreAt = (manifest.entities.find((e) => e.type === "sink.core") as { at?: readonly [number, number] } | undefined)?.at ?? [manifest.map.w / 2, manifest.map.h / 2];
     this.spirit = createCoreSpirit(this.scene, this.tokens, { at: { x: coreAt[0], y: 0, z: coreAt[1] }, height: ART_M * 2.3, size: ART_M * 8, patch: ART_M * 2.6 });
-    this.storyP = new StoryPresent(this.storyLights, this.spirit);
+    this.storyP = new StoryPresent(this.storyLights, this.spirit, { x: coreAt[0], z: coreAt[1], h: ART_M * 2.3 });
     this.buildDom(doc, mount);
 
     this.interp.reset();
@@ -938,7 +938,7 @@ export class Renderer3D implements Renderer {
     const coreW = this.wv(state.core.pos);
     if (this.storyP && this.storyLights && this.spirit) {
       const sp = this.storyP;
-      sp.frame(this.t, dt, this.look.x, this.look.z, this.halfGround.w, this.halfGround.h);
+      sp.frame(this.t, dt, this.look.x, this.look.z, this.halfGround.w, this.halfGround.h, { x: pl.x, z: pl.y });
       const sl = sp.lightingNow;
       this.env.story = sl === null ? null : storyLighting(this.skin, this.tokens, sl);
       this.spirit.update(this.t);
@@ -1089,7 +1089,7 @@ export class Renderer3D implements Renderer {
       const r = p.model.root;
       const reach = (r.position.y + o.top * r.scale.y - half) / slope;
       let hidden = false;
-      if (r.visible && reach > 0) {
+      if (r.visible && reach > 0 && !this.storyP?.solidIds.has(String(p.data["id"]))) {
         // into the root's frame: undo its turn, then its per-axis scale
         const c = Math.cos(r.rotation.y), s = Math.sin(r.rotation.y);
         const wx = pl.x - r.position.x, wz = pl.y - r.position.z;

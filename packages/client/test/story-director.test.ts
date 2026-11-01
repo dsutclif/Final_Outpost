@@ -9,7 +9,7 @@ const storyOf = (level: StoryLevel): SkinStory => ({ ui: UI, speakers: { kiln: {
 const state = (over: Partial<State> = {}): State =>
   ({ tick: 0, over: false, player: { pos: { x: 0, y: 0 } }, objectives: [], stats: {}, ...over }) as unknown as State;
 
-function harness(level: StoryLevel, replay = false) {
+function harness(level: StoryLevel, replay = false, finishLine?: () => boolean) {
   const log: string[] = [];
   let tap: (() => void) | null = null;
   let retry: (() => void) | null = null, other: (() => void) | null = null;
@@ -17,6 +17,7 @@ function harness(level: StoryLevel, replay = false) {
   const view: StoryView = {
     line: (l) => log.push(`line:${l.name}:${l.text}${l.portrait ? `:${l.portrait}` : ""}`),
     clearLine: () => log.push("clear"),
+    ...(finishLine ? { finishLine } : {}),
     card: (c) => log.push(`${c.day ? "day" : "card"}:${c.text}`),
     clearCard: () => log.push("cardoff"),
     onTap: (f) => { tap = f; },
@@ -49,20 +50,22 @@ const levelOf = (...cues: StoryLevel["cues"]): StoryLevel => ({ goals: [], cues 
 
 describe("story director cues", () => {
   it("fires on start, sim event with match, and only once", () => {
+    vi.useFakeTimers();
     const h = harness(levelOf(
       cue({ start: true }, { line: "hello", who: "kiln", seconds: 1 }),
       cue({ event: "joined", match: { role: "role.hauler" } }, { line: "pip", who: "pip", seconds: 1 }),
     ));
     h.d.update(16, state());
     expect(h.log).toContain("line:KILN:hello:kiln");
-    h.d.update(1100, state());
+    h.tap();
     h.d.onEvent({ t: "joined", capture: 0, resident: 0, role: "role.other" } as SimEvent, state());
     expect(h.log.some((l) => l.startsWith("line:PIP"))).toBe(false);
     h.d.onEvent({ t: "joined", capture: 0, resident: 0, role: "role.hauler" } as SimEvent, state());
     expect(h.log.filter((l) => l.startsWith("line:PIP"))).toHaveLength(1);
-    h.d.update(1100, state());
+    h.tap();
     h.d.onEvent({ t: "joined", capture: 1, resident: 1, role: "role.hauler" } as SimEvent, state());
     expect(h.log.filter((l) => l.startsWith("line:PIP"))).toHaveLength(1);
+    vi.useRealTimers();
   });
 
   it("fires within a radius of an entity, and by sim ticks after another cue", () => {
@@ -118,11 +121,41 @@ describe("story director freezing", () => {
   });
 
   it("a forgotten freeze is released when the queue runs dry", () => {
+    vi.useFakeTimers();
     const h = harness(levelOf(cue({ start: true }, { freeze: true }, { line: "x", seconds: 1 })));
     h.d.update(16, state());
     expect(h.d.frozen).toBe(true);
-    h.d.update(1100, state());
+    h.tap();
     expect(h.d.frozen).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("every line pauses play until tapped, whatever its speaker or seconds, and its time never runs it out", () => {
+    vi.useFakeTimers();
+    const h = harness(levelOf(cue({ start: true }, { line: "a", who: "kiln", seconds: 1 }, { line: "b", who: "pip" })));
+    h.d.update(16, state());
+    expect(h.d.frozen).toBe(true);
+    h.d.update(60_000, state());
+    expect(h.d.frozen).toBe(true);
+    h.tap();
+    expect(h.log.filter((l) => l.startsWith("line:"))).toEqual(["line:KILN:a:kiln", "line:PIP:b"]);
+    expect(h.d.frozen).toBe(true);
+    h.tap();
+    expect(h.d.frozen).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("a tap on a line still typing completes it first, the next tap moves on", () => {
+    vi.useFakeTimers();
+    let typing = true;
+    const h = harness(levelOf(cue({ start: true }, { line: "long line", who: "kiln" })), false, () => { const was = typing; typing = false; return was; });
+    h.d.update(16, state());
+    h.tap();
+    expect(h.d.frozen).toBe(true);
+    expect(h.log).not.toContain("clear");
+    h.tap();
+    expect(h.d.frozen).toBe(false);
+    vi.useRealTimers();
   });
 
   it("cards freeze for their time and a tap ends them early", () => {
@@ -174,19 +207,22 @@ describe("story director freezing", () => {
 });
 
 describe("story director replays", () => {
-  it("drops beats and films, keeps lines and never freezes", () => {
+  it("drops beats and films, keeps lines (which still pause for a tap)", () => {
+    vi.useFakeTimers();
     const h = harness(levelOf(cue({ start: true },
       { camera: { to: { at: [1, 1] } } }, { film: "f" }, { card: "c" }, { freeze: true }, { tap: true },
       { line: "kept", tap: true, seconds: 1 }, { crew: "hi", who: "pip" },
     )), true);
     h.d.update(16, state());
-    expect(h.d.frozen).toBe(false);
     expect(h.host.film).not.toHaveBeenCalled();
     expect(h.cam.follow).toBe(true);
     expect(h.log).toContain("line::kept");
-    h.d.update(1100, state());
-    expect(h.d.frozen).toBe(false);
+    expect(h.d.frozen).toBe(true);
+    h.tap();
     expect(h.log).toContain("line:PIP:hi");
+    h.tap();
+    expect(h.d.frozen).toBe(false);
+    vi.useRealTimers();
   });
 });
 
@@ -252,17 +288,19 @@ describe("story director goals", () => {
   });
 
   it("a loss waits on last words and the prompt before the result screen", () => {
+    vi.useFakeTimers();
     const h = harness({ goals: [{ id: "b", tryAgain: true }], cues: [cue({ event: "level_end", match: { won: false } }, { line: "Not yet...", seconds: 1 })] });
     const over = state({ over: true, objectives: [{ id: "b", failed: true }] } as unknown as Partial<State>);
     h.d.onEvent({ t: "level_end", won: false, reason: "r" } as SimEvent, over);
     const show = vi.fn();
     expect(h.d.holdResult(show)).toBe(true);
     expect(h.log.some((l) => l.startsWith("prompt"))).toBe(false);
-    h.d.update(1100, over);
+    h.tap();
     expect(h.log).toContain("prompt:Missed:Results");
     expect(show).not.toHaveBeenCalled();
     h.other();
     expect(show).toHaveBeenCalledOnce();
+    vi.useRealTimers();
   });
 
   it("no hold when nothing is queued, so results come as usual", () => {
@@ -326,8 +364,27 @@ describe("story director, level one's needs", () => {
     expect(w.glow).toEqual({ x: 3, y: 4 });
     expect(w.guideOff).toBe(false);
     expect(w.light).toEqual({ preset: "dawn", seconds: 5, atTick: 7 });
-    expect(h.d.frozen).toBe(false);
+    expect(h.d.frozen).toBe(true); // the line pauses play; the nudge still moved the camera
     expect(h.log.some((l) => l.startsWith("line:KILN:said"))).toBe(true);
+  });
+
+  it("the cloud follow, the quiet flag and the film-matching opening zoom", () => {
+    vi.useFakeTimers();
+    const lvl: StoryLevel = { ...levelOf(cue({ start: true }, { spiritFollow: { right: 40, up: 6 } }, { line: "hi", who: "kiln" })), openZoom: { from: 0.6, seconds: 1 }, solid: ["sink.core"] };
+    const h = harness(lvl);
+    expect(h.cam.zoom).toBe(0.6);
+    expect(h.d.solid).toEqual(["sink.core"]);
+    h.d.update(16, state());
+    expect(h.d.world.follow).toEqual({ right: 40, up: 6 });
+    expect(h.d.busy).toBe(true); // a line is up: coach hints stay quiet
+    h.d.update(2000, state()); // frozen on the line: the framing holds
+    expect(h.cam.zoom).toBe(0.6);
+    h.tap();
+    expect(h.d.busy).toBe(false);
+    h.d.update(500, state({ player: { pos: { x: 50_000, y: 0 } } } as Partial<State>)); // the hero walks: ease out
+    h.d.update(1000, state({ player: { pos: { x: 50_000, y: 0 } } } as Partial<State>));
+    expect(h.cam.zoom).toBe(1);
+    vi.useRealTimers();
   });
 
   it("shows a goal's own wording with the time left", () => {

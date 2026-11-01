@@ -61,11 +61,11 @@
   background: radial-gradient(circle, var(--story-glow, #a9d8ff) 0, transparent 68%); mix-blend-mode: screen; }
 .story-glow[hidden] { display: none; }
 
-/* The ridge pulse: red light from one fixed screen side */
-.story-ridge { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(ellipse 85% 42% at 100% 32%, var(--story-ridge, #ff3b2e), transparent); }
-.story-ridge[data-side="left"] { background: radial-gradient(ellipse 85% 42% at 0 32%, var(--story-ridge, #ff3b2e), transparent); }
-.story-ridge[data-side="top"] { background: radial-gradient(ellipse 90% 30% at 50% 0, var(--story-ridge, #ff3b2e), transparent); }
-.story-ridge[data-side="bottom"] { background: radial-gradient(ellipse 90% 30% at 50% 100%, var(--story-ridge, #ff3b2e), transparent); }
+/* The ridge pulse: a short red flare hugging one screen side, little reach, never a wash over the whole screen */
+.story-ridge { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(ellipse 30% 20% at 100% 30%, var(--story-ridge, #ff3b2e), transparent 100%); }
+.story-ridge[data-side="left"] { background: radial-gradient(ellipse 30% 20% at 0 30%, var(--story-ridge, #ff3b2e), transparent 100%); }
+.story-ridge[data-side="top"] { background: radial-gradient(ellipse 36% 12% at 50% 0, var(--story-ridge, #ff3b2e), transparent 100%); }
+.story-ridge[data-side="bottom"] { background: radial-gradient(ellipse 36% 12% at 50% 100%, var(--story-ridge, #ff3b2e), transparent 100%); }
 .story-ridge[hidden] { display: none; }
 
 /* Terminal readout: the reactor spirit's lines, low on the screen above the Help row, the live cloud beside them with no disc around it */
@@ -77,7 +77,7 @@
 .sdlg-term[hidden] { display: none; }
 .sdlg-term-cloud { flex: none; width: 72px; height: 72px; margin: -4px 0; }
 .sdlg-term-cloud[hidden] { display: none; }
-.sdlg-term-cloud canvas { display: block; width: 100%; height: 100%; }
+.sdlg-term-cloud canvas { display: block; width: 100%; height: 100%; filter: blur(0.7px); }
 .sdlg-term-body { flex: 1; min-width: 0; }
 .sdlg-term-text { margin: 0; color: #bfe3ff; font: 500 14px/1.35 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .sdlg-term-text b { font-weight: 700; color: #7cc4ff; }

@@ -16,6 +16,8 @@ export interface DialogueLine { name: string; text: string; portrait?: string | 
 export interface StoryView {
   line(l: DialogueLine): void;
   clearLine(): void;
+  /** A tap on a line that is still typing out: show it whole and return true; false when nothing was typing. */
+  finishLine?(): boolean;
   card(c: { text: string; sub?: string | undefined; day: boolean }): void;
   clearCard(): void;
   /** Where a tap anywhere goes, or null when nothing waits on one. */
@@ -54,13 +56,15 @@ export interface StoryWorld {
   flash: { n: number; seq: number } | null;
   spirit: { state: "bloom" | "pulse" | "idle" | "fading" | "off"; seq: number } | null;
   glow: { x: number; y: number } | null;
+  /** The cloud floats beside the hero (see StoryAction spiritFollow); null: over the reactor. */
+  follow: { right: number; up: number; lag?: number; delay?: number; height?: number } | null;
   guideOff: boolean;
   /** A line by a spirit speaker is on screen. */
   speaking: boolean;
 }
 
 const isBeat = (a: StoryAction): boolean => "camera" in a || "film" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
-const isWorld = (a: StoryAction): boolean => "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a;
+const isWorld = (a: StoryAction): boolean => "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a;
 const CARD_SECONDS = 3;
 const GOAL_GAP_S = 0.7;
 const TAP_GUARD_MS = 250;
@@ -99,6 +103,8 @@ export class StoryDirector {
   private tokens: readonly StoryToken[] = [];
   private objectives: State["objectives"] = [];
   private paintKey = "";
+  // the opening framing that matches a film's last frame, eased to the play zoom
+  private zoomOpen: { from: number; seconds: number; hold: number; t: number; at: { x: number; y: number } | null; easing: number | null } | null = null;
 
   constructor(
     private readonly story: SkinStory,
@@ -110,15 +116,24 @@ export class StoryDirector {
     /** This run started at the level's `retryFrom`, so the cues of the walk there do not fire. */
     private readonly fromRetrySpot = false,
   ) {
-    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, guideOff: !!level.noGuide, speaking: false };
+    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, speaking: false };
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
+    if (level.openZoom && !replay && !fromRetrySpot) {
+      this.zoomOpen = { from: level.openZoom.from, seconds: level.openZoom.seconds, hold: level.openZoom.hold ?? 8, t: 0, at: null, easing: null };
+      host.cam.zoom = level.openZoom.from;
+    }
     view.hud(this.hidden);
   }
 
   /** True while the sim must not step. */
   get frozen(): boolean {
     return this.promptOpen || this.explicitFreeze || !!this.active?.freezes;
+  }
+
+  /** A line, card, film or camera beat is on: coach hints and marks stay quiet so they never talk over the story. */
+  get busy(): boolean {
+    return this.frozen || !!this.active || this.queue.length > 0 || !!this.nudge;
   }
 
   /** The director runs the goals display, so app.ts leaves star toasts to it. */
@@ -128,6 +143,9 @@ export class StoryDirector {
   goalLabel(id: string): string | undefined {
     return this.level.goals.find((g) => g.id === id)?.label?.replace(/[:\s]*\{left\}/, "");
   }
+
+  /** Entities the renderer keeps solid. */
+  get solid(): readonly string[] { return this.level.solid ?? []; }
 
   /** Whether the goal cards and overview still play. */
   get keepsIntro(): boolean { return !!this.level.intro; }
@@ -185,6 +203,7 @@ export class StoryDirector {
     this.tick = st.tick;
     this.objectives = st.objectives;
     if (this.nudge?.step(dt)) this.nudge = null;
+    this.stepOpenZoom(dt, st);
     if (!this.started) {
       this.started = true;
       for (const c of this.level.cues) if ("start" in c.on && this.armed(c)) this.fire(c, st);
@@ -197,6 +216,23 @@ export class StoryDirector {
     this.pump();
     this.gap = Math.max(0, this.gap - dt);
     this.advanceGoals();
+  }
+
+  /** Hold the film's framing until the hero walks (or the hold runs out), then ease out to the play zoom. */
+  private stepOpenZoom(dt: number, st: State): void {
+    const z = this.zoomOpen;
+    if (!z || this.active?.k === "camera" || this.nudge) return;
+    const p = { x: st.player.pos.x / FP, y: st.player.pos.y / FP };
+    z.at ??= p;
+    if (z.easing === null) {
+      if (!this.frozen) z.t += dt;
+      if ((p.x - z.at.x) ** 2 + (p.y - z.at.y) ** 2 > 36 || z.t >= z.hold) z.easing = 0;
+      else { this.host.cam.zoom = z.from; return; }
+    }
+    z.easing = Math.min(1, z.easing + dt / Math.max(0.01, z.seconds));
+    const e = z.easing * z.easing * (3 - 2 * z.easing);
+    this.host.cam.zoom = z.from + (1 - z.from) * e;
+    if (z.easing >= 1) this.zoomOpen = null;
   }
 
   /** The HUD's tokens for this frame. */
@@ -280,16 +316,13 @@ export class StoryDirector {
   private start(a: StoryAction): void {
     if ("line" in a) {
       const sp = a.who !== undefined ? this.story.speakers[a.who] : undefined;
-      const tap = !!a.tap && !this.replay;
-      this.view.line({ name: sp?.name ?? a.who ?? "", text: a.line, portrait: sp?.portrait, tap, style: sp?.dialogue });
+      // every line pauses play until a tap (a line still typing completes first)
+      this.view.line({ name: sp?.name ?? a.who ?? "", text: a.line, portrait: sp?.portrait, tap: true, style: sp?.dialogue });
       this.world = { ...this.world, speaking: !!sp?.spirit };
-      const end = (): void => { this.view.clearLine(); this.world = { ...this.world, speaking: false }; };
-      if (tap) this.waitTap(end);
-      else this.timed(a.seconds ?? lineSeconds(a.line), end);
+      this.waitTap(() => { this.view.clearLine(); this.world = { ...this.world, speaking: false }; });
     } else if ("crew" in a) {
-      this.view.line({ name: this.story.speakers[a.who]?.name ?? a.who, text: a.crew, tag: a.tag, tap: !this.replay });
-      if (this.replay) this.timed(lineSeconds(a.crew), () => this.view.clearLine());
-      else this.waitTap(() => this.view.clearLine());
+      this.view.line({ name: this.story.speakers[a.who]?.name ?? a.who, text: a.crew, tag: a.tag, tap: true });
+      this.waitTap(() => this.view.clearLine());
     } else if ("camera" in a) {
       const to = this.place(a.camera.to);
       // a nudge during play runs beside the lines; a beat that pauses play holds the queue
@@ -335,6 +368,8 @@ export class StoryDirector {
       this.world = { ...this.world, flash: { n: a.ridgeFlash, seq: ++this.seq } };
     } else if ("spirit" in a) {
       this.world = { ...this.world, spirit: { state: a.spirit, seq: ++this.seq } };
+    } else if ("spiritFollow" in a) {
+      this.world = { ...this.world, follow: a.spiritFollow || null };
     } else if ("edgeGlow" in a) {
       this.world = { ...this.world, glow: a.edgeGlow ? this.place(a.edgeGlow) : null };
     } else if ("guide" in a) {
@@ -365,6 +400,7 @@ export class StoryDirector {
     this.active = { k: "wait", freezes: true };
     this.view.onTap(() => {
       if (Date.now() - since < TAP_GUARD_MS) return; // the finger that was already walking
+      if (this.view.finishLine?.()) return; // a line still typing completes first
       this.view.onTap(null);
       this.active = null;
       end();
@@ -404,9 +440,12 @@ export class StoryDirector {
     return g && (!g.hold || this.released.has(g.id)) ? g : null;
   }
 
-  /** The goal on show settles when the sim says so; after a short gap the next one appears. */
+  /**
+   * The goal on show settles when the sim says so; after a short gap the next one appears. It does not wait
+   * for a line: lines pause play, so the star lands at the moment (ignition) and the line follows.
+   */
   private advanceGoals(): void {
-    if (this.over || this.frozen || this.gap > 0) return;
+    if (this.over || this.promptOpen || this.gap > 0) return;
     const g = this.currentGoal();
     const t = g && this.tokens.find((x) => x.id === g.id);
     if (!t || t.state === "open") return;

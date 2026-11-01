@@ -27,12 +27,12 @@ void main() {
 
 const FRAG = /* glsl */ `
 precision mediump float;
-uniform float uTime, uStrength, uBright, uGlitch, uAlpha, uSeed, uZoom, uDrift, uCoreK;
+uniform float uTime, uStrength, uBright, uGlitch, uAlpha, uSeed, uZoom, uDrift, uCoreK, uSoft;
 uniform vec3 uDeep, uMid, uCore, uRed;
 varying vec2 vUv;
 float h(vec2 p) { p = fract(p * vec2(123.34, 456.21) + uSeed); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vn(vec2 p) {
-  vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  vec2 i = floor(p), f = fract(p); f = mix(f * f * (3.0 - 2.0 * f), f * f * f * (f * (f * 6.0 - 15.0) + 10.0), uSoft);
   return mix(mix(h(i), h(i + vec2(1.0, 0.0)), f.x), mix(h(i + vec2(0.0, 1.0)), h(i + vec2(1.0, 1.0)), f.x), f.y);
 }
 float fbm(vec2 p) {
@@ -50,8 +50,10 @@ void main() {
   vec2 n = q / sqrt(uZoom);
   vec2 o = vec2(fbm(n * 2.6 + vec2(0.0, -t * 1.7)), fbm(n * 2.6 + vec2(5.2, t)));
   float d = fbm(n * 2.4 + 1.6 * o + vec2(t * 0.5, -t));
-  float mask = smoothstep(0.36 * S, 0.03, r + (0.5 - d) * 0.26 * (2.0 - uZoom));
-  float core = uCoreK * smoothstep(0.17 * S, 0.0, r + (0.5 - d) * 0.13);
+  // the small portrait (uSoft) bends its edge less and fades it wider, so no noise cell shows as a hard corner
+  float bend = 1.0 - 0.6 * uSoft;
+  float mask = smoothstep(0.36 * S + 0.1 * uSoft, 0.03 - 0.12 * uSoft, r + (0.5 - d) * 0.26 * (2.0 - uZoom) * bend);
+  float core = uCoreK * smoothstep(0.17 * S + 0.06 * uSoft, 0.0, r + (0.5 - d) * 0.13 * bend);
   vec3 col = mix(uDeep, uMid, d);
   col = mix(col, uCore, core);
   col *= 1.0 + 0.9 * uBright;
@@ -73,7 +75,7 @@ void main() {
   gl_FragColor = vec4(uMid * a, a * uAlpha);
 }`;
 
-function spiritMaterial(c: SpiritColors, size: [number, number], seed: number, look: { zoom: number; drift: number; core: number } = { zoom: 1, drift: 1, core: 1 }): ShaderMaterial {
+function spiritMaterial(c: SpiritColors, size: [number, number], seed: number, look: { zoom: number; drift: number; core: number; soft?: number } = { zoom: 1, drift: 1, core: 1 }): ShaderMaterial {
   return new ShaderMaterial({
     vertexShader: VERT,
     fragmentShader: FRAG,
@@ -83,7 +85,7 @@ function spiritMaterial(c: SpiritColors, size: [number, number], seed: number, l
     uniforms: {
       uSize: { value: new Vector2(size[0], size[1]) },
       uTime: { value: 0 }, uStrength: { value: 1 }, uBright: { value: 0 }, uGlitch: { value: 0 },
-      uAlpha: { value: 1 }, uSeed: { value: seed }, uZoom: { value: look.zoom }, uDrift: { value: look.drift }, uCoreK: { value: look.core },
+      uAlpha: { value: 1 }, uSeed: { value: seed }, uZoom: { value: look.zoom }, uDrift: { value: look.drift }, uCoreK: { value: look.core }, uSoft: { value: look.soft ?? 0 },
       uDeep: { value: new Color(c.spiritDeep) }, uMid: { value: new Color(c.spirit) },
       uCore: { value: new Color(c.spiritCore) }, uRed: { value: new Color(c.spiritGlitch) },
     },
@@ -147,6 +149,8 @@ export interface CoreSpirit {
   setStrength(k: number): void;
   /** Blooms out of the ignition flare. */
   bloom(): void;
+  /** Moves the cloud and its ground patch (world x, z); `height` lifts the cloud above the ground. */
+  moveTo(x: number, z: number, height?: number): void;
   /** Seconds, any monotonic clock. */
   update(t: number): void;
   dispose(): void;
@@ -194,6 +198,7 @@ export function createCoreSpirit(parent: Object3D, colors: SpiritColors, opts: C
     setState: (s) => drv.setState(s),
     setStrength: (k) => { drv.strength = Math.max(0, Math.min(1, k)); },
     bloom: () => drv.bloom(),
+    moveTo(x, z, height) { group.position.x = x; group.position.z = z; if (height !== undefined) cloud.position.y = height; },
     update(t) {
       const scale = drv.step(t);
       group.visible = drv.state !== "off" || drv.fade > 0.001;
@@ -232,7 +237,7 @@ export function createSpiritPortrait(
   cam.position.z = 2;
   const quad = new PlaneGeometry(1, 1);
   // zoomed in so the billows and their drift are what you see at this size; a full white core would read as a ball
-  const mat = spiritMaterial(colors, [2, 2], 3.7, { zoom: 0.3, drift: 2.6, core: 0.3 });
+  const mat = spiritMaterial(colors, [2, 2], 3.7, { zoom: 0.4, drift: 2.6, core: 0.3, soft: 1 });
   const mesh = new Mesh(quad, mat);
   mesh.frustumCulled = false;
   scene.add(mesh);
@@ -245,6 +250,7 @@ export function createSpiritPortrait(
     setState: (s) => drv.setState(s),
     setStrength: (k) => { drv.strength = Math.max(0, Math.min(1, k)); },
     bloom: () => drv.bloom(),
+    moveTo() {},
     update(t) {
       cam.updateMatrixWorld();
       drv.step(t);

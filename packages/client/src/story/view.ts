@@ -5,7 +5,7 @@ import "./story.css";
 // The director's DOM. Dialogue goes through DIALOGUE_STYLES, so trying another look means adding one
 // entry (and its CSS) and setting `story.dialogue` in the skin; nothing else changes.
 
-export interface DialogueStyle { show(l: DialogueLine, tapLabel: string): void; clear(): void; frame?(t: number): void; dispose?(): void }
+export interface DialogueStyle { show(l: DialogueLine, tapLabel: string): void; clear(): void; finish?(): boolean; frame?(t: number): void; dispose?(): void }
 
 /** A portrait that draws itself: its canvas goes in the slot and `update` keeps it moving while it shows. */
 export interface LivePortrait { readonly canvas: HTMLCanvasElement; update(t: number): void; dispose(): void }
@@ -62,7 +62,7 @@ function terminalDialogue(layer: HTMLElement, portrait?: PortraitMaker): Dialogu
   layer.append(root);
   const $ = (sel: string): HTMLElement => root.querySelector<HTMLElement>(sel)!;
   const live = new Map<string, LivePortrait | null>();
-  let showing: LivePortrait | null = null, full = "", began: number | null = null, shown = -1;
+  let showing: LivePortrait | null = null, full = "", began: number | null = null, shown = -1, done = false;
   return {
     show(l, tapLabel) {
       if (l.portrait && !live.has(l.portrait)) {
@@ -78,15 +78,21 @@ function terminalDialogue(layer: HTMLElement, portrait?: PortraitMaker): Dialogu
       // the whole line for screen readers; the eye gets it typed
       root.setAttribute("aria-label", `${l.name}: ${l.text}`);
       $(".sdlg-term-typed").textContent = "";
-      full = l.text; began = null; shown = -1;
+      full = l.text; began = null; shown = -1; done = false;
       $(".sdlg-tap").textContent = tapLabel;
       $(".sdlg-tap").hidden = !l.tap;
       root.hidden = false;
     },
     clear() { root.hidden = true; showing = null; full = ""; },
+    finish() {
+      if (!full || done || shown >= full.length) return false;
+      shown = full.length; done = true;
+      $(".sdlg-term-typed").textContent = full;
+      return true;
+    },
     frame(t) {
       showing?.update(t);
-      if (!full) return;
+      if (!full || done) return;
       began ??= t;
       const n = Math.min(full.length, Math.floor((t - began) * CPS));
       if (n !== shown) { shown = n; $(".sdlg-term-typed").textContent = full.slice(0, n); }
@@ -160,6 +166,7 @@ export function createStoryView(shell: HTMLElement, opts: { dialogue?: string | 
       next.show(l, opts.tapLabel);
     },
     clearLine() { shell.classList.remove("story-talking"); dialogue?.clear(); },
+    finishLine() { return dialogue?.finish?.() ?? false; },
     card(c) {
       card.classList.toggle("day", c.day);
       card.replaceChildren(text("p", "story-card-text", c.text), ...(c.sub ? [text("p", "story-card-sub", c.sub)] : []));

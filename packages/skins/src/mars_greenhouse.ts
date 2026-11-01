@@ -780,6 +780,8 @@ export const marsGreenhouse: Skin = {
         hide: ["credits", "fuel", "walls", "name", "retry", "settings", "help"],
         calmUntilLit: true,
         noGuide: true,
+        solid: ["sink.core"],
+        openZoom: { from: 0.6, seconds: 2.5 },
         retryFrom: [300, 320],
         goals: [
           { id: "ignite", hold: true, label: "Restart the reactor" },
@@ -790,7 +792,7 @@ export const marsGreenhouse: Skin = {
           // the world: moonlit sand, the ridge's slow pulse on its fixed side, three lights around the dead reactor
           { on: { start: true }, do: [
             { light: "night" },
-            { ridge: "right", period: 4, k: 0.55 },
+            { ridge: "right", period: 4, k: 0.4 },
             { dots: [{ at: [272, 300] }, { at: [226, 372] }, { at: [176, 296] }], period: 4 },
             { edgeGlow: { entity: "core" } },
           ] },
@@ -811,6 +813,8 @@ export const marsGreenhouse: Skin = {
             { dotsOff: true },
             { edgeGlow: null },
             { spirit: "bloom" },
+            // after the bloom above the flare, the cloud drifts to float beside the commander
+            { spiritFollow: { right: 40, up: 6, lag: 0.9, delay: 1.4, height: 40 } },
             { show: ["fuel", "settings"] },
             { light: "firstLight", seconds: 55 },
             { freeze: true },
@@ -846,7 +850,7 @@ export const marsGreenhouse: Skin = {
       },
     },
   },
-  look3d: { saturation: 0.82, groundLift: 0.38, nightFloor: { ambient: 0.32, ridge: 0.3 }, storyNight: { ambient: 0.52, moon: 0.5, moonColor: "#a9bfe6", dawnColor: "#ffc08f" } },
+  look3d: { saturation: 0.82, groundLift: 0.38, nightFloor: { ambient: 0.32, ridge: 0.3 }, storyNight: { ambient: 0.44, moon: 0.32, moonColor: "#a9bfe6", dawnColor: "#ffc08f" } },
   audio: {
     gathered: "tick",
     deposited: "tock",

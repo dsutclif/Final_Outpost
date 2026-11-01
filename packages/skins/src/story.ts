@@ -87,6 +87,12 @@ export type StoryAction =
   | { ridgeFlash: number }
   /** The reactor spirit: bloom out of the flare, glitch red, or an explicit state. */
   | { spirit: "bloom" | "pulse" | "idle" | "fading" | "off" }
+  /**
+   * The cloud drifts to the player and floats beside them, at a fixed offset in screen directions (ground
+   * units: `right` toward the screen's right, `up` toward its top) with a soft lag, its ground patch with it.
+   * `delay` seconds first, so the bloom stays above the reactor. `false` sends it home.
+   */
+  | { spiritFollow: { right: number; up: number; lag?: number; delay?: number; height?: number } | false }
   /** A glow on the screen edge toward a place off screen; it fades as the place comes into view. Null removes it. */
   | { edgeGlow: StoryPlace | null }
   /** Turn the guide arrows on or off (see StoryLevel.noGuide). */
@@ -127,6 +133,13 @@ export interface StoryLevel {
   noGuide?: boolean;
   /** Where the Try again prompt restarts the player (world units). The result screen's retry walks again from the start. */
   retryFrom?: readonly [number, number];
+  /** Canonical ids the renderer never fades when the hero stands among them (a reactor that must stay solid). */
+  solid?: readonly string[];
+  /**
+   * Start the camera zoomed out to match a film's last frame, easing to the play zoom: `from` is the camera
+   * zoom (below 1 is out), `seconds` the ease, run when the player first moves or after `hold` seconds.
+   */
+  openZoom?: { from: number; seconds: number; hold?: number };
 }
 
 export interface StorySpeaker {

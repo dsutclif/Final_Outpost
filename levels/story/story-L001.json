@@ -226,8 +226,8 @@
    "type": "decor.halcyon_wreck",
    "id": "wreck",
    "at": [
-    960,
-    420
+    800,
+    110
    ],
    "yaw": 20
   }

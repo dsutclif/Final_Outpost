@@ -19,6 +19,7 @@ export class StoryStage {
   private pulseUntil = 0;
   private flashSeq = 0;
   private spiritSeq = 0;
+  private followFrom = 0;
   private readonly glowEl: HTMLElement;
   private readonly ridgeEl: HTMLElement;
 
@@ -31,6 +32,7 @@ export class StoryStage {
     glowColor: string,
     ridgeColor: string,
   ) {
+    present.solid(director.solid);
     this.glowEl = shell.ownerDocument.createElement("div");
     this.glowEl.className = "story-glow";
     this.glowEl.hidden = true;
@@ -76,6 +78,9 @@ export class StoryStage {
     const rg = p.ridgeGlow;
     this.ridgeEl.hidden = !rg || rg.k < 0.01;
     if (rg) { this.ridgeEl.dataset["side"] = rg.side; this.ridgeEl.style.opacity = String(rg.k); }
+    if (w.follow !== (seen.follow ?? null)) { seen.follow = w.follow; this.followFrom = now; }
+    const f = w.follow;
+    p.spirit.follow(f && now - this.followFrom >= (f.delay ?? 0) ? { right: f.right, up: f.up, lag: f.lag ?? 0.9, height: f.height ?? 40 } : null);
     this.spirit(w, fuelK, now);
     this.glow(w, st, now, viewW, viewH);
     this.director.view.frame?.(now);
