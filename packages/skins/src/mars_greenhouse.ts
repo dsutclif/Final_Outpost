@@ -778,7 +778,7 @@ export const marsGreenhouse: Skin = {
       okafor: { name: "OKAFOR" },
       tam: { name: "TAM" },
     },
-    lights: { night: 0, firstLight: 0.3, greyDawn: 0.55, sunrise: 1 },
+    lights: { night: 0, firstLight: 0.3, greyDawn: 0.2, sunrise: 1 },
     levels: {
       "story-L001": {
         hide: ["credits", "fuel", "walls", "name", "retry", "settings", "help"],
@@ -865,10 +865,9 @@ export const marsGreenhouse: Skin = {
           { id: "main", tryAgain: true, label: "Bring everyone home before they freeze" },
         ],
         cues: [
-          // level 1's sunrise fades to a grey dawn; the ridge keeps its slow pulse on the same side
+          // a grey dawn throughout, cooler than level 1's sunrise; the ridge keeps its slow pulse on the same side
           { on: { start: true }, do: [
-            { light: "sunrise" },
-            { light: "greyDawn", seconds: 6 },
+            { light: "greyDawn" },
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
             { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },

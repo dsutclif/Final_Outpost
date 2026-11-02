@@ -28,7 +28,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-02 | B | `story-l2` | `levels/story/story-L002.json`; `skins/src/mars_greenhouse.ts` (only the `story-L002` cue block and its strings); `client/src/story/*` (additions only) | Level 2 Roll Call |
+| 2026-11-02 | B | `story-l3` | `levels/story/story-L003.json`; `skins/src/mars_greenhouse.ts` (only the `story-L003` cue block and its strings); `client/src/story/*` (additions only) | Level 3 Open for Trade (next) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -37,7 +37,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Level | Status | Notes |
 |---|---|---|
 | 1 Cold Start | Account A, live; Doug's sign-off pending | Not edited by B |
-| 2 Roll Call | B, in progress | |
+| 2 Roll Call | B, live 2026-11-02 | Walls question open (below) |
 | 3 Open for Trade | Not started (old-story manifest still live) | |
 | 4 Halcyon Works | Not started (old-story manifest still live) | |
 | 5 First Watch | Not started (old-story manifest still live) | |
@@ -61,4 +61,10 @@ Newest first. Record what changed, which shared files were touched and why, rule
   - `client/src/story/stage.ts` gains the matching wiring. It drives the existing `present.pod()` (glow and beam, dimmed by the freeze timer, orange for a decoy) and `present.tally()` (tow count over the hero). These hooks existed in render-3d but nothing called them.
   - `client/src/story/director.ts`: `level` is no longer private, so the stage can read it. That's the only change there.
   - Phase 1 placeholder: `empty_bays` is a text card ("KILN · BAY CAMERA").
+  - After the browser playtest:
+    - The tally sits at 48 world units, just over the head (the hero is about 35 units tall on screen), plus 8 for each carried item.
+    - Its slots are drawn 1.8 times larger, using a new optional `scale` argument on `present.tally()` / `StoryLights.tally()` (render-3d `contract.ts`, `storypresent.ts`, `storylights.ts`; the default is unchanged).
+    - Empty tally slots now use the guide-light colour at 0.45 instead of ink. Ink vanished on dark ground, and nothing else uses the tally.
+    - A pod in tow drops its beam, which otherwise stood over the hero.
+    - `greyDawn` is 0.2. At 0.55 it read as warm daylight.
 - **2026-11-02, B:** Started level 2 on branch `story-l2` from `0c569fa`.

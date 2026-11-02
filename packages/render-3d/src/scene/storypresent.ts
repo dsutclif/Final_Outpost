@@ -66,7 +66,7 @@ export class StoryPresent implements StoryPresentation {
   }
   flashLight(id: string, len = 1.2): void { this.lights.flashLight(id, this.now, len); }
   removeLight(id: string): void { this.lights.removeLight(id); this.lamps.delete(id); }
-  tally(x: number, y: number, z: number, slots: TallySlots | null): void { this.lights.tally(x, y, z, slots); }
+  tally(x: number, y: number, z: number, slots: TallySlots | null, scale = 1): void { this.lights.tally(x, y, z, slots, undefined, scale); }
   ridge(side: RidgeSide | null, k = 1): void { this.ridgeSide = side; this.ridgeK = side ? k : 0; this.slow = null; }
   ridgeSlow(side: RidgeSide | null, period: number, k: number): void { this.ridgeSide = side; this.ridgeK = 0; this.slow = side ? { period, k } : null; }
   ridgeFlash(n: number): void { this.flash = { at: null, n }; }

@@ -8,8 +8,11 @@ import type { StoryDirector, StoryWorld } from "./director.js";
 // change is spotted by identity. A level that never asks for a thing leaves the renderer's default alone.
 
 const PULSE_S = 0.8;
-// the tally floats just over the hero's head (world units)
-const TALLY_Y = 62;
+// the tally floats above the hero's head and any carried stack (world units; the hero is drawn at charScale),
+// its slots sized to read at the play zoom
+const TALLY_Y = 48;
+const TALLY_PER_ITEM = 8;
+const TALLY_SCALE = 1.8;
 
 export class StoryStage {
   private seen: Partial<StoryWorld> = {};
@@ -23,6 +26,7 @@ export class StoryStage {
   private spiritSeq = 0;
   private followFrom = 0;
   private readonly podFull = new Map<number, number>();
+  private podShown = new Set<number>();
   private tallyOn = false;
   private readonly glowEl: HTMLElement;
   private readonly ridgeEl: HTMLElement;
@@ -129,23 +133,24 @@ export class StoryStage {
     el.style.opacity = String(shown * (w.glow.strength ?? 0.4) * (0.55 + 0.45 * beat));
   }
 
-  /** Glow and beam per pod, dimmed by the freeze timer against its first value; gone once it opens or is lost. */
+  /**
+   * Glow and beam per pod still waiting out on the sand, dimmed by the freeze timer against its first value.
+   * A pod in tow drops its light (it would stand over the hero) and gets it back if the line drops it.
+   */
   private pods(st: State): void {
-    const live = new Set<number>();
+    const lit = new Set<number>();
     for (const c of st.captures) {
       if (c.state === "hidden" || c.state === "releasing" || !c.type.startsWith("capture.recruit")) continue;
-      live.add(c.id);
       const full = Math.max(this.podFull.get(c.id) ?? 0, c.freezeTicks);
       this.podFull.set(c.id, full);
+      if (c.state === "towed") continue;
+      lit.add(c.id);
       // a pod that never freezes stays at full glow; a freezing one keeps a floor so it never vanishes before it is lost
       const dim = full > 0 ? 0.25 + 0.75 * (c.freezeTicks / full) : 1;
       this.present.pod(`pod${c.id}`, c.pos.x / FP, c.pos.y / FP, c.decoy ? "old" : "crew", dim);
     }
-    for (const id of this.podFull.keys()) {
-      if (live.has(id)) continue;
-      this.present.pod(`pod${id}`, 0, 0, "crew", -1);
-      this.podFull.delete(id);
-    }
+    for (const id of this.podShown) if (!lit.has(id)) this.present.pod(`pod${id}`, 0, 0, "crew", -1);
+    this.podShown = lit;
   }
 
   /** Filled slots for the pods in tow, empty for the rest of the tow limit; off when no pod is left to tow. */
@@ -154,7 +159,7 @@ export class StoryStage {
     if (!left) { if (this.tallyOn) { this.present.tally(0, 0, 0, null); this.tallyOn = false; } return; }
     const n = st.player.tow.length;
     const slots = [0, 1, 2].map((i) => (i < n ? "done" : "empty")) as unknown as TallySlots;
-    this.present.tally(st.player.pos.x / FP, TALLY_Y, st.player.pos.y / FP, slots);
+    this.present.tally(st.player.pos.x / FP, TALLY_Y + TALLY_PER_ITEM * st.player.stack.length, st.player.pos.y / FP, slots, TALLY_SCALE);
     this.tallyOn = true;
   }
 

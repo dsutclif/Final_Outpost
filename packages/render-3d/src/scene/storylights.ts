@@ -81,7 +81,8 @@ export class StoryLights {
     rm.depthTest = false;
     this.ridgeMesh = new Mesh(g, rm);
     this.tallyMats = {
-      empty: new MeshBasicMaterial({ color: new Color(c.ink), transparent: true, opacity: 0.55, depthTest: false, depthWrite: false, toneMapped: false }),
+      // light, not ink: an empty slot must still read over dark ground at night
+      empty: new MeshBasicMaterial({ color: new Color(c.dot), transparent: true, opacity: 0.45, depthTest: false, depthWrite: false, toneMapped: false }),
       done: new MeshBasicMaterial({ color: new Color(c.ok), depthTest: false, depthWrite: false, toneMapped: false }),
       missed: new MeshBasicMaterial({ color: new Color(c.danger), depthTest: false, depthWrite: false, toneMapped: false }),
     };
@@ -201,11 +202,12 @@ export class StoryLights {
   }
 
   /** Three star slots in a row above (x,y,z), facing the camera; null hides them. */
-  tally(x: number, y: number, z: number, slots: readonly [TallySlot, TallySlot, TallySlot] | null, yaw = Math.PI / 4): void {
+  tally(x: number, y: number, z: number, slots: readonly [TallySlot, TallySlot, TallySlot] | null, yaw = Math.PI / 4, scale = 1): void {
     this.tallyGroup.visible = !!slots;
     if (!slots) return;
     this.tallyGroup.position.set(x, y, z);
     this.tallyGroup.rotation.set(-Math.PI / 6, yaw, 0);
+    this.tallyGroup.scale.setScalar(scale);
     slots.forEach((s, i) => { this.tallySlots[i]!.material = this.tallyMats[s]; });
   }
 

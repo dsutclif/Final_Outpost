@@ -85,7 +85,8 @@ export interface StoryPresentation {
   flashLight(id: string, len?: number): void;
   removeLight(id: string): void;
   /** Three star slots over a spot; null hides them. */
-  tally(x: number, y: number, z: number, slots: TallySlots | null): void;
+  /** `scale` sizes the slots (default 1). */
+  tally(x: number, y: number, z: number, slots: TallySlots | null, scale?: number): void;
   /** Red ridge pulse from one fixed screen side; null side or k 0 hides it. */
   ridge(side: RidgeSide | null, k?: number): void;
   /** Slow pulses from that side, one per `period` seconds, in step with ground dots of the same period. */
