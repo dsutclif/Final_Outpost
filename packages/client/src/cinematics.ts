@@ -41,9 +41,9 @@ export const TITLE_LOOP_VIDEO: string = titleLoopVideo;
  * Client-side registration of cinematics by story level id (DECISIONS #14: never a level check in the
  * sim). `before` plays ahead of the level's first play, `afterWin` after its first win.
  */
+// Level 5's helmet_reveal plays from its story cues (skins story-L005), so the lines and Vale's card follow it.
 export const STORY_CINEMATICS: Readonly<Record<string, { before?: CinematicId; afterWin?: CinematicId }>> = {
   "story-L001": { before: "crash_open" },
-  "story-L005": { afterWin: "helmet_reveal" },
 };
 
 /** The cinematic to play at `when` for a level, or null when none is registered or its current version was seen (Progress.cinematics). */

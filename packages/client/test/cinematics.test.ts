@@ -3,17 +3,16 @@ import { FILM_VERSIONS, STORY_CINEMATICS, cinematicFor } from "../src/cinematics
 import { PROGRESS_EPOCH, mergeProgress } from "../src/save.js";
 
 describe("story cinematics", () => {
-  it("registers crash_open before level 1 and helmet_reveal after level 5's win", () => {
+  it("registers crash_open before level 1; level 5's helmet_reveal plays from its story cues", () => {
     expect(cinematicFor("story-L001", "before", {})).toBe("crash_open");
-    expect(cinematicFor("story-L005", "afterWin", {})).toBe("helmet_reveal");
+    expect(cinematicFor("story-L005", "afterWin", {})).toBeNull();
     expect(cinematicFor("story-L001", "afterWin", {})).toBeNull();
-    expect(Object.keys(STORY_CINEMATICS)).toEqual(["story-L001", "story-L005"]);
+    expect(Object.keys(STORY_CINEMATICS)).toEqual(["story-L001"]);
   });
   it("never replays a seen version, and saved `true` migrates to version 1", () => {
     const p = mergeProgress({ epoch: PROGRESS_EPOCH, cinematics: { crash_open: true } });
     expect(p.cinematics).toEqual({ crash_open: 1 });
     expect(cinematicFor("story-L001", "before", p.cinematics)).toBeNull();
-    expect(cinematicFor("story-L005", "afterWin", p.cinematics)).toBe("helmet_reveal");
     expect(mergeProgress(null).cinematics).toEqual({});
   });
   it("plays again on a new version", () => {

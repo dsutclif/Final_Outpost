@@ -778,8 +778,9 @@ export const marsGreenhouse: Skin = {
       okafor: { name: "OKAFOR" },
       tam: { name: "TAM" },
       sela: { name: "SELA" },
+      lieutenant: { name: "RAIDER" },
     },
-    lights: { night: 0, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
+    lights: { night: 0, preDawn: 0.08, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
     levels: {
       "story-L001": {
         hide: ["credits", "fuel", "walls", "name", "retry", "settings", "help"],
@@ -993,6 +994,49 @@ export const marsGreenhouse: Skin = {
             { card: "FOUR MINUTES TO IMPACT", sub: "Four pods open from inside. Four crew climb out, close and lock the empty pods from outside, and walk out of frame. The status lights turn to OCCUPIED.", seconds: 6 },
             { line: "They let themselves out. Then locked the pods empty.", who: "kiln" },
             { line: "Movement on the ridge.", who: "kiln" },
+          ] },
+        ],
+      },
+      // First Watch (docs/STORY-LEVELS-V2.md, level 5). Phase 1: the visors on the ridge are a camera beat and
+      // ridge flashes, and the helmet is the existing helmet_reveal film, then a card naming Vale.
+      "story-L005": {
+        hide: ["credits"],
+        solid: ["sink.core"],
+        goals: [
+          { id: "first", label: "Stop the first raiders" },
+          { id: "turret", label: "Build a turret" },
+          { id: "main", label: "Hold until dawn" },
+        ],
+        cues: [
+          { on: { start: true }, do: [
+            { light: "night" },
+            { ridge: "right", period: 3, k: 0.45 },
+            { ridgeFlash: 3 },
+            { spirit: "idle" },
+            { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
+          ] },
+          { on: { start: true }, do: [
+            { camera: { to: { at: [790, 700] }, pan: 0.8, hold: 2.5, back: 0.8 } },
+            { line: "They're coming for the gate. We can use the scrap they drop to build defenses.", who: "okafor" },
+          ] },
+          // scrap on the sand: the socket on the wall lights up
+          { on: { goal: "first", is: "done" }, do: [{ dots: [{ entity: "turret1" }], period: 2 }] },
+          { on: { goal: "turret", is: "done" }, do: [
+            { dots: [{ entity: "train" }], period: 2 },
+            { line: "Let's train some guards to watch the gate while you build defenses.", who: "okafor" },
+          ] },
+          { on: { event: "hired", match: { pad: "train" } }, do: [{ dotsOff: true }] },
+          // the light grows as each wave breaks
+          { on: { event: "wave_cleared", match: { idx: 0 } }, do: [{ light: "preDawn", seconds: 20 }] },
+          { on: { event: "wave_cleared", match: { idx: 1 } }, do: [{ light: "firstLight", seconds: 20 }] },
+          { on: { event: "boss_spawned" }, do: [{ line: "You should have stayed asleep.", who: "lieutenant" }] },
+          { on: { event: "retreated" }, do: [{ light: "sunrise", seconds: 8 }] },
+          // dawn: the helmet the lieutenant dropped, and the name inside it
+          { on: { goal: "main", is: "done" }, do: [
+            { line: "First silence in eleven years.", who: "kiln" },
+            { film: "helmet_reveal" },
+            { line: "Vale?", who: "commander" },
+            { card: "Why did you leave me?", sub: "BAY 5 · FIRST OFFICER · VALE", seconds: 4 },
           ] },
         ],
       },

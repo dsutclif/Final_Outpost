@@ -28,7 +28,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-02 | B | `story-l5` | `levels/story/story-L005.json`; `skins/src/mars_greenhouse.ts` (only the `story-L005` cue block and its strings); `client/src/story/*` (additions only) | Level 5 First Watch (next) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -40,7 +39,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | 2 Roll Call | B, live 2026-11-02 | Walls question open (below) |
 | 3 Open for Trade | B, live 2026-11-02 (Phase 1) | Sela walks in; no buggy, lamp or coin close-up yet |
 | 4 Halcyon Works | B, live 2026-11-02 (Phase 1) | Text card for crash_log; one bot change (see log) |
-| 5 First Watch | Not started (old-story manifest still live) | |
+| 5 First Watch | B, live 2026-11-02 (Phase 1) | Helmet film from cues, then Vale's card |
 
 ## Open questions for Doug
 
@@ -49,6 +48,9 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 ## Notes for Account A
 
 - **Bot change you should know about (2026-11-02, B, level 4).** In `bots/src/brain.ts`, the lasso "start" task gets priority 70 instead of 52 or 64. This applies only when the main goal is `crates` and every idle capture left is an item (no pods waiting). Without it, novice and weak bots kept serving at the register for 30 s after the flight recorder appeared, and `levels:check --pack levels/story` failed on stalls. The full pack check is unchanged: s1-L007, the only crates level, gives identical results (refMin 0.60, same stars). A first try (`rescueAll` for crates) cost s1-L007 a star and was reverted.
+- **Level 5 test and film changes (2026-11-02).**
+  - `client/src/cinematics.ts`: `STORY_CINEMATICS` no longer has `story-L005: afterWin helmet_reveal`. The film now plays from level 5's cues (`{ film: "helmet_reveal" }`), so "Vale?" and Vale's card come after it. It still plays once and is skipped on replays. `client/test/cinematics.test.ts` is updated to match.
+  - `client/test/goalhud.test.ts`: the gate-star test used story level 5's `gate_held`, which the new level 5 drops. It now uses s1-L010 (a generated defend level that has it).
 - **Test change.** In `bots/test/story-rules.test.ts`, "works a staffed source for converters_running sources" reads story-L004. It now drops the hidden recorder and the `lasso` module before swapping in its own objectives, because the recorder's `hiddenUntil: auto` names an objective that list doesn't have. What it tests is unchanged.
 - **Workers don't route through gates.** Residents move in straight lines (`moveAgent`), so a worker whose post is outside a ring sticks on the wall (the same root cause as R5's medic note). Level 4 makes the ring's south section a gate as well (gates 3, 4 and 5).
 
@@ -57,6 +59,19 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+
+- **2026-11-02, B, level 5 First Watch (Phase 1).** No engine bump and no rules change. Story levels 2–5 are all in Phase 1 now.
+  - `levels/story/story-L005.json` was rewritten on level 4's town (the same map and ring, gates 3, 4 and 5).
+    - The galley stands as a `conv.food_processor`. Traders are off (`customers.spawn` 9999), since the kiosk isn't the point tonight.
+    - A `struct.barracks` and a turret socket (`turret1`, 8 salvage) stand by the east gate. The training pad (`train`, 5 salvage, repeatable, manual) requires the turret.
+    - People: Pip on ore, Rhee `role.medic`, Okafor `role.defender`, and Tam plus two hub newcomers idle to train.
+    - Waves: the old level 5's three waves (boss with `bossRetreat` 25), from side `e`, the ridge's screen side.
+    - Objectives: `main` waves, `first` waves_survived n:1, `turret` build turret1. The HP and gate stars are dropped, per V2.
+  - `levels:check`: every rung wins with 3 stars (refMin 1.00), so it's easy. That's fine for a training level, but it could take more pressure.
+  - `skins/src/mars_greenhouse.ts` gains a `story-L005` cue block, speaker `lieutenant` ("RAIDER") and the light preset `preDawn: 0.08`.
+    - Light steps up as each wave clears, to sunrise on the retreat.
+    - At the win: KILN's line, then `helmet_reveal`, then "Vale?", then the card "Why did you leave me? / BAY 5 · FIRST OFFICER · VALE". This was checked in the browser.
+  - Not done in Phase 1: red visors switching on (it's a camera beat with ridge flashes), a faster `run` clip for the retreat, the helmet on the sand with a walk-up, and spawning beyond the screen edge (`defense.spawnY` is default).
 
 - **2026-11-02, B, level 4 Halcyon Works (Phase 1).** No engine bump and no rules change.
   - `levels/story/story-L004.json` was rewritten on level 3's town, which moves 300 south on a taller map (820 x 1300). Level 1's wreck stood off the north edge (y -181); it is now at y 118, reachable east of the ridge.

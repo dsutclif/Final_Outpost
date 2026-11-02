@@ -106,7 +106,8 @@ describe("urgent alert", () => {
 
 describe("never-goals fill from whatever is closest to breaking them", () => {
   it("the gate star drains with the weakest gate, the customer star with the most impatient trader", () => {
-    const { sim, m, cp } = level(5);
+    // a generated defend level with the gate star (story level 5 dropped it for its own goals)
+    const { sim, m, cp } = level(10);
     const st = sim.state;
     const gates = st.barriers.flatMap((b) => b.sections).filter((s) => s.gate);
     expect(gates.length).toBeGreaterThan(0);
