@@ -143,6 +143,13 @@ export interface StoryLevel {
    * zoom (below 1 is out), `seconds` the ease, run when the player first moves or after `hold` seconds.
    */
   openZoom?: { from: number; seconds: number; hold?: number };
+  /**
+   * Every pod on the map glows with a beam, dimming as its freeze timer runs down (cold white for crew,
+   * orange for a decoy), so in dim light the pods are the brightest thing around (story level 2).
+   */
+  podLights?: boolean;
+  /** Three slots over the hero's head fill with the pods in tow, so the tow limit shows (story level 2). */
+  tally?: boolean;
 }
 
 export interface StorySpeaker {

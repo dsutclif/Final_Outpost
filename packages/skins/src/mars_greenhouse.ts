@@ -773,8 +773,12 @@ export const marsGreenhouse: Skin = {
     speakers: {
       commander: { name: "COMMANDER" },
       kiln: { name: "KILN", portrait: "kiln", spirit: true, dialogue: "terminal" },
+      pip: { name: "PIP" },
+      rhee: { name: "RHEE" },
+      okafor: { name: "OKAFOR" },
+      tam: { name: "TAM" },
     },
-    lights: { night: 0, firstLight: 0.3, sunrise: 1 },
+    lights: { night: 0, firstLight: 0.3, greyDawn: 0.55, sunrise: 1 },
     levels: {
       "story-L001": {
         hide: ["credits", "fuel", "walls", "name", "retry", "settings", "help"],
@@ -845,6 +849,56 @@ export const marsGreenhouse: Skin = {
           { on: { event: "level_end", match: { won: false } }, do: [
             { line: "Not yet...", who: "commander", seconds: 1.8 },
             { tryAgain: true },
+          ] },
+        ],
+      },
+      // Roll Call (docs/STORY-LEVELS-V2.md, level 2). Capture ids follow the manifest's pod order:
+      // 0 Pip (nearest), 1 Rhee and 2 Okafor (the pair), 3 Tam (far), 4 the old pod.
+      "story-L002": {
+        hide: ["credits", "walls"],
+        solid: ["sink.core"],
+        podLights: true,
+        tally: true,
+        goals: [
+          { id: "first", label: "Bring the nearest pod into the heat" },
+          { id: "pair", label: "Tow two pods at once" },
+          { id: "main", tryAgain: true, label: "Bring everyone home before they freeze" },
+        ],
+        cues: [
+          // level 1's sunrise fades to a grey dawn; the ridge keeps its slow pulse on the same side
+          { on: { start: true }, do: [
+            { light: "sunrise" },
+            { light: "greyDawn", seconds: 6 },
+            { ridge: "right", period: 4, k: 0.3 },
+            { spirit: "idle" },
+            { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
+          ] },
+          { on: { start: true }, do: [
+            { line: "Four crew still alive out there. Freezing.", who: "kiln" },
+            { camera: { to: { entity: "pod_pip" }, pan: 0.6, hold: 1.2, back: 0.6 } },
+          ] },
+          { on: { event: "joined", match: { capture: 0 } }, do: [
+            { crew: "Boss? Where is everyone?", who: "pip", tag: "hauler" },
+            { line: "Feed the reactor. I'm going back out to find them.", who: "commander" },
+          ] },
+          // the pair: a nudge toward the two pods standing close together
+          { on: { goal: "first", is: "done" }, do: [
+            { camera: { to: { entity: "pod_rhee" }, share: 0.45, pan: 0.5, hold: 0.8, back: 0.5, freeze: false } },
+          ] },
+          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long was I under?", who: "rhee", tag: "medic" }] },
+          { on: { event: "joined", match: { capture: 2 } }, do: [{ crew: "Who's watching this camp?", who: "okafor", tag: "guard" }] },
+          { on: { event: "released", match: { capture: 3 } }, do: [{ crew: "Any word from home?", who: "tam", tag: "picker" }] },
+          { on: { event: "decoy_opened" }, do: [
+            { line: "Whose pod is this?", who: "commander" },
+            { line: "Not ours. Decades old.", who: "kiln" },
+          ] },
+          // the last crewmate home: the reactor brightens and KILN opens the sealed bays (a text card until the empty_bays scene exists)
+          { on: { goal: "main", is: "done" }, do: [
+            { spirit: "pulse" },
+            { line: "Power's up. Opening bays five to eight.", who: "kiln" },
+            { card: "KILN · BAY CAMERA", sub: "Bay 5 unlocks. The plate reads VALE, FIRST OFFICER. The glass lifts on an empty pod.", seconds: 5 },
+            { line: "They read occupied.", who: "commander" },
+            { line: "Locked. Nobody home.", who: "rhee" },
           ] },
         ],
       },

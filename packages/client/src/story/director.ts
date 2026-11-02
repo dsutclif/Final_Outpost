@@ -108,7 +108,7 @@ export class StoryDirector {
 
   constructor(
     private readonly story: SkinStory,
-    private readonly level: StoryLevel,
+    readonly level: StoryLevel,
     readonly view: StoryView,
     private readonly host: StoryHost,
     /** Played this level before: drop beats, keep lines. */

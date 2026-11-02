@@ -1,6 +1,6 @@
 import type { State } from "@fo/sim";
 import { FP, TPS } from "@fo/sim";
-import type { StoryPresentation } from "@fo/render-3d";
+import type { StoryPresentation, TallySlots } from "@fo/render-3d";
 import type { SkinStory } from "@fo/skins";
 import type { StoryDirector, StoryWorld } from "./director.js";
 
@@ -8,6 +8,8 @@ import type { StoryDirector, StoryWorld } from "./director.js";
 // change is spotted by identity. A level that never asks for a thing leaves the renderer's default alone.
 
 const PULSE_S = 0.8;
+// the tally floats just over the hero's head (world units)
+const TALLY_Y = 62;
 
 export class StoryStage {
   private seen: Partial<StoryWorld> = {};
@@ -20,6 +22,8 @@ export class StoryStage {
   private flashSeq = 0;
   private spiritSeq = 0;
   private followFrom = 0;
+  private readonly podFull = new Map<number, number>();
+  private tallyOn = false;
   private readonly glowEl: HTMLElement;
   private readonly ridgeEl: HTMLElement;
 
@@ -83,6 +87,8 @@ export class StoryStage {
     p.spirit.follow(f && now - this.followFrom >= (f.delay ?? 0) ? { right: f.right, up: f.up, lag: f.lag ?? 0.9, height: f.height ?? 40, size: f.size ?? 1 } : null);
     this.spirit(w, fuelK, now);
     this.glow(w, st, now, viewW, viewH);
+    if (this.director.level.podLights) this.pods(st);
+    if (this.director.level.tally) this.tally(st);
     this.director.view.frame?.(now);
   }
 
@@ -121,6 +127,35 @@ export class StoryStage {
     el.style.width = el.style.height = `${size}vmin`;
     el.style.margin = `${-size / 2}vmin 0 0 ${-size / 2}vmin`;
     el.style.opacity = String(shown * (w.glow.strength ?? 0.4) * (0.55 + 0.45 * beat));
+  }
+
+  /** Glow and beam per pod, dimmed by the freeze timer against its first value; gone once it opens or is lost. */
+  private pods(st: State): void {
+    const live = new Set<number>();
+    for (const c of st.captures) {
+      if (c.state === "hidden" || c.state === "releasing" || !c.type.startsWith("capture.recruit")) continue;
+      live.add(c.id);
+      const full = Math.max(this.podFull.get(c.id) ?? 0, c.freezeTicks);
+      this.podFull.set(c.id, full);
+      // a pod that never freezes stays at full glow; a freezing one keeps a floor so it never vanishes before it is lost
+      const dim = full > 0 ? 0.25 + 0.75 * (c.freezeTicks / full) : 1;
+      this.present.pod(`pod${c.id}`, c.pos.x / FP, c.pos.y / FP, c.decoy ? "old" : "crew", dim);
+    }
+    for (const id of this.podFull.keys()) {
+      if (live.has(id)) continue;
+      this.present.pod(`pod${id}`, 0, 0, "crew", -1);
+      this.podFull.delete(id);
+    }
+  }
+
+  /** Filled slots for the pods in tow, empty for the rest of the tow limit; off when no pod is left to tow. */
+  private tally(st: State): void {
+    const left = st.captures.some((c) => c.state === "idle" || c.state === "towed");
+    if (!left) { if (this.tallyOn) { this.present.tally(0, 0, 0, null); this.tallyOn = false; } return; }
+    const n = st.player.tow.length;
+    const slots = [0, 1, 2].map((i) => (i < n ? "done" : "empty")) as unknown as TallySlots;
+    this.present.tally(st.player.pos.x / FP, TALLY_Y, st.player.pos.y / FP, slots);
+    this.tallyOn = true;
   }
 
   dispose(): void { this.glowEl.remove(); this.ridgeEl.remove(); }
