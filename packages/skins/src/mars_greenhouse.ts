@@ -777,8 +777,9 @@ export const marsGreenhouse: Skin = {
       rhee: { name: "RHEE" },
       okafor: { name: "OKAFOR" },
       tam: { name: "TAM" },
+      sela: { name: "SELA" },
     },
-    lights: { night: 0, firstLight: 0.3, greyDawn: 0.2, sunrise: 1 },
+    lights: { night: 0, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, sunrise: 1 },
     levels: {
       "story-L001": {
         hide: ["credits", "fuel", "walls", "name", "retry", "settings", "help"],
@@ -898,6 +899,54 @@ export const marsGreenhouse: Skin = {
             { card: "KILN · BAY CAMERA", sub: "Bay 5 unlocks. The plate reads VALE, FIRST OFFICER. The glass lifts on an empty pod.", seconds: 5 },
             { line: "They read occupied.", who: "commander" },
             { line: "Locked. Nobody home.", who: "rhee" },
+          ] },
+        ],
+      },
+      // Open for Trade (docs/STORY-LEVELS-V2.md, level 3). Phase 1: Sela walks in with the first traders (no buggy yet)
+      // and the H coin close-up is lines only.
+      "story-L003": {
+        hide: ["credits", "walls"],
+        solid: ["sink.core"],
+        goals: [
+          { id: "first", hold: true, label: "Sell Sela some greens" },
+          { id: "clear", label: "Clear the rockslide" },
+          { id: "main", label: "Build the habitat hub" },
+        ],
+        cues: [
+          { on: { start: true }, do: [
+            { light: "dusk" },
+            { ridge: "right", period: 4, k: 0.3 },
+            { spirit: "idle" },
+            { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
+          ] },
+          { on: { start: true }, do: [
+            { line: "One more storm and they're dead. We need a habitat hub to keep our people safe.", who: "rhee" },
+            { camera: { to: { entity: "hub" }, pan: 0.7, hold: 2, back: 0.7 } },
+          ] },
+          // night falls as the first trader walks in; the camera follows them to the old kiosk
+          { on: { event: "customer_arrived" }, do: [
+            { light: "night", seconds: 3 },
+            { camera: { to: { entity: "kiosk" }, pan: 0.8, hold: 2.5, back: 0.8 } },
+            { line: "Sela. Salvage. Came for that wreck. Didn't expect anyone home. Got food?", who: "sela" },
+            { goal: "first" },
+            { dots: [{ entity: "field1" }], period: 3 },
+          ] },
+          // the first coins: the credits chip, then a look past the rubble at the hoppers and the pad that clears it
+          { on: { goal: "first", is: "done" }, do: [
+            { show: ["credits"] },
+            { dotsOff: true },
+            { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.3 } },
+            { camera: { to: { entity: "clear0" }, pan: 0.4, hold: 1, back: 0.8 } },
+          ] },
+          { on: { event: "zone_cleared" }, do: [{ line: "That slide's fresh.", who: "kiln" }] },
+          // the hub stands; Sela settles up in Halcyon chips, and the eleven years land
+          { on: { goal: "main", is: "done" }, do: [
+            { line: "Halcyon chips?", who: "commander" },
+            { line: "Four in suits like yours still spend them.", who: "sela" },
+            { line: "We landed four days ago.", who: "commander" },
+            { line: "Friend. The Halcyon came down eleven years ago.", who: "sela" },
+            { line: "Boss? Eleven years?", who: "pip" },
+            { card: "", seconds: 2 },
           ] },
         ],
       },

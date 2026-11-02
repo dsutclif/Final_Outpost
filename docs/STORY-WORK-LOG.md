@@ -28,7 +28,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-02 | B | `story-l3` | `levels/story/story-L003.json`; `skins/src/mars_greenhouse.ts` (only the `story-L003` cue block and its strings); `client/src/story/*` (additions only) | Level 3 Open for Trade (next) |
+| 2026-11-02 | B | `story-l4` | `levels/story/story-L004.json`; `skins/src/mars_greenhouse.ts` (only the `story-L004` cue block and its strings); `client/src/story/*` (additions only) | Level 4 Halcyon Works (next) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -38,7 +38,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 |---|---|---|
 | 1 Cold Start | Account A, live; Doug's sign-off pending | Not edited by B |
 | 2 Roll Call | B, live 2026-11-02 | Walls question open (below) |
-| 3 Open for Trade | Not started (old-story manifest still live) | |
+| 3 Open for Trade | B, live 2026-11-02 (Phase 1) | Sela walks in; no buggy, lamp or coin close-up yet |
 | 4 Halcyon Works | Not started (old-story manifest still live) | |
 | 5 First Watch | Not started (old-story manifest still live) | |
 
@@ -53,6 +53,19 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+
+- **2026-11-02, B, level 3 Open for Trade (Phase 1).** No engine bump and no rules change. Client code untouched.
+  - `levels/story/story-L003.json` was rewritten on level 2's map: the same ring, ore and decor, grown south to a road (map 820 x 1000).
+    - The level 2 crew start as `people`: Pip and Rhee on ore, Okafor `role.defender`, Tam idle.
+    - The kiosk is at (470,800), with traders walking in from the east, and greens field 1 is beside the start.
+    - Field 2 sits behind a 10-credit enable pad. The rockslide pocket of hopper flats is east of the road, with a 12-credit clear pad.
+    - The hub is `struct.landmark`, price 150. Per V2, there are no hire pads.
+    - Objectives are `main` build hub, `first` earn n:1 and `clear` build clear0.
+    - Traders are a little faster (spawn 2 s, orders 1–3), so the human-view bot builds the hub in about 150 s.
+  - `levels:check`: every rung wins. The bots never take the optional `clear` star, because the hub doesn't require it (V2 says no `requires`), so story-L003 shows "MISS build 0/6", which is reported, not failed.
+  - `skins/src/mars_greenhouse.ts` gains a `story-L003` cue block, speaker `sela` and the light preset `dusk: 0.15`. On this curve, 0.4 already reads as daylight.
+  - Sela is the first trader to walk in: night falls over 3 s and the camera follows her to the kiosk.
+  - Not done in Phase 1: the buggy and headlights, a lamp on Sela, the camera shake on the rockslide, hub windows lighting with the crew walking in, the H coin close-up, and Sela's order bubble changing to meat. The reveal is lines, then a 2 s black card.
 
 - **2026-11-02, B, level 2 Roll Call.** No engine bump, no rules change, no level 1 file touched.
   - `levels/story/story-L002.json` was rewritten to the V2 beats on level 1's map: same reactor spot, ridge, wreck, deck and stasis-pod decor, and ore. A prebuilt ring with two gates (see Open questions). Pods are, in capture-id order, Pip (hauler, ore to the reactor, freeze 160 s), Rhee (ore, 160 s), Okafor (`role.defender`, 160 s), Tam (no job, 110 s) and an orange decoy with no freeze. `core.burn` is 2.6. Objectives are `main` rescue_all, `first` rescue n:1 and `pair` tow_trip n:2. The time and challenge stars were dropped, per V2. `levels:check --pack levels/story` is clean, with 3 stars on every rung.
