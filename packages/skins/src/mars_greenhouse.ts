@@ -779,7 +779,7 @@ export const marsGreenhouse: Skin = {
       tam: { name: "TAM" },
       sela: { name: "SELA" },
     },
-    lights: { night: 0, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, sunrise: 1 },
+    lights: { night: 0, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
     levels: {
       "story-L001": {
         hide: ["credits", "fuel", "walls", "name", "retry", "settings", "help"],
@@ -947,6 +947,52 @@ export const marsGreenhouse: Skin = {
             { line: "Friend. The Halcyon came down eleven years ago.", who: "sela" },
             { line: "Boss? Eleven years?", who: "pip" },
             { card: "", seconds: 2 },
+          ] },
+        ],
+      },
+      // Halcyon Works (docs/STORY-LEVELS-V2.md, level 4). Phase 1: the crash_log scene is a text card. World actions
+      // (light, spirit, ridge) run when their cue fires, not in line order, so KILN's dim is left out.
+      "story-L004": {
+        hide: ["walls"],
+        solid: ["sink.core"],
+        goals: [
+          { id: "galleyBuilt", label: "Build the galley" },
+          { id: "auto", label: "Automate both machines long enough to reach the ship" },
+          { id: "main", label: "Bring the flight recorder home" },
+        ],
+        cues: [
+          { on: { start: true }, do: [
+            { light: "morning" },
+            { ridge: "right", period: 4, k: 0.3 },
+            { spirit: "idle" },
+            { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
+          ] },
+          { on: { start: true }, do: [
+            { day: "DAY 4,023", sub: "KILN's clock had stopped at DAY 5.", seconds: 3 },
+            { line: "I shut down everything but the pods. Even my clock. It took everything.", who: "kiln" },
+            { line: "Vale's pod was empty. Why?", who: "commander" },
+            { line: "The flight recorder survived. Retrieve it and I can read it for you.", who: "kiln" },
+            { line: "I can't leave. They need me here.", who: "commander" },
+            { line: "Then let's get this town running on its own.", who: "rhee" },
+            { line: "Storm season's close. Everyone's buying hot meals.", who: "sela" },
+            { camera: { to: { entity: "galley" }, pan: 0.7, hold: 1.5, back: 0.7 } },
+          ] },
+          // morning turns to dusk while the town learns to run itself
+          { on: { goal: "galleyBuilt", is: "done" }, do: [{ light: "dusk", seconds: 120 }] },
+          // the galley has its cook: a small light starts blinking at the wreck
+          { on: { event: "hired", match: { pad: "cook" } }, do: [
+            { line: "They've got it. Go.", who: "kiln" },
+            { dots: [{ entity: "recorder" }], period: 1.2 },
+            { edgeGlow: { entity: "recorder", size: 28, strength: 0.35 } },
+          ] },
+          { on: { near: { entity: "recorder" }, r: 140 }, do: [{ edgeGlow: null }] },
+          { on: { near: { entity: "recorder" }, r: 50 }, do: [{ dotsOff: true }] },
+          // home with the recorder: KILN reads it (a text card until the crash_log scene exists)
+          { on: { event: "crate_delivered" }, do: [
+            { spirit: "pulse" },
+            { card: "FOUR MINUTES TO IMPACT", sub: "Four pods open from inside. Four crew climb out, close and lock the empty pods from outside, and walk out of frame. The status lights turn to OCCUPIED.", seconds: 6 },
+            { line: "They let themselves out. Then locked the pods empty.", who: "kiln" },
+            { line: "Movement on the ridge.", who: "kiln" },
           ] },
         ],
       },

@@ -577,7 +577,10 @@ export class Brain {
       const idle = st.captures.filter((c) => c.state === "idle" && !c.decoy && this.nav.reachable(p.pos, c.pos)
         && (room || cp.lassoables[c.type]?.result !== "recruit"));
       const timed = idle.some((c) => c.freezeTicks > 0);
-      if (idle.length > 0) T("lasso", timed || this.pol.rescueAll ? 64 : 52, "start");
+      // on a crates goal with only items left out there (no pods waiting), the fetch is all that remains to do:
+      // it outranks routine serving at the register (the story's flight recorder)
+      const fetch = cp.manifest.goal.type === "crates" && idle.every((c) => cp.lassoables[c.type]?.result === "item");
+      if (idle.length > 0) T("lasso", fetch ? 70 : timed || this.pol.rescueAll ? 64 : 52, "start");
     }
 
     // Manual first (docs/ECONOMY-PLAN.md): a planned hire pad that waits only for its job to be done by

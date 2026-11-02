@@ -4,240 +4,571 @@
  "engineVersion": "0.18.0",
  "contentVersion": "0.18.0",
  "map": {
-  "w": 480,
-  "h": 900,
-  "zones": [
-   "base",
-   "sources-w",
-   "sources-e",
-   "shop-se",
-   "landmark-sw"
-  ]
+  "w": 820,
+  "h": 1300,
+  "zones": []
  },
  "modules": [
+  "barrier_lines",
   "build_pads",
   "carry",
   "converters",
   "core",
   "gather",
+  "hunting",
+  "lasso",
   "sales",
   "workers"
  ],
  "start": [
-  240,
-  592
+  560,
+  770
  ],
  "entities": [
   {
    "type": "sink.core",
    "id": "core",
    "at": [
-    240,
-    500
+    220,
+    620
    ],
    "params": {
-    "fuel": 15,
+    "fuel": 14,
     "level": 1
    }
   },
   {
-   "type": "sink.sales_point",
-   "id": "shop",
+   "type": "node.fuel_scrap",
+   "id": "ore1",
    "at": [
-    296,
-    645
+    290,
+    690
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore2",
+   "at": [
+    268,
+    700
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore3",
+   "at": [
+    312,
+    712
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore4",
+   "at": [
+    250,
+    720
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore5",
+   "at": [
+    290,
+    730
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore6",
+   "at": [
+    330,
+    692
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore7",
+   "at": [
+    270,
+    740
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore8",
+   "at": [
+    312,
+    750
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore9",
+   "at": [
+    345,
+    725
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore10",
+   "at": [
+    235,
+    745
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore11",
+   "at": [
+    330,
+    770
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore12",
+   "at": [
+    290,
+    770
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore13",
+   "at": [
+    355,
+    760
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore14",
+   "at": [
+    255,
+    775
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge1",
+   "kind": "ridge",
+   "rect": [
+    20,
+    465,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge2",
+   "kind": "ridge",
+   "rect": [
+    135,
+    465,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge3",
+   "kind": "ridge",
+   "rect": [
+    250,
+    465,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridge4",
+   "kind": "ridge",
+   "rect": [
+    365,
+    465,
+    75,
+    62
+   ]
+  },
+  {
+   "type": "decor.halcyon_wreck",
+   "id": "wreck",
+   "at": [
+    325.2,
+    118.4
+   ],
+   "yaw": 0
+  },
+  {
+   "type": "decor.deck_plate",
+   "id": "deck",
+   "at": [
+    784,
+    386.6
+   ],
+   "yaw": -65.1,
+   "size": [
+    334.2,
+    443.6,
+    17.37
+   ],
+   "lift": 0
+  },
+  {
+   "type": "decor.deck_plate",
+   "id": "deck2",
+   "at": [
+    712.6,
+    330
+   ],
+   "yaw": -65.1,
+   "size": [
+    358.6,
+    601.3,
+    17.37
+   ],
+   "lift": -0.09
+  },
+  {
+   "type": "decor.deck_plate",
+   "id": "stripe",
+   "at": [
+    852.5,
+    534.4
+   ],
+   "yaw": -65.1,
+   "size": [
+    5.5,
+    443.6,
+    0.18
+   ],
+   "lift": 17.32,
+   "color": "#c8a23a"
+  },
+  {
+   "type": "decor.stasis_pod",
+   "id": "pod0",
+   "at": [
+    715.2,
+    492
+   ],
+   "yaw": 173.9,
+   "lift": -66
+  },
+  {
+   "type": "decor.stasis_glass",
+   "id": "lid0",
+   "at": [
+    723.1,
+    432.6
+   ],
+   "yaw": 173.9,
+   "lift": 50.8,
+   "roll": 118
+  },
+  {
+   "type": "decor.stasis_glass",
+   "id": "lid1",
+   "at": [
+    921.2,
+    502.1
+   ],
+   "yaw": 173.9,
+   "lift": 22
+  },
+  {
+   "type": "decor.stasis_pod",
+   "id": "pod1",
+   "at": [
+    918.5,
+    513.8
+   ],
+   "yaw": 173.9,
+   "lift": -66
+  },
+  {
+   "type": "decor.stasis_glass",
+   "id": "lid2",
+   "at": [
+    731.5,
+    353.3
+   ],
+   "yaw": 173.9,
+   "lift": 22
+  },
+  {
+   "type": "decor.stasis_pod",
+   "id": "pod2",
+   "at": [
+    728.8,
+    364.9
+   ],
+   "yaw": 173.9,
+   "lift": -66
+  },
+  {
+   "type": "decor.stasis_glass",
+   "id": "lid3",
+   "at": [
+    934.8,
+    375
+   ],
+   "yaw": 173.9,
+   "lift": 22
+  },
+  {
+   "type": "decor.stasis_pod",
+   "id": "pod3",
+   "at": [
+    932,
+    386.6
+   ],
+   "yaw": 173.9,
+   "lift": -66
+  },
+  {
+   "type": "decor.stasis_glass",
+   "id": "lid4",
+   "at": [
+    528.3,
+    331.5
+   ],
+   "yaw": 173.9,
+   "lift": 22
+  },
+  {
+   "type": "decor.stasis_pod",
+   "id": "pod4",
+   "at": [
+    525.5,
+    343.2
+   ],
+   "yaw": 173.9,
+   "lift": -66
+  },
+  {
+   "type": "decor.ore_pile",
+   "id": "oreDecor1",
+   "at": [
+    678.5,
+    647.7
+   ],
+   "yaw": 0,
+   "scale": 0.74
+  },
+  {
+   "type": "decor.ore_pile",
+   "id": "oreDecor2",
+   "at": [
+    646.2,
+    670.7
+   ],
+   "yaw": 30,
+   "scale": 0.74
+  },
+  {
+   "type": "decor.ore_pile",
+   "id": "oreDecor3",
+   "at": [
+    618.6,
+    693.8
+   ],
+   "yaw": 60,
+   "scale": 0.74
+  },
+  {
+   "type": "decor.ship_scrap",
+   "id": "scrap",
+   "at": [
+    696.3,
+    672.5
+   ],
+   "yaw": 20,
+   "scale": 1.46
+  },
+  {
+   "type": "barrier.line",
+   "id": "ring",
+   "res": "res.currency",
+   "costPerSection": 1,
+   "points": [
+    [
+     110,
+     540
+    ],
+    [
+     245,
+     540
+    ],
+    [
+     380,
+     540
+    ],
+    [
+     380,
+     665
+    ],
+    [
+     380,
+     790
+    ],
+    [
+     245,
+     790
+    ],
+    [
+     110,
+     790
+    ],
+    [
+     110,
+     665
+    ]
+   ],
+   "closed": true,
+   "gates": [
+    3,
+    4,
+    5
+   ],
+   "prebuilt": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ]
+  },
+  {
+   "type": "sink.sales_point",
+   "id": "kiosk",
+   "at": [
+    470,
+    1100
    ],
    "sells": [
     "res.food_raw_1",
+    "res.food_raw_2",
     "res.food_prepared"
    ],
    "route": [
     [
-     237,
-     920
+     840,
+     1205
     ],
     [
-     237,
-     897
+     700,
+     1205
     ],
     [
-     235,
-     645
+     520,
+     1205
     ]
    ]
   },
   {
    "type": "node.food_source",
-   "id": "food1",
+   "id": "field1",
    "at": [
-    348,
-    465
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    155,
-    479
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    160,
-    527
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    147,
-    442
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    126,
-    511
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    113,
-    485
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    159,
-    412
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    111,
-    536
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    115,
-    443
-   ]
-  },
-  {
-   "type": "node.fuel_scrap",
-   "at": [
-    90,
-    512
-   ]
-  },
-  {
-   "type": "node.material_source",
-   "at": [
-    84,
-    411
-   ]
-  },
-  {
-   "type": "node.material_source",
-   "at": [
-    80,
-    461
+    330,
+    910
    ]
   },
   {
    "type": "node.food_source",
-   "id": "food_g",
+   "id": "field2",
    "at": [
-    37,
-    587
+    200,
+    1020
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "terrain0",
+   "id": "flats_n",
    "kind": "ridge",
    "rect": [
-    331,
-    156,
-    20,
-    91
+    580,
+    838,
+    200,
+    22
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "terrain1",
+   "id": "flats_s",
    "kind": "ridge",
    "rect": [
-    76,
-    156,
-    134,
-    20
+    580,
+    960,
+    200,
+    22
    ]
   },
   {
-   "type": "pad.hire",
-   "id": "hire_core",
-   "at": [
-    217,
-    610
-   ],
-   "cost": {
-    "res.currency": 7
-   },
-   "role": {
-    "role": "role.supplier",
-    "from": "node.fuel_scrap",
-    "to": "sink.core"
-   },
-   "manual": true
+   "type": "zone.terrain",
+   "id": "flats_e",
+   "kind": "ridge",
+   "rect": [
+    758,
+    860,
+    22,
+    100
+   ]
   },
   {
-   "type": "pad.hire",
-   "id": "hire_food",
-   "at": [
-    348,
-    526
-   ],
-   "cost": {
-    "res.currency": 11
-   },
-   "role": {
-    "role": "role.supplier",
-    "from": "node.food_source",
-    "to": "sink.sales_point",
-    "node": "food1"
-   },
-   "manual": true
+   "type": "zone.terrain",
+   "id": "flats_w1",
+   "kind": "ridge",
+   "rect": [
+    580,
+    860,
+    24,
+    24
+   ]
   },
   {
-   "type": "pad.hire",
-   "id": "hire_cashier",
-   "at": [
-    296,
-    744
+   "type": "zone.terrain",
+   "id": "flats_w2",
+   "kind": "ridge",
+   "rect": [
+    580,
+    936,
+    24,
+    24
+   ]
+  },
+  {
+   "type": "zone.prey",
+   "id": "flats",
+   "rect": [
+    612,
+    870,
+    140,
+    85
    ],
-   "cost": {
-    "res.currency": 16
-   },
-   "role": {
-    "role": "role.cashier",
-    "to": "sink.sales_point"
-   },
-   "manual": true
+   "animal": "node.prey",
+   "n": 3
+  },
+  {
+   "type": "struct.landmark",
+   "id": "hub",
+   "at": [
+    560,
+    700
+   ]
   },
   {
    "type": "pad.build",
-   "id": "grill",
+   "id": "galley",
    "at": [
-    140,
-    650
+    420,
+    940
    ],
    "cost": {
     "res.currency": 11
@@ -248,8 +579,8 @@
    "type": "pad.hire",
    "id": "feeder",
    "at": [
-    140,
-    739
+    420,
+    1020
    ],
    "cost": {
     "res.currency": 9
@@ -258,10 +589,10 @@
     "role": "role.supplier",
     "from": "node.food_source",
     "to": "conv.food_processor",
-    "node": "food_g"
+    "node": "field1"
    },
    "requires": {
-    "pad": "grill"
+    "pad": "galley"
    },
    "manual": true
   },
@@ -269,8 +600,8 @@
    "type": "pad.hire",
    "id": "cook",
    "at": [
-    140,
-    739
+    420,
+    1020
    ],
    "cost": {
     "res.currency": 9
@@ -288,8 +619,8 @@
    "type": "pad.hire",
    "id": "server",
    "at": [
-    140,
-    739
+    420,
+    1020
    ],
    "cost": {
     "res.currency": 9
@@ -303,23 +634,22 @@
     "pad": "cook"
    },
    "manual": true
+  },
+  {
+   "type": "capture.recorder",
+   "id": "recorder",
+   "at": [
+    470,
+    150
+   ],
+   "hiddenUntil": "auto"
   }
  ],
  "people": [
   {
-   "role": "idle"
-  },
-  {
-   "role": "idle"
-  },
-  {
-   "role": "idle"
-  },
-  {
-   "role": "idle"
-  },
-  {
-   "role": "idle"
+   "role": "role.supplier",
+   "from": "node.fuel_scrap",
+   "to": "sink.core"
   },
   {
    "role": "idle"
@@ -334,53 +664,56 @@
  "waves": [],
  "events": [],
  "params": {
-  "start.currency": 8,
-  "core.burn": 2.8,
-  "housing.base": 10,
-  "lots.block": 60,
+  "start.currency": 12,
+  "core.burn": 3,
+  "housing.base": 8,
+  "lots.block": 0,
   "lots.street": 0,
-  "customers.spawn": 2.7,
+  "customers.spawn": 2,
   "customers.orderMin": 1,
-  "customers.orderMax": 2,
+  "customers.orderMax": 3,
   "level.budgetSeconds": 300
  },
  "goal": {
-  "type": "automate",
-  "seconds": 20
+  "type": "crates",
+  "n": 1
  },
  "family": "industrialize",
  "objectives": [
   {
    "id": "main",
-   "kind": "automate",
+   "kind": "crates",
    "params": {
-    "seconds": 20
+    "n": 1
    }
   },
   {
-   "id": "time",
-   "kind": "time_target",
+   "id": "galleyBuilt",
+   "kind": "build",
    "params": {
-    "seconds": 115
+    "target": "galley"
    }
   },
   {
-   "id": "challenge",
-   "kind": "no_angry_customers",
-   "params": {}
+   "id": "auto",
+   "kind": "converters_running",
+   "params": {
+    "k": 3,
+    "seconds": 12,
+    "sources": 1
+   }
   }
  ],
  "fail": [
   "meter.lifeline"
  ],
  "guide": "always",
+ "lighting": "night",
  "text": {
   "mars_greenhouse": {
    "title": "Halcyon Works",
-   "goal": "Make the town run itself",
-   "tips": [
-    "Five of us, doing the work of nine. Build a town that runs itself."
-   ]
+   "goal": "Bring the flight recorder home",
+   "tips": []
   }
  }
 }

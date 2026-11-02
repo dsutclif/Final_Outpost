@@ -28,7 +28,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-02 | B | `story-l4` | `levels/story/story-L004.json`; `skins/src/mars_greenhouse.ts` (only the `story-L004` cue block and its strings); `client/src/story/*` (additions only) | Level 4 Halcyon Works (next) |
+| 2026-11-02 | B | `story-l5` | `levels/story/story-L005.json`; `skins/src/mars_greenhouse.ts` (only the `story-L005` cue block and its strings); `client/src/story/*` (additions only) | Level 5 First Watch (next) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -39,7 +39,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | 1 Cold Start | Account A, live; Doug's sign-off pending | Not edited by B |
 | 2 Roll Call | B, live 2026-11-02 | Walls question open (below) |
 | 3 Open for Trade | B, live 2026-11-02 (Phase 1) | Sela walks in; no buggy, lamp or coin close-up yet |
-| 4 Halcyon Works | Not started (old-story manifest still live) | |
+| 4 Halcyon Works | B, live 2026-11-02 (Phase 1) | Text card for crash_log; one bot change (see log) |
 | 5 First Watch | Not started (old-story manifest still live) | |
 
 ## Open questions for Doug
@@ -48,11 +48,29 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 ## Notes for Account A
 
+- **Bot change you should know about (2026-11-02, B, level 4).** In `bots/src/brain.ts`, the lasso "start" task gets priority 70 instead of 52 or 64. This applies only when the main goal is `crates` and every idle capture left is an item (no pods waiting). Without it, novice and weak bots kept serving at the register for 30 s after the flight recorder appeared, and `levels:check --pack levels/story` failed on stalls. The full pack check is unchanged: s1-L007, the only crates level, gives identical results (refMin 0.60, same stars). A first try (`rescueAll` for crates) cost s1-L007 a star and was reverted.
+- **Test change.** In `bots/test/story-rules.test.ts`, "works a staffed source for converters_running sources" reads story-L004. It now drops the hidden recorder and the `lasso` module before swapping in its own objectives, because the recorder's `hiddenUntil: auto` names an objective that list doesn't have. What it tests is unchanged.
+- **Workers don't route through gates.** Residents move in straight lines (`moveAgent`), so a worker whose post is outside a ring sticks on the wall (the same root cause as R5's medic note). Level 4 makes the ring's south section a gate as well (gates 3, 4 and 5).
+
 - **Bot, tow loop through a wall (2026-11-02).** `Brain.loopAround` (bots/src/brain.ts) can put loop points inside a barrier ring when a pod sits within about 40 units of the wall. The bot then waits forever at a loop point that isn't `outsideLines`, and every rung times out. L2 avoids it by keeping pods more than 50 units outside the ring. Not fixed, because bots are your area.
 
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+
+- **2026-11-02, B, level 4 Halcyon Works (Phase 1).** No engine bump and no rules change.
+  - `levels/story/story-L004.json` was rewritten on level 3's town, which moves 300 south on a taller map (820 x 1300). Level 1's wreck stood off the north edge (y -181); it is now at y 118, reachable east of the ridge.
+    - The hub stands as a `struct.landmark`. The rockslide is cleared and field 2 is open.
+    - The galley (`conv.food_processor`) pad sits beside the grow dome, and its three staff pads (collector, cook, delivery to the kiosk) share one spot, chained and `manual`.
+    - People: Pip on ore; Rhee, Okafor and Tam idle for the three hires. Start credits are 12.
+    - The `capture.recorder` is at (470,150) in the hull break, `hiddenUntil: auto`.
+    - Objectives: `main` crates n:1; `galleyBuilt` build galley; `auto` converters_running k:3, 12 s, `sources: 1`. Every staffed source counts, Pip's ore included, so k 3 means the galley, the ore run and the dome's collector.
+  - `levels:check`: every rung wins. 60 of 60 bot games across 10 seeds have no stalls, and the human-view bot takes about 62–75 s to the goal.
+  - `skins/src/mars_greenhouse.ts` gains a `story-L004` cue block and the light preset `morning: 0.7`.
+    - The DAY 4,023 card is a `day` card whose sub reads "KILN's clock had stopped at DAY 5." (no strike-through).
+    - A wreck light and an edge glow start when the cook is hired. `crash_log` is a text card.
+    - World actions (light, spirit, ridge) run when their cue fires, not in line order. So KILN's dim on its line and the ridge flash on "Movement on the ridge" are left out until the director can sequence them.
+  - Also: the bot change and the test change in "Notes for Account A".
 
 - **2026-11-02, B, level 3 Open for Trade (Phase 1).** No engine bump and no rules change. Client code untouched.
   - `levels/story/story-L003.json` was rewritten on level 2's map: the same ring, ore and decor, grown south to a road (map 820 x 1000).
