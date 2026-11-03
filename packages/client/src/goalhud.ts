@@ -522,8 +522,25 @@ export class GoalHud {
   /** Frost the edges and set the one urgent item pulsing. */
   setAlert(a: Alert): void {
     this.el.frost.className = `frost${a.kind === "none" ? "" : a.kind === "goal" ? " on" : " on hard"}`;
-    this.el.heat.classList.toggle("alert", a.kind === "heat");
-    this.el.walls.classList.toggle("alert", a.kind === "walls");
-    for (const d of this.el.goals.children) (d as HTMLElement).classList.toggle("alert", a.kind === "goal" && (d as HTMLElement).dataset["id"] === a.id);
+    this.alertEl("heat", this.el.heat, a.kind === "heat", 1);
+    this.alertEl("walls", this.el.walls, a.kind === "walls", 1);
+    for (const d of this.el.goals.children) {
+      const e = d as HTMLElement, id = e.dataset["id"] ?? "";
+      this.alertEl(`g:${id}`, e, a.kind === "goal" && id === a.id, this.tokens.find((t) => t.id === id)?.fill ?? 1);
+    }
+  }
+
+  private alertSeen = new Map<string, number>();
+
+  /** The alert glow stays steady; the shake is a short burst when the danger starts or the meter drops (a hit). */
+  private alertEl(key: string, e: HTMLElement, on: boolean, level: number): void {
+    const was = this.alertSeen.get(key);
+    e.classList.toggle("alert", on);
+    if (!on) { this.alertSeen.delete(key); e.classList.remove("burst"); return; }
+    this.alertSeen.set(key, level);
+    if (was === undefined || level < was - 0.001) {
+      e.classList.remove("burst"); void e.offsetWidth; e.classList.add("burst");
+      setTimeout(() => e.classList.remove("burst"), 700);
+    }
   }
 }
