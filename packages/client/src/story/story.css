@@ -141,9 +141,9 @@
 .story-goalcard-k { margin: 0 0 4px; font: 800 12px/1 var(--display); letter-spacing: 0.18em; color: var(--accent); }
 .story-goalcard-text { margin: 0; font: 800 21px/1.25 var(--display); }
 .story-goalcard-tap { margin: 10px 0 0; font-size: 12px; font-weight: 700; color: #cfd6dd; }
-/* A live scene in a small frame over play (StoryAction inset): the bubbles stay readable below it */
+/* A live scene in a small frame over play (StoryAction inset): low on the screen, clear of the bubbles over the speakers' heads */
 .cine.live.inset {
-  inset: auto; top: calc(env(safe-area-inset-top, 0px) + 64px); right: 10px; width: min(64vw, 320px); height: min(44vw, 220px);
+  inset: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); left: 50%; transform: translateX(-50%); width: min(78vw, 360px); height: min(48vw, 230px);
   border-radius: 12px; overflow: hidden; border: 2px solid rgba(160, 230, 210, 0.7); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
   pointer-events: none; z-index: 3;
 }
