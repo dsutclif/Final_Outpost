@@ -150,12 +150,12 @@ and 3 (reduced buggy) are parked, not rejected.
   - L2 adds the 4 ejected crew pods (bays 1–4) and the old orange pod on the plain.
   - Bug: after L2's `empty_bays` opens bay 5, levels 3–5 still show it sealed. Fix: L3–5 show bay 5's lid open.
   - The screenplay (S1) should make the count readable: "four sealed in the wreck, four crew thrown clear".
-- [x] **S25 The ship stays put and far away.** (L2–5 shifted (+600, −300); L4 map 1300 wide.)
+- [x] **S25 The ship stays put and far away.** (Doug 2026-11-03: same placement relative to the town in L1–5; L4's walk goes past the deck to the recorder.)
   - The ship is the same 513 units from the reactor in every level. In L1–3 it sits off the north edge of the map,
     and in L4 the map grew to include it, so it looks as if it moved next to the town.
   - Fix: keep it on screen-reachable ground in every level, farther from town (a real walk in L4), and in the same
     spot relative to the camp throughout.
-- [ ] **S26 Solid wreck and deck; a ramp; a visible recorder.** (Recorder on open sand among the fragments; solid deck and ramp not done.) A drifted-sand ramp (a model or terrain shape) lets the
+- [x] **S26 Solid wreck and deck; a ramp; a visible recorder.** (Doug's redo: the recorder is lodged in a crack, rattles loose and bursts out onto open sand as the hero comes near; no ramp or deck walk needed.) A drifted-sand ramp (a model or terrain shape) lets the
   commander walk up onto the deck plate, since the game has no jump.
   - The commander walks through the deck plate. Decor doesn't block: give the deck and wreck footprints
     `zone.terrain` (data only).

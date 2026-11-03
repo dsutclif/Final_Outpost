@@ -199,8 +199,8 @@
    "type": "decor.halcyon_wreck",
    "id": "wreck",
    "at": [
-    925.2,
-    -181.6
+    325.2,
+    118.4
    ],
    "yaw": 0
   },
@@ -208,8 +208,8 @@
    "type": "decor.deck_plate",
    "id": "deck",
    "at": [
-    1384,
-    86.6
+    784,
+    386.6
    ],
    "yaw": -65.1,
    "size": [
@@ -223,8 +223,8 @@
    "type": "decor.deck_plate",
    "id": "deck2",
    "at": [
-    1312.6,
-    30
+    712.6,
+    330
    ],
    "yaw": -65.1,
    "size": [
@@ -238,8 +238,8 @@
    "type": "decor.deck_plate",
    "id": "stripe",
    "at": [
-    1452.5,
-    234.4
+    852.5,
+    534.4
    ],
    "yaw": -65.1,
    "size": [
@@ -254,8 +254,8 @@
    "type": "decor.stasis_pod",
    "id": "pod0",
    "at": [
-    1315.2,
-    192
+    715.2,
+    492
    ],
    "yaw": 173.9,
    "lift": -66
@@ -264,8 +264,8 @@
    "type": "decor.stasis_glass",
    "id": "lid0",
    "at": [
-    1323.1,
-    132.6
+    723.1,
+    432.6
    ],
    "yaw": 173.9,
    "lift": 50.8,
@@ -275,8 +275,8 @@
    "type": "decor.stasis_glass",
    "id": "lid1",
    "at": [
-    1521.2,
-    202.1
+    921.2,
+    502.1
    ],
    "yaw": 173.9,
    "lift": 22
@@ -285,8 +285,8 @@
    "type": "decor.stasis_pod",
    "id": "pod1",
    "at": [
-    1518.5,
-    213.8
+    918.5,
+    513.8
    ],
    "yaw": 173.9,
    "lift": -66
@@ -295,8 +295,8 @@
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    1331.5,
-    53.3
+    731.5,
+    353.3
    ],
    "yaw": 173.9,
    "lift": 22
@@ -305,8 +305,8 @@
    "type": "decor.stasis_pod",
    "id": "pod2",
    "at": [
-    1328.8,
-    64.9
+    728.8,
+    364.9
    ],
    "yaw": 173.9,
    "lift": -66
@@ -315,8 +315,8 @@
    "type": "decor.stasis_glass",
    "id": "lid3",
    "at": [
-    1534.8,
-    75
+    934.8,
+    375
    ],
    "yaw": 173.9,
    "lift": 22
@@ -325,8 +325,8 @@
    "type": "decor.stasis_pod",
    "id": "pod3",
    "at": [
-    1532,
-    86.6
+    932,
+    386.6
    ],
    "yaw": 173.9,
    "lift": -66
@@ -335,8 +335,8 @@
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    1133.4,
-    -16.2
+    533.4,
+    283.8
    ],
    "yaw": 173.9,
    "lift": 50.8,
@@ -346,8 +346,8 @@
    "type": "decor.stasis_pod",
    "id": "pod4",
    "at": [
-    1125.5,
-    43.2
+    525.5,
+    343.2
    ],
    "yaw": 173.9,
    "lift": -66

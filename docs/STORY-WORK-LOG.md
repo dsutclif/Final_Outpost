@@ -74,6 +74,17 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-03, B, the ship stays where level 1 has it; the recorder bursts out of the hull (Doug).** Doug: the ship and the
+  settlement must keep the same relative positions in L1–5, and L4 must not show fragments where the ship was. So the
+  earlier (+600, −300) shift is undone: L2–5's wreck group now matches L1 exactly relative to the reactor (checked
+  piece by piece; only bay 5's open lid differs, on purpose).
+  - **Recorder (S26).** Manifest capture field `drop: { h, r, from }` (content manifest.ts; renderer only, the sim keeps
+    it on the ground at `at`). L4's recorder is drawn lodged in a crack in the hull's south wall (2.6 art m up, at
+    (1075, 300)); when the hero comes within 320 it rattles, the crack bursts, and it arcs onto open sand at
+    (1000, 600), landing in dust. The landing spot and a 45-unit loop around it are clear of the hull, the fallen
+    chunks and the deck plates (checked on a top-down map of the GLB). renderer.ts `captureDrop` / `dropSpec`.
+  - L4's map stays 1300 wide. The walk from the reactor is about 780 units, past the deck.
+  - **A:** level 1 already has this placement; no change needed for continuity. It does now draw the film's wreck model.
 - **2026-11-03, B, portraits, the wreck moved east, small fixes (Doug's items 4–6).** No engine bump; s1 (45) and story
   packs replay clean, every test passes.
   - **Portraits (S3).** `packages/client/public/busts/*.webp` (160 px), rendered from each character's GLB in the
@@ -84,8 +95,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
     old placement they landed on the camp. **L2–5 shift the whole wreck group (wreck, deck, deck2, stripe, pod0–4,
     lid0–4) by (+600, −300)**: east on screen and clear of the camp. L4's map is 1300 wide and the recorder lies on
     open sand among the hull fragments at (1080, 380), about 900 units from the reactor.
-    **A: level 1 still has the old placement**, so with the new model its debris may sit near the camp, and L1→L2
-    continuity now wants the same shift (or a matching choice of yours).
+    (Superseded the same day: L2–5 went back to L1's placement; see the entry above.)
   - **Hub price (S16).** renderer.ts: a big pad's floating name and price stay at most `BIG_LABEL_LIFT` (3.2 art m)
     high, so the landmark's tall blueprint no longer pushes them off screen. Affects every big pad (a bug fix).
   - **Pads (S27).** L4's three hire pads moved from (420,1020), behind the kiosk, to (340,1000); L5's guard pad from

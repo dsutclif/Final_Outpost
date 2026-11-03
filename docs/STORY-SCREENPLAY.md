@@ -299,8 +299,7 @@ galley stops, it drops back to zero.
 
 > GOAL CARD: **Reach the wreck while the town runs itself**
 
-*The commander climbs the drifted sand ramp onto the deck and reaches the wreck as the bar fills. Goal star. An orange flight recorder lies in the open at the hull
-break, its light blinking.*
+*Past the deck, an orange flight recorder blinks, wedged in a crack in the hull. As the commander comes near it rattles, the crack bursts, and it tumbles out onto the sand. The bar fills. Goal star.*
 
 **KILN:** That's it. Tow it home to me, the same way you towed the pods.
 

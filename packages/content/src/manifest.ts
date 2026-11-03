@@ -99,6 +99,9 @@ export const CaptureEntity = z.object({
   decoy: z.boolean().optional(),
   // Not on the map (nothing can see, tow or count it) until this objective id is done.
   hiddenUntil: z.string().min(1).optional(),
+  // Renderer only (the sim keeps it on the ground at `at`): drawn lodged `h` art metres up, offset `from` (world units),
+  // until the hero comes within `r`; then it rattles loose and falls to `at` (story level 4's recorder in the hull).
+  drop: z.object({ h: z.number().positive(), r: z.number().positive(), from: z.tuple([z.number(), z.number()]).optional() }).optional(),
 });
 // Static dressing placed at a world position (the Halcyon wreck): no sim state, never blocks.
 export const DecorEntity = z.object({

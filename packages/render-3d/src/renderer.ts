@@ -350,6 +350,12 @@ export class Renderer3D implements Renderer {
   private env: Environment | null = null;
   private labels: Labels = new Labels(null, "#000");
   private fx: Fx | null = null;
+  /** Captures with a manifest `drop`: when each started to fall (renderer clock), which have landed, and the specs. */
+  private readonly dropAt = new Map<number, number>();
+  private readonly dropLanded = new Set<number>();
+  private readonly dropBurst = new Set<number>();
+  private dropSpecs: Map<number, { h: number; r: number; from?: readonly [number, number] }> | null = null;
+  private dropTick = 0;
   private crowd: Crowd | null = null;
   private rigged: Rigged | null = null;
   /** The hero's see-through silhouette material (backlog R6 N9), made on first use. */
@@ -607,6 +613,7 @@ export class Renderer3D implements Renderer {
     this.buildDom(doc, mount);
 
     this.interp.reset();
+    this.dropAt.clear(); this.dropLanded.clear(); this.dropBurst.clear(); this.dropSpecs = null;
     this.camReady = false;
     this.synced = false;
     this.t0 = this.nowFn();
@@ -2144,7 +2151,8 @@ export class Renderer3D implements Renderer {
       const pos = this.interp.pos(key, c.pos, a);
       // an empty decoy pod has its own tinted model
       const p = this.place(`cap:${c.id}`, c.decoy ? `${c.type}.decoy` : c.type, v3(pos.x, 0, pos.y));
-      if (c.state === "idle") this.candidate(c.type, p);
+      const lodged = this.captureDrop(c, p, pos, s);
+      if (c.state === "idle" && !lodged) this.candidate(c.type, p);
       // a flight recorder's locator beacon blinks
       const bc = p.model.parts["beacon"];
       if (bc) bc.visible = c.state !== "idle" || (this.t * 1.6 + c.id * 0.37) % 1 < 0.4;
@@ -2163,12 +2171,70 @@ export class Renderer3D implements Renderer {
       }
       this.blobs!.add(pos.x, pos.y, 18);
       // idle pods beckon with a pulsing ring of light
-      if (c.state === "idle") {
+      if (c.state === "idle" && !lodged) {
         const sp = this.sprite(p, 0);
         sp.visible = this.labels.apply(sp, `cap|${c.type}`, () => this.warnArt("+", this.tokens.interactive), 10);
         sp.position.set(pos.x, ART_M * (1.15 + Math.sin(this.t * 3 + c.id) * 0.06), pos.y);
       } else if (p.sprites[0]) p.sprites[0].visible = false;
     }
+  }
+
+  /**
+   * A capture with a manifest `drop` (story level 4's recorder) is drawn lodged in the hull until the hero comes near,
+   * then rattles, bursts out of the crack and arcs to its spot on the sand, landing in a puff of dust. Drawn only: the sim has it on the
+   * ground all along. True while it is not yet down.
+   */
+  private captureDrop(c: State["captures"][number], p: Placed, pos: V, s: State): boolean {
+    // a restart (the tick went back) puts it back in the hull
+    if (s.tick < this.dropTick) { this.dropAt.clear(); this.dropLanded.clear(); this.dropBurst.clear(); }
+    this.dropTick = s.tick;
+    const spec = this.dropSpec(c.id);
+    if (!spec || c.state !== "idle") return false;
+    const RATTLE = 0.9;
+    const fx0 = spec.from?.[0] ?? 0, fz0 = spec.from?.[1] ?? 0;
+    const crack = v3(pos.x + fx0, ART_M * spec.h, pos.y + fz0);
+    // a longer way out flies longer and higher
+    const FLY = 0.5 + Math.hypot(fx0, fz0) / 500, ARC = Math.hypot(fx0, fz0) / 90;
+    let t0 = this.dropAt.get(c.id);
+    if (t0 === undefined) {
+      const hx = s.player.pos.x / FP - pos.x, hy = s.player.pos.y / FP - pos.y;
+      if (hx * hx + hy * hy <= spec.r * spec.r) {
+        t0 = this.t;
+        this.dropAt.set(c.id, t0);
+        this.fx?.burst(crack, [this.tokens.accent, this.tokens.paper.panel], 8, 50, 120, 3, 0.4);
+      }
+    }
+    const e = t0 === undefined ? 0 : this.t - t0;
+    const fly = clamp01((e - RATTLE) / FLY);
+    // the crack bursts open as it comes loose
+    if (fly > 0 && !this.dropBurst.has(c.id)) {
+      this.dropBurst.add(c.id);
+      this.fx?.burst(crack, [this.tokens.danger, this.tokens.accent, this.tokens.paper.panel, this.tokens.structure], 22, 120, 240, 5, 0.6);
+      this.fx?.dustRing(crack, this.tokens.structure, 16, 90, 6);
+    }
+    const root = p.model.root;
+    root.position.x = pos.x + fx0 * (1 - fly);
+    root.position.z = pos.y + fz0 * (1 - fly);
+    root.position.y = ART_M * (spec.h * (1 - fly) * (1 - fly) + ARC * 4 * fly * (1 - fly));
+    // a rattle in the crack, then a tumble through the air
+    const shake = t0 !== undefined && e < RATTLE ? Math.sin(e * 55) * 0.12 * (0.4 + e / RATTLE) : 0;
+    root.rotation.z = shake + fly * (1 - fly) * 5;
+    if (fly >= 1 && !this.dropLanded.has(c.id)) {
+      this.dropLanded.add(c.id);
+      this.fx?.dustRing(v3(pos.x, 0, pos.y), this.tokens.groundAlt, 20, 100, 7);
+    }
+    if (fly >= 1) { root.rotation.z = 0; root.position.y = 0; }
+    const fall = fly;
+    return fall < 1;
+  }
+
+  /** The manifest `drop` for a capture id (ids follow the manifest's capture order). */
+  private dropSpec(id: number): { h: number; r: number; from?: readonly [number, number] } | undefined {
+    if (!this.dropSpecs) {
+      const caps = this.manifest.entities.filter((e) => e.type.startsWith("capture.")) as unknown as { drop?: { h: number; r: number; from?: [number, number] } }[];
+      this.dropSpecs = new Map(caps.flatMap((e, i) => (e.drop ? [[i, e.drop] as const] : [])));
+    }
+    return this.dropSpecs.get(id);
   }
 
   private syncDrops(s: State): void {
