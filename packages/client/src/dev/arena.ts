@@ -123,7 +123,8 @@ export function createArena(): ArenaUi {
     minus.onclick = (e) => { e.stopPropagation(); bump(-1); };
     plus.onclick = (e) => { e.stopPropagation(); bump(1); };
     cnt.append(minus, n, plus);
-    hd.append(el("b", f.title), cnt);
+    // skin names where the title is a raw id (hostiles), so cards read "Dust mite", not hostile.swarmling
+    hd.append(el("b", getSkin(DEFAULT_SKIN).names[f.title] ?? f.title), cnt);
     hd.onclick = () => { if (pick[side] !== f.id) { pick[side] = f.id; renderCards(); newFight(); } };
     c.append(hd);
     const rows = cardRows(f, mode, edits[mode]);
