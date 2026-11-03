@@ -84,7 +84,7 @@ export function addWear(mat: MeshStandardMaterial | MeshLambertMaterial, o: Wear
 }
 
 export class MaterialSet {
-  /** Opaque vertex-coloured models: flat-shaded, with surface wear. */
+  /** Opaque vertex-coloured models: smooth-shaded (R6 #8; the primitives carry their own normals, so box edges stay hard and only the round parts smooth), with surface wear. */
   readonly std: MeshStandardMaterial;
   /** Hero structure bodies: std plus poured-panel seams. */
   readonly panel: MeshStandardMaterial;
@@ -110,14 +110,14 @@ export class MaterialSet {
 
   constructor(readonly tokens: Tokens) {
     this.radial = radialTexture();
-    this.std = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.86, metalness: 0.06 });
+    this.std = new MeshStandardMaterial({ vertexColors: true, roughness: 0.86, metalness: 0.06 });
     addWear(this.std, { wear: 1, seams: false, unit: 1 });
-    this.panel = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0.04 });
+    this.panel = new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0.04 });
     addWear(this.panel, { wear: 1.2, seams: true, unit: 1 });
     this.glass = new MeshStandardMaterial({ vertexColors: true, transparent: true, opacity: 0.5, roughness: 0.12, metalness: 0.1, depthWrite: false });
     this.glow = new MeshBasicMaterial({ vertexColors: true, toneMapped: false });
     this.additive = new MeshBasicMaterial({ vertexColors: true, transparent: true, blending: AdditiveBlending, depthWrite: false, toneMapped: false, side: DoubleSide });
-    this.slab = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 });
+    this.slab = new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
     addWear(this.slab, { wear: 1.3, seams: false, unit: ART_M, contact: false });
     this.ground = new MeshLambertMaterial({ vertexColors: true });
     addWear(this.ground, { wear: 0.9, seams: false, unit: ART_M, contact: false });
