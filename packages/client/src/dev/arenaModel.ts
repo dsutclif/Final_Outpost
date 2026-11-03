@@ -12,14 +12,32 @@ export type Mode = "r2" | "today";
  * Release 2 combat proposals: `fighter:stat` over today's values (a stat today's rules lack is new).
  * shot* is a ranged attack at the nearest settler it can hurt; lunge* a dash at one after a wind-up.
  */
+/** Doug 2026-11-03: one reach for every fighter's ranged attack as a starting point; mites get half. */
+export const REACH = 80;
+const EQUAL = "Doug 2026-11-03: every reach equal as a starting point";
+
 export const PROPOSALS: { key: string; v: number; why: string }[] = [
+  { key: "player:gunRange", v: REACH, why: EQUAL },
+  { key: "guard:range", v: REACH, why: EQUAL },
+  { key: "drone:range", v: REACH, why: EQUAL },
+  { key: "tower1:range", v: REACH, why: EQUAL },
+  { key: "tower2:range", v: REACH, why: EQUAL },
+  { key: "tower3:range", v: REACH, why: EQUAL },
+  // contact attackers get a ranged attack at the common reach, with their own damage and rate
+  { key: "hostile.boss:shotRange", v: REACH, why: EQUAL + " (the warlord carries a minigun)" },
+  { key: "hostile.boss:shotDamage", v: 4, why: "its contact damage" },
+  { key: "hostile.boss:shotInterval", v: 1, why: "its contact interval" },
+  { key: "hostile.boss:shotStops", v: 1, why: "stands to shoot, like a raider" },
+  { key: "hostile.creature:shotRange", v: REACH, why: EQUAL },
+  { key: "hostile.creature:shotDamage", v: 1, why: "its contact damage" },
+  { key: "hostile.creature:shotInterval", v: 1, why: "its contact interval" },
   { key: "hostile.swarmling:lungeRange", v: 30, why: "N2 lunge: a dash from this far, past a drone's 20-unit reach" },
   { key: "hostile.swarmling:lungeWindup", v: 0.3, why: "N2 lunge: wind-up before the dash" },
   { key: "hostile.swarmling:lungeCooldown", v: 2, why: "arena guess: the ledger gives no lunge rate" },
-  { key: "hostile.swarmling:shotRange", v: 45, why: "N2 acid spit reach" },
+  { key: "hostile.swarmling:shotRange", v: REACH / 2, why: "Doug 2026-11-03: mites have half the common reach" },
   { key: "hostile.swarmling:shotDamage", v: 1, why: "N2 acid spit damage" },
   { key: "hostile.swarmling:shotInterval", v: 2, why: "N2 acid spit every 2 s" },
-  { key: "hostile.raider_humanoid:shotRange", v: 80, why: "N2/N3 rifle: just past guards' 75, inside towers' 115+" },
+  { key: "hostile.raider_humanoid:shotRange", v: REACH, why: "Doug 2026-11-03: every reach equal as a starting point" },
   { key: "hostile.raider_humanoid:shotDamage", v: 1, why: "N2/N3 rifle damage" },
   { key: "hostile.raider_humanoid:shotInterval", v: 1.5, why: "N2/N3 rifle every 1.5 s" },
   { key: "player:targetable", v: 1, why: "R2 (Doug 2026-11-03): attackers can hurt the commander; at 0 HP he is down for downSeconds, then up healed" },
@@ -52,12 +70,12 @@ export const STAT_LABELS: Record<string, { label: string; unit: string; hidden?:
   healDelay: { label: "Heal starts after", unit: "s" },
   healInterval: { label: "Heal 1 hp every", unit: "s" },
   hp: { label: "HP", unit: "", hidden: true },
-  range: { label: "Attack reach", unit: "u", hidden: true },
-  gunRange: { label: "Gun reach", unit: "u", hidden: true },
-  shotRange: { label: "Ranged reach", unit: "u", hidden: true },
+  range: { label: "Reach", unit: "u" },
+  gunRange: { label: "Gun reach", unit: "u" },
+  shotRange: { label: "Ranged reach", unit: "u" },
 };
 /** Ranged attack names per fighter, for the cards and tracers. */
-export const SHOT_NAME: Record<string, string> = { "hostile.swarmling": "Acid spit", "hostile.raider_humanoid": "Rifle" };
+export const SHOT_NAME: Record<string, string> = { "hostile.swarmling": "Acid spit", "hostile.raider_humanoid": "Rifle", "hostile.boss": "Minigun" };
 
 export type Edits = Record<string, number>;
 export interface CardRow { stat: string; label: string; unit: string; hidden: boolean; v: number; today: number | null; src: string; isNew: boolean; changed: boolean; why?: string }
@@ -83,7 +101,9 @@ export function cardRows(f: FighterNums, mode: Mode, edits: Edits = {}): CardRow
   return Object.keys(s).filter((k) => STAT_LABELS[k] && !(f.kind === "player" && k === "downSeconds"))
     .sort((a, b) => order.indexOf(a) - order.indexOf(b)).map((k) => {
       const L = STAT_LABELS[k]!, today = f.stats[k]?.v ?? null, prop = PROPOSALS.find((p) => p.key === `${f.id}:${k}`);
-      const label = k.startsWith("shot") && SHOT_NAME[f.id] ? L.label.replace("Ranged", SHOT_NAME[f.id]!) : L.label;
+      // for attackers and the commander, plain reach is the contact or melee one; their gun has its own row
+      const melee = k === "range" && (f.kind === "hostile" || f.kind === "player");
+      const label = melee ? "Melee reach" : k.startsWith("shot") && SHOT_NAME[f.id] ? L.label.replace("Ranged", SHOT_NAME[f.id]!) : L.label;
       const row: CardRow = { stat: k, label, unit: L.unit, hidden: !!L.hidden, v: s[k]!, today, src: f.stats[k]?.src ?? "R2 proposal", isNew: today === null, changed: today !== null && today !== s[k] };
       if (prop && mode === "r2") row.why = prop.why;
       return row;

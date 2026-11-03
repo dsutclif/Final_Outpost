@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { content } from "@fo/content";
-import { cardRows, createFight, PROPOSALS, roster, runFight, statsOf, stepFight } from "../src/dev/arenaModel.js";
+import { cardRows, createFight, PROPOSALS, REACH, roster, runFight, statsOf, stepFight } from "../src/dev/arenaModel.js";
 
 const fighter = (id: string) => roster().fighters.find((f) => f.id === id)!;
 
@@ -15,12 +15,13 @@ describe("fighter arena model", () => {
     const mite = fighter("hostile.swarmling");
     expect(statsOf(mite, "today").hp).toBe(content.hostiles["hostile.swarmling"]!.hp);
     expect(statsOf(mite, "today").shotRange).toBeUndefined();
-    expect(statsOf(mite, "r2").shotRange).toBe(45);
+    expect(statsOf(mite, "r2").shotRange).toBe(REACH / 2);
+    expect(statsOf(fighter("guard"), "r2").range).toBe(REACH);
     expect(statsOf(mite, "r2", { "hostile.swarmling:shotRange": 50 }).shotRange).toBe(50);
     const spit = cardRows(mite, "r2").find((r) => r.stat === "shotDamage")!;
     expect(spit.isNew).toBe(true);
     expect(spit.label).toContain("Acid spit");
-    for (const p of PROPOSALS) expect(p.key).toMatch(/^[a-z_.]+:[a-zA-Z]+$/);
+    for (const p of PROPOSALS) expect(p.key).toMatch(/^[a-z0-9_.]+:[a-zA-Z]+$/);
   });
 
   it("10 mites against 2 drones finishes, in both modes", () => {
@@ -40,10 +41,11 @@ describe("fighter arena model", () => {
     }
   });
 
-  it("r2: raiders shoot from beyond guards' reach, mites spit and lunge", () => {
+  it("r2: raiders shoot at range, and mites spit at settlers that come within half the reach", () => {
     const f = runFight({ enemy: "hostile.raider_humanoid", enemies: 6, settler: "guard", settlers: 2, mode: "r2", seed: 5 });
     expect(f.hits.some((h) => h.byKind === "hostile" && h.ranged && h.dist > 18)).toBe(true);
-    const m = runFight({ enemy: "hostile.swarmling", enemies: 10, settler: "drone", settlers: 2, mode: "r2", seed: 5 });
+    // drones out-reach the spit at the common reach, so give them back their short reach to let the mites close
+    const m = runFight({ enemy: "hostile.swarmling", enemies: 10, settler: "drone", settlers: 2, mode: "r2", seed: 5, edits: { "drone:range": 20 } });
     expect(m.hits.some((h) => h.byKind === "hostile" && h.ranged)).toBe(true);
   });
 

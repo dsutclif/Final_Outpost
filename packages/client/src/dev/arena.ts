@@ -155,7 +155,7 @@ export function createArena(): ArenaUi {
     c.append(shown);
     if (hidden.childElementCount) {
       const d = el("details");
-      d.append(el("summary", "HP and reach (shown in the arena)"), hidden);
+      d.append(el("summary", "HP (shown as the health bar)"), hidden);
       c.append(d);
     }
     if (Object.keys(edits[mode]).some((k) => k.startsWith(f.id + ":"))) {
