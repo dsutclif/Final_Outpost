@@ -1732,11 +1732,13 @@ export class Renderer3D implements Renderer {
       const w = this.wv({ x: d.pos.x + o[0] * FP, y: d.pos.y + o[1] * FP });
       m.position.set(w.x, 2.4, w.z);
       m.scale.setScalar(this.devPlateSize ?? 2 * (def?.padRange ?? 20) * 1.1);
+      // the drop-off arrow points inward: from the pad toward the depot, whatever side its offset is on
+      if (i === 0) m.rotation.y = o[0] === 0 && o[1] === 0 ? 0 : Math.atan2(o[0], o[1]);
     });
     for (let i = offs.length; i < this.depotPads.length; i++) this.depotPads[i]!.visible = false;
   }
 
-  /** A warehouse pad: solid outline, a down arrow on the drop-off, the resource's icon on a pickup. */
+  /** A warehouse pad: solid outline, an inward arrow on the drop-off, the resource's icon on a pickup. */
   private depotPadArt(res?: string): LabelArt {
     const t = this.tokens;
     return {
@@ -1747,8 +1749,9 @@ export class Renderer3D implements Renderer {
         g.fillStyle = "rgba(0,0,0,0.22)"; g.fill();
         g.lineWidth = 9; g.strokeStyle = t.interactive; g.stroke();
         if (res) { drawIcon(g, w / 2, h / 2, 62, resToken(t, res), t.ink); return; }
-        g.beginPath(); g.moveTo(w / 2, h / 2 + 56); g.lineTo(w / 2 - 50, h / 2); g.lineTo(w / 2 - 20, h / 2); g.lineTo(w / 2 - 20, h / 2 - 56);
-        g.lineTo(w / 2 + 20, h / 2 - 56); g.lineTo(w / 2 + 20, h / 2); g.lineTo(w / 2 + 50, h / 2); g.closePath();
+        // tip up the canvas = world -z; syncDepot yaws the pad so the tip points at the building
+        g.beginPath(); g.moveTo(w / 2, h / 2 - 56); g.lineTo(w / 2 - 50, h / 2); g.lineTo(w / 2 - 20, h / 2); g.lineTo(w / 2 - 20, h / 2 + 56);
+        g.lineTo(w / 2 + 20, h / 2 + 56); g.lineTo(w / 2 + 20, h / 2); g.lineTo(w / 2 + 50, h / 2); g.closePath();
         g.fillStyle = t.interactive; g.fill(); g.lineWidth = 6; g.strokeStyle = t.ink; g.stroke();
       },
     };
