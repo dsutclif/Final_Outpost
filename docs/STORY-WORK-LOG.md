@@ -9,6 +9,9 @@ Two Claude accounts push to this repo. **Read this file before you start, and fe
 
 ## Agreed with Doug (2026-11-02)
 
+- **2026-11-03: story round S1 is refined in `docs/BACKLOG-STORY.md`** (owners A/B per item). Films and live scenes are
+  on hold until its screenplay (S1) and staging settle. `empty_bays` stays live as is, and sign-offs 2 and 3 are parked.
+
 - Levels 2–5 are built one at a time. Each one goes to `main` and is live as soon as it's checked.
 - If a rule needed by a story level doesn't fit the existing rules, it becomes an **opt-in manifest option**: off by default, used only by the training levels. Generated levels must keep their results.
 - An engine bump is allowed if a story level needs it (re-pin with `levels:repin`, then `levels:check`). **No pack regeneration.** Before a bump, claim it below, fetch, and push straight after, to keep the window short.
