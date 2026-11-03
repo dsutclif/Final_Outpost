@@ -10,7 +10,7 @@ import { applyMeshy } from "./meshy.js";
 import { buildBelt, buildClerkPad, buildItem, buildPile } from "./props.js";
 import {
   buildBarrierDash, buildBurrow, buildFuelCache, buildGrowDome, buildOrePile, buildPadPlate, buildRubble, buildTerrain,
-  buildScrapPile, buildStasisPod, buildRecorder, buildSupplyCrate, buildStormPreset, buildWaitingMarker, buildWallPanel,
+  buildScrapPile, buildStasisPod, buildRecorder, buildHelmet, buildSupplyCrate, buildStormPreset, buildWaitingMarker, buildWallPanel,
 } from "./scatter.js";
 
 // Model registry keyed by canonical id, mirroring the 2D renderer's draw registry: adding a
@@ -123,6 +123,7 @@ registerModel("capture.recruit_container", (ctx) => buildStasisPod(ctx));
 registerModel("capture.supply_crate", (ctx) => buildSupplyCrate(ctx));
 registerModel("capture.recruit_container.decoy", (ctx) => buildStasisPod(ctx, true));
 registerModel("capture.recorder", (ctx) => buildRecorder(ctx));
+registerModel("capture.helmet", (ctx) => buildHelmet(ctx));
 registerModel("zone.blocked", (ctx) => buildRubble(ctx));
 registerModel("zone.terrain", (ctx) => buildTerrain(ctx));
 registerModel("zone.waiting", (ctx) => buildWaitingMarker(ctx));

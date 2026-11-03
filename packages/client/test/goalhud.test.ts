@@ -53,8 +53,9 @@ describe("goal icons", () => {
   it("L5: waves are pips; won goals draw a star and missed ones are struck through", () => {
     const { sim, m, cp } = level(5);
     const t = goalTokens(sim.state, m, cp, skin);
-    expect(t[0]!.glyph).toBe("waves");
-    expect(t[0]!.pips?.n).toBeGreaterThan(1);
+    // story level 5's main goal is the helmet; its waves are the "hold" goal
+    const w = t.find((x) => x.glyph === "waves")!;
+    expect(w.pips?.n).toBeGreaterThan(1);
     expect(goalIcon({ ...t[1]!, state: "done" })).toContain("gstar");
     expect(goalIcon({ ...t[1]!, state: "failed" })).toContain("gslash");
   });

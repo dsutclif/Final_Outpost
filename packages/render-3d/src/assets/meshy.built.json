@@ -1287,5 +1287,23 @@
       1.193,
       1.204
     ]
+  },
+  "capture.recruit_container_decoy": {
+    "hash": "296bfb9bde",
+    "tris": 3946,
+    "bytes": 306572,
+    "bounds": [
+      -0.55,
+      0,
+      -0.309,
+      0.55,
+      0.579,
+      0.309
+    ],
+    "outline": {
+      "hash": "635bdf0af7",
+      "tris": 248,
+      "bytes": 3608
+    }
   }
 }

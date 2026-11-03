@@ -79,6 +79,7 @@ const names: Record<string, string> = {
   "capture.recruit_container": "Stasis pod",
   "capture.supply_crate": "Supply crate",
   "capture.recorder": "Flight recorder",
+  "capture.helmet": "Dropped helmet",
   "hostile.swarmling": "Dust mite",
   "hostile.boss": "Raider warlord",
   "hostile.raider_humanoid": "Raider",
@@ -204,6 +205,7 @@ const purposes: Record<string, string> = {
   "capture.recruit_container": "Walk a loop around it to tow it home",
   "capture.supply_crate": "Tow it into the heat to unpack it",
   "capture.recorder": "Walk a loop around it to tow it home",
+  "capture.helmet": "Walk a loop around it to bring it home",
   "hostile.swarmling": "Weak but fast; comes in swarms",
   "hostile.boss": "Big, slow and tough; pays out big",
   "hostile.raider_humanoid": "Attacks the colony; walk into it to fight",
@@ -930,63 +932,85 @@ export const marsGreenhouse: Skin = {
           ] },
         ],
       },
-      // Open for Trade (docs/STORY-LEVELS-V2.md, level 3). Phase 1: Sela walks in with the first traders (no buggy yet);
-      // the H coin close-up is a card with the coin's render.
+      // Open for Trade (docs/STORY-SCREENPLAY.md, level 3). Sela comes first, then the hub and its price; selling meat is a
+      // story step (no star). The H coin close-up is a card with the coin's render.
       "story-L003": {
         hide: ["credits", "walls"],
         solid: ["sink.core"],
+        goalCards: true,
+        // manifest people order: Pip, Rhee, Okafor, Tam; Sela and the angry trader speak from the kiosk
+        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { entity: "kiosk" }, trader: { entity: "kiosk" } },
         goals: [
           { id: "first", hold: true, label: "Sell Sela some greens" },
-          { id: "clear", label: "Clear the rockslide" },
-          { id: "main", label: "Build the habitat hub" },
+          { id: "clear", label: "Clear the rockslide (12)" },
+          { id: "meat", label: "Sell meat at the kiosk", until: { event: "sold", match: { res: "res.food_raw_2" } } },
+          { id: "main", label: "Build the habitat hub (150)" },
         ],
         cues: [
           { on: { start: true }, do: [
             { light: "dusk" },
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
-            { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
+            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1 } },
           ] },
-          { on: { start: true }, do: [
-            { line: "One more storm and they're dead. We need a habitat hub to keep our people safe.", who: "rhee" },
-            { camera: { to: { entity: "hub" }, pan: 0.7, hold: 2, back: 0.7 } },
-          ] },
-          // night falls as the first trader walks in; the camera follows them to the old kiosk
-          { on: { event: "customer_arrived" }, do: [
+          // the only moving light: the camera follows the first trader down the road to the old kiosk
+          { on: { event: "customer_arrived" }, ordered: true, do: [
             { light: "night", seconds: 3 },
-            { camera: { to: { entity: "kiosk" }, pan: 0.8, hold: 2.5, back: 0.8 } },
-            { line: "Sela. Salvage. Came for that wreck. Didn't expect anyone home. Got food?", who: "sela" },
+            { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 1.5, back: 0.8 } },
+            { line: "Well. Somebody's living out here. I'm Sela. I trade between the settlements: salvage, food, whatever people need.", who: "sela" },
+            { line: "Settlements? There are other people on this planet?", who: "commander" },
+            { line: "Three towns along this road, and every one of them is hungry. You've got a grow dome there. I'll pay for greens.", who: "sela" },
+            { line: "People who trade. Commander, if we sell to her, we can afford a real shelter for the crew.", who: "kiln" },
+            { line: "The grow dome beside you grows greens. Pick some, put them on the kiosk's shelf, then stand at the counter.", who: "kiln" },
             { goal: "first" },
             { dots: [{ entity: "field1" }], period: 3 },
           ] },
-          // the first coins: the credits chip, then a look past the rubble at the hoppers and the pad that clears it
-          { on: { goal: "first", is: "done" }, do: [
+          // the first coins: the hub and its price, then the trader who wants meat and the slide in the way
+          { on: { goal: "first", is: "done" }, ordered: true, do: [
             { show: ["credits"] },
             { dotsOff: true },
+            { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
+            { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
+            { line: "A hub costs 150 credits. Every sale gets us closer.", who: "kiln" },
+            { line: "No meat? I'm not waiting.", who: "trader" },
+            { line: "Meat sells best. Hoppers live past that rockslide.", who: "sela" },
             { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.3 } },
             { camera: { to: { entity: "clear0" }, pan: 0.4, hold: 1, back: 0.8 } },
+            { line: "Clearing the slide costs 12 credits. Sell greens until you have 12, then stand on that pad to pay.", who: "kiln" },
           ] },
-          { on: { event: "zone_cleared" }, do: [{ line: "That slide's fresh.", who: "kiln" }] },
-          // the hub stands; Sela settles up in Halcyon chips, and the eleven years land
+          { on: { event: "zone_cleared" }, do: [
+            { line: "That slide is fresh. Something shook it loose. Maybe that signal from the ridge.", who: "kiln" },
+            { line: "Walk up to a hopper and you'll be able to hunt it. Carry the meat to the kiosk and sell it.", who: "kiln" },
+          ] },
+          { on: { event: "sold", match: { res: "res.food_raw_2" } }, do: [
+            { line: "That dim pad by the road opens a second grow dome, if you want more greens.", who: "kiln" },
+            { line: "Keep selling. When we have 150, we pay at the hub's outline.", who: "rhee" },
+          ] },
+          // the hub stands; Sela pays in Halcyon chips, and the eleven years land
           { on: { goal: "main", is: "done" }, do: [
             { card: "", image: "ui/coin.png", seconds: 2.5 },
-            { line: "Halcyon chips?", who: "commander" },
-            { line: "Four in suits like yours still spend them.", who: "sela" },
-            { line: "We landed four days ago.", who: "commander" },
+            { line: "For your first night under a roof. A Halcyon chip.", who: "sela" },
+            { line: "Halcyon chips? That's our ship's money. Where did you get it?", who: "commander" },
+            { line: "Four people in suits like yours still spend them. Up on the ridge.", who: "sela" },
+            { line: "That's not possible. We landed four days ago.", who: "commander" },
             { line: "Friend. The Halcyon came down eleven years ago.", who: "sela" },
-            { line: "Boss? Eleven years?", who: "pip" },
+            { line: "Eleven... years?", who: "pip" },
             { card: "", seconds: 2 },
           ] },
         ],
       },
-      // Halcyon Works (docs/STORY-LEVELS-V2.md, level 4). Phase 1: the crash_log scene is a text card. Ordered cues put
-      // KILN's dim and the ridge flash on their lines.
+      // Halcyon Works (docs/STORY-SCREENPLAY.md, level 4). The crash_log scene is a text card until it is made. Ordered cues
+      // put KILN's dim, the look east and the ridge flash on their lines. Training the crew is a story step (no star).
       "story-L004": {
         hide: ["walls"],
         solid: ["sink.core"],
+        goalCards: true,
+        // manifest people order: Pip, Rhee, Okafor, Tam, then Sela's two drivers
+        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { entity: "kiosk" } },
         goals: [
           { id: "galleyBuilt", label: "Build the galley" },
-          { id: "auto", label: "Automate both machines long enough to reach the ship" },
+          { id: "train", label: "Train the crew for all three jobs", until: { event: "hired", match: { pad: "server" } } },
+          { id: "auto", label: "Reach the wreck while the town runs itself" },
           { id: "main", label: "Bring the flight recorder home" },
         ],
         cues: [
@@ -994,80 +1018,113 @@ export const marsGreenhouse: Skin = {
             { light: "morning" },
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
-            { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
+            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1 } },
           ] },
+          // no opening camera move; the camera looks east to the wreck only when KILN names the recorder
           { on: { start: true }, ordered: true, do: [
             { day: "DAY 4,023", sub: "KILN's clock had stopped at DAY 5.", seconds: 3 },
+            { line: "KILN. Is it true? Eleven years?", who: "commander" },
             { spirit: "fading" },
-            { line: "I shut down everything but the pods. Even my clock. It took everything.", who: "kiln" },
+            { line: "I shut down everything except the pods to save power. My clock must have been off too. It's been four thousand and twenty-three days.", who: "kiln" },
             { spirit: "idle" },
-            { line: "Vale's pod was empty. Why?", who: "commander" },
-            { line: "The flight recorder survived. Retrieve it and I can read it for you.", who: "kiln" },
-            { line: "I can't leave. They need me here.", who: "commander" },
-            { line: "Then let's get this town running on its own.", who: "rhee" },
-            { line: "Storm season's close. Everyone's buying hot meals.", who: "sela" },
-            { camera: { to: { entity: "galley" }, pan: 0.7, hold: 1.5, back: 0.7 } },
+            { line: "Eleven years. And Vale's pod was empty. Why?", who: "commander" },
+            { line: "It looks like the flight recorder survived the crash. It's still in the wreck. Bring it to me and I can read it.", who: "kiln" },
+            { camera: { to: { entity: "recorder" }, pan: 1.3, hold: 1.2, back: 1.1 } },
+            { line: "The wreck's a long walk east. They need me here to keep the town fed and the kiosk stocked.", who: "commander" },
+            { line: "Then we'll learn to run things on our own. We need that box to know what happened to us.", who: "rhee" },
+            { line: "You'll need to train the team to keep the town running without you.", who: "kiln" },
+            { line: "Storm season's close. I know some other settlers who'd pay good credits for hot meals, if your team can cook them. And two of my drivers want steady work, if you'll train them.", who: "sela" },
+            { line: "A galley cooks greens into meals. Its pad is beside the grow dome.", who: "kiln" },
           ] },
           // morning turns to dusk while the town learns to run itself
-          { on: { goal: "galleyBuilt", is: "done" }, do: [{ light: "dusk", seconds: 120 }] },
-          // the galley has its cook: a small light starts blinking at the wreck
-          { on: { event: "hired", match: { pad: "cook" } }, do: [
-            { line: "They've got it. Go.", who: "kiln" },
+          { on: { goal: "galleyBuilt", is: "done" }, do: [
+            { light: "dusk", seconds: 120 },
+            { line: "Three jobs keep it running: carry greens from the dome, cook at the galley, carry meals to the kiosk.", who: "kiln" },
+            { line: "Do each job yourself once. Then its training pad opens. Stand on it and pay, and a crewmate takes over.", who: "kiln" },
+          ] },
+          // all three trained: a small light starts blinking at the wreck
+          { on: { event: "hired", match: { pad: "server" } }, do: [
+            { line: "They've got it. Now walk east to the wreck. The bar fills while the town runs without you. If the dome or galley stops, it drops back to zero.", who: "kiln" },
             { dots: [{ entity: "recorder" }], period: 1.2 },
             { edgeGlow: { entity: "recorder", size: 28, strength: 0.35 } },
           ] },
           { on: { near: { entity: "recorder" }, r: 140 }, do: [{ edgeGlow: null }] },
           { on: { near: { entity: "recorder" }, r: 50 }, do: [{ dotsOff: true }] },
+          { on: { goal: "auto", is: "done" }, do: [{ line: "That's it. Tow it home to me, the same way you towed the pods.", who: "kiln" }] },
           // home with the recorder: KILN reads it (a text card until the crash_log scene exists)
           { on: { event: "crate_delivered" }, ordered: true, do: [
             { spirit: "pulse" },
-            { card: "FOUR MINUTES TO IMPACT", sub: "Four pods open from inside. Four crew climb out, close and lock the empty pods from outside, and walk out of frame. The status lights turn to OCCUPIED.", seconds: 6 },
-            { line: "They let themselves out. Then locked the pods empty.", who: "kiln" },
+            { card: "FOUR MINUTES TO IMPACT", sub: "Grainy security footage, no sound. Four pods open from inside. Four suited figures, seen only from behind, climb out, close and lock the empty pods from outside, and walk away. The lights turn to OCCUPIED.", seconds: 7 },
+            { line: "Four minutes before impact, they let themselves out. Then they locked their pods behind them, empty, so the pods would still read occupied.", who: "kiln" },
+            { line: "Bays five to eight. Vale and three others walked away from their own pods.", who: "commander" },
+            { line: "Then they took the lander's escape pod, the scorched one on the plain. That's how they left the ship.", who: "kiln" },
             { ridgeFlash: 2 },
             { line: "Movement on the ridge.", who: "kiln" },
           ] },
         ],
       },
-      // First Watch (docs/STORY-LEVELS-V2.md, level 5). Phase 1: the visors on the ridge are a camera beat and
-      // ridge flashes, and the helmet is the existing helmet_reveal film, then a card naming Vale.
+      // First Watch (docs/STORY-SCREENPLAY.md, level 5). The level ends on the helmet the lieutenant drops, not on the
+      // last wave: the main goal tows it home. Stopping the first raiders and training a guard are story steps (no star).
+      // The lieutenant's slow-motion fall is a text card until it is made.
       "story-L005": {
         hide: ["credits"],
         solid: ["sink.core"],
+        goalCards: true,
+        // manifest people order: Pip, Rhee, Okafor, Tam, then the hub's two new settlers
+        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, lieutenant: { boss: true } },
         goals: [
-          { id: "first", label: "Stop the first raiders" },
+          { id: "first", label: "Stop the first raiders", until: { event: "wave_cleared", match: { idx: 0 } } },
           { id: "turret", label: "Build a turret" },
-          { id: "main", label: "Hold until dawn" },
+          { id: "train", label: "Train a guard", until: { event: "hired", match: { pad: "train" } } },
+          { id: "hold", label: "Hold until dawn" },
+          { id: "main", label: "Pick up the helmet" },
         ],
         cues: [
           { on: { start: true }, do: [
             { light: "night" },
             { ridge: "right", period: 3, k: 0.45 },
             { spirit: "idle" },
-            { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
+            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1 } },
           ] },
+          // full dark: the camera goes to the ridge as the visors light, one by one
           { on: { start: true }, ordered: true, do: [
+            { camera: { to: { at: [790, 700] }, pan: 0.9, hold: 2.2, back: 0.8 } },
             { ridgeFlash: 3 },
-            { camera: { to: { at: [790, 700] }, pan: 0.8, hold: 2.5, back: 0.8 } },
-            { line: "They're coming for the gate. We can use the scrap they drop to build defenses.", who: "okafor" },
+            { line: "Raiders, coming down off the ridge. They'll go for the gate.", who: "okafor" },
+            { line: "Then we hold the gate.", who: "commander" },
+            { line: "Three are coming first. Once you get close, you'll be able to shoot. Fallen raiders drop scrap; pick it up.", who: "kiln" },
           ] },
-          // scrap on the sand: the socket on the wall lights up
-          { on: { goal: "first", is: "done" }, do: [{ dots: [{ entity: "turret1" }], period: 2 }] },
+          // scrap on the sand: the socket between the ridge and the first building lights up
+          { on: { event: "wave_cleared", match: { idx: 0 } }, do: [
+            { dots: [{ entity: "turret1" }], period: 2 },
+            { line: "That socket takes a turret. Stand on its pad to pay 8 scrap.", who: "kiln" },
+          ] },
           { on: { goal: "turret", is: "done" }, do: [
             { dots: [{ entity: "train" }], period: 2 },
-            { line: "Let's train some guards to watch the gate while you build defenses.", who: "okafor" },
+            { line: "Good. The hub's taken in two new settlers. Train one as a guard to hold the gate with me. Stand on the post's pad and pay.", who: "okafor" },
           ] },
-          { on: { event: "hired", match: { pad: "train" } }, do: [{ dotsOff: true }] },
+          { on: { event: "hired", match: { pad: "train" } }, do: [
+            { dotsOff: true },
+            { line: "Hold until sunrise. Every wave you break brings the light closer.", who: "kiln" },
+          ] },
           // the light grows as each wave breaks
           { on: { event: "wave_cleared", match: { idx: 0 } }, do: [{ light: "preDawn", seconds: 20 }] },
           { on: { event: "wave_cleared", match: { idx: 1 } }, do: [{ light: "firstLight", seconds: 20 }] },
-          { on: { event: "boss_spawned" }, do: [{ line: "You should have stayed asleep.", who: "lieutenant" }] },
-          { on: { event: "retreated" }, do: [{ light: "sunrise", seconds: 8 }] },
+          { on: { event: "boss_spawned" }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
+          { on: { event: "retreated" }, do: [
+            { light: "sunrise", seconds: 8 },
+            { card: "The commander's last shot drops the raider. It gets up and runs, past the edge of sight, and something falls from it.", seconds: 4 },
+          ] },
           // dawn: the helmet the lieutenant dropped, and the name inside it
-          { on: { goal: "main", is: "done" }, do: [
-            { line: "First silence in eleven years.", who: "kiln" },
+          { on: { goal: "hold", is: "done" }, do: [
+            { line: "They're running. It's over for tonight.", who: "kiln" },
+            { line: "They dropped something.", who: "kiln" },
+            { dots: [{ entity: "helmet" }], period: 1.2 },
+          ] },
+          { on: { near: { entity: "helmet" }, r: 50 }, do: [{ dotsOff: true }] },
+          { on: { event: "crate_delivered" }, do: [
             { film: "helmet_reveal" },
             { line: "Vale?", who: "commander" },
-            { card: "Why did you leave me?", sub: "BAY 5 · FIRST OFFICER · VALE", seconds: 4 },
           ] },
         ],
       },

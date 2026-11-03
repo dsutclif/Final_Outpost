@@ -9,8 +9,8 @@ export type StoryPlace = { at: readonly [number, number] } | { entity: string } 
 export type StoryTrigger =
   /** Play has begun (after any film). */
   | { start: true }
-  /** A sim event by its `t`; `match` compares the event's own fields, e.g. { role: "role.hauler" }. */
-  | { event: string; match?: Readonly<Record<string, string | number | boolean>> }
+  /** A sim event by its `t`; `match` compares the event's own fields, e.g. { role: "role.hauler" }; `count`: on the n-th such event. */
+  | { event: string; match?: Readonly<Record<string, string | number | boolean>>; count?: number }
   /** An objective, by manifest objective id, became done or failed in the sim (even before its turn). */
   | { goal: string; is: "done" | "failed" }
   /** The player came within `r` world units. */
@@ -131,6 +131,11 @@ export interface StoryGoal {
   hold?: boolean;
   /** The goal's wording here and on the result screen, instead of the skin's generic one. `{left}` is the time left on a timed goal. */
   label?: string;
+  /**
+   * A story step, not a manifest objective: it shows like a goal (card and top line) but has no star slot, and it is
+   * done when this trigger fires (an event, a goal, or the player coming near). `id` is then the step's own name.
+   */
+  until?: StoryTrigger;
 }
 
 /**

@@ -67,7 +67,7 @@ and 3 (reduced buggy) are parked, not rejected.
   the commander's head height. Brighter. It appears right beside the commander on KILN's first line.
   - B: `spiritFollow.size` and the brightness option in levels 2–5. A: level 1's cue.
   - Done: one screenshot per level at the first KILN line.
-- [ ] **S5 Goal cards in the tutorials.** (Built: `goalCards`; on in L2, L3–5 as they are rebuilt; L1 is A's.) The goal shows mid-screen until it is tapped, as in later levels, then
+- [ ] **S5 Goal cards in the tutorials.** (On in L2–5; L1 is A's.) The goal shows mid-screen until it is tapped, as in later levels, then
   flies to the top. One at a time, alternating with dialogue. This replaces "goals appear silently at the top" in
   levels 1–5.
   - Covers L3's "the goal changed to clear the rockslide with no context or notice": every goal change gets its card
@@ -111,28 +111,28 @@ and 3 (reduced buggy) are parked, not rejected.
 - [x] **S14 Level 2 lines per S1:** "My sensors are picking up…", the HUD pointer line, the new crew introductions.
 
 ### Level 3 (B)
-- [ ] **S15 Hoppers and protein are taught.** Protein becomes a goal with its own reason, for example a front-of-line
+- [x] **S15 Hoppers and protein are taught.** (A "Sell meat" step after the slide.) Protein becomes a goal with its own reason, for example a front-of-line
   trader who wants meat: "No meat? I'm leaving." The hoppers and their market value are introduced. Four or five
   goals are fine if that's what it takes to lead the player.
 - [ ] **S16 The habitat hub has context and a price (a levels 1–5 bug, Doug 2026-11-03).**
   - Dialogue gives the reason for the hub (S1).
   - Its pad shows the price, 150. Today it doesn't, which is a bug: check whether a `big` landmark pad hides its
     cost.
-- [ ] **S17 Level 3 lines and ending per S1,** including Sela's real lines.
+- [x] **S17 Level 3 lines and ending per S1,** including Sela's real lines.
 
 ### Level 4 (B)
-- [ ] **S18 Level 4 lines per S1**, including the specific lines above.
+- [x] **S18 Level 4 lines per S1**, including the specific lines above.
 - [ ] **S19 The walk to the ship.** See S24–S26 for the continuity fixes; the recorder must be visible on approach.
 
 ### Level 5 (B, with A for turrets and hire pads if `renderer.ts` is involved)
-- [ ] **S19b Defend lines per S1:** defending the town and training settlers as guards.
-- [ ] **S19c Turrets between the attackers and the first building.** Today raiders come from the east and pass the
+- [x] **S19b Defend lines per S1:** defending the town and training settlers as guards.
+- [x] **S19c Turrets between the attackers and the first building.** (Pad at 620,640.) Today raiders come from the east and pass the
   hub and galley before the turret socket at the gate. Move the socket and the attack line so the first building
   they reach is covered.
 
 ## 6. Assets
 
-- [ ] **S20 Orange pod as a model.** Tint the surfaces of the existing stasis pod model and save it as its own GLB
+- [x] **S20 Orange pod as a model.** (`capture.recruit_container_decoy`, `tint: "scorch"`.) Tint the surfaces of the existing stasis pod model and save it as its own GLB
   (an entry in `meshy.json` with a tint), not a code tint. Hinged glass is part of S31 (held).
 - [ ] **S21 The ship is the wreck from the crash film,** not the pile of fragments. Use the film's
   `Halcyon_Wreck.glb` and reduce it as before. The current `decor.halcyon_wreck` was built from the debris-cleared
@@ -145,7 +145,7 @@ and 3 (reduced buggy) are parked, not rejected.
 
 ## 7. Continuity and staging fixes
 
-- [ ] **S24 Pod count audit (answer for Doug).**
+- [ ] **S24 Pod count audit (answer for Doug).** (Bay 5's lid open in L3–5, 2026-11-03.)
   - The wreck's deck shows 5 pods in every level: bays 5–8 sealed, plus the commander's bay 9, open.
   - L2 adds the 4 ejected crew pods (bays 1–4) and the old orange pod on the plain.
   - Bug: after L2's `empty_bays` opens bay 5, levels 3–5 still show it sealed. Fix: L3–5 show bay 5's lid open.
@@ -166,7 +166,7 @@ and 3 (reduced buggy) are parked, not rejected.
 
 - [x] **S34 Pods glow; no beams.** (`podLights: "glow"`.) In L2 the pods themselves glow, cold white for crew and scorched orange for the
   lander pod. The light beams over them go (a `podLights` change in `stage.ts`/`storylights.ts`).
-- [ ] **S35 Camera moves chosen per level (Doug, 2026-11-03: never a generic pan).** A move happens only where a line
+- [x] **S35 Camera moves chosen per level (Doug, 2026-11-03: never a generic pan).** A move happens only where a line
   or event motivates it and it spoils nothing:
   - L1: none (it would ruin the light's mystery). L1's opening is the film (S30).
   - L2: none; the pointers find the pods.
@@ -178,7 +178,7 @@ and 3 (reduced buggy) are parked, not rejected.
   so on. `empty_bays` already plays live.
 - [ ] **S37 The wreck lies east of the camp.** Screen up is north, so place the wreck to the east in every level (with
   S25).
-- [ ] **S38 The orange pod is the Halcyon's lander pod,** scorched orange, opened from the inside long ago. It replaces
+- [x] **S38 The orange pod is the Halcyon's lander pod,** scorched orange, opened from the inside long ago. It replaces
   "another ship's pod" (story change, draft 4). The S20 model tint should read as scorched, not painted.
 
 ## 8. Held: films and live scenes (after the screenplay)

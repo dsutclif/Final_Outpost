@@ -334,11 +334,12 @@
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    528.3,
-    31.5
+    533.4,
+    -16.2
    ],
    "yaw": 173.9,
-   "lift": 22
+   "lift": 50.8,
+   "roll": 118
   },
   {
    "type": "decor.stasis_pod",
@@ -612,9 +613,7 @@
    "to": "sink.core"
   },
   {
-   "role": "role.supplier",
-   "from": "node.fuel_scrap",
-   "to": "sink.core"
+   "role": "role.medic"
   },
   {
    "role": "role.defender"

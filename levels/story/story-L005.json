@@ -17,6 +17,7 @@
   "defenders",
   "defense",
   "gather",
+  "lasso",
   "medical",
   "sales",
   "workers"
@@ -334,11 +335,12 @@
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    528.3,
-    331.5
+    533.4,
+    283.8
    ],
    "yaw": 173.9,
-   "lift": 22
+   "lift": 50.8,
+   "roll": 118
   },
   {
    "type": "decor.stasis_pod",
@@ -583,7 +585,7 @@
    "type": "pad.build",
    "id": "turret1",
    "at": [
-    330,
+    620,
     640
    ],
    "cost": {
@@ -591,7 +593,7 @@
    },
    "build": "struct.ranged_defense",
    "site": [
-    350,
+    650,
     610
    ]
   },
@@ -613,6 +615,15 @@
    "requires": {
     "pad": "turret1"
    }
+  },
+  {
+   "type": "capture.helmet",
+   "id": "helmet",
+   "at": [
+    520,
+    650
+   ],
+   "hiddenUntil": "hold"
   }
  ],
  "people": [
@@ -641,7 +652,7 @@
   {
    "t": 15,
    "counts": {
-    "hostile.raider_humanoid": 4
+    "hostile.raider_humanoid": 3
    },
    "side": "e",
    "gap": 1.6
@@ -681,21 +692,22 @@
   "defense.fleeSpeed": 50
  },
  "goal": {
-  "type": "waves"
+  "type": "crates",
+  "n": 1
  },
  "family": "defend",
  "objectives": [
   {
    "id": "main",
-   "kind": "waves",
-   "params": {}
-  },
-  {
-   "id": "first",
-   "kind": "waves_survived",
+   "kind": "crates",
    "params": {
     "n": 1
    }
+  },
+  {
+   "id": "hold",
+   "kind": "waves",
+   "params": {}
   },
   {
    "id": "turret",
@@ -714,8 +726,11 @@
  "text": {
   "mars_greenhouse": {
    "title": "First Watch",
-   "goal": "Hold until dawn",
+   "goal": "Hold until dawn, then pick up the helmet",
    "tips": []
   }
- }
+ },
+ "allowExcluded": [
+  "lasso+defense"
+ ]
 }

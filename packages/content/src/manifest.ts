@@ -292,6 +292,9 @@ export const Manifest = z.object({
   fail: z.array(MeterId).min(1),
   // Hazard warn, start and end ticks count from the dark core being lit; an unlit core has no hazards.
   hazardsFromLit: z.boolean().optional(),
+  // Training levels only (story): these module exclusions are lifted, e.g. ["lasso+defense"] for story level 5,
+  // which tows a dropped helmet home once the last wave has broken.
+  allowExcluded: z.array(z.string()).optional(),
   rating: Rating.optional(),
   // Client only, never read by the sim: "always" shows the guide arrow from the first tick (story
   // levels); "night" lighting for the 3D renderer.
@@ -334,7 +337,7 @@ export function checkManifest(m: Manifest, c: Content): void {
     if (def.alwaysOn && !active.has(id)) fail(`module ${id} is always on but missing`);
     if (!active.has(id)) continue;
     for (const r of def.requires) if (!active.has(r)) fail(`module ${id} requires ${r}`);
-    for (const e of def.excludes) if (active.has(e)) fail(`module ${id} excludes ${e}`);
+    for (const e of def.excludes) if (active.has(e) && !m.allowExcluded?.includes(`${id}+${e}`)) fail(`module ${id} excludes ${e}`);
   }
 
   const ids = new Map<string, Entity>();

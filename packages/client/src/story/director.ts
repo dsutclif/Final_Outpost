@@ -110,6 +110,10 @@ export class StoryDirector {
   /** Where the last event of each type happened (world units). */
   private readonly lastAt = new Map<string, { x: number; y: number }>();
   private readonly carded = new Set<string>();
+  /** Story steps (StoryGoal.until) whose trigger has fired. */
+  private readonly stepDone = new Set<string>();
+  /** Matching events seen so far, per trigger with a `count`. */
+  private readonly counts = new Map<object, number>();
   private readonly cardDone = new Set<string>();
   private active: Active | null = null;
   private explicitFreeze = false;
@@ -198,10 +202,15 @@ export class StoryDirector {
     const at = (e as { at?: { x: number; y: number } }).at;
     if (at) this.lastAt.set(e.t, { x: at.x / FP, y: at.y / FP });
     if (e.t === "objective") this.onObjective(e.id, e.done, e.failed, st);
+    for (const g of this.level.goals) {
+      const u = g.until;
+      if (!u || this.stepDone.has(g.id)) continue;
+      if (("event" in u && u.event === e.t && matches(u.match, e) && this.counted(u)) || ("goal" in u && e.t === "objective" && u.goal === e.id && (u.is === "done" ? e.done : e.failed))) this.stepDone.add(g.id);
+    }
     for (const c of this.level.cues) {
       if (!this.armed(c)) continue;
       const on = c.on;
-      if ("event" in on) { if (on.event === e.t && matches(on.match, e)) this.fire(c, st); }
+      if ("event" in on) { if (on.event === e.t && matches(on.match, e) && this.counted(on)) this.fire(c, st); }
       else if ("goal" in on && e.t === "objective" && on.goal === e.id && (on.is === "done" ? e.done : e.failed)) this.fire(c, st);
     }
     if (e.t === "level_end") {
@@ -219,6 +228,7 @@ export class StoryDirector {
     for (const c of this.level.cues) {
       if (this.armed(c) && (this.timeReached(c.on, st) || this.playerNear(c.on, p.x / FP, p.y / FP))) this.fire(c, st);
     }
+    for (const g of this.level.goals) if (g.until && this.playerNear(g.until, p.x / FP, p.y / FP)) this.stepDone.add(g.id);
     this.pump();
   }
 
@@ -274,7 +284,8 @@ export class StoryDirector {
     const cur = this.currentGoal();
     const label = this.over || !cur || (this.level.goalCards && !this.cardDone.has(cur.id)) ? null : this.goalText(cur, tokens);
     const key = `${this.settled.join()}|${label}`;
-    if (key !== this.paintKey) { this.paintKey = key; this.view.goals(this.settled, label); }
+    // story steps have no star slot
+    if (key !== this.paintKey) { this.paintKey = key; this.view.goals(this.settled.filter((_, i) => !this.level.goals[i]?.until), label); }
   }
 
   /**
@@ -311,6 +322,13 @@ export class StoryDirector {
       else if (!this.replay || !isBeat(a)) this.queue.push(a);
     }
     this.pump();
+  }
+
+  /** One more matching event for a trigger; true once it reaches its `count` (at once without one). */
+  private counted(on: { count?: number }): boolean {
+    const n = (this.counts.get(on) ?? 0) + 1;
+    this.counts.set(on, n);
+    return n >= (on.count ?? 1);
   }
 
   private timeReached(on: StoryTrigger, st: State): boolean {
@@ -521,7 +539,7 @@ export class StoryDirector {
       this.queue.push({ goalCard: (this.goalText(g, this.tokens) ?? "").replace(/[:\s]*\d+:\d\d$/, ""), id: g.id });
       this.pump();
     }
-    const t = g && this.tokens.find((x) => x.id === g.id);
+    const t = g?.until ? { id: g.id, state: this.stepDone.has(g.id) ? "done" as const : "open" as const, label: g.label ?? "" } : g && this.tokens.find((x) => x.id === g.id);
     if (!t || t.state === "open") return;
     this.settled[this.turn] = t.state === "done" ? "earned" : "cracked";
     this.turn++;

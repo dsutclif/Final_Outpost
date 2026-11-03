@@ -43,7 +43,7 @@ export interface MeshyEntry {
    */
   error?: number;
   /** Recolour the base colour before baking ("gold": brushed warm gold, darks kept). */
-  tint?: "gold";
+  tint?: "gold" | "scorch";
   /** Lettering on the broad faces: text and [x0, y0, x1, y1] (fitted art metres), see lettering(). */
   decal?: { text: string; box: number[] };
   /** Material factors (default rough 0.9, metal 0). */
@@ -94,6 +94,7 @@ async function loadSource(path: string, tint?: MeshyEntry["tint"]): Promise<Src>
   const img = prim.getMaterial()!.getBaseColorTexture()!.getImage()!;
   const raw = await sharp(img).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   if (tint === "gold") gold(raw.data, raw.info.width);
+  if (tint === "scorch") scorch(raw.data, raw.info.width);
   return { pos: floats("POSITION"), uv: floats("TEXCOORD_0"), idx: Uint32Array.from(prim.getIndices()!.getArray()!), tex: { data: raw.data, w: raw.info.width, h: raw.info.height } };
 }
 
@@ -112,6 +113,32 @@ function gold(px: Buffer, w: number): void {
     const k = Math.min(1, Math.max(0, (l - 0.12) / 0.7 + brush));
     // dark-to-gold blend near the cut-off so edges do not ring
     const keep = Math.min(1, (l - 0.12) / 0.06);
+    for (let c = 0; c < 3; c++) {
+      const g = k < 0.5 ? lo[c]! + (mid[c]! - lo[c]!) * (k / 0.5) : mid[c]! + (hi[c]! - mid[c]!) * ((k - 0.5) / 0.5);
+      px[o + c] = Math.round(px[o + c]! * (1 - keep) + g * keep);
+    }
+  }
+}
+
+/**
+ * Scorched orange (hot landing): brightness picks between soot brown and a dull burnt orange/rust,
+ * with deterministic blotchy soot patches and vertical streaks darkening further. Near-black
+ * texels (seams, hardware) stay dark. Not a bright paint: the brightest shade is about #be642f.
+ */
+function scorch(px: Buffer, w: number): void {
+  const lo = [38, 22, 14], mid = [140, 64, 28], hi = [190, 100, 48];
+  const h = (x: number, y: number): number => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
+  const noise = (x: number, y: number): number => {
+    const gx = Math.floor(x), gy = Math.floor(y), fx = x - gx, fy = y - gy;
+    const a = h(gx, gy), b = h(gx + 1, gy), c = h(gx, gy + 1), d = h(gx + 1, gy + 1);
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+  };
+  for (let o = 0, i = 0; o < px.length; o += 4, i++) {
+    const l = (0.2126 * px[o]! + 0.7152 * px[o + 1]! + 0.0722 * px[o + 2]!) / 255;
+    const y = Math.floor(i / w), x = i % w;
+    const soot = 0.6 * noise(x / 48, y / 48) + 0.3 * noise(x / 11, y / 11) + 0.25 * noise(x / 3, y / 90);
+    const k = Math.min(1, Math.max(0, l * 0.9 + 0.1 - Math.max(0, soot - 0.45) * 0.9));
+    const keep = Math.min(1, l / 0.1);
     for (let c = 0; c < 3; c++) {
       const g = k < 0.5 ? lo[c]! + (mid[c]! - lo[c]!) * (k / 0.5) : mid[c]! + (hi[c]! - mid[c]!) * ((k - 0.5) / 0.5);
       px[o + c] = Math.round(px[o + c]! * (1 - keep) + g * keep);

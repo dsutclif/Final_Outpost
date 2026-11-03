@@ -167,6 +167,22 @@ export function buildRecorder(ctx: BuildCtx): Model {
   return m;
 }
 
+/** The raider lieutenant's dropped helmet (story level 5): a dark shell with a small red light inside. The GLB replaces `body`. */
+export function buildHelmet(ctx: BuildCtx): Model {
+  const { t, mats } = ctx;
+  const m = model("scatter");
+  const b = new GeoBuilder().sphere(0.2, 10, 8, t.ink, { at: [0, 0.16, 0], scale: [1, 0.85, 1.1] });
+  m.root.add(mesh(b.build(), mats.std, "body"));
+  const glowMat = mats.glow.clone();
+  glowMat.color.set(t.danger);
+  const beacon = mesh(new GeoBuilder().sphere(0.04, 8, 6, WHITE).build(), glowMat, "beacon");
+  beacon.position.set(0, 0.12, 0.12);
+  m.root.add(beacon);
+  m.parts["beacon"] = beacon;
+  anchor(m.root, "interact", 0, 0, 0.5);
+  return m;
+}
+
 /** Stasis pod with a sleeper inside; the lid lifts on release. `decoy` tints it orange (an empty pod). */
 export function buildStasisPod(ctx: BuildCtx, decoy = false): Model {
   const { t, mats } = ctx;

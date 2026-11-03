@@ -41,9 +41,9 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 |---|---|---|
 | 1 Cold Start | Account A, live; Doug's sign-off pending | Not edited by B |
 | 2 Roll Call | B, rebuilt to the approved screenplay 2026-11-03 | Walls kept (Doug, 2026-11-03); all 5 pods incl. the lander pod |
-| 3 Open for Trade | B, live 2026-11-02 (Phase 1) | Sela walks in; no buggy, lamp or coin close-up yet |
-| 4 Halcyon Works | B, live 2026-11-02 (Phase 1) | Text card for crash_log; one bot change (see log) |
-| 5 First Watch | B, live 2026-11-02 (Phase 1) | Helmet film from cues, then Vale's card |
+| 3 Open for Trade | B, rebuilt to the approved screenplay 2026-11-03 | Sela first; sell meat is a story step |
+| 4 Halcyon Works | B, rebuilt to the approved screenplay 2026-11-03 | crash_log still a text card; wreck distance (S25) open |
+| 5 First Watch | B, rebuilt to the approved screenplay 2026-11-03 | Ends on the helmet tow; lieutenant's fall is a text card |
 
 ## Decided by Doug
 
@@ -74,6 +74,29 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-03, B, levels 3–5 rebuilt to the approved screenplay.** No engine bump: the s1 pack (45 levels) and the story
+  pack replay clean, and every test passes.
+  - **Director.** `StoryGoal.until`: a story step that shows like a goal (card and top line) but has no star slot,
+    done when its trigger fires. Manifests allow exactly three objectives, so L3–5's extra goals are steps. Event
+    triggers take `count` (the n-th matching event).
+  - **Content (opt-in).** New lassoable `capture.helmet` (lassoables.json), a code model `buildHelmet` (scatter.ts,
+    registry.ts) and a meshy entry that draws it with the existing `item.lieutenant_helmet` GLB (same file and fit).
+    Manifest field `allowExcluded` (training levels only) lifts named module exclusions; story L5 sets
+    `["lasso+defense"]` so it can tow the helmet after the last wave.
+  - **Orange pod GLB (S20).** `capture.recruit_container.decoy` now has its own GLB, `capture.recruit_container_decoy`,
+    built from "Stasis Pod.glb" with a new `tint: "scorch"` in tools/build-models.ts. Only that entry was built.
+  - **L3.** Rhee is `role.medic` in `people`. Goals: sell Sela greens, clear the slide, sell meat (step), build the hub.
+  - **L4.** `people` are Pip, Rhee (medic), Okafor (defender), Tam and Sela's two drivers (idle, for the three hire
+    pads). Goals: build the galley, train all three jobs (step), reach the wreck while the town runs, bring the
+    recorder home. The camera looks east to the wreck on KILN's recorder line.
+  - **L5.** Objectives: main `crates` (the helmet, `hiddenUntil: hold`), `hold` (waves), `turret`. Steps: stop the
+    first raiders, train a guard. The first wave is three raiders (KILN says three). The turret pad moved to
+    (620,640), site (650,610), between the raiders' side and the hub (S19c). The ending card "Why did you leave
+    me?" is gone; "Vale?" is the last line.
+  - **Tests.** goalhud's L5 test finds the waves token instead of assuming it comes first.
+  - **Continuity (S24).** Bay 5's lid (`lid4`) is open in L3–5.
+  - **Still open:** busts (S3); the wreck farther east with a sand ramp and a solid deck (S25, S26, S37); the film's wreck
+    model (S21); pad visibility checks (S27); the hub pad's missing price (S16); KILN's brightness (S4).
 - **2026-11-03, B, screenplay approved; level 2 rebuilt to it, with the shared story pieces it needs.** Doug approved
   draft 4 with one change: camera moves are chosen per level, never a generic opening pan (L1 none, so the light stays a
   mystery). No engine bump: `pnpm levels:check` (s1, 45 levels) and the story pack replay clean, and every test passes.
