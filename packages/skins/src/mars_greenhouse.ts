@@ -775,15 +775,15 @@ export const marsGreenhouse: Skin = {
     ui: { missed: "You missed it. Try again?", tryAgain: "Try again", keepPlaying: "Keep playing", seeResults: "See results", tapToContinue: "Tap to continue" },
     dialogue: "bubble",
     speakers: {
-      commander: { name: "COMMANDER" },
+      commander: { name: "COMMANDER", bust: "busts/commander.webp" },
       kiln: { name: "KILN", portrait: "kiln", spirit: true, dialogue: "terminal" },
-      pip: { name: "PIP", tag: "hauler" },
-      rhee: { name: "RHEE", tag: "medic" },
-      okafor: { name: "OKAFOR", tag: "guard" },
-      tam: { name: "TAM", tag: "settler" },
-      sela: { name: "SELA", tag: "trader" },
+      pip: { name: "PIP", tag: "hauler", bust: "busts/pip.webp" },
+      rhee: { name: "RHEE", tag: "medic", bust: "busts/rhee.webp" },
+      okafor: { name: "OKAFOR", tag: "guard", bust: "busts/okafor.webp" },
+      tam: { name: "TAM", tag: "settler", bust: "busts/tam.webp" },
+      sela: { name: "SELA", tag: "trader", bust: "busts/sela.webp" },
       trader: { name: "TRADER" },
-      lieutenant: { name: "RAIDER" },
+      lieutenant: { name: "RAIDER", bust: "busts/lieutenant.webp" },
     },
     scenes: {
       empty_bays: {
@@ -888,7 +888,7 @@ export const marsGreenhouse: Skin = {
             { light: "greyDawn" },
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
-            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1 } },
+            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
           ] },
           { on: { start: true }, ordered: true, do: [
             { line: "Bays one to four were thrown clear when we hit. My sensors pick up four crew in those pods, and they're freezing.", who: "kiln" },
@@ -951,7 +951,7 @@ export const marsGreenhouse: Skin = {
             { light: "dusk" },
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
-            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1 } },
+            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
           ] },
           // the only moving light: the camera follows the first trader down the road to the old kiosk
           { on: { event: "customer_arrived" }, ordered: true, do: [
@@ -1018,7 +1018,7 @@ export const marsGreenhouse: Skin = {
             { light: "morning" },
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
-            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1 } },
+            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
           ] },
           // no opening camera move; the camera looks east to the wreck only when KILN names the recorder
           { on: { start: true }, ordered: true, do: [
@@ -1084,7 +1084,7 @@ export const marsGreenhouse: Skin = {
             { light: "night" },
             { ridge: "right", period: 3, k: 0.45 },
             { spirit: "idle" },
-            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1 } },
+            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
           ] },
           // full dark: the camera goes to the ridge as the visors light, one by one
           { on: { start: true }, ordered: true, do: [

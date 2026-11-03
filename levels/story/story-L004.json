@@ -4,7 +4,7 @@
  "engineVersion": "0.18.0",
  "contentVersion": "0.18.0",
  "map": {
-  "w": 820,
+  "w": 1300,
   "h": 1300,
   "zones": []
  },
@@ -197,8 +197,8 @@
    "type": "decor.halcyon_wreck",
    "id": "wreck",
    "at": [
-    325.2,
-    118.4
+    925.2,
+    -181.6
    ],
    "yaw": 0
   },
@@ -206,8 +206,8 @@
    "type": "decor.deck_plate",
    "id": "deck",
    "at": [
-    784,
-    386.6
+    1384,
+    86.6
    ],
    "yaw": -65.1,
    "size": [
@@ -221,8 +221,8 @@
    "type": "decor.deck_plate",
    "id": "deck2",
    "at": [
-    712.6,
-    330
+    1312.6,
+    30
    ],
    "yaw": -65.1,
    "size": [
@@ -236,8 +236,8 @@
    "type": "decor.deck_plate",
    "id": "stripe",
    "at": [
-    852.5,
-    534.4
+    1452.5,
+    234.4
    ],
    "yaw": -65.1,
    "size": [
@@ -252,8 +252,8 @@
    "type": "decor.stasis_pod",
    "id": "pod0",
    "at": [
-    715.2,
-    492
+    1315.2,
+    192
    ],
    "yaw": 173.9,
    "lift": -66
@@ -262,8 +262,8 @@
    "type": "decor.stasis_glass",
    "id": "lid0",
    "at": [
-    723.1,
-    432.6
+    1323.1,
+    132.6
    ],
    "yaw": 173.9,
    "lift": 50.8,
@@ -273,8 +273,8 @@
    "type": "decor.stasis_glass",
    "id": "lid1",
    "at": [
-    921.2,
-    502.1
+    1521.2,
+    202.1
    ],
    "yaw": 173.9,
    "lift": 22
@@ -283,8 +283,8 @@
    "type": "decor.stasis_pod",
    "id": "pod1",
    "at": [
-    918.5,
-    513.8
+    1518.5,
+    213.8
    ],
    "yaw": 173.9,
    "lift": -66
@@ -293,8 +293,8 @@
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    731.5,
-    353.3
+    1331.5,
+    53.3
    ],
    "yaw": 173.9,
    "lift": 22
@@ -303,8 +303,8 @@
    "type": "decor.stasis_pod",
    "id": "pod2",
    "at": [
-    728.8,
-    364.9
+    1328.8,
+    64.9
    ],
    "yaw": 173.9,
    "lift": -66
@@ -313,8 +313,8 @@
    "type": "decor.stasis_glass",
    "id": "lid3",
    "at": [
-    934.8,
-    375
+    1534.8,
+    75
    ],
    "yaw": 173.9,
    "lift": 22
@@ -323,8 +323,8 @@
    "type": "decor.stasis_pod",
    "id": "pod3",
    "at": [
-    932,
-    386.6
+    1532,
+    86.6
    ],
    "yaw": 173.9,
    "lift": -66
@@ -333,8 +333,8 @@
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    533.4,
-    283.8
+    1133.4,
+    -16.2
    ],
    "yaw": 173.9,
    "lift": 50.8,
@@ -344,8 +344,8 @@
    "type": "decor.stasis_pod",
    "id": "pod4",
    "at": [
-    525.5,
-    343.2
+    1125.5,
+    43.2
    ],
    "yaw": 173.9,
    "lift": -66
@@ -580,8 +580,8 @@
    "type": "pad.hire",
    "id": "feeder",
    "at": [
-    420,
-    1020
+    340,
+    1000
    ],
    "cost": {
     "res.currency": 9
@@ -601,8 +601,8 @@
    "type": "pad.hire",
    "id": "cook",
    "at": [
-    420,
-    1020
+    340,
+    1000
    ],
    "cost": {
     "res.currency": 9
@@ -620,8 +620,8 @@
    "type": "pad.hire",
    "id": "server",
    "at": [
-    420,
-    1020
+    340,
+    1000
    ],
    "cost": {
     "res.currency": 9
@@ -640,8 +640,8 @@
    "type": "capture.recorder",
    "id": "recorder",
    "at": [
-    470,
-    150
+    1080,
+    380
    ],
    "hiddenUntil": "auto"
   }

@@ -98,6 +98,7 @@ class Driver {
   strength = 0;
   shown = 0; // smoothed strength (grows steadily)
   fade = 0; // 0..1 overall alpha
+  glow = 0; // base brightness on top of speech and bloom (story follow option)
   private bloomAt = -1;
   private lastT = 0;
   private pulseAt = 0;
@@ -133,7 +134,7 @@ class Driver {
     u.uStrength!.value = this.shown;
     const flash = bk < 1 ? (1 - bk) * 1.5 : 0;
     const syll = this.state === "speaking" ? 0.35 + 0.65 * Math.abs(Math.sin(t * 9.5 + Math.sin(t * 3.1) * 2)) : 0;
-    u.uBright!.value = Math.min(1.5, syll * 0.7 + flash);
+    u.uBright!.value = Math.min(1.5, this.glow + syll * 0.7 + flash);
     const beat = (t - this.pulseAt) * 2.5; // two beats, about 0.8 s
     u.uGlitch!.value = this.state === "pulse" && beat < 2 ? (Math.floor(beat) % 2 === 0 ? 1 : 0.5) : 0;
     u.uAlpha!.value = this.fade * flick * (0.8 + 0.2 * this.shown);
@@ -149,8 +150,11 @@ export interface CoreSpirit {
   setStrength(k: number): void;
   /** Blooms out of the ignition flare. */
   bloom(): void;
-  /** Moves the cloud and its ground patch (world x, z); `height` lifts the cloud above the ground, `size` scales both (1 = as made). */
-  moveTo(x: number, z: number, height?: number, size?: number): void;
+  /**
+   * Moves the cloud and its ground patch (world x, z); `height` lifts the cloud above the ground, `size` scales both (1 = as made),
+   * `glow` is a base brightness, 0 (as made) to 1.
+   */
+  moveTo(x: number, z: number, height?: number, size?: number, glow?: number): void;
   /** Seconds, any monotonic clock. */
   update(t: number): void;
   dispose(): void;
@@ -199,7 +203,7 @@ export function createCoreSpirit(parent: Object3D, colors: SpiritColors, opts: C
     setState: (s) => drv.setState(s),
     setStrength: (k) => { drv.strength = Math.max(0, Math.min(1, k)); },
     bloom: () => drv.bloom(),
-    moveTo(x, z, height, size) { group.position.x = x; group.position.z = z; if (height !== undefined) cloud.position.y = height; if (size !== undefined) userK = size; },
+    moveTo(x, z, height, size, glow) { group.position.x = x; group.position.z = z; if (height !== undefined) cloud.position.y = height; if (size !== undefined) userK = size; if (glow !== undefined) drv.glow = glow; },
     update(t) {
       const scale = drv.step(t);
       group.visible = drv.state !== "off" || drv.fade > 0.001;

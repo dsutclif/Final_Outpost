@@ -1237,16 +1237,16 @@
     ]
   },
   "decor.halcyon_wreck": {
-    "hash": "70abe60b68",
-    "tris": 12000,
-    "bytes": 1155964,
+    "hash": "0e6a7babef",
+    "tris": 11752,
+    "bytes": 1161376,
     "bounds": [
       -49.4,
       0,
-      -29.01,
+      -28.996,
       49.4,
-      23.386,
-      29.01
+      23.383,
+      28.996
     ]
   },
   "item.lieutenant_helmet": {

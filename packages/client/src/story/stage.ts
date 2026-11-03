@@ -90,7 +90,7 @@ export class StoryStage {
     if (rg) { this.ridgeEl.dataset["side"] = rg.side; this.ridgeEl.style.opacity = String(rg.k); }
     if (w.follow !== (seen.follow ?? null)) { seen.follow = w.follow; this.followFrom = now; }
     const f = w.follow;
-    p.spirit.follow(f && now - this.followFrom >= (f.delay ?? 0) ? { right: f.right, up: f.up, lag: f.lag ?? 0.9, height: f.height ?? 40, size: f.size ?? 1 } : null);
+    p.spirit.follow(f && now - this.followFrom >= (f.delay ?? 0) ? { right: f.right, up: f.up, lag: f.lag ?? 0.9, height: f.height ?? 40, size: f.size ?? 1, ...(f.glow !== undefined ? { glow: f.glow } : {}) } : null);
     this.spirit(w, fuelK, now);
     this.glow(w, st, now, viewW, viewH);
     if (this.director.level.podLights) this.pods(st);

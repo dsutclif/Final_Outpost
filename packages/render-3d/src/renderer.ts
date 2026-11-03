@@ -118,6 +118,8 @@ const NO_STORY: StoryPresentation = {
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
 };
+/** Highest a big pad's floating name and price sit (art metres), whatever its blueprint's height. */
+const BIG_LABEL_LIFT = 3.2;
 /** Items drawn per carried column at most. */
 const BACK_MAX_DRAWN = 30;
 
@@ -1849,7 +1851,8 @@ export class Renderer3D implements Renderer {
       const ghostH = ghosts.has(pad.id) ? this.syncGhost(p, info!.what, info!.site ? v3(info!.site.x, 0, info!.site.y) : at, fill, !!info!.site && this.onWallAt(info!.site, s)) : this.hideGhost(p);
       // the belt's pad sits on the belt itself (generator: mid-run), so its name and price lie on the belt blueprint, not above it
       const onBelt = info?.what === "struct.conveyor";
-      const lift = onBelt ? BELT_TOP + 0.12 : Math.max(1.25, ghostH + 0.3);
+      // a big landmark's blueprint is taller than the view: its price stays low enough to be on screen
+      const lift = onBelt ? BELT_TOP + 0.12 : Math.max(1.25, big ? Math.min(ghostH + 0.3, BIG_LABEL_LIFT) : ghostH + 0.3);
       sp.position.set(at.x, ART_M * (lift + (onBelt ? 0 : (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04)), at.z);
       this.candidate(pad.type, p, ART_M * (lift + 1.35 + (rows - 1) * 0.6));
       // scaffold rises with the payment for upgrades that have no blueprint of their own

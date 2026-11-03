@@ -106,7 +106,7 @@ export interface StoryPresentation {
     setStrength(k: number): void;
     bloom(): void;
     /** Float beside the hero at a screen-aligned ground offset with a soft lag (ground units); null goes home to the reactor. */
-    follow(f: { right: number; up: number; lag: number; height: number; size: number } | null): void;
+    follow(f: { right: number; up: number; lag: number; height: number; size: number; glow?: number } | null): void;
   };
   /** Walk a mover (interp key: "player", "r:<id>", "h:<id>") to a ground spot and hold it there, drawn only; null walks it back. */
   actor(key: string, to: { x: number; z: number } | null): void;

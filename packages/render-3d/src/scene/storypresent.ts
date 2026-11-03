@@ -33,7 +33,7 @@ export class StoryPresent implements StoryPresentation {
   allowed = new Set<number>([1, 2, 3, 4, 5]);
   /** Entities the renderer keeps solid (see StoryPresentation.solid). */
   solidIds: ReadonlySet<string> = new Set();
-  private follow: { right: number; up: number; lag: number; height: number; size: number } | null = null;
+  private follow: { right: number; up: number; lag: number; height: number; size: number; glow?: number } | null = null;
   private cloudAt: { x: number; z: number; h: number; k: number } | null = null;
 
   /** `home`: where the cloud floats over the reactor, and its height there. */
@@ -97,7 +97,7 @@ export class StoryPresent implements StoryPresentation {
   /** Drift the cloud toward the hero's side (soft lag) or back over the reactor. */
   private moveCloud(dt: number, hero?: { x: number; z: number }): void {
     const cur = (this.cloudAt ??= { ...this.home, k: 1 });
-    let tx = this.home.x, tz = this.home.z, th = this.home.h, tk = 1, lag = 0.8;
+    let tx = this.home.x, tz = this.home.z, th = this.home.h, tk = 1, lag = 0.8, glow = 0;
     if (this.follow && hero) {
       const a = screenAxes();
       tx = hero.x + a.right.x * this.follow.right + a.up.x * this.follow.up;
@@ -105,10 +105,11 @@ export class StoryPresent implements StoryPresentation {
       th = this.follow.height;
       tk = this.follow.size;
       lag = Math.max(0.05, this.follow.lag);
+      glow = this.follow.glow ?? 0;
     }
     const k = 1 - Math.exp(-dt / lag);
     cur.x += (tx - cur.x) * k; cur.z += (tz - cur.z) * k; cur.h += (th - cur.h) * k; cur.k += (tk - cur.k) * k;
-    this.cloud.moveTo(cur.x, cur.z, cur.h, cur.k);
+    this.cloud.moveTo(cur.x, cur.z, cur.h, cur.k, glow);
   }
 
   /** The slow pulse follows the ground dots' own beat (cos cubed on the same clock); flashes ride over it. */

@@ -92,7 +92,7 @@ export type StoryAction =
    * units: `right` toward the screen's right, `up` toward its top) with a soft lag, its ground patch with it.
    * `delay` seconds first, so the bloom stays above the reactor. `false` sends it home.
    */
-  | { spiritFollow: { right: number; up: number; lag?: number; delay?: number; height?: number; size?: number } | false }
+  | { spiritFollow: { right: number; up: number; lag?: number; delay?: number; height?: number; size?: number; glow?: number } | false }
   /**
    * A glow on the screen edge toward a place off screen; it fades as the place comes into view. Null removes it.
    * `size` is the disc across in vmin (default 36), `strength` its peak opacity, 0..1 (default 0.4).

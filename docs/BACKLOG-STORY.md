@@ -59,11 +59,11 @@ and 3 (reduced buggy) are parked, not rejected.
 - [x] **S2 Speech bubbles.** (Dialogue style `bubble`, the skin default; levels 3–5 get their cast as they are rebuilt.) Every non-KILN line shows directly above the speaker's head, with a tail pointing to
   them. That includes the commander, crew, Sela and the raider. The bubble follows the character and stays inside
   the screen, near the notch and edges. KILN keeps its terminal readout.
-- [ ] **S3 Character busts (Doug, 2026-11-03: yes, one per person).** A bust portrait to the left of the text. Each
+- [x] **S3 Character busts (Doug, 2026-11-03: yes, one per person).** A bust portrait to the left of the text. Each
   crewmate already comes out of their pod in their job's suit (role models: hauler, medic, guard, settler; Sela is the
   trader model; the commander and the raider have their own models). So render one bust per character from those GLBs,
   with no training-costume story needed. Characters keep their L2 bust when their job changes later.
-- [ ] **S4 KILN smaller, brighter, unmissable.** About half the current size, with its height about three times
+- [x] **S4 KILN smaller, brighter, unmissable.** (L2–5: size 1.1, glow 0.6; L1 is A's.) About half the current size, with its height about three times
   the commander's head height. Brighter. It appears right beside the commander on KILN's first line.
   - B: `spiritFollow.size` and the brightness option in levels 2–5. A: level 1's cue.
   - Done: one screenshot per level at the first KILN line.
@@ -114,7 +114,7 @@ and 3 (reduced buggy) are parked, not rejected.
 - [x] **S15 Hoppers and protein are taught.** (A "Sell meat" step after the slide.) Protein becomes a goal with its own reason, for example a front-of-line
   trader who wants meat: "No meat? I'm leaving." The hoppers and their market value are introduced. Four or five
   goals are fine if that's what it takes to lead the player.
-- [ ] **S16 The habitat hub has context and a price (a levels 1–5 bug, Doug 2026-11-03).**
+- [x] **S16 The habitat hub has context and a price (a levels 1–5 bug, Doug 2026-11-03).**
   - Dialogue gives the reason for the hub (S1).
   - Its pad shows the price, 150. Today it doesn't, which is a bug: check whether a `big` landmark pad hides its
     cost.
@@ -134,7 +134,7 @@ and 3 (reduced buggy) are parked, not rejected.
 
 - [x] **S20 Orange pod as a model.** (`capture.recruit_container_decoy`, `tint: "scorch"`.) Tint the surfaces of the existing stasis pod model and save it as its own GLB
   (an entry in `meshy.json` with a tint), not a code tint. Hinged glass is part of S31 (held).
-- [ ] **S21 The ship is the wreck from the crash film,** not the pile of fragments. Use the film's
+- [x] **S21 The ship is the wreck from the crash film,** (L2–5; L1 is A's.) not the pile of fragments. Use the film's
   `Halcyon_Wreck.glb` and reduce it as before. The current `decor.halcyon_wreck` was built from the debris-cleared
   site model.
 - [ ] **S22 Fireworks instead of confetti: R6 G1.** Nothing separate for levels 1–5.
@@ -150,18 +150,18 @@ and 3 (reduced buggy) are parked, not rejected.
   - L2 adds the 4 ejected crew pods (bays 1–4) and the old orange pod on the plain.
   - Bug: after L2's `empty_bays` opens bay 5, levels 3–5 still show it sealed. Fix: L3–5 show bay 5's lid open.
   - The screenplay (S1) should make the count readable: "four sealed in the wreck, four crew thrown clear".
-- [ ] **S25 The ship stays put and far away.**
+- [x] **S25 The ship stays put and far away.** (L2–5 shifted (+600, −300); L4 map 1300 wide.)
   - The ship is the same 513 units from the reactor in every level. In L1–3 it sits off the north edge of the map,
     and in L4 the map grew to include it, so it looks as if it moved next to the town.
   - Fix: keep it on screen-reachable ground in every level, farther from town (a real walk in L4), and in the same
     spot relative to the camp throughout.
-- [ ] **S26 Solid wreck and deck; a ramp; a visible recorder.** A drifted-sand ramp (a model or terrain shape) lets the
+- [ ] **S26 Solid wreck and deck; a ramp; a visible recorder.** (Recorder on open sand among the fragments; solid deck and ramp not done.) A drifted-sand ramp (a model or terrain shape) lets the
   commander walk up onto the deck plate, since the game has no jump.
   - The commander walks through the deck plate. Decor doesn't block: give the deck and wreck footprints
     `zone.terrain` (data only).
   - The recorder can't be seen on approach. Place it in the open beside the hull break, lit, and showing as soon as
     the town runs itself.
-- [ ] **S27 Hire pads visible: levels 1–5 part (game-wide in R6 G4).** never covered by buildings or walls. Check every pad in levels 1–5 from
+- [x] **S27 Hire pads visible: levels 1–5 part (game-wide in R6 G4).** never covered by buildings or walls. Check every pad in levels 1–5 from
   the game camera, then move pads in the data. If occlusion fading is the cause, that's A's R6 area.
 
 - [x] **S34 Pods glow; no beams.** (`podLights: "glow"`.) In L2 the pods themselves glow, cold white for crew and scorched orange for the
@@ -176,7 +176,7 @@ and 3 (reduced buggy) are parked, not rejected.
 - [ ] **S36 Text cards for held scenes.** Until a film or live scene is ready, the live game shows a short text card
   describing it wherever it will play: the L5 lieutenant's fall, `crash_log`, Sela's arrival, the helmet, and
   so on. `empty_bays` already plays live.
-- [ ] **S37 The wreck lies east of the camp.** Screen up is north, so place the wreck to the east in every level (with
+- [x] **S37 The wreck lies east of the camp.** Screen up is north, so place the wreck to the east in every level (with
   S25).
 - [x] **S38 The orange pod is the Halcyon's lander pod,** scorched orange, opened from the inside long ago. It replaces
   "another ship's pod" (story change, draft 4). The S20 model tint should read as scorched, not painted.

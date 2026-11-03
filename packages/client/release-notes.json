@@ -1,9 +1,8 @@
 {
   "notes": [
-    "Story levels 2 to 5 are rewritten from the new script, with new lines for every character and a clearer story from the crash to Vale's helmet.",
-    "Characters now speak in speech bubbles over their heads, and every goal opens as a card in the middle of the screen before it moves to the top.",
-    "Level 2: bring all five pods home, including the scorched orange lander pod. The pods glow on their own, and Rhee comes out as the camp's medic.",
-    "Level 3 opens with Sela, the trader, and adds a step where you sell meat. Level 4 asks you to train the crew for all three galley jobs.",
-    "Level 5 no longer ends at dawn: the raider drops a helmet, and you bring it home. The turret socket now stands between the raiders and the hub."
+    "Every speech bubble in the story levels now shows a portrait of the character speaking.",
+    "The crashed Halcyon is now the ship from the opening film, and it lies well east of the town: level 4's walk to the flight recorder is a real trek.",
+    "The habitat hub's pad shows its 150 price again.",
+    "Hire pads in levels 4 and 5 moved out from behind the kiosk and the wall, and KILN's cloud glows brighter."
   ]
 }

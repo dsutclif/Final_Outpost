@@ -74,6 +74,25 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-03, B, portraits, the wreck moved east, small fixes (Doug's items 4–6).** No engine bump; s1 (45) and story
+  packs replay clean, every test passes.
+  - **Portraits (S3).** `packages/client/public/busts/*.webp` (160 px), rendered from each character's GLB in the
+    browser: commander (unit.player), Pip (role.supplier), Rhee (role.medic), Okafor (role.defender), Tam (role.idle),
+    Sela (unit.customer), the raider lieutenant (hostile.boss). Speakers carry `bust`; the bubble shows it.
+  - **Wreck (S21, S25, S37).** `decor.halcyon_wreck` now builds from the film's `Halcyon_Wreck.glb` (same fit,
+    11.7k tris, 1.1 MB). It carries debris chunks south of the hull that the old site model had cleared, and at the
+    old placement they landed on the camp. **L2–5 shift the whole wreck group (wreck, deck, deck2, stripe, pod0–4,
+    lid0–4) by (+600, −300)**: east on screen and clear of the camp. L4's map is 1300 wide and the recorder lies on
+    open sand among the hull fragments at (1080, 380), about 900 units from the reactor.
+    **A: level 1 still has the old placement**, so with the new model its debris may sit near the camp, and L1→L2
+    continuity now wants the same shift (or a matching choice of yours).
+  - **Hub price (S16).** renderer.ts: a big pad's floating name and price stay at most `BIG_LABEL_LIFT` (3.2 art m)
+    high, so the landmark's tall blueprint no longer pushes them off screen. Affects every big pad (a bug fix).
+  - **Pads (S27).** L4's three hire pads moved from (420,1020), behind the kiosk, to (340,1000); L5's guard pad from
+    (300,760), behind the south wall, to (300,730).
+  - **KILN (S4).** `spiritFollow.glow` (base brightness, 0–1) through contract/storypresent/corespirit; L2–5 use 0.6.
+  - **Not done:** a solid deck needs an invisible blocker (the terrain kinds all draw rocks), and the sand ramp needs
+    the renderer to lift the hero; the recorder sits on the sand instead, so neither is needed to finish L4.
 - **2026-11-03, B, levels 3–5 rebuilt to the approved screenplay.** No engine bump: the s1 pack (45 levels) and the story
   pack replay clean, and every test passes.
   - **Director.** `StoryGoal.until`: a story step that shows like a goal (card and top line) but has no star slot,

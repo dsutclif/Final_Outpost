@@ -68,7 +68,7 @@ export interface StoryWorld {
   spirit: { state: "bloom" | "pulse" | "idle" | "fading" | "off"; seq: number } | null;
   glow: { x: number; y: number; size?: number; strength?: number } | null;
   /** The cloud floats beside the hero (see StoryAction spiritFollow); null: over the reactor. */
-  follow: { right: number; up: number; lag?: number; delay?: number; height?: number; size?: number } | null;
+  follow: { right: number; up: number; lag?: number; delay?: number; height?: number; size?: number; glow?: number } | null;
   guideOff: boolean;
   /** A line by a spirit speaker is on screen. */
   speaking: boolean;
