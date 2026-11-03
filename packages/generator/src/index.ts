@@ -411,7 +411,9 @@ export function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly
     if (need !== undefined && need * 1.04 > sec) sec = Math.ceil((need * 1.04) / 5) * 5;
     second.params["seconds"] = sec;
   }
-  m.objectives = [m.objectives![0]!, second, { ...ordered[0]!, id: "challenge" }];
+  // "Finish in x:xx" is always the last star (R6 #3)
+  const chal = { ...ordered[0]!, id: "challenge" };
+  m.objectives = second.kind === "time_target" ? [m.objectives![0]!, chal, second] : [m.objectives![0]!, second, chal];
   return null;
 }
 

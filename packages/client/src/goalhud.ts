@@ -102,7 +102,9 @@ export function goalTokens(st: State, m: Manifest, cp: Compiled | null, skin: Sk
   const defs = manifestObjectives(m);
   const heat = heatOf(st, cp), walls = wallsOf(st, m);
   const vip = skin.text.ui["vipIcon"] ?? "VIP";
-  return live.map((o, i) => { const t = tokenOf(o, defs[i]?.params ?? {}, views[i]?.label ?? "", st, cp, heat, walls); if (t.glyph === "vip") t.text = vip; return t; });
+  const toks = live.map((o, i) => { const t = tokenOf(o, defs[i]?.params ?? {}, views[i]?.label ?? "", st, cp, heat, walls); if (t.glyph === "vip") t.text = vip; return t; });
+  // "Finish in x:xx" is always the last star (R6 #3); a stable sort keeps the rest in order
+  return [...toks.filter((t) => t.glyph !== "stopwatch"), ...toks.filter((t) => t.glyph === "stopwatch")];
 }
 
 /** Before its first tick the sim has not set targets yet (the intro cards draw then): read them from the level. */
@@ -252,6 +254,9 @@ export function alertMarks(st: State, m: Manifest, cp: Compiled | null, tokens: 
   if (st.freeze?.active || heatOf(st, cp) < FREEZE_WARN) found.push({ kind: "core" });
   const w = wallsOf(st, m);
   if (w !== null && w < WALL_WARN) found.push(...weakestGate(st));
+  // the most impatient trader gets its "!" on every level, not only under a no_angry_customers goal (R6 #6)
+  const hurried = (st.sales?.queue ?? []).filter((x) => !x.angry && x.patienceMax > 0 && x.patience / x.patienceMax < GUARD_WARN).sort((a, b) => a.patience / a.patienceMax - b.patience / b.patienceMax)[0];
+  if (hurried) found.push({ kind: "customer", id: hurried.id });
   for (const t of tokens) {
     if (!t.risk) continue;
     const kind = st.objectives?.find((o) => o.id === t.id)?.kind;
