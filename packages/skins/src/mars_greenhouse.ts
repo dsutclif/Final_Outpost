@@ -903,8 +903,8 @@ export const marsGreenhouse: Skin = {
           ] },
         ],
       },
-      // Open for Trade (docs/STORY-LEVELS-V2.md, level 3). Phase 1: Sela walks in with the first traders (no buggy yet)
-      // and the H coin close-up is lines only.
+      // Open for Trade (docs/STORY-LEVELS-V2.md, level 3). Phase 1: Sela walks in with the first traders (no buggy yet);
+      // the H coin close-up is a card with the coin's render.
       "story-L003": {
         hide: ["credits", "walls"],
         solid: ["sink.core"],
@@ -942,6 +942,7 @@ export const marsGreenhouse: Skin = {
           { on: { event: "zone_cleared" }, do: [{ line: "That slide's fresh.", who: "kiln" }] },
           // the hub stands; Sela settles up in Halcyon chips, and the eleven years land
           { on: { goal: "main", is: "done" }, do: [
+            { card: "", image: "ui/coin.png", seconds: 2.5 },
             { line: "Halcyon chips?", who: "commander" },
             { line: "Four in suits like yours still spend them.", who: "sela" },
             { line: "We landed four days ago.", who: "commander" },
@@ -951,8 +952,8 @@ export const marsGreenhouse: Skin = {
           ] },
         ],
       },
-      // Halcyon Works (docs/STORY-LEVELS-V2.md, level 4). Phase 1: the crash_log scene is a text card. World actions
-      // (light, spirit, ridge) run when their cue fires, not in line order, so KILN's dim is left out.
+      // Halcyon Works (docs/STORY-LEVELS-V2.md, level 4). Phase 1: the crash_log scene is a text card. Ordered cues put
+      // KILN's dim and the ridge flash on their lines.
       "story-L004": {
         hide: ["walls"],
         solid: ["sink.core"],
@@ -968,9 +969,11 @@ export const marsGreenhouse: Skin = {
             { spirit: "idle" },
             { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
           ] },
-          { on: { start: true }, do: [
+          { on: { start: true }, ordered: true, do: [
             { day: "DAY 4,023", sub: "KILN's clock had stopped at DAY 5.", seconds: 3 },
+            { spirit: "fading" },
             { line: "I shut down everything but the pods. Even my clock. It took everything.", who: "kiln" },
+            { spirit: "idle" },
             { line: "Vale's pod was empty. Why?", who: "commander" },
             { line: "The flight recorder survived. Retrieve it and I can read it for you.", who: "kiln" },
             { line: "I can't leave. They need me here.", who: "commander" },
@@ -989,10 +992,11 @@ export const marsGreenhouse: Skin = {
           { on: { near: { entity: "recorder" }, r: 140 }, do: [{ edgeGlow: null }] },
           { on: { near: { entity: "recorder" }, r: 50 }, do: [{ dotsOff: true }] },
           // home with the recorder: KILN reads it (a text card until the crash_log scene exists)
-          { on: { event: "crate_delivered" }, do: [
+          { on: { event: "crate_delivered" }, ordered: true, do: [
             { spirit: "pulse" },
             { card: "FOUR MINUTES TO IMPACT", sub: "Four pods open from inside. Four crew climb out, close and lock the empty pods from outside, and walk out of frame. The status lights turn to OCCUPIED.", seconds: 6 },
             { line: "They let themselves out. Then locked the pods empty.", who: "kiln" },
+            { ridgeFlash: 2 },
             { line: "Movement on the ridge.", who: "kiln" },
           ] },
         ],
@@ -1011,11 +1015,11 @@ export const marsGreenhouse: Skin = {
           { on: { start: true }, do: [
             { light: "night" },
             { ridge: "right", period: 3, k: 0.45 },
-            { ridgeFlash: 3 },
             { spirit: "idle" },
             { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
           ] },
-          { on: { start: true }, do: [
+          { on: { start: true }, ordered: true, do: [
+            { ridgeFlash: 3 },
             { camera: { to: { at: [790, 700] }, pan: 0.8, hold: 2.5, back: 0.8 } },
             { line: "They're coming for the gate. We can use the scrap they drop to build defenses.", who: "okafor" },
           ] },

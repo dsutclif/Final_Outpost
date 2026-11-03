@@ -43,6 +43,7 @@
 }
 .story-card[hidden] { display: none; }
 .story-card-text { margin: 0; font: 700 20px/1.35 var(--display); }
+.story-card-img { display: block; width: min(46vmin, 220px); height: auto; margin: 0 auto 18px; filter: drop-shadow(0 0 18px rgba(255, 210, 120, 0.35)); }
 .story-card-sub { margin: 0; font-size: 15px; color: #b9c0c8; }
 .story-card.day .story-card-text { font-size: 38px; font-weight: 800; letter-spacing: 0.06em; }
 @keyframes story-fade { from { opacity: 0; } }

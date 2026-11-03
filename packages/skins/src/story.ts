@@ -69,8 +69,8 @@ export type StoryAction =
   | { goal: string }
   | { hide: readonly StoryHudPart[] }
   | { show: readonly StoryHudPart[] }
-  /** Beat: text card over black; a tap ends it early. */
-  | { card: string; sub?: string; seconds?: number }
+  /** Beat: text card over black; a tap ends it early. `image`: a skin image shown above the text (a close-up). */
+  | { card: string; sub?: string; seconds?: number; image?: string }
   /** Beat: large day card over black ("DAY 4,023"); a tap ends it early. */
   | { day: string; sub?: string; seconds?: number }
   /** Show a build ghost with its price. The renderer reads it from director.world. */
@@ -107,6 +107,11 @@ export interface StoryCue {
   on: StoryTrigger;
   do: readonly StoryAction[];
   repeat?: boolean;
+  /**
+   * Run every action in line order, world changes included (light, spirit, ridge, dots...), so a dim or a flash
+   * can land on a given line. Default: world changes apply the moment the cue fires.
+   */
+  ordered?: boolean;
   /** Belongs to the walk from the level's start: skipped when an in-level retry starts at `retryFrom` instead. */
   walk?: boolean;
 }
