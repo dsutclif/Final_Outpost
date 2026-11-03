@@ -781,6 +781,12 @@ export const marsGreenhouse: Skin = {
       sela: { name: "SELA" },
       lieutenant: { name: "RAIDER" },
     },
+    scenes: {
+      empty_bays: {
+        text: { feed: "KILN · BAY CAM 05–08 · REC", occupied: "OCCUPIED", unlocked: "UNLOCKED", name: "VALE", rank: "FIRST OFFICER" },
+        images: { badge: "scenes/badge_bay5.png" },
+      },
+    },
     lights: { night: 0, preDawn: 0.08, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
     levels: {
       "story-L001": {
@@ -898,7 +904,7 @@ export const marsGreenhouse: Skin = {
           { on: { goal: "main", is: "done" }, do: [
             { spirit: "pulse" },
             { line: "Power's up. Opening bays five to eight.", who: "kiln" },
-            { card: "KILN · BAY CAMERA", sub: "Bay 5 unlocks. The plate reads VALE, FIRST OFFICER. The glass lifts on an empty pod.", seconds: 5 },
+            { film: "empty_bays" },
             { line: "They read occupied.", who: "commander" },
             { line: "Locked. Nobody home.", who: "rhee" },
           ] },

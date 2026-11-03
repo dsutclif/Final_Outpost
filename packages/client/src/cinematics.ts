@@ -11,7 +11,12 @@ import titleLoopVideo from "./cinematics/title_loop.mp4";
 // answers from the cache without range-request support, so they stream from the network and a
 // failure just skips ahead.
 
-export type CinematicId = "crash_open" | "helmet_reveal";
+type VideoId = "crash_open" | "helmet_reveal";
+/** Live scenes play staged in three.js (render-3d scene/livescene.ts) instead of from a video file. */
+type LiveId = "empty_bays";
+export type CinematicId = VideoId | LiveId;
+const LIVE: readonly LiveId[] = ["empty_bays"];
+const isLive = (id: string): id is LiveId => (LIVE as readonly string[]).includes(id);
 
 /**
  * A film's hand-off into play: `fadeMs` the cross-fade into the level, and `grade` a CSS grade on the
@@ -20,18 +25,18 @@ export type CinematicId = "crash_open" | "helmet_reveal";
  */
 export interface FilmInfo { video: string; poster: string; fadeMs?: number; grade?: { seconds: number; brightness: number; saturate: number } }
 
-export const CINEMATICS: Record<CinematicId, FilmInfo> = {
+export const CINEMATICS: Record<VideoId, FilmInfo> = {
   // the film ends warm and bright; level 1 opens in moonlit night, its sand about half as bright
   crash_open: { video: crashOpenVideo, poster: crashOpenPoster, fadeMs: 500, grade: { seconds: 2.5, brightness: 0.5, saturate: 0.88 } },
   helmet_reveal: { video: helmetRevealVideo, poster: helmetRevealPoster },
 };
 
 /** Bump a film's version when it is re-rendered: players who saw an older one see it again. */
-export const FILM_VERSIONS: Record<CinematicId, number> = { crash_open: 1, helmet_reveal: 1 };
+export const FILM_VERSIONS: Record<CinematicId, number> = { crash_open: 1, helmet_reveal: 1, empty_bays: 1 };
 
 /** Is this id a film we have, not yet seen in its current version? */
 export function filmDue(id: string, seen: Readonly<Record<string, number>>): id is CinematicId {
-  return id in CINEMATICS && (seen[id] ?? 0) < FILM_VERSIONS[id as CinematicId];
+  return (id in CINEMATICS || isLive(id)) && (seen[id] ?? 0) < FILM_VERSIONS[id as CinematicId];
 }
 
 /** The landing screen's muted loop (title.ts); the canvas backdrop stays as its fallback. */
@@ -64,6 +69,8 @@ export interface PlayOptions {
   stallMs?: number;
   /** Cross-fade out at the end, in ms. */
   fadeMs?: number;
+  /** A live scene's words and images, from the skin (SkinStory.scenes). */
+  scene?: { text: Readonly<Record<string, string>>; images: Readonly<Record<string, string>> } | undefined;
 }
 
 /**
@@ -72,6 +79,7 @@ export interface PlayOptions {
  * fadeMs (0.3 s) while the promise resolves, so the next screen is mounted under the fade.
  */
 export function playCinematic(host: HTMLElement, id: CinematicId, opts: PlayOptions = {}): Promise<CinematicResult> {
+  if (isLive(id)) return playLive(host, id, opts);
   const doc = host.ownerDocument;
   const c = CINEMATICS[id];
   const { skipLabel = "Skip", startMs = 5000, stallMs = 3500, fadeMs = c.fadeMs ?? 300 } = opts;
@@ -138,4 +146,18 @@ export function playCinematic(host: HTMLElement, id: CinematicId, opts: PlayOpti
     const p = v.play();
     if (p) p.catch(() => finish("failed"));
   });
+}
+
+/** A live scene, its player loaded on demand. Dev: window.__live = { at, wire } holds a frame or draws wireframe. */
+async function playLive(host: HTMLElement, id: LiveId, opts: PlayOptions): Promise<CinematicResult> {
+  try {
+    const { loadLiveScene } = await import("@fo/render-3d");
+    const { playLiveScene } = await loadLiveScene();
+    const dev = import.meta.env.DEV ? (globalThis as { __live?: { at?: number; wire?: boolean } }).__live : undefined;
+    const base = host.ownerDocument.baseURI;
+    const images = Object.fromEntries(Object.entries(opts.scene?.images ?? {}).map(([k, v]) => [k, new URL(v, base).href]));
+    return await playLiveScene(host, id, { text: opts.scene?.text ?? {}, images, skipLabel: opts.skipLabel ?? "Skip", ...(dev?.at !== undefined ? { at: dev.at } : {}), ...(dev?.wire ? { wire: true } : {}) });
+  } catch {
+    return "failed";
+  }
 }

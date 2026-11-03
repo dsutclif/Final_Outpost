@@ -88,3 +88,22 @@
 
 /* Banners sit below the star slots and the goal line */
 .story-on .fo-banner { top: calc(env(safe-area-inset-top, 0px) + 74px) !important; }
+
+/* Live scenes (render-3d scene/livescene.ts): KILN's camera feed look over a three.js canvas. */
+.cine.live { overflow: hidden; }
+.cine.live.out { opacity: 0; transition: opacity 0.3s; }
+.live-canvas { position: absolute; inset: 0; width: 100%; height: 100%; filter: grayscale(0.55) sepia(0.25) hue-rotate(150deg) contrast(1.1) brightness(1.2); animation: live-flicker 0.12s steps(2) infinite; }
+.cine.live.wire .live-canvas { filter: none; animation: none; }
+.live-scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.65)); }
+.live-overlay { position: absolute; inset: 0; pointer-events: none; }
+.live-hud { position: absolute; top: max(14px, env(safe-area-inset-top)); left: 16px; font: 600 12px/1 ui-monospace, monospace; letter-spacing: 0.12em; color: #cfeee2; text-shadow: 0 0 6px rgba(120, 255, 200, 0.6); }
+.live-hud::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #ff3b30; animation: live-rec 1s steps(2) infinite; }
+.live-tag { position: absolute; left: 0; top: 0; padding: 2px 6px; font: 700 10px/1.2 ui-monospace, monospace; letter-spacing: 0.1em; color: #3cff7a; border: 1px solid currentColor; background: rgba(0, 0, 0, 0.45); white-space: nowrap; }
+.live-tag.warn { color: #ffb02e; }
+.live-plate { position: absolute; left: 50%; bottom: max(64px, calc(env(safe-area-inset-bottom) + 48px)); transform: translate(-50%, 12px); width: min(58vw, 230px); opacity: 0; transition: opacity 0.35s, transform 0.35s; text-align: center; color: #fff8ef; }
+.live-plate.on { opacity: 1; transform: translate(-50%, 0); }
+.live-plate img { display: block; width: 100%; height: auto; border-radius: 6px; box-shadow: 0 0 24px rgba(0, 0, 0, 0.7); }
+.live-plate b { display: block; margin-top: 8px; font: 800 26px/1 var(--display); letter-spacing: 0.08em; }
+.live-plate span { display: block; margin-top: 4px; font-size: 13px; letter-spacing: 0.14em; color: #b9c0c8; }
+@keyframes live-flicker { 50% { opacity: 0.96; } }
+@keyframes live-rec { 50% { opacity: 0; } }

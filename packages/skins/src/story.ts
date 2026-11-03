@@ -185,4 +185,6 @@ export interface SkinStory {
   /** Lighting presets for `{ light }` actions: 0 full night to 1 sunrise. */
   lights?: Readonly<Record<string, number>>;
   levels: Readonly<Record<string, StoryLevel>>;
+  /** Live scenes' words and images by scene id (render-3d scene/livescene.ts reads them by key). */
+  scenes?: Readonly<Record<string, { text: Readonly<Record<string, string>>; images: Readonly<Record<string, string>> }>>;
 }

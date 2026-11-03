@@ -29,7 +29,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-03 | B | `story-p2` | `levels/story/story-L00{2..5}.json`; `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Levels 2–5: finish Phase 1, then the Phase 2 scene player and `empty_bays` |
-| 2026-11-03 | B (agent) | `story-buggy` | new `decor.buggy*` GLBs; `render-3d/src/assets/meshy.json` (new entries only); a new reduction script under `tools/cinematics/` | Buggy and wheels for Sela's arrival |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -49,7 +48,13 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 ## Open questions for Doug
 
-- None open.
+- **Blocked on Account A's claims:** the old pod's hinged orange glass in level 2 needs `renderer.ts`, which is claimed for R6.
+- **Sign-off 2, `empty_bays` (2026-11-03).** Is the live bay-camera scene at the end of level 2 good enough against the films? The plan only builds the other live scenes (`crash_log`, Sela's reveal, the helmet fall) if it is.
+- **Sign-off 3, reduced buggy (2026-11-03).** Branch `story-buggy` (not merged) holds `decor.buggy` (39.9k tris, 2.5 MB, slightly over the 2 MB target) and two wheels (3k tris each, one pre-mirrored), plus `render-3d/src/assets/buggy.json` with hub positions (radius 0.72, hubs at x -1.60 and +1.29, y 0.225, z ±1.0).
+  - The body is sized to 4.4 m wide, which is my choice since the plan gave no size. Please confirm.
+  - `tools/build-models.ts` gains per-entry `normalMap` and `mirror` options (additive; no other model's output changes).
+  - Comparison render: the scratchpad image `buggy_compare.png` (shown to Doug in chat).
+  - Wiring it into level 3, with headlights and the drive to the kiosk, is held until Doug signs off.
 
 ## Notes for Account A
 
@@ -65,6 +70,17 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+
+- **2026-11-03, B, Phase 2 starts: live-scene player and `empty_bays`.** Doug's sign-off 2 is pending: live scene against film quality. Per the plan, the other live scenes wait for it.
+  - New `render-3d/src/scene/livescene.ts` stages a scene in three.js on its own full-screen canvas, with the game's GLBs. It doesn't touch `renderer.ts`. It's loaded on demand through `loadLiveScene()` in render-3d's index, as a 4 kB chunk that keeps three out of the shell.
+  - `client/src/cinematics.ts`: `CinematicId` gains `empty_bays` as a live id (`FILM_VERSIONS` 1), and `playCinematic` hands live ids to the player. `app.ts` passes `skin.story.scenes[id]` (words and images, `SkinStory.scenes` in `skins/src/story.ts`).
+  - `empty_bays` (6.2 s) is KILN's bay camera from the ceiling:
+    - Four pods read OCCUPIED. Bay 5 turns UNLOCKED at 1.6 s.
+    - The name plate (`client/public/scenes/badge_bay5.png` with VALE / FIRST OFFICER from the skin) is up from 1.9 to 4.6 s.
+    - The glass swings up on its long-side hinge between 3.2 and 5.0 s, with the camera drifting in on bay 5.
+    - The feed look is CSS on the canvas (`story.css`).
+  - L2's text card is replaced by `{ film: "empty_bays" }`. Without WebGL, the scene resolves at once and the lines carry on.
+  - Checks: staging and motion in wireframe stills first (dev knob `window.__live = { at, wire }`), then brightness on the real materials by pixel means (54–65 of 255). The look itself has not been seen on a phone.
 
 - **2026-11-03, B, Phase 1 finish for levels 3–5.** No engine bump.
   - Director (`skins/src/story.ts`, `client/src/story/director.ts`, `view.ts`, `story.css`) gains two options, both off by default:

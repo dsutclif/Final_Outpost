@@ -845,7 +845,7 @@ export class App {
 
   /** Play a cinematic full-screen once: ended or skipped saves it as seen; an error or stall just continues. */
   private async cinematic(id: CinematicId, force = false): Promise<void> {
-    const r = await playCinematic(this.el.app, id, { skipLabel: uiText(this.skin, "skip") });
+    const r = await playCinematic(this.el.app, id, { skipLabel: uiText(this.skin, "skip"), scene: this.skin.story?.scenes?.[id] });
     if (r === "failed" || force) return;
     this.progress.cinematics[id] = FILM_VERSIONS[id];
     void this.deps.store.setProgress(this.progress);
