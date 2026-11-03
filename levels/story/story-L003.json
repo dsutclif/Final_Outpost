@@ -604,6 +604,26 @@
    },
    "build": "struct.landmark",
    "big": true
+  },
+  {
+   "type": "pad.hire",
+   "id": "picker",
+   "at": [
+    410,
+    660
+   ],
+   "cost": {
+    "res.currency": 9
+   },
+   "role": {
+    "role": "role.supplier",
+    "from": "node.food_source",
+    "to": "sink.sales_point",
+    "node": "field1"
+   },
+   "requires": {
+    "pad": "clear0"
+   }
   }
  ],
  "people": [

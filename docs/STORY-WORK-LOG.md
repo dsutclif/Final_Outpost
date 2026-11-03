@@ -74,6 +74,16 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-03, B, Doug's learning-level notes.** No engine bump; story pack, s1 pack and tests clean.
+  - **Lines:** no how-to (tow, pick and stock, hunt, train-once, pay on the pad, the bar) and no number targets in KILN's
+    lines; the arrows, HUD pointers, pad labels and goal cards carry that. Sela's protein line is Doug's.
+  - **L3:** a picker hire pad (`picker`, role.supplier field1 to the kiosk, 9 credits) that opens once the slide is
+    clear (`requires: clear0`). Without the gate, bots hired at once and stalled on meat sales; with it they win
+    and earn the slide star too. Tam asks to work the fields; KILN ties the second grow dome to it.
+  - **Bubbles:** an off-screen speaker's bubble is clamped onto the screen (view.ts). Sela's intro holds the camera at
+    the kiosk beside her lines (a `freeze: false` camera beat, 16 s).
+  - **R6 (A):** G3 now notes that hunting must fire laser bolts too; new **G9**, order icons instead of coloured dots
+    over traders.
 - **2026-11-03, B, the ship stays where level 1 has it; the recorder bursts out of the hull (Doug).** Doug: the ship and the
   settlement must keep the same relative positions in L1–5, and L4 must not show fragments where the ship was. So the
   earlier (+600, −300) shift is undone: L2–5's wreck group now matches L1 exactly relative to the reactor (checked

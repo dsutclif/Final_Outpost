@@ -60,6 +60,8 @@ follow-up, it stays in the story backlog under the same S number, so each part i
       digs with a shovel (a tool prop plus a dig clip), on every level.
 - [ ] **G3 (S23b) rifle lasers apply everywhere:** this is the existing N5 blaster fire plus N2/N3 ranged raiders
       (Bundle 5). Nothing extra here; the story backlog keeps a check of level 5 once Release 2 lands.
+      **Doug, 2026-11-03 (again): guns still fire no laser bolts, and hunting rock hoppers must fire them too** (the
+      hero's hunting shots and the hunter role), not only combat.
 - [ ] **G4 (S27) hire pads always fully visible:** no pad is hidden behind a building or a wall from the game camera.
       The generator places pads clear of model silhouettes, and occlusion fading never hides a pad. Generated
       pads mean a pack rebuild, so this belongs to Release 2. The story backlog keeps a check of levels 1–5's
@@ -77,6 +79,10 @@ follow-up, it stays in the story backlog under the same S number, so each part i
 - [ ] **G6 (S9) one loop around pods side by side:** when pods sit close together, the arrows draw one circle around
       the group instead of one per pod, so towing several at once is taught. It's client guide code; the story
       backlog keeps a check of level 2's pair.
+- [ ] **G9 a trader's order shows the item, not a coloured dot (Doug, 2026-11-03):** the dot over a waiting trader's head
+      becomes a small image of the item they want (the resource's own icon or model), on every level, so players learn
+      to read orders without matching colours. Story level 3 already has the angry trader who wants meat; once G9 lands
+      the story session can point at the icon in that beat.
 
 ## Release 2: one engine bump, one pack rebuild
 

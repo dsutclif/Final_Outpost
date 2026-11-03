@@ -1,8 +1,8 @@
 {
   "notes": [
-    "Every speech bubble in the story levels now shows a portrait of the character speaking.",
-    "The crashed Halcyon is now the ship from the opening film, and it sits in the same place relative to the town in every story level.",
+    "Story levels 2 to 5: the crew and KILN no longer explain the controls in their lines; the arrows and pointers show the way.",
+    "Level 3: Sela tells you protein sells for a premium, and once the rockslide is clear you can train Tam to pick greens.",
     "Level 4: the flight recorder is wedged in a crack in the hull. Walk up to it and it rattles loose, bursts out and lands on the sand.",
-    "The habitat hub's pad shows its 150 price again, hire pads are no longer hidden behind the kiosk or the wall, and KILN's cloud glows brighter."
+    "Speech bubbles stay on screen even when the speaker is off it, and every bubble shows the speaker's portrait."
   ]
 }

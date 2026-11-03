@@ -896,13 +896,12 @@ export const marsGreenhouse: Skin = {
             { line: "I'm adding pointers to your heads-up display to help you find them.", who: "kiln" },
             { line: "There's a fifth pod. It's one of ours, an escape pod from the lander, but nobody was assigned to it.", who: "kiln" },
             { line: "Then I'll bring all five in.", who: "commander" },
-            { line: "Walk a full circle around a pod to hook it to your tow line, then pull it into the reactor's heat. The marks over your head count your tow. You can pull three at a time.", who: "kiln" },
           ] },
           { on: { event: "joined", match: { capture: 0 } }, do: [
             { crew: "Boss! We made it? I thought I'd wake up on the colony. Where is everyone?", who: "pip" },
             { line: "Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?", who: "commander" },
             { line: "Give me something to carry. Ore in, fire stays on.", who: "pip" },
-            { line: "Two pods came down close together. Circle both and you can tow them in one trip.", who: "kiln" },
+            { line: "Two pods came down close together. Bring them both in one trip.", who: "kiln" },
           ] },
           { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
           { on: { event: "joined", match: { capture: 2 } }, do: [{ crew: "Who's watching the camp? Nobody? Then I am.", who: "okafor" }] },
@@ -956,12 +955,11 @@ export const marsGreenhouse: Skin = {
           // the only moving light: the camera follows the first trader down the road to the old kiosk
           { on: { event: "customer_arrived" }, ordered: true, do: [
             { light: "night", seconds: 3 },
-            { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 1.5, back: 0.8 } },
+            { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 16, back: 0.9, freeze: false } },
             { line: "Well. Somebody's living out here. I'm Sela. I trade between the settlements: salvage, food, whatever people need.", who: "sela" },
             { line: "Settlements? There are other people on this planet?", who: "commander" },
             { line: "Three towns along this road, and every one of them is hungry. You've got a grow dome there. I'll pay for greens.", who: "sela" },
-            { line: "People who trade. Commander, if we sell to her, we can afford a real shelter for the crew.", who: "kiln" },
-            { line: "The grow dome beside you grows greens. Pick some, put them on the kiosk's shelf, then stand at the counter.", who: "kiln" },
+            { line: "People who trade. Commander, if we sell her our greens, we can afford a real shelter for the crew.", who: "kiln" },
             { goal: "first" },
             { dots: [{ entity: "field1" }], period: 3 },
           ] },
@@ -971,20 +969,20 @@ export const marsGreenhouse: Skin = {
             { dotsOff: true },
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
-            { line: "A hub costs 150 credits. Every sale gets us closer.", who: "kiln" },
+            { line: "Sell some more and save up credits to build that hub.", who: "kiln" },
             { line: "No meat? I'm not waiting.", who: "trader" },
-            { line: "Meat sells best. Hoppers live past that rockslide.", who: "sela" },
+            { line: "Protein sells for a premium around here. If you can hunt some of those rock hoppers past the rockslide, you'll get a good price.", who: "sela" },
             { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.3 } },
             { camera: { to: { entity: "clear0" }, pan: 0.4, hold: 1, back: 0.8 } },
-            { line: "Clearing the slide costs 12 credits. Sell greens until you have 12, then stand on that pad to pay.", who: "kiln" },
+            { line: "Save up a little and we can clear that slide.", who: "kiln" },
           ] },
           { on: { event: "zone_cleared" }, do: [
             { line: "That slide is fresh. Something shook it loose. Maybe that signal from the ridge.", who: "kiln" },
-            { line: "Walk up to a hopper and you'll be able to hunt it. Carry the meat to the kiosk and sell it.", who: "kiln" },
           ] },
           { on: { event: "sold", match: { res: "res.food_raw_2" } }, do: [
-            { line: "That dim pad by the road opens a second grow dome, if you want more greens.", who: "kiln" },
-            { line: "Keep selling. When we have 150, we pay at the hub's outline.", who: "rhee" },
+            { line: "Boss, let me work the fields. You hunt; I'll keep the shelf full of greens.", who: "tam" },
+            { line: "With Tam picking, a second grow dome would pay for itself.", who: "kiln" },
+            { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
           ] },
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land
           { on: { goal: "main", is: "done" }, do: [
@@ -1034,23 +1032,22 @@ export const marsGreenhouse: Skin = {
             { line: "Then we'll learn to run things on our own. We need that box to know what happened to us.", who: "rhee" },
             { line: "You'll need to train the team to keep the town running without you.", who: "kiln" },
             { line: "Storm season's close. I know some other settlers who'd pay good credits for hot meals, if your team can cook them. And two of my drivers want steady work, if you'll train them.", who: "sela" },
-            { line: "A galley cooks greens into meals. Its pad is beside the grow dome.", who: "kiln" },
+            { line: "A galley cooks greens into meals.", who: "kiln" },
           ] },
           // morning turns to dusk while the town learns to run itself
           { on: { goal: "galleyBuilt", is: "done" }, do: [
             { light: "dusk", seconds: 120 },
             { line: "Three jobs keep it running: carry greens from the dome, cook at the galley, carry meals to the kiosk.", who: "kiln" },
-            { line: "Do each job yourself once. Then its training pad opens. Stand on it and pay, and a crewmate takes over.", who: "kiln" },
           ] },
           // all three trained: a small light starts blinking at the wreck
           { on: { event: "hired", match: { pad: "server" } }, do: [
-            { line: "They've got it. Now walk east to the wreck. The bar fills while the town runs without you. If the dome or galley stops, it drops back to zero.", who: "kiln" },
+            { line: "They've got it. Head east to the wreck while the town runs without you.", who: "kiln" },
             { dots: [{ entity: "recorder" }], period: 1.2 },
             { edgeGlow: { entity: "recorder", size: 28, strength: 0.35 } },
           ] },
           { on: { near: { entity: "recorder" }, r: 140 }, do: [{ edgeGlow: null }] },
           { on: { near: { entity: "recorder" }, r: 50 }, do: [{ dotsOff: true }] },
-          { on: { goal: "auto", is: "done" }, do: [{ line: "That's it. Tow it home to me, the same way you towed the pods.", who: "kiln" }] },
+          { on: { goal: "auto", is: "done" }, do: [{ line: "That's it. Bring it home to me.", who: "kiln" }] },
           // home with the recorder: KILN reads it (a text card until the crash_log scene exists)
           { on: { event: "crate_delivered" }, ordered: true, do: [
             { spirit: "pulse" },
@@ -1092,16 +1089,16 @@ export const marsGreenhouse: Skin = {
             { ridgeFlash: 3 },
             { line: "Raiders, coming down off the ridge. They'll go for the gate.", who: "okafor" },
             { line: "Then we hold the gate.", who: "commander" },
-            { line: "Three are coming first. Once you get close, you'll be able to shoot. Fallen raiders drop scrap; pick it up.", who: "kiln" },
+            { line: "Three are coming first. Once you get close, you'll be able to shoot.", who: "kiln" },
           ] },
           // scrap on the sand: the socket between the ridge and the first building lights up
           { on: { event: "wave_cleared", match: { idx: 0 } }, do: [
             { dots: [{ entity: "turret1" }], period: 2 },
-            { line: "That socket takes a turret. Stand on its pad to pay 8 scrap.", who: "kiln" },
+            { line: "Their scrap will build a turret on that socket.", who: "kiln" },
           ] },
           { on: { goal: "turret", is: "done" }, do: [
             { dots: [{ entity: "train" }], period: 2 },
-            { line: "Good. The hub's taken in two new settlers. Train one as a guard to hold the gate with me. Stand on the post's pad and pay.", who: "okafor" },
+            { line: "Good. The hub's taken in two new settlers. Train one as a guard to hold the gate with me.", who: "okafor" },
           ] },
           { on: { event: "hired", match: { pad: "train" } }, do: [
             { dotsOff: true },

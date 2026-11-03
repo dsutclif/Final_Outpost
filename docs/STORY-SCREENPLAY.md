@@ -3,7 +3,8 @@
 Backlog item S1 in `docs/BACKLOG-STORY.md`. This is every line in levels 1–5, in order, with stage notes. Level 1 is
 the other account's to build, so this is the words only; that account reviews it.
 
-**How to read it**
+**How to read it** (Doug, 2026-11-03: lines never explain controls or name number targets; the arrows, HUD pointers, pad labels and goal cards do that)
+
 - **NAME:** a line in a speech bubble over the speaker. **KILN:** KILN's terminal readout, with its cloud beside the
   commander.
 - **GOAL CARD:** the goal, mid-screen until it is tapped, then it flies to its slot at the top.
@@ -102,9 +103,6 @@ freezing.
 
 **COMMANDER:** Then I'll bring all five in.
 
-**KILN:** Walk a full circle around a pod to hook it to your tow line, then pull it into the reactor's heat. The marks
-over your head count your tow. You can pull three at a time.
-
 > GOAL CARD: **Tow the nearest pod into the heat**
 
 *The floor arrows circle the nearest pod. The commander loops it; the tow line catches; one tally mark fills. The pod
@@ -118,7 +116,7 @@ reaches the heat; frost melts; it opens. Play pauses. Pip steps out in a hauler'
 
 *Pip starts carrying ore. Goal star.*
 
-**KILN:** Two pods came down close together. Circle both and you can tow them in one trip.
+**KILN:** Two pods came down close together. Bring them both in one trip.
 
 > GOAL CARD: **Tow two pods at once**
 
@@ -180,9 +178,7 @@ people need.
 **SELA:** Three towns along this road, and every one of them is hungry. You've got a grow dome there. I'll pay for
 greens.
 
-**KILN:** People who trade. Commander, if we sell to her, we can afford a real shelter for the crew.
-
-**KILN:** The grow dome beside you grows greens. Pick some, put them on the kiosk's shelf, then stand at the counter.
+**KILN:** People who trade. Commander, if we sell her our greens, we can afford a real shelter for the crew.
 
 > GOAL CARD: **Sell Sela some greens**
 
@@ -193,18 +189,18 @@ star.*
 
 *The camera holds on the hub's ghost outline beside the camp, and its price: 150.*
 
-**KILN:** A hub costs 150 credits. Every sale gets us closer.
+**KILN:** Sell some more and save up credits to build that hub.
 
 *A second trader reaches the front of the line, looks at the shelf and turns away angry.*
 
 **TRADER:** No meat? I'm not waiting.
 
-**SELA:** Meat sells best. Hoppers live past that rockslide.
+**SELA:** Protein sells for a premium around here. If you can hunt some of those rock hoppers past the rockslide, you'll get a good price.
 
 *Play pauses; the camera pans past the rubble to hoppers moving in a pool of light, then to the pad on the rubble with
 its price.*
 
-**KILN:** Clearing the slide costs 12 credits. Sell greens until you have 12, then stand on that pad to pay.
+**KILN:** Save up a little and we can clear that slide.
 
 > GOAL CARD: **Clear the rockslide (12)**
 
@@ -212,15 +208,17 @@ its price.*
 
 **KILN:** That slide is fresh. Something shook it loose. Maybe that signal from the ridge.
 
-**KILN:** Walk up to a hopper and you'll be able to hunt it. Carry the meat to the kiosk and sell it.
-
 > GOAL CARD: **Sell meat at the kiosk**
 
 *The commander hunts and sells. A second trader arrives. Goal star.*
 
-**KILN:** That dim pad by the road opens a second grow dome, if you want more greens.
+**TAM:** Boss, let me work the fields. You hunt; I'll keep the shelf full of greens.
 
-**RHEE:** Keep selling. When we have 150, we pay at the hub's outline.
+*Tam's training pad lights up by the grow dome (it opens once the slide is clear).*
+
+**KILN:** With Tam picking, a second grow dome would pay for itself.
+
+**RHEE:** Keep selling. When we have enough, we'll build the hub.
 
 > GOAL CARD: **Build the habitat hub (150)**
 
@@ -276,7 +274,7 @@ the distance reads.*
 **SELA:** Storm season's close. I know some other settlers who'd pay good credits for hot meals, if your team can
 cook them. And two of my drivers want steady work, if you'll train them.
 
-**KILN:** A galley cooks greens into meals. Its pad is beside the grow dome.
+**KILN:** A galley cooks greens into meals.
 
 > GOAL CARD: **Build the galley**
 
@@ -284,16 +282,13 @@ cook them. And two of my drivers want steady work, if you'll train them.
 
 **KILN:** Three jobs keep it running: carry greens from the dome, cook at the galley, carry meals to the kiosk.
 
-**KILN:** Do each job yourself once. Then its training pad opens. Stand on it and pay, and a crewmate takes over.
-
 > GOAL CARD: **Train the crew for all three jobs**
 
 *Training pads glow beside the galley, each with a crewmate's name. Each job the commander does by hand unlocks its
 pad; each hire walks to a post: Tam carries greens from the dome; Sela's two drivers cook and carry meals. Pip stays on
 ore, Rhee on the aid station, Okafor on watch. When the dome and galley run with nobody carrying for them:*
 
-**KILN:** They've got it. Now walk east to the wreck. The bar fills while the town runs without you. If the dome or
-galley stops, it drops back to zero.
+**KILN:** They've got it. Head east to the wreck while the town runs without you.
 
 *A small light starts blinking at the wreck, the only new light on the map as the day turns.*
 
@@ -301,7 +296,7 @@ galley stops, it drops back to zero.
 
 *Past the deck, an orange flight recorder blinks, wedged in a crack in the hull. As the commander comes near it rattles, the crack bursts, and it tumbles out onto the sand. The bar fills. Goal star.*
 
-**KILN:** That's it. Tow it home to me, the same way you towed the pods.
+**KILN:** That's it. Bring it home to me.
 
 > GOAL CARD: **Bring the flight recorder home**
 
@@ -335,21 +330,20 @@ pods would still read occupied.
 
 **COMMANDER:** Then we hold the gate.
 
-**KILN:** Three are coming first. Once you get close, you'll be able to shoot. Fallen raiders drop scrap; pick it up.
+**KILN:** Three are coming first. Once you get close, you'll be able to shoot.
 
 > GOAL CARD: **Stop the first raiders**
 
 *The commander shoots three. Scrap falls. A socket on the wall, between the ridge and the first building, lights up.
 Goal star.*
 
-**KILN:** That socket on the wall takes a turret. Stand on its pad to pay 8 scrap.
+**KILN:** Their scrap will build a turret on that socket.
 
 > GOAL CARD: **Build a turret**
 
 *The turret rises and opens fire in the next wave. Goal star. The guard post beside the gate lights up.*
 
-**OKAFOR:** Good. The hub's taken in two new settlers. Train one as a guard to hold the gate with me. Stand on the
-post's pad and pay.
+**OKAFOR:** Good. The hub's taken in two new settlers. Train one as a guard to hold the gate with me.
 
 > GOAL CARD: **Train a guard**
 

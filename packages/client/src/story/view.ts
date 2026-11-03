@@ -144,7 +144,8 @@ function bubbleDialogue(layer: HTMLElement): DialogueStyle {
       // above the head; below it when the head is too near the top to fit
       const below = p.y - GAP - h < MARGIN + safeTop;
       const x = Math.max(MARGIN, Math.min(vw - w - MARGIN, p.x - w / 2));
-      const y = below ? Math.min(vh - h - MARGIN, p.y + GAP * 3) : Math.max(MARGIN + safeTop, p.y - GAP - h);
+      // a speaker off the bottom of the screen still gets a bubble on it, its tail toward them
+      const y = Math.min(vh - h - MARGIN, below ? p.y + GAP * 3 : Math.max(MARGIN + safeTop, p.y - GAP - h));
       root.classList.toggle("below", below);
       root.style.left = `${x}px`;
       root.style.top = `${y}px`;
