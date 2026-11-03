@@ -8,8 +8,11 @@ the other account's to build, so this is the words only; that account reviews it
   commander.
 - **GOAL CARD:** the goal, mid-screen until it is tapped, then it flies to its slot at the top.
   - The dialogue stays natural; the goal card is the precise version, with numbers and timers.
-- *Italics* are stage notes: what the player sees, does and earns. Each level opens with a camera move that shows the
-  situation before anyone speaks.
+- *Italics* are stage notes: what the player sees, does and earns.
+- **Camera moves are chosen per level, never a generic pan (Doug, 2026-11-03).** A move only happens where a line or
+  an event motivates it and it gives nothing away early: L1 has no opening move (the light stays a mystery), L2 lets
+  the pointers find the pods, L3 follows the arriving trader, L4 looks at the wreck only when KILN names it, L5 shows
+  the ridge as the visors light.
 - **[held]** marks a film or live scene that is on hold. Until it lands, the live game shows a text card describing
   what happens in it (backlog S36).
 - Every line pauses play until a tap. Replays keep the lines and skip the films and camera moves.
@@ -84,9 +87,9 @@ morning. A storm is coming, and in a storm it eats ore twice as fast.
 
 ## Level 2: Roll Call (grey dawn)
 
-*Grey morning over the same camp. Before anyone speaks, the camera pans slowly across the plain: four pods glowing cold
-white, scattered and half buried, then a fifth, glowing dull scorched orange off to the side, then back to the
-commander. The pods themselves glow; no light shines down on them.*
+*Grey morning over the same camp. No opening camera move: the camera stays on the commander, and the pods are found
+through the pointers, not shown in advance. Out on the plain, pods glow cold white, scattered and half buried; one
+glows dull scorched orange. The pods themselves glow; no light shines down on them.*
 
 **KILN:** Bays one to four were thrown clear when we hit. My sensors pick up four crew in those pods, and they're
 freezing.
@@ -165,9 +168,9 @@ and VALE, FIRST OFFICER. The glass lifts on an empty pod.*
 
 ## Level 3: Open for Trade (dusk into night)
 
-*Dusk. The camera starts on the camp, with the crew huddled by the reactor in blowing dust and the reactor's light
-fading. It pans out along the road to the south, where an old kiosk stands dark. Far off, the only moving light: a
-trader walking in with a lamp. The camera follows her to the kiosk.*
+*Dusk. The camera starts on the commander at the reactor, the crew huddled close in blowing dust. A lamp appears at
+the south edge of the screen, the only moving light, and the camera follows it down the road: a trader walking in to
+an old dark kiosk. The move exists to introduce her, so it ends on her and nothing else is revealed.*
 
 **SELA:** Well. Somebody's living out here. I'm Sela. I trade between the settlements: salvage, food, whatever
 people need.
@@ -246,9 +249,8 @@ star.*
 
 ## Level 4: Halcyon Works (morning to dusk)
 
-*Black. In the corner: DAY 5. It's struck through and replaced: DAY 4,023. Morning. The camera starts on the
-wreck, far to the east, and slowly pulls back west across the open ground to the town and the commander standing
-alone at the reactor, so the distance reads before anyone speaks.*
+*Black. In the corner: DAY 5. It's struck through and replaced: DAY 4,023. Morning. No opening move: the camera is
+on the commander standing alone at the reactor.*
 
 **COMMANDER:** KILN. Is it true? Eleven years?
 
@@ -261,6 +263,9 @@ thousand and twenty-three days.
 
 **KILN:** It looks like the flight recorder survived the crash. It's still in the wreck. Bring it to me and I can read
 it.
+
+*Only now, on KILN's line, the camera travels east to the wreck, far out on the plain, and back to the commander, so
+the distance reads.*
 
 **COMMANDER:** The wreck's a long walk east. They need me here to keep the town fed and the kiosk stocked.
 

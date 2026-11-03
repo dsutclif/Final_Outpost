@@ -27,7 +27,7 @@ and 3 (reduced buggy) are parked, not rejected.
 
 ## 1. Story and dialogue
 
-- [ ] **S1 Screenplay for levels 1–5 (B; A reviews level 1).** Draft 3 is in `docs/STORY-SCREENPLAY.md` (2026-11-03),
+- [x] **S1 Screenplay for levels 1–5 (B; A reviews level 1). Approved by Doug 2026-11-03 (draft 4 + per-level camera note).** Draft 3 is in `docs/STORY-SCREENPLAY.md` (2026-11-03),
   after two naive-reader rounds. Draft 4 takes in Doug's notes of 2026-11-03 and awaits his review. A single doc,
   `docs/STORY-SCREENPLAY.md`, holds every line in order, with stage notes such as "goal card appears: *Fill the
   reactor*", "commander fills the reactor and earns the star" or "Rhee walks to the orange pod". It assumes the
@@ -166,12 +166,13 @@ and 3 (reduced buggy) are parked, not rejected.
 
 - [ ] **S34 Pods glow; no beams.** In L2 the pods themselves glow, cold white for crew and scorched orange for the
   lander pod. The light beams over them go (a `podLights` change in `stage.ts`/`storylights.ts`).
-- [ ] **S35 Opening camera moves.** Each level opens with a camera move that shows the situation before the first line:
-  - L2 pans across all five pods.
-  - L3 runs from the camp down the road to the kiosk and the arriving trader.
-  - L4 runs from the wreck in the east back west to the town.
-  - L5 goes to the ridge as the visors light.
-  - L1's opening is the film (S30).
+- [ ] **S35 Camera moves chosen per level (Doug, 2026-11-03: never a generic pan).** A move happens only where a line
+  or event motivates it and it spoils nothing:
+  - L1: none (it would ruin the light's mystery). L1's opening is the film (S30).
+  - L2: none; the pointers find the pods.
+  - L3: follows Sela's lamp from the south edge to the kiosk.
+  - L4: none at the start; on KILN's flight-recorder line the camera goes east to the wreck and back.
+  - L5: to the ridge as the visors light.
 - [ ] **S36 Text cards for held scenes.** Until a film or live scene is ready, the live game shows a short text card
   describing it wherever it will play: the L5 lieutenant's fall, `crash_log`, Sela's arrival, the helmet, and
   so on. `empty_bays` already plays live.
