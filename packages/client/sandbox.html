@@ -17,7 +17,7 @@
       .row label { color: var(--dim); font-size: 14px; }
       .row output { text-align: right; font-variant-numeric: tabular-nums; }
       input[type=range] { width: 100%; min-width: 0; accent-color: var(--acc); }
-      .btns { display: flex; gap: 8px; margin-top: 9px; }
+      .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px; }
       #stats { position: fixed; inset: 0 0 var(--panel-h, 120px) 0; background: rgba(18, 19, 21, 0.97); overflow-y: auto; touch-action: pan-y; padding: 12px 16px; display: none; }
       #stats.open { display: block; }
       #stats select { font: inherit; color: var(--fg); background: #2c2d31; border: 1px solid #444; border-radius: 8px; padding: 6px; max-width: 100%; }
@@ -46,6 +46,7 @@
         <button id="reset">Reset</button>
         <button id="copy">Copy link</button>
         <button id="statsBtn">Fighter stats</button>
+        <button id="arenaBtn">Fighter arena</button>
         <a href="layout.html" style="color: var(--dim); font-size: 14px; align-self: center">Layout sandbox</a>
       </div>
       <div id="status"></div>

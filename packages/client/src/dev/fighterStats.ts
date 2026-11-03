@@ -226,3 +226,77 @@ export function fighterSections(level?: Manifest | null): StatSection[] {
   }
   return out;
 }
+
+// ---- Numbers for the fighter arena (arena.ts): the same sources as the panel above, as plain values ----
+
+export interface StatNum { v: number; src: string }
+export type FighterKind = "hostile" | "hopper" | "player" | "guard" | "drone" | "tower";
+export interface FighterNums {
+  /** Fighter type id: a hostile or animal id, "player", "guard", "drone", "tower1".."tower3". */
+  id: string;
+  kind: FighterKind;
+  side: "enemy" | "settler";
+  title: string;
+  /** hp, speed, damage, interval (s), range (attack reach); player adds gunRange/gunInterval and healing. */
+  stats: Record<string, StatNum>;
+}
+
+/** Every fighter's combat numbers today, from content data (and the level's params when given). Shared rules come back as `rules`. */
+export function fighterNumbers(level?: Manifest | null): { fighters: FighterNums[]; rules: Record<string, StatNum> } {
+  const D = content.defaults, over = level?.params ?? {};
+  const key = (k: string): StatNum => (k in over ? { v: over[k]!, src: `level param ${k}` } : { v: D[k] ?? NaN, src: `defaults.json ${k}` });
+  const n = (v: number | undefined, src: string): StatNum => ({ v: v ?? NaN, src });
+  const rules: Record<string, StatNum> = {
+    troopContact: key("defense.troopContact"), hitInterval: key("defense.barrierHitInterval"),
+    baseRange: key("defense.baseRange"), baseHitInterval: key("defense.baseHitInterval"), baseDamage: key("defense.baseDamage"),
+    baseHealth: key("meters.baseHealth"), playerHitRange: key("defense.playerHitRange"), playerHitInterval: key("defense.playerHitInterval"),
+    downPct: key("guards.downPct"), spawnGap: key("defense.spawnGap"), spawnMargin: key("defense.spawnMarginX"),
+  };
+  const fighters: FighterNums[] = [];
+  for (const [id, h] of Object.entries(content.hostiles)) {
+    const s = `enemies.json ${id}`;
+    fighters.push({ id, kind: "hostile", side: "enemy", title: id, stats: {
+      hp: n(h.hp, `${s} hp`), speed: n(h.speed, `${s} speed`), damage: n(h.damage, `${s} damage (default 1)`),
+      interval: { ...rules.hitInterval!, src: `${rules.hitInterval!.src} (code: defense.ts reuses it for troops and guards)` },
+      range: { ...rules.troopContact! },
+    } });
+  }
+  for (const [id, a] of Object.entries(content.animals)) {
+    if (!(a.aggroRange > 0)) continue;
+    const s = `animals.json ${id}`;
+    fighters.push({ id, kind: "hopper", side: "enemy", title: `${id} (spiky hopper)`, stats: {
+      hp: n(a.hp, `${s} hp`), speed: n(a.chargeSpeed, `${s} chargeSpeed`), damage: n(a.damage, `${s} damage`),
+      interval: n(a.attackInterval, `${s} attackInterval`), range: n(a.attackRange, `${s} attackRange`),
+    } });
+  }
+  fighters.push({ id: "player", kind: "player", side: "settler", title: "Commander (player)", stats: {
+    hp: key("player.hp"), speed: key("player.speed"), damage: key("player.attackDamage"),
+    interval: key("player.attackInterval"), range: key("player.attackRange"),
+    gunRange: key("player.rangedRange"), gunInterval: key("player.rangedInterval"),
+    healDelay: key("player.healDelay"), healInterval: key("player.healInterval"), downSeconds: key("player.downSeconds"),
+  } });
+  const def = content.roles["role.defender"];
+  if (def) {
+    const s = "roles.json role.defender";
+    fighters.push({ id: "guard", kind: "guard", side: "settler", title: "Hired guard (role.defender)", stats: {
+      hp: n(def.hp, `${s} hp`), speed: n(def.speed, `${s} speed`), damage: n(def.damage, `${s} damage`),
+      interval: n(def.attackInterval, `${s} attackInterval`), range: n(def.attackRange, `${s} attackRange`),
+    } });
+  }
+  const T = content.structures["struct.barracks"]?.troops;
+  if (T) {
+    const s = "structures.json struct.barracks troops";
+    fighters.push({ id: "drone", kind: "drone", side: "settler", title: "Drone (guard-post troop)", stats: {
+      hp: n(T.hp, `${s}.hp`), speed: n(T.speed, `${s}.speed`), damage: n(T.damage, `${s}.damage`),
+      interval: n(T.attackInterval, `${s}.attackInterval`), range: n(T.attackRange, `${s}.attackRange`),
+    } });
+  }
+  const rd = content.structures["struct.ranged_defense"];
+  (rd?.tiers ?? []).forEach((t, i) => {
+    const s = `structures.json struct.ranged_defense tiers[${i}]`;
+    fighters.push({ id: `tower${i + 1}`, kind: "tower", side: "settler", title: `Tower t${i + 1}`, stats: {
+      damage: n(rd!.damage, "structures.json struct.ranged_defense damage"), interval: n(t.rate, `${s}.rate`), range: n(t.range, `${s}.range`),
+    } });
+  });
+  return { fighters, rules };
+}

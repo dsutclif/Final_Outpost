@@ -130,3 +130,17 @@ $("statsBtn").onclick = () => {
   const open = statsEl.classList.toggle("open");
   if (open) renderStats();
 };
+
+// ---- Fighter arena (R6 Release 2 Bundle 5 preview): its own module, loaded on first open ----
+let arena: { open(): void } | null = null;
+$("arenaBtn").onclick = async () => {
+  arena ??= (await import("./arena.js")).createArena();
+  arena.open();
+  syncArenaUrl(true);
+};
+function syncArenaUrl(on: boolean): void {
+  const q = new URLSearchParams(location.search);
+  if (on) q.set("arena", "1"); else q.delete("arena");
+  history.replaceState(null, "", `${location.pathname}${q.size ? "?" + q : ""}`);
+}
+if (params.has("arena")) $("arenaBtn").click();

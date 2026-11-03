@@ -7,7 +7,12 @@
     ".": "./src/index.ts",
     "./renderer": "./src/renderer.ts",
     "./table": "./src/assetTable.ts",
-    "./lab": "./src/lab.ts"
+    "./lab": "./src/lab.ts",
+    "./rigged": "./src/scene/rigged.ts",
+    "./meshy": "./src/assets/meshy.ts",
+    "./units": "./src/units.ts",
+    "./environment": "./src/scene/environment.ts",
+    "./tokens": "./src/tokens.ts"
   },
   "scripts": {
     "dev": "vite dev --config dev/vite.config.ts"
