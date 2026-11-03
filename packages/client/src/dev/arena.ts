@@ -305,6 +305,39 @@ export function createArena(): ArenaUi {
   const pops: { x: number; y: number; z: number; text: string; color: string; born: number }[] = [];
   const muzzles: { x: number; y: number; z: number; kind: string; born: number }[] = [];
 
+  /** Acid spit is a lobbed glob with a dripping trail and a splash, never a straight beam, so it can't be mistaken for a gun. */
+  const ACID_FLIGHT = 0.6; // share of TRACER_LIFE spent in the air; the rest is the splash
+  const acidAt = (tr: Tracer, t: number): { x: number; y: number } => {
+    const arc = Math.sin(Math.PI * t) * (10 + tr.a.distanceTo(tr.b) * 0.25);
+    return proj(tr.a.x + (tr.b.x - tr.a.x) * t, tr.a.y + (tr.b.y - tr.a.y) * t + arc, tr.a.z + (tr.b.z - tr.a.z) * t);
+  };
+  function drawAcid(tr: Tracer, life: number): void {
+    const acid = GLOW["acid"]!;
+    ctx.fillStyle = acid; ctx.shadowColor = acid;
+    if (life < ACID_FLIGHT) {
+      const t = life / ACID_FLIGHT;
+      for (let j = 4; j >= 1; j--) {
+        const d = acidAt(tr, Math.max(0, t - j * 0.06));
+        ctx.globalAlpha = 0.5 - j * 0.1; ctx.shadowBlur = 0;
+        ctx.beginPath(); ctx.arc(d.x, d.y + j * 1.5, 3.2 - j * 0.5, 0, Math.PI * 2); ctx.fill();
+      }
+      const p = acidAt(tr, t);
+      ctx.globalAlpha = 1; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, 6, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0; ctx.fillStyle = "#e8ffd0";
+      ctx.beginPath(); ctx.arc(p.x - 1.5, p.y - 1.5, 1.6, 0, Math.PI * 2); ctx.fill();
+      return;
+    }
+    const s = (life - ACID_FLIGHT) / (1 - ACID_FLIGHT), b = proj(tr.b.x, tr.b.y, tr.b.z);
+    ctx.globalAlpha = 1 - s; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.ellipse(b.x, b.y, 7 + 9 * s, 3 + 3 * s, 0, 0, Math.PI * 2); ctx.fill();
+    for (let j = 0; j < 5; j++) {
+      const ang = Math.PI * (1.1 + j * 0.2);
+      ctx.beginPath(); ctx.arc(b.x + Math.cos(ang) * 14 * s, b.y + Math.sin(ang) * 10 * s, 2, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+  }
+
   function draw2d(now: number): void {
     const dpr = Math.min(2, devicePixelRatio || 1);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -313,6 +346,7 @@ export function createArena(): ArenaUi {
     for (let i = tracers.length - 1; i >= 0; i--) {
       const tr = tracers[i]!, k = 1 - (now - tr.born) / 1000 / TRACER_LIFE;
       if (k <= 0) { tracers.splice(i, 1); continue; }
+      if (tr.kind === "acid") { drawAcid(tr, (now - tr.born) / 1000 / TRACER_LIFE); continue; }
       const a = proj(tr.a.x, tr.a.y, tr.a.z), b = proj(tr.b.x, tr.b.y, tr.b.z);
       ctx.globalAlpha = k;
       ctx.strokeStyle = GLOW[tr.kind]!; ctx.lineWidth = 5; ctx.shadowColor = GLOW[tr.kind]!; ctx.shadowBlur = 10;
@@ -389,7 +423,7 @@ export function createArena(): ArenaUi {
         const h0 = fight.hits.length;
         stepFight(fight);
         acc -= step;
-        for (const s of fight.shots) { tracers.push({ a: new Vector3(s.fx, 20, s.fy), b: new Vector3(s.tx, 16, s.ty), kind: s.kind, born: now }); muzzles.push({ x: s.fx, y: 20, z: s.fy, kind: s.kind, born: now }); }
+        for (const s of fight.shots) { tracers.push({ a: new Vector3(s.fx, 20, s.fy), b: new Vector3(s.tx, 16, s.ty), kind: s.kind, born: now }); if (s.kind !== "acid") muzzles.push({ x: s.fx, y: 20, z: s.fy, kind: s.kind, born: now }); }
         for (let i = h0; i < fight.hits.length; i++) {
           const hit = fight.hits[i]!;
           const tu = hit.target === "base" ? fight.base : fight.units.find((u) => u.uid === hit.target);
