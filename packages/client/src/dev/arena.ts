@@ -56,7 +56,8 @@ const CSS = `
   #arena .card input { width: 3.6em; }
 }`;
 
-const TRACER_LIFE = 0.16;
+// longer than the game's 0.16 s so a shot can be followed by eye; the arena is for reading the fight
+const TRACER_LIFE = 0.45;
 const GLOW: Record<string, string> = { settler: "#5aa8ff", enemy: "#ff4a3a", acid: "#8ff05a" };
 const CHAR_ID: Record<string, string> = { player: "unit.player", guard: "role.defender" };
 
@@ -300,6 +301,9 @@ export function createArena(): ArenaUi {
   };
   const heightOf = (u: Unit): number => u.kind === "tower" ? 46 : u.kind === "drone" ? 40 : u.type === "hostile.swarmling" || u.type === "hostile.creature" || u.kind === "hopper" ? 22 : 38;
   const flashes: { x: number; y: number; z: number; born: number }[] = [];
+  /** A damage number rising over whoever was hit, so every strike, ranged or not, can be counted. */
+  const pops: { x: number; y: number; z: number; text: string; color: string; born: number }[] = [];
+  const muzzles: { x: number; y: number; z: number; kind: string; born: number }[] = [];
 
   function draw2d(now: number): void {
     const dpr = Math.min(2, devicePixelRatio || 1);
@@ -322,6 +326,21 @@ export function createArena(): ArenaUi {
       const p = proj(f.x, f.y, f.z);
       ctx.globalAlpha = k; ctx.strokeStyle = "#ffd27a"; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(p.x, p.y, 4 + 6 * (1 - k), 0, Math.PI * 2); ctx.stroke();
+    }
+    for (let i = muzzles.length - 1; i >= 0; i--) {
+      const m = muzzles[i]!, k = 1 - (now - m.born) / 120;
+      if (k <= 0) { muzzles.splice(i, 1); continue; }
+      const p = proj(m.x, m.y, m.z);
+      ctx.globalAlpha = k; ctx.fillStyle = "#fffdf4"; ctx.shadowColor = GLOW[m.kind]!; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+    }
+    ctx.font = "700 13px system-ui, sans-serif"; ctx.textAlign = "center";
+    for (let i = pops.length - 1; i >= 0; i--) {
+      const q = pops[i]!, t = (now - q.born) / 800;
+      if (t >= 1) { pops.splice(i, 1); continue; }
+      const p = proj(q.x, q.y, q.z);
+      ctx.globalAlpha = 1 - t; ctx.fillStyle = q.color; ctx.strokeStyle = "rgba(0,0,0,.7)"; ctx.lineWidth = 3;
+      ctx.strokeText(q.text, p.x, p.y - 18 * t); ctx.fillText(q.text, p.x, p.y - 18 * t);
     }
     ctx.globalAlpha = 1;
     const bw = Math.max(18, Math.min(30, over.clientWidth / 28));
@@ -370,12 +389,14 @@ export function createArena(): ArenaUi {
         const h0 = fight.hits.length;
         stepFight(fight);
         acc -= step;
-        for (const s of fight.shots) tracers.push({ a: new Vector3(s.fx, 20, s.fy), b: new Vector3(s.tx, 16, s.ty), kind: s.kind, born: now });
+        for (const s of fight.shots) { tracers.push({ a: new Vector3(s.fx, 20, s.fy), b: new Vector3(s.tx, 16, s.ty), kind: s.kind, born: now }); muzzles.push({ x: s.fx, y: 20, z: s.fy, kind: s.kind, born: now }); }
         for (let i = h0; i < fight.hits.length; i++) {
           const hit = fight.hits[i]!;
-          if (hit.ranged) continue;
           const tu = hit.target === "base" ? fight.base : fight.units.find((u) => u.uid === hit.target);
-          if (tu) flashes.push({ x: tu.x, y: 18, z: tu.y, born: now });
+          if (!tu) continue;
+          flashes.push({ x: tu.x, y: 18, z: tu.y, born: now });
+          const bySettler = fight.units.find((u) => u.uid === hit.by)?.side === "settler";
+          if (hit.dmg > 0) pops.push({ x: tu.x, y: 30, z: tu.y, text: `-${+hit.dmg.toFixed(1)}`, color: bySettler ? GLOW["settler"]! : hit.ranged && GLOW["acid"] && fight.units.find((u) => u.uid === hit.by)?.type === "hostile.swarmling" ? GLOW["acid"]! : GLOW["enemy"]!, born: now });
         }
       }
       if (fight.result) showResult();
@@ -391,7 +412,8 @@ export function createArena(): ArenaUi {
   function paintStat(): void {
     const e = fight.units.filter((u) => u.side === "enemy" && u.status !== "dead").length + fight.pending.length;
     const s = fight.units.filter((u) => u.side === "settler" && u.status === "ok").length;
-    stat.textContent = `${(fight.tick / ARENA.tps).toFixed(1)} s · enemies left ${e} · settlers standing ${s} · core ${fight.base.hp}/${fight.base.hpMax} · ${mode === "r2" ? `R2 proposals (${PROPOSALS.length} overrides)` : "today's rules"}`;
+    const rangedBy = (side: string): number => fight.hits.filter((h) => h.ranged && fight.units.find((u) => u.uid === h.by)?.side === side).length;
+    stat.textContent = `${(fight.tick / ARENA.tps).toFixed(1)} s · ranged hits: enemies ${rangedBy("enemy")}, settlers ${rangedBy("settler")} · enemies left ${e} · settlers standing ${s} · core ${fight.base.hp}/${fight.base.hpMax} · ${mode === "r2" ? `R2 proposals (${PROPOSALS.length} overrides)` : "today's rules"}`;
   }
   function showResult(): void {
     const r = fight.result!;
@@ -403,7 +425,7 @@ export function createArena(): ArenaUi {
   function newFight(): void {
     fight = createFight({ ...pick, mode, edits: edits[mode] });
     running = false; acc = 0;
-    tracers.length = 0; flashes.length = 0;
+    tracers.length = 0; flashes.length = 0; pops.length = 0; muzzles.length = 0;
     for (const p of pool.values()) { for (const c of p.circles) dyn.remove(c); if (p.body) dyn.remove(p.body); }
     pool.clear();
     rigged.dispose();
