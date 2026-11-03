@@ -153,7 +153,7 @@ open, already empty. Rhee walks over and stands beside it.*
 
 **KILN:** Power's up. I can open bays five to eight now. Here's my camera on the deck.
 
-*[held] `empty_bays`: KILN's camera feed of the deck. Four pods read OCCUPIED. Bay 5 unlocks; its plate shows a photo
+*`empty_bays` (live) pops up in a small frame over play, so the crew keep speaking beside it: KILN's camera feed of the deck. Four pods read OCCUPIED. Bay 5 unlocks; its plate shows a photo
 and VALE, FIRST OFFICER. The glass lifts on an empty pod.*
 
 **COMMANDER:** All four read occupied. But Vale's is empty.
@@ -174,6 +174,8 @@ an old dark kiosk. The move exists to introduce her, so it ends on her and nothi
 people need.
 
 **COMMANDER:** Settlements? There are other people on this planet?
+
+**SELA:** Colony ships have been landing on the coast for years. You came down a long way from the landing fields. Nobody comes out this far.
 
 **SELA:** Three towns along this road, and every one of them is hungry. You've got a grow dome there. I'll pay for
 greens.
@@ -310,9 +312,11 @@ turn to OCCUPIED. Static.*
 **KILN:** Four minutes before impact, they let themselves out. Then they locked their pods behind them, empty, so the
 pods would still read occupied.
 
-**COMMANDER:** Bays five to eight. Vale and three others walked away from their own pods.
+**COMMANDER:** Bays five to eight. Vale and three others walked away from their own pods?
 
-**KILN:** Then they took the lander's escape pod, the scorched one on the plain. That's how they left the ship.
+**KILN:** And into the lander's escape pod, the scorched one on the plain. It has four seats.
+
+**COMMANDER:** Four seats. So they saved themselves, and left the rest of us asleep.
 
 *The ridge flashes red.*
 
@@ -349,7 +353,7 @@ Goal star.*
 
 *A settler steps onto the post's pad and comes out armed. Goal star.*
 
-**KILN:** Hold until sunrise. Every wave you break brings the light closer.
+**KILN:** Hold them off until sunrise.
 
 > GOAL CARD: **Hold until dawn**
 
@@ -367,7 +371,7 @@ goes dark. Goal star.*
 
 **KILN:** They dropped something.
 
-> GOAL CARD: **Pick up the helmet**
+> GOAL CARD: **Bring the helmet home**
 
 *The arrows lead to it; the commander walks over and picks it up.*
 

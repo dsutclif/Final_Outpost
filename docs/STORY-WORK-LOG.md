@@ -74,6 +74,25 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-03, B, the crash site at film scale in L1–5; Doug's L2–5 notes.** Doug asked for the L1 change too. No engine
+  bump; story pack (L1 results unchanged), s1 pack and tests clean.
+  - **Crash-site scale (L1–5, incl. level 1 at Doug's request).** In the film the wreck is 60 m wide beside a 1.8 m
+    commander; in game it was 98.8 art m beside a 1.5 m hero (twice the film's ratio, since the L1 hand-off). The
+    whole set (wreck, deck plates, stripe, pods, lids, ore piles, ship scrap) is scaled by 0.506 about the
+    commander's pod (pod0): positions about pod0, decor `scale`, deck-plate `size`, and `lift`. L1's `start` is
+    unchanged (moving it cost the fill star on 3 of 6 human-view seeds). **A: level 1's file changed** for this.
+  - **L4 recorder** re-placed for the new scale: lodged in the hull's south wall at (1110, 365), lands at (1120, 450)
+    on open sand with nothing between it and the camera (`drop: { h: 1.6, r: 300, from: [-10, -85] }`).
+    "Bring it home" waits until the recorder is out and the commander is near (`near` triggers take `after`); the
+    guide arrows go off on the walk east (the dots and the edge glow lead) and back on once it is in tow (they were
+    still pointing at the clerk pad). Lines give the reason: the lander pod has four seats.
+  - **L3:** Sela says colony ships have landed on the coast for years and nobody comes out this far.
+  - **L5:** map 1300 wide so raiders enter from beyond the screen; the guard pad moved out of the ore field to
+    (165, 735); the helmet lies in the open on the escape path at (760, 770); its film and "Vale?" play when it is
+    caught on the tow line (`captured`), before the walk home; the goal reads "Bring the helmet home"; "every wave
+    brings the light closer" is cut.
+  - **L2:** `empty_bays` plays as an inset (new `{ inset }` action, `{ wait }` beat; `LiveSceneOptions.inset`;
+    `StoryHost.inset`; app.ts wires it), so the crew's lines show beside KILN's camera.
 - **2026-11-03, B, Doug's learning-level notes.** No engine bump; story pack, s1 pack and tests clean.
   - **Lines:** no how-to (tow, pick and stock, hunt, train-once, pay on the pad, the bar) and no number targets in KILN's
     lines; the arrows, HUD pointers, pad labels and goal cards carry that. Sela's protein line is Doug's.

@@ -831,6 +831,7 @@ export class App {
         return e?.rect ? { x: e.rect[0]! + e.rect[2]! / 2, y: e.rect[1]! + e.rect[3]! / 2 } : null;
       },
       film: async (f) => { if (filmDue(f, this.progress.cinematics)) await this.cinematic(f); },
+      inset: (f) => { void playCinematic(this.el.app, f as CinematicId, { scene: this.skin.story?.scenes?.[f], inset: true }); },
       retry: () => void this.openLevel(s.meta, true),
       goalSettled: (label, done) => {
         this.synth.play(done ? "star" : "miss");

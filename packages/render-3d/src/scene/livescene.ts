@@ -20,6 +20,8 @@ export interface LiveSceneOptions {
   at?: number;
   /** Dev: draw every surface as wireframe, to judge staging and motion before materials and the filter. */
   wire?: boolean;
+  /** In a small frame over play instead of full screen: no skip, taps pass through, it ends by itself. */
+  inset?: boolean;
 }
 
 interface Staged {
@@ -132,7 +134,7 @@ export async function playLiveScene(host: HTMLElement, id: string, o: LiveSceneO
   try { gl = new WebGLRenderer({ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: o.at !== undefined }); } catch { return "failed"; }
   await loadMeshy(undefined, new Set(def.models), undefined, true);
   const wrap = doc.createElement("div");
-  wrap.className = "cine live";
+  wrap.className = o.inset ? "cine live inset" : "cine live";
   wrap.setAttribute("role", "dialog");
   const overlay = doc.createElement("div");
   overlay.className = "live-overlay";
@@ -145,7 +147,7 @@ export async function playLiveScene(host: HTMLElement, id: string, o: LiveSceneO
   gl.domElement.className = "live-canvas";
   const scan = doc.createElement("i");
   scan.className = "live-scan";
-  wrap.append(gl.domElement, scan, overlay, hud, skip);
+  wrap.append(gl.domElement, scan, overlay, hud, ...(o.inset ? [] : [skip]));
   host.append(wrap);
   const staged = def.stage(doc, o, overlay);
   // a held frame is a dev check: leave the staging where the console can measure it
@@ -184,7 +186,7 @@ export async function playLiveScene(host: HTMLElement, id: string, o: LiveSceneO
       wrap.classList.add("out");
       setTimeout(() => { staged.dispose(); gl.dispose(); wrap.remove(); done(r); }, 300);
     };
-    wrap.addEventListener("click", () => end("skipped"));
+    if (!o.inset) wrap.addEventListener("click", () => end("skipped"));
     addEventListener("resize", size);
     if (o.at !== undefined) frame(o.at);
     const tick = (now: number): void => {

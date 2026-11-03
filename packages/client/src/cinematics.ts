@@ -71,6 +71,8 @@ export interface PlayOptions {
   fadeMs?: number;
   /** A live scene's words and images, from the skin (SkinStory.scenes). */
   scene?: { text: Readonly<Record<string, string>>; images: Readonly<Record<string, string>> } | undefined;
+  /** A live scene in a small frame over play (see StoryAction inset); videos ignore it. */
+  inset?: boolean;
 }
 
 /**
@@ -156,7 +158,7 @@ async function playLive(host: HTMLElement, id: LiveId, opts: PlayOptions): Promi
     const dev = import.meta.env.DEV ? (globalThis as { __live?: { at?: number; wire?: boolean } }).__live : undefined;
     const base = host.ownerDocument.baseURI;
     const images = Object.fromEntries(Object.entries(opts.scene?.images ?? {}).map(([k, v]) => [k, new URL(v, base).href]));
-    return await playLiveScene(host, id, { text: opts.scene?.text ?? {}, images, skipLabel: opts.skipLabel ?? "Skip", ...(dev?.at !== undefined ? { at: dev.at } : {}), ...(dev?.wire ? { wire: true } : {}) });
+    return await playLiveScene(host, id, { text: opts.scene?.text ?? {}, images, skipLabel: opts.skipLabel ?? "Skip", ...(dev?.at !== undefined ? { at: dev.at } : {}), ...(dev?.wire ? { wire: true } : {}), ...(opts.inset ? { inset: true } : {}) });
   } catch {
     return "failed";
   }

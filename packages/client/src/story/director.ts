@@ -50,6 +50,8 @@ export interface StoryHost {
   entityAt(id: string): { x: number; y: number } | null;
   /** Play a film or live scene; resolves when it ends. Unknown ids resolve at once. */
   film(id: string): Promise<void>;
+  /** Play a live scene in a small frame over play, without waiting for it. */
+  inset?(id: string): void;
   /** Restart the level. */
   retry(): void;
   /** A goal's turn came and it is settled: chime and toast. */
@@ -80,8 +82,8 @@ export interface StoryWorld {
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
 
-const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
-const isWorld = (a: StoryAction): boolean => "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a;
+const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "wait" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
+const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a;
 const CARD_SECONDS = 3;
 const GOAL_GAP_S = 0.7;
 const TAP_GUARD_MS = 250;
@@ -339,6 +341,7 @@ export class StoryDirector {
 
   private playerNear(on: StoryTrigger, x: number, y: number): boolean {
     if (!("near" in on)) return false;
+    if (on.after !== undefined && !this.firedAt.has(on.after)) return false;
     const p = this.place(on.near);
     return !!p && (p.x - x) ** 2 + (p.y - y) ** 2 <= on.r * on.r;
   }
@@ -371,6 +374,10 @@ export class StoryDirector {
       });
       this.world = { ...this.world, speaking: !!sp?.spirit, talker: who ?? null };
       this.waitTap(() => { this.view.clearLine(); this.world = { ...this.world, speaking: false, talker: null }; });
+    } else if ("inset" in a) {
+      this.host.inset?.(a.inset);
+    } else if ("wait" in a) {
+      this.timed(a.wait, () => {});
     } else if ("walk" in a) {
       const to = a.to ? this.place(a.to) : null;
       this.world = { ...this.world, actors: [...this.world.actors.filter((x) => x.who !== a.walk), { who: a.walk, to }] };

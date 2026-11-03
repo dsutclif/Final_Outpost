@@ -194,23 +194,24 @@
    "type": "decor.halcyon_wreck",
    "id": "wreck",
    "at": [
-    325.2,
-    -181.6
+    517.9,
+    3
    ],
-   "yaw": 0
+   "yaw": 0,
+   "scale": 0.506
   },
   {
    "type": "decor.deck_plate",
    "id": "deck",
    "at": [
-    784,
-    86.6
+    750,
+    138.7
    ],
    "yaw": -65.1,
    "size": [
-    334.2,
-    443.6,
-    17.37
+    169.105,
+    224.462,
+    8.789
    ],
    "lift": 0
   },
@@ -218,31 +219,31 @@
    "type": "decor.deck_plate",
    "id": "deck2",
    "at": [
-    712.6,
-    30
+    713.9,
+    110
    ],
    "yaw": -65.1,
    "size": [
-    358.6,
-    601.3,
-    17.37
+    181.452,
+    304.258,
+    8.789
    ],
-   "lift": -0.09
+   "lift": -0.046
   },
   {
    "type": "decor.deck_plate",
    "id": "stripe",
    "at": [
-    852.5,
-    234.4
+    784.7,
+    213.5
    ],
    "yaw": -65.1,
    "size": [
-    5.5,
-    443.6,
-    0.18
+    2.783,
+    224.462,
+    0.091
    ],
-   "lift": 17.32,
+   "lift": 8.764,
    "color": "#c8a23a"
   },
   {
@@ -253,138 +254,148 @@
     192
    ],
    "yaw": 173.9,
-   "lift": -66
+   "lift": -33.4,
+   "scale": 0.506
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid0",
    "at": [
-    723.1,
-    132.6
+    719.2,
+    161.9
    ],
    "yaw": 173.9,
-   "lift": 50.8,
-   "roll": 118
+   "lift": 25.7,
+   "roll": 118,
+   "scale": 0.506
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid1",
    "at": [
-    921.2,
-    202.1
+    819.4,
+    197.1
    ],
    "yaw": 173.9,
-   "lift": 22
+   "lift": 11.1,
+   "scale": 0.506
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod1",
    "at": [
-    918.5,
-    213.8
+    818.1,
+    203
    ],
    "yaw": 173.9,
-   "lift": -66
+   "lift": -33.4,
+   "scale": 0.506
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    731.5,
-    53.3
+    723.4,
+    121.8
    ],
    "yaw": 173.9,
-   "lift": 22
+   "lift": 11.1,
+   "scale": 0.506
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod2",
    "at": [
-    728.8,
-    64.9
+    722.1,
+    127.7
    ],
    "yaw": 173.9,
-   "lift": -66
+   "lift": -33.4,
+   "scale": 0.506
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid3",
    "at": [
-    934.8,
-    75
+    826.3,
+    132.8
    ],
    "yaw": 173.9,
-   "lift": 22
+   "lift": 11.1,
+   "scale": 0.506
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod3",
    "at": [
-    932,
-    86.6
+    824.9,
+    138.7
    ],
    "yaw": 173.9,
-   "lift": -66
+   "lift": -33.4,
+   "scale": 0.506
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    528.3,
-    31.5
+    620.6,
+    110.8
    ],
    "yaw": 173.9,
-   "lift": 22
+   "lift": 11.1,
+   "scale": 0.506
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod4",
    "at": [
-    525.5,
-    43.2
+    619.2,
+    116.7
    ],
    "yaw": 173.9,
-   "lift": -66
+   "lift": -33.4,
+   "scale": 0.506
   },
   {
    "type": "decor.ore_pile",
    "id": "oreDecor1",
    "at": [
-    678.5,
-    347.7
+    696.6,
+    270.8
    ],
    "yaw": 0,
-   "scale": 0.74
+   "scale": 0.374
   },
   {
    "type": "decor.ore_pile",
    "id": "oreDecor2",
    "at": [
-    646.2,
-    370.7
+    680.3,
+    282.4
    ],
    "yaw": 30,
-   "scale": 0.74
+   "scale": 0.374
   },
   {
    "type": "decor.ore_pile",
    "id": "oreDecor3",
    "at": [
-    618.6,
-    393.8
+    666.3,
+    294.1
    ],
    "yaw": 60,
-   "scale": 0.74
+   "scale": 0.374
   },
   {
    "type": "decor.ship_scrap",
    "id": "scrap",
    "at": [
-    696.3,
-    372.5
+    705.6,
+    283.3
    ],
    "yaw": 20,
-   "scale": 1.46
+   "scale": 0.739
   },
   {
    "type": "barrier.line",

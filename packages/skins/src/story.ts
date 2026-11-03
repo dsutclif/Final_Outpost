@@ -13,8 +13,8 @@ export type StoryTrigger =
   | { event: string; match?: Readonly<Record<string, string | number | boolean>>; count?: number }
   /** An objective, by manifest objective id, became done or failed in the sim (even before its turn). */
   | { goal: string; is: "done" | "failed" }
-  /** The player came within `r` world units. */
-  | { near: StoryPlace; r: number }
+  /** The player came within `r` world units (once the cue `after` has fired, when given). */
+  | { near: StoryPlace; r: number; after?: string }
   /** `ticks` sim ticks after the cue `after` fired (from tick 0 without it). Sim time, so freezes don't count. */
   | { after?: string; ticks: number };
 
@@ -65,6 +65,10 @@ export type StoryAction =
   | { light: string; seconds?: number }
   /** Beat: a film or live scene by id, paused until it ends. An unknown id is skipped. */
   | { film: string }
+  /** A live scene in a small frame over play; the queue carries on beside it (lines keep coming). */
+  | { inset: string }
+  /** Beat: wait this many seconds (play carries on), e.g. for an inset to reach its moment. */
+  | { wait: number }
   /** Show a goal whose StoryGoal has `hold`. */
   | { goal: string }
   | { hide: readonly StoryHudPart[] }

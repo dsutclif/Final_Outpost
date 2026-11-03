@@ -922,10 +922,12 @@ export const marsGreenhouse: Skin = {
             { walk: "rhee", to: false },
           ] },
           // every pod home: the reactor brightens and KILN opens the sealed bays
-          { on: { goal: "main", is: "done" }, do: [
+          { on: { goal: "main", is: "done" }, ordered: true, do: [
             { spirit: "pulse" },
             { line: "Power's up. I can open bays five to eight now. Here's my camera on the deck.", who: "kiln" },
-            { film: "empty_bays" },
+            // in a frame over play, so the crew still speak beside it; their lines come once the glass has lifted
+            { inset: "empty_bays" },
+            { wait: 5.4 },
             { line: "All four read occupied. But Vale's is empty.", who: "commander" },
             { line: "Then where is Vale?", who: "rhee" },
           ] },
@@ -958,6 +960,7 @@ export const marsGreenhouse: Skin = {
             { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 16, back: 0.9, freeze: false } },
             { line: "Well. Somebody's living out here. I'm Sela. I trade between the settlements: salvage, food, whatever people need.", who: "sela" },
             { line: "Settlements? There are other people on this planet?", who: "commander" },
+            { line: "Colony ships have been landing on the coast for years. You came down a long way from the landing fields. Nobody comes out this far.", who: "sela" },
             { line: "Three towns along this road, and every one of them is hungry. You've got a grow dome there. I'll pay for greens.", who: "sela" },
             { line: "People who trade. Commander, if we sell her our greens, we can afford a real shelter for the crew.", who: "kiln" },
             { goal: "first" },
@@ -1041,20 +1044,25 @@ export const marsGreenhouse: Skin = {
           ] },
           // all three trained: a small light starts blinking at the wreck
           { on: { event: "hired", match: { pad: "server" } }, do: [
+            { guide: false },
             { line: "They've got it. Head east to the wreck while the town runs without you.", who: "kiln" },
             { dots: [{ entity: "recorder" }], period: 1.2 },
             { edgeGlow: { entity: "recorder", size: 28, strength: 0.35 } },
           ] },
           { on: { near: { entity: "recorder" }, r: 140 }, do: [{ edgeGlow: null }] },
           { on: { near: { entity: "recorder" }, r: 50 }, do: [{ dotsOff: true }] },
-          { on: { goal: "auto", is: "done" }, do: [{ line: "That's it. Bring it home to me.", who: "kiln" }] },
+          { id: "revealed", on: { event: "capture_revealed" }, do: [] },
+          { on: { near: { entity: "recorder" }, r: 150, after: "revealed" }, do: [{ line: "That's it. Bring it home to me.", who: "kiln" }] },
+          // in tow: the arrows lead home again
+          { on: { event: "captured" }, do: [{ guide: true }] },
           // home with the recorder: KILN reads it (a text card until the crash_log scene exists)
           { on: { event: "crate_delivered" }, ordered: true, do: [
             { spirit: "pulse" },
             { card: "FOUR MINUTES TO IMPACT", sub: "Grainy security footage, no sound. Four pods open from inside. Four suited figures, seen only from behind, climb out, close and lock the empty pods from outside, and walk away. The lights turn to OCCUPIED.", seconds: 7 },
             { line: "Four minutes before impact, they let themselves out. Then they locked their pods behind them, empty, so the pods would still read occupied.", who: "kiln" },
-            { line: "Bays five to eight. Vale and three others walked away from their own pods.", who: "commander" },
-            { line: "Then they took the lander's escape pod, the scorched one on the plain. That's how they left the ship.", who: "kiln" },
+            { line: "Bays five to eight. Vale and three others walked away from their own pods?", who: "commander" },
+            { line: "And into the lander's escape pod, the scorched one on the plain. It has four seats.", who: "kiln" },
+            { line: "Four seats. So they saved themselves, and left the rest of us asleep.", who: "commander" },
             { ridgeFlash: 2 },
             { line: "Movement on the ridge.", who: "kiln" },
           ] },
@@ -1074,7 +1082,7 @@ export const marsGreenhouse: Skin = {
           { id: "turret", label: "Build a turret" },
           { id: "train", label: "Train a guard", until: { event: "hired", match: { pad: "train" } } },
           { id: "hold", label: "Hold until dawn" },
-          { id: "main", label: "Pick up the helmet" },
+          { id: "main", label: "Bring the helmet home" },
         ],
         cues: [
           { on: { start: true }, do: [
@@ -1102,7 +1110,7 @@ export const marsGreenhouse: Skin = {
           ] },
           { on: { event: "hired", match: { pad: "train" } }, do: [
             { dotsOff: true },
-            { line: "Hold until sunrise. Every wave you break brings the light closer.", who: "kiln" },
+            { line: "Hold them off until sunrise.", who: "kiln" },
           ] },
           // the light grows as each wave breaks
           { on: { event: "wave_cleared", match: { idx: 0 } }, do: [{ light: "preDawn", seconds: 20 }] },
@@ -1119,7 +1127,9 @@ export const marsGreenhouse: Skin = {
             { dots: [{ entity: "helmet" }], period: 1.2 },
           ] },
           { on: { near: { entity: "helmet" }, r: 50 }, do: [{ dotsOff: true }] },
-          { on: { event: "crate_delivered" }, do: [
+          // the helmet is caught on the tow line: its film, then "Vale?", before the walk home
+          { on: { event: "captured" }, do: [
+            { dotsOff: true },
             { film: "helmet_reveal" },
             { line: "Vale?", who: "commander" },
           ] },
