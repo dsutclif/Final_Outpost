@@ -29,7 +29,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-03 | B | `story-p2` | `levels/story/story-L00{2..5}.json`; `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Levels 2–5: finish Phase 1, then the Phase 2 scene player and `empty_bays` |
-| 2026-11-03 | B (agent) | `story-buggy` | new `decor.buggy*` GLBs; `render-3d/src/assets/meshy.json` (new entries only); a new reduction script under `tools/cinematics/` | Buggy and wheels for Sela's arrival |
 | 2026-11-03 | A (R6) | `r6-fade`, `r6-art`, `r6-hud`, `r6-stats` | `render-3d/src/renderer.ts` (fade, depot pad art, syncCore, belt goods), `render-3d/src/scene/environment.ts`, `materials.ts`; `client/src/hud.ts`, `goalhud.ts`, `pwa.ts`, `title.ts`; `client/src/dev/sandbox.ts`. Not `app.ts`, not story files | R6 Release 1 (`docs/BACKLOG-R6.md`) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
@@ -50,7 +49,13 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 ## Open questions for Doug
 
-- None open.
+- **Blocked on Account A's claims:** the old pod's hinged orange glass in level 2 needs `renderer.ts`, which is claimed for R6.
+- **Sign-off 2, `empty_bays` (2026-11-03).** Is the live bay-camera scene at the end of level 2 good enough against the films? The plan only builds the other live scenes (`crash_log`, Sela's reveal, the helmet fall) if it is.
+- **Sign-off 3, reduced buggy (2026-11-03).** Branch `story-buggy` (not merged) holds `decor.buggy` (39.9k tris, 2.5 MB, slightly over the 2 MB target) and two wheels (3k tris each, one pre-mirrored), plus `render-3d/src/assets/buggy.json` with hub positions (radius 0.72, hubs at x -1.60 and +1.29, y 0.225, z ±1.0).
+  - The body is sized to 4.4 m wide, which is my choice since the plan gave no size. Please confirm.
+  - `tools/build-models.ts` gains per-entry `normalMap` and `mirror` options (additive; no other model's output changes).
+  - Comparison render: the scratchpad image `buggy_compare.png` (shown to Doug in chat).
+  - Wiring it into level 3, with headlights and the drive to the kiosk, is held until Doug signs off.
 
 ## Notes for Account A
 
