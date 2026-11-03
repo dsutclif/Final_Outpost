@@ -37,26 +37,32 @@ jobs:
           ref: main
           fetch-depth: 100
       # The endpoint cannot tell a real player from a made-up report, so cap the supply's growth.
-      - name: Daily cap (6 batches)
+      # One batch an hour however many players report: the run queued behind a build that just
+      # landed stops here, so a burst of reports becomes one batch.
+      - name: Caps (1 batch an hour, 6 a day)
         id: cap
-        run: echo "count=$(git log --since='24 hours ago' --author='level-supply' --oneline | wc -l)" >> "$GITHUB_OUTPUT"
+        run: |
+          day=$(git log --since='24 hours ago' --author='level-supply' --oneline | wc -l)
+          hour=$(git log --since='1 hour ago' --author='level-supply' --oneline | wc -l)
+          echo "batches in the last 24 h: $day, last hour: $hour"
+          if [ "$day" -lt 6 ] && [ "$hour" -lt 1 ]; then echo "go=true"; else echo "go=false"; fi >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@v4
-        if: ${{ fromJSON(steps.cap.outputs.count) < 6 }}
+        if: ${{ steps.cap.outputs.go == 'true' }}
       - uses: actions/setup-node@v4
-        if: ${{ fromJSON(steps.cap.outputs.count) < 6 }}
+        if: ${{ steps.cap.outputs.go == 'true' }}
         with:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-        if: ${{ fromJSON(steps.cap.outputs.count) < 6 }}
+        if: ${{ steps.cap.outputs.go == 'true' }}
       - name: Plan and build the batch
-        if: ${{ fromJSON(steps.cap.outputs.count) < 6 }}
+        if: ${{ steps.cap.outputs.go == 'true' }}
         env:
           CLEARED: ${{ inputs.cleared }}
           PLAYED: ${{ inputs.played }}
         run: pnpm levels:next --cleared "$CLEARED" --played "$PLAYED" ${{ inputs.dry_run && '--dry-run' || '' }}
       - name: Commit the new pack
-        if: ${{ !inputs.dry_run && fromJSON(steps.cap.outputs.count) < 6 }}
+        if: ${{ !inputs.dry_run && steps.cap.outputs.go == 'true' }}
         run: |
           if [ -z "$(git status --porcelain levels/packs)" ]; then echo "no new levels"; exit 0; fi
           git config user.name "level-supply[bot]"

@@ -1,7 +1,9 @@
 // POST /api/progress (Vercel function): the game reports how far the player has got, and when the
 // level supply is running low this starts the "Build next level batch" workflow
 // (.github/workflows/levels-next.yml), which builds at most one batch, never more than AHEAD levels
-// past the player. Stateless: everything it needs is in the request and the published packs.
+// past the player. Stateless apart from a best-effort memory of the last start: a warm instance
+// skips GitHub for an hour after starting a run, so a burst of reports does not spend the token's
+// API quota. The workflow's own hourly cap is what guarantees one batch an hour.
 //
 // Configure in Vercel (Project → Settings → Environment Variables):
 //   LEVELS_DISPATCH_TOKEN  a fine-grained GitHub token for this repository with "Actions: read and write"
@@ -12,6 +14,9 @@
 const AHEAD = 60;
 /** A batch is worth starting only when it can add at least this many levels. */
 const MIN_BATCH = 10;
+const HOUR_MS = 60 * 60 * 1000;
+/** When this instance last started a run (0: never). Lost on a cold start, which is fine. */
+let lastQueued = 0;
 
 const send = (res, status, body) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -46,6 +51,8 @@ export default async function handler(req, res) {
     return Number.isInteger(index) && index > 0 && stars >= 0 && stars <= 3 && Number.isInteger(attempts) && attempts >= 1 && attempts < 1000 ? [{ index, stars, attempts }] : [];
   });
 
+  if (!dryRun && Date.now() - lastQueued < HOUR_MS) return send(res, 200, { queued: false, reason: "a batch was started this hour" });
+
   const origin = `https://${req.headers["x-forwarded-host"] ?? req.headers.host}`;
   let published;
   try { published = await publishedCount(origin, engine, content); } catch { return send(res, 502, { queued: false, reason: "packs unreadable" }); }
@@ -56,12 +63,21 @@ export default async function handler(req, res) {
 
   const token = process.env.LEVELS_DISPATCH_TOKEN;
   if (!token) return send(res, 503, { queued: false, reason: "level supply not configured", published });
+  // claim the hour before awaiting GitHub, so concurrent reports on this instance see it
+  const prev = lastQueued;
+  if (!dryRun) {
+    if (Date.now() - lastQueued < HOUR_MS) return send(res, 200, { queued: false, reason: "a batch was started this hour", published });
+    lastQueued = Date.now();
+  }
   const repo = process.env.LEVELS_REPO || "dsutclif/Final_Outpost";
   const r = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/levels-next.yml/dispatches`, {
     method: "POST",
     headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28", "content-type": "application/json" },
     body: JSON.stringify({ ref: "main", inputs: { cleared: String(c), played: JSON.stringify(played), dry_run: String(dryRun) } }),
   });
-  if (r.status !== 204) return send(res, 502, { queued: false, reason: `dispatch failed (${r.status})`, published });
+  if (r.status !== 204) {
+    if (!dryRun) lastQueued = prev;
+    return send(res, 502, { queued: false, reason: `dispatch failed (${r.status})`, published });
+  }
   return send(res, 202, { queued: true, published, cleared: c, dryRun });
 }

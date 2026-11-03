@@ -12,11 +12,13 @@ in batches as the player advances instead of one fixed pack. DECISIONS 9n.
    10 cleared levels with their stars and attempts to first clear (`packages/client/src/supply.ts`).
 2. **`api/progress.js`** (a Vercel function) counts the levels already published for the player's
    engine version. If there is room for at least 10 more without going past **60 levels ahead of
-   the player**, it starts the GitHub workflow. It stores nothing.
+   the player**, it starts the GitHub workflow. It stores nothing but, per warm instance, when it last
+   started a run, and skips GitHub for an hour after that.
 3. **`.github/workflows/levels-next.yml`** runs `pnpm levels:next`: plan one batch (up to 20
    levels), build it with the normal generator and bots (`tools/build-levels.ts`), commit it to
-   `main` as a new pack (`levels/packs/s1-061/`, `s1-081/`, ...). Runs queue one at a time and
-   stop after 6 batches in 24 hours.
+   `main` as a new pack (`levels/packs/s1-061/`, `s1-081/`, ...). Runs queue one at a time; a run
+   that finds a batch committed in the last hour stops, so any number of reports makes at most one
+   batch an hour, and runs stop after 6 batches in 24 hours.
 4. **Vercel deploys** the commit. While online, the game looks for new packs at launch, on
    reconnect, after each win, on opening the level list and every 15 minutes; new levels are cached
    for offline play and announced with a "new levels ready" note.
