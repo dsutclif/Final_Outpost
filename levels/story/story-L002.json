@@ -464,9 +464,7 @@
    ],
    "freeze": 160,
    "joins": {
-    "role": "role.supplier",
-    "from": "node.fuel_scrap",
-    "to": "sink.core"
+    "role": "role.medic"
    }
   },
   {
@@ -513,14 +511,17 @@
   "level.budgetSeconds": 120
  },
  "goal": {
-  "type": "rescue_all"
+  "type": "rescue_all",
+  "decoys": 1
  },
  "family": "rescue",
  "objectives": [
   {
    "id": "main",
    "kind": "rescue_all",
-   "params": {}
+   "params": {
+    "decoys": 1
+   }
   },
   {
    "id": "first",
@@ -545,7 +546,7 @@
  "text": {
   "mars_greenhouse": {
    "title": "Roll Call",
-   "goal": "Bring every crew pod home",
+   "goal": "Bring all 5 pods home",
    "tips": []
   }
  }

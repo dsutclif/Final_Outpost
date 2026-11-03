@@ -13,6 +13,8 @@ const PULSE_S = 0.8;
 const TALLY_Y = 48;
 const TALLY_PER_ITEM = 8;
 const TALLY_SCALE = 1.8;
+// a speaker's head over their feet on screen, at the play zoom
+const HEAD_PX = 72;
 
 export class StoryStage {
   private seen: Partial<StoryWorld> = {};
@@ -93,7 +95,28 @@ export class StoryStage {
     this.glow(w, st, now, viewW, viewH);
     if (this.director.level.podLights) this.pods(st);
     if (this.director.level.tally) this.tally(st);
+    if (w.actors !== seen.actors) {
+      seen.actors = w.actors;
+      for (const a of w.actors) {
+        const key = this.director.castKey(a.who, st);
+        if (key) p.actor(key, a.to ? { x: a.to.x, z: a.to.y } : null);
+      }
+    }
+    this.speaker(w, st, viewW, viewH);
     this.director.view.frame?.(now);
+  }
+
+  /** Keep the line's bubble over the speaker's head: where the renderer draws them, else where the sim has them. */
+  private speaker(w: StoryWorld, st: State, vw: number, vh: number): void {
+    const view = this.director.view;
+    if (!view.anchor) return;
+    if (!w.talker) { view.anchor(null, vw, vh); return; }
+    const key = this.director.castKey(w.talker, st);
+    const drawn = key ? this.present.actorAt(key) : null;
+    const at = drawn ? { x: drawn.x, y: drawn.z } : this.director.castAt(w.talker, st);
+    if (!at) { view.anchor(null, vw, vh); return; }
+    const q = this.toScreen(at);
+    view.anchor({ x: q.x, y: q.y - HEAD_PX }, vw, vh);
   }
 
   private spirit(w: StoryWorld, fuelK: number, now: number): void {
@@ -147,7 +170,7 @@ export class StoryStage {
       lit.add(c.id);
       // a pod that never freezes stays at full glow; a freezing one keeps a floor so it never vanishes before it is lost
       const dim = full > 0 ? 0.25 + 0.75 * (c.freezeTicks / full) : 1;
-      this.present.pod(`pod${c.id}`, c.pos.x / FP, c.pos.y / FP, c.decoy ? "old" : "crew", dim);
+      this.present.pod(`pod${c.id}`, c.pos.x / FP, c.pos.y / FP, c.decoy ? "old" : "crew", dim, this.director.level.podLights !== "glow");
     }
     for (const id of this.podShown) if (!lit.has(id)) this.present.pod(`pod${id}`, 0, 0, "crew", -1);
     this.podShown = lit;

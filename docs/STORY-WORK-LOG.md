@@ -40,7 +40,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Level | Status | Notes |
 |---|---|---|
 | 1 Cold Start | Account A, live; Doug's sign-off pending | Not edited by B |
-| 2 Roll Call | B, live 2026-11-02 | Walls kept (Doug, 2026-11-03) |
+| 2 Roll Call | B, rebuilt to the approved screenplay 2026-11-03 | Walls kept (Doug, 2026-11-03); all 5 pods incl. the lander pod |
 | 3 Open for Trade | B, live 2026-11-02 (Phase 1) | Sela walks in; no buggy, lamp or coin close-up yet |
 | 4 Halcyon Works | B, live 2026-11-02 (Phase 1) | Text card for crash_log; one bot change (see log) |
 | 5 First Watch | B, live 2026-11-02 (Phase 1) | Helmet film from cues, then Vale's card |
@@ -74,6 +74,28 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-03, B, screenplay approved; level 2 rebuilt to it, with the shared story pieces it needs.** Doug approved
+  draft 4 with one change: camera moves are chosen per level, never a generic opening pan (L1 none, so the light stays a
+  mystery). No engine bump: `pnpm levels:check` (s1, 45 levels) and the story pack replay clean, and every test passes.
+  - **Sim and content (opt-in, no existing level changes).** `rescue_all` takes `decoys: 1` (objectives.ts,
+    objectives.json, manifest GoalParams): the empty old pods count toward "all", so story level 2 waits for the lander
+    pod. A new event `pod_home` (events.ts, lasso.ts) fires when a towed pod reaches the heat and starts to open, so
+    story lines can play while it is still on screen. It changes no state.
+  - **Bots (brain.ts, A's area).** When `rescue_all` has `decoys`, bots tow decoys too (`decoysCount()`); otherwise
+    unchanged.
+  - **Director (shared story client).** New level options `goalCards` (each goal opens as a card mid-screen, after the
+    lines already queued, then flies to its slot) and `cast` (speaker key to the hero, a capture's crewmate, a starting
+    resident, the boss or a place). New action `{ walk: who, to }`: drawn only, the sim keeps its own position. New
+    place `{ last: eventType }`. Speakers gain `tag` and `bust`. `podLights: "glow"` draws pods glowing with no beam.
+  - **View.** New dialogue style `bubble` (now the skin default; KILN keeps its terminal): a speech bubble over the
+    speaker's head with a tail, kept inside the screen; someone off the map speaks from a bubble low on the screen.
+    **This changes level 1's commander lines too** (they were in the strip): A, please check L1 reads well.
+  - **Renderer (narrow touches in A's files).** `interp.ts` gains staged movers (`stage`, `stepStaged`) for walks;
+    `renderer.ts` passes `this.interp` to StoryPresent and its NO_STORY stub gains `actor`/`actorAt` (two lines);
+    `contract.ts` StoryPresentation gains `actor`, `actorAt` and `pod(..., beam?)`.
+  - **Level 2.** Rhee joins as `role.medic`, goals are the nearest pod, two at once, then all 5 pods (held until KILN's
+    line). Lines per the screenplay; Rhee walks to the scorched pod while it opens.
+  - **Open:** busts (S3) are not rendered yet; the orange pod GLB (S20) is being built in this session.
 - **2026-11-03, B, Phase 2 starts: live-scene player and `empty_bays`.** Doug's sign-off 2 is pending: live scene against film quality. Per the plan, the other live scenes wait for it.
   - New `render-3d/src/scene/livescene.ts` stages a scene in three.js on its own full-screen canvas, with the game's GLBs. It doesn't touch `renderer.ts`. It's loaded on demand through `loadLiveScene()` in render-3d's index, as a 4 kB chunk that keeps three out of the shell.
   - `client/src/cinematics.ts`: `CinematicId` gains `empty_bays` as a live id (`FILM_VERSIONS` 1), and `playCinematic` hands live ids to the player. `app.ts` passes `skin.story.scenes[id]` (words and images, `SkinStory.scenes` in `skins/src/story.ts`).

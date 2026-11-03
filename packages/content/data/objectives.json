@@ -11,7 +11,7 @@
   "house_all": { "description": "House every arriving or rescued colonist", "families": ["shelter", "rescue"], "main": true, "guard": false, "params": {} },
   "survive": { "description": "Hold out until time T (survive until dawn; fromLit: T counts from the core being lit)", "families": ["shelter", "defend"], "main": true, "guard": false, "params": { "seconds": "seconds", "fromLit": "flag?" } },
   "rescue": { "description": "Rescue N colonists from stasis pods", "families": ["rescue"], "main": true, "guard": false, "params": { "n": "int" } },
-  "rescue_all": { "description": "Rescue every pod on the map (fails if one is lost)", "families": ["rescue"], "main": true, "guard": false, "params": {} },
+  "rescue_all": { "description": "Rescue every pod on the map (fails if one is lost; decoys: the empty old pods count too)", "families": ["rescue"], "main": true, "guard": false, "params": { "decoys": "flag?" } },
   "tow_trip": { "description": "Tow N lassoables home in one trip", "families": ["rescue"], "main": true, "guard": false, "params": { "n": "int" } },
   "rescue_before_freeze": { "description": "Rescue N before their pods freeze over", "families": ["rescue"], "main": true, "guard": false, "params": { "n": "int" } },
   "hunt": { "description": "Hunt N critters", "families": ["rescue"], "main": true, "guard": false, "params": { "n": "int" } },

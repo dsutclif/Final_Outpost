@@ -92,10 +92,13 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
   },
   // rescue
   rescue: ({ st, p, o }) => count(o, st.stats.rescued, num(p, "n")),
-  rescue_all: ({ st, cp, o }) => {
+  rescue_all: ({ st, cp, p, o }) => {
     if (st.stats.podsLost > 0) o.failed = true;
-    const left = recruitPods(st, cp);
-    count(o, st.stats.rescued, st.stats.rescued + left);
+    // decoys: 1 (story level 2's opt-in): the empty old pods count too, so the level waits for them
+    const decoys = num(p, "decoys") > 0;
+    const left = recruitPods(st, cp) + (decoys ? st.captures.filter((c) => c.decoy && c.state !== "hidden").length : 0);
+    const home = st.stats.rescued + (decoys ? st.stats.decoysOpened ?? 0 : 0);
+    count(o, home, home + left);
     return left === 0 && st.stats.rescued > 0;
   },
   tow_trip: ({ st, p, o }) => count(o, st.stats.tripBest, num(p, "n")),

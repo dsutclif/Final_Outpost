@@ -230,6 +230,7 @@ export const GoalParams = {
   seconds: z.number().positive().optional(),
   fromLit: z.literal(1).optional(),
   sources: z.literal(1).optional(),
+  decoys: z.literal(1).optional(),
 };
 export const Goal = z.union([
   z.discriminatedUnion("type", [

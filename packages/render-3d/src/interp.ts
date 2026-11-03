@@ -25,10 +25,42 @@ export function capturePositions(w: WorldView): Map<string, V> {
   return m;
 }
 
+/** Story walks, world units a second. */
+const WALK = 70;
+
 export class Interp {
   private prev = new Map<string, V>();
   private curr = new Map<string, V>();
   private tick = Number.NaN;
+  /** Movers the story holds at a drawn place (the sim keeps its own); `to` null walks back to the sim's spot, then lets go. */
+  private readonly staged = new Map<string, { at: V | null; to: V | null; v: V }>();
+
+  /** Walk a mover to `to` and hold it there (drawn only); null walks it back. */
+  stage(key: string, to: V | null): void {
+    const s = this.staged.get(key);
+    if (s) s.to = to;
+    else if (to) this.staged.set(key, { at: null, to, v: { x: 0, y: 0 } });
+  }
+
+  /** Per frame: move the staged movers along, `dt` seconds. */
+  stepStaged(dt: number): void {
+    for (const [key, s] of this.staged) {
+      const home = this.curr.get(key);
+      s.at ??= home ? { ...home } : null;
+      const goal = s.to ?? home;
+      if (!s.at || !goal) { this.staged.delete(key); continue; }
+      const dx = goal.x - s.at.x, dy = goal.y - s.at.y, d = Math.hypot(dx, dy), step = WALK * dt;
+      if (d <= step) {
+        s.at = { ...goal };
+        s.v = { x: 0, y: 0 };
+        if (!s.to) this.staged.delete(key);
+        continue;
+      }
+      s.at = { x: s.at.x + (dx / d) * step, y: s.at.y + (dy / d) * step };
+      // per-tick velocity, as vel() reports the sim's
+      s.v = { x: (dx / d) * WALK / 30, y: (dy / d) * WALK / 30 };
+    }
+  }
 
   /** Call every frame; it only rolls the buffers when the sim tick changed. */
   update(w: WorldView): void {
@@ -41,6 +73,7 @@ export class Interp {
   }
 
   reset(): void {
+    this.staged.clear();
     this.prev = new Map();
     this.curr = new Map();
     this.tick = Number.NaN;
@@ -48,6 +81,8 @@ export class Interp {
 
   /** Interpolated world-unit position for a key; falls back to the fixed-point pos given. */
   pos(key: string, fpPos: V, alpha: number): V {
+    const held = this.staged.get(key)?.at;
+    if (held) return held;
     const c = this.curr.get(key);
     if (!c) return { x: fpPos.x / FP, y: fpPos.y / FP };
     const p = this.prev.get(key);
@@ -58,6 +93,8 @@ export class Interp {
   }
 
   vel(key: string): V {
+    const held = this.staged.get(key);
+    if (held?.at) return held.v;
     const c = this.curr.get(key), p = this.prev.get(key);
     if (!c || !p) return { x: 0, y: 0 };
     const dx = c.x - p.x, dy = c.y - p.y;

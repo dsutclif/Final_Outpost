@@ -5,7 +5,11 @@ import "./story.css";
 // The director's DOM. Dialogue goes through DIALOGUE_STYLES, so trying another look means adding one
 // entry (and its CSS) and setting `story.dialogue` in the skin; nothing else changes.
 
-export interface DialogueStyle { show(l: DialogueLine, tapLabel: string): void; clear(): void; finish?(): boolean; frame?(t: number): void; dispose?(): void }
+export interface DialogueStyle {
+  show(l: DialogueLine, tapLabel: string): void; clear(): void; finish?(): boolean; frame?(t: number): void; dispose?(): void;
+  /** The speaker's head on screen (px) this frame; null when they are not on the map. */
+  anchor?(p: { x: number; y: number } | null, vw: number, vh: number): void;
+}
 
 /** A portrait that draws itself: its canvas goes in the slot and `update` keeps it moving while it shows. */
 export interface LivePortrait { readonly canvas: HTMLCanvasElement; update(t: number): void; dispose(): void }
@@ -101,7 +105,55 @@ function terminalDialogue(layer: HTMLElement, portrait?: PortraitMaker): Dialogu
   };
 }
 
-export const DIALOGUE_STYLES: Readonly<Record<string, (layer: HTMLElement, portrait?: PortraitMaker) => DialogueStyle>> = { strip: stripDialogue, terminal: terminalDialogue };
+/**
+ * A speech bubble over the speaker's head, its tail pointing down at them, kept inside the screen (notch and
+ * edges included). Someone not on the map speaks from a bubble low on the screen, without a tail.
+ */
+function bubbleDialogue(layer: HTMLElement): DialogueStyle {
+  const root = layer.ownerDocument.createElement("div");
+  root.className = "sdlg-bubble";
+  root.hidden = true;
+  root.setAttribute("aria-live", "polite");
+  root.innerHTML = `<img class="sdlg-bust" alt="" hidden><div class="sdlg-body"><div class="sdlg-who"><b></b><span class="sdlg-tag"></span></div><p class="sdlg-text"></p><div class="sdlg-tap" hidden></div></div><i class="sdlg-tail"></i>`;
+  layer.append(root);
+  const $ = <T extends HTMLElement>(sel: string): T => root.querySelector<T>(sel)!;
+  const MARGIN = 10, GAP = 14;
+  return {
+    show(l, tapLabel) {
+      const bust = $<HTMLImageElement>(".sdlg-bust");
+      bust.hidden = !l.bust;
+      if (l.bust) bust.src = l.bust;
+      $(".sdlg-who b").textContent = l.name;
+      $(".sdlg-who").hidden = !l.name;
+      $(".sdlg-tag").textContent = l.tag ? `· ${l.tag}` : "";
+      $(".sdlg-text").textContent = l.text;
+      $(".sdlg-tap").textContent = tapLabel;
+      $(".sdlg-tap").hidden = !l.tap;
+      root.hidden = false;
+      root.classList.remove("in");
+      void root.offsetWidth;
+      root.classList.add("in");
+    },
+    clear() { root.hidden = true; },
+    anchor(p, vw, vh) {
+      if (root.hidden) return;
+      root.classList.toggle("free", !p);
+      if (!p) { root.style.left = root.style.top = ""; return; }
+      const w = root.offsetWidth, h = root.offsetHeight;
+      const safeTop = parseFloat(getComputedStyle(root).getPropertyValue("--safe-top")) || 0;
+      // above the head; below it when the head is too near the top to fit
+      const below = p.y - GAP - h < MARGIN + safeTop;
+      const x = Math.max(MARGIN, Math.min(vw - w - MARGIN, p.x - w / 2));
+      const y = below ? Math.min(vh - h - MARGIN, p.y + GAP * 3) : Math.max(MARGIN + safeTop, p.y - GAP - h);
+      root.classList.toggle("below", below);
+      root.style.left = `${x}px`;
+      root.style.top = `${y}px`;
+      $(".sdlg-tail").style.left = `${Math.max(14, Math.min(w - 14, p.x - x))}px`;
+    },
+  };
+}
+
+export const DIALOGUE_STYLES: Readonly<Record<string, (layer: HTMLElement, portrait?: PortraitMaker) => DialogueStyle>> = { strip: stripDialogue, terminal: terminalDialogue, bubble: bubbleDialogue };
 
 const STAR_D = "M12 1.8l3.1 6.4 7 .9-5.1 4.9 1.3 6.9L12 17.6l-6.3 3.3 1.3-6.9-5.1-4.9 7-.9z";
 const CRACK_D = "M13.5 2.5l-2.5 6 3 3-3.5 3.5 1.5 3.5";
@@ -137,7 +189,7 @@ export function createStoryView(shell: HTMLElement, opts: { dialogue?: string | 
     layer.append(el);
     return el;
   };
-  const tapCatch = panel("story-tap"), card = panel("story-card"), prompt = panel("story-prompt");
+  const tapCatch = panel("story-tap"), card = panel("story-card"), prompt = panel("story-prompt"), goalCard = panel("story-goalcard");
 
   const goalsHost = shell.querySelector<HTMLElement>("#goals");
   const goals = doc.createElement("div");
@@ -174,6 +226,17 @@ export function createStoryView(shell: HTMLElement, opts: { dialogue?: string | 
       card.hidden = false;
     },
     clearCard() { card.hidden = true; },
+    goalCard(s) {
+      goalCard.classList.remove("fly");
+      goalCard.replaceChildren(text("p", "story-goalcard-k", "GOAL"), text("p", "story-goalcard-text", s), text("p", "story-goalcard-tap", opts.tapLabel));
+      goalCard.hidden = false;
+    },
+    clearGoalCard() {
+      // the card rises to the goal line at the top and fades there
+      goalCard.classList.add("fly");
+      setTimeout(() => { if (goalCard.classList.contains("fly")) { goalCard.hidden = true; goalCard.classList.remove("fly"); } }, 450);
+    },
+    anchor(p, vw, vh) { dialogue?.anchor?.(p, vw, vh); },
     onTap(fn) { tap = fn; tapCatch.hidden = !fn; },
     prompt(p, retry, other) {
       const go = text("button", "story-retry", p.retry), no = text("button", "story-other", p.other);

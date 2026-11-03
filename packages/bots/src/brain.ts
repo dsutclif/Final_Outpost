@@ -573,8 +573,8 @@ export class Brain {
       // Rescued recruits wait for a roof, and a housing pad still to buy is what the "waiting" step is for.
       const room = cp.manifest.goal.type === "population" || freeSlots(st, cp) > 0 || this.plan.lasso
         || this.plan.steps.some((s) => s.reason === "housing" && !this.stepDone(st, s));
-      // An empty decoy pod is worth nothing to a goal: the bot never makes a trip for one.
-      const idle = st.captures.filter((c) => c.state === "idle" && !c.decoy && this.nav.reachable(p.pos, c.pos)
+      // An empty decoy pod is worth nothing to a goal (unless rescue_all counts decoys): the bot never makes a trip for one.
+      const idle = st.captures.filter((c) => c.state === "idle" && (!c.decoy || this.decoysCount()) && this.nav.reachable(p.pos, c.pos)
         && (room || cp.lassoables[c.type]?.result !== "recruit"));
       const timed = idle.some((c) => c.freezeTicks > 0);
       // on a crates goal with only items left out there (no pods waiting), the fetch is all that remains to do:
@@ -979,11 +979,16 @@ export class Brain {
    * The next captive to loop: pods on a freeze timer first, most urgent that can still be reached in
    * time, else the nearest. `within` limits the search (chaining another captive onto a tow).
    */
+  /** rescue_all with `decoys` (story level 2): the empty old pods must come home too. */
+  private decoysCount(): boolean {
+    return (this.cp.manifest.objectives ?? []).some((o) => o.kind === "rescue_all" && Number(o.params?.["decoys"] ?? 0) > 0);
+  }
+
   private pickCapture(st: State, from: Vec, within: number | null): State["captures"][number] | null {
     let best: State["captures"][number] | null = null, bs = Infinity;
     const sp = this.speed(st);
     for (const c of st.captures) {
-      if (c.state !== "idle" || c.decoy || !this.nav.reachable(from, c.pos)) continue;
+      if (c.state !== "idle" || (c.decoy && !this.decoysCount()) || !this.nav.reachable(from, c.pos)) continue;
       const dd = Math.sqrt(d2(c.pos, from));
       if (within !== null && dd > within) continue;
       const trip = (dd + Math.sqrt(d2(c.pos, st.core.pos))) / sp + 6 * TPS;

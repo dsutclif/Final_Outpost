@@ -107,3 +107,37 @@
 .live-plate span { display: block; margin-top: 4px; font-size: 13px; letter-spacing: 0.14em; color: #b9c0c8; }
 @keyframes live-flicker { 50% { opacity: 0.96; } }
 @keyframes live-rec { 50% { opacity: 0; } }
+
+/* Style C: a speech bubble over the speaker (view.ts bubbleDialogue). Placed in px by anchor(); `free` when the speaker is off the map */
+.sdlg-bubble {
+  --safe-top: env(safe-area-inset-top, 0px);
+  position: absolute; left: 0; top: 0; max-width: min(84vw, 340px); display: flex; align-items: flex-start; gap: 9px; padding: 9px 12px;
+  border-radius: 14px; background: rgba(250, 247, 240, 0.96); color: #1b1d21; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+.sdlg-bubble[hidden] { display: none; }
+.sdlg-bubble.in { animation: sdlg-pop 0.16s ease-out; }
+@keyframes sdlg-pop { from { opacity: 0; transform: scale(0.94); } }
+.sdlg-bubble.free { left: 50%; top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); transform: translateX(-50%); }
+.sdlg-bubble.free.in { animation: none; }
+.sdlg-bubble .sdlg-who { color: #a3470f; }
+.sdlg-bubble .sdlg-tag { color: #5d636b; }
+.sdlg-bubble .sdlg-tap { color: #6b7179; }
+.sdlg-bust { flex: none; width: 50px; height: 50px; border-radius: 10px; object-fit: cover; background: #2a2e34; }
+.sdlg-bust[hidden] { display: none; }
+.sdlg-tail { position: absolute; top: 100%; width: 0; height: 0; margin-left: -9px; border: 9px solid transparent; border-top-color: rgba(250, 247, 240, 0.96); border-bottom: 0; }
+.sdlg-bubble.below .sdlg-tail { top: auto; bottom: 100%; border-top: 0; border-bottom: 9px solid rgba(250, 247, 240, 0.96); }
+.sdlg-bubble.free .sdlg-tail { display: none; }
+
+/* A goal card mid-screen until tapped; it rises to the goal line at the top */
+.story-goalcard {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); width: min(82vw, 330px); padding: 16px 18px 12px;
+  border-radius: 16px; background: rgba(14, 16, 19, 0.92); border: 2px solid var(--accent); color: #fff8ef; text-align: center;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55); animation: story-goal-in 0.25s ease-out;
+}
+.story-goalcard[hidden] { display: none; }
+.story-goalcard.fly { animation: story-goal-fly 0.45s ease-in forwards; }
+@keyframes story-goal-in { from { opacity: 0; transform: translate(-50%, -40%) scale(0.92); } }
+@keyframes story-goal-fly { to { opacity: 0; top: calc(env(safe-area-inset-top, 0px) + 40px); transform: translate(-50%, -50%) scale(0.45); } }
+.story-goalcard-k { margin: 0 0 4px; font: 800 12px/1 var(--display); letter-spacing: 0.18em; color: var(--accent); }
+.story-goalcard-text { margin: 0; font: 800 21px/1.25 var(--display); }
+.story-goalcard-tap { margin: 10px 0 0; font-size: 12px; font-weight: 700; color: #cfd6dd; }

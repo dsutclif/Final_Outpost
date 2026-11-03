@@ -78,7 +78,7 @@ export interface StoryPresentation {
   /** Blue ground dots running toward the next step; null clears them. */
   dots(pts: readonly { x: number; z: number }[] | null, opts?: { period?: number; lit?: boolean; together?: boolean }): void;
   /** A pod's glow and beam; `dim` 1 full, 0 out, below 0 removes it. */
-  pod(id: string, x: number, z: number, kind: "old" | "crew", dim: number): void;
+  pod(id: string, x: number, z: number, kind: "old" | "crew", dim: number, beam?: boolean): void;
   /** A point light: a warm lamp/window, or a one-shot goal light (own colour). */
   light(id: string, x: number, y: number, z: number, kind: "lamp" | "goal", intensity: number, goalColor?: string): void;
   lightLevel(id: string, k: number): void;
@@ -108,6 +108,10 @@ export interface StoryPresentation {
     /** Float beside the hero at a screen-aligned ground offset with a soft lag (ground units); null goes home to the reactor. */
     follow(f: { right: number; up: number; lag: number; height: number; size: number } | null): void;
   };
+  /** Walk a mover (interp key: "player", "r:<id>", "h:<id>") to a ground spot and hold it there, drawn only; null walks it back. */
+  actor(key: string, to: { x: number; z: number } | null): void;
+  /** Where a mover is drawn now (ground units), or null for a key with nothing drawn. */
+  actorAt(key: string): { x: number; z: number } | null;
   /** Entity ids the renderer keeps solid (never faded) when the hero stands among them. */
   solid(ids: readonly string[]): void;
   /** Ask the camera to look elsewhere for a while; null cancels. */

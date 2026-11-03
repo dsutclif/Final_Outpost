@@ -771,14 +771,16 @@ export const marsGreenhouse: Skin = {
   },
   story: {
     ui: { missed: "You missed it. Try again?", tryAgain: "Try again", keepPlaying: "Keep playing", seeResults: "See results", tapToContinue: "Tap to continue" },
+    dialogue: "bubble",
     speakers: {
       commander: { name: "COMMANDER" },
       kiln: { name: "KILN", portrait: "kiln", spirit: true, dialogue: "terminal" },
-      pip: { name: "PIP" },
-      rhee: { name: "RHEE" },
-      okafor: { name: "OKAFOR" },
-      tam: { name: "TAM" },
-      sela: { name: "SELA" },
+      pip: { name: "PIP", tag: "hauler" },
+      rhee: { name: "RHEE", tag: "medic" },
+      okafor: { name: "OKAFOR", tag: "guard" },
+      tam: { name: "TAM", tag: "settler" },
+      sela: { name: "SELA", tag: "trader" },
+      trader: { name: "TRADER" },
       lieutenant: { name: "RAIDER" },
     },
     scenes: {
@@ -861,52 +863,70 @@ export const marsGreenhouse: Skin = {
           ] },
         ],
       },
-      // Roll Call (docs/STORY-LEVELS-V2.md, level 2). Capture ids follow the manifest's pod order:
-      // 0 Pip (nearest), 1 Rhee and 2 Okafor (the pair), 3 Tam (far), 4 the old pod.
+      // Roll Call (docs/STORY-SCREENPLAY.md, level 2). Capture ids follow the manifest's pod order:
+      // 0 Pip (nearest), 1 Rhee and 2 Okafor (the pair), 3 Tam (far), 4 the lander's escape pod.
       "story-L002": {
         hide: ["credits", "walls"],
         solid: ["sink.core"],
-        podLights: true,
+        podLights: "glow",
         tally: true,
+        goalCards: true,
+        // the pointers come on with KILN's line about them
+        noGuide: true,
+        cast: { pip: { capture: 0 }, rhee: { capture: 1 }, okafor: { capture: 2 }, tam: { capture: 3 } },
         goals: [
-          { id: "first", label: "Bring the nearest pod into the heat" },
+          { id: "first", label: "Tow the nearest pod into the heat" },
           { id: "pair", label: "Tow two pods at once" },
-          { id: "main", tryAgain: true, label: "Bring everyone home before they freeze" },
+          { id: "main", hold: true, tryAgain: true, label: "Bring all 5 pods home" },
         ],
         cues: [
-          // a grey dawn throughout, cooler than level 1's sunrise; the ridge keeps its slow pulse on the same side
+          // a grey dawn throughout, cooler than level 1's sunrise; the ridge keeps its slow pulse on the same side.
+          // No opening camera move: the pointers find the pods.
           { on: { start: true }, do: [
             { light: "greyDawn" },
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
-            { spiritFollow: { right: 78, up: 22, lag: 0.9, height: 105, size: 2.2 } },
+            { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1 } },
           ] },
-          { on: { start: true }, do: [
-            { line: "Four crew still alive out there. Freezing.", who: "kiln" },
-            { camera: { to: { entity: "pod_pip" }, pan: 0.6, hold: 1.2, back: 0.6 } },
+          { on: { start: true }, ordered: true, do: [
+            { line: "Bays one to four were thrown clear when we hit. My sensors pick up four crew in those pods, and they're freezing.", who: "kiln" },
+            { guide: true },
+            { line: "I'm adding pointers to your heads-up display to help you find them.", who: "kiln" },
+            { line: "There's a fifth pod. It's one of ours, an escape pod from the lander, but nobody was assigned to it.", who: "kiln" },
+            { line: "Then I'll bring all five in.", who: "commander" },
+            { line: "Walk a full circle around a pod to hook it to your tow line, then pull it into the reactor's heat. The marks over your head count your tow. You can pull three at a time.", who: "kiln" },
           ] },
           { on: { event: "joined", match: { capture: 0 } }, do: [
-            { crew: "Boss? Where is everyone?", who: "pip", tag: "hauler" },
-            { line: "Feed the reactor. I'm going back out to find them.", who: "commander" },
+            { crew: "Boss! We made it? I thought I'd wake up on the colony. Where is everyone?", who: "pip" },
+            { line: "Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?", who: "commander" },
+            { line: "Give me something to carry. Ore in, fire stays on.", who: "pip" },
+            { line: "Two pods came down close together. Circle both and you can tow them in one trip.", who: "kiln" },
           ] },
-          // the pair: a nudge toward the two pods standing close together
-          { on: { goal: "first", is: "done" }, do: [
-            { camera: { to: { entity: "pod_rhee" }, share: 0.45, pan: 0.5, hold: 0.8, back: 0.5, freeze: false } },
+          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
+          { on: { event: "joined", match: { capture: 2 } }, do: [{ crew: "Who's watching the camp? Nobody? Then I am.", who: "okafor" }] },
+          { on: { goal: "pair", is: "done" }, ordered: true, do: [
+            { line: "Their glow fades as they freeze. If a pod goes dark, that crewmate is lost. Bring the last crew pod home, and the lander pod too.", who: "kiln" },
+            { goal: "main" },
           ] },
-          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long was I under?", who: "rhee", tag: "medic" }] },
-          { on: { event: "joined", match: { capture: 2 } }, do: [{ crew: "Who's watching this camp?", who: "okafor", tag: "guard" }] },
-          { on: { event: "released", match: { capture: 3 } }, do: [{ crew: "Any word from home?", who: "tam", tag: "picker" }] },
-          { on: { event: "decoy_opened" }, do: [
-            { line: "Whose pod is this?", who: "commander" },
-            { line: "Not ours. Decades old.", who: "kiln" },
+          { on: { event: "released", match: { capture: 3 } }, do: [
+            { crew: "We made it! I dreamed we never landed. Give me something to do.", who: "tam" },
+            { line: "Soon. We'll need someone to work the fields.", who: "commander" },
           ] },
-          // the last crewmate home: the reactor brightens and KILN opens the sealed bays (a text card until the empty_bays scene exists)
+          // the scorched pod in the heat, still there while the lines play (they pause the sim); Rhee walks over to it
+          { on: { event: "pod_home", match: { decoy: true } }, ordered: true, do: [
+            { walk: "rhee", to: { last: "pod_home" } },
+            { line: "Who was in this?", who: "commander" },
+            { line: "It's the lander's escape pod. My logs say it never launched, so someone launched it by hand.", who: "kiln" },
+            { line: "Opened from the inside. The hatch is packed with dust. Whoever rode it down walked away, a while back.", who: "rhee" },
+            { walk: "rhee", to: false },
+          ] },
+          // every pod home: the reactor brightens and KILN opens the sealed bays
           { on: { goal: "main", is: "done" }, do: [
             { spirit: "pulse" },
-            { line: "Power's up. Opening bays five to eight.", who: "kiln" },
+            { line: "Power's up. I can open bays five to eight now. Here's my camera on the deck.", who: "kiln" },
             { film: "empty_bays" },
-            { line: "They read occupied.", who: "commander" },
-            { line: "Locked. Nobody home.", who: "rhee" },
+            { line: "All four read occupied. But Vale's is empty.", who: "commander" },
+            { line: "Then where is Vale?", who: "rhee" },
           ] },
         ],
       },

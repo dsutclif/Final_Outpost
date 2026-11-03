@@ -35,6 +35,8 @@ export type SimEvent =
   // story pods: a crew member who starts work on release, an empty pod
   | { t: "joined"; capture: number; resident: number; role: string }
   | { t: "decoy_opened"; capture: number; at: Vec }
+  // a towed pod reached the heat and starts to open (story staging: it is still there while lines play)
+  | { t: "pod_home"; capture: number; at: Vec; decoy: boolean }
   // reactor-out countdown
   | { t: "froze"; resident: number; at: Vec }
   // objectives: emitted when one becomes done or failed

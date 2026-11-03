@@ -114,7 +114,7 @@ const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.shi
 const CORE_BURIED = 0.9;
 
 const NO_STORY: StoryPresentation = {
-  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {},
+  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null,
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
 };
@@ -601,7 +601,7 @@ export class Renderer3D implements Renderer {
     this.storyLights = new StoryLights(this.scene, storyLightColors(this.tokens), make);
     const coreAt = (manifest.entities.find((e) => e.type === "sink.core") as { at?: readonly [number, number] } | undefined)?.at ?? [manifest.map.w / 2, manifest.map.h / 2];
     this.spirit = createCoreSpirit(this.scene, this.tokens, { at: { x: coreAt[0], y: 0, z: coreAt[1] }, height: ART_M * 2.3, size: ART_M * 8, patch: ART_M * 2.6 });
-    this.storyP = new StoryPresent(this.storyLights, this.spirit, { x: coreAt[0], z: coreAt[1], h: ART_M * 2.3 });
+    this.storyP = new StoryPresent(this.storyLights, this.spirit, { x: coreAt[0], z: coreAt[1], h: ART_M * 2.3 }, this.interp);
     this.buildDom(doc, mount);
 
     this.interp.reset();

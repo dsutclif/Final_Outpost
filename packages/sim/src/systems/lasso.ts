@@ -95,6 +95,7 @@ export function stepLasso(st: State, cp: Compiled, out: SimEvent[]): void {
     }
     c.state = "releasing";
     c.timer = def.releaseTicks;
+    out.push({ t: "pod_home", capture: c.id, at: { ...c.pos }, decoy: !!c.decoy });
   }
   // Slack: standing still with a tow outside the heat drops the whole chain.
   if (p.tow.length > 0 && !p.moving && !within(p.pos, st.core.pos, R) && cp.lasso.slackTicks > 0) {

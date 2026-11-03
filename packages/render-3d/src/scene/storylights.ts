@@ -120,8 +120,11 @@ export class StoryLights {
     if (this.dots.instanceColor) this.dots.instanceColor.needsUpdate = true;
   }
 
-  /** A pod's glow and beam. `dim` 1 = full, 0 = out (its freeze timer running down). Pass `dim` < 0 to remove it. */
-  pod(id: string, x: number, z: number, kind: PodKind, dim: number): void {
+  /**
+   * A pod's glow and beam. `dim` 1 = full, 0 = out (its freeze timer running down). Pass `dim` < 0 to remove it.
+   * `beam` false: the pod glows by itself, a wider halo on the sand and no light over it.
+   */
+  pod(id: string, x: number, z: number, kind: PodKind, dim: number, beam = true): void {
     let e = this.pods.get(id);
     if (dim < 0) {
       if (e) {
@@ -133,22 +136,23 @@ export class StoryLights {
     }
     if (!e) {
       const col = kind === "old" ? this.c.podOld : this.c.podCrew;
-      const glow = new Mesh(new CircleGeometry(26, 28).rotateX(-Math.PI / 2), glowMat(col, 0));
-      const beam = new Mesh(new CylinderGeometry(7, 11, 110, 14, 1, true).translate(0, 55, 0), glowMat(col, 0));
+      const glow = new Mesh(new CircleGeometry(beam ? 26 : 34, 28).rotateX(-Math.PI / 2), glowMat(col, 0));
+      const shaft = new Mesh(new CylinderGeometry(7, 11, 110, 14, 1, true).translate(0, 55, 0), glowMat(col, 0));
+      shaft.visible = beam;
       if (this.soft) (glow.material as MeshBasicMaterial).alphaMap = this.soft;
       glow.position.y = 1.2;
-      glow.renderOrder = beam.renderOrder = 10;
-      glow.frustumCulled = beam.frustumCulled = false;
+      glow.renderOrder = shaft.renderOrder = 10;
+      glow.frustumCulled = shaft.frustumCulled = false;
       const group = new Group();
-      group.add(glow, beam);
+      group.add(glow, shaft);
       this.root.add(group);
-      e = { group, glow, beam };
+      e = { group, glow, beam: shaft };
       this.pods.set(id, e);
     }
     const d = Math.max(0, Math.min(1, dim));
     e.group.position.set(x, 0, z);
     e.group.visible = d > 0.01;
-    (e.glow.material as MeshBasicMaterial).opacity = 0.75 * d;
+    (e.glow.material as MeshBasicMaterial).opacity = (e.beam.visible ? 0.75 : 0.9) * d;
     (e.beam.material as MeshBasicMaterial).opacity = 0.3 * d;
     e.beam.scale.y = 0.35 + 0.65 * d;
   }

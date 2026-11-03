@@ -2,8 +2,8 @@
 // block holds this, keyed by level id; a level without an entry plays exactly as if the director
 // did not exist. Pure presentation: nothing here can reach sim state.
 
-/** A world position (world units), or a manifest entity's position by id. */
-export type StoryPlace = { at: readonly [number, number] } | { entity: string };
+/** A world position (world units), a manifest entity's position by id, or where the last sim event of a type happened. */
+export type StoryPlace = { at: readonly [number, number] } | { entity: string } | { last: string };
 
 /** What fires a cue. Each cue fires once unless it sets `repeat`. */
 export type StoryTrigger =
@@ -99,7 +99,12 @@ export type StoryAction =
    */
   | { edgeGlow: (StoryPlace & { size?: number; strength?: number }) | null }
   /** Turn the guide arrows on or off (see StoryLevel.noGuide). */
-  | { guide: boolean };
+  | { guide: boolean }
+  /**
+   * A cast member walks to a place and holds there, drawn only (the sim keeps its own position); `walk: false`
+   * walks them back to where the sim has them. Keys are StoryLevel.cast keys.
+   */
+  | { walk: string; to: StoryPlace | false };
 
 export interface StoryCue {
   /** Needed only when another cue's `after` names it. */
@@ -128,8 +133,21 @@ export interface StoryGoal {
   label?: string;
 }
 
+/**
+ * Who a cast key is on the map, for speech bubbles and walks: the hero, the crewmate out of a capture (manifest
+ * capture order), the n-th starting resident (manifest `people` order), the boss, or a fixed place.
+ */
+export type StoryCastRef = { player: true } | { capture: number } | { person: number } | { boss: true } | StoryPlace;
+
 export interface StoryLevel {
   goals: readonly StoryGoal[];
+  /** Speaker key to where they stand. `commander` is the hero unless set. */
+  cast?: Readonly<Record<string, StoryCastRef>>;
+  /**
+   * Each goal opens with its card mid-screen, paused until a tap, then the card flies to its slot at the top.
+   * The card waits its turn behind any lines already queued.
+   */
+  goalCards?: boolean;
   cues: readonly StoryCue[];
   /** HUD parts hidden from the first frame. */
   hide?: readonly StoryHudPart[];
@@ -150,9 +168,10 @@ export interface StoryLevel {
   openZoom?: { from: number; seconds: number; hold?: number };
   /**
    * Every pod on the map glows with a beam, dimming as its freeze timer runs down (cold white for crew,
-   * orange for a decoy), so in dim light the pods are the brightest thing around (story level 2).
+   * orange for a decoy), so in dim light the pods are the brightest thing around (story level 2). "glow": the
+   * pods glow themselves, with no beam over them.
    */
-  podLights?: boolean;
+  podLights?: boolean | "glow";
   /** Three slots over the hero's head fill with the pods in tow, so the tow limit shows (story level 2). */
   tally?: boolean;
 }
@@ -165,6 +184,10 @@ export interface StorySpeaker {
   dialogue?: string;
   /** Speaks through the reactor spirit: the cloud brightens while this speaker's line is on screen, and the portrait is the live cloud. */
   spirit?: boolean;
+  /** A bust image (public path) beside the line. */
+  bust?: string;
+  /** The line's job tag after the name ("hauler"). */
+  tag?: string;
 }
 
 /** Wording the director's own UI needs. */

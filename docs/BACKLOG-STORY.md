@@ -56,7 +56,7 @@ and 3 (reduced buggy) are parked, not rejected.
 
 ## 2. Dialogue presentation (all story levels; B, shared director)
 
-- [ ] **S2 Speech bubbles.** Every non-KILN line shows directly above the speaker's head, with a tail pointing to
+- [x] **S2 Speech bubbles.** (Dialogue style `bubble`, the skin default; levels 3–5 get their cast as they are rebuilt.) Every non-KILN line shows directly above the speaker's head, with a tail pointing to
   them. That includes the commander, crew, Sela and the raider. The bubble follows the character and stays inside
   the screen, near the notch and edges. KILN keeps its terminal readout.
 - [ ] **S3 Character busts (Doug, 2026-11-03: yes, one per person).** A bust portrait to the left of the text. Each
@@ -67,12 +67,12 @@ and 3 (reduced buggy) are parked, not rejected.
   the commander's head height. Brighter. It appears right beside the commander on KILN's first line.
   - B: `spiritFollow.size` and the brightness option in levels 2–5. A: level 1's cue.
   - Done: one screenshot per level at the first KILN line.
-- [ ] **S5 Goal cards in the tutorials.** The goal shows mid-screen until it is tapped, as in later levels, then
+- [ ] **S5 Goal cards in the tutorials.** (Built: `goalCards`; on in L2, L3–5 as they are rebuilt; L1 is A's.) The goal shows mid-screen until it is tapped, as in later levels, then
   flies to the top. One at a time, alternating with dialogue. This replaces "goals appear silently at the top" in
   levels 1–5.
   - Covers L3's "the goal changed to clear the rockslide with no context or notice": every goal change gets its card
     and a line.
-- [ ] **S6 Show what is happening.** Characters act out their lines. The first case is Rhee walking to the opened
+- [ ] **S6 Show what is happening.** (Built: `{ walk, to }`; Rhee's walk in L2.) Characters act out their lines. The first case is Rhee walking to the opened
   orange pod and standing beside it for "Locked. Nobody home." A director action that moves a named crew member to a
   place and holds them is generic (no level ids), so the screenplay's stage notes can use it.
 
@@ -103,12 +103,12 @@ and 3 (reduced buggy) are parked, not rejected.
   the night, in the agreed pattern.
 
 ### Level 2 (B)
-- [ ] **S13 Five pods, five rescues.** The goal is "Bring all 5 pods home", including the orange one, so the level
+- [x] **S13 Five pods, five rescues.** (2026-11-03: `rescue_all` `decoys: 1`, no engine bump.) The goal is "Bring all 5 pods home", including the orange one, so the level
   can't end before it's found.
   - Rules: an opt-in objective option that counts decoy pods (e.g. `rescue_all` with `decoys: 1`). That's a
     training-level-only rule, with an engine bump and re-pin and no pack rebuild.
   - The decoy lines and Rhee's walk (S6) play before the ending.
-- [ ] **S14 Level 2 lines per S1:** "My sensors are picking up…", the HUD pointer line, the new crew introductions.
+- [x] **S14 Level 2 lines per S1:** "My sensors are picking up…", the HUD pointer line, the new crew introductions.
 
 ### Level 3 (B)
 - [ ] **S15 Hoppers and protein are taught.** Protein becomes a goal with its own reason, for example a front-of-line
@@ -164,7 +164,7 @@ and 3 (reduced buggy) are parked, not rejected.
 - [ ] **S27 Hire pads visible: levels 1–5 part (game-wide in R6 G4).** never covered by buildings or walls. Check every pad in levels 1–5 from
   the game camera, then move pads in the data. If occlusion fading is the cause, that's A's R6 area.
 
-- [ ] **S34 Pods glow; no beams.** In L2 the pods themselves glow, cold white for crew and scorched orange for the
+- [x] **S34 Pods glow; no beams.** (`podLights: "glow"`.) In L2 the pods themselves glow, cold white for crew and scorched orange for the
   lander pod. The light beams over them go (a `podLights` change in `stage.ts`/`storylights.ts`).
 - [ ] **S35 Camera moves chosen per level (Doug, 2026-11-03: never a generic pan).** A move happens only where a line
   or event motivates it and it spoils nothing:

@@ -1,4 +1,5 @@
 import type { CameraBeat, RidgeSide, StoryPresentation, TallySlots } from "../contract.js";
+import type { Interp } from "../interp.js";
 import type { CoreSpirit } from "./corespirit.js";
 import { screenAxes, type StoryLights } from "./storylights.js";
 
@@ -36,7 +37,13 @@ export class StoryPresent implements StoryPresentation {
   private cloudAt: { x: number; z: number; h: number; k: number } | null = null;
 
   /** `home`: where the cloud floats over the reactor, and its height there. */
-  constructor(private readonly lights: StoryLights, private readonly cloud: CoreSpirit, private readonly home: { x: number; z: number; h: number } = { x: 0, z: 0, h: 0 }) {}
+  constructor(private readonly lights: StoryLights, private readonly cloud: CoreSpirit, private readonly home: { x: number; z: number; h: number } = { x: 0, z: 0, h: 0 }, private readonly movers?: Interp) {}
+
+  actor(key: string, to: { x: number; z: number } | null): void { this.movers?.stage(key, to ? { x: to.x, y: to.z } : null); }
+  actorAt(key: string): { x: number; z: number } | null {
+    const p = this.movers?.pos(key, { x: Number.NaN, y: Number.NaN }, 1);
+    return p && Number.isFinite(p.x) ? { x: p.x, z: p.y } : null;
+  }
 
   solid(ids: readonly string[]): void { this.solidIds = new Set(ids); }
 
@@ -52,9 +59,9 @@ export class StoryPresent implements StoryPresentation {
     this.dotOpts = opts;
     if (!this.dotPts) this.lights.groundDots([], 0);
   }
-  pod(id: string, x: number, z: number, kind: "old" | "crew", dim: number): void {
+  pod(id: string, x: number, z: number, kind: "old" | "crew", dim: number, beam = true): void {
     if (dim < 0) this.podDim.delete(id); else this.podDim.set(id, dim);
-    this.lights.pod(id, x, z, kind, dim);
+    this.lights.pod(id, x, z, kind, dim, beam);
   }
   light(id: string, x: number, y: number, z: number, kind: "lamp" | "goal", intensity: number, goalColor?: string): void {
     this.lights.light(id, x, y, z, kind, intensity, goalColor);
@@ -120,6 +127,7 @@ export class StoryPresent implements StoryPresentation {
   /** Per frame: t seconds on the renderer clock, dt seconds since the last frame, and the camera view on the ground. */
   frame(t: number, dt: number, cx: number, cz: number, halfW: number, halfH: number, hero?: { x: number; z: number }): void {
     this.now = t;
+    this.movers?.stepStaged(dt);
     this.moveCloud(dt, hero);
     if (this.target !== null) this.cur = this.snapNow ? this.target : this.cur + (this.target - this.cur) * Math.min(1, dt * 1.5);
     this.snapNow = false;

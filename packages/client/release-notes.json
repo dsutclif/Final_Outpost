@@ -1,9 +1,8 @@
 {
   "notes": [
-    "Story level 2 now ends on KILN's own camera feed of the sealed bays, played live in the game: the lights read OCCUPIED, bay 5 unlocks, and its glass lifts on nobody.",
-    "You can see yourself behind walls and buildings now, and the grow dome, warehouse and resources stay solid when you walk behind them.",
-    "The reactor shows its fuel waiting by the hatch, warehouse arrows point inward, goods ride on top of the belts, and buildings look smoother.",
-    "Alerts shake once then glow steady, VIP orders show a VIP badge, the time star is always last, and impatient traders are flagged on every level.",
-    "Opening the game after an update goes straight to the new version."
+    "Story level 2 is rewritten from the new script: KILN explains the pods and the tow line, and each crewmate steps out with their own lines.",
+    "Characters now speak in speech bubbles over their heads, and every goal opens as a card in the middle of the screen before it moves to the top.",
+    "Level 2's goal is now to bring all five pods home, the scorched orange lander pod included. The pods glow by themselves instead of under beams of light.",
+    "Rhee comes out of her pod as the camp's medic."
   ]
 }

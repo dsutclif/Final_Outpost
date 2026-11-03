@@ -1,5 +1,5 @@
 import { FP, TPS, type SimEvent, type State } from "@fo/sim";
-import type { SkinStory, StoryAction, StoryCameraBeat, StoryCue, StoryGhost, StoryGoal, StoryHudPart, StoryLevel, StoryPlace, StoryTrigger } from "@fo/skins";
+import type { SkinStory, StoryAction, StoryCameraBeat, StoryCastRef, StoryCue, StoryGhost, StoryGoal, StoryHudPart, StoryLevel, StoryPlace, StoryTrigger } from "@fo/skins";
 import { CameraBeatPlayer, type BeatCamera } from "./camera.js";
 
 // Plays a level's story cues on top of the sim. It reads state and events and never writes to either:
@@ -10,7 +10,13 @@ export interface StoryToken { id: string; state: "open" | "done" | "failed"; lab
 
 export type StarSlot = "empty" | "earned" | "cracked";
 
-export interface DialogueLine { name: string; text: string; portrait?: string | undefined; tag?: string | undefined; tap: boolean; style?: string | undefined }
+export interface DialogueLine {
+  name: string; text: string; portrait?: string | undefined; tag?: string | undefined; tap: boolean; style?: string | undefined;
+  /** A bust image beside the text. */
+  bust?: string | undefined;
+  /** The speaker's cast key, so a bubble can stand over them. */
+  who?: string | undefined;
+}
 
 /** The DOM side; view.ts implements it, tests fake it. */
 export interface StoryView {
@@ -20,6 +26,11 @@ export interface StoryView {
   finishLine?(): boolean;
   card(c: { text: string; sub?: string | undefined; day: boolean; image?: string | undefined }): void;
   clearCard(): void;
+  /** A goal card mid-screen; `clearGoalCard` sends it up to its slot. */
+  goalCard?(text: string): void;
+  clearGoalCard?(): void;
+  /** Where the speaker stands on screen this frame (px), or null when they cannot be placed. */
+  anchor?(p: { x: number; y: number } | null, viewW: number, viewH: number): void;
   /** Where a tap anywhere goes, or null when nothing waits on one. */
   onTap(fn: (() => void) | null): void;
   prompt(p: { text: string; retry: string; other: string }, retry: () => void, other: () => void): void;
@@ -61,10 +72,16 @@ export interface StoryWorld {
   guideOff: boolean;
   /** A line by a spirit speaker is on screen. */
   speaking: boolean;
+  /** Cast key of the speaker whose line is on screen. */
+  talker: string | null;
+  /** Cast members held at a drawn place (see the walk action); a null `to` walks them back. */
+  actors: readonly { who: string; to: { x: number; y: number } | null }[];
 }
 
-const isBeat = (a: StoryAction): boolean => "camera" in a || "film" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
-const isWorld = (a: StoryAction): boolean => "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a;
+type QueueItem = StoryAction | { goalCard: string; id: string };
+
+const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
+const isWorld = (a: StoryAction): boolean => "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a;
 const CARD_SECONDS = 3;
 const GOAL_GAP_S = 0.7;
 const TAP_GUARD_MS = 250;
@@ -87,7 +104,13 @@ export class StoryDirector {
   private disposed = false;
   private readonly fired = new Set<StoryCue>();
   private readonly firedAt = new Map<string, number>();
-  private readonly queue: StoryAction[] = [];
+  private readonly queue: QueueItem[] = [];
+  /** Capture id to the resident that came out of it. */
+  private readonly fromCapture = new Map<number, number>();
+  /** Where the last event of each type happened (world units). */
+  private readonly lastAt = new Map<string, { x: number; y: number }>();
+  private readonly carded = new Set<string>();
+  private readonly cardDone = new Set<string>();
   private active: Active | null = null;
   private explicitFreeze = false;
   private readonly hidden: Set<StoryHudPart>;
@@ -116,7 +139,7 @@ export class StoryDirector {
     /** This run started at the level's `retryFrom`, so the cues of the walk there do not fire. */
     private readonly fromRetrySpot = false,
   ) {
-    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, speaking: false };
+    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, speaking: false, talker: null, actors: [] };
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
     if (level.openZoom && !replay && !fromRetrySpot) {
@@ -171,6 +194,9 @@ export class StoryDirector {
 
   /** Call for every sim event, before the client acts on level_end. */
   onEvent(e: SimEvent, st: State): void {
+    if (e.t === "released") this.fromCapture.set(e.capture, e.resident);
+    const at = (e as { at?: { x: number; y: number } }).at;
+    if (at) this.lastAt.set(e.t, { x: at.x / FP, y: at.y / FP });
     if (e.t === "objective") this.onObjective(e.id, e.done, e.failed, st);
     for (const c of this.level.cues) {
       if (!this.armed(c)) continue;
@@ -246,7 +272,7 @@ export class StoryDirector {
       });
     }
     const cur = this.currentGoal();
-    const label = this.over || !cur ? null : this.goalText(cur, tokens);
+    const label = this.over || !cur || (this.level.goalCards && !this.cardDone.has(cur.id)) ? null : this.goalText(cur, tokens);
     const key = `${this.settled.join()}|${label}`;
     if (key !== this.paintKey) { this.paintKey = key; this.view.goals(this.settled, label); }
   }
@@ -300,6 +326,7 @@ export class StoryDirector {
   }
 
   private place(p: StoryPlace): { x: number; y: number } | null {
+    if ("last" in p) return this.lastAt.get(p.last) ?? null;
     return "at" in p ? { x: p.at[0], y: p.at[1] } : this.host.entityAt(p.entity);
   }
 
@@ -313,16 +340,22 @@ export class StoryDirector {
     if (this.held) { const h = this.held; this.held = null; h(); }
   }
 
-  private start(a: StoryAction): void {
-    if ("line" in a) {
-      const sp = a.who !== undefined ? this.story.speakers[a.who] : undefined;
+  private start(a: QueueItem): void {
+    if ("goalCard" in a) {
+      this.view.goalCard?.(a.goalCard);
+      this.waitTap(() => { this.view.clearGoalCard?.(); this.cardDone.add(a.id); this.syncGoals(this.tokens); });
+    } else if ("line" in a || "crew" in a) {
+      const who = a.who, sp = who !== undefined ? this.story.speakers[who] : undefined;
       // every line pauses play until a tap (a line still typing completes first)
-      this.view.line({ name: sp?.name ?? a.who ?? "", text: a.line, portrait: sp?.portrait, tap: true, style: sp?.dialogue });
-      this.world = { ...this.world, speaking: !!sp?.spirit };
-      this.waitTap(() => { this.view.clearLine(); this.world = { ...this.world, speaking: false }; });
-    } else if ("crew" in a) {
-      this.view.line({ name: this.story.speakers[a.who]?.name ?? a.who, text: a.crew, tag: a.tag, tap: true });
-      this.waitTap(() => this.view.clearLine());
+      this.view.line({
+        name: sp?.name ?? who ?? "", text: "line" in a ? a.line : a.crew, portrait: sp?.portrait, tag: "crew" in a ? a.tag ?? sp?.tag : undefined,
+        tap: true, style: sp?.dialogue, bust: sp?.bust, who,
+      });
+      this.world = { ...this.world, speaking: !!sp?.spirit, talker: who ?? null };
+      this.waitTap(() => { this.view.clearLine(); this.world = { ...this.world, speaking: false, talker: null }; });
+    } else if ("walk" in a) {
+      const to = a.to ? this.place(a.to) : null;
+      this.world = { ...this.world, actors: [...this.world.actors.filter((x) => x.who !== a.walk), { who: a.walk, to }] };
     } else if ("camera" in a) {
       const to = this.place(a.camera.to);
       // a nudge during play runs beside the lines; a beat that pauses play holds the queue
@@ -419,6 +452,40 @@ export class StoryDirector {
     );
   }
 
+  // ------------------------------------------------------------------ the cast
+
+  private castRef(who: string): StoryCastRef | null {
+    return this.level.cast?.[who] ?? (who === "commander" ? { player: true } : null);
+  }
+
+  /** The renderer's key for a cast member (its interp key), or null for a fixed place or someone not on the map. */
+  castKey(who: string, st: State): string | null {
+    const c = this.castRef(who);
+    if (!c) return null;
+    if ("player" in c) return "player";
+    if ("capture" in c) { const r = this.fromCapture.get(c.capture); return r === undefined ? null : `r:${r}`; }
+    if ("person" in c) { const r = st.residents.filter((x) => x.origin === "start").sort((a, b) => a.id - b.id)[c.person]; return r ? `r:${r.id}` : null; }
+    if ("boss" in c) { const h = st.hostiles.find((x) => x.retreatHp !== undefined) ?? st.fleeing?.find((x) => x.retreatHp !== undefined); return h ? `h:${h.id}` : null; }
+    return null;
+  }
+
+  /** Where a cast member stands (world units) by the sim; null when they are not on the map. */
+  castAt(who: string, st: State): { x: number; y: number } | null {
+    const c = this.castRef(who);
+    if (!c) return null;
+    if ("at" in c || "entity" in c || "last" in c) return this.place(c);
+    if ("capture" in c && !this.fromCapture.has(c.capture)) {
+      const cap = st.captures.find((x) => x.id === c.capture);
+      return cap ? { x: cap.pos.x / FP, y: cap.pos.y / FP } : null;
+    }
+    const k = this.castKey(who, st);
+    if (k === "player") return { x: st.player.pos.x / FP, y: st.player.pos.y / FP };
+    const id = k ? Number(k.slice(2)) : NaN;
+    const p = k?.startsWith("r:") ? st.residents.find((x) => x.id === id)?.pos
+      : k?.startsWith("h:") ? (st.hostiles.find((x) => x.id === id) ?? st.fleeing?.find((x) => x.id === id))?.pos : undefined;
+    return p ? { x: p.x / FP, y: p.y / FP } : null;
+  }
+
   // ------------------------------------------------------------------ goals
 
   private onObjective(id: string, done: boolean, failed: boolean, st: State): void {
@@ -448,6 +515,12 @@ export class StoryDirector {
   private advanceGoals(): void {
     if (this.over || this.promptOpen || this.gap > 0) return;
     const g = this.currentGoal();
+    // its card waits behind the lines already queued, so the words that set the goal come first
+    if (g && this.level.goalCards && !this.carded.has(g.id)) {
+      this.carded.add(g.id);
+      this.queue.push({ goalCard: (this.goalText(g, this.tokens) ?? "").replace(/[:\s]*\d+:\d\d$/, ""), id: g.id });
+      this.pump();
+    }
     const t = g && this.tokens.find((x) => x.id === g.id);
     if (!t || t.state === "open") return;
     this.settled[this.turn] = t.state === "done" ? "earned" : "cracked";
