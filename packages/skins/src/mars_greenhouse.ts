@@ -432,6 +432,7 @@ export const marsGreenhouse: Skin = {
       objective_failed: "Star lost: {name}",
     },
     ui: {
+      vipIcon: "VIP",
       wordmark: "Farthest Outpost",
       play: "Play",
       levels: "Levels",
