@@ -36,14 +36,18 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Level | Status | Notes |
 |---|---|---|
 | 1 Cold Start | Account A, live; Doug's sign-off pending | Not edited by B |
-| 2 Roll Call | B, live 2026-11-02 | Walls question open (below) |
+| 2 Roll Call | B, live 2026-11-02 | Walls kept (Doug, 2026-11-03) |
 | 3 Open for Trade | B, live 2026-11-02 (Phase 1) | Sela walks in; no buggy, lamp or coin close-up yet |
 | 4 Halcyon Works | B, live 2026-11-02 (Phase 1) | Text card for crash_log; one bot change (see log) |
 | 5 First Watch | B, live 2026-11-02 (Phase 1) | Helmet film from cues, then Vale's card |
 
+## Decided by Doug
+
+- **L2 walls (2026-11-03): keep the walls.** Levels 2–5 keep the prebuilt camp ring. The tow line only trails beyond a barrier line, and there will be no training-only tow rule. Levels 3–5 carry the ring forward.
+
 ## Open questions for Doug
 
-- **L2 walls (2026-11-02, B).** The tow line only trails beyond a barrier line (`outsideLine` in `sim/systems/barriers.ts`), and `lasso` requires `barrier_lines`. So level 2 has a prebuilt ring around the reactor and ore, with gates east and south-west, as the old level 2 had. Level 1 has no walls, so they appear between the levels with no explanation. The alternative is an opt-in rule ("tow line trails anywhere outside the heat"), which needs an engine bump and a bot change. Kept the ring until Doug decides.
+- None open.
 
 ## Notes for Account A
 
