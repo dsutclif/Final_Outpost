@@ -67,6 +67,14 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-03, B, Phase 1 finish for levels 3–5.** No engine bump.
+  - Director (`skins/src/story.ts`, `client/src/story/director.ts`, `view.ts`, `story.css`) gains two options, both off by default:
+    - `ordered: true` on a cue runs its world actions (light, spirit, ridge, dots...) in line order instead of when the cue fires. There's a test for it.
+    - `image` on a card shows a skin image above the text.
+  - L3: the H coin close-up is a card with `ui/coin.png`, the coin model's own render, before "Halcyon chips?".
+  - L4: KILN dims on "I shut down everything..." and the ridge flashes on "Movement on the ridge." (ordered cues).
+  - L5: the ridge visors flash as the camera goes to the ridge. `defense.fleeSpeed` is 50 (boss speed 20), so the lieutenant runs off. The run clip for fleeing hostiles was already wired.
+
 - **2026-11-02, B, level 5 First Watch (Phase 1).** No engine bump and no rules change. Story levels 2–5 are all in Phase 1 now.
   - `levels/story/story-L005.json` was rewritten on level 4's town (the same map and ring, gates 3, 4 and 5).
     - The galley stands as a `conv.food_processor`. Traders are off (`customers.spawn` 9999), since the kiosk isn't the point tonight.

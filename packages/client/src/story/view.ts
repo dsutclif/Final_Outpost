@@ -169,7 +169,8 @@ export function createStoryView(shell: HTMLElement, opts: { dialogue?: string | 
     finishLine() { return dialogue?.finish?.() ?? false; },
     card(c) {
       card.classList.toggle("day", c.day);
-      card.replaceChildren(text("p", "story-card-text", c.text), ...(c.sub ? [text("p", "story-card-sub", c.sub)] : []));
+      const img = c.image ? [Object.assign(card.ownerDocument.createElement("img"), { className: "story-card-img", src: c.image, alt: "" })] : [];
+      card.replaceChildren(...img, text("p", "story-card-text", c.text), ...(c.sub ? [text("p", "story-card-sub", c.sub)] : []));
       card.hidden = false;
     },
     clearCard() { card.hidden = true; },

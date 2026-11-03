@@ -677,7 +677,8 @@
   "meters.baseHealth": 11,
   "pads.defenceGrowth": 1.08,
   "customers.spawn": 9999,
-  "level.budgetSeconds": 300
+  "level.budgetSeconds": 300,
+  "defense.fleeSpeed": 50
  },
  "goal": {
   "type": "waves"

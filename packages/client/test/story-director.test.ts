@@ -68,6 +68,21 @@ describe("story director cues", () => {
     vi.useRealTimers();
   });
 
+  it("an ordered cue changes the world on its line, not when it fires", () => {
+    vi.useFakeTimers();
+    const h = harness(levelOf({ on: { start: true }, ordered: true, do: [
+      { line: "one", who: "kiln" }, { spirit: "fading" }, { line: "two", who: "kiln" }, { spirit: "idle" },
+    ] }));
+    h.d.update(16, state());
+    expect(h.d.world.spirit).toBeNull();
+    h.tap();
+    expect(h.d.world.spirit?.state).toBe("fading");
+    expect(h.log).toContain("line:KILN:two:kiln");
+    h.tap();
+    expect(h.d.world.spirit?.state).toBe("idle");
+    vi.useRealTimers();
+  });
+
   it("fires within a radius of an entity, and by sim ticks after another cue", () => {
     const h = harness(levelOf(
       { id: "a", on: { near: { entity: "core" }, r: 10 }, do: [{ hide: ["credits"] }] },

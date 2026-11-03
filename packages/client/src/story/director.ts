@@ -18,7 +18,7 @@ export interface StoryView {
   clearLine(): void;
   /** A tap on a line that is still typing out: show it whole and return true; false when nothing was typing. */
   finishLine?(): boolean;
-  card(c: { text: string; sub?: string | undefined; day: boolean }): void;
+  card(c: { text: string; sub?: string | undefined; day: boolean; image?: string | undefined }): void;
   clearCard(): void;
   /** Where a tap anywhere goes, or null when nothing waits on one. */
   onTap(fn: (() => void) | null): void;
@@ -281,7 +281,7 @@ export class StoryDirector {
     if (c.id) this.firedAt.set(c.id, st.tick);
     // light and world changes happen on their cue; only lines, beats and cards wait their turn
     for (const a of c.do) {
-      if (isWorld(a)) this.start(a);
+      if (isWorld(a) && !c.ordered) this.start(a);
       else if (!this.replay || !isBeat(a)) this.queue.push(a);
     }
     this.pump();
@@ -347,7 +347,7 @@ export class StoryDirector {
       for (const p of a.show) this.hidden.delete(p);
       this.view.hud(this.hidden);
     } else if ("card" in a) {
-      this.showCard(a.card, a.sub, false, a.seconds);
+      this.showCard(a.card, a.sub, false, a.seconds, a.image);
     } else if ("day" in a) {
       this.showCard(a.day, a.sub, true, a.seconds);
     } else if ("ghost" in a) {
@@ -382,8 +382,8 @@ export class StoryDirector {
     this.active = { k: "timed", left: seconds, end, freezes: false };
   }
 
-  private showCard(text: string, sub: string | undefined, day: boolean, seconds: number | undefined): void {
-    this.view.card({ text, sub, day });
+  private showCard(text: string, sub: string | undefined, day: boolean, seconds: number | undefined, image?: string): void {
+    this.view.card({ text, sub, day, image });
     const end = (): void => this.view.clearCard();
     const card: Active = { k: "timed", left: seconds ?? CARD_SECONDS, end, freezes: true };
     this.active = card;
