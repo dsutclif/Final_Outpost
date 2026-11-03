@@ -27,7 +27,8 @@ and 3 (reduced buggy) are parked, not rejected.
 
 ## 1. Story and dialogue
 
-- [ ] **S1 Screenplay for levels 1–5 (B; A reviews level 1).** A single doc,
+- [ ] **S1 Screenplay for levels 1–5 (B; A reviews level 1).** Draft 3 is in `docs/STORY-SCREENPLAY.md` (2026-11-03),
+  after two naive-reader rounds, and awaits Doug's review. A single doc,
   `docs/STORY-SCREENPLAY.md`, holds every line in order, with stage notes such as "goal card appears: *Fill the
   reactor*", "commander fills the reactor and earns the star" or "Rhee walks to the orange pod". It assumes the
   player knows nothing before level 1, and longer text is fine. Rules:
