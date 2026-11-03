@@ -1686,7 +1686,7 @@ export class Renderer3D implements Renderer {
       const L = lay(`cb:${belt.id}`, ends, false);
       for (const it of belt.items) {
         const d = Math.min(L.len, it.d / FP);
-        items.add(it.res, L.ax + L.ux * d, (meshyBeltTop() ?? BELT_TOP) * ART_M, L.az + L.uz * d, Math.atan2(L.ux, L.uz));
+        items.add(it.res, L.ax + L.ux * d, (meshyBeltTop() ?? BELT_TOP) * ART_M + SLAB_TOP, L.az + L.uz * d, Math.atan2(L.ux, L.uz));
       }
     }
     for (const pad of s.pads) {
