@@ -232,6 +232,31 @@ function hitEnemy(f: Fight, a: Unit, t: Unit, dmg: number, ranged: boolean): voi
 }
 
 /** One sim tick, in the sim's system order: player, residents (guards), hunting (hoppers), defense (hostiles, player hits, troops, towers). */
+/**
+ * Doug 2026-11-03: characters never overlap, except that fliers (drones) pass over ground units. Bodies are kept
+ * smaller than the 18 contact reach so two fighters still touch. Towers and anyone lying down don't get pushed.
+ */
+export const BODY: Record<string, number> = { "hostile.swarmling": 4, "hostile.boss": 8, hopper: 5, tower: 12, ground: 6, drone: 5 };
+export const bodyOf = (u: Unit): number => BODY[u.type] ?? BODY[u.kind] ?? BODY["ground"]!;
+const flies = (u: Unit): boolean => u.kind === "drone";
+function separate(f: Fight): void {
+  const live = f.units.filter((u) => u.status !== "dead" && !(u.side === "enemy" && u.x < 0));
+  const fixed = (u: Unit): boolean => u.kind === "tower" || u.status === "down";
+  for (let pass = 0; pass < 3; pass++) {
+    for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
+      const a = live[i]!, b = live[j]!;
+      if (flies(a) !== flies(b) || (fixed(a) && fixed(b))) continue;
+      const min = bodyOf(a) + bodyOf(b);
+      let dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+      if (d >= min) continue;
+      if (d < 1e-6) { dx = (a.uid < b.uid ? 1 : -1) * 0.01; dy = 0.01; d = Math.hypot(dx, dy); }
+      const push = min - d, ux = dx / d, uy = dy / d;
+      const sa = fixed(a) ? 0 : fixed(b) ? 1 : 0.5, sb = 1 - sa;
+      a.x -= ux * push * sa; a.y -= uy * push * sa; b.x += ux * push * sb; b.y += uy * push * sb;
+    }
+  }
+}
+
 export function stepFight(f: Fight): void {
   if (f.result) return;
   f.shots = [];
@@ -386,6 +411,7 @@ export function stepFight(f: Fight): void {
     const h = nearest(foes(), s, s.s.range!);
     if (h && s.acc <= 0) { s.acc = T(s.s.interval!); shoot(f, s, h, "settler"); hitEnemy(f, s, h, s.s.damage!, true); }
   }
+  separate(f);
   for (const u of f.units) if (Math.hypot(u.vx, u.vy) > 1e-3) u.face = Math.atan2(u.vx, u.vy);
 
   f.tick++;

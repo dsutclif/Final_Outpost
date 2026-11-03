@@ -88,7 +88,10 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
 - [ ] **N12 more damage per attacker:** set by a rater metric (defender losses per wave, target band), not
       by eye.
 - [ ] **N8 drones dock between waves and don't spawn until the next wave (Doug).** They keep their HP.
-- [ ] **N15 drones don't overlap:** ring slots collide (id % 12); add separation while moving.
+- [ ] **N15 + N17 no character overlaps another (Doug, 2026-11-03):** grows N15 (drone ring slots collide, id % 12)
+      to every character: the hero, guards, settlers, visitors, attackers and hoppers push apart while moving (integer
+      separation in the sim, bodies under the 18 contact reach). Fliers (drones) only avoid other fliers, so they can
+      pass over ground units. The sandbox arena already does this (`client/src/dev/arenaModel.ts` `separate`, `BODY`).
 - [ ] **N5 blaster fire:** a white-hot core (as in the title loop, whose tracer reads white) with a blue glow
       for friendlies and red for enemies. Uses the new shot events plus tower and drone shots.
 - [ ] **N4 scrap lands where it can be reached:** gun range and pickup range are already both 90; drops scatter
@@ -96,6 +99,9 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
       Required with #11.
 - [ ] **#11 attackers appear off screen:** push `defense.spawnY` past the visible map.
 - [ ] **#12 enough spiky hoppers to be a threat;** bots dodge.
+- [ ] **N18 dust crawlers in waves (Doug asked why they never appear):** `hostile.creature` is in `enemies.json` and
+      has a model, but the generator's waves (`generator/src/build.ts` ~1101) only send mites, raiders and the warlord;
+      only prototype level 4 uses it. It drops `res.food_raw_2`, not scrap. Decide its drop and wave share, then add it.
 - [ ] **#14 more attackers, mixed waves, multiple warlords:** warlord 15 HP, 15 points, 15 scrap drop.
 - [ ] **#15 faster arrivals:** biggest wave within about 30 s; check iPhone frame rate.
 - [ ] **#10 + N1 guard-post cost:** escalation multiplies one level-wide counter by 1.08 per defence purchase,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { content } from "@fo/content";
-import { cardRows, createFight, PROPOSALS, REACH, roster, runFight, statsOf, stepFight } from "../src/dev/arenaModel.js";
+import { bodyOf, cardRows, createFight, PROPOSALS, REACH, roster, runFight, statsOf, stepFight } from "../src/dev/arenaModel.js";
 
 const fighter = (id: string) => roster().fighters.find((f) => f.id === id)!;
 
@@ -63,5 +63,21 @@ describe("fighter arena model", () => {
     while (!solo.result) stepFight(solo);
     expect(solo.result!.winner).toBe("enemies");
     expect(solo.units.find((u) => u.kind === "guard")!.status).toBe("down");
+  });
+  it("ground fighters never overlap each other; drones only avoid other drones (Doug 2026-11-03)", () => {
+    for (const [enemy, settler] of [["hostile.swarmling", "guard"], ["hostile.raider_humanoid", "drone"], ["hostile.boss", "player"], ["node.prey_dangerous", "tower1"]] as const) {
+      const f = createFight({ enemy, enemies: 10, settler, settlers: 3, mode: "r2", seed: 5 });
+      let worst = 0;
+      while (!f.result) {
+        stepFight(f);
+        const live = f.units.filter((u) => u.status !== "dead" && !(u.side === "enemy" && u.x < 0));
+        for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
+          const a = live[i]!, b = live[j]!;
+          if ((a.kind === "drone") !== (b.kind === "drone")) continue;
+          worst = Math.max(worst, bodyOf(a) + bodyOf(b) - Math.hypot(a.x - b.x, a.y - b.y));
+        }
+      }
+      expect(worst, `${enemy} vs ${settler}`).toBeLessThan(1.5);
+    }
   });
 });
