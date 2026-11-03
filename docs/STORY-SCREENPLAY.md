@@ -1,4 +1,4 @@
-# Screenplay: story levels 1–5 (draft 3 for Doug, 2026-11-03)
+# Screenplay: story levels 1–5 (draft 4 for Doug, 2026-11-03)
 
 Backlog item S1 in `docs/BACKLOG-STORY.md`. This is every line in levels 1–5, in order, with stage notes. Level 1 is
 the other account's to build, so this is the words only; that account reviews it.
@@ -6,66 +6,73 @@ the other account's to build, so this is the words only; that account reviews it
 **How to read it**
 - **NAME:** a line in a speech bubble over the speaker. **KILN:** KILN's terminal readout, with its cloud beside the
   commander.
-- **GOAL CARD:** the short goal, mid-screen until it is tapped, then it flies to its slot at the top. A line before it
-  always says the goal in full.
-- *Italics* are stage notes: what the player sees, does and earns. **[held]** marks a film or live scene that is on hold;
-  until it lands, the beat plays as described with what exists.
+- **GOAL CARD:** the goal, mid-screen until it is tapped, then it flies to its slot at the top.
+  - The dialogue stays natural; the goal card is the precise version, with numbers and timers.
+- *Italics* are stage notes: what the player sees, does and earns. Each level opens with a camera move that shows the
+  situation before anyone speaks.
+- **[held]** marks a film or live scene that is on hold. Until it lands, the live game shows a text card describing
+  what happens in it (backlog S36).
 - Every line pauses play until a tap. Replays keep the lines and skip the films and camera moves.
 - The player knows nothing before level 1. What they learn, level by level, is listed at the end.
+- **Screen directions:** north is the top of the screen. The wreck lies east of the camp.
 
 **The facts the lines rely on**
-- The ship is the *Halcyon*.
-- The commander slept in bay 9.
-- Bays 1–4 (Pip, Rhee, Okafor, Tam) were thrown clear onto the plain.
-- Bays 5–8 are still on the wreck's deck, sealed and reading OCCUPIED. Vale, the first officer, is in bay 5.
-- KILN is the ship's support system, living in the reactor.
+- The ship is the *Halcyon*, a colony ship. Everyone aboard slept in stasis pods; the commander in bay 9.
+- Bays 1–4 (Pip, Rhee, Okafor, Tam) were thrown clear onto the plain in the crash. They come out of their pods in
+  their job's suit (hauler, medic, guard, settler).
+- Bays 5–8 are still on the wreck's deck, sealed and reading OCCUPIED. Bay 5 is Vale, the first officer.
+  - Their pods are empty: those four let themselves out before impact (level 4).
+  - They escaped in a lander pod, the orange one in level 2. It came down scorched, and they walked away from it
+    toward the ridge long ago.
+- KILN is the ship's support system. The reactor powers it; KILN is not the reactor. It appears as a cloud.
 
 ---
 
 ## Level 1: Cold Start (night to sunrise)
 
-*The crash film ends. The commander stands on dark sand beside the torn deck. Five pods: one open (the
-commander's), four sealed under frost with small lights reading OCCUPIED. Night. Far off to one side, a single
-bright **white** pulse; an arrow appears at the screen edge, pointing toward it. No red light yet.*
+*The crash film ends. The commander stands on dark sand beside the torn deck: five pods, one open (the commander's),
+four sealed under frost with small lights reading OCCUPIED. Night.*
+
+*Far off, beyond the screen's edge, a large soft white glow reaches onto the edge of the screen. It's a big light
+seen from far away, fixed where it is in the world, not a small point that moves with the screen. One bright pulse,
+then an arrow appears at that edge pointing toward it. There is no red light yet.*
 
 **COMMANDER:** What happened? Where's the rest of my crew?
 
-**COMMANDER:** That light. Someone's out there. I need to get to it.
+**COMMANDER:** That light. Someone's out there.
 
 > GOAL CARD: **Reach the light**
 
-*The floor arrows lead toward the light. Its glow sits on the screen edge until the commander is close enough to see
-the source: a dead reactor. The ore lies farther out, past the reactor.*
+*The floor arrows lead toward the glow. It stays on the screen edge until the commander is close enough to see the
+source: a dead reactor. The ore lies farther out, past it.*
 
 *The commander reaches the reactor. Goal star.*
 
-**COMMANDER:** It's a reactor, and it's cold. That ore out past it should burn. If I feed it, maybe I can get it running.
+**COMMANDER:** A reactor, and it's cold. That ore out past it should burn.
 
 > GOAL CARD: **Restart the reactor**
 
-*The commander carries ore in. The first load lights the reactor; it flares. KILN's cloud blooms out of the flare and
-settles right beside the commander, so it can't be missed. Goal star.*
+*The commander carries ore in. The first load lights the reactor; it flares. A blue cloud appears right beside the
+commander, close enough that it can't be missed. Goal star.*
 
 **KILN:** Commander. You're late.
 
-**KILN:** I am KILN, the support system of the *Halcyon*, your colony ship. Your stasis pod, bay nine, finally
-opened.
+**KILN:** I'm KILN, the support system of the *Halcyon*, your colony ship. Your stasis pod, bay nine, finally opened.
 
-**KILN:** I'm down to my last battery. Fill this reactor within thirty seconds, before it dies. The meter at the top
-shows how full I am.
+**KILN:** I've been running on my last battery. Hurry and fill the reactor before it dies, and me with it.
 
-> GOAL CARD: **Fill the reactor** *(30 s; Try again if missed)*
+> GOAL CARD: **Fill the reactor in 30 s**
 
-*The commander fills the reactor. Goal star. KILN brightens.*
+*The commander fills the reactor; the meter at the top fills. Goal star. KILN brightens.*
 
-**KILN:** Thank you. The four pods here on the deck are still sealed: bays five to eight. I need more power to open
-them.
+**KILN:** Thank you. The four pods here on the deck are still sealed: bays five to eight.
 
-**COMMANDER:** My first officer, Vale, is in bay five.
+**COMMANDER:** My first officer, Vale, is in bay five. Open them.
 
-**KILN:** Then keep feeding me ore until morning. A storm is coming, and in a storm I burn twice as fast.
+**KILN:** Not yet. The reactor has to burn all night before there's power to open them. Keep it burning until
+morning. A storm is coming, and in a storm it eats ore twice as fast.
 
-> GOAL CARD: **Keep feeding the reactor until morning**
+> GOAL CARD: **Keep the reactor burning until morning**
 
 *The storm comes in. Mid-storm, the ridge pulses red twice, and the camera nudges toward it.*
 
@@ -77,17 +84,18 @@ them.
 
 ## Level 2: Roll Call (grey dawn)
 
-*Grey morning over the same camp. The reactor burns; KILN's cloud beside the commander. Out on the plain, five pods
-glow: four with cold white beams, one dull orange, off to the side.*
+*Grey morning over the same camp. Before anyone speaks, the camera pans slowly across the plain: four pods glowing cold
+white, scattered and half buried, then a fifth, glowing dull scorched orange off to the side, then back to the
+commander. The pods themselves glow; no light shines down on them.*
 
-**KILN:** Bays one to four were thrown clear when we hit. My sensors pick up four crew out on the plain, and they're
+**KILN:** Bays one to four were thrown clear when we hit. My sensors pick up four crew in those pods, and they're
 freezing.
 
 **KILN:** I'm adding pointers to your heads-up display to help you find them.
 
 *Pointers appear at the screen edge, one for each pod.*
 
-**KILN:** There's a fifth pod out there too, an orange one. It isn't from our ship.
+**KILN:** There's a fifth pod. It's one of ours, an escape pod from the lander, but nobody was assigned to it.
 
 **COMMANDER:** Then I'll bring all five in.
 
@@ -96,63 +104,60 @@ over your head count your tow. You can pull three at a time.
 
 > GOAL CARD: **Tow the nearest pod into the heat**
 
-*The floor arrows circle the nearest pod. The commander loops it; the tow line catches; a tally over the commander's
-head fills one of three slots. The pod reaches the heat; frost melts; it opens. Play pauses.*
+*The floor arrows circle the nearest pod. The commander loops it; the tow line catches; one tally mark fills. The pod
+reaches the heat; frost melts; it opens. Play pauses. Pip steps out in a hauler's suit.*
 
-**PIP · hauler:** We made it? Boss! I thought I'd wake up on the colony. Where is everyone?
+**PIP · hauler:** Boss! We made it? I thought I'd wake up on the colony. Where is everyone?
 
 **COMMANDER:** Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?
 
-**PIP:** Ore in, fire stays on. I've got it.
+**PIP:** Give me something to carry. Ore in, fire stays on.
 
 *Pip starts carrying ore. Goal star.*
 
-**KILN:** Two pods came down close together. Circle both and you can tow them in one trip. Keep moving out there,
-though. If you stop, the line goes slack and you drop them.
+**KILN:** Two pods came down close together. Circle both and you can tow them in one trip.
 
 > GOAL CARD: **Tow two pods at once**
 
-*The arrows draw one circle around both pods. Both catch; the tally shows two. In the heat, they thaw one at a time,
+*The arrows draw one circle around both pods. Both catch; the tally shows two. In the heat they thaw one at a time,
 play paused, a tap for each.*
 
-**RHEE · medic:** How long were we under? Never mind. Who's hurt?
-
-**COMMANDER:** Nobody yet. Check on the others.
+**RHEE · medic:** How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.
 
 **OKAFOR · guard:** Who's watching the camp? Nobody? Then I am.
 
-*Goal star. Rhee checks on Pip; Okafor walks the camp's edge.*
+*Goal star. Rhee kneels beside Pip; Okafor walks the camp's edge.*
 
-**KILN:** Their beams fade as they freeze. If a beam goes out, that crewmate is lost. Bring the last crew pod home,
-and the orange one too.
+**KILN:** Their glow fades as they freeze. If a pod goes dark, that crewmate is lost. Bring the last crew pod home,
+and the lander pod too.
 
-> GOAL CARD: **Bring all five pods home** *(Try again if a crew pod freezes)*
+> GOAL CARD: **Bring all 5 pods home**
 
-*The commander brings the last crew pod in.*
+*The commander brings the last crew pod in. Tam steps out in settler's clothes.*
 
-**TAM · picker:** We made it! I dreamed we never landed. Give me something to do.
+**TAM · settler:** We made it! I dreamed we never landed. Give me something to do.
 
-**COMMANDER:** Plenty. Stay close to the reactor for now.
+**COMMANDER:** Soon. We'll need someone to work the fields.
 
-*The commander tows the orange pod in. Its glass swings open on nobody. Rhee walks over and stands beside it.*
+*The commander tows the orange pod in. Up close it's a Halcyon pod, scorched orange by a hot landing. Its hatch hangs
+open, already empty. Rhee walks over and stands beside it.*
 
-**COMMANDER:** Whose pod is this?
+**COMMANDER:** Who was in this?
 
-**KILN:** Not from the *Halcyon*. Someone else landed here, long before us.
+**KILN:** It's the lander's escape pod. My logs say it never launched, so someone launched it by hand.
 
-**RHEE:** Locked from the outside, and nobody home. It's an old pod, but somebody slept in it not long ago. It's
-still warm.
+**RHEE:** Opened from the inside. The hatch is packed with dust. Whoever rode it down walked away, a while back.
 
 *Goal star. The reactor brightens.*
 
-**KILN:** Power's up. I can open bays five to eight now. I'll show you my camera on the deck.
+**KILN:** Power's up. I can open bays five to eight now. Here's my camera on the deck.
 
 *[held] `empty_bays`: KILN's camera feed of the deck. Four pods read OCCUPIED. Bay 5 unlocks; its plate shows a photo
 and VALE, FIRST OFFICER. The glass lifts on an empty pod.*
 
 **COMMANDER:** All four read occupied. But Vale's is empty.
 
-**RHEE:** The sensors say someone's inside. The camera says nobody is.
+**RHEE:** Then where is Vale?
 
 *The level ends.*
 
@@ -160,32 +165,32 @@ and VALE, FIRST OFFICER. The glass lifts on an empty pod.*
 
 ## Level 3: Open for Trade (dusk into night)
 
-*Dusk. The crew huddle by the reactor in blowing dust. Five crew now: Pip, Rhee, Okafor, Tam and the commander.*
+*Dusk. The camera starts on the camp, with the crew huddled by the reactor in blowing dust and the reactor's light
+fading. It pans out along the road to the south, where an old kiosk stands dark. Far off, the only moving light: a
+trader walking in with a lamp. The camera follows her to the kiosk.*
 
-**RHEE:** These pods kept us alive, but they won't last another storm. We need real shelter. A habitat hub.
+**SELA:** Well. Somebody's living out here. I'm Sela. I trade between the settlements: salvage, food, whatever
+people need.
 
-**KILN:** The parts for a hub would cost 150 credits. We have none.
+**COMMANDER:** Settlements? There are other people on this planet?
 
-**COMMANDER:** Then we earn them.
+**SELA:** Three towns along this road, and every one of them is hungry. You've got a grow dome there. I'll pay for
+greens.
 
-*The camera holds on the hub's ghost outline with its price: 150.*
+**KILN:** People who trade. Commander, if we sell to her, we can afford a real shelter for the crew.
 
-*Night falls. Far off, the only moving light: a trader walking in with a lamp, toward an old kiosk on the road. The
-camera follows. [held: the buggy and headlights replace the walk]*
-
-**SELA:** Sela. Salvage trader, out of Meridian. I came for that wreck. Didn't expect anyone living in it.
-
-**SELA:** You've got a field there. I'll buy greens, if you've got them.
-
-**KILN:** The grow dome beside you grows greens. Pick some, put them on the kiosk's shelf, then stand at the counter
-to sell.
+**KILN:** The grow dome beside you grows greens. Pick some, put them on the kiosk's shelf, then stand at the counter.
 
 > GOAL CARD: **Sell Sela some greens**
 
 *The commander picks greens, stocks the shelf and stands at the counter. Coins fly; the credits counter appears. Goal
 star.*
 
-**KILN:** Credits. Every sale brings that hub closer.
+**RHEE:** These pods kept us alive, but they won't last another storm. We need a habitat hub.
+
+*The camera holds on the hub's ghost outline beside the camp, and its price: 150.*
+
+**KILN:** A hub costs 150 credits. Every sale gets us closer.
 
 *A second trader reaches the front of the line, looks at the shelf and turns away angry.*
 
@@ -198,13 +203,13 @@ its price.*
 
 **KILN:** Clearing the slide costs 12 credits. Sell greens until you have 12, then stand on that pad to pay.
 
-> GOAL CARD: **Clear the rockslide**
+> GOAL CARD: **Clear the rockslide (12)**
 
 *The commander pays; the rubble sinks in a burst of dust. Goal star.*
 
 **KILN:** That slide is fresh. Something shook it loose. Maybe that signal from the ridge.
 
-**KILN:** Walk up to a hopper and your rifle does the rest. Carry the meat to the kiosk and sell it.
+**KILN:** Walk up to a hopper and you'll be able to hunt it. Carry the meat to the kiosk and sell it.
 
 > GOAL CARD: **Sell meat at the kiosk**
 
@@ -212,7 +217,7 @@ its price.*
 
 **KILN:** That dim pad by the road opens a second grow dome, if you want more greens.
 
-**RHEE:** The hub's spot is marked beside the camp. Keep selling, then pay there. 150 credits.
+**RHEE:** Keep selling. When we have 150, we pay at the hub's outline.
 
 > GOAL CARD: **Build the habitat hub (150)**
 
@@ -241,13 +246,14 @@ star.*
 
 ## Level 4: Halcyon Works (morning to dusk)
 
-*Black. In the corner: DAY 5. It's struck through and replaced: DAY 4,023. Morning. The commander stands alone at the
-reactor.*
+*Black. In the corner: DAY 5. It's struck through and replaced: DAY 4,023. Morning. The camera starts on the
+wreck, far to the east, and slowly pulls back west across the open ground to the town and the commander standing
+alone at the reactor, so the distance reads before anyone speaks.*
 
 **COMMANDER:** KILN. Is it true? Eleven years?
 
-**KILN:** I shut down everything except the pods to save power. Even my own clock. It's been four thousand and
-twenty-three days.
+**KILN:** I shut down everything except the pods to save power. My clock must have been off too. It's been four
+thousand and twenty-three days.
 
 *KILN dims as it says it.*
 
@@ -256,13 +262,14 @@ twenty-three days.
 **KILN:** It looks like the flight recorder survived the crash. It's still in the wreck. Bring it to me and I can read
 it.
 
-**COMMANDER:** The wreck's a long walk north. They need me here to keep the town fed and the kiosk stocked.
+**COMMANDER:** The wreck's a long walk east. They need me here to keep the town fed and the kiosk stocked.
 
 **RHEE:** Then we'll learn to run things on our own. We need that box to know what happened to us.
 
 **KILN:** You'll need to train the team to keep the town running without you.
 
-**SELA:** Storm season's close. Everyone will want hot meals, and hot meals pay well.
+**SELA:** Storm season's close. I know some other settlers who'd pay good credits for hot meals, if your team can
+cook them. And two of my drivers want steady work, if you'll train them.
 
 **KILN:** A galley cooks greens into meals. Its pad is beside the grow dome.
 
@@ -277,16 +284,17 @@ it.
 > GOAL CARD: **Train the crew for all three jobs**
 
 *Training pads glow beside the galley, each with a crewmate's name. Each job the commander does by hand unlocks its
-pad; each hire walks to a post: Tam carries greens, Rhee cooks, Okafor carries meals. Pip stays on ore. When the dome and galley run with nobody carrying for them:*
+pad; each hire walks to a post: Tam carries greens from the dome; Sela's two drivers cook and carry meals. Pip stays on
+ore, Rhee on the aid station, Okafor on watch. When the dome and galley run with nobody carrying for them:*
 
-**KILN:** They've got it. Now walk north to the wreck. The bar fills while the town runs without you. If the dome or
+**KILN:** They've got it. Now walk east to the wreck. The bar fills while the town runs without you. If the dome or
 galley stops, it drops back to zero.
 
 *A small light starts blinking at the wreck, the only new light on the map as the day turns.*
 
 > GOAL CARD: **Reach the wreck while the town runs itself**
 
-*The commander reaches the wreck as the bar fills. Goal star. An orange flight recorder lies in the open at the hull
+*The commander climbs the drifted sand ramp onto the deck and reaches the wreck as the bar fills. Goal star. An orange flight recorder lies in the open at the hull
 break, its light blinking.*
 
 **KILN:** That's it. Tow it home to me, the same way you towed the pods.
@@ -300,9 +308,12 @@ heat beside the reactor, the recorder opens. KILN brightens. Goal star.*
 figures, seen only from behind, climb out, close and lock the empty pods from outside, and walk away. The lights
 turn to OCCUPIED. Static.*
 
-**KILN:** Four minutes before impact, they let themselves out. Then they locked their pods behind them, empty.
+**KILN:** Four minutes before impact, they let themselves out. Then they locked their pods behind them, empty, so the
+pods would still read occupied.
 
 **COMMANDER:** Bays five to eight. Vale and three others walked away from their own pods.
+
+**KILN:** Then they took the lander's escape pod, the scorched one on the plain. That's how they left the ship.
 
 *The ridge flashes red.*
 
@@ -320,7 +331,7 @@ turn to OCCUPIED. Static.*
 
 **COMMANDER:** Then we hold the gate.
 
-**KILN:** Three are coming first. Get close and your rifle fires on its own. Fallen raiders drop scrap; pick it up.
+**KILN:** Three are coming first. Once you get close, you'll be able to shoot. Fallen raiders drop scrap; pick it up.
 
 > GOAL CARD: **Stop the first raiders**
 
@@ -333,7 +344,8 @@ Goal star.*
 
 *The turret rises and opens fire in the next wave. Goal star. The guard post beside the gate lights up.*
 
-**OKAFOR:** Good. Now train a guard to hold the gate with me. Stand on the post's pad and pay.
+**OKAFOR:** Good. The hub's taken in two new settlers. Train one as a guard to hold the gate with me. Stand on the
+post's pad and pay.
 
 > GOAL CARD: **Train a guard**
 
@@ -355,7 +367,7 @@ goes dark. Goal star.*
 
 *The helmet lies on the sand, a small red light pulsing inside it.*
 
-**KILN:** He dropped something.
+**KILN:** They dropped something.
 
 > GOAL CARD: **Pick up the helmet**
 
@@ -376,15 +388,16 @@ commander runs two steps toward the screen edge, holding the helmet, then stops.
 | After | They know |
 |---|---|
 | L1 | They crashed. KILN runs the ship's support from the reactor. Four pods on the deck are still sealed; Vale is in one. Something on the ridge sends a signal. |
-| L2 | Four crew survived on the plain. An old pod from another ship is out there, empty. Bays 5–8 read occupied but Vale's is empty. |
+| L2 | Four crew survived on the plain. A scorched Halcyon lander pod was ridden down long ago and abandoned. Bays 5–8 read occupied, but Vale's is empty. |
 | L3 | They need shelter and money. Others live here and trade. The ship crashed eleven years ago, not four days. People in Halcyon suits are on the ridge. |
-| L4 | KILN slept to save power. Four crew let themselves out before the crash and locked their pods empty. Something moves on the ridge. |
+| L4 | KILN slept to save power. Vale and three others let themselves out before the crash, locked their pods empty and left in the lander pod. Something moves on the ridge. |
 | L5 | Raiders from the ridge attack. Their leader knows the commander and wears Vale's helmet. |
 
 ## Goal changes against the shipped levels (for building)
 
 - **L1:** a new first goal, "Reach the light" (A).
-- **L2:** goal 3 becomes all five pods, including the orange one (S13, rules option).
+- **L2:** goal 3 becomes all five pods, including the orange one (S13, rules option). Rhee joins as `role.medic` (the
+  medic suit), not on ore. The slack line is gone (R6 G7).
 - **L3:** four goals: sell greens, clear the slide, sell meat (new), build the hub.
 - **L4:** four goals: build the galley, train the crew for all three jobs (new, a `hire` goal), reach the wreck while the
   town runs, bring the recorder home.
@@ -412,5 +425,9 @@ without the facts, the knowledge table or the held markers.
     wording issues: KILN's long intro, the bar text, Tam without a job, no helmet goal, the commander's own bay,
     stasis, the colony ship.
   - Draft 3 fixed the wording.
-- **Deliberate open hook, kept:** the orange pod is old but "still warm". Two readers flagged it as a contradiction;
-  it's meant as a mystery for later levels.
+- **Draft 4 check (one Haiku reader).** It followed the lander-pod thread and the main story. Its wording points are
+  fixed: "fuel" became ore, the charge reason is explicit, KILN no longer contradicts itself on the launch, Rhee
+  infers age from dust, Sela trades more than salvage, and the pods "still read occupied" is explained.
+- **Draft 4 (Doug's notes, 2026-11-03):** the orange pod is now the Halcyon's scorched lander pod, ridden down long ago
+  by Vale's four and abandoned. That replaces the "another ship, still warm" hook two readers took for a contradiction.
+  Level 3 opens on Sela, so the player meets traders before any price. KILN no longer speaks as the reactor.
