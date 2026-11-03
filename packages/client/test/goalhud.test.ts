@@ -41,13 +41,13 @@ describe("goal icons", () => {
   it("protein fills, the time star is a full stopwatch at the start, tow trips are three pips", () => {
     const { sim, m, cp } = level(34);
     const t = goalTokens(sim.state, m, cp, skin);
-    expect(t.map((x) => x.glyph)).toEqual(["meat", "stopwatch", "pod"]);
-    expect(t[1]!.pie).toBeCloseTo(1);
-    expect(t[2]!.pips).toEqual({ n: 3, done: 0, part: 0 });
+    expect(t.map((x) => x.glyph)).toEqual(["meat", "pod", "stopwatch"]);
+    expect(t[2]!.pie).toBeCloseTo(1);
+    expect(t[1]!.pips).toEqual({ n: 3, done: 0, part: 0 });
     // only count goals carry a number: protein shows its target, the stopwatch and pips do not
     expect(t.map((x) => x.beside)).toEqual(["25", undefined, undefined]);
-    // every tracker shows its current number: 0 protein, the stopwatch's full 4:04, 0 trips
-    expect(t.map((x) => x.inner)).toEqual(["0", "4:04", "0"]);
+    // every tracker shows its current number: 0 protein, 0 trips, the stopwatch (last) full 4:04
+    expect(t.map((x) => x.inner)).toEqual(["0", "0", "4:04"]);
   });
 
   it("L5: waves are pips; won goals draw a star and missed ones are struck through", () => {
