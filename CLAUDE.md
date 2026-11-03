@@ -60,7 +60,7 @@ pnpm levels:check  # replay every pack level with the bot ladder (~30 s)
 
 - **Read first:** `docs/DECISIONS.md` (overrides the spec), `docs/REDESIGN-R2.md` (latest agreed
   design), `README.md` status. Doug's feedback rounds are recorded there, not in chat history.
-  The current round's work ledger is `docs/BACKLOG-R5.md`; tick items there as they land.
+  The current round's work ledger is `docs/BACKLOG-R6.md` (R5 leftovers stay in `docs/BACKLOG-R5.md`); tick items there as they land.
 - **Two accounts push here (from 2026-11-02).** Story levels 2–5 are built by a second Claude account.
   Before editing anything under `levels/story/`, `client/src/story/`, the story cues in
   `skins/src/mars_greenhouse.ts`, or before an engine bump, read and update `docs/STORY-WORK-LOG.md`

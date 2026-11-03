@@ -30,6 +30,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 |---|---|---|---|---|
 | 2026-11-03 | B | `story-p2` | `levels/story/story-L00{2..5}.json`; `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Levels 2–5: finish Phase 1, then the Phase 2 scene player and `empty_bays` |
 | 2026-11-03 | B (agent) | `story-buggy` | new `decor.buggy*` GLBs; `render-3d/src/assets/meshy.json` (new entries only); a new reduction script under `tools/cinematics/` | Buggy and wheels for Sela's arrival |
+| 2026-11-03 | A (R6) | `r6-fade`, `r6-art`, `r6-hud`, `r6-stats` | `render-3d/src/renderer.ts` (fade, depot pad art, syncCore, belt goods), `render-3d/src/scene/environment.ts`, `materials.ts`; `client/src/hud.ts`, `goalhud.ts`, `pwa.ts`, `title.ts`; `client/src/dev/sandbox.ts`. Not `app.ts`, not story files | R6 Release 1 (`docs/BACKLOG-R6.md`) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
