@@ -69,8 +69,8 @@ commander, close enough that it can't be missed. Goal star.*
 
 **COMMANDER:** My first officer, Vale, is in bay five. Open them.
 
-**KILN:** I need more charge before I can. Keep the reactor burning until morning. There's a storm coming, and in a
-storm it burns fuel twice as fast.
+**KILN:** Not yet. The reactor has to burn all night before there's power to open them. Keep it burning until
+morning. A storm is coming, and in a storm it eats ore twice as fast.
 
 > GOAL CARD: **Keep the reactor burning until morning**
 
@@ -95,7 +95,7 @@ freezing.
 
 *Pointers appear at the screen edge, one for each pod.*
 
-**KILN:** There's a fifth pod. It's one of ours, a lander escape pod, but it's not on my crew list.
+**KILN:** There's a fifth pod. It's one of ours, an escape pod from the lander, but nobody was assigned to it.
 
 **COMMANDER:** Then I'll bring all five in.
 
@@ -144,9 +144,9 @@ open, already empty. Rhee walks over and stands beside it.*
 
 **COMMANDER:** Who was in this?
 
-**KILN:** It launched from the lander, not from the deck. But my logs don't show it launching at all.
+**KILN:** It's the lander's escape pod. My logs say it never launched, so someone launched it by hand.
 
-**RHEE:** Opened from the inside, a long time ago. Whoever rode it down walked away.
+**RHEE:** Opened from the inside. The hatch is packed with dust. Whoever rode it down walked away, a while back.
 
 *Goal star. The reactor brightens.*
 
@@ -169,7 +169,8 @@ and VALE, FIRST OFFICER. The glass lifts on an empty pod.*
 fading. It pans out along the road to the south, where an old kiosk stands dark. Far off, the only moving light: a
 trader walking in with a lamp. The camera follows her to the kiosk.*
 
-**SELA:** Well. Somebody's living out here. I'm Sela. I trade salvage between the settlements.
+**SELA:** Well. Somebody's living out here. I'm Sela. I trade between the settlements: salvage, food, whatever
+people need.
 
 **COMMANDER:** Settlements? There are other people on this planet?
 
@@ -307,11 +308,12 @@ heat beside the reactor, the recorder opens. KILN brightens. Goal star.*
 figures, seen only from behind, climb out, close and lock the empty pods from outside, and walk away. The lights
 turn to OCCUPIED. Static.*
 
-**KILN:** Four minutes before impact, they let themselves out. Then they locked their pods behind them, empty.
+**KILN:** Four minutes before impact, they let themselves out. Then they locked their pods behind them, empty, so the
+pods would still read occupied.
 
 **COMMANDER:** Bays five to eight. Vale and three others walked away from their own pods.
 
-**KILN:** And the scorched pod on the plain. That's how they left the ship.
+**KILN:** Then they took the lander's escape pod, the scorched one on the plain. That's how they left the ship.
 
 *The ridge flashes red.*
 
@@ -423,6 +425,9 @@ without the facts, the knowledge table or the held markers.
     wording issues: KILN's long intro, the bar text, Tam without a job, no helmet goal, the commander's own bay,
     stasis, the colony ship.
   - Draft 3 fixed the wording.
+- **Draft 4 check (one Haiku reader).** It followed the lander-pod thread and the main story. Its wording points are
+  fixed: "fuel" became ore, the charge reason is explicit, KILN no longer contradicts itself on the launch, Rhee
+  infers age from dust, Sela trades more than salvage, and the pods "still read occupied" is explained.
 - **Draft 4 (Doug's notes, 2026-11-03):** the orange pod is now the Halcyon's scorched lander pod, ridden down long ago
   by Vale's four and abandoned. That replaces the "another ship, still warm" hook two readers took for a contradiction.
   Level 3 opens on Sela, so the player meets traders before any price. KILN no longer speaks as the reactor.
