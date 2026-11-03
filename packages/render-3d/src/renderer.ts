@@ -400,6 +400,8 @@ export class Renderer3D implements Renderer {
   private look = v3();
   private safeR = 0;
   private fuelK = 1;
+  /** Last fuel fed to the core; its hopper pile shows this (N11). */
+  private coreFed: string | null = null;
   private lifeK = 1;
   private synced = false;
   private stockMax = new Map<string, number>();
@@ -1297,13 +1299,19 @@ export class Renderer3D implements Renderer {
     // the core keeps fuel as a number, but the ore waits visibly in its hopper: a pile scaled from the
     // fuel level (capped), drawn the way a converter shows its input queue (renderer only, no sim state)
     const CORE_HOPPER_MAX = 9; // most ore drawn at full fuel
+    const CORE_HOPPER_R = 1.35; // model units from the core's centre: just past its 1.2 radius
     if (this.cp && s.core.fuel > 0 && !s.core.dormant) {
-      let ore: string | null = null;
-      for (const [res, v] of Object.entries(this.cp.core.accepts)) if (ore === null || v > (this.cp.core.accepts[ore] ?? 0)) ore = res;
+      let ore: string | null = this.coreFed;
+      if (ore === null) for (const [res, v] of Object.entries(this.cp.core.accepts)) if (ore === null || v < (this.cp.core.accepts[ore] ?? 0)) ore = res;
       if (ore) {
         const n = Math.min(CORE_HOPPER_MAX, Math.max(1, Math.ceil(k * CORE_HOPPER_MAX)));
-        const dep = this.anchorWorld(p, "deposit", tmpV);
-        for (let i = 0; i < n; i++) this.items!.add(ore, dep.x + ((i % 3) - 1) * 6, dep.y - 4 + Math.floor(i / 3) * 6, dep.z + ((i * 5) % 3) - 1, i);
+        // the deposit anchor sits inside the round body, so the pile goes on the ground just outside
+        // it, on the same bearing (the hatch side)
+        const dep = this.anchorWorld(p, "deposit", tmpV), root = p.model.root.position;
+        const dx = dep.x - root.x, dz = dep.z - root.z, d = Math.hypot(dx, dz) || 1;
+        const r = p.model.root.scale.x * CORE_HOPPER_R;
+        const cx = root.x + (dx / d) * r, cz = root.z + (dz / d) * r;
+        for (let i = 0; i < n; i++) this.items!.add(ore, cx + ((i % 3) - 1) * 6, root.y + 2 + Math.floor(i / 3) * 2, cz + (Math.floor(i / 3) - 1) * 6, i);
       }
     }
   }
@@ -2942,6 +2950,7 @@ export class Renderer3D implements Renderer {
         const from = this.workerBack(e) ?? this.playerBack();
         const target = this.depositTarget(String(e["to"]), at);
         fx.arc(String(e["res"]), from, target, 0.28);
+        if (e["to"] === "sink.core") this.coreFed = String(e["res"]);
         break;
       }
       case "pad_paid":

@@ -10,33 +10,35 @@ Story levels 2-5 belong to the second account (`docs/STORY-WORK-LOG.md`); check 
 
 ## Release 1: renderer and client, no engine bump
 
+Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked on L14: silhouette through the grow dome, dome and warehouse stay solid, the warehouse arrow points inward, ore by the reactor hatch (the deposit anchor sits inside the body, so the pile is placed just outside on its bearing and shows the last fuel fed), and the sandbox stats panel. Not seen on screen: belt goods (#4), curbs (#7), smoothing (#8) beyond the reactor, the HUD items (#1, #2, #3, #6), and N16, which needs two real deploys. Not on an iPhone. The silhouette covers the rigged hero only.
+
 ### Bundle 1: occlusion (Opus)
-- [ ] **#5 + N7 never fade:** the grow dome, the warehouse (`struct.depot`) and resource nodes (`node.*`) never
+- [x] **#5 + N7 never fade:** the grow dome, the warehouse (`struct.depot`) and resource nodes (`node.*`) never
       fade (NO_FADE, `render-3d/src/renderer.ts:129`). This finishes R5 #4's open note (buildings faded with
       the hero inside them).
-- [ ] **N9 player behind walls:** pretotype first. Draw the hero as a silhouette that shows through any
+- [x] **N9 player behind walls:** pretotype first. Draw the hero as a silhouette that shows through any
       occluder, walls included (walls are instanced and can't fade per tile). Build per-tile wall fading
       only if the silhouette reads wrong.
 
 ### Bundle 2: base and building art (Sonnet)
-- [ ] **#4 goods below the belt top:** probably the belt is lifted by SLAB_TOP and the goods aren't
+- [x] **#4 goods below the belt top:** probably the belt is lifted by SLAB_TOP and the goods aren't
       (renderer.ts ~1537). Confirm first.
-- [ ] **#7 remove the curbs:** lot-edge pipes on stands (`environment.ts:237`, `:262`).
-- [ ] **#8 smooth code-built objects:** remove the faceted look and keep intentional edges (normals by
+- [x] **#7 remove the curbs:** lot-edge pipes on stands (`environment.ts:237`, `:262`).
+- [x] **#8 smooth code-built objects:** remove the faceted look and keep intentional edges (normals by
       angle; `materials.ts` flatShading).
-- [ ] **N14 warehouse arrow points inward:** the drop-off pad art (`depotPadArt`, renderer.ts) points away
+- [x] **N14 warehouse arrow points inward:** the drop-off pad art (`depotPadArt`, renderer.ts) points away
       from the building.
-- [ ] **N11 ore in the reactor hopper:** the core stores fuel as a number. Draw ore at its `deposit` anchor,
+- [x] **N11 ore in the reactor hopper:** the core stores fuel as a number. Draw ore at its `deposit` anchor,
       scaled from fuel (`syncCore`), the way converters show `inQ`.
 
 ### Bundle 3: HUD and client (Sonnet)
-- [ ] **#1 gate/defence icons:** they shake continuously while at risk. Change to a short burst when the
+- [x] **#1 gate/defence icons:** they shake continuously while at risk. Change to a short burst when the
       danger starts or a hit lands, then a steady red glow.
-- [ ] **#2 VIP goal icon:** no face; block "VIP" text as the icon (text from the skin).
-- [ ] **#3 "Finish in x:xx" is always the last star:** sort it in the HUD now, and fix the order in
+- [x] **#2 VIP goal icon:** no face; block "VIP" text as the icon (text from the skin).
+- [x] **#3 "Finish in x:xx" is always the last star:** sort it in the HUD now, and fix the order in
       generator `index.ts` for future builds. No re-pin.
-- [ ] **#6 impatient trader "!" arrow** on any level, not only with the no_angry_customers goal under 20%.
-- [ ] **N16 old homepage flashes before the new one:** the service worker serves the cached build until the
+- [x] **#6 impatient trader "!" arrow** on any level, not only with the no_angry_customers goal under 20%.
+- [x] **N16 old homepage flashes before the new one:** the service worker serves the cached build until the
       player taps Update (`registerType: "prompt"`, `client/src/pwa.ts`). On the title screen only, with no
       level in progress, apply a waiting update before the title paints. Reproduce it first.
 - [ ] **#9 cutscenes in the level menu:** replay after Start Over (save.ts keeps seen ones), a "!" until
@@ -44,7 +46,7 @@ Story levels 2-5 belong to the second account (`docs/STORY-WORK-LOG.md`); check 
       session's Phase 2 push lands: it owns `app.ts` and film versions in the save.
 
 ### Bundle 4: sandbox stats panel (Sonnet)
-- [ ] **N5b fighter stats in the sandbox viewer** (`client/sandbox.html`, `client/src/dev/sandbox.ts`):
+- [x] **N5b fighter stats in the sandbox viewer** (`client/sandbox.html`, `client/src/dev/sandbox.ts`):
       range, damage, attack interval, HP, speed and contact reach for every character that fights
       (commander, guards, drones, towers, medic, mites, raiders, warlords). Read only existing values from
       content data, defaults and level params, and mark the ones written into code. Doug: "don't make new

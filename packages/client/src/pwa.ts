@@ -48,7 +48,8 @@ export function setupPwa(onReady: (info: ReleaseInfo | null) => void): UpdateHan
     };
     void sw.register(`${base}sw.js`, { scope: base }).then((reg) => {
       mark(reg.waiting);
-      if (waiting || !reg.installing) settle();
+      // a first visit has no old build on screen, so it never waits for its own install
+      if (waiting || !reg.installing || !sw.controller) settle();
       else {
         const w = reg.installing;
         w.addEventListener("statechange", () => { if (w.state === "installed") mark(w); if (w.state !== "installing") settle(); });
