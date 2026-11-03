@@ -18,11 +18,23 @@
       .row output { text-align: right; font-variant-numeric: tabular-nums; }
       input[type=range] { width: 100%; min-width: 0; accent-color: var(--acc); }
       .btns { display: flex; gap: 8px; margin-top: 9px; }
+      #stats { position: fixed; inset: 0 0 var(--panel-h, 120px) 0; background: rgba(18, 19, 21, 0.97); overflow-y: auto; touch-action: pan-y; padding: 12px 16px; display: none; }
+      #stats.open { display: block; }
+      #stats select { font: inherit; color: var(--fg); background: #2c2d31; border: 1px solid #444; border-radius: 8px; padding: 6px; max-width: 100%; }
+      #stats h3 { margin: 16px 0 4px; color: var(--acc); font-size: 15px; }
+      #stats .note { color: var(--dim); font-size: 12px; margin: 0 0 4px; }
+      #stats table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      #stats td { padding: 3px 6px 3px 0; border-top: 1px solid #2a2b2f; vertical-align: top; }
+      #stats td.v { font-variant-numeric: tabular-nums; white-space: nowrap; }
+      #stats td.s { color: var(--dim); font-size: 11px; word-break: break-word; }
+      #stats tr.code td.s { color: #e8745a; }
+      #stats tr.code td.s::before { content: "CODE "; font-weight: 700; }
       #status { margin-top: 8px; color: var(--dim); font-size: 13px; min-height: 1.3em; }
     </style>
   </head>
   <body>
     <div id="stage"></div>
+    <div id="stats"></div>
     <div id="panel">
       <div class="row">
         <label for="bright">Model brightness</label>
@@ -33,6 +45,7 @@
         <button id="center">Centre</button>
         <button id="reset">Reset</button>
         <button id="copy">Copy link</button>
+        <button id="statsBtn">Fighter stats</button>
         <a href="layout.html" style="color: var(--dim); font-size: 14px; align-self: center">Layout sandbox</a>
       </div>
       <div id="status"></div>
