@@ -68,6 +68,12 @@ follow-up, it stays in the story backlog under the same S number, so each part i
       older step (on story level 3 they kept pointing at the kiosk with the rockslide money in hand). **After level
       5 they still appear only when the player is stuck (the 20 s rule, Doug 2026-11-03).** Levels 1–5 show them
       from the first moment, and that stays in the story backlog (S7).
+- [ ] **G7 drop the tow line's slack rule (Doug, 2026-11-03):** standing still with a tow no longer drops it, on every
+      level. Remove `lasso.slackTime` / `slackTicks` and the `tow_dropped` "slack" reason from the sim, the bots'
+      never-stand-still rule, hints and skin text. A rules change: engine bump, so it belongs to Release 2. Story
+      level 2's line about it is already cut.
+- [ ] **G8 realistic storm dust (Doug, 2026-11-03):** dust storms look like soft, translucent drifting clouds, like
+      KILN's cloud, instead of the hard lines drawn now. Every level with a hazard (`render-3d` fx/environment).
 - [ ] **G6 (S9) one loop around pods side by side:** when pods sit close together, the arrows draw one circle around
       the group instead of one per pod, so towing several at once is taught. It's client guide code; the story
       backlog keeps a check of level 2's pair.
