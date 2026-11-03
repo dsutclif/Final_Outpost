@@ -28,6 +28,8 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-03 | B | `story-p2` | `levels/story/story-L00{2..5}.json`; `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Levels 2–5: finish Phase 1, then the Phase 2 scene player and `empty_bays` |
+| 2026-11-03 | B (agent) | `story-buggy` | new `decor.buggy*` GLBs; `render-3d/src/assets/meshy.json` (new entries only); a new reduction script under `tools/cinematics/` | Buggy and wheels for Sela's arrival |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
