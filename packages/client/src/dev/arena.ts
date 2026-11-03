@@ -9,7 +9,7 @@ import { ART_M, BUILD_K, CHAR_K } from "@fo/render-3d/units";
 import { HEMI, SUN } from "@fo/render-3d/environment";
 import { deriveTokens } from "@fo/render-3d/tokens";
 import { EXPOSURE } from "@fo/render-3d/renderer";
-import { ARENA, cardRows, createFight, PROPOSALS, roster, SHOT_NAME, stepFight, type Edits, type Fight, type Mode, type Unit } from "./arenaModel.js";
+import { ACID_COLOR, ARENA, cardRows, createFight, PROPOSALS, roster, SHOT_NAME, stepFight, type Edits, type Fight, type Mode, type Unit } from "./arenaModel.js";
 import type { FighterNums } from "./fighterStats.js";
 
 // Fighter arena (dev sandbox, R6 Release 2 Bundle 5): enemy cards left, settler cards right, the fight in the middle.
@@ -61,7 +61,7 @@ const TRACER_LIFE = 0.45;
 const GLOW: Record<string, string> = { settler: "#5aa8ff", enemy: "#ff4a3a", acid: "#8ff05a" };
 const CHAR_ID: Record<string, string> = { player: "unit.player", guard: "role.defender" };
 
-interface Tracer { a: Vector3; b: Vector3; kind: string; born: number }
+interface Tracer { a: Vector3; b: Vector3; kind: string; color: string; born: number }
 
 export interface ArenaUi { open(): void; close(): void }
 
@@ -201,16 +201,22 @@ export function createArena(): ArenaUi {
 
   const disc = new CircleGeometry(1, 48), rim = new RingGeometry(0.96, 1, 64);
   const circleMat = (c: string, o: number): MeshBasicMaterial => new MeshBasicMaterial({ color: new Color(c), transparent: true, opacity: o, depthWrite: false });
-  const mats = { enemy: [circleMat("#ff6a50", 0.07), circleMat("#ff6a50", 0.4)], settler: [circleMat("#5aa8ff", 0.07), circleMat("#5aa8ff", 0.4)], acid: [circleMat("#8ff05a", 0.05), circleMat("#8ff05a", 0.35)], rifle: [circleMat("#ff4a3a", 0.04), circleMat("#ff4a3a", 0.3)] };
+  const mats = { enemy: [circleMat("#ff6a50", 0.07), circleMat("#ff6a50", 0.4)], settler: [circleMat("#5aa8ff", 0.07), circleMat("#5aa8ff", 0.4)], rifle: [circleMat("#ff4a3a", 0.04), circleMat("#ff4a3a", 0.3)] };
   type Pool = { circles: Mesh[]; body: Object3D | null };
   const pool = new Map<number, Pool>();
   const fallbackGeo = { body: new CylinderGeometry(6, 7, 26, 12), head: new SphereGeometry(5, 12, 8) };
 
+  const acidMats = new Map<string, MeshBasicMaterial[]>();
+  const acidMat = (type: string): MeshBasicMaterial[] => {
+    const c = ACID_COLOR[type] ?? GLOW["acid"]!;
+    if (!acidMats.has(c)) acidMats.set(c, [circleMat(c, 0.05), circleMat(c, 0.35)]);
+    return acidMats.get(c)!;
+  };
   function circlesFor(u: Unit): { r: number; m: MeshBasicMaterial[] }[] {
     const side = u.side === "enemy" ? mats.enemy : mats.settler;
     const out = [{ r: u.s.range ?? 0, m: side }];
     if (u.kind === "player" && u.s.gunRange) out.push({ r: u.s.gunRange, m: side });
-    if ((u.s.shotRange ?? 0) > 0) out.push({ r: u.s.shotRange!, m: SHOT_NAME[u.type] === "Acid spit" ? mats.acid : mats.rifle });
+    if ((u.s.shotRange ?? 0) > 0) out.push({ r: u.s.shotRange!, m: SHOT_NAME[u.type] === "Acid spit" ? acidMat(u.type) : mats.rifle });
     return out.filter((c) => c.r > 0);
   }
 
@@ -312,7 +318,7 @@ export function createArena(): ArenaUi {
     return proj(tr.a.x + (tr.b.x - tr.a.x) * t, tr.a.y + (tr.b.y - tr.a.y) * t + arc, tr.a.z + (tr.b.z - tr.a.z) * t);
   };
   function drawAcid(tr: Tracer, life: number): void {
-    const acid = GLOW["acid"]!;
+    const acid = tr.color;
     ctx.fillStyle = acid; ctx.shadowColor = acid;
     if (life < ACID_FLIGHT) {
       const t = life / ACID_FLIGHT;
@@ -423,14 +429,14 @@ export function createArena(): ArenaUi {
         const h0 = fight.hits.length;
         stepFight(fight);
         acc -= step;
-        for (const s of fight.shots) { tracers.push({ a: new Vector3(s.fx, 20, s.fy), b: new Vector3(s.tx, 16, s.ty), kind: s.kind, born: now }); if (s.kind !== "acid") muzzles.push({ x: s.fx, y: 20, z: s.fy, kind: s.kind, born: now }); }
+        for (const s of fight.shots) { tracers.push({ a: new Vector3(s.fx, 20, s.fy), b: new Vector3(s.tx, 16, s.ty), kind: s.kind, color: s.kind === "acid" ? ACID_COLOR[s.by] ?? GLOW["acid"]! : GLOW[s.kind]!, born: now }); if (s.kind !== "acid") muzzles.push({ x: s.fx, y: 20, z: s.fy, kind: s.kind, born: now }); }
         for (let i = h0; i < fight.hits.length; i++) {
           const hit = fight.hits[i]!;
           const tu = hit.target === "base" ? fight.base : fight.units.find((u) => u.uid === hit.target);
           if (!tu) continue;
           flashes.push({ x: tu.x, y: 18, z: tu.y, born: now });
           const bySettler = fight.units.find((u) => u.uid === hit.by)?.side === "settler";
-          if (hit.dmg > 0) pops.push({ x: tu.x, y: 30, z: tu.y, text: `-${+hit.dmg.toFixed(1)}`, color: bySettler ? GLOW["settler"]! : hit.ranged && GLOW["acid"] && fight.units.find((u) => u.uid === hit.by)?.type === "hostile.swarmling" ? GLOW["acid"]! : GLOW["enemy"]!, born: now });
+          if (hit.dmg > 0) pops.push({ x: tu.x, y: 30, z: tu.y, text: `-${+hit.dmg.toFixed(1)}`, color: bySettler ? GLOW["settler"]! : (hit.ranged && ACID_COLOR[fight.units.find((u) => u.uid === hit.by)?.type ?? ""]) || GLOW["enemy"]!, born: now });
         }
       }
       if (fight.result) showResult();

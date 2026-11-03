@@ -80,4 +80,23 @@ describe("fighter arena model", () => {
       expect(worst, `${enemy} vs ${settler}`).toBeLessThan(1.5);
     }
   });
+  it("R2: nobody stops to shoot; fighters close in and switch to melee in reach (Doug 2026-11-03)", () => {
+    const contact = content.defaults["defense.troopContact"]!;
+    for (const [enemy, settler] of [["hostile.raider_humanoid", "guard"], ["hostile.raider_humanoid", "drone"], ["hostile.boss", "player"], ["hostile.creature", "guard"]] as const) {
+      const f = runFight({ enemy, enemies: 6, settler, settlers: 3, mode: "r2", seed: 11 });
+      const melee = f.hits.filter((h) => !h.ranged && h.target !== "base");
+      expect(melee.length, `${enemy} vs ${settler}: melee happens`).toBeGreaterThan(0);
+      // a shot is never fired from inside melee reach
+      for (const h of f.hits) if (h.ranged && h.byKind !== "tower") expect(h.dist).toBeGreaterThan(contact - 1e-6);
+    }
+  });
+
+  it("every animal with a ranged attack spits acid", () => {
+    const f = runFight({ enemy: "hostile.creature", enemies: 6, settler: "guard", settlers: 2, mode: "r2", seed: 4 });
+    expect(f.result).not.toBeNull();
+    const c = createFight({ enemy: "hostile.creature", enemies: 6, settler: "guard", settlers: 2, mode: "r2", seed: 4 });
+    const kinds = new Set<string>();
+    while (!c.result) { stepFight(c); for (const s of c.shots) if (s.by === "hostile.creature") kinds.add(s.kind); }
+    expect([...kinds]).toEqual(["acid"]);
+  });
 });

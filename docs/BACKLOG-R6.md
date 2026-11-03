@@ -91,6 +91,10 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
 - [ ] **N2/N3 ranged raiders:** they hold rifles and play a shoot pose but only hit on contact (18). Give
       them a real ranged attack with a sim "shot" event. Guards behind the leash are only reachable this way.
 - [ ] **N2 mites lunge and spit acid (Doug):** propose range, damage and rate before tuning.
+- [ ] **N19 nobody stops to shoot (Doug, 2026-11-03):** every mobile fighter (attackers, guards, drones, the hero's
+      auto-fire) keeps closing while it shoots and switches to melee once in contact reach; no shot from inside it.
+      Towers stay put. Every animal with a ranged attack spits acid, each species its own colour (mites green, crawlers
+      amber). Arena reference: `client/src/dev/arenaModel.ts` `closeIn`, `ACID_COLOR`.
 - [ ] **N12 more damage per attacker:** set by a rater metric (defender losses per wave, target band), not
       by eye.
 - [ ] **N8 drones dock between waves and don't spawn until the next wave (Doug).** They keep their HP.

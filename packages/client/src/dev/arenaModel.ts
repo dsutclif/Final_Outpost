@@ -27,7 +27,6 @@ export const PROPOSALS: { key: string; v: number; why: string }[] = [
   { key: "hostile.boss:shotRange", v: REACH, why: EQUAL + " (the warlord carries a minigun)" },
   { key: "hostile.boss:shotDamage", v: 4, why: "its contact damage" },
   { key: "hostile.boss:shotInterval", v: 1, why: "its contact interval" },
-  { key: "hostile.boss:shotStops", v: 1, why: "stands to shoot, like a raider" },
   { key: "hostile.creature:shotRange", v: REACH, why: EQUAL },
   { key: "hostile.creature:shotDamage", v: 1, why: "its contact damage" },
   { key: "hostile.creature:shotInterval", v: 1, why: "its contact interval" },
@@ -41,7 +40,6 @@ export const PROPOSALS: { key: string; v: number; why: string }[] = [
   { key: "hostile.raider_humanoid:shotDamage", v: 1, why: "N2/N3 rifle damage" },
   { key: "hostile.raider_humanoid:shotInterval", v: 1.5, why: "N2/N3 rifle every 1.5 s" },
   { key: "player:targetable", v: 1, why: "R2 (Doug 2026-11-03): attackers can hurt the commander; at 0 HP he is down for downSeconds, then up healed" },
-  { key: "hostile.raider_humanoid:shotStops", v: 1, why: "a raider stands to shoot (its shoot pose); mites spit on the move" },
 ];
 
 /** Arena-only settings (not game rules): field size, where each side stands, the time cap. World units and seconds. */
@@ -74,8 +72,10 @@ export const STAT_LABELS: Record<string, { label: string; unit: string; hidden?:
   gunRange: { label: "Gun reach", unit: "u" },
   shotRange: { label: "Ranged reach", unit: "u" },
 };
+/** Doug 2026-11-03: every animal with a ranged attack spits acid, each in its own colour (the arena draws it). */
+export const ACID_COLOR: Record<string, string> = { "hostile.swarmling": "#8ff05a", "hostile.creature": "#ffb43a" };
 /** Ranged attack names per fighter, for the cards and tracers. */
-export const SHOT_NAME: Record<string, string> = { "hostile.swarmling": "Acid spit", "hostile.raider_humanoid": "Rifle", "hostile.boss": "Minigun" };
+export const SHOT_NAME: Record<string, string> = { "hostile.swarmling": "Acid spit", "hostile.creature": "Acid spit", "hostile.raider_humanoid": "Rifle", "hostile.boss": "Minigun" };
 
 export type Edits = Record<string, number>;
 export interface CardRow { stat: string; label: string; unit: string; hidden: boolean; v: number; today: number | null; src: string; isNew: boolean; changed: boolean; why?: string }
@@ -126,7 +126,7 @@ export interface Unit {
   /** Last movement this tick and a recent-attack timer, for the renderer. */
   vx: number; vy: number; act: number; face: number;
 }
-export interface Shot { fx: number; fy: number; tx: number; ty: number; kind: "settler" | "enemy" | "acid" }
+export interface Shot { fx: number; fy: number; tx: number; ty: number; kind: "settler" | "enemy" | "acid"; by: string }
 export interface HitLog { by: number; byKind: FighterKind; target: number | "base"; dist: number; ranged: boolean; dmg: number }
 export interface FightSetup { enemy: string; enemies: number; settler: string; settlers: number; mode: Mode; edits?: Edits; seed?: number; level?: Manifest | null }
 export interface Fight {
@@ -203,7 +203,7 @@ function moveTo(u: Unit, tx: number, ty: number, step: number, stopAt = 0): void
 const face = (u: Unit, t: { x: number; y: number }): void => { u.face = Math.atan2(t.x - u.x, t.y - u.y); u.act = 10; };
 
 function shoot(f: Fight, a: Unit, t: Unit, kind: Shot["kind"]): void {
-  f.shots.push({ fx: a.x, fy: a.y, tx: t.x, ty: t.y, kind });
+  f.shots.push({ fx: a.x, fy: a.y, tx: t.x, ty: t.y, kind, by: a.type });
 }
 
 /** Damage to a settler from an attacker: guards keep R5 #26 (strike floor at 1 hp, down at downPct), the commander heals and gets up. */
@@ -257,6 +257,23 @@ function separate(f: Fight): void {
   }
 }
 
+/**
+ * A guard or drone under the R2 rule: walk at the nearest attacker until in melee reach, shooting `h` (the nearest in
+ * range) on the way, and hit it without a shot once in melee. `tick` false when the caller already ran the counter.
+ */
+function closeIn(f: Fight, u: Unit, h: Unit | null, foes: Unit[], melee: number, tick = true): void {
+  const t = nearest(foes, u, Infinity);
+  if (!t) { moveTo(u, u.homeX, u.homeY, perTick(u.s.speed!)); return; }
+  if (dist(u, t) > melee * 0.9) moveTo(u, t.x, t.y, perTick(u.s.speed!), melee * 0.9);
+  if (!h) return;
+  if (tick) u.acc = down(u.acc);
+  if (u.acc > 0) { face(u, h); return; }
+  u.acc = T(u.s.interval!);
+  const close = dist(u, h) <= melee;
+  if (!close) shoot(f, u, h, "settler");
+  hitEnemy(f, u, h, u.s.damage!, !close);
+}
+
 export function stepFight(f: Fight): void {
   if (f.result) return;
   f.shots = [];
@@ -270,6 +287,9 @@ export function stepFight(f: Fight): void {
     f.units.push(u);
   }
   const foes = (): Unit[] => enemies(f);
+  // R2 (Doug 2026-11-03): nobody stops to shoot; every mobile fighter keeps closing and switches to melee in reach
+  const closing = f.mode === "r2";
+  const melee = R.troopContact!;
 
   // player.ts playerCombat (it holds its spot) and its slow heal
   for (const p of f.units) {
@@ -280,6 +300,11 @@ export function stepFight(f: Fight): void {
     if (p.acc <= 0) {
       const h = nearest(foes(), p, p.s.range!);
       if (h) { hitEnemy(f, p, h, p.s.damage!, false); p.acc = T(p.s.interval!); continue; }
+    }
+    if (closing) {
+      if (nearest(foes(), p, p.s.range!)) continue;
+      const t = nearest(foes(), p, Infinity);
+      if (t) moveTo(p, t.x, t.y, perTick(p.s.speed!), p.s.range! * 0.9);
     }
     if (p.gun > 0 || !(p.s.gunRange! > 0)) continue;
     const h = nearest(foes(), p, p.s.gunRange!);
@@ -292,6 +317,7 @@ export function stepFight(f: Fight): void {
   for (const g of f.units) {
     if (g.kind !== "guard" || g.status !== "ok") continue;
     const h = nearest(foes(), g, g.s.range!);
+    if (closing) { closeIn(f, g, h, foes(), melee); continue; }
     if (h) {
       g.acc = down(g.acc);
       if (g.acc <= 0) { g.acc = T(g.s.interval!); shoot(f, g, h, "settler"); hitEnemy(f, g, h, g.s.damage!, true); }
@@ -360,11 +386,13 @@ export function stepFight(f: Fight): void {
     }
     if ((S.shotRange ?? 0) > 0) {
       const t = nearest(hurtable(f), h, S.shotRange!);
-      if (t && h.shot <= 0) {
+      const inMelee = !!t && closing && dist(h, t) <= contact(h);
+      if (t && h.shot <= 0 && !inMelee) {
         h.shot = T(S.shotInterval!);
         shoot(f, h, t, SHOT_NAME[h.type] === "Acid spit" ? "acid" : "enemy");
         hurt(f, h, t, S.shotDamage!, true);
       }
+      if (t && closing) { if (inMelee) face(h, t); else moveTo(h, t.x, t.y, perTick(S.speed!), contact(h) * 0.9); continue; }
       if (t && (S.shotStops ?? 0) > 0) { face(h, t); continue; }
     }
     if (dist(h, f.base) < R.baseRange!) {
@@ -394,6 +422,7 @@ export function stepFight(f: Fight): void {
   // defense.ts stepTroops: the counter always runs; hit the nearest in reach, else march at the nearest attacker, else back home
   for (const t of f.units) {
     if (t.kind !== "drone" || !alive(t)) continue;
+    if (closing) { t.acc = down(t.acc); closeIn(f, t, nearest(foes(), t, t.s.range!), foes(), melee, false); continue; }
     t.acc = down(t.acc);
     const h = nearest(foes(), t, t.s.range!);
     if (h) {
