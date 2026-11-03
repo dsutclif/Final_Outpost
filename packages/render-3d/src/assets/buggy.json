@@ -1,0 +1,13 @@
+{
+  "_": "decor.buggy rig, art metres, body frame = decor.buggy.glb origin (x/z centred, y 0 = lowest point of the body). Forward is -x (dish end). Wheels are modelled axis = z, hub centred; place wheel.glb with its pivot at hub.y - radius. Use decor.buggy_wheel for z > 0 and decor.buggy_wheel_l for z < 0 (hubs face out). All four share one radius, so one roll rate: rotation about the wheel's z axis = travelled distance / radius, same sign on both sides (forward = -x gives +z rotation). Measured from the body's axle discs (tools/buggy-probe.ts) and checked in a render against the Mars Rover Buggy mock-ups.",
+  "radius": 0.72,
+  "wheelWidth": 0.6,
+  "forward": [-1, 0, 0],
+  "hubs": [
+    { "id": "front_r", "side": "decor.buggy_wheel", "pos": [-1.6, 0.225, 1.0] },
+    { "id": "front_l", "side": "decor.buggy_wheel_l", "pos": [-1.6, 0.225, -1.0] },
+    { "id": "rear_r", "side": "decor.buggy_wheel", "pos": [1.29, 0.225, 1.0] },
+    { "id": "rear_l", "side": "decor.buggy_wheel_l", "pos": [1.29, 0.225, -1.0] }
+  ],
+  "groundBelowBody": 0.495
+}
