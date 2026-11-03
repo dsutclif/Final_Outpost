@@ -22,7 +22,25 @@ function takeFlag(): boolean {
   } catch { return false; }
 }
 
+/** Set when a launch-time update reload starts: a second one within this window is skipped so a failed swap cannot loop. */
+const LAUNCH_APPLY_KEY = "fo-launch-apply";
+
 async function boot(): Promise<void> {
+  // N16: a new build that downloaded in the background is applied before anything paints, so the
+  // returning player never sees the old title first. Only here at launch (no level can be running);
+  // mid-level the Update now / Later prompt still rules.
+  let app: App | null = null;
+  let release: ReleaseInfo | null = null;
+  const pwa = setupPwa((info) => { release = info; app?.offerUpdate(info); });
+  await pwa.settled;
+  if (pwa.ready) {
+    let recent = false;
+    try { recent = Date.now() - Number(sessionStorage.getItem(LAUNCH_APPLY_KEY) ?? 0) < 20_000; } catch { /* storage blocked */ }
+    if (!recent) {
+      try { sessionStorage.setItem(LAUNCH_APPLY_KEY, String(Date.now())); localStorage.setItem(UPDATED_FLAG, "1"); } catch { /* the toast is a nicety */ }
+      if (pwa.apply()) { await new Promise((r) => setTimeout(r, 4000)); } // the page reloads on controllerchange; if it never does, boot on
+    }
+  }
   // world labels are drawn to canvas once, so the display face must be ready before the first level
   try { await document.fonts?.load('800 16px "Barlow Condensed"'); } catch { /* falls back to the system face */ }
   const root = document.getElementById("root");
@@ -35,10 +53,7 @@ async function boot(): Promise<void> {
     store = mirrored;
   }
   const telemetry = new TelemetryQueue(store, import.meta.env.VITE_TELEMETRY_URL || undefined);
-  let app: App | null = null;
   // the waiting worker can be found before the app exists; the check after start() covers that
-  let release: ReleaseInfo | null = null;
-  const pwa = setupPwa((info) => { release = info; app?.offerUpdate(info); });
   // every pack under levels/packs that matches this engine/content version
   const packsBase = `${import.meta.env.BASE_URL}levels/packs`.replace(/\/{2,}/g, "/");
   const source = await allLevels(packsBase);

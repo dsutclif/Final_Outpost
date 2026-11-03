@@ -17,7 +17,7 @@ import { liveObjectives, manifestObjectives } from "./objectives.js";
 // screen edges while the one thing in danger pulses and shakes (the app vibrates in step).
 // Everything visual is classes; style.css colours them from the skin.
 
-export type Glyph = "thermo" | "flame" | "coin" | "crate" | "meat" | "colonist" | "pod" | "upgrade" | "shield" | "gate" | "waves" | "skull" | "face" | "chain" | "stopwatch" | "gear" | "flag" | "scrap";
+export type Glyph = "thermo" | "flame" | "coin" | "crate" | "meat" | "colonist" | "pod" | "upgrade" | "shield" | "gate" | "waves" | "skull" | "face" | "chain" | "stopwatch" | "gear" | "flag" | "scrap" | "vip";
 
 export interface GoalToken {
   id: string;
@@ -41,6 +41,8 @@ export interface GoalToken {
   beside?: string;
   /** The face shows a mood that follows the fill (happy, flat, cross), as for traders' patience. */
   mood?: boolean;
+  /** Block text drawn as the icon itself (the VIP goal), from the skin. */
+  text?: string;
   state: "open" | "done" | "failed";
   /** About to be missed (drives the urgent alert). */
   risk: boolean;
@@ -54,7 +56,7 @@ const GLYPH_OF: Record<string, Glyph> = {
   salvage: "scrap", protein: "meat", hunt: "meat",
   rescue: "pod", rescue_all: "pod", rescue_before_freeze: "pod", tow_trip: "pod", tow_full_trip: "pod",
   admit: "colonist", population: "colonist", house_all: "colonist", hire: "colonist", no_injuries: "colonist",
-  serve_premium: "face", no_angry_customers: "face", streak: "chain",
+  serve_premium: "vip", no_angry_customers: "face", streak: "chain",
   core_level: "upgrade", converter_level: "upgrade", turret_level: "upgrade", unlock: "upgrade", clear_zones: "upgrade", build: "upgrade",
   waves: "waves", waves_survived: "waves", boss: "skull", survive: "shield", hp_floor: "shield", gate_held: "gate",
   automate: "gear", converters_running: "gear",
@@ -99,7 +101,10 @@ export function goalTokens(st: State, m: Manifest, cp: Compiled | null, skin: Sk
   const views = liveObjectives(st, m, skin);
   const defs = manifestObjectives(m);
   const heat = heatOf(st, cp), walls = wallsOf(st, m);
-  return live.map((o, i) => tokenOf(o, defs[i]?.params ?? {}, views[i]?.label ?? "", st, cp, heat, walls));
+  const vip = skin.text.ui["vipIcon"] ?? "VIP";
+  const toks = live.map((o, i) => { const t = tokenOf(o, defs[i]?.params ?? {}, views[i]?.label ?? "", st, cp, heat, walls); if (t.glyph === "vip") t.text = vip; return t; });
+  // "Finish in x:xx" is always the last star (R6 #3); a stable sort keeps the rest in order
+  return [...toks.filter((t) => t.glyph !== "stopwatch"), ...toks.filter((t) => t.glyph === "stopwatch")];
 }
 
 /** Before its first tick the sim has not set targets yet (the intro cards draw then): read them from the level. */
@@ -249,6 +254,9 @@ export function alertMarks(st: State, m: Manifest, cp: Compiled | null, tokens: 
   if (st.freeze?.active || heatOf(st, cp) < FREEZE_WARN) found.push({ kind: "core" });
   const w = wallsOf(st, m);
   if (w !== null && w < WALL_WARN) found.push(...weakestGate(st));
+  // the most impatient trader gets its "!" on every level, not only under a no_angry_customers goal (R6 #6)
+  const hurried = (st.sales?.queue ?? []).filter((x) => !x.angry && x.patienceMax > 0 && x.patience / x.patienceMax < GUARD_WARN).sort((a, b) => a.patience / a.patienceMax - b.patience / b.patienceMax)[0];
+  if (hurried) found.push({ kind: "customer", id: hurried.id });
   for (const t of tokens) {
     if (!t.risk) continue;
     const kind = st.objectives?.find((o) => o.id === t.id)?.kind;
@@ -326,6 +334,7 @@ const GLYPHS: Record<Glyph, { shape: string; detail?: string; top?: number; bot?
   gear: { shape: '<path d="M10.2 2h3.6l.5 2.6 1.9.8 2.2-1.5 2.5 2.5-1.5 2.2.8 1.9 2.6.5v3.6l-2.6.5-.8 1.9 1.5 2.2-2.5 2.5-2.2-1.5-1.9.8-.5 2.6h-3.6l-.5-2.6-1.9-.8-2.2 1.5-2.5-2.5 1.5-2.2-.8-1.9L1.9 13.8v-3.6l2.6-.5.8-1.9-1.5-2.2 2.5-2.5 2.2 1.5 1.9-.8z"/>', detail: '<circle class="gd" cx="12" cy="12" r="3"/>' },
   flag: { shape: '<path d="M5 2.5h2v19H5z"/><path d="M7 3.5h12l-3 4 3 4H7z"/>' },
   scrap: { shape: '<path d="M3 17l4-9 5 3 3-6 6 12-4 4H6z"/>', detail: '<path class="gl" d="M9 13l3 2M15 11l-1 4"/>' },
+  vip: { num: [12, 12], shape: '<rect x="1.5" y="5" width="21" height="14" rx="3"/>' },
 };
 
 let uid = 0;
@@ -359,7 +368,8 @@ export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, 
   }
   // a face with a mood smiles while its fill is high and frowns near empty
   const detail = t.mood && t.glyph === "face" ? faceDetail(t.fill ?? 1) : g.detail ?? "";
-  s += `<g class="g-line">${g.shape}</g>${detail}`;
+  const blockText = t.glyph === "vip" ? `<text class="g-vip" x="12" y="12.2" text-anchor="middle" dominant-baseline="central">${(t.text ?? "VIP").replace(/[<>&]/g, "")}</text>` : "";
+  s += `<g class="g-line">${g.shape}</g>${detail}${blockText}`;
   if (t.inner !== undefined && t.glyph === "stopwatch") {
     const [nx, ny] = g.num ?? [12, 12.5];
     s += `<text class="g-secs${t.inner.length > 2 ? " long" : ""}" x="${nx}" y="${ny}" text-anchor="middle" dominant-baseline="central">${t.inner}</text>`;
@@ -522,8 +532,25 @@ export class GoalHud {
   /** Frost the edges and set the one urgent item pulsing. */
   setAlert(a: Alert): void {
     this.el.frost.className = `frost${a.kind === "none" ? "" : a.kind === "goal" ? " on" : " on hard"}`;
-    this.el.heat.classList.toggle("alert", a.kind === "heat");
-    this.el.walls.classList.toggle("alert", a.kind === "walls");
-    for (const d of this.el.goals.children) (d as HTMLElement).classList.toggle("alert", a.kind === "goal" && (d as HTMLElement).dataset["id"] === a.id);
+    this.alertEl("heat", this.el.heat, a.kind === "heat", 1);
+    this.alertEl("walls", this.el.walls, a.kind === "walls", 1);
+    for (const d of this.el.goals.children) {
+      const e = d as HTMLElement, id = e.dataset["id"] ?? "";
+      this.alertEl(`g:${id}`, e, a.kind === "goal" && id === a.id, this.tokens.find((t) => t.id === id)?.fill ?? 1);
+    }
+  }
+
+  private alertSeen = new Map<string, number>();
+
+  /** The alert glow stays steady; the shake is a short burst when the danger starts or the meter drops (a hit). */
+  private alertEl(key: string, e: HTMLElement, on: boolean, level: number): void {
+    const was = this.alertSeen.get(key);
+    e.classList.toggle("alert", on);
+    if (!on) { this.alertSeen.delete(key); e.classList.remove("burst"); return; }
+    this.alertSeen.set(key, level);
+    if (was === undefined || level < was - 0.001) {
+      e.classList.remove("burst"); void e.offsetWidth; e.classList.add("burst");
+      setTimeout(() => e.classList.remove("burst"), 700);
+    }
   }
 }

@@ -24,12 +24,22 @@ async function fetchRelease(base: string): Promise<ReleaseInfo | null> {
 export interface UpdateHandle {
   /** True once a new version is installed and waiting. */
   readonly ready: boolean;
+  /**
+   * Resolves once the launch-time check for a waiting update is done: a worker already waiting, an
+   * install that finishes within a short grace period, or nothing (also offline, in dev, or on error).
+   */
+  readonly settled: Promise<void>;
   /** Activate the waiting worker and reload. Returns false when nothing is waiting. */
   apply(): boolean;
 }
 
+/** Longest the launch waits to learn whether an update is ready (N16: no flash of the old title). */
+const SETTLE_MS = 1500;
+
 export function setupPwa(onReady: (info: ReleaseInfo | null) => void): UpdateHandle {
   let waiting: ServiceWorker | null = null;
+  let settle: () => void = () => undefined;
+  const settled = new Promise<void>((r) => { settle = r; setTimeout(r, SETTLE_MS); });
   const sw = typeof navigator !== "undefined" ? navigator.serviceWorker : undefined;
   if (sw && import.meta.env.PROD) {
     const base = import.meta.env.BASE_URL;
@@ -38,6 +48,11 @@ export function setupPwa(onReady: (info: ReleaseInfo | null) => void): UpdateHan
     };
     void sw.register(`${base}sw.js`, { scope: base }).then((reg) => {
       mark(reg.waiting);
+      if (waiting || !reg.installing) settle();
+      else {
+        const w = reg.installing;
+        w.addEventListener("statechange", () => { if (w.state === "installed") mark(w); if (w.state !== "installing") settle(); });
+      }
       reg.addEventListener("updatefound", () => {
         const w = reg.installing;
         w?.addEventListener("statechange", () => { if (w.state === "installed") mark(w); });
@@ -45,9 +60,10 @@ export function setupPwa(onReady: (info: ReleaseInfo | null) => void): UpdateHan
       // look for a new build when the app comes back to the foreground, and hourly
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void reg.update().catch(() => undefined); });
       setInterval(() => void reg.update().catch(() => undefined), 3_600_000);
-    }).catch(() => undefined);
-  }
+    }).catch(() => settle());
+  } else settle();
   return {
+    settled,
     get ready() { return waiting !== null; },
     apply() {
       if (!waiting || !sw) return false;
