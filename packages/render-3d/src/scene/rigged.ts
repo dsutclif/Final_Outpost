@@ -248,6 +248,11 @@ export class Rigged {
     this.pool.clear();
   }
 
+  /** The drawn copy for an entity key, if it has one (replaced when rebuilt). */
+  rootOf(key: string): Object3D | undefined {
+    return this.pool.get(key)?.root;
+  }
+
   get count(): number {
     let n = 0;
     for (const i of this.pool.values()) if (i.root.visible) n++;
@@ -436,7 +441,7 @@ export class Rigged {
     i.ice = on;
     i.root.traverse((o) => {
       const m = o as Mesh;
-      if (!m.isMesh) return;
+      if (!m.isMesh || m.userData["silhouette"]) return;
       if (on) { m.userData["warm"] = m.material; m.material = Array.isArray(m.material) ? m.material.map(iceOf) : iceOf(m.material); }
       else if (m.userData["warm"]) { m.material = m.userData["warm"] as Material; delete m.userData["warm"]; }
     });

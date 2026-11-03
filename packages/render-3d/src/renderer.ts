@@ -57,6 +57,7 @@ import { StoryLights, nightFloor, storyLightColors, storyLighting } from "./scen
 import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
+import { addSilhouette, silhouetteMaterial } from "./scene/silhouette.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
@@ -125,8 +126,12 @@ interface Placed { key: string; model: Model; born: number; seen: boolean; data:
 
 const PITCH = (PITCH_DEG * Math.PI) / 180, YAW = (YAW_DEG * Math.PI) / 180;
 const SAFE_RING_K = 1;
-/** Never fade: gates belong to the (instanced, always solid) walls, belts and barriers are flat. Wall turrets are dropped at their call site. */
-const NO_FADE = /^(struct\.(gate|conveyor)$|barrier\.)/;
+/**
+ * Never fade: gates belong to the (instanced, always solid) walls, belts and barriers are flat; the grow
+ * dome, the warehouse and resource nodes stay solid by Doug's call (backlog R6 #5 + N7), the hero's
+ * silhouette shows through them instead. Wall turrets are dropped at their call site.
+ */
+const NO_FADE = /^(struct\.(gate|conveyor|depot)$|barrier\.|node\.)/;
 const FADE_TO = 0.28;
 /**
  * What of a placed model can hide the hero (backlog R5 #4), in art units about its root: the ground
@@ -345,6 +350,8 @@ export class Renderer3D implements Renderer {
   private fx: Fx | null = null;
   private crowd: Crowd | null = null;
   private rigged: Rigged | null = null;
+  /** The hero's see-through silhouette material (backlog R6 N9), made on first use. */
+  private silMat: MeshBasicMaterial | null = null;
   private blobs: Blobs | null = null;
   private items: Items | null = null;
   private walls: { wall: Batch; cracked: Batch; reinforced: Batch; crackedR: Batch; dash: Batch; rubble: Batch; crate: Batch } | null = null;
@@ -657,6 +664,8 @@ export class Renderer3D implements Renderer {
     this.fx?.dispose();
     this.crowd?.dispose();
     this.rigged?.dispose();
+    this.silMat?.dispose();
+    this.silMat = null;
     this.blobs?.dispose();
     this.items?.dispose();
     if (this.walls) for (const b of Object.values(this.walls)) b.dispose();
@@ -1148,6 +1157,15 @@ export class Renderer3D implements Renderer {
       if (on !== o.on) { for (const [m, solid, see] of o.swaps) m.material = on ? see : solid; o.on = on; }
       if (on) for (const e of o.see) e.m.opacity = e.a * o.fade;
     }
+  }
+
+  /** The rigged hero shows through walls and buildings in the hero colour (backlog R6 N9); remove this call to drop it. */
+  private heroSilhouette(): void {
+    const root = this.rigged?.rootOf("player");
+    if (!root) return;
+    this.silMat ??= silhouetteMaterial(this.tokens.ok);
+    // compiled as soon as it's added, as the fade copies are
+    if (addSilhouette(root, this.silMat)) void this.gl?.compileAsync?.(root, this.camera, this.scene).catch(() => undefined);
   }
 
   /** Squash-and-stretch pop for anything that appeared after the level loaded (0 -> 1.15 -> 1, 400 ms). */
@@ -2186,6 +2204,7 @@ export class Renderer3D implements Renderer {
     const pyaw = this.faceAct("player", pl, yaw, pmove);
     if (prig) {
       this.rigged!.add("player", "unit.player", prig, { moving: pmove, hurried: false, run: true, cheer: anim.cheer > 0, act: this.actOf("player")?.act, speed: this.moving }, pl.x, pl.y, pyaw, ART_M * look.scale * this.devCharScale / 0.9);
+      this.heroSilhouette();
       this.blobs!.add(pl.x, pl.y, 10 * look.scale * this.devCharScale);
     } else this.addCharacter(look, anim, pl, yaw, t.frost);
     this.backStack(s.player.stack, pl, pyaw, look.scale * this.devCharScale, this.moving, v, true);
