@@ -22,6 +22,7 @@ export const PROPOSALS: { key: string; v: number; why: string }[] = [
   { key: "hostile.raider_humanoid:shotRange", v: 80, why: "N2/N3 rifle: just past guards' 75, inside towers' 115+" },
   { key: "hostile.raider_humanoid:shotDamage", v: 1, why: "N2/N3 rifle damage" },
   { key: "hostile.raider_humanoid:shotInterval", v: 1.5, why: "N2/N3 rifle every 1.5 s" },
+  { key: "player:targetable", v: 1, why: "R2 (Doug 2026-11-03): attackers can hurt the commander; at 0 HP he is down for downSeconds, then up healed" },
   { key: "hostile.raider_humanoid:shotStops", v: 1, why: "a raider stands to shoot (its shoot pose); mites spit on the move" },
 ];
 
@@ -44,6 +45,7 @@ export const STAT_LABELS: Record<string, { label: string; unit: string; hidden?:
   shotDamage: { label: "Ranged damage", unit: "" },
   shotInterval: { label: "Ranged interval", unit: "s" },
   shotStops: { label: "Stands to shoot (1/0)", unit: "" },
+  targetable: { label: "Attackers can hit him (1/0)", unit: "" },
   lungeWindup: { label: "Lunge wind-up", unit: "s" },
   lungeRange: { label: "Lunge dash", unit: "u" },
   lungeCooldown: { label: "Lunge cooldown", unit: "s" },
@@ -99,6 +101,8 @@ export interface Unit {
   homeX: number; homeY: number;
   windup: number; lungeCd: number; lungeAt: number | null; dash: { tx: number; ty: number; left: number } | null;
   charging: boolean; healCd: number; hitCd: number;
+  /** Ticks left of a commander knock-down. */
+  downT?: number;
   /** Last movement this tick and a recent-attack timer, for the renderer. */
   vx: number; vy: number; act: number; face: number;
 }
@@ -167,7 +171,7 @@ function nearest(list: Unit[], p: Unit, r: number): Unit | null {
 }
 /** Settlers an attacker can hurt: drones, guards still standing, the commander only with ARENA.commanderHit (hoppers bite it always). */
 const hurtable = (f: Fight, hopper = false): Unit[] => f.units.filter((u) => u.side === "settler" && u.status === "ok"
-  && (u.kind === "drone" || u.kind === "guard" || (u.kind === "player" && (hopper || ARENA.commanderHit > 0))));
+  && (u.kind === "drone" || u.kind === "guard" || (u.kind === "player" && (hopper || ARENA.commanderHit > 0 || (u.s.targetable ?? 0) > 0))));
 
 function moveTo(u: Unit, tx: number, ty: number, step: number, stopAt = 0): void {
   const dx = tx - u.x, dy = ty - u.y, d = Math.hypot(dx, dy);
@@ -194,7 +198,7 @@ function hurt(f: Fight, a: Unit, t: Unit, dmg: number, ranged: boolean): void {
     t.healCd = T(t.s.healDelay ?? 4);
     t.hp = Math.max(0, t.hp - dmg);
     // hunting.ts bite: at 0 the commander is knocked down and gets up healed; the biter backs off meanwhile
-    if (t.hp === 0) { t.hp = t.hpMax; a.acc = T(t.s.downSeconds ?? 2) + T(a.s.interval!); }
+    if (t.hp === 0) { t.status = "down"; t.downT = T(t.s.downSeconds ?? 2); a.acc = T(t.s.downSeconds ?? 2) + T(a.s.interval!); }
   } else if (t.kind === "drone") {
     t.hp -= dmg;
     if (t.hp <= 0) t.status = "dead";
@@ -225,6 +229,7 @@ export function stepFight(f: Fight): void {
   // player.ts playerCombat (it holds its spot) and its slow heal
   for (const p of f.units) {
     if (p.kind !== "player" || !alive(p)) continue;
+    if (p.status === "down") { p.downT = down(p.downT ?? 0); if (p.downT <= 0) { p.status = "ok"; p.hp = p.hpMax; } continue; }
     p.acc = down(p.acc); p.gun = down(p.gun);
     if (p.hp < p.hpMax) { p.healCd = down(p.healCd); if (p.healCd <= 0) { p.hp++; p.healCd = T(p.s.healInterval!); } }
     if (p.acc <= 0) {
@@ -238,7 +243,7 @@ export function stepFight(f: Fight): void {
     hitEnemy(f, p, h, p.s.damage!, true);
     p.gun = T(p.s.gunInterval!);
   }
-  // residents.ts guardStep with no walls: shoot the nearest in reach (its counter runs only then), else hold the post
+  // residents.ts guardStep with no walls: shoot the nearest in reach (its counter runs only then), else sortie
   for (const g of f.units) {
     if (g.kind !== "guard" || g.status !== "ok") continue;
     const h = nearest(foes(), g, g.s.range!);
@@ -248,7 +253,10 @@ export function stepFight(f: Fight): void {
       else face(g, h);
       continue;
     }
-    moveTo(g, g.homeX, g.homeY, perTick(g.s.speed!));
+    // role.defender is a sortie guard: with no walls and no turret (no leash) it marches at the nearest attacker
+    const t = nearest(foes(), g, Infinity);
+    if (t) moveTo(g, t.x, t.y, perTick(g.s.speed!), g.s.range! * 0.95);
+    else moveTo(g, g.homeX, g.homeY, perTick(g.s.speed!));
   }
   // hunting.ts: a dangerous animal charges the nearest settler it can bite, with a wind-up before its first bite
   for (const a of f.units) {
@@ -328,13 +336,14 @@ export function stepFight(f: Fight): void {
   }
   // defense.ts hitPlayer: one hostile in contact hits the commander each interval (no damage today)
   for (const p of f.units) {
-    if (p.kind !== "player") continue;
+    if (p.kind !== "player" || p.status !== "ok") continue;
     p.hitCd = down(p.hitCd);
     if (p.hitCd > 0) continue;
     const h = nearest(foes().filter((u) => u.kind === "hostile"), p, R.playerHitRange!);
     if (!h) continue;
     p.hitCd = T(R.playerHitInterval!);
-    if (ARENA.commanderHit > 0) hurt(f, h, p, ARENA.commanderHit * h.s.damage!, false);
+    if ((p.s.targetable ?? 0) > 0) hurt(f, h, p, h.s.damage!, false);
+    else if (ARENA.commanderHit > 0) hurt(f, h, p, ARENA.commanderHit * h.s.damage!, false);
     else { f.hits.push({ by: h.uid, byKind: h.kind, target: p.uid, dist: dist(h, p), ranged: false, dmg: 0 }); face(h, p); }
   }
   // defense.ts stepTroops: the counter always runs; hit the nearest in reach, else march at the nearest attacker, else back home
@@ -362,7 +371,8 @@ export function stepFight(f: Fight): void {
   f.tick++;
   const sec = f.tick / ARENA.tps;
   const settlers = f.units.filter((u) => u.side === "settler");
-  const standing = settlers.filter((u) => u.status === "ok");
+  // a knocked-down commander gets up again, so he still counts as standing
+  const standing = settlers.filter((u) => u.status === "ok" || (u.kind === "player" && u.status === "down"));
   if (f.pending.length === 0 && enemies(f).length === 0) f.result = { winner: "settlers", seconds: sec, why: "every attacker is down" };
   else if (f.base.hp <= 0) f.result = { winner: "enemies", seconds: sec, why: "the core is destroyed" };
   else if (standing.length === 0) f.result = { winner: "enemies", seconds: sec, why: "every settler is out (downed guards count)" };
