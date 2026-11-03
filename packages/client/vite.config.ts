@@ -114,7 +114,8 @@ export default defineConfig({
         // the first visit's page is controlled at once, so nothing it loads misses the cache
         clientsClaim: true,
         navigateFallback: "index.html",
-        navigateFallbackDenylist: [/\/levels\//, /privacy\.html$/, /sandbox\.html$/, /layout\.html$/],
+        // matched against path + query, so a page opened with ?arena=1 must still be let through
+        navigateFallbackDenylist: [/\/levels\//, /privacy\.html(\?|$)/, /sandbox\.html(\?|$)/, /layout\.html(\?|$)/],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
