@@ -52,6 +52,26 @@ Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked 
       content data, defaults and level params, and mark the ones written into code. Doug: "don't make new
       ones up". Release 2 is tuned against this panel.
 
+### Bundle 7: game-wide items from Doug's story feedback (2026-11-03)
+From `docs/BACKLOG-STORY.md`, round S1. Doug sorted these as game-wide on 2026-11-03. Where levels 1–5 need their own
+follow-up, it stays in the story backlog under the same S number, so each part is in both plans.
+- [ ] **G1 (S22) fireworks for level wins:** realistic fireworks replace the confetti on every level.
+- [ ] **G2 (S23) shovel and dig when clearing a rockslide:** while the player pays at a `zone.clear` pad, the hero
+      digs with a shovel (a tool prop plus a dig clip), on every level.
+- [ ] **G3 (S23b) rifle lasers apply everywhere:** this is the existing N5 blaster fire plus N2/N3 ranged raiders
+      (Bundle 5). Nothing extra here; the story backlog keeps a check of level 5 once Release 2 lands.
+- [ ] **G4 (S27) hire pads always fully visible:** no pad is hidden behind a building or a wall from the game camera.
+      The generator places pads clear of model silhouettes, and occlusion fading never hides a pad. Generated
+      pads mean a pack rebuild, so this belongs to Release 2. The story backlog keeps a check of levels 1–5's
+      hand-placed pads.
+- [ ] **G5 (S8) guide arrows follow the current goal:** the floor arrows lead to what the current goal needs, not an
+      older step (on story level 3 they kept pointing at the kiosk with the rockslide money in hand). **After level
+      5 they still appear only when the player is stuck (the 20 s rule, Doug 2026-11-03).** Levels 1–5 show them
+      from the first moment, and that stays in the story backlog (S7).
+- [ ] **G6 (S9) one loop around pods side by side:** when pods sit close together, the arrows draw one circle around
+      the group instead of one per pod, so towing several at once is taught. It's client guide code; the story
+      backlog keeps a check of level 2's pair.
+
 ## Release 2: one engine bump, one pack rebuild
 
 ### Bundle 5: combat (Opus). Tune together, inside R5's rules (no strike above a guard's full health; the

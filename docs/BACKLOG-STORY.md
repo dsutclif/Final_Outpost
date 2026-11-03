@@ -8,6 +8,11 @@ when it is verified live. Claims and the change log stay in `docs/STORY-WORK-LOG
 client (`client/src/story/*`, story cue blocks). Items that change `renderer.ts` or effects for every level go to A,
 because A has `renderer.ts` claimed for R6.
 
+**Game-wide items live in R6 (Doug, 2026-11-03).** S8 (arrows follow the goal), S9 (one loop around close pods),
+S22 (fireworks), S23 (shovel dig), S23b (lasers) and S27 (hire pads visible) are R6 Bundle 7, items G1–G6. They stay
+listed here only for the parts levels 1–5 need on their own: checks or data. S16's missing hub price is a levels 1–5 bug,
+not game-wide.
+
 **On hold: films and live scenes (Doug, 2026-11-03).** No new video or live-scene work until the dialogue and staging
 below settle, because the scenes may need to change with them. `empty_bays` stays live as it is. Sign-offs 2 (empty_bays)
 and 3 (reduced buggy) are parked, not rejected.
@@ -73,11 +78,10 @@ and 3 (reduced buggy) are parked, not rejected.
 
 - [ ] **S7 Floor arrows from the first moment in levels 1–5.** No waiting for the player to get stuck. Level 1 is
   A's: drop `noGuide` and the 600-tick fallback. Levels 2–5 already show them.
-- [ ] **S8 Arrows follow the current goal.** They point at what the current goal needs, not at something older.
-  In L3 they kept pointing at the kiosk when there was already enough money for the rockslide. Edge pointers for
-  pods appear on KILN's HUD line in L2.
-- [ ] **S9 One loop around both pods.** When two pods sit side by side (L2 goal 2), the arrows draw one circle
-  around both, so the player learns towing several at once. Today they circle each pod separately.
+- [ ] **S8 Arrows follow the current goal: levels 1–5 part.** The behaviour itself is R6 G5. Here: check it on L3
+  (kiosk, then rockslide). Edge pointers for pods appear on KILN's HUD line in L2.
+- [ ] **S9 One loop around both pods: levels 1–5 part.** The behaviour is R6 G6. Here: check L2 goal 2's pair, and
+  move the pods closer if they don't read as one group.
 
 ## 4. HUD in the tutorials
 
@@ -108,7 +112,7 @@ and 3 (reduced buggy) are parked, not rejected.
 - [ ] **S15 Hoppers and protein are taught.** Protein becomes a goal with its own reason, for example a front-of-line
   trader who wants meat: "No meat? I'm leaving." The hoppers and their market value are introduced. Four or five
   goals are fine if that's what it takes to lead the player.
-- [ ] **S16 The habitat hub has context and a price.**
+- [ ] **S16 The habitat hub has context and a price (a levels 1–5 bug, Doug 2026-11-03).**
   - Dialogue gives the reason for the hub (S1).
   - Its pad shows the price, 150. Today it doesn't, which is a bug: check whether a `big` landmark pad hides its
     cost.
@@ -131,11 +135,9 @@ and 3 (reduced buggy) are parked, not rejected.
 - [ ] **S21 The ship is the wreck from the crash film,** not the pile of fragments. Use the film's
   `Halcyon_Wreck.glb` and reduce it as before. The current `decor.halcyon_wreck` was built from the debris-cleared
   site model.
-- [ ] **S22 Fireworks instead of confetti for level wins (general, A).** Realistic fireworks. This is an effect for
-  every level, in `renderer.ts`/fx.
-- [ ] **S23 Shovel and digging when paying to clear a rockslide (general, A).** The commander digs with a shovel
-  while paying at a clear pad, on every level. Needs a tool prop and a dig clip.
-- [ ] **S23b Rifle lasers in the story levels.** R6 Bundle 5 N5 (blaster fire: white-hot core, blue glow) and
+- [ ] **S22 Fireworks instead of confetti: R6 G1.** Nothing separate for levels 1–5.
+- [ ] **S23 Shovel dig on clearing a rockslide: R6 G2.** Levels 1–5 part: check it on L3's rockslide.
+- [ ] **S23b Rifle lasers (R6 G3): levels 1–5 part.** R6 Bundle 5 N5 (blaster fire: white-hot core, blue glow) and
   N2/N3 (ranged raiders) must apply to L5's raiders, guards and turrets too. No separate work if R6 lands them
   generically; check L5 after R6 Release 2.
 
@@ -156,7 +158,7 @@ and 3 (reduced buggy) are parked, not rejected.
     `zone.terrain` (data only).
   - The recorder can't be seen on approach. Place it in the open beside the hull break, lit, and showing as soon as
     the town runs itself.
-- [ ] **S27 Hire pads always fully visible,** never covered by buildings or walls. Check every pad in levels 1–5 from
+- [ ] **S27 Hire pads visible: levels 1–5 part (game-wide in R6 G4).** never covered by buildings or walls. Check every pad in levels 1–5 from
   the game camera, then move pads in the data. If occlusion fading is the cause, that's A's R6 area.
 
 ## 8. Held: films and live scenes (after the screenplay)
@@ -178,7 +180,5 @@ and 3 (reduced buggy) are parked, not rejected.
   commission busts?
 - **Q2 KILN size (S4).** Reading "half the size, about 3× the commander's head height" as the cloud's height being
   about three head-heights. Right?
-- **Q3 General effects owner.** Fireworks (S22) and the shovel dig (S23) apply to every level, which means
-  `renderer.ts` and A's R6 lane. OK to hand them to A?
 - **Q4 L2's goal (S13).** Counting the old pod as one of "all 5 pods" needs a small training-only rule (an engine
   bump, no pack rebuild). OK?
