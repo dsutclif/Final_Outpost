@@ -1276,6 +1276,18 @@ export class Renderer3D implements Renderer {
       flame.scale.set((0.5 + 0.6 * k) * pulse, (0.5 + 0.8 * k) * pulse * flicker, (0.5 + 0.6 * k) * pulse);
     }
     if (spin) spin.rotation.y += (0.4 + 2 * k) * 0.016;
+    // the core keeps fuel as a number, but the ore waits visibly in its hopper: a pile scaled from the
+    // fuel level (capped), drawn the way a converter shows its input queue (renderer only, no sim state)
+    const CORE_HOPPER_MAX = 9; // most ore drawn at full fuel
+    if (this.cp && s.core.fuel > 0 && !s.core.dormant) {
+      let ore: string | null = null;
+      for (const [res, v] of Object.entries(this.cp.core.accepts)) if (ore === null || v > (this.cp.core.accepts[ore] ?? 0)) ore = res;
+      if (ore) {
+        const n = Math.min(CORE_HOPPER_MAX, Math.max(1, Math.ceil(k * CORE_HOPPER_MAX)));
+        const dep = this.anchorWorld(p, "deposit", tmpV);
+        for (let i = 0; i < n; i++) this.items!.add(ore, dep.x + ((i % 3) - 1) * 6, dep.y - 4 + Math.floor(i / 3) * 6, dep.z + ((i * 5) % 3) - 1, i);
+      }
+    }
   }
 
   private syncSales(s: State, a: number): void {
