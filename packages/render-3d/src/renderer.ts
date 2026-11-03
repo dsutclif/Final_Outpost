@@ -1294,6 +1294,18 @@ export class Renderer3D implements Renderer {
       flame.scale.set((0.5 + 0.6 * k) * pulse, (0.5 + 0.8 * k) * pulse * flicker, (0.5 + 0.6 * k) * pulse);
     }
     if (spin) spin.rotation.y += (0.4 + 2 * k) * 0.016;
+    // the core keeps fuel as a number, but the ore waits visibly in its hopper: a pile scaled from the
+    // fuel level (capped), drawn the way a converter shows its input queue (renderer only, no sim state)
+    const CORE_HOPPER_MAX = 9; // most ore drawn at full fuel
+    if (this.cp && s.core.fuel > 0 && !s.core.dormant) {
+      let ore: string | null = null;
+      for (const [res, v] of Object.entries(this.cp.core.accepts)) if (ore === null || v > (this.cp.core.accepts[ore] ?? 0)) ore = res;
+      if (ore) {
+        const n = Math.min(CORE_HOPPER_MAX, Math.max(1, Math.ceil(k * CORE_HOPPER_MAX)));
+        const dep = this.anchorWorld(p, "deposit", tmpV);
+        for (let i = 0; i < n; i++) this.items!.add(ore, dep.x + ((i % 3) - 1) * 6, dep.y - 4 + Math.floor(i / 3) * 6, dep.z + ((i * 5) % 3) - 1, i);
+      }
+    }
   }
 
   private syncSales(s: State, a: number): void {
@@ -1704,7 +1716,7 @@ export class Renderer3D implements Renderer {
       const L = lay(`cb:${belt.id}`, ends, false);
       for (const it of belt.items) {
         const d = Math.min(L.len, it.d / FP);
-        items.add(it.res, L.ax + L.ux * d, (meshyBeltTop() ?? BELT_TOP) * ART_M, L.az + L.uz * d, Math.atan2(L.ux, L.uz));
+        items.add(it.res, L.ax + L.ux * d, (meshyBeltTop() ?? BELT_TOP) * ART_M + SLAB_TOP, L.az + L.uz * d, Math.atan2(L.ux, L.uz));
       }
     }
     for (const pad of s.pads) {
@@ -1750,11 +1762,13 @@ export class Renderer3D implements Renderer {
       const w = this.wv({ x: d.pos.x + o[0] * FP, y: d.pos.y + o[1] * FP });
       m.position.set(w.x, 2.4, w.z);
       m.scale.setScalar(this.devPlateSize ?? 2 * (def?.padRange ?? 20) * 1.1);
+      // the drop-off arrow points inward: from the pad toward the depot, whatever side its offset is on
+      if (i === 0) m.rotation.y = o[0] === 0 && o[1] === 0 ? 0 : Math.atan2(o[0], o[1]);
     });
     for (let i = offs.length; i < this.depotPads.length; i++) this.depotPads[i]!.visible = false;
   }
 
-  /** A warehouse pad: solid outline, a down arrow on the drop-off, the resource's icon on a pickup. */
+  /** A warehouse pad: solid outline, an inward arrow on the drop-off, the resource's icon on a pickup. */
   private depotPadArt(res?: string): LabelArt {
     const t = this.tokens;
     return {
@@ -1765,8 +1779,9 @@ export class Renderer3D implements Renderer {
         g.fillStyle = "rgba(0,0,0,0.22)"; g.fill();
         g.lineWidth = 9; g.strokeStyle = t.interactive; g.stroke();
         if (res) { drawIcon(g, w / 2, h / 2, 62, resToken(t, res), t.ink); return; }
-        g.beginPath(); g.moveTo(w / 2, h / 2 + 56); g.lineTo(w / 2 - 50, h / 2); g.lineTo(w / 2 - 20, h / 2); g.lineTo(w / 2 - 20, h / 2 - 56);
-        g.lineTo(w / 2 + 20, h / 2 - 56); g.lineTo(w / 2 + 20, h / 2); g.lineTo(w / 2 + 50, h / 2); g.closePath();
+        // tip up the canvas = world -z; syncDepot yaws the pad so the tip points at the building
+        g.beginPath(); g.moveTo(w / 2, h / 2 - 56); g.lineTo(w / 2 - 50, h / 2); g.lineTo(w / 2 - 20, h / 2); g.lineTo(w / 2 - 20, h / 2 + 56);
+        g.lineTo(w / 2 + 20, h / 2 + 56); g.lineTo(w / 2 + 20, h / 2); g.lineTo(w / 2 + 50, h / 2); g.closePath();
         g.fillStyle = t.interactive; g.fill(); g.lineWidth = 6; g.strokeStyle = t.ink; g.stroke();
       },
     };
