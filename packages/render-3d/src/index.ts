@@ -46,6 +46,9 @@ export interface LoadRenderer3DOptions {
 }
 
 /** Async factory: code-splits three.js and the renderer out of the main bundle. */
+/** The live-scene player (scene/livescene.ts), loaded only when a scene plays so three stays out of the shell. */
+export const loadLiveScene = (): Promise<typeof import("./scene/livescene.js")> => import("./scene/livescene.js");
+
 export async function loadRenderer3D(opts: LoadRenderer3DOptions = {}): Promise<Renderer3DHandle> {
   const mod = await import("./renderer.js");
   return new mod.Renderer3D(opts) as unknown as Renderer3DHandle;
