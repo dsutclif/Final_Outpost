@@ -13,9 +13,9 @@ import titleLoopVideo from "./cinematics/title_loop.mp4";
 
 type VideoId = "crash_open" | "helmet_reveal";
 /** Live scenes play staged in three.js (render-3d scene/livescene.ts) instead of from a video file. */
-type LiveId = "empty_bays";
+type LiveId = "empty_bays" | "crash_log";
 export type CinematicId = VideoId | LiveId;
-const LIVE: readonly LiveId[] = ["empty_bays"];
+const LIVE: readonly LiveId[] = ["empty_bays", "crash_log"];
 const isLive = (id: string): id is LiveId => (LIVE as readonly string[]).includes(id);
 
 /**
@@ -32,7 +32,7 @@ export const CINEMATICS: Record<VideoId, FilmInfo> = {
 };
 
 /** Bump a film's version when it is re-rendered: players who saw an older one see it again. */
-export const FILM_VERSIONS: Record<CinematicId, number> = { crash_open: 1, helmet_reveal: 1, empty_bays: 1 };
+export const FILM_VERSIONS: Record<CinematicId, number> = { crash_open: 1, helmet_reveal: 1, empty_bays: 1, crash_log: 1 };
 
 /**
  * While the story films and live scenes are being edited (Doug, 2026-11-04), every one plays on every

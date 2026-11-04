@@ -1,8 +1,9 @@
 import {
-  AmbientLight, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera,
-  PointLight, Scene, Vector3, WebGLRenderer, type Material,
+  AmbientLight, AnimationMixer, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera,
+  PointLight, Scene, Vector3, WebGLRenderer, type Material, type Object3D,
 } from "three";
-import { loadMeshy, meshyScene } from "../assets/meshy.js";
+import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
 
 // Live scenes (docs/STORY-LEVELS-V2-PLAN.md, Phase 2 F2): short story scenes staged in three.js with the
 // game's own models instead of a pre-rendered video, on their own canvas so the game renderer is untouched.
@@ -110,19 +111,122 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
       plate.classList.toggle("on", t >= 1.9 && t < 4.6);
       for (const b of bays.slice(1)) b.mat.emissiveIntensity = 1.6 + 0.4 * Math.sin(t * 9 + b.light.id);
     },
-    dispose() {
-      scene.traverse((m) => {
-        const mesh = m as Mesh;
-        if (mesh.geometry) mesh.geometry.dispose();
-        const mt = mesh.material as Material | Material[] | undefined;
-        if (Array.isArray(mt)) mt.forEach((x) => x.dispose()); else mt?.dispose();
-      });
+    dispose() { disposeAll(scene); },
+  };
+}
+
+/** Dispose every geometry and material under a scene. */
+function disposeAll(scene: Scene): void {
+  scene.traverse((m) => {
+    const mesh = m as Mesh;
+    if (mesh.geometry) mesh.geometry.dispose();
+    const mt = mesh.material as Material | Material[] | undefined;
+    if (Array.isArray(mt)) mt.forEach((x) => x.dispose()); else mt?.dispose();
+  });
+}
+
+/** One suited crew member: the commander's model (Halcyon EVA suit), its own skeleton, its walk on a mixer. */
+function crewFigure(): { root: Object3D; mixer: AnimationMixer; height: number } | null {
+  const e = meshyCharacters().find((x) => x.id === "unit.player"), rig = e && meshyRig(e.file);
+  if (!e || !rig) return null;
+  const root = cloneSkinned(rig.scene);
+  const mixer = new AnimationMixer(root);
+  const walk = rig.clips.find((c) => c.name === e.clips?.["walk"]);
+  if (walk) mixer.clipAction(walk).play();
+  return { root, mixer, height: (rig.scene.userData["height"] as number) || 1.7 };
+}
+
+/**
+ * KILN's flight recorder, bay camera 05-08, four minutes before impact (docs/STORY-SCREENPLAY.md level 4): the four
+ * sealed pods open from inside, four suited figures climb out, close and lock the empty pods, and walk away from the
+ * camera, seen only from behind; the bay lights turn to OCCUPIED; static.
+ */
+function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Staged {
+  const scene = new Scene();
+  scene.background = new Color("#05080a");
+  const camera = new PerspectiveCamera(38, 1, 0.1, 200);
+  scene.add(new AmbientLight("#9fb4c8", 1.2));
+  const key = new DirectionalLight("#dfe9f5", 2.0);
+  key.position.set(-6, 12, 8);
+  scene.add(key);
+  const deck = new Mesh(new BoxGeometry(24, 0.6, 22), new MeshStandardMaterial({ color: "#3a4048", roughness: 0.8, metalness: 0.4 }));
+  deck.position.set(0, -0.3, -5);
+  scene.add(deck);
+  // the same bays as empty_bays (pods lie along z, cavity floor LIFT above the deck), seen from behind their feet
+  const LIFT = 1.809, PERSON = 1.8;
+  const labels: Staged["labels"] = [];
+  const bays: { mat: MeshStandardMaterial; hinge: Group; el: HTMLElement; fig: ReturnType<typeof crewFigure>; x: number; at: number }[] = [];
+  for (let i = 0; i < 4; i++) {
+    const x = (i - 1.5) * 4.6;
+    const bay = new Group();
+    bay.position.set(x, LIFT, 0);
+    bay.rotation.y = -Math.PI / 2;
+    const pod = meshyScene("decor.stasis_pod");
+    if (pod) { pod.position.set(0.034, -1.809, -0.257); bay.add(pod); }
+    const hinge = new Group();
+    hinge.position.set(0, 0.1, 0.71);
+    const glass = meshyScene("decor.stasis_glass");
+    if (glass) { glass.position.z = -0.709; hinge.add(glass); }
+    bay.add(hinge);
+    const mat = new MeshStandardMaterial({ color: "#1a1a1a", emissive: "#ff4a3a", emissiveIntensity: 2 });
+    const light = new Mesh(new BoxGeometry(0.5, 0.18, 0.12), mat);
+    light.position.set(-1.75, 0.4, 0.95);
+    bay.add(light);
+    scene.add(bay);
+    const fig = crewFigure();
+    if (fig) { fig.root.scale.setScalar(PERSON / fig.height); scene.add(fig.root); }
+    const el = doc.createElement("div");
+    el.className = "live-tag warn";
+    overlay.append(el);
+    labels.push({ at: new Vector3(x, 2.6 + LIFT, 2.9), el });
+    // each crew member a beat apart, so the four read as people rather than one copy
+    bays.push({ mat, hinge, el, fig, x, at: i * 0.35 });
+  }
+  const stamp = doc.createElement("div");
+  stamp.className = "live-stamp";
+  stamp.textContent = o.text["impact"] ?? "";
+  const noise = doc.createElement("i");
+  noise.className = "live-static";
+  overlay.append(stamp, noise);
+  const SECONDS = 10.5;
+  return {
+    seconds: SECONDS,
+    scene, camera, labels,
+    pose(t) {
+      // a fixed security camera high behind the pods' foot ends, looking down the deck
+      // (high and far enough back that all four bays and their aisles fit a tall phone screen)
+      const tall = camera.aspect < 0.8;
+      camera.position.set(0, (tall ? 25 : 11) + LIFT, tall ? 31 : 13);
+      camera.lookAt(0, LIFT - 0.5, tall ? -5 : -3);
+      for (const b of bays) {
+        const s = t - b.at;
+        // the glass lifts from inside (0.6-1.8), closes again once the pod is empty (4.4-5.4)
+        b.hinge.rotation.x = 1.75 * (span(s, 0.6, 1.8) - span(s, 4.4, 5.4));
+        const locked = s >= 5.5;
+        b.mat.emissive.set(locked ? "#3cff7a" : "#ff4a3a");
+        b.el.textContent = (locked ? o.text["occupied"] : o.text["unsealed"]) ?? "";
+        b.el.classList.toggle("warn", !locked);
+        const f = b.fig;
+        if (!f) continue;
+        // lying face up in the cavity (feet toward the deck's far end, head toward the camera), then sitting up and
+        // stepping out sideways into the aisle on the pod's right (1.6-3.6)
+        const up = span(s, 1.6, 2.8), out = span(s, 2.6, 3.6);
+        // the walk away from the camera down that aisle (from 5.6), the clip running only while they walk
+        const w = Math.max(0, s - 5.6);
+        f.root.position.set(b.x + 2.3 * out, (LIFT + 0.2) * (1 - out), -0.9 * (1 - up) - w * 1.3);
+        f.root.rotation.set(-Math.PI / 2 * (1 - up), Math.PI, 0, "YXZ");
+        f.mixer.setTime(w > 0 ? w : 0);
+      }
+      stamp.classList.toggle("on", t < 8.6);
+      noise.classList.toggle("on", t >= 9.2);
     },
+    dispose() { disposeAll(scene); },
   };
 }
 
 const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged }>> = {
   empty_bays: { models: ["decor.stasis_pod", "decor.stasis_glass"], stage: emptyBays },
+  crash_log: { models: ["decor.stasis_pod", "decor.stasis_glass", "unit.player"], stage: crashLog },
 };
 
 export const LIVE_SCENES: readonly string[] = Object.keys(SCENES);

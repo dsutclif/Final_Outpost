@@ -790,6 +790,10 @@ export const marsGreenhouse: Skin = {
         text: { feed: "KILN · BAY CAM 05–08 · REC", occupied: "OCCUPIED", unlocked: "UNLOCKED", name: "VALE", rank: "FIRST OFFICER" },
         images: { badge: "scenes/badge_bay5.png" },
       },
+      crash_log: {
+        text: { feed: "KILN · RECORDER · BAY CAM 05–08", impact: "FOUR MINUTES TO IMPACT", unsealed: "UNSEALED", occupied: "OCCUPIED" },
+        images: {},
+      },
     },
     lights: { night: 0, preDawn: 0.08, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
     levels: {
@@ -1008,7 +1012,7 @@ export const marsGreenhouse: Skin = {
           ] },
         ],
       },
-      // Halcyon Works (docs/STORY-SCREENPLAY.md, level 4). The crash_log scene is a text card until it is made. Ordered cues
+      // Halcyon Works (docs/STORY-SCREENPLAY.md, level 4). The crash_log live scene plays when the recorder is home. Ordered cues
       // put KILN's dim, the look east and the ridge flash on their lines. Training the crew is a story step (no star).
       "story-L004": {
         hide: ["walls"],
@@ -1063,10 +1067,10 @@ export const marsGreenhouse: Skin = {
           { on: { near: { entity: "recorder" }, r: 150, after: "revealed" }, do: [{ line: "That's it. Bring it home to me.", who: "kiln" }] },
           // in tow: the arrows lead home again
           { on: { event: "captured" }, do: [{ guide: true }] },
-          // home with the recorder: KILN reads it (a text card until the crash_log scene exists)
+          // home with the recorder: KILN plays its bay-camera footage (the crash_log live scene)
           { on: { event: "crate_delivered" }, ordered: true, do: [
             { spirit: "pulse" },
-            { card: "FOUR MINUTES TO IMPACT", sub: "Grainy security footage, no sound. Four pods open from inside. Four suited figures, seen only from behind, climb out, close and lock the empty pods from outside, and walk away. The lights turn to OCCUPIED.", seconds: 7 },
+            { film: "crash_log" },
             { line: "Four minutes before impact, they let themselves out. Then they locked their pods behind them, empty, so the pods would still read occupied.", who: "kiln" },
             { line: "Bays five to eight. Vale and three others walked away from their own pods?", who: "commander" },
             { line: "And into the lander's escape pod, the scorched one on the plain. It has four seats.", who: "kiln" },

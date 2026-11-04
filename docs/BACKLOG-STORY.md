@@ -194,7 +194,8 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
   - The helmet-drop clip plays once it passes the screen edge.
 - [ ] **S33 "Vale?" is the last line of the clip or machinima,** as the commander runs two steps toward the screen
   edge holding the helmet, then stops.
-- Also parked: `crash_log`, Sela's reveal, the buggy arrival (branch `story-buggy`), and the live helmet fall.
+- [x] `crash_log` (L4) is a live scene (2026-11-04, B), replacing its text card.
+- Also parked: Sela's reveal, the buggy arrival (branch `story-buggy`), and the live helmet fall.
 
 ## Open questions for Doug
 
