@@ -18,8 +18,8 @@ One table for every size the story levels, live scenes and films use, so they st
 | Thing | Size | Notes |
 |---|---|---|
 | Halcyon wreck | 27 m long | today's levels: 50 m. Ship/commander about 13.6 (the old film: 52.6) |
-| Stasis pod | 3.98 m long, 2.15 m tall | today's levels: 3.32 m (×1.2) |
-| Pod in the sand | base 1.36 m below the sand, 63% buried | the commander lies just above the sand inside it |
+| Stasis pod (crash-site decor and films) | 2.66 m long, 1.44 m tall | today's levels: 3.32 m. The playable towable pods (`capture.recruit_container*`) keep their own size: they don't have to match. |
+| Pod in the sand | base 0.80 m below the sand, 56% buried | the commander lies just above the sand inside it |
 | Concrete pad (deck plates) | none | the pods sink into sand |
 
 ## The camera

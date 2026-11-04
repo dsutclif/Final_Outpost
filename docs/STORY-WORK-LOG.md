@@ -1,18 +1,18 @@
-# Story levels 2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5: shared work log
+# Story levels 2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5: shared work log
 
 Two Claude accounts push to this repo. **Read this file before you start, and fetch before you push.**
 
 | Who | Works on |
 |---|---|
 | Account A (built everything up to 2026-11-01) | Level 1, the R5/R6 backlog, generated levels, engine and generator |
-| Account B (from 2026-11-02) | Story levels 2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 (G2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“G5 in `docs/STORY-LEVELS-V2-PLAN.md`), one level at a time |
+| Account B (from 2026-11-02) | Story levels 2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 (G2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œG5 in `docs/STORY-LEVELS-V2-PLAN.md`), one level at a time |
 
 ## Agreed with Doug (2026-11-02)
 
 - **2026-11-03: story round S1 is refined in `docs/BACKLOG-STORY.md`** (owners A/B per item). Films and live scenes were
   on hold until its screenplay (S1) and staging settled; **Doug lifted the hold on 2026-11-04.** `empty_bays` stays live as is, and sign-offs 2 and 3 are parked.
 
-- Levels 2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 are built one at a time. Each one goes to `main` and is live as soon as it's checked.
+- Levels 2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 are built one at a time. Each one goes to `main` and is live as soon as it's checked.
 - If a rule needed by a story level doesn't fit the existing rules, it becomes an **opt-in manifest option**: off by default, used only by the training levels. Generated levels must keep their results.
 - An engine bump is allowed if a story level needs it (re-pin with `levels:repin`, then `levels:check`). **No pack regeneration.** Before a bump, claim it below, fetch, and push straight after, to keep the window short.
 - Account B builds on level 1 as it stands and does not edit level 1's files or cues. Where shared code (director, view, stage, story lights, cloud) needs new behaviour, Account B adds an option or a new cue action and leaves the existing defaults alone.
@@ -31,7 +31,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-03 | B | `story-p2` | `levels/story/story-L00{2..5}.json`; `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Levels 2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5: finish Phase 1, then the Phase 2 scene player and `empty_bays` |
+| 2026-11-03 | B | `story-p2` | `levels/story/story-L00{2..5}.json`; `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Levels 2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5: finish Phase 1, then the Phase 2 scene player and `empty_bays` |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -47,13 +47,13 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 ## Decided by Doug
 
-- **L2 walls (2026-11-03): keep the walls.** Levels 2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 keep the prebuilt camp ring. The tow line only trails beyond a barrier line, and there will be no training-only tow rule. Levels 3ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 carry the ring forward.
+- **L2 walls (2026-11-03): keep the walls.** Levels 2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 keep the prebuilt camp ring. The tow line only trails beyond a barrier line, and there will be no training-only tow rule. Levels 3ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 carry the ring forward.
 
 ## Open questions for Doug
 
 - **Blocked on Account A's claims:** the old pod's hinged orange glass in level 2 needs `renderer.ts`, which is claimed for R6.
 - **Sign-off 2, `empty_bays` (2026-11-03).** Is the live bay-camera scene at the end of level 2 good enough against the films? The plan only builds the other live scenes (`crash_log`, Sela's reveal, the helmet fall) if it is.
-- **Sign-off 3, reduced buggy (2026-11-03).** Branch `story-buggy` (not merged) holds `decor.buggy` (39.9k tris, 2.5 MB, slightly over the 2 MB target) and two wheels (3k tris each, one pre-mirrored), plus `render-3d/src/assets/buggy.json` with hub positions (radius 0.72, hubs at x -1.60 and +1.29, y 0.225, z ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±1.0).
+- **Sign-off 3, reduced buggy (2026-11-03).** Branch `story-buggy` (not merged) holds `decor.buggy` (39.9k tris, 2.5 MB, slightly over the 2 MB target) and two wheels (3k tris each, one pre-mirrored), plus `render-3d/src/assets/buggy.json` with hub positions (radius 0.72, hubs at x -1.60 and +1.29, y 0.225, z ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±1.0).
   - The body is sized to 4.4 m wide, which is my choice since the plan gave no size. Please confirm.
   - `tools/build-models.ts` gains per-entry `normalMap` and `mirror` options (additive; no other model's output changes).
   - Comparison render: the scratchpad image `buggy_compare.png` (shown to Doug in chat).
@@ -61,7 +61,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 ## Notes for Account A
 
-- **Doug, 2026-11-03: level 1 S11 and S12 are yours and still open.** He asked again for the ore to sit much farther out, off screen even from the reactor (today it is 70ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“155 units from it), plus the rest of S11 (no red light, white pulse and edge pointer, reactor light off until found) and S12 (the new lines). B left them for you. Moving the ore will need the fill timer and ore count re-tuned.
+- **Doug, 2026-11-03: level 1 S11 and S12 are yours and still open.** He asked again for the ore to sit much farther out, off screen even from the reactor (today it is 70ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ155 units from it), plus the rest of S11 (no red light, white pulse and edge pointer, reactor light off until found) and S12 (the new lines). B left them for you. Moving the ore will need the fill timer and ore count re-tuned.
 - **Bot change you should know about (2026-11-02, B, level 4).** In `bots/src/brain.ts`, the lasso "start" task gets priority 70 instead of 52 or 64. This applies only when the main goal is `crates` and every idle capture left is an item (no pods waiting). Without it, novice and weak bots kept serving at the register for 30 s after the flight recorder appeared, and `levels:check --pack levels/story` failed on stalls. The full pack check is unchanged: s1-L007, the only crates level, gives identical results (refMin 0.60, same stars). A first try (`rescueAll` for crates) cost s1-L007 a star and was reverted.
 - **Level 5 test and film changes (2026-11-02).**
   - `client/src/cinematics.ts`: `STORY_CINEMATICS` no longer has `story-L005: afterWin helmet_reveal`. The film now plays from level 5's cues (`{ film: "helmet_reveal" }`), so "Vale?" and Vale's card come after it. It still plays once and is skipped on replays. `client/test/cinematics.test.ts` is updated to match.
@@ -71,6 +71,41 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 - **Bot, tow loop through a wall (2026-11-02).** `Brain.loopAround` (bots/src/brain.ts) can put loop points inside a barrier ring when a pod sits within about 40 units of the wall. The bot then waits forever at a loop point that isn't `outsideLines`, and every rung times out. L2 avoids it by keeping pods more than 50 units outside the ring. Not fixed, because bots are your area.
 
+## Hand-off: films, live scenes and the crash-site re-layout (B, 2026-11-04 evening)
+
+Budget is nearly spent, so this section is the starting point for whichever account picks this up. Everything listed
+as done is on `main` and verified deployed; nothing is waiting uncommitted.
+
+**Done and live.** `REPLAY_FILMS` (cinematics.ts: every story film and scene plays on every play while they're being
+edited; set false to go back to once per version). Live scenes in `render-3d/src/scene/livescene.ts`: `empty_bays` (L2),
+`crash_log` (L4), `sela_arrival` (L3, buggy 2.64 m, Sela in `unit.customer_sela` navy, natural climb-out) and
+`chip_handoff` (L3). `helmet_reveal` v2 (L5 video with the H mark and Vale's ID). L1 S30 in-game. Doug's 16 notes
+(see the entries below). Sandbox tools: Crash site (sizes, pod height) and Layout mock (drag the whole site, phone
+footprints, Copy settings).
+
+**Decided, not applied: the crash-site re-layout (docs/SCALE.md).** Ship 27 m long; decor pods 2.66 m long, 1.44 m tall,
+base 0.80 m in the sand; no concrete pad; layout per Doug's sketch (pods on the ship's south side where L1 opens, the
+settlement 1-2 phone screens south-west, the ridge as a visible landform along the east edge, the recorder at the
+ship's east end). The playable towable pods keep their size. Steps:
+1. Doug arranges the site in the sandbox Layout mock and pastes its Copy settings.
+2. Apply it to levels 1-5 (`levels/story/story-L00{1..5}.json` decor: wreck `scale`, pods/lids `scale` and `lift`,
+   delete the `deck`, `deck2` and `stripe` plates; move `core`, the town and `recorder`; a ridge landform). Today's
+   placements came from the film via `tools/handoff.ts`; the game now leads, so write the placements directly (or
+   invert handoff.ts). Re-run `pnpm levels:check --pack levels/story`. The live scenes' pods (`LIFT` in livescene.ts)
+   use the 3.98 m build; scale them to 2.66 m with the same cavity maths as `layoutmock.ts` (frame y = (1.809 * k - 0.8) m).
+3. Re-render `crash_open` from the impact onward with the set built from the game's placements. Doug wants rendering
+   kept cheap: render the set once as a background plate, then only the commander on a holdout view layer with a
+   per-frame render region, and composite. Then `openZoom` in L1 must still land on the film's last frame; Doug said
+   the hero must NOT grow at the hand-off (drop `openZoom.hero`).
+4. The old night re-render of shot 4 in `fo-wt-handoff/tools/cinematics/out/crash_pod` (started from another session)
+   is superseded by step 3; it can be stopped and discarded.
+
+**Waiting on Account A's `renderer.ts` (released 2026-11-05).** The L5 warlord's fall (S32: slow-motion fall, gets up,
+runs, the helmet visibly drops as it passes its spot, then S33 "Vale?" as the commander runs two steps), the old pod's
+hinged glass in L2 (S31), and drawing Sela in-game with her own `unit.customer_sela` model.
+
+**Waiting on Doug.** What KILN stands for: not found in any doc or git history (it is only "the Halcyon's reactor
+caretaker program", from storyline option A); Doug may ask the session that wrote the first storyline.
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
@@ -111,7 +146,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
     and walks toward camp. Level 3's Sela cue plays `{ film: "sela_arrival" }` after the light turns to night, then
     the existing camera follow and lines. Checked in portrait by held frames.
   - `helmet_reveal` re-rendered (`tools/cinematics/helmet.py`): the Halcyon H shows on the shell where the paint is
-    scratched away, and it ends on Vale's ID card (VALE, FIRST OFFICER Ãƒâ€šÃ‚Â· BAY 5, readable ~1.7 s). 5.0 s, 731 KB;
+    scratched away, and it ends on Vale's ID card (VALE, FIRST OFFICER ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· BAY 5, readable ~1.7 s). 5.0 s, 731 KB;
     `FILM_VERSIONS.helmet_reveal` 2.
 - **2026-11-04, B, `crash_log` live scene (level 4).** No engine bump. `livescene.ts` gains `crashLog` beside `empty_bays`
   (same deck and bays, 10.5 s): FOUR MINUTES TO IMPACT, the four pods unseal and their glass lifts, four crew in the
@@ -130,7 +165,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
 - **2026-11-04, B, S30 played live in level 1; bay-camera pods on the deck (Doug).** No engine bump. **A: level 1's cue
   block changed** (S30 was unclaimed; Doug: "do it here").
   - S30 runs in game rather than in the film, since level 1 now opens on the film's exact last frame. `openZoom.hold`
-    0.5, then cue `looked` (100 ticks after `woke`, ordered): ridge flash ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â2 with a short camera move toward the ridge
+    0.5, then cue `looked` (100 ticks after `woke`, ordered): ridge flash ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â2 with a short camera move toward the ridge
     (share 0.3, zoom 0.85), a white edge flash from the reactor's side (size 140, full strength, 0.7 s), arrows on, then
     "Wait, what's that light over there?". The reactor's edge glow now starts with the flash, not at start, and the
     600-tick arrow fallback is gone (the arrows come on in the intro). S11's other parts (ore farther out) are still A's.
@@ -141,7 +176,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
   finishes: encode, copy to `client/src/cinematics/crash_open.mp4` + poster, drop the closing grade, `FILM_VERSIONS.crash_open` 2.
   Until then the game keeps the dawn video with its grade.
 - **2026-11-04, B, film hold lifted; story films replay every play (Doug).** No engine bump, no level file touched.
-  - Doug: the levels are close enough, so films and live scenes (S30ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“S33, `crash_log`, Sela's reveal and buggy, the live
+  - Doug: the levels are close enough, so films and live scenes (S30ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œS33, `crash_log`, Sela's reveal and buggy, the live
     helmet fall) go ahead and publish now. `docs/BACKLOG-STORY.md` updated.
   - `client/src/cinematics.ts`: `REPLAY_FILMS = true` makes `filmDue`/`cinematicFor` ignore the seen record, so
     `crash_open`, `empty_bays` and `helmet_reveal` play on every play (Skip still works). `app.ts` also stops treating a
@@ -151,11 +186,11 @@ Newest first. Record what changed, which shared files were touched and why, rule
 - **2026-11-04, B, night on every 4th s1 level (Doug).** No engine bump, no rules change, no story file touched.
   - `packages/generator/data/generator.json` gains `nightEvery: 4`; `applyNightCadence()` in `generator/src/build.ts`
     sets manifest `lighting: "night"` when the level number is a multiple (0 turns it off). `tools/build-levels.ts`
-    calls it, so a pack rebuild keeps it; the new `tools/night-pack.ts` stamped the current pack (L008 ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ L048, 11 levels,
+    calls it, so a pack rebuild keeps it; the new `tools/night-pack.ts` stamped the current pack (L008 ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ L048, 11 levels,
     one added line each). Lighting is renderer only: `levels:check` 45/45 clean, tests pass.
-- **2026-11-03, B, the crash site at film scale in L1ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5; Doug's L2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 notes.** Doug asked for the L1 change too. No engine
+- **2026-11-03, B, the crash site at film scale in L1ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5; Doug's L2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 notes.** Doug asked for the L1 change too. No engine
   bump; story pack (L1 results unchanged), s1 pack and tests clean.
-  - **Crash-site scale (L1ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5, incl. level 1 at Doug's request).** In the film the wreck is 60 m wide beside a 1.8 m
+  - **Crash-site scale (L1ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5, incl. level 1 at Doug's request).** In the film the wreck is 60 m wide beside a 1.8 m
     commander; in game it was 98.8 art m beside a 1.5 m hero (twice the film's ratio, since the L1 hand-off). The
     whole set (wreck, deck plates, stripe, pods, lids, ore piles, ship scrap) is scaled by 0.506 about the
     commander's pod (pod0): positions about pod0, decor `scale`, deck-plate `size`, and `lift`. L1's `start` is
@@ -183,8 +218,8 @@ Newest first. Record what changed, which shared files were touched and why, rule
   - **R6 (A):** G3 now notes that hunting must fire laser bolts too; new **G9**, order icons instead of coloured dots
     over traders.
 - **2026-11-03, B, the ship stays where level 1 has it; the recorder bursts out of the hull (Doug).** Doug: the ship and the
-  settlement must keep the same relative positions in L1ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5, and L4 must not show fragments where the ship was. So the
-  earlier (+600, ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢300) shift is undone: L2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5's wreck group now matches L1 exactly relative to the reactor (checked
+  settlement must keep the same relative positions in L1ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5, and L4 must not show fragments where the ship was. So the
+  earlier (+600, ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢300) shift is undone: L2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5's wreck group now matches L1 exactly relative to the reactor (checked
   piece by piece; only bay 5's open lid differs, on purpose).
   - **Recorder (S26).** Manifest capture field `drop: { h, r, from }` (content manifest.ts; renderer only, the sim keeps
     it on the ground at `at`). L4's recorder is drawn lodged in a crack in the hull's south wall (2.6 art m up, at
@@ -193,28 +228,28 @@ Newest first. Record what changed, which shared files were touched and why, rule
     chunks and the deck plates (checked on a top-down map of the GLB). renderer.ts `captureDrop` / `dropSpec`.
   - L4's map stays 1300 wide. The walk from the reactor is about 780 units, past the deck.
   - **A:** level 1 already has this placement; no change needed for continuity. It does now draw the film's wreck model.
-- **2026-11-03, B, portraits, the wreck moved east, small fixes (Doug's items 4ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“6).** No engine bump; s1 (45) and story
+- **2026-11-03, B, portraits, the wreck moved east, small fixes (Doug's items 4ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ6).** No engine bump; s1 (45) and story
   packs replay clean, every test passes.
   - **Portraits (S3).** `packages/client/public/busts/*.webp` (160 px), rendered from each character's GLB in the
     browser: commander (unit.player), Pip (role.supplier), Rhee (role.medic), Okafor (role.defender), Tam (role.idle),
     Sela (unit.customer), the raider lieutenant (hostile.boss). Speakers carry `bust`; the bubble shows it.
   - **Wreck (S21, S25, S37).** `decor.halcyon_wreck` now builds from the film's `Halcyon_Wreck.glb` (same fit,
     11.7k tris, 1.1 MB). It carries debris chunks south of the hull that the old site model had cleared, and at the
-    old placement they landed on the camp. **L2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 shift the whole wreck group (wreck, deck, deck2, stripe, pod0ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“4,
-    lid0ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“4) by (+600, ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢300)**: east on screen and clear of the camp. L4's map is 1300 wide and the recorder lies on
+    old placement they landed on the camp. **L2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 shift the whole wreck group (wreck, deck, deck2, stripe, pod0ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ4,
+    lid0ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ4) by (+600, ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢300)**: east on screen and clear of the camp. L4's map is 1300 wide and the recorder lies on
     open sand among the hull fragments at (1080, 380), about 900 units from the reactor.
-    (Superseded the same day: L2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 went back to L1's placement; see the entry above.)
+    (Superseded the same day: L2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 went back to L1's placement; see the entry above.)
   - **Hub price (S16).** renderer.ts: a big pad's floating name and price stay at most `BIG_LABEL_LIFT` (3.2 art m)
     high, so the landmark's tall blueprint no longer pushes them off screen. Affects every big pad (a bug fix).
   - **Pads (S27).** L4's three hire pads moved from (420,1020), behind the kiosk, to (340,1000); L5's guard pad from
     (300,760), behind the south wall, to (300,730).
-  - **KILN (S4).** `spiritFollow.glow` (base brightness, 0ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“1) through contract/storypresent/corespirit; L2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 use 0.6.
+  - **KILN (S4).** `spiritFollow.glow` (base brightness, 0ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ1) through contract/storypresent/corespirit; L2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 use 0.6.
   - **Not done:** a solid deck needs an invisible blocker (the terrain kinds all draw rocks), and the sand ramp needs
     the renderer to lift the hero; the recorder sits on the sand instead, so neither is needed to finish L4.
-- **2026-11-03, B, levels 3ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 rebuilt to the approved screenplay.** No engine bump: the s1 pack (45 levels) and the story
+- **2026-11-03, B, levels 3ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 rebuilt to the approved screenplay.** No engine bump: the s1 pack (45 levels) and the story
   pack replay clean, and every test passes.
   - **Director.** `StoryGoal.until`: a story step that shows like a goal (card and top line) but has no star slot,
-    done when its trigger fires. Manifests allow exactly three objectives, so L3ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5's extra goals are steps. Event
+    done when its trigger fires. Manifests allow exactly three objectives, so L3ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5's extra goals are steps. Event
     triggers take `count` (the n-th matching event).
   - **Content (opt-in).** New lassoable `capture.helmet` (lassoables.json), a code model `buildHelmet` (scatter.ts,
     registry.ts) and a meshy entry that draws it with the existing `item.lieutenant_helmet` GLB (same file and fit).
@@ -231,7 +266,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
     (620,640), site (650,610), between the raiders' side and the hub (S19c). The ending card "Why did you leave
     me?" is gone; "Vale?" is the last line.
   - **Tests.** goalhud's L5 test finds the waves token instead of assuming it comes first.
-  - **Continuity (S24).** Bay 5's lid (`lid4`) is open in L3ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5.
+  - **Continuity (S24).** Bay 5's lid (`lid4`) is open in L3ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5.
   - **Still open:** busts (S3); the wreck farther east with a sand ramp and a solid deck (S25, S26, S37); the film's wreck
     model (S21); pad visibility checks (S27); the hub pad's missing price (S16); KILN's brightness (S4).
 - **2026-11-03, B, screenplay approved; level 2 rebuilt to it, with the shared story pieces it needs.** Doug approved
@@ -265,9 +300,9 @@ Newest first. Record what changed, which shared files were touched and why, rule
     - The glass swings up on its long-side hinge between 3.2 and 5.0 s, with the camera drifting in on bay 5.
     - The feed look is CSS on the canvas (`story.css`).
   - L2's text card is replaced by `{ film: "empty_bays" }`. Without WebGL, the scene resolves at once and the lines carry on.
-  - Checks: staging and motion in wireframe stills first (dev knob `window.__live = { at, wire }`), then brightness on the real materials by pixel means (54ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“65 of 255). The look itself has not been seen on a phone.
+  - Checks: staging and motion in wireframe stills first (dev knob `window.__live = { at, wire }`), then brightness on the real materials by pixel means (54ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ65 of 255). The look itself has not been seen on a phone.
 
-- **2026-11-03, B, Phase 1 finish for levels 3ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5.** No engine bump.
+- **2026-11-03, B, Phase 1 finish for levels 3ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5.** No engine bump.
   - Director (`skins/src/story.ts`, `client/src/story/director.ts`, `view.ts`, `story.css`) gains two options, both off by default:
     - `ordered: true` on a cue runs its world actions (light, spirit, ridge, dots...) in line order instead of when the cue fires. There's a test for it.
     - `image` on a card shows a skin image above the text.
@@ -275,7 +310,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
   - L4: KILN dims on "I shut down everything..." and the ridge flashes on "Movement on the ridge." (ordered cues).
   - L5: the ridge visors flash as the camera goes to the ridge. `defense.fleeSpeed` is 50 (boss speed 20), so the lieutenant runs off. The run clip for fleeing hostiles was already wired.
 
-- **2026-11-02, B, level 5 First Watch (Phase 1).** No engine bump and no rules change. Story levels 2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“5 are all in Phase 1 now.
+- **2026-11-02, B, level 5 First Watch (Phase 1).** No engine bump and no rules change. Story levels 2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ5 are all in Phase 1 now.
   - `levels/story/story-L005.json` was rewritten on level 4's town (the same map and ring, gates 3, 4 and 5).
     - The galley stands as a `conv.food_processor`. Traders are off (`customers.spawn` 9999), since the kiosk isn't the point tonight.
     - A `struct.barracks` and a turret socket (`turret1`, 8 salvage) stand by the east gate. The training pad (`train`, 5 salvage, repeatable, manual) requires the turret.
@@ -285,7 +320,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
   - `levels:check`: every rung wins with 3 stars (refMin 1.00), so it's easy. That's fine for a training level, but it could take more pressure.
   - `skins/src/mars_greenhouse.ts` gains a `story-L005` cue block, speaker `lieutenant` ("RAIDER") and the light preset `preDawn: 0.08`.
     - Light steps up as each wave clears, to sunrise on the retreat.
-    - At the win: KILN's line, then `helmet_reveal`, then "Vale?", then the card "Why did you leave me? / BAY 5 ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· FIRST OFFICER ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· VALE". This was checked in the browser.
+    - At the win: KILN's line, then `helmet_reveal`, then "Vale?", then the card "Why did you leave me? / BAY 5 ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· FIRST OFFICER ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· VALE". This was checked in the browser.
   - Not done in Phase 1: red visors switching on (it's a camera beat with ridge flashes), a faster `run` clip for the retreat, the helmet on the sand with a walk-up, and spawning beyond the screen edge (`defense.spawnY` is default).
 
 - **2026-11-02, B, level 4 Halcyon Works (Phase 1).** No engine bump and no rules change.
@@ -295,7 +330,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
     - People: Pip on ore; Rhee, Okafor and Tam idle for the three hires. Start credits are 12.
     - The `capture.recorder` is at (470,150) in the hull break, `hiddenUntil: auto`.
     - Objectives: `main` crates n:1; `galleyBuilt` build galley; `auto` converters_running k:3, 12 s, `sources: 1`. Every staffed source counts, Pip's ore included, so k 3 means the galley, the ore run and the dome's collector.
-  - `levels:check`: every rung wins. 60 of 60 bot games across 10 seeds have no stalls, and the human-view bot takes about 62ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“75 s to the goal.
+  - `levels:check`: every rung wins. 60 of 60 bot games across 10 seeds have no stalls, and the human-view bot takes about 62ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ75 s to the goal.
   - `skins/src/mars_greenhouse.ts` gains a `story-L004` cue block and the light preset `morning: 0.7`.
     - The DAY 4,023 card is a `day` card whose sub reads "KILN's clock had stopped at DAY 5." (no strike-through).
     - A wreck light and an edge glow start when the cook is hired. `crash_log` is a text card.
@@ -309,7 +344,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
     - Field 2 sits behind a 10-credit enable pad. The rockslide pocket of hopper flats is east of the road, with a 12-credit clear pad.
     - The hub is `struct.landmark`, price 150. Per V2, there are no hire pads.
     - Objectives are `main` build hub, `first` earn n:1 and `clear` build clear0.
-    - Traders are a little faster (spawn 2 s, orders 1ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“3), so the human-view bot builds the hub in about 150 s.
+    - Traders are a little faster (spawn 2 s, orders 1ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ3), so the human-view bot builds the hub in about 150 s.
   - `levels:check`: every rung wins. The bots never take the optional `clear` star, because the hub doesn't require it (V2 says no `requires`), so story-L003 shows "MISS build 0/6", which is reported, not failed.
   - `skins/src/mars_greenhouse.ts` gains a `story-L003` cue block, speaker `sela` and the light preset `dusk: 0.15`. On this curve, 0.4 already reads as daylight.
   - Sela is the first trader to walk in: night falls over 3 s and the camera follows her to the kiosk.
@@ -321,7 +356,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
   - `skins/src/story.ts` gains the `StoryLevel` options `podLights` and `tally`, both off by default.
   - `client/src/story/stage.ts` gains the matching wiring. It drives the existing `present.pod()` (glow and beam, dimmed by the freeze timer, orange for a decoy) and `present.tally()` (tow count over the hero). These hooks existed in render-3d but nothing called them.
   - `client/src/story/director.ts`: `level` is no longer private, so the stage can read it. That's the only change there.
-  - Phase 1 placeholder: `empty_bays` is a text card ("KILN ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· BAY CAMERA").
+  - Phase 1 placeholder: `empty_bays` is a text card ("KILN ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· BAY CAMERA").
   - After the browser playtest:
     - The tally sits at 48 world units, just over the head (the hero is about 35 units tall on screen), plus 8 for each carried item.
     - Its slots are drawn 1.8 times larger, using a new optional `scale` argument on `present.tally()` / `StoryLights.tally()` (render-3d `contract.ts`, `storypresent.ts`, `storylights.ts`; the default is unchanged).

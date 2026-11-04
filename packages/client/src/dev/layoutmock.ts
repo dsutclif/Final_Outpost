@@ -34,7 +34,8 @@ const NAMES = ["unit.player", "decor.halcyon_wreck", "decor.stasis_pod", "decor.
 const D2R = Math.PI / 180;
 const M = ART_M;
 const SCREEN_M = 6.07; // one phone screen width at play zoom, metres
-const SIZES = { ship: 27, pod: 3.98, cmdr: 1.98, podBuried: 1.36, settlementRadius: 10, recorder: [0.5, 0.3, 0.4], ridgeHeight: 1.5, ridgeWidth: 4 };
+// Doug's sizes (2026-11-04, second pass): decor pods 2.66 m long and 1.44 m tall, base 0.80 m in the sand (56%)
+const SIZES = { ship: 27, pod: 2.66, cmdr: 1.98, podBuried: 0.8, settlementRadius: 10, recorder: [0.5, 0.3, 0.4], ridgeHeight: 1.5, ridgeWidth: 4 };
 const PHONE = { w: 390, h: 844 };
 const POD_YAW = 173.9; // levels/story/story-L001.json pod yaw
 // level-1 lid placement relative to its pod (world units at the level's own x0.833) and lift
@@ -192,13 +193,15 @@ export function createLayoutMock(): LayoutUi {
     // model units are metres; the frame's origin is the cavity floor, the cradle's base 1.809 m below it, the glass
     // hinged along the back long edge. The frame is turned so the long side runs north-south.
     void lg; void LID; void POD_YAW; void SLOT_YAW;
-    const CAVITY = 1.809, frameY = (CAVITY - SIZES.podBuried) * M; // the base 1.36 m below the sand
     const k1 = SIZES.pod / 3.9847; // the build is 3.9847 m long
+    // the cavity floor sits 1.809 build-metres above the cradle's base; scaled with the pod, while the burial depth is
+    // real metres (an earlier version scaled the depth too)
+    const CAVITY = 1.809, frameY = (CAVITY * k1 - SIZES.podBuried) * M;
     for (let i = 0; i < 5; i++) {
       const ox = (i - 2) * podPitch * M;
       podOffsets.push(ox);
       const slot = new Group();
-      slot.position.set(ox, frameY * k1, 0);
+      slot.position.set(ox, frameY, 0);
       slot.rotation.y = -Math.PI / 2;
       slot.scale.setScalar(M * k1);
       const p = meshyScene("decor.stasis_pod");
