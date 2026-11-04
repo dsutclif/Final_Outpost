@@ -52,10 +52,12 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
   scene.add(deck);
   const labels: Staged["labels"] = [];
   const bays: { light: Mesh; mat: MeshStandardMaterial; hinge: Group; glow: PointLight }[] = [];
-  // four pods side by side along x, each lying lengthwise toward the camera
+  // four pods side by side along x, each lying lengthwise toward the camera. A bay's origin is the pod's
+  // cavity floor; LIFT raises it so the cradle's base (1.809 below that floor) stands on the deck (Doug, 2026-11-04)
+  const LIFT = 1.809;
   for (let i = 0; i < 4; i++) {
     const bay = new Group();
-    bay.position.set((i - 1.5) * 4.6, 0, 0);
+    bay.position.set((i - 1.5) * 4.6, LIFT, 0);
     bay.rotation.y = -Math.PI / 2;
     const pod = meshyScene("decor.stasis_pod");
     // the crash film's pod: its build stands it on its sunk cradle, so these put the film's pod frame (cavity
@@ -79,7 +81,7 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
     el.className = "live-tag";
     el.textContent = o.text["occupied"] ?? "";
     overlay.append(el);
-    labels.push({ at: new Vector3((i - 1.5) * 4.6, 2.6, 2.9), el });
+    labels.push({ at: new Vector3((i - 1.5) * 4.6, 2.6 + LIFT, 2.9), el });
   }
   const plate = doc.createElement("div");
   plate.className = "live-plate";
@@ -94,8 +96,8 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
     pose(t) {
       // a high security camera that drifts in on bay 5
       const k = span(t, 0, 6);
-      camera.position.set(-2 - 4.5 * k, 15 - 3.5 * k, 10 - 2.6 * k);
-      camera.lookAt(-1.5 - 5.2 * k, 0.4, 0.4);
+      camera.position.set(-2 - 4.5 * k, 15 + 1.809 - 3.5 * k, 10 - 2.6 * k);
+      camera.lookAt(-1.5 - 5.2 * k, 0.4 + 1.809, 0.4);
       // bay 5's lock releases at 1.6 s: OCCUPIED turns amber, the glass jolts, then swings up on its back hinge
       const open = t >= 1.6;
       bay5.mat.emissive.set(open ? "#ffb02e" : "#3cff7a");

@@ -185,7 +185,7 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
 
 ## 8. Films and live scenes (hold lifted 2026-11-04)
 
-- [ ] **S30 Opening film end (L1, A).** It pans up to show the pulsing light on the ridge, then a white flash from
+- [x] **S30 Opening film end (L1; done by B 2026-11-04, played live in level 1's opening cues).** It pans up to show the pulsing light on the ridge, then a white flash from
   the screen's left, then play starts with the arrow pointing toward the white light.
 - [ ] **S31 Old pod opening (L2):** hinged glass on the S20 model.
 - [ ] **S32 The lieutenant's fall (L5):**

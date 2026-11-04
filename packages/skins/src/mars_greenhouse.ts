@@ -798,7 +798,8 @@ export const marsGreenhouse: Skin = {
         calmUntilLit: true,
         noGuide: true,
         solid: ["sink.core"],
-        openZoom: { film: [170.3, 302.8], hero: 0.53, seconds: 2.5 },
+        // the film's last frame holds a moment, then eases out before the look at the ridge (S30)
+        openZoom: { film: [170.3, 302.8], hero: 0.53, seconds: 2.5, hold: 0.5 },
         retryFrom: [300, 320],
         goals: [
           { id: "ignite", hold: true, label: "Restart the reactor" },
@@ -811,14 +812,21 @@ export const marsGreenhouse: Skin = {
             { light: "night" },
             { ridge: "right", period: 4, k: 0.4 },
             { dots: [{ at: [272, 300] }, { at: [226, 372] }, { at: [176, 296] }], period: 4 },
-            { edgeGlow: { entity: "core", size: 30, strength: 0.32 } },
           ] },
           { id: "woke", on: { start: true }, walk: true, do: [
             { line: "Oh no, what happened? Where is the rest of my crew?", who: "commander", seconds: 3 },
+          ] },
+          // S30, the film's end played live: once the zoom has eased out, the camera looks up at the pulsing
+          // ridge, then a white flash breaks from the reactor's side of the screen and the arrows lead to it
+          { id: "looked", on: { after: "woke", ticks: 100 }, walk: true, ordered: true, do: [
+            { ridgeFlash: 2 },
+            { camera: { to: { entity: "ridge3" }, share: 0.3, zoom: 0.85, pan: 0.9, hold: 1.8, back: 0.8 } },
+            { edgeGlow: { entity: "core", size: 140, strength: 1 } },
+            { wait: 0.7 },
+            { edgeGlow: { entity: "core", size: 30, strength: 0.32 } },
+            { guide: true },
             { line: "Wait, what's that light over there?", who: "commander", seconds: 2.2 },
           ] },
-          // lost in the dark for long: the arrows come on anyway
-          { on: { after: "woke", ticks: 600 }, do: [{ guide: true }] },
           { on: { near: { entity: "core" }, r: 120 }, do: [
             { edgeGlow: null },
             { dots: [{ at: [272, 300] }, { at: [226, 372] }, { at: [176, 296] }, { at: [292, 372] }], period: 4 },

@@ -1,16 +1,20 @@
-# helmet_reveal: after level 5's win (docs/STORY-LEVELS.md). About 4 s at 30 fps, at night.
-# The raider lieutenant's helmet lies where it fell, dust still settling; the camera creeps in,
-# then tips down to the crew ID card that slipped out of the neck ring: BAY 5, FIRST OFFICER.
+# helmet_reveal: after level 5's win (docs/STORY-LEVELS.md). 5 s at 30 fps, at night.
+# The raider lieutenant's helmet lies where it fell, dust still settling; where the black paint is
+# scratched through, the Halcyon's white shell and gold H show. The camera creeps in, then tips
+# down to the crew ID card that slipped out of the neck ring, VALE / FIRST OFFICER / BAY 5, and
+# holds there long enough to read before the commander's "Vale?".
 # blender -b --factory-startup -P tools/cinematics/helmet.py -- [--quick] [--check]
-import math, os, sys
+import math, os, random, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
 from mathutils import Vector
 import lib
 
+H_UV = (0.667, 0.633)  # where on the opening frame the H sits, 0..1 from bottom-left
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 quick = "--quick" in args
-F0, F1 = 1, 120
+F0, F1 = 1, 150
+CARD_AT = 98  # the camera has tipped onto the card; it holds there to F1
 sc = lib.reset(*((360, 640) if quick else (720, 1280)))
 if quick:
     sc.eevee.taa_render_samples = 12
@@ -32,6 +36,86 @@ for f in range(F0, F1 + 1):
     fire.data.keyframe_insert("energy", frame=f)
 visor = lib.point((-0.05, 0.02, 0.2), "#ff2a1a", 0.35, radius=0.05, name="visor")
 
+# the Halcyon H where the black paint is scratched through: a decal shrink-wrapped onto the shell
+# at the spot the opening camera sees best. Its texture is drawn here, so the shot needs no asset.
+GOLD, PAINT = (0.77, 0.60, 0.33), (0.91, 0.89, 0.84)
+
+
+def h_mark(n=384, seed=7):
+    rnd = random.Random(seed)
+    img = bpy.data.images.new("h_mark", n, n, alpha=True)
+    waves = [(rnd.uniform(0.03, 0.07), k, rnd.uniform(0, 6.3)) for k in (3, 5, 8, 13)]
+    streaks = [(rnd.uniform(0, 6.3), rnd.uniform(0.95, 1.2), rnd.uniform(0.02, 0.045)) for _ in range(5)]
+    chips = [(rnd.uniform(-0.8, 0.8), rnd.uniform(-0.8, 0.8), rnd.uniform(0.015, 0.05)) for _ in range(30)]
+    px = [0.0] * (n * n * 4)
+    for j in range(n):
+        y = j / (n - 1) * 2 - 1
+        for i in range(n):
+            x = i / (n - 1) * 2 - 1
+            r, a = math.hypot(x, y), math.atan2(y, x)
+            edge = 0.8 + sum(w * math.sin(k * a + p) for w, k, p in waves) + 0.02 * math.sin(41 * a)
+            inside = r < edge
+            for sa, ln, wd in streaks:  # scratches running out of the patch
+                ux, uy = math.cos(sa), math.sin(sa)
+                t = x * ux + y * uy
+                if 0.4 < t < ln and abs(-x * uy + y * ux) < wd * (1 - (t - 0.4) / (ln - 0.4)):
+                    inside = True
+            if inside and r > 0.66:  # flecks of black paint left round the edge
+                inside = not any((x - cx) ** 2 + (y - cy) ** 2 < cr * cr for cx, cy, cr in chips if math.hypot(cx, cy) > 0.6)
+            if not inside:
+                continue
+            oc = max(abs(x), abs(y), (abs(x) + abs(y)) / math.sqrt(2))  # octagon "radius", as on the coin
+            ring = 0.5 < oc < 0.62
+            hh = abs(y) < 0.36 and (0.17 < abs(x) < 0.32 or (abs(x) <= 0.17 and abs(y) < 0.065))
+            c = GOLD if ring or hh else PAINT
+            g = 1 - 0.06 * rnd.random()
+            k = (j * n + i) * 4
+            px[k:k + 4] = [c[0] * g, c[1] * g, c[2] * g, 1.0]
+    img.pixels = px
+    img.colorspace_settings.name = "Non-Color"  # values above are already linear
+    img.pack()
+    return img
+
+
+def screen_ray(cam, u, v):
+    """World ray from the camera through the frame point (u, v), 0..1 from bottom-left."""
+    fr = [cam.matrix_world @ p for p in cam.data.view_frame(scene=sc)]  # tr, br, bl, tl
+    p = fr[2] + (fr[1] - fr[2]) * u + (fr[3] - fr[2]) * v
+    o = cam.matrix_world.translation.copy()
+    return o, (p - o).normalized()
+
+
+def place_h(cam, u, v, size=0.1):
+    sc.frame_set(F0)
+    dg = bpy.context.evaluated_depsgraph_get()
+    o, d = screen_ray(cam, u, v)
+    hit, at, nrm, _, ob, _ = sc.ray_cast(dg, o, d)
+    print("H mark on", ob.name if hit else None, at, nrm)
+    if not hit:
+        return None
+    if nrm.dot(d) > 0:
+        nrm = -nrm
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=28, y_subdivisions=28, size=size, location=at + nrm * 0.01)
+    g = bpy.context.object
+    g.name = "h_mark"
+    g.rotation_euler = nrm.to_track_quat("Z", "Y").to_euler()
+    sw = g.modifiers.new("wrap", "SHRINKWRAP")
+    sw.target, sw.wrap_method, sw.offset = ob, "NEAREST_SURFACEPOINT", 0.0012
+    m = bpy.data.materials.new("h_mark")
+    m.use_nodes = True
+    nt = m.node_tree
+    b = nt.nodes["Principled BSDF"]
+    t = nt.nodes.new("ShaderNodeTexImage")
+    t.image = h_mark()
+    t.extension = "CLIP"
+    nt.links.new(t.outputs["Color"], b.inputs["Base Color"])
+    nt.links.new(t.outputs["Alpha"], b.inputs["Alpha"])
+    b.inputs["Roughness"].default_value = 0.38
+    b.inputs["Metallic"].default_value = 0.35
+    g.data.materials.append(m)
+    return g
+
+
 # the ID card, slipped out onto the sand in front of the neck ring
 card = bpy.data.materials.new("badge")
 card.use_nodes = True
@@ -47,6 +131,57 @@ badge.name = "badge"
 badge.scale = (0.054, 0.054 * 2000 / 1493, 1)  # the card image's aspect
 badge.rotation_euler = (math.radians(4), math.radians(-3), math.radians(16))
 badge.data.materials.append(card)
+bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)  # so lettering parented to it stays unstretched
+
+# re-letter the card in place (badge.py's layout, in card pixels): VALE over FIRST OFFICER / BAY 5
+CW, CH = 1493, 2000
+KPX = 0.054 / CW  # metres per card pixel
+FONTS = os.path.join(lib.ROOT, "node_modules", ".pnpm", "@fontsource+barlow@5.1.0", "node_modules", "@fontsource", "barlow", "files")
+cpx = tex.image.pixels[:]
+samp = [cpx[((CH - 1 - y) * CW + x) * 4:((CH - 1 - y) * CW + x) * 4 + 3] for x in range(300, 1100, 7) for y in range(1545, 1560, 3)]
+srgb = [sum(c[i] for c in samp) / len(samp) for i in range(3)]
+card_bg = tuple(v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in srgb)
+
+
+def on_card(ob, x, y, z):
+    ob.parent = badge
+    ob.matrix_parent_inverse.identity()
+    ob.location = ((x - CW / 2) * KPX, (CH / 2 - y) * KPX, z)
+    ob.rotation_euler = (0, 0, 0)
+
+
+bpy.ops.mesh.primitive_plane_add(size=1)
+cover = bpy.context.object
+cover.scale = ((1260 - 160) * KPX, (1545 - 1290) * KPX, 1)
+cover.data.materials.append(lib.mat("card_cover", (*card_bg, 1), rough=0.45))
+on_card(cover, (160 + 1260) / 2, (1290 + 1545) / 2, 0.00012)
+for body, (x, y), em, font, col in (("VALE", (180, 1450), 205, "barlow-latin-800-normal.woff", "#0d0d0f"),
+                                    ("FIRST OFFICER · BAY 5", (188, 1528), 72, "barlow-latin-700-normal.woff", "#4a4a4a")):
+    bpy.ops.object.text_add()
+    t = bpy.context.object
+    t.data.body = body
+    t.data.font = bpy.data.fonts.load(os.path.join(FONTS, font))
+    t.data.size = em * KPX
+    t.data.materials.append(lib.mat(body, col, rough=0.45))
+    on_card(t, x, y, 0.00024)
+
+# camera: a slow creep toward the helmet, then it tips down onto the card and settles; focus follows
+aim = bpy.data.objects.new("aim", None)
+sc.collection.objects.link(aim)
+for f, p in ((F0, (0, 0, 0.14)), (62, (0.01, -0.05, 0.12)), (CARD_AT, (0.07, -0.31, 0.005)), (F1, (0.07, -0.31, 0.005))):
+    aim.location = p
+    aim.keyframe_insert("location", frame=f)
+cam = lib.camera((0.95, -1.05, 0.32), (0, 0, 0.14), lens=55)
+for f, p in ((F0, (0.95, -1.05, 0.32)), (62, (0.5, -0.62, 0.22)), (CARD_AT, (0.12, -0.5, 0.22)),
+             (120, (0.095, -0.41, 0.17)), (F1, (0.088, -0.39, 0.158))):
+    cam.location = p
+    cam.keyframe_insert("location", frame=f)
+tt = cam.constraints.new("TRACK_TO")
+tt.target, tt.track_axis, tt.up_axis = aim, "TRACK_NEGATIVE_Z", "UP_Y"
+cam.data.dof.use_dof = True
+cam.data.dof.focus_object = aim
+cam.data.dof.aperture_fstop = 2.8
+place_h(cam, *H_UV)  # before the dust, so the ray finds the shell
 
 # dust from the fall, settling
 dust = bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, -0.05, 0.08))
@@ -65,24 +200,8 @@ for f, s, d in ((F0, 0.25, 6.0), (45, 0.55, 0.8), (80, 0.7, 0.0)):
     vol.inputs["Density"].default_value = d
     vol.inputs["Density"].keyframe_insert("default_value", frame=f)
 
-# camera: a slow creep toward the helmet, then it tips down onto the card; focus follows
-aim = bpy.data.objects.new("aim", None)
-sc.collection.objects.link(aim)
-for f, p in ((F0, (0, 0, 0.14)), (62, (0.01, -0.05, 0.12)), (98, (0.07, -0.31, 0.005)), (F1, (0.07, -0.31, 0.005))):
-    aim.location = p
-    aim.keyframe_insert("location", frame=f)
-cam = lib.camera((0.95, -1.05, 0.32), (0, 0, 0.14), lens=55)
-for f, p in ((F0, (0.95, -1.05, 0.32)), (62, (0.5, -0.62, 0.22)), (98, (0.12, -0.5, 0.22)), (F1, (0.095, -0.41, 0.17))):
-    cam.location = p
-    cam.keyframe_insert("location", frame=f)
-tt = cam.constraints.new("TRACK_TO")
-tt.target, tt.track_axis, tt.up_axis = aim, "TRACK_NEGATIVE_Z", "UP_Y"
-cam.data.dof.use_dof = True
-cam.data.dof.focus_object = aim
-cam.data.dof.aperture_fstop = 2.8
-
 if "--check" in args:
-    for f in (F0, 62, 98, F1):
+    for f in (F0, 40, 62, CARD_AT, 120, F1):
         sc.frame_set(f)
         lib.render_still(os.path.join(lib.OUT, f"helmet_{f:03d}.png"))
 else:

@@ -75,6 +75,14 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-04, B, S30 played live in level 1; bay-camera pods on the deck (Doug).** No engine bump. **A: level 1's cue
+  block changed** (S30 was unclaimed; Doug: "do it here").
+  - S30 runs in game rather than in the film, since level 1 now opens on the film's exact last frame. `openZoom.hold`
+    0.5, then cue `looked` (100 ticks after `woke`, ordered): ridge flash ×2 with a short camera move toward the ridge
+    (share 0.3, zoom 0.85), a white edge flash from the reactor's side (size 140, full strength, 0.7 s), arrows on, then
+    "Wait, what's that light over there?". The reactor's edge glow now starts with the flash, not at start, and the
+    600-tick arrow fallback is gone (the arrows come on in the intro). S11's other parts (ore farther out) are still A's.
+  - `livescene.ts` `empty_bays`: bays lifted 1.809 so the pod cradles stand on the deck; labels and camera move with them.
 - **2026-11-04, B, the level 1 hand-off pushed (Doug: yes).** Commit "Level 1 opens on crash_open's last frame" (logged
   below under 2026-11-03) is on `main` now, cherry-picked from `story-handoff`. **Not yet in:** the night re-render of
   shot 4. It is still rendering in `fo-wt-handoff/tools/cinematics/out/crash_pod` (frame ~250 of 709 at 09:50). When it
