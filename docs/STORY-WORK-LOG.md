@@ -75,6 +75,11 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-04, B, night on every 4th s1 level (Doug).** No engine bump, no rules change, no story file touched.
+  - `packages/generator/data/generator.json` gains `nightEvery: 4`; `applyNightCadence()` in `generator/src/build.ts`
+    sets manifest `lighting: "night"` when the level number is a multiple (0 turns it off). `tools/build-levels.ts`
+    calls it, so a pack rebuild keeps it; the new `tools/night-pack.ts` stamped the current pack (L008 … L048, 11 levels,
+    one added line each). Lighting is renderer only: `levels:check` 45/45 clean, tests pass.
 - **2026-11-03, B, the crash site at film scale in L1–5; Doug's L2–5 notes.** Doug asked for the L1 change too. No engine
   bump; story pack (L1 results unchanged), s1 pack and tests clean.
   - **Crash-site scale (L1–5, incl. level 1 at Doug's request).** In the film the wreck is 60 m wide beside a 1.8 m
