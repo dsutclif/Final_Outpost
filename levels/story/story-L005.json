@@ -620,7 +620,7 @@
    "type": "pad.build",
    "id": "turret1",
    "at": [
-    620,
+    816,
     640
    ],
    "cost": {
@@ -628,7 +628,7 @@
    },
    "build": "struct.ranged_defense",
    "site": [
-    650,
+    846,
     610
    ]
   },
@@ -681,6 +681,10 @@
   },
   {
    "role": "idle"
+  },
+  {
+   "role": "role.cashier",
+   "to": "sink.sales_point"
   }
  ],
  "waves": [

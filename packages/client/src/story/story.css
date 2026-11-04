@@ -157,4 +157,5 @@
 .cine.live.inset .live-hud { top: 8px; left: 10px; font-size: 9px; }
 .cine.live.inset .live-tag { font-size: 8px; padding: 1px 4px; }
 .cine.live.inset .live-plate { bottom: 8px; width: 46%; font-size: 10px; }
-.cine.live.inset .live-plate img { max-height: 54px; }
+/* capped by height in the inset, so the width follows it (a fixed width stretched Vale's ID card) */
+.cine.live.inset .live-plate img { max-height: 54px; width: auto; max-width: 100%; margin: 0 auto; }

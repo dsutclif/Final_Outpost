@@ -672,6 +672,25 @@
    "manual": true
   },
   {
+   "type": "pad.hire",
+   "id": "cashier",
+   "at": [
+    340,
+    1000
+   ],
+   "cost": {
+    "res.currency": 9
+   },
+   "role": {
+    "role": "role.cashier",
+    "to": "sink.sales_point"
+   },
+   "requires": {
+    "pad": "server"
+   },
+   "manual": true
+  },
+  {
    "type": "capture.recorder",
    "id": "recorder",
    "at": [
@@ -700,6 +719,9 @@
   },
   {
    "role": "role.defender"
+  },
+  {
+   "role": "idle"
   },
   {
    "role": "idle"

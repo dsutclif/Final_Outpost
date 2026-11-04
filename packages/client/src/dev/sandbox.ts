@@ -138,6 +138,11 @@ $("arenaBtn").onclick = async () => {
   arena.open();
   syncArenaUrl(true);
 };
+let crash: { open(): void } | null = null;
+$("crashBtn").onclick = async () => {
+  crash ??= (await import("./crashsite.js")).createCrashSite();
+  crash.open();
+};
 function syncArenaUrl(on: boolean): void {
   const q = new URLSearchParams(location.search);
   if (on) q.set("arena", "1"); else q.delete("arena");

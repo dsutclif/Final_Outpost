@@ -16,7 +16,14 @@ export type StoryTrigger =
   /** The player came within `r` world units (once the cue `after` has fired, when given). */
   | { near: StoryPlace; r: number; after?: string }
   /** `ticks` sim ticks after the cue `after` fired (from tick 0 without it). Sim time, so freezes don't count. */
-  | { after?: string; ticks: number };
+  | { after?: string; ticks: number }
+  /**
+   * A hostile of type `hostile` came within `r` world units of `at` (the player without it); `fleeing` looks at the
+   * ones breaking off (bossRetreat) instead of the ones fighting. Fires once the cue `after` has fired, when given.
+   */
+  | { hostile: string; r: number; at?: StoryPlace; fleeing?: boolean; after?: string }
+  /** Cast member `who` (the level's `cast`) came within `r` world units of `at`. Fires once the cue `after` has fired, when given. */
+  | { who: string; r: number; at: StoryPlace; after?: string };
 
 /** A camera beat: pan to a place, hold, hand back to the follow camera. */
 export interface StoryCameraBeat {
@@ -146,7 +153,8 @@ export interface StoryGoal {
  * Who a cast key is on the map, for speech bubbles and walks: the hero, the crewmate out of a capture (manifest
  * capture order), the n-th starting resident (manifest `people` order), the boss, or a fixed place.
  */
-export type StoryCastRef = { player: true } | { capture: number } | { person: number } | { boss: true } | StoryPlace;
+/** `customer`: the n-th trader to arrive (0 = the first), while at or walking to and from the kiosk. */
+export type StoryCastRef = { player: true } | { capture: number } | { person: number } | { boss: true } | { customer: number } | StoryPlace;
 
 export interface StoryLevel {
   goals: readonly StoryGoal[];

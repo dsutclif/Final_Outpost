@@ -952,8 +952,9 @@ export const marsGreenhouse: Skin = {
         hide: ["credits", "walls"],
         solid: ["sink.core"],
         goalCards: true,
-        // manifest people order: Pip, Rhee, Okafor, Tam; Sela and the angry trader speak from the kiosk
-        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { entity: "kiosk" }, trader: { entity: "kiosk" } },
+        // manifest people order: Pip, Rhee, Okafor, Tam. Sela is the first trader to arrive and speaks from where she
+        // stands (Doug: not from the kiosk); the angry trader still speaks from the kiosk
+        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 }, trader: { entity: "kiosk" } },
         goals: [
           { id: "first", hold: true, label: "Sell Sela some greens" },
           { id: "clear", label: "Clear the rockslide (12)" },
@@ -969,10 +970,13 @@ export const marsGreenhouse: Skin = {
           ] },
           // the only moving light: Sela's buggy comes up the road and parks (the sela_arrival live scene), then the
           // camera follows her on foot to the old kiosk
-          { on: { event: "customer_arrived" }, ordered: true, do: [
+          { id: "selaIn", on: { event: "customer_arrived" }, ordered: true, do: [
             { light: "night", seconds: 3 },
             { film: "sela_arrival" },
-            { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 16, back: 0.9, freeze: false } },
+            { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 24, back: 0.9, freeze: false } },
+          ] },
+          // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
+          { on: { who: "sela", at: { entity: "kiosk" }, r: 150, after: "selaIn" }, ordered: true, do: [
             { line: "Well. Somebody's living out here. I'm Sela. I trade between the settlements: salvage, food, whatever people need.", who: "sela" },
             { line: "Settlements? There are other people on this planet?", who: "commander" },
             { line: "Colony ships have been landing on the coast for years. You came down a long way from the landing fields. Nobody comes out this far.", who: "sela" },
@@ -1025,7 +1029,8 @@ export const marsGreenhouse: Skin = {
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { entity: "kiosk" } },
         goals: [
           { id: "galleyBuilt", label: "Build the galley" },
-          { id: "train", label: "Train the crew for all three jobs", until: { event: "hired", match: { pad: "server" } } },
+          // the fourth job is a cashier, so the kiosk is minded from here on and level 5's arrows leave it alone (Doug)
+          { id: "train", label: "Train the crew for all four jobs", until: { event: "hired", match: { pad: "cashier" } } },
           { id: "auto", label: "Reach the wreck while the town runs itself" },
           { id: "main", label: "Bring the flight recorder home" },
         ],
@@ -1038,11 +1043,13 @@ export const marsGreenhouse: Skin = {
           ] },
           // no opening camera move; the camera looks east to the wreck only when KILN names the recorder
           { on: { start: true }, ordered: true, do: [
-            { day: "DAY 4,023", sub: "KILN's clock had stopped at DAY 5.", seconds: 3 },
             { line: "KILN. Is it true? Eleven years?", who: "commander" },
             { spirit: "fading" },
-            { line: "I shut down everything except the pods to save power. My clock must have been off too. It's been four thousand and twenty-three days.", who: "kiln" },
+            // KILN's basis for the new date: the stars and Sela's clock (Doug, 2026-11-04)
+            { line: "I shut down everything except the pods to save power, my clock too. It stopped on day five.", who: "kiln" },
+            { line: "I've reset it against the stars overhead, and against Sela's clock. They agree. It's been four thousand and twenty-three days.", who: "kiln" },
             { spirit: "idle" },
+            { day: "DAY 4,023", sub: "KILN's clock had stopped at DAY 5.", seconds: 3 },
             { line: "Eleven years. And Vale's pod was empty. Why?", who: "commander" },
             { line: "It looks like the flight recorder survived the crash. It's still in the wreck. Bring it to me and I can read it.", who: "kiln" },
             { camera: { to: { entity: "recorder" }, pan: 1.3, hold: 1.2, back: 1.1 } },
@@ -1059,6 +1066,9 @@ export const marsGreenhouse: Skin = {
           ] },
           // all three trained: a small light starts blinking at the wreck
           { on: { event: "hired", match: { pad: "server" } }, do: [
+            { line: "One more. Somebody has to mind the kiosk and take the coins while you're gone.", who: "rhee" },
+          ] },
+          { on: { event: "hired", match: { pad: "cashier" } }, do: [
             { guide: false },
             { line: "They've got it. Head east to the wreck while the town runs without you.", who: "kiln" },
             { dots: [{ entity: "recorder" }], period: 1.2 },
@@ -1130,17 +1140,24 @@ export const marsGreenhouse: Skin = {
           // the light grows as each wave breaks
           { on: { event: "wave_cleared", match: { idx: 0 } }, do: [{ light: "preDawn", seconds: 20 }] },
           { on: { event: "wave_cleared", match: { idx: 1 } }, do: [{ light: "firstLight", seconds: 20 }] },
-          { on: { event: "boss_spawned" }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
+          // just before the warlord walks into frame (it spawns beyond the map's edge), not when it spawns (Doug)
+          { on: { hostile: "hostile.boss", r: 330 }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { on: { event: "retreated" }, do: [
             { light: "sunrise", seconds: 8 },
             { card: "The commander's last shot drops the raider. It gets up and runs, past the edge of sight, and something falls from it.", seconds: 4 },
           ] },
           // dawn: the helmet the lieutenant dropped, and the name inside it
-          { on: { goal: "hold", is: "done" }, do: [
+          { id: "dawn", on: { goal: "hold", is: "done" }, do: [
             { line: "They're running. It's over for tonight.", who: "kiln" },
+          ] },
+          // as the fleeing warlord passes the helmet's spot on its escape path (Doug): it flees straight back east on
+          // its own row, so the reach is wide. The drop itself is drawn with the warlord's fall (needs the renderer).
+          { on: { hostile: "hostile.boss", fleeing: true, at: { entity: "helmet" }, r: 200 }, do: [
             { line: "They dropped something.", who: "kiln" },
             { dots: [{ entity: "helmet" }], period: 1.2 },
           ] },
+          // if the warlord broke off east of the helmet and never passed it, the ground dots still find it
+          { on: { after: "dawn", ticks: 150 }, do: [{ dots: [{ entity: "helmet" }], period: 1.2 }] },
           { on: { near: { entity: "helmet" }, r: 50 }, do: [{ dotsOff: true }] },
           // the helmet is caught on the tow line: its film, then "Vale?", before the walk home
           { on: { event: "captured" }, do: [

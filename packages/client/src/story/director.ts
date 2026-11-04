@@ -233,7 +233,7 @@ export class StoryDirector {
     const p = st.player.pos;
     this.tick = st.tick;
     for (const c of this.level.cues) {
-      if (this.armed(c) && (this.timeReached(c.on, st) || this.playerNear(c.on, p.x / FP, p.y / FP))) this.fire(c, st);
+      if (this.armed(c) && (this.timeReached(c.on, st) || this.playerNear(c.on, p.x / FP, p.y / FP) || this.hostileNear(c.on, st))) this.fire(c, st);
     }
     for (const g of this.level.goals) if (g.until && this.playerNear(g.until, p.x / FP, p.y / FP)) this.stepDone.add(g.id);
     this.pump();
@@ -343,6 +343,20 @@ export class StoryDirector {
     if (!("ticks" in on)) return false;
     const base = on.after === undefined ? 0 : this.firedAt.get(on.after);
     return base !== undefined && st.tick - base >= on.ticks;
+  }
+
+  private hostileNear(on: StoryTrigger, st: State): boolean {
+    if ("who" in on) {
+      if (on.after !== undefined && !this.firedAt.has(on.after)) return false;
+      const p = this.castAt(on.who, st), q = this.place(on.at);
+      return !!p && !!q && (p.x - q.x) ** 2 + (p.y - q.y) ** 2 <= on.r * on.r;
+    }
+    if (!("hostile" in on)) return false;
+    if (on.after !== undefined && !this.firedAt.has(on.after)) return false;
+    const c = on.at ? this.place(on.at) : { x: st.player.pos.x / FP, y: st.player.pos.y / FP };
+    if (!c) return false;
+    const list = on.fleeing ? st.fleeing ?? [] : st.hostiles;
+    return list.some((h) => h.type === on.hostile && (h.pos.x / FP - c.x) ** 2 + (h.pos.y / FP - c.y) ** 2 <= on.r * on.r);
   }
 
   private playerNear(on: StoryTrigger, x: number, y: number): boolean {
@@ -505,6 +519,13 @@ export class StoryDirector {
     const c = this.castRef(who);
     if (!c) return null;
     if ("at" in c || "entity" in c || "last" in c) return this.place(c);
+    if ("customer" in c) {
+      // trader ids count up from 0 in arrival order (sales.ts nextCustomerId), on the walk in, in line or leaving
+      const t = st.sales ? [...st.sales.queue, ...st.sales.leaving].find((x) => x.id === c.customer) : undefined;
+      // gone from the map: she speaks from the kiosk she traded at
+      if (!t) return st.sales ? { x: st.sales.pos.x / FP, y: st.sales.pos.y / FP } : null;
+      return { x: t.pos.x / FP, y: t.pos.y / FP };
+    }
     if ("capture" in c && !this.fromCapture.has(c.capture)) {
       const cap = st.captures.find((x) => x.id === c.capture);
       return cap ? { x: cap.pos.x / FP, y: cap.pos.y / FP } : null;
