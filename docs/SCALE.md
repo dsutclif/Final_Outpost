@@ -37,3 +37,20 @@ ship's tail. The flight recorder lies at the ship's east end, by the ridge.
 
 Not applied yet: the levels and the opening film still use the old sizes. The re-layout places the crash site from
 this table, and the film's set is rebuilt from the game's placements (the game leads; the film follows).
+
+## Buildings, interactive objects and decor (sandbox Buildings row)
+
+Sandbox → **Buildings row** (`packages/client/src/dev/buildings.ts`, main c9517f6) shows every building, interactive object and decor model side on, in one row beside the commander. Use it to standardise sizes. The radios at the top left choose a group. x1 is the size the game draws today:
+- buildings: `ART_M` × look.json `buildScale` (0.7) × `modelScale`
+- everything else: the meshy.json `width`
+
+**Copy settings** gives the new look.json `modelScale` and meshy.json widths. The Kiosk is the anchor: its roof is the yellow line. Heights today at x1 (2026-11-04):
+
+| Thing | Height | Notes |
+|---|---|---|
+| Kiosk (`sink.sales_point`) | 2.30 m | the anchor |
+| Reactor core L1 / L2 / L3 | 1.70 / 2.12 / 2.54 m | L1 stands shorter than the kiosk |
+| Material processor | 2.41 m | |
+| Food processor | 1.67 m | |
+
+No sizes were changed yet. Doug is standardising them with this view, and the results go into this file.
