@@ -58,6 +58,7 @@ import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
 import { addSilhouette, silhouetteMaterial } from "./scene/silhouette.js";
+import { LookTest } from "./lookTest.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
@@ -89,6 +90,8 @@ export interface Renderer3DOptions {
   dpr?: () => number;
   content?: Content;
   quality?: QualityTier;
+  /** Look test (?look=1): image-based light, bloom, dynamic full-retina resolution. */
+  look?: boolean;
   /** WebGL factory; defaults to three's WebGLRenderer on the given canvas. */
   createGL?: (canvas: HTMLCanvasElement) => GLLike;
 }
@@ -397,6 +400,8 @@ export class Renderer3D implements Renderer {
   private frames = 0;
   private frameNo = 0;
   private lastDpr = 0;
+  private readonly lookOn: boolean;
+  private lookT: LookTest | null = null;
   private fpsT = 0;
   private fps = 0;
   private t0 = 0;
@@ -455,6 +460,7 @@ export class Renderer3D implements Renderer {
     this.dprFn = opts.dpr ?? (() => (globalThis as { devicePixelRatio?: number }).devicePixelRatio ?? 1);
     this.content = opts.content ?? defaultContent;
     this.quality = opts.quality ?? "medium";
+    this.lookOn = opts.look === true;
     this.createGL = opts.createGL ?? ((canvas) => new WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" }) as unknown as GLLike);
   }
 
@@ -570,6 +576,7 @@ export class Renderer3D implements Renderer {
     const lots = block > 0 && core?.at ? { x: core.at[0], z: core.at[1], block, street } : null;
     this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots, this.cp ? attackRoads(this.cp) : []);
     this.env.night = manifest.lighting === "night";
+    if (this.lookOn && this.gl instanceof WebGLRenderer) this.lookT = new LookTest(this.gl, this.scene, this.camera, this.dprFn() || 1, this.env.night);
     // a manifest night keeps the measured floor, so sand and ridge still read
     this.env.nightLift = this.env.night ? nightFloor(skin) : null;
     this.fx = new Fx(mats.particle, this.scene, this.labels);
@@ -627,7 +634,8 @@ export class Renderer3D implements Renderer {
     this.cssH = Math.max(1, h);
     this.camera.aspect = this.cssW / this.cssH;
     this.camera.updateProjectionMatrix();
-    if (this.gl) {
+    if (this.lookT) this.lookT.resize(this.cssW, this.cssH);
+    else if (this.gl) {
       this.gl.setPixelRatio(Math.min(TIERS[this.quality].maxPixelRatio, Math.max(1, this.dprFn() || 1)));
       this.gl.setSize(this.cssW, this.cssH, false);
     }
@@ -639,7 +647,7 @@ export class Renderer3D implements Renderer {
     if (this.gl) {
       this.gl.shadowMap.enabled = s.shadows;
       this.gl.shadowMap.type = s.softShadows ? PCFSoftShadowMap : PCFShadowMap;
-      this.gl.setPixelRatio(Math.min(s.maxPixelRatio, Math.max(1, this.dprFn() || 1)));
+      if (!this.lookT) this.gl.setPixelRatio(Math.min(s.maxPixelRatio, Math.max(1, this.dprFn() || 1)));
     }
     this.env?.applyTier(s);
     if (this.fx) this.fx.particleScale = s.particleScale;
@@ -674,6 +682,8 @@ export class Renderer3D implements Renderer {
     this.fx?.dispose();
     this.crowd?.dispose();
     this.rigged?.dispose();
+    this.lookT?.dispose();
+    this.lookT = null;
     this.silMat?.dispose();
     this.silMat = null;
     this.blobs?.dispose();
@@ -1023,7 +1033,8 @@ export class Renderer3D implements Renderer {
     this.env.update(dt, this.t, this.look, coreW, this.safeR * SAFE_RING_K, this.fuelK, state.hazard?.phase ?? "none", this.camera.position.distanceTo(this.look));
     this.updateDom(state);
     this.synced = true;
-    this.gl.render(this.scene, this.camera);
+    if (this.lookT) this.lookT.render(dt);
+    else this.gl.render(this.scene, this.camera);
   }
 
   /** Fixed point to a ground point in world units. */

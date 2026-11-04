@@ -43,6 +43,8 @@ export interface LoadRenderer3DOptions {
   quality?: QualityTier;
   now?: () => number;
   dpr?: () => number;
+  /** Look test: image-based light, bloom, dynamic full-retina resolution. */
+  look?: boolean;
 }
 
 /** Async factory: code-splits three.js and the renderer out of the main bundle. */
