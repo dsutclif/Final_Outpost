@@ -2,7 +2,7 @@
 // full-retina resolution with dynamic scaling. Not a shipped tier; built to compare on an iPhone.
 
 import {
-  BackSide, Box3, BufferAttribute, PlaneGeometry, Vector3, type HemisphereLight, type Object3D, ShaderMaterial, Color, HalfFloatType, Mesh, MeshBasicMaterial, MeshStandardMaterial, PMREMGenerator,
+  AdditiveBlending, BackSide, Box3, BufferAttribute, PlaneGeometry, Vector3, type HemisphereLight, type Object3D, ShaderMaterial, Color, HalfFloatType, Mesh, MeshBasicMaterial, MeshStandardMaterial, PMREMGenerator,
   Scene, SphereGeometry, Vector2, WebGLRenderTarget, type Camera, type Texture, type WebGLRenderer,
 } from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -20,12 +20,12 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 // tuned on generated level 8 (daytime): stronger env or a wide bloom radius washes the sand beige
 export const LOOK_TUNE = {
   // reactor gas (KILN's cloud shader in plasma colours): width in reactor widths, how far its top rises above the rim in reactor heights
-  gasW: 0.75, gasRise: 0.1, gasSquash: 1, gasBright: 1.2, gasFront: 0, env: 0.15, envOn: true, hemi: 0.9, glow: 2.2, bloom: 0.45, bloomRadius: 0.05, threshold: 2, post: true };
+  gasW: 1.0, gasRise: 0.2, gasSquash: 1, gasBright: 4, gasFront: 0, env: 0.15, envOn: true, hemi: 0.9, glow: 2.2, bloom: 0.45, bloomRadius: 0.05, threshold: 2, post: true };
 /** Reactor gas colours: deep ember, amber, near-white core (red is unused: no glitch). */
 const GAS = { deep: "#5a1a03", mid: "#ff7a1a", core: "#fff0c8" };
 
-// Reactor gas: KILN's domain-warped noise (scene/corespirit.ts), flowing upward, with normal
-// blending so the dark ember billows read over the bright bowl (additive washed them out).
+// Reactor gas: KILN's domain-warped noise (scene/corespirit.ts) as a soft additive smoky glow
+// (Doug: a reactor, not a furnace), drifting gently upward.
 const GAS_VERT = /* glsl */ `
 precision mediump float;
 uniform vec2 uSize;
@@ -50,24 +50,24 @@ float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
 float fbm(vec2 p) { float v = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { v += a * vn(p); p = p * 2.02 + 7.1; a *= 0.5; } return v; }
 void main() {
   vec2 q = (vUv - 0.5) * 2.0;
-  float t = uTime * 0.35;
-  vec2 n = q * 1.7 + vec2(0.0, -t);
-  vec2 o = vec2(fbm(n * 1.4 + vec2(0.0, -t * 0.6)), fbm(n * 1.4 + vec2(5.2, t * 0.3)));
-  float d = fbm(n * 2.2 + 1.5 * o);
-  float r = length(vec2(q.x, q.y * 1.15));
-  float body = smoothstep(1.0, 0.2, r + (0.5 - d) * 0.7);
-  // wisps thin out toward the top of the quad
-  body *= smoothstep(1.0, 0.1, q.y + (0.5 - d) * 0.8);
-  float dens = body * (0.45 + 0.9 * d) * (0.55 + 0.45 * uFuel);
-  vec3 col = mix(uDeep, uMid, smoothstep(0.15, 0.6, dens));
-  col = mix(col, uCore, smoothstep(0.7, 1.05, dens));
-  col *= 1.0 + uBright * smoothstep(0.6, 1.0, dens);
-  gl_FragColor = vec4(col, clamp(dens * 1.3, 0.0, 1.0));
+  // a smoky glow, not a flame: big slow swirls, a soft bright core, a gentle upward drift
+  float t = uTime * 0.12;
+  vec2 n = q * 1.2 + vec2(0.0, -t);
+  vec2 o = vec2(fbm(n * 1.3 + vec2(0.0, -t * 0.5)), fbm(n * 1.3 + vec2(5.2, t * 0.4)));
+  float d = fbm(n * 1.6 + 1.2 * o);
+  float r = length(vec2(q.x, q.y * 1.1));
+  float glow = smoothstep(1.0, 0.0, r + (0.5 - d) * 0.35);
+  float core = smoothstep(0.55, 0.0, r + (0.5 - d) * 0.2);
+  float dens = glow * (0.55 + 0.7 * d) * (0.5 + 0.5 * uFuel);
+  vec3 col = mix(uDeep, uMid, glow);
+  col = mix(col, uCore, core);
+  col *= 1.0 + uBright * core;
+  gl_FragColor = vec4(col * dens, dens);
 }`;
 
 function gasMaterial(seed: number): ShaderMaterial {
   return new ShaderMaterial({
-    vertexShader: GAS_VERT, fragmentShader: GAS_FRAG, transparent: true, depthWrite: false,
+    vertexShader: GAS_VERT, fragmentShader: GAS_FRAG, transparent: true, depthWrite: false, blending: AdditiveBlending,
     uniforms: {
       uSize: { value: new Vector2(1, 1) }, uTime: { value: 0 }, uFuel: { value: 1 }, uBright: { value: 1 }, uSeed: { value: seed },
       uDeep: { value: new Color(GAS.deep) }, uMid: { value: new Color(GAS.mid) }, uCore: { value: new Color(GAS.core) },
