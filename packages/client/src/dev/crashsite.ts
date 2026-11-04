@@ -53,7 +53,12 @@ export function createCrashSite(): CrashUi {
 
   const skin = getSkin(DEFAULT_SKIN);
   const tk = deriveTokens(skin);
-  const sizes = { ship: 1, pod: 1, cmdr: 1 };
+  // Doug's sizes of 2026-11-04 as the starting point (ship 27 m, pods 3.98 m)
+  const sizes = { ship: 0.54, pod: 1.2, cmdr: 1 };
+  /** Where the pod's base sits against the sand, metres (negative: sunk in). Today's levels have it 1.19 m down, in the deck. */
+  let podBaseM = -0.6;
+  /** The concrete deck plates: off, so the pods sit straight in the sand (Doug, 2026-11-04). */
+  let showDeck = false;
 
   const canvas = document.createElement("canvas");
   const gl = new WebGLRenderer({ canvas, antialias: true });
@@ -78,14 +83,17 @@ export function createCrashSite(): CrashUi {
   scene.add(dyn);
   const rigged = new Rigged(dyn);
 
-  // deck plates as plain steel slabs (the game textures them; size and place are what matter here)
+  // deck plates as plain steel slabs (the game textures them; size and place are what matter here), hidden by default
+  const deckMeshes: Mesh[] = [];
   for (const d of decks) {
     if (!d.at || !d.size) continue;
     const [w, dp, h] = d.size;
     const m = new Mesh(new BoxGeometry(w, h, dp), new MeshStandardMaterial({ color: new Color(d.color ?? "#a9acb8"), metalness: 0.08, roughness: 0.8 }));
     m.position.set(d.at[0], (d.lift ?? 0) + h / 2, d.at[1]);
     m.rotation.y = ((d.yaw ?? 0) * D2R);
+    m.visible = showDeck;
     scene.add(m);
+    deckMeshes.push(m);
   }
 
   const wreck = new Group(), pod = new Group();
@@ -147,7 +155,12 @@ export function createCrashSite(): CrashUi {
   function syncSizes(): void {
     wreck.scale.setScalar(sizes.ship);
     pod.scale.setScalar(sizes.pod);
+    // the pod's base (its model's lowest point, at the entity's lift inside the group) on the chosen height
+    pod.position.y = podBaseM * ART_M - (podE.lift ?? 0) * sizes.pod;
+    for (const m of deckMeshes) m.visible = showDeck;
   }
+  /** The pod's top in world units now. */
+  const podTopNow = (): number => pod.position.y + podTop * sizes.pod;
 
   /** Lay the commander face down along the pod's long axis, on its top; called each frame (Rigged resets the root). */
   function placeCmdr(): void {
@@ -162,7 +175,7 @@ export function createCrashSite(): CrashUi {
     if (!r) return;
     const yaw = (podE.yaw ?? 0) * D2R, a = yaw + Math.PI / 2;
     const Hw = metres.cmdrH * ART_M * sizes.cmdr;
-    const top = podTop * sizes.pod + CHEST * Hw;
+    const top = podTopNow() + CHEST * Hw;
     // head toward +axis; centre the body on the pod's middle
     r.rotation.set(Math.PI / 2, a, 0, "YXZ");
     r.position.set(pod.position.x - Math.sin(a) * Hw / 2, top, pod.position.z - Math.cos(a) * Hw / 2);
@@ -172,7 +185,7 @@ export function createCrashSite(): CrashUi {
 
   function focus(close: boolean): void {
     const t = close
-      ? new Vector3(pod.position.x, podTop * sizes.pod, pod.position.z)
+      ? new Vector3(pod.position.x, podTopNow(), pod.position.z)
       : new Vector3((wreck.position.x + pod.position.x) / 2, 40, (wreck.position.z + pod.position.z) / 2);
     const dist = close ? 230 * Math.max(0.5, Math.max(sizes.pod, sizes.cmdr)) : 2900 * Math.max(0.6, sizes.ship);
     // the game's camera: pitch 30 down, turned 45 about the vertical, sitting toward +x +z
@@ -201,15 +214,35 @@ export function createCrashSite(): CrashUi {
   const defs = [["ship", "Ship size", "ship length"], ["pod", "Pod size", "pod length"], ["cmdr", "Commander size", "commander height"]] as const;
   for (const [k, title] of defs) {
     const d = el("div", undefined, "sl");
-    const s = el("input"); s.type = "range"; s.min = "0.2"; s.max = "3"; s.step = "0.01"; s.value = "1";
+    const s = el("input"); s.type = "range"; s.min = "0.2"; s.max = "3"; s.step = "0.01"; s.value = String(sizes[k]);
     const out = el("span");
     readouts[k] = out;
     s.oninput = () => { sizes[k] = Number(s.value); syncSizes(); paint(); };
     d.append(el("b", title), s, out);
     panel.append(d);
   }
+  // the pod's height in the sand: its base from 2 m down to 0.5 m up
+  {
+    const d = el("div", undefined, "sl");
+    const s = el("input"); s.type = "range"; s.min = "-2"; s.max = "0.5"; s.step = "0.02"; s.value = String(podBaseM);
+    const out = el("span");
+    readouts["podBase"] = out;
+    s.oninput = () => { podBaseM = Number(s.value); syncSizes(); paint(); };
+    d.append(el("b", "Pod height"), s, out);
+    panel.append(d);
+  }
+  {
+    const d = el("label", undefined, "sl");
+    const c = el("input"); c.type = "checkbox"; c.checked = showDeck;
+    c.onchange = () => { showDeck = c.checked; syncSizes(); };
+    d.append(c, " Show the concrete pad (today's deck plates)");
+    panel.append(d);
+  }
   function paint(): void {
     const r = real();
+    const podH = ready ? (podTop - (podE.lift ?? 0)) * sizes.pod / ART_M : 0;
+    const buried = Math.max(0, Math.min(podH, -podBaseM));
+    readouts["podBase"]!.textContent = `base ${podBaseM >= 0 ? `${podBaseM.toFixed(2)} m above` : `${(-podBaseM).toFixed(2)} m below`} the sand · ${podH ? Math.round((buried / podH) * 100) : 0}% of the ${podH.toFixed(2)} m pod buried`;
     readouts["ship"]!.textContent = `x${sizes.ship.toFixed(2)} · ship length ${r.ship.toFixed(1)} m`;
     readouts["pod"]!.textContent = `x${sizes.pod.toFixed(2)} · pod length ${r.pod.toFixed(2)} m`;
     readouts["cmdr"]!.textContent = `x${sizes.cmdr.toFixed(2)} · commander height ${r.cmdr.toFixed(2)} m`;
@@ -217,7 +250,7 @@ export function createCrashSite(): CrashUi {
   }
   copy.onclick = () => {
     const r = real();
-    const out = JSON.stringify({ multipliers: { ...sizes }, metres: { shipLength: +r.ship.toFixed(2), podLength: +r.pod.toFixed(2), commanderHeight: +r.cmdr.toFixed(2) }, ratio: +r.ratio.toFixed(1), filmRatio: +(FILM.shipM / FILM.cmdrM).toFixed(1) }, null, 1);
+    const out = JSON.stringify({ multipliers: { ...sizes }, metres: { shipLength: +r.ship.toFixed(2), podLength: +r.pod.toFixed(2), commanderHeight: +r.cmdr.toFixed(2), podBase: +podBaseM.toFixed(2) }, concretePad: showDeck, ratio: +r.ratio.toFixed(1), filmRatio: +(FILM.shipM / FILM.cmdrM).toFixed(1) }, null, 1);
     void navigator.clipboard?.writeText(out).then(() => { copy.textContent = "Copied"; setTimeout(() => (copy.textContent = "Copy settings"), 1200); }, () => prompt("Settings", out));
   };
   focusPod.onclick = () => focus(true);
