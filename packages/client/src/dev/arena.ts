@@ -405,7 +405,8 @@ export function createArena(): ArenaUi {
   /** Scale tab: every character in a row, smallest gaps that keep footprints apart, each at its own size. */
   function lineup(): Unit[] {
     const out: Unit[] = [];
-    let x = 20;
+    // the buggy stands first, left of the people (buggySpot), so the row starts past its length
+    let x = 20 + BUGGY_M * (sizes[BUGGY] ?? 1) * ART_M + 14;
     SCALE_IDS.forEach((id, i) => {
       const f = byId.get(id);
       if (!f) return;
@@ -422,12 +423,12 @@ export function createArena(): ArenaUi {
   }
   const shown = (): Unit[] => (tab === "scale" ? lineup() : fight.units);
 
-  /** Where the buggy stands on the Scale tab: past the last character, side on to the camera. */
+  /** Where the buggy stands on the Scale tab: left of the first character (the commander), side on to the camera. */
   function buggySpot(): { x: number; half: number; k: number } | null {
-    const row = lineup(), last = row[row.length - 1];
-    if (!last) return null;
+    const first = lineup()[0];
+    if (!first) return null;
     const k = sizes[BUGGY] ?? 1, half = (BUGGY_M * k * ART_M) / 2;
-    return { x: last.x + last.body + 14 + half, half, k };
+    return { x: first.x - first.body - 14 - half, half, k };
   }
   let buggy: Group | null = null;  /** The body and its four wheels from the rig (buggy.json: body frame y 0 at its lowest point, wheel pivots at the ground). */
   function placeBuggy(): void {
@@ -630,7 +631,7 @@ export function createArena(): ArenaUi {
     // looks lower and closer, at just the line-up, so sizes read against each other
     const row = tab === "scale" ? lineup() : [];
     const bs = tab === "scale" ? buggySpot() : null;
-    const x0 = row.length ? row[0]!.x - row[0]!.body - 10 : 0, x1 = bs ? bs.x + bs.half + 10 : row.length ? row[row.length - 1]!.x + row[row.length - 1]!.body + 10 : ARENA.w;
+    const x0 = bs ? bs.x - bs.half - 10 : row.length ? row[0]!.x - row[0]!.body - 10 : 0, x1 = row.length ? row[row.length - 1]!.x + row[row.length - 1]!.body + 10 : ARENA.w;
     const wide = tab === "scale" ? x1 - x0 : ARENA.w + 40, deep = tab === "scale" ? 90 : ARENA.h + 30;
     const pitch = ((tab === "scale" ? 22 : 55) * Math.PI) / 180, vf = (camera.fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
     const dW = wide / 2 / Math.tan(hf / 2), dH = (deep * Math.sin(pitch) + 50 * Math.cos(pitch)) / 2 / Math.tan(vf / 2);
