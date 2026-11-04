@@ -3,12 +3,13 @@ import { BufferGeometry, Color, Euler, Group, Matrix4, Mesh, Object3D, Quaternio
 import { GeoBuilder, tinted } from "../geom.js";
 import type { MaterialSet } from "../materials.js";
 import { roleToken, type Tokens } from "../tokens.js";
+import { CHAR_K } from "../units.js";
 
 // The shared character rig. Every humanoid (hero, workers, customers, raiders) is the same
 // set of parts posed by one function; creatures and hoppers have their own small rigs.
 // Parts are white-vertex-coloured so the crowd can instance each part once for the whole
 // scene and colour it per instance; the standalone model (asset lab, tests) bakes colours.
-// Units are art metres: the hero stands 1.0 tall.
+// Units are art metres (1 m = ART_M world units): the code-built hero stands 1.0 tall before look.scale and charScale.
 
 export type CharKind = "humanoid" | "creature" | "hopper" | "spiker";
 
@@ -81,10 +82,18 @@ const gearFor = (role: string, models: Readonly<Record<string, string>>): { hat:
   return hat && hat.startsWith("hat.") ? { ...g, hat } : g;
 };
 
+/**
+ * Real sizes (Doug 2026-11-04): 1 m is ART_M world units, every person stands PERSON_M tall and the warlord 1.5x that.
+ * A Meshy character stands look.scale x charScale x its meshy.json height / 0.9 metres (renderer.ts), so `tall` gives
+ * the look scale for a height in metres on a model of that meshy height (people's are 1.1, the commander's 0.9).
+ */
+export const PERSON_M = 1.8;
+const tall = (m: number, modelH = 1.1): number => (m * 0.9) / (modelH * CHAR_K);
+
 /** Look for a character id (unit.*, role.*, hostile.*, node.prey). */
 export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, string>> = {}): Look {
-  const base: Look = { kind: "humanoid", suit: t.suit, suitDark: t.suitDark, visor: t.visor, stripe: null, hat: "hat.none", hatColor: t.suit, tool: "tool.none", scale: 0.9, bigPack: false, pack: t.suitDark };
-  if (id === "unit.player") return { ...base, stripe: t.accent, hat: "hat.antenna", hatColor: t.accent, scale: 1.2, bigPack: true, pack: t.accent };
+  const base: Look = { kind: "humanoid", suit: t.suit, suitDark: t.suitDark, visor: t.visor, stripe: null, hat: "hat.none", hatColor: t.suit, tool: "tool.none", scale: tall(PERSON_M), bigPack: false, pack: t.suitDark };
+  if (id === "unit.player") return { ...base, stripe: t.accent, hat: "hat.antenna", hatColor: t.accent, scale: tall(PERSON_M, 0.9), bigPack: true, pack: t.accent };
   if (id.startsWith("role.") || id === "unit.resident") {
     const role = id === "unit.resident" ? "role.idle" : id;
     const col = roleToken(t, role);
@@ -94,7 +103,7 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
   }
   if (id.startsWith("unit.customer")) {
     const premium = id.endsWith("premium"), impatient = id.endsWith("impatient"), bulk = id.endsWith("bulk");
-    if (bulk) return { ...base, suit: t.customer, suitDark: t.customerDark, pack: t.accent, stripe: t.accent, hat: "hat.frame", hatColor: t.accent, bigPack: true, scale: 1, push: "tool.cart" };
+    if (bulk) return { ...base, suit: t.customer, suitDark: t.customerDark, pack: t.accent, stripe: t.accent, hat: "hat.frame", hatColor: t.accent, bigPack: true, push: "tool.cart" };
     const gold = t.res["res.currency"] ?? t.accent;
     return {
       ...base, suit: t.customer, suitDark: t.customerDark, pack: t.customerDark,
@@ -106,12 +115,12 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
     };
   }
   if (id === "hostile.raider_humanoid") {
-    return { ...base, suit: t.raider, suitDark: t.raiderDark, pack: t.raiderDark, visor: t.raiderVisor, hat: "hat.hood", hatColor: t.raiderDark, tool: "tool.rifle_raider", scale: 0.95 };
+    return { ...base, suit: t.raider, suitDark: t.raiderDark, pack: t.raiderDark, visor: t.raiderVisor, hat: "hat.hood", hatColor: t.raiderDark, tool: "tool.rifle_raider" };
   }
   if (id === "hostile.creature") return { ...base, kind: "creature", suit: t.creature, suitDark: t.creatureDark, visor: t.danger, scale: 1 };
   if (id === "hostile.swarmling") return { ...base, kind: "creature", suit: mix(t.creature, t.danger, 0.25), suitDark: t.creatureDark, visor: t.danger, scale: 0.45 };
   if (id === "hostile.boss") {
-    return { ...base, suit: t.raiderDark, suitDark: t.raider, pack: t.raiderDark, visor: t.danger, hat: "hat.crest", hatColor: t.danger, tool: "tool.minigun", scale: 1.75, bigPack: true };
+    return { ...base, suit: t.raiderDark, suitDark: t.raider, pack: t.raiderDark, visor: t.danger, hat: "hat.crest", hatColor: t.danger, tool: "tool.minigun", scale: tall(1.5 * PERSON_M), bigPack: true };
   }
   if (id === "unit.prey_dangerous" || id === "node.prey_dangerous") {
     return { ...base, kind: "spiker", suit: mix(t.prey, t.danger, 0.3), suitDark: t.groundDark, visor: t.danger, scale: 1.3 };

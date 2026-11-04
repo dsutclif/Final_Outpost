@@ -243,9 +243,10 @@ export function createArena(): ArenaUi {
   function sizeNote(id: string): string {
     if (id === BUGGY) { const k = sizes[id] ?? 1; return `${(BUGGY_M * k).toFixed(2)} m long (as built ${BUGGY_M.toFixed(2)} m) · ${(k * buggyRig.radius * 2).toFixed(2)} m wheels`; }
     const e = entryOf(id), k = sizes[id] ?? 1;
-    const L = lookScale(id), body = `footprint ${((bodies[id] ?? 12) * k * 2 / CHAR_WORLD).toFixed(2)} m across`;
+    // real metres (1 m = ART_M world units, Doug 2026-11-04): a person is 1.8 m
+    const L = lookScale(id), body = `footprint ${((bodies[id] ?? 12) * k * 2 / ART_M).toFixed(2)} m across`;
     if (!e) return body;
-    const m = (e.length ?? e.height ?? 1.1) * L;
+    const m = (e.length ?? e.height ?? 1.1) * L * CHAR_WORLD / ART_M;
     return `${(m * k).toFixed(2)} m ${e.length ? "long" : "tall"} (in game today ${m.toFixed(2)} m) · ${body}`;
   }
   function renderCards(): void {
@@ -678,7 +679,7 @@ export function createArena(): ArenaUi {
   }
 
   function paintStat(): void {
-    if (tab === "scale") { stat.textContent = "Drag a slider to resize a character. x1 is how the game draws it today. The faint ring is the footprint the no-overlap rule keeps apart. Copy settings sends me the sizes."; return; }
+    if (tab === "scale") { stat.textContent = "Sizes are real metres: a person is 1.8 m. Drag a slider to resize a character; x1 is how the game draws it today. The faint ring is the footprint the no-overlap rule keeps apart. Copy settings sends me the sizes."; return; }
     const sec = (fight.tick / ARENA.tps).toFixed(1);
     const rules = mode === "r2" ? `R2 proposals (${PROPOSALS.length} overrides)` : "today's rules";
     if (tab === "hunt") {

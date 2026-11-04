@@ -75,6 +75,11 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-04, A, real metres; every person 1.8 m (Doug).** No engine bump, no story file touched. 1 m = `ART_M`
+  (28) world units everywhere (DECISIONS.md), which is what decor `width` already uses, so the buggy's and the wreck's
+  metres are real metres. Every person now stands 1.8 m like the commander (workers, guards, raiders and traders grew
+  about 9%), the warlord 2.7 m (`render-3d/src/assets/characters.ts` look scales). **B:** story levels' people are
+  9% taller beside the set; check the film-matched shots if any frame a non-commander person against the set.
 - **2026-11-04, B, S30 played live in level 1; bay-camera pods on the deck (Doug).** No engine bump. **A: level 1's cue
   block changed** (S30 was unclaimed; Doug: "do it here").
   - S30 runs in game rather than in the film, since level 1 now opens on the film's exact last frame. `openZoom.hold`

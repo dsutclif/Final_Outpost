@@ -61,9 +61,9 @@ export const PROPOSALS: { key: string; v: number; why: string }[] = [
   // hunting (Doug 2026-11-04): a standing hunter loses to three spiked hoppers up close; one who keeps moving wins with his gun
   { key: "node.prey_dangerous:hp", v: 3, why: "one hit from the commander or a ranger kills it (Doug)" },
   { key: "node.prey_dangerous:interval", v: 0.5, why: "Doug 2026-11-04 sandbox: at 0, 3 or 4 a herd is routine, sometimes needs the medic, often needs it" },
-  { key: "node.prey_dangerous:damage", v: 12, why: "Doug 2026-11-04: a standing ranger needs the medic 1 hunt in 20 against three (arena: 40 in 800) and about 1 in 7 against four (121 in 800); one bite injures, so both can't be exact" },
-  { key: "node.prey_dangerous:speed", v: 78, why: "Doug 2026-11-04: a standing ranger needs the medic 1 hunt in 20 against three (arena: 40 in 800) and about 1 in 7 against four (121 in 800); one bite injures, so both can't be exact" },
-  { key: "node.prey_dangerous:aggroRange", v: 88, why: "Doug 2026-11-04: a standing ranger needs the medic 1 hunt in 20 against three (arena: 40 in 800) and about 1 in 7 against four (121 in 800); one bite injures, so both can't be exact" },
+  { key: "node.prey_dangerous:damage", v: 12, why: "Doug 2026-11-04: a standing ranger needs the medic 1 hunt in 20 against three (arena: 39 in 800) and about 1 in 6 against four (126 in 800); one bite injures, so both can't be exact" },
+  { key: "node.prey_dangerous:speed", v: 78, why: "Doug 2026-11-04: a standing ranger needs the medic 1 hunt in 20 against three (arena: 39 in 800) and about 1 in 6 against four (126 in 800); one bite injures, so both can't be exact" },
+  { key: "node.prey_dangerous:aggroRange", v: 85, why: "Doug 2026-11-04: a standing ranger needs the medic 1 hunt in 20 against three (arena: 39 in 800) and about 1 in 6 against four (126 in 800); one bite injures, so both can't be exact" },
   { key: "node.prey_dangerous:biteWindup", v: 0.4, why: "new: a bite lands only if the target is still in reach after the wind-up, so moving dodges it" },
   { key: "hunter:hp", v: 12, why: "new: at 0 the ranger is injured (lies down, can't be hurt) until a medic or the commander heals him (Doug 2026-11-04)" },
   { key: "hunter:damage", v: 3, why: "Doug 2026-11-04 sandbox" },
@@ -248,11 +248,11 @@ function mulberry(seed: number): () => number {
 
 /**
  * Footprint radius at size 1 (world units) when the arena hasn't measured the models: from meshy.built.json bounds
- * and meshy.json heights at the game's draw size (renderer.ts: ART_M x look.scale x charScale / 0.9). Humans are about 11.
+ * and meshy.json heights at the game's draw size (renderer.ts: ART_M x look.scale x charScale / 0.9). People are 1.8 m and about 12 across (1 m = 28 world units).
  */
 export const BODY: Record<string, number> = {
-  "hostile.swarmling": 11, "hostile.creature": 22, "hostile.raider_humanoid": 10, "hostile.boss": 26,
-  "node.prey": 15, "node.prey_dangerous": 13, player: 12, guard: 11, medic: 12, hunter: 11, drone: 18, tower: 14,
+  "hostile.swarmling": 11, "hostile.creature": 22, "hostile.raider_humanoid": 11, "hostile.boss": 23,
+  "node.prey": 13, "node.prey_dangerous": 12, player: 12, guard: 12, medic: 13, hunter: 12, drone: 18, tower: 14,
 };
 
 /** Spread each type evenly through the wave (Doug 2026-11-04: alternation throughout), the rarest at even steps. */

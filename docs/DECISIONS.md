@@ -263,3 +263,7 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     - **Hard rule 1, amended:** no level-specific code in the sim, bots, generator or rater. The client
       may register named cinematics and the skin may carry story cues keyed by level id; neither may
       change sim state. Cinematics and the story director (barks, camera beats) are deferred.
+- **Real metres (Doug, 2026-11-04).** One metre is `ART_M` (28) world units, for characters, buildings, machines and
+  decor alike, so a real object's size can be applied directly (a 4 m buggy is 4 m beside a 1.8 m person). Every person
+  stands 1.8 m (`characters.ts` `PERSON_M`; the commander was already 1.8 m, the others were 1.65 m) and the warlord
+  1.5x that, 2.7 m (was 3.2 m). Sizes stay in data: models are not rescaled in Blender. Renderer only, no engine bump.

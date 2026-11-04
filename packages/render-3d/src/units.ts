@@ -6,7 +6,10 @@ import { LOOK, viewWidth } from "@fo/content";
 // (x, 0, y), so +y in the sim ("down the screen") is +z, toward the camera. Models are
 // authored in art metres (the hero is 1.0 tall, ART-DIRECTION.md) and scaled by ART_M.
 
-/** World units per art metre: the hero stands about as tall as the 2D figure (28 units). */
+/**
+ * World units per metre. Doug 2026-11-04: this is a real metre for every size we talk about (characters, buildings,
+ * decor): a person stands 1.8 m (characters.ts PERSON_M), so a real object's size in metres can be applied directly.
+ */
 export const ART_M = 28;
 /** Look settings shared with the generator and the human-view bot (@fo/content data/look.json). */
 export const BUILD_K = LOOK.buildScale;
