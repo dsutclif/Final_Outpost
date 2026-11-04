@@ -61,10 +61,10 @@ export function buildCore(ctx: BuildCtx): Model {
   m.root.add(mesh(b.build(), mats.panel, "body"));
   const glass = mesh(new GeoBuilder().cyl(0.43, 0.43, 1.0, 14, mix(t.glass, t.plasma, 0.6), { at: [0, 0.98, 0] }, true).build(), coreGlass(mats.glass), "glass");
   m.root.add(glass);
-  const orb = mesh(new GeoBuilder().sphere(0.36, 12, 8, t.plasma).build(), mats.glow, "orb");
+  const orb = mesh(new GeoBuilder().sphere(0.36, 32, 20, t.plasma).build(), mats.glow, "orb");
   orb.position.set(0, 0.98, 0);
   m.root.add(orb);
-  const flame = mesh(new GeoBuilder().sphere(0.4, 12, 8, t.plasma, { scale: [1, 1.35, 1] }).build(), mats.additive, "flame");
+  const flame = mesh(new GeoBuilder().sphere(0.4, 32, 20, t.plasma, { scale: [1, 1.35, 1] }).build(), mats.additive, "flame");
   flame.position.set(0, 0.98, 0);
   m.root.add(flame);
   const spin = new Group();

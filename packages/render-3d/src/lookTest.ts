@@ -19,6 +19,8 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
  */
 // tuned on generated level 8 (daytime): stronger env or a wide bloom radius washes the sand beige
 export const LOOK_TUNE = { env: 0.15, envOn: true, hemi: 0.9, glow: 2.2, bloom: 0.45, bloomRadius: 0.05, threshold: 2, post: true };
+/** Materials this rough are dust or concrete (deck slabs 0.95); Meshy models (0.9) and code structures keep the sky. */
+const DUST_ROUGH = 0.93;
 /** Dynamic resolution: pixel ratio steps between these, driven by measured frame rate. */
 const DPR_MIN = 1.5, DPR_STEP = 0.25, FPS_LOW = 50, FPS_OK = 57;
 
@@ -95,7 +97,10 @@ export class LookTest {
       const m = (o as Mesh).material;
       if (!m) return;
       for (const x of Array.isArray(m) ? m : [m]) {
-        if ((x as MeshBasicMaterial).isMeshBasicMaterial && x.toneMapped === false) {
+        const st = x as MeshStandardMaterial;
+        // dust (deck slabs, rough ground): its own envMap at zero strength overrides the scene sky, so it never sheens like glass
+        if (st.isMeshStandardMaterial && st.roughness >= DUST_ROUGH && st.envMap !== this.envMap) { st.envMap = this.envMap; st.envMapIntensity = 0; st.needsUpdate = true; }
+        else if ((x as MeshBasicMaterial).isMeshBasicMaterial && x.toneMapped === false) {
           const k = LOOK_TUNE.post ? LOOK_TUNE.glow : 1, was = (x.userData["lookGlow"] as number | undefined) ?? 1;
           if (k !== was) { (x as MeshBasicMaterial).color.multiplyScalar(k / was); x.userData["lookGlow"] = k; }
         }

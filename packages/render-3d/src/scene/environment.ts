@@ -346,7 +346,8 @@ export class Environment {
     this.pool.position.set(core.x, 0.8, core.z);
     this.pool.scale.setScalar(Math.max(1, safeR * 1.08));
     (this.pool.material as MeshBasicMaterial).opacity = 0.18 + 0.32 * glow;
-    this.safeRing.position.set(core.x, 1, core.z);
+    // above the tallest deck tile (tiles lift up to SLAB_TOP), so the ring never dips under one
+    this.safeRing.position.set(core.x, SLAB_TOP + 0.2, core.z);
     this.safeRing.scale.setScalar(Math.max(1, safeR));
     this.safeRing.visible = safeR > 0;
 
