@@ -20,7 +20,7 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 // tuned on generated level 8 (daytime): stronger env or a wide bloom radius washes the sand beige
 export const LOOK_TUNE = {
   // reactor gas (KILN's cloud shader in plasma colours): width in reactor widths, how far its top rises above the rim in reactor heights
-  gasW: 1.0, gasRise: 0.2, gasSquash: 1, gasBright: 4, gasFront: 0, env: 0.15, envOn: true, hemi: 0.9, glow: 2.2, bloom: 0.45, bloomRadius: 0.05, threshold: 2, post: true };
+  gasW: 1.0, gasRise: 0.2, gasSquash: 1, gasBright: 4, gasFront: 0, exposure: 0.95, env: 0.1, envOn: true, hemi: 0.9, glow: 2.2, bloom: 0.45, bloomRadius: 0.05, threshold: 2, post: true };
 /** Reactor gas colours: deep ember, amber, near-white core (red is unused: no glitch). */
 const GAS = { deep: "#5a1a03", mid: "#ff7a1a", core: "#fff0c8" };
 
@@ -260,8 +260,12 @@ export class LookTest {
     // a scene-wide environment is scaled here; material.envMapIntensity only scales a material's own envMap
     this.scene.environmentIntensity = LOOK_TUNE.env;
     this.bloom.strength = LOOK_TUNE.bloom; this.bloom.radius = LOOK_TUNE.bloomRadius; this.bloom.threshold = LOOK_TUNE.threshold;
+    // exposure trim: the new look matches the old daytime brightness (Doug, 2026-11-04)
+    const ex = this.gl.toneMappingExposure;
+    this.gl.toneMappingExposure = ex * LOOK_TUNE.exposure;
     if (LOOK_TUNE.post) this.composer.render(dt);
     else this.gl.render(this.scene, this.camera);
+    this.gl.toneMappingExposure = ex;
     for (const [h, i] of hemis) h.intensity = i;
     for (const [o, v] of hidden) o.visible = v;
     this.acc += dt; this.frames++;
