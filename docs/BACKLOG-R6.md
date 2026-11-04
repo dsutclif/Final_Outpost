@@ -19,6 +19,7 @@ Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked 
 - [x] **N9 player behind walls:** pretotype first. Draw the hero as a silhouette that shows through any
       occluder, walls included (walls are instanced and can't fade per tile). Build per-tile wall fading
       only if the silhouette reads wrong.
+      **2026-11-04 follow-up (Doug):** fade the whole wall, and every building except his named exclusions (grow dome, warehouse). Not started; plan in `docs/handoff/wall-fade.md`.
 
 ### Bundle 2: base and building art (Sonnet)
 - [x] **#4 goods below the belt top:** probably the belt is lifted by SLAB_TOP and the goods aren't
