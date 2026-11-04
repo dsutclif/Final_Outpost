@@ -297,11 +297,11 @@ function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     bulb.position.copy(spot.position);
     buggy.add(bulb);
   }
-  // Sela, 1.8 m, seated at the wheel until the buggy stops
-  const sela = crewFigure("unit.customer");
+  // Sela in her own dark blue suit (unit.customer_sela), 1.8 m, seated at the wheel until the buggy stops
+  const sela = crewFigure("unit.customer_sela") ?? crewFigure("unit.customer");
   const PERSON = 1.8;
-  const seated = new Map<Object3D, Quaternion>();
-  let hip = new Vector3(0, 0.9, 0);
+  const seated = new Map<Object3D, Quaternion>(), standing = new Map<Object3D, Quaternion>();
+  let hip = new Vector3(0, 0.9, 0), standHip = new Vector3(0, 0.9, 0);
   const lamp = new PointLight("#ffc27a", 0, 7, 1.6);
   scene.add(lamp);
   if (sela) {
@@ -311,6 +311,12 @@ function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     const bone = (n: string): Object3D | undefined => sela.root.getObjectByName(`mixamorig${n}`) ?? sela.root.getObjectByName(`mixamorig:${n}`);
     sela.mixer.setTime(0);
     sela.root.updateMatrixWorld(true);
+    // the standing pose (the walk's first frame) she rises into
+    sela.root.traverse((b) => { if ((b as { isBone?: boolean }).isBone) standing.set(b, b.quaternion.clone()); });
+    {
+      const l = bone("LeftUpLeg"), r = bone("RightUpLeg");
+      if (l && r) standHip = l.getWorldPosition(new Vector3()).add(r.getWorldPosition(new Vector3())).multiplyScalar(0.5).divide(sela.root.scale);
+    }
     for (const sd of ["Left", "Right"]) {
       aimBone(bone(`${sd}UpLeg`), bone(`${sd}Leg`), new Vector3(0, -0.03, 1));
       aimBone(bone(`${sd}Leg`), bone(`${sd}Foot`), new Vector3(0, -1, 0.2));
@@ -340,23 +346,28 @@ function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
       camera.position.set(tall ? -11 + 1.5 * k : -7 + 2 * k, (tall ? 2.2 : 1.6) + 0.8 * k, tall ? 12 - 1 * k : 7.5 - 1.5 * k);
       camera.lookAt(x * 0.85 - 0.8, 0.8, 0.5);
       if (!sela) return;
-      const seatW = new Vector3(x + 0.3 * K, 1.4 * K + 0.073 * PERSON, 0);
-      const doorW = new Vector3(x + 0.1, 0, 1.25);
-      if (t < OUT0 + 0.35) {
-        // seated (the pose kept from before any walk frame), rising a little as she starts to climb out
-        for (const [b, q] of seated) b.quaternion.copy(q);
-        const s = sela.root.scale.x, rise = span(t, OUT0, OUT0 + 0.35);
-        const p = seatW.clone().sub(hip.clone().multiplyScalar(s).applyAxisAngle(up, -Math.PI / 2));
-        p.y += 0.25 * rise; p.z += 0.5 * rise;
-        sela.root.position.copy(p);
-        sela.root.rotation.set(0, -Math.PI / 2, 0);
+      const s = sela.root.scale.x;
+      // her hips: on the seat, then in an arc up over the side and down to standing height beside the door
+      const seatHip = new Vector3(x + 0.3 * K, 1.4 * K + 0.073 * PERSON, 0);
+      const doorHip = new Vector3(x + 0.15, standHip.y * s, 1.3);
+      if (t < OUT1) {
+        // the climb out (OUT0-OUT1): every bone eases from the seated pose to the standing one while the hips travel,
+        // and she turns from facing ahead to facing the door
+        const k = span(t, OUT0, OUT1);
+        for (const [b, q] of seated) b.quaternion.slerpQuaternions(q, standing.get(b) ?? q, k);
+        const hipW = new Vector3().lerpVectors(seatHip, doorHip, k);
+        hipW.y += 0.35 * Math.sin(Math.PI * Math.min(1, k * 1.15));
+        const yaw = -Math.PI / 2 + (Math.PI / 2) * Math.sin(Math.PI * k) * 0.6;
+        const hipM = new Vector3().lerpVectors(hip, standHip, k).multiplyScalar(s).applyAxisAngle(up, yaw);
+        sela.root.position.copy(hipW.sub(hipM));
+        sela.root.rotation.set(0, yaw, 0);
       } else {
-        // standing: down beside the door, then walking toward the camp (toward the camera's left)
-        const step = span(t, OUT0 + 0.35, OUT1), w = Math.max(0, t - OUT1);
+        // standing beside the door, she turns toward camp and walks (toward the camera's left)
+        const w = t - OUT1, turn = span(t, OUT1, OUT1 + 0.5);
         sela.mixer.setTime(w);
-        const from = seatW.clone().setY(0.25).add(new Vector3(0, 0, 0.5));
-        sela.root.position.lerpVectors(from, doorW, step).add(new Vector3(-w * 1.25, 0, w * 0.35));
-        sela.root.rotation.set(0, -Math.PI / 2 + 0.27 * step, 0);
+        const base = doorHip.clone().sub(standHip.clone().multiplyScalar(s).applyAxisAngle(up, -Math.PI / 2));
+        sela.root.position.copy(base).add(new Vector3(-w * 1.25, 0, w * 0.35));
+        sela.root.rotation.set(0, -Math.PI / 2 + 0.27 * turn, 0);
       }
       // her lamp, warm, at hand height on the camera's side
       lamp.intensity = 3 * span(t, OUT0 - 0.3, OUT1);
@@ -366,8 +377,117 @@ function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   };
 }
 
+/** A character's bone by its mixamo name (with or without the colon the loader may strip). */
+const boneOf = (root: Object3D, n: string): Object3D | undefined => root.getObjectByName(`mixamorig${n}`) ?? root.getObjectByName(`mixamorig:${n}`);
+/** Every bone's rotation now, to blend between poses. */
+function poseOf(root: Object3D): Map<Object3D, Quaternion> {
+  const m = new Map<Object3D, Quaternion>();
+  root.traverse((b) => { if ((b as { isBone?: boolean }).isBone) m.set(b, b.quaternion.clone()); });
+  return m;
+}
+function blendPose(a: Map<Object3D, Quaternion>, b: Map<Object3D, Quaternion>, k: number): void {
+  for (const [bone, q] of a) bone.quaternion.slerpQuaternions(q, b.get(bone) ?? q, k);
+}
+
+/**
+ * The Halcyon chip (docs/STORY-SCREENPLAY.md level 3, Doug 2026-11-04): by the kiosk at night Sela holds out a worn
+ * coin on her palm, the commander reaches and takes it, and the camera closes on the chip and its stamped H.
+ */
+function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement): Staged {
+  const scene = new Scene();
+  scene.background = new Color("#070a12");
+  const camera = new PerspectiveCamera(32, 1, 0.05, 200);
+  scene.add(new AmbientLight("#3d4a68", 1.4));
+  const moon = new DirectionalLight("#a9bce0", 1.1);
+  moon.position.set(-10, 20, 8);
+  // the kiosk's warm lamp from behind Sela, so the coin catches it
+  const lamp = new PointLight("#ffc27a", 9, 9, 1.4);
+  lamp.position.set(1.6, 2.4, -1.2);
+  const sand = new Mesh(new PlaneGeometry(60, 60), new MeshStandardMaterial({ color: "#7a5f48", roughness: 1 }));
+  sand.rotation.x = -Math.PI / 2;
+  scene.add(moon, lamp, sand);
+  const sela = crewFigure("unit.customer_sela") ?? crewFigure("unit.customer"), cmd = crewFigure("unit.player");
+  // Sela at x +0.6 facing -x, the commander at x -0.6 facing +x: an arm's length apart, side on to the camera
+  const place = (f: NonNullable<ReturnType<typeof crewFigure>>, h: number, x: number, yaw: number): void => {
+    f.root.scale.setScalar(h / f.height);
+    f.root.position.set(x, 0, 0);
+    f.root.rotation.set(0, yaw, 0);
+    f.mixer.setTime(0);
+    scene.add(f.root);
+    f.root.updateMatrixWorld(true);
+  };
+  // each figure's rest pose and the pose with the right arm out (palm toward the other), blended over time
+  const reach = (f: NonNullable<ReturnType<typeof crewFigure>>, toward: number): { rest: Map<Object3D, Quaternion>; out: Map<Object3D, Quaternion> } => {
+    const rest = poseOf(f.root);
+    aimBone(boneOf(f.root, "RightArm"), boneOf(f.root, "RightForeArm"), new Vector3(toward * 0.75, -0.55, 0.12));
+    aimBone(boneOf(f.root, "RightForeArm"), boneOf(f.root, "RightHand"), new Vector3(toward, -0.05, 0.05));
+    const out = poseOf(f.root);
+    blendPose(rest, rest, 0);
+    return { rest, out };
+  };
+  let sp: ReturnType<typeof reach> | null = null, cp: ReturnType<typeof reach> | null = null;
+  let look: Map<Object3D, Quaternion> | null = null;
+  if (sela) { place(sela, 1.8, 0.62, -Math.PI / 2); sp = reach(sela, -1); }
+  if (cmd) {
+    place(cmd, 1.98, -0.62, Math.PI / 2); cp = reach(cmd, 1);
+    // and with the hand brought up in front of the chest, palm up, to look at the chip
+    blendPose(cp.rest, cp.rest, 0);
+    aimBone(boneOf(cmd.root, "RightArm"), boneOf(cmd.root, "RightForeArm"), new Vector3(0.35, -0.85, 0.25));
+    aimBone(boneOf(cmd.root, "RightForeArm"), boneOf(cmd.root, "RightHand"), new Vector3(0.55, 0.6, 0.35));
+    look = poseOf(cmd.root);
+    blendPose(cp.rest, cp.rest, 0);
+  }
+  // the chip: the game's own currency model, at a real coin's size
+  const coin = meshyScene("res.currency") ?? new Mesh(new SphereGeometry(0.02, 12, 8), new MeshStandardMaterial({ color: "#c9a24a", metalness: 0.8 }));
+  // a big chip (6 cm) so it reads on a phone, with its own small warm light so the stamped H catches it
+  coin.scale.multiplyScalar(0.06 / 0.3);
+  const glint = new PointLight("#ffd9a0", 1.6, 0.8, 1.2);
+  scene.add(coin, glint);
+  // the middle of the palm: part way from the wrist to the middle finger's knuckle, a little above the hand
+  const handPos = (f: ReturnType<typeof crewFigure>): Vector3 => {
+    const h = f && boneOf(f.root, "RightHand"), m = f && boneOf(f.root, "RightHandMiddle1");
+    if (!f || !h) return new Vector3(0, 1.1, 0);
+    f.root.updateMatrixWorld(true);
+    const w = h.getWorldPosition(new Vector3());
+    return m ? w.lerp(m.getWorldPosition(new Vector3()), 0.7) : w;
+  };
+  const SECONDS = 6.4, GIVE = 0.6, MEET = 2.4, TAKE = 3.0, BACK = 4.0;
+  return {
+    seconds: SECONDS,
+    scene, camera, labels: [],
+    pose(t) {
+      // Sela's arm goes out first; the commander reaches to meet it, takes the chip, and draws it in to look at it
+      if (sela && sp) blendPose(sp.rest, sp.out, span(t, GIVE, MEET) - span(t, TAKE + 0.3, BACK + 0.4));
+      // the commander reaches, takes it, then brings the hand up to chest height to look at it
+      const up = span(t, TAKE + 0.4, BACK + 0.5);
+      if (cmd && cp) {
+        blendPose(cp.rest, cp.out, span(t, MEET - 0.9, TAKE));
+        if (look && up > 0) { const outNow = poseOf(cmd.root); blendPose(outNow, look, up); }
+      }
+      // the chip sits on the giver's palm, then in the taker's hand wherever it goes
+      const p = t < TAKE ? handPos(sela) : handPos(cmd);
+      coin.position.copy(p).add(new Vector3(0, 0.03 + 0.02 * up, 0.02 + 0.03 * up));
+      const lifted = coin.position.clone();
+      glint.position.copy(coin.position).add(new Vector3(0, 0.15, 0.25));
+      // a two-shot that pushes in on the hands, then a medium close on the chip held up, the commander behind it
+      // (not so close that the game's low-poly models break up)
+      const k = span(t, 0, MEET + 0.4), z = span(t, TAKE + 0.4, SECONDS - 0.5);
+      const tall = camera.aspect < 0.8;
+      const wide = new Vector3(0, 1.5, tall ? 5.2 : 3.4), near = new Vector3(0, 1.25, tall ? 2.4 : 1.8);
+      camera.position.lerpVectors(wide, near, k).lerp(lifted.clone().add(new Vector3(0.12, 0.04, tall ? 0.85 : 0.65)), z);
+      camera.lookAt(new Vector3(0, 1.3, 0).lerp(coin.position, Math.max(k * 0.6, z)));
+      // flat in the palm, then turned so its face (the stamped H) looks at the camera as it is lifted
+      const flat = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), 0).multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), 0.3));
+      const face = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), camera.position.clone().sub(coin.position).normalize());
+      coin.quaternion.slerpQuaternions(flat, face, up);
+    },
+    dispose() { disposeAll(scene); },
+  };
+}
+
 const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged; film?: boolean }>> = {
-  sela_arrival: { models: ["decor.buggy", "decor.buggy_wheel", "decor.buggy_wheel_l", "unit.customer"], stage: selaArrival, film: true },
+  chip_handoff: { models: ["unit.customer_sela", "unit.customer", "unit.player", "res.currency"], stage: chipHandoff, film: true },
+  sela_arrival: { models: ["decor.buggy", "decor.buggy_wheel", "decor.buggy_wheel_l", "unit.customer_sela", "unit.customer"], stage: selaArrival, film: true },
   empty_bays: { models: ["decor.stasis_pod", "decor.stasis_glass"], stage: emptyBays },
   crash_log: { models: ["decor.stasis_pod", "decor.stasis_glass", "unit.player"], stage: crashLog },
 };

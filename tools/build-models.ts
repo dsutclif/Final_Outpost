@@ -43,7 +43,7 @@ export interface MeshyEntry {
    */
   error?: number;
   /** Recolour the base colour before baking ("gold": brushed warm gold, darks kept). */
-  tint?: "gold" | "scorch";
+  tint?: "gold" | "scorch" | "navy";
   /** Lettering on the broad faces: text and [x0, y0, x1, y1] (fitted art metres), see lettering(). */
   decal?: { text: string; box: number[] };
   /** Material factors (default rough 0.9, metal 0). */
@@ -99,6 +99,7 @@ async function loadSource(path: string, tint?: MeshyEntry["tint"]): Promise<Src>
   const raw = await sharp(img).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   if (tint === "gold") gold(raw.data, raw.info.width);
   if (tint === "scorch") scorch(raw.data, raw.info.width);
+  if (tint === "navy") navy(raw.data);
   return { pos: floats("POSITION"), uv: floats("TEXCOORD_0"), idx: Uint32Array.from(prim.getIndices()!.getArray()!), tex: { data: raw.data, w: raw.info.width, h: raw.info.height } };
 }
 
@@ -120,6 +121,28 @@ function gold(px: Buffer, w: number): void {
     for (let c = 0; c < 3; c++) {
       const g = k < 0.5 ? lo[c]! + (mid[c]! - lo[c]!) * (k / 0.5) : mid[c]! + (hi[c]! - mid[c]!) * ((k - 0.5) / 0.5);
       px[o + c] = Math.round(px[o + c]! * (1 - keep) + g * keep);
+    }
+  }
+}
+
+/**
+ * Dark navy cloth (Sela's suit, Doug 2026-11-04): pale, near-neutral texels (the suit's off-white and grey fabric)
+ * take a navy ramp by their brightness, so folds and wear still read. Warm or saturated texels (skin, lamps, trim)
+ * and near-black hardware keep their colour; the blend fades in with how neutral a texel is, so edges do not ring.
+ */
+function navy(px: Buffer): void {
+  const lo = [12, 18, 34], mid = [30, 46, 86], hi = [74, 96, 140];
+  for (let o = 0; o < px.length; o += 4) {
+    const r = px[o]! / 255, g = px[o + 1]! / 255, b = px[o + 2]! / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2;
+    const sat = mx === mn ? 0 : (mx - mn) / (1 - Math.abs(2 * l - 1));
+    if (l < 0.16) continue;
+    const neutral = Math.min(1, Math.max(0, (0.3 - sat) / 0.12)) * Math.min(1, (l - 0.16) / 0.08);
+    if (neutral <= 0) continue;
+    const k = Math.min(1, Math.max(0, (l - 0.16) / 0.74));
+    for (let c = 0; c < 3; c++) {
+      const t = k < 0.5 ? lo[c]! + (mid[c]! - lo[c]!) * (k / 0.5) : mid[c]! + (hi[c]! - mid[c]!) * ((k - 0.5) / 0.5);
+      px[o + c] = Math.round(px[o + c]! * (1 - neutral) + t * neutral);
     }
   }
 }
@@ -446,6 +469,7 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
   const sets = prim.listSemantics().filter((n) => n.startsWith("JOINTS_")).map((n) => [read(n), read(n.replace("JOINTS", "WEIGHTS"))] as const);
   const img = prim.getMaterial()!.getBaseColorTexture()!.getImage()!;
   const raw = await sharp(img).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  if (e.tint === "navy") navy(raw.data);
   const src: Src = {
     pos: new Float32Array(prim.getAttribute("POSITION")!.getArray()!), uv: new Float32Array(prim.getAttribute("TEXCOORD_0")!.getArray()!),
     idx: Uint32Array.from(prim.getIndices()!.getArray()!), tex: { data: raw.data, w: raw.info.width, h: raw.info.height },

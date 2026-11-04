@@ -791,6 +791,7 @@ export const marsGreenhouse: Skin = {
         images: { badge: "scenes/badge_bay5.png" },
       },
       sela_arrival: { text: {}, images: {} },
+      chip_handoff: { text: {}, images: {} },
       crash_log: {
         text: { feed: "KILN · RECORDER · BAY CAM 05–08", impact: "FOUR MINUTES TO IMPACT", unsealed: "UNSEALED", occupied: "OCCUPIED" },
         images: {},
@@ -1007,8 +1008,9 @@ export const marsGreenhouse: Skin = {
             { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
           ] },
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land
-          { on: { goal: "main", is: "done" }, do: [
-            { card: "", image: "ui/coin.png", seconds: 2.5 },
+          { on: { goal: "main", is: "done" }, ordered: true, do: [
+            // Sela hands the commander the chip (the chip_handoff live scene), then her line
+            { film: "chip_handoff" },
             { line: "For your first night under a roof. A Halcyon chip.", who: "sela" },
             { line: "Halcyon chips? That's our ship's money. Where did you get it?", who: "commander" },
             { line: "Four people in suits like yours still spend them. Up on the ridge.", who: "sela" },
