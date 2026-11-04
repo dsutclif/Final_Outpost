@@ -83,6 +83,9 @@ follow-up, it stays in the story backlog under the same S number, so each part i
       becomes a small image of the item they want (the resource's own icon or model), on every level, so players learn
       to read orders without matching colours. Story level 3 already has the angry trader who wants meat; once G9 lands
       the story session can point at the icon in that beat.
+- [ ] **G10 healing cross (Doug, 2026-11-04):** while a medic heals someone, a green medical cross floats over them and
+      fills up as the heal runs; when it is full it disappears and they get up. Renderer only for guards (`medic_heal`
+      already fires); injured rangers and the commander get it with N22.
 
 ## Release 2: one engine bump, one pack rebuild
 
@@ -100,11 +103,16 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
       than 18 between centres. The commander walks through anyone; only settlement walls stop him. Drones still fly over.
 - [ ] **N21 guards, medics, bleed-out (Doug, 2026-11-04):** medics can't be hurt. A downed guard takes half damage and
       dies at 0 unless a medic reaches it; no damage while a medic is healing it. Rater metric: guard deaths per wave.
+      The commander can be killed by attackers (Doug, 2026-11-04); hunting never kills (N22).
 - [ ] **N22 the ranger is back, and hunting is a skill (Doug, 2026-11-04):** the R2 generator rewrite (2d433a7,
       2026-10-11) dropped the `role.hunter` hire pad without a recorded decision; put it back on hunting levels. Ranger
       and commander one-shot a spiked hopper with the gun (new `gunDamage`, melee weaker); spiked hoppers charge as a
       herd from past gun reach, wind up each bite (a moving target dodges it) and stun. Three up close beat a hunter
       who stands; one who keeps moving wins. Arena numbers in `arenaModel.ts` PROPOSALS.
+      Hunting never kills (Doug, 2026-11-04): an injured ranger, or the commander on a hunt, lies down, can't be hurt,
+      and waits for a medic or the commander to heal him. Hopper zones hold 0, 3 or 4 spiked hoppers: 0 is routine, 3
+      rarely needs the medic for a ranger, 4 often does. Doug's sandbox numbers (2026-11-04) are the arena PROPOSALS.
+      **Don't drop this:** the ranger and the dust crawler (N18) both ship in this release.
 - [ ] **N23 dense mixed waves (Doug, 2026-11-04):** waves come in rows of several abreast and mix their types evenly
       (`waveOrder`); mites dense and weak, then crawlers, raiders and warlords larger, slower, stronger and rarer. A
       drone is worth about one crawler. Sizing, drops and iPhone frame rate per the 2026-11-03 plan (#14, #15, N18).

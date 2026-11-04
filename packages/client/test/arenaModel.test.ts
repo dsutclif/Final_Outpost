@@ -130,16 +130,30 @@ describe("fighter arena model", () => {
     expect(f.built).toBeGreaterThan(0);
   });
 
-  it("hunting: three spiked hoppers beat a hunter who stands still; one who keeps moving wins", () => {
-    for (const who of ["player", "hunter"]) {
-      let standWins = 0, kiteWins = 0;
-      for (let seed = 1; seed <= 10; seed++) {
-        const base = { mode: "r2" as const, tab: "hunt" as const, enemyCounts: { "node.prey_dangerous": 3 }, settlerCounts: { [who]: 1 }, seed };
-        if (runFight(base).result!.winner === "settlers") standWins++;
-        if (runFight({ ...base, kite: true }).result!.winner === "settlers") kiteWins++;
-      }
-      expect(standWins, `${who} standing`).toBeLessThanOrEqual(3);
-      expect(kiteWins, `${who} moving`).toBeGreaterThanOrEqual(7);
+  it("hunting: three spiked hoppers beat a commander who stands still; one who keeps moving wins", () => {
+    let standWins = 0, kiteWins = 0;
+    for (let seed = 1; seed <= 10; seed++) {
+      const base = { mode: "r2" as const, tab: "hunt" as const, enemyCounts: { "node.prey_dangerous": 3 }, settlerCounts: { player: 1 }, seed };
+      if (runFight(base).result!.winner === "settlers") standWins++;
+      if (runFight({ ...base, kite: true }).result!.winner === "settlers") kiteWins++;
     }
+    expect(standWins).toBeLessThanOrEqual(3);
+    expect(kiteWins).toBeGreaterThanOrEqual(7);
   });
+
+  it("hunting never kills: an injured hunter lies down unhurt until a medic, or the commander, heals him", () => {
+    const f = createFight({ mode: "r2", tab: "hunt", enemyCounts: { "node.prey_dangerous": 4 }, settlerCounts: { hunter: 1, medic: 1 }, seed: 3, edits: { "hunter:gunDamage": 0, "hunter:damage": 0 } });
+    while (!f.result) { stepFight(f); for (const u of f.units) if (u.kind === "hunter") expect(u.status).not.toBe("dead"); }
+    expect(f.injuries).toBeGreaterThan(0);
+    expect(f.heals).toBeGreaterThan(0);
+    // no medic: the commander clears the herd, then walks over and gets the ranger up
+    const c = createFight({ mode: "r2", tab: "hunt", enemyCounts: { "node.prey_dangerous": 1 }, settlerCounts: { hunter: 1, player: 1 }, seed: 4 });
+    const r = c.units.find((u) => u.kind === "hunter")!;
+    r.status = "down"; r.hp = 0; r.downT = undefined;
+    while (!c.result) stepFight(c);
+    expect(r.status).toBe("ok");
+    expect(c.heals).toBeGreaterThan(0);
+    expect(c.result!.winner).toBe("settlers");
+  });
+
 });

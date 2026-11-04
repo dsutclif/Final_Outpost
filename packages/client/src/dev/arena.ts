@@ -5,6 +5,7 @@ import {
 import { DEFAULT_SKIN, getSkin } from "@fo/skins";
 import { loadMeshy, meshyBounds, meshyScene, type MeshyEntry } from "@fo/render-3d/meshy";
 import { Rigged } from "@fo/render-3d/rigged";
+import { lookFor } from "@fo/render-3d/characters";
 import { ART_M, BUILD_K, CHAR_K } from "@fo/render-3d/units";
 import { HEMI, SUN } from "@fo/render-3d/environment";
 import { deriveTokens } from "@fo/render-3d/tokens";
@@ -93,7 +94,7 @@ export function createArena(): ArenaUi {
   const sizes: Record<string, number> = {};
   const counts: Record<Tab, Record<string, number>> = {
     fight: { "hostile.swarmling": 24, "hostile.creature": 8, "hostile.raider_humanoid": 4, "hostile.boss": 1, player: 1, guard: 3, drone: 2, medic: 1, tower1: 1 },
-    hunt: { "node.prey_dangerous": 3, "node.prey": 2, player: 1, hunter: 0 },
+    hunt: { "node.prey_dangerous": 3, "node.prey": 2, player: 1, hunter: 0, medic: 0 },
   };
   const wave = { ranks: 6, rowGap: 0.6 };
   let kite = false;
@@ -233,9 +234,10 @@ export function createArena(): ArenaUi {
   }
   function sizeNote(id: string): string {
     const e = entryOf(id), k = sizes[id] ?? 1;
-    const body = `footprint ${((bodies[id] ?? 12) * k * 2 / CHAR_WORLD).toFixed(2)} m across`;
+    const L = lookScale(id), body = `footprint ${((bodies[id] ?? 12) * k * 2 / CHAR_WORLD).toFixed(2)} m across`;
     if (!e) return body;
-    return e.length ? `${(e.length * k).toFixed(2)} m long (today ${e.length} m) · ${body}` : `${((e.height ?? 1.1) * k).toFixed(2)} m tall (today ${e.height ?? 1.1} m) · ${body}`;
+    const m = (e.length ?? e.height ?? 1.1) * L;
+    return `${(m * k).toFixed(2)} m ${e.length ? "long" : "tall"} (in game today ${m.toFixed(2)} m) · ${body}`;
   }
   function renderCards(): void {
     if (tab === "scale") {
@@ -351,6 +353,14 @@ export function createArena(): ArenaUi {
     const cid = f ? cidOf(f.kind, f.id, f.side) : id;
     return cid ? rigged.entryFor(cid) : undefined;
   };
+  /** The game's per-character size on top of the model height (characters.ts look.scale: commander 1.2, people 0.9, mites 0.45). */
+  const lookScale = (id: string): number => {
+    const f = byId.get(id);
+    if (!f || f.kind === "drone" || f.kind === "tower") return 1;
+    return lookFor(cidOf(f.kind, f.id, f.side), tk, skin.models).scale;
+  };
+  /** World units per art metre for one character, as the game draws it (renderer.ts: ART_M x look.scale x CHAR_K / 0.9). */
+  const worldOf = (id: string): number => (ART_M * lookScale(id) * CHAR_K) / 0.9;
   /**
    * Footprint radius at size 1 from the model: the mean of its half width and half depth in meshy.built.json bounds,
    * at the height (or length) the game draws it. Hopper bounds are not usable (skinned scale), so they go by length.
@@ -362,10 +372,10 @@ export function createArena(): ArenaUi {
       if (f.kind === "drone") { const b = meshyBounds("unit.drone"); if (b) out[f.id] = ((b[3]! - b[0]!) + (b[5]! - b[2]!)) / 4 * ART_M * CHAR_K; continue; }
       const e = entryOf(f.id);
       if (!e) continue;
-      if (e.length) { out[f.id] = e.length * 0.32 * CHAR_WORLD; continue; }
+      if (e.length) { out[f.id] = e.length * 0.32 * worldOf(f.id); continue; }
       const b = meshyBounds(e.file), h = b ? b[4]! - b[1]! : 0;
       if (!b || !(h > 0.05)) continue;
-      out[f.id] = ((b[3]! - b[0]!) + (b[5]! - b[2]!)) / 4 / h * (e.height ?? 1.1) * CHAR_WORLD;
+      out[f.id] = ((b[3]! - b[0]!) + (b[5]! - b[2]!)) / 4 / h * (e.height ?? 1.1) * worldOf(f.id);
     }
     bodies = out;
   }
@@ -425,10 +435,13 @@ export function createArena(): ArenaUi {
       const k = u.s.size ?? 1;
       if (entry) {
         if (p.body) { dyn.remove(p.body); p.body = null; }
-        rigged.add(`a${u.uid}`, cid, entry, { moving, hurried: false, cheer: false, speed: Math.min(1, Math.hypot(u.vx, u.vy) / 2), run: (u.kind === "hostile" && !!u.dash) || (u.kind === "hopper" && u.charging), act: u.act > 0 && entry.clips?.["shoot"] ? "shoot" : undefined, lying: u.status === "down" || u.status === "healing" }, u.x, u.y, u.face, CHAR_WORLD * k);
+        rigged.add(`a${u.uid}`, cid, entry, { moving, hurried: false, cheer: false, speed: Math.min(1, Math.hypot(u.vx, u.vy) / 2), run: (u.kind === "hostile" && !!u.dash) || (u.kind === "hopper" && u.charging), act: u.act > 0 && entry.clips?.["shoot"] ? "shoot" : undefined, lying: u.status === "down" || u.status === "healing" }, u.x, u.y, u.face, worldOf(u.type) * k);
         continue;
       }
-      if (!p.body) { p.body = bodyFor(u) ?? fallback(u); dyn.add(p.body); }
+      if (!p.body) { p.body = bodyFor(u) ?? fallback(u); p.body.userData["k"] = k; p.body.userData["s"] = p.body.scale.clone(); dyn.add(p.body); }
+      // the Scale tab resizes in place: the body was built at size userData.k
+      const k0 = p.body.userData["k"] as number;
+      if (k0 !== k && p.body.userData["s"]) p.body.scale.copy(p.body.userData["s"]).multiplyScalar(k / k0);
       p.body.position.set(u.x, 0, u.y);
       if (u.kind !== "tower") p.body.rotation.set(u.status === "down" || u.status === "healing" ? -Math.PI / 2 : 0, u.face, 0, "YXZ");
       else if (u.act > 0 && p.body.children[1]) p.body.children[1].rotation.y = u.face - Math.PI / 2;
@@ -450,7 +463,7 @@ export function createArena(): ArenaUi {
     if (u.kind === "drone") return 40 * (u.s.size ?? 1);
     const e = entryOf(u.type) ?? entryOf(u.kind);
     const m = e ? (e.length ? e.length * 0.45 : e.height ?? 1.1) : 0.8;
-    return m * CHAR_WORLD * (u.s.size ?? 1);
+    return m * worldOf(u.type) * (u.s.size ?? 1);
   };
   const flashes: { x: number; y: number; z: number; born: number }[] = [];
   /** A damage number rising over whoever was hit, so every strike, ranged or not, can be counted. */
@@ -622,9 +635,9 @@ export function createArena(): ArenaUi {
     const rules = mode === "r2" ? `R2 proposals (${PROPOSALS.length} overrides)` : "today's rules";
     if (tab === "hunt") {
       const left = fight.units.filter((u) => u.side === "enemy" && u.status !== "dead").length;
-      const up = fight.units.filter((u) => u.side === "settler" && u.status === "ok").length;
+      const up = fight.units.filter((u) => u.side === "settler" && u.kind !== "medic" && u.status === "ok").length;
       const bites = fight.hits.filter((h) => h.byKind === "hopper").length;
-      stat.textContent = `${sec} s · hoppers left ${left} · hunters up ${up} · bites landed ${bites} · ${kite ? "hunters keep moving" : "hunters stand"} · ${rules}`;
+      stat.textContent = `${sec} s · hoppers left ${left} · hunters up ${up} · bites landed ${bites} · injured ${fight.injuries}, healed ${fight.heals} · ${kite ? "hunters keep moving" : "hunters stand"} · ${rules}`;
       return;
     }
     const e = fight.units.filter((u) => u.side === "enemy" && u.status !== "dead").length + fight.pending.length;

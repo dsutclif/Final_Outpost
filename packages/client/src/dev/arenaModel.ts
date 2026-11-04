@@ -60,16 +60,18 @@ export const PROPOSALS: { key: string; v: number; why: string }[] = [
   { key: "player:targetable", v: 1, why: "R2 (Doug 2026-11-03): attackers can hurt the commander; at 0 HP he is down for downSeconds, then up healed" },
   // hunting (Doug 2026-11-04): a standing hunter loses to three spiked hoppers up close; one who keeps moving wins with his gun
   { key: "node.prey_dangerous:hp", v: 3, why: "one hit from the commander or a ranger kills it (Doug)" },
+  { key: "node.prey_dangerous:interval", v: 0.5, why: "Doug 2026-11-04 sandbox: at 0, 3 or 4 a herd is routine, sometimes needs the medic, often needs it" },
   { key: "node.prey_dangerous:damage", v: 8, why: "arena sweep: three beat a standing hunter 17-18 times in 20; two never do; moving always wins" },
   { key: "node.prey_dangerous:speed", v: 85, why: "charges slower than a moving ranger or commander, so moving wins" },
   { key: "node.prey_dangerous:aggroRange", v: 150, why: "the herd charges together from well past gun reach" },
   { key: "node.prey_dangerous:biteWindup", v: 0.4, why: "new: a bite lands only if the target is still in reach after the wind-up, so moving dodges it" },
-  { key: "hunter:hp", v: 12, why: "new: the ranger can be bitten to death (Doug)" },
-  { key: "hunter:damage", v: 1, why: "melee: a ranger is weak up close" },
+  { key: "hunter:hp", v: 12, why: "new: at 0 the ranger is injured (lies down, can't be hurt) until a medic or the commander heals him (Doug 2026-11-04)" },
+  { key: "hunter:damage", v: 3, why: "Doug 2026-11-04 sandbox" },
+  { key: "hunter:interval", v: 1, why: "Doug 2026-11-04 sandbox" },
   { key: "hunter:gunDamage", v: 3, why: "new: one shot kills a spiked hopper (Doug)" },
   { key: "hunter:gunRange", v: REACH, why: "new: the ranger hunts spiked hoppers with a rifle while moving" },
   { key: "hunter:gunInterval", v: 1, why: "new: rifle every 1 s" },
-  { key: "hunter:speed", v: 90, why: "faster than a spiked hopper's charge" },
+  { key: "hunter:speed", v: 70, why: "Doug 2026-11-04 sandbox" },
 ];
 
 /** Arena-only settings (not game rules): field size, where each side stands, the time cap. World units and seconds. */
@@ -121,7 +123,7 @@ export const SHOT_NAME: Record<string, string> = { "hostile.swarmling": "Acid sp
 
 /** Which fighters each tab shows. */
 export const TAB_OF = (f: FighterNums): Tab[] =>
-  f.kind === "hopper" || f.kind === "prey" || f.kind === "hunter" ? ["hunt"] : f.kind === "player" ? ["fight", "hunt"] : ["fight"];
+  f.kind === "hopper" || f.kind === "prey" || f.kind === "hunter" ? ["hunt"] : f.kind === "player" || f.kind === "medic" ? ["fight", "hunt"] : ["fight"];
 
 export type Edits = Record<string, number>;
 export interface CardRow { stat: string; label: string; unit: string; hidden: boolean; v: number; today: number | null; src: string; isNew: boolean; changed: boolean; why?: string }
@@ -195,7 +197,7 @@ export interface Unit {
   windup: number; lungeCd: number; lungeAt: number | null; dash: { tx: number; ty: number; left: number } | null;
   charging: boolean; healCd: number; hitCd: number;
   /** Ticks left of a commander knock-down, or of a medic's heal on a guard. */
-  downT?: number;
+  downT?: number | undefined;
   /** A medic's patient (uid). */
   patient?: number | null;
   /** Ticks left stunned by a bite: no attacks, slowed (hunting.ts bite). */
@@ -225,8 +227,8 @@ export interface Fight {
   base: { x: number; y: number; hp: number; hpMax: number };
   rules: Record<string, number>; mode: Mode; tab: Tab; kite: boolean;
   shots: Shot[]; hits: HitLog[];
-  /** Guards who died, heals a medic finished, drones the post built. */
-  deaths: number; heals: number; built: number;
+  /** Guards who died, heals finished, drones the post built, hunters injured. */
+  deaths: number; heals: number; built: number; injuries: number;
   result: { winner: "enemies" | "settlers" | "draw"; seconds: number; why: string } | null;
   rand: () => number;
   defs: Record<string, FighterNums>; edits: Edits; nextUid: number;
@@ -246,12 +248,11 @@ function mulberry(seed: number): () => number {
 
 /**
  * Footprint radius at size 1 (world units) when the arena hasn't measured the models: from meshy.built.json bounds
- * and meshy.json heights at charScale 1.5 (46.7 world units per art metre). Humans are about 12; the mite and
- * crawler models are drawn far wider than a person, which the Scale tab is there to settle.
+ * and meshy.json heights at the game's draw size (renderer.ts: ART_M x look.scale x charScale / 0.9). Humans are about 11.
  */
 export const BODY: Record<string, number> = {
-  "hostile.swarmling": 24, "hostile.creature": 22, "hostile.raider_humanoid": 11, "hostile.boss": 15,
-  "node.prey": 15, "node.prey_dangerous": 10, player: 12, guard: 12, medic: 13, hunter: 12, drone: 18, tower: 14,
+  "hostile.swarmling": 11, "hostile.creature": 22, "hostile.raider_humanoid": 10, "hostile.boss": 26,
+  "node.prey": 15, "node.prey_dangerous": 13, player: 12, guard: 11, medic: 12, hunter: 11, drone: 18, tower: 14,
 };
 
 /** Spread each type evenly through the wave (Doug 2026-11-04: alternation throughout), the rarest at even steps. */
@@ -274,7 +275,7 @@ export function createFight(setup: FightSetup): Fight {
   const rand = mulberry(setup.seed ?? Math.floor(Math.random() * 2 ** 31));
   const W = ARENA.w, H = ARENA.h, cx = W - ARENA.coreInset, cy = H / 2;
   const f: Fight = { tick: 0, units: [], pending: [], base: { x: cx, y: cy, hp: rules.baseHealth!, hpMax: rules.baseHealth! }, rules, mode: setup.mode, tab, kite: !!setup.kite,
-    shots: [], hits: [], deaths: 0, heals: 0, built: 0, result: null, rand, defs, edits: setup.edits ?? {}, nextUid: 0, bodies: { ...BODY, ...setup.bodies }, spawner: null };
+    shots: [], hits: [], deaths: 0, heals: 0, built: 0, injuries: 0, result: null, rand, defs, edits: setup.edits ?? {}, nextUid: 0, bodies: { ...BODY, ...setup.bodies }, spawner: null };
   const S = (id: string): Record<string, number> => statsOf(find(id), setup.mode, setup.edits);
 
   // settlers: a column per kind at its own line in front of the core (hunting: near the right edge), spread top to bottom
@@ -379,12 +380,20 @@ function hurt(f: Fight, a: Unit, t: Unit, dmg: number, ranged: boolean): void {
     t.hp = Math.max(1, t.hp - dmg);
     if (t.hp * 100 <= f.rules.downPct! * t.hpMax) t.status = "down";
   } else if (t.kind === "player" || t.kind === "hunter") stunBy(a, t);
-  if (t.kind === "player") {
+  if (t.kind === "player" || t.kind === "hunter") {
     t.healCd = T(t.s.healDelay ?? 4);
     t.hp = Math.max(0, t.hp - dmg);
-    // hunting.ts bite: at 0 the commander is knocked down and gets up healed; the biter backs off meanwhile
-    if (t.hp === 0) { t.status = "down"; t.downT = T(t.s.downSeconds ?? 2); a.acc = T(t.s.downSeconds ?? 2) + T(a.s.interval!); }
-  } else if (t.kind === "drone" || t.kind === "hunter") {
+    if (t.hp > 0) return;
+    if (f.tab === "hunt" && f.mode === "r2") {
+      // Doug 2026-11-04: hunting never kills; an injured hunter lies down, can't be hurt, and waits for a medic or the commander
+      t.status = "down"; t.downT = undefined; f.injuries++;
+    } else if (t.kind === "player" && f.mode === "r2" && a.kind === "hostile") {
+      t.status = "dead"; // Doug 2026-11-04: attackers can kill the commander
+    } else if (t.kind === "player") {
+      // hunting.ts bite: at 0 the commander is knocked down and gets up healed; the biter backs off meanwhile
+      t.status = "down"; t.downT = T(t.s.downSeconds ?? 2); a.acc = T(t.s.downSeconds ?? 2) + T(a.s.interval!);
+    } else t.status = "dead";
+  } else if (t.kind === "drone") {
     t.hp -= dmg;
     if (t.hp <= 0) t.status = "dead";
   }
@@ -447,6 +456,8 @@ function closeIn(f: Fight, u: Unit, h: Unit | null, foes: Unit[], melee: number,
   hitEnemy(f, u, h, u.s.damage!, !close);
 }
 
+/** Who a healer treats: downed guards in a fight; injured hunters (rangers, the commander) on a hunt. */
+const isPatient = (f: Fight, u: Unit): boolean => u.status === "down" && (f.tab === "hunt" ? u.kind === "hunter" || (u.kind === "player" && u.downT === undefined) : u.kind === "guard");
 /** Medics (can't be hurt): each goes to the nearest downed guard nobody else has, heals it over healTime, then waits at home. */
 function stepMedics(f: Fight): void {
   for (const m of f.units) {
@@ -455,7 +466,7 @@ function stepMedics(f: Fight): void {
     if (!p) {
       m.patient = null;
       const claimed = new Set(f.units.filter((o) => o.kind === "medic" && o !== m && o.patient != null).map((o) => o.patient));
-      p = nearest(f.units.filter((u) => u.kind === "guard" && u.status === "down" && !claimed.has(u.uid)), m, Infinity);
+      p = nearest(f.units.filter((u) => isPatient(f, u) && !claimed.has(u.uid)), m, Infinity);
       if (p) m.patient = p.uid;
     }
     if (!p) { moveTo(m, m.homeX, m.homeY, perTick(m.s.speed!)); continue; }
@@ -701,10 +712,21 @@ function stepHunt(f: Fight): void {
   // hunters: in reach a melee hit on any hopper; else the gun at the nearest spiked one (plain prey is never shot, player.ts)
   for (const p of f.units) {
     if ((p.kind !== "player" && p.kind !== "hunter") || !alive(p)) continue;
-    if (p.status === "down") { p.downT = down(p.downT ?? 0); if (p.downT <= 0) { p.status = "ok"; p.hp = p.hpMax; } continue; }
+    if (p.status === "healing") continue;
+    if (p.status === "down") { if (p.downT !== undefined) { p.downT = down(p.downT); if (p.downT <= 0) { p.status = "ok"; p.hp = p.hpMax; } } continue; }
     p.acc = down(p.acc); p.gun = down(p.gun);
     if (p.kind === "player" && p.hp < p.hpMax) { p.healCd = down(p.healCd); if (p.healCd <= 0) { p.hp++; p.healCd = T(p.s.healInterval!); } }
     const threats = spiky().filter((h) => h.charging && dist(p, h) < reachTo(f, h, p, h.s.range!) + ARENA.threat);
+    // with no medic on the hunt, the commander goes to an injured ranger once no hopper is charging him, and heals him
+    if (p.kind === "player" && !threats.length && !f.units.some((u) => u.kind === "medic")) {
+      const hurt = nearest(f.units.filter((u) => u.kind === "hunter" && isPatient(f, u)), p, Infinity);
+      if (hurt) {
+        const reach = p.body + hurt.body + 6;
+        if (dist(p, hurt) > reach) moveTo(p, hurt.x, hurt.y, perTick(p.s.speed!), reach * 0.9);
+        else { face(p, hurt); hurt.status = "healing"; hurt.downT = T(f.defs["medic"] ? statsOf(f.defs["medic"], f.mode, f.edits).healTime ?? 4 : 4); }
+        continue;
+      }
+    }
     const target = nearest(spiky(), p, Infinity) ?? nearest(hoppers(), p, Infinity);
     if (f.kite && threats.length) flee(p, threats);
     else if (target) {
@@ -739,15 +761,20 @@ function stepHunt(f: Fight): void {
       else { a.acc = T(a.s.interval!); hurt(f, a, tgt, a.s.damage!, false); }
     }
   }
+  stepMedics(f);
   for (const u of f.units) if (u.kind !== "player" && u.side === "settler") { u.x = Math.max(12, Math.min(ARENA.w - 12, u.x)); u.y = Math.max(12, Math.min(ARENA.h - 12, u.y)); }
   if (f.mode === "r2") separate(f);
   for (const u of f.units) if (Math.hypot(u.vx, u.vy) > 1e-3) u.face = Math.atan2(u.vx, u.vy);
 
   f.tick++;
   const sec = f.tick / ARENA.tps;
-  // a knocked-down commander counts as beaten here: three spiked hoppers up close should win (Doug)
-  const up = f.units.filter((u) => (u.kind === "player" || u.kind === "hunter") && u.status === "ok");
-  if (hoppers().length === 0) f.result = { winner: "settlers", seconds: sec, why: "every hopper is down" };
-  else if (up.length === 0) f.result = { winner: "enemies", seconds: sec, why: "every hunter is down" };
+  // everyone injured with no medic to get them up: the hoppers have won (three up close should beat a hunter who stands, Doug)
+  const up = f.units.filter((u) => (u.kind === "player" || u.kind === "hunter") && (u.status === "ok" || u.status === "healing"));
+  const medic = f.units.some((u) => u.kind === "medic");
+  // the hunt ends once the injured are back up, when someone can heal them
+  const healer = medic || f.units.some((u) => u.kind === "player" && u.status === "ok");
+  const waiting = f.units.some((u) => isPatient(f, u) || (u.status === "healing" && u.kind !== "guard"));
+  if (hoppers().length === 0 && !(healer && waiting)) f.result = { winner: "settlers", seconds: sec, why: "every hopper is down" };
+  else if (up.length === 0 && !medic) f.result = { winner: "enemies", seconds: sec, why: "every hunter is injured and no medic is there" };
   else if (sec >= ARENA.timeCap) f.result = { winner: "draw", seconds: sec, why: `time cap ${ARENA.timeCap} s` };
 }
