@@ -12,6 +12,7 @@ import { ART_M, BUILD_K, CHAR_K, FOV_DEG, PITCH_DEG, VIEW_W, YAW_DEG } from "@fo
 import { HEMI, SUN } from "@fo/render-3d/environment";
 import { deriveTokens } from "@fo/render-3d/tokens";
 import { EXPOSURE } from "@fo/render-3d/renderer";
+import { LOOK, modelScaleFor } from "@fo/content";
 
 // Layout mock (dev sandbox): the crash site of story levels 1-5 as one drag-and-arrange map, in real metres, before
 // anything in the game is rebuilt. Positions are metres on the ground (x east, z south = down the screen), drawn at
@@ -30,13 +31,14 @@ const CSS = `
 #layoutmock .tag { position: absolute; z-index: 2; pointer-events: none; font-size: 11px; line-height: 1.2; white-space: nowrap; padding: 2px 5px; border-radius: 4px; background: rgba(10,10,12,.78); color: #fff; transform: translate(-50%, -100%); font-variant-numeric: tabular-nums; }
 #layoutmock .tag.small { font-size: 10px; opacity: .85; }`;
 
-const NAMES = ["unit.player", "decor.halcyon_wreck", "decor.stasis_pod", "decor.stasis_glass", "sink.core.l1"];
+const NAMES = ["unit.player", "decor.halcyon_wreck", "decor.stasis_pod", "decor.stasis_glass", "sink.core.l1", "decor.ore_pile"];
 const D2R = Math.PI / 180;
 const M = ART_M;
 const SCREEN_M = 6.07; // one phone screen width at play zoom, metres
 // Doug's sizes (2026-11-04, second pass): decor pods 2.66 m long and 1.44 m tall, base 0.80 m in the sand (56%)
 const SIZES = { ship: 27, pod: 2.66, cmdr: 1.98, podBuried: 0.8, settlementRadius: 10, recorder: [0.5, 0.3, 0.4], ridgeHeight: 1.5, ridgeWidth: 4 };
-const PHONE = { w: 390, h: 844 };
+// iPhone 17: 402 x 874 points, portrait
+const PHONE = { w: 402, h: 874 };
 const POD_YAW = 173.9; // levels/story/story-L001.json pod yaw
 // level-1 lid placement relative to its pod (world units at the level's own x0.833) and lift
 const LID = { open: { dx: 3.9, dz: -30, lift: 59.1, roll: 118 }, shut: { dx: 1.5, dz: -5.9, lift: 44.5, roll: 0 }, levelK: 0.833 };
@@ -80,13 +82,15 @@ export function createLayoutMock(): LayoutUi {
   const rigged = new Rigged(dyn);
 
   // ---- state, metres ----
-  const wreck = new Group(), pods = new Group(), reactor = new Group(), recorder = new Group();
+  const wreck = new Group(), pods = new Group(), reactor = new Group(), recorder = new Group(), ore = new Group();
   const ringGroup = new Group();
-  scene.add(wreck, pods, reactor, recorder, ringGroup);
+  scene.add(wreck, pods, reactor, recorder, ore, ringGroup);
   const setM = (o: Object3D, x: number, z: number): void => { o.position.x = x * M; o.position.z = z * M; };
   const getM = (o: Object3D): { x: number; z: number } => ({ x: o.position.x / M, z: o.position.z / M });
-  setM(wreck, 0, 0); setM(pods, -3, 8.5); setM(reactor, -16, 20); setM(recorder, 14, 2);
-  let wreckYaw = 0;
+  // Doug's layout of 2026-11-04 as the start (docs/handoff/films-scenes.md); the ore at his blue disc's centre
+  setM(wreck, 1.52, -1.88); setM(pods, 8.77, 6.37); setM(reactor, -10.05, 12.51); setM(recorder, 14.67, -0.67); setM(ore, -19.5, 20.9);
+  let wreckYaw = -18;
+  wreck.rotation.y = wreckYaw * D2R;
 
   const ridgeMs: [number, number][] = [[18, -15], [19.5, -6], [17, 3], [19, 12], [17.5, 19], [18.5, 25]];
   const ridgeHandles: Mesh[] = [];
@@ -223,10 +227,14 @@ export function createLayoutMock(): LayoutUi {
     cmdrH1 = (e.height ?? 0.9) * look * CHAR_K / 0.9; // metres at x1
     cmdrWorldK = (M * look * CHAR_K) / 0.9 * (SIZES.cmdr / cmdrH1);
 
-    // reactor, at the game's building scale
+    // reactor, at the game's building scale: ART_M x buildScale x look.json modelScale (the mock first left out modelScale)
     const c = meshyScene("sink.core.l1");
-    if (c) { const g = new Group(); g.add(c); g.scale.setScalar(M * BUILD_K); reactor.add(g); }
+    if (c) { const g = new Group(); g.add(c); g.scale.setScalar(M * BUILD_K * modelScaleFor(LOOK.modelScale, "sink.core", 1)); reactor.add(g); }
     else { const m = new Mesh(new CylinderGeometry(20, 24, 30, 16), new MeshStandardMaterial({ color: 0xd0a050 })); m.position.y = 15; reactor.add(m); }
+    // the reactor's ore: the game's ore pile decor (meshy width 2 m), drawn at ART_M like other decor
+    const op = meshyScene("node.material_source");
+    if (op) { const g = new Group(); g.add(op); g.scale.setScalar(M); ore.add(g); }
+    else { const m = new Mesh(new SphereGeometry(0.9 * M, 12, 8), new MeshStandardMaterial({ color: 0x8fd0ff })); m.position.y = 0.3 * M; ore.add(m); }
     // now the pod slots exist: put the phone look points where they were meant to start
     phoneInitial().forEach((v, i) => { const ph = phones[i]!; ph.handle.position.x = v.x; ph.handle.position.z = v.z; refreshPhone(ph); });
     ready = true;
@@ -307,7 +315,7 @@ export function createLayoutMock(): LayoutUi {
   interface Movable { key: string; obj: Object3D; onMove?: (() => void) | undefined }
   const movables: Movable[] = [];
   const reg = (key: string, obj: Object3D, onMove?: () => void): void => { obj.userData["key"] = key; movables.push({ key, obj, onMove }); };
-  reg("wreck", wreck); reg("pods", pods); reg("reactor", reactor); reg("recorder", recorder);
+  reg("wreck", wreck); reg("pods", pods); reg("reactor", reactor); reg("recorder", recorder); reg("ore", ore);
   ridgeHandles.forEach((h, i) => reg(`ridge${i}`, h, rebuildRidge));
 
   // ---- panel ----
@@ -328,12 +336,12 @@ export function createLayoutMock(): LayoutUi {
   const row3 = el("div", undefined, "row");
   row3.append(...phoneBtns);
   const yawD = el("div", undefined, "sl");
-  const yawS = el("input"); yawS.type = "range"; yawS.min = "-180"; yawS.max = "180"; yawS.step = "1"; yawS.value = "0";
-  const yawOut = el("span", "wreck yaw 0 deg");
+  const yawS = el("input"); yawS.type = "range"; yawS.min = "-180"; yawS.max = "180"; yawS.step = "1"; yawS.value = String(wreckYaw);
+  const yawOut = el("span", `wreck yaw ${wreckYaw} deg`);
   yawS.oninput = () => { wreckYaw = Number(yawS.value); wreck.rotation.y = wreckYaw * D2R; yawOut.textContent = `wreck yaw ${wreckYaw} deg`; };
   yawD.append(el("b", "Wreck yaw"), yawS, yawOut);
   const readout = el("div", undefined, "out");
-  const note = el("div", "Drag the ship, pods, reactor, recorder, yellow ridge points or coloured phone-screen discs across the ground; the camera is locked while you drag. One phone screen = 6.07 m wide at play zoom.", "note");
+  const note = el("div", "Drag the ship, pods, reactor, ore, recorder, yellow ridge points or coloured screen discs across the ground; the camera is locked while you drag. Each outline is the exact patch of ground an iPhone 17 (402 x 874 pt, portrait) shows at play zoom: 6.07 m across its middle, and long on the ground because the camera looks across it at 30 degrees. Seen from the game's angle (Whole layout, or Phone view) it has the phone's shape.", "note");
   panel.append(row1, row2, row3, yawD, readout, note);
   const shown = el("button", "Panel"); shown.style.cssText = "position:absolute;left:10px;top:10px;display:none;z-index:3";
   hide.onclick = () => { panel.style.display = "none"; shown.style.display = ""; };
@@ -347,6 +355,7 @@ export function createLayoutMock(): LayoutUi {
     const line = (n: string, m: number): string => `${n}: ${m.toFixed(1)} m = ${(m / SCREEN_M).toFixed(1)} screens`;
     readout.innerHTML = [
       line("pods to reactor", dist(pf, reactor)),
+      line("reactor to ore", dist(reactor, ore)),
       line("pods to recorder", dist(pf, recorder)),
       line("reactor to recorder", dist(reactor, recorder)),
       line("ship length", SIZES.ship),
@@ -361,6 +370,7 @@ export function createLayoutMock(): LayoutUi {
       pods: { groupCentre: pos(pods), commanderPod: { x: m2(pf.position.x / M), z: m2(pf.position.z / M) }, pitchM: m2(podPitch) },
       reactor: pos(reactor),
       recorder: pos(recorder),
+      ore: pos(ore),
       ridge: ridgeHandles.map(pos),
       phoneLookPoints: Object.fromEntries(phones.map((p) => [p.name, pos(p.handle)])),
       distancesM: { podsToReactor: m2(dist(pf, reactor)), podsToRecorder: m2(dist(pf, recorder)), reactorToRecorder: m2(dist(reactor, recorder)) },
@@ -495,7 +505,8 @@ export function createLayoutMock(): LayoutUi {
   }
   // labels for everything movable
   addTag(wreck, "Halcyon wreck", 4 * M);
-  addTag(pods, "Pods (5)", 3 * M);
+  addTag(pods, "Pods (3)", 3 * M);
+  addTag(ore, "Ore", 1.6 * M);
   addTag(reactor, "Reactor", 8 * M);
   addTag(recorder, "Flight recorder", 1.6 * M);
   ridgeHandles.forEach((h, i) => addTag(h, `ridge ${i + 1}`, 1.6 * M, true));
