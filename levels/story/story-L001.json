@@ -4,7 +4,7 @@
  "engineVersion": "0.18.0",
  "contentVersion": "0.18.0",
  "map": {
-  "w": 820,
+  "w": 980,
   "h": 700,
   "zones": []
  },
@@ -16,16 +16,16 @@
   "sales"
  ],
  "start": [
-  720,
-  320
+  559,
+  125
  ],
  "entities": [
   {
    "type": "sink.core",
    "id": "core",
    "at": [
-    220,
-    320
+    330,
+    400
    ],
    "params": {
     "fuel": 0,
@@ -37,373 +37,238 @@
    "type": "node.fuel_scrap",
    "id": "ore1",
    "at": [
-    290,
-    390
+    138.4,
+    456.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore2",
    "at": [
-    268,
-    400
+    116.4,
+    466.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore3",
    "at": [
-    312,
-    412
+    160.4,
+    478.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore4",
    "at": [
-    250,
-    420
+    98.4,
+    486.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore5",
    "at": [
-    290,
-    430
+    138.4,
+    496.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore6",
    "at": [
-    330,
-    392
+    178.4,
+    458.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore7",
    "at": [
-    270,
-    440
+    118.4,
+    506.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore8",
    "at": [
-    312,
-    450
+    160.4,
+    516.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore9",
    "at": [
-    345,
-    425
+    193.4,
+    491.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore10",
    "at": [
-    235,
-    445
+    83.4,
+    511.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore11",
    "at": [
-    330,
-    470
+    178.4,
+    536.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore12",
    "at": [
-    290,
-    470
+    138.4,
+    536.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore13",
    "at": [
-    355,
-    460
+    203.4,
+    526.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore14",
    "at": [
-    255,
-    475
+    103.4,
+    541.3
    ]
   },
   {
    "type": "zone.terrain",
    "id": "ridge1",
-   "kind": "ridge",
    "rect": [
-    20,
-    165,
-    120,
-    62
+    832.3,
+    0,
+    112,
+    30.7
    ]
   },
   {
    "type": "zone.terrain",
    "id": "ridge2",
-   "kind": "ridge",
    "rect": [
-    135,
-    165,
-    120,
-    62
+    825.3,
+    30.7,
+    112,
+    252
    ]
   },
   {
    "type": "zone.terrain",
    "id": "ridge3",
-   "kind": "ridge",
    "rect": [
-    250,
-    165,
-    120,
-    62
+    832.3,
+    282.7,
+    112,
+    196
    ]
   },
   {
    "type": "zone.terrain",
    "id": "ridge4",
-   "kind": "ridge",
    "rect": [
-    365,
-    165,
-    75,
-    62
+    825.3,
+    478.7,
+    112,
+    168
    ]
   },
   {
    "type": "decor.halcyon_wreck",
    "id": "wreck",
    "at": [
-    520.2,
-    66.1
+    419.9,
+    -106
    ],
-   "yaw": 0,
+   "yaw": -18,
    "lift": 0.1,
-   "scale": 0.833
-  },
-  {
-   "type": "decor.deck_plate",
-   "id": "deck",
-   "at": [
-    752.4,
-    201.9
-   ],
-   "yaw": -65.1,
-   "size": [
-    169.141,
-    224.523,
-    8.792
-   ],
-   "lift": 0,
-   "panels": [
-    1.6,
-    3.2
-   ]
-  },
-  {
-   "type": "decor.deck_plate",
-   "id": "deck2",
-   "at": [
-    716.2,
-    173.2
-   ],
-   "yaw": -65.1,
-   "size": [
-    181.508,
-    304.351,
-    8.792
-   ],
-   "lift": -0.047,
-   "panels": [
-    1.6,
-    3.2
-   ]
-  },
-  {
-   "type": "decor.deck_plate",
-   "id": "stripe",
-   "at": [
-    787,
-    276.7
-   ],
-   "yaw": -65.1,
-   "size": [
-    2.8,
-    224.523,
-    0.093
-   ],
-   "lift": 8.769,
-   "color": "#c8a23a"
+   "scale": 0.45
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod0",
    "at": [
-    717.6,
-    255.2
+    559,
+    125
    ],
-   "yaw": 173.9,
-   "lift": -33.4,
-   "scale": 0.833
+   "yaw": -90,
+   "lift": -22.4,
+   "scale": 0.6674
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid0",
    "at": [
-    721.5,
-    225.2
+    538.6,
+    124.4
    ],
-   "yaw": 173.9,
-   "lift": 25.7,
-   "roll": 118,
-   "scale": 0.833
+   "yaw": -90,
+   "lift": 26.3,
+   "roll": 100.3,
+   "scale": 0.6674
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid1",
    "at": [
-    821.9,
-    260.3
+    618.1,
+    124.4
    ],
-   "yaw": 173.9,
-   "lift": 11.1,
-   "scale": 0.833
+   "yaw": -90,
+   "lift": 13.3,
+   "scale": 0.6674
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod1",
    "at": [
-    820.4,
-    266.2
+    622.9,
+    125
    ],
-   "yaw": 173.9,
-   "lift": -33.4,
-   "scale": 0.833
+   "yaw": -90,
+   "lift": -22.4,
+   "scale": 0.6674
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    725.8,
-    185
+    681.9,
+    124.4
    ],
-   "yaw": 173.9,
-   "lift": 11.1,
-   "scale": 0.833
+   "yaw": -90,
+   "lift": 13.3,
+   "scale": 0.6674
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod2",
    "at": [
-    724.4,
-    190.9
+    686.7,
+    125
    ],
-   "yaw": 173.9,
-   "lift": -33.4,
-   "scale": 0.833
-  },
-  {
-   "type": "decor.stasis_glass",
-   "id": "lid3",
-   "at": [
-    828.7,
-    196
-   ],
-   "yaw": 173.9,
-   "lift": 11.1,
-   "scale": 0.833
-  },
-  {
-   "type": "decor.stasis_pod",
-   "id": "pod3",
-   "at": [
-    827.3,
-    201.9
-   ],
-   "yaw": 173.9,
-   "lift": -33.4,
-   "scale": 0.833
-  },
-  {
-   "type": "decor.stasis_glass",
-   "id": "lid4",
-   "at": [
-    623,
-    174
-   ],
-   "yaw": 173.9,
-   "lift": 11.1,
-   "scale": 0.833
-  },
-  {
-   "type": "decor.stasis_pod",
-   "id": "pod4",
-   "at": [
-    621.5,
-    179.9
-   ],
-   "yaw": 173.9,
-   "lift": -33.4,
-   "scale": 0.833
-  },
-  {
-   "type": "decor.ore_pile",
-   "id": "oreDecor1",
-   "at": [
-    699,
-    334
-   ],
-   "yaw": 0,
-   "lift": 0,
-   "scale": 0.375
-  },
-  {
-   "type": "decor.ore_pile",
-   "id": "oreDecor2",
-   "at": [
-    682.7,
-    345.7
-   ],
-   "yaw": 30,
-   "lift": 0,
-   "scale": 0.375
-  },
-  {
-   "type": "decor.ore_pile",
-   "id": "oreDecor3",
-   "at": [
-    668.7,
-    357.3
-   ],
-   "yaw": 60,
-   "lift": 0,
-   "scale": 0.375
+   "yaw": -90,
+   "lift": -22.4,
+   "scale": 0.6674
   },
   {
    "type": "decor.ship_scrap",
    "id": "scrap",
    "at": [
-    708,
-    346.5
+    549.4,
+    216.3
    ],
    "yaw": 20,
    "lift": 0,
@@ -413,8 +278,8 @@
    "type": "decor.ship_scrap",
    "id": "scrap2",
    "at": [
-    885.3,
-    264.3
+    726.7,
+    134.1
    ],
    "yaw": -35,
    "lift": 0,
@@ -465,7 +330,7 @@
    "id": "fill",
    "kind": "fuel_full",
    "params": {
-    "seconds": 30,
+    "seconds": 45,
     "fromLit": 1
    }
   }

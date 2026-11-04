@@ -804,12 +804,15 @@ export const marsGreenhouse: Skin = {
         calmUntilLit: true,
         noGuide: true,
         solid: ["sink.core"],
-        // the film's last frame holds a moment, then eases out before the look at the ridge (S30)
-        openZoom: { film: [170.3, 302.8], hero: 0.53, seconds: 2.5, hold: 0.5 },
-        retryFrom: [300, 320],
+        // the film's last frame holds a moment, then eases out before the look at the ridge (S30). The hero is drawn at
+        // full size from the start (Doug: growing the commander looked awkward); the film is to be re-rendered to match
+        // the new crash site (docs/handoff/films-scenes.md), so its framing here is provisional
+        openZoom: { film: [170.3, 302.8], seconds: 2.5, hold: 0.5 },
+        // level 1's town sits (110, 80) from where it was before the 2026-11-04 re-layout (tools/relayout.ts)
+        retryFrom: [410, 400],
         goals: [
           { id: "ignite", hold: true, label: "Restart the reactor" },
-          { id: "fill", tryAgain: true, label: "Fill the reactor in 30 s" },
+          { id: "fill", tryAgain: true, label: "Fill the reactor in 45 s" },
           { id: "main", hold: true, label: "Keep the reactor burning till morning: {left}" },
         ],
         cues: [
@@ -817,7 +820,7 @@ export const marsGreenhouse: Skin = {
           { on: { start: true }, do: [
             { light: "night" },
             { ridge: "right", period: 4, k: 0.4 },
-            { dots: [{ at: [272, 300] }, { at: [226, 372] }, { at: [176, 296] }], period: 4 },
+            { dots: [{ at: [382, 380] }, { at: [336, 452] }, { at: [286, 376] }], period: 4 },
           ] },
           { id: "woke", on: { start: true }, walk: true, do: [
             { line: "Oh no, what happened? Where is the rest of my crew?", who: "commander", seconds: 3 },
@@ -835,7 +838,7 @@ export const marsGreenhouse: Skin = {
           ] },
           { on: { near: { entity: "core" }, r: 120 }, do: [
             { edgeGlow: null },
-            { dots: [{ at: [272, 300] }, { at: [226, 372] }, { at: [176, 296] }, { at: [292, 372] }], period: 4 },
+            { dots: [{ at: [382, 380] }, { at: [336, 452] }, { at: [286, 376] }, { at: [402, 452] }], period: 4 },
             { goal: "ignite" },
             { guide: true },
             { line: "This reactor is out of fuel. We'll have to collect some ore.", who: "commander" },

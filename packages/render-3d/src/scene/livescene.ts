@@ -37,6 +37,8 @@ interface Staged {
   dispose(): void;
 }
 
+/** The bay scenes' pods at Doug's decor size, 2.66 m (docs/SCALE.md); their build is 3.9847 m long. */
+const POD_K = 2.66 / 3.9847;
 const ease = (k: number): number => { const c = Math.max(0, Math.min(1, k)); return c * c * (3 - 2 * c); };
 const span = (t: number, a: number, b: number): number => ease((t - a) / (b - a));
 
@@ -56,11 +58,12 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
   const bays: { light: Mesh; mat: MeshStandardMaterial; hinge: Group; glow: PointLight }[] = [];
   // four pods side by side along x, each lying lengthwise toward the camera. A bay's origin is the pod's
   // cavity floor; LIFT raises it so the cradle's base (1.809 below that floor) stands on the deck (Doug, 2026-11-04)
-  const LIFT = 1.809;
+  const LIFT = 1.809 * POD_K;
   for (let i = 0; i < 4; i++) {
     const bay = new Group();
-    bay.position.set((i - 1.5) * 4.6, LIFT, 0);
+    bay.position.set((i - 1.5) * 4.6 * POD_K, LIFT, 0);
     bay.rotation.y = -Math.PI / 2;
+    bay.scale.setScalar(POD_K);
     const pod = meshyScene("decor.stasis_pod");
     // the crash film's pod: its build stands it on its sunk cradle, so these put the film's pod frame (cavity
     // floor at the deck, hinge along the back long edge) on the bay's origin
@@ -83,7 +86,7 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
     el.className = "live-tag";
     el.textContent = o.text["occupied"] ?? "";
     overlay.append(el);
-    labels.push({ at: new Vector3((i - 1.5) * 4.6, 2.6 + LIFT, 2.9), el });
+    labels.push({ at: new Vector3((i - 1.5) * 4.6 * POD_K, 2.6 * POD_K + LIFT, 2.9 * POD_K), el });
   }
   const plate = doc.createElement("div");
   plate.className = "live-plate";
@@ -98,8 +101,8 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
     pose(t) {
       // a high security camera that drifts in on bay 5
       const k = span(t, 0, 6);
-      camera.position.set(-2 - 4.5 * k, 15 + 1.809 - 3.5 * k, 10 - 2.6 * k);
-      camera.lookAt(-1.5 - 5.2 * k, 0.4 + 1.809, 0.4);
+      camera.position.set((-2 - 4.5 * k) * POD_K, (15 - 3.5 * k) * POD_K + LIFT, (10 - 2.6 * k) * POD_K);
+      camera.lookAt((-1.5 - 5.2 * k) * POD_K, 0.4 * POD_K + LIFT, 0.4 * POD_K);
       // bay 5's lock releases at 1.6 s: OCCUPIED turns amber, the glass jolts, then swings up on its back hinge
       const open = t >= 1.6;
       bay5.mat.emissive.set(open ? "#ffb02e" : "#3cff7a");
@@ -154,14 +157,15 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
   deck.position.set(0, -0.3, -5);
   scene.add(deck);
   // the same bays as empty_bays (pods lie along z, cavity floor LIFT above the deck), seen from behind their feet
-  const LIFT = 1.809, PERSON = 1.8;
+  const LIFT = 1.809 * POD_K, PERSON = 1.8;
   const labels: Staged["labels"] = [];
   const bays: { mat: MeshStandardMaterial; hinge: Group; el: HTMLElement; fig: ReturnType<typeof crewFigure>; x: number; at: number }[] = [];
   for (let i = 0; i < 4; i++) {
-    const x = (i - 1.5) * 4.6;
+    const x = (i - 1.5) * 4.6 * POD_K;
     const bay = new Group();
     bay.position.set(x, LIFT, 0);
     bay.rotation.y = -Math.PI / 2;
+    bay.scale.setScalar(POD_K);
     const pod = meshyScene("decor.stasis_pod");
     if (pod) { pod.position.set(0.034, -1.809, -0.257); bay.add(pod); }
     const hinge = new Group();
@@ -179,7 +183,7 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
     const el = doc.createElement("div");
     el.className = "live-tag warn";
     overlay.append(el);
-    labels.push({ at: new Vector3(x, 2.6 + LIFT, 2.9), el });
+    labels.push({ at: new Vector3(x, 2.6 * POD_K + LIFT, 2.9 * POD_K), el });
     // each crew member a beat apart, so the four read as people rather than one copy
     bays.push({ mat, hinge, el, fig, x, at: i * 0.35 });
   }
@@ -197,8 +201,8 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
       // a fixed security camera high behind the pods' foot ends, looking down the deck
       // (high and far enough back that all four bays and their aisles fit a tall phone screen)
       const tall = camera.aspect < 0.8;
-      camera.position.set(0, (tall ? 25 : 11) + LIFT, tall ? 31 : 13);
-      camera.lookAt(0, LIFT - 0.5, tall ? -5 : -3);
+      camera.position.set(0, (tall ? 25 : 11) * POD_K + LIFT, (tall ? 31 : 13) * POD_K);
+      camera.lookAt(0, LIFT - 0.5 * POD_K, (tall ? -5 : -3) * POD_K);
       for (const b of bays) {
         const s = t - b.at;
         // the glass lifts from inside (0.6-1.8), closes again once the pod is empty (4.4-5.4)
@@ -214,7 +218,7 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
         const up = span(s, 1.6, 2.8), out = span(s, 2.6, 3.6);
         // the walk away from the camera down that aisle (from 5.6), the clip running only while they walk
         const w = Math.max(0, s - 5.6);
-        f.root.position.set(b.x + 2.3 * out, (LIFT + 0.2) * (1 - out), -0.9 * (1 - up) - w * 1.3);
+        f.root.position.set(b.x + 2.3 * POD_K * out, (LIFT + 0.2 * POD_K) * (1 - out), -0.9 * (1 - up) - w * 1.3);
         f.root.rotation.set(-Math.PI / 2 * (1 - up), Math.PI, 0, "YXZ");
         f.mixer.setTime(w > 0 ? w : 0);
       }

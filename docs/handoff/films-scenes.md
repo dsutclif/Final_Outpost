@@ -30,12 +30,18 @@ docs/SCALE.md. The sandbox Layout mock opens on an earlier draft; these numbers 
 
 ## Next steps
 1. (Done: Doug's layout is above.)
-2. Apply to `levels/story/story-L00{1..5}.json` (three crash-site pods, not five: the commander's featured one and two sealed in the background, per Doug): wreck `scale` for 27 m; pods/lids for 2.66 m with the base 0.80 m in
-   the sand; delete `deck`, `deck2`, `stripe`; move `core`, the town and `recorder`; add a ridge landform. Then
-   `pnpm levels:check --pack levels/story`. Scale the live scenes' pods the same way (cavity maths in layoutmock.ts).
+2. **Done 2026-11-04** (`tools/relayout.ts`, re-runnable): the crash site in L1-5 about each level's reactor at Doug's
+   offsets (wreck 27 m at -18°, three pods at 2.66 m, base 0.8 m down, the commander's open and Vale's bay 5 open from
+   L3, no deck plates, no film-set ore piles, scrap moved with the pods, L4 recorder). L1 also: town moved (110, 80),
+   map 980 wide, ore field at Doug's spot (7.6 m WSW of the reactor), start at the commander's pod, the ridge as
+   `zone.terrain` rects along his line, cue points shifted, fill goal 30 s -> 45 s (bots back to 5/6 fill stars),
+   `openZoom.hero` dropped. Live scenes' pods at 2.66 m (`POD_K` in livescene.ts). Story pack replays clean.
+   **Open:** L2-5 keep their ore inside the camp wall (moving it outside strands the workers, who walk straight
+   lines); L2-5's ridge rects are still the old north ones; nothing was checked visually in the game (the browser
+   pane was hidden), so look at L1-5 on a phone first.
 3. Re-render `crash_open` from the impact onward from the game's placements: the set as one background plate, then the
-   commander alone (holdout layer, per-frame render region), composited. No hero growth at the hand-off (drop
-   `openZoom.hero` in the L1 cues). The old shot-4 night render in `fo-wt-handoff` is superseded.
+   commander alone (holdout layer, per-frame render region), composited. L1's `openZoom.film` framing is provisional
+   until then. The old shot-4 night render in `fo-wt-handoff` is superseded.
 4. After Account A releases `renderer.ts` (2026-11-05): the L5 warlord fall with the visible helmet drop and S33,
    the L2 old pod's hinged glass (S31), and in-game Sela in `unit.customer_sela`.
 
