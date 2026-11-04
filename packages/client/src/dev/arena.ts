@@ -12,6 +12,7 @@ import { deriveTokens } from "@fo/render-3d/tokens";
 import { EXPOSURE } from "@fo/render-3d/renderer";
 import { ACID_COLOR, ARENA, BODY, cardRows, createFight, PROPOSALS, roster, SHOT_NAME, stepFight, TAB_OF, type Edits, type Fight, type Mode, type Tab, type Unit } from "./arenaModel.js";
 import type { FighterNums } from "./fighterStats.js";
+import buggyRig from "../../../render-3d/src/assets/buggy.json";
 
 // Fighter arena (dev sandbox, R6 Release 2 Bundle 5). Three tabs (Doug 2026-11-04): Fighting (a mixed wave of attackers
 // against a mixed defence), Hunting (the commander and rangers against hoppers) and Scale (every character side by
@@ -92,6 +93,12 @@ export function createArena(): ArenaUi {
   const edits: Record<Mode, Edits> = { r2: {}, today: {} };
   /** Size multipliers from the Scale tab (x1 = as the game draws them today); they apply in both modes. */
   const sizes: Record<string, number> = {};
+  /**
+   * The buggy (story decor, not yet in a level) stands at the end of the Scale row so the people read against it. x1 is
+   * the model as built, 4.4 m long; it starts at 2.6 m, the size Doug marked against Sela (2026-11-04).
+   */
+  const BUGGY = "decor.buggy", BUGGY_M = 4.4;
+  sizes[BUGGY] = 0.59;
   const counts: Record<Tab, Record<string, number>> = {
     fight: { "hostile.swarmling": 24, "hostile.creature": 8, "hostile.raider_humanoid": 4, "hostile.boss": 1, player: 1, guard: 3, drone: 2, medic: 1, tower1: 1 },
     hunt: { "node.prey_dangerous": 3, "node.prey": 2, player: 1, hunter: 0, medic: 0 },
@@ -158,7 +165,7 @@ export function createArena(): ArenaUi {
   // ---- cards ----
   const fightEdits = (): Edits => {
     const e: Edits = { ...edits[mode] };
-    for (const [id, k] of Object.entries(sizes)) e[`${id}:size`] = k;
+    for (const [id, k] of Object.entries(sizes)) if (id !== BUGGY) e[`${id}:size`] = k;
     return e;
   };
   function card(f: FighterNums, t: Tab): HTMLElement {
@@ -211,12 +218,13 @@ export function createArena(): ArenaUi {
   /** Scale tab: one card per character with a size slider; the stage lines them all up. */
   const SCALE_IDS = ["player", "guard", "medic", "hunter", "hostile.raider_humanoid", "hostile.boss", "drone", "hostile.swarmling", "hostile.creature", "node.prey", "node.prey_dangerous"];
   const ANIMALS = new Set(["hostile.swarmling", "hostile.creature", "node.prey", "node.prey_dangerous"]);
-  function scaleCard(f: FighterNums): HTMLElement {
+  function scaleCard(id: string, title: string): HTMLElement {
+    const f = { id };
     const c = el("div", undefined, "card");
     const k = sizes[f.id] ?? 1;
     c.classList.toggle("sel", k !== 1);
     const hd = el("div", undefined, "hd");
-    hd.append(el("b", nameOf(f)));
+    hd.append(el("b", title));
     c.append(hd);
     const tb = el("table"), tr = el("tr"), td = el("td");
     const slider = el("input"); slider.type = "range"; slider.min = "0.2"; slider.max = "2.5"; slider.step = "0.05"; slider.value = String(k);
@@ -233,6 +241,7 @@ export function createArena(): ArenaUi {
     return c;
   }
   function sizeNote(id: string): string {
+    if (id === BUGGY) { const k = sizes[id] ?? 1; return `${(BUGGY_M * k).toFixed(2)} m long (as built ${BUGGY_M.toFixed(2)} m) · ${(k * buggyRig.radius * 2).toFixed(2)} m wheels`; }
     const e = entryOf(id), k = sizes[id] ?? 1;
     const L = lookScale(id), body = `footprint ${((bodies[id] ?? 12) * k * 2 / CHAR_WORLD).toFixed(2)} m across`;
     if (!e) return body;
@@ -242,8 +251,10 @@ export function createArena(): ArenaUi {
   function renderCards(): void {
     if (tab === "scale") {
       const fs = SCALE_IDS.map((id) => byId.get(id)).filter((f): f is FighterNums => !!f);
-      left.replaceChildren(el("h4", "Animals · size"), ...fs.filter((f) => ANIMALS.has(f.id)).map(scaleCard));
-      right.replaceChildren(el("h4", "People and drones · size"), ...fs.filter((f) => !ANIMALS.has(f.id)).map(scaleCard));
+      const cardOf = (f: FighterNums): HTMLElement => scaleCard(f.id, nameOf(f));
+      left.replaceChildren(el("h4", "Animals · size"), ...fs.filter((f) => ANIMALS.has(f.id)).map(cardOf));
+      right.replaceChildren(el("h4", "People and drones · size"), ...fs.filter((f) => !ANIMALS.has(f.id)).map(cardOf),
+        el("h4", "Vehicles · size"), scaleCard(BUGGY, "Buggy"));
       return;
     }
     const t = tab;
@@ -380,7 +391,7 @@ export function createArena(): ArenaUi {
     bodies = out;
   }
 
-  const ids = new Set(["unit.player", "role.defender", "role.medic", "role.hunter", "unit.drone", "unit.drone.rotor", "struct.ranged_defense", "sink.core", ...R.fighters.filter((f) => f.side === "enemy").map((f) => f.id)]);
+  const ids = new Set(["unit.player", "role.defender", "role.medic", "role.hunter", "unit.drone", "unit.drone.rotor", "struct.ranged_defense", "sink.core", BUGGY, "decor.buggy_wheel", "decor.buggy_wheel_l", ...R.fighters.filter((f) => f.side === "enemy").map((f) => f.id)]);
   // models land in the background: code-built stand-ins until then, swapped once everything is in
   let rebuild = false;
   void loadMeshy(undefined, ids, undefined, true).then(() => {
@@ -410,6 +421,33 @@ export function createArena(): ArenaUi {
     return out;
   }
   const shown = (): Unit[] => (tab === "scale" ? lineup() : fight.units);
+
+  /** Where the buggy stands on the Scale tab: past the last character, side on to the camera. */
+  function buggySpot(): { x: number; half: number; k: number } | null {
+    const row = lineup(), last = row[row.length - 1];
+    if (!last) return null;
+    const k = sizes[BUGGY] ?? 1, half = (BUGGY_M * k * ART_M) / 2;
+    return { x: last.x + last.body + 14 + half, half, k };
+  }
+  let buggy: Group | null = null;  /** The body and its four wheels from the rig (buggy.json: body frame y 0 at its lowest point, wheel pivots at the ground). */
+  function placeBuggy(): void {
+    if (!buggy) {
+      const b = meshyScene(BUGGY);
+      if (!b) return;
+      buggy = new Group();
+      const lift = buggyRig.groundBelowBody;
+      b.position.y = lift;
+      buggy.add(b);
+      for (const h of buggyRig.hubs) {
+        const w = meshyScene(h.side);
+        if (w) { w.position.set(h.pos[0]!, lift + h.pos[1]! - buggyRig.radius, h.pos[2]!); buggy.add(w); }
+      }
+      scene.add(buggy);
+    }
+    const s = tab === "scale" ? buggySpot() : null;
+    buggy.visible = !!s;
+    if (s) { buggy.position.set(s.x, 0, ARENA.h / 2); buggy.scale.setScalar(ART_M * s.k); }
+  }
 
   function sync(): void {
     rigged.begin();
@@ -520,6 +558,13 @@ export function createArena(): ArenaUi {
         const k = sizes[u.type] ?? 1;
         if (k !== 1) { ctx.fillStyle = "#f2b84b"; ctx.strokeText(`x${k}`, top.x, top.y); ctx.fillText(`x${k}`, top.x, top.y); }
       });
+      const bs = buggySpot();
+      if (bs && buggy) {
+        const p = proj(bs.x, 0, ARENA.h / 2 + 30);
+        ctx.fillStyle = "#e8e8ea"; ctx.strokeStyle = "rgba(0,0,0,.75)"; ctx.lineWidth = 3;
+        const t = `Buggy ${(BUGGY_M * bs.k).toFixed(2)} m`;
+        ctx.strokeText(t, p.x, p.y + 12); ctx.fillText(t, p.x, p.y + 12);
+      }
       return;
     }
     for (let i = tracers.length - 1; i >= 0; i--) {
@@ -584,7 +629,8 @@ export function createArena(): ArenaUi {
     // straight on from the south, tilted down 55 degrees; back off until the field fits both ways. The Scale tab
     // looks lower and closer, at just the line-up, so sizes read against each other
     const row = tab === "scale" ? lineup() : [];
-    const x0 = row.length ? row[0]!.x - row[0]!.body - 10 : 0, x1 = row.length ? row[row.length - 1]!.x + row[row.length - 1]!.body + 10 : ARENA.w;
+    const bs = tab === "scale" ? buggySpot() : null;
+    const x0 = row.length ? row[0]!.x - row[0]!.body - 10 : 0, x1 = bs ? bs.x + bs.half + 10 : row.length ? row[row.length - 1]!.x + row[row.length - 1]!.body + 10 : ARENA.w;
     const wide = tab === "scale" ? x1 - x0 : ARENA.w + 40, deep = tab === "scale" ? 90 : ARENA.h + 30;
     const pitch = ((tab === "scale" ? 22 : 55) * Math.PI) / 180, vf = (camera.fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
     const dW = wide / 2 / Math.tan(hf / 2), dH = (deep * Math.sin(pitch) + 50 * Math.cos(pitch)) / 2 / Math.tan(vf / 2);
@@ -621,6 +667,7 @@ export function createArena(): ArenaUi {
       if (fight.result) showResult();
     }
     placeCore();
+    placeBuggy();
     zone.visible = tab === "hunt";
     sync();
     rigged.end(running ? dt * speed : dt);
