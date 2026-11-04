@@ -15,7 +15,7 @@ sizes in `docs/SCALE.md`.
 
 ## Next steps
 1. Doug arranges the site in the sandbox Layout mock and pastes Copy settings. Do not rebuild levels before that.
-2. Apply to `levels/story/story-L00{1..5}.json`: wreck `scale` for 27 m; pods/lids for 2.66 m with the base 0.80 m in
+2. Apply to `levels/story/story-L00{1..5}.json` (three crash-site pods, not five: the commander's featured one and two sealed in the background, per Doug): wreck `scale` for 27 m; pods/lids for 2.66 m with the base 0.80 m in
    the sand; delete `deck`, `deck2`, `stripe`; move `core`, the town and `recorder`; add a ridge landform. Then
    `pnpm levels:check --pack levels/story`. Scale the live scenes' pods the same way (cavity maths in layoutmock.ts).
 3. Re-render `crash_open` from the impact onward from the game's placements: the set as one background plate, then the

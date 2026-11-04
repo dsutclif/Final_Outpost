@@ -197,8 +197,10 @@ export function createLayoutMock(): LayoutUi {
     // the cavity floor sits 1.809 build-metres above the cradle's base; scaled with the pod, while the burial depth is
     // real metres (an earlier version scaled the depth too)
     const CAVITY = 1.809, frameY = (CAVITY * k1 - SIZES.podBuried) * M;
-    for (let i = 0; i < 5; i++) {
-      const ox = (i - 2) * podPitch * M;
+    // three pods as the film and game show them (Doug): the commander's, featured and open, and two sealed in the
+    // background (level 1's data places five, but only these three read as pods)
+    for (let i = 0; i < 3; i++) {
+      const ox = (i - 1) * podPitch * M;
       podOffsets.push(ox);
       const slot = new Group();
       slot.position.set(ox, frameY, 0);
