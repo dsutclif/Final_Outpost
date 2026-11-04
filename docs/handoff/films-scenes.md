@@ -19,12 +19,14 @@ sizes in `docs/SCALE.md`.
 | Wreck centre | (1.52, -1.88), yaw -18° | 27 m long |
 | Commander's pod (featured, open) | (6.49, 6.37) | L1 starts here |
 | Two sealed background pods | (8.77, 6.37), (11.05, 6.37) | 2.28 m apart |
-| Reactor | (-10.05, 12.51) | its offset from the ship is the reference: 11.6 m west, 14.4 m south of the wreck centre |
-| Reactor's ore | about (-19.5, 20.9) | the centre of the cyan "Start (L1)" disc in the mock: ~12.7 m south-west of the reactor |
-| Flight recorder | (14.67, -0.67) | "accurate now" |
+| Reactor | (-1.69, 16.19) | 3.2 m west, 18.1 m south of the wreck centre; 12.8 m from the commander's pod |
+| Reactor's ore | (-8.35, 19.78) | 7.6 m west-south-west of the reactor |
+| Flight recorder | (14.67, -0.67) | 10.8 m from the commander's pod |
 | Ridge line | (18,-15) (19.5,-6) (17,3) (19,12) (17.5,19) (18.5,25) | a raised landform, ~1.5 m high, 4 m wide |
-Ignore the mock's phone boxes (Doug: they don't match a phone screen; the footprint maths in layoutmock.ts may be
-wrong, so don't trust it for framing). Sizes come from docs/SCALE.md, not from the mock where they differ.
+**Final (Doug, 2026-11-04): "an accurate representation of the relative locations I want for everything."** The mock's
+phone boxes were only for his reference; ignore their positions. (The boxes themselves are correct: an iPhone 17 at
+play zoom shows a ground strip ~6 m wide and ~26 m deep, as renderer.ts `halfGround` computes.) Sizes come from
+docs/SCALE.md. The sandbox Layout mock opens on an earlier draft; these numbers win.
 
 ## Next steps
 1. (Done: Doug's layout is above.)
