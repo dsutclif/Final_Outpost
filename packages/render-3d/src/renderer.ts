@@ -63,7 +63,7 @@ import { Items } from "./scene/items.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { heldJob, padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
-import { ART_M, BUILD_K, CHAR_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, YAW_DEG, viewWFor, textSprite, type QualityTier } from "./units.js";
+import { ART_M, BUILD_K, CHAR_K, DRONE_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, YAW_DEG, viewWFor, textSprite, type QualityTier } from "./units.js";
 
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
 const SHELF_K = 1.05 / ITEM_K;
@@ -100,7 +100,6 @@ const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSpri
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
 /** Drone: size against a character, hover height, and the four rotor mounts [x, z] / height (drone-model art metres). */
-const DRONE_K = 1;
 const DRONE_HOVER = 0.9;
 const DRONE_ROTOR_Y = 0.285;
 /** Drone.glb has its muzzle and chin gun on -X; a quarter turn puts them at the +Z front every model flies toward. */

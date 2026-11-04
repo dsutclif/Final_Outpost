@@ -251,8 +251,8 @@ function mulberry(seed: number): () => number {
  * and meshy.json heights at the game's draw size (renderer.ts: ART_M x look.scale x charScale / 0.9). People are 1.8 m and about 12 across (1 m = 28 world units).
  */
 export const BODY: Record<string, number> = {
-  "hostile.swarmling": 11, "hostile.creature": 22, "hostile.raider_humanoid": 11, "hostile.boss": 23,
-  "node.prey": 13, "node.prey_dangerous": 12, player: 12, guard: 12, medic: 13, hunter: 12, drone: 18, tower: 14,
+  "hostile.swarmling": 10, "hostile.creature": 22, "hostile.raider_humanoid": 11, "hostile.boss": 23,
+  "node.prey": 13, "node.prey_dangerous": 12, player: 13, guard: 12, medic: 13, hunter: 13, drone: 12, tower: 14,
 };
 
 /** Spread each type evenly through the wave (Doug 2026-11-04: alternation throughout), the rarest at even steps. */
