@@ -47,7 +47,7 @@ import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
 import { LEAD_WEIGHT, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
-import { GeoBuilder } from "./geom.js";
+import { GeoBuilder, ROCKS } from "./geom.js";
 import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Fx } from "./scene/fx.js";
@@ -482,6 +482,7 @@ export class Renderer3D implements Renderer {
     this.skin = skin;
     this.mount = mount;
     try { this.cp = compile(manifest, this.content); } catch { this.cp = null; }
+    ROCKS.smooth = this.lookOn;
     this.bctx = createBuildCtx(skin);
     this.tokens = this.bctx.t;
     // Meshy GLBs load in the background; whatever was placed with its code model is rebuilt as each lands
@@ -581,6 +582,11 @@ export class Renderer3D implements Renderer {
     this.env.nightLift = this.env.night ? nightFloor(skin) : null;
     this.fx = new Fx(mats.particle, this.scene, this.labels);
     this.fx.onCoinLanded = this.coinCb;
+    if (this.lookOn) {
+      this.fx.enableSoft(); this.env.enableSoftStorm();
+      // console handles for tuning the look test (fire effects, hold a storm)
+      Object.assign(globalThis, { __lookFx: this.fx, __lookEnv: this.env, __lookCam: this.camera });
+    }
     this.crowd = new Crowd(this.bctx.parts, mats.std, this.scene);
     this.rigged = new Rigged(this.scene);
     this.blobs = new Blobs(mats.blob, this.scene);
@@ -633,6 +639,7 @@ export class Renderer3D implements Renderer {
     this.cssW = Math.max(1, w);
     this.cssH = Math.max(1, h);
     this.camera.aspect = this.cssW / this.cssH;
+    if (this.env) this.env.aspect = this.cssW / this.cssH;
     this.camera.updateProjectionMatrix();
     if (this.lookT) this.lookT.resize(this.cssW, this.cssH);
     else if (this.gl) {

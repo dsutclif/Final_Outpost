@@ -17,6 +17,28 @@ import {
   Vector3,
   type Object3D,
 } from "three";
+import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+
+/** Look test: rocks are rounded, noise-roughened stones instead of faceted solids. Set before a level builds. */
+export const ROCKS = { smooth: false };
+
+/** A rounded stone: a subdivided sphere pushed in and out by smooth noise, with shared (smooth) normals. */
+function stoneGeometry(r: number, seed: number): BufferGeometry {
+  const g = mergeVertices(new IcosahedronGeometry(1, 2));
+  const pos = g.getAttribute("position") as BufferAttribute;
+  const v = new Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i).normalize();
+    // two octaves of sine noise on the direction: lumps and a few flatter faces, the same at shared vertices
+    const n = Math.sin(v.x * 3.1 + seed) * Math.sin(v.y * 2.7 + seed * 1.7) * Math.sin(v.z * 3.3 + seed * 0.6)
+      + 0.5 * Math.sin(v.x * 7.3 + seed * 2.1) * Math.sin(v.z * 6.1 + v.y * 5.2);
+    const k = 1 + 0.22 * n;
+    pos.setXYZ(i, v.x * k, Math.max(v.y * k, -0.35), v.z * k);
+  }
+  g.computeVertexNormals();
+  g.scale(r, r, r);
+  return g;
+}
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
 // Procedural low-poly toolkit. A GeoBuilder collects primitives with a colour and a transform
@@ -111,7 +133,7 @@ export class GeoBuilder {
   }
 
   rock(r: number, c: ColorIn, x: Xf = {}, kind: 0 | 1 | 2 = 0): this {
-    const g = kind === 0 ? new DodecahedronGeometry(r, 0) : kind === 1 ? new IcosahedronGeometry(r, 0) : new OctahedronGeometry(r, 0);
+    const g = ROCKS.smooth ? stoneGeometry(r, kind * 1.9 + 0.7) : kind === 0 ? new DodecahedronGeometry(r, 0) : kind === 1 ? new IcosahedronGeometry(r, 0) : new OctahedronGeometry(r, 0);
     return this.add(g, c, x);
   }
 

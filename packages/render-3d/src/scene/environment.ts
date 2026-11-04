@@ -22,7 +22,8 @@ import {
 import { mix } from "@fo/skins";
 import { meshyBrightness } from "../assets/meshy.js";
 import { hash01 } from "../assets/scatter.js";
-import { GeoBuilder } from "../geom.js";
+import { GeoBuilder, ROCKS } from "../geom.js";
+import { StormDust } from "./softfx.js";
 import type { MaterialSet } from "../materials.js";
 import type { Tokens } from "../tokens.js";
 import type { StoryLighting } from "./storylights.js";
@@ -75,6 +76,11 @@ export class Environment {
   private readonly cSky: Color;
   private readonly tmp = new Color();
   private readonly m = new Matrix4();
+  /** Look test: the storm draws as drifting dust sheets and wind streaks instead of sliding bars. */
+  private stormDust: StormDust | null = null;
+  enableSoftStorm(): void { if (!this.stormDust) this.stormDust = new StormDust(this.group, new Color(this.t.storm).lerp(new Color(this.t.groundAlt), 0.3)); }
+  /** Screen aspect for the storm sheets (the renderer sets it on resize). */
+  aspect = 0.5;
   /** 0..1 storm blend (eased toward the hazard phase). */
   storminess = 0;
   /** Manifest lighting "night": a dark blue sky and fog, a dim cool moon for the key light, the core glow carrying the scene. */
@@ -271,14 +277,18 @@ export class Environment {
   /** Dust scatter: pebbles and dust tufts, instanced. */
   private buildScatter(seed: number): void {
     const { W, H, t } = this;
-    const pebble = new GeoBuilder().rock(1, mix(t.groundDark, t.ground, 0.4), {}, 0).build();
+    // look test: stones take their tone from the instance colour alone, close to the sand, and sit partly sunk
+    const smooth = ROCKS.smooth;
+    const pebble = new GeoBuilder().rock(1, smooth ? "#ffffff" : mix(t.groundDark, t.ground, 0.4), {}, 0).build();
     const batch = new Batch(pebble, this.mats.std, this.group, 400, "pebbles");
     const m = new Matrix4(), c = new Color();
-    const tones = [mix(t.groundDark, t.groundAlt, 0.5), t.groundAlt, mix(t.groundAlt, t.structureDark, 0.35)];
+    const tones = smooth
+      ? [mix(t.groundAlt, t.ground, 0.35), mix(t.groundDark, t.groundAlt, 0.55), mix(t.groundAlt, t.structureDark, 0.2)]
+      : [mix(t.groundDark, t.groundAlt, 0.5), t.groundAlt, mix(t.groundAlt, t.structureDark, 0.35)];
     for (let i = 0; i < 260; i++) {
       const x = -120 + hash01(seed + i * 1.7) * (W + 240), z = -160 + hash01(seed * 3 + i * 2.3) * (H + 320);
       const s = 1 + hash01(i * 5.1) * hash01(i * 2.9) * 4;
-      m.makeRotationY(i).scale(new Vector3(s * 1.3, s * 0.7, s)).setPosition(x, s * 0.2, z);
+      m.makeRotationY(i).scale(new Vector3(s * 1.3, s * 0.7, s)).setPosition(x, smooth ? -s * 0.1 : s * 0.2, z);
       batch.push(m, c.set(tones[i % 3]!));
     }
     batch.end();
@@ -377,7 +387,8 @@ export class Environment {
     }
 
     this.storm.begin();
-    if (s > 0.05) {
+    this.stormDust?.update(t, s, this.aspect);
+    if (s > 0.05 && !this.stormDust) {
       const n = Math.round(160 * s);
       const c = new Color(this.t.storm).lerp(new Color(this.t.structure), 0.4);
       for (let i = 0; i < n; i++) {
@@ -405,6 +416,7 @@ export class Environment {
     });
     (this.sky.material as MeshBasicMaterial).dispose();
     this.storm.dispose();
+    this.stormDust?.dispose();
     this.stormGeo.dispose();
     this.pool.geometry.dispose();
     (this.pool.material as MeshBasicMaterial).dispose();

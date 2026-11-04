@@ -3,6 +3,7 @@ import type { Items } from "./items.js";
 import { Batch } from "./instancing.js";
 import type { Labels } from "./labels.js";
 import { TEXT } from "../units.js";
+import { Bolts, Kind, SoftParticles } from "./softfx.js";
 
 // Juice: particles (dust rings, sparks, confetti), "+N" floaters, items arcing onto the back
 // stack or into a sink, coins flying to the HUD, hit flashes and pop timers. Events start
@@ -10,11 +11,13 @@ import { TEXT } from "../units.js";
 
 export type Target = Vector3 | (() => Vector3);
 
-interface Particle { p: Vector3; v: Vector3; g: number; life: number; age: number; size: number; color: Color; spin: number; drag: number }
+interface Particle { p: Vector3; v: Vector3; g: number; life: number; age: number; size: number; color: Color; spin: number; drag: number; kind: Kind }
 interface Floater { sprite: Sprite; mat: SpriteMaterial; age: number; life: number; base: Vector3; on: boolean; size?: [number, number] }
 interface Flight { res: string; from: Vector3; to: Target; age: number; dur: number; h: number; toPlayer: boolean; done?: () => void; spin: number }
 
 const MAX_PARTICLES = 700;
+/** Friendly laser glow (BACKLOG-R6 N5: blue for friendlies, red for enemies). */
+const BOLT_FRIENDLY = new Color("#4da6ff");
 const tmpM = new Matrix4(), tmpQ = new Quaternion(), tmpE = new Euler(), tmpS = new Vector3(), tmpV = new Vector3();
 
 export class Fx {
@@ -29,9 +32,19 @@ export class Fx {
   shake = 0;
   particleScale = 1;
   onCoinLanded: (() => void) | null = null;
+  /** Look test: soft sprites and bolts of light instead of cubes. */
+  private soft: SoftParticles | null = null;
+  private bolts: Bolts | null = null;
 
   constructor(particleMat: Material, private readonly parent: Object3D, private readonly labels: Labels) {
     this.batch = new Batch(this.cube, particleMat, parent, 128, "particles");
+  }
+
+  /** Look test: draw particles as soft sprites and shots as bolts of light from now on. */
+  enableSoft(): void {
+    if (this.soft) return;
+    this.soft = new SoftParticles(this.parent, MAX_PARTICLES);
+    this.bolts = new Bolts(this.parent);
   }
 
   // ---------------------------------------------------------------- timers
@@ -57,12 +70,14 @@ export class Fx {
     n = Math.max(1, Math.round(n * this.particleScale));
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2, s = speed * (0.4 + Math.random() * 0.6);
-      this.spawn(at, new Vector3(Math.cos(a) * s, up * (0.6 + Math.random() * 0.6), Math.sin(a) * s), g, life * (0.7 + Math.random() * 0.5), size * (0.6 + Math.random() * 0.7), colors[i % colors.length]!, 0.6);
+      this.spawn(at, new Vector3(Math.cos(a) * s, up * (0.6 + Math.random() * 0.6), Math.sin(a) * s), g, life * (0.7 + Math.random() * 0.5), size * (0.6 + Math.random() * 0.7), colors[i % colors.length]!, 0.6, Kind.Chip);
     }
   }
 
   /** Short visible shot: a streak of still particles from `from` to `to`, fading fast. */
   tracer(from: Vector3, to: Vector3, color: string, n = 7, life = 0.16, size = 3): void {
+    // look test: friendly fire is blue light with a white-hot core (BACKLOG-R6 N5)
+    if (this.bolts) { this.bolts.fire(from, to, BOLT_FRIENDLY); return; }
     n = Math.max(3, Math.round(n * Math.max(0.5, this.particleScale)));
     for (let i = 0; i < n; i++) {
       const k = (i + 1) / n;
@@ -75,7 +90,7 @@ export class Fx {
     n = Math.max(4, Math.round(n * this.particleScale));
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + Math.random() * 0.3;
-      this.spawn(new Vector3(at.x + Math.cos(a) * 6, at.y + 2, at.z + Math.sin(a) * 6), new Vector3(Math.cos(a) * speed, 18 + Math.random() * 20, Math.sin(a) * speed), 30, 0.8 + Math.random() * 0.3, size * (0.7 + Math.random() * 0.6), color, 2.2);
+      this.spawn(new Vector3(at.x + Math.cos(a) * 6, at.y + 2, at.z + Math.sin(a) * 6), new Vector3(Math.cos(a) * speed, 18 + Math.random() * 20, Math.sin(a) * speed), 30, 0.8 + Math.random() * 0.3, size * (0.7 + Math.random() * 0.6), color, 2.2, Kind.Dust);
     }
   }
 
@@ -83,19 +98,19 @@ export class Fx {
     n = Math.round(n * this.particleScale);
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2, s = 40 + Math.random() * 150;
-      this.spawn(at, new Vector3(Math.cos(a) * s, 220 + Math.random() * 220, Math.sin(a) * s), 260, 2 + Math.random(), 3 + Math.random() * 3, colors[i % colors.length]!, 1.2);
+      this.spawn(at, new Vector3(Math.cos(a) * s, 220 + Math.random() * 220, Math.sin(a) * s), 260, 2 + Math.random(), 3 + Math.random() * 3, colors[i % colors.length]!, 1.2, Kind.Confetti);
     }
   }
 
   /** Slow rising puffs (chimney smoke, steam). */
   puff(at: Vector3, color: string): void {
     if (Math.random() > this.particleScale) return;
-    this.spawn(at, new Vector3((Math.random() - 0.5) * 8, 26 + Math.random() * 10, (Math.random() - 0.5) * 8), -6, 1.4, 6 + Math.random() * 4, color, 0.8);
+    this.spawn(at, new Vector3((Math.random() - 0.5) * 8, 26 + Math.random() * 10, (Math.random() - 0.5) * 8), -6, 1.4, 6 + Math.random() * 4, color, 0.8, Kind.Dust);
   }
 
-  private spawn(p: Vector3, v: Vector3, g: number, life: number, size: number, color: string, drag: number): void {
+  private spawn(p: Vector3, v: Vector3, g: number, life: number, size: number, color: string, drag: number, kind = Kind.Chip): void {
     if (this.parts.length >= MAX_PARTICLES) this.parts.shift();
-    this.parts.push({ p: p.clone(), v, g, life, age: 0, size, color: new Color(color), spin: Math.random() * 10, drag });
+    this.parts.push({ p: p.clone(), v, g, life, age: 0, size, color: new Color(color), spin: Math.random() * 10, drag, kind });
   }
 
   // ---------------------------------------------------------------- floaters
@@ -179,12 +194,14 @@ export class Fx {
       for (const f of landed) f.done?.();
     }
     this.shake = Math.max(0, this.shake - dt * 18);
+    this.bolts?.update(dt);
   }
 
   /** Write particles into their batch and flights into the item batches. */
   draw(items: Items): void {
     this.batch.begin();
-    for (const p of this.parts) {
+    if (this.soft) this.drawSoft();
+    else for (const p of this.parts) {
       const k = 1 - p.age / p.life;
       const s = p.size * Math.min(1, k * 2.5);
       tmpQ.setFromEuler(tmpE.set(p.spin * p.age, p.spin * p.age * 0.7, 0));
@@ -202,7 +219,21 @@ export class Fx {
     }
   }
 
+  /** Look test: dust grows and thins as it spreads; chips stretch and fade; confetti cards flutter down. */
+  private drawSoft(): void {
+    const out = this.parts.map((p) => {
+      const a = p.age / p.life, k = 1 - a;
+      const spin = p.spin + p.spin * p.age * 0.35;
+      if (p.kind === Kind.Dust) return { p: p.p, v: p.v, color: p.color, kind: p.kind, rot: spin, size: p.size * 2.4 * (0.6 + 0.9 * a), alpha: k * Math.min(1, p.age * 10) };
+      if (p.kind === Kind.Confetti) return { p: p.p, v: p.v, color: p.color, kind: p.kind, rot: p.spin + p.age * (2 + p.spin * 0.3), size: p.size, alpha: Math.min(1, k * 5) };
+      return { p: p.p, v: p.v, color: p.color, kind: p.kind, rot: spin, size: p.size * 1.1 * Math.min(1, k * 2.5), alpha: Math.min(1, k * 3) };
+    });
+    this.soft!.draw(out);
+    this.bolts!.draw();
+  }
+
   clear(): void {
+    this.bolts?.clear();
     this.parts = [];
     this.flights = [];
     this.flashes.clear();
@@ -213,6 +244,8 @@ export class Fx {
   dispose(): void {
     this.batch.dispose();
     this.cube.dispose();
+    this.soft?.dispose();
+    this.bolts?.dispose();
     for (const f of this.floaters) { this.parent.remove(f.sprite); f.mat.dispose(); }
     this.floaters = [];
   }
