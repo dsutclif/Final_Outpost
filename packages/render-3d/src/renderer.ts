@@ -2177,7 +2177,7 @@ export class Renderer3D implements Renderer {
             const r = hash01(seed + i * 7.3), q = hash01(seed * 3 + i * 1.9);
             const yaw = (alongX ? 0 : Math.PI / 2) + (i % 2 ? Math.PI : 0) + (r - 0.5) * 0.3;
             const a = -long / 2 + (i + 0.5) * seg + (q - 0.5) * seg * 0.2;
-            tmpM.makeRotationY(yaw).scale(tmpV.set(seg * (1.2 + r * 0.25), ART_M * 2.6 * (0.8 + q * 0.45), short * (1.05 + q * 0.2)))
+            tmpM.makeRotationY(yaw).scale(tmpV.set(seg * (1.2 + r * 0.25), ART_M * 1.8 * (0.85 + q * 0.35), short * (1.05 + q * 0.2)))
               .setPosition(x + w / 2 + (alongX ? a : 0), -ART_M * 0.04, y + h / 2 + (alongX ? 0 : a));
             W.terrain.push(tmpM);
           }
