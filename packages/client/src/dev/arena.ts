@@ -1,9 +1,10 @@
 import {
   ACESFilmicToneMapping, CircleGeometry, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Mesh, MeshBasicMaterial,
-  MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, RingGeometry, Scene, SRGBColorSpace, SphereGeometry, Vector3, WebGLRenderer, type Object3D,
+  MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, Quaternion, RingGeometry, Scene, SRGBColorSpace, SphereGeometry, Vector3, WebGLRenderer, type Object3D,
 } from "three";
+import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { DEFAULT_SKIN, getSkin } from "@fo/skins";
-import { loadMeshy, meshyBounds, meshyScene, type MeshyEntry } from "@fo/render-3d/meshy";
+import { loadMeshy, meshyBounds, meshyRig, meshyScene, type MeshyEntry } from "@fo/render-3d/meshy";
 import { Rigged } from "@fo/render-3d/rigged";
 import { lookFor } from "@fo/render-3d/characters";
 import { ART_M, BUILD_K, CHAR_K } from "@fo/render-3d/units";
@@ -449,6 +450,52 @@ export function createArena(): ArenaUi {
     const s = tab === "scale" ? buggySpot() : null;
     buggy.visible = !!s;
     if (s) { buggy.position.set(s.x, 0, ARENA.h / 2); buggy.scale.setScalar(ART_M * s.k); }
+    placeDriver(s);
+  }
+
+  // A ranger seated in the buggy for reference: sized by the Ranger slider only, kept on the seat as the buggy resizes.
+  // Seat hip point in the as-built buggy's ground frame (art m): 0.30 back from centre, cushion top 1.40 up, on the
+  // centre line (measured in Blender, 2026-11-04); the hip joint sits about 0.073 of a person's height above the cushion.
+  const SEAT = { x: 0.3, y: 1.4 }, HIP_ABOVE = 0.073;
+  let driver: { root: Object3D; hip: Vector3; h: number } | null = null;
+  function makeDriver(): typeof driver {
+    const e = entryOf("hunter"), rig = e && meshyRig(e.file);
+    if (!e || !rig) return null;
+    const root = cloneSkinned(rig.scene);
+    const bone = (n: string): Object3D | undefined => root.getObjectByName(`mixamorig${n}`) ?? root.getObjectByName(`mixamorig:${n}`);
+    // model space faces +z: thighs forward, shins down, upper arms down and a little forward, forearms to the wheel
+    const pose: [string, string, [number, number, number]][] = [];
+    for (const sd of ["Left", "Right"]) pose.push([`${sd}UpLeg`, `${sd}Leg`, [0, -0.03, 1]], [`${sd}Leg`, `${sd}Foot`, [0, -1, 0.2]], [`${sd}Arm`, `${sd}ForeArm`, [0, -1, 0.35]], [`${sd}ForeArm`, `${sd}Hand`, [0, -0.35, 1]]);
+    root.updateMatrixWorld(true);
+    for (const [b, c, d] of pose) {
+      const bo = bone(b), co = bone(c);
+      if (!bo || !co || !bo.parent) continue;
+      const from = bo.getWorldPosition(new Vector3()), dir = co.getWorldPosition(new Vector3()).sub(from).normalize();
+      const q = new Quaternion().setFromUnitVectors(dir, new Vector3(...d).normalize());
+      const parentInv = bo.parent.getWorldQuaternion(new Quaternion()).invert();
+      bo.quaternion.copy(parentInv.multiply(q.multiply(bo.getWorldQuaternion(new Quaternion()))));
+      bo.updateMatrixWorld(true);
+    }
+    const l = bone("LeftUpLeg"), r = bone("RightUpLeg");
+    const hip = l && r ? l.getWorldPosition(new Vector3()).add(r.getWorldPosition(new Vector3())).multiplyScalar(0.5) : new Vector3(0, 0.9, 0);
+    // art metres per model unit, as Rigged.add sizes a character by height
+    const h = (e.height ?? 1.1) / ((rig.scene.userData["height"] as number) || 1.7);
+    root.rotation.y = -Math.PI / 2; // facing the buggy's front (-x)
+    scene.add(root);
+    return { root, hip, h };
+  }
+  function placeDriver(s: { x: number; k: number } | null): void {
+    if (!driver && s) driver = makeDriver();
+    if (!driver) return;
+    driver.root.visible = !!s;
+    if (!s) return;
+    const perM = worldOf("hunter") * (sizes["hunter"] ?? 1), scale = perM * driver.h;
+    const tall = (entryOf("hunter")?.height ?? 1.1) * perM; // the ranger's standing height in world units
+    driver.root.scale.setScalar(scale);
+    // the hip offset turned with the body (yaw -90 degrees: model +z faces world -x)
+    const hip = driver.hip.clone().multiplyScalar(scale).applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);
+    const seat = new Vector3(s.x + SEAT.x * ART_M * s.k, SEAT.y * ART_M * s.k + HIP_ABOVE * tall, ARENA.h / 2);
+    driver.root.position.copy(seat.sub(hip));
   }
 
   function sync(): void {
