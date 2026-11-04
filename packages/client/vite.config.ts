@@ -110,7 +110,8 @@ export default defineConfig({
         // install small and keeps the worker out of the way of iOS Safari range requests. Offline they simply
         // fail to load and the client skips ahead (cinematics.ts); the title falls back to its canvas backdrop.
         ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // 8 MB: the story wreck (decor.halcyon_wreck, the crash film's site at 100k tris) is 7.7 MB
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         // the first visit's page is controlled at once, so nothing it loads misses the cache
         clientsClaim: true,
         navigateFallback: "index.html",
