@@ -143,6 +143,11 @@ $("crashBtn").onclick = async () => {
   crash ??= (await import("./crashsite.js")).createCrashSite();
   crash.open();
 };
+let layoutMock: { open(): void } | null = null;
+$("layoutBtn").onclick = async () => {
+  layoutMock ??= (await import("./layoutmock.js")).createLayoutMock();
+  layoutMock.open();
+};
 function syncArenaUrl(on: boolean): void {
   const q = new URLSearchParams(location.search);
   if (on) q.set("arena", "1"); else q.delete("arena");
