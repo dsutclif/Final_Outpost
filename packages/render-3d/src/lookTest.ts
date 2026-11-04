@@ -2,7 +2,7 @@
 // full-retina resolution with dynamic scaling. Not a shipped tier; built to compare on an iPhone.
 
 import {
-  BackSide, BufferAttribute, type HemisphereLight, Color, HalfFloatType, Mesh, MeshBasicMaterial, MeshStandardMaterial, PMREMGenerator,
+  BackSide, Box3, BufferAttribute, PlaneGeometry, Vector3, type HemisphereLight, type Object3D, ShaderMaterial, Color, HalfFloatType, Mesh, MeshBasicMaterial, MeshStandardMaterial, PMREMGenerator,
   Scene, SphereGeometry, Vector2, WebGLRenderTarget, type Camera, type Texture, type WebGLRenderer,
 } from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -18,7 +18,67 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
  * false = draw straight to the canvas (still at the dynamic resolution).
  */
 // tuned on generated level 8 (daytime): stronger env or a wide bloom radius washes the sand beige
-export const LOOK_TUNE = { env: 0.15, envOn: true, hemi: 0.9, glow: 2.2, bloom: 0.45, bloomRadius: 0.05, threshold: 2, post: true };
+export const LOOK_TUNE = {
+  // reactor gas (KILN's cloud shader in plasma colours): width in reactor widths, how far its top rises above the rim in reactor heights
+  gasW: 0.75, gasRise: 0.1, gasSquash: 1, gasBright: 1.2, gasFront: 0, env: 0.15, envOn: true, hemi: 0.9, glow: 2.2, bloom: 0.45, bloomRadius: 0.05, threshold: 2, post: true };
+/** Reactor gas colours: deep ember, amber, near-white core (red is unused: no glitch). */
+const GAS = { deep: "#5a1a03", mid: "#ff7a1a", core: "#fff0c8" };
+
+// Reactor gas: KILN's domain-warped noise (scene/corespirit.ts), flowing upward, with normal
+// blending so the dark ember billows read over the bright bowl (additive washed them out).
+const GAS_VERT = /* glsl */ `
+precision mediump float;
+uniform vec2 uSize;
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  vec4 c = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+  c.xy += position.xy * uSize;
+  gl_Position = projectionMatrix * c;
+}`;
+const GAS_FRAG = /* glsl */ `
+// highp: the hash loses bits at mediump and the noise shows as square blocks
+precision highp float;
+uniform float uTime, uFuel, uBright, uSeed;
+uniform vec3 uDeep, uMid, uCore;
+varying vec2 vUv;
+// the lattice index stays an exact whole number (the compiler may regroup the corner sums), so neighbouring cells
+// agree on every shared corner; a float hash with big multipliers disagreed and left square blocks
+float h(vec2 p) { p = mod(p, 256.0); return fract(sin(p.x + p.y * 57.0 + floor(uSeed * 100.0)) * 43758.5453); }
+float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(h(i), h(i + vec2(1.0, 0.0)), f.x), mix(h(i + vec2(0.0, 1.0)), h(i + vec2(1.0, 1.0)), f.x), f.y); }
+float fbm(vec2 p) { float v = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { v += a * vn(p); p = p * 2.02 + 7.1; a *= 0.5; } return v; }
+void main() {
+  vec2 q = (vUv - 0.5) * 2.0;
+  float t = uTime * 0.35;
+  vec2 n = q * 1.7 + vec2(0.0, -t);
+  vec2 o = vec2(fbm(n * 1.4 + vec2(0.0, -t * 0.6)), fbm(n * 1.4 + vec2(5.2, t * 0.3)));
+  float d = fbm(n * 2.2 + 1.5 * o);
+  float r = length(vec2(q.x, q.y * 1.15));
+  float body = smoothstep(1.0, 0.2, r + (0.5 - d) * 0.7);
+  // wisps thin out toward the top of the quad
+  body *= smoothstep(1.0, 0.1, q.y + (0.5 - d) * 0.8);
+  float dens = body * (0.45 + 0.9 * d) * (0.55 + 0.45 * uFuel);
+  vec3 col = mix(uDeep, uMid, smoothstep(0.15, 0.6, dens));
+  col = mix(col, uCore, smoothstep(0.7, 1.05, dens));
+  col *= 1.0 + uBright * smoothstep(0.6, 1.0, dens);
+  gl_FragColor = vec4(col, clamp(dens * 1.3, 0.0, 1.0));
+}`;
+
+function gasMaterial(seed: number): ShaderMaterial {
+  return new ShaderMaterial({
+    vertexShader: GAS_VERT, fragmentShader: GAS_FRAG, transparent: true, depthWrite: false,
+    uniforms: {
+      uSize: { value: new Vector2(1, 1) }, uTime: { value: 0 }, uFuel: { value: 1 }, uBright: { value: 1 }, uSeed: { value: seed },
+      uDeep: { value: new Color(GAS.deep) }, uMid: { value: new Color(GAS.mid) }, uCore: { value: new Color(GAS.core) },
+    },
+  });
+}
+/** Reactor glow parts the gas replaces while the look test draws. */
+const GLOW_PARTS = new Set(["flame", "orb"]);
+
+interface Gas { flame: Object3D; parts: Object3D[]; mesh: Mesh; mat: ShaderMaterial; top: number; h: number; w: number }
+
 /** Materials this rough are dust or concrete (deck slabs 0.95); Meshy models (0.9) and code structures keep the sky. */
 const DUST_ROUGH = 0.93;
 /** Dynamic resolution: pixel ratio steps between these, driven by measured frame rate. */
@@ -61,6 +121,9 @@ export class LookTest {
   private frames = 0;
   private goodFor = 0;
   private fps = 60;
+  private gases: Gas[] = [];
+  private gasQuad = new PlaneGeometry(1, 1);
+  private t = 0;
 
   constructor(private readonly gl: WebGLRenderer, private readonly scene: Scene, private readonly camera: Camera, deviceDpr: number, night = false) {
     const pm = new PMREMGenerator(gl);
@@ -118,8 +181,70 @@ export class LookTest {
     this.bloom.resolution.set(Math.round(w * this.dpr / 2), Math.round(h * this.dpr / 2));
   }
 
+  /** One gas cloud per reactor: found by its flame part, sized from the reactor body's bounds (local to the model root). */
+  private findGases(): void {
+    this.scene.traverse((o) => {
+      if (o.name !== "flame" || this.gases.some((g) => g.flame === o) || !o.parent) return;
+      const root = o.parent;
+      const parts = root.children.filter((c) => GLOW_PARTS.has(c.name));
+      const box = new Box3(), b = new Box3();
+      root.updateMatrixWorld(true);
+      const inv = root.matrixWorld.clone().invert();
+      root.traverse((c) => {
+        const m = c as Mesh;
+        if (!m.isMesh || GLOW_PARTS.has(m.name) || m.name === "spin" || !m.geometry) return;
+        m.geometry.computeBoundingBox();
+        b.copy(m.geometry.boundingBox!).applyMatrix4(m.matrixWorld).applyMatrix4(inv);
+        box.union(b);
+      });
+      if (box.isEmpty()) return;
+      const mat = gasMaterial(this.gases.length * 0.37 + 0.13);
+      const mesh = new Mesh(this.gasQuad, mat);
+      mesh.renderOrder = 18;
+      mesh.frustumCulled = false;
+      mesh.name = "lookGas";
+      root.add(mesh);
+      this.gases.push({ flame: o, parts, mesh, mat, top: box.max.y, h: box.max.y - box.min.y, w: Math.max(box.max.x - box.min.x, box.max.z - box.min.z) });
+    });
+    this.gases = this.gases.filter((g) => { if (g.flame.parent) return true; g.mesh.removeFromParent(); g.mat.dispose(); return false; });
+  }
+
+  /** Hides the sphere glows for this draw and drives the gas from them (fuel scales the flame, so it scales the gas). */
+  private driveGases(): Array<[Object3D, boolean]> {
+    const hidden: Array<[Object3D, boolean]> = [];
+    const ws = new Vector3();
+    for (const g of this.gases) {
+      const on = g.flame.visible && g.flame.scale.y > 0.01;
+      g.mesh.visible = on;
+      // the renderer scales the flame 0.5 (empty) to 1.3 (full) in y, with pulse and flicker
+      const fuel = Math.max(0, Math.min(1, (g.flame.scale.y - 0.5) / 0.8));
+      g.mesh.getWorldScale(ws);
+      // the billboard sizes in view units: local sizes times the root's world scale
+      const w = g.w * LOOK_TUNE.gasW * ws.x * (0.6 + 0.4 * fuel);
+      const vh = w * LOOK_TUNE.gasSquash;
+      // visible cloud reaches about 0.3 of the quad height above its centre; put that top gasRise reactor heights over the rim
+      g.mesh.position.set(g.flame.position.x, g.top + g.h * LOOK_TUNE.gasRise - (vh * 0.3) / ws.y, g.flame.position.z);
+      // pull the flat billboard toward the camera to the front rim, so the bowl's inner ribs sit behind it
+      // (at the centre they cut it into blocks); only the front rim and anything nearer still hide it
+      const root = g.mesh.parent!;
+      const wp = root.localToWorld(g.mesh.position.clone());
+      wp.addScaledVector(this.camera.position.clone().sub(wp).normalize(), (g.w * ws.x) * LOOK_TUNE.gasFront);
+      g.mesh.position.copy(root.worldToLocal(wp));
+      const u = g.mat.uniforms;
+      u["uSize"]!.value.set(w, vh);
+      u["uTime"]!.value = this.t;
+      u["uFuel"]!.value = fuel;
+      u["uBright"]!.value = LOOK_TUNE.gasBright;
+      for (const p of g.parts) { hidden.push([p, p.visible]); p.visible = false; }
+    }
+    return hidden;
+  }
+
   render(dt: number): void {
+    this.t += dt;
     this.touchMaterials();
+    this.findGases();
+    const hidden = this.driveGases();
     // the environment sets its hemisphere intensity every frame, so dim it only for this draw
     const hemis: [HemisphereLight, number][] = [];
     this.scene.traverse((o) => { const h = o as HemisphereLight; if (h.isHemisphereLight) { hemis.push([h, h.intensity]); h.intensity *= LOOK_TUNE.hemi; } });
@@ -130,6 +255,7 @@ export class LookTest {
     if (LOOK_TUNE.post) this.composer.render(dt);
     else this.gl.render(this.scene, this.camera);
     for (const [h, i] of hemis) h.intensity = i;
+    for (const [o, v] of hidden) o.visible = v;
     this.acc += dt; this.frames++;
     if (this.acc < 1) return;
     this.fps = this.frames / this.acc;
@@ -143,6 +269,8 @@ export class LookTest {
   dispose(): void {
     if (this.scene.environment === this.envMap) this.scene.environment = null;
     this.envMap.dispose();
+    for (const g of this.gases) { g.mesh.removeFromParent(); g.mat.dispose(); }
+    this.gasQuad.dispose();
     this.composer.dispose();
     this.badge?.remove();
   }
