@@ -267,5 +267,6 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
   decor alike, so a real object's size can be applied directly (a 4 m buggy is 4 m beside a 1.8 m person). Every person
   stands 1.8 m (`characters.ts` `PERSON_M`; the commander was already 1.8 m, the others were 1.65 m) and the warlord
   1.5x that, 2.7 m (was 3.2 m). Sizes stay in data: models are not rescaled in Blender. Renderer only, no engine bump.
-  Doug's Scale tab the same day: the commander and the ranger stand x1.1 (1.98 m), mites x0.9 (0.34 m), drones x0.7,
+  Doug's Scale tab the same day: the commander stands x1.1 (1.98 m), taller on purpose as the main character; the ranger
+  is drawn x1.1 too, only because his model reads short (he should look 1.8 m like everyone else); mites x0.9 (0.34 m), drones x0.7,
   the buggy 2.64 m long.

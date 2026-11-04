@@ -88,7 +88,10 @@ const gearFor = (role: string, models: Readonly<Record<string, string>>): { hat:
  * the look scale for a height in metres on a model of that meshy height (people's are 1.1, the commander's 0.9).
  */
 export const PERSON_M = 1.8;
-/** Doug's Scale tab (2026-11-04): the commander and the ranger stand x1.1 (1.98 m), mites x0.9. */
+/**
+ * Doug's Scale tab (2026-11-04): x1.1 (1.98 m) for the commander, taller on purpose as the main character, and for the
+ * ranger, whose model reads shorter than the others at the same height (so x1.1 makes him look 1.8 m); mites x0.9.
+ */
 const LEAD_M = PERSON_M * 1.1;
 const tall = (m: number, modelH = 1.1): number => (m * 0.9) / (modelH * CHAR_K);
 
