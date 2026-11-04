@@ -16,12 +16,12 @@ Today (origin/main `b27288d`) the commander shows as a green see-through silhoue
 ## Suggested approach
 1. **Walls:** a whole-batch fade, which Doug OK'd ("fading the whole wall"). Keep a list of wall segment boxes (start/end plus height) as they are laid out. Each frame, run the same `segHitsBox` test from `fadeOccluders` against them. If any segment hides the commander, swap every wall batch's material to a pre-made transparent clone and ease its opacity to `FADE_TO`, using the same rates (out at dt*6, back at dt*4). Make and `compileAsync` the clones when the batches are created, so no shader recompiles mid-game. Per-instance fading would need a custom shader attribute and isn't needed.
 2. **Buildings:** remove the `solidIds` skip, or narrow it to the excluded ids only, so the core and every other building fades. Leave `NO_FADE` as is unless one of its entries isn't one of Doug's exclusions.
-3. **Silhouette:** keep it. It still covers the dome, the warehouse and nodes. Ask Doug whether he still wants it once walls fade.
+3. **Silhouette: remove it** (Doug, 2026-11-04). The grow dome, warehouse and other excluded buildings have no roof: they are floor tiles the commander walks across, so there is no occlusion and no effect is wanted. The commander should look like an NPC there: solid character on a solid building. Drop the `heroSilhouette()` call in renderer.ts, plus `silhouette.ts` and `silMat` if nothing else uses them, and check that no green shows when the commander stands on the dome.
 4. Work in a new worktree off origin/main, e.g. `fo-wt-wall-fade` on branch `wall-fade`. Fetch and push over SSH (`git@github.com:dsutclif/Final_Outpost.git`, because https is blocked). Do **not** work on the `farthest-outpost` main checkout: it is 158 commits behind and has uncommitted story edits.
-5. Verify in the browser: walk the commander behind a wall run and behind the core in a story level and in L14. The walls and core should fade; the dome and warehouse should stay solid with the silhouette showing. Then rewrite `release-notes.json` before pushing to main (project rule).
+5. Verify in the browser: walk the commander behind a wall run and behind the core in a story level and in L14. The walls and core should fade; the commander walks across the dome and warehouse as a plain solid character, with no green anywhere. Then rewrite `release-notes.json` before pushing to main (project rule).
 
 ## Open questions for Doug
-- Keep the green silhouette once walls fade, or keep it only for the dome and warehouse?
+- None. The silhouette question is answered: remove it.
 
 ## Traps
 - `git grep` across origin/main from the OneDrive checkout is very slow (it timed out at 2 min). Use the Grep tool inside a worktree.
