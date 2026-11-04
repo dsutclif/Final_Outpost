@@ -366,5 +366,6 @@
       "human": 3,
       "humanAll": 1
     }
-  }
+  },
+  "lighting": "night"
 }

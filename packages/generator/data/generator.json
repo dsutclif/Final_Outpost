@@ -34,6 +34,7 @@
   "danger": { "chance": 0.6, "max": 2 },
   "timeTargetK": 1.4,
   "jitter": 0.12,
+  "nightEvery": 4,
   "costs": {
     "hire.core": 8, "hire.food": 12, "hire.cashier": 18, "unlock": 15, "hire.food2": 15,
     "housing": 12, "core.level": 25, "zone": 15, "grill": 12, "hire.cook": 10, "hire.server": 10,

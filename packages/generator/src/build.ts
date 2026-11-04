@@ -37,6 +37,8 @@ export const GEN = genData as unknown as {
   /** Dangerous prey: odds that a hunting level that earns any (knob `dangerPrey` rounds above 0) gets them, and the most in one zone. */
   danger: { chance: number; max: number };
   jitter: number;
+  /** Every Nth level of a pack, by level number, gets manifest lighting "night" (renderer only, so ratings hold); 0: never. */
+  nightEvery: number;
   /** Multiplier on the generated time target (time star seconds and level.budgetSeconds): the player-facing time allowance. */
   timeTargetK: number;
   costs: Record<string, number>;
@@ -278,6 +280,12 @@ function padMap(m: Manifest, d: number): void {
     }
     return e as Manifest["entities"][number];
   });
+}
+
+/** Night lighting on every GEN.nightEvery-th level number (the pack build and tools/night-pack.ts both call this). */
+export function applyNightCadence(m: Manifest, levelNo: number): void {
+  if (GEN.nightEvery > 0 && levelNo % GEN.nightEvery === 0) m.lighting = "night";
+  else delete m.lighting;
 }
 
 /** Build one candidate manifest; throws a reason string (Error) when a constraint cannot be met. */

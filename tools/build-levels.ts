@@ -7,7 +7,7 @@ import { CONTENT_VERSION } from "../packages/content/src/index.js";
 import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { computeReference, type HistoryEntry, type Measurement, type Metrics } from "../packages/rater/src/index.js";
 import { sequenceRange, type LevelRequest } from "../packages/sequencer/src/index.js";
-import { calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
+import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
 import { digestLog } from "./candidate-digest.js";
 
@@ -100,6 +100,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
     return;
   }
   const m = pick.manifest;
+  applyNightCadence(m, index);
   const file = `${m.id}.json`;
   writeFileSync(join(outDir, file), JSON.stringify(m, null, 2) + "\n");
   const r = pick.rating;
