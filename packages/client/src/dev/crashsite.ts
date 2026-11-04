@@ -162,7 +162,7 @@ export function createCrashSite(): CrashUi {
   /** The pod's top in world units now. */
   const podTopNow = (): number => pod.position.y + podTop * sizes.pod;
 
-  /** Lay the commander face down along the pod's long axis, on its top; called each frame (Rigged resets the root). */
+  /** Lay the commander face down along the pod's long axis, just above the sand; called each frame (Rigged resets the root). */
   function placeCmdr(): void {
     const e = rigged.entryFor("unit.player");
     if (!e || !ready) return;
@@ -175,7 +175,8 @@ export function createCrashSite(): CrashUi {
     if (!r) return;
     const yaw = (podE.yaw ?? 0) * D2R, a = yaw + Math.PI / 2;
     const Hw = metres.cmdrH * ART_M * sizes.cmdr;
-    const top = podTopNow() + CHEST * Hw;
+    // fixed just above the sand (Doug): the pod height slider moves only the pod around him
+    const top = CHEST * Hw + 0.05 * ART_M;
     // head toward +axis; centre the body on the pod's middle
     r.rotation.set(Math.PI / 2, a, 0, "YXZ");
     r.position.set(pod.position.x - Math.sin(a) * Hw / 2, top, pod.position.z - Math.cos(a) * Hw / 2);
@@ -185,7 +186,7 @@ export function createCrashSite(): CrashUi {
 
   function focus(close: boolean): void {
     const t = close
-      ? new Vector3(pod.position.x, podTopNow(), pod.position.z)
+      ? new Vector3(pod.position.x, 0.5 * ART_M, pod.position.z)
       : new Vector3((wreck.position.x + pod.position.x) / 2, 40, (wreck.position.z + pod.position.z) / 2);
     const dist = close ? 230 * Math.max(0.5, Math.max(sizes.pod, sizes.cmdr)) : 2900 * Math.max(0.6, sizes.ship);
     // the game's camera: pitch 30 down, turned 45 about the vertical, sitting toward +x +z
