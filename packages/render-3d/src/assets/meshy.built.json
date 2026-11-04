@@ -144,19 +144,19 @@
     }
   },
   "struct.gate": {
-    "hash": "97ea0c9044",
-    "tris": 4148,
-    "bytes": 209960,
+    "hash": "b3b8c28f2c",
+    "tris": 6040,
+    "bytes": 378384,
     "bounds": [
-      -1.35,
+      -2.025,
       0,
-      -0.406,
-      1.35,
-      1.802,
-      0.406
+      -0.609,
+      2.025,
+      2.703,
+      0.609
     ],
     "outline": {
-      "hash": "8d6090796e",
+      "hash": "6814f354dd",
       "tris": 250,
       "bytes": 3748
     }
@@ -707,21 +707,21 @@
     ]
   },
   "decor.scrap_field": {
-    "hash": "7434c00fb6",
-    "tris": 18168,
-    "bytes": 804036,
+    "hash": "005a047ac7",
+    "tris": 28030,
+    "bytes": 1251308,
     "bounds": [
-      -0.867,
+      -1.318,
       0,
-      -0.9,
-      0.867,
-      0.404,
-      0.9
+      -1.368,
+      1.318,
+      0.614,
+      1.368
     ],
     "outline": {
-      "hash": "1d85fda879",
-      "tris": 250,
-      "bytes": 2892
+      "hash": "4c37c7a081",
+      "tris": 240,
+      "bytes": 2796
     }
   },
   "prop.medkit": {
@@ -779,39 +779,39 @@
     }
   },
   "capture.recruit_container": {
-    "hash": "859940fb2b",
-    "tris": 3946,
-    "bytes": 311556,
+    "hash": "cb00fdade3",
+    "tris": 7044,
+    "bytes": 427084,
     "bounds": [
-      -0.55,
+      -0.929,
       0,
-      -0.309,
-      0.55,
-      0.579,
-      0.309
+      -0.523,
+      0.929,
+      0.979,
+      0.523
     ],
     "outline": {
-      "hash": "635bdf0af7",
+      "hash": "b46d649f86",
       "tris": 248,
-      "bytes": 3608
+      "bytes": 3592
     }
   },
   "capture.supply_crate": {
-    "hash": "ba8b1b6380",
-    "tris": 1810,
-    "bytes": 116996,
+    "hash": "2efce02f41",
+    "tris": 2056,
+    "bytes": 124372,
     "bounds": [
-      -0.425,
+      -0.506,
       0,
-      -0.234,
-      0.425,
-      0.582,
-      0.234
+      -0.279,
+      0.506,
+      0.693,
+      0.279
     ],
     "outline": {
-      "hash": "4b6660b635",
+      "hash": "7abadcbfc2",
       "tris": 250,
-      "bytes": 4124
+      "bytes": 4148
     }
   },
   "zone.blocked": {
@@ -932,21 +932,21 @@
     ]
   },
   "decor.ship_scrap": {
-    "hash": "0d541b7d00",
-    "tris": 10976,
-    "bytes": 513704,
+    "hash": "d7b94303a9",
+    "tris": 29938,
+    "bytes": 1741460,
     "bounds": [
-      -0.9,
+      -4.95,
       0,
-      -0.755,
-      0.9,
-      0.465,
-      0.755
+      -4.151,
+      4.95,
+      2.556,
+      4.151
     ],
     "outline": {
-      "hash": "0d55172561",
-      "tris": 230,
-      "bytes": 3004
+      "hash": "a893a3a1a4",
+      "tris": 250,
+      "bytes": 3164
     }
   },
   "decor.ship_wreck": {
@@ -963,19 +963,19 @@
     ]
   },
   "node.material_source": {
-    "hash": "8ec8065715",
-    "tris": 8472,
-    "bytes": 548840,
+    "hash": "05ffc54c87",
+    "tris": 9904,
+    "bytes": 613300,
     "bounds": [
-      -0.93,
+      -1.06,
       0,
-      -1,
-      0.93,
-      0.773,
-      1
+      -1.14,
+      1.06,
+      0.881,
+      1.14
     ],
     "outline": {
-      "hash": "46ab5b78ce",
+      "hash": "3f9a7c6e3a",
       "tris": 246,
       "bytes": 3724
     }
@@ -1025,37 +1025,37 @@
     ]
   },
   "zone.prey.l1": {
-    "hash": "d0d5759454",
-    "tris": 9680,
-    "bytes": 490916,
+    "hash": "5e49080027",
+    "tris": 12782,
+    "bytes": 743400,
     "bounds": [
-      -0.8,
+      -1.016,
       0,
-      -0.725,
-      0.8,
-      0.428,
-      0.725
+      -0.921,
+      1.016,
+      0.544,
+      0.921
     ],
     "outline": {
-      "hash": "dd25e75922",
+      "hash": "cf6ed92ecc",
       "tris": 248,
-      "bytes": 3736
+      "bytes": 3712
     }
   },
   "zone.prey.l2": {
-    "hash": "412c36ec85",
-    "tris": 5000,
-    "bytes": 254700,
+    "hash": "0c043bdb04",
+    "tris": 8232,
+    "bytes": 486416,
     "bounds": [
-      -0.8,
+      -1.24,
       0,
-      -0.796,
-      0.8,
-      0.288,
-      0.796
+      -1.235,
+      1.24,
+      0.446,
+      1.235
     ],
     "outline": {
-      "hash": "7fe0749661",
+      "hash": "c8db293075",
       "tris": 250,
       "bytes": 3772
     }
@@ -1100,21 +1100,21 @@
     ]
   },
   "node.fuel_deposit": {
-    "hash": "85e2019953",
-    "tris": 7438,
-    "bytes": 356132,
+    "hash": "97105af320",
+    "tris": 6598,
+    "bytes": 322208,
     "bounds": [
-      -0.7,
+      -0.63,
       0,
-      -0.453,
-      0.7,
-      0.668,
-      0.453
+      -0.407,
+      0.63,
+      0.601,
+      0.407
     ],
     "outline": {
-      "hash": "e338776e4e",
+      "hash": "27e7b11713",
       "tris": 246,
-      "bytes": 3688
+      "bytes": 3712
     }
   },
   "struct.landmark": {
@@ -1175,19 +1175,19 @@
     ]
   },
   "node.salvage_pile.l3": {
-    "hash": "dc822491e2",
-    "tris": 21122,
-    "bytes": 845172,
+    "hash": "3e676c3a2d",
+    "tris": 29946,
+    "bytes": 1291260,
     "bounds": [
-      -1.4,
+      -2.8,
       0,
-      -1.223,
-      1.4,
-      1.382,
-      1.223
+      -2.447,
+      2.8,
+      2.764,
+      2.447
     ],
     "outline": {
-      "hash": "9a3559584e",
+      "hash": "1fdff0f768",
       "tris": 250,
       "bytes": 3496
     }
@@ -1250,17 +1250,22 @@
     ]
   },
   "item.lieutenant_helmet": {
-    "hash": "3be344ee43",
-    "tris": 1238,
-    "bytes": 101404,
+    "hash": "dba91f5d82",
+    "tris": 1456,
+    "bytes": 110540,
     "bounds": [
-      -0.141,
+      -0.158,
       0,
-      -0.2,
-      0.141,
-      0.371,
-      0.2
-    ]
+      -0.224,
+      0.158,
+      0.415,
+      0.224
+    ],
+    "outline": {
+      "hash": "a2bd4dc19e",
+      "tris": 244,
+      "bytes": 3680
+    }
   },
   "decor.stasis_pod": {
     "hash": "3171afe27f",
@@ -1289,21 +1294,21 @@
     ]
   },
   "capture.recruit_container_decoy": {
-    "hash": "296bfb9bde",
-    "tris": 3946,
-    "bytes": 306572,
+    "hash": "c1bc3e0196",
+    "tris": 7044,
+    "bytes": 423692,
     "bounds": [
-      -0.55,
+      -0.929,
       0,
-      -0.309,
-      0.55,
-      0.579,
-      0.309
+      -0.523,
+      0.929,
+      0.979,
+      0.523
     ],
     "outline": {
-      "hash": "635bdf0af7",
+      "hash": "b46d649f86",
       "tris": 248,
-      "bytes": 3608
+      "bytes": 3592
     }
   },
   "decor.buggy": {
