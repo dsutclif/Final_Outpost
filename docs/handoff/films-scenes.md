@@ -13,8 +13,21 @@ sizes in `docs/SCALE.md`.
 - Sandbox: Crash site view (`client/src/dev/crashsite.ts`) and Layout mock (`client/src/dev/layoutmock.ts`). Keep the
   other session's "Buildings row" button in sandbox.html / sandbox.ts.
 
+## Doug's layout (2026-11-04, from the Layout mock; metres, x east, z south, 1 m = 28 units)
+| Thing | Position | Notes |
+|---|---|---|
+| Wreck centre | (1.52, -1.88), yaw -18° | 27 m long |
+| Commander's pod (featured, open) | (6.49, 6.37) | L1 starts here |
+| Two sealed background pods | (8.77, 6.37), (11.05, 6.37) | 2.28 m apart |
+| Reactor | (-10.05, 12.51) | its offset from the ship is the reference: 11.6 m west, 14.4 m south of the wreck centre |
+| Reactor's ore | about (-19.5, 20.9) | the centre of the cyan "Start (L1)" disc in the mock: ~12.7 m south-west of the reactor |
+| Flight recorder | (14.67, -0.67) | "accurate now" |
+| Ridge line | (18,-15) (19.5,-6) (17,3) (19,12) (17.5,19) (18.5,25) | a raised landform, ~1.5 m high, 4 m wide |
+Ignore the mock's phone boxes (Doug: they don't match a phone screen; the footprint maths in layoutmock.ts may be
+wrong, so don't trust it for framing). Sizes come from docs/SCALE.md, not from the mock where they differ.
+
 ## Next steps
-1. Doug arranges the site in the sandbox Layout mock and pastes Copy settings. Do not rebuild levels before that.
+1. (Done: Doug's layout is above.)
 2. Apply to `levels/story/story-L00{1..5}.json` (three crash-site pods, not five: the commander's featured one and two sealed in the background, per Doug): wreck `scale` for 27 m; pods/lids for 2.66 m with the base 0.80 m in
    the sand; delete `deck`, `deck2`, `stripe`; move `core`, the town and `recorder`; add a ridge landform. Then
    `pnpm levels:check --pack levels/story`. Scale the live scenes' pods the same way (cavity maths in layoutmock.ts).
