@@ -13,9 +13,11 @@ S22 (fireworks), S23 (shovel dig), S23b (lasers) and S27 (hire pads visible) are
 listed here only for the parts levels 1–5 need on their own: checks or data. S16's missing hub price is a levels 1–5 bug,
 not game-wide.
 
-**On hold: films and live scenes (Doug, 2026-11-03).** No new video or live-scene work until the dialogue and staging
-below settle, because the scenes may need to change with them. `empty_bays` stays live as it is. Sign-offs 2 (empty_bays)
-and 3 (reduced buggy) are parked, not rejected.
+**Hold lifted (Doug, 2026-11-04): films and live scenes go ahead now.** The levels are close enough that the content
+below won't need rewriting, so S30–S33 and the parked scenes (`crash_log`, Sela's reveal and buggy, the live helmet
+fall) can be produced and published. While they're being edited, every story film and scene plays on every play of
+levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go back to once per version).
+(Was: on hold from 2026-11-03 until the dialogue and staging settled.)
 
 ## Order of work
 
@@ -181,7 +183,7 @@ and 3 (reduced buggy) are parked, not rejected.
 - [x] **S38 The orange pod is the Halcyon's lander pod,** scorched orange, opened from the inside long ago. It replaces
   "another ship's pod" (story change, draft 4). The S20 model tint should read as scorched, not painted.
 
-## 8. Held: films and live scenes (after the screenplay)
+## 8. Films and live scenes (hold lifted 2026-11-04)
 
 - [ ] **S30 Opening film end (L1, A).** It pans up to show the pulsing light on the ridge, then a white flash from
   the screen's left, then play starts with the arrow pointing toward the white light.

@@ -9,8 +9,8 @@ Two Claude accounts push to this repo. **Read this file before you start, and fe
 
 ## Agreed with Doug (2026-11-02)
 
-- **2026-11-03: story round S1 is refined in `docs/BACKLOG-STORY.md`** (owners A/B per item). Films and live scenes are
-  on hold until its screenplay (S1) and staging settle. `empty_bays` stays live as is, and sign-offs 2 and 3 are parked.
+- **2026-11-03: story round S1 is refined in `docs/BACKLOG-STORY.md`** (owners A/B per item). Films and live scenes were
+  on hold until its screenplay (S1) and staging settled; **Doug lifted the hold on 2026-11-04.** `empty_bays` stays live as is, and sign-offs 2 and 3 are parked.
 
 - Levels 2–5 are built one at a time. Each one goes to `main` and is live as soon as it's checked.
 - If a rule needed by a story level doesn't fit the existing rules, it becomes an **opt-in manifest option**: off by default, used only by the training levels. Generated levels must keep their results.
@@ -74,6 +74,14 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+
+- **2026-11-04, B, film hold lifted; story films replay every play (Doug).** No engine bump, no level file touched.
+  - Doug: the levels are close enough, so films and live scenes (S30–S33, `crash_log`, Sela's reveal and buggy, the live
+    helmet fall) go ahead and publish now. `docs/BACKLOG-STORY.md` updated.
+  - `client/src/cinematics.ts`: `REPLAY_FILMS = true` makes `filmDue`/`cinematicFor` ignore the seen record, so
+    `crash_open`, `empty_bays` and `helmet_reveal` play on every play (Skip still works). `app.ts` also stops treating a
+    cleared story level as a replay while it's on, so camera beats, cards and film cues play again too. Set it false
+    to go back to once per version. Tests take an explicit `replay` argument.
 
 - **2026-11-04, B, night on every 4th s1 level (Doug).** No engine bump, no rules change, no story file touched.
   - `packages/generator/data/generator.json` gains `nightEvery: 4`; `applyNightCadence()` in `generator/src/build.ts`

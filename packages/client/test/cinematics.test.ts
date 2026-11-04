@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FILM_VERSIONS, STORY_CINEMATICS, cinematicFor } from "../src/cinematics.js";
+import { FILM_VERSIONS, STORY_CINEMATICS, cinematicFor, filmDue } from "../src/cinematics.js";
 import { PROGRESS_EPOCH, mergeProgress } from "../src/save.js";
 
 describe("story cinematics", () => {
@@ -12,12 +12,19 @@ describe("story cinematics", () => {
   it("never replays a seen version, and saved `true` migrates to version 1", () => {
     const p = mergeProgress({ epoch: PROGRESS_EPOCH, cinematics: { crash_open: true } });
     expect(p.cinematics).toEqual({ crash_open: 1 });
-    expect(cinematicFor("story-L001", "before", p.cinematics)).toBeNull();
+    expect(cinematicFor("story-L001", "before", p.cinematics, false)).toBeNull();
     expect(mergeProgress(null).cinematics).toEqual({});
   });
   it("plays again on a new version", () => {
-    expect(cinematicFor("story-L001", "before", { crash_open: FILM_VERSIONS.crash_open - 1 })).toBe("crash_open");
-    expect(cinematicFor("story-L001", "before", { crash_open: FILM_VERSIONS.crash_open })).toBeNull();
+    expect(cinematicFor("story-L001", "before", { crash_open: FILM_VERSIONS.crash_open - 1 }, false)).toBe("crash_open");
+    expect(cinematicFor("story-L001", "before", { crash_open: FILM_VERSIONS.crash_open }, false)).toBeNull();
+  });
+  it("replays a seen film while REPLAY_FILMS is on", () => {
+    const seen = { crash_open: FILM_VERSIONS.crash_open, helmet_reveal: 9, empty_bays: 9 };
+    expect(cinematicFor("story-L001", "before", seen, true)).toBe("crash_open");
+    expect(filmDue("helmet_reveal", seen, true)).toBe(true);
+    expect(filmDue("empty_bays", seen, true)).toBe(true);
+    expect(filmDue("not_a_film", seen, true)).toBe(false);
   });
   it("plays again after a level reset for an update, not when progress is kept", () => {
     const old = { epoch: PROGRESS_EPOCH - 1, cinematics: { crash_open: true }, cleared: {} };

@@ -22,7 +22,7 @@ import { DEFAULT_PROGRESS, PROGRESS_EPOCH, type Progress, type ProgressMode, typ
 import type { TelemetryQueue } from "./telemetry.js";
 import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
-import { FILM_VERSIONS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
+import { FILM_VERSIONS, REPLAY_FILMS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
 import { StoryStage, directorFor, type StoryDirector } from "./story/index.js";
 
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
@@ -837,8 +837,9 @@ export class App {
         this.synth.play(done ? "star" : "miss");
         if (done) this.starToast(uiText(this.skin, "starEarned"), label);
       },
-    // only a level already cleared is a replay: a retry after a loss keeps its beats and every line
-    }, !!this.progress.cleared[id], fromRetrySpot, (key) => {
+    // only a level already cleared is a replay: a retry after a loss keeps its beats and every line.
+    // While REPLAY_FILMS is on, a cleared level keeps its beats too, so its films and camera moves play again.
+    }, !!this.progress.cleared[id] && !REPLAY_FILMS, fromRetrySpot, (key) => {
       const spirit = Object.values(this.skin.story?.speakers ?? {}).some((sp) => sp.portrait === key && sp.spirit);
       return spirit ? s.renderer.spiritPortrait(this.el.ftoast.ownerDocument.createElement("canvas")) : null;
     });

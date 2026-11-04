@@ -34,9 +34,15 @@ export const CINEMATICS: Record<VideoId, FilmInfo> = {
 /** Bump a film's version when it is re-rendered: players who saw an older one see it again. */
 export const FILM_VERSIONS: Record<CinematicId, number> = { crash_open: 1, helmet_reveal: 1, empty_bays: 1 };
 
-/** Is this id a film we have, not yet seen in its current version? */
-export function filmDue(id: string, seen: Readonly<Record<string, number>>): id is CinematicId {
-  return (id in CINEMATICS || isLive(id)) && (seen[id] ?? 0) < FILM_VERSIONS[id as CinematicId];
+/**
+ * While the story films and live scenes are being edited (Doug, 2026-11-04), every one plays on every
+ * play of its level, seen or not; Skip still works. Set false to go back to once per version.
+ */
+export const REPLAY_FILMS = true;
+
+/** Is this id a film we have, not yet seen in its current version (or any film, while `replay`)? */
+export function filmDue(id: string, seen: Readonly<Record<string, number>>, replay = REPLAY_FILMS): id is CinematicId {
+  return (id in CINEMATICS || isLive(id)) && (replay || (seen[id] ?? 0) < FILM_VERSIONS[id as CinematicId]);
 }
 
 /** The landing screen's muted loop (title.ts); the canvas backdrop stays as its fallback. */
@@ -52,9 +58,9 @@ export const STORY_CINEMATICS: Readonly<Record<string, { before?: CinematicId; a
 };
 
 /** The cinematic to play at `when` for a level, or null when none is registered or its current version was seen (Progress.cinematics). */
-export function cinematicFor(levelId: string, when: "before" | "afterWin", seen: Readonly<Record<string, number>>): CinematicId | null {
+export function cinematicFor(levelId: string, when: "before" | "afterWin", seen: Readonly<Record<string, number>>, replay = REPLAY_FILMS): CinematicId | null {
   const id = STORY_CINEMATICS[levelId]?.[when];
-  return id && filmDue(id, seen) ? id : null;
+  return id && filmDue(id, seen, replay) ? id : null;
 }
 
 /** ended and skipped count as seen; failed (error, stall, autoplay refused) does not, so it can try again later. */
