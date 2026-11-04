@@ -75,6 +75,11 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
 
+- **2026-11-04, B, the level 1 hand-off pushed (Doug: yes).** Commit "Level 1 opens on crash_open's last frame" (logged
+  below under 2026-11-03) is on `main` now, cherry-picked from `story-handoff`. **Not yet in:** the night re-render of
+  shot 4. It is still rendering in `fo-wt-handoff/tools/cinematics/out/crash_pod` (frame ~250 of 709 at 09:50). When it
+  finishes: encode, copy to `client/src/cinematics/crash_open.mp4` + poster, drop the closing grade, `FILM_VERSIONS.crash_open` 2.
+  Until then the game keeps the dawn video with its grade.
 - **2026-11-04, B, film hold lifted; story films replay every play (Doug).** No engine bump, no level file touched.
   - Doug: the levels are close enough, so films and live scenes (S30–S33, `crash_log`, Sela's reveal and buggy, the live
     helmet fall) go ahead and publish now. `docs/BACKLOG-STORY.md` updated.

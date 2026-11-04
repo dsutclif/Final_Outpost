@@ -1,5 +1,8 @@
 {
   "notes": [
-    "The story's films and scenes in missions 1 to 5 now play every time you play those missions, not just the first time. Tap Skip to pass one."
+    "Level 1 opens on exactly the opening film's last picture: the deck, pods, ore and scrap sit where the film leaves them, with the commander on the deck's edge.",
+    "The crashed Halcyon, the stasis pods and their glass now use the film's own models, with far more detail on the ship.",
+    "The commander starts at the film's size and grows to normal as the camera pulls back.",
+    "The story's films and scenes in missions 1 to 5 play every time you play those missions. Tap Skip to pass one."
   ]
 }
