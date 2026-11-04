@@ -250,7 +250,7 @@ export function createBuildingsRow(): BuildingsUi {
       heads[grp] = el("h4", titles[grp]);
       sliders.append(heads[grp]!);
       for (const it of items.filter((i) => i.grp === grp)) {
-        const s = slider(it.key, 0.1, 3, 0.01, it.k, (v) => { it.k = v; });
+        const s = slider(it.key, 0.1, grp === "bldg" ? 3 : 6, 0.01, it.k, (v) => { it.k = v; });
         it.out = s.out;
         it.box = s.box;
         inputs.push({ it, input: s.input, def: 1 });
