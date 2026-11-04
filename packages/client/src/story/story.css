@@ -94,6 +94,8 @@
 .cine.live.out { opacity: 0; transition: opacity 0.3s; }
 .live-canvas { position: absolute; inset: 0; width: 100%; height: 100%; filter: grayscale(0.55) sepia(0.25) hue-rotate(150deg) contrast(1.1) brightness(1.2); animation: live-flicker 0.12s steps(2) infinite; }
 .cine.live.wire .live-canvas { filter: none; animation: none; }
+.cine.live.film .live-canvas { filter: none; animation: none; }
+.cine.live.film .live-scan, .cine.live.film .live-hud { display: none; }
 .live-scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.65)); }
 .live-overlay { position: absolute; inset: 0; pointer-events: none; }
 .live-hud { position: absolute; top: max(14px, env(safe-area-inset-top)); left: 16px; font: 600 12px/1 ui-monospace, monospace; letter-spacing: 0.12em; color: #cfeee2; text-shadow: 0 0 6px rgba(120, 255, 200, 0.6); }

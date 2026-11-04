@@ -195,7 +195,9 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
 - [ ] **S33 "Vale?" is the last line of the clip or machinima,** as the commander runs two steps toward the screen
   edge holding the helmet, then stops.
 - [x] `crash_log` (L4) is a live scene (2026-11-04, B), replacing its text card.
-- Also parked: Sela's reveal, the buggy arrival (branch `story-buggy`), and the live helmet fall.
+- [x] Sela's arrival in the buggy (L3) is a live scene (`sela_arrival`, 2026-11-04, B), buggy at Doug's 2.64 m.
+- [x] `helmet_reveal` re-rendered with the H mark and Vale's ID card (version 2, 2026-11-04, B).
+- Also parked: Sela's reveal (beyond the arrival), the buggy arrival (branch `story-buggy`), and the live helmet fall.
 
 ## Open questions for Doug
 

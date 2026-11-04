@@ -10,7 +10,7 @@ import bpy
 from mathutils import Vector
 import lib
 
-H_UV = (0.667, 0.633)  # where on the opening frame the H sits, 0..1 from bottom-left
+H_UV = (0.645, 0.665)  # where on the opening frame the H sits, 0..1 from bottom-left
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 quick = "--quick" in args
 F0, F1 = 1, 150
@@ -36,14 +36,15 @@ for f in range(F0, F1 + 1):
     fire.data.keyframe_insert("energy", frame=f)
 visor = lib.point((-0.05, 0.02, 0.2), "#ff2a1a", 0.35, radius=0.05, name="visor")
 
-# the Halcyon H where the black paint is scratched through: a decal shrink-wrapped onto the shell
-# at the spot the opening camera sees best. Its texture is drawn here, so the shot needs no asset.
-GOLD, PAINT = (0.77, 0.60, 0.33), (0.91, 0.89, 0.84)
+# the Halcyon H where the black paint is scratched through, stencilled onto the shell (place_h)
+# where the opening camera sees it best. Its texture is drawn here, so the shot needs no asset.
+GOLD, PAINT = (0.42, 0.27, 0.08), (0.62, 0.60, 0.55)  # linear; darker gold so the H reads against the white
 
 
 def h_mark(n=384, seed=7):
     rnd = random.Random(seed)
     img = bpy.data.images.new("h_mark", n, n, alpha=True)
+    img.colorspace_settings.name = "Non-Color"  # the values below are linear; set first, as it regenerates the image
     waves = [(rnd.uniform(0.03, 0.07), k, rnd.uniform(0, 6.3)) for k in (3, 5, 8, 13)]
     streaks = [(rnd.uniform(0, 6.3), rnd.uniform(0.95, 1.2), rnd.uniform(0.02, 0.045)) for _ in range(5)]
     chips = [(rnd.uniform(-0.8, 0.8), rnd.uniform(-0.8, 0.8), rnd.uniform(0.015, 0.05)) for _ in range(30)]
@@ -72,8 +73,6 @@ def h_mark(n=384, seed=7):
             k = (j * n + i) * 4
             px[k:k + 4] = [c[0] * g, c[1] * g, c[2] * g, 1.0]
     img.pixels = px
-    img.colorspace_settings.name = "Non-Color"  # values above are already linear
-    img.pack()
     return img
 
 
@@ -85,35 +84,69 @@ def screen_ray(cam, u, v):
     return o, (p - o).normalized()
 
 
-def place_h(cam, u, v, size=0.1):
-    sc.frame_set(F0)
+def place_h(cam, u, v, size=0.05, depth=0.045, frame=30):
+    """Project the mark onto the helmet's own materials from the camera's side, like a stencil,
+    through frame point (u, v) at `frame`: it reads square-on to the camera whatever the shell's
+    shape under it, and only within `depth` of the hit, so the far side stays black."""
+    sc.frame_set(frame)
     dg = bpy.context.evaluated_depsgraph_get()
     o, d = screen_ray(cam, u, v)
     hit, at, nrm, _, ob, _ = sc.ray_cast(dg, o, d)
     print("H mark on", ob.name if hit else None, at, nrm)
     if not hit:
         return None
-    if nrm.dot(d) > 0:
-        nrm = -nrm
-    bpy.ops.mesh.primitive_grid_add(x_subdivisions=28, y_subdivisions=28, size=size, location=at + nrm * 0.01)
-    g = bpy.context.object
-    g.name = "h_mark"
-    g.rotation_euler = nrm.to_track_quat("Z", "Y").to_euler()
-    sw = g.modifiers.new("wrap", "SHRINKWRAP")
-    sw.target, sw.wrap_method, sw.offset = ob, "NEAREST_SURFACEPOINT", 0.0012
-    m = bpy.data.materials.new("h_mark")
-    m.use_nodes = True
-    nt = m.node_tree
-    b = nt.nodes["Principled BSDF"]
-    t = nt.nodes.new("ShaderNodeTexImage")
-    t.image = h_mark()
-    t.extension = "CLIP"
-    nt.links.new(t.outputs["Color"], b.inputs["Base Color"])
-    nt.links.new(t.outputs["Alpha"], b.inputs["Alpha"])
-    b.inputs["Roughness"].default_value = 0.38
-    b.inputs["Metallic"].default_value = 0.35
-    g.data.materials.append(m)
-    return g
+    proj = bpy.data.objects.new("h_projector", None)
+    sc.collection.objects.link(proj)
+    proj.location = at
+    proj.rotation_euler = (-d).to_track_quat("Z", "Y").to_euler()
+    proj.scale = (size, size, depth)
+    img = h_mark()
+    for name in helmet["meshes"]:
+        for m in {s.material for s in bpy.data.objects[name].material_slots if s.material}:
+            nt = m.node_tree
+            b = next((n for n in nt.nodes if n.type == "BSDF_PRINCIPLED"), None)
+            if b is None:
+                continue
+            tc = nt.nodes.new("ShaderNodeTexCoord")
+            tc.object = proj
+            uvw = nt.nodes.new("ShaderNodeVectorMath")
+            uvw.operation = "MULTIPLY_ADD"
+            nt.links.new(tc.outputs["Object"], uvw.inputs[0])
+            uvw.inputs[1].default_value = (0.5, 0.5, 0.5)
+            uvw.inputs[2].default_value = (0.5, 0.5, 0.5)
+            t = nt.nodes.new("ShaderNodeTexImage")
+            t.image, t.extension = img, "CLIP"
+            nt.links.new(uvw.outputs["Vector"], t.inputs["Vector"])
+            sep = nt.nodes.new("ShaderNodeSeparateXYZ")  # depth window: |z| < 1 in projector space
+            nt.links.new(tc.outputs["Object"], sep.inputs[0])
+            az = nt.nodes.new("ShaderNodeMath")
+            az.operation = "ABSOLUTE"
+            nt.links.new(sep.outputs["Z"], az.inputs[0])
+            lt = nt.nodes.new("ShaderNodeMath")
+            lt.operation = "LESS_THAN"
+            nt.links.new(az.outputs[0], lt.inputs[0])
+            lt.inputs[1].default_value = 1.0
+            fac = nt.nodes.new("ShaderNodeMath")
+            fac.operation = "MULTIPLY"
+            nt.links.new(t.outputs["Alpha"], fac.inputs[0])
+            nt.links.new(lt.outputs[0], fac.inputs[1])
+            for inp, val in (("Base Color", t.outputs["Color"]), ("Roughness", 0.4), ("Metallic", 0.3)):
+                sock = b.inputs[inp]
+                mix = nt.nodes.new("ShaderNodeMix")
+                mix.data_type = "RGBA" if inp == "Base Color" else "FLOAT"
+                a_in, b_in = (mix.inputs[6], mix.inputs[7]) if inp == "Base Color" else (mix.inputs[2], mix.inputs[3])
+                if sock.is_linked:
+                    nt.links.new(sock.links[0].from_socket, a_in)
+                else:
+                    a_in.default_value = sock.default_value
+                if isinstance(val, float):
+                    b_in.default_value = val
+                else:
+                    nt.links.new(val, b_in)
+                nt.links.new(fac.outputs[0], mix.inputs[0])
+                out = mix.outputs[2] if inp == "Base Color" else mix.outputs[0]
+                nt.links.new(out, sock)
+    return proj
 
 
 # the ID card, slipped out onto the sand in front of the neck ring
@@ -155,8 +188,8 @@ cover = bpy.context.object
 cover.scale = ((1260 - 160) * KPX, (1545 - 1290) * KPX, 1)
 cover.data.materials.append(lib.mat("card_cover", (*card_bg, 1), rough=0.45))
 on_card(cover, (160 + 1260) / 2, (1290 + 1545) / 2, 0.00012)
-for body, (x, y), em, font, col in (("VALE", (180, 1450), 205, "barlow-latin-800-normal.woff", "#0d0d0f"),
-                                    ("FIRST OFFICER · BAY 5", (188, 1528), 72, "barlow-latin-700-normal.woff", "#4a4a4a")):
+for body, (x, y), em, font, col in (("VALE", (180, 1436), 190, "barlow-latin-800-normal.woff", "#0d0d0f"),
+                                    ("FIRST OFFICER · BAY 5", (186, 1532), 92, "barlow-latin-700-normal.woff", "#4a4a4a")):
     bpy.ops.object.text_add()
     t = bpy.context.object
     t.data.body = body

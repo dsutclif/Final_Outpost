@@ -1,9 +1,10 @@
 import {
   AmbientLight, AnimationMixer, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera,
-  PointLight, Scene, Vector3, WebGLRenderer, type Material, type Object3D,
+  PlaneGeometry, PointLight, Quaternion, Scene, SphereGeometry, SpotLight, Vector3, WebGLRenderer, type Material, type Object3D,
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
+import RIG from "../assets/buggy.json";
 
 // Live scenes (docs/STORY-LEVELS-V2-PLAN.md, Phase 2 F2): short story scenes staged in three.js with the
 // game's own models instead of a pre-rendered video, on their own canvas so the game renderer is untouched.
@@ -125,9 +126,9 @@ function disposeAll(scene: Scene): void {
   });
 }
 
-/** One suited crew member: the commander's model (Halcyon EVA suit), its own skeleton, its walk on a mixer. */
-function crewFigure(): { root: Object3D; mixer: AnimationMixer; height: number } | null {
-  const e = meshyCharacters().find((x) => x.id === "unit.player"), rig = e && meshyRig(e.file);
+/** One character (the commander's model by default: the Halcyon EVA suit) with its own skeleton and its walk on a mixer. */
+function crewFigure(id = "unit.player"): { root: Object3D; mixer: AnimationMixer; height: number } | null {
+  const e = meshyCharacters().find((x) => x.id === id), rig = e && meshyRig(e.file);
   if (!e || !rig) return null;
   const root = cloneSkinned(rig.scene);
   const mixer = new AnimationMixer(root);
@@ -224,7 +225,149 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
   };
 }
 
-const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged }>> = {
+/** Turn bone `b` so its child `c` points along `dir` (world), keeping the rest of the chain. */
+function aimBone(b: Object3D | undefined, c: Object3D | undefined, dir: Vector3): void {
+  if (!b || !c || !b.parent) return;
+  b.updateMatrixWorld(true);
+  const from = b.getWorldPosition(new Vector3()), cur = c.getWorldPosition(new Vector3()).sub(from).normalize();
+  const q = new Quaternion().setFromUnitVectors(cur, dir.clone().normalize());
+  const parentInv = b.parent.getWorldQuaternion(new Quaternion()).invert();
+  b.quaternion.copy(parentInv.multiply(q.multiply(b.getWorldQuaternion(new Quaternion()))));
+  b.updateMatrixWorld(true);
+}
+
+/**
+ * Sela's arrival (docs/STORY-SCREENPLAY.md level 3, Phase 2): at night a pair of headlights comes up the road out of
+ * the dark, her buggy slows and parks at the camp's edge with its lights still on, and she climbs out with her lamp and
+ * starts walking in. The level then follows her walk to the kiosk. A film look, not a camera feed.
+ */
+function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement): Staged {
+  const scene = new Scene();
+  scene.background = new Color("#070a12");
+  const camera = new PerspectiveCamera(38, 1, 0.1, 400);
+  scene.add(new AmbientLight("#3d4a68", 1.6));
+  const moon = new DirectionalLight("#a9bce0", 1.6);
+  moon.position.set(-20, 30, 10);
+  scene.add(moon);
+  const sand = new Mesh(new PlaneGeometry(220, 220), new MeshStandardMaterial({ color: "#7a5f48", roughness: 1 }));
+  sand.rotation.x = -Math.PI / 2;
+  const road = new Mesh(new PlaneGeometry(200, 3.4), new MeshStandardMaterial({ color: "#3f342c", roughness: 1 }));
+  road.rotation.x = -Math.PI / 2;
+  road.position.set(60, 0.01, 0);
+  scene.add(sand, road);
+  // stones along the road, placed by a fixed hash so every play is the same
+  const stone = new MeshStandardMaterial({ color: "#4a3f36", roughness: 1 });
+  for (let i = 0; i < 60; i++) {
+    const h = (n: number): number => { const s = Math.sin(i * 12.9898 + n * 78.233) * 43758.5453; return s - Math.floor(s); };
+    // small and kept off the camera's foreground (the camera stands near z 11), so they read as scattered stones
+    const r = new Mesh(new BoxGeometry(0.15 + h(1) * 0.4, 0.1 + h(2) * 0.25, 0.15 + h(3) * 0.35), stone);
+    const side = h(4) < 0.5 ? -1 : 1;
+    r.position.set(-12 + h(5) * 90, 0.05, side < 0 ? -(2.6 + h(6) * 12) : 2.6 + h(6) * 3.5);
+    r.rotation.y = h(7) * 3;
+    scene.add(r);
+  }
+  // the buggy as Doug sized it (2.64 m long; the build is 4.4 m), wheels on its rig, forward -x
+  const K = 2.64 / 4.4;
+  const buggy = new Group();
+  const wheels: Object3D[] = [];
+  const body = meshyScene("decor.buggy");
+  if (body) { body.position.y = RIG.groundBelowBody; buggy.add(body); }
+  for (const h of RIG.hubs) {
+    const w = meshyScene(h.side);
+    if (!w) continue;
+    // a pivot at the hub, so the wheel rolls about its own axle
+    const hub = new Group();
+    hub.position.set(h.pos[0]!, RIG.groundBelowBody + h.pos[1]!, h.pos[2]!);
+    w.position.y = -RIG.radius;
+    hub.add(w);
+    buggy.add(hub);
+    wheels.push(hub);
+  }
+  buggy.scale.setScalar(K);
+  scene.add(buggy);
+  // two headlights at the front, aimed down the road ahead
+  const lamps: SpotLight[] = [];
+  for (const z of [-0.55, 0.55]) {
+    const spot = new SpotLight("#fff2d6", 60, 40, 0.42, 0.5, 1.4);
+    spot.position.set(-2.1, 1.0, z);
+    spot.target.position.set(-12, 0, z * 2);
+    buggy.add(spot, spot.target);
+    lamps.push(spot);
+    const bulb = new Mesh(new SphereGeometry(0.12, 10, 8), new MeshBasicMaterial({ color: "#fff6e0" }));
+    bulb.position.copy(spot.position);
+    buggy.add(bulb);
+  }
+  // Sela, 1.8 m, seated at the wheel until the buggy stops
+  const sela = crewFigure("unit.customer");
+  const PERSON = 1.8;
+  const seated = new Map<Object3D, Quaternion>();
+  let hip = new Vector3(0, 0.9, 0);
+  const lamp = new PointLight("#ffc27a", 0, 7, 1.6);
+  scene.add(lamp);
+  if (sela) {
+    sela.root.scale.setScalar(PERSON / sela.height);
+    scene.add(sela.root);
+    // seated pose in the model frame (it faces +z): thighs forward, shins down, hands out to the wheel
+    const bone = (n: string): Object3D | undefined => sela.root.getObjectByName(`mixamorig${n}`) ?? sela.root.getObjectByName(`mixamorig:${n}`);
+    sela.mixer.setTime(0);
+    sela.root.updateMatrixWorld(true);
+    for (const sd of ["Left", "Right"]) {
+      aimBone(bone(`${sd}UpLeg`), bone(`${sd}Leg`), new Vector3(0, -0.03, 1));
+      aimBone(bone(`${sd}Leg`), bone(`${sd}Foot`), new Vector3(0, -1, 0.2));
+      aimBone(bone(`${sd}Arm`), bone(`${sd}ForeArm`), new Vector3(0, -1, 0.35));
+      aimBone(bone(`${sd}ForeArm`), bone(`${sd}Hand`), new Vector3(0, -0.35, 1));
+    }
+    sela.root.traverse((b) => { if ((b as { isBone?: boolean }).isBone) seated.set(b, b.quaternion.clone()); });
+    const l = bone("LeftUpLeg"), r = bone("RightUpLeg");
+    if (l && r) hip = l.getWorldPosition(new Vector3()).add(r.getWorldPosition(new Vector3())).multiplyScalar(0.5).divide(sela.root.scale);
+  }
+  // timeline (s): the drive in, eased to a stop at x = 0; she climbs out on the camera's side and walks toward the camp
+  const STOP = 4.2, OUT0 = 4.8, OUT1 = 5.9, SECONDS = 8.6, FROM = 70;
+  const driveX = (t: number): number => FROM * (1 - ease(Math.min(1, t / STOP)) ** 0.6);
+  const up = new Vector3(0, 1, 0);
+  return {
+    seconds: SECONDS,
+    scene, camera, labels: [],
+    pose(t) {
+      const x = driveX(t);
+      buggy.position.set(x, 0, 0);
+      // the wheels roll by the distance driven (forward -x turns them +z)
+      for (const w of wheels) w.rotation.z = (FROM - x) / (RIG.radius * K);
+      for (const s of lamps) s.intensity = 60 * Math.min(1, t / 0.6);
+      // a low camera at the camp's edge: it finds the lights far off, then settles back from the parked buggy so it
+      // and Sela's walk stay in frame (farther back on a tall phone screen)
+      const k = ease(t / STOP), tall = camera.aspect < 0.8;
+      camera.position.set(tall ? -11 + 1.5 * k : -7 + 2 * k, (tall ? 2.2 : 1.6) + 0.8 * k, tall ? 12 - 1 * k : 7.5 - 1.5 * k);
+      camera.lookAt(x * 0.85 - 0.8, 0.8, 0.5);
+      if (!sela) return;
+      const seatW = new Vector3(x + 0.3 * K, 1.4 * K + 0.073 * PERSON, 0);
+      const doorW = new Vector3(x + 0.1, 0, 1.25);
+      if (t < OUT0 + 0.35) {
+        // seated (the pose kept from before any walk frame), rising a little as she starts to climb out
+        for (const [b, q] of seated) b.quaternion.copy(q);
+        const s = sela.root.scale.x, rise = span(t, OUT0, OUT0 + 0.35);
+        const p = seatW.clone().sub(hip.clone().multiplyScalar(s).applyAxisAngle(up, -Math.PI / 2));
+        p.y += 0.25 * rise; p.z += 0.5 * rise;
+        sela.root.position.copy(p);
+        sela.root.rotation.set(0, -Math.PI / 2, 0);
+      } else {
+        // standing: down beside the door, then walking toward the camp (toward the camera's left)
+        const step = span(t, OUT0 + 0.35, OUT1), w = Math.max(0, t - OUT1);
+        sela.mixer.setTime(w);
+        const from = seatW.clone().setY(0.25).add(new Vector3(0, 0, 0.5));
+        sela.root.position.lerpVectors(from, doorW, step).add(new Vector3(-w * 1.25, 0, w * 0.35));
+        sela.root.rotation.set(0, -Math.PI / 2 + 0.27 * step, 0);
+      }
+      // her lamp, warm, at hand height on the camera's side
+      lamp.intensity = 3 * span(t, OUT0 - 0.3, OUT1);
+      lamp.position.copy(sela.root.position).add(new Vector3(0, 1.0, 0.35));
+    },
+    dispose() { disposeAll(scene); },
+  };
+}
+
+const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged; film?: boolean }>> = {
+  sela_arrival: { models: ["decor.buggy", "decor.buggy_wheel", "decor.buggy_wheel_l", "unit.customer"], stage: selaArrival, film: true },
   empty_bays: { models: ["decor.stasis_pod", "decor.stasis_glass"], stage: emptyBays },
   crash_log: { models: ["decor.stasis_pod", "decor.stasis_glass", "unit.player"], stage: crashLog },
 };
@@ -257,6 +400,8 @@ export async function playLiveScene(host: HTMLElement, id: string, o: LiveSceneO
   wrap.append(gl.domElement, scan, overlay, hud, ...(o.inset ? [] : [skip]));
   host.append(wrap);
   const staged = def.stage(doc, o, overlay);
+  // a film-look scene drops the camera-feed filter, scanlines and REC readout
+  if (def.film) wrap.classList.add("film");
   // a held frame is a dev check: leave the staging where the console can measure it
   if (o.at !== undefined) (globalThis as { __liveStaged?: Staged }).__liveStaged = staged;
   if (o.wire) {

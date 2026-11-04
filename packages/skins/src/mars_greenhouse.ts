@@ -790,6 +790,7 @@ export const marsGreenhouse: Skin = {
         text: { feed: "KILN · BAY CAM 05–08 · REC", occupied: "OCCUPIED", unlocked: "UNLOCKED", name: "VALE", rank: "FIRST OFFICER" },
         images: { badge: "scenes/badge_bay5.png" },
       },
+      sela_arrival: { text: {}, images: {} },
       crash_log: {
         text: { feed: "KILN · RECORDER · BAY CAM 05–08", impact: "FOUR MINUTES TO IMPACT", unsealed: "UNSEALED", occupied: "OCCUPIED" },
         images: {},
@@ -966,9 +967,11 @@ export const marsGreenhouse: Skin = {
             { spirit: "idle" },
             { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
           ] },
-          // the only moving light: the camera follows the first trader down the road to the old kiosk
+          // the only moving light: Sela's buggy comes up the road and parks (the sela_arrival live scene), then the
+          // camera follows her on foot to the old kiosk
           { on: { event: "customer_arrived" }, ordered: true, do: [
             { light: "night", seconds: 3 },
+            { film: "sela_arrival" },
             { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 16, back: 0.9, freeze: false } },
             { line: "Well. Somebody's living out here. I'm Sela. I trade between the settlements: salvage, food, whatever people need.", who: "sela" },
             { line: "Settlements? There are other people on this planet?", who: "commander" },
