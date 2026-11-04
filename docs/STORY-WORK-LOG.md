@@ -61,6 +61,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 ## Notes for Account A
 
+- **Doug, 2026-11-03: level 1 S11 and S12 are yours and still open.** He asked again for the ore to sit much farther out, off screen even from the reactor (today it is 70–155 units from it), plus the rest of S11 (no red light, white pulse and edge pointer, reactor light off until found) and S12 (the new lines). B left them for you. Moving the ore will need the fill timer and ore count re-tuned.
 - **Bot change you should know about (2026-11-02, B, level 4).** In `bots/src/brain.ts`, the lasso "start" task gets priority 70 instead of 52 or 64. This applies only when the main goal is `crates` and every idle capture left is an item (no pods waiting). Without it, novice and weak bots kept serving at the register for 30 s after the flight recorder appeared, and `levels:check --pack levels/story` failed on stalls. The full pack check is unchanged: s1-L007, the only crates level, gives identical results (refMin 0.60, same stars). A first try (`rescueAll` for crates) cost s1-L007 a star and was reverted.
 - **Level 5 test and film changes (2026-11-02).**
   - `client/src/cinematics.ts`: `STORY_CINEMATICS` no longer has `story-L005: afterWin helmet_reveal`. The film now plays from level 5's cues (`{ film: "helmet_reveal" }`), so "Vale?" and Vale's card come after it. It still plays once and is skipped on replays. `client/test/cinematics.test.ts` is updated to match.
