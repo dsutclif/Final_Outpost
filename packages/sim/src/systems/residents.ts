@@ -2,9 +2,9 @@ import type { Compiled, CompiledRole } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { FP, mulDiv, within, type Vec } from "../fixed.js";
 import type { ConverterState, DropState, HostileState, NodeState, PreyState, ResidentState, State } from "../state.js";
-import { attackGate, attackedSide, guardPost, outsideLines, sectionMid } from "./barriers.js";
+import { attackGate, attackedSide, gatedMove, guardPost, outsideLines, sectionMid } from "./barriers.js";
 import { clearLine, hitHostile, hitPrey, nearestHostile } from "./combat.js";
-import { depotPut, moveAgent, ringPoint, stepDown } from "./common.js";
+import { depotPut, ringPoint, stepDown } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
 import { boxedMove, downedGuardStep, healedGuard, leashedMove, medicStep } from "./guards.js";
 
@@ -31,7 +31,7 @@ function stepResident(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]
       }
       const def = cp.structures[med.type]!;
       const spot = { x: med.pos.x + def.healOffset.x, y: med.pos.y + def.healOffset.y };
-      if (moveAgent(st, cp, r.pos, spot, cp.residents.injuredSpeed, cp.residents.arrive)) { r.status = "healing"; r.timer = def.healTicks; }
+      if (gatedMove(st, cp, r.pos, spot, cp.residents.injuredSpeed, cp.residents.arrive)) { r.status = "healing"; r.timer = def.healTicks; }
       return;
     }
     case "healing":
@@ -42,7 +42,7 @@ function stepResident(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]
   }
   const role = cp.roles[r.role];
   if (r.role === "idle" || !role) {
-    moveAgent(st, cp, r.pos, ringPoint(st.core.pos, r.slot, cp.residents.idleRadiusX, cp.residents.idleRadiusY), cp.residents.idleSpeed, cp.residents.arrive);
+    gatedMove(st, cp, r.pos, ringPoint(st.core.pos, r.slot, cp.residents.idleRadiusX, cp.residents.idleRadiusY), cp.residents.idleSpeed, cp.residents.arrive);
     return;
   }
   switch (role.behavior) {
@@ -110,7 +110,7 @@ function deliverStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRo
   if (res === null || to === null) { doneCarrying(r); return; }
   const deposited = (at: Vec, target: string) => out.push({ t: "deposited", res, to: target, at: { ...at }, by: r.id });
   if (to === "sink.core") {
-    if (!moveAgent(st, cp, r.pos, st.core.pos, role.speed, cp.residents.coreDeliverRange)) return;
+    if (!gatedMove(st, cp, r.pos, st.core.pos, role.speed, cp.residents.coreDeliverRange)) return;
     if (!ready(r, role.deliverTicks)) return;
     if (feedCoreWith(st, cp, res, out, r.id)) r.n--;
     doneCarrying(r);
@@ -118,7 +118,7 @@ function deliverStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRo
   }
   if (to === "sink.sales_point") {
     const s = st.sales;
-    if (!s || !moveAgent(st, cp, r.pos, s.pos, role.speed, cp.residents.workRange)) return;
+    if (!s || !gatedMove(st, cp, r.pos, s.pos, role.speed, cp.residents.workRange)) return;
     if (!ready(r, role.deliverTicks)) return;
     if (s.sells.includes(res) && (s.shelf[res] ?? 0) < cp.sales.shelfCap) { s.shelf[res] = (s.shelf[res] ?? 0) + 1; r.n--; deposited(s.pos, to); }
     doneCarrying(r);
@@ -126,14 +126,14 @@ function deliverStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRo
   }
   if (to === "store.depot") {
     const d = st.depot;
-    if (!d || !moveAgent(st, cp, r.pos, d.pos, role.speed, cp.residents.workRange)) return;
+    if (!d || !gatedMove(st, cp, r.pos, d.pos, role.speed, cp.residents.workRange)) return;
     if (!ready(r, role.deliverTicks)) return;
     depotPut(d, cp, res); r.n--; deposited(d.pos, to);
     doneCarrying(r);
     return;
   }
   const cv = converterOf(st, to);
-  if (!cv || !moveAgent(st, cp, r.pos, cv.pos, role.speed, cp.residents.workRange)) return;
+  if (!cv || !gatedMove(st, cp, r.pos, cv.pos, role.speed, cp.residents.workRange)) return;
   if (!ready(r, role.deliverTicks)) return;
   const def = cp.converters[cv.type]!;
   if (def.inputs.includes(res) && cv.inQ.length < def.inCap) { cv.inQ.push(res); r.n--; deposited(cv.pos, to); }
@@ -147,7 +147,7 @@ function supplierStep(st: State, cp: Compiled, r: ResidentState, role: CompiledR
   const node = pickNode(st, cp, r);
   if (!node) { if (r.n > 0) r.mode = "deliver"; return; }
   const def = cp.nodes[node.type]!;
-  if (!within(r.pos, node.pos, cp.residents.workRange) && !moveAgent(st, cp, r.pos, node.pos, role.speed, cp.residents.workRange)) return;
+  if (!within(r.pos, node.pos, cp.residents.workRange) && !gatedMove(st, cp, r.pos, node.pos, role.speed, cp.residents.workRange)) return;
   if (!ready(r, def.workerRateTicks ?? role.gatherTicks)) return;
   if (node.stock !== null) node.stock--;
   r.n++;
@@ -160,14 +160,14 @@ function standStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole
   let spot: Vec | null = null;
   if (r.assign.to === "sink.sales_point" || (r.assign.to === null && st.sales)) spot = st.sales?.register ?? null;
   else spot = converterOf(st, r.assign.to)?.operatorPos ?? null;
-  if (spot) moveAgent(st, cp, r.pos, spot, role.speed, cp.residents.arrive);
+  if (spot) gatedMove(st, cp, r.pos, spot, role.speed, cp.residents.arrive);
 }
 
 function serverStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole, out: SimEvent[]): void {
   if (r.mode === "deliver") return deliverStep(st, cp, r, role, r.assign.to, out);
   const cv = converterOf(st, r.assign.from);
   if (!cv) return;
-  if (!moveAgent(st, cp, r.pos, cv.pickupPos, role.speed, cp.residents.workRange)) return;
+  if (!gatedMove(st, cp, r.pos, cv.pickupPos, role.speed, cp.residents.workRange)) return;
   if (!ready(r, role.gatherTicks)) return;
   const output = cp.converters[cv.type]!.output;
   if (cv.out > 0 && r.n < role.carry) { cv.out--; r.n++; r.carry = output; out.push({ t: "picked", res: output, at: { ...cv.pickupPos }, by: r.id }); }
@@ -181,7 +181,7 @@ function hunterStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRol
   const dropRes = Object.keys(animal.drops);
   const drop = closest(r.pos, st.drops.filter((d) => dropRes.includes(d.res)));
   if (drop && within(r.pos, drop.pos, cp.residents.seekDropRange)) {
-    if (moveAgent(st, cp, r.pos, drop.pos, role.speed, cp.residents.arrive)) pickDrop(st, r, role, drop, out);
+    if (gatedMove(st, cp, r.pos, drop.pos, role.speed, cp.residents.arrive)) pickDrop(st, r, role, drop, out);
     return;
   }
   // Hunters take the dangerous variants of their quarry too (and risk a bite for it).
@@ -190,8 +190,8 @@ function hunterStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRol
   const quarry = st.prey.filter((d) => d.alive && zones.includes(d.zone));
   const prey: PreyState | null = closest(r.pos, quarry.filter((d) => clearLine(st, r.pos, d.pos))) ?? closest(r.pos, quarry);
   if (!prey) { if (r.n > 0) r.mode = "deliver"; return; }
-  if (!clearLine(st, r.pos, prey.pos)) { moveAgent(st, cp, r.pos, prey.pos, role.speed, cp.residents.arrive); return; }
-  if (!within(r.pos, prey.pos, role.attackRange) && !moveAgent(st, cp, r.pos, prey.pos, role.speed, role.attackRange)) return;
+  if (!clearLine(st, r.pos, prey.pos)) { gatedMove(st, cp, r.pos, prey.pos, role.speed, cp.residents.arrive); return; }
+  if (!within(r.pos, prey.pos, role.attackRange) && !gatedMove(st, cp, r.pos, prey.pos, role.speed, role.attackRange)) return;
   if (!ready(r, role.attackTicks)) return;
   hitPrey(st, cp, prey, role.damage, "resident", out);
 }
@@ -289,7 +289,7 @@ function haulerStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRol
       && st.core.fuel * FP < mulDiv(coreFuelCap(st, cp), coreDef.critical, FP) * FP) to = "sink.core";
     return deliverStep(st, cp, r, role, to, out);
   }
-  if (!moveAgent(st, cp, r.pos, depot.pos, role.speed, cp.residents.workRange)) return;
+  if (!gatedMove(st, cp, r.pos, depot.pos, role.speed, cp.residents.workRange)) return;
   if (!ready(r, role.gatherTicks)) return;
   if (r.n === 0) {
     const pick = bestNeed(st, cp);

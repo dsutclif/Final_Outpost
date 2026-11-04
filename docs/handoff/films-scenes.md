@@ -36,8 +36,11 @@ docs/SCALE.md. The sandbox Layout mock opens on an earlier draft; these numbers 
    map 980 wide, ore field at Doug's spot (7.6 m WSW of the reactor), start at the commander's pod, the ridge as
    `zone.terrain` rects along his line, cue points shifted, fill goal 30 s -> 45 s (bots back to 5/6 fill stars),
    `openZoom.hero` dropped. Live scenes' pods at 2.66 m (`POD_K` in livescene.ts). Story pack replays clean.
-   **Open:** L2-5 keep their ore inside the camp wall (moving it outside strands the workers, who walk straight
-   lines); L2-5's ridge rects are still the old north ones; nothing was checked visually in the game (the browser
+   **Open:** L2-5 keep their ore inside the camp wall. Since engine 0.19.0 (Doug, 2026-11-04) settlers route through
+   gates (`gatedMove` in sim/systems/barriers.ts, used by every settler job in residents.ts; guards and medics keep
+   their own gate logic), so the ore can now move outside the wall to Doug's spot as in L1: set `ore: true` for L2-5
+   in tools/relayout.ts, re-run it and `levels:check --pack levels/story`. Owed for 0.19.0: a property test for
+   `gatedMove` (CLAUDE.md rule 5); L2-5's ridge rects are still the old north ones; nothing was checked visually in the game (the browser
    pane was hidden), so look at L1-5 on a phone first.
 3. Re-render `crash_open` from the impact onward from the game's placements: the set as one background plate, then the
    commander alone (holdout layer, per-frame render region), composited. L1's `openZoom.film` framing is provisional

@@ -1,5 +1,6 @@
 {
   "notes": [
+    "Settlers now walk round walls through the gates, as guards and traders do, instead of getting stuck against them.",
     "Missions 1 to 5: the crash site is rebuilt to scale. A smaller Halcyon, three stasis pods half-buried in the sand instead of on a concrete pad, the ridge to the east and the flight recorder off the ship's east end. In mission 1 the ore lies further out, so filling the reactor now has 45 seconds.",
     "Daytime scenes are back to their earlier brightness, with the new look kept.",
     "Fixed the screen flashing now and then on iPhone, and coins flying to your cash counter now shrink to the size of the counter's coin."

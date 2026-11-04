@@ -1,8 +1,8 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { FP, isqrt, mulDiv, type Vec } from "../fixed.js";
+import { FP, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import type { BarrierSectionState, BarrierState, HostileState, State } from "../state.js";
-import { hint, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
+import { hint, moveAgent, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
 
 export const sectionHpMax = (st: State, gate: boolean): number =>
   gate ? st.params["barrier.gateHpMax"]! : st.params["barrier.hpMax"]!;
@@ -97,6 +97,28 @@ export function outsideLine(st: State, line: BarrierState, p: Vec): boolean {
 
 /** Outside any barrier line (see outsideLine). */
 export const outsideLines = (st: State, p: Vec): boolean => st.barriers.some((line) => outsideLine(st, line, p));
+
+/**
+ * moveAgent that goes round a wall through a way in (Doug, 2026-11-04: every settler uses the gates, as guards and
+ * traders already do). When the straight line to the target crosses a built wall section, the settler first walks
+ * to the gate or open section that makes the shortest trip, then on to the target. Without walls it is moveAgent.
+ */
+export function gatedMove(st: State, cp: Compiled, pos: Vec, target: Vec, step: number, arrive: number): boolean {
+  if (st.barriers.length > 0) {
+    const hit = firstCrossing(st, pos, target);
+    if (hit && !hit.line.sections[hit.idx]!.gate) {
+      let best: Vec | null = null, bd = 0;
+      for (const line of st.barriers) for (const s of line.sections) {
+        if (s.built && !s.gate) continue;
+        const m = sectionMid(s);
+        const d = isqrt((m.x - pos.x) ** 2 + (m.y - pos.y) ** 2) + isqrt((target.x - m.x) ** 2 + (target.y - m.y) ** 2);
+        if (!best || d < bd) { best = m; bd = d; }
+      }
+      if (best && !within(pos, best, cp.residents.arrive)) { moveAgent(st, cp, pos, best, step, cp.residents.arrive); return false; }
+    }
+  }
+  return moveAgent(st, cp, pos, target, step, arrive);
+}
 
 /** The first built section (gates included) that segment a→b crosses, nearest to a; null if none. */
 export function firstCrossing(st: State, a: Vec, b: Vec): { line: BarrierState; idx: number; t: number } | null {
