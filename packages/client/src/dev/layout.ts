@@ -19,6 +19,9 @@ import { Renderer3D, meshyBounds, meshyFor } from "@fo/render-3d/renderer";
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const params = new URLSearchParams(location.search);
 const LEVELS = 60;
+// look test compare: ?look=1 and ?q=low|medium|high, read once (the URL sync below drops them)
+const LOOK_T = params.get("look") === "1";
+const QUAL = (["low", "medium", "high"] as const).find((x) => x === params.get("q")) ?? "medium";
 const reqs = sequenceRange(1, LEVELS);
 let aligned = params.get("al") !== "0";
 // Plot layout (Doug's plot plan, 2026-10-25): starts as the game has it (look.json plotLayout)
@@ -394,7 +397,7 @@ function rebuild(): void {
   try { sim = createSim(built.manifest); } catch (e) { status(`Could not start the level: ${(e as Error).message}`, true); return; }
   buildEverything(sim);
   renderer?.dispose();
-  renderer = new Renderer3D({ quality: "medium" });
+  renderer = new Renderer3D({ quality: QUAL, look: LOOK_T });
   renderer.devBuildScale = val.size!;
   renderer.devModelScale = scaleMap();
   renderer.devPadScale = lastPad / GAME_PAD;
