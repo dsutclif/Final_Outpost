@@ -95,6 +95,19 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
       auto-fire) keeps closing while it shoots and switches to melee once in contact reach; no shot from inside it.
       Towers stay put. Every animal with a ranged attack spits acid, each species its own colour (mites green, crawlers
       amber). Arena reference: `client/src/dev/arenaModel.ts` `closeIn`, `ACID_COLOR`.
+- [ ] **N20 footprints and touch melee (Doug, 2026-11-04):** extends N17. No two characters overlap even partly: each
+      keeps its model's footprint (not a fixed 6), so melee counts as touching (footprints plus a small gap) rather
+      than 18 between centres. The commander walks through anyone; only settlement walls stop him. Drones still fly over.
+- [ ] **N21 guards, medics, bleed-out (Doug, 2026-11-04):** medics can't be hurt. A downed guard takes half damage and
+      dies at 0 unless a medic reaches it; no damage while a medic is healing it. Rater metric: guard deaths per wave.
+- [ ] **N22 the ranger is back, and hunting is a skill (Doug, 2026-11-04):** the R2 generator rewrite (2d433a7,
+      2026-10-11) dropped the `role.hunter` hire pad without a recorded decision; put it back on hunting levels. Ranger
+      and commander one-shot a spiked hopper with the gun (new `gunDamage`, melee weaker); spiked hoppers charge as a
+      herd from past gun reach, wind up each bite (a moving target dodges it) and stun. Three up close beat a hunter
+      who stands; one who keeps moving wins. Arena numbers in `arenaModel.ts` PROPOSALS.
+- [ ] **N23 dense mixed waves (Doug, 2026-11-04):** waves come in rows of several abreast and mix their types evenly
+      (`waveOrder`); mites dense and weak, then crawlers, raiders and warlords larger, slower, stronger and rarer. A
+      drone is worth about one crawler. Sizing, drops and iPhone frame rate per the 2026-11-03 plan (#14, #15, N18).
 - [ ] **N12 more damage per attacker:** set by a rater metric (defender losses per wave, target band), not
       by eye.
 - [ ] **N8 drones dock between waves and don't spawn until the next wave (Doug).** They keep their HP.

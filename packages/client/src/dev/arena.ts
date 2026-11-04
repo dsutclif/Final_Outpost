@@ -3,19 +3,20 @@ import {
   MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, RingGeometry, Scene, SRGBColorSpace, SphereGeometry, Vector3, WebGLRenderer, type Object3D,
 } from "three";
 import { DEFAULT_SKIN, getSkin } from "@fo/skins";
-import { loadMeshy, meshyScene } from "@fo/render-3d/meshy";
+import { loadMeshy, meshyBounds, meshyScene, type MeshyEntry } from "@fo/render-3d/meshy";
 import { Rigged } from "@fo/render-3d/rigged";
 import { ART_M, BUILD_K, CHAR_K } from "@fo/render-3d/units";
 import { HEMI, SUN } from "@fo/render-3d/environment";
 import { deriveTokens } from "@fo/render-3d/tokens";
 import { EXPOSURE } from "@fo/render-3d/renderer";
-import { ACID_COLOR, ARENA, cardRows, createFight, PROPOSALS, roster, SHOT_NAME, stepFight, type Edits, type Fight, type Mode, type Unit } from "./arenaModel.js";
+import { ACID_COLOR, ARENA, BODY, cardRows, createFight, PROPOSALS, roster, SHOT_NAME, stepFight, TAB_OF, type Edits, type Fight, type Mode, type Tab, type Unit } from "./arenaModel.js";
 import type { FighterNums } from "./fighterStats.js";
 
-// Fighter arena (dev sandbox, R6 Release 2 Bundle 5): enemy cards left, settler cards right, the fight in the middle.
-// The rules live in arenaModel.ts; this file only draws them. HP shows as a bar over each fighter and reach as a
-// circle on the ground, never as card numbers (Doug). Tracers: white-hot core, blue glow for settlers, red for
-// enemy rifles, green for acid spit; life as fx.ts tracer (0.16 s).
+// Fighter arena (dev sandbox, R6 Release 2 Bundle 5). Three tabs (Doug 2026-11-04): Fighting (a mixed wave of attackers
+// against a mixed defence), Hunting (the commander and rangers against hoppers) and Scale (every character side by
+// side, each animal's size adjustable). The rules live in arenaModel.ts; this file only draws them. HP shows as a bar
+// over each fighter and reach as a circle on the ground, never as card numbers (Doug). Tracers: white-hot core, blue
+// glow for settlers, red for enemy guns, an acid glob in each animal's own colour.
 
 const CSS = `
 #arena { position: fixed; inset: 0; z-index: 20; background: #141518; color: var(--fg); display: none; flex-direction: column; touch-action: none; }
@@ -23,6 +24,9 @@ const CSS = `
 #arena .bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 12px; padding-top: calc(8px + env(safe-area-inset-top)); border-bottom: 1px solid #2a2b2f; }
 #arena .bar button.on { background: var(--acc); color: #1c1d20; border-color: var(--acc); }
 #arena .bar label { font-size: 14px; color: var(--dim); display: flex; gap: 4px; align-items: center; }
+#arena .bar input[type=number] { width: 3.6em; font: inherit; color: var(--fg); background: #2a2b30; border: 1px solid #3a3b40; border-radius: 5px; padding: 1px 4px; text-align: right; }
+#arena .tabs { display: flex; gap: 0; margin-right: 6px; }
+#arena .tabs button { border-radius: 0; } #arena .tabs button:first-child { border-radius: 8px 0 0 8px; } #arena .tabs button:last-child { border-radius: 0 8px 8px 0; }
 #arena .stat { font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; flex: 1 1 100%; min-height: 1.2em; }
 #arena .main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(230px, 300px) 1fr minmax(230px, 300px); grid-template-areas: "left stage right"; }
 #arena .cards { overflow-y: auto; touch-action: pan-y; padding: 8px; min-height: 0; -webkit-overflow-scrolling: touch; }
@@ -33,17 +37,18 @@ const CSS = `
 #arena .banner { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: rgba(20,21,24,.9); border: 1px solid var(--acc); border-radius: 10px; padding: 8px 14px; font-weight: 600; text-align: center; display: none; max-width: 90%; }
 #arena .card { background: #1f2024; border: 1px solid #333; border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; }
 #arena .card.sel { border-color: var(--acc); box-shadow: 0 0 0 1px var(--acc) inset; }
-#arena .card .hd { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+#arena .card .hd { display: flex; align-items: center; gap: 6px; }
 #arena .card .hd b { flex: 1; font-size: 14px; word-break: break-word; }
-#arena .card .cnt { display: none; gap: 4px; align-items: center; }
-#arena .card.sel .cnt { display: flex; }
+#arena .card .cnt { display: flex; gap: 4px; align-items: center; }
 #arena .card .cnt button { padding: 2px 9px; }
 #arena .card .cnt span { min-width: 1.6em; text-align: center; font-variant-numeric: tabular-nums; }
 #arena .card table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
 #arena .card td { padding: 2px 4px 2px 0; vertical-align: middle; }
 #arena .card td.l { color: var(--dim); }
 #arena .card input { width: 4.2em; font: inherit; color: var(--fg); background: #2a2b30; border: 1px solid #3a3b40; border-radius: 5px; padding: 1px 4px; text-align: right; }
+#arena .card input[type=range] { width: 100%; padding: 0; background: none; border: none; }
 #arena .card input.ed { border-color: var(--acc); }
+#arena .card .note { font-size: 11.5px; color: var(--dim); margin-top: 3px; }
 #arena .tag { font-size: 11px; margin-left: 3px; white-space: nowrap; }
 #arena .tag.new { color: #7fd99a; } #arena .tag.chg { color: var(--acc); }
 #arena .card details { margin-top: 2px; font-size: 12px; color: var(--dim); }
@@ -59,7 +64,11 @@ const CSS = `
 // longer than the game's 0.16 s so a shot can be followed by eye; the arena is for reading the fight
 const TRACER_LIFE = 0.45;
 const GLOW: Record<string, string> = { settler: "#5aa8ff", enemy: "#ff4a3a", acid: "#8ff05a" };
-const CHAR_ID: Record<string, string> = { player: "unit.player", guard: "role.defender" };
+const CHAR_ID: Record<string, string> = { player: "unit.player", guard: "role.defender", medic: "role.medic", hunter: "role.hunter" };
+/** World units per art metre for characters, as the game draws them. */
+const CHAR_WORLD = (ART_M * CHAR_K) / 0.9;
+/** Most of each kind a card allows. */
+const MAX: Record<string, number> = { player: 1, enemy: 80, settler: 16 };
 
 interface Tracer { a: Vector3; b: Vector3; kind: string; color: string; born: number }
 
@@ -73,12 +82,24 @@ export function createArena(): ArenaUi {
   root.id = "arena";
   document.body.append(root);
 
+  const skin = getSkin(DEFAULT_SKIN);
+  const nameOf = (f: FighterNums): string => skin.names[f.title] ?? skin.names[f.id] ?? f.title;
   const R = roster();
-  const enemyF = R.fighters.filter((f) => f.side === "enemy"), settlerF = R.fighters.filter((f) => f.side === "settler");
+  const byId = new Map(R.fighters.map((f) => [f.id, f]));
+  let tab: Tab | "scale" = "fight";
   let mode: Mode = "r2";
   const edits: Record<Mode, Edits> = { r2: {}, today: {} };
-  const pick = { enemy: "hostile.swarmling", enemies: 10, settler: "drone", settlers: 2 };
+  /** Size multipliers from the Scale tab (x1 = as the game draws them today); they apply in both modes. */
+  const sizes: Record<string, number> = {};
+  const counts: Record<Tab, Record<string, number>> = {
+    fight: { "hostile.swarmling": 24, "hostile.creature": 8, "hostile.raider_humanoid": 4, "hostile.boss": 1, player: 1, guard: 3, drone: 2, medic: 1, tower1: 1 },
+    hunt: { "node.prey_dangerous": 3, "node.prey": 2, player: 1, hunter: 0 },
+  };
+  const wave = { ranks: 6, rowGap: 0.6 };
+  let kite = false;
   let speed = 1, running = false, fight: Fight;
+  /** Footprint radii at size 1, measured from the models once they load (BODY until then). */
+  let bodies: Record<string, number> = { ...BODY };
 
   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, cls?: string): HTMLElementTagNameMap[K] => {
     const e = document.createElement(tag);
@@ -86,19 +107,46 @@ export function createArena(): ArenaUi {
     if (cls) e.className = cls;
     return e;
   };
+  const num = (v: number, onSet: (v: number) => void, step = "any"): HTMLInputElement => {
+    const i = el("input"); i.type = "number"; i.step = step; i.inputMode = "decimal"; i.value = String(v);
+    i.onchange = () => { const n = Number(i.value); if (Number.isFinite(n)) onSet(n); };
+    return i;
+  };
 
   // ---- top bar ----
   const bar = el("div", undefined, "bar");
   const back = el("button", "Back");
+  const tabs = el("div", undefined, "tabs");
+  const tabBtns = (["fight", "hunt", "scale"] as const).map((k) => {
+    const b = el("button", k === "fight" ? "Fighting" : k === "hunt" ? "Hunting" : "Scale");
+    b.onclick = () => { tab = k; paintBar(); renderCards(); newFight(); fit(); };
+    return b;
+  });
+  tabs.append(...tabBtns);
   const today = el("label");
   const todayBox = el("input"); todayBox.type = "checkbox";
   today.append(todayBox, "Today's rules");
   const start = el("button", "Start"), reset = el("button", "Reset");
-  const speeds = [1, 2, 4].map((k) => { const b = el("button", `${k}x`); b.onclick = () => { speed = k; paintSpeeds(); }; return b; });
+  const speeds = [1, 2, 4].map((k) => { const b = el("button", `${k}x`); b.onclick = () => { speed = k; paintBar(); }; return b; });
+  const ranksL = el("label"); ranksL.append("Per row", num(wave.ranks, (v) => { wave.ranks = Math.max(1, Math.round(v)); newFight(); }, "1"));
+  const gapL = el("label"); gapL.append("Row every", num(wave.rowGap, (v) => { wave.rowGap = Math.max(0.05, v); newFight(); }), "s");
+  const kiteL = el("label"); const kiteBox = el("input"); kiteBox.type = "checkbox"; kiteL.append(kiteBox, "Hunters keep moving");
+  kiteBox.onchange = () => { kite = kiteBox.checked; newFight(); };
+  const copy = el("button", "Copy settings");
+  copy.onclick = () => {
+    const out = JSON.stringify({ mode, edits: edits[mode], sizes, counts, wave, kite }, null, 1);
+    void navigator.clipboard?.writeText(out).then(() => { copy.textContent = "Copied"; setTimeout(() => (copy.textContent = "Copy settings"), 1200); }, () => prompt("Settings", out));
+  };
   const stat = el("div", undefined, "stat");
-  bar.append(back, start, reset, ...speeds, today, stat);
-  const paintSpeeds = (): void => speeds.forEach((b, i) => b.classList.toggle("on", [1, 2, 4][i] === speed));
-  paintSpeeds();
+  bar.append(back, tabs, start, reset, ...speeds, today, ranksL, gapL, kiteL, copy, stat);
+  function paintBar(): void {
+    speeds.forEach((b, i) => b.classList.toggle("on", [1, 2, 4][i] === speed));
+    tabBtns.forEach((b, i) => b.classList.toggle("on", ["fight", "hunt", "scale"][i] === tab));
+    const play = tab !== "scale";
+    for (const e of [start, reset, ...speeds, today]) e.style.display = play ? "" : "none";
+    ranksL.style.display = gapL.style.display = tab === "fight" ? "" : "none";
+    kiteL.style.display = tab === "hunt" ? "" : "none";
+  }
 
   const main = el("div", undefined, "main");
   const left = el("div", undefined, "cards left"), right = el("div", undefined, "cards right"), stage = el("div", undefined, "stage");
@@ -107,44 +155,38 @@ export function createArena(): ArenaUi {
   root.append(bar, main);
 
   // ---- cards ----
-  function card(f: FighterNums): HTMLElement {
-    const side = f.side === "enemy" ? "enemy" : "settler";
+  const fightEdits = (): Edits => {
+    const e: Edits = { ...edits[mode] };
+    for (const [id, k] of Object.entries(sizes)) e[`${id}:size`] = k;
+    return e;
+  };
+  function card(f: FighterNums, t: Tab): HTMLElement {
     const c = el("div", undefined, "card");
-    const sel = pick[side] === f.id;
-    c.classList.toggle("sel", sel);
+    const n0 = counts[t][f.id] ?? 0;
+    c.classList.toggle("sel", n0 > 0);
     const hd = el("div", undefined, "hd");
     const cnt = el("div", undefined, "cnt");
-    const minus = el("button", "−"), plus = el("button", "+"), n = el("span", String(side === "enemy" ? pick.enemies : pick.settlers));
+    const minus = el("button", "−"), plus = el("button", "+"), n = el("span", String(n0));
+    const most = MAX[f.id] ?? MAX[f.side]!;
     const bump = (d: number): void => {
-      const k = side === "enemy" ? "enemies" : "settlers";
-      pick[k] = Math.max(1, Math.min(side === "enemy" ? 60 : 16, pick[k] + d));
-      n.textContent = String(pick[k]);
+      counts[t][f.id] = Math.max(0, Math.min(most, (counts[t][f.id] ?? 0) + d));
+      n.textContent = String(counts[t][f.id]);
+      c.classList.toggle("sel", counts[t][f.id]! > 0);
       newFight();
     };
-    minus.onclick = (e) => { e.stopPropagation(); bump(-1); };
-    plus.onclick = (e) => { e.stopPropagation(); bump(1); };
+    minus.onclick = () => bump(-1);
+    plus.onclick = () => bump(1);
     cnt.append(minus, n, plus);
-    // skin names where the title is a raw id (hostiles), so cards read "Dust mite", not hostile.swarmling
-    hd.append(el("b", getSkin(DEFAULT_SKIN).names[f.title] ?? f.title), cnt);
-    hd.onclick = () => { if (pick[side] !== f.id) { pick[side] = f.id; renderCards(); newFight(); } };
+    hd.append(el("b", nameOf(f)), cnt);
     c.append(hd);
     const rows = cardRows(f, mode, edits[mode]);
     const shown = el("table"), hidden = el("table");
     for (const r of rows) {
       const tr = el("tr");
-      const inp = el("input");
-      inp.type = "number"; inp.step = "any"; inp.inputMode = "decimal";
-      inp.value = String(+r.v.toFixed(3));
       const ek = `${f.id}:${r.stat}`;
+      const inp = num(+r.v.toFixed(3), (v) => { edits[mode][ek] = v; renderCards(); newFight(); });
       if (ek in edits[mode]) inp.classList.add("ed");
       inp.title = `${r.src}${r.why ? ` · ${r.why}` : ""}`;
-      inp.onchange = () => {
-        const v = Number(inp.value);
-        if (!Number.isFinite(v)) return;
-        edits[mode][ek] = v;
-        renderCards();
-        newFight();
-      };
       const vt = el("td"); vt.append(inp);
       if (r.unit) vt.append(el("span", ` ${r.unit}`, "tag"));
       if (r.isNew) vt.append(el("span", "(new)", "tag new"));
@@ -165,14 +207,52 @@ export function createArena(): ArenaUi {
     }
     return c;
   }
+  /** Scale tab: one card per character with a size slider; the stage lines them all up. */
+  const SCALE_IDS = ["player", "guard", "medic", "hunter", "hostile.raider_humanoid", "hostile.boss", "drone", "hostile.swarmling", "hostile.creature", "node.prey", "node.prey_dangerous"];
+  const ANIMALS = new Set(["hostile.swarmling", "hostile.creature", "node.prey", "node.prey_dangerous"]);
+  function scaleCard(f: FighterNums): HTMLElement {
+    const c = el("div", undefined, "card");
+    const k = sizes[f.id] ?? 1;
+    c.classList.toggle("sel", k !== 1);
+    const hd = el("div", undefined, "hd");
+    hd.append(el("b", nameOf(f)));
+    c.append(hd);
+    const tb = el("table"), tr = el("tr"), td = el("td");
+    const slider = el("input"); slider.type = "range"; slider.min = "0.2"; slider.max = "2.5"; slider.step = "0.05"; slider.value = String(k);
+    const box = num(k, (v) => set(v));
+    const set = (v: number): void => { v = Math.max(0.1, Math.min(4, v)); if (v === 1) delete sizes[f.id]; else sizes[f.id] = v; box.value = String(v); slider.value = String(v); c.classList.toggle("sel", v !== 1); note.textContent = sizeNote(f.id); fit(); };
+    slider.oninput = () => set(Number(slider.value));
+    td.append(slider);
+    tr.append(el("td", "Size (x)", "l"), td);
+    const tr2 = el("tr"), td2 = el("td"); td2.append(box);
+    tr2.append(el("td", "", "l"), td2);
+    tb.append(tr, tr2);
+    const note = el("div", sizeNote(f.id), "note");
+    c.append(tb, note);
+    return c;
+  }
+  function sizeNote(id: string): string {
+    const e = entryOf(id), k = sizes[id] ?? 1;
+    const body = `footprint ${((bodies[id] ?? 12) * k * 2 / CHAR_WORLD).toFixed(2)} m across`;
+    if (!e) return body;
+    return e.length ? `${(e.length * k).toFixed(2)} m long (today ${e.length} m) · ${body}` : `${((e.height ?? 1.1) * k).toFixed(2)} m tall (today ${e.height ?? 1.1} m) · ${body}`;
+  }
   function renderCards(): void {
+    if (tab === "scale") {
+      const fs = SCALE_IDS.map((id) => byId.get(id)).filter((f): f is FighterNums => !!f);
+      left.replaceChildren(el("h4", "Animals · size"), ...fs.filter((f) => ANIMALS.has(f.id)).map(scaleCard));
+      right.replaceChildren(el("h4", "People and drones · size"), ...fs.filter((f) => !ANIMALS.has(f.id)).map(scaleCard));
+      return;
+    }
+    const t = tab;
     const tag = mode === "r2" ? "Release 2 proposals" : "today's rules";
-    left.replaceChildren(el("h4", `Enemies · ${tag}`), ...enemyF.map(card));
-    right.replaceChildren(el("h4", `Settlers · ${tag}`), ...settlerF.map(card));
+    const list = R.fighters.filter((f) => TAB_OF(f).includes(t));
+    left.replaceChildren(el("h4", `${t === "hunt" ? "Hoppers" : "Attackers"} · ${tag}`), ...list.filter((f) => f.side === "enemy").map((f) => card(f, t)));
+    right.replaceChildren(el("h4", `${t === "hunt" ? "Hunters" : "Defence"} · ${tag}`), ...list.filter((f) => f.side === "settler").map((f) => card(f, t)));
   }
 
   // ---- three.js arena ----
-  const t = deriveTokens(getSkin(DEFAULT_SKIN));
+  const tk = deriveTokens(skin);
   const canvas = el("canvas"), over = el("canvas");
   stage.append(canvas, over, banner);
   const gl = new WebGLRenderer({ canvas, antialias: true });
@@ -181,27 +261,30 @@ export function createArena(): ArenaUi {
   gl.toneMappingExposure = EXPOSURE;
   gl.setPixelRatio(Math.min(2, devicePixelRatio || 1));
   const scene = new Scene();
-  scene.background = new Color(t.fog);
-  const sun = new DirectionalLight(new Color(t.sun), SUN);
+  scene.background = new Color(tk.fog);
+  const sun = new DirectionalLight(new Color(tk.sun), SUN);
   sun.position.set(ARENA.w / 2 - 300, 500, ARENA.h / 2 + 200);
   sun.target.position.set(ARENA.w / 2, 0, ARENA.h / 2);
-  scene.add(new HemisphereLight(new Color(t.sky), new Color(t.groundDark), HEMI), sun, sun.target);
-  const ground = new Mesh(new PlaneGeometry(ARENA.w + 200, ARENA.h + 200), new MeshStandardMaterial({ color: new Color(t.ground), roughness: 1 }));
+  scene.add(new HemisphereLight(new Color(tk.sky), new Color(tk.groundDark), HEMI), sun, sun.target);
+  const ground = new Mesh(new PlaneGeometry(ARENA.w + 200, ARENA.h + 200), new MeshStandardMaterial({ color: new Color(tk.ground), roughness: 1 }));
   ground.rotation.x = -Math.PI / 2;
   ground.position.set(ARENA.w / 2, 0, ARENA.h / 2);
   const field = new Mesh(new PlaneGeometry(ARENA.w, ARENA.h), new MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.12, depthWrite: false }));
   field.rotation.x = -Math.PI / 2;
   field.position.set(ARENA.w / 2, 0.2, ARENA.h / 2);
-  scene.add(ground, field);
+  const Z = ARENA.zone;
+  const zone = new Mesh(new PlaneGeometry(Z.x1 - Z.x0, Z.y1 - Z.y0), new MeshBasicMaterial({ color: new Color("#c9a05a"), transparent: true, opacity: 0.12, depthWrite: false }));
+  zone.rotation.x = -Math.PI / 2;
+  zone.position.set((Z.x0 + Z.x1) / 2, 0.3, (Z.y0 + Z.y1) / 2);
+  scene.add(ground, field, zone);
   const camera = new PerspectiveCamera(28, 1, 10, 8000);
   const dyn = new Group();
   scene.add(dyn);
   const rigged = new Rigged(dyn);
-  const charScale = (ART_M * CHAR_K) / 0.9;
 
   const disc = new CircleGeometry(1, 48), rim = new RingGeometry(0.96, 1, 64);
   const circleMat = (c: string, o: number): MeshBasicMaterial => new MeshBasicMaterial({ color: new Color(c), transparent: true, opacity: o, depthWrite: false });
-  const mats = { enemy: [circleMat("#ff6a50", 0.07), circleMat("#ff6a50", 0.4)], settler: [circleMat("#5aa8ff", 0.07), circleMat("#5aa8ff", 0.4)], rifle: [circleMat("#ff4a3a", 0.04), circleMat("#ff4a3a", 0.3)] };
+  const mats = { enemy: [circleMat("#ff6a50", 0.07), circleMat("#ff6a50", 0.4)], settler: [circleMat("#5aa8ff", 0.07), circleMat("#5aa8ff", 0.4)], rifle: [circleMat("#ff4a3a", 0.04), circleMat("#ff4a3a", 0.3)], body: [circleMat("#ffffff", 0.0), circleMat("#ffffff", 0.22)] };
   type Pool = { circles: Mesh[]; body: Object3D | null };
   const pool = new Map<number, Pool>();
   const fallbackGeo = { body: new CylinderGeometry(6, 7, 26, 12), head: new SphereGeometry(5, 12, 8) };
@@ -215,17 +298,20 @@ export function createArena(): ArenaUi {
   function circlesFor(u: Unit): { r: number; m: MeshBasicMaterial[] }[] {
     const side = u.side === "enemy" ? mats.enemy : mats.settler;
     const out = [{ r: u.s.range ?? 0, m: side }];
-    if (u.kind === "player" && u.s.gunRange) out.push({ r: u.s.gunRange, m: side });
+    if (u.s.gunRange) out.push({ r: u.s.gunRange, m: side });
     if ((u.s.shotRange ?? 0) > 0) out.push({ r: u.s.shotRange!, m: SHOT_NAME[u.type] === "Acid spit" ? acidMat(u.type) : mats.rifle });
+    // the footprint the no-overlap rule keeps apart (R2)
+    if (mode === "r2" && u.kind !== "tower") out.push({ r: u.body, m: mats.body });
     return out.filter((c) => c.r > 0);
   }
 
   function bodyFor(u: Unit): Object3D | null {
+    const k = u.s.size ?? 1;
     if (u.kind === "drone") {
       const b = meshyScene("unit.drone");
       if (!b) return null;
       const g = new Group(); const h = new Group(); h.rotation.y = Math.PI / 2; h.position.y = 0.9; h.add(b); g.add(h);
-      g.scale.setScalar(ART_M * CHAR_K);
+      g.scale.setScalar(ART_M * CHAR_K * k);
       return g;
     }
     if (u.kind === "tower") {
@@ -244,12 +330,13 @@ export function createArena(): ArenaUi {
     const b = new Mesh(fallbackGeo.body, m); b.position.y = 13;
     const h = new Mesh(fallbackGeo.head, m); h.position.y = 30;
     g.add(b, h);
-    if (u.kind === "hostile" && u.type === "hostile.swarmling" || u.kind === "hopper") g.scale.set(1, 0.45, 1);
+    const low = u.type === "hostile.swarmling" || u.type === "hostile.creature" || u.kind === "hopper" || u.kind === "prey";
+    g.scale.set(u.body / 7, low ? 0.45 : 1, u.body / 7);
     return g;
   }
   let core: Object3D | null = null;
   function placeCore(): void {
-    if (core) return;
+    if (core) { core.visible = tab === "fight"; return; }
     const c = meshyScene("sink.core.l1");
     core = c ? (() => { const g = new Group(); g.add(c); g.scale.setScalar(ART_M * BUILD_K); return g; })()
       : new Mesh(new CylinderGeometry(20, 24, 30, 16), new MeshStandardMaterial({ color: new Color("#d0a050") }));
@@ -258,21 +345,72 @@ export function createArena(): ArenaUi {
     scene.add(core);
   }
 
-  const ids = new Set(["unit.player", "role.defender", "unit.drone", "unit.drone.rotor", "struct.ranged_defense", "sink.core", ...enemyF.map((f) => f.id)]);
+  const cidOf = (kind: string, type: string, side: string): string => CHAR_ID[kind] ?? (side === "enemy" ? type : "");
+  const entryOf = (id: string): MeshyEntry | undefined => {
+    const f = byId.get(id);
+    const cid = f ? cidOf(f.kind, f.id, f.side) : id;
+    return cid ? rigged.entryFor(cid) : undefined;
+  };
+  /**
+   * Footprint radius at size 1 from the model: the mean of its half width and half depth in meshy.built.json bounds,
+   * at the height (or length) the game draws it. Hopper bounds are not usable (skinned scale), so they go by length.
+   */
+  function measureBodies(): void {
+    const out: Record<string, number> = { ...BODY };
+    for (const f of R.fighters) {
+      if (f.kind === "tower") continue;
+      if (f.kind === "drone") { const b = meshyBounds("unit.drone"); if (b) out[f.id] = ((b[3]! - b[0]!) + (b[5]! - b[2]!)) / 4 * ART_M * CHAR_K; continue; }
+      const e = entryOf(f.id);
+      if (!e) continue;
+      if (e.length) { out[f.id] = e.length * 0.32 * CHAR_WORLD; continue; }
+      const b = meshyBounds(e.file), h = b ? b[4]! - b[1]! : 0;
+      if (!b || !(h > 0.05)) continue;
+      out[f.id] = ((b[3]! - b[0]!) + (b[5]! - b[2]!)) / 4 / h * (e.height ?? 1.1) * CHAR_WORLD;
+    }
+    bodies = out;
+  }
+
+  const ids = new Set(["unit.player", "role.defender", "role.medic", "role.hunter", "unit.drone", "unit.drone.rotor", "struct.ranged_defense", "sink.core", ...R.fighters.filter((f) => f.side === "enemy").map((f) => f.id)]);
   // models land in the background: code-built stand-ins until then, swapped once everything is in
   let rebuild = false;
-  void loadMeshy(undefined, ids, undefined, true).then(() => { rebuild = true; if (core) { scene.remove(core); core = null; } });
+  void loadMeshy(undefined, ids, undefined, true).then(() => {
+    rebuild = true;
+    if (core) { scene.remove(core); core = null; }
+    measureBodies();
+    if (!running) newFight();
+    if (tab === "scale") renderCards();
+  });
+
+  /** Scale tab: every character in a row, smallest gaps that keep footprints apart, each at its own size. */
+  function lineup(): Unit[] {
+    const out: Unit[] = [];
+    let x = 20;
+    SCALE_IDS.forEach((id, i) => {
+      const f = byId.get(id);
+      if (!f) return;
+      const k = sizes[id] ?? 1, r = (bodies[id] ?? 12) * k;
+      x += r;
+      out.push({ uid: -1 - i, side: f.side, type: f.id, kind: f.kind, s: { size: k }, x, y: ARENA.h / 2, hp: 0, hpMax: 0, body: r, acc: 0, gun: 0, shot: 0, status: "ok", homeX: x, homeY: 0,
+        windup: 0, lungeCd: 0, lungeAt: null, dash: null, charging: false, healCd: 0, hitCd: 0, vx: 0, vy: 0, act: 0, face: 0 });
+      x += r + 6;
+    });
+    // centre the row on the field
+    const shift = (ARENA.w - x) / 2;
+    for (const u of out) u.x += shift;
+    return out;
+  }
+  const shown = (): Unit[] => (tab === "scale" ? lineup() : fight.units);
 
   function sync(): void {
     rigged.begin();
     const seen = new Set<number>();
     if (rebuild) { rebuild = false; for (const p of pool.values()) if (p.body) { dyn.remove(p.body); p.body = null; } }
-    for (const u of fight.units) {
+    for (const u of shown()) {
       if (u.status === "dead") continue;
       seen.add(u.uid);
       let p = pool.get(u.uid);
       if (!p) {
-        const circles = circlesFor(u).flatMap(({ r, m }) => {
+        const circles = (tab === "scale" ? [{ r: u.body, m: mats.body }] : circlesFor(u)).flatMap(({ r, m }) => {
           const d = new Mesh(disc, m[0]); const e = new Mesh(rim, m[1]);
           for (const x of [d, e]) { x.rotation.x = -Math.PI / 2; x.scale.setScalar(r); x.renderOrder = 1; dyn.add(x); }
           return [d, e];
@@ -280,24 +418,25 @@ export function createArena(): ArenaUi {
         p = { circles, body: null };
         pool.set(u.uid, p);
       }
-      for (const c of p.circles) { c.position.set(u.x, 0.4, u.y); c.visible = u.status === "ok"; }
-      const cid = CHAR_ID[u.kind] ?? (u.side === "enemy" ? u.type : "");
+      for (const c of p.circles) { c.position.set(u.x, 0.4, u.y); c.visible = u.status === "ok" || tab === "scale"; if (tab === "scale") c.scale.setScalar(u.body); }
+      const cid = cidOf(u.kind, u.type, u.side);
       const entry = cid ? rigged.entryFor(cid) : undefined;
       const moving = Math.hypot(u.vx, u.vy) > 0.02;
+      const k = u.s.size ?? 1;
       if (entry) {
         if (p.body) { dyn.remove(p.body); p.body = null; }
-        rigged.add(`a${u.uid}`, cid, entry, { moving, hurried: false, cheer: false, speed: Math.min(1, Math.hypot(u.vx, u.vy) / 2), run: u.kind === "hostile" && !!u.dash, act: u.act > 0 && entry.clips?.["shoot"] ? "shoot" : undefined, lying: u.status === "down" }, u.x, u.y, u.face, charScale);
+        rigged.add(`a${u.uid}`, cid, entry, { moving, hurried: false, cheer: false, speed: Math.min(1, Math.hypot(u.vx, u.vy) / 2), run: (u.kind === "hostile" && !!u.dash) || (u.kind === "hopper" && u.charging), act: u.act > 0 && entry.clips?.["shoot"] ? "shoot" : undefined, lying: u.status === "down" || u.status === "healing" }, u.x, u.y, u.face, CHAR_WORLD * k);
         continue;
       }
       if (!p.body) { p.body = bodyFor(u) ?? fallback(u); dyn.add(p.body); }
       p.body.position.set(u.x, 0, u.y);
-      if (u.kind !== "tower") p.body.rotation.set(u.status === "down" ? -Math.PI / 2 : 0, u.face, 0, "YXZ");
+      if (u.kind !== "tower") p.body.rotation.set(u.status === "down" || u.status === "healing" ? -Math.PI / 2 : 0, u.face, 0, "YXZ");
       else if (u.act > 0 && p.body.children[1]) p.body.children[1].rotation.y = u.face - Math.PI / 2;
     }
     for (const [k, p] of pool) if (!seen.has(k)) { for (const c of p.circles) dyn.remove(c); if (p.body) dyn.remove(p.body); pool.delete(k); }
   }
 
-  // ---- overlay: health bars and tracers ----
+  // ---- overlay: health bars, tracers, labels ----
   const ctx = over.getContext("2d")!;
   const tracers: Tracer[] = [];
   const v = new Vector3();
@@ -305,7 +444,14 @@ export function createArena(): ArenaUi {
     v.set(x, y, z).project(camera);
     return { x: (v.x + 1) / 2 * over.clientWidth, y: (1 - v.y) / 2 * over.clientHeight };
   };
-  const heightOf = (u: Unit): number => u.kind === "tower" ? 46 : u.kind === "drone" ? 40 : u.type === "hostile.swarmling" || u.type === "hostile.creature" || u.kind === "hopper" ? 22 : 38;
+  /** Top of a character in world units: its drawn height (hoppers about a third of their length), at its size. */
+  const heightOf = (u: Unit): number => {
+    if (u.kind === "tower") return 46;
+    if (u.kind === "drone") return 40 * (u.s.size ?? 1);
+    const e = entryOf(u.type) ?? entryOf(u.kind);
+    const m = e ? (e.length ? e.length * 0.45 : e.height ?? 1.1) : 0.8;
+    return m * CHAR_WORLD * (u.s.size ?? 1);
+  };
   const flashes: { x: number; y: number; z: number; born: number }[] = [];
   /** A damage number rising over whoever was hit, so every strike, ranged or not, can be counted. */
   const pops: { x: number; y: number; z: number; text: string; color: string; born: number }[] = [];
@@ -349,6 +495,20 @@ export function createArena(): ArenaUi {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, over.clientWidth, over.clientHeight);
     ctx.lineCap = "round";
+    if (tab === "scale") {
+      ctx.font = "600 11px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.globalAlpha = 1;
+      lineup().forEach((u, i) => {
+        const f = byId.get(u.type)!, p = proj(u.x, 0, u.y + u.body + 4), top = proj(u.x, heightOf(u) + 4, u.y);
+        // short names (Commander, Guard, Drone), three rows deep so neighbours don't run together
+        const short = skin.names[CHAR_ID[f.kind] ?? ""] ?? (f.kind === "drone" ? "Drone" : nameOf(f));
+        p.y += (i % 3) * 13;
+        ctx.fillStyle = "#e8e8ea"; ctx.strokeStyle = "rgba(0,0,0,.75)"; ctx.lineWidth = 3;
+        ctx.strokeText(short, p.x, p.y + 12); ctx.fillText(short, p.x, p.y + 12);
+        const k = sizes[u.type] ?? 1;
+        if (k !== 1) { ctx.fillStyle = "#f2b84b"; ctx.strokeText(`x${k}`, top.x, top.y); ctx.fillText(`x${k}`, top.x, top.y); }
+      });
+      return;
+    }
     for (let i = tracers.length - 1; i >= 0; i--) {
       const tr = tracers[i]!, k = 1 - (now - tr.born) / 1000 / TRACER_LIFE;
       if (k <= 0) { tracers.splice(i, 1); continue; }
@@ -392,10 +552,12 @@ export function createArena(): ArenaUi {
     };
     for (const u of fight.units) {
       if (u.status === "dead" || u.hpMax <= 0) continue;
-      barAt(u.x, heightOf(u) + 6, u.y, u.hp / u.hpMax, u.status === "down");
-      if (u.status === "down") { const p = proj(u.x, heightOf(u) + 6, u.y); ctx.fillStyle = "#ccc"; ctx.font = "10px system-ui"; ctx.textAlign = "center"; ctx.fillText("down", p.x, p.y - 3); }
+      const lying = u.status === "down" || u.status === "healing";
+      const top = lying ? 14 : heightOf(u) + 6;
+      barAt(u.x, top, u.y, u.hp / u.hpMax, lying);
+      if (lying) { const p = proj(u.x, top, u.y); ctx.fillStyle = u.status === "healing" ? "#7fd99a" : "#ccc"; ctx.font = "10px system-ui"; ctx.textAlign = "center"; ctx.fillText(u.status === "healing" ? "healing" : "down", p.x, p.y - 3); }
     }
-    barAt(fight.base.x, 60, fight.base.y, fight.base.hp / fight.base.hpMax, false);
+    if (tab === "fight") barAt(fight.base.x, 60, fight.base.y, fight.base.hp / fight.base.hpMax, false);
   }
 
   // ---- loop ----
@@ -406,11 +568,15 @@ export function createArena(): ArenaUi {
     const dpr = Math.min(2, devicePixelRatio || 1);
     over.width = w * dpr; over.height = h * dpr;
     camera.aspect = w / h;
-    // straight on from the south, tilted down 55 degrees; back off until the field fits both ways
-    const pitch = (55 * Math.PI) / 180, vf = (camera.fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
-    const dW = (ARENA.w + 40) / 2 / Math.tan(hf / 2), dH = ((ARENA.h + 30) * Math.sin(pitch) + 50 * Math.cos(pitch)) / 2 / Math.tan(vf / 2);
-    const d = Math.max(dW, dH) + ARENA.h / 2 * Math.cos(pitch);
-    const cx = ARENA.w / 2, cz = ARENA.h / 2;
+    // straight on from the south, tilted down 55 degrees; back off until the field fits both ways. The Scale tab
+    // looks lower and closer, at just the line-up, so sizes read against each other
+    const row = tab === "scale" ? lineup() : [];
+    const x0 = row.length ? row[0]!.x - row[0]!.body - 10 : 0, x1 = row.length ? row[row.length - 1]!.x + row[row.length - 1]!.body + 10 : ARENA.w;
+    const wide = tab === "scale" ? x1 - x0 : ARENA.w + 40, deep = tab === "scale" ? 90 : ARENA.h + 30;
+    const pitch = ((tab === "scale" ? 22 : 55) * Math.PI) / 180, vf = (camera.fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
+    const dW = wide / 2 / Math.tan(hf / 2), dH = (deep * Math.sin(pitch) + 50 * Math.cos(pitch)) / 2 / Math.tan(vf / 2);
+    const d = Math.max(dW, dH) + deep / 2 * Math.cos(pitch);
+    const cx = (x0 + x1) / 2, cz = ARENA.h / 2;
     camera.position.set(cx, Math.sin(pitch) * d, cz + Math.cos(pitch) * d);
     camera.lookAt(cx, 0, cz);
     camera.updateProjectionMatrix();
@@ -422,7 +588,7 @@ export function createArena(): ArenaUi {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(0.1, (now - (last || now)) / 1000);
     last = now;
-    if (running && !fight.result) {
+    if (running && !fight.result && tab !== "scale") {
       acc += dt * speed;
       const step = 1 / ARENA.tps;
       while (acc >= step && !fight.result) {
@@ -442,6 +608,7 @@ export function createArena(): ArenaUi {
       if (fight.result) showResult();
     }
     placeCore();
+    zone.visible = tab === "hunt";
     sync();
     rigged.end(running ? dt * speed : dt);
     gl.render(scene, camera);
@@ -450,20 +617,33 @@ export function createArena(): ArenaUi {
   }
 
   function paintStat(): void {
+    if (tab === "scale") { stat.textContent = "Drag a slider to resize a character. x1 is how the game draws it today. The faint ring is the footprint the no-overlap rule keeps apart. Copy settings sends me the sizes."; return; }
+    const sec = (fight.tick / ARENA.tps).toFixed(1);
+    const rules = mode === "r2" ? `R2 proposals (${PROPOSALS.length} overrides)` : "today's rules";
+    if (tab === "hunt") {
+      const left = fight.units.filter((u) => u.side === "enemy" && u.status !== "dead").length;
+      const up = fight.units.filter((u) => u.side === "settler" && u.status === "ok").length;
+      const bites = fight.hits.filter((h) => h.byKind === "hopper").length;
+      stat.textContent = `${sec} s · hoppers left ${left} · hunters up ${up} · bites landed ${bites} · ${kite ? "hunters keep moving" : "hunters stand"} · ${rules}`;
+      return;
+    }
     const e = fight.units.filter((u) => u.side === "enemy" && u.status !== "dead").length + fight.pending.length;
-    const s = fight.units.filter((u) => u.side === "settler" && u.status === "ok").length;
-    const rangedBy = (side: string): number => fight.hits.filter((h) => h.ranged && fight.units.find((u) => u.uid === h.by)?.side === side).length;
-    stat.textContent = `${(fight.tick / ARENA.tps).toFixed(1)} s · ranged hits: enemies ${rangedBy("enemy")}, settlers ${rangedBy("settler")} · enemies left ${e} · settlers standing ${s} · core ${fight.base.hp}/${fight.base.hpMax} · ${mode === "r2" ? `R2 proposals (${PROPOSALS.length} overrides)` : "today's rules"}`;
+    const s = fight.units.filter((u) => u.side === "settler" && u.status === "ok" && u.kind !== "medic").length;
+    stat.textContent = `${sec} s · attackers left ${e} · defenders up ${s} · core ${fight.base.hp}/${fight.base.hpMax} · guards died ${fight.deaths}, healed ${fight.heals} · drones built ${fight.built} · ${rules}`;
   }
   function showResult(): void {
     const r = fight.result!;
-    banner.textContent = r.winner === "draw" ? `Draw after ${r.seconds.toFixed(1)} s (${r.why})` : `${r.winner === "settlers" ? "Settlers" : "Enemies"} win in ${r.seconds.toFixed(1)} s: ${r.why}`;
+    const who = tab === "hunt" ? (r.winner === "settlers" ? "Hunters" : "Hoppers") : r.winner === "settlers" ? "Settlers" : "Attackers";
+    banner.textContent = r.winner === "draw" ? `Draw after ${r.seconds.toFixed(1)} s (${r.why})` : `${who} win in ${r.seconds.toFixed(1)} s: ${r.why}`;
     banner.style.display = "block";
     running = false;
     start.textContent = "Start";
   }
   function newFight(): void {
-    fight = createFight({ ...pick, mode, edits: edits[mode] });
+    const t: Tab = tab === "scale" ? "fight" : tab;
+    const all = counts[t];
+    const side = (s: "enemy" | "settler"): Record<string, number> => Object.fromEntries(Object.entries(all).filter(([id, n]) => n > 0 && byId.get(id)?.side === s && TAB_OF(byId.get(id)!).includes(t)));
+    fight = createFight({ mode, tab: t, edits: fightEdits(), enemyCounts: side("enemy"), settlerCounts: side("settler"), ranks: wave.ranks, rowGap: wave.rowGap, kite, bodies });
     running = false; acc = 0;
     tracers.length = 0; flashes.length = 0; pops.length = 0; muzzles.length = 0;
     for (const p of pool.values()) { for (const c of p.circles) dyn.remove(c); if (p.body) dyn.remove(p.body); }
@@ -483,6 +663,7 @@ export function createArena(): ArenaUi {
   todayBox.onchange = () => { mode = todayBox.checked ? "today" : "r2"; renderCards(); newFight(); };
   back.onclick = () => ui.close();
 
+  paintBar();
   newFight();
   renderCards();
   const ui: ArenaUi = {

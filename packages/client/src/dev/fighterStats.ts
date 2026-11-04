@@ -230,7 +230,7 @@ export function fighterSections(level?: Manifest | null): StatSection[] {
 // ---- Numbers for the fighter arena (arena.ts): the same sources as the panel above, as plain values ----
 
 export interface StatNum { v: number; src: string }
-export type FighterKind = "hostile" | "hopper" | "player" | "guard" | "drone" | "tower";
+export type FighterKind = "hostile" | "hopper" | "prey" | "player" | "guard" | "drone" | "tower" | "medic" | "hunter";
 export interface FighterNums {
   /** Fighter type id: a hostile or animal id, "player", "guard", "drone", "tower1".."tower3". */
   id: string;

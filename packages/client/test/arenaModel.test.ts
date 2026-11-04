@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { content } from "@fo/content";
-import { bodyOf, cardRows, createFight, PROPOSALS, REACH, roster, runFight, statsOf, stepFight } from "../src/dev/arenaModel.js";
+import { cardRows, createFight, waveOrder, PROPOSALS, REACH, roster, runFight, statsOf, stepFight } from "../src/dev/arenaModel.js";
 
 const fighter = (id: string) => roster().fighters.find((f) => f.id === id)!;
 
@@ -45,7 +45,8 @@ describe("fighter arena model", () => {
     const f = runFight({ enemy: "hostile.raider_humanoid", enemies: 6, settler: "guard", settlers: 2, mode: "r2", seed: 5 });
     expect(f.hits.some((h) => h.byKind === "hostile" && h.ranged && h.dist > 18)).toBe(true);
     // drones out-reach the spit at the common reach, so give them back their short reach to let the mites close
-    const m = runFight({ enemy: "hostile.swarmling", enemies: 10, settler: "drone", settlers: 2, mode: "r2", seed: 5, edits: { "drone:range": 20 } });
+    // (with a mite drawn at today's model size it already touches anything inside its spit reach, so shrink it)
+    const m = runFight({ enemy: "hostile.swarmling", enemies: 10, settler: "drone", settlers: 2, mode: "r2", seed: 5, edits: { "drone:range": 20 }, bodies: { "hostile.swarmling": 6 } });
     expect(m.hits.some((h) => h.byKind === "hostile" && h.ranged)).toBe(true);
   });
 
@@ -70,11 +71,11 @@ describe("fighter arena model", () => {
       let worst = 0;
       while (!f.result) {
         stepFight(f);
-        const live = f.units.filter((u) => u.status !== "dead" && !(u.side === "enemy" && u.x < 0));
+        const live = f.units.filter((u) => u.status !== "dead" && u.kind !== "player" && !(u.side === "enemy" && u.x < 0));
         for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
           const a = live[i]!, b = live[j]!;
           if ((a.kind === "drone") !== (b.kind === "drone")) continue;
-          worst = Math.max(worst, bodyOf(a) + bodyOf(b) - Math.hypot(a.x - b.x, a.y - b.y));
+          worst = Math.max(worst, a.body + b.body - Math.hypot(a.x - b.x, a.y - b.y));
         }
       }
       expect(worst, `${enemy} vs ${settler}`).toBeLessThan(1.5);
@@ -98,5 +99,47 @@ describe("fighter arena model", () => {
     const kinds = new Set<string>();
     while (!c.result) { stepFight(c); for (const s of c.shots) if (s.by === "hostile.creature") kinds.add(s.kind); }
     expect([...kinds]).toEqual(["acid"]);
+  });
+  it("waves mix their types evenly and come in rows when ranked", () => {
+    const o = waveOrder({ "hostile.swarmling": 12, "hostile.creature": 4, "hostile.boss": 2 });
+    expect(o.length).toBe(18);
+    const at = (t: string) => o.map((x, i) => (x === t ? i : -1)).filter((i) => i >= 0);
+    expect(at("hostile.boss")[0]).toBeGreaterThan(2);
+    expect(at("hostile.boss")[1]! - at("hostile.boss")[0]!).toBeGreaterThan(6);
+    const f = createFight({ mode: "r2", enemyCounts: { "hostile.swarmling": 12, "hostile.raider_humanoid": 3 }, settlerCounts: { guard: 2 }, ranks: 5, rowGap: 0.5, seed: 2 });
+    expect(f.pending.filter((p) => p.tick === 0).length).toBe(5);
+    expect(new Set(f.pending.map((p) => p.tick)).size).toBe(3);
+  });
+
+  it("R2: a downed guard takes half damage and dies without a medic; a medic heals it and is never hurt", () => {
+    const solo = createFight({ mode: "r2", enemyCounts: { "hostile.boss": 2 }, settlerCounts: { guard: 1 }, seed: 1, edits: { "guard:damage": 0 } });
+    while (!solo.result) stepFight(solo);
+    expect(solo.deaths).toBe(1);
+    const without = runFight({ mode: "r2", enemyCounts: { "hostile.raider_humanoid": 16 }, settlerCounts: { guard: 3 }, seed: 3 });
+    expect(without.deaths).toBeGreaterThan(0);
+    const healed = createFight({ mode: "r2", enemyCounts: { "hostile.raider_humanoid": 16 }, settlerCounts: { guard: 3, medic: 1 }, seed: 3 });
+    const m = healed.units.find((u) => u.kind === "medic")!;
+    while (!healed.result) { stepFight(healed); expect(m.status).toBe("ok"); }
+    expect(healed.heals).toBeGreaterThan(0);
+    expect(healed.deaths).toBe(0);
+    expect(healed.hits.some((h) => h.target === m.uid)).toBe(false);
+  });
+
+  it("R2: the drone post builds drones while attackers are on the field", () => {
+    const f = runFight({ mode: "r2", enemyCounts: { "hostile.creature": 12 }, settlerCounts: { drone: 1 }, seed: 4 });
+    expect(f.built).toBeGreaterThan(0);
+  });
+
+  it("hunting: three spiked hoppers beat a hunter who stands still; one who keeps moving wins", () => {
+    for (const who of ["player", "hunter"]) {
+      let standWins = 0, kiteWins = 0;
+      for (let seed = 1; seed <= 10; seed++) {
+        const base = { mode: "r2" as const, tab: "hunt" as const, enemyCounts: { "node.prey_dangerous": 3 }, settlerCounts: { [who]: 1 }, seed };
+        if (runFight(base).result!.winner === "settlers") standWins++;
+        if (runFight({ ...base, kite: true }).result!.winner === "settlers") kiteWins++;
+      }
+      expect(standWins, `${who} standing`).toBeLessThanOrEqual(3);
+      expect(kiteWins, `${who} moving`).toBeGreaterThanOrEqual(7);
+    }
   });
 });
