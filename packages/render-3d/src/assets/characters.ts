@@ -88,18 +88,20 @@ const gearFor = (role: string, models: Readonly<Record<string, string>>): { hat:
  * the look scale for a height in metres on a model of that meshy height (people's are 1.1, the commander's 0.9).
  */
 export const PERSON_M = 1.8;
+/** Doug's Scale tab (2026-11-04): the commander and the ranger stand x1.1 (1.98 m), mites x0.9. */
+const LEAD_M = PERSON_M * 1.1;
 const tall = (m: number, modelH = 1.1): number => (m * 0.9) / (modelH * CHAR_K);
 
 /** Look for a character id (unit.*, role.*, hostile.*, node.prey). */
 export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, string>> = {}): Look {
   const base: Look = { kind: "humanoid", suit: t.suit, suitDark: t.suitDark, visor: t.visor, stripe: null, hat: "hat.none", hatColor: t.suit, tool: "tool.none", scale: tall(PERSON_M), bigPack: false, pack: t.suitDark };
-  if (id === "unit.player") return { ...base, stripe: t.accent, hat: "hat.antenna", hatColor: t.accent, scale: tall(PERSON_M, 0.9), bigPack: true, pack: t.accent };
+  if (id === "unit.player") return { ...base, stripe: t.accent, hat: "hat.antenna", hatColor: t.accent, scale: tall(LEAD_M, 0.9), bigPack: true, pack: t.accent };
   if (id.startsWith("role.") || id === "unit.resident") {
     const role = id === "unit.resident" ? "role.idle" : id;
     const col = roleToken(t, role);
     const g = gearFor(role, models);
     // unhired colonists get a neutral stripe: they read as people waiting for a job, not mannequins
-    return { ...base, stripe: role === "role.idle" ? mix(col, t.ink, 0.3) : col, hat: g.hat, hatColor: col, tool: g.tool, ...(g.offhand ? { offhand: g.offhand } : {}) };
+    return { ...base, stripe: role === "role.idle" ? mix(col, t.ink, 0.3) : col, hat: g.hat, hatColor: col, tool: g.tool, ...(g.offhand ? { offhand: g.offhand } : {}), ...(role === "role.hunter" ? { scale: tall(LEAD_M) } : {}) };
   }
   if (id.startsWith("unit.customer")) {
     const premium = id.endsWith("premium"), impatient = id.endsWith("impatient"), bulk = id.endsWith("bulk");
@@ -118,7 +120,7 @@ export function lookFor(id: string, t: Tokens, models: Readonly<Record<string, s
     return { ...base, suit: t.raider, suitDark: t.raiderDark, pack: t.raiderDark, visor: t.raiderVisor, hat: "hat.hood", hatColor: t.raiderDark, tool: "tool.rifle_raider" };
   }
   if (id === "hostile.creature") return { ...base, kind: "creature", suit: t.creature, suitDark: t.creatureDark, visor: t.danger, scale: 1 };
-  if (id === "hostile.swarmling") return { ...base, kind: "creature", suit: mix(t.creature, t.danger, 0.25), suitDark: t.creatureDark, visor: t.danger, scale: 0.45 };
+  if (id === "hostile.swarmling") return { ...base, kind: "creature", suit: mix(t.creature, t.danger, 0.25), suitDark: t.creatureDark, visor: t.danger, scale: 0.45 * 0.9 };
   if (id === "hostile.boss") {
     return { ...base, suit: t.raiderDark, suitDark: t.raider, pack: t.raiderDark, visor: t.danger, hat: "hat.crest", hatColor: t.danger, tool: "tool.minigun", scale: tall(1.5 * PERSON_M), bigPack: true };
   }

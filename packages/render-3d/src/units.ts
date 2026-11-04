@@ -13,6 +13,8 @@ import { LOOK, viewWidth } from "@fo/content";
 export const ART_M = 28;
 /** Look settings shared with the generator and the human-view bot (@fo/content data/look.json). */
 export const BUILD_K = LOOK.buildScale;
+/** Drone size on top of ART_M and charScale (Doug's Scale tab, 2026-11-04: x0.7). */
+export const DRONE_K = 0.7;
 /** Character size multiplier; labels and bars above characters rise with it. */
 export const CHAR_K = LOOK.charScale;
 

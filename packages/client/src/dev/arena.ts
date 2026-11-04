@@ -7,7 +7,7 @@ import { DEFAULT_SKIN, getSkin } from "@fo/skins";
 import { loadMeshy, meshyBounds, meshyRig, meshyScene, type MeshyEntry } from "@fo/render-3d/meshy";
 import { Rigged } from "@fo/render-3d/rigged";
 import { lookFor } from "@fo/render-3d/characters";
-import { ART_M, BUILD_K, CHAR_K } from "@fo/render-3d/units";
+import { ART_M, BUILD_K, CHAR_K, DRONE_K } from "@fo/render-3d/units";
 import { HEMI, SUN } from "@fo/render-3d/environment";
 import { deriveTokens } from "@fo/render-3d/tokens";
 import { EXPOSURE } from "@fo/render-3d/renderer";
@@ -99,7 +99,7 @@ export function createArena(): ArenaUi {
    * the model as built, 4.4 m long; it starts at 2.6 m, the size Doug marked against Sela (2026-11-04).
    */
   const BUGGY = "decor.buggy", BUGGY_M = 4.4;
-  sizes[BUGGY] = 0.59;
+  sizes[BUGGY] = 0.6; // Doug 2026-11-04: 2.64 m
   const counts: Record<Tab, Record<string, number>> = {
     fight: { "hostile.swarmling": 24, "hostile.creature": 8, "hostile.raider_humanoid": 4, "hostile.boss": 1, player: 1, guard: 3, drone: 2, medic: 1, tower1: 1 },
     hunt: { "node.prey_dangerous": 3, "node.prey": 2, player: 1, hunter: 0, medic: 0 },
@@ -326,7 +326,7 @@ export function createArena(): ArenaUi {
       const b = meshyScene("unit.drone");
       if (!b) return null;
       const g = new Group(); const h = new Group(); h.rotation.y = Math.PI / 2; h.position.y = 0.9; h.add(b); g.add(h);
-      g.scale.setScalar(ART_M * CHAR_K * k);
+      g.scale.setScalar(ART_M * CHAR_K * DRONE_K * k);
       return g;
     }
     if (u.kind === "tower") {
@@ -382,7 +382,7 @@ export function createArena(): ArenaUi {
     const out: Record<string, number> = { ...BODY };
     for (const f of R.fighters) {
       if (f.kind === "tower") continue;
-      if (f.kind === "drone") { const b = meshyBounds("unit.drone"); if (b) out[f.id] = ((b[3]! - b[0]!) + (b[5]! - b[2]!)) / 4 * ART_M * CHAR_K; continue; }
+      if (f.kind === "drone") { const b = meshyBounds("unit.drone"); if (b) out[f.id] = ((b[3]! - b[0]!) + (b[5]! - b[2]!)) / 4 * ART_M * CHAR_K * DRONE_K; continue; }
       const e = entryOf(f.id);
       if (!e) continue;
       if (e.length) { out[f.id] = e.length * 0.32 * worldOf(f.id); continue; }
@@ -547,7 +547,7 @@ export function createArena(): ArenaUi {
   /** Top of a character in world units: its drawn height (hoppers about a third of their length), at its size. */
   const heightOf = (u: Unit): number => {
     if (u.kind === "tower") return 46;
-    if (u.kind === "drone") return 40 * (u.s.size ?? 1);
+    if (u.kind === "drone") return 40 * DRONE_K * (u.s.size ?? 1);
     const e = entryOf(u.type) ?? entryOf(u.kind);
     const m = e ? (e.length ? e.length * 0.45 : e.height ?? 1.1) : 0.8;
     return m * worldOf(u.type) * (u.s.size ?? 1);
