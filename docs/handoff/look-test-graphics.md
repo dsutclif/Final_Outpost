@@ -27,3 +27,12 @@ On an iPhone (frame rate with the storm at 3x), in real play (turrets firing, re
 See git history of this file (`0bae6d4`) for the full list. The key ones: `scene.environmentIntensity`, not
 `envMapIntensity`; hash the integer lattice at highp; velocity-aligned quads need `DoubleSide`; the layout sandbox redraws
 only on demand; never kill a dev server you didn't start (ports are shared between sessions).
+
+## Added 2026-11-04 evening (live at `8cc20e4`)
+- iPhone flash fixed: resolution steps now apply before drawing (resizing the canvas after a frame blanked it), climb back
+  only after 10 good seconds, and stop climbing after two drops (`lookTest.ts` `pendingDpr`, `drops`).
+- Coins flying to the cash counter shrink on screen to the counter's 26 px coin icon (`fx.ts` `hudScale`, renderer `init`,
+  client `coinTarget` returns `size`).
+- **For whoever moves scrap to the HUD (Doug: "scrap is up top only and not carried on the back"):** fly scrap with
+  `fx.coins(from, () => this.fromScreen(hud.x, hud.y), n, "<scrap res id>", true)`. The last argument makes it shrink to the
+  HUD icon too. Point `hudAnchor`'s `size` at the scrap icon when that HUD element exists.
