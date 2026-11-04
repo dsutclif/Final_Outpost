@@ -13,7 +13,7 @@ import { HEMI, SUN } from "@fo/render-3d/environment";
 import { deriveTokens } from "@fo/render-3d/tokens";
 import { EXPOSURE } from "@fo/render-3d/renderer";
 
-// Buildings row (dev sandbox): every building model in one row beside the commander, seen side on through an
+// Buildings row (dev sandbox): every building, interactive object and decor model in one row beside the commander, seen side on through an
 // orthographic camera so heights compare straight across, at the sizes the game draws today (renderer.ts buildK:
 // ART_M x buildScale x look.json modelScale; other objects ART_M alone). A slider per model multiplies on top
 // (x1 = the game today) and Copy settings gives the look.json values. Read-only dev view, like crashsite.ts.
@@ -37,7 +37,13 @@ const ANCHOR = "sink.sales_point";
 /** Gap between neighbours in the row, art metres. */
 const GAP_M = 1.2;
 
-interface Item { e: MeshyEntry; key: string; name: string; building: boolean; base: number; k: number; g: Group; w: number; d: number; h: number; x: number; tag: HTMLDivElement; out: HTMLSpanElement }
+/** Slider groups: buildings (look.json modelScale), interactive objects and decor (meshy.json width). */
+type Grp = "bldg" | "obj" | "decor";
+const GROUPS: [Grp | "all", string][] = [["bldg", "Buildings"], ["obj", "Interactive"], ["decor", "Decor"], ["all", "All"]];
+/** Decor that is only a part of another model (the buggy's wheels ride on its rig). */
+const PARTS = new Set(["decor.buggy_wheel", "decor.buggy_wheel_l"]);
+
+interface Item { e: MeshyEntry; key: string; name: string; grp: Grp; building: boolean; box: HTMLDivElement; base: number; k: number; g: Group; w: number; d: number; h: number; x: number; tag: HTMLDivElement; out: HTMLSpanElement }
 
 export interface BuildingsUi { open(): void; close(): void }
 
@@ -51,7 +57,9 @@ export function createBuildingsRow(): BuildingsUi {
 
   const skin = getSkin(DEFAULT_SKIN);
   const tk = deriveTokens(skin);
-  let buildScale = LOOK.buildScale, cmdrK = 1, showOthers = false, turned = false;
+  let buildScale = LOOK.buildScale, cmdrK = 1, turned = false;
+  /** Which sliders show; with rowOnly the row draws only that group too (the kiosk anchor always stays). */
+  let pick: Grp | "all" = "bldg", rowOnly = true;
 
   const canvas = document.createElement("canvas");
   const gl = new WebGLRenderer({ canvas, antialias: true });
@@ -100,9 +108,12 @@ export function createBuildingsRow(): BuildingsUi {
   const scaleOf = (it: Item): number => (it.building ? ART_M * buildScale * it.base * it.k : ART_M * it.k);
 
   function build(): void {
-    const entries = meshyEntries().filter((e) => !e.kind && !e.slot && !e.batch && !e.unwired && meshyScene(e.file));
-    // the kiosk first (the anchor), then buildings, then everything else
-    entries.sort((a, b) => Number(b.id === ANCHOR) - Number(a.id === ANCHOR) || Number(isBuilding(b.id)) - Number(isBuilding(a.id)));
+    const grpOf = (e: MeshyEntry): Grp => (e.kind === "decor" ? "decor" : isBuilding(e.id) ? "bldg" : "obj");
+    const order: Record<Grp, number> = { bldg: 0, obj: 1, decor: 2 };
+    // story decor is unwired (placed by the story levels themselves), so it counts here too; ordinary objects only when wired
+    const entries = meshyEntries().filter((e) => (e.kind === "decor" ? !PARTS.has(e.id) : !e.kind && !e.unwired) && !e.slot && !e.batch && meshyScene(e.file));
+    // the kiosk first (the anchor), then buildings, interactive objects, decor
+    entries.sort((a, b) => Number(b.id === ANCHOR) - Number(a.id === ANCHOR) || order[grpOf(a)] - order[grpOf(b)]);
     for (const e of entries) {
       const s = meshyScene(e.file)!;
       const g = new Group();
@@ -113,7 +124,7 @@ export function createBuildingsRow(): BuildingsUi {
       const building = isBuilding(e.id);
       const key = keyOf(e);
       const tag = el("div", undefined, "tag");
-      const it: Item = { e, key, name: key.replace(/^\w+\./, ""), building, base: building ? modelScaleFor(LOOK.modelScale, e.id, e.level ?? 1) : 1, k: 1, g,
+      const it: Item = { e, key, name: key.replace(/^\w+\./, ""), grp: grpOf(e), building, box: el("div"), base: building ? modelScaleFor(LOOK.modelScale, e.id, e.level ?? 1) : 1, k: 1, g,
         w: box.max.x - box.min.x, d: box.max.z - box.min.z, h: box.max.y - box.min.y, x: 0, tag, out: el("span") };
       items.push(it);
       row.add(g);
@@ -133,7 +144,7 @@ export function createBuildingsRow(): BuildingsUi {
     const cmdrW = cmdrM * cmdrK * 0.4 * ART_M;
     x += cmdrW + GAP_M * ART_M;
     for (const it of items) {
-      const on = it.building || showOthers;
+      const on = !rowOnly || pick === "all" || it.grp === pick || it.e.id === ANCHOR;
       it.g.visible = on;
       it.tag.style.display = on ? "" : "none";
       if (!on) continue;
@@ -190,7 +201,26 @@ export function createBuildingsRow(): BuildingsUi {
   btns.append(back, close, refocus, turn, copy, reset, hide);
   const note = el("div", `Side on, no perspective: heights compare straight across. x1 = the game today (buildScale ${LOOK.buildScale} x look.json modelScale). The yellow line is the kiosk's roof, the size anchor.`, "note");
   const sliders = el("div");
-  panel.append(btns, note, sliders);
+  // which sliders show (and, with the tick box, which models stand in the row)
+  const radios = el("div", undefined, "row");
+  radios.style.cssText = "gap:10px;font-size:14px";
+  for (const [v, label] of GROUPS) {
+    const l = el("label");
+    const r = el("input"); r.type = "radio"; r.name = "bldgGrp"; r.value = v; r.checked = v === pick;
+    r.onchange = () => { pick = v; showGroup(); relayout(); focus(); };
+    l.append(r, ` ${label}`);
+    radios.append(l);
+  }
+  const only = el("label", undefined, "note");
+  const onlyCb = el("input"); onlyCb.type = "checkbox"; onlyCb.checked = rowOnly;
+  onlyCb.onchange = () => { rowOnly = onlyCb.checked; relayout(); focus(); };
+  only.append(onlyCb, " Row shows only the selected group (plus the kiosk)");
+  panel.append(radios, only, btns, note, sliders);
+  const heads: Partial<Record<Grp, HTMLElement>> = {};
+  function showGroup(): void {
+    for (const it of items) it.box.style.display = pick === "all" || it.grp === pick ? "" : "none";
+    for (const [g, h] of Object.entries(heads)) h.style.display = pick === "all" || g === pick ? "" : "none";
+  }
 
   function slider(title: string, min: number, max: number, step: number, val: number, onInput: (v: number) => void): { out: HTMLSpanElement; input: HTMLInputElement; box: HTMLDivElement } {
     const d = el("div", undefined, "sl");
@@ -202,7 +232,6 @@ export function createBuildingsRow(): BuildingsUi {
   }
   let globalOut: HTMLSpanElement, cmdrOut: HTMLSpanElement;
   const inputs: { it?: Item; input: HTMLInputElement; def: number }[] = [];
-  let othersHead: HTMLElement;
 
   function buildSliders(): void {
     const g = slider("Building size (all)", 0.3, 1.5, 0.01, buildScale, (v) => { buildScale = v; });
@@ -211,22 +240,24 @@ export function createBuildingsRow(): BuildingsUi {
     const c = slider("Commander size", 0.5, 2, 0.01, cmdrK, (v) => { cmdrK = v; });
     cmdrOut = c.out;
     inputs.push({ input: c.input, def: 1 });
-    const oth = el("label", undefined, "sl");
-    const cb = el("input"); cb.type = "checkbox"; cb.checked = showOthers;
-    cb.onchange = () => { showOthers = cb.checked; othersBox.style.display = showOthers ? "" : "none"; relayout(); focus(); };
-    oth.append(cb, " Also show the other objects (sources, captures, salvage, gate)");
-    sliders.append(g.box, c.box, oth, el("h4", "Buildings"));
-    const othersBox = el("div");
-    othersBox.style.display = "none";
-    othersHead = el("h4", "Other objects (drawn at ART_M; a change goes into meshy.json width)");
-    othersBox.append(othersHead);
-    for (const it of items) {
-      const s = slider(it.key, 0.3, 3, 0.01, it.k, (v) => { it.k = v; });
-      it.out = s.out;
-      inputs.push({ it, input: s.input, def: 1 });
-      (it.building ? sliders : othersBox).append(s.box);
+    sliders.append(g.box, c.box);
+    const titles: Record<Grp, string> = {
+      bldg: "Buildings (look.json modelScale)",
+      obj: "Interactive objects (meshy.json width)",
+      decor: "Decor (meshy.json width; story levels may scale a placed copy again)",
+    };
+    for (const grp of ["bldg", "obj", "decor"] as Grp[]) {
+      heads[grp] = el("h4", titles[grp]);
+      sliders.append(heads[grp]!);
+      for (const it of items.filter((i) => i.grp === grp)) {
+        const s = slider(it.key, 0.1, 3, 0.01, it.k, (v) => { it.k = v; });
+        it.out = s.out;
+        it.box = s.box;
+        inputs.push({ it, input: s.input, def: 1 });
+        sliders.append(s.box);
+      }
     }
-    sliders.append(othersBox);
+    showGroup();
   }
 
   function paint(): void {
@@ -300,8 +331,8 @@ export function createBuildingsRow(): BuildingsUi {
       isOpen = true;
       root.classList.add("open");
       back.onclick = () => this.close();
-      const ids = new Set(meshyEntries().filter((e) => !e.kind && !e.slot && !e.batch).map((e) => e.id).concat("unit.player"));
-      loading ??= loadMeshy(undefined, ids).then(() => { if (rigged.entryFor("unit.player")) build(); else panel.append(el("div", "Models failed to load", "note")); });
+      const ids = new Set(meshyEntries().filter((e) => (!e.kind || e.kind === "decor") && !e.slot && !e.batch).map((e) => e.id).concat("unit.player"));
+      loading ??= loadMeshy(undefined, ids, undefined, true).then(() => { if (rigged.entryFor("unit.player")) build(); else panel.append(el("div", "Models failed to load", "note")); });
       cancelAnimationFrame(raf);
       frame();
     },
