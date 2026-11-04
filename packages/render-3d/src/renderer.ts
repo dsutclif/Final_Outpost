@@ -586,6 +586,16 @@ export class Renderer3D implements Renderer {
     this.env.nightLift = this.env.night ? nightFloor(skin) : null;
     this.fx = new Fx(mats.particle, this.scene, this.labels);
     this.fx.onCoinLanded = this.coinCb;
+    // HUD-bound items keep shrinking on screen from their size on the ground to the HUD icon's size
+    this.fx.hudScale = (at, from, k, res) => {
+      const tanF = Math.tan((this.camera.fov * Math.PI) / 360);
+      const px = (p: Vector3): number => this.cssH / (2 * Math.max(1, p.distanceTo(this.camera.position)) * tanF);
+      const w = this.items?.width(res) ?? 1;
+      const start = w * px(from);
+      const end = (this.hudAnchor() as { size?: number }).size ?? 26;
+      const e = k * k * (3 - 2 * k);
+      return (start + (end - start) * e) / (w * px(at));
+    };
     if (this.lookOn) {
       this.fx.enableSoft(); this.env.enableSoftStorm();
       // console handles for tuning the look test (fire effects, hold a storm)
@@ -3109,7 +3119,7 @@ export class Renderer3D implements Renderer {
       case "collected": {
         const n = Number(e["n"] ?? 1);
         fx.floater(ft("collected", { n }), gold, up(this.playerBack(), 20), 46);
-        fx.coins(up(at, 6), () => { const h = this.hudAnchor(); return this.fromScreen(h.x, h.y); }, Math.min(12, Math.max(3, n)), "res.currency");
+        fx.coins(up(at, 6), () => { const h = this.hudAnchor(); return this.fromScreen(h.x, h.y); }, Math.min(12, Math.max(3, n)), "res.currency", true);
         break;
       }
       case "core_fuel_out":

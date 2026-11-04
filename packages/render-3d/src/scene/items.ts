@@ -24,6 +24,12 @@ export class Items {
     for (const b of this.batches.values()) b.begin();
   }
 
+  /** World width of one item (its widest side), for sizing it on screen. */
+  width(res: string): number {
+    const box = this.meshy.get(res)?.geo.boundingBox;
+    return (box ? Math.max(box.max.x - box.min.x, box.max.z - box.min.z) : itemHeight(res) * 3) * this.scale;
+  }
+
   /** World height of one stacked item (a Meshy item stacks at its own height). */
   height(res: string): number {
     const box = this.meshy.get(res)?.geo.boundingBox;

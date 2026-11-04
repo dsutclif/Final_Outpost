@@ -120,6 +120,10 @@ export class LookTest {
   private acc = 0;
   private frames = 0;
   private goodFor = 0;
+  /** A resolution change waits for the start of the next frame: resizing the canvas after drawing blanks it (the iPhone flash). */
+  private pendingDpr: number | null = null;
+  /** Steps down so far; after two the resolution stays put, so it never bounces up and down. */
+  private drops = 0;
   private fps = 60;
   private gases: Gas[] = [];
   private gasQuad = new PlaneGeometry(1, 1);
@@ -244,6 +248,7 @@ export class LookTest {
   }
 
   render(dt: number): void {
+    if (this.pendingDpr !== null) { this.dpr = this.pendingDpr; this.pendingDpr = null; this.resize(this.w, this.h); }
     this.t += dt;
     this.touchMaterials();
     this.findGases();
@@ -263,8 +268,9 @@ export class LookTest {
     if (this.acc < 1) return;
     this.fps = this.frames / this.acc;
     this.acc = 0; this.frames = 0;
-    if (this.fps < FPS_LOW && this.dpr > DPR_MIN) { this.dpr = Math.max(DPR_MIN, this.dpr - DPR_STEP); this.goodFor = 0; this.resize(this.w, this.h); }
-    else if (this.fps >= FPS_OK && this.dpr < this.dprMax) { if (++this.goodFor >= 4) { this.dpr = Math.min(this.dprMax, this.dpr + DPR_STEP); this.goodFor = 0; this.resize(this.w, this.h); } }
+    // slow to climb back (10 good seconds) and done climbing after two drops, so it settles instead of bouncing
+    if (this.fps < FPS_LOW && this.dpr > DPR_MIN) { this.pendingDpr = Math.max(DPR_MIN, this.dpr - DPR_STEP); this.goodFor = 0; this.drops++; }
+    else if (this.fps >= FPS_OK && this.dpr < this.dprMax && this.drops < 2) { if (++this.goodFor >= 10) { this.pendingDpr = Math.min(this.dprMax, this.dpr + DPR_STEP); this.goodFor = 0; } }
     else this.goodFor = 0;
     if (this.badge) this.badge.textContent = `LOOK TEST · ${this.dpr.toFixed(2)}x of ${this.dprMax}x · ${Math.round(this.fps)} fps`;
   }

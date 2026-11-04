@@ -13,7 +13,7 @@ export type Target = Vector3 | (() => Vector3);
 
 interface Particle { p: Vector3; v: Vector3; g: number; life: number; age: number; size: number; color: Color; spin: number; drag: number; kind: Kind }
 interface Floater { sprite: Sprite; mat: SpriteMaterial; age: number; life: number; base: Vector3; on: boolean; size?: [number, number] }
-interface Flight { res: string; from: Vector3; to: Target; age: number; dur: number; h: number; toPlayer: boolean; done?: () => void; spin: number }
+interface Flight { res: string; from: Vector3; to: Target; age: number; dur: number; h: number; toPlayer: boolean; done?: () => void; spin: number; hud?: boolean }
 
 const MAX_PARTICLES = 700;
 /** Friendly laser glow (BACKLOG-R6 N5: blue for friendlies, red for enemies). */
@@ -32,6 +32,8 @@ export class Fx {
   shake = 0;
   particleScale = 1;
   onCoinLanded: (() => void) | null = null;
+  /** Size multiplier for an item flying to the HUD at `at` (the renderer knows the camera); 1 when unset. */
+  hudScale: ((at: Vector3, from: Vector3, k: number, res: string) => number) | null = null;
   /** Look test: soft sprites and bolts of light instead of cubes. */
   private soft: SoftParticles | null = null;
   private bolts: Bolts | null = null;
@@ -159,10 +161,10 @@ export class Fx {
   }
 
   /** Coins fly from a world point toward a target that tracks the HUD chip. */
-  coins(from: Vector3, to: () => Vector3, n: number, res: string): void {
+  coins(from: Vector3, to: () => Vector3, n: number, res: string, toHud = false): void {
     for (let i = 0; i < n; i++) {
       const f0 = from.clone().add(new Vector3((Math.random() - 0.5) * 16, Math.random() * 6, (Math.random() - 0.5) * 16));
-      this.flights.push({ res, from: f0, to, age: -i * 0.05, dur: 0.55 + Math.random() * 0.15, h: 40, toPlayer: false, spin: Math.random() * 6, done: () => this.onCoinLanded?.() });
+      this.flights.push({ res, from: f0, to, age: -i * 0.05, dur: 0.55 + Math.random() * 0.15, h: 40, toPlayer: false, hud: toHud, spin: Math.random() * 6, done: () => this.onCoinLanded?.() });
     }
   }
 
@@ -215,7 +217,9 @@ export class Fx {
       const to = typeof f.to === "function" ? f.to() : f.to;
       tmpV.lerpVectors(f.from, to, k);
       tmpV.y += Math.sin(k * Math.PI) * f.h;
-      items.add(f.res, tmpV.x, tmpV.y, tmpV.z, f.spin + k * 6, 1, Math.sin(k * Math.PI) * 0.6);
+      // flying to the HUD, a coin shrinks on screen to the counter's icon size (Doug, 2026-11-04)
+      const ks = f.hud && this.hudScale ? this.hudScale(tmpV, f.from, k, f.res) : 1;
+      items.add(f.res, tmpV.x, tmpV.y, tmpV.z, f.spin + k * 6, ks, Math.sin(k * Math.PI) * 0.6);
     }
   }
 

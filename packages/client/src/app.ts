@@ -1371,12 +1371,14 @@ export class App {
   }
 
   /** Where coins fly: the cash count, in stage px (both renderers use this). */
-  private coinTarget(): { x: number; y: number } {
+  /** Where coins fly to (stage px) and the on-screen size of the counter's coin icon, which they shrink to. */
+  private coinTarget(): { x: number; y: number; size?: number } {
     const chip = this.hud.anchor();
     const st = this.el.stage.getBoundingClientRect();
     const r = chip.getBoundingClientRect();
     if (!r.width) return { x: st.width - 40, y: 20 };
-    return { x: r.left + 14 - st.left, y: r.top + r.height / 2 - st.top };
+    const icon = chip.querySelector("img, svg, canvas, i")?.getBoundingClientRect();
+    return { x: r.left + 14 - st.left, y: r.top + r.height / 2 - st.top, size: icon?.height ? icon.height : r.height * 0.75 };
   }
 
   private updateDebug(s: Session): void {

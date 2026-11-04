@@ -1,7 +1,6 @@
 {
   "notes": [
-    "A new look: softer light from the Mars sky, sharper full-retina graphics, and a glowing, smoky reactor.",
-    "Dust, sparks and confetti are soft and natural now, turrets fire bolts of blue light, and dust storms roll across the screen.",
-    "Rock ridges are real rockslides, and small stones are rounded and sand-coloured. The reactor's safe ring no longer dips under the floor tiles."
+    "Fixed the screen flashing now and then on iPhone.",
+    "Coins flying to your cash counter now shrink as they rise, landing at the size of the counter's coin."
   ]
 }
