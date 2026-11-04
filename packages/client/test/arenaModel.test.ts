@@ -137,7 +137,8 @@ describe("fighter arena model", () => {
       if (runFight(base).result!.winner === "settlers") standWins++;
       if (runFight({ ...base, kite: true }).result!.winner === "settlers") kiteWins++;
     }
-    expect(standWins).toBeLessThanOrEqual(3);
+    // Doug 2026-11-04 tuned the herd for the ranger's medic odds, so a standing commander now loses about half the time
+    expect(standWins).toBeLessThanOrEqual(7);
     expect(kiteWins).toBeGreaterThanOrEqual(7);
   });
 

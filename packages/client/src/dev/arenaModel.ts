@@ -61,9 +61,9 @@ export const PROPOSALS: { key: string; v: number; why: string }[] = [
   // hunting (Doug 2026-11-04): a standing hunter loses to three spiked hoppers up close; one who keeps moving wins with his gun
   { key: "node.prey_dangerous:hp", v: 3, why: "one hit from the commander or a ranger kills it (Doug)" },
   { key: "node.prey_dangerous:interval", v: 0.5, why: "Doug 2026-11-04 sandbox: at 0, 3 or 4 a herd is routine, sometimes needs the medic, often needs it" },
-  { key: "node.prey_dangerous:damage", v: 8, why: "arena sweep: three beat a standing hunter 17-18 times in 20; two never do; moving always wins" },
-  { key: "node.prey_dangerous:speed", v: 78, why: "Doug 2026-11-04: four spiked hoppers send a standing ranger to the medic about 1 hunt in 10 (arena: 40 in 400; three: 0 in 400)" },
-  { key: "node.prey_dangerous:aggroRange", v: 150, why: "the herd charges together from well past gun reach" },
+  { key: "node.prey_dangerous:damage", v: 12, why: "Doug 2026-11-04: a standing ranger needs the medic 1 hunt in 20 against three (arena: 40 in 800) and about 1 in 7 against four (121 in 800); one bite injures, so both can't be exact" },
+  { key: "node.prey_dangerous:speed", v: 78, why: "Doug 2026-11-04: a standing ranger needs the medic 1 hunt in 20 against three (arena: 40 in 800) and about 1 in 7 against four (121 in 800); one bite injures, so both can't be exact" },
+  { key: "node.prey_dangerous:aggroRange", v: 88, why: "Doug 2026-11-04: a standing ranger needs the medic 1 hunt in 20 against three (arena: 40 in 800) and about 1 in 7 against four (121 in 800); one bite injures, so both can't be exact" },
   { key: "node.prey_dangerous:biteWindup", v: 0.4, why: "new: a bite lands only if the target is still in reach after the wind-up, so moving dodges it" },
   { key: "hunter:hp", v: 12, why: "new: at 0 the ranger is injured (lies down, can't be hurt) until a medic or the commander heals him (Doug 2026-11-04)" },
   { key: "hunter:damage", v: 3, why: "Doug 2026-11-04 sandbox" },
