@@ -85,16 +85,17 @@ class Wrap3D implements GameRenderer {
 /** Load the 3D chunk and build a renderer; throws when WebGL is unavailable. */
 export async function createRenderer(quality: Tier): Promise<GameRenderer> {
   if (!webglAvailable()) throw new Error("WebGL unavailable");
-  return new Wrap3D(await loadRenderer3D({ quality, look: lookTest() }));
+  // the new look (sky light, bloom, soft effects, full retina) is on except on the low tier
+  return new Wrap3D(await loadRenderer3D({ quality, look: quality !== "low" && lookTest() }));
 }
 
-/** Look test: ?look=1 turns it on, ?look=0 off; remembered on the device so level URLs can drop the param. */
+/** The new look is on by default; ?look=0 turns it off and ?look=1 back on (with a debug badge), remembered on the device. */
 function lookTest(): boolean {
   try {
     const q = new URLSearchParams(location.search).get("look");
     if (q !== null) localStorage.setItem("fo.look", q === "1" ? "1" : "0");
-    return localStorage.getItem("fo.look") === "1";
-  } catch { return false; }
+    return localStorage.getItem("fo.look") !== "0";
+  } catch { return true; }
 }
 
 export const warm3D = (): void => { void preloadRenderer3D().catch(() => undefined); };

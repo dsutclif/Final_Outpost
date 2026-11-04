@@ -147,7 +147,10 @@ export class LookTest {
 
     const doc = gl.domElement.ownerDocument;
     const host = gl.domElement.parentElement;
-    this.badge = host ? doc.createElement("div") : null;
+    // the fps badge shows only after an explicit ?look=1 (players never see it)
+    let debug = false;
+    try { debug = globalThis.localStorage?.getItem("fo.look") === "1"; } catch { /* storage blocked */ }
+    this.badge = host && debug ? doc.createElement("div") : null;
     if (this.badge && host) {
       this.badge.style.cssText = "position:absolute;left:8px;bottom:8px;z-index:50;padding:3px 7px;border-radius:6px;background:rgba(0,0,0,.55);color:#ffd9a8;font:600 11px system-ui;pointer-events:none";
       host.appendChild(this.badge);

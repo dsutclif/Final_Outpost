@@ -45,7 +45,7 @@ import { buildTurret } from "./assets/buildings.js";
 import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
-import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash } from "./assets/scatter.js";
+import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash, hash01 } from "./assets/scatter.js";
 import { LEAD_WEIGHT, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder, ROCKS } from "./geom.js";
 import { Interp, type V } from "./interp.js";
@@ -364,7 +364,11 @@ export class Renderer3D implements Renderer {
   private silMat: MeshBasicMaterial | null = null;
   private blobs: Blobs | null = null;
   private items: Items | null = null;
-  private walls: { wall: Batch; cracked: Batch; reinforced: Batch; crackedR: Batch; dash: Batch; rubble: Batch; crate: Batch } | null = null;
+  private walls: { wall: Batch; cracked: Batch; reinforced: Batch; crackedR: Batch; dash: Batch; rubble: Batch; crate: Batch; terrain: Batch } | null = null;
+  /** The Rockslide GLB has landed: ridge and outcrop terrain draws as tiles of it (Doug, 2026-11-04). */
+  private rockslide = false;
+  /** Terrain pieces placed as code models, by placed key, with their kind (swapped out when the Rockslide lands). */
+  private terrainKeys = new Map<string, string>();
   /** Meshy wall sections once loaded: tile length (art metres) and thickness scale. */
   private wallFit: Partial<Record<"wall" | "reinforced", { len: number; depth: number }>> = {};
   private isNew: ((id: string) => boolean) | null = null;
@@ -607,6 +611,7 @@ export class Renderer3D implements Renderer {
       crackedR: new Batch(crackG, mats.panel, this.scene, 8, "wallsCrackedReinforced"),
       dash: new Batch(dashG, mats.std, this.scene, 64, "barrierDashes"),
       rubble: new Batch(rubbleG, mats.std, this.scene, 16, "rubble"),
+      terrain: new Batch(rubbleG, mats.std, this.scene, 32, "terrainRock"),
       crate: new Batch(crateG, mats.std, this.scene, 4, "shelfCrates"),
     };
     this.scaffoldGeo = this.buildScaffold();
@@ -1266,6 +1271,15 @@ export class Renderer3D implements Renderer {
       g.geo.translate(-(b.min.x + b.max.x) / 2, 0, -(b.min.z + b.max.z) / 2).scale(1 / Math.max(0.01, b.max.x - b.min.x), 1, 1 / Math.max(0.01, b.max.z - b.min.z));
       this.geos.push(g.geo);
       this.walls.rubble.swap(g.geo, g.mat);
+      // ridges and outcrops (the hopper bounds and the land beyond the gates) become Rockslide tiles too
+      this.walls.terrain.swap(g.geo, g.mat);
+      this.walls.terrain.mesh.castShadow = true;
+      this.rockslide = true;
+      for (const [k, kind] of this.terrainKeys) {
+        if (kind === "chasm") continue;
+        const pl = this.placed.get(k);
+        if (pl) { this.removePlaced(pl); this.placed.delete(k); }
+      }
       return;
     }
     const box = g.geo.boundingBox!;
@@ -2155,6 +2169,21 @@ export class Renderer3D implements Renderer {
       } else if (z.type === "zone.terrain") {
         // one model per piece, built to the rect (the footprint in metres) and cached under its key
         const kind = z.kind ?? "ridge", seed = 3 + z.id.length * 5 + Math.round(x + y);
+        if (this.rockslide && kind !== "chasm") {
+          // tiles of the Rockslide along the long axis, overlapping, each turned and sized a little differently
+          const alongX = w >= h, long = Math.max(w, h), short = Math.min(w, h);
+          const n = Math.max(1, Math.round(long / (ART_M * 1.2))), seg = long / n;
+          for (let i = 0; i < n; i++) {
+            const r = hash01(seed + i * 7.3), q = hash01(seed * 3 + i * 1.9);
+            const yaw = (alongX ? 0 : Math.PI / 2) + (i % 2 ? Math.PI : 0) + (r - 0.5) * 0.3;
+            const a = -long / 2 + (i + 0.5) * seg + (q - 0.5) * seg * 0.2;
+            tmpM.makeRotationY(yaw).scale(tmpV.set(seg * (1.2 + r * 0.25), ART_M * 2.6 * (0.8 + q * 0.45), short * (1.05 + q * 0.2)))
+              .setPosition(x + w / 2 + (alongX ? a : 0), -ART_M * 0.04, y + h / 2 + (alongX ? 0 : a));
+            W.terrain.push(tmpM);
+          }
+          continue;
+        }
+        this.terrainKeys.set(`z:${z.id}`, kind);
         this.place(`z:${z.id}`, "zone.terrain", v3(x + w / 2, 0, y + h / 2), 1, (ctx) => buildTerrain(ctx, kind, w / ART_M, h / ART_M, seed));
       } else if (z.type === "zone.waiting") {
         const p = this.place(`z:${z.id}`, "zone.waiting", v3(x + w / 2, 0, y + h / 2));
