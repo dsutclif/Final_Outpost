@@ -308,7 +308,7 @@ def shot4():
     """The pod sequence in its own frame numbers (1 .. PRE + N); EDIT says which camera holds which
     frames. Returns the edit: [(camera, first frame, last frame)]."""
     sc = bpy.context.scene
-    dawn()
+    night()  # years later: the pod sequence plays at night, ending in level 1's moonlight
     S = crash_site()
     N, st, pel = S["N"], S["starts"], S["pelvis"]
     F = lambda row: row + 1 + PRE  # scene frame of a motion row
@@ -421,6 +421,17 @@ def dawn():
     lib.ridge(at=(-120, 480, -3), length=1800, depth=240, height=95, seed=9, color="#665547")
 
 
+def night():
+    """Level 1's story night (skin look3d.storyNight): a cold moon over sand and ridge, faint enough that the
+    deck and pods still read and the red emergency light and the seal's flash carry the shots."""
+    lib.sky(horizon="#3a4660", zenith="#0b0f1a", haze=0.0016, haze_color="#2a3346")
+    lib.sun(elevation=40, azimuth=-150, strength=5.6, color="#a9bfe6")
+    lib.ground()
+    lib.ridge(at=(0, 260, -1), length=1500, depth=170, height=48, seed=4, color="#2a2a2e")
+    lib.ridge(at=(-120, 480, -3), length=1800, depth=240, height=95, seed=9, color="#33333a")
+    bpy.context.scene.world.node_tree.nodes["Background"].inputs["Strength"].default_value = 5.0
+
+
 def panel_steel(name="deckplate"):
     """Ship deck: dark steel with a panel-seam grid and a little wear."""
     m = bpy.data.materials.new(name)
@@ -494,6 +505,70 @@ for n in ([only] if only else SHOTS):
     if n == 4:
         edit = S["edit"]
         last = edit[-1][2]
+        if "--export" in args:  # the hand-off frame's set, for level 1 (tools/handoff.ts): every object's world matrix and box
+            import json
+            sc.frame_set(last)
+            sc.camera = edit[-1][0]
+            bpy.context.view_layer.update()
+            objs = {}
+            for o in sc.objects:
+                if o.type not in ("MESH", "EMPTY", "CAMERA") or o.hide_render:
+                    continue
+                d = {"type": o.type, "parent": o.parent.name if o.parent else None, "m": [list(r) for r in o.matrix_world]}
+                if o.type == "MESH":
+                    pts = [o.matrix_world @ Vector(c) for c in o.bound_box]
+                    d["lo"], d["hi"] = list(map(min, *pts)), list(map(max, *pts))
+                    d["llo"], d["lhi"] = list(map(min, *o.bound_box)), list(map(max, *o.bound_box))
+                if o.type == "CAMERA":
+                    d["lens"], d["sensor"] = o.data.lens, o.data.sensor_width
+                objs[o.name] = d
+            out = {"frame": last, "end": list(S["end"]), "camera": sc.camera.name, "res": [sc.render.resolution_x, sc.render.resolution_y], "objs": objs}
+            # the film's own pod (cradle cut away) and glass, in the pod and hinge frames, as game model sources
+            src_dir = os.path.join(lib.ROOT, "..", "Asset workflow", "3D Models")
+            sealed = bpy.data.objects["bay5"]
+            glass = next(c for c in sealed.children_recursive if c.type == "MESH" and c.parent and c.parent.name.startswith("pod_hinge"))
+            for o, rel, fname in ((sealed, Matrix.Identity(4), "Stasis Pod (crash film).glb"),
+                                  (glass, glass.parent.matrix_world.inverted() @ glass.matrix_world, "Stasis Pod Glass (crash film).glb")):
+                me = o.data.copy()
+                if any(p.material_index == 1 for p in me.polygons):
+                    # the game draws glass opaque: the pane, and any face whose texel the film sees through (the
+                    # texture's alpha), get one even frost texel instead of black blotches
+                    img = next(n.image for n in me.materials[0].node_tree.nodes if n.type == "TEX_IMAGE")
+                    w, h, px = img.size[0], img.size[1], img.pixels[:]
+                    uv = me.uv_layers.active.data
+                    def texel(p):
+                        u = sum(uv[i].uv.x for i in p.loop_indices) / p.loop_total % 1
+                        v = sum(uv[i].uv.y for i in p.loop_indices) / p.loop_total % 1
+                        return (int(v * (h - 1)) * w + int(u * (w - 1))) * 4, (u, v)
+                    def at(p):
+                        o4, uv_ = texel(p)
+                        return sum(px[o4:o4 + 3]), uv_
+                    # inside the frame band (cryo_pod.build's pane region, by position alone)
+                    lo_, hi_ = Vector(map(min, *[v.co for v in me.vertices])), Vector(map(max, *[v.co for v in me.vertices]))
+                    mid, half = (lo_ + hi_) / 2, (hi_ - lo_) / 2
+                    inner = lambda p: abs(p.center.x - mid.x) < half.x * 0.9 and abs(p.center.y - mid.y) < half.y * 0.88
+                    pane = [p for p in me.polygons if p.material_index == 1 or inner(p) or px[texel(p)[0] + 3] < 0.5]
+                    print("PANE faces", len(pane), "of", len(me.polygons))
+                    lum = sorted(at(p) for p in me.polygons if p.material_index == 1 and px[texel(p)[0] + 3] >= 0.5)
+                    frost = lum[int(len(lum) * 0.75)][1]
+                    for p in pane:
+                        for i in p.loop_indices:
+                            uv[i].uv = frost
+                for p in me.polygons:  # one material: the game draws each model with one texture
+                    p.material_index = 0
+                while len(me.materials) > 1:
+                    me.materials.pop()
+                tmp = bpy.data.objects.new(fname, me)
+                sc.collection.objects.link(tmp)
+                tmp.matrix_world = rel
+                bpy.ops.object.select_all(action="DESELECT")
+                tmp.select_set(True)
+                bpy.ops.export_scene.gltf(filepath=os.path.join(src_dir, fname), export_format="GLB", use_selection=True, export_image_format="JPEG")
+                out["objs"][fname] = {"m": [list(r) for r in rel], "llo": list(map(min, *[rel @ Vector(c) for c in o.bound_box])), "lhi": list(map(max, *[rel @ Vector(c) for c in o.bound_box]))}
+                bpy.data.objects.remove(tmp)
+            json.dump(out, open(args[args.index("--export") + 1], "w"), indent=1)
+            print("EXPORTED", len(objs), "objects at frame", last)
+            continue
         if "--check" in args:  # first, middle and last frame of each cut, and the body against the pod and glass
             body = S["P"]["body"]
             hits = []
@@ -517,9 +592,9 @@ for n in ([only] if only else SHOTS):
                         sc.frame_set(f)
                         lib.render_still(os.path.join(lib.OUT, f"podclose_{f:03d}_{k}.png"))
                 continue
-            for cam, f0, f1 in edit:
+            for cam, f0, f1 in (edit[-1:] if "--last" in args else edit):  # --last: only the hand-off frame
                 sc.camera = cam
-                for f in (f0, (f0 + f1) // 2, f1):
+                for f in ((f1,) if "--last" in args else (f0, (f0 + f1) // 2, f1)):
                     sc.frame_set(f)
                     lib.render_still(os.path.join(lib.OUT, f"crash_4_{f:03d}.png"))
             continue

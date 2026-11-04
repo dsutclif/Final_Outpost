@@ -798,7 +798,7 @@ export const marsGreenhouse: Skin = {
         calmUntilLit: true,
         noGuide: true,
         solid: ["sink.core"],
-        openZoom: { from: 0.6, seconds: 2.5 },
+        openZoom: { film: [170.3, 302.8], hero: 0.53, seconds: 2.5 },
         retryFrom: [300, 320],
         goals: [
           { id: "ignite", hold: true, label: "Restart the reactor" },

@@ -1,7 +1,7 @@
 import type { StoryCameraBeat } from "@fo/skins";
 
 /** The part of the session camera a beat drives; the renderer treats `follow: false` as hands off. */
-export interface BeatCamera { x: number; y: number; zoom: number; follow: boolean }
+export interface BeatCamera { x: number; y: number; zoom: number; follow: boolean; heroK?: number }
 
 const smooth = (k: number): number => k * k * (3 - 2 * k);
 

@@ -1,3 +1,4 @@
+import { viewWidth } from "@fo/content";
 import { FP, TPS, type SimEvent, type State } from "@fo/sim";
 import type { SkinStory, StoryAction, StoryCameraBeat, StoryCastRef, StoryCue, StoryGhost, StoryGoal, StoryHudPart, StoryLevel, StoryPlace, StoryTrigger } from "@fo/skins";
 import { CameraBeatPlayer, type BeatCamera } from "./camera.js";
@@ -133,7 +134,7 @@ export class StoryDirector {
   private objectives: State["objectives"] = [];
   private paintKey = "";
   // the opening framing that matches a film's last frame, eased to the play zoom
-  private zoomOpen: { from: number; seconds: number; hold: number; t: number; at: { x: number; y: number } | null; easing: number | null } | null = null;
+  private zoomOpen: { from: number; hero: number; seconds: number; hold: number; t: number; at: { x: number; y: number } | null; easing: number | null } | null = null;
 
   constructor(
     private readonly story: SkinStory,
@@ -149,8 +150,12 @@ export class StoryDirector {
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
     if (level.openZoom && !replay && !fromRetrySpot) {
-      this.zoomOpen = { from: level.openZoom.from, seconds: level.openZoom.seconds, hold: level.openZoom.hold ?? 8, t: 0, at: null, easing: null };
-      host.cam.zoom = level.openZoom.from;
+      const f = level.openZoom.film, aspect = globalThis.innerWidth / Math.max(1, globalThis.innerHeight);
+      const from = f ? viewWidth() / Math.min(f[0], f[1] * aspect) : (level.openZoom.from ?? 1);
+      const hero = level.openZoom.hero ?? 1;
+      this.zoomOpen = { from, hero, seconds: level.openZoom.seconds, hold: level.openZoom.hold ?? 8, t: 0, at: null, easing: null };
+      host.cam.zoom = from;
+      host.cam.heroK = hero;
     }
     view.hud(this.hidden);
   }
@@ -265,12 +270,13 @@ export class StoryDirector {
     if (z.easing === null) {
       if (!this.frozen) z.t += dt;
       if ((p.x - z.at.x) ** 2 + (p.y - z.at.y) ** 2 > 36 || z.t >= z.hold) z.easing = 0;
-      else { this.host.cam.zoom = z.from; return; }
+      else { this.host.cam.zoom = z.from; this.host.cam.heroK = z.hero; return; }
     }
     z.easing = Math.min(1, z.easing + dt / Math.max(0.01, z.seconds));
     const e = z.easing * z.easing * (3 - 2 * z.easing);
     this.host.cam.zoom = z.from + (1 - z.from) * e;
-    if (z.easing >= 1) this.zoomOpen = null;
+    this.host.cam.heroK = z.hero + (1 - z.hero) * e;
+    if (z.easing >= 1) { this.zoomOpen = null; delete this.host.cam.heroK; }
   }
 
   /** The HUD's tokens for this frame. */

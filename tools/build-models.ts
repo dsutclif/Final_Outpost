@@ -54,6 +54,10 @@ export interface MeshyEntry {
   kind?: "prop" | "character" | "item" | "decor" | "belt";
   /** Also write <file>.lod.glb at this many triangles (props drawn on the code-built crowd). */
   lod?: number;
+  /** Also bake a tangent-space normal map (same size as `texture`) from the original's surface (buggy body). */
+  normalMap?: boolean;
+  /** Mirror across z (negate z, flip winding): the opposite-side wheel, hub still facing out. */
+  mirror?: boolean;
 }
 export interface BuiltEntry { hash: string; tris: number; bytes: number; outline?: { hash: string; tris: number; bytes: number }; lod?: { hash: string; tris: number; bytes: number }; bounds: [number, number, number, number, number, number] }
 
@@ -289,7 +293,7 @@ async function lettering(text: string, box: number[]): Promise<Paint> {
 }
 
 /** Fill each texel of the low atlas from the closest point on the high mesh's texture. */
-function bake(src: Src, low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, size: number, paint?: Paint): Buffer {
+function bake(src: Src, low: { pos: Float32Array; uv: Float32Array; nrm?: Float32Array | undefined; idx: Uint32Array }, size: number, paint?: Paint, nm?: Buffer): Buffer {
   const geo = new BufferGeometry();
   geo.setAttribute("position", new BufferAttribute(src.pos, 3));
   geo.setIndex(new BufferAttribute(src.idx, 1));
@@ -313,6 +317,17 @@ function bake(src: Src, low: { pos: Float32Array; uv: Float32Array; idx: Uint32A
     const v = [low.uv[i0 * 2 + 1]! * size, low.uv[i1 * 2 + 1]! * size, low.uv[i2 * 2 + 1]! * size];
     a.fromArray(low.pos, i0 * 3); b.fromArray(low.pos, i1 * 3); c.fromArray(low.pos, i2 * 3);
     if (paint) tri.set(a, b, c).getNormal(nrm);
+    // tangent frame from the UV derivatives (glTF: green points up the image), as three derives it
+    let tT: Vector3 | undefined, tB: Vector3 | undefined;
+    if (nm && low.nrm) {
+      const e1 = b.clone().sub(a), e2 = c.clone().sub(a);
+      const du1 = (u[1]! - u[0]!) / size, du2 = (u[2]! - u[0]!) / size, dv1 = (v[1]! - v[0]!) / size, dv2 = (v[2]! - v[0]!) / size;
+      const d = du1 * dv2 - du2 * dv1;
+      if (Math.abs(d) > 1e-12) {
+        tT = e1.clone().multiplyScalar(dv2).addScaledVector(e2, -dv1).divideScalar(d);
+        tB = e2.clone().multiplyScalar(du1).addScaledVector(e1, -du2).divideScalar(d).negate();
+      }
+    }
     const det = (v[1]! - v[2]!) * (u[0]! - u[2]!) + (u[2]! - u[1]!) * (v[0]! - v[2]!);
     if (Math.abs(det) < 1e-9) continue;
     const xmin = Math.max(0, Math.floor(Math.min(...u) - 1)), xmax = Math.min(size - 1, Math.ceil(Math.max(...u) + 1));
@@ -336,9 +351,21 @@ function bake(src: Src, low: { pos: Float32Array; uv: Float32Array; idx: Uint32A
       tri.getBarycoord(hit.point, bc);
       sample(src.uv[j0 * 2]! * bc.x + src.uv[j1 * 2]! * bc.y + src.uv[j2 * 2]! * bc.z, src.uv[j0 * 2 + 1]! * bc.x + src.uv[j1 * 2 + 1]! * bc.y + src.uv[j2 * 2 + 1]! * bc.z, o);
       paint?.(p, nrm, out, o);
+      if (nm && low.nrm && tT && tB) {
+        // the original's face normal here, in the low mesh's tangent space
+        const hn = tri.getNormal(new Vector3());
+        const q = [i0, i1, i2], ws = [l0 / sum, l1 / sum, l2 / sum], vn = new Vector3();
+        for (let k = 0; k < 3; k++) { vn.x += low.nrm[q[k]! * 3]! * ws[k]!; vn.y += low.nrm[q[k]! * 3 + 1]! * ws[k]!; vn.z += low.nrm[q[k]! * 3 + 2]! * ws[k]!; }
+        vn.normalize();
+        const T = tT.clone().addScaledVector(vn, -vn.dot(tT)).normalize();
+        const B = new Vector3().crossVectors(vn, T);
+        if (B.dot(tB) < 0) B.negate();
+        nm[o] = Math.round((hn.dot(T) * 0.5 + 0.5) * 255); nm[o + 1] = Math.round((hn.dot(B) * 0.5 + 0.5) * 255); nm[o + 2] = Math.round((hn.dot(vn) * 0.5 + 0.5) * 255); nm[o + 3] = 255;
+      }
     }
   }
   dilate(out, size, 8);
+  if (nm) dilate(nm, size, 8);
   return out;
 }
 
@@ -367,13 +394,17 @@ function dilate(img: Buffer, size: number, passes: number): void {
 }
 
 /** A one-mesh GLB: positions, UVs and smooth normals if given (without them three flat-shades it). */
-async function writeGlb(low: { pos: Float32Array; uv: Float32Array; nrm?: Float32Array; idx: Uint32Array }, rgba: Buffer, size: number, e: MeshyEntry): Promise<Uint8Array> {
+async function writeGlb(low: { pos: Float32Array; uv: Float32Array; nrm?: Float32Array; idx: Uint32Array }, rgba: Buffer, size: number, e: MeshyEntry, nmap?: Buffer): Promise<Uint8Array> {
   const doc = new Document();
   doc.createExtension(EXTTextureWebP).setRequired(true);
   const buf = doc.createBuffer();
   const webp = await sharp(rgba, { raw: { width: size, height: size, channels: 4 } }).removeAlpha().webp({ quality: 82 }).toBuffer();
   const tex = doc.createTexture("albedo").setImage(new Uint8Array(webp)).setMimeType("image/webp");
   const mat = doc.createMaterial("meshy").setBaseColorTexture(tex).setRoughnessFactor(e.rough ?? 0.9).setMetallicFactor(e.metal ?? 0);
+  if (nmap) {
+    const nw = await sharp(nmap, { raw: { width: size, height: size, channels: 4 } }).removeAlpha().webp({ quality: 88 }).toBuffer();
+    mat.setNormalTexture(doc.createTexture("normal").setImage(new Uint8Array(nw)).setMimeType("image/webp"));
+  }
   const prim = doc.createPrimitive()
     .setAttribute("POSITION", doc.createAccessor().setType("VEC3").setArray(new Float32Array(low.pos)).setBuffer(buf))
     .setAttribute("TEXCOORD_0", doc.createAccessor().setType("VEC2").setArray(new Float32Array(low.uv)).setBuffer(buf))
@@ -481,12 +512,17 @@ async function build(e: MeshyEntry): Promise<void> {
   }
   const t0 = Date.now();
   const src = await loadSource(path, e.tint);
+  if (e.mirror) {
+    for (let i = 2; i < src.pos.length; i += 3) src.pos[i] = -src.pos[i]!;
+    for (let i = 0; i < src.idx.length; i += 3) { const t = src.idx[i + 1]!; src.idx[i + 1] = src.idx[i + 2]!; src.idx[i + 2] = t; }
+  }
   const bounds = fit(src.pos, e);
   const paint = e.decal ? await lettering(e.decal.text, e.decal.box) : undefined;
   const size = e.texture ?? 1024;
   const unwrapped = unwrap(lowPoly(src, e.tris ?? (e.error !== undefined ? 30000 : 3000), e.error), size);
   const low = e.error !== undefined ? smooth(unwrapped) : unwrapped;
-  const glb = await writeGlb(low, bake(src, low, size, paint), size, e);
+  const nmap = e.normalMap ? Buffer.alloc(size * size * 4) : undefined;
+  const glb = await writeGlb(low, bake(src, low, size, paint, nmap), size, e, nmap);
   writeFileSync(join(OUT, `${e.file}.glb`), glb);
   const hash = (b: Uint8Array): string => createHash("sha1").update(b).digest("hex").slice(0, 10);
   built[e.file] = { hash: hash(glb), tris: low.idx.length / 3, bytes: glb.byteLength, bounds };
@@ -507,7 +543,7 @@ async function build(e: MeshyEntry): Promise<void> {
 
 // Entries may share a file (decor reused as a per-level node): same source and fit, so it is built
 // once, with an outline if any of them is a building (props and wall sections get none).
-const FIT = ["src", "yaw", "width", "height", "length", "offset", "error", "tris", "texture", "tint", "decal", "rough", "metal", "lod"] as const;
+const FIT = ["src", "yaw", "width", "height", "length", "offset", "error", "tris", "texture", "tint", "decal", "rough", "metal", "lod", "normalMap", "mirror"] as const;
 const first = new Map<string, MeshyEntry>(), outlined = new Set<string>();
 for (const e of config.models) {
   const f = first.get(e.file);

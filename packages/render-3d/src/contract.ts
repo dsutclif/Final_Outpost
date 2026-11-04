@@ -17,6 +17,8 @@ export interface Camera {
    * nearest pad, so targets near the map edge come fully on screen. Null or absent: none.
    */
   lead?: { x: number; y: number } | null;
+  /** The hero drawn this many times its size (a film hand-off's opening, where the film's commander is smaller). */
+  heroK?: number;
 }
 
 export const createCamera = (): Camera => ({ x: 0, y: 0, zoom: 1, follow: true, lead: null });

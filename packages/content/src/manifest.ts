@@ -119,6 +119,8 @@ export const DecorEntity = z.object({
   size: z.tuple([z.number().positive(), z.number().positive(), z.number().positive()]).optional(),
   /** decor.deck_plate only: surface colour (default deck steel). */
   color: z.string().optional(),
+  /** decor.deck_plate only: the crash film's plate grid, panels across the width and depth (seams through the centre). */
+  panels: z.tuple([z.number().positive(), z.number().positive()]).optional(),
 });
 // Barrier lines: contiguous sections, each built by walking along it with the line's resource.
 export const BarrierSection = z.object({

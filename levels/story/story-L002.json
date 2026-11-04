@@ -194,208 +194,232 @@
    "type": "decor.halcyon_wreck",
    "id": "wreck",
    "at": [
-    517.9,
-    3
+    520.2,
+    66.1
    ],
    "yaw": 0,
-   "scale": 0.506
+   "lift": 0.1,
+   "scale": 0.833
   },
   {
    "type": "decor.deck_plate",
    "id": "deck",
    "at": [
-    750,
-    138.7
+    752.4,
+    201.9
    ],
    "yaw": -65.1,
    "size": [
-    169.105,
-    224.462,
-    8.789
+    169.141,
+    224.523,
+    8.792
    ],
-   "lift": 0
+   "lift": 0,
+   "panels": [
+    1.6,
+    3.2
+   ]
   },
   {
    "type": "decor.deck_plate",
    "id": "deck2",
    "at": [
-    713.9,
-    110
+    716.2,
+    173.2
    ],
    "yaw": -65.1,
    "size": [
-    181.452,
-    304.258,
-    8.789
+    181.508,
+    304.351,
+    8.792
    ],
-   "lift": -0.046
+   "lift": -0.047,
+   "panels": [
+    1.6,
+    3.2
+   ]
   },
   {
    "type": "decor.deck_plate",
    "id": "stripe",
    "at": [
-    784.7,
-    213.5
+    787,
+    276.7
    ],
    "yaw": -65.1,
    "size": [
-    2.783,
-    224.462,
-    0.091
+    2.8,
+    224.523,
+    0.093
    ],
-   "lift": 8.764,
+   "lift": 8.769,
    "color": "#c8a23a"
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod0",
    "at": [
-    715.2,
-    192
+    717.6,
+    255.2
    ],
    "yaw": 173.9,
    "lift": -33.4,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid0",
    "at": [
-    719.2,
-    161.9
+    721.5,
+    225.2
    ],
    "yaw": 173.9,
    "lift": 25.7,
    "roll": 118,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid1",
    "at": [
-    819.4,
-    197.1
+    821.9,
+    260.3
    ],
    "yaw": 173.9,
    "lift": 11.1,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod1",
    "at": [
-    818.1,
-    203
+    820.4,
+    266.2
    ],
    "yaw": 173.9,
    "lift": -33.4,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    723.4,
-    121.8
+    725.8,
+    185
    ],
    "yaw": 173.9,
    "lift": 11.1,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod2",
    "at": [
-    722.1,
-    127.7
+    724.4,
+    190.9
    ],
    "yaw": 173.9,
    "lift": -33.4,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid3",
    "at": [
-    826.3,
-    132.8
+    828.7,
+    196
    ],
    "yaw": 173.9,
    "lift": 11.1,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod3",
    "at": [
-    824.9,
-    138.7
+    827.3,
+    201.9
    ],
    "yaw": 173.9,
    "lift": -33.4,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    620.6,
-    110.8
+    623,
+    174
    ],
    "yaw": 173.9,
    "lift": 11.1,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.stasis_pod",
    "id": "pod4",
    "at": [
-    619.2,
-    116.7
+    621.5,
+    179.9
    ],
    "yaw": 173.9,
    "lift": -33.4,
-   "scale": 0.506
+   "scale": 0.833
   },
   {
    "type": "decor.ore_pile",
    "id": "oreDecor1",
    "at": [
-    696.6,
-    270.8
+    699,
+    334
    ],
    "yaw": 0,
-   "scale": 0.374
+   "lift": 0,
+   "scale": 0.375
   },
   {
    "type": "decor.ore_pile",
    "id": "oreDecor2",
    "at": [
-    680.3,
-    282.4
+    682.7,
+    345.7
    ],
    "yaw": 30,
-   "scale": 0.374
+   "lift": 0,
+   "scale": 0.375
   },
   {
    "type": "decor.ore_pile",
    "id": "oreDecor3",
    "at": [
-    666.3,
-    294.1
+    668.7,
+    357.3
    ],
    "yaw": 60,
-   "scale": 0.374
+   "lift": 0,
+   "scale": 0.375
   },
   {
    "type": "decor.ship_scrap",
    "id": "scrap",
    "at": [
-    705.6,
-    283.3
+    708,
+    346.5
    ],
    "yaw": 20,
-   "scale": 0.739
+   "lift": 0,
+   "scale": 0.741
+  },
+  {
+   "type": "decor.ship_scrap",
+   "id": "scrap2",
+   "at": [
+    885.3,
+    264.3
+   ],
+   "yaw": -35,
+   "lift": 0,
+   "scale": 0.741
   },
   {
    "type": "barrier.line",

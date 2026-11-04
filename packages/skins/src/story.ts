@@ -173,8 +173,11 @@ export interface StoryLevel {
   /**
    * Start the camera zoomed out to match a film's last frame, easing to the play zoom: `from` is the camera
    * zoom (below 1 is out), `seconds` the ease, run when the player first moves or after `hold` seconds.
+   * `film` instead gives the film's last frame in world units (width, height at the look point): the video
+   * covers the screen, so the zoom fits whatever part of that frame this screen shows. `hero` draws the hero
+   * at that fraction of its size until then (the film's commander is smaller), growing back with the ease.
    */
-  openZoom?: { from: number; seconds: number; hold?: number };
+  openZoom?: { from?: number; film?: readonly [number, number]; hero?: number; seconds: number; hold?: number };
   /**
    * Every pod on the map glows with a beam, dimming as its freeze timer runs down (cold white for crew,
    * orange for a decoy), so in dim light the pods are the brightest thing around (story level 2). "glow": the

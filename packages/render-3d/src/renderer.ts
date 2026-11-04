@@ -841,7 +841,8 @@ export class Renderer3D implements Renderer {
     const g = meshyGeometry(e.file);
     if (!g) return;
     this.storyDecorDone.add(e.id);
-    g.geo.computeVertexNormals();
+    // keep a build's own smooth normals: its normal map was baked against them
+    if (!g.geo.getAttribute("normal")) g.geo.computeVertexNormals();
     this.geos.push(g.geo);
     const box = g.geo.boundingBox ?? (g.geo.computeBoundingBox(), g.geo.boundingBox!);
     const k = ART_M * (e.width ?? 1.4) / Math.max(0.01, box.max.x - box.min.x, box.max.z - box.min.z);
@@ -861,9 +862,10 @@ export class Renderer3D implements Renderer {
   /**
    * The manifest's decor.deck_plate entities: slabs built in code (the torn deck plate the crash film ends on).
    * `size` is width, depth and thickness in world units, `lift` the height of the underside, `color` the steel.
+   * `panels` is the film's plate grid: that many panels across the width and depth, seams through the centre.
    */
   private buildDeckPlates(): void {
-    const plates = this.manifest.entities.filter((d) => d.type === "decor.deck_plate") as unknown as { at?: readonly [number, number]; yaw?: number; lift?: number; size?: readonly [number, number, number]; color?: string }[];
+    const plates = this.manifest.entities.filter((d) => d.type === "decor.deck_plate") as unknown as { at?: readonly [number, number]; yaw?: number; lift?: number; size?: readonly [number, number, number]; color?: string; panels?: readonly [number, number] }[];
     if (!plates.length) return;
     const cell = 12, px = new Uint8Array(cell * cell * 4);
     // one panel: a plate of steel with a dark seam along two edges, tiled over the slab
@@ -874,17 +876,28 @@ export class Renderer3D implements Renderer {
     const base = new DataTexture(px, cell, cell, RGBAFormat);
     base.wrapS = base.wrapT = RepeatWrapping;
     base.needsUpdate = true;
+    // the film's deck (crash.py panel_steel): big plates, a thin dark seam, a little tone between plates
+    const big = 64, bpx = new Uint8Array(big * big * 4);
+    for (let y = 0; y < big; y++) for (let x = 0; x < big; x++) {
+      const o = (y * big + x) * 4, g = x === 0 || y === 0 ? 96 : 236 + ((x * 7 + y * 13) % 5) * 3;
+      bpx[o] = bpx[o + 1] = bpx[o + 2] = g; bpx[o + 3] = 255;
+    }
+    const plateTex = new DataTexture(bpx, big, big, RGBAFormat);
+    plateTex.wrapS = plateTex.wrapT = RepeatWrapping;
+    plateTex.needsUpdate = true;
     const panel = ART_M * 1.25 * 1.35;
     for (const d of plates) {
       if (!d.at || !d.size) continue;
       const [w, dp, h] = d.size;
-      const tex = base.clone();
-      tex.repeat.set(w / panel, dp / panel);
+      const tex = (d.panels ? plateTex : base).clone();
+      const centred = (n: number): number => (1 - ((n / 2) % 1)) % 1;
+      if (d.panels) { tex.repeat.set(d.panels[0], d.panels[1]); tex.offset.set(centred(d.panels[0]), centred(d.panels[1])); }
+      else tex.repeat.set(w / panel, dp / panel);
       tex.needsUpdate = true;
       const mat = new MeshStandardMaterial({ color: new Color(d.color ?? "#a9acb8"), map: d.color ? null : tex, metalness: 0.08, roughness: 0.8 });
       const geo = new BoxGeometry(w, h, dp);
       // the geometry list is disposed with the level; the texture and material ride along on its dispose event
-      geo.addEventListener("dispose", () => { tex.dispose(); mat.dispose(); });
+      geo.addEventListener("dispose", () => { tex.dispose(); mat.dispose(); plateTex.dispose(); base.dispose(); });
       this.geos.push(geo);
       const m = new Mesh(geo, mat);
       m.position.set(d.at[0], (d.lift ?? 0) + h / 2, d.at[1]);
@@ -1031,6 +1044,8 @@ export class Renderer3D implements Renderer {
   devPlateSize: number | null = PLOT ? PLOT.render.plate : null;
   /** Character size multiplier: units.ts CHAR_K in the game, overridden by the layout sandbox. */
   devCharScale = CHAR_K;
+  /** The camera's hero size factor this frame (Camera.heroK). */
+  private heroK = 1;
   /** Multiplier on units.ts TEXT: look.json textScale in the game, overridden by the layout sandbox. */
   devTextScale = LOOK.textScale;
 
@@ -1039,6 +1054,7 @@ export class Renderer3D implements Renderer {
     const viewW = o?.viewW ?? viewWFor(this.manifest.family), pitch = o ? (o.pitch * Math.PI) / 180 : PITCH, yaw = o ? (o.yaw * Math.PI) / 180 : YAW;
     const fov = o?.fov ?? FOV_DEG;
     if (this.camera.fov !== fov) this.camera.fov = fov;
+    this.heroK = cam.heroK ?? 1;
     const W = this.manifest.map.w, H = this.manifest.map.h;
     const beat = this.storyP?.activeBeat(this.t) ?? null;
     const z = (beat?.zoom ?? cam.zoom) || 1;
@@ -2295,9 +2311,9 @@ export class Renderer3D implements Renderer {
     const pmove = this.moving > 0.15;
     const pyaw = this.faceAct("player", pl, yaw, pmove);
     if (prig) {
-      this.rigged!.add("player", "unit.player", prig, { moving: pmove, hurried: false, run: true, cheer: anim.cheer > 0, act: this.actOf("player")?.act, speed: this.moving }, pl.x, pl.y, pyaw, ART_M * look.scale * this.devCharScale / 0.9);
+      this.rigged!.add("player", "unit.player", prig, { moving: pmove, hurried: false, run: true, cheer: anim.cheer > 0, act: this.actOf("player")?.act, speed: this.moving }, pl.x, pl.y, pyaw, ART_M * look.scale * this.devCharScale * this.heroK / 0.9);
       this.heroSilhouette();
-      this.blobs!.add(pl.x, pl.y, 10 * look.scale * this.devCharScale);
+      this.blobs!.add(pl.x, pl.y, 10 * look.scale * this.devCharScale * this.heroK);
     } else this.addCharacter(look, anim, pl, yaw, t.frost);
     this.backStack(s.player.stack, pl, pyaw, look.scale * this.devCharScale, this.moving, v, true);
     // the hero's health shows over their head only while hurt (animal bites)

@@ -56,18 +56,19 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
   for (let i = 0; i < 4; i++) {
     const bay = new Group();
     bay.position.set((i - 1.5) * 4.6, 0, 0);
-    bay.rotation.y = Math.PI / 2;
+    bay.rotation.y = -Math.PI / 2;
     const pod = meshyScene("decor.stasis_pod");
-    // the model carries its pedestal below the deck line (as level 1's decor sinks it)
-    if (pod) { pod.position.y = -2.36; bay.add(pod); }
+    // the crash film's pod: its build stands it on its sunk cradle, so these put the film's pod frame (cavity
+    // floor at the deck, hinge along the back long edge) on the bay's origin
+    if (pod) { pod.position.set(0.034, -1.809, -0.257); bay.add(pod); }
     const hinge = new Group();
-    hinge.position.set(0, 0.79, -1.2);
+    hinge.position.set(0, 0.1, 0.71);
     const glass = meshyScene("decor.stasis_glass");
-    if (glass) { glass.position.z = 1.2; hinge.add(glass); }
+    if (glass) { glass.position.z = -0.709; hinge.add(glass); }
     bay.add(hinge);
     const mat = new MeshStandardMaterial({ color: "#1a1a1a", emissive: "#3cff7a", emissiveIntensity: 2 });
     const light = new Mesh(new BoxGeometry(0.5, 0.18, 0.12), mat);
-    light.position.set(2.9, 0.55, 1.6);
+    light.position.set(-1.75, 0.4, 0.95);
     bay.add(light);
     const glow = new PointLight("#bfe6ff", 0, 6);
     glow.position.set(0, 1.4, 0);
@@ -101,8 +102,8 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
       labels[0]!.el.textContent = (open ? o.text["unlocked"] : o.text["occupied"]) ?? "";
       labels[0]!.el.classList.toggle("warn", open);
       const jolt = t > 1.6 && t < 1.8 ? 0.04 : 0;
-      bay5.hinge.position.y = 0.79 + jolt;
-      bay5.hinge.rotation.x = -1.75 * span(t, 3.2, 5.0);
+      bay5.hinge.position.y = 0.1 + jolt;
+      bay5.hinge.rotation.x = 1.75 * span(t, 3.2, 5.0);
       bay5.glow.intensity = 6 * span(t, 3.4, 4.6);
       plate.classList.toggle("on", t >= 1.9 && t < 4.6);
       for (const b of bays.slice(1)) b.mat.emissiveIntensity = 1.6 + 0.4 * Math.sin(t * 9 + b.light.id);
