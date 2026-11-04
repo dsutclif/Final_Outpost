@@ -6,8 +6,8 @@ import type { GLLike } from "../renderer.js";
 import type { Tokens } from "../tokens.js";
 
 // Reactor-spirit cloud: layered moving noise on an additive billboard, plus a blue patch on the
-// ground. No model, no video, no textures; everything is the fragment shader. mediump and four
-// octaves keep it cheap on phones. The look (deep blue to near-white) was agreed with Doug on
+// ground. No model, no video, no textures; everything is the fragment shader. Four
+// octaves keep it cheap on phones (highp costs little on one quad). The look (deep blue to near-white) was agreed with Doug on
 // 2026-10-30 (docs/STORY-LEVELS-V2.md, "How KILN appears").
 
 export type SpiritState = "idle" | "speaking" | "pulse" | "fading" | "off";
@@ -26,11 +26,14 @@ void main() {
 }`;
 
 const FRAG = /* glsl */ `
-precision mediump float;
+// highp: iPhones run mediump as 16-bit floats, too coarse for the hash and the warped noise
+precision highp float;
 uniform float uTime, uStrength, uBright, uGlitch, uAlpha, uSeed, uZoom, uDrift, uCoreK, uSoft;
 uniform vec3 uDeep, uMid, uCore, uRed;
 varying vec2 vUv;
-float h(vec2 p) { p = fract(p * vec2(123.34, 456.21) + uSeed); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+// the lattice index stays an exact whole number, so neighbouring cells agree on every shared corner;
+// the old float hash (big multipliers) disagreed after compiler regrouping and left square blocks
+float h(vec2 p) { p = mod(p, 256.0); return fract(sin(p.x + p.y * 57.0 + floor(uSeed * 100.0)) * 43758.5453); }
 float vn(vec2 p) {
   vec2 i = floor(p), f = fract(p); f = mix(f * f * (3.0 - 2.0 * f), f * f * f * (f * (f * 6.0 - 15.0) + 10.0), uSoft);
   return mix(mix(h(i), h(i + vec2(1.0, 0.0)), f.x), mix(h(i + vec2(0.0, 1.0)), h(i + vec2(1.0, 1.0)), f.x), f.y);
