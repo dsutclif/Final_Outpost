@@ -125,6 +125,10 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
       pass over ground units. The sandbox arena already does this (`client/src/dev/arenaModel.ts` `separate`, `BODY`).
 - [ ] **N5 blaster fire:** a white-hot core (as in the title loop, whose tracer reads white) with a blue glow
       for friendlies and red for enemies. Uses the new shot events plus tower and drone shots.
+      **Doug, 2026-11-04: the reactor-defence turrets (`struct.ranged_defense`) fire the same bolts, and every bolt reads
+      as light, not a line:** a short travelling glow (white-hot core, coloured halo, soft falloff) with a muzzle flash,
+      an impact flash, and a glow spilling onto the ground under it. The look-test branch (`look-test`, `scene/fx.ts`
+      `bolt`) has a first version to start from; today the turret tracer is a row of small cubes.
 - [ ] **N4 scrap lands where it can be reached:** gun range and pickup range are already both 90; drops scatter
       with no check (`spawnDrops`, `common.ts:198`). Snap them to the nearest walkable point on the map.
       Required with #11.
