@@ -6,6 +6,7 @@ import {
   BoxGeometry,
   BufferAttribute,
   Color,
+  InstancedMesh,
   DataTexture,
   Frustum,
   Group,
@@ -57,7 +58,6 @@ import { StoryLights, nightFloor, storyLightColors, storyLighting } from "./scen
 import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
-import { addSilhouette, silhouetteMaterial } from "./scene/silhouette.js";
 import { LookTest } from "./lookTest.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
@@ -133,7 +133,7 @@ const SAFE_RING_K = 1;
 /**
  * Never fade: gates belong to the (instanced, always solid) walls, belts and barriers are flat; the grow
  * dome, the warehouse and resource nodes stay solid by Doug's call (backlog R6 #5 + N7), the hero's
- * silhouette shows through them instead. Wall turrets are dropped at their call site.
+ * (no silhouette any more). Wall turrets are dropped at their call site.
  */
 const NO_FADE = /^(struct\.(gate|conveyor|depot)$|barrier\.|node\.)/;
 const FADE_TO = 0.28;
@@ -360,8 +360,10 @@ export class Renderer3D implements Renderer {
   private dropTick = 0;
   private crowd: Crowd | null = null;
   private rigged: Rigged | null = null;
-  /** The hero's see-through silhouette material (backlog R6 N9), made on first use. */
-  private silMat: MeshBasicMaterial | null = null;
+  /** Wall segments as boxes in their own frame (rebuilt each frame), the see-through copies of the four wall batches, and the shared fade. */
+  private wallBoxes: { x: number; z: number; c: number; s: number; x0: number; x1: number; z0: number; z1: number; top: number }[] = [];
+  private wallSee = new Map<Batch, { solid: Material; see: Material; a: number }>();
+  private wallFade = 1;
   private blobs: Blobs | null = null;
   private items: Items | null = null;
   private walls: { wall: Batch; cracked: Batch; reinforced: Batch; crackedR: Batch; dash: Batch; rubble: Batch; crate: Batch; terrain: Batch } | null = null;
@@ -706,8 +708,8 @@ export class Renderer3D implements Renderer {
     this.rigged?.dispose();
     this.lookT?.dispose();
     this.lookT = null;
-    this.silMat?.dispose();
-    this.silMat = null;
+    for (const w of this.wallSee.values()) w.see.dispose();
+    this.wallSee.clear();
     this.blobs?.dispose();
     this.items?.dispose();
     if (this.walls) for (const b of Object.values(this.walls)) b.dispose();
@@ -1195,13 +1197,14 @@ export class Renderer3D implements Renderer {
     const flat = Math.hypot(cx, cz) || 1;
     const ux = cx / flat, uz = cz / flat, slope = Math.max(0.05, (this.camera.position.y - this.look.y) / flat);
     const half = 0.5 * ART_M * this.devCharScale;
+    this.fadeWalls(pl, dt, ux, uz, slope, half);
     for (const p of this.placed.values()) {
       const o = p.data["occ"] as Occ | undefined;
       if (!o) continue;
       const r = p.model.root;
       const reach = (r.position.y + o.top * r.scale.y - half) / slope;
       let hidden = false;
-      if (r.visible && reach > 0 && !this.storyP?.solidIds.has(String(p.data["id"]))) {
+      if (r.visible && reach > 0) {
         // into the root's frame: undo its turn, then its per-axis scale
         const c = Math.cos(r.rotation.y), s = Math.sin(r.rotation.y);
         const wx = pl.x - r.position.x, wz = pl.y - r.position.z;
@@ -1218,13 +1221,35 @@ export class Renderer3D implements Renderer {
     }
   }
 
-  /** The rigged hero shows through walls and buildings in the hero colour (backlog R6 N9); remove this call to drop it. */
-  private heroSilhouette(): void {
-    const root = this.rigged?.rootOf("player");
-    if (!root) return;
-    this.silMat ??= silhouetteMaterial(this.tokens.ok);
-    // compiled as soon as it's added, as the fade copies are
-    if (addSilhouette(root, this.silMat)) void this.gl?.compileAsync?.(root, this.camera, this.scene).catch(() => undefined);
+  /** Fade the four wall batches as one while any wall section hides the hero (Doug 2026-11-04: fade the whole wall). */
+  private fadeWalls(pl: V, dt: number, ux: number, uz: number, slope: number, half: number): void {
+    let hidden = false;
+    for (const b of this.wallBoxes) {
+      const reach = (b.top - half) / slope;
+      if (reach <= 0) continue;
+      const wx = pl.x - b.x, wz = pl.y - b.z, i = 0.3 * half;
+      hidden = segHitsBox(wx * b.c - wz * b.s, wx * b.s + wz * b.c, (ux * b.c - uz * b.s) * reach, (ux * b.s + uz * b.c) * reach, b.x0 + i, b.x1 - i, b.z0 + i, b.z1 - i);
+      if (hidden) break;
+    }
+    if (this.wallFade === 1 && !hidden) return;
+    this.wallFade = hidden ? Math.max(FADE_TO, this.wallFade - dt * 6) : Math.min(1, this.wallFade + dt * 4);
+    const W = this.walls!;
+    for (const bt of [W.wall, W.cracked, W.reinforced, W.crackedR]) {
+      let w = this.wallSee.get(bt);
+      if (!w || w.solid !== bt.material) {
+        // own copy, compiled in the background so the first fade doesn't stall on a shader
+        w?.see.dispose();
+        const see = bt.material.clone();
+        see.transparent = true; see.depthWrite = false;
+        w = { solid: bt.material, see, a: bt.material.opacity };
+        this.wallSee.set(bt, w);
+        const warm = new InstancedMesh(bt.mesh.geometry, see, 1);
+        warm.setColorAt(0, new Color(1, 1, 1));
+        void this.gl?.compileAsync?.(warm, this.camera, this.scene).catch(() => undefined);
+      }
+      w.see.opacity = w.a * this.wallFade;
+      bt.override(this.wallFade < 1 ? w.see : null);
+    }
   }
 
   /** Squash-and-stretch pop for anything that appeared after the level loaded (0 -> 1.15 -> 1, 400 ms). */
@@ -1257,9 +1282,16 @@ export class Renderer3D implements Renderer {
     const W = this.walls!, run = len * (f1 - f0), h = ART_M * Math.max(0.05, k);
     const fit = this.wallFit[reinforced ? "reinforced" : "wall"];
     const batch = low ? (reinforced && fit ? W.crackedR : W.cracked) : reinforced ? W.reinforced : W.wall;
+    const geo = batch.mesh.geometry;
+    if (!geo.boundingBox) geo.computeBoundingBox();
+    const bb = geo.boundingBox!;
+    const box = (x: number, z: number, sx: number, sy: number, sz: number): void => {
+      this.wallBoxes.push({ x, z, c: Math.cos(ang), s: Math.sin(ang), x0: bb.min.x * sx, x1: bb.max.x * sx, z0: bb.min.z * sz, z1: bb.max.z * sz, top: bb.max.y * sy });
+    };
     if (!fit) {
       const f = (f0 + f1) / 2;
       tmpM.makeRotationY(ang).scale(tmpV.set(run, h, ART_M)).setPosition(a.x + dx * f, 0, a.z + dz * f);
+      box(a.x + dx * f, a.z + dz * f, run, h, ART_M);
       batch.push(tmpM);
       return;
     }
@@ -1267,6 +1299,7 @@ export class Renderer3D implements Renderer {
     for (let j = 0; j < n; j++) {
       const f = f0 + ((j + 0.5) / n) * (f1 - f0);
       tmpM.makeRotationY(ang).scale(tmpV.set(run / n / fit.len, h, ART_M * fit.depth)).setPosition(a.x + dx * f, 0, a.z + dz * f);
+      box(a.x + dx * f, a.z + dz * f, run / n / fit.len, h, ART_M * fit.depth);
       batch.push(tmpM, low ? CRACKED : undefined);
     }
   }
@@ -2070,6 +2103,7 @@ export class Renderer3D implements Renderer {
 
   private syncBarriers(s: State): void {
     const W = this.walls!;
+    this.wallBoxes.length = 0;
     const reinforced = (s.params["barrier.hpMax"] ?? 0) > ((this.content.structures["struct.barrier"] as { hp?: number } | undefined)?.hp ?? 14);
     for (const b of s.barriers) {
       b.sections.forEach((sec, i) => {
@@ -2368,7 +2402,6 @@ export class Renderer3D implements Renderer {
     const pyaw = this.faceAct("player", pl, yaw, pmove);
     if (prig) {
       this.rigged!.add("player", "unit.player", prig, { moving: pmove, hurried: false, run: true, cheer: anim.cheer > 0, act: this.actOf("player")?.act, speed: this.moving }, pl.x, pl.y, pyaw, ART_M * look.scale * this.devCharScale * this.heroK / 0.9);
-      this.heroSilhouette();
       this.blobs!.add(pl.x, pl.y, 10 * look.scale * this.devCharScale * this.heroK);
     } else this.addCharacter(look, anim, pl, yaw, t.frost);
     this.backStack(s.player.stack, pl, pyaw, look.scale * this.devCharScale, this.moving, v, true);

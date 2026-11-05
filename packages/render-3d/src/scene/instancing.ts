@@ -9,6 +9,8 @@ import { poseCharacter, type Anim, type Look, type PartGeos } from "../assets/ch
 export class Batch {
   mesh: InstancedMesh;
   private n = 0;
+  /** A see-through copy of the material drawn instead of the real one while the batch fades. */
+  private over: Material | null = null;
 
   constructor(private geo: BufferGeometry, private mat: Material, private readonly parent: Object3D, cap = 16, readonly name = "") {
     this.mesh = this.make(cap);
@@ -19,11 +21,21 @@ export class Batch {
     this.geo = geo;
     this.mat = mat;
     this.mesh.geometry = geo;
-    this.mesh.material = mat;
+    this.mesh.material = this.over ?? mat;
+  }
+
+  /** Draw with `m` instead of the batch's own material (null puts it back); survives growth and swaps. */
+  override(m: Material | null): void {
+    this.over = m;
+    this.mesh.material = m ?? this.mat;
+  }
+
+  get material(): Material {
+    return this.mat;
   }
 
   private make(cap: number): InstancedMesh {
-    const m = new InstancedMesh(this.geo, this.mat, cap);
+    const m = new InstancedMesh(this.geo, this.over ?? this.mat, cap);
     m.name = this.name;
     m.instanceMatrix.setUsage(DynamicDrawUsage);
     m.setColorAt(0, new Color(1, 1, 1));
