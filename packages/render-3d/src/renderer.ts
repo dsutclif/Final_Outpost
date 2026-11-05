@@ -144,6 +144,7 @@ const FADE_TO = 0.28;
  */
 interface Occ { x0: number; x1: number; z0: number; z1: number; top: number; fade: number; on: boolean; swaps: [Mesh, Material | Material[], Material | Material[]][]; see: { m: Material; a: number }[] }
 const v3 = (x = 0, y = 0, z = 0): Vector3 => new Vector3(x, y, z);
+const up3 = (p: Vector3, h: number): Vector3 => new Vector3(p.x, p.y + h, p.z);
 const tmpM = new Matrix4(), tmpV = new Vector3(), tmpV2 = new Vector3();
 const clamp01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x);
 
@@ -3084,6 +3085,35 @@ export class Renderer3D implements Renderer {
     if (Math.hypot(w.player.pos.x / FP - at.x, w.player.pos.y / FP - at.z) < r) this.cheerUntil.set("player", until);
   }
 
+  /**
+   * A bolt for a `hit` event (the sim emits no shot event for these): the shooter is the nearest unit of
+   * the `by` kind to the target. Friendly bolts are blue, hostile ones red; a hostile standing on its
+   * target is a melee hit and draws none. Drone shots have no event yet (note for Release 2).
+   */
+  private hitBolt(by: unknown, at: Vector3): void {
+    const w = this.world, fx = this.fx;
+    if (!w || !fx) return;
+    let from: Vector3 | null = null, bd = Infinity;
+    const scan = (list: readonly { pos: V }[]): void => {
+      for (const u of list) {
+        const d = Math.hypot(u.pos.x / FP - at.x, u.pos.y / FP - at.z);
+        if (d < bd) { bd = d; from = v3(u.pos.x / FP, 0, u.pos.y / FP); }
+      }
+    };
+    if (by === "hostile") {
+      scan(w.hostiles);
+      if (!from || bd < ART_M * 1.2 || bd > ART_M * 14) return;
+    } else {
+      if (by === "resident") scan(w.residents.filter((r) => r.role === "role.defender" || r.role === "role.hunter"));
+      else if (by === "structure") scan(w.structures.filter((s) => s.type === "struct.ranged_defense"));
+      else if (by === "troop") scan(w.troops ?? []);
+      else return;
+      if (!from || bd < ART_M * 0.6) return;
+    }
+    const a = from as Vector3;
+    fx.bolt(up3(a, 14), up3(at, 10), by === "hostile");
+  }
+
   private flashNearestTurret(at: Vector3): void {
     let best: string | null = null, bd = Infinity;
     for (const s of this.world?.structures ?? []) {
@@ -3231,6 +3261,7 @@ export class Renderer3D implements Renderer {
           fx.floater(ft("animal_hit"), t.danger, up(at, ART_M * 1.8), 38);
         }
         if (e["by"] === "structure") this.flashNearestTurret(at);
+        if (target !== "barrier" && e["by"] !== "player" && e["by"] !== "animal") this.hitBolt(e["by"], at);
         if (target === "hostile" || target === "prey") this.shooterAt(e["by"], at);
         fx.burst(up(at, 10), [white, mix(t.accent, t.structure, 0.5)], 6, 90, 120, 3, 0.25);
         break;

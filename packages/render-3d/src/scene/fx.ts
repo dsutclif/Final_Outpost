@@ -18,6 +18,7 @@ interface Flight { res: string; from: Vector3; to: Target; age: number; dur: num
 const MAX_PARTICLES = 700;
 /** Friendly laser glow (BACKLOG-R6 N5: blue for friendlies, red for enemies). */
 const BOLT_FRIENDLY = new Color("#4da6ff");
+const BOLT_ENEMY = new Color("#ff4a3a");
 const tmpM = new Matrix4(), tmpQ = new Quaternion(), tmpE = new Euler(), tmpS = new Vector3(), tmpV = new Vector3();
 
 export class Fx {
@@ -86,6 +87,12 @@ export class Fx {
       const k = (i + 1) / n;
       this.spawn(tmpV.lerpVectors(from, to, k), new Vector3(), 0, life * (0.6 + 0.4 * k), size * (0.7 + 0.5 * k), color, 0);
     }
+  }
+
+  /** A bolt from `from` to `to`: blue for friendlies, red for hostiles (backlog R6 N5); particle streak when the look test is off. */
+  bolt(from: Vector3, to: Vector3, hostile: boolean): void {
+    if (this.bolts) this.bolts.fire(from, to, hostile ? BOLT_ENEMY : BOLT_FRIENDLY);
+    else this.tracer(from, to, hostile ? "#ff6a5a" : "#9fd0ff");
   }
 
   /** Expanding ring of dust on the ground (builds, landings). */
