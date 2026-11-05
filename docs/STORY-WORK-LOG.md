@@ -109,6 +109,7 @@ caretaker program", from storyline option A); Doug may ask the session that wrot
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+- **2026-11-05, story summary refreshed (docs only).** The 100-word summary at the top of `docs/STORY-LEVELS-V2.md` now matches screenplay draft 4: the lander's escape pod (not another ship's), bays 5–8 reading occupied with Vale's empty, and the raiders' leader dropping Vale's helmet. No code, level or release-notes change.
 - **2026-11-04, B, Doug's crash-site sizes (decided, not applied yet).** Ship 27 m long, pods 3.98 m long and 2.15 m tall,
   pod base 1.36 m below the sand (63% buried), no concrete pad; the layout follows his sketch (settlement to the
   south-west, the ridge as the eastern edge, the recorder at the ship's east end). New `docs/SCALE.md` holds every

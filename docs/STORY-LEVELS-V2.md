@@ -1,13 +1,12 @@
 # Story levels 1â€“5: "The Late Wake" (draft for Doug's approval, updated 2026-10-31)
 
-**Summary.** A pulse from the ridge scrambles the colony ship Halcyon's navigation and it crashes. The
-commander wakes alone in the wreck, relights the reactor, waking KILN, the voyage's AI support system, and
-survives a dust storm. Towing crew pods home, they find an old, empty pod from an earlier ship, then learn four
-sealed bays have nobody inside. To build a shelter, they clear a rockslide and trade with a salvager, who
-pays in Halcyon chips and says the ship crashed eleven years ago. Automation lets the commander leave the
-town to fetch the flight recorder from the wreck, which shows four crew let themselves out and resealed their
-pods empty. Red-visored raiders attack from the ridge. Their retreating lieutenant drops a helmet holding a
-Halcyon crew ID.
+**Summary** (matches `docs/STORY-SCREENPLAY.md` draft 4). A pulse from the ridge scrambles the colony
+ship Halcyon's navigation, and it crashes. The commander wakes late in the wreck, relights the reactor
+and meets KILN, the ship's support system. They tow four surviving crew home and find the lander's escape
+pod, ridden down and abandoned. Bays five to eight still read occupied, yet first officer Vale's pod is
+empty. Sela, a salvage trader, pays in Halcyon chips and reveals the crash was eleven years ago. The
+flight recorder shows Vale and three others left their pods before impact. Raiders attack from the
+ridge; their leader drops Vale's helmet.
 
 Built on Doug's level 1. Reviewed by a mystery author, a science fiction writer, a screenwriter, a game
 designer and a new player (agents). Replaces the story beats in `docs/STORY-LEVELS.md` once approved. Lines marked
