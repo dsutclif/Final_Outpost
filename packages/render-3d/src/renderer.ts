@@ -3178,7 +3178,7 @@ export class Renderer3D implements Renderer {
       case "level_end":
         if (e["won"]) {
           const p = this.playerBack();
-          fx.confetti(up(p, 30), [t.accent, t.interactive, gold, t.ok, white], 140);
+          fx.fireworks(up(p, 10), [gold, white, t.accent, t.interactive, t.ok], 7);
           fx.floater(ft("win"), white, up(p, 40), 56, TEXT.big);
           this.cheerNear(p, 9999);
         }

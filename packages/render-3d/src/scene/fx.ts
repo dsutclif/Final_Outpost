@@ -22,6 +22,7 @@ const tmpM = new Matrix4(), tmpQ = new Quaternion(), tmpE = new Euler(), tmpS = 
 
 export class Fx {
   private parts: Particle[] = [];
+  private shells: { delay: number; age: number; x: number; z: number; y0: number; apex: number; fuse: number; c: string[]; done: boolean }[] = [];
   private floaters: Floater[] = [];
   private flights: Flight[] = [];
   private flashes = new Map<string, number>();
@@ -102,6 +103,34 @@ export class Fx {
       const a = Math.random() * Math.PI * 2, s = 40 + Math.random() * 150;
       this.spawn(at, new Vector3(Math.cos(a) * s, 220 + Math.random() * 220, Math.sin(a) * s), 260, 2 + Math.random(), 3 + Math.random() * 3, colors[i % colors.length]!, 1.2, Kind.Confetti);
     }
+  }
+
+  /** Level-win fireworks: rockets climb with a spark trail and burst into a sphere of falling embers, staggered over about three seconds. */
+  fireworks(at: Vector3, colors: readonly string[], shells = 7): void {
+    for (let i = 0; i < shells; i++) {
+      const a = Math.random() * Math.PI * 2, r = 20 + Math.random() * 90;
+      this.shells.push({ delay: i * 0.38 + Math.random() * 0.25, age: 0, x: at.x + Math.cos(a) * r, z: at.z + Math.sin(a) * r, y0: at.y, apex: 110 + Math.random() * 90, fuse: 0.75 + Math.random() * 0.2, c: [colors[i % colors.length]!, colors[(i + 2) % colors.length]!], done: false });
+    }
+  }
+
+  private stepShells(dt: number): void {
+    for (const s of this.shells) {
+      if (s.delay > 0) { s.delay -= dt; continue; }
+      s.age += dt;
+      const k = Math.min(1, s.age / s.fuse), y = s.y0 + s.apex * (1 - (1 - k) * (1 - k));
+      if (s.age < s.fuse) {
+        this.spawn(tmpV.set(s.x + (Math.random() - 0.5) * 3, y, s.z + (Math.random() - 0.5) * 3), new Vector3((Math.random() - 0.5) * 14, -20, (Math.random() - 0.5) * 14), 40, 0.35, 2.4, "#ffe9b0", 0.6);
+        continue;
+      }
+      s.done = true;
+      const n = Math.max(8, Math.round(70 * this.particleScale));
+      for (let i = 0; i < n; i++) {
+        // even-ish points on a sphere, speed varied so the burst has depth
+        const u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2, rr = Math.sqrt(1 - u * u), sp = 60 + Math.random() * 55;
+        this.spawn(tmpV.set(s.x, y, s.z), new Vector3(rr * Math.cos(th) * sp, u * sp, rr * Math.sin(th) * sp), 85, 1.3 + Math.random() * 0.7, 3.4 + Math.random() * 2, i % 5 === 0 ? "#ffffff" : s.c[i % 2]!, 1.3, Kind.Chip);
+      }
+    }
+    if (this.shells.some((s) => s.done)) this.shells = this.shells.filter((s) => !s.done);
   }
 
   /** Slow rising puffs (chimney smoke, steam). */
@@ -196,6 +225,7 @@ export class Fx {
       for (const f of landed) f.done?.();
     }
     this.shake = Math.max(0, this.shake - dt * 18);
+    this.stepShells(dt);
     this.bolts?.update(dt);
   }
 
@@ -239,6 +269,7 @@ export class Fx {
   clear(): void {
     this.bolts?.clear();
     this.parts = [];
+    this.shells = [];
     this.flights = [];
     this.flashes.clear();
     this.pops.clear();
