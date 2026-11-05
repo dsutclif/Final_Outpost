@@ -41,8 +41,11 @@ docs/SCALE.md. The sandbox Layout mock opens on an earlier draft; these numbers 
    their own gate logic), so the ore can now move outside the wall to Doug's spot as in L1. Tried 2026-11-04 (shift the
    L2-5 towns (110, 0), widen L2/L3 to 980, shift `route` arrays and L5's camera `[790, 700]`, `ore: true`): it fails
    `levels:check` (L3 weak/novice bots 0 wins, L4 weak worse): hauler trips through the gates are long enough that the
-   reactor runs low. Reverted. Needs tuning first (a lower `core.burn` in L2-5, more haulers, or ore just outside a
-   gate), Doug's call. Owed for 0.19.0: a property test for
+   reactor runs low. Reverted. Doug chose the slower reactor burn; tried `core.burn` at 75% (L2 2.6->2.0, L3/L4
+   3->2.25, L5 2.8->2.1) with the ore outside: much worse (good bots lose L2-L4), so `core.burn` is not just the fuel
+   drain here; find what it drives in sim/systems/core.ts (heat radius? win timer?) before tuning. Reverted again; live
+   L2-5 keep the ore inside the wall. To retry: re-apply the L2-5 shift in tools/relayout.ts (route arrays, L5 camera
+   `[790, 700]` -> `[900, 700]`, maps 980 wide for L2/L3), then tune and `levels:check --pack levels/story`. Owed for 0.19.0: a property test for
    `gatedMove` (CLAUDE.md rule 5); L2-5's ridge rects are still the old north ones; nothing was checked visually in the game (the browser
    pane was hidden), so look at L1-5 on a phone first.
 3. Re-render `crash_open` from the impact onward from the game's placements: the set as one background plate, then the
