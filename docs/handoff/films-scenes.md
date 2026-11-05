@@ -54,6 +54,13 @@ docs/SCALE.md. The sandbox Layout mock opens on an earlier draft; these numbers 
 4. After Account A releases `renderer.ts` (2026-11-05): the L5 warlord fall with the visible helmet drop and S33,
    the L2 old pod's hinged glass (S31), and in-game Sela in `unit.customer_sela`.
 
+## Loose ends (safe to discard)
+- Worktree `fo-wt-buggy` (branch `story-buggy-26`): an unfinished rebuild of the buggy models at 2.6 m, uncommitted.
+  Superseded: the live scenes scale the 4.4 m build by 0.6 (Doug's 2.64 m). Remove the worktree.
+- Worktree `fo-wt-handoff`: a shot-4 night render of `crash_open` started from another session; superseded by the
+  re-render plan above. Stop it and remove the worktree once nobody needs its frames.
+- Engine 0.19.0 owes a property test for `gatedMove` (sim/systems/barriers.ts).
+
 ## Open questions for Doug
 - What KILN stands for (not in any doc or git history).
 - Final layout positions (from the mock).
