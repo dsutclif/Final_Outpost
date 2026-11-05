@@ -38,8 +38,11 @@ docs/SCALE.md. The sandbox Layout mock opens on an earlier draft; these numbers 
    `openZoom.hero` dropped. Live scenes' pods at 2.66 m (`POD_K` in livescene.ts). Story pack replays clean.
    **Open:** L2-5 keep their ore inside the camp wall. Since engine 0.19.0 (Doug, 2026-11-04) settlers route through
    gates (`gatedMove` in sim/systems/barriers.ts, used by every settler job in residents.ts; guards and medics keep
-   their own gate logic), so the ore can now move outside the wall to Doug's spot as in L1: set `ore: true` for L2-5
-   in tools/relayout.ts, re-run it and `levels:check --pack levels/story`. Owed for 0.19.0: a property test for
+   their own gate logic), so the ore can now move outside the wall to Doug's spot as in L1. Tried 2026-11-04 (shift the
+   L2-5 towns (110, 0), widen L2/L3 to 980, shift `route` arrays and L5's camera `[790, 700]`, `ore: true`): it fails
+   `levels:check` (L3 weak/novice bots 0 wins, L4 weak worse): hauler trips through the gates are long enough that the
+   reactor runs low. Reverted. Needs tuning first (a lower `core.burn` in L2-5, more haulers, or ore just outside a
+   gate), Doug's call. Owed for 0.19.0: a property test for
    `gatedMove` (CLAUDE.md rule 5); L2-5's ridge rects are still the old north ones; nothing was checked visually in the game (the browser
    pane was hidden), so look at L1-5 on a phone first.
 3. Re-render `crash_open` from the impact onward from the game's placements: the set as one background plate, then the
