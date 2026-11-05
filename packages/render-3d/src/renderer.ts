@@ -3193,6 +3193,8 @@ export class Renderer3D implements Renderer {
       case "barrier_progress": {
         const res = e.t === "barrier_progress" ? this.world?.barriers.find((b) => b.id === e["line"])?.res ?? "res.currency" : String(e["res"] ?? "res.currency");
         fx.arc(res, this.playerBack(), up(at, 4), 0.22);
+        // paying to clear a blocked zone: the hero digs with the shovel (backlog R6 G2)
+        if (e.t === "pad_paid" && this.pads.get(String(e["pad"]))?.what === "zone.clear") this.acts.set("player", { act: "dig", until: this.t + 0.6, at: { x: at.x, y: at.z } });
         break;
       }
       case "drop":
