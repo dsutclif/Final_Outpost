@@ -8,6 +8,38 @@ the medic kneel, and the 2D renderer hiding #25 pads.
 Story levels 2-5 belong to the second account (`docs/STORY-WORK-LOG.md`); check its claims before touching
 `client/src/app.ts`, `client/src/story/*`, story cue blocks or meshy.json, and claim any engine bump there.
 
+## Delivery plan, revised 2026-11-05 (against origin/main cadb591, engine 0.19.0)
+
+What changed since the plan was made: engine 0.19.0 (gatedMove); the new look is on by default, with friendly
+turret bolts (N5 part) and soft storm sheets (`softfx.ts` `StormDust`, G8 part) already in it; real metres
+(1 m = 28 world units); arena PROPOSALS in `client/src/dev/arenaModel.ts` hold Doug's sandbox numbers for Bundle 5;
+object sizes and pack s1 rebuilt (859fd14). B's `story-p2` claim on `client/src/app.ts` is still open and
+`REPLAY_FILMS` is still on, so #9 stays held.
+
+**Step A, now, no engine bump (renderer and client).** One Sonnet session per file set, in turn where they share
+`renderer.ts`:
+1. N9 follow-up wall fade (`docs/handoff/wall-fade.md`, no open questions), then the gate width check
+   (`docs/handoff/object-sizes.md` step 3).
+2. N5/G3 rest: red enemy bolts, drone and hunting shots through `Bolts` (`fx.ts`); G10 healing cross for guards;
+   G9 order icon over traders; G1 fireworks. All renderer, same session as 1, after it.
+3. G5 + G6 guide arrows (`client/src/guide.ts`, not claimed): a parallel session.
+4. Live check on the Vercel URL of Release 1's unseen items (#1, #2, #3, #4, #6, #7, #8): Haiku or Sonnet,
+   screenshots only; tick or reopen.
+5. Ask Doug whether the soft storm sheets already meet G8; if so, tick it.
+G2 (shovel dig) needs a dig clip and a shovel model first: ask Doug for the asset before scheduling it.
+
+**Step B, after the 2026-11-06 rules review: Release 2 as one engine bump (0.20.0) and one pack rebuild.**
+Doug's calls needed first: N13 power budget (or the N1 fallback for #10), N18 crawler drop and wave share,
+N2 mite numbers (take them from arena PROPOSALS if he agrees), and the review's Rule 7/8/13 changes, which
+#14, #15 and N23 depend on.
+- Folds: #12 is now N22's 0/3/4 spiked-hopper zones; #14 and #15 are sized inside N23. #11's spawn distance is
+  worked out in real metres from the viewW per family. G4 and G7 join this bump.
+- Order: Bundle 5 (Opus, one session, `sim` + `bots` + `rater`), then Bundle 6 (Opus, generator), then
+  claim the bump in `docs/STORY-WORK-LOG.md`, rebuild in the background, `levels:check`, re-pin golden and
+  story levels (B re-checks 3-5), release notes, deploy, iPhone frame-rate check with dense waves.
+
+**Step C, when B's `story-p2` claim clears and `REPLAY_FILMS` is off:** #9 cutscenes in the level menu (Sonnet).
+
 ## Release 1: renderer and client, no engine bump
 
 Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked on L14: silhouette through the grow dome, dome and warehouse stay solid, the warehouse arrow points inward, ore by the reactor hatch (the deposit anchor sits inside the body, so the pile is placed just outside on its bearing and shows the last fuel fed), and the sandbox stats panel. Not seen on screen: belt goods (#4), curbs (#7), smoothing (#8) beyond the reactor, the HUD items (#1, #2, #3, #6), and N16, which needs two real deploys. Not on an iPhone. The silhouette covers the rigged hero only.
