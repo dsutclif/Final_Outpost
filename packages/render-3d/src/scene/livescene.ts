@@ -4,6 +4,7 @@ import {
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
+import { PERSON_M } from "../assets/characters.js";
 import RIG from "../assets/buggy.json";
 
 // Live scenes (docs/STORY-LEVELS-V2-PLAN.md, Phase 2 F2): short story scenes staged in three.js with the
@@ -39,6 +40,10 @@ interface Staged {
 
 /** The bay scenes' pods at Doug's decor size, 2.66 m (docs/SCALE.md); their build is 3.9847 m long. */
 const POD_K = 2.66 / 3.9847;
+/** The game sinks the decor pod's base 0.80 m below the ground (docs/SCALE.md), so only its top 0.64 m shows. */
+const POD_SUNK = 0.8;
+/** A bay's cavity floor above the ground plane, metres: the cradle's 1.809 build-metres scaled with the pod, less the sunk base (layoutmock.ts). */
+const BAY_LIFT = 1.809 * POD_K - POD_SUNK;
 const ease = (k: number): number => { const c = Math.max(0, Math.min(1, k)); return c * c * (3 - 2 * c); };
 const span = (t: number, a: number, b: number): number => ease((t - a) / (b - a));
 
@@ -58,7 +63,7 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
   const bays: { light: Mesh; mat: MeshStandardMaterial; hinge: Group; glow: PointLight }[] = [];
   // four pods side by side along x, each lying lengthwise toward the camera. A bay's origin is the pod's
   // cavity floor; LIFT raises it so the cradle's base (1.809 below that floor) stands on the deck (Doug, 2026-11-04)
-  const LIFT = 1.809 * POD_K;
+  const LIFT = BAY_LIFT;
   for (let i = 0; i < 4; i++) {
     const bay = new Group();
     bay.position.set((i - 1.5) * 4.6 * POD_K, LIFT, 0);
@@ -157,7 +162,7 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
   deck.position.set(0, -0.3, -5);
   scene.add(deck);
   // the same bays as empty_bays (pods lie along z, cavity floor LIFT above the deck), seen from behind their feet
-  const LIFT = 1.809 * POD_K, PERSON = 1.8;
+  const LIFT = BAY_LIFT;
   const labels: Staged["labels"] = [];
   const bays: { mat: MeshStandardMaterial; hinge: Group; el: HTMLElement; fig: ReturnType<typeof crewFigure>; x: number; at: number }[] = [];
   for (let i = 0; i < 4; i++) {
@@ -179,7 +184,8 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
     bay.add(light);
     scene.add(bay);
     const fig = crewFigure();
-    if (fig) { fig.root.scale.setScalar(PERSON / fig.height); scene.add(fig.root); }
+    // the commander (bay 5) stands 1.98 m, the crew 1.8 m (characters.ts)
+    if (fig) { fig.root.scale.setScalar((i === 0 ? PERSON_M * 1.1 : PERSON_M) / fig.height); scene.add(fig.root); }
     const el = doc.createElement("div");
     el.className = "live-tag warn";
     overlay.append(el);
@@ -201,8 +207,8 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
       // a fixed security camera high behind the pods' foot ends, looking down the deck
       // (high and far enough back that all four bays and their aisles fit a tall phone screen)
       const tall = camera.aspect < 0.8;
-      camera.position.set(0, (tall ? 25 : 11) * POD_K + LIFT, (tall ? 31 : 13) * POD_K);
-      camera.lookAt(0, LIFT - 0.5 * POD_K, (tall ? -5 : -3) * POD_K);
+      camera.position.set(0, tall ? 14.5 : 11 * POD_K + LIFT, tall ? 20 : 13 * POD_K);
+      camera.lookAt(0, tall ? 0.2 : LIFT - 0.5 * POD_K, (tall ? -3.5 : -3 * POD_K));
       for (const b of bays) {
         const s = t - b.at;
         // the glass lifts from inside (0.6-1.8), closes again once the pod is empty (4.4-5.4)

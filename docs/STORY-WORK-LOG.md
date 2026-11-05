@@ -53,6 +53,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 - **Blocked on Account A's claims:** the old pod's hinged orange glass in level 2 needs `renderer.ts`, which is claimed for R6.
 - **Sign-off 2, `empty_bays` (2026-11-03).** Is the live bay-camera scene at the end of level 2 good enough against the films? The plan only builds the other live scenes (`crash_log`, Sela's reveal, the helmet fall) if it is.
+- **Sela's buggy size (Doug, 2026-11-05): signed off at 2.64 m long (the 4.4 m build x 0.6).** Live in `selaArrival`.
 - **Sign-off 3, reduced buggy (2026-11-03).** Branch `story-buggy` (not merged) holds `decor.buggy` (39.9k tris, 2.5 MB, slightly over the 2 MB target) and two wheels (3k tris each, one pre-mirrored), plus `render-3d/src/assets/buggy.json` with hub positions (radius 0.72, hubs at x -1.60 and +1.29, y 0.225, z ±1.0).
   - The body is sized to 4.4 m wide, which is my choice since the plan gave no size. Please confirm.
   - `tools/build-models.ts` gains per-entry `normalMap` and `mirror` options (additive; no other model's output changes).
@@ -365,3 +366,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
     - A pod in tow drops its beam, which otherwise stood over the hero.
     - `greyDawn` is 0.2. At 0.55 it read as warm daylight.
 - **2026-11-02, B:** Started level 2 on branch `story-l2` from `0c569fa`.
+
+### 2026-11-05 (B): bay live scenes at the game's sizes
+
+`render-3d/src/scene/livescene.ts` only (no engine bump). `empty_bays` and `crash_log` stood the pods on the deck, so all 1.44 m of pod showed; the game sinks the base 0.80 m, leaving 0.64 m. New `BAY_LIFT = 1.809 * POD_K - 0.8` (same maths as layoutmock.ts) puts the cavity floor 0.41 m above the floor plane and the pod base below it, hidden by the plane. `crash_log` people now use `PERSON_M` (crew 1.8 m, bay 5 / the commander `PERSON_M * 1.1` = 1.98 m). `crash_log` portrait camera pulled in (pos 0, 14.5, 20 m looking at z -3.5) so the four bays and the walk-away still fill the screen; `empty_bays` camera is unchanged (it is relative to the cavity floor). The floor stays the dark deck colour (a bay camera feed), not sand; say if you want sand.
