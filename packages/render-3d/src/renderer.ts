@@ -1534,6 +1534,8 @@ export class Renderer3D implements Renderer {
   }
 
   private bubbles = new Map<string, { s: Sprite; seen: number }>();
+  /** Longest heal timer seen per guard, so the cross knows how full it is. */
+  private healMax = new Map<string, number>();
   private bubbleSprite(key: string): Sprite {
     let b = this.bubbles.get(key);
     if (!b) {
@@ -2430,6 +2432,15 @@ export class Renderer3D implements Renderer {
       const lying = this.cp ? lyingDown(s, this.cp, r) : r.status === "healing";
       if (r.status === "injured" && !lying) { an.speed *= 0.6; an.hit = 0.2 + 0.2 * Math.sin(this.t * 6); }
       if (lying) an.down = 1;
+      // a medic is healing this guard: a green cross over them fills as the heal runs (backlog R6 G10)
+      if (r.status === "healing" && (r.timer ?? 0) > 0) {
+        const mx = Math.max(this.healMax.get(key) ?? 0, r.timer ?? 0);
+        this.healMax.set(key, mx);
+        const step = Math.max(0, Math.min(8, Math.round((1 - (r.timer ?? 0) / mx) * 8)));
+        const hs = this.bubbleSprite(`heal:${r.id}`);
+        hs.visible = this.labels.apply(hs, `heal|${step}`, () => this.healCrossArt(step / 8), textSprite(TEXT.main, 52, 96));
+        hs.position.set(pos.x, ART_M * rl.scale * this.devCharScale * 1.7, pos.y);
+      } else this.healMax.delete(key);
       // rigged once loaded; the frozen turn to ice and the med bay patients lie on their backs (rigged.ts)
       const rrig = this.rigged?.entryFor(id);
       const moving = sp > 0.05;
@@ -2729,6 +2740,27 @@ export class Renderer3D implements Renderer {
   }
 
   // ---------------------------------------------------------------- label art
+
+  /** A medical cross, grey until the heal fills it from the bottom in the OK colour. */
+  private healCrossArt(k: number): LabelArt {
+    const t = this.tokens;
+    return {
+      w: 96, h: 96,
+      draw: (g) => {
+        const path = (): void => {
+          g.beginPath();
+          g.rect(34, 10, 28, 76); g.rect(10, 34, 76, 28);
+        };
+        g.fillStyle = t.ink; g.strokeStyle = t.ink; g.lineWidth = 16; g.lineJoin = "round";
+        path(); g.stroke();
+        g.save(); path(); g.clip();
+        g.fillStyle = "#e9ecef"; g.fillRect(0, 0, 96, 96);
+        g.fillStyle = t.ok; g.fillRect(0, 96 - 76 * k - 10, 96, 76 * k + 10);
+        g.restore();
+        g.lineWidth = 4; g.strokeStyle = t.ink; path(); g.stroke();
+      },
+    };
+  }
 
   private orderArt(res: string, want: number, k: number, serve: number | null = null): LabelArt {
     const t = this.tokens, ui = this.tokens.paper;
