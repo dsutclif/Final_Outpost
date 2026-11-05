@@ -45,18 +45,42 @@ interface BrainLike {
 /** Radius of the arrow circle drawn around a pod, in world units: wide enough to walk without touching it. */
 export const TOW_LOOP_R = 44;
 
+/** Pods this close (world units) to one another count as one group, circled together. */
+export const TOW_GROUP_GAP = 110;
+
 /**
- * The walk to a pod, then once around it: towing starts by closing a loop, which nobody guesses, so the arrows draw it.
+ * The pods lying near the target pod, chained by TOW_GROUP_GAP, so side-by-side pods get one loop (towing several
+ * at once is what that teaches). Always includes the target itself.
+ */
+export function towGroup(pods: readonly { x: number; y: number }[], pod: { x: number; y: number }): { x: number; y: number }[] {
+  const group = [pod];
+  const rest = pods.filter((q) => q.x !== pod.x || q.y !== pod.y);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (let i = rest.length - 1; i >= 0; i--) {
+      const q = rest[i]!;
+      if (group.some((g) => Math.hypot(g.x - q.x, g.y - q.y) <= TOW_GROUP_GAP)) { group.push(q); rest.splice(i, 1); grew = true; }
+    }
+  }
+  return group;
+}
+
+/**
+ * The walk to a pod (or a group of them), then once around: towing starts by closing a loop, which nobody guesses,
+ * so the arrows draw it. One pod gets a circle of TOW_LOOP_R; a group gets one circle around all of them.
  * The circle starts on the side the hero is coming from and leaves a gap so it reads as one lap.
  */
-export function towLoopPath(path: readonly { x: number; y: number }[], hero: { x: number; y: number }, pod: { x: number; y: number }): { x: number; y: number }[] {
-  const start = Math.atan2(hero.y - pod.y, hero.x - pod.x);
-  const ring = Array.from({ length: 12 }, (_, i) => {
-    const a = start + (i / 12) * Math.PI * 2;
-    return { x: pod.x + TOW_LOOP_R * Math.cos(a), y: pod.y + TOW_LOOP_R * Math.sin(a) };
+export function towLoopPath(path: readonly { x: number; y: number }[], hero: { x: number; y: number }, pod: { x: number; y: number }, group: readonly { x: number; y: number }[] = [pod]): { x: number; y: number }[] {
+  const c = { x: group.reduce((a, q) => a + q.x, 0) / group.length, y: group.reduce((a, q) => a + q.y, 0) / group.length };
+  const R = TOW_LOOP_R + group.reduce((m, q) => Math.max(m, Math.hypot(q.x - c.x, q.y - c.y)), 0);
+  const n = group.length > 1 ? 20 : 12;
+  const start = Math.atan2(hero.y - c.y, hero.x - c.x);
+  const ring = Array.from({ length: n }, (_, i) => {
+    const a = start + (i / n) * Math.PI * 2;
+    return { x: c.x + R * Math.cos(a), y: c.y + R * Math.sin(a) };
   });
   // the route's last point is the pod itself: stop outside the circle instead of crossing it
-  const walk = path.slice(0, -1).filter((q) => Math.hypot(q.x - pod.x, q.y - pod.y) > TOW_LOOP_R);
+  const walk = path.slice(0, -1).filter((q) => Math.hypot(q.x - c.x, q.y - c.y) > R);
   return [...walk, ...ring];
 }
 
@@ -95,7 +119,8 @@ export class Guide {
     const at = { x: sug.target.x / FP, y: sug.target.y / FP };
     // a tow step aimed at a pod still lying out there, rather than the walk home
     if (kind === "tow" && st.captures.some((c) => c.state === "idle" && c.pos.x === sug.target.x && c.pos.y === sug.target.y)) {
-      path = towLoopPath(path, { x: st.player.pos.x / FP, y: st.player.pos.y / FP }, at);
+      const idle = st.captures.filter((c) => c.state === "idle").map((c) => ({ x: c.pos.x / FP, y: c.pos.y / FP }));
+      path = towLoopPath(path, { x: st.player.pos.x / FP, y: st.player.pos.y / FP }, at, towGroup(idle, at));
     }
     this.out = { key, at, text, kind, path };
     return this.out;

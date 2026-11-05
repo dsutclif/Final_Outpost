@@ -710,7 +710,9 @@ export class Brain {
       const best = [...this.score(st)].filter((t) => t.kind !== "wait").sort((a, b) => b.score - a.score)[0];
       const held = this.held;
       // out past the walls, a gather step stays with the source out there (no turning back for the warehouse)
-      const heldTgt = held && (!best || !urgent(best.kind) || urgent(held.kind))
+      // a pad the player can pay right now is the current goal: it replaces an older held step (a register pile, a gather)
+      const stale = held && best?.kind === "pay" && held.kind !== "pay" && !urgent(held.kind);
+      const heldTgt = held && !stale && (!best || !urgent(best.kind) || urgent(held.kind))
         ? this.resolveQuiet(st, (held.kind === "gather" || held.kind === "fuel") && !this.insideRings(p) ? { ...held, nodeOnly: true } : held)
         : null;
       if (held && heldTgt) { task = held; tgt = heldTgt; }
