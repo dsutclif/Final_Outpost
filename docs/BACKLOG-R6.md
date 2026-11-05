@@ -25,8 +25,21 @@ object sizes and pack s1 rebuilt (859fd14). B's `story-p2` claim on `client/src/
 3. G5 + G6 guide arrows (`client/src/guide.ts`, not claimed): a parallel session.
 4. Live check on the Vercel URL of Release 1's unseen items (#1, #2, #3, #4, #6, #7, #8): Haiku or Sonnet,
    screenshots only; tick or reopen.
-5. Ask Doug whether the soft storm sheets already meet G8; if so, tick it.
-G2 (shovel dig) needs a dig clip and a shovel model first: ask Doug for the asset before scheduling it.
+5. G8 is done (Doug, 2026-11-05: the storm dust in live L1 looks realistic, that is the target).
+6. G2 joins session 1: `prop.shovel` and the `dig` clip are already in `meshy.json` (used for ore before the
+   pickaxe), so play `dig` with the shovel while the hero pays at a `zone.clear` pad.
+
+**Combat values (Doug, 2026-11-05: "make your own best decisions").** Start from the arena PROPOSALS
+(`client/src/dev/arenaModel.ts`) as they stand, with drops equal to HP (R5 rule):
+- Warlord 24 HP, 24 points, 24 scrap: the arena value, not #14's 15, because raiders rise to 6 HP and a 15 HP
+  warlord would sit too close to them for "big, slow and rare at the top".
+- Mites (N2): the arena's acid spit (range 40, damage 1, every 2 s) and lunge (30, 0.3 s wind-up, 2 s cooldown).
+- Dust crawler (N18): HP 3, drops 3 scrap (not food), shot range 60. Wave share by count about 70% mites,
+  20% crawlers, 10% raiders, warlords 1-3 on the last two waves; all inside the point cap from the rules review.
+- N13 power budget: go, as a pretotype on 2-3 levels with param overrides (core L1/L2/L3 supply 4/7/10). Ship it
+  only if bots then buy core upgrades on those levels; otherwise #10 takes the N1 fallback (per-pad counter, no
+  upgrade escalation, cap at 2x base).
+Bundle 5 retunes from these by rater metrics (N12 defender losses per wave), not by eye.
 
 **Step B, after the 2026-11-06 rules review: Release 2 as one engine bump (0.20.0) and one pack rebuild.**
 Doug's calls needed first: N13 power budget (or the N1 fallback for #10), N18 crawler drop and wave share,
