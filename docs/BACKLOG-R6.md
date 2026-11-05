@@ -225,3 +225,4 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
 - [x] **G9 order picture:** each item is drawn once into a small picture from its own model (`scene/itemicons.ts`); 14 resource pictures checked on L12; not seen inside a live order bubble.
 - [x] **G1 fireworks:** see the G1 line above.
 - [x] **G2 shovel and dig:** the `dig` act is set on `pad_paid` for a `zone.clear` pad (checked with a faked pad and a pose change); the shovel itself and a real clear pad were not seen.
+- Live: pushed as 5850b9e; the new bundle (index-xRIQq0n4, renderer chunk with the red bolt colour) is on the Vercel URL and the update toast appeared. Not played live (debug unlock did not stick on the live origin), so every item above was seen on the local dev server only.
