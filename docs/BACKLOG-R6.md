@@ -202,5 +202,15 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
       Story levels 3-4 do this already.
 - [ ] **N6b level-order audit:** a pack check in `levels:check` for repeated goal kinds and templates.
 - [ ] **Bot tow loop through a wall** (story log note): `Brain.loopAround` can place loop points inside a ring.
+- [ ] **Search start table per engine (docs/LEVEL-RULES.md):** `generator/data/start.json` is still from engine 0.16.0
+      and `startPressure` (generator `index.ts`) never checks its engine. Make it ignore a table from another engine
+      (falling back to the formula), then rewrite it from this release's rebuild: `pnpm levels:start-table
+      levels/candidates/s1.jsonl` on the machine that ran the build (GitHub Actions keeps only digests).
+- [ ] **Defend fun threshold:** defend levels mostly rate F 0.1-0.3 against the 0.4 bar, so they ship as off target
+      after every retry (0.16.0 rebuild). After the 11-06 review, either set a defend threshold from the data or
+      fix what the rater's fun proxies miss on defend (`rater/src/fun.ts`). Needs Doug's call on which.
+- [ ] **Levels far off their target D:** in 0.16.0, L23, L26, L27, L28, L35, L44 and L47 shipped more than 0.2 from
+      their target. Re-check against the 0.19.0 digest (`levels[*]` dMin/dMax/target) and, where a goal can't reach
+      its target on any seed, give the sequencer per-goal D ranges (rule 1) rather than searching longer.
 - [ ] Engine bump (claim it in the story log), `levels:build`, `levels:check`, re-pin golden and story levels,
-      the story session re-checks levels 3-5, release notes, deploy.
+      the story session re-checks levels 3-5, `levels:start-table`, release notes, deploy.
