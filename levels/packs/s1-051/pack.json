@@ -1,6 +1,6 @@
 {
   "id": "s1-051",
-  "engineVersion": "0.18.0",
+  "engineVersion": "0.19.0",
   "contentVersion": "0.18.0",
   "levels": [
     {
@@ -203,7 +203,7 @@
         "workers"
       ],
       "goal": "boss",
-      "rating": 0.912,
+      "rating": 0.812,
       "fun": 0.55,
       "target": 0.8
     },
@@ -323,8 +323,8 @@
         "sales"
       ],
       "goal": "hazard_survive",
-      "rating": 0.052,
-      "fun": 0.31,
+      "rating": 0.048,
+      "fun": 0.437,
       "target": 0.625
     },
     {
@@ -361,9 +361,51 @@
         "workers"
       ],
       "goal": "bulk_order",
-      "rating": 0.675,
-      "fun": 0.913,
+      "rating": 0.863,
+      "fun": 0.865,
       "target": 0.713
+    },
+    {
+      "id": "s1-L069",
+      "file": "s1-L069.json",
+      "title": "Hands Off",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "conveyors",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "automate",
+      "rating": 0.785,
+      "fun": 0.958,
+      "target": 0.756
+    },
+    {
+      "id": "s1-L070",
+      "file": "s1-L070.json",
+      "title": "Hurried Traders and Brighter Cores",
+      "family": "shelter",
+      "secondary": "harvest",
+      "modules": [
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "customer_variety",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "core_level",
+      "rating": 0.784,
+      "fun": 0.783,
+      "target": 0.8
     }
   ],
   "dropped": [
@@ -386,7 +428,7 @@
     "reason": "adaptation off",
     "meanStars": null,
     "meanAttempts": null,
-    "samples": 0,
-    "cleared": 0
+    "samples": 10,
+    "cleared": 28
   }
 }

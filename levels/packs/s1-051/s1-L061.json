@@ -1,7 +1,7 @@
 {
   "id": "s1-L061",
   "seed": 1398726059,
-  "engineVersion": "0.18.0",
+  "engineVersion": "0.19.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -317,16 +317,16 @@
       }
     },
     {
+      "id": "challenge",
+      "kind": "no_colonist_freezes",
+      "params": {}
+    },
+    {
       "id": "time",
       "kind": "time_target",
       "params": {
         "seconds": 73
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "no_colonist_freezes",
-      "params": {}
     }
   ],
   "fail": [

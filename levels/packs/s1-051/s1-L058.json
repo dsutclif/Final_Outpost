@@ -1,7 +1,7 @@
 {
   "id": "s1-L058",
   "seed": 288445413,
-  "engineVersion": "0.18.0",
+  "engineVersion": "0.19.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -522,17 +522,17 @@
       }
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 461
-      }
-    },
-    {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
         "pct": 35
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 461
       }
     }
   ],

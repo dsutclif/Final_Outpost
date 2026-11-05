@@ -1,7 +1,7 @@
 {
   "id": "s1-L057",
   "seed": 2047496721,
-  "engineVersion": "0.18.0",
+  "engineVersion": "0.19.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -313,16 +313,16 @@
       }
     },
     {
+      "id": "challenge",
+      "kind": "no_angry_customers",
+      "params": {}
+    },
+    {
       "id": "time",
       "kind": "time_target",
       "params": {
         "seconds": 288
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "no_angry_customers",
-      "params": {}
     }
   ],
   "fail": [

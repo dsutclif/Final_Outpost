@@ -1,7 +1,7 @@
 {
   "id": "s1-L056",
   "seed": 1427777921,
-  "engineVersion": "0.18.0",
+  "engineVersion": "0.19.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -219,17 +219,17 @@
       }
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 67
-      }
-    },
-    {
       "id": "challenge",
       "kind": "tow_trip",
       "params": {
         "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 67
       }
     }
   ],
@@ -262,5 +262,6 @@
       "human": 3,
       "humanAll": 1
     }
-  }
+  },
+  "lighting": "night"
 }

@@ -1,7 +1,7 @@
 {
   "id": "s1-L051",
   "seed": 900293734,
-  "engineVersion": "0.18.0",
+  "engineVersion": "0.19.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -206,17 +206,17 @@
       "params": {}
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 55
-      }
-    },
-    {
       "id": "challenge",
       "kind": "tow_full_trip",
       "params": {
         "n": 2
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 55
       }
     }
   ],

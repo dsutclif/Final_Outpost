@@ -1,7 +1,7 @@
 {
   "id": "s1-L053",
   "seed": 358154072,
-  "engineVersion": "0.18.0",
+  "engineVersion": "0.19.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -481,16 +481,16 @@
       }
     },
     {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    },
+    {
       "id": "time",
       "kind": "time_target",
       "params": {
         "seconds": 435
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "settlement_never_freezes",
-      "params": {}
     }
   ],
   "fail": [
