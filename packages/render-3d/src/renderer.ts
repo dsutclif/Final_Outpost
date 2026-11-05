@@ -61,6 +61,7 @@ import { Rigged } from "./scene/rigged.js";
 import { LookTest } from "./lookTest.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
+import { ItemIcons } from "./scene/itemicons.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { heldJob, padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
@@ -367,6 +368,7 @@ export class Renderer3D implements Renderer {
   private wallFade = 1;
   private blobs: Blobs | null = null;
   private items: Items | null = null;
+  private itemIcons: ItemIcons | null = null;
   private walls: { wall: Batch; cracked: Batch; reinforced: Batch; crackedR: Batch; dash: Batch; rubble: Batch; crate: Batch; terrain: Batch } | null = null;
   /** The Rockslide GLB has landed: ridge and outcrop terrain draws as tiles of it (Doug, 2026-11-04). */
   private rockslide = false;
@@ -608,6 +610,7 @@ export class Renderer3D implements Renderer {
     this.rigged = new Rigged(this.scene);
     this.blobs = new Blobs(mats.blob, this.scene);
     this.items = new Items(this.tokens, mats.std, this.scene);
+    this.itemIcons = this.gl && typeof mount.ownerDocument?.createElement === "function" ? new ItemIcons(this.gl as unknown as WebGLRenderer, this.items, mount.ownerDocument) : null;
     const geoOf = (m: Model): BufferGeometry => {
       let g: BufferGeometry | null = null;
       m.root.traverse((o) => { if (!g && (o as Mesh).isMesh) g = (o as Mesh).geometry; });
@@ -713,6 +716,8 @@ export class Renderer3D implements Renderer {
     this.wallSee.clear();
     this.blobs?.dispose();
     this.items?.dispose();
+    this.itemIcons?.dispose();
+    this.itemIcons = null;
     if (this.walls) for (const b of Object.values(this.walls)) b.dispose();
     for (const g of this.geos) g.dispose();
     this.geos = [];
@@ -1516,7 +1521,7 @@ export class Renderer3D implements Renderer {
       const pk = Math.round(clamp01(c.patience / Math.max(1, c.patienceMax)) * 10);
       const sp = this.bubbleSprite(key);
       const sv = serving && serving.customer === c.id ? Math.round(clamp01(serving.ticks / Math.max(1, serving.of)) * 8) : -1;
-      const ok = this.labels.apply(sp, `ord|${c.res}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), textSprite(TEXT.main, 52, 120));
+      const ok = this.labels.apply(sp, `ord|${c.res}|${this.itemIcons?.version(c.res) ?? "-"}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), textSprite(TEXT.main, 52, 120));
       sp.visible = ok;
       sp.position.set(pos.x, ART_M * look.scale * this.devCharScale * 1.55, pos.y);
     }
@@ -2772,7 +2777,8 @@ export class Renderer3D implements Renderer {
         g.lineWidth = 6; g.strokeStyle = t.ink; g.stroke();
         g.beginPath(); g.moveTo(66, 90); g.lineTo(75, 112); g.lineTo(86, 90); g.closePath();
         g.fillStyle = ui.panel; g.fill();
-        drawIcon(g, 48, 50, 22, resToken(t, res), t.ink);
+        const pic = this.itemIcons?.get(res);
+        if (pic) g.drawImage(pic, 48 - 30, 50 - 30, 60, 60); else drawIcon(g, 48, 50, 22, resToken(t, res), t.ink);
         g.font = `800 52px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
         g.fillStyle = t.ink; g.fillText(`${want}`, 104, 53);
         // patience arc
