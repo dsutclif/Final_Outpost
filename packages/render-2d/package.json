@@ -4,5 +4,5 @@
   "private": true,
   "type": "module",
   "exports": { ".": "./src/index.ts" },
-  "dependencies": { "@fo/content": "workspace:*", "@fo/sim": "workspace:*", "@fo/skins": "workspace:*" }
+  "dependencies": { "@fo/content": "workspace:*", "@fo/render-3d": "workspace:*", "@fo/sim": "workspace:*", "@fo/skins": "workspace:*" }
 }

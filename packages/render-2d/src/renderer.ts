@@ -1,5 +1,6 @@
 import { content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { FP, TPS, compile, safeRadius, type Compiled, type SimEvent, type State } from "@fo/sim";
+import { heldJob } from "@fo/render-3d/padlock";
+import { FP, TPS, compile, safeRadius, type Compiled, type PadState, type SimEvent, type State } from "@fo/sim";
 import { alpha, floaterText, hintText, nameOf, uiText, type Skin } from "@fo/skins";
 import { LEAD_WEIGHT, type Camera, type Renderer } from "./contract.js";
 import type { DC, PadInfo } from "./draw/dc.js";
@@ -429,8 +430,11 @@ export class Renderer2D implements Renderer {
     const done = new Set<string>(w.built ?? []);
     for (const p of w.pads ?? []) if (p.done) done.add(p.id);
     for (const p of w.pads ?? []) {
-      if (p.done || !this.padVisible(w, p, done)) continue;
-      jobs.push({ layer: 1, y: y(p.pos), type: p.type, e: { ...p, locked: this.padLocked(w, p) } });
+      if (p.done) continue;
+      // a manual-first hire is hidden by the sim; it still shows, locked, naming the job (same rule as the 3D renderer)
+      const held = !this.padVisible(w, p, done) && this.cp ? heldJob(w as unknown as State, this.cp, p as unknown as PadState) : null;
+      if (!held && !this.padVisible(w, p, done)) continue;
+      jobs.push({ layer: 1, y: y(p.pos), type: p.type, e: { ...p, locked: held !== null || this.padLocked(w, p), heldJob: held } });
     }
     for (const d of w.drops ?? []) jobs.push({ layer: 1, y: y(d.pos), type: "drop", e: d });
     // layer 2: things that stand up, y-sorted

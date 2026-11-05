@@ -1,3 +1,4 @@
+import { padLockReason } from "@fo/render-3d/padlock";
 import { alpha } from "@fo/skins";
 import type { PadView } from "../view.js";
 import { drawPerson, roleLook } from "./characters.js";
@@ -15,7 +16,8 @@ function textW(g: G, s: string, size: number): number {
   return g.measureText?.(s)?.width ?? s.length * size * 0.55;
 }
 
-function lockReason(dc: DC, info: PadInfo): string {
+function lockReason(dc: DC, info: PadInfo, heldJob?: string | null): string {
+  if (heldJob) return padLockReason(dc.skin, info, true, dc.world.core.level, 0, heldJob);
   if (info.kind === "hire") return dc.ui("noIdle");
   if (info.requiresCoreLevel !== undefined && dc.world.core.level < info.requiresCoreLevel) return dc.ui("needsCoreLevel", { n: info.requiresCoreLevel });
   if (info.requiresLabel) return dc.ui("needsPad", { name: info.requiresLabel });
@@ -95,7 +97,7 @@ function drawPad(dc: DC, pad: PadView & { locked: boolean }): void {
   const g = dc.g, p = dc.w(pad.pos);
   const big = info.big || !!info.goal;
   const costs = Object.entries(info.cost);
-  const reason = pad.locked ? lockReason(dc, info) : "";
+  const reason = pad.locked ? lockReason(dc, info, pad.heldJob) : "";
   const nameSize = big ? 14 : 11.5;
   const hasRoute = info.kind === "hire" && (info.from || info.to);
   const contentW = Math.max(textW(g, info.label, nameSize) + 22, pad.locked ? textW(g, reason, 9.5) + 26 : costs.length * 46, hasRoute ? 62 : 0);

@@ -3,6 +3,7 @@ import { ENGINE_VERSION, FP, createSim, type SimEvent, type State } from "@fo/si
 import { SKINS, marsGreenhouse } from "@fo/skins";
 import { describe, expect, it } from "vitest";
 import level1 from "../../../levels/golden/proto-L001.json";
+import { heldJob, padLockReason } from "@fo/render-3d/padlock";
 import { Renderer2D, createCamera, hasDraw } from "../src/index.js";
 
 // A recording stand-in for CanvasRenderingContext2D: every method call is logged with its
@@ -223,5 +224,22 @@ describe("2D renderer", () => {
     const r = new Renderer2D();
     const sim = createSim(manifest);
     expect(() => { r.sync(sim.state, 0, createCamera()); r.onEvent({ t: "core_fuel_out" }); r.resize(10, 10); r.dispose(); }).not.toThrow();
+  });
+});
+
+describe("2D renderer: hire pads held for a job by hand (R5 #25)", () => {
+  it("draws a hidden manual hire pad locked, with the job text from the skin", async () => {
+    const m = (await import("../../../levels/packs/s1/s1-L003.json")).default as unknown as typeof manifest;
+    const clock = { t: 0 };
+    const r = new Renderer2D({ now: () => clock.t, dpr: () => 2 });
+    const env = fakeCanvasEnv();
+    const sim = createSim(m);
+    r.init(sim.compiled.manifest, marsGreenhouse, env.mount);
+    const held = sim.state.pads.find((p) => !p.visible && !p.done && sim.compiled.entityById[p.id]?.type === "pad.hire" && (sim.compiled.entityById[p.id] as { manual?: boolean }).manual);
+    expect(held, "s1-L003 has a manual hire pad hidden at the start").toBeTruthy();
+    r.sync(sim.state, 0.5, createCamera());
+    const texts = env.calls.filter((c) => c.name === "fillText" || c.name === "strokeText").map((c) => String(c.args[0]));
+    const job = heldJob(sim.state, sim.compiled, held!)!;
+    expect(texts).toContain(padLockReason(marsGreenhouse, { kind: "hire" }, true, 1, 0, job));
   });
 });

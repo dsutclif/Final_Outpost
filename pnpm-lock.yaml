@@ -175,6 +175,9 @@ importers:
       '@fo/content':
         specifier: workspace:*
         version: link:../content
+      '@fo/render-3d':
+        specifier: workspace:*
+        version: link:../render-3d
       '@fo/sim':
         specifier: workspace:*
         version: link:../sim

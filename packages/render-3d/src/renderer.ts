@@ -48,6 +48,8 @@ import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash, hash01 } from "./assets/scatter.js";
 import { LEAD_WEIGHT, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder, ROCKS } from "./geom.js";
+import { ghostSpec, type GhostSpec } from "./ghost.js";
+import { patientOf } from "./medic.js";
 import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Fx } from "./scene/fx.js";
@@ -96,7 +98,7 @@ export interface Renderer3DOptions {
   createGL?: (canvas: HTMLCanvasElement) => GLLike;
 }
 
-interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; site?: V; worker?: { vars: WorkerVars; res?: string }; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean }
+interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; site?: V; worker?: { vars: WorkerVars; res?: string }; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean; target?: string }
 
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
@@ -773,6 +775,7 @@ export class Renderer3D implements Renderer {
       else if (kind === "build" && what === "zone.clear") label = uiText(this.skin, "clear", { name: name("zone.blocked") });
       const info: PadInfo = { id: e.id, kind, cost: { ...e.cost }, label, big: e.type === "pad.build" ? e.big : false, what };
       if (worker) info.worker = worker;
+      if (e.type === "pad.build" && e.target) info.target = e.target;
       if (e.type === "pad.build" && e.site) info.site = { x: e.site[0], y: e.site[1] };
       if (this.manifest.goal.type === "build" && this.manifest.goal.target === e.id) info.goal = true;
       if (e.requires?.pad !== undefined) info.requiresPad = e.requires.pad;
@@ -1523,7 +1526,7 @@ export class Renderer3D implements Renderer {
       const ghosted = !n.enabled && n.type === "node.food_source";
       p.model.root.visible = !ghosted;
       if (ghosted) {
-        this.syncGhost(p, n.type, this.wv(n.pos), 0);
+        this.syncGhost(p, { id: n.type, level: 1, at: "site" }, this.wv(n.pos), 0);
       } else this.hideGhost(p);
       const body = p.model.parts["body"] as Mesh | undefined;
       const steps = body?.userData["steps"] as number[] | undefined;
@@ -1866,7 +1869,7 @@ export class Renderer3D implements Renderer {
     for (const p of s.pads) if (p.done) done.add(p.id);
     const pl = s.player.pos;
     const ghosts = new Set(s.pads
-      .filter((pad) => !pad.done && pad.visible && this.ghostable(this.pads.get(pad.id)))
+      .filter((pad) => !pad.done && pad.visible && this.ghostSpecOf(this.pads.get(pad.id), s))
       .sort((a, b) => ((a.pos.x - pl.x) ** 2 + (a.pos.y - pl.y) ** 2) - ((b.pos.x - pl.x) ** 2 + (b.pos.y - pl.y) ** 2) || (a.id < b.id ? -1 : 1))
       .slice(0, TIERS[this.quality].ghosts)
       .map((pad) => pad.id));
@@ -1912,7 +1915,11 @@ export class Renderer3D implements Renderer {
       const artH = (rows === 2 ? PAD_ART_H2 : PAD_ART_H) + (lockTxt ? PAD_LOCK_H : 0);
       sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${locked}|${lockTxt}`, () => this.padLabelArt(label, owed, locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
       // a pad that places a new model shows its blueprint at full size, so a name never floats over nothing
-      const ghostH = ghosts.has(pad.id) ? this.syncGhost(p, info!.what, info!.site ? v3(info!.site.x, 0, info!.site.y) : at, fill, !!info!.site && this.onWallAt(info!.site, s)) : this.hideGhost(p);
+      const gs = ghosts.has(pad.id) ? this.ghostSpecOf(info, s) : null;
+      const gAt = gs ? (gs.at === "site" ? (info!.site ? v3(info!.site.x, 0, info!.site.y) : at) : this.wv(gs.at)) : at;
+      // a turret on a wall keeps its wall mount in the blueprint too (an upgrade reads the site off the pad it upgrades)
+      const gSite = gs ? (gs.at === "site" ? info!.site : info!.target ? this.pads.get(info!.target)?.site : undefined) : undefined;
+      const ghostH = gs ? this.syncGhost(p, gs, gAt, fill, !!gSite && this.onWallAt(gSite, s)) : this.hideGhost(p);
       // the belt's pad sits on the belt itself (generator: mid-run), so its name and price lie on the belt blueprint, not above it
       const onBelt = info?.what === "struct.conveyor";
       // a big landmark's blueprint is taller than the view: its price stays low enough to be on screen
@@ -1940,8 +1947,11 @@ export class Renderer3D implements Renderer {
    * Translucent blueprint of what a build pad places (structures and converters; upgrades have
    * none), firming up as it is paid. Returns its height in art metres, 0 when there is none.
    */
-  private ghostable(info: PadInfo | undefined): boolean {
-    return info?.kind === "build" && hasModel(info.what) && !this.content.upgrades[info.what] && info.what !== "struct.conveyor";
+  private ghostSpecOf(info: PadInfo | undefined, s: State): GhostSpec | null {
+    if (info?.kind !== "build" || info.what === "struct.conveyor") return null;
+    const cp = this.cp;
+    const spec = ghostSpec(info, this.content.upgrades, s, cp?.core.levels.length ?? 1, (t) => cp?.converters[t]?.rateTicksByLevel.length ?? 1);
+    return spec && hasModel(spec.id) ? spec : null;
   }
 
   private hideGhost(p: Placed): number {
@@ -1966,11 +1976,20 @@ export class Renderer3D implements Renderer {
     return m;
   }
 
-  private syncGhost(p: Placed, what: string, at: Vector3, fill: number, onWall = false): number {
+  private syncGhost(p: Placed, spec: GhostSpec, at: Vector3, fill: number, onWall = false): number {
+    const what = spec.id, level = spec.level;
     let g = p.extra[3] as Group | undefined;
+    // an upgrade pad's blueprint follows its target's level, so it is rebuilt when that moves
+    if (g && (g.userData["what"] !== what || g.userData["level"] !== level)) {
+      g.removeFromParent();
+      g.traverse((c) => { if ((c as Mesh).isMesh) disposeGeo(c as Mesh); });
+      (g.userData["ghost"] as MeshLambertMaterial).dispose();
+      g = undefined;
+      delete p.extra[3];
+    }
     if (!g) {
       const mat = new MeshLambertMaterial({ color: new Color(this.tokens.interactive), emissive: new Color(this.tokens.interactive), emissiveIntensity: 0.55, transparent: true, depthWrite: false });
-      const ctx = { ...this.bctx!, level: 1, ghost: true };
+      const ctx = { ...this.bctx!, level, ghost: true };
       const m = onWall && what === "struct.ranged_defense" ? this.wallTurret(ctx) : buildModel(what, ctx);
       const drop: Object3D[] = [];
       m.root.traverse((o) => {
@@ -1984,16 +2003,18 @@ export class Renderer3D implements Renderer {
       g = m.root;
       g.userData["ghost"] = mat;
       g.userData["what"] = what;
+      g.userData["level"] = level;
       g.userData["h"] = tmpBox.isEmpty() ? 1 : Math.max(0.3, tmpBox.max.y);
       this.dynamic.add(g);
       p.extra[3] = g;
     }
     g.visible = true;
     // the same size chain as the built model (look buildScale, modelScale, aligned sizes) and the same slab lift
-    g.scale.setScalar(ART_M * this.buildK(what, 1));
+    g.scale.setScalar(ART_M * this.buildK(what, level));
     g.position.set(at.x, /^(sink|conv|struct)./.test(what) && what !== "struct.gate" ? SLAB_TOP : 0, at.z);
     (g.userData["ghost"] as MeshLambertMaterial).opacity = 0.5 + 0.3 * fill + 0.06 * Math.sin(this.t * 3 + at.x);
-    return (g.userData["h"] as number) * this.buildK(what, 1);
+    // an upgrade's blueprint stands on the building it upgrades: its price stays at the pad, not above the taller shape
+    return spec.fromState ? 0.01 : (g.userData["h"] as number) * this.buildK(what, level);
   }
 
   /**
@@ -2403,6 +2424,11 @@ export class Renderer3D implements Renderer {
       if (!moving && r.status === "ok") {
         const w = this.workSpots.find((ws) => (ws.op.x - pos.x) ** 2 + (ws.op.y - pos.y) ** 2 < (ART_M * 0.6) ** 2);
         if (w) this.acts.set(key, { act: w.working && rrig?.clips?.["work"] ? "work" : "face", until: this.t + 0.3, at: w.at });
+      }
+      // a medic mid-heal kneels beside the patient (the rig's care clip) facing them; back on its feet when the heal ends
+      if (!moving && rrig?.clips?.["care"]) {
+        const pt = patientOf(s.residents, (role) => this.cp?.roles[role]?.behavior === "medic", r);
+        if (pt) this.acts.set(key, { act: "care", until: this.t + 0.3, at: this.interp.pos(`r:${pt.id}`, pt.pos, a) });
       }
       const ryaw = this.faceAct(key, pos, ry, moving);
       const carrying = !!r.carry && r.n > 0;

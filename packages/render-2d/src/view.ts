@@ -10,7 +10,7 @@ export interface ResidentView {
   id: number | string; pos: V; role: string; status: string;
   carry?: string | null; n?: number; mode?: string; target?: string | number | null;
 }
-export interface PadView { id: string; type: string; pos: V; done: boolean; paid: Record<string, number>; visible?: boolean; locked?: boolean }
+export interface PadView { id: string; type: string; pos: V; done: boolean; paid: Record<string, number>; visible?: boolean; locked?: boolean; /** Hidden by the sim until the player does this job by hand: drawn locked with the job named (padlock.ts). */ heldJob?: string | null }
 export interface StructureView { id: string | number; type: string; pos: V; level?: number; hp?: number; hpMax?: number }
 export interface SectionView { a: V; b: V; built: boolean; hp?: number; hpMax?: number; gate?: boolean }
 export interface BarrierView { id: string | number; a: V; b: V; res?: string; costPerSection?: number; sections: SectionView[] }
