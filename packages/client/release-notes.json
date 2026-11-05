@@ -1,5 +1,6 @@
 {
   "notes": [
-    "Storage depots now use the same detailed warehouse model as the rest of the outpost."
+    "The floor arrows now lead to what you can do right now: with the money for a pad in hand they point at that pad, not at an older step.",
+    "Pods lying side by side get one arrow loop around the whole group, so you can tow them together."
   ]
 }
