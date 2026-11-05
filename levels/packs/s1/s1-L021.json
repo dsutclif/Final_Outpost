@@ -249,13 +249,6 @@
     {
       "type": "node.salvage_pile",
       "at": [
-        220,
-        1138
-      ]
-    },
-    {
-      "type": "node.salvage_pile",
-      "at": [
         303,
         1351
       ]
@@ -263,15 +256,22 @@
     {
       "type": "node.salvage_pile",
       "at": [
-        808,
-        1158
+        234,
+        589
       ]
     },
     {
       "type": "node.salvage_pile",
       "at": [
-        234,
-        589
+        771,
+        1361
+      ]
+    },
+    {
+      "type": "node.salvage_pile",
+      "at": [
+        990,
+        450
       ]
     },
     {
@@ -285,23 +285,23 @@
     {
       "type": "zone.terrain",
       "id": "terrain0",
-      "kind": "ridge",
+      "kind": "outcrop",
       "rect": [
-        414,
-        431,
-        20,
-        130
+        416,
+        446,
+        47,
+        57
       ]
     },
     {
       "type": "zone.terrain",
       "id": "terrain1",
-      "kind": "ridge",
+      "kind": "outcrop",
       "rect": [
-        732,
-        464,
-        22,
-        107
+        731,
+        419,
+        55,
+        37
       ]
     },
     {
@@ -361,7 +361,7 @@
         795
       ],
       "cost": {
-        "res.salvage": 23
+        "res.salvage": 22
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_e1",
@@ -409,7 +409,7 @@
         919
       ],
       "cost": {
-        "res.salvage": 23
+        "res.salvage": 22
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_e2",
@@ -460,7 +460,7 @@
         795
       ],
       "cost": {
-        "res.salvage": 23
+        "res.salvage": 22
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_e3",
@@ -511,7 +511,7 @@
         919
       ],
       "cost": {
-        "res.salvage": 23
+        "res.salvage": 22
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_e4",
@@ -559,7 +559,7 @@
         575
       ],
       "cost": {
-        "res.salvage": 23
+        "res.salvage": 22
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n1",
@@ -607,7 +607,7 @@
         575
       ],
       "cost": {
-        "res.salvage": 23
+        "res.salvage": 22
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n2",
@@ -658,7 +658,7 @@
         500
       ],
       "cost": {
-        "res.salvage": 23
+        "res.salvage": 22
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n3",
@@ -709,7 +709,7 @@
         500
       ],
       "cost": {
-        "res.salvage": 23
+        "res.salvage": 22
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n4",
@@ -741,7 +741,7 @@
         979
       ],
       "cost": {
-        "res.salvage": 29
+        "res.salvage": 28
       },
       "build": "struct.barracks.t2",
       "target": "barracks"
@@ -782,42 +782,42 @@
     {
       "t": 20,
       "counts": {
-        "hostile.swarmling": 25
+        "hostile.swarmling": 26
       },
       "side": "e",
       "gap": 0.7
     },
     {
-      "t": 75,
+      "t": 76,
       "counts": {
-        "hostile.swarmling": 41,
-        "hostile.raider_humanoid": 6
+        "hostile.swarmling": 44,
+        "hostile.raider_humanoid": 7
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 130,
+      "t": 132,
       "counts": {
-        "hostile.swarmling": 212,
-        "hostile.raider_humanoid": 20
+        "hostile.swarmling": 182,
+        "hostile.raider_humanoid": 22
       },
       "side": "e",
-      "gap": 0.32
+      "gap": 0.36
     },
     {
-      "t": 186,
+      "t": 187,
       "counts": {
-        "hostile.swarmling": 251,
-        "hostile.raider_humanoid": 31
+        "hostile.swarmling": 243,
+        "hostile.raider_humanoid": 33
       },
       "side": "n",
-      "gap": 0.26
+      "gap": 0.27
     }
   ],
   "events": [],
   "params": {
-    "start.currency": 8,
+    "start.currency": 7,
     "core.burn": 2.7,
     "housing.base": 7,
     "lots.block": 60,
@@ -841,9 +841,9 @@
     },
     {
       "id": "challenge2",
-      "kind": "hire",
+      "kind": "salvage",
       "params": {
-        "n": 5
+        "n": 369
       }
     },
     {
@@ -868,18 +868,19 @@
     }
   },
   "rating": {
-    "difficulty": 0.398,
-    "fun": 0.074,
-    "botMargin": 0.997,
+    "difficulty": 0.315,
+    "fun": 0.069,
+    "botMargin": 0.995,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2.33,
       "goodAll": 1,
       "human": 3,
       "humanAll": 1

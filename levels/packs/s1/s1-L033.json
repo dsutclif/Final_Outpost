@@ -1,6 +1,6 @@
 {
   "id": "s1-L033",
-  "seed": 1244230714,
+  "seed": 1462663899,
   "engineVersion": "0.19.0",
   "contentVersion": "0.18.0",
   "map": {
@@ -43,8 +43,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        341,
-        391
+        365,
+        419
       ],
       "sells": [
         "res.food_raw_1"
@@ -52,23 +52,19 @@
       "route": [
         [
           500,
-          297
-        ],
-        [
-          477,
-          297
-        ],
-        [
-          291,
-          297
-        ],
-        [
-          279,
           315
         ],
         [
-          280,
-          323
+          477,
+          315
+        ],
+        [
+          309,
+          315
+        ],
+        [
+          304,
+          317
         ]
       ]
     },
@@ -76,85 +72,85 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        327,
-        589
+        324,
+        592
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        154,
-        513
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        224,
+        220,
         529
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        172,
-        548
+        183,
+        543
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        137,
-        539
+        148,
+        526
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        182,
-        577
+        209,
+        591
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        225,
-        602
+        163,
+        569
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        113,
-        510
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        143,
-        579
+        130,
+        500
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         117,
-        562
+        526
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        133,
+        567
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        172,
+        603
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        139,
-        619
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        186,
+        208,
         635
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        88,
+        565
       ]
     },
     {
@@ -172,12 +168,12 @@
     {
       "type": "zone.terrain",
       "id": "terrain0",
-      "kind": "chasm",
+      "kind": "ridge",
       "rect": [
-        378,
-        111,
-        38,
-        67
+        45,
+        770,
+        129,
+        22
       ]
     },
     {
@@ -185,10 +181,10 @@
       "id": "terrain1",
       "kind": "ridge",
       "rect": [
-        275,
-        102,
-        17,
-        92
+        223,
+        817,
+        99,
+        19
       ]
     },
     {
@@ -196,7 +192,7 @@
       "id": "housing0",
       "at": [
         400,
-        510
+        540
       ],
       "cost": {
         "res.currency": 15
@@ -208,7 +204,7 @@
       "id": "housing1",
       "at": [
         140,
-        470
+        460
       ],
       "cost": {
         "res.currency": 18
@@ -220,7 +216,7 @@
       "id": "housing2",
       "at": [
         400,
-        600
+        620
       ],
       "cost": {
         "res.currency": 21
@@ -239,12 +235,12 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
+    "start.currency": 2,
     "core.burn": 2.3,
     "housing.base": 2,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3.1,
+    "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
     "level.budgetSeconds": 170
@@ -263,17 +259,15 @@
       }
     },
     {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    },
+    {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 129
-      }
-    },
-    {
-      "id": "challenge",
-      "kind": "heat_floor",
-      "params": {
-        "pct": 40
+        "seconds": 132
       }
     }
   ],
@@ -290,9 +284,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.335,
-    "fun": 0.85,
-    "botMargin": 0.53,
+    "difficulty": 0.336,
+    "fun": 0.889,
+    "botMargin": 0.522,
     "botsPassed": [
       "good",
       "average",

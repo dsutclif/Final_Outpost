@@ -236,17 +236,17 @@
       "params": {}
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 95
-      }
-    },
-    {
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
         "pct": 45
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 95
       }
     }
   ],

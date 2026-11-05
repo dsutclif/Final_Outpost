@@ -38,7 +38,7 @@
         520
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -240,7 +240,7 @@
         361,
         55
       ],
-      "freeze": 144
+      "freeze": 152
     },
     {
       "type": "capture.recruit_container",
@@ -248,7 +248,7 @@
         238,
         61
       ],
-      "freeze": 160
+      "freeze": 168
     },
     {
       "type": "capture.recruit_container",
@@ -256,7 +256,7 @@
         105,
         221
       ],
-      "freeze": 161
+      "freeze": 169
     },
     {
       "type": "capture.recruit_container",
@@ -264,7 +264,7 @@
         356,
         254
       ],
-      "freeze": 174
+      "freeze": 183
     },
     {
       "type": "capture.supply_crate",
@@ -281,7 +281,7 @@
         630
       ],
       "cost": {
-        "res.currency": 27
+        "res.currency": 25
       },
       "build": "sink.core.level"
     },
@@ -293,7 +293,7 @@
         239
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 15
       },
       "build": "zone.clear",
       "target": "pass",
@@ -306,14 +306,14 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.5,
+    "start.currency": 6,
+    "core.burn": 2.6,
     "housing.base": 6,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 2.9,
+    "customers.spawn": 2.8,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
+    "customers.orderMax": 2,
     "level.budgetSeconds": 130
   },
   "goal": {
@@ -327,17 +327,17 @@
       "params": {}
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 85
-      }
-    },
-    {
       "id": "challenge",
       "kind": "tow_full_trip",
       "params": {
         "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 83
       }
     }
   ],
@@ -354,14 +354,15 @@
     }
   },
   "rating": {
-    "difficulty": 0.873,
-    "fun": 0.834,
-    "botMargin": 0.593,
+    "difficulty": 0.63,
+    "fun": 0.87,
+    "botMargin": 0.608,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,

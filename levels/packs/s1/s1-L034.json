@@ -294,17 +294,17 @@
       }
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 244
-      }
-    },
-    {
       "id": "challenge",
       "kind": "tow_trip",
       "params": {
         "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 244
       }
     }
   ],

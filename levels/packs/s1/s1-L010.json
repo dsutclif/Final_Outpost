@@ -39,7 +39,7 @@
         860
       ],
       "params": {
-        "fuel": 17,
+        "fuel": 16,
         "level": 1
       }
     },
@@ -221,6 +221,7 @@
         13,
         14,
         15,
+        16,
         17,
         19
       ]
@@ -228,22 +229,22 @@
     {
       "type": "node.salvage_pile",
       "at": [
-        1063,
-        932
-      ]
-    },
-    {
-      "type": "node.salvage_pile",
-      "at": [
-        323,
-        1195
-      ]
-    },
-    {
-      "type": "node.salvage_pile",
-      "at": [
         286,
         1346
+      ]
+    },
+    {
+      "type": "node.salvage_pile",
+      "at": [
+        971,
+        550
+      ]
+    },
+    {
+      "type": "node.salvage_pile",
+      "at": [
+        983,
+        925
       ]
     },
     {
@@ -311,7 +312,7 @@
         795
       ],
       "cost": {
-        "res.salvage": 21
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_w1",
@@ -359,7 +360,7 @@
         919
       ],
       "cost": {
-        "res.salvage": 21
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_w2",
@@ -410,7 +411,7 @@
         795
       ],
       "cost": {
-        "res.salvage": 21
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_w3",
@@ -461,7 +462,7 @@
         919
       ],
       "cost": {
-        "res.salvage": 21
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_w4",
@@ -509,7 +510,7 @@
         575
       ],
       "cost": {
-        "res.salvage": 21
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n1",
@@ -557,7 +558,7 @@
         575
       ],
       "cost": {
-        "res.salvage": 21
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n2",
@@ -608,7 +609,7 @@
         500
       ],
       "cost": {
-        "res.salvage": 21
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n3",
@@ -659,7 +660,7 @@
         500
       ],
       "cost": {
-        "res.salvage": 21
+        "res.salvage": 20
       },
       "build": "struct.ranged_defense.t3",
       "target": "tower_n4",
@@ -691,7 +692,7 @@
         989
       ],
       "cost": {
-        "res.salvage": 26
+        "res.salvage": 25
       },
       "build": "struct.barracks.t2",
       "target": "barracks"
@@ -743,26 +744,26 @@
     {
       "t": 80,
       "counts": {
-        "hostile.swarmling": 32,
+        "hostile.swarmling": 31,
         "hostile.raider_humanoid": 5
       },
       "side": "n",
       "gap": 0.7
     },
     {
-      "t": 139,
+      "t": 140,
       "counts": {
-        "hostile.swarmling": 210,
-        "hostile.raider_humanoid": 16
+        "hostile.swarmling": 203,
+        "hostile.raider_humanoid": 15
       },
       "side": "w",
-      "gap": 0.33
+      "gap": 0.34
     },
     {
-      "t": 199,
+      "t": 200,
       "counts": {
-        "hostile.swarmling": 279,
-        "hostile.raider_humanoid": 24
+        "hostile.swarmling": 283,
+        "hostile.raider_humanoid": 23
       },
       "side": "n",
       "gap": 0.24
@@ -770,14 +771,14 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 8,
-    "core.burn": 2.9,
+    "start.currency": 10,
+    "core.burn": 3,
     "housing.base": 8,
     "lots.block": 60,
     "lots.street": 0,
     "meters.baseHealth": 12,
     "pads.defenceGrowth": 1,
-    "level.budgetSeconds": 830
+    "level.budgetSeconds": 480
   },
   "goal": {
     "type": "turret_level",
@@ -794,9 +795,9 @@
     },
     {
       "id": "challenge2",
-      "kind": "hire",
+      "kind": "salvage",
       "params": {
-        "n": 6
+        "n": 352
       }
     },
     {
@@ -819,9 +820,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.266,
-    "fun": 0.45,
-    "botMargin": 0.719,
+    "difficulty": 0.23,
+    "fun": 0.142,
+    "botMargin": 0.717,
     "botsPassed": [
       "good",
       "average",
@@ -830,7 +831,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 1.67,
+      "median": 3,
       "goodAll": 1,
       "human": 2.5,
       "humanAll": 0.83

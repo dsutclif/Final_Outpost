@@ -84,71 +84,71 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        182,
-        472
+        183,
+        473
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        196,
-        431
+        163,
+        495
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        171,
-        499
+        209,
+        413
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        444
+        186,
+        438
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        141,
+        151,
+        432
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        126,
         477
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        193,
-        389
+        180,
+        409
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        141,
-        437
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        170,
-        412
+        199,
+        382
       ]
     },
     {
       "type": "node.material_source",
       "at": [
         101,
-        467
+        447
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        140,
-        385
+        142,
+        386
       ]
     },
     {
@@ -180,7 +180,7 @@
       "id": "housing1",
       "at": [
         90,
-        560
+        550
       ],
       "cost": {
         "res.currency": 19
@@ -219,11 +219,11 @@
     "customers.spawn": 3.3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 350
+    "level.budgetSeconds": 340
   },
   "goal": {
     "type": "survive",
-    "seconds": 190
+    "seconds": 180
   },
   "family": "shelter",
   "objectives": [
@@ -231,20 +231,20 @@
       "id": "main",
       "kind": "survive",
       "params": {
-        "seconds": 190
+        "seconds": 180
       }
     },
     {
       "id": "challenge2",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    },
+    {
+      "id": "challenge",
       "kind": "heat_floor",
       "params": {
         "pct": 30
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "settlement_never_freezes",
-      "params": {}
     }
   ],
   "fail": [
@@ -261,8 +261,8 @@
   },
   "rating": {
     "difficulty": 0.023,
-    "fun": 0.768,
-    "botMargin": 0.681,
+    "fun": 0.727,
+    "botMargin": 0.679,
     "botsPassed": [
       "good",
       "average",

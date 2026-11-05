@@ -37,7 +37,7 @@
         520
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 10,
         "level": 1
       }
     },
@@ -166,7 +166,7 @@
       ]
     },
     {
-      "type": "capture.supply_crate",
+      "type": "capture.recruit_container",
       "at": [
         431,
         273
@@ -187,6 +187,13 @@
       ]
     },
     {
+      "type": "capture.supply_crate",
+      "at": [
+        37,
+        200
+      ]
+    },
+    {
       "type": "zone.prey",
       "id": "prey",
       "rect": [
@@ -203,12 +210,12 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
+    "start.currency": 1,
     "core.burn": 2.3,
-    "housing.base": 6,
+    "housing.base": 7,
     "lots.block": 60,
     "lots.street": 0,
-    "level.budgetSeconds": 320
+    "level.budgetSeconds": 310
   },
   "goal": {
     "type": "hunt",
@@ -224,16 +231,16 @@
       }
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 315
-      }
-    },
-    {
       "id": "challenge",
       "kind": "rescue_all",
       "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 290
+      }
     }
   ],
   "fail": [
@@ -249,9 +256,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.616,
-    "fun": 0.432,
-    "botMargin": 0.535,
+    "difficulty": 0.621,
+    "fun": 0.324,
+    "botMargin": 0.525,
     "botsPassed": [
       "good",
       "average",
@@ -262,8 +269,8 @@
       "good": 3,
       "median": 3,
       "goodAll": 1,
-      "human": 2.5,
-      "humanAll": 0.83
+      "human": 2,
+      "humanAll": 0.67
     }
   }
 }

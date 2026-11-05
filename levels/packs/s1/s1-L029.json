@@ -253,17 +253,17 @@
       }
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 267
-      }
-    },
-    {
       "id": "challenge",
       "kind": "streak",
       "params": {
         "n": 20
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 267
       }
     }
   ],

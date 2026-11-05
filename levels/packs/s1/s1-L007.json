@@ -204,7 +204,7 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
+    "start.currency": 0,
     "core.burn": 2.2,
     "housing.base": 5,
     "lots.block": 60,
@@ -225,16 +225,16 @@
       }
     },
     {
+      "id": "challenge",
+      "kind": "rescue_all",
+      "params": {}
+    },
+    {
       "id": "time",
       "kind": "time_target",
       "params": {
         "seconds": 55
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "rescue_all",
-      "params": {}
     }
   ],
   "fail": [

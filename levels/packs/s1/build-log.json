@@ -1,5 +1,373 @@
 [
  {
+  "index": 1,
+  "id": "s1-L001",
+  "file": "s1-L001.json",
+  "title": "Traders and Slow Burn",
+  "phase": "teach",
+  "introduced": [
+   "family:shelter"
+  ],
+  "family": "shelter",
+  "secondary": null,
+  "features": [],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "heat_hold",
+    "params": {
+     "pct": 65,
+     "seconds": 85
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 30
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_colonist_freezes",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 0,
+   "human": 3
+  },
+  "modules": [
+   "carry",
+   "core",
+   "gather",
+   "sales"
+  ],
+  "goal": "heat_hold",
+  "template": "west_fields",
+  "target": 0.11,
+  "D": 0.037546005374022265,
+  "F": 0.1357424926124078,
+  "onTarget": false,
+  "margin": {
+   "good": 0.4097777777777778,
+   "average": 0.38496296296296295,
+   "weak": 0.37222222222222223,
+   "novice": 0.3026666666666667,
+   "floor": -0.4469281045751634
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 12.118,
+  "seed": 722945258,
+  "attempts": 4,
+  "rejects": {
+   "offTarget": 41
+  },
+  "ratings": 41
+ },
+ {
+  "index": 2,
+  "id": "s1-L002",
+  "file": "s1-L002.json",
+  "title": "Drift Cables and Rescue",
+  "phase": "teach",
+  "introduced": [
+   "family:rescue"
+  ],
+  "family": "rescue",
+  "secondary": null,
+  "features": [],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "rescue",
+    "params": {
+     "n": 4
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "rescue_all",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 35
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 2.33,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "lasso",
+   "sales"
+  ],
+  "goal": "rescue",
+  "template": "crescent",
+  "target": 0.122,
+  "D": 0.08395988693322025,
+  "F": 0.5749313604905849,
+  "onTarget": true,
+  "margin": {
+   "good": 0.7368333333333335,
+   "average": 0.7109722222222222,
+   "weak": 0.67125,
+   "novice": 0.5980555555555555,
+   "floor": 0.4480555555555556
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 3.927,
+  "seed": 671543360,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 1
+  },
+  "ratings": 4
+ },
+ {
+  "index": 3,
+  "id": "s1-L003",
+  "file": "s1-L003.json",
+  "title": "Blueprints and Paydays",
+  "phase": "teach",
+  "introduced": [
+   "family:harvest"
+  ],
+  "family": "harvest",
+  "secondary": null,
+  "features": [],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "earn",
+    "params": {
+     "n": 329
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_angry_customers",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 253
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1.33,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "earn",
+  "template": "corridor",
+  "target": 0.134,
+  "D": 0.10890139557502372,
+  "F": 0.9137190241050768,
+  "onTarget": true,
+  "margin": {
+   "good": 0.4911935483870968,
+   "average": 0.4574910394265233,
+   "weak": 0.41118279569892474,
+   "novice": 0.3209318996415771,
+   "floor": 0.09340501792114696
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 15.055,
+  "seed": 272105353,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 6
+  },
+  "ratings": 9
+ },
+ {
+  "index": 4,
+  "id": "s1-L004",
+  "file": "s1-L004.json",
+  "title": "Presses and Output",
+  "phase": "teach",
+  "introduced": [
+   "family:industrialize"
+  ],
+  "family": "industrialize",
+  "secondary": null,
+  "features": [],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "produce",
+    "params": {
+     "n": 32,
+     "res": "res.food_prepared"
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "hire",
+    "params": {
+     "n": 6
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 154
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 2.33,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "produce",
+  "template": "south_fields",
+  "target": 0.146,
+  "D": 0.9999950022109736,
+  "F": 0.8185162002956525,
+  "onTarget": false,
+  "margin": {
+   "good": 0.7182843137254903,
+   "average": 0.6966013071895425,
+   "weak": 0.6590522875816993,
+   "novice": 0.5835620915032679,
+   "floor": 0.45898692810457514
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 24.324,
+  "seed": 1291466966,
+  "attempts": 4,
+  "rejects": {
+   "offTarget": 17,
+   "stall": 1
+  },
+  "ratings": 18
+ },
+ {
   "index": 6,
   "id": "s1-L006",
   "file": "s1-L006.json",
@@ -22,17 +390,17 @@
     "params": {}
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 95
-    }
-   },
-   {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
      "pct": 45
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 95
     }
    }
   ],
@@ -85,7 +453,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 3.276,
+  "seconds": 3.047,
   "seed": 39245116,
   "attempts": 1,
   "rejects": {
@@ -116,16 +484,16 @@
     }
    },
    {
+    "id": "challenge",
+    "kind": "rescue_all",
+    "params": {}
+   },
+   {
     "id": "time",
     "kind": "time_target",
     "params": {
      "seconds": 55
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "rescue_all",
-    "params": {}
    }
   ],
   "stars": {
@@ -179,15 +547,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 21.85,
+  "seconds": 24.403,
   "seed": 785681512,
   "attempts": 4,
   "rejects": {
-   "trivial": 2,
-   "offTarget": 39,
-   "objectives": 4
+   "offTarget": 41,
+   "objectives": 3
   },
-  "ratings": 45
+  "ratings": 44
  },
  {
   "index": 8,
@@ -208,14 +575,7 @@
     "id": "main",
     "kind": "serve_premium",
     "params": {
-     "n": 17
-    }
-   },
-   {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 358
+     "n": 16
     }
    },
    {
@@ -223,6 +583,13 @@
     "kind": "streak",
     "params": {
      "n": 20
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 400
     }
    }
   ],
@@ -253,15 +620,15 @@
   "goal": "serve_premium",
   "template": "crossroads",
   "target": 0.195,
-  "D": 0.19145930255508467,
-  "F": 0.9359701929439023,
+  "D": 0.1750306623618473,
+  "F": 0.9086908873606546,
   "onTarget": true,
   "margin": {
-   "good": 0.4629809523809524,
-   "average": 0.48180952380952374,
-   "weak": 0.40930158730158733,
-   "novice": 0.2722857142857143,
-   "floor": 0.027197012138188602
+   "good": 0.46037719298245605,
+   "average": 0.4830701754385965,
+   "weak": 0.438859649122807,
+   "novice": 0.2626608187134503,
+   "floor": -0.007134502923976607
   },
   "winRate": {
    "good": 1,
@@ -277,13 +644,13 @@
    "novice",
    "floor"
   ],
-  "seconds": 38.133,
+  "seconds": 36.893,
   "seed": 738354137,
   "attempts": 2,
   "rejects": {
-   "offTarget": 14
+   "offTarget": 11
   },
-  "ratings": 19
+  "ratings": 16
  },
  {
   "index": 9,
@@ -311,17 +678,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 433
-    }
-   },
-   {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
      "pct": 30
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 433
     }
    }
   ],
@@ -376,7 +743,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 60.345,
+  "seconds": 51.326,
   "seed": 1947207031,
   "attempts": 1,
   "rejects": {
@@ -412,9 +779,9 @@
    },
    {
     "id": "challenge2",
-    "kind": "hire",
+    "kind": "salvage",
     "params": {
-     "n": 6
+     "n": 352
     }
    },
    {
@@ -425,17 +792,17 @@
   ],
   "stars": {
    "good": 3,
-   "median": 1.67,
+   "median": 3,
    "goodAll": 1,
    "human": 2.5,
    "humanAll": 0.83
   },
   "starsByRung": {
    "good": 3,
-   "average": 2,
-   "weak": 1.67,
-   "novice": 1,
-   "floor": 1,
+   "average": 3,
+   "weak": 3,
+   "novice": 0.67,
+   "floor": 2,
    "human": 2.5
   },
   "modules": [
@@ -453,15 +820,15 @@
   "goal": "turret_level",
   "template": "crossroads",
   "target": 0.219,
-  "D": 0.26627569031757864,
-  "F": 0.45016600268752216,
-  "onTarget": true,
+  "D": 0.23037209195660535,
+  "F": 0.14185106490048782,
+  "onTarget": false,
   "margin": {
-   "good": 0.7185100401606427,
-   "average": 0.7180187416331995,
-   "weak": 0.7174966532797858,
-   "novice": 0.23922356091030791,
-   "floor": 0.710388219544846
+   "good": 0.7174652777777777,
+   "average": 0.6484027777777778,
+   "weak": 0.7142824074074073,
+   "novice": 0.17210648148148147,
+   "floor": 0.5178472222222222
   },
   "winRate": {
    "good": 1,
@@ -476,16 +843,17 @@
    "weak",
    "floor"
   ],
-  "seconds": 524.302,
+  "seconds": 794.536,
   "seed": 1387950823,
   "attempts": 3,
   "rejects": {
-   "infeasible": 3,
-   "offTarget": 8,
-   "humanLost": 5,
-   "trivial": 1
+   "offTarget": 13,
+   "infeasible": 2,
+   "humanLost": 1,
+   "trivial": 3,
+   "lowFun": 1
   },
-  "ratings": 12
+  "ratings": 19
  },
  {
   "index": 11,
@@ -510,21 +878,21 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 133
-    }
-   },
-   {
     "id": "challenge",
     "kind": "no_colonist_freezes",
     "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 132
+    }
    }
   ],
   "stars": {
    "good": 3,
-   "median": 3,
+   "median": 2.67,
    "goodAll": 1,
    "human": 3,
    "humanAll": 1
@@ -532,7 +900,7 @@
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 3,
+   "weak": 2.67,
    "novice": 1.33,
    "floor": 0,
    "human": 3
@@ -548,15 +916,15 @@
   "goal": "core_level",
   "template": "west_fields",
   "target": 0.231,
-  "D": 0.23586970042267255,
-  "F": 0.8981006237601178,
+  "D": 0.1984505657973912,
+  "F": 0.8815788037812591,
   "onTarget": true,
   "margin": {
-   "good": 0.5508703703703703,
-   "average": 0.47740740740740745,
-   "weak": 0.3518518518518518,
-   "novice": -0.055000000000000014,
-   "floor": -0.3333333333333333
+   "good": 0.5845999999999999,
+   "average": 0.4854444444444444,
+   "weak": 0.3693333333333333,
+   "novice": 0.002055555555555542,
+   "floor": -0.4444444444444445
   },
   "winRate": {
    "good": 1,
@@ -571,7 +939,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 5.523,
+  "seconds": 4.905,
   "seed": 1241095550,
   "attempts": 1,
   "rejects": {
@@ -701,16 +1069,16 @@
     }
    },
    {
+    "id": "challenge",
+    "kind": "no_angry_customers",
+    "params": {}
+   },
+   {
     "id": "time",
     "kind": "time_target",
     "params": {
      "seconds": 319
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "no_angry_customers",
-    "params": {}
    }
   ],
   "stars": {
@@ -762,7 +1130,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 12.636,
+  "seconds": 18.909,
   "seed": 1157148896,
   "attempts": 1,
   "rejects": {
@@ -799,17 +1167,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 466
-    }
-   },
-   {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
      "pct": 50
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 466
     }
    }
   ],
@@ -866,7 +1234,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 36.104,
+  "seconds": 41.353,
   "seed": 1387735723,
   "attempts": 1,
   "rejects": {
@@ -907,8 +1275,10 @@
    },
    {
     "id": "challenge",
-    "kind": "gate_held",
-    "params": {}
+    "kind": "heat_floor",
+    "params": {
+     "pct": 40
+    }
    }
   ],
   "stars": {
@@ -922,8 +1292,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
-   "floor": 1.33,
+   "novice": 2.67,
+   "floor": 1,
    "human": 3
   },
   "modules": [
@@ -941,22 +1311,22 @@
   "goal": "turret_level",
   "template": "south_fields",
   "target": 0.279,
-  "D": 0.296585540554026,
-  "F": 0.12677178563654087,
-  "onTarget": false,
+  "D": 0.240453771391554,
+  "F": 0.2071877932221281,
+  "onTarget": true,
   "margin": {
-   "good": 0.558896551724138,
-   "average": 0.5563984674329503,
-   "weak": 0.5530651340996168,
-   "novice": 0.5469348659003831,
-   "floor": 0.15149425287356322
+   "good": 0.624343137254902,
+   "average": 0.6220915032679738,
+   "weak": 0.6200980392156863,
+   "novice": 0.601830065359477,
+   "floor": 0.5843137254901961
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 1
   },
   "botsPassed": [
    "good",
@@ -965,16 +1335,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 598.035,
-  "seed": 503184040,
-  "attempts": 2,
+  "seconds": 473.109,
+  "seed": 294531354,
+  "attempts": 1,
   "rejects": {
-   "ladderSpent": 8,
-   "offTarget": 11,
-   "idleModule": 1,
-   "lowFun": 1
+   "offTarget": 8,
+   "idleModule": 1
   },
-  "ratings": 22
+  "ratings": 13
  },
  {
   "index": 16,
@@ -1000,17 +1368,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 139
-    }
-   },
-   {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
      "pct": 45
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 139
     }
    }
   ],
@@ -1067,7 +1435,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 4.909,
+  "seconds": 7.207,
   "seed": 1235648501,
   "attempts": 1,
   "rejects": {
@@ -1093,21 +1461,19 @@
     "id": "main",
     "kind": "protein",
     "params": {
-     "n": 23
+     "n": 27
     }
+   },
+   {
+    "id": "challenge",
+    "kind": "rescue_all",
+    "params": {}
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 197
-    }
-   },
-   {
-    "id": "challenge",
-    "kind": "tow_trip",
-    "params": {
-     "n": 3
+     "seconds": 230
     }
    }
   ],
@@ -1115,16 +1481,16 @@
    "good": 3,
    "median": 3,
    "goodAll": 1,
-   "human": 3,
-   "humanAll": 1
+   "human": 2.67,
+   "humanAll": 0.67
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 0.67,
-   "human": 3
+   "floor": 1.33,
+   "human": 2.67
   },
   "modules": [
    "barrier_lines",
@@ -1139,40 +1505,40 @@
   "goal": "protein",
   "template": "east_fields",
   "target": 0.344,
-  "D": 0.3615063256321369,
-  "F": 0.7713411576503574,
-  "onTarget": true,
+  "D": 0.21510563816709433,
+  "F": 0.7946015248751458,
+  "onTarget": false,
   "margin": {
-   "good": 0.6040322580645162,
-   "average": 0.6273118279569893,
-   "weak": 0.6506093189964157,
-   "novice": 0.4290681003584229,
-   "floor": -0.029121084618980813
+   "good": 0.6260857142857142,
+   "average": 0.6019365079365079,
+   "weak": 0.5626984126984127,
+   "novice": 0.49923809523809526,
+   "floor": 0.10216931216931215
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 221.445,
-  "seed": 729929710,
+  "seconds": 181.082,
+  "seed": 327552485,
   "attempts": 4,
   "rejects": {
-   "layout": 20,
-   "objectives": 6,
-   "offTarget": 22,
-   "stall": 1,
+   "layout": 22,
+   "offTarget": 27,
+   "objectives": 5,
    "humanLost": 10
   },
-  "ratings": 39
+  "ratings": 36
  },
  {
   "index": 18,
@@ -1191,14 +1557,7 @@
     "id": "main",
     "kind": "currency",
     "params": {
-     "n": 490
-    }
-   },
-   {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 315
+     "n": 452
     }
    },
    {
@@ -1206,6 +1565,13 @@
     "kind": "streak",
     "params": {
      "n": 20
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 280
     }
    }
   ],
@@ -1236,15 +1602,15 @@
   "goal": "currency",
   "template": "west_fields",
   "target": 0.356,
-  "D": 0.2772688168954134,
-  "F": 0.9354097627623733,
-  "onTarget": false,
+  "D": 0.3620177580172661,
+  "F": 0.9433948862874195,
+  "onTarget": true,
   "margin": {
-   "good": 0.5336341463414634,
-   "average": 0.511869918699187,
-   "weak": 0.4618157181571816,
-   "novice": 0.3386991869918699,
-   "floor": 0.05267241856092029
+   "good": 0.4855294117647059,
+   "average": 0.4668627450980392,
+   "weak": 0.40169934640522875,
+   "novice": 0.2857843137254902,
+   "floor": 0.04240875701312972
   },
   "winRate": {
    "good": 1,
@@ -1260,13 +1626,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 135.672,
-  "seed": 1948149487,
-  "attempts": 4,
+  "seconds": 46.789,
+  "seed": 1825322637,
+  "attempts": 2,
   "rejects": {
-   "offTarget": 40
+   "offTarget": 14,
+   "objectives": 2
   },
-  "ratings": 48
+  "ratings": 21
  },
  {
   "index": 19,
@@ -1293,17 +1660,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 507
-    }
-   },
-   {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
      "pct": 30
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 493
     }
    }
   ],
@@ -1318,8 +1685,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.67,
-   "floor": 1.67,
+   "novice": 2.33,
+   "floor": 1,
    "human": 3
   },
   "modules": [
@@ -1335,15 +1702,15 @@
   "goal": "hire",
   "template": "crossroads",
   "target": 0.368,
-  "D": 0.31910597381944494,
-  "F": 0.9303065234880366,
+  "D": 0.3448564815814257,
+  "F": 0.9641333943112715,
   "onTarget": true,
   "margin": {
-   "good": 0.4858722222222222,
-   "average": 0.43850000000000006,
-   "weak": 0.38685185185185184,
-   "novice": 0.33183333333333337,
-   "floor": 0.14622222222222223
+   "good": 0.4579649122807018,
+   "average": 0.40128654970760236,
+   "weak": 0.3735867446393762,
+   "novice": 0.28799220272904485,
+   "floor": 0.08116959064327485
   },
   "winRate": {
    "good": 1,
@@ -1359,13 +1726,13 @@
    "novice",
    "floor"
   ],
-  "seconds": 84.911,
+  "seconds": 109.052,
   "seed": 1128479174,
   "attempts": 1,
   "rejects": {
    "offTarget": 4
   },
-  "ratings": 6
+  "ratings": 7
  },
  {
   "index": 20,
@@ -1392,16 +1759,16 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 134
-    }
-   },
-   {
     "id": "challenge",
     "kind": "settlement_never_freezes",
     "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 139
+    }
    }
   ],
   "stars": {
@@ -1416,7 +1783,7 @@
    "average": 3,
    "weak": 3,
    "novice": 2.67,
-   "floor": 0,
+   "floor": 0.67,
    "human": 3
   },
   "modules": [
@@ -1432,22 +1799,22 @@
   "goal": "build_count",
   "template": "west_fields",
   "target": 0.38,
-  "D": 0.38537221407762345,
-  "F": 0.7845128404077157,
+  "D": 0.4189995588364167,
+  "F": 0.7652520949757164,
   "onTarget": true,
   "margin": {
-   "good": 0.6963484848484849,
-   "average": 0.6345454545454546,
-   "weak": 0.5732828282828283,
-   "novice": 0.4209090909090909,
-   "floor": -0.5
+   "good": 0.667873015873016,
+   "average": 0.6195767195767196,
+   "weak": 0.5804232804232804,
+   "novice": 0.37105820105820103,
+   "floor": -0.3070899470899471
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0
+   "floor": 0.3333333333333333
   },
   "botsPassed": [
    "good",
@@ -1455,15 +1822,11 @@
    "weak",
    "novice"
   ],
-  "seconds": 74.514,
-  "seed": 64818687,
-  "attempts": 4,
-  "rejects": {
-   "offTarget": 25,
-   "stall": 10,
-   "humanLost": 5
-  },
-  "ratings": 37
+  "seconds": 9.166,
+  "seed": 1788831366,
+  "attempts": 1,
+  "rejects": {},
+  "ratings": 3
  },
  {
   "index": 21,
@@ -1489,9 +1852,9 @@
    },
    {
     "id": "challenge2",
-    "kind": "hire",
+    "kind": "salvage",
     "params": {
-     "n": 5
+     "n": 369
     }
    },
    {
@@ -1504,7 +1867,7 @@
   ],
   "stars": {
    "good": 3,
-   "median": 3,
+   "median": 2.33,
    "goodAll": 1,
    "human": 3,
    "humanAll": 1
@@ -1512,9 +1875,9 @@
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 3,
-   "novice": 3,
-   "floor": 0,
+   "weak": 2.33,
+   "novice": 2.67,
+   "floor": 1.67,
    "human": 3
   },
   "modules": [
@@ -1532,38 +1895,40 @@
   "goal": "waves_survived",
   "template": "crossroads",
   "target": 0.4,
-  "D": 0.3976613615473703,
-  "F": 0.07429354389244741,
+  "D": 0.3154817763426908,
+  "F": 0.06923644451166787,
   "onTarget": false,
   "margin": {
-   "good": 0.9970053641346797,
-   "average": 0.994068939322498,
-   "weak": 0.9985784802090829,
-   "novice": 0.9718744455838962,
-   "floor": 0
+   "good": 0.9951587911348809,
+   "average": 0.9873148388773386,
+   "weak": 0.730460858258729,
+   "novice": 0.9343129947383714,
+   "floor": 0.588211405721112
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 759.473,
+  "seconds": 1157.613,
   "seed": 86203878,
-  "attempts": 2,
+  "attempts": 4,
   "rejects": {
-   "offTarget": 18,
-   "trivial": 1,
-   "lowFun": 1
+   "offTarget": 29,
+   "humanLost": 3,
+   "infeasible": 3,
+   "trivial": 6
   },
-  "ratings": 22
+  "ratings": 36
  },
  {
   "index": 22,
@@ -1588,17 +1953,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 225
-    }
-   },
-   {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
      "pct": 45
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 223
     }
    }
   ],
@@ -1606,8 +1971,8 @@
    "good": 3,
    "median": 3,
    "goodAll": 1,
-   "human": 3,
-   "humanAll": 1
+   "human": 2.83,
+   "humanAll": 0.83
   },
   "starsByRung": {
    "good": 3,
@@ -1615,7 +1980,7 @@
    "weak": 3,
    "novice": 1,
    "floor": 0,
-   "human": 3
+   "human": 2.83
   },
   "modules": [
    "blocked_zones",
@@ -1630,14 +1995,14 @@
   "goal": "core_level",
   "template": "crescent",
   "target": 0.45,
-  "D": 0.478487595224219,
-  "F": 0.5383436158812693,
+  "D": 0.4982060808629926,
+  "F": 0.5823107893337053,
   "onTarget": true,
   "margin": {
-   "good": 0.6068380952380952,
-   "average": 0.561111111111111,
-   "weak": 0.4911428571428571,
-   "novice": 0.3199047619047619,
+   "good": 0.6052,
+   "average": 0.5291428571428571,
+   "weak": 0.4796190476190476,
+   "novice": 0.28917460317460314,
    "floor": -0.3333333333333333
   },
   "winRate": {
@@ -1653,13 +2018,11 @@
    "weak",
    "novice"
   ],
-  "seconds": 17.648,
+  "seconds": 8.296,
   "seed": 397381672,
   "attempts": 1,
-  "rejects": {
-   "offTarget": 2
-  },
-  "ratings": 5
+  "rejects": {},
+  "ratings": 2
  },
  {
   "index": 23,
@@ -1682,17 +2045,17 @@
     "params": {}
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 85
-    }
-   },
-   {
     "id": "challenge",
     "kind": "tow_full_trip",
     "params": {
      "n": 3
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 83
     }
    }
   ],
@@ -1708,7 +2071,7 @@
    "average": 3,
    "weak": 3,
    "novice": 2,
-   "floor": 0.67,
+   "floor": 1.33,
    "human": 3
   },
   "modules": [
@@ -1725,38 +2088,39 @@
   "goal": "rescue_all",
   "template": "corridor",
   "target": 0.494,
-  "D": 0.8726118148635744,
-  "F": 0.8339162814659813,
+  "D": 0.6303823070370533,
+  "F": 0.8702393764155076,
   "onTarget": false,
   "margin": {
-   "good": 0.5931282051282052,
-   "average": 0.5007692307692309,
-   "weak": 0.4651282051282051,
-   "novice": 0.24418803418803417,
-   "floor": -0.317008547008547
+   "good": 0.607871794871795,
+   "average": 0.5529059829059829,
+   "weak": 0.48205128205128206,
+   "novice": 0.25623931623931623,
+   "floor": -0.14341880341880342
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 102.053,
+  "seconds": 82.735,
   "seed": 886907390,
   "attempts": 4,
   "rejects": {
    "layout": 40,
-   "offTarget": 28,
-   "objectives": 25
+   "offTarget": 29,
+   "objectives": 23
   },
-  "ratings": 66
+  "ratings": 64
  },
  {
   "index": 24,
@@ -1782,16 +2146,16 @@
     }
    },
    {
+    "id": "challenge",
+    "kind": "no_angry_customers",
+    "params": {}
+   },
+   {
     "id": "time",
     "kind": "time_target",
     "params": {
      "seconds": 161
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "no_angry_customers",
-    "params": {}
    }
   ],
   "stars": {
@@ -1844,7 +2208,7 @@
    "average",
    "weak"
   ],
-  "seconds": 13.073,
+  "seconds": 10.817,
   "seed": 2001386594,
   "attempts": 1,
   "rejects": {
@@ -1874,21 +2238,21 @@
     "id": "main",
     "kind": "automate",
     "params": {
-     "seconds": 39
-    }
-   },
-   {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 465
+     "seconds": 36
     }
    },
    {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
-     "pct": 35
+     "pct": 50
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 455
     }
    }
   ],
@@ -1903,8 +2267,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
-   "floor": 1.33,
+   "novice": 2.67,
+   "floor": 1.67,
    "human": 3
   },
   "modules": [
@@ -1921,15 +2285,15 @@
   "goal": "automate",
   "template": "corridor",
   "target": 0.581,
-  "D": 0.6076080433640835,
-  "F": 0.9014489363422135,
-  "onTarget": true,
+  "D": 0.36500930322696956,
+  "F": 0.7860030673848791,
+  "onTarget": false,
   "margin": {
-   "good": 0.47704166666666675,
-   "average": 0.4139880952380952,
-   "weak": 0.3530952380952381,
-   "novice": 0.27694444444444444,
-   "floor": 0.19851190476190475
+   "good": 0.5614569892473118,
+   "average": 0.46008960573476704,
+   "weak": 0.4725627240143369,
+   "novice": 0.31442652329749105,
+   "floor": 0.36114695340501796
   },
   "winRate": {
    "good": 1,
@@ -1945,15 +2309,15 @@
    "novice",
    "floor"
   ],
-  "seconds": 168.754,
-  "seed": 735800557,
-  "attempts": 2,
+  "seconds": 284.663,
+  "seed": 1343875592,
+  "attempts": 4,
   "rejects": {
-   "offTarget": 12,
-   "infeasible": 5,
-   "stall": 1
+   "infeasible": 14,
+   "trivial": 4,
+   "offTarget": 23
   },
-  "ratings": 17
+  "ratings": 30
  },
  {
   "index": 26,
@@ -1975,7 +2339,7 @@
     "id": "main",
     "kind": "survive",
     "params": {
-     "seconds": 160
+     "seconds": 170
     }
    },
    {
@@ -1987,7 +2351,7 @@
    },
    {
     "id": "challenge",
-    "kind": "no_injuries",
+    "kind": "gate_held",
     "params": {}
    }
   ],
@@ -2002,8 +2366,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
-   "floor": 0.67,
+   "novice": 1.67,
+   "floor": 0,
    "human": 3
   },
   "modules": [
@@ -2014,6 +2378,7 @@
    "defenders",
    "defense",
    "gather",
+   "medical",
    "sales",
    "salvage_upgrades",
    "workers"
@@ -2021,22 +2386,22 @@
   "goal": "survive",
   "template": "east_fields",
   "target": 0.625,
-  "D": 0.377931985161936,
-  "F": 0.14185106490048782,
+  "D": 0.694239636405759,
+  "F": 0.1767933492535683,
   "onTarget": false,
   "margin": {
-   "good": 1,
-   "average": 1,
-   "weak": 0.9961688570241205,
-   "novice": 0.9966665614035336,
-   "floor": -0.17023878904677917
+   "good": 0.9978460369601745,
+   "average": 0.9952767093771868,
+   "weak": 0.9946373728460877,
+   "novice": 0.6497416282742369,
+   "floor": -0.3624836601307189
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
-   "novice": 1,
-   "floor": 0.3333333333333333
+   "novice": 0.6666666666666666,
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -2044,17 +2409,17 @@
    "weak",
    "novice"
   ],
-  "seconds": 712.574,
-  "seed": 971300282,
+  "seconds": 816.685,
+  "seed": 880376164,
   "attempts": 4,
   "rejects": {
-   "ladderSpent": 35,
+   "ladderSpent": 33,
+   "offTarget": 5,
    "infeasible": 2,
-   "humanLost": 2,
    "idleModule": 1,
-   "offTarget": 2
+   "trivial": 1
   },
-  "ratings": 37
+  "ratings": 40
  },
  {
   "index": 27,
@@ -2077,17 +2442,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 143
-    }
-   },
-   {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
      "pct": 30
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 143
     }
    }
   ],
@@ -2117,15 +2482,15 @@
   "goal": "admit",
   "template": "north_fields",
   "target": 0.669,
-  "D": 0.06447164973805683,
-  "F": 0.8436290060563425,
+  "D": 0.06588871692277147,
+  "F": 0.8497513069641971,
   "onTarget": false,
   "margin": {
-   "good": 0.4123777777777778,
-   "average": 0.4063703703703703,
-   "weak": 0.3948148148148148,
-   "novice": 0.37051851851851847,
-   "floor": 0.35600000000000004
+   "good": 0.4124888888888889,
+   "average": 0.4022222222222222,
+   "weak": 0.3856296296296297,
+   "novice": 0.35207407407407404,
+   "floor": 0.34703703703703703
   },
   "winRate": {
    "good": 1,
@@ -2141,13 +2506,13 @@
    "novice",
    "floor"
   ],
-  "seconds": 16.453,
-  "seed": 805362685,
+  "seconds": 11.7,
+  "seed": 561101499,
   "attempts": 4,
   "rejects": {
-   "offTarget": 25
+   "offTarget": 21
   },
-  "ratings": 25
+  "ratings": 21
  },
  {
   "index": 28,
@@ -2167,14 +2532,7 @@
     "id": "main",
     "kind": "hunt",
     "params": {
-     "n": 27
-    }
-   },
-   {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 245
+     "n": 29
     }
    },
    {
@@ -2183,22 +2541,29 @@
     "params": {
      "n": 3
     }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 285
+    }
    }
   ],
   "stars": {
    "good": 3,
    "median": 3,
    "goodAll": 1,
-   "human": 3,
-   "humanAll": 1
+   "human": 2,
+   "humanAll": 0.67
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 2,
-   "human": 3
+   "floor": 0,
+   "human": 2
   },
   "modules": [
    "barrier_lines",
@@ -2213,39 +2578,37 @@
   "goal": "hunt",
   "template": "crossroads",
   "target": 0.713,
-  "D": 0.19071973914210744,
-  "F": 0.6530212278613022,
+  "D": 0.6355315854681911,
+  "F": 0.6136223442053176,
   "onTarget": false,
   "margin": {
-   "good": 0.5573333333333333,
-   "average": 0.5285823754789272,
-   "weak": 0.5278544061302682,
-   "novice": 0.4424521072796935,
-   "floor": 0.09209025117071094
+   "good": 0.5033214285714285,
+   "average": 0.4681746031746032,
+   "weak": 0.4405555555555556,
+   "novice": 0.33809523809523806,
+   "floor": -0.21839080459770113
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 0
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice",
-   "floor"
+   "novice"
   ],
-  "seconds": 136.385,
+  "seconds": 111.87,
   "seed": 693082942,
   "attempts": 4,
   "rejects": {
    "humanLost": 20,
-   "offTarget": 21,
-   "objectives": 5
+   "offTarget": 20
   },
-  "ratings": 26
+  "ratings": 21
  },
  {
   "index": 29,
@@ -2270,17 +2633,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 267
-    }
-   },
-   {
     "id": "challenge",
     "kind": "streak",
     "params": {
      "n": 20
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 267
     }
    }
   ],
@@ -2334,7 +2697,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 10.416,
+  "seconds": 10.259,
   "seed": 869634191,
   "attempts": 1,
   "rejects": {},
@@ -2460,20 +2823,22 @@
     "kind": "converters_running",
     "params": {
      "k": 2,
-     "seconds": 17
+     "seconds": 13
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 50
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 1050
+     "seconds": 1125
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "settlement_never_freezes",
-    "params": {}
    }
   ],
   "stars": {
@@ -2487,8 +2852,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 1,
-   "floor": 0,
+   "novice": 3,
+   "floor": 1,
    "human": 3
   },
   "modules": [
@@ -2503,39 +2868,39 @@
   "goal": "converters_running",
   "template": "east_fields",
   "target": 0.4,
-  "D": 0.5928344033953589,
-  "F": 0.9394673690299576,
+  "D": 0.14622603430438688,
+  "F": 0.8909031788043871,
   "onTarget": false,
   "margin": {
-   "good": 0.6751243386243386,
-   "average": 0.6584920634920636,
-   "weak": 0.5201675485008819,
-   "novice": -0.4776003734827264,
-   "floor": -1
+   "good": 0.6952407407407407,
+   "average": 0.7657407407407407,
+   "weak": 0.7030599647266315,
+   "novice": 0.4797442680776014,
+   "floor": -0.4615167548500882
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
-   "novice": 0.3333333333333333,
-   "floor": 0
+   "novice": 1,
+   "floor": 0.3333333333333333
   },
   "botsPassed": [
    "good",
    "average",
-   "weak"
+   "weak",
+   "novice"
   ],
-  "seconds": 347.648,
-  "seed": 1333824668,
+  "seconds": 383.916,
+  "seed": 1938763210,
   "attempts": 4,
   "rejects": {
-   "infeasible": 9,
-   "offTarget": 15,
-   "humanLost": 16,
-   "layout": 10,
-   "stall": 1
+   "humanLost": 10,
+   "offTarget": 20,
+   "infeasible": 5,
+   "layout": 7
   },
-  "ratings": 18
+  "ratings": 22
  },
  {
   "index": 32,
@@ -2565,12 +2930,12 @@
     "id": "challenge2",
     "kind": "hire",
     "params": {
-     "n": 5
+     "n": 6
     }
    },
    {
     "id": "challenge",
-    "kind": "no_injuries",
+    "kind": "gate_held",
     "params": {}
    }
   ],
@@ -2585,8 +2950,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.67,
-   "floor": 1.67,
+   "novice": 3,
+   "floor": 2.67,
    "human": 3
   },
   "modules": [
@@ -2604,22 +2969,22 @@
   "goal": "boss",
   "template": "corridor",
   "target": 0.45,
-  "D": 0.44770072752444634,
-  "F": 0.0846432366609593,
+  "D": 0.445410212945116,
+  "F": 0.16490400712269207,
   "onTarget": false,
   "margin": {
-   "good": 0.6409772727272727,
-   "average": 0.6416792929292929,
-   "weak": 0.6395707070707072,
-   "novice": 0.6384217171717173,
-   "floor": 0.09050505050505049
+   "good": 0.651945054945055,
+   "average": 0.6518803418803419,
+   "weak": 0.6504761904761905,
+   "novice": 0.648058608058608,
+   "floor": 0.6456043956043956
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 1
   },
   "botsPassed": [
    "good",
@@ -2628,14 +2993,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 545.361,
-  "seed": 1676619851,
-  "attempts": 1,
+  "seconds": 953.993,
+  "seed": 2037529639,
+  "attempts": 2,
   "rejects": {
-   "offTarget": 7,
-   "lowFun": 3
+   "offTarget": 18,
+   "lowFun": 2
   },
-  "ratings": 13
+  "ratings": 24
  },
  {
   "index": 33,
@@ -2659,17 +3024,15 @@
     }
    },
    {
+    "id": "challenge",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   },
+   {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 129
-    }
-   },
-   {
-    "id": "challenge",
-    "kind": "heat_floor",
-    "params": {
-     "pct": 40
+     "seconds": 132
     }
    }
   ],
@@ -2684,7 +3047,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 0.67,
+   "novice": 1.33,
    "floor": 0,
    "human": 3
   },
@@ -2699,15 +3062,15 @@
   "goal": "population",
   "template": "south_fields",
   "target": 0.494,
-  "D": 0.3345157335174325,
-  "F": 0.8500616883220456,
+  "D": 0.3358794187965612,
+  "F": 0.8888898211039679,
   "onTarget": false,
   "margin": {
-   "good": 0.5298039215686274,
-   "average": 0.42444444444444446,
-   "weak": 0.39222222222222225,
-   "novice": 0.0027731092436974656,
-   "floor": -0.4285714285714286
+   "good": 0.5220588235294118,
+   "average": 0.4586274509803922,
+   "weak": 0.2958823529411765,
+   "novice": -0.02415499533146594,
+   "floor": -0.6190476190476191
   },
   "winRate": {
    "good": 1,
@@ -2722,11 +3085,12 @@
    "weak",
    "novice"
   ],
-  "seconds": 42.581,
-  "seed": 1244230714,
+  "seconds": 56.725,
+  "seed": 1462663899,
   "attempts": 4,
   "rejects": {
-   "offTarget": 42
+   "offTarget": 42,
+   "layout": 4
   },
   "ratings": 42
  },
@@ -2752,17 +3116,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 244
-    }
-   },
-   {
     "id": "challenge",
     "kind": "tow_trip",
     "params": {
      "n": 3
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 244
     }
    }
   ],
@@ -2817,7 +3181,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 101.14,
+  "seconds": 242.138,
   "seed": 1224849928,
   "attempts": 3,
   "rejects": {
@@ -2846,36 +3210,36 @@
     "id": "main",
     "kind": "streak",
     "params": {
-     "n": 69
-    }
-   },
-   {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 241
+     "n": 88
     }
    },
    {
     "id": "challenge",
     "kind": "no_angry_customers",
     "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 295
+    }
    }
   ],
   "stars": {
-   "good": 2.7,
-   "median": 2.67,
-   "goodAll": 0.7,
-   "human": 2.17,
+   "good": 2.6,
+   "median": 3,
+   "goodAll": 0.6,
+   "human": 2.67,
    "humanAll": 0.67
   },
   "starsByRung": {
-   "good": 2.7,
-   "average": 3,
-   "weak": 2.67,
-   "novice": 1,
-   "floor": 0,
-   "human": 2.17
+   "good": 2.6,
+   "average": 2.67,
+   "weak": 3,
+   "novice": 2,
+   "floor": 1,
+   "human": 2.67
   },
   "modules": [
    "build_pads",
@@ -2890,38 +3254,39 @@
   "goal": "streak",
   "template": "south_fields",
   "target": 0.581,
-  "D": 0.9928625424886193,
-  "F": 0.7675519994699523,
+  "D": 0.5081217482332909,
+  "F": 0.7861008158810966,
   "onTarget": false,
   "margin": {
-   "good": 0.5154380952380951,
-   "average": 0.4637142857142857,
-   "weak": 0.39873015873015877,
-   "novice": 0.16190476190476188,
-   "floor": -0.821256038647343
+   "good": 0.4910277777777778,
+   "average": 0.44388888888888883,
+   "weak": 0.43608024691358027,
+   "novice": 0.2765740740740741,
+   "floor": 0.05756172839506173
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0
+   "floor": 1
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 122.66,
-  "seed": 437949602,
+  "seconds": 128.425,
+  "seed": 1074723268,
   "attempts": 4,
   "rejects": {
-   "offTarget": 41,
-   "layout": 99,
-   "objectives": 2
+   "offTarget": 37,
+   "layout": 5,
+   "objectives": 4
   },
-  "ratings": 48
+  "ratings": 46
  },
  {
   "index": 36,
@@ -2943,21 +3308,21 @@
     "id": "main",
     "kind": "haul",
     "params": {
-     "n": 4
-    }
-   },
-   {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 437
+     "n": 9
     }
    },
    {
     "id": "challenge",
     "kind": "hire",
     "params": {
-     "n": 12
+     "n": 13
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 468
     }
    }
   ],
@@ -2973,7 +3338,7 @@
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 0.67,
+   "floor": 2.67,
    "human": 3
   },
   "modules": [
@@ -2989,37 +3354,38 @@
   "goal": "haul",
   "template": "west_fields",
   "target": 0.625,
-  "D": 0.7712685903982534,
-  "F": 0.9342329483024646,
+  "D": 0.3620835033383812,
+  "F": 0.9505557960073947,
   "onTarget": false,
   "margin": {
-   "good": 0.47502564102564104,
-   "average": 0.4642521367521368,
-   "weak": 0.3675427350427351,
-   "novice": 0.28773504273504275,
-   "floor": -0.6333547008547008
+   "good": 0.4740181818181818,
+   "average": 0.44389898989898985,
+   "weak": 0.36353535353535354,
+   "novice": 0.29274747474747476,
+   "floor": 0.10583838383838384
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 1
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 245.153,
+  "seconds": 187.781,
   "seed": 2117954190,
   "attempts": 4,
   "rejects": {
-   "offTarget": 27,
+   "offTarget": 17,
    "humanLost": 1
   },
-  "ratings": 28
+  "ratings": 17
  },
  {
   "index": 37,
@@ -3142,17 +3508,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 151
-    }
-   },
-   {
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
      "pct": 45
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 151
     }
    }
   ],
@@ -3207,7 +3573,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 9.317,
+  "seconds": 15.491,
   "seed": 1094709853,
   "attempts": 1,
   "rejects": {
@@ -3238,16 +3604,16 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 76
-    }
-   },
-   {
     "id": "challenge",
     "kind": "rescue_all",
     "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 90
+    }
    }
   ],
   "stars": {
@@ -3261,7 +3627,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
+   "novice": 2.67,
    "floor": 1.33,
    "human": 3
   },
@@ -3279,15 +3645,15 @@
   "goal": "rescue_before_freeze",
   "template": "crescent",
   "target": 0.756,
-  "D": 0.7447433822347016,
-  "F": 0.8534422821718266,
+  "D": 0.7262329423215436,
+  "F": 0.6243970747571496,
   "onTarget": true,
   "margin": {
-   "good": 0.5771818181818181,
-   "average": 0.5334343434343434,
-   "weak": 0.4891919191919192,
-   "novice": 0.4192929292929293,
-   "floor": -0.06898989898989898
+   "good": 0.6094285714285714,
+   "average": 0.5685714285714286,
+   "weak": 0.5230158730158729,
+   "novice": 0.3892857142857143,
+   "floor": -0.04484126984126983
   },
   "winRate": {
    "good": 1,
@@ -3303,13 +3669,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 6.433,
-  "seed": 1912053956,
-  "attempts": 1,
+  "seconds": 76.774,
+  "seed": 1639861484,
+  "attempts": 4,
   "rejects": {
-   "offTarget": 1
+   "offTarget": 35,
+   "objectives": 1
   },
-  "ratings": 3
+  "ratings": 41
  },
  {
   "index": 40,
@@ -3336,17 +3703,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 237
-    }
-   },
-   {
     "id": "challenge",
     "kind": "streak",
     "params": {
      "n": 20
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 246
     }
    }
   ],
@@ -3361,8 +3728,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2.33,
-   "floor": 0.33,
+   "novice": 3,
+   "floor": 0,
    "human": 3
   },
   "modules": [
@@ -3379,22 +3746,22 @@
   "goal": "unlock",
   "template": "east_fields",
   "target": 0.8,
-  "D": 0.9830572460440471,
-  "F": 0.634588820341726,
+  "D": 0.9663773859612121,
+  "F": 0.464439450555712,
   "onTarget": false,
   "margin": {
-   "good": 0.7862643678160919,
-   "average": 0.749463601532567,
-   "weak": 0.7205747126436782,
-   "novice": 0.4375095785440613,
-   "floor": -0.6634099616858238
+   "good": 0.7675632183908047,
+   "average": 0.7303448275862068,
+   "weak": 0.6986206896551724,
+   "novice": 0.3451340996168583,
+   "floor": -0.6666666666666666
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -3402,18 +3769,17 @@
    "weak",
    "novice"
   ],
-  "seconds": 221.348,
-  "seed": 1780247755,
+  "seconds": 169.104,
+  "seed": 612082269,
   "attempts": 4,
   "rejects": {
-   "layout": 151,
-   "humanLost": 4,
-   "offTarget": 33,
-   "objectives": 2,
-   "stall": 4,
-   "infeasible": 2
+   "layout": 130,
+   "humanLost": 11,
+   "offTarget": 26,
+   "stall": 2,
+   "objectives": 1
   },
-  "ratings": 48
+  "ratings": 31
  },
  {
   "index": 41,
@@ -3438,17 +3804,17 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 102
-    }
-   },
-   {
     "id": "challenge",
     "kind": "streak",
     "params": {
-     "n": 13
+     "n": 9
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 106
     }
    }
   ],
@@ -3463,7 +3829,7 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2,
+   "novice": 2.67,
    "floor": 1.33,
    "human": 3
   },
@@ -3480,21 +3846,21 @@
   "goal": "hire",
   "template": "north_fields",
   "target": 0.4,
-  "D": 0.308533245186439,
-  "F": 0.9038301235706844,
+  "D": 0.341648738971907,
+  "F": 0.9177809281182817,
   "onTarget": false,
   "margin": {
-   "good": 0.49363636363636354,
-   "average": 0.4495959595959596,
-   "weak": 0.36707070707070705,
-   "novice": 0.111010101010101,
-   "floor": -0.06616161616161616
+   "good": 0.5481428571428573,
+   "average": 0.5102380952380953,
+   "weak": 0.46690476190476193,
+   "novice": 0.2917460317460317,
+   "floor": -0.04738095238095238
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
-   "novice": 0.6666666666666666,
+   "novice": 1,
    "floor": 0.6666666666666666
   },
   "botsPassed": [
@@ -3504,11 +3870,11 @@
    "novice",
    "floor"
   ],
-  "seconds": 37.798,
-  "seed": 1755062045,
+  "seconds": 46.071,
+  "seed": 1420570877,
   "attempts": 4,
   "rejects": {
-   "offTarget": 41
+   "offTarget": 40
   },
   "ratings": 43
  },
@@ -3537,17 +3903,15 @@
     }
    },
    {
+    "id": "challenge",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   },
+   {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 482
-    }
-   },
-   {
-    "id": "challenge",
-    "kind": "heat_floor",
-    "params": {
-     "pct": 30
+     "seconds": 489
     }
    }
   ],
@@ -3555,16 +3919,16 @@
    "good": 3,
    "median": 3,
    "goodAll": 1,
-   "human": 3,
-   "humanAll": 1
+   "human": 2.5,
+   "humanAll": 0.83
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 2,
-   "floor": 0.67,
-   "human": 3
+   "novice": 3,
+   "floor": 1.33,
+   "human": 2.5
   },
   "modules": [
    "build_pads",
@@ -3579,15 +3943,15 @@
   "goal": "build",
   "template": "south_fields",
   "target": 0.45,
-  "D": 0.41340120058808083,
-  "F": 0.9279394882796114,
+  "D": 0.423676150716867,
+  "F": 0.9137015957506228,
   "onTarget": true,
   "margin": {
-   "good": 0.4637083333333333,
-   "average": 0.40218253968253964,
-   "weak": 0.3548412698412699,
-   "novice": 0.23628968253968252,
-   "floor": -0.08021441372247824
+   "good": 0.45133939393939404,
+   "average": 0.4002020202020202,
+   "weak": 0.37456565656565655,
+   "novice": 0.2603232323232323,
+   "floor": -0.03794949494949495
   },
   "winRate": {
    "good": 1,
@@ -3603,13 +3967,16 @@
    "novice",
    "floor"
   ],
-  "seconds": 101.996,
-  "seed": 1547836930,
-  "attempts": 1,
+  "seconds": 350.369,
+  "seed": 623825015,
+  "attempts": 4,
   "rejects": {
-   "offTarget": 6
+   "offTarget": 29,
+   "stall": 2,
+   "layout": 19,
+   "humanLost": 4
   },
-  "ratings": 11
+  "ratings": 38
  },
  {
   "index": 43,
@@ -3638,9 +4005,9 @@
    },
    {
     "id": "challenge2",
-    "kind": "turret_level",
+    "kind": "salvage",
     "params": {
-     "n": 2
+     "n": 425
     }
    },
    {
@@ -3653,16 +4020,16 @@
    "good": 3,
    "median": 3,
    "goodAll": 1,
-   "human": 3,
-   "humanAll": 1
+   "human": 2.83,
+   "humanAll": 0.83
   },
   "starsByRung": {
    "good": 3,
-   "average": 3,
+   "average": 2.67,
    "weak": 3,
    "novice": 3,
-   "floor": 2,
-   "human": 3
+   "floor": 1.67,
+   "human": 2.83
   },
   "modules": [
    "barrier_lines",
@@ -3679,15 +4046,15 @@
   "goal": "hire",
   "template": "corridor",
   "target": 0.494,
-  "D": 0.47854355009919713,
-  "F": 0.19006860748918883,
+  "D": 0.5034286124916681,
+  "F": 0.07044282187088657,
   "onTarget": false,
   "margin": {
-   "good": 0.72352,
-   "average": 0.7229333333333333,
-   "weak": 0.6238222222222222,
-   "novice": 0.6322666666666666,
-   "floor": 0.4027111111111112
+   "good": 0.6989612403100776,
+   "average": 0.6977260981912144,
+   "weak": 0.6952713178294574,
+   "novice": 0.6845478036175711,
+   "floor": 0.47620155038759693
   },
   "winRate": {
    "good": 1,
@@ -3703,18 +4070,17 @@
    "novice",
    "floor"
   ],
-  "seconds": 915.641,
-  "seed": 669122102,
-  "attempts": 4,
+  "seconds": 810.52,
+  "seed": 2049471881,
+  "attempts": 3,
   "rejects": {
-   "humanLost": 19,
-   "infeasible": 1,
-   "offTarget": 13,
-   "layout": 4,
-   "trivial": 6,
+   "layout": 7,
+   "humanLost": 11,
+   "offTarget": 16,
+   "trivial": 2,
    "lowFun": 1
   },
-  "ratings": 27
+  "ratings": 21
  },
  {
   "index": 44,
@@ -3734,20 +4100,20 @@
     "id": "main",
     "kind": "survive",
     "params": {
-     "seconds": 190
+     "seconds": 180
     }
    },
    {
     "id": "challenge2",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   },
+   {
+    "id": "challenge",
     "kind": "heat_floor",
     "params": {
      "pct": 30
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "settlement_never_freezes",
-    "params": {}
    }
   ],
   "stars": {
@@ -3761,8 +4127,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
-   "floor": 1.67,
+   "novice": 2.67,
+   "floor": 2,
    "human": 3
   },
   "modules": [
@@ -3776,15 +4142,15 @@
   "goal": "survive",
   "template": "crescent",
   "target": 0.538,
-  "D": 0.022512234023622905,
-  "F": 0.7682999985171347,
+  "D": 0.022709257623693645,
+  "F": 0.7271082163411291,
   "onTarget": false,
   "margin": {
-   "good": 0.6810789473684209,
-   "average": 0.662456140350877,
-   "weak": 0.6080701754385965,
-   "novice": 0.5680701754385966,
-   "floor": 0.41236842105263155
+   "good": 0.6786388888888886,
+   "average": 0.6596296296296296,
+   "weak": 0.6152777777777777,
+   "novice": 0.5537037037037038,
+   "floor": 0.41537037037037045
   },
   "winRate": {
    "good": 1,
@@ -3800,13 +4166,13 @@
    "novice",
    "floor"
   ],
-  "seconds": 52.823,
+  "seconds": 63.919,
   "seed": 1664954184,
   "attempts": 4,
   "rejects": {
-   "offTarget": 30
+   "offTarget": 33
   },
-  "ratings": 30
+  "ratings": 33
  },
  {
   "index": 45,
@@ -3830,32 +4196,32 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 315
-    }
-   },
-   {
     "id": "challenge",
     "kind": "rescue_all",
     "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 290
+    }
    }
   ],
   "stars": {
    "good": 3,
    "median": 3,
    "goodAll": 1,
-   "human": 2.5,
-   "humanAll": 0.83
+   "human": 2,
+   "humanAll": 0.67
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 2.67,
-   "human": 2.5
+   "floor": 0.67,
+   "human": 2
   },
   "modules": [
    "barrier_lines",
@@ -3870,22 +4236,22 @@
   "goal": "hunt",
   "template": "corridor",
   "target": 0.581,
-  "D": 0.6164244294143574,
-  "F": 0.4318952869611498,
-  "onTarget": true,
+  "D": 0.6206170672187958,
+  "F": 0.3236903352521762,
+  "onTarget": false,
   "margin": {
-   "good": 0.5351458333333332,
-   "average": 0.513263888888889,
-   "weak": 0.5080902777777778,
-   "novice": 0.43288194444444444,
-   "floor": -0.11111111111111116
+   "good": 0.5249139784946237,
+   "average": 0.49379928315412186,
+   "weak": 0.47971326164874556,
+   "novice": 0.43035842293906806,
+   "floor": -0.09602150537634409
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0
+   "floor": 0.3333333333333333
   },
   "botsPassed": [
    "good",
@@ -3893,15 +4259,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 65.275,
+  "seconds": 59.734,
   "seed": 196658801,
   "attempts": 1,
   "rejects": {
-   "offTarget": 5,
-   "stars": 2,
-   "humanLost": 2
+   "offTarget": 4,
+   "humanLost": 5,
+   "lowFun": 1
   },
-  "ratings": 11
+  "ratings": 7
  },
  {
   "index": 46,
@@ -3920,14 +4286,7 @@
     "id": "main",
     "kind": "earn",
     "params": {
-     "n": 367
-    }
-   },
-   {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 281
+     "n": 378
     }
    },
    {
@@ -3935,6 +4294,13 @@
     "kind": "streak",
     "params": {
      "n": 20
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 290
     }
    }
   ],
@@ -3964,15 +4330,15 @@
   "goal": "earn",
   "template": "crossroads",
   "target": 0.625,
-  "D": 0.7388926543009017,
-  "F": 0.8954389428390522,
-  "onTarget": false,
+  "D": 0.5815099001597082,
+  "F": 0.9054250915794829,
+  "onTarget": true,
   "margin": {
-   "good": 0.5001904761904762,
-   "average": 0.4683809523809524,
-   "weak": 0.4046666666666667,
-   "novice": 0.2722857142857143,
-   "floor": 0.05121915142078629
+   "good": 0.4968611111111111,
+   "average": 0.45959876543209877,
+   "weak": 0.41419753086419747,
+   "novice": 0.2952777777777778,
+   "floor": -0.009126984126984145
   },
   "winRate": {
    "good": 1,
@@ -3988,14 +4354,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 121.363,
+  "seconds": 167.118,
   "seed": 679335405,
   "attempts": 4,
   "rejects": {
-   "offTarget": 38,
+   "offTarget": 32,
    "stall": 1
   },
-  "ratings": 47
+  "ratings": 49
  },
  {
   "index": 47,
@@ -4018,14 +4384,7 @@
     "id": "main",
     "kind": "chain",
     "params": {
-     "n": 15
-    }
-   },
-   {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 280
+     "n": 6
     }
    },
    {
@@ -4034,11 +4393,18 @@
     "params": {
      "n": 6
     }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 319
+    }
    }
   ],
   "stars": {
    "good": 3,
-   "median": 2.67,
+   "median": 3,
    "goodAll": 1,
    "human": 3,
    "humanAll": 1
@@ -4046,8 +4412,8 @@
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 2.67,
-   "novice": 2.33,
+   "weak": 3,
+   "novice": 3,
    "floor": 2,
    "human": 3
   },
@@ -4063,15 +4429,15 @@
   "goal": "chain",
   "template": "corridor",
   "target": 0.669,
-  "D": 0.44635089280344054,
-  "F": 0.9600376568693965,
-  "onTarget": false,
+  "D": 0.6191415044827374,
+  "F": 0.9439449356157623,
+  "onTarget": true,
   "margin": {
-   "good": 0.5075142857142858,
-   "average": 0.3448571428571429,
-   "weak": 0.2476825396825397,
-   "novice": 0.12993650793650793,
-   "floor": -0.11111111111111109
+   "good": 0.4323047619047619,
+   "average": 0.3466031746031746,
+   "weak": 0.34561904761904766,
+   "novice": 0.21784126984126986,
+   "floor": -0.4444444444444445
   },
   "winRate": {
    "good": 1,
@@ -4086,17 +4452,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 95.225,
+  "seconds": 141.083,
   "seed": 185822190,
-  "attempts": 4,
+  "attempts": 3,
   "rejects": {
-   "idleModule": 1,
-   "idleElement": 1,
-   "offTarget": 26,
-   "repetitive": 1,
-   "stall": 1
+   "idleModule": 2,
+   "offTarget": 22,
+   "idleElement": 3
   },
-  "ratings": 31
+  "ratings": 32
  },
  {
   "index": 48,
@@ -4124,15 +4488,13 @@
     "id": "challenge2",
     "kind": "hire",
     "params": {
-     "n": 6
+     "n": 5
     }
    },
    {
     "id": "challenge",
-    "kind": "hp_floor",
-    "params": {
-     "pct": 80
-    }
+    "kind": "no_injuries",
+    "params": {}
    }
   ],
   "stars": {
@@ -4146,8 +4508,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
-   "floor": 0.67,
+   "novice": 2.33,
+   "floor": 0,
    "human": 3
   },
   "modules": [
@@ -4165,22 +4527,22 @@
   "goal": "turret_level",
   "template": "east_fields",
   "target": 0.713,
-  "D": 0.6839761875910627,
-  "F": 0.39829570139024595,
+  "D": 0.7031953736608649,
+  "F": 0.21501999824945284,
   "onTarget": false,
   "margin": {
-   "good": 0.561047619047619,
-   "average": 0.5581349206349207,
-   "weak": 0.5467857142857143,
-   "novice": 0.5357539682539683,
-   "floor": -0.2665476190476191
+   "good": 0.5505747126436782,
+   "average": 0.5475478927203065,
+   "weak": 0.5436015325670499,
+   "novice": 0.5391187739463601,
+   "floor": -0.3333333333333333
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -4188,17 +4550,15 @@
    "weak",
    "novice"
   ],
-  "seconds": 394.525,
-  "seed": 1766566554,
-  "attempts": 3,
+  "seconds": 1024.965,
+  "seed": 2117548625,
+  "attempts": 4,
   "rejects": {
-   "humanLost": 6,
-   "offTarget": 21,
-   "idleElement": 1,
-   "ladderSpent": 1,
-   "lowFun": 1
+   "offTarget": 37,
+   "idleModule": 1,
+   "lowFun": 2
   },
-  "ratings": 26
+  "ratings": 50
  },
  {
   "index": 49,
@@ -4223,16 +4583,16 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 293
-    }
-   },
-   {
     "id": "challenge",
     "kind": "settlement_never_freezes",
     "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 297
+    }
    }
   ],
   "stars": {
@@ -4263,15 +4623,15 @@
   "goal": "core_level",
   "template": "north_fields",
   "target": 0.756,
-  "D": 0.711893847396132,
-  "F": 0.4945395124950766,
+  "D": 0.717692019151355,
+  "F": 0.6036332232313223,
   "onTarget": true,
   "margin": {
-   "good": 0.545569105691057,
-   "average": 0.5072357723577235,
-   "weak": 0.4327913279132791,
-   "novice": 0.14352303523035229,
-   "floor": -0.4444444444444445
+   "good": 0.5325470085470085,
+   "average": 0.47490028490028485,
+   "weak": 0.40712250712250714,
+   "novice": 0.08321937321937323,
+   "floor": -0.3333333333333333
   },
   "winRate": {
    "good": 1,
@@ -4286,13 +4646,13 @@
    "weak",
    "novice"
   ],
-  "seconds": 16.245,
+  "seconds": 26.116,
   "seed": 2061895893,
   "attempts": 1,
   "rejects": {
-   "offTarget": 2
+   "offTarget": 3
   },
-  "ratings": 4
+  "ratings": 6
  },
  {
   "index": 50,
@@ -4316,21 +4676,23 @@
     "id": "main",
     "kind": "produce",
     "params": {
-     "n": 6,
+     "n": 4,
      "res": "res.component"
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 35
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 302
+     "seconds": 223
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "settlement_never_freezes",
-    "params": {}
    }
   ],
   "stars": {
@@ -4344,8 +4706,8 @@
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
-   "floor": 0.67,
+   "novice": 2.67,
+   "floor": 1.67,
    "human": 3
   },
   "modules": [
@@ -4361,39 +4723,42 @@
   "goal": "produce",
   "template": "corridor",
   "target": 0.8,
-  "D": 0.7592417741408255,
-  "F": 0.90271982295002,
-  "onTarget": true,
+  "D": 0.4948091634367104,
+  "F": 0.9140294328368423,
+  "onTarget": false,
   "margin": {
-   "good": 0.4437450980392157,
-   "average": 0.39715686274509804,
-   "weak": 0.3114052287581699,
-   "novice": 0.19584967320261437,
-   "floor": -0.27637254901960784
+   "good": 0.44140000000000007,
+   "average": 0.35568888888888894,
+   "weak": 0.34604444444444443,
+   "novice": 0.23493333333333333,
+   "floor": 0.1583111111111111
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 1
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 90.582,
+  "seconds": 99.594,
   "seed": 641168843,
-  "attempts": 2,
+  "attempts": 4,
   "rejects": {
    "idleModule": 1,
+   "offTarget": 18,
    "idleElement": 2,
-   "stall": 6,
-   "offTarget": 5
+   "repetitive": 2,
+   "stall": 1,
+   "humanLost": 2
   },
-  "ratings": 21
+  "ratings": 26
  },
  {
   "index": 51,
@@ -4414,31 +4779,34 @@
     "params": {}
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 48
-    }
-   },
-   {
     "id": "challenge",
     "kind": "tow_full_trip",
     "params": {
-     "n": 3
+     "n": 2
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 55
     }
    }
   ],
   "stars": {
    "good": 3,
    "median": 3,
-   "goodAll": 1
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 1.67
+   "floor": 2,
+   "human": 3
   },
   "modules": [
    "barrier_lines",
@@ -4452,15 +4820,15 @@
   "goal": "rescue_all",
   "template": "south_fields",
   "target": 0.4,
-  "D": 0.1380830329569336,
-  "F": 0.7962648695494078,
+  "D": 0.14912087725542075,
+  "F": 0.6621000130780107,
   "onTarget": false,
   "margin": {
-   "good": 0.6305833333333333,
-   "average": 0.6601388888888889,
-   "weak": 0.6781944444444444,
-   "novice": 0.6018055555555556,
-   "floor": 0.14722222222222223
+   "good": 0.5832083333333333,
+   "average": 0.5980555555555555,
+   "weak": 0.6429166666666667,
+   "novice": 0.5563888888888889,
+   "floor": 0.13249999999999998
   },
   "winRate": {
    "good": 1,
@@ -4476,104 +4844,108 @@
    "novice",
    "floor"
   ],
-  "seconds": 73.071,
-  "seed": 145953954,
-  "attempts": 7,
+  "seconds": 34.438,
+  "seed": 900293734,
+  "attempts": 4,
   "rejects": {
-   "objectives": 57,
-   "offTarget": 13
+   "offTarget": 33,
+   "objectives": 5
   },
-  "ratings": 130
+  "ratings": 38
  },
  {
   "index": 52,
   "id": "s1-L052",
   "file": "s1-L052.json",
-  "title": "Vaults and Paydays",
+  "title": "Hurried Traders and Guests",
   "phase": "mix",
   "introduced": [],
   "family": "harvest",
   "secondary": null,
   "features": [
-   "source_unlocks"
+   "vips"
   ],
   "objectives": [
    {
     "id": "main",
-    "kind": "earn",
+    "kind": "serve_premium",
     "params": {
-     "n": 239
+     "n": 12
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "streak",
+    "params": {
+     "n": 20
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 211
+     "seconds": 388
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "no_angry_customers",
-    "params": {}
    }
   ],
   "stars": {
    "good": 3,
    "median": 3,
-   "goodAll": 1
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 2.33
+   "floor": 1,
+   "human": 3
   },
   "modules": [
    "build_pads",
    "carry",
    "core",
+   "customer_variety",
    "gather",
    "sales",
-   "source_gating",
    "workers"
   ],
-  "goal": "earn",
+  "goal": "serve_premium",
   "template": "north_fields",
   "target": 0.45,
-  "D": 0.07313637063644994,
-  "F": 0.8836519490361333,
+  "D": 0.5511542609520247,
+  "F": 0.927535353263049,
   "onTarget": false,
   "margin": {
-   "good": 0.614205882352941,
-   "average": 0.5770261437908497,
-   "weak": 0.5562418300653594,
-   "novice": 0.5154575163398692,
-   "floor": 0.3424836601307189
+   "good": 0.4596851851851852,
+   "average": 0.45567901234567904,
+   "weak": 0.41904320987654325,
+   "novice": 0.26990740740740743,
+   "floor": -0.05879629629629629
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 1
+   "floor": 0.3333333333333333
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice",
-   "floor"
+   "novice"
   ],
-  "seconds": 606.031,
+  "seconds": 149.259,
   "seed": 52763692,
-  "attempts": 7,
+  "attempts": 4,
   "rejects": {
-   "objectives": 5,
-   "offTarget": 65
+   "offTarget": 36,
+   "objectives": 5
   },
-  "ratings": 191
+  "ratings": 51
  },
  {
   "index": 53,
@@ -4598,29 +4970,34 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
+    "id": "challenge",
+    "kind": "heat_floor",
     "params": {
-     "seconds": 428
+     "pct": 30
     }
    },
    {
-    "id": "challenge",
-    "kind": "no_stockpile_overload",
-    "params": {}
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 449
+    }
    }
   ],
   "stars": {
    "good": 3,
    "median": 3,
-   "goodAll": 1
+   "goodAll": 1,
+   "human": 2,
+   "humanAll": 0.67
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 0.33
+   "floor": 0.67,
+   "human": 2
   },
   "modules": [
    "build_pads",
@@ -4634,48 +5011,51 @@
   "goal": "converter_level",
   "template": "east_fields",
   "target": 0.494,
-  "D": 0.48605766478976536,
-  "F": 0.908694219725698,
-  "onTarget": true,
+  "D": 0.22230511709736547,
+  "F": 0.9166658394970097,
+  "onTarget": false,
   "margin": {
-   "good": 0.49547169811320757,
-   "average": 0.4119287211740042,
-   "weak": 0.40096436058700213,
-   "novice": 0.3278825995807128,
-   "floor": -0.16962264150943399
+   "good": 0.4440266666666667,
+   "average": 0.3933777777777778,
+   "weak": 0.38224444444444444,
+   "novice": 0.27648888888888884,
+   "floor": -0.07704444444444446
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 351.151,
-  "seed": 2035747089,
-  "attempts": 3,
+  "seconds": 211.606,
+  "seed": 1518513484,
+  "attempts": 4,
   "rejects": {
-   "layout": 3,
-   "offTarget": 24
+   "offTarget": 28,
+   "humanLost": 5,
+   "layout": 16
   },
-  "ratings": 45
+  "ratings": 29
  },
  {
   "index": 54,
   "id": "s1-L054",
   "file": "s1-L054.json",
-  "title": "Scrap and New Hands",
+  "title": "Scrap and Long Night",
   "phase": "mix",
   "introduced": [],
   "family": "defend",
   "secondary": null,
   "features": [
+   "bosses",
    "defenders",
    "multi_side",
    "salvage_upgrades",
@@ -4684,36 +5064,38 @@
   "objectives": [
    {
     "id": "main",
-    "kind": "hire",
+    "kind": "waves_survived",
     "params": {
-     "n": 2,
-     "role": "role.defender"
+     "n": 3
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
+    "id": "challenge2",
+    "kind": "salvage",
     "params": {
-     "seconds": 255
+     "n": 370
     }
    },
    {
     "id": "challenge",
-    "kind": "no_injuries",
+    "kind": "gate_held",
     "params": {}
    }
   ],
   "stars": {
    "good": 3,
-   "median": 3,
-   "goodAll": 1
+   "median": 2.33,
+   "goodAll": 1,
+   "human": 2.83,
+   "humanAll": 0.83
   },
   "starsByRung": {
    "good": 3,
-   "average": 2.67,
-   "weak": 3,
-   "novice": 3,
-   "floor": 2
+   "average": 3,
+   "weak": 2.33,
+   "novice": 2.67,
+   "floor": 0,
+   "human": 2.83
   },
   "modules": [
    "barrier_lines",
@@ -4727,113 +5109,18 @@
    "salvage_upgrades",
    "workers"
   ],
-  "goal": "hire",
+  "goal": "waves_survived",
   "template": "west_fields",
   "target": 0.538,
-  "D": 0.5473764892692712,
-  "F": 0.13573760849386626,
+  "D": 0.5614720700182103,
+  "F": 0.07308936172623022,
   "onTarget": false,
   "margin": {
-   "good": 0.6988364779874212,
-   "average": 0.689643605870021,
-   "weak": 0.6531236897274634,
-   "novice": 0.581111111111111,
-   "floor": 0.4044234800838575
-  },
-  "winRate": {
-   "good": 1,
-   "average": 1,
-   "weak": 1,
-   "novice": 1,
-   "floor": 1
-  },
-  "botsPassed": [
-   "good",
-   "average",
-   "weak",
-   "novice",
-   "floor"
-  ],
-  "seconds": 802.342,
-  "seed": 1988824582,
-  "attempts": 7,
-  "rejects": {
-   "infeasible": 9,
-   "offTarget": 49,
-   "lowFun": 6,
-   "stall": 1
-  },
-  "ratings": 95
- },
- {
-  "index": 55,
-  "id": "s1-L055",
-  "file": "s1-L055.json",
-  "title": "Domes and Building Spree",
-  "phase": "mix",
-  "introduced": [],
-  "family": "shelter",
-  "secondary": null,
-  "features": [
-   "dust_storms",
-   "gate_arrivals",
-   "housing"
-  ],
-  "objectives": [
-   {
-    "id": "main",
-    "kind": "build_count",
-    "params": {
-     "build": "struct.housing",
-     "n": 2
-    }
-   },
-   {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 102
-    }
-   },
-   {
-    "id": "challenge",
-    "kind": "no_colonist_freezes",
-    "params": {}
-   }
-  ],
-  "stars": {
-   "good": 3,
-   "median": 3,
-   "goodAll": 1
-  },
-  "starsByRung": {
-   "good": 3,
-   "average": 3,
-   "weak": 3,
-   "novice": 2,
-   "floor": 0
-  },
-  "modules": [
-   "build_pads",
-   "carry",
-   "core",
-   "gather",
-   "hazard_events",
-   "housing",
-   "sales"
-  ],
-  "goal": "build_count",
-  "template": "crossroads",
-  "target": 0.581,
-  "D": 0.5583499902186974,
-  "F": 0.6764819360393851,
-  "onTarget": true,
-  "margin": {
-   "good": 0.5678333333333334,
-   "average": 0.4619047619047619,
-   "weak": 0.3950793650793651,
-   "novice": 0.053253968253968255,
-   "floor": -0.8333333333333334
+   "good": 0.9938392506666801,
+   "average": 0.991746150527133,
+   "weak": 0.9859347706786236,
+   "novice": 0.986944473989543,
+   "floor": -0.3333333333333333
   },
   "winRate": {
    "good": 1,
@@ -4848,13 +5135,104 @@
    "weak",
    "novice"
   ],
-  "seconds": 8.462,
-  "seed": 2110915574,
+  "seconds": 314.398,
+  "seed": 1298999431,
   "attempts": 1,
   "rejects": {
-   "offTarget": 4
+   "offTarget": 8,
+   "trivial": 1,
+   "lowFun": 1
   },
-  "ratings": 9
+  "ratings": 11
+ },
+ {
+  "index": 55,
+  "id": "s1-L055",
+  "file": "s1-L055.json",
+  "title": "Domes and Roof Overhead",
+  "phase": "mix",
+  "introduced": [],
+  "family": "shelter",
+  "secondary": null,
+  "features": [
+   "core_levels",
+   "gate_arrivals",
+   "housing"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "house_all",
+    "params": {}
+   },
+   {
+    "id": "challenge",
+    "kind": "no_colonist_freezes",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 129
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 1.33,
+   "floor": 0,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "housing",
+   "sales"
+  ],
+  "goal": "house_all",
+  "template": "crossroads",
+  "target": 0.581,
+  "D": 0.5641674038686375,
+  "F": 0.7710538875159395,
+  "onTarget": true,
+  "margin": {
+   "good": 0.5607592592592593,
+   "average": 0.4524691358024691,
+   "weak": 0.3119753086419753,
+   "novice": -0.1458641975308642,
+   "floor": -0.5
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 0.6666666666666666,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 5.886,
+  "seed": 2110915574,
+  "attempts": 1,
+  "rejects": {},
+  "ratings": 2
  },
  {
   "index": 56,
@@ -4877,31 +5255,34 @@
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
-    "params": {
-     "seconds": 63
-    }
-   },
-   {
     "id": "challenge",
     "kind": "tow_trip",
     "params": {
      "n": 3
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 67
     }
    }
   ],
   "stars": {
    "good": 3,
    "median": 3,
-   "goodAll": 1
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 0.67
+   "floor": 0,
+   "human": 3
   },
   "modules": [
    "barrier_lines",
@@ -4915,22 +5296,22 @@
   "goal": "crates",
   "template": "crescent",
   "target": 0.625,
-  "D": 0.4565186192500241,
-  "F": 0.9214184819063772,
+  "D": 0.4472944007488485,
+  "F": 0.9333228518119941,
   "onTarget": false,
   "margin": {
-   "good": 0.5145000000000001,
-   "average": 0.48527777777777775,
-   "weak": 0.46402777777777776,
-   "novice": 0.34013888888888894,
-   "floor": -0.15833333333333333
+   "good": 0.48224999999999996,
+   "average": 0.42458333333333337,
+   "weak": 0.48055555555555557,
+   "novice": 0.3415277777777778,
+   "floor": -0.25
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.3333333333333333
+   "floor": 0
   },
   "botsPassed": [
    "good",
@@ -4938,104 +5319,107 @@
    "weak",
    "novice"
   ],
-  "seconds": 106.929,
+  "seconds": 26.028,
   "seed": 1427777921,
-  "attempts": 7,
+  "attempts": 4,
   "rejects": {
-   "objectives": 27,
-   "offTarget": 39,
-   "idleElement": 3,
-   "trivial": 1
+   "offTarget": 17
   },
-  "ratings": 108
+  "ratings": 17
  },
  {
   "index": 57,
   "id": "s1-L057",
   "file": "s1-L057.json",
-  "title": "Hurried Traders and VIPs",
+  "title": "Sealed Veins and Credits",
   "phase": "mix",
   "introduced": [],
   "family": "harvest",
   "secondary": null,
   "features": [
-   "vips"
+   "source_unlocks"
   ],
   "objectives": [
    {
     "id": "main",
-    "kind": "serve_premium",
+    "kind": "currency",
     "params": {
-     "n": 17
+     "n": 288
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "streak",
+    "params": {
+     "n": 20
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 421
+     "seconds": 283
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "no_angry_customers",
-    "params": {}
    }
   ],
   "stars": {
-   "good": 2.6,
-   "median": 2,
-   "goodAll": 0.6
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
   },
   "starsByRung": {
-   "good": 2.6,
-   "average": 2.33,
-   "weak": 2,
-   "novice": 1.33,
-   "floor": 0
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1.67,
+   "human": 3
   },
   "modules": [
    "build_pads",
    "carry",
    "core",
-   "customer_variety",
    "gather",
    "sales",
+   "source_gating",
    "workers"
   ],
-  "goal": "serve_premium",
+  "goal": "currency",
   "template": "south_fields",
   "target": 0.669,
-  "D": 0.710802320482874,
-  "F": 0.9544114880349043,
-  "onTarget": true,
+  "D": 0.738303012470138,
+  "F": 0.9100760121460757,
+  "onTarget": false,
   "margin": {
-   "good": 0.41249206349206347,
-   "average": 0.33328042328042334,
-   "weak": 0.29637566137566135,
-   "novice": -0.08031434796140677,
-   "floor": -0.6470588235294117
+   "good": 0.4483125,
+   "average": 0.39458333333333334,
+   "weak": 0.37493055555555554,
+   "novice": 0.2905902777777778,
+   "floor": 0.0036689814814814723
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
-   "novice": 0.6666666666666666,
-   "floor": 0
+   "novice": 1,
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice"
+   "novice",
+   "floor"
   ],
-  "seconds": 84.057,
+  "seconds": 88.818,
   "seed": 1011886639,
-  "attempts": 3,
+  "attempts": 4,
   "rejects": {
-   "offTarget": 22
+   "offTarget": 27
   },
-  "ratings": 31
+  "ratings": 29
  },
  {
   "index": 58,
@@ -5059,33 +5443,38 @@
     "kind": "stockpile",
     "params": {
      "res": "res.material_basic",
-     "n": 11
+     "n": 4
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 35
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 496
+     "seconds": 461
     }
-   },
-   {
-    "id": "challenge",
-    "kind": "no_stockpile_overload",
-    "params": {}
    }
   ],
   "stars": {
    "good": 3,
-   "median": 3,
-   "goodAll": 1
+   "median": 2.67,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 3,
-   "novice": 3,
-   "floor": 1
+   "weak": 2.67,
+   "novice": 2.33,
+   "floor": 2,
+   "human": 3
   },
   "modules": [
    "build_pads",
@@ -5101,22 +5490,22 @@
   "goal": "stockpile",
   "template": "corridor",
   "target": 0.713,
-  "D": 0.692439199963242,
-  "F": 0.885348969832164,
-  "onTarget": true,
+  "D": 0.6531148419644123,
+  "F": 0.8642615181570741,
+  "onTarget": false,
   "margin": {
-   "good": 0.48,
-   "average": 0.4441111111111111,
-   "weak": 0.3978888888888889,
-   "novice": 0.36974074074074076,
-   "floor": -0.12963973063973064
+   "good": 0.44710897435897434,
+   "average": 0.4102991452991453,
+   "weak": 0.36959401709401707,
+   "novice": 0.3034188034188034,
+   "floor": 0.27068376068376065
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 0.6666666666666666
+   "floor": 1
   },
   "botsPassed": [
    "good",
@@ -5125,13 +5514,14 @@
    "novice",
    "floor"
   ],
-  "seconds": 153.79,
-  "seed": 212345883,
-  "attempts": 1,
+  "seconds": 386.471,
+  "seed": 288445413,
+  "attempts": 4,
   "rejects": {
-   "offTarget": 6
+   "offTarget": 39,
+   "stall": 1
   },
-  "ratings": 12
+  "ratings": 46
  },
  {
   "index": 59,
@@ -5159,28 +5549,33 @@
    },
    {
     "id": "challenge2",
-    "kind": "hp_floor",
+    "kind": "hire",
     "params": {
-     "pct": 55
+     "n": 4
     }
    },
    {
     "id": "challenge",
-    "kind": "no_injuries",
-    "params": {}
+    "kind": "hp_floor",
+    "params": {
+     "pct": 80
+    }
    }
   ],
   "stars": {
-   "good": 2.5,
-   "median": 2,
-   "goodAll": 0.6
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
   },
   "starsByRung": {
-   "good": 2.5,
+   "good": 3,
    "average": 3,
-   "weak": 2,
-   "novice": 2,
-   "floor": 1.67
+   "weak": 3,
+   "novice": 2.67,
+   "floor": 1,
+   "human": 3
   },
   "modules": [
    "barrier_lines",
@@ -5198,51 +5593,54 @@
   "goal": "survive",
   "template": "south_fields",
   "target": 0.756,
-  "D": 0.7126456899086833,
-  "F": 0.6093763907718343,
-  "onTarget": true,
+  "D": 0.6892141797192981,
+  "F": 0.20793631330648524,
+  "onTarget": false,
   "margin": {
-   "good": 0.8986197880818001,
-   "average": 0.9598884750624984,
-   "weak": 0.8222471941381109,
-   "novice": 0.7898735428977366,
-   "floor": 0.6978445550813968
+   "good": 0.9988962914568791,
+   "average": 0.9957388010792257,
+   "weak": 0.9962970383471411,
+   "novice": 0.915652226685021,
+   "floor": -0.15178049238262656
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 1
+   "floor": 0.3333333333333333
   },
   "botsPassed": [
    "good",
    "average",
    "weak",
-   "novice",
-   "floor"
+   "novice"
   ],
-  "seconds": 624.16,
-  "seed": 1571575811,
-  "attempts": 5,
+  "seconds": 591.835,
+  "seed": 1598010570,
+  "attempts": 4,
   "rejects": {
-   "offTarget": 32,
-   "idleElement": 4,
-   "objectives": 1,
-   "lowFun": 3
+   "infeasible": 2,
+   "trivial": 3,
+   "offTarget": 3,
+   "idleModule": 1,
+   "ladderSpent": 32,
+   "humanLost": 1
   },
-  "ratings": 88
+  "ratings": 39
  },
  {
   "index": 60,
   "id": "s1-L060",
   "file": "s1-L060.json",
-  "title": "Rust and Hardpoints",
+  "title": "Rust and The Big One",
   "phase": "finale",
   "introduced": [],
   "family": "defend",
   "secondary": "shelter",
   "features": [
+   "bosses",
+   "defenders",
    "gate_arrivals",
    "multi_side",
    "salvage_upgrades",
@@ -5251,66 +5649,73 @@
   "objectives": [
    {
     "id": "main",
-    "kind": "turret_level",
+    "kind": "boss",
     "params": {
-     "n": 2
+     "n": 1
     }
    },
    {
-    "id": "time",
-    "kind": "time_target",
+    "id": "challenge2",
+    "kind": "salvage",
     "params": {
-     "seconds": 322
+     "n": 296
     }
    },
    {
     "id": "challenge",
-    "kind": "no_wall_lost",
-    "params": {}
+    "kind": "hp_floor",
+    "params": {
+     "pct": 20
+    }
    }
   ],
   "stars": {
-   "good": 2.8,
-   "median": 2.33,
-   "goodAll": 0.8
+   "good": 3,
+   "median": 2,
+   "goodAll": 1,
+   "human": 2.5,
+   "humanAll": 0.83
   },
   "starsByRung": {
-   "good": 2.8,
-   "average": 2,
-   "weak": 2.33,
+   "good": 3,
+   "average": 3,
+   "weak": 2,
    "novice": 3,
-   "floor": 2
+   "floor": 2,
+   "human": 2.5
   },
   "modules": [
    "barrier_lines",
    "build_pads",
    "carry",
    "core",
+   "defenders",
    "defense",
    "gather",
    "housing",
    "sales",
-   "salvage_upgrades"
+   "salvage_upgrades",
+   "workers"
   ],
-  "goal": "turret_level",
+  "goal": "boss",
   "template": "corridor",
   "target": 0.8,
-  "D": 0.9065402024096695,
-  "F": 0.5348084674914189,
+  "D": 0.6575549824933185,
+  "F": 0.8581489350995123,
   "onTarget": false,
   "margin": {
-   "good": 0.7293738738738738,
-   "average": 0.318003003003003,
-   "weak": 0.7172522522522522,
-   "novice": 0.6994144144144144,
-   "floor": 0.6785135135135135
+   "good": 0.6531188118811881,
+   "average": 0.6518481848184818,
+   "weak": 0.096996699669967,
+   "novice": 0.6497029702970297,
+   "floor": 0.096996699669967
   },
   "winRate": {
    "good": 1,
-   "average": 0.6666666666666666,
-   "weak": 1,
+   "average": 1,
+   "weak": 0.6666666666666666,
    "novice": 1,
-   "floor": 1
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
@@ -5319,13 +5724,16 @@
    "novice",
    "floor"
   ],
-  "seconds": 181.054,
-  "seed": 756946849,
-  "attempts": 7,
+  "seconds": 748.495,
+  "seed": 1009995936,
+  "attempts": 4,
   "rejects": {
-   "infeasible": 59,
-   "offTarget": 11
+   "layout": 250,
+   "idleModule": 29,
+   "infeasible": 4,
+   "humanLost": 6,
+   "offTarget": 2
   },
-  "ratings": 21
+  "ratings": 32
  }
 ]

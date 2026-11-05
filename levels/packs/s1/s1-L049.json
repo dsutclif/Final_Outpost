@@ -37,7 +37,7 @@
         560
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -77,92 +77,85 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        216,
-        478
+        194,
+        477
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         164,
-        513
+        532
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        190,
-        459
+        227,
+        471
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        164,
-        473
+        150,
+        495
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        224,
-        450
+        132,
+        528
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        128,
-        515
+        209,
+        446
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        130,
-        481
+        181,
+        437
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        206,
-        425
+        138,
+        460
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        159,
-        441
+        219,
+        417
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        129,
-        443
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        97,
-        520
+        112,
+        486
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        177,
-        396
+        126,
+        422
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        88,
-        466
+        92,
+        521
       ]
     },
     {
@@ -204,7 +197,7 @@
         670
       ],
       "cost": {
-        "res.currency": 30
+        "res.currency": 31
       },
       "build": "sink.core.level"
     },
@@ -216,7 +209,7 @@
         670
       ],
       "cost": {
-        "res.currency": 42
+        "res.currency": 43
       },
       "build": "sink.core.level",
       "requires": {
@@ -246,13 +239,13 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 54,
-      "start": 62,
-      "end": 114
+      "warnAt": 61,
+      "start": 69,
+      "end": 121
     }
   ],
   "params": {
-    "start.currency": 4,
+    "start.currency": 3,
     "core.burn": 2.3,
     "housing.base": 2,
     "lots.block": 60,
@@ -260,7 +253,7 @@
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 410
+    "level.budgetSeconds": 390
   },
   "goal": {
     "type": "core_level",
@@ -276,16 +269,16 @@
       }
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 293
-      }
-    },
-    {
       "id": "challenge",
       "kind": "settlement_never_freezes",
       "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 297
+      }
     }
   ],
   "fail": [
@@ -301,9 +294,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.712,
-    "fun": 0.495,
-    "botMargin": 0.546,
+    "difficulty": 0.718,
+    "fun": 0.604,
+    "botMargin": 0.533,
     "botsPassed": [
       "good",
       "average",

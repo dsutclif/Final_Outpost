@@ -367,16 +367,16 @@
       }
     },
     {
+      "id": "challenge",
+      "kind": "no_angry_customers",
+      "params": {}
+    },
+    {
       "id": "time",
       "kind": "time_target",
       "params": {
         "seconds": 161
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "no_angry_customers",
-      "params": {}
     }
   ],
   "fail": [

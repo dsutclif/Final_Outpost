@@ -244,16 +244,16 @@
       }
     },
     {
+      "id": "challenge",
+      "kind": "no_angry_customers",
+      "params": {}
+    },
+    {
       "id": "time",
       "kind": "time_target",
       "params": {
         "seconds": 319
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "no_angry_customers",
-      "params": {}
     }
   ],
   "fail": [

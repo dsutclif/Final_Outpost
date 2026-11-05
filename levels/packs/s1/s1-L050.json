@@ -37,7 +37,7 @@
         520
       ],
       "params": {
-        "fuel": 10,
+        "fuel": 9,
         "level": 1
       }
     },
@@ -79,70 +79,70 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        158,
+        157,
         487
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        152,
+        151,
         564
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        158,
-        535
+        157,
+        534
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        126,
-        497
+        136,
+        507
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        141,
+        140,
         454
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        123,
+        122,
         547
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        107,
+        106,
         519
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        113,
-        471
+        120,
+        476
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        67,
-        505
+        78,
+        489
       ]
     },
     {
       "type": "node.material_source",
       "at": [
-        79,
+        78,
         550
       ]
     },
@@ -162,7 +162,7 @@
         630
       ],
       "cost": {
-        "res.currency": 10
+        "res.currency": 6
       },
       "role": {
         "role": "role.supplier",
@@ -179,7 +179,7 @@
         600
       ],
       "cost": {
-        "res.currency": 16
+        "res.currency": 10
       },
       "role": {
         "role": "role.supplier",
@@ -197,7 +197,7 @@
         789
       ],
       "cost": {
-        "res.currency": 23
+        "res.currency": 14
       },
       "role": {
         "role": "role.cashier",
@@ -224,11 +224,11 @@
       "type": "pad.build",
       "id": "saw",
       "at": [
-        20,
-        410
+        30,
+        390
       ],
       "cost": {
-        "res.currency": 19
+        "res.currency": 20
       },
       "build": "conv.material_processor"
     },
@@ -236,11 +236,11 @@
       "type": "pad.hire",
       "id": "saw_feeder",
       "at": [
-        20,
-        497
+        30,
+        477
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 8
       },
       "role": {
         "role": "role.supplier",
@@ -256,11 +256,11 @@
       "type": "pad.hire",
       "id": "sawyer",
       "at": [
-        20,
-        497
+        30,
+        477
       ],
       "cost": {
-        "res.currency": 13
+        "res.currency": 8
       },
       "role": {
         "role": "role.operator",
@@ -275,11 +275,11 @@
       "type": "pad.build",
       "id": "alloy",
       "at": [
-        150,
-        300
+        160,
+        280
       ],
       "cost": {
-        "res.currency": 26
+        "res.currency": 27
       },
       "build": "conv.alloy_works",
       "requires": {
@@ -290,8 +290,8 @@
       "type": "pad.build",
       "id": "belt",
       "at": [
-        106,
-        376
+        116,
+        356
       ],
       "cost": {
         "res.currency": 21
@@ -341,20 +341,20 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 1,
-    "core.burn": 2.1,
+    "start.currency": 5,
+    "core.burn": 2.8,
     "housing.base": 12,
     "lots.block": 60,
     "lots.street": 0,
     "customers.spawn": 3.2,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "customers.bulkShare": 0.16,
-    "level.budgetSeconds": 340
+    "customers.bulkShare": 0.15,
+    "level.budgetSeconds": 250
   },
   "goal": {
     "type": "produce",
-    "n": 6,
+    "n": 4,
     "res": "res.component"
   },
   "family": "industrialize",
@@ -363,21 +363,23 @@
       "id": "main",
       "kind": "produce",
       "params": {
-        "n": 6,
+        "n": 4,
         "res": "res.component"
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 35
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 302
+        "seconds": 223
       }
-    },
-    {
-      "id": "challenge",
-      "kind": "settlement_never_freezes",
-      "params": {}
     }
   ],
   "fail": [
@@ -393,14 +395,15 @@
     }
   },
   "rating": {
-    "difficulty": 0.759,
-    "fun": 0.903,
-    "botMargin": 0.444,
+    "difficulty": 0.495,
+    "fun": 0.914,
+    "botMargin": 0.441,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,

@@ -1,6 +1,6 @@
 {
   "id": "s1-L032",
-  "seed": 1676619851,
+  "seed": 2037529639,
   "engineVersion": "0.19.0",
   "contentVersion": "0.18.0",
   "map": {
@@ -39,7 +39,7 @@
         880
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 16,
         "level": 1
       }
     },
@@ -47,70 +47,84 @@
       "type": "node.fuel_scrap",
       "at": [
         520,
-        858
+        874
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        514,
-        922
+        515,
+        918
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        513,
-        889
+        585,
+        801
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        524,
+        843
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        545,
+        801
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         510,
-        826
+        812
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        531,
-        797
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        578,
-        796
+        492,
+        862
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         491,
-        852
+        892
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        483,
-        880
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        478,
-        915
+        482,
+        830
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         477,
-        825
+        929
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        503,
+        945
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        483,
+        797
       ]
     },
     {
@@ -207,7 +221,6 @@
       ],
       "prebuilt": [
         0,
-        1,
         2,
         4,
         5,
@@ -228,29 +241,36 @@
     {
       "type": "node.salvage_pile",
       "at": [
-        904,
-        1181
+        261,
+        774
       ]
     },
     {
       "type": "node.salvage_pile",
       "at": [
-        230,
-        605
+        642,
+        1244
       ]
     },
     {
       "type": "node.salvage_pile",
       "at": [
-        137,
-        942
+        280,
+        501
       ]
     },
     {
       "type": "node.salvage_pile",
       "at": [
-        723,
-        1271
+        882,
+        399
+      ]
+    },
+    {
+      "type": "node.salvage_pile",
+      "at": [
+        172,
+        1018
       ]
     },
     {
@@ -259,28 +279,6 @@
       "at": [
         690,
         890
-      ]
-    },
-    {
-      "type": "zone.terrain",
-      "id": "terrain0",
-      "kind": "chasm",
-      "rect": [
-        645,
-        446,
-        75,
-        30
-      ]
-    },
-    {
-      "type": "zone.terrain",
-      "id": "terrain1",
-      "kind": "outcrop",
-      "rect": [
-        769,
-        427,
-        39,
-        35
       ]
     },
     {
@@ -755,6 +753,9 @@
     },
     {
       "role": "idle"
+    },
+    {
+      "role": "idle"
     }
   ],
   "waves": [
@@ -767,7 +768,7 @@
       "gap": 0.7
     },
     {
-      "t": 73,
+      "t": 75,
       "counts": {
         "hostile.swarmling": 40,
         "hostile.raider_humanoid": 6
@@ -776,7 +777,7 @@
       "gap": 0.7
     },
     {
-      "t": 126,
+      "t": 131,
       "counts": {
         "hostile.swarmling": 165,
         "hostile.raider_humanoid": 20
@@ -785,7 +786,7 @@
       "gap": 0.4
     },
     {
-      "t": 179,
+      "t": 186,
       "counts": {
         "hostile.swarmling": 219,
         "hostile.raider_humanoid": 30,
@@ -797,14 +798,14 @@
   ],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.6,
-    "housing.base": 7,
+    "start.currency": 8,
+    "core.burn": 2.8,
+    "housing.base": 8,
     "lots.block": 60,
     "lots.street": 0,
-    "meters.baseHealth": 10,
+    "meters.baseHealth": 11,
     "pads.defenceGrowth": 1,
-    "level.budgetSeconds": 880
+    "level.budgetSeconds": 910
   },
   "goal": {
     "type": "boss",
@@ -823,12 +824,12 @@
       "id": "challenge2",
       "kind": "hire",
       "params": {
-        "n": 5
+        "n": 6
       }
     },
     {
       "id": "challenge",
-      "kind": "no_injuries",
+      "kind": "gate_held",
       "params": {}
     }
   ],
@@ -846,9 +847,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.448,
-    "fun": 0.085,
-    "botMargin": 0.641,
+    "difficulty": 0.445,
+    "fun": 0.165,
+    "botMargin": 0.652,
     "botsPassed": [
       "good",
       "average",

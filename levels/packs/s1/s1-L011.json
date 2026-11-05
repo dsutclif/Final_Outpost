@@ -35,7 +35,7 @@
         500
       ],
       "params": {
-        "fuel": 13,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -79,85 +79,85 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        170,
-        490
+        165,
+        489
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        183,
-        464
+        184,
+        467
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        207,
-        418
+        178,
+        438
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        174,
-        432
+        197,
+        415
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        140,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        117,
+        479
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        198,
+        383
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         145,
-        457
+        424
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        121,
-        481
+        101,
+        510
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        186,
-        394
+        167,
+        385
       ]
     },
     {
-      "type": "node.fuel_scrap",
+      "type": "node.material_source",
       "at": [
-        143,
-        419
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        106,
-        511
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        118,
-        438
+        96,
+        441
       ]
     },
     {
       "type": "node.material_source",
       "at": [
         121,
-        384
-      ]
-    },
-    {
-      "type": "node.material_source",
-      "at": [
-        78,
-        444
+        390
       ]
     },
     {
@@ -179,7 +179,7 @@
         610
       ],
       "cost": {
-        "res.currency": 29
+        "res.currency": 30
       },
       "build": "sink.core.level"
     },
@@ -191,7 +191,7 @@
         610
       ],
       "cost": {
-        "res.currency": 41
+        "res.currency": 42
       },
       "build": "sink.core.level",
       "requires": {
@@ -203,15 +203,15 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.6,
+    "start.currency": 4,
+    "core.burn": 2.5,
     "housing.base": 2,
     "lots.block": 60,
     "lots.street": 0,
     "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 180
+    "level.budgetSeconds": 200
   },
   "goal": {
     "type": "core_level",
@@ -227,16 +227,16 @@
       }
     },
     {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 133
-      }
-    },
-    {
       "id": "challenge",
       "kind": "no_colonist_freezes",
       "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 132
+      }
     }
   ],
   "fail": [
@@ -252,9 +252,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.236,
-    "fun": 0.898,
-    "botMargin": 0.551,
+    "difficulty": 0.198,
+    "fun": 0.882,
+    "botMargin": 0.585,
     "botsPassed": [
       "good",
       "average",
@@ -263,7 +263,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 3,
+      "median": 2.67,
       "goodAll": 1,
       "human": 3,
       "humanAll": 1

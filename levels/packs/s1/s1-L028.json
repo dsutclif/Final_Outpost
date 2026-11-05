@@ -37,7 +37,7 @@
         500
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 11,
         "level": 1
       }
     },
@@ -150,7 +150,7 @@
         116,
         278
       ],
-      "freeze": 113
+      "freeze": 108
     },
     {
       "type": "capture.recruit_container",
@@ -158,7 +158,7 @@
         231,
         279
       ],
-      "freeze": 127
+      "freeze": 122
     },
     {
       "type": "capture.recruit_container",
@@ -166,7 +166,7 @@
         423,
         271
       ],
-      "freeze": 154
+      "freeze": 149
     },
     {
       "type": "capture.recruit_container",
@@ -174,7 +174,7 @@
         400,
         174
       ],
-      "freeze": 181
+      "freeze": 176
     },
     {
       "type": "zone.prey",
@@ -193,16 +193,16 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.6,
+    "start.currency": 2,
+    "core.burn": 2.3,
     "housing.base": 6,
     "lots.block": 60,
     "lots.street": 0,
-    "level.budgetSeconds": 290
+    "level.budgetSeconds": 280
   },
   "goal": {
     "type": "hunt",
-    "n": 27
+    "n": 29
   },
   "family": "rescue",
   "objectives": [
@@ -210,14 +210,7 @@
       "id": "main",
       "kind": "hunt",
       "params": {
-        "n": 27
-      }
-    },
-    {
-      "id": "time",
-      "kind": "time_target",
-      "params": {
-        "seconds": 245
+        "n": 29
       }
     },
     {
@@ -225,6 +218,13 @@
       "kind": "tow_trip",
       "params": {
         "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 285
       }
     }
   ],
@@ -241,22 +241,21 @@
     }
   },
   "rating": {
-    "difficulty": 0.191,
-    "fun": 0.653,
-    "botMargin": 0.557,
+    "difficulty": 0.636,
+    "fun": 0.614,
+    "botMargin": 0.503,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
       "good": 3,
       "median": 3,
       "goodAll": 1,
-      "human": 3,
-      "humanAll": 1
+      "human": 2,
+      "humanAll": 0.67
     }
   },
   "lighting": "night"
