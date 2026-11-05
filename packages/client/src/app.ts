@@ -23,6 +23,7 @@ import type { TelemetryQueue } from "./telemetry.js";
 import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
 import { FILM_VERSIONS, REPLAY_FILMS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
+import { preloadCharacters } from "./preload.js";
 import { StoryStage, directorFor, type StoryDirector } from "./story/index.js";
 
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
@@ -213,6 +214,7 @@ export class App {
     this.show("title");
     if (this.deps.justUpdated) this.continueToast();
     warm3D();
+    preloadCharacters();
     void this.prefetch();
   }
 

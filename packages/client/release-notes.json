@@ -1,12 +1,5 @@
 {
   "notes": [
-    "The floor arrows now lead to what you can do right now: with the money for a pad in hand they point at that pad, not at an older step.",
-    "Pods lying side by side get one arrow loop around the whole group, so you can tow them together.",
-    "Walls now fade together when they hide your commander, and so does every building except the grow dome and the warehouse. The green outline is gone.",
-    "Level wins end with a real fireworks show.",
-    "Raiders fire red bolts, and defenders, hunters and turrets fire blue ones.",
-    "A green medical cross fills over a guard while a medic heals them.",
-    "A trader's order now shows a picture of the item they want.",
-    "Your commander digs with a shovel while paying to clear a blocked zone."
+    "Characters now appear as full models from the first second of a level, instead of briefly showing as simple figures."
   ]
 }
