@@ -128,9 +128,17 @@ export function meshySlots(id: string, level = 1): MeshyEntry[] {
     .filter((e): e is MeshyEntry => !!e);
 }
 
-function pick(list: readonly MeshyEntry[], id: string, level: number): MeshyEntry | undefined {
-  // upgrade tiers registered as their own id (struct.ranged_defense.t2) share the base entry
+/** Ids drawn with another id's model (the storage depot is the same warehouse building). */
+const ALIAS: Readonly<Record<string, string>> = { "store.depot": "struct.depot" };
+
+/** The entry id an object takes its GLB from: upgrade tiers (`.t2`) and aliases share one. */
+export function meshyBase(id: string): string {
   const base = id.replace(/\.t\d+$/, "");
+  return ALIAS[base] ?? base;
+}
+
+function pick(list: readonly MeshyEntry[], id: string, level: number): MeshyEntry | undefined {
+  const base = meshyBase(id);
   return list.find((e) => e.id === base && e.level === level) ?? list.find((e) => e.id === base && e.level === undefined);
 }
 

@@ -82,3 +82,11 @@ describe("meshy footprints", () => {
     });
   }
 });
+
+// the storage depot is the same warehouse building, so it takes the warehouse GLB
+describe("meshy aliases", () => {
+  it("store.depot draws the struct.depot model", () => {
+    expect(meshyFor("store.depot")?.file).toBe(meshyFor("struct.depot")?.file);
+    expect(meshyFor("store.depot")).toBeDefined();
+  });
+});

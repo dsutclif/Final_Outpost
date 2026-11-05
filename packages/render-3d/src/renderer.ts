@@ -42,7 +42,7 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { disposeGeo, getAnchor, mesh, model, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
-import { applyMeshy, loadMeshy, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
+import { applyMeshy, loadMeshy, meshyBase, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash, hash01 } from "./assets/scatter.js";
@@ -509,14 +509,14 @@ export class Renderer3D implements Renderer {
       }
       if (e.kind === "character") return;
       for (const [k, p] of this.placed) {
-        if (p.data["id"] !== e.id && !String(p.data["id"]).startsWith(e.id + ".t")) continue;
+        if (meshyBase(String(p.data["id"])) !== e.id) continue;
         this.removePlaced(p);
         this.placed.delete(k);
         this.quiet.add(k);
       }
       for (const p of this.placed.values()) {
         const g = p.extra[3];
-        if (!g || (g.userData["what"] !== e.id && !String(g.userData["what"]).startsWith(e.id + ".t"))) continue;
+        if (!g || meshyBase(String(g.userData["what"])) !== e.id) continue;
         this.dynamic.remove(g);
         g.traverse((c) => { if ((c as Mesh).isMesh) disposeGeo(c as Mesh); });
         (g.userData["ghost"] as MeshLambertMaterial).dispose();
