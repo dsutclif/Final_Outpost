@@ -64,7 +64,7 @@ Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked 
 - [x] **N9 player behind walls:** pretotype first. Draw the hero as a silhouette that shows through any
       occluder, walls included (walls are instanced and can't fade per tile). Build per-tile wall fading
       only if the silhouette reads wrong.
-      **2026-11-04 follow-up (Doug):** fade the whole wall, and every building except his named exclusions (grow dome, warehouse). Not started; plan in `docs/handoff/wall-fade.md`.
+      **2026-11-04 follow-up (Doug):** fade the whole wall, and every building except his named exclusions (grow dome, warehouse). DONE 2026-11-05 (r6-stepA): whole wall batches and every building fade, silhouette removed; seen in L14, the wall near the commander turned see-through and the commander stood solid with no green; not seen: the core in a story level, an iPhone. Plan in `docs/handoff/wall-fade.md`.
 
 ### Bundle 2: base and building art (Sonnet)
 - [x] **#4 goods below the belt top:** probably the belt is lifted by SLAB_TOP and the goods aren't
@@ -101,8 +101,8 @@ Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked 
 ### Bundle 7: game-wide items from Doug's story feedback (2026-11-03)
 From `docs/BACKLOG-STORY.md`, round S1. Doug sorted these as game-wide on 2026-11-03. Where levels 1–5 need their own
 follow-up, it stays in the story backlog under the same S number, so each part is in both plans.
-- [ ] **G1 (S22) fireworks for level wins:** realistic fireworks replace the confetti on every level.
-- [ ] **G2 (S23) shovel and dig when clearing a rockslide:** while the player pays at a `zone.clear` pad, the hero
+- [x] **G1 (S22) fireworks for level wins:** realistic fireworks replace the confetti on every level. Done 2026-11-05: seven staggered shells with spark trails and ember bursts; seen from a faked win event on L1 (bursts sit near the top edge of the frame); not seen after a real win.
+- [x] **G2 (S23) shovel and dig when clearing a rockslide:** while the player pays at a `zone.clear` pad, the hero Done 2026-11-05 in code; see the Step A batch notes at the foot of this file.
       digs with a shovel (a tool prop plus a dig clip), on every level.
 - [ ] **G3 (S23b) rifle lasers apply everywhere:** this is the existing N5 blaster fire plus N2/N3 ranged raiders
       (Bundle 5). Nothing extra here; the story backlog keeps a check of level 5 once Release 2 lands.
@@ -125,11 +125,11 @@ follow-up, it stays in the story backlog under the same S number, so each part i
 - [ ] **G6 (S9) one loop around pods side by side:** when pods sit close together, the arrows draw one circle around
       the group instead of one per pod, so towing several at once is taught. It's client guide code; the story
       backlog keeps a check of level 2's pair.
-- [ ] **G9 a trader's order shows the item, not a coloured dot (Doug, 2026-11-03):** the dot over a waiting trader's head
+- [x] **G9 a trader's order shows the item, not a coloured dot (Doug, 2026-11-03):** the dot over a waiting trader's head Done 2026-11-05.
       becomes a small image of the item they want (the resource's own icon or model), on every level, so players learn
       to read orders without matching colours. Story level 3 already has the angry trader who wants meat; once G9 lands
       the story session can point at the icon in that beat.
-- [ ] **G10 healing cross (Doug, 2026-11-04):** while a medic heals someone, a green medical cross floats over them and
+- [x] **G10 healing cross (Doug, 2026-11-04):** while a medic heals someone, a green medical cross floats over them and Done 2026-11-05 for guards.
       fills up as the heal runs; when it is full it disappears and they get up. Renderer only for guards (`medic_heal`
       already fires); injured rangers and the commander get it with N22.
 
@@ -214,3 +214,12 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
       its target on any seed, give the sequencer per-goal D ranges (rule 1) rather than searching longer.
 - [ ] Engine bump (claim it in the story log), `levels:build`, `levels:check`, re-pin golden and story levels,
       the story session re-checks levels 3-5, `levels:start-table`, release notes, deploy.
+
+### Step A renderer batch, 2026-11-05 (branch r6-stepA, renderer and client only)
+- [x] **Wall fade + remove silhouette (N9 follow-up):** seen on L14 (wall fades, hero solid, no green). Not seen: core fade in a story level; the `director.solid` list no longer blocks fading.
+- [x] **Gate width check:** L14, the 4.05 m gate sits flush in its wall with wall runs either side; no renderer fix needed. Looked only at the left side up close; not checked on other ring levels.
+- [x] **N5/G3 bolts:** red bolts from the nearest hostile on `hit` events by hostiles (target player, guard, troop, base; skipped when the hostile stands on its target); blue bolts for defender, hunter, turret and troop hits. Seen: a red bolt on L14 from a placed fake hostile. Not seen: a real raid, hunting. No event exists for drone shots: note for Release 2.
+- [x] **G10 healing cross (guards):** seen on L14 with forced `healing` residents (cross filling green); not seen with a real medic.
+- [x] **G9 order picture:** each item is drawn once into a small picture from its own model (`scene/itemicons.ts`); 14 resource pictures checked on L12; not seen inside a live order bubble.
+- [x] **G1 fireworks:** see the G1 line above.
+- [x] **G2 shovel and dig:** the `dig` act is set on `pad_paid` for a `zone.clear` pad (checked with a faked pad and a pose change); the shovel itself and a real clear pad were not seen.
