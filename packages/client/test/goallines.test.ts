@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { Manifest } from "@fo/content";
+import { content, type Manifest } from "@fo/content";
 import { DEFAULT_SKIN, getSkin } from "@fo/skins";
 import { describe, expect, it } from "vitest";
 import { kilnLines } from "../src/kilnintro.js";
@@ -45,5 +45,19 @@ describe("KILN's first-time lines", () => {
     expect(lines.some((l) => l.startsWith("To run the galley, put greens in it"))).toBe(true);
     expect(lines.every((l) => !/[{}]/.test(l))).toBe(true);
     expect(kilnLines(m, skin, new Set(m.modules))).toEqual([]);
+  });
+  it("has a line for every mechanic in the game, so a new mechanic can't ship without KILN teaching it", () => {
+    const modules = Object.keys(content.modules);
+    expect(modules.length).toBeGreaterThan(0);
+    const missing = modules.filter((mod) => !skin.text.kilnTips?.[mod]);
+    expect(missing, "add a kilnTips line in the skin for each new module").toEqual([]);
+  });
+  it("teaches a mechanic on the first level that brings it in, whatever it is called", () => {
+    const m = { ...level(4), modules: [...level(4).modules, "made_up_mechanic"] } as Manifest;
+    const seen = new Set(level(4).modules);
+    // no line for an unknown module and no tip: nothing to say, but nothing breaks
+    expect(kilnLines(m, skin, seen)).toEqual([]);
+    const withTip = { ...skin, text: { ...skin.text, moduleTips: { ...skin.text.moduleTips, made_up_mechanic: "Stand on the new pad." } } };
+    expect(kilnLines(m, withTip, seen)).toEqual(["Stand on the new pad."]);
   });
 });

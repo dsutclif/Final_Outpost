@@ -6,8 +6,11 @@ import { DIALOGUE_STYLES, type DialogueStyle, type PortraitMaker } from "./story
 // KILN's first-time coaching on regular levels (Doug, 2026-11-05). Story levels speak through their own
 // script; a regular level assumes the player knows the mechanics, so the goal says only the goal and KILN
 // speaks once at the start when the level brings in a mechanic the player hasn't met: one line per new
-// module (skin text.kilnTips), one after another, each held until a tap. Uses the story's terminal
-// dialogue style as it is, so KILN looks the same here as in the story.
+// module (skin text.kilnTips), one after another, each held until a tap. Nothing here names a module:
+// whatever a level lists that no earlier level did is coached, so a mechanic added later is taught on the
+// first level that uses it. A module without a KILN line falls back to its plain tip (text.moduleTips),
+// and a test fails until every module in content has a line. Uses the story's terminal dialogue style as
+// it is, so KILN looks the same here as in the story.
 
 type ConvDef = { inputs?: string[]; output?: string };
 
@@ -15,7 +18,10 @@ type ConvDef = { inputs?: string[]; output?: string };
 export function kilnLines(m: Manifest, skin: Skin, seenBefore: ReadonlySet<string> | null): string[] {
   const tips = skin.text.kilnTips;
   if (!tips) return [];
-  const fresh = m.modules.filter((mod) => !seenBefore || !seenBefore.has(mod));
+  // in the order content lists the modules (basics first), whatever order the level gives them
+  const order = Object.keys(content.modules);
+  const rank = (mod: string): number => { const i = order.indexOf(mod); return i < 0 ? order.length : i; };
+  const fresh = m.modules.filter((mod) => !seenBefore || !seenBefore.has(mod)).sort((a, b) => rank(a) - rank(b));
   // the converter line names this level's first machine, what goes in and what comes out
   const machine = levelMachines(m)[0];
   const def = machine ? (content.converters as Record<string, ConvDef>)[machine] : undefined;
@@ -28,7 +34,7 @@ export function kilnLines(m: Manifest, skin: Skin, seenBefore: ReadonlySet<strin
     output: def?.output ? countName(skin, def.output, 2) : "output",
     source: source ? countName(skin, source) : "source",
   };
-  return fresh.map((mod) => tips[mod]).filter((t): t is string => !!t).map((t) => fmt(t, vars));
+  return fresh.map((mod) => tips[mod] ?? skin.text.moduleTips[mod]).filter((t): t is string => !!t).map((t) => fmt(t, vars));
 }
 
 /** Shows KILN's lines one at a time over the map; a tap finishes the typing, the next tap moves on. */

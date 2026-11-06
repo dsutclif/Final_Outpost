@@ -633,6 +633,9 @@ export const marsGreenhouse: Skin = {
       medical: "Hurt colonists cannot work until they are healed. Build a med bay to heal them.",
       hazard_events: "A dust storm is coming, and it burns fuel quickly. Fill the reactor before it arrives.",
       supply_routing: "Build a warehouse and hire couriers. They will carry goods between sites for you.",
+      conveyors: "Build a conveyor on its pad, and it will carry goods along its belt to the next building without you.",
+      carry: "Whatever you gather goes on your back, and each kind stacks up to a limit. Deliver it before you go back for more.",
+      gather: "Stand next to an ore pile or a grow dome to gather from it.",
     },
     plurals: { "res.food_prepared": "meals", "struct.housing": "hab pods", "node.food_source": "grow domes", "node.material_source": "ore piles" },
     coach: {
