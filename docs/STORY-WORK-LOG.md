@@ -32,7 +32,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-03 | B | `story-p2` | `levels/story/story-L00{2..5}.json`; `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Levels 2–5: finish Phase 1, then the Phase 2 scene player and `empty_bays` |
-| 2026-11-06 | A (HUD session) | `goal-voices` | `skins/src/mars_greenhouse.ts` (objectives templates, moduleTips, new kilnTips; not the story cue blocks); `client/src/objectives.ts`; `client/src/app.ts` (intro cards + KILN first-time lines on regular levels only); new `client/src/kilnintro.ts` | Goal lines name the real thing; KILN coaches new mechanics on regular levels (review page docs/mockups/goal-voices.html) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -72,6 +71,14 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 - **Workers don't route through gates.** Residents move in straight lines (`moveAgent`), so a worker whose post is outside a ring sticks on the wall (the same root cause as R5's medic note). Level 4 makes the ring's south section a gate as well (gates 3, 4 and 5).
 
 - **Bot, tow loop through a wall (2026-11-02).** `Brain.loopAround` (bots/src/brain.ts) can put loop points inside a barrier ring when a pod sits within about 40 units of the wall. The bot then waits forever at a loop point that isn't `outsideLines`, and every rung times out. L2 avoids it by keeping pods more than 50 units outside the ring. Not fixed, because bots are your area.
+
+## Notes for Account B (from A's HUD session, 2026-11-06)
+
+- **Goal templates changed (live).** Story levels use the shared goal templates, so some of your goal text reads differently now (docs/mockups/goal-voices.html, approved by Doug 2026-11-05): `survive` "Hold out until dawn (m:ss)", `rescue_all` "Bring every pod home", `heat_hold` "Keep heat at X% or more for m:ss". Goal lines are now factual and name the real thing (a lowercase name, plural when counted). Humans give the why and KILN gives the how, in full, literal sentences; a goal says only the target and its numbers.
+- **Story level 4's `auto` goal needs its own label.** `converters_running` k:3 with `sources: 1` counts the galley plus two staffed sources, which a template can't name; it now reads "Keep 3 jobs running at once for 0:12". Doug wants goals to name the real thing, so please give that objective a `label` in `levels/story/story-L004.json`, e.g. "Keep the galley, the ore run and the greens collector going at once for 0:12".
+- **Sela says "on the coast"** (`skins/src/mars_greenhouse.ts` story-L003 cue, "Colony ships have been landing on the coast for years", and the same in docs/STORY-SCREENPLAY.md). Doug, 2026-11-05: the planet has no water, so no coast, sea or rain. Please reword, e.g. "out on the plains" or "at the landing fields".
+- **Failing test on main, not from this work:** `packages/generator/test/pack.test.ts` "is pinned to the running engine and content versions" expects `s1-L006` first and gets `s1-L001`. It already failed before A's 2026-11-05 preload push (checked at `ab56b26~1`). It looks related to the pack's level order after the story levels landed; please check whether the test or the pack is out of date.
+- **For your own story lines:** KILN is the ship's AI powered by the reactor, never the reactor; "pick up the protein when it falls", not "what it drops"; the game's names are spiked hopper, ore pile, clerk pad, and turret sockets beside each gate.
 
 ## Hand-off: films, live scenes and the crash-site re-layout (B, 2026-11-04 evening)
 

@@ -75,17 +75,39 @@ export const clockText = (seconds: number): string => { const s = Math.max(0, Ma
  * Name of a star objective: the manifest's own label, else the skin template for its kind with
  * params filled in (ids through names, seconds as m:ss).
  */
-export function objectiveText(skin: Skin, kind: string, params: Record<string, number | string> = {}, label?: string, padBuild?: (pad: string) => string | null): string {
+/**
+ * A thing's name as it reads inside a sentence: lower case, plural when `n` is not 1. Resources are mass
+ * nouns ("greens", "ore") unless the skin gives a plural; buildings and machines add "s".
+ */
+export function countName(skin: Skin, id: string, n = 1): string {
+  const one = nameOf(skin, id).toLowerCase();
+  if (n === 1) return one;
+  const p = skin.text.plurals?.[id];
+  if (p) return p;
+  return id.startsWith("res.") ? one : `${one}s`;
+}
+
+/** "a", "a and b", "a, b and c" (`last` is the final joiner, e.g. "or"). */
+export function listText(items: readonly string[], last = "and"): string {
+  return items.length <= 1 ? items.join("") : `${items.slice(0, -1).join(", ")} ${last} ${items[items.length - 1]}`;
+}
+
+/** `extra` adds placeholders the level fills in (its machines, goods, sources); they win over params. */
+export function objectiveText(skin: Skin, kind: string, params: Record<string, number | string> = {}, label?: string, padBuild?: (pad: string) => string | null, extra: Record<string, string | number> = {}): string {
   if (label) return label;
   const tpl = skin.text.objectives?.[kind];
   if (!tpl) return humanise(kind);
   const vars: Record<string, string | number> = {};
+  const n = typeof params["n"] === "number" ? params["n"] : 1;
   for (const [k, v] of Object.entries(params)) {
     if (k === "seconds" && typeof v === "number") vars["time"] = clockText(v);
     else if (k === "target" && typeof v === "string") vars["target"] = nameOf(skin, padBuild?.(v) ?? "struct.landmark");
+    // things counted in the goal read as words in the sentence: "32 meals", "2 hab pods"
+    else if ((k === "res" || k === "build") && typeof v === "string") vars[k] = countName(skin, v, n);
     else if (typeof v === "string") vars[k] = nameOf(skin, v);
     else vars[k] = v;
   }
+  Object.assign(vars, extra);
   return fmt(tpl, vars).replace(/\s+/g, " ").trim();
 }
 

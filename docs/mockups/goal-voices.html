@@ -1,0 +1,180 @@
+<title>Goal Lines and KILN</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one review column; each section is a table of current vs proposed lines, the voice of each line marked by colour. */
+:root {
+  --bg: #f4f1ec; --panel: #ffffff; --ink: #1d1f22; --muted: #6a675f; --line: #e2ddd3;
+  --goal: #b4661b; --kiln: #1f7fb0; --human: #3f7d4e; --old: #9a958b; --new-bg: #fff6ea;
+  --display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15171a; --panel: #1f2225; --ink: #ebe8e1; --muted: #9b988f; --line: #33373b;
+  --goal: #ffb547; --kiln: #7fd7ff; --human: #8fd79e; --old: #7d7a73; --new-bg: #2a2418; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15171a; --panel: #1f2225; --ink: #ebe8e1; --muted: #9b988f; --line: #33373b;
+  --goal: #ffb547; --kiln: #7fd7ff; --human: #8fd79e; --old: #7d7a73; --new-bg: #2a2418; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px; }
+main { max-width: 920px; margin: 0 auto; display: grid; gap: 34px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 36px; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 24px; margin: 0 0 4px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+.lead { color: var(--muted); }
+section { display: grid; gap: 12px; min-width: 0; }
+.voices { display: flex; gap: 10px; flex-wrap: wrap; }
+.v { display: inline-flex; align-items: center; gap: 6px; font: 700 12px var(--body); letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); }
+.v i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.v.goal i { background: var(--goal); } .v.kiln i { background: var(--kiln); } .v.human i { background: var(--human); }
+.ex { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; }
+.ex h3 { margin: 0; font: 800 17px var(--display); letter-spacing: .02em; }
+.ex .say { display: grid; grid-template-columns: 76px 1fr; gap: 10px; align-items: baseline; }
+.ex .who { font: 700 11.5px var(--body); letter-spacing: .08em; text-transform: uppercase; }
+.who.goal { color: var(--goal); } .who.kiln { color: var(--kiln); } .who.human { color: var(--human); }
+.ex .note { color: var(--muted); font-size: 13.5px; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; min-width: 620px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+th { font: 700 11.5px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--bg); position: sticky; top: 0; }
+tr:last-child td { border-bottom: 0; }
+td.k { font-family: var(--mono); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+td.old { color: var(--old); }
+td.new { background: var(--new-bg); }
+td.new.goal-t { color: var(--goal); font-weight: 600; }
+td.new.kiln-t { color: var(--ink); }
+.tag { display: inline-block; font: 700 10.5px var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--kiln); border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; margin-left: 6px; white-space: nowrap; }
+.why { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.keep { color: var(--muted); font-size: 14px; }
+.keep code { font-family: var(--mono); font-size: 12.5px; }
+ol.q { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 72ch; }
+</style>
+
+<main>
+  <header style="display:grid;gap:10px">
+    <h1>Goal lines and KILN's coaching</h1>
+    <p class="lead">Draft for review. Nothing here is in the game yet. Each goal can be spoken by two or three voices, each with its own job:</p>
+    <div class="voices"><span class="v human"><i></i>Human: why it matters, natural speech</span><span class="v kiln"><i></i>KILN: how, like a coach (the ship's AI, powered by the reactor)</span><span class="v goal"><i></i>Goal: the exact target and numbers</span></div>
+    <p class="lead">When one speaker gives both the why and the how, the other one stays quiet.</p>
+  </header>
+
+  <section>
+    <h2>The four examples, revised</h2>
+    <div class="ex"><h3>Protein</h3>
+      <div class="say"><span class="who human">Sela</span><span>"The three towns along this road haven't tasted fresh meat in a long while. Whatever you can hunt, I'll buy."</span></div>
+      <div class="say"><span class="who kiln">KILN</span><span>"The rock hoppers are on the flats past the rockslide. Run into one to knock it down, then pick up the protein when it falls. Stay away from the spiked hoppers, because they bite."</span></div>
+      <div class="say"><span class="who goal">Goal</span><span>Deliver 31 protein</span></div>
+    </div>
+    <div class="ex"><h3>Towing pods</h3>
+      <div class="say"><span class="who kiln">KILN</span><span>"I can see two pods east of camp, and they are getting colder."</span></div>
+      <div class="say"><span class="who kiln">KILN</span><span>"Walk one circle around both pods, and they will both follow you home."</span></div>
+      <div class="say"><span class="who goal">Goal</span><span>Tow 2 pods home in one trip</span></div>
+      <p class="note">KILN gives both the why and the how, so no human speaks. One loop catches every pod inside it, so KILN teaches the quick way.</p>
+    </div>
+    <div class="ex"><h3>Holding heat</h3>
+      <div class="say"><span class="who human">Tam</span><span>"I can feel the floor going cold, Boss. That ore pile by the wreck should keep the reactor going a while."</span></div>
+      <div class="say"><span class="who goal">Goal</span><span>Keep heat at 70% or more for 1:25</span></div>
+      <p class="note">Tam gives the why and the where, so KILN stays quiet.</p>
+    </div>
+    <div class="ex"><h3>Traders</h3>
+      <div class="say"><span class="who kiln">KILN</span><span>"Traders leave if they wait too long. Keep the shelf stocked, and stand on the clerk pad when they arrive."</span></div>
+      <div class="say"><span class="who goal">Goal</span><span>No trader leaves without buying</span></div>
+      <p class="note">A trader who waits too long gives up and leaves without buying; it doesn't stop others coming.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where each voice shows</h2>
+    <p><b>Story levels 1–5</b> keep the human and KILN lines the other account scripted. Only their goal lines change, through the goal templates below.</p>
+    <p><b>Regular levels</b> assume the player knows the mechanics. The goal line says only the goal. When a level brings in a mechanic the player hasn't met before, KILN speaks once at the start: "To [the goal, in its words], go to [the place] and [do this]." That replaces today's "On this mission" tip list on the intro card. Regular levels have no human lines.</p>
+  </section>
+
+  <section>
+    <h2>Goal lines: proposed changes</h2>
+    <p class="lead">Only the lines that change. Goal lines name the real thing: the galley or the smelter, protein or greens. Braces are filled from each level; the right column shows what players would read on real levels. <span class="tag">story</span> marks templates the story levels use.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Goal kind</th><th>Now</th><th>Proposed template</th><th>On real levels</th></tr></thead>
+      <tbody>
+        <tr><td class="k">produce</td><td class="old">Produce {n} goods</td><td class="new goal-t">Make {n} {product}</td><td>L4: Make 32 meals<br>L50: Make 4 parts<span class="why">Today it says "goods" even though the level counts one thing.</span></td></tr>
+        <tr><td class="k">chain</td><td class="old">Make {n} advanced goods</td><td class="new goal-t">Make {n} {product}</td><td>L47: Make 6 parts</td></tr>
+        <tr><td class="k">converter_level</td><td class="old">Upgrade a converter to Lv{n}</td><td class="new goal-t">Upgrade the {machines} to Lv{n}</td><td>L9, L53: Upgrade the galley, smelter or parts works to Lv3</td></tr>
+        <tr><td class="k">converters_running <span class="tag">story</span></td><td class="old">Run {k} converters for {time}</td><td class="new goal-t">Keep {k} of the {machines} running at once for {time}</td><td>L31: Keep 2 of the galley, smelter and parts works running at once for 0:13<br>Story L4: see the note below</td></tr>
+        <tr><td class="k">no_stockpile_overload</td><td class="old">Nothing overflows</td><td class="new goal-t">No {machines} tray overflows</td><td>No galley, smelter or parts works tray overflows</td></tr>
+        <tr><td class="k">unlock</td><td class="old">Unlock {n} sources</td><td class="new goal-t">Unlock {n} {sources}</td><td>L40: Unlock 2 grow domes</td></tr>
+        <tr><td class="k">sell_each</td><td class="old">Sell {n} each of {k} goods</td><td class="new goal-t">Sell {n} each of {goods}</td><td>Sell 10 each of greens, meals and parts</td></tr>
+        <tr><td class="k">build_count</td><td class="old">Build {n} {build}</td><td class="new goal-t">Build {n} {build, plural}</td><td>L20: Build 2 hab pods<span class="why">Today it reads "Build 2 Hab pod".</span></td></tr>
+        <tr><td class="k">haul</td><td class="old">Couriers deliver {n} {res} from the warehouse</td><td class="new goal-t">Couriers deliver {n} {goods} from the warehouse</td><td>L36: Couriers deliver 9 meals and parts from the warehouse</td></tr>
+        <tr><td class="k">bulk_order</td><td class="old">Fill a bulk order</td><td class="new goal-t">Fill {n} bulk orders</td><td>L13: Fill 13 bulk orders</td></tr>
+        <tr><td class="k">automate</td><td class="old">Run hands-off for {time}</td><td class="new goal-t">Keep the kiosk selling for {time} without delivering yourself</td><td>L25: Keep the kiosk selling for 0:36 without delivering yourself</td></tr>
+        <tr><td class="k">heat_hold</td><td class="old">Keep heat above {pct}% for {time}</td><td class="new goal-t">Keep heat at {pct}% or more for {time}</td><td>L1: Keep heat at 70% or more for 1:25</td></tr>
+        <tr><td class="k">no_angry_customers</td><td class="old">No angry traders</td><td class="new goal-t">No trader leaves without buying</td><td></td></tr>
+        <tr><td class="k">streak</td><td class="old">Serve {n} in a row, none angry</td><td class="new goal-t">Serve {n} traders in a row before any leave</td><td></td></tr>
+        <tr><td class="k">currency</td><td class="old">Bank {n} credits</td><td class="new goal-t">Hold {n} credits at once</td><td></td></tr>
+        <tr><td class="k">shelves_full</td><td class="old">Fill every shelf</td><td class="new goal-t">Fill every kiosk shelf at once</td><td></td></tr>
+        <tr><td class="k">survive <span class="tag">story</span></td><td class="old">Survive until dawn</td><td class="new goal-t">Hold out until dawn ({time})</td><td></td></tr>
+        <tr><td class="k">rescue_all <span class="tag">story</span></td><td class="old">Rescue every pod</td><td class="new goal-t">Bring every pod home</td><td></td></tr>
+        <tr><td class="k">rescue_before_freeze</td><td class="old">Rescue {n} before pods freeze</td><td class="new goal-t">Bring {n} pods home before they freeze</td><td></td></tr>
+        <tr><td class="k">core_level</td><td class="old">Raise the reactor to Lv{n}</td><td class="new goal-t">Upgrade the reactor to Lv{n}</td><td></td></tr>
+        <tr><td class="k">no_injuries</td><td class="old">No colonist hurt</td><td class="new goal-t">No colonist gets hurt</td><td></td></tr>
+        <tr><td class="k">gate_held</td><td class="old">Gate held</td><td class="new goal-t">No gate falls</td><td></td></tr>
+        <tr><td class="k">hazard_survive</td><td class="old">Ride out the storm</td><td class="new goal-t">Ride out every dust storm</td><td></td></tr>
+      </tbody>
+    </table></div>
+    <p class="keep">Story level 4 counts three jobs running at once: the galley, the ore run and the greens collector, which a template can't name. That level would carry its own goal text ("Keep the galley, the ore run and the greens collector going at once for 0:12"), set in its level file by the other account.</p>
+    <p class="keep">Unchanged (already a target with numbers): <code>population, build_count, core_lit, fuel_full, admit, clear_zones, house_all, rescue, tow_trip, hunt, protein, rescue_housed, tow_full_trip, crates, sell, earn, serve_premium, unlock, sell_each, hire, earn_within, haul, chain, stockpile, build, converter_level, waves, waves_survived, kills, boss, turret_level, salvage, perimeter_before_wave1, time_target, settlement_never_freezes, no_colonist_freezes, heat_floor, hp_floor</code>. Story levels use <code>core_lit, fuel_full, rescue, tow_trip, build, earn, crates, waves</code> from this list.</p>
+  </section>
+
+  <section>
+    <h2>KILN on regular levels: first time a mechanic appears</h2>
+    <p class="lead">One line each, at the start of the first regular level that uses the mechanic. These replace today's tips. KILN is literal and direct, in full sentences. Words in braces are filled from the level, so on level 4 the converter line reads: "To run the galley, put greens in it and stand on its operator spot. Then pick up the meals from its tray."</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Mechanic</th><th>Today's tip</th><th>KILN, proposed</th></tr></thead>
+      <tbody>
+        <tr><td class="k">core</td><td class="old">Feed ore to the reactor. If it runs dry, the colony starts to freeze.</td><td class="new kiln-t">"Carry ore to the reactor to keep the colony warm. If the reactor runs out of fuel, the colony starts to freeze and I lose power."</td></tr>
+        <tr><td class="k">sales</td><td class="old">Stock the kiosk, then stand on the clerk pad beside it so traders pay. Scoop up the credits pile.</td><td class="new kiln-t">"Put goods on the kiosk shelf, then stand on the clerk pad while traders wait. Pick up the credits they leave."</td></tr>
+        <tr><td class="k">workers</td><td class="old">Stand on a Hire pad to put a free colonist to work. They gather and deliver on their own.</td><td class="new kiln-t">"Stand on a Hire pad with enough credits to hire a colonist. The colonist will then do that job for you."</td></tr>
+        <tr><td class="k">source_gating</td><td class="old">Some grow domes start locked. Unlock them with credits on their pad.</td><td class="new kiln-t">"This {source} is locked. Stand on its pad with enough credits to unlock it."</td></tr>
+        <tr><td class="k">build_pads</td><td class="old">Stand on a pad to pour credits into it. It builds the moment it is full.</td><td class="new kiln-t">"Stand on a build pad with your credits until the pad is full, and then it builds."</td></tr>
+        <tr><td class="k">barrier_lines</td><td class="old">Dashed wall lines show where walls go. Walk along one carrying what it costs to build it.</td><td class="new kiln-t">"To build a wall, walk along its dashed line while you carry the materials it needs."</td></tr>
+        <tr><td class="k">lasso</td><td class="old">Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it.</td><td class="new kiln-t">"Walk outside the walls and make a full circle around a pod. Then lead it back to the reactor so it can thaw."</td></tr>
+        <tr><td class="k">housing</td><td class="old">New colonists need a bed. Build hab pods so they can move in.</td><td class="new kiln-t">"New colonists need a bed before they move in. Build hab pods to give them one."</td></tr>
+        <tr><td class="k">core_levels</td><td class="old">Upgrade the reactor for a bigger heat ring and new build sites.</td><td class="new kiln-t">"Fill the reactor's upgrade pad with credits. The upgraded reactor warms a larger area."</td></tr>
+        <tr><td class="k">blocked_zones</td><td class="old">Rockslides block the way until you clear them from their pad.</td><td class="new kiln-t">"A rockslide blocks this path. Fill its pad with credits to clear it."</td></tr>
+        <tr><td class="k">hunting</td><td class="old">Rock hoppers roam their flats. Walk up to one to hunt it, then pick up the protein.</td><td class="new kiln-t">"There are rock hoppers on the flats. Run into one to knock it down, then pick up the protein when it falls. Stay away from the spiked hoppers, because they bite."</td></tr>
+        <tr><td class="k">converters</td><td class="old">Converters turn one resource into another, but only while someone stands on the operator spot.</td><td class="new kiln-t">"To run the {machine}, put {input} in it and stand on its operator spot. Then pick up the {output} from its tray."</td></tr>
+        <tr><td class="k">customer_variety</td><td class="old">Hurried traders leave fast and gold VIP traders pay double.</td><td class="new kiln-t">"Gold VIPs pay double, and hurried traders leave early. Serve them first."</td></tr>
+        <tr><td class="k">defense</td><td class="old">Raiders attack from the north in waves. Build walls and turrets before they arrive.</td><td class="new kiln-t">"Raiders will attack soon. Build turrets on the sockets next to each gate before the first wave."</td></tr>
+        <tr><td class="k">defenders</td><td class="old">Build a guard post, then train free colonists into guards.</td><td class="new kiln-t">"Build a guard post, then send free colonists through it to train them as guards."</td></tr>
+        <tr><td class="k">salvage_upgrades</td><td class="old">Defeated raiders drop scrap. Spend it on turret upgrades and stronger walls.</td><td class="new kiln-t">"Raiders leave scrap when they fall. Pick it up and spend it on the turret pads to upgrade them."</td></tr>
+        <tr><td class="k">medical</td><td class="old">Hurt colonists stop working until a med bay heals them.</td><td class="new kiln-t">"Hurt colonists cannot work until they are healed. Build a med bay to heal them."</td></tr>
+        <tr><td class="k">hazard_events</td><td class="old">A dust storm burns fuel fast. Fill the reactor before it hits.</td><td class="new kiln-t">"A dust storm is coming, and it burns fuel quickly. Fill the reactor before it arrives."</td></tr>
+        <tr><td class="k">supply_routing</td><td class="old">A warehouse lets couriers move goods between sites for you.</td><td class="new kiln-t">"Build a warehouse and hire couriers. They will carry goods between sites for you."</td></tr>
+      </tbody>
+    </table></div>
+    <p class="keep">Carry and gather are taught by story level 1, so they get no KILN line. Defence no longer says "from the north": raiders come from any side with a gate. The reactor upgrade no longer promises new build sites, because the game data doesn't back it.</p>
+  </section>
+
+  <section>
+    <h2>What the three reviews changed</h2>
+    <p class="lead">Three separate reviewers read every voiced line: one for character voice against the existing dialogue, one for the world and the game's rules, one as a first-time player on a phone.</p>
+    <ul class="q" style="list-style:disc">
+      <li><b>KILN talks in connected sentences.</b> He reasons with "so", "because" and "if", speaks in the first person, reports what his sensors pick up, and calls the player Commander, as he does in the story. No more strings of short orders.</li>
+      <li><b>Humans speak from their own job</b> and never use game words like pad, tray or hopper.</li>
+      <li><b>Protein falls; it isn't dropped.</b> "Collect the protein when it falls" everywhere, and the scrap line says raiders leave it behind.</li>
+      <li><b>Game names corrected:</b> spiked hoppers (not spiny), ore pile (not heap), turrets on the sockets beside each gate (not the road), and hiring costs credits.</li>
+      <li><b>One loop catches every pod inside it,</b> so KILN teaches circling both pods at once.</li>
+      <li><b>No water anywhere.</b> Sela's towns are "along this road".</li>
+      <li><b>Flag for the other account:</b> an existing line in story level 2 (and the screenplay) still has Sela say colony ships land "on the coast". I haven't touched it; that file is theirs.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Questions</h2>
+    <ol class="q">
+      <li>Any goal line or KILN line to change before I build them? Strike or rewrite freely.</li>
+      <li>On regular levels, should KILN's line appear as the story's dialogue strip with KILN's portrait at the start of play, or on the intro card above the goals?</li>
+      <li>When a regular level brings in two new mechanics at once, should KILN say both lines one after the other, or only the one tied to the main goal?</li>
+    </ol>
+  </section>
+</main>

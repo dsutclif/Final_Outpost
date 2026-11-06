@@ -25,6 +25,8 @@ import { TitleBackdrop } from "./title.js";
 import { FILM_VERSIONS, REPLAY_FILMS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
 import { preloadCharacters } from "./preload.js";
 import { StoryStage, directorFor, type StoryDirector } from "./story/index.js";
+import { KilnIntro, kilnLines } from "./kilnintro.js";
+import type { LivePortrait } from "./story/view.js";
 
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
 // and the glue between sim, renderer, input, saves, telemetry and feedback.
@@ -138,6 +140,8 @@ export class App {
   private readonly hud: GoalHud;
   /** Intro: which goal is being introduced (they appear in the HUD one at a time). */
   private introStep = 0;
+  /** KILN's first-time coaching while it shows (regular levels only). */
+  private kiln: KilnIntro | null = null;
   private alert: Alert = { kind: "none" };
   private alertKey = "none";
   private buzzAt = 0;
@@ -861,7 +865,8 @@ export class App {
   /**
    * The level intro: its goals one at a time, each as a large icon with its full sentence while its
    * place in the HUD is outlined (Doug, 2026-10-25). A tap shows the next; after the last, play
-   * starts. Each tap first slides the icon into that slot (R5 #24). The first card also names the level and carries the mission tips.
+   * starts. Each tap first slides the icon into that slot (R5 #24). The first card also names the level. A mechanic new to
+   * the player is coached by KILN as play begins (kilnintro.ts), so the cards carry no tips.
    */
   private renderIntro(t: { title: string; goal: string; tips: string[] }): void {
     const ov = this.el.ov["intro"]!, s = this.skin, sess = this.session!, meta = sess.meta;
@@ -871,15 +876,15 @@ export class App {
     const best = this.progress.best[meta.id];
     const stars = this.starCount(meta.id);
     const head = i === 0 ? `<div class="lbl">${esc(uiText(s, "levelWord"))} ${meta.index + 1} / ${this.levels.length}${best !== undefined ? ` · ${esc(uiText(s, "best"))} ${formatTicks(best)}` : ""}${stars ? ` · <span class="stars">${starText(stars)}</span>` : ""}</div><h2>${esc(t.title)}</h2>` : "";
-    const tips = i === 0 && t.tips.length ? `<ul class="itips">${t.tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${meta.index === 0 ? `<p class="how">${esc(uiText(s, "howTo"))}</p>` : ""}` : "";
+    const tips = i === 0 && meta.index === 0 ? `<p class="how">${esc(uiText(s, "howTo"))}</p>` : "";
     ov.innerHTML = `<div class="gintro">${head}<div class="gicon">${step.icon}</div><p class="gsay">${esc(step.say)}</p>${tips}
       <p class="gtap"><span class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</span>${esc(uiText(s, last ? "introPlay" : "introNext"))}</p></div>`;
     const advance = (): void => {
       if (!this.session || this.screen !== "intro") return;
       if (!last) { this.introStep = i + 1; this.renderIntro(t); return; }
       this.introStep = steps.length;
-      this.startOverview(this.session);
       this.show("playing");
+      this.startKiln(this.session, () => { if (this.session === sess) this.startOverview(sess); });
     };
     this.updateHud(sess); // the card's slot must be there at once: its icon flies to it
     let skipSlide: (() => void) | null = null;
@@ -963,7 +968,18 @@ export class App {
     this.show("levels");
   }
 
+  /** KILN coaches each mechanic new to the player, one line at a time, before play starts; then `then` runs. */
+  private startKiln(s: Session, then: () => void): void {
+    const lines = kilnLines(s.manifest, this.skin, this.seenBefore(s.meta));
+    if (!lines.length) { then(); return; }
+    const kiln = this.skin.story?.speakers?.["kiln"];
+    const portrait = (): LivePortrait | null => s.renderer.spiritPortrait(this.el.ftoast.ownerDocument.createElement("canvas"));
+    this.kiln = new KilnIntro(this.el.ftoast.parentElement!, lines, kiln?.name ?? "KILN", this.skin.story?.ui.tapToContinue ?? uiText(this.skin, "introNext"), kiln?.spirit ? portrait : undefined, () => { this.kiln = null; then(); });
+  }
+
   private endSession(): void {
+    this.kiln?.dispose();
+    this.kiln = null;
     this.el.tapstart.hidden = true;
     this.disarmRetry();
     if (this.resultTimer) { clearTimeout(this.resultTimer); this.resultTimer = null; }
@@ -1170,7 +1186,9 @@ export class App {
     if (dt > 0) this.fps += (1000 / dt - this.fps) * 0.05;
     const s = this.session;
     if (!s) return;
-    const waiting = this.stepOverview(s, dt / 1000);
+    this.kiln?.frame(now / 1000);
+    // KILN's coaching holds play like the overview does
+    const waiting = this.stepOverview(s, dt / 1000) || !!this.kiln;
     if (this.screen === "playing" && !this.hidden && !waiting) s.director?.update(dt, s.sim.state);
     const playing = this.screen === "playing" && !this.hidden && !s.ended && !waiting && !s.director?.frozen;
     if (playing) {

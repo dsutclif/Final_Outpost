@@ -1,6 +1,6 @@
 import { content, type Manifest } from "@fo/content";
 import { TPS, type ObjectiveState, type State } from "@fo/sim";
-import { clockText, fmt, nameOf, objectiveText, type Skin } from "@fo/skins";
+import { clockText, countName, listText, objectiveText, type Skin } from "@fo/skins";
 
 // Star objectives as the player sees them. The sim owns progress, done and failed
 // (state.objectives, starsOf); this module only names them in skin words and formats counters.
@@ -47,15 +47,56 @@ const padBuild = (m: Manifest) => (pad: string): string | null => {
   return e && e.type === "pad.build" ? e.build : null;
 };
 
-/** Label of a manifest objective in the skin's words. */
+/** Label of a manifest objective in the skin's words, naming this level's own machines, goods and sources. */
 export function labelOf(m: Manifest, skin: Skin, o: ManifestObjective): string {
-  // the haul goal counts whatever couriers carry out of the warehouse: name what goes into it
-  if (o.kind === "haul" && !o.label && !o.params?.["res"]) {
-    const goods = depotGoods(m).map((r) => nameOf(skin, r).toLowerCase());
-    const tpl = skin.text.objectives?.["haul"];
-    if (tpl) return fmt(tpl, { ...o.params, res: goods.length ? goods.join(" and ") : "goods" });
+  return objectiveText(skin, o.kind, o.params ?? {}, o.label, padBuild(m), levelVars(m, skin, o));
+}
+
+type ConvDef = { inputs?: string[]; output?: string };
+const convs = (): Record<string, ConvDef> => content.converters as Record<string, ConvDef>;
+
+/** Converter types this level places or builds (conv.level is an upgrade pad, not a machine). */
+export function levelMachines(m: Manifest): string[] {
+  const out = new Set<string>();
+  for (const e of m.entities as { type: string; build?: string }[]) {
+    const t = e.type.startsWith("conv.") ? e.type : e.type === "pad.build" && e.build?.startsWith("conv.") ? e.build : null;
+    if (t && t !== "conv.level" && convs()[t]) out.add(t);
   }
-  return objectiveText(skin, o.kind, o.params ?? {}, o.label, padBuild(m));
+  return [...out];
+}
+
+/**
+ * Placeholders a goal fills from the level (Doug, 2026-11-05: goals name the real thing): {anyMachine}
+ * "galley, smelter or parts works", {running}, {product}, {sources}, {goods}.
+ */
+function levelVars(m: Manifest, skin: Skin, o: ManifestObjective): Record<string, string> {
+  const p = o.params ?? {}, n = typeof p["n"] === "number" ? p["n"] : 1, k = typeof p["k"] === "number" ? p["k"] : 1;
+  const machines = levelMachines(m), names = machines.map((c) => countName(skin, c));
+  const vars: Record<string, string> = { anyMachine: names.length ? listText(names, "or") : "converter" };
+  // converters_running counts machines (and on some levels staffed sources): name them when they are the count
+  vars["running"] = names.length === k ? `the ${listText(names)}` : names.length > k ? `${k} of the ${listText(names)}` : `${k} jobs`;
+  const outputs = new Set(machines.map((c) => convs()[c]?.output).filter((r): r is string => !!r));
+  if (o.kind === "produce" && typeof p["res"] === "string") vars["product"] = countName(skin, p["res"], n);
+  if (o.kind === "chain") {
+    // advanced goods are made from another machine's output
+    const adv = machines.filter((c) => convs()[c]?.inputs?.some((r) => outputs.has(r))).map((c) => convs()[c]!.output!).filter(Boolean);
+    vars["product"] = adv.length ? listText(adv.map((r) => countName(skin, r, n)), "or") : "advanced goods";
+  }
+  if (o.kind === "unlock") {
+    const ents = m.entities as { type: string; build?: string; id: string; target?: string }[];
+    const kinds = [...new Set(ents.filter((e) => e.type === "pad.build" && e.build === "node.enable").map((e) => ents.find((x) => x.id === e.target)?.type).filter((t): t is string => !!t))];
+    vars["sources"] = kinds.length ? listText(kinds.map((t) => countName(skin, t, n)), "or") : "sources";
+  }
+  if (o.kind === "sell_each") {
+    const shelf = (m.entities as { type: string; sells?: string[] }[]).find((e) => e.type === "sink.sales_point");
+    vars["goods"] = shelf?.sells?.length ? listText(shelf.sells.map((r) => countName(skin, r, 2))) : "every good";
+  }
+  // the haul goal counts whatever couriers carry out of the warehouse: name what goes into it
+  if (o.kind === "haul") {
+    const goods = typeof p["res"] === "string" ? [p["res"]] : depotGoods(m);
+    vars["goods"] = goods.length ? listText(goods.map((r) => countName(skin, r, n))) : "goods";
+  }
+  return vars;
 }
 
 /** Resources workers bring to the warehouse: their source node's yield or their machine's output. */

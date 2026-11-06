@@ -73,6 +73,13 @@ export interface SkinText {
    * {time} (m:ss) {pct} {res} {role} {build} {target}. A manifest objective `label` wins.
    */
   objectives?: Record<string, string>;
+  /**
+   * KILN's first-time coaching, per module, said once at the start of the first regular level that brings
+   * the mechanic in (Doug, 2026-11-05). Placeholders filled from the level: {machine} {input} {output} {source}.
+   */
+  kilnTips?: Record<string, string>;
+  /** Plural names where adding "s" is wrong or the name is a mass noun (res.food_prepared: "meals"), by canonical id. */
+  plurals?: Record<string, string>;
   /** One-line guide-arrow instruction per bot task kind (feed, fuel, gather, stock, pay, ...). */
   guide?: Record<string, string>;
   /** A concrete tip for the lose card, per end reason. */

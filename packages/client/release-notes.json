@@ -1,5 +1,6 @@
 {
   "notes": [
-    "Upgrade pads now show a blue blueprint of the building at the level it will become, for the reactor, turrets and machines."
+    "Goals now name exactly what to make or do, like \"Make 32 meals\" or \"Unlock 2 grow domes\".",
+    "When a level brings in something new, KILN tells you how it works before you start."
   ]
 }
