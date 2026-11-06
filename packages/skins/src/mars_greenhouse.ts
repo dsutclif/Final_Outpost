@@ -823,81 +823,85 @@ export const marsGreenhouse: Skin = {
     },
     lights: { night: 0, preDawn: 0.08, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
     levels: {
+      // Cold Start (docs/STORY-SCREENPLAY.md, level 1). No red light until the storm (S11): the reactor's far light
+      // finds the commander first, as one bright pulse on the screen edge and then a pointer inside its glow.
       "story-L001": {
-        hide: ["credits", "fuel", "walls", "name", "retry", "settings", "help"],
+        hide: ["credits", "fuel", "walls", "settings", "help"],
         calmUntilLit: true,
-        noGuide: true,
+        goalCards: true,
         solid: ["sink.core"],
-        // the film's last frame holds a moment, then eases out before the look at the ridge (S30). The hero is drawn at
-        // full size from the start (Doug: growing the commander looked awkward); the film is to be re-rendered to match
-        // the new crash site (docs/handoff/films-scenes.md), so its framing here is provisional
+        // the film's last frame holds a moment, then eases out. The hero is drawn at full size from the start (Doug:
+        // growing the commander looked awkward); the film is to be re-rendered to match the new crash site
+        // (docs/handoff/films-scenes.md), so its framing here is provisional
         openZoom: { film: [170.3, 302.8], seconds: 2.5, hold: 0.5 },
         // level 1's town sits (110, 80) from where it was before the 2026-11-04 re-layout (tools/relayout.ts)
         retryFrom: [410, 400],
         goals: [
+          { id: "reach", hold: true, label: "Reach the light", until: { near: { entity: "core" }, r: 90 } },
           { id: "ignite", hold: true, label: "Restart the reactor" },
-          { id: "fill", tryAgain: true, label: "Fill the reactor in 45 s" },
+          { id: "fill", hold: true, tryAgain: true, label: "Fill the reactor in 45 s" },
           { id: "main", hold: true, label: "Keep the reactor burning till morning: {left}" },
         ],
         cues: [
-          // the world: moonlit sand, the ridge's slow pulse on its fixed side, three lights around the dead reactor
-          { on: { start: true }, do: [
-            { light: "night" },
-            { ridge: "right", period: 4, k: 0.4 },
-            { dots: [{ at: [382, 380] }, { at: [336, 452] }, { at: [286, 376] }], period: 4 },
-          ] },
+          // the floor arrows are on from the first moment (S7), leading to the light, not yet to the ore past it
+          { on: { start: true }, do: [{ light: "night" }, { guide: true, to: { entity: "core" } }] },
           { id: "woke", on: { start: true }, walk: true, do: [
-            { line: "Oh no, what happened? Where is the rest of my crew?", who: "commander", seconds: 3 },
+            { line: "What happened? Where's the rest of my crew?", who: "commander", seconds: 3 },
           ] },
-          // S30, the film's end played live: once the zoom has eased out, the camera looks up at the pulsing
-          // ridge, then a white flash breaks from the reactor's side of the screen and the arrows lead to it
-          { id: "looked", on: { after: "woke", ticks: 100 }, walk: true, ordered: true, do: [
-            { ridgeFlash: 2 },
-            { camera: { to: { entity: "ridge3" }, share: 0.3, zoom: 0.85, pan: 0.9, hold: 1.8, back: 0.8 } },
+          // once the film's framing has eased out: one bright white pulse from the reactor's side of the screen, then
+          // its soft glow stays on that edge with a pointer in it until the reactor comes into view
+          { id: "looked", on: { after: "woke", ticks: 90 }, walk: true, ordered: true, do: [
             { edgeGlow: { entity: "core", size: 140, strength: 1 } },
             { wait: 0.7 },
-            { edgeGlow: { entity: "core", size: 30, strength: 0.32 } },
-            { guide: true },
-            { line: "Wait, what's that light over there?", who: "commander", seconds: 2.2 },
+            { edgeGlow: { entity: "core", size: 30, strength: 0.32, arrow: true } },
+            { line: "That light. Someone's out there.", who: "commander", seconds: 2.2 },
+            { goal: "reach" },
           ] },
-          { on: { near: { entity: "core" }, r: 120 }, do: [
+          // the reactor's own lights come on only once it is found
+          { on: { near: { entity: "core" }, r: 90 }, do: [
+            // released here too, for a run from the retry spot (the walk's cues do not fire there)
+            { goal: "reach" },
             { edgeGlow: null },
-            { dots: [{ at: [382, 380] }, { at: [336, 452] }, { at: [286, 376] }, { at: [402, 452] }], period: 4 },
-            { goal: "ignite" },
             { guide: true },
-            { line: "This reactor is out of fuel. We'll have to collect some ore.", who: "commander" },
+            { dots: [{ at: [382, 380] }, { at: [336, 452] }, { at: [286, 376] }, { at: [402, 452] }], period: 4 },
+            { line: "A reactor, and it's cold. That ore out past it should burn.", who: "commander" },
+            { goal: "ignite" },
           ] },
           { id: "lit", on: { event: "core_lit" }, do: [
             { dotsOff: true },
             { edgeGlow: null },
             { spirit: "bloom" },
-            // after the bloom above the flare, the cloud drifts to float beside the commander
-            { spiritFollow: { right: 78, up: 22, lag: 0.9, delay: 1.4, height: 105, size: 2.2 } },
+            // after the bloom above the flare, the cloud drifts to float right beside the commander (S4: as in L2-5)
+            { spiritFollow: { right: 60, up: 16, lag: 0.9, delay: 1.4, height: 80, size: 1.1, glow: 0.6 } },
             { show: ["fuel", "settings"] },
             { light: "firstLight", seconds: 55 },
             { freeze: true },
             { camera: { to: { entity: "core" }, pan: 0.5, hold: 0.3, back: 0.2, zoom: 0.8 } },
-            { line: "...Commander. You're late.", who: "kiln", seconds: 2.6 },
+            // KILN's first readout opens with its boot header (Doug, 2026-11-05); no extra line or tap
+            { line: "Commander. You're late.", who: "kiln", seconds: 2.6, head: "K.I.L.N. · KNOWLEDGE INTEGRATION AND LOGISTICS NETWORK · BATTERY 2%" },
             { freeze: false },
-          ] },
-          { on: { after: "lit", ticks: 45 }, do: [
-            { line: "Four pods still sealed in the wreck. I need power to open them.", who: "kiln" },
-            { line: "My first officer, Vale, is in there.", who: "commander" },
+            { line: "I'm KILN, the support system of the Halcyon, your colony ship. Your stasis pod, bay nine, finally opened.", who: "kiln" },
+            { line: "I've been running on my last battery. Hurry and fill the reactor before it dies, and me with it.", who: "kiln" },
+            { goal: "fill" },
           ] },
           { on: { goal: "fill", is: "done" }, do: [
+            { line: "Thank you. The four pods here on the deck are still sealed: bays five to eight.", who: "kiln", head: "K.I.L.N. · REACTOR ONLINE" },
+            { line: "My first officer, Vale, is in bay five. Open them.", who: "commander" },
+            { line: "Not yet. The reactor has to burn all night before there's power to open them. Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.", who: "kiln" },
             { goal: "main" },
-            { line: "Then don't let me go out before morning.", who: "kiln" },
           ] },
           { on: { goal: "fill", is: "failed" }, do: [
+            { line: "Not yet. The reactor has to burn all night before there's power to open them. Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.", who: "kiln" },
             { goal: "main" },
-            { line: "Then don't let me go out before morning.", who: "kiln" },
           ] },
+          // mid-storm the ridge shows red for the first time, and the camera nudges toward it
           { id: "storm", on: { event: "hazard_start" }, do: [] },
           { on: { after: "storm", ticks: 450 }, do: [
+            { ridge: "right", period: 4, k: 0.4 },
             { ridgeFlash: 2 },
             { spirit: "pulse" },
             { camera: { to: { entity: "ridge3" }, share: 0.2, pan: 0.35, hold: 1.5, back: 0.5, freeze: false } },
-            { line: "Something out there is calling.", who: "kiln" },
+            { line: "Something on that ridge is sending a signal. I can't read it.", who: "kiln" },
           ] },
           { on: { event: "hazard_end" }, do: [{ light: "sunrise", seconds: 35 }] },
           { on: { event: "level_end", match: { won: false } }, do: [

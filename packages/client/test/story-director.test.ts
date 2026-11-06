@@ -402,6 +402,28 @@ describe("story director, level one's needs", () => {
     vi.useRealTimers();
   });
 
+  it("a line's terminal header and the edge glow's pointer reach the view and the world", () => {
+    const heads: (string | undefined)[] = [];
+    const level = levelOf(cue({ start: true }, { edgeGlow: { at: [3, 4], arrow: true } }, { line: "late", who: "kiln", head: "BOOT" }));
+    const view = { line: (l: { head?: string }) => heads.push(l.head), clearLine() {}, card() {}, clearCard() {}, onTap() {}, prompt() {}, clearPrompt() {}, hud() {}, goals() {}, dispose() {} } as unknown as StoryView;
+    const host = { cam: { x: 0, y: 0, zoom: 1, follow: true }, entityAt: () => null, film: () => Promise.resolve(), retry() {}, goalSettled() {} } as StoryHost;
+    const d = new StoryDirector(storyOf(level), level, view, host, false);
+    d.update(16, state());
+    expect(heads).toEqual(["BOOT"]);
+    expect(d.world.glow).toEqual({ x: 3, y: 4, arrow: true });
+  });
+
+  it("a run from the retry spot shows no card for a step it has already made", () => {
+    const cards: string[] = [];
+    const level: StoryLevel = { goalCards: true, goals: [{ id: "reach", label: "Reach", until: { near: { at: [0, 0] }, r: 50 } }, { id: "a", label: "Next" }], cues: [] };
+    const view = { line() {}, clearLine() {}, card() {}, clearCard() {}, onTap() {}, prompt() {}, clearPrompt() {}, hud() {}, goals() {}, dispose() {}, goalCard: (s: string) => cards.push(s), clearGoalCard() {} } as unknown as StoryView;
+    const host = { cam: { x: 0, y: 0, zoom: 1, follow: true }, entityAt: () => null, film: () => Promise.resolve(), retry() {}, goalSettled() {} } as StoryHost;
+    const d = new StoryDirector(storyOf(level), level, view, host, false, true);
+    d.afterTick(state());
+    d.update(16, state());
+    expect(cards).not.toContain("Reach");
+  });
+
   it("shows a goal's own wording with the time left", () => {
     const h = harness({ goals: [{ id: "a", label: "Hold on: {left}" }], cues: [] });
     h.d.update(16, state({ objectives: [{ id: "a", progress: 0, target: 90 * 30 }] } as Partial<State>));

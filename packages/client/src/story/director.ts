@@ -17,6 +17,8 @@ export interface DialogueLine {
   bust?: string | undefined;
   /** The speaker's cast key, so a bubble can stand over them. */
   who?: string | undefined;
+  /** A status row above a terminal line (StoryAction line `head`). */
+  head?: string | undefined;
 }
 
 /** The DOM side; view.ts implements it, tests fake it. */
@@ -69,10 +71,12 @@ export interface StoryWorld {
   /** `seq` counts requests, so the same request twice still reads as new. */
   flash: { n: number; seq: number } | null;
   spirit: { state: "bloom" | "pulse" | "idle" | "fading" | "off"; seq: number } | null;
-  glow: { x: number; y: number; size?: number; strength?: number } | null;
+  glow: { x: number; y: number; size?: number; strength?: number; arrow?: boolean } | null;
   /** The cloud floats beside the hero (see StoryAction spiritFollow); null: over the reactor. */
   follow: { right: number; up: number; lag?: number; delay?: number; height?: number; size?: number; glow?: number } | null;
   guideOff: boolean;
+  /** Where a `{ guide, to }` action sends the arrows; null: the guide picks. */
+  guideTo: { x: number; y: number } | null;
   /** A line by a spirit speaker is on screen. */
   speaking: boolean;
   /** Cast key of the speaker whose line is on screen. */
@@ -146,7 +150,7 @@ export class StoryDirector {
     /** This run started at the level's `retryFrom`, so the cues of the walk there do not fire. */
     private readonly fromRetrySpot = false,
   ) {
-    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, speaking: false, talker: null, actors: [] };
+    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [] };
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
     if (level.openZoom && !replay && !fromRetrySpot) {
@@ -390,7 +394,7 @@ export class StoryDirector {
       // every line pauses play until a tap (a line still typing completes first)
       this.view.line({
         name: sp?.name ?? who ?? "", text: "line" in a ? a.line : a.crew, portrait: sp?.portrait, tag: "crew" in a ? a.tag ?? sp?.tag : undefined,
-        tap: true, style: sp?.dialogue, bust: sp?.bust, who,
+        tap: true, style: sp?.dialogue, bust: sp?.bust, who, ...("line" in a && a.head ? { head: a.head } : {}),
       });
       this.world = { ...this.world, speaking: !!sp?.spirit, talker: who ?? null };
       this.waitTap(() => { this.view.clearLine(); this.world = { ...this.world, speaking: false, talker: null }; });
@@ -450,9 +454,9 @@ export class StoryDirector {
       this.world = { ...this.world, follow: a.spiritFollow || null };
     } else if ("edgeGlow" in a) {
       const g = a.edgeGlow ? this.place(a.edgeGlow) : null;
-      this.world = { ...this.world, glow: g && a.edgeGlow ? { ...g, ...(a.edgeGlow.size !== undefined ? { size: a.edgeGlow.size } : {}), ...(a.edgeGlow.strength !== undefined ? { strength: a.edgeGlow.strength } : {}) } : null };
+      this.world = { ...this.world, glow: g && a.edgeGlow ? { ...g, ...(a.edgeGlow.size !== undefined ? { size: a.edgeGlow.size } : {}), ...(a.edgeGlow.strength !== undefined ? { strength: a.edgeGlow.strength } : {}), ...(a.edgeGlow.arrow ? { arrow: true } : {}) } : null };
     } else if ("guide" in a) {
-      this.world = { ...this.world, guideOff: !a.guide };
+      this.world = { ...this.world, guideOff: !a.guide, guideTo: a.guide && a.to ? this.place(a.to) : null };
     }
   }
 
@@ -568,7 +572,8 @@ export class StoryDirector {
     if (this.over || this.promptOpen || this.gap > 0) return;
     const g = this.currentGoal();
     // its card waits behind the lines already queued, so the words that set the goal come first
-    if (g && this.level.goalCards && !this.carded.has(g.id)) {
+    // a run from the retry spot has already made the walk there, so its steps get no card
+    if (g && this.level.goalCards && !this.carded.has(g.id) && !(g.until && this.fromRetrySpot)) {
       this.carded.add(g.id);
       this.queue.push({ goalCard: (this.goalText(g, this.tokens) ?? "").replace(/[:\s]*\d+:\d\d$/, ""), id: g.id });
       this.pump();

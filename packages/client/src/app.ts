@@ -1284,9 +1284,13 @@ export class App {
   private updateCoach(s: Session): void {
     const mark = s.coach.update(s.sim.state, s.sim.compiled);
     const stuck = this.settings.stuckArrow && s.stuck.stuck(s.sim.state);
-    s.guideTarget = (s.guideOn || stuck) && s.guide && !s.ended && !s.director?.world.guideOff ? s.guide.update(s.sim.state, this.skin) : null;
+    // a story can send the arrows to a place of its own (level 1: the light), with no coach marks meanwhile
+    const to = s.director && !s.director.world.guideOff ? s.director.world.guideTo : null;
+    const pl = s.sim.state.player.pos;
+    s.guideTarget = to && !s.ended ? { key: "story.to", at: to, text: "", kind: "walk", path: [{ x: pl.x / FP, y: pl.y / FP }, to] }
+      : (s.guideOn || stuck) && s.guide && !s.ended && !s.director?.world.guideOff ? s.guide.update(s.sim.state, this.skin) : null;
     s.renderer.setGuide(s.guideTarget);
-    if (!mark || s.director?.world.guideOff || s.director?.busy) { s.renderer.setCoach(null); return; }
+    if (!mark || to || s.director?.world.guideOff || s.director?.busy) { s.renderer.setCoach(null); return; }
     const at = toWorld(mark.at), g = s.guideTarget;
     // the guide arrow already points here: its line speaks for the coach mark
     if (g && (g.at.x - at.x) ** 2 + (g.at.y - at.y) ** 2 < 50 * 50) { s.renderer.setCoach(null); return; }

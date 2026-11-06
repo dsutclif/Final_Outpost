@@ -39,7 +39,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Level | Status | Notes |
 |---|---|---|
-| 1 Cold Start | Account A, live; Doug's sign-off pending | Not edited by B |
+| 1 Cold Start | Account A, live; Release 1 (S4, S5, S7, S10–S12, KILN header) 2026-11-06; Doug's sign-off pending | Not edited by B |
 | 2 Roll Call | B, rebuilt to the approved screenplay 2026-11-03 | Walls kept (Doug, 2026-11-03); all 5 pods incl. the lander pod |
 | 3 Open for Trade | B, rebuilt to the approved screenplay 2026-11-03 | Sela first; sell meat is a story step |
 | 4 Halcyon Works | B, rebuilt to the approved screenplay 2026-11-03 | crash_log still a text card; wreck distance (S25) open |
@@ -119,6 +119,28 @@ hinged glass in L2 (S31), and drawing Sela in-game with her own `unit.customer_s
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+- **2026-11-06, A, Release 1: level 1 catch-up (S4, S5, S7, S10, S11, S12, KILN boot header).** No engine bump.
+  d898a02 had already moved the ore past the reactor and set the fill to 45 s. `story-L001.json`: the storm warns at
+  25 s and starts at 45 s from lighting (was 20/25), ending at 75, so "A storm is coming" plays before it and the ridge
+  line after the fill. Bots only chase the fill star under a pending storm, so this keeps it: fuel_full 6/6 seeds,
+  human-view 3 stars, refMin 0.77 (was 5/6, 2.8, 0.74).
+  - **L1 cues** (`mars_greenhouse.ts` story-L001, rewritten to screenplay draft 4): no red light until mid-storm (the
+    start ridge pulse and the S30 ridge look are gone; the ridge's slow pulse starts with the storm flash). After the
+    first line: one bright white edge pulse from the reactor's side, then its soft glow with a pointer in it, "That
+    light. Someone's out there.", and the step "Reach the light" (`until` near the core). The reactor's lights come on
+    only when it is found. KILN's three intro lines, then "Fill the reactor in 45 s"; after the fill, the pods, Vale
+    and the storm lines, then "Keep the reactor burning". `goalCards: true` (S5); `noGuide` dropped (S7); `retry`
+    and `name` no longer hidden (S10); KILN cloud as L2–5, size 1.1, glow 0.6 (S4).
+  - **KILN's name:** its first readout heads `K.I.L.N. · KNOWLEDGE INTEGRATION AND LOGISTICS NETWORK · BATTERY 2%`,
+    its first after the fill `K.I.L.N. · REACTOR ONLINE`. Stage note added in the screenplay.
+  - **Shared story client (additive, off by default; B's lines untouched):** line action `head` (a status row in the
+    terminal readout; `DialogueLine.head`, view.ts, story.css); `edgeGlow.arrow` (a pointer inside the edge glow,
+    stage.ts, story.css); `{ guide: true, to }` sends the floor arrows straight to a place with no coach marks until
+    the next guide action (director `world.guideTo`, read in app.ts `updateCoach`; L1 uses it so the arrows lead to
+    the light, not past it to the ore); a run from `retryFrom` gives `until` steps no goal card (only L1 has
+    `retryFrom`). "Reach the light" and the reactor's lights trigger at 90 units, so the reactor is on screen.
+  - **Open for Doug:** the KILN line "The four pods here on the deck…" (screenplay) now plays over a site with two
+    sealed pods and no deck (d898a02's layout).
 - **2026-11-05, story summary refreshed (docs only).** The 100-word summary at the top of `docs/STORY-LEVELS-V2.md` now matches screenplay draft 4: the lander's escape pod (not another ship's), bays 5–8 reading occupied with Vale's empty, and the raiders' leader dropping Vale's helmet. No code, level or release-notes change.
 - **2026-11-04, B, Doug's crash-site sizes (decided, not applied yet).** Ship 27 m long, pods 3.98 m long and 2.15 m tall,
   pod base 1.36 m below the sand (63% buried), no concrete pad; the layout follows his sketch (settlement to the

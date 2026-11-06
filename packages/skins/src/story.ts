@@ -59,7 +59,8 @@ export interface StoryGhost {
  */
 export type StoryAction =
   /** One line in the dialogue strip. Times itself, or with `tap` pauses play until a tap (first play only). */
-  | { line: string; who?: string; tap?: boolean; seconds?: number }
+  /** `head`: a status row above the text, for a terminal readout (a boot header); off by default. */
+  | { line: string; who?: string; tap?: boolean; seconds?: number; head?: string }
   /** Crew introduction: name, tag ("hauler") and line; play pauses until a tap (first play only). */
   | { crew: string; who: string; tag?: string }
   /** Beat: a camera move. */
@@ -107,10 +108,14 @@ export type StoryAction =
   /**
    * A glow on the screen edge toward a place off screen; it fades as the place comes into view. Null removes it.
    * `size` is the disc across in vmin (default 36), `strength` its peak opacity, 0..1 (default 0.4).
+   * `arrow`: an edge pointer in the glow pointing at the place, gone with the glow (off by default).
    */
-  | { edgeGlow: (StoryPlace & { size?: number; strength?: number }) | null }
-  /** Turn the guide arrows on or off (see StoryLevel.noGuide). */
-  | { guide: boolean }
+  | { edgeGlow: (StoryPlace & { size?: number; strength?: number; arrow?: boolean }) | null }
+  /**
+   * Turn the guide arrows on or off (see StoryLevel.noGuide). `to`: the arrows lead straight to this place instead of
+   * the guide's own pick, with no coach marks, until the next guide action (off by default).
+   */
+  | { guide: boolean; to?: StoryPlace }
   /**
    * A cast member walks to a place and holds there, drawn only (the sim keeps its own position); `walk: false`
    * walks them back to where the sim has them. Keys are StoryLevel.cast keys.

@@ -291,9 +291,9 @@
  "events": [
   {
    "type": "event.hazard",
-   "warnAt": 20,
-   "start": 25,
-   "end": 55
+   "warnAt": 25,
+   "start": 45,
+   "end": 75
   }
  ],
  "hazardsFromLit": true,

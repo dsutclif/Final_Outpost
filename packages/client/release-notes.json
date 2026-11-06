@@ -1,6 +1,8 @@
 {
   "notes": [
-    "Goals now name exactly what to make or do, like \"Make 32 meals\" or \"Unlock 2 grow domes\".",
-    "When a level brings in something new, KILN tells you how it works before you start."
+    "Level 1 now follows the story script. A far white light pulses once at the screen edge, and a pointer leads you to it. The red signal on the ridge only shows during the storm.",
+    "In level 1, each goal now shows mid-screen until you tap it, starting with \"Reach the light\". The floor arrows are on from the first moment.",
+    "KILN's first message in level 1 opens with its boot header, Knowledge Integration and Logistics Network. Its cloud is smaller and brighter, right beside the commander, as in levels 2 to 5.",
+    "Level 1 now has the Restart button and the level menu, like every other level."
   ]
 }

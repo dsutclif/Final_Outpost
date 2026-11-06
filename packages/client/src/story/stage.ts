@@ -31,6 +31,7 @@ export class StoryStage {
   private podShown = new Set<number>();
   private tallyOn = false;
   private readonly glowEl: HTMLElement;
+  private readonly arrowEl: HTMLElement;
   private readonly ridgeEl: HTMLElement;
 
   constructor(
@@ -51,7 +52,10 @@ export class StoryStage {
     this.ridgeEl.className = "story-ridge";
     this.ridgeEl.hidden = true;
     this.ridgeEl.style.setProperty("--story-ridge", ridgeColor);
-    (shell.querySelector(".story-layer") ?? shell).prepend(this.glowEl, this.ridgeEl);
+    this.arrowEl = shell.ownerDocument.createElement("div");
+    this.arrowEl.className = "story-arrow";
+    this.arrowEl.hidden = true;
+    (shell.querySelector(".story-layer") ?? shell).prepend(this.glowEl, this.ridgeEl, this.arrowEl);
   }
 
   /** `now` seconds on any steady clock; `fuelK` the reactor's fill, 0..1. */
@@ -135,7 +139,8 @@ export class StoryStage {
   }
 
   private glow(w: StoryWorld, st: State, now: number, vw: number, vh: number): void {
-    const el = this.glowEl;
+    const el = this.glowEl, arrow = this.arrowEl;
+    arrow.hidden = true;
     if (!w.glow || vw <= 0) { el.hidden = true; return; }
     const q = this.toScreen(w.glow);
     const over = Math.max(-q.x, q.x - vw, -q.y, q.y - vh);
@@ -154,6 +159,15 @@ export class StoryStage {
     el.style.width = el.style.height = `${size}vmin`;
     el.style.margin = `${-size / 2}vmin 0 0 ${-size / 2}vmin`;
     el.style.opacity = String(shown * (w.glow.strength ?? 0.4) * (0.55 + 0.45 * beat));
+    if (w.glow.arrow) {
+      // the pointer sits a little inside the screen edge on the same ray, so the whole triangle shows
+      const m = 34, ka = Math.min(dx > 0 ? (vw - m - hero.x) / dx : dx < 0 ? (m - hero.x) / dx : Infinity, dy > 0 ? (vh - m - hero.y) / dy : dy < 0 ? (m - hero.y) / dy : Infinity, 1);
+      arrow.hidden = false;
+      arrow.style.left = `${hero.x + dx * ka}px`;
+      arrow.style.top = `${hero.y + dy * ka}px`;
+      arrow.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+      arrow.style.opacity = String(Math.min(1, shown * 1.2) * (0.75 + 0.25 * beat));
+    }
   }
 
   /**

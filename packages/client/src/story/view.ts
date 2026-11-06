@@ -62,7 +62,7 @@ function terminalDialogue(layer: HTMLElement, portrait?: PortraitMaker): Dialogu
   root.className = "sdlg-term";
   root.hidden = true;
   root.setAttribute("aria-live", "polite");
-  root.innerHTML = `<div class="sdlg-term-cloud" hidden></div><div class="sdlg-term-body"><p class="sdlg-term-text"><b></b><span class="sdlg-term-typed"></span><i class="sdlg-term-cursor"></i></p><div class="sdlg-tap" hidden></div></div>`;
+  root.innerHTML = `<div class="sdlg-term-cloud" hidden></div><div class="sdlg-term-body"><p class="sdlg-term-head" hidden></p><p class="sdlg-term-text"><b></b><span class="sdlg-term-typed"></span><i class="sdlg-term-cursor"></i></p><div class="sdlg-tap" hidden></div></div>`;
   layer.append(root);
   const $ = (sel: string): HTMLElement => root.querySelector<HTMLElement>(sel)!;
   const live = new Map<string, LivePortrait | null>();
@@ -78,6 +78,8 @@ function terminalDialogue(layer: HTMLElement, portrait?: PortraitMaker): Dialogu
       const cloud = $(".sdlg-term-cloud");
       cloud.hidden = !showing;
       cloud.replaceChildren(...(showing ? [showing.canvas] : []));
+      $(".sdlg-term-head").textContent = l.head ?? "";
+      $(".sdlg-term-head").hidden = !l.head;
       $(".sdlg-term-text b").textContent = `${l.name} > `;
       // the whole line for screen readers; the eye gets it typed
       root.setAttribute("aria-label", `${l.name}: ${l.text}`);

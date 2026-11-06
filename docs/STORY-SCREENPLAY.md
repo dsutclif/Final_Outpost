@@ -61,6 +61,10 @@ commander, close enough that it can't be missed. Goal star.*
 
 **KILN:** Commander. You're late.
 
+*KILN's first readout opens with a boot header above the text (Doug, 2026-11-05; level 1 only, no extra line or
+tap): `K.I.L.N. · KNOWLEDGE INTEGRATION AND LOGISTICS NETWORK · BATTERY 2%`. When the reactor fills, KILN's next
+readout heads `K.I.L.N. · REACTOR ONLINE`. Levels 2–5 show no header.*
+
 **KILN:** I'm KILN, the support system of the *Halcyon*, your colony ship. Your stasis pod, bay nine, finally opened.
 
 **KILN:** I've been running on my last battery. Hurry and fill the reactor before it dies, and me with it.
