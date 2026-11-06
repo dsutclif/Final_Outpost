@@ -1,6 +1,5 @@
 {
   "notes": [
-    "The crash site looks more like a crash: the three pods lie scattered at different angles instead of in a neat row.",
-    "The wreckage beside the pods is now torn fuselage tubes, the same size as the scrap you salvage."
+    "Fixed: tapping now moves story dialogue on. Level 1 could get stuck on the commander's first line."
   ]
 }

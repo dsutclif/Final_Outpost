@@ -88,7 +88,8 @@ export class InputController {
     };
     on(stage, "pointerdown", (e) => {
       if (!this.enabled || this.pointer !== null) return;
-      if ((e.target as HTMLElement).closest(".overlay, button, .hud")) return;
+      // story taps too: capturing here retargets their click to the stage, so a line never advances
+      if ((e.target as HTMLElement).closest(".overlay, button, .hud, .story-layer")) return;
       this.pointer = e.pointerId;
       const r = stage.getBoundingClientRect();
       this.ox = this.x = e.clientX - r.left;

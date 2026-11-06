@@ -119,6 +119,9 @@ hinged glass in L2 (S31), and drawing Sela in-game with her own `unit.customer_s
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+- **2026-11-06, WRAP UP, story taps work again (lines no longer stick).** No engine bump.
+  - `client/src/input.ts`: the joystick's pointerdown took pointer capture on the stage even when the press started on the story tap layer (`.story-tap`), so the click was retargeted to the stage and a waiting line never advanced (level 1 stuck on "What happened? Where's the rest of my crew?"). The joystick now ignores presses inside `.story-layer`, as it already did for overlays, buttons and the HUD. Checked: real taps advance level 1's lines and goal card; the joystick still walks the hero once no tap is pending.
+  - The `checkMaterialsReady` / 'isReady' console error seen alongside is three.js's `compileAsync` warm-up timer, not the cause; still there, harmless.
 - **2026-11-06, WRAP UP, crash pods scattered; tube scrap at the crash site (Doug).** No engine bump, decor only.
   - Took over B's story claim (Doug: "You own R4"). Doug's calls this day: buggy size from the sandbox approved (sign-off 3); films stay on (`REPLAY_FILMS` true, indefinitely).
   - `levels/story/story-L00{1..5}.json`: the three crash pods no longer sit in a line (Doug: a crash wouldn't leave them like that). pod0 (the commander's, the start and the openZoom target) stays; pod1 moves to pod0 + (59, -47) at yaw -58, pod2 to pod0 + (105, 39) at yaw -125. Each glass moves with its pod, with the relayout.ts glass offset turned by the pod's yaw (open lids keep their roll).
