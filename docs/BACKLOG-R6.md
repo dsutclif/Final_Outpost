@@ -52,16 +52,19 @@ N2 mite numbers (take them from arena PROPOSALS if he agrees), and the review's 
   story levels (B re-checks 3-5), release notes, deploy, iPhone frame-rate check with dense waves.
 
 **Doug's iPhone check, 2026-11-05 evening.** Everything in the check table is good except these:
-- [ ] **#1 reopened: gate and repel icons vibrate between waves.** The pulse during an attack is right; between waves
+- [x] **#1 reopened: gate and repel icons vibrate between waves.** The pulse during an attack is right; between waves
       both the gate icon and the repel chevrons still shake. Nothing should move between waves. (HUD session)
-- [ ] **#2 reopened: VIP icon is hollow letters that fill.** Outlined block "VIP" letters (`docs/mockups/vip-icon-hollow.png`: white
+      Landed (r6-hud2, browser pane on L008): the shake and pulse burst now run only while a raid is on (`app.ts` passes `waves.active` to `setAlert`); between waves the glow stays steady. Checked by driving `setAlert`: no burst between waves, burst at raid start, none after. Not seen through a real wave or on an iPhone.
+- [x] **#2 reopened: VIP icon is hollow letters that fill.** Outlined block "VIP" letters (`docs/mockups/vip-icon-hollow.png`: white
       outline, empty inside) that fill as VIPs are served, like the other goal icons that fill. (HUD session)
-- [ ] **N24 level titles promise what the level has.** Doug played menu levels 13 and 23 expecting belts and found none.
+      Landed (r6-hud2, browser pane): hollow dark letters with a white outline fill orange from the bottom at 0, 34, 67 and 100%; the real L008 HUD shows the hollow VIP. The count shows as the number under it. Not seen mid-fill in a real run.
+- [x] **N24 level titles promise what the level has.** Doug played menu levels 13 and 23 expecting belts and found none.
       Menu 23 "Conveyors and Hiring Drive" (`s1-L019`, goal `hire`) takes "Conveyors" from the `supply_routing` word
       list (`skins/src/mars_greenhouse.ts:759`), but it has no belt. Only 4 of 59 pack levels have one (L014, L025,
       L050, L058; belts need a goal in `conveyorGoals` plus tier2, `generator/src/build.ts:300`, `:608`). Menu 13
       `s1-L009` is a `converter_level` level, not automation. Fix: a title word must name something on the level (skin
       and `levelTitle`, no rebuild). More levels with belts is a generator change for Bundle 6.
+      Landed (r6-hud2): supply_routing words are now Couriers and Warehouses; a level with the conveyors module is headlined "Conveyors" or "Belt Lines". Seen in the menu titles: L019 "Couriers and Hiring Drive", L014/L025/L058 keep a belt word. Menu 13 (converter_level) was left alone; it never claimed a belt.
 - [x] **N9b fade one wall section at a time:** wall fading works; fade only the sections between the commander and the
       camera (a per-instance alpha on the wall `Batch`es) instead of the whole wall. (renderer session)
 - [x] **G10 reopened, plus the medic kneel:** the medic still doesn't kneel (R5 leftover, never done). The cross shows
