@@ -31,7 +31,8 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-03 | B | `story-p2` | `levels/story/story-L00{2..5}.json`; `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Levels 2–5: finish Phase 1, then the Phase 2 scene player and `empty_bays` |
+| 2026-11-06 | WRAP UP (took over B's story-p2 claim; Doug: "You own R4") | `story-pod-scatter` | `levels/story/story-L00{1..5}.json` (crash-site pods and glass) | Scatter the three crash pods (Doug: a crash wouldn't leave them in a line) |
+| 2026-11-06 | WRAP UP (from B) | — | `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Story Releases 2–4 (STORY-STRANDED-WORK.md); held, not being edited yet |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
