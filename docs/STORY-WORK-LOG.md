@@ -31,7 +31,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-06 | WRAP UP (took over B's story-p2 claim; Doug: "You own R4") | `story-pod-scatter` | `levels/story/story-L00{1..5}.json` (crash-site pods and glass) | Scatter the three crash pods (Doug: a crash wouldn't leave them in a line) |
 | 2026-11-06 | WRAP UP (from B) | — | `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Story Releases 2–4 (STORY-STRANDED-WORK.md); held, not being edited yet |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
@@ -120,6 +119,12 @@ hinged glass in L2 (S31), and drawing Sela in-game with her own `unit.customer_s
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+- **2026-11-06, WRAP UP, crash pods scattered; tube scrap at the crash site (Doug).** No engine bump, decor only.
+  - Took over B's story claim (Doug: "You own R4"). Doug's calls this day: buggy size from the sandbox approved (sign-off 3); films stay on (`REPLAY_FILMS` true, indefinitely).
+  - `levels/story/story-L00{1..5}.json`: the three crash pods no longer sit in a line (Doug: a crash wouldn't leave them like that). pod0 (the commander's, the start and the openZoom target) stays; pod1 moves to pod0 + (59, -47) at yaw -58, pod2 to pod0 + (105, 39) at yaw -125. Each glass moves with its pod, with the relayout.ts glass offset turned by the pod's yaw (open lids keep their roll).
+  - The two crash-site `decor.ship_scrap` pieces (the winged "plane" scrap) become `decor.ship_wreck` (the tube, Ship_Scrap_2.glb) at scale 2, i.e. 5.6 m like the playable tube salvage pile; `scrap` moved 80 units west, clear of the pods. Supersedes object-sizes step 1 for these pieces.
+  - The Release 3 film re-render must use these placements.
+  - Found, not fixed: level 1 stops on the commander's first line (tapping does nothing) with `TypeError: ... reading 'isReady'` in three's `checkMaterialsReady`; same on the live site before this change.
 - **2026-11-06, A, Release 1: level 1 catch-up (S4, S5, S7, S10, S11, S12, KILN boot header).** No engine bump.
   d898a02 had already moved the ore past the reactor and set the fill to 45 s. `story-L001.json`: the storm warns at
   25 s and starts at 45 s from lighting (was 20/25), ending at 75, so "A storm is coming" plays before it and the ridge

@@ -223,10 +223,10 @@
    "type": "decor.stasis_glass",
    "id": "lid1",
    "at": [
-    618.1,
-    124.4
+    613.6,
+    80
    ],
-   "yaw": -90,
+   "yaw": -58,
    "lift": 13.3,
    "scale": 0.6674
   },
@@ -234,10 +234,10 @@
    "type": "decor.stasis_pod",
    "id": "pod1",
    "at": [
-    622.9,
-    125
+    618,
+    78
    ],
-   "yaw": -90,
+   "yaw": -58,
    "lift": -22.4,
    "scale": 0.6674
   },
@@ -245,10 +245,10 @@
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    681.9,
-    124.4
+    660.4,
+    160.7
    ],
-   "yaw": -90,
+   "yaw": -125,
    "lift": 13.3,
    "scale": 0.6674
   },
@@ -256,26 +256,26 @@
    "type": "decor.stasis_pod",
    "id": "pod2",
    "at": [
-    686.7,
-    125
+    664,
+    164
    ],
-   "yaw": -90,
+   "yaw": -125,
    "lift": -22.4,
    "scale": 0.6674
   },
   {
-   "type": "decor.ship_scrap",
+   "type": "decor.ship_wreck",
    "id": "scrap",
    "at": [
-    549.4,
+    469.4,
     216.3
    ],
    "yaw": 20,
    "lift": 0,
-   "scale": 0.741
+   "scale": 2
   },
   {
-   "type": "decor.ship_scrap",
+   "type": "decor.ship_wreck",
    "id": "scrap2",
    "at": [
     726.7,
@@ -283,7 +283,7 @@
    ],
    "yaw": -35,
    "lift": 0,
-   "scale": 0.741
+   "scale": 2
   }
  ],
  "people": [],
