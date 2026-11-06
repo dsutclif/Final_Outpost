@@ -2467,9 +2467,9 @@ export class Renderer3D implements Renderer {
       if (r.status === "healing" && (r.timer ?? 0) > 0) {
         const hc = this.healCrossOf(`heal:${r.id}`);
         const bob = (1 - Math.cos(this.t * 3.4 + r.id)) / 2;
-        hc.position.set(pos.x, ART_M * rl.scale * this.devCharScale * 1.65 + bob * ART_M * 0.4, pos.y);
+        hc.position.set(pos.x, ART_M * rl.scale * this.devCharScale * 1.3 + bob * ART_M * 0.35, pos.y);
         hc.rotation.y = Math.atan2(this.camera.position.x - this.look.x, this.camera.position.z - this.look.z);
-        this.healCrossMat().opacity = 1 - 0.5 * bob;
+        this.healCrossMat().opacity = 1 - bob;
       }
       // the medic beside a patient kneels over them while the heal runs (its `care` clip)
       if (rl && r.target !== null && r.target !== undefined && sp < 0.05) {
@@ -2799,7 +2799,7 @@ export class Renderer3D implements Renderer {
         this.healGeo.translate(0, 0, -0.07);
       }
       m = new Mesh(this.healGeo, this.healCrossMat());
-      m.scale.setScalar(ART_M * 0.75);
+      m.scale.setScalar(ART_M * 0.5);
       m.renderOrder = 11;
       this.dynamic.add(m);
       this.healCrosses.set(key, m);

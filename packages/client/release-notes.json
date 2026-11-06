@@ -1,5 +1,6 @@
 {
   "notes": [
-    "The cryo-bay camera scenes now use the game's own camera lens, so the pods look the same size next to the crew as they do in play."
+    "Only the wall sections between your commander and the camera fade now, instead of the whole wall.",
+    "The healing cross is a smaller bobbing 3D cross that floats over the guard and vanishes at the top of each bounce, and the medic kneels beside the guard while healing."
   ]
 }
