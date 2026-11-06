@@ -7,6 +7,7 @@ import type { QualityTier } from "./units.js";
 
 export type { AlertMark, Camera, CameraBeat, CoachMark, GuideMark, RenderStats, Renderer, RidgeSide, StoryPresentation, TallySlots } from "./contract.js";
 export { createCamera, LEAD_WEIGHT } from "./contract.js";
+export { SIZES, POD_K, POD_CAVITY_M } from "./sizes.js";
 export { ART_M, BUILD_K, CHAR_K, viewWFor, FOV_DEG, PITCH_DEG, YAW_DEG, VIEW_W, TEXT, screenToWorld, worldToScreenPlane, QUALITY_TIERS, TIERS, MAX_DRAW_CALLS, MAX_TRIANGLES, type QualityTier, type TierSettings } from "./units.js";
 export { TRI_BUDGET, CLASS_ANCHORS, ANCHOR_NAMES, modelIds, type AssetClass, type AnchorName } from "./ids.js";
 

@@ -4,7 +4,7 @@ import {
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
-import { PERSON_M } from "../assets/characters.js";
+import { POD_CAVITY_M, POD_K, SIZES } from "../sizes.js";
 import RIG from "../assets/buggy.json";
 
 // Live scenes (docs/STORY-LEVELS-V2-PLAN.md, Phase 2 F2): short story scenes staged in three.js with the
@@ -38,12 +38,8 @@ interface Staged {
   dispose(): void;
 }
 
-/** The bay scenes' pods at Doug's decor size, 2.66 m (docs/SCALE.md); their build is 3.9847 m long. */
-const POD_K = 2.66 / 3.9847;
-/** The game sinks the decor pod's base 0.80 m below the ground (docs/SCALE.md), so only its top 0.64 m shows. */
-const POD_SUNK = 0.8;
-/** A bay's cavity floor above the ground plane, metres: the cradle's 1.809 build-metres scaled with the pod, less the sunk base (layoutmock.ts). */
-const BAY_LIFT = 1.809 * POD_K - POD_SUNK;
+/** A bay's cavity floor above the ground plane: the game sinks the decor pod 0.80 m, so the base is below the plane (sizes.ts). */
+const BAY_LIFT = POD_CAVITY_M;
 const ease = (k: number): number => { const c = Math.max(0, Math.min(1, k)); return c * c * (3 - 2 * c); };
 const span = (t: number, a: number, b: number): number => ease((t - a) / (b - a));
 
@@ -185,7 +181,7 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
     scene.add(bay);
     const fig = crewFigure();
     // the commander (bay 5) stands 1.98 m, the crew 1.8 m (characters.ts)
-    if (fig) { fig.root.scale.setScalar((i === 0 ? PERSON_M * 1.1 : PERSON_M) / fig.height); scene.add(fig.root); }
+    if (fig) { fig.root.scale.setScalar((i === 0 ? SIZES.commander : SIZES.person) / fig.height); scene.add(fig.root); }
     const el = doc.createElement("div");
     el.className = "live-tag warn";
     overlay.append(el);
@@ -277,7 +273,7 @@ function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     scene.add(r);
   }
   // the buggy as Doug sized it (2.64 m long; the build is 4.4 m), wheels on its rig, forward -x
-  const K = 2.64 / 4.4;
+  const K = SIZES.buggy.length / SIZES.buggy.buildLength;
   const buggy = new Group();
   const wheels: Object3D[] = [];
   const body = meshyScene("decor.buggy");
@@ -309,7 +305,7 @@ function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   }
   // Sela in her own dark blue suit (unit.customer_sela), 1.8 m, seated at the wheel until the buggy stops
   const sela = crewFigure("unit.customer_sela") ?? crewFigure("unit.customer");
-  const PERSON = 1.8;
+  const PERSON = SIZES.person;
   const seated = new Map<Object3D, Quaternion>(), standing = new Map<Object3D, Quaternion>();
   let hip = new Vector3(0, 0.9, 0), standHip = new Vector3(0, 0.9, 0);
   const lamp = new PointLight("#ffc27a", 0, 7, 1.6);
@@ -439,7 +435,7 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   let look: Map<Object3D, Quaternion> | null = null;
   if (sela) { place(sela, 1.8, 0.62, -Math.PI / 2); sp = reach(sela, -1); }
   if (cmd) {
-    place(cmd, 1.98, -0.62, Math.PI / 2); cp = reach(cmd, 1);
+    place(cmd, SIZES.commander, -0.62, Math.PI / 2); cp = reach(cmd, 1);
     // and with the hand brought up in front of the chest, palm up, to look at the chip
     blendPose(cp.rest, cp.rest, 0);
     aimBone(boneOf(cmd.root, "RightArm"), boneOf(cmd.root, "RightForeArm"), new Vector3(0.35, -0.85, 0.25));

@@ -7,6 +7,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { POD_K, SIZES } from "../packages/render-3d/src/sizes.js";
+
 const ROOT = resolve(import.meta.dirname, "..");
 const M = 28;
 // the layout, metres (x east, z south)
@@ -16,8 +18,8 @@ const L = {
   ridge: [[18, -15], [19.5, -6], [17, 3], [19, 12], [17.5, 19], [18.5, 25]],
 };
 const WRECK_SCALE = 0.833 * (27 / 50); // the wreck is 50 m long at scale 0.833
-const POD_K = 2.66 / 3.9847, POD_SCALE = 0.833 * (2.66 / 3.32); // the pod build is 3.9847 m long; 3.32 m at 0.833
-const POD_BASE = -0.8 * M, POD_YAW = -90;
+const POD_SCALE = 0.833 * (SIZES.pod.length / 3.32); // the level pod was 3.32 m long at 0.833
+const POD_BASE = -SIZES.pod.buried * M, POD_YAW = -90;
 const r1 = (v: number): number => Math.round(v * 10) / 10;
 const rel = (p: number[]): [number, number] => [(p[0]! - L.reactor[0]!) * M, (p[1]! - L.reactor[1]!) * M];
 

@@ -4,6 +4,7 @@ import { GeoBuilder, tinted } from "../geom.js";
 import type { MaterialSet } from "../materials.js";
 import { roleToken, type Tokens } from "../tokens.js";
 import { CHAR_K } from "../units.js";
+import { SIZES } from "../sizes.js";
 
 // The shared character rig. Every humanoid (hero, workers, customers, raiders) is the same
 // set of parts posed by one function; creatures and hoppers have their own small rigs.
@@ -87,12 +88,12 @@ const gearFor = (role: string, models: Readonly<Record<string, string>>): { hat:
  * A Meshy character stands look.scale x charScale x its meshy.json height / 0.9 metres (renderer.ts), so `tall` gives
  * the look scale for a height in metres on a model of that meshy height (people's are 1.1, the commander's 0.9).
  */
-export const PERSON_M = 1.8;
+export const PERSON_M = SIZES.person;
 /**
  * Doug's Scale tab (2026-11-04): x1.1 (1.98 m) for the commander, taller on purpose as the main character, and for the
  * ranger, whose model reads shorter than the others at the same height (so x1.1 makes him look 1.8 m); mites x0.9.
  */
-const LEAD_M = PERSON_M * 1.1;
+const LEAD_M = SIZES.commander;
 const tall = (m: number, modelH = 1.1): number => (m * 0.9) / (modelH * CHAR_K);
 
 /** Look for a character id (unit.*, role.*, hostile.*, node.prey). */

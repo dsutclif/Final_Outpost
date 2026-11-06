@@ -1,9 +1,5 @@
 {
   "notes": [
-    "Only the wall sections between your commander and the camera fade now, instead of the whole wall.",
-    "The healing cross is a bobbing 3D cross that fades at the top of each bounce, and the medic kneels beside the guard while healing.",
-    "The gate and raid icons now hold perfectly still between waves; the pulse only plays while a raid is on.",
-    "The VIP goal is now outlined block letters that fill as you serve VIPs.",
-    "Level names only mention conveyors when the level really has a belt."
+    "Behind the scenes: every object size now comes from one shared list, so scenes, tools and levels agree."
   ]
 }
