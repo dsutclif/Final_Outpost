@@ -756,7 +756,7 @@ export const marsGreenhouse: Skin = {
         core_levels: ["Reactors"], blocked_zones: ["Rockslides", "Rubble"], hunting: ["Hoppers"],
         converters: ["Galleys", "Smelters", "Presses"], customer_variety: ["Hurried Traders"], defense: ["Turrets"],
         defenders: ["Guards"], salvage_upgrades: ["Scrap", "Wreckage", "Rust"], medical: ["Med Bays", "Triage", "Stitches"],
-        hazard_events: ["Dust", "Storms", "Flares"], supply_routing: ["Couriers", "Warehouses", "Conveyors"],
+        hazard_events: ["Dust", "Storms", "Flares"], supply_routing: ["Couriers", "Warehouses"], conveyors: ["Conveyors", "Belt Lines"],
       },
     },
     genericTips: [

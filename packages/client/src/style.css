@@ -493,4 +493,5 @@ button:disabled { opacity: 0.5; cursor: default; }
 .help-card .row button.armed { background: var(--bad); color: #fff; }
 .lvtile.skipped .sub { color: var(--muted); }
 .app.introducing .fhelp { display: none; }
-.gtok .g-vip { fill: #fff; font: 900 9px var(--display); letter-spacing: 0.4px; stroke: rgba(16, 18, 20, 0.85); stroke-width: 1px; paint-order: stroke; }
+.gtok .g-vip-o { fill: rgba(42, 45, 49, 0.95); stroke: #fff; stroke-width: 0.6px; stroke-linejoin: round; font: 900 17px var(--display); }
+.gtok .g-vip-f { fill: var(--accent); stroke: #fff; stroke-width: 0.6px; stroke-linejoin: round; font: 900 17px var(--display); }

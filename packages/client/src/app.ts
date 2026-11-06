@@ -1363,8 +1363,10 @@ export class App {
     const all = alarmed ? goalTokens(st, s.manifest, s.sim.compiled, this.skin) : [];
     const tokens = s.director?.visibleTokens(all) ?? all;
     const a = alarmed ? alertOf(st, s.manifest, s.sim.compiled, tokens) : { kind: "none" as const };
-    const key = a.kind === "goal" ? `goal:${a.id}` : a.kind;
-    if (key !== this.alertKey) { this.alertKey = key; this.alert = a; this.hud.setAlert(a); this.buzzAt = 0; }
+    // the pulse and shake belong to a raid in progress; between waves the glow is steady and nothing moves
+    const attack = !!st.waves?.active;
+    const key = (a.kind === "goal" ? `goal:${a.id}` : a.kind) + (attack ? ":raid" : "");
+    if (key !== this.alertKey) { this.alertKey = key; this.alert = a; this.hud.setAlert(a, attack); this.buzzAt = 0; }
     // every danger, not just the one the top icon shows, is marked in the world (backlog R5 #16); re-picked each frame, as the coldest colonist changes
     s.renderer.setAlertMarks(alarmed ? alertMarks(st, s.manifest, s.sim.compiled, tokens) : []);
     if (this.alert.kind === "none" || now - this.buzzAt < ALERT_BUZZ_MS) return;
