@@ -363,9 +363,12 @@ export class Renderer3D implements Renderer {
   private crowd: Crowd | null = null;
   private rigged: Rigged | null = null;
   /** Wall segments as boxes in their own frame (rebuilt each frame), the see-through copies of the four wall batches, and the shared fade. */
-  private wallBoxes: { x: number; z: number; c: number; s: number; x0: number; x1: number; z0: number; z1: number; top: number }[] = [];
-  private wallSee = new Map<Batch, { solid: Material; see: Material; a: number }>();
-  private wallFade = 1;
+  private wallCtx = { px: 0, pz: 0, ux: 0, uz: 1, slope: 1, half: 0, dt: 0 };
+  /** Opacity of each wall piece by position, eased frame to frame (this frame's map is built as pieces are laid). */
+  private wallAlpha = new Map<string, number>();
+  private wallNext = new Map<string, number>();
+  private wallFadeColor = new Color(1, 1, 1);
+  private wallTwins = new Map<Batch, { twin: Batch; solid: Material; geo: BufferGeometry; see: Material }>();
   private blobs: Blobs | null = null;
   private items: Items | null = null;
   private itemIcons: ItemIcons | null = null;
@@ -712,8 +715,8 @@ export class Renderer3D implements Renderer {
     this.rigged?.dispose();
     this.lookT?.dispose();
     this.lookT = null;
-    for (const w of this.wallSee.values()) w.see.dispose();
-    this.wallSee.clear();
+    for (const w of this.wallTwins.values()) { w.twin.dispose(); w.see.dispose(); }
+    this.wallTwins.clear();
     this.blobs?.dispose();
     this.items?.dispose();
     this.itemIcons?.dispose();
@@ -1019,6 +1022,7 @@ export class Renderer3D implements Renderer {
     this.rigged?.begin();
     this.blobs.begin();
     for (const b of Object.values(this.walls!)) b.begin();
+    this.setWallCtx(pl, dt);
 
     this.syncCore(state);
     this.syncSales(state, a);
@@ -1050,6 +1054,7 @@ export class Renderer3D implements Renderer {
     for (const [k, d] of this.drones) if (d.seen !== this.frameNo) { this.dynamic.remove(d.root); this.drones.delete(k); }
     this.blobs.end();
     for (const b of Object.values(this.walls!)) b.end();
+    for (const t of this.wallTwins.values()) t.twin.end();
 
     const coreW = this.wv(state.core.pos);
     if (this.storyP && this.storyLights && this.spirit) {
@@ -1203,7 +1208,6 @@ export class Renderer3D implements Renderer {
     const flat = Math.hypot(cx, cz) || 1;
     const ux = cx / flat, uz = cz / flat, slope = Math.max(0.05, (this.camera.position.y - this.look.y) / flat);
     const half = 0.5 * ART_M * this.devCharScale;
-    this.fadeWalls(pl, dt, ux, uz, slope, half);
     for (const p of this.placed.values()) {
       const o = p.data["occ"] as Occ | undefined;
       if (!o) continue;
@@ -1227,35 +1231,61 @@ export class Renderer3D implements Renderer {
     }
   }
 
-  /** Fade the four wall batches as one while any wall section hides the hero (Doug 2026-11-04: fade the whole wall). */
-  private fadeWalls(pl: V, dt: number, ux: number, uz: number, slope: number, half: number): void {
-    let hidden = false;
-    for (const b of this.wallBoxes) {
-      const reach = (b.top - half) / slope;
-      if (reach <= 0) continue;
-      const wx = pl.x - b.x, wz = pl.y - b.z, i = 0.3 * half;
-      hidden = segHitsBox(wx * b.c - wz * b.s, wx * b.s + wz * b.c, (ux * b.c - uz * b.s) * reach, (ux * b.s + uz * b.c) * reach, b.x0 + i, b.x1 - i, b.z0 + i, b.z1 - i);
-      if (hidden) break;
+  /** Per-frame facts the wall sections need to decide whether they hide the hero (set before the barriers are laid out). */
+  private setWallCtx(pl: V, dt: number): void {
+    const cx = this.camera.position.x - this.look.x, cz = this.camera.position.z - this.look.z;
+    const flat = Math.hypot(cx, cz) || 1;
+    this.wallCtx = { px: pl.x, pz: pl.y, ux: cx / flat, uz: cz / flat, slope: Math.max(0.05, (this.camera.position.y - this.look.y) / flat), half: 0.5 * ART_M * this.devCharScale, dt };
+    this.wallAlpha = this.wallNext;
+    this.wallNext = new Map();
+    for (const t of this.wallTwins.values()) t.twin.begin();
+  }
+
+  /**
+   * The see-through twin of a wall batch: same geometry, a copy of its material that reads each
+   * instance's opacity from the instance colour's red channel (N9b: fade one section at a time).
+   * Rebuilt when the batch's geometry or material changes (a Meshy wall landed).
+   */
+  private wallTwin(bt: Batch): Batch {
+    let t = this.wallTwins.get(bt);
+    const geo = bt.mesh.geometry, mat = bt.material;
+    if (!t || t.geo !== geo || t.solid !== mat) {
+      t?.see.dispose();
+      const see = mat.clone();
+      see.transparent = true; see.depthWrite = false;
+      see.customProgramCacheKey = () => "wallfade";
+      see.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace("#include <color_fragment>", "diffuseColor.a *= vColor.r;"); };
+      if (t) t.twin.swap(geo, see);
+      else t = { twin: new Batch(geo, see, this.scene, 16, "wallsFading"), solid: mat, geo, see };
+      t.solid = mat; t.geo = geo; t.see = see;
+      this.wallTwins.set(bt, t);
+      t.twin.begin();
+      const warm = new InstancedMesh(geo, see, 1);
+      warm.setColorAt(0, new Color(1, 1, 1));
+      void this.gl?.compileAsync?.(warm, this.camera, this.scene).catch(() => undefined);
     }
-    if (this.wallFade === 1 && !hidden) return;
-    this.wallFade = hidden ? Math.max(FADE_TO, this.wallFade - dt * 6) : Math.min(1, this.wallFade + dt * 4);
-    const W = this.walls!;
-    for (const bt of [W.wall, W.cracked, W.reinforced, W.crackedR]) {
-      let w = this.wallSee.get(bt);
-      if (!w || w.solid !== bt.material) {
-        // own copy, compiled in the background so the first fade doesn't stall on a shader
-        w?.see.dispose();
-        const see = bt.material.clone();
-        see.transparent = true; see.depthWrite = false;
-        w = { solid: bt.material, see, a: bt.material.opacity };
-        this.wallSee.set(bt, w);
-        const warm = new InstancedMesh(bt.mesh.geometry, see, 1);
-        warm.setColorAt(0, new Color(1, 1, 1));
-        void this.gl?.compileAsync?.(warm, this.camera, this.scene).catch(() => undefined);
-      }
-      w.see.opacity = w.a * this.wallFade;
-      bt.override(this.wallFade < 1 ? w.see : null);
+    return t.twin;
+  }
+
+  /** Lay one wall piece: solid in its own batch, or in the fading twin while (and as it eases back from) hiding the hero. */
+  private pushWall(batch: Batch, x: number, z: number, ang: number, sx: number, sy: number, sz: number, tint?: Color): void {
+    const c = this.wallCtx;
+    const geo = batch.mesh.geometry;
+    if (!geo.boundingBox) geo.computeBoundingBox();
+    const bb = geo.boundingBox!;
+    let target = 1;
+    const reach = (bb.max.y * sy - c.half) / c.slope;
+    if (reach > 0) {
+      const co = Math.cos(ang), si = Math.sin(ang), wx = c.px - x, wz = c.pz - z, i = 0.3 * c.half;
+      if (segHitsBox(wx * co - wz * si, wx * si + wz * co, (c.ux * co - c.uz * si) * reach, (c.ux * si + c.uz * co) * reach, bb.min.x * sx + i, bb.max.x * sx - i, bb.min.z * sz + i, bb.max.z * sz - i)) target = FADE_TO;
     }
+    const key = `${Math.round(x)},${Math.round(z)}`;
+    const prev = this.wallAlpha.get(key) ?? 1;
+    const now = target < prev ? Math.max(target, prev - c.dt * 6) : Math.min(target, prev + c.dt * 4);
+    this.wallNext.set(key, now);
+    if (now >= 1) { batch.push(tmpM, tint); return; }
+    this.wallFadeColor.setRGB(now, now, now);
+    this.wallTwin(batch).push(tmpM, this.wallFadeColor);
   }
 
   /** Squash-and-stretch pop for anything that appeared after the level loaded (0 -> 1.15 -> 1, 400 ms). */
@@ -1288,25 +1318,17 @@ export class Renderer3D implements Renderer {
     const W = this.walls!, run = len * (f1 - f0), h = ART_M * Math.max(0.05, k);
     const fit = this.wallFit[reinforced ? "reinforced" : "wall"];
     const batch = low ? (reinforced && fit ? W.crackedR : W.cracked) : reinforced ? W.reinforced : W.wall;
-    const geo = batch.mesh.geometry;
-    if (!geo.boundingBox) geo.computeBoundingBox();
-    const bb = geo.boundingBox!;
-    const box = (x: number, z: number, sx: number, sy: number, sz: number): void => {
-      this.wallBoxes.push({ x, z, c: Math.cos(ang), s: Math.sin(ang), x0: bb.min.x * sx, x1: bb.max.x * sx, z0: bb.min.z * sz, z1: bb.max.z * sz, top: bb.max.y * sy });
-    };
     if (!fit) {
       const f = (f0 + f1) / 2;
       tmpM.makeRotationY(ang).scale(tmpV.set(run, h, ART_M)).setPosition(a.x + dx * f, 0, a.z + dz * f);
-      box(a.x + dx * f, a.z + dz * f, run, h, ART_M);
-      batch.push(tmpM);
+      this.pushWall(batch, a.x + dx * f, a.z + dz * f, ang, run, h, ART_M);
       return;
     }
     const n = Math.max(1, Math.round(run / (fit.len * ART_M)));
     for (let j = 0; j < n; j++) {
       const f = f0 + ((j + 0.5) / n) * (f1 - f0);
       tmpM.makeRotationY(ang).scale(tmpV.set(run / n / fit.len, h, ART_M * fit.depth)).setPosition(a.x + dx * f, 0, a.z + dz * f);
-      box(a.x + dx * f, a.z + dz * f, run / n / fit.len, h, ART_M * fit.depth);
-      batch.push(tmpM, low ? CRACKED : undefined);
+      this.pushWall(batch, a.x + dx * f, a.z + dz * f, ang, run / n / fit.len, h, ART_M * fit.depth, low ? CRACKED : undefined);
     }
   }
 
@@ -2111,7 +2133,6 @@ export class Renderer3D implements Renderer {
 
   private syncBarriers(s: State): void {
     const W = this.walls!;
-    this.wallBoxes.length = 0;
     const reinforced = (s.params["barrier.hpMax"] ?? 0) > ((this.content.structures["struct.barrier"] as { hp?: number } | undefined)?.hp ?? 14);
     for (const b of s.barriers) {
       b.sections.forEach((sec, i) => {
