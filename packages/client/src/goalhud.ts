@@ -548,15 +548,19 @@ export class GoalHud {
   }
 
   private alertSeen = new Map<string, number>();
+  private alertBurstAt = new Map<string, number>();
 
-  /** The alert glow stays steady; the shake is a short burst when the danger starts or the meter drops (a hit), and only while a raid is on: between waves nothing moves (Doug, 2026-11-05). */
+  /** The alert glow stays steady; the shake is a short burst when the danger starts or the meter drops (a hit), and only while a raid is on: between waves nothing moves (Doug, 2026-11-05).
+   *  Hits can land several times a second, so a burst is held off for a moment after the last one. */
   private alertEl(key: string, e: HTMLElement, on: boolean, level: number, attack: boolean): void {
     const was = this.alertSeen.get(key);
     e.classList.toggle("alert", on);
-    if (on && !attack) { this.alertSeen.delete(key); e.classList.remove("burst"); return; }
-    if (!on) { this.alertSeen.delete(key); e.classList.remove("burst"); return; }
+    if (on && !attack) { this.alertSeen.delete(key); this.alertBurstAt.delete(key); e.classList.remove("burst"); return; }
+    if (!on) { this.alertSeen.delete(key); this.alertBurstAt.delete(key); e.classList.remove("burst"); return; }
     this.alertSeen.set(key, level);
-    if (was === undefined || level < was - 0.001) {
+    const now = performance.now(), last = this.alertBurstAt.get(key) ?? -Infinity;
+    if ((was === undefined || level < was - 0.001) && now - last > 1200) {
+      this.alertBurstAt.set(key, now);
       e.classList.remove("burst"); void e.offsetWidth; e.classList.add("burst");
       setTimeout(() => e.classList.remove("burst"), 700);
     }

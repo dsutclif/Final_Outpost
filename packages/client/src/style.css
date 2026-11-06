@@ -131,7 +131,7 @@ body {
 .rail.alert > i { background: #e6f7ff; }
 .rail.walls.alert { background: rgba(120, 20, 10, 0.6); box-shadow: 0 0 10px 2px rgba(226, 84, 60, 0.8); }
 @media (prefers-reduced-motion: no-preference) {
-  .gdisc.alert.burst, .rail.alert.burst { animation: gpulse 0.7s ease-in-out 1; }
+  .rail.alert.burst { animation: gpulse 0.7s ease-in-out 1; }
   .gdisc.alert.burst > svg, .rail.alert.burst > i { animation: gshake 0.5s linear 1; }
 }
 @keyframes gpulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
