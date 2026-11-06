@@ -7,6 +7,9 @@
   "functions": {
     "api/progress.js": {
       "maxDuration": 15
+    },
+    "api/telemetry.js": {
+      "maxDuration": 10
     }
   },
   "headers": [

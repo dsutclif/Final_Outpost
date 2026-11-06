@@ -26,6 +26,7 @@ import { FILM_VERSIONS, REPLAY_FILMS, cinematicFor, filmDue, playCinematic, type
 import { preloadCharacters } from "./preload.js";
 import { StoryStage, directorFor, type StoryDirector } from "./story/index.js";
 import { KilnIntro, kilnLines } from "./kilnintro.js";
+import { Reporter, deviceFacts, randomId, type AttemptEnd } from "./report.js";
 import type { LivePortrait } from "./story/view.js";
 
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
@@ -69,6 +70,11 @@ interface Session {
   /** Milestones of this attempt for the Help sheet (R5 #12). */
   log: LogLine[];
 }
+
+/** Optional reasons after a thumbs-down (docs/review/CONTRACT.md §1); their text lives in the skin. */
+const RATE_CHIPS = ["too_hard", "too_easy", "boring", "confusing", "looked_wrong", "laggy"] as const;
+/** The build that made this bundle (vite.config.ts), stamped on play data. */
+const BUILD_ID: string = typeof __BUILD__ === "string" ? __BUILD__ : "dev";
 
 /** Milliseconds between buzzes while an urgent alert is on. */
 const ALERT_BUZZ_MS = 1000;
@@ -151,6 +157,8 @@ export class App {
   private last = 0;
   private hidden = false;
   private fps = 60;
+  /** Play data (report.ts): null until start() has the settings that hold the install id. */
+  private reporter: Reporter | null = null;
   private hashCache = { tick: -1, hash: "" };
   private resultTimer: ReturnType<typeof setTimeout> | null = null;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -203,6 +211,8 @@ export class App {
   async start(): Promise<void> {
     this.settings = await this.deps.store.getSettings();
     this.progress = await this.deps.store.getProgress();
+    if (!this.settings.installId) { this.settings.installId = randomId(); void this.deps.store.setSettings(this.settings); }
+    this.reporter = new Reporter(this.deps.telemetry, () => ({ install: this.settings.installId ?? "", np: this.settings.newPlayer }), BUILD_ID);
     this.skin = getSkin(this.settings.skin);
     this.applySettings();
     this.applyTheme();
@@ -215,6 +225,13 @@ export class App {
       this.progress = await this.deps.store.getProgress(await this.askProgressChoice());
       await this.deps.store.setProgress(this.progress);
     }
+    if (this.settings.newPlayer === null) {
+      this.settings.newPlayer = await this.askNewPlayer();
+      void this.deps.store.setSettings(this.settings);
+      this.reporter.emit("new_player", { answer: this.settings.newPlayer });
+    }
+    this.reporter.emit("session", { coldStartMs: Math.round(performance.now()), tier: this.qualityTier(), probeFps: this.settings.probeFps, ...deviceFacts(navigator, window) });
+    if (this.deps.justUpdated) this.reporter.emit("lifecycle", { what: "updated", screen: "title" });
     this.show("title");
     if (this.deps.justUpdated) this.continueToast();
     warm3D();
@@ -286,6 +303,7 @@ export class App {
   setHidden(hidden: boolean): void {
     if (this.hidden === hidden) return;
     this.hidden = hidden;
+    this.reporter?.emit("lifecycle", { what: hidden ? "hidden" : "visible", screen: this.screen });
     if (hidden) { this.input.release(); this.synth.suspend(); this.title?.stop(); }
     else { this.last = performance.now(); this.session?.stepper.reset(); this.synth.resume(); if (this.screen === "title") this.title?.start(); }
   }
@@ -380,10 +398,23 @@ export class App {
       + notes.map((n) => `<span class="note">${esc(n)}</span>`).join("")
       + (levelsChange ? `<span class="note">${esc(uiText(s, "updateLevelsChange"))}</span>` : "")
       + `<button class="go small" data-a="go">${esc(uiText(s, "updateNow"))}</button><button class="small" data-a="x">${esc(uiText(s, "updateLater"))}</button>`, {
-      go: () => { this.deps.applyUpdate?.(); },
+      go: () => { this.reporter?.emit("lifecycle", { what: "update_now", screen: this.screen }); this.deps.applyUpdate?.(); },
       // Later: the title keeps an Update button; a cold start installs it anyway
-      x: () => undefined,
+      x: () => { this.reporter?.emit("lifecycle", { what: "update_later", screen: this.screen }); },
     }, 0);
+  }
+
+  /** First launch: is the player new to the game? Their answer tags play data so newcomers can be told apart. */
+  private askNewPlayer(): Promise<"new" | "returning" | "skip"> {
+    const ov = this.el.ov["title"]!, s = this.skin;
+    for (const [k, el] of Object.entries(this.el.ov)) el.hidden = k !== "title";
+    ov.innerHTML = `<div class="title-wrap">
+        <div class="card center choice"><h2>${esc(uiText(s, "newPlayerTitle"))}</h2><p>${esc(uiText(s, "newPlayerBody"))}</p>
+          <button class="go wide-btn" data-a="yes">${esc(uiText(s, "newPlayerYes"))}</button>
+          <button class="wide-btn" data-a="no">${esc(uiText(s, "newPlayerNo"))}</button>
+          <button class="small" data-a="skip">${esc(uiText(s, "newPlayerSkip"))}</button></div>
+      </div>`;
+    return new Promise((done) => this.wire(ov, { yes: () => done("new"), no: () => done("returning"), skip: () => done("skip") }));
   }
 
   /** Keep level progress from the older pack, or start the levels over. */
@@ -670,6 +701,12 @@ export class App {
     this.wire(ov, {
       back: () => this.leaveSettings(),
       export: () => { void this.deps.telemetry.exportFile(); },
+      resetId: () => {
+        this.settings.installId = randomId();
+        void this.deps.store.setSettings(this.settings);
+        const b = ov.querySelector<HTMLButtonElement>('[data-a="resetId"]');
+        if (b) { b.textContent = uiText(s, "resetPlayDataIdDone"); b.disabled = true; }
+      },
       reset: () => {
         const resetBtn = ov.querySelector<HTMLButtonElement>('[data-a="reset"]');
         if (!resetBtn) return;
@@ -692,6 +729,7 @@ export class App {
         (this.settings as unknown as Record<string, unknown>)[k] = k === "timeTargetPct" ? normalizeTimeTargetPct(val) : val;
         this.applySettings();
         void this.deps.store.setSettings(this.settings);
+        if (k === "newPlayer") this.reporter?.emit("new_player", { answer: val });
         if (k === "haptics" && val) this.haptics.play({ t: "built" } as SimEvent);
         if (k === "sound" && val) { this.synth.unlock(); this.synth.play("coin"); }
       });
@@ -711,8 +749,12 @@ export class App {
         <select data-k="timeTargetPct">${TIME_TARGET_STEPS.map((p) => `<option value="${p}" ${st.timeTargetPct === p ? "selected" : ""}>${p}%</option>`).join("")}</select></label>
       <label class="set"><span>${esc(uiText(s, "settingsQuality"))}</span>
         <select data-k="quality">${(["auto", "low", "medium", "high"] as const).map((q) => `<option value="${q}" ${st.quality === q ? "selected" : ""}>${esc(uiText(s, `quality_${q}`))}</option>`).join("")}</select></label>
+      <label class="set"><span>${esc(uiText(s, "settingsNewPlayer"))}</span>
+        <select data-k="newPlayer">${(["new", "returning", "skip"] as const).map((v) => `<option value="${v}" ${st.newPlayer === v ? "selected" : ""}>${esc(uiText(s, `newPlayer_${v}`))}</option>`).join("")}</select></label>
       <p class="note offline" data-offline>${esc(this.offlineLine())}</p>
+      <p class="note">${esc(uiText(s, "playDataNote"))}</p>
       ${this.session && !this.session.ended ? "" : `<button data-a="export" class="wide-btn">${esc(uiText(s, "exportTelemetry"))}</button>
+      <button data-a="resetId" class="wide-btn">${esc(uiText(s, "resetPlayDataId"))}</button>
       <button data-a="reset" class="wide-btn danger">${esc(uiText(s, "resetProgress"))}</button>`}
       <p class="note">v${ENGINE_VERSION} · content ${CONTENT_VERSION}${this.deps.store.persistent ? " · storage persistent" : ""}${st.probeFps !== null ? ` · ${st.probeFps} fps probe` : ""}</p>`;
   }
@@ -798,6 +840,7 @@ export class App {
     };
     this.attachRenderer(this.session, renderer);
     if (!this.session) return;
+    this.reporter?.levelStart(meta.id, (this.progress.tries[meta.id] ?? 0) + 1);
     this.startGuide(this.session);
     this.progress.current = meta.id;
     void this.deps.store.setProgress(this.progress);
@@ -853,7 +896,9 @@ export class App {
 
   /** Play a cinematic full-screen once: ended or skipped saves it as seen; an error or stall just continues. */
   private async cinematic(id: CinematicId, force = false): Promise<void> {
+    const t0 = performance.now();
     const r = await playCinematic(this.el.app, id, { skipLabel: uiText(this.skin, "skip"), scene: this.skin.story?.scenes?.[id] });
+    if (!force) this.reporter?.emit("film", { film: id, watchedS: Math.round((performance.now() - t0) / 100) / 10, result: r, skipped: r === "skipped" });
     if (r === "failed" || force) return;
     this.progress.cinematics[id] = FILM_VERSIONS[id];
     void this.deps.store.setProgress(this.progress);
@@ -962,7 +1007,7 @@ export class App {
       this.progress.quits[s.meta.id] = quits;
       this.countTry(s.meta.id);
       void this.deps.store.setProgress(this.progress);
-      void this.deps.telemetry.record(this.attempt(s, "quit", "quit", quits - 1));
+      this.recordEnd(s, { outcome: "quit", reason: "quit", quits: quits - 1, stars: 0 });
     }
     this.endSession();
     this.show("levels");
@@ -978,6 +1023,7 @@ export class App {
   }
 
   private endSession(): void {
+    if (this.session) this.reporter?.abandon(this.session.sim.state.tick);
     this.kiln?.dispose();
     this.kiln = null;
     this.el.tapstart.hidden = true;
@@ -989,11 +1035,9 @@ export class App {
     this.session = null;
   }
 
-  private attempt(s: Session, outcome: "win" | "lose" | "quit" | "skip", reason: string, quits: number) {
-    return {
-      levelId: s.meta.id, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION,
-      outcome, reason, ticks: s.sim.state.tick, quits, ts: Date.now(),
-    };
+  /** Play data for a finished attempt: its end, play shape and frame times (report.ts). */
+  private recordEnd(s: Session, end: Omit<AttemptEnd, "ticks">): void {
+    this.reporter?.levelEnd({ ...end, ticks: s.sim.state.tick });
   }
 
   private finish(won: boolean, reason: string): void {
@@ -1019,7 +1063,7 @@ export class App {
       if (next) this.progress.current = next.id;
     }
     void this.deps.store.setProgress(this.progress);
-    void this.deps.telemetry.record(this.attempt(s, won ? "win" : "lose", reason, this.progress.quits[id] ?? 0));
+    this.recordEnd(s, { outcome: won ? "win" : "lose", reason, quits: this.progress.quits[id] ?? 0, stars });
     // let the confetti land before the card covers the stage
     const newBest = won && prevBest !== undefined && ticks < prevBest;
     const post = won ? cinematicFor(id, "afterWin", this.progress.cinematics) : null;
@@ -1058,6 +1102,10 @@ export class App {
       <div class="stats">${stats.map(([k, v], i) => `<div class="stat-cell" style="animation-delay:${0.15 + i * 0.08}s"><b>${esc(v)}</b><span>${esc(k)}</span></div>`).join("")}</div>
       ${won && best !== undefined ? `<p class="bestline">${newBest ? `<span class="newbest">${esc(uiText(sk, "newBest"))}</span> ` : ""}${esc(uiText(sk, "best"))} ${formatTicks(best)}</p>` : ""}
       ${tip ? `<p class="tip"><b>${esc(uiText(sk, "tipLabel"))}:</b> ${esc(tip)}</p>` : ""}
+      <div class="rate"><span>${esc(uiText(sk, "rateQuestion"))}</span>
+        <button class="thumb" data-a="up" aria-label="${esc(uiText(sk, "rateYes"))}">${esc(uiText(sk, "rateUp"))}</button>
+        <button class="thumb" data-a="down" aria-label="${esc(uiText(sk, "rateNo"))}">${esc(uiText(sk, "rateDown"))}</button></div>
+      <div class="chips" hidden>${RATE_CHIPS.map((c) => `<button class="chip" data-chip="${c}">${esc(uiText(sk, `chip_${c}`))}</button>`).join("")}</div>
       <div class="row">
         <button data-a="levels">${esc(uiText(sk, "levels"))}</button>
         <button data-a="retry" class="${won && next ? "" : "go"}">${esc(uiText(sk, "retry"))}</button>
@@ -1069,7 +1117,34 @@ export class App {
       retry: () => void this.openLevel(s.meta),
       next: () => { if (next) void this.openLevel(next); },
     });
+    this.wireRating(ov);
   }
+
+  /** "Good level?" on the result card: one tap, never in the way; a thumbs-down offers optional reasons. */
+  private wireRating(ov: HTMLElement): void {
+    const chipsEl = ov.querySelector<HTMLElement>(".chips"), picked = new Set<string>();
+    let thumb: "up" | "down" | null = null;
+    const send = (): void => { if (thumb) this.reporter?.rate(thumb, [...picked]); };
+    const set = (t: "up" | "down"): void => {
+      thumb = t;
+      for (const b of ov.querySelectorAll<HTMLElement>(".thumb")) b.classList.toggle("on", b.dataset["a"] === t);
+      if (chipsEl) chipsEl.hidden = t !== "down";
+      if (t === "up") picked.clear();
+      send();
+    };
+    this.wire(ov, { up: () => set("up"), down: () => set("down") });
+    for (const c of ov.querySelectorAll<HTMLButtonElement>(".chip")) {
+      c.addEventListener("click", () => {
+        const id = c.dataset["chip"]!;
+        if (picked.has(id)) picked.delete(id); else picked.add(id);
+        c.classList.toggle("on", picked.has(id));
+        send();
+      });
+    }
+  }
+
+  /** Called by main.ts for uncaught errors and rejections. */
+  reportError(msg: string): void { this.reporter?.error(msg, this.screen); }
 
   /** R5 #21: the main goal is out of reach. The level stays open: the player may still want to look around. */
   private askDeadEnd(s: Session): void {
@@ -1115,7 +1190,7 @@ export class App {
     this.progress.skipped[id] = true;
     this.progress.current = next?.id ?? id;
     void this.deps.store.setProgress(this.progress);
-    void this.deps.telemetry.record(this.attempt(s, "skip", "skip", this.progress.quits[id] ?? 0));
+    this.recordEnd(s, { outcome: "skip", reason: "skip", quits: this.progress.quits[id] ?? 0, stars: 0 });
     if (next) void this.openLevel(next);
     else { this.endSession(); this.show("levels"); }
   }
@@ -1169,7 +1244,9 @@ export class App {
   // ------------------------------------------------------------------ loop
 
   private stepOnce(s: Session, input: { dx: number; dy: number }): void {
-    for (const e of s.sim.step(input)) this.handleEvent(s, e);
+    const events = s.sim.step(input);
+    this.reporter?.tick(s.sim.state, events);
+    for (const e of events) this.handleEvent(s, e);
     s.director?.afterTick(s.sim.state);
     if (!s.ended && !s.deadEndAsked && mainGoalDead(s.sim.state, s.sim.compiled)) this.askDeadEnd(s);
     const cur = s.sim.state.currency;
@@ -1202,6 +1279,7 @@ export class App {
       this.heartbeat(s, now);
       this.padArrival(s);
       this.probe(s, dt);
+      this.reporter?.frame(dt);
       if (s.sim.state.tick % 15 === 0) this.discover(nearbyPassive(s.sim.state));
     }
     else if (s.director?.busy) s.renderer.setCoach(null);

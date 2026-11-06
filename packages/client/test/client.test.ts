@@ -155,7 +155,8 @@ describe("saves and feedback", () => {
     expect((await s.getSettings()).haptics).toBe(true);
     expect(mergeSettings({ sound: false }).sound).toBe(false);
     expect("renderer" in mergeSettings({ sound: false, renderer: "2d", rendererChosen: true })).toBe(false);
-    await s.appendTelemetry({ levelId: "a", engineVersion: "0", contentVersion: "0", outcome: "win", reason: "goal", ticks: 10, quits: 0, ts: 1 });
+    expect((await s.getSettings()).newPlayer).toBeNull();
+    await s.appendTelemetry({ v: 2, kind: "level_end", ts: 1, install: "i", session: "s", build: "b", engine: "0", content: "0", np: null, levelId: "a", outcome: "win" });
     const rows = await s.allTelemetry();
     expect(rows).toHaveLength(1);
     await s.markSent([rows[0]!.seq!]);

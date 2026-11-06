@@ -1,4 +1,4 @@
-import type { Progress, ProgressMode, SaveStore, Settings, TelemetryAttempt, TelemetryRow } from "./save.js";
+import type { Progress, ProgressMode, SaveStore, Settings, TelemetryEvent, TelemetryRow } from "./save.js";
 
 // Thin platform layer: the same calls in the browser and inside the Capacitor shell. Native
 // plugins load by dynamic import only when the Capacitor bridge says it is native, so the web
@@ -111,7 +111,7 @@ export class MirroredStore implements SaveStore {
   async setProgress(p: Progress): Promise<void> { await this.inner.setProgress(p); await this.mirror(); }
   getSettings(): Promise<Settings> { return this.inner.getSettings(); }
   async setSettings(s: Settings): Promise<void> { await this.inner.setSettings(s); await this.mirror(); }
-  appendTelemetry(a: TelemetryAttempt): Promise<void> { return this.inner.appendTelemetry(a); }
+  appendTelemetry(a: TelemetryEvent): Promise<void> { return this.inner.appendTelemetry(a); }
   allTelemetry(): Promise<TelemetryRow[]> { return this.inner.allTelemetry(); }
   markSent(seqs: number[]): Promise<void> { return this.inner.markSent(seqs); }
 }

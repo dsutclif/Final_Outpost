@@ -68,6 +68,8 @@ function releaseInfo(): Plugin {
 export default defineConfig({
   // GitHub Pages serves from /<repo>/; CI sets BASE_PATH, local builds stay at the root.
   base: process.env.BASE_PATH ?? "/",
+  // play data names the build it came from (report.ts)
+  define: { __BUILD__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? `local-${new Date().toISOString().slice(0, 16)}`) },
   server: { host: "0.0.0.0", port: 5180, strictPort: true },
   preview: { host: "0.0.0.0", port: 5181 },
   build: {

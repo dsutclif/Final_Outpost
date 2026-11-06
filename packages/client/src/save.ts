@@ -50,23 +50,35 @@ export interface Settings {
   timeTargetPct: number;
   /** Frames per second the "auto" quality probe measured in play, or null before it ran. */
   probeFps: number | null;
+  /** Anonymous random id for play data (telemetry); null until first launch, replaced by "Reset play-data id". */
+  installId: string | null;
+  /** The first-launch "New to the game?" answer; null until asked. */
+  newPlayer: NewPlayer | null;
 }
 
-export interface TelemetryAttempt {
-  levelId: string;
-  engineVersion: string;
-  contentVersion: string;
-  outcome: "win" | "lose" | "quit" | "skip";
-  reason: string;
-  ticks: number;
-  quits: number;
+export type NewPlayer = "new" | "returning" | "skip";
+
+export const TELEMETRY_KINDS = ["new_player", "session", "level_start", "level_end", "rating", "play_shape", "perf", "film", "lifecycle", "error"] as const;
+export type TelemetryKind = (typeof TELEMETRY_KINDS)[number];
+
+/** One play-data event (docs/review/CONTRACT.md §1). Rows from before v2 have no `v` and are never sent. */
+export interface TelemetryEvent {
+  v: 2;
+  kind: TelemetryKind;
   ts: number;
+  install: string;
+  session: string;
+  build: string;
+  engine: string;
+  content: string;
+  np: "new" | "returning" | null;
+  [field: string]: unknown;
 }
 
-export interface TelemetryRow extends TelemetryAttempt { seq?: number; sent: boolean }
+export interface TelemetryRow extends TelemetryEvent { seq?: number; sent: boolean }
 
 export const DEFAULT_PROGRESS: Progress = { cleared: {}, skipped: {}, best: {}, quits: {}, tries: {}, current: null, coach: {}, stars: {}, starSet: {}, discovered: {}, cinematics: {}, epoch: PROGRESS_EPOCH };
-export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, stuckArrow: true, timeTargetPct: 100, probeFps: null };
+export const DEFAULT_SETTINGS: Settings = { haptics: true, sound: true, quality: "auto", skin: "mars_greenhouse", debug: false, guide: false, stuckArrow: true, timeTargetPct: 100, probeFps: null, installId: null, newPlayer: null };
 
 interface FoDB extends DBSchema {
   kv: { key: string; value: unknown };
@@ -84,7 +96,7 @@ export interface SaveStore {
   setProgress(p: Progress): Promise<void>;
   getSettings(): Promise<Settings>;
   setSettings(s: Settings): Promise<void>;
-  appendTelemetry(a: TelemetryAttempt): Promise<void>;
+  appendTelemetry(a: TelemetryEvent): Promise<void>;
   allTelemetry(): Promise<TelemetryRow[]>;
   markSent(seqs: number[]): Promise<void>;
   readonly persistent: boolean;
@@ -144,7 +156,7 @@ class IdbStore implements SaveStore {
   async setProgress(p: Progress): Promise<void> { await this.db.put("kv", p, "progress"); }
   async getSettings(): Promise<Settings> { return mergeSettings(await this.db.get("kv", "settings")); }
   async setSettings(s: Settings): Promise<void> { await this.db.put("kv", s, "settings"); }
-  async appendTelemetry(a: TelemetryAttempt): Promise<void> { await this.db.add("telemetry", { ...a, sent: false }); }
+  async appendTelemetry(a: TelemetryEvent): Promise<void> { await this.db.add("telemetry", { ...a, sent: false }); }
   async allTelemetry(): Promise<TelemetryRow[]> { return this.db.getAll("telemetry"); }
   async markSent(seqs: number[]): Promise<void> {
     const tx = this.db.transaction("telemetry", "readwrite");
@@ -166,7 +178,7 @@ export class MemoryStore implements SaveStore {
   async setProgress(p: Progress): Promise<void> { this.progress = structuredClone(p); }
   async getSettings(): Promise<Settings> { return mergeSettings(this.settings); }
   async setSettings(s: Settings): Promise<void> { this.settings = { ...s }; }
-  async appendTelemetry(a: TelemetryAttempt): Promise<void> { this.rows.push({ ...a, sent: false, seq: this.rows.length + 1 }); }
+  async appendTelemetry(a: TelemetryEvent): Promise<void> { this.rows.push({ ...a, sent: false, seq: this.rows.length + 1 }); }
   async allTelemetry(): Promise<TelemetryRow[]> { return this.rows.map((r) => ({ ...r })); }
   async markSent(seqs: number[]): Promise<void> { for (const r of this.rows) if (r.seq !== undefined && seqs.includes(r.seq)) r.sent = true; }
 }

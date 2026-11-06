@@ -52,7 +52,9 @@ async function boot(): Promise<void> {
     await mirrored.restore();
     store = mirrored;
   }
-  const telemetry = new TelemetryQueue(store, import.meta.env.VITE_TELEMETRY_URL || undefined);
+  // play data goes to /api/telemetry in production builds; "off" (or a dev build) keeps it on the device
+  const teleUrl = import.meta.env.VITE_TELEMETRY_URL ?? (import.meta.env.PROD ? "/api/telemetry" : "off");
+  const telemetry = new TelemetryQueue(store, teleUrl === "off" ? undefined : teleUrl);
   // the waiting worker can be found before the app exists; the check after start() covers that
   // every pack under levels/packs that matches this engine/content version
   const packsBase = `${import.meta.env.BASE_URL}levels/packs`.replace(/\/{2,}/g, "/");
@@ -66,6 +68,9 @@ async function boot(): Promise<void> {
       return pwa.apply();
     },
   });
+  const live = app;
+  window.addEventListener("error", (e) => live.reportError(e.message || String(e.error)));
+  window.addEventListener("unhandledrejection", (e) => live.reportError(e.reason instanceof Error ? e.reason.message : String(e.reason)));
   await app.start();
   if (pwa.ready) app.offerUpdate(release);
   if (import.meta.env.DEV) {

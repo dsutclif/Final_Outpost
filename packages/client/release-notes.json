@@ -1,5 +1,8 @@
 {
   "notes": [
+    "After each mission, tell us if it was a good one: one tap on 👍 or 👎, and after a 👎 you can say why.",
+    "On first launch we ask once whether you're new to the game (change it any time in Settings).",
+    "Anonymous play data (missions, outcomes, ratings, frame rate) now helps us tune the game; Settings explains what's sent.",
     "Fixed: tapping now moves story dialogue on. Level 1 could get stuck on the commander's first line."
   ]
 }
