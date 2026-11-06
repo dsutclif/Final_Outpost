@@ -98,10 +98,11 @@ export class GroundMarks {
           const k = (next - along) / L;
           this.dummy.position.set(px + dx * k, 1.3, pz + dz * k);
           this.dummy.rotation.set(0, yaw, 0);
-          // a bright band travels outward along the trail; the rest stays dim
+          // a bright band travels outward along the trail; the rest stays dim. Colour only: the arrows keep
+          // their size so the trail doesn't look like it's vibrating (Doug, 2026-11-06).
           const w = Math.max(0, Math.cos(((next / PULSE_LEN) - t * PULSE_SPEED) * Math.PI * 2));
           const pulse = w * w * w;
-          this.dummy.scale.setScalar(0.92 + 0.16 * pulse);
+          this.dummy.scale.setScalar(1);
           this.dummy.updateMatrix();
           this.trail.setMatrixAt(n, this.dummy.matrix);
           this.trail.setColorAt(n, this.tint.copy(this.dim).lerp(this.bright, 0.35 + 0.65 * pulse));

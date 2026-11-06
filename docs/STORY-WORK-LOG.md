@@ -32,6 +32,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-03 | B | `story-p2` | `levels/story/story-L00{2..5}.json`; `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Levels 2–5: finish Phase 1, then the Phase 2 scene player and `empty_bays` |
+| 2026-11-06 | A (HUD session) | `goal-voices` | `skins/src/mars_greenhouse.ts` (objectives templates, moduleTips, new kilnTips; not the story cue blocks); `client/src/objectives.ts`; `client/src/app.ts` (intro cards + KILN first-time lines on regular levels only); new `client/src/kilnintro.ts` | Goal lines name the real thing; KILN coaches new mechanics on regular levels (review page docs/mockups/goal-voices.html) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
