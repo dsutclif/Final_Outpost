@@ -62,9 +62,9 @@ N2 mite numbers (take them from arena PROPOSALS if he agrees), and the review's 
       L050, L058; belts need a goal in `conveyorGoals` plus tier2, `generator/src/build.ts:300`, `:608`). Menu 13
       `s1-L009` is a `converter_level` level, not automation. Fix: a title word must name something on the level (skin
       and `levelTitle`, no rebuild). More levels with belts is a generator change for Bundle 6.
-- [ ] **N9b fade one wall section at a time:** wall fading works; fade only the sections between the commander and the
+- [x] **N9b fade one wall section at a time:** wall fading works; fade only the sections between the commander and the
       camera (a per-instance alpha on the wall `Batch`es) instead of the whole wall. (renderer session)
-- [ ] **G10 reopened, plus the medic kneel:** the medic still doesn't kneel (R5 leftover, never done). The cross shows
+- [x] **G10 reopened, plus the medic kneel:** the medic still doesn't kneel (R5 leftover, never done). The cross shows
       but sits still. `docs/mockups/heal-cross-bounce.png` (states 1, 2, 1): a 3D, better-looking cross that bobs up and back down while the heal runs, turning
       more transparent at the top of the bounce (not whiter). (renderer session)
 
@@ -259,3 +259,7 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
 - [x] **G1 fireworks:** see the G1 line above.
 - [x] **G2 shovel and dig:** the `dig` act is set on `pad_paid` for a `zone.clear` pad (checked with a faked pad and a pose change); the shovel itself and a real clear pad were not seen.
 - Live: pushed as 5850b9e; the new bundle (index-xRIQq0n4, renderer chunk with the red bolt colour) is on the Vercel URL and the update toast appeared. Not played live (debug unlock did not stick on the live origin), so every item above was seen on the local dev server only.
+
+### Doug's iPhone check items done, 2026-11-06 (branch r6-stepA2, renderer only)
+- [x] **N9b:** wall pieces fade one at a time (own opacity each, eased; faded ones draw in a see-through twin batch). Seen on L14 locally: pieces beside the commander turned see-through, the far wall stayed solid. Not seen on an iPhone or the live site.
+- [x] **G10 + kneel:** 3D bevelled cross bobbing and fading at the top, seen locally with forced `healing` residents. The medic's kneel plays the existing `care` clip (crouch-pick) while its patient is `healing`; it is not seen on screen (no real medic heal reached), and the clip may read as picking rather than kneeling.

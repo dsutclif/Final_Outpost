@@ -1,5 +1,6 @@
 {
   "notes": [
-    "Every level is open from the start while the game is still changing, so you can jump straight to any level."
+    "Only the wall sections between your commander and the camera fade now, instead of the whole wall.",
+    "The healing cross is a bobbing 3D cross that fades at the top of each bounce, and the medic kneels beside the guard while healing."
   ]
 }
