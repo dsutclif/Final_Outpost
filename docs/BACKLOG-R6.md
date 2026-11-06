@@ -51,6 +51,23 @@ N2 mite numbers (take them from arena PROPOSALS if he agrees), and the review's 
   claim the bump in `docs/STORY-WORK-LOG.md`, rebuild in the background, `levels:check`, re-pin golden and
   story levels (B re-checks 3-5), release notes, deploy, iPhone frame-rate check with dense waves.
 
+**Doug's iPhone check, 2026-11-05 evening.** Everything in the check table is good except these:
+- [ ] **#1 reopened: gate and repel icons vibrate between waves.** The pulse during an attack is right; between waves
+      both the gate icon and the repel chevrons still shake. Nothing should move between waves. (HUD session)
+- [ ] **#2 reopened: VIP icon is hollow letters that fill.** Outlined block "VIP" letters (`docs/mockups/vip-icon-hollow.png`: white
+      outline, empty inside) that fill as VIPs are served, like the other goal icons that fill. (HUD session)
+- [ ] **N24 level titles promise what the level has.** Doug played menu levels 13 and 23 expecting belts and found none.
+      Menu 23 "Conveyors and Hiring Drive" (`s1-L019`, goal `hire`) takes "Conveyors" from the `supply_routing` word
+      list (`skins/src/mars_greenhouse.ts:759`), but it has no belt. Only 4 of 59 pack levels have one (L014, L025,
+      L050, L058; belts need a goal in `conveyorGoals` plus tier2, `generator/src/build.ts:300`, `:608`). Menu 13
+      `s1-L009` is a `converter_level` level, not automation. Fix: a title word must name something on the level (skin
+      and `levelTitle`, no rebuild). More levels with belts is a generator change for Bundle 6.
+- [ ] **N9b fade one wall section at a time:** wall fading works; fade only the sections between the commander and the
+      camera (a per-instance alpha on the wall `Batch`es) instead of the whole wall. (renderer session)
+- [ ] **G10 reopened, plus the medic kneel:** the medic still doesn't kneel (R5 leftover, never done). The cross shows
+      but sits still. `docs/mockups/heal-cross-bounce.png` (states 1, 2, 1): a 3D, better-looking cross that bobs up and back down while the heal runs, turning
+      more transparent at the top of the bounce (not whiter). (renderer session)
+
 **Step C, when B's `story-p2` claim clears and `REPLAY_FILMS` is off:** #9 cutscenes in the level menu (Sonnet).
 
 ## Release 1: renderer and client, no engine bump
