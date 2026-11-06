@@ -65,11 +65,11 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
   crewmate already comes out of their pod in their job's suit (role models: hauler, medic, guard, settler; Sela is the
   trader model; the commander and the raider have their own models). So render one bust per character from those GLBs,
   with no training-costume story needed. Characters keep their L2 bust when their job changes later.
-- [x] **S4 KILN smaller, brighter, unmissable.** (L2–5: size 1.1, glow 0.6; L1 is A's.) About half the current size, with its height about three times
+- [x] **S4 KILN smaller, brighter, unmissable.** (L2–5: size 1.1, glow 0.6; L1 the same, A 2026-11-06.) About half the current size, with its height about three times
   the commander's head height. Brighter. It appears right beside the commander on KILN's first line.
   - B: `spiritFollow.size` and the brightness option in levels 2–5. A: level 1's cue.
   - Done: one screenshot per level at the first KILN line.
-- [ ] **S5 Goal cards in the tutorials.** (On in L2–5; L1 is A's.) The goal shows mid-screen until it is tapped, as in later levels, then
+- [x] **S5 Goal cards in the tutorials.** (On in L1–5; L1 by A, live 2026-11-06.) The goal shows mid-screen until it is tapped, as in later levels, then
   flies to the top. One at a time, alternating with dialogue. This replaces "goals appear silently at the top" in
   levels 1–5.
   - Covers L3's "the goal changed to clear the rockslide with no context or notice": every goal change gets its card
@@ -80,7 +80,7 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
 
 ## 3. Guidance
 
-- [ ] **S7 Floor arrows from the first moment in levels 1–5.** No waiting for the player to get stuck. Level 1 is
+- [x] **S7 Floor arrows from the first moment in levels 1–5.** (L1 live 2026-11-06: on from the start, led to the light until the reactor is found.) No waiting for the player to get stuck. Level 1 is
   A's: drop `noGuide` and the 600-tick fallback. Levels 2–5 already show them.
 - [ ] **S8 Arrows follow the current goal: levels 1–5 part.** The behaviour itself is R6 G5. Here: check it on L3
   (kiosk, then rockslide). Edge pointers for pods appear on KILN's HUD line in L2.
@@ -89,19 +89,19 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
 
 ## 4. HUD in the tutorials
 
-- [ ] **S10 Restart and Levels buttons in levels 1–5.** Level 1 hides `retry`. Show them in all five (A for L1,
+- [x] **S10 Restart and Levels buttons in levels 1–5.** (L1 live 2026-11-06; L2–5 never hid them.) Level 1 hides `retry`. Show them in all five (A for L1,
   B for 2–5).
 
 ## 5. Level by level (after S1 is approved)
 
 ### Level 1 (A)
-- [ ] **S11 The way to the reactor.**
+- [x] **S11 The way to the reactor.** (Live 2026-11-06: white pulse, then the edge glow with a pointer; arrows to the light; the reactor's lights on when found at 90 units; ore past it since d898a02; red ridge only mid-storm.)
   - Lose the red light before "What's that light over there?". Instead, one bright white pulse, then an edge
     pointer (like the pod pointers) toward it.
   - Place the ore farther out than the reactor.
   - The reactor's white light stays off until the reactor is found. When on, it glows onto the screen edge while
     the light itself stays off screen.
-- [ ] **S12 Level 1 lines and goals per S1:** KILN "…you're late…", then fill the reactor, then the pods, Vale and
+- [x] **S12 Level 1 lines and goals per S1:** (Live 2026-11-06, screenplay draft 4 word for word, plus the KILN boot header; storm moved after the fill window.) KILN "…you're late…", then fill the reactor, then the pods, Vale and
   the night, in the agreed pattern.
 
 ### Level 2 (B)
