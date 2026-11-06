@@ -4,3 +4,4 @@ export { HUMAN, LADDER, PROFILES, withLearning, type BotProfile } from "./profil
 export { Perception, VIEW, viewFor, type ViewBox } from "./view.js";
 export { Brain, type Task, type TaskKind, type Suggestion, type SuggestKind } from "./brain.js";
 export { Nav } from "./nav.js";
+export { createShape, shapeTick, shapeResult, STILL_UNITS, type PlayShape, type ShapeAcc } from "./shape.js";
