@@ -475,7 +475,8 @@ export class GoalHud {
       b.className = `gdisc ${t.state}${i === next ? " next" : ""}${b.classList.contains("alert") ? " alert" : ""}`;
       b.innerHTML = i === next && hidden ? "" : goalIcon(t, 50) + (t.state === "open" && t.inner !== undefined && t.glyph !== "stopwatch" ? `<span class="gnum${t.pips ? " low" : ""}">${t.inner}${t.beside ? `<small>/${t.beside}</small>` : ""}</span>` : "");
       // a goal just won or lost: a short flash
-      if (was && !was.startsWith("hidden") && JSON.parse(was)[0] !== t.state) { b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
+      // (the key is [inner, beside, state, ...]: compare the state at index 2, not the inner text, or every number tick flashes it)
+      if (was && !was.startsWith("hidden") && JSON.parse(was)[2] !== t.state) { b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
     });
     while (this.el.goals.children.length > tokens.length) this.el.goals.lastElementChild!.remove();
     if (this.open !== null) this.paintBubble();
