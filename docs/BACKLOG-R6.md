@@ -57,6 +57,22 @@ N2 mite numbers (take them from arena PROPOSALS if he agrees), and the review's 
 
 Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked on L14: silhouette through the grow dome, dome and warehouse stay solid, the warehouse arrow points inward, ore by the reactor hatch (the deposit anchor sits inside the body, so the pile is placed just outside on its bearing and shows the last fuel fed), and the sandbox stats panel. Not seen on screen: belt goods (#4), curbs (#7), smoothing (#8) beyond the reactor, the HUD items (#1, #2, #3, #6), and N16, which needs two real deploys. Not on an iPhone. The silhouette covers the rigged hero only.
 
+**Live check, 2026-11-05 (Haiku, screenshots on the Vercel URL, fresh profile after clearing the service worker and caches; unlock-all `410864d` live).** The levels were reached by their menu title, not by pack id, because menu 1-5 are story levels. Only a few items could be checked from stills, so most are not seen.
+
+| Item | Level (pack id, title) | Result | What was seen |
+|---|---|---|---|
+| #1 gate/defence icons shake then glow steady red | s1-L026, Wreckage and Endurance | not seen | The top shield shows the raid timer (0/2:50, then 8/2:50 and 18/2:50) and stays orange in stills. Shake and steady red glow cannot be confirmed from stills. |
+| #2 VIP goal icon is "VIP" text | s1-L008, Open Vault | not seen | Level not reached. Level 8 in the menu is a different level, "Blueprints and Paydays", and showed only "Earn 329 credits". |
+| #3 "Finish in x:xx" is the last star | s1-L008, Open Vault | not seen | Level not reached. The HUD on the level checked shows a plain timer only. |
+| #4 goods ride on belt tops | s1-L014, Warehouse Rush | not seen | Level not reached. |
+| #6 impatient trader "!" arrow | s1-L013, Big Orders | not seen | Level not reached. |
+| #7 no grey pipe bars on lot edges | s1-L026, Wreckage and Endurance | not seen | Lot edges show stone walls; not clear enough in stills to rule the bars in or out. |
+| #8 smooth, not faceted, code-built objects | s1-L026, Wreckage and Endurance | not seen | Buildings look smooth at this size; not checked close up. |
+
+Step A renderer items (not in the list above, same check): wall fade (L14), bolts, healing cross, trader order icons, win fireworks, shovel dig at a rockslide pad. Not reached in this pass. On L26 the guards show "Injured" labels, not a healing cross.
+
+Not reached: s1-L008, s1-L013, s1-L014, s1-L025, s1-L050. Next pass: play s1-L008 past its intro for the VIP and time items, then s1-L014 for belts and s1-L013 for the trader arrow.
+
 ### Bundle 1: occlusion (Opus)
 - [x] **#5 + N7 never fade:** the grow dome, the warehouse (`struct.depot`) and resource nodes (`node.*`) never
       fade (NO_FADE, `render-3d/src/renderer.ts:129`). This finishes R5 #4's open note (buildings faded with
