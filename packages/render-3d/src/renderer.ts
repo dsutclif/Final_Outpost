@@ -9,6 +9,7 @@ import {
   InstancedMesh,
   DataTexture,
   Frustum,
+  ExtrudeGeometry,
   Group,
   Matrix4,
   Material,
@@ -21,6 +22,7 @@ import {
   ACESFilmicToneMapping,
   Object3D,
   PCFShadowMap,
+  Shape,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
@@ -1561,8 +1563,10 @@ export class Renderer3D implements Renderer {
   }
 
   private bubbles = new Map<string, { s: Sprite; seen: number }>();
-  /** Longest heal timer seen per guard, so the cross knows how full it is. */
-  private healMax = new Map<string, number>();
+  private healCrosses = new Map<string, Mesh>();
+  private healSeen = new Set<string>();
+  private healGeo: ExtrudeGeometry | null = null;
+  private healMat: MeshStandardMaterial | null = null;
   private bubbleSprite(key: string): Sprite {
     let b = this.bubbles.get(key);
     if (!b) {
@@ -2458,15 +2462,20 @@ export class Renderer3D implements Renderer {
       const lying = this.cp ? lyingDown(s, this.cp, r) : r.status === "healing";
       if (r.status === "injured" && !lying) { an.speed *= 0.6; an.hit = 0.2 + 0.2 * Math.sin(this.t * 6); }
       if (lying) an.down = 1;
-      // a medic is healing this guard: a green cross over them fills as the heal runs (backlog R6 G10)
+      // a medic is healing this guard: a 3D green cross bobs up and back down over them while the heal runs,
+      // fainter at the top of each bounce (backlog R6 G10, docs/mockups/heal-cross-bounce.png)
       if (r.status === "healing" && (r.timer ?? 0) > 0) {
-        const mx = Math.max(this.healMax.get(key) ?? 0, r.timer ?? 0);
-        this.healMax.set(key, mx);
-        const step = Math.max(0, Math.min(8, Math.round((1 - (r.timer ?? 0) / mx) * 8)));
-        const hs = this.bubbleSprite(`heal:${r.id}`);
-        hs.visible = this.labels.apply(hs, `heal|${step}`, () => this.healCrossArt(step / 8), textSprite(TEXT.main, 52, 96));
-        hs.position.set(pos.x, ART_M * rl.scale * this.devCharScale * 1.7, pos.y);
-      } else this.healMax.delete(key);
+        const hc = this.healCrossOf(`heal:${r.id}`);
+        const bob = (1 - Math.cos(this.t * 3.4 + r.id)) / 2;
+        hc.position.set(pos.x, ART_M * rl.scale * this.devCharScale * 1.65 + bob * ART_M * 0.4, pos.y);
+        hc.rotation.y = Math.atan2(this.camera.position.x - this.look.x, this.camera.position.z - this.look.z);
+        this.healCrossMat().opacity = 1 - 0.5 * bob;
+      }
+      // the medic beside a patient kneels over them while the heal runs (its `care` clip)
+      if (rl && r.target !== null && r.target !== undefined && sp < 0.05) {
+        const pt = s.residents.find((g) => String(g.id) === r.target && g.status === "healing");
+        if (pt) this.acts.set(key, { act: "care", until: this.t + 0.3, at: { x: pt.pos.x / FP, y: pt.pos.y / FP } });
+      }
       // rigged once loaded; the frozen turn to ice and the med bay patients lie on their backs (rigged.ts)
       const rrig = this.rigged?.entryFor(id);
       const moving = sp > 0.05;
@@ -2562,6 +2571,8 @@ export class Renderer3D implements Renderer {
     }
     // order bubbles of customers that left the queue
     for (const [k, b] of this.bubbles) if (b.seen !== this.frameNo) { this.dynamic.remove(b.s); this.bubbles.delete(k); }
+    for (const [k, m] of this.healCrosses) if (!this.healSeen.has(k)) { this.dynamic.remove(m); this.healCrosses.delete(k); }
+    this.healSeen.clear();
     void items; void dt;
   }
 
@@ -2767,25 +2778,34 @@ export class Renderer3D implements Renderer {
 
   // ---------------------------------------------------------------- label art
 
-  /** A medical cross, grey until the heal fills it from the bottom in the OK colour. */
-  private healCrossArt(k: number): LabelArt {
-    const t = this.tokens;
-    return {
-      w: 96, h: 96,
-      draw: (g) => {
-        const path = (): void => {
-          g.beginPath();
-          g.rect(34, 10, 28, 76); g.rect(10, 34, 76, 28);
-        };
-        g.fillStyle = t.ink; g.strokeStyle = t.ink; g.lineWidth = 16; g.lineJoin = "round";
-        path(); g.stroke();
-        g.save(); path(); g.clip();
-        g.fillStyle = "#e9ecef"; g.fillRect(0, 0, 96, 96);
-        g.fillStyle = t.ok; g.fillRect(0, 96 - 76 * k - 10, 96, 76 * k + 10);
-        g.restore();
-        g.lineWidth = 4; g.strokeStyle = t.ink; path(); g.stroke();
-      },
-    };
+  /** The shared see-through green of the heal crosses (one opacity for all, set per frame). */
+  private healCrossMat(): MeshStandardMaterial {
+    this.healMat ??= new MeshStandardMaterial({ color: new Color(this.tokens.ok), roughness: 0.45, metalness: 0.05, emissive: new Color(this.tokens.ok), emissiveIntensity: 0.35, transparent: true, depthWrite: false });
+    return this.healMat;
+  }
+
+  /** A bevelled 3D medical cross for a patient, kept while seen. */
+  private healCrossOf(key: string): Mesh {
+    let m = this.healCrosses.get(key);
+    if (!m) {
+      if (!this.healGeo) {
+        const a = 0.17, l = 0.5, r = 0.07, sh = new Shape();
+        // a plus outline with rounded outer corners
+        sh.moveTo(-a + r, -l); sh.lineTo(a - r, -l); sh.quadraticCurveTo(a, -l, a, -l + r); sh.lineTo(a, -a); sh.lineTo(l - r, -a); sh.quadraticCurveTo(l, -a, l, -a + r);
+        sh.lineTo(l, a - r); sh.quadraticCurveTo(l, a, l - r, a); sh.lineTo(a, a); sh.lineTo(a, l - r); sh.quadraticCurveTo(a, l, a - r, l);
+        sh.lineTo(-a + r, l); sh.quadraticCurveTo(-a, l, -a, l - r); sh.lineTo(-a, a); sh.lineTo(-l + r, a); sh.quadraticCurveTo(-l, a, -l, a - r);
+        sh.lineTo(-l, -a + r); sh.quadraticCurveTo(-l, -a, -l + r, -a); sh.lineTo(-a, -a); sh.lineTo(-a, -l + r); sh.quadraticCurveTo(-a, -l, -a + r, -l);
+        this.healGeo = new ExtrudeGeometry(sh, { depth: 0.14, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.045, bevelSegments: 3, curveSegments: 5 });
+        this.healGeo.translate(0, 0, -0.07);
+      }
+      m = new Mesh(this.healGeo, this.healCrossMat());
+      m.scale.setScalar(ART_M * 0.75);
+      m.renderOrder = 11;
+      this.dynamic.add(m);
+      this.healCrosses.set(key, m);
+    }
+    this.healSeen.add(key);
+    return m;
   }
 
   private orderArt(res: string, want: number, k: number, serve: number | null = null): LabelArt {
