@@ -1,8 +1,5 @@
 {
   "notes": [
-    "Only the wall sections between your commander and the camera fade now, instead of the whole wall.",
-    "The healing cross is a smaller bobbing 3D cross that floats over the guard and vanishes at the top of each bounce, and the medic kneels beside the guard while healing.",
-    "Every level is open from the start while the game is still changing, so you can jump straight to any level.",
-    "Gate and defence icons no longer pulse in and out while they take hits. They shake once when danger starts and again on a hit, then glow steady red."
+    "Upgrade pads now show a blue blueprint of the building at the level it will become, for the reactor, turrets and machines."
   ]
 }

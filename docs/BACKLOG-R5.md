@@ -141,8 +141,14 @@ After merge (main session, Opus):
 Engine 0.17.0, levels re-pinned without a rebuild (Doug). Leash line is the farthest turret or turret pad, built or not;
 guards, drones and the medic stay in the walk box; downed guards lie down at once unless walking to a med bay. textScale 0.8;
 lock text names the job; output stack on the pickup pad; rotors sized to the guard rings (output stack and rotor fit not seen
-on screen). #11 fixed properly: characters, items and decor thumbnails now use their GLBs. Still open: #31 level 2/3 pads
-show the level 1 ghost size; the medic has no route through gates.
+on screen). #11 fixed properly: characters, items and decor thumbnails now use their GLBs. #31 level 2/3 pads and the
+medic's route through gates were open here; both closed by 2026-11-06 (see below).
+
+## Leftovers (2026-11-06, branch r5-leftovers)
+
+Upgrade pads (core, turret, machine) show a blueprint at the level they build to (#31); seen on screen. The medic's gate
+routing came with engine 0.19.0 (gatedMove) and its kneel with R6 G10 (main), so this branch's copy was dropped. The 2D
+renderer draws by-hand pads locked (#25); unit-tested only, since the game never uses the 2D renderer.
 
 ## Sprint 3
 
