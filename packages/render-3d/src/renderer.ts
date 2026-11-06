@@ -1935,7 +1935,8 @@ export class Renderer3D implements Renderer {
     for (const p of s.pads) if (p.done) done.add(p.id);
     const pl = s.player.pos;
     const ghosts = new Set(s.pads
-      .filter((pad) => !pad.done && pad.visible && this.ghostSpecOf(this.pads.get(pad.id), s))
+      // an upgrade previews only once the player has started paying for it (Doug); new builds always show
+      .filter((pad) => { const g = !pad.done && pad.visible && this.ghostSpecOf(this.pads.get(pad.id), s); return !!g && (!g.fromState || Object.values(pad.paid).some((n) => n > 0)); })
       .sort((a, b) => ((a.pos.x - pl.x) ** 2 + (a.pos.y - pl.y) ** 2) - ((b.pos.x - pl.x) ** 2 + (b.pos.y - pl.y) ** 2) || (a.id < b.id ? -1 : 1))
       .slice(0, TIERS[this.quality].ghosts)
       .map((pad) => pad.id));
