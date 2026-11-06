@@ -2,7 +2,7 @@
 
 **Summary** (matches `docs/STORY-SCREENPLAY.md` draft 4). A pulse from the ridge scrambles the colony
 ship Halcyon's navigation, and it crashes. The commander wakes late in the wreck, relights the reactor
-and meets KILN, the ship's support system. They tow four surviving crew home and find the lander's escape
+and meets KILN (Knowledge Integration & Logistics Network, Doug 2026-11-05), the ship's support system. They tow four surviving crew home and find the lander's escape
 pod, ridden down and abandoned. Bays five to eight still read occupied, yet first officer Vale's pod is
 empty. Sela, a salvage trader, pays in Halcyon chips and reveals the crash was eleven years ago. The
 flight recorder shows Vale and three others left their pods before impact. Raiders attack from the

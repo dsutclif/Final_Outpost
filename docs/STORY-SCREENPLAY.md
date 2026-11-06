@@ -28,7 +28,7 @@ the other account's to build, so this is the words only; that account reviews it
   - Their pods are empty: those four let themselves out before impact (level 4).
   - They escaped in a lander pod, the orange one in level 2. It came down scorched, and they walked away from it
     toward the ridge long ago.
-- KILN is the ship's support system. The reactor powers it; KILN is not the reactor. It appears as a cloud.
+- KILN stands for **Knowledge Integration & Logistics Network** (Doug, 2026-11-05). It is the ship's support system. The reactor powers it; KILN is not the reactor. It appears as a cloud.
 
 ---
 

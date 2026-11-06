@@ -105,8 +105,9 @@ ship's east end). The playable towable pods keep their size. Steps:
 runs, the helmet visibly drops as it passes its spot, then S33 "Vale?" as the commander runs two steps), the old pod's
 hinged glass in L2 (S31), and drawing Sela in-game with her own `unit.customer_sela` model.
 
-**Waiting on Doug.** What KILN stands for: not found in any doc or git history (it is only "the Halcyon's reactor
-caretaker program", from storyline option A); Doug may ask the session that wrote the first storyline.
+**Resolved (Doug, 2026-11-05).** KILN stands for Knowledge Integration & Logistics Network. Recorded in the screenplay facts and in STORY-LEVELS-V2.md.
+
+**Note for Account A:** level 1's cue where KILN introduces itself ("I'm KILN, the support system of the Halcyon...") could name it in full if Doug wants the full name on screen. B did not touch level 1's cues.
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
@@ -374,3 +375,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
 ### 2026-11-05 (B): one size reference
 
 New `render-3d/src/sizes.ts` (`SIZES`, `POD_K`, `POD_CAVITY_M`; export `@fo/render-3d/sizes`). `characters.ts` (`PERSON_M`), `livescene.ts`, the sandbox `layoutmock.ts`, `crashsite.ts` and `arena.ts`, and `tools/relayout.ts` read it instead of repeating 2.66 / 3.9847 / 1.809 / 0.8 / 1.8 / 1.98 / 2.64 / 4.4. No value changed. `client/test/sizes.test.ts` checks the level pods' scale and lift against it. Note: `tools/relayout.ts` is not idempotent (re-running moves level 1-5 placements), so it is not a regenerator; to change a size, edit sizes.ts, then the level numbers, and the test says if they disagree. Not done: building and film scale constants in `buildings.ts`, `units.ts` stay as they are.
+
+### 2026-11-05 (B): why the bay scenes still looked off, and the fix
+
+The pod size and burial already matched after e4f7bb4's predecessor (5a8a731), and `empty_bays` has no people, so the visible difference was the lens: the game camera is 8 degrees (`FOV_DEG`, near flat) while the scenes used 38/58, which blows up the near pod and the people. `livescene.ts` `gameLens()` now gives both bay scenes the game's lens, backing the camera off along its line of sight so the framing holds (far plane 1200). Also fixed the sandbox Crash site (`crashsite.ts`): it started at ship x0.54 / pod x0.80 on top of levels that already carry 27 m / 2.66 m, so it showed a 2.13 m pod; it now starts at x1 (2.66 m, 56% of 1.44 m buried, commander 1.98 m) and matches the game. KILN's full name recorded (screenplay, V2 plan).

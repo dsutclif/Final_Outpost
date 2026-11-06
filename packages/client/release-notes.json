@@ -1,5 +1,5 @@
 {
   "notes": [
-    "Behind the scenes: every object size now comes from one shared list, so scenes, tools and levels agree."
+    "The cryo-bay camera scenes now use the game's own camera lens, so the pods look the same size next to the crew as they do in play."
   ]
 }

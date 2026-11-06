@@ -54,8 +54,8 @@ export function createCrashSite(): CrashUi {
 
   const skin = getSkin(DEFAULT_SKIN);
   const tk = deriveTokens(skin);
-  // Doug's sizes of 2026-11-04 as the starting point (ship 27 m; decor pods 2.66 m, base 0.80 m in the sand)
-  const sizes = { ship: 0.54, pod: 0.8, cmdr: 1 };
+  // The levels now carry Doug's 2026-11-04 sizes (ship 27 m; decor pods 2.66 m, base 0.80 m in the sand), so x1 is the game
+  const sizes = { ship: 1, pod: 1, cmdr: 1 };
   /** Where the pod's base sits against the sand, metres (negative: sunk in). Today's levels have it 1.19 m down, in the deck. */
   let podBaseM = -SIZES.pod.buried;
   /** The concrete deck plates: off, so the pods sit straight in the sand (Doug, 2026-11-04). */
