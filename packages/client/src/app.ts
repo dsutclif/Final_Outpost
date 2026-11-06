@@ -23,6 +23,7 @@ import type { TelemetryQueue } from "./telemetry.js";
 import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
 import { FILM_VERSIONS, REPLAY_FILMS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
+import { preloadCharacters } from "./preload.js";
 import { StoryStage, directorFor, type StoryDirector } from "./story/index.js";
 
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
@@ -213,6 +214,7 @@ export class App {
     this.show("title");
     if (this.deps.justUpdated) this.continueToast();
     warm3D();
+    preloadCharacters();
     void this.prefetch();
   }
 
@@ -1361,8 +1363,10 @@ export class App {
     const all = alarmed ? goalTokens(st, s.manifest, s.sim.compiled, this.skin) : [];
     const tokens = s.director?.visibleTokens(all) ?? all;
     const a = alarmed ? alertOf(st, s.manifest, s.sim.compiled, tokens) : { kind: "none" as const };
-    const key = a.kind === "goal" ? `goal:${a.id}` : a.kind;
-    if (key !== this.alertKey) { this.alertKey = key; this.alert = a; this.hud.setAlert(a); this.buzzAt = 0; }
+    // the pulse and shake belong to a raid in progress; between waves the glow is steady and nothing moves
+    const attack = !!st.waves?.active;
+    const key = (a.kind === "goal" ? `goal:${a.id}` : a.kind) + (attack ? ":raid" : "");
+    if (key !== this.alertKey) { this.alertKey = key; this.alert = a; this.hud.setAlert(a, attack); this.buzzAt = 0; }
     // every danger, not just the one the top icon shows, is marked in the world (backlog R5 #16); re-picked each frame, as the coldest colonist changes
     s.renderer.setAlertMarks(alarmed ? alertMarks(st, s.manifest, s.sim.compiled, tokens) : []);
     if (this.alert.kind === "none" || now - this.buzzAt < ALERT_BUZZ_MS) return;

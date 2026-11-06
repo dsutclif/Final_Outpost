@@ -6,8 +6,10 @@ import {
   BoxGeometry,
   BufferAttribute,
   Color,
+  InstancedMesh,
   DataTexture,
   Frustum,
+  ExtrudeGeometry,
   Group,
   Matrix4,
   Material,
@@ -20,6 +22,7 @@ import {
   ACESFilmicToneMapping,
   Object3D,
   PCFShadowMap,
+  Shape,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
@@ -59,10 +62,10 @@ import { StoryLights, nightFloor, storyLightColors, storyLighting } from "./scen
 import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
-import { addSilhouette, silhouetteMaterial } from "./scene/silhouette.js";
 import { LookTest } from "./lookTest.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
+import { ItemIcons } from "./scene/itemicons.js";
 import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { heldJob, padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
@@ -135,7 +138,7 @@ const SAFE_RING_K = 1;
 /**
  * Never fade: gates belong to the (instanced, always solid) walls, belts and barriers are flat; the grow
  * dome, the warehouse and resource nodes stay solid by Doug's call (backlog R6 #5 + N7), the hero's
- * silhouette shows through them instead. Wall turrets are dropped at their call site.
+ * (no silhouette any more). Wall turrets are dropped at their call site.
  */
 const NO_FADE = /^(struct\.(gate|conveyor|depot)$|barrier\.|node\.)/;
 const FADE_TO = 0.28;
@@ -146,6 +149,7 @@ const FADE_TO = 0.28;
  */
 interface Occ { x0: number; x1: number; z0: number; z1: number; top: number; fade: number; on: boolean; swaps: [Mesh, Material | Material[], Material | Material[]][]; see: { m: Material; a: number }[] }
 const v3 = (x = 0, y = 0, z = 0): Vector3 => new Vector3(x, y, z);
+const up3 = (p: Vector3, h: number): Vector3 => new Vector3(p.x, p.y + h, p.z);
 const tmpM = new Matrix4(), tmpV = new Vector3(), tmpV2 = new Vector3();
 const clamp01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x);
 
@@ -362,10 +366,16 @@ export class Renderer3D implements Renderer {
   private dropTick = 0;
   private crowd: Crowd | null = null;
   private rigged: Rigged | null = null;
-  /** The hero's see-through silhouette material (backlog R6 N9), made on first use. */
-  private silMat: MeshBasicMaterial | null = null;
+  /** Wall segments as boxes in their own frame (rebuilt each frame), the see-through copies of the four wall batches, and the shared fade. */
+  private wallCtx = { px: 0, pz: 0, ux: 0, uz: 1, slope: 1, half: 0, dt: 0 };
+  /** Opacity of each wall piece by position, eased frame to frame (this frame's map is built as pieces are laid). */
+  private wallAlpha = new Map<string, number>();
+  private wallNext = new Map<string, number>();
+  private wallFadeColor = new Color(1, 1, 1);
+  private wallTwins = new Map<Batch, { twin: Batch; solid: Material; geo: BufferGeometry; see: Material }>();
   private blobs: Blobs | null = null;
   private items: Items | null = null;
+  private itemIcons: ItemIcons | null = null;
   private walls: { wall: Batch; cracked: Batch; reinforced: Batch; crackedR: Batch; dash: Batch; rubble: Batch; crate: Batch; terrain: Batch } | null = null;
   /** The Rockslide GLB has landed: ridge and outcrop terrain draws as tiles of it (Doug, 2026-11-04). */
   private rockslide = false;
@@ -607,6 +617,7 @@ export class Renderer3D implements Renderer {
     this.rigged = new Rigged(this.scene);
     this.blobs = new Blobs(mats.blob, this.scene);
     this.items = new Items(this.tokens, mats.std, this.scene);
+    this.itemIcons = this.gl && typeof mount.ownerDocument?.createElement === "function" ? new ItemIcons(this.gl as unknown as WebGLRenderer, this.items, mount.ownerDocument) : null;
     const geoOf = (m: Model): BufferGeometry => {
       let g: BufferGeometry | null = null;
       m.root.traverse((o) => { if (!g && (o as Mesh).isMesh) g = (o as Mesh).geometry; });
@@ -708,10 +719,12 @@ export class Renderer3D implements Renderer {
     this.rigged?.dispose();
     this.lookT?.dispose();
     this.lookT = null;
-    this.silMat?.dispose();
-    this.silMat = null;
+    for (const w of this.wallTwins.values()) { w.twin.dispose(); w.see.dispose(); }
+    this.wallTwins.clear();
     this.blobs?.dispose();
     this.items?.dispose();
+    this.itemIcons?.dispose();
+    this.itemIcons = null;
     if (this.walls) for (const b of Object.values(this.walls)) b.dispose();
     for (const g of this.geos) g.dispose();
     this.geos = [];
@@ -1014,6 +1027,7 @@ export class Renderer3D implements Renderer {
     this.rigged?.begin();
     this.blobs.begin();
     for (const b of Object.values(this.walls!)) b.begin();
+    this.setWallCtx(pl, dt);
 
     this.syncCore(state);
     this.syncSales(state, a);
@@ -1045,6 +1059,7 @@ export class Renderer3D implements Renderer {
     for (const [k, d] of this.drones) if (d.seen !== this.frameNo) { this.dynamic.remove(d.root); this.drones.delete(k); }
     this.blobs.end();
     for (const b of Object.values(this.walls!)) b.end();
+    for (const t of this.wallTwins.values()) t.twin.end();
 
     const coreW = this.wv(state.core.pos);
     if (this.storyP && this.storyLights && this.spirit) {
@@ -1204,7 +1219,7 @@ export class Renderer3D implements Renderer {
       const r = p.model.root;
       const reach = (r.position.y + o.top * r.scale.y - half) / slope;
       let hidden = false;
-      if (r.visible && reach > 0 && !this.storyP?.solidIds.has(String(p.data["id"]))) {
+      if (r.visible && reach > 0) {
         // into the root's frame: undo its turn, then its per-axis scale
         const c = Math.cos(r.rotation.y), s = Math.sin(r.rotation.y);
         const wx = pl.x - r.position.x, wz = pl.y - r.position.z;
@@ -1221,13 +1236,61 @@ export class Renderer3D implements Renderer {
     }
   }
 
-  /** The rigged hero shows through walls and buildings in the hero colour (backlog R6 N9); remove this call to drop it. */
-  private heroSilhouette(): void {
-    const root = this.rigged?.rootOf("player");
-    if (!root) return;
-    this.silMat ??= silhouetteMaterial(this.tokens.ok);
-    // compiled as soon as it's added, as the fade copies are
-    if (addSilhouette(root, this.silMat)) void this.gl?.compileAsync?.(root, this.camera, this.scene).catch(() => undefined);
+  /** Per-frame facts the wall sections need to decide whether they hide the hero (set before the barriers are laid out). */
+  private setWallCtx(pl: V, dt: number): void {
+    const cx = this.camera.position.x - this.look.x, cz = this.camera.position.z - this.look.z;
+    const flat = Math.hypot(cx, cz) || 1;
+    this.wallCtx = { px: pl.x, pz: pl.y, ux: cx / flat, uz: cz / flat, slope: Math.max(0.05, (this.camera.position.y - this.look.y) / flat), half: 0.5 * ART_M * this.devCharScale, dt };
+    this.wallAlpha = this.wallNext;
+    this.wallNext = new Map();
+    for (const t of this.wallTwins.values()) t.twin.begin();
+  }
+
+  /**
+   * The see-through twin of a wall batch: same geometry, a copy of its material that reads each
+   * instance's opacity from the instance colour's red channel (N9b: fade one section at a time).
+   * Rebuilt when the batch's geometry or material changes (a Meshy wall landed).
+   */
+  private wallTwin(bt: Batch): Batch {
+    let t = this.wallTwins.get(bt);
+    const geo = bt.mesh.geometry, mat = bt.material;
+    if (!t || t.geo !== geo || t.solid !== mat) {
+      t?.see.dispose();
+      const see = mat.clone();
+      see.transparent = true; see.depthWrite = false;
+      see.customProgramCacheKey = () => "wallfade";
+      see.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace("#include <color_fragment>", "diffuseColor.a *= vColor.r;"); };
+      if (t) t.twin.swap(geo, see);
+      else t = { twin: new Batch(geo, see, this.scene, 16, "wallsFading"), solid: mat, geo, see };
+      t.solid = mat; t.geo = geo; t.see = see;
+      this.wallTwins.set(bt, t);
+      t.twin.begin();
+      const warm = new InstancedMesh(geo, see, 1);
+      warm.setColorAt(0, new Color(1, 1, 1));
+      void this.gl?.compileAsync?.(warm, this.camera, this.scene).catch(() => undefined);
+    }
+    return t.twin;
+  }
+
+  /** Lay one wall piece: solid in its own batch, or in the fading twin while (and as it eases back from) hiding the hero. */
+  private pushWall(batch: Batch, x: number, z: number, ang: number, sx: number, sy: number, sz: number, tint?: Color): void {
+    const c = this.wallCtx;
+    const geo = batch.mesh.geometry;
+    if (!geo.boundingBox) geo.computeBoundingBox();
+    const bb = geo.boundingBox!;
+    let target = 1;
+    const reach = (bb.max.y * sy - c.half) / c.slope;
+    if (reach > 0) {
+      const co = Math.cos(ang), si = Math.sin(ang), wx = c.px - x, wz = c.pz - z, i = 0.3 * c.half;
+      if (segHitsBox(wx * co - wz * si, wx * si + wz * co, (c.ux * co - c.uz * si) * reach, (c.ux * si + c.uz * co) * reach, bb.min.x * sx + i, bb.max.x * sx - i, bb.min.z * sz + i, bb.max.z * sz - i)) target = FADE_TO;
+    }
+    const key = `${Math.round(x)},${Math.round(z)}`;
+    const prev = this.wallAlpha.get(key) ?? 1;
+    const now = target < prev ? Math.max(target, prev - c.dt * 6) : Math.min(target, prev + c.dt * 4);
+    this.wallNext.set(key, now);
+    if (now >= 1) { batch.push(tmpM, tint); return; }
+    this.wallFadeColor.setRGB(now, now, now);
+    this.wallTwin(batch).push(tmpM, this.wallFadeColor);
   }
 
   /** Squash-and-stretch pop for anything that appeared after the level loaded (0 -> 1.15 -> 1, 400 ms). */
@@ -1263,14 +1326,14 @@ export class Renderer3D implements Renderer {
     if (!fit) {
       const f = (f0 + f1) / 2;
       tmpM.makeRotationY(ang).scale(tmpV.set(run, h, ART_M)).setPosition(a.x + dx * f, 0, a.z + dz * f);
-      batch.push(tmpM);
+      this.pushWall(batch, a.x + dx * f, a.z + dz * f, ang, run, h, ART_M);
       return;
     }
     const n = Math.max(1, Math.round(run / (fit.len * ART_M)));
     for (let j = 0; j < n; j++) {
       const f = f0 + ((j + 0.5) / n) * (f1 - f0);
       tmpM.makeRotationY(ang).scale(tmpV.set(run / n / fit.len, h, ART_M * fit.depth)).setPosition(a.x + dx * f, 0, a.z + dz * f);
-      batch.push(tmpM, low ? CRACKED : undefined);
+      this.pushWall(batch, a.x + dx * f, a.z + dz * f, ang, run / n / fit.len, h, ART_M * fit.depth, low ? CRACKED : undefined);
     }
   }
 
@@ -1485,7 +1548,7 @@ export class Renderer3D implements Renderer {
       const pk = Math.round(clamp01(c.patience / Math.max(1, c.patienceMax)) * 10);
       const sp = this.bubbleSprite(key);
       const sv = serving && serving.customer === c.id ? Math.round(clamp01(serving.ticks / Math.max(1, serving.of)) * 8) : -1;
-      const ok = this.labels.apply(sp, `ord|${c.res}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), textSprite(TEXT.main, 52, 120));
+      const ok = this.labels.apply(sp, `ord|${c.res}|${this.itemIcons?.version(c.res) ?? "-"}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), textSprite(TEXT.main, 52, 120));
       sp.visible = ok;
       sp.position.set(pos.x, ART_M * look.scale * this.devCharScale * 1.55, pos.y);
     }
@@ -1503,6 +1566,10 @@ export class Renderer3D implements Renderer {
   }
 
   private bubbles = new Map<string, { s: Sprite; seen: number }>();
+  private healCrosses = new Map<string, Mesh>();
+  private healSeen = new Set<string>();
+  private healGeo: ExtrudeGeometry | null = null;
+  private healMat: MeshStandardMaterial | null = null;
   private bubbleSprite(key: string): Sprite {
     let b = this.bubbles.get(key);
     if (!b) {
@@ -2389,7 +2456,6 @@ export class Renderer3D implements Renderer {
     const pyaw = this.faceAct("player", pl, yaw, pmove);
     if (prig) {
       this.rigged!.add("player", "unit.player", prig, { moving: pmove, hurried: false, run: true, cheer: anim.cheer > 0, act: this.actOf("player")?.act, speed: this.moving }, pl.x, pl.y, pyaw, ART_M * look.scale * this.devCharScale * this.heroK / 0.9);
-      this.heroSilhouette();
       this.blobs!.add(pl.x, pl.y, 10 * look.scale * this.devCharScale * this.heroK);
     } else this.addCharacter(look, anim, pl, yaw, t.frost);
     this.backStack(s.player.stack, pl, pyaw, look.scale * this.devCharScale, this.moving, v, true);
@@ -2417,6 +2483,20 @@ export class Renderer3D implements Renderer {
       const lying = this.cp ? lyingDown(s, this.cp, r) : r.status === "healing";
       if (r.status === "injured" && !lying) { an.speed *= 0.6; an.hit = 0.2 + 0.2 * Math.sin(this.t * 6); }
       if (lying) an.down = 1;
+      // a medic is healing this guard: a 3D green cross bobs up and back down over them while the heal runs,
+      // fainter at the top of each bounce (backlog R6 G10, docs/mockups/heal-cross-bounce.png)
+      if (r.status === "healing" && (r.timer ?? 0) > 0) {
+        const hc = this.healCrossOf(`heal:${r.id}`);
+        const bob = (1 - Math.cos(this.t * 3.4 + r.id)) / 2;
+        hc.position.set(pos.x, ART_M * rl.scale * this.devCharScale * 1.3 + bob * ART_M * 0.35, pos.y);
+        hc.rotation.y = Math.atan2(this.camera.position.x - this.look.x, this.camera.position.z - this.look.z);
+        this.healCrossMat().opacity = 1 - bob;
+      }
+      // the medic beside a patient kneels over them while the heal runs (its `care` clip)
+      if (rl && r.target !== null && r.target !== undefined && sp < 0.05) {
+        const pt = s.residents.find((g) => String(g.id) === r.target && g.status === "healing");
+        if (pt) this.acts.set(key, { act: "care", until: this.t + 0.3, at: { x: pt.pos.x / FP, y: pt.pos.y / FP } });
+      }
       // rigged once loaded; the frozen turn to ice and the med bay patients lie on their backs (rigged.ts)
       const rrig = this.rigged?.entryFor(id);
       const moving = sp > 0.05;
@@ -2517,6 +2597,8 @@ export class Renderer3D implements Renderer {
     }
     // order bubbles of customers that left the queue
     for (const [k, b] of this.bubbles) if (b.seen !== this.frameNo) { this.dynamic.remove(b.s); this.bubbles.delete(k); }
+    for (const [k, m] of this.healCrosses) if (!this.healSeen.has(k)) { this.dynamic.remove(m); this.healCrosses.delete(k); }
+    this.healSeen.clear();
     void items; void dt;
   }
 
@@ -2722,6 +2804,36 @@ export class Renderer3D implements Renderer {
 
   // ---------------------------------------------------------------- label art
 
+  /** The shared see-through green of the heal crosses (one opacity for all, set per frame). */
+  private healCrossMat(): MeshStandardMaterial {
+    this.healMat ??= new MeshStandardMaterial({ color: new Color(this.tokens.ok), roughness: 0.45, metalness: 0.05, emissive: new Color(this.tokens.ok), emissiveIntensity: 0.35, transparent: true, depthWrite: false });
+    return this.healMat;
+  }
+
+  /** A bevelled 3D medical cross for a patient, kept while seen. */
+  private healCrossOf(key: string): Mesh {
+    let m = this.healCrosses.get(key);
+    if (!m) {
+      if (!this.healGeo) {
+        const a = 0.17, l = 0.5, r = 0.07, sh = new Shape();
+        // a plus outline with rounded outer corners
+        sh.moveTo(-a + r, -l); sh.lineTo(a - r, -l); sh.quadraticCurveTo(a, -l, a, -l + r); sh.lineTo(a, -a); sh.lineTo(l - r, -a); sh.quadraticCurveTo(l, -a, l, -a + r);
+        sh.lineTo(l, a - r); sh.quadraticCurveTo(l, a, l - r, a); sh.lineTo(a, a); sh.lineTo(a, l - r); sh.quadraticCurveTo(a, l, a - r, l);
+        sh.lineTo(-a + r, l); sh.quadraticCurveTo(-a, l, -a, l - r); sh.lineTo(-a, a); sh.lineTo(-l + r, a); sh.quadraticCurveTo(-l, a, -l, a - r);
+        sh.lineTo(-l, -a + r); sh.quadraticCurveTo(-l, -a, -l + r, -a); sh.lineTo(-a, -a); sh.lineTo(-a, -l + r); sh.quadraticCurveTo(-a, -l, -a + r, -l);
+        this.healGeo = new ExtrudeGeometry(sh, { depth: 0.14, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.045, bevelSegments: 3, curveSegments: 5 });
+        this.healGeo.translate(0, 0, -0.07);
+      }
+      m = new Mesh(this.healGeo, this.healCrossMat());
+      m.scale.setScalar(ART_M * 0.5);
+      m.renderOrder = 11;
+      this.dynamic.add(m);
+      this.healCrosses.set(key, m);
+    }
+    this.healSeen.add(key);
+    return m;
+  }
+
   private orderArt(res: string, want: number, k: number, serve: number | null = null): LabelArt {
     const t = this.tokens, ui = this.tokens.paper;
     return {
@@ -2732,7 +2844,8 @@ export class Renderer3D implements Renderer {
         g.lineWidth = 6; g.strokeStyle = t.ink; g.stroke();
         g.beginPath(); g.moveTo(66, 90); g.lineTo(75, 112); g.lineTo(86, 90); g.closePath();
         g.fillStyle = ui.panel; g.fill();
-        drawIcon(g, 48, 50, 22, resToken(t, res), t.ink);
+        const pic = this.itemIcons?.get(res);
+        if (pic) g.drawImage(pic, 48 - 30, 50 - 30, 60, 60); else drawIcon(g, 48, 50, 22, resToken(t, res), t.ink);
         g.font = `800 52px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
         g.fillStyle = t.ink; g.fillText(`${want}`, 104, 53);
         // patience arc
@@ -3077,6 +3190,35 @@ export class Renderer3D implements Renderer {
     if (Math.hypot(w.player.pos.x / FP - at.x, w.player.pos.y / FP - at.z) < r) this.cheerUntil.set("player", until);
   }
 
+  /**
+   * A bolt for a `hit` event (the sim emits no shot event for these): the shooter is the nearest unit of
+   * the `by` kind to the target. Friendly bolts are blue, hostile ones red; a hostile standing on its
+   * target is a melee hit and draws none. Drone shots have no event yet (note for Release 2).
+   */
+  private hitBolt(by: unknown, at: Vector3): void {
+    const w = this.world, fx = this.fx;
+    if (!w || !fx) return;
+    let from: Vector3 | null = null, bd = Infinity;
+    const scan = (list: readonly { pos: V }[]): void => {
+      for (const u of list) {
+        const d = Math.hypot(u.pos.x / FP - at.x, u.pos.y / FP - at.z);
+        if (d < bd) { bd = d; from = v3(u.pos.x / FP, 0, u.pos.y / FP); }
+      }
+    };
+    if (by === "hostile") {
+      scan(w.hostiles);
+      if (!from || bd < ART_M * 1.2 || bd > ART_M * 14) return;
+    } else {
+      if (by === "resident") scan(w.residents.filter((r) => r.role === "role.defender" || r.role === "role.hunter"));
+      else if (by === "structure") scan(w.structures.filter((s) => s.type === "struct.ranged_defense"));
+      else if (by === "troop") scan(w.troops ?? []);
+      else return;
+      if (!from || bd < ART_M * 0.6) return;
+    }
+    const a = from as Vector3;
+    fx.bolt(up3(a, 14), up3(at, 10), by === "hostile");
+  }
+
   private flashNearestTurret(at: Vector3): void {
     let best: string | null = null, bd = Infinity;
     for (const s of this.world?.structures ?? []) {
@@ -3124,6 +3266,8 @@ export class Renderer3D implements Renderer {
       case "barrier_progress": {
         const res = e.t === "barrier_progress" ? this.world?.barriers.find((b) => b.id === e["line"])?.res ?? "res.currency" : String(e["res"] ?? "res.currency");
         fx.arc(res, this.playerBack(), up(at, 4), 0.22);
+        // paying to clear a blocked zone: the hero digs with the shovel (backlog R6 G2)
+        if (e.t === "pad_paid" && this.pads.get(String(e["pad"]))?.what === "zone.clear") this.acts.set("player", { act: "dig", until: this.t + 0.6, at: { x: at.x, y: at.z } });
         break;
       }
       case "drop":
@@ -3171,7 +3315,7 @@ export class Renderer3D implements Renderer {
       case "level_end":
         if (e["won"]) {
           const p = this.playerBack();
-          fx.confetti(up(p, 30), [t.accent, t.interactive, gold, t.ok, white], 140);
+          fx.fireworks(up(p, 10), [gold, white, t.accent, t.interactive, t.ok], 7);
           fx.floater(ft("win"), white, up(p, 40), 56, TEXT.big);
           this.cheerNear(p, 9999);
         }
@@ -3224,6 +3368,7 @@ export class Renderer3D implements Renderer {
           fx.floater(ft("animal_hit"), t.danger, up(at, ART_M * 1.8), 38);
         }
         if (e["by"] === "structure") this.flashNearestTurret(at);
+        if (target !== "barrier" && e["by"] !== "player" && e["by"] !== "animal") this.hitBolt(e["by"], at);
         if (target === "hostile" || target === "prey") this.shooterAt(e["by"], at);
         fx.burst(up(at, 10), [white, mix(t.accent, t.structure, 0.5)], 6, 90, 120, 3, 0.25);
         break;

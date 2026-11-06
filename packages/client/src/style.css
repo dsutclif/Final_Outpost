@@ -131,7 +131,7 @@ body {
 .rail.alert > i { background: #e6f7ff; }
 .rail.walls.alert { background: rgba(120, 20, 10, 0.6); box-shadow: 0 0 10px 2px rgba(226, 84, 60, 0.8); }
 @media (prefers-reduced-motion: no-preference) {
-  .gdisc.alert.burst, .rail.alert.burst { animation: gpulse 0.7s ease-in-out 1; }
+  .rail.alert.burst { animation: gpulse 0.7s ease-in-out 1; }
   .gdisc.alert.burst > svg, .rail.alert.burst > i { animation: gshake 0.5s linear 1; }
 }
 @keyframes gpulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
@@ -493,4 +493,5 @@ button:disabled { opacity: 0.5; cursor: default; }
 .help-card .row button.armed { background: var(--bad); color: #fff; }
 .lvtile.skipped .sub { color: var(--muted); }
 .app.introducing .fhelp { display: none; }
-.gtok .g-vip { fill: #fff; font: 900 9px var(--display); letter-spacing: 0.4px; stroke: rgba(16, 18, 20, 0.85); stroke-width: 1px; paint-order: stroke; }
+.gtok .g-vip-o { fill: rgba(42, 45, 49, 0.95); stroke: #fff; stroke-width: 0.6px; stroke-linejoin: round; font: 900 17px var(--display); }
+.gtok .g-vip-f { fill: var(--accent); stroke: #fff; stroke-width: 0.6px; stroke-linejoin: round; font: 900 17px var(--display); }

@@ -8,6 +8,7 @@ import { loadMeshy, meshyBounds, meshyRig, meshyScene, type MeshyEntry } from "@
 import { Rigged } from "@fo/render-3d/rigged";
 import { lookFor } from "@fo/render-3d/characters";
 import { ART_M, BUILD_K, CHAR_K, DRONE_K } from "@fo/render-3d/units";
+import { SIZES } from "@fo/render-3d/sizes";
 import { HEMI, SUN } from "@fo/render-3d/environment";
 import { deriveTokens } from "@fo/render-3d/tokens";
 import { EXPOSURE } from "@fo/render-3d/renderer";
@@ -98,8 +99,8 @@ export function createArena(): ArenaUi {
    * The buggy (story decor, not yet in a level) stands at the end of the Scale row so the people read against it. x1 is
    * the model as built, 4.4 m long; it starts at 2.6 m, the size Doug marked against Sela (2026-11-04).
    */
-  const BUGGY = "decor.buggy", BUGGY_M = 4.4;
-  sizes[BUGGY] = 0.6; // Doug 2026-11-04: 2.64 m
+  const BUGGY = "decor.buggy", BUGGY_M = SIZES.buggy.buildLength;
+  sizes[BUGGY] = SIZES.buggy.length / BUGGY_M; // 2.64 m
   const counts: Record<Tab, Record<string, number>> = {
     fight: { "hostile.swarmling": 24, "hostile.creature": 8, "hostile.raider_humanoid": 4, "hostile.boss": 1, player: 1, guard: 3, drone: 2, medic: 1, tower1: 1 },
     hunt: { "node.prey_dangerous": 3, "node.prey": 2, player: 1, hunter: 0, medic: 0 },

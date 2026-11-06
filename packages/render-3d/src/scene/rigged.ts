@@ -441,7 +441,7 @@ export class Rigged {
     i.ice = on;
     i.root.traverse((o) => {
       const m = o as Mesh;
-      if (!m.isMesh || m.userData["silhouette"]) return;
+      if (!m.isMesh) return;
       if (on) { m.userData["warm"] = m.material; m.material = Array.isArray(m.material) ? m.material.map(iceOf) : iceOf(m.material); }
       else if (m.userData["warm"]) { m.material = m.userData["warm"] as Material; delete m.userData["warm"]; }
     });

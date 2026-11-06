@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import level1 from "../../../levels/golden/proto-L001.json";
 import level4 from "../../../levels/golden/proto-L004.json";
 import type { LevelMeta } from "../src/levels.js";
-import { budgetSeconds, chapters, isUnlocked, nextLevel, starsFor, winMargin } from "../src/progress.js";
+import { UNLOCK_ALL_LEVELS, budgetSeconds, chapters, isUnlocked, nextLevel, starsFor, winMargin } from "../src/progress.js";
 import { DEFAULT_PROGRESS, type Progress } from "../src/save.js";
 import { autoTier } from "../src/render.js";
 
@@ -18,14 +18,14 @@ describe("progression", () => {
     const p = prog({ cleared: { L0: true } });
     expect(isUnlocked(levels, levels[0]!, p)).toBe(true);
     expect(isUnlocked(levels, levels[1]!, p)).toBe(true);
-    expect(isUnlocked(levels, levels[2]!, p)).toBe(false);
+    expect(isUnlocked(levels, levels[2]!, p)).toBe(UNLOCK_ALL_LEVELS);
     expect(isUnlocked(levels, levels[2]!, p, true)).toBe(true);
   });
 
   it("Play continues at the next uncleared level, never a locked one", () => {
     expect(nextLevel(levels, prog({}))!.id).toBe("L0");
     expect(nextLevel(levels, prog({ cleared: { L0: true, L1: true } }))!.id).toBe("L2");
-    expect(nextLevel(levels, prog({ cleared: { L0: true }, current: "L7" }))!.id).toBe("L1");
+    expect(nextLevel(levels, prog({ cleared: { L0: true }, current: "L7" }))!.id).toBe(UNLOCK_ALL_LEVELS ? "L7" : "L1");
     expect(nextLevel(levels, prog({ cleared: { L0: true, L1: true }, current: "L1" }))!.id).toBe("L2");
   });
 

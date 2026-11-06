@@ -51,11 +51,47 @@ N2 mite numbers (take them from arena PROPOSALS if he agrees), and the review's 
   claim the bump in `docs/STORY-WORK-LOG.md`, rebuild in the background, `levels:check`, re-pin golden and
   story levels (B re-checks 3-5), release notes, deploy, iPhone frame-rate check with dense waves.
 
+**Doug's iPhone check, 2026-11-05 evening.** Everything in the check table is good except these:
+- [x] **#1 reopened: gate and repel icons vibrate between waves.** The pulse during an attack is right; between waves
+      both the gate icon and the repel chevrons still shake. Nothing should move between waves. (HUD session)
+      Landed (r6-hud2, browser pane on L008): the shake and pulse burst now run only while a raid is on (`app.ts` passes `waves.active` to `setAlert`); between waves the glow stays steady. Checked by driving `setAlert`: no burst between waves, burst at raid start, none after. Not seen through a real wave or on an iPhone.
+- [x] **#2 reopened: VIP icon is hollow letters that fill.** Outlined block "VIP" letters (`docs/mockups/vip-icon-hollow.png`: white
+      outline, empty inside) that fill as VIPs are served, like the other goal icons that fill. (HUD session)
+      Landed (r6-hud2, browser pane): hollow dark letters with a white outline fill orange from the bottom at 0, 34, 67 and 100%; the real L008 HUD shows the hollow VIP. The count shows as the number under it. Not seen mid-fill in a real run.
+- [x] **N24 level titles promise what the level has.** Doug played menu levels 13 and 23 expecting belts and found none.
+      Menu 23 "Conveyors and Hiring Drive" (`s1-L019`, goal `hire`) takes "Conveyors" from the `supply_routing` word
+      list (`skins/src/mars_greenhouse.ts:759`), but it has no belt. Only 4 of 59 pack levels have one (L014, L025,
+      L050, L058; belts need a goal in `conveyorGoals` plus tier2, `generator/src/build.ts:300`, `:608`). Menu 13
+      `s1-L009` is a `converter_level` level, not automation. Fix: a title word must name something on the level (skin
+      and `levelTitle`, no rebuild). More levels with belts is a generator change for Bundle 6.
+      Landed (r6-hud2): supply_routing words are now Couriers and Warehouses; a level with the conveyors module is headlined "Conveyors" or "Belt Lines". Seen in the menu titles: L019 "Couriers and Hiring Drive", L014/L025/L058 keep a belt word. Menu 13 (converter_level) was left alone; it never claimed a belt.
+- [x] **N9b fade one wall section at a time:** wall fading works; fade only the sections between the commander and the
+      camera (a per-instance alpha on the wall `Batch`es) instead of the whole wall. (renderer session)
+- [x] **G10 reopened, plus the medic kneel:** the medic still doesn't kneel (R5 leftover, never done). The cross shows
+      but sits still. `docs/mockups/heal-cross-bounce.png` (states 1, 2, 1): a 3D, better-looking cross that bobs up and back down while the heal runs, turning
+      more transparent at the top of the bounce (not whiter). (renderer session)
+
 **Step C, when B's `story-p2` claim clears and `REPLAY_FILMS` is off:** #9 cutscenes in the level menu (Sonnet).
 
 ## Release 1: renderer and client, no engine bump
 
 Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked on L14: silhouette through the grow dome, dome and warehouse stay solid, the warehouse arrow points inward, ore by the reactor hatch (the deposit anchor sits inside the body, so the pile is placed just outside on its bearing and shows the last fuel fed), and the sandbox stats panel. Not seen on screen: belt goods (#4), curbs (#7), smoothing (#8) beyond the reactor, the HUD items (#1, #2, #3, #6), and N16, which needs two real deploys. Not on an iPhone. The silhouette covers the rigged hero only.
+
+**Live check, 2026-11-05 (Haiku, screenshots on the Vercel URL, fresh profile after clearing the service worker and caches; unlock-all `410864d` live).** The levels were reached by their menu title, not by pack id, because menu 1-5 are story levels. Only a few items could be checked from stills, so most are not seen.
+
+| Item | Level (pack id, title) | Result | What was seen |
+|---|---|---|---|
+| #1 gate/defence icons shake then glow steady red | s1-L026, Wreckage and Endurance | not seen | The top shield shows the raid timer (0/2:50, then 8/2:50 and 18/2:50) and stays orange in stills. Shake and steady red glow cannot be confirmed from stills. |
+| #2 VIP goal icon is "VIP" text | s1-L008, Open Vault | not seen | Level not reached. Level 8 in the menu is a different level, "Blueprints and Paydays", and showed only "Earn 329 credits". |
+| #3 "Finish in x:xx" is the last star | s1-L008, Open Vault | not seen | Level not reached. The HUD on the level checked shows a plain timer only. |
+| #4 goods ride on belt tops | s1-L014, Warehouse Rush | not seen | Level not reached. |
+| #6 impatient trader "!" arrow | s1-L013, Big Orders | not seen | Level not reached. |
+| #7 no grey pipe bars on lot edges | s1-L026, Wreckage and Endurance | not seen | Lot edges show stone walls; not clear enough in stills to rule the bars in or out. |
+| #8 smooth, not faceted, code-built objects | s1-L026, Wreckage and Endurance | not seen | Buildings look smooth at this size; not checked close up. |
+
+Step A renderer items (not in the list above, same check): wall fade (L14), bolts, healing cross, trader order icons, win fireworks, shovel dig at a rockslide pad. Not reached in this pass. On L26 the guards show "Injured" labels, not a healing cross.
+
+Not reached: s1-L008, s1-L013, s1-L014, s1-L025, s1-L050. Next pass: play s1-L008 past its intro for the VIP and time items, then s1-L014 for belts and s1-L013 for the trader arrow.
 
 ### Bundle 1: occlusion (Opus)
 - [x] **#5 + N7 never fade:** the grow dome, the warehouse (`struct.depot`) and resource nodes (`node.*`) never
@@ -64,7 +100,7 @@ Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked 
 - [x] **N9 player behind walls:** pretotype first. Draw the hero as a silhouette that shows through any
       occluder, walls included (walls are instanced and can't fade per tile). Build per-tile wall fading
       only if the silhouette reads wrong.
-      **2026-11-04 follow-up (Doug):** fade the whole wall, and every building except his named exclusions (grow dome, warehouse). Not started; plan in `docs/handoff/wall-fade.md`.
+      **2026-11-04 follow-up (Doug):** fade the whole wall, and every building except his named exclusions (grow dome, warehouse). DONE 2026-11-05 (r6-stepA): whole wall batches and every building fade, silhouette removed; seen in L14, the wall near the commander turned see-through and the commander stood solid with no green; not seen: the core in a story level, an iPhone. Plan in `docs/handoff/wall-fade.md`.
 
 ### Bundle 2: base and building art (Sonnet)
 - [x] **#4 goods below the belt top:** probably the belt is lifted by SLAB_TOP and the goods aren't
@@ -101,8 +137,8 @@ Landed 2026-11-03 (branches r6-fade, r6-art, r6-hud, r6-stats). Browser-checked 
 ### Bundle 7: game-wide items from Doug's story feedback (2026-11-03)
 From `docs/BACKLOG-STORY.md`, round S1. Doug sorted these as game-wide on 2026-11-03. Where levels 1–5 need their own
 follow-up, it stays in the story backlog under the same S number, so each part is in both plans.
-- [ ] **G1 (S22) fireworks for level wins:** realistic fireworks replace the confetti on every level.
-- [ ] **G2 (S23) shovel and dig when clearing a rockslide:** while the player pays at a `zone.clear` pad, the hero
+- [x] **G1 (S22) fireworks for level wins:** realistic fireworks replace the confetti on every level. Done 2026-11-05: seven staggered shells with spark trails and ember bursts; seen from a faked win event on L1 (bursts sit near the top edge of the frame); not seen after a real win.
+- [x] **G2 (S23) shovel and dig when clearing a rockslide:** while the player pays at a `zone.clear` pad, the hero Done 2026-11-05 in code; see the Step A batch notes at the foot of this file.
       digs with a shovel (a tool prop plus a dig clip), on every level.
 - [ ] **G3 (S23b) rifle lasers apply everywhere:** this is the existing N5 blaster fire plus N2/N3 ranged raiders
       (Bundle 5). Nothing extra here; the story backlog keeps a check of level 5 once Release 2 lands.
@@ -112,24 +148,26 @@ follow-up, it stays in the story backlog under the same S number, so each part i
       The generator places pads clear of model silhouettes, and occlusion fading never hides a pad. Generated
       pads mean a pack rebuild, so this belongs to Release 2. The story backlog keeps a check of levels 1–5's
       hand-placed pads.
-- [ ] **G5 (S8) guide arrows follow the current goal:** the floor arrows lead to what the current goal needs, not an
+- [x] **G5 (S8) guide arrows follow the current goal:** the floor arrows lead to what the current goal needs, not an
       older step (on story level 3 they kept pointing at the kiosk with the rockslide money in hand). **After level
       5 they still appear only when the player is stuck (the 20 s rule, Doug 2026-11-03).** Levels 1–5 show them
       from the first moment, and that stays in the story backlog (S7).
+      **Done 2026-11-05 (0347a8a):** `Brain.suggest` drops an older held step (register pile, gather) when a pad is payable now; arrows still only when stuck after level 5 (already so). Live: the new bundle holds the fix. Not seen: story level 3 played through in the browser (only the sim-side logic and `levels:check` clean, 59/59).
 - [ ] **G7 drop the tow line's slack rule (Doug, 2026-11-03):** standing still with a tow no longer drops it, on every
       level. Remove `lasso.slackTime` / `slackTicks` and the `tow_dropped` "slack" reason from the sim, the bots'
       never-stand-still rule, hints and skin text. A rules change: engine bump, so it belongs to Release 2. Story
       level 2's line about it is already cut.
 - [ ] **G8 realistic storm dust (Doug, 2026-11-03):** dust storms look like soft, translucent drifting clouds, like
       KILN's cloud, instead of the hard lines drawn now. Every level with a hazard (`render-3d` fx/environment).
-- [ ] **G6 (S9) one loop around pods side by side:** when pods sit close together, the arrows draw one circle around
+- [x] **G6 (S9) one loop around pods side by side:** when pods sit close together, the arrows draw one circle around
       the group instead of one per pod, so towing several at once is taught. It's client guide code; the story
       backlog keeps a check of level 2's pair.
-- [ ] **G9 a trader's order shows the item, not a coloured dot (Doug, 2026-11-03):** the dot over a waiting trader's head
+      **Done 2026-11-05 (0347a8a):** pods within 110 units, chained, share one loop (`towGroup`, unit test). Not seen with two pods on screen in the browser.
+- [x] **G9 a trader's order shows the item, not a coloured dot (Doug, 2026-11-03):** the dot over a waiting trader's head Done 2026-11-05.
       becomes a small image of the item they want (the resource's own icon or model), on every level, so players learn
       to read orders without matching colours. Story level 3 already has the angry trader who wants meat; once G9 lands
       the story session can point at the icon in that beat.
-- [ ] **G10 healing cross (Doug, 2026-11-04):** while a medic heals someone, a green medical cross floats over them and
+- [x] **G10 healing cross (Doug, 2026-11-04):** while a medic heals someone, a green medical cross floats over them and Done 2026-11-05 for guards.
       fills up as the heal runs; when it is full it disappears and they get up. Renderer only for guards (`medic_heal`
       already fires); injured rangers and the commander get it with N22.
 
@@ -214,3 +252,17 @@ defend scrap budget). Aim at the R5 difficulty targets that 16+ levels missed.
       its target on any seed, give the sequencer per-goal D ranges (rule 1) rather than searching longer.
 - [ ] Engine bump (claim it in the story log), `levels:build`, `levels:check`, re-pin golden and story levels,
       the story session re-checks levels 3-5, `levels:start-table`, release notes, deploy.
+
+### Step A renderer batch, 2026-11-05 (branch r6-stepA, renderer and client only)
+- [x] **Wall fade + remove silhouette (N9 follow-up):** seen on L14 (wall fades, hero solid, no green). Not seen: core fade in a story level; the `director.solid` list no longer blocks fading.
+- [x] **Gate width check:** L14, the 4.05 m gate sits flush in its wall with wall runs either side; no renderer fix needed. Looked only at the left side up close; not checked on other ring levels.
+- [x] **N5/G3 bolts:** red bolts from the nearest hostile on `hit` events by hostiles (target player, guard, troop, base; skipped when the hostile stands on its target); blue bolts for defender, hunter, turret and troop hits. Seen: a red bolt on L14 from a placed fake hostile. Not seen: a real raid, hunting. No event exists for drone shots: note for Release 2.
+- [x] **G10 healing cross (guards):** seen on L14 with forced `healing` residents (cross filling green); not seen with a real medic.
+- [x] **G9 order picture:** each item is drawn once into a small picture from its own model (`scene/itemicons.ts`); 14 resource pictures checked on L12; not seen inside a live order bubble.
+- [x] **G1 fireworks:** see the G1 line above.
+- [x] **G2 shovel and dig:** the `dig` act is set on `pad_paid` for a `zone.clear` pad (checked with a faked pad and a pose change); the shovel itself and a real clear pad were not seen.
+- Live: pushed as 5850b9e; the new bundle (index-xRIQq0n4, renderer chunk with the red bolt colour) is on the Vercel URL and the update toast appeared. Not played live (debug unlock did not stick on the live origin), so every item above was seen on the local dev server only.
+
+### Doug's iPhone check items done, 2026-11-06 (branch r6-stepA2, renderer only)
+- [x] **N9b:** wall pieces fade one at a time (own opacity each, eased; faded ones draw in a see-through twin batch). Seen on L14 locally: pieces beside the commander turned see-through, the far wall stayed solid. Not seen on an iPhone or the live site.
+- [x] **G10 + kneel:** 3D bevelled cross bobbing and fading at the top, seen locally with forced `healing` residents. The medic's kneel plays the existing `care` clip (crouch-pick) while its patient is `healing`; it is not seen on screen (no real medic heal reached), and the clip may read as picking rather than kneeling.

@@ -54,6 +54,15 @@ export class Items {
     this.add(this.meshy.has(`${res}@ground`) ? `${res}@ground` : res, x, y, z, yaw);
   }
 
+  /** What draws `res` right now (its Meshy model once landed, else the code item), for pictures of it. */
+  source(res: string): { geo: BufferGeometry; mat: Material; modeled: boolean } {
+    const mm = this.meshy.get(res);
+    if (mm) return { geo: mm.geo, mat: mm.mat, modeled: true };
+    let g = this.geos.get(res);
+    if (!g) { g = buildItemGeo(res, this.t); this.geos.set(res, g); }
+    return { geo: g, mat: this.mat, modeled: false };
+  }
+
   private batch(res: string): Batch {
     let b = this.batches.get(res);
     const mm = this.meshy.get(res);

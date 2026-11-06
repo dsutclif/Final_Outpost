@@ -1,0 +1,317 @@
+{
+  "id": "s1-L096",
+  "seed": 2111141626,
+  "engineVersion": "0.19.0",
+  "contentVersion": "0.18.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-ne",
+      "fuel-w",
+      "shop-s"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "customer_variety",
+    "gather",
+    "sales",
+    "source_gating",
+    "workers"
+  ],
+  "start": [
+    240,
+    652
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        560
+      ],
+      "params": {
+        "fuel": 10,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        298,
+        707
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "route": [
+        [
+          237,
+          920
+        ],
+        [
+          237,
+          897
+        ],
+        [
+          237,
+          707
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        357,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        203,
+        479
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        163,
+        500
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        170,
+        461
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        141,
+        520
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        213,
+        449
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        118,
+        501
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        193,
+        428
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        134,
+        471
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        132,
+        415
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        223,
+        397
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food2",
+      "at": [
+        433,
+        442
+      ],
+      "enabled": false
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        357,
+        517
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        298,
+        806
+      ],
+      "cost": {
+        "res.currency": 23
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "hire_food2"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.build",
+      "id": "unlock_food2",
+      "at": [
+        433,
+        442
+      ],
+      "cost": {
+        "res.currency": 19
+      },
+      "build": "node.enable",
+      "target": "food2",
+      "requires": {
+        "pad": "hire_food"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food2",
+      "at": [
+        433,
+        503
+      ],
+      "cost": {
+        "res.currency": 19
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food2"
+      },
+      "requires": {
+        "pad": "unlock_food2"
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 2,
+    "core.burn": 2.2,
+    "housing.base": 6,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.2,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "customers.impatientShare": 0.34,
+    "customers.premiumShare": 0.16,
+    "level.budgetSeconds": 390
+  },
+  "goal": {
+    "type": "earn",
+    "n": 507
+  },
+  "family": "harvest",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "earn",
+      "params": {
+        "n": 507
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "streak",
+      "params": {
+        "n": 20
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 302
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Vaults and Paydays",
+      "goal": "earn",
+      "tips": [
+        "Some grow domes start locked. Unlock them with credits on their pad."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 1,
+    "fun": 0.944,
+    "botMargin": 0.43,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2.67,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  },
+  "lighting": "night"
+}

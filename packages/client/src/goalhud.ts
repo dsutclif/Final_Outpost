@@ -158,7 +158,7 @@ function tokenOf(o0: ObjectiveState, p: Record<string, number | string>, label: 
     t.pips = { n: Math.max(1, Math.min(8, o.target)), done: Math.min(o.progress, o.target), part: waveCountdown(st, cp) };
     t.inner = String(Math.min(o.target, Math.max(1, (w?.idx ?? 0) + (w?.active ? 0 : 1))));
     t.beside = String(o.target);
-  } else if (o.target >= 2 && o.target <= 5) {
+  } else if (o.target >= 2 && o.target <= 5 && t.glyph !== "vip") {
     t.pips = { n: o.target, done: Math.min(o.progress, o.target), part: 0 };
     t.inner = String(t.pips.done);
   } else {
@@ -353,6 +353,14 @@ export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, 
     s += `<circle class="g-track" cx="22" cy="22" r="20"/><circle class="g-ring ${t.ring.mode}${t.warn ? " warn" : ""}" cx="22" cy="22" r="20" stroke-dasharray="${(t.ring.k * L).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 22 22)"/>`;
   }
   // glyphs alone draw larger; a ring takes the outer band
+  // the VIP goal is its text alone: hollow outlined letters that fill from the bottom as VIPs are served (R6 #2)
+  const vip = t.glyph === "vip";
+  const vipText = (cls: string): string => `<text class="${cls}" x="12" y="12.4" text-anchor="middle" dominant-baseline="central" textLength="22" lengthAdjust="spacingAndGlyphs">${(t.text ?? "VIP").replace(/[<>&]/g, "")}</text>`;
+  if (vip) {
+    const k = clamp01(t.fill ?? 0), top = 5.5, bot = 19, y = bot - (bot - top) * k;
+    s += `<g transform="translate(5 5) scale(1.42)"><defs><clipPath id="${id}"><rect x="0" y="${y.toFixed(1)}" width="24" height="${(24 - y).toFixed(1)}"/></clipPath></defs>${vipText("g-vip-o")}<g clip-path="url(#${id})">${vipText("g-vip-f")}</g></g></svg>`;
+    return s;
+  }
   s += `<g transform="${t.ring ? "translate(10 10)" : "translate(5 5) scale(1.42)"}"><defs><clipPath id="${id}">${g.shape}</clipPath></defs><g class="g-body">${g.shape}</g>`;
   if (t.fill !== undefined) {
     const top = g.top ?? 2, bot = g.bot ?? 22, y = bot - (bot - top) * clamp01(t.fill);
@@ -368,8 +376,7 @@ export function tokenSvg(t: Omit<GoalToken, "id" | "state" | "risk" | "label">, 
   }
   // a face with a mood smiles while its fill is high and frowns near empty
   const detail = t.mood && t.glyph === "face" ? faceDetail(t.fill ?? 1) : g.detail ?? "";
-  const blockText = t.glyph === "vip" ? `<text class="g-vip" x="12" y="12.2" text-anchor="middle" dominant-baseline="central">${(t.text ?? "VIP").replace(/[<>&]/g, "")}</text>` : "";
-  s += `<g class="g-line">${g.shape}</g>${detail}${blockText}`;
+  s += `<g class="g-line">${g.shape}</g>${detail}`;
   if (t.inner !== undefined && t.glyph === "stopwatch") {
     const [nx, ny] = g.num ?? [12, 12.5];
     s += `<text class="g-secs${t.inner.length > 2 ? " long" : ""}" x="${nx}" y="${ny}" text-anchor="middle" dominant-baseline="central">${t.inner}</text>`;
@@ -530,25 +537,30 @@ export class GoalHud {
   get bubbleOpen(): boolean { return this.open !== null; }
 
   /** Frost the edges and set the one urgent item pulsing. */
-  setAlert(a: Alert): void {
+  setAlert(a: Alert, attack = true): void {
     this.el.frost.className = `frost${a.kind === "none" ? "" : a.kind === "goal" ? " on" : " on hard"}`;
-    this.alertEl("heat", this.el.heat, a.kind === "heat", 1);
-    this.alertEl("walls", this.el.walls, a.kind === "walls", 1);
+    this.alertEl("heat", this.el.heat, a.kind === "heat", 1, attack);
+    this.alertEl("walls", this.el.walls, a.kind === "walls", 1, attack);
     for (const d of this.el.goals.children) {
       const e = d as HTMLElement, id = e.dataset["id"] ?? "";
-      this.alertEl(`g:${id}`, e, a.kind === "goal" && id === a.id, this.tokens.find((t) => t.id === id)?.fill ?? 1);
+      this.alertEl(`g:${id}`, e, a.kind === "goal" && id === a.id, this.tokens.find((t) => t.id === id)?.fill ?? 1, attack);
     }
   }
 
   private alertSeen = new Map<string, number>();
+  private alertBurstAt = new Map<string, number>();
 
-  /** The alert glow stays steady; the shake is a short burst when the danger starts or the meter drops (a hit). */
-  private alertEl(key: string, e: HTMLElement, on: boolean, level: number): void {
+  /** The alert glow stays steady; the shake is a short burst when the danger starts or the meter drops (a hit), and only while a raid is on: between waves nothing moves (Doug, 2026-11-05).
+   *  Hits can land several times a second, so a burst is held off for a moment after the last one. */
+  private alertEl(key: string, e: HTMLElement, on: boolean, level: number, attack: boolean): void {
     const was = this.alertSeen.get(key);
     e.classList.toggle("alert", on);
-    if (!on) { this.alertSeen.delete(key); e.classList.remove("burst"); return; }
+    if (on && !attack) { this.alertSeen.delete(key); this.alertBurstAt.delete(key); e.classList.remove("burst"); return; }
+    if (!on) { this.alertSeen.delete(key); this.alertBurstAt.delete(key); e.classList.remove("burst"); return; }
     this.alertSeen.set(key, level);
-    if (was === undefined || level < was - 0.001) {
+    const now = performance.now(), last = this.alertBurstAt.get(key) ?? -Infinity;
+    if ((was === undefined || level < was - 0.001) && now - last > 1200) {
+      this.alertBurstAt.set(key, now);
       e.classList.remove("burst"); void e.offsetWidth; e.classList.add("burst");
       setTimeout(() => e.classList.remove("burst"), 700);
     }

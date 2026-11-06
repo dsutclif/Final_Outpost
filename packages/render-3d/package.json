@@ -11,6 +11,7 @@
     "./rigged": "./src/scene/rigged.ts",
     "./meshy": "./src/assets/meshy.ts",
     "./characters": "./src/assets/characters.ts",
+    "./sizes": "./src/sizes.ts",
     "./units": "./src/units.ts",
     "./environment": "./src/scene/environment.ts",
     "./tokens": "./src/tokens.ts",

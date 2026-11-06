@@ -4,6 +4,8 @@ import {
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
+import { FOV_DEG } from "../units.js";
+import { POD_CAVITY_M, POD_K, SIZES } from "../sizes.js";
 import RIG from "../assets/buggy.json";
 
 // Live scenes (docs/STORY-LEVELS-V2-PLAN.md, Phase 2 F2): short story scenes staged in three.js with the
@@ -37,16 +39,28 @@ interface Staged {
   dispose(): void;
 }
 
-/** The bay scenes' pods at Doug's decor size, 2.66 m (docs/SCALE.md); their build is 3.9847 m long. */
-const POD_K = 2.66 / 3.9847;
+/** A bay's cavity floor above the ground plane: the game sinks the decor pod 0.80 m, so the base is below the plane (sizes.ts). */
+const BAY_LIFT = POD_CAVITY_M;
 const ease = (k: number): number => { const c = Math.max(0, Math.min(1, k)); return c * c * (3 - 2 * c); };
+/**
+ * Swap a wide-angle shot for the game's own lens (FOV_DEG, a near-flat 8 degrees): the camera backs off along its line of
+ * sight so the framing is unchanged, but near and far pods keep the proportions the game shows (a wide lens makes the
+ * near pod and the people beside it read bigger than the game's).
+ */
+function gameLens(camera: PerspectiveCamera, target: Vector3): void {
+  const wide = camera.aspect < 0.8 ? 58 : 38; // what size() set for this aspect
+  const f = Math.tan((wide * Math.PI) / 360) / Math.tan((FOV_DEG * Math.PI) / 360);
+  camera.position.sub(target).multiplyScalar(f).add(target);
+  camera.fov = FOV_DEG;
+  camera.updateProjectionMatrix();
+}
 const span = (t: number, a: number, b: number): number => ease((t - a) / (b - a));
 
 /** The cryo deck on KILN's bay camera: four sealed pods read OCCUPIED, bay 5 unlocks, its glass lifts on nobody. */
 function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Staged {
   const scene = new Scene();
   scene.background = new Color("#05080a");
-  const camera = new PerspectiveCamera(38, 1, 0.1, 200);
+  const camera = new PerspectiveCamera(38, 1, 0.1, 1200);
   scene.add(new AmbientLight("#9fb4c8", 1.3));
   const key = new DirectionalLight("#dfe9f5", 2.2);
   key.position.set(-6, 12, 8);
@@ -58,7 +72,7 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
   const bays: { light: Mesh; mat: MeshStandardMaterial; hinge: Group; glow: PointLight }[] = [];
   // four pods side by side along x, each lying lengthwise toward the camera. A bay's origin is the pod's
   // cavity floor; LIFT raises it so the cradle's base (1.809 below that floor) stands on the deck (Doug, 2026-11-04)
-  const LIFT = 1.809 * POD_K;
+  const LIFT = BAY_LIFT;
   for (let i = 0; i < 4; i++) {
     const bay = new Group();
     bay.position.set((i - 1.5) * 4.6 * POD_K, LIFT, 0);
@@ -102,7 +116,9 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
       // a high security camera that drifts in on bay 5
       const k = span(t, 0, 6);
       camera.position.set((-2 - 4.5 * k) * POD_K, (15 - 3.5 * k) * POD_K + LIFT, (10 - 2.6 * k) * POD_K);
-      camera.lookAt((-1.5 - 5.2 * k) * POD_K, 0.4 * POD_K + LIFT, 0.4 * POD_K);
+      const look = new Vector3((-1.5 - 5.2 * k) * POD_K, 0.4 * POD_K + LIFT, 0.4 * POD_K);
+      camera.lookAt(look);
+      gameLens(camera, look);
       // bay 5's lock releases at 1.6 s: OCCUPIED turns amber, the glass jolts, then swings up on its back hinge
       const open = t >= 1.6;
       bay5.mat.emissive.set(open ? "#ffb02e" : "#3cff7a");
@@ -148,7 +164,7 @@ function crewFigure(id = "unit.player"): { root: Object3D; mixer: AnimationMixer
 function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Staged {
   const scene = new Scene();
   scene.background = new Color("#05080a");
-  const camera = new PerspectiveCamera(38, 1, 0.1, 200);
+  const camera = new PerspectiveCamera(38, 1, 0.1, 1200);
   scene.add(new AmbientLight("#9fb4c8", 1.2));
   const key = new DirectionalLight("#dfe9f5", 2.0);
   key.position.set(-6, 12, 8);
@@ -157,7 +173,7 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
   deck.position.set(0, -0.3, -5);
   scene.add(deck);
   // the same bays as empty_bays (pods lie along z, cavity floor LIFT above the deck), seen from behind their feet
-  const LIFT = 1.809 * POD_K, PERSON = 1.8;
+  const LIFT = BAY_LIFT;
   const labels: Staged["labels"] = [];
   const bays: { mat: MeshStandardMaterial; hinge: Group; el: HTMLElement; fig: ReturnType<typeof crewFigure>; x: number; at: number }[] = [];
   for (let i = 0; i < 4; i++) {
@@ -179,7 +195,8 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
     bay.add(light);
     scene.add(bay);
     const fig = crewFigure();
-    if (fig) { fig.root.scale.setScalar(PERSON / fig.height); scene.add(fig.root); }
+    // the commander (bay 5) stands 1.98 m, the crew 1.8 m (characters.ts)
+    if (fig) { fig.root.scale.setScalar((i === 0 ? SIZES.commander : SIZES.person) / fig.height); scene.add(fig.root); }
     const el = doc.createElement("div");
     el.className = "live-tag warn";
     overlay.append(el);
@@ -201,8 +218,10 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
       // a fixed security camera high behind the pods' foot ends, looking down the deck
       // (high and far enough back that all four bays and their aisles fit a tall phone screen)
       const tall = camera.aspect < 0.8;
-      camera.position.set(0, (tall ? 25 : 11) * POD_K + LIFT, (tall ? 31 : 13) * POD_K);
-      camera.lookAt(0, LIFT - 0.5 * POD_K, (tall ? -5 : -3) * POD_K);
+      camera.position.set(0, tall ? 14.5 : 11 * POD_K + LIFT, tall ? 20 : 13 * POD_K);
+      const look = new Vector3(0, tall ? 0.2 : LIFT - 0.5 * POD_K, tall ? -3.5 : -3 * POD_K);
+      camera.lookAt(look);
+      gameLens(camera, look);
       for (const b of bays) {
         const s = t - b.at;
         // the glass lifts from inside (0.6-1.8), closes again once the pod is empty (4.4-5.4)
@@ -271,7 +290,7 @@ function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     scene.add(r);
   }
   // the buggy as Doug sized it (2.64 m long; the build is 4.4 m), wheels on its rig, forward -x
-  const K = 2.64 / 4.4;
+  const K = SIZES.buggy.length / SIZES.buggy.buildLength;
   const buggy = new Group();
   const wheels: Object3D[] = [];
   const body = meshyScene("decor.buggy");
@@ -303,7 +322,7 @@ function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   }
   // Sela in her own dark blue suit (unit.customer_sela), 1.8 m, seated at the wheel until the buggy stops
   const sela = crewFigure("unit.customer_sela") ?? crewFigure("unit.customer");
-  const PERSON = 1.8;
+  const PERSON = SIZES.person;
   const seated = new Map<Object3D, Quaternion>(), standing = new Map<Object3D, Quaternion>();
   let hip = new Vector3(0, 0.9, 0), standHip = new Vector3(0, 0.9, 0);
   const lamp = new PointLight("#ffc27a", 0, 7, 1.6);
@@ -433,7 +452,7 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   let look: Map<Object3D, Quaternion> | null = null;
   if (sela) { place(sela, 1.8, 0.62, -Math.PI / 2); sp = reach(sela, -1); }
   if (cmd) {
-    place(cmd, 1.98, -0.62, Math.PI / 2); cp = reach(cmd, 1);
+    place(cmd, SIZES.commander, -0.62, Math.PI / 2); cp = reach(cmd, 1);
     // and with the hand brought up in front of the chest, palm up, to look at the chip
     blendPose(cp.rest, cp.rest, 0);
     aimBone(boneOf(cmd.root, "RightArm"), boneOf(cmd.root, "RightForeArm"), new Vector3(0.35, -0.85, 0.25));

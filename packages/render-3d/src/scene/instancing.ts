@@ -22,6 +22,11 @@ export class Batch {
     this.mesh.material = mat;
   }
 
+
+  get material(): Material {
+    return this.mat;
+  }
+
   private make(cap: number): InstancedMesh {
     const m = new InstancedMesh(this.geo, this.mat, cap);
     m.name = this.name;

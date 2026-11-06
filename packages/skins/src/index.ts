@@ -129,7 +129,8 @@ export function levelTitle(skin: Skin, m: TitleSource): string | null {
   if (!words) return null;
   const goal = typeof m.goal === "string" ? m.goal : m.goal.type;
   const gw = words.goals[goal] ?? [];
-  const head = [...m.modules].reverse().find((x) => !BASIC_MODULES.has(x)) ?? m.modules[m.modules.length - 1];
+  // a level with a belt names it: the conveyor module is the most specific thing it has; supply_routing alone means couriers or a warehouse, never a belt
+  const head = m.modules.includes("conveyors") && words.modules["conveyors"] ? "conveyors" : [...m.modules].reverse().find((x) => !BASIC_MODULES.has(x)) ?? m.modules[m.modules.length - 1];
   const mw = (head && words.modules[head]) || [];
   const h = hash32(m.id);
   const g = gw.length ? gw[h % gw.length]! : "";

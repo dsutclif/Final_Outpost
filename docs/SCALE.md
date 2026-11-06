@@ -1,7 +1,7 @@
 # Sizes in real metres
 
 One table for every size the story levels, live scenes and films use, so they stay consistent (Doug, 2026-11-04).
-1 m = 28 world units (`ART_M`) everywhere. When a size changes, change it here first, then in the data that uses it.
+1 m = 28 world units (`ART_M`) everywhere. **The code reads these from `packages/render-3d/src/sizes.ts`** (people, wreck, decor pod, buggy); the story levels carry numbers made from it by `tools/relayout.ts` (a one-shot: do not re-run it on the levels), and `client/test/sizes.test.ts` fails if they drift. Where views disagree, the playable game is right. When a size changes, change it here first, then in the data that uses it.
 
 ## People and vehicles
 

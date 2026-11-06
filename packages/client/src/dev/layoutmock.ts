@@ -9,6 +9,7 @@ import { loadMeshy, meshyEntries, meshyGeometry, meshyScene } from "@fo/render-3
 import { Rigged } from "@fo/render-3d/rigged";
 import { lookFor } from "@fo/render-3d/characters";
 import { ART_M, BUILD_K, CHAR_K, FOV_DEG, PITCH_DEG, VIEW_W, YAW_DEG } from "@fo/render-3d/units";
+import { SIZES as C_SIZES, POD_K } from "@fo/render-3d/sizes";
 import { HEMI, SUN } from "@fo/render-3d/environment";
 import { deriveTokens } from "@fo/render-3d/tokens";
 import { EXPOSURE } from "@fo/render-3d/renderer";
@@ -36,7 +37,7 @@ const D2R = Math.PI / 180;
 const M = ART_M;
 const SCREEN_M = 6.07; // one phone screen width at play zoom, metres
 // Doug's sizes (2026-11-04, second pass): decor pods 2.66 m long and 1.44 m tall, base 0.80 m in the sand (56%)
-const SIZES = { ship: 27, pod: 2.66, cmdr: 1.98, podBuried: 0.8, settlementRadius: 10, recorder: [0.5, 0.3, 0.4], ridgeHeight: 1.5, ridgeWidth: 4 };
+const SIZES = { ship: C_SIZES.wreck, pod: C_SIZES.pod.length, cmdr: C_SIZES.commander, podBuried: C_SIZES.pod.buried, settlementRadius: 10, recorder: [0.5, 0.3, 0.4], ridgeHeight: 1.5, ridgeWidth: 4 };
 // iPhone 17: 402 x 874 points, portrait
 const PHONE = { w: 402, h: 874 };
 const POD_YAW = 173.9; // levels/story/story-L001.json pod yaw
@@ -197,10 +198,10 @@ export function createLayoutMock(): LayoutUi {
     // model units are metres; the frame's origin is the cavity floor, the cradle's base 1.809 m below it, the glass
     // hinged along the back long edge. The frame is turned so the long side runs north-south.
     void lg; void LID; void POD_YAW; void SLOT_YAW;
-    const k1 = SIZES.pod / 3.9847; // the build is 3.9847 m long
+    const k1 = POD_K; // the build is 3.9847 m long
     // the cavity floor sits 1.809 build-metres above the cradle's base; scaled with the pod, while the burial depth is
     // real metres (an earlier version scaled the depth too)
-    const CAVITY = 1.809, frameY = (CAVITY * k1 - SIZES.podBuried) * M;
+    const CAVITY = C_SIZES.pod.buildCavity, frameY = (CAVITY * k1 - SIZES.podBuried) * M;
     // three pods as the film and game show them (Doug): the commander's, featured and open, and two sealed in the
     // background (level 1's data places five, but only these three read as pods)
     for (let i = 0; i < 3; i++) {
