@@ -52,7 +52,6 @@ import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash, hash01 } f
 import { LEAD_WEIGHT, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder, ROCKS } from "./geom.js";
 import { ghostSpec, type GhostSpec } from "./ghost.js";
-import { patientOf } from "./medic.js";
 import { Interp, type V } from "./interp.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Fx } from "./scene/fx.js";
@@ -2504,11 +2503,6 @@ export class Renderer3D implements Renderer {
       if (!moving && r.status === "ok") {
         const w = this.workSpots.find((ws) => (ws.op.x - pos.x) ** 2 + (ws.op.y - pos.y) ** 2 < (ART_M * 0.6) ** 2);
         if (w) this.acts.set(key, { act: w.working && rrig?.clips?.["work"] ? "work" : "face", until: this.t + 0.3, at: w.at });
-      }
-      // a medic mid-heal kneels beside the patient (the rig's care clip) facing them; back on its feet when the heal ends
-      if (!moving && rrig?.clips?.["care"]) {
-        const pt = patientOf(s.residents, (role) => this.cp?.roles[role]?.behavior === "medic", r);
-        if (pt) this.acts.set(key, { act: "care", until: this.t + 0.3, at: this.interp.pos(`r:${pt.id}`, pt.pos, a) });
       }
       const ryaw = this.faceAct(key, pos, ry, moving);
       const carrying = !!r.carry && r.n > 0;

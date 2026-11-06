@@ -1,7 +1,6 @@
 import { LOOK, content, modelScaleFor } from "@fo/content";
 import { describe, expect, it } from "vitest";
 import { ghostSpec, upgradeLevel } from "../src/ghost.js";
-import { patientOf } from "../src/medic.js";
 
 const s = {
   core: { level: 2, pos: { x: 100, y: 200 } },
@@ -29,24 +28,5 @@ describe("blueprint level (R5 #31)", () => {
   });
   it("sizes the core ghost with the L2/L3 model scale, not the level 1 one", () => {
     expect(modelScaleFor(LOOK.modelScale, "sink.core", 3)).not.toBe(modelScaleFor(LOOK.modelScale, "sink.core", 1));
-  });
-});
-
-describe("medic kneel (patientOf)", () => {
-  const isMedic = (r: string): boolean => r === "role.medic";
-  const rs = [
-    { id: 1, role: "role.medic", status: "ok", target: "2", pos: { x: 0, y: 0 } },
-    { id: 2, role: "role.defender", status: "healing", target: null, pos: { x: 1, y: 1 } },
-  ];
-  it("finds the patient while they are healing", () => {
-    expect(patientOf(rs, isMedic, rs[0]!)?.id).toBe(2);
-  });
-  it("is null before the heal starts and after it ends", () => {
-    expect(patientOf([rs[0]!, { ...rs[1]!, status: "injured" }], isMedic, rs[0]!)).toBeNull();
-    expect(patientOf([rs[0]!, { ...rs[1]!, status: "ok" }], isMedic, rs[0]!)).toBeNull();
-  });
-  it("only a working medic kneels", () => {
-    expect(patientOf(rs, isMedic, rs[1]!)).toBeNull();
-    expect(patientOf(rs, isMedic, { ...rs[0]!, status: "frozen" })).toBeNull();
   });
 });
