@@ -31,7 +31,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-06 | WRAP UP (from B) | — | `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Story Releases 2–4 (STORY-STRANDED-WORK.md); held, not being edited yet |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -118,6 +117,22 @@ hinged glass in L2 (S31), and drawing Sela in-game with her own `unit.customer_s
 **Resolved (Doug, 2026-11-05).** KILN stands for Knowledge Integration & Logistics Network. Recorded in the screenplay facts and in STORY-LEVELS-V2.md.
 
 **Note for Account A:** level 1's cue where KILN introduces itself ("I'm KILN, the support system of the Halcyon...") could name it in full if Doug wants the full name on screen. B did not touch level 1's cues.
+## Hand-off: WRAP UP session (2026-11-07, credits out)
+
+The WRAP UP account owned all story work from 2026-11-06 (Doug: "You own R4") and has released every claim. Pick up here.
+
+**Shipped and verified live:** c5e09f3 crash pods scattered at varied angles, crash-site scrap is the tube `decor.ship_wreck` at scale 2 (5.6 m); a6880ed story taps advance lines (joystick ignores `.story-layer`); 9736a4f KILN coaching tips tappable (`.kiln-tap` had no CSS). Child sessions: Release 2 (a802361, 8982784, da9627c S31 hatch) and Release 4 (afa13d4, a4ec923); plot P1-P6 (d909c46, 4f9b997 engine 0.20.0).
+
+**Level 1 opening film (`crash_open`, Release 3): in progress, nothing player-facing shipped.**
+- Plan Doug agreed: cheap stages before any full render. Stage 1 (blocking stills) and stage 2 (animation test) are done; Doug found issues in stage 2 and has not approved a full render.
+- Tools (committed): `tools/cinematics/game_set.py` builds the crash site from `story-L001.json` (origin = pod0, metres, x east, y north) and renders Workbench stills; `game_film.py` puts the capture on the game's pod0 and renders the pod sequence (Workbench 360x640), `--stills`, `--top` (debug), `--frames a b`; encode with `encode.py`. `pod_exit.py` gained `NO_STAGGER=1`: get up, step over the rim, drop to the sand, look round (no deck limp); 514 frames + 45 held, 0 flagged at STEP_TURN 90.
+- Run: `"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup -P tools/cinematics/game_film.py -- --stills`. The CMU mocap (`tools/cinematics/mocap/`) and `cache/` are not in git: copy them from `fo-wt-handoff/tools/cinematics/`.
+- Fitting found: the game pod lies north-south with its glass opening east, so the capture steps out west (toward the reactor); `FLOOR = 0.20` m puts the commander inside the pod and still clears the rim; the capture's 0.65 m jump is absorbed by keying the stage's z while airborne. The commander ends 3.83 m west, 0.49 m south of pod0.
+- Stage 2 issues to fix next (WRAP UP's review; ask Doug for his list too): 1 the glass slides/tilts through the commander instead of hinging on its edge (key a hinge, not a location lerp); 2 the open glass blocks the camera at the step-out; 3 the drop to the sand is cut away; 4 the third camera frames mostly black sky; 5 the commander faces away in the look-round instead of toward the light; 6 the final game view crowds them against wreckage; the Workbench preview also draws stray grey lines on the ground (ignore; not in EEVEE).
+- Level edits held for when the film ships (not pushed, since the hand-off must match the film): crash-site `scrap` x minus 100 units in story-L001..005 (L1 469.4 to 369.4; L2-5 359.4 to 259.4), and L1 `start` to [451.7, 138.9] (the film's end spot). Then bump `FILM_VERSIONS.crash_open`, check `openZoom.film` lands on the last frame, re-render shots 2-3 (impact, wreck at dawn) from the new set, and do the full render cheaply (set as one plate, commander alone on a holdout layer with a render region, composite).
+
+**Open questions for Doug:** level 1 sign-off; `empty_bays` good enough vs the films; two more sealed pods at the crash site to make five (story session's proposal, see open questions); ranger pad rule and broken s1-L065 (OPEN-ITEMS-plot-layout-chat.md in the project root).
+
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
