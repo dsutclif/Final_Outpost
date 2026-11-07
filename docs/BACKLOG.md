@@ -36,7 +36,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
   (no key on the laptop); the #68–#73 git cleanup was approved by Doug but blocked by the permission check, so Doug runs
   it: reset the local `farthest-outpost` main to origin/main; remove the `fo-wt-buggy` and `agent-a0616…` worktrees;
   delete the local branches `story-buggy` and `story-buggy-26`, and the remote branches `look-test`, `object-sizes`
-  and `story-buggy`. Keep `fo-wt-handoff` until #75 backs up its film tools. #76 probe pass and the role-notes refresh are not started.
+  and `story-buggy`. Keep `fo-wt-handoff` until #75 backs up its film tools. #76 probe pass and the role-notes refresh are done (2026-11-07, see #76 and #67).
 - #6: the "Vale helmet animations" session (livescene.ts `warlord_fall`, level 5 fall cues, `vale_run` removal).
 - Story files for #3, #4, #5, #14: claimed by the orchestrator session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
 
@@ -50,6 +50,15 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       2. Create a fine-grained token for outpost-ops only, with Issues and Contents read/write.
       Then create the routines in dry-run for a week.
 - [ ] **#66 · PILLARS-DRAFT.md (waiting on Doug):** the order of the pillars, and pillar 7's pay-to-win line.
+- [ ] **#76 · iPhone checks (Safari, live site, after the next deploy).** The probes ran on software GL in Chromium, so none of this is proven:
+      1. Frame rate: play s1-L014 for two minutes with waves; it should hold smooth, no stutter when the wave icons appear.
+      2. Medic kneel: send a medic to a hurt crewmate; the kneel animation plays and ends.
+      3. Fade feel: walk behind a building; it fades out and back without popping.
+      4. Two-deploy update: open the site, wait for a second deploy, reopen; the Update now / Later prompt shows and the old
+         home background never flashes (#2, #50 N16).
+      5. Story level 2, goal 2: the two close pods are on screen together and one loop circles both (#54); story level 3: arrows
+         follow the goal to the rockslide (#53).
+      6. s1-L014 belts carry goods on top (R6 #4); s1-L013 trader shows "!" when impatient (R6 #6); a wave shows icons between waves (#51).
 - [ ] **#58 ·** The playtest retention target is met.
 
 ## Bundle 1: cleanup and nightly fix (no game change)
@@ -66,9 +75,11 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 - [ ] **#67 · Housekeeping:**
       - delete the Supabase test row (install `claude-verify-20261107`, kind `session`);
       - delete the merged local branches `review-supabase`, `review-tools`, `review-probe` and `review-merge`;
-      - update the stale `packs.test.ts` "gotcha" in `docs/review/HANDOFF.md` (the test passes).
-      - fix `docs/RELEASE.md`'s links (they point at "section 6"; the gates moved);
-      - refresh stale role notes in outpost-ops `refinement/notes/` (producer, QA, level designer).
+      - [ ] update the stale `packs.test.ts` "gotcha" in `docs/review/HANDOFF.md` (the test passes). **Not done:** that file is not
+        in any repo (untracked `Mobile game/docs/review/`, absent from main), so the fix is a one-line edit of line 111 by whoever owns the folder.
+      - [x] fix `docs/RELEASE.md`'s links (they point at "section 6"; the gates moved): already fixed on main; its open gates now say
+        "tracked in `docs/BACKLOG.md`" and no "section 6" reference is left (grep 2026-11-07).
+      - [x] refresh stale role notes in outpost-ops `refinement/notes/` (producer, QA, level designer): done 2026-11-07, outpost-ops 14878b7.
 - [ ] **#68 · Two commits on the local `farthest-outpost` main, never pushed (2026-10-30):**
       - f32b159 crash_open: no reactor in the film; the commander no longer jitters at the plate's edge;
       - 2cf4c1b Level rules: rule 7 counts enemy points; drops in proportion to HP.
@@ -79,26 +90,37 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       level edits).
 - [ ] **#70 · `story-buggy` (also in `fo-wt-buggy` with uncommitted `buggy.json` / `meshy.json` edits):** the
       reduced buggy model. Goes in with #5.
-- [ ] **#72 · Remote branch `look-test`** (2026-11-04): soft sprite particles, turret bolts of light, dust-storm
+- [ ] **#72 · Remote branch `look-test`** (read-only check 2026-11-07: all seven commits are already on main by patch id; `5fd74fc` KILN cloud
+      is main's `d9526f0`; `db44834` contact sheet is `docs/look-test/`. Nothing worth merging; the branch is safe to delete.) (2026-11-04): soft sprite particles, turret bolts of light, dust-storm
       sheets, KILN cloud without square blocks, reactor glow. Most of the new look is already on main. Check what's
       left, then merge the rest or delete the branch.
-- [ ] **#73 · Remote branch `object-sizes`** (2026-11-04): crystal scrap at 0.95 m, generator footprints for the
+- [ ] **#73 · Remote branch `object-sizes`** (read-only check 2026-11-07: all three commits are already on main by patch id, and main's
+      `meshy.json` carries the same widths, crystal scrap 0.95 m, ship scrap 9.9 m, Scrap 2 tube 5.6 m. The generator footprints are on main too.
+      The WIP commit's failing footprints test is superseded; the branch is safe to delete.) (2026-11-04): crystal scrap at 0.95 m, generator footprints for the
       resized models, and a WIP commit of the Buildings-row sizes whose footprints test fails. Check against main's
       one size reference (`render-3d/src/sizes.ts`).
-- [ ] **#76 · Screen-probe pass for the never-seen-live items.** Run `pnpm review:probe` on s1-L008, s1-L013, s1-L014 and
+- [x] **#76 · Screen-probe pass for the never-seen-live items.** Run `pnpm review:probe` on s1-L008, s1-L013, s1-L014 and
       story levels 2–3 (bot-driven, phone-size) and use its shots as evidence for #50, #51, #53 and #54. What the probes
       can't show (real iPhone Safari, frame rate, the medic kneel, fade feel, two-deploy update) becomes one short list of
       iPhone checks for Doug.
+      **Done 2026-11-07:** shots and notes in `docs/review/probe-2026-11-07/` (README names each shot); five levels, no page errors;
+      iPhone checklist is under "Waiting on Doug". Ran against a hand-started vite server (`--base`) because `probe.ts` resolves
+      `vite/bin/vite.js`, which the installed vite's `exports` blocks (ERR_PACKAGE_PATH_NOT_EXPORTED): its own server start is broken.
 - [ ] **#50 · R6 Release 1 HUD and art:**
-      - R6 #3 "Finish in x:xx" as the last star (s1-L008)
-      - R6 #4 goods on belt tops (s1-L014)
-      - R6 #6 impatient trader "!" (s1-L013)
-      - R6 #7 no lot-edge pipes
-      - R6 #8 smooth code-built objects
+      - [x] R6 #3 "Finish in x:xx" as the last star (s1-L008): probe, local. `s1-L008-t0030.png` / `-t0060.png` show the stopwatch chip counting 8:10 to 5:40 beside the star.
+      - [ ] R6 #4 goods on belt tops (s1-L014): not shown; `s1-L014-t0060.png` has no belt with goods in frame.
+      - [ ] R6 #6 impatient trader "!" (s1-L013): not shown in 90 s; `s1-L013-t0060.png` has "Sold!" and MAX tags only.
+      - [x] R6 #7 no lot-edge pipes: probe, local. Clean lot edges in `s1-L008-t0030.png` and `s1-L014-t0060.png`.
+      - [x] R6 #8 smooth code-built objects: probe, local. Round grow dome and reactor rim in `s1-L008-t0030.png`.
       - N16 the old homepage flash (needs two real deploys; see #2)
-- [ ] **#51 · R6 #1 and #2 through a real wave:** icons still between waves; the VIP icon mid-fill.
+- [ ] **#51 · R6 #1 and #2 through a real wave:**
+      - [ ] icons still between waves: no wave came in the 90 s probes.
+      - [x] the VIP icon mid-fill: probe, local. `s1-L008-t0030.png` reads 1/16, `s1-L008-t0060.png` reads 3/16.
 - [ ] **#53 · G5 / S8 arrows follow the goal:** story level 3 (kiosk, then rockslide).
+      - [x] kiosk leg: probe, local. `story-L003-line06.png` shows the arrow chain leading from the kiosk to the goal flag.
+      - [ ] rockslide leg: not captured; the bot ended the level before a shot of it.
 - [ ] **#54 · G6 / S9 one loop around close pods:** level 2 goal 2's pair, on screen together.
+      Not shown: `story-L002-line08.png` has the arrows going to one pod, never the pair together. Needs a hand look.
 
 ## Bundle 2: first screen and level packs (no engine bump)
 
