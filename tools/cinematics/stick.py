@@ -14,13 +14,21 @@ BEATS = {
     "stagger": [("104_13", 120), ("139_19", 120)],
     "drop": [("82_02", 120), ("01_07", 120)],
     "look": [("77_01", 60)],
+    # S32 Vale's fall (BACKLOG #6): knocked onto the back, roll over, get up from face down
+    "vfall": [("90_18", 120), ("85_15", 120)],
+    "vroll": [("111_21", 120)],
+    "vgetup": [("140_01", 120), ("140_02", 120), ("111_06", 120)],
 }
+RISE = {"vgetup"}  # long takes: show the seconds around the biggest rise (standing up), not the biggest drop
 LABEL = {
     "140_08": "A  get up from lying on back", "140_09": "B  get up from lying on back",
     "143_14": "A  walk and step over", "143_15": "B  walk and step over", "141_09": "C  step over",
     "104_13": "A  stumble walk", "139_19": "B  walk, wounded leg",
     "82_02": "A  jump off ledge", "01_07": "B  sit, dangle legs, jump down",
     "77_01": "A  looking around",
+    "90_18": "A  rug pulled, falls", "85_15": "B  twists and falls",
+    "111_21": "A  roll over",
+    "140_01": "A  get up face down", "140_02": "B  get up face down", "111_06": "C  get up from floor",
 }
 MAX_SECONDS = 9
 
@@ -41,7 +49,8 @@ def window(clip):
     if n <= MAX_SECONDS * fps:
         return 0, n
     z = [clip.pose(i)[2].z for i in range(n)]
-    drop = max(range(5, n), key=lambda i: z[i - 5] - z[i])
+    sign = -1 if beat in RISE else 1
+    drop = max(range(5, n), key=lambda i: sign * (z[i - 5] - z[i]))
     a = max(0, drop - 5 * fps)
     return a, min(n, a + MAX_SECONDS * fps)
 
