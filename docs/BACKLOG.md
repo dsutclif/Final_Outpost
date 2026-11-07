@@ -18,28 +18,33 @@ their old ids (R6 N2, S24 …), so references in code, commits and the archive s
 
 ## 1. Decisions waiting on Doug
 
-- [ ] **Pod count at the crash site (S24).** The screenplay, `empty_bays` and `crash_log` talk about five deck pods
-      (the commander's, open, plus four sealed). The levels show three (`pod0`–`pod2`). Option 1: add two sealed
-      `decor.stasis_pod` + `decor.stasis_glass` pairs behind the wreck's far end in `story-L001..5.json`. This is
-      Doug's lean, and no scene or line changes. Option 2: keep three and reword `empty_bays`, `crash_log`, KILN's
-      "bays five to eight" and the screenplay. Who edits `story-L001.json` is also open.
-- [ ] **Level 1 sign-off, and the full render of the `crash_open` film** (see section 4).
-- [ ] **`empty_bays` good enough against the films?** (Sign-off 2, 2026-11-03.) The other live scenes are only
-      built if it is.
-- [ ] **Reduced buggy (Sign-off 3).** Branch `story-buggy` (not merged): body 4.4 m wide (this needs your
-      confirmation), 39.9k tris, 2.5 MB. It is wired into level 3 with headlights only after sign-off. Sela's
-      buggy in play is already signed off at 2.64 m.
-- [ ] **N13 power budget, or the N1 fallback for #10 (R6).** Pretotype the power budget on 2–3 levels (core
-      L1/L2/L3 supply 4/7/10). Ship it only if bots then buy core upgrades; otherwise #10 takes the per-pad
-      counter, with no upgrade escalation and a cap at 2x base.
-- [ ] **Defend fun threshold (R6 Bundle 6).** Defend levels rate F 0.1–0.3 against the 0.4 bar. Either set a
-      defend threshold from the data, or fix what `rater/src/fun.ts` misses on defend levels.
-- [ ] **Look at the level 5 scenes on a phone (S32, S33).** `warlord_fall` and `vale_run` are live with rough
-      blocking. The raider keeps its helmet on until the drop.
-- [ ] **Q2 KILN size (S4)** and **Q4 counting the old pod in level 2's goal (S13).** Both shipped as read
-      (KILN size 1.1; `rescue_all` `decoys: 1`). Close them unless Doug objects.
+Terms: **animations** means every scripted story beat with character motion: rendered films, machinima, and live
+scenes where play pauses while one character's movement plays out (Doug, 2026-11-07).
+
+- [ ] **`empty_bays` against the films (Sign-off 2).** Doug asked to see it (2026-11-07). It plays at the end of
+      story level 2 on https://final-outpost-rho.vercel.app (story films replay on every play while `REPLAY_FILMS`
+      is on). Nothing is waiting on this any more, because the other live scenes were built anyway. Close it if
+      it reads fine.
+- [ ] **Defend fun threshold (R6 Bundle 6).** Doug asked for a summary of `rater/src/fun.ts` first (given in chat
+      2026-11-07). Next: measure the per-proxy breakdown on the defend levels (the pack stores only the total F),
+      then fix the proxies or set a defend threshold.
 
 ## 2. Ready now (no engine bump)
+
+- [ ] **S24 Two more sealed pods at the crash site (Doug, 2026-11-07: option 1).** Add two sealed
+      `decor.stasis_pod` + `decor.stasis_glass` pairs toward the back of the wreck in `story-L001..5.json`, so the
+      deck shows five (the commander's open pod, bay 5 open from level 3, three sealed). They must stay **out of
+      frame of `crash_open`** (the first film), and also clear of the game's start view and the film's held
+      level edits (section 4). No scene or line changes.
+- [ ] **S40 KILN looks the same in levels 1–5 (Doug, 2026-11-07: bigger in L1 than L4).** Every level's cue
+      sets `spiritFollow` to the same values (size 1.1, glow 0.6, height 80), so the difference comes from
+      somewhere else: the camera zoom per level (L1's `openZoom`), map scale, or the renderer's cloud sizing. Find
+      it and make KILN's on-screen size and rendering identical in all five. Done check: a screenshot of KILN at
+      the same moment in each level, at phone size.
+- [ ] **S41 Sela's buggy at the signed-off size (Doug confirmed several times; last on 2026-11-07).** Use the size in
+      the sandbox and in the `sela_arrival` scene: 2.64 m long (the 4.4 m build x 0.6). Merge the reduced model from
+      branch `story-buggy` (39.9k tris, 2.5 MB, two wheels) at that size, then wire it into level 3 with headlights
+      and the drive to the kiosk. No further sign-off.
 
 - [ ] **P7 Ship the revised ranger pad rule.** Doug, 2026-11-07: the ranger hire pad goes inside the hunting grounds,
       clear of the burrow models. If that fails, it goes just inside the gate nearest them, or on the settlement
@@ -58,6 +63,32 @@ their old ids (R6 N2, S24 …), so references in code, commits and the archive s
 - [ ] **S6 Show what is happening.** Characters act out their lines with the generic `{ walk, to }` director
       action. Rhee's and Okafor's walks are done. Still to do from the screenplay's stage notes: Rhee kneeling
       beside Pip, hires walking to their posts in level 4, and the commander picking up the helmet.
+- [ ] **S42 KILN on screen when it teaches a new skill (Doug, 2026-11-07).** On levels after 5, when a KILN coaching
+      line teaches a mechanic for the first time, KILN's cloud appears beside the commander for that line, as it does
+      in levels 1–5, instead of the line showing alone. Same size and look as in the story levels (S40).
+- [ ] **S43 The training levels teach wall building (Doug, 2026-11-07).** Today level 2 starts with a prebuilt ring,
+      so the walls appear from nowhere. After the freezing pods are rescued, the player builds the walls (wall pads
+      with a goal card and a line saying why: the night and the raiders). Needs a look at which level carries it
+      (2 or 3), whether a wall pad exists in the rules (an opt-in option if not), and the bots' and
+      `levels:check` result.
+- [ ] **S32 The lieutenant's fall, re-staged (Doug, 2026-11-07).** Claimed by the `story-vale-scrap` session; check
+      the work log first. What's wrong now: the alignment is a mess, the fall comes with no cause, and it plays after
+      the run has started. The cause: the scene is triggered by the sim's `retreated` event, which fires when the
+      warlord has already turned to flee. The beat Doug wants, in order:
+      1. Vale is attacking and taking damage in normal play.
+      2. The animation starts on the hit that brings the warlord to its retreat threshold: one shot too many knocks
+         Vale down.
+      3. The helmet falls off **at that spot**.
+      4. Vale gets up.
+      5. Only now does Vale run off screen.
+      Use Doug's new models (`hostile.boss_vale` with `item.vale_head`, the black `item.lieutenant_helmet`). After
+      the animation, the in-play helmet lies where it fell, not at its manifest spot (760, 770).
+      Dialogue timing: "You should have stayed asleep, Commander." stays as the warlord walks into frame. No line
+      during the animation. Then KILN's "They're running. It's over for tonight." and "They dropped something." (with
+      the dots on the helmet) come straight after Vale leaves the screen. They replace the line that waits for the
+      fleeing warlord to pass the helmet. The capture then plays `helmet_reveal`, `vale_run` and "Vale?" (S33) as now.
+      **Question for Doug:** the rework shows Vale's face when the helmet comes off, before the ID card and "Vale?".
+      Keep the face hidden in the fall (back to camera, or in shadow), or let the player see it first?
 
 ## 3. Release 2: combat and economy (one engine bump, one pack rebuild)
 
@@ -101,7 +132,22 @@ Retune by rater metrics (defender losses per wave), not by eye.
 - [ ] **N4 scrap lands where it can be reached:** snap drops to the nearest walkable point (`spawnDrops`). Required
       with #11.
 - [ ] **#11 attackers appear off screen:** spawn past the visible map, worked out in real metres per family.
-- [ ] **#10 + N1 guard-post cost:** depends on the N13 decision (section 1).
+- [ ] **P9 Attack–defence ratio model (Doug, 2026-11-07; replaces the N13-or-N1 choice for #10).** Balance defence
+      with one formula, assuming the best action at every moment, then tune a single ratio per level:
+      - A defence type's **efficiency** `e` is the defender damage per second bought per scrap, at its best buy. The
+        price is flat per defence type, with no level-wide escalation counter (this closes #10/N1).
+      - Drops equal HP, so killing a wave of total HP `H_w` returns `H_w` scrap. Reinvested, that adds `e·H_w` to
+        defender DPS. So `D_{w+1} = D_w + e·H_w`, with `D_0` set by the starting scrap.
+      - A wave with total attacker DPS `A_w` dies in about `H_w / D_w` seconds (plus its walk-in time inside range).
+        Its damage to the defence is about `L_w = A_w · H_w / (2·D_w)` (attackers fall linearly under focused fire).
+      - The level's **pressure ratio** is `ρ = Σ L_w / B`, where `B` is what can be lost (gate, base, guards' HP).
+        `ρ < 1` is winnable with best play, and the target band (about 0.6–0.9) gives close finishes.
+      - Each level meets its `ρ` quota freely: compress or spread the waves in time, or push more attacker damage
+        into later waves. Difficulty becomes a shape, not a count.
+      - What the formula can't see (lanes, travel, overkill, drops out of reach, melee vs ranged, bleed-out) goes in
+        as fitted correction factors per family, measured by the bots, not hand-set.
+      Steps: write the model in the generator (or the rater) as a pure function, check it against bot runs on the
+      current defend levels, fit the corrections, then size Bundle 5's waves (N23, #14, #15, N12) from target `ρ`.
 - [ ] **G7 drop the tow line's slack rule:** remove `lasso.slackTime` / `slackTicks`, the `tow_dropped` "slack"
       reason, the bots' never-stand-still rule, and the hint and skin text.
 
@@ -109,7 +155,8 @@ Retune by rater metrics (defender losses per wave), not by eye.
 - [ ] **N6 loop bound:** reject a candidate if any hand-done leg needs more than 5 trips with no affordable
       takeover. Store `loopMax` per level and re-check it in `levels:check`.
 - [ ] **#13 the hands-off goal needs x machines running** (a new `machines` param on automate).
-- [ ] **N13 power budget pretotype** (if Doug agrees; section 1).
+- [ ] **N13 core levels matter (power budget).** No longer needed for defence cost (P9 covers that). Keep it only
+      if core upgrades still go unbought after P9; otherwise drop it.
 - [ ] **N10 rock slides hide something real:** `node.fuel_deposit` under the rubble, plus a generator check.
 - [ ] **N6b level-order audit:** a pack check for repeated goal kinds and templates.
 - [ ] **G4 / S27 hire pads always fully visible:** the generator places pads clear of model silhouettes, and
@@ -120,7 +167,7 @@ Retune by rater metrics (defender losses per wave), not by eye.
       rewrite it with `pnpm levels:start-table` from this rebuild.
 - [ ] **Levels far off their target D** (L23, L26, L27, L28, L35, L44, L47 in 0.16.0): re-check against the
       latest digest. Give the sequencer per-goal D ranges where a goal can't reach its target.
-- [ ] **Defend fun threshold** (section 1).
+- [ ] **Defend fun threshold** (section 1). P9 should lift `closeFinish` and `lateUncertainty` on defend levels.
 - [ ] Engine bump, rebuild, check, re-pin, release notes, deploy (see the order above).
 
 ## 4. Level 1 opening film (`crash_open`, Release 3)
@@ -150,6 +197,8 @@ reopen it here.
       iPhone, and the core fade in a story level.
 - [ ] **G5 / S8 arrows follow the goal:** story level 3 (kiosk, then rockslide).
 - [ ] **G6 / S9 one loop around close pods:** level 2 goal 2's pair, on screen together.
+- [ ] **S33 `vale_run`** ("Vale?" as the commander runs two steps toward the screen with the helmet): check it on a
+      phone once S32 is re-staged.
 
 ## 6. Release gates (web, then stores; details in `docs/RELEASE.md`)
 

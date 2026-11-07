@@ -4,6 +4,14 @@ Items ticked in `docs/BACKLOG.md` move here once they are verified live, newest 
 was seen. Work finished before 2026-11-07 is ticked in the archived round files beside this one
 (`BACKLOG-R4.md`, `BACKLOG-R5.md`, `BACKLOG-R6.md`, `BACKLOG-STORY.md`, `POLISH-PLAN.md`).
 
+## 2026-11-07 (Doug's decisions)
+
+- **Level 1 sign-off, removed as an item.** Nothing waits on it, and every story level gets signed off in the end
+  anyway. The `crash_open` film approval stays in the backlog (section 4).
+- **Q2 KILN size and Q4 the old pod in level 2's goal:** closed as shipped. KILN's size now lives under S40.
+- **S39 The escape pod is burnt Ship Scrap 2 (L2)** (story-vale-scrap, 0dc66ae): `capture.recruit_container_decoy`
+  is Ship_Scrap_2 with the `scorch` tint, replacing the S20 tinted stasis pod and the S31 hinged glass.
+
 ## 2026-11-07 (backlog consolidation)
 
 - **R6 G8 realistic storm dust.** Doug, 2026-11-05: "the storm dust in live L1 looks realistic, that is the
