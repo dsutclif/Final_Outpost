@@ -134,7 +134,7 @@ The WRAP UP account owned all story work from 2026-11-06 (Doug: "You own R4") an
 - Stage 2 issues to fix next (WRAP UP's review; ask Doug for his list too): 1 the glass slides/tilts through the commander instead of hinging on its edge (key a hinge, not a location lerp); 2 the open glass blocks the camera at the step-out; 3 the drop to the sand is cut away; 4 the third camera frames mostly black sky; 5 the commander faces away in the look-round instead of toward the light; 6 the final game view crowds them against wreckage; the Workbench preview also draws stray grey lines on the ground (ignore; not in EEVEE).
 - Level edits held for when the film ships (not pushed, since the hand-off must match the film): crash-site `scrap` x minus 100 units in story-L001..005 (L1 469.4 to 369.4; L2-5 359.4 to 259.4), and L1 `start` to [451.7, 138.9] (the film's end spot). Then bump `FILM_VERSIONS.crash_open`, check `openZoom.film` lands on the last frame, re-render shots 2-3 (impact, wreck at dawn) from the new set, and do the full render cheaply (set as one plate, commander alone on a holdout layer with a render region, composite).
 
-**Open questions for Doug:** level 1 sign-off; `empty_bays` good enough vs the films; two more sealed pods at the crash site to make five (story session's proposal, see open questions); ranger pad rule and broken s1-L065 (OPEN-ITEMS-plot-layout-chat.md in the project root).
+**Open questions for Doug:** moved to `docs/BACKLOG.md` (2026-11-07). Level 1 sign-off was dropped, `empty_bays` is #1, the pod count was decided (#3: five pods), and the ranger pad rule and s1-L065 were decided (#7, #8).
 
 ## Log
 

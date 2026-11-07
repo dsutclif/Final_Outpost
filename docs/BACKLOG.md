@@ -6,7 +6,7 @@ session that raised it. This file replaced `BACKLOG-R4/R5/R6.md`, `BACKLOG-STORY
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#63**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#74**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -95,10 +95,16 @@ scenes where play pauses while one character's movement plays out (Doug, 2026-11
       - each difficulty feature (`skillNeeded`, `marginRef`, `marginMedian`, `lifelineRisk`, `concurrentDemand`,
         `routeLoad`, `threatPressure`, `animalHits`, `economyTightness`, `moduleCount`, `novelty`, from
         `rater/data/weights.json`) with its weighted contribution;
-      - the per-profile bot results behind them (win, margin, stars, stall reason, `ticks`).
+      - the per-profile bot results behind them (win, margin, stars, stall reason, `ticks`);
+      - the review pipeline's measures (`tools/review`): pulse's `shape` (still time, walking, repetition, reward
+        gaps), `oneTaskS`, `noTaskS`, `loopMax` and `moved`; guide's walk results; the telemetry aggregate; and
+        calibrate's bot-vs-player fit;
+      - the generator's per-candidate record (the digest: every search iteration, passed or rejected, and why), and
+        the `levels:check` ladder per rung.
       Write them into each level's `rating` and into the candidate digest. Re-rate the current pack (no rebuild
-      needed if rating is separate from generation), and add a sandbox or `docs/LEVELS.md` table that shows the
-      breakdown per level. Then #35 (defend fun) can be decided from data.
+      needed if rating is separate from generation). Then build one view (sandbox page or `docs/LEVELS.md` table)
+      that shows every sub-point per level, with bots and real players side by side. Then #35 (defend fun) can be
+      decided from data.
 - [ ] **#10 · Flat ground markers instead of raised pads (Doug, 2026-11-07).** Replace the raised standing pads
       with 2D projections on the ground: a light or dark marking in the same shade as the guide arrows, so it
       contrasts in any lighting. Applies to every pad kind (hire, build, upgrade, warehouse, clear). Done check: pads
@@ -268,7 +274,52 @@ reopen it here.
 - [ ] **#55 · S33 `vale_run`** ("Vale?" as the commander runs two steps toward the screen with the helmet): check it
       on a phone once #6 is re-staged.
 
-## 6. Release gates (web, then stores; details in `docs/RELEASE.md`)
+## 6. Review pipeline (from the review-pipeline session's hand-off, 2026-11-07)
+
+Done there: Supabase play data is live (`telemetry_events`, `telemetry_level_daily`, 90-day prune), with secrets
+in Vercel and outpost-ops, and review parts B and C are on main (a1cc3bf). Full detail: `docs/review/HANDOFF.md` in
+the Mobile game folder (outside git).
+- [ ] **#63 · Nightly-data fails (do first).** outpost-ops Actions run 42404338827: `review:pulse` ran 111 levels and
+      reported 69 errors, all "pinned to engine 0.18.0, running 0.20.0", from the old packs s1-068…s1-108 in the
+      workflow's `--packs` list. That probably stopped the other four `review:*` commands, and no data commit
+      landed. Fix: pulse skips levels pinned to an old engine and reports them (or trim the pack list). Then re-run
+      the workflow by hand from the GitHub page (no `gh` on the laptop).
+- [ ] **#64 · Probes on CI and tuned limits** (`docs/review/HANDOFF-PROBES.md`). Do the first run on ubuntu CI
+      (`playwright install --with-deps chromium`). After the first real nightly, tune `probe-limits.json` against
+      Doug's judgement.
+- [ ] **#65 · Routines (HANDOFF.md step 5). Waiting on Doug:**
+      1. Give the Claude GitHub app access to outpost-ops (installation 136790409).
+      2. Create a fine-grained token for outpost-ops only, with Issues and Contents read/write.
+      Then create the routines in dry-run for a week.
+- [ ] **#66 · PILLARS-DRAFT.md (waiting on Doug):** the order of the pillars, and pillar 7's pay-to-win line.
+- [ ] **#67 · Housekeeping:**
+      - delete the Supabase test row (install `claude-verify-20261107`, kind `session`);
+      - delete the merged local branches `review-supabase`, `review-tools`, `review-probe` and `review-merge`;
+      - update the stale `packs.test.ts` "gotcha" in `docs/review/HANDOFF.md` (the test passes).
+
+## 7. Unshipped work in branches and worktrees (ship or discard each)
+
+Found on 2026-11-07 by comparing every local worktree and remote branch with origin/main. Each one needs a call:
+ship it, fold it into another item, or delete it.
+- [ ] **#68 · Two commits on the local `farthest-outpost` main, never pushed (2026-10-30):**
+      - f32b159 crash_open: no reactor in the film; the commander no longer jitters at the plate's edge;
+      - 2cf4c1b Level rules: rule 7 counts enemy points; drops in proportion to HP.
+      Both are older than the film rework (#47) and the rules review, so they may be superseded. Compare them with
+      main before pushing.
+- [ ] **#69 · `story-handoff` (worktree `fo-wt-handoff`):** b477f7d "Level 1 opens on crash_open's last frame",
+      plus uncommitted edits to `cinematics.ts`, the release notes and the work log. This overlaps #48 (the held
+      level edits).
+- [ ] **#70 · `story-buggy` (also in `fo-wt-buggy` with uncommitted `buggy.json` / `meshy.json` edits):** the
+      reduced buggy model. Goes in with #5.
+- [ ] **#71 · `fo-wt-plot`, uncommitted:** the ranger pad rule and the L012 / L037 retry output. Goes in with #7.
+- [ ] **#72 · Remote branch `look-test`** (2026-11-04): soft sprite particles, turret bolts of light, dust-storm
+      sheets, KILN cloud without square blocks, reactor glow. Most of the new look is already on main. Check what's
+      left, then merge the rest or delete the branch.
+- [ ] **#73 · Remote branch `object-sizes`** (2026-11-04): crystal scrap at 0.95 m, generator footprints for the
+      resized models, and a WIP commit of the Buildings-row sizes whose footprints test fails. Check against main's
+      one size reference (`render-3d/src/sizes.ts`).
+
+## 8. Release gates (web, then stores; details in `docs/RELEASE.md`)
 
 - [ ] **#56 ·** At least 20 cached levels play start to finish in airplane mode on a mid-range iPhone at 60 fps (2D)
       / 30 fps (3D).
