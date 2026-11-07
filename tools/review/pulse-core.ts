@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
 import { createShape, HUMAN, playBot, shapeResult, shapeTick, type PlayShape } from "../../packages/bots/src/index.js";
 import { historyEntry, measure, score, type HistoryEntry } from "../../packages/rater/src/index.js";
-import { TPS } from "../../packages/sim/src/index.js";
+import { ENGINE_VERSION, TPS } from "../../packages/sim/src/index.js";
 import { candidate, median, mean, round, type Candidate, type Limits } from "./lib.js";
 
 // The pure part of pnpm review:pulse (the command itself is pulse.ts): one level, the history comparison and
@@ -67,6 +67,8 @@ export interface PulseMeta {
   levels: number;
   runtimeS: number;
   errors: { levelId: string; message: string }[];
+  /** Levels pinned to another engine, left out of the run (old packs stay listed until they are dropped). */
+  skipped?: { levelId: string; engine: string }[];
 }
 
 export interface Moved { levelId: string; field: string; prev: number; now: number; delta: number }
@@ -425,6 +427,18 @@ export function listLevels(packDir: string): LevelRef[] {
 }
 
 export const readManifest = (ref: LevelRef): unknown => JSON.parse(readFileSync(join(ref.packDir, ref.file), "utf8")) as unknown;
+
+/** A level pinned to another engine can't be played by this build; the nightly lists it as skipped, not as an error. */
+export interface Skipped { levelId: string; engine: string }
+export function splitByEngine<R extends LevelRef>(refs: readonly R[], engine: string = ENGINE_VERSION): { play: R[]; skipped: Skipped[] } {
+  const play: R[] = [], skipped: Skipped[] = [];
+  for (const r of refs) {
+    const pinned = (readManifest(r) as { engineVersion?: unknown }).engineVersion;
+    if (typeof pinned === "string" && pinned !== engine) skipped.push({ levelId: r.id, engine: pinned });
+    else play.push(r);
+  }
+  return { play, skipped };
+}
 
 /** The five levels before this one in its pack, for the rater's novelty proxy (as the rater CLI does for a folder). */
 export function historyBefore(ref: LevelRef, all: readonly LevelRef[]): HistoryEntry[] {

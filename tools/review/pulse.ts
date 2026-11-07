@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { CONTENT_VERSION } from "../../packages/content/src/index.js";
 import { ENGINE_VERSION } from "../../packages/sim/src/index.js";
 import { Args, appendJsonl, loadLimits, readJsonl, repoRoot, resolveIn, round, writeJson } from "./lib.js";
-import { assemble, historyBefore, listLevels, pulseLevel, readManifest, type HistoryRow, type LevelPulse, type PulseMeta } from "./pulse-core.js";
+import { assemble, historyBefore, listLevels, pulseLevel, readManifest, splitByEngine, type HistoryRow, type LevelPulse, type PulseMeta } from "./pulse-core.js";
 
 // pnpm review:pulse -- --out <dir> [--packs levels/golden,levels/packs/s1,levels/story] [--seeds 3] [--history <file.jsonl>]
 //                      [--jobs N] [--only id,id] [--limits file]
@@ -14,7 +14,8 @@ import { assemble, historyBefore, listLevels, pulseLevel, readManifest, type His
 // rater metrics and fun proxies, the human bot's PlayShape, oneTaskS) and candidates-pulse.json; appends
 // one row per level to --history and lists in pulse.json what moved past tolerance since the previous
 // row for that level. Levels are played by worker processes (--jobs, default cores - 2) like
-// tools/regress-levels.ts. Exits 1 when any level could not be played; the files are still written.
+// tools/regress-levels.ts. Levels pinned to another engine are skipped and listed in meta.skipped. Exits 1 when
+// any other level could not be played; the files are still written.
 
 const here = fileURLToPath(import.meta.url);
 export const DEFAULT_PACKS = ["levels/golden", "levels/packs/s1", "levels/story"];
@@ -71,7 +72,7 @@ async function main(args: Args): Promise<void> {
   const t0 = Date.now();
 
   const all = packDirs.flatMap((p) => listLevels(p));
-  const todo = only.length > 0 ? all.filter((r) => only.includes(r.id)) : all;
+  const { play: todo, skipped } = splitByEngine(only.length > 0 ? all.filter((r) => only.includes(r.id)) : all);
   const jobs = Math.max(1, Math.min(Math.max(1, todo.length), args.num("--jobs", Math.max(1, cpus().length - 2))));
   const rows: LevelPulse[] = [];
   const errors: PulseMeta["errors"] = [];
@@ -100,13 +101,13 @@ async function main(args: Args): Promise<void> {
 
   // the previous rows are read before this run's are appended
   const previous = historyFile ? readJsonl<HistoryRow>(historyFile) : [];
-  const meta = { generated: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, seeds, packs: packDirs.map((p) => basename(p)), runtimeS: round((Date.now() - t0) / 1000, 1), errors };
+  const meta = { generated: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, seeds, packs: packDirs.map((p) => basename(p)), runtimeS: round((Date.now() - t0) / 1000, 1), errors, skipped };
   const run = assemble(rows, previous, L, meta, gitSha());
   writeJson(out, "pulse.json", run.file);
   writeJson(out, "candidates-pulse.json", run.candidates);
   if (historyFile) appendJsonl(historyFile, run.rows);
 
-  console.log(`pulse: ${rows.length} levels in ${meta.runtimeS} s (${jobs} job${jobs === 1 ? "" : "s"}), ${run.file.moved.length} moved past tolerance, ${run.candidates.length} candidates, ${errors.length} errors`);
+  console.log(`pulse: ${rows.length} levels in ${meta.runtimeS} s (${jobs} job${jobs === 1 ? "" : "s"}), ${run.file.moved.length} moved past tolerance, ${run.candidates.length} candidates, ${errors.length} errors, ${skipped.length} skipped (pinned to another engine)`);
   for (const e of errors) console.error(`  ${e.levelId}: ${e.message}`);
   if (errors.length > 0) process.exitCode = 1;
 }

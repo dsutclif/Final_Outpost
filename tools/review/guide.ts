@@ -3,7 +3,7 @@ import { ENGINE_VERSION } from "../../packages/sim/src/index.js";
 import { Args, loadLimits, resolveIn, round, writeJson } from "./lib.js";
 import { analyseGuide, guideCandidates } from "./guide-core.js";
 import { followGuide } from "./guide-walk.js";
-import { listLevels, readManifest } from "./pulse-core.js";
+import { listLevels, readManifest, splitByEngine } from "./pulse-core.js";
 
 // pnpm review:guide -- --out <dir> [--story levels/story] [--pack levels/packs/s1] [--first 10] [--seconds 600] [--only id,id]
 //
@@ -20,8 +20,8 @@ async function main(args: Args): Promise<void> {
   const seconds = args.num("--seconds", 600);
   const first = args.num("--first", 10);
   const only = args.list("--only");
-  const refs = [...listLevels(resolveIn(args.get("--story", "levels/story")!)), ...listLevels(resolveIn(args.get("--pack", "levels/packs/s1")!)).slice(0, first)]
-    .filter((r) => only.length === 0 || only.includes(r.id));
+  const { play: refs, skipped } = splitByEngine([...listLevels(resolveIn(args.get("--story", "levels/story")!)), ...listLevels(resolveIn(args.get("--pack", "levels/packs/s1")!)).slice(0, first)]
+    .filter((r) => only.length === 0 || only.includes(r.id)));
   const t0 = Date.now();
   const levels = [];
   const errors: { levelId: string; message: string }[] = [];
@@ -36,11 +36,11 @@ async function main(args: Args): Promise<void> {
   const candidates = guideCandidates(levels, L.guide);
   writeJson(out, "guide.json", {
     v: 1,
-    meta: { generated: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, seconds, levels: levels.length, runtimeS: round((Date.now() - t0) / 1000, 1), errors },
+    meta: { generated: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, seconds, levels: levels.length, runtimeS: round((Date.now() - t0) / 1000, 1), errors, skipped },
     levels: Object.fromEntries(levels.map((g) => [g.levelId, g])),
   });
   writeJson(out, "candidates-guide.json", candidates);
-  console.log(`guide: ${levels.length} levels followed in ${round((Date.now() - t0) / 1000, 1)} s, ${candidates.length} candidates, ${errors.length} errors`);
+  console.log(`guide: ${levels.length} levels followed in ${round((Date.now() - t0) / 1000, 1)} s, ${candidates.length} candidates, ${errors.length} errors, ${skipped.length} skipped (pinned to another engine)`);
   for (const e of errors) console.error(`  ${e.levelId}: ${e.message}`);
   if (errors.length > 0) process.exitCode = 1;
 }

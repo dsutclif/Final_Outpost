@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { readJsonl, repoRoot, loadLimits } from "./lib.js";
 import {
-  TaskSampler, assemble, compareToPrevious, lastRows, listLevels, medianShape, pulseCandidates, pulseLevel, readManifest, trackedFields,
+  TaskSampler, assemble, compareToPrevious, lastRows, listLevels, medianShape, pulseCandidates, pulseLevel, readManifest, splitByEngine, trackedFields,
   type HistoryRow, type LevelPulse,
 } from "./pulse-core.js";
 
@@ -172,5 +172,19 @@ describe("candidates from the limits", () => {
     const story = listLevels(resolve(repoRoot, "levels/story"));
     expect(story.map((r) => r.id)).toEqual(["story-L001", "story-L002", "story-L003", "story-L004", "story-L005"]);
     expect(JSON.parse(readFileSync(join(story[0]!.packDir, story[0]!.file), "utf8")).id).toBe("story-L001");
+  });
+});
+
+describe("levels pinned to another engine", () => {
+  it("are skipped and listed, not played", () => {
+    const dir = mkdtempSync(join(tmpdir(), "pulse-engine-"));
+    const ref = listLevels(golden)[0]!;
+    const current = readManifest(ref) as Record<string, unknown>;
+    writeFileSync(join(dir, "now-L001.json"), JSON.stringify({ ...current, id: "now-L001" }));
+    writeFileSync(join(dir, "old-L002.json"), JSON.stringify({ ...current, id: "old-L002", engineVersion: "0.0.1" }));
+    const refs = listLevels(dir);
+    const { play, skipped } = splitByEngine(refs);
+    expect(play.map((r) => r.id)).toEqual(["now-L001"]);
+    expect(skipped).toEqual([{ levelId: "old-L002", engine: "0.0.1" }]);
   });
 });

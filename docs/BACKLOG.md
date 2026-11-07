@@ -6,7 +6,7 @@ session that raised it. This file replaced `BACKLOG-R4/R5/R6.md`, `BACKLOG-STORY
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#77**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#78**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -127,6 +127,12 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       `zones[0]` and ignores dangerous prey. The L012/L037 retry output is not in the diff. Look at both levels before
       landing; re-run: merge main, `levels:repin`, `pnpm check`, `levels:check` (s1 and story), regenerate `docs/LEVELS.md`.
       Done check: the ranger pad sits inside the hunting grounds on L017 and L034, seen live.
+- [ ] **#77 · Five shipped packs are pinned to old engines (found 2026-11-07, Bundle 1).** `levels/packs/index.json` ships
+      s1-068, s1-088 and s1-108 (engine 0.14.0, 49 levels) and s1-069 and s1-081 (0.18.0, 19 levels); the engine is 0.21.0,
+      so the client can't load any of these 68 levels (the same failure as s1-L065, #8). Re-pin them with `levels:repin` and
+      keep the ones `levels:check` passes; drop the rest from their packs (keep `dropped` records). Add a pack test that
+      every level in `index.json`'s packs is pinned to the current engine, so a bump can't strand a pack again.
+      Done check: the test passes, and a level from each pack loads on the live site.
 - [ ] **#74 · Unique level ids across packs (from #40).** L051–L060 exist in both s1 and s1-051 and the client keeps
       whichever it finds first. Decide which copy wins (s1 is the main pack), drop the duplicates, and add a
       `pack.test.ts` check that ids are unique across every pack the client loads.
