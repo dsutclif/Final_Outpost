@@ -52,7 +52,7 @@ pnpm typecheck     # tsc project references
 pnpm check         # both
 pnpm dev           # client on 0.0.0.0:5180
 pnpm build         # production build into ./dist (Vercel output)
-pnpm levels:build --from 1 --to 60 --out levels/packs/s1   # regenerate the pack (~45 min)
+pnpm levels:build --from 6 --to 60 --out levels/packs/s1   # regenerate the pack (~45 min); 1-5 are the story levels
 pnpm levels:check  # replay every pack level with the bot ladder (~30 s)
 ```
 

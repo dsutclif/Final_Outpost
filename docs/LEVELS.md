@@ -13,10 +13,6 @@ mean stars on the final objectives (10 and 3 seeds).
 
 | # | Id | Family | Phase | Introduces | Features | Goal | Star 2 | Star 3 | Target | D | F | Good | Weak | Stars good/median |
 |---|----|--------|-------|------------|----------|------|--------|--------|--------|---|---|------|------|-------------------|
-| 1 | s1-L001 | shelter | teach | family:shelter | - | heat_hold (pct=65 seconds=85) | heat_floor (pct=30) | no_colonist_freezes | 0.11 | 0.038* | 0.136 | 41% | 37% | 3/3 |
-| 2 | s1-L002 | rescue | teach | family:rescue | - | rescue (n=4) | rescue_all | time_target (seconds=35) | 0.12 | 0.084 | 0.575 | 74% | 67% | 3/3 |
-| 3 | s1-L003 | harvest | teach | family:harvest | - | earn (n=329) | no_angry_customers | time_target (seconds=253) | 0.13 | 0.109 | 0.914 | 49% | 41% | 3/3 |
-| 4 | s1-L004 | industrialize | teach | family:industrialize | - | produce (n=32 res=food_prepared) | hire (n=6) | time_target (seconds=154) | 0.15 | 1.000* | 0.819 | 72% | 66% | 3/3 |
 | 6 | s1-L006 | shelter | intro | gate_arrivals + housing | gate_arrivals, housing | house_all | heat_floor (pct=45) | time_target (seconds=95) | 0.17 | 0.211 | 0.808 | 58% | 47% | 3/3 |
 | 7 | s1-L007 | rescue | intro | crates | crates | crates (n=4) | rescue_all | time_target (seconds=55) | 0.18 | 0.098* | 0.633 | 58% | 52% | 3/3 |
 | 8 | s1-L008 | harvest | intro | vips | vips | serve_premium (n=16) | streak (n=20) | time_target (seconds=400) | 0.20 | 0.175 | 0.909 | 46% | 44% | 3/3 |

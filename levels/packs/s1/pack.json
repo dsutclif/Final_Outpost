@@ -4,78 +4,6 @@
   "contentVersion": "0.18.0",
   "levels": [
     {
-      "id": "s1-L001",
-      "file": "s1-L001.json",
-      "title": "Traders and Slow Burn",
-      "family": "shelter",
-      "modules": [
-        "carry",
-        "core",
-        "gather",
-        "sales"
-      ],
-      "goal": "heat_hold",
-      "rating": 0.038,
-      "fun": 0.136,
-      "target": 0.11
-    },
-    {
-      "id": "s1-L002",
-      "file": "s1-L002.json",
-      "title": "Drift Cables and Rescue",
-      "family": "rescue",
-      "modules": [
-        "barrier_lines",
-        "build_pads",
-        "carry",
-        "core",
-        "gather",
-        "lasso",
-        "sales"
-      ],
-      "goal": "rescue",
-      "rating": 0.084,
-      "fun": 0.575,
-      "target": 0.122
-    },
-    {
-      "id": "s1-L003",
-      "file": "s1-L003.json",
-      "title": "Blueprints and Paydays",
-      "family": "harvest",
-      "modules": [
-        "build_pads",
-        "carry",
-        "core",
-        "gather",
-        "sales",
-        "workers"
-      ],
-      "goal": "earn",
-      "rating": 0.109,
-      "fun": 0.914,
-      "target": 0.134
-    },
-    {
-      "id": "s1-L004",
-      "file": "s1-L004.json",
-      "title": "Presses and Output",
-      "family": "industrialize",
-      "modules": [
-        "build_pads",
-        "carry",
-        "converters",
-        "core",
-        "gather",
-        "sales",
-        "workers"
-      ],
-      "goal": "produce",
-      "rating": 1,
-      "fun": 0.819,
-      "target": 0.146
-    },
-    {
       "id": "s1-L006",
       "file": "s1-L006.json",
       "title": "Roof Overhead",
@@ -1187,53 +1115,6 @@
       "rating": 0.658,
       "fun": 0.858,
       "target": 0.8
-    }
-  ],
-  "dropped": [
-    {
-      "index": 5,
-      "id": "s1-L005",
-      "family": "defend",
-      "secondary": null,
-      "rejects": {
-        "ladderSpent": 20,
-        "infeasible": 21,
-        "trivial": 4
-      }
-    },
-    {
-      "index": 12,
-      "id": "s1-L012",
-      "family": "rescue",
-      "secondary": null,
-      "rejects": {
-        "objectives": 40,
-        "offTarget": 32
-      }
-    },
-    {
-      "index": 30,
-      "id": "s1-L030",
-      "family": "rescue",
-      "secondary": "harvest",
-      "rejects": {
-        "offTarget": 17,
-        "stall": 27,
-        "layout": 20,
-        "objectives": 13
-      }
-    },
-    {
-      "index": 37,
-      "id": "s1-L037",
-      "family": "defend",
-      "secondary": null,
-      "rejects": {
-        "infeasible": 21,
-        "idleModule": 1,
-        "ladderSpent": 19,
-        "trivial": 12
-      }
     }
   ]
 }

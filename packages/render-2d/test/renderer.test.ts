@@ -229,14 +229,14 @@ describe("2D renderer", () => {
 
 describe("2D renderer: hire pads held for a job by hand (R5 #25)", () => {
   it("draws a hidden manual hire pad locked, with the job text from the skin", async () => {
-    const m = (await import("../../../levels/packs/s1/s1-L003.json")).default as unknown as typeof manifest;
+    const m = (await import("../../../levels/packs/s1/s1-L008.json")).default as unknown as typeof manifest;
     const clock = { t: 0 };
     const r = new Renderer2D({ now: () => clock.t, dpr: () => 2 });
     const env = fakeCanvasEnv();
     const sim = createSim(m);
     r.init(sim.compiled.manifest, marsGreenhouse, env.mount);
     const held = sim.state.pads.find((p) => !p.visible && !p.done && sim.compiled.entityById[p.id]?.type === "pad.hire" && (sim.compiled.entityById[p.id] as { manual?: boolean }).manual);
-    expect(held, "s1-L003 has a manual hire pad hidden at the start").toBeTruthy();
+    expect(held, "s1-L008 has a manual hire pad hidden at the start").toBeTruthy();
     r.sync(sim.state, 0.5, createCamera());
     const texts = env.calls.filter((c) => c.name === "fillText" || c.name === "strokeText").map((c) => String(c.args[0]));
     const job = heldJob(sim.state, sim.compiled, held!)!;

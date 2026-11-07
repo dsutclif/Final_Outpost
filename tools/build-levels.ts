@@ -11,7 +11,7 @@ import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, n
 import { hashStr, mix } from "../packages/generator/src/rand.js";
 import { digestLog } from "./candidate-digest.js";
 
-// pnpm levels:build --from 1 --to 60 --out levels/packs/s1 [--jobs N] [--retries N] [--calibrate] [--verbose]
+// pnpm levels:build --from 6 --to 60 --out levels/packs/s1 [--jobs N] [--retries N] [--calibrate] [--verbose]
 //   [--target-offset X] [--no-doc]
 //
 // Sequencer -> generator -> rater for each index. Requests come from the sequencer with the earlier
@@ -149,7 +149,7 @@ const parseResult = (out: string): Record<string, unknown> | null => {
 };
 
 async function main(): Promise<void> {
-  const from = Number(arg("--from", "1")), to = Number(arg("--to", "60"));
+  const from = Number(arg("--from", "6")), to = Number(arg("--to", "60"));
   const outDir = abs(arg("--out", "levels/packs/s1")!);
   const jobs = Number(arg("--jobs", String(Math.max(1, cpus().length - 2))));
   const retries = Number(arg("--retries", "3"));

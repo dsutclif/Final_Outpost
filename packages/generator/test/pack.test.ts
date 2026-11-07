@@ -20,10 +20,8 @@ describe("level pack s1", () => {
   it("is pinned to the running engine and content versions", () => {
     expect(pack.engineVersion).toBe(ENGINE_VERSION);
     expect(pack.contentVersion).toBe(CONTENT_VERSION);
-    // 50 levels since Batch 3 (BACKLOG-R4): since the story levels, 1-5 are hand-made (levels/story) and the pack holds 6-50
-    expect(pack.levels[0]!.id).toBe("s1-L006");
-    // 0.15.0 shipped without L029, L040 and L047 (their generator retries ran out); back to 45 once they land
-    expect(pack.levels.length).toBeGreaterThanOrEqual(42);
+    // levels 1-5 are hand-made (levels/story), so the pack holds 6-60 in order, none missing
+    expect(pack.levels.map((e) => e.id)).toEqual(Array.from({ length: 55 }, (_, i) => `s1-L${String(i + 6).padStart(3, "0")}`));
   });
 
   it("every level parses, cross-checks against content and matches its pack entry", () => {
@@ -53,8 +51,7 @@ describe("level pack s1", () => {
     const counts: Record<string, number> = {};
     for (const e of [...story.map((family) => ({ family })), ...pack.levels]) counts[e.family] = (counts[e.family] ?? 0) + 1;
     // every 10th level is a two-family finale led by one family in turn, so a pack that ends mid-cycle is off by one
-    // (off by two while L029, L040 and L047 are missing; back to one once they land)
-    for (const f of ["shelter", "rescue", "harvest", "industrialize", "defend"]) expect(Math.abs(counts[f]! - (pack.levels.length + story.length) / 5), f).toBeLessThanOrEqual(2);
+    for (const f of ["shelter", "rescue", "harvest", "industrialize", "defend"]) expect(Math.abs(counts[f]! - (pack.levels.length + story.length) / 5), f).toBeLessThanOrEqual(1);
   });
 
   it("barrier lines appear only on defend and rescue levels, as closed rings", () => {

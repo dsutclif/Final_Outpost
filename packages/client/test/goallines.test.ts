@@ -14,11 +14,13 @@ const level = (n: number): Manifest => {
   const raw = JSON.parse(readFileSync(resolve(__dirname, `../../../levels/packs/s1/s1-L${String(n).padStart(3, "0")}.json`), "utf8"));
   return (raw.manifest ?? raw) as Manifest;
 };
+// level 1-5 are the story levels (the pack starts at 6); story level 4 brings in the galley
+const story4 = (): Manifest => JSON.parse(readFileSync(resolve(__dirname, "../../../levels/story/story-L004.json"), "utf8")) as Manifest;
 const labels = (n: number): string[] => { const m = level(n); return manifestObjectives(m).map((o) => labelOf(m, skin, o)); };
 
 describe("goal lines name what the level counts", () => {
   it("names the product, the building in the plural, the machines and the sources", () => {
-    expect(labels(4)[0]).toBe("Make 32 meals");
+    expect(labels(50)[0]).toBe("Make 4 parts");
     expect(labels(20)).toContain("Build 2 hab pods");
     expect(labels(9)[0]).toBe("Upgrade the galley, smelter or parts works to Lv3");
     expect(labels(31)[0]).toMatch(/^Keep 2 of the galley, smelter and parts works running at once for 0:13$/);
@@ -40,7 +42,7 @@ describe("goal lines name what the level counts", () => {
 
 describe("KILN's first-time lines", () => {
   it("coaches each new mechanic, naming this level's machine, and stays quiet once it has been met", () => {
-    const m = level(4);
+    const m = story4();
     const lines = kilnLines(m, skin, new Set());
     expect(lines.some((l) => l.startsWith("To run the galley, put greens in it"))).toBe(true);
     expect(lines.every((l) => !/[{}]/.test(l))).toBe(true);
@@ -53,8 +55,8 @@ describe("KILN's first-time lines", () => {
     expect(missing, "add a kilnTips line in the skin for each new module").toEqual([]);
   });
   it("teaches a mechanic on the first level that brings it in, whatever it is called", () => {
-    const m = { ...level(4), modules: [...level(4).modules, "made_up_mechanic"] } as Manifest;
-    const seen = new Set(level(4).modules);
+    const m = { ...story4(), modules: [...story4().modules, "made_up_mechanic"] } as Manifest;
+    const seen = new Set(story4().modules);
     // no line for an unknown module and no tip: nothing to say, but nothing breaks
     expect(kilnLines(m, skin, seen)).toEqual([]);
     const withTip = { ...skin, text: { ...skin.text, moduleTips: { ...skin.text.moduleTips, made_up_mechanic: "Stand on the new pad." } } };
