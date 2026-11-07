@@ -175,7 +175,7 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
   - L3: follows Sela's lamp from the south edge to the kiosk.
   - L4: none at the start; on KILN's flight-recorder line the camera goes east to the wreck and back.
   - L5: to the ridge as the visors light.
-- [ ] **S36 Text cards for held scenes.** Until a film or live scene is ready, the live game shows a short text card
+- [x] **S36 Text cards for held scenes.** (Checked 2026-11-07: no card stands in for a scene any more.) Until a film or live scene is ready, the live game shows a short text card
   describing it wherever it will play: the L5 lieutenant's fall, `crash_log`, Sela's arrival, the helmet, and
   so on. `empty_bays` already plays live.
 - [x] **S37 The wreck lies east of the camp.** Screen up is north, so place the wreck to the east in every level (with
@@ -187,12 +187,12 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
 
 - [x] **S30 Opening film end (L1; done by B 2026-11-04, played live in level 1's opening cues).** It pans up to show the pulsing light on the ridge, then a white flash from
   the screen's left, then play starts with the arrow pointing toward the white light.
-- [ ] **S31 Old pod opening (L2):** hinged glass on the S20 model.
-- [ ] **S32 The lieutenant's fall (L5):**
+- [ ] **S31 Old pod opening (L2):** hinged glass on the S20 model. (Hatch hangs open, live 2026-11-07; tick once seen.)
+- [ ] **S32 The lieutenant's fall (L5):** (Live 2026-11-07 as `warlord_fall`, rough blocking; Doug to look.)
   - Machinima triggered by the commander's last shot at the warlord: it falls, gets up and starts running, all in
     slow motion. Then back to live speed as it runs off.
   - The helmet-drop clip plays once it passes the screen edge.
-- [ ] **S33 "Vale?" is the last line of the clip or machinima,** as the commander runs two steps toward the screen
+- [ ] **S33 (live 2026-11-07 as `vale_run`) "Vale?" is the last line of the clip or machinima,** as the commander runs two steps toward the screen
   edge holding the helmet, then stops.
 - [x] `crash_log` (L4) is a live scene (2026-11-04, B), replacing its text card.
 - [x] Sela's arrival in the buggy (L3) is a live scene (`sela_arrival`, 2026-11-04, B), buggy at Doug's 2.64 m.
