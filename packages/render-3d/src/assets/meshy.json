@@ -117,6 +117,7 @@
       "parts": {}, "anchors": {} },
     { "file": "capture.recruit_container_decoy", "src": "Stasis Pod.glb", "id": "capture.recruit_container.decoy", "error": 0.005, "texture": 1024, "yaw": 0, "width": 1.859, "tint": "scorch", "replace": ["body", "glass"],
       "parts": {}, "anchors": {} },
+    { "file": "capture.recruit_container_decoy_glass", "src": "Stasis Pod Glass.glb", "id": "capture.recruit_container.decoy_glass", "kind": "decor", "unwired": true, "error": 0.005, "texture": 1024, "yaw": 0, "width": 1.838, "tint": "scorch" },
     { "file": "capture.supply_crate", "src": "Cargo_Crate.glb", "id": "capture.supply_crate", "error": 0.005, "texture": 512, "yaw": 0, "width": 1.011, "replace": ["body", "lidBody"],
       "parts": {}, "anchors": {} },
     { "file": "zone.blocked", "src": "Rockslide.glb", "id": "zone.blocked", "error": 0.005, "texture": 512, "yaw": 0, "width": 1, "batch": "rubble" },

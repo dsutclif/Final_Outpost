@@ -1362,5 +1362,18 @@
       1.692,
       0.299
     ]
+  },
+  "capture.recruit_container_decoy_glass": {
+    "hash": "09abd6ecf5",
+    "tris": 6612,
+    "bytes": 360224,
+    "bounds": [
+      -0.919,
+      0,
+      -0.645,
+      0.919,
+      0.639,
+      0.645
+    ]
   }
 }

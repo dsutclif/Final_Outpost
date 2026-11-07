@@ -73,6 +73,8 @@ import { ART_M, BUILD_K, CHAR_K, DRONE_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VI
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
 /** How far the old orange pod's hatch hangs open on its hinge, radians (a Halcyon lander pod opened from inside long ago). */
 const DECOY_LID = 1.35;
+/** The old pod's separate glass: model id and file, and its hinge on the body (height of the glass's base, half its width), art metres. */
+const DECOY_GLASS = "capture.recruit_container.decoy_glass", DECOY_GLASS_FILE = "capture.recruit_container_decoy_glass", DECOY_HINGE = [0.156, 0.645] as const;
 const SHELF_K = 1.05 / ITEM_K;
 
 /** The subset of WebGLRenderer the 3D renderer uses; tests inject a fake (no WebGL in Node). */
@@ -2323,6 +2325,12 @@ export class Renderer3D implements Renderer {
       const bc = p.model.parts["beacon"];
       if (bc) bc.visible = c.state !== "idle" || (this.t * 1.6 + c.id * 0.37) % 1 < 0.4;
       const lid = p.model.parts["lid"];
+      // the old pod's glass is its own scorched model hinged on the back long edge (the body GLB has none); loaded on first use
+      if (c.decoy && lid && !lid.userData["glassed"]) {
+        if (!this.namedAsked.has(DECOY_GLASS)) { this.namedAsked.add(DECOY_GLASS); void loadMeshy(undefined, new Set([DECOY_GLASS]), undefined, true); }
+        const g = meshyScene(DECOY_GLASS_FILE);
+        if (g) { lid.position.set(0, DECOY_HINGE[0], -DECOY_HINGE[1]); g.position.set(0, 0, DECOY_HINGE[1]); lid.add(g); lid.userData["glassed"] = true; }
+      }
       const rt = (this.content.lassoables[c.type] as { releaseTime?: number } | undefined)?.releaseTime ?? 1.6;
       if (c.state === "releasing") {
         const k = clamp01(1 - c.timer / Math.max(1, rt * TPS));
