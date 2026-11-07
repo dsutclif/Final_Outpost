@@ -132,7 +132,7 @@ scenes where play pauses while one character's movement plays out (Doug, 2026-11
 Order: Bundle 5 (Opus, one session, `sim` + `bots` + `rater`), then Bundle 6 (Opus, generator). Then claim
 the bump in `docs/STORY-WORK-LOG.md`, rebuild in the background, run `levels:check`, re-pin golden and story
 levels (the story owner re-checks 3–5), `levels:start-table`, release notes, deploy, and an iPhone frame-rate
-check with dense waves. Engine 0.20.0 (plot P1–P4) has already shipped, so this release is 0.21.0.
+check with dense waves. Engine 0.21.0 (level 5 helmet, 85f2fe2) has already shipped, so this release takes the next engine number.
 
 **Combat values (Doug, 2026-11-05: "make your own best decisions").** Start from the arena PROPOSALS in
 `client/src/dev/arenaModel.ts`, with drops equal to HP:
