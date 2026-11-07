@@ -1218,13 +1218,13 @@ export const marsGreenhouse: Skin = {
           { id: "dawn", on: { goal: "hold", is: "done" }, do: [
             { line: "They're running. It's over for tonight.", who: "kiln" },
           ] },
-          // as the fleeing warlord passes the helmet's spot on its escape path (Doug): it flees straight back east on
-          // its own row, so the reach is wide. The drop itself is drawn with the warlord's fall (needs the renderer).
+          // the helmet lies where the warlord fell (manifest heldBy: boss, Doug 2026-11-07), so this plays as it
+          // flees from that spot, right after its fall scene; the helmet itself shows at dawn.
           { on: { hostile: "hostile.boss", fleeing: true, at: { entity: "helmet" }, r: 200 }, do: [
             { line: "They dropped something.", who: "kiln" },
             { dots: [{ entity: "helmet" }], period: 1.2 },
           ] },
-          // if the warlord broke off east of the helmet and never passed it, the ground dots still find it
+          // if that line was missed (the warlord died instead of breaking off), the ground dots still find it
           { on: { after: "dawn", ticks: 150 }, do: [{ dots: [{ entity: "helmet" }], period: 1.2 }] },
           { on: { near: { entity: "helmet" }, r: 50 }, do: [{ dotsOff: true }] },
           // the helmet is caught on the tow line: its film, then "Vale?", before the walk home

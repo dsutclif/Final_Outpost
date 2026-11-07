@@ -157,6 +157,41 @@ describe("retreating boss (bossRetreat)", () => {
     expect(sim.state.fleeing!.length).toBe(0);
   });
 
+  // story level 5: the helmet lies where the warlord breaks off, hidden until dawn
+  const carried = {
+    ...bossLevel,
+    objectives: [{ id: "main", kind: "survive", params: { seconds: 600 } }, { id: "dawn", kind: "survive", params: { seconds: 590 } }, { id: "b", kind: "no_colonist_freezes", params: {} }],
+    entities: [...((LEVEL_4 as { entities: unknown[] }).entities), { type: "capture.helmet", id: "helmet", at: [100, 100], hiddenUntil: "dawn", heldBy: "boss" }],
+  };
+
+  it("a heldBy capture is left where the boss breaks off", () => {
+    const sim = createSim(carried);
+    const c = sim.state.captures.find((x) => x.type === "capture.helmet")!;
+    expect(c.heldBy).toBe("boss");
+    idle(sim, 90, () => sim.state.hostiles.length > 0);
+    const h = sim.state.hostiles[0]!;
+    h.hp = h.retreatHp! + 1;
+    let broke: SimEvent | undefined;
+    for (let i = 0; i < 300 && !broke; i++) {
+      const p = sim.state.player.pos, q = sim.state.hostiles[0]!.pos;
+      broke = sim.step({ dx: q.x - p.x, dy: q.y - p.y }).find((e) => e.t === "retreated");
+    }
+    expect(broke).toBeDefined();
+    expect(c.pos).toEqual((broke as { at: { x: number; y: number } }).at);
+    expect(c.heldBy).toBeUndefined();
+    expect(c.state).toBe("hidden");
+    // it stays put while the boss walks off
+    const left = { ...c.pos };
+    idle(sim, 60);
+    expect(c.pos).toEqual(left);
+  });
+
+  it("checkManifest wants heldBy hidden and carried by a boss", () => {
+    const helmetOf = (patch: Record<string, unknown>) => ({ ...carried, entities: [...((LEVEL_4 as { entities: unknown[] }).entities), { type: "capture.helmet", id: "helmet", at: [100, 100], ...patch }] });
+    expect(() => checkManifest(Manifest.parse(helmetOf({ heldBy: "boss" })), content)).toThrow(/heldBy needs hiddenUntil/);
+    expect(() => checkManifest(Manifest.parse({ ...helmetOf({ heldBy: "boss", hiddenUntil: "dawn" }), waves: [{ t: 2, counts: { "hostile.raider_humanoid": 2 } }] }), content)).toThrow(/heldBy needs a boss/);
+  });
+
   it("checkManifest rejects bossRetreat on a wave without a boss", () => {
     const m = { ...bossLevel, waves: [{ t: 2, counts: { "hostile.raider_humanoid": 2 }, bossRetreat: 25 }] };
     expect(() => checkManifest(Manifest.parse(m), content)).toThrow(/bossRetreat/);

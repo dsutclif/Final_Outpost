@@ -29,7 +29,7 @@ import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStockCollapse } from "./systems/stock.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.20.0";
+export const ENGINE_VERSION = "0.21.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -197,6 +197,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           if ("joins" in e && e.joins) c.joins = { role: e.joins.role, from: e.joins.from ?? null, to: e.joins.to ?? null, node: e.joins.node ?? null };
           if ("decoy" in e && e.decoy) c.decoy = true;
           if ("hiddenUntil" in e && e.hiddenUntil) { c.state = "hidden"; c.hiddenUntil = e.hiddenUntil; }
+          if ("heldBy" in e && e.heldBy) c.heldBy = e.heldBy;
           state.captures.push(c);
         }
       }

@@ -223,6 +223,8 @@ export interface CaptureState {
   decoy?: boolean;
   /** Objective id that reveals a hidden capture. */
   hiddenUntil?: string;
+  /** Carried by a boss until it breaks off or dies, then left where that happened (cleared once dropped). */
+  heldBy?: "boss";
 }
 
 export interface PreyState {

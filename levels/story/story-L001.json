@@ -1,7 +1,7 @@
 {
  "id": "story-L001",
  "seed": 1001,
- "engineVersion": "0.20.0",
+ "engineVersion": "0.21.0",
  "contentVersion": "0.18.0",
  "map": {
   "w": 980,
@@ -271,8 +271,7 @@
     216.3
    ],
    "yaw": 20,
-   "lift": 0,
-   "scale": 2
+   "lift": 0
   },
   {
    "type": "decor.ship_wreck",
@@ -282,8 +281,7 @@
     134.1
    ],
    "yaw": -35,
-   "lift": 0,
-   "scale": 2
+   "lift": 0
   }
  ],
  "people": [],
