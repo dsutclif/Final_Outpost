@@ -34,7 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-07 | backlog session (Doug's chat) | backlog-single | `levels/story/story-L001..5.json`, `client/src/story/*`, story cue blocks in `skins/src/mars_greenhouse.ts`, `render-3d/src/scene/livescene.ts` | BACKLOG Bundle 3 (#4, #3, #6, #5, #14), then Bundle 4 (film) |
+| 2026-11-07 | backlog session (Doug's chat) | backlog-single | `levels/story/story-L001..4.json` (L005 only for #3's pods, after the #6 owner releases it), `client/src/story/*`, story cue blocks for levels 1–4 in `skins/src/mars_greenhouse.ts` | BACKLOG Bundle 3 (#4, #3, #5, #14), then Bundle 4 (film). #6 belongs to the "Vale helmet animations" session |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 

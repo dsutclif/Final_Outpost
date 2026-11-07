@@ -27,7 +27,8 @@ One line per active item: number, who has it, and where. Add the line when work 
 ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-LOG.md`.
 
 - Bundle 1 (#63, #67, #68–#70, #72, #73, #76): this session (backlog), worktree `fo-wt-backlog`.
-- Story files for #3, #4, #6, #5, #14: claimed by this session (backlog) on 2026-11-07, starting with Bundle 3.
+- #6: the "Vale helmet animations" session (livescene.ts `warlord_fall`, level 5 fall cues, `vale_run` removal).
+- Story files for #3, #4, #5, #14: claimed by this session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
 
 ## Waiting on Doug
 
@@ -137,7 +138,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       whichever it finds first. Decide which copy wins (s1 is the main pack), drop the duplicates, and add a
       `pack.test.ts` check that ids are unique across every pack the client loads.
 
-## Bundle 3: story pass (story files; this session holds the claim)
+## Bundle 3: story pass (story files; #6 is owned by the "Vale helmet animations" session)
 
 - [ ] **#4 · S40 KILN the same size on screen in every level, and closer (Doug, 2026-11-07).**
       Why level 5 looks zoomed out: its family is `defend`, and `content/data/look.json` `viewW` shows 300 units
@@ -187,6 +188,14 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       timing, the helmet landing on the head's spot, and the commander picking up the helmet (from #12).
       **Merged:** #55 (check `vale_run` on a phone) is this item's done check.
       Done check: on a phone, cause, fall, helmet, get up, run off, then the lines; the in-play helmet is at the fall spot.
+      **Doug, 2026-11-07 (later), supersedes the staging above where they differ:**
+      1. Drop the commander-runs-with-the-helmet clip (`vale_run`, S33/#55). "Vale?" stays.
+      2. The close-up showed the helmet sitting sideways on Vale. Replace the fall: Vale falls on the back, rolls over and
+         gets up; the helmet comes off on ground contact and rolls away. No zoom on Vale's face. Keep the clip very short.
+         Work the motion out first with stick-figure demos Doug approves (the method used for the pod exit).
+      3. The run-away is in play, not in the scene: the in-play warlord becomes `hostile.boss_vale` + `item.vale_head` and
+         runs off to the right side of the screen.
+      **Owner:** the "Vale helmet animations" session (handed over 2026-11-07).
 - [ ] **#5 · S41 Sela's buggy at the signed-off size (Doug confirmed several times; last on 2026-11-07).** Use the
       sandbox's size, also used in the `sela_arrival` scene: 2.64 m long (the 4.4 m build x 0.6). Merge the
       reduced model from branch `story-buggy` (39.9k tris, 2.5 MB, two wheels) at that size, then wire it into
