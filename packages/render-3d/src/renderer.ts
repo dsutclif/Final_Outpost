@@ -61,6 +61,7 @@ import { StoryLights, nightFloor, storyLightColors, storyLighting } from "./scen
 import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
+import { collectDebugScene, type DebugScene } from "./probe.js";
 import { LookTest } from "./lookTest.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
@@ -958,6 +959,20 @@ export class Renderer3D implements Renderer {
     return this.toScreen(v3(p.x, height, p.y));
   }
 
+  /** Characters drawn from the crowd this frame, logged only once a review probe has asked (the first call turns it on). */
+  private probeOn = false;
+  private crowdLog: { key: string; id: string; x: number; z: number; y: number; height: number }[] = [];
+
+  /** Dev review probes (client/src/dev/review.ts): a read-only measurement of what is drawn now. */
+  debugScene(): DebugScene {
+    this.probeOn = true;
+    const placed = [...this.placed.values()]
+      .filter((p) => !p.model.root.userData["ghost"])
+      .map((p) => { const id = String(p.data["id"] ?? ""); return { key: p.key, id, root: p.model.root, age: this.t - p.born, ruleY: /^(sink|conv|struct)./.test(id) && id !== "struct.gate" ? SLAB_TOP : 0 }; });
+    const characters = (this.rigged?.entries() ?? []).map((c) => ({ ...c, age: Infinity }));
+    return collectDebugScene({ scene: this.scene, camera: this.camera, w: this.cssW, h: this.cssH, placed, characters, crowd: this.crowdLog, lighting: this.storyP?.lightingNow ?? null });
+  }
+
   private buildScaffold(): BufferGeometry {
     const t = this.tokens;
     const b = new GeoBuilder();
@@ -1021,6 +1036,7 @@ export class Renderer3D implements Renderer {
     for (const p of this.placed.values()) p.seen = false;
     this.cands.clear();
     this.tagUsed = 0;
+    this.crowdLog.length = 0;
     this.items.begin();
     this.crowd.begin();
     this.rigged?.begin();
@@ -2417,6 +2433,7 @@ export class Renderer3D implements Renderer {
   private addCharacter(look: Look, anim: Anim, pos: V, yaw: number, frost: string | null, lift = 0): Matrix4 {
     const s = ART_M * look.scale * this.devCharScale;
     tmpM.makeRotationY(yaw).scale(tmpV.setScalar(s)).setPosition(pos.x, lift, pos.y);
+    if (this.probeOn) this.crowdLog.push({ key: `crowd:${look.kind}:${this.crowdLog.length}`, id: look.kind, x: pos.x, z: pos.y, y: lift, height: ART_M * look.scale * this.devCharScale });
     this.crowd!.add(look, anim, tmpM, frost);
     this.blobs!.add(pos.x, pos.y, look.kind === "creature" ? 16 : 10 * look.scale);
     return tmpM;

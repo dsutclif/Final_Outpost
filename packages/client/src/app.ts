@@ -1238,6 +1238,15 @@ export class App {
   /** Dev hook: the running sim (read-only use). */
   get debugSim(): Sim | null { return this.session?.sim ?? null; }
 
+  /** Dev hook (review probes, dev/review.ts): what the running level draws with and which screen is up; read-only use. */
+  get debugView(): { screen: string; levelId: string; renderer: GameRenderer; director: StoryDirector | null; cam: Camera; ended: boolean } | null {
+    const s = this.session;
+    return s ? { screen: this.screen, levelId: s.meta.id, renderer: s.renderer, director: s.director, cam: s.cam, ended: s.ended } : null;
+  }
+
+  /** Dev hook: the screen that is up (title, levels, intro, playing, ...), also when no level is open. */
+  get debugScreen(): string { return this.screen; }
+
   /** Dev hook: the running renderer's projection, for checking overlays. */
   debugProject(x: number, y: number): { x: number; y: number } | null { return this.session?.renderer.worldToScreen({ x, y }) ?? null; }
 

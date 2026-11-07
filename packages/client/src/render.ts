@@ -1,6 +1,6 @@
 import type { Manifest } from "@fo/content";
 import type { SimEvent, State } from "@fo/sim";
-import { loadRenderer3D, preloadRenderer3D, type AlertMark, type Camera, type CoachMark, type GuideMark, type StoryPresentation } from "@fo/render-3d";
+import { loadRenderer3D, preloadRenderer3D, type AlertMark, type Camera, type CoachMark, type DebugScene, type GuideMark, type StoryPresentation } from "@fo/render-3d";
 import type { Skin } from "@fo/skins";
 
 // The client's face of the 3D renderer. three.js stays in its own chunk: only
@@ -21,6 +21,8 @@ export interface GameRenderer {
   snapCamera(): void;
   /** World point (world units) to mount CSS px with the last camera. */
   worldToScreen(p: { x: number; y: number }, height?: number): { x: number; y: number };
+  /** Dev review probes: what is drawn now (null when the renderer cannot say). */
+  debugScene(): DebugScene | null;
   /** Canonical id of the object under a mount CSS px point, or null. */
   pick(x: number, y: number): string | null;
   /** pick() with the inspect card text: workers and hire pads are named for what they work. */
@@ -70,6 +72,7 @@ class Wrap3D implements GameRenderer {
   setAlertMarks(marks: readonly AlertMark[]): void { this.r.setAlertMarks(marks); }
   snapCamera(): void { this.r.snapCamera(); }
   worldToScreen(p: { x: number; y: number }, h = 0): { x: number; y: number } { return this.r.worldToScreen(p, h); }
+  debugScene(): DebugScene | null { return this.r.debugScene(); }
   pick(x: number, y: number): string | null { return this.r.pick(x, y); }
   inspect(x: number, y: number): { id: string; name: string; purpose: string } | null { return this.r.inspect(x, y); }
   setDiscovery(isNew: ((id: string) => boolean) | null): void { this.r.setDiscovery(isNew); }

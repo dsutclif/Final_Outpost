@@ -159,6 +159,13 @@ export class Rigged {
     for (const i of this.pool.values()) i.seen = false;
   }
 
+  /** The characters drawn this frame, for the review probes (read-only). */
+  entries(): { key: string; id: string; root: Object3D }[] {
+    const out: { key: string; id: string; root: Object3D }[] = [];
+    for (const [key, i] of this.pool) if (i.seen && i.root.visible) out.push({ key, id: i.id, root: i.root });
+    return out;
+  }
+
   /** Place character `key` (one per entity) of kind `id` at world x/z, facing yaw, `scale` world units per art metre. */
   add(key: string, id: string, e: MeshyEntry, s: RigState, x: number, z: number, yaw: number, scale: number): void {
     let inst = this.pool.get(key);

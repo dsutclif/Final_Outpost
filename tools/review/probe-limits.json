@@ -1,0 +1,25 @@
+{
+  "_about": "Limits for tools/review/probe.ts. Seconds are measured on the sim clock (30 ticks = 1 s) unless a check says otherwise. Tune against the findings Doug agrees with; never edit the code for a number.",
+  "sampleEveryTicks": 30,
+  "warmupSeconds": 2,
+  "occlusion": { "fraction": 0.2, "seconds": 1, "gridX": 12, "gridY": 6, "thingShrink": 0.12 },
+  "float": {
+    "limitU": 0.05,
+    "seconds": 1,
+    "settleSeconds": 0.6,
+    "ignoreIds": ["^pad\\.", "^zone\\.", "^decor\\.deck_plate", "^res\\.", "^fx\\.", "^unit\\.drone", "ghost"]
+  },
+  "overlap": { "seconds": 0.5, "characterMerge": 0.5, "solidShrink": 0.3, "solidIds": ["^sink\\.", "^conv\\.", "^struct\\.(?!gate|conveyor)"] },
+  "offscreen": { "slackPx": 1, "seconds": 1, "labelVisibleMin": 0.1 },
+  "uiOverlap": { "fraction": 0.2, "seconds": 1 },
+  "heroCovered": { "fraction": 0.3, "seconds": 1 },
+  "contrastMin": 3,
+  "tapTargetPt": 44,
+  "textMinPx": 10,
+  "caption": { "aboveSlackPx": 16, "faceFraction": 0.3, "faceTopShare": 0.3, "headBoxPx": 28 },
+  "frame": { "longMs": 50, "hitchRatio": 2.5, "p95Ms": 100, "hitchMs": 100, "warmupFrames": 6 },
+  "resume": { "tickDriftWhileHidden": 0, "spikeMs": 400, "reloadReadyMs": 15000 },
+  "colourBlind": { "minDeltaE": 12 },
+  "continuity": { "lightRatio": 1.8, "positionU": 40 },
+  "shots": { "perLevel": 12, "perStoryLevel": 40, "checkpointSeconds": [2, 30, 60, 120] }
+}

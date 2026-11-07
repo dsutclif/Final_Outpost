@@ -73,6 +73,7 @@ export class Labels {
     const m = this.material(key, art);
     if (!m) { sprite.visible = false; return false; }
     if (sprite.material !== m.mat) sprite.material = m.mat;
+    sprite.userData["label"] = key; // read by the review probes (probe.ts)
     const h = height * LABEL_K * this.screenK * this.textK;
     sprite.scale.set(h * m.aspect, h, 1);
     return true;
