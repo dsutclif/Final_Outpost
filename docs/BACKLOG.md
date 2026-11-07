@@ -19,6 +19,14 @@ session that raised it. This file replaced `BACKLOG-R4/R5/R6.md`, `BACKLOG-STORY
 **Terms.** *Animations* means every scripted story beat with character motion: rendered films, machinima, and live
 scenes where play pauses while one character's movement plays out (Doug, 2026-11-07).
 
+## In progress
+
+One line per active item: number, who has it (session or branch), and where (worktree). Add the line when the
+work starts, and remove it when the item is ticked or handed back. Claims on story files are still recorded in
+`docs/STORY-WORK-LOG.md` as well.
+
+- (none yet)
+
 ## 1. Waiting on Doug
 
 - [ ] **#1 · `empty_bays` against the films (Sign-off 2).** It plays at the end of story level 2 on
@@ -163,7 +171,7 @@ Retune by the attack–defence model (#16) and rater metrics, not by eye.
         as correction factors per family, fitted from bot runs, not hand-set.
       Steps: write the model as a pure function (generator or rater), check it against bot runs on the current
       defend levels, fit the corrections, then size Bundle 5's waves (#23, #24, #25, #27) from target `ρ`.
-      **Research (2026-11-07), recommended combination:**
+      **Agreed with Doug, 2026-11-07 (from the research): build this combination.**
       - Spend a threat-point budget per wave, as Risk of Rain 2's director credits and Hind & Harvey 2024 (TD waves
         from a point budget) do.
       - Use `ρ` as the targeting function.
@@ -178,7 +186,7 @@ Retune by the attack–defence model (#16) and rater metrics, not by eye.
         same reason);
       - calibrate against a skill-limited bot as well as the best one.
       Keep the enemy-mix and synergy rules as a separate authored layer: they are what made hand-made waves feel
-      harder in Hind & Harvey's test. Sources are in the 2026-11-07 chat.
+      harder in Hind & Harvey's test.
 - [ ] **#17 · N2/N3 ranged raiders:** a real ranged attack with a sim "shot" event (today they only hit on contact).
 - [ ] **#18 · N2 mites lunge and spit acid** (numbers above).
 - [ ] **#19 · N19 nobody stops to shoot:** every mobile fighter keeps closing while it shoots and switches to melee at
