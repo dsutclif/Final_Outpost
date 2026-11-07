@@ -5,6 +5,8 @@ const path = "../api/telemetry.js";
 const api = (await import(/* @vite-ignore */ path)) as {
   validate: (b: unknown) => { events?: unknown[]; error?: string };
   allow: (install: string, n: number, now?: number) => boolean;
+  toRow: (e: Record<string, unknown>) => Record<string, unknown>;
+  insertRows: (url: string, key: string, rows: unknown[], f?: (u: string, i: RequestInit) => Promise<Response>) => Promise<void>;
   default: (req: unknown, res: unknown) => Promise<void>;
 };
 
@@ -41,8 +43,25 @@ describe("play data endpoint", () => {
     expect(api.allow("cap-test", 10, 11 * 60 * 1000)).toBe(true);
   });
 
-  it("answers 503 without a storage token and 400 for junk", async () => {
-    delete process.env["BLOB_READ_WRITE_TOKEN"];
+  it("maps an event to a table row and inserts through Supabase REST", async () => {
+    const row = api.toRow(ev({ kind: "rating", thumb: "up" }));
+    expect(row).toMatchObject({ kind: "rating", install: "install-123", level_id: "s1-L001", attempt: 1, np: null, ts: new Date(1).toISOString() });
+    expect((row.event as { thumb: string }).thumb).toBe("up");
+    const calls: { url: string; init: RequestInit }[] = [];
+    const ok = async (url: string, init: RequestInit) => { calls.push({ url, init }); return new Response(null, { status: 201 }); };
+    await api.insertRows("https://p.supabase.co/", "sb_secret_x", [row], ok);
+    expect(calls[0]!.url).toBe("https://p.supabase.co/rest/v1/telemetry_events");
+    const h = calls[0]!.init.headers as Record<string, string>;
+    expect(h["apikey"]).toBe("sb_secret_x");
+    expect(h["authorization"]).toBeUndefined();
+    await api.insertRows("https://p.supabase.co", "eyJlegacy", [row], ok);
+    expect((calls[1]!.init.headers as Record<string, string>)["authorization"]).toBe("Bearer eyJlegacy");
+    await expect(api.insertRows("https://p.supabase.co", "k", [row], async () => new Response("bad", { status: 400 }))).rejects.toThrow(/400/);
+  });
+
+  it("answers 503 without storage settings and 400 for junk", async () => {
+    delete process.env["SUPABASE_URL"];
+    delete process.env["SUPABASE_SECRET_KEY"];
     const a = fakeRes();
     await api.default({ method: "POST", body: { v: 2, events: [ev({ install: "install-503" })] } }, a.res);
     expect(a.r.code).toBe(503);
