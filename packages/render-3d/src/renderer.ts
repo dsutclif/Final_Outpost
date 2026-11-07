@@ -140,9 +140,10 @@ const SAFE_RING_K = 1;
 /**
  * Never fade: gates belong to the (instanced, always solid) walls, belts and barriers are flat; the grow
  * dome, the warehouse and resource nodes stay solid by Doug's call (backlog R6 #5 + N7), the hero's
- * (no silhouette any more). Wall turrets are dropped at their call site.
+ * (no silhouette any more). Wall turrets are dropped at their call site. Captures (pods, crates, the recorder,
+ * the helmet: anything towed or carried) and resources may hide the hero and stay solid (Doug 2026-11-07).
  */
-const NO_FADE = /^(struct\.(gate|conveyor|depot)$|barrier\.|node\.)/;
+const NO_FADE = /^(struct\.(gate|conveyor|depot)$|barrier\.|node\.|capture\.|res\.)/;
 const FADE_TO = 0.28;
 /**
  * What of a placed model can hide the hero (backlog R5 #4), in art units about its root: the ground
