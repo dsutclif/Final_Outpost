@@ -199,6 +199,8 @@ export interface StoryLevel {
   podLights?: boolean | "glow";
   /** Three slots over the hero's head fill with the pods in tow, so the tow limit shows (story level 2). */
   tally?: boolean;
+  /** Customers drawn with their own character model: customer id (spawn order) to model id (story level 3: Sela). */
+  customerModels?: Readonly<Record<number, string>>;
 }
 
 export interface StorySpeaker {

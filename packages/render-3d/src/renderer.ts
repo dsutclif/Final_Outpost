@@ -71,6 +71,8 @@ import { resToken, type Tokens } from "./tokens.js";
 import { ART_M, BUILD_K, CHAR_K, DRONE_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, YAW_DEG, viewWFor, textSprite, type QualityTier } from "./units.js";
 
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
+/** How far the old orange pod's hatch hangs open on its hinge, radians (a Halcyon lander pod opened from inside long ago). */
+const DECOY_LID = 1.35;
 const SHELF_K = 1.05 / ITEM_K;
 
 /** The subset of WebGLRenderer the 3D renderer uses; tests inject a fake (no WebGL in Node). */
@@ -120,7 +122,7 @@ const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.shi
 const CORE_BURIED = 0.9;
 
 const NO_STORY: StoryPresentation = {
-  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null,
+  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {},
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
 };
@@ -1523,6 +1525,7 @@ export class Renderer3D implements Renderer {
     };
   }
 
+  private namedAsked = new Set<string>();
   private customer(key: string, c: CustomerState, a: number, queued: boolean, kiosk: Placed, serving?: { customer: number; ticks: number; of: number }): void {
     const pos = this.interp.pos(key, c.pos, a);
     const look = lookFor(c.kind, this.tokens, this.skin.models);
@@ -1533,10 +1536,13 @@ export class Renderer3D implements Renderer {
     const anim = this.anim(key, moving ? 0.8 : 0, false);
     if (c.angry) anim.hit = 0.25 + 0.25 * Math.sin(this.t * 12);
     // a rigged Meshy trader once loaded (keyed by customer, so queue moves keep its clip); else the crowd figure
-    const rig = this.rigged?.entryFor(c.kind);
+    // a named trader (Sela) has her own model, loaded on first use; until it lands the shared trader stands in
+    const named = this.storyP?.customerModels.get(c.id);
+    if (named && !this.namedAsked.has(named)) { this.namedAsked.add(named); void loadMeshy(undefined, new Set([named]), undefined, true); }
+    const rig = (named ? this.rigged?.entryFor(named) : undefined) ?? this.rigged?.entryFor(c.kind);
     if (rig) {
       const cheer = (this.cheerUntil.get(`c:${c.id}`) ?? 0) > this.t;
-      this.rigged!.add(`c:${c.id}`, c.kind, rig, { moving, hurried: c.kind.endsWith("impatient"), cheer }, pos.x, pos.y, yaw, ART_M * look.scale * this.devCharScale / 0.9);
+      this.rigged!.add(`c:${c.id}`, named && rig.id === named ? named : c.kind, rig, { moving, hurried: c.kind.endsWith("impatient"), cheer }, pos.x, pos.y, yaw, ART_M * look.scale * this.devCharScale / 0.9);
       this.blobs!.add(pos.x, pos.y, 10 * look.scale * this.devCharScale);
     } else this.addCharacter(look, anim, pos, yaw, null);
     // a bulk trader wheels its order away on the cart (angry ones leave empty-handed)
@@ -2320,9 +2326,9 @@ export class Renderer3D implements Renderer {
       const rt = (this.content.lassoables[c.type] as { releaseTime?: number } | undefined)?.releaseTime ?? 1.6;
       if (c.state === "releasing") {
         const k = clamp01(1 - c.timer / Math.max(1, rt * TPS));
-        if (lid) lid.rotation.x = -k * 1.9;
+        if (lid) lid.rotation.x = -(c.decoy ? DECOY_LID + k * (1.9 - DECOY_LID) : k * 1.9);
         p.model.root.position.y = Math.sin(this.t * 30) * 0.6 * (1 - k);
-      } else if (lid) lid.rotation.x = 0;
+      } else if (lid) lid.rotation.x = c.decoy ? -DECOY_LID : 0; // the old pod's hatch hangs open on its hinge (S31)
       if (c.state === "towed") {
         const v = this.interp.vel(key);
         p.model.root.rotation.y = Math.atan2(v.x, v.y) || p.model.root.rotation.y;

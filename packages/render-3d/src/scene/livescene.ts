@@ -146,12 +146,12 @@ function disposeAll(scene: Scene): void {
 }
 
 /** One character (the commander's model by default: the Halcyon EVA suit) with its own skeleton and its walk on a mixer. */
-function crewFigure(id = "unit.player"): { root: Object3D; mixer: AnimationMixer; height: number } | null {
+function crewFigure(id = "unit.player", clipKey = "walk"): { root: Object3D; mixer: AnimationMixer; height: number } | null {
   const e = meshyCharacters().find((x) => x.id === id), rig = e && meshyRig(e.file);
   if (!e || !rig) return null;
   const root = cloneSkinned(rig.scene);
   const mixer = new AnimationMixer(root);
-  const walk = rig.clips.find((c) => c.name === e.clips?.["walk"]);
+  const walk = rig.clips.find((c) => c.name === e.clips?.[clipKey]);
   if (walk) mixer.clipAction(walk).play();
   return { root, mixer, height: (rig.scene.userData["height"] as number) || 1.7 };
 }
@@ -508,9 +508,126 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   };
 }
 
+/** A dawn set for the level 5 endings: warm low sun on pale sand. */
+function dawnSet(scene: Scene): void {
+  scene.background = new Color("#e9b88a");
+  scene.add(new AmbientLight("#ffd9b8", 1.5));
+  const sun = new DirectionalLight("#ffc690", 2.4);
+  sun.position.set(14, 7, 6);
+  scene.add(sun);
+  const sand = new Mesh(new PlaneGeometry(240, 240), new MeshStandardMaterial({ color: "#a98660", roughness: 1 }));
+  sand.rotation.x = -Math.PI / 2;
+  scene.add(sand);
+  const stone = new MeshStandardMaterial({ color: "#7d6248", roughness: 1 });
+  for (let i = 0; i < 40; i++) {
+    const h = (n: number): number => { const v = Math.sin(i * 12.9898 + n * 78.233) * 43758.5453; return v - Math.floor(v); };
+    const r = new Mesh(new BoxGeometry(0.15 + h(1) * 0.4, 0.1 + h(2) * 0.25, 0.15 + h(3) * 0.35), stone);
+    r.position.set(-14 + h(5) * 28, 0.05, -6 + h(6) * 4 - 1);
+    r.rotation.y = h(7) * 3;
+    scene.add(r);
+  }
+}
+
+/** The dropped helmet: the item's own model, or a plain dome when it is missing. */
+function helmetModel(): Object3D {
+  return meshyScene("item.lieutenant_helmet") ?? new Mesh(new SphereGeometry(0.22, 12, 8), new MeshStandardMaterial({ color: "#222" }));
+}
+
+/**
+ * The warlord's fall (docs/STORY-SCREENPLAY.md level 5, S32): the commander's last shot hits it. In slow motion it falls
+ * on its back, lies a beat, gets up and starts to run; at full speed it runs off past the screen edge, the helmet
+ * dropping as it passes its spot. Side-on camera, the raider running left to right (east, as in play).
+ */
+function warlordFall(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement): Staged {
+  const scene = new Scene();
+  const camera = new PerspectiveCamera(38, 1, 0.1, 400);
+  dawnSet(scene);
+  const boss = crewFigure("hostile.boss", "run");
+  const pivot = new Group();
+  scene.add(pivot);
+  if (boss) { boss.root.scale.setScalar(2.2 / boss.height); boss.root.rotation.y = Math.PI / 2; pivot.add(boss.root); }
+  const helmet = helmetModel();
+  helmet.visible = false;
+  scene.add(helmet);
+  // timeline (s): run in, shot, slow fall, lie, slow rise, run off; the helmet drops at DROP
+  const HIT = 1.4, DOWN = 3.6, LIE = 4.4, UP = 6.2, DROP = 7.4, SECONDS = 10.2;
+  const X_HIT = -2, X_UP = -2.4, X_DROP = 3.2;
+  const xOf = (t: number): number => {
+    if (t < HIT) return X_HIT - 4.2 * (HIT - t);
+    if (t < UP) return X_HIT + (X_UP - X_HIT) * span(t, HIT, DOWN);
+    const w = t - UP; // the first steps are slow, then full speed
+    return X_UP + (w < 1 ? 2.1 * w * w : 2.1 + 4.2 * (w - 1));
+  };
+  const hx = X_DROP;
+  return {
+    seconds: SECONDS, scene, camera, labels: [],
+    pose(t) {
+      const tall = camera.aspect < 0.8, p = span(t, 0, SECONDS);
+      camera.position.set(-1.6 + 3.4 * p, tall ? 2.0 : 1.5, tall ? 9 : 6.2);
+      camera.lookAt(-1.6 + 3.4 * p, 0.9, 0);
+      const x = xOf(t);
+      let pitch = 0, lift = 0, clipT = t;
+      if (t >= HIT && t < DOWN) {
+        const k = span(t, HIT, DOWN);
+        pitch = -(Math.PI / 2) * k; lift = 0.3 * k; clipT = HIT + (t - HIT) * 0.12;
+      } else if (t >= DOWN && t < LIE) { pitch = -Math.PI / 2; lift = 0.3; clipT = HIT + 0.26; }
+      else if (t >= LIE && t < UP) {
+        const k = span(t, LIE, UP);
+        pitch = -(Math.PI / 2) * (1 - k); lift = 0.3 * (1 - k); clipT = (t - LIE) * 0.25;
+      } else if (t >= UP) clipT = (t - UP) * Math.min(1, 0.4 + (t - UP) * 0.5);
+      pivot.position.set(x, lift, 0);
+      pivot.rotation.set(0, 0, pitch);
+      boss?.mixer.setTime(clipT);
+      // the helmet leaves the head as the raider passes the drop spot (or at DROP), falls and bounces once
+      const dropAt = Math.max(DROP, UP + 1 + (hx - X_UP - 2.1) / 4.2);
+      if (t >= dropAt) {
+        const d = t - dropAt, fall = Math.min(1, d / 0.45);
+        const bounce = d > 0.45 ? 0.18 * Math.abs(Math.sin((d - 0.45) * 7)) * Math.exp(-(d - 0.45) * 3) : 0;
+        helmet.visible = true;
+        helmet.position.set(hx + d * 1.4 * Math.exp(-d * 1.5), 0.2 + (1 - fall * fall) * 1.8 + bounce, 0.2);
+        helmet.rotation.set(d * 4 * (1 - fall * 0.7), 0, d * 3 * Math.exp(-d));
+      } else helmet.visible = false;
+    },
+    dispose() { disposeAll(scene); },
+  };
+}
+
+/**
+ * The end of level 5 (S33): after the helmet's reveal the commander, helmet held in front, runs two steps toward the
+ * screen edge, then stops. "Vale?" follows as a line in play.
+ */
+function valeRun(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement): Staged {
+  const scene = new Scene();
+  const camera = new PerspectiveCamera(38, 1, 0.1, 400);
+  dawnSet(scene);
+  const cmd = crewFigure("unit.player", "run");
+  if (cmd) { cmd.root.scale.setScalar(SIZES.commander / cmd.height); scene.add(cmd.root); }
+  const helmet = helmetModel();
+  scene.add(helmet);
+  const RUN0 = 0.6, RUN1 = 1.7, SECONDS = 3.6;
+  return {
+    seconds: SECONDS, scene, camera, labels: [],
+    pose(t) {
+      const tall = camera.aspect < 0.8;
+      camera.position.set(0.3, tall ? 1.7 : 1.4, tall ? 6.5 : 5);
+      camera.lookAt(0, 1.0, 0);
+      const z = -2.2 + 2.6 * span(t, RUN0, RUN1), running = t >= RUN0 && t < RUN1;
+      if (cmd) {
+        cmd.root.position.set(0, 0, z);
+        cmd.mixer.setTime(0.12 + (Math.min(t, RUN1) - RUN0 > 0 ? (Math.min(t, RUN1) - RUN0) * 1.35 : 0));
+      }
+      helmet.position.set(0.05, 1.15 + (running ? 0.05 * Math.sin((t - RUN0) * 14) : 0), z + 0.4);
+      helmet.rotation.set(0, Math.PI, 0);
+    },
+    dispose() { disposeAll(scene); },
+  };
+}
+
 const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged; film?: boolean }>> = {
   chip_handoff: { models: ["unit.customer_sela", "unit.customer", "unit.player", "res.currency"], stage: chipHandoff, film: true },
   sela_arrival: { models: ["decor.buggy", "decor.buggy_wheel", "decor.buggy_wheel_l", "unit.customer_sela", "unit.customer"], stage: selaArrival, film: true },
+  warlord_fall: { models: ["hostile.boss", "item.lieutenant_helmet"], stage: warlordFall, film: true },
+  vale_run: { models: ["unit.player", "item.lieutenant_helmet"], stage: valeRun, film: true },
   empty_bays: { models: ["decor.stasis_pod", "decor.stasis_glass"], stage: emptyBays },
   crash_log: { models: ["decor.stasis_pod", "decor.stasis_glass", "unit.player"], stage: crashLog },
 };

@@ -97,6 +97,7 @@ export class StoryStage {
     p.spirit.follow(f && now - this.followFrom >= (f.delay ?? 0) ? { right: f.right, up: f.up, lag: f.lag ?? 0.9, height: f.height ?? 40, size: f.size ?? 1, ...(f.glow !== undefined ? { glow: f.glow } : {}) } : null);
     this.spirit(w, fuelK, now);
     this.glow(w, st, now, viewW, viewH);
+    for (const [id, model] of Object.entries(this.director.level.customerModels ?? {})) p.customerModel(Number(id), model);
     if (this.director.level.podLights) this.pods(st);
     if (this.director.level.tally) this.tally(st);
     if (w.actors !== seen.actors) {

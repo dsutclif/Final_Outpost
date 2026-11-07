@@ -114,6 +114,8 @@ export interface StoryPresentation {
   actor(key: string, to: { x: number; z: number } | null): void;
   /** Where a mover is drawn now (ground units), or null for a key with nothing drawn. */
   actorAt(key: string): { x: number; z: number } | null;
+  /** Draw customer `id` with another character model (a named trader, e.g. Sela); loads it on first use. */
+  customerModel(id: number, model: string): void;
   /** Entity ids the renderer keeps solid (never faded) when the hero stands among them. */
   solid(ids: readonly string[]): void;
   /** Ask the camera to look elsewhere for a while; null cancels. */

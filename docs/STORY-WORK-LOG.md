@@ -33,6 +33,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 |---|---|---|---|---|
 | 2026-11-07 | A (plot P1-P6 chat) | plot-p1-p6 | **Engine bump 0.20.0**: `packages/sim`, `packages/content/src/manifest.ts`, `packages/generator`, `packages/bots`; re-pin `levels/golden`, `levels/story` (re-pin only), live packs; s1 6-60 rebuilt | Warehouse drop-only, belt withdraws the parts works input worker, bent Kiosk queue, ranger pad (OPEN-ITEMS-plot-layout-chat.md P1-P4) |
 | 2026-11-06 | WRAP UP (from B) | — | `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Story Releases 2–4 (STORY-STRANDED-WORK.md); held, not being edited yet |
+| 2026-11-07 | story-r2-r4 session (from WRAP UP) | story-r2-r4 | `render-3d/src/scene/livescene.ts`, `render-3d/src/renderer.ts` (old pod hatch, named customer model), `contract.ts`, `scene/storypresent.ts`, `client/src/story/stage.ts`, `client/src/cinematics.ts` (3 lines: new live ids only, asked WRAP UP), `levels/story/story-L00{2..5}.json`, story cues | Releases 2 and 4 |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -120,6 +121,13 @@ hinged glass in L2 (S31), and drawing Sela in-game with her own `unit.customer_s
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+- **2026-11-07, story-r2-r4, Release 2: scene code (S31, S32, S33, Sela's model).** No engine bump.
+  - **S32 `warlord_fall`** (live scene, `livescene.ts`, dawn set, side-on camera): the warlord runs in, is hit, falls on its back in slow motion, lies a beat, gets up slowly and runs off east at full speed; the helmet (`item.lieutenant_helmet`) drops as it passes its spot and bounces. Plays on the `retreated` event in place of the text card. Rough blocking in code (the raider's own run clip, procedural fall), judged from 0.4-scale stills at 2.6 s, 5.3 s, 7.8 s and 8.4 s. Not polished: the raider keeps its helmet on its head until the drop.
+  - **S33 `vale_run`**: after `helmet_reveal`, the commander runs two steps toward the screen, helmet held in front, and stops; then the line "Vale?" is the last line. Stills at 1.3 s and 3.0 s.
+  - `client/src/cinematics.ts`: only `LiveId`, `LIVE` and `FILM_VERSIONS` gained the two ids (WRAP UP was asked first).
+  - **S31**: the old orange pod's hatch hangs open on its hinge (`DECOY_LID` 1.35 rad in `renderer.ts`, opening further when it releases); the glass is already the scorched S20 model. Not seen in play: I could not get the level camera onto the pod from a script.
+  - **Sela in play**: new skin level option `customerModels` (story level 3: customer 0 is `unit.customer_sela`); `StoryPresentation.customerModel()`, the renderer loads the model on first use and falls back to the shared trader until it lands.
+  - **Gate check (object sizes step 3)**: every gated wall section in levels 2–5 is 125 or 135 units; the gate is 113.4 (4.05 m). The renderer already fills the remainder with wall runs either side, so it meets its walls by construction. No change.
 - **2026-11-06, WRAP UP, story taps work again (lines no longer stick).** No engine bump.
   - `client/src/input.ts`: the joystick's pointerdown took pointer capture on the stage even when the press started on the story tap layer (`.story-tap`), so the click was retargeted to the stage and a waiting line never advanced (level 1 stuck on "What happened? Where's the rest of my crew?"). The joystick now ignores presses inside `.story-layer`, as it already did for overlays, buttons and the HUD. Checked: real taps advance level 1's lines and goal card; the joystick still walks the hero once no tap is pending.
   - The `checkMaterialsReady` / 'isReady' console error seen alongside is three.js's `compileAsync` warm-up timer, not the cause; still there, harmless.

@@ -841,6 +841,8 @@ export const marsGreenhouse: Skin = {
         images: { badge: "scenes/badge_bay5.png" },
       },
       sela_arrival: { text: {}, images: {} },
+      warlord_fall: { text: {}, images: {} },
+      vale_run: { text: {}, images: {} },
       chip_handoff: { text: {}, images: {} },
       crash_log: {
         text: { feed: "KILN · RECORDER · BAY CAM 05–08", impact: "FOUR MINUTES TO IMPACT", unsealed: "UNSEALED", occupied: "OCCUPIED" },
@@ -1012,6 +1014,7 @@ export const marsGreenhouse: Skin = {
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam. Sela is the first trader to arrive and speaks from where she
         // stands (Doug: not from the kiosk); the angry trader still speaks from the kiosk
+        customerModels: { 0: "unit.customer_sela" },
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 }, trader: { entity: "kiosk" } },
         goals: [
           { id: "first", hold: true, label: "Sell Sela some greens" },
@@ -1203,7 +1206,8 @@ export const marsGreenhouse: Skin = {
           { on: { hostile: "hostile.boss", r: 330 }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { on: { event: "retreated" }, do: [
             { light: "sunrise", seconds: 8 },
-            { card: "The commander's last shot drops the raider. It gets up and runs, past the edge of sight, and something falls from it.", seconds: 4 },
+            // the commander's last shot: the warlord falls, gets up and runs, and the helmet drops (live scene, S32)
+            { film: "warlord_fall" },
           ] },
           // dawn: the helmet the lieutenant dropped, and the name inside it
           { id: "dawn", on: { goal: "hold", is: "done" }, do: [
@@ -1222,6 +1226,8 @@ export const marsGreenhouse: Skin = {
           { on: { event: "captured" }, do: [
             { dotsOff: true },
             { film: "helmet_reveal" },
+            // the commander runs two steps toward the screen, helmet in hand (S33), then the last line
+            { film: "vale_run" },
             { line: "Vale?", who: "commander" },
           ] },
         ],
