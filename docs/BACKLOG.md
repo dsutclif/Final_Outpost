@@ -4,6 +4,11 @@ This is the only task list for Farthest Outpost. Every open item lives here, wha
 session that raised it. This file replaced `BACKLOG-R4/R5/R6.md`, `BACKLOG-STORY.md` and the open boxes in
 `POLISH-PLAN.md` and `RELEASE.md` on 2026-11-07. Those files are now in `docs/archive/`.
 
+**How Doug wants this run (2026-11-07).** One orchestrator session keeps this file, merges, and checks each bundle is live
+before the next starts. Each bundle runs in its own fresh session on the cheapest model that fits (Haiku for checks and
+mechanical work, Sonnet for narrow builds, Opus for design-heavy work), briefed with item numbers, not chat history.
+Bundles ship one at a time. Destructive steps (deleting branches, data, worktrees) are confirmed with Doug first.
+
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
   new item takes the next free number (currently **#78**), whatever section it goes in. Older ids (R6 N2, S24 …)
@@ -26,7 +31,12 @@ scenes where play pauses while one character's movement plays out (Doug, 2026-11
 One line per active item: number, who has it, and where. Add the line when work starts; remove it when the item is
 ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-LOG.md`.
 
-- Bundle 1 (#63, #67, #68–#70, #72, #73, #76): this session (backlog), worktree `fo-wt-backlog`.
+- Bundle 1 (#63, #67, #68–#70, #72, #73, #76): orchestrator session. #63's code fix is on main (5d6009c); still to do:
+  Doug re-runs the outpost-ops nightly workflow by hand and a data commit must land; Doug deletes the Supabase test row
+  (no key on the laptop); the #68–#73 git cleanup was approved by Doug but blocked by the permission check, so Doug runs
+  it (reset local  main to origin/main; remove  and the  worktree; delete
+  branches , , remote , , ). Keep  until
+  #75 backs up its film tools. #76 probe pass and the role-notes refresh are not started.
 - #6: the "Vale helmet animations" session (livescene.ts `warlord_fall`, level 5 fall cues, `vale_run` removal).
 - Story files for #3, #4, #5, #14: claimed by this session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
 
