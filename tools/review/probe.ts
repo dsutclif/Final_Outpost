@@ -342,7 +342,8 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
     if (r.seq !== seq) {
       seq = r.seq;
       await page.evaluate(() => window.R.settle(3));
-      await page.waitForTimeout(450); // the bubble's own fade-in
+      await page.waitForTimeout(450); // the bubble's own fade-in; a slow software-GL compositor stretches it, so wait for it to finish
+      await page.waitForFunction(() => { const e = document.querySelector<HTMLElement>(".sdlg-bubble:not([hidden]), .sdlg-strip:not([hidden]), .sdlg-term:not([hidden])"); return !e || Number.parseFloat(getComputedStyle(e).opacity) >= 0.95; }, null, { timeout: 6000 }).catch(() => undefined);
       const s: Sample | null = await page.evaluate(() => window.R.snap());
       if (!s?.caption) { await page.waitForTimeout(200); continue; }
       lineNo++;
