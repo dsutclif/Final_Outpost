@@ -977,7 +977,12 @@ export const marsGreenhouse: Skin = {
             { line: "Two pods came down close together. Bring them both in one trip.", who: "kiln" },
           ] },
           { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
-          { on: { event: "joined", match: { capture: 2 } }, do: [{ crew: "Who's watching the camp? Nobody? Then I am.", who: "okafor" }] },
+          // Okafor walks the camp's edge as he says it (S6), then is let go back to his post
+          { on: { event: "joined", match: { capture: 2 } }, ordered: true, do: [
+            { walk: "okafor", to: { at: [352, 330] } },
+            { crew: "Who's watching the camp? Nobody? Then I am.", who: "okafor" },
+            { walk: "okafor", to: false },
+          ] },
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
             { line: "Their glow fades as they freeze. If a pod goes dark, that crewmate is lost. Bring the last crew pod home, and the lander pod too.", who: "kiln" },
             { goal: "main" },
