@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#78**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#79**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -36,7 +36,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
   (no key on the laptop); the #68–#73 git cleanup was approved by Doug but blocked by the permission check, so Doug runs
   it: reset the local `farthest-outpost` main to origin/main; remove the `fo-wt-buggy` and `agent-a0616…` worktrees;
   delete the local branches `story-buggy` and `story-buggy-26`, and the remote branches `look-test`, `object-sizes`
-  and `story-buggy`. Keep `fo-wt-handoff` until #75 backs up its film tools. #76 probe pass and the role-notes refresh are done (2026-11-07, see #76 and #67).
+  and `story-buggy`. Keep `fo-wt-handoff` until #75 backs up its film tools. #76 probe pass and the role-notes refresh are done (2026-11-07, see #76 and #67). Bundle 1 closes when Doug's manual nightly run is green and his three steps are done.
 - #6: the "Vale helmet animations" session (livescene.ts `warlord_fall`, level 5 fall cues, `vale_run` removal).
 - Story files for #3, #4, #5, #14: claimed by the orchestrator session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
 
@@ -75,8 +75,8 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 - [ ] **#67 · Housekeeping:**
       - delete the Supabase test row (install `claude-verify-20261107`, kind `session`);
       - delete the merged local branches `review-supabase`, `review-tools`, `review-probe` and `review-merge`;
-      - [ ] update the stale `packs.test.ts` "gotcha" in `docs/review/HANDOFF.md` (the test passes). **Not done:** that file is not
-        in any repo (untracked `Mobile game/docs/review/`, absent from main), so the fix is a one-line edit of line 111 by whoever owns the folder.
+      - [x] update the stale `packs.test.ts` "gotcha" in `docs/review/HANDOFF.md`: done 2026-11-07 by the orchestrator. The file is
+        untracked, in the parent `Mobile game/docs/review/` folder, not in either repo.
       - [x] fix `docs/RELEASE.md`'s links (they point at "section 6"; the gates moved): already fixed on main; its open gates now say
         "tracked in `docs/BACKLOG.md`" and no "section 6" reference is left (grep 2026-11-07).
       - [x] refresh stale role notes in outpost-ops `refinement/notes/` (producer, QA, level designer): done 2026-11-07, outpost-ops 14878b7.
@@ -169,6 +169,10 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 - [ ] **#74 · Unique level ids across packs (from #40).** L051–L060 exist in both s1 and s1-051 and the client keeps
       whichever it finds first. Decide which copy wins (s1 is the main pack), drop the duplicates, and add a
       `pack.test.ts` check that ids are unique across every pack the client loads.
+- [ ] **#78 · `review:probe` can't start its own server (found 2026-11-07, #76).** `tools/review/probe.ts` resolves
+      `vite/bin/vite.js`, which the installed vite's `exports` blocks (ERR_PACKAGE_PATH_NOT_EXPORTED), so the probe only runs
+      against a hand-started server. Start vite through its JS API or the `.bin` shim. Done check: `pnpm review:probe` on
+      s1-L008 runs end to end with no server started by hand, locally and in the nightly workflow.
 
 ## Bundle 3: story pass (story files; #6 is owned by the "Vale helmet animations" session)
 
