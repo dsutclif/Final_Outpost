@@ -58,6 +58,8 @@ export interface MeshyEntry {
   normalMap?: boolean;
   /** Mirror across z (negate z, flip winding): the opposite-side wheel, hub still facing out. */
   mirror?: boolean;
+  /** Keep only triangles above this fraction of the source's height (0 bottom, 1 top): a head cut from a bust. */
+  crop?: number;
 }
 export interface BuiltEntry { hash: string; tris: number; bytes: number; outline?: { hash: string; tris: number; bytes: number }; lod?: { hash: string; tris: number; bytes: number }; bounds: [number, number, number, number, number, number] }
 
@@ -195,6 +197,22 @@ function fit(pos: Float32Array, e: MeshyEntry): BuiltEntry["bounds"] {
     pos[i + 2] = (pos[i + 2]! - cz) * k + oz;
   }
   return b().map((v) => Math.round(v * 1000) / 1000) as BuiltEntry["bounds"];
+}
+
+/** The triangles wholly above `f` of the source's height, with unused vertices dropped so the fit sees only them. */
+function cropAbove(src: Src, f: number): Src {
+  let y0 = Infinity, y1 = -Infinity;
+  for (let i = 1; i < src.pos.length; i += 3) { y0 = Math.min(y0, src.pos[i]!); y1 = Math.max(y1, src.pos[i]!); }
+  const cut = y0 + f * (y1 - y0), map = new Int32Array(src.pos.length / 3).fill(-1), kept: number[] = [];
+  let n = 0;
+  for (let t = 0; t < src.idx.length; t += 3) {
+    const a = src.idx[t]!, b = src.idx[t + 1]!, c = src.idx[t + 2]!;
+    if (src.pos[a * 3 + 1]! < cut || src.pos[b * 3 + 1]! < cut || src.pos[c * 3 + 1]! < cut) continue;
+    for (const v of [a, b, c]) { if (map[v] === -1) map[v] = n++; kept.push(map[v]!); }
+  }
+  const pos = new Float32Array(n * 3), uv = new Float32Array(n * 2);
+  map.forEach((m, v) => { if (m < 0) return; pos.set(src.pos.subarray(v * 3, v * 3 + 3), m * 3); uv.set(src.uv.subarray(v * 2, v * 2 + 2), m * 2); });
+  return { pos, uv, idx: Uint32Array.from(kept), tex: src.tex };
 }
 
 /** Shape-only simplification: weld by position (UV seams gone), then meshopt to the target. */
@@ -535,7 +553,8 @@ async function build(e: MeshyEntry): Promise<void> {
     return;
   }
   const t0 = Date.now();
-  const src = await loadSource(path, e.tint);
+  let src = await loadSource(path, e.tint);
+  if (e.crop !== undefined) src = cropAbove(src, e.crop);
   if (e.mirror) {
     for (let i = 2; i < src.pos.length; i += 3) src.pos[i] = -src.pos[i]!;
     for (let i = 0; i < src.idx.length; i += 3) { const t = src.idx[i + 1]!; src.idx[i + 1] = src.idx[i + 2]!; src.idx[i + 2] = t; }
@@ -567,7 +586,7 @@ async function build(e: MeshyEntry): Promise<void> {
 
 // Entries may share a file (decor reused as a per-level node): same source and fit, so it is built
 // once, with an outline if any of them is a building (props and wall sections get none).
-const FIT = ["src", "yaw", "width", "height", "length", "offset", "error", "tris", "texture", "tint", "decal", "rough", "metal", "lod", "normalMap", "mirror"] as const;
+const FIT = ["src", "yaw", "width", "height", "length", "offset", "error", "tris", "texture", "tint", "decal", "rough", "metal", "lod", "normalMap", "mirror", "crop"] as const;
 const first = new Map<string, MeshyEntry>(), outlined = new Set<string>();
 for (const e of config.models) {
   const f = first.get(e.file);
