@@ -1,8 +1,8 @@
 # S32 Vale's fall (BACKLOG #6), Doug's picks of 2026-11-07, chained as one stick-figure preview:
 #   1. 90_18 fall on the back, with a bullet strike first: thrown straight back, feet off the ground
 #   2. 111_21 roll from the back onto the front, at 1.5x speed
-#   3. 140_01 get up from face down, at half speed, cut at 4.0 s (before it hunches over)
-#   4. into a run to screen right, easing from half to full speed (143_03 start to run, then the 09_02 cycle): in game
+#   3. 140_01 get up from face down, at 0.75x speed, cut at 4.0 s (before it hunches over)
+#   4. into a run to screen right, easing from 0.75x to full speed over 1 s (143_03 start to run, then the 09_02 cycle): in game
 # The helmet (black) comes off when the head meets the ground and rolls away.
 # Each take is placed where the last one ended, turned to match, set on the floor, and crossfaded.
 #
@@ -21,8 +21,8 @@ STRIKE_BACK = 0.45       # metres thrown back by the strike
 STRIKE_LIFT = 0.10       # metres the feet leave the ground
 STRIKE_PITCH = 10        # degrees the body tips back during the strike
 HELMET_R = 0.14
-RUN_FROM = 0.5           # the run starts at the get-up's playback speed...
-RUN_RAMP = 36            # ...and reaches full speed over this many output frames
+RUN_FROM = 0.75          # the run starts at the get-up's playback speed...
+RUN_RAMP = 30            # ...and reaches full speed over 1 s
 
 
 def smooth(t):
@@ -81,7 +81,7 @@ def build():
     takes = [
         Take("90_18", 12, 50, label="1  hit, thrown back, fall"),               # fall starts at 18, lands 36
         Take("111_21", 246, 300, slow=2 / 3, label="2  roll over  (1.5x)"),      # back at 246, front by 306
-        Take("140_01", 40, 120, slow=2, head_out=axis, label="3  get up  (half speed, cut at 4.0 s)"),
+        Take("140_01", 40, 120, slow=4 / 3, head_out=axis, label="3  get up  (0.75x, cut at 4.0 s)"),
         Take("143_03", 33, 58, head_in=belly, head_out=belly, fade=12, label="4  run right  (in game)"),
         Take("09_02", 0, 24, head_in=belly, head_out=belly, fade=3, label="4  run right  (in game)"),
         Take("09_02", 0, 24, head_in=belly, head_out=belly, fade=3, label="4  run right  (in game)"),
