@@ -31,12 +31,12 @@ scenes where play pauses while one character's movement plays out (Doug, 2026-11
 One line per active item: number, who has it, and where. Add the line when work starts; remove it when the item is
 ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-LOG.md`.
 
-- Bundle 1 (#63, #67, #68–#70, #72, #73, #76): orchestrator session. #63's code fix is on main (5d6009c); still to do:
-  Doug re-runs the outpost-ops nightly workflow by hand and a data commit must land; Doug deletes the Supabase test row
-  (no key on the laptop); the #68–#73 git cleanup was approved by Doug but blocked by the permission check, so Doug runs
-  it: reset the local `farthest-outpost` main to origin/main; remove the `fo-wt-buggy` and `agent-a0616…` worktrees;
-  delete the local branches `story-buggy` and `story-buggy-26`, and the remote branches `look-test`, `object-sizes`
-  and `story-buggy`. Keep `fo-wt-handoff` until #75 backs up its film tools. #76 probe pass and the role-notes refresh are done (2026-11-07, see #76 and #67). Bundle 1 closes when Doug's manual nightly run is green and his three steps are done.
+- Bundle 1 (#63, #67, #68–#70, #72, #73, #76): orchestrator session. Status 2026-11-07 evening: nightly run #3
+  (outpost-ops b9e0335) has pulse ok on engine 0.21.0, 0 errors, 69 old-pack levels skipped; guide, telemetry and calibrate ok;
+  **probe failed** (exit 1 after 1 s, the vite path bug #78), so the run isn't green yet. Supabase test row deleted (0 left).
+  Local main reset to origin/main; `fo-wt-buggy` and `agent-a0616…` worktrees removed; local `story-buggy`/`story-buggy-26`
+  deleted. Still open: Doug deletes the remote branches `look-test`, `object-sizes` and `story-buggy`, and #78 makes the
+  nightly fully green. Keep `fo-wt-handoff` until #75 backs up its film tools.
 - #6: the "Vale helmet animations" session (livescene.ts `warlord_fall`, level 5 fall cues, `vale_run` removal).
 - Story files for #3, #4, #5, #14: claimed by the orchestrator session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
 
