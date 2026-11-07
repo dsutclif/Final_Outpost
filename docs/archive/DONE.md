@@ -4,6 +4,18 @@ Items ticked in `docs/BACKLOG.md` move here once they are verified live, newest 
 was seen. Work finished before 2026-11-07 is ticked in the archived round files beside this one
 (`BACKLOG-R4.md`, `BACKLOG-R5.md`, `BACKLOG-R6.md`, `BACKLOG-STORY.md`, `POLISH-PLAN.md`).
 
+## 2026-11-07 (older items reviewed with Doug)
+
+- **Upgrades that mean something:** done. Tier models are in the game (`sink.core.l2/l3`, `struct.barracks.l2`,
+  turret heads `struct.ranged_defense.head1-3`), and Doug has seen the upgraded reactor and turrets.
+- **Specific pad icons:** done. Hire pads draw a role icon (`renderer.ts`: register for cashier, pick or basket for
+  supplier, wrench for operator, tray, crate for hauler, shield, scope, cross). Doug has seen the cashier and hauler
+  pads. The operator pad shows a wrench rather than the machine's silhouette.
+- **Gemini images → Meshy models:** dropped (Doug).
+- **R4: generate about 5 levels for Doug to playtest:** dropped (Doug).
+- **Actions animated:** kept, at low priority (now backlog #15).
+- **Vale's face in the fall (S32):** Doug is fine with the face showing.
+
 ## 2026-11-07 (Doug's decisions)
 
 - **Level 1 sign-off, removed as an item.** Nothing waits on it, and every story level gets signed off in the end
