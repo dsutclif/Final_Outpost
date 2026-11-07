@@ -124,7 +124,7 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
 
 ### Level 4 (B)
 - [x] **S18 Level 4 lines per S1**, including the specific lines above.
-- [ ] **S19 The walk to the ship.** See S24–S26 for the continuity fixes; the recorder must be visible on approach.
+- [x] **S19 The walk to the ship.** (Seen 2026-11-07 on a dev server with the recorder forced revealed: it stands on open sand beside the hull break.) See S24–S26 for the continuity fixes; the recorder must be visible on approach.
 
 ### Level 5 (B, with A for turrets and hire pads if `renderer.ts` is involved)
 - [x] **S19b Defend lines per S1:** defending the town and training settlers as guards.
@@ -187,7 +187,7 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
 
 - [x] **S30 Opening film end (L1; done by B 2026-11-04, played live in level 1's opening cues).** It pans up to show the pulsing light on the ridge, then a white flash from
   the screen's left, then play starts with the arrow pointing toward the white light.
-- [ ] **S31 Old pod opening (L2):** hinged glass on the S20 model. (Hatch hangs open, live 2026-11-07; tick once seen.)
+- [ ] **S31 Old pod opening (L2):** hinged glass on the S20 model. (2026-11-07: the hatch change does nothing, the S20 GLB's glass is part of its body; needs a body without glass plus a hinged glass, see the work log.)
 - [ ] **S32 The lieutenant's fall (L5):** (Live 2026-11-07 as `warlord_fall`, rough blocking; Doug to look.)
   - Machinima triggered by the commander's last shot at the warlord: it falls, gets up and starts running, all in
     slow motion. Then back to live speed as it runs off.
