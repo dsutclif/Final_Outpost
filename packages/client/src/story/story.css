@@ -36,6 +36,8 @@
 
 .story-tap { position: absolute; inset: 0; pointer-events: auto; touch-action: manipulation; }
 .story-tap[hidden] { display: none; }
+/* KILN's coaching on regular levels (kilnintro.ts): the whole screen takes the tap, above the line's layer */
+.kiln-tap { position: absolute; inset: 0; z-index: 5; pointer-events: auto; touch-action: manipulation; }
 
 .story-card {
   position: absolute; inset: 0; pointer-events: auto; background: #000; color: #fff8ef; display: flex; flex-direction: column;
