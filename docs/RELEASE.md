@@ -24,10 +24,10 @@ Web first, stores after the port gate (SPEC.md "Offline web app and release path
 
 ## 2. Port gate (all must hold)
 
-- [ ] ≥ 20 cached levels play start to finish in airplane mode on a mid-range iPhone at 60 fps (2D) / 30 fps (3D).
-- [ ] Save survives a cleared cache (export/import in v1; server sync later).
-- [ ] Playtest retention target met.
-- [ ] Bot regression suite: no stalls or infeasible levels in any shipped pack.
+- (open, tracked in `docs/BACKLOG.md` section 6) ≥ 20 cached levels play start to finish in airplane mode on a mid-range iPhone at 60 fps (2D) / 30 fps (3D).
+- (open, tracked in `docs/BACKLOG.md` section 6) Save survives a cleared cache (export/import in v1; server sync later).
+- (open, tracked in `docs/BACKLOG.md` section 6) Playtest retention target met.
+- (open, tracked in `docs/BACKLOG.md` section 6) Bot regression suite: no stalls or infeasible levels in any shipped pack.
 
 ## 3. Capacitor wrap (done in the repo; no game code changes)
 
@@ -81,7 +81,7 @@ track first. Data safety answers are in `docs/STORE-LISTING.md`.
 
 - [x] Name, subtitle, keywords; description written in the skin's voice (`docs/STORE-LISTING.md`).
 - [x] Icon 1024×1024 and splash 2732×2732 (`store-assets` script, from the skin palette); [ ] screenshots per device class (portrait).
-- [ ] 15–30 s preview video (the ad look is the pitch).
+- (open, tracked in `docs/BACKLOG.md` section 6) 15–30 s preview video (the ad look is the pitch).
 - [x] Privacy policy page (`packages/client/public/privacy.html`, hosted with the web build).
-- [ ] Support URL and contact.
-- [ ] Original names, art and themes only: mechanics may resemble the genre, branding must not.
+- (open, tracked in `docs/BACKLOG.md` section 6) Support URL and contact.
+- (open, tracked in `docs/BACKLOG.md` section 6) Original names, art and themes only: mechanics may resemble the genre, branding must not.

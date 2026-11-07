@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { canTake, gatherTicks, playerCap } from "../src/systems/common.js";
 import { LEVEL_1, newSim } from "./helpers.js";
 
-// Player loadout (docs/BACKLOG-R4.md batch 3): every player number is a param a level (and later,
+// Player loadout (docs/archive/BACKLOG-R4.md batch 3): every player number is a param a level (and later,
 // equipment) can set. The two added here default to no change; the golden replays prove that.
 
 const params = (p: Record<string, number>) => ({ params: { ...(LEVEL_1 as { params?: Record<string, number> }).params, ...p } });

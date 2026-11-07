@@ -1,3 +1,5 @@
+> **Archived 2026-11-07.** Open items moved to `docs/BACKLOG.md` (same ids); this file is history only.
+
 # Backlog: story levels 1–5, round S1 (Doug's feedback, 2026-11-03)
 
 Doug's feedback came in three groups: general, all tutorials, and per level. His "Lv4" group also held level 5

@@ -1,3 +1,5 @@
+> **Archived 2026-11-07.** Open items moved to `docs/BACKLOG.md` (same ids); this file is history only.
+
 # Backlog round 4 (agreed with Doug, 2026-10-22)
 
 The ledger for this round. Tick items as they land and are verified live on the Vercel URL;

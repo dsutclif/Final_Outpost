@@ -74,7 +74,7 @@ export default defineConfig({
   preview: { host: "0.0.0.0", port: 5181 },
   build: {
     outDir: "dist", target: "es2022", sourcemap: false, chunkSizeWarningLimit: 800,
-    // sandbox.html (asset table) and layout.html (layout sandbox, docs/BACKLOG-R4.md batch 0): dev pages, unlinked from the game
+    // sandbox.html (asset table) and layout.html (layout sandbox, docs/archive/BACKLOG-R4.md batch 0): dev pages, unlinked from the game
     rollupOptions: { input: { main: resolve(here, "index.html"), sandbox: resolve(here, "sandbox.html"), layout: resolve(here, "layout.html") } },
   },
   plugins: [

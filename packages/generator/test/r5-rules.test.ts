@@ -5,7 +5,7 @@ import { closure, sequenceRange } from "@fo/sequencer";
 import sequencerData from "../../sequencer/data/sequencer.json";
 import { buildLevel, knobsFor, scrapBudget, scrapNeed, stormSurvivedIdle, templateById, CHALLENGE_PLACEHOLDER, GEN } from "../src/index.js";
 
-// R5 Sprint 2 generator rules (docs/BACKLOG-R5.md): overflow goal gone, defend scrap budget, storms, machine plots.
+// R5 Sprint 2 generator rules (docs/archive/BACKLOG-R5.md): overflow goal gone, defend scrap budget, storms, machine plots.
 const reqs = sequenceRange(1, 60);
 const build = (i: number, p = 0.3) => {
   const r = reqs[i - 1]!;

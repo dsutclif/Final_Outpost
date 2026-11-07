@@ -1,3 +1,5 @@
+> **Archived 2026-11-07.** Open items moved to `docs/BACKLOG.md` (same ids); this file is history only.
+
 # Polish plan (art direction rounds, from 2026-10-17)
 
 Running list of the look-and-feel work agreed with Doug. ART-DIRECTION.md is the target;

@@ -6,7 +6,7 @@ import { closure, sequenceRange } from "@fo/sequencer";
 import { ART_M, PITCH_DEG, YAW_DEG, FOV_DEG, TEXT, VIEW_W, CHAR_K, createCamera, screenToWorld } from "@fo/render-3d";
 import { Renderer3D, meshyBounds, meshyFor } from "@fo/render-3d/renderer";
 
-// Layout sandbox (docs/BACKLOG-R4.md batch 0): rebuilds a sequenced level's layout with the real
+// Layout sandbox (docs/archive/BACKLOG-R4.md batch 0): rebuilds a sequenced level's layout with the real
 // generator in the browser, with the spacing knobs from generator.json on sliders, completes
 // every pad so the whole base shows, and draws it with the real 3D renderer. Dev tool only: it
 // writes to the generator's and content's data objects in this page and nothing reaches a pack.

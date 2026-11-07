@@ -7,9 +7,12 @@ Two Claude accounts push to this repo. **Read this file before you start, and fe
 | Account A (built everything up to 2026-11-01) | Level 1, the R5/R6 backlog, generated levels, engine and generator |
 | Account B (from 2026-11-02) | Story levels 2–5 (G2–G5 in `docs/STORY-LEVELS-V2-PLAN.md`), one level at a time |
 
+**Open work for every account is in `docs/BACKLOG.md` (from 2026-11-07).** This log keeps claims, hand-offs and the
+change log only; put new tasks and open questions for Doug in the backlog, not here.
+
 ## Agreed with Doug (2026-11-02)
 
-- **2026-11-03: story round S1 is refined in `docs/BACKLOG-STORY.md`** (owners A/B per item). Films and live scenes were
+- **2026-11-03: story round S1 is refined in `docs/archive/BACKLOG-STORY.md`** (owners A/B per item). Films and live scenes were
   on hold until its screenplay (S1) and staging settled; **Doug lifted the hold on 2026-11-04.** `empty_bays` stays live as is, and sign-offs 2 and 3 are parked.
 
 - Levels 2–5 are built one at a time. Each one goes to `main` and is live as soon as it's checked.
@@ -258,7 +261,7 @@ Newest first. Record what changed, which shared files were touched and why, rule
   Until then the game keeps the dawn video with its grade.
 - **2026-11-04, B, film hold lifted; story films replay every play (Doug).** No engine bump, no level file touched.
   - Doug: the levels are close enough, so films and live scenes (S30–S33, `crash_log`, Sela's reveal and buggy, the live
-    helmet fall) go ahead and publish now. `docs/BACKLOG-STORY.md` updated.
+    helmet fall) go ahead and publish now. `docs/archive/BACKLOG-STORY.md` updated.
   - `client/src/cinematics.ts`: `REPLAY_FILMS = true` makes `filmDue`/`cinematicFor` ignore the seen record, so
     `crash_open`, `empty_bays` and `helmet_reveal` play on every play (Skip still works). `app.ts` also stops treating a
     cleared story level as a replay while it's on, so camera beats, cards and film cues play again too. Set it false

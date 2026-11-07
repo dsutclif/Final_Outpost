@@ -1,3 +1,5 @@
+> **Archived 2026-11-07.** Open items moved to `docs/BACKLOG.md` (same ids); this file is history only.
+
 # Backlog R6
 
 Work ledger for round 6; tick items as they land. Merges the backlog refined on 2026-10-31 (items 1-15)

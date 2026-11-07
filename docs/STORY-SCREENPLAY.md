@@ -1,6 +1,6 @@
 # Screenplay: story levels 1–5 (draft 4 for Doug, 2026-11-03)
 
-Backlog item S1 in `docs/BACKLOG-STORY.md`. This is every line in levels 1–5, in order, with stage notes. Level 1 is
+Backlog item S1 in `docs/archive/BACKLOG-STORY.md`. This is every line in levels 1–5, in order, with stage notes. Level 1 is
 the other account's to build, so this is the words only; that account reviews it.
 
 **How to read it** (Doug, 2026-11-03: lines never explain controls or name number targets; the arrows, HUD pointers, pad labels and goal cards do that)
