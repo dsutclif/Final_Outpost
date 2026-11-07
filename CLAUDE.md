@@ -93,3 +93,4 @@ pnpm levels:check  # replay every pack level with the bot ladder (~30 s)
   renderer inspect state diffs.
 - Hints are events with keys (`hint`/`carry_max`); text lives in skins.
 - Keep comments to the why; match the surrounding density.
+- Original names, art and themes only: mechanics may resemble the genre, branding must not.

@@ -4,6 +4,18 @@ Items ticked in `docs/BACKLOG.md` move here once they are verified live, newest 
 was seen. Work finished before 2026-11-07 is ticked in the archived round files beside this one
 (`BACKLOG-R4.md`, `BACKLOG-R5.md`, `BACKLOG-R6.md`, `BACKLOG-STORY.md`, `POLISH-PLAN.md`).
 
+## 2026-11-07 (refinement panel; Doug approved the bundles)
+
+- **Merged** (the number now lives inside another item): #13 → #4, #19 → #17, #23, #25, #27 → #16, #29 → #20,
+  #55 → #6, #71 → #7.
+- **Dropped:** #38 N13 power budget. #16 covers defence cost; reopen it only if #9's data shows core upgrades
+  going unbought.
+- **Made a standing rule:** #62 (original names, art and themes only) is now in `CLAUDE.md` Conventions.
+- **Doug's answers:** #14 wall building goes in level 3. Enemy HP follows #16: HP = points = drops, sized from target
+  `ρ`. Attackers can't damage turrets. Healing a hurt ranger with no medic is in #22. #6: the game's warlord is paused
+  and hidden during the fall, then Vale's head on the warlord body runs off. KILN is 1 m from the head at the scale of
+  levels 1–4 (#4). This session claims the story files. Cleanup of #68–#73 is approved.
+
 ## 2026-11-07 (older items reviewed with Doug)
 
 - **Upgrades that mean something:** done. Tier models are in the game (`sink.core.l2/l3`, `struct.barracks.l2`,

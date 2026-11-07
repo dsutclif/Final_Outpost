@@ -6,10 +6,12 @@ session that raised it. This file replaced `BACKLOG-R4/R5/R6.md`, `BACKLOG-STORY
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#74**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#77**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
+- Work ships in **bundles**, one at a time, in the order below; each bundle ships only after the one before it
+  is live and verified. Deferred items stay at the bottom with what they wait for.
 - Tick an item when it lands, with one line on what was seen and where (local, live or iPhone). "Done" means
   verified live. Done items move to `docs/archive/DONE.md` under the date, keeping their number.
 - Claims, the change log and engine-bump coordination stay in `docs/STORY-WORK-LOG.md`. Decisions go in
@@ -21,19 +23,73 @@ scenes where play pauses while one character's movement plays out (Doug, 2026-11
 
 ## In progress
 
-One line per active item: number, who has it (session or branch), and where (worktree). Add the line when the
-work starts, and remove it when the item is ticked or handed back. Claims on story files are still recorded in
-`docs/STORY-WORK-LOG.md` as well.
+One line per active item: number, who has it, and where. Add the line when work starts; remove it when the item is
+ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-LOG.md`.
 
-- (none yet)
+- Bundle 1 (#63, #67, #68–#70, #72, #73, #76): this session (backlog), worktree `fo-wt-backlog`.
+- Story files for #3, #4, #6, #5, #14: claimed by this session (backlog) on 2026-11-07, starting with Bundle 3.
 
-## 1. Waiting on Doug
+## Waiting on Doug
 
 - [ ] **#1 · `empty_bays` against the films (Sign-off 2).** It plays at the end of story level 2 on
       https://final-outpost-rho.vercel.app (story films replay on every play while `REPLAY_FILMS` is on). Nothing
       is waiting on it. Close it if it reads fine.
+- [ ] **#65 · Routines (HANDOFF.md step 5). Waiting on Doug:**
+      1. Give the Claude GitHub app access to outpost-ops (installation 136790409).
+      2. Create a fine-grained token for outpost-ops only, with Issues and Contents read/write.
+      Then create the routines in dry-run for a week.
+- [ ] **#66 · PILLARS-DRAFT.md (waiting on Doug):** the order of the pillars, and pillar 7's pay-to-win line.
+- [ ] **#58 ·** The playtest retention target is met.
 
-## 2. Ready now (no engine bump)
+## Bundle 1: cleanup and nightly fix (no game change)
+
+- [ ] **#63 · Nightly-data fails (do first).** outpost-ops Actions run 42404338827: `review:pulse` ran 111 levels and
+      reported 69 errors, all "pinned to engine 0.18.0, running 0.20.0", from the old packs s1-068…s1-108 in the
+      workflow's `--packs` list. That probably stopped the other four `review:*` commands, and no data commit
+      landed. Fix: pulse skips levels pinned to an old engine and reports them (or trim the pack list). Then re-run
+      the workflow by hand from the GitHub page (no `gh` on the laptop).
+      **Refinement (mobile):** `run-review.mjs` keeps running the other commands; the damage is pulse's exit code 1.
+      Fix in `playLevels`: compare `manifest.engineVersion` with `ENGINE_VERSION`, list mismatches under `meta.skipped`,
+      not `errors`, and don't fail for skips; same check in guide and calibrate; then trim `pulsePacks` in the ops
+      rotation. Done check: a manual workflow run goes green and a data commit lands.
+- [ ] **#67 · Housekeeping:**
+      - delete the Supabase test row (install `claude-verify-20261107`, kind `session`);
+      - delete the merged local branches `review-supabase`, `review-tools`, `review-probe` and `review-merge`;
+      - update the stale `packs.test.ts` "gotcha" in `docs/review/HANDOFF.md` (the test passes).
+      - fix `docs/RELEASE.md`'s links (they point at "section 6"; the gates moved);
+      - refresh stale role notes in outpost-ops `refinement/notes/` (producer, QA, level designer).
+- [ ] **#68 · Two commits on the local `farthest-outpost` main, never pushed (2026-10-30):**
+      - f32b159 crash_open: no reactor in the film; the commander no longer jitters at the plate's edge;
+      - 2cf4c1b Level rules: rule 7 counts enemy points; drops in proportion to HP.
+      Both are older than the film rework (#47) and the rules review, so they may be superseded. Compare them with
+      main before pushing.
+- [ ] **#69 · `story-handoff` (worktree `fo-wt-handoff`):** b477f7d "Level 1 opens on crash_open's last frame",
+      plus uncommitted edits to `cinematics.ts`, the release notes and the work log. This overlaps #48 (the held
+      level edits).
+- [ ] **#70 · `story-buggy` (also in `fo-wt-buggy` with uncommitted `buggy.json` / `meshy.json` edits):** the
+      reduced buggy model. Goes in with #5.
+- [ ] **#72 · Remote branch `look-test`** (2026-11-04): soft sprite particles, turret bolts of light, dust-storm
+      sheets, KILN cloud without square blocks, reactor glow. Most of the new look is already on main. Check what's
+      left, then merge the rest or delete the branch.
+- [ ] **#73 · Remote branch `object-sizes`** (2026-11-04): crystal scrap at 0.95 m, generator footprints for the
+      resized models, and a WIP commit of the Buildings-row sizes whose footprints test fails. Check against main's
+      one size reference (`render-3d/src/sizes.ts`).
+- [ ] **#76 · Screen-probe pass for the never-seen-live items.** Run `pnpm review:probe` on s1-L008, s1-L013, s1-L014 and
+      story levels 2–3 (bot-driven, phone-size) and use its shots as evidence for #50, #51, #53 and #54. What the probes
+      can't show (real iPhone Safari, frame rate, the medic kneel, fade feel, two-deploy update) becomes one short list of
+      iPhone checks for Doug.
+- [ ] **#50 · R6 Release 1 HUD and art:**
+      - R6 #3 "Finish in x:xx" as the last star (s1-L008)
+      - R6 #4 goods on belt tops (s1-L014)
+      - R6 #6 impatient trader "!" (s1-L013)
+      - R6 #7 no lot-edge pipes
+      - R6 #8 smooth code-built objects
+      - N16 the old homepage flash (needs two real deploys; see #2)
+- [ ] **#51 · R6 #1 and #2 through a real wave:** icons still between waves; the VIP icon mid-fill.
+- [ ] **#53 · G5 / S8 arrows follow the goal:** story level 3 (kiosk, then rockslide).
+- [ ] **#54 · G6 / S9 one loop around close pods:** level 2 goal 2's pair, on screen together.
+
+## Bundle 2: first screen and level packs (no engine bump)
 
 - [ ] **#2 · Only the new title loop ever shows (Doug, 2026-11-07; bug, do first).** At first the old background
       showed while the animated loop loaded. Now the loop never appears, only the old SVG-style home background.
@@ -44,24 +100,57 @@ work starts, and remove it when the item is ticked or handed back. Claims on sto
       Fix: exclude the mp4s from precache, or serve range requests, and never paint the old background. Show a
       plain dark frame (or the loop's first frame as a poster) until the video plays. Check on an iPhone, live,
       after a second visit.
-- [ ] **#3 · S24 Two more sealed pods at the crash site (Doug, 2026-11-07: option 1).** Add two sealed
-      `decor.stasis_pod` + `decor.stasis_glass` pairs toward the back of the wreck in `story-L001..5.json`, so the
-      deck shows five (the commander's open pod, bay 5 open from level 3, three sealed). They must stay **out of
-      frame of `crash_open`** (the first film), and clear of the game's start view and the film's held level edits
-      (#48). No scene or line changes.
+      **Refinement:** the precache guess is wrong. `vite.config.ts` never precaches mp4s, the live `sw.js` has no mp4,
+      and the live file answers range requests with 206. Likelier causes: an installed old shell asks for an old hashed
+      mp4 URL (prompt-mode updates), or Low Power Mode refuses autoplay. Either way `title.ts` removes the video for
+      good on its first `error`. Fix: retry once and re-create the video on `attach()`; dark background plus a poster
+      frame; draw the canvas fallback only after an error or a timeout; send `video.error.code` with telemetry.
+      Done check: on iPhone Safari, after two real deploys and a second visit, the loop plays (or the dark poster
+      shows), and the old background never paints.
+- [ ] **#8 · P8 Drop s1-L065** (Doug, 2026-11-07). It is pinned to content 0.17.0, so the client can't load it.
+      Remove it from the `s1-051` pack and the pack index, and don't rebuild it.
+      Keep L065's `dropped` record (`tools/levels-next.ts` reads it so L065 is never retried); delete the `levels`
+      entry, the file and its build-log entry. Done check: `levels:check --pack levels/packs/s1-051` runs clean.
+- [ ] **#7 · P7 Ship the revised ranger pad rule.** Doug, 2026-11-07: the ranger hire pad goes inside the hunting
+      grounds, clear of the burrow models. If that fails, it goes just inside the gate nearest them, or on the
+      settlement edge facing them when there's no wall. Manual first. It is built but uncommitted in worktree
+      `fo-wt-plot` (branch `plot-p1-p6`, behind main): `generator/src/build.ts`, the `ranger` block in
+      `generator/data/generator.json`, rebuilt `s1-L017` / `s1-L034`, `pack.json`, `build-log.json`, `docs/LEVELS.md`
+      and the 2026-11-07 digests. Steps: commit on the branch, merge main, `pnpm check`, `pnpm levels:check`,
+      rebuild L017/L034 if the merge touched the generator, release notes, push, verify live. The same worktree
+      holds uncommitted retry output for s1-L012 / s1-L037. Land it only if `levels:check` stays clean, else
+      discard it.
+      **Merged:** #71 (the uncommitted work in `fo-wt-plot`) is this item.
+      **Refinement (level design):** the branch is on engine 0.20.0 and main is past 0.21.0, so expect conflicts in
+      `s1/pack.json`, L017 and L034. The pad lands at the map edge, about 230 units from the start (L017 (448,342),
+      L034 (50,352)); L017's human-view stars dip from 3 to 2.83, and L034 became a different level. The rule reads only
+      `zones[0]` and ignores dangerous prey. The L012/L037 retry output is not in the diff. Look at both levels before
+      landing; re-run: merge main, `levels:repin`, `pnpm check`, `levels:check` (s1 and story), regenerate `docs/LEVELS.md`.
+      Done check: the ranger pad sits inside the hunting grounds on L017 and L034, seen live.
+- [ ] **#74 · Unique level ids across packs (from #40).** L051–L060 exist in both s1 and s1-051 and the client keeps
+      whichever it finds first. Decide which copy wins (s1 is the main pack), drop the duplicates, and add a
+      `pack.test.ts` check that ids are unique across every pack the client loads.
+
+## Bundle 3: story pass (story files; this session holds the claim)
+
 - [ ] **#4 · S40 KILN the same size on screen in every level, and closer (Doug, 2026-11-07).**
       Why level 5 looks zoomed out: its family is `defend`, and `content/data/look.json` `viewW` shows 300 units
       of ground across the screen on defend levels against 170 everywhere else (L1 shelter, L2 rescue, L3 harvest
       and L4 industrialize all use 170). KILN is sized in world units (`spiritFollow` size 1.1 in all five cue
       blocks), so it shrinks with the wider view.
       Fix: size KILN against the screen, not the world (scale by `viewWFor(family)` / 170, or size it in screen
-      space). Use level 5's on-screen size, so levels 1–4 KILN gets smaller (about 57% of today). Bring it to about
-      1 m (28 units) from the commander's head. Today `right: 60, up: 16` puts it about 2.2 m away.
+      space). Use level 5's on-screen size, so levels 1–4 KILN gets smaller (about 57% of today). Distance: see Doug's note below.
       Done check: a screenshot of KILN at its first line in each level, at phone size, all the same size.
-- [ ] **#5 · S41 Sela's buggy at the signed-off size (Doug confirmed several times; last on 2026-11-07).** Use the
-      sandbox's size, also used in the `sela_arrival` scene: 2.64 m long (the 4.4 m build x 0.6). Merge the
-      reduced model from branch `story-buggy` (39.9k tris, 2.5 MB, two wheels) at that size, then wire it into
-      level 3 with headlights and the drive to the kiosk. No further sign-off.
+      **Merged:** #13 (KILN on screen when a later level's coaching line teaches a new mechanic) is part of this item.
+      Coaching lines (`coach.ts`) need a way to call the story cloud with the same scaling.
+      **Doug, 2026-11-07:** KILN sits about 1 m from the commander's head at the scale of levels 1–4, and further at
+      level 5's scale. Scale `size`, `right` and `up` by `viewWFor(family)` (and the camera zoom) in the client; no
+      skin data changes. Check that the smaller cloud stays legible at phone size.
+- [ ] **#3 · S24 Two more sealed pods at the crash site (Doug, 2026-11-07: option 1).** Add two sealed
+      `decor.stasis_pod` + `decor.stasis_glass` pairs toward the back of the wreck in `story-L001..5.json`, so the
+      deck shows five (the commander's open pod, bay 5 open from level 3, three sealed). They must stay **out of
+      frame of `crash_open`** (the first film), and clear of the game's start view and the film's held level edits
+      (#48). No scene or line changes.
 - [ ] **#6 · S32 The lieutenant's fall, re-staged (Doug, 2026-11-07).** Claimed by the `story-vale-scrap` session;
       check the work log first. What's wrong now: the alignment is a mess, the fall comes with no cause, and it
       plays after the run has started. The cause: the scene is triggered by the sim's `retreated` event, which
@@ -83,17 +172,78 @@ work starts, and remove it when the item is ticked or handed back. Claims on sto
         come straight after Vale leaves the screen. They replace the line that waits for the fleeing warlord to
         pass the helmet.
       - The capture then plays `helmet_reveal`, `vale_run` and "Vale?" (#55) as now.
-- [ ] **#7 · P7 Ship the revised ranger pad rule.** Doug, 2026-11-07: the ranger hire pad goes inside the hunting
-      grounds, clear of the burrow models. If that fails, it goes just inside the gate nearest them, or on the
-      settlement edge facing them when there's no wall. Manual first. It is built but uncommitted in worktree
-      `fo-wt-plot` (branch `plot-p1-p6`, behind main): `generator/src/build.ts`, the `ranger` block in
-      `generator/data/generator.json`, rebuilt `s1-L017` / `s1-L034`, `pack.json`, `build-log.json`, `docs/LEVELS.md`
-      and the 2026-11-07 digests. Steps: commit on the branch, merge main, `pnpm check`, `pnpm levels:check`,
-      rebuild L017/L034 if the merge touched the generator, release notes, push, verify live. The same worktree
-      holds uncommitted retry output for s1-L012 / s1-L037. Land it only if `levels:check` stays clean, else
-      discard it.
-- [ ] **#8 · P8 Drop s1-L065** (Doug, 2026-11-07). It is pinned to content 0.17.0, so the client can't load it.
-      Remove it from the `s1-051` pack and the pack index, and don't rebuild it.
+      **Already done in engine 0.21.0:** the helmet drops on the hit that crosses the retreat threshold and lies at that
+      spot in play; the Vale models and the fall scene exist.
+      **Doug, 2026-11-07:** while the animation plays, the game's own warlord is paused and hidden. After the fall and
+      get-up, the in-play warlord is replaced by Vale's head on the warlord body (`hostile.boss_vale` + `item.vale_head`),
+      which runs off screen; the helmet stays on the ground at the point of the fall. Still to do: freeze and hide the
+      in-play warlord (`retreated` fires after it has already turned to flee), the close-up of the last shots, the line
+      timing, the helmet landing on the head's spot, and the commander picking up the helmet (from #12).
+      **Merged:** #55 (check `vale_run` on a phone) is this item's done check.
+      Done check: on a phone, cause, fall, helmet, get up, run off, then the lines; the in-play helmet is at the fall spot.
+- [ ] **#5 · S41 Sela's buggy at the signed-off size (Doug confirmed several times; last on 2026-11-07).** Use the
+      sandbox's size, also used in the `sela_arrival` scene: 2.64 m long (the 4.4 m build x 0.6). Merge the
+      reduced model from branch `story-buggy` (39.9k tris, 2.5 MB, two wheels) at that size, then wire it into
+      level 3 with headlights and the drive to the kiosk. No further sign-off.
+- [ ] **#14 · S43 The training levels teach wall building (Doug, 2026-11-07).** Today level 2 starts with a prebuilt
+      ring, so the walls appear from nowhere. After the freezing pods are rescued, the player builds the walls (wall
+      pads with a goal card and a line saying why: the night and the raiders). Needs a look at which level carries
+      it (2 or 3), whether a wall pad exists in the rules (an opt-in option if not), and the bots' and
+      `levels:check` result.
+      **Doug, 2026-11-07:** teach wall building in **level 3**, with the existing `perimeter_before_wave1` goal (no
+      engine bump). This reverses the 2026-11-03 "keep the prebuilt walls" decision; level 2 stays a short rescue.
+      There are no wall pads: a wall is a `barrier.line` built by walking its sections with the resource. Raids first
+      come in level 5, so KILN's line looks ahead. Done check: `levels:check --pack levels/story` green with bots
+      building the wall; the story owner re-checks levels 3–5.
+
+## Bundle 4: level 1 opening film (`crash_open`, Release 3)
+
+Fix stage 2 now; Doug approves the fixed stills and test before the full render (#49). The held level edits (#48)
+ship with the film.
+
+- [ ] **#75 · Back up the film tools (before #47).** `tools/cinematics/mocap/` and `cache/` are not in git and live only in
+      `fo-wt-handoff/tools/cinematics/`. Copy them somewhere safe (or into git LFS) before any film work.
+- [ ] **#47 · Fix stage 2:**
+      1. The glass slides through the commander; key a hinge on its edge.
+      2. The open glass blocks the camera at the step-out.
+      3. The drop to the sand is cut away.
+      4. The third camera frames mostly black sky.
+      5. The commander faces away in the look-round; turn toward the light.
+      6. The final view crowds them against the wreckage.
+      Ask Doug for his own list too.
+- [ ] **#48 · Held level edits, shipped with the film:** crash-site `scrap` x minus 100 units in `story-L001..005`;
+      L1 `start` to [451.7, 138.9]; bump `FILM_VERSIONS.crash_open`; check `openZoom.film` lands on the last frame.
+- [ ] **#49 · Re-render shots 2–3** (impact, wreck at dawn) from the new set, then the full render (set as one
+      plate, commander on a holdout layer, composite). Needs Doug's approval of the fixed stage 2.
+
+## Bundle 5: flat pads
+
+- [ ] **#10 · Flat ground markers instead of raised pads (Doug, 2026-11-07).** Replace the raised standing pads
+      with 2D projections on the ground: a light or dark marking in the same shade as the guide arrows, so it
+      contrasts in any lighting. Applies to every pad kind (hire, build, upgrade, warehouse, clear). Done check: pads
+      read clearly in day, dusk, night and storm light on a phone.
+      **Refinement (mobile):** pads already draw a flat canvas decal (`renderer.ts` ~1983); the raised part is the pad
+      model. Hide the model, make the decal the pad, colour it from the guide arrow tokens (`scene/groundmarks.ts`) with a
+      dark outline. Perf is neutral or better. Then #41.
+- [ ] **#41 · G4 / S27 hire pads always fully visible:** the generator places pads clear of model silhouettes, and
+      fading never hides a pad. With #10, check the flat markers too.
+      With flat markers (#10), this shrinks to placement clear of tall model silhouettes at the 30° camera.
+- [ ] **#52 · Step A renderer items:**
+      - red bolts in a real raid
+      - the healing cross with a real medic, and the medic's kneel (the `care` clip may read as picking up rather
+        than kneeling)
+      - trader order pictures in a live bubble
+      - fireworks after a real win (S22)
+      - the shovel at a real rockslide (S23, level 3)
+      - wall fade on an iPhone, and the core fade in a story level
+
+## Bundle 6: measurement first (no engine bump)
+
+Bots and baselines settle before the model is fitted.
+
+- [ ] **#43 · Bot tow loop through a wall:** `Brain.loopAround` can place loop points inside a ring.
+- [ ] **#44 · Search start table per engine:** make `startPressure` ignore a `start.json` from another engine, then
+      rewrite it with `pnpm levels:start-table` from this rebuild.
 - [ ] **#9 · Rater detail for every eval (Doug, 2026-11-07).** Today the packs store only each level's totals
       (`rating.difficulty`, `rating.fun`, `botMargin`, `botsPassed`, `stars`), so no one can see why a level scores
       what it does. Throw those totals away as the record, and capture every sub-point of the AI-driven evaluation,
@@ -113,44 +263,11 @@ work starts, and remove it when the item is ticked or handed back. Claims on sto
       needed if rating is separate from generation). Then build one view (sandbox page or `docs/LEVELS.md` table)
       that shows every sub-point per level, with bots and real players side by side. Then #35 (defend fun) can be
       decided from data.
-- [ ] **#10 · Flat ground markers instead of raised pads (Doug, 2026-11-07).** Replace the raised standing pads
-      with 2D projections on the ground: a light or dark marking in the same shade as the guide arrows, so it
-      contrasts in any lighting. Applies to every pad kind (hire, build, upgrade, warehouse, clear). Done check: pads
-      read clearly in day, dusk, night and storm light on a phone.
-- [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
-      until a cutscene's version is watched, and list only cutscenes from levels reached. Held until the story claim
-      on `client/src/app.ts` clears and `REPLAY_FILMS` is off.
-- [ ] **#12 · S6 Show what is happening.** Characters act out their lines with the generic `{ walk, to }` director
-      action. Rhee's and Okafor's walks are done. Still to do from the screenplay's stage notes: Rhee kneeling beside
-      Pip, hires walking to their posts in level 4, and the commander picking up the helmet.
-- [ ] **#13 · S42 KILN on screen when it teaches a new skill (Doug, 2026-11-07).** On levels after 5, when a KILN
-      coaching line teaches a mechanic for the first time, KILN's cloud appears beside the commander for that line,
-      as it does in levels 1–5, instead of the line showing alone. Same on-screen size as #4.
-- [ ] **#14 · S43 The training levels teach wall building (Doug, 2026-11-07).** Today level 2 starts with a prebuilt
-      ring, so the walls appear from nowhere. After the freezing pods are rescued, the player builds the walls (wall
-      pads with a goal card and a line saying why: the night and the raiders). Needs a look at which level carries
-      it (2 or 3), whether a wall pad exists in the rules (an opt-in option if not), and the bots' and
-      `levels:check` result.
-- [ ] **#15 · Actions animated (low priority; Doug kept it 2026-11-07).** Gathering, depositing and machines
-      processing show visible work, not just items appearing. Converters show input going in, the machine working,
-      and output coming out.
-
-## 3. Release 2: combat and economy (one engine bump, one pack rebuild)
-
-Order: Bundle 5 (Opus, one session, `sim` + `bots` + `rater`), then Bundle 6 (Opus, generator). Then claim
-the bump in `docs/STORY-WORK-LOG.md`, rebuild in the background, run `levels:check`, re-pin golden and story
-levels (the story owner re-checks 3–5), `levels:start-table`, release notes, deploy, and an iPhone frame-rate
-check with dense waves. Engine 0.21.0 (level 5 helmet, 85f2fe2) has already shipped, so this release takes the next engine number.
-
-**Combat values (Doug, 2026-11-05: "make your own best decisions").** Start from the arena PROPOSALS in
-`client/src/dev/arenaModel.ts`, with drops equal to HP:
-- Warlord: 24 HP, 24 points, 24 scrap.
-- Mites: acid spit (range 40, damage 1, every 2 s) and lunge (30, 0.3 s wind-up, 2 s cooldown).
-- Dust crawler: 3 HP, drops 3 scrap, shot range 60.
-- Wave share by count: about 70% mites, 20% crawlers, 10% raiders, with 1–3 warlords on the last two waves.
-Retune by the attack–defence model (#16) and rater metrics, not by eye.
-
-### Bundle 5: combat
+      **Refinement:** split. **9a** (Bundle 6): store the sub-points in a side file outside `levels/packs` (for example
+      `levels/eval/<pack>/<id>.json`), never in `pack.json`: its hash is in every level URL, so changing it resets
+      every player's offline level cache. Add a per-wave defend trace (HP arrived, leak, scrap and towers at wave start).
+      Done check: a re-rate leaves `pack.json`'s hash unchanged, and a test fails if any level lacks a sub-point.
+      **9b** (deferred until after Release 2): the bot-vs-player view; real-player data is still thin.
 - [ ] **#16 · P9 Attack–defence model: one formula as the common reference and control lever (Doug, 2026-11-07;
       replaces the N13-or-N1 choice for R6 #10).** Every level is balanced against the same model, assuming the best
       action at every moment:
@@ -187,153 +304,126 @@ Retune by the attack–defence model (#16) and rater metrics, not by eye.
       - calibrate against a skill-limited bot as well as the best one.
       Keep the enemy-mix and synergy rules as a separate authored layer: they are what made hand-made waves feel
       harder in Hind & Harvey's test.
+      **Refinement (2026-11-07), how to build it:**
+      - Extend what exists: `generator/src/budget.ts` already keeps the scrap ledger and `defendWaves` shapes waves by points.
+      - Make `ρ` a small per-lane simulation (defender DPS over time, HP in flight, the tower range window, walk-in time),
+        so peak rate, lanes and range are structural. Fit only three numbers from the bots: overkill `η`, how `e` falls by
+        tier, and a skill discount per ladder rung (the existing rungs are the skill-limited bots).
+      - `B` is not a sum: gate HP (30) then base health (15 hits). A broken gate sends attackers to the core.
+      - Guards are about 10x a tower's DPS per scrap, so price them in the model separately.
+      - Add a bodies-per-wave cap beside the points budget (about 200 bodies at 375 points is a phone cost).
+      - Map the sequencer's target D to a target `ρ` with one fitted function, so the two dials don't fight.
+      - Shape knobs stay inside `fun.ts` tensionRhythm (2–5 peaks, no squeeze over 25% of the run) and keep the
+        `waveQuiet` gap.
+      - v0 (Bundle 6) is fitted on today's sim and checked against bot runs; v1 (Bundle 8) is refitted after Bundle 7's
+        mechanics and becomes the generator's accept test (cheap `ρ` on all candidates, bot-measured `ρ` on the closest).
+      **Doug, 2026-11-07:** enemy HP (the warlord's too) follows this model: HP = points = drops, sized from target `ρ`.
+      Attackers cannot damage turrets: only the gate, the base, guards and the commander.
+      **Merged:** #23 (dense mixed waves), #25 (faster arrivals: the compress knob, measured at the gate), #27 (more
+      damage per attacker: a parameter of `ρ`) and #26's wave share are part of #16 and #24.
+      Done check: v0 reports bot-measured `ρ` against predicted on the current defend levels, with the error stated.
+
+## Bundle 7: Release 2 combat (one engine bump)
+
+Order: Bundle 7 (Opus, one session, `sim` + `bots` + `rater`), then Bundle 8 (Opus, generator), in one release.
+Claim the bump in `docs/STORY-WORK-LOG.md`; story level 5's authored waves are hand-tuned with the story owner.
+
+**Combat values (Doug, 2026-11-05: "make your own best decisions").** Start from the arena PROPOSALS in
+`client/src/dev/arenaModel.ts`, with drops equal to HP:
+- Warlord and every other enemy: HP = points = drops, sized from #16's target `ρ` (Doug, 2026-11-07).
+- Mites: acid spit (range 40, damage 1, every 2 s) and lunge (30, 0.3 s wind-up, 2 s cooldown).
+- Dust crawler: 3 HP, drops 3 scrap, shot range 60.
+- Wave share by count: about 70% mites, 20% crawlers, 10% raiders, with 1–3 warlords on the last two waves.
+Retune by the attack–defence model (#16) and rater metrics, not by eye.
+
+- [ ] **#34 · G7 drop the tow line's slack rule:** remove `lasso.slackTime` / `slackTicks`, the `tow_dropped`
+      "slack" reason, the bots' never-stand-still rule, and the hint and skin text.
 - [ ] **#17 · N2/N3 ranged raiders:** a real ranged attack with a sim "shot" event (today they only hit on contact).
+      **Merged:** #19 (nobody stops to shoot; Doug's acid colours per species) is part of this item.
 - [ ] **#18 · N2 mites lunge and spit acid** (numbers above).
-- [ ] **#19 · N19 nobody stops to shoot:** every mobile fighter keeps closing while it shoots and switches to melee at
-      contact reach. Towers stay put. Each species spits its own acid colour (`arenaModel.ts` `closeIn`,
-      `ACID_COLOR`).
 - [ ] **#20 · N20 footprints and touch melee:** each character keeps its model's footprint, and melee means touching.
       The commander walks through anyone, and drones fly over.
+      **Merged:** #29 (no character overlaps another: integer separation, fliers avoid only fliers) is part of this item.
+      Use a spatial hash: separation over about 200 bodies is O(n²) without one, and must stay deterministic.
 - [ ] **#21 · N21 guards, medics, bleed-out:** medics can't be hurt. A downed guard takes half damage and dies at 0
       unless a medic reaches it. The commander can be killed by attackers. Rater metric: guard deaths per wave.
+- [ ] **#26 · N18 dust crawlers in waves** (`hostile.creature`, scrap drop, share as above).
+      **Refinement:** `hostile.creature` drops `res.food_raw_2` today (`content/data/enemies.json`), so this is a content
+      change to scrap = HP. Its wave share is sized by #16.
+- [ ] **#28 · N8 drones dock between waves** and don't spawn until the next wave; they keep their HP.
+- [ ] **#32 · N4 scrap lands where it can be reached:** snap drops to the nearest walkable point (`spawnDrops`).
+      Required with #33.
+- [ ] **#33 · R6 #11 attackers appear off screen:** spawn past the visible map, worked out in real metres per family.
+- [ ] **#30 · N5 blaster fire, rest:** turret (`struct.ranged_defense`) and drone shots as travelling glow bolts with
+      muzzle and impact flashes and a ground glow. There is no drone shot event yet. The renderer part of N5 is done.
+      **Refinement:** the sim emits a real `shot` event only for the player; turret, drone, raider and hunter shots need
+      sim events (engine bump). Do with #31.
+- [ ] **#31 · G3 / S23b rifle lasers everywhere,** including hunting shots and the hunter role. Check level 5's
+      raiders, guards and turrets once this lands.
+- [ ] **#37 · R6 #13 the hands-off goal needs x machines running** (a new `machines` param on automate).
+
+## Bundle 8: Release 2 levels and ship (one pack rebuild)
+
+Re-derive the rater's `reference.json` (only 4 golden levels today) and do the iPhone dense-wave check before the
+rebuild.
+
+- [ ] **#24 · R6 #14 more attackers, mixed waves, multiple warlords** (inside #23; warlord values above).
+- [ ] **#36 · N6 loop bound:** reject a candidate if any hand-done leg needs more than 5 trips with no affordable
+      takeover. Store `loopMax` per level and re-check it in `levels:check`.
+- [ ] **#39 · N10 rock slides hide something real:** `node.fuel_deposit` under the rubble, plus a generator check.
+- [ ] **#40 · N6b level-order audit:** a pack check for repeated goal kinds and templates.
+      **New finding:** ids L051–L060 exist in both s1 and s1-051 (L055 and L060 differ); the client keeps the first, and
+      `levels-next.ts` double-counts them. The duplicate-id part ships in Bundle 2 as a pack test; the goal and template
+      repeat check stays here. Store the template id in the pack so repeats can be checked.
+- [ ] **#45 · Levels far off their target D** (L23, L26, L27, L28, L35, L44, L47 in 0.16.0): re-check against the
+      latest digest. Give the sequencer per-goal D ranges where a goal can't reach its target.
+      **Refinement:** the listed levels are stale. Now 14 of 65 are more than 0.15 off (still off: L23, L27, L44, L53, L66,
+      L31, L36). Needs #37 first; for defend goals the D range comes from the `ρ`-to-D map (#16).
+- [ ] **#35 · Defend fun threshold.** Defend levels rate F 0.1–0.3 against the 0.4 bar (waves_survived 0.07,
+      turret_level 0.19, survive 0.37, against 0.8–0.9 for most economy goals). Decide from #9's per-proxy data
+      whether to fix the proxies or set a defend threshold. #16 should lift `closeFinish` and `lateUncertainty`.
+- [ ] **#59 ·** Bot regression suite: no stalls or infeasible levels in any shipped pack.
+- [ ] **#46 · Release 2 ship steps:** engine bump, rebuild, check, re-pin, release notes, deploy (see the order
+      above).
+
+## Bundle 9: hunting and healing
+
 - [ ] **#22 · N22 the ranger is back, and hunting is a skill:** the ranger and commander one-shot a spiked hopper
       with `gunDamage`. Hoppers charge as a herd and wind up their bites. Hunting never kills: the injured lie down
       and wait for a medic. Hopper zones hold 0, 3 or 4 (this replaces R6 #12). The ranger pad itself shipped in
       0.20.0.
-- [ ] **#23 · N23 dense mixed waves:** rows several abreast, mixed evenly (`waveOrder`). This sizes #24 and #25.
-- [ ] **#24 · R6 #14 more attackers, mixed waves, multiple warlords** (inside #23; warlord values above).
-- [ ] **#25 · R6 #15 faster arrivals:** biggest wave within about 30 s; check the iPhone frame rate.
-- [ ] **#26 · N18 dust crawlers in waves** (`hostile.creature`, scrap drop, share as above).
-- [ ] **#27 · N12 more damage per attacker,** set from #16's target `ρ` and the defender-losses-per-wave metric.
-- [ ] **#28 · N8 drones dock between waves** and don't spawn until the next wave; they keep their HP.
-- [ ] **#29 · N15 + N17 no character overlaps another:** integer separation in the sim. Fliers only avoid other
-      fliers.
-- [ ] **#30 · N5 blaster fire, rest:** turret (`struct.ranged_defense`) and drone shots as travelling glow bolts with
-      muzzle and impact flashes and a ground glow. There is no drone shot event yet. The renderer part of N5 is done.
-- [ ] **#31 · G3 / S23b rifle lasers everywhere,** including hunting shots and the hunter role. Check level 5's
-      raiders, guards and turrets once this lands.
-- [ ] **#32 · N4 scrap lands where it can be reached:** snap drops to the nearest walkable point (`spawnDrops`).
-      Required with #33.
-- [ ] **#33 · R6 #11 attackers appear off screen:** spawn past the visible map, worked out in real metres per family.
-- [ ] **#34 · G7 drop the tow line's slack rule:** remove `lasso.slackTime` / `slackTicks`, the `tow_dropped`
-      "slack" reason, the bots' never-stand-still rule, and the hint and skin text.
+      **Doug, 2026-11-07, healing a hurt ranger when there's no medic yet:** a red cross bounces over the downed ranger;
+      off screen, an edge arrow carries the cross. KILN: "The ranger is hurt, and we haven't trained a medic yet. He needs
+      your help." When the commander reaches him, the commander kneels and a green cross bounces over the ranger, as with a
+      medic. Evaluate whether every level with a medic should make the player do this once before the medic is hired.
+      Hopper zones and the ranger pad (#7) must agree: no ranger pad within a herd's charge range.
 
-### Bundle 6: economy and generator
-- [ ] **#35 · Defend fun threshold.** Defend levels rate F 0.1–0.3 against the 0.4 bar (waves_survived 0.07,
-      turret_level 0.19, survive 0.37, against 0.8–0.9 for most economy goals). Decide from #9's per-proxy data
-      whether to fix the proxies or set a defend threshold. #16 should lift `closeFinish` and `lateUncertainty`.
-- [ ] **#36 · N6 loop bound:** reject a candidate if any hand-done leg needs more than 5 trips with no affordable
-      takeover. Store `loopMax` per level and re-check it in `levels:check`.
-- [ ] **#37 · R6 #13 the hands-off goal needs x machines running** (a new `machines` param on automate).
-- [ ] **#38 · N13 core levels matter (power budget).** No longer needed for defence cost (#16 covers that). Keep it
-      only if core upgrades still go unbought after #16; otherwise drop it.
-- [ ] **#39 · N10 rock slides hide something real:** `node.fuel_deposit` under the rubble, plus a generator check.
-- [ ] **#40 · N6b level-order audit:** a pack check for repeated goal kinds and templates.
-- [ ] **#41 · G4 / S27 hire pads always fully visible:** the generator places pads clear of model silhouettes, and
-      fading never hides a pad. With #10, check the flat markers too.
+## Deferred (each says what it waits for)
+- [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
+      until a cutscene's version is watched, and list only cutscenes from levels reached. Held until the story claim
+      on `client/src/app.ts` clears and `REPLAY_FILMS` is off.
+      **Deferred until the films are final and `REPLAY_FILMS` is off (after Bundle 4).**
+- [ ] **#12 · S6 Show what is happening.** Characters act out their lines with the generic `{ walk, to }` director
+      action. Rhee's and Okafor's walks are done. Still to do from the screenplay's stage notes: Rhee kneeling beside
+      Pip, hires walking to their posts in level 4, and the commander picking up the helmet.
+      The commander picking up the helmet moved to #6.
+      **Deferred until after Bundle 3 (Rhee kneeling and hires walking to posts).**
+- [ ] **#15 · Actions animated (low priority; Doug kept it 2026-11-07).** Gathering, depositing and machines
+      processing show visible work, not just items appearing. Converters show input going in, the machine working,
+      and output coming out.
+      **Deferred until after Release 2 (frame-rate cost next to dense waves).**
 - [ ] **#42 · N24 follow-up: more levels with belts** (only 4 of 55 have one).
-- [ ] **#43 · Bot tow loop through a wall:** `Brain.loopAround` can place loop points inside a ring.
-- [ ] **#44 · Search start table per engine:** make `startPressure` ignore a `start.json` from another engine, then
-      rewrite it with `pnpm levels:start-table` from this rebuild.
-- [ ] **#45 · Levels far off their target D** (L23, L26, L27, L28, L35, L44, L47 in 0.16.0): re-check against the
-      latest digest. Give the sequencer per-goal D ranges where a goal can't reach its target.
-- [ ] **#46 · Release 2 ship steps:** engine bump, rebuild, check, re-pin, release notes, deploy (see the order
-      above).
-
-## 4. Level 1 opening film (`crash_open`, Release 3)
-
-Nothing player-facing has shipped. Stage 1 (blocking stills) and stage 2 (animation test) are done; Doug has not
-approved a full render. The tools and run command are in the WRAP UP hand-off in `docs/STORY-WORK-LOG.md`.
-- [ ] **#47 · Fix stage 2:**
-      1. The glass slides through the commander; key a hinge on its edge.
-      2. The open glass blocks the camera at the step-out.
-      3. The drop to the sand is cut away.
-      4. The third camera frames mostly black sky.
-      5. The commander faces away in the look-round; turn toward the light.
-      6. The final view crowds them against the wreckage.
-      Ask Doug for his own list too.
-- [ ] **#48 · Held level edits, shipped with the film:** crash-site `scrap` x minus 100 units in `story-L001..005`;
-      L1 `start` to [451.7, 138.9]; bump `FILM_VERSIONS.crash_open`; check `openZoom.film` lands on the last frame.
-- [ ] **#49 · Re-render shots 2–3** (impact, wreck at dawn) from the new set, then the full render (set as one
-      plate, commander on a holdout layer, composite). Needs Doug's approval of the fixed stage 2.
-
-## 5. Seen only in code or locally: check live
-
-Built and shipped, but never seen working on the Vercel URL or an iPhone. Tick each one when it is seen, or
-reopen it here.
-- [ ] **#50 · R6 Release 1 HUD and art:**
-      - R6 #3 "Finish in x:xx" as the last star (s1-L008)
-      - R6 #4 goods on belt tops (s1-L014)
-      - R6 #6 impatient trader "!" (s1-L013)
-      - R6 #7 no lot-edge pipes
-      - R6 #8 smooth code-built objects
-      - N16 the old homepage flash (needs two real deploys; see #2)
-- [ ] **#51 · R6 #1 and #2 through a real wave:** icons still between waves; the VIP icon mid-fill.
-- [ ] **#52 · Step A renderer items:**
-      - red bolts in a real raid
-      - the healing cross with a real medic, and the medic's kneel (the `care` clip may read as picking up rather
-        than kneeling)
-      - trader order pictures in a live bubble
-      - fireworks after a real win (S22)
-      - the shovel at a real rockslide (S23, level 3)
-      - wall fade on an iPhone, and the core fade in a story level
-- [ ] **#53 · G5 / S8 arrows follow the goal:** story level 3 (kiosk, then rockslide).
-- [ ] **#54 · G6 / S9 one loop around close pods:** level 2 goal 2's pair, on screen together.
-- [ ] **#55 · S33 `vale_run`** ("Vale?" as the commander runs two steps toward the screen with the helmet): check it
-      on a phone once #6 is re-staged.
-
-## 6. Review pipeline (from the review-pipeline session's hand-off, 2026-11-07)
-
-Done there: Supabase play data is live (`telemetry_events`, `telemetry_level_daily`, 90-day prune), with secrets
-in Vercel and outpost-ops, and review parts B and C are on main (a1cc3bf). Full detail: `docs/review/HANDOFF.md` in
-the Mobile game folder (outside git).
-- [ ] **#63 · Nightly-data fails (do first).** outpost-ops Actions run 42404338827: `review:pulse` ran 111 levels and
-      reported 69 errors, all "pinned to engine 0.18.0, running 0.20.0", from the old packs s1-068…s1-108 in the
-      workflow's `--packs` list. That probably stopped the other four `review:*` commands, and no data commit
-      landed. Fix: pulse skips levels pinned to an old engine and reports them (or trim the pack list). Then re-run
-      the workflow by hand from the GitHub page (no `gh` on the laptop).
+      **Deferred until the generator digest shows how many idle-module rejects wider belt goals cause.**
 - [ ] **#64 · Probes on CI and tuned limits** (`docs/review/HANDOFF-PROBES.md`). Do the first run on ubuntu CI
       (`playwright install --with-deps chromium`). After the first real nightly, tune `probe-limits.json` against
       Doug's judgement.
-- [ ] **#65 · Routines (HANDOFF.md step 5). Waiting on Doug:**
-      1. Give the Claude GitHub app access to outpost-ops (installation 136790409).
-      2. Create a fine-grained token for outpost-ops only, with Issues and Contents read/write.
-      Then create the routines in dry-run for a week.
-- [ ] **#66 · PILLARS-DRAFT.md (waiting on Doug):** the order of the pillars, and pillar 7's pay-to-win line.
-- [ ] **#67 · Housekeeping:**
-      - delete the Supabase test row (install `claude-verify-20261107`, kind `session`);
-      - delete the merged local branches `review-supabase`, `review-tools`, `review-probe` and `review-merge`;
-      - update the stale `packs.test.ts` "gotcha" in `docs/review/HANDOFF.md` (the test passes).
-
-## 7. Unshipped work in branches and worktrees (ship or discard each)
-
-Found on 2026-11-07 by comparing every local worktree and remote branch with origin/main. Each one needs a call:
-ship it, fold it into another item, or delete it.
-- [ ] **#68 · Two commits on the local `farthest-outpost` main, never pushed (2026-10-30):**
-      - f32b159 crash_open: no reactor in the film; the commander no longer jitters at the plate's edge;
-      - 2cf4c1b Level rules: rule 7 counts enemy points; drops in proportion to HP.
-      Both are older than the film rework (#47) and the rules review, so they may be superseded. Compare them with
-      main before pushing.
-- [ ] **#69 · `story-handoff` (worktree `fo-wt-handoff`):** b477f7d "Level 1 opens on crash_open's last frame",
-      plus uncommitted edits to `cinematics.ts`, the release notes and the work log. This overlaps #48 (the held
-      level edits).
-- [ ] **#70 · `story-buggy` (also in `fo-wt-buggy` with uncommitted `buggy.json` / `meshy.json` edits):** the
-      reduced buggy model. Goes in with #5.
-- [ ] **#71 · `fo-wt-plot`, uncommitted:** the ranger pad rule and the L012 / L037 retry output. Goes in with #7.
-- [ ] **#72 · Remote branch `look-test`** (2026-11-04): soft sprite particles, turret bolts of light, dust-storm
-      sheets, KILN cloud without square blocks, reactor glow. Most of the new look is already on main. Check what's
-      left, then merge the rest or delete the branch.
-- [ ] **#73 · Remote branch `object-sizes`** (2026-11-04): crystal scrap at 0.95 m, generator footprints for the
-      resized models, and a WIP commit of the Buildings-row sizes whose footprints test fails. Check against main's
-      one size reference (`render-3d/src/sizes.ts`).
-
-## 8. Release gates (web, then stores; details in `docs/RELEASE.md`)
-
+      **Deferred until #63 gives a green nightly run.**
 - [ ] **#56 ·** At least 20 cached levels play start to finish in airplane mode on a mid-range iPhone at 60 fps (2D)
       / 30 fps (3D).
+      **Deferred until store preparation; needs a named mid-range iPhone and a frame-rate method.**
 - [ ] **#57 ·** The save survives a cleared cache (export/import in v1).
-- [ ] **#58 ·** The playtest retention target is met.
-- [ ] **#59 ·** Bot regression suite: no stalls or infeasible levels in any shipped pack.
+      **Deferred until store preparation.**
 - [ ] **#60 ·** A 15–30 s preview video.
+      **Deferred until store preparation (after Release 2 art settles).**
 - [ ] **#61 ·** A support URL and contact.
-- [ ] **#62 ·** Original names, art and themes only.
+      **Deferred until store preparation.**
