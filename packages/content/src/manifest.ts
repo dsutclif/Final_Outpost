@@ -107,6 +107,8 @@ export const CaptureEntity = z.object({
   decoy: z.boolean().optional(),
   // Not on the map (nothing can see, tow or count it) until this objective id is done.
   hiddenUntil: z.string().min(1).optional(),
+  // A boss carries it: it moves to where the first boss breaks off or dies (still hidden until `hiddenUntil`).
+  heldBy: z.literal("boss").optional(),
   // Renderer only (the sim keeps it on the ground at `at`): drawn lodged `h` art metres up, offset `from` (world units),
   // until the hero comes within `r`; then it rattles loose and falls to `at` (story level 4's recorder in the hull).
   drop: z.object({ h: z.number().positive(), r: z.number().positive(), from: z.tuple([z.number(), z.number()]).optional() }).optional(),
@@ -525,6 +527,11 @@ export function checkManifest(m: Manifest, c: Content): void {
   for (const e of m.entities) {
     if (!e.type.startsWith("capture.")) continue;
     const until = (e as z.infer<typeof CaptureEntity>).hiddenUntil;
+    // a carried capture would be seen at its start spot and then jump to the boss, and needs a boss to carry it
+    if ((e as z.infer<typeof CaptureEntity>).heldBy) {
+      if (until === undefined) fail(`${e.type}: heldBy needs hiddenUntil`);
+      if (!m.waves.some((w) => Object.keys(w.counts).some((h) => c.hostiles[h]?.boss))) fail(`${e.type}: heldBy needs a boss in a wave`);
+    }
     if (until === undefined) continue;
     // A guard only settles when the level ends, so it could never reveal anything in play.
     const o = (m.objectives ?? []).find((x) => x.id === until);

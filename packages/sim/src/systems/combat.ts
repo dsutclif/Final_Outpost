@@ -50,11 +50,13 @@ export function hitHostile(st: State, cp: Compiled, h: HostileState, dmg: number
     (st.fleeing ??= []).push(h);
     out.push({ t: "retreated", kind: h.type, id: h.id, at: { ...h.pos } });
     spawnDrops(st, cp, cp.hostiles[h.type]!.drops, h.pos, out);
+    dropHeld(st, cp, h);
     return;
   }
   if (h.hp > 0) return;
   st.hostiles = st.hostiles.filter((x) => x !== h);
   out.push({ t: "died", kind: h.type, id: h.id, at: { ...h.pos }, by });
+  dropHeld(st, cp, h);
   // Loot stays where the attacker fell, out on the road too: running out for it is the game (Batch 3).
   spawnDrops(st, cp, cp.hostiles[h.type]!.drops, h.pos, out);
 }
@@ -71,3 +73,13 @@ export function hitPrey(st: State, cp: Compiled, d: PreyState, dmg: number, by: 
 }
 
 export const inRange = (a: Vec, b: Vec, r: number): boolean => within(a, b, r);
+
+/** A boss breaking off or dying leaves what it carried (heldBy captures) where it was hit. */
+function dropHeld(st: State, cp: Compiled, h: HostileState): void {
+  if (!cp.hostiles[h.type]!.boss) return;
+  for (const c of st.captures) {
+    if (c.heldBy !== "boss") continue;
+    c.pos = { ...h.pos };
+    delete c.heldBy;
+  }
+}

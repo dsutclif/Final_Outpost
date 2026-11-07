@@ -875,7 +875,13 @@ export class App {
     return directorFor(this.skin, id, this.el.ftoast.parentElement!, {
       cam: s.cam,
       entityAt: (eid) => {
-        const e = (s.manifest.entities as unknown as { id?: string; at?: number[]; rect?: number[] }[]).find((x) => x.id === eid);
+        const ents = s.manifest.entities as unknown as { id?: string; type: string; at?: number[]; rect?: number[] }[];
+        const e = ents.find((x) => x.id === eid);
+        // a capture is where the sim has it (a boss may have carried it off; ids follow the manifest's capture order)
+        if (e?.type.startsWith("capture.")) {
+          const c = s.sim.state.captures.find((x) => x.id === ents.filter((y) => y.type.startsWith("capture.")).indexOf(e));
+          if (c) return { x: c.pos.x / FP, y: c.pos.y / FP };
+        }
         if (e?.at) return { x: e.at[0]!, y: e.at[1]! };
         return e?.rect ? { x: e.rect[0]! + e.rect[2]! / 2, y: e.rect[1]! + e.rect[3]! / 2 } : null;
       },
