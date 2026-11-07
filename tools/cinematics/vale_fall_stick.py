@@ -1,8 +1,8 @@
 # S32 Vale's fall (BACKLOG #6), Doug's picks of 2026-11-07, chained as one stick-figure preview:
 #   1. 90_18 fall on the back, with a bullet strike first: thrown straight back, feet off the ground
-#   2. 111_21 roll from the back onto the front, at 2x speed
+#   2. 111_21 roll from the back onto the front, at 1.5x speed
 #   3. 140_01 get up from face down, at half speed, cut at 4.0 s (before it hunches over)
-#   4. straight into a run to screen right (143_03 start to run, then the 09_02 cycle): in game, not the film
+#   4. into a run to screen right, easing from half to full speed (143_03 start to run, then the 09_02 cycle): in game
 # The helmet (black) comes off when the head meets the ground and rolls away.
 # Each take is placed where the last one ended, turned to match, set on the floor, and crossfaded.
 #
@@ -21,6 +21,8 @@ STRIKE_BACK = 0.45       # metres thrown back by the strike
 STRIKE_LIFT = 0.10       # metres the feet leave the ground
 STRIKE_PITCH = 10        # degrees the body tips back during the strike
 HELMET_R = 0.14
+RUN_FROM = 0.5           # the run starts at the get-up's playback speed...
+RUN_RAMP = 36            # ...and reaches full speed over this many output frames
 
 
 def smooth(t):
@@ -78,9 +80,9 @@ def build():
     # (take, frames) in 30 fps clip time; see tools/cinematics stick previews of 2026-11-07
     takes = [
         Take("90_18", 12, 50, label="1  hit, thrown back, fall"),               # fall starts at 18, lands 36
-        Take("111_21", 246, 300, slow=0.5, label="2  roll over  (2x)"),          # back at 246, front by 306
+        Take("111_21", 246, 300, slow=2 / 3, label="2  roll over  (1.5x)"),      # back at 246, front by 306
         Take("140_01", 40, 120, slow=2, head_out=axis, label="3  get up  (half speed, cut at 4.0 s)"),
-        Take("143_03", 33, 58, head_in=belly, head_out=belly, label="4  run right  (in game)"),
+        Take("143_03", 33, 58, head_in=belly, head_out=belly, fade=12, label="4  run right  (in game)"),
         Take("09_02", 0, 24, head_in=belly, head_out=belly, fade=3, label="4  run right  (in game)"),
         Take("09_02", 0, 24, head_in=belly, head_out=belly, fade=3, label="4  run right  (in game)"),
     ]
@@ -131,6 +133,15 @@ def build():
         hold = out[first - 1]
         for j in range(min(t.fade, len(poses))):
             out[first + j] = lerp_seg(hold, out[first + j], smooth((j + 1) / (t.fade + 1)))
+    # ease into the run (Doug): it starts at the get-up's half speed and ramps to full speed
+    r0 = labels[3][0]
+    run, u, eased = out[r0:], 0.0, []
+    while u < len(run) - 1:
+        i = int(u)
+        eased.append(lerp_seg(run[i], run[i + 1], u - i))
+        u += RUN_FROM + (1 - RUN_FROM) * smooth(len(eased) / RUN_RAMP)
+    out = out[:r0] + eased
+    labels = labels[:4]
     # turn the whole thing so the run heads to +X (screen right); the fall spot at x = -1
     run_a, _, _ = retarget.pelvis(out[labels[3][0]])
     run_b, _, _ = retarget.pelvis(out[-1])
