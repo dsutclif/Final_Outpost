@@ -694,6 +694,24 @@ export class Brain {
   get isIdle(): boolean { return this.current.kind === "wait"; }
 
   /**
+   * The distinct kinds of task on offer in this state that score at least `min` ("wait" never counts).
+   * For review tools (tools/review/pulse.ts: stretches with one sensible task, or none). Read-only:
+   * score() refreshes the skip set and the capped-need memo, so both are put back, and a run sampled
+   * this way plays exactly as it does unsampled.
+   */
+  taskKinds(st: State, min: number): TaskKind[] {
+    const skip = new Set(this.skip), memo = this.needMemo;
+    try {
+      const kinds = new Set<TaskKind>();
+      for (const t of this.score(st)) if (t.kind !== "wait" && t.score >= min) kinds.add(t.kind);
+      return [...kinds].sort();
+    } finally {
+      this.skip = skip;
+      this.needMemo = memo;
+    }
+  }
+
+  /**
    * The next step for a guide arrow: the current task (or, while idle, the best-scored one) and its
    * target, read from the live state without advancing the controller. When the target lies on the
    * other side of a closed ring from the player, the step is "gate" (out) or "gateIn" (back in) and

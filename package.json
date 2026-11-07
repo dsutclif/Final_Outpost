@@ -18,7 +18,11 @@
     "levels:start-table": "vite-node tools/start-table.ts -- --write",
     "levels:next": "vite-node tools/levels-next.ts --",
     "models:build": "vite-node tools/build-models.ts --",
-    "plots:build": "vite-node tools/build-plots.ts --"
+    "plots:build": "vite-node tools/build-plots.ts --",
+    "review:pulse": "vite-node tools/review/pulse.ts --",
+    "review:guide": "vite-node tools/review/guide.ts --",
+    "review:telemetry": "vite-node tools/review/telemetry.ts --",
+    "review:calibrate": "vite-node tools/review/calibrate.ts --"
   },
   "devDependencies": {
     "@capacitor/android": "^7.6.9",

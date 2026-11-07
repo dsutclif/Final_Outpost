@@ -1,7 +1,7 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": { "rootDir": "..", "outDir": "dist", "types": ["node"] },
-  "include": ["*.ts", "../packages/render-3d/src/sizes.ts"],
-  "exclude": ["guide-follow.ts"],
+  "include": ["*.ts", "review/pulse.ts", "review/telemetry.ts", "review/calibrate.ts", "review/lib.ts", "review/*-core.ts", "review/*.test.ts", "../packages/render-3d/src/sizes.ts"],
+  "exclude": ["guide-follow.ts", "review/guide.ts", "review/guide-walk.ts", "review/guide-walk.test.ts"],
   "references": [{ "path": "../packages/content" }, { "path": "../packages/sim" }, { "path": "../packages/bots" }, { "path": "../packages/rater" }, { "path": "../packages/sequencer" }, { "path": "../packages/generator" }]
 }
