@@ -932,34 +932,34 @@
     ]
   },
   "decor.ship_scrap": {
-    "hash": "d7b94303a9",
-    "tris": 29938,
-    "bytes": 1741460,
+    "hash": "9433c94d35",
+    "tris": 29978,
+    "bytes": 1561748,
     "bounds": [
       -4.95,
       0,
-      -4.151,
+      -3.918,
       4.95,
-      2.556,
-      4.151
+      5.323,
+      3.918
     ],
     "outline": {
-      "hash": "a893a3a1a4",
-      "tris": 250,
-      "bytes": 3164
+      "hash": "de4ad5fb84",
+      "tris": 244,
+      "bytes": 3228
     }
   },
   "decor.ship_wreck": {
-    "hash": "dc822491e2",
-    "tris": 21122,
-    "bytes": 845172,
+    "hash": "0110753b70",
+    "tris": 13328,
+    "bytes": 600580,
     "bounds": [
       -1.4,
       0,
-      -1.223,
+      -0.572,
       1.4,
-      1.382,
-      1.223
+      0.972,
+      0.572
     ]
   },
   "node.material_source": {
@@ -1175,21 +1175,21 @@
     ]
   },
   "node.salvage_pile.l3": {
-    "hash": "3e676c3a2d",
-    "tris": 29946,
-    "bytes": 1291260,
+    "hash": "c812c79854",
+    "tris": 28906,
+    "bytes": 1342508,
     "bounds": [
       -2.8,
       0,
-      -2.447,
+      -1.143,
       2.8,
-      2.764,
-      2.447
+      1.945,
+      1.143
     ],
     "outline": {
-      "hash": "1fdff0f768",
-      "tris": 250,
-      "bytes": 3496
+      "hash": "7621a609d6",
+      "tris": 232,
+      "bytes": 3208
     }
   },
   "struct.barracks.l2": {
@@ -1294,21 +1294,21 @@
     ]
   },
   "capture.recruit_container_decoy": {
-    "hash": "c1bc3e0196",
-    "tris": 7044,
-    "bytes": 423692,
+    "hash": "ac467a295c",
+    "tris": 13328,
+    "bytes": 714748,
     "bounds": [
-      -0.929,
+      -1.4,
       0,
-      -0.523,
-      0.929,
-      0.979,
-      0.523
+      -0.572,
+      1.4,
+      0.972,
+      0.572
     ],
     "outline": {
-      "hash": "b46d649f86",
-      "tris": 248,
-      "bytes": 3592
+      "hash": "f9326ea0f7",
+      "tris": 232,
+      "bytes": 3208
     }
   },
   "decor.buggy": {
@@ -1363,17 +1363,30 @@
       0.299
     ]
   },
-  "capture.recruit_container_decoy_glass": {
-    "hash": "09abd6ecf5",
-    "tris": 6612,
-    "bytes": 360224,
+  "hostile.boss_vale": {
+    "hash": "5ba699ded0",
+    "tris": 7069,
+    "bytes": 1135244,
     "bounds": [
-      -0.919,
+      -0.618,
+      0.001,
+      -0.329,
+      0.618,
+      1.51,
+      0.329
+    ]
+  },
+  "item.vale_head": {
+    "hash": "67ea47c4e6",
+    "tris": 4077,
+    "bytes": 210332,
+    "bounds": [
+      -0.093,
       0,
-      -0.645,
-      0.919,
-      0.639,
-      0.645
+      -0.125,
+      0.093,
+      0.281,
+      0.125
     ]
   }
 }

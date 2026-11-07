@@ -188,7 +188,11 @@ levels 1–5 (`REPLAY_FILMS` in `client/src/cinematics.ts`; set it false to go b
 - [x] **S30 Opening film end (L1; done by B 2026-11-04, played live in level 1's opening cues).** It pans up to show the pulsing light on the ridge, then a white flash from
   the screen's left, then play starts with the arrow pointing toward the white light.
 - [x] **S31 Old pod opening (L2):** hinged glass on the S20 model. (Done 2026-11-07: a separate scorched glass piece hinged on the pod; seen in play on a dev server.)
-- [ ] **S32 The lieutenant's fall (L5):** (Live 2026-11-07 as `warlord_fall`, rough blocking; Doug to look.)
+- [ ] **S32 The lieutenant's fall (L5):** (Live 2026-11-07 as `warlord_fall`, rough blocking; Doug to look.) Reworked 2026-11-07
+  (story-vale-scrap): headless warlord with Vale's head; the helmet comes off in the fall, the camera closes on Vale's face, then it
+  runs and leaves the helmet where it fell.
+- [x] **S39 The escape pod is burnt Ship Scrap 2 (L2).** (Doug 2026-11-07.) `capture.recruit_container_decoy` is Ship_Scrap_2 with the
+  `scorch` tint; it replaces the S20 tinted stasis pod and the S31 hinged glass.
   - Machinima triggered by the commander's last shot at the warlord: it falls, gets up and starts running, all in
     slow motion. Then back to live speed as it runs off.
   - The helmet-drop clip plays once it passes the screen edge.
