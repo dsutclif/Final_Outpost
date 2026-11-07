@@ -76,6 +76,7 @@ async function boot(): Promise<void> {
   if (import.meta.env.DEV) {
     (window as unknown as { __fo: App }).__fo = app;
     void import("./dev/playtest.js").then((m) => m.installPlaytest(app!));
+    void import("./dev/review.js").then((m) => m.installReview(app!));
   }
 }
 

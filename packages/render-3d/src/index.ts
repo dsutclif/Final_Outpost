@@ -4,6 +4,9 @@
 
 import type { AlertMark, RenderStats, Renderer, StoryPresentation } from "./contract.js";
 import type { QualityTier } from "./units.js";
+import type { DebugScene } from "./probe.js";
+
+export type { DebugScene, DebugThing, DebugLabel, ScreenBox, ThingKind } from "./probe.js";
 
 export type { AlertMark, Camera, CameraBeat, CoachMark, GuideMark, RenderStats, Renderer, RidgeSide, StoryPresentation, TallySlots } from "./contract.js";
 export { createCamera, LEAD_WEIGHT } from "./contract.js";
@@ -26,6 +29,8 @@ export interface Renderer3DHandle extends Renderer {
   setAlertMarks(marks: readonly AlertMark[]): void;
   /** Jump the camera onto the hero on the next sync. */
   snapCamera(): void;
+  /** Dev review probes: what is drawn now, with world and screen bounds (read-only; see probe.ts). */
+  debugScene(): DebugScene;
   /** World point (world units, on the ground) to mount CSS px, with the last camera. */
   worldToScreen(p: { x: number; y: number }, height?: number): { x: number; y: number };
   /** Canonical id of the object under a mount CSS px point (tap to inspect), or null. */
