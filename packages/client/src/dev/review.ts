@@ -277,9 +277,9 @@ export function installReview(app: App): void {
       if (!staged?.scene || !canvas || out) return;
       const objects: FilmEnd["objects"] = [], lights: FilmEnd["lights"] = [];
       staged.scene.traverse((o) => {
-        const n = o as { name?: string; isLight?: boolean; type?: string; intensity?: number; color?: { getHexString(): string }; getWorldPosition(v: { x: number; y: number; z: number }): { x: number; y: number; z: number } };
+        const n = o as { name?: string; isLight?: boolean; type?: string; intensity?: number; color?: { getHexString(): string }; matrixWorld: { elements: ArrayLike<number> } };
         if (n.isLight) lights.push({ kind: String(n.type), intensity: Math.round((n.intensity ?? 0) * 100) / 100, color: n.color?.getHexString() ?? "" });
-        else if (n.name) { const p = n.getWorldPosition({ x: 0, y: 0, z: 0 }); objects.push({ name: n.name, x: r1(p.x), y: r1(p.y), z: r1(p.z) }); }
+        else if (n.name) { const e = n.matrixWorld.elements; objects.push({ name: n.name, x: r1(e[12]!), y: r1(e[13]!), z: r1(e[14]!) }); }
       });
       let png = "";
       try { png = canvas.toDataURL("image/png"); } catch { /* the canvas cannot be read */ }
@@ -366,12 +366,14 @@ export function installReview(app: App): void {
     levelMs: () => Math.round(performance.now() - t0),
     palette: () => ({ ...(app as unknown as { skin: { palette: Record<string, unknown> } }).skin.palette }),
     films(levelId) {
-      const skin = (app as unknown as { skin: { story?: { levels?: Record<string, unknown> } } }).skin;
-      const ids = new Set<string>();
+      // a film is "at the start" when it plays before the level's first frame: the registered level-start film, or one a
+      // cue on `{ start: true }` plays. The rest play mid-level, so there is no level-start state to set them against.
+      const skin = (app as unknown as { skin: { story?: { levels?: Record<string, { cues?: { on?: { start?: boolean }; do?: { film?: string }[] }[] }> } } }).skin;
+      const out = new Map<string, boolean>();
       const before = STORY_CINEMATICS[levelId]?.before;
-      if (before) ids.add(before);
-      for (const m of JSON.stringify(skin.story?.levels?.[levelId] ?? {}).matchAll(/"film":"([a-z_]+)"/g)) ids.add(m[1]!);
-      return [...ids];
+      if (before) out.set(before, true);
+      for (const cue of skin.story?.levels?.[levelId]?.cues ?? []) for (const a of cue.do ?? []) if (a.film) out.set(a.film, (out.get(a.film) ?? false) || cue.on?.start === true);
+      return [...out].map(([id, atStart]) => ({ id, atStart }));
     },
   };
   window.R = api;

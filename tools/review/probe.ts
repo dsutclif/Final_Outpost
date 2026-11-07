@@ -300,9 +300,10 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   const films = await page.evaluate((id) => window.R.films(id), levelId);
   const filmEnds: FilmEnd[] = [];
   const videos: string[] = [];
+  const atStart = new Set(films.filter((f) => f.atStart).map((f) => f.id));
   for (const f of films) {
-    const end = await page.evaluate((id) => window.R.filmEnd(id), f);
-    if (end) filmEnds.push(end); else videos.push(f);
+    const end = await page.evaluate((id) => window.R.filmEnd(id), f.id);
+    if (end) filmEnds.push(end); else videos.push(f.id);
   }
   extras["films"] = films;
   extras["videoFilmsNotMeasured"] = videos;
@@ -318,8 +319,9 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
       const filmLight = fe.png ? await lum(Buffer.from(fe.png.split(",")[1] ?? "", "base64")) : null;
       if (fe.png) { mkdirSync(join(dir, "shots"), { recursive: true }); writeFileSync(join(dir, "shots", `film-${safe(fe.film)}-end.png`), Buffer.from(fe.png.split(",")[1] ?? "", "base64")); shots.list.push(`${rel}/shots/film-${safe(fe.film)}-end.png`); }
       (extras["filmEnds"] as unknown[] | undefined) ??= [];
-      (extras["filmEnds"] as unknown[]).push({ film: fe.film, objects: fe.objects.length, lights: fe.lights, light: filmLight });
-      for (const hit of continuityHits(levelId, fe.film, filmLight, levelLight, fe.objects.map((o) => o.name), start, L)) {
+      (extras["filmEnds"] as unknown[]).push({ film: fe.film, atStart: atStart.has(fe.film), objects: fe.objects.length, lights: fe.lights, light: filmLight });
+      // only a film that plays before the first frame has a level-start state to be set against
+      if (atStart.has(fe.film)) for (const hit of continuityHits(levelId, fe.film, filmLight, levelLight, fe.objects.map((o) => o.name), start, L)) {
         const fp = fingerprintOf(hit.cat, levelId, hit.subject, hit.check);
         tracker.observe(0, [hit]);
         evidence.set(fp, `${rel}/shots/film-${safe(fe.film)}-end.png`);
@@ -333,8 +335,18 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   const limit = Math.max(a.seconds, 180);
   let lineNo = 0, seq = 0, frozenFor = 0, lastTick = -1, nextSample = 5, lastCard = "";
   const cards: { n: number; text: string; shot: string | null }[] = [];
+  const filmShots: (string | null)[] = [];
   extras["cards"] = cards;
+  extras["filmShots"] = filmShots;
   for (let guard = 0; guard < 600 && Date.now() - t0 < Math.min(a.wall, 600) * 1000; guard++) {
+    // a film or live scene over the level (the director's `film` cue): pictured once, then skipped with a tap
+    if (await page.locator(".cine:visible").count()) {
+      await page.waitForTimeout(2500);
+      if (filmShots.length < 6) filmShots.push(await shots.take(`film${String(filmShots.length + 1).padStart(2, "0")}`, true));
+      await page.mouse.click(187, 406).catch(() => undefined);
+      await page.waitForTimeout(800);
+      continue;
+    }
     const r = await page.evaluate(([sec, seen]) => window.R.ff(sec, seen), [5, seq] as const);
     result.simSeconds = Math.round((r.tick / TPS) * 10) / 10;
     if (r.over) { result.outcome = { over: true, won: null, reason: "level ended" }; break; }

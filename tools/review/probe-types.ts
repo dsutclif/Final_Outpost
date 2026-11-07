@@ -160,6 +160,6 @@ export interface ReviewApi {
   levelMs(): number;
   /** The skin's palette (colour by meaning), for the colour-blind pass. */
   palette(): Record<string, unknown>;
-  /** Film and live-scene ids a story level plays: its registered level-start film plus the films its cues call. */
-  films(levelId: string): string[];
+  /** Films and live scenes a story level plays; `atStart` for the ones that come before its first frame. */
+  films(levelId: string): { id: string; atStart: boolean }[];
 }
