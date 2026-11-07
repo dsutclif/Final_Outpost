@@ -18,6 +18,7 @@ args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 FADE = 10                # crossfade frames between takes
 STEP_TURN = 0            # degrees the step-over turns from the way the get-up faces (crash.py: 90, a long-side pod)
 TURN_FRAMES = 22         # over the stride before the step
+NO_STAGGER = os.environ.get("NO_STAGGER") == "1"  # game_set.py: no deck plate to limp along
 LAND_CLEAR = 0.12        # metres between the plate's edge and the feet after the jump
 UPRIGHT_BONES = ("Spine", "Spine1", "Spine2", "Neck", "Head", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg", "_chest_up")
 DOWN, UP = Vector((0, 0, -1)), Vector((0, 0, 1))
@@ -132,8 +133,11 @@ class Look(Take):
 
 def build_takes():
     # stick preview windows: drop showed clip frames 165..435; Doug: "from 0:04" -> 165 + 120
-    return [GetUp("140_08", 0, 224), StepOver("143_15", 0, 10_000), Take("139_19", 0, 75, slow=2),
-            Drop("82_02", 285, 435), Look("77_01", 0, 90, src_fps=60)]
+    takes = [GetUp("140_08", 0, 224), StepOver("143_15", 0, 10_000), Take("139_19", 0, 75, slow=2),
+             Drop("82_02", 285, 435), Look("77_01", 0, 90, src_fps=60)]
+    if NO_STAGGER:  # the game's crash site has no deck: step out over the rim and drop straight to the sand
+        del takes[2]
+    return takes
 
 
 # ---------------------------------------------------------------- the timeline
@@ -471,7 +475,7 @@ def perform(root, pre=0, calib=False):
     starts = [next(i for i, r in enumerate(TL) if r[0] == k) for k in range(len(takes))]
     return dict(N=N, TL=TL, takes=takes, starts=starts, arm=arm, body=body, ax=ax, lat=lat, back=back, front=front,
                 lat0=lat0, lat1=lat1, WALL_T=WALL_T, RIM_H=RIM_H, DROP_H=DROP_H, jump_dir=jump_dir, edge_d=edge_d,
-                walls=walls, deck=deck, sand=sand, report=report)
+                walls=walls, deck=deck, sand=sand, report=report, r_takeoff=r_takeoff, r_land=r_land)
 
 
 # ---------------------------------------------------------------- preview
