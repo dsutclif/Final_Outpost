@@ -31,6 +31,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-07 | A (plot P1-P6 chat) | plot-p1-p6 | **Engine bump 0.20.0**: `packages/sim`, `packages/content/src/manifest.ts`, `packages/generator`, `packages/bots`; re-pin `levels/golden`, `levels/story` (re-pin only), live packs; s1 6-60 rebuilt | Warehouse drop-only, belt withdraws the parts works input worker, bent Kiosk queue, ranger pad (OPEN-ITEMS-plot-layout-chat.md P1-P4) |
 | 2026-11-06 | WRAP UP (from B) | — | `skins/src/story.ts`; `skins/src/mars_greenhouse.ts` (story-L002..005 cue blocks); `client/src/story/*`; `client/src/app.ts` (live-scene hook only) | Story Releases 2–4 (STORY-STRANDED-WORK.md); held, not being edited yet |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
