@@ -34,11 +34,11 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 - Bundle 1 (#63, #67, #68–#70, #72, #73, #76): orchestrator session. #63's code fix is on main (5d6009c); still to do:
   Doug re-runs the outpost-ops nightly workflow by hand and a data commit must land; Doug deletes the Supabase test row
   (no key on the laptop); the #68–#73 git cleanup was approved by Doug but blocked by the permission check, so Doug runs
-  it (reset local  main to origin/main; remove  and the  worktree; delete
-  branches , , remote , , ). Keep  until
-  #75 backs up its film tools. #76 probe pass and the role-notes refresh are not started.
+  it: reset the local `farthest-outpost` main to origin/main; remove the `fo-wt-buggy` and `agent-a0616…` worktrees;
+  delete the local branches `story-buggy` and `story-buggy-26`, and the remote branches `look-test`, `object-sizes`
+  and `story-buggy`. Keep `fo-wt-handoff` until #75 backs up its film tools. #76 probe pass and the role-notes refresh are not started.
 - #6: the "Vale helmet animations" session (livescene.ts `warlord_fall`, level 5 fall cues, `vale_run` removal).
-- Story files for #3, #4, #5, #14: claimed by this session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
+- Story files for #3, #4, #5, #14: claimed by the orchestrator session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
 
 ## Waiting on Doug
 
