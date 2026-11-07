@@ -1,7 +1,7 @@
 {
   "id": "s1-L009",
   "seed": 1947207031,
-  "engineVersion": "0.19.0",
+  "engineVersion": "0.20.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -51,6 +51,24 @@
         "res.food_raw_1",
         "res.food_prepared",
         "res.component"
+      ],
+      "queue": [
+        [
+          267,
+          580
+        ],
+        [
+          267,
+          614
+        ],
+        [
+          267,
+          648
+        ],
+        [
+          267,
+          682
+        ]
       ],
       "route": [
         [

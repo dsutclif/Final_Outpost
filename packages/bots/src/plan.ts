@@ -126,7 +126,9 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
     if (!p) return;
     inPlan.add(id);
     const sub = { goalPath: opts.goalPath ?? false };
-    if (p.requires?.pad !== undefined) add(p.requires.pad, "requirement", sub);
+    // with an alternative (a belt instead of the parts works' input worker), the plan takes the alternative
+    const reqPad = p.requires?.orPad !== undefined && byId.has(p.requires.orPad) ? p.requires.orPad : p.requires?.pad;
+    if (reqPad !== undefined) add(reqPad, "requirement", sub);
     if (p.requires?.coreLevel !== undefined) needCoreLevel(p.requires.coreLevel, sub.goalPath);
     if (p.type === "pad.build" && p.build === "conv.level" && p.target !== undefined && byId.has(p.target)) add(p.target, "requirement", sub);
     for (const res of Object.keys(p.cost)) if (c.resources[res]?.cap !== null) ensureSource(res, sub.goalPath);
@@ -193,6 +195,12 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
   if (sales && !hasPerson(isCashier) && !cashierLater) {
     const h = hires.find((p) => isCashier(p.role));
     if (h) add(h.id, "economy");
+  }
+
+  // A ranger hunts the prey whose catch the stall sells (plot plan Q6): hired once the player has hunted by hand.
+  if (sales) {
+    const h = hires.find((p) => role(p.role.role)?.behavior === "hunt" && p.role.to === "sink.sales_point");
+    if (h && !hasPerson((b) => role(b.role)?.behavior === "hunt")) add(h.id, "economy");
   }
 
   // ---------- converters whose output sells ----------

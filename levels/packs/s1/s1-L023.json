@@ -1,7 +1,7 @@
 {
   "id": "s1-L023",
   "seed": 886907390,
-  "engineVersion": "0.19.0",
+  "engineVersion": "0.20.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -38,7 +38,7 @@
         520
       ],
       "params": {
-        "fuel": 14,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -52,6 +52,24 @@
       "sells": [
         "res.food_raw_1"
       ],
+      "queue": [
+        [
+          236,
+          598
+        ],
+        [
+          270,
+          598
+        ],
+        [
+          304,
+          598
+        ],
+        [
+          328,
+          622
+        ]
+      ],
       "route": [
         [
           -20,
@@ -62,12 +80,12 @@
           645
         ],
         [
-          237,
+          249,
           639
         ],
         [
-          236,
-          632
+          270,
+          598
         ]
       ]
     },
@@ -240,7 +258,7 @@
         361,
         55
       ],
-      "freeze": 152
+      "freeze": 134
     },
     {
       "type": "capture.recruit_container",
@@ -248,7 +266,7 @@
         238,
         61
       ],
-      "freeze": 168
+      "freeze": 149
     },
     {
       "type": "capture.recruit_container",
@@ -256,7 +274,7 @@
         105,
         221
       ],
-      "freeze": 169
+      "freeze": 151
     },
     {
       "type": "capture.recruit_container",
@@ -264,7 +282,7 @@
         356,
         254
       ],
-      "freeze": 183
+      "freeze": 164
     },
     {
       "type": "capture.supply_crate",
@@ -281,7 +299,7 @@
         630
       ],
       "cost": {
-        "res.currency": 25
+        "res.currency": 29
       },
       "build": "sink.core.level"
     },
@@ -293,7 +311,7 @@
         239
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 17
       },
       "build": "zone.clear",
       "target": "pass",
@@ -306,15 +324,15 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 6,
-    "core.burn": 2.6,
+    "start.currency": 5,
+    "core.burn": 2.5,
     "housing.base": 6,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 2.8,
+    "customers.spawn": 3.1,
     "customers.orderMin": 1,
-    "customers.orderMax": 2,
-    "level.budgetSeconds": 130
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 140
   },
   "goal": {
     "type": "rescue_all"
@@ -337,7 +355,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 83
+        "seconds": 90
       }
     }
   ],
@@ -354,15 +372,14 @@
     }
   },
   "rating": {
-    "difficulty": 0.63,
-    "fun": 0.87,
-    "botMargin": 0.608,
+    "difficulty": 0.862,
+    "fun": 0.775,
+    "botMargin": 0.605,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
       "good": 3,

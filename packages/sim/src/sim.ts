@@ -29,7 +29,7 @@ import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStockCollapse } from "./systems/stock.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.19.0";
+export const ENGINE_VERSION = "0.20.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -140,6 +140,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           // Without a generated route customers walk straight in from the edge on the stall's side.
           route: e.route ? e.route.map(vec) : [{ x: lay.edgeX, y: lay.queueAt.y }],
         };
+        if (e.queue) { sales.queueSlots = e.queue.map(vec); sales.queueAt = sales.queueSlots[0]!; }
         state.sales = sales;
         break;
       }

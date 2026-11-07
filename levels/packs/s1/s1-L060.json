@@ -1,7 +1,7 @@
 {
   "id": "s1-L060",
   "seed": 1009995936,
-  "engineVersion": "0.19.0",
+  "engineVersion": "0.20.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 1200,
@@ -53,6 +53,24 @@
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          561,
+          1039
+        ],
+        [
+          561,
+          1073
+        ],
+        [
+          527,
+          1073
+        ],
+        [
+          493,
+          1073
+        ]
       ],
       "route": [
         [
@@ -955,16 +973,16 @@
     },
     {
       "id": "challenge2",
-      "kind": "salvage",
+      "kind": "hire",
       "params": {
-        "n": 296
+        "n": 13
       }
     },
     {
       "id": "challenge",
       "kind": "hp_floor",
       "params": {
-        "pct": 20
+        "pct": 55
       }
     }
   ],
@@ -982,7 +1000,7 @@
     }
   },
   "rating": {
-    "difficulty": 0.658,
+    "difficulty": 0.674,
     "fun": 0.858,
     "botMargin": 0.653,
     "botsPassed": [
@@ -994,9 +1012,9 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2,
+      "median": 1.67,
       "goodAll": 1,
-      "human": 2.5,
+      "human": 2.83,
       "humanAll": 0.83
     }
   },

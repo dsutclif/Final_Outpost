@@ -1,6 +1,6 @@
 {
   "id": "s1",
-  "engineVersion": "0.19.0",
+  "engineVersion": "0.20.0",
   "contentVersion": "0.18.0",
   "levels": [
     {
@@ -174,8 +174,8 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.252,
-      "fun": 0.888,
+      "rating": 0.275,
+      "fun": 0.862,
       "target": 0.267
     },
     {
@@ -237,8 +237,8 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.215,
-      "fun": 0.795,
+      "rating": 0.429,
+      "fun": 0.826,
       "target": 0.344
     },
     {
@@ -256,8 +256,8 @@
         "workers"
       ],
       "goal": "currency",
-      "rating": 0.362,
-      "fun": 0.943,
+      "rating": 0.304,
+      "fun": 0.923,
       "target": 0.356
     },
     {
@@ -297,8 +297,8 @@
         "workers"
       ],
       "goal": "build_count",
-      "rating": 0.419,
-      "fun": 0.765,
+      "rating": 0.422,
+      "fun": 0.771,
       "target": 0.38
     },
     {
@@ -360,8 +360,8 @@
         "sales"
       ],
       "goal": "rescue_all",
-      "rating": 0.63,
-      "fun": 0.87,
+      "rating": 0.862,
+      "fun": 0.775,
       "target": 0.494
     },
     {
@@ -401,8 +401,8 @@
         "workers"
       ],
       "goal": "automate",
-      "rating": 0.365,
-      "fun": 0.786,
+      "rating": 0.417,
+      "fun": 0.843,
       "target": 0.581
     },
     {
@@ -504,8 +504,8 @@
         "workers"
       ],
       "goal": "rescue",
-      "rating": 0.96,
-      "fun": 0.761,
+      "rating": 0.537,
+      "fun": 0.634,
       "target": 0.8
     },
     {
@@ -523,8 +523,8 @@
         "workers"
       ],
       "goal": "converters_running",
-      "rating": 0.146,
-      "fun": 0.891,
+      "rating": 0.179,
+      "fun": 0.877,
       "target": 0.4
     },
     {
@@ -583,8 +583,8 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.565,
-      "fun": 0.866,
+      "rating": 0.571,
+      "fun": 0.903,
       "target": 0.538
     },
     {
@@ -623,8 +623,8 @@
         "workers"
       ],
       "goal": "haul",
-      "rating": 0.362,
-      "fun": 0.951,
+      "rating": 0.373,
+      "fun": 0.799,
       "target": 0.625
     },
     {
@@ -708,8 +708,8 @@
         "workers"
       ],
       "goal": "unlock",
-      "rating": 0.966,
-      "fun": 0.464,
+      "rating": 0.789,
+      "fun": 0.944,
       "target": 0.8
     },
     {
@@ -845,8 +845,8 @@
         "workers"
       ],
       "goal": "chain",
-      "rating": 0.619,
-      "fun": 0.944,
+      "rating": 0.631,
+      "fun": 0.918,
       "target": 0.669
     },
     {
@@ -901,15 +901,14 @@
         "build_pads",
         "carry",
         "converters",
-        "conveyors",
         "core",
         "gather",
         "sales",
         "workers"
       ],
       "goal": "produce",
-      "rating": 0.495,
-      "fun": 0.914,
+      "rating": 0.988,
+      "fun": 0.688,
       "target": 0.8
     },
     {
@@ -965,8 +964,8 @@
         "workers"
       ],
       "goal": "converter_level",
-      "rating": 0.222,
-      "fun": 0.917,
+      "rating": 0.188,
+      "fun": 0.919,
       "target": 0.494
     },
     {
@@ -1065,8 +1064,8 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.653,
-      "fun": 0.864,
+      "rating": 0.685,
+      "fun": 0.873,
       "target": 0.713
     },
     {
@@ -1112,7 +1111,7 @@
         "workers"
       ],
       "goal": "boss",
-      "rating": 0.658,
+      "rating": 0.674,
       "fun": 0.858,
       "target": 0.8
     }

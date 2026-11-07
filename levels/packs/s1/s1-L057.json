@@ -1,7 +1,7 @@
 {
   "id": "s1-L057",
   "seed": 1011886639,
-  "engineVersion": "0.19.0",
+  "engineVersion": "0.20.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -49,6 +49,24 @@
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          293,
+          400
+        ],
+        [
+          293,
+          366
+        ],
+        [
+          293,
+          332
+        ],
+        [
+          293,
+          298
+        ]
       ],
       "route": [
         [
@@ -315,7 +333,7 @@
   "text": {
     "mars_greenhouse": {
       "title": "Sealed Veins and Credits",
-      "goal": "Bank 288 credits",
+      "goal": "Hold 288 credits at once",
       "tips": [
         "Some grow domes start locked. Unlock them with credits on their pad."
       ]

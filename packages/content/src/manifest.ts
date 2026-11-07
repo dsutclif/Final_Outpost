@@ -17,6 +17,8 @@ export const TargetRef = z.union([SinkId, ConvId, z.literal(STORE_DEPOT)]);
 // have started (turret sockets that open as the waves grow, Batch 3).
 export const Requirement = z.object({
   pad: EntityRef.optional(),
+  // Opt-in alternative to `pad`: either one done is enough (a parts works' operator after its input worker or its belt).
+  orPad: EntityRef.optional(),
   coreLevel: z.number().int().positive().optional(),
   wave: z.number().int().positive().optional(),
 });
@@ -41,6 +43,9 @@ export const SalesPointEntity = z.object({
   sells: z.array(ResId).min(1),
   // Waypoints from the map edge to the back of the line, around structures and through a gate (generator).
   route: z.array(Point).optional(),
+  // Opt-in: the queue's slots in order, slot 0 at the window (generator; the line bends round what stands in the
+  // way: plot plan). Without it the line is straight (content queueOffset/queueStep).
+  queue: z.array(Point).min(1).optional(),
 });
 export const RoleBinding = z.object({
   role: RoleId,
@@ -58,6 +63,9 @@ export const HirePad = z.object({
   cost: Cost,
   role: RoleBinding,
   requires: Requirement.optional(),
+  // Opt-in: the pad is withdrawn once this pad is done, unless the player has already paid into it
+  // (the parts works' input worker once its belt is built first: plot plan Q7).
+  dropWhen: z.object({ pad: EntityRef }).optional(),
   repeatable: z.boolean().default(false),
 });
 export const BuildPad = z.object({
@@ -468,8 +476,9 @@ export function checkManifest(m: Manifest, c: Content): void {
 
   for (const e of m.entities) {
     if (!isHire(e) && !isBuild(e)) continue;
-    const req = e.requires?.pad;
-    if (req !== undefined && !padBuilds.has(req) && !m.entities.some((x) => isHire(x) && x.id === req)) fail(`pad ${e.id} requires unknown pad ${req}`);
+    for (const req of [e.requires?.pad, e.requires?.orPad, isHire(e) ? e.dropWhen?.pad : undefined]) {
+      if (req !== undefined && !padBuilds.has(req) && !m.entities.some((x) => isHire(x) && x.id === req)) fail(`pad ${e.id} requires unknown pad ${req}`);
+    }
     if (isBuild(e) && e.target !== undefined && !ids.has(e.target)) fail(`pad ${e.id} targets unknown entity ${e.target}`);
   }
   for (const [k, p] of m.people.entries()) checkBinding(`person ${k}`, p);

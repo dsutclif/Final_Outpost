@@ -20,10 +20,10 @@ const labels = (n: number): string[] => { const m = level(n); return manifestObj
 
 describe("goal lines name what the level counts", () => {
   it("names the product, the building in the plural, the machines and the sources", () => {
-    expect(labels(50)[0]).toBe("Make 4 parts");
+    expect(labels(50)[0]).toBe("Make 6 parts");
     expect(labels(20)).toContain("Build 2 hab pods");
     expect(labels(9)[0]).toBe("Upgrade the galley, smelter or parts works to Lv3");
-    expect(labels(31)[0]).toMatch(/^Keep 2 of the galley, smelter and parts works running at once for 0:13$/);
+    expect(labels(31)[0]).toMatch(/^Keep 2 of the galley, smelter and parts works running at once for 0:14$/);
     expect(labels(40)[0]).toBe("Unlock 2 grow domes");
     expect(labels(13)[0]).toBe("Fill 13 bulk orders");
   });

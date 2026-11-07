@@ -464,7 +464,7 @@ export class Renderer3D implements Renderer {
   private lasso: { trail: Mesh; rope: Mesh; ropePts: Vector3[]; ropePrev: Vector3[] } | null = null;
   private scaffoldGeo: BufferGeometry | null = null;
   private padPlane: PlaneGeometry | null = null;
-  /** Warehouse drop-off pad, then one pickup pad per stored resource. */
+  /** Warehouse drop-off pad (the player only drops there). */
   private depotPads: Mesh[] = [];
   private readonly nowFn: () => number;
   private readonly dprFn: () => number;
@@ -1898,9 +1898,9 @@ export class Renderer3D implements Renderer {
       chip.position.set(x, 0.2 * ART_M + Math.min(12, n) * items.height(res) + 9, z);
     });
     if (p) for (let i = stock.length; i < p.sprites.length; i++) p.sprites[i]!.visible = false;
-    // its pads: drop-off (anything carried goes in), then a pickup pad for each stored resource
+    // its one pad: drop-off (anything carried goes in); the player never picks up here (plot plan Q1)
     const def = this.content.structures["struct.depot"];
-    const offs = [def?.dropOffset ?? [0, 0], ...(def?.pickupOffsets ?? []).slice(0, d.stores.length)];
+    const offs = [def?.dropOffset ?? [0, 0]];
     offs.forEach((o, i) => {
       let m = this.depotPads[i];
       if (!m) { m = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false })); m.renderOrder = 1; this.dynamic.add(m); this.depotPads[i] = m; }

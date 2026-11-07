@@ -1,4 +1,4 @@
-import { FP, TPS, blockedAt, depotDrop, depotPickup, gatherTicks, playerCap, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, blockedAt, depotDrop, gatherTicks, playerCap, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
@@ -591,7 +591,8 @@ export class Brain {
       const job = jobOf(cp, e);
       if (!job || jobDone(st, job)) continue;
       const pad = st.pads.find((x) => x.id === s.pad);
-      if (!pad || pad.done || (e.requires?.pad !== undefined && !st.pads.some((x) => x.id === e.requires!.pad && x.done) && !st.built.includes(e.requires.pad))) continue;
+      const done = (id: string) => st.pads.some((x) => x.id === id && x.done) || st.built.includes(id);
+      if (!pad || pad.done || (e.requires?.pad !== undefined && !done(e.requires.pad) && !(e.requires.orPad !== undefined && done(e.requires.orPad)))) continue;
       // The first such job with something to do now (another may wait on a full hopper or an empty tray).
       const n = tasks.length;
       this.manualTask(st, job, T);
@@ -784,14 +785,6 @@ export class Brain {
           if (i < 0) return null;
           t.key = String(i);
           n = st.nodes[i]!;
-        }
-        // Stored goods come off the warehouse pickup pad when that is the shorter walk, unless the stock
-        // is the point (a stockpile or haul goal) or couriers already move it.
-        const keep = this.plan.goal.type === "stockpile" || this.plan.goal.type === "haul" || st.residents.some((r) => cp.roles[r.role]?.behavior === "haul");
-        const d = st.depot, k = d && !t.nodeOnly && !keep ? d.stores.indexOf(res) : -1;
-        if (d && k >= 0 && (d.stock[res] ?? 0) > 0) {
-          const at = depotPickup(d, cp, k);
-          if (this.travel(st, p.pos, at) < this.travel(st, p.pos, n.pos)) return { pos: at, r: 6 * U };
         }
         return this.ringSpot(st, n.pos, cp.nodes[n.type]!.range - 12 * U);
       }

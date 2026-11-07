@@ -188,7 +188,9 @@ const ladderPad = (e: Manifest["entities"][number]): boolean => e.type === "pad.
  */
 function optionalPad(e: Manifest["entities"][number], c: Content): boolean {
   // hires paid in scrap run a defend level's town and defence (the reactor hauler, guards): kept (Batch 3)
-  if (e.type === "pad.hire") return !("res.salvage" in e.cost);
+  // an input worker the belt can replace is the player's choice (plot plan Q7), never cut
+  // ...and so is the ranger, which Doug wants on every hunting level that sells the catch (plot plan Q6)
+  if (e.type === "pad.hire") return !("res.salvage" in e.cost) && !e.dropWhen && e.role.role !== "role.hunter";
   if (e.type !== "pad.build" || ladderPad(e)) return false;
   return e.build === "conv.level" || e.build === "struct.conveyor" || e.build === "struct.barrier.reinforced" || e.build === "struct.medical" || !!c.upgrades[e.build];
 }
@@ -199,11 +201,19 @@ function dropPads(m: Manifest, ids: ReadonlySet<string>): void {
   for (let grew = true; grew;) {
     grew = false;
     for (const e of m.entities) {
-      const req = (e as { requires?: { pad?: string } }).requires?.pad;
-      if ("id" in e && e.id && !gone.has(e.id) && req && gone.has(req)) { gone.add(e.id); grew = true; }
+      const r = (e as { requires?: { pad?: string; orPad?: string } }).requires, req = r?.pad;
+      // a pad with an alternative requirement stays while the alternative does
+      if ("id" in e && e.id && !gone.has(e.id) && req && gone.has(req) && !(r?.orPad && !gone.has(r.orPad))) { gone.add(e.id); grew = true; }
     }
   }
   m.entities = m.entities.filter((e) => !("id" in e && e.id && gone.has(e.id)));
+  // tidy references to what went: an alternative left alone becomes the requirement, a withdrawal with no trigger goes
+  for (const e of m.entities) {
+    const x = e as { requires?: { pad?: string; orPad?: string }; dropWhen?: { pad: string } };
+    if (x.requires?.orPad !== undefined && x.requires.pad !== undefined && gone.has(x.requires.pad)) x.requires = { ...x.requires, pad: x.requires.orPad };
+    if (x.requires?.orPad !== undefined && (gone.has(x.requires.orPad) || x.requires.orPad === x.requires.pad)) { const { orPad: _o, ...rest } = x.requires; void _o; x.requires = rest; }
+    if (x.dropWhen && gone.has(x.dropWhen.pad)) delete x.dropWhen;
+  }
 }
 
 /**
@@ -238,7 +248,8 @@ function idleElements(m: Manifest, runs: readonly BotResult[]): string[] {
   const convs = new Set(wins.flatMap((r) => r.used.converters));
   const out: string[] = [];
   for (const e of m.entities) {
-    if ((e.type === "pad.hire" || e.type === "pad.build") && !pads.has(e.id) && !ladderPad(e)) out.push(`pad ${e.id}`);
+    // a pad withdrawn by its alternative (the input worker once the belt is built) is a choice, not an idle element
+    if ((e.type === "pad.hire" || e.type === "pad.build") && !pads.has(e.id) && !ladderPad(e) && !(e.type === "pad.hire" && e.dropWhen)) out.push(`pad ${e.id}`);
     if (e.type === "barrier.line" && !lines.has(e.id)) out.push(`line ${e.id}`);
     // A converter counts once it is producing, or bought with its feed in place (a chain still filling when the goal lands).
     if (e.type === "pad.build" && e.build.startsWith("conv.") && e.build !== "conv.level" && !convs.has(e.id) && !pads.has(e.id)) out.push(`converter ${e.id}`);

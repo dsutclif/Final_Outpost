@@ -19,7 +19,10 @@ export function refreshPads(st: State, cp: Compiled): void {
   for (const pad of st.pads) {
     const e = padEnt(cp, pad);
     const req = e.requires;
-    pad.visible = !(req?.pad !== undefined && !padDone(st, req.pad)) && !(req?.wave !== undefined && st.waves.idx < req.wave);
+    const reqMet = req?.pad === undefined || padDone(st, req.pad) || (req.orPad !== undefined && padDone(st, req.orPad));
+    pad.visible = reqMet && !(req?.wave !== undefined && st.waves.idx < req.wave);
+    // withdrawn once its alternative is done, unless already paid into
+    if (pad.visible && e.type === "pad.hire" && e.dropWhen && padDone(st, e.dropWhen.pad) && Object.keys(pad.paid).length === 0) pad.visible = false;
     // manual first: the first hire of a job kind waits until the player has done that job by hand
     if (pad.visible && e.type === "pad.hire" && e.manual) { const job = jobOf(cp, e); if (job && !jobDone(st, job)) pad.visible = false; }
     pad.locked = (req?.coreLevel !== undefined && st.core.level < req.coreLevel) || (e.type === "pad.hire" && idle === 0);

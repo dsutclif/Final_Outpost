@@ -1,7 +1,7 @@
 {
   "id": "s1-L034",
   "seed": 1224849928,
-  "engineVersion": "0.19.0",
+  "engineVersion": "0.20.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -38,7 +38,7 @@
         510
       ],
       "params": {
-        "fuel": 11,
+        "fuel": 13,
         "level": 1
       }
     },
@@ -52,6 +52,24 @@
       "sells": [
         "res.food_raw_1",
         "res.food_raw_2"
+      ],
+      "queue": [
+        [
+          312,
+          601
+        ],
+        [
+          312,
+          635
+        ],
+        [
+          312,
+          669
+        ],
+        [
+          312,
+          703
+        ]
       ],
       "route": [
         [
@@ -264,25 +282,49 @@
       ],
       "animal": "node.prey",
       "n": 3
+    },
+    {
+      "type": "pad.hire",
+      "id": "ranger",
+      "at": [
+        344,
+        488
+      ],
+      "cost": {
+        "res.currency": 14
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "sink.sales_point"
+      },
+      "manual": true
     }
   ],
-  "people": [],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
   "waves": [],
   "events": [],
   "params": {
     "start.currency": 4,
     "core.burn": 2.5,
-    "housing.base": 6,
+    "housing.base": 8,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3.1,
+    "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 340
+    "level.budgetSeconds": 290
   },
   "goal": {
     "type": "protein",
-    "n": 25
+    "n": 19
   },
   "family": "rescue",
   "objectives": [
@@ -290,7 +332,7 @@
       "id": "main",
       "kind": "protein",
       "params": {
-        "n": 25
+        "n": 19
       }
     },
     {
@@ -304,7 +346,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 244
+        "seconds": 209
       }
     }
   ],
@@ -321,9 +363,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.565,
-    "fun": 0.866,
-    "botMargin": 0.57,
+    "difficulty": 0.571,
+    "fun": 0.903,
+    "botMargin": 0.597,
     "botsPassed": [
       "good",
       "average",
@@ -332,7 +374,7 @@
     ],
     "stars": {
       "good": 3,
-      "median": 2.67,
+      "median": 3,
       "goodAll": 1,
       "human": 3,
       "humanAll": 1

@@ -91,6 +91,8 @@ export interface SalesState {
   /** Queue slot 0 (beside the stall, on the side facing the map interior); slot k = queueAt + k × queueStep. */
   queueAt: Vec;
   queueStep: Vec;
+  /** Explicit queue slots (slot 0 first) when the level gives them; slots past the last continue in a straight line. */
+  queueSlots?: Vec[];
   /** x of the map edge customers arrive from and leave to (the edge on the stall's side), fixed point. */
   edgeX: number;
   /** Waypoints from the map edge (first) to the back of the line (last), fixed point. */

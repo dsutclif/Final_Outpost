@@ -270,6 +270,7 @@ function padMap(m: Manifest, d: number): void {
     const e = structuredClone(e0) as Record<string, unknown>;
     for (const k of ["at", "site"]) if (Array.isArray(e[k])) e[k] = mv(e[k] as number[]);
     if (Array.isArray(e["points"])) e["points"] = (e["points"] as number[][]).map(mv);
+    if (Array.isArray(e["queue"])) e["queue"] = (e["queue"] as number[][]).map(mv);
     if (Array.isArray(e["sections"])) e["sections"] = (e["sections"] as { a: number[]; b: number[] }[]).map((x) => ({ ...x, a: mv(x.a), b: mv(x.b) }));
     if (Array.isArray(e["rect"])) { const r = e["rect"] as number[]; e["rect"] = [r[0]! + d, r[1]! + d, r[2]!, r[3]!]; }
     if (Array.isArray(e["route"])) {
@@ -671,12 +672,15 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         // a belt arrives at the hopper side, so with one the input worker stands lower, off its path
         // input worker, unless a belt feeds the parts works (it is then the input step; see below)
         const aStaff = plotOn ? slotAt("alloy", "staff") : null;
-        if (!belted) {
+        // plot layout with a belt (plot plan Q7): the staff pad still offers the input worker first, withdrawn if the
+        // player builds the belt first; the operator then follows either one
+        const carrier = !belted || aStaff !== null;
+        if (carrier) {
           const rc = aStaff ?? stationPad(a, "in");
-          pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
+          pad({ type: "pad.hire", id: "refined_carrier", at: [...rc], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "alloy" }, ...(belted ? { dropWhen: { pad: "belt" } } : {}) });
         }
         const sm = aStaff ?? stationPad(a, "op");
-        pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: { pad: belted ? "belt" : "refined_carrier" } });
+        pad({ type: "pad.hire", id: "smith", at: [...sm], cost: { "res.currency": cost("hire.smith") }, role: { role: "role.operator", to: "conv.alloy_works" }, requires: belted ? (carrier ? { pad: "refined_carrier", orPad: "belt" } : { pad: "belt" }) : { pad: "refined_carrier" } });
         const cs = aStaff ?? stationPad(a, "out");
         pad({ type: "pad.hire", id: "component_server", at: [...cs], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.alloy_works", to: "sink.sales_point" }, requires: { pad: "smith" } });
         if (feat.has("conveyors")) {
@@ -1280,6 +1284,31 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     if (pieces.length > 0) notes.push(`terrain ${pieces.map((t) => t.kind).join(",")}`);
   }
 
+  // Ranger (plot plan Q6, Doug): on a hunting level that sells the catch, a hunter hire pad just inside the gate nearest
+  // the hopper flats, or, with no wall, on the settlement's edge facing them. Manual first like every first hire.
+  if (feat.has("hunting") && shopAt) {
+    const zr = ents.find((e) => e.type === "zone.prey")?.["rect"] as number[] | undefined;
+    const catchRes = Object.keys(c.animals["node.prey"]!.drops).some((r) => sells.includes(r));
+    if (zr && catchRes) {
+      const T: Pt = [zr[0]! + zr[2]! / 2, zr[1]! + zr[3]! / 2];
+      let near: Pt;
+      if (ring && ringGates.length > 0) {
+        const pts = ring.points;
+        const mids = ringGates.map((i): Pt => { const a = pts[i]!, b = pts[(i + 1) % pts.length]!; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; });
+        const g = mids.reduce((a, b) => (dist(b, T) < dist(a, T) ? b : a));
+        near = toward(g, core, Math.min(0.5, 30 / Math.max(1, dist(g, core))));
+      } else {
+        const dT = dist(core, T);
+        const edge = P.stations.filter((st) => st.key && dist([st.x, st.y], core) < dT).reduce((m, st) => Math.max(m, dist([st.x, st.y], core) + st.r), 0);
+        near = toward(core, T, Math.min(edge + 25, Math.max(0, dT - 40)) / Math.max(1, dT));
+      }
+      const region: Rect = ring ? inner : [near[0] - 70, near[1] - 70, 140, 140];
+      const rp = P.place("ranger", R.pad, region, { near, key: true, fp: ["pad"], samples: 600 });
+      if (rp) pad({ type: "pad.hire", id: "ranger", at: [...rp], cost: { "res.currency": cost("hire.hunter") }, role: { role: "role.hunter", from: "node.prey", to: "sink.sales_point" } });
+      else notes.push("no room for the ranger pad");
+    }
+  }
+
   // Traders walk in from the map edge around every building and through a gate (sim sales.ts).
   if (shopAt) {
     const RT = GEN.traderRoute;
@@ -1292,6 +1321,36 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       const pts = e["points"] as Pt[], gates = new Set(e["gates"] as number[]);
       return pts.map((a, i) => ({ a, b: pts[(i + 1) % pts.length]!, gate: gates.has(i) }));
     });
+    if (plotOn && queue.length > 1) {
+      // Plot plan: the first square is the kiosk's; the rest of the line starts straight on and bends round
+      // anything in the way (buildings, pads, spots, walls, terrain), turning as little as it can.
+      const shopBox = P.box(shopAt, "sink.sales_point")!;
+      const free = (q: Pt, prev: Pt, placed: Pt[]): boolean => {
+        if (q[0] < 14 || q[0] > 466 || q[1] < 14 || q[1] > 886 || (ring && !inRect(q, inner))) return false;
+        const mid: Pt = [(q[0] + prev[0]) / 2, (q[1] + prev[1]) / 2];
+        for (const b of [...solid, shopBox]) for (const x of [q, mid]) if (x[0] > b[0] - 8 && x[0] < b[2] + 8 && x[1] > b[1] - 8 && x[1] < b[3] + 8) return false;
+        if (walls.some((w) => segDist(q, w.a, w.b) < 12 || segDist(mid, w.a, w.b) < 12)) return false;
+        if (P.stations.some((st) => st.id !== "shop" && dist(q, [st.x, st.y]) < st.r + 10)) return false;
+        if (P.spots.some((sp) => sp.id !== "start" && !sp.id.startsWith("queue") && dist(q, [sp.x, sp.y]) < sp.r + 10)) return false;
+        return placed.every((o) => dist(q, o) >= 0.8 * dist(queue[0]!, queue[1]!));
+      };
+      const L = dist(queue[0]!, queue[1]!);
+      let ang = Math.atan2(queue[1]![1] - queue[0]![1], queue[1]![0] - queue[0]![0]);
+      const bent: Pt[] = [queue[0]!];
+      for (let k = 1; k < queue.length; k++) {
+        const prev = bent[k - 1]!;
+        let next: Pt | null = null;
+        for (const turn of [0, 45, -45, 90, -90, 135, -135]) {
+          const a = ang + (turn * Math.PI) / 180, q: Pt = [Math.round(prev[0] + Math.cos(a) * L), Math.round(prev[1] + Math.sin(a) * L)];
+          if (free(q, prev, bent)) { next = q; ang = a; break; }
+        }
+        // boxed in: the rest of the line stands straight on, as before the plot layout
+        if (!next) { for (let j = k; j < queue.length; j++) bent.push([Math.round(prev[0] + Math.cos(ang) * L * (j - k + 1)), Math.round(prev[1] + Math.sin(ang) * L * (j - k + 1))]); break; }
+        bent.push(next);
+      }
+      queue = bent;
+      ents.find((e) => e.id === "shop")!["queue"] = bent.map((q) => [...q]);
+    }
     // the route ends on the last queue slot (clear of every wall), so the walk along the line stays inside
     // (plot layout: the line bends round whatever stands there, so the route only has to reach one of its squares)
     const world = { w: 480, h: 900, solid: [...solid, P.box(shopAt, "sink.sales_point")!], walls, clear: RT.clear, door: RT.door, cell: RT.cell };
@@ -1317,7 +1376,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   let plan0 = planBot(draft, c);
   const planned = () => new Set(plan0.steps.filter((s) => s.when === "always").map((s) => s.pad));
   // Medical waits for injuries; housing pads wait for recruits unless the goal ends first (then they are chained).
-  const conditional = (p: Ent) => p.build === "struct.medical" || (p.role as { role?: string } | undefined)?.role === "role.medic";
+  // ...and an input worker the belt can withdraw (plot plan Q7) is the player's alternative, off the bot's plan.
+  const conditional = (p: Ent) => p.build === "struct.medical" || (p.role as { role?: string } | undefined)?.role === "role.medic" || !!p.dropWhen;
   // Pads the plan would only reach after the goal is done count as unplanned too: the level ends at the goal.
   const lastGoal = plan0.steps.map((s, i) => (s.goalPath && s.when === "always" ? i : -1)).reduce((a, b) => Math.max(a, b), -1);
   const late = lastGoal >= 0 ? new Set(plan0.steps.filter((s, i) => i > lastGoal && s.when === "always").map((s) => s.pad)) : new Set<string>();
@@ -1401,8 +1461,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     let level = 1;
     for (const st of plan0.steps.filter((x) => x.when === "always")) {
       const e = pads.find((p) => p.id === st.pad)!;
-      const req = e.requires as { pad?: string; coreLevel?: number } | undefined;
-      if (req?.pad && !done.has(req.pad)) fail(`plan order: ${st.pad} needs ${req.pad} first (${plan0.steps.map((x) => x.pad + "<" + ((pads.find((p) => p.id === x.pad)?.requires as { pad?: string } | undefined)?.pad ?? "")).join(" ")})`);
+      const req = e.requires as { pad?: string; orPad?: string; coreLevel?: number } | undefined;
+      if (req?.pad && !done.has(req.pad) && !(req.orPad && done.has(req.orPad))) fail(`plan order: ${st.pad} needs ${req.pad} first (${plan0.steps.map((x) => x.pad + "<" + ((pads.find((p) => p.id === x.pad)?.requires as { pad?: string } | undefined)?.pad ?? "")).join(" ")})`);
       if (req?.coreLevel && level < req.coreLevel) fail(`plan order: ${st.pad} needs core level ${req.coreLevel}`);
       done.add(st.pad);
       if (e.build === "sink.core.level") level++;

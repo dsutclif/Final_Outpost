@@ -1,7 +1,7 @@
 {
   "id": "s1-L020",
   "seed": 1788831366,
-  "engineVersion": "0.19.0",
+  "engineVersion": "0.20.0",
   "contentVersion": "0.18.0",
   "map": {
     "w": 480,
@@ -50,6 +50,24 @@
       ],
       "sells": [
         "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          269,
+          576
+        ],
+        [
+          235,
+          576
+        ],
+        [
+          201,
+          576
+        ],
+        [
+          201,
+          610
+        ]
       ],
       "route": [
         [
@@ -308,8 +326,8 @@
     }
   },
   "rating": {
-    "difficulty": 0.419,
-    "fun": 0.765,
+    "difficulty": 0.422,
+    "fun": 0.771,
     "botMargin": 0.668,
     "botsPassed": [
       "good",

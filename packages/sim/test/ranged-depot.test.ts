@@ -94,7 +94,7 @@ describe("warehouse pads", () => {
   });
   const goods = ["res.material_basic", "res.food_raw_1", "res.fuel_dense", "res.material_refined"];
 
-  it("drops anything carried from the drop-off pad, gives each new good the next pickup pad, and hands it back there", () => {
+  it("drops anything carried from the drop-off pad, gives each new good the next store slot, and never hands it back to the player", () => {
     fc.assert(fc.property(fc.array(fc.constantFrom(...goods), { minLength: 1, maxLength: 8 }), (load) => {
       const sim = createSim(level());
       const d = sim.state.depot!, cp = sim.compiled, slots = cp.structures["struct.depot"]!.pickupOffsets.length;
@@ -111,14 +111,15 @@ describe("warehouse pads", () => {
         sim.state.player.stack = [];
         sim.state.player.pos = depotPickup(d, cp, k);
         const ev = idle(sim, 300);
-        expect(all(ev, "picked").every((e) => e.res === r && e.by === undefined)).toBe(true);
-        expect(sim.state.player.stack.every((x) => x === r)).toBe(true);
-        expect(sim.state.player.stack.length + (d.stock[r] ?? 0)).toBe(carried.filter((x) => x === r).length);
+        // drop-only (plot plan Q1): standing on the old pickup spot takes nothing
+        expect(all(ev, "picked").length).toBe(0);
+        expect(sim.state.player.stack.length).toBe(0);
+        expect(d.stock[r]).toBe(carried.filter((x) => x === r).length);
       });
     }), { numRuns: 25 });
   });
 
-  it("does not hand goods out from the building itself, only from the pads", () => {
+  it("does not hand goods out from the building itself either", () => {
     const sim = createSim(level());
     const d = sim.state.depot!;
     d.stores.push("res.material_basic");

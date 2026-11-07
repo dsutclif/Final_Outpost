@@ -105,7 +105,13 @@ function spawn(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
   out.push({ t: "customer_arrived", kind, res, want, customer: id });
 }
 
-const slot = (s: SalesState, k: number): Vec => ({ x: s.queueAt.x + k * s.queueStep.x, y: s.queueAt.y + k * s.queueStep.y });
+const slot = (s: SalesState, k: number): Vec => {
+  const q = s.queueSlots;
+  if (!q) return { x: s.queueAt.x + k * s.queueStep.x, y: s.queueAt.y + k * s.queueStep.y };
+  if (k < q.length) return q[k]!;
+  const last = q[q.length - 1]!, j = k - q.length + 1;
+  return { x: last.x + j * s.queueStep.x, y: last.y + j * s.queueStep.y };
+};
 
 function advanceQueue(cp: Compiled, s: SalesState): void {
   const a = cp.sales.approach;
