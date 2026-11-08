@@ -34,7 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-08 | Vale helmet animations | story-vale-fall | `render-3d/src/scene/livescene.ts`, `render-3d/src/scene/environment.ts`, `render-3d/src/renderer.ts` (a liveLook() getter), `render-3d/src/index.ts`, `client/src/cinematics.ts`, `client/src/app.ts` (the cinematic() call), `client/src/render.ts` | #6 follow-up: the fall film stands on the game's own ground under the game's light |
+| 2026-11-08 | Vale helmet animations | story-vale-fall | `render-3d/src/scene/rigged.ts`, `render-3d/src/renderer.ts` (resident and player drawing, a story camera takeover), `render-3d/src/assets/meshy.json` + `meshy.built.json` + crew `public/models/*.glb`, `render-3d/src/scene/livescene.ts`, `client/src/story/*` only after Bundle 3 releases it (the warlord fall action), `tools/cinematics/crew_fall_bake.py` | Doug 2026-11-08: crew fall and get-up animations in play, then Vale's fall as machinima in the paused level |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
