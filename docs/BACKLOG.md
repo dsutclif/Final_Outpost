@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#98**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#99**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -204,6 +204,9 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       levels already push it down (`story.css` `.story-on .fo-banner`). Move the banner below the HUD row for every level
       (and/or above it in the stacking), on all phone sizes and safe areas. Renderer/client only, no engine bump.
       Done check: on s1-L022, the storm warning and countdown read in full, clear of the progress and goal icons, on iPhone, live.
+
+- [ ] **#98 · Upgrade outline only while the player stands on the pad (Doug, 2026-11-08).** An upgrade's ghost shows only while the player is on that pad paying in; it hides on stepping off and returns on coming back. New-build ghosts unchanged. Renderer only (`syncPads`), no engine bump.
+      Done check: on a level with an upgrade, stand on the pad (outline shows), step off part-paid (gone), step back (returns), live.
 
 ## Bundle 3: story pass (story files; #6 is owned by the "Vale helmet animations" session)
 
