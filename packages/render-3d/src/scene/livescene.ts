@@ -1,5 +1,5 @@
 import {
-  AmbientLight, AnimationMixer, Box3, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera,
+  AmbientLight, AnimationMixer, Box3, LoopOnce, Matrix4, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera,
   PlaneGeometry, PointLight, Quaternion, Scene, SphereGeometry, SpotLight, Vector3, WebGLRenderer, type Material, type Object3D,
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
@@ -534,127 +534,175 @@ function helmetModel(): Object3D {
 }
 
 /**
- * The warlord's fall (docs/STORY-SCREENPLAY.md level 5, S32; Doug 2026-11-07): it runs in under fire, the hits stagger
- * it and in slow motion it falls on its back. The black helmet comes off as it lands and rolls clear, showing Vale's
- * face (the headless warlord with Vale's head from the bust). It lies a beat while the camera closes in, then gets up and
- * runs off east past the screen edge, leaving the helmet on the sand where it fell. Side-on camera, running left to
- * right (east, as in play). Without the Vale models it falls back to the old warlord, whose helmet is its head.
+ * The warlord's fall (docs/STORY-SCREENPLAY.md level 5, S32; BACKLOG #6, motion Doug approved 2026-11-07 as stick
+ * figures, tools/cinematics/vale_fall_stick.py): Vale, in the warlord's suit and black helmet, comes on firing; one
+ * shot strikes, then the last one throws Vale straight back off the feet onto the back. The helmet comes off as the
+ * head meets the sand and rolls clear. Vale rolls over, gets up and starts to run east (screen right); the run itself
+ * is in play (the story `swap` action), so the scene ends on the first strides. Side-on camera, no close-up.
+ * The motion is the `fall` clip baked onto Vale's rig (tools/cinematics/vale_fall_bake.py). Without the Vale models it
+ * falls back to the old warlord running through, whose helmet is its head.
  */
 function warlordFall(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement): Staged {
   const scene = new Scene();
   const camera = new PerspectiveCamera(38, 1, 0.1, 400);
   dawnSet(scene);
   const H = 2.2; // the warlord's height in scene units
-  const vale = crewFigure("hostile.boss_vale", "run"), face = vale && meshyScene("item.vale_head");
-  const boss = vale && face ? vale : crewFigure("hostile.boss", "run");
-  const pivot = new Group();
-  scene.add(pivot);
-  if (boss) { boss.root.scale.setScalar(H / boss.height); boss.root.rotation.y = Math.PI / 2; pivot.add(boss.root); }
-  pivot.updateMatrixWorld(true);
+  const e = meshyCharacters().find((x) => x.id === "hostile.boss_vale"), rig = e && meshyRig(e.file);
+  const face = meshyScene("item.vale_head");
+  const fallClip = rig?.clips.find((c) => c.name === e?.clips?.["fall"]);
+  const fireClip = rig?.clips.find((c) => c.name === e?.clips?.["shootMove"]);
+  const vale = rig && face && fallClip ? crewFigure("hostile.boss_vale", "shootMove") : null;
+  const boss = vale ?? crewFigure("hostile.boss", "run");
+  const root = boss?.root;
+  const K = boss ? H / boss.height : 1;
+  if (root) { root.scale.setScalar(K); scene.add(root); }
+  const fall = vale && fallClip ? vale.mixer.clipAction(fallClip) : undefined;
+  const fire = vale && fireClip ? vale.mixer.existingAction(fireClip) : undefined;
+  if (fall) { fall.clampWhenFinished = true; fall.setLoop(LoopOnce, 1); }
   const helmet = helmetModel();
   scene.add(helmet);
-  // Vale's head rides the Head bone: its turn from the bind pose (the bust and the body both face +z there)
-  const headBone = boss && vale && face ? boneOf(boss.root, "Head") : undefined;
+  // Vale's head rides the Head bone, turned by the rig's own head markers: up from Head to HeadTop_End, forward toward
+  // the headfront bone (the bust and the helmet stand along +y and face +z). A turn taken from the bind pose instead
+  // tipped both about 55 degrees forward, so the worn helmet sat crooked (Doug, 2026-11-07).
+  const headBone = vale && face ? boneOf(vale.root, "Head") : undefined;
+  const headTopBone = vale ? boneOf(vale.root, "HeadTop_End") : undefined, headFront = vale?.root.getObjectByName("headfront");
+  const w1 = new Vector3(), w2 = new Vector3(), fwd = new Vector3(), side = new Vector3(), basis = new Matrix4();
   const headBox = new Box3();
   let headRest = new Quaternion(), headUp = 0, headH = 0;
   const q = new Quaternion(), v = new Vector3(), up = new Vector3();
-  if (face && headBone) {
+  if (face && headBone && root) {
+    root.updateMatrixWorld(true);
     headBox.setFromObject(face);
     const s = (H * VALE_HEAD) / Math.max(1e-6, headBox.max.y - headBox.min.y);
     face.scale.setScalar(s);
     headH = (headBox.max.y - headBox.min.y) * s;
     headUp = -headH * VALE_NECK;
-    headRest = headBone.getWorldQuaternion(new Quaternion()).invert().multiply(boss!.root.getWorldQuaternion(new Quaternion()));
+    headRest = headBone.getWorldQuaternion(new Quaternion()).invert().multiply(root.getWorldQuaternion(new Quaternion()));
     scene.add(face);
   }
-  // helmet scale: worn, it covers the head; the item's own fit is an art size, so match it to the head here
+  // the helmet item is built lying on its side as dropped, its neck opening facing +z. Worn, a quarter turn about its
+  // x axis points the opening down (Doug, 2026-11-07: upright on the head) and the opening's centre sits on the neck.
+  // Dropped, it comes to rest as built, as the helmet lies in play. Sized to the head across its width (x).
   const helmBox = new Box3().setFromObject(helmet), helmW = Math.max(1e-6, helmBox.max.x - helmBox.min.x);
   const helmK = headH ? (headH * VALE_HELMET) / helmW : 1;
   helmet.scale.setScalar(helmK);
-  // hit flashes on the chest while it is under fire
+  const X_AXIS = new Vector3(1, 0, 0), Y_AXIS = new Vector3(0, 1, 0);
+  const helmFit = new Quaternion().setFromAxisAngle(Y_AXIS, VALE_HELMET_YAW).multiply(new Quaternion().setFromAxisAngle(X_AXIS, VALE_HELMET_TIP));
+  const HC = helmBox.getCenter(new Vector3()).multiplyScalar(helmK); // its middle, in its own (scaled) frame
+  const NECK = new Vector3(HC.x, HC.y, helmBox.max.z * helmK); // the neck opening's centre
+  const HELM_REST = new Quaternion().setFromAxisAngle(Y_AXIS, -0.6); // at rest, turned a little toward the camera
+  // shots: a flash on the chest at each hit; the last one is the strike that starts the fall
   const flash = new Mesh(new SphereGeometry(0.12, 8, 6), new MeshBasicMaterial({ color: "#fff2c0" }));
   const flashLight = new PointLight("#ffd27a", 0, 4);
   scene.add(flash, flashLight);
-  // timeline (s): run in, shots, slow fall, helmet off, lie (close-up), slow rise, run off
-  const HIT = 1.4, DOWN = 3.4, OFF = 3.3, LIE = 3.4, UP0 = 6.4, UP1 = 8.0, SECONDS = 11.2;
-  const SHOTS = [1.1, 1.4, 1.75, 2.1];
-  const X_HIT = -1.4, X_DOWN = -1.0;
-  const xOf = (t: number): number => {
-    if (t < HIT) return X_HIT - 4.2 * (HIT - t);
-    if (t < UP1) return X_HIT + (X_DOWN - X_HIT) * span(t, HIT, DOWN);
-    const w = t - UP1; // the first steps are slow, then full speed
-    return X_DOWN + (w < 1 ? 2.1 * w * w : 2.1 + 4.2 * (w - 1));
-  };
-  // where the helmet ends up: beside the head as it lies, rolled a little further west
-  const HELM_REST = new Vector3(X_DOWN - H * 0.95, 0, 0.35);
-  let helmFrom: Vector3 | undefined;
+  // timeline (s): firing as it comes on, one hit, the strike (the fall clip's frame 0), the clip to its end
+  const STRIKE = 0.9, SHOTS = [0.45, STRIKE], X0 = 0.6; // X0: where the strike lands (the clip starts over its root)
+  const FALL = fallClip?.duration ?? 0, SECONDS = vale ? STRIKE + FALL : 4.0;
+  // when the head first meets the sand: sample the clip once, here
+  let OFF = STRIKE + 0.85;
+  const hipsBone = root ? boneOf(root, "Hips") : undefined, hipsAt = new Vector3(X0, 0, 0);
+  if (fall && headBone && root) {
+    fall.play();
+    root.position.set(X0, 0, 0);
+    vale!.mixer.setTime(0);
+    root.updateMatrixWorld(true);
+    hipsBone?.getWorldPosition(hipsAt); // where the strike finds the hips: the lead-in walks them there
+    // the head's height through the fall, sampled at 60 fps
+    const ys: number[] = [];
+    for (let tt = 0; tt < Math.min(FALL, 2.5); tt += 1 / 60) {
+      vale!.mixer.setTime(tt);
+      root.updateMatrixWorld(true);
+      ys.push(headBone.getWorldPosition(v).y);
+    }
+    // contact: once the head has dropped below 40% of its standing height, the first frame it stops falling
+    let hit = ys.findIndex((y) => y < ys[0]! * 0.4);
+    while (hit >= 0 && hit + 1 < ys.length && ys[hit + 1]! < ys[hit]! - 0.002) hit++;
+    if (hit >= 0) OFF = STRIKE + hit / 60;
+    fall.stop();
+  }
+  let helmFrom: Vector3 | undefined, helmTo: Vector3 | undefined;
   const helmQ0 = new Quaternion();
   return {
     seconds: SECONDS, scene, camera, labels: [],
     pose(t) {
       const tall = camera.aspect < 0.8;
-      const x = xOf(t);
-      // backwards onto the sand: the head goes west (the body faces east)
-      let pitch = 0, lift = 0, clipT = t;
-      if (t >= HIT && t < DOWN) {
-        const k = span(t, HIT, DOWN);
-        pitch = (Math.PI / 2) * k; lift = 0.3 * k; clipT = HIT + (t - HIT) * 0.12;
-      } else if (t >= DOWN && t < UP0) { pitch = Math.PI / 2; lift = 0.3; clipT = HIT + 0.24; }
-      else if (t >= UP0 && t < UP1) {
-        const k = span(t, UP0, UP1);
-        pitch = (Math.PI / 2) * (1 - k); lift = 0.3 * (1 - k); clipT = (t - UP0) * 0.25;
-      } else if (t >= UP1) clipT = (t - UP1) * Math.min(1, 0.4 + (t - UP1) * 0.5);
-      pivot.position.set(x, lift, 0);
-      pivot.rotation.set(0, 0, pitch);
-      boss?.mixer.setTime(clipT);
-      pivot.updateMatrixWorld(true);
-      // the head follows the Head bone; the worn helmet sits over it
-      let headTop = new Vector3(x, H, 0);
+      if (root && vale && fall) {
+        if (t < STRIKE) {
+          // coming on from the right, facing west, firing
+          // (the firing clip travels as it loops, so the root is set to walk the hips along a steady line)
+          root.rotation.y = -Math.PI / 2;
+          root.position.set(0, 0, 0);
+          fall.stop();
+          if (fire) { fire.play(); fire.weight = 1; }
+          vale.mixer.setTime(t);
+          root.updateMatrixWorld(true);
+          const h = hipsBone ? hipsBone.getWorldPosition(v) : v.set(0, 0, 0);
+          root.position.set(hipsAt.x + 0.9 * (STRIKE - t) - h.x, 0, hipsAt.z - h.z);
+        } else {
+          // the fall clip carries its own turn and travel (root motion in the hips)
+          root.rotation.y = 0;
+          root.position.set(X0, 0, 0);
+          fire?.stop();
+          fall.play();
+          vale.mixer.setTime(t - STRIKE);
+        }
+      } else if (root && boss) {
+        root.rotation.y = Math.PI / 2;
+        root.position.set(-3 + 2.2 * t, 0, 0);
+        boss.mixer.setTime(t);
+      }
+      root?.updateMatrixWorld(true);
+      // the head follows the Head bone; the worn helmet sits square over it
+      let headTop = new Vector3(X0, H, 0);
       if (face && headBone) {
         headBone.getWorldPosition(v);
-        headBone.getWorldQuaternion(q).multiply(headRest);
-        up.set(0, 1, 0).applyQuaternion(q);
+        if (headTopBone && headFront) {
+          up.copy(headTopBone.getWorldPosition(w1)).sub(v).normalize();
+          fwd.copy(headFront.getWorldPosition(w2)).sub(v);
+          fwd.addScaledVector(up, -fwd.dot(up)).normalize();
+          side.crossVectors(up, fwd);
+          q.setFromRotationMatrix(basis.makeBasis(side, up, fwd));
+        } else {
+          headBone.getWorldQuaternion(q).multiply(headRest);
+          up.set(0, 1, 0).applyQuaternion(q);
+        }
         face.quaternion.copy(q);
         face.position.copy(v).addScaledVector(up, headUp);
         headTop = face.position.clone().addScaledVector(up, headH * VALE_HELMET_AT);
-      } else if (boss) {
-        const hb = boneOf(boss.root, "Head");
-        if (hb) { hb.getWorldPosition(v); headTop = v.clone(); hb.getWorldQuaternion(q); }
       }
-      // shots: a flash on the chest at each hit
-      const chest = new Vector3(x, lift + H * 0.62, 0.25);
+      const hips = root ? (boneOf(root, "Hips")?.getWorldPosition(new Vector3()) ?? root.position) : new Vector3();
+      const chest = new Vector3(hips.x, hips.y + H * 0.17, hips.z + 0.25);
       const shot = SHOTS.find((s) => t >= s && t < s + 0.09);
       flash.visible = shot !== undefined;
       flash.position.copy(chest);
       flashLight.position.copy(chest);
       flashLight.intensity = shot !== undefined ? 6 : 0;
-      // the helmet: worn until it lands, then it pops off and rolls west to rest; it stays there
-      if (t < OFF) {
-        helmet.position.copy(headTop);
-        if (face) helmet.quaternion.copy(q);
-        helmet.visible = !!face; // the old warlord wears its own
+      // the helmet: worn until the head meets the sand, then it pops off and rolls toward the camera and stops
+      if (!face) helmet.visible = false;
+      else if (t < OFF) {
+        helmet.visible = true;
+        helmet.quaternion.copy(q).multiply(helmFit);
+        helmet.position.copy(headTop).sub(v.copy(NECK).applyQuaternion(helmet.quaternion));
         helmFrom = undefined;
       } else {
-        if (!helmFrom) { helmFrom = headTop.clone(); helmQ0.copy(helmet.quaternion); }
-        const d = t - OFF, k = Math.min(1, d / 1.1), e = 1 - (1 - k) * (1 - k);
-        const hop = 0.5 * Math.sin(Math.min(1, d / 0.5) * Math.PI) + 0.12 * Math.abs(Math.sin(Math.max(0, d - 0.5) * 9)) * Math.exp(-Math.max(0, d - 0.5) * 4);
-        // on its side, resting at about a third of its height
-        const rest = HELM_REST.clone().setY(0.3 * helmK * (helmBox.max.y - helmBox.min.y));
-        helmet.visible = true;
-        helmet.position.lerpVectors(helmFrom, rest, e).setY(helmFrom.y + (rest.y - helmFrom.y) * e + hop);
-        helmet.quaternion.copy(helmQ0);
-        helmet.rotateZ(e * 2.6);
-        helmet.rotateX(e * 0.5);
+        // it jumps off the head on impact, tumbles once toward the camera with two bounces, and comes to rest on its
+        // side in about 0.7 s; it turns about its middle (HC)
+        if (!helmFrom) {
+          helmQ0.copy(q).multiply(helmFit); // where it sits on the head this frame
+          helmFrom = headTop.clone().add(v.copy(HC).sub(NECK).applyQuaternion(helmQ0));
+          helmTo = new Vector3(headTop.x + 0.35, HC.y, headTop.z + 0.75);
+        }
+        const d = t - OFF, k = Math.min(1, d / 0.7), ek = 1 - (1 - k) ** 3;
+        const hop = 0.3 * Math.abs(Math.sin(Math.min(d, 0.7) * 9)) * Math.exp(-d * 4);
+        const mid = new Vector3().lerpVectors(helmFrom, helmTo!, ek);
+        mid.y += hop;
+        helmet.quaternion.slerpQuaternions(helmQ0, HELM_REST, ek).premultiply(q.setFromAxisAngle(X_AXIS, ek * Math.PI * 2));
+        helmet.position.copy(mid).sub(v.copy(HC).applyQuaternion(helmet.quaternion));
       }
-      // camera: side-on while it runs and falls, closes in on the face as it lies, pulls back as it gets up and runs
-      // once it is down the camera stays on the fall spot, so it runs out of frame and the helmet is left in shot
-      const cx = Math.min(x, X_DOWN) * 0.4 - 0.6 - span(t, UP1, SECONDS) * 0.5;
-      const wide = new Vector3(cx, tall ? 2.0 : 1.5, tall ? 9 : 6.2), wideAt = new Vector3(cx, 0.9, 0);
-      const faceAt = face ? face.position.clone().addScaledVector(up, headH * 0.45) : headTop;
-      const close = faceAt.clone().add(new Vector3(0.25, tall ? 1.9 : 1.6, tall ? 1.7 : 1.3));
-      const c = t < LIE ? 0 : t < UP0 ? span(t, LIE + 0.2, LIE + 1.6) : 1 - span(t, UP0, UP0 + 1.2);
-      camera.position.lerpVectors(wide, close, c);
-      camera.lookAt(wideAt.lerp(faceAt, c));
+      // camera: side-on and steady, framed on the fall spot; it eases right a little as Vale gets up and runs
+      const cx = hipsAt.x + 0.2 + 0.5 * span(t, SECONDS - 1.6, SECONDS);
+      camera.position.set(cx, tall ? 1.5 : 1.3, tall ? 5.6 : 4.6);
+      camera.lookAt(cx, tall ? 0.85 : 0.8, 0);
     },
     dispose() { disposeAll(scene); },
   };
@@ -665,6 +713,10 @@ const VALE_HEAD = 0.17;
 const VALE_NECK = 0.25;
 /** The worn helmet's width against the head's height, and how high on the head its base sits. */
 const VALE_HELMET = 1.35, VALE_HELMET_AT = -0.12;
+/** The helmet's turn about the head's up axis so its visor faces the way the face does. */
+const VALE_HELMET_YAW = 0;
+/** The quarter turn that stands the helmet item (built lying on its side) upright on the head. */
+const VALE_HELMET_TIP = Math.PI / 2;
 
 /**
  * The end of level 5 (S33): after the helmet's reveal the commander, helmet held in front, runs two steps toward the

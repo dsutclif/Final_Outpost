@@ -239,4 +239,5 @@ def main():
             lib.render_frames(os.path.join(lib.OUT, f"vale_fall_stick_{view}"), 1, n)
 
 
-main()
+if __name__ == "__main__":  # vale_fall_bake.py imports build()
+    main()

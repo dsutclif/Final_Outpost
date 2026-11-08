@@ -1364,9 +1364,9 @@
     ]
   },
   "hostile.boss_vale": {
-    "hash": "5ba699ded0",
+    "hash": "dc76181a1b",
     "tris": 7069,
-    "bytes": 1135244,
+    "bytes": 1317000,
     "bounds": [
       -0.618,
       0.001,
