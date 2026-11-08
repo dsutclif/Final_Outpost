@@ -34,11 +34,17 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 - Bundle 1 (#63, #67, #68–#70, #72, #73, #76): done except Doug deleting the remote branches `look-test`,
   `object-sizes` and `story-buggy` (agents can't run `git push --delete`). Keep `fo-wt-handoff` until #75 backs up its film tools.
 - **Three lanes run in parallel (Doug, 2026-11-08), one bundle at a time per lane.** Engine bump freeze: when Bundle 7 claims the bump in the work log, Story and Look finish their current push and pause until it lands.
-- Story lane: Bundle 3 (#4, #3, #5, #14) running as `bundle3` (Opus), then Bundle 4. Film track: #75 backup and #47 stage 2 stills proposed 2026-11-08 (Sonnet; ends at Doug's approval); #48 and #49 wait for Bundle 3 to land.
+- Story lane: Bundle 3 (#4, #3, #5, #14) pushed by `bundle3` 2026-11-08, waiting for the orchestrator's live check and Doug's iPhone checks (#83); then Bundle 4. Film track: #75 backup and #47 stage 2 stills proposed 2026-11-08 (Sonnet; ends at Doug's approval); #48 and #49 wait for Bundle 3 to land.
 - Look lane: Bundle 5 (#10, #41, #52) proposed 2026-11-08 (Sonnet), waiting for Doug to start it. Bundle 9's renderer parts come later.
 - Systems lane: Bundle 6 (#43, #44, #9a, #16 v0) proposed 2026-11-08 (Opus lead, Sonnet/Haiku subagents), ends by writing `docs/RELEASE-2.md`; then Bundle 7 (Opus), Bundle 8 (Sonnet + Haiku). Bundle 9's sim parts after 7. #81 (protein hunter at a gate) joins Bundle 7's bump if it is a rules fix.
 
 ## Waiting on Doug
+
+- [ ] **#83 · iPhone checks for Bundle 3 (live site).**
+      1. KILN (#4/#13): the cloud beside the commander looks the same size in story levels 1–5 and is still easy to see at the smaller size; on the first regular level that teaches something new (e.g. s1-L006) it floats beside the commander while its lines show.
+      2. Level 3 wall (#14): after Sela's first sale KILN asks for the wall; walking the dashed ring raises it a credit a section; the hub beat follows.
+      3. Sela's buggy (#5): after her arrival film the buggy drives in and parks beside the kiosk with its lights on, not too glaring.
+      4. Pods (#3): the crash site shows five pods (three sealed toward the back of the wreck), none in the level 1 start view.
 
 - [ ] **#2 · iPhone check, title loop.** After two real deploys and a second visit on iPhone Safari: the loop plays (or the dark poster shows), and the old background never paints.
 - [ ] **#1 · `empty_bays` against the films (Sign-off 2).** It plays at the end of story level 2 on
