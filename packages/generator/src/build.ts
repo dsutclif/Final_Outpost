@@ -45,6 +45,8 @@ export const GEN = genData as unknown as {
   rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number };
   spacing: { margin: number; standR: number; screen: [number, number]; screenRadius: number; footprintGap: number; corePull: number; fieldPull?: number };
   traderRoute: { cell: number; clear: number; door: number };
+  /** Ranger pad in the hunting grounds: the 3D renderer's art metre and its two burrow models' half sizes (art metres), and the gap kept to them. */
+  ranger: { artM: number; burrowHalf: [number, number][]; gap: number };
   lots: { block: number; street: number };
   /** Ground rect [x0, y0, x1, y1] around the centre of each model the 3D renderer draws (render-3d tests keep these honest). */
   footprints: Record<string, [number, number, number, number]>;
@@ -1284,26 +1286,56 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     if (pieces.length > 0) notes.push(`terrain ${pieces.map((t) => t.kind).join(",")}`);
   }
 
-  // Ranger (plot plan Q6, Doug): on a hunting level that sells the catch, a hunter hire pad just inside the gate nearest
-  // the hopper flats, or, with no wall, on the settlement's edge facing them. Manual first like every first hire.
+  // Ranger (plot plan Q6; Doug, 2026-11-07): on a hunting level that sells the catch, a hunter hire pad inside the
+  // hunting grounds (off the opening view, so not a key pad), clear of their burrow models. Failing that, just inside the gate nearest them, or with no wall
+  // on the settlement's edge facing them. Manual first like every first hire.
   if (feat.has("hunting") && shopAt) {
-    const zr = ents.find((e) => e.type === "zone.prey")?.["rect"] as number[] | undefined;
+    const zones = ents.filter((e) => e.type === "zone.prey");
+    const zr = zones[0]?.["rect"] as number[] | undefined;
     const catchRes = Object.keys(c.animals["node.prey"]!.drops).some((r) => sells.includes(r));
     if (zr && catchRes) {
       const T: Pt = [zr[0]! + zr[2]! / 2, zr[1]! + zr[3]! / 2];
-      let near: Pt;
-      if (ring && ringGates.length > 0) {
-        const pts = ring.points;
-        const mids = ringGates.map((i): Pt => { const a = pts[i]!, b = pts[(i + 1) % pts.length]!; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; });
-        const g = mids.reduce((a, b) => (dist(b, T) < dist(a, T) ? b : a));
-        near = toward(g, core, Math.min(0.5, 30 / Math.max(1, dist(g, core))));
-      } else {
-        const dT = dist(core, T);
-        const edge = P.stations.filter((st) => st.key && dist([st.x, st.y], core) < dT).reduce((m, st) => Math.max(m, dist([st.x, st.y], core) + st.r), 0);
-        near = toward(core, T, Math.min(edge + 25, Math.max(0, dT - 40)) / Math.max(1, dT));
+      // The 3D renderer's burrows in each prey zone (renderer.ts syncZones: same count and spots), as boxes in map units.
+      const burrows: Box[] = zones.flatMap((z) => {
+        const [x, y, w, h] = z["rect"] as number[] as [number, number, number, number], id = String(z["id"]);
+        const n = Math.max(2, Math.min(3, Math.round((w * h) / (GEN.ranger.artM * GEN.ranger.artM * 40))));
+        return Array.from({ length: n }, (_, k): Box => {
+          const half = GEN.ranger.burrowHalf[k % 2]!, hx = Math.min(w / 2, half[0] * GEN.ranger.artM), hz = Math.min(h / 2, half[1] * GEN.ranger.artM);
+          const fx = 0.2 + 0.6 * (((k + 1) * 0.618 + id.length * 0.13) % 1), fz = 0.25 + 0.5 * ((k * 0.382 + 0.31) % 1);
+          const cx = Math.min(x + w - hx, Math.max(x + hx, x + w * fx)), cz = Math.min(y + h - hz, Math.max(y + hz, y + h * fz));
+          return [cx - hx, cz - hz, cx + hx, cz + hz];
+        });
+      });
+      const clearOfBurrows = (p: Pt): boolean => {
+        const pb = P.box(p, "pad")!, g = GEN.ranger.gap;
+        return burrows.every((u) => !(pb[0] < u[2] + g && u[0] < pb[2] + g && pb[1] < u[3] + g && u[1] < pb[3] + g));
+      };
+      // The grounds usually lie outside the wall, past the placer's bounds: search them on a grid, with the placer's own
+      // clearances (walls, stations, spots) and the map edge, nearest the middle of the grounds first.
+      const inZone: Pt[] = [];
+      for (let yy = zr[1]!; yy <= zr[1]! + zr[3]!; yy += 3) for (let xx = zr[0]!; xx <= zr[0]! + zr[2]!; xx += 3) inZone.push([xx, yy]);
+      inZone.sort((a, b) => dist(a, T) - dist(b, T) || a[1] - b[1] || a[0] - b[0]);
+      const pb0 = P.box([0, 0], "pad")!;
+      let rp: Pt | null = inZone.find((q) => q[0] + pb0[0] >= 0 && q[0] + pb0[2] <= 480 && q[1] + pb0[1] >= 0 && q[1] + pb0[3] <= 900
+        && clearOfBurrows(q) && P.walls.every((w) => segDist(q, w[0], w[1]) >= R.pad + 10)
+        && P.stations.every((st) => dist(q, [st.x, st.y]) >= Math.max(R.pad, st.r) + P.margin)
+        && P.spots.every((sp) => dist(q, [sp.x, sp.y]) >= R.pad + sp.r)) ?? null;
+      if (rp) P.add("ranger", rp, R.pad, { fp: ["pad"] });
+      if (!rp) {
+        let near: Pt;
+        if (ring && ringGates.length > 0) {
+          const pts = ring.points;
+          const mids = ringGates.map((i): Pt => { const a = pts[i]!, b = pts[(i + 1) % pts.length]!; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; });
+          const g = mids.reduce((a, b) => (dist(b, T) < dist(a, T) ? b : a));
+          near = toward(g, core, Math.min(0.5, 30 / Math.max(1, dist(g, core))));
+        } else {
+          const dT = dist(core, T);
+          const edge = P.stations.filter((st) => st.key && dist([st.x, st.y], core) < dT).reduce((m, st) => Math.max(m, dist([st.x, st.y], core) + st.r), 0);
+          near = toward(core, T, Math.min(edge + 25, Math.max(0, dT - 40)) / Math.max(1, dT));
+        }
+        rp = P.place("ranger", R.pad, ring ? inner : [near[0] - 70, near[1] - 70, 140, 140], { near, key: true, fp: ["pad"], samples: 600 });
+        if (rp) notes.push("ranger pad outside the hunting grounds (no clear spot inside)");
       }
-      const region: Rect = ring ? inner : [near[0] - 70, near[1] - 70, 140, 140];
-      const rp = P.place("ranger", R.pad, region, { near, key: true, fp: ["pad"], samples: 600 });
       if (rp) pad({ type: "pad.hire", id: "ranger", at: [...rp], cost: { "res.currency": cost("hire.hunter") }, role: { role: "role.hunter", from: "node.prey", to: "sink.sales_point" } });
       else notes.push("no room for the ranger pad");
     }

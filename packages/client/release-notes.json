@@ -1,6 +1,8 @@
 {
   "notes": [
     "Level 5: the warlord's fall is new. The last shot throws the lieutenant off their feet, the helmet comes off and rolls away, and Vale gets up and runs, gun in hand.",
-    "Vale now runs off in play with the helmet off, and the helmet stays where it fell."
+    "Vale now runs off in play with the helmet off, and the helmet stays where it fell.",
+    "The home screen loop now loads on a dark frame instead of the old backdrop, and retries if it fails.",
+    "On levels 17 and 34 the ranger hire pad now sits inside the hunting grounds."
   ]
 }

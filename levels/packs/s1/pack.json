@@ -237,8 +237,8 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.429,
-      "fun": 0.826,
+      "rating": 0.282,
+      "fun": 0.719,
       "target": 0.344
     },
     {
@@ -583,8 +583,8 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.571,
-      "fun": 0.903,
+      "rating": 0.527,
+      "fun": 0.895,
       "target": 0.538
     },
     {

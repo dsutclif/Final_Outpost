@@ -49,6 +49,7 @@
     "rescueShop": { "hw": 180, "hh": 200, "split": [3, 3] },
     "podGap": 62, "edge": 36
   },
+  "ranger": { "_doc": "Ranger hire pad inside the hunting grounds, clear of the burrow models: render-3d ART_M and the zone.prey.l1/l2 half sizes from meshy.built.json (art metres), plus a gap (world units).", "artM": 28, "burrowHalf": [[1.016, 0.921], [1.24, 1.235]], "gap": 2 },
   "traderRoute": { "_doc": "Grid cell, clearance from footprints and walls, and half the gate door opening (world units).", "cell": 6, "clear": 10, "door": 16 },
   "lots": { "_doc": "Lots and streets (POLISH-PLAN item 7B): streets of street units cross at the core (its plaza) and repeat every block + street; square lots of block units between them; buildings keep to one lot along each axis they fit.", "block": 60, "street": 0 },
   "spacing": { "margin": 0, "standR": 16, "screen": [230, 420], "screenRadius": 440, "footprintGap": -1, "corePull": 5.8, "fieldPull": 0.1 },

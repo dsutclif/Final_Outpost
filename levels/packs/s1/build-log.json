@@ -1461,7 +1461,7 @@
     "id": "main",
     "kind": "protein",
     "params": {
-     "n": 24
+     "n": 28
     }
    },
    {
@@ -1473,7 +1473,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 203
+     "seconds": 206
     }
    }
   ],
@@ -1481,16 +1481,16 @@
    "good": 3,
    "median": 3,
    "goodAll": 1,
-   "human": 3,
-   "humanAll": 1
+   "human": 2.83,
+   "humanAll": 0.83
   },
   "starsByRung": {
    "good": 3,
    "average": 3,
    "weak": 3,
-   "novice": 3,
-   "floor": 2,
-   "human": 3
+   "novice": 2.67,
+   "floor": 0.67,
+   "human": 2.83
   },
   "modules": [
    "barrier_lines",
@@ -1505,15 +1505,15 @@
   "goal": "protein",
   "template": "east_fields",
   "target": 0.344,
-  "D": 0.4285530362657001,
-  "F": 0.8261018612073846,
+  "D": 0.2815537942067666,
+  "F": 0.718532439560889,
   "onTarget": false,
   "margin": {
-   "good": 0.6366666666666667,
-   "average": 0.5626797385620915,
-   "weak": 0.5837581699346406,
-   "novice": 0.4283333333333334,
-   "floor": 0.16856209150326795
+   "good": 0.6384095238095238,
+   "average": 0.5954603174603174,
+   "weak": 0.5902222222222222,
+   "novice": 0.41717460317460314,
+   "floor": 0.05130158730158729
   },
   "winRate": {
    "good": 1,
@@ -1529,16 +1529,16 @@
    "novice",
    "floor"
   ],
-  "seconds": 227.753,
+  "seconds": 207.88,
   "seed": 327552485,
   "attempts": 4,
   "rejects": {
    "layout": 22,
-   "offTarget": 32,
-   "objectives": 2,
-   "humanLost": 7
+   "offTarget": 28,
+   "humanLost": 8,
+   "objectives": 4
   },
-  "ratings": 37
+  "ratings": 39
  },
  {
   "index": 18,
@@ -3110,12 +3110,12 @@
     "id": "main",
     "kind": "protein",
     "params": {
-     "n": 19
+     "n": 36
     }
    },
    {
     "id": "challenge",
-    "kind": "tow_trip",
+    "kind": "tow_full_trip",
     "params": {
      "n": 3
     }
@@ -3124,7 +3124,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 209
+     "seconds": 325
     }
    }
   ],
@@ -3137,9 +3137,9 @@
   },
   "starsByRung": {
    "good": 3,
-   "average": 2.67,
+   "average": 3,
    "weak": 3,
-   "novice": 2.67,
+   "novice": 3,
    "floor": 0.67,
    "human": 3
   },
@@ -3156,15 +3156,15 @@
   "goal": "protein",
   "template": "crescent",
   "target": 0.538,
-  "D": 0.5711291557314547,
-  "F": 0.9034320525247626,
+  "D": 0.5271861507603551,
+  "F": 0.8953707580338899,
   "onTarget": true,
   "margin": {
-   "good": 0.5974827586206897,
-   "average": 0.40513409961685826,
-   "weak": 0.41793103448275865,
-   "novice": 0.3029501915708812,
-   "floor": -0.07687235329703572
+   "good": 0.5796148148148148,
+   "average": 0.49832098765432103,
+   "weak": 0.3937037037037037,
+   "novice": 0.38427160493827156,
+   "floor": -0.05076543209876546
   },
   "winRate": {
    "good": 1,
@@ -3179,14 +3179,14 @@
    "weak",
    "novice"
   ],
-  "seconds": 261.573,
-  "seed": 1224849928,
-  "attempts": 3,
+  "seconds": 34.531,
+  "seed": 304161225,
+  "attempts": 1,
   "rejects": {
-   "stall": 4,
-   "offTarget": 25
+   "stall": 1,
+   "offTarget": 3
   },
-  "ratings": 31
+  "ratings": 6
  },
  {
   "index": 35,

@@ -1,6 +1,6 @@
 {
   "id": "s1-L034",
-  "seed": 1224849928,
+  "seed": 304161225,
   "engineVersion": "0.21.0",
   "contentVersion": "0.18.0",
   "map": {
@@ -46,8 +46,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        373,
-        601
+        369,
+        597
       ],
       "sells": [
         "res.food_raw_1",
@@ -55,38 +55,38 @@
       ],
       "queue": [
         [
-          312,
-          601
+          308,
+          597
         ],
         [
-          312,
-          635
+          308,
+          631
         ],
         [
-          312,
-          669
+          308,
+          665
         ],
         [
-          312,
-          703
+          308,
+          699
         ]
       ],
       "route": [
         [
           500,
-          645
+          639
         ],
         [
           477,
-          645
+          639
         ],
         [
-          321,
-          645
+          315,
+          639
         ],
         [
-          312,
-          601
+          308,
+          597
         ]
       ]
     },
@@ -94,57 +94,85 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        160,
-        497
+        360,
+        434
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        234,
-        428
+        181,
+        498
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        178,
-        422
+        187,
+        461
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        207,
-        411
+        186,
+        532
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        255,
-        408
+        203,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        254,
+        430
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        159,
+        477
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
         148,
-        421
+        509
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        156,
-        392
+        243,
+        397
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        120,
+        147,
+        448
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        186,
         403
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        133,
+        400
       ]
     },
     {
@@ -225,50 +253,50 @@
     {
       "type": "capture.recruit_container",
       "at": [
+        257,
+        240
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        378,
+        88
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
         417,
-        188
+        234
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        277,
-        146
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        62,
-        210
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        191,
-        39
+        158,
+        195
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        84,
-        66
+        38,
+        186
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        420,
-        82
+        160,
+        46
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        178,
-        143
+        266,
+        141
       ]
     },
     {
@@ -287,11 +315,11 @@
       "type": "pad.hire",
       "id": "ranger",
       "at": [
-        344,
-        488
+        50,
+        352
       ],
       "cost": {
-        "res.currency": 14
+        "res.currency": 12
       },
       "role": {
         "role": "role.hunter",
@@ -312,19 +340,19 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 4,
+    "start.currency": 6,
     "core.burn": 2.5,
     "housing.base": 8,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 290
+    "level.budgetSeconds": 450
   },
   "goal": {
     "type": "protein",
-    "n": 19
+    "n": 36
   },
   "family": "rescue",
   "objectives": [
@@ -332,12 +360,12 @@
       "id": "main",
       "kind": "protein",
       "params": {
-        "n": 19
+        "n": 36
       }
     },
     {
       "id": "challenge",
-      "kind": "tow_trip",
+      "kind": "tow_full_trip",
       "params": {
         "n": 3
       }
@@ -346,7 +374,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 209
+        "seconds": 325
       }
     }
   ],
@@ -363,9 +391,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.571,
-    "fun": 0.903,
-    "botMargin": 0.597,
+    "difficulty": 0.527,
+    "fun": 0.895,
+    "botMargin": 0.58,
     "botsPassed": [
       "good",
       "average",

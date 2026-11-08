@@ -37,7 +37,7 @@
         500
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -322,8 +322,8 @@
       "type": "pad.hire",
       "id": "ranger",
       "at": [
-        302,
-        562
+        448,
+        342
       ],
       "cost": {
         "res.currency": 12
@@ -347,20 +347,20 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
+    "start.currency": 6,
     "core.burn": 2.6,
     "housing.base": 8,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 2.9,
+    "customers.spawn": 2.8,
     "sales.clerkSide": 1,
     "customers.orderMin": 1,
     "customers.orderMax": 2,
-    "level.budgetSeconds": 340
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "protein",
-    "n": 24
+    "n": 28
   },
   "family": "rescue",
   "objectives": [
@@ -368,7 +368,7 @@
       "id": "main",
       "kind": "protein",
       "params": {
-        "n": 24
+        "n": 28
       }
     },
     {
@@ -380,7 +380,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 203
+        "seconds": 206
       }
     }
   ],
@@ -397,9 +397,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.429,
-    "fun": 0.826,
-    "botMargin": 0.637,
+    "difficulty": 0.282,
+    "fun": 0.719,
+    "botMargin": 0.638,
     "botsPassed": [
       "good",
       "average",
@@ -411,8 +411,8 @@
       "good": 3,
       "median": 3,
       "goodAll": 1,
-      "human": 3,
-      "humanAll": 1
+      "human": 2.83,
+      "humanAll": 0.83
     }
   }
 }
