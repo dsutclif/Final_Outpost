@@ -10,6 +10,7 @@ import {
   DataTexture,
   Frustum,
   ExtrudeGeometry,
+  GreaterDepth,
   Group,
   Matrix4,
   Material,
@@ -1931,7 +1932,8 @@ export class Renderer3D implements Renderer {
       let m = this.depotPads[i];
       if (!m) { m = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false })); m.renderOrder = 1; this.dynamic.add(m); this.depotPads[i] = m; }
       const res = i === 0 ? undefined : d.stores[i - 1];
-      const mat = this.labels.meshMaterial(`dp|${res ?? ""}`, () => this.depotPadArt(res));
+      const lightMark = this.padMarkLight();
+      const mat = this.labels.meshMaterial(`dp|${res ?? ""}|${lightMark}`, () => this.depotPadArt(res, lightMark));
       if (mat) m.material = mat;
       m.visible = !!mat;
       const w = this.wv({ x: d.pos.x + o[0] * FP, y: d.pos.y + o[1] * FP });
@@ -1944,20 +1946,22 @@ export class Renderer3D implements Renderer {
   }
 
   /** A warehouse pad: solid outline, an inward arrow on the drop-off, the resource's icon on a pickup. */
-  private depotPadArt(res?: string): LabelArt {
+  private depotPadArt(res: string | undefined, light: boolean): LabelArt {
     const t = this.tokens;
+    const mark = light ? t.guideLight : t.guideShadow;
     return {
       w: 256, h: 256,
       draw: (g, w, h) => {
         g.clearRect(0, 0, w, h);
         roundRect(g, 14, 14, w - 28, h - 28, 44);
-        g.fillStyle = "rgba(0,0,0,0.22)"; g.fill();
-        g.lineWidth = 9; g.strokeStyle = t.interactive; g.stroke();
+        g.fillStyle = light ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.16)"; g.fill();
+        g.lineJoin = "round";
+        this.markStroke(g, light, 10, mark);
         if (res) { drawIcon(g, w / 2, h / 2, 62, resToken(t, res), t.ink); return; }
         // tip up the canvas = world -z; syncDepot yaws the pad so the tip points at the building
         g.beginPath(); g.moveTo(w / 2, h / 2 - 56); g.lineTo(w / 2 - 50, h / 2); g.lineTo(w / 2 - 20, h / 2); g.lineTo(w / 2 - 20, h / 2 + 56);
         g.lineTo(w / 2 + 20, h / 2 + 56); g.lineTo(w / 2 + 20, h / 2); g.lineTo(w / 2 + 50, h / 2); g.closePath();
-        g.fillStyle = t.interactive; g.fill(); g.lineWidth = 6; g.strokeStyle = t.ink; g.stroke();
+        g.fillStyle = mark; g.fill(); g.lineWidth = 7; g.strokeStyle = light ? t.ink : t.guideLight; g.stroke();
       },
     };
   }
@@ -1983,6 +1987,8 @@ export class Renderer3D implements Renderer {
       const at = this.wv(pad.pos);
       const p = this.place(`pad:${pad.id}`, pad.type, at, 1);
       if (big && p.data["big"] === undefined) { p.data["big"] = true; }
+      // the pad is the flat ground decal alone (#10); the plate model stays built (anchors, scale) but is never drawn
+      p.model.root.visible = false;
       const sc = (big ? 1.4 : 1) * this.devPadScale;
       this.popScale(p, ART_M, sc, sc);
       const cost = this.liveCost(s, pad.id) ?? info?.cost ?? {};
@@ -2000,10 +2006,12 @@ export class Renderer3D implements Renderer {
       }
       const wk = info?.kind === "hire" ? info : undefined;
       const glyph = padGlyph(info, this.content.upgrades);
-      const dm = this.labels.meshMaterial(`pd|${fb}|${locked}|${big}|${wk?.what ?? ""}|${wk?.worker?.res ?? ""}|${glyph}`, () => this.padDecalArt(fb / 24, locked, big, wk?.what, wk?.worker?.res, glyph));
+      const lightMark = this.padMarkLight();
+      const dm = this.labels.meshMaterial(`pd|${fb}|${locked}|${big}|${wk?.what ?? ""}|${wk?.worker?.res ?? ""}|${glyph}|${lightMark}`, () => this.padDecalArt(fb / 24, locked, big, lightMark, wk?.what, wk?.worker?.res, glyph));
       if (dm) { decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
+      this.padXray(p, decal, dm);
       // floating name plus every cost resource with what is still owed (icon + number each)
       const sp = this.sprite(p, 0);
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
@@ -2909,30 +2917,70 @@ export class Renderer3D implements Renderer {
     };
   }
 
-  private padDecalArt(fill: number, locked: boolean, big: boolean, role?: string, res?: string, glyph = ""): LabelArt {
+  private readonly xrayMats = new WeakMap<Material, MeshBasicMaterial>();
+
+  /**
+   * A pad stays findable behind a taller model (#41): a second, fainter copy of its decal that draws only where
+   * something nearer the camera covers the first. Shares the decal's texture, so it costs one more quad.
+   */
+  private padXray(p: Placed, decal: Mesh, dm: MeshBasicMaterial | null): void {
+    let xr = p.extra[4] as Mesh | undefined;
+    if (!xr) { xr = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false })); xr.renderOrder = 1; this.dynamic.add(xr); p.extra[4] = xr; }
+    xr.visible = !!dm && decal.visible;
+    if (!dm) return;
+    let m = this.xrayMats.get(dm);
+    if (!m) { m = dm.clone(); m.depthFunc = GreaterDepth; m.opacity = 0.45; this.xrayMats.set(dm, m); }
+    xr.material = m;
+    xr.position.copy(decal.position);
+    xr.scale.copy(decal.scale);
+  }
+
+  /** True when the scene is dark enough that the pad marks go light (night, a dim story sky, a storm); else dark, like the guide arrows. */
+  private padMarkLight(): boolean {
+    const e = this.env;
+    if (!e) return false;
+    return e.night || (!!e.story && e.story.sun < 0.55) || e.storminess > 0.5;
+  }
+
+  /**
+   * Stroke the current path as a flat pad mark: the guide-arrow shade (light in dim light, dark by day)
+   * over a wide halo of the opposite shade, so it reads on any ground in any light (#10).
+   */
+  private markStroke(g: CanvasRenderingContext2D, light: boolean, width: number, color?: string): void {
     const t = this.tokens;
-    const col = big ? t.accent : t.interactive;
+    g.lineWidth = width + 10; g.strokeStyle = light ? t.ink : t.guideLight; g.globalAlpha = 0.85; g.stroke();
+    g.lineWidth = width; g.strokeStyle = color ?? (light ? t.guideLight : t.guideShadow); g.globalAlpha = 1; g.stroke();
+  }
+
+  private padDecalArt(fill: number, locked: boolean, big: boolean, light: boolean, role?: string, res?: string, glyph = ""): LabelArt {
+    const t = this.tokens;
+    const mark = light ? t.guideLight : t.guideShadow;
+    const col = locked ? mix(mark, light ? t.ink : t.guideLight, 0.45) : mark;
     return {
       w: 256, h: 256,
       draw: (g, w, h) => {
         g.clearRect(0, 0, w, h);
-        g.setLineDash([22, 14]);
+        // a soft plate so the pad is a surface, not just a line
         roundRect(g, 14, 14, w - 28, h - 28, 44);
-        g.lineWidth = 9; g.strokeStyle = locked ? mix(t.structureDark, t.ink, 0.3) : col; g.stroke();
+        g.fillStyle = light ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.16)"; g.fill();
+        g.setLineDash(big ? [] : [22, 14]);
+        g.lineJoin = "round";
+        this.markStroke(g, light, big ? 12 : 9, col);
         g.setLineDash([]);
         g.beginPath(); g.arc(w / 2, h / 2, 82, 0, Math.PI * 2);
-        g.lineWidth = 18; g.strokeStyle = "rgba(0,0,0,0.28)"; g.stroke();
+        g.lineWidth = 18; g.strokeStyle = light ? "rgba(0,0,0,0.45)" : "rgba(255,255,255,0.5)"; g.stroke();
         if (fill > 0) {
+          g.lineCap = "round";
           g.beginPath(); g.arc(w / 2, h / 2, 82, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fill);
-          g.lineWidth = 18; g.lineCap = "round"; g.strokeStyle = col; g.stroke();
+          this.markStroke(g, light, 18, locked ? col : mark);
         }
         // a hire pad shows the job's tool on a disc in the role colour, badged with what they handle;
         // upgrade and unlock pads show what they do (Doug: "a register on the cashier pad")
         if (glyph) {
-          g.globalAlpha = locked ? 0.5 : 1;
-          const disc = role ? this.skin.palette.role[role] ?? t.structure : col;
+          g.globalAlpha = locked ? 0.55 : 1;
+          const disc = role ? this.skin.palette.role[role] ?? t.structure : mark;
           g.beginPath(); g.arc(w / 2, h / 2, 58, 0, Math.PI * 2);
-          g.fillStyle = disc; g.fill(); g.lineWidth = 7; g.strokeStyle = t.ink; g.stroke();
+          g.fillStyle = disc; g.fill(); g.lineWidth = 8; g.strokeStyle = t.ink; g.stroke();
           drawGlyph(g, glyph, w / 2, h / 2, 38, t.ink, t.paper.panel);
           if (res) drawIcon(g, w / 2 + 48, h / 2 + 48, 22, resToken(t, res), t.ink);
           g.globalAlpha = 1;

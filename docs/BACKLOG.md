@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#83**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#84**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -49,6 +49,10 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       2. Create a fine-grained token for outpost-ops only, with Issues and Contents read/write.
       Then create the routines in dry-run for a week.
 - [ ] **#66 · PILLARS-DRAFT.md (waiting on Doug):** the order of the pillars, and pillar 7's pay-to-win line.
+- [ ] **#83 · iPhone checks for Bundle 5 (flat pads, #10 #41 #52).** Pads are now flat decals; the probes ran in the Chromium pane at phone size, not on a real phone:
+      1. Day, dusk (a story level), night and a storm: every pad kind (hire, build, upgrade, warehouse, clear) reads as a flat marking.
+      2. A pad behind a gate or the kiosk shows faintly through it (s1-L010 tower pads).
+      3. Not yet seen in a real scenario (#52): red bolts in a real raid, the healing cross with a real medic, trader order pictures in a live bubble, fireworks after a real win, the shovel at the level 3 rockslide, wall fade on the phone, core fade in a story level.
 - [ ] **#76 · iPhone checks (Safari, live site, after the next deploy).** The probes ran on software GL in Chromium, so none of this is proven:
       1. Frame rate: play s1-L014 for two minutes with waves; it should hold smooth, no stutter when the wave icons appear.
       2. Medic kneel: send a medic to a hurt crewmate; the kneel animation plays and ends.
