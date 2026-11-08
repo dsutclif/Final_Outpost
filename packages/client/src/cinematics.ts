@@ -33,7 +33,7 @@ export const CINEMATICS: Record<VideoId, FilmInfo> = {
 };
 
 /** Bump a film's version when it is re-rendered: players who saw an older one see it again. */
-export const FILM_VERSIONS: Record<CinematicId, number> = { crash_open: 1, helmet_reveal: 2, empty_bays: 1, crash_log: 1, sela_arrival: 1, chip_handoff: 1, warlord_fall: 2 };
+export const FILM_VERSIONS: Record<CinematicId, number> = { crash_open: 1, helmet_reveal: 2, empty_bays: 1, crash_log: 1, sela_arrival: 1, chip_handoff: 1, warlord_fall: 3 };
 
 /**
  * While the story films and live scenes are being edited (Doug, 2026-11-04), every one plays on every

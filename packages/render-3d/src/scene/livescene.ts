@@ -1,11 +1,11 @@
 import {
   AmbientLight, AnimationMixer, Box3, LoopOnce, Matrix4, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera,
-  PlaneGeometry, PointLight, Quaternion, Scene, SphereGeometry, SpotLight, Vector3, WebGLRenderer, type Material, type Object3D,
+  CircleGeometry, PlaneGeometry, PointLight, Quaternion, Scene, SphereGeometry, SpotLight, Vector3, WebGLRenderer, type Material, type Object3D,
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
 import { heldInHand } from "./rigged.js";
-import { FOV_DEG } from "../units.js";
+import { FOV_DEG, PITCH_DEG, YAW_DEG } from "../units.js";
 import { POD_CAVITY_M, POD_K, SIZES } from "../sizes.js";
 import RIG from "../assets/buggy.json";
 
@@ -516,7 +516,8 @@ function dawnSet(scene: Scene): void {
   const sun = new DirectionalLight("#ffc690", 2.4);
   sun.position.set(14, 7, 6);
   scene.add(sun);
-  const sand = new Mesh(new PlaneGeometry(240, 240), new MeshStandardMaterial({ color: "#a98660", roughness: 1 }));
+  // a disc, so the closing camera turn (45 degrees) never shows a corner on the horizon
+  const sand = new Mesh(new CircleGeometry(300, 64), new MeshStandardMaterial({ color: "#a98660", roughness: 1 }));
   sand.rotation.x = -Math.PI / 2;
   scene.add(sand);
   const stone = new MeshStandardMaterial({ color: "#7d6248", roughness: 1 });
@@ -585,7 +586,8 @@ function warlordFall(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   // x axis points the opening down (Doug, 2026-11-07: upright on the head) and the opening's centre sits on the neck.
   // Dropped, it comes to rest as built, as the helmet lies in play. Sized to the head across its width (x).
   const helmBox = new Box3().setFromObject(helmet), helmW = Math.max(1e-6, helmBox.max.x - helmBox.min.x);
-  const helmK = headH ? (headH * VALE_HELMET) / helmW : 1;
+  const headW = face ? (headBox.max.x - headBox.min.x) * face.scale.x : 0;
+  const helmK = headW ? (headW * VALE_HELMET) / helmW : 1;
   helmet.scale.setScalar(helmK);
   const X_AXIS = new Vector3(1, 0, 0), Y_AXIS = new Vector3(0, 1, 0);
   const helmFit = new Quaternion().setFromAxisAngle(Y_AXIS, VALE_HELMET_YAW).multiply(new Quaternion().setFromAxisAngle(X_AXIS, VALE_HELMET_TIP));
@@ -714,24 +716,39 @@ function warlordFall(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
         helmet.quaternion.slerpQuaternions(helmQ0, HELM_REST, ek).premultiply(q.setFromAxisAngle(X_AXIS, ek * Math.PI * 2));
         helmet.position.copy(mid).sub(v.copy(HC).applyQuaternion(helmet.quaternion));
       }
-      // camera: side-on and steady, framed on the fall spot; it eases right a little as Vale gets up and runs
+      // camera: side-on and steady, framed on the fall spot; as Vale gets up and runs it eases right, pulls back and
+      // rises toward the game's own view (30 degrees down, turned 45 degrees), so the cut back to play is a small step
+      // (Doug, 2026-11-08)
+      const out = span(t, SECONDS - CAM_OUT, SECONDS);
       const cx = hipsAt.x + 0.5 + 0.3 * span(t, SECONDS - 1.6, SECONDS);
-      camera.position.set(cx, tall ? 1.6 : 1.3, tall ? 6.8 : 4.6);
-      camera.lookAt(cx, tall ? 0.85 : 0.8, 0);
+      const lookY = (tall ? 0.85 : 0.8) * (1 - out) + 0.6 * out;
+      const d0 = tall ? 6.8 : 4.6, y0 = (tall ? 1.6 : 1.3) - lookY;
+      const dist = Math.hypot(d0, y0) * (1 + (CAM_BACK - 1) * out);
+      const pitch = Math.atan2(y0, d0) * (1 - out) + CAM_PITCH * out, yaw = CAM_YAW * out;
+      camera.position.set(cx + Math.sin(yaw) * Math.cos(pitch) * dist, lookY + Math.sin(pitch) * dist, Math.cos(yaw) * Math.cos(pitch) * dist);
+      camera.lookAt(cx, lookY, 0);
     },
     // the models (and the gun in Vale's hand) share their GPU data with the game, which is drawing Vale again as this
     // closes: take them out first, so only the set is disposed
     dispose() { root?.removeFromParent(); face?.removeFromParent(); helmet.removeFromParent(); disposeAll(scene); },
   };
 }
-/** Vale's head (crop of the bust, chin to crown plus the neck) as a share of the warlord's height. */
-const VALE_HEAD = 0.17;
+/**
+ * Vale's head (crop of the bust, chin to crown plus the neck) as a share of the warlord's height (its suit without a
+ * head). Sizes are capped against the old warlord's grey helmet (Doug, 2026-11-08: head and helmet at most 20% bigger).
+ * In play units the grey helmet is 0.113 wide, 0.172 tall and 0.176 deep. The black helmet is the cap: 0.136 x 0.193 x
+ * 0.178 (1.2x the width). Its shell is thick, so the head inside it is 0.091 x 0.145 (with its neck) x 0.133, about 0.8x
+ * the grey helmet; the same size in play (meshy.json held, scale 0.63), so the head the helmet leaves is the one that runs.
+ */
+const VALE_HEAD = 0.132;
 /** How far the head sinks below the Head bone into the neck ring, as a share of the head's height. */
 const VALE_NECK = 0.25;
-/** The worn helmet's width against the head's height, and how high on the head its base sits. */
-const VALE_HELMET = 1.35, VALE_HELMET_AT = -0.12;
+/** The worn helmet's width against the head's width (1.5: 1.2x the grey helmet's), and how high on the head its neck opening sits (crown covered). */
+const VALE_HELMET = 1.5, VALE_HELMET_AT = 0.1;
 /** The helmet's turn about the head's up axis so its visor faces the way the face does. */
 const VALE_HELMET_YAW = 0;
+/** The closing move: over the last CAM_OUT seconds the camera backs off CAM_BACK times and turns to the game's angles. */
+const CAM_OUT = 2.0, CAM_BACK = 3.6, CAM_PITCH = (PITCH_DEG * Math.PI) / 180, CAM_YAW = (YAW_DEG * Math.PI) / 180;
 /** The quarter turn that stands the helmet item (built lying on its side) upright on the head. */
 const VALE_HELMET_TIP = Math.PI / 2;
 

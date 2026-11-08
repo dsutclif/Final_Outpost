@@ -2,7 +2,7 @@
 # and written into the source model as a clip, so the game plays it like any other (meshy.json clips.fall).
 #
 # blender -b --factory-startup -P tools/cinematics/vale_fall_bake.py -- [--check]
-#   reads  ../Asset workflow/3D Models/Warlord_headless_Vale_Animated.glb
+#   reads  ../Asset workflow/3D Models/Warlord_headless_Vale_Animated_rig.glb (written by vale_rig_fix.py)
 #   writes ../Asset workflow/3D Models/Warlord_headless_Vale_Animated_fall.glb (its clips plus Vale_Fall)
 #   --check: profile and front stills of the baked clip to out/vale_bake_*.png instead of writing
 #
@@ -19,7 +19,7 @@ import lib, retarget, vale_fall_stick as stick
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODELS = os.path.normpath(os.path.join(HERE, "..", "..", "..", "Asset workflow", "3D Models"))
-SRC = os.path.join(MODELS, "Warlord_headless_Vale_Animated.glb")
+SRC = os.path.join(MODELS, "Warlord_headless_Vale_Animated_rig.glb")  # the head-fixed rig (vale_rig_fix.py)
 DST = os.path.join(MODELS, "Warlord_headless_Vale_Animated_fall.glb")
 ACTION = "Vale_Fall"
 RUN_TAIL = 14  # frames of the eased run kept after the get-up's cut

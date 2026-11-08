@@ -38,7 +38,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
   deleted. Still open: Doug deletes the remote branches `look-test`, `object-sizes` and `story-buggy`, and #78 makes the
   nightly fully green. Keep `fo-wt-handoff` until #75 backs up its film tools.
 - Story files for #3, #4, #5, #14: claimed by the orchestrator session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
-- #6 follow-up (Vale head rig fix, head/helmet sizes): Vale helmet animations session, worktree `fo-wt-vale-fall`, from 2026-11-08.
 
 ## Waiting on Doug
 
@@ -218,6 +217,8 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       **Live 2026-11-07 (b4c63fc), waiting on Doug's iPhone check.** Built to Doug's stick-figure picks and his three notes;
       gun kept throughout (Doug). Checked headless only (scene stills at phone sizes, a bot run of story-L005 to the retreat).
       Open for Doug: "It's over for tonight" now plays 3 s after the fall even if other raiders are still alive.
+      **2026-11-08 follow-up (Doug):** Vale's head rig fixed (head upright, no longer sunk), head and black helmet capped at
+      1.2x the old grey helmet, and the film ends pulling back to the game's camera angle. Checked headless; iPhone check still open.
       Details: `docs/STORY-WORK-LOG.md` 2026-11-07 entry.
       **Doug, 2026-11-07 (later), supersedes the staging above where they differ:**
       1. Drop the commander-runs-with-the-helmet clip (`vale_run`, S33/#55). "Vale?" stays.
