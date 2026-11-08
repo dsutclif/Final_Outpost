@@ -1,4 +1,4 @@
-import type { CameraBeat, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
+import type { CameraBeat, FallScene, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
 import { StoryProps } from "./storyprop.js";
 import type { Interp } from "../interp.js";
 import type { CoreSpirit } from "./corespirit.js";
@@ -58,6 +58,12 @@ export class StoryPresent implements StoryPresentation {
   fleeingModel(kind: string, model: string): void { this.fleeingModels.set(kind, model); }
   /** Dropped captures show before they are revealed; the renderer reads it. */
   droppedShown = false;
+  /** A fall to film (story `fall`), waiting for the renderer to take it; it answers through `done`. */
+  fallReq: { o: FallScene; done: (ok: boolean) => void } | null = null;
+  fall(o: FallScene): Promise<boolean> {
+    this.fallReq?.done(false);
+    return new Promise((done) => { this.fallReq = { o, done }; });
+  }
   showDropped(on: boolean): void { this.droppedShown = on; }
 
   readonly spirit: StoryPresentation["spirit"] = {

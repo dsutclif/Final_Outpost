@@ -892,6 +892,11 @@ export class App {
         return e?.rect ? { x: e.rect[0]! + e.rect[2]! / 2, y: e.rect[1]! + e.rect[3]! / 2 } : null;
       },
       film: async (f) => { if (filmDue(f, this.progress.cinematics)) await this.cinematic(f); },
+      // filmed in the level, every time (it is play, not a film); the film stands in when the models are missing
+      fall: async (o) => {
+        const ok = (await s.renderer.story()?.fall(o)) ?? false;
+        if (!ok && o.film && filmDue(o.film, this.progress.cinematics)) await this.cinematic(o.film as CinematicId);
+      },
       inset: (f) => { void playCinematic(this.el.app, f as CinematicId, { scene: this.skin.story?.scenes?.[f], inset: true }); },
       retry: () => void this.openLevel(s.meta, true),
       goalSettled: (label, done) => {

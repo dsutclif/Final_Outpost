@@ -1223,9 +1223,10 @@ export const marsGreenhouse: Skin = {
           { on: { hostile: "hostile.boss", r: 330 }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
             { light: "sunrise", seconds: 8 },
-            // the commander's last shot: the warlord is thrown down, the helmet comes off, Vale gets up (live scene,
-            // S32); the run off screen right is in play (fleeingModels). No line during the scene (Doug, 2026-11-07)
-            { film: "warlord_fall" },
+            // the commander's last shot: the warlord is thrown down, the helmet comes off, Vale gets up and runs (S32),
+            // filmed in the level with play paused (Doug, 2026-11-08); the live scene stands in without the models.
+            // No line during it (Doug, 2026-11-07)
+            { fall: { kind: "hostile.boss", film: "warlord_fall" } },
           ] },
           // once Vale has run off screen (about 3 s at the fleeing pace, measured on a phone-shaped view), KILN, with dots
           // on the helmet where it fell (manifest heldBy: boss; showDropped draws it there before dawn reveals it to tow)

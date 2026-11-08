@@ -73,6 +73,13 @@ export type StoryAction =
   | { light: string; seconds?: number }
   /** Beat: a film or live scene by id, paused until it ends. An unknown id is skipped. */
   | { film: string }
+  /**
+   * Beat, paused: the hostile of `kind` that just broke off (its fleeingModels swap, with a `fall` clip) is shot down
+   * in play, filmed in the level itself: the camera eases in closer and lower (`zoom`, `pitch` degrees), the fall
+   * plays where it was hit, what it carried on its head (its heldBy capture) comes off and rolls to where it lies in
+   * play, and the camera eases back. Without the models it plays `film` instead (when given).
+   */
+  | { fall: { kind: string; zoom?: number; pitch?: number; film?: string } }
   /** A live scene in a small frame over play; the queue carries on beside it (lines keep coming). */
   | { inset: string }
   /** Beat: wait this many seconds (play carries on), e.g. for an inset to reach its moment. */

@@ -23,6 +23,7 @@ import {
   ACESFilmicToneMapping,
   Object3D,
   PCFShadowMap,
+  Quaternion,
   Shape,
   PCFSoftShadowMap,
   PerspectiveCamera,
@@ -46,11 +47,12 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { disposeGeo, getAnchor, mesh, model, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
-import { applyMeshy, loadMeshy, meshyBase, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
+import { FALL_CAM_IN, FALL_CAM_OUT, FALL_LEAD, FALL_PITCH, FALL_ZOOM, ROLL_S, helmetMiddle, rollPose, wearHelmet, type Pose } from "./scene/fallstage.js";
+import { applyMeshy, loadMeshy, meshyRig, meshyBase, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash, hash01 } from "./assets/scatter.js";
-import { LEAD_WEIGHT, type LiveLook, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
+import { LEAD_WEIGHT, type FallScene, type LiveLook, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder, ROCKS } from "./geom.js";
 import { ghostSpec, type GhostSpec } from "./ghost.js";
 import { Interp, type V } from "./interp.js";
@@ -124,7 +126,7 @@ const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.shi
 const CORE_BURIED = 0.9;
 
 const NO_STORY: StoryPresentation = {
-  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {}, fleeingModel() {}, showDropped() {},
+  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {}, fleeingModel() {}, showDropped() {}, fall: () => Promise.resolve(false),
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
 };
@@ -1044,6 +1046,7 @@ export class Renderer3D implements Renderer {
     const pv = this.interp.vel("player");
     const sp = Math.min(1, Math.hypot(pv.x, pv.y) / 3);
     this.moving += (sp - this.moving) * Math.min(1, dt * 10);
+    this.fallTick(state, dt);
     this.followCamera(cam, pl, dt);
 
     for (const p of this.placed.values()) p.seen = false;
@@ -1101,8 +1104,12 @@ export class Renderer3D implements Renderer {
     this.env.update(dt, this.t, this.look, coreW, this.safeR * SAFE_RING_K, this.fuelK, state.hazard?.phase ?? "none", this.camera.position.distanceTo(this.look));
     this.updateDom(state);
     this.synced = true;
+    // a filmed fall shows no floating labels (names, prices, tags: sprites drawn over the world), this frame only
+    const hid: Sprite[] = [];
+    if (this.fallStage) for (const o of this.dynamic.children) if ((o as Sprite).isSprite && o.visible && o.renderOrder >= 10) { o.visible = false; hid.push(o as Sprite); }
     if (this.lookT) this.lookT.render(dt);
     else this.gl.render(this.scene, this.camera);
+    for (const o of hid) o.visible = true;
   }
 
   /** Fixed point to a ground point in world units. */
@@ -1129,13 +1136,17 @@ export class Renderer3D implements Renderer {
 
   private followCamera(cam: Camera, target: V, dt: number): void {
     const o = this.camOverride;
-    const viewW = o?.viewW ?? viewWFor(this.manifest.family), pitch = o ? (o.pitch * Math.PI) / 180 : PITCH, yaw = o ? (o.yaw * Math.PI) / 180 : YAW;
+    const viewW = o?.viewW ?? viewWFor(this.manifest.family), yaw = o ? (o.yaw * Math.PI) / 180 : YAW;
+    let pitch = o ? (o.pitch * Math.PI) / 180 : PITCH;
     const fov = o?.fov ?? FOV_DEG;
     if (this.camera.fov !== fov) this.camera.fov = fov;
     this.heroK = cam.heroK ?? 1;
     const W = this.manifest.map.w, H = this.manifest.map.h;
     const beat = this.storyP?.activeBeat(this.t) ?? null;
-    const z = (beat?.zoom ?? cam.zoom) || 1;
+    // a filmed fall eases the camera in closer and lower on the fall spot, and back out (fallTick)
+    const fs = this.fallStage, fk = this.fallCamK();
+    const z = ((beat?.zoom ?? cam.zoom) || 1) * (1 - fk) + (fs?.o.zoom ?? FALL_ZOOM) * fk;
+    if (fk > 0) pitch += (((fs?.o.pitch ?? FALL_PITCH) * Math.PI) / 180 - pitch) * fk;
     if (beat) target = { x: beat.at.x, y: beat.at.y };
     const vw = viewW / z, vh = (viewW * this.cssH) / this.cssW / z;
     this.labels.screenK = vw / LABEL_VIEW_W;
@@ -1159,7 +1170,21 @@ export class Renderer3D implements Renderer {
     cam.y = Math.max(0, Math.min(H, cam.y));
 
     const shake = this.fx?.shake ?? 0;
-    this.look.set(cam.x + (shake ? (Math.random() - 0.5) * shake : 0), 0, cam.y + (shake ? (Math.random() - 0.5) * shake : 0));
+    // the body as it goes (its hips, followed with a little lag: the fall carries it back, the run carries it off),
+    // a little toward where the runner heads so its first strides stay in frame
+    if (fs) {
+      const root = this.rigged?.rootOf(fs.key);
+      if (root && !fs.hips) root.traverse((o) => { if (!fs.hips && /Hips$/.test(o.name)) fs.hips = o; });
+      if (fs.hips?.parent) {
+        const w = fs.hips.getWorldPosition(new Vector3()), e = 1 - Math.exp(-dt * FALL_FOLLOW);
+        fs.aim.x += (w.x - fs.aim.x) * e; fs.aim.y += (w.z - fs.aim.y) * e;
+      }
+    }
+    // and past it, away from the camera, so the body sits a little below the middle of the frame, not high in it
+    const fx = fs ? fs.aim.x + (fs.dir.x * 0.4 - Math.sin(yaw) * FALL_PAST) * ART_M : 0, fy = fs ? fs.aim.y + (fs.dir.y * 0.4 - Math.cos(yaw) * FALL_PAST) * ART_M : 0;
+    const lx = fs && fk > 0 ? cam.x + (fx - cam.x) * fk : cam.x;
+    const ly = fs && fk > 0 ? cam.y + (fy - cam.y) * fk : cam.y;
+    this.look.set(lx + (shake ? (Math.random() - 0.5) * shake : 0), 0, ly + (shake ? (Math.random() - 0.5) * shake : 0));
     const vfov = (this.camera.fov * Math.PI) / 180;
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * this.camera.aspect);
     const d = vw / 2 / Math.tan(hfov / 2);
@@ -1555,6 +1580,14 @@ export class Renderer3D implements Renderer {
   private namedAsked = new Set<string>();
   /** Where and when a swapped fleeing hostile (story fleeingModels) started its run, for the ease-in. */
   private fleeFrom = new Map<string, { x: number; y: number; tick: number }>();
+  /**
+   * A hostile's fall filmed in the level (story `fall`, fallTick): the fleeing hostile stands where it was hit and
+   * plays its `fall` clip once while play is paused; the camera eases in closer and lower and back out; the helmet it
+   * wears (a copy of its dropped capture) comes off when its head meets the ground and tumbles to where play draws it.
+   */
+  private fallStage: FallStage | null = null;
+  /** After a filmed fall: how far the drawn runner leads the sim (world units), closed over FALL_CATCH seconds. */
+  private fleeOff = new Map<string, { x: number; y: number; t0: number }>();
   /** Captures seen carried by a boss (heldBy): once dropped, story showDropped draws them before they are revealed. */
   private bossHeld = new Set<number>();
   private customer(key: string, c: CustomerState, a: number, queued: boolean, kiosk: Placed, serving?: { customer: number; ticks: number; of: number }): void {
@@ -2357,6 +2390,7 @@ export class Renderer3D implements Renderer {
       const pos = this.interp.pos(key, c.pos, a);
       // an empty decoy pod has its own tinted model
       const p = this.place(`cap:${c.id}`, c.decoy ? `${c.type}.decoy` : c.type, v3(pos.x, 0, pos.y));
+      if (this.fallStage?.cap === c.id) p.model.root.visible = false; // its copy is worn, then tumbling (fallHelmet)
       const lodged = this.captureDrop(c, p, pos, s);
       if (c.state === "idle" && !lodged) this.candidate(c.type, p);
       // a flight recorder's locator beacon blinks
@@ -2468,6 +2502,99 @@ export class Renderer3D implements Renderer {
     this.crowd!.add(look, anim, tmpM, frost);
     this.blobs!.add(pos.x, pos.y, look.kind === "creature" ? 16 : 10 * look.scale);
     return tmpM;
+  }
+
+  /** A filmed fall (story `fall`): take the request, wait for the models, run the clip's length, then hand back. */
+  private fallTick(s: State, dt: number): void {
+    const req = this.storyP?.fallReq;
+    if (req && !this.fallStage) {
+      this.storyP!.fallReq = null;
+      const h = (s.fleeing ?? []).find((x) => x.type === req.o.kind);
+      const swap = h ? this.storyP!.fleeingModels.get(h.type) : undefined;
+      if (!h || !swap) { req.done(false); return; }
+      const props = (meshyEntries().find((e) => e.id === swap)?.held?.["*"] ?? []).map((x) => x.prop);
+      void loadMeshy(undefined, new Set([swap, ...props]), undefined, true);
+      // it runs straight back out past its attack edge (sim stepFleeing); the clip runs off along its +x
+      const dir = h.side === "n" ? { x: 0, y: -1 } : h.side === "s" ? { x: 0, y: 1 } : h.side === "w" ? { x: -1, y: 0 } : { x: 1, y: 0 };
+      const cap = s.captures.find((c) => this.bossHeld.has(c.id) && !c.heldBy && Math.hypot(c.pos.x - h.pos.x, c.pos.y - h.pos.y) < 4 * ART_M * FP);
+      this.fallStage = {
+        o: req.o, done: req.done, key: "h:" + h.id, swap, at: { x: h.pos.x / FP, y: h.pos.y / FP }, dir, yaw: Math.atan2(-dir.y, dir.x),
+        aim: { x: h.pos.x / FP, y: h.pos.y / FP }, hips: null, clock: 0, start: -1, dur: 0, cap: cap?.id ?? null, helmet: null, mid: null, head0: 0, headPrev: 0, off: null, from: null,
+      };
+    }
+    const st = this.fallStage;
+    if (!st) return;
+    // the stage runs on the frame clock the clips run on (capped steps), so a slow frame never cuts the fall short
+    st.clock += dt;
+    if (st.start < 0) {
+      const e = this.rigged?.entryFor(st.swap);
+      const name = e?.clips?.["fall"];
+      const clip = e && name ? meshyRig(e.file)?.clips.find((c) => c.name === name) : undefined;
+      if (clip) { st.start = Math.max(st.clock, FALL_LEAD); st.dur = clip.duration; }
+      else if (st.clock > 5) this.fallEnd(false);
+      return;
+    }
+    if (st.clock >= st.start + st.dur) this.fallEnd(true);
+  }
+
+  /** 0..1: how far the camera has moved to the filmed fall (in over FALL_CAM_IN, out over the clip's last FALL_CAM_OUT). */
+  private fallCamK(): number {
+    const st = this.fallStage;
+    if (!st) return 0;
+    const sm = (x: number): number => { const c = clamp01(x); return c * c * (3 - 2 * c); };
+    const kin = sm(st.clock / FALL_CAM_IN);
+    return st.start < 0 ? kin : Math.min(kin, 1 - sm((st.clock - (st.start + st.dur - FALL_CAM_OUT)) / FALL_CAM_OUT));
+  }
+
+  private fallEnd(ok: boolean): void {
+    const st = this.fallStage!;
+    this.fallStage = null;
+    const root = this.rigged?.rootOf(st.key);
+    if (ok && root) {
+      // where the clip left the runner (its hips), against the sim spot it is still on
+      let hips: Object3D | undefined;
+      root.traverse((o) => { if (!hips && /Hips$/.test(o.name)) hips = o; });
+      if (hips) { const w = hips.getWorldPosition(new Vector3()); this.fleeOff.set(st.key, { x: w.x - st.at.x, y: w.z - st.at.y, t0: this.t }); }
+    }
+    st.helmet?.removeFromParent();
+    if (st.cap !== null) { const p = this.placed.get("cap:" + st.cap); if (p) p.model.root.visible = true; }
+    st.done(ok);
+  }
+
+  /** The filmed fall's helmet: put on the head prop at the start, off when the head meets the ground, then tumbling to rest. */
+  private fallHelmet(st: FallStage, key: string): void {
+    const root = this.rigged?.rootOf(key);
+    const cap = st.cap !== null ? this.placed.get("cap:" + st.cap)?.model.root : undefined;
+    if (!root || !cap) return;
+    let headBone: Object3D | undefined;
+    root.traverse((o) => { if (!headBone && (o as { isBone?: boolean }).isBone && /Head$/.test(o.name)) headBone = o; });
+    const head = headBone?.children.find((c) => c.userData["prop"]);
+    if (!headBone || !head) return;
+    const restCopy = (o: Object3D): Object3D => { const c = o.clone(); c.position.set(0, 0, 0); c.quaternion.identity(); c.scale.setScalar(1); c.visible = true; return c; };
+    if (!st.helmet) {
+      const helmSrc = restCopy(cap);
+      st.helmet = restCopy(cap);
+      st.mid = helmetMiddle(helmSrc);
+      wearHelmet(head, st.helmet, meshyScene(head.userData["prop"] as string) ?? restCopy(head), helmSrc);
+    }
+    const y = headBone.getWorldPosition(new Vector3()).y;
+    if (!st.head0) st.head0 = y;
+    if (st.off === null) {
+      // the head has dropped below 40% of its standing height and stopped falling: the helmet comes off
+      if (st.clock > st.start + 0.2 && y < st.head0 * 0.4 && y >= st.headPrev - 0.002 * ART_M) {
+        st.off = st.clock;
+        const h = st.helmet;
+        h.updateMatrixWorld(true);
+        st.from = { at: h.localToWorld(st.mid!.clone()), q: h.getWorldQuaternion(new Quaternion()), s: h.getWorldScale(new Vector3()).x };
+        h.removeFromParent();
+        this.dynamic.add(h);
+      }
+      st.headPrev = y;
+      return;
+    }
+    cap.updateMatrixWorld(true);
+    const to: Pose = { at: cap.localToWorld(st.mid!.clone()), q: cap.getWorldQuaternion(new Quaternion()), s: cap.getWorldScale(new Vector3()).x };
+    rollPose(st.from!, to, Math.min(st.clock - st.off, ROLL_S), 0.12 * ART_M, st.mid!, st.helmet);
   }
 
   private faceFrom(key: string, v: V, fallback?: number): number {
@@ -2642,7 +2769,20 @@ export class Renderer3D implements Renderer {
       const swapRig = swap ? this.rigged?.entryFor(swap) : undefined;
       const hrig = swapRig ?? this.rigged?.entryFor(h.type);
       let at = { x: pos.x - Math.sin(hy) * kb, y: pos.y - Math.cos(hy) * kb }, pace: number | undefined;
-      if (swapRig) {
+      const fall = this.fallStage?.key === key ? this.fallStage : null;
+      const off = this.fleeOff.get(key);
+      if (fall) {
+        // filmed: standing where it was hit, then the fall clip (its own travel), turned so its run heads off its way
+        at = { ...fall.at };
+        this.fleeFrom.delete(key);
+      } else if (swapRig && off) {
+        // after the filmed fall it is drawn where the clip left it, and closes on the sim as it runs
+        const k = Math.max(0, 1 - (this.t - off.t0) / FALL_CATCH);
+        if (k === 0) this.fleeOff.delete(key);
+        const e = k * k * (3 - 2 * k);
+        at = { x: at.x + off.x * e, y: at.y + off.y * e };
+        this.fleeFrom.set(key, { x: at.x, y: at.y, tick: -1e9 });
+      } else if (swapRig) {
         // the run eases in from where it got up: three-quarter pace, up to full over its first second (Doug), drawn a
         // little behind the sim for that second (an eighth of a second of travel) and on its line after
         let f0 = this.fleeFrom.get(key);
@@ -2652,7 +2792,12 @@ export class Renderer3D implements Renderer {
         at = { x: f0.x + (at.x - f0.x) * k, y: f0.y + (at.y - f0.y) * k };
         pace = ft < 1 ? 0.75 + 0.25 * ft : 1;
       }
-      if (hrig) {
+      if (hrig && fall) {
+        const playing = fall.start >= 0 && fall.clock >= fall.start;
+        this.rigged!.add(key, swapRig ? swap! : h.type, hrig, { moving: false, hurried: false, cheer: false, ...(playing ? { once: "fall" } : {}) }, at.x, at.y, fall.yaw, ART_M * hl.scale * this.devCharScale / 0.9);
+        this.blobs!.add(at.x, at.y, 10 * hl.scale);
+        if (playing) this.fallHelmet(fall, key);
+      } else if (hrig) {
         const moving = Math.hypot(hv.x, hv.y) > 0.05;
         this.rigged!.add(key, swapRig ? swap! : h.type, hrig, { moving: moving || flees, hurried: false, cheer: false, run: flees, speed: an.speed, act: h.target !== "core" && !swapRig ? "shoot" : undefined, ...(pace !== undefined ? { pace } : {}) }, at.x, at.y, hy, ART_M * hl.scale * this.devCharScale / 0.9);
         this.blobs!.add(at.x, at.y, hl.kind === "creature" ? 16 * hl.scale : 10 * hl.scale);
@@ -3949,5 +4094,20 @@ export { SUN, SUN_OFS, HEMI } from "./scene/environment.js";
 export { deriveTokens } from "./tokens.js";
 /** Tone-mapping exposure of the game camera. */
 export const EXPOSURE = 1.35;
+/** After a filmed fall, the drawn runner closes on the sim over this many seconds. */
+const FALL_CATCH = 1.2;
+/** The filmed fall's camera follows the body at this rate (1/s). */
+const FALL_FOLLOW = 2.5;
+/** The filmed fall aims this far (art metres) past the body, away from the camera. */
+const FALL_PAST = 2.5;
+/** A filmed fall in progress (Renderer3D.fallStage). */
+interface FallStage {
+  o: FallScene; done: (ok: boolean) => void; key: string; swap: string; at: V; dir: V; yaw: number;
+  /** Seconds since it began, on the clips' frame clock; start and off are on it too. */
+  clock: number; start: number; dur: number; cap: number | null;
+  /** Where the camera aims (world units, eased after the hips), and the hips once found. */
+  aim: V; hips: Object3D | null;
+  helmet: Object3D | null; mid: Vector3 | null; head0: number; headPrev: number; off: number | null; from: Pose | null;
+}
 /** A guard back on its feet runs to where the sim has it at this speed (art metres per second). */
 const CATCH_UP = 3.2;

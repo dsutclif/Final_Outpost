@@ -75,11 +75,6 @@ export interface CameraBeat { at: { x: number; y: number }; zoom?: number; secon
 export interface StoryVehicleSpec { seq: number; path: readonly { x: number; z: number }[]; seconds: number; lights?: boolean | undefined }
 
 /**
- * What the story director drives (client/src/story). All positions are world units (x, z on the
- * ground; y up). Nothing here touches the sim. At most two things pulse at once, by rank: goal
- * light, pods, lamps, ground dots, spirit cloud; the ridge always shows.
- */
-/**
  * The game's ground and light right now, as plain data (the renderer's liveLook()), so a live scene can stand on the
  * same sand under the same light and cut back to play without a jump.
  */
@@ -100,6 +95,14 @@ export interface LiveLook {
   exposure: number;
 }
 
+/** A hostile's fall filmed in the level (story `fall`): which kind, and the closer, lower camera (zoom x, pitch degrees). */
+export interface FallScene { kind: string; zoom?: number; pitch?: number }
+
+/**
+ * What the story director drives (client/src/story). All positions are world units (x, z on the
+ * ground; y up). Nothing here touches the sim. At most two things pulse at once, by rank: goal
+ * light, pods, lamps, ground dots, spirit cloud; the ridge always shows.
+ */
 export interface StoryPresentation {
   /** Blue ground dots running toward the next step; null clears them. */
   dots(pts: readonly { x: number; z: number }[] | null, opts?: { period?: number; lit?: boolean; together?: boolean }): void;
@@ -152,4 +155,6 @@ export interface StoryPresentation {
   beat(b: (Omit<CameraBeat, "seconds"> & { seconds?: number }) | null): void;
   /** True while a camera beat is running. */
   readonly beating: boolean;
+  /** Film the fall of the hostile of `kind` that just broke off, in the level; false at once when it cannot be staged. */
+  fall(o: FallScene): Promise<boolean>;
 }

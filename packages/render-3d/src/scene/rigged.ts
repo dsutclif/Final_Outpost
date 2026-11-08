@@ -46,6 +46,8 @@ export interface RigState {
   lying?: boolean;
   /** Shot down where it stood: the fall plays once and holds; clearing it plays the get-up (files with both clips). */
   down?: boolean;
+  /** A staged moment: this `clips` key plays once from its start and holds its last frame (renderer fallTick). */
+  once?: string;
 }
 
 interface Prop { obj: Object3D; when?: string[] }
@@ -263,6 +265,20 @@ export class Rigged {
     if (frozen !== inst.ice) this.setIce(inst, frozen);
     if (!frozen && (s.down || inst.down) && this.downStep(inst, e, !!s.down)) return;
     inst.root.rotation.set(0, yaw + inst.yawOff, 0, "YXZ"); // a get-up that just ended set the turn
+    const onceName = !frozen && s.once ? e.clips?.[s.once] : undefined, onceAct = onceName ? inst.actions.get(onceName) : undefined;
+    if (onceName && onceAct) {
+      if (inst.still) inst.still = false;
+      inst.mixer.timeScale = 1;
+      if (inst.current !== onceName) {
+        onceAct.setLoop(LoopOnce, 1);
+        onceAct.clampWhenFinished = true;
+        const prev = inst.actions.get(inst.current);
+        onceAct.reset().play();
+        if (prev && prev !== onceAct) onceAct.crossFadeFrom(prev, FALL_FADE, false);
+        inst.current = onceName;
+      }
+      return;
+    }
     if (frozen || lying) {
       this.hold(inst, e);
       if (lying) {
@@ -447,6 +463,7 @@ export class Rigged {
     held.forEach((h, k) => {
       const prop = meshyScene(h.prop);
       if (!prop) { inst.missing.push(h.prop); return; }
+      prop.userData["prop"] = h.prop; // found by id (renderer fallTick puts the helmet on the head prop)
       if (h.shield) { shieldObj = { obj: prop, k: h.k ?? 1 }; inst.props.push({ obj: prop }); return; }
       if (h.align) {
         const key = `${e.file}|${k}|${id}`;

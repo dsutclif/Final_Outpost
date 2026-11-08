@@ -55,6 +55,8 @@ export interface StoryHost {
   film(id: string): Promise<void>;
   /** Play a live scene in a small frame over play, without waiting for it. */
   inset?(id: string): void;
+  /** Film a hostile's fall in the level itself (StoryAction fall); resolves when it ends. */
+  fall?(o: { kind: string; zoom?: number; pitch?: number; film?: string }): Promise<void>;
   /** Restart the level. */
   retry(): void;
   /** A goal's turn came and it is settled: chime and toast. */
@@ -89,7 +91,7 @@ export interface StoryWorld {
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
 
-const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "wait" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
+const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "fall" in a || "wait" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
 const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
 const CARD_SECONDS = 3;
 const GOAL_GAP_S = 0.7;
@@ -427,6 +429,11 @@ export class StoryDirector {
       const waiting: Active = { k: "wait", freezes: true };
       this.active = waiting;
       void this.host.film(a.film).then(() => { if (this.active === waiting) { this.active = null; this.pump(); } });
+    } else if ("fall" in a) {
+      const waiting: Active = { k: "wait", freezes: true };
+      this.active = waiting;
+      const run = this.host.fall ? this.host.fall(a.fall) : a.fall.film ? this.host.film(a.fall.film) : Promise.resolve();
+      void run.then(() => { if (this.active === waiting) { this.active = null; this.pump(); } });
     } else if ("goal" in a) {
       this.released.add(a.goal);
     } else if ("hide" in a) {
