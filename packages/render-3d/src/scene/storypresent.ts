@@ -49,6 +49,12 @@ export class StoryPresent implements StoryPresentation {
   /** Customers drawn with their own model (customer id to model id); the renderer reads it. */
   customerModels = new Map<number, string>();
   customerModel(id: number, model: string): void { this.customerModels.set(id, model); }
+  /** Hostile kinds drawn with another model once they break off (kind to model id); the renderer reads it. */
+  fleeingModels = new Map<string, string>();
+  fleeingModel(kind: string, model: string): void { this.fleeingModels.set(kind, model); }
+  /** Dropped captures show before they are revealed; the renderer reads it. */
+  droppedShown = false;
+  showDropped(on: boolean): void { this.droppedShown = on; }
 
   readonly spirit: StoryPresentation["spirit"] = {
     setState: (s) => { this.spiritState = s; this.cloud.setState(s); },

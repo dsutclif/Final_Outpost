@@ -30,6 +30,8 @@ export interface RigState {
   speed?: number;
   /** Runs rather than walks while moving (the hero). */
   run?: boolean;
+  /** Clip playback rate (1 = as authored): a run easing in from a standstill. */
+  pace?: number;
   /** What it is doing: a `clips` key (mine, reap, pick, dig, shoot, work); its props show only then. */
   act?: string | undefined;
   /** Carrying goods (a `carry` clip, if the file has one, replaces the walk). */
@@ -141,6 +143,39 @@ const placed = new Map<string, Matrix4>();
 const boneOf = (root: Object3D, name: string): Bone | undefined =>
   (root.getObjectByName(name.replace(/:/g, "")) ?? root.getObjectByName(name)) as Bone | undefined;
 
+/**
+ * A held prop's place (the live scenes use it too) in the right hand's frame, read off a two-handed clip of this character:
+ * a gun's barrel runs from the right hand through the left, a tool's handle from the left hand
+ * through the right (head beyond it). `axis`/`side` are the prop's own grip-to-head and
+ * forward directions; without `axis`, the long axis and the head end come from the mesh.
+ */
+export function heldInHand(root: Object3D, mixer: AnimationMixer, h: MeshyHeld, ms: number, clips: readonly AnimationClip[]): Matrix4 {
+  const clip = clips.find((c) => c.name === h.clip);
+  const act = clip ? mixer.clipAction(clip) : null;
+  if (act && clip) { act.play(); mixer.setTime((h.t ?? 0.3) * clip.duration); }
+  root.updateMatrixWorld(true);
+  const rh = boneOf(root, "mixamorig:RightHand"), lh = boneOf(root, "mixamorig:LeftHand");
+  const out = new Matrix4();
+  if (rh && lh) {
+    const R = rh.getWorldPosition(new Vector3()), L = lh.getWorldPosition(new Vector3());
+    const gun = h.align === "gun";
+    const dir = (gun ? L.clone().sub(R) : R.clone().sub(L)).normalize();
+    const shape = h.axis ? { axis: new Vector3(...h.axis as [number, number, number]).normalize(), side: new Vector3(...(h.side ?? [0, 1, 0]) as [number, number, number]).normalize(), grip: new Vector3(...(h.hold ?? [0, 0, 0]) as [number, number, number]) } : shapeOf(h.prop);
+    const want = (gun ? UP : FWD).clone();
+    want.sub(tmpA.copy(dir).multiplyScalar(want.dot(dir))).normalize();
+    const basis = (a: Vector3, b: Vector3): Matrix4 => new Matrix4().makeBasis(a, b, a.clone().cross(b));
+    const nb = basis(shape.axis, shape.side.clone().sub(tmpA.copy(shape.axis).multiplyScalar(shape.side.dot(shape.axis))).normalize());
+    const rot = new Quaternion().setFromRotationMatrix(basis(dir, want).multiply(nb.transpose()));
+    const k = (h.k ?? 1) * ms;
+    const at = (gun ? R : L).clone().sub(shape.grip.clone().multiplyScalar(k).applyQuaternion(rot));
+    out.compose(at, rot, new Vector3(k, k, k));
+    out.premultiply(new Matrix4().copy(rh.matrixWorld).invert());
+  }
+  if (act) act.stop();
+  return out;
+}
+
+
 export class Rigged {
   private pool = new Map<string, Inst>();
   private clock = 0;
@@ -205,7 +240,8 @@ export class Rigged {
       }
       return;
     }
-    if (inst.still) { inst.still = false; inst.mixer.timeScale = 1; }
+    if (inst.still) inst.still = false;
+    inst.mixer.timeScale = s.pace ?? 1;
     if (inst.legs) {
       inst.root.userData["speed"] = s.moving ? Math.max(0.35, s.speed ?? 1) : 0;
       return;
@@ -373,36 +409,8 @@ export class Rigged {
     return inst;
   }
 
-  /**
-   * A held prop's place in the right hand's frame, read off a two-handed clip of this character:
-   * a gun's barrel runs from the right hand through the left, a tool's handle from the left hand
-   * through the right (head beyond it). `axis`/`side` are the prop's own grip-to-head and
-   * forward directions; without `axis`, the long axis and the head end come from the mesh.
-   */
   private calibrate(i: Inst, h: MeshyHeld, ms: number, clips: AnimationClip[]): Matrix4 {
-    const clip = clips.find((c) => c.name === h.clip);
-    const act = clip ? i.mixer.clipAction(clip) : null;
-    if (act && clip) { act.play(); i.mixer.setTime((h.t ?? 0.3) * clip.duration); }
-    i.root.updateMatrixWorld(true);
-    const rh = boneOf(i.root, "mixamorig:RightHand"), lh = boneOf(i.root, "mixamorig:LeftHand");
-    const out = new Matrix4();
-    if (rh && lh) {
-      const R = rh.getWorldPosition(new Vector3()), L = lh.getWorldPosition(new Vector3());
-      const gun = h.align === "gun";
-      const dir = (gun ? L.clone().sub(R) : R.clone().sub(L)).normalize();
-      const shape = h.axis ? { axis: new Vector3(...h.axis as [number, number, number]).normalize(), side: new Vector3(...(h.side ?? [0, 1, 0]) as [number, number, number]).normalize(), grip: new Vector3(...(h.hold ?? [0, 0, 0]) as [number, number, number]) } : shapeOf(h.prop);
-      const want = (gun ? UP : FWD).clone();
-      want.sub(tmpA.copy(dir).multiplyScalar(want.dot(dir))).normalize();
-      const basis = (a: Vector3, b: Vector3): Matrix4 => new Matrix4().makeBasis(a, b, a.clone().cross(b));
-      const nb = basis(shape.axis, shape.side.clone().sub(tmpA.copy(shape.axis).multiplyScalar(shape.side.dot(shape.axis))).normalize());
-      const rot = new Quaternion().setFromRotationMatrix(basis(dir, want).multiply(nb.transpose()));
-      const k = (h.k ?? 1) * ms;
-      const at = (gun ? R : L).clone().sub(shape.grip.clone().multiplyScalar(k).applyQuaternion(rot));
-      out.compose(at, rot, new Vector3(k, k, k));
-      out.premultiply(new Matrix4().copy(rh.matrixWorld).invert());
-    }
-    if (act) act.stop();
-    return out;
+    return heldInHand(i.root, i.mixer, h, ms, clips);
   }
 
   /** Left arm braced across the chest (shield arm): elbow down and out, forearm level in front. */

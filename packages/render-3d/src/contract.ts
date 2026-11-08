@@ -116,6 +116,10 @@ export interface StoryPresentation {
   actorAt(key: string): { x: number; z: number } | null;
   /** Draw customer `id` with another character model (a named trader, e.g. Sela); loads it on first use. */
   customerModel(id: number, model: string): void;
+  /** Draw hostiles of `kind` that broke off (bossRetreat) with another character model; loads it on first use. */
+  fleeingModel(kind: string, model: string): void;
+  /** Show a capture a boss dropped where it lies, before its hiddenUntil reveals it. */
+  showDropped(on: boolean): void;
   /** Entity ids the renderer keeps solid (never faded) when the hero stands among them. */
   solid(ids: readonly string[]): void;
   /** Ask the camera to look elsewhere for a while; null cancels. */

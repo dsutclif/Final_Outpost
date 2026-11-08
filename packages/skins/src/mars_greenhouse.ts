@@ -842,7 +842,6 @@ export const marsGreenhouse: Skin = {
       },
       sela_arrival: { text: {}, images: {} },
       warlord_fall: { text: {}, images: {} },
-      vale_run: { text: {}, images: {} },
       chip_handoff: { text: {}, images: {} },
       crash_log: {
         text: { feed: "KILN · RECORDER · BAY CAM 05–08", impact: "FOUR MINUTES TO IMPACT", unsealed: "UNSEALED", occupied: "OCCUPIED" },
@@ -1169,6 +1168,9 @@ export const marsGreenhouse: Skin = {
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam, then the hub's two new settlers
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, lieutenant: { boss: true } },
+        // after the fall scene the warlord runs off in play as Vale, helmet off, and the helmet lies where it fell (#6)
+        fleeingModels: { "hostile.boss": "hostile.boss_vale" },
+        showDropped: true,
         goals: [
           { id: "first", label: "Stop the first raiders", until: { event: "wave_cleared", match: { idx: 0 } } },
           { id: "turret", label: "Build a turret" },
@@ -1209,21 +1211,21 @@ export const marsGreenhouse: Skin = {
           { on: { event: "wave_cleared", match: { idx: 1 } }, do: [{ light: "firstLight", seconds: 20 }] },
           // just before the warlord walks into frame (it spawns beyond the map's edge), not when it spawns (Doug)
           { on: { hostile: "hostile.boss", r: 330 }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
-          { on: { event: "retreated" }, do: [
+          { id: "fall", on: { event: "retreated" }, do: [
             { light: "sunrise", seconds: 8 },
-            // the commander's last shot: the warlord falls, gets up and runs, and the helmet drops (live scene, S32)
+            // the commander's last shot: the warlord is thrown down, the helmet comes off, Vale gets up (live scene,
+            // S32); the run off screen right is in play (fleeingModels). No line during the scene (Doug, 2026-11-07)
             { film: "warlord_fall" },
           ] },
-          // dawn: the helmet the lieutenant dropped, and the name inside it
-          { id: "dawn", on: { goal: "hold", is: "done" }, do: [
+          // once Vale has run off screen (about 8 s at the warlord's pace from mid-screen), KILN, with dots on the helmet
+          // where it fell (manifest heldBy: boss; showDropped draws it there before dawn reveals it for the tow)
+          { on: { after: "fall", ticks: 240 }, do: [
             { line: "They're running. It's over for tonight.", who: "kiln" },
-          ] },
-          // the helmet lies where the warlord fell (manifest heldBy: boss, Doug 2026-11-07), so this plays as it
-          // flees from that spot, right after its fall scene; the helmet itself shows at dawn.
-          { on: { hostile: "hostile.boss", fleeing: true, at: { entity: "helmet" }, r: 200 }, do: [
             { line: "They dropped something.", who: "kiln" },
             { dots: [{ entity: "helmet" }], period: 1.2 },
           ] },
+          // dawn: the waves are done and the helmet can be towed
+          { id: "dawn", on: { goal: "hold", is: "done" }, do: [] },
           // if that line was missed (the warlord died instead of breaking off), the ground dots still find it
           { on: { after: "dawn", ticks: 150 }, do: [{ dots: [{ entity: "helmet" }], period: 1.2 }] },
           { on: { near: { entity: "helmet" }, r: 50 }, do: [{ dotsOff: true }] },
@@ -1231,8 +1233,7 @@ export const marsGreenhouse: Skin = {
           { on: { event: "captured" }, do: [
             { dotsOff: true },
             { film: "helmet_reveal" },
-            // the commander runs two steps toward the screen, helmet in hand (S33), then the last line
-            { film: "vale_run" },
+            // then the last line (the commander's run with the helmet, S33 vale_run, was dropped: Doug, 2026-11-07)
             { line: "Vale?", who: "commander" },
           ] },
         ],

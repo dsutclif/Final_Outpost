@@ -101,7 +101,10 @@
       "held": { "*": [
         { "prop": "prop.minigun", "align": "gun", "clip": "Run_and_Shoot", "axis": [1, 0, 0], "hold": [-0.12, 0.08, 0] }] } },
     { "file": "hostile.boss_vale", "src": "Warlord_headless_Vale_Animated_fall.glb", "id": "hostile.boss_vale", "kind": "character", "unwired": true, "error": 0.005, "texture": 512, "height": 1.1,
-      "clips": { "walk": "Walking", "run": "Running", "shootMove": "Run_and_Shoot", "fall": "Vale_Fall" } },
+      "clips": { "walk": "Walking", "run": "Running", "shootMove": "Run_and_Shoot", "fall": "Vale_Fall" },
+      "held": { "*": [
+        { "prop": "item.vale_head", "bone": "mixamorig:Head", "at": [0, -0.0723, 0, 0, -2, 0, 1.0277] },
+        { "prop": "prop.minigun", "align": "gun", "clip": "Run_and_Shoot", "axis": [1, 0, 0], "hold": [-0.12, 0.08, 0] }] } },
     { "file": "item.vale_head", "src": "Commander Bust model.glb", "id": "item.vale_head", "kind": "item", "unwired": true, "crop": 0.47, "error": 0.002, "texture": 512, "yaw": 0, "width": 0.25 },
     { "file": "hostile.creature", "src": "Dust Crawler Rigged.glb", "id": "hostile.creature", "kind": "character", "error": 0.005, "texture": 512, "height": 0.5 },
     { "file": "hostile.swarmling", "src": "Mite - Rigged.glb", "id": "hostile.swarmling", "kind": "character", "error": 0.005, "texture": 256, "height": 0.5 },

@@ -4,6 +4,7 @@ import {
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
+import { heldInHand } from "./rigged.js";
 import { FOV_DEG } from "../units.js";
 import { POD_CAVITY_M, POD_K, SIZES } from "../sizes.js";
 import RIG from "../assets/buggy.json";
@@ -620,6 +621,20 @@ function warlordFall(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     if (hit >= 0) OFF = STRIKE + hit / 60;
     fall.stop();
   }
+  // the gun stays in Vale's right hand through the whole fall (Doug), placed as in play (meshy.json held, align gun)
+  if (vale && e && rig) {
+    const ms = boss!.height / (e.height ?? 1.1);
+    for (const h of e.held?.["*"] ?? []) {
+      if (h.align !== "gun") continue;
+      const gun = meshyScene(h.prop), hand = boneOf(vale.root, "RightHand");
+      if (!gun || !hand) continue;
+      root!.position.set(0, 0, 0); root!.rotation.set(0, 0, 0); root!.scale.setScalar(1);
+      root!.updateMatrixWorld(true);
+      heldInHand(root!, vale.mixer, h, ms, rig.clips).decompose(gun.position, gun.quaternion, gun.scale);
+      hand.add(gun);
+      root!.scale.setScalar(K);
+    }
+  }
   let helmFrom: Vector3 | undefined, helmTo: Vector3 | undefined;
   const helmQ0 = new Quaternion();
   return {
@@ -690,7 +705,7 @@ function warlordFall(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
         if (!helmFrom) {
           helmQ0.copy(q).multiply(helmFit); // where it sits on the head this frame
           helmFrom = headTop.clone().add(v.copy(HC).sub(NECK).applyQuaternion(helmQ0));
-          helmTo = new Vector3(headTop.x + 0.35, HC.y, headTop.z + 0.75);
+          helmTo = new Vector3(headTop.x + 0.6, HC.y, headTop.z + 0.6); // past the head, clear of the arm and legs as Vale gets up
         }
         const d = t - OFF, k = Math.min(1, d / 0.7), ek = 1 - (1 - k) ** 3;
         const hop = 0.3 * Math.abs(Math.sin(Math.min(d, 0.7) * 9)) * Math.exp(-d * 4);
@@ -700,8 +715,8 @@ function warlordFall(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
         helmet.position.copy(mid).sub(v.copy(HC).applyQuaternion(helmet.quaternion));
       }
       // camera: side-on and steady, framed on the fall spot; it eases right a little as Vale gets up and runs
-      const cx = hipsAt.x + 0.2 + 0.5 * span(t, SECONDS - 1.6, SECONDS);
-      camera.position.set(cx, tall ? 1.5 : 1.3, tall ? 5.6 : 4.6);
+      const cx = hipsAt.x + 0.5 + 0.3 * span(t, SECONDS - 1.6, SECONDS);
+      camera.position.set(cx, tall ? 1.6 : 1.3, tall ? 6.8 : 4.6);
       camera.lookAt(cx, tall ? 0.85 : 0.8, 0);
     },
     dispose() { disposeAll(scene); },
@@ -718,42 +733,10 @@ const VALE_HELMET_YAW = 0;
 /** The quarter turn that stands the helmet item (built lying on its side) upright on the head. */
 const VALE_HELMET_TIP = Math.PI / 2;
 
-/**
- * The end of level 5 (S33): after the helmet's reveal the commander, helmet held in front, runs two steps toward the
- * screen edge, then stops. "Vale?" follows as a line in play.
- */
-function valeRun(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement): Staged {
-  const scene = new Scene();
-  const camera = new PerspectiveCamera(38, 1, 0.1, 400);
-  dawnSet(scene);
-  const cmd = crewFigure("unit.player", "run");
-  if (cmd) { cmd.root.scale.setScalar(SIZES.commander / cmd.height); scene.add(cmd.root); }
-  const helmet = helmetModel();
-  scene.add(helmet);
-  const RUN0 = 0.6, RUN1 = 1.7, SECONDS = 3.6;
-  return {
-    seconds: SECONDS, scene, camera, labels: [],
-    pose(t) {
-      const tall = camera.aspect < 0.8;
-      camera.position.set(0.3, tall ? 1.7 : 1.4, tall ? 6.5 : 5);
-      camera.lookAt(0, 1.0, 0);
-      const z = -2.2 + 2.6 * span(t, RUN0, RUN1), running = t >= RUN0 && t < RUN1;
-      if (cmd) {
-        cmd.root.position.set(0, 0, z);
-        cmd.mixer.setTime(0.12 + (Math.min(t, RUN1) - RUN0 > 0 ? (Math.min(t, RUN1) - RUN0) * 1.35 : 0));
-      }
-      helmet.position.set(0.05, 1.15 + (running ? 0.05 * Math.sin((t - RUN0) * 14) : 0), z + 0.4);
-      helmet.rotation.set(0, Math.PI, 0);
-    },
-    dispose() { disposeAll(scene); },
-  };
-}
-
 const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged; film?: boolean }>> = {
   chip_handoff: { models: ["unit.customer_sela", "unit.customer", "unit.player", "res.currency"], stage: chipHandoff, film: true },
   sela_arrival: { models: ["decor.buggy", "decor.buggy_wheel", "decor.buggy_wheel_l", "unit.customer_sela", "unit.customer"], stage: selaArrival, film: true },
-  warlord_fall: { models: ["hostile.boss_vale", "item.vale_head", "hostile.boss", "item.lieutenant_helmet"], stage: warlordFall, film: true },
-  vale_run: { models: ["unit.player", "item.lieutenant_helmet"], stage: valeRun, film: true },
+  warlord_fall: { models: ["hostile.boss_vale", "item.vale_head", "hostile.boss", "item.lieutenant_helmet", "prop.minigun"], stage: warlordFall, film: true },
   empty_bays: { models: ["decor.stasis_pod", "decor.stasis_glass"], stage: emptyBays },
   crash_log: { models: ["decor.stasis_pod", "decor.stasis_glass", "unit.player"], stage: crashLog },
 };

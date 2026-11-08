@@ -123,7 +123,7 @@ const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.shi
 const CORE_BURIED = 0.9;
 
 const NO_STORY: StoryPresentation = {
-  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {},
+  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {}, fleeingModel() {}, showDropped() {},
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
 };
@@ -1543,6 +1543,10 @@ export class Renderer3D implements Renderer {
   }
 
   private namedAsked = new Set<string>();
+  /** Where and when a swapped fleeing hostile (story fleeingModels) started its run, for the ease-in. */
+  private fleeFrom = new Map<string, { x: number; y: number; tick: number }>();
+  /** Captures seen carried by a boss (heldBy): once dropped, story showDropped draws them before they are revealed. */
+  private bossHeld = new Set<number>();
   private customer(key: string, c: CustomerState, a: number, queued: boolean, kiosk: Placed, serving?: { customer: number; ticks: number; of: number }): void {
     const pos = this.interp.pos(key, c.pos, a);
     const look = lookFor(c.kind, this.tokens, this.skin.models);
@@ -2329,7 +2333,9 @@ export class Renderer3D implements Renderer {
 
   private syncCaptures(s: State, a: number): void {
     for (const c of s.captures) {
-      if (c.state === "hidden") continue;
+      if (c.heldBy) this.bossHeld.add(c.id);
+      // hidden stays off the map, unless a story level shows what a boss dropped where it lies (level 5: the helmet)
+      if (c.state === "hidden" && !(this.storyP?.droppedShown && this.bossHeld.has(c.id) && !c.heldBy)) continue;
       const key = `c:${c.id}`;
       const pos = this.interp.pos(key, c.pos, a);
       // an empty decoy pod has its own tinted model
@@ -2579,12 +2585,30 @@ export class Renderer3D implements Renderer {
       an.knock = fk * 0.5;
       // knockback: shoved away from where it faces
       const kb = fk * 7;
-      const hrig = this.rigged?.entryFor(h.type);
       const flees = !!s.fleeing?.includes(h);
-      const at = { x: pos.x - Math.sin(hy) * kb, y: pos.y - Math.cos(hy) * kb };
+      // a story level can draw it as someone else once it breaks off (level 5: Vale, helmet off); loaded on first use
+      const swap = flees ? this.storyP?.fleeingModels.get(h.type) : undefined;
+      if (swap && !this.namedAsked.has(swap)) {
+        this.namedAsked.add(swap);
+        const props = (meshyEntries().find((e) => e.id === swap)?.held?.["*"] ?? []).map((x) => x.prop);
+        void loadMeshy(undefined, new Set([swap, ...props]), undefined, true);
+      }
+      const swapRig = swap ? this.rigged?.entryFor(swap) : undefined;
+      const hrig = swapRig ?? this.rigged?.entryFor(h.type);
+      let at = { x: pos.x - Math.sin(hy) * kb, y: pos.y - Math.cos(hy) * kb }, pace: number | undefined;
+      if (swapRig) {
+        // the run eases in from where it got up: three-quarter pace, up to full over its first second (Doug), drawn a
+        // little behind the sim for that second (an eighth of a second of travel) and on its line after
+        let f0 = this.fleeFrom.get(key);
+        if (!f0) { f0 = { x: at.x, y: at.y, tick: s.tick }; this.fleeFrom.set(key, f0); }
+        const ft = Math.max(0, (s.tick + a - f0.tick) / TPS);
+        const k = ft < 1 ? 0.75 + 0.125 * ft : 1 - 0.125 / ft;
+        at = { x: f0.x + (at.x - f0.x) * k, y: f0.y + (at.y - f0.y) * k };
+        pace = ft < 1 ? 0.75 + 0.25 * ft : 1;
+      }
       if (hrig) {
         const moving = Math.hypot(hv.x, hv.y) > 0.05;
-        this.rigged!.add(key, h.type, hrig, { moving: moving || flees, hurried: false, cheer: false, run: flees, speed: an.speed, act: h.target !== "core" ? "shoot" : undefined }, at.x, at.y, hy, ART_M * hl.scale * this.devCharScale / 0.9);
+        this.rigged!.add(key, swapRig ? swap! : h.type, hrig, { moving: moving || flees, hurried: false, cheer: false, run: flees, speed: an.speed, act: h.target !== "core" && !swapRig ? "shoot" : undefined, ...(pace !== undefined ? { pace } : {}) }, at.x, at.y, hy, ART_M * hl.scale * this.devCharScale / 0.9);
         this.blobs!.add(at.x, at.y, hl.kind === "creature" ? 16 * hl.scale : 10 * hl.scale);
       } else this.addCharacter(hl, an, at, hy, null);
       this.candidatePt(h.type, pos.x, pos.y, ART_M * hl.scale * this.devCharScale * 1.8);

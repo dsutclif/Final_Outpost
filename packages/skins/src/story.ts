@@ -201,6 +201,12 @@ export interface StoryLevel {
   tally?: boolean;
   /** Customers drawn with their own character model: customer id (spawn order) to model id (story level 3: Sela). */
   customerModels?: Readonly<Record<number, string>>;
+  /** Hostiles drawn with another character model once they break off (bossRetreat): kind to model id (story level 5:
+   *  the warlord runs off as Vale, helmet off). The run eases in from three-quarter pace over its first second. */
+  fleeingModels?: Readonly<Record<string, string>>;
+  /** A capture a boss carried shows where it was dropped before its `hiddenUntil` reveals it (story level 5: Vale's
+   *  helmet lies at the fall spot); it can be towed only once revealed. */
+  showDropped?: boolean;
 }
 
 export interface StorySpeaker {
