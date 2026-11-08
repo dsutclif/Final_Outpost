@@ -120,6 +120,8 @@ interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, num
 export type PadBehindStyle = "dash" | "pulse" | "faint";
 export const PAD_BEHIND_STYLE: PadBehindStyle = "dash";
 
+/** Order bubble sprite height (world): font 56 px on a 180 px canvas; ORDER_H_OLD is the first design (font 52 on 120), whose tail tip the new one keeps. */
+const ORDER_H = textSprite(TEXT.main, 56, 180), ORDER_H_OLD = textSprite(TEXT.main, 52, 120);
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
@@ -486,6 +488,7 @@ export class Renderer3D implements Renderer {
   private padPlane: PlaneGeometry | null = null;
   /** Warehouse drop-off pad (the player only drops there). */
   private depotPads: Mesh[] = [];
+  private depotXrays: (Mesh | undefined)[] = [];
   private readonly nowFn: () => number;
   private readonly dprFn: () => number;
   private readonly createGL: (canvas: HTMLCanvasElement) => GLLike;
@@ -498,7 +501,7 @@ export class Renderer3D implements Renderer {
     this.content = opts.content ?? defaultContent;
     this.quality = opts.quality ?? "medium";
     this.lookOn = opts.look === true;
-    this.createGL = opts.createGL ?? ((canvas) => new WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" }) as unknown as GLLike);
+    this.createGL = opts.createGL ?? ((canvas) => new WebGLRenderer({ canvas, antialias: true, stencil: true, powerPreference: "high-performance" }) as unknown as GLLike);
   }
 
   get onCoinLanded(): (() => void) | null {
@@ -1631,9 +1634,10 @@ export class Renderer3D implements Renderer {
       const pk = Math.round(clamp01(c.patience / Math.max(1, c.patienceMax)) * 10);
       const sp = this.bubbleSprite(key);
       const sv = serving && serving.customer === c.id ? Math.round(clamp01(serving.ticks / Math.max(1, serving.of)) * 8) : -1;
-      const ok = this.labels.apply(sp, `ord|${c.res}|${this.itemIcons?.version(c.res) ?? "-"}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), textSprite(TEXT.main, 52, 120));
+      const ok = this.labels.apply(sp, `ord|${c.res}|${this.itemIcons?.version(c.res) ?? "-"}|${c.want}|${pk}|${sv}`, () => this.orderArt(c.res, c.want, pk / 10, sv < 0 ? null : sv / 8), ORDER_H);
       sp.visible = ok;
-      sp.position.set(pos.x, ART_M * look.scale * this.devCharScale * 1.55, pos.y);
+      // the tail tip keeps its height over the trader's head: the taller bubble grows upward
+      sp.position.set(pos.x, ART_M * look.scale * this.devCharScale * 1.55 + (ORDER_H - ORDER_H_OLD) / 2, pos.y);
     }
   }
 
@@ -1992,8 +1996,9 @@ export class Renderer3D implements Renderer {
       m.scale.setScalar(this.devPlateSize ?? 2 * (def?.padRange ?? 20) * 1.1);
       // the drop-off arrow points inward: from the pad toward the depot, whatever side its offset is on
       if (i === 0) m.rotation.y = o[0] === 0 && o[1] === 0 ? 0 : Math.atan2(o[0], o[1]);
+      this.depotXrays[i] = this.padXray(this.depotXrays[i], m, mat, false, false, lightMark);
     });
-    for (let i = offs.length; i < this.depotPads.length; i++) this.depotPads[i]!.visible = false;
+    for (let i = offs.length; i < this.depotPads.length; i++) { this.depotPads[i]!.visible = false; if (this.depotXrays[i]) this.depotXrays[i]!.visible = false; }
   }
 
   /** A warehouse pad: solid outline, an inward arrow on the drop-off, the resource's icon on a pickup. */
@@ -2062,7 +2067,7 @@ export class Renderer3D implements Renderer {
       if (dm) { decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
-      this.padXray(p, decal, dm, big, locked, lightMark);
+      p.extra[4] = this.padXray(p.extra[4] as Mesh | undefined, decal, dm, big, locked, lightMark);
       // floating name plus every cost resource with what is still owed (icon + number each)
       const sp = this.sprite(p, 0);
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
@@ -3086,27 +3091,31 @@ export class Renderer3D implements Renderer {
     return m;
   }
 
+  /** The trader's order bubble: the item picture at twice its first size (#90), the count beside it, the patience arc round the picture. */
   private orderArt(res: string, want: number, k: number, serve: number | null = null): LabelArt {
     const t = this.tokens, ui = this.tokens.paper;
+    const PIC = 120, PH = 144, PW = 232, cy = 8 + PH / 2, px = 8 + 16 + PIC / 2;
     return {
-      w: 150, h: 120,
+      w: PW + 16, h: PH + 36,
       draw: (g) => {
-        roundRect(g, 8, 8, 134, 84, 38);
+        roundRect(g, 8, 8, PW, PH, 64);
         g.fillStyle = ui.panel; g.fill();
-        g.lineWidth = 6; g.strokeStyle = t.ink; g.stroke();
-        g.beginPath(); g.moveTo(66, 90); g.lineTo(75, 112); g.lineTo(86, 90); g.closePath();
+        g.lineWidth = 7; g.strokeStyle = t.ink; g.stroke();
+        const tx = 8 + PW / 2;
+        g.beginPath(); g.moveTo(tx - 10, 8 + PH - 2); g.lineTo(tx, 8 + PH + 24); g.lineTo(tx + 12, 8 + PH - 2); g.closePath();
         g.fillStyle = ui.panel; g.fill();
         const pic = this.itemIcons?.get(res);
-        if (pic) g.drawImage(pic, 48 - 30, 50 - 30, 60, 60); else drawIcon(g, 48, 50, 22, resToken(t, res), t.ink);
-        g.font = `800 52px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
-        g.fillStyle = t.ink; g.fillText(`${want}`, 104, 53);
+        if (pic) g.drawImage(pic, px - PIC / 2, cy - PIC / 2, PIC, PIC); else drawIcon(g, px, cy, PIC * 0.37, resToken(t, res), t.ink);
+        g.font = `800 56px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillStyle = t.ink; g.fillText(`${want}`, px + PIC / 2 + 44, cy + 3);
         // patience arc
-        g.beginPath(); g.arc(48, 50, 30, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k);
-        g.lineWidth = 6; g.strokeStyle = k > 0.35 ? t.ok : t.danger; g.stroke();
+        g.beginPath(); g.arc(px, cy, PIC / 2 + 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k);
+        g.lineWidth = 8; g.strokeStyle = k > 0.35 ? t.ok : t.danger; g.stroke();
         // serve progress: a bar along the bubble's lower edge while the customer is being served
         if (serve !== null) {
-          roundRect(g, 24, 68, 102, 14, 7); g.fillStyle = ui.panel; g.fill(); g.lineWidth = 3; g.strokeStyle = t.ink; g.stroke();
-          if (serve > 0) { roundRect(g, 24, 68, Math.max(14, 102 * serve), 14, 7); g.fillStyle = t.ok; g.fill(); }
+          const bx = 36, bw = PW - 56, by = 8 + PH - 30;
+          roundRect(g, bx, by, bw, 16, 8); g.fillStyle = ui.panel; g.fill(); g.lineWidth = 3; g.strokeStyle = t.ink; g.stroke();
+          if (serve > 0) { roundRect(g, bx, by, Math.max(16, bw * serve), 16, 8); g.fillStyle = t.ok; g.fill(); }
         }
       },
     };
@@ -3130,11 +3139,12 @@ export class Renderer3D implements Renderer {
    * A pad stays findable behind a taller model (#41, #89): a second copy that draws only where something nearer the
    * camera covers the first, and never over a character (stencil, markOccluder). The style is PAD_BEHIND_STYLE.
    */
-  private padXray(p: Placed, decal: Mesh, dm: MeshBasicMaterial | null, big: boolean, locked: boolean, light: boolean): void {
-    let xr = p.extra[4] as Mesh | undefined;
-    if (!xr) { xr = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false })); xr.renderOrder = 1; this.dynamic.add(xr); p.extra[4] = xr; }
+  private padXray(xr0: Mesh | undefined, decal: Mesh, dm: MeshBasicMaterial | null, big: boolean, locked: boolean, light: boolean): Mesh {
+    let xr = xr0;
+    if (!xr) { xr = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false })); xr.renderOrder = 1; this.dynamic.add(xr); }
     xr.visible = !!dm && decal.visible;
-    if (!dm) return;
+    if (!dm) return xr;
+    this.hideUnderCharacters(dm);
     const style = this.devPadBehind;
     const key = style === "dash" ? `dash|${big}|${locked}|${light}` : style;
     let src = dm;
@@ -3151,6 +3161,15 @@ export class Renderer3D implements Renderer {
     xr.material = m;
     xr.position.copy(decal.position);
     xr.scale.copy(decal.scale);
+    xr.rotation.copy(decal.rotation);
+    return xr;
+  }
+
+  /** A flat pad mark never draws over a character: it skips every pixel a character covers (stencil, markOccluder). */
+  private hideUnderCharacters(m: MeshBasicMaterial): void {
+    if (m.stencilWrite) return;
+    m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = NotEqualStencilFunc;
+    m.stencilFail = KeepStencilOp; m.stencilZFail = KeepStencilOp; m.stencilZPass = KeepStencilOp;
   }
 
   /** The pad's outline alone, dashed: the "dash" style of the hidden-behind copy. */

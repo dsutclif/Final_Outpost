@@ -141,7 +141,7 @@ export class LookTest {
     this.dpr = this.dprMax;
     gl.setPixelRatio(this.dpr);
     // HDR target with MSAA, so bloom reads real highlights and edges stay clean at any scale
-    const rt = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
+    const rt = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4, stencilBuffer: true });
     this.composer = new EffectComposer(gl, rt);
     this.composer.addPass(new RenderPass(scene, camera));
     this.bloom = new UnrealBloomPass(new Vector2(1, 1), LOOK_TUNE.bloom, LOOK_TUNE.bloomRadius, LOOK_TUNE.threshold);
