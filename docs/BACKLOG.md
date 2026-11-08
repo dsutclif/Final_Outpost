@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#81**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#82**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -169,6 +169,13 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       220f957 has shots for all 11 levels, but the step was killed at 35 min (all five story levels ran because story files
       changed). Raise the step timeout in `scripts/run-review.mjs` or cap story levels per night in `config/rotation.json`.
       Done check: the next nightly run shows every command ok.
+      **Landed 2026-11-08 (outpost-ops 87640e7):** probe timeout 35 → 55 min (the job allows 75); 11 levels took ~25 min of play.
+      Tick it when the next nightly run shows every command ok.
+- [ ] **#81 · The protein hunter can't pass through a gate (Doug, 2026-11-08).** The ranger role is called "protein hunter"
+      in game (use that name with Doug). It can't walk through a gate, so a hunter hired inside the walls can't reach hunting
+      grounds outside them. This matters for #7's fallback ("just inside the gate nearest them"). Find out whether gates block
+      the hunter's pathing or only the player's, fix it so hired hunters use gates, and add a property test.
+      Done check: on a walled hunting level, a hired hunter walks out through the gate and back, seen live.
 
 ## Bundle 3: story pass (story files; #6 is owned by the "Vale helmet animations" session)
 
