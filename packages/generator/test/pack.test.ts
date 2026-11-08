@@ -110,3 +110,24 @@ describe("star parameter caps", () => {
     }
   });
 });
+
+describe("every pack the client loads", () => {
+  const packsRoot = resolve(packDir, "..");
+  const ids = (JSON.parse(readFileSync(join(packsRoot, "index.json"), "utf8")) as { packs: string[] }).packs;
+  const packs = ids.map((id) => ({ id, ...(JSON.parse(readFileSync(join(packsRoot, id, "pack.json"), "utf8")) as { engineVersion: string; contentVersion: string; levels: { id: string; file: string }[] }) }));
+
+  it("is pinned to the current engine, so a bump cannot strand a pack", () => {
+    for (const p of packs) {
+      expect({ pack: p.id, engine: p.engineVersion, content: p.contentVersion }).toEqual({ pack: p.id, engine: ENGINE_VERSION, content: CONTENT_VERSION });
+      for (const e of p.levels) {
+        const m = JSON.parse(readFileSync(join(packsRoot, p.id, e.file), "utf8")) as { engineVersion: string; contentVersion: string };
+        expect({ level: e.id, engine: m.engineVersion, content: m.contentVersion }).toEqual({ level: e.id, engine: ENGINE_VERSION, content: CONTENT_VERSION });
+      }
+    }
+  });
+
+  it("has level ids that are unique across packs", () => {
+    const all = packs.flatMap((p) => p.levels.map((e) => e.id));
+    expect(all.filter((id, i) => all.indexOf(id) !== i)).toEqual([]);
+  });
+});
