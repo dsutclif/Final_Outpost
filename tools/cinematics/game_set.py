@@ -15,6 +15,7 @@ LEVEL = os.path.join(lib.ROOT, "levels", "story", "story-L001.json")
 
 # sizes in metres (docs/SCALE.md, render-3d/src/sizes.ts)
 SCRAP_DX = -100 / M  # the held level edit (#48): the tube scrap moves 100 units west, off the commander's end spot
+POD_BURY = float(os.environ.get("POD_BURY", 0.30))  # metres of the pod's base below the sand (docs/SCALE.md: 0.80; Doug 2026-11-08: too deep)
 WRECK_M, POD_M, TUBE_M_PER_SCALE, CORE_H, ORE_M, CMD_H = 27.0, 2.66, 2.8, 1.70, 0.95, 1.98
 
 
@@ -35,11 +36,11 @@ def build():
     for i in range(3):
         p, g = by[f"pod{i}"], by[f"lid{i}"]
         pod = lib.place("decor.stasis_pod", at=tuple(to_m(p["at"])), yaw=p.get("yaw", 0), size=POD_M, name=f"pod{i}")
-        pod.location.z = p.get("lift", 0) / M
+        pod.location.z = -POD_BURY
         k = pod.scale.x
         lid = lib.place("decor.stasis_glass", at=tuple(to_m(g["at"])), yaw=g.get("yaw", 0), name=f"lid{i}")
         lid.scale = (k, k, k)
-        lid.location.z = g.get("lift", 0) / M - 0.0
+        lid.location.z = g.get("lift", 0) / M + (0.80 - POD_BURY)
         if g.get("roll"):
             lid.rotation_euler = (0, math.radians(g["roll"]), math.radians(g.get("yaw", 0)))
         pods.append(pod)

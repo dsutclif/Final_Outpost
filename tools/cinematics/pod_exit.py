@@ -310,7 +310,7 @@ def perform(root, pre=0, calib=False):
                 toes = [arm.matrix_world @ arm.pose.bones[retarget.P + n].tail for n in ("LeftToeBase", "RightToeBase")]
                 takeoff = (row[3].copy(), toes, f)
 
-    WALL_T = 0.08
+    WALL_T = float(os.environ.get("WALL_T", 0.08))
     walls = []
 
 
@@ -415,6 +415,7 @@ def perform(root, pre=0, calib=False):
         if clear > best_clear: best_c, best_clear = c, clear
         c += 0.02
     RIM_H = round(max(0.12, min(0.42, best_clear - 0.04)), 2)
+    if os.environ.get("RIM_FORCE"): RIM_H = float(os.environ["RIM_FORCE"])  # game_film.py: the game pod's real wall height
     front = best_c - WALL_T / 2
     print(f"RIM at {front:.2f} along the step, clearance {best_clear:.2f} m, height {RIM_H} m")
     wall_c = (0.45, 0.5, 0.58, 1)

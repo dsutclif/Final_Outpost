@@ -5,6 +5,9 @@
 # NO_STAGGER=1 blender -b --factory-startup -P tools/cinematics/game_film.py -- [--frames a b] [--stills]
 import math, os, sys
 os.environ["NO_STAGGER"] = "1"
+os.environ.setdefault("WALL_T", "0.10")
+os.environ.setdefault("RIM_FORCE", "0.54")
+os.environ.setdefault("STEP_LIFT", "95")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
 from mathutils import Matrix, Vector
@@ -20,8 +23,9 @@ args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 OUT = os.path.join(lib.HERE, "out", "game_film")
 PRE = 45                       # frames lying still while the seal blows
 POD_K = 2.66 / 3.9847          # render-3d sizes.ts
-FLOOR = 0.05                   # the commander's lowest point above the sand: Doug's sandbox (layoutmock.ts placeCmdr, 0.05 m); the pod rim stands 0.43 m, as pod_exit's fitted 0.38 m rim
+FLOOR = 0.0                    # Doug 2026-11-08: his back touches sand level while he lies in the pod
 END_GUESS = Vector((-3.83, -0.49, 0))  # the commander's end spot from the last run (only aims the look-round)
+WALL_X = -0.55                 # the pod's west wall centreline from the pod's origin (ray probe)
 HAND_W = 170.3 / 28            # metres across at the hand-off (level 1 openZoom.film)
 
 
@@ -86,8 +90,11 @@ def main():
     stage = bpy.data.objects.new("stage", None)
     sc.collection.objects.link(stage)
     stage.rotation_euler = (0, 0, yaw)
-    c_w = Matrix.Rotation(yaw, 3, "Z") @ Vector((centre.x, centre.y, 0))
-    stage.location = (pod_c.x - c_w.x, pod_c.y - c_w.y, FLOOR)
+    # the capture's step line (its front rim wall) lands on the middle of the pod's west wall (probe: wall top x -0.55,
+    # 0.1 m thick), so the planted foot crosses the wall's centre; its lateral centre on the pod's
+    wall_pt = ax * (P["front"] + P["WALL_T"] / 2) + lat * ((P["lat0"] + P["lat1"]) / 2)
+    c_w = Matrix.Rotation(yaw, 3, "Z") @ Vector((wall_pt.x, wall_pt.y, 0))
+    stage.location = (pod_c.x + WALL_X - c_w.x, pod_c.y - c_w.y, FLOOR)
     cmd.parent = stage
     # the capture's jump is DROP_H; the game pod's floor stands FLOOR above the sand: leave from the pod floor,
     # land on the sand, and take up the difference while airborne
@@ -115,7 +122,7 @@ def main():
     k, yw = POD_K, math.radians(-90)
     closed_off = Vector((-0.034, 0.258)) * k
     cx = pod_c + Vector((closed_off.x * math.cos(yw) + closed_off.y * math.sin(yw), -(-closed_off.x * math.sin(yw) + closed_off.y * math.cos(yw)), 0))
-    closed_loc = Vector((cx.x, cx.y, -0.8 + 1.909 * k))
+    closed_loc = Vector((cx.x, cx.y, -game_set.POD_BURY + 1.909 * k))
     closed_rot = Matrix.Rotation(yw, 3, "Z")
     # Doug (2026-11-08): the glass opens widthwise, hinged on a LONG side. The commander steps out over the west long
     # side, so it hinges on the east one and swings up and over to the east. Hinge line: along the pod (world y),
@@ -144,6 +151,28 @@ def main():
     bp = [ev.matrix_world @ v.co for v in ev.to_mesh().vertices]
     print("BODY lying extents x %.2f y %.2f z %.2f..%.2f (pod rims 0.43)" % (max(p.x for p in bp) - min(p.x for p in bp), max(p.y for p in bp) - min(p.y for p in bp), min(p.z for p in bp), max(p.z for p in bp)))
 
+    import retarget
+    wx = pod_c.x + WALL_X
+    apex = None  # the highest the stepping foot gets: it should pass over the middle of the wall
+    for f in range(F(st[1]), F(st[2])):
+        sc.frame_set(f)
+        for side in ("Left", "Right"):
+            tl = P["arm"].matrix_world @ P["arm"].pose.bones[retarget.P + side + "ToeBase"].tail
+            if tl.z < 1.2 and (apex is None or tl.z > apex[0]): apex = (tl.z, tl.x, f, side)
+    stage.location.x -= apex[1] - wx
+    print(f"APEX {apex[3]} foot peaks {apex[0] * 100:.0f} cm at frame {apex[2]}; stage moved {-(apex[1] - wx) * 100:+.0f} cm to put it over the wall centre")
+    bpy.context.view_layer.update()
+    for side in ("Left", "Right"):
+        best = None
+        for f in range(F(st[1]), F(st[2])):
+            sc.frame_set(f)
+            arm = P["arm"]
+            for bn in ("ToeBase", "Foot"):
+                pb = arm.pose.bones[retarget.P + side + bn]
+                tl = arm.matrix_world @ pb.tail
+                if tl.z < 0.9 and (best is None or abs(tl.x - wx) < best[0]): best = (abs(tl.x - wx), f, bn, tl.x - wx, tl.z)
+        print(f"STEPFOOT {side}: nearest the wall centre at frame {best[1]} ({best[2]}): {best[3] * 100:+.0f} cm off the wall centre, {best[4] * 100:.0f} cm above the sand (wall top 54 cm)")
+    print("FLAGGED beyond lying:", [r[:60] for r in P["report"] if int(r[1:5]) > 50][:8])
     follow = bpy.data.objects.new("follow", None)
     sc.collection.objects.link(follow)
     for f in range(len(pel)):
@@ -195,16 +224,42 @@ def main():
         print("POD bbox x", round(min(v.x for v in bb), 2), round(max(v.x for v in bb), 2), "y", round(min(v.y for v in bb), 2), round(max(v.y for v in bb), 2), "z", round(min(v.z for v in bb), 2), round(max(v.z for v in bb), 2))
         print("PELVIS f1", [round(v, 2) for v in pel[0]], "lid closed", [round(v, 2) for v in closed_loc])
         return
+    if "--pod" in args:  # debug: the pod alone (no glass, no commander) from the game camera, the east and the south
+        for o in [lid, cmd] + list(cmd.children_recursive): o.hide_render = True
+        bpy.context.view_layer.update()
+        sc.timeline_markers.clear()
+        for nm, cam in (("game", lib.game_camera(tuple(pod_c + Vector((0, 0, 0.3))), view_w=5.0)), ("east", lib.camera(pod_c + Vector((7, 0, 0.5)), pod_c + Vector((0, 0, 0.5)), lens=60, name="e")), ("south", lib.camera(pod_c + Vector((0, -7, 0.5)), pod_c + Vector((0, 0, 0.5)), lens=60, name="s"))):
+            sc.camera = cam
+            lib.render_still(os.path.join(OUT, f"pod_{nm}.png"))
+        return
+    if "--iso" in args:  # debug: the lying frames from the game camera and a low side view
+        sc.timeline_markers.clear()
+        for nm, cam in (("game", lib.game_camera(tuple(pod_c + Vector((0, 0, 0.3))), view_w=4.0)), ("east", lib.camera(pod_c + Vector((7, 0, 0.9)), pod_c + Vector((0, 0, 0.3)), lens=60, name="e"))):
+            sc.camera = cam
+            for f in (1, 120, 190):
+                sc.frame_set(f)
+                lib.render_still(os.path.join(OUT, f"iso_{nm}_{f:04d}.png"))
+        return
     if "--probe" in args:  # debug: the pod model's surface heights (glass and commander hidden)
         for o in [lid, cmd] + list(cmd.children_recursive): o.hide_viewport = True
         bpy.context.view_layer.update()
         dg = bpy.context.evaluated_depsgraph_get()
+        xs = [i / 20 for i in range(-20, 21)]
+        print("PROBE x   ", " ".join(f"{x:5.2f}" for x in xs))
         for dy in (-1.2, -0.8, -0.4, 0, 0.4, 0.8, 1.2):
             row = []
-            for dx in (-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8):
-                hit, loc, *_ = sc.ray_cast(dg, Vector((pod_c.x + dx, pod_c.y + dy, 5)), Vector((0, 0, -1)))
-                row.append(f"{loc.z:5.2f}" if hit else "  -  ")
+            for dx in xs:
+                hit, loc, *_ = sc.ray_cast(dg, Vector((pod_c.x + dx, pod_c.y + dy, 5)), Vector((0, 0, -1)), distance=9)
+                row.append(f"{loc.z:5.2f}" if hit and loc.z > 0.01 else "  .  ")
             print("PROBE y%+.1f" % dy, " ".join(row))
+        return
+    if "--step" in args:
+        sc.timeline_markers.clear()
+        cam = lib.camera(pod_c + Vector((-4.2, -2.6, 0.8)), pod_c + Vector((-0.6, 0, 0.6)), lens=36, name="stepcam")
+        sc.camera = cam
+        for f in (222, 232, 242, 252, 262, 272, 282, 292):
+            sc.frame_set(f)
+            lib.render_still(os.path.join(OUT, f"step_{f:04d}.png"))
         return
     if "--side" in args:  # debug: level, orthographic-ish views from the south and the east at pod height
         sc.timeline_markers.clear()
