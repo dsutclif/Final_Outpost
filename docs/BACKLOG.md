@@ -37,7 +37,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
   Local main reset to origin/main; `fo-wt-buggy` and `agent-a0616…` worktrees removed; local `story-buggy`/`story-buggy-26`
   deleted. Still open: Doug deletes the remote branches `look-test`, `object-sizes` and `story-buggy`, and #78 makes the
   nightly fully green. Keep `fo-wt-handoff` until #75 backs up its film tools.
-- #6: the "Vale helmet animations" session (livescene.ts `warlord_fall`, level 5 fall cues, `vale_run` removal).
 - Story files for #3, #4, #5, #14: claimed by the orchestrator session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
 
 ## Waiting on Doug
@@ -211,6 +210,10 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       timing, the helmet landing on the head's spot, and the commander picking up the helmet (from #12).
       **Merged:** #55 (check `vale_run` on a phone) is this item's done check.
       Done check: on a phone, cause, fall, helmet, get up, run off, then the lines; the in-play helmet is at the fall spot.
+      **Live 2026-11-07 (b4c63fc), waiting on Doug's iPhone check.** Built to Doug's stick-figure picks and his three notes;
+      gun kept throughout (Doug). Checked headless only (scene stills at phone sizes, a bot run of story-L005 to the retreat).
+      Open for Doug: "It's over for tonight" now plays 3 s after the fall even if other raiders are still alive.
+      Details: `docs/STORY-WORK-LOG.md` 2026-11-07 entry.
       **Doug, 2026-11-07 (later), supersedes the staging above where they differ:**
       1. Drop the commander-runs-with-the-helmet clip (`vale_run`, S33/#55). "Vale?" stays.
       2. The close-up showed the helmet sitting sideways on Vale. Replace the fall: Vale falls on the back, rolls over and
