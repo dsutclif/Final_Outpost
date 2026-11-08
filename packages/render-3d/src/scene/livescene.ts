@@ -719,7 +719,9 @@ function warlordFall(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
       camera.position.set(cx, tall ? 1.6 : 1.3, tall ? 6.8 : 4.6);
       camera.lookAt(cx, tall ? 0.85 : 0.8, 0);
     },
-    dispose() { disposeAll(scene); },
+    // the models (and the gun in Vale's hand) share their GPU data with the game, which is drawing Vale again as this
+    // closes: take them out first, so only the set is disposed
+    dispose() { root?.removeFromParent(); face?.removeFromParent(); helmet.removeFromParent(); disposeAll(scene); },
   };
 }
 /** Vale's head (crop of the bust, chin to crown plus the neck) as a share of the warlord's height. */

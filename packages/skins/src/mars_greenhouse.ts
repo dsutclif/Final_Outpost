@@ -1217,9 +1217,9 @@ export const marsGreenhouse: Skin = {
             // S32); the run off screen right is in play (fleeingModels). No line during the scene (Doug, 2026-11-07)
             { film: "warlord_fall" },
           ] },
-          // once Vale has run off screen (about 8 s at the warlord's pace from mid-screen), KILN, with dots on the helmet
-          // where it fell (manifest heldBy: boss; showDropped draws it there before dawn reveals it for the tow)
-          { on: { after: "fall", ticks: 240 }, do: [
+          // once Vale has run off screen (about 3 s at the fleeing pace, measured on a phone-shaped view), KILN, with dots
+          // on the helmet where it fell (manifest heldBy: boss; showDropped draws it there before dawn reveals it to tow)
+          { on: { after: "fall", ticks: 95 }, do: [
             { line: "They're running. It's over for tonight.", who: "kiln" },
             { line: "They dropped something.", who: "kiln" },
             { dots: [{ entity: "helmet" }], period: 1.2 },
