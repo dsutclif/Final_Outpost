@@ -34,7 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-07 | backlog session (Doug's chat) | backlog-single | `levels/story/story-L001..4.json` (L005 only for #3's pods, after the #6 owner releases it), `client/src/story/*`, story cue blocks for levels 1–4 in `skins/src/mars_greenhouse.ts` | BACKLOG Bundle 3 (#4, #3, #5, #14), then Bundle 4 (film). #6 belongs to the "Vale helmet animations" session |
+| 2026-11-08 | Bundle 3 (Opus, took over the backlog session claim) | bundle3-story | `levels/story/story-L001..4.json` (L005 only for #3's pods, after the #6 owner releases it), `client/src/story/*`, `client/src/coach.ts`, story cue blocks for levels 1–4 in `skins/src/mars_greenhouse.ts`, the buggy wiring (#5) | BACKLOG Bundle 3 (#4, #3, #5, #14). #6 belongs to the "Vale helmet animations" session |
 | 2026-11-08 | Vale helmet animations | story-vale-fall | `render-3d/src/scene/livescene.ts`, `render-3d/src/scene/environment.ts`, `render-3d/src/renderer.ts` (a liveLook() getter), `render-3d/src/index.ts`, `client/src/cinematics.ts`, `client/src/app.ts` (the cinematic() call), `client/src/render.ts` | #6 follow-up: the fall film stands on the game's own ground under the game's light |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
