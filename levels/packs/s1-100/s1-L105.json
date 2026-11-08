@@ -1,0 +1,413 @@
+{
+  "id": "s1-L105",
+  "seed": 1693317936,
+  "engineVersion": "0.22.0",
+  "contentVersion": "0.19.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-sw",
+      "food-se",
+      "shop-ne",
+      "landmark-s"
+    ]
+  },
+  "modules": [
+    "blocked_zones",
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "hazard_events",
+    "housing",
+    "sales"
+  ],
+  "start": [
+    240,
+    360
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        450
+      ],
+      "params": {
+        "fuel": 15,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        362,
+        413
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          301,
+          413
+        ],
+        [
+          301,
+          379
+        ],
+        [
+          301,
+          345
+        ],
+        [
+          301,
+          311
+        ]
+      ],
+      "route": [
+        [
+          500,
+          303
+        ],
+        [
+          477,
+          303
+        ],
+        [
+          303,
+          303
+        ],
+        [
+          301,
+          311
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        329,
+        588
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        157,
+        509
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
+        471
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        182,
+        550
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        134,
+        486
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        148,
+        537
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        111,
+        466
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        174,
+        580
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        229,
+        592
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        117,
+        539
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        143,
+        569
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        202,
+        610
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        251,
+        615
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        143,
+        608
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        288,
+        362
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        274,
+        332
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        240,
+        316
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        308,
+        332
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        266,
+        297
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        240,
+        750
+      ],
+      "arrivals": {
+        "every": 14,
+        "total": 4
+      }
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble0",
+      "rect": [
+        32,
+        354,
+        120,
+        70
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        57,
+        389
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        92,
+        389
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        127,
+        389
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level0",
+      "at": [
+        263,
+        560
+      ],
+      "cost": {
+        "res.currency": 24
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "clear0",
+      "at": [
+        78,
+        467
+      ],
+      "cost": {
+        "res.currency": 14
+      },
+      "build": "zone.clear",
+      "target": "rubble0",
+      "requires": {
+        "coreLevel": 2,
+        "pad": "core_level0"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        400,
+        540
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing1",
+      "at": [
+        70,
+        550
+      ],
+      "cost": {
+        "res.currency": 14
+      },
+      "build": "struct.housing",
+      "requires": {
+        "pad": "clear0"
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 44,
+      "start": 52,
+      "end": 110
+    }
+  ],
+  "params": {
+    "start.currency": 7,
+    "core.burn": 2.8,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 2.7,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 350
+  },
+  "goal": {
+    "type": "build_count",
+    "build": "struct.housing",
+    "n": 2
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "build_count",
+      "params": {
+        "build": "struct.housing",
+        "n": 2
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 203
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hab Pods and Building Spree",
+      "goal": "build_count",
+      "tips": [
+        "New colonists need a bed. Build hab pods so they can move in."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.527,
+    "fun": 0.48,
+    "botMargin": 0.64,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

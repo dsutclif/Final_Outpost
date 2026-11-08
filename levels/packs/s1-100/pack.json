@@ -1,0 +1,211 @@
+{
+  "id": "s1-100",
+  "engineVersion": "0.22.0",
+  "contentVersion": "0.19.0",
+  "levels": [
+    {
+      "id": "s1-L101",
+      "file": "s1-L101.json",
+      "title": "Drift Cables and Protein Run",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "hunting",
+        "lasso",
+        "sales"
+      ],
+      "goal": "protein",
+      "rating": 0.34,
+      "fun": 0.695,
+      "target": 0.4
+    },
+    {
+      "id": "s1-L102",
+      "file": "s1-L102.json",
+      "title": "Sealed Veins and First Class",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "serve_premium",
+      "rating": 0.501,
+      "fun": 0.728,
+      "target": 0.45
+    },
+    {
+      "id": "s1-L103",
+      "file": "s1-L103.json",
+      "title": "Presses and Hiring Drive",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "hire",
+      "rating": 0.601,
+      "fun": 0.934,
+      "target": 0.494
+    },
+    {
+      "id": "s1-L104",
+      "file": "s1-L104.json",
+      "title": "Scrap and Gun Line",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "turret_level",
+      "rating": 0.582,
+      "fun": 0.097,
+      "target": 0.538
+    },
+    {
+      "id": "s1-L105",
+      "file": "s1-L105.json",
+      "title": "Hab Pods and Building Spree",
+      "family": "shelter",
+      "modules": [
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "hazard_events",
+        "housing",
+        "sales"
+      ],
+      "goal": "build_count",
+      "rating": 0.527,
+      "fun": 0.48,
+      "target": 0.581
+    },
+    {
+      "id": "s1-L106",
+      "file": "s1-L106.json",
+      "title": "Drift Cables and Last Calls",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "lasso",
+        "sales"
+      ],
+      "goal": "rescue",
+      "rating": 0.621,
+      "fun": 0.796,
+      "target": 0.625
+    },
+    {
+      "id": "s1-L107",
+      "file": "s1-L107.json",
+      "title": "Locked Caches and Profit",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "currency",
+      "rating": 0.621,
+      "fun": 0.928,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L108",
+      "file": "s1-L108.json",
+      "title": "Belt Lines and Hands Off",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "conveyors",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "automate",
+      "rating": 0.057,
+      "fun": 0.923,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L109",
+      "file": "s1-L109.json",
+      "title": "Scrap and Hiring Drive",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "hire",
+      "rating": 0.733,
+      "fun": 0.269,
+      "target": 0.756
+    }
+  ],
+  "dropped": [
+    {
+      "index": 100,
+      "id": "s1-L100",
+      "family": "industrialize",
+      "secondary": "harvest",
+      "rejects": {
+        "layout": 2800
+      }
+    }
+  ],
+  "tuning": {
+    "offset": 0,
+    "reason": "adaptation off",
+    "meanStars": null,
+    "meanAttempts": null,
+    "samples": 10,
+    "cleared": 37
+  }
+}
