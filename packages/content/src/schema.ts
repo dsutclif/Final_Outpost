@@ -98,6 +98,12 @@ export const HostileDef = z.object({
   damage: z.number().int().positive().default(1),
   // Bosses announce themselves with a boss_spawned event; renderers draw a health bar.
   boss: z.boolean().default(false),
+  // Footprint radius: bodies never overlap (separation), and a lunge ends touching.
+  radius: units.default(6),
+  // Ranged attack, fired while walking (nobody stops to shoot): range, damage per shot (x the gate/base damage params), seconds between shots.
+  shot: z.object({ range: units, damage: z.number().int().positive(), interval: seconds }).optional(),
+  // A dash at a settler: starts within range, stands still for windup, then closes and hits for `damage`; cooldown before the next.
+  lunge: z.object({ range: units, windup: seconds, cooldown: seconds }).optional(),
 });
 export type HostileDef = z.infer<typeof HostileDef>;
 

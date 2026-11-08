@@ -139,6 +139,8 @@ export interface ResidentState {
   origin: "start" | "rescue" | "gate";
   /** Guards only, once first hit: health left (absent = full, the role's hp). */
   hp?: number;
+  /** Downed guard: ticks since it last bled a point (#21). */
+  bleed?: number;
 }
 
 export interface PadState {
@@ -164,6 +166,8 @@ export interface StructureState {
   hpMax?: number;
   /** Ticks until the structure's next action (ranged defense shot). */
   acc: number;
+  /** Guard posts: hp of the drones docked in the post between waves (#28); they keep their hp and launch with the next wave. */
+  docked?: number[];
 }
 
 export interface BarrierSectionState {
@@ -257,6 +261,8 @@ export interface HostileState {
   acc: number;
   /** Hp at or below which it breaks off and retreats (a wave's bossRetreat); absent = fights to the end. */
   retreatHp?: number;
+  /** Ticks until the next shot / lunge wind-up left (stands still while > 0) / lunge cooldown. */
+  shotCd?: number; windup?: number; lungeCd?: number;
 }
 
 /** A soldier trained by a guard post (Batch 3): fights hostiles hand to hand and can die. */
@@ -327,8 +333,6 @@ export interface LassoState {
   engaged: boolean;
   /** The current tow trip: lassoables delivered into the safe radius and lost (dropped or frozen over). */
   trip: { delivered: number; lost: number };
-  /** Ticks the player has stood still while towing outside the safe radius. */
-  slack: number;
 }
 
 /** Reactor-out countdown. `ticksTotal` is core.grace; the lifeline is ticksLeft / ticksTotal while active. */

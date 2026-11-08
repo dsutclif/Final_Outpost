@@ -35,7 +35,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-08 | Vale helmet animations | story-vale-fall | `render-3d/src/scene/rigged.ts`, `render-3d/src/renderer.ts` (resident and player drawing, a story camera takeover), `render-3d/src/assets/meshy.json` + `meshy.built.json` + crew `public/models/*.glb`, `render-3d/src/scene/livescene.ts`, `client/src/story/*` (the warlord fall action), `tools/cinematics/crew_fall_bake.py` | Doug 2026-11-08: crew fall and get-up animations in play, then Vale's fall as machinima in the paused level |
-| 2026-11-08 | Systems Bundle 7 | main | **ENGINE BUMP (0.22.0)**: `packages/sim`, `packages/content/data`, `packages/bots`, `packages/rater`, `levels/golden`, `levels/packs` re-pin only. **Story and Look: finish your current push and pause until this claim is released.** | Release 2 combat (#17–#37, #81) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -498,3 +497,7 @@ New `render-3d/src/sizes.ts` (`SIZES`, `POD_K`, `POD_CAVITY_M`; export `@fo/rend
 ### 2026-11-05 (B): why the bay scenes still looked off, and the fix
 
 The pod size and burial already matched after e4f7bb4's predecessor (5a8a731), and `empty_bays` has no people, so the visible difference was the lens: the game camera is 8 degrees (`FOV_DEG`, near flat) while the scenes used 38/58, which blows up the near pod and the people. `livescene.ts` `gameLens()` now gives both bay scenes the game's lens, backing the camera off along its line of sight so the framing holds (far plane 1200). Also fixed the sandbox Crash site (`crashsite.ts`): it started at ship x0.54 / pod x0.80 on top of levels that already carry 27 m / 2.66 m, so it showed a 2.13 m pod; it now starts at x1 (2.66 m, 56% of 1.44 m buried, commander 1.98 m) and matches the game. KILN's full name recorded (screenplay, V2 plan).
+
+### 2026-11-08 (Systems, Bundle 7): engine 0.22.0 landed, claim released
+
+Release 2 combat is in (every call is in docs/DECISIONS.md, "Release 2 combat"). Story and Look can resume. Shared files touched: `render-3d/src/renderer.ts` (the `shot` event case: only a shot with no `by` makes the commander shoot; attackers get a danger-colour bolt; one-line `tow_dropped` floater fix), `skins/src/mars_greenhouse.ts` (removed the `tow_slack` text only). Level files under `levels/story`, `levels/golden` and the packs were re-pinned (versions only). Engine facts a story level can rely on: every attacker shoots (range 40–80 units) and prefers guards and drones to the commander; the commander can be downed; the spawn lane is 50 units off the edge; drones dock between waves; bodies queue at the gate. Level 5's authored waves have not been replayed by Story since this change: please run it once.

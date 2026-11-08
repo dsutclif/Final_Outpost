@@ -59,6 +59,11 @@ export interface CompiledHostile {
   drops: Record<string, number>;
   damage: number;
   boss: boolean;
+  radius: number;
+  /** Ranged attack (range 0 = none): fired while walking. */
+  shotRange: number; shotDamage: number; shotTicks: number;
+  /** Lunge (range 0 = none). */
+  lungeRange: number; lungeWindTicks: number; lungeCoolTicks: number;
 }
 
 export interface CompiledLassoable {
@@ -270,7 +275,7 @@ export interface Compiled {
   consumers: Record<string, CompiledConsumer>;
   sales: CompiledSales;
   housing: { base: number; perBuilding: number };
-  lasso: { maxTowed: number; speedPenalty: number; pointSpacing: number; trailMax: number; closeDist: number; minLoopPoints: number; slackTicks: number };
+  lasso: { maxTowed: number; speedPenalty: number; pointSpacing: number; trailMax: number; closeDist: number; minLoopPoints: number };
   /** Reactor-out countdown and frost (per mille). */
   freeze: { graceTicks: number; decayPerTick: number; othersRate: number; othersCap: number };
   hazard: { burnMul: number; radiusScale: number };
@@ -286,7 +291,7 @@ export interface Compiled {
     arrive: number; workRange: number; coreDeliverRange: number; seekDropRange: number;
   };
   /** R5 #26: guards stop fighting at downPct of their health; healable = the level has a med bay or a medic (else a downed guard dies). */
-  guards: { downPct: number; healable: boolean; leash: number | null };
+  guards: { downPct: number; healable: boolean; leash: number | null; bleedTicks: number; radius: number };
   waiting: Vec;
   gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
   zones: { blockMargin: number };
@@ -304,7 +309,7 @@ export interface Compiled {
     troopContact: number;
     postOffset: number;
     /** Quiet ticks after a wave is cleared before the next may start. */
-    waveQuietTicks: number; playerHitRange: number; playerHitTicks: number;
+    waveQuietTicks: number; playerHitRange: number; troopRadius: number; playerHitTicks: number;
   };
   waves: CompiledWave[];
   /** Main goal first; synthesised from `goal` when the manifest lists no objectives. */
@@ -362,7 +367,9 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     };
   }
   const hostiles: Record<string, CompiledHostile> = {};
-  for (const [id, h] of Object.entries(c.hostiles)) hostiles[id] = { hp: h.hp, speed: perTick(h.speed), drops: { ...h.drops }, damage: h.damage, boss: h.boss };
+  for (const [id, h] of Object.entries(c.hostiles)) hostiles[id] = { hp: h.hp, speed: perTick(h.speed), drops: { ...h.drops }, damage: h.damage, boss: h.boss,
+    radius: fp(h.radius), shotRange: fp(h.shot?.range ?? 0), shotDamage: h.shot?.damage ?? 0, shotTicks: ticks(h.shot?.interval ?? 0),
+    lungeRange: fp(h.lunge?.range ?? 0), lungeWindTicks: ticks(h.lunge?.windup ?? 0), lungeCoolTicks: ticks(h.lunge?.cooldown ?? 0) };
   const lassoables: Record<string, CompiledLassoable> = {};
   for (const [id, l] of Object.entries(c.lassoables)) {
     lassoables[id] = {
@@ -570,7 +577,6 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     lasso: {
       maxTowed: int("lasso.maxTowed"), speedPenalty: ratio(param("lasso.speedPenalty")), pointSpacing: fp(param("lasso.pointSpacing")),
       trailMax: int("lasso.trailMax"), closeDist: fp(param("lasso.closeDist")), minLoopPoints: int("lasso.minLoopPoints"),
-      slackTicks: param("lasso.slackTime") > 0 ? ticks(param("lasso.slackTime")) : 0,
     },
     freeze: {
       graceTicks,
@@ -597,7 +603,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       seekDropRange: fp(param("residents.seekDropRange")),
     },
     guards: {
-      downPct: int("guards.downPct"),
+      downPct: int("guards.downPct"), bleedTicks: ticks(param("guards.bleedSeconds")), radius: fp(param("guards.radius")),
       leash: null, // set by createSim, which has the wall geometry (systems/guards.ts leashLine)
       healable: manifest.entities.some((e) => (e.type === "pad.build" && e.build === "struct.medical") || e.type === "struct.medical"
         || (e.type === "pad.hire" && roles[e.role.role]?.behavior === "medic") || ("joins" in e && !!e.joins && roles[e.joins.role]?.behavior === "medic"))
@@ -622,7 +628,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       baseRange: fp(param("defense.baseRange")), baseHitTicks: ticks(param("defense.baseHitInterval")), baseDamage: int("defense.baseDamage"),
       laneHalfWidth: fp(param("defense.laneHalfWidth")), troopContact: fp(param("defense.troopContact")),
       postOffset: fp(param("defense.postOffset")), waveQuietTicks: ticks(param("defense.waveQuiet")),
-      playerHitRange: fp(param("defense.playerHitRange")), playerHitTicks: ticks(param("defense.playerHitInterval")),
+      playerHitRange: fp(param("defense.playerHitRange")), troopRadius: fp(param("defense.troopRadius")), playerHitTicks: ticks(param("defense.playerHitInterval")),
     },
     waves,
     objectives,

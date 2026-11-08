@@ -41,6 +41,14 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 
 ## Waiting on Doug
 
+- [ ] **#85 · iPhone checks for Bundle 7 (Release 2 combat, engine 0.22.0).** On a defend level (e.g. s1-L015, s1-L048):
+      1. Attackers shoot: acid bolts from mites, longer bolts from crawlers and raiders, in a danger colour; turret, guard, drone and ranger shots show as bolts too.
+      2. A mite winds up (0.3 s, stands still) and then jumps you; the commander goes down at 0 hp, drops the pack and gets up. Guards and drones draw fire first, so this is rare with defenders out.
+      3. Attackers queue behind each other at the gate instead of stacking; scrap lands where you can walk to it.
+      4. Drones go back into their post between waves and come out with the next wave.
+      5. A downed guard bleeds out in about a dozen seconds unless a medic reaches it.
+      6. #81 on s1-L017: hire the ranger; it walks out through the gate, hunts and comes back in. Also check any walled level with a hired hunter.
+      7. Dense-wave frame rate (s1-L037 last waves) still smooth on the phone.
 - [ ] **Remind Doug (2026-11-09): do the iPhone checks #83, #84, #2, #7, #6, #76, and run the three remote branch deletes (Bundle 1).**
 - [ ] **#83 · iPhone checks for Bundle 3 (live site).**
       1. KILN (#4/#13): the cloud beside the commander looks the same size in story levels 1–5 and is still easy to see at the smaller size; on the first regular level that teaches something new (e.g. s1-L006) it floats beside the commander while its lines show.

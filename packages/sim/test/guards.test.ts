@@ -40,6 +40,9 @@ function attacker(st: Loose, g: ResidentState) {
   return h;
 }
 
+/** Park the hostile beside the guard (just outside body contact, so crowding never shoves them across the map), in shot range. */
+function park(h: { pos: { x: number; y: number } }, g: ResidentState) { h.pos = { x: g.pos.x + 20 * FP, y: g.pos.y }; }
+
 function runUntil(sim: ReturnType<typeof createSim>, pred: (ev: SimEvent[]) => boolean, max: number, each?: () => void): SimEvent[] {
   const seen: SimEvent[] = [];
   for (let i = 0; i < max; i++) {
@@ -54,9 +57,10 @@ function runUntil(sim: ReturnType<typeof createSim>, pred: (ev: SimEvent[]) => b
 describe("guards have health (R5 #26)", () => {
   it("take hits, and go down at 25% without counting as an injury", () => {
     const { sim, st, cp, g } = setup();
-    expect(cp.roles["role.defender"]!.hp).toBe(cp.player.hp);
+    // guards are sturdier than the commander now (defender 15 hp vs his 10)
+    expect(cp.roles["role.defender"]!.hp).toBeGreaterThanOrEqual(cp.player.hp);
     const h = attacker(st, g);
-    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
+    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { park(h, g); h.hp = 999; });
     expect(ev.some((e) => e.t === "guard_down")).toBe(true);
     expect(g.status).toBe("injured");
     expect(g.hp! * 100).toBeLessThanOrEqual(cp.guards.downPct * cp.roles["role.defender"]!.hp);
@@ -66,12 +70,12 @@ describe("guards have health (R5 #26)", () => {
     expect(st.objectives.find((o) => o.id === "safe")!.failed).toBe(false);
   });
 
-  it("a guard lying where it fell is passed over, so the medic can reach it through a wave", () => {
+  it("a guard lying where it fell can still be shot (half damage), yet the medic reaches and heals it through a wave", () => {
     const { sim, st, g } = setup({ medBay: false, medic: true });
     const m = st.residents.find((r) => r.role === "idle" && r !== g)!;
     m.role = "role.medic";
     const h = attacker(st, g);
-    const keep = () => { h.pos = { ...g.pos }; h.hp = 999; };
+    const keep = () => { park(h, g); h.hp = 999; };
     runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, keep);
     const ev = runUntil(sim, (e) => e.some((x) => x.t === "medic_heal"), 60 * TPS, keep);
     expect(ev.some((e) => e.t === "medic_heal" && e.resident === g.id)).toBe(true);
@@ -86,7 +90,7 @@ describe("guards have health (R5 #26)", () => {
       if (built) st.structures.push({ id: "medic", type: "struct.medical", pos: { ...st.pads.find((p) => p.id === "medic")!.pos }, level: 1, acc: 0 });
       expect(lyingDown(st, cp, g)).toBe(false);
       const h = attacker(st, g);
-      runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
+      runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { park(h, g); h.hp = 999; });
       expect(g.status).toBe("injured");
       return lyingDown(st, cp, g);
     };
@@ -99,9 +103,9 @@ describe("guards have health (R5 #26)", () => {
 
   it("a single big hit puts a guard down, not dead", () => {
     const { sim, st, cp, g } = setup();
-    cp.hostiles["hostile.raider_humanoid"]!.damage = 99;
+    cp.hostiles["hostile.raider_humanoid"]!.shotDamage = 99; // attackers hurt guards with their shots now
     const h = attacker(st, g);
-    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_down" || x.t === "guard_died"), 10 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
+    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_down" || x.t === "guard_died"), 10 * TPS, () => { park(h, g); h.hp = 999; });
     expect(ev.some((e) => e.t === "guard_down")).toBe(true);
     expect(ev.some((e) => e.t === "guard_died")).toBe(false);
   });
@@ -111,8 +115,8 @@ describe("guards have health (R5 #26)", () => {
     const pad = st.pads.find((p) => p.id === "medic")!;
     st.structures.push({ id: "medic", type: "struct.medical", pos: { ...pad.pos }, level: 1, acc: 0 });
     const h = attacker(st, g);
-    runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
-    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_died"), 10 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
+    runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { park(h, g); h.hp = 999; });
+    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_died"), 10 * TPS, () => { park(h, g); h.hp = 999; });
     expect(ev.some((e) => e.t === "guard_died" && e.resident === g.id)).toBe(true);
     expect(st.residents.includes(g)).toBe(false);
     expect(st.stats.guardsLost).toBe(1);
@@ -122,7 +126,7 @@ describe("guards have health (R5 #26)", () => {
     const { sim, st, cp, g } = setup({ medBay: false });
     expect(cp.guards.healable).toBe(false);
     const h = attacker(st, g);
-    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_died"), 60 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
+    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_died"), 60 * TPS, () => { park(h, g); h.hp = 999; });
     expect(ev.some((e) => e.t === "guard_down")).toBe(false);
     expect(ev.some((e) => e.t === "guard_died")).toBe(true);
   });
@@ -132,7 +136,7 @@ describe("guards have health (R5 #26)", () => {
     const pad = st.pads.find((p) => p.id === "medic")!;
     st.structures.push({ id: "medic", type: "struct.medical", pos: { ...pad.pos }, level: 1, acc: 0 });
     const h = attacker(st, g);
-    runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
+    runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { park(h, g); h.hp = 999; });
     st.hostiles = [];
     const ev = runUntil(sim, (e) => e.some((x) => x.t === "healed"), 120 * TPS);
     expect(ev.some((e) => e.t === "healed" && e.resident === g.id)).toBe(true);
@@ -148,14 +152,14 @@ describe("guards have health (R5 #26)", () => {
     const m = st.residents.find((r) => r.role === "idle" && r !== g)!;
     m.role = "role.medic";
     const h = attacker(st, g);
-    runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { h.pos = { ...g.pos }; h.hp = 999; });
+    runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { park(h, g); h.hp = 999; });
     st.hostiles = [];
     const fell = { ...g.pos };
-    const ev = runUntil(sim, (e) => e.some((x) => x.t === "healed"), 60 * TPS);
-    expect(ev.some((e) => e.t === "healed" && e.resident === g.id)).toBe(true);
+        const ev = runUntil(sim, (e) => e.some((x) => x.t === "healed"), 60 * TPS);
+        expect(ev.some((e) => e.t === "healed" && e.resident === g.id)).toBe(true);
     expect(within(g.pos, fell, FP)).toBe(true);
     // beside it (within reach, plus the one step it may already have taken back toward its post)
-    expect(within(m.pos, fell, cp.residents.workRange + 4 * FP)).toBe(true);
+        expect(within(m.pos, fell, cp.residents.workRange + 4 * FP)).toBe(true);
     expect(g.hp).toBeUndefined();
   });
 
@@ -164,9 +168,9 @@ describe("guards have health (R5 #26)", () => {
       const { sim, st, cp, g } = setup();
       const max = cp.roles["role.defender"]!.hp;
       const h = attacker(st, g);
-      cp.hostiles["hostile.raider_humanoid"]!.damage = dmg;
+      cp.hostiles["hostile.raider_humanoid"]!.shotDamage = dmg;
       for (let i = 0; i < 40 * TPS; i++) {
-        if (i % (gap + 1) === 0) { h.pos = { ...g.pos }; h.hp = 999; } else h.pos = { x: 0, y: 0 };
+        if (i % (gap + 1) === 0) { park(h, g); h.hp = 999; } else h.pos = { x: 0, y: 0 };
         sim.step({ dx: 0, dy: 0 });
         // once down it is passed over, and a hostile left by the core hits the base (real injuries, not this rule)
         if (!st.residents.includes(g) || g.status !== "ok") break;

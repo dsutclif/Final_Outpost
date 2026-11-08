@@ -369,8 +369,9 @@ describe("hunting, converters and customer variety (level 3)", () => {
   });
 
   it("drop-only demand: no orders for a good only drops supply while its shelf is empty", () => {
-    // Level 4 sells raw food 2, which only creature drops supply.
-    const sim = createSim({ ...LEVEL_4, params: { ...LEVEL_4.params, "core.burn": 60 }, waves: [{ t: 400, counts: { "hostile.creature": 1 } }] });
+    // Level 4 sells raw food 2; hostiles now drop salvage, so a prey zone (creature drops only) is its sole source.
+    const sim = createSim({ ...LEVEL_4, params: { ...LEVEL_4.params, "core.burn": 60 }, waves: [{ t: 400, counts: { "hostile.creature": 1 } }],
+      entities: [...LEVEL_4.entities, { type: "zone.prey", id: "woods", rect: [20, 60, 210, 230], animal: "node.prey", n: 1 }] } as never);
     const early = idle(sim, 40 * TPS);
     const asked = all(early, "customer_arrived");
     expect(asked.length).toBeGreaterThan(3);

@@ -86,7 +86,7 @@
   "converters.pickupRange": 24,
   "converters.hintRange": 90,
   "defense.spawnGap": 1.1,
-  "defense.spawnY": -10,
+  "defense.spawnY": -50,
   "defense.fleeSpeed": 0,
   "defense.spawnMarginX": 30,
   "defense.barrierStop": 14,
@@ -120,7 +120,9 @@
   "barrier.costPerSection": 2,
   "defense.playerHitRange": 18,
   "defense.playerHitInterval": 1,
-  "lasso.slackTime": 2.5,
   "stock.collapseSeconds": 8,
-  "guards.downPct": 25
+  "guards.downPct": 25,
+  "guards.bleedSeconds": 6,
+  "guards.radius": 6,
+  "defense.troopRadius": 5
 }

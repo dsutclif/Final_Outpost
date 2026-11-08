@@ -9,7 +9,7 @@ import { safeRadius } from "./core.js";
 const captureById = (st: State, id: number): CaptureState | undefined => st.captures.find((c) => c.id === id);
 
 /** Drop one towed captive where it is: it goes back to idle (lassoable again) and counts as lost for this trip. */
-export function dropTow(st: State, id: number, reason: "hit" | "slack", out: SimEvent[]): void {
+export function dropTow(st: State, id: number, reason: "hit", out: SimEvent[]): void {
   const p = st.player, c = captureById(st, id);
   const i = p.tow.indexOf(id);
   if (!c || i < 0) return;
@@ -25,9 +25,8 @@ export function dropTow(st: State, id: number, reason: "hit" | "slack", out: Sim
  * containers left. Closing a loop captures every idle lassoable inside it; captives follow in a
  * chain and start releasing (recruits) or pay out (crates) once they enter the safe radius.
  *
- * Tow loss (0.5.0): a hostile hit drops the rearmost captive (defense.ts); standing still for
- * `lasso.slackTime` while towing outside the safe radius lets the line go slack and drops every
- * captive in place. Pods with a freeze timer are lost when it runs out while idle or towed.
+ * Tow loss: a hostile hit drops the rearmost captive (defense.ts); standing still never does.
+ * Pods with a freeze timer are lost when it runs out while idle or towed.
  */
 export function stepLasso(st: State, cp: Compiled, out: SimEvent[]): void {
   const p = st.player, L = st.lasso;
@@ -97,12 +96,6 @@ export function stepLasso(st: State, cp: Compiled, out: SimEvent[]): void {
     c.timer = def.releaseTicks;
     out.push({ t: "pod_home", capture: c.id, at: { ...c.pos }, decoy: !!c.decoy });
   }
-  // Slack: standing still with a tow outside the heat drops the whole chain.
-  if (p.tow.length > 0 && !p.moving && !within(p.pos, st.core.pos, R) && cp.lasso.slackTicks > 0) {
-    L.slack++;
-    if (L.slack >= cp.lasso.slackTicks) for (const id of [...p.tow].reverse()) dropTow(st, id, "slack", out);
-  }
-  if (p.tow.length === 0 || p.moving) L.slack = 0;
   // A trip ends when the tow empties; record the best haul, and the best one that lost nothing.
   if (p.tow.length === 0 && L.trip.delivered + L.trip.lost > 0) {
     st.stats.tripBest = Math.max(st.stats.tripBest, L.trip.delivered);

@@ -158,12 +158,14 @@ describe("ranged player attack", () => {
     const sim = newSim({ params: { ...(LEVEL_2 as { params?: Record<string, number> }).params, "player.walkThrough": 0 } }, LEVEL_2);
     const p = sim.state.player.pos;
     sim.state.hostiles.push(hostile(5, p.x - fp(70), p.y, 9) as never, hostile(4, p.x + fp(70), p.y, 9) as never, hostile(3, p.x, p.y + fp(85), 9) as never);
-    const first = all(sim.step({ dx: 0, dy: -FP }), "shot");
+    // turrets and guards now also emit shot events (they carry `by`); the player's shots do not
+    const mine = (ev: SimEvent[]) => all(ev, "shot").filter((e) => !(e as { by?: string }).by);
+    const first = mine(sim.step({ dx: 0, dy: -FP }));
     expect(first.length).toBe(1);
     expect([4, 5]).toContain(first[0]!.id);
     let shots = first.length;
     const ticks = sim.compiled.player.rangedTicks;
-    for (let i = 1; i < ticks * 3; i++) shots += all(sim.step({ dx: 0, dy: -FP }), "shot").length;
+    for (let i = 1; i < ticks * 3; i++) shots += mine(sim.step({ dx: 0, dy: -FP })).length;
     expect(shots).toBeGreaterThanOrEqual(3);
     expect(shots).toBeLessThanOrEqual(4);
   });

@@ -30,6 +30,11 @@ export interface WaveTrace {
   gateHp: number;
   gateHpMax: number;
   baseHp: number;
+  /** Release 2 combat (#21): guards lost, guards downed, commander knock-downs, and attackers' ranged shots during the window. */
+  guardDeaths: number;
+  guardDowns: number;
+  commanderDowns: number;
+  hostileShots: number;
 }
 
 export interface DefendTrace { profile: string; seed: number; won: boolean; ticks: number; hash: string; waves: WaveTrace[] }
@@ -41,7 +46,7 @@ export function defendTrace(manifest: unknown, profile: BotProfile, seed: number
   const count = ((manifest as { waves?: unknown[] }).waves ?? []).length;
   const waves: WaveTrace[] = Array.from({ length: count }, (_, i) => ({
     wave: i, started: false, startTick: -1, clearedTick: -1, endTick: -1, attackers: 0, hpSpawned: 0, gateDamage: 0, wallDamage: 0, baseDamage: 0,
-    leak: 0, carryOver: 0, scrap: 0, towers: 0, guards: 0, gateHp: 0, gateHpMax: 0, baseHp: 0,
+    leak: 0, carryOver: 0, scrap: 0, towers: 0, guards: 0, gateHp: 0, gateHpMax: 0, baseHp: 0, guardDeaths: 0, guardDowns: 0, commanderDowns: 0, hostileShots: 0,
   }));
   let cur: WaveTrace | null = null;
   let seenId = 0, prevBase = -1, alive = 0;
@@ -67,6 +72,10 @@ export function defendTrace(manifest: unknown, profile: BotProfile, seed: number
           cur.gateHpMax = secs.reduce((a, s) => a + (s.gate && s.built ? s.hpMax : 0), 0);
           cur.baseHp = st.meters.baseHealth;
         } else if (e.t === "wave_cleared" && cur && cur.clearedTick < 0) cur.clearedTick = st.tick;
+        else if (cur && e.t === "guard_died") cur.guardDeaths++;
+        else if (cur && e.t === "guard_down") cur.guardDowns++;
+        else if (cur && e.t === "downed") cur.commanderDowns++;
+        else if (cur && e.t === "shot" && e.by === "hostile") cur.hostileShots++;
       }
       if (cur) {
         for (const h of st.hostiles) if (h.id >= seenId) { cur.attackers++; cur.hpSpawned += h.hpMax; }

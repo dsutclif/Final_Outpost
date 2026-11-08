@@ -270,3 +270,41 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
   Doug's Scale tab the same day: the commander stands x1.1 (1.98 m), taller on purpose as the main character; the ranger
   is drawn x1.1 too, only because his model reads short (he should look 1.8 m like everyone else); mites x0.9 (0.34 m), drones x0.7,
   the buggy 2.64 m long.
+- **Release 2 combat, engine 0.22.0 / content 0.19.0 (Bundle 7, 2026-11-08; Doug away, calls made within RELEASE-2.md).**
+  - **Every attacker has a ranged shot, fired while walking on ("nobody stops to shoot", #17/#19).** `enemies.json` `shot`
+    {range, damage, interval}: mite 40/1/2 s, crawler 60/1/1.5 s, raider 80/1/1.5 s, warlord 60/2/0.5 s (the arena PROPOSALS).
+    Target order: nearest guard or drone in range, then (only if none) the commander, then the base in `baseRange`, then the
+    gate ahead. Shooters no longer melee: their gate and base damage is their shot (damage x the gate/base params), so gate
+    damage starts as they come into range. Every shot is a `shot` event with `by` and `kind` (skins colour by species).
+  - **Mites lunge (#18):** `lunge` range 30, 0.3 s wind-up standing still, dash to touch, hit for `damage`, 2 s cooldown.
+  - **HP = points = drops, partly.** Mite 1/1, crawler 3/3 (now `res.salvage`, was food, #26). Raider stays 4/4 and warlord
+    36/36 in this bump: the arena proposals (raider 6, warlord 24) would make every shipped wave 50% heavier, and the pack
+    is not rebuilt here. Bundle 8 resizes waves from target rho and sets those HP then. Wave share (70/20/10, 1–3 warlords) is
+    also Bundle 8 (it is a generator decision).
+  - **Guards are stronger (arena proposals):** hp 15, damage 3, every 0.5 s. With the shots in, guards at 10 hp / 1 dmg died
+    and no bot could win any of the 11 defend levels; at the proposals every one wins again (`levels:check`).
+  - **Commander can be downed (#21):** shots and lunges take player hp; at 0 he is down for `player.downSeconds`, the pack spills
+    and the tow drops, then he is up healed (same as an animal bite). Not a game over. He is the last target, so guards and
+    drones draw fire first.
+  - **Guards (#21):** a downed guard stays targetable, takes half damage (min 1), and bleeds 1 hp per `guards.bleedSeconds` (6 s)
+    until a medic or the med bay heals it; at 0 it dies. A healing guard and medics can't be hurt (medics are also excluded
+    from the base-hit injury roll). No medic or med bay on the level: still dies at once on going down.
+  - **Footprints and separation (#20/#29):** `radius` per hostile (5/7/8/14), guards 6, drones 5. After movement, bodies are
+    pushed apart (spatial hash, 32-unit cells, body order, a push into a wall or rubble is not taken). Ground bodies separate
+    from ground bodies, drones only from drones; the commander is never pushed. Melee "touching" is the existing
+    `troopContact` / drone `attackRange` (about the sum of the radii); only the lunge ends exactly touching.
+  - **Drones (guard-post troops) dock (#28):** trained only while a wave is active; with the field clear and a drone within
+    3 post-offsets of its post it docks (`docked` hp list on the structure, keeps its hp) and launches again, one per tick,
+    when the next wave starts. Docked drones vanish from `st.troops`, so the renderer needs no change.
+  - **Drops (#32):** scrap snaps into the commander's walk box and out of walls/rubble (nearest free point in rings of 8 units).
+  - **Spawn (#33):** `defense.spawnY` -10 -> -50 units (-120 was the aim, about half the defend view width of 300, but it pushed s1-L037 over its 314 s budget: waves spawn on a fixed queue, so every unit of walk-in is lost time; Bundle 8 sets the off-screen distance and the budget per level): the lane is longer, so
+    attackers start off screen. Per-family metres can be a per-level `params` override; the walk-in time is a term for the model.
+  - **Tow slack rule removed (#34); automate takes `machines` (#37)** (generator sets min(2, converters); 0 = old behaviour).
+  - **#81 gates:** the cause was `gatedMove` (rules, so in this bump): it looked only at the first wall crossing, so a hunter
+    walked through the gate, then back out for the wall behind it, for ever. It now routes the shortest way over gate and
+    open-section waypoints and wall corners (visibility graph, clearance = wall thickness). Guards, drones and attackers have
+    their own gate logic and were not changed; customers and traders do not use walls.
+  - **Turrets:** attackers never damaged them (they have no hp); now asserted by a property test. Turret, drone, guard and
+    hunter shots emit `shot` events (#30/#31); the bolt art for them reuses the commander's tracer (danger colour for attackers).
+  - **Model:** `defendInput`/`predictRho` still use the 0.21 numbers (guard 1.43 dps, melee-style gate hits). Bundle 8 must
+    refit v1 on this engine, adding: ranged range window, lunge, guard dps 6 and hp 15, bleed-out, longer `laneLen` from spawnY.

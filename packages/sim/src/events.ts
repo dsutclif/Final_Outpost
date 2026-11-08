@@ -29,7 +29,7 @@ export type SimEvent =
   | { t: "recruit_arrived"; resident: number; at: Vec }
   | { t: "moved_in"; resident: number }
   | { t: "pod_lost"; capture: number; at: Vec }
-  | { t: "tow_dropped"; capture: number; at: Vec; reason: "hit" | "slack" }
+  | { t: "tow_dropped"; capture: number; at: Vec; reason: "hit" }
   | { t: "crate_delivered"; capture: number; at: Vec; bundle: Record<string, number>; item?: true }
   | { t: "capture_revealed"; capture: number; at: Vec }
   // story pods: a crew member who starts work on release, an empty pod
@@ -44,7 +44,10 @@ export type SimEvent =
   // combat
   | { t: "downed"; at: Vec }
   | { t: "hit"; target: "hostile" | "prey" | "base" | "barrier" | "player" | "resident" | "troop"; id: number; at: Vec; by: "player" | "resident" | "structure" | "troop" | "hostile" | "animal" }
-  | { t: "shot"; from: Vec; to: Vec; id: number }
+  // `by` absent = the commander. kind = the shooter's hostile type, so skins can colour each species' bolt (#19).
+  | { t: "shot"; from: Vec; to: Vec; id: number; by?: "hostile" | "structure" | "troop" | "resident"; kind?: string }
+  | { t: "lunge"; id: number; at: Vec; to: Vec; windup: boolean }
+  | { t: "troop_docked"; id: number; home: string }
   | { t: "died"; kind: string; id: number; at: Vec; by?: "player" | "resident" | "structure" | "troop" }
   | { t: "troop_spawned"; id: number; at: Vec; home: string }
   | { t: "drop"; res: string; at: Vec }

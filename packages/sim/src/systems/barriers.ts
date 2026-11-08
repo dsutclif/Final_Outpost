@@ -98,24 +98,94 @@ export function outsideLine(st: State, line: BarrierState, p: Vec): boolean {
 /** Outside any barrier line (see outsideLine). */
 export const outsideLines = (st: State, p: Vec): boolean => st.barriers.some((line) => outsideLine(st, line, p));
 
+/** Distance from p to segment ab (fixed point, products below 2^53). */
+function pointSeg(p: Vec, a: Vec, b: Vec): number {
+  const abx = b.x - a.x, aby = b.y - a.y, apx = p.x - a.x, apy = p.y - a.y, len2 = abx * abx + aby * aby, dot = apx * abx + apy * aby;
+  if (len2 === 0 || dot <= 0) return isqrt(apx * apx + apy * apy);
+  if (dot >= len2) return isqrt((p.x - b.x) ** 2 + (p.y - b.y) ** 2);
+  return Math.floor(Math.abs(apx * aby - apy * abx) / isqrt(len2));
+}
+
+/** True when a→b crosses, or passes within the wall's thickness of, a built wall section that is not a gate (any, not only the first). */
+export function wallBetween(st: State, cp: Compiled, a: Vec, b: Vec): boolean {
+  const r = cp.barrier.thickness;
+  for (const line of st.barriers) for (const s of line.sections) {
+    if (!s.built || s.gate) continue;
+    if (segCross(a, b, s.a, s.b) >= 0 || pointSeg(a, s.a, s.b) < r || pointSeg(b, s.a, s.b) < r || pointSeg(s.a, a, b) < r || pointSeg(s.b, a, b) < r) return true;
+  }
+  return false;
+}
+
 /**
- * moveAgent that goes round a wall through a way in (Doug, 2026-11-04: every settler uses the gates, as guards and
- * traders already do). When the straight line to the target crosses a built wall section, the settler first walks
- * to the gate or open section that makes the shortest trip, then on to the target. Without walls it is moveAgent.
+ * Waypoints for going round walls (#81): a spot just either side of every gate and open section (the way through),
+ * and every wall vertex pushed away from its line's centre (the way round a corner). Fixed point, no trig.
+ */
+function wayPoints(st: State, cp: Compiled): Vec[] {
+  const k = 2 * cp.barrier.thickness, pts: Vec[] = [];
+  for (const line of st.barriers) {
+    let cx = 0, cy = 0;
+    for (const s of line.sections) { cx += s.a.x; cy += s.a.y; }
+    cx = Math.trunc(cx / line.sections.length); cy = Math.trunc(cy / line.sections.length);
+    for (const s of line.sections) {
+      if (s.gate || !s.built) {
+        const m = sectionMid(s), dx = s.b.x - s.a.x, dy = s.b.y - s.a.y, len = isqrt(dx * dx + dy * dy);
+        if (len > 0) {
+          const nx = mulDiv(-dy, k, len), ny = mulDiv(dx, k, len);
+          pts.push({ x: m.x + nx, y: m.y + ny }, { x: m.x - nx, y: m.y - ny });
+        }
+      }
+      const vx = s.a.x - cx, vy = s.a.y - cy, vl = isqrt(vx * vx + vy * vy);
+      if (vl > 0) pts.push({ x: s.a.x + mulDiv(vx, k, vl), y: s.a.y + mulDiv(vy, k, vl) });
+    }
+  }
+  return pts;
+}
+
+const lenOf = (a: Vec, b: Vec): number => isqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+
+/** The first spot to walk to so that pos reaches target without crossing a wall; null when no route is found. */
+function routeStep(st: State, cp: Compiled, pos: Vec, target: Vec, skip: number): Vec | null {
+  const nodes = wayPoints(st, cp).filter((n) => lenOf(pos, n) > skip);
+  const seen = nodes.map((n) => !wallBetween(st, cp, pos, n));
+  // one hop: a visible spot that sees the target
+  let best = -1, bd = 0;
+  nodes.forEach((n, i) => {
+    if (!seen[i] || wallBetween(st, cp, n, target)) return;
+    const d = lenOf(pos, n) + lenOf(n, target);
+    if (best < 0 || d < bd) { best = i; bd = d; }
+  });
+  if (best >= 0) return nodes[best]!;
+  // several hops: shortest path over the visibility graph (Dijkstra, ties by index, so it is deterministic)
+  const n = nodes.length, dist = new Array<number>(n).fill(Infinity), from = new Array<number>(n).fill(-1), done = new Array<boolean>(n).fill(false);
+  for (let i = 0; i < n; i++) if (seen[i]) dist[i] = lenOf(pos, nodes[i]!);
+  let goal = -1, gd = Infinity;
+  for (;;) {
+    let u = -1;
+    for (let i = 0; i < n; i++) if (!done[i] && dist[i]! < Infinity && (u < 0 || dist[i]! < dist[u]!)) u = i;
+    if (u < 0) break;
+    done[u] = true;
+    if (!wallBetween(st, cp, nodes[u]!, target)) { const d = dist[u]! + lenOf(nodes[u]!, target); if (d < gd) { gd = d; goal = u; } }
+    for (let v = 0; v < n; v++) {
+      if (done[v] || wallBetween(st, cp, nodes[u]!, nodes[v]!)) continue;
+      const d = dist[u]! + lenOf(nodes[u]!, nodes[v]!);
+      if (d < dist[v]!) { dist[v] = d; from[v] = u; }
+    }
+  }
+  if (goal < 0) return null;
+  while (from[goal]! >= 0) goal = from[goal]!;
+  return nodes[goal]!;
+}
+
+/**
+ * moveAgent that goes round a wall through a way in (Doug, 2026-11-04: every settler uses the gates; #81, 2026-11-08:
+ * every character must be able to pass through them). When the straight line to the target crosses any built wall
+ * section, the settler walks the shortest route through the gates and open sections (round corners too), then on to
+ * the target. Without walls it is moveAgent.
  */
 export function gatedMove(st: State, cp: Compiled, pos: Vec, target: Vec, step: number, arrive: number): boolean {
-  if (st.barriers.length > 0) {
-    const hit = firstCrossing(st, pos, target);
-    if (hit && !hit.line.sections[hit.idx]!.gate) {
-      let best: Vec | null = null, bd = 0;
-      for (const line of st.barriers) for (const s of line.sections) {
-        if (s.built && !s.gate) continue;
-        const m = sectionMid(s);
-        const d = isqrt((m.x - pos.x) ** 2 + (m.y - pos.y) ** 2) + isqrt((target.x - m.x) ** 2 + (target.y - m.y) ** 2);
-        if (!best || d < bd) { best = m; bd = d; }
-      }
-      if (best && !within(pos, best, cp.residents.arrive)) { moveAgent(st, cp, pos, best, step, cp.residents.arrive); return false; }
-    }
+  if (st.barriers.length > 0 && wallBetween(st, cp, pos, target)) {
+    const via = routeStep(st, cp, pos, target, 2 * cp.residents.arrive);
+    if (via) { moveAgent(st, cp, pos, via, step, cp.residents.arrive); return false; }
   }
   return moveAgent(st, cp, pos, target, step, arrive);
 }

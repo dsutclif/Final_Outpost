@@ -1,4 +1,4 @@
-import { FP, TPS, blockedAt, depotDrop, gatherTicks, playerCap, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, blockedAt, depotDrop, gatherTicks, converterRunnable, operated,playerCap, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
@@ -324,6 +324,8 @@ export class Brain {
   /** Automate goals: once suppliers, a cashier and a core supplier run the economy, the player stops depositing. */
   private handsOff(st: State): boolean {
     if (!this.pol.handsOff || !st.sales || this.nextStep(st) !== null) return false;
+    if (this.pol.handsOffMachines > 0
+      && st.converters.filter((cv) => converterRunnable(this.cp, cv) && operated(st, this.cp, cv)).length < this.pol.handsOffMachines) return false;
     return this.coreSupplied(st) && this.cashier(st) && st.sales.sells.some((r) => this.supplied(st, r));
   }
 
@@ -550,7 +552,8 @@ export class Brain {
     // Hunting: when nothing more urgent is on, take prey whose drop feeds a converter or the shelf.
     const hres = this.huntRes(st);
     // Hurt and something out there bites: let health come back first.
-    const hurt = st.player.hp * 2 < cp.player.hp && st.prey.some((d) => d.alive && isDangerousAnimal(cp, st.preyZones[d.zone]!.animal));
+    // Attackers can shoot the commander now (Release 2), so hurt under fire also means: no hunting trips until the wave is over.
+    const hurt = st.player.hp * 2 < cp.player.hp && (st.hostiles.length > 0 || st.prey.some((d) => d.alive && isDangerousAnimal(cp, st.preyZones[d.zone]!.animal)));
     if (hurt) {
       // stay out of reach until healed
     } else if (this.pol.hunt && st.prey.some((d) => d.alive) && (hres === null || count(p.stack, hres) < (cp.resources[hres]?.cap ?? 6))) T("hunt", 50);
@@ -1101,11 +1104,6 @@ export class Brain {
     this.lastPos = { ...p };
     if (!tgt || near(p, tgt.pos, tgt.r)) {
       this.stuck = 0;
-      // Never stand still outside the heat with a tow: the line would go slack and drop everyone.
-      if (st.player.tow.length > 0 && !near(p, st.core.pos, safeRadius(st, this.cp))) {
-        const dx = st.core.pos.x - p.x, dy = st.core.pos.y - p.y, L = Math.sqrt(dx * dx + dy * dy) || 1;
-        return this.emit({ dx: Math.round((dx / L) * FP), dy: Math.round((dy / L) * FP) });
-      }
       return this.emit({ dx: 0, dy: 0 });
     }
     if (!moved && (this.lastInput.dx !== 0 || this.lastInput.dy !== 0)) this.stuck++; else this.stuck = 0;

@@ -195,11 +195,24 @@ export function admitRecruit(st: State, cp: Compiled, r: ResidentState, out: Sim
 
 // ---------- drops ----------
 
+/** #32: scrap lands where the commander can reach it: inside his walk box and clear of rubble and walls, else the nearest such spot (rings of 8 units, twelve headings). */
+export function reachable(st: State, cp: Compiled, p: Vec): Vec {
+  const wb = cp.player.walkBox, r = cp.player.radius;
+  const inBox = (q: Vec): Vec => ({ x: clamp(q.x, wb.x0 + r, wb.x1 - r), y: clamp(q.y, wb.y0 + r, wb.y1 - r) });
+  const first = inBox(p);
+  if (!blockedAt(st, cp, first.x, first.y)) return first;
+  for (let ring = 1; ring <= 16; ring++) for (const [cx, cy] of RING) {
+    const q = inBox({ x: first.x + mulDiv(cx, ring * 8 * FP, FP), y: first.y + mulDiv(cy, ring * 8 * FP, FP) });
+    if (!blockedAt(st, cp, q.x, q.y)) return q;
+  }
+  return first;
+}
+
 export function spawnDrops(st: State, cp: Compiled, drops: Record<string, number>, at: Vec, out: SimEvent[]): void {
   const sx = cp.drops.scatterX, sy = cp.drops.scatterY;
   for (const [res, n] of Object.entries(drops)) {
     for (let k = 0; k < n; k++) {
-      const pos = { x: at.x + between(st.rng, -sx, sx + 1), y: at.y + between(st.rng, -sy, sy + 1) };
+      const pos = reachable(st, cp, { x: at.x + between(st.rng, -sx, sx + 1), y: at.y + between(st.rng, -sy, sy + 1) });
       st.drops.push({ id: st.nextDropId++, res, pos });
       out.push({ t: "drop", res, at: { ...pos } });
     }

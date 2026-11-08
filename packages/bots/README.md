@@ -200,7 +200,7 @@ Barrier sections are ordered attack-facing first (from the waves' sides).
 
 **Controller additions.** Capped needs include unbuilt salvage-priced barrier sections. Captives are
 picked by freeze timer (most urgent that can still be reached in time), crates are always worth towing,
-and a towing bot never stands still outside the heat (the slack rule). Hostiles still walking in from
+and a tow never drops from standing still. Hostiles still walking in from
 outside a closed ring are met just inside the ring on their line to the core. Converter outputs that
 feed another wanted converter (refined material for the alloy works) are fetched and deposited.
 Sales count as progress on sales goals, conversions on production goals, depot deposits always, an

@@ -34,7 +34,7 @@
   "converters_running": { "description": "Run K converters at once for T seconds in a row (sources: a staffed source node counts as one)", "families": ["industrialize"], "main": true, "guard": false, "params": { "k": "int", "seconds": "seconds", "sources": "flag?" } },
   "haul": { "description": "Haulers deliver N goods", "families": ["industrialize"], "main": true, "guard": false, "params": { "n": "int" } },
   "chain": { "description": "Produce N goods on a tier-2 converter (default 1)", "families": ["industrialize"], "main": true, "guard": false, "params": { "n": "int?" } },
-  "automate": { "description": "Credits flow for T seconds with no player deposits", "families": ["industrialize"], "main": true, "guard": false, "params": { "seconds": "seconds" } },
+  "automate": { "description": "Credits flow for T seconds with no player deposits (machines: while that many converters run)", "families": ["industrialize"], "main": true, "guard": false, "params": { "seconds": "seconds", "machines": "int?" } },
   "stockpile": { "description": "Hold N of a good in the depot", "families": ["industrialize"], "main": true, "guard": false, "params": { "res": "res", "n": "int" } },
   "build": { "description": "Pay off the target build pad", "families": ["industrialize", "shelter", "harvest"], "main": true, "guard": false, "params": { "target": "pad" } },
   "converter_level": { "description": "Upgrade a converter to level N", "families": ["industrialize"], "main": true, "guard": false, "params": { "n": "int" } },

@@ -29,7 +29,7 @@ import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStockCollapse } from "./systems/stock.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.21.0";
+export const ENGINE_VERSION = "0.22.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -104,7 +104,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
     meters: { lifeline: METER_MAX, baseHealth: cp.baseHealth, baseHealthMax: cp.baseHealth },
     waves: { idx: 0, pending: [], active: false, quietUntil: 0 },
     hazard: { phase: "none", until: 0, idx: 0 },
-    lasso: { trail: [], towing: [], engaged: false, trip: { delivered: 0, lost: 0 }, slack: 0 },
+    lasso: { trail: [], towing: [], engaged: false, trip: { delivered: 0, lost: 0 } },
     gateQueue: [],
     timers: { gateAcc: cp.gate ? cp.gate.initialTicks : 0, gateLeft: cp.gate ? cp.gate.total : 0 },
     freeze: { active: false, ticksLeft: cp.freeze.graceTicks, ticksTotal: cp.freeze.graceTicks, lossAt: -1 },

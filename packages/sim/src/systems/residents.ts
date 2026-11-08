@@ -3,7 +3,7 @@ import type { SimEvent } from "../events.js";
 import { FP, mulDiv, within, type Vec } from "../fixed.js";
 import type { ConverterState, DropState, HostileState, NodeState, PreyState, ResidentState, State } from "../state.js";
 import { attackGate, attackedSide, gatedMove, guardPost, outsideLines, sectionMid } from "./barriers.js";
-import { clearLine, hitHostile, hitPrey, nearestHostile } from "./combat.js";
+import { clearLine, hitHostile, hitPrey, nearestHostile, shotEvent } from "./combat.js";
 import { depotPut, ringPoint, stepDown } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
 import { boxedMove, downedGuardStep, healedGuard, leashedMove, medicStep } from "./guards.js";
@@ -20,7 +20,7 @@ function stepResident(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]
   switch (r.status) {
     case "frozen": case "towed": case "releasing": case "arriving": case "waiting": case "dead": return;
     case "injured": {
-      if (downedGuardStep(st, cp, r)) return;
+      if (downedGuardStep(st, cp, r, out)) return;
       const med = st.structures.find((s) => s.type === "struct.medical");
       // On a level without a med bay the injured mend on their own, slowly; otherwise they wait for it.
       if (!med) {
@@ -193,6 +193,8 @@ function hunterStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRol
   if (!clearLine(st, r.pos, prey.pos)) { gatedMove(st, cp, r.pos, prey.pos, role.speed, cp.residents.arrive); return; }
   if (!within(r.pos, prey.pos, role.attackRange) && !gatedMove(st, cp, r.pos, prey.pos, role.speed, role.attackRange)) return;
   if (!ready(r, role.attackTicks)) return;
+  // a hunter beyond arm's reach fires its rifle (#31); closer in it is a blow
+  if (!within(r.pos, prey.pos, cp.player.radius * 2)) shotEvent(out, r.pos, prey.pos, prey.id, "resident");
   hitPrey(st, cp, prey, role.damage, "resident", out);
 }
 
@@ -207,7 +209,7 @@ function pickDrop(st: State, r: ResidentState, role: CompiledRole, drop: DropSta
 function guardStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole, out: SimEvent[]): void {
   const foe = nearestHostile(st, r.pos, role.attackRange);
   if (foe) {
-    if (ready(r, role.attackTicks)) hitHostile(st, cp, foe, role.damage, "resident", out);
+    if (ready(r, role.attackTicks)) { shotEvent(out, r.pos, foe.pos, foe.id, "resident"); hitHostile(st, cp, foe, role.damage, "resident", out); }
     return;
   }
   // Batch 3: a sortie guard marches out to the nearest attacker on the field (through its side's gate), and

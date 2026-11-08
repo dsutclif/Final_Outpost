@@ -427,7 +427,6 @@ export const marsGreenhouse: Skin = {
       reactor_low: "Reactor running low!",
       pod_lost: "A pod froze over",
       tow_dropped: "Tow dropped!",
-      tow_slack: "Line went slack",
       crate_delivered: "Supplies!",
       item_delivered: "Recovered!",
       converter_upgraded: "Upgraded!",

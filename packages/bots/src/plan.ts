@@ -37,6 +37,8 @@ export interface Policies {
   noOverload: boolean;
   /** Once the economy runs itself, stop depositing anything (automate goals). */
   handsOff: boolean;
+  /** Converters that must be running before the bot goes hands-off (automate `machines`). */
+  handsOffMachines: number;
   /** Pick up this resource from drops even when nothing needs it (salvage goals). */
   collect: string[];
   /** Hunt prey for its own sake (hunt / protein goals). */
@@ -50,7 +52,7 @@ export interface Policies {
 }
 
 export const DEFAULT_POLICIES: Policies = {
-  heatFloor: 0, fillCore: false, serveFirst: false, holdShelf: false, noOverload: false, handsOff: false,
+  heatFloor: 0, fillCore: false, serveFirst: false, holdShelf: false, noOverload: false, handsOff: false, handsOffMachines: 0,
   collect: [], hunt: false, towWant: 1, rescueAll: false, wallsFirst: false,
 };
 
@@ -393,6 +395,7 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
     noOverload: kinds.has("no_stockpile_overload") || (Number(m.params["stock.collapseSeconds"] ?? c.defaults["stock.collapseSeconds"] ?? 0) > 0
       && (m.entities.some((e) => e.type.startsWith("conv.")) || pads.some((p) => p.type === "pad.build" && p.build.startsWith("conv.") && p.build !== "conv.level"))),
     handsOff: goal.type === "automate",
+    handsOffMachines: goal.type === "automate" ? Number((g as { machines?: number }).machines ?? 0) : 0,
     collect: kinds.has("salvage") ? ["res.salvage"] : [],
     hunt: goal.type === "hunt" || goal.type === "protein",
     towWant,

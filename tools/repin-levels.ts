@@ -14,6 +14,8 @@ const pinned: [string, (f: string) => boolean][] = [
   ["levels/golden", () => true],
   ["levels/story", () => true],
   ["levels/packs/s1", (f) => f === "pack.json" || f.startsWith("s1-L")],
+  ["levels/packs/s1-061", (f) => f === "pack.json" || f.startsWith("s1-L")],
+  ["levels/packs/s1-081", (f) => f === "pack.json" || f.startsWith("s1-L")],
 ];
 for (const [dir, wanted] of pinned) {
   const d = join(root, dir);

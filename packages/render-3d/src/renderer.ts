@@ -3505,9 +3505,11 @@ export class Renderer3D implements Renderer {
       }
       case "shot": {
         const aim = e["to"] as V;
-        this.acts.set("player", { act: "shoot", until: this.t + 0.8, at: { x: aim.x / FP, y: aim.y / FP } });
+        // no `by` = the commander; other shooters (#30, #31) get a bolt only, hostile ones in the danger colour
+        const by = e["by"] as string | undefined;
+        if (!by) this.acts.set("player", { act: "shoot", until: this.t + 0.8, at: { x: aim.x / FP, y: aim.y / FP } });
         const from = up(this.wv(e["from"] as V), 14), to = up(this.wv(e["to"] as V), 10);
-        fx.tracer(from, to, mix(t.accent, white, 0.5));
+        fx.tracer(from, to, by === "hostile" ? mix(t.danger, white, 0.35) : mix(t.accent, white, 0.5));
         break;
       }
       case "died":
@@ -3583,7 +3585,7 @@ export class Renderer3D implements Renderer {
         // the line snaps: sparks at the pod and a short message at the hero
         fx.burst(up(at, ART_M * 0.6), [t.accent, white, mix(t.accent, t.ink, 0.4)], 14, 150, 160, 3, 0.4);
         fx.dustRing(at, mix(t.groundAlt, t.structure, 0.3), 10, 70, 5);
-        fx.floater(ft(e["reason"] === "slack" ? "tow_slack" : "tow_dropped"), t.danger, up(this.playerBack(), 26), 44);
+        fx.floater(ft("tow_dropped"), t.danger, up(this.playerBack(), 26), 44);
         fx.shake = Math.max(fx.shake, 3);
         break;
       }

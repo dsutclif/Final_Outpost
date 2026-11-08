@@ -24,7 +24,7 @@ export const lyingDown = (st: State, cp: Compiled, r: ResidentState): boolean =>
 export function nearestGuard(st: State, cp: Compiled, p: Vec, r: number): ResidentState | null {
   let best: ResidentState | null = null, bd = r * r;
   for (const g of st.residents) {
-    if ((g.status !== "ok" && !onTheWay(st, cp, g)) || !isGuard(cp, g)) continue;
+    if ((g.status !== "ok" && g.status !== "injured") || !isGuard(cp, g)) continue;
     const dx = g.pos.x - p.x, dy = g.pos.y - p.y, d = dx * dx + dy * dy;
     if (d < bd) { bd = d; best = g; }
   }
@@ -34,7 +34,15 @@ export function nearestGuard(st: State, cp: Compiled, p: Vec, r: number): Reside
 export function hitGuard(st: State, cp: Compiled, g: ResidentState, dmg: number, out: SimEvent[]): void {
   const hpMax = cp.roles[g.role]!.hp;
   out.push({ t: "hit", target: "resident", id: g.id, at: { ...g.pos }, by: "hostile" });
-  if (g.status !== "ok") return killGuard(st, g, out);
+  if (g.status === "healing") return; // a medic is at work: nothing can hurt it
+  if (g.status !== "ok") {
+    // #21: a downed guard takes half damage and dies at 0 unless a medic reaches it first
+    if (!cp.guards.healable) return killGuard(st, g, out);
+    const left = (g.hp ?? hpMax) - Math.max(1, dmg >> 1);
+    if (left <= 0) return killGuard(st, g, out);
+    g.hp = left;
+    return;
+  }
   // a big hit stops at 1: going down comes first, whatever hit it
   const hp = Math.max(1, (g.hp ?? hpMax) - dmg);
   g.hp = hp;
@@ -55,8 +63,18 @@ const hasMedic = (st: State, cp: Compiled): boolean => st.residents.some((m) => 
  * A downed guard: lies where it fell while a medic is on hand, else walks to a built med bay (and lies there),
  * else waits for one to be built or a medic to be hired. True when this step handled the resident.
  */
-export function downedGuardStep(st: State, cp: Compiled, r: ResidentState): boolean {
+export function downedGuardStep(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]): boolean {
   if (r.status !== "injured" || !isGuard(cp, r)) return false;
+  // bleed-out (#21): a point of health every guards.bleedSeconds until a medic or the med bay gets to it
+  if (cp.guards.bleedTicks > 0 && cp.guards.healable) {
+    r.bleed = (r.bleed ?? 0) + 1;
+    if (r.bleed >= cp.guards.bleedTicks) {
+      r.bleed = 0;
+      const left = (r.hp ?? cp.roles[r.role]!.hp) - 1;
+      if (left <= 0) { st.residents = st.residents.filter((x) => x !== r); out.push({ t: "guard_died", resident: r.id, at: { ...r.pos } }); return true; }
+      r.hp = left;
+    }
+  }
   if (hasMedic(st, cp)) return true;
   const med = st.structures.find((s) => s.type === "struct.medical");
   if (!med) return true;
@@ -68,6 +86,7 @@ export function downedGuardStep(st: State, cp: Compiled, r: ResidentState): bool
 
 /** Healed guards are back at full health. */
 export function healedGuard(r: ResidentState): void {
+  delete r.bleed;
   if (r.hp !== undefined) delete r.hp;
 }
 

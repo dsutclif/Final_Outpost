@@ -140,7 +140,14 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
     hold(o, st.converters.filter((cv) => converterRunnable(cp, cv) && operated(st, cp, cv)).length + (num(p, "sources") > 0 ? staffedSources(st, cp) : 0) >= num(p, "k"), secs(p)),
   haul: ({ st, p, o }) => count(o, st.stats.hauled, num(p, "n")),
   chain: ({ st, p, o }) => count(o, st.stats.tier2Made, num(p, "n", 1)),
-  automate: ({ st, p, o }) => count(o, st.stats.salesSinceDeposit > 0 ? Math.min(st.tick - st.stats.lastPlayerDeposit, secs(p)) : 0, secs(p)),
+  // machines > 0: the hands-off run only grows while at least that many converters are running
+  // (input queued, room in the tray, and operated); it restarts from zero when they stop or the player deposits.
+  automate: ({ st, cp, p, o }) => {
+    const need = num(p, "machines");
+    if (need <= 0) return count(o, st.stats.salesSinceDeposit > 0 ? Math.min(st.tick - st.stats.lastPlayerDeposit, secs(p)) : 0, secs(p));
+    const running = st.converters.filter((cv) => converterRunnable(cp, cv) && operated(st, cp, cv)).length;
+    return hold(o, st.stats.salesSinceDeposit > 0 && running >= need, secs(p));
+  },
   stockpile: ({ st, p, o }) => count(o, st.depot?.stock[str(p, "res") ?? ""] ?? 0, num(p, "n")),
   build: ({ st, p, o }) => count(o, st.built.includes(str(p, "target") ?? "") ? 1 : 0, 1),
   converter_level: ({ st, p, o }) => count(o, st.converters.reduce((m, cv) => Math.max(m, cv.level), 0), num(p, "n")),

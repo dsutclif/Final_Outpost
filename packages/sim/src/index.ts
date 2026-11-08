@@ -17,7 +17,7 @@ export { OBJECTIVE_KINDS, starsOf } from "./systems/objectives.js";
 export { mainGoalDead, objectiveDead, scrapLeft } from "./systems/deadends.js";
 export { segCross, playerCap, gatherTicks } from "./systems/common.js";
 export { collapseSecondsLeft, converterStockKey } from "./systems/stock.js";
-export { rateTicks } from "./systems/converters.js";
+export { rateTicks, converterRunnable, operated } from "./systems/converters.js";
 export { beltEnds } from "./systems/conveyors.js";
 export { isAutomation, isDefence, jobDone, jobOf, padCost } from "./systems/economy.js";
 export { forceBuildPad } from "./systems/pads.js";

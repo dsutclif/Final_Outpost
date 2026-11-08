@@ -41,6 +41,13 @@ export function nearestDangerousPrey(st: State, cp: Compiled, p: Vec, r: number)
   return best;
 }
 
+/** A real shot event for every ranged hit by anyone but the commander (#30, #31); `id` is the target's id. */
+export function shotEvent(out: SimEvent[], from: Vec, to: Vec, id: number, by: "hostile" | "structure" | "troop" | "resident", kind?: string): void {
+  const e: SimEvent = { t: "shot", from: { ...from }, to: { ...to }, id, by };
+  if (kind !== undefined) (e as { kind?: string }).kind = kind;
+  out.push(e);
+}
+
 export function hitHostile(st: State, cp: Compiled, h: HostileState, dmg: number, by: Attacker, out: SimEvent[]): void {
   h.hp -= dmg;
   out.push({ t: "hit", target: "hostile", id: h.id, at: { ...h.pos }, by });

@@ -39,9 +39,10 @@ describe("attackers funnel to the gate", () => {
         const off = side === "n" || side === "s" ? h.pos.x - mid.x : h.pos.y - mid.y;
         expect(Math.abs(off)).toBeLessThanOrEqual(half + 2 * FP);
       }
-      const ev = idle(sim, 20 * TPS, () => st.hostiles.length === 3 && st.hostiles.every((h) => h.target === "barrier"));
+      const ev = idle(sim, 20 * TPS, () => st.hostiles.length === 3 && st.hostiles.filter((h) => h.target === "barrier").length >= 2);
       expect(st.hostiles.length).toBe(3);
-      for (const h of st.hostiles) expect(h.target).toBe("barrier");
+      // footprints (#20): bodies queue behind the ones at the gate, so at least the front two are hitting it
+      expect(st.hostiles.filter((h) => h.target === "barrier").length).toBeGreaterThanOrEqual(2);
       const walls = st.barriers[0]!.sections.filter((s) => !s.gate);
       for (const s of walls) expect(s.hp).toBe(s.hpMax);
       const gs = g.line.sections[g.idx]!;
@@ -199,16 +200,23 @@ describe("guard post Lv2 soldiers (Batch 3 playtest)", () => {
     const st = sim.state, T = sim.compiled.structures["struct.barracks"]!.troops!;
     idle(sim, 10 * TPS);
     expect(st.troops ?? []).toHaveLength(0);
+    // soldiers are only trained while a wave is active: start the wave first (level 1 still trains none during it)
+    idle(sim, 25 * TPS);
+    expect(st.waves.active).toBe(true);
+    expect(st.troops ?? []).toHaveLength(0);
     st.structures.find((s) => s.id === "barracks")!.level = 2;
     const ev = idle(sim, T.everyTicks * 3 + 2);
     expect(all(ev, "troop_spawned").length).toBe(4);
-    expect(st.troops).toHaveLength(4);
+    // the raiders arrive inside this window and shoot some drones down: every one trained is alive or died
+    expect(st.troops).toHaveLength(4 - all(ev, "died").filter((d) => d.kind === "unit.troop").length);
   });
 
   it("soldiers march out to the attackers, fight them, and can die", () => {
-    const sim = createSim(withPost());
+    // a small wave of creatures (hostiles now shoot: a lone drone loses to a big raider wave before landing a kill)
+    const sim = createSim({ ...withPost(), waves: [{ t: 30, counts: { "hostile.creature": 4 }, side: "n", gap: 0.3 }] });
     const st = sim.state;
     st.structures.find((s) => s.id === "barracks")!.level = 2;
+    // the wave starts at t=30 s inside this window; troops train only while it is active
     const ev = idle(sim, 80 * TPS);
     expect(all(ev, "hit").some((h) => h.by === "troop" && h.target === "hostile")).toBe(true);
     expect(all(ev, "hit").some((h) => h.target === "troop")).toBe(true);

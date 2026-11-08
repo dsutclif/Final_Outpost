@@ -35,10 +35,10 @@
     "rally": true,
     "sortie": true,
     "speed": 80,
-    "attackInterval": 0.7,
+    "attackInterval": 0.5,
     "attackRange": 75,
-    "damage": 1,
-    "hp": 10,
+    "damage": 3,
+    "hp": 15,
     "cost": { "res.salvage": 4 }
   },
   "role.medic": {

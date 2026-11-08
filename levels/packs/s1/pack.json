@@ -1,7 +1,7 @@
 {
   "id": "s1",
-  "engineVersion": "0.21.0",
-  "contentVersion": "0.18.0",
+  "engineVersion": "0.22.0",
+  "contentVersion": "0.19.0",
   "levels": [
     {
       "id": "s1-L006",

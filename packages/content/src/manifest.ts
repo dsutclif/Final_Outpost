@@ -243,6 +243,7 @@ export const GoalParams = {
   build: StructId.optional(),
   pct: z.number().min(0).max(100).optional(),
   seconds: z.number().positive().optional(),
+  machines: PosInt.optional(),
   fromLit: z.literal(1).optional(),
   sources: z.literal(1).optional(),
   decoys: z.literal(1).optional(),

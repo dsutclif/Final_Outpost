@@ -1185,7 +1185,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       case "produce": return { n: 10, res: alloy ? "res.component" : "res.food_prepared" };
       case "converters_running": return { k: 2, seconds: Math.round(8 + K.length * 0.05) };
       case "chain": return { n: 3 };
-      case "automate": return { seconds: Math.round(20 + K.length * 0.1) };
+      // machines: the hands-off clock only runs while this many converters do (the grill, plus the smelter when built)
+      case "automate": return { seconds: Math.round(20 + K.length * 0.1), machines: Math.min(2, 1 + (saw ? 1 : 0)) };
       case "stockpile": return { res: "res.material_basic", n: 8 };
       case "build": return { target: "landmark" };
       case "converter_level": return { n: 2 + (K.costScale > 1.15 ? 1 : 0) };  // 3 only with the repeatable pad

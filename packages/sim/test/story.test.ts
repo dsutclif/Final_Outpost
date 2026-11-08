@@ -139,9 +139,10 @@ describe("retreating boss (bossRetreat)", () => {
     idle(sim, 90, () => sim.state.hostiles.length > 0);
     const h = sim.state.hostiles[0]!;
     h.hp = h.retreatHp! + 1;
-    // Stand on it: the player's auto-attack lands the hit that breaks it.
+    // Stand on it: the player's auto-attack lands the hit that breaks it. The boss now spawns 120 units out and
+    // walks in slowly, so the commander waits longer (the retreat lands ~300 ticks in) before it reaches his range.
     const seen: SimEvent[] = [];
-    for (let i = 0; i < 300 && sim.state.hostiles.length > 0; i++) {
+    for (let i = 0; i < 900 && sim.state.hostiles.length > 0; i++) {
       const p = sim.state.player.pos, q = sim.state.hostiles[0]!.pos;
       seen.push(...sim.step({ dx: q.x - p.x, dy: q.y - p.y }));
     }

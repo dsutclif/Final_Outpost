@@ -329,16 +329,23 @@ describe("defense economy", () => {
     expect(drops[0]!.res).toBe("res.salvage");
   });
 
-  it("a boss announces itself, carries hpMax for its health bar and hits the base four times as hard", () => {
+  it("a boss announces itself, carries hpMax for its health bar and its shots hit the base for 2 each, every half second", () => {
     const sim = createSim(level(LEVEL_4, { waves: [{ t: 1, counts: { "hostile.boss": 1 }, side: "e" }] }));
     const ev = idle(sim, 2 * TPS, (e) => has(e, "boss_spawned"));
     expect(find(ev, "boss_spawned")?.kind).toBe("hostile.boss");
     const boss = sim.state.hostiles[0]!;
-    expect(boss).toMatchObject({ hp: 36, hpMax: 36, side: "e" });
+    const bossHp = sim.compiled.hostiles["hostile.boss"]!.hp;
+    expect(boss).toMatchObject({ hp: bossHp, hpMax: bossHp, side: "e" });
     walkTo(sim, at(40, 860), 6);
     const hit = idle(sim, 60 * TPS, (e) => all(e, "hit").some((h) => h.target === "base"));
     expect(has(hit, "hit")).toBe(true);
-    expect(sim.state.meters.baseHealth).toBe(15 - 4);
+    // the boss shoots 2 damage (times the base params) per shot, every 0.5 s; it no longer melees the base
+    const shot = sim.compiled.hostiles["hostile.boss"]!;
+    expect(shot.shotDamage).toBe(2);
+    expect(shot.shotTicks).toBe(TPS / 2);
+    expect(sim.state.meters.baseHealth).toBe(15 - sim.compiled.defense.baseDamage * shot.shotDamage);
+    const more = idle(sim, TPS, () => false);
+    expect(all(more, "hit").filter((h) => h.target === "base").length).toBe(2);
   });
 
   it("defense items carry default salvage costs for the generator", () => {
@@ -485,15 +492,13 @@ describe("pods, tows and crates", () => {
     expect(sim.state.objectives[2]!.failed).toBe(true);
   });
 
-  it("standing still while towing outside the heat lets the line go slack and drops the tow", () => {
+  it("standing still while towing never drops the tow (no slack rule)", () => {
     const sim = newSim({}, LEVEL_2);
     const cap = find(capturePod(sim), "captured")!;
     expect(sim.state.player.tow).toEqual([cap.capture]);
-    const ev = idle(sim, sim.compiled.lasso.slackTicks + 2);
-    expect(find(ev, "tow_dropped")).toMatchObject({ capture: cap.capture, reason: "slack" });
-    expect(sim.state.player.tow).toEqual([]);
-    expect(sim.state.captures.find((c) => c.id === cap.capture)!.state).toBe("idle");
-    expect(sim.state.stats.tripBest).toBe(0);
+    const ev = idle(sim, 15 * TPS);
+    expect(find(ev, "tow_dropped")).toBeUndefined();
+    expect(sim.state.player.tow).toEqual([cap.capture]);
   });
 
   it("a hostile hit drops the rearmost captive", () => {
