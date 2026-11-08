@@ -356,7 +356,9 @@ function selaArrival(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     if (l && r) hip = l.getWorldPosition(new Vector3()).add(r.getWorldPosition(new Vector3())).multiplyScalar(0.5).divide(sela.root.scale);
   }
   // timeline (s): the drive in, eased to a stop at x = 0; she climbs out on the camera's side and walks toward the camp
-  const STOP = 4.2, OUT0 = 4.8, OUT1 = 5.9, SECONDS = 8.6, FROM = 70;
+  // The film ends as she stands by the door, turning toward camp, with the buggy still in frame (#88, Doug 2026-11-08): her walk
+  // in is the game world's, from the parked buggy, so nothing rolls on without a driver.
+  const STOP = 4.2, OUT0 = 4.8, OUT1 = 5.9, SECONDS = 6.5, FROM = 70;
   const driveX = (t: number): number => FROM * (1 - ease(Math.min(1, t / STOP)) ** 0.6);
   const up = new Vector3(0, 1, 0);
   return {

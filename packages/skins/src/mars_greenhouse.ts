@@ -1041,8 +1041,9 @@ export const marsGreenhouse: Skin = {
           { id: "selaIn", on: { event: "customer_arrived" }, ordered: true, do: [
             { light: "night", seconds: 3 },
             { film: "sela_arrival" },
-            // the buggy is in the world from here: down the road from the east, then parked west of the kiosk, lights on
-            { vehicle: "buggy", path: [{ at: [980, 952] }, { at: [560, 952] }, { at: [400, 905] }], seconds: 9, lights: true },
+            // the film ends with Sela beside her parked buggy at the camp's east entrance; the buggy stays there, lights on (it never
+            // drives again, so nothing rolls without a driver, #88), and she walks in from its door (the kiosk route in story-L003)
+            { vehicle: "buggy", path: [{ at: [793, 928] }, { at: [792, 928] }], seconds: 0.1, lights: true },
             { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 24, back: 0.9, freeze: false } },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
