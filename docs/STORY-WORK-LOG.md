@@ -35,7 +35,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-08 | Vale helmet animations | story-vale-fall | `render-3d/src/scene/livescene.ts`, `render-3d/src/scene/environment.ts`, `render-3d/src/renderer.ts` (a liveLook() getter), `render-3d/src/index.ts`, `client/src/cinematics.ts`, `client/src/app.ts` (the cinematic() call), `client/src/render.ts` | #6 follow-up: the fall film stands on the game's own ground under the game's light |
-| 2026-11-08 | Systems lane, Bundle 6 (Opus lead) | systems-b6 | `packages/bots/src/brain.ts`, `packages/generator/src/index.ts` + `data/start.json`, `tools/start-table*`, `packages/rater/src/*`, new `levels/eval/**`, new `packages/generator/src/defendModel.ts`, `docs/RELEASE-2.md` (no engine bump, no `levels/packs` writes) | BACKLOG Bundle 6 (#43, #44, #9a, #16 v0) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
