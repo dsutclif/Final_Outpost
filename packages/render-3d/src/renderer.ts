@@ -11,6 +11,8 @@ import {
   Frustum,
   ExtrudeGeometry,
   GreaterDepth,
+  KeepStencilOp,
+  NotEqualStencilFunc,
   Group,
   Matrix4,
   Material,
@@ -47,6 +49,7 @@ import { lookFor, type Anim, type Look } from "./assets/characters.js";
 import { disposeGeo, getAnchor, mesh, model, type BuildCtx, type Model } from "./assets/common.js";
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
+import { markOccluder } from "./materials.js";
 import { FALL_CAM_IN, FALL_CAM_OUT, FALL_LEAD, FALL_PITCH, FALL_ZOOM, ROLL_S, helmetMiddle, rollPose, wearHelmet, type Pose } from "./scene/fallstage.js";
 import { applyMeshy, loadMeshy, meshyRig, meshyBase, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
@@ -109,6 +112,14 @@ export interface Renderer3DOptions {
 interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; site?: V; worker?: { vars: WorkerVars; res?: string }; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean; target?: string }
 
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
+/**
+ * How a pad hidden behind a building or wall shows through it (#89; Doug picks one from the three mocks):
+ * "dash" the dashed outline alone, "pulse" the whole pad breathing in and out, "faint" the whole pad, much fainter.
+ * A character in front of a pad always hides it, whichever style.
+ */
+export type PadBehindStyle = "dash" | "pulse" | "faint";
+export const PAD_BEHIND_STYLE: PadBehindStyle = "dash";
+
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
@@ -518,7 +529,7 @@ export class Renderer3D implements Renderer {
       // manifest decor.* entities (the Halcyon wreck) are placed where the level puts them
       if (e.kind === "decor") { this.placeStoryDecor(e); if (e.unwired) return; }
       if (e.batch) { this.meshyWall(e); return; }
-      if (e.kind === "prop") { for (const t of meshyTools(e)) this.crowd?.setPart(t.part, t.geo, t.mat); return; }
+      if (e.kind === "prop") { for (const t of meshyTools(e)) this.crowd?.setPart(t.part, t.geo, markOccluder(t.mat)); return; }
       // a level with scrap heaps shows no scrap as mere decoration (Doug: all visible scrap is pickable)
       if (e.kind === "decor" && SCRAP_DECOR.has(e.id) && manifest.entities.some((x) => x.type === "node.salvage_pile")) return;
       if (e.kind === "item" || e.kind === "decor") {
@@ -623,7 +634,7 @@ export class Renderer3D implements Renderer {
       // console handles for tuning the look test (fire effects, hold a storm)
       Object.assign(globalThis, { __lookFx: this.fx, __lookEnv: this.env, __lookCam: this.camera });
     }
-    this.crowd = new Crowd(this.bctx.parts, mats.std, this.scene);
+    this.crowd = new Crowd(this.bctx.parts, mats.crowd, this.scene);
     this.rigged = new Rigged(this.scene);
     this.blobs = new Blobs(mats.blob, this.scene);
     this.items = new Items(this.tokens, mats.std, this.scene);
@@ -1087,6 +1098,7 @@ export class Renderer3D implements Renderer {
     this.items.end();
     this.crowd.end();
     this.rigged?.end(dt);
+    this.markRigged();
     for (const [k, d] of this.drones) if (d.seen !== this.frameNo) { this.dynamic.remove(d.root); this.drones.delete(k); }
     this.blobs.end();
     for (const b of Object.values(this.walls!)) b.end();
@@ -1124,6 +1136,8 @@ export class Renderer3D implements Renderer {
   /** Per-building size multipliers (look.json modelScale) on top of devBuildScale; the layout sandbox swaps in alignedScale. */
   devModelScale: Record<string, number> = LOOK.modelScale;
   /** Pad plate size multiplier: the plot layout's pad (content plot.json) over the 49-unit plate, else 1; the layout sandbox sets its own. */
+  /** Dev-only override of PAD_BEHIND_STYLE (the mock shots); the game leaves it alone. */
+  devPadBehind: PadBehindStyle = PAD_BEHIND_STYLE;
   devPadScale = PLOT ? PLOT.render.pad / 49 : 1;
   /** Plot layout: machines' operator plates drawn this many world units across at their sim spot (null: built into the model). */
   devPlateSize: number | null = PLOT ? PLOT.render.plate : null;
@@ -2048,7 +2062,7 @@ export class Renderer3D implements Renderer {
       if (dm) { decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
-      this.padXray(p, decal, dm);
+      this.padXray(p, decal, dm, big, locked, lightMark);
       // floating name plus every cost resource with what is still owed (icon + number each)
       const sp = this.sprite(p, 0);
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
@@ -3098,22 +3112,62 @@ export class Renderer3D implements Renderer {
     };
   }
 
-  private readonly xrayMats = new WeakMap<Material, MeshBasicMaterial>();
+  private readonly xrayMats = new Map<string, MeshBasicMaterial>();
+  private readonly stencilled = new WeakSet<Material>();
+
+  /** Every rig's materials write stencil, so the see-through pad copy skips the pixels a character covers. */
+  private markRigged(): void {
+    for (const e of this.rigged?.entries() ?? []) {
+      e.root.traverse((o) => {
+        const m = (o as Mesh).material as Material | Material[] | undefined;
+        if (!m) return;
+        for (const x of Array.isArray(m) ? m : [m]) if (!this.stencilled.has(x)) { this.stencilled.add(x); markOccluder(x); }
+      });
+    }
+  }
 
   /**
-   * A pad stays findable behind a taller model (#41): a second, fainter copy of its decal that draws only where
-   * something nearer the camera covers the first. Shares the decal's texture, so it costs one more quad.
+   * A pad stays findable behind a taller model (#41, #89): a second copy that draws only where something nearer the
+   * camera covers the first, and never over a character (stencil, markOccluder). The style is PAD_BEHIND_STYLE.
    */
-  private padXray(p: Placed, decal: Mesh, dm: MeshBasicMaterial | null): void {
+  private padXray(p: Placed, decal: Mesh, dm: MeshBasicMaterial | null, big: boolean, locked: boolean, light: boolean): void {
     let xr = p.extra[4] as Mesh | undefined;
     if (!xr) { xr = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false })); xr.renderOrder = 1; this.dynamic.add(xr); p.extra[4] = xr; }
     xr.visible = !!dm && decal.visible;
     if (!dm) return;
-    let m = this.xrayMats.get(dm);
-    if (!m) { m = dm.clone(); m.depthFunc = GreaterDepth; m.opacity = 0.45; this.xrayMats.set(dm, m); }
+    const style = this.devPadBehind;
+    const key = style === "dash" ? `dash|${big}|${locked}|${light}` : style;
+    let src = dm;
+    if (style === "dash") src = this.labels.meshMaterial(`pdx|${big}|${locked}|${light}`, () => this.padOutlineArt(big, locked, light)) ?? dm;
+    const mk = `${key}|${src.uuid}`;
+    let m = this.xrayMats.get(mk);
+    if (!m) {
+      m = src.clone(); m.depthFunc = GreaterDepth;
+      m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = NotEqualStencilFunc;
+      m.stencilFail = KeepStencilOp; m.stencilZFail = KeepStencilOp; m.stencilZPass = KeepStencilOp;
+      this.xrayMats.set(mk, m);
+    }
+    m.opacity = style === "dash" ? 0.95 : style === "faint" ? 0.18 : 0.1 + 0.4 * (0.5 + 0.5 * Math.sin(this.t * 4.5));
     xr.material = m;
     xr.position.copy(decal.position);
     xr.scale.copy(decal.scale);
+  }
+
+  /** The pad's outline alone, dashed: the "dash" style of the hidden-behind copy. */
+  private padOutlineArt(big: boolean, locked: boolean, light: boolean): LabelArt {
+    const t = this.tokens;
+    const mark = light ? t.guideLight : t.guideShadow;
+    const col = locked ? mix(mark, light ? t.ink : t.guideLight, 0.45) : mark;
+    return {
+      w: 256, h: 256,
+      draw: (g, w, h) => {
+        g.clearRect(0, 0, w, h);
+        roundRect(g, 14, 14, w - 28, h - 28, 44);
+        g.setLineDash([26, 16]); g.lineJoin = "round";
+        this.markStroke(g, light, big ? 16 : 14, col);
+        g.setLineDash([]);
+      },
+    };
   }
 
   /** True when the scene is dark enough that the pad marks go light (night, a dim story sky, a storm); else dark, like the guide arrows. */

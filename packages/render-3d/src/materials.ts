@@ -1,4 +1,5 @@
 import {
+  AlwaysStencilFunc, ReplaceStencilOp,
   AdditiveBlending,
   Color,
   DataTexture,
@@ -83,11 +84,23 @@ export function addWear(mat: MeshStandardMaterial | MeshLambertMaterial, o: Wear
   mat.customProgramCacheKey = () => `wear-${o.wear}-${o.seams}-${o.unit}-${o.contact !== false}`;
 }
 
+/**
+ * Mark a material as a character's: it writes stencil 1 where it draws, so a pad's hidden-behind-a-wall copy
+ * (renderer.ts padXray) leaves those pixels alone and a player in front of a pad always hides it (#89).
+ */
+export function markOccluder<T extends Material>(m: T): T {
+  m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = AlwaysStencilFunc;
+  m.stencilZPass = ReplaceStencilOp;
+  return m;
+}
+
 export class MaterialSet {
   /** Opaque vertex-coloured models: smooth-shaded (R6 #8; the primitives carry their own normals, so box edges stay hard and only the round parts smooth), with surface wear. */
   readonly std: MeshStandardMaterial;
   /** Hero structure bodies: std plus poured-panel seams. */
   readonly panel: MeshStandardMaterial;
+  /** std for the crowd's characters, kept apart from the shared one so only characters write stencil (markOccluder). */
+  readonly crowd: MeshStandardMaterial;
   /** Glass domes, pods, the core column. */
   readonly glass: MeshStandardMaterial;
   /** Unlit emissive surfaces: lit windows, plasma, status lights. */
@@ -112,6 +125,8 @@ export class MaterialSet {
     this.radial = radialTexture();
     this.std = new MeshStandardMaterial({ vertexColors: true, roughness: 0.86, metalness: 0.06 });
     addWear(this.std, { wear: 1, seams: false, unit: 1 });
+    this.crowd = markOccluder(new MeshStandardMaterial({ vertexColors: true, roughness: 0.86, metalness: 0.06 }));
+    addWear(this.crowd, { wear: 1, seams: false, unit: 1 });
     this.panel = new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0.04 });
     addWear(this.panel, { wear: 1.2, seams: true, unit: 1 });
     this.glass = new MeshStandardMaterial({ vertexColors: true, transparent: true, opacity: 0.5, roughness: 0.12, metalness: 0.1, depthWrite: false });
@@ -128,7 +143,7 @@ export class MaterialSet {
   }
 
   all(): Material[] {
-    return [this.std, this.panel, this.slab, this.glass, this.glow, this.additive, this.ground, this.decal, this.blob, this.halo, this.particle];
+    return [this.std, this.crowd, this.panel, this.slab, this.glass, this.glow, this.additive, this.ground, this.decal, this.blob, this.halo, this.particle];
   }
 
   dispose(): void {
