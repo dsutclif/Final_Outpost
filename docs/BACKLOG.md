@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#84**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#85**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -34,9 +34,9 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 - Bundle 1 (#63, #67, #68–#70, #72, #73, #76): done except Doug deleting the remote branches `look-test`,
   `object-sizes` and `story-buggy` (agents can't run `git push --delete`). Keep `fo-wt-handoff` until #75 backs up its film tools.
 - **Three lanes run in parallel (Doug, 2026-11-08), one bundle at a time per lane.** Engine bump freeze: when Bundle 7 claims the bump in the work log, Story and Look finish their current push and pause until it lands.
-- Story lane: Bundle 3 (#4, #3, #5, #14) pushed by `bundle3` 2026-11-08, waiting for the orchestrator's live check and Doug's iPhone checks (#83); then Bundle 4. Film track: #75 backup and #47 stage 2 stills proposed 2026-11-08 (Sonnet; ends at Doug's approval); #48 and #49 wait for Bundle 3 to land.
-- Look lane: Bundle 5 (#10, #41, #52) proposed 2026-11-08 (Sonnet), waiting for Doug to start it. Bundle 9's renderer parts come later.
-- Systems lane: Bundle 6 (#43, #44, #9a, #16 v0) proposed 2026-11-08 (Opus lead, Sonnet/Haiku subagents), ends by writing `docs/RELEASE-2.md`; then Bundle 7 (Opus), Bundle 8 (Sonnet + Haiku). Bundle 9's sim parts after 7. #81 (protein hunter at a gate) joins Bundle 7's bump if it is a rules fix.
+- Story lane: Bundle 3 live 2026-11-08, ticked; Doug's iPhone checks #83. Next: Bundle 4. Film track: #75 done (zip at `Mobile game/backups/film-tools-mocap-cache-2026-11-08.zip`); #47 stage 2 stills and test clip made (`Mobile game/film-stage2-stills/`); their tool edits (`tools/cinematics/game_film.py`, `game_set.py`, `pod_exit.py`) are UNCOMMITTED in the `farthest-outpost` checkout, waiting for a push; Doug approves the stills; then #48/#49.
+- Look lane: Bundle 5 partly live 2026-11-08 (#10 ticked; #41 placement and #52 scenarios open; iPhone checks #84). Next: finish #41/#52, then Bundle 9's renderer parts.
+- Systems lane: Bundle 6 landed 2026-11-08 (#43, #16 v0, #9a done; #44 half). `docs/RELEASE-2.md` written. Next: Bundle 7 (Opus, one engine bump), briefed from that doc; then Bundle 8. #81 joins Bundle 7 if it is a rules fix.
 
 ## Waiting on Doug
 
@@ -55,7 +55,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       2. Create a fine-grained token for outpost-ops only, with Issues and Contents read/write.
       Then create the routines in dry-run for a week.
 - [ ] **#66 · PILLARS-DRAFT.md (waiting on Doug):** the order of the pillars, and pillar 7's pay-to-win line.
-- [ ] **#83 · iPhone checks for Bundle 5 (flat pads, #10 #41 #52).** Pads are now flat decals; the probes ran in the Chromium pane at phone size, not on a real phone:
+- [ ] **#84 · iPhone checks for Bundle 5 (flat pads, #10 #41 #52).** Pads are now flat decals; the probes ran in the Chromium pane at phone size, not on a real phone:
       1. Day, dusk (a story level), night and a storm: every pad kind (hire, build, upgrade, warehouse, clear) reads as a flat marking.
       2. A pad behind a gate or the kiosk shows faintly through it (s1-L010 tower pads).
       3. Not yet seen in a real scenario (#52): red bolts in a real raid, the healing cross with a real medic, trader order pictures in a live bubble, fireworks after a real win, the shovel at the level 3 rockslide, wall fade on the phone, core fade in a story level.
@@ -192,7 +192,8 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 
 ## Bundle 3: story pass (story files; #6 is owned by the "Vale helmet animations" session)
 
-- [ ] **#4 · S40 KILN the same size on screen in every level, and closer (Doug, 2026-11-07).**
+- [x] **#4 · S40 KILN the same size on screen in every level, and closer (Doug, 2026-11-07).**
+      **Live 2026-11-08 (c396606, orchestrator-checked):** `kiln.ts` scales size/right/up; KILN at about 57% in L2–L5, same size (screenshots kiln-L2..L5). No level 1 shot (probe timeout). #13 included. iPhone check: #83.
       Why level 5 looks zoomed out: its family is `defend`, and `content/data/look.json` `viewW` shows 300 units
       of ground across the screen on defend levels against 170 everywhere else (L1 shelter, L2 rescue, L3 harvest
       and L4 industrialize all use 170). KILN is sized in world units (`spiritFollow` size 1.1 in all five cue
@@ -205,7 +206,8 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       **Doug, 2026-11-07:** KILN sits about 1 m from the commander's head at the scale of levels 1–4, and further at
       level 5's scale. Scale `size`, `right` and `up` by `viewWFor(family)` (and the camera zoom) in the client; no
       skin data changes. Check that the smaller cloud stays legible at phone size.
-- [ ] **#3 · S24 Two more sealed pods at the crash site (Doug, 2026-11-07: option 1).** Add two sealed
+- [x] **#3 · S24 Two more sealed pods at the crash site (Doug, 2026-11-07: option 1).** Add two sealed
+      **Live 2026-11-08 (59c27ed):** two sealed pairs per story level, out of the start view. Check `crash_open` wide shots when Bundle 4 re-renders. iPhone check: #83.
       `decor.stasis_pod` + `decor.stasis_glass` pairs toward the back of the wreck in `story-L001..5.json`, so the
       deck shows five (the commander's open pod, bay 5 open from level 3, three sealed). They must stay **out of
       frame of `crash_open`** (the first film), and clear of the game's start view and the film's held level edits
@@ -254,11 +256,13 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       3. The run-away is in play, not in the scene: the in-play warlord becomes `hostile.boss_vale` + `item.vale_head` and
          runs off to the right side of the screen.
       **Owner:** the "Vale helmet animations" session (handed over 2026-11-07).
-- [ ] **#5 · S41 Sela's buggy at the signed-off size (Doug confirmed several times; last on 2026-11-07).** Use the
+- [x] **#5 · S41 Sela's buggy at the signed-off size (Doug confirmed several times; last on 2026-11-07).** Use the
+      **Live 2026-11-08 (59c27ed):** buggy at 2.64 m drives in after `sela_arrival`, headlights halved. A retry past Sela's arrival won't re-park it. iPhone check: #83.
       sandbox's size, also used in the `sela_arrival` scene: 2.64 m long (the 4.4 m build x 0.6). Merge the
       reduced model from branch `story-buggy` (39.9k tris, 2.5 MB, two wheels) at that size, then wire it into
       level 3 with headlights and the drive to the kiosk. No further sign-off.
-- [ ] **#14 · S43 The training levels teach wall building (Doug, 2026-11-07).** Today level 2 starts with a prebuilt
+- [x] **#14 · S43 The training levels teach wall building (Doug, 2026-11-07).** Today level 2 starts with a prebuilt
+      **Live 2026-11-08 (59c27ed):** level 3 star is `walls`; `levels:check --pack levels/story` 5/5, every rung builds the wall; no engine bump. Story owner re-checks L3–5 in play.
       ring, so the walls appear from nowhere. After the freezing pods are rescued, the player builds the walls (wall
       pads with a goal card and a line saying why: the night and the raiders). Needs a look at which level carries
       it (2 or 3), whether a wall pad exists in the rules (an opt-in option if not), and the bots' and
@@ -291,7 +295,8 @@ ship with the film.
 
 ## Bundle 5: flat pads
 
-- [ ] **#10 · Flat ground markers instead of raised pads (Doug, 2026-11-07).** Replace the raised standing pads
+- [x] **#10 · Flat ground markers instead of raised pads (Doug, 2026-11-07).** Replace the raised standing pads
+      **Live 2026-11-08 (67ea2f4):** flat decals in guide-arrow shades, faint see-through copy behind tall models; checked at phone size in Chromium only (day/storm/night; dusk simulated). iPhone check: #84.
       with 2D projections on the ground: a light or dark marking in the same shade as the guide arrows, so it
       contrasts in any lighting. Applies to every pad kind (hire, build, upgrade, warehouse, clear). Done check: pads
       read clearly in day, dusk, night and storm light on a phone.
@@ -299,6 +304,7 @@ ship with the film.
       model. Hide the model, make the decal the pad, colour it from the guide arrow tokens (`scene/groundmarks.ts`) with a
       dark outline. Perf is neutral or better. Then #41.
 - [ ] **#41 · G4 / S27 hire pads always fully visible:** the generator places pads clear of model silhouettes, and
+      **2026-11-08 (67ea2f4):** pads behind tall models now show faintly through; placement unchanged (generator/pack work, Bundle 8).
       fading never hides a pad. With #10, check the flat markers too.
       With flat markers (#10), this shrinks to placement clear of tall model silhouettes at the 30° camera.
 - [ ] **#52 · Step A renderer items:**
@@ -314,10 +320,13 @@ ship with the film.
 
 Bots and baselines settle before the model is fitted.
 
-- [ ] **#43 · Bot tow loop through a wall:** `Brain.loopAround` can place loop points inside a ring.
+- [x] **#43 · Bot tow loop through a wall:** `Brain.loopAround` can place loop points inside a ring.
+      **Landed 2026-11-08 (6dc3639):** tow loop points stay on walkable ground; new bots test.
 - [ ] **#44 · Search start table per engine:** make `startPressure` ignore a `start.json` from another engine, then
+      **2026-11-08 (6dc3639):** `startPressure` ignores another engine's table. Still open: rewrite `start.json`, which waits for Bundle 8's rebuild.
       rewrite it with `pnpm levels:start-table` from this rebuild.
 - [ ] **#9 · Rater detail for every eval (Doug, 2026-11-07).** Today the packs store only each level's totals
+      **9a landed 2026-11-08 (80f656a):** `pnpm levels:eval` writes `levels/eval/<pack>/<id>.json` (55 + 18 levels); `pack.json` untouched. Not yet in the files: `tools/review` measures and the generator digest. 9b stays deferred.
       (`rating.difficulty`, `rating.fun`, `botMargin`, `botsPassed`, `stars`), so no one can see why a level scores
       what it does. Throw those totals away as the record, and capture every sub-point of the AI-driven evaluation,
       for every level, not only defend:
@@ -341,7 +350,8 @@ Bots and baselines settle before the model is fitted.
       every player's offline level cache. Add a per-wave defend trace (HP arrived, leak, scrap and towers at wave start).
       Done check: a re-rate leaves `pack.json`'s hash unchanged, and a test fails if any level lacks a sub-point.
       **9b** (deferred until after Release 2): the bot-vs-player view; real-player data is still thin.
-- [ ] **#16 · P9 Attack–defence model: one formula as the common reference and control lever (Doug, 2026-11-07;
+- [x] **#16 · P9 Attack–defence model: one formula as the common reference and control lever (Doug, 2026-11-07;
+      **v0 landed 2026-11-08 (fbc3343):** `generator/src/defendModel.ts` + `docs/RELEASE-2.md`. Fit on 13 defend levels x 5 rungs: RMSE 0.27 (0.32 leave-one-out), r 0.76, 53/65 lost-vs-not agreement; a ranking tool, not calibrated. v1 refit is Bundle 8.
       replaces the N13-or-N1 choice for R6 #10).** Every level is balanced against the same model, assuming the best
       action at every moment:
       - **Defence side.** Each defence has a price list that rises by tier (turret L2 costs more than L1), set in
