@@ -31,13 +31,9 @@ scenes where play pauses while one character's movement plays out (Doug, 2026-11
 One line per active item: number, who has it, and where. Add the line when work starts; remove it when the item is
 ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-LOG.md`.
 
-- Bundle 1 (#63, #67, #68–#70, #72, #73, #76): orchestrator session. Status 2026-11-07 evening: nightly run #3
-  (outpost-ops b9e0335) has pulse ok on engine 0.21.0, 0 errors, 69 old-pack levels skipped; guide, telemetry and calibrate ok;
-  **probe failed** (exit 1 after 1 s, the vite path bug #78), so the run isn't green yet. Supabase test row deleted (0 left).
-  Local main reset to origin/main; `fo-wt-buggy` and `agent-a0616…` worktrees removed; local `story-buggy`/`story-buggy-26`
-  deleted. Still open: Doug deletes the remote branches `look-test`, `object-sizes` and `story-buggy`, and #78 makes the
-  nightly fully green. Keep `fo-wt-handoff` until #75 backs up its film tools.
-- Story files for #3, #4, #5, #14: claimed by the orchestrator session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
+- Bundle 1 (#63, #67, #68–#70, #72, #73, #76): done except Doug deleting the remote branches `look-test`,
+  `object-sizes` and `story-buggy` (agents can't run `git push --delete`). Keep `fo-wt-handoff` until #75 backs up its film tools.
+- Bundle 3 (#4, #3, #5, #14): proposed 2026-11-08 as a fresh Opus session (`bundle3`, own worktree), waiting for Doug to start it; it takes over the story-file claim in `docs/STORY-WORK-LOG.md` (not level 5's cues).
 - #6 follow-up (the fall film on the game's own ground): Vale helmet animations session, branch story-vale-fall, 2026-11-08.
 - #79 storm look: the "storm look" session, branch `storm-look` in `fo-wt-storm` (outside the bundles, renderer only, no engine bump).
 
