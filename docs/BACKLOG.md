@@ -41,6 +41,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 
 ## Waiting on Doug
 
+- [ ] **#2 · iPhone check, title loop.** After two real deploys and a second visit on iPhone Safari: the loop plays (or the dark poster shows), and the old background never paints.
 - [ ] **#1 · `empty_bays` against the films (Sign-off 2).** It plays at the end of story level 2 on
       https://final-outpost-rho.vercel.app (story films replay on every play while `REPLAY_FILMS` is on). Nothing
       is waiting on it. Close it if it reads fine.
@@ -123,7 +124,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 
 ## Bundle 2: first screen and level packs (no engine bump)
 
-- [ ] **#2 · Only the new title loop ever shows (Doug, 2026-11-07; bug, do first).** At first the old background
+- [x] **#2 · Only the new title loop ever shows (Doug, 2026-11-07; bug, do first).** At first the old background
       showed while the animated loop loaded. Now the loop never appears, only the old SVG-style home background.
       Found so far: the live bundle's `/assets/title_loop-*.mp4` serves fine (200, 1.2 MB, video/mp4). `title.ts`
       keeps the video hidden until frames flow and removes it on `error`, leaving the canvas fallback.
@@ -139,6 +140,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       frame; draw the canvas fallback only after an error or a timeout; send `video.error.code` with telemetry.
       Done check: on iPhone Safari, after two real deploys and a second visit, the loop plays (or the dark poster
       shows), and the old background never paints.
+      **Done 2026-11-08 (f5fb255), live on desktop:** the title shows the loop on a dark frame with the poster, canvas hidden; locally a forced double error retried once, then drew the canvas fallback. iPhone check is under "Waiting on Doug".
 - [ ] **#7 · P7 Ship the revised ranger pad rule.** Doug, 2026-11-07: the ranger hire pad goes inside the hunting
       grounds, clear of the burrow models. If that fails, it goes just inside the gate nearest them, or on the
       settlement edge facing them when there's no wall. Manual first. It is built but uncommitted in worktree
@@ -155,10 +157,12 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       `zones[0]` and ignores dangerous prey. The L012/L037 retry output is not in the diff. Look at both levels before
       landing; re-run: merge main, `levels:repin`, `pnpm check`, `levels:check` (s1 and story), regenerate `docs/LEVELS.md`.
       Done check: the ranger pad sits inside the hunting grounds on L017 and L034, seen live.
-- [ ] **#78 · `review:probe` can't start its own server (found 2026-11-07, #76).** `tools/review/probe.ts` resolves
+      **Landed 2026-11-08 (bed725e), not yet seen live:** pads at L017 (448,342) in zone [418,330,60,150] and L034 (50,352) in [20,340,60,150] (manifests); L017 is off target (0.282 vs 0.34) but both pass `levels:check`; L034's protein target is now 36 and its stopwatch 5:25 (`goalhud.test.ts` updated). The pad is off the opening view and the live camera would not pan, so it still needs a look in play.
+- [x] **#78 · `review:probe` can't start its own server (found 2026-11-07, #76).** `tools/review/probe.ts` resolves
       `vite/bin/vite.js`, which the installed vite's `exports` blocks (ERR_PACKAGE_PATH_NOT_EXPORTED), so the probe only runs
       against a hand-started server. Start vite through its JS API or the `.bin` shim. Done check: `pnpm review:probe` on
       s1-L008 runs end to end with no server started by hand, locally and in the nightly workflow.
+      **Done 2026-11-08 (bed725e):** `probe.ts` starts vite through its JS API; `pnpm review:probe` on s1-L008 ran end to end locally (15 findings, 18 shots). The nightly run is not yet seen.
 
 ## Bundle 3: story pass (story files; #6 is owned by the "Vale helmet animations" session)
 
