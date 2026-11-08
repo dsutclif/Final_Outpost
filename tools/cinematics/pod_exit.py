@@ -19,6 +19,7 @@ FADE = 10                # crossfade frames between takes
 STEP_TURN = 0            # degrees the step-over turns from the way the get-up faces (crash.py: 90, a long-side pod)
 TURN_FRAMES = 22         # over the stride before the step
 NO_STAGGER = os.environ.get("NO_STAGGER") == "1"  # game_set.py: no deck plate to limp along
+LOOK_FACE = None         # game_film.py: callable(yaw) -> world heading (rad) the look-round should end facing
 LAND_CLEAR = 0.12        # metres between the plate's edge and the feet after the jump
 UPRIGHT_BONES = ("Spine", "Spine1", "Spine2", "Neck", "Head", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg", "_chest_up")
 DOWN, UP = Vector((0, 0, -1)), Vector((0, 0, 1))
@@ -172,10 +173,21 @@ def timeline(takes, scale_of):
             rot_z = want - h_a
             base = pos_end.copy()
         R = Matrix.Rotation(rot_z, 3, "Z")
+        look_to = None
+        if isinstance(t, Look) and LOOK_FACE is not None:  # turn through the take to face the light
+            st = [r for r in out if isinstance(r[5], StepOver)]
+            sd = st[-1][3] - st[0][3]
+            axw = max((Vector((1, 0, 0)), Vector((-1, 0, 0)), Vector((0, 1, 0)), Vector((0, -1, 0))), key=lambda a: a.dot(sd))
+            yaw = math.pi - math.atan2(axw.y, axw.x)  # the stage yaw game_film.py gives the capture
+            look_to = LOOK_FACE(yaw) - yaw - h_a
+            look_from = rot_z
         z0 = t.floor if t.floor is not None else t.ground()
         for j, i in enumerate(t.frames()):
             if k > 0 and rot_from is not None:
                 R = Matrix.Rotation(rot_from + (rot_z - rot_from) * smooth(j / TURN_FRAMES), 3, "Z")
+            if look_to is not None:
+                d_ang = (look_to - look_from + math.pi) % (2 * math.pi) - math.pi
+                R = Matrix.Rotation(look_from + d_ang * smooth(j / max(1, len(t.frames()) * 0.6)), 3, "Z")
             seg, _, _ = t.clip.pose(i)
             c, up, right = retarget.pelvis(seg)
             dirs = retarget.mocap_dirs(seg)

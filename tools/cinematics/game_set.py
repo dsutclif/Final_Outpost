@@ -14,6 +14,7 @@ OUT = os.path.join(lib.HERE, args[args.index("--out") + 1] if "--out" in args el
 LEVEL = os.path.join(lib.ROOT, "levels", "story", "story-L001.json")
 
 # sizes in metres (docs/SCALE.md, render-3d/src/sizes.ts)
+SCRAP_DX = -100 / M  # the held level edit (#48): the tube scrap moves 100 units west, off the commander's end spot
 WRECK_M, POD_M, TUBE_M_PER_SCALE, CORE_H, ORE_M, CMD_H = 27.0, 2.66, 2.8, 1.70, 0.95, 1.98
 
 
@@ -45,7 +46,7 @@ def build():
     S["pods"] = pods
     for sid in ("scrap", "scrap2"):
         e = by.get(sid)
-        if e: lib.place(e["type"], at=tuple(to_m(e["at"])), yaw=e.get("yaw", 0), size=TUBE_M_PER_SCALE * e.get("scale", 1), name=sid)
+        if e: lib.place(e["type"], at=tuple(to_m(e["at"]) + Vector((SCRAP_DX, 0, 0))), yaw=e.get("yaw", 0), size=TUBE_M_PER_SCALE * e.get("scale", 1), name=sid)
     core = next(e for e in lv["entities"] if e["type"] == "sink.core")
     S["core"] = lib.place("sink.core.l1", at=tuple(to_m(core["at"])), height=CORE_H, name="reactor")
     S["core_at"] = to_m(core["at"])

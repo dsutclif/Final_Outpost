@@ -10,11 +10,18 @@ import bpy
 from mathutils import Matrix, Vector
 import lib, pod_exit, game_set
 
+
+def smooth(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3 - 2 * t)
+
+
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 OUT = os.path.join(lib.HERE, "out", "game_film")
 PRE = 45                       # frames lying still while the seal blows
 POD_K = 2.66 / 3.9847          # render-3d sizes.ts
-FLOOR = 0.20                  # the commander's floor inside the pod above the sand (lies inside it, still clears the rim)
+FLOOR = 0.05                   # the commander's lowest point above the sand: Doug's sandbox (layoutmock.ts placeCmdr, 0.05 m); the pod rim stands 0.43 m, as pod_exit's fitted 0.38 m rim
+END_GUESS = Vector((-3.83, -0.49, 0))  # the commander's end spot from the last run (only aims the look-round)
 HAND_W = 170.3 / 28            # metres across at the hand-off (level 1 openZoom.film)
 
 
@@ -53,7 +60,12 @@ def main():
     sh = sc.display.shading
     sh.light, sh.color_type, sh.show_shadows = "STUDIO", "TEXTURE", True
     lib.ground()
+    if sc.world is None: sc.world = bpy.data.worlds.new("sky")
+    sc.world.color = (0.30, 0.27, 0.27)  # dim dusk-grey sky, never black
     S = game_set.build()
+    core = S["core_at"]
+    # the look-round ends facing the reactor's light (END is where the previous run left the commander)
+    pod_exit.LOOK_FACE = lambda yaw: math.atan2(core.y - END_GUESS.y, core.x - END_GUESS.x)
     pod = S["pods"][0]
     pod_c = pod.location.copy(); pod_c.z = 0
 
@@ -92,18 +104,45 @@ def main():
     end = Vector((pel[-1].x, pel[-1].y, 0))
     print(f"END commander at {end.x:.2f}, {end.y:.2f} m from pod0 (game units {end.x * 28:.1f}, {-end.y * 28:.1f})")
     F = lambda row: row + 1 + PRE
+    fwd_w = stage.matrix_world.to_3x3() @ TL[-1][2][0].cross(TL[-1][2][1])  # up x right = forward
+    face = math.degrees(math.atan2(fwd_w.y, fwd_w.x)); want = math.degrees(pod_exit.LOOK_FACE(0))
+    print(f"FACING {face:.0f} deg, light at {want:.0f} deg (off by {((face - want + 180) % 360) - 180:.0f})")
 
-    # the glass: closed, a jolt as the seal blows, then open (game lid0) by the time the head is up
+    # the glass: closed, a jolt as the seal blows, then hinged open on its edge (the swing is the rotation that takes
+    # the closed pose to the game's open pose, about the hinge line that rotation implies), done before the head rises
     lid = bpy.data.objects["lid0"]
-    open_loc, open_rot = lid.location.copy(), lid.rotation_euler.copy()
+    open_m = lid.matrix_world.copy()
     k, yw = POD_K, math.radians(-90)
     closed_off = Vector((-0.034, 0.258)) * k
     cx = pod_c + Vector((closed_off.x * math.cos(yw) + closed_off.y * math.sin(yw), -(-closed_off.x * math.sin(yw) + closed_off.y * math.cos(yw)), 0))
     closed_loc = Vector((cx.x, cx.y, -0.8 + 1.909 * k))
-    closed_rot = (0, 0, yw)
-    f_open0, f_open1 = 12, F(st[1]) - 30
-    key(lid, "location", [(1, closed_loc), (f_open0, closed_loc), (f_open1, open_loc)])
-    key(lid, "rotation_euler", [(1, Vector(closed_rot)), (f_open0, Vector(closed_rot)), (f_open1, open_rot)])
+    closed_rot = Matrix.Rotation(yw, 3, "Z")
+    # Doug (2026-11-08): the glass opens widthwise, hinged on a LONG side. The commander steps out over the west long
+    # side, so it hinges on the east one and swings up and over to the east. Hinge line: along the pod (world y),
+    # at the closed glass's east edge and its underside.
+    lid.location, lid.rotation_euler = closed_loc, (0, 0, yw)
+    bpy.context.view_layer.update()
+    lb = [lid.matrix_world @ Vector(c) for m in [lid] + list(lid.children_recursive) if m.type == "MESH" for c in m.bound_box]
+    hinge = Vector((max(v.x for v in lb), closed_loc.y, min(v.z for v in lb)))
+    q_axis, q_ang = Vector((0, 1, 0)), math.radians(105)
+    slide = Vector((0, 0, 0))
+    print(f"GLASS closed x {min(v.x for v in lb):.2f}..{max(v.x for v in lb):.2f} y {min(v.y for v in lb):.2f}..{max(v.y for v in lb):.2f} z {min(v.z for v in lb):.2f}..{max(v.z for v in lb):.2f}; hinge at {tuple(round(v, 2) for v in hinge)}")
+    lid.rotation_mode = "QUATERNION"
+    f_open0, f_open1 = 14, 66
+    for f in range(1, f_open1 + 1):
+        t = smooth(max(0.0, (f - f_open0) / (f_open1 - f_open0)))
+        Qt = Matrix.Rotation(q_ang * t, 3, q_axis)
+        lid.location = hinge + Qt @ (closed_loc - hinge) + slide * t
+        lid.rotation_quaternion = (Qt @ closed_rot).to_quaternion()
+        lid.keyframe_insert("location", frame=f); lid.keyframe_insert("rotation_quaternion", frame=f)
+
+    fq = (Matrix.Rotation(q_ang, 3, q_axis) @ closed_rot)
+    fl = hinge + Matrix.Rotation(q_ang, 3, q_axis) @ (closed_loc - hinge)
+    print(f"LID OPEN pose: {tuple(round(v, 3) for v in fl)} m from pod0 (game units dx {fl.x * 28:.1f} dy {-fl.y * 28:.1f} lift {fl.z * 28:.1f}); euler deg {tuple(round(math.degrees(a), 1) for a in fq.to_euler())}")
+    sc.frame_set(46)
+    ev = P["body"].evaluated_get(bpy.context.evaluated_depsgraph_get())
+    bp = [ev.matrix_world @ v.co for v in ev.to_mesh().vertices]
+    print("BODY lying extents x %.2f y %.2f z %.2f..%.2f (pod rims 0.43)" % (max(p.x for p in bp) - min(p.x for p in bp), max(p.y for p in bp) - min(p.y for p in bp), min(p.z for p in bp), max(p.z for p in bp)))
 
     follow = bpy.data.objects.new("follow", None)
     sc.collection.objects.link(follow)
@@ -117,25 +156,29 @@ def main():
         tt = cam.constraints.new("TRACK_TO")
         tt.target, tt.track_axis, tt.up_axis = follow, "TRACK_NEGATIVE_Z", "UP_Y"
         return cam
-    # north-west of the pod: the tube scrap lies to the south-west
-    c1 = tracked("podcam", pod_c + Vector((-2.6, 1.4, 1.7)), 32)
-    c2 = tracked("standcam", pod_c + Vector((-4.4, 1.8, 0.7)), 30)
-    start = end + Vector((-2.6, 2.2, 0.9))
+    # the glass opens west, where he steps out: cameras stay east/south of it. podcam: south-east, high, sees the glass
+    # swing away and him sit up; standcam: south of the step-out, then through the whole drop (cut after he lands);
+    # lookcam: in front of him toward the light, looking down a little so the ground, not the sky, fills the frame
+    c1 = tracked("podcam", pod_c + Vector((-2.6, -1.8, 1.9)), 32)
+    c2 = tracked("standcam", pod_c + Vector((-0.8, -4.8, 1.3)), 26)
+    to_core = Vector((core.x - end.x, core.y - end.y, 0)).normalized()
+    side = Vector((-to_core.y, to_core.x, 0))
+    start = end + to_core * 3.2 + side * 1.2 + Vector((0, 0, 1.7))
     c3 = tracked("lookcam", start, 30)
     f_crane0 = F(st[3]) + 15
     hand = end + Vector((0, 0, 0.9))
     crane = crane_path(start, hand, f_crane0, N + PRE, HAND_W)
-    key(c3, "location", [(F(st[2]), start), (f_crane0, start)] + [(f, p) for f, p, _ in crane], "LINEAR")
-    key(c3.data, "lens", [(F(st[2]), 30), (f_crane0, 30)] + [(f, l) for f, _, l in crane], "LINEAR")
+    key(c3, "location", [(F(P["r_land"]) + 14, start), (f_crane0, start)] + [(f, p) for f, p, _ in crane], "LINEAR")
+    key(c3.data, "lens", [(F(P["r_land"]) + 14, 30), (f_crane0, 30)] + [(f, l) for f, _, l in crane], "LINEAR")
     aim = bpy.data.objects.new("aim", None)
     sc.collection.objects.link(aim)
     c3.constraints["Track To"].target = aim
-    for f in range(F(st[2]), N + PRE + 1):  # the aim follows the commander, then eases onto the hand-off point
+    for f in range(F(st[2]) - 40, N + PRE + 1):  # the aim follows the commander, then eases onto the hand-off point
         t = max(0.0, (f - f_crane0) / max(1, N + PRE - f_crane0))
         e = t * t * (3 - 2 * t)
         aim.location = pel[min(f - 1, len(pel) - 1)].lerp(hand, e)
         aim.keyframe_insert("location", frame=f)
-    edit = [(c1, 1), (c2, F(st[1]) + 10), (c3, F(st[2]) + 4)]
+    edit = [(c1, 1), (c2, F(st[1]) + 10), (c3, F(P["r_land"]) + 14)]
     for cam, f0 in edit:
         sc.timeline_markers.new(cam.name, frame=f0).camera = cam
     sc.frame_start, sc.frame_end = 1, N + PRE
@@ -152,8 +195,28 @@ def main():
         print("POD bbox x", round(min(v.x for v in bb), 2), round(max(v.x for v in bb), 2), "y", round(min(v.y for v in bb), 2), round(max(v.y for v in bb), 2), "z", round(min(v.z for v in bb), 2), round(max(v.z for v in bb), 2))
         print("PELVIS f1", [round(v, 2) for v in pel[0]], "lid closed", [round(v, 2) for v in closed_loc])
         return
+    if "--probe" in args:  # debug: the pod model's surface heights (glass and commander hidden)
+        for o in [lid, cmd] + list(cmd.children_recursive): o.hide_viewport = True
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        for dy in (-1.2, -0.8, -0.4, 0, 0.4, 0.8, 1.2):
+            row = []
+            for dx in (-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8):
+                hit, loc, *_ = sc.ray_cast(dg, Vector((pod_c.x + dx, pod_c.y + dy, 5)), Vector((0, 0, -1)))
+                row.append(f"{loc.z:5.2f}" if hit else "  -  ")
+            print("PROBE y%+.1f" % dy, " ".join(row))
+        return
+    if "--side" in args:  # debug: level, orthographic-ish views from the south and the east at pod height
+        sc.timeline_markers.clear()
+        for nm, off in (("south", Vector((0, -9, 0.3))), ("east", Vector((9, 0, 0.3)))):
+            cam = lib.camera(pod_c + off, pod_c + Vector((0, 0, 0.3)), lens=90, name=nm)
+            sc.camera = cam
+            for f in (1, 46, F(st[1]) - 30):
+                sc.frame_set(f)
+                lib.render_still(os.path.join(OUT, f"side_{nm}_{f:04d}.png"))
+        return
     if "--stills" in args:
-        for f in (1, f_open1, F(st[1]) + 20, F(st[2]) + 20, F(st[3]) + 10, f_crane0 + (N + PRE - f_crane0) // 2, N + PRE):
+        for f in ([int(x) for x in args[args.index("--at") + 1].split(",")] if "--at" in args else (1, f_open1, F(st[1]) + 20, F(st[1]) + 60, F(P["r_takeoff"]) + 8, F(P["r_land"]) + 4, F(st[3]) + 10, f_crane0 + (N + PRE - f_crane0) // 2, N + PRE)):
             sc.frame_set(f)
             cam = max((m for m in sc.timeline_markers if m.frame <= f), key=lambda m: m.frame).camera
             sc.camera = cam
