@@ -414,6 +414,14 @@ def perform(root, pre=0, calib=False):
             if cross: clear = min(clear, min(cross))
         if clear > best_clear: best_c, best_clear = c, clear
         c += 0.02
+    if os.environ.get("RIM_FROM_CENTRE"):  # game_film.py: the real pod's wall stands this far from where he lies, not where the stride best clears
+        la = [q.dot(ax) for q in lying_pts]
+        best_c = (max(la) + min(la)) / 2 + float(os.environ["RIM_FROM_CENTRE"]) + WALL_T / 2
+        clear = 9.0
+        for pts in step_frames:
+            cross = [q.z for q in pts if abs(q.dot(ax) - best_c) < WALL_T / 2 and lat0 - WALL_T < q.dot(lat) < lat1 + WALL_T]
+            if cross: clear = min(clear, min(cross))
+        best_clear = clear
     RIM_H = round(max(0.12, min(0.42, best_clear - 0.04)), 2)
     if os.environ.get("RIM_FORCE"): RIM_H = float(os.environ["RIM_FORCE"])  # game_film.py: the game pod's real wall height
     front = best_c - WALL_T / 2
