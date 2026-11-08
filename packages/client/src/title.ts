@@ -1,17 +1,21 @@
 import { alpha, mix, type Skin } from "@fo/skins";
-import { TITLE_LOOP_VIDEO } from "./cinematics.js";
+import { TITLE_LOOP_POSTER, TITLE_LOOP_VIDEO } from "./cinematics.js";
 
 // Animated title backdrop drawn on canvas from the skin palette: hazy sky, a low sun,
 // three parallax dune bands, a lit outpost of domes on the middle ridge, a reactor glow
 // and blowing dust. Runs its own rAF only while the title is showing.
 
+/** No frames by now: draw the canvas scene instead. */
+const FALLBACK_MS = 5000;
+
 interface Mote { x: number; y: number; s: number; v: number }
 
 export class TitleBackdrop {
   private canvas: HTMLCanvasElement;
-  /** The pre-rendered loop (title_loop): hidden until frames flow; the canvas is the fallback if it fails. */
+  /** The pre-rendered loop (title_loop): dark host + poster until frames flow; the canvas is the fallback after an error or a timeout. */
   private video: HTMLVideoElement | null = null;
   private g: CanvasRenderingContext2D | null;
+  private timeout: ReturnType<typeof setTimeout> | undefined;
   private raf = 0;
   private t0 = 0;
   private w = 0;
@@ -21,7 +25,7 @@ export class TitleBackdrop {
   private motes: Mote[] = [];
   private stars: { x: number; y: number; r: number }[] = [];
 
-  constructor(private readonly host: HTMLElement, private skin: Skin) {
+  constructor(private readonly host: HTMLElement, private skin: Skin, private readonly onError?: (code: number, retried: boolean) => void) {
     const doc = host.ownerDocument;
     this.canvas = doc.createElement("canvas");
     this.canvas.className = "title-bg";
@@ -34,8 +38,9 @@ export class TitleBackdrop {
 
   setSkin(skin: Skin): void { this.skin = skin; this.sky = null; }
 
-  private makeVideo(): void {
-    if (typeof HTMLVideoElement === "undefined") return;
+  private makeVideo(retry = false): void {
+    if (typeof HTMLVideoElement === "undefined") { this.fallback(true); return; }
+    this.video?.remove();
     const v = this.host.ownerDocument.createElement("video");
     v.className = "title-video";
     v.muted = true;
@@ -48,24 +53,40 @@ export class TitleBackdrop {
     v.setAttribute("webkit-playsinline", "");
     v.setAttribute("aria-hidden", "true");
     v.preload = "auto";
+    v.poster = TITLE_LOOP_POSTER;
     v.src = TITLE_LOOP_VIDEO;
-    // visible only while frames flow; on an error or a stall the canvas shows through
-    // (the loop's restart fires a brief "waiting" every pass, so only a stall that lasts hides it)
+    // The dark host plus the poster frame show first; the canvas is drawn only after an error or a timeout.
+    clearTimeout(this.timeout);
+    this.timeout = setTimeout(() => { if (this.video === v && v.readyState < 3) this.fallback(true); }, FALLBACK_MS);
+    // the loop's restart fires a brief "waiting" every pass, so only a stall that lasts counts
     let stall: ReturnType<typeof setTimeout> | undefined;
-    v.addEventListener("playing", () => { clearTimeout(stall); v.classList.add("on"); });
+    v.addEventListener("playing", () => { clearTimeout(stall); clearTimeout(this.timeout); this.fallback(false); });
     v.addEventListener("waiting", () => {
       clearTimeout(stall);
-      stall = setTimeout(() => { if (v.paused || v.readyState < 3) v.classList.remove("on"); }, 1200);
+      stall = setTimeout(() => { if (v.paused || v.readyState < 3) this.fallback(true); }, 1200);
     });
-    v.addEventListener("error", () => { v.remove(); this.video = null; });
+    v.addEventListener("error", () => {
+      this.onError?.(v.error?.code ?? 0, retry);
+      if (this.video !== v) return;
+      if (!retry) this.makeVideo(true);
+      else { v.remove(); this.video = null; this.fallback(true); }
+    });
     this.video = v;
     this.canvas.after(v);
+    if (this.raf) v.play().catch(() => { /* autoplay refused (low power mode): the poster stays */ });
   }
 
-  /** Re-insert the canvas (and loop video) after the host's markup was replaced. */
+  /** Show the canvas scene (and hide the video) only while the video cannot play. */
+  private fallback(on: boolean): void {
+    this.canvas.classList.toggle("fb", on);
+    this.video?.classList.toggle("off", on);
+  }
+
+  /** Re-insert the canvas (and loop video) after the host's markup was replaced; a dead video is re-created. */
   attach(): void {
     if (this.canvas.parentElement !== this.host || this.host.firstChild !== this.canvas) this.host.prepend(this.canvas);
-    if (this.video && this.video.parentElement !== this.host) this.canvas.after(this.video);
+    if (!this.video) this.makeVideo();
+    else if (this.video.parentElement !== this.host) this.canvas.after(this.video);
   }
 
   start(): void {
@@ -115,7 +136,7 @@ export class TitleBackdrop {
 
   private draw(t: number): void {
     const g = this.g;
-    if (!g || !this.fit()) return;
+    if (!g || !this.canvas.classList.contains("fb") || !this.fit()) return;
     const w = this.w, h = this.h, p = this.skin.palette;
     g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     if (!this.sky) {
@@ -193,5 +214,5 @@ export class TitleBackdrop {
     g.beginPath(); g.arc(cx, by - 12, 5 + Math.sin(t * 6) * 0.8, 0, Math.PI * 2); g.fill();
   }
 
-  dispose(): void { this.stop(); this.canvas.remove(); }
+  dispose(): void { clearTimeout(this.timeout); this.stop(); this.canvas.remove(); }
 }

@@ -38,7 +38,7 @@ async function startVite(): Promise<{ url: string; stop: () => void }> {
   const client = join(root, "packages/client");
   // vite's `exports` blocks vite/bin/vite.js, so use the JS API (the package root is exported).
   const viteEntry = createRequire(join(client, "package.json")).resolve("vite");
-  const vite = (await import(pathToFileURL(viteEntry).href)) as typeof import("vite");
+  const vite = (await import(pathToFileURL(viteEntry).href)) as { createServer(c: object): Promise<{ listen(): Promise<unknown>; close(): Promise<void> }> };
   const port = await freePort(5197);
   const server = await vite.createServer({ root: client, configFile: join(client, "vite.config.ts"), server: { host: "127.0.0.1", port, strictPort: true }, logLevel: "warn" });
   await server.listen();

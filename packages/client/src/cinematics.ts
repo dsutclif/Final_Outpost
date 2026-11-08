@@ -3,6 +3,7 @@ import crashOpenVideo from "./cinematics/crash_open.mp4";
 import helmetRevealPoster from "./cinematics/helmet_reveal.poster.png";
 import helmetRevealVideo from "./cinematics/helmet_reveal.mp4";
 import titleLoopVideo from "./cinematics/title_loop.mp4";
+import titleLoopPoster from "./cinematics/title_loop.poster.jpg";
 
 // Pre-rendered Blender cinematics (tools/cinematics, docs/STORY-LEVELS.md). The files live in
 // src/cinematics and are imported as URLs so Vite fingerprints them (assets/<name>-<hash>.mp4):
@@ -47,6 +48,7 @@ export function filmDue(id: string, seen: Readonly<Record<string, number>>, repl
 
 /** The landing screen's muted loop (title.ts); the canvas backdrop stays as its fallback. */
 export const TITLE_LOOP_VIDEO: string = titleLoopVideo;
+export const TITLE_LOOP_POSTER: string = titleLoopPoster;
 
 /**
  * Client-side registration of cinematics by story level id (DECISIONS #14: never a level check in the

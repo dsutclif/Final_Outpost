@@ -628,7 +628,7 @@ export class App {
         </div>
         ${this.updateReady ? `<button class="small" data-a="update">${esc(uiText(s, "updateNow"))}</button>` : ""}
       </div>`;
-    if (!this.title) this.title = new TitleBackdrop(ov, this.skin);
+    if (!this.title) this.title = new TitleBackdrop(ov, this.skin, (code, retried) => this.reporter?.emit("lifecycle", { what: "title_video_error", code, retried, screen: "title" }));
     else this.title.attach();
     this.title.start();
     this.wire(ov, {
