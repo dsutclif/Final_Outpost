@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#82**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#83**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -176,6 +176,12 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       grounds outside them. This matters for #7's fallback ("just inside the gate nearest them"). Find out whether gates block
       the hunter's pathing or only the player's, fix it so hired hunters use gates, and add a property test.
       Done check: on a walled hunting level, a hired hunter walks out through the gate and back, seen live.
+- [ ] **#82 · The dust storm warning shows behind the HUD's progress and goal icons (Doug, 2026-11-08; an old issue).** The
+      top banner (`.fo-banner` in `render-3d/src/scene/dom.ts`: `top:10px`, `z-index:2`, filled by `renderer.ts` near
+      `bannerEl`) sits under the top HUD row, so "Dust storm coming", the storm countdown and "wave soon" are hidden. Story
+      levels already push it down (`story.css` `.story-on .fo-banner`). Move the banner below the HUD row for every level
+      (and/or above it in the stacking), on all phone sizes and safe areas. Renderer/client only, no engine bump.
+      Done check: on s1-L022, the storm warning and countdown read in full, clear of the progress and goal icons, on iPhone, live.
 
 ## Bundle 3: story pass (story files; #6 is owned by the "Vale helmet animations" session)
 
