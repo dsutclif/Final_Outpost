@@ -1,4 +1,5 @@
-import type { CameraBeat, RidgeSide, StoryPresentation, TallySlots } from "../contract.js";
+import type { CameraBeat, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
+import { StoryProps } from "./storyprop.js";
 import type { Interp } from "../interp.js";
 import type { CoreSpirit } from "./corespirit.js";
 import { screenAxes, type StoryLights } from "./storylights.js";
@@ -44,6 +45,9 @@ export class StoryPresent implements StoryPresentation {
     const p = this.movers?.pos(key, { x: Number.NaN, y: Number.NaN }, 1);
     return p && Number.isFinite(p.x) ? { x: p.x, z: p.y } : null;
   }
+
+  private readonly props = new StoryProps((o) => this.lights.attach(o), (o) => this.lights.detach(o));
+  vehicle(id: string, spec: StoryVehicleSpec | null): void { this.props.vehicle(id, spec); }
 
   solid(ids: readonly string[]): void { this.solidIds = new Set(ids); }
   /** Customers drawn with their own model (customer id to model id); the renderer reads it. */
@@ -154,6 +158,7 @@ export class StoryPresent implements StoryPresentation {
     for (const [id, l] of this.lamps) this.lights.lightLevel(id, this.allowed.has(l.goal ? 1 : 3) ? l.k : 0);
     if (this.dotPts) this.lights.groundDots(this.dotPts, t, { ...this.dotOpts, lit: this.dotOpts.lit !== false && this.allowed.has(4) });
     this.lights.update(t);
+    this.props.update(t, dt);
     this.ridgeGlow = this.ridgeSide ? { side: this.ridgeSide, k: this.ridgeNow(t) } : null;
     this.lights.ridgePulse("right", 0, cx, cz, halfW, halfH);
   }

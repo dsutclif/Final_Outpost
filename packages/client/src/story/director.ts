@@ -83,12 +83,14 @@ export interface StoryWorld {
   talker: string | null;
   /** Cast members held at a drawn place (see the walk action); a null `to` walks them back. */
   actors: readonly { who: string; to: { x: number; y: number } | null }[];
+  /** Vehicles in the world (see the vehicle action); `seq` counts requests so a redrive reads as new. */
+  vehicles: readonly { id: string; path: readonly { x: number; y: number }[]; seconds: number; lights: boolean; seq: number }[];
 }
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
 
 const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "wait" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
-const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a;
+const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
 const CARD_SECONDS = 3;
 const GOAL_GAP_S = 0.7;
 const TAP_GUARD_MS = 250;
@@ -150,7 +152,7 @@ export class StoryDirector {
     /** This run started at the level's `retryFrom`, so the cues of the walk there do not fire. */
     private readonly fromRetrySpot = false,
   ) {
-    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [] };
+    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [], vehicles: [] };
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
     if (level.openZoom && !replay && !fromRetrySpot) {
@@ -402,6 +404,11 @@ export class StoryDirector {
       this.host.inset?.(a.inset);
     } else if ("wait" in a) {
       this.timed(a.wait, () => {});
+    } else if ("vehicle" in a) {
+      const path = a.path.flatMap((p) => { const q = this.place(p); return q ? [q] : []; });
+      if (path.length) this.world = { ...this.world, vehicles: [...this.world.vehicles.filter((v) => v.id !== a.vehicle), { id: a.vehicle, path, seconds: a.seconds ?? 8, lights: a.lights !== false, seq: ++this.seq }] };
+    } else if ("vehicleOff" in a) {
+      this.world = { ...this.world, vehicles: this.world.vehicles.filter((v) => v.id !== a.vehicleOff) };
     } else if ("walk" in a) {
       const to = a.to ? this.place(a.to) : null;
       this.world = { ...this.world, actors: [...this.world.actors.filter((x) => x.who !== a.walk), { who: a.walk, to }] };

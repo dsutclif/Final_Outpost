@@ -229,7 +229,14 @@ export class StoryLights {
   setProgress(p: number): void { this.progress = Math.max(0, Math.min(1, p)); }
   get lightingProgress(): number { return this.progress; }
 
+  /** Props placed straight in the scene (story vehicles); their shared geometry is not ours to dispose. */
+  private readonly extras = new Set<Object3D>();
+  attach(o: Object3D): void { this.extras.add(o); this.scene.add(o); }
+  detach(o: Object3D): void { this.extras.delete(o); this.scene.remove(o); }
+
   dispose(): void {
+    for (const o of this.extras) this.scene.remove(o);
+    this.extras.clear();
     this.soft?.dispose();
     this.root.traverse((o) => {
       const m = o as Mesh;

@@ -71,6 +71,9 @@ export type TallySlots = readonly ["empty" | "done" | "missed", "empty" | "done"
 /** A camera beat: the view eases to `at` (world units) at `zoom` for `seconds` of renderer time, then returns to the hero. */
 export interface CameraBeat { at: { x: number; y: number }; zoom?: number; seconds: number }
 
+/** A story vehicle's drive (see StoryPresentation.vehicle): a ground path in world units, eased over `seconds`, then parked. */
+export interface StoryVehicleSpec { seq: number; path: readonly { x: number; z: number }[]; seconds: number; lights?: boolean | undefined }
+
 /**
  * What the story director drives (client/src/story). All positions are world units (x, z on the
  * ground; y up). Nothing here touches the sim. At most two things pulse at once, by rank: goal
@@ -139,6 +142,8 @@ export interface StoryPresentation {
   customerModel(id: number, model: string): void;
   /** Draw hostiles of `kind` that broke off (bossRetreat) with another character model; loads it on first use. */
   fleeingModel(kind: string, model: string): void;
+  /** Sela's buggy: drive vehicle `id` along a path and park it at the end, lights on; null removes it. Loads its models on first use. */
+  vehicle?(id: string, spec: StoryVehicleSpec | null): void;
   /** Show a capture a boss dropped where it lies, before its hiddenUntil reveals it. */
   showDropped(on: boolean): void;
   /** Entity ids the renderer keeps solid (never faded) when the hero stands among them. */

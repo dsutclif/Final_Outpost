@@ -1024,7 +1024,9 @@ export const marsGreenhouse: Skin = {
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 }, trader: { entity: "kiosk" } },
         goals: [
           { id: "first", hold: true, label: "Sell Sela some greens" },
-          { id: "clear", label: "Clear the rockslide (12)" },
+          // S43 (Doug, 2026-11-07): the ring is no longer prebuilt; the player builds it here, the star is the wall
+          { id: "walls", label: "Build the camp wall (8)" },
+          { id: "clear", label: "Clear the rockslide (12)", until: { event: "zone_cleared" } },
           { id: "meat", label: "Sell meat at the kiosk", until: { event: "sold", match: { res: "res.food_raw_2" } } },
           { id: "main", label: "Build the habitat hub (150)" },
         ],
@@ -1040,6 +1042,8 @@ export const marsGreenhouse: Skin = {
           { id: "selaIn", on: { event: "customer_arrived" }, ordered: true, do: [
             { light: "night", seconds: 3 },
             { film: "sela_arrival" },
+            // the buggy is in the world from here: down the road from the east, then parked west of the kiosk, lights on
+            { vehicle: "buggy", path: [{ at: [980, 952] }, { at: [560, 952] }, { at: [400, 905] }], seconds: 9, lights: true },
             { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 24, back: 0.9, freeze: false } },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
@@ -1052,10 +1056,15 @@ export const marsGreenhouse: Skin = {
             { goal: "first" },
             { dots: [{ entity: "field1" }], period: 3 },
           ] },
-          // the first coins: the hub and its price, then the trader who wants meat and the slide in the way
+          // the first coins go on a wall: KILN looks ahead to the nights and to the raiders of level 5
           { on: { goal: "first", is: "done" }, ordered: true, do: [
             { show: ["credits"] },
             { dotsOff: true },
+            { line: "Before we spend on anything else, a wall. The nights out here are long, and a road that brings traders can bring raiders too.", who: "kiln" },
+            { line: "Walk along the dashed line to raise it. Each section costs one credit.", who: "kiln" },
+          ] },
+          // the wall stands: the hub and its price, then the trader who wants meat and the slide in the way
+          { on: { goal: "walls", is: "done" }, ordered: true, do: [
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
             { line: "Sell some more and save up credits to build that hub.", who: "kiln" },

@@ -264,6 +264,50 @@
    "scale": 0.6674
   },
   {
+   "type": "decor.stasis_glass",
+   "id": "lid3",
+   "at": [
+    786,
+    42
+   ],
+   "yaw": -78,
+   "lift": 13.3,
+   "scale": 0.6674
+  },
+  {
+   "type": "decor.stasis_pod",
+   "id": "pod3",
+   "at": [
+    790,
+    40
+   ],
+   "yaw": -78,
+   "lift": -22.4,
+   "scale": 0.6674
+  },
+  {
+   "type": "decor.stasis_glass",
+   "id": "lid4",
+   "at": [
+    696.4,
+    41.7
+   ],
+   "yaw": -140,
+   "lift": 13.3,
+   "scale": 0.6674
+  },
+  {
+   "type": "decor.stasis_pod",
+   "id": "pod4",
+   "at": [
+    700,
+    45
+   ],
+   "yaw": -140,
+   "lift": -22.4,
+   "scale": 0.6674
+  },
+  {
    "type": "decor.ship_wreck",
    "id": "scrap",
    "at": [

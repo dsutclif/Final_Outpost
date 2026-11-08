@@ -120,7 +120,14 @@ export type StoryAction =
    * A cast member walks to a place and holds there, drawn only (the sim keeps its own position); `walk: false`
    * walks them back to where the sim has them. Keys are StoryLevel.cast keys.
    */
-  | { walk: string; to: StoryPlace | false };
+  | { walk: string; to: StoryPlace | false }
+  /**
+   * A vehicle drawn in the world (Sela's buggy, id "buggy"): it drives the `path` (places) over `seconds`, eased to a
+   * stop at the last one, and stays parked there with its headlights on (`lights: false` for dark). Drawn only.
+   */
+  | { vehicle: string; path: readonly StoryPlace[]; seconds?: number; lights?: boolean }
+  /** Take a vehicle out of the world. */
+  | { vehicleOff: string };
 
 export interface StoryCue {
   /** Needed only when another cue's `after` names it. */

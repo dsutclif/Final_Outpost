@@ -274,6 +274,50 @@
    "scale": 0.6674
   },
   {
+   "type": "decor.stasis_glass",
+   "id": "lid3",
+   "at": [
+    676,
+    -38
+   ],
+   "yaw": -78,
+   "lift": 13.3,
+   "scale": 0.6674
+  },
+  {
+   "type": "decor.stasis_pod",
+   "id": "pod3",
+   "at": [
+    680,
+    -40
+   ],
+   "yaw": -78,
+   "lift": -22.4,
+   "scale": 0.6674
+  },
+  {
+   "type": "decor.stasis_glass",
+   "id": "lid4",
+   "at": [
+    586.4,
+    -38.3
+   ],
+   "yaw": -140,
+   "lift": 13.3,
+   "scale": 0.6674
+  },
+  {
+   "type": "decor.stasis_pod",
+   "id": "pod4",
+   "at": [
+    590,
+    -35
+   ],
+   "yaw": -140,
+   "lift": -22.4,
+   "scale": 0.6674
+  },
+  {
    "type": "decor.ship_wreck",
    "id": "scrap",
    "at": [
@@ -336,16 +380,6 @@
    "gates": [
     3,
     5
-   ],
-   "prebuilt": [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7
    ]
   },
   {
@@ -578,11 +612,10 @@
    }
   },
   {
-   "id": "clear",
-   "kind": "build",
-   "params": {
-    "target": "clear0"
-   }
+   "id": "walls",
+   "kind": "perimeter_before_wave1",
+   "params": {},
+   "label": "Build the camp wall"
   }
  ],
  "fail": [

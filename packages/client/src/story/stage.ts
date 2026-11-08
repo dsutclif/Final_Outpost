@@ -3,6 +3,7 @@ import { FP, TPS } from "@fo/sim";
 import type { StoryPresentation, TallySlots } from "@fo/render-3d";
 import type { SkinStory } from "@fo/skins";
 import type { StoryDirector, StoryWorld } from "./director.js";
+import { kilnOnScreen } from "./kiln.js";
 
 // Carries director.world to the renderer's story() each frame. The director only replaces values, so a
 // change is spotted by identity. A level that never asks for a thing leaves the renderer's default alone.
@@ -42,6 +43,8 @@ export class StoryStage {
     shell: HTMLElement,
     glowColor: string,
     ridgeColor: string,
+    /** Ground width on screen now (the family's view width over the camera zoom): KILN keeps one size on screen. */
+    private readonly groundW: () => number = () => 0,
   ) {
     present.solid(director.solid);
     this.glowEl = shell.ownerDocument.createElement("div");
@@ -89,12 +92,17 @@ export class StoryStage {
       seen.ghosts = w.ghosts;
       p.ghosts(w.ghosts.map((g) => ({ id: g.id, x: g.pos.x, z: g.pos.y, build: g.build, price: g.price })));
     }
+    if (w.vehicles !== (seen.vehicles ?? [])) {
+      for (const v of seen.vehicles ?? []) if (!w.vehicles.some((x) => x.id === v.id)) p.vehicle?.(v.id, null);
+      seen.vehicles = w.vehicles;
+      for (const v of w.vehicles) p.vehicle?.(v.id, { seq: v.seq, path: v.path.map((q) => ({ x: q.x, z: q.y })), seconds: v.seconds, lights: v.lights });
+    }
     const rg = p.ridgeGlow;
     this.ridgeEl.hidden = !rg || rg.k < 0.01;
     if (rg) { this.ridgeEl.dataset["side"] = rg.side; this.ridgeEl.style.opacity = String(rg.k); }
     if (w.follow !== (seen.follow ?? null)) { seen.follow = w.follow; this.followFrom = now; }
     const f = w.follow;
-    p.spirit.follow(f && now - this.followFrom >= (f.delay ?? 0) ? { right: f.right, up: f.up, lag: f.lag ?? 0.9, height: f.height ?? 40, size: f.size ?? 1, ...(f.glow !== undefined ? { glow: f.glow } : {}) } : null);
+    p.spirit.follow(f && now - this.followFrom >= (f.delay ?? 0) ? kilnOnScreen({ right: f.right, up: f.up, lag: f.lag ?? 0.9, height: f.height ?? 40, size: f.size ?? 1, ...(f.glow !== undefined ? { glow: f.glow } : {}) }, this.groundW()) : null);
     this.spirit(w, fuelK, now);
     this.glow(w, st, now, viewW, viewH);
     for (const [id, model] of Object.entries(this.director.level.customerModels ?? {})) p.customerModel(Number(id), model);

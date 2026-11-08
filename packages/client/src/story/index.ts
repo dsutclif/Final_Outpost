@@ -4,6 +4,7 @@ import { createStoryView, type PortraitMaker } from "./view.js";
 
 export { StoryDirector } from "./director.js";
 export { StoryStage } from "./stage.js";
+export { KilnCloud } from "./kiln.js";
 
 /** The director for a level, or null when this skin has no story data for it (every generated level). */
 export function directorFor(skin: Skin, levelId: string, shell: HTMLElement, host: StoryHost, replay: boolean, fromRetrySpot = false, portrait?: PortraitMaker): StoryDirector | null {

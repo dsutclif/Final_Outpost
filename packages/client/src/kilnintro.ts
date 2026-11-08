@@ -44,7 +44,8 @@ export class KilnIntro {
   private readonly style: DialogueStyle;
   private i = -1;
 
-  constructor(shell: HTMLElement, private readonly lines: readonly string[], private readonly name: string, private readonly tapLabel: string, portrait: PortraitMaker | undefined, private readonly done: () => void) {
+  /** `cloud`: KILN beside the commander in the world while the lines show (#13). */
+  constructor(shell: HTMLElement, private readonly lines: readonly string[], private readonly name: string, private readonly tapLabel: string, portrait: PortraitMaker | undefined, private readonly done: () => void, private readonly cloud?: { frame(): void; done(): void }) {
     const doc = shell.ownerDocument;
     this.layer = doc.createElement("div");
     this.layer.className = "story-layer kiln-intro";
@@ -70,9 +71,10 @@ export class KilnIntro {
   }
 
   /** Per frame (seconds): types the line out and keeps KILN's portrait moving. */
-  frame(t: number): void { this.style.frame?.(t); }
+  frame(t: number): void { this.style.frame?.(t); this.cloud?.frame(); }
 
   dispose(): void {
+    this.cloud?.done();
     this.style.clear();
     this.style.dispose?.();
     this.layer.remove();

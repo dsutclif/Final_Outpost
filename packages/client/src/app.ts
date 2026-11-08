@@ -24,7 +24,7 @@ import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
 import { FILM_VERSIONS, REPLAY_FILMS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
 import { preloadCharacters } from "./preload.js";
-import { StoryStage, directorFor, type StoryDirector } from "./story/index.js";
+import { KilnCloud, StoryStage, directorFor, type StoryDirector } from "./story/index.js";
 import { KilnIntro, kilnLines } from "./kilnintro.js";
 import { Reporter, deviceFacts, randomId, type AttemptEnd } from "./report.js";
 import type { LivePortrait } from "./story/view.js";
@@ -867,8 +867,11 @@ export class App {
   private storyStage(s: Session): StoryStage | null {
     const story = this.skin.story, present = s.renderer.story();
     if (!s.director || !story || !present) return null;
-    return new StoryStage(story, s.director, present, (p) => s.renderer.worldToScreen(p), this.el.ftoast.parentElement!, this.skin.palette.guideLight, this.skin.palette.ridgeRed);
+    return new StoryStage(story, s.director, present, (p) => s.renderer.worldToScreen(p), this.el.ftoast.parentElement!, this.skin.palette.guideLight, this.skin.palette.ridgeRed, () => this.groundW(s));
   }
+
+  /** Ground width across the screen now: the family's view width over the camera zoom (KILN's size, S40). */
+  private groundW(s: Session): number { return viewWFor(s.manifest.family) / (s.cam.zoom || 1); }
 
   private storyDirector(s: Session, fromRetrySpot: boolean): StoryDirector | null {
     const id = s.meta.id;
@@ -1025,7 +1028,9 @@ export class App {
     if (!lines.length) { then(); return; }
     const kiln = this.skin.story?.speakers?.["kiln"];
     const portrait = (): LivePortrait | null => s.renderer.spiritPortrait(this.el.ftoast.ownerDocument.createElement("canvas"));
-    this.kiln = new KilnIntro(this.el.ftoast.parentElement!, lines, kiln?.name ?? "KILN", this.skin.story?.ui.tapToContinue ?? uiText(this.skin, "introNext"), kiln?.spirit ? portrait : undefined, () => { this.kiln = null; then(); });
+    const present = s.renderer.story();
+    const cloud = kiln?.spirit && present ? new KilnCloud(present, () => this.groundW(s), () => heatOf(s.sim.state, s.sim.compiled)) : undefined;
+    this.kiln = new KilnIntro(this.el.ftoast.parentElement!, lines, kiln?.name ?? "KILN", this.skin.story?.ui.tapToContinue ?? uiText(this.skin, "introNext"), kiln?.spirit ? portrait : undefined, () => { this.kiln = null; then(); }, cloud);
   }
 
   private endSession(): void {
