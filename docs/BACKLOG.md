@@ -459,6 +459,9 @@ rebuild.
       in the existing one-pass storm shader. Step 2 (medium, only if Doug says step 1 isn't enough): a lit, billowing
       cloud bank with more depth. Done when Doug approves the look on the live site, the frame rate holds on iPhone during a
       storm, and the play area stays readable.
+      **Step 1 live 2026-11-08** (main `ce40366`; the live renderer chunk carries the new shader, and a held storm was seen on
+      the live site in Chromium). Waiting on Doug: the look on iPhone during a real storm (frame rate, readability), then
+      "enough" (tick) or "go medium" (step 2). Dev check: `__lookEnv.stormHold = 1` in the console holds a storm.
 
 ## Deferred (each says what it waits for)
 - [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
