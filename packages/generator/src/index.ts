@@ -4,6 +4,7 @@ import { measure, score, type Metrics, type Rating, type ReferenceStats, type Hi
 import referenceData from "../data/reference.json";
 import genData from "../data/generator.json";
 import startData from "../data/start.json";
+import { ENGINE_VERSION } from "@fo/sim";
 import { DEFAULT_CONFIG, closure, conflicts } from "@fo/sequencer";
 import { GEN, TEMPLATES, buildLevel, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
@@ -429,8 +430,10 @@ export function settleObjectives(m: Manifest, ms: Measurement, allowed: readonly
 }
 
 /** Where the search starts: the pressure at which the goal has landed nearest the target (data/start.json, tools/start-table.ts). */
-export function startPressure(goal: string, target: number, table: Record<string, [number, number][]> = startData.goals as unknown as Record<string, [number, number][]>): number {
-  const rows = table[goal];
+export function startPressure(goal: string, target: number, table?: Record<string, [number, number][]>, tableEngine: string = startData.engine): number {
+  // The shipped table only applies to the engine that produced it; an explicit table always applies.
+  const used = table ?? (tableEngine === ENGINE_VERSION ? (startData.goals as unknown as Record<string, [number, number][]>) : {});
+  const rows = used[goal];
   if (!rows || rows.length === 0) return clamp01((target - 0.08) / 0.8);
   return rows.reduce((a, r) => (Math.abs(r[1] - target) < Math.abs(a[1] - target) ? r : a))[0];
 }

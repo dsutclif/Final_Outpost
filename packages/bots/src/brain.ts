@@ -1018,7 +1018,17 @@ export class Brain {
       if (pts.every((q) => !this.nav.isBlocked(q))) return pts;
     }
     const R = 24;
-    return DIRS.map(([x, y]) => this.nav.free({ x: Math.round(c.x + (x * R * U) / 1000), y: Math.round(c.y + (y * R * U) / 1000) }));
+    const cand = DIRS.map(([x, y]) => this.nav.free({ x: Math.round(c.x + (x * R * U) / 1000), y: Math.round(c.y + (y * R * U) / 1000) }));
+    // Keep a point only if it is free and walkable from the previous kept one, so the loop never jumps a wall.
+    const keep: Vec[] = [];
+    for (const q of cand) {
+      if (this.nav.isBlocked(q)) continue;
+      const prev = keep[keep.length - 1];
+      if (prev && !this.nav.los(prev, q, [])) continue;
+      keep.push(q);
+    }
+    while (keep.length >= 3 && !this.nav.los(keep[keep.length - 1]!, keep[0]!, [])) keep.pop();
+    return keep.length >= 3 ? keep : cand;
   }
 
   private lassoTarget(st: State): Target | null {

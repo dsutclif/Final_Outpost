@@ -95,7 +95,8 @@ of its seeds is too hard for a person, so pressure comes down. A feature whose m
 later builds, unless the level introduces it or its goal needs it.
 
 The search starts at the pressure where the goal has landed nearest its target (`data/start.json`, written by
-`pnpm levels:start-table <raw log>` after a full build on a new engine).
+`pnpm levels:start-table <raw log>` after a full build on a new engine). The shipped table is ignored when its `engine` differs from `ENGINE_VERSION`
+(the search then starts at the formula `(target - 0.08) / 0.8`); an explicit `table` argument always applies.
 
 ## Candidate log
 
