@@ -6,6 +6,7 @@
 import math, os, sys
 os.environ["NO_STAGGER"] = "1"
 os.environ.setdefault("WALL_T", "0.10")
+os.environ.setdefault("RIM_FROM_CENTRE", "0.38")  # the pod interior's half-width: wall at -0.55, interior centre at -0.17
 os.environ.setdefault("RIM_FORCE", "0.54")
 os.environ.setdefault("STEP_LIFT", "95")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -25,6 +26,7 @@ PRE = 45                       # frames lying still while the seal blows
 POD_K = 2.66 / 3.9847          # render-3d sizes.ts
 FLOOR = 0.0                    # Doug 2026-11-08: his back touches sand level while he lies in the pod
 END_GUESS = Vector((-3.83, -0.49, 0))  # the commander's end spot from the last run (only aims the look-round)
+POD_IN = Vector((-0.172, 0.023, 0))  # the pod's interior centre from its origin (the closed glass's centre)
 WALL_X = -0.55                 # the pod's west wall centreline from the pod's origin (ray probe)
 HAND_W = 170.3 / 28            # metres across at the hand-off (level 1 openZoom.film)
 
@@ -153,15 +155,26 @@ def main():
 
     import retarget
     wx = pod_c.x + WALL_X
-    apex = None  # the highest the stepping foot gets: it should pass over the middle of the wall
-    for f in range(F(st[1]), F(st[2])):
-        sc.frame_set(f)
-        for side in ("Left", "Right"):
-            tl = P["arm"].matrix_world @ P["arm"].pose.bones[retarget.P + side + "ToeBase"].tail
-            if tl.z < 1.2 and (apex is None or tl.z > apex[0]): apex = (tl.z, tl.x, f, side)
-    stage.location.x -= apex[1] - wx
-    print(f"APEX {apex[3]} foot peaks {apex[0] * 100:.0f} cm at frame {apex[2]}; stage moved {-(apex[1] - wx) * 100:+.0f} cm to put it over the wall centre")
+    # Doug: he starts lying centred in the pod. Centre his lying body on the pod's interior centre (the glass's closed centre),
+    # then report where the step line falls against the real west wall
+    sc.frame_set(46)
+    ev = P["body"].evaluated_get(bpy.context.evaluated_depsgraph_get())
+    bp = [ev.matrix_world @ v.co for v in ev.to_mesh().vertices]
+    bc = Vector(((max(p.x for p in bp) + min(p.x for p in bp)) / 2, (max(p.y for p in bp) + min(p.y for p in bp)) / 2, 0))
+    tgt = Vector((cx.x, cx.y, 0)) if False else None
+    sh = (POD_IN.x + pod_c.x - bc.x, POD_IN.y + pod_c.y - bc.y)
+    for fc in lib.fcurves(stage):  # the stage's location is keyed (the jump's height): move every key
+        if fc.data_path == "location" and fc.array_index in (0, 1):
+            for kp in fc.keyframe_points:
+                kp.co.y += sh[fc.array_index]; kp.handle_left.y += sh[fc.array_index]; kp.handle_right.y += sh[fc.array_index]
+    stage.location.x += sh[0]; stage.location.y += sh[1]
     bpy.context.view_layer.update()
+    sc.frame_set(46)
+    ev = P["body"].evaluated_get(bpy.context.evaluated_depsgraph_get())
+    bp = [ev.matrix_world @ v.co for v in ev.to_mesh().vertices]
+    print("LYING centre now x %.2f y %.2f (pod interior centre %.2f, %.2f); body x %.2f..%.2f y %.2f..%.2f" % ((max(p.x for p in bp) + min(p.x for p in bp)) / 2, (max(p.y for p in bp) + min(p.y for p in bp)) / 2, POD_IN.x, POD_IN.y, min(p.x for p in bp), max(p.x for p in bp), min(p.y for p in bp), max(p.y for p in bp)))
+    print("STEP LINE (capture rim wall) at world x %.2f, real west wall at %.2f" % ((stage.matrix_world @ Vector((wall_pt.x, wall_pt.y, 0))).x - pod_c.x, WALL_X))
+    wx = pod_c.x + WALL_X
     for side in ("Left", "Right"):
         best = None
         for f in range(F(st[1]), F(st[2])):
@@ -188,7 +201,7 @@ def main():
     # the glass opens west, where he steps out: cameras stay east/south of it. podcam: south-east, high, sees the glass
     # swing away and him sit up; standcam: south of the step-out, then through the whole drop (cut after he lands);
     # lookcam: in front of him toward the light, looking down a little so the ground, not the sky, fills the frame
-    c1 = tracked("podcam", pod_c + Vector((-2.6, -1.8, 1.9)), 32)
+    c1 = tracked("podcam", pod_c + Vector((-3.2, -2.4, 2.2)), 30)
     c2 = tracked("standcam", pod_c + Vector((-0.8, -4.8, 1.3)), 26)
     to_core = Vector((core.x - end.x, core.y - end.y, 0)).normalized()
     side = Vector((-to_core.y, to_core.x, 0))
@@ -257,7 +270,7 @@ def main():
         sc.timeline_markers.clear()
         cam = lib.camera(pod_c + Vector((-4.2, -2.6, 0.8)), pod_c + Vector((-0.6, 0, 0.6)), lens=36, name="stepcam")
         sc.camera = cam
-        for f in (222, 232, 242, 252, 262, 272, 282, 292):
+        for f in (224, 232, 240, 248, 256, 264, 272, 280):
             sc.frame_set(f)
             lib.render_still(os.path.join(OUT, f"step_{f:04d}.png"))
         return
