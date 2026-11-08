@@ -99,3 +99,27 @@ reference bot wins every seed with at least 20% margin) and no filter fired.
 The shipped difficulty weights are hand-set. Margin weights are lowered and `moduleCount` raised
 because the golden sample has one waves level, whose health-and-integrity margin (about 0.95)
 would otherwise read as "easiest". With these weights the golden levels order L1 < L2 < L3 < L4.
+
+## Eval side file (`levels/eval/<pack>/<levelId>.json`)
+
+`pnpm levels:eval [pack] [--only id,id] [--seeds 10] [--others 3]` re-rates every level of `levels/packs/<pack>/pack.json`
+and writes every sub-point of the rating next to the pack, never into it (`pack.json`'s hash is in every level URL;
+the script only reads `levels/packs`). `levels/eval/<pack>/index.json` has one row per level (id, goal, D, F,
+botsPassed, ok, waves). Produced by `ratingDetail` / `evalManifest` (`src/detail.ts`); numbers rounded to 4 dp.
+Novelty history is the pack's earlier levels, so D can differ a little from the value recorded at generation
+(`packRecord` holds that value for comparison).
+
+| Key | Content |
+|-----|---------|
+| `schema` (1), `engineVersion`, `id`, `goal`, `family` | identity |
+| `D`, `F`, `ok`, `feasible`, `botsPassed` | the totals |
+| `difficulty` | `bias`, `sum` (D = sigma(sum)), `metrics.<name>`: `raw`, reference `mean`/`sd`, `z`, `weight`, `contribution` |
+| `fun` | `bias`, `sum`, `proxies.<name>`: `raw`, `y`, `weight`, `contribution` (weight x y) |
+| `runs.<profile>` | `n`, `winRate`, `meanMargin`, `meanStars`, `runs[]`: `seed`, `won`, `margin`, `stars`, `reason`, `stalls`, `stallTick`, `ticks`, `goalTicks` |
+| `variants` | the two decisiveness runs (same fields) |
+| `filters`, `evidence`, `terrain`, `extras` | quality filters and their evidence, geography, other measurement values (kill share, loopMax, guard loss ...) |
+| `defendTrace` | levels with waves only: one entry per wave for the reference bot, seed 1: `startTick`, `clearedTick`, `endTick`, `attackers`, `hpSpawned`, `gateDamage`, `wallDamage`, `baseDamage`, `leak` (their sum), `carryOver`, and at wave start `scrap`, `towers`, `guards`, `gateHp`, `gateHpMax`, `baseHp`. A wave that never started has `started: false` |
+| `defendTraceByProfile` | the same trace for every ladder profile (seed 1) with `won`, `ticks`, `hash` |
+
+The trace comes from the runner's optional `onTick` hook (`src/defendTrace.ts`); it only reads state, and a test checks
+the traced run has the same final hash as the plain run.
