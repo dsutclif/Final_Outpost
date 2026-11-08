@@ -33,7 +33,10 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 
 - Bundle 1 (#63, #67, #68–#70, #72, #73, #76): done except Doug deleting the remote branches `look-test`,
   `object-sizes` and `story-buggy` (agents can't run `git push --delete`). Keep `fo-wt-handoff` until #75 backs up its film tools.
-- Bundle 3 (#4, #3, #5, #14): proposed 2026-11-08 as a fresh Opus session (`bundle3`, own worktree), waiting for Doug to start it; it takes over the story-file claim in `docs/STORY-WORK-LOG.md` (not level 5's cues).
+- **Three lanes run in parallel (Doug, 2026-11-08), one bundle at a time per lane.** Engine bump freeze: when Bundle 7 claims the bump in the work log, Story and Look finish their current push and pause until it lands.
+- Story lane: Bundle 3 (#4, #3, #5, #14) running as `bundle3` (Opus), then Bundle 4. Film track: #75 backup and #47 stage 2 stills proposed 2026-11-08 (Sonnet; ends at Doug's approval); #48 and #49 wait for Bundle 3 to land.
+- Look lane: Bundle 5 (#10, #41, #52) proposed 2026-11-08 (Sonnet), waiting for Doug to start it. Bundle 9's renderer parts come later.
+- Systems lane: Bundle 6 (#43, #44, #9a, #16 v0) proposed 2026-11-08 (Opus lead, Sonnet/Haiku subagents), ends by writing `docs/RELEASE-2.md`; then Bundle 7 (Opus), Bundle 8 (Sonnet + Haiku). Bundle 9's sim parts after 7. #81 (protein hunter at a gate) joins Bundle 7's bump if it is a rules fix.
 
 ## Waiting on Doug
 
