@@ -35,6 +35,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-08 | Vale helmet animations | story-vale-fall | `render-3d/src/scene/rigged.ts`, `render-3d/src/renderer.ts` (resident and player drawing, a story camera takeover), `render-3d/src/assets/meshy.json` + `meshy.built.json` + crew `public/models/*.glb`, `render-3d/src/scene/livescene.ts`, `client/src/story/*` (the warlord fall action), `tools/cinematics/crew_fall_bake.py` | Doug 2026-11-08: crew fall and get-up animations in play, then Vale's fall as machinima in the paused level |
+| 2026-11-08 | Systems Bundle 7 | main | **ENGINE BUMP (0.22.0)**: `packages/sim`, `packages/content/data`, `packages/bots`, `packages/rater`, `levels/golden`, `levels/packs` re-pin only. **Story and Look: finish your current push and pause until this claim is released.** | Release 2 combat (#17–#37, #81) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
