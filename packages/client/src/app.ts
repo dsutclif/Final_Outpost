@@ -17,7 +17,7 @@ import { webPlatform, type Platform } from "./platform.js";
 import { progressReport, reportProgress } from "./supply.js";
 import { chapters, isUnlocked, nextLevel, starText } from "./progress.js";
 import { PROBE_SEC, autoTier, createRenderer, thumbnails, warm3D, webglAvailable, type GameRenderer, type Tier } from "./render.js";
-import type { ReleaseInfo } from "./pwa.js";
+import { fetchRelease, type ReleaseInfo } from "./pwa.js";
 import { DEFAULT_PROGRESS, PROGRESS_EPOCH, type Progress, type ProgressMode, type SaveStore, type Settings } from "./save.js";
 import type { TelemetryQueue } from "./telemetry.js";
 import { formatTicks, levelText } from "./text.js";
@@ -233,7 +233,7 @@ export class App {
     this.reporter.emit("session", { coldStartMs: Math.round(performance.now()), tier: this.qualityTier(), probeFps: this.settings.probeFps, ...deviceFacts(navigator, window) });
     if (this.deps.justUpdated) this.reporter.emit("lifecycle", { what: "updated", screen: "title" });
     this.show("title");
-    if (this.deps.justUpdated) this.continueToast();
+    if (this.deps.justUpdated) void this.continueToast();
     warm3D();
     preloadCharacters();
     void this.prefetch();
@@ -429,14 +429,17 @@ export class App {
     return new Promise((done) => this.wire(ov, { keep: () => done("keep"), reset: () => done("reset") }));
   }
 
-  /** After a service-worker update: offer to jump back into the next level. */
-  private continueToast(): void {
+  /** After a service-worker update: what it brought, and an offer to jump back into the next level. */
+  private async continueToast(): Promise<void> {
+    // a launch-time update applies before the title paints (main.ts), so this is where its notes show
+    const notes = (await fetchRelease(import.meta.env.BASE_URL))?.notes ?? [];
+    if (this.screen !== "title") return;
     const next = nextLevel(this.levels, this.progress);
     const s = this.skin;
-    this.toast(`<span>${esc(uiText(s, "updated"))}</span>${next ? `<button class="go small" data-a="go">${esc(uiText(s, "continueLevel", { n: next.index + 1 }))}</button>` : ""}<button class="small" data-a="x">${esc(uiText(s, "dismiss"))}</button>`, {
+    this.toast(`<span>${esc(uiText(s, "updated"))}</span>${notes.map((n) => `<span class="note">${esc(n)}</span>`).join("")}${next ? `<button class="go small" data-a="go">${esc(uiText(s, "continueLevel", { n: next.index + 1 }))}</button>` : ""}<button class="small" data-a="x">${esc(uiText(s, "dismiss"))}</button>`, {
       go: () => { if (next) void this.openLevel(next); },
       x: () => undefined,
-    }, 9000);
+    }, notes.length ? 0 : 9000); // notes stay until dismissed so there is time to read them
   }
 
   // ------------------------------------------------------------------ renderer

@@ -11,8 +11,11 @@ export interface ReleaseInfo {
   notes: string[];
 }
 
-/** The waiting build's release.json (never precached, so this is the new one), or null offline. */
-async function fetchRelease(base: string): Promise<ReleaseInfo | null> {
+/**
+ * The server's release.json (never precached): the waiting build's while one waits, the running
+ * build's right after an update. Null offline or in dev.
+ */
+export async function fetchRelease(base: string): Promise<ReleaseInfo | null> {
   try {
     const r = await fetch(`${base}release.json`, { cache: "no-store" });
     if (!r.ok) return null;
