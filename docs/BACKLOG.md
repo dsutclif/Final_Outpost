@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#80**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#81**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -164,6 +164,10 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       against a hand-started server. Start vite through its JS API or the `.bin` shim. Done check: `pnpm review:probe` on
       s1-L008 runs end to end with no server started by hand, locally and in the nightly workflow.
       **Done 2026-11-08 (bed725e):** `probe.ts` starts vite through its JS API; `pnpm review:probe` on s1-L008 ran end to end locally (15 findings, 18 shots). The nightly run is not yet seen.
+- [ ] **#80 · Nightly probe hits the 35-minute timeout (found 2026-11-08).** With #78 fixed the probe runs: outpost-ops
+      220f957 has shots for all 11 levels, but the step was killed at 35 min (all five story levels ran because story files
+      changed). Raise the step timeout in `scripts/run-review.mjs` or cap story levels per night in `config/rotation.json`.
+      Done check: the next nightly run shows every command ok.
 
 ## Bundle 3: story pass (story files; #6 is owned by the "Vale helmet animations" session)
 
