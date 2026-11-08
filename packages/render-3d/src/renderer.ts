@@ -412,6 +412,10 @@ export class Renderer3D implements Renderer {
   private cheerUntil = new Map<string, number>();
   /** What a rigged character is doing (a clip key: mine, reap, pick, dig, shoot), until when, and at what. */
   private acts = new Map<string, { act: string; until: number; at?: V }>();
+  /** Guards shot down in the field (rigged fall and get-up): the spot and facing they fell with, held until they stand. */
+  private fallen = new Map<string, { x: number; y: number; yaw: number }>();
+  /** Stood up again: how far the drawn guard still trails where the sim has it (world units); it runs to close it. */
+  private catchUp = new Map<string, V>();
   /** Operator spots of the converters running this frame (world), with the machine they face. */
   private workSpots: { op: V; at: V; working: boolean }[] = [];
   private quality: QualityTier;
@@ -2549,11 +2553,40 @@ export class Renderer3D implements Renderer {
         const w = this.workSpots.find((ws) => (ws.op.x - pos.x) ** 2 + (ws.op.y - pos.y) ** 2 < (ART_M * 0.6) ** 2);
         if (w) this.acts.set(key, { act: w.working && rrig?.clips?.["work"] ? "work" : "face", until: this.t + 0.3, at: w.at });
       }
-      const ryaw = this.faceAct(key, pos, ry, moving);
+      let ryaw = this.faceAct(key, pos, ry, moving);
       const carrying = !!r.carry && r.n > 0;
+      // shot down in the field (a guard left lying where it fell, with fall and get-up clips): it falls and lies on
+      // the spot it was hit, gets up there once healed, then runs to where the sim already has it walking
+      let at: V = pos, down = false, walk = moving, run = false;
+      if (rrig?.clips?.["fall"] && rrig.clips["getup"] && !dead) {
+        const was = this.fallen.get(key);
+        if (lying && (was || r.status === "injured")) {
+          if (!was) this.fallen.set(key, { x: pos.x, y: pos.y, yaw: ryaw });
+          down = true;
+        }
+        const f = this.fallen.get(key);
+        if (f && (down || this.rigged!.downed(key))) { at = { x: f.x, y: f.y }; ryaw = f.yaw; walk = false; this.yaw.set(key, f.yaw); }
+        else if (f) {
+          // standing again, turned the way the get-up turned: that is the facing from here
+          this.fallen.delete(key);
+          this.yaw.set(key, f.yaw + this.rigged!.takeTurn(key));
+          this.catchUp.set(key, { x: f.x - pos.x, y: f.y - pos.y });
+        }
+        const c = this.catchUp.get(key);
+        if (c && !this.fallen.has(key)) {
+          const d = Math.hypot(c.x, c.y), step = CATCH_UP * ART_M * dt;
+          if (d <= step) this.catchUp.delete(key);
+          else {
+            c.x *= (d - step) / d; c.y *= (d - step) / d;
+            at = { x: pos.x + c.x, y: pos.y + c.y };
+            ryaw = this.faceFrom(key, { x: -c.x, y: -c.y });
+            walk = true; run = true;
+          }
+        }
+      } else { this.fallen.delete(key); this.catchUp.delete(key); }
       if (rrig) {
-        this.rigged!.add(key, id, rrig, { moving: moving && !dead, hurried: false, cheer: an.cheer > 0, act: this.actOf(key)?.act, carry: carrying, speed: sp, frozen: dead, lying }, pos.x, pos.y, ryaw, ART_M * rl.scale * this.devCharScale / 0.9);
-        this.blobs!.add(pos.x, pos.y, 10 * rl.scale);
+        this.rigged!.add(key, id, rrig, { moving: walk && !dead, hurried: false, run, cheer: an.cheer > 0, act: down ? undefined : this.actOf(key)?.act, carry: carrying, speed: sp, frozen: dead, lying: lying && !down && !this.fallen.has(key), down }, at.x, at.y, ryaw, ART_M * rl.scale * this.devCharScale / 0.9);
+        this.blobs!.add(at.x, at.y, 10 * rl.scale);
       } else this.addCharacter(rl, an, pos, ry, t.frost);
       // a carry clip holds the goods in front of the chest; everyone else wears them on the back
       if (carrying) this.backStack(new Array<string>(Math.min(6, r.n)).fill(r.carry!), pos, ryaw, rl.scale * this.devCharScale, sp, rv, false, !!rrig?.clips?.["carry"] && moving);
@@ -3914,3 +3947,5 @@ export { SUN, SUN_OFS, HEMI } from "./scene/environment.js";
 export { deriveTokens } from "./tokens.js";
 /** Tone-mapping exposure of the game camera. */
 export const EXPOSURE = 1.35;
+/** A guard back on its feet runs to where the sim has it at this speed (art metres per second). */
+const CATCH_UP = 3.2;

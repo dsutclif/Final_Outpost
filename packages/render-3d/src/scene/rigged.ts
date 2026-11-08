@@ -1,4 +1,4 @@
-import { AnimationClip, AnimationMixer, Box3, Euler, Matrix4, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack, type AnimationAction, type Bone, type BufferGeometry, type Material, type Mesh, type Object3D, type SkinnedMesh } from "three";
+import { AnimationClip, AnimationMixer, LoopOnce, Box3, Euler, Matrix4, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack, type AnimationAction, type Bone, type BufferGeometry, type Material, type Mesh, type Object3D, type SkinnedMesh } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { meshyCharacters, meshyGeometry, meshyLoaded, meshyRig, meshyScene, type MeshyEntry, type MeshyHeld } from "../assets/meshy.js";
 
@@ -19,6 +19,10 @@ import { meshyCharacters, meshyGeometry, meshyLoaded, meshyRig, meshyScene, type
 // Two still states replace the code-built poses: frozen (every colour mapped onto an ice-blue
 // ramp by brightness, the body held in its idle pose, a short shiver every few seconds) and lying
 // (tipped onto its back on the med bay bed). Neither needs another file or clip.
+//
+// Shot down (`down`, a file with `fall` and `getup` clips: tools/cinematics/crew_fall_bake.py): the fall plays once
+// and holds its last frame while the character lies there; when `down` clears, the get-up plays once. The get-up
+// stands up turned the way the capture turns, so the character is turned back to its facing over a moment after.
 
 /** What the renderer knows about a character this frame; the clip is picked from it. */
 export interface RigState {
@@ -40,6 +44,8 @@ export interface RigState {
   frozen?: boolean;
   /** Lying on its back (the med bay), held still. */
   lying?: boolean;
+  /** Shot down where it stood: the fall plays once and holds; clearing it plays the get-up (files with both clips). */
+  down?: boolean;
 }
 
 interface Prop { obj: Object3D; when?: string[] }
@@ -69,6 +75,10 @@ interface Inst {
   still: boolean;
   /** Seconds into the shiver cycle this copy starts at, so a frozen crowd does not shiver in step. */
   beat: number;
+  /** Shot down: 0 up, 1 falling or lying, 2 getting up. */
+  down: 0 | 1 | 2;
+  /** Turn (radians about up) added to the facing after a get-up, eased back to 0 (GETUP_TURN_BACK). */
+  yawOff: number;
 }
 
 interface Leg { bone: Bone; rest: Quaternion; parent: Quaternion; out: Vector3; offset: number }
@@ -78,6 +88,34 @@ const FADE = 0.25;
 const SHIVER_EVERY = 10, SHIVER_LEN = 0.5, SHIVER_AMP = 0.035;
 /** Lying: the body rests this high (art metres), on the bed rather than in the floor. */
 const BED_LIFT = 0.12;
+/** After a get-up the character turns back to its facing at this rate (1/s, exponential). */
+const GETUP_TURN_BACK = 3;
+/** Fade into the fall (a hit is sudden). */
+const FALL_FADE = 0.08;
+
+/** Per get-up clip: the turn (radians about world up) its last frame stands at, against the fall's first (the character's facing). */
+const getupTurn = new WeakMap<AnimationClip, number>();
+function turnOf(rig: Object3D, clip: AnimationClip, from: AnimationClip): number {
+  const known = getupTurn.get(clip);
+  if (known !== undefined) return known;
+  let turn = 0;
+  const hipsQ = (c: AnimationClip) => c.tracks.find((t) => t instanceof QuaternionKeyframeTrack && /Hips.quaternion$/.test(t.name));
+  const track = hipsQ(clip), start = hipsQ(from);
+  const hips = track && rig.getObjectByName(track.name.replace(/.quaternion$/, ""));
+  if (track && start && hips) {
+    const v = track.values, n = v.length - 4, u = start.values;
+    const end = new Quaternion(v[n], v[n + 1], v[n + 2], v[n + 3]);
+    // the hips' turn from the fall's first frame, carried into world space through their parent
+    rig.updateMatrixWorld(true);
+    const par = hips.parent ? hips.parent.getWorldQuaternion(new Quaternion()) : new Quaternion();
+    const d = end.multiply(new Quaternion(u[0], u[1], u[2], u[3]).invert());
+    const w = par.clone().multiply(d).multiply(par.clone().invert());
+    const f = new Vector3(0, 0, 1).applyQuaternion(w);
+    turn = Math.atan2(f.x, f.z);
+  }
+  getupTurn.set(clip, turn);
+  return turn;
+}
 
 /** Ice copy of a material: its colours (texture included) remapped by brightness onto a dark-to-pale blue ramp. */
 const iceMats = new WeakMap<Material, Material>();
@@ -219,10 +257,12 @@ export class Rigged {
     // art metres per model unit: by body length for long, low creatures (the hoppers), else by height
     const h = e.length ? e.length / ((b.scene.userData["length"] as number) || 1) : (e.height ?? 1.1) / ((b.scene.userData["height"] as number) || 1.7);
     inst.root.position.set(x, 0, z);
-    inst.root.rotation.set(0, yaw, 0, "YXZ");
+    inst.root.rotation.set(0, yaw + inst.yawOff, 0, "YXZ");
     inst.root.scale.setScalar(scale * h);
     const frozen = !!s.frozen, lying = !!s.lying && !frozen;
     if (frozen !== inst.ice) this.setIce(inst, frozen);
+    if (!frozen && (s.down || inst.down) && this.downStep(inst, e, !!s.down)) return;
+    inst.root.rotation.set(0, yaw + inst.yawOff, 0, "YXZ"); // a get-up that just ended set the turn
     if (frozen || lying) {
       this.hold(inst, e);
       if (lying) {
@@ -265,10 +305,55 @@ export class Rigged {
     for (const p of inst.props) p.obj.visible = !p.when || p.when.includes(want) || (want !== s.act + "2" && !!s.act && p.when.includes(s.act));
   }
 
+  /** The turn a finished get-up left on `key`, handed to the caller (which owns the facing from here) and cleared. */
+  takeTurn(key: string): number {
+    const i = this.pool.get(key);
+    if (!i) return 0;
+    const t = i.yawOff;
+    i.yawOff = 0;
+    return t;
+  }
+
+  /** True while `key` is down or getting up (the renderer keeps it on the spot it fell). */
+  downed(key: string): boolean {
+    return (this.pool.get(key)?.down ?? 0) !== 0;
+  }
+
+  /**
+   * Shot down: the fall once (held on its last frame), then the get-up once when `down` clears. True while this
+   * owns the pose; false once the get-up has ended (the normal clips take over, from the turned stance).
+   */
+  private downStep(i: Inst, e: MeshyEntry, down: boolean): boolean {
+    const c = e.clips ?? {};
+    const fall = c["fall"] ? i.actions.get(c["fall"]) : undefined, getup = c["getup"] ? i.actions.get(c["getup"]) : undefined;
+    if (!fall || !getup || i.legs) { i.down = 0; return false; }
+    if (i.still) i.still = false;
+    i.mixer.timeScale = 1;
+    const once = (a: AnimationAction, fade: number): void => {
+      a.setLoop(LoopOnce, 1);
+      a.clampWhenFinished = true;
+      const prev = i.actions.get(i.current);
+      a.reset().play();
+      if (prev && prev !== a) a.crossFadeFrom(prev, fade, false);
+      i.current = a.getClip().name;
+    };
+    if (down) {
+      if (i.down !== 1) { once(fall, FALL_FADE); i.down = 1; i.yawOff = 0; }
+      return true;
+    }
+    if (i.down === 1) { once(getup, 0); i.down = 2; return true; }
+    // getting up: until the clip has played through
+    if (getup.isRunning() && getup.time < getup.getClip().duration - 1e-3) return true;
+    i.down = 0;
+    i.yawOff = turnOf(meshyRig(e.file)!.scene, getup.getClip(), fall.getClip());
+    return false;
+  }
+
   /** Advance every visible character's clips; hide the ones not placed this frame. */
   end(dt: number): void {
     this.clock += dt;
     for (const [k, i] of this.pool) {
+      if (i.yawOff) i.yawOff = Math.abs(i.yawOff) < 0.01 ? 0 : i.yawOff * Math.exp(-GETUP_TURN_BACK * dt);
       if (!i.seen) {
         // gone for good after a while; a hidden copy costs nothing to draw
         i.root.visible = false;
@@ -347,7 +432,7 @@ export class Rigged {
       if (!idles.has(e.file)) idles.set(e.file, idleFrom(walk));
       actions.set("__idle", mixer.clipAction(idles.get(e.file)!));
     }
-    const inst: Inst = { id, root, mixer, actions, current: "", seen: true, grip: null, arms: [], props: [], shield: null, legs: null, phase: 0, altLast: 0, missing: [], ice: false, still: false, beat: 0 };
+    const inst: Inst = { id, root, mixer, actions, current: "", seen: true, grip: null, arms: [], props: [], shield: null, legs: null, phase: 0, altLast: 0, missing: [], ice: false, still: false, beat: 0, down: 0, yawOff: 0 };
     root.updateMatrixWorld(true);
     if (!rig.clips.length) inst.legs = legsOf(root, height);
     if (e.shieldArm) inst.shield = this.shieldPose(root);

@@ -1,5 +1,5 @@
 {
   "notes": [
-    "When the game updates itself as it opens, the \"Updated\" message now lists what changed, the same notes the Update ready prompt shows."
+    "Guards who get shot now stagger back and fall to the ground, and once a medic patches them up they roll over, get back on their feet and run back to their post."
   ]
 }
