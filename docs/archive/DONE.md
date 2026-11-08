@@ -4,6 +4,11 @@ Items ticked in `docs/BACKLOG.md` move here once they are verified live, newest 
 was seen. Work finished before 2026-11-07 is ticked in the archived round files beside this one
 (`BACKLOG-R4.md`, `BACKLOG-R5.md`, `BACKLOG-R6.md`, `BACKLOG-STORY.md`, `POLISH-PLAN.md`).
 
+
+## 2026-11-08 (storm look)
+
+- [x] **#79 · Dust storms look like Doug's reference (orange haze, embers, warm dark grade).** New look only: rust storm fog and ambient, a darker key light, lit haze on the far side of the view, a rust vignette and blowing embers in the one-pass storm shader (`softfx.ts` `StormDust`; skin tokens `stormGlow`, `stormEmber`). Live 2026-11-08 (main `ce40366`); Doug: "storm looks great". Step 2 (medium cloud bank) not needed. Dev check: `__lookEnv.stormHold = 1`.
+
 ## 2026-11-07 (levels after 60 removed, Doug)
 
 - [x] **#8 · P8 Drop s1-L065** (Doug, 2026-11-07). It is pinned to content 0.17.0, so the client can't load it. Live 2026-11-07 (commit 01fc2d7): index.json lists only s1; the level list ends at 60.

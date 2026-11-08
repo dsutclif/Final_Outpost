@@ -35,7 +35,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
   `object-sizes` and `story-buggy` (agents can't run `git push --delete`). Keep `fo-wt-handoff` until #75 backs up its film tools.
 - Bundle 3 (#4, #3, #5, #14): proposed 2026-11-08 as a fresh Opus session (`bundle3`, own worktree), waiting for Doug to start it; it takes over the story-file claim in `docs/STORY-WORK-LOG.md` (not level 5's cues).
 - #6 follow-up (the fall film on the game's own ground): Vale helmet animations session, branch story-vale-fall, 2026-11-08.
-- #79 storm look: the "storm look" session, branch `storm-look` in `fo-wt-storm` (outside the bundles, renderer only, no engine bump).
 
 ## Waiting on Doug
 
@@ -459,18 +458,6 @@ rebuild.
       your help." When the commander reaches him, the commander kneels and a green cross bounces over the ranger, as with a
       medic. Evaluate whether every level with a medic should make the player do this once before the medic is hired.
       Hopper zones and the ranger pad (#7) must agree: no ranger pad within a herd's charge range.
-
-## Side work: storm look (owned by the "storm look" session, not a bundle)
-
-- [ ] **#79 · Dust storms look like Doug's reference (orange haze, embers, warm dark grade), 2026-11-08.** New look only
-      (`softfx.ts` `StormDust`, `environment.ts`; skin tokens `stormGlow`, `stormEmber`). Step 1, easy: warm rust fog and
-      ambient, a darker key light, the far side of the view sinking into lit haze, a rust vignette, and blowing embers, all
-      in the existing one-pass storm shader. Step 2 (medium, only if Doug says step 1 isn't enough): a lit, billowing
-      cloud bank with more depth. Done when Doug approves the look on the live site, the frame rate holds on iPhone during a
-      storm, and the play area stays readable.
-      **Step 1 live 2026-11-08** (main `ce40366`; the live renderer chunk carries the new shader, and a held storm was seen on
-      the live site in Chromium). Waiting on Doug: the look on iPhone during a real storm (frame rate, readability), then
-      "enough" (tick) or "go medium" (step 2). Dev check: `__lookEnv.stormHold = 1` in the console holds a storm.
 
 ## Deferred (each says what it waits for)
 - [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
