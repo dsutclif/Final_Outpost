@@ -1,10 +1,9 @@
 /// <reference lib="dom" />
-import { spawn, type ChildProcess } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium, type Browser, type BrowserContext, type CDPSession, type Page } from "playwright";
 import { parseArgs, type Args, analyzeCaption, analyzeSample, continuityHits, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats, meanLuminance, parseColour, toCandidate, Tracker, type Candidate, type Finding, type Hit, type Limits } from "./probe-core.js";
 import type { FilmEnd, FrameRec, ReviewApi, Sample, StorySnapshot } from "./probe-types.js";
@@ -37,20 +36,19 @@ async function freePort(from: number): Promise<number> {
 
 async function startVite(): Promise<{ url: string; stop: () => void }> {
   const client = join(root, "packages/client");
-  const bin = createRequire(join(client, "package.json")).resolve("vite/bin/vite.js");
+  // vite's `exports` blocks vite/bin/vite.js, so use the JS API (the package root is exported).
+  const viteEntry = createRequire(join(client, "package.json")).resolve("vite");
+  const vite = (await import(pathToFileURL(viteEntry).href)) as typeof import("vite");
   const port = await freePort(5197);
-  const child: ChildProcess = spawn(process.execPath, [bin, "--host", "127.0.0.1", "--port", String(port), "--strictPort"], { cwd: client, stdio: ["ignore", "pipe", "pipe"] });
-  let log = "";
-  child.stdout?.on("data", (d) => { log += String(d); });
-  child.stderr?.on("data", (d) => { log += String(d); });
+  const server = await vite.createServer({ root: client, configFile: join(client, "vite.config.ts"), server: { host: "127.0.0.1", port, strictPort: true }, logLevel: "warn" });
+  await server.listen();
   const url = `http://127.0.0.1:${port}/`;
   for (let i = 0; i < 120; i++) {
-    try { if ((await fetch(url)).ok) return { url, stop: () => child.kill() }; } catch { /* not up yet */ }
-    if (child.exitCode !== null) throw new Error(`vite exited: ${log.slice(-400)}`);
+    try { if ((await fetch(url)).ok) return { url, stop: () => { void server.close(); } }; } catch { /* not up yet */ }
     await new Promise((r) => setTimeout(r, 500));
   }
-  child.kill();
-  throw new Error(`vite did not come up on ${url}: ${log.slice(-400)}`);
+  await server.close();
+  throw new Error(`vite did not come up on ${url}`);
 }
 
 // ------------------------------------------------------------------ the browser
