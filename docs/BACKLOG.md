@@ -140,10 +140,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       frame; draw the canvas fallback only after an error or a timeout; send `video.error.code` with telemetry.
       Done check: on iPhone Safari, after two real deploys and a second visit, the loop plays (or the dark poster
       shows), and the old background never paints.
-- [ ] **#8 · P8 Drop s1-L065** (Doug, 2026-11-07). It is pinned to content 0.17.0, so the client can't load it.
-      Remove it from the `s1-051` pack and the pack index, and don't rebuild it.
-      Keep L065's `dropped` record (`tools/levels-next.ts` reads it so L065 is never retried); delete the `levels`
-      entry, the file and its build-log entry. Done check: `levels:check --pack levels/packs/s1-051` runs clean.
 - [ ] **#7 · P7 Ship the revised ranger pad rule.** Doug, 2026-11-07: the ranger hire pad goes inside the hunting
       grounds, clear of the burrow models. If that fails, it goes just inside the gate nearest them, or on the
       settlement edge facing them when there's no wall. Manual first. It is built but uncommitted in worktree
@@ -160,15 +156,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       `zones[0]` and ignores dangerous prey. The L012/L037 retry output is not in the diff. Look at both levels before
       landing; re-run: merge main, `levels:repin`, `pnpm check`, `levels:check` (s1 and story), regenerate `docs/LEVELS.md`.
       Done check: the ranger pad sits inside the hunting grounds on L017 and L034, seen live.
-- [ ] **#77 · Five shipped packs are pinned to old engines (found 2026-11-07, Bundle 1).** `levels/packs/index.json` ships
-      s1-068, s1-088 and s1-108 (engine 0.14.0, 49 levels) and s1-069 and s1-081 (0.18.0, 19 levels); the engine is 0.21.0,
-      so the client can't load any of these 68 levels (the same failure as s1-L065, #8). Re-pin them with `levels:repin` and
-      keep the ones `levels:check` passes; drop the rest from their packs (keep `dropped` records). Add a pack test that
-      every level in `index.json`'s packs is pinned to the current engine, so a bump can't strand a pack again.
-      Done check: the test passes, and a level from each pack loads on the live site.
-- [ ] **#74 · Unique level ids across packs (from #40).** L051–L060 exist in both s1 and s1-051 and the client keeps
-      whichever it finds first. Decide which copy wins (s1 is the main pack), drop the duplicates, and add a
-      `pack.test.ts` check that ids are unique across every pack the client loads.
 - [ ] **#78 · `review:probe` can't start its own server (found 2026-11-07, #76).** `tools/review/probe.ts` resolves
       `vite/bin/vite.js`, which the installed vite's `exports` blocks (ERR_PACKAGE_PATH_NOT_EXPORTED), so the probe only runs
       against a hand-started server. Start vite through its JS API or the `.bin` shim. Done check: `pnpm review:probe` on

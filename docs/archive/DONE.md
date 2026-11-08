@@ -4,6 +4,12 @@ Items ticked in `docs/BACKLOG.md` move here once they are verified live, newest 
 was seen. Work finished before 2026-11-07 is ticked in the archived round files beside this one
 (`BACKLOG-R4.md`, `BACKLOG-R5.md`, `BACKLOG-R6.md`, `BACKLOG-STORY.md`, `POLISH-PLAN.md`).
 
+## 2026-11-07 (levels after 60 removed, Doug)
+
+- [x] **#8 · P8 Drop s1-L065** (Doug, 2026-11-07). It is pinned to content 0.17.0, so the client can't load it. Live 2026-11-07 (commit 01fc2d7): index.json lists only s1; the level list ends at 60.
+- [x] **#77 · Five shipped packs are pinned to old engines (found 2026-11-07, Bundle 1).** `levels/packs/index.json` ships Live 2026-11-07 (commit 01fc2d7): all eight later packs deleted; pack.test.ts now checks every listed pack and level is pinned to the current engine; s1-L008 loads at "Level 8 / 60".
+- [x] **#74 · Unique level ids across packs (from #40).** L051–L060 exist in both s1 and s1-051 and the client keeps Live 2026-11-07 (commit 01fc2d7): s1-051 deleted, so ids are unique (new pack.test.ts check); L060 loads at "Level 60 / 60".
+
 ## 2026-11-07 (refinement panel; Doug approved the bundles)
 
 - **Merged** (the number now lives inside another item): #13 → #4, #19 → #17, #23, #25, #27 → #16, #29 → #20,
