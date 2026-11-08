@@ -49,7 +49,7 @@ import { applyMeshy, loadMeshy, meshyBase, meshyBelt, meshyBeltTop, meshyBounds,
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash, hash01 } from "./assets/scatter.js";
-import { LEAD_WEIGHT, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
+import { LEAD_WEIGHT, type LiveLook, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder, ROCKS } from "./geom.js";
 import { ghostSpec, type GhostSpec } from "./ghost.js";
 import { Interp, type V } from "./interp.js";
@@ -62,7 +62,7 @@ import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
 import { collectDebugScene, type DebugScene } from "./probe.js";
-import { LookTest } from "./lookTest.js";
+import { LOOK_TUNE, LookTest } from "./lookTest.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { ItemIcons } from "./scene/itemicons.js";
@@ -864,6 +864,11 @@ export class Renderer3D implements Renderer {
   /** The story director's handle (world light, reactor spirit, camera beat). Inert until called; safe before init (calls are dropped). */
   story(): StoryPresentation {
     return this.storyP ?? NO_STORY;
+  }
+
+  /** The ground and light right now, for a live scene to stand on the same sand (contract LiveLook). */
+  liveLook(): LiveLook | null {
+    return this.env?.liveLook(EXPOSURE * (this.lookT ? LOOK_TUNE.exposure : 1)) ?? null;
   }
 
   /** The reactor spirit's small copy on its own canvas, for the portrait beside its name. */

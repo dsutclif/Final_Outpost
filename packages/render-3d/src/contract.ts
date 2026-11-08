@@ -76,6 +76,27 @@ export interface CameraBeat { at: { x: number; y: number }; zoom?: number; secon
  * ground; y up). Nothing here touches the sim. At most two things pulse at once, by rank: goal
  * light, pods, lamps, ground dots, spirit cloud; the ridge always shows.
  */
+/**
+ * The game's ground and light right now, as plain data (the renderer's liveLook()), so a live scene can stand on the
+ * same sand under the same light and cut back to play without a jump.
+ */
+export interface LiveLook {
+  /** Sand colours as the game draws them (base, alt, dark; model brightness applied) and the level seed for the noise. */
+  sand: readonly [string, string, string];
+  seed: number;
+  /** Pebble tones (instance colours), the stone colour they multiply, and whether pebbles draw as smooth stones. */
+  pebbles: readonly [string, string, string];
+  pebbleBase: string;
+  smooth: boolean;
+  /** Ambient (hemisphere) and key light right now; the key light shines from the game's SUN_OFS direction. */
+  hemi: { sky: string; ground: string; intensity: number };
+  sun: { color: string; intensity: number };
+  /** Fog and background colour right now. */
+  fog: string;
+  /** Tone-mapping exposure the game draws with. */
+  exposure: number;
+}
+
 export interface StoryPresentation {
   /** Blue ground dots running toward the next step; null clears them. */
   dots(pts: readonly { x: number; z: number }[] | null, opts?: { period?: number; lit?: boolean; together?: boolean }): void;

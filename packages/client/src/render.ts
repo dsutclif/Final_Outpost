@@ -1,6 +1,6 @@
 import type { Manifest } from "@fo/content";
 import type { SimEvent, State } from "@fo/sim";
-import { loadRenderer3D, preloadRenderer3D, type AlertMark, type Camera, type CoachMark, type DebugScene, type GuideMark, type StoryPresentation } from "@fo/render-3d";
+import { loadRenderer3D, preloadRenderer3D, type AlertMark, type Camera, type CoachMark, type DebugScene, type GuideMark, type LiveLook, type StoryPresentation } from "@fo/render-3d";
 import type { Skin } from "@fo/skins";
 
 // The client's face of the 3D renderer. three.js stays in its own chunk: only
@@ -33,6 +33,8 @@ export interface GameRenderer {
   story(): StoryPresentation | null;
   /** The reactor spirit's portrait on `canvas`; null when the renderer cannot draw one. */
   spiritPortrait(canvas: HTMLCanvasElement): { readonly canvas: HTMLCanvasElement; update(t: number): void; dispose(): void } | null;
+  /** The ground and light right now, for a live scene to match; null when there is none. */
+  liveLook(): LiveLook | null;
   hudAnchor: () => { x: number; y: number };
   onCoinLanded: (() => void) | null;
   /** Measured frame rate. */
@@ -82,6 +84,7 @@ class Wrap3D implements GameRenderer {
   set onCoinLanded(fn: (() => void) | null) { this.r.onCoinLanded = fn; }
   story(): StoryPresentation { return this.r.story(); }
   spiritPortrait(canvas: HTMLCanvasElement) { return this.r.spiritPortrait(canvas); }
+  liveLook(): LiveLook | null { return this.r.liveLook(); }
   fps(): number { return this.r.stats().fps; }
 }
 

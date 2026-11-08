@@ -10,6 +10,8 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
+  MeshStandardMaterial,
   PlaneGeometry,
   PointLight,
   RingGeometry,
@@ -24,7 +26,8 @@ import { meshyBrightness } from "../assets/meshy.js";
 import { hash01 } from "../assets/scatter.js";
 import { GeoBuilder, ROCKS } from "../geom.js";
 import { StormDust } from "./softfx.js";
-import type { MaterialSet } from "../materials.js";
+import { addWear, type MaterialSet } from "../materials.js";
+import type { LiveLook } from "../contract.js";
 import type { Tokens } from "../tokens.js";
 import type { StoryLighting } from "./storylights.js";
 import { ART_M, type TierSettings } from "../units.js";
@@ -57,6 +60,69 @@ function noise(x: number, y: number, seed: number): number {
   const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
   const a = h(xi, yi), b = h(xi + 1, yi), c = h(xi, yi + 1), d = h(xi + 1, yi + 1);
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+
+/** The sand's three colours; the sand tracks the models: half of any change to model brightness (their sand patches read ~1.5x the bare ground at 2). */
+function sandColors(t: Tokens): [Color, Color, Color] {
+  const k = 1 + 0.5 * (meshyBrightness() - 1);
+  return [new Color(t.ground).multiplyScalar(k), new Color(t.groundAlt).multiplyScalar(k), new Color(t.groundDark).multiplyScalar(k)];
+}
+
+/** The sand's colour at world (x, z) into `c`; returns the noise there. */
+function sandAt(x: number, z: number, seed: number, g0: Color, g1: Color, g2: Color, c: Color): number {
+  const n = noise(x / 90, z / 90, seed) * 0.65 + noise(x / 28, z / 28, seed + 3) * 0.35;
+  c.copy(g0).lerp(g1, Math.max(0, n - 0.35) * 1.6);
+  if (n < 0.3) c.lerp(g2, (0.3 - n) * 1.6);
+  return n;
+}
+
+/** Pebble instance tones; smooth (look test) stones take their tone from these alone, close to the sand. */
+function pebbleTones(t: Tokens, smooth: boolean): [string, string, string] {
+  return smooth
+    ? [mix(t.groundAlt, t.ground, 0.35), mix(t.groundDark, t.groundAlt, 0.55), mix(t.groundAlt, t.structureDark, 0.2)]
+    : [mix(t.groundDark, t.groundAlt, 0.5), t.groundAlt, mix(t.groundAlt, t.structureDark, 0.35)];
+}
+const pebbleBase = (t: Tokens, smooth: boolean): string => (smooth ? "#ffffff" : mix(t.groundDark, t.ground, 0.4));
+/** Pebbles per square world unit (the level's 260 over its map and margin, for a mid-size map). */
+const PEBBLE_DENSITY = 260 / (1500 * 1600);
+
+/**
+ * The game's sand and pebbles for a live scene (livescene.ts): a square of `half` world units each way round the
+ * origin, flat, in world units (scale it by 1/ART_M for metres), drawn with the game's ground material and noise.
+ */
+export function lookGround(look: LiveLook, half: number): Group {
+  const out = new Group();
+  out.name = "lookGround";
+  const seg = Math.round((half * 2) / 30);
+  const geo = new PlaneGeometry(half * 2, half * 2, seg, seg);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.getAttribute("position");
+  const col = new Float32Array(pos.count * 3);
+  const [g0, g1, g2] = look.sand.map((h) => new Color(h)) as [Color, Color, Color], c = new Color();
+  for (let i = 0; i < pos.count; i++) {
+    sandAt(pos.getX(i), pos.getZ(i), look.seed, g0, g1, g2, c);
+    col.set([c.r, c.g, c.b], i * 3);
+  }
+  geo.setAttribute("color", new BufferAttribute(col, 3));
+  geo.computeVertexNormals();
+  const groundMat = new MeshLambertMaterial({ vertexColors: true });
+  addWear(groundMat, { wear: 0.9, seams: false, unit: ART_M, contact: false });
+  const ground = new Mesh(geo, groundMat);
+  ground.receiveShadow = true;
+  out.add(ground);
+  const stoneMat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.86, metalness: 0.06 });
+  addWear(stoneMat, { wear: 1, seams: false, unit: 1 });
+  const n = Math.round(PEBBLE_DENSITY * half * half * 4);
+  const batch = new Batch(new GeoBuilder().rock(1, look.pebbleBase, {}, 0).build(), stoneMat, out, n, "pebbles");
+  const m = new Matrix4(), tone = new Color();
+  for (let i = 0; i < n; i++) {
+    const x = (hash01(look.seed + i * 1.7) * 2 - 1) * half, z = (hash01(look.seed * 3 + i * 2.3) * 2 - 1) * half;
+    const sz = 1 + hash01(i * 5.1) * hash01(i * 2.9) * 4;
+    m.makeRotationY(i).scale(new Vector3(sz * 1.3, sz * 0.7, sz)).setPosition(x, look.smooth ? -sz * 0.1 : sz * 0.2, z);
+    batch.push(m, tone.set(look.pebbles[i % 3]!));
+  }
+  batch.end();
+  return out;
 }
 
 export class Environment {
@@ -197,6 +263,22 @@ export class Environment {
     return out;
   }
 
+  /** The ground and light right now, for a live scene to match (contract LiveLook). */
+  liveLook(exposure: number): LiveLook {
+    const [g0, g1, g2] = sandColors(this.t);
+    return {
+      sand: [g0.getHexString(), g1.getHexString(), g2.getHexString()].map((h) => "#" + h) as unknown as LiveLook["sand"],
+      seed: this.seed,
+      pebbles: pebbleTones(this.t, ROCKS.smooth),
+      pebbleBase: pebbleBase(this.t, ROCKS.smooth),
+      smooth: ROCKS.smooth,
+      hemi: { sky: "#" + this.hemi.color.getHexString(), ground: "#" + this.hemi.groundColor.getHexString(), intensity: this.hemi.intensity },
+      sun: { color: "#" + this.sun.color.getHexString(), intensity: this.sun.visible ? this.sun.intensity : 0 },
+      fog: "#" + this.fog.color.getHexString(),
+      exposure,
+    };
+  }
+
   private buildGround(seed: number): Mesh {
     const { W, H, t } = this;
     const gw = W + EDGE * 2, gh = H + EDGE * 2;
@@ -206,14 +288,10 @@ export class Environment {
     geo.translate(W / 2, 0, H / 2);
     const pos = geo.getAttribute("position");
     const col = new Float32Array(pos.count * 3);
-    // the sand tracks the models: half of any change to model brightness (their sand patches read ~1.5x the bare ground at 2)
-    const k = 1 + 0.5 * (meshyBrightness() - 1);
-    const g0 = new Color(t.ground).multiplyScalar(k), g1 = new Color(t.groundAlt).multiplyScalar(k), g2 = new Color(t.groundDark).multiplyScalar(k), c = new Color();
+    const [g0, g1, g2] = sandColors(t), c = new Color();
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i), z = pos.getZ(i);
-      const n = noise(x / 90, z / 90, seed) * 0.65 + noise(x / 28, z / 28, seed + 3) * 0.35;
-      c.copy(g0).lerp(g1, Math.max(0, n - 0.35) * 1.6);
-      if (n < 0.3) c.lerp(g2, (0.3 - n) * 1.6);
+      const n = sandAt(x, z, seed, g0, g1, g2, c);
       // outside the map the ground darkens and falls away a little, framing the play area
       const ox = Math.max(0, -x, x - W), oz = Math.max(0, -z, z - H);
       const out = Math.min(1, Math.hypot(ox, oz) / 260);
@@ -290,12 +368,10 @@ export class Environment {
     const { W, H, t } = this;
     // look test: stones take their tone from the instance colour alone, close to the sand, and sit partly sunk
     const smooth = ROCKS.smooth;
-    const pebble = new GeoBuilder().rock(1, smooth ? "#ffffff" : mix(t.groundDark, t.ground, 0.4), {}, 0).build();
+    const pebble = new GeoBuilder().rock(1, pebbleBase(t, smooth), {}, 0).build();
     const batch = new Batch(pebble, this.mats.std, this.group, 400, "pebbles");
     const m = new Matrix4(), c = new Color();
-    const tones = smooth
-      ? [mix(t.groundAlt, t.ground, 0.35), mix(t.groundDark, t.groundAlt, 0.55), mix(t.groundAlt, t.structureDark, 0.2)]
-      : [mix(t.groundDark, t.groundAlt, 0.5), t.groundAlt, mix(t.groundAlt, t.structureDark, 0.35)];
+    const tones = pebbleTones(t, smooth);
     for (let i = 0; i < 260; i++) {
       const x = -120 + hash01(seed + i * 1.7) * (W + 240), z = -160 + hash01(seed * 3 + i * 2.3) * (H + 320);
       const s = 1 + hash01(i * 5.1) * hash01(i * 2.9) * 4;

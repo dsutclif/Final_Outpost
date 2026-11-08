@@ -2,13 +2,13 @@
 // nothing, and loadRenderer3D() pulls three.js in a separate chunk, so the app shell boots
 // (title, menus, the unsupported-device screen) without downloading it.
 
-import type { AlertMark, RenderStats, Renderer, StoryPresentation } from "./contract.js";
+import type { AlertMark, LiveLook, RenderStats, Renderer, StoryPresentation } from "./contract.js";
 import type { QualityTier } from "./units.js";
 import type { DebugScene } from "./probe.js";
 
 export type { DebugScene, DebugThing, DebugLabel, ScreenBox, ThingKind } from "./probe.js";
 
-export type { AlertMark, Camera, CameraBeat, CoachMark, GuideMark, RenderStats, Renderer, RidgeSide, StoryPresentation, TallySlots } from "./contract.js";
+export type { AlertMark, Camera, CameraBeat, CoachMark, GuideMark, LiveLook, RenderStats, Renderer, RidgeSide, StoryPresentation, TallySlots } from "./contract.js";
 export { createCamera, LEAD_WEIGHT } from "./contract.js";
 export { SIZES, POD_K, POD_CAVITY_M } from "./sizes.js";
 export { ART_M, BUILD_K, CHAR_K, viewWFor, FOV_DEG, PITCH_DEG, YAW_DEG, VIEW_W, TEXT, screenToWorld, worldToScreenPlane, QUALITY_TIERS, TIERS, MAX_DRAW_CALLS, MAX_TRIANGLES, type QualityTier, type TierSettings } from "./units.js";
@@ -43,6 +43,8 @@ export interface Renderer3DHandle extends Renderer {
   story(): StoryPresentation;
   /** The reactor spirit's small copy, drawn on its own canvas. */
   spiritPortrait(canvas: HTMLCanvasElement): { readonly canvas: HTMLCanvasElement; update(t: number): void; dispose(): void };
+  /** The ground and light right now, for a live scene to match; null before a level is built. */
+  liveLook(): LiveLook | null;
 }
 
 export interface LoadRenderer3DOptions {

@@ -903,7 +903,7 @@ export class App {
   /** Play a cinematic full-screen once: ended or skipped saves it as seen; an error or stall just continues. */
   private async cinematic(id: CinematicId, force = false): Promise<void> {
     const t0 = performance.now();
-    const r = await playCinematic(this.el.app, id, { skipLabel: uiText(this.skin, "skip"), scene: this.skin.story?.scenes?.[id] });
+    const r = await playCinematic(this.el.app, id, { skipLabel: uiText(this.skin, "skip"), scene: this.skin.story?.scenes?.[id], look: this.session?.renderer.liveLook() ?? null });
     if (!force) this.reporter?.emit("film", { film: id, watchedS: Math.round((performance.now() - t0) / 100) / 10, result: r, skipped: r === "skipped" });
     if (r === "failed" || force) return;
     this.progress.cinematics[id] = FILM_VERSIONS[id];

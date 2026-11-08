@@ -3,6 +3,7 @@ import crashOpenVideo from "./cinematics/crash_open.mp4";
 import helmetRevealPoster from "./cinematics/helmet_reveal.poster.png";
 import helmetRevealVideo from "./cinematics/helmet_reveal.mp4";
 import titleLoopVideo from "./cinematics/title_loop.mp4";
+import type { LiveLook } from "@fo/render-3d";
 import titleLoopPoster from "./cinematics/title_loop.poster.jpg";
 
 // Pre-rendered Blender cinematics (tools/cinematics, docs/STORY-LEVELS.md). The files live in
@@ -33,7 +34,7 @@ export const CINEMATICS: Record<VideoId, FilmInfo> = {
 };
 
 /** Bump a film's version when it is re-rendered: players who saw an older one see it again. */
-export const FILM_VERSIONS: Record<CinematicId, number> = { crash_open: 1, helmet_reveal: 2, empty_bays: 1, crash_log: 1, sela_arrival: 1, chip_handoff: 1, warlord_fall: 3 };
+export const FILM_VERSIONS: Record<CinematicId, number> = { crash_open: 1, helmet_reveal: 2, empty_bays: 1, crash_log: 1, sela_arrival: 1, chip_handoff: 1, warlord_fall: 4 };
 
 /**
  * While the story films and live scenes are being edited (Doug, 2026-11-04), every one plays on every
@@ -81,6 +82,8 @@ export interface PlayOptions {
   scene?: { text: Readonly<Record<string, string>>; images: Readonly<Record<string, string>> } | undefined;
   /** A live scene in a small frame over play (see StoryAction inset); videos ignore it. */
   inset?: boolean;
+  /** The game's ground and light right now: a live scene that opts in stands on the same sand. */
+  look?: LiveLook | null;
 }
 
 /**
@@ -166,7 +169,7 @@ async function playLive(host: HTMLElement, id: LiveId, opts: PlayOptions): Promi
     const dev = import.meta.env.DEV ? (globalThis as { __live?: { at?: number; wire?: boolean } }).__live : undefined;
     const base = host.ownerDocument.baseURI;
     const images = Object.fromEntries(Object.entries(opts.scene?.images ?? {}).map(([k, v]) => [k, new URL(v, base).href]));
-    return await playLiveScene(host, id, { text: opts.scene?.text ?? {}, images, skipLabel: opts.skipLabel ?? "Skip", ...(dev?.at !== undefined ? { at: dev.at } : {}), ...(dev?.wire ? { wire: true } : {}), ...(opts.inset ? { inset: true } : {}) });
+    return await playLiveScene(host, id, { text: opts.scene?.text ?? {}, images, skipLabel: opts.skipLabel ?? "Skip", ...(dev?.at !== undefined ? { at: dev.at } : {}), ...(dev?.wire ? { wire: true } : {}), ...(opts.inset ? { inset: true } : {}), ...(opts.look ? { look: opts.look } : {}) });
   } catch {
     return "failed";
   }

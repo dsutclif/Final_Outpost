@@ -1,11 +1,13 @@
 import {
   AmbientLight, AnimationMixer, Box3, LoopOnce, Matrix4, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera,
-  CircleGeometry, PlaneGeometry, PointLight, Quaternion, Scene, SphereGeometry, SpotLight, Vector3, WebGLRenderer, type Material, type Object3D,
+  ACESFilmicToneMapping, CircleGeometry, Fog, HemisphereLight, PlaneGeometry, PointLight, Quaternion, Scene, SphereGeometry, SpotLight, Vector3, WebGLRenderer, type Material, type Object3D,
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
 import { heldInHand } from "./rigged.js";
-import { FOV_DEG, PITCH_DEG, YAW_DEG } from "../units.js";
+import { ART_M, FOV_DEG, PITCH_DEG, YAW_DEG } from "../units.js";
+import { SUN_OFS, lookGround } from "./environment.js";
+import type { LiveLook } from "../contract.js";
 import { POD_CAVITY_M, POD_K, SIZES } from "../sizes.js";
 import RIG from "../assets/buggy.json";
 
@@ -27,6 +29,8 @@ export interface LiveSceneOptions {
   wire?: boolean;
   /** In a small frame over play instead of full screen: no skip, taps pass through, it ends by itself. */
   inset?: boolean;
+  /** The game's ground and light at the moment the scene starts (renderer liveLook()); a scene that opts in stands on it. */
+  look?: LiveLook;
 }
 
 interface Staged {
@@ -509,7 +513,30 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   };
 }
 
-/** A dawn set for the level 5 endings: warm low sun on pale sand. */
+/** How far the game's ground runs round the scene (metres), and where its fog starts and closes (metres from the origin). */
+const LOOK_GROUND_M = 110, LOOK_FOG = [24, 100] as const;
+
+/**
+ * The game's own set at this moment (o.look): its sand, pebbles, fog and light, so the scene cuts back to play with no
+ * change of ground or colour. The sun shines from the game's direction and casts shadows over the middle of the set.
+ */
+function gameSet(scene: Scene, look: LiveLook): void {
+  scene.background = new Color(look.fog);
+  scene.fog = new Fog(look.fog, LOOK_FOG[0], LOOK_FOG[1]);
+  scene.add(new HemisphereLight(look.hemi.sky, look.hemi.ground, look.hemi.intensity));
+  const sun = new DirectionalLight(look.sun.color, look.sun.intensity);
+  sun.position.set(...SUN_OFS).normalize().multiplyScalar(30);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 80 });
+  sun.shadow.bias = -0.0005;
+  scene.add(sun, sun.target);
+  const ground = lookGround(look, LOOK_GROUND_M * ART_M);
+  ground.scale.setScalar(1 / ART_M);
+  scene.add(ground);
+}
+
+/** A dawn set for the level 5 endings: warm low sun on pale sand (the fall scene without the game's look, e.g. dev). */
 function dawnSet(scene: Scene): void {
   scene.background = new Color("#e9b88a");
   scene.add(new AmbientLight("#ffd9b8", 1.5));
@@ -544,10 +571,11 @@ function helmetModel(): Object3D {
  * The motion is the `fall` clip baked onto Vale's rig (tools/cinematics/vale_fall_bake.py). Without the Vale models it
  * falls back to the old warlord running through, whose helmet is its head.
  */
-function warlordFall(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement): Staged {
+function warlordFall(_doc: Document, o: LiveSceneOptions, _overlay: HTMLElement): Staged {
   const scene = new Scene();
   const camera = new PerspectiveCamera(38, 1, 0.1, 400);
-  dawnSet(scene);
+  if (o.look) gameSet(scene, o.look);
+  else dawnSet(scene);
   const H = 2.2; // the warlord's height in scene units
   const e = meshyCharacters().find((x) => x.id === "hostile.boss_vale"), rig = e && meshyRig(e.file);
   const face = meshyScene("item.vale_head");
@@ -752,10 +780,10 @@ const CAM_OUT = 2.0, CAM_BACK = 3.6, CAM_PITCH = (PITCH_DEG * Math.PI) / 180, CA
 /** The quarter turn that stands the helmet item (built lying on its side) upright on the head. */
 const VALE_HELMET_TIP = Math.PI / 2;
 
-const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged; film?: boolean }>> = {
+const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged; film?: boolean; game?: boolean }>> = {
   chip_handoff: { models: ["unit.customer_sela", "unit.customer", "unit.player", "res.currency"], stage: chipHandoff, film: true },
   sela_arrival: { models: ["decor.buggy", "decor.buggy_wheel", "decor.buggy_wheel_l", "unit.customer_sela", "unit.customer"], stage: selaArrival, film: true },
-  warlord_fall: { models: ["hostile.boss_vale", "item.vale_head", "hostile.boss", "item.lieutenant_helmet", "prop.minigun"], stage: warlordFall, film: true },
+  warlord_fall: { models: ["hostile.boss_vale", "item.vale_head", "hostile.boss", "item.lieutenant_helmet", "prop.minigun"], stage: warlordFall, film: true, game: true },
   empty_bays: { models: ["decor.stasis_pod", "decor.stasis_glass"], stage: emptyBays },
   crash_log: { models: ["decor.stasis_pod", "decor.stasis_glass", "unit.player"], stage: crashLog },
 };
@@ -788,6 +816,13 @@ export async function playLiveScene(host: HTMLElement, id: string, o: LiveSceneO
   wrap.append(gl.domElement, scan, overlay, hud, ...(o.inset ? [] : [skip]));
   host.append(wrap);
   const staged = def.stage(doc, o, overlay);
+  // on the game's own set: draw it the way the game does (tone mapping, exposure, sun shadows from everything standing)
+  if (def.game && o.look) {
+    gl.toneMapping = ACESFilmicToneMapping;
+    gl.toneMappingExposure = o.look.exposure;
+    gl.shadowMap.enabled = true;
+    staged.scene.traverse((x) => { if ((x as Mesh).isMesh && !x.parent?.name.startsWith("lookGround")) x.castShadow = true; });
+  }
   // a film-look scene drops the camera-feed filter, scanlines and REC readout
   if (def.film) wrap.classList.add("film");
   // a held frame is a dev check: leave the staging where the console can measure it
