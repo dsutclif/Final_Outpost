@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#85**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#96**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -492,6 +492,26 @@ rebuild.
       your help." When the commander reaches him, the commander kneels and a green cross bounces over the ranger, as with a
       medic. Evaluate whether every level with a medic should make the player do this once before the medic is hired.
       Hopper zones and the ranger pad (#7) must agree: no ranger pad within a herd's charge range.
+
+## Bundle 10: Doug's iPhone round 1 (2026-11-08, from #83, #84, #85)
+
+Passed on the phone: #83 pods (4); #84 flat pads look (kept) and the rest of the #52 scenarios ran fine; #85 acid spit (1), drones docking (4).
+Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies too fast; it will appear with bigger waves).
+
+**Story lane (no engine bump, story files and client):**
+- [ ] **#86 · KILN closer and the same size in L1–5 (Doug, 2026-11-08).** Bring KILN about 30% closer to the commander in levels 1–4, and make its size match level 5 (L1–4 look slightly smaller now; L5 looks right). Done check: screenshots at phone size of L1–L5 with the same on-screen size and distance. Includes level 1, which has never been captured.
+- [ ] **#87 · Level 3 wall: leave a gap between the back wall and the rock piles (Doug, 2026-11-08).** The wall is good, but builders get stuck building from the outside when the ring touches the rock piles. Done check: every section reachable from outside; `levels:check --pack levels/story` still builds the wall.
+- [ ] **#88 · Buggy arrival (Doug, 2026-11-08).** Today Sela walks beside the buggy and it rolls with no driver. Skip that part of the cutscene or cut it before she gets out, so the buggy drives all the way to the stall, she gets out, then goes to the stall. Keep the buggy in frame during the animated section.
+
+**Look lane (renderer, no engine bump):**
+- [ ] **#89 · Pads and occlusion (Doug, 2026-11-08; replaces #41's faint see-through).** Keep the flat look (Doug likes it). A player or character in front of a pad must hide it: no pad drawn on top of a character. A pad behind a wall or building must still be findable: it showed at full strength, so try dashed lines, a pulse, and a fainter copy, and show Doug mocks of each (phone-size screenshots, same scene) before choosing. These are the operate pads (clerk pad and so on), not just the pads Doug first thought of.
+- [ ] **#90 · Trader order pictures 2x the size** in the bubble (Doug, 2026-11-08).
+- [ ] **#93 · Hold poses (Doug, 2026-11-08).** The protein hunter holds his gun oddly, walking and shooting: straighten it. The hauler holds his pick the wrong way round (sharp point up): point it down. Done check: stills of walk and shoot for the hunter and of the hauler's carry, from the game camera.
+
+**Systems lane (rules: ONE engine bump 0.23.0, claim it first; Story and Look pause while it lands):**
+- [ ] **#91 · Attackers spread out at the gate rather than lining up in a queue (Doug, 2026-11-08).** #85 3: they should fan out around the gate.
+- [ ] **#92 · Guards: a visible 15 s timer after a fall (Doug, 2026-11-08).** A guard died instantly when shot down. A downed guard has 15 s, shown on screen, for the commander or a medic to heal it before it dies. A medic can't arrive during the fall animation itself. Property test, bot behaviour, HUD.
+- [ ] **#94 · Denser waves, not only bigger ones (Doug, 2026-11-08).** s1-L037's last waves lag a little at the end; wave design should favour more dense, smaller waves. Fold into Bundle 8's wave sizing from target ρ.
 
 ## Deferred (each says what it waits for)
 - [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
