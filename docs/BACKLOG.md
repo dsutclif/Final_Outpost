@@ -41,6 +41,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 
 ## Waiting on Doug
 
+- [ ] **Remind Doug (2026-11-09): do the iPhone checks #83, #84, #2, #7, #6, #76, and run the three remote branch deletes (Bundle 1).**
 - [ ] **#83 · iPhone checks for Bundle 3 (live site).**
       1. KILN (#4/#13): the cloud beside the commander looks the same size in story levels 1–5 and is still easy to see at the smaller size; on the first regular level that teaches something new (e.g. s1-L006) it floats beside the commander while its lines show.
       2. Level 3 wall (#14): after Sela's first sale KILN asks for the wall; walking the dashed ring raises it a credit a section; the hub beat follows.
@@ -180,6 +181,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       **Landed 2026-11-08 (outpost-ops 87640e7):** probe timeout 35 → 55 min (the job allows 75); 11 levels took ~25 min of play.
       Tick it when the next nightly run shows every command ok.
 - [ ] **#81 · The protein hunter can't pass through a gate (Doug, 2026-11-08).** The ranger role is called "protein hunter"
+      **Doug, 2026-11-08:** seen on level 17 (maybe others). Rule: every character must be able to pass through gates. Goes into Bundle 7's bump if it is a rules fix.
       in game (use that name with Doug). It can't walk through a gate, so a hunter hired inside the walls can't reach hunting
       grounds outside them. This matters for #7's fallback ("just inside the gate nearest them"). Find out whether gates block
       the hunter's pathing or only the player's, fix it so hired hunters use gates, and add a property test.
@@ -282,6 +284,7 @@ ship with the film.
 - [ ] **#75 · Back up the film tools (before #47).** `tools/cinematics/mocap/` and `cache/` are not in git and live only in
       `fo-wt-handoff/tools/cinematics/`. Copy them somewhere safe (or into git LFS) before any film work.
 - [ ] **#47 · Fix stage 2:**
+      **Doug, 2026-11-08, rejects the first stage 2 stills:** the glass opens lengthwise (hinge on the short side); it must open widthwise, hinge on the long side. The commander is larger relative to the pod than the sandbox setting, and sits on top of the pod instead of inside it. Redo from the sandbox sizes and heights.
       1. The glass slides through the commander; key a hinge on its edge.
       2. The open glass blocks the camera at the step-out.
       3. The drop to the sand is cut away.
