@@ -35,6 +35,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-07 | backlog session (Doug's chat) | backlog-single | `levels/story/story-L001..4.json` (L005 only for #3's pods, after the #6 owner releases it), `client/src/story/*`, story cue blocks for levels 1–4 in `skins/src/mars_greenhouse.ts` | BACKLOG Bundle 3 (#4, #3, #5, #14), then Bundle 4 (film). #6 belongs to the "Vale helmet animations" session |
+| 2026-11-08 | Vale helmet animations session | story-vale-fall | `render-3d/src/scene/livescene.ts` (warlordFall), `render-3d/src/assets/meshy.json` + `meshy.built.json` + `client/public/models/hostile.boss_vale.glb`, `tools/cinematics/vale_*` | #6 follow-up (Doug 2026-11-08): fix Vale rig head bone; head and helmet at most 20% bigger than the old grey helmet |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 

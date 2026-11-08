@@ -38,6 +38,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
   deleted. Still open: Doug deletes the remote branches `look-test`, `object-sizes` and `story-buggy`, and #78 makes the
   nightly fully green. Keep `fo-wt-handoff` until #75 backs up its film tools.
 - Story files for #3, #4, #5, #14: claimed by the orchestrator session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
+- #6 follow-up (Vale head rig fix, head/helmet sizes): Vale helmet animations session, worktree `fo-wt-vale-fall`, from 2026-11-08.
 
 ## Waiting on Doug
 
