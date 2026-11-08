@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#79**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#80**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -38,6 +38,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
   deleted. Still open: Doug deletes the remote branches `look-test`, `object-sizes` and `story-buggy`, and #78 makes the
   nightly fully green. Keep `fo-wt-handoff` until #75 backs up its film tools.
 - Story files for #3, #4, #5, #14: claimed by the orchestrator session (backlog) on 2026-11-07, starting with Bundle 3 (not level 5's cues).
+- #79 storm look: the "storm look" session, branch `storm-look` in `fo-wt-storm` (outside the bundles, renderer only, no engine bump).
 
 ## Waiting on Doug
 
@@ -444,6 +445,15 @@ rebuild.
       your help." When the commander reaches him, the commander kneels and a green cross bounces over the ranger, as with a
       medic. Evaluate whether every level with a medic should make the player do this once before the medic is hired.
       Hopper zones and the ranger pad (#7) must agree: no ranger pad within a herd's charge range.
+
+## Side work: storm look (owned by the "storm look" session, not a bundle)
+
+- [ ] **#79 · Dust storms look like Doug's reference (orange haze, embers, warm dark grade), 2026-11-08.** New look only
+      (`softfx.ts` `StormDust`, `environment.ts`; skin tokens `stormGlow`, `stormEmber`). Step 1, easy: warm rust fog and
+      ambient, a darker key light, the far side of the view sinking into lit haze, a rust vignette, and blowing embers, all
+      in the existing one-pass storm shader. Step 2 (medium, only if Doug says step 1 isn't enough): a lit, billowing
+      cloud bank with more depth. Done when Doug approves the look on the live site, the frame rate holds on iPhone during a
+      storm, and the play area stays readable.
 
 ## Deferred (each says what it waits for)
 - [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"

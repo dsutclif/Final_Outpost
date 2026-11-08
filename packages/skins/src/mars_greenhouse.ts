@@ -306,6 +306,8 @@ export const marsGreenhouse: Skin = {
     sky: "#d8d1c2",
     fog: "#c4baa8",
     storm: "#a68862",
+    stormGlow: "#c2501c",
+    stormEmber: "#ff8a3a",
     spiritDeep: "#0a339e",
     spirit: "#38adff",
     spiritCore: "#dbf7ff",

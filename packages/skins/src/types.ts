@@ -39,6 +39,10 @@ export interface SkinPalette {
   fog: string;
   /** Fog and haze while the hazard event is active (3D). */
   storm: string;
+  /** New look only: the glowing haze the storm thickens into toward the far side of the view (3D). */
+  stormGlow?: string;
+  /** New look only: embers blowing through the storm (3D). */
+  stormEmber?: string;
   /** Reactor-spirit cloud: deep edge, body, and near-white core (3D). */
   spiritDeep: string;
   spirit: string;

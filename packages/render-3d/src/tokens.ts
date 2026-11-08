@@ -30,6 +30,9 @@ export interface Tokens {
   fog: string;
   /** Fog colour while the hazard event is active. */
   storm: string;
+  /** New-look storm haze and ember colours (fall back to storm / lampWarm). */
+  stormGlow: string;
+  stormEmber: string;
   /** Reactor-spirit cloud colours; glitch is the raiders' visor colour. */
   spiritDeep: string;
   spirit: string;
@@ -121,6 +124,8 @@ export function deriveTokens(skin: Skin): Tokens {
     skyTop: mix(sky, p.interactive, 0.25),
     fog: sat(p.fog),
     storm: sat(p.storm),
+    stormGlow: sat(p.stormGlow ?? p.storm),
+    stormEmber: p.stormEmber ?? p.lampWarm,
     spiritDeep: p.spiritDeep,
     spirit: p.spirit,
     spiritCore: p.spiritCore,

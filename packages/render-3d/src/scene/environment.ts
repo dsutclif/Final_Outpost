@@ -78,7 +78,18 @@ export class Environment {
   private readonly m = new Matrix4();
   /** Look test: the storm draws as drifting dust sheets and wind streaks instead of sliding bars. */
   private stormDust: StormDust | null = null;
-  enableSoftStorm(): void { if (!this.stormDust) this.stormDust = new StormDust(this.group, new Color(this.t.storm).lerp(new Color(this.t.groundAlt), 0.3)); }
+  enableSoftStorm(): void {
+    if (this.stormDust) return;
+    const glow = new Color(this.t.stormGlow), ember = new Color(this.t.stormEmber);
+    this.stormDust = new StormDust(this.group, new Color(this.t.storm).lerp(new Color(this.t.groundAlt), 0.3), glow, ember);
+    // the storm's fog and ambient lean toward the glow, so the whole scene goes warm and dark rather than beige
+    this.cStorm.lerp(glow, 0.6).multiplyScalar(0.6);
+    this.stormDim = 0.6;
+  }
+  /** How far the key light drops at full storm (the new look goes darker). */
+  private stormDim = 0.4;
+  /** Dev handle (`__lookEnv.stormHold = 1`): hold the storm at this strength whatever the hazard phase. */
+  stormHold: number | null = null;
   /** Screen aspect for the storm sheets (the renderer sets it on resize). */
   aspect = 0.5;
   /** 0..1 storm blend (eased toward the hazard phase). */
@@ -361,7 +372,7 @@ export class Environment {
     this.safeRing.scale.setScalar(Math.max(1, safeR));
     this.safeRing.visible = safeR > 0;
 
-    const target = hazard === "active" ? 1 : hazard === "warning" ? 0.25 : 0;
+    const target = this.stormHold ?? (hazard === "active" ? 1 : hazard === "warning" ? 0.25 : 0);
     this.storminess += (target - this.storminess) * Math.min(1, dt * 1.5);
     const s = this.storminess;
     const sl = this.story, dark = this.night || !!sl;
@@ -371,7 +382,7 @@ export class Environment {
     // fog is measured from the camera, which sits far back for the near-flat view
     this.fog.near = camDist + 570 - s * 700;
     this.fog.far = camDist + 2570 - s * 1700;
-    const dim = 1 - s * 0.4;
+    const dim = 1 - s * this.stormDim;
     if (sl) {
       // a story level: the key light follows the sunrise, the ambient never drops below the night floor
       this.sun.intensity = SUN * dim * Math.max(sl.moon, sl.sun);

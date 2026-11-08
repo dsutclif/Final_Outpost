@@ -247,29 +247,55 @@ void main() { vUv = uv; gl_Position = vec4(position.xy * 2.0, 0.0, 1.0); }`;
 const STORM_FRAG = /* glsl */ `
 precision highp float;
 uniform float uTime, uStorm, uAspect;
-uniform vec3 uCol;
+uniform vec3 uCol, uGlow, uEmber;
 varying vec2 vUv;
 ${NOISE}
 float fbm(vec2 p) { float v = 0.0, a = 0.5; for (int i = 0; i < 3; i++) { v += a * vn(p); p = p * 2.03 + 5.3; a *= 0.5; } return v; }
+// layers composite front-over-back in premultiplied form, so one pass draws them all
+void over(inout vec4 acc, vec3 c, float a) { acc.rgb = c * a + acc.rgb * (1.0 - a); acc.a = a + acc.a * (1.0 - a); }
 void main() {
   vec2 p = vec2(vUv.x * uAspect, vUv.y);
   float t = uTime;
-  // broad sheets of dust rolling across, finer billows riding them, and grit streaks in the wind
+  vec4 acc = vec4(0.0);
+  // 1. a dark rust vignette: the storm closes in from the edges and leaves the middle to play in
+  vec2 d = (vUv - vec2(0.5, 0.45)) * vec2(1.1, 1.0);
+  over(acc, uGlow * 0.08, uStorm * 0.75 * smoothstep(0.25, 0.8, length(d)));
+  // 2. broad sheets of dust rolling across, finer billows riding them, and grit streaks in the wind
   float big = fbm(p * 1.6 - vec2(t * 0.22, t * 0.03));
   float mid = fbm(p * 4.5 - vec2(t * 0.55, -t * 0.05) + big * 1.5);
   float streak = vn(vec2(p.x * 2.2 - t * 2.4, p.y * 34.0)) * vn(vec2(p.x * 0.7 - t * 1.1, p.y * 9.0));
   streak = smoothstep(0.35, 0.75, streak);
   float a = uStorm * (0.42 * smoothstep(0.3, 0.75, big) + 0.22 * mid * big + 0.22 * streak + 0.12);
-  gl_FragColor = vec4(uCol * (0.85 + 0.35 * mid + 0.3 * streak), clamp(a, 0.0, 0.85));
+  over(acc, mix(uCol, uGlow, 0.5) * (0.45 + 0.35 * mid + 0.3 * streak), clamp(a, 0.0, 0.85) * 0.6);
+  // 3. the far side of the view (top of the screen) sinks into a lit, billowing haze
+  float far = smoothstep(0.45, 1.0, vUv.y);
+  float bill = fbm(p * 2.2 - vec2(t * 0.12, -t * 0.02) + big);
+  over(acc, uGlow * (1.1 + 0.9 * bill * far), uStorm * far * (0.45 + 0.4 * bill));
+  // 4. embers: one per grid cell, blowing downwind and flickering; brighter than white so they bloom
+  float em = 0.0;
+  for (int k = 0; k < 2; k++) {
+    float sc = 14.0 + float(k) * 9.0;
+    vec2 q = p * sc + vec2(-t * (2.5 + float(k) * 1.5), t * 0.6);
+    vec2 cell = floor(q), f = fract(q) - 0.5;
+    float r = h(cell + float(k) * 17.0);
+    vec2 o = vec2(h(cell + 3.1), h(cell + 7.7)) - 0.5;
+    float flick = 0.5 + 0.5 * sin(t * (4.0 + r * 6.0) + r * 40.0);
+    em += step(0.94, r) * flick * smoothstep(0.06, 0.0, length((f - o * 0.6) * vec2(0.35, 1.0)));
+  }
+  over(acc, uEmber * 3.0, clamp(uStorm * em, 0.0, 1.0));
+  gl_FragColor = acc.a > 0.0 ? vec4(acc.rgb / acc.a, min(acc.a, 0.9)) : vec4(0.0);
 }`;
 
 export class StormDust {
   readonly mesh: Mesh;
   private readonly mat: ShaderMaterial;
-  constructor(parent: Object3D, color: Color) {
+  constructor(parent: Object3D, color: Color, glow: Color, ember: Color) {
     this.mat = new ShaderMaterial({
       vertexShader: STORM_VERT, fragmentShader: STORM_FRAG, transparent: true, depthWrite: false, depthTest: false,
-      uniforms: { uTime: { value: 0 }, uStorm: { value: 0 }, uAspect: { value: 1 }, uCol: { value: color.clone() } },
+      uniforms: {
+        uTime: { value: 0 }, uStorm: { value: 0 }, uAspect: { value: 1 },
+        uCol: { value: color.clone() }, uGlow: { value: glow.clone() }, uEmber: { value: ember.clone() },
+      },
     });
     this.mesh = new Mesh(new PlaneGeometry(1, 1), this.mat);
     this.mesh.frustumCulled = false;
