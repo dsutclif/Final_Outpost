@@ -14,6 +14,8 @@ import {
   KeepStencilOp,
   NotEqualStencilFunc,
   Group,
+  AdditiveBlending,
+  DoubleSide,
   Matrix4,
   Material,
   Mesh,
@@ -489,6 +491,10 @@ export class Renderer3D implements Renderer {
   /** Warehouse drop-off pad (the player only drops there). */
   private depotPads: Mesh[] = [];
   private depotXrays: (Mesh | undefined)[] = [];
+  /** Pad ground points of the last frame, and which of them something taller hides from the camera this frame (id -> that thing's top, world): the pin-and-pole of a hidden pad (#89). */
+  private padPts: { id: string; x: number; z: number }[] = [];
+  private padHidden = new Map<string, number>();
+  private poleGeo: PlaneGeometry | null = null;
   private readonly nowFn: () => number;
   private readonly dprFn: () => number;
   private readonly createGL: (canvas: HTMLCanvasElement) => GLLike;
@@ -664,6 +670,8 @@ export class Renderer3D implements Renderer {
     this.scaffoldGeo = this.buildScaffold();
     this.padPlane = new PlaneGeometry(1, 1);
     this.padPlane.rotateX(-Math.PI / 2);
+    this.poleGeo = new PlaneGeometry(1, 1);
+    this.poleGeo.translate(0, 0.5, 0);
     this.buildLasso();
     this.marks = new GroundMarks(this.scene, { interactive: this.tokens.interactive, accent: this.tokens.accent, frost: this.tokens.frost, ink: this.tokens.ink, hero: this.tokens.ok, shadow: this.tokens.guideShadow, light: this.tokens.guideLight }, this.env.night, make);
     this.guideSprite = null;
@@ -754,6 +762,7 @@ export class Renderer3D implements Renderer {
     this.geos = [];
     this.scaffoldGeo?.dispose();
     this.padPlane?.dispose();
+    this.poleGeo?.dispose();
     if (this.lasso) {
       this.lasso.trail.geometry.dispose();
       (this.lasso.trail.material as MeshBasicMaterial).dispose();
@@ -1227,7 +1236,7 @@ export class Renderer3D implements Renderer {
       model.root.scale.setScalar(ART_M);
       this.applyShadows(model.root);
       this.dynamic.add(model.root);
-      p = { key, model, born: this.synced && !this.quiet.delete(key) ? this.t : -Infinity, seen: true, data: { id, h: h * ART_M, ...(occ ? { occ } : {}) }, sprites: [], extra: [] };
+      p = { key, model, born: this.synced && !this.quiet.delete(key) ? this.t : -Infinity, seen: true, data: { id, h: h * ART_M, ...(occ ? { occ } : {}), ...(!occ && !model.root.userData["ghost"] && !/^(conv.|struct.conveyor|barrier.|capture.|res.)/.test(id) ? { pbox: this.hideBox(model.root, ART_M * this.buildK(id, level)) } : {}) }, sprites: [], extra: [] };
       this.placed.set(key, p);
     }
     p.seen = true;
@@ -1243,6 +1252,13 @@ export class Renderer3D implements Renderer {
   private buildK(id: string, level = 1): number {
     const sized = (/^(sink|conv|struct)\./.test(id) || id === "node.food_source") && id !== "struct.gate" && id !== "struct.conveyor";
     return sized ? this.devBuildScale * modelScaleFor(this.devModelScale, id, level) : 1;
+  }
+
+  /** Just the ground box and top of what stands taller than half the hero on a model that never fades (gates, depot, nodes): all a hidden pad needs. */
+  private hideBox(root: Object3D, sc: number): { x0: number; x1: number; z0: number; z1: number; top: number } | undefined {
+    const half = (0.5 * ART_M * this.devCharScale) / sc, box = new Box3();
+    root.traverse((o) => { const m = o as Mesh; if (!m.isMesh) return; tmpBox.setFromObject(m); if (!tmpBox.isEmpty() && tmpBox.max.y > half) box.union(tmpBox); });
+    return box.isEmpty() ? undefined : { x0: box.min.x, x1: box.max.x, z0: box.min.z, z1: box.max.z, top: box.max.y };
   }
 
   /** The hiding part of a freshly built model (root still at the origin, unscaled), or none when nothing on it stands taller than half the hero. */
@@ -1272,6 +1288,16 @@ export class Renderer3D implements Renderer {
     return occ;
   }
 
+  /** Note every pad whose ground point this box hides from the camera (the sight line up to the box's top crosses it). Walls and buildings both call it. */
+  private padsBehind(bx: number, bz: number, ang: number, sx: number, sz: number, x0: number, x1: number, z0: number, z1: number, top: number, ux: number, uz: number, slope: number): void {
+    if (!this.padPts.length) return;
+    const co = Math.cos(ang), si = Math.sin(ang), reach = top / slope;
+    for (const q of this.padPts) {
+      const wx = q.x - bx, wz = q.z - bz;
+      if (segHitsBox((wx * co - wz * si) / sx, (wx * si + wz * co) / sz, ((ux * co - uz * si) * reach) / sx, ((ux * si + uz * co) * reach) / sz, x0, x1, z0, z1)) this.padHidden.set(q.id, Math.max(this.padHidden.get(q.id) ?? 0, top));
+    }
+  }
+
   /**
    * Fade whatever stands between the hero and the camera (backlog R5 #4). The camera angle is fixed, so
    * an object hides the hero when the ground line from the hero's feet toward the camera crosses its
@@ -1284,6 +1310,8 @@ export class Renderer3D implements Renderer {
     const ux = cx / flat, uz = cz / flat, slope = Math.max(0.05, (this.camera.position.y - this.look.y) / flat);
     const half = 0.5 * ART_M * this.devCharScale;
     for (const p of this.placed.values()) {
+      const pb = p.data["pbox"] as { x0: number; x1: number; z0: number; z1: number; top: number } | undefined;
+      if (pb && p.model.root.visible) { const r = p.model.root; this.padsBehind(r.position.x, r.position.z, r.rotation.y, r.scale.x || 1, r.scale.z || 1, pb.x0, pb.x1, pb.z0, pb.z1, r.position.y + pb.top * r.scale.y, ux, uz, slope); }
       const o = p.data["occ"] as Occ | undefined;
       if (!o) continue;
       const r = p.model.root;
@@ -1298,6 +1326,7 @@ export class Renderer3D implements Renderer {
         const ix = (0.3 * half) / sx, iz = (0.3 * half) / sz;
         hidden = segHitsBox((wx * c - wz * s) / sx, (wx * s + wz * c) / sz, ((ux * c - uz * s) * reach) / sx, ((ux * s + uz * c) * reach) / sz, o.x0 + ix, o.x1 - ix, o.z0 + iz, o.z1 - iz);
       }
+      if (r.visible) this.padsBehind(r.position.x, r.position.z, r.rotation.y, r.scale.x || 1, r.scale.z || 1, o.x0, o.x1, o.z0, o.z1, r.position.y + o.top * r.scale.y, ux, uz, slope);
       if (o.fade === 1 && !hidden) continue;
       o.fade = hidden ? Math.max(FADE_TO, o.fade - dt * 6) : Math.min(1, o.fade + dt * 4);
       const on = o.fade < 1;
@@ -1348,6 +1377,7 @@ export class Renderer3D implements Renderer {
     const geo = batch.mesh.geometry;
     if (!geo.boundingBox) geo.computeBoundingBox();
     const bb = geo.boundingBox!;
+    this.padsBehind(x, z, ang, sx, sz, bb.min.x, bb.max.x, bb.min.z, bb.max.z, bb.max.y * sy, c.ux, c.uz, c.slope);
     let target = 1;
     const reach = (bb.max.y * sy - c.half) / c.slope;
     if (reach > 0) {
@@ -1469,7 +1499,7 @@ export class Renderer3D implements Renderer {
         continue;
       }
       const m = o as Mesh;
-      if (m.isMesh && m.geometry !== this.scaffoldGeo && m.geometry !== this.padPlane) m.geometry.dispose();
+      if (m.isMesh && m.geometry !== this.scaffoldGeo && m.geometry !== this.padPlane && m.geometry !== this.poleGeo) m.geometry.dispose();
     }
   }
 
@@ -2032,6 +2062,7 @@ export class Renderer3D implements Renderer {
       .sort((a, b) => ((a.pos.x - pl.x) ** 2 + (a.pos.y - pl.y) ** 2) - ((b.pos.x - pl.x) ** 2 + (b.pos.y - pl.y) ** 2) || (a.id < b.id ? -1 : 1))
       .slice(0, TIERS[this.quality].ghosts)
       .map((pad) => pad.id));
+    const pts: { id: string; x: number; z: number }[] = [];
     for (const pad of s.pads) {
       // a manual-first hire is hidden by the sim; it still shows, locked, so the player sees what it will unlock
       const holdJob = !pad.done && !pad.visible && this.cp ? heldJob(s, this.cp, pad) : null;
@@ -2068,6 +2099,8 @@ export class Renderer3D implements Renderer {
       decal.position.set(at.x, 2.4, at.z);
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
       p.extra[4] = this.padXray(p.extra[4] as Mesh | undefined, decal, dm, big, locked, lightMark);
+      pts.push({ id: pad.id, x: at.x, z: at.z });
+      this.padPin(p, pad.id, at, glyph, wk?.what, wk?.worker?.res, lightMark, locked);
       // floating name plus every cost resource with what is still owed (icon + number each)
       const sp = this.sprite(p, 0);
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
@@ -2104,6 +2137,8 @@ export class Renderer3D implements Renderer {
       } else if (scaf) scaf.visible = false;
       if (hold) { const ring = p.extra[2]; if (ring) ring.visible = false; } else this.padRing(p, s, pad, big, at);
     }
+    this.padPts = pts;
+    this.padHidden.clear();
   }
 
   /**
@@ -3175,6 +3210,58 @@ export class Renderer3D implements Renderer {
     if (m.stencilWrite) return;
     m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = NotEqualStencilFunc;
     m.stencilFail = KeepStencilOp; m.stencilZFail = KeepStencilOp; m.stencilZPass = KeepStencilOp;
+  }
+
+  /**
+   * A hidden pad also shows a pin on a pole (#89): the pad's own icon on a disc, held up in the air above whatever hides it
+   * by a thin pole of light, both see-through and drawn over everything, so it reads as a digital overlay, not an object.
+   * Shown only while a wall or building covers the pad's ground point from the camera.
+   */
+  private padPin(p: Placed, id: string, at: Vector3, glyph: string, role: string | undefined, res: string | undefined, light: boolean, locked: boolean): void {
+    const top = this.padHidden.get(id);
+    if (top !== undefined) p.data["pinT"] = this.t;
+    const on = this.t - ((p.data["pinT"] as number | undefined) ?? -9) < 0.2;
+    let pole = p.extra[5] as Mesh | undefined;
+    const sp = this.sprite(p, 7);
+    if (!on) { if (pole) pole.visible = false; sp.visible = false; return; }
+    if (top !== undefined) p.data["pinH"] = Math.max(top + 0.7 * ART_M, 2.3 * ART_M);
+    const h = (p.data["pinH"] as number | undefined) ?? 2.3 * ART_M;
+    if (!pole) {
+      pole = new Mesh(this.poleGeo!, new MeshBasicMaterial({ color: new Color(this.tokens.guideLight), transparent: true, opacity: 0.3, blending: AdditiveBlending, depthTest: false, depthWrite: false, side: DoubleSide, toneMapped: false }));
+      pole.renderOrder = 9;
+      this.dynamic.add(pole);
+      p.extra[5] = pole;
+    }
+    const flick = 0.85 + 0.15 * Math.sin(this.t * 7 + at.x);
+    pole.visible = true;
+    (pole.material as MeshBasicMaterial).opacity = 0.3 * flick;
+    pole.position.set(at.x, 2.4, at.z);
+    pole.rotation.y = YAW;
+    pole.scale.set(0.09 * ART_M, h, 1);
+    sp.visible = this.labels.apply(sp, `pin|${glyph}|${role ?? ""}|${res ?? ""}|${light}|${locked}`, () => this.padPinArt(glyph, role, res, light, locked), PAD_LABEL_H * 0.75);
+    sp.position.set(at.x, h + 2.4, at.z);
+    sp.material.opacity = 0.9 * flick;
+  }
+
+  /** The pin: the pad's glyph on a see-through disc in the role colour, ringed like a light projection. */
+  private padPinArt(glyph: string, role: string | undefined, res: string | undefined, light: boolean, locked: boolean): LabelArt {
+    const t = this.tokens;
+    return {
+      w: 128, h: 128,
+      draw: (g, w, h) => {
+        g.clearRect(0, 0, w, h);
+        const disc = role ? this.skin.palette.role[role] ?? t.structure : t.guideLight;
+        g.globalAlpha = locked ? 0.4 : 0.6;
+        g.beginPath(); g.arc(w / 2, h / 2, 50, 0, Math.PI * 2); g.fillStyle = disc; g.fill();
+        g.globalAlpha = 0.9; g.lineWidth = 5; g.strokeStyle = t.guideLight; g.stroke();
+        g.setLineDash([6, 8]); g.beginPath(); g.arc(w / 2, h / 2, 59, 0, Math.PI * 2); g.lineWidth = 3; g.stroke(); g.setLineDash([]);
+        g.globalAlpha = 0.95;
+        if (glyph) { drawGlyph(g, glyph, w / 2, h / 2, 30, t.ink, t.paper.panel); if (res) drawIcon(g, w / 2 + 34, h / 2 + 34, 16, resToken(t, res), t.ink); }
+        else { g.beginPath(); g.moveTo(w / 2, h / 2 - 22); g.lineTo(w / 2 + 18, h / 2); g.lineTo(w / 2, h / 2 + 22); g.lineTo(w / 2 - 18, h / 2); g.closePath(); g.fillStyle = t.guideLight; g.fill(); }
+        g.globalAlpha = 1;
+        void light;
+      },
+    };
   }
 
   /** The pad's outline alone, dashed: the "dash" style of the hidden-behind copy. */
