@@ -1217,7 +1217,11 @@ export const marsGreenhouse: Skin = {
             { dotsOff: true },
             { line: "Hold them off until sunrise.", who: "kiln" },
           ] },
-          // night all level, no dawn steps (Doug, 2026-11-08); it only dims to a warm ember slowly once Vale has gone (below)
+          // night all level, no dawn steps (Doug, 2026-11-08), dimming toward the helmet film's dark orange the whole way, one
+          // steady dim from the first tick so the player never sees it change (Doug, 2026-11-09: 40 s after the fall was far
+          // too fast). Game time, so it holds through lines and the paused fall. A good run reaches the retreat at ~160 s
+          // (light about -0.75 then), the rest finishes while the helmet is towed; slower runs simply arrive darker
+          { on: { start: true }, do: [{ light: "ember", seconds: 200 }] },
           // just before the warlord walks into frame (it spawns beyond the map's edge), not when it spawns (Doug)
           { on: { hostile: "hostile.boss", r: 330 }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
@@ -1225,9 +1229,6 @@ export const marsGreenhouse: Skin = {
             // filmed in the level with play paused (Doug, 2026-11-08); the live scene stands in without the models.
             // No line during it (Doug, 2026-11-07)
             { fall: { kind: "hostile.boss", film: "warlord_fall" } },
-            // then, over 40 s of play (game time, so not during the paused fall), the night dims to a low warm glow, so the
-            // helmet film (dark, orange on the sand) follows without a jump (Doug, 2026-11-08)
-            { light: "ember", seconds: 40 },
           ] },
           // once Vale has run off screen (about 3 s at the fleeing pace, measured on a phone-shaped view), KILN, with dots
           // on the helmet where it fell (manifest heldBy: boss; showDropped draws it there before dawn reveals it to tow)
