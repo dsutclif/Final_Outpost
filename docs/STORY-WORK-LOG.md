@@ -34,6 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-09 | Film track (Sonnet) | film-game-side | `levels/story/story-L001..005.json`, `packages/client/src/cinematics.ts` + film files, `packages/client/public/models/decor.stasis_pod.glb`, `packages/render-3d/src/renderer.ts` (decor roll order) | the new opening film goes in with its level values (scrap, level 1 start, pods, glass) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
