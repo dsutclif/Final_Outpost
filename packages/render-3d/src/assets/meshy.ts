@@ -77,6 +77,8 @@ export interface MeshyHeld {
   k?: number;
   /** Shown only during these actions (rig state `act`). */
   when?: string[];
+  /** Hidden during these actions (a pick on the back while the hand holds one). */
+  unless?: string[];
 }
 
 const ENTRIES = (config as { models: MeshyEntry[] }).models;

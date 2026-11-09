@@ -50,7 +50,7 @@ export interface RigState {
   once?: string;
 }
 
-interface Prop { obj: Object3D; when?: string[] }
+interface Prop { obj: Object3D; when?: string[]; unless?: string[] }
 
 interface Inst {
   /** Character id it was built for (props and clips depend on it). */
@@ -318,7 +318,7 @@ export class Rigged {
       inst.altLast = wrapped ? 0 : t;
     }
     this.play(inst, c[want] ?? (want === "idle" ? "__idle" : c["walk"] ?? ""));
-    for (const p of inst.props) p.obj.visible = !p.when || p.when.includes(want) || (want !== s.act + "2" && !!s.act && p.when.includes(s.act));
+    for (const p of inst.props) p.obj.visible = (!p.when || p.when.includes(want) || (want !== s.act + "2" && !!s.act && p.when.includes(s.act))) && !(p.unless && !!s.act && p.unless.includes(s.act));
   }
 
   /** The turn a finished get-up left on `key`, handed to the caller (which owns the facing from here) and cleared. */
@@ -479,7 +479,7 @@ export class Rigged {
         prop.scale.setScalar(k2);
         (h.bone ? boneOf(root, h.bone) : undefined)?.add(prop) ?? root.add(prop);
       }
-      inst.props.push({ obj: prop, ...(h.when ? { when: h.when } : {}) });
+      inst.props.push({ obj: prop, ...(h.when ? { when: h.when } : {}), ...(h.unless ? { unless: h.unless } : {}) });
       if (h.grip) {
         // a pushed prop: both hands reach for its grip, a half-width either side
         const [gx = 0, gy = 0, gz = 0, half = 0.2] = h.grip;

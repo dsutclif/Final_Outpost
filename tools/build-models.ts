@@ -60,6 +60,8 @@ export interface MeshyEntry {
   mirror?: boolean;
   /** Keep only triangles above this fraction of the source's height (0 bottom, 1 top): a head cut from a bust. */
   crop?: number;
+  /** Characters: boxes [x0,y0,z0,x1,y1,z1] in the bind pose (source metres); a triangle with all three corners inside one is removed (a pick baked into the back, which is carried as its own prop instead). */
+  drop?: number[][];
 }
 export interface BuiltEntry { hash: string; tris: number; bytes: number; outline?: { hash: string; tris: number; bytes: number }; lod?: { hash: string; tris: number; bytes: number }; bounds: [number, number, number, number, number, number] }
 
@@ -498,6 +500,13 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
   for (const v of src.pos) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
   const up = hi - lo < 0.1 ? 1.7 / (hi - lo) : 1;
   if (up !== 1) for (let i = 0; i < src.pos.length; i++) src.pos[i]! *= up;
+  if (e.drop?.length) {
+    const inside = (v: number): boolean => e.drop!.some((b) => src.pos[v * 3]! >= b[0]! && src.pos[v * 3]! <= b[3]! && src.pos[v * 3 + 1]! >= b[1]! && src.pos[v * 3 + 1]! <= b[4]! && src.pos[v * 3 + 2]! >= b[2]! && src.pos[v * 3 + 2]! <= b[5]!);
+    const keep: number[] = [];
+    for (let t = 0; t < src.idx.length; t += 3) if (!(inside(src.idx[t]!) && inside(src.idx[t + 1]!) && inside(src.idx[t + 2]!))) keep.push(src.idx[t]!, src.idx[t + 1]!, src.idx[t + 2]!);
+    console.log(`${e.file}: dropped ${(src.idx.length - keep.length) / 3} triangles`);
+    src.idx = Uint32Array.from(keep);
+  }
   const size = e.texture ?? 512;
   // `error` is in art metres; the renderer scales the bind pose to `height` (or `length`, the longest side)
   let err = e.error;
