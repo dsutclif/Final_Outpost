@@ -73,8 +73,10 @@ def stand_in(at, yaw=0.0, name="commander"):
 
 
 def main():
-    sc = lib.reset(360, 640)
+    sc = lib.reset(540, 960)
     sc.render.engine = "BLENDER_WORKBENCH"
+    if sc.world is None: sc.world = bpy.data.worlds.new("sky")
+    sc.world.color = (0.30, 0.27, 0.27)  # dim dusk-grey sky, never black
     sh = sc.display.shading
     sh.light, sh.color_type = "STUDIO", "TEXTURE"
     sh.show_shadows = True
