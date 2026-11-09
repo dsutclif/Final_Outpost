@@ -13,8 +13,8 @@
 import fs from "node:fs";
 
 const dry = process.argv.includes("--dry");
-const SCRAP_X = { 1: 369.4, 2: 259.4, 3: 259.4, 4: 259.4, 5: 259.4 };
-const L1_START = [453.9, 130.8];
+const SCRAP_X = { 1: 369.4, 2: 369.4, 3: 369.4, 4: 369.4, 5: 369.4 }; // the shared map (82641ab) puts every level's scrap at 469.4
+const FILM_END = { dx: -105.1, dy: 5.8 }; // game_film.py END: commander at -3.75 m, -0.21 m from pod0 (28 units per metre)
 const POD_LIFT = -8.4, CLOSED_LID_LIFT = 27.3;
 const LID0 = { dx: 16.5, dy: -0.6, lift: 31.5, yaw: -90, roll: -105 };
 let changed = 0;
@@ -25,7 +25,7 @@ for (const n of [1, 2, 3, 4, 5]) {
   const by = Object.fromEntries(j.entities.filter((e) => e.id).map((e) => [e.id, e]));
   const set = (o, k, v) => { if (JSON.stringify(o[k]) !== JSON.stringify(v)) { o[k] = v; changed++; } };
   set(by.scrap.at, 0, SCRAP_X[n]);
-  if (n === 1) set(j, "start", L1_START);
+  if (n === 1) { set(j.start, 0, Math.round((by.pod0.at[0] + FILM_END.dx) * 10) / 10); set(j.start, 1, Math.round((by.pod0.at[1] + FILM_END.dy) * 10) / 10); }
   for (let i = 0; i < 5; i++) {
     const pod = by[`pod${i}`], lid = by[`lid${i}`];
     if (pod) set(pod, "lift", POD_LIFT);
