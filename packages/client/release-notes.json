@@ -1,12 +1,6 @@
 {
   "notes": [
-    "Attackers now spread out in front of the gate instead of lining up behind each other.",
-    "A guard that is shot down is no longer lost at once: it has 15 seconds, counted out over it, for you or a medic to heal it. Stand next to it and it is back up in a few seconds.",
-    "KILN now floats closer to the commander in the early levels, and its glow is bigger so it reads the same size as in level 5.",
-    "Level 3: the camp wall no longer touches the rock piles behind it, so builders can always walk around the back.",
-    "Sela's arrival: the film ends as she steps out of her buggy. It stays parked at the camp's east entrance with its lights on, and she walks in from it.",
-    "A person standing in front of a pad now always hides it, and a pad behind a wall or building shows as a thin dashed outline.",
-    "The pictures in the traders' order bubbles are twice as big.",
-    "An upgrade's outline shows only while you stand on its pad paying in."
+    "The hauler no longer has a pickaxe point sticking up from his backpack: he carries the pick on his back with the point down, and takes it in hand to mine.",
+    "The protein hunter now holds his rifle properly when shooting, and carries it low at his side when walking."
   ]
 }
