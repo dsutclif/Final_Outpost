@@ -5,6 +5,10 @@ was seen. Work finished before 2026-11-07 is ticked in the archived round files 
 (`BACKLOG-R4.md`, `BACKLOG-R5.md`, `BACKLOG-R6.md`, `BACKLOG-STORY.md`, `POLISH-PLAN.md`).
 
 
+## 2026-11-09 (Vale and First Watch)
+
+- [x] **#6 · S32 The lieutenant's fall, re-staged (with #55).** In First Watch (story level 5) the warlord stops at its stand-off (`bossStandoff` 70) where guards, turret and commander can all hit it; the commander's last shot plays the in-level fall (Vale thrown on her back, helmet off and rolling, rolls over, gets up), then she runs off in play as Vale at her stride speed; KILN's lines and helmet dots follow; `helmet_reveal` then "Vale?" (`vale_run` dropped). Shots meet characters at the chest. Light dims steadily all level to the helmet film's dark orange and climbs back toward sunrise after it. RAIDER portrait is Vale in the black helmet. Live 2026-11-09 (main `cd3d37f`); Doug: "vale and L5 approved".
+
 ## 2026-11-08 (storm look)
 
 - [x] **#79 · Dust storms look like Doug's reference (orange haze, embers, warm dark grade).** New look only: rust storm fog and ambient, a darker key light, lit haze on the far side of the view, a rust vignette and blowing embers in the one-pass storm shader (`softfx.ts` `StormDust`; skin tokens `stormGlow`, `stormEmber`). Live 2026-11-08 (main `ce40366`); Doug: "storm looks great". Step 2 (medium cloud bank) not needed. Dev check: `__lookEnv.stormHold = 1`.

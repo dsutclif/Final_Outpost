@@ -63,7 +63,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       2. A guard shot down lies there with a number over it counting down from 15, green then red; walk up to it and it gets up in about 3 s. A medic does the same without you.
       3. With no medic or med bay, a downed guard still lasts its 15 s (before it was lost at once); left alone it is lost at 0.
       4. Nobody starts healing in the first moment of the fall (about 1.5 s).
-- [ ] **Remind Doug (2026-11-09): do the iPhone checks #83, #84, #2, #7, #6, #76, and run the three remote branch deletes (Bundle 1).**
+- [ ] **Remind Doug (2026-11-09): do the iPhone checks #83, #84, #2, #7, #76, and run the three remote branch deletes (Bundle 1).**
 - [ ] **#83 · iPhone checks for Bundle 3 (live site).**
       1. KILN (#4/#13): the cloud beside the commander looks the same size in story levels 1–5 and is still easy to see at the smaller size; on the first regular level that teaches something new (e.g. s1-L006) it floats beside the commander while its lines show.
       2. Level 3 wall (#14): after Sela's first sale KILN asks for the wall; walking the dashed ring raises it a credit a section; the hub beat follows.
@@ -187,56 +187,13 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       Done check: on s1-L022, the storm warning and countdown read in full, clear of the progress and goal icons, on iPhone, live.
 
 
-## Bundle 3: story pass (story files; #6 is owned by the "Vale helmet animations" session)
+## Bundle 3: story pass (story files)
 
 - [ ] **#99 · Generate pads so none sit behind a building or wall (Doug, 2026-11-08; the larger fix behind #89's pin-and-pole).** Attack levels with walls face south and east by default (the camera side), and every other pad is constrained not to stand behind a building or wall as seen from the camera. Generator and layout rule, so an engine bump and a pack rebuild; the pin-and-pole shipped in #89 covers hidden pads until then.
       Done check: `levels:check` clean, and a scan of the pack finds no pad hidden from the camera by a building or wall.
 - [ ] **#100 · Rangers walk through walls to reach hoppers unless the commander is outside the gate (Doug, 2026-11-08, playtesting s1-L017).** A Ranger's movement should not depend on where the commander is. He should path round the walls (out through the gate) to the hoppers whatever the commander does. Sim bug, so an engine bump (Systems).
       Done check: on s1-L017, hire the Ranger with the commander inside the walls; he walks out by the gate to the hoppers and never through a wall.
-- [ ] **#6 · S32 The lieutenant's fall, re-staged (Doug, 2026-11-07).** Claimed by the `story-vale-scrap` session;
-      check the work log first. What's wrong now: the alignment is a mess, the fall comes with no cause, and it
-      plays after the run has started. The cause: the scene is triggered by the sim's `retreated` event, which
-      fires when the warlord has already turned to flee. The beat Doug wants, in order:
-      1. Vale is attacking and taking damage in normal play.
-      2. The animation starts on the hit that brings the warlord to its retreat threshold. A close-up shows the
-         last shot or two striking Vale, so the player sees why Vale falls; one shot too many knocks Vale down.
-      3. The helmet falls off at that spot. Where it lands matches where Vale's head lies at the end of the fall.
-      4. Vale gets up.
-      5. Only now does Vale run off screen.
-      Use Doug's new models (`hostile.boss_vale` with `item.vale_head`, the black `item.lieutenant_helmet`). After
-      the animation, the in-play helmet lies where it fell (the head's spot), not at its manifest spot (760, 770).
-      Vale's face may show when the helmet comes off. Doug, 2026-11-07: fine, since the helmet scene comes right
-      after, and it's a small gift for players who recognise Vale from the name card in an earlier level.
-      Dialogue timing:
-      - "You should have stayed asleep, Commander." stays as the warlord walks into frame.
-      - No line during the animation.
-      - KILN's "They're running. It's over for tonight." and "They dropped something." (with dots on the helmet)
-        come straight after Vale leaves the screen. They replace the line that waits for the fleeing warlord to
-        pass the helmet.
-      - The capture then plays `helmet_reveal`, `vale_run` and "Vale?" (#55) as now.
-      **Already done in engine 0.21.0:** the helmet drops on the hit that crosses the retreat threshold and lies at that
-      spot in play; the Vale models and the fall scene exist.
-      **Doug, 2026-11-07:** while the animation plays, the game's own warlord is paused and hidden. After the fall and
-      get-up, the in-play warlord is replaced by Vale's head on the warlord body (`hostile.boss_vale` + `item.vale_head`),
-      which runs off screen; the helmet stays on the ground at the point of the fall. Still to do: freeze and hide the
-      in-play warlord (`retreated` fires after it has already turned to flee), the close-up of the last shots, the line
-      timing, the helmet landing on the head's spot, and the commander picking up the helmet (from #12).
-      **Merged:** #55 (check `vale_run` on a phone) is this item's done check.
-      Done check: on a phone, cause, fall, helmet, get up, run off, then the lines; the in-play helmet is at the fall spot.
-      **Live 2026-11-07 (b4c63fc), waiting on Doug's iPhone check.** Built to Doug's stick-figure picks and his three notes;
-      gun kept throughout (Doug). Checked headless only (scene stills at phone sizes, a bot run of story-L005 to the retreat).
-      Open for Doug: "It's over for tonight" now plays 3 s after the fall even if other raiders are still alive.
-      **2026-11-08 follow-up (Doug):** Vale's head rig fixed (head upright, no longer sunk), head and black helmet capped at
-      1.2x the old grey helmet, and the film ends pulling back to the game's camera angle. Later the same day the film moved onto the level's own ground and light, then became an in-level staging (machinima) with play paused, and guards got fall and get-up animations (Doug). Checked headless; iPhone check still open.
-      Details: `docs/STORY-WORK-LOG.md` 2026-11-07 entry.
-      **Doug, 2026-11-07 (later), supersedes the staging above where they differ:**
-      1. Drop the commander-runs-with-the-helmet clip (`vale_run`, S33/#55). "Vale?" stays.
-      2. The close-up showed the helmet sitting sideways on Vale. Replace the fall: Vale falls on the back, rolls over and
-         gets up; the helmet comes off on ground contact and rolls away. No zoom on Vale's face. Keep the clip very short.
-         Work the motion out first with stick-figure demos Doug approves (the method used for the pod exit).
-      3. The run-away is in play, not in the scene: the in-play warlord becomes `hostile.boss_vale` + `item.vale_head` and
-         runs off to the right side of the screen.
-      **Owner:** the "Vale helmet animations" session (handed over 2026-11-07).
+
 
 ## Bundle 4: level 1 opening film (`crash_open`, Release 3)
 

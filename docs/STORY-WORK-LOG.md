@@ -45,7 +45,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | 2 Roll Call | B, rebuilt to the approved screenplay 2026-11-03 | Walls kept (Doug, 2026-11-03); all 5 pods incl. the lander pod |
 | 3 Open for Trade | B, rebuilt to the approved screenplay 2026-11-03 | Sela first; sell meat is a story step |
 | 4 Halcyon Works | B, rebuilt to the approved screenplay 2026-11-03 | crash_log still a text card; wreck distance (S25) open |
-| 5 First Watch | B, rebuilt to the approved screenplay 2026-11-03 | Ends on the helmet tow; lieutenant's fall is a text card |
+| 5 First Watch | Approved by Doug 2026-11-09 (live cd3d37f) | In-level Vale fall and run, helmet_reveal then "Vale?"; night dims all level, brightens after the helmet film |
 
 ## Decided by Doug
 
