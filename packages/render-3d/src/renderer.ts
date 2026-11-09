@@ -10,7 +10,6 @@ import {
   DataTexture,
   Frustum,
   ExtrudeGeometry,
-  GreaterDepth,
   KeepStencilOp,
   NotEqualStencilFunc,
   Group,
@@ -114,14 +113,6 @@ export interface Renderer3DOptions {
 interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; site?: V; worker?: { vars: WorkerVars; res?: string }; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean; target?: string }
 
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
-/**
- * How a pad hidden behind a building or wall shows through it (#89; Doug picks one from the three mocks):
- * "dash" the dashed outline alone, "pulse" the whole pad breathing in and out, "faint" the whole pad, much fainter.
- * A character in front of a pad always hides it, whichever style.
- */
-export type PadBehindStyle = "dash" | "pulse" | "faint";
-export const PAD_BEHIND_STYLE: PadBehindStyle = "dash";
-
 /** Order bubble sprite height (world): font 56 px on a 180 px canvas; ORDER_H_OLD is the first design (font 52 on 120), whose tail tip the new one keeps. */
 const ORDER_H = textSprite(TEXT.main, 56, 180), ORDER_H_OLD = textSprite(TEXT.main, 52, 120);
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
@@ -293,6 +284,10 @@ function drawGlyph(g: CanvasRenderingContext2D, kind: string, x: number, y: numb
       g.closePath(); g.fillStyle = light; g.fill(); g.stroke();
       break;
     }
+    case "build": // hammer: a pad that places something new
+      g.lineWidth = r * 0.26; line(-0.55, 0.85, 0.35, -0.2);
+      box(-0.1, -0.85, 1.0, 0.55, light); g.save(); g.restore();
+      break;
     case "up": // upgrade chevrons
       g.lineWidth = r * 0.26; line(-0.65, 0.05, 0, -0.6, 0.65, 0.05); line(-0.65, 0.7, 0, 0.05, 0.65, 0.7);
       break;
@@ -490,7 +485,6 @@ export class Renderer3D implements Renderer {
   private padPlane: PlaneGeometry | null = null;
   /** Warehouse drop-off pad (the player only drops there). */
   private depotPads: Mesh[] = [];
-  private depotXrays: (Mesh | undefined)[] = [];
   /** Pad ground points of the last frame, and which of them something taller hides from the camera this frame (id -> that thing's top, world): the pin-and-pole of a hidden pad (#89). */
   private padPts: { id: string; x: number; z: number }[] = [];
   private padHidden = new Map<string, number>();
@@ -1148,8 +1142,6 @@ export class Renderer3D implements Renderer {
   /** Per-building size multipliers (look.json modelScale) on top of devBuildScale; the layout sandbox swaps in alignedScale. */
   devModelScale: Record<string, number> = LOOK.modelScale;
   /** Pad plate size multiplier: the plot layout's pad (content plot.json) over the 49-unit plate, else 1; the layout sandbox sets its own. */
-  /** Dev-only override of PAD_BEHIND_STYLE (the mock shots); the game leaves it alone. */
-  devPadBehind: PadBehindStyle = PAD_BEHIND_STYLE;
   devPadScale = PLOT ? PLOT.render.pad / 49 : 1;
   /** Plot layout: machines' operator plates drawn this many world units across at their sim spot (null: built into the model). */
   devPlateSize: number | null = PLOT ? PLOT.render.plate : null;
@@ -2026,9 +2018,9 @@ export class Renderer3D implements Renderer {
       m.scale.setScalar(this.devPlateSize ?? 2 * (def?.padRange ?? 20) * 1.1);
       // the drop-off arrow points inward: from the pad toward the depot, whatever side its offset is on
       if (i === 0) m.rotation.y = o[0] === 0 && o[1] === 0 ? 0 : Math.atan2(o[0], o[1]);
-      this.depotXrays[i] = this.padXray(this.depotXrays[i], m, mat, false, false, lightMark);
+      if (mat) this.hideUnderCharacters(mat);
     });
-    for (let i = offs.length; i < this.depotPads.length; i++) { this.depotPads[i]!.visible = false; if (this.depotXrays[i]) this.depotXrays[i]!.visible = false; }
+    for (let i = offs.length; i < this.depotPads.length; i++) { this.depotPads[i]!.visible = false }
   }
 
   /** A warehouse pad: solid outline, an inward arrow on the drop-off, the resource's icon on a pickup. */
@@ -2098,7 +2090,7 @@ export class Renderer3D implements Renderer {
       if (dm) { decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
-      p.extra[4] = this.padXray(p.extra[4] as Mesh | undefined, decal, dm, big, locked, lightMark);
+      if (dm) this.hideUnderCharacters(dm);
       pts.push({ id: pad.id, x: at.x, z: at.z });
       this.padPin(p, pad.id, at, glyph, wk?.what, wk?.worker?.res, lightMark, locked);
       // floating name plus every cost resource with what is still owed (icon + number each)
@@ -3161,7 +3153,6 @@ export class Renderer3D implements Renderer {
     };
   }
 
-  private readonly xrayMats = new Map<string, MeshBasicMaterial>();
   private readonly stencilled = new WeakSet<Material>();
 
   /** Every rig's materials write stencil, so the see-through pad copy skips the pixels a character covers. */
@@ -3173,36 +3164,6 @@ export class Renderer3D implements Renderer {
         for (const x of Array.isArray(m) ? m : [m]) if (!this.stencilled.has(x)) { this.stencilled.add(x); markOccluder(x); }
       });
     }
-  }
-
-  /**
-   * A pad stays findable behind a taller model (#41, #89): a second copy that draws only where something nearer the
-   * camera covers the first, and never over a character (stencil, markOccluder). The style is PAD_BEHIND_STYLE.
-   */
-  private padXray(xr0: Mesh | undefined, decal: Mesh, dm: MeshBasicMaterial | null, big: boolean, locked: boolean, light: boolean): Mesh {
-    let xr = xr0;
-    if (!xr) { xr = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false })); xr.renderOrder = 1; this.dynamic.add(xr); }
-    xr.visible = !!dm && decal.visible;
-    if (!dm) return xr;
-    this.hideUnderCharacters(dm);
-    const style = this.devPadBehind;
-    const key = style === "dash" ? `dash|${big}|${locked}|${light}` : style;
-    let src = dm;
-    if (style === "dash") src = this.labels.meshMaterial(`pdx|${big}|${locked}|${light}`, () => this.padOutlineArt(big, locked, light)) ?? dm;
-    const mk = `${key}|${src.uuid}`;
-    let m = this.xrayMats.get(mk);
-    if (!m) {
-      m = src.clone(); m.depthFunc = GreaterDepth;
-      m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = NotEqualStencilFunc;
-      m.stencilFail = KeepStencilOp; m.stencilZFail = KeepStencilOp; m.stencilZPass = KeepStencilOp;
-      this.xrayMats.set(mk, m);
-    }
-    m.opacity = style === "dash" ? 0.95 : style === "faint" ? 0.18 : 0.1 + 0.4 * (0.5 + 0.5 * Math.sin(this.t * 4.5));
-    xr.material = m;
-    xr.position.copy(decal.position);
-    xr.scale.copy(decal.scale);
-    xr.rotation.copy(decal.rotation);
-    return xr;
   }
 
   /** A flat pad mark never draws over a character: it skips every pixel a character covers (stencil, markOccluder). */
@@ -3237,9 +3198,11 @@ export class Renderer3D implements Renderer {
     (pole.material as MeshBasicMaterial).opacity = 0.3 * flick;
     pole.position.set(at.x, 2.4, at.z);
     pole.rotation.y = YAW;
-    pole.scale.set(0.09 * ART_M, h, 1);
-    sp.visible = this.labels.apply(sp, `pin|${glyph}|${role ?? ""}|${res ?? ""}|${light}|${locked}`, () => this.padPinArt(glyph, role, res, light, locked), PAD_LABEL_H * 1.25);
+    const ico = glyph || "build";
+    sp.visible = this.labels.apply(sp, `pin|${ico}|${role ?? ""}|${res ?? ""}|${light}|${locked}`, () => this.padPinArt(ico, role, res, light, locked), PAD_LABEL_H * 1.25);
     sp.position.set(at.x, h + 2.4, at.z);
+    // the pole ends at the pin's lower edge, not its centre
+    pole.scale.set(0.09 * ART_M, Math.max(0.1, h - sp.scale.y / 2), 1);
     sp.material.opacity = 0.9 * flick;
   }
 
@@ -3260,23 +3223,6 @@ export class Renderer3D implements Renderer {
         else { g.beginPath(); g.moveTo(w / 2, h / 2 - 22); g.lineTo(w / 2 + 18, h / 2); g.lineTo(w / 2, h / 2 + 22); g.lineTo(w / 2 - 18, h / 2); g.closePath(); g.fillStyle = t.guideLight; g.fill(); }
         g.globalAlpha = 1;
         void light;
-      },
-    };
-  }
-
-  /** The pad's outline alone, dashed: the "dash" style of the hidden-behind copy. */
-  private padOutlineArt(big: boolean, locked: boolean, light: boolean): LabelArt {
-    const t = this.tokens;
-    const mark = light ? t.guideLight : t.guideShadow;
-    const col = locked ? mix(mark, light ? t.ink : t.guideLight, 0.45) : mark;
-    return {
-      w: 256, h: 256,
-      draw: (g, w, h) => {
-        g.clearRect(0, 0, w, h);
-        roundRect(g, 14, 14, w - 28, h - 28, 44);
-        g.setLineDash([26, 16]); g.lineJoin = "round";
-        this.markStroke(g, light, big ? 16 : 14, col);
-        g.setLineDash([]);
       },
     };
   }
