@@ -47,6 +47,7 @@ export class StoryStage {
     private readonly groundW: () => number = () => 0,
   ) {
     present.solid(director.solid);
+    present.wallMarks?.(!director.level.noWallMarks);
     this.glowEl = shell.ownerDocument.createElement("div");
     this.glowEl.className = "story-glow";
     this.glowEl.hidden = true;

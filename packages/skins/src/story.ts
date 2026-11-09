@@ -212,6 +212,8 @@ export interface StoryLevel {
    * pods glow themselves, with no beam over them.
    */
   podLights?: boolean | "glow";
+  /** The level's unbuilt wall line is not drawn (no dashes, no cost): it must exist for the tow line's rules (story level 2). */
+  noWallMarks?: boolean;
   /** Three slots over the hero's head fill with the pods in tow, so the tow limit shows (story level 2). */
   tally?: boolean;
   /** Customers drawn with their own character model: customer id (spawn order) to model id (story level 3: Sela). */

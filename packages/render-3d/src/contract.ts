@@ -149,6 +149,8 @@ export interface StoryPresentation {
   vehicle?(id: string, spec: StoryVehicleSpec | null): void;
   /** Show a capture a boss dropped where it lies, before its hiddenUntil reveals it. */
   showDropped(on: boolean): void;
+  /** Stop drawing unbuilt wall lines (their dashes and cost) while on. */
+  wallMarks?(on: boolean): void;
   /** Entity ids the renderer keeps solid (never faded) when the hero stands among them. */
   solid(ids: readonly string[]): void;
   /** Ask the camera to look elsewhere for a while; null cancels. */

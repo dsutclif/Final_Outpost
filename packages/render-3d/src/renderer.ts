@@ -1639,7 +1639,6 @@ export class Renderer3D implements Renderer {
   /** Captures seen carried by a boss (heldBy): once dropped, story showDropped draws them before they are revealed. */
   private bossHeld = new Set<number>();
   private customer(key: string, c: CustomerState, a: number, queued: boolean, kiosk: Placed, serving?: { customer: number; ticks: number; of: number }): void {
-    if (this.storyP?.riding(c.id)) return; // still in Sela's buggy
     const pos = this.interp.pos(key, c.pos, a);
     const look = lookFor(c.kind, this.tokens, this.skin.models);
     const vel = this.interp.vel(key);
@@ -1653,6 +1652,8 @@ export class Renderer3D implements Renderer {
     const named = this.storyP?.customerModels.get(c.id);
     if (named && !this.namedAsked.has(named)) { this.namedAsked.add(named); void loadMeshy(undefined, new Set([named]), undefined, true); }
     const rig = (named ? this.rigged?.entryFor(named) : undefined) ?? this.rigged?.entryFor(c.kind);
+    // still in Sela's buggy, or climbing out of it: StoryProps draws her there and hands over at the spot she will stand on
+    if (this.storyP?.riding(c.id, named, ART_M * look.scale * this.devCharScale / 0.9 * (rig?.height ?? 1.1), { x: pos.x, z: pos.y, faceX: kiosk.model.root.position.x, faceZ: kiosk.model.root.position.z })) return;
     if (rig) {
       const cheer = (this.cheerUntil.get(`c:${c.id}`) ?? 0) > this.t;
       this.rigged!.add(`c:${c.id}`, named && rig.id === named ? named : c.kind, rig, { moving, hurried: c.kind.endsWith("impatient"), cheer }, pos.x, pos.y, yaw, ART_M * look.scale * this.devCharScale / 0.9);
@@ -2325,7 +2326,7 @@ export class Renderer3D implements Renderer {
           const pop = this.fx!.popAge(`bar:${b.id}:${i}`);
           const k = pop < 0.45 ? Math.min(1.12, (pop / 0.3) * 1.12) - Math.max(0, pop - 0.3) * 0.8 : 1;
           this.wallRun(a, dx, dz, ang, len, 0, 1, reinforced, false, k);
-        } else if (!sec.built && !sec.broken) {
+        } else if (!sec.built && !sec.broken && this.storyP?.marksOn !== false) {
           // dashed marker plus a floating cost
           const nd = Math.max(1, Math.floor(len / 14));
           for (let j = 0; j < nd; j++) {

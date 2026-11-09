@@ -53,9 +53,9 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 ## Waiting on Doug
 
 - [ ] **iPhone checks for level 2's wall and Sela's buggy arrival (story only, after the next deploy).**
-      1. Open level 2 "Roll Call". There is no built wall around the camp any more (only the thin dashed line, which is just where the tow line starts). Play it through: all five pods still come home and the level still ends in a win. None of the lines mention a wall.
+      1. Open level 2 "Roll Call". At the start there is no dashed line or "wall line" price anywhere on the ground, so it looks like level 1 (the pale heat ring round the reactor is normal and stays). Play it through: all five pods still come home and the level still ends in a win.
       2. Open level 3 "Open for Trade". The night film now shows only headlights coming up the road, and it ends before the buggy stops. Sela must not get out inside it.
-      3. Back in play the camera moves to the road beside the stall: the buggy drives into the picture, slows, and parks with its headlights on. Only then does Sela appear at its door and walk to the stall; her first line comes as she arrives. Look for nothing rolling on without a driver, and for no pause with Sela standing in an empty frame.
+      3. Back in play the camera moves to the road beside the stall: the buggy drives in with Sela sitting at the wheel (dark suit, a little warm light on her), parks with its headlights on, she waits a beat, then climbs out over the side, turns toward the stall and walks to it; her first line comes as she arrives. Look for no empty buggy at any moment and for Sela not popping into place beside it (no jump when she starts walking).
 - [ ] **iPhone checks for the gate fan-out and downed guards (engine 0.23.0, live).** Open level 15 "Wreckage and Hardpoints" (or level 48 "Rust and Hardpoints"), hire guards and let a wave come to the gate.
       1. Attackers spread out in a short row in front of the gate (about three across, the rest behind) instead of one single-file queue; the gate still holds or breaks about as before.
       2. When a guard is shot down it lies where it fell with a number over it counting down from 15 (green, red for the last few seconds). Walk up to it: it gets back up after about 3 s. A hired medic does the same without you.

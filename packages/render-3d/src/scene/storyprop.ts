@@ -4,6 +4,7 @@ import { loadMeshy, meshyScene } from "../assets/meshy.js";
 import { SIZES } from "../sizes.js";
 import { ART_M } from "../units.js";
 import type { StoryVehicleSpec } from "../contract.js";
+import { SelaRide, type RideExit } from "./selaride.js";
 
 // Story vehicles: Sela's buggy (docs/BACKLOG.md #5), drawn in the game world by the story director's `vehicle`
 // action. Built like the sela_arrival film's buggy (same parts, 2.64 m, wheels on the rig hubs, two headlights),
@@ -18,7 +19,14 @@ const LAMP = 30 * ART_M ** 1.4;
 const bulbGeo = new SphereGeometry(0.12, 10, 8);
 const bulbMat = new MeshBasicMaterial({ color: "#fff6e0" });
 
-interface Run { spec: StoryVehicleSpec; len: number; segs: { x: number; z: number; d: number; yaw: number }[]; t0: number | null; group: Group | null; wheels: Object3D[]; lamps: SpotLight[]; yaw: number; driven: number }
+interface Run { spec: StoryVehicleSpec; len: number; segs: { x: number; z: number; d: number; yaw: number }[]; t0: number | null; group: Group | null; wheels: Object3D[]; lamps: SpotLight[]; yaw: number; driven: number;
+  /** The rider (see riding()): her seated figure, the customer facts the renderer last gave, when the buggy first stood ready, and the exit's progress. */
+  ride: SelaRide | null; info: { model: string; height: number; out: RideExit } | null; w0: number | null; exit: number }
+
+/** After the buggy parks: a beat sitting with the lights on, then the climb out. */
+const SIT = 0.5, EXIT = 1.3;
+/** If her model has not come in by then, the drive goes ahead without her figure. */
+const WAIT = 4;
 
 export class StoryProps {
   private readonly runs = new Map<string, Run>();
@@ -29,9 +37,9 @@ export class StoryProps {
   /** Place (or with null remove) the vehicle `id`; a spec with the same `seq` as the one shown is ignored. */
   vehicle(id: string, spec: StoryVehicleSpec | null): void {
     const cur = this.runs.get(id);
-    if (!spec) { if (cur?.group) this.detach(cur.group); this.runs.delete(id); return; }
+    if (!spec) { this.drop(cur); this.runs.delete(id); return; }
     if (cur && cur.spec.seq === spec.seq) return;
-    if (cur?.group) this.detach(cur.group);
+    this.drop(cur);
     const pts = spec.path;
     const segs: Run["segs"] = [];
     let len = 0;
@@ -39,13 +47,27 @@ export class StoryProps {
       const a = pts[i - 1]!, b = pts[i]!, dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz);
       if (d > 0) { segs.push({ x: a.x, z: a.z, d: len, yaw: Math.atan2(dz, -dx) }); len += d; }
     }
-    this.runs.set(id, { spec, len, segs, t0: null, group: null, wheels: [], lamps: [], yaw: segs[0]?.yaw ?? 0, driven: 0 });
+    this.runs.set(id, { spec, len, segs, t0: null, group: null, wheels: [], lamps: [], yaw: segs[0]?.yaw ?? 0, driven: 0, ride: null, info: null, w0: null, exit: 0 });
     if (!this.asked) { this.asked = true; void loadMeshy(undefined, new Set(MODELS), undefined, true); }
   }
 
-  /** A rider is hidden until the vehicle has parked (and for as long as its models are still loading). */
-  riding(id: number): boolean {
-    for (const r of this.runs.values()) if (r.spec.rider === id && (r.t0 === null || r.driven < 1)) return true;
+  private drop(r: Run | undefined): void {
+    if (!r) return;
+    if (r.group) this.detach(r.group);
+    if (r.ride) { this.detach(r.ride.root); this.detach(r.ride.lamp); r.ride.dispose(); }
+  }
+
+  /**
+   * True while customer `id` is still in (or climbing out of) a vehicle: the renderer does not draw her figure; this class
+   * draws her seated, then stepping out to `out`, where the customer figure carries on. `model` is her character id and
+   * `height` her height in world units; both and `out` are what the customer figure will have, so the hand-over is seamless.
+   */
+  riding(id: number, model: string | undefined, height: number, out: RideExit): boolean {
+    for (const r of this.runs.values()) {
+      if (r.spec.rider !== id) continue;
+      if (model) r.info = { model, height, out };
+      if (r.t0 === null || r.exit < 1) return true;
+    }
     return false;
   }
 
@@ -88,6 +110,12 @@ export class StoryProps {
       r.group ??= this.build(r);
       const g = r.group;
       if (!g || !r.segs.length) continue;
+      if (r.spec.rider !== undefined && !r.ride) {
+        // her figure is built as soon as the renderer has said who she is and her model is in; the drive waits for her
+        r.w0 ??= t;
+        if (r.info) { r.ride = SelaRide.make(r.info.model, r.info.height); if (r.ride) { r.ride.root.visible = false; this.attach(r.ride.root); this.attach(r.ride.lamp); } }
+        if (!r.ride && t - r.w0 < WAIT) continue;
+      }
       r.t0 ??= t;
       const u = (t - r.t0) / Math.max(0.1, r.spec.seconds);
       r.driven = u;
@@ -109,6 +137,13 @@ export class StoryProps {
       const on = r.spec.lights === false ? 0 : Math.min(1, u * 8);
       for (const l of r.lamps) l.intensity = LAMP * on;
       g.visible = true;
+      if (r.ride) {
+        const since = u * r.spec.seconds - r.spec.seconds - SIT;
+        r.exit = since <= 0 ? 0 : Math.min(1, since / EXIT);
+        // after the climb out the customer figure is drawn (riding() is false), so hers is put away
+        r.ride.root.visible = r.ride.lamp.visible = r.exit < 1;
+        r.ride.pose(g.position.x, g.position.z, g.rotation.y, ease(r.exit), r.info?.out ?? null);
+      } else r.exit = u < 1 ? 0 : 1;
     }
   }
 }

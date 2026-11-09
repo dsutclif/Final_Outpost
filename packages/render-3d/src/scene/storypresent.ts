@@ -1,5 +1,6 @@
 import type { CameraBeat, FallScene, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
 import { StoryProps } from "./storyprop.js";
+import type { RideExit } from "./selaride.js";
 import type { Interp } from "../interp.js";
 import type { CoreSpirit } from "./corespirit.js";
 import { screenAxes, type StoryLights } from "./storylights.js";
@@ -49,9 +50,12 @@ export class StoryPresent implements StoryPresentation {
   private readonly props = new StoryProps((o) => this.lights.attach(o), (o) => this.lights.detach(o));
   vehicle(id: string, spec: StoryVehicleSpec | null): void { this.props.vehicle(id, spec); }
 
-  /** True while customer `id` is still riding a driving vehicle (not drawn yet). */
-  riding(id: number): boolean { return this.props.riding(id); }
+  /** True while customer `id` is still in a vehicle or climbing out of it (her figure is drawn by StoryProps, not the renderer). */
+  riding(id: number, model: string | undefined, height: number, out: RideExit): boolean { return this.props.riding(id, model, height, out); }
 
+  /** Unbuilt wall lines are drawn unless a story level turns them off. */
+  marksOn = true;
+  wallMarks(on: boolean): void { this.marksOn = on; }
   solid(ids: readonly string[]): void { this.solidIds = new Set(ids); }
   /** Customers drawn with their own model (customer id to model id); the renderer reads it. */
   customerModels = new Map<number, string>();

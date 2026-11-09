@@ -944,6 +944,7 @@ export const marsGreenhouse: Skin = {
         hide: ["credits", "walls"],
         solid: ["sink.core"],
         podLights: "glow",
+        noWallMarks: true,
         tally: true,
         goalCards: true,
         // the pointers come on with KILN's line about them
@@ -1045,7 +1046,7 @@ export const marsGreenhouse: Skin = {
             // pans to the road by the stall and the buggy drives in and parks there, lights on; Sela (hidden while it drives) is then
             // standing at its door, where her route starts (story-L003), and she walks to the stall once the beat hands play back.
             { vehicle: "buggy", path: [{ at: [840, 962] }, { at: [770, 946] }, { at: [705, 924] }, { at: [640, 906] }], seconds: 6.5, lights: true, rider: "sela" },
-            { camera: { to: { at: [690, 928] }, pan: 0.8, hold: 7.9, back: 0.9 } },
+            { camera: { to: { at: [690, 928] }, pan: 0.8, hold: 9.7, back: 0.9 } },
             { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 24, back: 0.9, freeze: false } },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
