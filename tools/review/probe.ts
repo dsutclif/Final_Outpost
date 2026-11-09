@@ -116,16 +116,28 @@ interface LevelResult {
 
 class Shots {
   readonly list: string[] = [];
+  /** Pictures the browser would not give (software rendering can sit on "waiting for fonts" past any timeout): a data-health note, never a failed level. */
+  readonly failed: string[] = [];
   private flagged = 0;
+  private broken = 0;
   constructor(private readonly page: Page, private readonly dir: string, private readonly rel: string, private readonly cap: number) {}
 
   /** A picture at CSS pixel size; returns its path relative to the output folder, or null once the flagged cap is reached. */
   async take(name: string, force = false): Promise<string | null> {
     if (!force && this.flagged >= this.cap) return null;
+    // after two timeouts in a row the page cannot paint at all; stop paying 15 s for each further picture
+    if (this.broken >= 2) { this.failed.push(name); return null; }
     if (!force) this.flagged++;
     const file = `${safe(name)}.png`;
     mkdirSync(join(this.dir, "shots"), { recursive: true });
-    await this.page.screenshot({ path: join(this.dir, "shots", file), scale: "css" });
+    try {
+      await this.page.screenshot({ path: join(this.dir, "shots", file), scale: "css", timeout: 15_000 });
+      this.broken = 0;
+    } catch (e) {
+      this.broken++;
+      this.failed.push(`${name}: ${String((e as Error).message).slice(0, 120)}`);
+      return null;
+    }
     const rel = `${this.rel}/shots/${file}`;
     this.list.push(rel);
     return rel;
@@ -184,10 +196,14 @@ async function playLevel(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   const inPage = await page.evaluate(() => window.R.errors());
   result.errors = [...new Set([...inPage, ...run.errors])].slice(0, 40);
   const end = (tick * 1000) / TPS + 1;
-  for (const h of [...frameHits(frames, L, a.throttle), ...errorHits(result.errors)]) tracker.observe(end, [h]);
-  evidence.set("*", last ?? "");
-  result.findings = tracker.findings().map((f) => ({ ...f, evidence: [evidence.get(f.fingerprint) ?? evidence.get("*") ?? ""].filter(Boolean) }));
+  // level-wide findings (frame cost, console errors) have no moment of their own: they get the last checkpoint picture.
+  // Every other finding gets the picture taken when it was first confirmed, or none: never an unrelated end frame
+  // (before 2026-11-09 a covered label found after the shot cap showed the t0060 frame, where it was not covered).
+  const levelWide = new Set<string>();
+  for (const h of [...frameHits(frames, L, a.throttle), ...errorHits(result.errors)]) { tracker.observe(end, [h]); levelWide.add(fingerprintOf(h.cat, levelId, h.subject, h.check)); }
+  result.findings = tracker.findings().map((f) => ({ ...f, evidence: [evidence.get(f.fingerprint) ?? (levelWide.has(f.fingerprint) ? last : null) ?? ""].filter(Boolean) }));
   result.shots = shots.list;
+  if (shots.failed.length) result.extras["screenshotsFailed"] = shots.failed;
   result.wallSeconds = Math.round((Date.now() - t0) / 100) / 10;
 }
 
@@ -401,6 +417,7 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   tracker.observe(Date.now() + 1, errorHits(result.errors));
   result.findings = tracker.findings().map((f) => ({ ...f, track: "story" as const, evidence: [evidence.get(f.fingerprint) ?? startShot ?? ""].filter(Boolean) }));
   result.shots = shots.list;
+  if (shots.failed.length) extras["screenshotsFailed"] = shots.failed;
   result.extras = extras;
   result.wallSeconds = Math.round((Date.now() - t0) / 100) / 10;
 }

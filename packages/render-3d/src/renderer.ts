@@ -95,6 +95,7 @@ export interface GLLike {
   setSize(w: number, h: number, updateStyle?: boolean): void;
   render(scene: Scene, camera: ThreeCamera): void;
   /** Builds shader programs ahead of use (three's WebGLRenderer has it; test fakes may not). */
+  compile?(scene: Object3D, camera: ThreeCamera, targetScene?: Scene | null): unknown;
   compileAsync?(scene: Object3D, camera: ThreeCamera, targetScene?: Scene | null): Promise<unknown>;
   dispose(): void;
 }
@@ -1263,6 +1264,16 @@ export class Renderer3D implements Renderer {
   }
 
   /** The hiding part of a freshly built model (root still at the origin, unscaled), or none when nothing on it stands taller than half the hero. */
+  /**
+   * Starts shader programs building ahead of use. Not compileAsync: its 10 ms poll reads
+   * `currentProgram.isReady()` from a timer, and once a warm material is disposed or swapped before the
+   * poll sees it done, that throws an uncaught TypeError outside any promise (the probe's "reading 'isReady'")
+   * and keeps polling. compile() queues the same programs, the driver links them in parallel, and nothing polls.
+   */
+  private warmPrograms(obj: Object3D): void {
+    try { this.gl?.compile?.(obj, this.camera, this.scene); } catch { /* a warm-up is never worth a frame */ }
+  }
+
   private occluder(root: Object3D, sc: number): Occ | undefined {
     const half = (0.5 * ART_M * this.devCharScale) / sc;
     const box = new Box3();
@@ -1285,7 +1296,7 @@ export class Renderer3D implements Renderer {
       occ.swaps.push([m, m.material, f]);
       warm.add(new Mesh(m.geometry, f));
     }
-    void this.gl?.compileAsync?.(warm, this.camera, this.scene).catch(() => undefined);
+    this.warmPrograms(warm);
     return occ;
   }
 
@@ -1367,7 +1378,7 @@ export class Renderer3D implements Renderer {
       t.twin.begin();
       const warm = new InstancedMesh(geo, see, 1);
       warm.setColorAt(0, new Color(1, 1, 1));
-      void this.gl?.compileAsync?.(warm, this.camera, this.scene).catch(() => undefined);
+      this.warmPrograms(warm);
     }
     return t.twin;
   }
