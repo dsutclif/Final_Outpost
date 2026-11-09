@@ -266,7 +266,7 @@ Shipped and live; items waiting on Doug's phone stay in "Waiting on Doug".
       **Shipped 2026-11-08 (36325b4 and later): trader order pictures at 2x; Doug confirmed.**
 
 - [x] **#93 · Hold poses (Doug, 2026-11-08).** The protein hunter holds his gun oddly, walking and shooting: straighten it. The hauler holds his pick the wrong way round (sharp point up): point it down. Done check: stills of walk and shoot for the hunter and of the hauler's carry, from the game camera.
-      **Shipped 2026-11-08 (cd10a7d, b33ac0d): pick spike leads and points down for commander and hauler (Doug approved the pick position 2026-11-09); hauler re-baked with the pick as its own part; ranger rifle aligned to the shooting pose.**
+      **Shipped 2026-11-08 (cd10a7d, b33ac0d): pick spike leads and points down for commander and hauler (Doug approved the pick position 2026-11-09); hauler re-baked with the pick as its own part; ranger rifle aligned to the shooting pose.** Doug confirmed 2026-11-09: ranger gun line good enough for now; to be improved later.
 
 - [x] **#91 · Attackers spread out at the gate rather than lining up in a queue (Doug, 2026-11-08).** #85 3: they should fan out around the gate.
       **Shipped 2026-11-08 in engine 0.23.0 (da748e2): attackers fan out at the gate. Phone check: #96.**
