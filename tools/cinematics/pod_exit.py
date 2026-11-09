@@ -163,6 +163,15 @@ def timeline(takes, scale_of):
             rot_z = math.atan2(-0.0, -1.0) - math.atan2(axis.y, axis.x)
             base = Vector((0, 0, 0))
         else:
+            if PIVOT_FRAMES and STEP_TURN and isinstance(t, StepOver):
+                # turn on the spot: hold the standing pose and swivel it about the pelvis, no travel, then step
+                last = out[-1]
+                tgt = round(head_end / (math.pi / 2)) * (math.pi / 2) + math.radians(STEP_TURN)
+                d_ang = tgt - head_end
+                for j in range(PIVOT_FRAMES):
+                    Rp = Matrix.Rotation(d_ang * smooth((j + 1) / PIVOT_FRAMES), 3, "Z")
+                    out.append([last[0], {n: Rp @ v for n, v in last[1].items()}, (Rp @ last[2][0], Rp @ last[2][1]), last[3].copy(), last[4], last[5], last[6]])
+                pos_end, head_end = Vector((out[-1][3].x, out[-1][3].y, 0)), heading(out[-1][2][1])
             h_a = heading(right_a)
             want = head_end
             rot_from = None
@@ -304,10 +313,11 @@ def perform(root, pre=0, calib=False):
         s_ = float(os.environ.get("STEP_SCALE", 1.0))
         if s_ != 1.0:
             p0 = sr[0][3].copy(); last_old = sr[-1][3].copy(); k_last = max(i for i, r in enumerate(TL) if r[0] == k_step)
-            sq = lambda v: v + ax0 * (v.dot(ax0) * (s_ - 1.0))
+            u_c = float(os.environ.get("STEP_SCALE_UNTIL", 0.7))  # native travel up to the wall crossing is shortened; beyond it he walks on at full speed
+            sq = lambda v: v + ax0 * (s_ * min(v.dot(ax0), u_c) + max(0.0, v.dot(ax0) - u_c) - v.dot(ax0)) if v.dot(ax0) > 0 else v
             for i, r in enumerate(TL):
                 if r[0] == k_step: r[3] = p0 + sq(r[3] - p0)
-            cut = (last_old - p0).dot(ax0) * (1.0 - s_)
+            ul = (last_old - p0).dot(ax0); cut = ul - (s_ * min(ul, u_c) + max(0.0, ul - u_c))
             for i, r in enumerate(TL):
                 if i > k_last: r[3] = r[3] - ax0 * cut
         lat_v = Vector((-ax0.y, ax0.x, 0))
@@ -323,18 +333,31 @@ def perform(root, pre=0, calib=False):
         la_ = [q.dot(ax0) for q in lyp]; lt_ = [q.dot(lat_v) for q in lyp]
         rows0 = [i for i, r in enumerate(TL) if r[0] == 0]
         stand = TL[len(takes[0].frames()) - 1][3]
-        D = ax0 * ((max(la_) + min(la_)) / 2 + wall_d - apex[1]) + lat_v * ((max(lt_) + min(lt_)) / 2 - stand.dot(lat_v))
+        D = ax0 * ((max(la_) + min(la_)) / 2 + wall_d - apex[1]) + lat_v * ((max(lt_) + min(lt_)) / 2 - stand.dot(lat_v) + float(os.environ.get("SLIDE_LAT_ADJ", 0)))
         D.z = 0
-        # the slide follows the get-up's own drift along the step axis (0 where he lies, 1 where he stands), so he never
-        # strays west of where the capture would put him until he is standing: no walking out through the wall
+        # the drop and the run after it carry him DROP_EXTRA m further along the step axis (the hand-off view must not
+        # crowd him against the pod): stretch that take's travel, the later takes follow
+        extra = float(os.environ.get("DROP_EXTRA", 0))
+        if extra:
+            kd = [i for i, r in enumerate(TL) if r[0] == k_drop]
+            q0 = TL[kd[0]][3].copy(); trav = (TL[kd[-1]][3] - q0).dot(ax0)
+            if abs(trav) > 0.3:
+                f_ = 1.0 + extra / abs(trav) * (1 if trav > 0 else -1)
+                for i, r in enumerate(TL):
+                    if r[0] == k_drop: r[3] = r[3] + ax0 * ((r[3] - q0).dot(ax0) * (f_ - 1.0))
+                    elif i > kd[-1]: r[3] = r[3] + ax0 * ((TL[kd[-1]][3] - q0).dot(ax0) * (f_ - 1.0)) if False else r[3] + ax0 * (trav * (f_ - 1.0))
+            print(f"DROP stretched: travel {trav:.2f} m along the step axis, +{extra:.2f} m")
+        # the get-up's own drift (it rolls and pushes toward the pod's end) is replaced: the pelvis goes straight from where it
+        # lies to where he stands, by how far up it has risen, so the head never reaches the end caps or the walls
         e0 = len(takes[0].frames()) - 1  # the get-up's own last row (the pivot rows after it just hold)
-        p_first = TL[0][3].copy(); tot = (TL[e0][3] - p_first).dot(ax0); run = 0.0
+        p_first = TL[0][3].copy(); goal = TL[e0][3] + D
+        zs = [r[3].z for r in TL[:e0 + 1]]; z_lo = min(zs); z_hi = max(zs); run = 0.0
         for i, r in enumerate(TL):
-            if i > e0: w = 1.0
-            elif abs(tot) > 0.05:
-                run = max(run, (r[3] - p_first).dot(ax0) / tot); w = max(0.0, min(1.0, run))
-            else: w = smooth((i - (e0 - 70)) / 70)
-            if w > 0: r[3] = r[3] + D * w
+            if i > e0: r[3] = r[3] + D
+            else:
+                run = max(run, (r[3].z - z_lo) / max(1e-6, z_hi - z_lo))
+                z_ = r[3].z
+                r[3] = p_first + (goal - p_first) * smooth(run); r[3].z = z_
         print(f"SLIDE inputs: lying centre along {(max(la_) + min(la_)) / 2:.2f}, standing pelvis along {stand.dot(ax0):.2f}, stepping-foot apex along {apex[1]:.2f}")
         print(f"SLIDE {D.length * 100:.0f} cm (along {D.dot(ax0) * 100:+.0f}, lengthwise {D.dot(lat_v) * 100:+.0f}); foot apex {apex[0] * 100:.0f} cm")
     lying_pts, step_peak, takeoff = [], None, None
@@ -443,6 +466,7 @@ def perform(root, pre=0, calib=False):
     step_rows = [r for r in TL if r[0] == k_step]
     step_dir = step_rows[-1][3] - step_rows[0][3]; step_dir.z = 0
     ax = max((Vector((1, 0, 0)), Vector((-1, 0, 0)), Vector((0, 1, 0)), Vector((0, -1, 0))), key=lambda a: a.dot(step_dir))
+    if os.environ.get("SLIDE_TO_WALL"): ax = ax0  # the shortened step's sideways sway must not turn the whole stage (he would lie across the pod)
     lat = Vector((-ax.y, ax.x, 0))
     g_along = [p.dot(ax) for p in getup_pts]; g_lat = [p.dot(lat) for p in getup_pts]
     lat0, lat1 = min(g_lat) - 0.1, max(g_lat) + 0.1

@@ -6,10 +6,12 @@
 import math, os, sys
 os.environ["NO_STAGGER"] = "1"
 os.environ.setdefault("WALL_T", "0.10")
-os.environ.setdefault("STEP_SCALE", "0.45")
+os.environ.setdefault("DROP_EXTRA", "1.3")
+os.environ.setdefault("STEP_SCALE", "0.05")
 os.environ.setdefault("PIVOT_FRAMES", "34")
 os.environ.setdefault("STEP_LEAD", "4")
 os.environ.setdefault("SLIDE_TO_WALL", "0.38")
+os.environ.setdefault("SLIDE_LAT_ADJ", "0")  # measured: puts the standing pelvis at the pod's mid-length (PEL print)
 os.environ.setdefault("RIM_FROM_CENTRE", "0.38")  # the pod interior's half-width: wall at -0.55, interior centre at -0.17
 os.environ.setdefault("RIM_FORCE", "0.54")
 os.environ.setdefault("STEP_LIFT", "95")
@@ -31,6 +33,7 @@ POD_K = 2.66 / 3.9847          # render-3d sizes.ts
 FLOOR = 0.0                    # Doug 2026-11-08: his back touches sand level while he lies in the pod
 END_GUESS = Vector((-3.83, -0.49, 0))  # the commander's end spot from the last run (only aims the look-round)
 POD_IN = Vector((-0.172, 0.023, 0))  # the pod's interior centre from its origin (the closed glass's centre)
+FLOOR_BOX = (-0.45, 0.35, 1.0, 0.15, 0.62)  # x lo, x hi, |y| max, z lo, z hi from the pod origin: the interior floor plate
 WALL_X = -0.55                 # the pod's west wall centreline from the pod's origin (ray probe)
 HAND_W = 170.3 / 28            # metres across at the hand-off (level 1 openZoom.film)
 
@@ -78,12 +81,22 @@ def main():
     pod_exit.LOOK_FACE = lambda yaw: math.atan2(core.y - END_GUESS.y, core.x - END_GUESS.x)
     pod = S["pods"][0]
     pod_c = pod.location.copy(); pod_c.z = 0
+    # the pod model has an interior floor plate about 0.45 m above the sand (at BURY 0.30); his back lies at sand level,
+    # so the plate is cut out of this pod (the game's pod needs the same)
+    import bmesh
+    me = [o for o in pod.children_recursive if o.type == "MESH"][0]
+    bm = bmesh.new(); bm.from_mesh(me.data)
+    mw = me.matrix_world
+    kill = [f for f in bm.faces if FLOOR_BOX[0] < (mw @ f.calc_center_median()).x - pod_c.x < FLOOR_BOX[1] and abs((mw @ f.calc_center_median()).y - pod_c.y) < FLOOR_BOX[2] and FLOOR_BOX[3] < (mw @ f.calc_center_median()).z < FLOOR_BOX[4]]
+    print("FLOOR plate faces cut:", len(kill), "of", len(bm.faces))
+    bmesh.ops.delete(bm, geom=kill, context="FACES")
+    bm.to_mesh(me.data); bm.free()
 
     cmd = lib.place("unit.player", at=(0, 0, 0), height=game_set.CMD_H, name="commander", rigged=True)
     lib.still(cmd)
     for o in cmd.children_recursive:
         if o.type != "MESH": o.hide_render = True
-    pod_exit.STEP_TURN = 90  # the pod's end caps are tall: stand, turn, step out over its long side
+    pod_exit.STEP_TURN = int(os.environ.get("GF_STEP_TURN", 90))  # the pod's end caps are tall: stand, turn, step out over its long side
     P = pod_exit.perform(cmd, pre=PRE)
     for o in P["walls"] + [P["deck"], P["sand"]]:
         bpy.data.objects.remove(o)
@@ -114,6 +127,7 @@ def main():
     for f in range(1, N + PRE + 1):
         sc.frame_set(f)
         pel.append(W(TL[max(0, f - 1 - PRE)][3]))
+    print("PEL", [(f, round(pel[f - 1].x - pod_c.x, 2), round(pel[f - 1].y - pod_c.y, 2)) for f in (46, 100, 150, 200, 235, 255, 275, 295, 330)])
     end = Vector((pel[-1].x, pel[-1].y, 0))
     print(f"END commander at {end.x:.2f}, {end.y:.2f} m from pod0 (game units {end.x * 28:.1f}, {-end.y * 28:.1f})")
     F = lambda row: row + 1 + PRE
@@ -232,9 +246,9 @@ def main():
 
     if "--top" in args:  # debug: straight down on the pod, lying and stepping out
         sc.timeline_markers.clear()
-        top = lib.camera(pod_c + Vector((0, 0.01, 7)), pod_c, lens=50, name="top")
+        top = lib.camera(pod_c + Vector((0, 0.01, 5.5)), pod_c, lens=40, name="top")
         sc.camera = top
-        for f in (1, F(st[1]) + 20):
+        for f in (120, 166, 178, 190, 223, 262, 290, 310):
             sc.frame_set(f)
             lib.render_still(os.path.join(OUT, f"top_{f:04d}.png"))
         bb = [o.matrix_world @ Vector(c) for o in pod.children_recursive if o.type == "MESH" for c in o.bound_box]
@@ -249,11 +263,58 @@ def main():
             sc.camera = cam
             lib.render_still(os.path.join(OUT, f"pod_{nm}.png"))
         return
+    if "--clip" in args:  # numeric check: where the suit's surface actually crosses the pod's, every 3rd frame
+        from mathutils.bvhtree import BVHTree
+        dg = bpy.context.evaluated_depsgraph_get()
+        def tris(objs):
+            vs, ps = [], []
+            for o in objs:
+                ev = o.evaluated_get(dg); me = ev.to_mesh(); me.calc_loop_triangles()
+                base = len(vs); vs += [ev.matrix_world @ v.co for v in me.vertices]
+                ps += [tuple(base + i for i in t.vertices) for t in me.loop_triangles]
+                ev.to_mesh_clear()
+            return vs, ps
+        pv, pp = tris([o for o in [pod] + list(pod.children_recursive) if o.type == "MESH"])
+        pbvh = BVHTree.FromPolygons(pv, pp)
+        rows = []
+        for f in range(1, N + PRE + 1, 3):
+            sc.frame_set(f)
+            dg = bpy.context.evaluated_depsgraph_get()
+            bv, bp_ = tris([P["body"]])
+            bb_ = BVHTree.FromPolygons(bv, bp_)
+            hits = pbvh.overlap(bb_)
+            lv_, lp_ = tris([o for o in [lid] + list(lid.children_recursive) if o.type == "MESH"])
+            lid_hits = len(BVHTree.FromPolygons(lv_, lp_).overlap(bb_))
+            if hits:
+                cs = [sum((bv[i] for i in bp_[b_]), Vector()) / 3 for _, b_ in hits]
+                rows.append((f, lid_hits, len(hits), sum(1 for c in cs if c.z > 0.8), round(max(c.z for c in cs), 2), round(sum(c.x for c in cs) / len(cs) - pod_c.x, 2), round(sum(c.y for c in cs) / len(cs) - pod_c.y, 2)))
+        print("CLIP frames with suit/pod crossings (frame, glass pairs, pod pairs, pairs above 0.8 m, max z, mean x, mean y from pod origin):")
+        for r in rows: print("CLIP", r)
+        print("CLIP total frames", len(rows))
+        return
+    if "--approval" in args:  # game-camera stills for approval: the film's first frame, its last, and the held level-1 start spot
+        import game_set as gs
+        sc.timeline_markers.clear()
+        A = os.path.join(lib.HERE, "out", "approval"); os.makedirs(A, exist_ok=True)
+        sc.render.resolution_x, sc.render.resolution_y = 540, 960
+        sc.frame_set(1)
+        sc.camera = lib.game_camera(tuple(pod_c + Vector((0, 0, 0.3))), view_w=HAND_W)
+        lib.render_still(os.path.join(A, "c2_game_camera_first_film_frame.png"))
+        sc.frame_set(N + PRE)
+        sc.camera = lib.game_camera(tuple(end + Vector((0, 0, 0.9))), view_w=HAND_W)
+        lib.render_still(os.path.join(A, "c3_game_camera_film_end_new_start.png"))
+        held = pod_c + Vector(((451.7 - 559.0) / 28, -(138.9 - 125.0) / 28, 0))
+        for o in [cmd] + list(cmd.children_recursive): o.hide_render = True
+        gs.stand_in(held, yaw=-60)
+        sc.camera = lib.game_camera(tuple(held + Vector((0, 0, 0.9))), view_w=HAND_W)
+        lib.render_still(os.path.join(A, "c1_game_camera_held_start_451.7_138.9.png"))
+        print("HELD start from pod0 (m)", round(held.x - pod_c.x, 2), round(held.y - pod_c.y, 2), "film end", round(end.x, 2), round(end.y, 2), "= game units", round(559 + end.x * 28, 1), round(125 - end.y * 28, 1))
+        return
     if "--iso" in args:  # debug: the lying frames from the game camera and a low side view
         sc.timeline_markers.clear()
-        for nm, cam in (("game", lib.game_camera(tuple(pod_c + Vector((0, 0, 0.3))), view_w=4.0)), ("east", lib.camera(pod_c + Vector((7, 0, 0.9)), pod_c + Vector((0, 0, 0.3)), lens=60, name="e"))):
+        for nm, cam in (("game", lib.game_camera(tuple(pod_c + Vector((0, 0, 0.3))), view_w=4.0)), ("east", lib.camera(pod_c + Vector((0.2, -7, 1.0)), pod_c + Vector((0, 0, 0.6)), lens=70, name="e"))):
             sc.camera = cam
-            for f in (1, 120, 190):
+            for f in (172, 184, 223):
                 sc.frame_set(f)
                 lib.render_still(os.path.join(OUT, f"iso_{nm}_{f:04d}.png"))
         return
@@ -274,7 +335,7 @@ def main():
         sc.timeline_markers.clear()
         cam = lib.camera(pod_c + Vector((-4.2, -2.6, 0.8)), pod_c + Vector((-0.6, 0, 0.6)), lens=36, name="stepcam")
         sc.camera = cam
-        for f in (256, 262, 268, 274, 280, 286, 292, 298):
+        for f in (284, 292, 300, 308, 316, 324, 332, 340):
             sc.frame_set(f)
             lib.render_still(os.path.join(OUT, f"step_{f:04d}.png"))
         return
