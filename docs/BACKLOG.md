@@ -56,17 +56,7 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       1. Open level 2 "Roll Call". At the start there is no dashed line or "wall line" price anywhere on the ground, so it looks like level 1 (the pale heat ring round the reactor is normal and stays). Play it through: all five pods still come home and the level still ends in a win.
       2. Open level 3 "Open for Trade". The night film now shows only headlights coming up the road, and it ends before the buggy stops. Sela must not get out inside it.
       3. Back in play the camera moves to the road beside the stall: the buggy drives in with Sela sitting at the wheel (dark suit, a little warm light on her), parks with its headlights on, she waits a beat, then climbs out over the side, turns toward the stall and walks to it; her first line comes as she arrives. Look for no empty buggy at any moment and for Sela not popping into place beside it (no jump when she starts walking).
-- [ ] **iPhone checks for the gate fan-out and downed guards (engine 0.23.0, live).** Open level 15 "Wreckage and Hardpoints" (or level 48 "Rust and Hardpoints"), hire guards and let a wave come to the gate.
-      1. Attackers spread out in a short row in front of the gate (about three across, the rest behind) instead of one single-file queue; the gate still holds or breaks about as before.
-      2. When a guard is shot down it lies where it fell with a number over it counting down from 15 (green, red for the last few seconds). Walk up to it: it gets back up after about 3 s. A hired medic does the same without you.
-      3. With no medic or med bay on the level the guard still lasts the full 15 s (before, it was lost at once); left alone it is lost when the number reaches 0.
-      4. Nobody starts healing in the first moment of the fall (about 1.5 s): standing beside it straight away does nothing until it has landed.
-- [ ] **Remind Doug (2026-11-09): do the iPhone checks #83, #84, #2, #7, #76, and run the three remote branch deletes (Bundle 1).**
-- [ ] **#83 · iPhone checks for Bundle 3 (live site).**
-      1. KILN (#4/#13): the cloud beside the commander looks the same size in story levels 1–5 and is still easy to see at the smaller size; on the first regular level that teaches something new (e.g. s1-L006) it floats beside the commander while its lines show.
-      2. Level 3 wall (#14): after Sela's first sale KILN asks for the wall; walking the dashed ring raises it a credit a section; the hub beat follows.
-      3. Sela's buggy (#5): after her arrival film the buggy drives in and parks beside the kiosk with its lights on, not too glaring.
-      4. Pods (#3): the crash site shows five pods (three sealed toward the back of the wreck), none in the level 1 start view.
+- [ ] **Doug still to do (2026-11-09):** the three remote branch deletes (look-test, object-sizes, story-buggy), the leftover folders fo-wt-drop60, fo-wt-flatpads and fo-wt-plot, the film end-spot decision, and the older phone checks below (title loop, other early checks).
 
 - [ ] **#2 · iPhone check, title loop.** After two real deploys and a second visit on iPhone Safari: the loop plays (or the dark poster shows), and the old background never paints.
 - [ ] **#1 · `empty_bays` against the films (Sign-off 2).** It plays at the end of story level 2 on
