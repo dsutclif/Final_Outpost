@@ -298,6 +298,19 @@ def main():
         for f in (int(x) for x in args[args.index("--list") + 1].split(",") if x):
             lib.render_frames(OUT + "_frames", f, f)
         return
+    if "--flat" in args:  # motion-only: no lighting, no textures, one flat colour per thing, with outlines
+        shd = sc.display.shading
+        shd.light, shd.color_type, shd.show_shadows, shd.show_object_outline = "FLAT", "OBJECT", False, True
+        shd.object_outline_color = (0, 0, 0)
+        sc.world.color = (0.82, 0.82, 0.82)
+        for o in bpy.data.objects:
+            if o.type == "MESH": o.color = (0.45, 0.45, 0.47, 1)
+        for o in cmd.children_recursive:
+            if o.type == "MESH": o.color = (1.0, 0.55, 0.15, 1)
+        for o in lid.children_recursive:
+            if o.type == "MESH": o.color = (0.35, 0.6, 0.8, 1)
+        lib.render_frames(OUT + "_flat_frames", 1, N + PRE)
+        return
     a, b = (int(args[args.index("--frames") + 1]), int(args[args.index("--frames") + 2])) if "--frames" in args else (1, N + PRE)
     lib.render_frames(OUT + "_frames", a, b)
 
