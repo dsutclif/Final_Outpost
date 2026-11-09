@@ -273,7 +273,7 @@ function palmOf(root: Object3D, sign: number): { at: Vector3; n: Vector3 } | nul
   if (!h || !i || !p || !m) return null;
   root.updateMatrixWorld(true);
   const w = h.getWorldPosition(new Vector3()), a = i.getWorldPosition(new Vector3()).sub(w), b = p.getWorldPosition(new Vector3()).sub(w);
-  return { at: w.clone().lerp(m.getWorldPosition(new Vector3()), 0.55), n: a.cross(b).normalize().multiplyScalar(sign) };
+  return { at: w.clone().lerp(m.getWorldPosition(new Vector3()), 0.8), n: a.cross(b).normalize().multiplyScalar(sign) };
 }
 /** Which side of the right hand is the palm: at rest (arms down) it faces the body's midline. */
 function palmSign(root: Object3D): number {
@@ -485,10 +485,10 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     signs.set(f.root, palmSign(f.root));
   };
   // each figure's rest pose and the pose with the right arm out (palm toward the other), blended over time
-  const reach = (f: NonNullable<ReturnType<typeof crewFigure>>, toward: number): { rest: Map<Object3D, Quaternion>; out: Map<Object3D, Quaternion> } => {
+  const reach = (f: NonNullable<ReturnType<typeof crewFigure>>, toward: number, lower = 0): { rest: Map<Object3D, Quaternion>; out: Map<Object3D, Quaternion> } => {
     const rest = poseOf(f.root);
-    aimBone(boneOf(f.root, "RightArm"), boneOf(f.root, "RightForeArm"), new Vector3(toward * 0.75, -0.55, 0.12));
-    aimBone(boneOf(f.root, "RightForeArm"), boneOf(f.root, "RightHand"), new Vector3(toward, -0.05, 0.05));
+    aimBone(boneOf(f.root, "RightArm"), boneOf(f.root, "RightForeArm"), new Vector3(toward * 0.75, -0.55 - lower, 0.12));
+    aimBone(boneOf(f.root, "RightForeArm"), boneOf(f.root, "RightHand"), new Vector3(toward, -0.05 - lower * 0.8, 0.05));
     palmUp(f.root, signs.get(f.root) ?? 1);
     const out = poseOf(f.root);
     blendPose(rest, rest, 0);
@@ -498,7 +498,7 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   let look: Map<Object3D, Quaternion> | null = null;
   if (sela) { place(sela, 1.8, 0.62, -Math.PI / 2); sp = reach(sela, -1); }
   if (cmd) {
-    place(cmd, SIZES.commander, -0.62, Math.PI / 2); cp = reach(cmd, 1);
+    place(cmd, SIZES.commander, -0.62, Math.PI / 2); cp = reach(cmd, 1, 0.35);
     // and with the hand brought up in front of the chest, palm up, to look at the chip
     blendPose(cp.rest, cp.rest, 0);
     aimBone(boneOf(cmd.root, "RightArm"), boneOf(cmd.root, "RightForeArm"), new Vector3(0.35, -0.85, 0.25));
@@ -534,10 +534,19 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
         blendPose(cp.rest, cp.out, span(t, MEET - 0.9, TAKE));
         if (look && up > 0) { const outNow = poseOf(cmd.root); blendPose(outNow, look, up); }
       }
-      // the chip sits on the giver's palm, then in the taker's hand wherever it goes
-      const giver = t < TAKE ? sela : cmd, pm = giver && palmOf(giver.root, signs.get(giver.root) ?? 1);
-      // lying in the open palm (a hair above it), flat against it; as it is lifted it tilts toward the camera
-      if (pm) coin.position.copy(pm.at).addScaledVector(pm.n, 0.05); else coin.position.copy(handPos(giver ?? null));
+      // the chip lies on Sela's palm, she tips it off and it drops into the middle of the commander's open palm, then goes where his hand goes
+      const DROP = TAKE - 0.15, LAND = TAKE + 0.45;
+      const pmS = sela && palmOf(sela.root, signs.get(sela.root) ?? 1), pmC = cmd && palmOf(cmd.root, signs.get(cmd.root) ?? 1);
+      const rest = (p: ReturnType<typeof palmOf>, g: typeof sela): Vector3 => (p ? p.at.clone().addScaledVector(p.n, 0.05) : handPos(g));
+      const onS = rest(pmS, sela), onC = rest(pmC, cmd), pm = t < DROP ? pmS : pmC;
+      if (t < DROP) coin.position.copy(onS);
+      else if (t >= LAND) coin.position.copy(onC);
+      else {
+        const u = span(t, DROP, LAND), sl = Math.min(1, u / 0.45), side = sl * sl * (3 - 2 * sl), fall = Math.max(0, (u - 0.4) / 0.6), f2 = fall * fall;
+        coin.position.lerpVectors(onS, onC, side);
+        const yHigh = onS.y + (onC.y + 0.16 - onS.y) * side;
+        coin.position.y = yHigh * (1 - f2) + onC.y * f2;
+      }
       const lifted = coin.position.clone();
       glint.position.copy(coin.position).add(new Vector3(0, 0.15, 0.25));
       // a two-shot that pushes in on the hands, then a medium close on the chip held up, the commander behind it

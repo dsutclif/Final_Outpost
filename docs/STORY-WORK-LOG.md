@@ -540,6 +540,10 @@ Release 2 combat is in (every call is in docs/DECISIONS.md, "Release 2 combat").
 - Level 1 cues: the arrows first lead to (600,300), round the north ridge's east end, then to the core (`near` cue); the retry run keeps the plain core target.
 - Sela leaving: `StoryProps.riding(..., leaving)` hides her walking figure within 0.7 m of the door and plays the climb in reverse (1.3 s), then she stays seated; the buggy does not drive off. Not seen animating end to end (the capture of it was not checked).
 
+### 2026-11-09 (fix-canon, round 5): coin drop. No engine bump.
+
+- `chipHandoff`: the palm centre sits 0.8 of the way from the wrist to the middle knuckle (was 0.55: the coin looked to be on the wrist); the coin is tipped off Sela's palm, slides over and falls (0.6 s) into the middle of the commander's palm, whose reaching hand is held 0.35 lower to catch it.
+
 ### 2026-11-09 (fix-canon, round 4): coin clip hands and coin. No engine bump.
 
 - `tools/build-models.ts` gains `round` (meshy.json entries): subdivide once (midpoints, skin weights blended) and Taubin-smooth the vertices skinned to the matching joints (hands and fingers), normals recomputed; seams stay closed. Used by `unit.player.hi` and `unit.customer_sela.hi` (about 36k tris, 3 MB each, loaded only for the clip).
