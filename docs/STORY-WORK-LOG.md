@@ -540,6 +540,11 @@ Release 2 combat is in (every call is in docs/DECISIONS.md, "Release 2 combat").
 - Level 1 cues: the arrows first lead to (600,300), round the north ridge's east end, then to the core (`near` cue); the retry run keeps the plain core target.
 - Sela leaving: `StoryProps.riding(..., leaving)` hides her walking figure within 0.7 m of the door and plays the climb in reverse (1.3 s), then she stays seated; the buggy does not drive off. Not seen animating end to end (the capture of it was not checked).
 
+### 2026-11-09 (fix-canon, round 3): level 3 opens on the road; the coin clip's models. No engine bump.
+
+- `StoryLevel.openAt` (skins/story.ts, app.ts): the camera starts at a world point with follow off, so level 3 opens on the road at (800,928) where the first beat already is; no hero-framed first frames. Retry runs ignore it.
+- Coin hand-off (`chip_handoff`): new unwired builds `unit.player.hi`, `unit.customer_sela.hi` (2048 textures, about 9k tris, 1.5-1.8 MB each) and `res.currency.hi` (1024), from the same Meshy sources, loaded only for that clip; the scene lights are brighter with a warm rim. Geometry is the Meshy rig's own (about 10k tris), so hands stay chunky; Sela's navy tint is kept. A hi-poly source exists only for the commander's bust.
+
 ### 2026-11-09 (fix-story): level 2 wall, Sela's buggy in play (backlog #101, #102). No engine bump.
 
 - Level 2: the camp ring is no longer prebuilt (`prebuilt` removed from `ring` in story-L002). The `ring` barrier line itself stays, unbuilt, because the `lasso` module requires `barrier_lines`, which requires a barrier.line, and the tow line only trails outside a barrier line. Its dashed line is still drawn (credits are hidden and start at 0). `levels:check --pack levels/story` is green, 5 replayed.

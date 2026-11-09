@@ -194,6 +194,8 @@ export interface StoryLevel {
   calmUntilLit?: boolean;
   /** The guide arrows stay off until a `{ guide: true }` action: the light in the world leads first. */
   noGuide?: boolean;
+  /** The camera starts here (world units), not on the hero, and stays until the first camera beat takes it on (story level 3: the road Sela's buggy comes up). */
+  openAt?: readonly [number, number];
   /** Where the Try again prompt restarts the player (world units). The result screen's retry walks again from the start. */
   retryFrom?: readonly [number, number];
   /** Canonical ids the renderer never fades when the hero stands among them (a reactor that must stay solid). */

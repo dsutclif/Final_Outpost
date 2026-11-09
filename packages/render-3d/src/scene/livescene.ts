@@ -427,16 +427,21 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   const scene = new Scene();
   scene.background = new Color("#070a12");
   const camera = new PerspectiveCamera(32, 1, 0.05, 200);
-  scene.add(new AmbientLight("#3d4a68", 1.4));
-  const moon = new DirectionalLight("#a9bce0", 1.1);
+  scene.add(new AmbientLight("#4a5878", 1.7));
+  const moon = new DirectionalLight("#b9caf0", 2.3);
   moon.position.set(-10, 20, 8);
+  // a warm rim from the other side so both suits keep their outline against the dark
+  const rim = new DirectionalLight("#ffb070", 1.4);
+  rim.position.set(8, 6, -10);
+  scene.add(rim);
   // the kiosk's warm lamp from behind Sela, so the coin catches it
   const lamp = new PointLight("#ffc27a", 9, 9, 1.4);
   lamp.position.set(1.6, 2.4, -1.2);
   const sand = new Mesh(new PlaneGeometry(60, 60), new MeshStandardMaterial({ color: "#7a5f48", roughness: 1 }));
   sand.rotation.x = -Math.PI / 2;
   scene.add(moon, lamp, sand);
-  const sela = crewFigure("unit.customer_sela") ?? crewFigure("unit.customer"), cmd = crewFigure("unit.player");
+  // the 2048-texture builds of the same Meshy models (meshy.json *.hi, unwired): this scene is close on two faces, so the game's 512 ones look blurred
+  const sela = crewFigure("unit.customer_sela.hi") ?? crewFigure("unit.customer_sela") ?? crewFigure("unit.customer"), cmd = crewFigure("unit.player.hi") ?? crewFigure("unit.player");
   // Sela at x +0.6 facing -x, the commander at x -0.6 facing +x: an arm's length apart, side on to the camera
   const place = (f: NonNullable<ReturnType<typeof crewFigure>>, h: number, x: number, yaw: number): void => {
     f.root.scale.setScalar(h / f.height);
@@ -468,7 +473,7 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     blendPose(cp.rest, cp.rest, 0);
   }
   // the chip: the game's own currency model, at a real coin's size
-  const coin = meshyScene("res.currency") ?? new Mesh(new SphereGeometry(0.02, 12, 8), new MeshStandardMaterial({ color: "#c9a24a", metalness: 0.8 }));
+  const coin = meshyScene("res.currency.hi") ?? meshyScene("res.currency") ?? new Mesh(new SphereGeometry(0.02, 12, 8), new MeshStandardMaterial({ color: "#c9a24a", metalness: 0.8 }));
   // a big chip (6 cm) so it reads on a phone, with its own small warm light so the stamped H catches it
   coin.scale.multiplyScalar(0.06 / 0.3);
   const glint = new PointLight("#ffd9a0", 1.6, 0.8, 1.2);
@@ -783,7 +788,7 @@ const CAM_OUT = 2.0, CAM_BACK = 3.6, CAM_PITCH = (PITCH_DEG * Math.PI) / 180, CA
 const VALE_HELMET_TIP = Math.PI / 2;
 
 const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged; film?: boolean; game?: boolean }>> = {
-  chip_handoff: { models: ["unit.customer_sela", "unit.customer", "unit.player", "res.currency"], stage: chipHandoff, film: true },
+  chip_handoff: { models: ["unit.customer_sela.hi", "unit.player.hi", "res.currency.hi", "unit.customer_sela", "unit.customer", "unit.player", "res.currency"], stage: chipHandoff, film: true },
   sela_arrival: { models: ["decor.buggy", "decor.buggy_wheel", "decor.buggy_wheel_l", "unit.customer_sela", "unit.customer"], stage: selaArrival, film: true },
   warlord_fall: { models: ["hostile.boss_vale", "item.vale_head", "hostile.boss", "item.lieutenant_helmet", "prop.minigun"], stage: warlordFall, film: true, game: true },
   empty_bays: { models: ["decor.stasis_pod", "decor.stasis_glass"], stage: emptyBays },

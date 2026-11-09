@@ -856,6 +856,8 @@ export class App {
     const sess = this.session;
     sess.director = this.storyDirector(sess, !!retryFrom);
     sess.stage = this.storyStage(sess);
+    const openAt = retryFrom ? undefined : this.skin.story?.levels[meta.id]?.openAt;
+    if (openAt) { sess.cam.x = openAt[0]; sess.cam.y = openAt[1]; sess.cam.follow = false; sess.renderer.sync(sim.state, 0, sess.cam); }
     this.introStep = 0;
     const straightIn = !!sess.director && !sess.director.keepsIntro;
     if (straightIn) this.el.ov["intro"]!.textContent = ""; else this.renderIntro(t);

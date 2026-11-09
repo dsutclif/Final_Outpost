@@ -1020,6 +1020,8 @@ export const marsGreenhouse: Skin = {
       // story step (no star). The H coin close-up is a card with the coin's render.
       "story-L003": {
         hide: ["credits", "walls"],
+        // the level opens on the road, where the buggy comes up (the first beat cuts to the same spot), not on the commander
+        openAt: [800, 928],
         solid: ["sink.core"],
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam. Sela is the first trader to arrive and speaks from where she
