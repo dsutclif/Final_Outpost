@@ -43,10 +43,9 @@ Tokens ran short this week, so only #97 is still being built. Start nothing else
 One line per active item: number, who has it, and where. Add the line when work starts; remove it when the item is
 ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-LOG.md`.
 
-- Bundle 1 (#63, #67, #68–#70, #72, #73, #76): done except Doug deleting the remote branches `look-test`,
-  `object-sizes` and `story-buggy` (agents can't run `git push --delete`). Keep `fo-wt-handoff` until #75 backs up its film tools.
+- Bundle 1 (#63, #67, #68–#70, #76): remote branches deleted; fo-wt-flatpads folder still to remove (locked file). Keep `fo-wt-handoff` until Doug says its film tools are safe (zip backup exists).
 - **Three lanes run in parallel (Doug, 2026-11-08), one bundle at a time per lane.** Engine bump freeze: when Bundle 7 claims the bump in the work log, Story and Look finish their current push and pause until it lands.
-- Story lane: idle (see Start here). Film track: the #47 stage 2 redo (v8 flat render) is with the film session; nothing else running.
+- Story lane: idle. The opening film shipped and Doug confirmed it. Waiting on Doug's phone check of level 2, level 3 arrival and the one shared map.
 - Look lane: idle; Bundle 10 look work is live and confirmed by Doug.
 - Systems lane: #97 fixed; nothing running; Bundle 8 is next week.
 
@@ -114,15 +113,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       level edits).
 - [ ] **#70 · `story-buggy` (also in `fo-wt-buggy` with uncommitted `buggy.json` / `meshy.json` edits):** the
       reduced buggy model. Goes in with #5.
-- [ ] **#72 · Remote branch `look-test`** (read-only check 2026-11-07: all seven commits are already on main by patch id; `5fd74fc` KILN cloud
-      is main's `d9526f0`; `db44834` contact sheet is `docs/look-test/`. Nothing worth merging; the branch is safe to delete.) (2026-11-04): soft sprite particles, turret bolts of light, dust-storm
-      sheets, KILN cloud without square blocks, reactor glow. Most of the new look is already on main. Check what's
-      left, then merge the rest or delete the branch.
-- [ ] **#73 · Remote branch `object-sizes`** (read-only check 2026-11-07: all three commits are already on main by patch id, and main's
-      `meshy.json` carries the same widths, crystal scrap 0.95 m, ship scrap 9.9 m, Scrap 2 tube 5.6 m. The generator footprints are on main too.
-      The WIP commit's failing footprints test is superseded; the branch is safe to delete.) (2026-11-04): crystal scrap at 0.95 m, generator footprints for the
-      resized models, and a WIP commit of the Buildings-row sizes whose footprints test fails. Check against main's
-      one size reference (`render-3d/src/sizes.ts`).
 - [ ] **#50 · R6 Release 1 HUD and art:**
       - [x] R6 #3 "Finish in x:xx" as the last star (s1-L008): probe, local. `s1-L008-t0030.png` / `-t0060.png` show the stopwatch chip counting 8:10 to 5:40 beside the star.
       - [ ] R6 #4 goods on belt tops (s1-L014): not shown; `s1-L014-t0060.png` has no belt with goods in frame.
@@ -168,21 +158,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 Fix stage 2 now; Doug approves the fixed stills and test before the full render (#49). The held level edits (#48)
 ship with the film.
 
-- [ ] **#75 · Back up the film tools (before #47).** `tools/cinematics/mocap/` and `cache/` are not in git and live only in
-      `fo-wt-handoff/tools/cinematics/`. Copy them somewhere safe (or into git LFS) before any film work.
-- [ ] **#47 · Fix stage 2:**
-      **Doug, 2026-11-08, rejects the first stage 2 stills:** the glass opens lengthwise (hinge on the short side); it must open widthwise, hinge on the long side. The commander is larger relative to the pod than the sandbox setting, and sits on top of the pod instead of inside it. Redo from the sandbox sizes and heights.
-      1. The glass slides through the commander; key a hinge on its edge.
-      2. The open glass blocks the camera at the step-out.
-      3. The drop to the sand is cut away.
-      4. The third camera frames mostly black sky.
-      5. The commander faces away in the look-round; turn toward the light.
-      6. The final view crowds them against the wreckage.
-      Ask Doug for his own list too.
-- [ ] **#48 · Held level edits, shipped with the film:** crash-site `scrap` x minus 100 units in `story-L001..005`;
-      L1 `start` to [451.7, 138.9]; bump `FILM_VERSIONS.crash_open`; check `openZoom.film` lands on the last frame.
-- [ ] **#49 · Re-render shots 2–3** (impact, wreck at dawn) from the new set, then the full render (set as one
-      plate, commander on a holdout layer, composite). Needs Doug's approval of the fixed stage 2.
 
 ## Bundle 5: flat pads
 
@@ -293,15 +268,10 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 **Look lane (renderer, no engine bump):**
 
 **Systems lane (rules: ONE engine bump 0.23.0, claim it first; Story and Look pause while it lands):**
-- [x] **#97 · `levels:check` after engine 0.23.0 (done 2026-11-09).** s1-L010/L043 salvage targets lowered (330, 265), s1-L060 recorded stars 2.83 -> 2.33; numbers in `docs/DECISIONS.md`. Bundle 8's rebuild re-derives them.
 - [ ] **#94 · Denser waves, not only bigger ones (Doug, 2026-11-08).** s1-L037's last waves lag a little at the end; wave design should favour more dense, smaller waves. Fold into Bundle 8's wave sizing from target ρ.
 
 - [ ] **#101 · Level 2 has a prebuilt wall that nobody built (Doug, 2026-11-09).** Level 3 now teaches wall building, so level 2's prebuilt ring (`ring` in `levels/story/story-L002.json`, the `prebuilt` list) should go: remove it from level 2 (Doug's pick between that and moving the building there; removing keeps level 3 as the teaching level). Done check: `levels:check --pack levels/story` green, level 2 still plays and wins, nothing in level 2's lines refers to the wall.
 - [ ] **#102 · Buggy arrival, second pass (Doug, 2026-11-09).** Sela still gets out of the buggy during the cinematic and walks to the kiosk, and now the buggy never enters the frame in the in-play view. Wanted: the cinematic ends BEFORE she gets out; in play the camera shows the buggy drive in and park at the kiosk stall; then she gets out and walks to the stall. Done check: phone-size screenshots of the buggy in frame during the drive, parked with lights, and Sela stepping out; no exit inside the film.
-- [x] **#103 · Hidden-pad pole must be behind the wall (Doug, 2026-11-09).** The pin and pole of a pad hidden behind a wall or building draws in front of it. The pole should be behind the obstacle and only visible where it is taller than the obstructing wall or building (the pin on top shows above). Done check: stills of a pad behind a wall and behind a taller building (s1-L010 gate pads) showing the pole hidden by the lower wall.
-      **Closed 2026-11-09 (d20fcc6): Doug confirmed on the phone, level 10 west gate.**
-- [x] **#104 · Trader order pictures look faded (Doug, 2026-11-09).** The pictures in the trader's order bubble are desaturated and lightened; protein is nearly white on white. Make each colour as vivid as the object it shows, or add outline/shading so detail reads. Done check: phone-size stills of an order bubble with protein, greens, ore and goods, all clearly readable.
-      **Closed 2026-11-09 (d20fcc6): Doug confirmed the order pictures look good.**
 
 - [ ] **#105 · Level 2 shows no hint of a wall (Doug, 2026-11-09).** After the prebuilt wall was removed, level 2 still shows a thin dashed line (where the tow line starts). Level 2 should look like level 1 with no suggestion of a wall: remove that line (and any wall-ring marking) from level 2 only. Done check: a phone-size still of level 2 at start with no dashed ring; level 3 unchanged.
 - [ ] **#106 · Sela gets out of the buggy in play (Doug, 2026-11-09).** Now the buggy parks empty and Sela appears beside it. She should be seen getting out: add a "get out of vehicle" animation for Sela in play (a rigged clip, or built from existing clips: the buggy door/side, she climbs down, then walks to the stall). She must be visible in the buggy while it drives in (or the exit starts from the driver seat). Done check: phone-size stills of the buggy with Sela in it driving in, parked, mid-exit and walking to the stall; no empty-buggy frame.

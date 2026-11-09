@@ -324,3 +324,49 @@ Shipped and live; items waiting on Doug's phone stay in "Waiting on Doug".
       Done check: on a walled hunting level, a hired hunter walks out through the gate and back, seen live.
       **Closed 2026-11-09 (engine 0.22.0): Doug approved the hired hunter walking out through the gate on s1-L017.**
 
+## 2026-11-09 (opening film live)
+
+- [x] **#72 · Remote branch `look-test`** (read-only check 2026-11-07: all seven commits are already on main by patch id; `5fd74fc` KILN cloud
+      is main's `d9526f0`; `db44834` contact sheet is `docs/look-test/`. Nothing worth merging; the branch is safe to delete.) (2026-11-04): soft sprite particles, turret bolts of light, dust-storm
+      sheets, KILN cloud without square blocks, reactor glow. Most of the new look is already on main. Check what's
+      left, then merge the rest or delete the branch.
+      **Closed 2026-11-09: the remote branch is deleted (checked on GitHub).**
+
+- [x] **#73 · Remote branch `object-sizes`** (read-only check 2026-11-07: all three commits are already on main by patch id, and main's
+      `meshy.json` carries the same widths, crystal scrap 0.95 m, ship scrap 9.9 m, Scrap 2 tube 5.6 m. The generator footprints are on main too.
+      The WIP commit's failing footprints test is superseded; the branch is safe to delete.) (2026-11-04): crystal scrap at 0.95 m, generator footprints for the
+      resized models, and a WIP commit of the Buildings-row sizes whose footprints test fails. Check against main's
+      one size reference (`render-3d/src/sizes.ts`).
+      **Closed 2026-11-09: the remote branch is deleted (checked on GitHub).**
+
+- [x] **#75 · Back up the film tools (before #47).** `tools/cinematics/mocap/` and `cache/` are not in git and live only in
+      `fo-wt-handoff/tools/cinematics/`. Copy them somewhere safe (or into git LFS) before any film work.
+      **Closed 2026-11-09 (ae7b682): the new opening film and its level values are live; Doug confirmed the film and the cut into play are smooth. The feet sliding after the pod is a known follow-up (see the foot-sliding item).**
+
+- [x] **#47 · Fix stage 2:**
+      **Doug, 2026-11-08, rejects the first stage 2 stills:** the glass opens lengthwise (hinge on the short side); it must open widthwise, hinge on the long side. The commander is larger relative to the pod than the sandbox setting, and sits on top of the pod instead of inside it. Redo from the sandbox sizes and heights.
+      1. The glass slides through the commander; key a hinge on its edge.
+      2. The open glass blocks the camera at the step-out.
+      3. The drop to the sand is cut away.
+      4. The third camera frames mostly black sky.
+      5. The commander faces away in the look-round; turn toward the light.
+      6. The final view crowds them against the wreckage.
+      Ask Doug for his own list too.
+      **Closed 2026-11-09 (ae7b682): the new opening film and its level values are live; Doug confirmed the film and the cut into play are smooth. The feet sliding after the pod is a known follow-up (see the foot-sliding item).**
+
+- [x] **#48 · Held level edits, shipped with the film:** crash-site `scrap` x minus 100 units in `story-L001..005`;
+      L1 `start` to [451.7, 138.9]; bump `FILM_VERSIONS.crash_open`; check `openZoom.film` lands on the last frame.
+      **Closed 2026-11-09 (ae7b682): the new opening film and its level values are live; Doug confirmed the film and the cut into play are smooth. The feet sliding after the pod is a known follow-up (see the foot-sliding item).**
+
+- [x] **#49 · Re-render shots 2–3** (impact, wreck at dawn) from the new set, then the full render (set as one
+      plate, commander on a holdout layer, composite). Needs Doug's approval of the fixed stage 2.
+      **Closed 2026-11-09 (ae7b682): the new opening film and its level values are live; Doug confirmed the film and the cut into play are smooth. The feet sliding after the pod is a known follow-up (see the foot-sliding item).**
+
+- [x] **#97 · `levels:check` after engine 0.23.0 (done 2026-11-09).** s1-L010/L043 salvage targets lowered (330, 265), s1-L060 recorded stars 2.83 -> 2.33; numbers in `docs/DECISIONS.md`. Bundle 8's rebuild re-derives them.
+
+- [x] **#103 · Hidden-pad pole must be behind the wall (Doug, 2026-11-09).** The pin and pole of a pad hidden behind a wall or building draws in front of it. The pole should be behind the obstacle and only visible where it is taller than the obstructing wall or building (the pin on top shows above). Done check: stills of a pad behind a wall and behind a taller building (s1-L010 gate pads) showing the pole hidden by the lower wall.
+      **Closed 2026-11-09 (d20fcc6): Doug confirmed on the phone, level 10 west gate.**
+
+- [x] **#104 · Trader order pictures look faded (Doug, 2026-11-09).** The pictures in the trader's order bubble are desaturated and lightened; protein is nearly white on white. Make each colour as vivid as the object it shows, or add outline/shading so detail reads. Done check: phone-size stills of an order bubble with protein, greens, ore and goods, all clearly readable.
+      **Closed 2026-11-09 (d20fcc6): Doug confirmed the order pictures look good.**
+
