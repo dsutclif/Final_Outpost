@@ -849,7 +849,7 @@ export const marsGreenhouse: Skin = {
         images: {},
       },
     },
-    lights: { night: 0, preDawn: 0.08, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
+    lights: { ember: -1, night: 0, preDawn: 0.08, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
     levels: {
       // Cold Start (docs/STORY-SCREENPLAY.md, level 1). No red light until the storm (S11): the reactor's far light
       // finds the commander first, as one bright pulse on the screen edge and then a pointer inside its glow.
@@ -1217,7 +1217,7 @@ export const marsGreenhouse: Skin = {
             { dotsOff: true },
             { line: "Hold them off until sunrise.", who: "kiln" },
           ] },
-          // one light all level: the night it opens on, no dawn steps (Doug, 2026-11-08)
+          // night all level, no dawn steps (Doug, 2026-11-08); it only dims to a warm ember slowly once Vale has gone (below)
           // just before the warlord walks into frame (it spawns beyond the map's edge), not when it spawns (Doug)
           { on: { hostile: "hostile.boss", r: 330 }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
@@ -1225,6 +1225,9 @@ export const marsGreenhouse: Skin = {
             // filmed in the level with play paused (Doug, 2026-11-08); the live scene stands in without the models.
             // No line during it (Doug, 2026-11-07)
             { fall: { kind: "hostile.boss", film: "warlord_fall" } },
+            // then, over 40 s of play (game time, so not during the paused fall), the night dims to a low warm glow, so the
+            // helmet film (dark, orange on the sand) follows without a jump (Doug, 2026-11-08)
+            { light: "ember", seconds: 40 },
           ] },
           // once Vale has run off screen (about 3 s at the fleeing pace, measured on a phone-shaped view), KILN, with dots
           // on the helmet where it fell (manifest heldBy: boss; showDropped draws it there before dawn reveals it to tow)
@@ -1249,7 +1252,7 @@ export const marsGreenhouse: Skin = {
       },
     },
   },
-  look3d: { saturation: 0.82, groundLift: 0.38, nightFloor: { ambient: 0.32, ridge: 0.3 }, storyNight: { ambient: 0.44, moon: 0.32, moonColor: "#a9bfe6", dawnColor: "#ffc08f" } },
+  look3d: { saturation: 0.82, groundLift: 0.38, nightFloor: { ambient: 0.32, ridge: 0.3 }, storyNight: { ambient: 0.44, moon: 0.32, moonColor: "#a9bfe6", dawnColor: "#ffc08f", ember: { ambient: 0.24, moon: 0.2, color: "#b98a6a" } } },
   audio: {
     gathered: "tick",
     deposited: "tock",

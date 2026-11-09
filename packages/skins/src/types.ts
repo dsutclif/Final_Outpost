@@ -105,7 +105,11 @@ export interface SkinLook3D {
   /** Measured minimum light at night so sand and ridge still read (0-1 of the day level). */
   nightFloor?: { ambient: number; ridge: number };
   /** The night of a director-run level (night to sunrise): ambient and moonlight 0-1 of day, and the moon's colour. Manifest nights keep nightFloor. */
-  storyNight?: { ambient: number; moon: number; moonColor: string; dawnColor?: string };
+  /**
+   * Director-run night. `ember`: the far side of night (story light presets below 0, down to -1): dimmer, the key light
+   * turned to a low warm glow, sky and fog a little darker (level 5's end, to meet the helmet film: Doug, 2026-11-08).
+   */
+  storyNight?: { ambient: number; moon: number; moonColor: string; dawnColor?: string; ember?: { ambient: number; moon: number; color: string } };
 }
 
 export interface Skin {

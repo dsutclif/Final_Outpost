@@ -267,18 +267,34 @@ export interface StoryLighting {
 /** Fallbacks when a skin sets no `look3d.nightFloor`. */
 const FLOOR_DEFAULT = { ambient: 0.3, ridge: 0.25 };
 /** Fallbacks for a director-run night, when a skin sets no `look3d.storyNight`. */
-const STORY_NIGHT_DEFAULT: { ambient: number; moon: number; moonColor: string; dawnColor?: string } = { ambient: 0.3, moon: 0.3, moonColor: "" };
+const STORY_NIGHT_DEFAULT: NonNullable<NonNullable<Skin["look3d"]>["storyNight"]> = { ambient: 0.3, moon: 0.3, moonColor: "" };
 
 /** The raised night floor on its own: ambient and ridge minimums, from the skin's look tokens. */
 export function nightFloor(skin: Skin): { ambient: number; ridge: number } {
   return skin.look3d?.nightFloor ?? FLOOR_DEFAULT;
 }
 
-/** Night-to-sunrise values for progress 0-1: sky, fog, key and ambient, floored at the skin's night floor. */
+/**
+ * Night-to-sunrise values for progress 0-1: sky, fog, key and ambient, floored at the skin's night floor. Below 0 (to
+ * -1) it runs from night to the skin's `storyNight.ember`, if it has one: dimmer, with a warm low key light.
+ */
 export function storyLighting(skin: Skin, t: Tokens, progress: number): StoryLighting {
-  const p = Math.max(0, Math.min(1, progress)), e = p * p * (3 - 2 * p);
   const floor = nightFloor(skin), sn = skin.look3d?.storyNight ?? STORY_NIGHT_DEFAULT;
   const night = (c: string, k: number): string => mix(c, t.ink, k);
+  if (progress < 0 && sn.ember) {
+    const q = Math.min(1, -progress), k = q * q * (3 - 2 * q), em = sn.ember;
+    return {
+      ambient: sn.ambient + (em.ambient - sn.ambient) * k,
+      sun: 0,
+      ridgeFloor: floor.ridge,
+      sky: night(t.sky, 0.82 + 0.08 * k),
+      skyTop: night(t.skyTop, 0.9 + 0.05 * k),
+      fog: night(t.fog, 0.82 + 0.08 * k),
+      sunColor: mix(sn.moonColor || night(t.sun, 0.5), em.color, k),
+      moon: sn.moon + (em.moon - sn.moon) * k,
+    };
+  }
+  const p = Math.max(0, Math.min(1, progress)), e = p * p * (3 - 2 * p);
   return {
     ambient: sn.ambient + (1 - sn.ambient) * e,
     sun: e,
