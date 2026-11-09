@@ -18,7 +18,7 @@ const LAMP = 30 * ART_M ** 1.4;
 const bulbGeo = new SphereGeometry(0.12, 10, 8);
 const bulbMat = new MeshBasicMaterial({ color: "#fff6e0" });
 
-interface Run { spec: StoryVehicleSpec; len: number; segs: { x: number; z: number; d: number; yaw: number }[]; t0: number | null; group: Group | null; wheels: Object3D[]; lamps: SpotLight[]; yaw: number }
+interface Run { spec: StoryVehicleSpec; len: number; segs: { x: number; z: number; d: number; yaw: number }[]; t0: number | null; group: Group | null; wheels: Object3D[]; lamps: SpotLight[]; yaw: number; driven: number }
 
 export class StoryProps {
   private readonly runs = new Map<string, Run>();
@@ -39,8 +39,14 @@ export class StoryProps {
       const a = pts[i - 1]!, b = pts[i]!, dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz);
       if (d > 0) { segs.push({ x: a.x, z: a.z, d: len, yaw: Math.atan2(dz, -dx) }); len += d; }
     }
-    this.runs.set(id, { spec, len, segs, t0: null, group: null, wheels: [], lamps: [], yaw: segs[0]?.yaw ?? 0 });
+    this.runs.set(id, { spec, len, segs, t0: null, group: null, wheels: [], lamps: [], yaw: segs[0]?.yaw ?? 0, driven: 0 });
     if (!this.asked) { this.asked = true; void loadMeshy(undefined, new Set(MODELS), undefined, true); }
+  }
+
+  /** A rider is hidden until the vehicle has parked (and for as long as its models are still loading). */
+  riding(id: number): boolean {
+    for (const r of this.runs.values()) if (r.spec.rider === id && (r.t0 === null || r.driven < 1)) return true;
+    return false;
   }
 
   private build(r: Run): Group | null {
@@ -84,6 +90,7 @@ export class StoryProps {
       if (!g || !r.segs.length) continue;
       r.t0 ??= t;
       const u = (t - r.t0) / Math.max(0.1, r.spec.seconds);
+      r.driven = u;
       const s = r.len * Math.min(1, ease(u) ** 0.6);
       let seg = r.segs[0]!;
       for (const c of r.segs) if (c.d <= s) seg = c;

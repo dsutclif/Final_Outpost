@@ -130,9 +130,10 @@ export type StoryAction =
   | { walk: string; to: StoryPlace | false }
   /**
    * A vehicle drawn in the world (Sela's buggy, id "buggy"): it drives the `path` (places) over `seconds`, eased to a
-   * stop at the last one, and stays parked there with its headlights on (`lights: false` for dark). Drawn only.
+   * stop at the last one, and stays parked there with its headlights on (`lights: false` for dark). Drawn only. `rider` (a cast key that is a customer) is
+   * not drawn while the vehicle drives, and steps out beside it once it has parked.
    */
-  | { vehicle: string; path: readonly StoryPlace[]; seconds?: number; lights?: boolean }
+  | { vehicle: string; path: readonly StoryPlace[]; seconds?: number; lights?: boolean; rider?: string }
   /** Take a vehicle out of the world. */
   | { vehicleOff: string };
 

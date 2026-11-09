@@ -72,7 +72,7 @@ export type TallySlots = readonly ["empty" | "done" | "missed", "empty" | "done"
 export interface CameraBeat { at: { x: number; y: number }; zoom?: number; seconds: number }
 
 /** A story vehicle's drive (see StoryPresentation.vehicle): a ground path in world units, eased over `seconds`, then parked. */
-export interface StoryVehicleSpec { seq: number; path: readonly { x: number; z: number }[]; seconds: number; lights?: boolean | undefined }
+export interface StoryVehicleSpec { seq: number; path: readonly { x: number; z: number }[]; seconds: number; lights?: boolean | undefined; rider?: number | undefined }
 
 /**
  * The game's ground and light right now, as plain data (the renderer's liveLook()), so a live scene can stand on the

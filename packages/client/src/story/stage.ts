@@ -95,7 +95,7 @@ export class StoryStage {
     if (w.vehicles !== (seen.vehicles ?? [])) {
       for (const v of seen.vehicles ?? []) if (!w.vehicles.some((x) => x.id === v.id)) p.vehicle?.(v.id, null);
       seen.vehicles = w.vehicles;
-      for (const v of w.vehicles) p.vehicle?.(v.id, { seq: v.seq, path: v.path.map((q) => ({ x: q.x, z: q.y })), seconds: v.seconds, lights: v.lights });
+      for (const v of w.vehicles) p.vehicle?.(v.id, { seq: v.seq, path: v.path.map((q) => ({ x: q.x, z: q.y })), seconds: v.seconds, lights: v.lights, ...(v.rider !== undefined ? { rider: v.rider } : {}) });
     }
     const rg = p.ridgeGlow;
     this.ridgeEl.hidden = !rg || rg.k < 0.01;

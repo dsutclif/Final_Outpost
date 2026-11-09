@@ -1639,6 +1639,7 @@ export class Renderer3D implements Renderer {
   /** Captures seen carried by a boss (heldBy): once dropped, story showDropped draws them before they are revealed. */
   private bossHeld = new Set<number>();
   private customer(key: string, c: CustomerState, a: number, queued: boolean, kiosk: Placed, serving?: { customer: number; ticks: number; of: number }): void {
+    if (this.storyP?.riding(c.id)) return; // still in Sela's buggy
     const pos = this.interp.pos(key, c.pos, a);
     const look = lookFor(c.kind, this.tokens, this.skin.models);
     const vel = this.interp.vel(key);

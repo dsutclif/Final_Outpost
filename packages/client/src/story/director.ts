@@ -86,7 +86,7 @@ export interface StoryWorld {
   /** Cast members held at a drawn place (see the walk action); a null `to` walks them back. */
   actors: readonly { who: string; to: { x: number; y: number } | null }[];
   /** Vehicles in the world (see the vehicle action); `seq` counts requests so a redrive reads as new. */
-  vehicles: readonly { id: string; path: readonly { x: number; y: number }[]; seconds: number; lights: boolean; seq: number }[];
+  vehicles: readonly { id: string; path: readonly { x: number; y: number }[]; seconds: number; lights: boolean; seq: number; rider?: number }[];
 }
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
@@ -408,7 +408,7 @@ export class StoryDirector {
       this.timed(a.wait, () => {});
     } else if ("vehicle" in a) {
       const path = a.path.flatMap((p) => { const q = this.place(p); return q ? [q] : []; });
-      if (path.length) this.world = { ...this.world, vehicles: [...this.world.vehicles.filter((v) => v.id !== a.vehicle), { id: a.vehicle, path, seconds: a.seconds ?? 8, lights: a.lights !== false, seq: ++this.seq }] };
+      if (path.length) this.world = { ...this.world, vehicles: [...this.world.vehicles.filter((v) => v.id !== a.vehicle), { id: a.vehicle, path, seconds: a.seconds ?? 8, lights: a.lights !== false, seq: ++this.seq, ...this.riderOf(a.rider) }] };
     } else if ("vehicleOff" in a) {
       this.world = { ...this.world, vehicles: this.world.vehicles.filter((v) => v.id !== a.vehicleOff) };
     } else if ("walk" in a) {
@@ -519,6 +519,12 @@ export class StoryDirector {
 
   private castRef(who: string): StoryCastRef | null {
     return this.level.cast?.[who] ?? (who === "commander" ? { player: true } : null);
+  }
+
+  /** A vehicle's rider as a customer id, when the cast key names a customer. */
+  private riderOf(who: string | undefined): { rider: number } | Record<string, never> {
+    const c = who ? this.castRef(who) : null;
+    return c && "customer" in c ? { rider: c.customer } : {};
   }
 
   /** The renderer's key for a cast member (its interp key), or null for a fixed place or someone not on the map. */

@@ -49,6 +49,9 @@ export class StoryPresent implements StoryPresentation {
   private readonly props = new StoryProps((o) => this.lights.attach(o), (o) => this.lights.detach(o));
   vehicle(id: string, spec: StoryVehicleSpec | null): void { this.props.vehicle(id, spec); }
 
+  /** True while customer `id` is still riding a driving vehicle (not drawn yet). */
+  riding(id: number): boolean { return this.props.riding(id); }
+
   solid(ids: readonly string[]): void { this.solidIds = new Set(ids); }
   /** Customers drawn with their own model (customer id to model id); the renderer reads it. */
   customerModels = new Map<number, string>();
