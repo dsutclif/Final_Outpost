@@ -1,5 +1,5 @@
 {
   "notes": [
-    "The pin that marks a hidden turret pad now shows a gun turret instead of a hammer."
+    "The turret icon on the pin for a hidden pad is now a simple solid gun turret shape: gun head with its barrel, a small mount and a domed base."
   ]
 }

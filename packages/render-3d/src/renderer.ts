@@ -284,13 +284,15 @@ function drawGlyph(g: CanvasRenderingContext2D, kind: string, x: number, y: numb
       g.closePath(); g.fillStyle = light; g.fill(); g.stroke();
       break;
     }
-    case "turret": // a gun turret side on: round base plate, domed gun head, long barrel with a muzzle
-      box(-0.9, 0.5, 1.8, 0.35, ink);
-      box(-0.35, 0.2, 0.7, 0.32, light);
-      g.beginPath(); g.arc(-0.05 * r, 0.2 * r, 0.55 * r, Math.PI, 0); g.closePath(); g.fillStyle = light; g.fill(); g.stroke();
-      g.lineWidth = r * 0.3; line(0.3, -0.15, 1.0, -0.4);
-      box(0.9, -0.55, 0.22, 0.32, ink);
+    case "turret": { // a solid side-on gun turret: chamfered gun body with its barrel, a small mount block, the domed base on its plinth
+      g.fillStyle = ink;
+      const poly = (...p: number[]): void => { g.beginPath(); g.moveTo(p[0]! * r, p[1]! * r); for (let i = 2; i < p.length; i += 2) g.lineTo(p[i]! * r, p[i + 1]! * r); g.closePath(); g.fill(); };
+      poly(-0.62, -0.72, 0.14, -0.72, 0.2, -0.66, 0.2, -0.05, 0.14, 0, -0.62, 0, -0.72, -0.1, -0.72, -0.62);
+      g.fillRect(0.14 * r, -0.5 * r, 0.76 * r, 0.21 * r);
+      g.fillRect(-0.39 * r, 0.06 * r, 0.35 * r, 0.28 * r);
+      poly(-0.9, 0.73, -0.66, 0.66, -0.53, 0.57, -0.4, 0.47, -0.02, 0.47, 0.12, 0.57, 0.45, 0.67, 0.45, 0.73);
       break;
+    }
     case "build": // hammer: a pad that places something new
       g.lineWidth = r * 0.26; line(-0.55, 0.85, 0.35, -0.2);
       box(-0.1, -0.85, 1.0, 0.55, light); g.save(); g.restore();
@@ -3226,7 +3228,7 @@ export class Renderer3D implements Renderer {
         g.globalAlpha = 0.9; g.lineWidth = 5; g.strokeStyle = t.guideLight; g.stroke();
         g.setLineDash([6, 8]); g.beginPath(); g.arc(w / 2, h / 2, 59, 0, Math.PI * 2); g.lineWidth = 3; g.stroke(); g.setLineDash([]);
         g.globalAlpha = 0.95;
-        if (glyph) { drawGlyph(g, glyph, w / 2, h / 2, 31, t.ink, t.paper.panel); if (res) drawIcon(g, w / 2 + 38, h / 2 + 38, 18, resToken(t, res), t.ink); }
+        if (glyph) { drawGlyph(g, glyph, w / 2, h / 2, glyph === "turret" ? 41 : 31, t.ink, t.paper.panel); if (res) drawIcon(g, w / 2 + 38, h / 2 + 38, 18, resToken(t, res), t.ink); }
         else { g.beginPath(); g.moveTo(w / 2, h / 2 - 22); g.lineTo(w / 2 + 18, h / 2); g.lineTo(w / 2, h / 2 + 22); g.lineTo(w / 2 - 18, h / 2); g.closePath(); g.fillStyle = t.guideLight; g.fill(); }
         g.globalAlpha = 1;
         void light;
