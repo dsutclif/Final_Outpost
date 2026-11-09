@@ -6,6 +6,9 @@
 import math, os, sys
 os.environ["NO_STAGGER"] = "1"
 os.environ.setdefault("WALL_T", "0.10")
+os.environ.setdefault("STEP_SCALE", "0.45")
+os.environ.setdefault("PIVOT_FRAMES", "34")
+os.environ.setdefault("STEP_LEAD", "4")
 os.environ.setdefault("SLIDE_TO_WALL", "0.38")
 os.environ.setdefault("RIM_FROM_CENTRE", "0.38")  # the pod interior's half-width: wall at -0.55, interior centre at -0.17
 os.environ.setdefault("RIM_FORCE", "0.54")
@@ -271,7 +274,7 @@ def main():
         sc.timeline_markers.clear()
         cam = lib.camera(pod_c + Vector((-4.2, -2.6, 0.8)), pod_c + Vector((-0.6, 0, 0.6)), lens=36, name="stepcam")
         sc.camera = cam
-        for f in (236, 244, 252, 260, 268, 276, 284, 292):
+        for f in (256, 262, 268, 274, 280, 286, 292, 298):
             sc.frame_set(f)
             lib.render_still(os.path.join(OUT, f"step_{f:04d}.png"))
         return
