@@ -71,6 +71,8 @@ pnpm levels:check  # replay every pack level with the bot ladder (~30 s)
   https://final-outpost-rho.vercel.app (`vercel.json`; root build copies the client into `./dist`).
   Doug plays on an iPhone from that URL. After pushing, wait for the new `assets/index-*.js` to
   appear on the URL, then verify there; "done" means verified live.
+- **Asking Doug to play-test:** always name the exact levels to open (e.g. "First Watch, story level 5"
+  or `s1-L015`) and what to look for in each. Never ask for a check without them (Doug, 2026-11-09).
 - **Pushing:** this repo is Doug's alone; commit and push freely, no PR needed.
 - **Engine bumps:** any rules change bumps `ENGINE_VERSION`, re-pins `levels/golden` and
   `levels/packs/s1`, then `pnpm levels:check` must stay clean. Level URLs carry the pack hash, and a

@@ -1246,6 +1246,9 @@ export const marsGreenhouse: Skin = {
           { on: { event: "captured" }, do: [
             { dotsOff: true },
             { film: "helmet_reveal" },
+            // and from here the light comes back up toward sunrise at the rate it went down (1 per 200 s: ember -1 to
+            // sunrise 1 in 400 s). Game time, so it starts as play resumes after the film (Doug, 2026-11-09)
+            { light: "sunrise", seconds: 400 },
             // then the last line (the commander's run with the helmet, S33 vale_run, was dropped: Doug, 2026-11-07)
             { line: "Vale?", who: "commander" },
           ] },

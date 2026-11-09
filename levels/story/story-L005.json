@@ -531,16 +531,16 @@
    "type": "pad.build",
    "id": "turret1",
    "at": [
-    816,
-    640
+    820,
+    680
    ],
    "cost": {
     "res.salvage": 8
    },
    "build": "struct.ranged_defense",
    "site": [
-    846,
-    610
+    850,
+    660
    ]
   },
   {
@@ -627,7 +627,7 @@
    "side": "e",
    "gap": 0.5,
    "bossRetreat": 25,
-   "bossStandoff": 85
+   "bossStandoff": 70
   }
  ],
  "events": [],
