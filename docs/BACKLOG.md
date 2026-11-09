@@ -13,7 +13,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#101**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#105**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -298,6 +298,11 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 **Systems lane (rules: ONE engine bump 0.23.0, claim it first; Story and Look pause while it lands):**
 - [x] **#97 · `levels:check` after engine 0.23.0 (done 2026-11-09).** s1-L010/L043 salvage targets lowered (330, 265), s1-L060 recorded stars 2.83 -> 2.33; numbers in `docs/DECISIONS.md`. Bundle 8's rebuild re-derives them.
 - [ ] **#94 · Denser waves, not only bigger ones (Doug, 2026-11-08).** s1-L037's last waves lag a little at the end; wave design should favour more dense, smaller waves. Fold into Bundle 8's wave sizing from target ρ.
+
+- [ ] **#101 · Level 2 has a prebuilt wall that nobody built (Doug, 2026-11-09).** Level 3 now teaches wall building, so level 2's prebuilt ring (`ring` in `levels/story/story-L002.json`, the `prebuilt` list) should go: remove it from level 2 (Doug's pick between that and moving the building there; removing keeps level 3 as the teaching level). Done check: `levels:check --pack levels/story` green, level 2 still plays and wins, nothing in level 2's lines refers to the wall.
+- [ ] **#102 · Buggy arrival, second pass (Doug, 2026-11-09).** Sela still gets out of the buggy during the cinematic and walks to the kiosk, and now the buggy never enters the frame in the in-play view. Wanted: the cinematic ends BEFORE she gets out; in play the camera shows the buggy drive in and park at the kiosk stall; then she gets out and walks to the stall. Done check: phone-size screenshots of the buggy in frame during the drive, parked with lights, and Sela stepping out; no exit inside the film.
+- [ ] **#103 · Hidden-pad pole must be behind the wall (Doug, 2026-11-09).** The pin and pole of a pad hidden behind a wall or building draws in front of it. The pole should be behind the obstacle and only visible where it is taller than the obstructing wall or building (the pin on top shows above). Done check: stills of a pad behind a wall and behind a taller building (s1-L010 gate pads) showing the pole hidden by the lower wall.
+- [ ] **#104 · Trader order pictures look faded (Doug, 2026-11-09).** The pictures in the trader's order bubble are desaturated and lightened; protein is nearly white on white. Make each colour as vivid as the object it shows, or add outline/shading so detail reads. Done check: phone-size stills of an order bubble with protein, greens, ore and goods, all clearly readable.
 
 ## Deferred (each says what it waits for)
 - [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
