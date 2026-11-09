@@ -10,9 +10,7 @@ impact kept from the first film) only matches level 1 once all of this lands in 
    `node tools/cinematics/film_level_edits.mjs` from the repo root, then `pnpm levels:check --pack levels/story`. It moves the crash-site
    scrap 100 units west, sets level 1's `start` to the film's last frame [453.9, 130.8], sinks the pods 0.30 m instead of 0.80 m
    (lift -22.4 -> -8.4; closed glass 13.3 -> 27.3), re-poses the commander's glass and bumps `FILM_VERSIONS.crash_open`.
-4. Renderer: a decor `roll` must turn about the model's own long axis before `yaw` (three Euler order "YXZ"; today the order is
-   "XYZ", `renderer.ts` placeStoryDecor). Needed for the glass to open widthwise, hinged on the long side. Check level 3-5's
-   opened glass (lid1) after the change: it uses the same roll field.
+4. Renderer: no change needed (decor roll already turns about the model's own long axis before yaw).
 5. Check on a phone (not done): level 1 (the opening film, then the first screen): the film's last frame matches where you start,
    the commander stands alone with no pod crowding him, pods read as sunk about a third into the sand; levels 2-5: the old
    pod's glass still opens correctly and the pods look right.

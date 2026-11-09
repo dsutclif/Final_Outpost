@@ -17,7 +17,7 @@ export const SIZES = {
     buildLength: 3.9847,
     buildCavity: 1.809,
     /** Base below the sand. */
-    buried: 0.8,
+    buried: 0.3,
   },
   /** Sela's buggy. */
   buggy: { length: 2.64, buildLength: 4.4 },

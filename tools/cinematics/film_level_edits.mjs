@@ -7,8 +7,8 @@
 //    = [453.9, 130.8]; Doug's held spot was [451.7, 138.9], 0.3 m away;
 //  - the pods sit 0.30 m in the sand, not 0.80 (docs/SCALE.md): pod lift -22.4 -> -8.4, closed glass lift 13.3 -> 27.3;
 //  - the commander's glass (lid0) opens widthwise, hinged on the long side: yaw -90, roll -105 about its own long axis,
-//    at pod0 + (16.5, -0.6) units, lift 31.5 (the film's end pose, game_film.py "LID OPEN pose"). NEEDS the renderer to
-//    apply `roll` about the model's own axis before `yaw` (three Euler order "YXZ"; today XYZ), see docs/handoff/film-game-side.md;
+//    at pod0 + (16.5, -0.6) units, lift 31.5 (the film's end pose, game_film.py "LID OPEN pose"); the renderer already turns decor roll
+//    about the model's own long axis before yaw (three Euler order YXZ), so no renderer change is needed;
 //  - FILM_VERSIONS.crash_open bump in packages/client/src/cinematics.ts.
 import fs from "node:fs";
 
@@ -30,13 +30,15 @@ for (const n of [1, 2, 3, 4, 5]) {
     const pod = by[`pod${i}`], lid = by[`lid${i}`];
     if (pod) set(pod, "lift", POD_LIFT);
     if (!lid) continue;
-    if (lid.roll) continue; // an opened glass (lid0 everywhere, lid1 from level 3) is posed below / by its own level
-    set(lid, "lift", CLOSED_LID_LIFT);
+    if (!lid.roll) { set(lid, "lift", CLOSED_LID_LIFT); continue; }
+    // an opened glass (lid0 everywhere, lid1 from level 3): the film's open pose, turned into this pod's frame
+    // (level coordinates: turning the pod by d degrees of yaw turns the offset by -d)
+    const ph = (-(pod.yaw + 90) * Math.PI) / 180, c = Math.cos(ph), sn = Math.sin(ph);
+    const ox = LID0.dx * c - LID0.dy * sn, oy = LID0.dx * sn + LID0.dy * c;
+    set(lid.at, 0, Math.round((pod.at[0] + ox) * 10) / 10);
+    set(lid.at, 1, Math.round((pod.at[1] + oy) * 10) / 10);
+    set(lid, "lift", LID0.lift); set(lid, "yaw", pod.yaw); set(lid, "roll", LID0.roll);
   }
-  const l0 = by.lid0, p0 = by.pod0;
-  set(l0.at, 0, Math.round((p0.at[0] + LID0.dx) * 10) / 10);
-  set(l0.at, 1, Math.round((p0.at[1] + LID0.dy) * 10) / 10);
-  set(l0, "lift", LID0.lift); set(l0, "yaw", LID0.yaw); set(l0, "roll", LID0.roll);
   if (!dry) fs.writeFileSync(p, JSON.stringify(j, null, 1) + "\n");
 }
 {
