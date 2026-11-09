@@ -32,10 +32,10 @@ scenes where play pauses while one character's movement plays out (Doug, 2026-11
 
 Tokens ran short this week, so only #97 is still being built. Start nothing else until the weekly limit resets, then run one fresh Sonnet orchestrator from this block.
 - **Done and live:** Bundles 1–3, 5 (partly), 6, 7 (engine 0.22.0), Bundle 10 (engine 0.23.0, story and look fixes). Ticked items moved to `docs/archive/DONE.md`.
-- **Systems lane:** Bundle 6 and 7 landed. #97 (`levels:check` fails s1-L010, s1-L043, s1-L060 on 0.23.0) is with the Bundle 10 rules session. **Next: Bundle 8** (pack rebuild, #16 v1 refit from `docs/RELEASE-2.md`, #94 denser waves, #99 pads clear of buildings, #100 rangers through walls, #44's `start.json` rewrite). Suggest the full pack regenerate happens there. Then Bundle 9's sim parts.
+- **Systems lane:** Bundle 6 and 7 landed; #97 (`levels:check` on 0.23.0) is fixed (targets re-baselined, see DECISIONS.md). **Next: Bundle 8** (pack rebuild, #16 v1 refit from `docs/RELEASE-2.md`, #94 denser waves, #99 pads clear of buildings, #100 rangers through walls, #44's `start.json` rewrite). Suggest the full pack regenerate happens there. Then Bundle 9's sim parts.
 - **Story lane:** nothing running. **Next: #48 and #49** (held level edits and the `crash_open` render) once Doug approves the film stills. Film state: `docs/STORY-WORK-LOG.md`; stills in `Mobile game/film-stage2-stills-v*` (v6 was reviewed; a v8 flat render was still running). Bundle 4 after that.
 - **Look lane:** nothing running. Open: #41 (pad placement, with #99), #52 scenarios, #82 (storm warning behind the HUD), then Bundle 9's renderer parts.
-- **Open Doug items:** approve or send back the film stills (#47); iPhone checklists #83, #84, #85, #96, #2, #7, #76; run the three remote branch deletes (`look-test`, `object-sizes`, `story-buggy`; #72, #73); say whether leftover worktree folders `fo-wt-drop60`, `fo-wt-flatpads` and `fo-wt-plot` (uncommitted pack edits) may go; #80 ticks after a nightly run shows every command ok.
+- **Open Doug items:** approve or send back the film stills (#47); iPhone checklists #83, #84, #85, #2, #7, #76, and the new gate/downed-guard checks; run the three remote branch deletes (`look-test`, `object-sizes`, `story-buggy`; #72, #73); say whether leftover worktree folders `fo-wt-drop60`, `fo-wt-flatpads` and `fo-wt-plot` (uncommitted pack edits) may go; #80 ticks after a nightly run shows every command ok.
 
 
 ## In progress
@@ -48,10 +48,15 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 - **Three lanes run in parallel (Doug, 2026-11-08), one bundle at a time per lane.** Engine bump freeze: when Bundle 7 claims the bump in the work log, Story and Look finish their current push and pause until it lands.
 - Story lane: idle (see Start here). Film track: the #47 stage 2 redo (v8 flat render) is with the film session; nothing else running.
 - Look lane: idle; Bundle 10 look work is live and confirmed by Doug.
-- Systems lane: the Bundle 10 rules session is fixing #97 (levels:check on 0.23.0), the only build work running; Bundle 8 is next week.
+- Systems lane: #97 fixed; nothing running; Bundle 8 is next week.
 
 ## Waiting on Doug
 
+- [ ] **iPhone checks for the gate fan-out and downed guards (engine 0.23.0, live).** Open level 15 "Wreckage and Hardpoints" (or level 48 "Rust and Hardpoints"), hire guards and let a wave come to the gate.
+      1. Attackers spread out in a short row in front of the gate (about three across, the rest behind) instead of one single-file queue; the gate still holds or breaks about as before.
+      2. When a guard is shot down it lies where it fell with a number over it counting down from 15 (green, red for the last few seconds). Walk up to it: it gets back up after about 3 s. A hired medic does the same without you.
+      3. With no medic or med bay on the level the guard still lasts the full 15 s (before, it was lost at once); left alone it is lost when the number reaches 0.
+      4. Nobody starts healing in the first moment of the fall (about 1.5 s): standing beside it straight away does nothing until it has landed.
 - [ ] **Remind Doug (2026-11-09): do the iPhone checks #83, #84, #2, #7, #76, and run the three remote branch deletes (Bundle 1).**
 - [ ] **#83 · iPhone checks for Bundle 3 (live site).**
       1. KILN (#4/#13): the cloud beside the commander looks the same size in story levels 1–5 and is still easy to see at the smaller size; on the first regular level that teaches something new (e.g. s1-L006) it floats beside the commander while its lines show.
@@ -291,7 +296,7 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 **Look lane (renderer, no engine bump):**
 
 **Systems lane (rules: ONE engine bump 0.23.0, claim it first; Story and Look pause while it lands):**
-- [ ] **#97 · `levels:check` after engine 0.23.0 (done 2026-11-09).** s1-L010/L043 salvage targets lowered (330, 265), s1-L060 recorded stars 2.83 -> 2.33; numbers in `docs/DECISIONS.md`. Bundle 8's rebuild re-derives them.
+- [x] **#97 · `levels:check` after engine 0.23.0 (done 2026-11-09).** s1-L010/L043 salvage targets lowered (330, 265), s1-L060 recorded stars 2.83 -> 2.33; numbers in `docs/DECISIONS.md`. Bundle 8's rebuild re-derives them.
 - [ ] **#94 · Denser waves, not only bigger ones (Doug, 2026-11-08).** s1-L037's last waves lag a little at the end; wave design should favour more dense, smaller waves. Fold into Bundle 8's wave sizing from target ρ.
 
 ## Deferred (each says what it waits for)
