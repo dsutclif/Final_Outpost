@@ -980,7 +980,7 @@ export const marsGreenhouse: Skin = {
           { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
           // Okafor walks the camp's edge as he says it (S6), then is let go back to his post
           { on: { event: "joined", match: { capture: 2 } }, ordered: true, do: [
-            { walk: "okafor", to: { at: [352, 330] } },
+            { walk: "okafor", to: { at: [462, 330] } },
             { crew: "Who's watching the camp? Nobody? Then I am.", who: "okafor" },
             { walk: "okafor", to: false },
           ] },
@@ -1044,8 +1044,8 @@ export const marsGreenhouse: Skin = {
             // drives in and parks with its lights on, Sela steps out at its door (hidden while it drives, where her route starts in
             // story-L003) and the camera then glides on to the kiosk, where she and the commander stand and talk.
             { light: "night", seconds: 1.5 },
-            { vehicle: "buggy", path: [{ at: [840, 962] }, { at: [770, 946] }, { at: [705, 924] }, { at: [640, 906] }], seconds: 6.5, lights: true, rider: "sela" },
-            { camera: { to: { at: [690, 928] }, pan: 0.001, hold: 9.7, back: 0.001 } },
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }], seconds: 6.5, lights: true, rider: "sela" },
+            { camera: { to: { at: [800, 928] }, pan: 0.001, hold: 9.7, back: 0.001 } },
             { camera: { to: { entity: "kiosk" }, pan: 1.4, hold: 24, back: 0.9, freeze: false } },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
@@ -1200,7 +1200,7 @@ export const marsGreenhouse: Skin = {
           ] },
           // full dark: the camera goes to the ridge as the visors light, one by one
           { on: { start: true }, ordered: true, do: [
-            { camera: { to: { at: [790, 700] }, pan: 0.9, hold: 2.2, back: 0.8 } },
+            { camera: { to: { at: [900, 700] }, pan: 0.9, hold: 2.2, back: 0.8 } },
             { ridgeFlash: 3 },
             { line: "Raiders, coming down off the ridge. They'll go for the gate.", who: "okafor" },
             { line: "Then we hold the gate.", who: "commander" },

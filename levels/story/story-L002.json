@@ -4,7 +4,7 @@
  "engineVersion": "0.24.0",
  "contentVersion": "0.21.0",
  "map": {
-  "w": 820,
+  "w": 980,
   "h": 700,
   "zones": []
  },
@@ -18,7 +18,7 @@
   "sales"
  ],
  "start": [
-  300,
+  410,
   330
  ],
  "entities": [
@@ -26,7 +26,7 @@
    "type": "sink.core",
    "id": "core",
    "at": [
-    220,
+    330,
     320
    ],
    "params": {
@@ -38,163 +38,261 @@
    "type": "node.fuel_scrap",
    "id": "ore1",
    "at": [
-    290,
-    390
+    138.4,
+    376.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore2",
    "at": [
-    268,
-    400
+    116.4,
+    386.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore3",
    "at": [
-    312,
-    412
+    160.4,
+    398.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore4",
    "at": [
-    250,
-    420
+    98.4,
+    406.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore5",
    "at": [
-    290,
-    430
+    138.4,
+    416.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore6",
    "at": [
-    330,
-    392
+    178.4,
+    378.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore7",
    "at": [
-    270,
-    440
+    118.4,
+    426.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore8",
    "at": [
-    312,
-    450
+    160.4,
+    436.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore9",
    "at": [
-    345,
-    425
+    193.4,
+    411.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore10",
    "at": [
-    235,
-    445
+    83.4,
+    431.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore11",
    "at": [
-    330,
-    470
+    178.4,
+    456.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore12",
    "at": [
-    290,
-    470
+    138.4,
+    456.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore13",
    "at": [
-    355,
-    460
+    203.4,
+    446.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore14",
    "at": [
-    255,
-    475
+    103.4,
+    461.3
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "ridge1",
+   "id": "ridgeE2",
+   "rect": [
+    825.3,
+    -49.3,
+    112,
+    252
+   ],
+   "kind": "ridge"
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeE3",
+   "rect": [
+    832.3,
+    202.7,
+    112,
+    196
+   ],
+   "kind": "ridge"
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeE4",
+   "rect": [
+    825.3,
+    398.7,
+    112,
+    168
+   ],
+   "kind": "ridge"
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeN1",
    "kind": "ridge",
    "rect": [
-    20,
-    165,
+    130,
+    125,
     120,
     62
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "ridge2",
+   "id": "ridgeN2",
    "kind": "ridge",
    "rect": [
-    135,
-    165,
+    245,
+    125,
     120,
     62
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "ridge3",
+   "id": "ridgeN3",
    "kind": "ridge",
    "rect": [
-    250,
-    165,
+    360,
+    125,
     120,
     62
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "ridge4",
+   "id": "ridgeN4",
    "kind": "ridge",
    "rect": [
-    365,
-    165,
+    475,
+    125,
     75,
     62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_n",
+   "kind": "ridge",
+   "rect": [
+    690,
+    538,
+    200,
+    22
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_s",
+   "kind": "ridge",
+   "rect": [
+    690,
+    660,
+    200,
+    22
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_e",
+   "kind": "ridge",
+   "rect": [
+    868,
+    560,
+    22,
+    100
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_w1",
+   "kind": "ridge",
+   "rect": [
+    690,
+    560,
+    24,
+    24
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_w2",
+   "kind": "ridge",
+   "rect": [
+    690,
+    636,
+    24,
+    24
+   ]
+  },
+  {
+   "type": "zone.blocked",
+   "id": "rockslide",
+   "rect": [
+    686,
+    584,
+    32,
+    52
    ]
   },
   {
    "type": "decor.halcyon_wreck",
    "id": "wreck",
    "at": [
-    309.9,
+    419.9,
     -186
    ],
    "yaw": -18,
@@ -205,7 +303,7 @@
    "type": "decor.stasis_pod",
    "id": "pod0",
    "at": [
-    449,
+    559,
     45
    ],
    "yaw": -90,
@@ -216,7 +314,7 @@
    "type": "decor.stasis_glass",
    "id": "lid0",
    "at": [
-    428.6,
+    538.6,
     44.4
    ],
    "yaw": -90,
@@ -228,7 +326,7 @@
    "type": "decor.stasis_glass",
    "id": "lid1",
    "at": [
-    503.6,
+    613.6,
     0
    ],
    "yaw": -58,
@@ -239,7 +337,7 @@
    "type": "decor.stasis_pod",
    "id": "pod1",
    "at": [
-    508,
+    618,
     -2
    ],
    "yaw": -58,
@@ -250,7 +348,7 @@
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    550.4,
+    660.4,
     80.7
    ],
    "yaw": -125,
@@ -261,7 +359,7 @@
    "type": "decor.stasis_pod",
    "id": "pod2",
    "at": [
-    554,
+    664,
     84
    ],
    "yaw": -125,
@@ -272,7 +370,7 @@
    "type": "decor.stasis_glass",
    "id": "lid3",
    "at": [
-    676,
+    786,
     -38
    ],
    "yaw": -78,
@@ -283,7 +381,7 @@
    "type": "decor.stasis_pod",
    "id": "pod3",
    "at": [
-    680,
+    790,
     -40
    ],
    "yaw": -78,
@@ -294,7 +392,7 @@
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    586.4,
+    696.4,
     -38.3
    ],
    "yaw": -140,
@@ -305,7 +403,7 @@
    "type": "decor.stasis_pod",
    "id": "pod4",
    "at": [
-    590,
+    700,
     -35
    ],
    "yaw": -140,
@@ -316,7 +414,7 @@
    "type": "decor.ship_wreck",
    "id": "scrap",
    "at": [
-    359.4,
+    469.4,
     136.3
    ],
    "yaw": 20,
@@ -326,7 +424,7 @@
    "type": "decor.ship_wreck",
    "id": "scrap2",
    "at": [
-    616.7,
+    726.7,
     54.1
    ],
    "yaw": -35,
@@ -339,35 +437,35 @@
    "costPerSection": 1,
    "points": [
     [
-     110,
+     220,
      240
     ],
     [
-     245,
+     355,
      240
     ],
     [
-     380,
+     490,
      240
     ],
     [
-     380,
+     490,
      365
     ],
     [
-     380,
+     490,
      490
     ],
     [
-     245,
+     355,
      490
     ],
     [
-     110,
+     220,
      490
     ],
     [
-     110,
+     220,
      365
     ]
    ],
@@ -381,7 +479,7 @@
    "type": "capture.recruit_container",
    "id": "pod_pip",
    "at": [
-    470,
+    580,
     455
    ],
    "freeze": 160,
@@ -395,8 +493,8 @@
    "type": "capture.recruit_container",
    "id": "pod_rhee",
    "at": [
-    610,
-    560
+    660,
+    520
    ],
    "freeze": 160,
    "joins": {
@@ -407,8 +505,8 @@
    "type": "capture.recruit_container",
    "id": "pod_okafor",
    "at": [
-    665,
-    590
+    760,
+    480
    ],
    "freeze": 160,
    "joins": {
@@ -419,7 +517,7 @@
    "type": "capture.recruit_container",
    "id": "pod_tam",
    "at": [
-    110,
+    220,
     610
    ],
    "freeze": 110
@@ -428,8 +526,8 @@
    "type": "capture.recruit_container",
    "id": "pod_old",
    "at": [
-    770,
-    470
+    790,
+    360
    ],
    "decoy": true,
    "freeze": 0

@@ -4,7 +4,7 @@
  "engineVersion": "0.24.0",
  "contentVersion": "0.21.0",
  "map": {
-  "w": 1300,
+  "w": 1410,
   "h": 1300,
   "zones": []
  },
@@ -23,7 +23,7 @@
   "workers"
  ],
  "start": [
-  300,
+  410,
   640
  ],
  "entities": [
@@ -31,7 +31,7 @@
    "type": "sink.core",
    "id": "core",
    "at": [
-    220,
+    330,
     620
    ],
    "params": {
@@ -43,163 +43,262 @@
    "type": "node.fuel_scrap",
    "id": "ore1",
    "at": [
-    290,
-    690
+    138.4,
+    676.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore2",
    "at": [
-    268,
-    700
+    116.4,
+    686.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore3",
    "at": [
-    312,
-    712
+    160.4,
+    698.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore4",
    "at": [
-    250,
-    720
+    98.4,
+    706.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore5",
    "at": [
-    290,
-    730
+    138.4,
+    716.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore6",
    "at": [
-    330,
-    692
+    178.4,
+    678.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore7",
    "at": [
-    270,
-    740
+    118.4,
+    726.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore8",
    "at": [
-    312,
-    750
+    160.4,
+    736.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore9",
    "at": [
-    345,
-    725
+    193.4,
+    711.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore10",
    "at": [
-    235,
-    745
+    83.4,
+    731.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore11",
    "at": [
-    330,
-    770
+    178.4,
+    756.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore12",
    "at": [
-    290,
-    770
+    138.4,
+    756.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore13",
    "at": [
-    355,
-    760
+    203.4,
+    746.3
    ]
   },
   {
    "type": "node.fuel_scrap",
    "id": "ore14",
    "at": [
-    255,
-    775
+    103.4,
+    761.3
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "ridge1",
+   "id": "ridgeE1",
+   "rect": [
+    832.3,
+    220,
+    112,
+    30.7
+   ],
+   "kind": "ridge"
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeE2",
+   "rect": [
+    825.3,
+    250.7,
+    112,
+    252
+   ],
+   "kind": "ridge"
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeE3",
+   "rect": [
+    832.3,
+    502.7,
+    112,
+    97.3
+   ],
+   "kind": "ridge"
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeE4",
+   "rect": [
+    825.3,
+    840,
+    112,
+    26.7
+   ],
+   "kind": "ridge"
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeN1",
    "kind": "ridge",
    "rect": [
-    20,
-    465,
+    130,
+    425,
     120,
     62
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "ridge2",
+   "id": "ridgeN2",
    "kind": "ridge",
    "rect": [
-    135,
-    465,
+    245,
+    425,
     120,
     62
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "ridge3",
+   "id": "ridgeN3",
    "kind": "ridge",
    "rect": [
-    250,
-    465,
+    360,
+    425,
     120,
     62
    ]
   },
   {
    "type": "zone.terrain",
-   "id": "ridge4",
+   "id": "ridgeN4",
    "kind": "ridge",
    "rect": [
-    365,
-    465,
+    475,
+    425,
     75,
     62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_n",
+   "kind": "ridge",
+   "rect": [
+    690,
+    838,
+    200,
+    22
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_s",
+   "kind": "ridge",
+   "rect": [
+    690,
+    960,
+    200,
+    22
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_e",
+   "kind": "ridge",
+   "rect": [
+    868,
+    860,
+    22,
+    100
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_w1",
+   "kind": "ridge",
+   "rect": [
+    690,
+    860,
+    24,
+    24
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_w2",
+   "kind": "ridge",
+   "rect": [
+    690,
+    936,
+    24,
+    24
    ]
   },
   {
    "type": "decor.halcyon_wreck",
    "id": "wreck",
    "at": [
-    309.9,
+    419.9,
     114
    ],
    "yaw": -18,
@@ -210,7 +309,7 @@
    "type": "decor.stasis_pod",
    "id": "pod0",
    "at": [
-    449,
+    559,
     345
    ],
    "yaw": -90,
@@ -221,7 +320,7 @@
    "type": "decor.stasis_glass",
    "id": "lid0",
    "at": [
-    428.6,
+    538.6,
     344.4
    ],
    "yaw": -90,
@@ -233,7 +332,7 @@
    "type": "decor.stasis_glass",
    "id": "lid1",
    "at": [
-    490.3,
+    600.3,
     308.3
    ],
    "yaw": -58,
@@ -245,7 +344,7 @@
    "type": "decor.stasis_pod",
    "id": "pod1",
    "at": [
-    508,
+    618,
     298
    ],
    "yaw": -58,
@@ -256,7 +355,7 @@
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    550.4,
+    660.4,
     380.7
    ],
    "yaw": -125,
@@ -267,7 +366,7 @@
    "type": "decor.stasis_pod",
    "id": "pod2",
    "at": [
-    554,
+    664,
     384
    ],
    "yaw": -125,
@@ -278,7 +377,7 @@
    "type": "decor.stasis_glass",
    "id": "lid3",
    "at": [
-    676,
+    786,
     262
    ],
    "yaw": -78,
@@ -289,7 +388,7 @@
    "type": "decor.stasis_pod",
    "id": "pod3",
    "at": [
-    680,
+    790,
     260
    ],
    "yaw": -78,
@@ -300,7 +399,7 @@
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    586.4,
+    696.4,
     261.7
    ],
    "yaw": -140,
@@ -311,7 +410,7 @@
    "type": "decor.stasis_pod",
    "id": "pod4",
    "at": [
-    590,
+    700,
     265
    ],
    "yaw": -140,
@@ -322,7 +421,7 @@
    "type": "decor.ship_wreck",
    "id": "scrap",
    "at": [
-    359.4,
+    469.4,
     436.3
    ],
    "yaw": 20,
@@ -332,7 +431,7 @@
    "type": "decor.ship_wreck",
    "id": "scrap2",
    "at": [
-    616.7,
+    726.7,
     354.1
    ],
    "yaw": -35,
@@ -345,35 +444,35 @@
    "costPerSection": 1,
    "points": [
     [
-     110,
+     220,
      540
     ],
     [
-     245,
+     355,
      540
     ],
     [
-     380,
+     490,
      540
     ],
     [
-     380,
+     490,
      665
     ],
     [
-     380,
+     490,
      790
     ],
     [
-     245,
+     355,
      790
     ],
     [
-     110,
+     220,
      790
     ],
     [
-     110,
+     220,
      665
     ]
    ],
@@ -398,7 +497,7 @@
    "type": "sink.sales_point",
    "id": "kiosk",
    "at": [
-    470,
+    580,
     1100
    ],
    "sells": [
@@ -407,15 +506,15 @@
    ],
    "route": [
     [
-     840,
+     950,
      1205
     ],
     [
-     700,
+     810,
      1205
     ],
     [
-     520,
+     630,
      1205
     ]
    ]
@@ -424,7 +523,7 @@
    "type": "node.food_source",
    "id": "field1",
    "at": [
-    330,
+    440,
     910
    ]
   },
@@ -432,70 +531,15 @@
    "type": "node.food_source",
    "id": "field2",
    "at": [
-    200,
+    310,
     1020
-   ]
-  },
-  {
-   "type": "zone.terrain",
-   "id": "flats_n",
-   "kind": "ridge",
-   "rect": [
-    580,
-    838,
-    200,
-    22
-   ]
-  },
-  {
-   "type": "zone.terrain",
-   "id": "flats_s",
-   "kind": "ridge",
-   "rect": [
-    580,
-    960,
-    200,
-    22
-   ]
-  },
-  {
-   "type": "zone.terrain",
-   "id": "flats_e",
-   "kind": "ridge",
-   "rect": [
-    758,
-    860,
-    22,
-    100
-   ]
-  },
-  {
-   "type": "zone.terrain",
-   "id": "flats_w1",
-   "kind": "ridge",
-   "rect": [
-    580,
-    860,
-    24,
-    24
-   ]
-  },
-  {
-   "type": "zone.terrain",
-   "id": "flats_w2",
-   "kind": "ridge",
-   "rect": [
-    580,
-    936,
-    24,
-    24
    ]
   },
   {
    "type": "zone.prey",
    "id": "flats",
    "rect": [
-    612,
+    722,
     870,
     140,
     85
@@ -507,7 +551,7 @@
    "type": "struct.landmark",
    "id": "hub",
    "at": [
-    560,
+    670,
     700
    ]
   },
@@ -515,7 +559,7 @@
    "type": "conv.food_processor",
    "id": "galley",
    "at": [
-    420,
+    530,
     940
    ]
   },
@@ -523,7 +567,7 @@
    "type": "struct.barracks",
    "id": "barracks",
    "at": [
-    300,
+    410,
     700
    ]
   },
@@ -531,23 +575,23 @@
    "type": "pad.build",
    "id": "turret1",
    "at": [
-    820,
-    680
+    760,
+    690
    ],
    "cost": {
     "res.salvage": 8
    },
    "build": "struct.ranged_defense",
    "site": [
-    850,
-    660
+    790,
+    670
    ]
   },
   {
    "type": "pad.hire",
    "id": "train",
    "at": [
-    165,
+    275,
     735
    ],
    "cost": {
@@ -566,8 +610,8 @@
    "type": "capture.helmet",
    "id": "helmet",
    "at": [
-    760,
-    770
+    780,
+    790
    ],
    "hiddenUntil": "hold",
    "heldBy": "boss"

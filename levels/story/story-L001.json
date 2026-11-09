@@ -5,7 +5,7 @@
  "contentVersion": "0.21.0",
  "map": {
   "w": 980,
-  "h": 700,
+  "h": 800,
   "zones": []
  },
  "modules": [
@@ -147,42 +147,155 @@
   },
   {
    "type": "zone.terrain",
-   "id": "ridge1",
+   "id": "ridgeE1",
    "rect": [
     832.3,
     0,
     112,
     30.7
-   ]
+   ],
+   "kind": "ridge"
   },
   {
    "type": "zone.terrain",
-   "id": "ridge2",
+   "id": "ridgeE2",
    "rect": [
     825.3,
     30.7,
     112,
     252
-   ]
+   ],
+   "kind": "ridge"
   },
   {
    "type": "zone.terrain",
-   "id": "ridge3",
+   "id": "ridgeE3",
    "rect": [
     832.3,
     282.7,
     112,
     196
-   ]
+   ],
+   "kind": "ridge"
   },
   {
    "type": "zone.terrain",
-   "id": "ridge4",
+   "id": "ridgeE4",
    "rect": [
     825.3,
     478.7,
     112,
     168
+   ],
+   "kind": "ridge"
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeN1",
+   "kind": "ridge",
+   "rect": [
+    130,
+    205,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeN2",
+   "kind": "ridge",
+   "rect": [
+    245,
+    205,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeN3",
+   "kind": "ridge",
+   "rect": [
+    360,
+    205,
+    120,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "ridgeN4",
+   "kind": "ridge",
+   "rect": [
+    475,
+    205,
+    75,
+    62
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_n",
+   "kind": "ridge",
+   "rect": [
+    690,
+    618,
+    200,
+    22
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_s",
+   "kind": "ridge",
+   "rect": [
+    690,
+    740,
+    200,
+    22
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_e",
+   "kind": "ridge",
+   "rect": [
+    868,
+    640,
+    22,
+    100
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_w1",
+   "kind": "ridge",
+   "rect": [
+    690,
+    640,
+    24,
+    24
+   ]
+  },
+  {
+   "type": "zone.terrain",
+   "id": "flats_w2",
+   "kind": "ridge",
+   "rect": [
+    690,
+    716,
+    24,
+    24
+   ]
+  },
+  {
+   "type": "zone.blocked",
+   "id": "rockslide",
+   "rect": [
+    686,
+    664,
+    32,
+    52
    ]
   },
   {
