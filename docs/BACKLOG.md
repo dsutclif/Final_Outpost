@@ -52,6 +52,10 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 
 ## Waiting on Doug
 
+- [ ] **iPhone checks for level 2's wall and Sela's buggy arrival (story only, after the next deploy).**
+      1. Open level 2 "Roll Call". There is no built wall around the camp any more (only the thin dashed line, which is just where the tow line starts). Play it through: all five pods still come home and the level still ends in a win. None of the lines mention a wall.
+      2. Open level 3 "Open for Trade". The night film now shows only headlights coming up the road, and it ends before the buggy stops. Sela must not get out inside it.
+      3. Back in play the camera moves to the road beside the stall: the buggy drives into the picture, slows, and parks with its headlights on. Only then does Sela appear at its door and walk to the stall; her first line comes as she arrives. Look for nothing rolling on without a driver, and for no pause with Sela standing in an empty frame.
 - [ ] **iPhone checks for the hidden-pad pole and the trader order pictures (renderer only, after the next deploy).**
       1. Open level 10 (s1-L010). Stand by the west gate: the turret pad behind the gate shows a pin above it with a thin pole. Look for the pole stopping at the gate's top edge (hidden behind it), not drawn across the gate front.
       2. Open level 6 (s1-L006), let traders queue at the kiosk: each order bubble shows a clear picture (green crate, ore, goods) with a dark outline. Look for pale items (protein, refined goods) being readable against the bubble.
