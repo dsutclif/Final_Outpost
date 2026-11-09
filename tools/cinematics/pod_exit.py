@@ -291,6 +291,33 @@ def perform(root, pre=0, calib=False):
     # pass 1: pose everything unlocked, measure the set from where the body goes
     k_drop = next(k for k, t in enumerate(takes) if isinstance(t, Drop))
     k_step = next(k for k, t in enumerate(takes) if isinstance(t, StepOver))
+    if os.environ.get("SLIDE_TO_WALL"):
+        # game_film.py: he lies centred in the real (narrow) pod, so the get-up's end spot and the step are moved bodily
+        # (a slide over the last 70 frames of the rise) until he stands at the pod's middle and the stepping foot's highest
+        # point passes over the wall's centre, SLIDE_TO_WALL m from the lying centre
+        wall_d = float(os.environ["SLIDE_TO_WALL"])
+        sr = [r for r in TL if r[0] == k_step]
+        sd = sr[-1][3] - sr[0][3]; sd.z = 0
+        ax0 = max((Vector((1, 0, 0)), Vector((-1, 0, 0)), Vector((0, 1, 0)), Vector((0, -1, 0))), key=lambda a: a.dot(sd))
+        lat_v = Vector((-ax0.y, ax0.x, 0))
+        lyp, apex = [], None
+        for f, row in enumerate(TL):
+            if row[0] == 0 and row[6] < 20:
+                place(row); bpy.context.view_layer.update(); lyp += mesh_points()[::7]
+            if row[0] == k_step:
+                place(row); bpy.context.view_layer.update()
+                for n in ("LeftToeBase", "RightToeBase"):
+                    t_ = arm.matrix_world @ arm.pose.bones[retarget.P + n].tail
+                    if t_.z < 1.3 and (apex is None or t_.z > apex[0]): apex = (t_.z, t_.dot(ax0))
+        la_ = [q.dot(ax0) for q in lyp]; lt_ = [q.dot(lat_v) for q in lyp]
+        rows0 = [i for i, r in enumerate(TL) if r[0] == 0]
+        stand = TL[rows0[-1]][3]
+        D = ax0 * ((max(la_) + min(la_)) / 2 + wall_d - apex[1]) + lat_v * ((max(lt_) + min(lt_)) / 2 - stand.dot(lat_v))
+        D.z = 0
+        for i, r in enumerate(TL):
+            w = 1.0 if i > rows0[-1] else smooth((i - (rows0[-1] - 70)) / 70)
+            if w > 0: r[3] = r[3] + D * w
+        print(f"SLIDE {D.length * 100:.0f} cm (along {D.dot(ax0) * 100:+.0f}, lengthwise {D.dot(lat_v) * 100:+.0f}); foot apex {apex[0] * 100:.0f} cm")
     lying_pts, step_peak, takeoff = [], None, None
     best_lift = -1
     for f, row in enumerate(TL):
@@ -416,7 +443,7 @@ def perform(root, pre=0, calib=False):
         c += 0.02
     if os.environ.get("RIM_FROM_CENTRE"):  # game_film.py: the real pod's wall stands this far from where he lies, not where the stride best clears
         la = [q.dot(ax) for q in lying_pts]
-        best_c = (max(la) + min(la)) / 2 + float(os.environ["RIM_FROM_CENTRE"]) + WALL_T / 2
+        best_c = (max(la) + min(la)) / 2 + float(os.environ["RIM_FROM_CENTRE"])
         clear = 9.0
         for pts in step_frames:
             cross = [q.z for q in pts if abs(q.dot(ax) - best_c) < WALL_T / 2 and lat0 - WALL_T < q.dot(lat) < lat1 + WALL_T]
