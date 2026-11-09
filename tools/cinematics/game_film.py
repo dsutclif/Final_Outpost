@@ -6,6 +6,7 @@
 import math, os, sys
 os.environ["NO_STAGGER"] = "1"
 os.environ.setdefault("WALL_T", "0.10")
+os.environ.setdefault("SLIDE_TO_WALL", "0.38")
 os.environ.setdefault("RIM_FROM_CENTRE", "0.38")  # the pod interior's half-width: wall at -0.55, interior centre at -0.17
 os.environ.setdefault("RIM_FORCE", "0.54")
 os.environ.setdefault("STEP_LIFT", "95")
@@ -270,7 +271,7 @@ def main():
         sc.timeline_markers.clear()
         cam = lib.camera(pod_c + Vector((-4.2, -2.6, 0.8)), pod_c + Vector((-0.6, 0, 0.6)), lens=36, name="stepcam")
         sc.camera = cam
-        for f in (224, 232, 240, 248, 256, 264, 272, 280):
+        for f in (236, 244, 252, 260, 268, 276, 284, 292):
             sc.frame_set(f)
             lib.render_still(os.path.join(OUT, f"step_{f:04d}.png"))
         return
@@ -289,6 +290,10 @@ def main():
             cam = max((m for m in sc.timeline_markers if m.frame <= f), key=lambda m: m.frame).camera
             sc.camera = cam
             lib.render_still(os.path.join(OUT, f"still_{f:04d}.png"))
+        return
+    if "--list" in args:  # re-render single frames (Workbench now and then writes a glitched yellow frame)
+        for f in (int(x) for x in args[args.index("--list") + 1].split(",") if x):
+            lib.render_frames(OUT + "_frames", f, f)
         return
     a, b = (int(args[args.index("--frames") + 1]), int(args[args.index("--frames") + 2])) if "--frames" in args else (1, N + PRE)
     lib.render_frames(OUT + "_frames", a, b)
