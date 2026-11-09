@@ -4,7 +4,7 @@ This is the only task list for Farthest Outpost. Every open item lives here, wha
 session that raised it. This file replaced `BACKLOG-R4/R5/R6.md`, `BACKLOG-STORY.md` and the open boxes in
 `POLISH-PLAN.md` and `RELEASE.md` on 2026-11-07. Those files are now in `docs/archive/`.
 
-**Talking to Doug (2026-11-09).** Never refer to items by `#number` in anything Doug reads (chat, reports, "Waiting on Doug"): describe the item in words, or ask directly, and put everything he needs for a decision in one place. Every phone check must say which level to open AND what to look for (and what good looks like). Numbers stay in this file and in briefs between sessions.
+**Talking to Doug (2026-11-09).** Never refer to items by `#number` in anything Doug reads (chat, reports, "Waiting on Doug"): describe the item in words, or ask directly, and put everything he needs for a decision in one place. Every phone check must say which level to open AND what to look for (and what good looks like). Numbers stay in this file and in briefs between sessions. When Doug has a visual judgement to make, show him the stills or mocks (full absolute paths) in the same message.
 
 **How Doug wants this run (2026-11-07).** One orchestrator session keeps this file, merges, and checks each bundle is live
 before the next starts. Each bundle runs in its own fresh session on the cheapest model that fits (Haiku for checks and
