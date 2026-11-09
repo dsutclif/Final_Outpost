@@ -284,6 +284,13 @@ function drawGlyph(g: CanvasRenderingContext2D, kind: string, x: number, y: numb
       g.closePath(); g.fillStyle = light; g.fill(); g.stroke();
       break;
     }
+    case "turret": // a gun turret side on: round base plate, domed gun head, long barrel with a muzzle
+      box(-0.9, 0.5, 1.8, 0.35, ink);
+      box(-0.35, 0.2, 0.7, 0.32, light);
+      g.beginPath(); g.arc(-0.05 * r, 0.2 * r, 0.55 * r, Math.PI, 0); g.closePath(); g.fillStyle = light; g.fill(); g.stroke();
+      g.lineWidth = r * 0.3; line(0.3, -0.15, 1.0, -0.4);
+      box(0.9, -0.55, 0.22, 0.32, ink);
+      break;
     case "build": // hammer: a pad that places something new
       g.lineWidth = r * 0.26; line(-0.55, 0.85, 0.35, -0.2);
       box(-0.1, -0.85, 1.0, 0.55, light); g.save(); g.restore();
@@ -2092,7 +2099,7 @@ export class Renderer3D implements Renderer {
       decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
       if (dm) this.hideUnderCharacters(dm);
       pts.push({ id: pad.id, x: at.x, z: at.z });
-      this.padPin(p, pad.id, at, glyph, wk?.what, wk?.worker?.res, lightMark, locked);
+      this.padPin(p, pad.id, at, glyph || (info?.what.startsWith("struct.ranged_defense") ? "turret" : "build"), wk?.what, wk?.worker?.res, lightMark, locked);
       // floating name plus every cost resource with what is still owed (icon + number each)
       const sp = this.sprite(p, 0);
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
@@ -3198,7 +3205,7 @@ export class Renderer3D implements Renderer {
     (pole.material as MeshBasicMaterial).opacity = 0.3 * flick;
     pole.position.set(at.x, 2.4, at.z);
     pole.rotation.y = YAW;
-    const ico = glyph || "build";
+    const ico = glyph;
     sp.visible = this.labels.apply(sp, `pin|${ico}|${role ?? ""}|${res ?? ""}|${light}|${locked}`, () => this.padPinArt(ico, role, res, light, locked), PAD_LABEL_H * 1.25);
     sp.position.set(at.x, h + 2.4, at.z);
     // the pole ends at the pin's lower edge, not its centre
