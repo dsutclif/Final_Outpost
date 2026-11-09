@@ -13,7 +13,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#105**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#107**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -56,9 +56,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       1. Open level 2 "Roll Call". There is no built wall around the camp any more (only the thin dashed line, which is just where the tow line starts). Play it through: all five pods still come home and the level still ends in a win. None of the lines mention a wall.
       2. Open level 3 "Open for Trade". The night film now shows only headlights coming up the road, and it ends before the buggy stops. Sela must not get out inside it.
       3. Back in play the camera moves to the road beside the stall: the buggy drives into the picture, slows, and parks with its headlights on. Only then does Sela appear at its door and walk to the stall; her first line comes as she arrives. Look for nothing rolling on without a driver, and for no pause with Sela standing in an empty frame.
-- [ ] **iPhone checks for the hidden-pad pole and the trader order pictures (renderer only, after the next deploy).**
-      1. Open level 10 (s1-L010). Stand by the west gate: the turret pad behind the gate shows a pin above it with a thin pole. Look for the pole stopping at the gate's top edge (hidden behind it), not drawn across the gate front.
-      2. Open level 6 (s1-L006), let traders queue at the kiosk: each order bubble shows a clear picture (green crate, ore, goods) with a dark outline. Look for pale items (protein, refined goods) being readable against the bubble.
 - [ ] **iPhone checks for the gate fan-out and downed guards (engine 0.23.0, live).** Open level 15 "Wreckage and Hardpoints" (or level 48 "Rust and Hardpoints"), hire guards and let a wave come to the gate.
       1. Attackers spread out in a short row in front of the gate (about three across, the rest behind) instead of one single-file queue; the gate still holds or breaks about as before.
       2. When a guard is shot down it lies where it fell with a number over it counting down from 15 (green, red for the last few seconds). Walk up to it: it gets back up after about 3 s. A hired medic does the same without you.
@@ -308,8 +305,13 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 
 - [ ] **#101 · Level 2 has a prebuilt wall that nobody built (Doug, 2026-11-09).** Level 3 now teaches wall building, so level 2's prebuilt ring (`ring` in `levels/story/story-L002.json`, the `prebuilt` list) should go: remove it from level 2 (Doug's pick between that and moving the building there; removing keeps level 3 as the teaching level). Done check: `levels:check --pack levels/story` green, level 2 still plays and wins, nothing in level 2's lines refers to the wall.
 - [ ] **#102 · Buggy arrival, second pass (Doug, 2026-11-09).** Sela still gets out of the buggy during the cinematic and walks to the kiosk, and now the buggy never enters the frame in the in-play view. Wanted: the cinematic ends BEFORE she gets out; in play the camera shows the buggy drive in and park at the kiosk stall; then she gets out and walks to the stall. Done check: phone-size screenshots of the buggy in frame during the drive, parked with lights, and Sela stepping out; no exit inside the film.
-- [ ] **#103 · Hidden-pad pole must be behind the wall (Doug, 2026-11-09).** The pin and pole of a pad hidden behind a wall or building draws in front of it. The pole should be behind the obstacle and only visible where it is taller than the obstructing wall or building (the pin on top shows above). Done check: stills of a pad behind a wall and behind a taller building (s1-L010 gate pads) showing the pole hidden by the lower wall.
-- [ ] **#104 · Trader order pictures look faded (Doug, 2026-11-09).** The pictures in the trader's order bubble are desaturated and lightened; protein is nearly white on white. Make each colour as vivid as the object it shows, or add outline/shading so detail reads. Done check: phone-size stills of an order bubble with protein, greens, ore and goods, all clearly readable.
+- [x] **#103 · Hidden-pad pole must be behind the wall (Doug, 2026-11-09).** The pin and pole of a pad hidden behind a wall or building draws in front of it. The pole should be behind the obstacle and only visible where it is taller than the obstructing wall or building (the pin on top shows above). Done check: stills of a pad behind a wall and behind a taller building (s1-L010 gate pads) showing the pole hidden by the lower wall.
+      **Closed 2026-11-09 (d20fcc6): Doug confirmed on the phone, level 10 west gate.**
+- [x] **#104 · Trader order pictures look faded (Doug, 2026-11-09).** The pictures in the trader's order bubble are desaturated and lightened; protein is nearly white on white. Make each colour as vivid as the object it shows, or add outline/shading so detail reads. Done check: phone-size stills of an order bubble with protein, greens, ore and goods, all clearly readable.
+      **Closed 2026-11-09 (d20fcc6): Doug confirmed the order pictures look good.**
+
+- [ ] **#105 · Level 2 shows no hint of a wall (Doug, 2026-11-09).** After the prebuilt wall was removed, level 2 still shows a thin dashed line (where the tow line starts). Level 2 should look like level 1 with no suggestion of a wall: remove that line (and any wall-ring marking) from level 2 only. Done check: a phone-size still of level 2 at start with no dashed ring; level 3 unchanged.
+- [ ] **#106 · Sela gets out of the buggy in play (Doug, 2026-11-09).** Now the buggy parks empty and Sela appears beside it. She should be seen getting out: add a "get out of vehicle" animation for Sela in play (a rigged clip, or built from existing clips: the buggy door/side, she climbs down, then walks to the stall). She must be visible in the buggy while it drives in (or the exit starts from the driver seat). Done check: phone-size stills of the buggy with Sela in it driving in, parked, mid-exit and walking to the stall; no empty-buggy frame.
 
 ## Deferred (each says what it waits for)
 - [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
