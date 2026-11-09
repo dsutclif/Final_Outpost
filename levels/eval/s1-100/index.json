@@ -1,0 +1,149 @@
+{
+ "schema": 1,
+ "pack": "s1-100",
+ "levels": [
+  {
+   "id": "s1-L101",
+   "goal": "protein",
+   "D": 0.1358,
+   "F": 0.7725,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L101.json"
+  },
+  {
+   "id": "s1-L102",
+   "goal": "serve_premium",
+   "D": 0.0681,
+   "F": 0.7277,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L102.json"
+  },
+  {
+   "id": "s1-L103",
+   "goal": "hire",
+   "D": 0.5825,
+   "F": 0.9338,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L103.json"
+  },
+  {
+   "id": "s1-L104",
+   "goal": "turret_level",
+   "D": 0.3257,
+   "F": 0.0994,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 4,
+   "file": "s1-L104.json"
+  },
+  {
+   "id": "s1-L105",
+   "goal": "build_count",
+   "D": 0.3923,
+   "F": 0.4801,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L105.json"
+  },
+  {
+   "id": "s1-L106",
+   "goal": "rescue",
+   "D": 0.8051,
+   "F": 0.7955,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L106.json"
+  },
+  {
+   "id": "s1-L107",
+   "goal": "currency",
+   "D": 0.172,
+   "F": 0.9275,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L107.json"
+  },
+  {
+   "id": "s1-L108",
+   "goal": "automate",
+   "D": 0.0221,
+   "F": 0.9233,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L108.json"
+  },
+  {
+   "id": "s1-L109",
+   "goal": "hire",
+   "D": 0.0471,
+   "F": 0.2768,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 4,
+   "file": "s1-L109.json"
+  }
+ ]
+}
