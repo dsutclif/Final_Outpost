@@ -34,7 +34,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-08 | Look: Bundle 10 #89/#90/#93 | look-bundle10 | `render-3d/src/renderer.ts` (padXray, trader bubble art, ranger/hauler hold poses), `render-3d/src/materials.ts`, `render-3d/src/scene/rigged.ts` (hold-pose grips only), `packages/client/release-notes.json`; no engine bump | Doug's iPhone feedback #89, #90, #93 |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
