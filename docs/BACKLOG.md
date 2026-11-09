@@ -44,9 +44,9 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 - Bundle 1 (#63, #67, #68–#70, #72, #73, #76): done except Doug deleting the remote branches `look-test`,
   `object-sizes` and `story-buggy` (agents can't run `git push --delete`). Keep `fo-wt-handoff` until #75 backs up its film tools.
 - **Three lanes run in parallel (Doug, 2026-11-08), one bundle at a time per lane.** Engine bump freeze: when Bundle 7 claims the bump in the work log, Story and Look finish their current push and pause until it lands.
-- Story lane: Bundle 3 live 2026-11-08, ticked; Doug's iPhone checks #83. Next: Bundle 4. Film track: #75 done (zip at `Mobile game/backups/film-tools-mocap-cache-2026-11-08.zip`); #47 stage 2 stills and test clip made (`Mobile game/film-stage2-stills/`); their tool edits (`tools/cinematics/game_film.py`, `game_set.py`, `pod_exit.py`) are UNCOMMITTED in the `farthest-outpost` checkout, waiting for a push; Doug approves the stills; then #48/#49.
-- Look lane: Bundle 5 partly live 2026-11-08 (#10 ticked; #41 placement and #52 scenarios open; iPhone checks #84). Next: finish #41/#52, then Bundle 9's renderer parts.
-- Systems lane: Bundle 6 landed 2026-11-08 (#43, #16 v0, #9a done; #44 half). `docs/RELEASE-2.md` written. Next: Bundle 7 (Opus, one engine bump), briefed from that doc; then Bundle 8. #81 joins Bundle 7 if it is a rules fix.
+- Story lane: idle (see Start here). Film track: the #47 stage 2 redo (v8 flat render) is with the film session; nothing else running.
+- Look lane: idle; Bundle 10 look work is live and confirmed by Doug.
+- Systems lane: the Bundle 10 rules session is fixing #97 (levels:check on 0.23.0), the only build work running; Bundle 8 is next week.
 
 ## Waiting on Doug
 
