@@ -265,6 +265,37 @@ function aimBone(b: Object3D | undefined, c: Object3D | undefined, dir: Vector3)
 }
 
 /**
+ * A right hand's palm: its middle and the way it faces, from the wrist and the index and pinky knuckles. `sign` (+1 or -1) is
+ * the side that faces the body at rest (see palmSign), so the normal keeps meaning "palm side" in every pose.
+ */
+function palmOf(root: Object3D, sign: number): { at: Vector3; n: Vector3 } | null {
+  const h = boneOf(root, "RightHand"), i = boneOf(root, "RightHandIndex1"), p = boneOf(root, "RightHandPinky1"), m = boneOf(root, "RightHandMiddle1");
+  if (!h || !i || !p || !m) return null;
+  root.updateMatrixWorld(true);
+  const w = h.getWorldPosition(new Vector3()), a = i.getWorldPosition(new Vector3()).sub(w), b = p.getWorldPosition(new Vector3()).sub(w);
+  return { at: w.clone().lerp(m.getWorldPosition(new Vector3()), 0.55), n: a.cross(b).normalize().multiplyScalar(sign) };
+}
+/** Which side of the right hand is the palm: at rest (arms down) it faces the body's midline. */
+function palmSign(root: Object3D): number {
+  const pm = palmOf(root, 1);
+  if (!pm) return 1;
+  return pm.n.dot(new Vector3(root.position.x, pm.at.y, root.position.z).sub(pm.at)) >= 0 ? 1 : -1;
+}
+/** Roll the forearm about its own axis until the palm faces up (a hand held out flat to receive or give). */
+function palmUp(root: Object3D, sign: number): void {
+  const pm = palmOf(root, sign), fa = boneOf(root, "RightForeArm"), h = boneOf(root, "RightHand");
+  if (!pm || !fa || !h || !fa.parent) return;
+  const axis = h.getWorldPosition(new Vector3()).sub(fa.getWorldPosition(new Vector3())).normalize();
+  const flat = (v: Vector3): Vector3 => v.clone().sub(axis.clone().multiplyScalar(v.dot(axis))).normalize();
+  const from = flat(pm.n), to = flat(new Vector3(0, 1, 0));
+  const angle = Math.atan2(axis.dot(from.clone().cross(to)), from.dot(to));
+  const q = new Quaternion().setFromAxisAngle(axis, angle);
+  const parentInv = fa.parent.getWorldQuaternion(new Quaternion()).invert();
+  fa.quaternion.copy(parentInv.multiply(q.multiply(fa.getWorldQuaternion(new Quaternion()))));
+  fa.updateMatrixWorld(true);
+}
+
+/**
  * Sela's arrival (docs/STORY-SCREENPLAY.md level 3, Phase 2): at night a pair of headlights comes up the road out of
  * the dark, her buggy slows and parks at the camp's edge with its lights still on, and she climbs out with her lamp and
  * starts walking in. The level then follows her walk to the kiosk. A film look, not a camera feed.
@@ -443,6 +474,7 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   // the 2048-texture builds of the same Meshy models (meshy.json *.hi, unwired): this scene is close on two faces, so the game's 512 ones look blurred
   const sela = crewFigure("unit.customer_sela.hi") ?? crewFigure("unit.customer_sela") ?? crewFigure("unit.customer"), cmd = crewFigure("unit.player.hi") ?? crewFigure("unit.player");
   // Sela at x +0.6 facing -x, the commander at x -0.6 facing +x: an arm's length apart, side on to the camera
+  const signs = new Map<Object3D, number>();
   const place = (f: NonNullable<ReturnType<typeof crewFigure>>, h: number, x: number, yaw: number): void => {
     f.root.scale.setScalar(h / f.height);
     f.root.position.set(x, 0, 0);
@@ -450,12 +482,14 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     f.mixer.setTime(0);
     scene.add(f.root);
     f.root.updateMatrixWorld(true);
+    signs.set(f.root, palmSign(f.root));
   };
   // each figure's rest pose and the pose with the right arm out (palm toward the other), blended over time
   const reach = (f: NonNullable<ReturnType<typeof crewFigure>>, toward: number): { rest: Map<Object3D, Quaternion>; out: Map<Object3D, Quaternion> } => {
     const rest = poseOf(f.root);
     aimBone(boneOf(f.root, "RightArm"), boneOf(f.root, "RightForeArm"), new Vector3(toward * 0.75, -0.55, 0.12));
     aimBone(boneOf(f.root, "RightForeArm"), boneOf(f.root, "RightHand"), new Vector3(toward, -0.05, 0.05));
+    palmUp(f.root, signs.get(f.root) ?? 1);
     const out = poseOf(f.root);
     blendPose(rest, rest, 0);
     return { rest, out };
@@ -468,7 +502,8 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     // and with the hand brought up in front of the chest, palm up, to look at the chip
     blendPose(cp.rest, cp.rest, 0);
     aimBone(boneOf(cmd.root, "RightArm"), boneOf(cmd.root, "RightForeArm"), new Vector3(0.35, -0.85, 0.25));
-    aimBone(boneOf(cmd.root, "RightForeArm"), boneOf(cmd.root, "RightHand"), new Vector3(0.55, 0.6, 0.35));
+    aimBone(boneOf(cmd.root, "RightForeArm"), boneOf(cmd.root, "RightHand"), new Vector3(0.9, 0.2, 0.25));
+    palmUp(cmd.root, signs.get(cmd.root) ?? 1);
     look = poseOf(cmd.root);
     blendPose(cp.rest, cp.rest, 0);
   }
@@ -500,8 +535,9 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
         if (look && up > 0) { const outNow = poseOf(cmd.root); blendPose(outNow, look, up); }
       }
       // the chip sits on the giver's palm, then in the taker's hand wherever it goes
-      const p = t < TAKE ? handPos(sela) : handPos(cmd);
-      coin.position.copy(p).add(new Vector3(0, 0.03 + 0.02 * up, 0.02 + 0.03 * up));
+      const giver = t < TAKE ? sela : cmd, pm = giver && palmOf(giver.root, signs.get(giver.root) ?? 1);
+      // lying in the open palm (a hair above it), flat against it; as it is lifted it tilts toward the camera
+      if (pm) coin.position.copy(pm.at).addScaledVector(pm.n, 0.05); else coin.position.copy(handPos(giver ?? null));
       const lifted = coin.position.clone();
       glint.position.copy(coin.position).add(new Vector3(0, 0.15, 0.25));
       // a two-shot that pushes in on the hands, then a medium close on the chip held up, the commander behind it
@@ -512,9 +548,9 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
       camera.position.lerpVectors(wide, near, k).lerp(lifted.clone().add(new Vector3(0.12, 0.04, tall ? 0.85 : 0.65)), z);
       camera.lookAt(new Vector3(0, 1.3, 0).lerp(coin.position, Math.max(k * 0.6, z)));
       // flat in the palm, then turned so its face (the stamped H) looks at the camera as it is lifted
-      const flat = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), 0).multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), 0.3));
+      const flat = pm ? new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), pm.n) : new Quaternion();
       const face = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), camera.position.clone().sub(coin.position).normalize());
-      coin.quaternion.slerpQuaternions(flat, face, up);
+      coin.quaternion.slerpQuaternions(flat, face, 0.45 * Math.max(span(t, GIVE, MEET), up));
     },
     dispose() { disposeAll(scene); },
   };

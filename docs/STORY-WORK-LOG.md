@@ -540,6 +540,11 @@ Release 2 combat is in (every call is in docs/DECISIONS.md, "Release 2 combat").
 - Level 1 cues: the arrows first lead to (600,300), round the north ridge's east end, then to the core (`near` cue); the retry run keeps the plain core target.
 - Sela leaving: `StoryProps.riding(..., leaving)` hides her walking figure within 0.7 m of the door and plays the climb in reverse (1.3 s), then she stays seated; the buggy does not drive off. Not seen animating end to end (the capture of it was not checked).
 
+### 2026-11-09 (fix-canon, round 4): coin clip hands and coin. No engine bump.
+
+- `tools/build-models.ts` gains `round` (meshy.json entries): subdivide once (midpoints, skin weights blended) and Taubin-smooth the vertices skinned to the matching joints (hands and fingers), normals recomputed; seams stay closed. Used by `unit.player.hi` and `unit.customer_sela.hi` (about 36k tris, 3 MB each, loaded only for the clip).
+- `chipHandoff` (livescene.ts): the palm is found from the wrist and the index and pinky knuckles; the commander's receiving hand is held out flat and the forearm rolled palm up (`palmUp`); the coin lies on the open palm (0.05 m above the palm line, tilting toward the camera as it is lifted). Sela's offering hand is rolled the same way.
+
 ### 2026-11-09 (fix-canon, round 3): level 3 opens on the road; the coin clip's models. No engine bump.
 
 - `StoryLevel.openAt` (skins/story.ts, app.ts): the camera starts at a world point with follow off, so level 3 opens on the road at (800,928) where the first beat already is; no hero-framed first frames. Retry runs ignore it.

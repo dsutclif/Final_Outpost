@@ -62,6 +62,12 @@ export interface MeshyEntry {
   crop?: number;
   /** Characters: boxes [x0,y0,z0,x1,y1,z1] in the bind pose (source metres); a triangle with all three corners inside one is removed (a pick baked into the back, which is carried as its own prop instead). */
   drop?: number[][];
+  /**
+   * Characters: round off the parts skinned to the joints whose names match `bones` (angular fingers in a close-up): the mesh is
+   * subdivided `subdiv` times (midpoints, skin weights blended) and the matching vertices are smoothed `iterations` times
+   * (Taubin: shrink then inflate, so the shape keeps its size) with their normals recomputed. Seams stay closed (smoothing is by position).
+   */
+  round?: { bones: string; subdiv?: number; iterations?: number };
 }
 export interface BuiltEntry { hash: string; tris: number; bytes: number; outline?: { hash: string; tris: number; bytes: number }; lod?: { hash: string; tris: number; bytes: number }; bounds: [number, number, number, number, number, number] }
 
@@ -305,6 +311,75 @@ function smooth(low: { pos: Float32Array; uv: Float32Array; idx: Uint32Array }, 
   return { pos: new Float32Array(pos), uv: new Float32Array(uv), nrm: new Float32Array(nrm), idx, from: Uint32Array.from(from) };
 }
 
+interface Fat { pos: Float32Array; uv: Float32Array; nrm: Float32Array | undefined; idx: Uint32Array; joints: Uint16Array; weights: Float32Array }
+
+/** See MeshyEntry.round. */
+function roundOff(m: Fat, names: string[], cfg: NonNullable<MeshyEntry["round"]>): Fat {
+  const re = new RegExp(cfg.bones), isHand = names.map((n) => re.test(n));
+  let { pos, uv, nrm, idx, joints, weights } = m;
+  const hasN = !!nrm;
+  for (let pass = 0; pass < (cfg.subdiv ?? 1); pass++) {
+    const nV = pos.length / 3, mid = new Map<number, number>();
+    const P = Array.from(pos), U = Array.from(uv), N = nrm ? Array.from(nrm) : [], J = Array.from(joints), W = Array.from(weights), I: number[] = [];
+    const split = (a: number, b: number): number => {
+      const k = a < b ? a * nV + b : b * nV + a;
+      let v = mid.get(k);
+      if (v !== undefined) return v;
+      v = P.length / 3;
+      mid.set(k, v);
+      for (let c = 0; c < 3; c++) P.push((pos[a * 3 + c]! + pos[b * 3 + c]!) / 2);
+      U.push((uv[a * 2]! + uv[b * 2]!) / 2, (uv[a * 2 + 1]! + uv[b * 2 + 1]!) / 2);
+      if (nrm) { const x = nrm[a * 3]! + nrm[b * 3]!, y = nrm[a * 3 + 1]! + nrm[b * 3 + 1]!, z = nrm[a * 3 + 2]! + nrm[b * 3 + 2]!, l = Math.hypot(x, y, z) || 1; N.push(x / l, y / l, z / l); }
+      const acc = new Map<number, number>();
+      for (const q of [a, b]) for (let k2 = 0; k2 < 4; k2++) acc.set(joints[q * 4 + k2]!, (acc.get(joints[q * 4 + k2]!) ?? 0) + weights[q * 4 + k2]! / 2);
+      const top = [...acc].filter(([, w]) => w > 0).sort((x, y) => y[1] - x[1]).slice(0, 4), sum = top.reduce((t, [, w]) => t + w, 0) || 1;
+      for (let k2 = 0; k2 < 4; k2++) { J.push(top[k2]?.[0] ?? 0); W.push(top[k2] ? top[k2]![1] / sum : 0); }
+      return v;
+    };
+    for (let t = 0; t < idx.length; t += 3) {
+      const a = idx[t]!, b = idx[t + 1]!, c = idx[t + 2]!, ab = split(a, b), bc = split(b, c), ca = split(c, a);
+      I.push(a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca);
+    }
+    pos = Float32Array.from(P); uv = Float32Array.from(U); if (hasN) nrm = Float32Array.from(N); idx = Uint32Array.from(I); joints = Uint16Array.from(J); weights = Float32Array.from(W);
+  }
+  const n = pos.length / 3, mask = new Float32Array(n);
+  for (let v = 0; v < n; v++) for (let k = 0; k < 4; k++) if (isHand[joints[v * 4 + k]!]) mask[v] = mask[v]! + weights[v * 4 + k]!;
+  // vertices sharing a position (UV seams) move together
+  const keyOf = (v: number): string => `${pos[v * 3]!.toFixed(5)},${pos[v * 3 + 1]!.toFixed(5)},${pos[v * 3 + 2]!.toFixed(5)}`;
+  const gid = new Map<string, number>(), group = new Int32Array(n);
+  for (let v = 0; v < n; v++) { const k = keyOf(v); let g = gid.get(k); if (g === undefined) gid.set(k, g = gid.size); group[v] = g; }
+  const G = gid.size, gmask = new Float32Array(G), gpos = new Float64Array(G * 3);
+  for (let v = 0; v < n; v++) { const g = group[v]!; gmask[g] = Math.max(gmask[g]!, mask[v]!); for (let c = 0; c < 3; c++) gpos[g * 3 + c] = pos[v * 3 + c]!; }
+  const nb: Set<number>[] = Array.from({ length: G }, () => new Set());
+  for (let t = 0; t < idx.length; t += 3) for (let k = 0; k < 3; k++) { const a = group[idx[t + k]!]!, b = group[idx[t + (k + 1) % 3]!]!; nb[a]!.add(b); nb[b]!.add(a); }
+  for (let it = 0; it < (cfg.iterations ?? 8); it++) for (const f of [0.5, -0.53]) {
+    const next = Float64Array.from(gpos);
+    for (let g = 0; g < G; g++) {
+      const w = gmask[g]!;
+      if (w < 0.05 || !nb[g]!.size) continue;
+      for (let c = 0; c < 3; c++) { let avg = 0; for (const o of nb[g]!) avg += gpos[o * 3 + c]!; avg /= nb[g]!.size; next[g * 3 + c] = gpos[g * 3 + c]! + f * w * (avg - gpos[g * 3 + c]!); }
+    }
+    gpos.set(next);
+  }
+  for (let v = 0; v < n; v++) for (let c = 0; c < 3; c++) pos[v * 3 + c] = gpos[group[v]! * 3 + c]!;
+  if (nrm) {
+    const acc = new Float64Array(G * 3), a = new Vector3(), b = new Vector3(), c = new Vector3();
+    for (let t = 0; t < idx.length; t += 3) {
+      a.fromArray(pos, idx[t]! * 3); b.fromArray(pos, idx[t + 1]! * 3); c.fromArray(pos, idx[t + 2]! * 3);
+      c.sub(b); b.sub(a); b.cross(c);
+      for (let k = 0; k < 3; k++) { const g = group[idx[t + k]!]!; acc[g * 3] = acc[g * 3]! + b.x; acc[g * 3 + 1] = acc[g * 3 + 1]! + b.y; acc[g * 3 + 2] = acc[g * 3 + 2]! + b.z; }
+    }
+    for (let v = 0; v < n; v++) {
+      const w = Math.min(1, mask[v]! * 1.5), g = group[v]!;
+      if (w < 0.05) continue;
+      const l = Math.hypot(acc[g * 3]!, acc[g * 3 + 1]!, acc[g * 3 + 2]!) || 1;
+      const x = nrm[v * 3]! * (1 - w) + (acc[g * 3]! / l) * w, y = nrm[v * 3 + 1]! * (1 - w) + (acc[g * 3 + 1]! / l) * w, z = nrm[v * 3 + 2]! * (1 - w) + (acc[g * 3 + 2]! / l) * w, m2 = Math.hypot(x, y, z) || 1;
+      nrm[v * 3] = x / m2; nrm[v * 3 + 1] = y / m2; nrm[v * 3 + 2] = z / m2;
+    }
+  }
+  return { pos, uv, nrm, idx, joints, weights };
+}
+
 type Paint =(p: Vector3, n: Vector3, rgba: Buffer, o: number) => void;
 
 /**
@@ -519,14 +594,23 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
   const low = lowPoly(src, e.tris ?? (err !== undefined ? 30000 : 3000), err);
   const flat = unwrap(low, size);
   const out = err !== undefined ? smooth(flat) : { ...flat, nrm: undefined, from: undefined };
-  const n = out.pos.length / 3, joints = new Uint16Array(n * 4), weights = new Float32Array(n * 4);
-  for (let v = 0; v < n; v++) {
+  const n0 = out.pos.length / 3;
+  let joints: Uint16Array = new Uint16Array(n0 * 4), weights: Float32Array = new Float32Array(n0 * 4);
+  for (let v = 0; v < n0; v++) {
     const o = low.orig[flat.xref[out.from ? out.from[v]! : v]!]!;
     const all = sets.flatMap(([j, w]) => j[o]!.map((jj, k) => [jj, w[o]![k]!] as const)).filter(([, w]) => w > 0).sort((a, b) => b[1] - a[1]).slice(0, 4);
     const sum = all.reduce((t, [, w]) => t + w, 0) || 1;
     all.forEach(([jj, w], k) => { joints[v * 4 + k] = jj; weights[v * 4 + k] = w / sum; });
   }
   const rgba = bake(src, out, size);
+  let fin: Fat = { pos: out.pos, uv: out.uv, nrm: out.nrm, idx: out.idx, joints, weights };
+  if (e.round) {
+    fin = roundOff(fin, doc.getRoot().listSkins()[0]!.listJoints().map((j) => j.getName()), e.round);
+    console.log(`${e.file}: rounded, ${out.idx.length / 3} -> ${fin.idx.length / 3} tris`);
+  }
+  const n = fin.pos.length / 3;
+  joints = fin.joints; weights = fin.weights;
+  Object.assign(out, { pos: fin.pos, uv: fin.uv, idx: fin.idx, ...(fin.nrm ? { nrm: fin.nrm } : {}) });
   if (up !== 1) for (let i = 0; i < out.pos.length; i++) out.pos[i]! /= up;
   const webp = await sharp(rgba, { raw: { width: size, height: size, channels: 4 } }).removeAlpha().webp({ quality: 82 }).toBuffer();
   doc.createExtension(EXTTextureWebP).setRequired(true);
@@ -534,8 +618,8 @@ async function buildCharacter(e: MeshyEntry, path: string): Promise<{ glb: Uint8
   for (const name of prim.listSemantics()) prim.setAttribute(name, null);
   prim.setAttribute("POSITION", doc.createAccessor().setType("VEC3").setArray(new Float32Array(out.pos)).setBuffer(buf))
     .setAttribute("TEXCOORD_0", doc.createAccessor().setType("VEC2").setArray(new Float32Array(out.uv)).setBuffer(buf))
-    .setAttribute("JOINTS_0", doc.createAccessor().setType("VEC4").setArray(joints).setBuffer(buf))
-    .setAttribute("WEIGHTS_0", doc.createAccessor().setType("VEC4").setArray(weights).setBuffer(buf))
+    .setAttribute("JOINTS_0", doc.createAccessor().setType("VEC4").setArray(new Uint16Array(joints)).setBuffer(buf))
+    .setAttribute("WEIGHTS_0", doc.createAccessor().setType("VEC4").setArray(new Float32Array(weights)).setBuffer(buf))
     .setAttribute("NORMAL", out.nrm ? doc.createAccessor().setType("VEC3").setArray(new Float32Array(out.nrm)).setBuffer(buf) : null)
     .setIndices(doc.createAccessor().setType("SCALAR").setArray(n < 65536 ? Uint16Array.from(out.idx) : new Uint32Array(out.idx)).setBuffer(buf));
   const tex = doc.createTexture("albedo").setImage(new Uint8Array(webp)).setMimeType("image/webp");
