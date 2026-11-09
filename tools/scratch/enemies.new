@@ -1,0 +1,6 @@
+{
+  "hostile.creature": { "hp": 3, "speed": 44, "drops": { "res.salvage": 3 }, "radius": 7, "shot": { "range": 60, "damage": 1, "interval": 1.5 } },
+  "hostile.raider_humanoid": { "hp": 6, "speed": 36, "drops": { "res.salvage": 6 }, "radius": 8, "shot": { "range": 80, "damage": 1, "interval": 1.5 } },
+  "hostile.swarmling": { "hp": 1, "speed": 62, "drops": { "res.salvage": 1 }, "radius": 5, "shot": { "range": 40, "damage": 1, "interval": 2 }, "lunge": { "range": 30, "windup": 0.3, "cooldown": 2 } },
+  "hostile.boss": { "hp": 24, "speed": 20, "drops": { "res.salvage": 24 }, "damage": 4, "boss": true, "radius": 14, "shot": { "range": 60, "damage": 2, "interval": 0.5 } }
+}

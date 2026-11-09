@@ -338,7 +338,31 @@ def perform(root, pre=0, calib=False):
         # the drop and the run after it carry him DROP_EXTRA m further along the step axis (the hand-off view must not
         # crowd him against the pod): stretch that take's travel, the later takes follow
         extra = float(os.environ.get("DROP_EXTRA", 0))
-        if extra:
+        if extra and os.environ.get("LOOP_RUN"):
+            # the run after the landing is a gait cycle: repeat it (the mocap's own speed, so the feet stay planted) until
+            # the extra distance is covered, instead of stretching it (feet slid at 2x)
+            kd = [i for i, r in enumerate(TL) if r[0] == k_step]  # the walk after the wall is the take's gait (the drop take has no run)
+            seg0 = kd[0] + int(len(kd) * 0.55)
+            zs = [TL[i][3].z for i in range(seg0, kd[-1] + 1)]
+            best = None
+            for P_ in range(20, 46):
+                if len(zs) - P_ < 8: break
+                err = sum(abs(zs[j] - zs[j + P_]) for j in range(len(zs) - P_)) / (len(zs) - P_)
+                if best is None or err < best[0]: best = (err, P_)
+            P_ = best[1]
+            a0 = seg0 + min(range(P_), key=lambda j: zs[j])  # start the cycle at a foot contact (the pelvis's lowest)
+            Dv = TL[a0 + P_][3] - TL[a0][3]; Dv.z = 0
+            along = Dv.dot(ax0)
+            n = max(1, round(extra / abs(along))) if abs(along) > 0.1 else 0
+            cyc = TL[a0:a0 + P_]
+            ins = []
+            for c in range(1, n + 1):
+                for r in cyc: ins.append([r[0], r[1], r[2], r[3] + Dv * c, r[4], r[5], r[6]])
+            tail = [[r[0], r[1], r[2], r[3] + Dv * n, r[4], r[5], r[6]] for r in TL[a0 + P_:]]
+            TL[:] = TL[:a0 + P_] + ins + tail
+            N = len(TL)
+            print(f"RUN LOOPED: cycle {P_} frames, {along:.2f} m each, repeated {n} times from row {a0 + P_} (+{n * P_} frames, +{n * along:.2f} m)")
+        elif extra:
             kd = [i for i, r in enumerate(TL) if r[0] == k_drop]
             q0 = TL[kd[0]][3].copy(); trav = (TL[kd[-1]][3] - q0).dot(ax0)
             if abs(trav) > 0.3:
