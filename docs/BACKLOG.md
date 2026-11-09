@@ -45,7 +45,13 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 
 - Bundle 1 (#63, #67, #68–#70, #76): remote branches deleted; fo-wt-flatpads folder still to remove (locked file). Keep `fo-wt-handoff` until Doug says its film tools are safe (zip backup exists).
 - **Three lanes run in parallel (Doug, 2026-11-08), one bundle at a time per lane.** Engine bump freeze: when Bundle 7 claims the bump in the work log, Story and Look finish their current push and pause until it lands.
-- Story lane: idle. Opening film live and confirmed; level 2, level 3 arrival and shared map confirmed. Open for next week: the coin drop into the commander's hand, and the film's sliding feet if the 2026-11-09 re-render did not land.
+- Story lane: idle. Opening film live and confirmed; level 2, level 3 arrival and shared map confirmed. **Handed off
+  2026-11-09 (Doug: "resolved elsewhere"):** the film's sliding feet (#109) and the level 3 coin drop into the commander's
+  hand (#110) go to a separate session, not this orchestrator family. The sliding-feet attempt's uncommitted tool edits are
+  saved on branch `wip-film-feet-2026-11-09` (b4811a5, not for main).
+- **Hand-off 2026-11-09:** the orchestrator chats and their bundle sessions are archived (weekly token limit). Next week a
+  fresh Sonnet orchestrator starts here: Systems lane runs Bundle 8 (from `docs/RELEASE-2.md`), then Bundle 9. The local
+  `farthest-outpost` main is 5 commits ahead of origin, but all five are on origin by patch id, so it is safe to reset.
 - Look lane: idle; Bundle 10 look work is live and confirmed by Doug.
 - Systems lane: #97 fixed; nothing running; Bundle 8 is next week.
 
