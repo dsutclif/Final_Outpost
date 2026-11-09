@@ -6,19 +6,28 @@ import { outsideLines } from "./barriers.js";
 import { moveAgent, ringPoint } from "./common.js";
 
 // R5 #26 (Doug): hired guards have the commander's health. At guards.downPct of it they stop fighting until
-// healed: a medic patches them up where they fell, or (with no medic) they walk to the med bay. With neither
-// on the level, or if hit again on the way to the bay, they die. A guard lying where it fell is passed over, so the
-// medic can reach it through a wave. A guard going down is not a settler injury.
+// healed: a medic patches them up where they fell, or (with no medic) they walk to the med bay, or the commander
+// heals them by standing beside them. #92: a downed guard has guards.downSeconds (15 s, shown over it) before it
+// dies, on every level; nobody can start healing it during its fall (guards.fallSeconds). A guard lying where it
+// fell can't be hit (only one walking to the med bay can, and dies if it is), so the medic can reach it through a
+// wave. A guard going down is not a settler injury.
 
 const isGuard = (cp: Compiled, r: ResidentState): boolean => cp.roles[r.role]?.behavior === "guard" && cp.roles[r.role]!.hp > 0;
 
 /** Walking to the med bay: the one time a downed guard can be hit. */
 const onTheWay = (st: State, cp: Compiled, g: ResidentState): boolean =>
-  g.status === "injured" && !hasMedic(st, cp) && st.structures.some((s) => s.type === "struct.medical");
+  g.status === "injured" && (g.downAge ?? 0) >= cp.guards.fallTicks && !hasMedic(st, cp) && st.structures.some((s) => s.type === "struct.medical");
 
 /** Shown lying down: being healed, or a downed guard not walking to the med bay (it lies where it fell, from the moment it falls). */
 export const lyingDown = (st: State, cp: Compiled, r: ResidentState): boolean =>
   r.status === "healing" || (r.status === "injured" && isGuard(cp, r) && !onTheWay(st, cp, r));
+
+/** Ticks a downed guard has left before it dies (null when it is not downed): the HUD's countdown. */
+export const downLeft = (cp: Compiled, r: ResidentState): number | null =>
+  r.status === "injured" && isGuard(cp, r) ? Math.max(0, cp.guards.downTicks - (r.downAge ?? 0)) : null;
+
+/** A guard that has finished falling and can be healed. */
+const healable = (cp: Compiled, g: ResidentState): boolean => g.status === "injured" && isGuard(cp, g) && (g.downAge ?? 0) >= cp.guards.fallTicks;
 
 /** Nearest guard strictly within r of p that hostiles can hit: fighting, or on its way to the med bay. */
 export function nearestGuard(st: State, cp: Compiled, p: Vec, r: number): ResidentState | null {
@@ -36,8 +45,8 @@ export function hitGuard(st: State, cp: Compiled, g: ResidentState, dmg: number,
   out.push({ t: "hit", target: "resident", id: g.id, at: { ...g.pos }, by: "hostile" });
   if (g.status === "healing") return; // a medic is at work: nothing can hurt it
   if (g.status !== "ok") {
-    // #21: a downed guard takes half damage and dies at 0 unless a medic reaches it first
-    if (!cp.guards.healable) return killGuard(st, g, out);
+    // a guard lying where it fell still draws fire but cannot be killed by it (its timer is the only clock); one walking to the med bay takes half damage and dies at 0
+    if (!onTheWay(st, cp, g)) return;
     const left = (g.hp ?? hpMax) - Math.max(1, dmg >> 1);
     if (left <= 0) return killGuard(st, g, out);
     g.hp = left;
@@ -47,8 +56,7 @@ export function hitGuard(st: State, cp: Compiled, g: ResidentState, dmg: number,
   const hp = Math.max(1, (g.hp ?? hpMax) - dmg);
   g.hp = hp;
   if (hp * 100 > cp.guards.downPct * hpMax) return;
-  if (!cp.guards.healable) return killGuard(st, g, out);
-  g.status = "injured"; g.n = 0; g.carry = null; g.mode = "gather"; g.target = null; g.timer = 0;
+  g.status = "injured"; g.downAge = 0; g.n = 0; g.carry = null; g.mode = "gather"; g.target = null; g.timer = 0;
   out.push({ t: "guard_down", resident: g.id, at: { ...g.pos } });
 }
 
@@ -65,16 +73,10 @@ const hasMedic = (st: State, cp: Compiled): boolean => st.residents.some((m) => 
  */
 export function downedGuardStep(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]): boolean {
   if (r.status !== "injured" || !isGuard(cp, r)) return false;
-  // bleed-out (#21): a point of health every guards.bleedSeconds until a medic or the med bay gets to it
-  if (cp.guards.bleedTicks > 0 && cp.guards.healable) {
-    r.bleed = (r.bleed ?? 0) + 1;
-    if (r.bleed >= cp.guards.bleedTicks) {
-      r.bleed = 0;
-      const left = (r.hp ?? cp.roles[r.role]!.hp) - 1;
-      if (left <= 0) { st.residents = st.residents.filter((x) => x !== r); out.push({ t: "guard_died", resident: r.id, at: { ...r.pos } }); return true; }
-      r.hp = left;
-    }
-  }
+  // #92: the clock runs from the fall; at downTicks the guard dies unless healing started (a healing guard is not here)
+  r.downAge = (r.downAge ?? 0) + 1;
+  if (r.downAge >= cp.guards.downTicks) { killGuard(st, r, out); return true; }
+  if (r.downAge < cp.guards.fallTicks) return true; // falling: it does not get up and walk for the med bay either
   if (hasMedic(st, cp)) return true;
   const med = st.structures.find((s) => s.type === "struct.medical");
   if (!med) return true;
@@ -86,7 +88,7 @@ export function downedGuardStep(st: State, cp: Compiled, r: ResidentState, out: 
 
 /** Healed guards are back at full health. */
 export function healedGuard(r: ResidentState): void {
-  delete r.bleed;
+  delete r.downAge;
   if (r.hp !== undefined) delete r.hp;
 }
 
@@ -98,7 +100,7 @@ export function medicStep(st: State, cp: Compiled, r: ResidentState, role: Compi
     const claimed = new Set(st.residents.filter((m) => m !== r && m.target !== null && cp.roles[m.role]?.behavior === "medic").map((m) => m.target));
     let bd = 0;
     for (const g of st.residents) {
-      if (g.status !== "injured" || !isGuard(cp, g) || claimed.has(String(g.id))) continue;
+      if (!healable(cp, g) || claimed.has(String(g.id))) continue;
       const dx = g.pos.x - r.pos.x, dy = g.pos.y - r.pos.y, d = dx * dx + dy * dy;
       if (!patient || d < bd) { patient = g; bd = d; }
     }
@@ -106,7 +108,7 @@ export function medicStep(st: State, cp: Compiled, r: ResidentState, role: Compi
   }
   if (patient) {
     // it stays beside the patient until it is back on its feet
-    if (boxedMove(st, cp, r.pos, patient.pos, role.speed, cp.residents.workRange) && patient.status === "injured") {
+    if (boxedMove(st, cp, r.pos, patient.pos, role.speed, cp.residents.workRange) && healable(cp, patient)) {
       patient.status = "healing";
       patient.timer = role.healTicks;
       out.push({ t: "medic_heal", resident: patient.id, by: r.id, at: { ...patient.pos } });
@@ -121,7 +123,7 @@ export function medicStep(st: State, cp: Compiled, r: ResidentState, role: Compi
 // ---------- R5 #23 leash ----------
 
 /** Distance from p to segment ab (fixed point), with products kept below 2^53. */
-function segDist(p: Vec, a: Vec, b: Vec): number {
+export function segDist(p: Vec, a: Vec, b: Vec): number {
   const abx = b.x - a.x, aby = b.y - a.y, apx = p.x - a.x, apy = p.y - a.y;
   const len2 = abx * abx + aby * aby;
   const dot = apx * abx + apy * aby;
@@ -173,4 +175,17 @@ export function leashedMove(st: State, cp: Compiled, pos: Vec, target: Vec, step
   const now = pastWall(st, pos);
   if (now > line && now > pastWall(st, was)) { pos.x = was.x; pos.y = was.y; return within(pos, target, arrive); }
   return arrived;
+}
+
+/**
+ * #92: the commander heals a downed guard by standing within guards.commanderHealRange of it once its fall is over
+ * (no medic or med bay needed). The heal then takes guards.commanderHealSeconds, whether or not he stays.
+ */
+export function commanderRevive(st: State, cp: Compiled, out: SimEvent[]): void {
+  if (st.player.stun > 0) return;
+  for (const g of st.residents) {
+    if (!healable(cp, g) || !within(g.pos, st.player.pos, cp.guards.reviveRange)) continue;
+    g.status = "healing"; g.timer = cp.guards.reviveTicks;
+    out.push({ t: "medic_heal", resident: g.id, by: -1, at: { ...g.pos } });
+  }
 }

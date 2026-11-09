@@ -6,7 +6,7 @@ import { attackGate, attackedSide, gatedMove, guardPost, outsideLines, sectionMi
 import { clearLine, hitHostile, hitPrey, nearestHostile, shotEvent } from "./combat.js";
 import { depotPut, ringPoint, stepDown } from "./common.js";
 import { coreFuelCap, feedCoreWith } from "./core.js";
-import { boxedMove, downedGuardStep, healedGuard, leashedMove, medicStep } from "./guards.js";
+import { boxedMove, commanderRevive, downedGuardStep, healedGuard, leashedMove, medicStep } from "./guards.js";
 
 // Residents are data-driven state machines: a role id picks the behaviour, the assignment
 // supplies what to take and where to deliver. Gatherers fill up, then deliver until empty,
@@ -14,6 +14,7 @@ import { boxedMove, downedGuardStep, healedGuard, leashedMove, medicStep } from 
 
 export function stepResidents(st: State, cp: Compiled, out: SimEvent[]): void {
   for (const r of st.residents) stepResident(st, cp, r, out);
+  commanderRevive(st, cp, out);
 }
 
 function stepResident(st: State, cp: Compiled, r: ResidentState, out: SimEvent[]): void {

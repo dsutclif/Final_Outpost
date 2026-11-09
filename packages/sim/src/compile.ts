@@ -291,7 +291,8 @@ export interface Compiled {
     arrive: number; workRange: number; coreDeliverRange: number; seekDropRange: number;
   };
   /** R5 #26: guards stop fighting at downPct of their health; healable = the level has a med bay or a medic (else a downed guard dies). */
-  guards: { downPct: number; healable: boolean; leash: number | null; bleedTicks: number; radius: number };
+  /** #92: a downed guard has downTicks to be healed before it dies; for the first fallTicks (the fall) no one can start healing it; the commander heals within reviveRange in reviveTicks. */
+  guards: { downPct: number; leash: number | null; downTicks: number; fallTicks: number; reviveTicks: number; reviveRange: number; radius: number };
   waiting: Vec;
   gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
   zones: { blockMargin: number };
@@ -305,6 +306,8 @@ export interface Compiled {
     baseRange: number; baseHitTicks: number; baseDamage: number;
     /** Half the width of the lane a wave comes down toward its side's gate (Batch 3). */
     laneHalfWidth: number;
+    /** #91: attackers at a gate stand in fanSlots columns fanStep apart; the first gateHitters of them hit the gate. */
+    gateHitters: number; fanSlots: number; fanStep: number;
     /** Reach at which an attacker stops to fight a soldier (Batch 3). */
     troopContact: number;
     postOffset: number;
@@ -603,11 +606,10 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       seekDropRange: fp(param("residents.seekDropRange")),
     },
     guards: {
-      downPct: int("guards.downPct"), bleedTicks: ticks(param("guards.bleedSeconds")), radius: fp(param("guards.radius")),
+      downPct: int("guards.downPct"), radius: fp(param("guards.radius")),
+      downTicks: ticks(param("guards.downSeconds")), fallTicks: ticks(param("guards.fallSeconds")),
+      reviveTicks: ticks(param("guards.commanderHealSeconds")), reviveRange: fp(param("guards.commanderHealRange")),
       leash: null, // set by createSim, which has the wall geometry (systems/guards.ts leashLine)
-      healable: manifest.entities.some((e) => (e.type === "pad.build" && e.build === "struct.medical") || e.type === "struct.medical"
-        || (e.type === "pad.hire" && roles[e.role.role]?.behavior === "medic") || ("joins" in e && !!e.joins && roles[e.joins.role]?.behavior === "medic"))
-        || manifest.people.some((p) => roles[p.role]?.behavior === "medic"),
     },
     waiting,
     gate,
@@ -626,7 +628,8 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       spawnGapTicks: ticks(param("defense.spawnGap")), spawnY: fp(param("defense.spawnY")), fleeSpeed: perTick(param("defense.fleeSpeed")), spawnMarginX: fp(param("defense.spawnMarginX")),
       barrierStop: fp(param("defense.barrierStop")), barrierHitTicks: ticks(param("defense.barrierHitInterval")), barrierDamage: int("defense.barrierDamage"),
       baseRange: fp(param("defense.baseRange")), baseHitTicks: ticks(param("defense.baseHitInterval")), baseDamage: int("defense.baseDamage"),
-      laneHalfWidth: fp(param("defense.laneHalfWidth")), troopContact: fp(param("defense.troopContact")),
+      laneHalfWidth: fp(param("defense.laneHalfWidth")),
+      gateHitters: Math.max(1, int("defense.gateHitters")), fanSlots: Math.max(1, int("defense.fanSlots")), fanStep: fp(param("defense.fanStep")), troopContact: fp(param("defense.troopContact")),
       postOffset: fp(param("defense.postOffset")), waveQuietTicks: ticks(param("defense.waveQuiet")),
       playerHitRange: fp(param("defense.playerHitRange")), troopRadius: fp(param("defense.troopRadius")), playerHitTicks: ticks(param("defense.playerHitInterval")),
     },

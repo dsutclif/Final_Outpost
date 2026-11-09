@@ -41,7 +41,7 @@ export function stepStats(st: State, cp: Compiled, out: readonly SimEvent[]): vo
       case "downed": s.downs++; break;
       case "guard_down": s.guardsDown = (s.guardsDown ?? 0) + 1; break;
       case "guard_died": s.guardsLost = (s.guardsLost ?? 0) + 1; break;
-      case "medic_heal": s.medicHeals = (s.medicHeals ?? 0) + 1; break;
+      case "medic_heal": if (e.by < 0) s.commanderHeals = (s.commanderHeals ?? 0) + 1; else s.medicHeals = (s.medicHeals ?? 0) + 1; break;
       case "converted": {
         s.converted++;
         s.convertedBy[e.res] = (s.convertedBy[e.res] ?? 0) + 1;

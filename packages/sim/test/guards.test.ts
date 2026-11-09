@@ -30,6 +30,7 @@ function setup(opts: { medBay?: boolean; medic?: boolean } = {}) {
   const g = st.residents.find((r) => r.role === "idle")!;
   g.role = "role.defender";
   g.assign = { from: null, to: null, node: null, post: 0 };
+  st.player.pos = { x: g.pos.x + 900 * FP, y: g.pos.y }; // the commander is far off, so he does not heal it (#92)
   return { sim, st, cp, g };
 }
 
@@ -70,7 +71,7 @@ describe("guards have health (R5 #26)", () => {
     expect(st.objectives.find((o) => o.id === "safe")!.failed).toBe(false);
   });
 
-  it("a guard lying where it fell can still be shot (half damage), yet the medic reaches and heals it through a wave", () => {
+  it("a guard lying where it fell is passed over, so the medic reaches and heals it through a wave", () => {
     const { sim, st, g } = setup({ medBay: false, medic: true });
     const m = st.residents.find((r) => r.role === "idle" && r !== g)!;
     m.role = "role.medic";
@@ -92,6 +93,9 @@ describe("guards have health (R5 #26)", () => {
       const h = attacker(st, g);
       runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { park(h, g); h.hp = 999; });
       expect(g.status).toBe("injured");
+      expect(lyingDown(st, cp, g)).toBe(true); // falling
+      st.hostiles = [];
+      for (let i = 0; i < cp.guards.fallTicks + 1; i++) sim.step({ dx: 0, dy: 0 });
       return lyingDown(st, cp, g);
     };
     expect(fall({ medBay: false, medic: true }, false, true)).toBe(true); // the medic is on its way
@@ -122,13 +126,16 @@ describe("guards have health (R5 #26)", () => {
     expect(st.stats.guardsLost).toBe(1);
   });
 
-  it("with no med bay and no medic on the level, a guard at 25% dies", () => {
+  it("with no med bay and no medic on the level, a guard at 25% goes down and has the timer (#92)", () => {
     const { sim, st, cp, g } = setup({ medBay: false });
-    expect(cp.guards.healable).toBe(false);
     const h = attacker(st, g);
-    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_died"), 60 * TPS, () => { park(h, g); h.hp = 999; });
-    expect(ev.some((e) => e.t === "guard_down")).toBe(false);
-    expect(ev.some((e) => e.t === "guard_died")).toBe(true);
+    const ev = runUntil(sim, (e) => e.some((x) => x.t === "guard_down"), 60 * TPS, () => { park(h, g); h.hp = 999; });
+    expect(ev.some((e) => e.t === "guard_down")).toBe(true);
+    expect(ev.some((e) => e.t === "guard_died")).toBe(false);
+    st.hostiles = [];
+    expect(st.residents.includes(g)).toBe(true);
+    const after = runUntil(sim, (e) => e.some((x) => x.t === "guard_died"), cp.guards.downTicks + 5);
+    expect(after.some((e) => e.t === "guard_died" && e.resident === g.id)).toBe(true);
   });
 
   it("with a built med bay and no medic, a downed guard walks there and is healed to full", () => {
@@ -148,7 +155,6 @@ describe("guards have health (R5 #26)", () => {
 
   it("a medic heals a downed guard where it fell", () => {
     const { sim, st, cp, g } = setup({ medBay: false, medic: true });
-    expect(cp.guards.healable).toBe(true);
     const m = st.residents.find((r) => r.role === "idle" && r !== g)!;
     m.role = "role.medic";
     const h = attacker(st, g);

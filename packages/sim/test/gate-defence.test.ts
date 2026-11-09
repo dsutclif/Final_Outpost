@@ -52,6 +52,26 @@ describe("attackers funnel to the gate", () => {
     }), { numRuns: 8 });
   });
 
+  it("fan out in front of the gate instead of queueing (#91): spread along the wall, the front hitting it, the rest waiting beside them", () => {
+    fc.assert(fc.property(fc.constantFrom(...SIDES), fc.integer({ min: 1, max: 1000 }), (side, seed) => {
+      const sim = createSim(level({ seed, waves: [{ t: 1, counts: { "hostile.swarmling": 8 }, side, gap: 0.1 }] }));
+      const st = sim.state, D = sim.compiled.defense;
+      const g = attackGate(st, side)!, mid = sectionMid(g.line.sections[g.idx]!);
+      const horizontal = side === "n" || side === "s";
+      idle(sim, 40 * TPS, () => st.hostiles.length === 8 && st.hostiles.filter((h) => h.target === "barrier").length >= D.gateHitters);
+      idle(sim, 3 * TPS);
+      expect(st.hostiles.length).toBe(8);
+      // the front is at the gate, working it; never more than the wall's front hits at once (barrier hits come from them only)
+      expect(st.hostiles.filter((h) => h.target === "barrier").length).toBeGreaterThanOrEqual(D.gateHitters);
+      const lat = st.hostiles.map((h) => Math.round((horizontal ? h.pos.x - mid.x : h.pos.y - mid.y) / FP));
+      // spread along the wall: at least three distinct places and a span of more than one fan step
+      expect(new Set(lat.map((l) => Math.round(l / 4))).size).toBeGreaterThanOrEqual(3);
+      expect(Math.max(...lat) - Math.min(...lat)).toBeGreaterThanOrEqual(D.fanStep / FP);
+      // never inside the stand-off
+      for (const h of st.hostiles) expect(Math.abs(horizontal ? h.pos.y - mid.y : h.pos.x - mid.x)).toBeGreaterThanOrEqual(D.barrierStop - 2 * FP);
+    }), { numRuns: 8 });
+  });
+
   it("go through an unbuilt wall section on their side instead of the gate", () => {
     const ring = { ...RING, prebuilt: [0, 2, 3, 4, 5, 6, 7] };
     const sim = createSim(level({ waves: [{ t: 1, counts: { "hostile.creature": 2 }, side: "n", gap: 0.3 }] }, ring));

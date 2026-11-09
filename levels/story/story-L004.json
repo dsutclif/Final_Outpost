@@ -1,8 +1,8 @@
 {
  "id": "story-L004",
  "seed": 1004,
- "engineVersion": "0.22.0",
- "contentVersion": "0.19.0",
+ "engineVersion": "0.23.0",
+ "contentVersion": "0.20.0",
  "map": {
   "w": 1300,
   "h": 1300,

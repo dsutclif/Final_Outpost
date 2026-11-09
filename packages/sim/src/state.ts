@@ -139,8 +139,8 @@ export interface ResidentState {
   origin: "start" | "rescue" | "gate";
   /** Guards only, once first hit: health left (absent = full, the role's hp). */
   hp?: number;
-  /** Downed guard: ticks since it last bled a point (#21). */
-  bleed?: number;
+  /** Downed guard: ticks since it fell (#92); at guards.downTicks it dies. */
+  downAge?: number;
 }
 
 export interface PadState {
@@ -432,6 +432,8 @@ export interface Stats {
   guardsLost?: number;
   /** Downed guards a medic healed where they fell. */
   medicHeals?: number;
+  /** Downed guards the commander healed (#92). */
+  commanderHeals?: number;
   preyKilled: number;
   /** Bites taken from dangerous animals, by the player or a worker. */
   animalHits: number;

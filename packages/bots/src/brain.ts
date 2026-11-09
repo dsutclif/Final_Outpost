@@ -1,4 +1,4 @@
-import { FP, TPS, blockedAt, depotDrop, gatherTicks, converterRunnable, operated,playerCap, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, blockedAt, downLeft, depotDrop, gatherTicks, converterRunnable, operated,playerCap, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
@@ -10,7 +10,7 @@ import type { BotProfile } from "./profiles.js";
 
 export type TaskKind =
   | "feed" | "fuel" | "gather" | "stock" | "register" | "pile" | "pay" | "barrier" | "operate" | "deposit"
-  | "fetch" | "drop" | "admit" | "fight" | "lasso" | "hunt" | "depot" | "wait";
+  | "fetch" | "drop" | "admit" | "fight" | "revive" | "lasso" | "hunt" | "depot" | "wait";
 
 export interface Task {
   kind: TaskKind;
@@ -360,6 +360,9 @@ export class Brain {
     const threat = st.hostiles.filter((h) => h.target !== "core" || near(h.pos, st.core.pos, 330 * U));
     if (threat.length > 0) T("fight", 85);
     else if (st.hostiles.length > 0) T("fight", 66);
+    // #92: a guard shot down has 15 s; stand beside it (no medic, or the medic will be late) while no attacker is near it
+    const down = this.reviveTarget(st);
+    if (down) T("revive", 88, String(down.id));
 
     // Fuel.
     const cap = this.coreCap(st), fuel = st.core.fuel, frac = fuel / cap;
@@ -637,6 +640,21 @@ export class Brain {
   }
 
   /** On the far side of some barrier line from the core. */
+  /** Nearest downed guard the commander should heal now: past its fall, no attacker close, and no medic or the clock low. */
+  private reviveTarget(st: State): State["residents"][number] | null {
+    const cp = this.cp, medic = st.residents.some((m) => m.status === "ok" && cp.roles[m.role]?.behavior === "medic");
+    let best: State["residents"][number] | null = null, bd = Infinity;
+    for (const g of st.residents) {
+      const left = downLeft(cp, g);
+      if (left === null || (g.downAge ?? 0) < cp.guards.fallTicks) continue;
+      if (medic && left > 6 * TPS) continue;
+      if (st.hostiles.some((h) => near(h.pos, g.pos, 60 * U))) continue;
+      const d = d2(g.pos, st.player.pos);
+      if (d < bd) { bd = d; best = g; }
+    }
+    return best;
+  }
+
   private beyondLines(st: State, h: Vec): boolean { return outsideLines(st, h); }
 
   /** Where to meet a hostile still walking in from outside a ring: just inside the ring on its line to the core. */
@@ -725,7 +743,7 @@ export class Brain {
   suggest(st: State, _cp?: Compiled): Suggestion | null {
     this.nav.refresh(st);
     const p = st.player.pos;
-    const urgent = (k: TaskKind) => k === "feed" || k === "fight";
+    const urgent = (k: TaskKind) => k === "feed" || k === "fight" || k === "revive";
     let task = this.current;
     let tgt = task.kind === "wait" ? null : this.resolveQuiet(st, task);
     if (!tgt) {
@@ -902,6 +920,10 @@ export class Brain {
         const off = Math.min(30 * U, L);
         const spot = this.nav.free({ x: Math.round(best.x + (dx / L) * off), y: Math.round(best.y + (dy / L) * off) });
         return { pos: spot, r: 3 * U };
+      }
+      case "revive": {
+        const g = st.residents.find((r) => String(r.id) === t.key && downLeft(cp, r) !== null);
+        return g ? { pos: g.pos, r: cp.guards.reviveRange - 4 * U } : null;
       }
       case "lasso": return this.lassoTarget(st);
       case "hunt": {

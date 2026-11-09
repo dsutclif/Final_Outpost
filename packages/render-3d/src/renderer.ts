@@ -1,5 +1,5 @@
 import { LOOK, PLOT, modelScaleFor, content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { FP, TPS, beltEnds, collapseSecondsLeft, lyingDown, padCost, compile, converterStockKey, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
+import { FP, TPS, beltEnds, collapseSecondsLeft, downLeft, lyingDown, padCost, compile, converterStockKey, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
 import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
   Box3,
@@ -2720,6 +2720,9 @@ export class Renderer3D implements Renderer {
       // frost meter over a colonist while the reactor is out (resident.frost, 0..1000)
       const frost = r.frost;
       if (typeof frost === "number" && frost > 0 && !dead) this.barTag(pos.x, ART_M * rl.scale * this.devCharScale * 1.45, pos.y, frost / 1000, t.frost, 7);
+      // #92: a guard shot down has guards.downSeconds to be healed: seconds left over it, red in the last third
+      const left = this.cp ? downLeft(this.cp, r) : null;
+      if (left !== null && this.cp) this.downTag(pos.x, ART_M * rl.scale * this.devCharScale * 1.5, pos.y, Math.ceil(left / TPS), left / this.cp.guards.downTicks);
     }
 
     // soldiers from a Lv2 guard post (Batch 3): drawn as guards, with a health bar once hit
@@ -4010,6 +4013,25 @@ export class Renderer3D implements Renderer {
         g.fillStyle = "#ffffff"; g.fillText(txt, W / 2, 28);
       },
     };
+  }
+
+  /** Seconds left over a downed guard (#92): a pill with the number, green while there is time, red in the last third. */
+  private downTag(x: number, y: number, z: number, secs: number, k: number): void {
+    const sp = this.nextTag(), t = this.tokens, txt = String(secs), col = k > 0.34 ? t.ok : t.danger;
+    sp.visible = this.labels.apply(sp, `down|${txt}|${col}`, () => {
+      const w = this.labels.textWidth(txt, 30) + 40;
+      return {
+        w, h: 46,
+        draw: (g, W) => {
+          roundRect(g, 3, 3, W - 6, 40, 16);
+          g.fillStyle = t.ink; g.globalAlpha = 0.88; g.fill(); g.globalAlpha = 1;
+          g.lineWidth = 4; g.strokeStyle = col; g.stroke();
+          g.font = `800 30px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+          g.fillStyle = "#ffffff"; g.fillText(txt, W / 2, 25);
+        },
+      };
+    }, textSprite(TEXT.main, 30, 46));
+    sp.position.set(x, y + 4.5, z);
   }
 
   /** A small meter over a character (frost on colonists, health on attackers and bosses). */

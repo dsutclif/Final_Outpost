@@ -64,7 +64,7 @@ export interface BotTrace {
   rallyShare: number;
   injuries: number;
   /** Guards fielded over the run, times one went down, guards lost, and downed guards a medic healed in place (R5 #26; not injuries). */
-  guards: { fielded: number; down: number; lost: number; medicHeals: number };
+  guards: { fielded: number; down: number; lost: number; medicHeals: number; commanderHeals: number };
   /** Bites taken from dangerous animals. */
   animalHits: number;
   /** Times those bites knocked the player down (whole pack spilled). */
@@ -457,7 +457,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     injuries: s.injured,
     guards: {
       fielded: st.residents.filter((r) => cp.roles[r.role]?.behavior === "guard").length + (s.guardsLost ?? 0),
-      down: s.guardsDown ?? 0, lost: s.guardsLost ?? 0, medicHeals: s.medicHeals ?? 0,
+      down: s.guardsDown ?? 0, lost: s.guardsLost ?? 0, medicHeals: s.medicHeals ?? 0, commanderHeals: s.commanderHeals ?? 0,
     },
     animalHits: s.animalHits,
     downs: s.downs,

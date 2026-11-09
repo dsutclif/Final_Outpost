@@ -1,7 +1,9 @@
 {
   "notes": [
+    "Attackers now spread out in front of the gate instead of lining up behind each other.",
+    "A guard that is shot down is no longer lost at once: it has 15 seconds, counted out over it, for you or a medic to heal it. Stand next to it and it is back up in a few seconds.",
     "KILN now floats closer to the commander in the early levels, and its glow is bigger so it reads the same size as in level 5.",
     "Level 3: the camp wall no longer touches the rock piles behind it, so builders can always walk around the back.",
-    "Sela's arrival: the film ends as she steps out of her buggy. It stays parked at the camp's east entrance with its lights on, and she walks in from it. No more driverless buggy rolling beside her."
+    "Sela's arrival: the film ends as she steps out of her buggy. It stays parked at the camp's east entrance with its lights on, and she walks in from it."
   ]
 }

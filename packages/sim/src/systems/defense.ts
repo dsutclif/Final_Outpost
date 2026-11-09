@@ -2,12 +2,12 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { FP, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between } from "../rng.js";
-import type { HostileState, ResidentState, State, TroopState } from "../state.js";
+import type { BarrierState, HostileState, ResidentState, State, TroopState } from "../state.js";
 import { attackGate, breakSection, firstCrossing, outsideLines, sectionMid, sectionSide } from "./barriers.js";
 import { hitHostile, nearestHostile, shotEvent } from "./combat.js";
 import { blockedAt, hint, ringPoint, stepDown, walkAround } from "./common.js";
 import { dropTow } from "./lasso.js";
-import { hitGuard, leashedMove, nearestGuard } from "./guards.js";
+import { hitGuard, leashedMove, nearestGuard, segDist, wallDist } from "./guards.js";
 
 type Side = HostileState["side"];
 
@@ -52,7 +52,46 @@ function walkTarget(st: State, cp: Compiled, h: HostileState): Vec {
   }
   if (best) return through(best);
   const g = attackGate(st, h.side);
-  return g ? sectionMid(g.line.sections[g.idx]!) : st.core.pos;
+  return g ? fanPoint(st, cp, h, g) : st.core.pos;
+}
+
+/**
+ * #91: attackers fan out in front of the gate instead of queueing at its middle. Each takes a stand-off spot by id:
+ * a column (`defense.fanSlots` across, `fanStep` apart, centred on the gate), `barrierStop` out on the side facing away
+ * from the core. Bodies that cannot fit are pushed back by the ones in front, so the fan thickens behind its front.
+ */
+function fanPoint(st: State, cp: Compiled, h: HostileState, gate: { line: BarrierState; idx: number }): Vec {
+  const D = cp.defense, s = gate.line.sections[gate.idx]!, m = sectionMid(s);
+  const tx = s.b.x - s.a.x, ty = s.b.y - s.a.y, len = isqrt(tx * tx + ty * ty);
+  if (len === 0) return m;
+  let nx = -ty, ny = tx;
+  if (nx * (m.x - st.core.pos.x) + ny * (m.y - st.core.pos.y) < 0) { nx = -nx; ny = -ny; }
+  const lat = ((h.id % D.fanSlots) - ((D.fanSlots - 1) >> 1)) * D.fanStep, depth = D.barrierStop;
+  return { x: m.x + mulDiv(tx, lat, len) + mulDiv(nx, depth, len), y: m.y + mulDiv(ty, lat, len) + mulDiv(ny, depth, len) };
+}
+
+/** The gate this hostile is standing at, hitting it: outside, no opening on its side, and within a stand-off of the gate. */
+function gateStand(st: State, cp: Compiled, h: HostileState, busy: Map<BarrierState, number>): { line: BarrierState; idx: number; wait: boolean } | null {
+  if (st.barriers.length === 0 || !outsideLines(st, h.pos)) return null;
+  for (const line of st.barriers) for (const s of line.sections) if (!s.built && sectionSide(st, s) === h.side) return null;
+  const g = attackGate(st, h.side);
+  if (!g) return null;
+  // the old reach: a body hits the gate once it is a stand-off (plus a step) from it, wherever along it, so the number of
+  // hitters is the front of the fan and the damage a wave does to the gate matches the queue's
+  const s = g.line.sections[g.idx]!;
+  if (segDist(h.pos, s.a, s.b) > cp.defense.barrierStop + cp.hostiles[h.type]!.speed) return null;
+  // only gateHitters bodies work on a gate at once, in body order; the rest of the fan holds its place and waits its turn
+  const key = g.line, n = busy.get(key) ?? 0;
+  busy.set(key, n + 1);
+  return { line: g.line, idx: g.idx, wait: n >= cp.defense.gateHitters };
+}
+
+/** A hit on the gate from a hostile standing at it. */
+function hitGate(st: State, cp: Compiled, line: BarrierState, idx: number, h: HostileState, dmg: number, out: SimEvent[]): void {
+  const s = line.sections[idx]!;
+  s.hp = Math.max(0, s.hp - cp.defense.barrierDamage * dmg);
+  out.push({ t: "hit", target: "barrier", id: idx, at: { ...h.pos }, by: "hostile" });
+  if (s.hp <= 0) breakSection(st, line, idx, out);
 }
 
 /**
@@ -85,6 +124,7 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   }
 
   const D = cp.defense;
+  const busy = new Map<BarrierState, number>(); // bodies working each gate this tick (#91)
   for (const h of [...st.hostiles]) {
     const def = cp.hostiles[h.type]!;
     const shooter = def.shotRange > 0;
@@ -103,8 +143,10 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
         continue;
       }
     }
+    // #91: at the gate, only the first gateHitters bodies hit it (counted once per tick)
+    const stand = gateStand(st, cp, h, busy);
     // #17 ranged attack: fired while walking on (nobody stops to shoot)
-    if (shooter && h.shotCd! <= 0) fireShot(st, cp, h, def, out);
+    if (shooter && h.shotCd! <= 0) fireShot(st, cp, h, def, stand, out);
     // a soldier in reach is fought where it stands (Batch 3: the clash on the road); shooters keep their distance
     const foe = shooter ? null : nearestTroop(st, h.pos, D.troopContact);
     if (foe) {
@@ -127,6 +169,12 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
       h.target = "troop";
       h.acc = stepDown(h.acc);
       if (h.acc <= 0) { h.acc = D.barrierHitTicks; hitGuard(st, cp, guard, def.damage, out); }
+      continue;
+    }
+    if (stand) {
+      h.target = "barrier";
+      h.acc = stepDown(h.acc);
+      if (h.acc <= 0 && !shooter && !stand.wait) { h.acc = D.barrierHitTicks; hitGate(st, cp, stand.line, stand.idx, h, def.damage, out); }
       continue;
     }
     const goal = walkTarget(st, cp, h);
@@ -372,7 +420,7 @@ function hitBase(st: State, cp: Compiled, dmg: number, out: SimEvent[]): void {
 }
 
 /** One shot at the nearest settler in range, else the gate ahead, else the base. Damage is the shot's, times the gate/base params. */
-function fireShot(st: State, cp: Compiled, h: HostileState, def: Compiled["hostiles"][string], out: SimEvent[]): void {
+function fireShot(st: State, cp: Compiled, h: HostileState, def: Compiled["hostiles"][string], stand: ReturnType<typeof gateStand>, out: SimEvent[]): void {
   const D = cp.defense;
   const who = pickPerson(st, cp, h.pos, def.shotRange);
   if (who) {
@@ -385,6 +433,13 @@ function fireShot(st: State, cp: Compiled, h: HostileState, def: Compiled["hosti
     h.shotCd = def.shotTicks;
     shotEvent(out, h.pos, st.core.pos, 0, "hostile", h.type);
     hitBase(st, cp, def.shotDamage, out);
+    return;
+  }
+  if (stand) {
+    if (stand.wait) return;
+    h.shotCd = def.shotTicks;
+    shotEvent(out, h.pos, sectionMid(stand.line.sections[stand.idx]!), stand.idx, "hostile", h.type);
+    hitGate(st, cp, stand.line, stand.idx, h, def.shotDamage, out);
     return;
   }
   const goal = walkTarget(st, cp, h);
@@ -451,8 +506,10 @@ function separate(st: State, cp: Compiled): void {
         // a push never carries a body across a wall or gate line, nor within the stand-off distance of one, nor into rubble
         const stop = cp.defense.barrierStop, ext = (k: number): number => (push === 0 ? 0 : mulDiv(k, push + stop, push));
         const ax = a.pos.x - mx, ay = a.pos.y - my, bx = b.pos.x + mx, by = b.pos.y + my;
-        if (!blockedAt(st, cp, ax, ay) && !firstCrossing(st, a.pos, { x: a.pos.x - ext(mx), y: a.pos.y - ext(my) })) { a.pos.x = ax; a.pos.y = ay; }
-        if (!blockedAt(st, cp, bx, by) && !firstCrossing(st, b.pos, { x: b.pos.x + ext(mx), y: b.pos.y + ext(my) })) { b.pos.x = bx; b.pos.y = by; }
+        // (a sideways shove may not carry a body in toward a wall either: it stays outside the stand-off, or no nearer than it was)
+        const nearer = (nx: number, ny: number, p: Vec): boolean => st.barriers.length > 0 && wallDist(st, { x: nx, y: ny }) < Math.min(stop, wallDist(st, p));
+        if (!blockedAt(st, cp, ax, ay) && !firstCrossing(st, a.pos, { x: a.pos.x - ext(mx), y: a.pos.y - ext(my) }) && !nearer(ax, ay, a.pos)) { a.pos.x = ax; a.pos.y = ay; }
+        if (!blockedAt(st, cp, bx, by) && !firstCrossing(st, b.pos, { x: b.pos.x + ext(mx), y: b.pos.y + ext(my) }) && !nearer(bx, by, b.pos)) { b.pos.x = bx; b.pos.y = by; }
       }
     }
   }

@@ -96,6 +96,9 @@
   "defense.baseHitInterval": 1.6,
   "defense.baseDamage": 1,
   "defense.laneHalfWidth": 18,
+  "defense.gateHitters": 2,
+  "defense.fanSlots": 3,
+  "defense.fanStep": 9,
   "defense.troopContact": 18,
   "defense.postOffset": 34,
   "defense.waveQuiet": 8,
@@ -122,7 +125,10 @@
   "defense.playerHitInterval": 1,
   "stock.collapseSeconds": 8,
   "guards.downPct": 25,
-  "guards.bleedSeconds": 6,
+  "guards.downSeconds": 15,
+  "guards.fallSeconds": 1.5,
+  "guards.commanderHealSeconds": 3,
+  "guards.commanderHealRange": 18,
   "guards.radius": 6,
   "defense.troopRadius": 5
 }

@@ -34,7 +34,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-08 | Bundle 10 rules (Systems) | b10-rules | **ENGINE BUMP 0.23.0** (sim, content, golden, pack repin, release-notes.json): #91 gate fan-out, #92 downed guards. Story and Look pause on the bump until released here. | BACKLOG #91, #92 |
 | 2026-11-08 | Look: Bundle 10 #89/#90/#93 | look-bundle10 | `render-3d/src/renderer.ts` (padXray, trader bubble art, ranger/hauler hold poses), `render-3d/src/materials.ts`, `render-3d/src/scene/rigged.ts` (hold-pose grips only), `packages/client/release-notes.json`; no engine bump | Doug's iPhone feedback #89, #90, #93 |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
@@ -142,6 +141,7 @@ The WRAP UP account owned all story work from 2026-11-06 (Doug: "You own R4") an
 ## Log
 
 Newest first. Record what changed, which shared files were touched and why, rules and engine changes, and anything left open.
+- **2026-11-08, Bundle 10 rules (Systems), ENGINE BUMP 0.23.0 / content 0.20.0, released.** #91 attackers fan out at the gate, #92 downed guards have a 15 s timer (commander or medic heals; HUD pill over the guard). `levels:repin` ran (golden, story, s1, s1-061, s1-081, s1-100; `repin-levels.ts` now lists s1-100). Story and Look can resume. `levels:check`: s1-L010, s1-L043, s1-L060 fail on stars (see DECISIONS.md and BACKLOG #97); `pnpm test`: only the two eval side-file tests (s1-081, s1-100 have no `levels/eval` files).
 - **2026-11-08, Bundle 3 (Opus), BACKLOG #4/#13, #3, #5, #14.** No engine bump, no sim change.
   - **#14 (S43):** level 3's ring is no longer prebuilt. Its third star is now `walls` (`perimeter_before_wave1`, label "Build the camp wall"); with no waves it completes once every section stands. The rockslide (`clear`) is a story step (`until: zone_cleared`, no star). Cues: after the first sale, KILN gives two lines (the long nights and the raiders a road brings, then how to build). The goal card reads "Build the camp wall (8)". The old first-sale beat (hub, meat trader, slide) now fires when the wall is done. `levels:check --pack levels/story`: every rung builds the wall (perimeter 6/6), 5/5 clean. Levels 4–5 keep their prebuilt rings. The story owner should re-check levels 3–5 in play.
   - **#4 / #13 (S40):** KILN's cloud keeps level 5's on-screen size in every level. New `client/src/story/kiln.ts` scales `size`, `right` and `up` of every `spiritFollow` by the ground width on screen (`viewWFor(family)` over the camera zoom) against defend's 300. Height stays at the head. Levels 1–4 come out at 57% of the old size, about 1.2 m from the head. No skin data changed. On regular levels the cloud now blooms and floats beside the commander, at the same scaling, while KILN's coaching lines show (`KilnCloud`, passed to `KilnIntro`).

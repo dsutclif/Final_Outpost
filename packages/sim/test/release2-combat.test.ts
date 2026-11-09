@@ -4,7 +4,7 @@ import { FP, TPS, createSim, fp, blockedAt, type SimEvent } from "../src/index.j
 import { LEVEL_4, idle } from "./helpers.js";
 
 // Release 2 combat (Bundle 7, engine 0.22.0): ranged attackers (#17), lunges (#18), footprints and separation (#20),
-// guards that bleed out and a commander who can be downed (#21), drones that dock (#28), drops that land where they can
+// downed guards on a timer and a commander who can be downed (#21), drones that dock (#28), drops that land where they can
 // be reached (#32), real shot events for everyone (#30, #31), and attackers never damaging turrets.
 
 type Loose = Record<string, any>;
@@ -126,37 +126,92 @@ describe("the commander can be downed (#21)", () => {
   });
 });
 
-describe("guards go down, bleed out and die unless healed (#21)", () => {
+describe("a downed guard has a timer, and the commander or a medic can heal it (#21, #92)", () => {
   const withGuard = (medic: boolean) => {
     const sim = createSim(level({ people: [{ role: "role.defender" }, ...(medic ? [{ role: "role.medic" }] : [])] }));
-    sim.compiled.guards.healable = true;
     const g = sim.state.residents.find((r) => sim.compiled.roles[r.role]?.behavior === "guard")!;
-    return { sim, g };
+    sim.state.hostiles.length = 0;
+    return { sim, g, cp: sim.compiled };
   };
-  it("a downed guard with no one coming loses a point every bleed interval and dies at 0", () => {
-    const { sim, g } = withGuard(false);
-    g.status = "injured"; g.hp = 2;
-    const ev = idle(sim, 3 * sim.compiled.guards.bleedTicks + 5);
-    expect(all(ev, "guard_died").length).toBe(1);
+  const down = (g: { status: string; downAge?: number; hp?: number }) => { g.status = "injured"; g.downAge = 0; g.hp = 3; };
+  const fresh = (sim: ReturnType<typeof createSim>) => { sim.state.hostiles.length = 0; sim.state.waves.quietUntil = 1e9; };
+
+  it("defaults: 15 s on the clock, a fall that nobody can heal through", () => {
+    const { cp } = withGuard(false);
+    expect(cp.guards.downTicks).toBe(15 * TPS);
+    expect(cp.guards.fallTicks).toBeGreaterThan(0);
+    expect(cp.guards.fallTicks).toBeLessThan(cp.guards.downTicks);
   });
-  it("a medic that reaches it stops the bleeding", () => {
+  it("property: with no healer a downed guard dies at exactly the timer, on a level with no med bay or medic too", () => {
+    fc.assert(fc.property(fc.boolean(), (medic) => {
+      const { sim, g, cp } = withGuard(false);
+      void medic;
+      down(g);
+      const ev = idle(sim, cp.guards.downTicks - 2);
+      expect(all(ev, "guard_died").length).toBe(0);
+      expect(sim.state.residents.some((r) => r.id === g.id)).toBe(true);
+      expect(all(idle(sim, 4), "guard_died").length).toBe(1);
+      expect(sim.state.residents.some((r) => r.id === g.id)).toBe(false);
+    }), { numRuns: 2 });
+  });
+  it("property: the commander standing by after the fall, at any moment before the timer ends, saves it, and the clock stops while he heals", () => {
+    fc.assert(fc.property(fc.integer({ min: 0, max: 100 }), (pct) => {
+      const { sim, g, cp } = withGuard(false);
+      down(g);
+      const at = cp.guards.fallTicks + Math.floor(((cp.guards.downTicks - cp.guards.fallTicks - 3) * pct) / 100);
+      idle(sim, at);
+      expect(g.status).toBe("injured");
+      sim.state.player.pos = { x: g.pos.x + 4 * FP, y: g.pos.y };
+      idle(sim, 2);
+      expect(g.status).toBe("healing");
+      const ev = idle(sim, cp.guards.reviveTicks + 3);
+      expect(all(ev, "guard_died").length).toBe(0);
+      expect(g.status).toBe("ok");
+      expect(g.hp).toBeUndefined();
+      expect(g.downAge).toBeUndefined();
+    }), { numRuns: 12 });
+  });
+  it("property: nobody can start healing during the fall: neither the commander nor a medic", () => {
+    fc.assert(fc.property(fc.boolean(), (medic) => {
+      const { sim, g, cp } = withGuard(medic);
+      down(g);
+      const m = sim.state.residents.find((r) => sim.compiled.roles[r.role]?.behavior === "medic");
+      if (m) m.pos = { x: g.pos.x + 3 * FP, y: g.pos.y };
+      else sim.state.player.pos = { x: g.pos.x + 3 * FP, y: g.pos.y };
+      for (let i = 0; i < cp.guards.fallTicks - 1; i++) {
+        sim.step({ dx: 0, dy: 0 });
+        expect(g.status).toBe("injured");
+      }
+      idle(sim, 3);
+      expect(g.status).toBe("healing");
+    }), { numRuns: 2 });
+  });
+  it("a commander out of reach does nothing; one in reach after the fall heals it from a stranger's distance away", () => {
+    const { sim, g, cp } = withGuard(false);
+    down(g);
+    sim.state.player.pos = { x: g.pos.x + cp.guards.reviveRange + 5 * FP, y: g.pos.y };
+    idle(sim, cp.guards.fallTicks + 5);
+    expect(g.status).toBe("injured");
+    expect(sim.state.stats.commanderHeals ?? 0).toBe(0);
+  });
+  it("a medic that reaches it heals it, and a downed guard cannot be hit while it lies where it fell", () => {
     const { sim, g } = withGuard(true);
-    g.status = "injured"; g.hp = 3;
+    down(g);
+    addHostile(sim, "hostile.raider_humanoid", g.pos.x / FP + 5, g.pos.y / FP);
+    const hp = g.hp;
+    idle(sim, 2 * TPS);
+    expect(g.hp).toBe(hp);
+    fresh(sim);
     idle(sim, 60 * TPS);
     expect(sim.state.residents.some((r) => r.id === g.id)).toBe(true);
   });
-  it("a downed guard takes half damage from a hit; a healing one takes none", () => {
-    fc.assert(fc.property(fc.integer({ min: 2, max: 8 }), (dmg) => {
-      const { sim, g } = withGuard(false);
-      g.status = "injured"; g.hp = 9;
-      sim.state.hostiles.length = 0;
-      addHostile(sim, "hostile.raider_humanoid", g.pos.x / FP + 5, g.pos.y / FP);
-      void dmg;
-      g.status = "healing"; g.timer = 1e6;
-      const hp = g.hp;
-      idle(sim, 3 * TPS);
-      expect(g.hp).toBe(hp);
-    }), { numRuns: 3 });
+  it("a healing guard takes no damage", () => {
+    const { sim, g } = withGuard(false);
+    g.status = "healing"; g.timer = 1e6; g.hp = 9;
+    sim.state.hostiles.length = 0;
+    addHostile(sim, "hostile.raider_humanoid", g.pos.x / FP + 5, g.pos.y / FP);
+    idle(sim, 3 * TPS);
+    expect(g.hp).toBe(9);
   });
 });
 

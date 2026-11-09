@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#96**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#98**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -48,6 +48,11 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       5. A downed guard bleeds out in about a dozen seconds unless a medic reaches it.
       6. #81 on s1-L017: hire the ranger; it walks out through the gate, hunts and comes back in. Also check any walled level with a hired hunter.
       7. Dense-wave frame rate (s1-L037 last waves) still smooth on the phone.
+- [ ] **#96 · iPhone checks for Bundle 10 rules (engine 0.23.0; #91, #92).** On a defend level with a gate (e.g. s1-L015, s1-L048):
+      1. A wave fans out along the wall in front of the gate (three across), not one queue; the gate still holds or breaks about as before.
+      2. A guard shot down lies there with a number over it counting down from 15, green then red; walk up to it and it gets up in about 3 s. A medic does the same without you.
+      3. With no medic or med bay, a downed guard still lasts its 15 s (before it was lost at once); left alone it is lost at 0.
+      4. Nobody starts healing in the first moment of the fall (about 1.5 s).
 - [ ] **Remind Doug (2026-11-09): do the iPhone checks #83, #84, #2, #7, #6, #76, and run the three remote branch deletes (Bundle 1).**
 - [ ] **#83 · iPhone checks for Bundle 3 (live site).**
       1. KILN (#4/#13): the cloud beside the commander looks the same size in story levels 1–5 and is still easy to see at the smaller size; on the first regular level that teaches something new (e.g. s1-L006) it floats beside the commander while its lines show.
@@ -510,6 +515,7 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 **Systems lane (rules: ONE engine bump 0.23.0, claim it first; Story and Look pause while it lands):**
 - [ ] **#91 · Attackers spread out at the gate rather than lining up in a queue (Doug, 2026-11-08).** #85 3: they should fan out around the gate.
 - [ ] **#92 · Guards: a visible 15 s timer after a fall (Doug, 2026-11-08).** A guard died instantly when shot down. A downed guard has 15 s, shown on screen, for the commander or a medic to heal it before it dies. A medic can't arrive during the fall animation itself. Property test, bot behaviour, HUD.
+- [ ] **#97 · `levels:check` after engine 0.23.0 fails three levels (Systems, for Bundle 8's rebuild).** s1-L010 and s1-L043 (salvage star, from 0.22) and s1-L060 (hire/hp_floor stars, from #91's spread; passes with one fan slot). Re-baseline their recorded stars or their targets when the pack is rebuilt; `docs/DECISIONS.md` has the numbers.
 - [ ] **#94 · Denser waves, not only bigger ones (Doug, 2026-11-08).** s1-L037's last waves lag a little at the end; wave design should favour more dense, smaller waves. Fold into Bundle 8's wave sizing from target ρ.
 
 ## Deferred (each says what it waits for)

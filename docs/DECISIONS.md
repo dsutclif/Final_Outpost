@@ -308,3 +308,34 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     hunter shots emit `shot` events (#30/#31); the bolt art for them reuses the commander's tracer (danger colour for attackers).
   - **Model:** `defendInput`/`predictRho` still use the 0.21 numbers (guard 1.43 dps, melee-style gate hits). Bundle 8 must
     refit v1 on this engine, adding: ranged range window, lunge, guard dps 6 and hp 15, bleed-out, longer `laneLen` from spawnY.
+- **Bundle 10 rules, engine 0.23.0 / content 0.20.0 (2026-11-08, Doug's iPhone round; calls made within RELEASE-2.md).**
+  - **#91 attackers fan out at the gate.** Each attacker at a gate walks to a stand-off spot picked by its id: `defense.fanSlots`
+    (3) columns `fanStep` (9 units) apart, centred on the gate, `barrierStop` (14) out on the side away from the core; the
+    ones that do not fit are pushed back by the crowd (rows were tried: bodies parked in a rear row never advanced). A body works the gate (hits it, or shoots it) once it is within
+    `barrierStop` plus a step of the gate section (the old reach, from any angle, not only dead ahead), and only the first
+    `defense.gateHitters` (2) bodies in body order hit at once; the rest of the fan holds beside them. That cap keeps gate
+    damage near the queue's. Walk-in time is nearly unchanged (a spot is within about 30 units of the gate's middle, and the
+    lane was already +-18 wide), so the model's walk term stays.
+    **Cost, known and recorded:** any spread (even `fanStep` 4) changes who is in range of whom (the old queue's back rows were
+    out of shot range of the guards and commander). With one slot (the old behaviour) `levels:check` s1-L060 passes; with three
+    it ends at about 2.3 human stars against 2.83 recorded (hire/hp_floor stars, weak and floor win rates fall to 0.33-0.67),
+    and it stays failing. s1-L021 (salvage star) passes at 3 slots, 9 units. The pack is not rebuilt in this bump; Bundle 8
+    re-baselines stars with the refit model. Also fixed: crowding could shove a body in past the stand-off sideways; a push
+    now may not take a body nearer a wall than the stand-off.
+  - **Bundle 7's salvage-star misses (s1-L010, s1-L043) are not fixed here.** Both are `salvage` star objectives (n 352 / 425,
+    counted from `picked` events) generated against the 0.21 economy; the 0.22 shots, stronger guards and crawler salvage drops
+    change where kills and pickups happen, so the bots now collect 0-1 of 6 seeds' worth. Fixing it means moving the star
+    target or the level, which is a pack change (Bundle 8 rebuild with ρ-targeted stars), not a rules change.
+  - **#92 a downed guard has a 15 s timer.** `guards.downSeconds` (15) runs from the fall on every level, with or without a med
+    bay or medic (before, no healer on the level meant death at the down line). It replaces bleed-out (`guards.bleedSeconds` and
+    the `healable` flag are gone). A guard lying where it fell still draws fire but cannot be killed by it (its timer is the only
+    clock; making it untargetable instead made s1-L060 harder); only one walking to the med bay takes damage, and it dies at 0.
+    The renderer shows the seconds left in a pill over the guard (green, red in the last third), read from
+    `downLeft(cp, resident)`, no level code.
+  - **Who heals:** a medic (role `healInterval`, 4 s) or the commander. The commander heals by standing within
+    `guards.commanderHealRange` (18 units) of it: the heal takes `guards.commanderHealSeconds` (3 s), runs on after he walks off,
+    and the clock stops while it runs. Nobody can start healing during the fall (`guards.fallSeconds`, 1.5 s, about the fall clip):
+    a medic that arrives early waits beside it, and the guard does not get up for the med bay either.
+  - **Bots:** a `revive` task (score 88): the commander heals the nearest downed guard past its fall when no attacker is within
+    60 units of it and there is no medic, or a medic exists and the clock is under 6 s. Rater/stat: `commanderHeals`
+    (`medic_heal` with `by` -1) beside `medicHeals`.
