@@ -38,8 +38,8 @@ export class ItemIcons {
     const r = Math.max(size.x, size.y, size.z) * 0.62 || 1;
     if (!this.scene) {
       this.scene = new Scene();
-      this.scene.add(new AmbientLight(0xffffff, 1.7));
-      const d = new DirectionalLight(0xffffff, 2.2);
+      this.scene.add(new AmbientLight(0xffffff, 0.95));
+      const d = new DirectionalLight(0xffffff, 1.5);
       d.position.set(1.5, 3, 2);
       this.scene.add(d);
       this.rt = new WebGLRenderTarget(SIZE, SIZE);
@@ -62,12 +62,23 @@ export class ItemIcons {
     gl.setRenderTarget(prevRt);
     gl.setClearAlpha(prevA);
     this.scene.remove(mesh);
+    const raw = this.doc.createElement("canvas");
+    raw.width = raw.height = SIZE;
+    const rg = raw.getContext("2d")!;
+    const img = rg.createImageData(SIZE, SIZE);
+    for (let y = 0; y < SIZE; y++) img.data.set(px.subarray((SIZE - 1 - y) * SIZE * 4, (SIZE - y) * SIZE * 4), y * SIZE * 4);
+    rg.putImageData(img, 0, 0);
+    // a dark outline round the shape, so a pale item (protein) still reads on the pale bubble
     const c = this.doc.createElement("canvas");
     c.width = c.height = SIZE;
     const g = c.getContext("2d")!;
-    const img = g.createImageData(SIZE, SIZE);
-    for (let y = 0; y < SIZE; y++) img.data.set(px.subarray((SIZE - 1 - y) * SIZE * 4, (SIZE - y) * SIZE * 4), y * SIZE * 4);
-    g.putImageData(img, 0, 0);
+    const sil = this.doc.createElement("canvas");
+    sil.width = sil.height = SIZE;
+    const sg = sil.getContext("2d")!;
+    sg.drawImage(raw, 0, 0);
+    sg.globalCompositeOperation = "source-in"; sg.fillStyle = "#1b1b22"; sg.fillRect(0, 0, SIZE, SIZE);
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2; g.drawImage(sil, Math.cos(a) * 2.2, Math.sin(a) * 2.2); }
+    g.drawImage(raw, 0, 0);
     return c;
   }
 

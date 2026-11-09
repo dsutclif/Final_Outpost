@@ -3197,7 +3197,7 @@ export class Renderer3D implements Renderer {
     if (top !== undefined) p.data["pinH"] = Math.max(top + 0.7 * ART_M, 2.3 * ART_M);
     const h = (p.data["pinH"] as number | undefined) ?? 2.3 * ART_M;
     if (!pole) {
-      pole = new Mesh(this.poleGeo!, new MeshBasicMaterial({ color: new Color(this.tokens.guideLight), transparent: true, opacity: 0.3, blending: AdditiveBlending, depthTest: false, depthWrite: false, side: DoubleSide, toneMapped: false }));
+      pole = new Mesh(this.poleGeo!, new MeshBasicMaterial({ color: new Color(this.tokens.guideLight), transparent: true, opacity: 0.3, blending: AdditiveBlending, depthTest: true, depthWrite: false, side: DoubleSide, toneMapped: false }));
       pole.renderOrder = 9;
       this.dynamic.add(pole);
       p.extra[5] = pole;
