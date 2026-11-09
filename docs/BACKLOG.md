@@ -13,7 +13,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#109**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#110**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -308,6 +308,8 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 
 - [ ] **#107 · Ore fields moved from level 1 to level 2 (Doug, 2026-11-09).** Level 1 is the canonical map and nothing on the canonical map moves in levels 1–5. Find which ore (and any other) positions differ between `levels/story/story-L001.json` and L002..L005, put them back to level 1's, and add a story-pack check that fails if any canonical-map object (ore, crash site, rocks, wreck) differs from level 1 across levels 1–5 (except things a level adds or removes on purpose, listed in the check). Done check: the check passes; screenshots of level 1 and 2 at the same camera show the same ore fields.
 - [ ] **#108 · Sela's arrival: framing and flow (Doug, 2026-11-09; the buggy animation itself is good).** (a) Start straight into the drive-up animation: don't show the level first and then flash to the animation. (b) Move the commander toward the kiosk so Sela, the commander and both their speech bubbles fit on screen and nothing is clipped. (c) The film must run smoothly into the in-level animation: no jump to the commander and back to the buggy. Done check: phone-size screenshots in order across the film-to-play handover (no level flash first, no camera jump), and a frame with both bubbles fully on screen.
+
+- [ ] **#109 · Opening film: the commander's feet slide on the ground after he leaves the pod (Doug, 2026-11-09).** The run after the drop is stretched about 2.2x to reach the held start spot, so the feet skate. Proper fix: loop the run cycle for the longer distance at a speed that matches the foot plants (or retime), then re-render only that segment (render time to be estimated; the full night render takes about 50 minutes). Shipped as is on 2026-11-09 because the weekly token limit was nearly used. Done check: a clip of the run with no visible foot sliding, ending on the same start spot, and the hand-off to play still smooth.
 
 ## Deferred (each says what it waits for)
 - [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
