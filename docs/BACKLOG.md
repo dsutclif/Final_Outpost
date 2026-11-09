@@ -13,7 +13,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#110**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#111**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -280,6 +280,8 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 - [ ] **#108 · Sela's arrival: framing and flow (Doug, 2026-11-09; the buggy animation itself is good).** (a) Start straight into the drive-up animation: don't show the level first and then flash to the animation. (b) Move the commander toward the kiosk so Sela, the commander and both their speech bubbles fit on screen and nothing is clipped. (c) The film must run smoothly into the in-level animation: no jump to the commander and back to the buggy. Done check: phone-size screenshots in order across the film-to-play handover (no level flash first, no camera jump), and a frame with both bubbles fully on screen.
 
 - [ ] **#109 · Opening film: the commander's feet slide on the ground after he leaves the pod (Doug, 2026-11-09).** The run after the drop is stretched about 2.2x to reach the held start spot, so the feet skate. Proper fix: loop the run cycle for the longer distance at a speed that matches the foot plants (or retime), then re-render only that segment (render time to be estimated; the full night render takes about 50 minutes). Shipped as is on 2026-11-09 because the weekly token limit was nearly used. Done check: a clip of the run with no visible foot sliding, ending on the same start spot, and the hand-off to play still smooth.
+
+- [ ] **#110 · Level 3 coin hand-off: Sela should drop the coin into the commander's hand, not throw it (Doug, 2026-11-09).** Today she tips the coin off her palm and it slides to his; he asked for a real drop into his open hand. Make the coin fall straight from her hand into his open palm (short vertical drop, hand under it, no throwing arc), keep the rounded fingers. Done check: phone-size stills of the coin leaving her hand, mid-fall and resting in his palm, from the game camera, and Doug confirms on level 3.
 
 ## Deferred (each says what it waits for)
 - [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
