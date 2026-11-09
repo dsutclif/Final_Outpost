@@ -51,7 +51,7 @@ export class StoryPresent implements StoryPresentation {
   vehicle(id: string, spec: StoryVehicleSpec | null): void { this.props.vehicle(id, spec); }
 
   /** True while customer `id` is still in a vehicle or climbing out of it (her figure is drawn by StoryProps, not the renderer). */
-  riding(id: number, model: string | undefined, height: number, out: RideExit): boolean { return this.props.riding(id, model, height, out); }
+  riding(id: number, model: string | undefined, height: number, out: RideExit, leaving = false): boolean { return this.props.riding(id, model, height, out, leaving); }
 
   /** Unbuilt wall lines are drawn unless a story level turns them off. */
   marksOn = true;

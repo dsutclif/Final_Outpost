@@ -575,16 +575,16 @@
    "type": "pad.build",
    "id": "turret1",
    "at": [
-    760,
-    690
+    780,
+    585
    ],
    "cost": {
     "res.salvage": 8
    },
    "build": "struct.ranged_defense",
    "site": [
-    790,
-    670
+    808,
+    567
    ]
   },
   {

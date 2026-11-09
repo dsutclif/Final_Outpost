@@ -534,6 +534,12 @@ Release 2 combat is in (every call is in docs/DECISIONS.md, "Release 2 combat").
 - Sela's arrival (level 3): the `sela_arrival` film is gone from the cue. One in-level shot: night over 1.5 s, camera cut to the road, buggy drives in with Sela inside, then the camera glides to the stall. The commander starts by the stall (level 3 `start`) so Sela, the commander and the line cards fit. The first rendered frame before the cue fires is still the level (about one frame); not removed.
 - `levels:check --pack levels/story` green, 5 replayed.
 
+### 2026-11-09 (fix-canon, round 2, Doug's phone check): L5 turret, L1 arrows, Sela boards. No engine bump.
+
+- Level 5 `turret1` moved to (780,585) (site 808,567), about 160 from the hub centre (Doug: two human body lengths clear of the hub); bots still 6/6.
+- Level 1 cues: the arrows first lead to (600,300), round the north ridge's east end, then to the core (`near` cue); the retry run keeps the plain core target.
+- Sela leaving: `StoryProps.riding(..., leaving)` hides her walking figure within 0.7 m of the door and plays the climb in reverse (1.3 s), then she stays seated; the buggy does not drive off. Not seen animating end to end (the capture of it was not checked).
+
 ### 2026-11-09 (fix-story): level 2 wall, Sela's buggy in play (backlog #101, #102). No engine bump.
 
 - Level 2: the camp ring is no longer prebuilt (`prebuilt` removed from `ring` in story-L002). The `ring` barrier line itself stays, unbuilt, because the `lasso` module requires `barrier_lines`, which requires a barrier.line, and the tow line only trails outside a barrier line. Its dashed line is still drawn (credits are hidden and start at 0). `levels:check --pack levels/story` is green, 5 replayed.

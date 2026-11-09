@@ -1664,7 +1664,7 @@ export class Renderer3D implements Renderer {
     if (named && !this.namedAsked.has(named)) { this.namedAsked.add(named); void loadMeshy(undefined, new Set([named]), undefined, true); }
     const rig = (named ? this.rigged?.entryFor(named) : undefined) ?? this.rigged?.entryFor(c.kind);
     // still in Sela's buggy, or climbing out of it: StoryProps draws her there and hands over at the spot she will stand on
-    if (this.storyP?.riding(c.id, named, ART_M * look.scale * this.devCharScale / 0.9 * (rig?.height ?? 1.1), { x: pos.x, z: pos.y, faceX: kiosk.model.root.position.x, faceZ: kiosk.model.root.position.z })) return;
+    if (this.storyP?.riding(c.id, named, ART_M * look.scale * this.devCharScale / 0.9 * (rig?.height ?? 1.1), { x: pos.x, z: pos.y, faceX: kiosk.model.root.position.x, faceZ: kiosk.model.root.position.z }, key.startsWith("l:"))) return;
     if (rig) {
       const cheer = (this.cheerUntil.get(`c:${c.id}`) ?? 0) > this.t;
       this.rigged!.add(`c:${c.id}`, named && rig.id === named ? named : c.kind, rig, { moving, hurried: c.kind.endsWith("impatient"), cheer }, pos.x, pos.y, yaw, ART_M * look.scale * this.devCharScale / 0.9);

@@ -21,10 +21,14 @@ const bulbMat = new MeshBasicMaterial({ color: "#fff6e0" });
 
 interface Run { spec: StoryVehicleSpec; len: number; segs: { x: number; z: number; d: number; yaw: number }[]; t0: number | null; group: Group | null; wheels: Object3D[]; lamps: SpotLight[]; yaw: number; driven: number;
   /** The rider (see riding()): her seated figure, the customer facts the renderer last gave, when the buggy first stood ready, and the exit's progress. */
-  ride: SelaRide | null; info: { model: string; height: number; out: RideExit } | null; w0: number | null; exit: number }
+  ride: SelaRide | null; info: { model: string; height: number; out: RideExit } | null; w0: number | null; exit: number;
+  /** Where she stepped out (the door) and, once she is walking back to it to leave, the boarding: asked, and its start time on the renderer clock. */
+  door: { x: number; z: number } | null; boardReq: boolean; boardT0: number | null }
 
 /** After the buggy parks: a beat sitting with the lights on, then the climb out. */
 const SIT = 0.5, EXIT = 1.3;
+/** Leaving: she climbs back in over this long, once she is back at the door. */
+const BOARD = 1.3;
 /** If her model has not come in by then, the drive goes ahead without her figure. */
 const WAIT = 4;
 
@@ -47,7 +51,7 @@ export class StoryProps {
       const a = pts[i - 1]!, b = pts[i]!, dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz);
       if (d > 0) { segs.push({ x: a.x, z: a.z, d: len, yaw: Math.atan2(dz, -dx) }); len += d; }
     }
-    this.runs.set(id, { spec, len, segs, t0: null, group: null, wheels: [], lamps: [], yaw: segs[0]?.yaw ?? 0, driven: 0, ride: null, info: null, w0: null, exit: 0 });
+    this.runs.set(id, { spec, len, segs, t0: null, group: null, wheels: [], lamps: [], yaw: segs[0]?.yaw ?? 0, driven: 0, ride: null, info: null, w0: null, exit: 0, door: null, boardReq: false, boardT0: null });
     if (!this.asked) { this.asked = true; void loadMeshy(undefined, new Set(MODELS), undefined, true); }
   }
 
@@ -62,11 +66,14 @@ export class StoryProps {
    * draws her seated, then stepping out to `out`, where the customer figure carries on. `model` is her character id and
    * `height` her height in world units; both and `out` are what the customer figure will have, so the hand-over is seamless.
    */
-  riding(id: number, model: string | undefined, height: number, out: RideExit): boolean {
+  riding(id: number, model: string | undefined, height: number, out: RideExit, leaving = false): boolean {
     for (const r of this.runs.values()) {
       if (r.spec.rider !== id) continue;
+      if (r.boardReq) return true;
       if (model) r.info = { model, height, out };
-      if (r.t0 === null || r.exit < 1) return true;
+      if (r.t0 === null || r.exit < 1) { if (r.exit < 1) r.door = { x: out.x, z: out.z }; return true; }
+      // walking back to leave: at the door she climbs into the buggy again instead of vanishing there
+      if (leaving && r.door && Math.hypot(out.x - r.door.x, out.z - r.door.z) < 0.7 * ART_M) { r.boardReq = true; return true; }
     }
     return false;
   }
@@ -137,7 +144,12 @@ export class StoryProps {
       const on = r.spec.lights === false ? 0 : Math.min(1, u * 8);
       for (const l of r.lamps) l.intensity = LAMP * on;
       g.visible = true;
-      if (r.ride) {
+      if (r.ride && r.boardReq) {
+        r.boardT0 ??= t;
+        r.exit = 1 - ease((t - r.boardT0) / BOARD);
+        r.ride.root.visible = r.ride.lamp.visible = true;
+        r.ride.pose(g.position.x, g.position.z, g.rotation.y, ease(r.exit), r.info?.out ?? null);
+      } else if (r.ride) {
         const since = u * r.spec.seconds - r.spec.seconds - SIT;
         r.exit = since <= 0 ? 0 : Math.min(1, since / EXIT);
         // after the climb out the customer figure is drawn (riding() is false), so hers is put away

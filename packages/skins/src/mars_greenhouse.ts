@@ -873,6 +873,10 @@ export const marsGreenhouse: Skin = {
         cues: [
           // the floor arrows are on from the first moment (S7), leading to the light, not yet to the ore past it
           { on: { start: true }, do: [{ light: "night" }, { guide: true, to: { entity: "core" } }] },
+          // the north ridge (levels 1-5 share it) lies between the pod and the light: the arrows first lead round its east end
+          // (south of the ledge), then on to the reactor, so the walk is direct and the ore west of the reactor stays out of sight
+          { on: { start: true }, walk: true, do: [{ guide: true, to: { at: [600, 300] } }] },
+          { on: { near: { at: [600, 300] }, r: 45 }, do: [{ guide: true, to: { entity: "core" } }] },
           { id: "woke", on: { start: true }, walk: true, do: [
             { line: "What happened? Where's the rest of my crew?", who: "commander", seconds: 3 },
           ] },
