@@ -255,7 +255,9 @@ def main():
     start = end + to_core * 4.2 * s_ + Vector((-to_core.y, to_core.x, 0)) * 2.0 * s_ + Vector((0, 0, 0.6))
     c4 = tracked("dropcam", start, 30)
     f_crane0 = F(st[3]) + 15
-    hand = end + Vector((0, 0, 0.9))
+    # the game camera looks at a ground point 5% of the screen's height up from the hero (renderer.ts: "the hero sits a little below centre"):
+    # 0.05 * 10.8 m / sin 30 deg = 1.08 m away from the camera, i.e. toward (-x, +y) at the game's 45 degree yaw
+    hand = end + Vector((-0.764, 0.764, 0))
     crane = crane_path(start, hand, f_crane0, N + PRE, HAND_W)
     f_c4 = F(P["r_land"]) + 14
     key(c4, "location", [(f_c4, start), (f_crane0, start)] + [(f, p) for f, p, _ in crane], "LINEAR")
