@@ -11,7 +11,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#100**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#101**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -232,6 +232,8 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       (#48). No scene or line changes.
 - [ ] **#99 · Generate pads so none sit behind a building or wall (Doug, 2026-11-08; the larger fix behind #89's pin-and-pole).** Attack levels with walls face south and east by default (the camera side), and every other pad is constrained not to stand behind a building or wall as seen from the camera. Generator and layout rule, so an engine bump and a pack rebuild; the pin-and-pole shipped in #89 covers hidden pads until then.
       Done check: `levels:check` clean, and a scan of the pack finds no pad hidden from the camera by a building or wall.
+- [ ] **#100 · Rangers walk through walls to reach hoppers unless the commander is outside the gate (Doug, 2026-11-08, playtesting s1-L017).** A Ranger's movement should not depend on where the commander is. He should path round the walls (out through the gate) to the hoppers whatever the commander does. Sim bug, so an engine bump (Systems).
+      Done check: on s1-L017, hire the Ranger with the commander inside the walls; he walks out by the gate to the hoppers and never through a wall.
 - [ ] **#6 · S32 The lieutenant's fall, re-staged (Doug, 2026-11-07).** Claimed by the `story-vale-scrap` session;
       check the work log first. What's wrong now: the alignment is a mess, the fall comes with no cause, and it
       plays after the run has started. The cause: the scene is triggered by the sim's `retreated` event, which
