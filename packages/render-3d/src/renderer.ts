@@ -3238,7 +3238,7 @@ export class Renderer3D implements Renderer {
     pole.position.set(at.x, 2.4, at.z);
     pole.rotation.y = YAW;
     pole.scale.set(0.09 * ART_M, h, 1);
-    sp.visible = this.labels.apply(sp, `pin|${glyph}|${role ?? ""}|${res ?? ""}|${light}|${locked}`, () => this.padPinArt(glyph, role, res, light, locked), PAD_LABEL_H * 0.75);
+    sp.visible = this.labels.apply(sp, `pin|${glyph}|${role ?? ""}|${res ?? ""}|${light}|${locked}`, () => this.padPinArt(glyph, role, res, light, locked), PAD_LABEL_H * 1.25);
     sp.position.set(at.x, h + 2.4, at.z);
     sp.material.opacity = 0.9 * flick;
   }
@@ -3256,7 +3256,7 @@ export class Renderer3D implements Renderer {
         g.globalAlpha = 0.9; g.lineWidth = 5; g.strokeStyle = t.guideLight; g.stroke();
         g.setLineDash([6, 8]); g.beginPath(); g.arc(w / 2, h / 2, 59, 0, Math.PI * 2); g.lineWidth = 3; g.stroke(); g.setLineDash([]);
         g.globalAlpha = 0.95;
-        if (glyph) { drawGlyph(g, glyph, w / 2, h / 2, 30, t.ink, t.paper.panel); if (res) drawIcon(g, w / 2 + 34, h / 2 + 34, 16, resToken(t, res), t.ink); }
+        if (glyph) { drawGlyph(g, glyph, w / 2, h / 2, 31, t.ink, t.paper.panel); if (res) drawIcon(g, w / 2 + 38, h / 2 + 38, 18, resToken(t, res), t.ink); }
         else { g.beginPath(); g.moveTo(w / 2, h / 2 - 22); g.lineTo(w / 2 + 18, h / 2); g.lineTo(w / 2, h / 2 + 22); g.lineTo(w / 2 - 18, h / 2); g.closePath(); g.fillStyle = t.guideLight; g.fill(); }
         g.globalAlpha = 1;
         void light;
