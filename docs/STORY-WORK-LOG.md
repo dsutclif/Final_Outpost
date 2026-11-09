@@ -34,6 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-08 | Vale helmet animations (Doug's round 2) | story-vale-fall | **ENGINE BUMP 0.24.0** (sim/content `bossStandoff`, `levels/story/story-L005.json`, repin), `render-3d/src/renderer.ts` (bolts at chest height, Vale's run at stride speed), `render-3d/src/scene/rigged.ts` (`strideSpeed` only), level 5 cues in `skins/src/mars_greenhouse.ts` (one light), `packages/client/release-notes.json` | Doug, 2026-11-08 |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
