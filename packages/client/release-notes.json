@@ -1,6 +1,7 @@
 {
   "notes": [
-    "The hauler no longer has a pickaxe point sticking up from his backpack: he carries the pick on his back with the point down, and takes it in hand to mine.",
-    "The protein hunter now holds his rifle properly when shooting, and carries it low at his side when walking."
+    "Laser shots now hit people in the chest instead of at their feet.",
+    "In First Watch the night stays the same all level, and the warlord stops short of your guards and fights from there, so she falls before she reaches them.",
+    "Vale now runs as fast as her legs say she is running, instead of jogging on the spot."
   ]
 }

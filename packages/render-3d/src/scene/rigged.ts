@@ -179,6 +179,45 @@ function shapeClip(clip: AnimationClip, cut: number[][] | undefined, plant: numb
   clip.duration = acc;
 }
 const placed = new Map<string, Matrix4>();
+/** Ground speed of a clip, model units a second (strideSpeed), by "file|clip". */
+const strides = new Map<string, number>();
+
+/**
+ * The speed a clip's feet set: over the stance (the lower foot, near its lowest), how fast that foot moves against the
+ * hips, in the root's own units. An in-place clip's foot sweeps back at the ground speed; a clip that travels moves
+ * its hips forward over a still foot; both give the same answer. 0 without foot bones.
+ */
+function measureStride(root: Object3D, clip: AnimationClip): number {
+  let L: Object3D | undefined, R: Object3D | undefined, hips: Object3D | undefined;
+  root.traverse((o) => { if (/LeftToeBase$/.test(o.name)) L = o; else if (/RightToeBase$/.test(o.name)) R = o; else if (!hips && /Hips$/.test(o.name)) hips = o; });
+  if (!L || !R) root.traverse((o) => { if (/LeftFoot$/.test(o.name)) L = o; else if (/RightFoot$/.test(o.name)) R = o; });
+  if (!L || !R || !hips) return 0;
+  const rest: [Object3D, Vector3, Quaternion, Vector3][] = [];
+  root.traverse((o) => { rest.push([o, o.position.clone(), o.quaternion.clone(), o.scale.clone()]); });
+  const mixer = new AnimationMixer(root);
+  mixer.clipAction(clip).play();
+  const inv = new Matrix4(), n = 60, dt = clip.duration / n, rows: Vector3[][] = [];
+  for (let k = 0; k <= n; k++) {
+    mixer.setTime(k * dt);
+    root.updateMatrixWorld(true);
+    inv.copy(root.matrixWorld).invert();
+    rows.push([L, R, hips].map((o) => o!.getWorldPosition(new Vector3()).applyMatrix4(inv)));
+  }
+  mixer.stopAllAction();
+  mixer.uncacheRoot(root);
+  for (const [o, p, q, sc] of rest) { o.position.copy(p); o.quaternion.copy(q); o.scale.copy(sc); }
+  root.updateMatrixWorld(true);
+  const ys = rows.flatMap((r) => [r[0]!.y, r[1]!.y]);
+  const lo = Math.min(...ys), band = (Math.max(...ys) - lo) * 0.05;
+  const v: number[] = [];
+  for (let k = 1; k < rows.length; k++) {
+    const a = rows[k - 1]!, b = rows[k]!, f = a[0]!.y < a[1]!.y ? 0 : 1;
+    if (a[f]!.y - lo > band) continue;
+    const dx = (b[f]!.x - a[f]!.x) - (b[2]!.x - a[2]!.x), dz = (b[f]!.z - a[f]!.z) - (b[2]!.z - a[2]!.z);
+    v.push(Math.hypot(dx, dz) / dt);
+  }
+  return v.length ? v.sort((x, y) => x - y)[v.length >> 1]! : 0;
+}
 
 const boneOf = (root: Object3D, name: string): Bone | undefined =>
   (root.getObjectByName(name.replace(/:/g, "")) ?? root.getObjectByName(name)) as Bone | undefined;
@@ -319,6 +358,21 @@ export class Rigged {
     }
     this.play(inst, c[want] ?? (want === "idle" ? "__idle" : c["walk"] ?? ""));
     for (const p of inst.props) p.obj.visible = (!p.when || p.when.includes(want) || (want !== s.act + "2" && !!s.act && p.when.includes(s.act))) && !(p.unless && !!s.act && p.unless.includes(s.act));
+  }
+
+  /**
+   * World units a second that `key`'s `state` clip (run, walk) carries it at its drawn size, from its feet
+   * (measureStride): the ground speed at which they do not slide. 0 until it is drawn, or without that clip.
+   */
+  strideSpeed(key: string, state: string): number {
+    const i = this.pool.get(key);
+    const e = i ? this.entryFor(i.id) : undefined, name = e?.clips?.[state];
+    const clip = e && name ? meshyRig(e.file)?.clips.find((c) => c.name === name) : undefined;
+    if (!i || !e || !clip) return 0;
+    const k = `${e.file}|${name}`;
+    let v = strides.get(k);
+    if (v === undefined) { v = measureStride(i.root, clip); strides.set(k, v); }
+    return v * i.root.scale.x;
   }
 
   /** The turn a finished get-up left on `key`, handed to the caller (which owns the facing from here) and cleared. */

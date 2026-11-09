@@ -199,6 +199,39 @@ describe("retreating boss (bossRetreat)", () => {
   });
 });
 
+describe("stand-off boss (bossStandoff)", () => {
+  const standLevel = { ...bossLevel, waves: [{ t: 2, counts: { "hostile.boss": 1 }, bossStandoff: 85 }] };
+  const gap = (sim: ReturnType<typeof createSim>): number => {
+    const p = sim.state.player.pos, q = sim.state.hostiles[0]!.pos;
+    return Math.hypot(q.x - p.x, q.y - p.y);
+  };
+
+  it("holds at its stand-off from the commander and shoots him from there (past its own shot range)", () => {
+    const sim = createSim(standLevel);
+    expect(sim.compiled.waves[0]!.standoff).toBe(fp(85));
+    idle(sim, 90, () => sim.state.hostiles.length > 0);
+    expect(sim.state.hostiles[0]!.standoff).toBe(fp(85));
+    // walk out to meet it, then stand still and let it come
+    let held = 0, shotAt = 0;
+    for (let i = 0; i < 3000 && held < 60 && sim.state.hostiles.length > 0; i++) {
+      const p = sim.state.player.pos, h = sim.state.hostiles[0]!, before = { ...h.pos };
+      const far = gap(sim) > fp(150);
+      const ev = sim.step(far ? { dx: h.pos.x - p.x, dy: h.pos.y - p.y } : { dx: 0, dy: 0 });
+      for (const e of ev) if (e.t === "shot" && e.by === "hostile" && e.id === 0) shotAt = Math.max(shotAt, gap(sim));
+      if (!far && h.pos.x === before.x && h.pos.y === before.y && sim.state.player.stun === 0) held++;
+    }
+    expect(held).toBe(60);
+    expect(gap(sim)).toBeLessThanOrEqual(fp(85));
+    expect(gap(sim)).toBeGreaterThan(fp(85) - sim.compiled.hostiles["hostile.boss"]!.speed * 2);
+    expect(shotAt).toBeGreaterThan(sim.compiled.hostiles["hostile.boss"]!.shotRange);
+  });
+
+  it("checkManifest rejects bossStandoff on a wave without a boss", () => {
+    const m = { ...bossLevel, waves: [{ t: 2, counts: { "hostile.raider_humanoid": 2 }, bossStandoff: 85 }] };
+    expect(() => checkManifest(Manifest.parse(m), content)).toThrow(/bossStandoff/);
+  });
+});
+
 describe("story mechanics: properties", () => {
   it("keep the state integer and plain, and replay bit for bit", () => {
     const levels = [darkCore, podLevel, bossLevel];

@@ -203,6 +203,8 @@ export interface CompiledWave {
   gapTicks: number;
   /** Boss-flag hostiles break off at this percent of their hp (manifest bossRetreat). */
   retreatPct?: number;
+  /** Boss-flag hostiles hold this far from the nearest defender (manifest bossStandoff, fixed point). */
+  standoff?: number;
 }
 
 export interface CompiledEvent {
@@ -526,6 +528,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     const sides: CompiledWave["sides"] = w.side === undefined ? ["n"] : Array.isArray(w.side) ? [...w.side] : [w.side];
     const cw: CompiledWave = { tick: ticks(w.t), types, sides, gapTicks: ticks(w.gap ?? param("defense.spawnGap")) };
     if (w.bossRetreat !== undefined) cw.retreatPct = w.bossRetreat;
+    if (w.bossStandoff !== undefined) cw.standoff = fp(w.bossStandoff);
     return cw;
   });
   const objectives: CompiledObjective[] = manifest.objectives && manifest.objectives.length > 0

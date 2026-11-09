@@ -216,6 +216,9 @@ export const Wave = z.object({
   gap: z.number().positive().optional(),
   // Boss-flag hostiles of this wave break off at this percent of their hp and walk back to their edge.
   bossRetreat: z.number().int().min(1).max(99).optional(),
+  // Boss-flag hostiles of this wave stop walking while a guard, drone or the commander is within this many world
+  // units, and their shots reach that far (they fight from there rather than walking up to the defenders).
+  bossStandoff: z.number().positive().optional(),
 });
 export const LevelEvent = z.object({
   type: EventId,
@@ -487,6 +490,7 @@ export function checkManifest(m: Manifest, c: Content): void {
   for (const [k, p] of m.people.entries()) checkBinding(`person ${k}`, p);
   for (const w of m.waves) for (const h of Object.keys(w.counts)) if (!c.hostiles[h]) fail(`wave spawns unknown hostile ${h}`);
   for (const w of m.waves) if (w.bossRetreat !== undefined && !Object.keys(w.counts).some((h) => c.hostiles[h]?.boss)) fail(`bossRetreat needs a boss in its wave`);
+  for (const w of m.waves) if (w.bossStandoff !== undefined && !Object.keys(w.counts).some((h) => c.hostiles[h]?.boss)) fail(`bossStandoff needs a boss in its wave`);
   for (const ev of m.events) {
     if (!c.events[ev.type]) fail(`unknown event ${ev.type}`);
     if (!(ev.warnAt <= ev.start && ev.start < ev.end)) fail(`event ${ev.type} must have warnAt <= start < end`);

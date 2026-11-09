@@ -261,6 +261,8 @@ export interface HostileState {
   acc: number;
   /** Hp at or below which it breaks off and retreats (a wave's bossRetreat); absent = fights to the end. */
   retreatHp?: number;
+  /** Stops walking while a defender is this close, and shoots this far (a wave's bossStandoff); absent = walks on. */
+  standoff?: number;
   /** Ticks until the next shot / lunge wind-up left (stands still while > 0) / lunge cooldown. */
   shotCd?: number; windup?: number; lungeCd?: number;
 }
@@ -312,7 +314,7 @@ export interface MetersState {
 
 export interface WavesState {
   idx: number;
-  pending: { tick: number; type: string; side: "n" | "e" | "s" | "w"; retreatPct?: number }[];
+  pending: { tick: number; type: string; side: "n" | "e" | "s" | "w"; retreatPct?: number; standoff?: number }[];
   /** True once a wave has spawned until every hostile is dead. */
   active: boolean;
   /** No wave starts before this tick (a quiet spell after the last one was cleared). */

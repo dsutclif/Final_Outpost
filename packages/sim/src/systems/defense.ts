@@ -107,6 +107,7 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
     wave.types.forEach((type, k) => {
       const p: (typeof W.pending)[number] = { tick: st.tick + k * wave.gapTicks, type, side: wave.sides[k % wave.sides.length]! };
       if (wave.retreatPct !== undefined && cp.hostiles[type]!.boss) p.retreatPct = wave.retreatPct;
+      if (wave.standoff !== undefined && cp.hostiles[type]!.boss) p.standoff = wave.standoff;
       W.pending.push(p);
     });
     W.idx++;
@@ -115,10 +116,11 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
     hint(st, out, "wave_incoming");
   }
   while (W.pending.length > 0 && st.tick >= W.pending[0]!.tick) {
-    const { type, side, retreatPct } = W.pending.shift()!;
+    const { type, side, retreatPct, standoff } = W.pending.shift()!;
     const def = cp.hostiles[type]!;
     const h: HostileState = { id: st.nextHostileId++, type, pos: spawnPoint(st, cp, side), hp: def.hp, hpMax: def.hp, side, target: "core", acc: 0, shotCd: 0, windup: 0, lungeCd: 0 };
     if (retreatPct !== undefined) h.retreatHp = Math.max(1, mulDiv(def.hp, retreatPct, 100));
+    if (standoff !== undefined) h.standoff = standoff;
     st.hostiles.push(h);
     if (def.boss) out.push({ t: "boss_spawned", id: h.id, kind: type, at: { ...h.pos } });
   }
@@ -147,6 +149,8 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
     const stand = gateStand(st, cp, h, busy);
     // #17 ranged attack: fired while walking on (nobody stops to shoot)
     if (shooter && h.shotCd! <= 0) fireShot(st, cp, h, def, stand, out);
+    // a stand-off boss holds where it is while a defender is that close (it shoots from there: fireShot)
+    if (h.standoff !== undefined && pickPerson(st, cp, h.pos, h.standoff)) { h.target = "troop"; continue; }
     // a soldier in reach is fought where it stands (Batch 3: the clash on the road); shooters keep their distance
     const foe = shooter ? null : nearestTroop(st, h.pos, D.troopContact);
     if (foe) {
@@ -422,7 +426,7 @@ function hitBase(st: State, cp: Compiled, dmg: number, out: SimEvent[]): void {
 /** One shot at the nearest settler in range, else the gate ahead, else the base. Damage is the shot's, times the gate/base params. */
 function fireShot(st: State, cp: Compiled, h: HostileState, def: Compiled["hostiles"][string], stand: ReturnType<typeof gateStand>, out: SimEvent[]): void {
   const D = cp.defense;
-  const who = pickPerson(st, cp, h.pos, def.shotRange);
+  const who = pickPerson(st, cp, h.pos, Math.max(def.shotRange, h.standoff ?? 0));
   if (who) {
     h.shotCd = def.shotTicks;
     shotEvent(out, h.pos, personPos(who, st), personId(who), "hostile", h.type);

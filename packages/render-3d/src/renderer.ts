@@ -1596,14 +1596,14 @@ export class Renderer3D implements Renderer {
 
   private namedAsked = new Set<string>();
   /** Where and when a swapped fleeing hostile (story fleeingModels) started its run, for the ease-in. */
-  private fleeFrom = new Map<string, { x: number; y: number; tick: number }>();
+  private fleeFrom = new Map<string, { x: number; y: number; tick: number; ease: boolean }>();
   /**
    * A hostile's fall filmed in the level (story `fall`, fallTick): the fleeing hostile stands where it was hit and
    * plays its `fall` clip once while play is paused; the camera eases in closer and lower and back out; the helmet it
    * wears (a copy of its dropped capture) comes off when its head meets the ground and tumbles to where play draws it.
    */
   private fallStage: FallStage | null = null;
-  /** After a filmed fall: how far the drawn runner leads the sim (world units), closed over FALL_CATCH seconds. */
+  /** After a filmed fall: where the clip left the runner against the sim spot (world units); its run starts there. */
   private fleeOff = new Map<string, { x: number; y: number; t0: number }>();
   /** Captures seen carried by a boss (heldBy): once dropped, story showDropped draws them before they are revealed. */
   private bossHeld = new Set<number>();
@@ -2534,7 +2534,7 @@ export class Renderer3D implements Renderer {
       const props = (meshyEntries().find((e) => e.id === swap)?.held?.["*"] ?? []).map((x) => x.prop);
       void loadMeshy(undefined, new Set([swap, ...props]), undefined, true);
       // it runs straight back out past its attack edge (sim stepFleeing); the clip runs off along its +x
-      const dir = h.side === "n" ? { x: 0, y: -1 } : h.side === "s" ? { x: 0, y: 1 } : h.side === "w" ? { x: -1, y: 0 } : { x: 1, y: 0 };
+      const dir = fleeDir(h.side);
       const cap = s.captures.find((c) => this.bossHeld.has(c.id) && !c.heldBy && Math.hypot(c.pos.x - h.pos.x, c.pos.y - h.pos.y) < 4 * ART_M * FP);
       this.fallStage = {
         o: req.o, done: req.done, key: "h:" + h.id, swap, at: { x: h.pos.x / FP, y: h.pos.y / FP }, dir, yaw: Math.atan2(-dir.y, dir.x),
@@ -2797,22 +2797,27 @@ export class Renderer3D implements Renderer {
         // filmed: standing where it was hit, then the fall clip (its own travel), turned so its run heads off its way
         at = { ...fall.at };
         this.fleeFrom.delete(key);
-      } else if (swapRig && off) {
-        // after the filmed fall it is drawn where the clip left it, and closes on the sim as it runs
-        const k = Math.max(0, 1 - (this.t - off.t0) / FALL_CATCH);
-        if (k === 0) this.fleeOff.delete(key);
-        const e = k * k * (3 - 2 * k);
-        at = { x: at.x + off.x * e, y: at.y + off.y * e };
-        this.fleeFrom.set(key, { x: at.x, y: at.y, tick: -1e9 });
       } else if (swapRig) {
-        // the run eases in from where it got up: three-quarter pace, up to full over its first second (Doug), drawn a
-        // little behind the sim for that second (an eighth of a second of travel) and on its line after
+        // the run goes at the pace its feet set (Doug, 2026-11-08: the body matches the legs, no treadmill), straight
+        // out its way (sim stepFleeing) from where it got up: where the filmed fall's clip left it, already running,
+        // else from a stand, three-quarter pace up to full over its first second (Doug). Far quicker than the sim's
+        // walk-out, which only says when it is gone; drawn no further than just past the map's edge.
         let f0 = this.fleeFrom.get(key);
-        if (!f0) { f0 = { x: at.x, y: at.y, tick: s.tick }; this.fleeFrom.set(key, f0); }
-        const ft = Math.max(0, (s.tick + a - f0.tick) / TPS);
-        const k = ft < 1 ? 0.75 + 0.125 * ft : 1 - 0.125 / ft;
-        at = { x: f0.x + (at.x - f0.x) * k, y: f0.y + (at.y - f0.y) * k };
-        pace = ft < 1 ? 0.75 + 0.25 * ft : 1;
+        if (!f0) {
+          f0 = off ? { x: at.x + off.x, y: at.y + off.y, tick: s.tick, ease: false } : { x: at.x, y: at.y, tick: s.tick, ease: true };
+          this.fleeOff.delete(key);
+          this.fleeFrom.set(key, f0);
+        }
+        const v = this.rigged!.strideSpeed(key, "run");
+        if (v > 0) {
+          const ft = Math.max(0, (s.tick + a - f0.tick) / TPS);
+          const d = v * (f0.ease ? (ft < 1 ? 0.75 * ft + 0.125 * ft * ft : ft - 0.125) : ft);
+          const dir = fleeDir(h.side);
+          at = { x: f0.x + dir.x * d, y: f0.y + dir.y * d };
+          pace = f0.ease && ft < 1 ? 0.75 + 0.25 * ft : 1;
+          const W = (this.cp?.map.w ?? 0) / FP, H = (this.cp?.map.h ?? 0) / FP, m = ART_M * 4;
+          if (W > 0 && (at.x < -m || at.y < -m || at.x > W + m || at.y > H + m)) continue;
+        }
       }
       if (hrig && fall) {
         const playing = fall.start >= 0 && fall.clock >= fall.start;
@@ -2824,11 +2829,11 @@ export class Renderer3D implements Renderer {
         this.rigged!.add(key, swapRig ? swap! : h.type, hrig, { moving: moving || flees, hurried: false, cheer: false, run: flees, speed: an.speed, act: h.target !== "core" && !swapRig ? "shoot" : undefined, ...(pace !== undefined ? { pace } : {}) }, at.x, at.y, hy, ART_M * hl.scale * this.devCharScale / 0.9);
         this.blobs!.add(at.x, at.y, hl.kind === "creature" ? 16 * hl.scale : 10 * hl.scale);
       } else this.addCharacter(hl, an, at, hy, null);
-      this.candidatePt(h.type, pos.x, pos.y, ART_M * hl.scale * this.devCharScale * 1.8);
+      this.candidatePt(h.type, at.x, at.y, ART_M * hl.scale * this.devCharScale * 1.8);
       // health bar over bosses (content `boss` flag) and wounded attackers
       const hpMax = h.hpMax;
       const boss = !!this.cp?.hostiles[h.type]?.boss;
-      if (hpMax > 0 && (boss || h.hp < hpMax)) this.barTag(pos.x, ART_M * hl.scale * this.devCharScale * (boss ? 1.9 : 1.5), pos.y, h.hp / hpMax, t.danger, boss ? 12 : 6);
+      if (hpMax > 0 && (boss || h.hp < hpMax)) this.barTag(at.x, ART_M * hl.scale * this.devCharScale * (boss ? 1.9 : 1.5), at.y, h.hp / hpMax, t.danger, boss ? 12 : 6);
     }
 
     for (const p of s.prey) {
@@ -3567,7 +3572,31 @@ export class Renderer3D implements Renderer {
       if (!from || bd < ART_M * 0.6) return;
     }
     const a = from as Vector3;
-    fx.bolt(up3(a, 14), up3(at, 10), by === "hostile");
+    fx.bolt(up3(a, this.chestAt(a.x, a.z, 14)), up3(at, this.chestAt(at.x, at.z, 10)), by === "hostile");
+  }
+
+  /**
+   * How high a bolt leaves or meets whoever stands at world x/z (Doug, 2026-11-08: shots strike the chest, not the
+   * feet): the chest bone as drawn for a rigged character, else most of the way up its look; `fb` if nobody is there
+   * (a turret, a gate).
+   */
+  private chestAt(x: number, z: number, fb: number): number {
+    const w = this.world;
+    if (!w) return fb;
+    let best = ART_M * 1.2, key = "", id = "";
+    const take = (q: V, k: string, i: string): void => {
+      const d = Math.hypot(q.x / FP - x, q.y / FP - z);
+      if (d < best) { best = d; key = k; id = i; }
+    };
+    take(w.player.pos, "player", "unit.player");
+    for (const r of w.residents) take(r.pos, `r:${r.id}`, r.role === "idle" ? "role.idle" : r.role);
+    for (const h of w.hostiles) take(h.pos, `h:${h.id}`, h.type);
+    if (!key) return fb;
+    let chest: Object3D | undefined;
+    this.rigged?.rootOf(key)?.traverse((o) => { if (!chest && /Spine2$/.test(o.name)) chest = o; });
+    if (chest) return (chest as Object3D).getWorldPosition(new Vector3()).y;
+    const l = lookFor(id, this.tokens, this.skin.models);
+    return ART_M * l.scale * this.devCharScale * (l.kind === "humanoid" ? 0.7 : 0.45);
   }
 
   private flashNearestTurret(at: Vector3): void {
@@ -3729,7 +3758,8 @@ export class Renderer3D implements Renderer {
         // no `by` = the commander; other shooters (#30, #31) get a bolt only, hostile ones in the danger colour
         const by = e["by"] as string | undefined;
         if (!by) this.acts.set("player", { act: "shoot", until: this.t + 0.8, at: { x: aim.x / FP, y: aim.y / FP } });
-        const from = up(this.wv(e["from"] as V), 14), to = up(this.wv(e["to"] as V), 10);
+        const f0 = this.wv(e["from"] as V), t0 = this.wv(e["to"] as V);
+        const from = up(f0, this.chestAt(f0.x, f0.z, 14)), to = up(t0, this.chestAt(t0.x, t0.z, 10));
         fx.tracer(from, to, by === "hostile" ? mix(t.danger, white, 0.35) : mix(t.accent, white, 0.5));
         break;
       }
@@ -4190,7 +4220,9 @@ export { deriveTokens } from "./tokens.js";
 /** Tone-mapping exposure of the game camera. */
 export const EXPOSURE = 1.35;
 /** After a filmed fall, the drawn runner closes on the sim over this many seconds. */
-const FALL_CATCH = 1.2;
+/** The way a fleeing hostile runs out: straight past its attack edge (sim stepFleeing). */
+const fleeDir = (side: "n" | "e" | "s" | "w"): { x: number; y: number } =>
+  side === "n" ? { x: 0, y: -1 } : side === "s" ? { x: 0, y: 1 } : side === "w" ? { x: -1, y: 0 } : { x: 1, y: 0 };
 /** The filmed fall's camera follows the body at this rate (1/s). */
 const FALL_FOLLOW = 2.5;
 /** The filmed fall aims this far (art metres) past the body, away from the camera. */
