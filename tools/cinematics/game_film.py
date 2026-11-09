@@ -68,18 +68,34 @@ def crane_path(start, target, f0, f1, view_w, dist_end=95.0):
 
 
 def main():
-    sc = lib.reset(360, 640)
-    sc.render.engine = "BLENDER_WORKBENCH"
-    sh = sc.display.shading
-    sh.light, sh.color_type, sh.show_shadows = "STUDIO", "TEXTURE", True
-    lib.ground()
-    if sc.world is None: sc.world = bpy.data.worlds.new("sky")
-    sc.world.color = (0.30, 0.27, 0.27)  # dim dusk-grey sky, never black
-    S = game_set.build()
+    EEVEE = "--eevee" in args  # the lit night render (720x1280); without it the fast Workbench preview (360x640)
+    sc = lib.reset(*((720, 1280) if EEVEE else (360, 640)))
+    if EEVEE:
+        if "--quick" in args: sc.eevee.taa_render_samples = 12
+        lib.bloom(threshold=1.0, size=7)
+        # a night dust storm (Doug): the first film's brown-red haze with the day taken out
+        lib.sky(horizon="#5a3b2a", zenith="#1a1210", haze=0.006, haze_color="#5a3b2a")
+        lib.sun(elevation=25, azimuth=-150, strength=3.0, color="#d9a67e")
+        lib.ground()
+        lib.ridge(at=(0, 260, -1), length=1500, depth=170, height=48, seed=4, color="#241812")
+        lib.ridge(at=(-120, 480, -3), length=1800, depth=240, height=95, seed=9, color="#2b1d16")
+        sc.world.node_tree.nodes["Background"].inputs["Strength"].default_value = 4.0
+        sh = sc.display.shading
+    else:
+        sc.render.engine = "BLENDER_WORKBENCH"
+        sh = sc.display.shading
+        sh.light, sh.color_type, sh.show_shadows = "STUDIO", "TEXTURE", True
+        lib.ground()
+        if sc.world is None: sc.world = bpy.data.worlds.new("sky")
+        sc.world.color = (0.30, 0.27, 0.27)  # dim dusk-grey sky, never black
+    S = game_set.build(scenery=not EEVEE)
     core = S["core_at"]
     # the look-round ends facing the reactor's light (END is where the previous run left the commander)
     pod_exit.LOOK_FACE = lambda yaw: math.atan2(core.y - END_GUESS.y, core.x - END_GUESS.x)
     pod = S["pods"][0]
+    if EEVEE:  # the level's ridge stand-in boxes are for the preview only
+        for o in bpy.data.objects:
+            if o.type == "MESH" and any(m and m.name.startswith("ridge") for m in o.data.materials): o.hide_render = True
     pod_c = pod.location.copy(); pod_c.z = 0
     # the pod model has an interior floor plate about 0.45 m above the sand (at BURY 0.30); his back lies at sand level,
     # so the plate is cut out of this pod (the game's pod needs the same)
@@ -211,36 +227,58 @@ def main():
         follow.location = sum(ps, Vector()) / len(ps)
         follow.keyframe_insert("location", frame=f + 1)
 
-    def tracked(name, at, lens):
+    def tracked(name, at, lens, dof=False):
         cam = lib.camera(at, pel[0], lens=lens, name=name)
         tt = cam.constraints.new("TRACK_TO")
         tt.target, tt.track_axis, tt.up_axis = follow, "TRACK_NEGATIVE_Z", "UP_Y"
+        if dof and EEVEE:
+            cam.data.dof.use_dof = True
+            cam.data.dof.focus_object = follow
+            cam.data.dof.aperture_fstop = 2.8
         return cam
-    # the glass opens west, where he steps out: cameras stay east/south of it. podcam: south-east, high, sees the glass
-    # swing away and him sit up; standcam: south of the step-out, then through the whole drop (cut after he lands);
-    # lookcam: in front of him toward the light, looking down a little so the ground, not the sky, fills the frame
-    c1 = tracked("podcam", pod_c + Vector((-3.2, -2.4, 2.2)), 30)
-    c2 = tracked("standcam", pod_c + Vector((-0.8, -4.8, 1.3)), 26)
+    # the first film's camera plan (crash.py shot4, Doug: "the camera movement and position from the first version is best"),
+    # on the 0.8x smaller pod: A = the way he steps out (west), lat_out = away from the hull (south)
+    A, lat_out, s_ = Vector((-1, 0, 0)), Vector((0, -1, 0)), 0.8
+    # 1 close on the pod from its open side: the seal, the lid, sitting up
+    c1 = tracked("podcam", pod_c + A * 3.3 * s_ + lat_out * 1.7 * s_ + Vector((0, 0, 1.75 * s_)), 32, dof=True)
+    # 2 low in front: standing, the turn, the step over the wall, the first steps toward camera
+    c2 = tracked("standcam", pod_c + A * 4.6 * s_ + lat_out * 1.6 * s_ + Vector((0, 0, 0.75)), 30)
+    # 3 alongside the drop and the run, riding with it
+    walk = pel[min(len(pel) - 1, F(P["r_land"]) + 20 - 1)] - pel[F(st[2]) - 1]; walk.z = 0
+    side = walk.cross(Vector((0, 0, 1))).normalized()
+    if side.y > 0: side = -side
+    c3 = tracked("limpcam", Vector(), 30)
+    c3.parent = follow
+    c3.location = side * 3.6 * s_ + walk.normalized() * 1.6 + Vector((0, 0, 0.5))
+    # 4 down on the sand, the look toward the light, then the crane out to the game view
     to_core = Vector((core.x - end.x, core.y - end.y, 0)).normalized()
-    side = Vector((-to_core.y, to_core.x, 0))
-    start = end + to_core * 3.2 + side * 1.2 + Vector((0, 0, 1.7))
-    c3 = tracked("lookcam", start, 30)
+    start = end + to_core * 4.2 * s_ + Vector((-to_core.y, to_core.x, 0)) * 2.0 * s_ + Vector((0, 0, 0.6))
+    c4 = tracked("dropcam", start, 30)
     f_crane0 = F(st[3]) + 15
     hand = end + Vector((0, 0, 0.9))
     crane = crane_path(start, hand, f_crane0, N + PRE, HAND_W)
-    key(c3, "location", [(F(P["r_land"]) + 14, start), (f_crane0, start)] + [(f, p) for f, p, _ in crane], "LINEAR")
-    key(c3.data, "lens", [(F(P["r_land"]) + 14, 30), (f_crane0, 30)] + [(f, l) for f, _, l in crane], "LINEAR")
+    f_c4 = F(P["r_land"]) + 14
+    key(c4, "location", [(f_c4, start), (f_crane0, start)] + [(f, p) for f, p, _ in crane], "LINEAR")
+    key(c4.data, "lens", [(f_c4, 30), (f_crane0, 30)] + [(f, l) for f, _, l in crane], "LINEAR")
     aim = bpy.data.objects.new("aim", None)
     sc.collection.objects.link(aim)
-    c3.constraints["Track To"].target = aim
+    c4.constraints["Track To"].target = aim
     for f in range(F(st[2]) - 40, N + PRE + 1):  # the aim follows the commander, then eases onto the hand-off point
         t = max(0.0, (f - f_crane0) / max(1, N + PRE - f_crane0))
         e = t * t * (3 - 2 * t)
         aim.location = pel[min(f - 1, len(pel) - 1)].lerp(hand, e)
         aim.keyframe_insert("location", frame=f)
-    edit = [(c1, 1), (c2, F(st[1]) + 10), (c3, F(P["r_land"]) + 14)]
+    f_stand = F(len(P["takes"][0].frames()) - 1) - 10   # the get-up is done: cut to the low camera in front of him
+    edit = [(c1, 1), (c2, f_stand), (c3, F(st[2]) - 6), (c4, f_c4)]
     for cam, f0 in edit:
         sc.timeline_markers.new(cam.name, frame=f0).camera = cam
+    if EEVEE:  # the emergency light and the seal's flash (crash.py shot4, on the smaller site)
+        red = lib.point(pod_c + Vector((-1.6, 1.4, 1.5)), "#ff3424", 0, radius=0.15, name="emergency")
+        for f in range(1, N + PRE + 1, 2):
+            red.data.energy = 110 + 80 * math.sin(f / 30 * 6.283)
+            red.data.keyframe_insert("energy", frame=f)
+        seal = lib.point(pod_c + Vector((0, 0, 1.1)), "#cfe6ff", 0, radius=0.2, name="seal")
+        key(seal.data, "energy", [(4, 0), (6, 600), (30, 60), (90, 0)])
     sc.frame_start, sc.frame_end = 1, N + PRE
     print(f"FILM {N + PRE} frames; cuts at {[f for _, f in edit]}; crane from {f_crane0}")
 

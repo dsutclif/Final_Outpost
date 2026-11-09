@@ -27,7 +27,7 @@ def load():
     return lv, by, to_m
 
 
-def build():
+def build(scenery=True):
     lv, by, to_m = load()
     S = {}
     S["wreck"] = lib.place("decor.halcyon_wreck", at=tuple(to_m(by["wreck"]["at"])), yaw=by["wreck"].get("yaw", 0), size=WRECK_M, name="wreck")
@@ -49,10 +49,11 @@ def build():
         e = by.get(sid)
         if e: lib.place(e["type"], at=tuple(to_m(e["at"]) + Vector((SCRAP_DX, 0, 0))), yaw=e.get("yaw", 0), size=TUBE_M_PER_SCALE * e.get("scale", 1), name=sid)
     core = next(e for e in lv["entities"] if e["type"] == "sink.core")
-    S["core"] = lib.place("sink.core.l1", at=tuple(to_m(core["at"])), height=CORE_H, name="reactor")
-    S["core_at"] = to_m(core["at"])
-    for e in [e for e in lv["entities"] if e["type"] == "node.fuel_scrap"][:6]:
-        lib.place("node.fuel_scrap", at=tuple(to_m(e["at"])), size=ORE_M)
+    S["core_at"] = to_m(core["at"])  # where the light is; the film keeps the reactor and ore out of shot (level 1 lets you find them)
+    if scenery:
+        S["core"] = lib.place("sink.core.l1", at=tuple(to_m(core["at"])), height=CORE_H, name="reactor")
+        for e in [e for e in lv["entities"] if e["type"] == "node.fuel_scrap"][:6]:
+            lib.place("node.fuel_scrap", at=tuple(to_m(e["at"])), size=ORE_M)
     # the ridge: level 1's terrain rects as low raised blocks (1.5 m)
     for e in [e for e in lv["entities"] if e["type"] == "zone.terrain" and e.get("rect")]:
         x, y, w, h = e["rect"]
