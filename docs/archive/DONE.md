@@ -370,3 +370,43 @@ Shipped and live; items waiting on Doug's phone stay in "Waiting on Doug".
 - [x] **#104 · Trader order pictures look faded (Doug, 2026-11-09).** The pictures in the trader's order bubble are desaturated and lightened; protein is nearly white on white. Make each colour as vivid as the object it shows, or add outline/shading so detail reads. Done check: phone-size stills of an order bubble with protein, greens, ore and goods, all clearly readable.
       **Closed 2026-11-09 (d20fcc6): Doug confirmed the order pictures look good.**
 
+## 2026-11-09 (Doug phone approvals)
+
+- [x] **#2 · iPhone check, title loop.** After two real deploys and a second visit on iPhone Safari: the loop plays (or the dark poster shows), and the old background never paints.
+      **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
+
+- [x] **#84 · iPhone checks for Bundle 5 (flat pads, #10 #41 #52).** Pads are now flat decals; the probes ran in the Chromium pane at phone size, not on a real phone:
+      1. Day, dusk (a story level), night and a storm: every pad kind (hire, build, upgrade, warehouse, clear) reads as a flat marking.
+      2. A pad behind a gate or the kiosk shows faintly through it (s1-L010 tower pads).
+      3. Not yet seen in a real scenario (#52): red bolts in a real raid, the healing cross with a real medic, trader order pictures in a live bubble, fireworks after a real win, the shovel at the level 3 rockslide, wall fade on the phone, core fade in a story level.
+      **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
+
+- [x] **#76 · iPhone checks (Safari, live site, after the next deploy).** The probes ran on software GL in Chromium, so none of this is proven:
+      1. Frame rate: play s1-L014 for two minutes with waves; it should hold smooth, no stutter when the wave icons appear.
+      2. Medic kneel: send a medic to a hurt crewmate; the kneel animation plays and ends.
+      3. Fade feel: walk behind a building; it fades out and back without popping.
+      4. Two-deploy update: open the site, wait for a second deploy, reopen; the Update now / Later prompt shows and the old
+         home background never flashes (#2, #50 N16).
+      5. Story level 2, goal 2: the two close pods are on screen together and one loop circles both (#54); story level 3: arrows
+         follow the goal to the rockslide (#53).
+      6. s1-L014 belts carry goods on top (R6 #4); s1-L013 trader shows "!" when impatient (R6 #6); a wave shows icons between waves (#51).
+      **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
+
+- [x] **#101 · Level 2 has a prebuilt wall that nobody built (Doug, 2026-11-09).** Level 3 now teaches wall building, so level 2's prebuilt ring (`ring` in `levels/story/story-L002.json`, the `prebuilt` list) should go: remove it from level 2 (Doug's pick between that and moving the building there; removing keeps level 3 as the teaching level). Done check: `levels:check --pack levels/story` green, level 2 still plays and wins, nothing in level 2's lines refers to the wall.
+      **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
+
+- [x] **#102 · Buggy arrival, second pass (Doug, 2026-11-09).** Sela still gets out of the buggy during the cinematic and walks to the kiosk, and now the buggy never enters the frame in the in-play view. Wanted: the cinematic ends BEFORE she gets out; in play the camera shows the buggy drive in and park at the kiosk stall; then she gets out and walks to the stall. Done check: phone-size screenshots of the buggy in frame during the drive, parked with lights, and Sela stepping out; no exit inside the film.
+      **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
+
+- [x] **#105 · Level 2 shows no hint of a wall (Doug, 2026-11-09).** After the prebuilt wall was removed, level 2 still shows a thin dashed line (where the tow line starts). Level 2 should look like level 1 with no suggestion of a wall: remove that line (and any wall-ring marking) from level 2 only. Done check: a phone-size still of level 2 at start with no dashed ring; level 3 unchanged.
+      **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
+
+- [x] **#106 · Sela gets out of the buggy in play (Doug, 2026-11-09).** Now the buggy parks empty and Sela appears beside it. She should be seen getting out: add a "get out of vehicle" animation for Sela in play (a rigged clip, or built from existing clips: the buggy door/side, she climbs down, then walks to the stall). She must be visible in the buggy while it drives in (or the exit starts from the driver seat). Done check: phone-size stills of the buggy with Sela in it driving in, parked, mid-exit and walking to the stall; no empty-buggy frame.
+      **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
+
+- [x] **#107 · Ore fields moved from level 1 to level 2 (Doug, 2026-11-09).** Level 1 is the canonical map and nothing on the canonical map moves in levels 1–5. Find which ore (and any other) positions differ between `levels/story/story-L001.json` and L002..L005, put them back to level 1's, and add a story-pack check that fails if any canonical-map object (ore, crash site, rocks, wreck) differs from level 1 across levels 1–5 (except things a level adds or removes on purpose, listed in the check). Done check: the check passes; screenshots of level 1 and 2 at the same camera show the same ore fields.
+      **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
+
+- [x] **#108 · Sela's arrival: framing and flow (Doug, 2026-11-09; the buggy animation itself is good).** (a) Start straight into the drive-up animation: don't show the level first and then flash to the animation. (b) Move the commander toward the kiosk so Sela, the commander and both their speech bubbles fit on screen and nothing is clipped. (c) The film must run smoothly into the in-level animation: no jump to the commander and back to the buggy. Done check: phone-size screenshots in order across the film-to-play handover (no level flash first, no camera jump), and a frame with both bubbles fully on screen.
+      **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
+

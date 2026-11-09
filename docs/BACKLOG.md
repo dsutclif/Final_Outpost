@@ -45,22 +45,14 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
 
 - Bundle 1 (#63, #67, #68–#70, #76): remote branches deleted; fo-wt-flatpads folder still to remove (locked file). Keep `fo-wt-handoff` until Doug says its film tools are safe (zip backup exists).
 - **Three lanes run in parallel (Doug, 2026-11-08), one bundle at a time per lane.** Engine bump freeze: when Bundle 7 claims the bump in the work log, Story and Look finish their current push and pause until it lands.
-- Story lane: idle. The opening film shipped and Doug confirmed it. Waiting on Doug's phone check of level 2, level 3 arrival and the one shared map.
+- Story lane: idle. Opening film live and confirmed; level 2, level 3 arrival and shared map confirmed. Open for next week: the coin drop into the commander's hand, and the film's sliding feet if the 2026-11-09 re-render did not land.
 - Look lane: idle; Bundle 10 look work is live and confirmed by Doug.
 - Systems lane: #97 fixed; nothing running; Bundle 8 is next week.
 
 ## Waiting on Doug
 
-- [ ] **iPhone checks for level 2's wall, Sela's arrival and the one shared map (story only, after the next deploy).**
-      1. Open level 2 "Roll Call". At the start there is no dashed line or "wall line" price on the ground. Look for the ore field west of the reactor (not south-east of it), the long ridge running along the north of the camp, and a rock-pile pen with a rockslide to the south-east. Play it through: all five pods still come home and it ends in a win.
-      2. Open level 3 "Open for Trade". Look for the game starting straight on the road with Sela's buggy driving up (no dark film first, no flash of the camp), the camera then gliding to the stall without cutting back to the commander, the buggy parking with its lights on and Sela climbing out. When she speaks, the commander, Sela and the speech card should all be fully on screen.
-      2b. In level 3, after Sela's first sale she walks back along the road to her buggy, climbs in over the side and stays seated in it (look for her not vanishing at the door; the buggy stays parked).
-      2c. Level 3 opens straight on the road with the buggy driving up (no commander framing first). When the hub is built, the coin hand-off clip shows sharper Sela, commander and coin; say whether it is good enough or if you want the commander's high-poly bust model used for the close-ups.
-      3a. In level 1, the floor arrows lead round the east end of the rock ledge (the long ridge) and then to the reactor, and no ore is on screen or pointed at until the reactor dialog says so. In level 5 the turret stands about two body lengths clear of the hub's edge.
-      3. Open level 1 "Cold Start" and levels 4 and 5: the ore field, the ridges and the pen sit in the same place around the reactor as in level 2 (level 1 now has the ridge walls too; you walk round the north ridge's east end to the ore). In level 5 the east ridge has a gap in front of the east gate so raiders can still reach it: say if you want that handled another way.
-- [ ] **Doug still to do (2026-11-09):** the film end-spot decision is done; the leftover folder fo-wt-flatpads (a file is locked: close anything using it, then delete); and the older phone checks below (title loop, other early checks). Remote branches look-test, object-sizes and story-buggy are gone (checked 2026-11-09); two other remote branches exist: backlog-single and fix/probe-story-screenshot (ask Doug before deleting).
+- [ ] **Doug still to do (2026-11-09):** nothing on the phone; the fo-wt-flatpads folder (locked file) if not yet deleted. Routines access (#65) and pillar order (#66) below.
 
-- [ ] **#2 · iPhone check, title loop.** After two real deploys and a second visit on iPhone Safari: the loop plays (or the dark poster shows), and the old background never paints.
 - [ ] **#1 · `empty_bays` against the films (Sign-off 2).** It plays at the end of story level 2 on
       https://final-outpost-rho.vercel.app (story films replay on every play while `REPLAY_FILMS` is on). Nothing
       is waiting on it. Close it if it reads fine.
@@ -69,19 +61,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       2. Create a fine-grained token for outpost-ops only, with Issues and Contents read/write.
       Then create the routines in dry-run for a week.
 - [ ] **#66 · PILLARS-DRAFT.md (waiting on Doug):** the order of the pillars, and pillar 7's pay-to-win line.
-- [ ] **#84 · iPhone checks for Bundle 5 (flat pads, #10 #41 #52).** Pads are now flat decals; the probes ran in the Chromium pane at phone size, not on a real phone:
-      1. Day, dusk (a story level), night and a storm: every pad kind (hire, build, upgrade, warehouse, clear) reads as a flat marking.
-      2. A pad behind a gate or the kiosk shows faintly through it (s1-L010 tower pads).
-      3. Not yet seen in a real scenario (#52): red bolts in a real raid, the healing cross with a real medic, trader order pictures in a live bubble, fireworks after a real win, the shovel at the level 3 rockslide, wall fade on the phone, core fade in a story level.
-- [ ] **#76 · iPhone checks (Safari, live site, after the next deploy).** The probes ran on software GL in Chromium, so none of this is proven:
-      1. Frame rate: play s1-L014 for two minutes with waves; it should hold smooth, no stutter when the wave icons appear.
-      2. Medic kneel: send a medic to a hurt crewmate; the kneel animation plays and ends.
-      3. Fade feel: walk behind a building; it fades out and back without popping.
-      4. Two-deploy update: open the site, wait for a second deploy, reopen; the Update now / Later prompt shows and the old
-         home background never flashes (#2, #50 N16).
-      5. Story level 2, goal 2: the two close pods are on screen together and one loop circles both (#54); story level 3: arrows
-         follow the goal to the rockslide (#53).
-      6. s1-L014 belts carry goods on top (R6 #4); s1-L013 trader shows "!" when impatient (R6 #6); a wave shows icons between waves (#51).
 - [ ] **#58 ·** The playtest retention target is met.
 
 ## Bundle 1: cleanup and nightly fix (no game change)
@@ -270,14 +249,8 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 **Systems lane (rules: ONE engine bump 0.23.0, claim it first; Story and Look pause while it lands):**
 - [ ] **#94 · Denser waves, not only bigger ones (Doug, 2026-11-08).** s1-L037's last waves lag a little at the end; wave design should favour more dense, smaller waves. Fold into Bundle 8's wave sizing from target ρ.
 
-- [ ] **#101 · Level 2 has a prebuilt wall that nobody built (Doug, 2026-11-09).** Level 3 now teaches wall building, so level 2's prebuilt ring (`ring` in `levels/story/story-L002.json`, the `prebuilt` list) should go: remove it from level 2 (Doug's pick between that and moving the building there; removing keeps level 3 as the teaching level). Done check: `levels:check --pack levels/story` green, level 2 still plays and wins, nothing in level 2's lines refers to the wall.
-- [ ] **#102 · Buggy arrival, second pass (Doug, 2026-11-09).** Sela still gets out of the buggy during the cinematic and walks to the kiosk, and now the buggy never enters the frame in the in-play view. Wanted: the cinematic ends BEFORE she gets out; in play the camera shows the buggy drive in and park at the kiosk stall; then she gets out and walks to the stall. Done check: phone-size screenshots of the buggy in frame during the drive, parked with lights, and Sela stepping out; no exit inside the film.
 
-- [ ] **#105 · Level 2 shows no hint of a wall (Doug, 2026-11-09).** After the prebuilt wall was removed, level 2 still shows a thin dashed line (where the tow line starts). Level 2 should look like level 1 with no suggestion of a wall: remove that line (and any wall-ring marking) from level 2 only. Done check: a phone-size still of level 2 at start with no dashed ring; level 3 unchanged.
-- [ ] **#106 · Sela gets out of the buggy in play (Doug, 2026-11-09).** Now the buggy parks empty and Sela appears beside it. She should be seen getting out: add a "get out of vehicle" animation for Sela in play (a rigged clip, or built from existing clips: the buggy door/side, she climbs down, then walks to the stall). She must be visible in the buggy while it drives in (or the exit starts from the driver seat). Done check: phone-size stills of the buggy with Sela in it driving in, parked, mid-exit and walking to the stall; no empty-buggy frame.
 
-- [ ] **#107 · Ore fields moved from level 1 to level 2 (Doug, 2026-11-09).** Level 1 is the canonical map and nothing on the canonical map moves in levels 1–5. Find which ore (and any other) positions differ between `levels/story/story-L001.json` and L002..L005, put them back to level 1's, and add a story-pack check that fails if any canonical-map object (ore, crash site, rocks, wreck) differs from level 1 across levels 1–5 (except things a level adds or removes on purpose, listed in the check). Done check: the check passes; screenshots of level 1 and 2 at the same camera show the same ore fields.
-- [ ] **#108 · Sela's arrival: framing and flow (Doug, 2026-11-09; the buggy animation itself is good).** (a) Start straight into the drive-up animation: don't show the level first and then flash to the animation. (b) Move the commander toward the kiosk so Sela, the commander and both their speech bubbles fit on screen and nothing is clipped. (c) The film must run smoothly into the in-level animation: no jump to the commander and back to the buggy. Done check: phone-size screenshots in order across the film-to-play handover (no level flash first, no camera jump), and a frame with both bubbles fully on screen.
 
 - [ ] **#109 · Opening film: the commander's feet slide on the ground after he leaves the pod (Doug, 2026-11-09).** The run after the drop is stretched about 2.2x to reach the held start spot, so the feet skate. Proper fix: loop the run cycle for the longer distance at a speed that matches the foot plants (or retime), then re-render only that segment (render time to be estimated; the full night render takes about 50 minutes). Shipped as is on 2026-11-09 because the weekly token limit was nearly used. Done check: a clip of the run with no visible foot sliding, ending on the same start spot, and the hand-off to play still smooth.
 
