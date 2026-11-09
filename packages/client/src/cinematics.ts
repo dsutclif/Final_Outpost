@@ -29,7 +29,7 @@ export interface FilmInfo { video: string; poster: string; fadeMs?: number; grad
 
 export const CINEMATICS: Record<VideoId, FilmInfo> = {
   // the film ends warm and bright; level 1 opens in moonlit night, its sand about half as bright
-  crash_open: { video: crashOpenVideo, poster: crashOpenPoster, fadeMs: 500, grade: { seconds: 2.5, brightness: 0.5, saturate: 0.88 } },
+  crash_open: { video: crashOpenVideo, poster: crashOpenPoster, fadeMs: 500 },
   helmet_reveal: { video: helmetRevealVideo, poster: helmetRevealPoster },
 };
 

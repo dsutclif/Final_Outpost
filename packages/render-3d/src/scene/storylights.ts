@@ -281,6 +281,10 @@ export function nightFloor(skin: Skin): { ambient: number; ridge: number } {
 export function storyLighting(skin: Skin, t: Tokens, progress: number): StoryLighting {
   const floor = nightFloor(skin), sn = skin.look3d?.storyNight ?? STORY_NIGHT_DEFAULT;
   const night = (c: string, k: number): string => mix(c, t.ink, k);
+  if (progress < -1 && sn.storm) {
+    const st = sn.storm;
+    return { ambient: st.ambient, sun: 0, ridgeFloor: floor.ridge, sky: st.sky, skyTop: st.skyTop, fog: st.fog, sunColor: st.color, moon: st.moon };
+  }
   if (progress < 0 && sn.ember) {
     const q = Math.min(1, -progress), k = q * q * (3 - 2 * q), em = sn.ember;
     return {

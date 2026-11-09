@@ -104,7 +104,7 @@ export class StoryPresent implements StoryPresentation {
   ridgeSlow(side: RidgeSide | null, period: number, k: number): void { this.ridgeSide = side; this.ridgeK = 0; this.slow = side ? { period, k } : null; }
   ridgeFlash(n: number): void { this.flash = { at: null, n }; }
   ghosts(list: readonly { id: string; x: number; z: number; build?: string | undefined; price: number }[]): void { this.ghostList = list; }
-  lighting(progress: number | null, snap = false): void { this.target = progress === null ? null : Math.max(-1, Math.min(1, progress)); this.snapNow = snap; }
+  lighting(progress: number | null, snap = false): void { this.target = progress === null ? null : Math.max(-2, Math.min(1, progress)); this.snapNow = snap; }
   beat(b: Omit<CameraBeat, "seconds"> & { seconds?: number } | null): void {
     this.beatReq = b ? { ...b, seconds: b.seconds ?? 2, until: this.now + (b.seconds ?? 2) } : null;
   }

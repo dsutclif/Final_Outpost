@@ -849,7 +849,7 @@ export const marsGreenhouse: Skin = {
         images: {},
       },
     },
-    lights: { ember: -1, night: 0, preDawn: 0.08, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
+    lights: { storm: -2, ember: -1, night: 0, preDawn: 0.08, firstLight: 0.3, greyDawn: 0.2, dusk: 0.15, morning: 0.7, sunrise: 1 },
     levels: {
       // Cold Start (docs/STORY-SCREENPLAY.md, level 1). No red light until the storm (S11): the reactor's far light
       // finds the commander first, as one bright pulse on the screen edge and then a pointer inside its glow.
@@ -872,7 +872,7 @@ export const marsGreenhouse: Skin = {
         ],
         cues: [
           // the floor arrows are on from the first moment (S7), leading to the light, not yet to the ore past it
-          { on: { start: true }, do: [{ light: "night" }, { guide: true, to: { entity: "core" } }] },
+          { on: { start: true }, do: [{ light: "storm" }, { guide: true, to: { entity: "core" } }] },
           // the north ridge (levels 1-5 share it) lies between the pod and the light: the arrows first lead round its east end
           // (south of the ledge), then on to the reactor, so the walk is direct and the ore west of the reactor stays out of sight
           { on: { start: true }, walk: true, do: [{ guide: true, to: { at: [600, 300] } }] },
@@ -1264,7 +1264,7 @@ export const marsGreenhouse: Skin = {
       },
     },
   },
-  look3d: { saturation: 0.82, groundLift: 0.38, nightFloor: { ambient: 0.32, ridge: 0.3 }, storyNight: { ambient: 0.44, moon: 0.32, moonColor: "#a9bfe6", dawnColor: "#ffc08f", ember: { ambient: 0.24, moon: 0.2, color: "#b98a6a" } } },
+  look3d: { saturation: 0.82, groundLift: 0.38, nightFloor: { ambient: 0.32, ridge: 0.3 }, storyNight: { ambient: 0.44, moon: 0.32, moonColor: "#a9bfe6", dawnColor: "#ffc08f", ember: { ambient: 0.24, moon: 0.2, color: "#b98a6a" }, storm: { ambient: 0.27, moon: 0.31, color: "#e8964f", sky: "#4a2f22", skyTop: "#1a1210", fog: "#4a2f22" } } },
   audio: {
     gathered: "tick",
     deposited: "tock",

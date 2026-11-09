@@ -108,8 +108,9 @@ export interface SkinLook3D {
   /**
    * Director-run night. `ember`: the far side of night (story light presets below 0, down to -1): dimmer, the key light
    * turned to a low warm glow, sky and fog a little darker (level 5's end, to meet the helmet film: Doug, 2026-11-08).
+   * `storm` (preset progress below -1): level 1's night dust storm, matched to the opening film's last seconds (Doug, 2026-11-09).
    */
-  storyNight?: { ambient: number; moon: number; moonColor: string; dawnColor?: string; ember?: { ambient: number; moon: number; color: string } };
+  storyNight?: { ambient: number; moon: number; moonColor: string; dawnColor?: string; ember?: { ambient: number; moon: number; color: string }; storm?: { ambient: number; moon: number; color: string; sky: string; skyTop: string; fog: string } };
 }
 
 export interface Skin {
