@@ -17,6 +17,7 @@ import lib, mocap, retarget
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 FADE = 10                # crossfade frames between takes
 STEP_TURN = 0            # degrees the step-over turns from the way the get-up faces (crash.py: 90, a long-side pod)
+PIVOT_FRAMES = int(os.environ.get("PIVOT_FRAMES", 0))  # >0: turn on the spot (hold the standing pose, swivel about the pelvis) before the step, instead of walking while turning
 TURN_FRAMES = 22         # over the stride before the step
 NO_STAGGER = os.environ.get("NO_STAGGER") == "1"  # game_set.py: no deck plate to limp along
 LOOK_FACE = None         # game_film.py: callable(yaw) -> world heading (rad) the look-round should end facing
@@ -167,7 +168,7 @@ def timeline(takes, scale_of):
             rot_from = None
             if isinstance(t, StepOver):  # step straight out over a side wall: snap to the nearest axis
                 want = round(want / (math.pi / 2)) * (math.pi / 2)
-                if STEP_TURN:  # pivot through the stride before the step, so it crosses a long side wall
+                if STEP_TURN and not PIVOT_FRAMES:  # pivot through the stride before the step, so it crosses a long side wall
                     rot_from = want - h_a
                     want += math.radians(STEP_TURN)
             rot_z = want - h_a
@@ -299,6 +300,16 @@ def perform(root, pre=0, calib=False):
         sr = [r for r in TL if r[0] == k_step]
         sd = sr[-1][3] - sr[0][3]; sd.z = 0
         ax0 = max((Vector((1, 0, 0)), Vector((-1, 0, 0)), Vector((0, 1, 0)), Vector((0, -1, 0))), key=lambda a: a.dot(sd))
+        # the capture's first stride is about a metre; the pod is 0.75 m wide: shorten the step's travel across the pod (STEP_SCALE)
+        s_ = float(os.environ.get("STEP_SCALE", 1.0))
+        if s_ != 1.0:
+            p0 = sr[0][3].copy(); last_old = sr[-1][3].copy(); k_last = max(i for i, r in enumerate(TL) if r[0] == k_step)
+            sq = lambda v: v + ax0 * (v.dot(ax0) * (s_ - 1.0))
+            for i, r in enumerate(TL):
+                if r[0] == k_step: r[3] = p0 + sq(r[3] - p0)
+            cut = (last_old - p0).dot(ax0) * (1.0 - s_)
+            for i, r in enumerate(TL):
+                if i > k_last: r[3] = r[3] - ax0 * cut
         lat_v = Vector((-ax0.y, ax0.x, 0))
         lyp, apex = [], None
         for f, row in enumerate(TL):
@@ -311,12 +322,20 @@ def perform(root, pre=0, calib=False):
                     if t_.z < 1.3 and (apex is None or t_.z > apex[0]): apex = (t_.z, t_.dot(ax0))
         la_ = [q.dot(ax0) for q in lyp]; lt_ = [q.dot(lat_v) for q in lyp]
         rows0 = [i for i, r in enumerate(TL) if r[0] == 0]
-        stand = TL[rows0[-1]][3]
+        stand = TL[len(takes[0].frames()) - 1][3]
         D = ax0 * ((max(la_) + min(la_)) / 2 + wall_d - apex[1]) + lat_v * ((max(lt_) + min(lt_)) / 2 - stand.dot(lat_v))
         D.z = 0
+        # the slide follows the get-up's own drift along the step axis (0 where he lies, 1 where he stands), so he never
+        # strays west of where the capture would put him until he is standing: no walking out through the wall
+        e0 = len(takes[0].frames()) - 1  # the get-up's own last row (the pivot rows after it just hold)
+        p_first = TL[0][3].copy(); tot = (TL[e0][3] - p_first).dot(ax0); run = 0.0
         for i, r in enumerate(TL):
-            w = 1.0 if i > rows0[-1] else smooth((i - (rows0[-1] - 70)) / 70)
+            if i > e0: w = 1.0
+            elif abs(tot) > 0.05:
+                run = max(run, (r[3] - p_first).dot(ax0) / tot); w = max(0.0, min(1.0, run))
+            else: w = smooth((i - (e0 - 70)) / 70)
             if w > 0: r[3] = r[3] + D * w
+        print(f"SLIDE inputs: lying centre along {(max(la_) + min(la_)) / 2:.2f}, standing pelvis along {stand.dot(ax0):.2f}, stepping-foot apex along {apex[1]:.2f}")
         print(f"SLIDE {D.length * 100:.0f} cm (along {D.dot(ax0) * 100:+.0f}, lengthwise {D.dot(lat_v) * 100:+.0f}); foot apex {apex[0] * 100:.0f} cm")
     lying_pts, step_peak, takeoff = [], None, None
     best_lift = -1
