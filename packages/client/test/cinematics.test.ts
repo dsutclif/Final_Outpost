@@ -12,7 +12,7 @@ describe("story cinematics", () => {
   it("never replays a seen version, and saved `true` migrates to version 1", () => {
     const p = mergeProgress({ epoch: PROGRESS_EPOCH, cinematics: { crash_open: true } });
     expect(p.cinematics).toEqual({ crash_open: 1 });
-    expect(cinematicFor("story-L001", "before", p.cinematics, false)).toBeNull();
+    expect(cinematicFor("story-L001", "before", { crash_open: FILM_VERSIONS.crash_open }, false)).toBeNull();
     expect(mergeProgress(null).cinematics).toEqual({});
   });
   it("plays again on a new version", () => {
