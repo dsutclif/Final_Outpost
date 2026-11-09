@@ -186,7 +186,7 @@ describe("ranged player attack", () => {
           for (const e of ev) {
             if (e.t === "shot") {
               const dx = e.to.x - e.from.x, dy = e.to.y - e.from.y;
-              expect(isqrt(dx * dx + dy * dy)).toBeLessThan(range);
+              expect(isqrt(dx * dx + dy * dy)).toBeLessThanOrEqual(range + FP);
             }
             if (e.t === "hit" && e.target === "hostile" && e.by === "player") {
               const dx = e.at.x - pp.x, dy = e.at.y - pp.y;

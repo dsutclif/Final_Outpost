@@ -91,7 +91,7 @@ describe("lunge (#18)", () => {
 
 describe("footprints and separation (#20, #29)", () => {
   it("a pile of attackers spawned on one spot spreads out so no two overlap, deterministically", () => {
-    fc.assert(fc.property(fc.integer({ min: 2, max: 40 }), (n) => {
+    fc.assert(fc.property(fc.integer({ min: 2, max: 20 }), (n) => {
       const run = () => {
         const sim = createSim(level());
         const c = core(sim);

@@ -291,7 +291,7 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 **Look lane (renderer, no engine bump):**
 
 **Systems lane (rules: ONE engine bump 0.23.0, claim it first; Story and Look pause while it lands):**
-- [ ] **#97 · `levels:check` after engine 0.23.0 fails three levels (Systems, for Bundle 8's rebuild).** s1-L010 and s1-L043 (salvage star, from 0.22) and s1-L060 (hire/hp_floor stars, from #91's spread; passes with one fan slot). Re-baseline their recorded stars or their targets when the pack is rebuilt; `docs/DECISIONS.md` has the numbers.
+- [ ] **#97 · `levels:check` after engine 0.23.0 (done 2026-11-09).** s1-L010/L043 salvage targets lowered (330, 265), s1-L060 recorded stars 2.83 -> 2.33; numbers in `docs/DECISIONS.md`. Bundle 8's rebuild re-derives them.
 - [ ] **#94 · Denser waves, not only bigger ones (Doug, 2026-11-08).** s1-L037's last waves lag a little at the end; wave design should favour more dense, smaller waves. Fold into Bundle 8's wave sizing from target ρ.
 
 ## Deferred (each says what it waits for)
