@@ -87,6 +87,8 @@ pnpm levels:check  # replay every pack level with the bot ladder (~30 s)
   `C:\Program Files\nodejs`, pnpm in `%APPDATA%\npm`). Vitest is capped at 3 workers because the
   long synchronous bot/rater hooks time out under heavy parallel load.
 
+- **Talking to Doug:** never refer to backlog items by `#number` in anything he reads; describe them in words and give him everything for a decision in one place. Every phone check names the level to open AND what to look for. Numbers stay in `docs/BACKLOG.md` and session briefs.
+
 ## Conventions
 
 - Systems run in a fixed order in `sim.ts`: move → core → nodes → player actions →

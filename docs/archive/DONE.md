@@ -278,3 +278,49 @@ Shipped and live; items waiting on Doug's phone stay in "Waiting on Doug".
 - [x] **#92 · Guards: a visible 15 s timer after a fall (Doug, 2026-11-08).** A guard died instantly when shot down. A downed guard has 15 s, shown on screen, for the commander or a medic to heal it before it dies. A medic can't arrive during the fall animation itself. Property test, bot behaviour, HUD.
       **Shipped 2026-11-08 in engine 0.23.0 (da748e2): a downed guard has a visible 15 s timer. Phone check: #96.**
 
+## 2026-11-09 (Doug approvals)
+
+- [x] **#85 · iPhone checks for Bundle 7 (Release 2 combat, engine 0.22.0).** On a defend level (e.g. s1-L015, s1-L048):
+      1. Attackers shoot: acid bolts from mites, longer bolts from crawlers and raiders, in a danger colour; turret, guard, drone and ranger shots show as bolts too.
+      2. A mite winds up (0.3 s, stands still) and then jumps you; the commander goes down at 0 hp, drops the pack and gets up. Guards and drones draw fire first, so this is rare with defenders out.
+      3. Attackers queue behind each other at the gate instead of stacking; scrap lands where you can walk to it.
+      4. Drones go back into their post between waves and come out with the next wave.
+      5. A downed guard bleeds out in about a dozen seconds unless a medic reaches it.
+      6. #81 on s1-L017: hire the ranger; it walks out through the gate, hunts and comes back in. Also check any walled level with a hired hunter.
+      7. Dense-wave frame rate (s1-L037 last waves) still smooth on the phone.
+      **Closed 2026-11-09: Doug approved the combat checks; hunter through the gate and the late-wave frame rate approved.**
+
+- [x] **#96 · iPhone checks for Bundle 10 rules (engine 0.23.0; #91, #92).** On a defend level with a gate (e.g. s1-L015, s1-L048):
+      1. A wave fans out along the wall in front of the gate (three across), not one queue; the gate still holds or breaks about as before.
+      2. A guard shot down lies there with a number over it counting down from 15, green then red; walk up to it and it gets up in about 3 s. A medic does the same without you.
+      3. With no medic or med bay, a downed guard still lasts its 15 s (before it was lost at once); left alone it is lost at 0.
+      4. Nobody starts healing in the first moment of the fall (about 1.5 s).
+      **Closed 2026-11-09: Doug closed it for this sprint: waves are not big enough to pile up, assumed good.**
+
+- [x] **#7 · P7 Ship the revised ranger pad rule.** Doug, 2026-11-07: the ranger hire pad goes inside the hunting
+      grounds, clear of the burrow models. If that fails, it goes just inside the gate nearest them, or on the
+      settlement edge facing them when there's no wall. Manual first. It is built but uncommitted in worktree
+      `fo-wt-plot` (branch `plot-p1-p6`, behind main): `generator/src/build.ts`, the `ranger` block in
+      `generator/data/generator.json`, rebuilt `s1-L017` / `s1-L034`, `pack.json`, `build-log.json`, `docs/LEVELS.md`
+      and the 2026-11-07 digests. Steps: commit on the branch, merge main, `pnpm check`, `pnpm levels:check`,
+      rebuild L017/L034 if the merge touched the generator, release notes, push, verify live. The same worktree
+      holds uncommitted retry output for s1-L012 / s1-L037. Land it only if `levels:check` stays clean, else
+      discard it.
+      **Merged:** #71 (the uncommitted work in `fo-wt-plot`) is this item.
+      **Refinement (level design):** the branch is on engine 0.20.0 and main is past 0.21.0, so expect conflicts in
+      `s1/pack.json`, L017 and L034. The pad lands at the map edge, about 230 units from the start (L017 (448,342),
+      L034 (50,352)); L017's human-view stars dip from 3 to 2.83, and L034 became a different level. The rule reads only
+      `zones[0]` and ignores dangerous prey. The L012/L037 retry output is not in the diff. Look at both levels before
+      landing; re-run: merge main, `levels:repin`, `pnpm check`, `levels:check` (s1 and story), regenerate `docs/LEVELS.md`.
+      Done check: the ranger pad sits inside the hunting grounds on L017 and L034, seen live.
+      **Landed 2026-11-08 (bed725e), not yet seen live:** pads at L017 (448,342) in zone [418,330,60,150] and L034 (50,352) in [20,340,60,150] (manifests); L017 is off target (0.282 vs 0.34) but both pass `levels:check`; L034's protein target is now 36 and its stopwatch 5:25 (`goalhud.test.ts` updated). The pad is off the opening view and the live camera would not pan, so it still needs a look in play.
+      **Closed 2026-11-09: Doug confirmed the ranger pad works correctly in game.**
+
+- [x] **#81 · The protein hunter can't pass through a gate (Doug, 2026-11-08).** The ranger role is called "protein hunter"
+      **Doug, 2026-11-08:** seen on level 17 (maybe others). Rule: every character must be able to pass through gates. Goes into Bundle 7's bump if it is a rules fix.
+      in game (use that name with Doug). It can't walk through a gate, so a hunter hired inside the walls can't reach hunting
+      grounds outside them. This matters for #7's fallback ("just inside the gate nearest them"). Find out whether gates block
+      the hunter's pathing or only the player's, fix it so hired hunters use gates, and add a property test.
+      Done check: on a walled hunting level, a hired hunter walks out through the gate and back, seen live.
+      **Closed 2026-11-09 (engine 0.22.0): Doug approved the hired hunter walking out through the gate on s1-L017.**
+
