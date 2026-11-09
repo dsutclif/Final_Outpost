@@ -1040,14 +1040,13 @@ export const marsGreenhouse: Skin = {
           // the only moving light: Sela's buggy comes up the road and parks (the sela_arrival live scene), then the
           // camera follows her on foot to the old kiosk
           { id: "selaIn", on: { event: "customer_arrived" }, ordered: true, do: [
-            { light: "night", seconds: 3 },
-            { film: "sela_arrival" },
-            // the film stops while the headlights are still coming (Doug 2026-11-09: she must not get out inside it). In play the camera
-            // pans to the road by the stall and the buggy drives in and parks there, lights on; Sela (hidden while it drives) is then
-            // standing at its door, where her route starts (story-L003), and she walks to the stall once the beat hands play back.
+            // the arrival is one in-level shot, no film ahead of it (Doug 2026-11-09): the camera cuts to the road at once, the buggy
+            // drives in and parks with its lights on, Sela steps out at its door (hidden while it drives, where her route starts in
+            // story-L003) and the camera then glides on to the kiosk, where she and the commander stand and talk.
+            { light: "night", seconds: 1.5 },
             { vehicle: "buggy", path: [{ at: [840, 962] }, { at: [770, 946] }, { at: [705, 924] }, { at: [640, 906] }], seconds: 6.5, lights: true, rider: "sela" },
-            { camera: { to: { at: [690, 928] }, pan: 0.8, hold: 9.7, back: 0.9 } },
-            { camera: { to: { entity: "kiosk" }, pan: 1.2, hold: 24, back: 0.9, freeze: false } },
+            { camera: { to: { at: [690, 928] }, pan: 0.001, hold: 9.7, back: 0.001 } },
+            { camera: { to: { entity: "kiosk" }, pan: 1.4, hold: 24, back: 0.9, freeze: false } },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
           { on: { who: "sela", at: { entity: "kiosk" }, r: 150, after: "selaIn" }, ordered: true, do: [
