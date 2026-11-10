@@ -31,7 +31,7 @@ OUT = os.path.join(lib.HERE, "out", "game_film")
 PRE = 45                       # frames lying still while the seal blows
 POD_K = 2.66 / 3.9847          # render-3d sizes.ts
 FLOOR = 0.0                    # Doug 2026-11-08: his back touches sand level while he lies in the pod
-END_GUESS = Vector((-2.44, -0.39, 0))  # the commander's end spot from the last run (only aims the look-round)
+END_GUESS = Vector((-2.82, -0.37, 0))  # the commander's end spot from the last run (only aims the look-round)
 POD_IN = Vector((-0.172, 0.023, 0))  # the pod's interior centre from its origin (the closed glass's centre)
 FLOOR_BOX = (-0.45, 0.35, 1.0, 0.15, 0.62)  # x lo, x hi, |y| max, z lo, z hi from the pod origin: the interior floor plate
 WALL_X = -0.55                 # the pod's west wall centreline from the pod's origin (ray probe)
@@ -152,23 +152,24 @@ def main():
             sc.frame_set(f)
             pos.append({j: (arm.matrix_world @ arm.pose.bones[j].head).copy() for j in js})
         lo_z = {j: min(p[j].z for p in pos) for j in js}
-        pos = pos[:f_c - f_l + 1]
         off, offs = Vector((0, 0, 0)), [Vector((0, 0, 0))]
         for i in range(1, len(pos)):
             both = [j for j in js if pos[i][j].z < lo_z[j] + 0.02 and pos[i - 1][j].z < lo_z[j] + 0.02]
+            # a planted ball with the ankle swinging round it is a pivot on the ball, not a skate: then the ankle does not count
+            both = [j for j in both if not (j.endswith("Foot") and j[:-4] + "ToeBase" in both)]
             ds = [Vector(((pos[i][j] - pos[i - 1][j]).x, (pos[i][j] - pos[i - 1][j]).y)) for j in both]
-            if ds and max(d.length for d in ds) > 0.008:  # only where a planted joint skates; small natural shifts stay
+            # before the stop only where a planted joint skates (small natural shifts stay); once he stands (the crane), every drift
+            if ds and max(d.length for d in ds) > (0.008 if f_l + i <= f_c else 0.0):
                 # the shift that keeps every planted joint as still as it can: the centre of the two drifts furthest apart
                 a, b = max(((x, y) for x in ds for y in ds), key=lambda q: (q[0] - q[1]).length)
                 c = (a + b) / 2
                 off = off - Vector((c.x, c.y, 0))
             offs.append(off.copy())
         base = stage.location.copy()
-        keys = [(f_l + i, base + o) for i, o in enumerate(offs)]
-        keys += [(f, base + off * (1 - smooth((f - f_c) / max(1, f_e - f_c)))) for f in range(f_c + 1, f_e + 1)]
+        keys = [(f_l + i, base + o) for i, o in enumerate(offs)]  # no ease-back (it glided him while he stood): he ends where the lock leaves him
         key(stage, "location", keys, "LINEAR")
         bpy.context.view_layer.update()
-        print(f"FOOT LOCK frames {f_l}-{f_c}, eased out by {f_e}: largest shift {max(o.length for o in offs) * 100:.0f} cm, at the crane {off.length * 100:.0f} cm")
+        print(f"FOOT LOCK frames {f_l}-{f_e} (every drift from {f_c}): largest shift {max(o.length for o in offs) * 100:.0f} cm, at the end {off.length * 100:.0f} cm")
     W = lambda v: stage.matrix_world @ Vector(v)
     pel = []
     for f in range(1, N + PRE + 1):
@@ -377,10 +378,17 @@ def main():
         per = []
         for i in range(1, len(fr)):
             w = 0.0
-            for k, v in pos.items():
-                if v[i].z < lo[k] + 0.02 and v[i - 1].z < lo[k] + 0.02: w = max(w, (v[i].xy - v[i - 1].xy).length)
+            pl = [k for k, v in pos.items() if v[i].z < lo[k] + 0.02 and v[i - 1].z < lo[k] + 0.02]
+            pl = [k for k in pl if not (k.endswith("Foot") and k[:-4] + "ToeBase" in pl)]  # an ankle pivoting round a planted ball is no skate
+            for k in pl: w = max(w, (pos[k][i].xy - pos[k][i - 1].xy).length)
             per.append((fr[i], w))
         bad = [(f, round(w * 100, 1)) for f, w in per if w > 0.01]
+        f_s = int(os.environ.get("FEET_STAND", 1 + PRE + P["starts"][3] + 15))  # standing: from the crane's start (he has stopped) to the end
+        st_ = [w for f, w in per if f > f_s]
+        run = best = 0
+        for w in st_:
+            run = run + 1 if w > 0.002 else 0; best = max(best, run)
+        print(f"FEET standing from {f_s}: planted drift total {sum(st_) * 100:.1f} cm over {len(st_)} frames, worst {max(st_) * 100:.2f} cm, longest run over 0.2 cm a frame {best} frames")
         print(f"FEET frames {fr[0]}-{fr[-1]}: worst planted-foot slide {max(w for _, w in per) * 100:.1f} cm/frame, "
               f"mean {sum(w for _, w in per) / len(per) * 100:.2f}, total {sum(w for _, w in per) * 100:.0f} cm; frames over 1 cm: {len(bad)} {bad[:14]}")
         return
