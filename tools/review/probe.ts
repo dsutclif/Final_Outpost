@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { createServer } from "node:net";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
@@ -94,7 +95,8 @@ declare global { interface Window { R: ReviewApi; __fo?: { debugScreen: string }
 // ------------------------------------------------------------------ shots and results
 
 const pad4 = (n: number): string => String(Math.max(0, Math.round(n))).padStart(4, "0");
-const safe = (s: string): string => s.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 40);
+/** A file name for a picture; a long name keeps a short hash of the whole, so two findings whose names only differ late never share a file. */
+const safe = (s: string): string => { const c = s.replace(/[^a-zA-Z0-9._-]+/g, "-"); return c.length <= 40 ? c : `${c.slice(0, 32)}-${createHash("md5").update(s).digest("hex").slice(0, 6)}`; };
 
 interface LevelResult {
   levelId: string;
