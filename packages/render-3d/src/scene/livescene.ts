@@ -1,6 +1,6 @@
 import {
   AmbientLight, AnimationMixer, Box3, LoopOnce, Matrix4, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera,
-  ACESFilmicToneMapping, CircleGeometry, Fog, HemisphereLight, PlaneGeometry, PointLight, Quaternion, Scene, SphereGeometry, SpotLight, Vector3, WebGLRenderer, type Material, type Object3D,
+  ACESFilmicToneMapping, CircleGeometry, DoubleSide, Fog, HemisphereLight, PlaneGeometry, PointLight, Quaternion, Scene, SphereGeometry, SpotLight, Vector3, WebGLRenderer, type Material, type Object3D,
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
@@ -525,6 +525,10 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     f.root.position.set(x, 0, 0);
     f.root.rotation.set(0, yaw, 0);
     f.mixer.setTime(0);
+    // the rounded hand meshes have open seams at the fingertips: draw both faces so no hollow shows through
+    f.root.traverse((o) => { const m = (o as Mesh).material as Material | Material[] | undefined; for (const x of Array.isArray(m) ? m : m ? [m] : []) x.side = DoubleSide; });
+    const tune = globalThis as { __tipS?: number; __tipC?: number }, tipK = (x > 0 ? tune.__tipS ?? 0.01 : tune.__tipC ?? 0.6);
+    for (const n of ["Index", "Middle", "Ring", "Pinky", "Thumb"]) boneOf(f.root, `RightHand${n}3`)?.scale.setScalar(tipK);
     scene.add(f.root);
     f.root.updateMatrixWorld(true);
     signs.set(f.root, palmSign(f.root));
@@ -547,7 +551,7 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   let look: Map<Object3D, Quaternion> | null = null;
   if (sela) { place(sela, 1.8, 0.62, -Math.PI / 2); sp = reach(sela, -1, -0.3, Math.PI, 1); }
   if (cmd) {
-    place(cmd, SIZES.commander, -0.62, Math.PI / 2); cp = reach(cmd, 1, 0.35);
+    place(cmd, SIZES.commander, -0.62, Math.PI / 2); cp = reach(cmd, 1, 0.35, (globalThis as { __cmdRoll?: number }).__cmdRoll ?? -0.5);
     // and with the hand brought up in front of the chest, palm up, to look at the chip
     blendPose(cp.rest, cp.rest, 0);
     aimBone(boneOf(cmd.root, "RightArm"), boneOf(cmd.root, "RightForeArm"), new Vector3(0.35, -0.85, 0.25));
@@ -576,6 +580,17 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
   const TIP0 = 2.65, TIP1 = 2.95, DROP = 2.80, FALL = 0.32, LAND = DROP + FALL;
   const sSign = sela ? signs.get(sela.root) ?? 1 : 1, cSign = cmd ? signs.get(cmd.root) ?? 1 : 1;
   const onPalm = (p: ReturnType<typeof palmOf>, g: typeof sela): Vector3 => (p ? p.at.clone().addScaledVector(p.n, 0.05) : handPos(g));
+  // where the chip lies in the commander's open hand: the middle of the palm proper (wrist to knuckles, a little to the pinky side
+  // clear of the thumb), resting on the glove
+  const TUNE = (globalThis as { __coinTune?: { along: number; side: number; lift: number } }).__coinTune ?? { along: 0.72, side: -0.005, lift: 0.055 };
+  const landPoint = (f: typeof cmd, sign: number): Vector3 => {
+    const pm = f && palmOf(f.root, sign), h = f && boneOf(f.root, "RightHand"), m = f && boneOf(f.root, "RightHandMiddle1");
+    const i = f && boneOf(f.root, "RightHandIndex1"), q = f && boneOf(f.root, "RightHandPinky1");
+    if (!pm || !h || !m || !i || !q) return onPalm(pm ?? null, f);
+    const w = h.getWorldPosition(new Vector3());
+    const sideDir = q.getWorldPosition(new Vector3()).sub(i.getWorldPosition(new Vector3())).normalize();
+    return w.lerp(m.getWorldPosition(new Vector3()), TUNE.along).addScaledVector(sideDir, TUNE.side).addScaledVector(pm.n, TUNE.lift);
+  };
   let tip: Map<Object3D, Quaternion> | null = null;
   let landAt = new Vector3(0, 1, 0), tipAt = new Vector3(0, 1.1, 0);
   if (sela && sp && cmd && cp) {
@@ -584,7 +599,7 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     blendPose(sp.rest, sp.rest, 0);
     // line her up: where the chip leaves her palm must be straight above the middle of his palm
     blendPose(cp.rest, cp.out, 1);
-    landAt = onPalm(palmOf(cmd.root, cSign), cmd);
+    landAt = landPoint(cmd, cSign);
     blendPose(sp.rest, sp.out, 1);
     blendPose(poseOf(sela.root), tip, span(DROP, TIP0, TIP1));
     tipAt = onPalm(palmOf(sela.root, sSign), sela);
@@ -621,7 +636,7 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
       }
       const pmS = sela && palmOf(sela.root, sSign), pmC = cmd && palmOf(cmd.root, cSign);
       if (t < DROP) coin.position.copy(onPalm(pmS, sela));
-      else if (t >= LAND) coin.position.copy(onPalm(pmC, cmd));
+      else if (t >= LAND) coin.position.copy(landPoint(cmd, cSign));
       else {
         // straight down: gravity from rest, from where it left her palm to the middle of his
         const f = (t - DROP) / FALL, y0 = tipAt.y, y1 = landAt.y;
@@ -635,7 +650,7 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
       const k = span(t, 0, MEET + 0.4), z = span(t, LAND + 0.5, SECONDS - 0.5);
       const tall = camera.aspect < 0.8;
       // on a tall phone screen the frame is kept to the commander and the hands, Sela's face (the weak part of her model) off the right edge
-      const wide = tall ? new Vector3(-0.8, 1.4, 3.4) : new Vector3(0, 1.5, 3.4), near = tall ? new Vector3(-0.2, 1.2, 2.0) : new Vector3(0, 1.2, 1.5);
+      const wide = tall ? new Vector3(-0.8, 1.4, 3.4) : new Vector3(0, 1.5, 3.4), near = tall ? new Vector3(-0.2, (globalThis as { __camY?: number }).__camY ?? 1.55, 2.0) : new Vector3(0, 1.2, 1.5);
       camera.position.lerpVectors(wide, near, k).lerp(lifted.clone().add(new Vector3(0.12, 0.04, tall ? 0.85 : 0.65)), z);
       camera.lookAt((tall ? new Vector3(camera.position.x, 1.2, 0) : new Vector3(0, 1.3, 0)).lerp(coin.position, Math.max(k * (tall ? 0.25 : 0.6), z)));
       // flat in the palm; turned so its face (the stamped H) looks at the camera once lifted
