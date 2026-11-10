@@ -34,6 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-09 | film-feet session (Account A) | film-feet-2026-11-09 | `levels/story/story-L001.json` (start), `packages/client/src/cinematics/crash_open.*`, `cinematics.ts` (film version), `tools/cinematics/game_film.py` | opening film: stop the feet sliding after the pod drop |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
