@@ -369,6 +369,7 @@ def main():
         rel = [max(rel[max(0, i - 8):i + 9]) for i in range(len(rel))]
         rel = [sum(rel[max(0, i - 6):i + 7]) / len(rel[max(0, i - 6):i + 7]) for i in range(len(rel))]
         phase = lambda r: r / 30.0
+        print("ARMS BALANCE first upright row", next((r for r in range(row_end) if TL[r][2][0].z > 0.6), None), "first relaxed row", next((r for r in range(row_end) if rel[r] > 0), None), "(film frame = row + %d)" % (1 + PRE + 165))
         need = {g: [] for g in groups}; before = {g: 0 for g in groups}
         for r in range(row_end):
             sc.frame_set(r + 1 + PRE)
