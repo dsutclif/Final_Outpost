@@ -81,8 +81,25 @@ class Take:
         return dirs, frame
 
 
+def arms_in(dirs, frame, w):
+    """Blend the arms toward a relaxed pose that moves with the torso: upper arms along the body, forearms in
+    across the belly (so the hands stay inside the pod while he lies and sits up), by w (0..1)."""
+    if w <= 0: return dirs
+    up, right = frame
+    fwd = up.cross(right).normalized()
+    out = dict(dirs)
+    for prefix, inward in (("Left", right), ("Right", -right)):
+        ua = (-up + fwd * 0.25 + inward * 0.08).normalized()
+        fa = (-up * 0.45 + fwd * 0.55 + inward * 0.7).normalized()
+        out[f"{prefix}Arm"] = slerp_dir(dirs[f"{prefix}Arm"], ua, w)
+        out[f"{prefix}ForeArm"] = slerp_dir(dirs[f"{prefix}ForeArm"], fa, w)
+    return out
+
+
 class GetUp(Take):
     def edit(self, i, dirs, frame, seg):
+        if os.environ.get("ARMS_IN") == "1":  # lying and sitting up (the torso below about 40 deg): arms relaxed, in
+            dirs = arms_in(dirs, frame, 1 - smooth((frame[0].z - float(os.environ.get("ARMS_IN_Z0", 0.25))) / 0.45))
         w = smooth((i - (self.b - 50)) / 40)  # straighten up over the last second and a half
         return upright(dirs, frame, w) if w > 0 else (dirs, frame)
 
@@ -139,6 +156,14 @@ def build_takes():
              Drop("82_02", 285, 435), Look("77_01", 0, 90, src_fps=60)]
     if NO_STAGGER:  # the game's crash site has no deck: step out over the rim and drop straight to the sand
         del takes[2]
+    if os.environ.get("WALK_AFTER_DROP"):  # "a, b": the drop's crouched run-on hops; cut it after the landing and walk on
+        a_, b_ = (int(x) for x in os.environ["WALK_AFTER_DROP"].split(","))
+        k = next(i for i, t in enumerate(takes) if isinstance(t, Drop))
+        takes[k].b = min(takes[k].b, int(os.environ.get("DROP_END", takes[k].b)))
+        walk = Take("01_07", a_, b_)
+        walk.grounded = True
+        walk.unturn = float(os.environ.get("WALK_UNTURN", 0))  # a walk always has a foot on the ground: ground-lock every frame (its start stands a little high)
+        takes.insert(k + 1, walk)
     return takes
 
 
@@ -168,9 +193,21 @@ def timeline(takes, scale_of):
                 last = out[-1]
                 tgt = round(head_end / (math.pi / 2)) * (math.pi / 2) + math.radians(STEP_TURN)
                 d_ang = tgt - head_end
+                sway = os.environ.get("ARM_SWAY") == "1"  # the held pose froze the arms: let them trail the turn and swing a little
                 for j in range(PIVOT_FRAMES):
                     Rp = Matrix.Rotation(d_ang * smooth((j + 1) / PIVOT_FRAMES), 3, "Z")
-                    out.append([last[0], {n: Rp @ v for n, v in last[1].items()}, (Rp @ last[2][0], Rp @ last[2][1]), last[3].copy(), last[4], last[5], last[6]])
+                    dj = {n: Rp @ v for n, v in last[1].items()}
+                    if sway:
+                        Ra = Matrix.Rotation(d_ang * smooth((j + 1 - 5) / PIVOT_FRAMES), 3, "Z")  # arms trail by 5 frames
+                        rt = Rp @ last[2][1]
+                        ph = math.sin(2 * math.pi * (j + 1) / PIVOT_FRAMES) * smooth(min(j, PIVOT_FRAMES - 1 - j) / 8)
+                        for side, sg in (("Left", 1), ("Right", -1)):
+                            Rs = Matrix.Rotation(math.radians(7) * ph * sg, 3, rt)
+                            Re = Matrix.Rotation(math.radians(5) * abs(ph), 3, rt)
+                            for b in ("Arm", "ForeArm"):
+                                n = side + b
+                                if n in last[1]: dj[n] = ((Re if b == "ForeArm" else Matrix.Identity(3)) @ Rs @ Ra @ last[1][n]).normalized()
+                    out.append([last[0], dj, (Rp @ last[2][0], Rp @ last[2][1]), last[3].copy(), last[4], last[5], last[6]])
                 pos_end, head_end = Vector((out[-1][3].x, out[-1][3].y, 0)), heading(out[-1][2][1])
             h_a = heading(right_a)
             want = head_end
@@ -195,6 +232,8 @@ def timeline(takes, scale_of):
         for j, i in enumerate(t.frames()):
             if k > 0 and rot_from is not None:
                 R = Matrix.Rotation(rot_from + (rot_z - rot_from) * smooth(j / TURN_FRAMES), 3, "Z")
+            if getattr(t, "unturn", 0):  # undo the capture's own slow turn through the take (its path curves)
+                R = Matrix.Rotation(rot_z + math.radians(t.unturn) * j / max(1, len(t.frames()) - 1), 3, "Z")
             if look_to is not None:
                 d_ang = (look_to - look_from + math.pi) % (2 * math.pi) - math.pi
                 R = Matrix.Rotation(look_from + d_ang * smooth(j / max(1, len(t.frames()) * 0.6)), 3, "Z")
@@ -206,7 +245,7 @@ def timeline(takes, scale_of):
             up, right = R @ up, R @ right
             d = R @ (c - c_a)
             p = Vector((base.x + d.x * s, base.y + d.y * s, (c.z - z0) * s))
-            contact = (body_min(seg) - t.ground() < 0.05) if not isinstance(t, Drop) else None
+            contact = True if getattr(t, "grounded", False) else (body_min(seg) - t.ground() < 0.05) if not isinstance(t, Drop) else None
             out.append([k, dirs, (up, right), p, contact, t, i])
         last = out[-1]
         pos_end, head_end = Vector((last[3].x, last[3].y, 0)), heading(last[2][1])
@@ -218,6 +257,9 @@ def timeline(takes, scale_of):
                 cur = out[first + j]
                 cur[1] = {n: slerp_dir(prev[1][n], cur[1][n], w) for n in cur[1]}
                 cur[2] = (slerp_dir(prev[2][0], cur[2][0], w), slerp_dir(prev[2][1], cur[2][1], w))
+    if os.environ.get("HAND_FOLLOW") == "1":  # the capture's wrist markers spin the hands: each hand follows its forearm
+        for r in out:
+            for n in ("LeftHand", "RightHand"): r[1].pop(n, None)
     return out
 
 
@@ -566,7 +608,8 @@ def perform(root, pre=0, calib=False):
     starts = [next(i for i, r in enumerate(TL) if r[0] == k) for k in range(len(takes))]
     return dict(N=N, TL=TL, takes=takes, starts=starts, arm=arm, body=body, ax=ax, lat=lat, back=back, front=front,
                 lat0=lat0, lat1=lat1, WALL_T=WALL_T, RIM_H=RIM_H, DROP_H=DROP_H, jump_dir=jump_dir, edge_d=edge_d,
-                walls=walls, deck=deck, sand=sand, report=report, r_takeoff=r_takeoff, r_land=r_land)
+                walls=walls, deck=deck, sand=sand, report=report, r_takeoff=r_takeoff, r_land=r_land,
+                place=place, sm=sm, pre=pre)
 
 
 # ---------------------------------------------------------------- preview

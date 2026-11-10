@@ -7,6 +7,12 @@ import math, os, sys
 os.environ["NO_STAGGER"] = "1"
 os.environ.setdefault("WALL_T", "0.10")
 os.environ.setdefault("DROP_EXTRA", "0")  # Doug 2026-11-09: no stretch (it slid his feet); level 1 starts where the drop ends
+os.environ.setdefault("ARM_SWAY", "1")  # the arms trail the turn on the spot and swing a little (they looked pinned)
+os.environ.setdefault("WALK_AFTER_DROP", "395,435")  # 01_07: a straight level walk (1.4 m, a foot just down at its start: no skate into it), after the drop
+os.environ.setdefault("WALK_UNTURN", "21")  # the actor turns 21 deg through it: unwind that so he walks on the way he dropped
+os.environ.setdefault("DROP_END", "329")  # the drop clip: half a second after the landing (frame 314), before its crouched run
+os.environ.setdefault("HAND_FOLLOW", "1")  # hands follow the forearms (the capture spun them)
+
 os.environ.setdefault("STEP_SCALE", "0.05")
 os.environ.setdefault("PIVOT_FRAMES", "34")
 os.environ.setdefault("STEP_LEAD", "4")
@@ -32,7 +38,7 @@ PRE = 45                       # frames lying still while the seal blows
 POD_K = 2.66 / 3.9847          # render-3d sizes.ts
 FLOOR = 0.0                    # Doug 2026-11-08: his back touches sand level while he lies in the pod
 END_GUESS = Vector((-2.82, -0.37, 0))  # the commander's end spot from the last run (only aims the look-round)
-POD_IN = Vector((-0.172, 0.023, 0))  # the pod's interior centre from its origin (the closed glass's centre)
+POD_IN = Vector((float(os.environ.get("POD_IN_X", -0.14)), 0.023, 0))  # where his lying body is centred (was -0.172, the glass centre; the flat floor runs -0.35..0.25: 2026-11-10 moved 3 cm east: fewest frames deeper than 2 cm in the pod (--clip sweep))
 FLOOR_BOX = (-0.45, 0.35, 1.0, 0.15, 0.62)  # x lo, x hi, |y| max, z lo, z hi from the pod origin: the interior floor plate
 WALL_X = -0.55                 # the pod's west wall centreline from the pod's origin (ray probe)
 HAND_W = 170.3 / 28            # metres across at the hand-off (level 1 openZoom.film)
@@ -93,7 +99,7 @@ def main():
     # the look-round ends facing the reactor's light (END is where the previous run left the commander)
     pod_exit.LOOK_FACE = lambda yaw: math.atan2(core.y - END_GUESS.y, core.x - END_GUESS.x)
     pod = S["pods"][0]
-    if EEVEE:  # the level's ridge stand-in boxes are for the preview only
+    if EEVEE or os.environ.get("NO_RIDGES", "1") == "1":  # the level's ridge stand-in boxes: off in the night film, and in previews (a camera sat inside one)
         for o in bpy.data.objects:
             if o.type == "MESH" and any(m and m.name.startswith("ridge") for m in o.data.materials): o.hide_render = True
     pod_c = pod.location.copy(); pod_c.z = 0
@@ -146,7 +152,7 @@ def main():
         import retarget
         arm = P["arm"]
         js = [retarget.P + s + b for s in ("Left", "Right") for b in ("ToeBase", "Foot")]
-        f_l, f_c, f_e = 1 + PRE + P["r_land"], 1 + PRE + P["starts"][3] + 15, N + PRE
+        f_l, f_c, f_e = 1 + PRE + P["r_land"], 1 + PRE + P["starts"][-1] + 15, N + PRE
         pos = []
         for f in range(f_l, f_e + 1):  # planted = near the joint's lowest over the same stretch --feet measures
             sc.frame_set(f)
@@ -235,6 +241,9 @@ def main():
                 kp.co.y += sh[fc.array_index]; kp.handle_left.y += sh[fc.array_index]; kp.handle_right.y += sh[fc.array_index]
     stage.location.x += sh[0]; stage.location.y += sh[1]
     bpy.context.view_layer.update()
+    # the end spot and the pelvis path (the cameras and level 1's start follow them) were measured before this shift
+    end = end + Vector((sh[0], sh[1], 0)); pel = [q + Vector((sh[0], sh[1], 0)) for q in pel]
+    print(f"END after the lying shift ({sh[0] * 100:+.1f}, {sh[1] * 100:+.1f} cm): {end.x:.3f}, {end.y:.3f} m from pod0 = game units {559 + end.x * 28:.1f}, {125 - end.y * 28:.1f}")
     sc.frame_set(46)
     ev = P["body"].evaluated_get(bpy.context.evaluated_depsgraph_get())
     bp = [ev.matrix_world @ v.co for v in ev.to_mesh().vertices]
@@ -252,6 +261,87 @@ def main():
                 if tl.z < 0.9 and (best is None or abs(tl.x - wx) < best[0]): best = (abs(tl.x - wx), f, bn, tl.x - wx, tl.z)
         print(f"STEPFOOT {side}: nearest the wall centre at frame {best[1]} ({best[2]}): {best[3] * 100:+.0f} cm off the wall centre, {best[4] * 100:.0f} cm above the sand (wall top 54 cm)")
     print("FLAGGED beyond lying:", [r[:60] for r in P["report"] if int(r[1:5]) > 50][:8])
+    if os.environ.get("BODY_CLEAR", "1") == "1":
+        # clear of the pod (Doug 2026-11-10: a hand through the wall, knees and head through the rims): for every frame before
+        # the drop, ease each limb group away from the pod only as far as that frame needs for its surface to stop crossing
+        # it (the arms tuck in across the body, the legs draw in toward the pod's middle, the head leans back in); crossings
+        # under 15 cm (the feet on the floor) are contact, not pass-through; the amounts are smoothed over time (no pops)
+        from mathutils.bvhtree import BVHTree
+        arm, body, place, sm = P["arm"], P["body"], P["place"], P["sm"]
+        dg = bpy.context.evaluated_depsgraph_get()
+        pv, pp = [], []
+        for o in [pod] + list(pod.children_recursive):
+            if o.type != "MESH": continue
+            ev = o.evaluated_get(dg); me = ev.to_mesh(); me.calc_loop_triangles(); b0 = len(pv)
+            pv += [ev.matrix_world @ v.co for v in me.vertices]; pp += [tuple(b0 + i for i in t.vertices) for t in me.loop_triangles]
+            ev.to_mesh_clear()
+        pod_bvh = BVHTree.FromPolygons(pv, pp)
+        Rs = stage.matrix_world.to_3x3().normalized().inverted()
+        mid_w = Vector((pod_c.x + POD_IN.x, pod_c.y + POD_IN.y, 0))
+        def grp(test):
+            gi = {g.index for g in body.vertex_groups if test(g.name)}
+            return {v.index for v in body.data.vertices if v.groups and max(v.groups, key=lambda g: g.weight).group in gi}
+        is_arm = lambda n: ("Arm" in n or "Hand" in n) and "Shoulder" not in n
+        is_leg = lambda n: any(k in n for k in ("UpLeg", "Leg", "Foot", "Toe"))
+        is_head = lambda n: "Head" in n or "Neck" in n
+        groups = {"arms": grp(is_arm), "legs": grp(is_leg), "head": grp(is_head)}
+        tri_cache = {}
+        def hits(gname):
+            ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get()); me = ev.to_mesh(); me.calc_loop_triangles()
+            if gname not in tri_cache: tri_cache[gname] = [tuple(t.vertices) for t in me.loop_triangles if all(i in groups[gname] for i in t.vertices)]
+            vs = [ev.matrix_world @ v.co for v in me.vertices]; ev.to_mesh_clear()
+            tr = tri_cache[gname]
+            return sum(1 for _, b_ in pod_bvh.overlap(BVHTree.FromPolygons(vs, tr)) if sum((vs[i] for i in tr[b_]), Vector()).z / 3 > 0.15)
+        def inward(name, ends=False):  # capture-space unit vector from the bone's world head toward the pod's middle line
+            h = arm.matrix_world @ arm.pose.bones["mixamorig:" + name].head  # (and, with ends, back from the end caps)
+            dy = mid_w.y - h.y
+            d = Vector((mid_w.x - h.x, dy if ends and abs(dy) > 0.55 else 0, 0))
+            return (Rs @ d).normalized() if d.length > 1e-4 else Vector((0, 0, 0))
+        def edit(dirs, fr, ws):
+            out = pod_exit.arms_in(dirs, fr, ws["arms"])
+            for side in ("Left", "Right"):
+                if ws["legs"] > 0:
+                    iv = (inward(side + "Leg") + inward(side + "Foot", True)).normalized()  # the knee's side and the foot's end
+                    for b in ("UpLeg", "Leg"):
+                        n = side + b
+                        if n in out: out[n] = pod_exit.slerp_dir(out[n], (out[n] + iv * 1.0).normalized(), ws["legs"])
+            if ws["head"] > 0:
+                iv = inward("Head")
+                for n in ("Neck", "Head"):
+                    if n in out: out[n] = pod_exit.slerp_dir(out[n], (out[n] + iv * 0.6).normalized(), ws["head"])
+            return out
+        row_end = st[2]
+        LAD = (0.0, 0.25, 0.5, 0.75, 1.0)
+        need = {g: [] for g in groups}; before = {g: 0 for g in groups}
+        for r in range(row_end):
+            sc.frame_set(r + 1 + PRE)
+            row = TL[r]
+            cur = {"arms": 0.0, "legs": 0.0, "head": 0.0}
+            for g in ("arms", "legs", "head"):
+                for w in (LAD if g != "legs" or r < st[1] else (0.0,)):  # the legs only while he gets up (the step must cross the wall)
+                    ws = dict(cur); ws[g] = w
+                    place((row[0], edit(row[1], row[2], ws), row[2], row[3], row[4], row[5], row[6]), sm[r]); bpy.context.view_layer.update()
+                    h = hits(g)
+                    if w == 0.0 and h: before[g] += 1
+                    if h == 0: break
+                cur[g] = w
+                need[g].append(w)
+        sw = {}
+        for g, ws in need.items():
+            held = [max(ws[max(0, i - 8):i + 9]) for i in range(len(ws))]
+            sm_ = [sum(held[max(0, i - 6):i + 7]) / len(held[max(0, i - 6):i + 7]) for i in range(len(held))]
+            sw[g] = [max(a, b) for a, b in zip(sm_, ws)]
+        names = [b for b in arm.pose.bones if any(t(b.name.replace("mixamorig:", "")) for t in (is_arm, is_leg, is_head))]
+        after = {g: 0 for g in groups}
+        for r in range(row_end):
+            sc.frame_set(r + 1 + PRE)
+            row = TL[r]
+            place((row[0], edit(row[1], row[2], {g: sw[g][r] for g in groups}), row[2], row[3], row[4], row[5], row[6]), sm[r])
+            for fk in ([r + 1 + PRE] if r else range(1, PRE + 2)):  # row 0 also holds through the lying frames before the motion
+                for b in names: b.keyframe_insert("rotation_quaternion", frame=fk)
+            bpy.context.view_layer.update()
+            for g in groups: after[g] += 1 if hits(g) else 0
+        print("BODY CLEAR rows 0-%d: crossing frames above 15 cm %s -> %s; eased frames %s" % (row_end - 1, before, after, {g: sum(1 for w in sw[g] if w > 0) for g in groups}))
     follow = bpy.data.objects.new("follow", None)
     sc.collection.objects.link(follow)
     for f in range(len(pel)):
@@ -286,7 +376,7 @@ def main():
     to_core = Vector((core.x - end.x, core.y - end.y, 0)).normalized()
     start = end + to_core * 4.2 * s_ + Vector((-to_core.y, to_core.x, 0)) * 2.0 * s_ + Vector((0, 0, 0.6))
     c4 = tracked("dropcam", start, 30)
-    f_crane0 = F(st[3]) + 15
+    f_crane0 = F(st[-1]) + 15
     # the game camera looks at a ground point 5% of the screen's height up from the hero (renderer.ts: "the hero sits a little below centre"):
     # 0.05 * 10.8 m / sin 30 deg = 1.08 m away from the camera, i.e. toward (-x, +y) at the game's 45 degree yaw
     hand = end + Vector((-0.764, 0.764, 0))
@@ -316,6 +406,18 @@ def main():
     sc.frame_start, sc.frame_end = 1, N + PRE
     print(f"FILM {N + PRE} frames; cuts at {[f for _, f in edit]}; crane from {f_crane0}")
 
+    if "--camprobe" in args:  # debug: where the active camera is, and which objects' boxes hold it
+        for f in (340, 364, 380, 420, 450):
+            sc.frame_set(f)
+            cam = sc.camera; cl = cam.matrix_world.translation
+            inside = []
+            for o in sc.objects:
+                if o.type != "MESH" or o.hide_render: continue
+                bb = [o.matrix_world @ Vector(c) for c in o.bound_box]
+                if all(min(v[i] for v in bb) - 0.05 <= cl[i] <= max(v[i] for v in bb) + 0.05 for i in range(3)): inside.append(o.name)
+            if f == 340: print("CUBES", [(o.name, tuple(round(v, 2) for v in (o.matrix_world.translation - pod_c)), tuple(round(v, 2) for v in o.dimensions), o.data.name, [m.name for m in o.data.materials][:2]) for o in sc.objects if o.name.startswith("Cube")])
+            print("CAMPROBE", f, cam.name, tuple(round(v - pod_c[i], 2) if i < 2 else round(v, 2) for i, v in enumerate(cl)), "commander", tuple(round(v, 2) for v in (pel[min(f - 1, len(pel) - 1)] - pod_c)), inside[:6])
+        return
     if "--top" in args:  # debug: straight down on the pod, lying and stepping out
         sc.timeline_markers.clear()
         top = lib.camera(pod_c + Vector((0, 0.01, 5.5)), pod_c, lens=40, name="top")
@@ -359,10 +461,120 @@ def main():
             lid_hits = len(BVHTree.FromPolygons(lv_, lp_).overlap(bb_))
             if hits:
                 cs = [sum((bv[i] for i in bp_[b_]), Vector()) / 3 for _, b_ in hits]
+                if os.environ.get("CLIP_PARTS"):
+                    arm_ = P["arm"]; hb = {b.name.replace("mixamorig:", ""): arm_.matrix_world @ ((b.head + b.tail) / 2) for b in arm_.pose.bones}
+                    cnt = {}
+                    for c in cs:
+                        n = min(hb, key=lambda k: (hb[k] - c).length); cnt[n] = cnt.get(n, 0) + 1
+                    where = {}
+                    for c in cs:
+                        n = min(hb, key=lambda k: (hb[k] - c).length); d = c - pod_c
+                        where.setdefault(n, []).append(d)
+                    print("CLIPPART", f, [(n, len(v), "z%.2f x%.2f y%.2f" % (sum(q.z for q in v) / len(v), sum(q.x for q in v) / len(v), sum(q.y for q in v) / len(v))) for n, v in sorted(where.items(), key=lambda kv: -len(kv[1]))[:3]])
                 rows.append((f, lid_hits, len(hits), sum(1 for c in cs if c.z > 0.8), round(max(c.z for c in cs), 2), round(sum(c.x for c in cs) / len(cs) - pod_c.x, 2), round(sum(c.y for c in cs) / len(cs) - pod_c.y, 2)))
         print("CLIP frames with suit/pod crossings (frame, glass pairs, pod pairs, pairs above 0.8 m, max z, mean x, mean y from pod origin):")
         for r in rows: print("CLIP", r)
         print("CLIP total frames", len(rows))
+        # depth, normal-free: from a suit point, cast toward the pod's middle line (across and along) and straight up; an odd
+        # number of pod surfaces before the middle means the point is inside the pod's solid (a wall, an end, the floor),
+        # and the first hit is how deep. Up to 2 cm is resting contact (back on the wall, feet on the floor); deeper is
+        # sinking or a limb through the pod
+        arm_ = P["arm"]
+        mid = pod_c + POD_IN
+        def odd_depth(q, d, reach):
+            n_, first, o_ = 0, None, q.copy()
+            for _ in range(8):
+                loc, _nrm, _i, dist = pbvh.ray_cast(o_, d, reach)
+                if loc is None: break
+                n_ += 1; reach -= dist
+                if first is None: first = (loc - q).length
+                o_ = loc + d * 1e-4
+                if reach <= 0: break
+            return first if n_ % 2 == 1 else None
+        rest_f, deep = 0, []
+        for f in [r[0] for r in rows]:
+            sc.frame_set(f)
+            ev = P["body"].evaluated_get(bpy.context.evaluated_depsgraph_get()); me = ev.to_mesh()
+            worst, wp = 0.0, None
+            for v in list(me.vertices)[::2]:
+                q = ev.matrix_world @ v.co
+                if abs(q.x - mid.x) > 0.85 or abs(q.y - mid.y) > 1.4 or q.z > 1.2: continue
+                cands = []
+                if abs(q.x - mid.x) > 1e-3: cands.append(odd_depth(q, Vector((1 if mid.x > q.x else -1, 0, 0)), abs(mid.x - q.x)))
+                if abs(q.y - mid.y) > 0.6: cands.append(odd_depth(q, Vector((0, 1 if mid.y > q.y else -1, 0)), abs(mid.y - q.y)))
+                cands.append(odd_depth(q, Vector((0, 0, 1)), 0.5))
+                ds = [c for c in cands if c is not None]
+                if len(ds) == len(cands) and ds and min(ds) > worst: worst, wp = min(ds), q  # inside on every test: truly in the solid
+            ev.to_mesh_clear()
+            if worst <= 0.02: rest_f += 1
+            else:
+                hb = {b.name.replace("mixamorig:", ""): arm_.matrix_world @ ((b.head + b.tail) / 2) for b in arm_.pose.bones}
+                deep.append((f, round(worst * 100, 1), min(hb, key=lambda k: (hb[k] - wp).length)))
+        print(f"CLIP DEPTH: resting contact (2 cm deep or less) on {rest_f} of {len(rows)} touching frames; deeper (sinking or pass-through) on {len(deep)}: {deep}")
+        return
+    if "--height" in args:  # supporting foot off the sand: the lower foot's sole more than 3 cm above the sand under it (ray down), landing to the end
+        body = P["body"]; bad = []; lows = []
+        fg = {g.index: ("L" if "Left" in g.name else "R") for g in body.vertex_groups if ("Foot" in g.name or "Toe" in g.name)}
+        fv = {v.index: fg[max(v.groups, key=lambda g: g.weight).group] for v in body.data.vertices if v.groups and max(v.groups, key=lambda g: g.weight).group in fg}
+        hide = [cmd] + list(cmd.children_recursive)
+        for f in range(F(P["r_land"]), N + PRE + 1):
+            sc.frame_set(f)
+            dg = bpy.context.evaluated_depsgraph_get()
+            ev = body.evaluated_get(dg); me = ev.to_mesh()
+            low = {}
+            for i_, sd in fv.items():
+                p_ = ev.matrix_world @ me.vertices[i_].co
+                if sd not in low or p_.z < low[sd].z: low[sd] = p_
+            ev.to_mesh_clear()
+            gap = {}
+            for sd, p_ in low.items():
+                o_ = p_ + Vector((0, 0, 0.6)); g_ = None
+                for _ in range(6):  # step past the suit's own surface
+                    hit, loc, _n, _i, ob, _m = sc.ray_cast(dg, o_, Vector((0, 0, -1)))
+                    if not hit: break
+                    if ob in hide or ob.name.startswith("commander"): o_ = loc + Vector((0, 0, -0.001)); continue
+                    g_ = loc.z; gob = ob.name; break
+                gap[sd] = p_.z - (g_ if g_ is not None else 0.0)
+                if os.environ.get("HEIGHT_DEBUG") and 378 <= f <= 390: print("HEIGHTD", f, sd, "foot z %.3f ground %s on %s xy %.2f %.2f" % (p_.z, None if g_ is None else round(g_, 3), gob if g_ is not None else "-", p_.x - pod_c.x, p_.y - pod_c.y))
+            sup = min(gap.values())
+            lows.append((f, sup))
+            if sup > 0.03: bad.append((f, round(sup * 100, 1)))
+        runs, cur = [], []
+        for f, z in bad:
+            if cur and f != cur[-1][0] + 1: runs.append(cur); cur = []
+            cur.append((f, z))
+        if cur: runs.append(cur)
+        print(f"HEIGHT frames {F(P['r_land'])}-{N + PRE}: supporting foot above the sand max {max(z for _, z in lows) * 100:.1f} cm, into it {min(z for _, z in lows) * 100:.1f} cm; frames over 3 cm: {len(bad)} in runs {[(r[0][0], r[-1][0], max(z for _, z in r)) for r in runs]}")
+        return
+    if "--hands" in args:  # hand spin: how far each hand turns about its forearm per frame (the get-up to the drop)
+        arm = P["arm"]; worst = []
+        prev = {}
+        for f in range(1 + PRE, F(st[2]) + 1):
+            sc.frame_set(f)
+            for side in ("Left", "Right"):
+                fa = arm.matrix_world @ arm.pose.bones["mixamorig:" + side + "ForeArm"].matrix
+                hd = arm.matrix_world @ arm.pose.bones["mixamorig:" + side + "Hand"].matrix
+                ax_ = fa.to_3x3().col[1].normalized()
+                ref = fa.to_3x3().col[0]; v = hd.to_3x3().col[0]
+                ref = (ref - ax_ * ref.dot(ax_)).normalized(); v = (v - ax_ * v.dot(ax_)).normalized()
+                a = math.degrees(math.atan2(ax_.dot(ref.cross(v)), ref.dot(v)))
+                if side in prev: worst.append((f, side, abs((a - prev[side] + 180) % 360 - 180)))
+                prev[side] = a
+        big = [(f, s_, round(d, 1)) for f, s_, d in worst if d > 3]
+        print(f"HANDS frames {1 + PRE}-{F(st[2])}: worst hand twist about the forearm {max(d for _, _, d in worst):.1f} deg/frame; frames over 3 deg: {len(big)} {big[:10]}")
+        return
+    if "--handcam" in args:  # debug: a close camera on his chest and hands, every 3rd frame from the start to the drop
+        sc.timeline_markers.clear()
+        hc = lib.camera(pod_c + Vector((1.4, -1.3, 1.3)), pod_c, lens=55, name="handcam")
+        sc.camera = hc
+        arm = P["arm"]; Hd = os.path.join(lib.HERE, "out", "handcam"); os.makedirs(Hd, exist_ok=True)
+        for o in [lid] + list(lid.children_recursive): o.hide_render = True  # the glass would hide his hands
+        for f in range(1, F(st[2]) + 1, 3):
+            sc.frame_set(f)
+            c = arm.matrix_world @ arm.pose.bones["mixamorig:Spine1"].head
+            hc.location = c + Vector((-1.0, -0.8, 0.75))  # in front of him (he steps out west), above the low west wall
+            hc.rotation_euler = (c - hc.location).to_track_quat("-Z", "Y").to_euler()
+            lib.render_still(os.path.join(Hd, f"h_{f:04d}.png"))
         return
     if "--feet" in args:  # foot slide, landing to the end: a joint (ball or ankle) counts as planted within 2 cm of its own lowest
         # point in this stretch (a fixed height misreads: the joints sit 5-6 cm up inside the boot); report how far planted joints
@@ -383,7 +595,7 @@ def main():
             for k in pl: w = max(w, (pos[k][i].xy - pos[k][i - 1].xy).length)
             per.append((fr[i], w))
         bad = [(f, round(w * 100, 1)) for f, w in per if w > 0.01]
-        f_s = int(os.environ.get("FEET_STAND", 1 + PRE + P["starts"][3] + 15))  # standing: from the crane's start (he has stopped) to the end
+        f_s = int(os.environ.get("FEET_STAND", 1 + PRE + P["starts"][-1] + 15))  # standing: from the crane's start (he has stopped) to the end
         st_ = [w for f, w in per if f > f_s]
         run = best = 0
         for w in st_:
@@ -449,7 +661,7 @@ def main():
                 lib.render_still(os.path.join(OUT, f"side_{nm}_{f:04d}.png"))
         return
     if "--stills" in args:
-        for f in ([int(x) for x in args[args.index("--at") + 1].split(",")] if "--at" in args else (1, f_open1, F(st[1]) + 20, F(st[1]) + 60, F(P["r_takeoff"]) + 8, F(P["r_land"]) + 4, F(st[3]) + 10, f_crane0 + (N + PRE - f_crane0) // 2, N + PRE)):
+        for f in ([int(x) for x in args[args.index("--at") + 1].split(",")] if "--at" in args else (1, f_open1, F(st[1]) + 20, F(st[1]) + 60, F(P["r_takeoff"]) + 8, F(P["r_land"]) + 4, F(st[-1]) + 10, f_crane0 + (N + PRE - f_crane0) // 2, N + PRE)):
             sc.frame_set(f)
             cam = max((m for m in sc.timeline_markers if m.frame <= f), key=lambda m: m.frame).camera
             sc.camera = cam
