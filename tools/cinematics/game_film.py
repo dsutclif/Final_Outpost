@@ -20,7 +20,8 @@ os.environ.setdefault("SLIDE_TO_WALL", "0.38")
 os.environ.setdefault("SLIDE_LAT_ADJ", "0")  # measured: puts the standing pelvis at the pod's mid-length (PEL print)
 os.environ.setdefault("RIM_FROM_CENTRE", "0.38")  # the pod interior's half-width: wall at -0.55, interior centre at -0.17
 os.environ.setdefault("RIM_FORCE", "0.54")
-os.environ.setdefault("STEP_LIFT", "95")
+os.environ.setdefault("STEP_LIFT", "130")  # 2026-11-10 (was 95): a higher knee over the wall, clear of the hull bulging below the rim
+os.environ.setdefault("STEP_SCALE_UNTIL", "0.55")  # the shortened step reaches full length sooner: the foot lands clear of the hull (--clip sweep)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
 from mathutils import Matrix, Vector
@@ -284,7 +285,38 @@ def main():
         is_arm = lambda n: ("Arm" in n or "Hand" in n) and "Shoulder" not in n
         is_leg = lambda n: any(k in n for k in ("UpLeg", "Leg", "Foot", "Toe"))
         is_head = lambda n: "Head" in n or "Neck" in n
-        groups = {"arms": grp(is_arm), "legs": grp(is_leg), "head": grp(is_head)}
+        is_toe = lambda n: "Toe" in n
+        is_chest = lambda n: "Shoulder" in n or n.endswith("Spine2")
+        side_leg = lambda sd: (lambda n: n.replace("mixamorig:", "").startswith(sd) and any(k in n for k in ("Leg", "Foot", "Toe")))
+        groups = {"arms": grp(is_arm), "legs": grp(is_leg), "head": grp(is_head), "toes": grp(is_toe), "chest": grp(is_chest),
+                  "liftL": grp(side_leg("Left")), "liftR": grp(side_leg("Right"))}
+        DEPTH_G = ("legs", "toes", "chest", "liftL", "liftR")  # judged by depth (over 2 cm fails): resting contact is fine
+        mid_c = pod_c + POD_IN
+        def odd_depth(q, d, reach):
+            n_, first, o_ = 0, None, q.copy()
+            for _ in range(8):
+                loc, _nrm, _i, dist = pod_bvh.ray_cast(o_, d, reach)
+                if loc is None: break
+                n_ += 1; reach -= dist
+                if first is None: first = (loc - q).length
+                o_ = loc + d * 1e-4
+                if reach <= 0: break
+            return first if n_ % 2 == 1 else None
+        def depth(gname):
+            ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get()); me = ev.to_mesh()
+            worst = 0.0
+            for i in list(groups[gname])[::2]:
+                q = ev.matrix_world @ me.vertices[i].co
+                if abs(q.x - mid_c.x) > 0.85 or abs(q.y - mid_c.y) > 1.4 or q.z > 1.2: continue
+                cands = []
+                if abs(q.x - mid_c.x) > 1e-3: cands.append(odd_depth(q, Vector((1 if mid_c.x > q.x else -1, 0, 0)), abs(mid_c.x - q.x)))
+                if abs(q.y - mid_c.y) > 0.6: cands.append(odd_depth(q, Vector((0, 1 if mid_c.y > q.y else -1, 0)), abs(mid_c.y - q.y)))
+                cands.append(odd_depth(q, Vector((0, 0, 1)), 0.5))
+                ds = [c for c in cands if c is not None]
+                if len(ds) == len(cands) and ds: worst = max(worst, min(ds))
+            ev.to_mesh_clear()
+            return worst
+        def bad(g): return depth(g) > 0.02 if g in DEPTH_G else hits(g) > 0
         tri_cache = {}
         def hits(gname):
             ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get()); me = ev.to_mesh(); me.calc_loop_triangles()
@@ -305,6 +337,21 @@ def main():
                     for b in ("UpLeg", "Leg"):
                         n = side + b
                         if n in out: out[n] = pod_exit.slerp_dir(out[n], (out[n] + iv * 1.0).normalized(), ws["legs"])
+            UPc = Vector((0, 0, 1))  # the stage only turns about the vertical
+            for side, gk in (("Left", "liftL"), ("Right", "liftR")):
+                if ws.get(gk, 0) > 0:  # standing and stepping out: swing that leg out from the pod and a little up (the hull bulges below the rim)
+                    ov = -inward(side + "Foot")
+                    for b, k in (("UpLeg", 0.5), ("Leg", 0.8)):
+                        n = side + b
+                        if n in out: out[n] = pod_exit.slerp_dir(out[n], (out[n] + ov * k + UPc * 0.25).normalized(), ws[gk])
+            if ws.get("toes", 0) > 0:  # toes bend up onto the tub's curve
+                for side in ("Left", "Right"):
+                    for b, k in (("ToeBase", 1.2), ("Foot", 0.4)):
+                        n = side + b
+                        if n in out: out[n] = pod_exit.slerp_dir(out[n], (out[n] + UPc * k).normalized(), ws["toes"])
+            if ws.get("chest", 0) > 0 and "_chest_up" in out:  # the chest leans back in, off the rim
+                iv = inward("Spine2")
+                out["_chest_up"] = pod_exit.slerp_dir(out["_chest_up"], (out["_chest_up"] + iv * 0.5).normalized(), ws["chest"])
             if ws["head"] > 0:
                 iv = inward("Head")
                 for n in ("Neck", "Head"):
@@ -316,14 +363,17 @@ def main():
         for r in range(row_end):
             sc.frame_set(r + 1 + PRE)
             row = TL[r]
-            cur = {"arms": 0.0, "legs": 0.0, "head": 0.0}
-            for g in ("arms", "legs", "head"):
-                for w in (LAD if g != "legs" or r < st[1] else (0.0,)):  # the legs only while he gets up (the step must cross the wall)
+            cur = {g: 0.0 for g in groups}
+            for g in groups:
+                if g == "legs" and r >= st[1]: lad = (0.0,)  # the knees only while he gets up (the step must cross the wall)
+                elif g in ("liftL", "liftR") and r < len(P["takes"][0].frames()): lad = (0.0,)  # the leg lift once he stands (the turn and the step)
+                else: lad = LAD
+                for w in lad:
                     ws = dict(cur); ws[g] = w
                     place((row[0], edit(row[1], row[2], ws), row[2], row[3], row[4], row[5], row[6]), sm[r]); bpy.context.view_layer.update()
-                    h = hits(g)
-                    if w == 0.0 and h: before[g] += 1
-                    if h == 0: break
+                    b_ = bad(g)
+                    if w == 0.0 and b_: before[g] += 1
+                    if not b_: break
                 cur[g] = w
                 need[g].append(w)
         sw = {}
@@ -331,7 +381,7 @@ def main():
             held = [max(ws[max(0, i - 8):i + 9]) for i in range(len(ws))]
             sm_ = [sum(held[max(0, i - 6):i + 7]) / len(held[max(0, i - 6):i + 7]) for i in range(len(held))]
             sw[g] = [max(a, b) for a, b in zip(sm_, ws)]
-        names = [b for b in arm.pose.bones if any(t(b.name.replace("mixamorig:", "")) for t in (is_arm, is_leg, is_head))]
+        names = [b for b in arm.pose.bones if any(t(b.name.replace("mixamorig:", "")) for t in (is_arm, is_leg, is_head, is_chest)) or b.name.endswith(("Spine", "Spine1", "Hips"))]
         after = {g: 0 for g in groups}
         for r in range(row_end):
             sc.frame_set(r + 1 + PRE)
@@ -340,7 +390,8 @@ def main():
             for fk in ([r + 1 + PRE] if r else range(1, PRE + 2)):  # row 0 also holds through the lying frames before the motion
                 for b in names: b.keyframe_insert("rotation_quaternion", frame=fk)
             bpy.context.view_layer.update()
-            for g in groups: after[g] += 1 if hits(g) else 0
+            for g in groups: after[g] += 1 if bad(g) else 0
+            if os.environ.get("BODY_DEBUG") and r + 1 + PRE in (283, 304, 325): print("BODYD", r + 1 + PRE, "row", r, "st", st[:3], {g: round(depth(g) * 100, 1) for g in DEPTH_G}, {g: round(sw[g][r], 2) for g in groups})
         print("BODY CLEAR rows 0-%d: crossing frames above 15 cm %s -> %s; eased frames %s" % (row_end - 1, before, after, {g: sum(1 for w in sw[g] if w > 0) for g in groups}))
     follow = bpy.data.objects.new("follow", None)
     sc.collection.objects.link(follow)
@@ -381,7 +432,7 @@ def main():
     # 0.05 * 10.8 m / sin 30 deg = 1.08 m away from the camera, i.e. toward (-x, +y) at the game's 45 degree yaw
     hand = end + Vector((-0.764, 0.764, 0))
     crane = crane_path(start, hand, f_crane0, N + PRE, HAND_W)
-    f_c4 = F(P["r_land"]) + 14
+    f_c4 = F(P["r_land"]) + 4  # cut a moment after the landing (the drop itself stays in one shot on the low front camera)
     key(c4, "location", [(f_c4, start), (f_crane0, start)] + [(f, p) for f, p, _ in crane], "LINEAR")
     key(c4.data, "lens", [(f_c4, 30), (f_crane0, 30)] + [(f, l) for f, _, l in crane], "LINEAR")
     aim = bpy.data.objects.new("aim", None)
@@ -393,7 +444,12 @@ def main():
         aim.location = pel[min(f - 1, len(pel) - 1)].lerp(hand, e)
         aim.keyframe_insert("location", frame=f)
     f_stand = F(len(P["takes"][0].frames()) - 1) - 10   # the get-up is done: cut to the low camera in front of him
-    edit = [(c1, 1), (c2, f_stand), (c3, F(st[2]) - 6), (c4, f_c4)]
+    # Doug (stage 2): the drop is not cut away. The low front camera holds the step-off, the fall and the landing; the next cut
+    # is after he has landed (the riding drop camera c3 is left out)
+    edit = [(c1, 1), (c2, f_stand), (c4, f_c4)]
+    # with the drop on this camera, it eases back along his way out as he steps off and falls, so he lands whole in frame
+    c2_at = c2.location.copy()
+    key(c2, "location", [(F(st[2]) - 20, c2_at)] + [(f, c2_at + A * 1.3 * smooth((f - F(st[2]) + 20) / max(1, F(P["r_land"]) - F(st[2]) + 20))) for f in range(F(st[2]) - 19, F(P["r_land"]) + 1)], "LINEAR")
     for cam, f0 in edit:
         sc.timeline_markers.new(cam.name, frame=f0).camera = cam
     if EEVEE:  # the emergency light and the seal's flash (crash.py shot4, on the smaller site)
@@ -406,6 +462,12 @@ def main():
     sc.frame_start, sc.frame_end = 1, N + PRE
     print(f"FILM {N + PRE} frames; cuts at {[f for _, f in edit]}; crane from {f_crane0}")
 
+    if "--cutprobe" in args:  # debug: the active camera's place, aim and lens either side of the last cut
+        for f in range(f_c4 - 2, f_c4 + 4):
+            sc.frame_set(f); cam = sc.camera
+            m = cam.matrix_world; fw = -m.to_3x3().col[2]
+            print("CUTPROBE", f, cam.name, tuple(round(v, 3) for v in m.translation), "fwd", tuple(round(v, 3) for v in fw), "lens", round(cam.data.lens, 2))
+        return
     if "--camprobe" in args:  # debug: where the active camera is, and which objects' boxes hold it
         for f in (340, 364, 380, 420, 450):
             sc.frame_set(f)
@@ -496,6 +558,7 @@ def main():
             sc.frame_set(f)
             ev = P["body"].evaluated_get(bpy.context.evaluated_depsgraph_get()); me = ev.to_mesh()
             worst, wp = 0.0, None
+            camp = sc.camera.matrix_world.translation.copy(); vworst = 0.0
             for v in list(me.vertices)[::2]:
                 q = ev.matrix_world @ v.co
                 if abs(q.x - mid.x) > 0.85 or abs(q.y - mid.y) > 1.4 or q.z > 1.2: continue
@@ -504,13 +567,20 @@ def main():
                 if abs(q.y - mid.y) > 0.6: cands.append(odd_depth(q, Vector((0, 1 if mid.y > q.y else -1, 0)), abs(mid.y - q.y)))
                 cands.append(odd_depth(q, Vector((0, 0, 1)), 0.5))
                 ds = [c for c in cands if c is not None]
-                if len(ds) == len(cands) and ds and min(ds) > worst: worst, wp = min(ds), q  # inside on every test: truly in the solid
+                if len(ds) == len(cands) and ds:  # inside on every test: truly in the solid
+                    if min(ds) > worst: worst, wp = min(ds), q
+                    if min(ds) > 0.02 and min(ds) > vworst:  # seen by the film's camera? (no pod surface in front of the point's way in)
+                        dv = q - camp; L = dv.length; dv.normalize()
+                        loc, _n, _i, dist = pbvh.ray_cast(camp, dv, L)
+                        if loc is None or dist > L - min(ds) - 0.03: vworst = min(ds)
             ev.to_mesh_clear()
             if worst <= 0.02: rest_f += 1
             else:
                 hb = {b.name.replace("mixamorig:", ""): arm_.matrix_world @ ((b.head + b.tail) / 2) for b in arm_.pose.bones}
-                deep.append((f, round(worst * 100, 1), min(hb, key=lambda k: (hb[k] - wp).length)))
+                deep.append((f, round(worst * 100, 1), min(hb, key=lambda k: (hb[k] - wp).length), "seen %.1f" % (vworst * 100) if vworst > 0.02 else "hidden"))
         print(f"CLIP DEPTH: resting contact (2 cm deep or less) on {rest_f} of {len(rows)} touching frames; deeper (sinking or pass-through) on {len(deep)}: {deep}")
+        seen = [d for d in deep if d[3] != "hidden"]
+        print(f"CLIP SEEN: deeper than 2 cm where the film's camera sees it on {len(seen)} frames: {[(d[0], d[3]) for d in seen]}; hidden from the camera on {len(deep) - len(seen)}")
         return
     if "--height" in args:  # supporting foot off the sand: the lower foot's sole more than 3 cm above the sand under it (ray down), landing to the end
         body = P["body"]; bad = []; lows = []
