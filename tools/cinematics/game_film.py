@@ -138,6 +138,37 @@ def main():
                             (1 + PRE + P["r_land"], Vector((stage.location.x, stage.location.y, P["DROP_H"])))], "LINEAR")
     print("FLAGGED", len(P["report"]), P["report"][:4])
     bpy.context.view_layer.update()
+    if os.environ.get("FOOT_LOCK", "1") == "1":
+        # foot lock on the sand (2026-11-10): the takes' crossfades blend the legs but not the pelvis, so a planted foot
+        # skates (up to 6 cm a frame as he stops before the look-round). From the landing to the crane, move the whole
+        # figure (the stage) against the drift of the lowest joint that is planted in both frames; through the crane the
+        # shift eases back to nothing, so the last frame still ends on level 1's start
+        import retarget
+        arm = P["arm"]
+        js = [retarget.P + s + b for s in ("Left", "Right") for b in ("ToeBase", "Foot")]
+        f_l, f_c, f_e = 1 + PRE + P["r_land"], 1 + PRE + P["starts"][3] + 15, N + PRE
+        pos = []
+        for f in range(f_l, f_e + 1):  # planted = near the joint's lowest over the same stretch --feet measures
+            sc.frame_set(f)
+            pos.append({j: (arm.matrix_world @ arm.pose.bones[j].head).copy() for j in js})
+        lo_z = {j: min(p[j].z for p in pos) for j in js}
+        pos = pos[:f_c - f_l + 1]
+        off, offs = Vector((0, 0, 0)), [Vector((0, 0, 0))]
+        for i in range(1, len(pos)):
+            both = [j for j in js if pos[i][j].z < lo_z[j] + 0.02 and pos[i - 1][j].z < lo_z[j] + 0.02]
+            ds = [Vector(((pos[i][j] - pos[i - 1][j]).x, (pos[i][j] - pos[i - 1][j]).y)) for j in both]
+            if ds and max(d.length for d in ds) > 0.008:  # only where a planted joint skates; small natural shifts stay
+                # the shift that keeps every planted joint as still as it can: the centre of the two drifts furthest apart
+                a, b = max(((x, y) for x in ds for y in ds), key=lambda q: (q[0] - q[1]).length)
+                c = (a + b) / 2
+                off = off - Vector((c.x, c.y, 0))
+            offs.append(off.copy())
+        base = stage.location.copy()
+        keys = [(f_l + i, base + o) for i, o in enumerate(offs)]
+        keys += [(f, base + off * (1 - smooth((f - f_c) / max(1, f_e - f_c)))) for f in range(f_c + 1, f_e + 1)]
+        key(stage, "location", keys, "LINEAR")
+        bpy.context.view_layer.update()
+        print(f"FOOT LOCK frames {f_l}-{f_c}, eased out by {f_e}: largest shift {max(o.length for o in offs) * 100:.0f} cm, at the crane {off.length * 100:.0f} cm")
     W = lambda v: stage.matrix_world @ Vector(v)
     pel = []
     for f in range(1, N + PRE + 1):
