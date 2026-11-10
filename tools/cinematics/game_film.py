@@ -332,7 +332,10 @@ def main():
             d = Vector((mid_w.x - h.x, dy if ends and abs(dy) > 0.55 else 0, 0))
             return (Rs @ d).normalized() if d.length > 1e-4 else Vector((0, 0, 0))
         def edit(dirs, fr, ws):
-            out = pod_exit.arms_in(dirs, fr, ws["arms"])
+            if fr[0].z > 0.6:  # upright: arms out a little for balance (never tucked flat to the torso), as far as they need
+                out = pod_exit.arms_balance(dirs, fr, max(ws.get("relax", 0.0), min(1.0, ws["arms"] * 4)), ws.get("phase", 0.0), tuck=ws["arms"])
+            else:  # lying and getting up: tucked in across the body, only as far as the pod needs
+                out = pod_exit.arms_in(dirs, fr, ws["arms"])
             for side in ("Left", "Right"):
                 if ws["legs"] > 0:
                     iv = (inward(side + "Leg") + inward(side + "Foot", True)).normalized()  # the knee's side and the foot's end
@@ -361,11 +364,16 @@ def main():
             return out
         row_end = st[2]
         LAD = (0.0, 0.25, 0.5, 0.75, 1.0)
+        # upright frames whose captured arms hang pinned (within 15 deg of the body, or a straight elbow) take the balance pose
+        rel = [0.0 if TL[r][2][0].z <= 0.6 else 1.0 - pod_exit.arms_pinned(TL[r][1], TL[r][2]) for r in range(row_end)]
+        rel = [max(rel[max(0, i - 8):i + 9]) for i in range(len(rel))]
+        rel = [sum(rel[max(0, i - 6):i + 7]) / len(rel[max(0, i - 6):i + 7]) for i in range(len(rel))]
+        phase = lambda r: r / 30.0
         need = {g: [] for g in groups}; before = {g: 0 for g in groups}
         for r in range(row_end):
             sc.frame_set(r + 1 + PRE)
             row = TL[r]
-            cur = {g: 0.0 for g in groups}
+            cur = {g: 0.0 for g in groups}; cur["relax"] = rel[r]; cur["phase"] = phase(r)
             for g in groups:
                 if g == "legs" and r >= st[1]: lad = (0.0,)  # the knees only while he gets up (the step must cross the wall)
                 elif g in ("liftL", "liftR") and (r < len(P["takes"][0].frames()) or os.environ.get("LIFT_GROUPS", "0") != "1"): lad = (0.0,)  # the leg lift (off: it lifted the standing leg and floated him over the wall)
@@ -397,10 +405,10 @@ def main():
                 # bending the legs moved his lowest point off where the ground lock put it (standing: feet off the floor or into
                 # it): put it back, so a standing foot stays on the floor through the turn and the step
                 place(row, sm[r]); bpy.context.view_layer.update(); z0 = lowest()
-                place((row[0], edit(row[1], row[2], {g: sw[g][r] for g in groups}), row[2], row[3], row[4], row[5], row[6]), sm[r]); bpy.context.view_layer.update()
+                place((row[0], edit(row[1], row[2], dict({g: sw[g][r] for g in groups}, relax=rel[r], phase=phase(r))), row[2], row[3], row[4], row[5], row[6]), sm[r]); bpy.context.view_layer.update()
                 dz = z0 - lowest(); regrounded += 1
                 if os.environ.get("RG_DEBUG") and r + 1 + PRE in (316, 319, 321): print("RGD", r + 1 + PRE, "z0 %.3f dz %.3f" % (z0, dz), {g: round(sw[g][r], 2) for g in groups})
-            place((row[0], edit(row[1], row[2], {g: sw[g][r] for g in groups}), row[2], row[3], row[4], row[5], row[6]), sm[r] + dz)
+            place((row[0], edit(row[1], row[2], dict({g: sw[g][r] for g in groups}, relax=rel[r], phase=phase(r))), row[2], row[3], row[4], row[5], row[6]), sm[r] + dz)
             if dz: arm.pose.bones["mixamorig:Hips"].keyframe_insert("location", frame=r + 1 + PRE)
             for fk in ([r + 1 + PRE] if r else range(1, PRE + 2)):  # row 0 also holds through the lying frames before the motion
                 for b in names: b.keyframe_insert("rotation_quaternion", frame=fk)
@@ -668,6 +676,32 @@ def main():
             hc.location = c + Vector((-1.0, -0.8, 0.75))  # in front of him (he steps out west), above the low west wall
             hc.rotation_euler = (c - hc.location).to_track_quat("-Z", "Y").to_euler()
             lib.render_still(os.path.join(Hd, f"h_{f:04d}.png"))
+        return
+    if "--arms" in args:  # pinned arms: each arm's angle out from the torso and its elbow bend per frame; runs of more than 10
+        # frames with the upper arm within 8 deg of the torso and a straight elbow (under 15 deg) while he is up (not lying)
+        arm = P["arm"]; pb = lambda n: arm.matrix_world @ arm.pose.bones["mixamorig:" + n].head
+        runs, cur_ = {"Left": [], "Right": []}, {"Left": [], "Right": []}
+        worst = {"Left": 180.0, "Right": 180.0}
+        for f in range(1, N + PRE + 1):
+            sc.frame_set(f)
+            down = (pb("Hips") - pb("Neck")).normalized()
+            for sd in ("Left", "Right"):
+                sh_, el, wr = pb(sd + "Arm"), pb(sd + "ForeArm"), pb(sd + "Hand")
+                a = math.degrees((el - sh_).angle(down)); b = math.degrees((el - sh_).angle(wr - el))
+                lying = down.z > -0.6
+                if not lying: worst[sd] = min(worst[sd], max(a, 0))
+                if not lying and a < 8 and b < 15: cur_[sd].append((f, round(a, 1), round(b, 1)))
+                else:
+                    if len(cur_[sd]) > 10: runs[sd].append((cur_[sd][0][0], cur_[sd][-1][0]))
+                    cur_[sd] = []
+        for sd in ("Left", "Right"):
+            if len(cur_[sd]) > 10: runs[sd].append((cur_[sd][0][0], cur_[sd][-1][0]))
+        if os.environ.get("ARMS_RANGE"):
+            a_, b_ = (int(x) for x in os.environ["ARMS_RANGE"].split(","))
+            for f in range(a_, b_ + 1, 4):
+                sc.frame_set(f); down = (pb("Hips") - pb("Neck")).normalized()
+                print("ARMSF film %d pod %d" % (f + 165, f), " ".join("%s out %.0f bend %.0f" % (sd[0], math.degrees((pb(sd + "ForeArm") - pb(sd + "Arm")).angle(down)), math.degrees((pb(sd + "ForeArm") - pb(sd + "Arm")).angle(pb(sd + "Hand") - pb(sd + "ForeArm")))) for sd in ("Left", "Right")))
+        print(f"ARMS pinned runs (over 10 frames, upper arm under 8 deg from the torso and elbow under 15 deg, not lying): left {runs['Left']} right {runs['Right']}; least angle out while up: left {worst['Left']:.0f} right {worst['Right']:.0f} deg")
         return
     if "--feet" in args:  # foot slide, landing to the end: a joint (ball or ankle) counts as planted within 2 cm of its own lowest
         # point in this stretch (a fixed height misreads: the joints sit 5-6 cm up inside the boot); report how far planted joints

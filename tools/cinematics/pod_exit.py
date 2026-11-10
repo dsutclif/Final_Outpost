@@ -96,6 +96,38 @@ def arms_in(dirs, frame, w):
     return out
 
 
+def arms_balance(dirs, frame, w, phase=0.0, tuck=0.0):
+    """Blend the arms toward a stepping balance pose that moves with the torso: upper arms about 20 deg out from the body,
+    elbows bent about 25 deg, swinging a little with the step (phase in turns), by w (0..1)."""
+    if w <= 0: return dirs
+    up, right = frame
+    fwd = up.cross(right).normalized()
+    out = dict(dirs)
+    for prefix, outward, sg in (("Left", -right, 1), ("Right", right, -1)):
+        sw_ = math.radians(8) * math.sin(2 * math.pi * phase) * sg
+        # tuck (0..1, where the pod is tight): less spread out to the side and more elbow bend, the hands come in front
+        o_ = math.radians(20 - 10 * tuck); bnd = math.radians(25 + 30 * tuck)
+        side_dir = (outward * (1 - 0.6 * tuck) + fwd * (0.12 + 0.6 * tuck)).normalized()
+        ua = (-up * math.cos(o_) + side_dir * math.sin(o_)).normalized()
+        ua = (Matrix.Rotation(sw_ * (1 - tuck), 3, right) @ ua).normalized()
+        fa = (ua * math.cos(bnd) + fwd * math.sin(bnd)).normalized()
+        out[f"{prefix}Arm"] = slerp_dir(dirs[f"{prefix}Arm"], ua, w)
+        out[f"{prefix}ForeArm"] = slerp_dir(dirs[f"{prefix}ForeArm"], fa, w)
+    return out
+
+
+def arms_pinned(dirs, frame, out_deg=15, bend_deg=10):
+    """How far each arm is from pinned (0 pinned .. 1 free): upper arm within out_deg of the body or a straight elbow."""
+    up, _ = frame
+    worst = 1.0
+    for prefix in ("Left", "Right"):
+        ua, fa = dirs.get(f"{prefix}Arm"), dirs.get(f"{prefix}ForeArm")
+        if ua is None or fa is None: continue
+        a = math.degrees(ua.angle(-up)); b = math.degrees(ua.angle(fa))
+        worst = min(worst, min(1.0, a / out_deg), min(1.0, b / bend_deg))
+    return worst
+
+
 class GetUp(Take):
     def edit(self, i, dirs, frame, seg):
         if os.environ.get("ARMS_IN") == "1":  # lying and sitting up (the torso below about 40 deg): arms relaxed, in
