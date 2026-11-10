@@ -295,6 +295,51 @@ function palmUp(root: Object3D, sign: number): void {
   fa.updateMatrixWorld(true);
 }
 
+/** Turn the forearm further about its own axis by `angle` (radians); either way round gives the same result at half a turn (palm down). */
+function rollForearm(root: Object3D, sign: number, angle: number): void {
+  const fa = boneOf(root, "RightForeArm"), h = boneOf(root, "RightHand");
+  if (!fa || !h || !fa.parent) return;
+  const axis = h.getWorldPosition(new Vector3()).sub(fa.getWorldPosition(new Vector3())).normalize();
+  const turn = (a: number): void => {
+    const q = new Quaternion().setFromAxisAngle(axis, a), parentInv = fa.parent!.getWorldQuaternion(new Quaternion()).invert();
+    fa.quaternion.copy(parentInv.multiply(q.multiply(fa.getWorldQuaternion(new Quaternion()))));
+    fa.updateMatrixWorld(true);
+  };
+  const keep = fa.quaternion.clone();
+  turn(Math.PI / 2);
+  const z = palmOf(root, sign)?.n.z ?? 0;
+  fa.quaternion.copy(keep);
+  fa.updateMatrixWorld(true);
+  turn(z >= 0 ? -angle : angle);
+}
+
+/** Close the right hand's fingers and thumb toward the palm by `k` (0 = as posed, 1 = a loose fist round a coin). */
+function curlFingers(root: Object3D, sign: number, k: number): void {
+  const chains: [string, number][] = [["Index", 1], ["Middle", 1], ["Ring", 1], ["Pinky", 1], ["Thumb", 0.45]];
+  const ang = [1.05, 1.2, 0.8];
+  for (const [name, scale] of chains) {
+    for (let j = 1; j <= 3; j++) {
+      const b = boneOf(root, `RightHand${name}${j}`), c = boneOf(root, `RightHand${name}${j + 1}`), pm = palmOf(root, sign);
+      if (!b || !c || !b.parent || !pm) continue;
+      root.updateMatrixWorld(true);
+      const d = c.getWorldPosition(new Vector3()).sub(b.getWorldPosition(new Vector3())).normalize();
+      const axis = d.clone().cross(pm.n).normalize();
+      const rot = (a: number): void => {
+        const q = new Quaternion().setFromAxisAngle(axis, a), parentInv = b.parent!.getWorldQuaternion(new Quaternion()).invert();
+        b.quaternion.copy(parentInv.multiply(q.multiply(b.getWorldQuaternion(new Quaternion()))));
+        b.updateMatrixWorld(true);
+      };
+      // the curl is the way that carries the next joint toward the palm side (along its normal)
+      const keep = b.quaternion.clone(), before = c.getWorldPosition(new Vector3());
+      rot(0.3);
+      const moved = c.getWorldPosition(new Vector3()).sub(before).dot(pm.n);
+      b.quaternion.copy(keep);
+      b.updateMatrixWorld(true);
+      rot((moved >= 0 ? 1 : -1) * (ang[j - 1] ?? 0.8) * scale * k);
+    }
+  }
+}
+
 /**
  * Sela's arrival (docs/STORY-SCREENPLAY.md level 3, Phase 2): at night a pair of headlights comes up the road out of
  * the dark, her buggy slows and parks at the camp's edge with its lights still on, and she climbs out with her lamp and
@@ -485,18 +530,22 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     signs.set(f.root, palmSign(f.root));
   };
   // each figure's rest pose and the pose with the right arm out (palm toward the other), blended over time
-  const reach = (f: NonNullable<ReturnType<typeof crewFigure>>, toward: number, lower = 0): { rest: Map<Object3D, Quaternion>; out: Map<Object3D, Quaternion> } => {
+  const reach = (f: NonNullable<ReturnType<typeof crewFigure>>, toward: number, lower = 0, roll = 0, close = 0): { rest: Map<Object3D, Quaternion>; out: Map<Object3D, Quaternion>; open: Map<Object3D, Quaternion> } => {
     const rest = poseOf(f.root);
     aimBone(boneOf(f.root, "RightArm"), boneOf(f.root, "RightForeArm"), new Vector3(toward * 0.75, -0.55 - lower, 0.12));
     aimBone(boneOf(f.root, "RightForeArm"), boneOf(f.root, "RightHand"), new Vector3(toward, -0.05 - lower * 0.8, 0.05));
     palmUp(f.root, signs.get(f.root) ?? 1);
+    // roll: carry on turning the forearm (the giver's hand comes in palm down, the chip held beneath it, then simply lets go)
+    if (roll) rollForearm(f.root, signs.get(f.root) ?? 1, roll);
+    const open = poseOf(f.root);
+    if (close) curlFingers(f.root, signs.get(f.root) ?? 1, close);
     const out = poseOf(f.root);
     blendPose(rest, rest, 0);
-    return { rest, out };
+    return { rest, out, open };
   };
   let sp: ReturnType<typeof reach> | null = null, cp: ReturnType<typeof reach> | null = null;
   let look: Map<Object3D, Quaternion> | null = null;
-  if (sela) { place(sela, 1.8, 0.62, -Math.PI / 2); sp = reach(sela, -1); }
+  if (sela) { place(sela, 1.8, 0.62, -Math.PI / 2); sp = reach(sela, -1, -0.3, Math.PI, 1); }
   if (cmd) {
     place(cmd, SIZES.commander, -0.62, Math.PI / 2); cp = reach(cmd, 1, 0.35);
     // and with the hand brought up in front of the chest, palm up, to look at the chip
@@ -522,41 +571,74 @@ function chipHandoff(_doc: Document, _o: LiveSceneOptions, _overlay: HTMLElement
     return m ? w.lerp(m.getWorldPosition(new Vector3()), 0.7) : w;
   };
   const SECONDS = 6.4, GIVE = 0.6, MEET = 2.4, TAKE = 3.0, BACK = 4.0;
+  // the drop (Doug 2026-11-09): her hand comes to rest straight above his open palm, she brings it in palm down with the chip closed in her fingers, they open (TIP0-TIP1) and the
+  // chip falls straight down (about 0.3 s, no arc) into the middle of his palm
+  const TIP0 = 2.65, TIP1 = 2.95, DROP = 2.80, FALL = 0.32, LAND = DROP + FALL;
+  const sSign = sela ? signs.get(sela.root) ?? 1 : 1, cSign = cmd ? signs.get(cmd.root) ?? 1 : 1;
+  const onPalm = (p: ReturnType<typeof palmOf>, g: typeof sela): Vector3 => (p ? p.at.clone().addScaledVector(p.n, 0.05) : handPos(g));
+  let tip: Map<Object3D, Quaternion> | null = null;
+  let landAt = new Vector3(0, 1, 0), tipAt = new Vector3(0, 1.1, 0);
+  if (sela && sp && cmd && cp) {
+    // her turned-over pose: the same reach with the forearm rolled on
+    tip = sp.open;
+    blendPose(sp.rest, sp.rest, 0);
+    // line her up: where the chip leaves her palm must be straight above the middle of his palm
+    blendPose(cp.rest, cp.out, 1);
+    landAt = onPalm(palmOf(cmd.root, cSign), cmd);
+    blendPose(sp.rest, sp.out, 1);
+    blendPose(poseOf(sela.root), tip, span(DROP, TIP0, TIP1));
+    tipAt = onPalm(palmOf(sela.root, sSign), sela);
+    sela.root.position.x += landAt.x - tipAt.x;
+    sela.root.position.z += landAt.z - tipAt.z;
+    sela.root.updateMatrixWorld(true);
+    // her height is her own (feet on the ground); the commander's hand is held at the height that leaves a hand's breadth under her palm
+    blendPose(sp.rest, sp.out, 1);
+    blendPose(poseOf(sela.root), tip, span(DROP, TIP0, TIP1));
+    tipAt = onPalm(palmOf(sela.root, sSign), sela);
+    (globalThis as { __coinDbg?: unknown }).__coinDbg = { landAt: landAt.toArray(), tipAt: tipAt.toArray() };
+    blendPose(sp.rest, sp.rest, 0);
+    blendPose(cp.rest, cp.rest, 0);
+  }
   return {
     seconds: SECONDS,
     scene, camera, labels: [],
     pose(t) {
-      // Sela's arm goes out first; the commander reaches to meet it, takes the chip, and draws it in to look at it
-      if (sela && sp) blendPose(sp.rest, sp.out, span(t, GIVE, MEET) - span(t, TAKE + 0.3, BACK + 0.4));
-      // the commander reaches, takes it, then brings the hand up to chest height to look at it
-      const up = span(t, TAKE + 0.4, BACK + 0.5);
+      // Sela's arm goes out first over his palm and turns over to tip the chip off; the commander reaches to meet it,
+      // then brings the hand up to chest height to look at the chip
+      if (sela && sp) {
+        blendPose(sp.rest, sp.out, span(t, GIVE, MEET));
+        if (tip) {
+          const k = span(t, TIP0, TIP1);
+          if (k > 0) blendPose(poseOf(sela.root), tip, k);
+          const back = span(t, LAND + 0.2, BACK + 0.4);
+          if (back > 0) blendPose(poseOf(sela.root), sp.rest, back);
+        }
+      }
+      const up = span(t, LAND + 0.5, BACK + 0.5);
       if (cmd && cp) {
-        blendPose(cp.rest, cp.out, span(t, MEET - 0.9, TAKE));
+        blendPose(cp.rest, cp.out, span(t, MEET - 0.9, MEET + 0.1));
         if (look && up > 0) { const outNow = poseOf(cmd.root); blendPose(outNow, look, up); }
       }
-      // the chip lies on Sela's palm, she tips it off and it drops into the middle of the commander's open palm, then goes where his hand goes
-      const DROP = TAKE - 0.15, LAND = TAKE + 0.45;
-      const pmS = sela && palmOf(sela.root, signs.get(sela.root) ?? 1), pmC = cmd && palmOf(cmd.root, signs.get(cmd.root) ?? 1);
-      const rest = (p: ReturnType<typeof palmOf>, g: typeof sela): Vector3 => (p ? p.at.clone().addScaledVector(p.n, 0.05) : handPos(g));
-      const onS = rest(pmS, sela), onC = rest(pmC, cmd), pm = t < DROP ? pmS : pmC;
-      if (t < DROP) coin.position.copy(onS);
-      else if (t >= LAND) coin.position.copy(onC);
+      const pmS = sela && palmOf(sela.root, sSign), pmC = cmd && palmOf(cmd.root, cSign);
+      if (t < DROP) coin.position.copy(onPalm(pmS, sela));
+      else if (t >= LAND) coin.position.copy(onPalm(pmC, cmd));
       else {
-        const u = span(t, DROP, LAND), sl = Math.min(1, u / 0.45), side = sl * sl * (3 - 2 * sl), fall = Math.max(0, (u - 0.4) / 0.6), f2 = fall * fall;
-        coin.position.lerpVectors(onS, onC, side);
-        const yHigh = onS.y + (onC.y + 0.16 - onS.y) * side;
-        coin.position.y = yHigh * (1 - f2) + onC.y * f2;
+        // straight down: gravity from rest, from where it left her palm to the middle of his
+        const f = (t - DROP) / FALL, y0 = tipAt.y, y1 = landAt.y;
+        coin.position.set(tipAt.x, y0 + (y1 - y0) * f * f, tipAt.z);
       }
+      const pm = t < DROP ? pmS : pmC;
       const lifted = coin.position.clone();
       glint.position.copy(coin.position).add(new Vector3(0, 0.15, 0.25));
       // a two-shot that pushes in on the hands, then a medium close on the chip held up, the commander behind it
       // (not so close that the game's low-poly models break up)
-      const k = span(t, 0, MEET + 0.4), z = span(t, TAKE + 0.4, SECONDS - 0.5);
+      const k = span(t, 0, MEET + 0.4), z = span(t, LAND + 0.5, SECONDS - 0.5);
       const tall = camera.aspect < 0.8;
-      const wide = new Vector3(0, 1.5, tall ? 5.2 : 3.4), near = new Vector3(0, 1.25, tall ? 2.4 : 1.8);
+      // on a tall phone screen the frame is kept to the commander and the hands, Sela's face (the weak part of her model) off the right edge
+      const wide = tall ? new Vector3(-0.8, 1.4, 3.4) : new Vector3(0, 1.5, 3.4), near = tall ? new Vector3(-0.2, 1.2, 2.0) : new Vector3(0, 1.2, 1.5);
       camera.position.lerpVectors(wide, near, k).lerp(lifted.clone().add(new Vector3(0.12, 0.04, tall ? 0.85 : 0.65)), z);
-      camera.lookAt(new Vector3(0, 1.3, 0).lerp(coin.position, Math.max(k * 0.6, z)));
-      // flat in the palm, then turned so its face (the stamped H) looks at the camera as it is lifted
+      camera.lookAt((tall ? new Vector3(camera.position.x, 1.2, 0) : new Vector3(0, 1.3, 0)).lerp(coin.position, Math.max(k * (tall ? 0.25 : 0.6), z)));
+      // flat in the palm; turned so its face (the stamped H) looks at the camera once lifted
       const flat = pm ? new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), pm.n) : new Quaternion();
       const face = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), camera.position.clone().sub(coin.position).normalize());
       coin.quaternion.slerpQuaternions(flat, face, 0.45 * Math.max(span(t, GIVE, MEET), up));
