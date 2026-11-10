@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  Tracker, analyzeCaption, analyzeSample, area, contrast, continuityHits, coveredFraction, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats,
+  Tracker, cropRegion, analyzeCaption, analyzeSample, area, contrast, continuityHits, coveredFraction, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats,
   intersect, labelSubject, meanLuminance, overlapArea, parseArgs, parseColour, plain, shrink, toCandidate, visibleFraction, type Limits,
 } from "./probe-core.js";
 import type { Box, CaptionSample, DomItem, FrameRec, Sample, StorySnapshot, ThingSample } from "./probe-types.js";
@@ -371,5 +371,53 @@ describe("command line", () => {
     expect(a.base).toBeNull();
     expect(parseArgs(["--out", "o", "--base", "http://127.0.0.1:5230/"]).base).toBe("http://127.0.0.1:5230/");
     expect(() => parseArgs(["--levels", "x"])).toThrow(/usage/);
+  });
+});
+
+describe("evidence: the marked box", () => {
+  it("carries each check's screen box on its hit", () => {
+    const covered = analyzeSample(sample({ labels: [{ key: "lock|Locked", box: box(100, 100, 160, 120), depth: 1, world: { x: 100, y: 0, z: 100 } }], dom: [dom({ sel: "#panel", text: "", tap: true, bg: "rgb(0,0,0)", box: box(90, 90, 200, 140), region: "hud" })] }), L);
+    const o = covered.find((x) => x.check === "occluded")!;
+    expect(o.box).toEqual(box(100, 100, 160, 120));
+    const off = analyzeSample(sample({ dom: [dom({ box: box(-30, 10, 60, 40) })] }), L).find((x) => x.check === "offscreen")!;
+    expect(off.box).toEqual(box(-30, 10, 60, 40));
+    const tiny = analyzeSample(sample({ dom: [dom({ fontPx: 6 })] }), L).find((x) => x.check === "small-text")!;
+    expect(tiny.box).toEqual(box(10, 10, 60, 40));
+  });
+
+  it("covers both elements of an overlap or merge", () => {
+    const hits = analyzeSample(sample({ things: [person("a", 100, 100, { box: box(160, 300, 200, 400) }), person("b", 102, 100, { box: box(180, 310, 230, 410) })] }), L);
+    expect(hits.find((x) => x.check === "overlap")!.box).toEqual(box(160, 300, 230, 410));
+  });
+
+  it("hands the box at confirmation to the fresh finding, so the picture outlines where it is now", () => {
+    const h = (b: Box, v: number) => ({ check: "offscreen", cat: 1, severity: 1 as const, subject: "dom:#x", title: "t", detail: "d", metric: { name: "visibleFraction", value: v, limit: 1 }, seconds: 1, track: "main" as const, box: b });
+    const t = new Tracker("x");
+    t.observe(0, [h(box(0, 0, 10, 10), 0.5)]);
+    const [fresh] = t.observe(1000, [h(box(5, 5, 15, 15), 0.9)]);
+    expect(fresh!.box).toEqual(box(5, 5, 15, 15));
+  });
+
+  it("puts the box on the candidate only when there are pictures", () => {
+    const t = new Tracker("x");
+    t.observe(0, [{ check: "float", cat: 2, severity: 1, subject: "node.x", title: "t", detail: "d", metric: { name: "floatU", value: 1, limit: 0.05 }, seconds: 0, track: "main", box: box(1, 2, 3, 4) }]);
+    const f = t.findings()[0]!;
+    expect(toCandidate(f, "x", ["a-crop.png", "a.png"], f.box).evidence).toEqual(["a-crop.png", "a.png"]);
+    expect(toCandidate(f, "x", ["a-crop.png", "a.png"], f.box).box).toEqual(box(1, 2, 3, 4));
+    expect(toCandidate(f, "x", [], f.box).box).toBeUndefined();
+  });
+
+  it("gives frame and console findings no box", () => {
+    expect(errorHits(["console: boom"])[0]!.box).toBeUndefined();
+  });
+
+  it("cuts a close-up with context, never smaller than the minimum, inside the screen", () => {
+    const v = { w: 375, h: 812 };
+    const r = cropRegion(box(100, 300, 160, 320), v);
+    expect(r.x0).toBeLessThan(100); expect(r.x1).toBeGreaterThan(160); expect(r.y1 - r.y0).toBeGreaterThanOrEqual(170);
+    const edge = cropRegion(box(-30, 0, 40, 20), v);
+    expect(edge.x0).toBe(0); expect(edge.y0).toBe(0); expect(edge.x1 - edge.x0).toBeGreaterThanOrEqual(170);
+    const far = cropRegion(box(340, 790, 375, 812), v);
+    expect(far.x1).toBe(375); expect(far.y1).toBe(812);
   });
 });

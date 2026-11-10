@@ -5,8 +5,8 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium, type Browser, type BrowserContext, type CDPSession, type Page } from "playwright";
-import { parseArgs, type Args, analyzeCaption, analyzeSample, continuityHits, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats, meanLuminance, parseColour, toCandidate, Tracker, type Candidate, type Finding, type Hit, type Limits } from "./probe-core.js";
-import type { FilmEnd, FrameRec, ReviewApi, Sample, StorySnapshot } from "./probe-types.js";
+import { parseArgs, type Args, cropRegion, plain, analyzeCaption, analyzeSample, continuityHits, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats, meanLuminance, parseColour, toCandidate, Tracker, type Candidate, type Finding, type Hit, type Limits } from "./probe-core.js";
+import type { Box, FilmEnd, FrameRec, ReviewApi, Sample, StorySnapshot } from "./probe-types.js";
 
 // pnpm review:probe -- --out <dir> --levels <id,...> [--story <id,...>] [--base <url>] [--throttle 4]
 //
@@ -39,7 +39,7 @@ async function startVite(): Promise<{ url: string; stop: () => void }> {
   // vite's `exports` blocks vite/bin/vite.js, so use the JS API (the package root is exported).
   const viteEntry = createRequire(join(client, "package.json")).resolve("vite");
   const vite = (await import(pathToFileURL(viteEntry).href)) as { createServer(c: object): Promise<{ listen(): Promise<unknown>; close(): Promise<void> }> };
-  const port = await freePort(5197);
+  const port = await freePort(5200);
   const server = await vite.createServer({ root: client, configFile: join(client, "vite.config.ts"), server: { host: "127.0.0.1", port, strictPort: true }, logLevel: "warn" });
   await server.listen();
   const url = `http://127.0.0.1:${port}/`;
@@ -139,8 +139,77 @@ class Shots {
       return null;
     }
     const rel = `${this.rel}/shots/${file}`;
-    this.list.push(rel);
+    if (!this.list.includes(rel)) this.list.push(rel);
     return rel;
+  }
+
+  /**
+   * A picture of one problem: the element's box outlined and labelled in the page, the full frame taken, a close-up crop
+   * with some context cut from the same frame, the outline removed again. Returns [crop, full] (paths relative to the
+   * output folder) and the box; null once the flagged cap is reached or the browser would not paint.
+   */
+  async takeMarked(name: string, box: Box, label: string): Promise<Evidence | null> {
+    if (this.flagged >= this.cap) return null;
+    if (this.broken >= 2) { this.failed.push(name); return null; }
+    this.flagged++;
+    const base = safe(name);
+    const view = this.page.viewportSize() ?? { width: 375, height: 812 };
+    mkdirSync(join(this.dir, "shots"), { recursive: true });
+    try {
+      await this.page.evaluate(({ b, text }) => {
+        const o = document.createElement("div");
+        o.id = "probe-mark";
+        const w = Math.max(6, b.x1 - b.x0), h = Math.max(6, b.y1 - b.y0);
+        o.style.cssText = `position:fixed;left:${b.x0}px;top:${b.y0}px;width:${w}px;height:${h}px;box-sizing:border-box;border:3px solid #ff00dd;box-shadow:0 0 0 1px #fff,inset 0 0 0 1px #fff;pointer-events:none;z-index:2147483647`;
+        const t = document.createElement("span");
+        t.textContent = text;
+        t.style.cssText = `position:absolute;left:-3px;${b.y0 < 22 ? "top:100%" : "bottom:100%"};background:#ff00dd;color:#fff;font:700 11px/14px system-ui,sans-serif;padding:0 4px;white-space:nowrap`;
+        o.append(t);
+        document.body.append(o);
+      }, { b: box, text: label });
+      let buf: Buffer;
+      try {
+        buf = await this.page.screenshot({ scale: "device", timeout: 15_000 });
+        this.broken = 0;
+      } catch (e) {
+        this.broken++;
+        this.failed.push(`${name}: ${String((e as Error).message).slice(0, 120)}`);
+        return null;
+      }
+      const sharp = (await import("sharp")).default;
+      const meta = await sharp(buf).metadata();
+      const k = (meta.width ?? view.width) / view.width;
+      const r = cropRegion(box, { w: view.width, h: view.height });
+      await sharp(buf).resize(view.width, view.height).png().toFile(join(this.dir, "shots", `${base}.png`));
+      await sharp(buf).extract({ left: Math.round(r.x0 * k), top: Math.round(r.y0 * k), width: Math.max(1, Math.round((r.x1 - r.x0) * k)), height: Math.max(1, Math.round((r.y1 - r.y0) * k)) }).png().toFile(join(this.dir, "shots", `${base}-crop.png`));
+    } finally {
+      await this.page.evaluate(() => document.getElementById("probe-mark")?.remove()).catch(() => undefined);
+    }
+    const paths = [`${this.rel}/shots/${base}-crop.png`, `${this.rel}/shots/${base}.png`];
+    for (const x of paths) if (!this.list.includes(x)) this.list.push(x);
+    return { paths, box };
+  }
+
+  /** The finding's own picture: marked when the check knows where the problem is, a plain full frame otherwise. */
+  async evidenceFor(f: Finding, name: string): Promise<Evidence | null> {
+    if (f.box) { const m = await this.takeMarked(name, f.box, f.check); if (m) return m; }
+    const p = await this.take(name);
+    return p ? { paths: [p] } : null;
+  }
+}
+
+/** A finding's pictures: [close-up crop, full frame] or [full frame], and the outlined box when there is one. */
+interface Evidence { paths: string[]; box?: Box }
+
+/** Console and page errors have no clock of their own: watch for new ones after every step and picture the moment each first shows. */
+async function watchErrors(run: Run, levelId: string, shots: Shots, evidence: Map<string, Evidence>, seen: Set<string>): Promise<void> {
+  const errs = [...(await run.page.evaluate(() => window.R.errors()).catch(() => [] as string[])), ...run.errors];
+  for (const hit of errorHits(errs)) {
+    const fp = fingerprintOf(hit.cat, levelId, hit.subject, hit.check);
+    if (seen.has(fp) || seen.size >= 6) continue;
+    seen.add(fp);
+    const p = await shots.take(`err-${hit.subject}`, true);
+    if (p) evidence.set(fp, { paths: [p] });
   }
 }
 
@@ -156,13 +225,17 @@ async function playLevel(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   // the game's own frame loop sits out while the runner steps the sim by hand: ticks come only from the runner, so samples are exact
   await page.evaluate(() => window.R.visibility(false));
   const tracker = new Tracker(levelId);
-  const evidence = new Map<string, string>();
+  const evidence = new Map<string, Evidence>();
   const checkpoints = [...L.shots.checkpointSeconds];
   let last: string | null = null;
   const every = L.sampleEveryTicks;
   let tick = 0;
   let outcome: LevelResult["outcome"] = null;
   const warm = L.warmupSeconds * TPS;
+  let frameSeen = 0, frameShots = 0;
+  const cpus: number[] = [];
+  const worstByCause = new Map<string, number>();
+  const errSeen = new Set<string>();
 
   for (let n = 0; Date.now() - t0 < a.wall * 1000; n++) {
     // let the GPU finish the last picture, so a frame's cost is not time spent waiting behind it
@@ -177,10 +250,26 @@ async function playLevel(run: Run, levelId: string, a: Args, L: Limits, outDir: 
     if (s.tick >= warm) {
       const hits = analyzeSample(s, L, false);
       for (const f of tracker.observe((s.tick * 1000) / TPS, hits)) {
-        const shot = await shots.take(`t${pad4(s.tick / TPS)}-${f.check}-${f.subject}`);
-        if (shot) evidence.set(f.fingerprint, shot);
+        const ev = await shots.evidenceFor(f, `t${pad4(s.tick / TPS)}-${f.check}-${f.subject}`);
+        if (ev) evidence.set(f.fingerprint, ev);
       }
     }
+    // a stutter has a moment: when a frame is the longest yet for its cause, picture it now
+    const fl = await page.evaluate((from) => window.R.frames(from), frameSeen);
+    for (const fr of fl.frames) {
+      frameSeen++;
+      cpus.push(fr.cpu);
+      if (frameSeen <= L.frame.warmupFrames || fr.cpu <= L.frame.longMs) continue;
+      const med = [...cpus].sort((x, y) => x - y)[Math.floor(cpus.length / 2)] ?? 0;
+      if (fr.cpu <= L.frame.hitchRatio * med) continue;
+      const cause = fr.ev.length ? fr.ev[fr.ev.length - 1]! : fr.last || "none";
+      if (fr.cpu <= (worstByCause.get(cause) ?? 0) * 1.2 || frameShots >= 12) continue;
+      worstByCause.set(cause, fr.cpu);
+      frameShots++;
+      const p = await shots.take(`frame-${cause}`, true);
+      if (p) evidence.set(fingerprintOf(12, levelId, plain(`frame.${cause}`), "longframe"), { paths: [p] });
+    }
+    await watchErrors(run, levelId, shots, evidence, errSeen);
     const secs = s.tick / TPS;
     if (checkpoints.length && secs >= checkpoints[0]!) { last = await shots.take(`t${pad4(checkpoints.shift()!)}`, true); }
     if (st.over || secs >= a.seconds) break;
@@ -189,6 +278,7 @@ async function playLevel(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   result.simSeconds = Math.round((tick / TPS) * 10) / 10;
   result.outcome = outcome;
   last = last ?? (await shots.take("tend", true));
+  void last;
 
   // frame cost and errors close the level
   const { frames } = await page.evaluate(() => window.R.frames());
@@ -196,15 +286,23 @@ async function playLevel(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   const inPage = await page.evaluate(() => window.R.errors());
   result.errors = [...new Set([...inPage, ...run.errors])].slice(0, 40);
   const end = (tick * 1000) / TPS + 1;
-  // level-wide findings (frame cost, console errors) have no moment of their own: they get the last checkpoint picture.
-  // Every other finding gets the picture taken when it was first confirmed, or none: never an unrelated end frame
-  // (before 2026-11-09 a covered label found after the shot cap showed the t0060 frame, where it was not covered).
-  const levelWide = new Set<string>();
-  for (const h of [...frameHits(frames, L, a.throttle), ...errorHits(result.errors)]) { tracker.observe(end, [h]); levelWide.add(fingerprintOf(h.cat, levelId, h.subject, h.check)); }
-  result.findings = tracker.findings().map((f) => ({ ...f, evidence: [evidence.get(f.fingerprint) ?? (levelWide.has(f.fingerprint) ? last : null) ?? ""].filter(Boolean) }));
+  // A finding's picture is the one taken at its own moment (first confirmed; for a stutter or console error, when it
+  // happened) or none: the card then says "no single moment". Never an unrelated checkpoint or end frame.
+  for (const h of [...frameHits(frames, L, a.throttle), ...errorHits(result.errors)]) tracker.observe(end, [h]);
+  result.findings = withEvidence(tracker.findings(), evidence);
   result.shots = shots.list;
   if (shots.failed.length) result.extras["screenshotsFailed"] = shots.failed;
   result.wallSeconds = Math.round((Date.now() - t0) / 100) / 10;
+}
+
+/** Attach each finding's own pictures (and the outlined box); no picture, no box. */
+function withEvidence(list: Finding[], evidence: Map<string, Evidence>, extra: Partial<Finding> = {}): LevelResult["findings"] {
+  return list.map((f) => {
+    const ev = evidence.get(f.fingerprint);
+    const { box: _drop, ...rest } = f;
+    void _drop;
+    return { ...rest, ...extra, ...(ev?.box ? { box: ev.box } : {}), evidence: ev?.paths ?? [] };
+  });
 }
 
 // ------------------------------------------------------------------ interruption and colour-blind passes
@@ -306,7 +404,7 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   const dir = join(outDir, "probe", levelId);
   const shots = new Shots(page, dir, rel, L.shots.perStoryLevel);
   const tracker = new Tracker(levelId);
-  const evidence = new Map<string, string>();
+  const evidence = new Map<string, Evidence>();
   const lines: { n: number; text: string; speaker: string | null; shot: string | null }[] = [];
   const extras: Record<string, unknown> = { lines, films: [] as unknown[] };
 
@@ -338,7 +436,7 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
       if (atStart.has(fe.film)) for (const hit of continuityHits(levelId, fe.film, filmLight, levelLight, fe.objects.map((o) => o.name), start, L)) {
         const fp = fingerprintOf(hit.cat, levelId, hit.subject, hit.check);
         tracker.observe(0, [hit]);
-        evidence.set(fp, `${rel}/shots/film-${safe(fe.film)}-end.png`);
+        evidence.set(fp, { paths: [`${rel}/shots/film-${safe(fe.film)}-end.png`] });
       }
     }
   }
@@ -347,6 +445,7 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   // The story runs on a made-up clock (R.ff) so minutes of it do not wait on a slow GPU; each caption stops it, gets a
   // few drawn frames to settle over its speaker, is pictured and judged, then a tap sends the story on.
   const limit = Math.max(a.seconds, 180);
+  const errSeen = new Set<string>();
   let lineNo = 0, seq = 0, frozenFor = 0, lastTick = -1, nextSample = 5, lastCard = "";
   const cards: { n: number; text: string; shot: string | null }[] = [];
   const filmShots: (string | null)[] = [];
@@ -378,7 +477,9 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
       lines.push({ n: lineNo, text: s.caption.text, speaker: s.caption.speaker, shot });
       for (const hit of analyzeCaption(s.caption, s, L)) {
         const [f] = tracker.observe(Date.now(), [{ ...hit, subject: `${hit.subject}.line` }]);
-        if (f && shot) evidence.set(f.fingerprint, shot);
+        const ev = f ? await shots.evidenceFor(f, `line${String(lineNo).padStart(2, "0")}-${f.check}`) : null;
+        if (f && ev) evidence.set(f.fingerprint, ev);
+        else if (f && shot) evidence.set(f.fingerprint, { paths: [shot] });
       }
       if (await page.locator(".story-tap:visible, .sdlg-tap:visible").count()) await page.mouse.click(187, 420).catch(() => undefined);
       await page.waitForTimeout(150);
@@ -405,17 +506,19 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
       if (s && s.screen === "playing") {
         result.samples++;
         if (s.tick >= L.warmupSeconds * TPS) for (const f of tracker.observe((s.tick * 1000) / TPS, analyzeSample(s, L, true).filter((x) => !x.check.startsWith("caption")))) {
-          const shot = await shots.take(`t${pad4(s.tick / TPS)}-${f.check}-${f.subject}`);
-          if (shot) evidence.set(f.fingerprint, shot);
+          const ev = await shots.evidenceFor(f, `t${pad4(s.tick / TPS)}-${f.check}-${f.subject}`);
+          if (ev) evidence.set(f.fingerprint, ev);
         }
       }
     }
+    await watchErrors(run, levelId, shots, evidence, errSeen);
   }
   const { frames } = await page.evaluate(() => window.R.frames());
   result.frames = frameStats(frames, L);
   result.errors = [...new Set([...(await page.evaluate(() => window.R.errors())), ...run.errors])].slice(0, 40);
   tracker.observe(Date.now() + 1, errorHits(result.errors));
-  result.findings = tracker.findings().map((f) => ({ ...f, track: "story" as const, evidence: [evidence.get(f.fingerprint) ?? startShot ?? ""].filter(Boolean) }));
+  // no fallback to the level-start picture: a finding gets the picture of its own moment, or none
+  result.findings = withEvidence(tracker.findings(), evidence, { track: "story" });
   result.shots = shots.list;
   if (shots.failed.length) extras["screenshotsFailed"] = shots.failed;
   result.extras = extras;
@@ -468,7 +571,7 @@ async function main(argv: readonly string[]): Promise<number> {
       mkdirSync(join(a.out, "probe", job.id), { recursive: true });
       writeFileSync(join(a.out, "probe", job.id, "summary.json"), JSON.stringify(res, null, 2));
       results.push(res);
-      for (const f of res.findings) candidates.push(toCandidate(f, job.id, f.evidence));
+      for (const f of res.findings) candidates.push(toCandidate(f, job.id, f.evidence, f.box));
       console.log(`${job.id}: ${res.ok ? "ok" : "FAILED"}, ${res.simSeconds}s played in ${res.wallSeconds}s, ${res.findings.length} findings, ${res.shots.length} shots`);
     }
   } finally {
