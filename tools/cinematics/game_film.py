@@ -498,6 +498,17 @@ def main():
             m = cam.matrix_world; fw = -m.to_3x3().col[2]
             print("CUTPROBE", f, cam.name, tuple(round(v, 3) for v in m.translation), "fwd", tuple(round(v, 3) for v in fw), "lens", round(cam.data.lens, 2))
         return
+    if "--rockprobe" in args:  # debug: rock heights, and frames where the active camera is inside a rock's box
+        rocks = [o for o in sc.objects if o.name.startswith("rock_") and not o.hide_render]
+        bb = [[o.matrix_world @ Vector(c) for c in o.bound_box] for o in rocks]
+        print("ROCKPROBE", len(rocks), "rocks; tallest %.2f m" % max(max(v.z for v in b) for b in bb))
+        inside = []
+        for f in range(1, N + PRE + 1, 2):
+            sc.frame_set(f); cl = sc.camera.matrix_world.translation
+            for o, b in zip(rocks, bb):
+                if all(min(v[i] for v in b) <= cl[i] <= max(v[i] for v in b) for i in range(3)): inside.append((f, sc.camera.name, o.name)); break
+        print("ROCKPROBE camera inside a rock box on", len(inside), "sampled frames:", inside[:6], "...", inside[-3:])
+        return
     if "--camprobe" in args:  # debug: where the active camera is, and which objects' boxes hold it
         for f in (340, 364, 380, 420, 450):
             sc.frame_set(f)

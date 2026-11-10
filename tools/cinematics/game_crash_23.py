@@ -9,6 +9,9 @@ from mathutils import Vector
 import lib, game_set
 
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+# Doug 2026-11-10: the wreck shot keeps only the ridges by the pod (the hand-off's rock pile); its camera starts on the
+# level's east boundary ridge, which would fill the approved shot's foreground
+os.environ.setdefault("RIDGE_ONLY", "ridgeN")
 only = int(args[args.index("--shot") + 1]) if "--shot" in args else None
 SHOTS = {1: (1, 75), 2: (76, 105), 3: (106, 165)}
 FOLDER = os.path.join(lib.OUT, "crash_open_new")

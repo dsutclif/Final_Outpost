@@ -5,7 +5,7 @@
 import json, math, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 import lib
 
 M = 28.0  # world units per metre (ART_M)
@@ -54,15 +54,71 @@ def build(scenery=True):
         S["core"] = lib.place("sink.core.l1", at=tuple(to_m(core["at"])), height=CORE_H, name="reactor")
         for e in [e for e in lv["entities"] if e["type"] == "node.fuel_scrap"][:6]:
             lib.place("node.fuel_scrap", at=tuple(to_m(e["at"])), size=ORE_M)
-    # the ridge: level 1's terrain rects as low raised blocks (1.5 m)
-    for e in [e for e in lv["entities"] if e["type"] == "zone.terrain" and e.get("rect")]:
-        x, y, w, h = e["rect"]
-        c = to_m([x + w / 2, y + h / 2])
-        bpy.ops.mesh.primitive_cube_add(size=1, location=(c.x, c.y, 0.75))
-        b = bpy.context.object
-        b.scale = (w / M, h / M, 1.5)
-        b.data.materials.append(lib.mat("ridge", "#5a4a3c"))
+    terrain = [e for e in lv["entities"] if e["type"] == "zone.terrain" and e.get("rect")]
+    if os.environ.get("RIDGE_ONLY"):  # a shot can keep just some ridges (id prefixes, comma separated)
+        keep = tuple(os.environ["RIDGE_ONLY"].split(","))
+        terrain = [e for e in terrain if e["id"].startswith(keep)]
+    if os.environ.get("RIDGE_ROCKS", "1") == "1":
+        S["rocks"] = ridge_rocks(terrain, to_m)
+    else:  # the old stand-in: level 1's terrain rects as low raised blocks (1.5 m)
+        for e in terrain:
+            x, y, w, h = e["rect"]
+            c = to_m([x + w / 2, y + h / 2])
+            bpy.ops.mesh.primitive_cube_add(size=1, location=(c.x, c.y, 0.75))
+            b = bpy.context.object
+            b.scale = (w / M, h / M, 1.5)
+            b.data.materials.append(lib.mat("ridge", "#5a4a3c"))
     return S
+
+
+def _hash01(n):  # render-3d/src/assets/scatter.ts hash01
+    v = math.sin(n * 127.1 + 311.7) * 43758.5453
+    return v - math.floor(v)
+
+
+def ridge_rocks(terrain, to_m):
+    """The game's ridges exactly as renderer.ts draws them once the Rockslide model has loaded: tiles of zone.blocked along
+    each rect's long axis, overlapping, each turned and sized from the same seeded hash (game units / M = film metres)."""
+    src = lib.place("zone.blocked", name="rockslide_src", exact=True)
+    if src is None: return []
+    meshes = [bpy.data.objects[n] for n in src["meshes"]]
+    bpy.context.view_layer.update()
+    # the model in its own units (art metres), its footprint centred: renderer.ts scales x and depth to 1, keeps the height
+    pts = [o.matrix_world @ v.co for o in meshes for v in o.data.vertices]
+    lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)))
+    hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
+    bx, by_ = hi.x - lo.x, hi.y - lo.y
+    cx, cy = (lo.x + hi.x) / 2, (lo.y + hi.y) / 2
+    base = [(o, o.matrix_world.copy()) for o in meshes]
+    made = []
+    for e in terrain:
+        kind = e.get("kind", "ridge")
+        if kind == "chasm": continue
+        x, y, w, h = e["rect"]
+        seed = 3 + len(e["id"]) * 5 + round(x + y)
+        along_x = w >= h
+        long_, short = max(w, h), min(w, h)
+        n = max(1, round(long_ / (M * 1.2)))
+        seg = long_ / n
+        for i in range(n):
+            r = _hash01(seed + i * 7.3); q = _hash01(seed * 3 + i * 1.9)
+            yaw = (0 if along_x else math.pi / 2) + (math.pi if i % 2 else 0) + (r - 0.5) * 0.3
+            a = -long_ / 2 + (i + 0.5) * seg + (q - 0.5) * seg * 0.2
+            gx, gy = x + w / 2 + (a if along_x else 0), y + h / 2 + (0 if along_x else a)
+            c = to_m([gx, gy])
+            sx = seg * (1.2 + r * 0.25) / M / bx
+            sy = short * (1.05 + q * 0.2) / M / by_
+            sz = 1.8 * (0.85 + q * 0.35)
+            # three's rotation about up by yaw is a turn about the film's Z by +yaw (the film's Y is the game's -y)
+            T = Matrix.Translation((c.x, c.y, -0.04)) @ Matrix.Rotation(yaw, 4, "Z") @ Matrix.Diagonal((sx, sy, sz, 1)) @ Matrix.Translation((-cx, -cy, -lo.z))
+            for o, mw in base:
+                t = bpy.data.objects.new(f"rock_{e['id']}_{i}", o.data)
+                bpy.context.scene.collection.objects.link(t)
+                t.matrix_world = T @ mw
+                made.append(t)
+    for o in meshes: o.hide_render = True; o.hide_viewport = True
+    print(f"RIDGE ROCKS {len(made)} pieces from {sum(1 for e in terrain if e.get('kind', 'ridge') != 'chasm')} ridge rects")
+    return made
 
 
 def stand_in(at, yaw=0.0, name="commander"):
