@@ -6,7 +6,7 @@
 import math, os, sys
 os.environ["NO_STAGGER"] = "1"
 os.environ.setdefault("WALL_T", "0.10")
-os.environ.setdefault("DROP_EXTRA", "1.3")
+os.environ.setdefault("DROP_EXTRA", "0")  # Doug 2026-11-09: no stretch (it slid his feet); level 1 starts where the drop ends
 os.environ.setdefault("STEP_SCALE", "0.05")
 os.environ.setdefault("PIVOT_FRAMES", "34")
 os.environ.setdefault("STEP_LEAD", "4")
@@ -31,7 +31,7 @@ OUT = os.path.join(lib.HERE, "out", "game_film")
 PRE = 45                       # frames lying still while the seal blows
 POD_K = 2.66 / 3.9847          # render-3d sizes.ts
 FLOOR = 0.0                    # Doug 2026-11-08: his back touches sand level while he lies in the pod
-END_GUESS = Vector((-3.83, -0.49, 0))  # the commander's end spot from the last run (only aims the look-round)
+END_GUESS = Vector((-2.44, -0.39, 0))  # the commander's end spot from the last run (only aims the look-round)
 POD_IN = Vector((-0.172, 0.023, 0))  # the pod's interior centre from its origin (the closed glass's centre)
 FLOOR_BOX = (-0.45, 0.35, 1.0, 0.15, 0.62)  # x lo, x hi, |y| max, z lo, z hi from the pod origin: the interior floor plate
 WALL_X = -0.55                 # the pod's west wall centreline from the pod's origin (ray probe)
@@ -331,6 +331,27 @@ def main():
         print("CLIP frames with suit/pod crossings (frame, glass pairs, pod pairs, pairs above 0.8 m, max z, mean x, mean y from pod origin):")
         for r in rows: print("CLIP", r)
         print("CLIP total frames", len(rows))
+        return
+    if "--feet" in args:  # foot slide, landing to the end: a joint (ball or ankle) counts as planted within 2 cm of its own lowest
+        # point in this stretch (a fixed height misreads: the joints sit 5-6 cm up inside the boot); report how far planted joints
+        # move sideways per frame. Limit: under 1 cm a frame (about a third of what the eye picks up at phone size)
+        import retarget
+        arm, pos = P["arm"], {}
+        fr = list(range(F(P["r_land"]), N + PRE + 1))
+        keys = [(s, b) for s in ("Left", "Right") for b in ("ToeBase", "Foot")]
+        for f in fr:
+            sc.frame_set(f)
+            for s, b in keys: pos.setdefault(s + b, []).append((arm.matrix_world @ arm.pose.bones[retarget.P + s + b].head).copy())
+        lo = {k: min(p.z for p in v) for k, v in pos.items()}
+        per = []
+        for i in range(1, len(fr)):
+            w = 0.0
+            for k, v in pos.items():
+                if v[i].z < lo[k] + 0.02 and v[i - 1].z < lo[k] + 0.02: w = max(w, (v[i].xy - v[i - 1].xy).length)
+            per.append((fr[i], w))
+        bad = [(f, round(w * 100, 1)) for f, w in per if w > 0.01]
+        print(f"FEET frames {fr[0]}-{fr[-1]}: worst planted-foot slide {max(w for _, w in per) * 100:.1f} cm/frame, "
+              f"mean {sum(w for _, w in per) / len(per) * 100:.2f}, total {sum(w for _, w in per) * 100:.0f} cm; frames over 1 cm: {len(bad)} {bad[:14]}")
         return
     if "--approval" in args:  # game-camera stills for approval: the film's first frame, its last, and the held level-1 start spot
         import game_set as gs
