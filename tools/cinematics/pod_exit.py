@@ -144,6 +144,21 @@ class Drop(Take):
         super().__init__(*a, **k)
         self.floor = body_min(self.clip.pose(self.a)[0])  # standing on the ledge
 
+    def edit(self, i, dirs, frame, seg):
+        cap = float(os.environ.get("DROP_ARM_CAP", 0))  # the capture throws its arms out level as it falls: keep them low
+        if not cap or getattr(self, "no_drop", False): return dirs, frame
+        up, right = frame
+        out = dict(dirs)
+        for side in ("Left", "Right"):
+            ua = out.get(side + "Arm")
+            if ua is None: continue
+            ang = ua.angle(-up)
+            if ang <= math.radians(cap): continue
+            q = ua.rotation_difference(slerp_dir(-up, ua, math.radians(cap) / ang)).to_matrix()
+            for b in ("Arm", "ForeArm", "Hand"):
+                if side + b in out: out[side + b] = (q @ out[side + b]).normalized()
+        return out, frame
+
 
 class Look(Take):
     def edit(self, i, dirs, frame, seg):
@@ -156,6 +171,14 @@ def build_takes():
              Drop("82_02", 285, 435), Look("77_01", 0, 90, src_fps=60)]
     if NO_STAGGER:  # the game's crash site has no deck: step out over the rim and drop straight to the sand
         del takes[2]
+    if os.environ.get("NO_DROP"):  # "a, b": no fall at all (the pod floor is at sand level): the walk takes the drop's place
+        a_, b_ = (int(x) for x in os.environ["NO_DROP"].split(","))
+        k = next(i for i, t in enumerate(takes) if isinstance(t, Drop))
+        w = Drop("01_07", a_, b_)
+        w.floor, w.grounded, w.no_drop = 0.0, True, True
+        w.unturn = float(os.environ.get("WALK_UNTURN", 0))
+        takes[k] = w
+        return takes
     if os.environ.get("WALK_AFTER_DROP"):  # "a, b": the drop's crouched run-on hops; cut it after the landing and walk on
         a_, b_ = (int(x) for x in os.environ["WALK_AFTER_DROP"].split(","))
         k = next(i for i, t in enumerate(takes) if isinstance(t, Drop))
@@ -417,7 +440,7 @@ def perform(root, pre=0, calib=False):
             if top.z - lo > best_lift: best_lift, step_peak = top.z - lo, top.copy()
         if row[0] == k_drop and takeoff is None:
             seg, _, _ = row[5].clip.pose(row[6])
-            if body_min(seg) < drop.floor - 0.06:  # feet have left the ledge
+            if getattr(drop, "no_drop", False) or body_min(seg) < drop.floor - 0.06:  # feet have left the ledge (or no fall: at once)
                 toes = [arm.matrix_world @ arm.pose.bones[retarget.P + n].tail for n in ("LeftToeBase", "RightToeBase")]
                 takeoff = (row[3].copy(), toes, f)
 
@@ -452,7 +475,7 @@ def perform(root, pre=0, calib=False):
     # Once landed they are on the sand whatever is under their lowest point: a foot near the edge must
     # not flip the ground lock between sand and deck. They also land just clear of the plate: what's
     # still needed is added over the flight.
-    r_land = next(f for f in range(r_takeoff + 1, N) if TL[f][0] != k_drop or body_min(TL[f][5].clip.pose(TL[f][6])[0]) - drop.ground() < 0.05)
+    r_land = r_takeoff + 1 if getattr(drop, "no_drop", False) else next(f for f in range(r_takeoff + 1, N) if TL[f][0] != k_drop or body_min(TL[f][5].clip.pose(TL[f][6])[0]) - drop.ground() < 0.05)
     closest = 1e9
     for row in TL[r_land:]:
         place(row)
@@ -460,7 +483,7 @@ def perform(root, pre=0, calib=False):
         pts = mesh_points()
         low_z = min(p.z for p in pts)
         closest = min(closest, min(p.dot(jump_dir) for p in pts if p.z < low_z + 0.5))
-    land_out = max(0.0, edge_d + LAND_CLEAR - closest)
+    land_out = 0.0 if getattr(drop, "no_drop", False) else max(0.0, edge_d + LAND_CLEAR - closest)
     for f in range(r_takeoff + 1, N):
         TL[f][3] = TL[f][3] + jump_dir * (land_out * smooth((f - r_takeoff) / (r_land - r_takeoff)))
     print(f"LAND row {r_land}: moved {land_out * 100:.0f} cm further from the plate")

@@ -8,9 +8,11 @@ os.environ["NO_STAGGER"] = "1"
 os.environ.setdefault("WALL_T", "0.10")
 os.environ.setdefault("DROP_EXTRA", "0")  # Doug 2026-11-09: no stretch (it slid his feet); level 1 starts where the drop ends
 os.environ.setdefault("ARM_SWAY", "1")  # the arms trail the turn on the spot and swing a little (they looked pinned)
-os.environ.setdefault("WALK_AFTER_DROP", "395,435")  # 01_07: a straight level walk (1.4 m, a foot just down at its start: no skate into it), after the drop
+os.environ.setdefault("NO_DROP", "395,435")  # the pod floor is at sand level: no fall; he steps over the wall onto the sand and walks on (01_07)
+#os.environ.setdefault("WALK_AFTER_DROP", "395,435")  # 01_07: a straight level walk (1.4 m, a foot just down at its start: no skate into it), after the drop
 os.environ.setdefault("WALK_UNTURN", "21")  # the actor turns 21 deg through it: unwind that so he walks on the way he dropped
 os.environ.setdefault("DROP_END", "329")  # the drop clip: half a second after the landing (frame 314), before its crouched run
+os.environ.setdefault("DROP_ARM_CAP", "30")  # upper arms at most 30 deg out from the body through the drop (it flew to a T)
 os.environ.setdefault("HAND_FOLLOW", "1")  # hands follow the forearms (the capture spun them)
 
 os.environ.setdefault("STEP_SCALE", "0.05")
@@ -366,7 +368,7 @@ def main():
             cur = {g: 0.0 for g in groups}
             for g in groups:
                 if g == "legs" and r >= st[1]: lad = (0.0,)  # the knees only while he gets up (the step must cross the wall)
-                elif g in ("liftL", "liftR") and r < len(P["takes"][0].frames()): lad = (0.0,)  # the leg lift once he stands (the turn and the step)
+                elif g in ("liftL", "liftR") and (r < len(P["takes"][0].frames()) or os.environ.get("LIFT_GROUPS", "0") != "1"): lad = (0.0,)  # the leg lift (off: it lifted the standing leg and floated him over the wall)
                 else: lad = LAD
                 for w in lad:
                     ws = dict(cur); ws[g] = w
@@ -383,15 +385,29 @@ def main():
             sw[g] = [max(a, b) for a, b in zip(sm_, ws)]
         names = [b for b in arm.pose.bones if any(t(b.name.replace("mixamorig:", "")) for t in (is_arm, is_leg, is_head, is_chest)) or b.name.endswith(("Spine", "Spine1", "Hips"))]
         after = {g: 0 for g in groups}
+        def lowest():
+            ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get()); me = ev.to_mesh()
+            z = min((ev.matrix_world @ v.co).z for v in me.vertices); ev.to_mesh_clear(); return z
+        regrounded = 0
         for r in range(row_end):
             sc.frame_set(r + 1 + PRE)
             row = TL[r]
-            place((row[0], edit(row[1], row[2], {g: sw[g][r] for g in groups}), row[2], row[3], row[4], row[5], row[6]), sm[r])
+            dz = 0.0
+            if any(sw[g][r] > 0 for g in ("legs", "toes", "liftL", "liftR")) and r >= len(P["takes"][0].frames()) - 40:
+                # bending the legs moved his lowest point off where the ground lock put it (standing: feet off the floor or into
+                # it): put it back, so a standing foot stays on the floor through the turn and the step
+                place(row, sm[r]); bpy.context.view_layer.update(); z0 = lowest()
+                place((row[0], edit(row[1], row[2], {g: sw[g][r] for g in groups}), row[2], row[3], row[4], row[5], row[6]), sm[r]); bpy.context.view_layer.update()
+                dz = z0 - lowest(); regrounded += 1
+                if os.environ.get("RG_DEBUG") and r + 1 + PRE in (316, 319, 321): print("RGD", r + 1 + PRE, "z0 %.3f dz %.3f" % (z0, dz), {g: round(sw[g][r], 2) for g in groups})
+            place((row[0], edit(row[1], row[2], {g: sw[g][r] for g in groups}), row[2], row[3], row[4], row[5], row[6]), sm[r] + dz)
+            if dz: arm.pose.bones["mixamorig:Hips"].keyframe_insert("location", frame=r + 1 + PRE)
             for fk in ([r + 1 + PRE] if r else range(1, PRE + 2)):  # row 0 also holds through the lying frames before the motion
                 for b in names: b.keyframe_insert("rotation_quaternion", frame=fk)
             bpy.context.view_layer.update()
             for g in groups: after[g] += 1 if bad(g) else 0
             if os.environ.get("BODY_DEBUG") and r + 1 + PRE in (283, 304, 325): print("BODYD", r + 1 + PRE, "row", r, "st", st[:3], {g: round(depth(g) * 100, 1) for g in DEPTH_G}, {g: round(sw[g][r], 2) for g in groups})
+        print("BODY CLEAR regrounded %d standing frames after the leg edits" % regrounded)
         print("BODY CLEAR rows 0-%d: crossing frames above 15 cm %s -> %s; eased frames %s" % (row_end - 1, before, after, {g: sum(1 for w in sw[g] if w > 0) for g in groups}))
     follow = bpy.data.objects.new("follow", None)
     sc.collection.objects.link(follow)
@@ -432,16 +448,21 @@ def main():
     # 0.05 * 10.8 m / sin 30 deg = 1.08 m away from the camera, i.e. toward (-x, +y) at the game's 45 degree yaw
     hand = end + Vector((-0.764, 0.764, 0))
     crane = crane_path(start, hand, f_crane0, N + PRE, HAND_W)
-    f_c4 = F(P["r_land"]) + 4  # cut a moment after the landing (the drop itself stays in one shot on the low front camera)
+    f_c4 = F(P["r_land"]) + 12  # cut once the landing crouch has bottomed out (slow, the pose reads the same either side); the drop stays in one shot
     key(c4, "location", [(f_c4, start), (f_crane0, start)] + [(f, p) for f, p, _ in crane], "LINEAR")
     key(c4.data, "lens", [(f_c4, 30), (f_crane0, 30)] + [(f, l) for f, _, l in crane], "LINEAR")
+    # the aim follows his real hips (the posed rig), not pel: pel's height jumps where takes change floors (the walk, by 60 cm)
+    hips_w = []
+    for f in range(1, N + PRE + 1):
+        sc.frame_set(f)
+        hips_w.append((P["arm"].matrix_world @ P["arm"].pose.bones["mixamorig:Hips"].head).copy())
     aim = bpy.data.objects.new("aim", None)
     sc.collection.objects.link(aim)
     c4.constraints["Track To"].target = aim
     for f in range(F(st[2]) - 40, N + PRE + 1):  # the aim follows the commander, then eases onto the hand-off point
         t = max(0.0, (f - f_crane0) / max(1, N + PRE - f_crane0))
         e = t * t * (3 - 2 * t)
-        aim.location = pel[min(f - 1, len(pel) - 1)].lerp(hand, e)
+        aim.location = hips_w[min(f - 1, len(hips_w) - 1)].lerp(hand, e)
         aim.keyframe_insert("location", frame=f)
     f_stand = F(len(P["takes"][0].frames()) - 1) - 10   # the get-up is done: cut to the low camera in front of him
     # Doug (stage 2): the drop is not cut away. The low front camera holds the step-off, the fall and the landing; the next cut
@@ -463,7 +484,7 @@ def main():
     print(f"FILM {N + PRE} frames; cuts at {[f for _, f in edit]}; crane from {f_crane0}")
 
     if "--cutprobe" in args:  # debug: the active camera's place, aim and lens either side of the last cut
-        for f in range(f_c4 - 2, f_c4 + 4):
+        for f in list(range(f_c4 - 2, f_c4 + 3)) + list(range(376, 384)):
             sc.frame_set(f); cam = sc.camera
             m = cam.matrix_world; fw = -m.to_3x3().col[2]
             print("CUTPROBE", f, cam.name, tuple(round(v, 3) for v in m.translation), "fwd", tuple(round(v, 3) for v in fw), "lens", round(cam.data.lens, 2))
@@ -586,8 +607,9 @@ def main():
         body = P["body"]; bad = []; lows = []
         fg = {g.index: ("L" if "Left" in g.name else "R") for g in body.vertex_groups if ("Foot" in g.name or "Toe" in g.name)}
         fv = {v.index: fg[max(v.groups, key=lambda g: g.weight).group] for v in body.data.vertices if v.groups and max(v.groups, key=lambda g: g.weight).group in fg}
-        hide = [cmd] + list(cmd.children_recursive)
-        for f in range(F(P["r_land"]), N + PRE + 1):
+        hide = [cmd] + list(cmd.children_recursive) + [pod] + list(pod.children_recursive)  # the pod floor is at sand level: measure against the sand
+        h_a, h_b = (int(x) for x in os.environ.get("HEIGHT_RANGE", f"{F(P['r_land'])},{N + PRE}").split(","))
+        for f in range(h_a, h_b + 1):
             sc.frame_set(f)
             dg = bpy.context.evaluated_depsgraph_get()
             ev = body.evaluated_get(dg); me = ev.to_mesh()
@@ -604,10 +626,11 @@ def main():
                     if not hit: break
                     if ob in hide or ob.name.startswith("commander"): o_ = loc + Vector((0, 0, -0.001)); continue
                     g_ = loc.z; gob = ob.name; break
-                gap[sd] = p_.z - (g_ if g_ is not None else 0.0)
+                gap[sd] = p_.z if os.environ.get("HEIGHT_FLAT") else p_.z - (g_ if g_ is not None else 0.0)  # flat: the sand is at 0 here (the pod floor too)
                 if os.environ.get("HEIGHT_DEBUG") and 378 <= f <= 390: print("HEIGHTD", f, sd, "foot z %.3f ground %s on %s xy %.2f %.2f" % (p_.z, None if g_ is None else round(g_, 3), gob if g_ is not None else "-", p_.x - pod_c.x, p_.y - pod_c.y))
             sup = min(gap.values())
             lows.append((f, sup))
+            if os.environ.get("HEIGHT_RANGE"): print("HEIGHTF film %d pod %d: lowest foot %.1f cm above what is under it (L %.1f R %.1f); hips %.2f m" % (f + 165, f, sup * 100, gap.get("L", 0) * 100, gap.get("R", 0) * 100, (P["arm"].matrix_world @ P["arm"].pose.bones["mixamorig:Hips"].head).z))
             if sup > 0.03: bad.append((f, round(sup * 100, 1)))
         runs, cur = [], []
         for f, z in bad:
