@@ -120,6 +120,8 @@ class Shots {
   readonly list: string[] = [];
   /** Pictures the browser would not give (software rendering can sit on "waiting for fonts" past any timeout): a data-health note, never a failed level. */
   readonly failed: string[] = [];
+  /** Fingerprints whose problem was off screen when found: no picture, and the card says why. */
+  readonly offScreen = new Set<string>();
   private flagged = 0;
   private broken = 0;
   constructor(private readonly page: Page, private readonly dir: string, private readonly rel: string, private readonly cap: number) {}
@@ -194,10 +196,18 @@ class Shots {
 
   /** The finding's own picture: marked when the check knows where the problem is, a plain full frame otherwise. */
   async evidenceFor(f: Finding, name: string): Promise<Evidence | null> {
+    // a problem that sits off screen cannot be shown: no picture beats one that shows something else
+    if (f.box && !onScreen(f.box, this.page.viewportSize() ?? { width: 375, height: 812 })) { this.offScreen.add(f.fingerprint); return null; }
     if (f.box) { const m = await this.takeMarked(name, f.box, f.check); if (m) return m; }
     const p = await this.take(name);
     return p ? { paths: [p] } : null;
   }
+}
+
+/** At least half of the box is inside the screen. */
+function onScreen(b: Box, v: { width: number; height: number }): boolean {
+  const a = Math.max(1, (b.x1 - b.x0) * (b.y1 - b.y0));
+  return Math.max(0, Math.min(b.x1, v.width) - Math.max(b.x0, 0)) * Math.max(0, Math.min(b.y1, v.height) - Math.max(b.y0, 0)) / a >= 0.5;
 }
 
 /** A finding's pictures: [close-up crop, full frame] or [full frame], and the outlined box when there is one. */
@@ -291,19 +301,20 @@ async function playLevel(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   // A finding's picture is the one taken at its own moment (first confirmed; for a stutter or console error, when it
   // happened) or none: the card then says "no single moment". Never an unrelated checkpoint or end frame.
   for (const h of [...frameHits(frames, L, a.throttle), ...errorHits(result.errors)]) tracker.observe(end, [h]);
-  result.findings = withEvidence(tracker.findings(), evidence);
+  result.findings = withEvidence(tracker.findings(), evidence, shots);
   result.shots = shots.list;
   if (shots.failed.length) result.extras["screenshotsFailed"] = shots.failed;
   result.wallSeconds = Math.round((Date.now() - t0) / 100) / 10;
 }
 
 /** Attach each finding's own pictures (and the outlined box); no picture, no box. */
-function withEvidence(list: Finding[], evidence: Map<string, Evidence>, extra: Partial<Finding> = {}): LevelResult["findings"] {
+function withEvidence(list: Finding[], evidence: Map<string, Evidence>, shots: Shots, extra: Partial<Finding> = {}): LevelResult["findings"] {
   return list.map((f) => {
     const ev = evidence.get(f.fingerprint);
     const { box: _drop, ...rest } = f;
     void _drop;
-    return { ...rest, ...extra, ...(ev?.box ? { box: ev.box } : {}), evidence: ev?.paths ?? [] };
+    const off = !ev && shots.offScreen.has(f.fingerprint) ? { detail: `${f.detail}. It was off screen when the check found it, so there is no picture of it.` } : {};
+    return { ...rest, ...extra, ...off, ...(ev?.box ? { box: ev.box } : {}), evidence: ev?.paths ?? [] };
   });
 }
 
@@ -520,7 +531,7 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   result.errors = [...new Set([...(await page.evaluate(() => window.R.errors())), ...run.errors])].slice(0, 40);
   tracker.observe(Date.now() + 1, errorHits(result.errors));
   // no fallback to the level-start picture: a finding gets the picture of its own moment, or none
-  result.findings = withEvidence(tracker.findings(), evidence, { track: "story" });
+  result.findings = withEvidence(tracker.findings(), evidence, shots, { track: "story" });
   result.shots = shots.list;
   if (shots.failed.length) extras["screenshotsFailed"] = shots.failed;
   result.extras = extras;

@@ -184,7 +184,8 @@ export function analyzeSample(s: Sample, L: Limits, story = false): Hit[] {
   // distance along the camera's view over the ground: a thing stands in front of a label when all of its footprint is nearer
   const along = (x: number, z: number): number => (x - s.cam.x) * s.cam.fx + (z - s.cam.z) * s.cam.fz;
   for (const l of s.labels) {
-    if (area(l.box) < 36) continue;
+    // a label the player cannot see (mostly off screen) is not a visible defect, and no picture could show it
+    if (area(l.box) < 36 || visibleFraction(l.box, view) < 0.5) continue;
     const at = along(l.world.x, l.world.z);
     const front = covers.filter((t) => Math.max(along(t.foot.x0, t.foot.z0), along(t.foot.x1, t.foot.z0), along(t.foot.x0, t.foot.z1), along(t.foot.x1, t.foot.z1)) < at);
     const boxes = front.map((t) => (t.kind === "character" ? shrink(t.box, L.occlusion.thingShrink * 2) : shrink(t.box, L.occlusion.thingShrink)));
@@ -255,7 +256,7 @@ export function analyzeSample(s: Sample, L: Limits, story = false): Hit[] {
     if (vis > L.offscreen.labelVisibleMin && vis < 0.95) out.push(hit("offscreen", 1, 1, labelSubject(l.key), `Label "${l.key.split("|")[1] ?? l.key.split("|")[0]}" is cut by the screen edge`, `${Math.round((1 - vis) * 100)}% of it is off screen`, "visibleFraction", vis, 0.95, L.offscreen.seconds, track, l.box));
   }
   const stackable: { sub: string; box: Box; label: boolean; idx: number }[] = [
-    ...s.labels.filter((l) => area(l.box) > 36).map((l) => ({ sub: labelSubject(l.key), box: l.box, label: true, idx: -1 })),
+    ...s.labels.filter((l) => area(l.box) > 36 && visibleFraction(l.box, view) >= 0.5).map((l) => ({ sub: labelSubject(l.key), box: l.box, label: true, idx: -1 })),
     ...s.dom.flatMap((d, idx) => (d.region !== "overlay" && d.text && d.region !== "world" ? [{ sub: `dom:${d.sel}`, box: d.box, label: false, idx }] : [])),
   ];
   const within = (idx: number, of: number): boolean => { for (let p = idx; p >= 0; p = s.dom[p]?.parent ?? -1) if (p === of) return true; return false; };

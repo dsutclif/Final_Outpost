@@ -421,3 +421,14 @@ describe("evidence: the marked box", () => {
     expect(far.x1).toBe(375); expect(far.y1).toBe(812);
   });
 });
+
+describe("labels the player cannot see", () => {
+  it("does not judge a label that is mostly off screen as covered or stacked", () => {
+    const panel = dom({ sel: "#panel", text: "", tap: true, bg: "rgb(0,0,0)", box: box(-300, 90, 0, 140), region: "hud" });
+    const gone = { key: "lock|Locked", box: box(-200, 100, -140, 120), depth: 1, world: { x: 100, y: 0, z: 100 } };
+    expect(analyzeSample(sample({ labels: [gone], dom: [panel] }), L).filter((x) => x.check === "occluded")).toEqual([]);
+    const seen = { ...gone, box: box(10, 100, 70, 120) };
+    const hits = analyzeSample(sample({ labels: [seen], dom: [{ ...panel, box: box(0, 90, 200, 140) }] }), L);
+    expect(hits.some((x) => x.check === "occluded")).toBe(true);
+  });
+});
