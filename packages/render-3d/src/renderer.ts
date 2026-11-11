@@ -3485,13 +3485,21 @@ export class Renderer3D implements Renderer {
   /** Look D: the icon itself is the pad, drawn large and flat on the ground (the Clerk's pad, the warehouse pads). */
   private operatePadArt(icon: string, light: boolean): LabelArt {
     const t = this.tokens;
-    void light; void t;
+    void t;
     return {
       w: 256, h: 256, premult: true,
       draw: (g, w, h) => {
         g.clearRect(0, 0, w, h);
         const pic = this.padIcons?.get(icon, "#ffffff");
-        if (pic) { g.shadowColor = "#ffffff"; g.shadowBlur = 14; g.globalAlpha = 0.5; g.drawImage(pic, 8, 8, w - 16, h - 16); g.shadowBlur = 0; g.globalAlpha = 1; }
+        if (pic) {
+          // light through a stencil: only the soft shadow of the icon is drawn (the icon itself sits off the canvas), so no part is a crisp
+          // or opaque fill: a feathered shape at low strength plus a faint wider glow. A touch stronger at night.
+          const k = light ? 0.38 : 0.3;
+          g.shadowOffsetX = w * 2;
+          g.shadowColor = `rgba(255,255,255,${k})`; g.shadowBlur = 5; g.drawImage(pic, 8 - w * 2, 8, w - 16, h - 16);
+          g.shadowColor = `rgba(255,255,255,${k * 0.5})`; g.shadowBlur = 22; g.drawImage(pic, 8 - w * 2, 8, w - 16, h - 16);
+          g.shadowOffsetX = 0; g.shadowBlur = 0; g.shadowColor = "rgba(0,0,0,0)";
+        }
       },
     };
   }
