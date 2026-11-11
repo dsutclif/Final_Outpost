@@ -549,7 +549,9 @@ export class Renderer3D implements Renderer {
         return;
       }
       if (e.kind === "character") return;
-      for (const [k, t] of this.kept) if (meshyBase(k.slice(k.indexOf("|", 2) + 1)) === e.id) { this.dropKept(t); this.kept.delete(k); }
+      // kept models of this kind are rebuilt with it now, so the next frame copies them instead of building them all at once (#28)
+      const rekeep = new Set(this.keepQ.filter((k) => meshyBase(k.slice(k.indexOf("|", 2) + 1)) === e.id));
+      for (const [k, t] of this.kept) if (meshyBase(k.slice(k.indexOf("|", 2) + 1)) === e.id) { this.dropKept(t); this.kept.delete(k); rekeep.add(k); }
       for (const [k, p] of this.placed) {
         if (meshyBase(String(p.data["id"])) !== e.id) continue;
         this.removePlaced(p);
@@ -563,6 +565,10 @@ export class Renderer3D implements Renderer {
         g.traverse((c) => { if ((c as Mesh).isMesh) disposeGeo(c as Mesh); });
         (g.userData["ghost"] as MeshLambertMaterial).dispose();
         delete p.extra[3];
+      }
+      for (const k of rekeep) {
+        const a = k.indexOf("|"), b = k.indexOf("|", a + 1);
+        this.keepOne(k.slice(b + 1), Number(k.slice(a + 1, b)), k[0] === "g");
       }
     };
     void loadMeshy(onMeshy, meshyIdsFor(manifest));
@@ -1329,6 +1335,8 @@ export class Renderer3D implements Renderer {
     if (busy || !this.bctx || this.t < 0.5) return;
     // spare label canvases first: a pad's name, price and decal, for the few pads a core upgrade opens at once
     this.labels.stock(LABEL_SPARES, 2);
+    // a story's named characters (Sela, Vale) load from the level's start, not on their first draw (#28)
+    if (this.storyP) for (const id of [...this.storyP.customerModels.values(), ...this.storyP.fleeingModels.values()]) this.askNamed(id);
     if (!this.keepQ.length) {
       if (this.t < this.keepScan) return;
       this.keepScan = this.t + 0.5;
@@ -1759,6 +1767,14 @@ export class Renderer3D implements Renderer {
   }
 
   private namedAsked = new Set<string>();
+
+  /** Start loading a story's named character (and the props it holds); the level asks ahead, the first draw asks again. */
+  private askNamed(id: string): void {
+    if (this.namedAsked.has(id)) return;
+    this.namedAsked.add(id);
+    const props = (meshyEntries().find((e) => e.id === id)?.held?.["*"] ?? []).map((x) => x.prop);
+    void loadMeshy(undefined, new Set([id, ...props]), undefined, true);
+  }
   /** Where and when a swapped fleeing hostile (story fleeingModels) started its run, for the ease-in. */
   private fleeFrom = new Map<string, { x: number; y: number; tick: number; ease: boolean }>();
   /**
@@ -1783,7 +1799,7 @@ export class Renderer3D implements Renderer {
     // a rigged Meshy trader once loaded (keyed by customer, so queue moves keep its clip); else the crowd figure
     // a named trader (Sela) has her own model, loaded on first use; until it lands the shared trader stands in
     const named = this.storyP?.customerModels.get(c.id);
-    if (named && !this.namedAsked.has(named)) { this.namedAsked.add(named); void loadMeshy(undefined, new Set([named]), undefined, true); }
+    if (named) this.askNamed(named);
     const rig = (named ? this.rigged?.entryFor(named) : undefined) ?? this.rigged?.entryFor(c.kind);
     // still in Sela's buggy, or climbing out of it: StoryProps draws her there and hands over at the spot she will stand on
     if (this.storyP?.riding(c.id, named, ART_M * look.scale * this.devCharScale / 0.9 * (rig?.height ?? 1.1), { x: pos.x, z: pos.y, faceX: kiosk.model.root.position.x, faceZ: kiosk.model.root.position.z }, key.startsWith("l:"))) return;
@@ -2969,11 +2985,7 @@ export class Renderer3D implements Renderer {
       const flees = !!s.fleeing?.includes(h);
       // a story level can draw it as someone else once it breaks off (level 5: Vale, helmet off); loaded on first use
       const swap = flees ? this.storyP?.fleeingModels.get(h.type) : undefined;
-      if (swap && !this.namedAsked.has(swap)) {
-        this.namedAsked.add(swap);
-        const props = (meshyEntries().find((e) => e.id === swap)?.held?.["*"] ?? []).map((x) => x.prop);
-        void loadMeshy(undefined, new Set([swap, ...props]), undefined, true);
-      }
+      if (swap) this.askNamed(swap);
       const swapRig = swap ? this.rigged?.entryFor(swap) : undefined;
       const hrig = swapRig ?? this.rigged?.entryFor(h.type);
       let at = { x: pos.x - Math.sin(hy) * kb, y: pos.y - Math.cos(hy) * kb }, pace: number | undefined;
