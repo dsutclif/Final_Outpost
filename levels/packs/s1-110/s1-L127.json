@@ -1,0 +1,275 @@
+{
+  "id": "s1-L127",
+  "seed": 1874109521,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "sources-e",
+      "shop-se",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "hazard_events",
+    "sales"
+  ],
+  "start": [
+    240,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        500
+      ],
+      "params": {
+        "fuel": 10,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        300,
+        643
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          239,
+          643
+        ],
+        [
+          239,
+          677
+        ],
+        [
+          239,
+          711
+        ],
+        [
+          239,
+          745
+        ]
+      ],
+      "route": [
+        [
+          -20,
+          645
+        ],
+        [
+          3,
+          645
+        ],
+        [
+          239,
+          643
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        340,
+        469
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
+        503
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        163,
+        460
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        147,
+        533
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        135,
+        491
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        134,
+        449
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        172,
+        413
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        118,
+        528
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        105,
+        501
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        133,
+        411
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        91,
+        463
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        67,
+        526
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level0",
+      "at": [
+        263,
+        610
+      ],
+      "cost": {
+        "res.currency": 31
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level1",
+      "at": [
+        263,
+        610
+      ],
+      "cost": {
+        "res.currency": 43
+      },
+      "build": "sink.core.level",
+      "requires": {
+        "pad": "core_level0"
+      }
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 62,
+      "start": 70,
+      "end": 122
+    }
+  ],
+  "params": {
+    "start.currency": 2,
+    "core.burn": 2.3,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.2,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 310
+  },
+  "goal": {
+    "type": "core_level",
+    "n": 3
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "core_level",
+      "params": {
+        "n": 3
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_colonist_freezes",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 234
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Storms and Power Up",
+      "goal": "core_level",
+      "tips": [
+        "A dust storm burns fuel fast. Fill the reactor before it hits."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.78,
+    "fun": 0.852,
+    "botMargin": 0.528,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}
