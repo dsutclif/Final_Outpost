@@ -84,7 +84,7 @@ def main():
         lib.bloom(threshold=1.0, size=7)
         # a night dust storm (Doug): the first film's brown-red haze with the day taken out
         lib.sky(horizon="#5a3b2a", zenith="#1a1210", haze=0.006, haze_color="#5a3b2a")
-        lib.sun(elevation=25, azimuth=-150, strength=3.0, color="#d9a67e")
+        sun_ob = lib.sun(elevation=25, azimuth=-150, strength=3.0, color="#d9a67e")
         lib.ground()
         lib.ridge(at=(0, 260, -1), length=1500, depth=170, height=48, seed=4, color="#241812")
         lib.ridge(at=(-120, 480, -3), length=1800, depth=240, height=95, seed=9, color="#2b1d16")
@@ -93,10 +93,11 @@ def main():
     else:
         sc.render.engine = "BLENDER_WORKBENCH"
         sh = sc.display.shading
-        sh.light, sh.color_type, sh.show_shadows = "STUDIO", "TEXTURE", True
+        sh.light, sh.color_type, sh.show_shadows = "STUDIO", os.environ.get("WB_COLOR", "TEXTURE"), True  # WB_COLOR=VERTEX shows the game sand's colours
         lib.ground()
         if sc.world is None: sc.world = bpy.data.worlds.new("sky")
         sc.world.color = (0.30, 0.27, 0.27)  # dim dusk-grey sky, never black
+    if EEVEE: os.environ.setdefault("GAME_LOOK", "1")  # the final render: the game's sand and the original Meshy wreck (game_set.py)
     S = game_set.build(scenery=not EEVEE)
     core = S["core_at"]
     # the look-round ends facing the reactor's light (END is where the previous run left the commander)
@@ -156,6 +157,8 @@ def main():
         arm = P["arm"]
         js = [retarget.P + s + b for s in ("Left", "Right") for b in ("ToeBase", "Foot")]
         f_l, f_c, f_e = 1 + PRE + P["r_land"], 1 + PRE + P["starts"][-1] + 15, N + PRE
+        f_land = f_l; f_gap = 1 + PRE + len(P["takes"][0].frames())  # the stepping turn pins its own foot (pod_exit.step_turn), and the step over the wall (to f_land) has its travel shortened on purpose: both left alone
+        if os.environ.get("FOOT_LOCK_TURN", "0") == "1": f_l = 1 + PRE + len(P["takes"][0].frames()) - 40  # 2026-11-10: also the end of the get-up, as he finishes standing
         pos = []
         for f in range(f_l, f_e + 1):  # planted = near the joint's lowest over the same stretch --feet measures
             sc.frame_set(f)
@@ -168,7 +171,7 @@ def main():
             both = [j for j in both if not (j.endswith("Foot") and j[:-4] + "ToeBase" in both)]
             ds = [Vector(((pos[i][j] - pos[i - 1][j]).x, (pos[i][j] - pos[i - 1][j]).y)) for j in both]
             # before the stop only where a planted joint skates (small natural shifts stay); once he stands (the crane), every drift
-            if ds and max(d.length for d in ds) > (0.008 if f_l + i <= f_c else 0.0):
+            if ds and not (f_gap < f_l + i < f_land) and max(d.length for d in ds) > (0.008 if f_l + i <= f_c else 0.0):
                 # the shift that keeps every planted joint as still as it can: the centre of the two drifts furthest apart
                 a, b = max(((x, y) for x in ds for y in ds), key=lambda q: (q[0] - q[1]).length)
                 c = (a + b) / 2
@@ -289,10 +292,11 @@ def main():
         is_head = lambda n: "Head" in n or "Neck" in n
         is_toe = lambda n: "Toe" in n
         is_chest = lambda n: "Shoulder" in n or n.endswith("Spine2")
+        is_back = lambda n: n.endswith(("Spine1", "Spine"))  # the backpack: it grazed the east rim through the stepping turn
         side_leg = lambda sd: (lambda n: n.replace("mixamorig:", "").startswith(sd) and any(k in n for k in ("Leg", "Foot", "Toe")))
-        groups = {"arms": grp(is_arm), "legs": grp(is_leg), "head": grp(is_head), "toes": grp(is_toe), "chest": grp(is_chest),
+        groups = {"arms": grp(is_arm), "legs": grp(is_leg), "head": grp(is_head), "toes": grp(is_toe), "chest": grp(is_chest), "back": grp(is_back),
                   "liftL": grp(side_leg("Left")), "liftR": grp(side_leg("Right"))}
-        DEPTH_G = ("legs", "toes", "chest", "liftL", "liftR")  # judged by depth (over 2 cm fails): resting contact is fine
+        DEPTH_G = ("legs", "toes", "chest", "back", "liftL", "liftR")  # judged by depth (over 2 cm fails): resting contact is fine
         mid_c = pod_c + POD_IN
         def odd_depth(q, d, reach):
             n_, first, o_ = 0, None, q.copy()
@@ -334,6 +338,8 @@ def main():
         def edit(dirs, fr, ws):
             if fr[0].z > 0.6:  # upright: arms out a little for balance (never tucked flat to the torso), as far as they need
                 out = pod_exit.arms_balance(dirs, fr, max(ws.get("relax", 0.0), min(1.0, ws["arms"] * 4)), ws.get("phase", 0.0), tuck=ws["arms"])
+                rw_ = relax_w(ws.get("row", -1))
+                if rw_ > 0: out = pod_exit.arms_relaxed(out, fr, rw_ * (1 - min(1.0, ws["arms"] * 2)), ws.get("row", 0) / 30.0)  # gives way where the pod needs the arms in
             else:  # lying and getting up: tucked in across the body, only as far as the pod needs
                 out = pod_exit.arms_in(dirs, fr, ws["arms"])
             for side in ("Left", "Right"):
@@ -354,15 +360,32 @@ def main():
                     for b, k in (("ToeBase", 1.2), ("Foot", 0.4)):
                         n = side + b
                         if n in out: out[n] = pod_exit.slerp_dir(out[n], (out[n] + UPc * k).normalized(), ws["toes"])
-            if ws.get("chest", 0) > 0 and "_chest_up" in out:  # the chest leans back in, off the rim
+            if max(ws.get("chest", 0), ws.get("back", 0)) > 0 and "_chest_up" in out and os.environ.get("CHEST_CLEAR", "1") == "1":  # the chest leans back in, off the rim
                 iv = inward("Spine2")
-                out["_chest_up"] = pod_exit.slerp_dir(out["_chest_up"], (out["_chest_up"] + iv * 0.5).normalized(), ws["chest"])
-            if ws["head"] > 0:
+                out["_chest_up"] = pod_exit.slerp_dir(out["_chest_up"], (out["_chest_up"] + iv * 0.5).normalized(), max(ws.get("chest", 0), ws.get("back", 0)))
+            if ws["head"] > 0 and os.environ.get("HEAD_CLEAR", "shift") == "shift":  # and he lifts his head (looks up from his feet: a nod, never a sideways roll)
+                for n, k in (("Neck", 0.5), ("Head", 0.8)):
+                    if n in out: out[n] = pod_exit.slerp_dir(out[n], UPc, ws["head"] * k)
+            if ws["head"] > 0 and os.environ.get("HEAD_CLEAR", "shift") == "roll":  # (the old way: it rolled his head up to 126 deg sideways)
                 iv = inward("Head")
                 for n in ("Neck", "Head"):
                     if n in out: out[n] = pod_exit.slerp_dir(out[n], (out[n] + iv * 0.6).normalized(), ws["head"])
             return out
+        # Doug 2026-11-10: the head clears the rim by the whole body sitting a little further in (the pelvis slides toward the
+        # pod's middle line, up to HEAD_SHIFT m), never by rolling the neck sideways; the direction is fixed per row
+        HEAD_SHIFT = float(os.environ.get("HEAD_SHIFT", 0.03)); hdir = {}; cur_r = [0]  # the best clearance (sweep 0-8 cm: more pushes the shoulder into the pod; the nod does most of it)
+        def hshift(ws):
+            if os.environ.get("HEAD_CLEAR", "shift") != "shift": return Vector((0, 0, 0))
+            if "hs" in ws: return hd_fixed * HEAD_SHIFT * ws["hs"]  # the final pass: the eased envelope
+            if ws.get("head", 0) <= 0: return Vector((0, 0, 0))
+            if cur_r[0] not in hdir: hdir[cur_r[0]] = inward("Head")
+            return hdir[cur_r[0]] * HEAD_SHIFT * ws["head"]
+        ws_r = lambda r: dict({g: sw[g][r] for g in groups}, relax=rel[r], phase=phase(r), row=r, hs=hs_env[r])
         row_end = st[2]
+        # standing in the pod (upright, up to the step over the wall): the arms hang relaxed (Doug 2026-11-10), easing in as he
+        # straightens and out into the stepping balance pose as the step starts
+        u0 = next((r for r in range(row_end) if TL[r][2][0].z > 0.6), row_end)
+        relax_w = lambda r: 0.0 if r < 0 or os.environ.get("RELAX_ARMS", "1") != "1" else smooth((r - u0) / 12) * (1 - smooth((r - st[1] + 2) / 10))
         LAD = (0.0, 0.25, 0.5, 0.75, 1.0)
         # upright frames whose captured arms hang pinned (within 15 deg of the body, or a straight elbow) take the balance pose
         rel = [0.0 if TL[r][2][0].z <= 0.6 else 1.0 - pod_exit.arms_pinned(TL[r][1], TL[r][2]) for r in range(row_end)]
@@ -372,16 +395,18 @@ def main():
         print("ARMS BALANCE first upright row", next((r for r in range(row_end) if TL[r][2][0].z > 0.6), None), "first relaxed row", next((r for r in range(row_end) if rel[r] > 0), None), "(film frame = row + %d)" % (1 + PRE + 165))
         need = {g: [] for g in groups}; before = {g: 0 for g in groups}
         for r in range(row_end):
+            cur_r[0] = r
             sc.frame_set(r + 1 + PRE)
             row = TL[r]
-            cur = {g: 0.0 for g in groups}; cur["relax"] = rel[r]; cur["phase"] = phase(r)
+            cur = {g: 0.0 for g in groups}; cur["relax"] = rel[r]; cur["phase"] = phase(r); cur["row"] = r
             for g in groups:
-                if g == "legs" and r >= st[1]: lad = (0.0,)  # the knees only while he gets up (the step must cross the wall)
+                if g == "back" and r < len(P["takes"][0].frames()): lad = (0.0,)  # the backpack only through the turn and the step (in the get-up the chest lean moved him into the pod)
+                elif g == "legs" and r >= len(P["takes"][0].frames()): lad = (0.0,)  # the knees only while he gets up (not through the stepping turn, whose feet must stay planted, nor the step over the wall)
                 elif g in ("liftL", "liftR") and (r < len(P["takes"][0].frames()) or os.environ.get("LIFT_GROUPS", "0") != "1"): lad = (0.0,)  # the leg lift (off: it lifted the standing leg and floated him over the wall)
                 else: lad = LAD
                 for w in lad:
                     ws = dict(cur); ws[g] = w
-                    place((row[0], edit(row[1], row[2], ws), row[2], row[3], row[4], row[5], row[6]), sm[r]); bpy.context.view_layer.update()
+                    place((row[0], edit(row[1], row[2], ws), row[2], row[3] + hshift(ws), row[4], row[5], row[6]), sm[r]); bpy.context.view_layer.update()
                     b_ = bad(g)
                     if w == 0.0 and b_: before[g] += 1
                     if not b_: break
@@ -392,6 +417,18 @@ def main():
             held = [max(ws[max(0, i - 8):i + 9]) for i in range(len(ws))]
             sm_ = [sum(held[max(0, i - 6):i + 7]) / len(held[max(0, i - 6):i + 7]) for i in range(len(held))]
             sw[g] = [max(a, b) for a, b in zip(sm_, ws)]
+        # the head's slide (parent 2026-11-10: it must not read as a glide): one smooth envelope over the whole sit-up, easing in
+        # HEAD_EASE rows before the head first needs it and out as long after, in one fixed direction, as small as clears the rim
+        need_h = [i for i, w in enumerate(sw["head"]) if w > 0.05]
+        E = int(os.environ.get("HEAD_EASE", 25))
+        if need_h:
+            h0, h1 = need_h[0], need_h[-1]
+            hs_env = [smooth((i - (h0 - E)) / E) * (1 - smooth((i - h1) / E)) for i in range(len(sw["head"]))]
+            dirs_ = [v for v in hdir.values() if v.length > 0.5]
+            hd_fixed = (sum(dirs_, Vector()) / len(dirs_)).normalized() if dirs_ else Vector((0, 0, 0))
+            print("HEAD SLIDE %.0f cm, full from pod %d to %d, easing over %d frames either side" % (HEAD_SHIFT * 100, h0 + 1 + PRE, h1 + 1 + PRE, E))
+        else:
+            hs_env, hd_fixed = [0.0] * len(sw["head"]), Vector((0, 0, 0))
         names = [b for b in arm.pose.bones if any(t(b.name.replace("mixamorig:", "")) for t in (is_arm, is_leg, is_head, is_chest)) or b.name.endswith(("Spine", "Spine1", "Hips"))]
         after = {g: 0 for g in groups}
         def lowest():
@@ -399,6 +436,7 @@ def main():
             z = min((ev.matrix_world @ v.co).z for v in me.vertices); ev.to_mesh_clear(); return z
         regrounded = 0
         for r in range(row_end):
+            cur_r[0] = r
             sc.frame_set(r + 1 + PRE)
             row = TL[r]
             dz = 0.0
@@ -406,16 +444,18 @@ def main():
                 # bending the legs moved his lowest point off where the ground lock put it (standing: feet off the floor or into
                 # it): put it back, so a standing foot stays on the floor through the turn and the step
                 place(row, sm[r]); bpy.context.view_layer.update(); z0 = lowest()
-                place((row[0], edit(row[1], row[2], dict({g: sw[g][r] for g in groups}, relax=rel[r], phase=phase(r))), row[2], row[3], row[4], row[5], row[6]), sm[r]); bpy.context.view_layer.update()
+                place((row[0], edit(row[1], row[2], ws_r(r)), row[2], row[3] + hshift(ws_r(r)), row[4], row[5], row[6]), sm[r]); bpy.context.view_layer.update()
                 dz = z0 - lowest(); regrounded += 1
                 if os.environ.get("RG_DEBUG") and r + 1 + PRE in (316, 319, 321): print("RGD", r + 1 + PRE, "z0 %.3f dz %.3f" % (z0, dz), {g: round(sw[g][r], 2) for g in groups})
-            place((row[0], edit(row[1], row[2], dict({g: sw[g][r] for g in groups}, relax=rel[r], phase=phase(r))), row[2], row[3], row[4], row[5], row[6]), sm[r] + dz)
-            if dz: arm.pose.bones["mixamorig:Hips"].keyframe_insert("location", frame=r + 1 + PRE)
+            place((row[0], edit(row[1], row[2], ws_r(r)), row[2], row[3] + hshift(ws_r(r)), row[4], row[5], row[6]), sm[r] + dz)
+            if os.environ.get("HEAD_DEBUG") and 110 <= r <= 136: bpy.context.view_layer.update(); print("HEADD row %d pod %d head w %.2f shift %s head at %s" % (r, r + 1 + PRE, sw["head"][r], tuple(round(v, 3) for v in hshift(ws_r(r))), tuple(round(v, 2) for v in (arm.matrix_world @ arm.pose.bones["mixamorig:Head"].head - pod_c))))
+            if dz or hs_env[r] > 0: arm.pose.bones["mixamorig:Hips"].keyframe_insert("location", frame=r + 1 + PRE)  # (the head slide moves the hips too)
             for fk in ([r + 1 + PRE] if r else range(1, PRE + 2)):  # row 0 also holds through the lying frames before the motion
                 for b in names: b.keyframe_insert("rotation_quaternion", frame=fk)
             bpy.context.view_layer.update()
             for g in groups: after[g] += 1 if bad(g) else 0
             if os.environ.get("BODY_DEBUG") and r + 1 + PRE in (283, 304, 325): print("BODYD", r + 1 + PRE, "row", r, "st", st[:3], {g: round(depth(g) * 100, 1) for g in DEPTH_G}, {g: round(sw[g][r], 2) for g in groups})
+        P["sw"] = sw
         print("BODY CLEAR regrounded %d standing frames after the leg edits" % regrounded)
         print("BODY CLEAR rows 0-%d: crossing frames above 15 cm %s -> %s; eased frames %s" % (row_end - 1, before, after, {g: sum(1 for w in sw[g] if w > 0) for g in groups}))
     follow = bpy.data.objects.new("follow", None)
@@ -484,11 +524,32 @@ def main():
         sc.timeline_markers.new(cam.name, frame=f0).camera = cam
     if EEVEE:  # the emergency light and the seal's flash (crash.py shot4, on the smaller site)
         red = lib.point(pod_c + Vector((-1.6, 1.4, 1.5)), "#ff3424", 0, radius=0.15, name="emergency")
+        # Doug 2026-11-10: the game's opening view has no red glow; it fades out over the crane's last two seconds or so
+        f_red0, f_red1 = N + PRE - 70, N + PRE - 20
         for f in range(1, N + PRE + 1, 2):
-            red.data.energy = 110 + 80 * math.sin(f / 30 * 6.283)
+            red.data.energy = (110 + 80 * math.sin(f / 30 * 6.283)) * (1 - smooth((f - f_red0) / (f_red1 - f_red0)))
             red.data.keyframe_insert("energy", frame=f)
         seal = lib.point(pod_c + Vector((0, 0, 1.1)), "#cfe6ff", 0, radius=0.2, name="seal")
         key(seal.data, "energy", [(4, 0), (6, 600), (30, 60), (90, 0)])
+        if os.environ.get("SUN_MATCH", "1") == "1":
+            # Doug 2026-11-10: the film ended darker than the game's opening view. Measured on the hand-off frame: open sand
+            # matches the game within ~10% (the game a little bluer); the difference is the red glow (faded above), and the
+            # low film sun (25 deg) laying the wreck's long shadow over the end spot, with dim shadows. Over the crane's last
+            # two seconds or so the sun turns to the game's (environment.ts SUN_OFS: from the west-south-west, 47 deg up),
+            # the shadows lift and the light cools a little, so the last frame is lit like the game's first
+            f_s0, f_s1 = N + PRE - int(os.environ.get("SUN_MATCH_FRAMES", 70)), N + PRE - 10
+            q0 = sun_ob.rotation_euler.to_quaternion()
+            game_sun = Vector((-400, -140, 460)).normalized()  # three (x, up, z south) -> Blender (x, y north, z up)
+            q1 = (-game_sun).to_track_quat("-Z", "Y")
+            bg = sc.world.node_tree.nodes["Background"].inputs["Strength"]
+            amb0, amb1 = bg.default_value, bg.default_value * float(os.environ.get("SUN_MATCH_AMB", 1.8))
+            c0, c1 = Vector(sun_ob.data.color), Vector(lib.rgb("#e6b98f")[:3])
+            sun_ob.rotation_mode = "QUATERNION"
+            for f in range(f_s0 - 1, N + PRE + 1):
+                t = smooth((f - f_s0) / (f_s1 - f_s0))
+                sun_ob.rotation_quaternion = q0.slerp(q1, t); sun_ob.keyframe_insert("rotation_quaternion", frame=f)
+                bg.default_value = amb0 + (amb1 - amb0) * t; bg.keyframe_insert("default_value", frame=f)
+                sun_ob.data.color = c0.lerp(c1, t); sun_ob.data.keyframe_insert("color", frame=f)
     sc.frame_start, sc.frame_end = 1, N + PRE
     print(f"FILM {N + PRE} frames; cuts at {[f for _, f in edit]}; crane from {f_crane0}")
 
@@ -659,6 +720,43 @@ def main():
         if cur: runs.append(cur)
         print(f"HEIGHT frames {F(P['r_land'])}-{N + PRE}: supporting foot above the sand max {max(z for _, z in lows) * 100:.1f} cm, into it {min(z for _, z in lows) * 100:.1f} cm; frames over 3 cm: {len(bad)} in runs {[(r[0][0], r[-1][0], max(z for _, z in r)) for r in runs]}")
         return
+    if "--sitslide" in args:  # while he sits up: how far the hips and feet that rest on the pod floor move sideways per frame
+        arm = P["arm"]; js = ["Hips", "LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase"]; prev = None; rows = []
+        a_, b_ = (int(x) for x in os.environ.get("SIT_RANGE", "100,270").split(","))
+        for f in range(a_, b_ + 1):
+            sc.frame_set(f)
+            pos = {j: arm.matrix_world @ arm.pose.bones["mixamorig:" + j].head for j in js}
+            if prev:
+                low = [j for j in js if pos[j].z < (0.35 if j == "Hips" else 0.12)]  # resting on the floor
+                rows.append((f, max([(pos[j].xy - prev[j].xy).length for j in low] or [0.0]), low))
+                if os.environ.get("SIT_DEBUG") and f % 5 == 0: print("SITD", f, {j: (round(pos[j].x, 3), round(pos[j].y, 3), round(pos[j].z, 2)) for j in ("Hips", "LeftFoot")})
+            prev = pos
+        big = [(f, round(d * 100, 1)) for f, d, _ in rows if d > 0.01]
+        print("SITSLIDE pod %d-%d: worst resting hips/foot move %.2f cm/frame, mean %.2f; frames over 1 cm: %d %s" % (a_, b_, max(d for _, d, _ in rows) * 100, sum(d for _, d, _ in rows) / len(rows) * 100, len(big), big[:12]))
+        return
+    if "--headroll" in args:  # head roll: the head's sideways tilt against the chest (about the facing axis) and against the world vertical
+        arm = P["arm"]; sw_ = P.get("sw", {}).get("head", []); swc = P.get("sw", {}).get("chest", [])
+        a_, b_ = (int(x) for x in os.environ.get("HEADROLL_RANGE", f"{1 + PRE},{N + PRE}").split(","))
+        prev, worst = None, []
+        for f in range(a_, b_ + 1):
+            sc.frame_set(f)
+            M = lambda n: (arm.matrix_world @ arm.pose.bones["mixamorig:" + n].matrix).to_3x3()
+            ch, hd = M("Spine2"), M("Head")
+            hl = (arm.matrix_world @ arm.pose.bones["mixamorig:RightUpLeg"].head) - (arm.matrix_world @ arm.pose.bones["mixamorig:LeftUpLeg"].head)
+            rh = Vector((hl.x, hl.y, 0)).normalized()  # sideways: the hip line, level
+            # sideways lean: the angle out of the plane of the vertical and his facing (as pod_exit.head_level limits it)
+            rw = math.degrees(math.asin(max(-1, min(1, hd.col[1].normalized().dot(rh)))))
+            cw = math.degrees(math.asin(max(-1, min(1, ch.col[1].normalized().dot(rh)))))
+            rc = rw - cw
+            yaw = math.degrees(math.atan2(hd.col[2].y, hd.col[2].x))
+            r_ = f - 1 - PRE
+            w_ = sw_[r_] if 0 <= r_ < len(sw_) else 0.0
+            d = abs(rw - prev) if prev is not None else 0.0; prev = rw
+            worst.append((f, d))
+            if (f - a_) % int(os.environ.get("HEADROLL_STEP", 3)) == 0:
+                print("HEADROLL film %d pod %d row %d: roll vs chest %+.1f, vs vertical %+.1f, chest vs vertical %+.1f, head yaw %.0f, head-clear %.2f chest-clear %.2f" % (f + 165, f, r_, rc, rw, cw, yaw, w_, swc[r_] if 0 <= r_ < len(swc) else 0.0))
+        print("HEADROLL worst change %.1f deg/frame at pod %d" % max((d, f) for f, d in worst))
+        return
     if "--hands" in args:  # hand spin: how far each hand turns about its forearm per frame (the get-up to the drop)
         arm = P["arm"]; worst = []
         prev = {}
@@ -675,6 +773,31 @@ def main():
                 prev[side] = a
         big = [(f, s_, round(d, 1)) for f, s_, d in worst if d > 3]
         print(f"HANDS frames {1 + PRE}-{F(st[2])}: worst hand twist about the forearm {max(d for _, _, d in worst):.1f} deg/frame; frames over 3 deg: {len(big)} {big[:10]}")
+        return
+    if "--closecam" in args:  # review crops: a close camera on one body part (CLOSE_PART head|arms|feet), every CLOSE_STEP frames over CLOSE_RANGE (pod frames)
+        sc.timeline_markers.clear()
+        part = os.environ.get("CLOSE_PART", "arms")
+        bone, (d_f, d_r, d_z), lens = {"head": ("Head", (1.0, 0.35, 0.2), 70), "arms": ("Spine1", (1.6, 0.6, 0.55), 45),
+                                       "feet": ("Hips", (1.3, 0.5, 1.4), 40)}[part]  # (forward, right, up) from the body: in front of him
+        cc = lib.camera(pod_c + Vector((2, -2, 1)), pod_c, lens=lens, name="closecam")
+        sc.camera = cc
+        sc.render.resolution_x = sc.render.resolution_y = int(os.environ.get("CLOSE_RES", 300))
+        arm = P["arm"]; Cd = os.path.join(lib.HERE, "out", "close_" + part); os.makedirs(Cd, exist_ok=True)
+        if os.environ.get("CLOSE_NOGLASS", "1") == "1":
+            for o in [lid] + list(lid.children_recursive): o.hide_render = True
+        a_, b_ = (int(x) for x in os.environ.get("CLOSE_RANGE", f"1,{N + PRE}").split(","))
+        for f in range(a_, b_ + 1, int(os.environ.get("CLOSE_STEP", 2))):
+            sc.frame_set(f)
+            c = arm.matrix_world @ arm.pose.bones["mixamorig:" + bone].head
+            if part == "feet": c = Vector((c.x, c.y, 0.25))
+            hm = (arm.matrix_world @ arm.pose.bones["mixamorig:Hips"].matrix).to_3x3()
+            fw = Vector((hm.col[2].x, hm.col[2].y, 0)).normalized(); rt = Vector((-fw.y, fw.x, 0)) * -1
+            if part == "feet": c = Vector((c.x, c.y, 0.1))
+            sm_f = fw if f == a_ else (sm_f * 0.85 + fw * 0.15).normalized()  # the camera follows his turn smoothly
+            rt = Vector((sm_f.y, -sm_f.x, 0))
+            cc.location = c + sm_f * d_f + rt * d_r + Vector((0, 0, d_z))
+            cc.rotation_euler = (c - cc.location).to_track_quat("-Z", "Y").to_euler()
+            lib.render_still(os.path.join(Cd, f"{part}_{f + 165:04d}.png"))
         return
     if "--handcam" in args:  # debug: a close camera on his chest and hands, every 3rd frame from the start to the drop
         sc.timeline_markers.clear()
@@ -720,7 +843,7 @@ def main():
         # move sideways per frame. Limit: under 1 cm a frame (about a third of what the eye picks up at phone size)
         import retarget
         arm, pos = P["arm"], {}
-        fr = list(range(F(P["r_land"]), N + PRE + 1))
+        fr = list(range(int(os.environ.get("FEET_FROM", F(P["r_land"]))), N + PRE + 1))
         keys = [(s, b) for s in ("Left", "Right") for b in ("ToeBase", "Foot")]
         for f in fr:
             sc.frame_set(f)
@@ -730,9 +853,13 @@ def main():
         for i in range(1, len(fr)):
             w = 0.0
             pl = [k for k, v in pos.items() if v[i].z < lo[k] + 0.02 and v[i - 1].z < lo[k] + 0.02]
+            # a heel pivot (the stepping turn: the ball sweeps round a planted, still ankle) is no skate either
+            heel = {k[:-4] for k in pl if k.endswith("Foot") and (pos[k][i].xy - pos[k][i - 1].xy).length < 0.003}
+            pl = [k for k in pl if not (k.endswith("ToeBase") and k[:-7] in heel)]
             pl = [k for k in pl if not (k.endswith("Foot") and k[:-4] + "ToeBase" in pl)]  # an ankle pivoting round a planted ball is no skate
             for k in pl: w = max(w, (pos[k][i].xy - pos[k][i - 1].xy).length)
             per.append((fr[i], w))
+            if os.environ.get("FEET_DEBUG") and w > 0.01: print("FEETD", fr[i], [(k, round((pos[k][i].xy - pos[k][i - 1].xy).length * 100, 1), round((pos[k][i].z - lo[k]) * 100, 1)) for k in pos])
         bad = [(f, round(w * 100, 1)) for f, w in per if w > 0.01]
         f_s = int(os.environ.get("FEET_STAND", 1 + PRE + P["starts"][-1] + 15))  # standing: from the crane's start (he has stopped) to the end
         st_ = [w for f, w in per if f > f_s]

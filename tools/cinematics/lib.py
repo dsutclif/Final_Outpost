@@ -469,6 +469,17 @@ def sky(horizon="#e2b98f", zenith="#4c4658", haze=0.0025, haze_color=None, sun_d
 def sun(elevation=8, azimuth=-60, strength=4.0, color="#ffb27a", angle=2.0):
     d = bpy.data.lights.new("sun", "SUN")
     d.energy, d.color, d.angle = strength, rgb(color)[:3], math.radians(angle)
+    # Doug 2026-11-10: a stair-stepped shadow edge on the sand (crash_open film 490-512). EEVEE's virtual shadow maps: finer
+    # texels (the default 1 mm floor is reached only near the camera; the low sun stretches them over the sand), soft
+    # filtering, jittered soft shadows from the sun's 2 deg disc, and more shadow rays and steps
+    for attr, val in (("shadow_maximum_resolution", 0.0004), ("shadow_filter_radius", 2.5), ("use_shadow_jitter", True),
+                      ("shadow_jitter_overblur", 25.0), ("shadow_cascade_count", 4)):
+        if hasattr(d, attr): setattr(d, attr, val)
+    e = bpy.context.scene.eevee
+    for attr, val in (("shadow_ray_count", 3), ("shadow_step_count", 12), ("shadow_resolution_scale", 1.0), ("shadow_pool_size", "1024")):
+        if hasattr(e, attr):
+            try: setattr(e, attr, val)
+            except Exception: pass
     o = bpy.data.objects.new("sun", d)
     bpy.context.scene.collection.objects.link(o)
     o.rotation_euler = (math.radians(90 - elevation), 0, math.radians(azimuth))

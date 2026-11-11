@@ -21,6 +21,7 @@ PIVOT_FRAMES = int(os.environ.get("PIVOT_FRAMES", 0))  # >0: turn on the spot (h
 TURN_FRAMES = 22         # over the stride before the step
 NO_STAGGER = os.environ.get("NO_STAGGER") == "1"  # game_set.py: no deck plate to limp along
 LOOK_FACE = None         # game_film.py: callable(yaw) -> world heading (rad) the look-round should end facing
+BALL_OF = None           # perform(): row, side -> the ball of that foot (posed on the rig)
 LAND_CLEAR = 0.12        # metres between the plate's edge and the feet after the jump
 UPRIGHT_BONES = ("Spine", "Spine1", "Spine2", "Neck", "Head", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg", "_chest_up")
 DOWN, UP = Vector((0, 0, -1)), Vector((0, 0, 1))
@@ -110,6 +111,25 @@ def arms_balance(dirs, frame, w, phase=0.0, tuck=0.0):
         side_dir = (outward * (1 - 0.6 * tuck) + fwd * (0.12 + 0.6 * tuck)).normalized()
         ua = (-up * math.cos(o_) + side_dir * math.sin(o_)).normalized()
         ua = (Matrix.Rotation(sw_ * (1 - tuck), 3, right) @ ua).normalized()
+        fa = (ua * math.cos(bnd) + fwd * math.sin(bnd)).normalized()
+        out[f"{prefix}Arm"] = slerp_dir(dirs[f"{prefix}Arm"], ua, w)
+        out[f"{prefix}ForeArm"] = slerp_dir(dirs[f"{prefix}ForeArm"], fa, w)
+    return out
+
+
+def arms_relaxed(dirs, frame, w, t=0.0):
+    """Doug 2026-11-10, standing in the pod: arms hang relaxed, not stiff or close. Upper arms about 13 deg out from the body
+    and a little forward, elbows bent about 24 deg so the hands hang a little in front of the thighs and away from the hips,
+    with a slow breathing sway (t in seconds; the two arms a little out of step), by w (0..1)."""
+    if w <= 0: return dirs
+    up, right = frame
+    fwd = up.cross(right).normalized()
+    out = dict(dirs)
+    for prefix, outward, ph in (("Left", -right, 0.0), ("Right", right, 0.9)):
+        br = math.sin(2 * math.pi * 0.28 * t + ph)  # about one breath every 3.5 s
+        o_ = math.radians(13 + 1.5 * br); bnd = math.radians(24 + 3 * br)
+        side_dir = (outward * float(os.environ.get("RELAX_OUT", 0.55)) + fwd * 0.8).normalized()  # in front of the thighs more than out to the side (the pod is narrow)
+        ua = (-up * math.cos(o_) + side_dir * math.sin(o_)).normalized()
         fa = (ua * math.cos(bnd) + fwd * math.sin(bnd)).normalized()
         out[f"{prefix}Arm"] = slerp_dir(dirs[f"{prefix}Arm"], ua, w)
         out[f"{prefix}ForeArm"] = slerp_dir(dirs[f"{prefix}ForeArm"], fa, w)
@@ -222,6 +242,81 @@ def build_takes():
     return takes
 
 
+def step_turn(last, d_ang, frames, ball_of=None):
+    """A stepping turn from a standing pose (Doug 2026-11-10: no lazy-susan swivel): STEPS steps, alternating feet, the one on
+    the turn's side first. Through each step one leg lifts (hip and knee bend) and, only while it is up, the body turns about
+    the other foot, which stays put (pivoting on itself); the lifted foot comes down turned. Rows as in timeline()."""
+    steps = int(os.environ.get("TURN_STEPS", 3))
+    half = float(os.environ.get("HIP_HALF", 0.09))  # metres from the pelvis centre to each foot, standing
+    lift = math.radians(float(os.environ.get("TURN_LIFT", 32)))
+    BALL = float(os.environ.get("TURN_BALL", 0.13))  # metres from under the hip forward to the ball of the foot
+    per = max(6, frames // steps)
+    k0, dirs0, (up0, right0), p0, contact, take, i0 = last
+    rows, rot, p, anchor = [], 0.0, p0.copy(), None
+    left_first = d_ang > 0  # turning left (counter-clockwise): the left foot opens the turn
+    for s in range(steps):
+        swing = "Left" if (s % 2 == 0) == left_first else "Right"
+        r0, r1 = rot, d_ang * (s + 1) / steps
+        for j in range(per):
+            t = (j + 1) / per
+            a = r0 + (r1 - r0) * smooth((t - 0.15) / 0.7)
+            R = Matrix.Rotation(a, 3, "Z")
+            right = R @ right0
+            rh = Vector((right.x, right.y, 0)).normalized()
+            stance = "Right" if swing == "Left" else "Left"
+            # the stance foot (under its hip) stays where it was: the pelvis turns about it
+            Rprev = Matrix.Rotation(rot, 3, "Z")
+            rprev = Rprev @ right0; rprev = Vector((rprev.x, rprev.y, 0)).normalized()
+            fprev = Vector((-rprev.y, rprev.x, 0))  # forward = up x right
+            foot = p + rprev * (half if stance == "Right" else -half) + fprev * BALL  # it turns on the ball of the foot
+            dR = Matrix.Rotation(a - rot, 3, "Z")
+            pj = foot + dR @ (p - foot)
+            dj = {n: R @ v for n, v in dirs0.items()}
+            b = math.sin(math.pi * t) ** 2  # the swing leg's lift
+            # about the hip's left-right axis a positive angle swings a hanging limb forward: the thigh forward and up, the
+            # shin back from that by twice as much, so the knee bends and the foot clears the floor
+            for nm, ang in ((swing + "UpLeg", lift), (swing + "Leg", -lift)):  # the foot keeps its own angle: flat, the toes clear too
+                if nm in dj: dj[nm] = (Matrix.Rotation(ang * b, 3, rh) @ dj[nm]).normalized()
+            # arms: a small counter-swing with the step
+            for side, sg2 in (("Left", 1), ("Right", -1)):
+                sw = math.radians(6) * math.sin(math.pi * t) * (1 if side == swing else -1)
+                for bn in ("Arm", "ForeArm"):
+                    if side + bn in dj: dj[side + bn] = (Matrix.Rotation(sw, 3, rh) @ dj[side + bn]).normalized()
+            if ball_of is not None:  # exact: pose the rig and move the pelvis so the standing ball stays where it was
+                if j == 0 or anchor is None or anchor[0] != stance: anchor = (stance, ball_of([k0, dj, (R @ up0, right), pj, contact, take, i0], stance))
+                now = ball_of([k0, dj, (R @ up0, right), pj, contact, take, i0], stance)
+                pj = pj + Vector((anchor[1].x - now.x, anchor[1].y - now.y, 0))
+            rows.append([k0, dj, (R @ up0, right), pj, contact, take, i0])
+            if os.environ.get("TURN_DEBUG"): print("TURND step %d j %d swing %s rot %.1f pelvis %.3f %.3f %.3f d_ang %.1f" % (s, j, swing, math.degrees(a), pj.x, pj.y, pj.z, math.degrees(d_ang)))
+        p = rows[-1][3].copy(); rot = r1
+    print("TURN %d steps, %.0f deg: the pelvis moves %.1f cm (%.1f, %.1f)" % (steps, math.degrees(d_ang), (rows[-1][3] - p0).length * 100, (rows[-1][3] - p0).x * 100, (rows[-1][3] - p0).y * 100))
+    return rows
+
+
+def head_level(rows):
+    """Doug 2026-11-10: the head stays level. Wherever he is up (sitting, standing, walking), limit how far the neck and head
+    lean sideways (their angle out of the plane of the vertical and his facing, with the hip line as sideways) to HEAD_TILT
+    degrees; nodding and turning stay."""
+    lim = math.sin(math.radians(float(os.environ.get("HEAD_TILT", 6))))
+    for r in rows:
+        right = r[2][1]; rh = Vector((right.x, right.y, 0))
+        if rh.length < 1e-4: continue
+        rh.normalize()
+        w = smooth((r[2][0].z - 0.3) / 0.3)  # off while lying
+        if w <= 0: continue
+        for n in ("Neck", "Head"):  # not the chest: the rig turns the hips with it (the legs swing into the pod)
+            d = r[1].get(n)
+            if d is None or d.length < 1e-6: continue
+            d = d.normalized()
+            side = d.dot(rh)
+            if abs(side) <= lim: continue
+            rest = d - rh * side
+            if rest.length < 1e-6: continue
+            s2 = math.copysign(lim, side)
+            want = rest.normalized() * math.sqrt(1 - s2 * s2) + rh * s2
+            r[1][n] = slerp_dir(d, want, w)
+
+
 # ---------------------------------------------------------------- the timeline
 def heading(right):
     """Facing angle (radians, about Z) from the pelvis right vector."""
@@ -248,8 +343,14 @@ def timeline(takes, scale_of):
                 last = out[-1]
                 tgt = round(head_end / (math.pi / 2)) * (math.pi / 2) + math.radians(STEP_TURN)
                 d_ang = tgt - head_end
+                if os.environ.get("STEP_PIVOT", "1") == "1":  # Doug 2026-11-10: a turn is carried by the feet, never a swivel
+                    out.extend(step_turn(out[-1], d_ang, PIVOT_FRAMES, BALL_OF))
+                    pos_end, head_end = Vector((out[-1][3].x, out[-1][3].y, 0)), heading(out[-1][2][1])
+                    PIVOT_SKIP = True
+                else:
+                    PIVOT_SKIP = False
                 sway = os.environ.get("ARM_SWAY") == "1"  # the held pose froze the arms: let them trail the turn and swing a little
-                for j in range(PIVOT_FRAMES):
+                for j in range(0 if PIVOT_SKIP else PIVOT_FRAMES):
                     Rp = Matrix.Rotation(d_ang * smooth((j + 1) / PIVOT_FRAMES), 3, "Z")
                     dj = {n: Rp @ v for n, v in last[1].items()}
                     if sway:
@@ -312,6 +413,7 @@ def timeline(takes, scale_of):
                 cur = out[first + j]
                 cur[1] = {n: slerp_dir(prev[1][n], cur[1][n], w) for n in cur[1]}
                 cur[2] = (slerp_dir(prev[2][0], cur[2][0], w), slerp_dir(prev[2][1], cur[2][1], w))
+    if os.environ.get("HEAD_LEVEL", "1") == "1": head_level(out)
     if os.environ.get("HAND_FOLLOW") == "1":  # the capture's wrist markers spin the hands: each hand follows its forearm
         for r in out:
             for n in ("LeftHand", "RightHand"): r[1].pop(n, None)
@@ -335,6 +437,12 @@ def perform(root, pre=0, calib=False):
     bpy.context.view_layer.update()  # place() scaled the model: the rig must read its final world matrix
     rig = retarget.Rig(arm)
     takes = build_takes()
+    global BALL_OF
+    def BALL_OF(row, side):  # where a foot's ball is for a timeline row (the stepping turn pins its standing foot by it)
+        rig.pose(row[1], row[2], row[3]); bpy.context.view_layer.update()
+        # the heel (the ankle, under the hip) by default: pivoting on the ball, which sits well ahead of the hips, swung his
+        # pelvis 32 cm round over a 100 deg turn and stood him against the pod wall; on alternate heels it mostly cancels
+        return arm.matrix_world @ arm.pose.bones[retarget.P + side + ("ToeBase" if os.environ.get("TURN_PIN") == "ball" else "Foot")].head
     TL = timeline(takes, lambda t: rig.leg_world / t.leg)
     N = len(TL)
 

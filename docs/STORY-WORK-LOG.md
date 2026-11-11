@@ -34,6 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-10 | A (film-feet session) | film-feet-2026-11-09 | `levels/story/story-L001.json` (start only), `packages/client/src/cinematics.ts`, `packages/client/src/cinematics/crash_open.*` | crash_open round 6 (head, arms, stepping turn, hand-off light); not pushed until Doug approves |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 

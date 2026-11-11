@@ -30,7 +30,23 @@ def load():
 def build(scenery=True):
     lv, by, to_m = load()
     S = {}
-    S["wreck"] = lib.place("decor.halcyon_wreck", at=tuple(to_m(by["wreck"]["at"])), yaw=by["wreck"].get("yaw", 0), size=WRECK_M, name="wreck")
+    # final renders (GAME_LOOK=1): the original Meshy wreck at full detail (6.1 M triangles, the source of the game's 100 k copy,
+    # pruned to the pieces the game copy keeps: wreck_prep.py) and the game's own sand over the far ground
+    hi = os.environ.get("GAME_LOOK") == "1"
+    if hi:
+        S["sand"] = game_sand(lv, by["pod0"]["at"])
+        for g in [ob for ob in bpy.data.objects if ob.name.startswith("ground")]:
+            g.location.z -= 0.25  # the far ground stays as the horizon, under the game's sand (which falls 0.2 m at its edges)
+    full = os.path.join(lib.CACHE, "halcyon_wreck_full.glb")  # wreck_prep.py: the original, pruned to the game copy's pieces
+    w_at, w_yaw = tuple(to_m(by["wreck"]["at"])), by["wreck"].get("yaw", 0)
+    if hi and os.path.exists(full):
+        print("WRECK model", full, "(from", ORIGINAL_WRECK + ")")
+        S["wreck"] = lib.place(full, at=w_at, yaw=w_yaw, exact=True, name="wreck")
+        k = WRECK_M / json.load(open(full.replace(".glb", ".json")))["ext"]
+        S["wreck"].scale = (k, k, k)
+    else:
+        if hi: print("WRECK model: run wreck_prep.py first; using the game's copy")
+        S["wreck"] = lib.place("decor.halcyon_wreck", at=w_at, yaw=w_yaw, size=WRECK_M, name="wreck")
     # pods: the game sinks each 0.80 m (lift); the glass shares the pod's scale and sits at its own lift/roll
     pods = []
     for i in range(3):
@@ -69,6 +85,93 @@ def build(scenery=True):
             b.scale = (w / M, h / M, 1.5)
             b.data.materials.append(lib.mat("ridge", "#5a4a3c"))
     return S
+
+
+SAND_TOKENS = ("#645849", "#706352", "#544a3e")  # skins mars_greenhouse ground, groundAlt, groundDark
+MODEL_BRIGHTNESS = 2.0  # content/data/look.json modelBrightness (the sand takes half of it: environment.ts sandColors)
+ORIGINAL_WRECK = os.path.normpath(os.path.join(lib.ROOT, "..", "Asset workflow", "3D Models", "Halcyon_Wreck.glb"))
+
+
+def _noise(x, y, seed):  # render-3d/src/scene/environment.ts noise: seeded value noise in [0, 1]
+    xi, yi = math.floor(x), math.floor(y)
+    xf, yf = x - xi, y - yi
+    h = lambda a, b: _hash01(a * 57.1 + b * 113.3 + seed * 7.7)
+    u, v = xf * xf * (3 - 2 * xf), yf * yf * (3 - 2 * yf)
+    a, b, c, d = h(xi, yi), h(xi + 1, yi), h(xi, yi + 1), h(xi + 1, yi + 1)
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+
+
+def game_sand(lv, o):
+    """Doug 2026-11-10: the film's sand is the game's sand. The game draws no image texture: environment.ts buildGround
+    colours a grid (one vertex every ~30 world units over the map and 900 units round it) from two octaves of seeded value
+    noise between the skin's three sand tokens, darkening outside the map, and materials.ts addWear multiplies in a grain
+    and blotch noise per pixel (wear 0.9). Same grid, same noise and colours here; the wear as Blender noise at the same
+    scales (art metres). o: pod0's game position (the film's origin)."""
+    import bmesh
+    W, H, seed = lv["map"]["w"], lv["map"]["h"], lv.get("seed", 1)
+    EDGE = 900
+    gw, gh = W + EDGE * 2, H + EDGE * 2
+    sx, sy = round(gw / 30), round(gh / 30)
+    k = 1 + 0.5 * (MODEL_BRIGHTNESS - 1)
+    g0, g1, g2 = [Vector(lib.rgb(h)[:3]) * k for h in SAND_TOKENS]  # three.js Color(hex): linear, then multiplyScalar
+    bm = bmesh.new()
+    col = bm.verts.layers.float_color.new("sand")
+    grid = []
+    for j in range(sy + 1):
+        row = []
+        for i in range(sx + 1):
+            x, z = -EDGE + i * gw / sx, -EDGE + j * gh / sy
+            n = _noise(x / 90, z / 90, seed) * 0.65 + _noise(x / 28, z / 28, seed + 3) * 0.35
+            c = g0.lerp(g1, max(0, n - 0.35) * 1.6)
+            if n < 0.3: c = c.lerp(g2, (0.3 - n) * 1.6)
+            ox, oz = max(0, -x, x - W), max(0, -z, z - H)
+            out = min(1, math.hypot(ox, oz) / 260)
+            c = c.lerp(g2, out * 0.55)
+            yv = -out * 6 + (n - 0.5) * 3 * out
+            v = bm.verts.new(((x - o[0]) / M, -(z - o[1]) / M, yv / M))
+            v[col] = (c.x, c.y, c.z, 1.0)
+            row.append(v)
+        grid.append(row)
+    for j in range(sy):
+        for i in range(sx):
+            # three's PlaneGeometry splits each cell a-b-d / b-c-d; keep that diagonal (it shapes the colour blend)
+            a, b, c_, d = grid[j][i], grid[j + 1][i], grid[j + 1][i + 1], grid[j][i + 1]
+            bm.faces.new((a, d, b)); bm.faces.new((b, d, c_))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new("game_sand"); bm.to_mesh(me); bm.free()
+    me.color_attributes.active_color = me.color_attributes["sand"]; me.color_attributes.render_color_index = me.color_attributes.find("sand")
+    for f in me.polygons:
+        if f.normal.z < 0: f.flip()
+    ob = bpy.data.objects.new("game_sand", me)
+    bpy.context.scene.collection.objects.link(ob)
+    m = bpy.data.materials.new("game_sand")
+    m.use_nodes = True
+    nt = m.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    bsdf.inputs["Roughness"].default_value = 0.95
+    at = nt.nodes.new("ShaderNodeVertexColor"); at.layer_name = "sand"
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    def nz(scale, offset=0.0):
+        mp = nt.nodes.new("ShaderNodeMapping"); mp.inputs["Location"].default_value = (offset, offset, offset)
+        nt.links.new(tc.outputs["Object"], mp.inputs["Vector"])
+        t = nt.nodes.new("ShaderNodeTexNoise"); t.inputs["Scale"].default_value = scale; t.inputs["Detail"].default_value = 0.0
+        nt.links.new(mp.outputs["Vector"], t.inputs["Vector"])
+        return t.outputs["Fac"]
+    def math_(op, a, b):
+        n_ = nt.nodes.new("ShaderNodeMath"); n_.operation = op
+        for i_, x_ in enumerate((a, b)):
+            if isinstance(x_, (int, float)): n_.inputs[i_].default_value = x_
+            else: nt.links.new(x_, n_.inputs[i_])
+        return n_.outputs[0]
+    # k = 1 + 0.9 * (grain * 0.16 + blot * 0.22); grain = n(p 22) - 0.5; blot = n(p 2.6 + 7) 0.6 + n(p 6) 0.4 - 0.5
+    grain = math_("SUBTRACT", nz(22.0), 0.5)
+    blot = math_("SUBTRACT", math_("ADD", math_("MULTIPLY", nz(2.6, 7.0 / 2.6), 0.6), math_("MULTIPLY", nz(6.0), 0.4)), 0.5)
+    kk = math_("ADD", 1.0, math_("MULTIPLY", math_("ADD", math_("MULTIPLY", grain, 0.16), math_("MULTIPLY", blot, 0.22)), 0.9))
+    mix = nt.nodes.new("ShaderNodeVectorMath"); mix.operation = "SCALE"
+    nt.links.new(at.outputs["Color"], mix.inputs[0]); nt.links.new(kk, mix.inputs["Scale"])
+    nt.links.new(mix.outputs["Vector"], bsdf.inputs["Base Color"])
+    me.materials.append(m)
+    return ob
 
 
 def _hash01(n):  # render-3d/src/assets/scatter.ts hash01
