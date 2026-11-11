@@ -1,7 +1,7 @@
 import { CONTENT_VERSION, LOOK, modelScaleFor } from "@fo/content";
 import { ENGINE_VERSION, FP, createSim, type Input, type SimEvent } from "@fo/sim";
 import { SKINS, marsGreenhouse } from "@fo/skins";
-import { Matrix4, type InstancedMesh, type Object3D } from "three";
+import { Matrix4, type InstancedMesh, type Mesh, type Object3D } from "three";
 import { describe, expect, it } from "vitest";
 import level1 from "../../../levels/golden/proto-L001.json";
 import level3 from "../../../levels/golden/proto-L003.json";
@@ -174,6 +174,35 @@ describe("Renderer3D (fake WebGL)", () => {
     expect(cam.x).toBeLessThanOrEqual(480);
     expect(cam.y).toBeLessThanOrEqual(900);
     r.dispose();
+  });
+
+  it("copies kept ready-built models: shared geometry, own pile stock, nothing freed while placed (#23)", () => {
+    type Priv = { placed: Map<string, { model: { root: Object3D } }>; kept: Map<string, { root: Object3D }> };
+    const meshes = (root: Object3D): Mesh[] => { const out: Mesh[] = []; root.traverse((o) => { if ((o as Mesh).isMesh) out.push(o as Mesh); }); return out; };
+    const out = run(pin(level1), 60, () => ({ dx: 0, dy: 0 }));
+    const r = out.r as unknown as Priv;
+    const piles = [...r.placed.values()].filter((p) => p.model.root.userData["id"] === "node.material_source");
+    expect(piles.length).toBeGreaterThan(1);
+    const kept = r.kept.get("s|1|node.material_source")!;
+    expect(kept).toBeTruthy();
+    // the ore pile's draw range shows its stock, so each copy owns its geometry; the rest share the kept one
+    const [a, b] = [meshes(piles[0]!.model.root), meshes(piles[1]!.model.root)];
+    const body = (ms: Mesh[]) => ms.find((m) => m.userData["steps"]);
+    if (body(a)) expect(body(a)!.geometry).not.toBe(body(b)!.geometry);
+    const core = [...r.placed.values()].find((p) => p.model.root.userData["id"] === "sink.core")!;
+    const coreKept = r.kept.get("s|1|sink.core")!;
+    const own = meshes(core.model.root).filter((m) => !m.userData["shared"]);
+    expect(own.length).toBeGreaterThan(0);
+    const keptGeos = new Set(meshes(coreKept.root).map((m) => m.geometry));
+    for (const m of own) { expect(m.userData["kept"]).toBe(true); expect(keptGeos.has(m.geometry)).toBe(true); }
+    // removing a copy leaves the kept geometry alone
+    let freed = 0;
+    for (const g of keptGeos) g.addEventListener("dispose", () => { freed++; });
+    (out.r as unknown as { removePlaced(p: unknown): void }).removePlaced(core);
+    expect(freed).toBe(0);
+    out.r.dispose();
+    expect(freed).toBeGreaterThan(0);
+    expect(r.kept.size).toBe(0);
   });
 
   it("re-inits, resizes, switches skins and disposes cleanly", () => {

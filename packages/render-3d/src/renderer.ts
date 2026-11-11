@@ -20,6 +20,7 @@ import {
   Material,
   Mesh,
   MeshBasicMaterial,
+  type SkinnedMesh,
   MeshLambertMaterial,
   MeshStandardMaterial,
   RepeatWrapping,
@@ -132,6 +133,14 @@ const DRONE_ROTOR_Y = 0.285;
 /** Drone.glb has its muzzle and chin gun on -X; a quarter turn puts them at the +Z front every model flies toward. */
 const DRONE_FRONT_YAW = Math.PI / 2;
 const DRONE_ROTORS: readonly (readonly [number, number])[] = [[0.22, 0.37], [-0.22, 0.37], [0.22, -0.37], [-0.22, -0.37]];
+/** Kinds whose models are kept ready-built and copied on placement (#23): buildings, nodes, pods, pad plates; never characters or items. */
+const KEEPABLE = /^(sink|conv|struct|node|capture|pad)./;
+/** Events that put something new up: their frame builds models itself, so it prepares none ahead. */
+const BUSY_EVENTS = new Set(["built", "hired", "unlocked", "core_upgraded", "level_end"]);
+/** Time a frame may spend preparing models ahead (ms); one is always allowed, so a slow phone still gets through the list. */
+const KEEP_BUDGET_MS = 6;
+/** Spare label canvases kept made ahead (scene/labels.ts pool). */
+const LABEL_SPARES = 24;
 /** Decor that looks like scrap: left out where scrap heaps can be picked over. */
 const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.ship_wreck", "decor.scrap_field"]);
 
@@ -401,6 +410,14 @@ export class Renderer3D implements Renderer {
   /** Keys rebuilt because their GLB landed: they reappear without the pop. */
   private quiet = new Set<string>();
   private pads = new Map<string, PadInfo>();
+  /** Ready-built models, one per kind ("s|level|id" solid, "g|level|id" blueprint), made in quiet frames and copied on placement (#23). */
+  private kept = new Map<string, Model>();
+  private keepQ: string[] = [];
+  /** Kinds found rigged: built fresh every time, never kept. */
+  private unkept = new Set<string>();
+  private keepScan = 0;
+  /** Something new went up since the last drawn frame (built, hired, unlocked, core upgrade): that frame is busy, so nothing is prepared on it. */
+  private evSeen = false;
   /** Placed key (or r:<resident id>) of the last pick() hit, for inspect(). */
   private lastPick: string | null = null;
   private interp = new Interp();
@@ -532,6 +549,7 @@ export class Renderer3D implements Renderer {
         return;
       }
       if (e.kind === "character") return;
+      for (const [k, t] of this.kept) if (meshyBase(k.slice(k.indexOf("|", 2) + 1)) === e.id) { this.dropKept(t); this.kept.delete(k); }
       for (const [k, p] of this.placed) {
         if (meshyBase(String(p.data["id"])) !== e.id) continue;
         this.removePlaced(p);
@@ -756,6 +774,11 @@ export class Renderer3D implements Renderer {
     for (const sp of this.tagSprites) this.dynamic.remove(sp);
     this.tagSprites = [];
     this.labels.dispose();
+    for (const t of this.kept.values()) this.dropKept(t);
+    this.kept.clear();
+    this.unkept.clear();
+    this.keepQ = [];
+    this.keepScan = 0;
     if (this.bctx) disposeBuildCtx(this.bctx);
     this.gl?.domElement.remove?.();
     this.gl?.dispose();
@@ -1114,6 +1137,7 @@ export class Renderer3D implements Renderer {
     if (this.lookT) this.lookT.render(dt);
     else this.gl.render(this.scene, this.camera);
     for (const o of hid) o.visible = true;
+    this.prepareKept(state);
   }
 
   /** Fixed point to a ground point in world units. */
@@ -1206,7 +1230,7 @@ export class Renderer3D implements Renderer {
     let p = this.placed.get(key);
     if (!p) {
       const ctx = { ...this.bctx!, level };
-      const model = build ? build(ctx) : buildModel(id, ctx);
+      const model = build ? build(ctx) : this.fresh(id, level, false);
       model.root.updateMatrixWorld(true);
       tmpBox.setFromObject(model.root);
       const h = tmpBox.isEmpty() ? 1 : Math.max(0.2, tmpBox.max.y);
@@ -1224,6 +1248,110 @@ export class Renderer3D implements Renderer {
     if (building) p.model.root.position.y += SLAB_TOP;
     this.popScale(p, ART_M * this.buildK(id, level));
     return p;
+  }
+
+  // ---------------------------------------------------------------- ready-built models (#23)
+  //
+  // Building a model in code is the costly part of the frame a building appears on (procedural geometry, then the
+  // Meshy swap), so each kind is built once per level into a kept model and every placement copies it: the copy shares
+  // the kept geometry (flagged `kept`, so removal leaves it) and gets its own copies of per-model materials (status
+  // lights, lamps), as a fresh build would. Piles whose draw range shows their stock get their own geometry. Kinds the
+  // level may need next are built in quiet frames after it loads; the kept models go with the level (dispose()).
+
+  /** A model for a placement: a copy of the kept one, building and keeping it first when there is none yet. */
+  private fresh(id: string, level: number, ghost: boolean): Model {
+    const t = this.keepOne(id, level, ghost);
+    return t ? this.copyModel(t, !ghost) : buildModel(id, { ...this.bctx!, level, ...(ghost ? { ghost: true } : {}) });
+  }
+
+  /** The kept model for a kind, built now if missing; null for kinds that are never kept (characters, items, rigs). */
+  private keepOne(id: string, level: number, ghost: boolean): Model | null {
+    const key = `${ghost ? "g" : "s"}|${level}|${id}`;
+    if (!KEEPABLE.test(id) || !this.bctx || this.unkept.has(key)) return null;
+    let t = this.kept.get(key);
+    if (!t) {
+      t = buildModel(id, { ...this.bctx, level, ...(ghost ? { ghost: true } : {}) });
+      let rigged = false;
+      t.root.traverse((o) => { if ((o as SkinnedMesh).isSkinnedMesh) rigged = true; });
+      if (rigged) { this.dropKept(t); this.unkept.add(key); return null; }
+      this.kept.set(key, t);
+    }
+    return t;
+  }
+
+  /** A placement's copy of a kept model; `ownMats` gives it its own per-model materials (a blueprint swaps them all anyway). */
+  private copyModel(t: Model, ownMats: boolean): Model {
+    const root = t.root.clone(true);
+    const src: Object3D[] = [], dst: Object3D[] = [];
+    t.root.traverse((o) => { src.push(o); });
+    root.traverse((o) => { dst.push(o); });
+    const to = new Map<Object3D, Object3D>();
+    src.forEach((o, i) => { to.set(o, dst[i]!); });
+    const skinMats = this.bctx!.mats.all();
+    const own = (m: Material): Material => (skinMats.includes(m) ? m : m.clone());
+    for (const o of dst) {
+      const m = o as Mesh;
+      // loaded GLB meshes are shared already, as on a fresh build
+      if (!m.isMesh || m.userData["shared"]) continue;
+      if (m.userData["steps"]) m.geometry = m.geometry.clone();
+      else m.userData["kept"] = true;
+      if (ownMats) m.material = Array.isArray(m.material) ? m.material.map(own) : own(m.material);
+    }
+    const parts: Record<string, Object3D> = {};
+    for (const [k, v] of Object.entries(t.parts)) parts[k] = to.get(v) ?? v;
+    return { root, cls: t.cls, parts };
+  }
+
+  private dropKept(t: Model): void {
+    const skinMats = this.bctx?.mats.all() ?? [];
+    t.root.traverse((o) => {
+      const m = o as Mesh;
+      if (!m.isMesh) return;
+      disposeGeo(m);
+      for (const x of Array.isArray(m.material) ? m.material : [m.material]) if (!skinMats.includes(x) && !(x as MeshBasicMaterial).map) x.dispose();
+    });
+  }
+
+  /**
+   * On a frame that put nothing new up, build kinds the level may show next, one at least and more while the frame's
+   * budget lasts: whatever each open pad would put up (the next core level included), every kind the level places, at
+   * level 1, the pads' blueprints, then the later core and converter levels.
+   */
+  private prepareKept(s: State): void {
+    const busy = this.evSeen;
+    this.evSeen = false;
+    if (busy || !this.bctx || this.t < 0.5) return;
+    // spare label canvases first: a pad's name, price and decal, for the few pads a core upgrade opens at once
+    this.labels.stock(LABEL_SPARES, 2);
+    if (!this.keepQ.length) {
+      if (this.t < this.keepScan) return;
+      this.keepScan = this.t + 0.5;
+      const want = new Set<string>();
+      const add = (id: string, level: number, ghost: boolean): void => {
+        if (!KEEPABLE.test(id) || !hasModel(id) || this.unkept.has(`s|${level}|${id}`)) return;
+        const k = `${ghost ? "g" : "s"}|${level}|${id}`;
+        if (!this.kept.has(k)) want.add(k);
+      };
+      const specs = s.pads.flatMap((pad) => { if (pad.done) return []; const g = this.ghostSpecOf(this.pads.get(pad.id), s); return g ? [g] : []; });
+      for (const g of specs) add(g.id, g.level, false);
+      for (const e of this.manifest.entities) add(e.type, 1, false);
+      for (const g of specs) add(g.id, g.level, true);
+      // and every later level of the core and the converters, so an upgrade after next is ready too
+      const cp = this.cp;
+      for (const e of this.manifest.entities) {
+        const top = e.type === "sink.core" ? cp?.core.levels.length ?? 1 : e.type.startsWith("conv.") ? cp?.converters[e.type]?.rateTicksByLevel.length ?? 1 : 1;
+        for (let lv = 2; lv <= top; lv++) add(e.type, lv, false);
+      }
+      this.keepQ = [...want];
+    }
+    const t0 = this.nowFn();
+    while (this.keepQ.length) {
+      const k = this.keepQ.shift()!;
+      if (this.kept.has(k)) continue;
+      const a = k.indexOf("|"), b = k.indexOf("|", a + 1);
+      this.keepOne(k.slice(b + 1), Number(k.slice(a + 1, b)), k[0] === "g");
+      if (this.nowFn() - t0 >= KEEP_BUDGET_MS) break;
+    }
   }
 
   /** Size multiplier for a placed id: the building scale times its own modelScale on buildings and the greenhouse dome (not belts or gates), else 1. */
@@ -2208,7 +2336,7 @@ export class Renderer3D implements Renderer {
     if (!g) {
       const mat = new MeshLambertMaterial({ color: new Color(this.tokens.interactive), emissive: new Color(this.tokens.interactive), emissiveIntensity: 0.55, transparent: true, depthWrite: false });
       const ctx = { ...this.bctx!, level, ghost: true };
-      const m = onWall && what === "struct.ranged_defense" ? this.wallTurret(ctx) : buildModel(what, ctx);
+      const m = onWall && what === "struct.ranged_defense" ? this.wallTurret(ctx) : this.fresh(what, level, true);
       const drop: Object3D[] = [];
       m.root.traverse((o) => {
         const me = o as Mesh;
@@ -3729,6 +3857,7 @@ export class Renderer3D implements Renderer {
   }
 
   onEvent(ev: SimEvent): void {
+    if (BUSY_EVENTS.has(ev.t)) this.evSeen = true;
     const fx = this.fx;
     if (!fx || !this.gl) return;
     const e = ev as unknown as Record<string, unknown> & { t: string };

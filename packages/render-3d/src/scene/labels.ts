@@ -27,6 +27,12 @@ export class Labels {
   private cache = new Map<string, Entry>();
   private clock = 0;
   private measureCanvas: HTMLCanvasElement | null = null;
+  /**
+   * Spare canvases made ahead in quiet frames, their 2D context already up (#23): making a canvas, not drawing on it,
+   * is the costly part of a new label, and a core upgrade opens several pads, each with new labels, on one frame.
+   * Null turns the spares off.
+   */
+  pool: HTMLCanvasElement[] | null = [];
 
   constructor(private readonly make: CanvasMaker | null, readonly ink: string) {}
 
@@ -41,7 +47,7 @@ export class Labels {
     if (hit) { hit.used = this.clock; return hit; }
     if (!this.make) return null;
     const a = art();
-    const c = this.make(Math.max(2, Math.ceil(a.w)), Math.max(2, Math.ceil(a.h)));
+    const c = this.canvas(Math.max(2, Math.ceil(a.w)), Math.max(2, Math.ceil(a.h)));
     const g = c?.getContext("2d");
     if (!c || !g) return null;
     a.draw(g, c.width, c.height);
@@ -110,6 +116,24 @@ export class Labels {
     };
   }
 
+  /** A canvas of this size: a spare one resized (which also clears it), else a new one. */
+  private canvas(w: number, h: number): HTMLCanvasElement | null {
+    const c = this.pool?.pop();
+    if (!c) return this.make!(w, h);
+    c.width = w; c.height = h;
+    return c;
+  }
+
+  /** Make spare canvases until there are `n`, at most `per` on this call. */
+  stock(n: number, per = 1): void {
+    if (!this.pool || !this.make) return;
+    for (let i = 0; i < per && this.pool.length < n; i++) {
+      const c = this.make(2, 2);
+      if (!c) return;
+      this.pool.push(c);
+    }
+  }
+
   private evict(): void {
     const old = [...this.cache.entries()].sort((a, b) => a[1].used - b[1].used).slice(0, this.cache.size - MAX + 40);
     for (const [k, e] of old) {
@@ -124,6 +148,7 @@ export class Labels {
   dispose(): void {
     for (const e of this.cache.values()) { e.tex.dispose(); e.mat.dispose(); e.meshMat?.dispose(); }
     this.cache.clear();
+    if (this.pool) this.pool = [];
   }
 }
 

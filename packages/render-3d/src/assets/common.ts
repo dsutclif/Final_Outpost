@@ -53,7 +53,7 @@ export function model(cls: AssetClass, root = new Group()): Model {
   return { root, cls, parts: {} };
 }
 
-/** Dispose a model mesh's geometry unless it is shared (loaded GLB meshes are cloned, not copied). */
+/** Dispose a model mesh's geometry unless it is shared (loaded GLB meshes are cloned, not copied) or a copy of a kept ready-built model's (renderer.ts, #23). */
 export function disposeGeo(m: Mesh): void {
-  if (!m.userData["shared"]) m.geometry.dispose();
+  if (!m.userData["shared"] && !m.userData["kept"]) m.geometry.dispose();
 }
