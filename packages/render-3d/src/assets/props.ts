@@ -82,25 +82,6 @@ export function buildItem(res: string, ctx: BuildCtx): Model {
   return m;
 }
 
-/**
- * The clerk pad beside the kiosk (sink.sales_point.register): a ground plate with a person
- * glyph, like a converter's operator spot. Whoever stands on it (the player or a clerk) rings
- * up the queue; there is no register object to hide behind.
- */
-/**
- * The "someone stands here" plate shared by the clerk pad and every converter's operator spot:
- * a raised disc with a bright ring and a person glyph lying flat, head toward -z.
- */
-export function stationPlate(g: GeoBuilder, t: Tokens, x = 0, z = 0): GeoBuilder {
-  const glyph = t.interactive;
-  return g
-    .cyl(0.46, 0.5, 0.08, 20, t.metalDark, { at: [x, 0.04, z] })
-    .torus(0.42, 0.05, 4, 24, glyph, { at: [x, 0.085, z], rot: [Math.PI / 2, 0, 0] })
-    .cyl(0.09, 0.09, 0.02, 12, glyph, { at: [x, 0.09, z - 0.12] })
-    .cyl(0.17, 0.17, 0.02, 14, glyph, { at: [x, 0.09, z + 0.12], scale: [1, 1, 0.62] })
-    .box(0.34, 0.02, 0.1, mix(t.metalDark, t.ink, 0.2), { at: [x, 0.085, z + 0.2] });
-}
-
 /** Belt top height in art metres (items ride here). */
 export const BELT_TOP = 0.3;
 
@@ -118,9 +99,11 @@ export function buildBelt(ctx: BuildCtx): Model {
   return m;
 }
 
+/** The clerk pad beside the kiosk (sink.sales_point.register): no mesh of its own. The renderer draws it flat on the ground (a pad icon); this empty model only gives it a place and a scale. */
 export function buildClerkPad(ctx: BuildCtx): Model {
   const m = model("prop");
-  m.root.add(mesh(stationPlate(new GeoBuilder(), ctx.t).build(), ctx.mats.std, "plate"));
+  // a hairline speck keeps the model a real mesh (budget and anchor checks); the renderer never draws it
+  m.root.add(mesh(new GeoBuilder().box(0.02, 0.002, 0.02, ctx.t.metalDark, { at: [0, 0.001, 0] }).build(), ctx.mats.std, "speck"));
   return m;
 }
 

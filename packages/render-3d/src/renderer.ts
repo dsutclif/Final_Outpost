@@ -14,6 +14,7 @@ import {
   NotEqualStencilFunc,
   Group,
   AdditiveBlending,
+  NormalBlending,
   DoubleSide,
   Matrix4,
   Material,
@@ -54,7 +55,8 @@ import { markOccluder } from "./materials.js";
 import { FALL_CAM_IN, FALL_CAM_OUT, FALL_LEAD, FALL_PITCH, FALL_ZOOM, ROLL_S, helmetMiddle, rollPose, wearHelmet, type Pose } from "./scene/fallstage.js";
 import { applyMeshy, loadMeshy, meshyRig, meshyBase, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
-import { BELT_TOP, buildCrateGeo, stationPlate } from "./assets/props.js";
+import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
+import { PadIcons, buildIcon, hireIcon, resourceIcon } from "./scene/padicons.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash, hash01 } from "./assets/scatter.js";
 import { LEAD_WEIGHT, type FallScene, type LiveLook, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder, ROCKS } from "./geom.js";
@@ -111,12 +113,17 @@ export interface Renderer3DOptions {
   createGL?: (canvas: HTMLCanvasElement) => GLLike;
 }
 
-interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; site?: V; worker?: { vars: WorkerVars; res?: string }; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean; target?: string }
+interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, number>; label: string; big: boolean; what: string; site?: V; worker?: { vars: WorkerVars; res?: string }; targetType?: string; requiresPad?: string; requiresCoreLevel?: number; goal?: boolean; target?: string }
 
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
 /** Order bubble sprite height (world): font 56 px on a 180 px canvas; ORDER_H_OLD is the first design (font 52 on 120), whose tail tip the new one keeps. */
 const ORDER_H = textSprite(TEXT.main, 56, 180), ORDER_H_OLD = textSprite(TEXT.main, 52, 120);
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
+/** Pad label canvas height: the (optional) name, the lock reason, then one or two rows of cost pills. */
+function padArtH(named: boolean, rows: number, lock: boolean): number {
+  const top = named ? 48 + (lock ? PAD_LOCK_H : 0) : lock ? 40 : 4;
+  return top + (rows === 2 ? 144 : 68) + (named ? 16 : 8);
+}
 /** Back-stack columns per row behind the hero before a second row starts. */
 const BACK_PER_ROW = 3;
 /** Drone: size against a character, hover height, and the four rotor mounts [x, z] / height (drone-model art metres). */
@@ -205,28 +212,6 @@ const PICK_PX = 28;
 
 
 /** three.js renderer (Contract 2). State drives every visual; events add juice only. */
-/** Pad picture: the hire pad's job tool, or what a build pad does when it builds nothing visible. */
-function padGlyph(info: PadInfo | undefined, upgrades: Record<string, unknown>): string {
-  if (!info) return "";
-  if (info.kind === "hire") {
-    const res = info.worker?.res ?? "";
-    switch (info.what) {
-      case "role.cashier": return "register";
-      case "role.supplier": return res.startsWith("res.food") ? "basket" : "pick";
-      case "role.operator": return "wrench";
-      case "role.server": return "tray";
-      case "role.hauler": return "crate";
-      case "role.defender": return "shield";
-      case "role.hunter": return "scope";
-      case "role.medic": return "cross";
-      default: return "person";
-    }
-  }
-  if (info.what === "node.enable") return "unlock";
-  if (info.what === "conv.level" || info.what === "sink.core.level" || upgrades[info.what]) return "up";
-  return "";
-}
-
 /** Flat pad glyphs, centred on (x, y), about 2r across; ink outlines, light fills. */
 function drawGlyph(g: CanvasRenderingContext2D, kind: string, x: number, y: number, r: number, ink: string, light: string): void {
   g.save();
@@ -397,6 +382,7 @@ export class Renderer3D implements Renderer {
   private blobs: Blobs | null = null;
   private items: Items | null = null;
   private itemIcons: ItemIcons | null = null;
+  private padIcons: PadIcons | null = null;
   private walls: { wall: Batch; cracked: Batch; reinforced: Batch; crackedR: Batch; dash: Batch; rubble: Batch; crate: Batch; terrain: Batch } | null = null;
   /** The Rockslide GLB has landed: ridge and outcrop terrain draws as tiles of it (Doug, 2026-11-04). */
   private rockslide = false;
@@ -644,6 +630,7 @@ export class Renderer3D implements Renderer {
     this.blobs = new Blobs(mats.blob, this.scene);
     this.items = new Items(this.tokens, mats.std, this.scene);
     this.itemIcons = this.gl && typeof mount.ownerDocument?.createElement === "function" ? new ItemIcons(this.gl as unknown as WebGLRenderer, this.items, mount.ownerDocument) : null;
+    this.padIcons = new PadIcons(typeof mount.ownerDocument?.createElement === "function" ? mount.ownerDocument : null);
     const geoOf = (m: Model): BufferGeometry => {
       let g: BufferGeometry | null = null;
       m.root.traverse((o) => { if (!g && (o as Mesh).isMesh) g = (o as Mesh).geometry; });
@@ -753,6 +740,7 @@ export class Renderer3D implements Renderer {
     this.items?.dispose();
     this.itemIcons?.dispose();
     this.itemIcons = null;
+    this.padIcons = null;
     if (this.walls) for (const b of Object.values(this.walls)) b.dispose();
     for (const g of this.geos) g.dispose();
     this.geos = [];
@@ -815,6 +803,7 @@ export class Renderer3D implements Renderer {
       const info: PadInfo = { id: e.id, kind, cost: { ...e.cost }, label, big: e.type === "pad.build" ? e.big : false, what };
       if (worker) info.worker = worker;
       if (e.type === "pad.build" && e.target) info.target = e.target;
+      if (targetType) info.targetType = targetType;
       if (e.type === "pad.build" && e.site) info.site = { x: e.site[0], y: e.site[1] };
       if (this.manifest.goal.type === "build" && this.manifest.goal.target === e.id) info.goal = true;
       if (e.requires?.pad !== undefined) info.requiresPad = e.requires.pad;
@@ -1554,6 +1543,22 @@ export class Renderer3D implements Renderer {
     const reg = this.place("register", "sink.sales_point.register", this.wv(sales.register));
     // every standing plate (clerk, operator, pickup, drop-off) draws at the one plot plate size
     if (this.devPlateSize !== null) reg.model.root.scale.setScalar(this.devPlateSize);
+    // the clerk pad is look D: the credit-coin icon itself, flat on the ground (one path for every level); the plate model stays
+    // built for its anchors and scale but is never drawn
+    reg.model.root.visible = false;
+    let regDecal = reg.extra[0] as Mesh | undefined;
+    if (!regDecal) {
+      regDecal = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false }));
+      regDecal.renderOrder = 1;
+      this.dynamic.add(regDecal);
+      reg.extra[0] = regDecal;
+    }
+    const regLight = this.padMarkLight();
+    const rdm = this.labels.meshMaterial(`clerk|${regLight}|${!!this.padIcons?.ready("operate-clerk")}`, () => this.operatePadArt("operate-clerk", regLight));
+    if (rdm) { this.glowFinish(rdm); regDecal.material = rdm; regDecal.visible = true; this.hideUnderCharacters(rdm); } else regDecal.visible = false;
+    const regAt = this.wv(sales.register);
+    regDecal.position.set(regAt.x, 2.4, regAt.z);
+    regDecal.scale.setScalar(0.75 * reg.model.root.scale.x);
     this.shelfCrates(sales, kiosk);
     // the currency pile by the clerk pad
     const items = this.items!;
@@ -1814,16 +1819,32 @@ export class Renderer3D implements Renderer {
     const builtIn = p.model.root.getObjectByName("plates");
     if (builtIn) builtIn.visible = false;
     const d = this.devPlateSize!;
-    let plate = p.extra[6] as Mesh | undefined, tray = p.extra[7] as Mesh | undefined;
-    if (!plate) {
-      // stationPlate is 1 art m across; the tray is the converter's 0.7 m plate
-      plate = mesh(stationPlate(new GeoBuilder(), this.tokens).build(), this.bctx!.mats.panel, "plate");
+    let tray = p.extra[7] as Mesh | undefined;
+    if (!tray) {
+      // the pickup tray is the converter's 0.7 m plate (the operator spot is a flat icon, see operatorSpot)
       tray = mesh(new GeoBuilder().rbox(0.7, 0.14, 0.7, 0.05, this.tokens.structureDark, { at: [0, 0.08, 0] }, 1).build(), this.bctx!.mats.panel, "tray");
-      this.dynamic.add(plate, tray);
-      p.extra[6] = plate; p.extra[7] = tray;
+      this.dynamic.add(tray);
+      p.extra[7] = tray;
     }
-    plate.position.copy(this.wv(op)); plate.scale.setScalar(d);
-    tray!.position.copy(this.wv(pick)); tray!.scale.setScalar(d);
+    void op;
+    tray.position.copy(this.wv(pick)); tray.scale.setScalar(d);
+  }
+
+  /** Look D: a machine's operator spot is the gear-machine icon flat on the ground, no raised plate. */
+  private operatorSpot(p: Placed, op: V): void {
+    let m = p.extra[6] as Mesh | undefined;
+    if (!m) {
+      m = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false }));
+      m.renderOrder = 1;
+      this.dynamic.add(m);
+      p.extra[6] = m;
+    }
+    const light = this.padMarkLight();
+    const mat = this.labels.meshMaterial(`opm|${light}|${!!this.padIcons?.ready("operate-machine")}`, () => this.operatePadArt("operate-machine", light));
+    if (mat) { this.glowFinish(mat); m.material = mat; m.visible = true; this.hideUnderCharacters(mat); } else m.visible = false;
+    const w = this.wv(op);
+    m.position.set(w.x, 2.4, w.z);
+    m.scale.setScalar(0.75 * (this.devPlateSize ?? ART_M));
   }
 
   private syncConverters(s: State): void {
@@ -1842,6 +1863,7 @@ export class Renderer3D implements Renderer {
         p.model.root.scale.z *= 1 + 0.035 * q;
       }
       if (this.devPlateSize !== null) this.fixedPlates(p, cv.operatorPos, cv.pickupPos);
+      this.operatorSpot(p, cv.operatorPos);
       const def = this.content.converters[cv.type] as { outCap?: number; range?: number; role?: string; output?: string; rate?: number; upgradeRates?: number[] } | undefined;
       const manned = this.converterManned(s, cv, def);
       const blocked = cv.out >= (def?.outCap ?? 99);
@@ -2010,12 +2032,13 @@ export class Renderer3D implements Renderer {
       if (!m) { m = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false })); m.renderOrder = 1; this.dynamic.add(m); this.depotPads[i] = m; }
       const res = i === 0 ? undefined : d.stores[i - 1];
       const lightMark = this.padMarkLight();
-      const mat = this.labels.meshMaterial(`dp|${res ?? ""}|${lightMark}`, () => this.depotPadArt(res, lightMark));
-      if (mat) m.material = mat;
+      const dIcon = res ? resourceIcon(res) : "operate-dropoff";
+      const mat = this.labels.meshMaterial(`dp|${res ?? ""}|${lightMark}|${dIcon ? !!this.padIcons?.ready(dIcon) : "-"}`, () => this.depotPadArt(res, lightMark));
+      if (mat) { this.glowFinish(mat); m.material = mat; }
       m.visible = !!mat;
       const w = this.wv({ x: d.pos.x + o[0] * FP, y: d.pos.y + o[1] * FP });
       m.position.set(w.x, 2.4, w.z);
-      m.scale.setScalar(this.devPlateSize ?? 2 * (def?.padRange ?? 20) * 1.1);
+      m.scale.setScalar(0.5 * (this.devPlateSize ?? 2 * (def?.padRange ?? 20) * 1.1));
       // the drop-off arrow points inward: from the pad toward the depot, whatever side its offset is on
       if (i === 0) m.rotation.y = o[0] === 0 && o[1] === 0 ? 0 : Math.atan2(o[0], o[1]);
       if (mat) this.hideUnderCharacters(mat);
@@ -2025,6 +2048,8 @@ export class Renderer3D implements Renderer {
 
   /** A warehouse pad: solid outline, an inward arrow on the drop-off, the resource's icon on a pickup. */
   private depotPadArt(res: string | undefined, light: boolean): LabelArt {
+    const ic = res ? resourceIcon(res) : "operate-dropoff";
+    if (ic) return this.operatePadArt(ic, light);
     const t = this.tokens;
     const mark = light ? t.guideLight : t.guideShadow;
     return {
@@ -2083,25 +2108,25 @@ export class Renderer3D implements Renderer {
         this.dynamic.add(decal);
         p.extra[0] = decal;
       }
-      const wk = info?.kind === "hire" ? info : undefined;
-      const glyph = padGlyph(info, this.content.upgrades);
       const lightMark = this.padMarkLight();
-      const dm = this.labels.meshMaterial(`pd|${fb}|${locked}|${big}|${wk?.what ?? ""}|${wk?.worker?.res ?? ""}|${glyph}|${lightMark}`, () => this.padDecalArt(fb / 24, locked, big, lightMark, wk?.what, wk?.worker?.res, glyph));
-      if (dm) { decal.material = dm; decal.visible = true; } else decal.visible = false;
+      const icon = this.padIconOf(info);
+      const color = this.padColor(info, lightMark);
+      const iconOk = icon !== null && !!this.padIcons?.ready(icon);
+      const dm = this.labels.meshMaterial(`pd|${fb}|${locked}|${color}|${icon}|${iconOk}|${lightMark}|glow`, () => this.padDecalArt(fb / 24, locked, lightMark, color, icon, true));
+      if (dm) { dm.opacity = 1; dm.blending = AdditiveBlending; decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
-      decal.scale.setScalar(1.75 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
+      decal.scale.setScalar(2.1 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
       if (dm) this.hideUnderCharacters(dm);
       pts.push({ id: pad.id, x: at.x, z: at.z });
-      this.padPin(p, pad.id, at, glyph || (info?.what.startsWith("struct.ranged_defense") ? "turret" : "build"), wk?.what, wk?.worker?.res, lightMark, locked);
+      this.padPin(p, pad.id, at, icon, color, lightMark, locked);
       // floating name plus every cost resource with what is still owed (icon + number each)
       const sp = this.sprite(p, 0);
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
       if (!owed.length) owed.push({ res: "res.currency", left: 0 });
-      const label = info?.label ?? nameOf(this.skin, pad.type);
       const lockTxt = padLockReason(this.skin, info, locked, s.core.level, s.residents.filter((r) => r.status === "injured" || r.status === "healing").length, holdJob ?? false);
       const rows = owed.length > PAD_PER_ROW ? 2 : 1;
-      const artH = (rows === 2 ? PAD_ART_H2 : PAD_ART_H) + (lockTxt ? PAD_LOCK_H : 0);
-      sp.visible = this.labels.apply(sp, `pl|${label}|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${locked}|${lockTxt}`, () => this.padLabelArt(label, owed, locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
+      const artH = padArtH(false, rows, !!lockTxt);
+      sp.visible = this.labels.apply(sp, `pl|${owed.map((o) => `${o.res}:${o.left}`).join(",")}|${locked}|${lockTxt}`, () => this.padLabelArt("", owed, locked, lockTxt), PAD_LABEL_H * (artH / PAD_ART_H));
       // a pad that places a new model shows its blueprint at full size, so a name never floats over nothing
       const gs = ghosts.has(pad.id) ? this.ghostSpecOf(info, s) : null;
       const gAt = gs ? (gs.at === "site" ? (info!.site ? v3(info!.site.x, 0, info!.site.y) : at) : this.wv(gs.at)) : at;
@@ -2112,7 +2137,11 @@ export class Renderer3D implements Renderer {
       const onBelt = info?.what === "struct.conveyor";
       // a big landmark's blueprint is taller than the view: its price stays low enough to be on screen
       const lift = onBelt ? BELT_TOP + 0.12 : Math.max(1.25, big ? Math.min(ghostH + 0.3, BIG_LABEL_LIFT) : ghostH + 0.3);
-      sp.position.set(at.x, ART_M * (lift + (onBelt ? 0 : (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04)), at.z);
+      // the price sits small just under the pad's ring (toward the camera); over a blueprint it stays above the shape
+      if (!ghostH && !onBelt) {
+        const dn = 1.45 * ART_M * sc * 0.7071;
+        sp.position.set(at.x + dn, ART_M * 0.05, at.z + dn);
+      } else sp.position.set(at.x, ART_M * (lift + (onBelt ? 0 : (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04)), at.z);
       // scaffold rises with the payment for upgrades that have no blueprint of their own
       let scaf = p.extra[1] as Mesh | undefined;
       const builds = info?.kind === "build" && (info.what.startsWith("struct.") || info.what.startsWith("conv.") || info.what === "sink.core.level");
@@ -3172,7 +3201,7 @@ export class Renderer3D implements Renderer {
    * by a thin pole of light, both see-through and drawn over everything, so it reads as a digital overlay, not an object.
    * Shown only while a wall or building covers the pad's ground point from the camera.
    */
-  private padPin(p: Placed, id: string, at: Vector3, glyph: string, role: string | undefined, res: string | undefined, light: boolean, locked: boolean): void {
+  private padPin(p: Placed, id: string, at: Vector3, icon: string | null, color: string, light: boolean, locked: boolean): void {
     const top = this.padHidden.get(id);
     if (top !== undefined) p.data["pinT"] = this.t;
     const on = this.t - ((p.data["pinT"] as number | undefined) ?? -9) < 0.2;
@@ -3192,31 +3221,46 @@ export class Renderer3D implements Renderer {
     (pole.material as MeshBasicMaterial).opacity = 0.3 * flick;
     pole.position.set(at.x, 2.4, at.z);
     pole.rotation.y = YAW;
-    const ico = glyph;
-    sp.visible = this.labels.apply(sp, `pin|${ico}|${role ?? ""}|${res ?? ""}|${light}|${locked}`, () => this.padPinArt(ico, role, res, light, locked), PAD_LABEL_H * 1.25);
-    sp.position.set(at.x, h + 2.4, at.z);
+    const iconOk = icon !== null && !!this.padIcons?.ready(icon);
+    sp.visible = this.labels.apply(sp, `pin|${icon}|${iconOk}|${color}|${light}|${locked}`, () => this.padPinArt(icon, color, light, locked), PAD_LABEL_H * 5);
+    // the pin grew about its lower edge, so the pole keeps its length
+    sp.position.set(at.x, h + 2.4 + sp.scale.y / 2 * (1 - 1.25 / 5), at.z);
     // the pole ends at the pin's lower edge, not its centre
-    pole.scale.set(0.09 * ART_M, Math.max(0.1, h - sp.scale.y / 2), 1);
+    pole.scale.set(0.09 * ART_M, Math.max(0.1, sp.position.y - 2.4 - sp.scale.y / 2), 1);
     sp.material.opacity = 0.9 * flick;
   }
 
-  /** The pin: the pad's glyph on a see-through disc in the role colour, ringed like a light projection. */
-  private padPinArt(glyph: string, role: string | undefined, res: string | undefined, light: boolean, locked: boolean): LabelArt {
-    const t = this.tokens;
+  /** The pin: a dark smoked-glass coin with a clear thick rim, a glowing white inset ring and a solid glowing white icon. */
+  private padPinArt(icon: string | null, _color: string, light: boolean, locked: boolean): LabelArt {
+    void light;
+    const k = locked ? 0.6 : 1;
     return {
-      w: 128, h: 128,
+      w: 256, h: 256, premult: true,
       draw: (g, w, h) => {
         g.clearRect(0, 0, w, h);
-        const disc = role ? this.skin.palette.role[role] ?? t.structure : t.guideLight;
-        g.globalAlpha = locked ? 0.4 : 0.6;
-        g.beginPath(); g.arc(w / 2, h / 2, 50, 0, Math.PI * 2); g.fillStyle = disc; g.fill();
-        g.globalAlpha = 0.9; g.lineWidth = 5; g.strokeStyle = t.guideLight; g.stroke();
-        g.setLineDash([6, 8]); g.beginPath(); g.arc(w / 2, h / 2, 59, 0, Math.PI * 2); g.lineWidth = 3; g.stroke(); g.setLineDash([]);
-        g.globalAlpha = 0.95;
-        if (glyph) { drawGlyph(g, glyph, w / 2, h / 2, glyph === "turret" ? 41 : 31, t.ink, t.paper.panel); if (res) drawIcon(g, w / 2 + 38, h / 2 + 38, 18, resToken(t, res), t.ink); }
-        else { g.beginPath(); g.moveTo(w / 2, h / 2 - 22); g.lineTo(w / 2 + 18, h / 2); g.lineTo(w / 2, h / 2 + 22); g.lineTo(w / 2 - 18, h / 2); g.closePath(); g.fillStyle = t.guideLight; g.fill(); }
+        const c = w / 2;
+        g.globalAlpha = k;
+        // the smoked glass body: filled, the scene shows dimly through
+        const body = g.createRadialGradient(c - 30, c - 36, 10, c, c, 104);
+        body?.addColorStop(0, "rgba(34,40,48,0.62)"); body?.addColorStop(1, "rgba(10,13,18,0.72)");
+        g.fillStyle = body ?? "rgba(20,25,32,0.67)"; g.beginPath(); g.arc(c, c, 104, 0, Math.PI * 2); g.fill();
+        // the clear glass rim: thin, with thickness (an outer and inner edge, one side catching the light)
+        g.lineWidth = 4; g.strokeStyle = "rgba(255,255,255,0.4)"; g.beginPath(); g.arc(c, c, 104, 0, Math.PI * 2); g.stroke();
+        g.lineWidth = 2; g.strokeStyle = "rgba(255,255,255,0.22)"; g.beginPath(); g.arc(c, c, 97, 0, Math.PI * 2); g.stroke();
+        g.lineWidth = 5; g.strokeStyle = "rgba(255,255,255,0.75)"; g.beginPath(); g.arc(c, c, 101, Math.PI * 0.85, Math.PI * 1.6); g.stroke();
+        // the inset ring: bright white, glowing, just inside the rim
+        g.shadowColor = "rgba(255,255,255,0.95)"; g.shadowBlur = 22;
+        g.lineWidth = 8; g.strokeStyle = "#ffffff"; g.beginPath(); g.arc(c, c, 86, 0, Math.PI * 2); g.stroke();
+        g.shadowBlur = 0;
+        // the icon: solid bright white with a soft glow
+        const pic = icon ? this.padIcons?.get(icon, "#ffffff") : null;
+        if (pic) {
+          const s = 124, x = c - s / 2, y = c - s / 2;
+          g.shadowColor = "rgba(255,255,255,0.9)"; g.shadowBlur = 18;
+          g.drawImage(pic, x, y, s, s);
+          g.shadowBlur = 0;
+        }
         g.globalAlpha = 1;
-        void light;
       },
     };
   }
@@ -3238,39 +3282,82 @@ export class Renderer3D implements Renderer {
     g.lineWidth = width; g.strokeStyle = color ?? (light ? t.guideLight : t.guideShadow); g.globalAlpha = 1; g.stroke();
   }
 
-  private padDecalArt(fill: number, locked: boolean, big: boolean, light: boolean, role?: string, res?: string, glyph = ""): LabelArt {
+  /** The pad's icon file; null when none fits. */
+  private padIconOf(info: PadInfo | undefined): string | null {
+    if (!info) return null;
+    return info.kind === "hire" ? hireIcon(info.what, info.worker?.res ?? "") : buildIcon(info.what, info.targetType);
+  }
+
+  /** Every pad takes the guide arrows' colour: near-black by day, light blue in dim light. */
+  private padColor(info: PadInfo | undefined, light: boolean): string {
     const t = this.tokens;
-    const mark = light ? t.guideLight : t.guideShadow;
-    const col = locked ? mix(mark, light ? t.ink : t.guideLight, 0.45) : mark;
+    void info;
+    return light ? t.guideLight : t.guideShadow;
+  }
+
+  /** Operate spots read as light shining on the ground: added to it, see-through, never opaque. */
+  private glowFinish(m: MeshBasicMaterial): void {
+    m.opacity = 1;
+    m.blending = AdditiveBlending;
+  }
+
+  /** Same finish as the guide arrows' material: opacity 0.55 by day, 0.9 in dim light (added to the ground then). */
+  private markFinish(m: MeshBasicMaterial, light: boolean): void {
+    m.opacity = light ? 0.9 : 0.55;
+    m.blending = light ? AdditiveBlending : NormalBlending;
+  }
+
+  /** Look C: the icon inside one ring that fills with the payment (buy, hire, upgrade and unlock pads). No plate, dashes, disc or name. */
+  private padDecalArt(fill: number, locked: boolean, light: boolean, color: string, icon: string | null, hire = false): LabelArt {
+    const t = this.tokens;
+    const col = locked ? mix(color, light ? t.ink : t.guideLight, 0.45) : color;
+    if (hire) {
+      // a hire pad glows: the paid part of the ring bright white, the unpaid part faint, the icon at half that brightness
+      return {
+        w: 256, h: 256, premult: true,
+        draw: (g, w, h) => {
+          g.clearRect(0, 0, w, h);
+          const k = locked ? 0.55 : 1;
+          g.lineWidth = 14; g.strokeStyle = `rgba(255,255,255,${0.22 * k})`;
+          g.beginPath(); g.arc(w / 2, h / 2, 104, 0, Math.PI * 2); g.stroke();
+          if (fill > 0) {
+            g.lineCap = "round"; g.shadowColor = "#ffffff"; g.shadowBlur = 26; g.lineWidth = 14; g.strokeStyle = `rgba(255,255,255,${k})`;
+            g.beginPath(); g.arc(w / 2, h / 2, 104, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fill); g.stroke();
+            g.shadowBlur = 0;
+          }
+          const pic = icon ? this.padIcons?.get(icon, "#ffffff") : null;
+          if (pic) { g.shadowColor = "#ffffff"; g.shadowBlur = 16; g.globalAlpha = 0.5 * k; g.drawImage(pic, w / 2 - 78, h / 2 - 78, 156, 156); g.shadowBlur = 0; g.globalAlpha = 1; }
+        },
+      };
+    }
     return {
-      w: 256, h: 256,
+      w: 256, h: 256, premult: true,
       draw: (g, w, h) => {
         g.clearRect(0, 0, w, h);
-        // a soft plate so the pad is a surface, not just a line
-        roundRect(g, 14, 14, w - 28, h - 28, 44);
-        g.fillStyle = light ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.16)"; g.fill();
-        g.setLineDash(big ? [] : [22, 14]);
         g.lineJoin = "round";
-        this.markStroke(g, light, big ? 12 : 9, col);
-        g.setLineDash([]);
-        g.beginPath(); g.arc(w / 2, h / 2, 82, 0, Math.PI * 2);
-        g.lineWidth = 18; g.strokeStyle = light ? "rgba(0,0,0,0.45)" : "rgba(255,255,255,0.5)"; g.stroke();
+        g.beginPath(); g.arc(w / 2, h / 2, 104, 0, Math.PI * 2);
+        g.lineWidth = 16; g.strokeStyle = col; g.globalAlpha = 0.4; g.stroke(); g.globalAlpha = 1;
         if (fill > 0) {
           g.lineCap = "round";
-          g.beginPath(); g.arc(w / 2, h / 2, 82, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fill);
-          this.markStroke(g, light, 18, locked ? col : mark);
+          g.beginPath(); g.arc(w / 2, h / 2, 104, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fill);
+          g.stroke();
         }
-        // a hire pad shows the job's tool on a disc in the role colour, badged with what they handle;
-        // upgrade and unlock pads show what they do (Doug: "a register on the cashier pad")
-        if (glyph) {
-          g.globalAlpha = locked ? 0.55 : 1;
-          const disc = role ? this.skin.palette.role[role] ?? t.structure : mark;
-          g.beginPath(); g.arc(w / 2, h / 2, 58, 0, Math.PI * 2);
-          g.fillStyle = disc; g.fill(); g.lineWidth = 8; g.strokeStyle = t.ink; g.stroke();
-          drawGlyph(g, glyph, w / 2, h / 2, 38, t.ink, t.paper.panel);
-          if (res) drawIcon(g, w / 2 + 48, h / 2 + 48, 22, resToken(t, res), t.ink);
-          g.globalAlpha = 1;
-        }
+        const pic = icon ? this.padIcons?.get(icon, col) : null;
+        if (pic) { g.globalAlpha = locked ? 0.7 : 1; g.drawImage(pic, w / 2 - 78, h / 2 - 78, 156, 156); g.globalAlpha = 1; }
+      },
+    };
+  }
+
+  /** Look D: the icon itself is the pad, drawn large and flat on the ground (the Clerk's pad, the warehouse pads). */
+  private operatePadArt(icon: string, light: boolean): LabelArt {
+    const t = this.tokens;
+    void light; void t;
+    return {
+      w: 256, h: 256, premult: true,
+      draw: (g, w, h) => {
+        g.clearRect(0, 0, w, h);
+        const pic = this.padIcons?.get(icon, "#ffffff");
+        if (pic) { g.shadowColor = "#ffffff"; g.shadowBlur = 14; g.globalAlpha = 0.5; g.drawImage(pic, 8, 8, w - 16, h - 16); g.shadowBlur = 0; g.globalAlpha = 1; }
       },
     };
   }
@@ -3284,28 +3371,33 @@ export class Renderer3D implements Renderer {
     const big = 44, small = 38, gap = 10;
     // A locked pad keeps its own name as the title; the reason sits under it, smaller.
     const top = label, lockPx = 28, extra = lockTxt ? PAD_LOCK_H : 0;
-    const wTop = Math.max(this.labels.textWidth(top, small), lockTxt ? this.labels.textWidth(lockTxt, lockPx) : 0) + 30;
+    const named = top !== "";
+    const topH = named ? 48 + extra : lockTxt ? 40 : 4;
+    const wTop = Math.max(named ? this.labels.textWidth(top, small) : 0, lockTxt ? this.labels.textWidth(lockTxt, lockPx) : 0) + 30;
     const cell = owed.map((o) => this.labels.textWidth(`${o.left}`, big) + 64);
     const rowsOf = owed.length > PAD_PER_ROW ? [owed.slice(0, Math.ceil(owed.length / 2)), owed.slice(Math.ceil(owed.length / 2))] : [owed.slice()];
     let k = 0;
     const rowCells = rowsOf.map((r) => r.map(() => cell[k++]!));
     const rowW = rowCells.map((r) => r.reduce((a, b) => a + b, 0) + gap * (r.length - 1) + 24);
     const w = Math.max(wTop, ...rowW) + 20;
-    const h = (rowsOf.length === 2 ? PAD_ART_H2 : PAD_ART_H) + extra;
+    const h = padArtH(named, rowsOf.length, !!lockTxt);
     return {
       w, h,
       draw: (g, W) => {
         g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
-        g.font = `800 ${small}px ${FONT}`;
-        g.lineWidth = 8; g.strokeStyle = t.ink; g.strokeText(top, W / 2, 24);
-        g.fillStyle = locked ? ui.muted : ui.panel; g.fillText(top, W / 2, 24);
+        if (named) {
+          g.font = `800 ${small}px ${FONT}`;
+          g.lineWidth = 8; g.strokeStyle = t.ink; g.strokeText(top, W / 2, 24);
+          g.fillStyle = locked ? ui.muted : ui.panel; g.fillText(top, W / 2, 24);
+        }
         if (lockTxt) {
+          const ly = named ? 56 : 18;
           g.font = `800 ${lockPx}px ${FONT}`;
-          g.lineWidth = 7; g.strokeStyle = t.ink; g.strokeText(lockTxt, W / 2, 56);
-          g.fillStyle = ui.panel; g.fillText(lockTxt, W / 2, 56);
+          g.lineWidth = 7; g.strokeStyle = t.ink; g.strokeText(lockTxt, W / 2, ly);
+          g.fillStyle = ui.panel; g.fillText(lockTxt, W / 2, ly);
         }
         rowsOf.forEach((row, ri) => {
-          const y = 48 + extra + ri * 76;
+          const y = topH + ri * 76;
           const x0 = (W - rowW[ri]!) / 2;
           roundRect(g, x0, y, rowW[ri]!, 68, 34);
           g.fillStyle = locked ? mix(t.structureDark, t.ink, 0.4) : t.ink; g.globalAlpha = 0.85; g.fill(); g.globalAlpha = 1;

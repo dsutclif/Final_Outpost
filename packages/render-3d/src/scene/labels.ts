@@ -10,13 +10,15 @@ export const FONT = '"Barlow Condensed", "Arial Narrow", system-ui, sans-serif';
 type Ctx2D = CanvasRenderingContext2D;
 export type CanvasMaker = (w: number, h: number) => HTMLCanvasElement | null;
 
-interface Entry { tex: CanvasTexture; mat: SpriteMaterial; meshMat?: MeshBasicMaterial; aspect: number; used: number }
+interface Entry { premult?: boolean; tex: CanvasTexture; mat: SpriteMaterial; meshMat?: MeshBasicMaterial; aspect: number; used: number }
 
 export interface LabelArt {
   /** Canvas size in px (drawn at 2x for crispness). */
   w: number;
   h: number;
   draw: (g: Ctx2D, w: number, h: number) => void;
+  /** Upload premultiplied, so a soft edge of a flat one-colour shape never shows a dark or light fringe. */
+  premult?: boolean;
 }
 
 const MAX = 260;
@@ -47,8 +49,9 @@ export class Labels {
     tex.colorSpace = SRGBColorSpace;
     tex.minFilter = LinearFilter;
     tex.generateMipmaps = false;
-    const mat = new SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false });
-    const e: Entry = { tex, mat, aspect: c.width / c.height, used: this.clock };
+    if (a.premult) tex.premultiplyAlpha = true;
+    const mat = new SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false, premultipliedAlpha: !!a.premult });
+    const e: Entry = { premult: !!a.premult, tex, mat, aspect: c.width / c.height, used: this.clock };
     this.cache.set(key, e);
     if (this.cache.size > MAX) this.evict();
     return e;
@@ -59,7 +62,7 @@ export class Labels {
     this.material(key, art);
     const e = this.cache.get(key);
     if (!e) return null;
-    if (!e.meshMat) e.meshMat = new MeshBasicMaterial({ map: e.tex, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+    if (!e.meshMat) e.meshMat = new MeshBasicMaterial({ map: e.tex, transparent: true, depthWrite: false, toneMapped: false, premultipliedAlpha: !!e.premult, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
     return e.meshMat;
   }
 

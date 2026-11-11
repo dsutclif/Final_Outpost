@@ -3,7 +3,6 @@ import { mix } from "@fo/skins";
 import { GeoBuilder } from "../geom.js";
 import { resToken } from "../tokens.js";
 import { anchor, mesh, model, type BuildCtx, type Model } from "./common.js";
-import { stationPlate } from "./props.js";
 
 // Hero buildings, built in code from chunky rounded primitives. Each returns its merged
 // body (one draw call) plus the few separately animated parts the renderer drives from
@@ -179,7 +178,6 @@ export function buildConverter(id: string, ctx: BuildCtx, pickup: readonly [numb
   // pickup tray and operator spot (reads like the clerk pad: someone stands here to run it) are
   // their own mesh, so they stay when a Meshy body replaces this one
   const plates = new GeoBuilder().rbox(0.7, 0.14, 0.7, 0.05, t.structureDark, { at: [pickup[0], 0.08, pickup[1]] }, 1);
-  stationPlate(plates, t, operator[0], operator[1]);
   // level tiers (readable at phone size): L2 an accent band round the body, a second chimney and
   // a side tank; L3 a hot-plasma base band, a taller chimney stack and a beacon mast. A row of lit
   // pips on the front edge counts the level.
