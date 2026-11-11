@@ -774,6 +774,24 @@ def main():
         big = [(f, s_, round(d, 1)) for f, s_, d in worst if d > 3]
         print(f"HANDS frames {1 + PRE}-{F(st[2])}: worst hand twist about the forearm {max(d for _, _, d in worst):.1f} deg/frame; frames over 3 deg: {len(big)} {big[:10]}")
         return
+    if "--frontcrop" in args:  # review: the film's own camera at high resolution, cropped each frame to his body (FRONT_RANGE, pod frames)
+        from bpy_extras.object_utils import world_to_camera_view
+        arm = P["arm"]; Fd = os.path.join(lib.HERE, "out", "frontcrop"); os.makedirs(Fd, exist_ok=True)
+        sc.render.resolution_x, sc.render.resolution_y = 1080, 1920
+        sc.render.use_border, sc.render.use_crop_to_border = True, True
+        a_, b_ = (int(x) for x in os.environ.get("FRONT_RANGE", "300,347").split(","))
+        for f in range(a_, b_ + 1, int(os.environ.get("FRONT_STEP", 2))):
+            sc.frame_set(f)
+            cam = max((m for m in sc.timeline_markers if m.frame <= f), key=lambda m: m.frame).camera
+            sc.camera = cam
+            pts = [world_to_camera_view(sc, cam, arm.matrix_world @ b.head) for b in arm.pose.bones]
+            xs, ys = [p.x for p in pts], [p.y for p in pts]
+            cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2; hh = (max(ys) - min(ys)) * 0.65 + 0.02
+            hw = hh * 1920 / 1080 * 0.75
+            sc.render.border_min_x, sc.render.border_max_x = max(0, cx - hw), min(1, cx + hw)
+            sc.render.border_min_y, sc.render.border_max_y = max(0, cy - hh), min(1, cy + hh)
+            lib.render_still(os.path.join(Fd, f"front_{f + 165:04d}.png"))
+        return
     if "--closecam" in args:  # review crops: a close camera on one body part (CLOSE_PART head|arms|feet), every CLOSE_STEP frames over CLOSE_RANGE (pod frames)
         sc.timeline_markers.clear()
         part = os.environ.get("CLOSE_PART", "arms")

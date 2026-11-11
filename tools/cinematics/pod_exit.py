@@ -438,11 +438,11 @@ def perform(root, pre=0, calib=False):
     rig = retarget.Rig(arm)
     takes = build_takes()
     global BALL_OF
-    def BALL_OF(row, side):  # where a foot's ball is for a timeline row (the stepping turn pins its standing foot by it)
+    def BALL_OF(row, side, joint=None):  # where a foot's ball is for a timeline row (the stepping turn pins its standing foot by it)
         rig.pose(row[1], row[2], row[3]); bpy.context.view_layer.update()
         # the heel (the ankle, under the hip) by default: pivoting on the ball, which sits well ahead of the hips, swung his
         # pelvis 32 cm round over a 100 deg turn and stood him against the pod wall; on alternate heels it mostly cancels
-        return arm.matrix_world @ arm.pose.bones[retarget.P + side + ("ToeBase" if os.environ.get("TURN_PIN") == "ball" else "Foot")].head
+        return arm.matrix_world @ arm.pose.bones[retarget.P + side + (joint or ("ToeBase" if os.environ.get("TURN_PIN") == "ball" else "Foot"))].head
     TL = timeline(takes, lambda t: rig.leg_world / t.leg)
     N = len(TL)
 
@@ -565,6 +565,58 @@ def perform(root, pre=0, calib=False):
                 r[3] = p_first + (goal - p_first) * smooth(run); r[3].z = z_
         print(f"SLIDE inputs: lying centre along {(max(la_) + min(la_)) / 2:.2f}, standing pelvis along {stand.dot(ax0):.2f}, stepping-foot apex along {apex[1]:.2f}")
         print(f"SLIDE {D.length * 100:.0f} cm (along {D.dot(ax0) * 100:+.0f}, lengthwise {D.dot(lat_v) * 100:+.0f}); foot apex {apex[0] * 100:.0f} cm")
+        if os.environ.get("STEP_PIN", "1") == "1":
+            # 2026-11-10 (parent: the planted foot slid up to 10 cm a frame in the front shot): the step's travel is shortened
+            # above, but the legs still take the capture's full stride, so the foot bearing weight skated. Pin it:
+            # each row the foot bearing weight (of those on the floor, the one moving least; held
+            # until the other is clearly the one standing) keeps its ball where it was, and the pelvis follows; the rest of
+            # the film moves on by what that adds
+            ks = [i for i, r in enumerate(TL) if r[0] == k_step]
+            raw = {i: {s: BALL_OF(TL[i], s, "ToeBase") for s in ("Left", "Right")} for i in ks}
+            fl = {s: min(raw[i][s].z for i in ks) for s in ("Left", "Right")}  # each foot's own floor (the capture's are not level)
+            # which foot bears the weight, from the capture itself (before the step's travel was shortened): the one whose toe
+            # marker moves least, switching only when the other is clearly the stiller (half the speed)
+            ctoe = {i: (lambda sg: {"Left": sg["ltoes"][0], "Right": sg["rtoes"][0]})(TL[i][5].clip.pose(TL[i][6])[0]) for i in ks}
+            cap_stance, cur = {}, None
+            for j, i in enumerate(ks):
+                if j == 0: cur = min(ctoe[i], key=lambda s: ctoe[i][s].z)
+                else:
+                    sp = {s: (ctoe[i][s] - ctoe[ks[j - 1]][s]).xy.length for s in ctoe[i]}
+                    o = "Left" if cur == "Right" else "Right"
+                    if sp[o] < 0.5 * sp[cur] and ctoe[i][o].z < ctoe[i][cur].z + 0.03 * (TL[i][5].leg / 0.9): cur = o
+                cap_stance[i] = cur
+            # the body keeps its fitted (shortened) path; the standing leg is solved hip-knee-ankle each row so its ankle stays
+            # where it was put down and the foot keeps its angle (a two-bone solve, the knee toward his front)
+            def joints(r):
+                rig.pose(r[1], r[2], r[3]); bpy.context.view_layer.update()
+                return {n: (arm.matrix_world @ arm.pose.bones[retarget.P + n].head).copy() for n in
+                        ("LeftUpLeg", "LeftLeg", "LeftFoot", "RightUpLeg", "RightLeg", "RightFoot")}
+            stance, anchor, worst, held, a0, k_in, settled = None, None, 0.0, 0, None, 0, False
+            OUT = float(os.environ.get("STEP_OUT", 0.0))  # (off: easing the first foot down outside 6-14 cm clear of the hull did not reduce the step's clip)
+            for i in ks:
+                r = TL[i]; s = cap_stance[i]
+                J = joints(r)
+                if s != stance:
+                    stance, anchor = s, (J[s + "Foot"].copy(), r[1][s + "Foot"].copy(), r[1].get(s + "ToeBase"))
+                    if a0 is None: a0 = anchor[0].copy()
+                    k_in = 0; outside = (anchor[0] - a0).dot(ax0) > 0.15 and not settled; settled = settled or outside  # the first foot down outside only
+                    if os.environ.get("PIN_DEBUG"): print("PIND row %d new stance %s, %.2f m along the step from the first: outside %s" % (i, s, (anchor[0] - a0).dot(ax0), outside))
+                    continue
+                k_in += 1
+                Hp, A = J[s + "UpLeg"], anchor[0] + (ax0 * OUT * smooth(k_in / 6) if outside else Vector((0, 0, 0)))
+                l1, l2 = (J[s + "Leg"] - J[s + "UpLeg"]).length, (J[s + "Foot"] - J[s + "Leg"]).length
+                d = A - Hp; L = max(abs(l1 - l2) + 1e-3, min(l1 + l2 - 1e-3, d.length)); dn = d.normalized()
+                fwd = r[2][0].cross(r[2][1]).normalized()  # up x right
+                pole = (fwd - dn * fwd.dot(dn)); pole = pole.normalized() if pole.length > 1e-6 else Vector((0, 0, 1))
+                ca = max(-1.0, min(1.0, (l1 * l1 + L * L - l2 * l2) / (2 * l1 * L)))
+                th = (dn * ca + pole * math.sqrt(1 - ca * ca)).normalized()
+                K = Hp + th * l1; sh_ = (Hp + dn * L - K).normalized()
+                was = J[s + "Foot"]
+                r[1] = dict(r[1]); r[1][s + "UpLeg"] = th; r[1][s + "Leg"] = sh_; r[1][s + "Foot"] = anchor[1].copy()
+                if anchor[2] is not None: r[1][s + "ToeBase"] = anchor[2].copy()
+                worst = max(worst, (was - A).xy.length); held += 1
+                if os.environ.get("PIN_DEBUG"): print("PIND row %d pod %d stance %s ankle was %.1f cm off, leg reach %.2f of %.2f" % (i, i + 1 + pre, s, (was - A).xy.length * 100, d.length, l1 + l2))
+            print(f"STEP PIN: the standing leg solved on {held} rows; the ankle would have slid up to {worst * 100:.1f} cm from where it was put down")
     lying_pts, step_peak, takeoff = [], None, None
     best_lift = -1
     for f, row in enumerate(TL):
