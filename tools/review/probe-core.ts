@@ -178,9 +178,8 @@ export function analyzeSample(s: Sample, L: Limits, story = false): Hit[] {
   const track: Hit["track"] = story ? "story" : "main";
   const age = (t: ThingSample): number => t.age;
 
-  // 1. labels hidden behind things in front of them, or behind a HUD panel
+  // 1. labels hidden behind things in front of them (the HUD may cover in-world labels, Doug's rule, so panels do not count here)
   const covers = s.things.filter((t) => t.kind !== "other" && t.age >= 0.5);
-  const panels = panelBoxes(s);
   // distance along the camera's view over the ground: a thing stands in front of a label when all of its footprint is nearer
   const along = (x: number, z: number): number => (x - s.cam.x) * s.cam.fx + (z - s.cam.z) * s.cam.fz;
   for (const l of s.labels) {
@@ -189,11 +188,11 @@ export function analyzeSample(s: Sample, L: Limits, story = false): Hit[] {
     const at = along(l.world.x, l.world.z);
     const front = covers.filter((t) => Math.max(along(t.foot.x0, t.foot.z0), along(t.foot.x1, t.foot.z0), along(t.foot.x0, t.foot.z1), along(t.foot.x1, t.foot.z1)) < at);
     const boxes = front.map((t) => (t.kind === "character" ? shrink(t.box, L.occlusion.thingShrink * 2) : shrink(t.box, L.occlusion.thingShrink)));
-    const f = coveredFraction(l.box, [...boxes, ...panels], L.occlusion.gridX, L.occlusion.gridY);
+    const f = coveredFraction(l.box, boxes, L.occlusion.gridX, L.occlusion.gridY);
     if (f > L.occlusion.fraction) {
-      // who is in the way: the thing that alone hides the most of it, or the HUD
+      // who is in the way: the thing that alone hides the most of it
       const by = front.map((t, i) => ({ id: t.id, f: coveredFraction(l.box, [boxes[i]!], L.occlusion.gridX, L.occlusion.gridY) })).sort((a, b) => b.f - a.f)[0];
-      const who = by && by.f > 0 ? by.id : "the HUD";
+      const who = by ? by.id : "something nearer";
       out.push(hit("occluded", 1, f > 0.6 ? 3 : 2, labelSubject(l.key), `Label "${l.key.split("|")[1] ?? l.key.split("|")[0]}" is ${Math.round(f * 100)}% covered`, `A floating label is ${Math.round(f * 100)}% hidden, mostly by ${who} (limit ${Math.round(L.occlusion.fraction * 100)}%)`, "coveredFraction", f, L.occlusion.fraction, L.occlusion.seconds, track, l.box));
     }
   }

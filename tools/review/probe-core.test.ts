@@ -131,12 +131,15 @@ describe("hidden labels", () => {
     expect(analyzeSample(sample({ things: [wall], labels: [ownLabel] }), L).filter((h) => h.check === "occluded")).toEqual([]);
   });
 
-  it("counts a queue of traders as covering a sign, and a HUD panel too", () => {
+  it("counts a queue of traders as covering a sign, but not a HUD panel", () => {
     const queue = [person("c:1", 300, 300, { box: box(95, 80, 135, 150) }), person("c:2", 320, 300, { box: box(125, 80, 165, 150) })];
     const f = analyzeSample(sample({ things: queue, labels: [label(900)] }), L).filter((h) => h.check === "occluded");
     expect(f).toHaveLength(1);
     const panel = dom({ sel: "#cash", box: box(90, 90, 200, 130), tap: true, text: "" });
-    expect(analyzeSample(sample({ dom: [panel], labels: [label(900)] }), L).filter((h) => h.check === "occluded")).toHaveLength(1);
+    // the HUD may cover in-world labels (Doug's rule), so a panel alone is no finding
+    expect(analyzeSample(sample({ dom: [panel], labels: [label(900)] }), L).filter((h) => h.check === "occluded")).toEqual([]);
+    // a character in front still covers the label, panel or no panel
+    expect(analyzeSample(sample({ things: queue, dom: [panel], labels: [label(900)] }), L).filter((h) => h.check === "occluded")).toHaveLength(1);
     // a full-screen tap layer is not a panel
     const layer = dom({ sel: ".story-tap", box: box(0, 0, 375, 812), tap: true, text: "" });
     expect(analyzeSample(sample({ dom: [layer], labels: [label(900)] }), L).filter((h) => h.check === "occluded")).toEqual([]);
@@ -376,7 +379,7 @@ describe("command line", () => {
 
 describe("evidence: the marked box", () => {
   it("carries each check's screen box on its hit", () => {
-    const covered = analyzeSample(sample({ labels: [{ key: "lock|Locked", box: box(100, 100, 160, 120), depth: 1, world: { x: 100, y: 0, z: 100 } }], dom: [dom({ sel: "#panel", text: "", tap: true, bg: "rgb(0,0,0)", box: box(90, 90, 200, 140), region: "hud" })] }), L);
+    const covered = analyzeSample(sample({ labels: [{ key: "lock|Locked", box: box(100, 100, 160, 120), depth: 1, world: { x: 100, y: 0, z: 100 } }], things: [person("c:1", 300, 300, { box: box(80, 60, 200, 160) })] }), L);
     const o = covered.find((x) => x.check === "occluded")!;
     expect(o.box).toEqual(box(100, 100, 160, 120));
     const off = analyzeSample(sample({ dom: [dom({ box: box(-30, 10, 60, 40) })] }), L).find((x) => x.check === "offscreen")!;
@@ -424,11 +427,11 @@ describe("evidence: the marked box", () => {
 
 describe("labels the player cannot see", () => {
   it("does not judge a label that is mostly off screen as covered or stacked", () => {
-    const panel = dom({ sel: "#panel", text: "", tap: true, bg: "rgb(0,0,0)", box: box(-300, 90, 0, 140), region: "hud" });
+    const near = person("c:1", 300, 300, { box: box(-300, 60, 0, 160) });
     const gone = { key: "lock|Locked", box: box(-200, 100, -140, 120), depth: 1, world: { x: 100, y: 0, z: 100 } };
-    expect(analyzeSample(sample({ labels: [gone], dom: [panel] }), L).filter((x) => x.check === "occluded")).toEqual([]);
+    expect(analyzeSample(sample({ labels: [gone], things: [near] }), L).filter((x) => x.check === "occluded")).toEqual([]);
     const seen = { ...gone, box: box(10, 100, 70, 120) };
-    const hits = analyzeSample(sample({ labels: [seen], dom: [{ ...panel, box: box(0, 90, 200, 140) }] }), L);
+    const hits = analyzeSample(sample({ labels: [seen], things: [{ ...near, box: box(0, 60, 200, 160) }] }), L);
     expect(hits.some((x) => x.check === "occluded")).toBe(true);
   });
 });
