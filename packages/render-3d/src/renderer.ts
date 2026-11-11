@@ -200,14 +200,9 @@ function crackGeo(src: BufferGeometry): BufferGeometry {
   return geo;
 }
 
-/** Discovery labels shown at once (nearest first) and how far from the hero they reach (world units). */
-const MAX_DISCOVERY = 6;
-const DISCOVERY_RANGE = 260;
 /** Tap-to-inspect: characters within this many CSS px of the tap win over buildings. */
 const PICK_PX = 28;
 
-/** Where a type's discovery label would go this frame: the instance nearest the hero. */
-interface Candidate { x: number; z: number; h: number; d2: number }
 
 /** three.js renderer (Contract 2). State drives every visual; events add juice only. */
 /** Pad picture: the hire pad's job tool, or what a build pad does when it builds nothing visible. */
@@ -409,9 +404,6 @@ export class Renderer3D implements Renderer {
   private terrainKeys = new Map<string, string>();
   /** Meshy wall sections once loaded: tile length (art metres) and thickness scale. */
   private wallFit: Partial<Record<"wall" | "reinforced", { len: number; depth: number }>> = {};
-  private isNew: ((id: string) => boolean) | null = null;
-  private cands = new Map<string, Candidate>();
-  private discSprites = new Map<string, Sprite>();
   private tagSprites: Sprite[] = [];
   private tagUsed = 0;
   private raycaster = new Raycaster();
@@ -773,11 +765,8 @@ export class Renderer3D implements Renderer {
       this.lasso.rope.geometry.dispose();
       (this.lasso.rope.material as MeshBasicMaterial).dispose();
     }
-    for (const sp of this.discSprites.values()) this.dynamic.remove(sp);
     for (const sp of this.tagSprites) this.dynamic.remove(sp);
-    this.discSprites.clear();
     this.tagSprites = [];
-    this.cands.clear();
     this.labels.dispose();
     if (this.bctx) disposeBuildCtx(this.bctx);
     this.gl?.domElement.remove?.();
@@ -1077,7 +1066,6 @@ export class Renderer3D implements Renderer {
     this.followCamera(cam, pl, dt);
 
     for (const p of this.placed.values()) p.seen = false;
-    this.cands.clear();
     this.tagUsed = 0;
     this.crowdLog.length = 0;
     this.items.begin();
@@ -1107,7 +1095,6 @@ export class Renderer3D implements Renderer {
     this.fadeOccluders(pl, dt);
 
     for (const [k, p] of this.placed) if (!p.seen) { this.removePlaced(p); this.placed.delete(k); }
-    this.drawDiscovery(pl);
     for (let i = this.tagUsed; i < this.tagSprites.length; i++) this.tagSprites[i]!.visible = false;
 
     this.fx.draw(this.items);
@@ -1525,7 +1512,6 @@ export class Renderer3D implements Renderer {
 
   private syncCore(s: State): void {
     const p = this.place(`core:${s.core.level}`, "sink.core", this.wv(s.core.pos), s.core.level);
-    this.candidate("sink.core", p);
     // a dark core lies half buried and heaves itself out when it lights
     this.coreSink = s.core.dormant ? 1 : Math.max(0, this.coreSink - 0.02);
     if (this.coreSink > 0) p.model.root.position.y -= ART_M * CORE_BURIED * this.coreSink;
@@ -1564,12 +1550,10 @@ export class Renderer3D implements Renderer {
     const sales = s.sales;
     if (!sales) return;
     const kiosk = this.place("sales", "sink.sales_point", this.wv(sales.pos));
-    this.candidate("sink.sales_point", kiosk);
     // the clerk pad: whoever stands on it (hero or clerk) rings up the queue; no register object
     const reg = this.place("register", "sink.sales_point.register", this.wv(sales.register));
     // every standing plate (clerk, operator, pickup, drop-off) draws at the one plot plate size
     if (this.devPlateSize !== null) reg.model.root.scale.setScalar(this.devPlateSize);
-    this.candidate("sink.sales_point.register", reg, ART_M * 0.55);
     this.shelfCrates(sales, kiosk);
     // the currency pile by the clerk pad
     const items = this.items!;
@@ -1580,7 +1564,6 @@ export class Renderer3D implements Renderer {
       const col = i % 3, row = Math.floor(i / 3);
       items.add(coin, pile.x + (col - 1) * 8 + (row % 2) * 2, row * items.height(coin), pile.z + ((col * 7) % 3) * 2, row * 0.7);
     }
-    if (pn > 0) this.candidatePt("sink.sales_point.pile", pile.x, pile.z, ART_M * 1.1);
     // customers: queue faces the kiosk, leaving ones walk off
     sales.queue.forEach((c, i) => this.customer(`q:${i}`, c, a, true, kiosk, sales.serving));
     sales.leaving.forEach((c, i) => this.customer(`l:${i}`, c, a, false, kiosk));
@@ -1672,7 +1655,6 @@ export class Renderer3D implements Renderer {
     } else this.addCharacter(look, anim, pos, yaw, null);
     // a bulk trader wheels its order away on the cart (angry ones leave empty-handed)
     if (look.push && !queued && !c.angry) this.cartLoad(c, pos, yaw, look.scale * this.devCharScale);
-    this.candidatePt(c.kind, pos.x, pos.y, ART_M * look.scale * this.devCharScale * 1.9);
     if (queued) {
       // order bubble with the patience arc
       const pk = Math.round(clamp01(c.patience / Math.max(1, c.patienceMax)) * 10);
@@ -1719,7 +1701,6 @@ export class Renderer3D implements Renderer {
       const key = `n:${i}`;
       // scrap heaps take the scrap models in turn (ship scrap, scrap field, wreck): every scrap on such a level is pickable
       const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? 1 + (i % 3) : 1);
-      if (n.enabled) this.candidate(n.type, p);
       // a locked grow dome is an unbuilt thing like any other: the blue blueprint, with its unlock pad
       const ghosted = !n.enabled && n.type === "node.food_source";
       p.model.root.visible = !ghosted;
@@ -1776,7 +1757,6 @@ export class Renderer3D implements Renderer {
       const p = this.place(key, st.type, this.wv(st.pos), st.level, onWall ? (ctx) => this.wallTurret(ctx) : undefined);
       // a wall turret stays solid with its wall
       if (onWall) delete p.data["occ"];
-      this.candidate(st.type, p);
       if (st.type === "struct.ranged_defense") this.aimTurret(p, st, s);
       const lights = p.model.parts["lights"];
       if (lights) lights.visible = this.fuelK > 0 || Math.sin(this.t * 9) > 0;
@@ -1851,7 +1831,6 @@ export class Renderer3D implements Renderer {
     this.workSpots.length = 0;
     for (const cv of s.converters) {
       const p = this.place(`cv:${cv.id}:${cv.level}`, cv.type, this.wv(cv.pos), cv.level);
-      this.candidate(cv.type, p);
       const popAge = this.fx!.popAge(`cv:${cv.id}`);
       p.model.root.scale.setScalar(ART_M * this.buildK(cv.type, cv.level) * (popAge < 0.5 ? 1 + 0.25 * Math.sin((popAge / 0.5) * Math.PI) : 1));
       // each finished unit thumps the machine: a short squash down and out
@@ -1982,7 +1961,6 @@ export class Renderer3D implements Renderer {
       this.popScale(p, ART_M, p.model.root.userData["kit"] ? 1 : len / ART_M, 1);
       p.model.root.rotation.y = -Math.atan2(bz - az, bx - ax);
       if (ghost) (p.model.root.userData["ghost"] as MeshLambertMaterial).opacity = 0.45 + 0.08 * Math.sin(this.t * 3);
-      else this.candidate("struct.conveyor", p, ART_M * 0.8);
       return { ax, az, ux: (bx - ax) / len, uz: (bz - az) / len, len };
     };
     for (const belt of s.conveyors ?? []) {
@@ -2135,7 +2113,6 @@ export class Renderer3D implements Renderer {
       // a big landmark's blueprint is taller than the view: its price stays low enough to be on screen
       const lift = onBelt ? BELT_TOP + 0.12 : Math.max(1.25, big ? Math.min(ghostH + 0.3, BIG_LABEL_LIFT) : ghostH + 0.3);
       sp.position.set(at.x, ART_M * (lift + (onBelt ? 0 : (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04)), at.z);
-      this.candidate(pad.type, p, ART_M * (lift + 1.35 + (rows - 1) * 0.6));
       // scaffold rises with the payment for upgrades that have no blueprint of their own
       let scaf = p.extra[1] as Mesh | undefined;
       const builds = info?.kind === "build" && (info.what.startsWith("struct.") || info.what.startsWith("conv.") || info.what === "sink.core.level");
@@ -2348,7 +2325,6 @@ export class Renderer3D implements Renderer {
           const key = `barl:${b.id}:${i}`;
           const holder = this.place(key, "barrier.line", mid, 1, () => ({ root: new Group(), cls: "decal", parts: {} }));
           const left = Math.max(0, b.costPerSection - sec.paid);
-          this.candidatePt("barrier.line", mid.x, mid.z, ART_M * 1.6);
           const sp = this.sprite(holder, 0);
           sp.visible = this.labels.apply(sp, `bl|${b.res}|${left}`, () => this.costArt(b.res, left), textSprite(TEXT.main, 40, 70));
           sp.position.set(mid.x, ART_M * (0.7 + Math.sin(this.t * 2 + i) * 0.04), mid.z);
@@ -2401,7 +2377,6 @@ export class Renderer3D implements Renderer {
         const age = this.fx!.popAge(`zone:${z.id}`);
         if (z.cleared && age > 0.6) continue;
         const k = z.cleared ? Math.max(0, 1 - age / 0.6) : 1;
-        if (!z.cleared) this.candidatePt("zone.blocked", x + w / 2, y + h / 2, ART_M * 1.8);
         // tile rubble across the rect, instanced
         const tile = ART_M * 1.3;
         const nx = Math.max(1, Math.round(w / tile)), ny = Math.max(1, Math.round(h / tile));
@@ -2460,7 +2435,6 @@ export class Renderer3D implements Renderer {
       const p = this.place(`cap:${c.id}`, c.decoy ? `${c.type}.decoy` : c.type, v3(pos.x, 0, pos.y));
       if (this.fallStage?.cap === c.id) p.model.root.visible = false; // its copy is worn, then tumbling (fallHelmet)
       const lodged = this.captureDrop(c, p, pos, s);
-      if (c.state === "idle" && !lodged) this.candidate(c.type, p);
       // a flight recorder's locator beacon blinks
       const bc = p.model.parts["beacon"];
       if (bc) bc.visible = c.state !== "idle" || (this.t * 1.6 + c.id * 0.37) % 1 < 0.4;
@@ -2878,7 +2852,6 @@ export class Renderer3D implements Renderer {
         this.rigged!.add(key, swapRig ? swap! : h.type, hrig, { moving: moving || flees, hurried: false, cheer: false, run: flees, speed: an.speed, act: h.target !== "core" && !swapRig ? "shoot" : undefined, ...(pace !== undefined ? { pace } : {}) }, at.x, at.y, hy, ART_M * hl.scale * this.devCharScale / 0.9);
         this.blobs!.add(at.x, at.y, hl.kind === "creature" ? 16 * hl.scale : 10 * hl.scale);
       } else this.addCharacter(hl, an, at, hy, null);
-      this.candidatePt(h.type, at.x, at.y, ART_M * hl.scale * this.devCharScale * 1.8);
       // health bar over bosses (content `boss` flag) and wounded attackers
       const hpMax = h.hpMax;
       const boss = !!this.cp?.hostiles[h.type]?.boss;
@@ -2904,7 +2877,6 @@ export class Renderer3D implements Renderer {
         this.rigged!.add(key, prig.id, prig, { moving: Math.hypot(pv.x, pv.y) > 0.05, hurried: false, cheer: false, speed: an.speed }, pos.x, pos.y, py, ART_M * look2.scale * this.devCharScale / 0.9);
         this.blobs!.add(pos.x, pos.y, 10 * look2.scale);
       } else this.addCharacter(look2, an, pos, py, null);
-      this.candidatePt(preyId, pos.x, pos.y, ART_M * look2.scale * this.devCharScale * 1.6);
     }
     // order bubbles of customers that left the queue
     for (const [k, b] of this.bubbles) if (b.seen !== this.frameNo) { this.dynamic.remove(b.s); this.bubbles.delete(k); }
@@ -3948,84 +3920,6 @@ export class Renderer3D implements Renderer {
   }
 
   // ---------------------------------------------------------------- discovery, inspect, tags
-
-  /** Which types still show a discovery label (name + purpose); null hides them all. */
-  setDiscovery(isNew: ((id: string) => boolean) | null): void {
-    this.isNew = isNew;
-  }
-
-  /** Offer a placed model as its type's label spot; the instance nearest the hero wins. */
-  private candidate(id: string, p: Placed, h?: number): void {
-    const r = p.model.root.position;
-    this.candidatePt(id, r.x, r.z, h ?? ((p.data["h"] as number | undefined) ?? ART_M) + 12);
-  }
-
-  private candidatePt(id: string, x: number, z: number, h: number): void {
-    if (!this.isNew || !this.world) return;
-    const pl = this.world.player.pos;
-    const d2 = (x - pl.x / FP) ** 2 + (z - pl.y / FP) ** 2;
-    if (d2 > DISCOVERY_RANGE * DISCOVERY_RANGE) return;
-    const c = this.cands.get(id);
-    if (c ? c.d2 <= d2 : !this.isNew(id)) return;
-    this.cands.set(id, { x, z, h, d2 });
-  }
-
-  /** Name and one-line purpose over the nearest instance of each type the player has not used yet. */
-  private drawDiscovery(_pl: V): void {
-    const shown = new Set<string>();
-    if (this.isNew && this.world && !this.world.over) {
-      const list = [...this.cands.entries()].sort((a, b) => a[1].d2 - b[1].d2).slice(0, MAX_DISCOVERY);
-      const coach = this.coach;
-      for (const [id, c] of list) {
-        // the coach mark already speaks for what it points at
-        if (coach && (coach.at.x - c.x) ** 2 + (coach.at.y - c.z) ** 2 < 45 * 45) continue;
-        const name = nameOf(this.skin, id), purpose = purposeOf(this.skin, id);
-        let sp = this.discSprites.get(id);
-        if (!sp) { sp = new Sprite(); sp.renderOrder = 13; this.dynamic.add(sp); this.discSprites.set(id, sp); }
-        const hh = textSprite(TEXT.main, 40, purpose ? 110 : 60);
-        sp.visible = this.labels.apply(sp, `disc|${name}|${purpose}`, () => this.discoveryArt(name, purpose), hh);
-        sp.position.set(c.x, c.h + hh / 2 + Math.sin(this.t * 2 + c.x) * 1.2, c.z);
-        this.keepOnScreen(sp);
-        shown.add(id);
-      }
-    }
-    for (const [id, sp] of this.discSprites) if (!shown.has(id)) sp.visible = false;
-  }
-
-  /** Slide a label sideways (via its sprite anchor) so it never runs off the left or right screen edge. */
-  private keepOnScreen(sp: Sprite): void {
-    const a = this.toScreen(sp.position);
-    const b = this.toScreen(v3(sp.position.x + 10, sp.position.y, sp.position.z));
-    const wPx = sp.scale.x * Math.abs(b.x - a.x) / 10;
-    if (!(wPx > 0)) return;
-    const margin = 6;
-    const left = Math.min(Math.max(a.x - wPx / 2, margin), this.cssW - margin - wPx);
-    sp.center.set(Math.min(1, Math.max(0, (a.x - left) / wPx)), sp.center.y);
-  }
-
-  private discoveryArt(name: string, purpose: string): LabelArt {
-    const t = this.tokens, ui = this.tokens.paper;
-    const np = 40, pp = 32;
-    const wN = this.labels.textWidth(name, np) + 40;
-    const wP = purpose ? this.labels.textWidth(purpose, pp) + 44 : 0;
-    const w = Math.max(wN, wP) + 8;
-    const h = purpose ? 110 : 60;
-    return {
-      w, h,
-      draw: (g, W) => {
-        g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
-        g.font = `800 ${np}px ${FONT}`;
-        g.lineWidth = 9; g.strokeStyle = t.ink; g.strokeText(name, W / 2, 28);
-        g.fillStyle = t.interactive; g.fillText(name, W / 2, 28);
-        if (!purpose) return;
-        roundRect(g, (W - wP) / 2, 58, wP, 48, 24);
-        g.fillStyle = ui.panel; g.globalAlpha = 0.95; g.fill(); g.globalAlpha = 1;
-        g.lineWidth = 4; g.strokeStyle = t.interactive; g.stroke();
-        g.font = `800 ${pp}px ${FONT}`;
-        g.fillStyle = ui.ink; g.fillText(purpose, W / 2, 83);
-      },
-    };
-  }
 
   /**
    * Canonical id of what is under a mount CSS px point: characters by screen distance first

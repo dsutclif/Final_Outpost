@@ -27,8 +27,6 @@ export interface GameRenderer {
   pick(x: number, y: number): string | null;
   /** pick() with the inspect card text: workers and hire pads are named for what they work. */
   inspect(x: number, y: number): { id: string; name: string; purpose: string } | null;
-  /** Which types still show a discovery label (name + purpose); null shows none. */
-  setDiscovery(isNew: ((id: string) => boolean) | null): void;
   /** Story presentation handle: world light, reactor spirit, camera beat. Null when the renderer is not 3D. */
   story(): StoryPresentation | null;
   /** The reactor spirit's portrait on `canvas`; null when the renderer cannot draw one. */
@@ -77,7 +75,6 @@ class Wrap3D implements GameRenderer {
   debugScene(): DebugScene | null { return this.r.debugScene(); }
   pick(x: number, y: number): string | null { return this.r.pick(x, y); }
   inspect(x: number, y: number): { id: string; name: string; purpose: string } | null { return this.r.inspect(x, y); }
-  setDiscovery(isNew: ((id: string) => boolean) | null): void { this.r.setDiscovery(isNew); }
   get hudAnchor(): () => { x: number; y: number } { return this.r.hudAnchor; }
   set hudAnchor(fn: () => { x: number; y: number }) { this.r.hudAnchor = fn; }
   get onCoinLanded(): (() => void) | null { return this.r.onCoinLanded; }

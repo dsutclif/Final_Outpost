@@ -471,7 +471,6 @@ export class App {
     r.hudAnchor = () => this.coinTarget();
     r.onCoinLanded = () => this.hud.pulse();
     r.setQuality(this.qualityTier());
-    r.setDiscovery((id) => isNew(this.progress.discovered)(id));
     s.renderer = r;
     this.resize();
     r.snapCamera();

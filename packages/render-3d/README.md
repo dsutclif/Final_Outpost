@@ -24,7 +24,6 @@ r.setCoach({ key, at: { x, y }, text } | null); // coach mark (world units), DOM
 r.snapCamera();                                 // jump to the hero after a scripted run
 r.worldToScreen({ x, y }, height?);             // world units -> mount CSS px
 r.pick(x, y);                                   // tap to inspect: canonical id under a mount CSS px point, or null
-r.setDiscovery((id) => !seen[id]);              // floating name + purpose over types not used yet (null: none)
 // camera.lead = { x, y } | null: the follow target leans LEAD_WEIGHT toward it (nearest pad)
 r.stats();                                      // { drawCalls, triangles, fps, estDrawCalls, estTriangles, quality }
 r.dispose();
@@ -33,7 +32,7 @@ r.dispose();
 The client wires it through `packages/client/src/render.ts`: a WebGL capability check (no WebGL
 means the "unsupported device" screen), `createRenderer(tier)`, and `thumbnails(ids, skin)`
 (field-guide icons from `renderThumbnails` in the renderer chunk). The renderer draws the hint
-pill, hazard/wave banner, distress vignette, off-screen pointers, coach marks, discovery labels,
+pill, hazard/wave banner, distress vignette, off-screen pointers, coach marks,
 MAX tags, frost meters and boss bars itself; the HUD stays client-side. `preloadRenderer3D()`
 warms the chunk. "Auto" quality is picked by a short fps probe in the first seconds of play.
 
