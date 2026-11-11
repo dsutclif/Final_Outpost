@@ -336,12 +336,17 @@ def main():
             d = Vector((mid_w.x - h.x, dy if ends and abs(dy) > 0.55 else 0, 0))
             return (Rs @ d).normalized() if d.length > 1e-4 else Vector((0, 0, 0))
         def edit(dirs, fr, ws):
+            if os.environ.get("SHOULDER_DEBUG") and ws.get("row", -1) % 6 == 0 and all(ws.get(g, 0) == 0 for g in groups):
+                print("SHD film %d" % (ws["row"] + 1 + PRE + 165), {k: tuple(round(x) for x in v) for k, v in pod_exit.shoulder_angles(dirs).items()})
             if fr[0].z > 0.6:  # upright: arms out a little for balance (never tucked flat to the torso), as far as they need
                 out = pod_exit.arms_balance(dirs, fr, max(ws.get("relax", 0.0), min(1.0, ws["arms"] * 4)), ws.get("phase", 0.0), tuck=ws["arms"])
                 rw_ = relax_w(ws.get("row", -1))
                 if rw_ > 0: out = pod_exit.arms_relaxed(out, fr, rw_ * (1 - min(1.0, ws["arms"] * 2)), ws.get("row", 0) / 30.0)  # gives way where the pod needs the arms in
             else:  # lying and getting up: tucked in across the body, only as far as the pod needs
                 out = pod_exit.arms_in(dirs, fr, ws["arms"])
+            if ws["arms"] > 0 and os.environ.get("SHOULDER_GIVE", "1") == "1":  # the lowered shoulder gives way where the pod needs the arm in (the hand grazed the east rim as the turn starts)
+                for sd in ("Left", "Right"):
+                    if "_cap" + sd + "Shoulder" in out: out[sd + "Shoulder"] = pod_exit.slerp_dir(out[sd + "Shoulder"], out["_cap" + sd + "Shoulder"], min(1.0, ws["arms"] * 2))
             for side in ("Left", "Right"):
                 if ws["legs"] > 0:
                     iv = (inward(side + "Leg") + inward(side + "Foot", True)).normalized()  # the knee's side and the foot's end
@@ -380,6 +385,15 @@ def main():
             if ws.get("head", 0) <= 0: return Vector((0, 0, 0))
             if cur_r[0] not in hdir: hdir[cur_r[0]] = inward("Head")
             return hdir[cur_r[0]] * HEAD_SHIFT * ws["head"]
+        if os.environ.get("SHOULDER_DEBUG"):
+            bb = arm.data.bones; hd = lambda n: bb["mixamorig:" + n].head_local
+            cu_, cr_ = (hd("Neck") - hd("Spine")).normalized(), (hd("RightArm") - hd("LeftArm")).normalized()
+            cf_ = cu_.cross(cr_)
+            for sd in ("Left", "Right"):
+                v = (hd(sd + "Arm") - hd(sd + "Shoulder")).normalized()
+                print("SHD rest", sd, round(math.degrees(math.asin(v.dot(cu_)))), round(math.degrees(math.asin(v.dot(cf_)))))
+            for r in range(0, len(TL), 10):
+                print("SHD TL film %d" % (r + 1 + PRE + 165), {k: tuple(round(x) for x in v) for k, v in pod_exit.shoulder_angles(TL[r][1]).items()})
         ws_r = lambda r: dict({g: sw[g][r] for g in groups}, relax=rel[r], phase=phase(r), row=r, hs=hs_env[r])
         row_end = st[2]
         # standing in the pod (upright, up to the step over the wall): the arms hang relaxed (Doug 2026-11-10), easing in as he
@@ -784,9 +798,10 @@ def main():
             sc.frame_set(f)
             cam = max((m for m in sc.timeline_markers if m.frame <= f), key=lambda m: m.frame).camera
             sc.camera = cam
-            pts = [world_to_camera_view(sc, cam, arm.matrix_world @ b.head) for b in arm.pose.bones]
+            upper = ("Spine2", "Neck", "Head", "Shoulder", "LeftArm", "RightArm", "ForeArm") if os.environ.get("FRONT_PART") == "upper" else None  # shoulders and upper arms
+            pts = [world_to_camera_view(sc, cam, arm.matrix_world @ b.head) for b in arm.pose.bones if upper is None or (any(k in b.name for k in upper) and "Hand" not in b.name and "HeadTop" not in b.name)]
             xs, ys = [p.x for p in pts], [p.y for p in pts]
-            cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2; hh = (max(ys) - min(ys)) * 0.65 + 0.02
+            cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2; hh = (max(ys) - min(ys)) * (1.3 if upper else 0.65) + (0.05 if upper else 0.02)
             hw = hh * 1920 / 1080 * 0.75
             sc.render.border_min_x, sc.render.border_max_x = max(0, cx - hw), min(1, cx + hw)
             sc.render.border_min_y, sc.render.border_max_y = max(0, cy - hh), min(1, cy + hh)
@@ -795,7 +810,7 @@ def main():
     if "--closecam" in args:  # review crops: a close camera on one body part (CLOSE_PART head|arms|feet), every CLOSE_STEP frames over CLOSE_RANGE (pod frames)
         sc.timeline_markers.clear()
         part = os.environ.get("CLOSE_PART", "arms")
-        bone, (d_f, d_r, d_z), lens = {"head": ("Head", (1.0, 0.35, 0.2), 70), "arms": ("Spine1", (1.6, 0.6, 0.55), 45),
+        bone, (d_f, d_r, d_z), lens = {"head": ("Head", (1.0, 0.35, 0.2), 70), "arms": ("Spine1", (1.6, 0.6, 0.55), 45), "shoulders": ("Spine2", (-0.35, float(os.environ.get("SHOULDER_SIDE", 1.5)), 0.12), 45),  # (shoulders: from the side, a little behind, at shoulder height)
                                        "feet": ("Hips", (1.3, 0.5, 1.4), 40)}[part]  # (forward, right, up) from the body: in front of him
         cc = lib.camera(pod_c + Vector((2, -2, 1)), pod_c, lens=lens, name="closecam")
         sc.camera = cc

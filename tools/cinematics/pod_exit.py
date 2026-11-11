@@ -128,11 +128,41 @@ def arms_relaxed(dirs, frame, w, t=0.0):
     for prefix, outward, ph in (("Left", -right, 0.0), ("Right", right, 0.9)):
         br = math.sin(2 * math.pi * 0.28 * t + ph)  # about one breath every 3.5 s
         o_ = math.radians(13 + 1.5 * br); bnd = math.radians(24 + 3 * br)
-        side_dir = (outward * float(os.environ.get("RELAX_OUT", 0.55)) + fwd * 0.8).normalized()  # in front of the thighs more than out to the side (the pod is narrow)
+        side_dir = (outward * float(os.environ.get("RELAX_OUT", 1.0)) + fwd * float(os.environ.get("RELAX_FWD", 0.15))).normalized()  # Doug 2026-11-11: elbows beside the torso, not in front of the chest (was 0.55 out, 0.8 forward); the elbow bend brings the hands in front of the thighs
         ua = (-up * math.cos(o_) + side_dir * math.sin(o_)).normalized()
         fa = (ua * math.cos(bnd) + fwd * math.sin(bnd)).normalized()
         out[f"{prefix}Arm"] = slerp_dir(dirs[f"{prefix}Arm"], ua, w)
         out[f"{prefix}ForeArm"] = slerp_dir(dirs[f"{prefix}ForeArm"], fa, w)
+    return out
+
+
+def _chest(dirs):
+    cu = dirs["_chest_up"].normalized()
+    cr = (dirs["_chest_right"] - cu * dirs["_chest_right"].dot(cu)).normalized()
+    return cu, cr, cu.cross(cr).normalized()  # up, right, forward
+
+
+def shoulder_angles(dirs):
+    """Each clavicle's lift above the shoulder line and its lean forward of it, in degrees (left, right), in the chest frame."""
+    cu, cr, cf = _chest(dirs)
+    out = {}
+    for prefix, sg in (("Left", -1), ("Right", 1)):
+        d = dirs[f"{prefix}Shoulder"].normalized()
+        out[prefix] = (math.degrees(math.asin(max(-1, min(1, d.dot(cu))))), math.degrees(math.asin(max(-1, min(1, d.dot(cf))))))
+    return out
+
+
+def shoulders_down(dirs, w):
+    """Doug 2026-11-11, standing in the pod: the captured clavicles sit shrugged up and rolled forward. Drop and pull them back
+    (SHOULDER_UP deg above the shoulder line, SHOULDER_FWD deg forward of it, in the chest frame: chest open), by w (0..1)."""
+    if w <= 0 or "_chest_up" not in dirs: return dirs
+    cu, cr, cf = _chest(dirs)
+    up_ = math.radians(float(os.environ.get("SHOULDER_UP", -3))); fw_ = math.radians(float(os.environ.get("SHOULDER_FWD", -6)))
+    out = dict(dirs)
+    for prefix, outward in (("Left", -cr), ("Right", cr)):
+        tgt = (outward * math.cos(up_) * math.cos(fw_) + cu * math.sin(up_) + cf * math.sin(fw_)).normalized()
+        out.setdefault(f"_cap{prefix}Shoulder", dirs[f"{prefix}Shoulder"])  # the captured clavicle, for where the pod needs the arm in
+        out[f"{prefix}Shoulder"] = slerp_dir(dirs[f"{prefix}Shoulder"], tgt, w)
     return out
 
 
@@ -414,6 +444,13 @@ def timeline(takes, scale_of):
                 cur[1] = {n: slerp_dir(prev[1][n], cur[1][n], w) for n in cur[1]}
                 cur[2] = (slerp_dir(prev[2][0], cur[2][0], w), slerp_dir(prev[2][1], cur[2][1], w))
     if os.environ.get("HEAD_LEVEL", "1") == "1": head_level(out)
+    if os.environ.get("SHOULDERS_DOWN", "1") == "1":  # Doug 2026-11-11: the captured clavicles shrug 20-40 deg up (and 12 deg forward in the turn)
+        # eased in once the sit-up has cleared the rim (earlier, the lowered shoulders put the neck into it): rows from
+        # SHOULDER_FROM over SHOULDER_EASE, i.e. film 345-360, before he stands (Doug's 0:12-0:18)
+        s0, se = int(os.environ.get("SHOULDER_FROM", 134)), int(os.environ.get("SHOULDER_EASE", 15))
+        for i, r in enumerate(out):
+            w = smooth((i - s0) / se) * smooth((r[2][0].z - 0.5) / 0.3)
+            if w > 0: r[1].update(shoulders_down(r[1], w))
     if os.environ.get("HAND_FOLLOW") == "1":  # the capture's wrist markers spin the hands: each hand follows its forearm
         for r in out:
             for n in ("LeftHand", "RightHand"): r[1].pop(n, None)
