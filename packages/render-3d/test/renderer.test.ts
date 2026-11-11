@@ -176,29 +176,30 @@ describe("Renderer3D (fake WebGL)", () => {
     r.dispose();
   });
 
-  it("copies kept ready-built models: shared geometry, own pile stock, nothing freed while placed (#23)", () => {
-    type Priv = { placed: Map<string, { model: { root: Object3D } }>; kept: Map<string, { root: Object3D }> };
+  it("keeps ready-built models in quiet frames and copies them: shared geometry, own pile stock, nothing freed while placed (#23)", () => {
+    type M = { root: Object3D; parts: Record<string, Object3D> };
+    type Priv = { kept: Map<string, M>; fresh(id: string, level: number, ghost: boolean): M; removePlaced(p: unknown): void };
     const meshes = (root: Object3D): Mesh[] => { const out: Mesh[] = []; root.traverse((o) => { if ((o as Mesh).isMesh) out.push(o as Mesh); }); return out; };
+    // the first frame builds as before; the quiet frames after it keep each kind the level places
     const out = run(pin(level1), 60, () => ({ dx: 0, dy: 0 }));
     const r = out.r as unknown as Priv;
-    const piles = [...r.placed.values()].filter((p) => p.model.root.userData["id"] === "node.material_source");
-    expect(piles.length).toBeGreaterThan(1);
-    const kept = r.kept.get("s|1|node.material_source")!;
-    expect(kept).toBeTruthy();
-    // the ore pile's draw range shows its stock, so each copy owns its geometry; the rest share the kept one
-    const [a, b] = [meshes(piles[0]!.model.root), meshes(piles[1]!.model.root)];
-    const body = (ms: Mesh[]) => ms.find((m) => m.userData["steps"]);
-    if (body(a)) expect(body(a)!.geometry).not.toBe(body(b)!.geometry);
-    const core = [...r.placed.values()].find((p) => p.model.root.userData["id"] === "sink.core")!;
     const coreKept = r.kept.get("s|1|sink.core")!;
-    const own = meshes(core.model.root).filter((m) => !m.userData["shared"]);
+    expect(coreKept).toBeTruthy();
+    expect(r.kept.has("s|1|node.material_source")).toBe(true);
+    const core = r.fresh("sink.core", 1, false);
+    const own = meshes(core.root).filter((m) => !m.userData["shared"]);
     expect(own.length).toBeGreaterThan(0);
     const keptGeos = new Set(meshes(coreKept.root).map((m) => m.geometry));
     for (const m of own) { expect(m.userData["kept"]).toBe(true); expect(keptGeos.has(m.geometry)).toBe(true); }
-    // removing a copy leaves the kept geometry alone
+    for (const [k, v] of Object.entries(core.parts)) { let inCopy = false; core.root.traverse((o) => { if (o === v) inCopy = true; }); expect(inCopy, k).toBe(true); }
+    // the ore pile's draw range shows its stock, so each copy owns that geometry
+    const [p1, p2] = [r.fresh("node.material_source", 1, false), r.fresh("node.material_source", 1, false)];
+    const body = (m: M) => meshes(m.root).find((x) => x.userData["steps"]);
+    if (body(p1)) expect(body(p1)!.geometry).not.toBe(body(p2)!.geometry);
+    // removing a copy leaves the kept geometry alone; the level's end frees it
     let freed = 0;
     for (const g of keptGeos) g.addEventListener("dispose", () => { freed++; });
-    (out.r as unknown as { removePlaced(p: unknown): void }).removePlaced(core);
+    r.removePlaced({ model: core, data: {}, sprites: [], extra: [] });
     expect(freed).toBe(0);
     out.r.dispose();
     expect(freed).toBeGreaterThan(0);

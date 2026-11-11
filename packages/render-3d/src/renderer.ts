@@ -1258,10 +1258,16 @@ export class Renderer3D implements Renderer {
   // lights, lamps), as a fresh build would. Piles whose draw range shows their stock get their own geometry. Kinds the
   // level may need next are built in quiet frames after it loads; the kept models go with the level (dispose()).
 
-  /** A model for a placement: a copy of the kept one, building and keeping it first when there is none yet. */
+  /**
+   * A model for a placement: a copy of the kept one; when there is none yet, a fresh build as before (so a level's
+   * first frame costs what it did) and the kind goes to the front of the list to keep.
+   */
   private fresh(id: string, level: number, ghost: boolean): Model {
-    const t = this.keepOne(id, level, ghost);
-    return t ? this.copyModel(t, !ghost) : buildModel(id, { ...this.bctx!, level, ...(ghost ? { ghost: true } : {}) });
+    const key = `${ghost ? "g" : "s"}|${level}|${id}`;
+    const t = this.kept.get(key);
+    if (t) return this.copyModel(t, !ghost);
+    if (KEEPABLE.test(id) && !this.unkept.has(key) && !this.keepQ.includes(key)) this.keepQ.unshift(key);
+    return buildModel(id, { ...this.bctx!, level, ...(ghost ? { ghost: true } : {}) });
   }
 
   /** The kept model for a kind, built now if missing; null for kinds that are never kept (characters, items, rigs). */
