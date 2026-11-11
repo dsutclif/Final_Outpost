@@ -295,7 +295,9 @@ def main():
         is_back = lambda n: n.endswith(("Spine1", "Spine"))  # the backpack: it grazed the east rim through the stepping turn
         side_leg = lambda sd: (lambda n: n.replace("mixamorig:", "").startswith(sd) and any(k in n for k in ("Leg", "Foot", "Toe")))
         groups = {"arms": grp(is_arm), "legs": grp(is_leg), "head": grp(is_head), "toes": grp(is_toe), "chest": grp(is_chest), "back": grp(is_back),
-                  "liftL": grp(side_leg("Left")), "liftR": grp(side_leg("Right"))}
+                  "liftL": grp(side_leg("Left")), "liftR": grp(side_leg("Right")),
+                  "armL": grp(lambda n: is_arm(n) and n.replace("mixamorig:", "").startswith("Left")), "armR": grp(lambda n: is_arm(n) and n.replace("mixamorig:", "").startswith("Right"))}
+        ARMS_SIDE = os.environ.get("ARMS_SIDE", "1") == "1"  # standing: each arm on its own, its hand in toward the pod's middle (never both tucked forward)
         DEPTH_G = ("legs", "toes", "chest", "back", "liftL", "liftR")  # judged by depth (over 2 cm fails): resting contact is fine
         mid_c = pod_c + POD_IN
         def odd_depth(q, d, reach):
@@ -339,12 +341,20 @@ def main():
             if os.environ.get("SHOULDER_DEBUG") and ws.get("row", -1) % 6 == 0 and all(ws.get(g, 0) == 0 for g in groups):
                 print("SHD film %d" % (ws["row"] + 1 + PRE + 165), {k: tuple(round(x) for x in v) for k, v in pod_exit.shoulder_angles(dirs).items()})
             if fr[0].z > 0.6:  # upright: arms out a little for balance (never tucked flat to the torso), as far as they need
-                out = pod_exit.arms_balance(dirs, fr, max(ws.get("relax", 0.0), min(1.0, ws["arms"] * 4)), ws.get("phase", 0.0), tuck=ws["arms"])
+                if os.environ.get("ARMS_GRAVITY", "1") == "1":  # Doug 2026-11-11: they hang from gravity, not from the pelvis tilt (it swung them 23-36 deg back as he rose)
+                    rh_ = Vector((fr[1].x, fr[1].y, 0)); fr_a = (Vector((0, 0, 1)), rh_.normalized()) if rh_.length > 1e-4 else fr
+                else: fr_a = fr
+                out = pod_exit.arms_balance(dirs, fr_a, max(ws.get("relax", 0.0), min(1.0, ws["arms"] * 4)), ws.get("phase", 0.0), tuck=ws["arms"])
                 rw_ = relax_w(ws.get("row", -1))
-                if rw_ > 0: out = pod_exit.arms_relaxed(out, fr, rw_ * (1 - min(1.0, ws["arms"] * 2)), ws.get("row", 0) / 30.0)  # gives way where the pod needs the arms in
+                if rw_ > 0: out = pod_exit.arms_relaxed(out, fr_a, rw_ * (1 - min(1.0, ws["arms"] * 2)), ws.get("row", 0) / 30.0)  # gives way where the pod needs the arms in
+                for sd, gk in (("Left", "armL"), ("Right", "armR")):  # the arm the rim touches: its hand comes in sideways, toward the pod's middle
+                    if ws.get(gk, 0) > 0:
+                        iv = inward(sd + "Hand")
+                        for b, k in (("Arm", 0.35), ("ForeArm", 0.9)):
+                            out[sd + b] = pod_exit.slerp_dir(out[sd + b], (out[sd + b].normalized() + iv * k).normalized(), ws[gk])
             else:  # lying and getting up: tucked in across the body, only as far as the pod needs
                 out = pod_exit.arms_in(dirs, fr, ws["arms"])
-            if ws["arms"] > 0 and os.environ.get("SHOULDER_GIVE", "1") == "1":  # the lowered shoulder gives way where the pod needs the arm in (the hand grazed the east rim as the turn starts)
+            if ws["arms"] > 0 and os.environ.get("SHOULDER_GIVE", "0") == "1":  # the lowered shoulder gives way where the pod needs the arm in (the hand grazed the east rim as the turn starts)
                 for sd in ("Left", "Right"):
                     if "_cap" + sd + "Shoulder" in out: out[sd + "Shoulder"] = pod_exit.slerp_dir(out[sd + "Shoulder"], out["_cap" + sd + "Shoulder"], min(1.0, ws["arms"] * 2))
             for side in ("Left", "Right"):
@@ -375,6 +385,8 @@ def main():
                 iv = inward("Head")
                 for n in ("Neck", "Head"):
                     if n in out: out[n] = pod_exit.slerp_dir(out[n], (out[n] + iv * 0.6).normalized(), ws["head"])
+            if out.get("_shw", 0) > 0 and fr[0].z > 0.6 and os.environ.get("SHOULDER_RELEVEL", "1") == "1":  # level again on the edited chest (the backpack lean tipped one shoulder 16 deg down in the turn)
+                out = pod_exit.shoulders_down(out, out["_shw"])
             return out
         # Doug 2026-11-10: the head clears the rim by the whole body sitting a little further in (the pelvis slides toward the
         # pod's middle line, up to HEAD_SHIFT m), never by rolling the neck sideways; the direction is fixed per row
@@ -417,6 +429,8 @@ def main():
                 if g == "back" and r < len(P["takes"][0].frames()): lad = (0.0,)  # the backpack only through the turn and the step (in the get-up the chest lean moved him into the pod)
                 elif g == "legs" and r >= len(P["takes"][0].frames()): lad = (0.0,)  # the knees only while he gets up (not through the stepping turn, whose feet must stay planted, nor the step over the wall)
                 elif g in ("liftL", "liftR") and (r < len(P["takes"][0].frames()) or os.environ.get("LIFT_GROUPS", "0") != "1"): lad = (0.0,)  # the leg lift (off: it lifted the standing leg and floated him over the wall)
+                elif g == "arms" and ARMS_SIDE and row[2][0].z > 0.6: lad = (0.0,)  # standing: the per-arm groups instead (the tuck swung both hands forward, film 355-445)
+                elif g in ("armL", "armR") and not (ARMS_SIDE and row[2][0].z > 0.6): lad = (0.0,)
                 else: lad = LAD
                 for w in lad:
                     ws = dict(cur); ws[g] = w
@@ -470,6 +484,9 @@ def main():
             for g in groups: after[g] += 1 if bad(g) else 0
             if os.environ.get("BODY_DEBUG") and r + 1 + PRE in (283, 304, 325): print("BODYD", r + 1 + PRE, "row", r, "st", st[:3], {g: round(depth(g) * 100, 1) for g in DEPTH_G}, {g: round(sw[g][r], 2) for g in groups})
         P["sw"] = sw
+        for g in ("armL", "armR"):  # where the rim moves one hand in, film frames, and how far at most
+            sp = [r for r, w in enumerate(sw[g]) if w > 0.02]
+            if sp: print("ARM IN %s film %d-%d (%d frames), at most %.2f; over 0.5 on %d frames" % (g, sp[0] + 1 + PRE + 165, sp[-1] + 1 + PRE + 165, len(sp), max(sw[g]), sum(1 for w in sw[g] if w > 0.5)), "every 6:", " ".join("%d:%.1f" % (r + 1 + PRE + 165, sw[g][r]) for r in range(sp[0], sp[-1] + 1, 6)))
         print("BODY CLEAR regrounded %d standing frames after the leg edits" % regrounded)
         print("BODY CLEAR rows 0-%d: crossing frames above 15 cm %s -> %s; eased frames %s" % (row_end - 1, before, after, {g: sum(1 for w in sw[g] if w > 0) for g in groups}))
     follow = bpy.data.objects.new("follow", None)
@@ -844,6 +861,45 @@ def main():
             hc.location = c + Vector((-1.0, -0.8, 0.75))  # in front of him (he steps out west), above the low west wall
             hc.rotation_euler = (c - hc.location).to_track_quat("-Z", "Y").to_euler()
             lib.render_still(os.path.join(Hd, f"h_{f:04d}.png"))
+        return
+    if "--shoulders" in args:  # per frame (SHOULDERS_RANGE, film frames): each clavicle's lift above the shoulder line (chest frame) and
+        # each upper arm's pitch forward of vertical (+ forward, - back, in his facing plane) and its lean out to the side; then the
+        # same for the first standing frames of the 01_07 walk capture, the natural reference
+        import retarget
+        arm = P["arm"]; pb = lambda n: arm.matrix_world @ arm.pose.bones["mixamorig:" + n].head
+        Z = Vector((0, 0, 1))
+        def angs(sh, ar, fa, cu, fwd):
+            cr_ = None
+            out_ = {}
+            for sd in ("Left", "Right"):
+                c = (ar[sd] - sh[sd]).normalized(); u = (fa[sd] - ar[sd]).normalized()
+                lift = math.degrees(math.asin(max(-1, min(1, c.dot(cu)))))
+                pitch = math.degrees(math.atan2(u.dot(fwd), -u.dot(Z)))
+                side = math.degrees(math.atan2(abs(u.dot(fwd.cross(Z))), -u.dot(Z)))
+                out_[sd] = (round(lift), round(pitch), round(side))
+            return out_
+        a_, b_ = (int(x) for x in os.environ.get("SHOULDERS_RANGE", "395,470").split(","))
+        sw_ = P.get("sw", {})
+        for film in range(a_, b_ + 1):
+            f = film - 165; sc.frame_set(f)
+            cu = (pb("Neck") - pb("Spine")).normalized()
+            hm = (arm.matrix_world @ arm.pose.bones["mixamorig:Hips"].matrix).to_3x3()
+            fwd = Vector((hm.col[2].x, hm.col[2].y, 0)).normalized()
+            g = lambda n: {sd: pb(sd + n) for sd in ("Left", "Right")}
+            r = f - 1 - PRE
+            print("SHOULDERS film %d" % film, angs(g("Shoulder"), g("Arm"), g("ForeArm"), cu, fwd),
+                  "spine pitch %d" % round(math.degrees(math.atan2(cu.dot(fwd), cu.z))),
+                  "arms-in weight %.2f" % (sw_["arms"][r] if "arms" in sw_ and 0 <= r < len(sw_["arms"]) else -1))
+        clip = pod_exit.mocap.Clip("01_07", src_fps=120, fps=30)
+        acc = []
+        for i in range(0, 15):
+            seg, _, _ = clip.pose(i); d = retarget.mocap_dirs(seg)
+            _, up_, right_ = retarget.pelvis(seg)
+            cu = d["_chest_up"].normalized(); fwd = up_.cross(right_); fwd = Vector((fwd.x, fwd.y, 0)).normalized()
+            sh = {sd: Vector() for sd in ("Left", "Right")}
+            ar = {sd: d[sd + "Shoulder"] for sd in sh}; fa = {sd: d[sd + "Shoulder"] + d[sd + "Arm"] for sd in sh}
+            acc.append(angs(sh, ar, fa, cu, fwd))
+        print("SHOULDERS reference 01_07 frames 0-14:", acc[0], acc[7], acc[14])
         return
     if "--arms" in args:  # pinned arms: each arm's angle out from the torso and its elbow bend per frame; runs of more than 10
         # frames with the upper arm within 8 deg of the torso and a straight elbow (under 15 deg) while he is up (not lying)

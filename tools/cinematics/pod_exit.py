@@ -163,6 +163,7 @@ def shoulders_down(dirs, w):
         tgt = (outward * math.cos(up_) * math.cos(fw_) + cu * math.sin(up_) + cf * math.sin(fw_)).normalized()
         out.setdefault(f"_cap{prefix}Shoulder", dirs[f"{prefix}Shoulder"])  # the captured clavicle, for where the pod needs the arm in
         out[f"{prefix}Shoulder"] = slerp_dir(dirs[f"{prefix}Shoulder"], tgt, w)
+    out["_shw"] = max(w, dirs.get("_shw", 0.0))  # (game_film levels them again after its chest edits)
     return out
 
 
@@ -182,6 +183,13 @@ class GetUp(Take):
     def edit(self, i, dirs, frame, seg):
         if os.environ.get("ARMS_IN") == "1":  # lying and sitting up (the torso below about 40 deg): arms relaxed, in
             dirs = arms_in(dirs, frame, 1 - smooth((frame[0].z - float(os.environ.get("ARMS_IN_Z0", 0.25))) / 0.45))
+        if os.environ.get("SPINE_UP", "140,169") != "0":  # Doug 2026-11-11: the back is upright by film 380 (it hunched 30-46 deg
+            # forward to film 400 as he finished rising); the spine only, eased over these clip frames, the legs rise as captured
+            s0, s1 = (int(x) for x in os.environ.get("SPINE_UP", "140,169").split(","))
+            ws_ = smooth((i - s0) / max(1, s1 - s0))
+            if ws_ > 0:
+                dirs = dict(dirs)
+                for n in ("Spine", "Spine1", "Spine2", "_chest_up"): dirs[n] = slerp_dir(dirs[n], UP, ws_)
         w = smooth((i - (self.b - 50)) / 40)  # straighten up over the last second and a half
         return upright(dirs, frame, w) if w > 0 else (dirs, frame)
 
