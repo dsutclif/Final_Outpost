@@ -1,0 +1,408 @@
+{
+  "id": "s1-L183",
+  "seed": 1240557350,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-sw",
+      "food-se",
+      "shop-ne",
+      "landmark-s"
+    ]
+  },
+  "modules": [
+    "blocked_zones",
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "hazard_events",
+    "housing",
+    "sales"
+  ],
+  "start": [
+    240,
+    360
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        450
+      ],
+      "params": {
+        "fuel": 14,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        360,
+        404
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          299,
+          404
+        ],
+        [
+          299,
+          370
+        ],
+        [
+          299,
+          336
+        ],
+        [
+          299,
+          302
+        ]
+      ],
+      "route": [
+        [
+          500,
+          297
+        ],
+        [
+          477,
+          297
+        ],
+        [
+          297,
+          297
+        ],
+        [
+          299,
+          302
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        318,
+        590
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        157,
+        481
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        186,
+        530
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        232,
+        529
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        145,
+        509
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        121,
+        484
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        134,
+        541
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        171,
+        572
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        207,
+        591
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        142,
+        573
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        246,
+        592
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        112,
+        561
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        122,
+        594
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        106,
+        513
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        293,
+        351
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        274,
+        325
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        243,
+        312
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        273,
+        292
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        305,
+        322
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        240,
+        750
+      ],
+      "arrivals": {
+        "every": 14,
+        "total": 4
+      }
+    },
+    {
+      "type": "zone.blocked",
+      "id": "rubble0",
+      "rect": [
+        84,
+        626,
+        120,
+        70
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        109,
+        661
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        144,
+        661
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        179,
+        661
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level0",
+      "at": [
+        263,
+        560
+      ],
+      "cost": {
+        "res.currency": 24
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "clear0",
+      "at": [
+        84,
+        599
+      ],
+      "cost": {
+        "res.currency": 14
+      },
+      "build": "zone.clear",
+      "target": "rubble0",
+      "requires": {
+        "coreLevel": 2,
+        "pad": "core_level0"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        390,
+        520
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing1",
+      "at": [
+        70,
+        470
+      ],
+      "cost": {
+        "res.currency": 14
+      },
+      "build": "struct.housing",
+      "requires": {
+        "pad": "clear0"
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 38,
+      "start": 46,
+      "end": 98
+    }
+  ],
+  "params": {
+    "start.currency": 7,
+    "core.burn": 2.7,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 2.7,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 350
+  },
+  "goal": {
+    "type": "house_all"
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "house_all",
+      "params": {}
+    },
+    {
+      "id": "challenge",
+      "kind": "no_colonist_freezes",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 182
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hab Pods and Roof Overhead",
+      "goal": "house_all",
+      "tips": [
+        "New colonists need a bed. Build hab pods so they can move in."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.376,
+    "fun": 0.501,
+    "botMargin": 0.678,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

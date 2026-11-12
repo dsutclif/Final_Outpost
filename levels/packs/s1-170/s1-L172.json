@@ -1,0 +1,312 @@
+{
+  "id": "s1-L172",
+  "seed": 318540028,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-e",
+      "food-se",
+      "shop-w",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "hazard_events",
+    "sales"
+  ],
+  "start": [
+    218,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        218,
+        500
+      ],
+      "params": {
+        "fuel": 11,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        140,
+        578
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          201,
+          578
+        ],
+        [
+          235,
+          578
+        ],
+        [
+          269,
+          578
+        ],
+        [
+          303,
+          578
+        ]
+      ],
+      "route": [
+        [
+          500,
+          615
+        ],
+        [
+          477,
+          615
+        ],
+        [
+          285,
+          615
+        ],
+        [
+          235,
+          578
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        334,
+        563
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        301,
+        466
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        318,
+        490
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        304,
+        434
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        330,
+        454
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        282,
+        413
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        357,
+        465
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        336,
+        425
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        355,
+        495
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        310,
+        385
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        374,
+        428
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        363,
+        387
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        410,
+        512
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain0",
+      "kind": "ridge",
+      "rect": [
+        305,
+        796,
+        97,
+        20
+      ]
+    },
+    {
+      "type": "zone.terrain",
+      "id": "terrain1",
+      "kind": "outcrop",
+      "rect": [
+        116,
+        98,
+        44,
+        55
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level0",
+      "at": [
+        241,
+        610
+      ],
+      "cost": {
+        "res.currency": 30
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level1",
+      "at": [
+        241,
+        610
+      ],
+      "cost": {
+        "res.currency": 42
+      },
+      "build": "sink.core.level",
+      "requires": {
+        "pad": "core_level0"
+      }
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 64,
+      "start": 72,
+      "end": 124
+    }
+  ],
+  "params": {
+    "start.currency": 1,
+    "core.burn": 2.3,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.1,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 320
+  },
+  "goal": {
+    "type": "core_level",
+    "n": 3
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "core_level",
+      "params": {
+        "n": 3
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 40
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 235
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Dust and Power Up",
+      "goal": "core_level",
+      "tips": [
+        "A dust storm burns fuel fast. Fill the reactor before it hits."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.448,
+    "fun": 0.701,
+    "botMargin": 0.541,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2.67,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  },
+  "lighting": "night"
+}

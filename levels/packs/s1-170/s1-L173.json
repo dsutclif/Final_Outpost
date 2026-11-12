@@ -1,0 +1,308 @@
+{
+  "id": "s1-L173",
+  "seed": 1944007283,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-ne",
+      "fuel-w",
+      "shop-s"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "hunting",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    240,
+    652
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        560
+      ],
+      "params": {
+        "fuel": 11,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        216,
+        479
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        159,
+        541
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        250,
+        466
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        185,
+        479
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        161,
+        509
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        477
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        208,
+        450
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          105,
+          410
+        ],
+        [
+          240,
+          410
+        ],
+        [
+          375,
+          410
+        ],
+        [
+          375,
+          560
+        ],
+        [
+          375,
+          710
+        ],
+        [
+          240,
+          710
+        ],
+        [
+          105,
+          710
+        ],
+        [
+          105,
+          560
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        117,
+        285
+      ],
+      "freeze": 110
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        273,
+        223
+      ],
+      "freeze": 132
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        147,
+        131
+      ],
+      "freeze": 163
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        57,
+        196
+      ],
+      "freeze": 177
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        194,
+        50
+      ],
+      "freeze": 208
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        400,
+        138
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        260,
+        340
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        443,
+        516
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        378,
+        311
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        395,
+        440,
+        65,
+        150
+      ],
+      "animal": "node.prey",
+      "n": 2
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey_danger",
+      "rect": [
+        395,
+        440,
+        65,
+        150
+      ],
+      "animal": "node.prey_dangerous",
+      "n": 1
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 3,
+    "core.burn": 2.4,
+    "housing.base": 7,
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 320
+  },
+  "goal": {
+    "type": "hunt",
+    "n": 25
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "hunt",
+      "params": {
+        "n": 25
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "rescue_all",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 248
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Tow Lines and Game Trails",
+      "goal": "hunt",
+      "tips": [
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.424,
+    "fun": 0.577,
+    "botMargin": 0.518,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

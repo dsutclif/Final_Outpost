@@ -1,0 +1,352 @@
+{
+  "id": "s1-L170",
+  "seed": 1341089509,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-far-w",
+      "food-far-e",
+      "shop-s",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "housing",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    240,
+    612
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        520
+      ],
+      "params": {
+        "fuel": 10,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        252,
+        679
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          191,
+          679
+        ],
+        [
+          191,
+          713
+        ],
+        [
+          191,
+          747
+        ],
+        [
+          191,
+          781
+        ]
+      ],
+      "route": [
+        [
+          -20,
+          705
+        ],
+        [
+          3,
+          705
+        ],
+        [
+          183,
+          705
+        ],
+        [
+          191,
+          679
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        373,
+        522
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        154,
+        485
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        165,
+        531
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        159,
+        567
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        155,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        132,
+        508
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        134,
+        549
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        121,
+        476
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        105,
+        532
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        100,
+        579
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        119,
+        435
+      ]
+    },
+    {
+      "type": "struct.gate",
+      "id": "gate",
+      "at": [
+        240,
+        820
+      ],
+      "arrivals": {
+        "every": 20,
+        "total": 5
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        217,
+        630
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "sink.core"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        373,
+        583
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        252,
+        778
+      ],
+      "cost": {
+        "res.currency": 24
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.build",
+      "id": "housing0",
+      "at": [
+        350,
+        660
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing1",
+      "at": [
+        140,
+        670
+      ],
+      "cost": {
+        "res.currency": 19
+      },
+      "build": "struct.housing"
+    },
+    {
+      "type": "pad.build",
+      "id": "housing2",
+      "at": [
+        430,
+        620
+      ],
+      "cost": {
+        "res.currency": 22
+      },
+      "build": "struct.housing"
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 0,
+    "core.burn": 2.1,
+    "housing.base": 3,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.2,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "customers.bulkShare": 0.15,
+    "level.budgetSeconds": 180
+  },
+  "goal": {
+    "type": "build_count",
+    "build": "struct.housing",
+    "n": 3
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "build_count",
+      "params": {
+        "build": "struct.housing",
+        "n": 3
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 35
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 151
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hab Pods and Building Spree",
+      "goal": "build_count",
+      "tips": [
+        "New colonists need a bed. Build hab pods so they can move in."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.86,
+    "fun": 0.923,
+    "botMargin": 0.483,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

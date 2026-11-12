@@ -1,0 +1,392 @@
+{
+  "id": "s1-L180",
+  "seed": 275160963,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-sw",
+      "fuel-ne",
+      "shop-e",
+      "landmark-se"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "hunting",
+    "lasso",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    262,
+    602
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        262,
+        510
+      ],
+      "params": {
+        "fuel": 10,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        331,
+        587
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ],
+      "queue": [
+        [
+          270,
+          587
+        ],
+        [
+          236,
+          587
+        ],
+        [
+          202,
+          587
+        ],
+        [
+          202,
+          621
+        ]
+      ],
+      "route": [
+        [
+          500,
+          633
+        ],
+        [
+          477,
+          633
+        ],
+        [
+          279,
+          633
+        ],
+        [
+          270,
+          587
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        160,
+        535
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        186,
+        463
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        242,
+        429
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        178,
+        430
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        207,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        258,
+        400
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        143,
+        450
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        211,
+        392
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        181,
+        398
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        404
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          82,
+          310
+        ],
+        [
+          202,
+          310
+        ],
+        [
+          322,
+          310
+        ],
+        [
+          442,
+          310
+        ],
+        [
+          442,
+          443
+        ],
+        [
+          442,
+          577
+        ],
+        [
+          442,
+          710
+        ],
+        [
+          322,
+          710
+        ],
+        [
+          202,
+          710
+        ],
+        [
+          82,
+          710
+        ],
+        [
+          82,
+          577
+        ],
+        [
+          82,
+          443
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1,
+        5
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        138,
+        134
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        359,
+        39
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        225,
+        41
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        100,
+        224
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        423,
+        243
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        20,
+        340,
+        60,
+        150
+      ],
+      "animal": "node.prey",
+      "n": 3
+    },
+    {
+      "type": "pad.hire",
+      "id": "ranger",
+      "at": [
+        50,
+        352
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "sink.sales_point"
+      },
+      "manual": true
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 1,
+    "core.burn": 2.2,
+    "housing.base": 11,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.2,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "customers.bulkShare": 0.16,
+    "level.budgetSeconds": 340
+  },
+  "goal": {
+    "type": "protein",
+    "n": 27
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "protein",
+      "params": {
+        "n": 27
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "tow_trip",
+      "params": {
+        "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 291
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Drift Cables and Hunters' Larder",
+      "goal": "protein",
+      "tips": [
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.81,
+    "fun": 0.761,
+    "botMargin": 0.554,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  },
+  "lighting": "night"
+}
