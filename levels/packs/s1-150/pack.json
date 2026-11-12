@@ -1,0 +1,388 @@
+{
+  "id": "s1-150",
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "levels": [
+    {
+      "id": "s1-L150",
+      "file": "s1-L150.json",
+      "title": "Hurried Traders and Hiring Drive",
+      "family": "industrialize",
+      "secondary": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "hire",
+      "rating": 0.693,
+      "fun": 0.969,
+      "target": 0.8
+    },
+    {
+      "id": "s1-L151",
+      "file": "s1-L151.json",
+      "title": "Drift Cables and Cargo",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "lasso",
+        "sales"
+      ],
+      "goal": "crates",
+      "rating": 0.183,
+      "fun": 0.925,
+      "target": 0.4
+    },
+    {
+      "id": "s1-L152",
+      "file": "s1-L152.json",
+      "title": "Locked Caches and Credits",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "currency",
+      "rating": 0.403,
+      "fun": 0.891,
+      "target": 0.45
+    },
+    {
+      "id": "s1-L155",
+      "file": "s1-L155.json",
+      "title": "Domes and Sweep",
+      "family": "shelter",
+      "modules": [
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "housing",
+        "sales"
+      ],
+      "goal": "clear_zones",
+      "rating": 0.593,
+      "fun": 0.567,
+      "target": 0.581
+    },
+    {
+      "id": "s1-L157",
+      "file": "s1-L157.json",
+      "title": "Blueprints and Quick Credits",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "earn_within",
+      "rating": 0.672,
+      "fun": 0.805,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L158",
+      "file": "s1-L158.json",
+      "title": "Presses and Output",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "produce",
+      "rating": 0.999,
+      "fun": 0.846,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L159",
+      "file": "s1-L159.json",
+      "title": "Wreckage and New Hands",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "medical",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "hire",
+      "rating": 0.395,
+      "fun": 0.296,
+      "target": 0.756
+    },
+    {
+      "id": "s1-L160",
+      "file": "s1-L160.json",
+      "title": "Scrap and Titan Night",
+      "family": "defend",
+      "secondary": "shelter",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "housing",
+        "medical",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "boss",
+      "rating": 0.833,
+      "fun": 0.894,
+      "target": 0.8
+    },
+    {
+      "id": "s1-L161",
+      "file": "s1-L161.json",
+      "title": "Dust",
+      "family": "shelter",
+      "modules": [
+        "carry",
+        "core",
+        "gather",
+        "hazard_events",
+        "sales"
+      ],
+      "goal": "hazard_survive",
+      "rating": 0.007,
+      "fun": 0.09,
+      "target": 0.4
+    },
+    {
+      "id": "s1-L162",
+      "file": "s1-L162.json",
+      "title": "Stasis Pods and Last Calls",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "lasso",
+        "sales"
+      ],
+      "goal": "rescue",
+      "rating": 0.448,
+      "fun": 0.835,
+      "target": 0.45
+    },
+    {
+      "id": "s1-L163",
+      "file": "s1-L163.json",
+      "title": "Sealed Veins and Market Day",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "sell",
+      "rating": 0.986,
+      "fun": 0.911,
+      "target": 0.494
+    },
+    {
+      "id": "s1-L164",
+      "file": "s1-L164.json",
+      "title": "Conveyors and All Lines Up",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "conveyors",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "converters_running",
+      "rating": 0.507,
+      "fun": 0.929,
+      "target": 0.538
+    },
+    {
+      "id": "s1-L165",
+      "file": "s1-L165.json",
+      "title": "Rust and Hardpoints",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "turret_level",
+      "rating": 0.625,
+      "fun": 0.342,
+      "target": 0.581
+    },
+    {
+      "id": "s1-L166",
+      "file": "s1-L166.json",
+      "title": "Reactors and Brighter Cores",
+      "family": "shelter",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "sales"
+      ],
+      "goal": "core_level",
+      "rating": 0.622,
+      "fun": 0.925,
+      "target": 0.625
+    },
+    {
+      "id": "s1-L167",
+      "file": "s1-L167.json",
+      "title": "Tow Lines and No One Left",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "lasso",
+        "sales"
+      ],
+      "goal": "rescue_all",
+      "rating": 0.674,
+      "fun": 0.833,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L168",
+      "file": "s1-L168.json",
+      "title": "Hurried Traders and Perfect Run",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "streak",
+      "rating": 0.718,
+      "fun": 0.924,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L169",
+      "file": "s1-L169.json",
+      "title": "Couriers and Stockpiles",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "supply_routing",
+        "workers"
+      ],
+      "goal": "stockpile",
+      "rating": 0.475,
+      "fun": 0.895,
+      "target": 0.756
+    }
+  ],
+  "dropped": [
+    {
+      "index": 153,
+      "id": "s1-L153",
+      "family": "industrialize",
+      "secondary": null,
+      "rejects": {
+        "infeasible": 68,
+        "humanLost": 1,
+        "repetitive": 1
+      }
+    },
+    {
+      "index": 154,
+      "id": "s1-L154",
+      "family": "defend",
+      "secondary": null,
+      "rejects": {
+        "infeasible": 46,
+        "ladderSpent": 22,
+        "trivial": 15
+      }
+    },
+    {
+      "index": 156,
+      "id": "s1-L156",
+      "family": "rescue",
+      "secondary": null,
+      "rejects": {
+        "layout": 2800
+      }
+    }
+  ],
+  "tuning": {
+    "offset": 0,
+    "reason": "adaptation off",
+    "meanStars": null,
+    "meanAttempts": null,
+    "samples": 10,
+    "cleared": 101
+  }
+}

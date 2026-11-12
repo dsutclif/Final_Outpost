@@ -1,0 +1,190 @@
+{
+  "id": "s1-L161",
+  "seed": 1554558976,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-sw",
+      "food-se",
+      "shop-ne",
+      "landmark-s"
+    ]
+  },
+  "modules": [
+    "carry",
+    "core",
+    "gather",
+    "hazard_events",
+    "sales"
+  ],
+  "start": [
+    240,
+    360
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        450
+      ],
+      "params": {
+        "fuel": 9,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        160,
+        522
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        176,
+        560
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        140,
+        545
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        114,
+        511
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        209,
+        596
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        160,
+        587
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        213,
+        529
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        130,
+        583
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        98,
+        547
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        173,
+        632
+      ]
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 52,
+      "start": 60,
+      "end": 100
+    },
+    {
+      "type": "event.hazard",
+      "warnAt": 132,
+      "start": 140,
+      "end": 180
+    }
+  ],
+  "params": {
+    "start.currency": 0,
+    "core.burn": 2.1,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 310
+  },
+  "goal": {
+    "type": "hazard_survive"
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "hazard_survive",
+      "params": {}
+    },
+    {
+      "id": "challenge2",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 30
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Dust",
+      "goal": "hazard_survive",
+      "tips": [
+        "A dust storm burns fuel fast. Fill the reactor before it hits."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.007,
+    "fun": 0.09,
+    "botMargin": 0.839,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}
