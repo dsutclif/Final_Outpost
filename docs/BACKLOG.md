@@ -13,7 +13,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#122**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#133**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -28,32 +28,41 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 **Terms.** *Animations* means every scripted story beat with character motion: rendered films, machinima, and live
 scenes where play pauses while one character's movement plays out (Doug, 2026-11-07).
 
-## Start here next week (written 2026-11-09)
+## Start here (written 2026-11-12: hand-off to the build account)
 
-Tokens ran short this week, so only #97 is still being built. Start nothing else until the weekly limit resets, then run one fresh Sonnet orchestrator from this block.
-- **Done and live:** Bundles 1–3, 5 (partly), 6, 7 (engine 0.22.0), Bundle 10 (engine 0.23.0, story and look fixes). Ticked items moved to `docs/archive/DONE.md`.
-- **Systems lane:** Bundle 6 and 7 landed; #97 (`levels:check` on 0.23.0) is fixed (targets re-baselined, see DECISIONS.md). **Next: Bundle 8** (pack rebuild, #16 v1 refit from `docs/RELEASE-2.md`, #94 denser waves, #99 pads clear of buildings, #100 rangers through walls, #44's `start.json` rewrite). Suggest the full pack regenerate happens there. Then Bundle 9's sim parts.
-- **Story lane:** nothing running. **Next: #48 and #49** (held level edits and the `crash_open` render) once Doug approves the film stills. Film state: `docs/STORY-WORK-LOG.md`; stills in `Mobile game/film-stage2-stills-v*` (v6 was reviewed; a v8 flat render was still running). Bundle 4 after that.
-- **Look lane:** nothing running. Open: #41 (pad placement, with #99), #52 scenarios, #82 (storm warning behind the HUD), then Bundle 9's renderer parts.
-- **Open Doug items:** approve or send back the film stills (#47); iPhone checklists #83, #84, #85, #2, #7, #76, and the new gate/downed-guard checks; run the three remote branch deletes (`look-test`, `object-sizes`, `story-buggy`; #72, #73); say whether leftover worktree folders `fo-wt-drop60`, `fo-wt-flatpads` and `fo-wt-plot` (uncommitted pack edits) may go; #80 ticks after a nightly run shows every command ok.
-
+**Read this block, then work lane by lane.** On 2026-11-12 the whole open backlog was reviewed and bundled in one sprint
+planning: Doug's difficulty work (agreed in chat 2026-11-03 to 11-12) plus the approved and Ready outpost-ops issues.
+The issues went through the expert panel (`Mobile game/docs/refinement/REFINEMENT-2026-11-12.md`). Nothing was built.
+- **Background for the difficulty work:** `Mobile game/docs/refinement/PLAN-2026-11-11-difficulty.md` (decisions, data,
+  session briefs). Doug's calls: fuel and starting cash are no longer difficulty levers; outside defend, losing means
+  stars and time only; modes are Cadet, Pilot and Captain; no wipe until the story release.
+- **How to run it:** one orchestrator (Sonnet) keeps this file. Each bundle runs in its own fresh session, in its own
+  worktree under `farthest-outpost` (`git worktree add ../fo-wt-<name> -b <name> origin/main` after an SSH fetch), on
+  the model named in its heading. One bundle at a time per lane; lanes run in parallel. Rules bundles share one engine
+  bump per release: claim it in `docs/STORY-WORK-LOG.md` first.
+- **Start now (in parallel):**
+  - **Ops A1 and A2:** cleanup and probe re-checks.
+  - **Release 2, R2-1:** the rules bundle.
+  - **The Model A tooling** (part of #117): it needs no engine and touches only `tools/model-a/`.
+  - **Story S1:** once the story owner's claims allow.
+- **Wait:**
+  - **Look L1 and L2:** until the review pipeline's R7 branches (`fo-wt-r7-*`; ops #4, #5, #8, #23, #28) have merged,
+    since both edit `renderer.ts`.
+  - **Release 2b and Release 3:** until Release 2 is live.
+- **outpost-ops:** issues #30–#53 and #35 are now in this file as #122–#132 (mapping in the refinement file); their
+  labels weren't changed. Mark them `ready` or `needs-doug` from the review page, or close them as tracked here.
+- **Talking to Doug:** no item numbers; name the level and what to look for in every phone check; show stills for
+  visual calls.
 
 ## In progress
 
-One line per active item: number, who has it, and where. Add the line when work starts; remove it when the item is
-ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-LOG.md`.
-
-- Bundle 1 (#63, #67, #68–#70, #76): remote branches deleted; fo-wt-flatpads folder still to remove (locked file). Keep `fo-wt-handoff` until Doug says its film tools are safe (zip backup exists).
-- **Three lanes run in parallel (Doug, 2026-11-08), one bundle at a time per lane.** Engine bump freeze: when Bundle 7 claims the bump in the work log, Story and Look finish their current push and pause until it lands.
-- Story lane: idle. Opening film live and confirmed; level 2, level 3 arrival and shared map confirmed. **Handed off
-  2026-11-09 (Doug: "resolved elsewhere"):** the film's sliding feet (#109) and the level 3 coin drop into the commander's
-  hand (#110) go to a separate session, not this orchestrator family. The sliding-feet attempt's uncommitted tool edits are
-  saved on branch `wip-film-feet-2026-11-09` (b4811a5, not for main).
-- **Hand-off 2026-11-09:** the orchestrator chats and their bundle sessions are archived (weekly token limit). Next week a
-  fresh Sonnet orchestrator starts here: Systems lane runs Bundle 8 (from `docs/RELEASE-2.md`), then Bundle 9. The local
-  `farthest-outpost` main is 5 commits ahead of origin, but all five are on origin by patch id, so it is safe to reset.
-- Look lane: idle; Bundle 10 look work is live and confirmed by Doug.
-- Systems lane: #97 fixed; nothing running; Bundle 8 is next week.
+Nothing is being built from this file (2026-11-12). Notes kept from earlier hand-offs:
+- The review pipeline's R7 batch is being built in `fo-wt-r7-*` worktrees. Check `outpost-ops/docs/STATUS.md` before
+  touching `renderer.ts`.
+- #109 (film feet) and #110 (coin drop) were handed to a separate session on 2026-11-09. Their uncommitted tool edits
+  are saved on branch `wip-film-feet-2026-11-09` (b4811a5, not for main).
+- Keep `fo-wt-handoff` until Doug says its film tools are safe (a zip backup exists). The `fo-wt-flatpads` folder still
+  needs removing (locked file).
 
 ## Waiting on Doug
 
@@ -73,9 +82,12 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       - 3 stars: about 50 / 30 / 15%;
       - 2 or more stars: about 90 / 70 / 45%;
       - cleared: 95% or more in every mode.
+- [ ] **#131 · Scrap straight to the HUD (Doug, 2026-11-11, ops #51): which version?** Carried scrap is load-bearing in the sim (carry cap, pad payment, the defend scrap hire #112, dead-end proofs, collector residents). Doug's earlier note ("up top only and not carried") points to (a). (a) Scrap becomes a banked, credit-like balance everywhere: rules change, engine bump, bot and rater retune, and collectors still gather into it. (b) It stays carried and only the pickup is drawn flying to the HUD (client only). Also: does "scrap" mean only the defend salvage, or the ore from scrap nodes too? With (a), it joins the Release 2 rules bundle.
+- [ ] **#130 · Cost tracker sinks into the ground once building starts (Doug, 2026-11-11, ops #44/#48): which element?** A paid pad isn't drawn at all today, so on level 38, after paying a build pad, which thing is still on screen while the building rises: the price label, the pin on its stalk, or the ground ring? Once answered it joins the pad-visuals bundle (build pads first; hire pads were a "maybe").
 
-## Bundle 1: cleanup and nightly fix (no game change)
+## Lane A · Ops and cleanup (no game change)
 
+### Bundle A1: nightly and housekeeping (Sonnet; start now)
 - [ ] **#63 · Nightly-data fails (do first).** outpost-ops Actions run 42404338827: `review:pulse` ran 111 levels and
       reported 69 errors, all "pinned to engine 0.18.0, running 0.20.0", from the old packs s1-068…s1-108 in the
       workflow's `--packs` list. That probably stopped the other four `review:*` commands, and no data commit
@@ -85,6 +97,12 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       Fix in `playLevels`: compare `manifest.engineVersion` with `ENGINE_VERSION`, list mismatches under `meta.skipped`,
       not `errors`, and don't fail for skips; same check in guide and calibrate; then trim `pulsePacks` in the ops
       rotation. Done check: a manual workflow run goes green and a data commit lands.
+- [ ] **#80 · Nightly probe hits the 35-minute timeout (found 2026-11-08).** With #78 fixed the probe runs: outpost-ops
+      220f957 has shots for all 11 levels, but the step was killed at 35 min (all five story levels ran because story files
+      changed). Raise the step timeout in `scripts/run-review.mjs` or cap story levels per night in `config/rotation.json`.
+      Done check: the next nightly run shows every command ok.
+      **Landed 2026-11-08 (outpost-ops 87640e7):** probe timeout 35 → 55 min (the job allows 75); 11 levels took ~25 min of play.
+      Tick it when the next nightly run shows every command ok.
 - [ ] **#67 · Housekeeping:**
       - delete the Supabase test row (install `claude-verify-20261107`, kind `session`);
       - delete the merged local branches `review-supabase`, `review-tools`, `review-probe` and `review-merge`;
@@ -103,6 +121,8 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       level edits).
 - [ ] **#70 · `story-buggy` (also in `fo-wt-buggy` with uncommitted `buggy.json` / `meshy.json` edits):** the
       reduced buggy model. Goes in with #5.
+
+### Bundle A2: probe re-checks of shipped work (Haiku; start now)
 - [ ] **#50 · R6 Release 1 HUD and art:**
       - [x] R6 #3 "Finish in x:xx" as the last star (s1-L008): probe, local. `s1-L008-t0030.png` / `-t0060.png` show the stopwatch chip counting 8:10 to 5:40 beside the star.
       - [ ] R6 #4 goods on belt tops (s1-L014): not shown; `s1-L014-t0060.png` has no belt with goods in frame.
@@ -118,43 +138,6 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       - [ ] rockslide leg: not captured; the bot ended the level before a shot of it.
 - [ ] **#54 · G6 / S9 one loop around close pods:** level 2 goal 2's pair, on screen together.
       Not shown: `story-L002-line08.png` has the arrows going to one pod, never the pair together. Needs a hand look.
-
-## Bundle 2: first screen and level packs (no engine bump)
-
-- [ ] **#80 · Nightly probe hits the 35-minute timeout (found 2026-11-08).** With #78 fixed the probe runs: outpost-ops
-      220f957 has shots for all 11 levels, but the step was killed at 35 min (all five story levels ran because story files
-      changed). Raise the step timeout in `scripts/run-review.mjs` or cap story levels per night in `config/rotation.json`.
-      Done check: the next nightly run shows every command ok.
-      **Landed 2026-11-08 (outpost-ops 87640e7):** probe timeout 35 → 55 min (the job allows 75); 11 levels took ~25 min of play.
-      Tick it when the next nightly run shows every command ok.
-- [ ] **#82 · The dust storm warning shows behind the HUD's progress and goal icons (Doug, 2026-11-08; an old issue).** The
-      top banner (`.fo-banner` in `render-3d/src/scene/dom.ts`: `top:10px`, `z-index:2`, filled by `renderer.ts` near
-      `bannerEl`) sits under the top HUD row, so "Dust storm coming", the storm countdown and "wave soon" are hidden. Story
-      levels already push it down (`story.css` `.story-on .fo-banner`). Move the banner below the HUD row for every level
-      (and/or above it in the stacking), on all phone sizes and safe areas. Renderer/client only, no engine bump.
-      Done check: on s1-L022, the storm warning and countdown read in full, clear of the progress and goal icons, on iPhone, live.
-
-
-## Bundle 3: story pass (story files)
-
-- [ ] **#99 · Generate pads so none sit behind a building or wall (Doug, 2026-11-08; the larger fix behind #89's pin-and-pole).** Attack levels with walls face south and east by default (the camera side), and every other pad is constrained not to stand behind a building or wall as seen from the camera. Generator and layout rule, so an engine bump and a pack rebuild; the pin-and-pole shipped in #89 covers hidden pads until then.
-      Done check: `levels:check` clean, and a scan of the pack finds no pad hidden from the camera by a building or wall.
-- [ ] **#100 · Rangers walk through walls to reach hoppers unless the commander is outside the gate (Doug, 2026-11-08, playtesting s1-L017).** A Ranger's movement should not depend on where the commander is. He should path round the walls (out through the gate) to the hoppers whatever the commander does. Sim bug, so an engine bump (Systems).
-      Done check: on s1-L017, hire the Ranger with the commander inside the walls; he walks out by the gate to the hoppers and never through a wall.
-
-
-## Bundle 4: level 1 opening film (`crash_open`, Release 3)
-
-Fix stage 2 now; Doug approves the fixed stills and test before the full render (#49). The held level edits (#48)
-ship with the film.
-
-
-## Bundle 5: flat pads
-
-- [ ] **#41 · G4 / S27 hire pads always fully visible:** the generator places pads clear of model silhouettes, and
-      **2026-11-08 (67ea2f4):** pads behind tall models now show faintly through; placement unchanged (generator/pack work, Bundle 8).
-      fading never hides a pad. With #10, check the flat markers too.
-      With flat markers (#10), this shrinks to placement clear of tall model silhouettes at the 30° camera.
 - [ ] **#52 · Step A renderer items:**
       - red bolts in a real raid
       - the healing cross with a real medic, and the medic's kneel (the `care` clip may read as picking up rather
@@ -164,10 +147,114 @@ ship with the film.
       - the shovel at a real rockslide (S23, level 3)
       - wall fade on an iPhone, and the core fade in a story level
 
-## Bundle 6: measurement first (no engine bump)
+## Lane L · Look (renderer, no engine bump; one renderer.ts session at a time, after the R7 branches merge)
 
-Bots and baselines settle before the model is fitted.
+### Bundle L1: pads and HUD readability (Sonnet)
+Add the wave-incoming flag and Doug's level 38 screenshot (ops #46/#50) to #82. #130 joins once Doug answers.
+- [ ] **#82 · The dust storm warning shows behind the HUD's progress and goal icons (Doug, 2026-11-08; an old issue).** The
+      top banner (`.fo-banner` in `render-3d/src/scene/dom.ts`: `top:10px`, `z-index:2`, filled by `renderer.ts` near
+      `bannerEl`) sits under the top HUD row, so "Dust storm coming", the storm countdown and "wave soon" are hidden. Story
+      levels already push it down (`story.css` `.story-on .fo-banner`). Move the banner below the HUD row for every level
+      (and/or above it in the stacking), on all phone sizes and safe areas. Renderer/client only, no engine bump.
+      Done check: on s1-L022, the storm warning and countdown read in full, clear of the progress and goal icons, on iPhone, live.
+- [ ] **#122 · Pin heads above pads at half size (Doug, 2026-11-11, ops #41/#42).** `padPin`/`padPinArt` in renderer.ts (~3350–3410): halve the `PAD_LABEL_H*5` factor and fix the pole/position maths that assume it. Done check: on iPhone, level 38, half the diameter on every pad type, the pole meets the pin, and the icon is readable.
+- [ ] **#123 · Pin ring fills with payment, in step with the ground ring (Doug, 2026-11-11, ops #43/#47).** Draw the fill as a separate arc or mesh using the decal's `fb/24` steps, not by adding fill to the 256 px canvas cache key (up to 24 redraws per pad). Done check: on iPhone, paying into a pad fills both rings together from empty to full, with no hitch.
+- [ ] **#124 · Locked hire-pad text 1.5× larger (Doug, 2026-11-11, ops #53).** `padLabelArt`: `lockPx` 28 → 42 and `PAD_LOCK_H` 36 → ~54; keep `padArtH` and the sprite height in step. Done check: on iPhone, the text at a locked hire pad is 1.5×, not clipped, and clear of the pin.
+- [ ] **#125 · Airlock doors fill the resized gate (Doug, 2026-11-11, ops #52).** First confirm it isn't already fixed. `gateDoors` (renderer.ts ~1948) sinks the doors by a hard-coded 1.62 and the leaves are in `assets/buildings.ts` ~420–432: size both from the Meshy gate bounds. Done check: on every airlock level, the closed doors fill the frame with no gap and the open/close sink still hides them.
 
+### Bundle L2: first-frame hitches (Sonnet, after L1)
+- [ ] **#127 · Warm shaders through the game's own render path (review, ops #37/#39, #27 merged).** Story level 1's first frames and Sela's arrival on story level 3 hitch for 0.5–2 s (throttled probe). Fix in `warmPrograms` (renderer.ts ~1391) and `lookTest.ts`. Waits for the R7 hitch branches (ops #23/#28) to merge. Done check: `renderer.info.programs` is unchanged across story-L003 `customer_arrived` and story-L001's first frames, all under 50 ms at 4× throttle.
+
+## Lane S · Story (story files: claim them in `docs/STORY-WORK-LOG.md` first)
+
+### Bundle S1: story readability (Sonnet)
+- [ ] **#128 · Story guide dots follow the commander smoothly on story level 2 (review, ops #38/#40).** The dots read the sim position through `place()` (`director.ts:456` → `stage.ts:79–81` → `storypresent.ts:83`). Feed the renderer's interpolated hero position, or add a follow-hero flag. Story files: claim them first. Done check: at 60 fps on story level 2 the dots stay locked to the commander while she walks, and a unit test at a mid-tick alpha passes.
+- [ ] **#129 · Story captions never cover the speaker's face and stay inside the safe area (review, ops #30–#34).** First look at the probe's proof JPEGs: the face-cover findings may be a probe artefact. Then one placement rule for all story levels: anchor above the head and clamp to the safe insets (`story.css` ~127). Story files: claim them first. Done check: the probe re-run on story levels 1–4 shows face covered at 0.3 or less and nothing outside the safe area; Doug checks story level 1 on his phone.
+- [ ] **#132 · Story level 3's camera leaves the store and clerk pad jammed in the top-left corner (review, ops #35, Ready).** Story files: claim them first. Done check: on story level 3 the store and clerk pad sit well inside the frame on an iPhone.
+
+### Bundle S2: films (already handed to a separate session on 2026-11-09)
+- [ ] **#109 · Opening film: the commander's feet slide on the ground after he leaves the pod (Doug, 2026-11-09).** The run after the drop is stretched about 2.2x to reach the held start spot, so the feet skate. Proper fix: loop the run cycle for the longer distance at a speed that matches the foot plants (or retime), then re-render only that segment (render time to be estimated; the full night render takes about 50 minutes). Shipped as is on 2026-11-09 because the weekly token limit was nearly used. Done check: a clip of the run with no visible foot sliding, ending on the same start spot, and the hand-off to play still smooth. **Shipped 2026-11-10 (film-feet):** stretch removed, level 1 starts where the drop ends; awaiting Doug's phone check, then move to DONE. Rounds 2-3 the same day: a foot lock removed the glide at the stop and the standing glide in the crane; level 1 now starts at (480.1, 135.2). About 20 cm of feet moving against each other is left in the look-round turn (per-leg IK would be needed).
+      **Rounds 4-10 shipped 2026-11-11** (Doug approved round 9, then "push the film live"): no drop, level head, stepped turn, planted step over the wall, relaxed shoulders and arms, upright back, game sand, full wreck, softer shadows, hand-off light; level 1 start (486.5, 122.9), film version 6. Awaiting Doug's phone check, then move to DONE. Left: the get-up's placement slide and the look-round feet (see the work log).
+      **Tried 2026-11-09, failed (two attempts, nothing pushed):** the plan to loop a run cycle does not work because the motion capture has no run after the landing. The drop clip ends in a crouched recovery, and the walk after the wall is only one or two strides; the "run" was that recovery sped up. Next account: get or build a real run/walk cycle (a new mocap clip or a generated one) and re-render that segment (about 11 minutes), keeping the held start spot.
+- [ ] **#110 · Level 3 coin hand-off: Sela should drop the coin into the commander's hand, not throw it (Doug, 2026-11-09).** Today she tips the coin off her palm and it slides to his; he asked for a real drop into his open hand. Make the coin fall straight from her hand into his open palm (short vertical drop, hand under it, no throwing arc), keep the rounded fingers. Done check: phone-size stills of the coin leaving her hand, mid-fall and resting in his palm, from the game camera, and Doug confirms on level 3.
+
+## Release 2 · one engine bump, existing packs re-pinned, a 15-level test pack (Systems lane)
+
+Order: R2-1 → R2-2 → R2-3 → R2-4. Each runs after the one before it, since they share `sim`, the bots and
+`generator/src/build.ts`. Claim the bump once, at R2-1. Doug: no full regeneration until the levels are aligned and the
+story release is ready.
+
+### Bundle R2-1: rules (Opus, sim + bots + rater; start now)
+#131 joins if Doug picks the banked-scrap version.
+- [ ] **#113 · Remove the pile-collapse loss (Doug, 2026-11-11).** The goal type is gone, but `sim/systems/goals.ts` still ends a
+      level on a collapsed output pile. A full pile now only stops its processor. Remove the end check, its event,
+      renderer and HUD text, bot avoidance and rater metric. Engine bump (shared with Bundle 8). Done check: unit test
+      and golden replay.
+- [ ] **#100 · Rangers walk through walls to reach hoppers unless the commander is outside the gate (Doug, 2026-11-08, playtesting s1-L017).** A Ranger's movement should not depend on where the commander is. He should path round the walls (out through the gate) to the hoppers whatever the commander does. Sim bug, so an engine bump (Systems).
+      Done check: on s1-L017, hire the Ranger with the commander inside the walls; he walks out by the gate to the hoppers and never through a wall.
+- [ ] **#33 · R6 #11 attackers appear off screen:** spawn past the visible map, worked out in real metres per family.
+
+### Bundle R2-2: fixed generator settings and economy (Sonnet)
+- [ ] **#111 · Fixed generator settings (Doug, 2026-11-11).** Make every setting that isn't a real difficulty lever a constant in
+      `packages/generator/data/generator.json` (both ends of its range equal):
+      - starting fuel 0.75 (the fill-the-fuel goal keeps its low start);
+      - starting cash 0 everywhere, including the walls-before-wave-1 goal, which now starts with 0 walls (Doug: building
+        them is that level's difficulty);
+      - `costScale` 1, so item prices are fixed, and its threshold rules in `build.ts` (extra unlock, core-level, zone and
+        processor-level pads) become goal or feature rules;
+      - `margin` 0.37, and remove `reach` (unused);
+      - shipped medians for the noise-level settings: premium, orderMax, bulkShare, heatPct, spareIdle, arrivalEvery,
+        podFreeze, impatient, spawn, prebuiltRing, ringCost, baseHealth, waveGap, firstWave, arrivals (values in the plan;
+        re-check the medians on 0.24.0 first);
+      - forest, forestReach, pods, crates and dangerPrey drawn from the level seed, not from pressure, so the map stays
+        fixed while the search runs;
+      - the repeated-loop fix keeps only its length cut (no cash added, no hire-price cut).
+
+      Per-level dials left: `length`, plus `swarm` and `waves` on defend. Done check: generator tests pass, and a
+      6-level sample at targets 0.2 / 0.5 / 0.8 lands within 0.1 of its D.
+- [ ] **#112 · Defend fuel hauler is a cheap scrap hire (Doug, 2026-11-12).** On defend levels the core fuel-supplier hire
+      costs very little scrap and is open from the start, so the player hires it with the first scrap and moves on;
+      burn rate barely matters there. Every defend level gets scrap the player can reach before wave 1 (today only about
+      80% have scrap heaps). The bot plan buys it first. Done check: `levels:check` clean on defend levels, and the bot
+      never hand-feeds the reactor after its first scrap.
+- [ ] **#36 · N6 loop bound:** reject a candidate if any hand-done leg needs more than 5 trips with no affordable
+      takeover. Store `loopMax` per level and re-check it in `levels:check`.
+- [ ] **#39 · N10 rock slides hide something real:** `node.fuel_deposit` under the rubble, plus a generator check.
+
+### Bundle R2-3: layout and waves (Opus)
+Story level 5's authored waves are hand-tuned with the story owner.
+
+**Combat values (Doug, 2026-11-05: "make your own best decisions").** Start from the arena PROPOSALS in
+`client/src/dev/arenaModel.ts`, with drops equal to HP:
+- Warlord and every other enemy: HP = points = drops, sized from #16's target `ρ` (Doug, 2026-11-07).
+- Mites: acid spit (range 40, damage 1, every 2 s) and lunge (30, 0.3 s wind-up, 2 s cooldown).
+- Dust crawler: 3 HP, drops 3 scrap, shot range 60.
+- Wave share by count: about 70% mites, 20% crawlers, 10% raiders, with 1–3 warlords on the last two waves.
+Retune by the attack–defence model (#16) and rater metrics, not by eye.
+
+- [ ] **#99 · Generate pads so none sit behind a building or wall (Doug, 2026-11-08; the larger fix behind #89's pin-and-pole).** Attack levels with walls face south and east by default (the camera side), and every other pad is constrained not to stand behind a building or wall as seen from the camera. Generator and layout rule, so an engine bump and a pack rebuild; the pin-and-pole shipped in #89 covers hidden pads until then.
+      Done check: `levels:check` clean, and a scan of the pack finds no pad hidden from the camera by a building or wall.
+- [ ] **#41 · G4 / S27 hire pads always fully visible:** the generator places pads clear of model silhouettes, and
+      **2026-11-08 (67ea2f4):** pads behind tall models now show faintly through; placement unchanged (generator/pack work, Bundle 8).
+      fading never hides a pad. With #10, check the flat markers too.
+      With flat markers (#10), this shrinks to placement clear of tall model silhouettes at the 30° camera.
+- [ ] **#126 · Turrets border the path they cover, with their pads behind them (Doug, 2026-11-11, ops #45/#49).** A generator rule in `generator.json` `defendRoad` (`towerU`, pad side) plus `laneClear`/`siteR`, made one constraint with #99 so no pad is hidden from the camera. Engine bump; lands in the #121 test pack. Done check: a property test over many seeds shows each turret next to a road cell with its pads on the far side, reachable and visible; `levels:check` has no stall, lost win or star drop.
+- [ ] **#24 · R6 #14 more attackers, mixed waves, multiple warlords** (inside #23; warlord values above).
+- [ ] **#94 · Denser waves, not only bigger ones (Doug, 2026-11-08).** s1-L037's last waves lag a little at the end; wave design should favour more dense, smaller waves. Fold into Bundle 8's wave sizing from target ρ.
+
+### Bundle R2-4: test pack and ship (Opus)
+Re-derive the rater's `reference.json` (only 4 golden levels today), and do the iPhone dense-wave check before
+building the test pack.
+- [ ] **#121 · A 15-level test pack instead of a full rebuild (Doug, 2026-11-12).**
+      - Re-pin the published packs to the new engine, so players keep their levels; fix or re-baseline any level that
+        fails `levels:check`, as with #97.
+      - The simplified generator (#111–#113) builds `levels/packs/r2-test`: 3 levels per family at targets 0.2 / 0.5 / 0.8.
+      - Doug opens it from a hidden link (`?pack=r2-test`; a small client change, never listed for players).
+      - Rewrite `start.json` (#44) from it.
+
+      Done check: `levels:check` clean on the re-pinned packs and the test pack, live. Doug's phone check: open the link
+      and play one level of each family. Look for: fuel is never the problem, prices feel the same from level to level,
+      and on defend the fuel hauler is hired with the first scrap.
 - [ ] **#44 · Search start table per engine:** make `startPressure` ignore a `start.json` from another engine, then
       **2026-11-08 (6dc3639):** `startPressure` ignores another engine's table. Still open: rewrite `start.json`, which waits for Bundle 8's rebuild.
       rewrite it with `pnpm levels:start-table` from this rebuild.
@@ -196,81 +283,6 @@ Bots and baselines settle before the model is fitted.
       every player's offline level cache. Add a per-wave defend trace (HP arrived, leak, scrap and towers at wave start).
       Done check: a re-rate leaves `pack.json`'s hash unchanged, and a test fails if any level lacks a sub-point.
       **9b** (deferred until after Release 2): the bot-vs-player view; real-player data is still thin.
-
-## Bundle 7: Release 2 combat (one engine bump)
-
-Order: Bundle 7 (Opus, one session, `sim` + `bots` + `rater`), then Bundle 8 (Opus, generator), in one release.
-Claim the bump in `docs/STORY-WORK-LOG.md`; story level 5's authored waves are hand-tuned with the story owner.
-
-**Combat values (Doug, 2026-11-05: "make your own best decisions").** Start from the arena PROPOSALS in
-`client/src/dev/arenaModel.ts`, with drops equal to HP:
-- Warlord and every other enemy: HP = points = drops, sized from #16's target `ρ` (Doug, 2026-11-07).
-- Mites: acid spit (range 40, damage 1, every 2 s) and lunge (30, 0.3 s wind-up, 2 s cooldown).
-- Dust crawler: 3 HP, drops 3 scrap, shot range 60.
-- Wave share by count: about 70% mites, 20% crawlers, 10% raiders, with 1–3 warlords on the last two waves.
-Retune by the attack–defence model (#16) and rater metrics, not by eye.
-
-- [ ] **#33 · R6 #11 attackers appear off screen:** spawn past the visible map, worked out in real metres per family.
-
-## Bundle 8a: simpler generator and fairer losses (Sonnet, before Bundle 8, shares its engine bump)
-
-Doug's difficulty work (agreed in chat 2026-11-03 to 11-12; ready, not yet built). Full plan, decisions and session
-briefs: `Mobile game/docs/refinement/PLAN-2026-11-11-difficulty.md` (outside the repo). Fuel and starting cash are no
-longer difficulty levers: difficulty comes from each family's own challenge.
-
-- [ ] **#111 · Fixed generator settings (Doug, 2026-11-11).** Make every setting that isn't a real difficulty lever a constant in
-      `packages/generator/data/generator.json` (both ends of its range equal):
-      - starting fuel 0.75 (the fill-the-fuel goal keeps its low start);
-      - starting cash 0 everywhere, including the walls-before-wave-1 goal, which now starts with 0 walls (Doug: building
-        them is that level's difficulty);
-      - `costScale` 1, so item prices are fixed, and its threshold rules in `build.ts` (extra unlock, core-level, zone and
-        processor-level pads) become goal or feature rules;
-      - `margin` 0.37, and remove `reach` (unused);
-      - shipped medians for the noise-level settings: premium, orderMax, bulkShare, heatPct, spareIdle, arrivalEvery,
-        podFreeze, impatient, spawn, prebuiltRing, ringCost, baseHealth, waveGap, firstWave, arrivals (values in the plan;
-        re-check the medians on 0.24.0 first);
-      - forest, forestReach, pods, crates and dangerPrey drawn from the level seed, not from pressure, so the map stays
-        fixed while the search runs;
-      - the repeated-loop fix keeps only its length cut (no cash added, no hire-price cut).
-
-      Per-level dials left: `length`, plus `swarm` and `waves` on defend. Done check: generator tests pass, and a
-      6-level sample at targets 0.2 / 0.5 / 0.8 lands within 0.1 of its D.
-- [ ] **#112 · Defend fuel hauler is a cheap scrap hire (Doug, 2026-11-12).** On defend levels the core fuel-supplier hire
-      costs very little scrap and is open from the start, so the player hires it with the first scrap and moves on;
-      burn rate barely matters there. Every defend level gets scrap the player can reach before wave 1 (today only about
-      80% have scrap heaps). The bot plan buys it first. Done check: `levels:check` clean on defend levels, and the bot
-      never hand-feeds the reactor after its first scrap.
-- [ ] **#113 · Remove the pile-collapse loss (Doug, 2026-11-11).** The goal type is gone, but `sim/systems/goals.ts` still ends a
-      level on a collapsed output pile. A full pile now only stops its processor. Remove the end check, its event,
-      renderer and HUD text, bot avoidance and rater metric. Engine bump (shared with Bundle 8). Done check: unit test
-      and golden replay.
-- [ ] **#115 · Re-measure the difficulty dials after the test pack (Haiku/Sonnet).** Rerun the within-level analysis of
-      how far each remaining dial (length, swarm, waves, burn) moves D, on the new candidate log. Report whether targets
-      0.15–0.8 are reachable per family; if not, widen that family's range before Release 3.
-
-## Bundle 8: Release 2 levels and ship (one pack rebuild)
-
-**Changed by Doug 2026-11-12:** no full regeneration in Release 2; see #121. Full generation waits until the levels are
-aligned and the story release is ready.
-
-- [ ] **#121 · A 15-level test pack instead of a full rebuild (Doug, 2026-11-12).**
-      - Re-pin the published packs to the new engine, so players keep their levels; fix or re-baseline any level that
-        fails `levels:check`, as with #97.
-      - The simplified generator (#111–#113) builds `levels/packs/r2-test`: 3 levels per family at targets 0.2 / 0.5 / 0.8.
-      - Doug opens it from a hidden link (`?pack=r2-test`; a small client change, never listed for players).
-      - Rewrite `start.json` (#44) from it.
-
-      Done check: `levels:check` clean on the re-pinned packs and the test pack, live. Doug's phone check: open the link
-      and play one level of each family. Look for: fuel is never the problem, prices feel the same from level to level,
-      and on defend the fuel hauler is hired with the first scrap.
-
-Re-derive the rater's `reference.json` (only 4 golden levels today) and do the iPhone dense-wave check before the
-rebuild.
-
-- [ ] **#24 · R6 #14 more attackers, mixed waves, multiple warlords** (inside #23; warlord values above).
-- [ ] **#36 · N6 loop bound:** reject a candidate if any hand-done leg needs more than 5 trips with no affordable
-      takeover. Store `loopMax` per level and re-check it in `levels:check`.
-- [ ] **#39 · N10 rock slides hide something real:** `node.fuel_deposit` under the rubble, plus a generator check.
 - [ ] **#40 · N6b level-order audit:** a pack check for repeated goal kinds and templates.
       **New finding:** ids L051–L060 exist in both s1 and s1-051 (L055 and L060 differ); the client keeps the first, and
       `levels-next.ts` double-counts them. The duplicate-id part ships in Bundle 2 as a pack test; the goal and template
@@ -285,9 +297,11 @@ rebuild.
 - [ ] **#59 ·** Bot regression suite: no stalls or infeasible levels in any shipped pack.
 - [ ] **#46 · Release 2 ship steps:** engine bump, rebuild, check, re-pin, release notes, deploy (see the order
       above).
+- [ ] **#115 · Re-measure the difficulty dials after the test pack (Haiku/Sonnet).** Rerun the within-level analysis of
+      how far each remaining dial (length, swarm, waves, burn) moves D, on the new candidate log. Report whether targets
+      0.15–0.8 are reachable per family; if not, widen that family's range before Release 3.
 
-## Bundle 9: hunting and healing
-
+## Release 2b · hunting and healing (one engine bump, after Release 2 is live; Opus)
 - [ ] **#22 · N22 the ranger is back, and hunting is a skill:** the ranger and commander one-shot a spiked hopper
       with `gunDamage`. Hoppers charge as a herd and wind up their bites. Hunting never kills: the injured lie down
       and wait for a medic. Hopper zones hold 0, 3 or 4 (this replaces R6 #12). The ranger pad itself shipped in
@@ -298,28 +312,7 @@ rebuild.
       medic. Evaluate whether every level with a medic should make the player do this once before the medic is hired.
       Hopper zones and the ranger pad (#7) must agree: no ranger pad within a herd's charge range.
 
-## Bundle 10: Doug's iPhone round 1 (2026-11-08, from #83, #84, #85)
-
-Passed on the phone: #83 pods (4); #84 flat pads look (kept) and the rest of the #52 scenarios ran fine; #85 acid spit (1), drones docking (4).
-Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies too fast; it will appear with bigger waves).
-
-**Story lane (no engine bump, story files and client):**
-
-**Look lane (renderer, no engine bump):**
-
-**Systems lane (rules: ONE engine bump 0.23.0, claim it first; Story and Look pause while it lands):**
-- [ ] **#94 · Denser waves, not only bigger ones (Doug, 2026-11-08).** s1-L037's last waves lag a little at the end; wave design should favour more dense, smaller waves. Fold into Bundle 8's wave sizing from target ρ.
-
-
-
-
-- [ ] **#109 · Opening film: the commander's feet slide on the ground after he leaves the pod (Doug, 2026-11-09).** The run after the drop is stretched about 2.2x to reach the held start spot, so the feet skate. Proper fix: loop the run cycle for the longer distance at a speed that matches the foot plants (or retime), then re-render only that segment (render time to be estimated; the full night render takes about 50 minutes). Shipped as is on 2026-11-09 because the weekly token limit was nearly used. Done check: a clip of the run with no visible foot sliding, ending on the same start spot, and the hand-off to play still smooth. **Shipped 2026-11-10 (film-feet):** stretch removed, level 1 starts where the drop ends; awaiting Doug's phone check, then move to DONE. Rounds 2-3 the same day: a foot lock removed the glide at the stop and the standing glide in the crane; level 1 now starts at (480.1, 135.2). About 20 cm of feet moving against each other is left in the look-round turn (per-leg IK would be needed).
-      **Rounds 4-10 shipped 2026-11-11** (Doug approved round 9, then "push the film live"): no drop, level head, stepped turn, planted step over the wall, relaxed shoulders and arms, upright back, game sand, full wreck, softer shadows, hand-off light; level 1 start (486.5, 122.9), film version 6. Awaiting Doug's phone check, then move to DONE. Left: the get-up's placement slide and the look-round feet (see the work log).
-      **Tried 2026-11-09, failed (two attempts, nothing pushed):** the plan to loop a run cycle does not work because the motion capture has no run after the landing. The drop clip ends in a crouched recovery, and the walk after the wall is only one or two strides; the "run" was that recovery sped up. Next account: get or build a real run/walk cycle (a new mocap clip or a generated one) and re-render that segment (about 11 minutes), keeping the held start spot.
-
-- [ ] **#110 · Level 3 coin hand-off: Sela should drop the coin into the commander's hand, not throw it (Doug, 2026-11-09).** Today she tips the coin off her palm and it slides to his; he asked for a real drop into his open hand. Make the coin fall straight from her hand into his open palm (short vertical drop, hand under it, no throwing arc), keep the rounded fingers. Done check: phone-size stills of the coin leaving her hand, mid-fall and resting in his palm, from the game camera, and Doug confirms on level 3.
-
-## Release 3: difficulty modes Cadet, Pilot, Captain (one engine bump; after Release 2 is live)
+## Release 3 · difficulty modes Cadet, Pilot, Captain (one engine bump, after Release 2 is live)
 
 Agreed with Doug 2026-11-03 to 11-12. Plan and session briefs: `Mobile game/docs/refinement/PLAN-2026-11-11-difficulty.md`.
 - **Names:** Cadet, Pilot and Captain, plus Auto ("Mission Control").
@@ -335,7 +328,8 @@ Agreed with Doug 2026-11-03 to 11-12. Plan and session briefs: `Mobile game/docs
 - **Families that can't be lost** are set on stars and time (targets are waiting on Doug, above).
 - **Each level keeps the same map in every mode;** only a few dials change.
 
-Order: #116 and #117 can run in parallel, then #118 (only if #117 passes), then #119, then #120.
+Order: #116 needs the test pack. The tooling part of #117 can start now, and its fitting waits for #121. Then #118 (only
+if #117 passes), then #119, then #120.
 
 - [ ] **#116 · Hand-made modes test (Sonnet, small).** Hand-edit Cadet and Captain versions of 3 test-pack levels (one
       defend, one harvest, one rescue) with only the planned mode dials:
