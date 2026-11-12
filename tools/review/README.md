@@ -36,3 +36,20 @@ The telemetry tool uses the same fingerprint as the pulse where both measure the
 drought), so the two sources land on one issue.
 
 Not measured here (needs the screen probes or the skins): long or unskippable text.
+
+## Story line timing
+
+The screen probe (`probe.ts`, story levels) checks two things at every caption, with the limits in
+`probe-limits.json` under `story`:
+
+- **`line-play-not-held`**: after the caption shows, the probe runs the game `holdSeconds` (1 s) more without a tap. If
+  the same line is still up and more than `holdSlackTicks` (3) ticks ran, play is not held while the line is up and the
+  player can walk on before reading it. Severity 2 on a gated line, 3 otherwise. Each `lines[]` entry in the summary
+  carries `heldTicks` and the `why` of its gates.
+- **Gates** (`story-gates.json`, one list per level id): `line-after-sight` when a line holding something `unseen` plays
+  while that thing is at least `seenFraction` (0.25) on screen; `line-names-unseen` when a line that needs something
+  `seen` plays and it is not. Gates that never showed are listed in `extras.gatesNotReached`.
+
+To add a gate, add `{ "line": "<substring of the caption text>", "unseen": [ids], "seen": [ids], "why": "<one sentence>" }`
+under the level id. Ids must match `things[].id` from `window.R.snap()` (`sink.core`, `node.fuel_deposit`, ...). Add one
+whenever a script line asks about or points at something.

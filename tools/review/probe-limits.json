@@ -21,5 +21,6 @@
   "resume": { "tickDriftWhileHidden": 0, "spikeMs": 400, "reloadReadyMs": 15000 },
   "colourBlind": { "minDeltaE": 12 },
   "continuity": { "lightRatio": 1.8, "positionU": 40 },
+  "story": { "holdSeconds": 1, "holdSlackTicks": 3, "seenFraction": 0.25 },
   "shots": { "perLevel": 150, "perStoryLevel": 150, "checkpointSeconds": [2, 30, 60, 120] }
 }

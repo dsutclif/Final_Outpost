@@ -1,0 +1,7 @@
+{
+  "_about": "Story line gates for the screen probe (story levels 1-5). A gate says what the player must not have seen yet (unseen) or must be able to see (seen) when a caption whose text contains `line` (case-insensitive) is up. Ids must match things[].id from window.R.snap(). Add a gate whenever a script line asks about or points at something.",
+  "story-L001": [
+    { "line": "That light", "unseen": ["sink.core"], "why": "The commander asks what the light is before the reactor can be seen." },
+    { "line": "A reactor", "seen": ["sink.core"], "why": "The commander names the reactor as it comes into view." }
+  ]
+}

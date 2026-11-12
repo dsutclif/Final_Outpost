@@ -6,7 +6,7 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium, type Browser, type BrowserContext, type CDPSession, type Page } from "playwright";
-import { parseArgs, type Args, cropRegion, plain, analyzeCaption, analyzeSample, continuityHits, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats, meanLuminance, parseColour, toCandidate, Tracker, type Candidate, type Finding, type Hit, type Limits } from "./probe-core.js";
+import { parseArgs, type Args, cropRegion, plain, analyzeCaption, analyzeLineHold, analyzeLineSight, gatesFor, type StoryGate, analyzeSample, continuityHits, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats, meanLuminance, parseColour, toCandidate, Tracker, type Candidate, type Finding, type Hit, type Limits } from "./probe-core.js";
 import type { Box, FilmEnd, FrameRec, ReviewApi, Sample, StorySnapshot } from "./probe-types.js";
 
 // pnpm review:probe -- --out <dir> --levels <id,...> [--story <id,...>] [--base <url>] [--throttle 4]
@@ -418,7 +418,7 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   const shots = new Shots(page, dir, rel, L.shots.perStoryLevel);
   const tracker = new Tracker(levelId);
   const evidence = new Map<string, Evidence>();
-  const lines: { n: number; text: string; speaker: string | null; shot: string | null }[] = [];
+  const lines: { n: number; text: string; speaker: string | null; shot: string | null; heldTicks: number; gates: string[] }[] = [];
   const extras: Record<string, unknown> = { lines, films: [] as unknown[] };
 
   // films first: what a live scene holds on its last frame, to set against the level's first
@@ -458,6 +458,10 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   // The story runs on a made-up clock (R.ff) so minutes of it do not wait on a slow GPU; each caption stops it, gets a
   // few drawn frames to settle over its speaker, is pictured and judged, then a tap sends the story on.
   const limit = Math.max(a.seconds, 180);
+  let allGates: Record<string, StoryGate[]> = {};
+  try { allGates = JSON.parse(readFileSync(join(dirname(a.limits), "story-gates.json"), "utf8")) as Record<string, StoryGate[]>; } catch { /* no gates file: no gates */ }
+  const gates = (Array.isArray(allGates[levelId]) ? allGates[levelId]! : []).filter((g) => g && typeof g.line === "string");
+  const gateSeen = new Set<StoryGate>();
   const errSeen = new Set<string>();
   let lineNo = 0, seq = 0, frozenFor = 0, lastTick = -1, nextSample = 5, lastCard = "";
   const cards: { n: number; text: string; shot: string | null }[] = [];
@@ -487,13 +491,26 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
       lineNo++;
       result.samples++;
       const shot = await shots.take(`line${String(lineNo).padStart(2, "0")}`, true);
-      lines.push({ n: lineNo, text: s.caption.text, speaker: s.caption.speaker, shot });
-      for (const hit of analyzeCaption(s.caption, s, L)) {
+      const matched = gatesFor(s.caption.text, gates);
+      matched.forEach((g) => gateSeen.add(g));
+      const entry = { n: lineNo, text: s.caption.text, speaker: s.caption.speaker, shot, heldTicks: 0, gates: matched.map((g) => g.why ?? g.line) };
+      lines.push(entry);
+      for (const hit of [...analyzeCaption(s.caption, s, L), ...analyzeLineSight(s.caption, s, gates, L)]) {
         const [f] = tracker.observe(Date.now(), [{ ...hit, subject: `${hit.subject}.line` }]);
         const ev = f ? await shots.evidenceFor(f, `line${String(lineNo).padStart(2, "0")}-${f.check}`) : null;
         if (f && ev) evidence.set(f.fingerprint, ev);
         else if (f && shot) evidence.set(f.fingerprint, { paths: [shot] });
       }
+      // the hold test: with no tap, play must not run on while the line is up
+      const held = await page.evaluate(([sec, sq]) => window.R.ff(sec, sq), [L.story.holdSeconds, seq] as const);
+      entry.heldTicks = held.tick - r.tick;
+      const stillUp = held.seq === seq;
+      for (const hit of analyzeLineHold(s.caption, r.tick, held.tick, stillUp, matched.length > 0, L)) {
+        const [f] = tracker.observe(Date.now(), [{ ...hit, subject: `${hit.subject}.line` }]);
+        if (f && shot) evidence.set(f.fingerprint, { paths: [shot] });
+      }
+      // another line replaced this one: seq is left alone so the next ff returns it at once and it is judged on the next pass
+      if (!stillUp) continue;
       if (await page.locator(".story-tap:visible, .sdlg-tap:visible").count()) await page.mouse.click(187, 420).catch(() => undefined);
       await page.waitForTimeout(150);
       frozenFor = 0;
@@ -526,6 +543,7 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
     }
     await watchErrors(run, levelId, shots, evidence, errSeen);
   }
+  extras["gatesNotReached"] = gates.filter((g) => !gateSeen.has(g)).map((g) => g.line);
   const { frames } = await page.evaluate(() => window.R.frames());
   result.frames = frameStats(frames, L);
   result.errors = [...new Set([...(await page.evaluate(() => window.R.errors())), ...run.errors])].slice(0, 40);

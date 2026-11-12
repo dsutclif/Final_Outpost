@@ -22,6 +22,7 @@ export interface Limits {
   resume: { tickDriftWhileHidden: number; spikeMs: number; reloadReadyMs: number };
   colourBlind: { minDeltaE: number };
   continuity: { lightRatio: number; positionU: number };
+  story: { holdSeconds: number; holdSlackTicks: number; seenFraction: number };
   shots: { perLevel: number; perStoryLevel: number; checkpointSeconds: number[] };
 }
 
@@ -311,6 +312,40 @@ export function analyzeCaption(c: CaptionSample, s: Sample, L: Limits): Hit[] {
     out.push(hit("caption-outside-safe", 5, vis < 0.8 ? 3 : 2, `caption.${who}`, `${who}'s caption leaves the safe area`, `${Math.round((1 - vis) * 100)}% of the ${c.style} is outside the screen or its safe area: "${c.text.slice(0, 50)}"`, "visibleFraction", vis, 1, 0, "story", c.box));
   }
   return out;
+}
+
+/** A story line that must play before (`unseen`) or after (`seen`) things come on screen. Ids are `things[].id` from the page's snap. */
+export interface StoryGate { line: string; unseen?: string[]; seen?: string[]; why?: string }
+
+export function gatesFor(text: string, gates: readonly StoryGate[]): StoryGate[] {
+  const t = text.toLowerCase();
+  return gates.filter((g) => g.line && t.includes(g.line.toLowerCase()));
+}
+
+/** The gates on this line against what the screen shows as it comes up. */
+export function analyzeLineSight(c: CaptionSample, s: Sample, gates: readonly StoryGate[], L: Limits): Hit[] {
+  const out: Hit[] = [];
+  const view: Box = { x0: 0, y0: 0, x1: s.viewport.w, y1: s.viewport.h };
+  const on = (id: string): ThingSample[] => s.things.filter((t) => t.id === id && visibleFraction(t.box, view) >= L.story.seenFraction);
+  const said = `"${c.text.slice(0, 50)}"`;
+  for (const g of gatesFor(c.text, gates)) {
+    const why = g.why ? ` ${g.why}` : "";
+    for (const id of g.unseen ?? []) {
+      const t = on(id)[0];
+      if (t) out.push(hit("line-after-sight", 5, 2, id, `A line plays after ${idName(id)} is already on screen`, `${said} comes up with ${id} already in view.${why}`, "visibleFraction", visibleFraction(t.box, view), L.story.seenFraction, 0, "story", t.box));
+    }
+    for (const id of g.seen ?? []) {
+      if (on(id).length === 0) out.push(hit("line-names-unseen", 5, 3, id, `A line names ${idName(id)} before it can be seen`, `${said} comes up with ${id} not yet on screen.${why}`, "visibleFraction", 0, L.story.seenFraction, 0, "story"));
+    }
+  }
+  return out;
+}
+
+/** Play must hold while a line is up: ticks that ran with the line still showing mean the player could walk on before reading it. */
+export function analyzeLineHold(c: CaptionSample, tickAtLine: number, tickAfter: number, stillUp: boolean, gated: boolean, L: Limits): Hit[] {
+  const ran = tickAfter - tickAtLine;
+  if (!stillUp || ran <= L.story.holdSlackTicks) return [];
+  return [hit("line-play-not-held", 5, gated ? 2 : 3, plain(c.text), "Play runs while a story line is up", `"${c.text.slice(0, 50)}" stayed up while play ran ${ran} ticks (slack ${L.story.holdSlackTicks}), so the player can walk on before reading it`, "heldTicks", ran, L.story.holdSlackTicks, 0, "story")];
 }
 
 function hit(check: string, cat: number, severity: Severity, subject: string, title: string, detail: string, metric: string, value: number, limit: number, seconds: number, track: Hit["track"], box?: Box): Hit {

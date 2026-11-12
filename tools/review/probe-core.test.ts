@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  Tracker, cropRegion, analyzeCaption, analyzeSample, area, contrast, continuityHits, coveredFraction, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats,
+  Tracker, cropRegion, analyzeCaption, analyzeLineHold, analyzeLineSight, gatesFor, analyzeSample, area, contrast, continuityHits, coveredFraction, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats,
   intersect, labelSubject, meanLuminance, overlapArea, parseArgs, parseColour, plain, shrink, toCandidate, visibleFraction, type Limits,
 } from "./probe-core.js";
 import type { Box, CaptionSample, DomItem, FrameRec, Sample, StorySnapshot, ThingSample } from "./probe-types.js";
@@ -433,5 +433,46 @@ describe("labels the player cannot see", () => {
     const seen = { ...gone, box: box(10, 100, 70, 120) };
     const hits = analyzeSample(sample({ labels: [seen], things: [{ ...near, box: box(0, 60, 200, 160) }] }), L);
     expect(hits.some((x) => x.check === "occluded")).toBe(true);
+  });
+});
+
+describe("story line timing", () => {
+  const gates = [
+    { line: "That light", unseen: ["sink.core"], why: "Asks what the light is." },
+    { line: "A reactor", seen: ["sink.core"], why: "Names the reactor." },
+  ];
+  const cap = (text: string): CaptionSample => ({ sel: ".sdlg-bubble", style: "bubble", box: box(60, 200, 310, 285), text, speaker: "commander", speakerBox: null, head: null });
+  const core = (b: Box): ThingSample => thing({ key: "core:1", id: "sink.core", kind: "building", box: b });
+
+  it("matches gates by case-insensitive substring", () => {
+    expect(gatesFor("that LIGHT. Someone's out there.", gates)).toEqual([gates[0]]);
+    expect(gatesFor("Nothing here", gates)).toEqual([]);
+  });
+
+  it("flags an unseen thing that is already on screen, and not one off screen", () => {
+    const on = analyzeLineSight(cap("That light. Someone's out there."), sample({ things: [core(box(100, 300, 200, 400))] }), gates, L);
+    expect(on).toHaveLength(1);
+    expect(on[0]).toMatchObject({ check: "line-after-sight", cat: 5, track: "story", subject: "sink.core", severity: 2, box: box(100, 300, 200, 400) });
+    expect(on[0]!.detail).toContain("Asks what the light is.");
+    expect(analyzeLineSight(cap("That light."), sample({ things: [core(box(100, 900, 200, 1000))] }), gates, L)).toEqual([]);
+    expect(analyzeLineSight(cap("That light."), sample(), gates, L)).toEqual([]);
+  });
+
+  it("flags a seen thing that is missing, and not one that is present", () => {
+    const miss = analyzeLineSight(cap("A reactor."), sample(), gates, L);
+    expect(miss).toHaveLength(1);
+    expect(miss[0]).toMatchObject({ check: "line-names-unseen", severity: 3, subject: "sink.core" });
+    expect(miss[0]!.box).toBeUndefined();
+    expect(analyzeLineSight(cap("A reactor."), sample({ things: [core(box(100, 300, 200, 400))] }), gates, L)).toEqual([]);
+  });
+
+  it("flags play that runs on while the line is up, more severely when gated", () => {
+    const c = cap("That light 12.");
+    expect(analyzeLineHold(c, 100, 100 + L.story.holdSlackTicks, true, false, L)).toEqual([]);
+    const h = analyzeLineHold(c, 100, 130, true, false, L);
+    expect(h).toHaveLength(1);
+    expect(h[0]).toMatchObject({ check: "line-play-not-held", cat: 5, track: "story", severity: 3, subject: "That light #." });
+    expect(analyzeLineHold(c, 100, 130, true, true, L)[0]!.severity).toBe(2);
+    expect(analyzeLineHold(c, 100, 130, false, true, L)).toEqual([]);
   });
 });
