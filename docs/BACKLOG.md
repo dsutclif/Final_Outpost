@@ -13,7 +13,7 @@ Bundles ship one at a time. Destructive steps (deleting branches, data, worktree
 
 **How to use it**
 - **Every item has a permanent number** (`#12`). Refer to items by it. Numbers are never reused or renumbered: a
-  new item takes the next free number (currently **#111**), whatever section it goes in. Older ids (R6 N2, S24 …)
+  new item takes the next free number (currently **#122**), whatever section it goes in. Older ids (R6 N2, S24 …)
   stay beside the number, so references in code, commits and the archive still resolve.
 - Add new work here as one numbered checkbox, whether it comes from Doug's feedback, a refinement round or a delivery
   plan. Give it an owner where that matters, and a done check. No new `BACKLOG-*` files.
@@ -68,6 +68,11 @@ ticked or handed back. Story-file claims are also recorded in `docs/STORY-WORK-L
       Then create the routines in dry-run for a week.
 - [ ] **#66 · PILLARS-DRAFT.md (waiting on Doug):** the order of the pillars, and pillar 7's pay-to-win line.
 - [ ] **#58 ·** The playtest retention target is met.
+- [ ] **Difficulty targets for families that can't be lost (for #119).** Doug's star table covers families with a
+      failure mode. Proposal for the others, on the 1st try (Cadet / Pilot / Captain):
+      - 3 stars: about 50 / 30 / 15%;
+      - 2 or more stars: about 90 / 70 / 45%;
+      - cleared: 95% or more in every mode.
 
 ## Bundle 1: cleanup and nightly fix (no game change)
 
@@ -207,7 +212,57 @@ Retune by the attack–defence model (#16) and rater metrics, not by eye.
 
 - [ ] **#33 · R6 #11 attackers appear off screen:** spawn past the visible map, worked out in real metres per family.
 
+## Bundle 8a: simpler generator and fairer losses (Sonnet, before Bundle 8, shares its engine bump)
+
+Doug's difficulty work (agreed in chat 2026-11-03 to 11-12; ready, not yet built). Full plan, decisions and session
+briefs: `Mobile game/docs/refinement/PLAN-2026-11-11-difficulty.md` (outside the repo). Fuel and starting cash are no
+longer difficulty levers: difficulty comes from each family's own challenge.
+
+- [ ] **#111 · Fixed generator settings (Doug, 2026-11-11).** Make every setting that isn't a real difficulty lever a constant in
+      `packages/generator/data/generator.json` (both ends of its range equal):
+      - starting fuel 0.75 (the fill-the-fuel goal keeps its low start);
+      - starting cash 0 everywhere, including the walls-before-wave-1 goal, which now starts with 0 walls (Doug: building
+        them is that level's difficulty);
+      - `costScale` 1, so item prices are fixed, and its threshold rules in `build.ts` (extra unlock, core-level, zone and
+        processor-level pads) become goal or feature rules;
+      - `margin` 0.37, and remove `reach` (unused);
+      - shipped medians for the noise-level settings: premium, orderMax, bulkShare, heatPct, spareIdle, arrivalEvery,
+        podFreeze, impatient, spawn, prebuiltRing, ringCost, baseHealth, waveGap, firstWave, arrivals (values in the plan;
+        re-check the medians on 0.24.0 first);
+      - forest, forestReach, pods, crates and dangerPrey drawn from the level seed, not from pressure, so the map stays
+        fixed while the search runs;
+      - the repeated-loop fix keeps only its length cut (no cash added, no hire-price cut).
+
+      Per-level dials left: `length`, plus `swarm` and `waves` on defend. Done check: generator tests pass, and a
+      6-level sample at targets 0.2 / 0.5 / 0.8 lands within 0.1 of its D.
+- [ ] **#112 · Defend fuel hauler is a cheap scrap hire (Doug, 2026-11-12).** On defend levels the core fuel-supplier hire
+      costs very little scrap and is open from the start, so the player hires it with the first scrap and moves on;
+      burn rate barely matters there. Every defend level gets scrap the player can reach before wave 1 (today only about
+      80% have scrap heaps). The bot plan buys it first. Done check: `levels:check` clean on defend levels, and the bot
+      never hand-feeds the reactor after its first scrap.
+- [ ] **#113 · Remove the pile-collapse loss (Doug, 2026-11-11).** The goal type is gone, but `sim/systems/goals.ts` still ends a
+      level on a collapsed output pile. A full pile now only stops its processor. Remove the end check, its event,
+      renderer and HUD text, bot avoidance and rater metric. Engine bump (shared with Bundle 8). Done check: unit test
+      and golden replay.
+- [ ] **#115 · Re-measure the difficulty dials after the test pack (Haiku/Sonnet).** Rerun the within-level analysis of
+      how far each remaining dial (length, swarm, waves, burn) moves D, on the new candidate log. Report whether targets
+      0.15–0.8 are reachable per family; if not, widen that family's range before Release 3.
+
 ## Bundle 8: Release 2 levels and ship (one pack rebuild)
+
+**Changed by Doug 2026-11-12:** no full regeneration in Release 2; see #121. Full generation waits until the levels are
+aligned and the story release is ready.
+
+- [ ] **#121 · A 15-level test pack instead of a full rebuild (Doug, 2026-11-12).**
+      - Re-pin the published packs to the new engine, so players keep their levels; fix or re-baseline any level that
+        fails `levels:check`, as with #97.
+      - The simplified generator (#111–#113) builds `levels/packs/r2-test`: 3 levels per family at targets 0.2 / 0.5 / 0.8.
+      - Doug opens it from a hidden link (`?pack=r2-test`; a small client change, never listed for players).
+      - Rewrite `start.json` (#44) from it.
+
+      Done check: `levels:check` clean on the re-pinned packs and the test pack, live. Doug's phone check: open the link
+      and play one level of each family. Look for: fuel is never the problem, prices feel the same from level to level,
+      and on defend the fuel hauler is hired with the first scrap.
 
 Re-derive the rater's `reference.json` (only 4 golden levels today) and do the iPhone dense-wave check before the
 rebuild.
@@ -264,7 +319,73 @@ Not seen, no change yet: #85 2, the mite wind-up and commander downed (he dies t
 
 - [ ] **#110 · Level 3 coin hand-off: Sela should drop the coin into the commander's hand, not throw it (Doug, 2026-11-09).** Today she tips the coin off her palm and it slides to his; he asked for a real drop into his open hand. Make the coin fall straight from her hand into his open palm (short vertical drop, hand under it, no throwing arc), keep the rounded fingers. Done check: phone-size stills of the coin leaving her hand, mid-fall and resting in his palm, from the game camera, and Doug confirms on level 3.
 
+## Release 3: difficulty modes Cadet, Pilot, Captain (one engine bump; after Release 2 is live)
+
+Agreed with Doug 2026-11-03 to 11-12. Plan and session briefs: `Mobile game/docs/refinement/PLAN-2026-11-11-difficulty.md`.
+- **Names:** Cadet, Pilot and Captain, plus Auto ("Mission Control").
+- **Levels 1–20:** always Cadet. The mode picker appears when level 21 starts and says the player has been playing on
+  Cadet; after that the mode lives in Settings.
+- **Families that can be lost** (defend now, and any future family with a failure mode) use this table:
+
+  | | Cadet | Pilot | Captain |
+  |---|---|---|---|
+  | 3 stars on the 1st try | 85% | 50% | 30% |
+  | 2+ stars on the 1st try | 95% | 70% | 50% |
+  | Cleared on the 1st try | 99% | 90% | 80% |
+- **Families that can't be lost** are set on stars and time (targets are waiting on Doug, above).
+- **Each level keeps the same map in every mode;** only a few dials change.
+
+Order: #116 and #117 can run in parallel, then #118 (only if #117 passes), then #119, then #120.
+
+- [ ] **#116 · Hand-made modes test (Sonnet, small).** Hand-edit Cadet and Captain versions of 3 test-pack levels (one
+      defend, one harvest, one rescue) with only the planned mode dials:
+      - burn 2.9 / 2.1 off defend;
+      - swarm ±20% on defend;
+      - length ±20% elsewhere.
+
+      Put them in a dev-only pack and run the bot ladder. Pass: clear and star rates within 15 points of the agreed
+      bands, then Doug plays the defend and harvest versions. Fail: pick other dials from #115 before any pipeline work.
+- [ ] **#117 · Model A, a fast stand-in for the bots (Sonnet; tooling can start now, fitting waits for #121).** An
+      offline tool, `tools/model-a/`:
+      - **Data:** exported from `levels/candidates/*.jsonl` and `levels/eval/*` (current engine only, split by level).
+      - **Model:** gradient-boosted trees that predict D, whether a level can be won, and win rate per bot.
+      - **Builds on:** the attack–defence model (#16) is an input, and the search start table (#44) is the baseline to
+        beat; neither is duplicated.
+
+      Pass: D error 0.08 or less on held-out levels and better than the start table. Fail: stop, and #119 uses batches
+      of 10.
+- [ ] **#118 · Model-guided search (Opus; only if #117 passes).**
+      - `search.model: off|propose` in the generator: the model proposes, the bots verify, and the old search takes over
+        after 2 misses.
+      - The model file's hash is pinned in `pack.json`.
+      - Done check: on one 20-level batch, bot ratings per level are at least halved and no fewer levels land on target.
+- [ ] **#119 · Mode variants in each level (Opus, engine bump).**
+      - The level file gains `variants` for Cadet and Captain (params, objectives, prices); `compile.ts` merges the chosen
+        one, and the mode is part of the replay input.
+      - The generator searches only the mode dials for the Cadet and Captain targets, with the map frozen.
+      - `levels:check` replays all three modes, and a test checks Cadet ≤ Pilot ≤ Captain in difficulty.
+      - A levels-next batch must finish inside GitHub's 6-hour job limit.
+- [ ] **#120 · Modes in the game (Sonnet, client).**
+      - **Picker:** shown at the start of level 21 ("You've been playing on Cadet…"), and the mode lives in Settings.
+      - **Mission Control:** at most one step per level; one step easier after 2 fails; one step harder after 3 first-try
+        3-star clears; the current mode is shown on the level intro.
+      - **Guide arrows** (approved 2026-11-12): they appear after 20 s without progress on Cadet and 45 s on Pilot.
+        Captain never shows them from level 21 on, and the Settings toggle is greyed out.
+      - Telemetry records the mode per attempt.
+
+      Doug's phone check:
+      1. Finish level 20: the picker shows.
+      2. Pick Captain: level 21's intro says Captain, and no arrows appear however long you stand still.
+      3. On Mission Control, fail a level twice: the retry says Pilot.
+
 ## Deferred (each says what it waits for)
+- [ ] **#114 · The "transformed game" reset (Doug, 2026-11-12).** Wipe levels 31–100+ and reset every player to new:
+      progress, stars, coach marks and seen films, with no "keep progress" choice. Everyone starts at level 1 and sees
+      "The game has transformed since you first started. You're gonna want to see this!" Same release: trim the nightly
+      review's pack list, archive (don't delete) the wiped packs' candidate and eval logs, and simplify `index.json` and
+      the re-pin list. **Deferred until the major storyline updates are live and the levels are aligned.**
+- [ ] **Model B, bots to real players.** Calibrates bot results against real players' fail rates. **Deferred until there are
+      enough players** (the telemetry store exists since 2026-11-06).
 - [ ] **#11 · R6 #9 Cutscenes in the level menu.** Replay after Start Over (`save.ts` keeps the seen ones), a "!"
       until a cutscene's version is watched, and list only cutscenes from levels reached. Held until the story claim
       on `client/src/app.ts` clears and `REPLAY_FILMS` is off.
