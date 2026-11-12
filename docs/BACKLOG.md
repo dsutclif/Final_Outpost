@@ -77,13 +77,6 @@ Nothing is being built from this file (2026-11-12). Notes kept from earlier hand
       Then create the routines in dry-run for a week.
 - [ ] **#66 · PILLARS-DRAFT.md (waiting on Doug):** the order of the pillars, and pillar 7's pay-to-win line.
 - [ ] **#58 ·** The playtest retention target is met.
-- [ ] **Difficulty targets for families that can't be lost (for #119).** Doug's star table covers families with a
-      failure mode. Proposal for the others, on the 1st try (Cadet / Pilot / Captain):
-      - 3 stars: about 50 / 30 / 15%;
-      - 2 or more stars: about 90 / 70 / 45%;
-      - cleared: 95% or more in every mode.
-- [ ] **#131 · Scrap straight to the HUD (Doug, 2026-11-11, ops #51): which version?** Carried scrap is load-bearing in the sim (carry cap, pad payment, the defend scrap hire #112, dead-end proofs, collector residents). Doug's earlier note ("up top only and not carried") points to (a). (a) Scrap becomes a banked, credit-like balance everywhere: rules change, engine bump, bot and rater retune, and collectors still gather into it. (b) It stays carried and only the pickup is drawn flying to the HUD (client only). Also: does "scrap" mean only the defend salvage, or the ore from scrap nodes too? With (a), it joins the Release 2 rules bundle.
-- [ ] **#130 · Cost tracker sinks into the ground once building starts (Doug, 2026-11-11, ops #44/#48): which element?** A paid pad isn't drawn at all today, so on level 38, after paying a build pad, which thing is still on screen while the building rises: the price label, the pin on its stalk, or the ground ring? Once answered it joins the pad-visuals bundle (build pads first; hire pads were a "maybe").
 
 ## Lane A · Ops and cleanup (no game change)
 
@@ -150,7 +143,7 @@ Nothing is being built from this file (2026-11-12). Notes kept from earlier hand
 ## Lane L · Look (renderer, no engine bump; one renderer.ts session at a time, after the R7 branches merge)
 
 ### Bundle L1: pads and HUD readability (Sonnet)
-Add the wave-incoming flag and Doug's level 38 screenshot (ops #46/#50) to #82. #130 joins once Doug answers.
+Add the wave-incoming flag and Doug's level 38 screenshot (ops #46/#50) to #82.
 - [ ] **#82 · The dust storm warning shows behind the HUD's progress and goal icons (Doug, 2026-11-08; an old issue).** The
       top banner (`.fo-banner` in `render-3d/src/scene/dom.ts`: `top:10px`, `z-index:2`, filled by `renderer.ts` near
       `bannerEl`) sits under the top HUD row, so "Dust storm coming", the storm countdown and "wave soon" are hidden. Story
@@ -161,6 +154,11 @@ Add the wave-incoming flag and Doug's level 38 screenshot (ops #46/#50) to #82. 
 - [ ] **#123 · Pin ring fills with payment, in step with the ground ring (Doug, 2026-11-11, ops #43/#47).** Draw the fill as a separate arc or mesh using the decal's `fb/24` steps, not by adding fill to the 256 px canvas cache key (up to 24 redraws per pad). Done check: on iPhone, paying into a pad fills both rings together from empty to full, with no hitch.
 - [ ] **#124 · Locked hire-pad text 1.5× larger (Doug, 2026-11-11, ops #53).** `padLabelArt`: `lockPx` 28 → 42 and `PAD_LOCK_H` 36 → ~54; keep `padArtH` and the sprite height in step. Done check: on iPhone, the text at a locked hire pad is 1.5×, not clipped, and clear of the pin.
 - [ ] **#125 · Airlock doors fill the resized gate (Doug, 2026-11-11, ops #52).** First confirm it isn't already fixed. `gateDoors` (renderer.ts ~1948) sinks the doors by a hard-coded 1.62 and the leaves are in `assets/buildings.ts` ~420–432: size both from the Meshy gate bounds. Done check: on every airlock level, the closed doors fill the frame with no gap and the open/close sink still hides them.
+- [ ] **#130 · Hire-pad price tracker sits half sunk in the ground (Doug, 2026-11-11, ops #44/#48; clarified 2026-11-12: hire pads, not build pads).** On locked hire pads the coin-and-price tracker under the "do this first" text (e.g. "Ring up a sale to unlock") sits half under the ground and is hard to read.
+      - **Doug's screenshots (levels 42, 58 and 63):** `Mobile game/docs/refinement/intake/hire-pad-tracker-L42.jpg`, `-L58.jpg`, `-L63.jpg`.
+      - **Fix:** raise it fully above the ground and keep it readable. Do it with #124 (that text gets 1.5× bigger), in the same label code.
+
+      Done check: on iPhone, levels 42, 58 and 63, the price tracker at each locked hire pad is fully above the ground and readable, and clear of the larger text.
 
 ### Bundle L2: first-frame hitches (Sonnet, after L1)
 - [ ] **#127 · Warm shaders through the game's own render path (review, ops #37/#39, #27 merged).** Story level 1's first frames and Sela's arrival on story level 3 hitch for 0.5–2 s (throttled probe). Fix in `warmPrograms` (renderer.ts ~1391) and `lookTest.ts`. Waits for the R7 hitch branches (ops #23/#28) to merge. Done check: `renderer.info.programs` is unchanged across story-L003 `customer_arrived` and story-L001's first frames, all under 50 ms at 4× throttle.
@@ -185,7 +183,6 @@ Order: R2-1 → R2-2 → R2-3 → R2-4. Each runs after the one before it, since
 story release is ready.
 
 ### Bundle R2-1: rules (Opus, sim + bots + rater; start now)
-#131 joins if Doug picks the banked-scrap version.
 - [ ] **#113 · Remove the pile-collapse loss (Doug, 2026-11-11).** The goal type is gone, but `sim/systems/goals.ts` still ends a
       level on a collapsed output pile. A full pile now only stops its processor. Remove the end check, its event,
       renderer and HUD text, bot avoidance and rater metric. Engine bump (shared with Bundle 8). Done check: unit test
@@ -193,6 +190,16 @@ story release is ready.
 - [ ] **#100 · Rangers walk through walls to reach hoppers unless the commander is outside the gate (Doug, 2026-11-08, playtesting s1-L017).** A Ranger's movement should not depend on where the commander is. He should path round the walls (out through the gate) to the hoppers whatever the commander does. Sim bug, so an engine bump (Systems).
       Done check: on s1-L017, hire the Ranger with the commander inside the walls; he walks out by the gate to the hoppers and never through a wall.
 - [ ] **#33 · R6 #11 attackers appear off screen:** spawn past the visible map, worked out in real metres per family.
+- [ ] **#131 · Scrap is not carried on the commander's back (Doug, 2026-11-11, ops #51; clarified 2026-11-12).** Doug: "scrap is already a balance at the top of the screen, just stop also carrying it on the player's back." Confirm first whether the top number is the sim's carried stack (`p.stack`, cap 400, pads take "carried items go first") or a separate balance.
+      - **If it is the carried stack:** scrap goes to a balance on pickup and never onto `p.stack`. That means an engine bump (in this bundle), with the rater re-run before and after. Keep working:
+        - the defend scrap hire (#112);
+        - pad payment from the balance;
+        - collector residents;
+        - the dead-end proof (`deadends.ts`);
+        - the bot plan (`collect`, drop fetching).
+      - **If it is only drawn:** `backStack` in renderer.ts (~2940) stops drawing scrap, and the item moves to Bundle L1.
+
+      Done check: on a defend level, picking up scrap adds to the top balance and nothing appears on the commander's back; hiring and building with scrap still work; `levels:check` clean.
 
 ### Bundle R2-2: fixed generator settings and economy (Sonnet)
 - [ ] **#111 · Fixed generator settings (Doug, 2026-11-11).** Make every setting that isn't a real difficulty lever a constant in
@@ -325,7 +332,13 @@ Agreed with Doug 2026-11-03 to 11-12. Plan and session briefs: `Mobile game/docs
   | 3 stars on the 1st try | 85% | 50% | 30% |
   | 2+ stars on the 1st try | 95% | 70% | 50% |
   | Cleared on the 1st try | 99% | 90% | 80% |
-- **Families that can't be lost** are set on stars and time (targets are waiting on Doug, above).
+- **Families that can't be lost** are set on stars and time (agreed 2026-11-12):
+
+  | | Cadet | Pilot | Captain |
+  |---|---|---|---|
+  | 3 stars on the 1st try | ~50% | ~30% | ~15% |
+  | 2+ stars on the 1st try | ~90% | ~70% | ~45% |
+  | Cleared on the 1st try | 95%+ | 95%+ | 95%+ |
 - **Each level keeps the same map in every mode;** only a few dials change.
 
 Order: #116 needs the test pack. The tooling part of #117 can start now, and its fitting waits for #121. Then #118 (only
