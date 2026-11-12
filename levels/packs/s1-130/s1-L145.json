@@ -1,0 +1,399 @@
+{
+  "id": "s1-L145",
+  "seed": 1165627178,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "sources-e",
+      "shop-se",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "hunting",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    240,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        500
+      ],
+      "params": {
+        "fuel": 17,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        343,
+        637
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ],
+      "queue": [
+        [
+          282,
+          637
+        ],
+        [
+          282,
+          671
+        ],
+        [
+          248,
+          671
+        ],
+        [
+          214,
+          671
+        ]
+      ],
+      "route": [
+        [
+          500,
+          711
+        ],
+        [
+          477,
+          711
+        ],
+        [
+          375,
+          711
+        ],
+        [
+          369,
+          705
+        ],
+        [
+          333,
+          681
+        ],
+        [
+          291,
+          681
+        ],
+        [
+          282,
+          637
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        344,
+        461
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
+        492
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        157,
+        521
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        163,
+        463
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        161,
+        550
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        196,
+        414
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        132,
+        502
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        226,
+        408
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        129,
+        471
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        144,
+        431
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        128,
+        540
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        111,
+        406
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          60,
+          300
+        ],
+        [
+          180,
+          300
+        ],
+        [
+          300,
+          300
+        ],
+        [
+          420,
+          300
+        ],
+        [
+          420,
+          433
+        ],
+        [
+          420,
+          567
+        ],
+        [
+          420,
+          700
+        ],
+        [
+          300,
+          700
+        ],
+        [
+          180,
+          700
+        ],
+        [
+          60,
+          700
+        ],
+        [
+          60,
+          567
+        ],
+        [
+          60,
+          433
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1,
+        6
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        192,
+        58
+      ],
+      "freeze": 162
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        302,
+        131
+      ],
+      "freeze": 171
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        97,
+        107
+      ],
+      "freeze": 194
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        440,
+        330,
+        60,
+        150
+      ],
+      "animal": "node.prey",
+      "n": 3
+    },
+    {
+      "type": "pad.hire",
+      "id": "ranger",
+      "at": [
+        461,
+        342
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "sink.sales_point"
+      },
+      "manual": true
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 10,
+    "core.burn": 2.8,
+    "housing.base": 8,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 2.6,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 380
+  },
+  "goal": {
+    "type": "protein",
+    "n": 34
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "protein",
+      "params": {
+        "n": 34
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "rescue_all",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 193
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Tow Lines and Protein Run",
+      "goal": "protein",
+      "tips": [
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.942,
+    "fun": 0.669,
+    "botMargin": 0.686,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

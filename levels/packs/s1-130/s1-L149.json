@@ -1,0 +1,186 @@
+{
+  "id": "s1-L149",
+  "seed": 346304650,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-sw",
+      "food-se",
+      "shop-ne",
+      "landmark-s"
+    ]
+  },
+  "modules": [
+    "carry",
+    "core",
+    "gather",
+    "hazard_events",
+    "sales"
+  ],
+  "start": [
+    240,
+    360
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        450
+      ],
+      "params": {
+        "fuel": 10,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        185,
+        540
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        156,
+        534
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        164,
+        566
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        139,
+        509
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        214,
+        591
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        123,
+        538
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        176,
+        593
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        131,
+        571
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        87,
+        517
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        198,
+        633
+      ]
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [
+    {
+      "type": "event.hazard",
+      "warnAt": 36,
+      "start": 44,
+      "end": 84
+    }
+  ],
+  "params": {
+    "start.currency": 0,
+    "core.burn": 2.2,
+    "housing.base": 2,
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 170
+  },
+  "goal": {
+    "type": "heat_hold",
+    "pct": 70,
+    "seconds": 85
+  },
+  "family": "shelter",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "heat_hold",
+      "params": {
+        "pct": 70,
+        "seconds": 85
+      }
+    },
+    {
+      "id": "challenge2",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    },
+    {
+      "id": "challenge",
+      "kind": "heat_floor",
+      "params": {
+        "pct": 35
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Storms and Warm Nights",
+      "goal": "heat_hold",
+      "tips": [
+        "A dust storm burns fuel fast. Fill the reactor before it hits."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.747,
+    "fun": 0.316,
+    "botMargin": 0.444,
+    "botsPassed": [
+      "good",
+      "average"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 1,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

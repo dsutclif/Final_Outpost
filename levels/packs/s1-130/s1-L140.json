@@ -1,0 +1,396 @@
+{
+  "id": "s1-L140",
+  "seed": 102031530,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-far-w",
+      "food-far-e",
+      "shop-s",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "converters",
+    "core",
+    "customer_variety",
+    "gather",
+    "sales",
+    "source_gating",
+    "supply_routing",
+    "workers"
+  ],
+  "start": [
+    240,
+    612
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        520
+      ],
+      "params": {
+        "fuel": 12,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        255,
+        682
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_prepared"
+      ],
+      "queue": [
+        [
+          194,
+          682
+        ],
+        [
+          194,
+          716
+        ],
+        [
+          194,
+          750
+        ],
+        [
+          194,
+          784
+        ]
+      ],
+      "route": [
+        [
+          195,
+          920
+        ],
+        [
+          195,
+          897
+        ],
+        [
+          194,
+          682
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        373,
+        553
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        163,
+        524
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        162,
+        493
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        134,
+        529
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        161,
+        553
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        157,
+        458
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        133,
+        494
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        152,
+        581
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        566
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        104,
+        509
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        104,
+        459
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        90,
+        547
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food2",
+      "at": [
+        385,
+        409
+      ],
+      "enabled": false
+    },
+    {
+      "type": "node.food_source",
+      "id": "food_g",
+      "at": [
+        18,
+        681
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        373,
+        614
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.build",
+      "id": "unlock_food2",
+      "at": [
+        385,
+        409
+      ],
+      "cost": {
+        "res.currency": 16
+      },
+      "build": "node.enable",
+      "target": "food2",
+      "requires": {
+        "pad": "depot_supplier"
+      }
+    },
+    {
+      "type": "pad.build",
+      "id": "grill",
+      "at": [
+        120,
+        680
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "build": "conv.food_processor"
+    },
+    {
+      "type": "pad.build",
+      "id": "depot",
+      "at": [
+        160,
+        330
+      ],
+      "cost": {
+        "res.currency": 21
+      },
+      "build": "struct.depot",
+      "requires": {
+        "pad": "hire_food"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hauler",
+      "at": [
+        160,
+        425
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.hauler",
+        "from": "store.depot"
+      },
+      "requires": {
+        "pad": "depot"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "depot_supplier",
+      "at": [
+        160,
+        425
+      ],
+      "cost": {
+        "res.currency": 10
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "store.depot"
+      },
+      "requires": {
+        "pad": "hauler"
+      },
+      "manual": true
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 4,
+    "core.burn": 2.4,
+    "housing.base": 11,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 2.9,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "customers.impatientShare": 0.24,
+    "customers.premiumShare": 0.21,
+    "customers.bulkShare": 0.2,
+    "level.budgetSeconds": 220
+  },
+  "goal": {
+    "type": "unlock",
+    "n": 1
+  },
+  "family": "harvest",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "unlock",
+      "params": {
+        "n": 1
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "streak",
+      "params": {
+        "n": 16
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 160
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Warehouses and Unsealed",
+      "goal": "unlock",
+      "tips": [
+        "A warehouse lets couriers move goods between sites for you."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 1,
+    "fun": 0.329,
+    "botMargin": 0.682,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 2.9,
+      "median": 2.67,
+      "goodAll": 0.9,
+      "human": 3,
+      "humanAll": 1
+    }
+  },
+  "lighting": "night"
+}

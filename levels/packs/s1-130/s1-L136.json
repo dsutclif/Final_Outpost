@@ -1,0 +1,360 @@
+{
+  "id": "s1-L136",
+  "seed": 391893287,
+  "engineVersion": "0.24.0",
+  "contentVersion": "0.21.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-e",
+      "food-se",
+      "shop-w",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "converters",
+    "core",
+    "gather",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    218,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        218,
+        500
+      ],
+      "params": {
+        "fuel": 9,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        133,
+        574
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_prepared"
+      ],
+      "queue": [
+        [
+          194,
+          574
+        ],
+        [
+          228,
+          574
+        ],
+        [
+          262,
+          574
+        ],
+        [
+          296,
+          574
+        ]
+      ],
+      "route": [
+        [
+          -20,
+          615
+        ],
+        [
+          3,
+          615
+        ],
+        [
+          207,
+          615
+        ],
+        [
+          231,
+          579
+        ],
+        [
+          228,
+          574
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        319,
+        565
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        294,
+        485
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        299,
+        456
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        330,
+        481
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        290,
+        418
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        323,
+        414
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        344,
+        447
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        361,
+        500
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        286,
+        386
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        389,
+        466
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        348,
+        382
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food_g",
+      "at": [
+        204,
+        334
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "grill",
+      "at": [
+        50,
+        440
+      ],
+      "cost": {
+        "res.currency": 15
+      },
+      "build": "conv.food_processor"
+    },
+    {
+      "type": "pad.hire",
+      "id": "feeder",
+      "at": [
+        73,
+        529
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "conv.food_processor",
+        "node": "food_g"
+      },
+      "requires": {
+        "pad": "grill"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "cook",
+      "at": [
+        73,
+        529
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.operator",
+        "to": "conv.food_processor"
+      },
+      "requires": {
+        "pad": "feeder"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "server",
+      "at": [
+        73,
+        529
+      ],
+      "cost": {
+        "res.currency": 13
+      },
+      "role": {
+        "role": "role.server",
+        "from": "conv.food_processor",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "cook"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.build",
+      "id": "grill_level",
+      "at": [
+        27,
+        529
+      ],
+      "cost": {
+        "res.currency": 23
+      },
+      "build": "conv.level",
+      "target": "grill",
+      "requires": {
+        "pad": "server"
+      },
+      "repeatable": true
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 1,
+    "core.burn": 2.2,
+    "housing.base": 8,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.3,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 280
+  },
+  "goal": {
+    "type": "converter_level",
+    "n": 3
+  },
+  "family": "industrialize",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "converter_level",
+      "params": {
+        "n": 3
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "settlement_never_freezes",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 239
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Galleys and Upgrades",
+      "goal": "converter_level",
+      "tips": [
+        "Converters turn one resource into another, but only while someone stands on the operator spot."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 1,
+    "fun": 0.891,
+    "botMargin": 0.574,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  },
+  "lighting": "night"
+}
