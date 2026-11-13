@@ -1,0 +1,267 @@
+{
+ "schema": 1,
+ "pack": "s1-130",
+ "levels": [
+  {
+   "id": "s1-L130",
+   "goal": "rescue",
+   "D": 0.2878,
+   "F": 0.743,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L130.json"
+  },
+  {
+   "id": "s1-L132",
+   "goal": "hire",
+   "D": 0.0478,
+   "F": 0.1445,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 5,
+   "file": "s1-L132.json"
+  },
+  {
+   "id": "s1-L133",
+   "goal": "population",
+   "D": 0.2965,
+   "F": 0.8502,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L133.json"
+  },
+  {
+   "id": "s1-L135",
+   "goal": "hire",
+   "D": 0.2519,
+   "F": 0.8144,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L135.json"
+  },
+  {
+   "id": "s1-L136",
+   "goal": "converter_level",
+   "D": 0.4356,
+   "F": 0.8915,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L136.json"
+  },
+  {
+   "id": "s1-L137",
+   "goal": "turret_level",
+   "D": 0.973,
+   "F": 0.5683,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 4,
+   "file": "s1-L137.json"
+  },
+  {
+   "id": "s1-L139",
+   "goal": "rescue_before_freeze",
+   "D": 0.8943,
+   "F": 0.8156,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L139.json"
+  },
+  {
+   "id": "s1-L140",
+   "goal": "unlock",
+   "D": 0.5466,
+   "F": 0.3286,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L140.json"
+  },
+  {
+   "id": "s1-L141",
+   "goal": "earn",
+   "D": 0.1219,
+   "F": 0.8977,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L141.json"
+  },
+  {
+   "id": "s1-L142",
+   "goal": "build",
+   "D": 0.3923,
+   "F": 0.9258,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L142.json"
+  },
+  {
+   "id": "s1-L143",
+   "goal": "waves_survived",
+   "D": 0.7333,
+   "F": 0.1986,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 5,
+   "file": "s1-L143.json"
+  },
+  {
+   "id": "s1-L144",
+   "goal": "house_all",
+   "D": 0.2778,
+   "F": 0.861,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L144.json"
+  },
+  {
+   "id": "s1-L145",
+   "goal": "protein",
+   "D": 0.1612,
+   "F": 0.6692,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L145.json"
+  },
+  {
+   "id": "s1-L146",
+   "goal": "serve_premium",
+   "D": 0.1189,
+   "F": 0.8922,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L146.json"
+  },
+  {
+   "id": "s1-L147",
+   "goal": "chain",
+   "D": 0.6416,
+   "F": 0.9507,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L147.json"
+  },
+  {
+   "id": "s1-L148",
+   "goal": "survive",
+   "D": 1,
+   "F": 0.1446,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 5,
+   "file": "s1-L148.json"
+  },
+  {
+   "id": "s1-L149",
+   "goal": "heat_hold",
+   "D": 0.1666,
+   "F": 0.3159,
+   "botsPassed": [
+    "good",
+    "average"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L149.json"
+  }
+ ]
+}

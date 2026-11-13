@@ -1,0 +1,205 @@
+{
+ "schema": 1,
+ "pack": "s1-170",
+ "levels": [
+  {
+   "id": "s1-L170",
+   "goal": "build_count",
+   "D": 0.5734,
+   "F": 0.89,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L170.json"
+  },
+  {
+   "id": "s1-L171",
+   "goal": "waves_survived",
+   "D": 0.9746,
+   "F": 0.0692,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 5,
+   "file": "s1-L171.json"
+  },
+  {
+   "id": "s1-L172",
+   "goal": "core_level",
+   "D": 0.4924,
+   "F": 0.5125,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L172.json"
+  },
+  {
+   "id": "s1-L173",
+   "goal": "hunt",
+   "D": 0.3601,
+   "F": 0.5879,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L173.json"
+  },
+  {
+   "id": "s1-L174",
+   "goal": "bulk_order",
+   "D": 0.3316,
+   "F": 0.9063,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L174.json"
+  },
+  {
+   "id": "s1-L175",
+   "goal": "haul",
+   "D": 0.484,
+   "F": 0.8461,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L175.json"
+  },
+  {
+   "id": "s1-L176",
+   "goal": "survive",
+   "D": 0.9999,
+   "F": 0.2098,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 4,
+   "file": "s1-L176.json"
+  },
+  {
+   "id": "s1-L178",
+   "goal": "rescue_before_freeze",
+   "D": 0.6455,
+   "F": 0.7003,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L178.json"
+  },
+  {
+   "id": "s1-L179",
+   "goal": "hire",
+   "D": 0.4364,
+   "F": 0.9303,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L179.json"
+  },
+  {
+   "id": "s1-L180",
+   "goal": "protein",
+   "D": 0.4003,
+   "F": 0.7611,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L180.json"
+  },
+  {
+   "id": "s1-L181",
+   "goal": "converter_level",
+   "D": 0.3074,
+   "F": 0.8932,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L181.json"
+  },
+  {
+   "id": "s1-L182",
+   "goal": "waves",
+   "D": 0.0067,
+   "F": 0.269,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 5,
+   "file": "s1-L182.json"
+  },
+  {
+   "id": "s1-L183",
+   "goal": "house_all",
+   "D": 0.2732,
+   "F": 0.5014,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L183.json"
+  }
+ ]
+}

@@ -61,13 +61,21 @@ jobs:
           CLEARED: ${{ inputs.cleared }}
           PLAYED: ${{ inputs.played }}
         run: pnpm levels:next --cleared "$CLEARED" --played "$PLAYED" ${{ inputs.dry_run && '--dry-run' || '' }}
+      # tools/eval-pack.test.ts (part of `pnpm check`) wants a levels/eval side file for every level of every
+      # pack in the index, so a batch pushed without them turns main red. Any pack still missing them is rated here.
+      - name: Rate the new levels
+        if: ${{ !inputs.dry_run && steps.cap.outputs.go == 'true' }}
+        run: |
+          for pack in $(node -p "require('./levels/packs/index.json').packs.join(' ')"); do
+            [ -f "levels/eval/$pack/index.json" ] || pnpm levels:eval "$pack"
+          done
       - name: Commit the new pack
         if: ${{ !inputs.dry_run && steps.cap.outputs.go == 'true' }}
         run: |
-          if [ -z "$(git status --porcelain levels/packs)" ]; then echo "no new levels"; exit 0; fi
+          if [ -z "$(git status --porcelain levels/packs levels/eval)" ]; then echo "no new levels"; exit 0; fi
           git config user.name "level-supply[bot]"
           git config user.email "level-supply@users.noreply.github.com"
-          git add levels/packs levels/candidates
+          git add levels/packs levels/candidates levels/eval
           git commit -m "Levels: next batch for a player at level ${{ inputs.cleared }}"
           git pull --rebase origin main
           git push origin HEAD:main

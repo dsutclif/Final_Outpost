@@ -1,0 +1,264 @@
+{
+ "schema": 1,
+ "pack": "s1-150",
+ "levels": [
+  {
+   "id": "s1-L150",
+   "goal": "hire",
+   "D": 0.4226,
+   "F": 0.9545,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L150.json"
+  },
+  {
+   "id": "s1-L151",
+   "goal": "crates",
+   "D": 0.2317,
+   "F": 0.5044,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L151.json"
+  },
+  {
+   "id": "s1-L152",
+   "goal": "currency",
+   "D": 0.1078,
+   "F": 0.8906,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L152.json"
+  },
+  {
+   "id": "s1-L155",
+   "goal": "clear_zones",
+   "D": 0.3124,
+   "F": 0.5666,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L155.json"
+  },
+  {
+   "id": "s1-L157",
+   "goal": "earn_within",
+   "D": 0.0861,
+   "F": 0.8054,
+   "botsPassed": [
+    "good",
+    "average"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L157.json"
+  },
+  {
+   "id": "s1-L158",
+   "goal": "produce",
+   "D": 0.0869,
+   "F": 0.8461,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L158.json"
+  },
+  {
+   "id": "s1-L159",
+   "goal": "hire",
+   "D": 0.0827,
+   "F": 0.1588,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 5,
+   "file": "s1-L159.json"
+  },
+  {
+   "id": "s1-L160",
+   "goal": "boss",
+   "D": 0.9984,
+   "F": 0.8941,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 5,
+   "file": "s1-L160.json"
+  },
+  {
+   "id": "s1-L161",
+   "goal": "hazard_survive",
+   "D": 0.0077,
+   "F": 0.0897,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L161.json"
+  },
+  {
+   "id": "s1-L162",
+   "goal": "rescue",
+   "D": 0.2685,
+   "F": 0.8348,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L162.json"
+  },
+  {
+   "id": "s1-L163",
+   "goal": "sell",
+   "D": 0.3108,
+   "F": 0.9114,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L163.json"
+  },
+  {
+   "id": "s1-L164",
+   "goal": "converters_running",
+   "D": 0.8424,
+   "F": 0.8398,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L164.json"
+  },
+  {
+   "id": "s1-L165",
+   "goal": "turret_level",
+   "D": 0.1242,
+   "F": 0.3421,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 4,
+   "file": "s1-L165.json"
+  },
+  {
+   "id": "s1-L166",
+   "goal": "core_level",
+   "D": 0.3704,
+   "F": 0.9247,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L166.json"
+  },
+  {
+   "id": "s1-L167",
+   "goal": "rescue_all",
+   "D": 0.8457,
+   "F": 0.8329,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice",
+    "floor"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L167.json"
+  },
+  {
+   "id": "s1-L168",
+   "goal": "streak",
+   "D": 0.1342,
+   "F": 0.9238,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L168.json"
+  },
+  {
+   "id": "s1-L169",
+   "goal": "stockpile",
+   "D": 0.1666,
+   "F": 0.8952,
+   "botsPassed": [
+    "good",
+    "average",
+    "weak",
+    "novice"
+   ],
+   "ok": true,
+   "waves": 0,
+   "file": "s1-L169.json"
+  }
+ ]
+}
