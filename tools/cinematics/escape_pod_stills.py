@@ -2,9 +2,11 @@
 # a three-quarter view, the hatch side, a look in through the hatch, the game camera's angle (30 degrees above the
 # ground, a nearly flat lens) beside a towable crew pod and the commander for scale, and the same at phone size.
 #
-#   blender -b --factory-startup -P tools/cinematics/escape_pod_stills.py -- <out_dir> [pod.glb] [--draft]
+#   blender -b --factory-startup -P tools/cinematics/escape_pod_stills.py -- <out_dir> [pod.glb] [--draft] [--built]
 #
 # --draft renders one small sheet of all the views (out_dir/draft.png) instead of the full-size stills.
+# --built is for the game's built copy (packages/client/public/models/capture.recruit_container_decoy.glb), which
+# already carries the turn toward the camera.
 import math
 import os
 import sys
@@ -18,6 +20,7 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 MODELS = os.path.join(ROOT, "packages", "client", "public", "models")
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 DRAFT = "--draft" in argv
+BUILT = "--built" in argv
 argv = [a for a in argv if not a.startswith("--")]
 OUT = argv[0]
 POD = argv[1] if len(argv) > 1 else os.path.join(HERE, "assets", "escape_pod.glb")
@@ -94,7 +97,7 @@ def aim(obj, origin, toward):
 
 def place(yaw, extras):
     """extras: where the crew pod and the commander stand, as (metres to screen right, metres toward the game camera)."""
-    pod.rotation_euler = (0, 0, math.radians(yaw))
+    pod.rotation_euler = (0, 0, math.radians(yaw - (GAME_YAW if BUILT else 0)))
     crew.location = man.location = (500, 500, 0)   # out of shot
     if extras:
         for obj, (a, b) in zip((crew, man), extras):

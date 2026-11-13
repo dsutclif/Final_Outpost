@@ -1294,21 +1294,21 @@
     ]
   },
   "capture.recruit_container_decoy": {
-    "hash": "227af66fb0",
-    "tris": 28906,
-    "bytes": 1308812,
+    "hash": "1a9a9d69ef",
+    "tris": 16107,
+    "bytes": 730792,
     "bounds": [
-      -2.8,
+      -1.536,
       0,
-      -1.143,
-      2.8,
-      1.945,
-      1.143
+      -1.35,
+      1.536,
+      1.944,
+      1.35
     ],
     "outline": {
-      "hash": "7621a609d6",
-      "tris": 232,
-      "bytes": 3208
+      "hash": "4cf8fc2b70",
+      "tris": 242,
+      "bytes": 4240
     }
   },
   "decor.buggy": {

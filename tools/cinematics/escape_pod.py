@@ -8,13 +8,18 @@
 # one shared 1024 texture: every part is laid out at the hull's texel density, Cycles bakes where each texel sits, which
 # way it faces and how enclosed it is, and the colour is then painted here from that (worn metal, quilted fabric, panel
 # seams, scorch in the game's own scorch colours, dust lying on everything that faces up, shadow in the corners).
-# The result is one mesh with one texture. Fixed numbers and a hashed noise: the same input gives the same file.
+# The result is one mesh with one texture. Fixed numbers and a hashed noise: the same input gives the same shape and
+# the same painting; the baked corner shadow varies by a hair from run to run, so the bytes are not identical.
 #
 #   blender -b --factory-startup -P tools/cinematics/escape_pod.py -- [in.glb] [out.glb] [texture.png]
 #
-# in.glb defaults to the built, already scorched tube (packages/client/public/models/capture.recruit_container_decoy.glb,
-# 5.6 m long, tail toward +X); out.glb defaults to tools/cinematics/assets/escape_pod.glb. Output frame (Blender, Z up):
-# nose toward +X, hatch on the -Y flank, origin on the ground under the hull's centre, metres.
+# in.glb defaults to tools/cinematics/assets/escape_pod_tube.glb: the built, already scorched tube as the game drew it
+# before this pod replaced it (Ship_Scrap_2.glb, tint scorch, width 5.6; tail toward +X). out.glb defaults to
+# tools/cinematics/assets/escape_pod.glb. Output frame (Blender, Z up): nose toward +X, hatch on the -Y flank, origin on
+# the ground under the hull's centre, metres.
+#
+# Into the game: copy out.glb to the model sources as Escape_Pod.glb ("Asset workflow/3D Models"), then
+# pnpm models:build capture.recruit_container_decoy (meshy.json turns it 30 degrees so the hatch faces the camera).
 import math
 import os
 import sys
@@ -28,7 +33,7 @@ from mathutils import Matrix, Vector
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-SRC = argv[0] if len(argv) > 0 else os.path.join(ROOT, "packages", "client", "public", "models", "capture.recruit_container_decoy.glb")
+SRC = argv[0] if len(argv) > 0 else os.path.join(HERE, "assets", "escape_pod_tube.glb")
 DST = argv[1] if len(argv) > 1 else os.path.join(HERE, "assets", "escape_pod.glb")
 
 # ---- the source tube (its own metres, as built: 5.6 m long) ----

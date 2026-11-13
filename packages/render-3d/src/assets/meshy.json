@@ -122,7 +122,7 @@
       "parts": {}, "anchors": {} },
     { "file": "capture.recruit_container", "src": "Stasis Pod.glb", "id": "capture.recruit_container", "error": 0.005, "texture": 1024, "yaw": 0, "width": 1.859, "replace": ["body", "glass"],
       "parts": {}, "anchors": {} },
-    { "file": "capture.recruit_container_decoy", "src": "Ship_Scrap_2.glb", "id": "capture.recruit_container.decoy", "error": 0.005, "texture": 1024, "yaw": 0, "width": 5.6, "tint": "scorch", "replace": ["body", "glass"],
+    { "file": "capture.recruit_container_decoy", "src": "Escape_Pod.glb", "id": "capture.recruit_container.decoy", "error": 0.003, "texture": 1024, "yaw": 30, "height": 1.944, "replace": ["body", "glass"],
       "parts": {}, "anchors": {} },
     { "file": "capture.supply_crate", "src": "Cargo_Crate.glb", "id": "capture.supply_crate", "error": 0.005, "texture": 512, "yaw": 0, "width": 1.011, "replace": ["body", "lidBody"],
       "parts": {}, "anchors": {} },

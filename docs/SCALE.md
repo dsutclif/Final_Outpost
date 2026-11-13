@@ -11,6 +11,7 @@ One table for every size the story levels, live scenes and films use, so they st
 | Commander, ranger | 1.98 m tall | characters.ts (Doug's Scale tab, 958308e) |
 | Raider warlord | 2.7 m tall | characters.ts |
 | Sela's buggy | 2.64 m long | the 4.4 m build × 0.6 (livescene.ts `selaArrival`, sandbox Scale tab) |
+| Lander escape pod (level 2, towable) | 2.60 m long, hull 1.3 m across, 1.94 m to the fin tip | meshy.json `height` 1.944 on `capture.recruit_container_decoy`: 1.4 times the towable crew pod (1.86 m). Made by `tools/cinematics/escape_pod.py` (Doug, 2026-11-12) |
 | Halcyon chip | 6 cm across (read on a phone; a real coin is ~3 cm) | livescene.ts `chipHandoff` |
 
 ## The crash site (Doug, 2026-11-04, sandbox Crash site view)
