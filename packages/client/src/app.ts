@@ -1438,6 +1438,12 @@ export class App {
     const touched = touchedBy(e, s.sim.state);
     if (touched.length) this.discover(touched);
     if (e.t === "hit" && e.target === "base") this.hud.hit();
+    // the commander is knocked down on a level with a med bay: a red flash round the screen edge and a long buzz (the big "!" is the renderer's)
+    if (e.t === "downed" && s.sim.compiled.residents.selfHealTicks === 0) {
+      const f = this.el.stage.querySelector<HTMLElement>("#downFlash");
+      if (f) { f.classList.remove("on"); void f.offsetWidth; f.classList.add("on"); }
+      this.haptics.pulse([120, 60, 120, 60, 240]);
+    }
     if (e.t === "wave_cleared") s.wavesCleared++;
     if (e.t === "objective") this.objectiveEvent(s, e);
     this.logEvent(s, e);
@@ -1537,6 +1543,7 @@ const TEMPLATE = `
   <main class="stage" id="stage">
     <div class="world" id="world"></div>
     <div class="frost" id="frost"></div>
+    <div class="downflash" id="downFlash"></div>
     <div class="fhud">
       <div class="rail" id="heatRail"><i></i></div>
       <div class="rail walls" id="wallRail" hidden><i></i></div>

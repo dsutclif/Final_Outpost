@@ -2878,6 +2878,13 @@ export class Renderer3D implements Renderer {
       }
     }
 
+    // knocked down on a level with a med bay (stunSlow 0 only while down): a big bobbing "!" for the down time
+    if (s.player.stun > 0 && s.player.stunSlow === 0 && this.cp?.residents.selfHealTicks === 0) {
+      const sp = this.nextTag();
+      sp.visible = this.labels.apply(sp, "down|!big", () => this.warnArt("!", t.danger), 64);
+      sp.position.set(pl.x, ART_M * look.scale * this.devCharScale * 1.6 + 30 + Math.abs(Math.sin(this.t * 6)) * 7, pl.y);
+    }
+
     for (const r of s.residents) {
       if (r.status === "towed" || r.status === "releasing") continue;
       const key = `r:${r.id}`;

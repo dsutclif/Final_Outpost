@@ -126,6 +126,11 @@ body {
   background: radial-gradient(ellipse at center, transparent 52%, rgba(207, 239, 255, 0.45) 80%, rgba(242, 251, 255, 0.92) 100%); }
 .frost.on { opacity: 0.75; }
 .frost.on.hard { opacity: 1; }
+/* commander knocked down (levels with a med bay): the screen edge flashes red for the down time */
+.downflash { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(255, 40, 30, 0.55) 80%, rgba(255, 30, 20, 0.95) 100%); }
+.downflash.on { animation: downflash 2s ease-out 1; }
+@keyframes downflash { 0%, 30% { opacity: 1; } 15% { opacity: 0.4; } 100% { opacity: 0; } }
 .gdisc.alert { box-shadow: 0 0 0 2px var(--bad), 0 0 18px rgba(255, 106, 85, 0.75); }
 .rail.alert { height: 8px; background: #1f7fc2; box-shadow: 0 0 10px 2px rgba(31, 127, 194, 0.8); }
 .rail.alert > i { background: #e6f7ff; }
