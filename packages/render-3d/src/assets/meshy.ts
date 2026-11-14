@@ -146,6 +146,26 @@ function pick(list: readonly MeshyEntry[], id: string, level: number): MeshyEntr
 
 export function meshyBounds(file: string): readonly number[] | undefined { return BUILT[file]?.bounds; }
 
+/**
+ * The Meshy gate frame's door opening in the frame's own units (the built frame is 4.05 wide, 2.70 tall),
+ * measured from struct.gate.glb: the opening is about 1.99 wide, its floor sill is at y 0.2 and its lintel at
+ * y 1.87. test/gate-doors.test.ts re-measures the GLB and fails if these drift.
+ */
+export const GATE_OPENING = { halfW: 0.995, sill: 0.2, top: 1.87 } as const;
+
+/**
+ * How the Meshy door leaf (struct.gate.door, bounds from meshy.built.json) is scaled and placed so it fills
+ * GATE_OPENING exactly, plus how far it sinks to open (its top ends below the ground). Null until the door's
+ * bounds are known. Pure, so the headless test can check the fit.
+ */
+export function gateDoorFit(doorBounds: readonly number[] | undefined): { sx: number; sy: number; y0: number; sink: number } | null {
+  if (!doorBounds || doorBounds.length < 6) return null;
+  const w = doorBounds[3]! - doorBounds[0]!, h = doorBounds[4]! - doorBounds[1]!;
+  if (!(w > 0) || !(h > 0)) return null;
+  const sx = (2 * GATE_OPENING.halfW) / w, sy = (GATE_OPENING.top - GATE_OPENING.sill) / h;
+  return { sx, sy, y0: GATE_OPENING.sill - doorBounds[1]! * sy, sink: GATE_OPENING.top + 0.05 };
+}
+
 export function meshyLoaded(file: string): boolean { return cache.has(file); }
 
 /** The loaded scene (shared, not a copy) and clips of a rigged character file. */

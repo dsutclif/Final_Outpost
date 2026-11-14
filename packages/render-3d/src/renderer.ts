@@ -54,7 +54,7 @@ import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
 import { markOccluder } from "./materials.js";
 import { FALL_CAM_IN, FALL_CAM_OUT, FALL_LEAD, FALL_PITCH, FALL_ZOOM, ROLL_S, helmetMiddle, rollPose, wearHelmet, type Pose } from "./scene/fallstage.js";
-import { applyMeshy, loadMeshy, meshyRig, meshyBase, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
+import { applyMeshy, gateDoorFit, loadMeshy, meshyRig, meshyBase, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
 import { PadIcons, buildIcon, hireIcon, resourceIcon } from "./scene/padicons.js";
@@ -1957,7 +1957,11 @@ export class Renderer3D implements Renderer {
     const k = open + ((near ? 1 : 0) - open) * 0.15;
     p.data["open"] = k;
     // the door sinks into the ground to open (the ground hides what is below it)
-    doors.children.forEach((d) => { d.position.y = -k * 1.62; });
+    // the Meshy door leaf is sized to fill the frame's whole opening (measured, see gateDoorFit); the code-built
+    // leaves keep their own sink
+    const fit = p.model.root.userData["meshy"] ? gateDoorFit(meshyBounds("struct.gate.door")) : null;
+    if (fit) doors.children.forEach((d) => { d.scale.set(fit.sx, fit.sy, 1); d.position.y = fit.y0 - k * fit.sink; });
+    else doors.children.forEach((d) => { d.position.y = -k * 1.62; });
   }
 
   /**
