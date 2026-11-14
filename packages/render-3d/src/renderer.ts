@@ -119,6 +119,8 @@ interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, num
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
 /** Order bubble sprite height (world): font 56 px on a 180 px canvas; ORDER_H_OLD is the first design (font 52 on 120), whose tail tip the new one keeps. */
 const ORDER_H = textSprite(TEXT.main, 56, 180), ORDER_H_OLD = textSprite(TEXT.main, 52, 120);
+/** Floating pin height in label units: half the old 5, so a quarter of the area. */
+const PIN_SIZE = 2.5;
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 54;
 /** Pad label canvas height: the (optional) name, the lock reason, then one or two rows of cost pills. */
 function padArtH(named: boolean, rows: number, lock: boolean): number {
@@ -3373,7 +3375,7 @@ export class Renderer3D implements Renderer {
     pole.position.set(at.x, 2.4, at.z);
     pole.rotation.y = YAW;
     const iconOk = icon !== null && !!this.padIcons?.ready(icon);
-    sp.visible = this.labels.apply(sp, `pin|${icon}|${iconOk}|${color}|${light}|${locked}`, () => this.padPinArt(icon, color, light, locked), PAD_LABEL_H * 5);
+    sp.visible = this.labels.apply(sp, `pin|${icon}|${iconOk}|${color}|${light}|${locked}`, () => this.padPinArt(icon, color, light, locked), PAD_LABEL_H * PIN_SIZE);
     // the pin grew about its lower edge, so the pole keeps its length
     sp.position.set(at.x, h + 2.4 + sp.scale.y / 2 * (1 - 1.25 / 5), at.z);
     // the pole ends at the pin's lower edge, not its centre
@@ -3391,10 +3393,7 @@ export class Renderer3D implements Renderer {
         g.clearRect(0, 0, w, h);
         const c = w / 2;
         g.globalAlpha = k;
-        // the smoked glass body: filled, the scene shows dimly through
-        const body = g.createRadialGradient(c - 30, c - 36, 10, c, c, 104);
-        body?.addColorStop(0, "rgba(34,40,48,0.62)"); body?.addColorStop(1, "rgba(10,13,18,0.72)");
-        g.fillStyle = body ?? "rgba(20,25,32,0.67)"; g.beginPath(); g.arc(c, c, 104, 0, Math.PI * 2); g.fill();
+        // no filled body: the icon sits straight on the scene, ring only
         // the clear glass rim: thin, with thickness (an outer and inner edge, one side catching the light)
         g.lineWidth = 4; g.strokeStyle = "rgba(255,255,255,0.4)"; g.beginPath(); g.arc(c, c, 104, 0, Math.PI * 2); g.stroke();
         g.lineWidth = 2; g.strokeStyle = "rgba(255,255,255,0.22)"; g.beginPath(); g.arc(c, c, 97, 0, Math.PI * 2); g.stroke();
