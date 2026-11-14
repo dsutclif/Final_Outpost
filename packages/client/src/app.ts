@@ -871,7 +871,7 @@ export class App {
   private storyStage(s: Session): StoryStage | null {
     const story = this.skin.story, present = s.renderer.story();
     if (!s.director || !story || !present) return null;
-    return new StoryStage(story, s.director, present, (p) => s.renderer.worldToScreen(p), this.el.ftoast.parentElement!, this.skin.palette.guideLight, this.skin.palette.ridgeRed, () => this.groundW(s));
+    return new StoryStage(story, s.director, present, (p, h) => s.renderer.worldToScreen(p, h), this.el.ftoast.parentElement!, this.skin.palette.guideLight, this.skin.palette.ridgeRed, () => this.groundW(s));
   }
 
   /** Ground width across the screen now: the family's view width over the camera zoom (KILN's size, S40). */

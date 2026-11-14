@@ -16,6 +16,8 @@ const TALLY_PER_ITEM = 8;
 const TALLY_SCALE = 1.8;
 // a speaker's head over their feet on screen, at the play zoom
 const HEAD_PX = 72;
+/** A person's height in world units (the review probe uses the same): the bubble hangs from the real head, whatever the zoom. */
+const PERSON_H = 50.4;
 
 export class StoryStage {
   private seen: Partial<StoryWorld> = {};
@@ -39,7 +41,7 @@ export class StoryStage {
     private readonly story: SkinStory,
     private readonly director: StoryDirector,
     private readonly present: StoryPresentation,
-    private readonly toScreen: (p: { x: number; y: number }) => { x: number; y: number },
+    private readonly toScreen: (p: { x: number; y: number }, height?: number) => { x: number; y: number },
     shell: HTMLElement,
     glowColor: string,
     ridgeColor: string,
@@ -131,8 +133,8 @@ export class StoryStage {
     const drawn = key ? this.present.actorAt(key) : null;
     const at = drawn ? { x: drawn.x, y: drawn.z } : this.director.castAt(w.talker, st);
     if (!at) { view.anchor(null, vw, vh); return; }
-    const q = this.toScreen(at);
-    view.anchor({ x: q.x, y: q.y - HEAD_PX }, vw, vh);
+    const feet = this.toScreen(at), top = this.toScreen(at, PERSON_H);
+    view.anchor({ x: top.x, y: top.y !== feet.y ? top.y : feet.y - HEAD_PX }, vw, vh);
   }
 
   private spirit(w: StoryWorld, fuelK: number, now: number): void {
