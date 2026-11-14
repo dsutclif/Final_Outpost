@@ -31,6 +31,65 @@ function spawnPoint(st: State, cp: Compiled, side: Side): Vec {
   }
 }
 
+/** The middle of a side's spawn lane on the spawn line: spawnPoint without its random spread (the side's middle without a gate). */
+function laneMid(st: State, cp: Compiled, side: Side): Vec {
+  const D = cp.defense, W = cp.map.w, H = cp.map.h;
+  const g = attackGate(st, side);
+  const m = g ? sectionMid(g.line.sections[g.idx]!) : { x: W >> 1, y: H >> 1 };
+  const cx = Math.max(0, Math.min(W, m.x)), cy = Math.max(0, Math.min(H, m.y));
+  switch (side) {
+    case "n": return { x: cx, y: D.spawnY };
+    case "s": return { x: cx, y: H - D.spawnY };
+    case "w": return { x: D.spawnY, y: cy };
+    case "e": return { x: W - D.spawnY, y: cy };
+  }
+}
+
+/** Ticks an attacker of this speed takes to walk the approach (#83), rounded up so it starts at least spawnDist out. */
+const ceilDiv = (a: number, b: number): number => mulDiv(a + b - 1, 1, b);
+const leadTicks = (cp: Compiled, speed: number): number => (speed > 0 ? ceilDiv(cp.defense.approach, speed) : 0);
+
+/**
+ * #83 (Doug): attackers appear beyond the camera's view (defense.spawnDistance by level family) and walk in, early enough to
+ * reach the spawn line on the tick they spawn at today, so every arrival is unchanged. Once a wave's start is known (no wave on
+ * the field: it starts at max(its tick, the quiet spell's end)), each of its attackers sets off its walk time (leadTicks) ahead
+ * of its spawn tick, straight in along its side's lane. A walk that cannot start in time (an early wave, or the quiet spell is
+ * shorter than the walk) goes faster, so it still arrives on its tick. The walkers are out of the fight (st.approaching); on
+ * its spawn tick each is replaced by the hostile spawned as before (same id, same random spread), so the rules are unchanged.
+ */
+function stepApproach(st: State, cp: Compiled): void {
+  const D = cp.defense, W = st.waves;
+  if (D.approach <= 0) return;
+  const A = st.approaching;
+  if (A) for (const a of A) {
+    const left = a.due - st.tick, dx = a.to.x - a.pos.x, dy = a.to.y - a.pos.y, d = isqrt(dx * dx + dy * dy);
+    const sp = Math.max(cp.hostiles[a.type]!.speed, left > 0 ? ceilDiv(d, left) : d);
+    if (d <= sp) a.pos = { ...a.to };
+    else { a.pos.x += mulDiv(dx, sp, d); a.pos.y += mulDiv(dy, sp, d); }
+  }
+  // the spawns planned: the running wave's pending ones, else the next wave's (its start is known while none is on the field)
+  const wave = W.active ? null : cp.waves[W.idx];
+  if (!W.active && !wave) return;
+  const n = wave ? wave.types.length : W.pending.length;
+  const t0 = wave ? Math.max(wave.tick, W.quietUntil) : 0;
+  const started = new Set((A ?? []).map((a) => a.id));
+  let maxLead = 0;
+  for (const h of Object.values(cp.hostiles)) maxLead = Math.max(maxLead, leadTicks(cp, h.speed));
+  for (let k = 0; k < n; k++) {
+    const due = wave ? t0 + k * wave.gapTicks : W.pending[k]!.tick;
+    if (due - maxLead > st.tick) break; // spawn ticks only grow down the list
+    const type = wave ? wave.types[k]! : W.pending[k]!.type;
+    const side = wave ? wave.sides[k % wave.sides.length]! : W.pending[k]!.side;
+    const def = cp.hostiles[type]!, lead = leadTicks(cp, def.speed);
+    if (due - lead > st.tick) continue;
+    const id = st.nextHostileId + k;
+    if (started.has(id)) continue;
+    const to = laneMid(st, cp, side), out = lead * def.speed;
+    const pos = side === "n" ? { x: to.x, y: to.y - out } : side === "s" ? { x: to.x, y: to.y + out } : side === "w" ? { x: to.x - out, y: to.y } : { x: to.x + out, y: to.y };
+    (st.approaching ??= []).push({ id, type, pos, hp: def.hp, hpMax: def.hp, side, target: "core", acc: 0, due, to });
+  }
+}
+
 /**
  * Where a hostile walks this tick (Batch 3). Walls cannot be broken, so from outside the barrier it makes
  * for the nearest opening facing its attack side (an unbuilt wall section, or its gate once broken), else
@@ -115,10 +174,12 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
     out.push({ t: "wave_started", idx: W.idx });
     hint(st, out, "wave_incoming");
   }
+  stepApproach(st, cp);
   while (W.pending.length > 0 && st.tick >= W.pending[0]!.tick) {
     const { type, side, retreatPct, standoff } = W.pending.shift()!;
     const def = cp.hostiles[type]!;
     const h: HostileState = { id: st.nextHostileId++, type, pos: spawnPoint(st, cp, side), hp: def.hp, hpMax: def.hp, side, target: "core", acc: 0, shotCd: 0, windup: 0, lungeCd: 0 };
+    if (st.approaching) st.approaching = st.approaching.filter((a) => a.id !== h.id);
     if (retreatPct !== undefined) h.retreatHp = Math.max(1, mulDiv(def.hp, retreatPct, 100));
     if (standoff !== undefined) h.standoff = standoff;
     st.hostiles.push(h);

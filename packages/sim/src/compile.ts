@@ -305,6 +305,11 @@ export interface Compiled {
   convParams: { playerOperateRange: number; operatorRange: number; pickupRange: number; hintRange: number };
   defense: {
     spawnGapTicks: number; spawnY: number; fleeSpeed: number; spawnMarginX: number; barrierStop: number; barrierHitTicks: number; barrierDamage: number;
+    /**
+     * #83: attackers appear spawnDist beyond the map edge (the family's defense.spawnDistance, real metres), out of the
+     * camera's view, and walk in to the spawn line (spawnY) by their spawn tick; `approach` is that extra walk.
+     */
+    spawnDist: number; approach: number;
     baseRange: number; baseHitTicks: number; baseDamage: number;
     /** Half the width of the lane a wave comes down toward its side's gate (Batch 3). */
     laneHalfWidth: number;
@@ -345,6 +350,9 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     return v;
   };
   const int = (key: string): number => Math.round(param(key));
+  // #83: the family's spawn distance (defense.spawnDistance.<family>, else defense.spawnDistance), metres to world units
+  const famKey = `defense.spawnDistance.${manifest.family ?? ""}`;
+  const spawnDist = fp(param(famKey in manifest.params || famKey in c.defaults ? famKey : "defense.spawnDistance") * param("world.metre"));
 
   const resources: Record<string, CompiledResource> = {};
   for (const [id, r] of Object.entries(c.resources)) resources[id] = { cap: r.cap, price: r.price, category: r.category };
@@ -629,6 +637,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     },
     defense: {
       spawnGapTicks: ticks(param("defense.spawnGap")), spawnY: fp(param("defense.spawnY")), fleeSpeed: perTick(param("defense.fleeSpeed")), spawnMarginX: fp(param("defense.spawnMarginX")),
+      spawnDist, approach: Math.max(0, spawnDist - Math.abs(fp(param("defense.spawnY")))),
       barrierStop: fp(param("defense.barrierStop")), barrierHitTicks: ticks(param("defense.barrierHitInterval")), barrierDamage: int("defense.barrierDamage"),
       baseRange: fp(param("defense.baseRange")), baseHitTicks: ticks(param("defense.baseHitInterval")), baseDamage: int("defense.baseDamage"),
       laneHalfWidth: fp(param("defense.laneHalfWidth")),

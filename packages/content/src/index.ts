@@ -22,7 +22,7 @@ import plot from "../data/plot.json";
 export * from "./schema.js";
 export * from "./manifest.js";
 
-export const CONTENT_VERSION = "0.21.0";
+export const CONTENT_VERSION = "0.22.0";
 
 const raw = {
   version: CONTENT_VERSION,

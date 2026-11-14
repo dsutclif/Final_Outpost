@@ -327,11 +327,11 @@ function attackGatePoint(cp: Compiled, sd: string): [number, number] | null {
 }
 
 /**
- * Where attackers of a side enter the game space (sim defense.ts spawnPoint without its random spread): just
- * beyond the edge by defense.spawnY, down the lane in line with that side's gate, else `along` (the hero's place).
+ * Where attackers of a side appear (sim defense.ts stepApproach, without spawnPoint's random spread): out of
+ * view, defense.spawnDistance beyond the edge (#83), down the lane in line with that side's gate, else `along` (the hero's place).
  */
 function spawnPointOf(cp: Compiled, sd: string, along: { x: number; y: number }): { x: number; y: number } {
-  const W = cp.manifest.map.w, H = cp.manifest.map.h, y = cp.defense.spawnY / FP;
+  const W = cp.manifest.map.w, H = cp.manifest.map.h, y = -cp.defense.spawnDist / FP;
   const g = attackGatePoint(cp, sd);
   switch (sd) {
     case "n": return { x: g ? g[0] : along.x, y };
@@ -352,7 +352,7 @@ function attackRoads(cp: Compiled): Road[] {
   for (const sd of sides) {
     const best = attackGatePoint(cp, sd);
     if (!best) continue;
-    const [ax, az] = best, far = 400;
+    const [ax, az] = best, far = Math.max(400, cp.defense.spawnDist / FP + 200); // past where attackers appear (#83)
     const [bx, bz] = sd === "n" ? [ax, -far] : sd === "s" ? [ax, H + far] : sd === "w" ? [-far, az] : [W + far, az];
     out.push({ ax, az, bx, bz, w });
   }
@@ -2975,7 +2975,7 @@ export class Renderer3D implements Renderer {
       if (tr.hp < tr.hpMax) this.barTag(pos.x, ART_M * tl.scale * this.devCharScale * 1.5, pos.y, tr.hp / tr.hpMax, t.ok, 6);
     }
 
-    for (const h of [...s.hostiles, ...(s.fleeing ?? [])]) { // a boss breaking off (bossRetreat) stays drawn until it leaves
+    for (const h of [...s.hostiles, ...(s.fleeing ?? []), ...(s.approaching ?? [])]) { // a boss breaking off (bossRetreat) stays drawn until it leaves; attackers walking in from out of view (#83) are drawn too
       const key = `h:${h.id}`;
       const pos = this.interp.pos(key, h.pos, a);
       const hv = this.interp.vel(key);

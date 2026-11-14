@@ -498,6 +498,12 @@ export interface State {
   hostiles: HostileState[];
   /** Hostiles that broke off (bossRetreat), walking back to their edge: out of the fight, drawn until they leave. Created on first use. */
   fleeing?: HostileState[];
+  /**
+   * #83: attackers still walking in from beyond the camera's view to the spawn line, each with the id it will take and
+   * the tick it is due there (`due`). Out of the fight (nothing sees or hits them), drawn only; on its due tick each
+   * becomes the real hostile, spawned as before. Created on first use.
+   */
+  approaching?: (HostileState & { due: number; to: Vec })[];
   nextHostileId: number;
   /** Soldiers from guard posts (Batch 3); created with the first one. */
   troops?: TroopState[];

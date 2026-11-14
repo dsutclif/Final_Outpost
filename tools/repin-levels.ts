@@ -13,10 +13,9 @@ let n = 0;
 const pinned: [string, (f: string) => boolean][] = [
   ["levels/golden", () => true],
   ["levels/story", () => true],
-  ["levels/packs/s1", (f) => f === "pack.json" || f.startsWith("s1-L")],
-  ["levels/packs/s1-061", (f) => f === "pack.json" || f.startsWith("s1-L")],
-  ["levels/packs/s1-081", (f) => f === "pack.json" || f.startsWith("s1-L")],
-  ["levels/packs/s1-100", (f) => f === "pack.json" || f.startsWith("s1-L")],
+  // every pack the client can load (s1 and each later batch: s1-061, s1-081, ...)
+  ...readdirSync(join(root, "levels/packs"), { withFileTypes: true }).filter((d) => d.isDirectory())
+    .map((d): [string, (f: string) => boolean] => [`levels/packs/${d.name}`, (f) => f === "pack.json" || f.startsWith("s1-L")]),
 ];
 for (const [dir, wanted] of pinned) {
   const d = join(root, dir);
