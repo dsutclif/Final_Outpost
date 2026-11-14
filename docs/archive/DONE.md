@@ -410,3 +410,11 @@ Shipped and live; items waiting on Doug's phone stay in "Waiting on Doug".
 - [x] **#108 · Sela's arrival: framing and flow (Doug, 2026-11-09; the buggy animation itself is good).** (a) Start straight into the drive-up animation: don't show the level first and then flash to the animation. (b) Move the commander toward the kiosk so Sela, the commander and both their speech bubbles fit on screen and nothing is clipped. (c) The film must run smoothly into the in-level animation: no jump to the commander and back to the buggy. Done check: phone-size screenshots in order across the film-to-play handover (no level flash first, no camera jump), and a frame with both bubbles fully on screen.
       **Closed 2026-11-09: Doug approved the phone checks (level 2, level 3 arrival, shared map, pads, older checks).**
 
+
+- [x] **#80 · Nightly probe hits the 35-minute timeout (found 2026-11-08).** With #78 fixed the probe runs: outpost-ops
+      220f957 has shots for all 11 levels, but the step was killed at 35 min (all five story levels ran because story files
+      changed). Raise the step timeout in `scripts/run-review.mjs` or cap story levels per night in `config/rotation.json`.
+      Done check: the next nightly run shows every command ok.
+      **Landed 2026-11-08 (outpost-ops 87640e7):** probe timeout 35 → 55 min (the job allows 75); 11 levels took ~25 min of play.
+      Tick it when the next nightly run shows every command ok.
+      **Closed 2026-11-14: probe ok on 2026-11-12, 11-13 and 11-14 (26-28 min each, 55 min limit), live on 11-14.**

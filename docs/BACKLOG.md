@@ -90,12 +90,6 @@ Nothing is being built from this file (2026-11-12). Notes kept from earlier hand
       Fix in `playLevels`: compare `manifest.engineVersion` with `ENGINE_VERSION`, list mismatches under `meta.skipped`,
       not `errors`, and don't fail for skips; same check in guide and calibrate; then trim `pulsePacks` in the ops
       rotation. Done check: a manual workflow run goes green and a data commit lands.
-- [ ] **#80 · Nightly probe hits the 35-minute timeout (found 2026-11-08).** With #78 fixed the probe runs: outpost-ops
-      220f957 has shots for all 11 levels, but the step was killed at 35 min (all five story levels ran because story files
-      changed). Raise the step timeout in `scripts/run-review.mjs` or cap story levels per night in `config/rotation.json`.
-      Done check: the next nightly run shows every command ok.
-      **Landed 2026-11-08 (outpost-ops 87640e7):** probe timeout 35 → 55 min (the job allows 75); 11 levels took ~25 min of play.
-      Tick it when the next nightly run shows every command ok.
 - [ ] **#67 · Housekeeping:**
       - delete the Supabase test row (install `claude-verify-20261107`, kind `session`);
       - delete the merged local branches `review-supabase`, `review-tools`, `review-probe` and `review-merge`;
