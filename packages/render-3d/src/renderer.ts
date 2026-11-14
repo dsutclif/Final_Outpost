@@ -3125,7 +3125,8 @@ export class Renderer3D implements Renderer {
     const counts = new Map<string, number>();
     for (const r of stack) counts.set(r, (counts.get(r) ?? 0) + 1);
     const order = Object.keys(this.content.resources);
-    const cols = [...counts.keys()].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    // the commander's scrap is a balance at the top of the screen, not a load on their back (it still sits in the sim's carried stack)
+    const cols = [...counts.keys()].filter((r) => !(player && r === "res.salvage")).sort((a, b) => order.indexOf(a) - order.indexOf(b));
     const fx = Math.sin(yaw), fz = Math.cos(yaw);
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);
     const s = ART_M * scale;
