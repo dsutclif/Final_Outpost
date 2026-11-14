@@ -85,6 +85,8 @@ export const GEN = genData as unknown as {
   scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
   medicPad: { u: number; v: number; near: number };
+  /** Camera view rules: no pad behind a building or wall; attack sides face the camera; see generator.json. */
+  viewClear: { wallShadow: number; attackSides: ("n" | "e" | "s" | "w")[] };
   defendSockets: { keepForest: number; startInside: number; inside: [number, number][]; insideEW: [number, number][]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number };
   /** Batch 3: the padded defend map and the socket-lined roads; see generator.json. */
   defendRoad: { pad: number; maxPairs: number; first: number; step: number; towerU: number; towerUEW: number; endGap: number; priceGrowth: number };
@@ -381,6 +383,21 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   P.add("core", core, R.core, { key: true, fp: "sink.core", ...(plotOn ? { slots: coreSlots } : {}) });
   P.spot("start", startPt, 18);
 
+  // The camera looks from the south, tilted: a wall hides the ground just north of it, and a building the
+  // ground its footprint covers (the footprint already reaches over what the model hides), so no pad goes there.
+  const VC = GEN.viewClear;
+  const behindWall = (p: Pt): boolean => P.walls.some(([a, b]) => {
+    if (a[0] === b[0] || p[0] <= Math.min(a[0], b[0]) || p[0] >= Math.max(a[0], b[0])) return false;
+    const wy = a[1] + ((b[1] - a[1]) * (p[0] - a[0])) / (b[0] - a[0]);
+    return p[1] < wy && wy - p[1] < VC.wallShadow;
+  });
+  // pads placed so far: their stations (pad footprints) and the slots reserved for them with a building
+  const coversPad = (p: Pt, fp: string): boolean => {
+    const b = P.box(p, fp)!;
+    return P.stations.some((s) => (s.kind === "pad" || s.kind === "pad.big" || (s.id.includes(":") && !s.kind))
+      && s.x > b[0] && s.x < b[2] && s.y > b[1] && s.y < b[3]);
+  };
+
   // ---------- core ----------
   const level1Cap = (c.sinks["sink.core"] as { levels: { fuelCap: number }[] }).levels[0]!.fuelCap;
   const fuel0 = goal === "fuel_full" ? Math.max(3, Math.round(level1Cap * 0.3)) : Math.max(4, Math.round(level1Cap * K.fuel0));
@@ -410,7 +427,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       // the spot snapped into a lot first, then the spot as drawn
       const lp = P.toLot(raw, "sink.sales_point"), n0 = cands.length;
       for (const p of lp[0] === raw[0] && lp[1] === raw[1] ? [raw] : [lp, raw]) {
-        if (!P.onScreen(p) || !P.ok("shop", p, R.shop)) { why.ok++; continue; }
+        if (!P.onScreen(p) || !P.ok("shop", p, R.shop) || coversPad(p, "sink.sales_point")) { why.ok++; continue; }
         // the clerk spot goes south of the stall if it fits, else east, else west (all in view of the camera)
         for (const side of [0, 1, 2]) {
           const sp = salesSpots(p, core, c, side);
@@ -432,7 +449,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
               const fits = (cs: Pt): boolean => {
                 const sb = P.box(p, "sink.sales_point"), cb = P.box(cs, "pad");
                 if (sb && cb && cb[0] < sb[2] + S.footprintGap && sb[0] < cb[2] + S.footprintGap && cb[1] < sb[3] + S.footprintGap && sb[1] < cb[3] + S.footprintGap) return false;
-                return P.ok("hire_cashier", cs, R.pad, { key: true, fp: "pad", hugWall: true }) && onScreen(cs)
+                return P.ok("hire_cashier", cs, R.pad, { key: true, fp: "pad", hugWall: true }) && onScreen(cs) && !behindWall(cs)
                   && dist(cs, sp.register) >= R.pad + S.standR && dist(cs, sp.pile) >= R.pad + S.standR
                   && !qOwn.some((q) => dist(cs, q) < R.pad + 12 + 10);
               };
@@ -506,9 +523,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const region: Rect = opts.region ?? [near[0] - 100, near[1] - 100, 200, 200];
     const fp = [opts.big ? "pad.big" : "pad", ...(opts.build ? [opts.build] : [])];
     // plain pads stand by what they serve; only a pad that raises a building leans toward the core
-    const pull = !!opts.build;
-    const p = P.place(id, r, region, { near, key: true, fp, pull, samples: 600, ...(opts.on ? { on: opts.on } : {}), ...(opts.slots ? { slots: opts.slots } : {}), ...(opts.mirror ? { mirror: true } : {}) })
-      ?? P.place(id, r, inner, { near, key: true, samples: opts.slots ? 3000 : 260, fp, pull, ...(opts.on ? { on: opts.on } : {}), ...(opts.slots ? { slots: opts.slots } : {}), ...(opts.mirror ? { mirror: true } : {}) });
+    const pull = !!opts.build, accept = (q: Pt) => !behindWall(q);
+    const p = P.place(id, r, region, { near, key: true, fp, pull, accept, samples: 600, ...(opts.on ? { on: opts.on } : {}), ...(opts.slots ? { slots: opts.slots } : {}), ...(opts.mirror ? { mirror: true } : {}) })
+      ?? P.place(id, r, inner, { near, key: true, samples: opts.slots ? 3000 : 260, fp, pull, accept, ...(opts.on ? { on: opts.on } : {}), ...(opts.slots ? { slots: opts.slots } : {}), ...(opts.mirror ? { mirror: true } : {}) });
     return p ?? fail(`no room for pad ${id}`);
   };
   // A machine's hire pads stand where each worker will work (R3 playtest), still together around it:
@@ -872,10 +889,11 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   if (defend && ring) {
     const all: ("n" | "e" | "s" | "w")[] = ["n", "e", "w", "s"];
     // a two-family finale splits attention with its other family: at most two attack sides there
-    const nSides = feat.has("multi_side") ? (K.waves >= 4 && !inp.secondary ? 3 : 2) : 1;
-    const first = all[rand.int(0, 2)]!;
-    sides = [first, ...all.filter((s) => s !== first && s !== "s").slice(0, nSides - 1)];
-    if (sides.length < nSides) sides.push("s");
+    // Attacks come only from the sides facing the camera (viewClear.attackSides), so a multi-side level takes as many of them as there are.
+    const facing = VC.attackSides;
+    const nSides = Math.min(facing.length, feat.has("multi_side") ? (K.waves >= 4 && !inp.secondary ? 3 : 2) : 1);
+    const first = facing[rand.int(0, facing.length - 1)]!;
+    sides = [first, ...facing.filter((s) => s !== first)].slice(0, nSides);
     const quiet = all.filter((s) => !sides.includes(s));
     // R3 playtest: every side attackers come from has a gate and tower posts, so the probe raid comes
     // from the first attack side (through its still-unbuilt wall, never its gate) like the early raids.
