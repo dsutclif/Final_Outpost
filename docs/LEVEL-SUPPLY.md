@@ -7,12 +7,12 @@ in batches as the player advances instead of one fixed pack. DECISIONS 9n.
 ## How it works
 
 1. **The game reports progress** when online (the same moments it looks for new packs), at most
-   once an hour and only when a batch could be due, which starts when the player is within 50
-   levels of the end, so a batch is built long before the last 10: how many levels the player has cleared, plus the last
+   once an hour and only when a batch could be due, which starts when the player is within 10
+   levels of the end of what is published: how many levels the player has cleared, plus the last
    10 cleared levels with their stars and attempts to first clear (`packages/client/src/supply.ts`).
 2. **`api/progress.js`** (a Vercel function) counts the levels already published for the player's
-   engine version. If there is room for at least 10 more without going past **60 levels ahead of
-   the player**, it starts the GitHub workflow. It stores nothing but, per warm instance, when it last
+   engine version. If there is room for at least 10 more without going past **20 levels ahead of
+   the player** (counted in the game's own level numbers, story levels included), it starts the GitHub workflow. It stores nothing but, per warm instance, when it last
    started a run, and skips GitHub for an hour after that.
 3. **`.github/workflows/levels-next.yml`** runs `pnpm levels:next`: plan one batch (up to 20
    levels), build it with the normal generator and bots (`tools/build-levels.ts`), commit it to
@@ -22,6 +22,15 @@ in batches as the player advances instead of one fixed pack. DECISIONS 9n.
 4. **Vercel deploys** the commit. While online, the game looks for new packs at launch, on
    reconnect, after each win, on opening the level list and every 15 minutes; new levels are cached
    for offline play and announced with a "new levels ready" note.
+
+A level number whose seeds all fail is retried with new seeds (4 extra passes) rather than skipped, so
+level ids match the numbers the player sees. Every failed pass is logged in `levels/dropped.json`; only a
+number that fails all passes is left as a gap in its pack. Ids made before 2026-11-14 still carry ~18 such
+gaps (for example `s1-L183` is level 165 in game).
+
+To start the supply over with fresh numbers: `pnpm levels:reset --yes`, commit, then play (or run
+`pnpm levels:next --cleared 0`) and the batches rebuild from level 6. Saved progress is keyed by level id, so
+clear the game's save too if the same ids should not show as cleared.
 
 Levels keep their ids in one sequence (`s1-L061`, `s1-L062`, ...); the sequencer works for any level
 number, so families, finales every 10th level and the difficulty sawtooth continue past 60.

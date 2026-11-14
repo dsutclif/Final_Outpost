@@ -563,7 +563,7 @@ export class App {
   private async reportSupply(): Promise<void> {
     const url = import.meta.env.VITE_PROGRESS_URL ?? (import.meta.env.PROD ? "/api/progress" : "off");
     if (url === "off" || typeof location === "undefined" || !/^https?:$/.test(location.protocol)) return;
-    const published = this.levels.filter((l) => l.url).length;
+    const published = this.levels.length; // in-game count: story levels plus pack levels, as the server counts
     const report = progressReport(this.levels, this.progress.cleared, (id) => this.starCount(id), this.progress.tries);
     await reportProgress(url, report, published, { engine: ENGINE_VERSION, content: CONTENT_VERSION });
   }

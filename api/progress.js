@@ -11,7 +11,9 @@
 // Without the token it answers 503 and nothing is built. `"dryRun": true` in the body starts the
 // workflow in plan-only mode (end-to-end test that builds nothing).
 
-const AHEAD = 60;
+const AHEAD = 20;
+/** Hand-made story levels 1-5 live outside the packs; the game's numbers count them. */
+const STORY_LEVELS = 5;
 /** A batch is worth starting only when it can add at least this many levels. */
 const MIN_BATCH = 10;
 const HOUR_MS = 60 * 60 * 1000;
@@ -24,10 +26,10 @@ const send = (res, status, body) => {
   res.status(status).json(body);
 };
 
-/** Levels published for the given engine and content versions, counted from the deployed packs. */
+/** Levels in the game's own numbering (story levels plus published pack levels) for the given engine and content versions, counted from the deployed packs. */
 async function publishedCount(origin, engine, content) {
   const idx = await fetch(`${origin}/levels/packs/index.json`, { cache: "no-store" }).then((r) => r.json());
-  let n = 0;
+  let n = STORY_LEVELS;
   for (const id of Array.isArray(idx.packs) ? idx.packs : []) {
     if (!/^[\w.-]+$/.test(id)) continue;
     const pack = await fetch(`${origin}/levels/packs/${id}/pack.json`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);

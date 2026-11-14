@@ -7,28 +7,29 @@ import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { batchUsable, planBatch, published } from "./levels-next.js";
 
 describe("level supply planning", () => {
+  // 60 pack levels plus the 5 story levels: the player can see 65.
   const pub = { count: 60, top: 60, offset: 0 };
 
   it("never plans past `ahead` levels beyond the player", () => {
-    for (const cleared of [0, 5, 30, 59, 60]) {
-      const p = planBatch(pub, cleared, [], 60, 20);
-      if (p) expect(p.to).toBeLessThanOrEqual(cleared + 60);
+    for (const cleared of [0, 5, 30, 59, 60, 65]) {
+      const p = planBatch(pub, cleared, [], 20, 20);
+      if (p) expect(5 + 60 + (p.to - p.from + 1)).toBeLessThanOrEqual(cleared + 20);
     }
-    expect(planBatch(pub, 0, [], 60, 20)).toBeNull();
+    expect(planBatch(pub, 0, [], 20, 20)).toBeNull();
   });
 
   it("builds the next contiguous batch, capped by the batch size", () => {
-    expect(planBatch(pub, 60, [], 60, 20)).toMatchObject({ from: 61, to: 80, packId: "s1-061" });
-    expect(planBatch({ count: 80, top: 80, offset: 0 }, 60, [], 60, 20)).toMatchObject({ from: 81, to: 100 });
+    expect(planBatch(pub, 60, [], 20, 20)).toMatchObject({ from: 61, to: 75, packId: "s1-061" });
+    expect(planBatch({ count: 80, top: 80, offset: 0 }, 80, [], 20, 20)).toMatchObject({ from: 81, to: 95 });
   });
 
   it("skips gaps smaller than the minimum batch", () => {
-    expect(planBatch(pub, 5, [], 60, 20, 10)).toBeNull();
-    expect(planBatch(pub, 10, [], 60, 20, 10)).toMatchObject({ from: 61, to: 70 });
+    expect(planBatch(pub, 54, [], 20, 20, 10)).toBeNull();
+    expect(planBatch(pub, 55, [], 20, 20, 10)).toMatchObject({ from: 61, to: 70 });
   });
 
   it("counts no more cleared levels than are published", () => {
-    expect(planBatch(pub, 500, [], 60, 20)).toMatchObject({ from: 61, to: 80, tuning: { cleared: 60 } });
+    expect(planBatch(pub, 500, [], 20, 20)).toMatchObject({ from: 61, to: 80, tuning: { cleared: 65 } });
   });
 });
 
@@ -47,13 +48,19 @@ describe("level numbering past gaps", () => {
   it("starts after the highest number, not the level count", () => {
     const pub = published(packs({ s1: { levels: ids(6, 7, 9, 10) } }));
     expect(pub).toMatchObject({ count: 4, top: 10 });
-    expect(planBatch(pub, 4, [], 60, 20)).toMatchObject({ from: 11, packId: "s1-011" });
+    expect(planBatch(pub, 4, [], 20, 20)).toMatchObject({ from: 11, packId: "s1-011" });
+  });
+
+  it("starts a reset supply at level 6, right after the story levels", () => {
+    const pub = published(packs({}));
+    expect(pub).toMatchObject({ count: 0, top: 5 });
+    expect(planBatch(pub, 0, [], 20, 20)).toMatchObject({ from: 6, to: 20, packId: "s1-006" });
   });
 
   it("never retries a dropped level, even at the end of a batch", () => {
     const pub = published(packs({ s1: { levels: ids(6, 7) }, "s1-008": { levels: ids(8), dropped: [{ index: 9 }, { index: 10 }] }, "s1-011": { levels: [], dropped: [{ index: 11 }] } }));
     expect(pub).toMatchObject({ count: 3, top: 11 });
-    expect(planBatch(pub, 3, [], 60, 20)).toMatchObject({ from: 12 });
+    expect(planBatch(pub, 3, [], 20, 20)).toMatchObject({ from: 12 });
   });
 });
 

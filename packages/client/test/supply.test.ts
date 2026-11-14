@@ -24,8 +24,8 @@ describe("level supply reporting", () => {
 
   it("asks for a batch only when one could add enough levels", () => {
     expect(supplyLow(60, 60)).toBe(true);
-    expect(supplyLow(60, 9)).toBe(false);
-    expect(supplyLow(60, 10)).toBe(true);
-    expect(supplyLow(120, 59)).toBe(false);
+    expect(supplyLow(60, 49)).toBe(false);
+    expect(supplyLow(60, 50)).toBe(true);
+    expect(supplyLow(120, 99)).toBe(false);
   });
 });

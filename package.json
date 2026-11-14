@@ -17,6 +17,7 @@
     "levels:repin": "vite-node tools/repin-levels.ts --",
     "levels:digest": "vite-node tools/candidate-digest.ts -- --digest",
     "levels:start-table": "vite-node tools/start-table.ts -- --write",
+    "levels:reset": "vite-node tools/reset-levels.ts --",
     "levels:next": "vite-node tools/levels-next.ts --",
     "models:build": "vite-node tools/build-models.ts --",
     "plots:build": "vite-node tools/build-plots.ts --",

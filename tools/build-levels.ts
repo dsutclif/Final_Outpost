@@ -72,7 +72,7 @@ const historyFor = (reqs: readonly LevelRequest[], index: number): HistoryEntry[
 
 // ---------- worker: one level ----------
 
-function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number): void {
+function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number, retryBase = 0): void {
   const reqs = sequenceRange(1, index, [], { targetOffset });
   const req = reqs[index - 1]!;
   const history = historyFor(reqs, index);
@@ -83,10 +83,10 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   let ratings = 0, attempts = 0;
   const candidates: (CandidateRecord & { attempt: number; seed: number })[] = [];
   const memory = newSearchMemory();
-  for (let k = 0; k <= retries && !shipped && !memory.settled; k++) {
+  for (let k = retryBase; k <= retryBase + retries && !shipped && !memory.settled; k++) {
     attempts++;
     const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
-    const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
+    const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retryBase + retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
     for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
     ratings += d.stats.ratings;
     if (d.manifest && d.best) shipped = d.best;
@@ -156,7 +156,11 @@ async function main(): Promise<void> {
   const verbose = flag("--verbose");
   const packId = outDir.split(/[\\/]/).pop()!;
   mkdirSync(outDir, { recursive: true });
-  const indices = Array.from({ length: to - from + 1 }, (_, k) => from + k);
+  // --only 12,15 rebuilds just those numbers (the supply refilling slots whose seeds all failed);
+  // --retry-base N starts their retry seeds at N so a refill tries seeds the first pass never did.
+  const only = arg("--only");
+  const indices = only ? only.split(",").map(Number).filter((n) => Number.isInteger(n) && n > 0) : Array.from({ length: to - from + 1 }, (_, k) => from + k);
+  const retryBase = arg("--retry-base", "0")!;
   const t0 = Date.now();
 
   if (flag("--calibrate")) {
@@ -182,7 +186,7 @@ async function main(): Promise<void> {
   const candPath = join(root, "levels", "candidates", `${packId}.jsonl`);
   mkdirSync(dirname(candPath), { recursive: true });
   const run = new Date(t0).toISOString();
-  await pool(indices, jobs, (i) => runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--target-offset", offset, ...(verbose ? ["--verbose"] : [])]), (i, out) => {
+  await pool(indices, jobs, (i) => runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, ...(verbose ? ["--verbose"] : [])]), (i, out) => {
     const r = parseResult(out);
     const cands = out.split("\n").find((l) => l.startsWith("CANDIDATES "));
     if (cands) appendFileSync(candPath, (JSON.parse(cands.slice(11)) as object[]).map((c) => JSON.stringify({ run, engine: ENGINE_VERSION, content: CONTENT_VERSION, ...c })).join("\n") + "\n");
@@ -309,6 +313,6 @@ function levelsDoc(packId: string, rs: LevelResult[]): string {
   return lines.join("\n");
 }
 
-if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")));
+if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")), Number(arg("--retry-base", "0")));
 else if (flag("--calib")) workCalib(Number(arg("--index")));
 else void main();

@@ -5,7 +5,7 @@ import type { LevelMeta } from "./levels.js";
 // than SUPPLY_AHEAD levels past the player; the report only goes out when a batch could be due,
 // and at most once per REPORT_EVERY_MS. The pure parts are unit tested.
 
-export const SUPPLY_AHEAD = 60;
+export const SUPPLY_AHEAD = 20;
 /** The server starts a batch only when it can add at least this many levels. */
 export const SUPPLY_MIN_BATCH = 10;
 /** Recent cleared levels sent for batch tuning. */

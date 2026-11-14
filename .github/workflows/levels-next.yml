@@ -2,7 +2,7 @@ name: Build next level batch
 
 # The level supply (tools/levels-next.ts). Started by api/progress.js when the game reports the
 # player's progress, or by hand from the Actions tab. Builds at most one batch per run, never more
-# than 60 levels past the player, commits it to main, and Vercel deploys it. Runs queue one at a
+# than 20 levels past the player, commits it to main, and Vercel deploys it. Runs queue one at a
 # time; a newer request replaces one still waiting.
 on:
   workflow_dispatch:

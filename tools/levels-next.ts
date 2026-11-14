@@ -7,7 +7,7 @@ import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { adaptOffset, type AdaptResult, type PlayedLevel } from "../packages/sequencer/src/index.js";
 
 // pnpm levels:next --cleared N [--played '[{"index":61,"stars":2,"attempts":1},...]']
-//   [--ahead 60] [--batch 20] [--min 10] [--jobs N] [--dry-run]
+//   [--ahead 20] [--batch 20] [--min 10] [--jobs N] [--dry-run]
 //
 // The level supply. Levels stay an offline batch (SPEC "Generation and rating time"), made ahead of
 // the player and never more than --ahead levels past the last one they cleared. This plans the next
@@ -32,6 +32,9 @@ const flag = (name: string): boolean => argv.includes(name);
 interface PackFile { id: string; engineVersion: string; contentVersion: string; levels: { id: string }[]; dropped?: { index: number }[]; tuning?: AdaptResult & { cleared: number } }
 
 /** A level id's play-order number: `s1-L081` is 81. */
+/** The hand-made story levels 1-5 sit outside the packs; packs start at level 6. */
+export const STORY_LEVELS = 5;
+
 const levelNumber = (id: string): number => Number(/-L(\d+)$/.exec(id)?.[1] ?? 0);
 
 /**
@@ -42,7 +45,7 @@ const levelNumber = (id: string): number => Number(/-L(\d+)$/.exec(id)?.[1] ?? 0
 export function published(dir: string = packsDir): { count: number; top: number; offset: number; packs: string[] } {
   const indexPath = join(dir, "index.json");
   const ids = existsSync(indexPath) ? (JSON.parse(readFileSync(indexPath, "utf8")) as { packs: string[] }).packs : [];
-  let count = 0, top = 0, offset = 0;
+  let count = 0, top = STORY_LEVELS, offset = 0;
   const packs: string[] = [];
   for (const id of ids) {
     const p = join(dir, id, "pack.json");
@@ -57,6 +60,19 @@ export function published(dir: string = packsDir): { count: number; top: number;
   return { count, top, offset, packs };
 }
 
+/** Extra passes over slots whose seeds all failed, before the number is given up and left as a gap. */
+export const REFILL_ROUNDS = 4;
+
+interface DroppedEntry { index: number; id?: unknown; family?: unknown; rejects?: unknown }
+
+/** levels/dropped.json: every pass that failed to build a slot, kept out of the packs the game reads. */
+function logDropped(packId: string, pass: number, entries: readonly DroppedEntry[]): void {
+  const file = join(root, "levels", "dropped.json");
+  const log = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) as object[] : [];
+  const at = new Date().toISOString();
+  writeFileSync(file, JSON.stringify([...log, ...entries.map((d) => ({ at, pack: packId, pass, engine: ENGINE_VERSION, content: CONTENT_VERSION, ...d }))], null, 1) + "\n");
+}
+
 export interface BatchPlan { from: number; to: number; packId: string; tuning: AdaptResult & { cleared: number } }
 
 /**
@@ -64,8 +80,11 @@ export interface BatchPlan { from: number; to: number; packId: string; tuning: A
  * smaller than `min` (a batch is worth a build run only when it adds several levels). Pure.
  */
 export function planBatch(pub: { count: number; top: number; offset: number }, cleared: number, played: readonly PlayedLevel[], ahead: number, batch: number, min = 1): BatchPlan | null {
-  const c = Math.max(0, Math.min(cleared, pub.count));
-  const n = Math.min(batch, c + ahead - pub.count);
+  // The cap counts in-game numbers (story levels plus published levels), which is also how the game
+  // numbers them, so "20 ahead" means the player can see 20 more levels than they have cleared.
+  const inGame = STORY_LEVELS + pub.count;
+  const c = Math.max(0, Math.min(cleared, inGame));
+  const n = Math.min(batch, c + ahead - inGame);
   if (n < Math.max(1, min)) return null;
   const from = pub.top + 1, to = pub.top + n;
   return { from, to, packId: `s1-${String(from).padStart(3, "0")}`, tuning: { ...adaptOffset(pub.offset, played), cleared: c } };
@@ -95,7 +114,7 @@ async function main(): Promise<void> {
   const cleared = Number(arg("--cleared", "0"));
   if (!Number.isInteger(cleared) || cleared < 0) throw new Error(`--cleared must be a whole number, got ${arg("--cleared")}`);
   const played = parsePlayed(arg("--played"));
-  const ahead = Number(arg("--ahead", "60")), batch = Number(arg("--batch", "20")), min = Number(arg("--min", "10"));
+  const ahead = Number(arg("--ahead", "20")), batch = Number(arg("--batch", "20")), min = Number(arg("--min", "10"));
   const pub = published();
   const plan = planBatch(pub, cleared, played, ahead, batch, min);
   console.log(`published ${pub.count} levels for engine ${ENGINE_VERSION} (${pub.packs.join(", ") || "none"}); player cleared ${cleared}`);
@@ -109,12 +128,26 @@ async function main(): Promise<void> {
     "--out", join(packsDir, plan.packId), "--target-offset", String(plan.tuning.offset), "--no-doc", "--retries", arg("--retries", "6")!, ...(jobs ? ["--jobs", jobs] : [])];
   const code = await new Promise<number>((ok) => spawn(process.execPath, args, { cwd: root, stdio: "inherit" }).on("close", (c) => ok(c ?? 1)));
   const packPath = join(packsDir, plan.packId, "pack.json");
-  const pack = existsSync(packPath) ? JSON.parse(readFileSync(packPath, "utf8")) as PackFile : null;
+  let pack = existsSync(packPath) ? JSON.parse(readFileSync(packPath, "utf8")) as PackFile : null;
+  // Level numbers stay equal to in-game numbers: a number whose seeds all failed is retried with new
+  // seeds (up to REFILL_ROUNDS more passes) instead of being skipped. Every failed pass is logged in
+  // levels/dropped.json; only a number that fails every pass is left as a gap in the pack.
+  let finalCode = code;
+  for (let round = 1; round <= REFILL_ROUNDS && pack?.dropped?.length; round++) {
+    logDropped(plan.packId, round - 1, pack.dropped as DroppedEntry[]);
+    const retries = Number(arg("--retries", "6"));
+    const only = pack.dropped.map((d) => d.index).join(",");
+    console.log(`refill pass ${round}: retrying slots ${only} with new seeds`);
+    finalCode = await new Promise<number>((ok) => spawn(process.execPath, [viteNode, join(here, "build-levels.ts"), "--", "--only", only, "--retry-base", String(round * (retries + 1)),
+      "--out", join(packsDir, plan.packId), "--target-offset", String(plan.tuning.offset), "--no-doc", "--retries", String(retries), ...(jobs ? ["--jobs", jobs] : [])], { cwd: root, stdio: "inherit" }).on("close", (c) => ok(c ?? 1)));
+    pack = existsSync(packPath) ? JSON.parse(readFileSync(packPath, "utf8")) as PackFile : null;
+  }
+  if (pack?.dropped?.length) logDropped(plan.packId, REFILL_ROUNDS, pack.dropped as DroppedEntry[]);
   if (pack) {
     writeFileSync(packPath, JSON.stringify({ ...pack, tuning: plan.tuning }, null, 2) + "\n");
     console.log(`build exited ${code}: ${pack.levels.length} levels, ${pack.dropped?.length ?? 0} dropped, of ${plan.to - plan.from + 1} planned`);
   }
-  process.exitCode = code === 0 || batchUsable(pack, plan.to - plan.from + 1) ? 0 : code || 1;
+  process.exitCode = finalCode === 0 || batchUsable(pack, plan.to - plan.from + 1) ? 0 : finalCode || 1;
 }
 
 // tests import planBatch without running the CLI
