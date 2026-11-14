@@ -2290,7 +2290,8 @@ export class Renderer3D implements Renderer {
       // the price sits small just under the pad's ring (toward the camera); over a blueprint it stays above the shape
       if (!ghostH && !onBelt) {
         const dn = 1.45 * ART_M * sc * 0.7071;
-        sp.position.set(at.x + dn, ART_M * 0.05, at.z + dn);
+        // lifted by half its own height, so the whole price sits above the ground instead of half sunk in it
+        sp.position.set(at.x + dn, ART_M * 0.05 + PAD_LABEL_H * (artH / PAD_ART_H) * 0.25, at.z + dn);
       } else sp.position.set(at.x, ART_M * (lift + (onBelt ? 0 : (rows - 1) * 0.35 + Math.sin(this.t * 2.2 + at.x) * 0.04)), at.z);
       // scaffold rises with the payment for upgrades that have no blueprint of their own
       let scaf = p.extra[1] as Mesh | undefined;
