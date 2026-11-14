@@ -34,6 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-14 | pro-live | nightly/R10-83-p1 | engine bump 0.25.0: packages/sim/src/systems/defense.ts, sim.ts, content defaults.json, levels/golden + packs/s1 re-pin, render-3d renderer.ts spawn mirror | attackers spawn off screen |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
