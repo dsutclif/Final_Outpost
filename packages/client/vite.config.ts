@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
@@ -65,6 +65,35 @@ function releaseInfo(): Plugin {
   };
 }
 
+/**
+ * dist/precache.json: what the install downloads ({ count, bytes, files: { path: bytes } }), read from the
+ * worker's own precache list after VitePWA has written sw.js. The first-launch screen (loader.ts) sums the
+ * cached files against it for a real progress bar and the size on the Wi-Fi button.
+ */
+function precacheInfo(): Plugin {
+  const out = resolve(here, "dist");
+  return {
+    name: "fo-precache-info",
+    enforce: "post",
+    apply: "build",
+    closeBundle: {
+      order: "post",
+      sequential: true,
+      handler() {
+        const sw = resolve(out, "sw.js");
+        if (!existsSync(sw)) return;
+        const files: Record<string, number> = {};
+        for (const m of readFileSync(sw, "utf8").matchAll(/{url:"([^"]+)"/g)) {
+          const f = resolve(out, m[1]!);
+          if (existsSync(f)) files[m[1]!] = statSync(f).size;
+        }
+        const bytes = Object.values(files).reduce((a, b) => a + b, 0);
+        writeFileSync(resolve(out, "precache.json"), JSON.stringify({ count: Object.keys(files).length, bytes, files }));
+      },
+    },
+  };
+}
+
 export default defineConfig({
   // GitHub Pages serves from /<repo>/; CI sets BASE_PATH, local builds stay at the root.
   base: process.env.BASE_PATH ?? "/",
@@ -101,7 +130,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // The game must work fully offline (Doug; about 10 MB is fine), so the install precaches the
+        // The game must work fully offline (Doug: download everything, about 57 MB; the first-launch screen, loader.ts, shows the progress), so the install precaches the
         // three.js chunk, fonts and every Meshy model. Models are fetched with ?v=<hash>; the precache
         // matches them without it, and its own revisions replace a file when its content changes.
         // Levels stay on the runtime routes below: the app prefetches every level while online and
@@ -143,5 +172,6 @@ export default defineConfig({
       },
       devOptions: { enabled: false },
     }),
+    precacheInfo(),
   ],
 });

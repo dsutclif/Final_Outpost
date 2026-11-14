@@ -34,22 +34,30 @@ export interface UpdateHandle {
   readonly settled: Promise<void>;
   /** Activate the waiting worker and reload. Returns false when nothing is waiting. */
   apply(): boolean;
+  /**
+   * First-launch install, only on a handle made with `hold`: register the worker (dropping a failed earlier one)
+   * and resolve true once it is active, false when the install failed (network lost, storage refused). Safe to
+   * call again to retry; files already cached are kept.
+   */
+  download(): Promise<boolean>;
 }
 
 /** Longest the launch waits to learn whether an update is ready (N16: no flash of the old title). */
 const SETTLE_MS = 1500;
 
-export function setupPwa(onReady: (info: ReleaseInfo | null) => void): UpdateHandle {
+/** `hold`: do not register the worker yet; the first-launch screen starts it through `download()`. */
+export function setupPwa(onReady: (info: ReleaseInfo | null) => void, hold = false): UpdateHandle {
   let waiting: ServiceWorker | null = null;
   let settle: () => void = () => undefined;
   const settled = new Promise<void>((r) => { settle = r; setTimeout(r, SETTLE_MS); });
+  let download = async (): Promise<boolean> => true;
   const sw = typeof navigator !== "undefined" ? navigator.serviceWorker : undefined;
   if (sw && import.meta.env.PROD) {
     const base = import.meta.env.BASE_URL;
     const mark = (w: ServiceWorker | null): void => {
       if (w && sw.controller && w !== waiting) { waiting = w; void fetchRelease(base).then(onReady); }
     };
-    void sw.register(`${base}sw.js`, { scope: base }).then((reg) => {
+    const attach = (reg: ServiceWorkerRegistration): void => {
       mark(reg.waiting);
       // a first visit has no old build on screen, so it never waits for its own install
       if (waiting || !reg.installing || !sw.controller) settle();
@@ -64,10 +72,30 @@ export function setupPwa(onReady: (info: ReleaseInfo | null) => void): UpdateHan
       // look for a new build when the app comes back to the foreground, and hourly
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void reg.update().catch(() => undefined); });
       setInterval(() => void reg.update().catch(() => undefined), 3_600_000);
-    }).catch(() => settle());
+    };
+    if (hold) {
+      settle();
+      download = async () => {
+        try {
+          const old = await sw.getRegistration(base);
+          if (old && !old.active && !old.waiting) await old.unregister();
+          const reg = await sw.register(`${base}sw.js`, { scope: base });
+          attach(reg);
+          const w = reg.installing ?? reg.waiting ?? reg.active;
+          if (!w) return false;
+          if (w.state === "activated") return true;
+          return await new Promise<boolean>((done) => {
+            w.addEventListener("statechange", () => { if (w.state === "activated") done(true); else if (w.state === "redundant") done(false); });
+          });
+        } catch { return false; }
+      };
+    } else {
+      void sw.register(`${base}sw.js`, { scope: base }).then(attach).catch(() => settle());
+    }
   } else settle();
   return {
     settled,
+    download: () => download(),
     get ready() { return waiting !== null; },
     apply() {
       if (!waiting || !sw) return false;

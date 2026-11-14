@@ -5,7 +5,8 @@ import "@fontsource/barlow/latin-500.css";
 import "@fontsource/barlow/latin-700.css";
 import "./style.css";
 import { App } from "./app.js";
-import { allLevels } from "./levels.js";
+import { isFirstRun, runFirstRun } from "./loader.js";
+import { allLevels, prefetchLevels } from "./levels.js";
 import { MirroredStore, createPlatform } from "./platform.js";
 import { setupPwa, type ReleaseInfo } from "./pwa.js";
 import { openSaves } from "./save.js";
@@ -31,8 +32,17 @@ async function boot(): Promise<void> {
   // mid-level the Update now / Later prompt still rules.
   let app: App | null = null;
   let release: ReleaseInfo | null = null;
-  const pwa = setupPwa((info) => { release = info; app?.offerUpdate(info); });
+  // first launch ever: the "Preparing the outpost" screen downloads everything for offline play (loader.ts)
+  const firstRun = isFirstRun();
+  const pwa = setupPwa((info) => { release = info; app?.offerUpdate(info); }, firstRun);
   await pwa.settled;
+  const packsBase = `${import.meta.env.BASE_URL}levels/packs`.replace(/\/{2,}/g, "/");
+  if (firstRun) {
+    await runFirstRun({
+      pwa, base: import.meta.env.BASE_URL,
+      levels: async () => { await prefetchLevels(await (await allLevels(packsBase)).list()); },
+    });
+  }
   if (pwa.ready) {
     let recent = false;
     try { recent = Date.now() - Number(sessionStorage.getItem(LAUNCH_APPLY_KEY) ?? 0) < 20_000; } catch { /* storage blocked */ }
@@ -57,7 +67,6 @@ async function boot(): Promise<void> {
   const telemetry = new TelemetryQueue(store, teleUrl === "off" ? undefined : teleUrl);
   // the waiting worker can be found before the app exists; the check after start() covers that
   // every pack under levels/packs that matches this engine/content version
-  const packsBase = `${import.meta.env.BASE_URL}levels/packs`.replace(/\/{2,}/g, "/");
   const source = await allLevels(packsBase);
   app = new App(root, {
     source, store, telemetry, platform, justUpdated: takeFlag(),
