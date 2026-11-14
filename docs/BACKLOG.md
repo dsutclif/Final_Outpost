@@ -113,7 +113,8 @@ Nothing is being built from this file (2026-11-12). Notes kept from earlier hand
 - [ ] **#50 · R6 Release 1 HUD and art:**
       - [x] R6 #3 "Finish in x:xx" as the last star (s1-L008): probe, local. `s1-L008-t0030.png` / `-t0060.png` show the stopwatch chip counting 8:10 to 5:40 beside the star.
       - [ ] R6 #4 goods on belt tops (s1-L014): not shown; `s1-L014-t0060.png` has no belt with goods in frame.
-      - [ ] R6 #6 impatient trader "!" (s1-L013): not shown in 90 s; `s1-L013-t0060.png` has "Sold!" and MAX tags only.
+        Probe 2026-11-14: the sim does put goods on the belt (a bot run of s1-L014 had 1-3 items on the belt from about tick 4400), but two screenshots at that moment had the belt out of frame. Next: a probe that points the camera at the belt before the shot.
+      - [x] R6 #6 impatient trader "!" (s1-L013): probe 2026-11-14, local. The earlier probe ran the sim past the loss, so the level was no longer playing; stopping at 36 s (tick 1235, weakest trader at 12% patience, level still playing) the snapshot lists two red "!" marks (core heat and the trader), at 30 s one. Numbers only, no still.
       - [x] R6 #7 no lot-edge pipes: probe, local. Clean lot edges in `s1-L008-t0030.png` and `s1-L014-t0060.png`.
       - [x] R6 #8 smooth code-built objects: probe, local. Round grow dome and reactor rim in `s1-L008-t0030.png`.
       - N16 the old homepage flash (needs two real deploys; see #2)
