@@ -94,9 +94,6 @@
 @keyframes sdlg-blink { to { opacity: 0; } }
 .sdlg-term .sdlg-tap { color: #7cc4ff; }
 
-/* Banners sit below the star slots and the goal line */
-.story-on .fo-banner { top: calc(env(safe-area-inset-top, 0px) + 74px) !important; }
-
 /* Live scenes (render-3d scene/livescene.ts): KILN's camera feed look over a three.js canvas. */
 .cine.live { overflow: hidden; }
 .cine.live.out { opacity: 0; transition: opacity 0.3s; }
