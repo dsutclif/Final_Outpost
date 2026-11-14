@@ -119,10 +119,10 @@ interface PadInfo { id: string; kind: "hire" | "build"; cost: Record<string, num
 /** Pad label art: canvas height with one and two rows of cost pills, pills per row, world height of one row. */
 /** Order bubble sprite height (world): font 56 px on a 180 px canvas; ORDER_H_OLD is the first design (font 52 on 120), whose tail tip the new one keeps. */
 const ORDER_H = textSprite(TEXT.main, 56, 180), ORDER_H_OLD = textSprite(TEXT.main, 52, 120);
-const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 36;
+const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 54;
 /** Pad label canvas height: the (optional) name, the lock reason, then one or two rows of cost pills. */
 function padArtH(named: boolean, rows: number, lock: boolean): number {
-  const top = named ? 48 + (lock ? PAD_LOCK_H : 0) : lock ? 40 : 4;
+  const top = named ? 48 + (lock ? PAD_LOCK_H : 0) : lock ? 58 : 4;
   return top + (rows === 2 ? 144 : 68) + (named ? 16 : 8);
 }
 /** Back-stack columns per row behind the hero before a second row starts. */
@@ -3524,9 +3524,9 @@ export class Renderer3D implements Renderer {
     const t = this.tokens, ui = this.tokens.paper;
     const big = 44, small = 38, gap = 10;
     // A locked pad keeps its own name as the title; the reason sits under it, smaller.
-    const top = label, lockPx = 28, extra = lockTxt ? PAD_LOCK_H : 0;
+    const top = label, lockPx = 42, extra = lockTxt ? PAD_LOCK_H : 0;
     const named = top !== "";
-    const topH = named ? 48 + extra : lockTxt ? 40 : 4;
+    const topH = named ? 48 + extra : lockTxt ? 58 : 4;
     const wTop = Math.max(named ? this.labels.textWidth(top, small) : 0, lockTxt ? this.labels.textWidth(lockTxt, lockPx) : 0) + 30;
     const cell = owed.map((o) => this.labels.textWidth(`${o.left}`, big) + 64);
     const rowsOf = owed.length > PAD_PER_ROW ? [owed.slice(0, Math.ceil(owed.length / 2)), owed.slice(Math.ceil(owed.length / 2))] : [owed.slice()];
@@ -3545,7 +3545,7 @@ export class Renderer3D implements Renderer {
           g.fillStyle = locked ? ui.muted : ui.panel; g.fillText(top, W / 2, 24);
         }
         if (lockTxt) {
-          const ly = named ? 56 : 18;
+          const ly = named ? 48 + PAD_LOCK_H / 2 : 29;
           g.font = `800 ${lockPx}px ${FONT}`;
           g.lineWidth = 7; g.strokeStyle = t.ink; g.strokeText(lockTxt, W / 2, ly);
           g.fillStyle = ui.panel; g.fillText(lockTxt, W / 2, ly);
