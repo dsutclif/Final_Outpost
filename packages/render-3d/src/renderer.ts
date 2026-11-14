@@ -361,6 +361,9 @@ function attackRoads(cp: Compiled): Road[] {
   return out;
 }
 
+/** Commander hp at or below which the red "!" shows over their head. */
+const LOW_HP_WARN = 3;
+
 export class Renderer3D implements Renderer {
   private mount: HTMLElement | null = null;
   private gl: GLLike | null = null;
@@ -2867,6 +2870,12 @@ export class Renderer3D implements Renderer {
     if (hpMax > 0 && s.player.hp < hpMax) {
       const k = s.player.hp / hpMax;
       this.barTag(pl.x, ART_M * look.scale * this.devCharScale * 1.6, pl.y, k, k > 0.5 ? t.ok : t.danger, 8);
+      // at 3 hp or less a red "!" bobs above the bar so the player can step out of the fight; it clears when hp rises above 3
+      if (s.player.hp <= LOW_HP_WARN) {
+        const sp = this.nextTag();
+        sp.visible = this.labels.apply(sp, "hurt|!", () => this.warnArt("!", t.danger), 34);
+        sp.position.set(pl.x, ART_M * look.scale * this.devCharScale * 1.6 + 22 + Math.abs(Math.sin(this.t * 5)) * 5, pl.y);
+      }
     }
 
     for (const r of s.residents) {
