@@ -1366,8 +1366,10 @@ export class App {
   }
 
   /**
-   * Where the camera leans: the nearest open pad within reach (else the guide's objective), so pads on the map edge come
+   * Where the camera leans: the nearest open pad within reach, so pads on the map edge come
    * fully on screen as the hero walks toward them (both renderers weigh it the same).
+   * Doug, 2026-11-13: a scene starts focused on the buggy. If someone or something has to be in frame, move it,
+   * not the camera; do not add a lean toward objectives here (one was shipped and reverted, outpost-ops#35).
    */
   private leadPoint(s: Session): { x: number; y: number } | null {
     const st = s.sim.state, p = st.player.pos;
@@ -1377,9 +1379,6 @@ export class App {
       const d = (pad.pos.x - p.x) ** 2 + (pad.pos.y - p.y) ** 2;
       if (d < bd) { bd = d; best = { x: pad.pos.x / FP, y: pad.pos.y / FP }; }
     }
-    // no pad near: lean toward what the guide points at (a store, a node), so the next objective is not left at the screen edge
-    const g = s.guideTarget;
-    if (!best && g && !s.ended && (g.at.x - p.x / FP) ** 2 + (g.at.y - p.y / FP) ** 2 < LEAD_RANGE ** 2) best = { x: g.at.x, y: g.at.y };
     return best;
   }
 
