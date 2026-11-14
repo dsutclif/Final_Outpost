@@ -662,6 +662,59 @@ def perform(root, pre=0, calib=False):
                 worst = max(worst, (was - A).xy.length); held += 1
                 if os.environ.get("PIN_DEBUG"): print("PIND row %d pod %d stance %s ankle was %.1f cm off, leg reach %.2f of %.2f" % (i, i + 1 + pre, s, (was - A).xy.length * 100, d.length, l1 + l2))
             print(f"STEP PIN: the standing leg solved on {held} rows; the ankle would have slid up to {worst * 100:.1f} cm from where it was put down")
+    if os.environ.get("LOOK_PIN", "1") == "1" and any(isinstance(t, Look) for t in takes):
+        # 2026-11-14 (film-feet, look-round): the Look take turns the whole figure (R in timeline()) while the captured legs
+        # keep their own stride, so each planted foot drifted against the other. Per leg: a run of rows where its ankle is
+        # within 2 cm of its own lowest keeps the ankle where the run began (two-bone hip-knee-ankle solve, knee toward his
+        # front) and the foot keeps its angle; the lifted foot is left as captured and plants again where it comes down
+        k_look = next(k for k, t in enumerate(takes) if isinstance(t, Look))
+        kl = [i for i, r in enumerate(TL) if r[0] == k_look]
+        def jts(r):
+            rig.pose(r[1], r[2], r[3]); bpy.context.view_layer.update()
+            return {n: (arm.matrix_world @ arm.pose.bones[retarget.P + n].head).copy() for n in
+                    ("LeftUpLeg", "LeftLeg", "LeftFoot", "RightUpLeg", "RightLeg", "RightFoot")}
+        pz = {i: jts(TL[i]) for i in kl}
+        tol = float(os.environ.get("LOOK_PIN_TOL", 0.02))
+        thr = float(os.environ.get("LOOK_PIN_STEP", 0.05))  # a plant that has fallen this far (m) behind the capture's ankle is lifted and put down again, while the other foot stays planted
+        nfr = int(os.environ.get("LOOK_PIN_FRAMES", 7))
+        lift_h = float(os.environ.get("LOOK_PIN_LIFT", 0.035))
+        st = {s: {"anchor": None, "tr": None} for s in ("Left", "Right")}
+        pinned, worst, steps = 0, 0.0, 0
+        for i in kl:
+            r = TL[i]; J = pz[i]
+            new = dict(r[1])
+            low = min(J["LeftFoot"].z, J["RightFoot"].z)
+            for s in ("Left", "Right"):
+                o = "Right" if s == "Left" else "Left"; q = st[s]
+                cap = J[s + "Foot"]
+                if q["tr"] is None and cap.z >= low + tol:
+                    q["anchor"] = None; continue  # lifted in the capture: left as captured
+                if q["anchor"] is None and q["tr"] is None:
+                    q["anchor"] = (cap.copy(), r[1][s + "Foot"].copy(), r[1].get(s + "ToeBase")); continue
+                if q["tr"] is None and (q["anchor"][0] - cap).xy.length > thr and st[o]["tr"] is None and st[o]["anchor"] is not None:
+                    q["tr"] = [0, q["anchor"][0].copy()]; steps += 1
+                if q["tr"] is not None:
+                    q["tr"][0] += 1; k_ = q["tr"][0]; w = smooth(k_ / nfr)
+                    A = q["tr"][1] * (1 - w) + cap * w; A = A.copy(); A.z += lift_h * math.sin(math.pi * k_ / nfr)
+                    if k_ >= nfr:
+                        q["tr"] = None; q["anchor"] = (cap.copy(), r[1][s + "Foot"].copy(), r[1].get(s + "ToeBase")); A = cap
+                    fd, td = r[1][s + "Foot"], r[1].get(s + "ToeBase")
+                else:
+                    A = q["anchor"][0]; fd, td = q["anchor"][1], q["anchor"][2]
+                Hp = J[s + "UpLeg"]
+                l1, l2 = (J[s + "Leg"] - J[s + "UpLeg"]).length, (J[s + "Foot"] - J[s + "Leg"]).length
+                d = A - Hp; L = max(abs(l1 - l2) + 1e-3, min(l1 + l2 - 1e-3, d.length)); dn = d.normalized()
+                fwd = r[2][0].cross(r[2][1]).normalized()
+                pole = (fwd - dn * fwd.dot(dn)); pole = pole.normalized() if pole.length > 1e-6 else Vector((0, 0, 1))
+                ca = max(-1.0, min(1.0, (l1 * l1 + L * L - l2 * l2) / (2 * l1 * L)))
+                th = (dn * ca + pole * math.sqrt(1 - ca * ca)).normalized()
+                K = Hp + th * l1; sh_ = (Hp + dn * L - K).normalized()
+                worst = max(worst, (cap - A).xy.length)
+                new[s + "UpLeg"] = th; new[s + "Leg"] = sh_; new[s + "Foot"] = fd.copy()
+                if td is not None: new[s + "ToeBase"] = td.copy()
+                pinned += 1
+            r[1] = new
+        print(f"LOOK PIN: {pinned} leg-rows solved over {len(kl)} look rows, {steps} re-plants; the capture's ankle was up to {worst * 100:.1f} cm from where it is held")
     lying_pts, step_peak, takeoff = [], None, None
     best_lift = -1
     for f, row in enumerate(TL):

@@ -1015,6 +1015,18 @@ def main():
                 sc.frame_set(f)
                 lib.render_still(os.path.join(OUT, f"side_{nm}_{f:04d}.png"))
         return
+    if "--feetcam" in args:  # review: two fixed close cameras on the look-round (low three-quarter, and from above), every 3rd frame
+        sc.timeline_markers.clear()
+        fa, fb = (int(args[args.index("--feetcam") + 1]), int(args[args.index("--feetcam") + 2])) if len(args) > args.index("--feetcam") + 2 else (372, N + PRE)
+        c0 = Vector((end.x, end.y, 0))
+        cams = {"low": lib.camera(c0 + Vector((1.9, -1.9, 0.55)), c0 + Vector((0, 0, 0.55)), lens=42, name="lowcam"),
+                "top": lib.camera(c0 + Vector((0.0, -0.9, 3.4)), c0 + Vector((0, 0, 0.0)), lens=40, name="topcam")}
+        for f in range(fa, fb + 1, 3):
+            sc.frame_set(f)
+            for nm, cam in cams.items():
+                sc.camera = cam
+                lib.render_still(os.path.join(OUT + "_feetcam", f"{nm}_{f:04d}.png"))
+        return
     if "--stills" in args:
         for f in ([int(x) for x in args[args.index("--at") + 1].split(",")] if "--at" in args else (1, f_open1, F(st[1]) + 20, F(st[1]) + 60, F(P["r_takeoff"]) + 8, F(P["r_land"]) + 4, F(st[-1]) + 10, f_crane0 + (N + PRE - f_crane0) // 2, N + PRE)):
             sc.frame_set(f)
