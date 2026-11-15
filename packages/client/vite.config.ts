@@ -6,6 +6,7 @@ import { VitePWA } from "vite-plugin-pwa";
 // Relative import: the config is bundled by esbuild, and this file only imports types.
 import { marsGreenhouse as skin } from "../skins/src/mars_greenhouse";
 import { PROGRESS_EPOCH } from "./src/epoch";
+import { findTitleVideo, titleVideoPreloadTag } from "./src/titlepreload";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PACKS = resolve(here, "../../levels/packs");
@@ -94,6 +95,20 @@ function precacheInfo(): Plugin {
   };
 }
 
+/** First-visit speed: ask for the title video before any script chunk or other download is queued (build only; the dev server has no bundle). */
+function titleVideoPreload(): Plugin {
+  return {
+    name: "fo-title-video-preload",
+    transformIndexHtml: {
+      order: "post",
+      handler(_html, ctx) {
+        const file = ctx.bundle ? findTitleVideo(Object.keys(ctx.bundle)) : null;
+        return file ? [titleVideoPreloadTag(process.env.BASE_PATH ?? "/", file)] : [];
+      },
+    },
+  };
+}
+
 export default defineConfig({
   // GitHub Pages serves from /<repo>/; CI sets BASE_PATH, local builds stay at the root.
   base: process.env.BASE_PATH ?? "/",
@@ -107,6 +122,7 @@ export default defineConfig({
     rollupOptions: { input: { main: resolve(here, "index.html"), sandbox: resolve(here, "sandbox.html"), layout: resolve(here, "layout.html") } },
   },
   plugins: [
+    titleVideoPreload(),
     levelPacks(),
     releaseInfo(),
     VitePWA({
