@@ -1,0 +1,144 @@
+{
+ "_doc": "Pads hidden (any point of the disc covered) during their active window per shipped level, walls and wall-line gates not counted. Test: pad-view-pack.test.ts. Only ever rewritten when the numbers go down.",
+ "total": 54,
+ "levels": {
+  "s1-L006": [
+   "housing1"
+  ],
+  "s1-L007": [],
+  "s1-L008": [],
+  "s1-L009": [
+   "saw_feeder",
+   "sawyer"
+  ],
+  "s1-L010": [],
+  "s1-L011": [],
+  "s1-L012": [
+   "core_level0"
+  ],
+  "s1-L013": [],
+  "s1-L014": [
+   "saw_feeder",
+   "sawyer"
+  ],
+  "s1-L015": [],
+  "s1-L016": [],
+  "s1-L017": [],
+  "s1-L018": [],
+  "s1-L019": [
+   "hire_core",
+   "saw_feeder",
+   "sawyer"
+  ],
+  "s1-L020": [
+   "housing1"
+  ],
+  "s1-L021": [],
+  "s1-L022": [
+   "core_level0",
+   "core_level1"
+  ],
+  "s1-L023": [],
+  "s1-L024": [],
+  "s1-L025": [
+   "hire_core",
+   "refined_carrier",
+   "smith",
+   "component_server"
+  ],
+  "s1-L026": [
+   "hire_core"
+  ],
+  "s1-L027": [],
+  "s1-L028": [],
+  "s1-L029": [],
+  "s1-L030": [],
+  "s1-L031": [
+   "grill",
+   "grill_level"
+  ],
+  "s1-L032": [],
+  "s1-L033": [
+   "housing1"
+  ],
+  "s1-L034": [],
+  "s1-L035": [],
+  "s1-L036": [],
+  "s1-L037": [],
+  "s1-L038": [
+   "core_level0"
+  ],
+  "s1-L039": [],
+  "s1-L040": [
+   "feeder",
+   "cook",
+   "server",
+   "saw_feeder",
+   "sawyer"
+  ],
+  "s1-L041": [],
+  "s1-L042": [
+   "grill",
+   "feeder",
+   "cook",
+   "server"
+  ],
+  "s1-L043": [],
+  "s1-L044": [
+   "housing1"
+  ],
+  "s1-L045": [],
+  "s1-L046": [
+   "hire_core"
+  ],
+  "s1-L047": [
+   "hire_core",
+   "saw_feeder",
+   "sawyer"
+  ],
+  "s1-L048": [],
+  "s1-L049": [
+   "core_level0",
+   "core_level1",
+   "clear0"
+  ],
+  "s1-L050": [
+   "saw_feeder",
+   "sawyer"
+  ],
+  "s1-L051": [],
+  "s1-L052": [],
+  "s1-L053": [
+   "grill",
+   "feeder",
+   "cook",
+   "server",
+   "saw_feeder",
+   "sawyer"
+  ],
+  "s1-L054": [],
+  "s1-L055": [
+   "core_level0"
+  ],
+  "s1-L056": [],
+  "s1-L057": [],
+  "s1-L058": [
+   "hire_core",
+   "saw_feeder",
+   "sawyer"
+  ],
+  "s1-L059": [
+   "train",
+   "barracks_up",
+   "medic"
+  ],
+  "s1-L060": [
+   "hire_core"
+  ],
+  "story-L001": [],
+  "story-L002": [],
+  "story-L003": [],
+  "story-L004": [],
+  "story-L005": []
+ }
+}

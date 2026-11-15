@@ -1,10 +1,10 @@
 {
  "_doc": "Pads hidden (75% or more of the disc covered) or partly hidden on screen per shipped level, tower pads included. Test: pad-view-pack.test.ts. Only ever rewritten when the numbers go down.",
  "total": {
-  "levelsAffected": 37,
-  "levelsHidden": 32,
-  "hiddenPads": 74,
-  "partlyPads": 50
+  "levelsAffected": 32,
+  "levelsHidden": 27,
+  "hiddenPads": 68,
+  "partlyPads": 47
  },
  "levels": {
   "s1-L006": {
@@ -22,11 +22,9 @@
    "partlyPads": []
   },
   "s1-L008": {
-   "hidden": 1,
+   "hidden": 0,
    "partly": 0,
-   "hiddenPads": [
-    "hire_core"
-   ],
+   "hiddenPads": [],
    "partlyPads": []
   },
   "s1-L009": {
@@ -61,12 +59,9 @@
   },
   "s1-L011": {
    "hidden": 0,
-   "partly": 2,
+   "partly": 0,
    "hiddenPads": [],
-   "partlyPads": [
-    "core_level0",
-    "core_level1"
-   ]
+   "partlyPads": []
   },
   "s1-L012": {
    "hidden": 1,
@@ -84,14 +79,12 @@
   },
   "s1-L014": {
    "hidden": 2,
-   "partly": 1,
+   "partly": 0,
    "hiddenPads": [
     "saw_feeder",
     "sawyer"
    ],
-   "partlyPads": [
-    "hire_core"
-   ]
+   "partlyPads": []
   },
   "s1-L015": {
    "hidden": 0,
@@ -100,11 +93,9 @@
    "partlyPads": []
   },
   "s1-L016": {
-   "hidden": 1,
+   "hidden": 0,
    "partly": 0,
-   "hiddenPads": [
-    "core_level0"
-   ],
+   "hiddenPads": [],
    "partlyPads": []
   },
   "s1-L017": {
@@ -235,10 +226,9 @@
    ]
   },
   "s1-L032": {
-   "hidden": 4,
+   "hidden": 3,
    "partly": 3,
    "hiddenPads": [
-    "hire_core",
     "tower_n1",
     "tower_n1_up",
     "tower_n1_up3"
@@ -311,11 +301,9 @@
    ]
   },
   "s1-L041": {
-   "hidden": 1,
+   "hidden": 0,
    "partly": 0,
-   "hiddenPads": [
-    "hire_core"
-   ],
+   "hiddenPads": [],
    "partlyPads": []
   },
   "s1-L042": {
@@ -393,11 +381,9 @@
    "partlyPads": []
   },
   "s1-L050": {
-   "hidden": 1,
+   "hidden": 0,
    "partly": 2,
-   "hiddenPads": [
-    "hire_core"
-   ],
+   "hiddenPads": [],
    "partlyPads": [
     "saw_feeder",
     "sawyer"
@@ -410,11 +396,9 @@
    "partlyPads": []
   },
   "s1-L052": {
-   "hidden": 1,
+   "hidden": 0,
    "partly": 0,
-   "hiddenPads": [
-    "hire_core"
-   ],
+   "hiddenPads": [],
    "partlyPads": []
   },
   "s1-L053": {

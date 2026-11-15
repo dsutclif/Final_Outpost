@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { padVisibilityReport, type ViewEnt } from "../src/index.js";
+import { lifetimeVisibility, type Manifest } from "../src/padRepair.js";
 
 // The pad-visibility baseline of the shipped levels: how many pads are hidden or partly hidden on screen under the real
 // camera (viewVisibility.ts) in each level today. The count can only go down: a level that gets worse than the committed
@@ -62,3 +63,27 @@ describe("pad visibility of the shipped levels (baseline: can only go down)", ()
     expect(t.hiddenPads).toBeLessThanOrEqual(bt.hiddenPads);
   });
 });
+
+// Lifetime mode (Doug, 2026-11-15): each pad measured from when it appears until it is fully spent, against what stands by
+// then (padRepair.ts: the bot ladder's runs; buildings at their real size, nodes, the survivors' arrival gate; walls and
+// wall-line gates not counted). The count of pads hidden (any point of the disc covered) during their window can only go down:
+//   UPDATE_PAD_BASELINE=1 pnpm vitest run packages/generator/test/pad-view-pack.test.ts
+describe("pads hidden during their lifetime in the shipped levels (baseline: can only go down)", () => {
+  const LIFE = fileURLToPath(new URL("./pad-view-lifetime-baseline.json", import.meta.url));
+  const now: Record<string, string[]> = {};
+  for (const [dir, re] of [["levels/packs/s1", /^s1-L\d+\.json$/], ["levels/story", /^story-L\d+\.json$/]] as const) {
+    for (const f of readdirSync(root + dir).filter((x) => re.test(x)).sort()) {
+      const m = JSON.parse(readFileSync(`${root}${dir}/${f}`, "utf8")) as Manifest;
+      now[m.id] = lifetimeVisibility(m).filter((p) => p.hidden > 0).map((p) => p.id);
+    }
+  }
+  if (process.env["UPDATE_PAD_BASELINE"]) {
+    writeFileSync(LIFE, JSON.stringify({ _doc: "Pads hidden (any point of the disc covered) during their active window per shipped level, walls and wall-line gates not counted. Test: pad-view-pack.test.ts. Only ever rewritten when the numbers go down.", total: Object.values(now).reduce((a, l) => a + l.length, 0), levels: now }, null, 1) + "\n");
+  }
+  const base = JSON.parse(readFileSync(LIFE, "utf8")) as { total: number; levels: Record<string, string[]> };
+  it("no level hides a pad that the baseline does not, and the total does not grow", () => {
+    const worse = Object.entries(now).flatMap(([id, l]) => l.filter((p) => !(base.levels[id] ?? []).includes(p)).map((p) => `${id}: ${p}`));
+    expect(worse).toEqual([]);
+    expect(Object.values(now).reduce((a, l) => a + l.length, 0)).toBeLessThanOrEqual(base.total);
+  });
+}, 300_000);

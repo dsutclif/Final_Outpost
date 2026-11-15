@@ -31,7 +31,7 @@ export interface PadView {
 }
 export interface ViewOpts {
   /** Which wall sections count: those prebuilt at level start (what is drawn then), or every section (what will stand). */
-  walls?: "built" | "all";
+  walls?: "built" | "all" | "none";
   /** Pad disc radius in world units (default PAD_RADIUS; a landmark pad is x1.4). */
   radius?: number;
   /**
@@ -55,7 +55,7 @@ interface Table { future: Record<string, { scale: readonly [number, number, numb
 const T = occ as unknown as Table;
 
 /** One occluder in the renderer's terms: root position, turn, per-axis scale and the model-space box and top. */
-export interface Occluder { name: string; /** The pad that raises this building (a pad is not hidden by the building it becomes). */ owner?: string; bx: number; bz: number; ang: number; sx: number; sz: number; sy: number; /** Root height above the ground. */ y: number; box: Box5 }
+export interface Occluder { name: string; /** The entity id it was drawn for, when it has one (upgrades resize it). */ ref?: string; /** Index of the entity it was drawn for. */ ent?: number; /** The pad that raises this building (a pad is not hidden by the building it becomes). */ owner?: string; bx: number; bz: number; ang: number; sx: number; sz: number; sy: number; /** Root height above the ground. */ y: number; box: Box5 }
 
 /** The renderer's slab test: does the segment from (px,pz) along (dx,dz) touch the box. */
 export function segHitsBox(px: number, pz: number, dx: number, dz: number, x0: number, x1: number, z0: number, z1: number): boolean {
@@ -110,7 +110,9 @@ export function occluders(ents: readonly ViewEnt[], opts: ViewOpts = {}): Occlud
     // scrap heaps take three models in turn by their place in the node list (renderer syncNodes)
     const t = (nodeI >= 0 && e.type === "node.salvage_pile" ? (T.types[`${e.type}@${1 + (nodeI % 3)}`] ?? T.types[`${e.type}@1`]) : undefined) ?? T.types[`${e.type}@${level(e)}`] ?? T.types[e.type];
     if (!t) continue;
-    out.push({ name: e.type, bx: e.at[0], bz: e.at[1], ang: 0, sx: t.scale[0], sz: t.scale[2], sy: t.scale[1], y: t.y, box: t.box });
+    // walls "none": wall lines and their gates are not counted; a stand-alone gate is the survivors' arrival gate and stays
+    if (opts.walls === "none" && e.type === "struct.gate" && !e["arrivals"]) continue;
+    out.push({ name: e.type, ent: ents.indexOf(e), ...(e.id ? { ref: String(e.id) } : {}), bx: e.at[0], bz: e.at[1], ang: 0, sx: t.scale[0], sz: t.scale[2], sy: t.scale[1], y: t.y, box: t.box });
   }
   if (opts.final) {
     const top = (base: string): string | undefined => Object.keys(T.future).filter((k) => k.startsWith(base + "@")).sort((a, b) => Number(a.split("@")[1]) - Number(b.split("@")[1])).pop();
@@ -129,7 +131,7 @@ export function occluders(ents: readonly ViewEnt[], opts: ViewOpts = {}): Occlud
     }
   }
   for (const e of ents) {
-    if (e.type !== "barrier.line" || !e.points) continue;
+    if (e.type !== "barrier.line" || !e.points || opts.walls === "none") continue;
     const p = e.points, n = p.length, gates = new Set(e.gates ?? []), built = new Set(e.prebuilt ?? []);
     for (let i = 0; i < (e.closed ? n : n - 1); i++) {
       if (!opts.final && (opts.walls ?? "built") === "built" && !built.has(i)) continue;
@@ -154,8 +156,8 @@ export function discPoints(at: Pt, r: number): Pt[] {
 }
 
 /** Visibility of one point set against a set of occluders. */
-export function viewOf(id: string, type: string, at: Pt, all: readonly Occluder[], r = PAD_RADIUS): PadView {
-  const occs = all.filter((o) => o.owner !== id);
+export function viewOf(id: string, type: string, at: Pt, all: readonly Occluder[], r = PAD_RADIUS, skip?: ReadonlySet<string>): PadView {
+  const occs = all.filter((o) => o.owner !== id && !(skip && ((o.owner !== undefined && skip.has(o.owner)) || (o.ref !== undefined && skip.has(o.ref)))));
   const pts = discPoints(at, r), per = new Map<string, number>();
   let hid = 0;
   for (const q of pts) {
@@ -192,4 +194,58 @@ export function padVisibilityReport(ents: readonly ViewEnt[], opts: ViewOpts = {
   const pads = padVisibility(ents, { ...opts, final: false }), final = padVisibility(ents, { ...opts, final: true });
   const n = (l: PadView[], c: PadView["class"]) => l.filter((p) => p.class === c).length;
   return { pads, hidden: n(pads, "hidden"), partly: n(pads, "partly"), visible: n(pads, "visible"), final, hiddenFinal: n(final, "hidden"), partlyFinal: n(final, "partly") };
+}
+
+const futureKey = (base: string, level: number): string | undefined => {
+  const ks = Object.keys(T.future).filter((k) => k.startsWith(base + "@")).map((k) => Number(k.split("@")[1])).sort((a, b) => a - b);
+  const l = ks.filter((k) => k <= level).pop() ?? ks[0];
+  return l === undefined ? undefined : `${base}@${l}`;
+};
+const setDims = (o: Occluder, k: string | undefined): void => {
+  const t = k ? T.future[k] : undefined;
+  if (t) { o.sx = t.scale[0]; o.sz = t.scale[2]; o.sy = t.scale[1]; o.y = t.y; o.box = t.box; }
+};
+const buildOf = (e: ViewEnt): string => String((e as { build?: string }).build ?? "");
+/** A pad that raises nothing new where it stands: an upgrade, a level, a dome switch, a clearing. */
+export const isUpgradePad = (e: ViewEnt): boolean => {
+  const b = buildOf(e);
+  return e.type === "pad.build" && (/\.t\d$/.test(b) || b === "sink.core.level" || b === "conv.level" || b === "node.enable" || b === "zone.clear");
+};
+
+/**
+ * Lifetime mode (Doug, 2026-11-15): the occluders standing once the pads in `built` are paid, with walls and wall-line gates
+ * not counted (the survivors' arrival gate is). Each paid building stands at its real size for its paid upgrades, the Core
+ * at its level after its paid level pads, and a switched-on grow dome is drawn.
+ */
+export function occludersAt(ents: readonly ViewEnt[], built: ReadonlySet<string>): Occluder[] {
+  const out = occluders(ents, { walls: "none" });
+  const paid = ents.filter((e) => e.type === "pad.build" && built.has(String(e.id ?? "")));
+  const ups = (target: string): number => paid.filter((u) => /\.t\d$/.test(buildOf(u)) && String(u["target"]) === target).length;
+  const coreUps = paid.filter((u) => buildOf(u) === "sink.core.level").length;
+  if (coreUps > 0) {
+    const core = out.find((o) => o.name === "sink.core"), ce = ents.find((e) => e.type === "sink.core");
+    const start = Number((ce?.params as { level?: number } | undefined)?.level ?? 1);
+    if (core) setDims(core, futureKey("sink.core", start + coreUps));
+  }
+  for (const u of paid) {
+    const b = buildOf(u), tgt = u["target"] === undefined ? undefined : String(u["target"]);
+    if (b === "node.enable" && tgt) {
+      const n = ents.find((e) => e.id === tgt && e.at), t = n ? T.types[n.type] : undefined;
+      if (n?.at && t && !out.some((o) => o.ref === tgt)) out.push({ name: n.type, ref: tgt, ent: ents.indexOf(n), bx: n.at[0], bz: n.at[1], ang: 0, sx: t.scale[0], sz: t.scale[2], sy: t.scale[1], y: t.y, box: t.box });
+      continue;
+    }
+    if (/\.t\d$/.test(b) && tgt) {
+      // an upgrade of a pre-placed structure (the barracks) resizes it; an upgrade of a paid building is applied below
+      const o = out.find((x) => x.ref === tgt && x.owner === undefined);
+      if (o) setDims(o, futureKey(b.replace(/\.t\d$/, ""), 1 + ups(tgt)));
+      continue;
+    }
+    if (isUpgradePad(u)) continue;
+    const at = u.site ?? u.at, id = String(u.id ?? ""), k = futureKey(b, 1 + ups(id));
+    if (!at || !k) continue;
+    const o: Occluder = { name: b, owner: id, ref: id, ent: ents.indexOf(u), bx: at[0], bz: at[1], ang: 0, sx: 1, sz: 1, sy: 1, y: 0, box: [0, 0, 0, 0, 0] };
+    setDims(o, k);
+    out.push(o);
+  }
+  return out;
 }

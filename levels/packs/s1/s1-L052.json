@@ -172,8 +172,8 @@
       "type": "pad.hire",
       "id": "hire_core",
       "at": [
-        217,
-        670
+        348,
+        589
       ],
       "cost": {
         "res.currency": 11
