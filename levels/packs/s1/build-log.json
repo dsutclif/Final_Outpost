@@ -2719,12 +2719,12 @@
     "id": "main",
     "kind": "rescue",
     "params": {
-     "n": 3
+     "n": 4
     }
    },
    {
     "id": "challenge",
-    "kind": "tow_trip",
+    "kind": "tow_full_trip",
     "params": {
      "n": 3
     }
@@ -2733,7 +2733,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 119
+     "seconds": 133
     }
    }
   ],
@@ -2749,7 +2749,7 @@
    "average": 3,
    "weak": 3,
    "novice": 3,
-   "floor": 2.67,
+   "floor": 1.67,
    "human": 3
   },
   "modules": [
@@ -2767,22 +2767,22 @@
   "goal": "rescue",
   "template": "corridor",
   "target": 0.8,
-  "D": 0.5373260720658505,
-  "F": 0.6335870356457723,
-  "onTarget": false,
+  "D": 0.8305329007628892,
+  "F": 0.7705370932344972,
+  "onTarget": true,
   "margin": {
-   "good": 0.6572727272727272,
-   "average": 0.6257070707070707,
-   "weak": 0.5739393939393939,
-   "novice": 0.5626767676767677,
-   "floor": 0.4353030303030303
+   "good": 0.5015098039215686,
+   "average": 0.4466013071895425,
+   "weak": 0.40405228758169937,
+   "novice": 0.3375816993464052,
+   "floor": 0.04810457516339869
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 1
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
@@ -2791,16 +2791,16 @@
    "novice",
    "floor"
   ],
-  "seconds": 156.57,
-  "seed": 205593337,
-  "attempts": 7,
+  "seconds": 290.01,
+  "seed": 327343311,
+  "attempts": 8,
   "rejects": {
-   "offTarget": 34,
-   "stall": 42,
-   "layout": 60,
-   "objectives": 27
+   "layout": 140,
+   "stall": 37,
+   "offTarget": 35,
+   "objectives": 2
   },
-  "ratings": 109
+  "ratings": 79
  },
  {
   "index": 31,
