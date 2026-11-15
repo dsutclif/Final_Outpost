@@ -53,6 +53,7 @@ import { disposeGeo, getAnchor, mesh, model, type BuildCtx, type Model } from ".
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
 import { markOccluder } from "./materials.js";
+import { PAD_FILL_STEPS, padFillStep, padPinFillKey } from "./padring.js";
 import { FALL_CAM_IN, FALL_CAM_OUT, FALL_LEAD, FALL_PITCH, FALL_ZOOM, ROLL_S, helmetMiddle, rollPose, wearHelmet, type Pose } from "./scene/fallstage.js";
 import { applyMeshy, gateDoorFit, loadMeshy, meshyRig, meshyBase, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
 import { buildModel, hasModel } from "./assets/registry.js";
@@ -2258,7 +2259,7 @@ export class Renderer3D implements Renderer {
       const total = Object.values(cost).reduce((x, y) => x + y, 0) || 1;
       const paid = Object.entries(cost).reduce((x, [r, c]) => x + Math.min(c, pad.paid[r] ?? 0), 0);
       const fill = paid / total;
-      const fb = Math.round(fill * 24);
+      const fb = padFillStep(fill);
       // ground decal: dashed outline, fill ring
       let decal = p.extra[0] as Mesh | undefined;
       if (!decal) {
@@ -2277,7 +2278,7 @@ export class Renderer3D implements Renderer {
       decal.scale.setScalar(2.1 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
       if (dm) this.hideUnderCharacters(dm);
       pts.push({ id: pad.id, x: at.x, z: at.z });
-      this.padPin(p, pad.id, at, icon, color, lightMark, locked);
+      this.padPin(p, pad.id, at, icon, color, lightMark, locked, fb);
       // floating name plus every cost resource with what is still owed (icon + number each)
       const sp = this.sprite(p, 0);
       const owed = Object.entries(cost).map(([res, n]) => ({ res, left: Math.max(0, n - (pad.paid[res] ?? 0)) }));
@@ -3371,13 +3372,14 @@ export class Renderer3D implements Renderer {
    * by a thin pole of light, both see-through and drawn over everything, so it reads as a digital overlay, not an object.
    * Shown only while a wall or building covers the pad's ground point from the camera.
    */
-  private padPin(p: Placed, id: string, at: Vector3, icon: string | null, color: string, light: boolean, locked: boolean): void {
+  private padPin(p: Placed, id: string, at: Vector3, icon: string | null, color: string, light: boolean, locked: boolean, fb: number): void {
     const top = this.padHidden.get(id);
     if (top !== undefined) p.data["pinT"] = this.t;
     const on = this.t - ((p.data["pinT"] as number | undefined) ?? -9) < 0.2;
     let pole = p.extra[5] as Mesh | undefined;
     const sp = this.sprite(p, 7);
-    if (!on) { if (pole) pole.visible = false; sp.visible = false; return; }
+    const fs = this.sprite(p, 8);
+    if (!on) { if (pole) pole.visible = false; sp.visible = false; fs.visible = false; return; }
     if (top !== undefined) p.data["pinH"] = Math.max(top + 0.7 * ART_M, 2.3 * ART_M);
     const h = (p.data["pinH"] as number | undefined) ?? 2.3 * ART_M;
     if (!pole) {
@@ -3398,6 +3400,25 @@ export class Renderer3D implements Renderer {
     // the pole ends at the pin's lower edge, not its centre
     pole.scale.set(0.09 * ART_M, Math.max(0.1, sp.position.y - 2.4 - sp.scale.y / 2), 1);
     sp.material.opacity = 0.9 * flick;
+    // payment fill: a separate arc sprite on the pin, stepped like the ground ring, so the pin art's own cache key never carries it
+    fs.renderOrder = sp.renderOrder + 1;
+    fs.visible = fb > 0 && this.labels.apply(fs, padPinFillKey(fb, color, locked), () => this.padPinFillArt(fb, color, locked), PAD_LABEL_H * PIN_SIZE);
+    if (fs.visible) { fs.position.copy(sp.position); fs.scale.copy(sp.scale); fs.material.opacity = sp.material.opacity; }
+  }
+
+  /** The pin's payment arc: the inset ring's radius, clockwise from the top, the ground ring's fb/24 steps. */
+  private padPinFillArt(fb: number, color: string, locked: boolean): LabelArt {
+    return {
+      w: 256, h: 256, premult: true,
+      draw: (g, w, h) => {
+        g.clearRect(0, 0, w, h);
+        g.globalAlpha = locked ? 0.6 : 1;
+        g.shadowColor = color; g.shadowBlur = 18;
+        g.lineWidth = 12; g.lineCap = "butt"; g.strokeStyle = color;
+        g.beginPath(); g.arc(w / 2, h / 2, 86, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (fb / PAD_FILL_STEPS)); g.stroke();
+        g.shadowBlur = 0; g.globalAlpha = 1;
+      },
+    };
   }
 
   /** The pin: a dark smoked-glass coin with a clear thick rim, a glowing white inset ring and a solid glowing white icon. */
