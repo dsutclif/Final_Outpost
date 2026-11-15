@@ -174,8 +174,8 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.275,
-      "fun": 0.862,
+      "rating": 0.246,
+      "fun": 0.8,
       "target": 0.267
     },
     {
@@ -665,8 +665,8 @@
         "sales"
       ],
       "goal": "clear_zones",
-      "rating": 0.715,
-      "fun": 0.556,
+      "rating": 0.727,
+      "fun": 0.597,
       "target": 0.713
     },
     {
@@ -887,8 +887,8 @@
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.718,
-      "fun": 0.604,
+      "rating": 0.751,
+      "fun": 0.517,
       "target": 0.756
     },
     {
@@ -1064,8 +1064,8 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.685,
-      "fun": 0.873,
+      "rating": 0.763,
+      "fun": 0.915,
       "target": 0.713
     },
     {

@@ -1163,21 +1163,21 @@
     "kind": "stockpile",
     "params": {
      "res": "res.material_basic",
-     "n": 5
+     "n": 8
     }
    },
    {
     "id": "challenge",
-    "kind": "heat_floor",
+    "kind": "hire",
     "params": {
-     "pct": 50
+     "n": 10
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 360
+     "seconds": 322
     }
    }
   ],
@@ -1210,15 +1210,15 @@
   "goal": "stockpile",
   "template": "corridor",
   "target": 0.267,
-  "D": 0.27535873219484447,
-  "F": 0.8619680866956672,
+  "D": 0.2460603236255312,
+  "F": 0.8004870375733827,
   "onTarget": true,
   "margin": {
-   "good": 0.6450555555555554,
-   "average": 0.6396481481481482,
-   "weak": 0.6588333333333333,
-   "novice": 0.6020740740740741,
-   "floor": 0.5769074074074074
+   "good": 0.6529181286549708,
+   "average": 0.6228654970760235,
+   "weak": 0.6179142300194932,
+   "novice": 0.5358284600389863,
+   "floor": 0.520662768031189
   },
   "winRate": {
    "good": 1,
@@ -1234,13 +1234,11 @@
    "novice",
    "floor"
   ],
-  "seconds": 74.903,
+  "seconds": 45.561,
   "seed": 1387735723,
   "attempts": 1,
-  "rejects": {
-   "offTarget": 5
-  },
-  "ratings": 10
+  "rejects": {},
+  "ratings": 3
  },
  {
   "index": 15,
@@ -3507,14 +3505,14 @@
     "id": "challenge",
     "kind": "heat_floor",
     "params": {
-     "pct": 45
+     "pct": 50
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 151
+     "seconds": 146
     }
    }
   ],
@@ -3546,14 +3544,14 @@
   "goal": "clear_zones",
   "template": "north_fields",
   "target": 0.713,
-  "D": 0.7152088885233272,
-  "F": 0.5561859394637021,
+  "D": 0.7273771993031577,
+  "F": 0.5966112711270171,
   "onTarget": true,
   "margin": {
-   "good": 0.5883636363636364,
-   "average": 0.5227272727272728,
-   "weak": 0.4465151515151515,
-   "novice": 0.23196969696969694,
+   "good": 0.5854761904761905,
+   "average": 0.4762433862433862,
+   "weak": 0.41619047619047617,
+   "novice": 0.1613227513227513,
    "floor": -1
   },
   "winRate": {
@@ -3569,7 +3567,7 @@
    "weak",
    "novice"
   ],
-  "seconds": 9.728,
+  "seconds": 30.716,
   "seed": 1094709853,
   "attempts": 1,
   "rejects": {
@@ -4589,7 +4587,7 @@
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 297
+     "seconds": 314
     }
    }
   ],
@@ -4621,15 +4619,15 @@
   "goal": "core_level",
   "template": "north_fields",
   "target": 0.756,
-  "D": 0.717692019151355,
-  "F": 0.6036332232313223,
+  "D": 0.7507626085844644,
+  "F": 0.5170251616540741,
   "onTarget": true,
   "margin": {
-   "good": 0.5325470085470085,
-   "average": 0.47490028490028485,
-   "weak": 0.40712250712250714,
-   "novice": 0.08321937321937323,
-   "floor": -0.3333333333333333
+   "good": 0.5313253968253967,
+   "average": 0.4864021164021164,
+   "weak": 0.4006349206349207,
+   "novice": 0.12148148148148148,
+   "floor": -0.4444444444444445
   },
   "winRate": {
    "good": 1,
@@ -4644,13 +4642,11 @@
    "weak",
    "novice"
   ],
-  "seconds": 31.927,
+  "seconds": 31.035,
   "seed": 2061895893,
   "attempts": 1,
-  "rejects": {
-   "offTarget": 3
-  },
-  "ratings": 6
+  "rejects": {},
+  "ratings": 2
  },
  {
   "index": 50,
@@ -5440,27 +5436,27 @@
     "kind": "stockpile",
     "params": {
      "res": "res.material_basic",
-     "n": 8
+     "n": 5
     }
    },
    {
     "id": "challenge",
-    "kind": "heat_floor",
+    "kind": "hire",
     "params": {
-     "pct": 35
+     "n": 11
     }
    },
    {
     "id": "time",
     "kind": "time_target",
     "params": {
-     "seconds": 473
+     "seconds": 452
     }
    }
   ],
   "stars": {
    "good": 3,
-   "median": 2.67,
+   "median": 3,
    "goodAll": 1,
    "human": 3,
    "humanAll": 1
@@ -5468,9 +5464,9 @@
   "starsByRung": {
    "good": 3,
    "average": 3,
-   "weak": 2.67,
-   "novice": 2.67,
-   "floor": 1.33,
+   "weak": 3,
+   "novice": 3,
+   "floor": 2.67,
    "human": 3
   },
   "modules": [
@@ -5487,22 +5483,22 @@
   "goal": "stockpile",
   "template": "corridor",
   "target": 0.713,
-  "D": 0.6849682169054508,
-  "F": 0.8729321091579848,
+  "D": 0.7628891091436256,
+  "F": 0.9154835856698796,
   "onTarget": true,
   "margin": {
-   "good": 0.43998742138364777,
-   "average": 0.4010062893081761,
-   "weak": 0.36180293501048216,
-   "novice": 0.24905660377358493,
-   "floor": 0.08631027253668762
+   "good": 0.4284466666666666,
+   "average": 0.37222222222222223,
+   "weak": 0.36146666666666666,
+   "novice": 0.2949111111111111,
+   "floor": -0.29473333333333335
   },
   "winRate": {
    "good": 1,
    "average": 1,
    "weak": 1,
    "novice": 1,
-   "floor": 1
+   "floor": 0.6666666666666666
   },
   "botsPassed": [
    "good",
@@ -5511,7 +5507,7 @@
    "novice",
    "floor"
   ],
-  "seconds": 78.815,
+  "seconds": 63.221,
   "seed": 212345883,
   "attempts": 1,
   "rejects": {

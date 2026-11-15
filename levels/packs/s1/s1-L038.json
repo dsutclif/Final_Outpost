@@ -45,42 +45,42 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        292,
-        710
+        307,
+        708
       ],
       "sells": [
         "res.food_raw_1"
       ],
       "queue": [
         [
-          231,
-          710
+          246,
+          708
         ],
         [
-          231,
-          744
+          246,
+          742
         ],
         [
-          231,
-          778
+          246,
+          776
         ],
         [
-          231,
-          812
+          246,
+          810
         ]
       ],
       "route": [
         [
-          231,
+          249,
           920
         ],
         [
-          231,
+          249,
           897
         ],
         [
-          231,
-          710
+          246,
+          708
         ]
       ]
     },
@@ -200,22 +200,22 @@
     {
       "type": "node.fuel_scrap",
       "at": [
-        377,
-        635
+        395,
+        600
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        392,
-        608
+        386,
+        646
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        370,
-        668
+        396,
+        677
       ]
     },
     {
@@ -283,9 +283,9 @@
   "events": [
     {
       "type": "event.hazard",
-      "warnAt": 4,
-      "start": 12,
-      "end": 52
+      "warnAt": 6,
+      "start": 14,
+      "end": 54
     }
   ],
   "params": {
@@ -297,7 +297,7 @@
     "customers.spawn": 3,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 220
+    "level.budgetSeconds": 210
   },
   "goal": {
     "type": "clear_zones",
@@ -316,14 +316,14 @@
       "id": "challenge",
       "kind": "heat_floor",
       "params": {
-        "pct": 45
+        "pct": 50
       }
     },
     {
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 151
+        "seconds": 146
       }
     }
   ],
@@ -340,9 +340,9 @@
     }
   },
   "rating": {
-    "difficulty": 0.715,
-    "fun": 0.556,
-    "botMargin": 0.588,
+    "difficulty": 0.727,
+    "fun": 0.597,
+    "botMargin": 0.585,
     "botsPassed": [
       "good",
       "average",
