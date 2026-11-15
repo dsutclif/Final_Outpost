@@ -109,6 +109,18 @@ function titleVideoPreload(): Plugin {
   };
 }
 
+/** Fills the inline title poster in index.html (%TITLE_POSTER_DATA%) from the poster file, dev and build alike. */
+function inlineTitlePoster(): Plugin {
+  const file = resolve(here, "src/cinematics/title_loop.poster.jpg");
+  return {
+    name: "fo-inline-title-poster",
+    transformIndexHtml: {
+      order: "pre",
+      handler: (html) => html.replace("%TITLE_POSTER_DATA%", `data:image/jpeg;base64,${readFileSync(file).toString("base64")}`),
+    },
+  };
+}
+
 export default defineConfig({
   // GitHub Pages serves from /<repo>/; CI sets BASE_PATH, local builds stay at the root.
   base: process.env.BASE_PATH ?? "/",
@@ -122,6 +134,7 @@ export default defineConfig({
     rollupOptions: { input: { main: resolve(here, "index.html"), sandbox: resolve(here, "sandbox.html"), layout: resolve(here, "layout.html") } },
   },
   plugins: [
+    inlineTitlePoster(),
     titleVideoPreload(),
     levelPacks(),
     releaseInfo(),

@@ -11,8 +11,11 @@
     <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Farthest Outpost</title>
+    <!-- the title poster inline (build fills the data URI), so the scene paints with the first bytes of the document, before any file loads; app.ts removes it once the title video plays -->
+    <style>#boot-poster{position:fixed;inset:0;z-index:0;background:#0c0d0f url(%TITLE_POSTER_DATA%) center/cover no-repeat;transition:opacity .5s ease;pointer-events:none}#boot-poster.off{opacity:0}</style>
   </head>
   <body>
+    <div id="boot-poster" aria-hidden="true"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

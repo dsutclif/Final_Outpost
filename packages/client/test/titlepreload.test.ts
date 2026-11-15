@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { findTitleVideo, titleVideoPreloadTag } from "../src/titlepreload.js";
 
@@ -16,7 +16,9 @@ describe("title video preload", () => {
 
   // runs against the output of `pnpm build`; skipped when no build is on disk
   const built = new URL("../dist/index.html", import.meta.url);
-  it.skipIf(!existsSync(built))("in the built index.html the title video preload is the first preload", () => {
+// a build older than its sources says nothing about them
+const fresh = existsSync(built) && statSync(built).mtimeMs > Math.max(statSync(new URL("../index.html", import.meta.url)).mtimeMs, statSync(new URL("../vite.config.ts", import.meta.url)).mtimeMs, statSync(new URL("../src/titlepreload.ts", import.meta.url)).mtimeMs);
+  it.skipIf(!fresh)("in the built index.html the title video preload is the first preload", () => {
     const links = [...readFileSync(built, "utf8").matchAll(/<link[^>]*rel="(?:preload|modulepreload)"[^>]*>/g)].map((m) => m[0]);
     expect(links[0]).toMatch(/as="video"/);
     expect(links[0]).toMatch(/title_loop-[^"]*\.mp4/);

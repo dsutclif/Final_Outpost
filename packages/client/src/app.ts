@@ -239,6 +239,7 @@ export class App {
     warm3D();
     // the character downloads wait for the title video to play (or 8 s) so they do not compete with it on a first visit
     this.titleGate.run(preloadCharacters);
+    this.titleGate.run(() => this.dropBootPoster());
     void this.prefetch();
   }
 
@@ -594,9 +595,18 @@ export class App {
     }
   }
 
+  /** The inline first-paint poster (index.html): fades out once the title video plays, at 8 s, or as soon as another screen shows. */
+  private dropBootPoster(): void {
+    const el = this.el.app.ownerDocument.getElementById("boot-poster");
+    if (!el) return;
+    el.classList.add("off");
+    setTimeout(() => el.remove(), 600);
+  }
+
   private show(screen: Screen): void {
     const prev = this.screen;
     this.screen = screen;
+    if (screen !== "title") this.dropBootPoster();
     for (const [k, el] of Object.entries(this.el.ov)) el.hidden = k !== screen;
     this.input.enabled = screen === "playing";
     if (screen !== "playing") this.input.release();
@@ -633,7 +643,7 @@ export class App {
         </div>
         ${this.updateReady ? `<button class="small" data-a="update">${esc(uiText(s, "updateNow"))}</button>` : ""}
       </div>`;
-    if (!this.title) this.title = new TitleBackdrop(ov, this.skin, (code, retried) => this.reporter?.emit("lifecycle", { what: "title_video_error", code, retried, screen: "title" }), () => this.titleGate.open());
+    if (!this.title) this.title = new TitleBackdrop(ov, this.skin, (code, retried) => this.reporter?.emit("lifecycle", { what: "title_video_error", code, retried, screen: "title" }), () => { this.titleGate.open(); this.dropBootPoster(); });
     else this.title.attach();
     this.title.start();
     this.wire(ov, {
