@@ -25,7 +25,7 @@ export class TitleBackdrop {
   private motes: Mote[] = [];
   private stars: { x: number; y: number; r: number }[] = [];
 
-  constructor(private readonly host: HTMLElement, private skin: Skin, private readonly onError?: (code: number, retried: boolean) => void) {
+  constructor(private readonly host: HTMLElement, private skin: Skin, private readonly onError?: (code: number, retried: boolean) => void, private readonly onPlaying?: () => void) {
     const doc = host.ownerDocument;
     this.canvas = doc.createElement("canvas");
     this.canvas.className = "title-bg";
@@ -60,7 +60,7 @@ export class TitleBackdrop {
     this.timeout = setTimeout(() => { if (this.video === v && v.readyState < 3) this.fallback(true); }, FALLBACK_MS);
     // the loop's restart fires a brief "waiting" every pass, so only a stall that lasts counts
     let stall: ReturnType<typeof setTimeout> | undefined;
-    v.addEventListener("playing", () => { clearTimeout(stall); clearTimeout(this.timeout); this.fallback(false); });
+    v.addEventListener("playing", () => { clearTimeout(stall); clearTimeout(this.timeout); this.fallback(false); this.onPlaying?.(); });
     v.addEventListener("waiting", () => {
       clearTimeout(stall);
       stall = setTimeout(() => { if (v.paused || v.readyState < 3) this.fallback(true); }, 1200);

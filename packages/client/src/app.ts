@@ -24,6 +24,7 @@ import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
 import { FILM_VERSIONS, REPLAY_FILMS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
 import { preloadCharacters } from "./preload.js";
+import { TITLE_VIDEO_HOLD_MS, createGate, type Gate } from "./gate.js";
 import { KilnCloud, StoryStage, directorFor, type StoryDirector } from "./story/index.js";
 import { KilnIntro, kilnLines } from "./kilnintro.js";
 import { Reporter, deviceFacts, randomId, type AttemptEnd } from "./report.js";
@@ -154,6 +155,7 @@ export class App {
   private retryArmed: ReturnType<typeof setTimeout> | null = null;
   private readonly platform: Platform;
   private title: TitleBackdrop | null = null;
+  private readonly titleGate: Gate = createGate(TITLE_VIDEO_HOLD_MS);
   private last = 0;
   private hidden = false;
   private fps = 60;
@@ -235,7 +237,8 @@ export class App {
     this.show("title");
     if (this.deps.justUpdated) void this.continueToast();
     warm3D();
-    preloadCharacters();
+    // the character downloads wait for the title video to play (or 8 s) so they do not compete with it on a first visit
+    this.titleGate.run(preloadCharacters);
     void this.prefetch();
   }
 
@@ -630,7 +633,7 @@ export class App {
         </div>
         ${this.updateReady ? `<button class="small" data-a="update">${esc(uiText(s, "updateNow"))}</button>` : ""}
       </div>`;
-    if (!this.title) this.title = new TitleBackdrop(ov, this.skin, (code, retried) => this.reporter?.emit("lifecycle", { what: "title_video_error", code, retried, screen: "title" }));
+    if (!this.title) this.title = new TitleBackdrop(ov, this.skin, (code, retried) => this.reporter?.emit("lifecycle", { what: "title_video_error", code, retried, screen: "title" }), () => this.titleGate.open());
     else this.title.attach();
     this.title.start();
     this.wire(ov, {
