@@ -6,7 +6,7 @@ import { VitePWA } from "vite-plugin-pwa";
 // Relative import: the config is bundled by esbuild, and this file only imports types.
 import { marsGreenhouse as skin } from "../skins/src/mars_greenhouse";
 import { PROGRESS_EPOCH } from "./src/epoch";
-import { findTitleVideo, titleVideoPreloadTag } from "./src/titlepreload";
+import { findTitleFonts, findTitleVideo, fontPreloadTag, titleVideoPreloadTag } from "./src/titlepreload";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PACKS = resolve(here, "../../levels/packs");
@@ -95,15 +95,17 @@ function precacheInfo(): Plugin {
   };
 }
 
-/** First-visit speed: ask for the title video before any script chunk or other download is queued (build only; the dev server has no bundle). */
+/** First-visit speed: ask for the title video, then its two fonts, before any script chunk or other download is queued (build only; the dev server has no bundle). */
 function titleVideoPreload(): Plugin {
   return {
     name: "fo-title-video-preload",
     transformIndexHtml: {
       order: "post",
       handler(_html, ctx) {
-        const file = ctx.bundle ? findTitleVideo(Object.keys(ctx.bundle)) : null;
-        return file ? [titleVideoPreloadTag(process.env.BASE_PATH ?? "/", file)] : [];
+        const names = ctx.bundle ? Object.keys(ctx.bundle) : [], base = process.env.BASE_PATH ?? "/";
+        const video = findTitleVideo(names);
+        // the video first, then the two title faces
+        return [...(video ? [titleVideoPreloadTag(base, video)] : []), ...findTitleFonts(names).map((f) => fontPreloadTag(base, f))];
       },
     },
   };

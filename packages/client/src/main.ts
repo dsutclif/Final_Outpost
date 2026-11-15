@@ -1,8 +1,4 @@
-import "@fontsource/barlow-condensed/latin-600.css";
-import "@fontsource/barlow-condensed/latin-700.css";
-import "@fontsource/barlow-condensed/latin-800.css";
-import "@fontsource/barlow/latin-500.css";
-import "@fontsource/barlow/latin-700.css";
+import "./fonts.css";
 import "./style.css";
 import { App } from "./app.js";
 import { isFirstRun, runFirstRun } from "./loader.js";

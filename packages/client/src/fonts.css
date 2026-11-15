@@ -1,0 +1,6 @@
+/* The five faces fontsource ships, woff2 only (every browser we target reads it); fontsource's own css also lists woff, which doubled the build's font files. */
+@font-face { font-family: 'Barlow Condensed'; font-style: normal; font-display: swap; font-weight: 600; src: url(@fontsource/barlow-condensed/files/barlow-condensed-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-style: normal; font-display: swap; font-weight: 700; src: url(@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-style: normal; font-display: swap; font-weight: 800; src: url(@fontsource/barlow-condensed/files/barlow-condensed-latin-800-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-style: normal; font-display: swap; font-weight: 500; src: url(@fontsource/barlow/files/barlow-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-style: normal; font-display: swap; font-weight: 700; src: url(@fontsource/barlow/files/barlow-latin-700-normal.woff2) format('woff2'); }
