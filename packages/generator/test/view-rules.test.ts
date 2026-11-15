@@ -81,4 +81,43 @@ describe("camera view rules", () => {
     }
     expect(walled).toBeGreaterThan(0);
   }, 300_000);
+
+  it("each road turret borders the road it covers, with its pad behind it away from the road", () => {
+    let checked = 0;
+    const bad: string[] = [];
+    for (const dSeed of SEEDS) for (let i = 1; i <= reqs.length; i++) {
+      if (reqs[i - 1]!.family !== "defend") continue;
+      const b = build(i, dSeed);
+      if (!b) continue;
+      const ents = b.manifest.entities as unknown as Ent[];
+      const ring = ents.find((e) => e.type === "barrier.line" && e.points && e.gates);
+      if (!ring) continue;
+      const pts = ring.points!;
+      const gates = (ring.gates ?? []).map((k) => [pts[k]!, pts[(k + 1) % pts.length]!] as [Pt, Pt]);
+      for (const t of ents) {
+        const m = /^tower_([nsew])\d+$/.exec(t.id ?? "");
+        if (!m || t.type !== "pad.build" || !t.site || !t.at) continue;
+        const sd = m[1]!, ew = sd === "e" || sd === "w", ax = ew ? 1 : 0; // ax: the coordinate across the road
+        // the gates on this side: an east or west gate runs along y, a north or south one along x
+        const out = (q: Pt) => (sd === "n" ? -q[1] : sd === "s" ? q[1] : sd === "w" ? -q[0] : q[0]);
+        const along = gates.filter(([a, c]) => (ew ? a[0] === c[0] : a[1] === c[1]));
+        if (along.length === 0) continue;
+        const far = Math.max(...along.map(([a]) => out(a)));
+        const side = along.filter(([a]) => out(a) === far); // the gates of the wall on this side
+        // a road turret stands outside the wall: further out than every gate of its side
+        if (out(t.site) <= Math.max(...side.map(([a]) => out(a)))) continue;
+        // the road it covers is one of its side's gates' lanes (two gates side by side share a wall)
+        const lanes = side.map(([a, c]) => (a[ax] + c[ax]) / 2).filter((l) => Math.abs(t.site![ax] - l) <= 140);
+        if (lanes.length === 0) continue; // belongs to another side's road
+        checked++;
+        const ok = lanes.some((lane) => {
+          const dSite = Math.abs(t.site![ax] - lane), gap = dSite - (ew ? 45 : 19);
+          return gap <= 45 && (t.at![ax] - lane) * Math.sign(t.site![ax] - lane) > dSite;
+        });
+        if (!ok) bad.push(`${reqs[i - 1]!.id}+${dSeed} ${t.id}: not beside its road with the pad behind`);
+      }
+    }
+    expect(checked).toBeGreaterThan(20);
+    expect(bad).toEqual([]);
+  }, 300_000);
 });

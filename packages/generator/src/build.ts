@@ -1043,10 +1043,10 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           for (const sg of [-1, 1]) {
             const site = find(m, al, o, [sg * (sd === "e" || sd === "w" ? RD.towerUEW : RD.towerU), v], "struct.ranged_defense", SK.siteR, false);
             if (!site) continue;
-            // its pad just off the tower toward the road (clear of the footprint, which is longer along y)
-            const toRoad: Pt = [-sg * al[0], -sg * al[1]];
-            const ext = (toRoad[0] + toRoad[1] > 0 ? tf[toRoad[0] ? 2 : 3]! : -tf[toRoad[0] ? 0 : 1]!) + g + 26;
-            const u0 = (site[0] - m[0]) * al[0] + (site[1] - m[1]) * al[1] - sg * ext;
+            // its pad directly behind it, on the side away from the road (clear of the footprint, which is longer along y)
+            const away: Pt = [sg * al[0], sg * al[1]];
+            const ext = (away[0] + away[1] > 0 ? tf[away[0] ? 2 : 3]! : -tf[away[0] ? 0 : 1]!) + g + 26;
+            const u0 = (site[0] - m[0]) * al[0] + (site[1] - m[1]) * al[1] + sg * ext;
             const pv: [number, number] = [u0, (site[0] - m[0]) * o[0] + (site[1] - m[1]) * o[1]];
             P.add("probe@site", site, 0, { fp: "struct.ranged_defense" });
             const tp = find(m, al, o, pv, "pad", R.pad + S.margin, true);
