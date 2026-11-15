@@ -1,0 +1,547 @@
+{
+ "_doc": "Pads hidden (75% or more of the disc covered) or partly hidden on screen per shipped level, tower pads included. Test: pad-view-pack.test.ts. Only ever rewritten when the numbers go down.",
+ "total": {
+  "levelsAffected": 37,
+  "levelsHidden": 32,
+  "hiddenPads": 74,
+  "partlyPads": 50
+ },
+ "levels": {
+  "s1-L006": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "housing1"
+   ],
+   "partlyPads": []
+  },
+  "s1-L007": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L008": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "hire_core"
+   ],
+   "partlyPads": []
+  },
+  "s1-L009": {
+   "hidden": 2,
+   "partly": 0,
+   "hiddenPads": [
+    "saw_feeder",
+    "sawyer"
+   ],
+   "partlyPads": []
+  },
+  "s1-L010": {
+   "hidden": 7,
+   "partly": 6,
+   "hiddenPads": [
+    "tower_w1",
+    "tower_w1_up",
+    "tower_w1_up3",
+    "tower_n1",
+    "tower_n1_up",
+    "tower_n1_up3",
+    "medic_hire"
+   ],
+   "partlyPads": [
+    "tower_w2",
+    "tower_w2_up",
+    "tower_w2_up3",
+    "tower_n2",
+    "tower_n2_up",
+    "tower_n2_up3"
+   ]
+  },
+  "s1-L011": {
+   "hidden": 0,
+   "partly": 2,
+   "hiddenPads": [],
+   "partlyPads": [
+    "core_level0",
+    "core_level1"
+   ]
+  },
+  "s1-L012": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "core_level0"
+   ],
+   "partlyPads": []
+  },
+  "s1-L013": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L014": {
+   "hidden": 2,
+   "partly": 1,
+   "hiddenPads": [
+    "saw_feeder",
+    "sawyer"
+   ],
+   "partlyPads": [
+    "hire_core"
+   ]
+  },
+  "s1-L015": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L016": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "core_level0"
+   ],
+   "partlyPads": []
+  },
+  "s1-L017": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L018": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L019": {
+   "hidden": 1,
+   "partly": 2,
+   "hiddenPads": [
+    "hire_core"
+   ],
+   "partlyPads": [
+    "saw_feeder",
+    "sawyer"
+   ]
+  },
+  "s1-L020": {
+   "hidden": 0,
+   "partly": 1,
+   "hiddenPads": [],
+   "partlyPads": [
+    "housing1"
+   ]
+  },
+  "s1-L021": {
+   "hidden": 3,
+   "partly": 3,
+   "hiddenPads": [
+    "tower_n1",
+    "tower_n1_up",
+    "tower_n1_up3"
+   ],
+   "partlyPads": [
+    "tower_n2",
+    "tower_n2_up",
+    "tower_n2_up3"
+   ]
+  },
+  "s1-L022": {
+   "hidden": 0,
+   "partly": 2,
+   "hiddenPads": [],
+   "partlyPads": [
+    "core_level0",
+    "core_level1"
+   ]
+  },
+  "s1-L023": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L024": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L025": {
+   "hidden": 4,
+   "partly": 0,
+   "hiddenPads": [
+    "hire_core",
+    "refined_carrier",
+    "smith",
+    "component_server"
+   ],
+   "partlyPads": []
+  },
+  "s1-L026": {
+   "hidden": 3,
+   "partly": 3,
+   "hiddenPads": [
+    "tower_n1",
+    "tower_n1_up",
+    "tower_n1_up3"
+   ],
+   "partlyPads": [
+    "tower_n2",
+    "tower_n2_up",
+    "tower_n2_up3"
+   ]
+  },
+  "s1-L027": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L028": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L029": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L030": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "hire_cashier"
+   ],
+   "partlyPads": []
+  },
+  "s1-L031": {
+   "hidden": 1,
+   "partly": 1,
+   "hiddenPads": [
+    "grill"
+   ],
+   "partlyPads": [
+    "grill_level"
+   ]
+  },
+  "s1-L032": {
+   "hidden": 4,
+   "partly": 3,
+   "hiddenPads": [
+    "hire_core",
+    "tower_n1",
+    "tower_n1_up",
+    "tower_n1_up3"
+   ],
+   "partlyPads": [
+    "tower_n2",
+    "tower_n2_up",
+    "tower_n2_up3"
+   ]
+  },
+  "s1-L033": {
+   "hidden": 0,
+   "partly": 1,
+   "hiddenPads": [],
+   "partlyPads": [
+    "housing1"
+   ]
+  },
+  "s1-L034": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "ranger"
+   ],
+   "partlyPads": []
+  },
+  "s1-L035": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L036": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L037": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L038": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "core_level0"
+   ],
+   "partlyPads": []
+  },
+  "s1-L039": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L040": {
+   "hidden": 3,
+   "partly": 2,
+   "hiddenPads": [
+    "feeder",
+    "cook",
+    "server"
+   ],
+   "partlyPads": [
+    "saw_feeder",
+    "sawyer"
+   ]
+  },
+  "s1-L041": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "hire_core"
+   ],
+   "partlyPads": []
+  },
+  "s1-L042": {
+   "hidden": 4,
+   "partly": 0,
+   "hiddenPads": [
+    "grill",
+    "feeder",
+    "cook",
+    "server"
+   ],
+   "partlyPads": []
+  },
+  "s1-L043": {
+   "hidden": 3,
+   "partly": 3,
+   "hiddenPads": [
+    "tower_n1",
+    "tower_n1_up",
+    "tower_n1_up3"
+   ],
+   "partlyPads": [
+    "tower_n2",
+    "tower_n2_up",
+    "tower_n2_up3"
+   ]
+  },
+  "s1-L044": {
+   "hidden": 0,
+   "partly": 1,
+   "hiddenPads": [],
+   "partlyPads": [
+    "housing1"
+   ]
+  },
+  "s1-L045": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L046": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "hire_core"
+   ],
+   "partlyPads": []
+  },
+  "s1-L047": {
+   "hidden": 1,
+   "partly": 2,
+   "hiddenPads": [
+    "hire_core"
+   ],
+   "partlyPads": [
+    "saw_feeder",
+    "sawyer"
+   ]
+  },
+  "s1-L048": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L049": {
+   "hidden": 3,
+   "partly": 0,
+   "hiddenPads": [
+    "core_level0",
+    "core_level1",
+    "clear0"
+   ],
+   "partlyPads": []
+  },
+  "s1-L050": {
+   "hidden": 1,
+   "partly": 2,
+   "hiddenPads": [
+    "hire_core"
+   ],
+   "partlyPads": [
+    "saw_feeder",
+    "sawyer"
+   ]
+  },
+  "s1-L051": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L052": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "hire_core"
+   ],
+   "partlyPads": []
+  },
+  "s1-L053": {
+   "hidden": 1,
+   "partly": 5,
+   "hiddenPads": [
+    "grill"
+   ],
+   "partlyPads": [
+    "feeder",
+    "cook",
+    "server",
+    "saw_feeder",
+    "sawyer"
+   ]
+  },
+  "s1-L054": {
+   "hidden": 3,
+   "partly": 3,
+   "hiddenPads": [
+    "tower_n1",
+    "tower_n1_up",
+    "tower_n1_up3"
+   ],
+   "partlyPads": [
+    "tower_n2",
+    "tower_n2_up",
+    "tower_n2_up3"
+   ]
+  },
+  "s1-L055": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "core_level0"
+   ],
+   "partlyPads": []
+  },
+  "s1-L056": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L057": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "s1-L058": {
+   "hidden": 3,
+   "partly": 0,
+   "hiddenPads": [
+    "hire_core",
+    "saw_feeder",
+    "sawyer"
+   ],
+   "partlyPads": []
+  },
+  "s1-L059": {
+   "hidden": 6,
+   "partly": 3,
+   "hiddenPads": [
+    "tower_n1",
+    "tower_n1_up",
+    "tower_n1_up3",
+    "train",
+    "barracks_up",
+    "medic"
+   ],
+   "partlyPads": [
+    "tower_n2",
+    "tower_n2_up",
+    "tower_n2_up3"
+   ]
+  },
+  "s1-L060": {
+   "hidden": 7,
+   "partly": 4,
+   "hiddenPads": [
+    "hire_core",
+    "hire_cashier",
+    "tower_n1",
+    "tower_n1_up",
+    "tower_n1_up3",
+    "train",
+    "barracks_up"
+   ],
+   "partlyPads": [
+    "hire_food",
+    "tower_n2",
+    "tower_n2_up",
+    "tower_n2_up3"
+   ]
+  },
+  "story-L001": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "story-L002": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "story-L003": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "story-L004": {
+   "hidden": 0,
+   "partly": 0,
+   "hiddenPads": [],
+   "partlyPads": []
+  },
+  "story-L005": {
+   "hidden": 1,
+   "partly": 0,
+   "hiddenPads": [
+    "train"
+   ],
+   "partlyPads": []
+  }
+ }
+}

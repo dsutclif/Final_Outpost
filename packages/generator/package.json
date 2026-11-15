@@ -12,6 +12,7 @@
     "@fo/bots": "workspace:*",
     "@fo/rater": "workspace:*",
     "@fo/sequencer": "workspace:*",
-    "@fo/skins": "workspace:*"
+    "@fo/skins": "workspace:*",
+    "@fo/render-3d": "workspace:*"
   }
 }

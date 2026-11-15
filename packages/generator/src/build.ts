@@ -1,4 +1,5 @@
 import { CONTENT_VERSION, LOOK, PLOT, maxModelScale, content as defaultContent, type PlotFile, type Content, type Manifest } from "@fo/content";
+import { padVisibilityReport, type PadVisibilityReport, type ViewEnt } from "./viewVisibility.js";
 import { ENGINE_VERSION, createSim, salesLayout, type Compiled } from "@fo/sim";
 import { MEDIC_FAR_BAY, planBot } from "@fo/bots";
 import templatesData from "../data/templates.json";
@@ -86,7 +87,7 @@ export const GEN = genData as unknown as {
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
   medicPad: { u: number; v: number; near: number };
   /** Camera view rules: no pad behind a building or wall; attack sides face the camera; see generator.json. */
-  viewClear: { wallShadow: number; attackSides: ("n" | "e" | "s" | "w")[] };
+  viewClear: { wallShadow: number; attackSides: ("n" | "e" | "s" | "w")[]; realCamera: boolean };
   defendSockets: { keepForest: number; startInside: number; inside: [number, number][]; insideEW: [number, number][]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number };
   /** Batch 3: the padded defend map and the socket-lined roads; see generator.json. */
   defendRoad: { pad: number; maxPairs: number; first: number; step: number; towerU: number; towerUEW: number; endGap: number; priceGrowth: number };
@@ -182,7 +183,9 @@ export interface BuildInput {
 /** How index.ts finishes the goal: `rate` goals get N from a probe run, `fill` goals their deadline. */
 export type Sizing = "fixed" | "rate" | "fill" | "cost";
 
-export interface Built { manifest: Manifest; flow: Flow; stations: Placer["stations"]; notes: string[]; sizing: Sizing; queue: Pt[]; layout: LayoutSnapshot }
+export interface Built { manifest: Manifest; flow: Flow; stations: Placer["stations"]; notes: string[]; sizing: Sizing; queue: Pt[]; layout: LayoutSnapshot;
+  /** Pad visibility on screen under the real camera (viewVisibility.ts): reported only, never written into the level file. */
+  padVisibility: PadVisibilityReport }
 
 /** Everything the placer knew (world units, the manifest's frame): the layout sandbox draws it as a plan. */
 export interface LayoutSnapshot {
@@ -190,6 +193,19 @@ export interface LayoutSnapshot {
   screen: readonly [number, number, number?]; lots: Placer["lots"]; miss: Placer["lastMiss"];
 }
 /** A layout the generator gave up on, with the partial layout at the moment it failed (when the placer had started). */
+/**
+ * The on-screen pad report for a finished layout (viewVisibility.ts, the renderer's own test). It is always measured and
+ * reported. Only with generator.json viewClear.realCamera on does a pad hidden on screen reject the layout (tower pads stand
+ * in the wall line by design and are exempt); off by default until the pads of the shipped levels have been moved.
+ */
+function checkPadView(m: Manifest, fail: (why: string) => never): PadVisibilityReport {
+  const rep = padVisibilityReport(m.entities as unknown as ViewEnt[]);
+  if (GEN.viewClear.realCamera) {
+    const bad = rep.final.filter((p) => p.class === "hidden" && !/^tower/.test(p.id));
+    if (bad.length) fail(`pad hidden on screen: ${bad.map((p) => `${p.id} by ${p.by}`).join(", ")}`);
+  }
+  return rep;
+}
 export class LayoutError extends Error {
   constructor(message: string, readonly layout?: LayoutSnapshot) { super(message); }
 }
@@ -1652,7 +1668,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const d = GEN.defendRoad.pad;
     padMap(m, d);
     for (const s of P.stations) { s.x += d; s.y += d; if (s.fp) s.fp = [s.fp[0] + d, s.fp[1] + d, s.fp[2] + d, s.fp[3] + d]; }
-    return { manifest: m, flow, stations: P.stations, notes, sizing, queue: queue.map((q) => [q[0] + d, q[1] + d] as Pt), layout: snapshot(P, d) };
+    return { manifest: m, flow, stations: P.stations, notes, sizing, queue: queue.map((q) => [q[0] + d, q[1] + d] as Pt), layout: snapshot(P, d), padVisibility: checkPadView(m, fail) };
   }
-  return { manifest: m, flow, stations: P.stations, notes, sizing, queue, layout: snapshot(P) };
+  return { manifest: m, flow, stations: P.stations, notes, sizing, queue, layout: snapshot(P), padVisibility: checkPadView(m, fail) };
 }

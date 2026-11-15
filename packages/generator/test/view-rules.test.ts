@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { closure, sequenceRange } from "@fo/sequencer";
-import { buildLevel, knobsFor, templateById, GEN } from "../src/index.js";
+import { buildLevel, knobsFor, templateById, GEN, padVisibility, type ViewEnt } from "../src/index.js";
 
-// What the camera can see: it looks from the south, tilted, so anything taller than a pad hides the
-// ground just north of it. No pad may stand there, and walled attack levels are attacked from the
-// sides the camera faces (south and east).
+// What the camera can see: it is turned 45 degrees and tilted 30, so anything taller than a pad hides a diagonal swath of
+// ground to its north-west (viewVisibility.ts). With generator.json viewClear.realCamera on no pad may stand there; with it
+// off (the default) the layouts are only measured. Walled attack levels are attacked from the sides the camera faces (south and east).
 type Pt = [number, number];
 type Ent = { type: string; id?: string; at?: Pt; site?: Pt; build?: string; points?: Pt[]; closed?: boolean; gates?: number[] };
 
@@ -21,41 +21,27 @@ const build = (i: number, dSeed: number) => {
   return null;
 };
 
-const FP = GEN.footprints as Record<string, [number, number, number, number]>;
-const WALL = (GEN as unknown as { viewClear: { wallShadow: number } }).viewClear?.wallShadow ?? 30;
-
-/** Every pad whose centre lies in a building's footprint (its drawn body plus the ground it hides) or just north of a wall. */
+/** Every pad hidden on screen under the real camera (viewVisibility.ts, the renderer's own test); tower pads stand in the wall line by design. */
 function hiddenPads(ents: Ent[]): string[] {
-  const occ: { id: string; at: Pt; fp: [number, number, number, number]; by?: string | undefined }[] = [];
-  for (const e of ents) {
-    if (e.type === "pad.build" && e.build && FP[e.build] && e.build !== "pad") occ.push({ id: `${e.id}>${e.build}`, at: (e.site ?? e.at)!, fp: FP[e.build]!, by: e.id });
-    else if (!e.type.startsWith("pad") && !e.type.startsWith("node.") && FP[e.type] && e.at) occ.push({ id: e.id ?? e.type, at: e.at, fp: FP[e.type]! });
-  }
-  const walls: [Pt, Pt][] = [];
-  for (const e of ents) if (e.type === "barrier.line" && e.points) {
-    const p = e.points, n = p.length;
-    for (let i = 0; i < (e.closed ? n : n - 1); i++) walls.push([p[i]!, p[(i + 1) % n]!]);
-  }
-  const out: string[] = [];
-  for (const e of ents) {
-    if (!e.type.startsWith("pad.") || !e.at) continue;
-    const [x, y] = e.at;
-    for (const o of occ) {
-      if (o.by === e.id) continue;
-      const [x0, y0, x1, y1] = o.fp;
-      if (x > o.at[0] + x0 && x < o.at[0] + x1 && y > o.at[1] + y0 && y < o.at[1] + y1) out.push(`${e.id} behind ${o.id}`);
-    }
-    for (const [a, b] of walls) {
-      if (a[0] === b[0] || x <= Math.min(a[0], b[0]) || x >= Math.max(a[0], b[0])) continue;
-      const wy = a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0]);
-      if (y < wy && wy - y < WALL) out.push(`${e.id} behind wall`);
-    }
-  }
-  return out;
+  return padVisibility(ents as unknown as ViewEnt[]).filter((p) => p.class === "hidden" && !/^tower/.test(p.id)).map((p) => `${p.id} behind ${p.by}`);
 }
 
 describe("camera view rules", () => {
-  it("no pad stands behind a building or a wall, over many seeds", () => {
+  it("every built level reports its pads' visibility, and the report is the shared measurement", () => {
+    let levels = 0, pads = 0;
+    for (const dSeed of SEEDS) for (let i = 1; i <= 20; i++) {
+      const b = build(i, dSeed);
+      if (!b) continue;
+      levels++;
+      const again = padVisibility(b.manifest.entities as unknown as ViewEnt[]);
+      expect(b.padVisibility.pads).toEqual(again);
+      pads += again.length;
+    }
+    expect(levels).toBeGreaterThan(20);
+    expect(pads).toBeGreaterThan(50);
+  }, 300_000);
+
+  it.skipIf(!GEN.viewClear.realCamera)("no pad stands behind a building or a wall under the real camera, over many seeds", () => {
     const hidden: string[] = [];
     let levels = 0;
     for (const dSeed of SEEDS) for (let i = 1; i <= reqs.length; i++) {

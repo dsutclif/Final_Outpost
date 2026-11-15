@@ -82,6 +82,8 @@
   "viewClear": {
     "_doc": "What the camera sees (it looks from the south, tilted): anything taller than a pad hides the ground just north of it. No pad's centre may lie in a building's footprint (its body plus the ground it hides), nor within wallShadow world units north of a wall (a ~1 m wall x cot 50). Walled attack levels are attacked only from attackSides, the sides facing the camera; a multi-side level takes as many of them as there are.",
     "wallShadow": 30,
+    "realCamera": false,
+    "realCamera_doc": "ON rejects a layout when a pad (tower pads excepted) is hidden on screen under the real camera (yaw 45, tilt 30; src/viewVisibility.ts, the renderer's own test: 75% or more of the pad disc covered by a building, node, gate or wall). OFF (default): the same measurement is only reported on Built.padVisibility. Leave OFF until the shipped levels' pads have been moved, or most layouts fail.",
     "attackSides": ["s", "e"]
   },
   "defendSockets": {

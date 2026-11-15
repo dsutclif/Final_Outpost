@@ -147,6 +147,9 @@ importers:
       '@fo/rater':
         specifier: workspace:*
         version: link:../rater
+      '@fo/render-3d':
+        specifier: workspace:*
+        version: link:../render-3d
       '@fo/sequencer':
         specifier: workspace:*
         version: link:../sequencer

@@ -790,3 +790,4 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
   return null;
 }
 export { BASE_BUILD_SCALE, GAME_PAD, PLOT_PADS, computePlots, modelBounds, type PlotData, type PlotInput } from "./plots.js";
+export { padVisibility, padVisibilityReport, occluders, viewOf, hides, segHitsBox, discPoints, SIGHT, HIDDEN_AT, PAD_RADIUS, type PadView, type PadVisibilityReport, type ViewEnt, type ViewOpts, type Occluder } from "./viewVisibility.js";
