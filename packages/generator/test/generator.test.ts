@@ -39,15 +39,16 @@ describe("perimeter walls setting (outpost-ops#162)", () => {
     throw new Error("no layout");
   };
   const lines = (b: ReturnType<typeof mk>) => b.manifest.entities.filter((e) => e.type === "barrier.line").length;
-  it("non-defense levels never get a wall ring, even when asked", () => {
+  it("other families never get a wall ring, even when asked", () => {
     expect(lines(mk("harvest"))).toBe(0);
     expect(lines(mk("harvest", true))).toBe(0);
-    expect(lines(mk("rescue", true))).toBe(0);
   });
-  it("defense levels: no ring by default or when off, one ring when on", () => {
-    expect(lines(mk("defend"))).toBe(0);
-    expect(lines(mk("defend", false))).toBe(0);
-    expect(lines(mk("defend", true))).toBe(1);
+  it("defend levels and the rescue pen have a ring by default and when on, none only when turned off", () => {
+    for (const f of ["defend", "rescue"] as const) {
+      expect(lines(mk(f))).toBe(1);
+      expect(lines(mk(f, true))).toBe(1);
+      expect(lines(mk(f, false))).toBe(0);
+    }
   });
 });
 
@@ -100,12 +101,12 @@ describe("layout and economy per family (stages 2-4)", () => {
     expect(b.queue[0]).toEqual([lay.queueAt.x / 1000, lay.queueAt.y / 1000]);
   });
 
-  it("walls only where needed: closed rings with a gate on defend levels built with walls on, none elsewhere", () => {
+  it("walls only where needed: closed rings with a gate on defend and rescue levels, none elsewhere", () => {
     for (const { r, b } of built()) {
       if (!b) continue;
       const m = ManifestSchema.parse(b.manifest); // rings are written as points; the schema normalises them to sections
       const lines = m.entities.filter((e) => e.type === "barrier.line");
-      const needs = r.family === "defend"; // built with walls on; rescue has no ring since outpost-ops#162
+      const needs = r.family === "defend" || r.family === "rescue";
       expect(lines.length).toBe(needs ? 1 : 0);
       for (const l of lines) {
         if (l.type !== "barrier.line") continue;

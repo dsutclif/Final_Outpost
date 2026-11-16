@@ -35,7 +35,7 @@ export interface GenRequest {
   funThreshold?: number | undefined;
   /** Sequencer phase (teach levels may keep an easy star). */
   phase?: string | undefined;
-  /** Perimeter walls (defense levels only; default off). */
+  /** Perimeter walls: on for defend levels and the rescue pen unless false; other families never get them. */
   walls?: boolean | undefined;
 }
 
@@ -587,7 +587,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     let why = "";
     for (let salt = 0; salt < S.layoutTries && !built; salt++) {
       try {
-        built = buildLevel({ id, seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: (req.features ?? []).filter((f) => !droppedFeatures.has(f)), goalType: req.goalType, modules: mods.filter((x) => !droppedMods.has(x)), template: tpl, knobs, hireEase: ease, walls: req.walls === true, content: c }, salt);
+        built = buildLevel({ id, seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: (req.features ?? []).filter((f) => !droppedFeatures.has(f)), goalType: req.goalType, modules: mods.filter((x) => !droppedMods.has(x)), template: tpl, knobs, hireEase: ease, walls: req.walls !== false, content: c }, salt);
       } catch (e) { why = (e as Error).message; reject(why.startsWith("flow") ? "flow" : "layout"); }
     }
     if (!built) { rec.why = why; log(`  it${it} p=${p.toFixed(2)} build failed: ${why}`); hi = p; p = (lo + p) / 2; continue; }
@@ -779,7 +779,7 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
   const knobs = knobsFor(clamp01((req.target - 0.08) / 0.8));
   for (let salt = 0; salt < GEN.search.layoutTries; salt++) {
     let built: Built;
-    try { built = buildLevel({ id: req.id ?? "calib", seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods, template: tpl, knobs, walls: req.walls === true, content: c }, salt); }
+    try { built = buildLevel({ id: req.id ?? "calib", seed: req.seed, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods, template: tpl, knobs, walls: req.walls !== false, content: c }, salt); }
     catch { continue; }
     if (sizeGoal(built, c, knobs.length)) return null;
     const m = built.manifest;

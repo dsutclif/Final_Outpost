@@ -178,7 +178,7 @@ export interface BuildInput {
   knobs: Knobs;
   /** 0..1: how far the search has eased worker hire prices to break a repeated player loop (REDESIGN-R3 item 7). */
   hireEase?: number;
-  /** Perimeter wall ring (barrier.line). Off unless a defense level asks for it; non-defense levels never get one. */
+  /** Perimeter wall ring (barrier.line). On for defend levels and the rescue pen unless false; other families never get one. */
   walls?: boolean;
   content?: Content;
 }
@@ -364,7 +364,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
 
   // ---------- perimeter ring (defend: unbuilt where attacked; rescue: prebuilt with a gate) ----------
   const defend = fams.has("defend");
-  const wallsOn = defend && inp.walls === true;
+  // Doug 2026-11-16: defend levels and the rescue pen always have walls (without them the good bot loses defend
+  // finales and stalls on rescue). Every other family never gets a ring. `walls: false` turns a ring off explicitly.
+  const wallsOn = (defend || fams.has("rescue")) && inp.walls !== false;
   // Batch 3: every defend level has guards (the defend family's modules include defenders), not just the guards feature's.
   const guards = has("defenders");
   const rescue = fams.has("rescue");

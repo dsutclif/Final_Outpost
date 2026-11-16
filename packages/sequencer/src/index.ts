@@ -114,7 +114,7 @@ export interface LevelRequest {
   breather: boolean;
   /** The arc's fun threshold: the generator ships a level only when F clears it. */
   funThreshold: number;
-  /** Perimeter walls: off by default; only a defense level can turn them on (seeded, ~1 in 5). */
+  /** Perimeter walls: defend levels and the rescue pen always have them; other families never (Doug 2026-11-16). */
   walls: boolean;
 }
 
@@ -378,8 +378,8 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
     seed: hash32(`${salt}:seed`) & 0x7fffffff,
     phase: slot.phase,
     breather,
-    // walls are off unless this is a defense level and a seeded roll (deterministic from the level id) lands 1 in 5
-    walls: slot.family === "defend" && hash32(`${salt}:walls`) % 5 === 0,
+    // defend levels and the rescue pen always have walls; the generator never builds a ring for other families
+    walls: true,
     funThreshold: index <= cfg.tutorialLength ? cfg.funThresholds.tutorial : cfg.funThresholds.band,
   };
 }

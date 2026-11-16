@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: the level builder now tries a different recipe when a level cannot be built, and remembers recipes that proved impossible."]}
+{"notes":["Behind the scenes: defense levels and rescue pens keep their walls when levels are next rebuilt; other levels have none."]}
