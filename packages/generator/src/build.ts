@@ -178,6 +178,8 @@ export interface BuildInput {
   knobs: Knobs;
   /** 0..1: how far the search has eased worker hire prices to break a repeated player loop (REDESIGN-R3 item 7). */
   hireEase?: number;
+  /** Perimeter wall ring (barrier.line). Off unless a defense level asks for it; non-defense levels never get one. */
+  walls?: boolean;
   content?: Content;
 }
 
@@ -362,6 +364,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
 
   // ---------- perimeter ring (defend: unbuilt where attacked; rescue: prebuilt with a gate) ----------
   const defend = fams.has("defend");
+  const wallsOn = defend && inp.walls === true;
   // Batch 3: every defend level has guards (the defend family's modules include defenders), not just the guards feature's.
   const guards = has("defenders");
   const rescue = fams.has("rescue");
@@ -388,7 +391,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const t = shadowTest(kind, [p[0], p[1]]);
     return t ? (q) => t([q[0], q[1]]) : null;
   };
-  if (ring) ring.points.forEach((p, i) => P.walls.push([p, ring!.points[(i + 1) % ring!.points.length]!]));
+  if (ring && wallsOn) ring.points.forEach((p, i) => P.walls.push([p, ring!.points[(i + 1) % ring!.points.length]!]));
   P.lots = GEN.lots;
   // Plot layout (GEN.plots, set only by the layout sandbox): a building's pad slots come with its placement
   const plotOn = !!GEN.plots;
@@ -857,7 +860,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     // Gate: the middle-most section on the pods' side.
     const gIdx = ring.side.map((s, i) => ({ s, i })).filter((x) => x.s === gateSide);
     ringGates = kioskGate([gIdx[Math.floor(gIdx.length / 2)]!.i]);
-    ents.push({ type: "barrier.line", id: "ring", res: "res.currency", costPerSection: 1, points: ring.points.map((p) => [...p]), closed: true,
+    if (wallsOn) ents.push({ type: "barrier.line", id: "ring", res: "res.currency", costPerSection: 1, points: ring.points.map((p) => [...p]), closed: true,
       gates: ringGates, prebuilt: ring.points.map((_, i) => i) });
     const E = GEN.rings.edge, gap = GEN.rings.podGap;
     let passRect: Rect | null = null;
@@ -966,7 +969,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       else if (rand.float() < K.prebuiltRing && !wallsCurrency) pre.push(i);
     });
     if (pre.length === ring.points.length) pre.splice(pre.indexOf(ring.side.findIndex((s) => s === sides[0])), 1);
-    ents.push({ type: "barrier.line", id: "ring", res: wallsCurrency ? "res.currency" : "res.salvage", costPerSection: Math.max(1, Math.round(K.ringCost)),
+    if (wallsOn) ents.push({ type: "barrier.line", id: "ring", res: wallsCurrency ? "res.currency" : "res.salvage", costPerSection: Math.max(1, Math.round(K.ringCost)),
       points: ring.points.map((p) => [...p]), closed: true, gates: ringGates, prebuilt: pre });
     {
       // Batch 3 (tower defence, after Kingshot): every defend level has turret sockets. Each attack gate has a few

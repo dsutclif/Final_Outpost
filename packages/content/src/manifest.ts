@@ -495,12 +495,11 @@ export function checkManifest(m: Manifest, c: Content): void {
     if (!c.events[ev.type]) fail(`unknown event ${ev.type}`);
     if (!(ev.warnAt <= ev.start && ev.start < ev.end)) fail(`event ${ev.type} must have warnAt <= start < end`);
   }
-  if (active.has("defense") && (m.waves.length === 0 || barrierLines === 0)) fail(`defense needs waves and a barrier line`);
+  if (active.has("defense") && m.waves.length === 0) fail(`defense needs waves`);
   if (active.has("hazard_events") && m.events.length === 0) fail(`hazard_events needs at least one event`);
   if (m.hazardsFromLit && !darkCore()) fail(`hazardsFromLit needs a dark core (lit: false)`);
   if (active.has("hunting") && !m.entities.some((e) => e.type === "zone.prey")) fail(`hunting needs a zone.prey`);
   if (active.has("lasso") && !m.entities.some((e) => e.type.startsWith("capture."))) fail(`lasso needs a lassoable`);
-  if (active.has("barrier_lines") && barrierLines === 0) fail(`barrier_lines needs a barrier.line`);
   if (!active.has("barrier_lines") && barrierLines > 0) fail(`barrier.line entities need the barrier_lines module`);
   if (m.fail.includes("meter.base_health") && !active.has("defense")) fail(`meter.base_health only fails with defense`);
   if (m.goal.type === "build") {
