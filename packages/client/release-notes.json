@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: a game test that failed now and then for no real reason is fixed, so automatic checks only fail when something is actually broken."]}
+{"notes":["Behind the scenes: a new test checks that the same level recipe always gets the same difficulty rating, ahead of the coming level rebuild."]}
