@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: a new test checks that the same level recipe always gets the same difficulty rating, ahead of the coming level rebuild."]}
+{"notes":["New levels have no walls unless a defense level calls for them. Today's levels change when they are next rebuilt."]}
