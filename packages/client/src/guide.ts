@@ -1,6 +1,6 @@
 import type { Manifest } from "@fo/content";
 import type { Compiled, State } from "@fo/sim";
-import { FP, TPS, seedRng } from "@fo/sim";
+import { FP, TPS, pointInPoly, seedRng } from "@fo/sim";
 import { guideText, nameOf, workerName, type Skin, type WorkerVars } from "@fo/skins";
 
 // Guide arrows: every half second ask the bot controller (packages/bots, loaded on demand) what
@@ -84,13 +84,37 @@ export function towLoopPath(path: readonly { x: number; y: number }[], hero: { x
   return [...walk, ...ring];
 }
 
+/** Closed barrier rings of a level as fixed-point polygons (the same ones the bot treats as "inside the gate"). */
+export function closedRings(manifest: Manifest): { x: number; y: number }[][] {
+  return manifest.entities.flatMap((e) => (e.type === "barrier.line" && e.closed ? [e.sections.map((q) => ({ x: q.a[0] * FP, y: q.a[1] * FP }))] : []));
+}
+
+/**
+ * "Fend off the raiders" needs no arrow when the commander already stands outside the gate AND within shooting range
+ * of a raider's attack path (the walk from where it is to the core). Outside but elsewhere (the far side collecting
+ * scrap), or inside the gate, the arrow still shows (outpost-ops#188).
+ */
+export function fightArrowHidden(st: State, cp: Compiled, rings: readonly { x: number; y: number }[][]): boolean {
+  const p = st.player.pos;
+  if (rings.length === 0 || rings.every((poly) => pointInPoly(p, poly))) return false;
+  const reach = cp.player.rangedRange > 0 ? cp.player.rangedRange : cp.player.attackRange;
+  return st.hostiles.some((h) => segDist(p, h.pos, st.core.pos) <= reach);
+}
+
+function segDist(p: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }): number {
+  const dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy;
+  const t = L2 === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L2));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
 /** Ticks between asks (about half a second at 30 tps). */
 const EVERY = 15;
 
 export class Guide {
   private last = -1000;
   private out: GuideTarget | null = null;
-  private constructor(private readonly brain: BrainLike, private readonly cp: Compiled) {}
+  private readonly rings: { x: number; y: number }[][];
+  private constructor(private readonly brain: BrainLike, private readonly cp: Compiled, manifest: Manifest) { this.rings = closedRings(manifest); }
 
   /** Load the planner and controller; null if they cannot be built for this level. */
   static async create(manifest: Manifest, cp: Compiled): Promise<Guide | null> {
@@ -98,7 +122,7 @@ export class Guide {
       const bots = await import("@fo/bots");
       const plan = bots.planBot(manifest);
       const profile = { ...bots.PROFILES["good"]!, reactionTicks: 0, evalTicks: 1, routeNoise: 0, priorityErr: 0, multitask: true };
-      return new Guide(new bots.Brain(cp, plan, profile, seedRng(1)) as unknown as BrainLike, cp);
+      return new Guide(new bots.Brain(cp, plan, profile, seedRng(1)) as unknown as BrainLike, cp, manifest);
     } catch { return null; }
   }
 
@@ -111,6 +135,7 @@ export class Guide {
     try { sug = this.brain.suggest(st, this.cp); } catch { return (this.out = null); }
     if (!sug) return (this.out = null);
     const kind = sug.kind;
+    if (kind === "fight" && fightArrowHidden(st, this.cp, this.rings)) return (this.out = null);
     const key = sug.key;
     // A step whose text cannot be made still points the way, so the arrow never freezes on the previous step.
     let text: string;

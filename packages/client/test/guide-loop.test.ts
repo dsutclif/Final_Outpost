@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TOW_LOOP_R, towGroup, towLoopPath } from "../src/guide.js";
+import { TOW_LOOP_R, fightArrowHidden, towGroup, towLoopPath } from "../src/guide.js";
 
 describe("towLoopPath", () => {
   const pod = { x: 100, y: 100 };
@@ -31,5 +31,27 @@ describe("towLoopPath", () => {
       expect(Math.hypot(q.x - 130, q.y - 100)).toBeCloseTo(TOW_LOOP_R + 30);
       expect(Math.hypot(q.x - a.x, q.y - a.y)).toBeGreaterThanOrEqual(TOW_LOOP_R - 1e-6);
     }
+  });
+});
+
+describe("fightArrowHidden (outpost-ops#188)", () => {
+  const sq = [{ x: 0, y: 0 }, { x: 100000, y: 0 }, { x: 100000, y: 100000 }, { x: 0, y: 100000 }];
+  const cp = { player: { rangedRange: 40000, attackRange: 10000 } } as never;
+  const st = (px: number, py: number) => ({
+    player: { pos: { x: px, y: py } }, core: { pos: { x: 50000, y: 50000 } },
+    hostiles: [{ pos: { x: 200000, y: 50000 } }],
+  }) as never;
+
+  it("hides the arrow outside the gate and within range of the attack path", () => {
+    expect(fightArrowHidden(st(150000, 80000), cp, [sq])).toBe(true);
+  });
+  it("shows it outside the gate but away from the attack path", () => {
+    expect(fightArrowHidden(st(150000, 300000), cp, [sq])).toBe(false);
+  });
+  it("shows it inside the gate, however near the path", () => {
+    expect(fightArrowHidden(st(60000, 50000), cp, [sq])).toBe(false);
+  });
+  it("shows it when the level has no gate ring", () => {
+    expect(fightArrowHidden(st(150000, 80000), cp, [])).toBe(false);
   });
 });
