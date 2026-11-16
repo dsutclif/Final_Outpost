@@ -1,1 +1,1 @@
-{"notes":["New levels have no walls unless a defense level calls for them. Today's levels change when they are next rebuilt."]}
+{"notes":["Behind the scenes: the level builder now tries a different recipe when a level cannot be built, and remembers recipes that proved impossible."]}
