@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: the nightly review now checks that story lines play in order and only after the thing they name has been seen."]}
+{"notes":["Behind the scenes: a game test that failed now and then for no real reason is fixed, so automatic checks only fail when something is actually broken."]}
