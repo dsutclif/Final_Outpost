@@ -34,7 +34,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-16 | mit-b | mit-b/206-heat-circle-lasso | engine bump (sim lasso/barriers, sinks.json core radii, bots brain) | heat-circle lasso, no-wall slice 1 |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
