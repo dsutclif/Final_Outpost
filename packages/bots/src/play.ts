@@ -243,7 +243,34 @@ export interface BotResult {
   runStats: RunStats;
   used: ElementUse;
   hash: string;
+  /** Per-run defend record; present on levels with attack waves. */
+  defend?: DefendRecord;
   inputs?: Input[];
+}
+
+/**
+ * Per-run defend record (plain JSON, cheap: a few counters sampled from events and a hostile scan per tick).
+ * win, stars: as the run ended. baseHp: base health as a fraction of max at the end of each wave window (the
+ * next wave's start, or the run's end for the last); towers: ranged towers standing when each wave started;
+ * leaks: hostiles that got through to attack the core, counted in the wave window they first did so (walls or
+ * not); salvageEarned: salvage gathered over the run; salvageSpent: salvage units paid into pads;
+ * firstCoreContactS: seconds from the first wave's start to the first hostile attacking the core (-1: none did).
+ * Arrays have one entry per scheduled wave (-1 where the wave never started).
+ */
+export interface DefendRecord {
+  win: boolean;
+  stars: number;
+  baseHp: number[];
+  towers: number[];
+  leaks: number[];
+  salvageEarned: number;
+  salvageSpent: number;
+  firstCoreContactS: number;
+}
+
+/** Defend margin: core health only, so the same fight scores the same with or without walls. */
+export function defendMargin(won: boolean, baseHealthFraction: number, goalProgress: number): number {
+  return won ? baseHealthFraction : -(1 - goalProgress);
 }
 
 const PROGRESS_EVENTS: ReadonlySet<SimEvent["t"]> = new Set<SimEvent["t"]>([
@@ -300,7 +327,10 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const used = new Set<string>();
   const progressS: number[] = [], threatS: number[] = [];
   let warnStart = -1;
-  let integSum = 0, integN = 0;
+  const waveN = cp.waves.length;
+  const dBase: number[] = Array(waveN).fill(-1), dTowers: number[] = Array(waveN).fill(-1), dLeaks: number[] = Array(waveN).fill(0);
+  const leaked = new Set<number>();
+  let dSpent = 0, firstContact = -1, firstWaveTick = -1;
   let hpMin = 100, overload = false, heatSum = 0, heatN = 0, lastObj = 0;
   let rallyOn = 0, rallyN = 0;
   const capRun: number[] = [];
@@ -351,6 +381,15 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
       if (e.t === "collected" && currencyReachable(st, needCur, earned, budgetTicks)) progressed = true;
       // Feeding a core below half (or below the heat policy's band) keeps the colony alive: progress.
       if (e.t === "deposited" && e.to === "sink.core" && e.by === undefined && fuelBefore < coreCap(st, cp) * Math.max(0.5, (plan.policies?.heatFloor ?? 0) + 0.2)) progressed = true;
+      if (waveN > 0) {
+        if (e.t === "pad_paid" && e.res === "res.salvage") dSpent++;
+        else if (e.t === "wave_started") {
+          const i = e.idx - 1;
+          if (i > 0 && i - 1 < waveN) dBase[i - 1] = st.meters.baseHealth / Math.max(1, st.meters.baseHealthMax);
+          if (i >= 0 && i < waveN) dTowers[i] = st.structures.filter((x) => x.type.startsWith("struct.ranged_defense")).length;
+          if (firstWaveTick < 0) firstWaveTick = st.tick;
+        }
+      }
       if (e.t === "hired") brain.hiresByPad[e.pad] = (brain.hiresByPad[e.pad] ?? 0) + 1;
       if (e.t === "gathered") { const n = st.nodes[e.node]; nodesUsed.add(n ? n.type : String(e.node)); }
       if (e.t === "converted") convUsed.add(e.conv);
@@ -396,10 +435,13 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     if (brain.isIdle) dead++;
     if (st.core.fuel === 0 || st.meters.baseHealth * 3 < st.meters.baseHealthMax) { if (warnStart < 0) warnStart = st.tick; }
     else warnStart = -1;
-    if (st.tick % TPS === 0 && st.waves.idx > 0) {
-      let have = 0, max = 0;
-      for (const l of st.barriers) for (const sec of l.sections) { max += sec.hpMax; if (sec.built) have += sec.hp; }
-      if (max > 0) { integSum += have / max; integN++; }
+    if (waveN > 0 && st.waves.idx > 0) {
+      for (const h of st.hostiles) {
+        if (h.target !== "base" || leaked.has(h.id)) continue;
+        leaked.add(h.id);
+        dLeaks[Math.min(waveN, st.waves.idx) - 1]!++;
+        if (firstContact < 0) firstContact = st.tick;
+      }
     }
     if (st.tick % TPS === 0) {
       const side = attackedSide(st);
@@ -423,9 +465,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   let margin: number;
   if (timeFixed && cp.waves.length > 0) {
     const hp = st.meters.baseHealth / Math.max(1, st.meters.baseHealthMax);
-    // Barrier integrity averaged over every second since the first wave: quick fights and rebuilds count.
-    const integrity = integN > 0 ? integSum / integN : hp;
-    margin = won ? (hp + integrity) / 2 : -(1 - goalProgress(st, cp, plan, brain));
+    margin = defendMargin(won, hp, goalProgress(st, cp, plan, brain));
   } else if (timeFixed) {
     // Holding out against the clock (survive, storms): the margin is how warm the colony stayed.
     margin = won ? heatSum / Math.max(1, heatN) : -(1 - goalProgress(st, cp, plan, brain));
@@ -489,11 +529,22 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     lines: [...lines], nodes: [...nodesUsed], converters: [...convUsed], captures: capturesHome, preyKilled: s.preyKilled, sold: s.sold,
     admitted: s.admitted, hazards: s.hazardsSurvived, conveyed: st.stats.conveyed ?? 0,
   };
+  let defend: DefendRecord | undefined;
+  if (waveN > 0) {
+    const last = Math.min(waveN, st.waves.idx) - 1;
+    if (last >= 0) dBase[last] = st.meters.baseHealth / Math.max(1, st.meters.baseHealthMax);
+    defend = {
+      win: won, stars: st.over ? starsOf(st) : 0, baseHp: dBase, towers: dTowers, leaks: dLeaks,
+      salvageEarned: s.salvage, salvageSpent: dSpent,
+      firstCoreContactS: firstContact >= 0 && firstWaveTick >= 0 ? (firstContact - firstWaveTick) / TPS : -1,
+    };
+  }
   const res: BotResult = {
     profile: profile.name, seed, won, reason, ticks, goalTicks, margin, stalls, stallStates, trace,
     stars: st.over ? starsOf(st) : 0, objectives: st.objectives.map((o) => ({ kind: o.kind, done: o.done })),
     runStats, used: usedEl, hash: sim.hash(),
   };
+  if (defend) res.defend = defend;
   if (opts.recordInputs) res.inputs = inputs;
   return res;
 }
