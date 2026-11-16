@@ -9,7 +9,8 @@ built until Doug approves it.** It does three things to draft 4:
 - applies Doug's rulings of 2026-11-12, marked where they land.
 
 What the game needs to change to match is listed at the end, level by level, and as numbered work in
-`docs/BACKLOG.md` under "Story draft 5". Things Doug still has to confirm are marked **Doug to confirm**.
+`docs/BACKLOG.md` under "Story draft 5". Doug confirmed its three open points on 2026-11-16: the ship's purpose, the bay plate names and the note on
+the raiders.
 
 **How to read it**
 
@@ -50,17 +51,19 @@ What the game needs to change to match is listed at the end, level by level, and
 
 **The facts the lines rely on**
 
-- The ship is the *Halcyon*, a colony ship. Its advance crew of nine slept in stasis pods, bays one to nine; the
-  commander in bay nine. **Doug to confirm** "advance crew of nine".
+- The ship is the *Halcyon*, an advance resource ship (Doug, 2026-11-16). It was sent ahead of the colony ships to
+  set up the settlement and install the reactor. Its crew of nine slept in stasis pods, bays one to nine; the
+  commander in bay nine.
 - Bays 1–4 (Pip, Rhee, Okafor, Tam) were thrown clear onto the plain in the crash. They come out of their pods in
   their job's suit (hauler, medic, guard, grower).
 - Bays 5–8 lie in the sand beside the wreck, sealed and reading OCCUPIED. There is no deck (Doug, 2026-11-04: no
-  pad). Bay 5 is Vale, the first officer. Bays 6–8 are Brandt, engineer; Imani, pilot; Sorrel, navigator. **Doug to
-  confirm** the three names; they appear only on name plates.
+  pad). Bay 5 is Vale, the first officer. Bays 6–8 are Brandt, engineer; Imani, pilot; Sorrel, navigator. Doug approved the
+  names on 2026-11-16; they appear only on name plates.
   - All four pods are empty: those four let themselves out before impact (level 4).
   - They escaped in the lander's escape pod, the scorched one in level 2. It has four seats. They walked away from
     it toward the ridge long ago.
-- **The reactor (Doug, 2026-11-12).** It stands out on the plain, away from the wreck. Vale's four hauled it off the
+- **The reactor (Doug, 2026-11-12).** It stands out on the plain, away from the wreck. Installing it was the
+  *Halcyon*'s job. Vale's four hauled it off the
   ship after they landed, wired it to the pods and ran it on fuel cells. When the cells ran out they left. The ore
   that feeds it now lay under the sand then; storms move the sand.
 - KILN stands for **Knowledge Integration & Logistics Network** (Doug, 2026-11-05). It is the ship's support system.
@@ -70,7 +73,8 @@ What the game needs to change to match is listed at the end, level by level, and
     gone, the commander's pod opened.
   - KILN's clock started again when the commander relit the reactor. Its readout carries the day: DAY 1 in level
     1, DAY 2 in level 2, DAY 3 in level 3, DAY 4 in level 4. The true count that morning is DAY 4,023.
-- The red signal on the ridge is not the raiders. What it is stays unanswered after level 5.
+- The red signal on the ridge is not the raiders. What it is stays unanswered after level 5 (the working
+  answer is in the note at the end).
 - The raiders live on the ridge and Vale leads them. There are far more than four. Level 5 calls that out and leaves
   it open; a proposed answer is in the notes at the end.
 - The planet has no water: no coast, sea or rain (Doug, 2026-11-05).
@@ -116,7 +120,7 @@ dead reactor, standing alone in the sand, its cables running off toward the wrec
 
 **COMMANDER:** A reactor? All the way out here?
 
-**COMMANDER:** Somebody hauled it off the ship. And let it run dry.
+**COMMANDER:** It's ours, the one we came here to install. Somebody set it up, and let it run dry.
 
 > GOAL CARD: **Restart the reactor**
 
@@ -128,7 +132,7 @@ commander, close enough that it can't be missed. The fuel gauge appears at the t
 *KILN's first readout opens with a boot header above the text (level 1 only, no extra line or tap):
 `K.I.L.N. · KNOWLEDGE INTEGRATION AND LOGISTICS NETWORK · BATTERY 2% · DAY 1`.*
 
-**KILN:** I'm KILN, the support system of the *Halcyon*, your colony ship.
+**KILN:** I'm KILN, the support system of the advance ship *Halcyon*.
 
 **KILN:** Your stasis pod, bay nine, finally opened. I kept that beacon lit on the last of my battery.
 
@@ -197,7 +201,7 @@ The pods themselves glow; no light shines down on them. The lander's escape pod 
 *The floor arrows circle the nearest pod. The commander loops it; the tow line catches; one of the tally's three slots
 fills. The pod reaches the heat; frost melts; it opens. Play is held. Pip steps out in a hauler's suit.*
 
-**PIP · hauler:** Boss! Tell me this is the colony. No? Thought not. Where is everyone?
+**PIP · hauler:** Boss! Tell me this is the landing site. No? Thought not. Where is everyone?
 
 **COMMANDER:** Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?
 
@@ -626,12 +630,13 @@ with the Halcyon's H: BAY 5 · FIRST OFFICER · VALE, and the face from the plat
 **Left open on purpose after level 5:** why Vale left; why Vale kept the sleepers alive and then attacked them; who
 the rest of the raiders are; what the signal is.
 
-**Note for Doug: who the dozens are (a proposal, not in the game and not to be written into it yet).** The *Halcyon*
-was not the first ship the signal brought down. The people on the ridge are the survivors of earlier wrecks, and
-settlers who walked up there after hearing the signal. Vale's four joined them and, over eleven years, Vale came to
-lead them. This fits what the script already plants: Sela's "ships have been setting down for years", the trader's
-"folk who don't trade", and a lander pod buried in years of dust. It answers "why so many" without answering why Vale
-left or what the signal is.
+**Note for later levels: the working answer (Doug, 2026-11-16; not in levels 1–5, and not to be written into the game
+yet).** There have been many wrecks. The people on the ridge are the survivors of those wrecks, and settlers who
+walked up there; Vale's four joined them and, over eleven years, Vale came to lead them. That is why there are so many
+raiders, and the player discovers it gradually. The longer-running mystery is what causes so many wrecks: the pulse
+is not man-made. The planet itself emits it, and it scrambles the instruments of landers. Seeds already in the
+script: Sela's "ships have been setting down for years", the trader's "folk who don't trade", and a lander pod buried
+in years of dust.
 
 ## What changes in the game
 
@@ -723,4 +728,7 @@ Each line is a change against the live game as of 2026-11-12. The numbered work 
   kiosk discovered by walking; the grow dome built from scrap, then credits once the road crew is offered; rockslides
   dug; trained people carry over; every goal a star; C credits; "gate"; Vale's face stays in the fall; level 5 ends
   at the helmet with dawn; the raiders' numbers called out and left open; arrivals welcomed through the gate.
+- **Doug's answers (2026-11-16):** the *Halcyon* is an advance resource ship sent to set up the settlement and install
+  the reactor; the three bay plate names are approved; the note on the raiders and the signal is the working answer
+  for a later reveal.
 - **Still to run:** the first-time-reader test and both outside reviews on this draft.
