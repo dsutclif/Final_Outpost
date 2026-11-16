@@ -170,31 +170,52 @@ describe("ranged player attack", () => {
     expect(shots).toBeLessThanOrEqual(4);
   });
 
-  it("property: hostile HP never goes below 0 and only hostiles within range are hit", () => {
-    fc.assert(fc.property(
-      fc.array(fc.record({ dx: fc.integer({ min: -400, max: 400 }), dy: fc.integer({ min: -400, max: 400 }), hp: fc.integer({ min: 1, max: 6 }) }), { minLength: 1, maxLength: 6 }),
-      fc.array(fc.record({ dx: fc.integer({ min: -FP, max: FP }), dy: fc.integer({ min: -FP, max: FP }) }), { minLength: 20, maxLength: 60 }),
-      (hs, inputs) => {
-        const sim = sim0();
-        const p0 = sim.state.player.pos;
-        hs.forEach((h, i) => sim.state.hostiles.push(hostile(100 + i, p0.x + fp(h.dx), p0.y + fp(h.dy), h.hp) as never));
-        const range = sim.compiled.player.rangedRange;
-        for (const inp of inputs) {
-          const ev = sim.step(inp);
-          for (const h of sim.state.hostiles) expect(h.hp).toBeGreaterThan(0);
-          const pp = sim.state.player.pos;
-          for (const e of ev) {
-            if (e.t === "shot") {
-              const dx = e.to.x - e.from.x, dy = e.to.y - e.from.y;
-              expect(isqrt(dx * dx + dy * dy)).toBeLessThanOrEqual(range + FP);
-            }
-            if (e.t === "hit" && e.target === "hostile" && e.by === "player") {
-              const dx = e.at.x - pp.x, dy = e.at.y - pp.y;
-              expect(isqrt(dx * dx + dy * dy)).toBeLessThanOrEqual(range + FP);
-            }
+  // One ranged scenario: hostiles at offsets (in px) from the player, then a run of inputs.
+  type H = { dx: number; dy: number; hp: number };
+  type In = { dx: number; dy: number };
+  const checkRanged = (hs: H[], inputs: In[]) => {
+      const sim = sim0();
+      const p0 = sim.state.player.pos;
+      hs.forEach((h, i) => sim.state.hostiles.push(hostile(100 + i, p0.x + fp(h.dx), p0.y + fp(h.dy), h.hp) as never));
+      const range = sim.compiled.player.rangedRange;
+      for (const inp of inputs) {
+        const ev = sim.step(inp);
+        for (const h of sim.state.hostiles) expect(h.hp).toBeGreaterThan(0);
+        const pp = sim.state.player.pos;
+        for (const e of ev) {
+          if (e.t === "shot" && !(e as { by?: string }).by) { // player shots only: hostiles/turrets also emit shot events (with `by`)
+            const dx = e.to.x - e.from.x, dy = e.to.y - e.from.y;
+            expect(isqrt(dx * dx + dy * dy)).toBeLessThanOrEqual(range + FP);
+          }
+          if (e.t === "hit" && e.target === "hostile" && e.by === "player") {
+            const dx = e.at.x - pp.x, dy = e.at.y - pp.y;
+            expect(isqrt(dx * dx + dy * dy)).toBeLessThanOrEqual(range + FP);
           }
         }
-      },
-    ), { numRuns: 40 });
+      }
+  };
+  const arbHs = fc.array(fc.record({ dx: fc.integer({ min: -400, max: 400 }), dy: fc.integer({ min: -400, max: 400 }), hp: fc.integer({ min: 1, max: 6 }) }), { minLength: 1, maxLength: 6 });
+  const arbIn = fc.array(fc.record({ dx: fc.integer({ min: -FP, max: FP }), dy: fc.integer({ min: -FP, max: FP }) }), { minLength: 20, maxLength: 60 });
+
+  it("property: hostile HP never goes below 0 and only the player's shots/hits are held to its range", () => {
+    // seed is random per run but always reported, so a failure can be pinned as a named case below (outpost-ops#195)
+    const seed = Math.floor(Math.random() * 2 ** 31);
+    try {
+      fc.assert(fc.property(arbHs, arbIn, checkRanged), { numRuns: 40, seed });
+    } catch (e) {
+      throw new Error(`ranged property failed, seed=${seed}: ${(e as Error).message}`);
+    }
+  });
+
+  // Pinned: seeds 1, 15, 23 (of 0..399) failed before the fix. A hostile at (91,201) shoots a barrier from just
+  // over range+FP away; hostile shots (by: "hostile") were wrongly held to the player's range.
+  it("pinned seeds 1, 15, 23: hostile shots at barriers are not player shots", () => {
+    for (const seed of [1, 15, 23]) {
+      fc.assert(fc.property(arbHs, arbIn, checkRanged), { numRuns: 40, seed });
+    }
+  });
+
+  it("pinned case: hostile at (91,201) plus one on the player, idle input", () => {
+    checkRanged([{ dx: 91, dy: 201, hp: 1 }, { dx: 0, dy: 0, hp: 1 }], Array.from({ length: 60 }, () => ({ dx: 0, dy: 0 })));
   });
 });
