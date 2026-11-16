@@ -2,7 +2,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { FAMILY_GOAL_TYPES, content } from "@fo/content";
 import {
-  FP, FROST_MAX, METER_MAX, OBJECTIVE_KINDS, TPS, createSim, fp, mulDiv, outsideLines, salesLayout, segCross, starsOf, within,
+  FP, FROST_MAX, METER_MAX, OBJECTIVE_KINDS, TPS, createSim, fp, mulDiv, outsideLines, safeRadius, salesLayout, segCross, starsOf, within,
   type Input, type Sim, type SimEvent, type State,
 } from "../src/index.js";
 import { LEVELS, LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, at, grant, idle, newSim, walkPath, walkTo } from "./helpers.js";
@@ -305,6 +305,21 @@ describe("perimeter rings and attack sides", () => {
     expect(sim.state.lasso.engaged).toBe(false);
     walkPath(sim, [at(300, 600), at(240, 700), at(240, 800)]);
     expect(sim.state.player.pos.y).toBeGreaterThan(fp(780));
+    expect(sim.state.lasso.engaged).toBe(true);
+  });
+
+  it("with no wall line the lasso engages on leaving the heat circle (the core's safe radius), not before", () => {
+    const L = level(LEVEL_2, { entities: ents(LEVEL_2).filter((e) => e.type !== "barrier.line") });
+    const sim = createSim(L);
+    expect(sim.state.barriers.length).toBe(0);
+    idle(sim, 2);
+    const core = sim.state.core.pos, R = safeRadius(sim.state, sim.compiled);
+    expect(R).toBeGreaterThan(0);
+    walkPath(sim, [{ x: core.x, y: core.y + R - fp(25) }]);
+    idle(sim, 2);
+    expect(sim.state.lasso.engaged).toBe(false);
+    walkPath(sim, [{ x: core.x, y: core.y + R + fp(40) }]);
+    idle(sim, 2);
     expect(sim.state.lasso.engaged).toBe(true);
   });
 });

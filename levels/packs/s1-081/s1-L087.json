@@ -1,8 +1,8 @@
 {
   "id": "s1-L087",
   "seed": 1806809811,
-  "engineVersion": "0.29.0",
-  "contentVersion": "0.22.0",
+  "engineVersion": "0.30.0",
+  "contentVersion": "0.23.0",
   "map": {
     "w": 1200,
     "h": 1620,

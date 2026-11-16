@@ -244,7 +244,7 @@ describe("barrier lines, lasso, housing, core levels and blocked zones (level 2)
     const up = [...walkPath(sim, [at(320, 470), at(240, 580)], 8), ...idle(sim, 60, (e) => has(e, "core_upgraded"))];
     expect(find(up, "core_upgraded")?.level).toBe(2);
     expect(sim.state.core.level).toBe(2);
-    expect(sim.safeRadius()).toBe(fp(125));
+    expect(sim.safeRadius()).toBe(fp(170));
     expect(sim.state.core.fuel).toBeLessThanOrEqual(32);
     expect(pad(sim, "drift_pad").locked).toBe(false);
     expect(pad(sim, "tent2").locked).toBe(false);

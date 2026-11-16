@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: the bot yardstick for defend levels now scores core health the same with or without walls. No level changes."]}
+{"notes":["Levels with no wall line: the rescue lasso now engages when you step outside the reactor's heat circle, so pods can still be captured.","The reactor's heat circle grows with each core upgrade, reaching about the size of a settlement at the top level."]}

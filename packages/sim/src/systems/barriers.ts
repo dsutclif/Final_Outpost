@@ -2,6 +2,7 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { FP, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import type { BarrierSectionState, BarrierState, HostileState, State } from "../state.js";
+import { safeRadius } from "./core.js";
 import { hint, moveAgent, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
 
 export const sectionHpMax = (st: State, gate: boolean): number =>
@@ -97,6 +98,13 @@ export function outsideLine(st: State, line: BarrierState, p: Vec): boolean {
 
 /** Outside any barrier line (see outsideLine). */
 export const outsideLines = (st: State, p: Vec): boolean => st.barriers.some((line) => outsideLine(st, line, p));
+
+/**
+ * The perimeter line for lasso and other "outside the ring" rules: the barrier lines when the level has any (today's
+ * rule, unchanged), else the reactor's heat circle (the core's safeRadius). Walls are optional since R17.
+ */
+export const outsidePerimeter = (st: State, cp: Compiled, p: Vec): boolean =>
+  st.barriers.length > 0 ? outsideLines(st, p) : !within(p, st.core.pos, safeRadius(st, cp));
 
 /** Distance from p to segment ab (fixed point, products below 2^53). */
 function pointSeg(p: Vec, a: Vec, b: Vec): number {

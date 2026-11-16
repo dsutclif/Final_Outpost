@@ -7,8 +7,8 @@
     "exclusionRadius": 28,
     "levels": [
       { "fuelCap": 20, "safeRadius": 95 },
-      { "fuelCap": 32, "safeRadius": 125 },
-      { "fuelCap": 32, "safeRadius": 150 }
+      { "fuelCap": 32, "safeRadius": 170 },
+      { "fuelCap": 32, "safeRadius": 250 }
     ],
     "upgradeFuelBonus": 6,
     "produces": "meter.lifeline"

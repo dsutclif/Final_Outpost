@@ -2,7 +2,7 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import { dist, mulDiv, within } from "../fixed.js";
 import type { CaptureState, State } from "../state.js";
-import { outsideLines } from "./barriers.js";
+import { outsidePerimeter } from "./barriers.js";
 import { pointInPoly, spawnDrops } from "./common.js";
 import { safeRadius } from "./core.js";
 
@@ -21,7 +21,7 @@ export function dropTow(st: State, id: number, reason: "hit", out: SimEvent[]): 
 }
 
 /**
- * The tow line trails only while the player is outside the barrier lines with unrescued
+ * The tow line trails only while the player is outside the perimeter (barrier lines, or the heat circle when the level has none) with unrescued
  * containers left. Closing a loop captures every idle lassoable inside it; captives follow in a
  * chain and start releasing (recruits) or pay out (crates) once they enter the safe radius.
  *
@@ -32,7 +32,7 @@ export function stepLasso(st: State, cp: Compiled, out: SimEvent[]): void {
   const p = st.player, L = st.lasso;
   freezePods(st, out);
   const remaining = st.captures.some((c) => c.state === "idle");
-  L.engaged = remaining && p.tow.length < cp.lasso.maxTowed && outsideLines(st, p.pos);
+  L.engaged = remaining && p.tow.length < cp.lasso.maxTowed && outsidePerimeter(st, cp, p.pos);
   if (!L.engaged) L.trail = [];
   else {
     const last = L.trail[L.trail.length - 1];

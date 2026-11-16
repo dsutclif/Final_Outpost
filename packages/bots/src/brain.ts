@@ -1,4 +1,4 @@
-import { FP, TPS, blockedAt, downLeft, depotDrop, gatherTicks, converterRunnable, operated,playerCap, jobDone, jobOf, nextU32, outsideLines, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, blockedAt, downLeft, depotDrop, gatherTicks, converterRunnable, operated,playerCap, jobDone, jobOf, nextU32, outsideLines, outsidePerimeter, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
@@ -655,7 +655,7 @@ export class Brain {
     return best;
   }
 
-  private beyondLines(st: State, h: Vec): boolean { return outsideLines(st, h); }
+  private beyondLines(st: State, h: Vec): boolean { return outsidePerimeter(st, this.cp, h); }
 
   /** Where to meet a hostile still walking in from outside a ring: just inside the ring on its line to the core. */
   private intercept(st: State, h: Vec): Vec | null {
@@ -1085,7 +1085,7 @@ export class Brain {
         let bi = 0, bd = Infinity;
         L.loop.forEach((q, i) => { const dd = d2(q, p.pos); if (dd < bd) { bd = dd; bi = i; } });
         const q = L.loop[bi]!;
-        if (near(p.pos, q, 8 * U) && outsideLines(st, p.pos)) {
+        if (near(p.pos, q, 8 * U) && outsidePerimeter(st, this.cp, p.pos)) {
           L.loop = [...L.loop.slice(bi), ...L.loop.slice(0, bi), ...L.loop.slice(bi, bi + 3)];
           L.idx = 1;
         }
