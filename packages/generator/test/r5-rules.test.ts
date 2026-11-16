@@ -12,7 +12,7 @@ const build = (i: number, p = 0.3) => {
   for (let salt = 0; salt < GEN.search.layoutTries; salt++) {
     try {
       return buildLevel({ id: r.id, seed: r.seed, family: r.family, secondary: r.secondary, features: r.features, goalType: r.goalType,
-        modules: closure(r.modules), template: templateById(r.template), knobs: knobsFor(p) }, salt);
+        modules: closure(r.modules), template: templateById(r.template), knobs: knobsFor(p), walls: true }, salt);
     } catch { /* next layout draw */ }
   }
   return null;

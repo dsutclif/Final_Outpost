@@ -13,7 +13,7 @@ const build = (i: number, p = 0.3) => {
   for (let salt = 0; salt < GEN.search.layoutTries; salt++) {
     try {
       return buildLevel({ id: r.id, seed: r.seed, family: r.family, secondary: r.secondary, features: r.features, goalType: r.goalType,
-        modules: closure(r.modules), template: templateById(r.template), knobs: knobsFor(p) }, salt);
+        modules: closure(r.modules), template: templateById(r.template), knobs: knobsFor(p), walls: true }, salt);
     } catch { /* next layout draw */ }
   }
   return null;
@@ -24,6 +24,30 @@ describe("module selection", () => {
     expect(closure(["lasso"])).toEqual(expect.arrayContaining(["barrier_lines", "build_pads", "carry", "gather", "core", "sales"]));
     expect(closure(["defenders"])).toEqual(expect.arrayContaining(["defense", "workers", "barrier_lines"]));
     expect(() => generate({ target: 0.3, family: "defend", modules: ["lasso", "defense"], goalType: "waves", seed: 1 })).toThrow(/exclude/);
+  });
+});
+
+describe("perimeter walls setting (outpost-ops#162)", () => {
+  const mk = (family: "defend" | "harvest" | "rescue", walls?: boolean) => {
+    const r = reqs.find((x) => x.family === family && !x.secondary)!;
+    for (let salt = 0; salt < GEN.search.layoutTries; salt++) {
+      try {
+        return buildLevel({ id: r.id, seed: r.seed, family, secondary: null, features: r.features, goalType: r.goalType,
+          modules: closure(r.modules), template: templateById(r.template), knobs: knobsFor(0.3), ...(walls === undefined ? {} : { walls }) }, salt);
+      } catch { /* next layout draw */ }
+    }
+    throw new Error("no layout");
+  };
+  const lines = (b: ReturnType<typeof mk>) => b.manifest.entities.filter((e) => e.type === "barrier.line").length;
+  it("non-defense levels never get a wall ring, even when asked", () => {
+    expect(lines(mk("harvest"))).toBe(0);
+    expect(lines(mk("harvest", true))).toBe(0);
+    expect(lines(mk("rescue", true))).toBe(0);
+  });
+  it("defense levels: no ring by default or when off, one ring when on", () => {
+    expect(lines(mk("defend"))).toBe(0);
+    expect(lines(mk("defend", false))).toBe(0);
+    expect(lines(mk("defend", true))).toBe(1);
   });
 });
 
@@ -76,12 +100,12 @@ describe("layout and economy per family (stages 2-4)", () => {
     expect(b.queue[0]).toEqual([lay.queueAt.x / 1000, lay.queueAt.y / 1000]);
   });
 
-  it("walls only where needed: closed rings with a gate on defend and rescue levels, none elsewhere", () => {
+  it("walls only where needed: closed rings with a gate on defend levels built with walls on, none elsewhere", () => {
     for (const { r, b } of built()) {
       if (!b) continue;
       const m = ManifestSchema.parse(b.manifest); // rings are written as points; the schema normalises them to sections
       const lines = m.entities.filter((e) => e.type === "barrier.line");
-      const needs = r.family === "defend" || r.family === "rescue";
+      const needs = r.family === "defend"; // built with walls on; rescue has no ring since outpost-ops#162
       expect(lines.length).toBe(needs ? 1 : 0);
       for (const l of lines) {
         if (l.type !== "barrier.line") continue;
