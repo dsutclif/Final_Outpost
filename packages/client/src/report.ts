@@ -1,6 +1,6 @@
 import { CONTENT_VERSION } from "@fo/content";
 import { ENGINE_VERSION, type SimEvent, type State } from "@fo/sim";
-import { createShape, shapeResult, shapeTick, type ShapeAcc } from "@fo/bots";
+import { createShape, shapeResult, shapeTick, type ShapeAcc } from "@fo/bots/shape";
 import type { NewPlayer, TelemetryEvent, TelemetryKind } from "./save.js";
 
 // Builds play-data events (docs/review/CONTRACT.md §1) from what the app sees: one attempt at a time,
