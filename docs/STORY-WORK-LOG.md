@@ -34,6 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-15 | pro-live (build-ship) | pads/se-default | ENGINE BUMP to 0.28.0: `packages/sim/src/sim.ts`, `levels/golden`, `levels/story`, `levels/packs/*` (version strings only), `packages/generator/src/{plots,layout,build,viewVisibility,padRepair}.ts`, `packages/content/data/plot.json` | Pads south-east of their building, the Core's inside its circle; real-camera shadows while placing (new levels only) |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
