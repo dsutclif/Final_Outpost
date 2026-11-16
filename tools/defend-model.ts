@@ -13,10 +13,11 @@ import { content as defaultContent, type Content } from "../packages/content/src
 // Every game number comes from the level file or content: hostile hp/speed/drops/shots, tower tiers and sites, the
 // guard role, the commander's attack, defense.* geometry and timings, pad prices and pads.defenceGrowth. Towers hit
 // the nearest attacker in range of their site; the commander and guards hit the attacker nearest the core within
-// MODEL_FIT.reach of it; only MODEL_FIT.spend of each drop goes to defence (the good bot spends about a fifth of its
-// salvage on defence without walls). MODEL_FIT holds the only fitted numbers, calibrated on 320 audit rows of
-// tools/walls-sweep.ts (two 20-point sweeps, walls on and off, good bot x 3 seeds): fitted on one sweep, checked on
-// the other, zero false rejects on both, the worst won row at 0.62 of base health (the reject line is 1.3).
+// MODEL_FIT.reach of the core (or of its gate, with walls); only MODEL_FIT.spend of each drop goes to defence (the
+// good bot spends about a fifth of its salvage on defence without walls). MODEL_FIT holds the only fitted numbers:
+// fitted on two 20-point audit sweeps of tools/walls-sweep.ts on engine 0.29.0 (walls on and off, good bot x 3
+// seeds, one sweep fitted, the other held out), then checked and reach widened on three more on engine 0.30.0:
+// 480 rows, zero false rejects, the worst won row at 0.07 of base health (the reject line is 1.3).
 // It only rejects: a candidate is dropped when the core damage it predicts is more than `slack` (30%) above the
 // core's health. A 50-row sample of those runs is tools/defend-model.fixture.json, checked by defend-model.test.ts;
 // refit with `--calibrate rows.json --grid player=.. guard=.. tower=.. spend=.. reach=..` after content changes.
@@ -64,8 +65,8 @@ export interface ModelInput {
  * defence, and how far from the core (world units) the commander and guards fight.
  */
 export interface ModelFit { player: number; guard: number; tower: number; spend: number; reach: number }
-/** Calibrated 2026-11-16 (engine 0.29.0) on walls-sweep audit runs: rejects 21 of 80 lost rows, none of 240 won. */
-export const MODEL_FIT: ModelFit = { player: 1, guard: 0.1, tower: 1, spend: 0.2, reach: 250 };
+/** Calibrated 2026-11-16 (engine 0.30.0) on walls-sweep audit runs: rejects 19 of 118 lost rows, none of 362 won. */
+export const MODEL_FIT: ModelFit = { player: 1, guard: 0.1, tower: 1, spend: 0.2, reach: 300 };
 export const DEFAULT_SLACK = 0.3;
 
 export interface WaveOut {
@@ -286,9 +287,11 @@ export function assess(inp: ModelInput, opts: { slack?: number; dt?: number; fit
       const near = field.filter((b) => b.hp > 0 && dist(b.pos, tw.at) <= tw.range).sort((a, b) => dist(a.pos, tw.at) - dist(b.pos, tw.at));
       for (const b of near) { if (cap <= 0) break; cap -= hit(b, cap); }
     }
-    // the commander and guards: anywhere on the field, the attacker nearest the core first
+    // the commander and guards: within reach of the core, or of the attacker's gate (with walls the fight is there),
+    // the attacker nearest the core first
     let cap = (inp.playerDps * fit.player + guards * (inp.guard?.dps ?? 0) * fit.guard) * dt;
-    const order = field.filter((b) => b.hp > 0 && dist(b.pos, inp.core) <= fit.reach).sort((a, b) => dist(a.pos, inp.core) - dist(b.pos, inp.core));
+    const near = (b: Body) => dist(b.pos, inp.core) <= fit.reach || (!!inp.gates[b.side] && dist(b.pos, inp.gates[b.side]!) <= fit.reach);
+    const order = field.filter((b) => b.hp > 0 && near(b)).sort((a, b) => dist(a.pos, inp.core) - dist(b.pos, inp.core));
     for (const b of order) { if (cap <= 0) break; cap -= hit(b, cap); }
     // the dead drop their salvage
     for (const b of field) if (b.hp <= 1e-9) { bank += b.drop * fit.spend; earned += b.drop; kills++; if (b.boss) bossKills++; }
