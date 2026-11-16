@@ -34,6 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-16 19:30 | mit | mit/162-walls-off | engine bump 0.29.0; packages/generator/src/build.ts (perimeter wall ring only), generator/src/index.ts, sequencer/src/index.ts | outpost-ops#162 walls off by default |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
