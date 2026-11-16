@@ -1,16 +1,15 @@
 # Screenplay: story levels 1–5 (draft 5 for Doug, 2026-11-12)
 
-This is every line in levels 1–5, in order, with stage notes. **Draft 5 is not approved yet, and nothing in it is
-built until Doug approves it.** It does three things to draft 4:
+This is every line in levels 1–5, in order, with stage notes. **Draft 5 was approved by Doug on 2026-11-16.** It does three things to draft 4:
 
 - brings the script up to date with the live game, which had moved ahead of the document;
 - applies the review round of 2026-11-11 and 11-12 (two outside reviews of draft 4, two more of the live game's
   changes, and a line-by-line check against the level files);
 - applies Doug's rulings of 2026-11-12, marked where they land.
 
-What the game needs to change to match is listed at the end, level by level, and as numbered work in
-`docs/BACKLOG.md` under "Story draft 5". Doug confirmed its three open points on 2026-11-16: the ship's purpose, the bay plate names and the note on
-the raiders.
+What the game needs to change to match is listed at the end, level by level, and as work items on the
+outpost-ops board (`dsutclif/outpost-ops`, project 1), which holds the backlog. Doug confirmed its three open points
+on 2026-11-16: the ship's purpose, the bay plate names and the note on the raiders.
 
 **How to read it**
 
@@ -640,7 +639,7 @@ in years of dust.
 
 ## What changes in the game
 
-Each line is a change against the live game as of 2026-11-12. The numbered work is in `docs/BACKLOG.md`.
+Each line is a change against the live game as of 2026-11-12. The work items are on the outpost-ops board (`dsutclif/outpost-ops`, project 1).
 
 **All levels**
 - Every line holds play, as it does today. What is new is that level 1 also holds movement until the "Reach the
