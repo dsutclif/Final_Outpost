@@ -1,24 +1,28 @@
 import { spawn } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { cpus } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CONTENT_VERSION } from "../packages/content/src/index.js";
 import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { computeReference, type HistoryEntry, type Measurement, type Metrics } from "../packages/rater/src/index.js";
-import { sequenceRange, type LevelRequest } from "../packages/sequencer/src/index.js";
+import { sequenceRange, type LevelRequest, type RecipeRegister } from "../packages/sequencer/src/index.js";
+import { buildWithRerolls, describeRecipe, stopMessage, type SlotOutcome } from "./recipe-reroll.js";
 import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
 import { digestLog } from "./candidate-digest.js";
 
 // pnpm levels:build --from 6 --to 60 --out levels/packs/s1 [--jobs N] [--retries N] [--calibrate] [--verbose]
-//   [--target-offset X] [--no-doc]
+//   [--target-offset X] [--no-doc] [--register path]
 //
 // Sequencer -> generator -> rater for each index. Requests come from the sequencer with the earlier
 // requests as history, so every level can be generated independently: the CLI runs one child
 // process per level, `--jobs` at a time (default: cores - 2). A level whose search fails retries with
-// new seeds; after the last retry the closest feasible, filter-clean candidate ships and is reported
-// as off target. `--calibrate` first measures one unsearched sample per level and rewrites the
+// new seeds; after the last retry the closest feasible, filter-clean candidate ships (reported as off
+// target) if it is within the register's failGap of its target. Otherwise the recipe failed: it goes
+// into the recipe register (packages/sequencer/data/recipe-register.json, or --register) and the slot
+// re-rolls with a new recipe, rebuilding every later slot whose request changed; after maxRerolls the
+// build stops and names the level and its recipes (tools/recipe-reroll.ts, outpost-ops#198). `--calibrate` first measures one unsearched sample per level and rewrites the
 // generator's reference stats (packages/generator/data/reference.json). `--target-offset` shifts every
 // level's target difficulty (batch tuning, tools/levels-next.ts); `--no-doc` leaves docs/LEVELS.md alone.
 // Every search iteration, rejected or not, is appended to levels/candidates/<pack>.jsonl (outside
@@ -72,8 +76,18 @@ const historyFor = (reqs: readonly LevelRequest[], index: number): HistoryEntry[
 
 // ---------- worker: one level ----------
 
-function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number, retryBase = 0): void {
-  const reqs = sequenceRange(1, index, [], { targetOffset });
+const DEFAULT_REGISTER_PATH = join(root, "packages", "sequencer", "data", "recipe-register.json");
+const loadRegister = (path: string): RecipeRegister => JSON.parse(readFileSync(path, "utf8")) as RecipeRegister;
+
+/** Requests of `indices` given the register (entries from an older engine are ignored). */
+const requestsFor = (indices: number[], targetOffset: number) => (register: RecipeRegister): Map<number, LevelRequest> => {
+  const all = sequenceRange(1, Math.max(...indices), [], { targetOffset, register, engine: ENGINE_VERSION });
+  return new Map(indices.map((i) => [i, all[i - 1]!] as const));
+};
+
+function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number, retryBase = 0, registerPath = DEFAULT_REGISTER_PATH): void {
+  const register = loadRegister(registerPath);
+  const reqs = sequenceRange(1, index, [], { targetOffset, register, engine: ENGINE_VERSION });
   const req = reqs[index - 1]!;
   const history = historyFor(reqs, index);
   const t0 = Date.now();
@@ -95,8 +109,10 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   const pick = shipped ?? best;
   const level = { index, id: req.id, family: req.family, secondary: req.secondary, features: req.features, goalType: req.goalType, template: req.template, target: req.target };
   process.stdout.write(`CANDIDATES ${JSON.stringify(candidates.map((c) => ({ ...level, ...c })))}\n`);
-  if (!pick) {
-    process.stdout.write(`RESULT ${JSON.stringify({ index, id: req.id, family: req.family, secondary: req.secondary, failed: true, rejects, seconds: (Date.now() - t0) / 1000 })}\n`);
+  // The recipe failed (outpost-ops#198): nothing ships, or the closest level is further than the
+  // register's failGap from its target. Nothing is written; the parent registers it and re-rolls.
+  if (!pick || Math.abs(pick.rating.D - req.target) > register.settings.failGap) {
+    process.stdout.write(`RESULT ${JSON.stringify({ index, id: req.id, family: req.family, secondary: req.secondary, failed: true, req, closestD: pick ? pick.rating.D : null, attempts, rejects, seconds: (Date.now() - t0) / 1000 })}\n`);
     return;
   }
   const m = pick.manifest;
@@ -112,7 +128,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
     margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, seconds: (Date.now() - t0) / 1000, seed: m.seed,
     attempts, rejects, ratings,
   };
-  process.stdout.write(`RESULT ${JSON.stringify(res)}\n`);
+  process.stdout.write(`RESULT ${JSON.stringify({ ...res, req })}\n`);
 }
 
 function workCalib(index: number): void {
@@ -177,7 +193,7 @@ async function main(): Promise<void> {
     console.log(`wrote ${relative(root, refPath)} from ${samples.length} samples in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   }
 
-  console.log(`building ${packId} levels ${from}-${to} with ${jobs} jobs`);
+  console.log(`building ${packId} levels ${only ? indices.join(",") : `${from}-${to}`} with ${jobs} jobs`);
   const results: LevelResult[] = [];
   const failed: { index: number; rejects: unknown }[] = [];
   // Levels whose every seed failed. A crashed worker is not one: it says nothing about the level.
@@ -186,15 +202,45 @@ async function main(): Promise<void> {
   const candPath = join(root, "levels", "candidates", `${packId}.jsonl`);
   mkdirSync(dirname(candPath), { recursive: true });
   const run = new Date(t0).toISOString();
-  await pool(indices, jobs, (i) => runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, ...(verbose ? ["--verbose"] : [])]), (i, out) => {
+  // A failed recipe is registered and the slot re-rolled (tools/recipe-reroll.ts, outpost-ops#198).
+  const registerPath = abs(arg("--register", DEFAULT_REGISTER_PATH)!);
+  const register = loadRegister(registerPath);
+  const log = (rec: object) => appendFileSync(candPath, JSON.stringify({ run, engine: ENGINE_VERSION, content: CONTENT_VERSION, ...rec }) + "\n");
+  const build = async (i: number, sent: LevelRequest): Promise<SlotOutcome<LevelResult>> => {
+    const out = await runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, "--register", registerPath, ...(verbose ? ["--verbose"] : [])]);
     const r = parseResult(out);
     const cands = out.split("\n").find((l) => l.startsWith("CANDIDATES "));
-    if (cands) appendFileSync(candPath, (JSON.parse(cands.slice(11)) as object[]).map((c) => JSON.stringify({ run, engine: ENGINE_VERSION, content: CONTENT_VERSION, ...c })).join("\n") + "\n");
-    if (!r || r["failed"]) { failed.push({ index: i, rejects: r?.["rejects"] }); if (r) dropped.push({ index: i, id: r["id"], family: r["family"], secondary: r["secondary"] ?? null, rejects: r["rejects"] }); console.log(`  L${i}: FAILED ${JSON.stringify(r?.["rejects"] ?? {})}`); return; }
-    const lr = r as unknown as LevelResult;
-    results.push(lr);
+    if (cands) for (const c of JSON.parse(cands.slice(11)) as object[]) log(c);
+    if (!r) { console.log(`  L${i}: worker crashed`); return { req: sent, ok: false, crashed: true, closestD: null, seeds: 0, rejects: {} }; }
+    const req = r["req"] as LevelRequest;
+    if (r["failed"]) {
+      const d = r["closestD"] as number | null;
+      console.log(`  L${i}: recipe failed (${d === null ? "nothing shipped" : `closest D=${d.toFixed(3)}, target ${req.target}`}) ${JSON.stringify(r["rejects"] ?? {})}`);
+      return { req, ok: false, closestD: d, seeds: r["attempts"] as number, rejects: r["rejects"] as Record<string, number> };
+    }
+    const { req: _req, ...lr } = r as unknown as LevelResult & { req: LevelRequest };
     console.log(`  L${i} ${lr.onTarget ? "ok " : "off"} D=${lr.D.toFixed(3)} (target ${lr.target}) F=${lr.F.toFixed(3)} ${lr.seconds.toFixed(0)}s`);
+    return { req, ok: true, result: lr, closestD: lr.D, seeds: lr.attempts, rejects: lr.rejects };
+  };
+  const rep = await buildWithRerolls({
+    indices, register, engine: ENGINE_VERSION, jobs, date: new Date(t0).toISOString().slice(0, 10),
+    requests: requestsFor(indices, Number(offset)), build,
+    // written whole then renamed, so a worker starting meanwhile never reads half a file
+    onRegister: (_e, reg) => { writeFileSync(`${registerPath}.tmp`, JSON.stringify(reg, null, 2) + "\n"); renameSync(`${registerPath}.tmp`, registerPath); },
+    onEvent: (ev) => {
+      log({ kind: "reroll", index: ev.index, id: ev.id, from: ev.from, to: ev.to, reason: ev.reason });
+      console.log(`  L${ev.index}: re-roll -> ${ev.to ? describeRecipe(ev.to) : "none"}`);
+    },
   });
+  results.push(...rep.results.values());
+  for (const i of rep.crashed) failed.push({ index: i, rejects: {} });
+  if (rep.stopped) {
+    const s = rep.stopped;
+    log({ kind: "reroll", index: s.index, stopped: s.reason, tried: s.tried });
+    failed.push({ index: s.index, rejects: {} });
+    const req = requestsFor([s.index], Number(offset))({ ...register, entries: [] }).get(s.index)!;
+    dropped.push({ index: s.index, id: req.id, family: req.family, secondary: req.secondary, rejects: { recipes: s.tried.length } });
+  }
   digestLog(candPath, join(dirname(candPath), "digest"));
   results.sort((a, b) => a.index - b.index);
 
@@ -239,6 +285,16 @@ async function main(): Promise<void> {
   if (!flag("--no-doc")) writeFileSync(join(root, "docs", "LEVELS.md"), levelsDoc(packId, all));
 
   printSummary(results, failed.length, (Date.now() - t0) / 1000);
+  // Re-roll summary: slot, recipes tried, the one that built.
+  if (rep.failedRecipes.size > 0) {
+    console.log(`\nre-rolls (register ${relative(root, registerPath)}, ${register.entries.length} entries):`);
+    for (const [i, tried] of [...rep.failedRecipes.entries()].sort((a, b) => a[0] - b[0])) {
+      const built = rep.builtWith.get(i);
+      console.log(`  Level ${i}: ${tried.length} recipe(s) failed; ${built ? `built with ${describeRecipe(built)}` : "not built"}`);
+      for (const r of tried) console.log(`    x ${describeRecipe(r)}`);
+    }
+  }
+  if (rep.stopped) console.log(`\nBUILD STOPPED. ${stopMessage(rep.stopped)}`);
   if (failed.length > 0) process.exitCode = 1;
 }
 
@@ -313,6 +369,6 @@ function levelsDoc(packId: string, rs: LevelResult[]): string {
   return lines.join("\n");
 }
 
-if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")), Number(arg("--retry-base", "0")));
+if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")), Number(arg("--retry-base", "0")), arg("--register", DEFAULT_REGISTER_PATH)!);
 else if (flag("--calib")) workCalib(Number(arg("--index")));
 else void main();

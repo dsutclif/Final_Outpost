@@ -65,3 +65,27 @@ Tags: M measured (correlation; pressure moves most settings together), D derived
 | 30 | `heaps + first-wave drops ≥ cost of first wall and tower` | Player can afford a first defence | D |
 | 31 | Rescue: `burn ≥ 2.4` | Weak signal: stalled median 2.33, passing 2.55 | M |
 | 32 | `trips = need / carry ≤ 5` before the first helper | Replaces the `repetitive` check, which rarely fires | M |
+
+## Recipe register and re-roll (implemented, outpost-ops#198)
+
+Doug's rule (2026-11-16), live in `tools/build-levels.ts` + `tools/recipe-reroll.ts`:
+
+- A slot's **recipe** is its request's contents: family, second family, sorted features, sorted modules, introduced
+  mechanics, goal id, template and the target rounded to a band (`targetBand`, 0.1). Never the level number.
+- A search **failed** when, after its seed retries, nothing ships or the closest level is more than `failGap` (0.1) from
+  its target. The builder no longer ships a level beyond that gap; within it, an off-target level still ships (`*`).
+- A failed recipe is written to `packages/sequencer/data/recipe-register.json` (committed) with the date, engine
+  version, seeds tried, reject counts and closest D. The sequencer (`sequence`/`sequenceRange` option `register`, pure)
+  never offers a registered recipe again, for any slot, and first tries features + goal that have not failed with any
+  template (so a re-roll changes what the level asks for, not just its layout). Entries found on an older engine than the one building are
+  ignored. With an empty register the sequence is byte-for-byte the old one (`sequencer.test.ts` fixture).
+- The failed slot is built again from the first step with the recipe the sequencer now gives it. Target, breather,
+  family, phase, seed and introduced mechanics (and their order) come from the slot and never change. Later slots take
+  earlier requests as history, so the whole sequence is recomputed and every slot in the build whose request changed is
+  rebuilt; a result built from a request that has since changed is thrown away.
+- After `maxRerolls` (8) re-rolls of one slot, or when the sequencer has no recipe left for it, the build stops (exit 1)
+  and prints `Level N cannot be built: ... Recipes tried:` with each recipe. The slot is listed in the pack's `dropped`.
+- Each re-roll is a `kind: "reroll"` record in `levels/candidates/<pack>.jsonl`; the build ends with a re-roll summary
+  (slot, recipes tried, the one that built). The three settings live in the register file's `settings`.
+- Only the builder reads the register. Other tools (`try-level`, `layout-map`, the client dev layout) still call the
+  sequencer without it and see the unregistered sequence.

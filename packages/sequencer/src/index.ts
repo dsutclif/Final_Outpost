@@ -1,5 +1,6 @@
 import { content as defaultContent, type Content } from "@fo/content";
 import data from "../data/sequencer.json";
+import registerData from "../data/recipe-register.json";
 
 // The sequencer turns a level index plus the levels the player has seen into a generator request:
 // the level family (REDESIGN-R2 §5), its modules and features, the goal, a layout template and a
@@ -124,6 +125,80 @@ export interface SequenceOptions {
   recovery?: boolean;
   /** Added to every target (batch tuning, adaptOffset); the result stays in [0.05, 0.95]. */
   targetOffset?: number;
+  /** Recipes proved impossible: never offered again (outpost-ops#198). Empty or absent: today's sequence. */
+  register?: RecipeRegister;
+  /** Current engine version: register entries found on an older engine are ignored. Absent: every entry counts. */
+  engine?: string;
+}
+
+// ---------- recipe register (outpost-ops#198) ----------
+
+/** A request's contents that decide whether it can be built; the register's key. */
+export interface Recipe {
+  family: Family;
+  secondary: Family | null;
+  features: string[];
+  modules: string[];
+  introduced: string[];
+  goalId: string;
+  template: string;
+  /** Target difficulty rounded to the register's band: a recipe that cannot reach 0.8 may be fine at 0.3. */
+  band: number;
+}
+
+export interface RegisterEntry {
+  key: string;
+  recipe: Recipe;
+  /** Engine version the recipe failed on; entries from an older engine are ignored. */
+  engine: string;
+  date: string;
+  /** What the failed search saw (informational, never part of the key). */
+  target?: number;
+  closestD?: number | null;
+  seeds?: number;
+  rejects?: Record<string, number>;
+}
+
+export interface RegisterSettings {
+  /** A search failed when no level ships or the closest one is further than this from its target. */
+  failGap: number;
+  /** Re-rolls per slot before the build stops. */
+  maxRerolls: number;
+  /** Width of the target band in the recipe key. */
+  targetBand: number;
+}
+
+export interface RecipeRegister { settings: RegisterSettings; entries: RegisterEntry[] }
+
+/** The committed register (packages/sequencer/data/recipe-register.json). */
+export const DEFAULT_REGISTER = registerData as unknown as RecipeRegister;
+
+export const bandOf = (target: number, band: number): number => Math.round(Math.round(target / band) * band * 1000) / 1000;
+
+export const recipeKey = (r: Recipe): string =>
+  [`${r.family}+${r.secondary ?? "-"}`, `f:${[...r.features].sort().join(",")}`, `m:${[...r.modules].sort().join(",")}`,
+    `i:${r.introduced.join(",")}`, `g:${r.goalId}`, `t:${r.template}`, `b:${r.band}`].join("|");
+
+export const recipeOf = (r: LevelRequest, band: number = DEFAULT_REGISTER.settings.targetBand): Recipe => ({
+  family: r.family, secondary: r.secondary, features: [...r.features], modules: [...r.modules], introduced: [...r.introduced],
+  goalId: r.goalId, template: r.template, band: bandOf(r.target, band),
+});
+
+/** Negative, zero or positive comparing dotted version numbers ("0.29.0"). */
+export function compareVersions(a: string, b: string): number {
+  const pa = a.split(".").map(Number), pb = b.split(".").map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    if (d !== 0) return d;
+  }
+  return 0;
+}
+
+/** Keys of the register entries that count on `engine` (all of them when no engine is given). */
+export function activeKeys(reg: RecipeRegister | undefined, engine?: string): Set<string> {
+  const out = new Set<string>();
+  for (const e of reg?.entries ?? []) if (engine === undefined || compareVersions(e.engine, engine) >= 0) out.add(e.key);
+  return out;
 }
 
 // ---------- deterministic choice (no Math.random) ----------
@@ -273,10 +348,19 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
   const salt = `${cfg.packId}:${index}`;
   const prev = history[history.length - 1];
   const families: Family[] = slot.secondary ? [slot.family, slot.secondary] : [slot.family];
-  const pick = choose(index, slot, families, history, c, cfg, salt);
   let { target, breather } = targetFor(index, slot.phase, cfg);
   if (opts.targetOffset) target = Math.min(0.95, Math.max(0.05, Math.round((target + opts.targetOffset) * 1000) / 1000));
   if (opts.recovery && prev?.fails !== undefined && prev.fails >= 2) target = Math.max(0.05, Math.round((target - cfg.recoveryDrop) * 1000) / 1000);
+  // Target, breather and introduced mechanics come from the slot; the register only steers the rest.
+  const introduced = slot.phase === "teach" ? [`family:${slot.family}`] : [...slot.introduced].sort();
+  const keys = activeKeys(opts.register, opts.engine);
+  const band = bandOf(target, opts.register?.settings.targetBand ?? DEFAULT_REGISTER.settings.targetBand);
+  // With nothing registered nothing is blocked, so the pick is exactly the unregistered one.
+  // Template "*" asks whether the features + goal failed with any template (see choose).
+  const near = new Set([...(opts.register?.entries ?? [])].filter((e) => keys.has(e.key)).map((e) => recipeKey({ ...e.recipe, template: "*" })));
+  const blocked: Blocked | null = keys.size === 0 ? null : (features, modules, goalId, template) =>
+    (template === "*" ? near : keys).has(recipeKey({ family: slot.family, secondary: slot.secondary, features, modules, introduced, goalId, template, band }));
+  const pick = choose(index, slot, families, history, c, cfg, salt, blocked);
   return {
     index,
     id: `${cfg.packId}-L${String(index).padStart(3, "0")}`,
@@ -286,7 +370,7 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
     features: pick.features,
     modules: pick.modules,
     optional: optionalOf(pick.modules, c),
-    introduced: slot.phase === "teach" ? [`family:${slot.family}`] : [...slot.introduced].sort(),
+    introduced,
     goalType: goalKind(pick.goal, cfg),
     goalId: pick.goal,
     challenges: [...cfg.families[slot.family].challenges],
@@ -301,10 +385,15 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
 }
 
 interface Pick { features: string[]; modules: string[]; goal: string; template: string }
+type Blocked = (features: string[], modules: string[], goalId: string, template: string) => boolean;
 
-function choose(index: number, slot: Slot, families: Family[], history: readonly HistoryEntry[], c: Content, cfg: SequencerConfig, salt: string): Pick {
+function choose(index: number, slot: Slot, families: Family[], history: readonly HistoryEntry[], c: Content, cfg: SequencerConfig, salt: string, blocked: Blocked | null = null): Pick {
   const fam = slot.family;
   const prevSame = [...history].reverse().find((h) => h.family === fam);
+  // With a register, a first pass also avoids features + goal that already failed with another
+  // template (a re-roll then changes what the level asks for, not just its layout); the second pass
+  // only skips the registered recipes themselves. Without a register there is one pass, as before.
+  for (let pass = blocked ? 0 : 1; pass < 2; pass++)
   for (let attempt = 0; attempt < 300; attempt++) {
     const s = `${salt}:${attempt}`;
     let features: string[];
@@ -335,11 +424,13 @@ function choose(index: number, slot: Slot, families: Family[], history: readonly
       modules = modulesFor(families, features, c, cfg);
       if (conflicts(modules, c).length > 0) continue;
     }
-    const template = pickTemplate(modules, goalKind(goal, cfg), history, cfg, s);
+    const fm = features, mm = modules;
+    if (pass === 0 && blocked!(fm, mm, goal, "*")) continue;
+    const template = pickTemplate(modules, goalKind(goal, cfg), history, cfg, s, blocked && ((t) => blocked(fm, mm, goal, t)));
     if (template === null) continue;
     return { features, modules, goal, template };
   }
-  throw new Error(`sequencer: no valid request for level ${index} (${slot.family}, ${slot.phase})`);
+  throw new Error(`sequencer: no valid request for level ${index} (${slot.family}, ${slot.phase})${blocked ? " outside the recipe register" : ""}`);
 }
 
 function pickGoal(goals: string[], slot: Slot, history: readonly HistoryEntry[], cfg: SequencerConfig, s: string): string {
@@ -364,12 +455,12 @@ function pickGoal(goals: string[], slot: Slot, history: readonly HistoryEntry[],
   return sorted[0]!;
 }
 
-function pickTemplate(mods: readonly string[], goal: string, history: readonly HistoryEntry[], cfg: SequencerConfig, s: string): string | null {
+function pickTemplate(mods: readonly string[], goal: string, history: readonly HistoryEntry[], cfg: SequencerConfig, s: string, blocked: ((t: string) => boolean) | null = null): string | null {
   const prev = history[history.length - 1];
   const recent = history.slice(-cfg.duplicateWindow);
   const used = new Set(recent.map((h) => key(h.modules, h.goal, h.template)));
   const order = shuffled(cfg.templates, `${s}:tpl`);
-  const ok = order.filter((t) => !used.has(key(mods, goal, t)));
+  const ok = order.filter((t) => !used.has(key(mods, goal, t)) && !(blocked?.(t) ?? false));
   const fresh = ok.filter((t) => t !== prev?.template);
   return fresh[0] ?? ok[0] ?? null;
 }

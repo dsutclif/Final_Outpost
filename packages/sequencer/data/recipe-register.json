@@ -1,0 +1,799 @@
+{
+  "about": "Recipes proved impossible (outpost-ops#198, docs/LEVEL-RULES.md 'Recipe register'). Keyed by contents, never by level. The builder appends; the sequencer never offers a listed recipe found on the current engine or a newer one.",
+  "settings": {
+    "failGap": 0.1,
+    "maxRerolls": 8,
+    "targetBand": 0.1
+  },
+  "entries": [
+    {
+      "key": "rescue+harvest|f:bulk_orders,clearing_pass,crates,pod_timers|m:barrier_lines,blocked_zones,build_pads,carry,core,core_levels,gather,lasso,sales,workers|i:|g:rescue|t:corridor|b:0.8",
+      "recipe": {
+        "family": "rescue",
+        "secondary": "harvest",
+        "features": [
+          "bulk_orders",
+          "clearing_pass",
+          "crates",
+          "pod_timers"
+        ],
+        "modules": [
+          "barrier_lines",
+          "blocked_zones",
+          "build_pads",
+          "carry",
+          "core",
+          "core_levels",
+          "gather",
+          "lasso",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "rescue",
+        "template": "corridor",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "rescue+harvest|f:bulk_orders,clearing_pass|m:barrier_lines,blocked_zones,build_pads,carry,core,core_levels,gather,lasso,sales,workers|i:|g:rescue|t:crossroads|b:0.8",
+      "recipe": {
+        "family": "rescue",
+        "secondary": "harvest",
+        "features": [
+          "bulk_orders",
+          "clearing_pass"
+        ],
+        "modules": [
+          "barrier_lines",
+          "blocked_zones",
+          "build_pads",
+          "carry",
+          "core",
+          "core_levels",
+          "gather",
+          "lasso",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "rescue",
+        "template": "crossroads",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "rescue+harvest|f:crates,vips|m:barrier_lines,build_pads,carry,core,customer_variety,gather,lasso,sales,workers|i:|g:rescue|t:crescent|b:0.8",
+      "recipe": {
+        "family": "rescue",
+        "secondary": "harvest",
+        "features": [
+          "crates",
+          "vips"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "customer_variety",
+          "gather",
+          "lasso",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "rescue",
+        "template": "crescent",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "industrialize+-|f:conveyors,depot,material_processor,tier2|m:build_pads,carry,converters,conveyors,core,gather,sales,supply_routing,workers|i:|g:automate|t:corridor|b:0.6",
+      "recipe": {
+        "family": "industrialize",
+        "secondary": null,
+        "features": [
+          "conveyors",
+          "depot",
+          "material_processor",
+          "tier2"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "converters",
+          "conveyors",
+          "core",
+          "gather",
+          "sales",
+          "supply_routing",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "automate",
+        "template": "corridor",
+        "band": 0.6
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.581,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 32,
+        "humanLost": 8
+      }
+    },
+    {
+      "key": "rescue+harvest|f:bulk_orders,clearing_pass,crates|m:barrier_lines,blocked_zones,build_pads,carry,core,core_levels,gather,lasso,sales,workers|i:|g:rescue|t:crossroads|b:0.8",
+      "recipe": {
+        "family": "rescue",
+        "secondary": "harvest",
+        "features": [
+          "bulk_orders",
+          "clearing_pass",
+          "crates"
+        ],
+        "modules": [
+          "barrier_lines",
+          "blocked_zones",
+          "build_pads",
+          "carry",
+          "core",
+          "core_levels",
+          "gather",
+          "lasso",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "rescue",
+        "template": "crossroads",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "rescue+harvest|f:clearing_pass,crates,vips|m:barrier_lines,blocked_zones,build_pads,carry,core,core_levels,customer_variety,gather,lasso,sales,workers|i:|g:rescue|t:crescent|b:0.8",
+      "recipe": {
+        "family": "rescue",
+        "secondary": "harvest",
+        "features": [
+          "clearing_pass",
+          "crates",
+          "vips"
+        ],
+        "modules": [
+          "barrier_lines",
+          "blocked_zones",
+          "build_pads",
+          "carry",
+          "core",
+          "core_levels",
+          "customer_variety",
+          "gather",
+          "lasso",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "rescue",
+        "template": "crescent",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "rescue+harvest|f:clearing_pass,crates,pod_timers,vips|m:barrier_lines,blocked_zones,build_pads,carry,core,core_levels,customer_variety,gather,lasso,sales,workers|i:|g:rescue|t:crossroads|b:0.8",
+      "recipe": {
+        "family": "rescue",
+        "secondary": "harvest",
+        "features": [
+          "clearing_pass",
+          "crates",
+          "pod_timers",
+          "vips"
+        ],
+        "modules": [
+          "barrier_lines",
+          "blocked_zones",
+          "build_pads",
+          "carry",
+          "core",
+          "core_levels",
+          "customer_variety",
+          "gather",
+          "lasso",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "rescue",
+        "template": "crossroads",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "rescue+harvest|f:bulk_orders,crates|m:barrier_lines,build_pads,carry,core,gather,lasso,sales,workers|i:|g:rescue|t:east_fields|b:0.8",
+      "recipe": {
+        "family": "rescue",
+        "secondary": "harvest",
+        "features": [
+          "bulk_orders",
+          "crates"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "lasso",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "rescue",
+        "template": "east_fields",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "layout": 190,
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "rescue+harvest|f:clearing_pass,vips|m:barrier_lines,blocked_zones,build_pads,carry,core,core_levels,customer_variety,gather,lasso,sales,workers|i:|g:rescue|t:south_fields|b:0.8",
+      "recipe": {
+        "family": "rescue",
+        "secondary": "harvest",
+        "features": [
+          "clearing_pass",
+          "vips"
+        ],
+        "modules": [
+          "barrier_lines",
+          "blocked_zones",
+          "build_pads",
+          "carry",
+          "core",
+          "core_levels",
+          "customer_variety",
+          "gather",
+          "lasso",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "rescue",
+        "template": "south_fields",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "layout": 1600
+      }
+    },
+    {
+      "key": "rescue+harvest|f:bulk_orders,clearing_pass,crates,pod_timers|m:barrier_lines,blocked_zones,build_pads,carry,core,core_levels,gather,lasso,sales,workers|i:|g:rescue|t:south_fields|b:0.8",
+      "recipe": {
+        "family": "rescue",
+        "secondary": "harvest",
+        "features": [
+          "bulk_orders",
+          "clearing_pass",
+          "crates",
+          "pod_timers"
+        ],
+        "modules": [
+          "barrier_lines",
+          "blocked_zones",
+          "build_pads",
+          "carry",
+          "core",
+          "core_levels",
+          "gather",
+          "lasso",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "rescue",
+        "template": "south_fields",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "layout": 1600
+      }
+    },
+    {
+      "key": "industrialize+-|f:conveyors,depot,material_processor,tier2|m:build_pads,carry,converters,conveyors,core,gather,sales,supply_routing,workers|i:|g:chain|t:crossroads|b:0.6",
+      "recipe": {
+        "family": "industrialize",
+        "secondary": null,
+        "features": [
+          "conveyors",
+          "depot",
+          "material_processor",
+          "tier2"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "converters",
+          "conveyors",
+          "core",
+          "gather",
+          "sales",
+          "supply_routing",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "chain",
+        "template": "crossroads",
+        "band": 0.6
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.581,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "layout": 1600
+      }
+    },
+    {
+      "key": "industrialize+-|f:converter_levels|m:build_pads,carry,converters,core,gather,sales,workers|i:|g:automate|t:north_fields|b:0.6",
+      "recipe": {
+        "family": "industrialize",
+        "secondary": null,
+        "features": [
+          "converter_levels"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "converters",
+          "core",
+          "gather",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "automate",
+        "template": "north_fields",
+        "band": 0.6
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.581,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "defend+shelter|f:bosses,defenders,gate_arrivals,multi_side,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,housing,sales,salvage_upgrades,workers|i:|g:boss|t:corridor|b:0.8",
+      "recipe": {
+        "family": "defend",
+        "secondary": "shelter",
+        "features": [
+          "bosses",
+          "defenders",
+          "gate_arrivals",
+          "multi_side",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "housing",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "boss",
+        "template": "corridor",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 16,
+        "humanLost": 4,
+        "idleModule": 20
+      }
+    },
+    {
+      "key": "defend+shelter|f:gate_arrivals,housing,multi_side,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,housing,sales,salvage_upgrades,workers|i:|g:waves|t:west_fields|b:0.8",
+      "recipe": {
+        "family": "defend",
+        "secondary": "shelter",
+        "features": [
+          "gate_arrivals",
+          "housing",
+          "multi_side",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "housing",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "waves",
+        "template": "west_fields",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "defend+shelter|f:dust_storms,multi_side,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,hazard_events,sales,salvage_upgrades,workers|i:|g:waves|t:east_fields|b:0.8",
+      "recipe": {
+        "family": "defend",
+        "secondary": "shelter",
+        "features": [
+          "dust_storms",
+          "multi_side",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "hazard_events",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "waves",
+        "template": "east_fields",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "defend+shelter|f:gate_arrivals,multi_side,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,housing,sales,salvage_upgrades,workers|i:|g:waves|t:crossroads|b:0.8",
+      "recipe": {
+        "family": "defend",
+        "secondary": "shelter",
+        "features": [
+          "gate_arrivals",
+          "multi_side",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "housing",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "waves",
+        "template": "crossroads",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "defend+shelter|f:gate_arrivals,housing,med_bay,multi_side,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,housing,medical,sales,salvage_upgrades,workers|i:|g:waves|t:corridor|b:0.8",
+      "recipe": {
+        "family": "defend",
+        "secondary": "shelter",
+        "features": [
+          "gate_arrivals",
+          "housing",
+          "med_bay",
+          "multi_side",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "housing",
+          "medical",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "waves",
+        "template": "corridor",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40,
+        "layout": 3
+      }
+    },
+    {
+      "key": "defend+shelter|f:defenders,dust_storms,multi_side,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,hazard_events,sales,salvage_upgrades,workers|i:|g:waves|t:crescent|b:0.8",
+      "recipe": {
+        "family": "defend",
+        "secondary": "shelter",
+        "features": [
+          "defenders",
+          "dust_storms",
+          "multi_side",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "hazard_events",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "waves",
+        "template": "crescent",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "defend+shelter|f:bosses,defenders,gate_arrivals,housing,multi_side,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,housing,sales,salvage_upgrades,workers|i:|g:boss|t:west_fields|b:0.8",
+      "recipe": {
+        "family": "defend",
+        "secondary": "shelter",
+        "features": [
+          "bosses",
+          "defenders",
+          "gate_arrivals",
+          "housing",
+          "multi_side",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "housing",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "boss",
+        "template": "west_fields",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 19,
+        "idleModule": 14,
+        "humanLost": 7
+      }
+    },
+    {
+      "key": "defend+shelter|f:gate_arrivals,med_bay,multi_side,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,housing,medical,sales,salvage_upgrades,workers|i:|g:waves|t:crossroads|b:0.8",
+      "recipe": {
+        "family": "defend",
+        "secondary": "shelter",
+        "features": [
+          "gate_arrivals",
+          "med_bay",
+          "multi_side",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "housing",
+          "medical",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "waves",
+        "template": "crossroads",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    },
+    {
+      "key": "defend+shelter|f:dust_storms,med_bay,multi_side,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,hazard_events,medical,sales,salvage_upgrades,workers|i:|g:waves|t:crescent|b:0.8",
+      "recipe": {
+        "family": "defend",
+        "secondary": "shelter",
+        "features": [
+          "dust_storms",
+          "med_bay",
+          "multi_side",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "hazard_events",
+          "medical",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "waves",
+        "template": "crescent",
+        "band": 0.8
+      },
+      "engine": "0.29.0",
+      "date": "2026-11-16",
+      "target": 0.8,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "infeasible": 40
+      }
+    }
+  ]
+}

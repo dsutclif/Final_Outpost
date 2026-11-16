@@ -1,8 +1,10 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { content } from "@fo/content";
 import {
-  DEFAULT_CONFIG, FAMILIES, adaptOffset, alwaysOn, closure, conflicts, familyCounts, goalKind, historyOf, sequence, sequenceRange, slotFor, targetFor,
-  type HistoryEntry, type LevelRequest, type SequencerConfig,
+  DEFAULT_CONFIG, DEFAULT_REGISTER, FAMILIES, compareVersions, recipeKey, recipeOf, adaptOffset, alwaysOn, closure, conflicts, familyCounts, goalKind, historyOf, sequence, sequenceRange, slotFor, targetFor,
+  type HistoryEntry, type LevelRequest, type RecipeRegister, type RegisterEntry, type SequencerConfig,
 } from "../src/index.js";
 
 const N = 60;
@@ -147,5 +149,67 @@ describe("batch tuning", () => {
     expect(o).toBe(on.adapt.offset.lo);
     for (let k = 0; k < 20; k++) o = adaptOffset(o, played(3, 1), on).offset;
     expect(o).toBe(on.adapt.offset.hi);
+  });
+});
+
+describe("recipe register (outpost-ops#198)", () => {
+  const settings = { failGap: 0.1, maxRerolls: 8, targetBand: 0.1 };
+  const entry = (r: LevelRequest, engine = "0.29.0"): RegisterEntry => ({ key: recipeKey(recipeOf(r)), recipe: recipeOf(r), engine, date: "2026-11-16" });
+  const reg = (entries: RegisterEntry[]): RecipeRegister => ({ settings, entries });
+  const keys = (rs: LevelRequest[]) => rs.map((r) => recipeKey(recipeOf(r)));
+  // small seeded PRNG so the property test is reproducible
+  const rng = (seed: number) => () => { seed = (Math.imul(seed ^ (seed >>> 15), 0x2c1b3c6d) + 0x9e3779b9) >>> 0; return seed / 2 ** 32; };
+
+  it("with an empty register the first 60 requests are byte-for-byte today's", () => {
+    const today = readFileSync(fileURLToPath(new URL("./fixtures/requests-1-60.json", import.meta.url)), "utf8");
+    expect(JSON.stringify(sequenceRange(1, N)) + "\n").toBe(today);
+    expect(JSON.stringify(sequenceRange(1, N, [], { register: reg([]), engine: "0.29.0" })) + "\n").toBe(today);
+  });
+
+  it("never offers a registered recipe, for any slot", () => {
+    const registered = reg([25, 30, 60, 12, 41].map((i) => entry(reqs[i - 1]!)));
+    const got = sequenceRange(1, N, [], { register: registered });
+    const banned = new Set(registered.entries.map((e) => e.key));
+    for (const k of keys(got)) expect(banned.has(k)).toBe(false);
+    for (const i of [25, 30, 60, 12, 41]) expect(recipeKey(recipeOf(got[i - 1]!))).not.toBe(recipeKey(recipeOf(reqs[i - 1]!)));
+    // the slots before the first registered one are untouched; purity holds with a register
+    expect(got.slice(0, 11)).toEqual(reqs.slice(0, 11));
+    expect(sequenceRange(1, N, [], { register: registered })).toEqual(got);
+  });
+
+  it("ignores entries found on an older engine", () => {
+    const old = reg([entry(reqs[24]!, "0.28.9")]);
+    expect(sequenceRange(1, N, [], { register: old, engine: "0.29.0" })).toEqual(reqs);
+    const h = reqs.slice(0, 24).map(historyOf);
+    expect(recipeKey(recipeOf(sequence(25, h, { register: old, engine: "0.28.9" })))).not.toBe(recipeKey(recipeOf(reqs[24]!)));
+    expect(compareVersions("0.29.0", "0.28.10")).toBeGreaterThan(0);
+  });
+
+  it("keeps target, breather and introduced mechanics (in order) over random registers", () => {
+    const next = rng(198);
+    const introOrder = reqs.flatMap((r) => r.introduced);
+    for (let trial = 0; trial < 6; trial++) {
+      // register a random share of today's recipes, then a random share of the re-rolled ones too
+      const first = reqs.slice(5).filter(() => next() < 0.4).map((r) => entry(r));
+      const mid = sequenceRange(1, N, [], { register: reg(first) });
+      const all = reg([...first, ...mid.slice(5).filter(() => next() < 0.3).map((r) => entry(r))]);
+      const got = sequenceRange(1, N, [], { register: all });
+      const banned = new Set(all.entries.map((e) => e.key));
+      for (const [i, r] of got.entries()) {
+        expect(banned.has(recipeKey(recipeOf(r)))).toBe(false);
+        expect(r.target).toBe(reqs[i]!.target);
+        expect(r.breather).toBe(reqs[i]!.breather);
+        expect(r.introduced).toEqual(reqs[i]!.introduced);
+        expect([r.family, r.secondary, r.phase, r.seed]).toEqual([reqs[i]!.family, reqs[i]!.secondary, reqs[i]!.phase, reqs[i]!.seed]);
+        for (const f of r.introduced) if (!f.startsWith("family:")) expect(r.features).toContain(f);
+      }
+      expect(got.flatMap((r) => r.introduced)).toEqual(introOrder);
+    }
+  });
+
+  it("the committed register file parses and holds only well-formed entries", () => {
+    expect(DEFAULT_REGISTER.settings.failGap).toBe(0.1);
+    expect(DEFAULT_REGISTER.settings.maxRerolls).toBeGreaterThan(0);
+    for (const e of DEFAULT_REGISTER.entries) expect(e.key).toBe(recipeKey(e.recipe));
   });
 });

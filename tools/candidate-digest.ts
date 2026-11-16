@@ -134,6 +134,8 @@ export function digestLog(rawPath: string, digestDir: string, now = Date.now()):
   const cutoff = now - KEEP_DAYS * 86_400_000;
   for (const line of lines) {
     const c = JSON.parse(line) as RawCandidate;
+    // re-roll records (build-levels, outpost-ops#198) share the log but are not candidates
+    if ((c as { kind?: string }).kind === "reroll") { if (Date.parse(c.run) >= cutoff) kept.push(line); continue; }
     const day = c.run.slice(0, 10);
     const d = load(day);
     const runKey = `${pack}@${c.run}`;
