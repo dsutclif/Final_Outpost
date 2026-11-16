@@ -16,12 +16,17 @@ export const GAME_PAD = 49;
 const OCCLUDE = 1 / Math.tan((50 * Math.PI) / 180);
 const ART_M = 28;
 
-/** Each building's plot pads: a machine's one staff slot takes its workers in order; its upgrade has its own slot beside it (R5 #6). */
-export const PLOT_PADS: Record<string, { pads: { id: string; side?: "L" }[]; edge: boolean }> = {
-  "sink.core": { pads: [{ id: "collector", side: "L" }, { id: "upgrade" }], edge: true },
-  "conv.food_processor": { pads: [{ id: "upgrade" }, { id: "staff" }], edge: true },
-  "conv.material_processor": { pads: [{ id: "upgrade" }, { id: "staff" }], edge: true },
-  "conv.alloy_works": { pads: [{ id: "upgrade" }, { id: "staff" }], edge: true },
+/**
+ * Each building's plot pads, in the fixed order they take its south-east spots (Doug, 2026-11-15: every pad touches its own
+ * building on its south-east side, the side facing the camera, so its building never hides it): a machine's one staff slot
+ * takes its workers in order; its upgrade has its own slot beside it (R5 #6). `round`: the model is round (the reactor), so
+ * its pads stand on an arc around it, inside its lit circle.
+ */
+export const PLOT_PADS: Record<string, { pads: { id: string }[]; edge: boolean; round?: boolean }> = {
+  "sink.core": { pads: [{ id: "collector" }, { id: "upgrade" }], edge: true, round: true },
+  "conv.food_processor": { pads: [{ id: "staff" }, { id: "upgrade" }], edge: true },
+  "conv.material_processor": { pads: [{ id: "staff" }, { id: "upgrade" }], edge: true },
+  "conv.alloy_works": { pads: [{ id: "staff" }, { id: "upgrade" }], edge: true },
   "node.food_source": { pads: [{ id: "staff" }], edge: false },
   "struct.depot": { pads: [{ id: "staff" }], edge: true },
   "struct.barracks": { pads: [{ id: "staff" }, { id: "upgrade" }], edge: false },
@@ -29,6 +34,54 @@ export const PLOT_PADS: Record<string, { pads: { id: string; side?: "L" }[]; edg
   "struct.housing": { pads: [], edge: false },
   "struct.landmark": { pads: [], edge: false },
 };
+/** Arc angles (degrees from east toward south) a round building's pads try, in order: its south-east side, either side of the diagonal. */
+export const ROUND_ANGLES: readonly number[] = [65, 25, 80, 10, 45];
+
+/**
+ * South-east pad slots touching a building (Doug, 2026-11-15). `b` is the model's ground box (x east, y south), `P` the pad
+ * plate across, `G` the gap kept to the model, `step` the least distance between two pads' centres (their pay ranges apart),
+ * `spots` the standing spots and pick-up circles of the plot ([x, y, r]) a pad keeps its reach off (`reach` + r + 2).
+ * Box buildings: the corner spot first, then along the east face and the south face, one step at a time. Round buildings
+ * (`round`: the model's radius): an arc at the least radius that keeps the pad off the model and off its ground box, angles in
+ * ROUND_ANGLES order; `limit` caps that radius (the reactor's pads stay inside its lit circle).
+ * Each pad takes the first spot clear of the pads before it; whole numbers, no randomness.
+ */
+export function southEastSlots(b: readonly [number, number, number, number], pads: readonly { id: string }[],
+  o: { P: number; G: number; step: number; reach: number; spots: readonly (readonly [number, number, number])[]; round?: number; limit?: number; skip?: number }): { id: string; dx: number; dy: number }[] {
+  const h = o.P / 2, cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
+  const cands: [number, number][] = [];
+  if (o.round !== undefined) {
+    for (const deg of ROUND_ANGLES) {
+      const a = (deg * Math.PI) / 180, ux = Math.cos(a), uy = Math.sin(a);
+      // off the model (round) and off its ground box (the generator's footprint test)
+      let r = Math.ceil(o.round + o.G + h);
+      while (r < 400 && Math.round(cx + ux * r) - h < b[2] && Math.round(cy + uy * r) - h < b[3]) r++;
+      if (o.limit !== undefined && r > o.limit) continue;
+      cands.push([Math.round(cx + ux * r), Math.round(cy + uy * r)]);
+    }
+  } else {
+    const ex = Math.round(b[2] + o.G + h), sy = Math.round(b[3] + o.G + h), s = o.step;
+    // the corner, then down the east face and along the south face, one step at a time, never past the middle of a face
+    // (the south-east side only)
+    for (let k = 0; k < 4; k++) {
+      if (k === 0) cands.push([ex, sy]);
+      else {
+        if (sy - k * s >= cy) cands.push([ex, sy - k * s]);
+        if (ex - k * s >= cx) cands.push([ex - k * s, sy]);
+      }
+    }
+  }
+  // an alternative layout starts further along the side (the generator tries them in order where the first is blocked)
+  cands.splice(0, o.skip ?? 0);
+  const out: { id: string; dx: number; dy: number }[] = [];
+  for (const p of pads) {
+    const q = cands.find((c) => out.every((t) => Math.hypot(c[0] - t.dx, c[1] - t.dy) >= o.step)
+      && o.spots.every((sp) => Math.hypot(c[0] - sp[0], c[1] - sp[1]) >= o.reach + sp[2] + 2));
+    if (!q) throw new Error(`no south-east slot for ${p.id}`);
+    out.push({ id: p.id, dx: q[0], dy: q[1] });
+  }
+  return out;
+}
 
 type Pair = [number, number];
 type Box4 = [number, number, number, number];
@@ -67,7 +120,7 @@ export interface PlotData {
     defaults: { "pads.range": number; "pads.bigRange": number };
   };
   /** Read by the generator (GEN.plots, footprints, cashier pads). */
-  generator: { footprints: Record<string, Box4>; bodies: Record<string, Box4>; plots: Record<string, { slots: { id: string; dx: number; dy: number }[] }>; cashierPads: Pair[] };
+  generator: { footprints: Record<string, Box4>; bodies: Record<string, Box4>; plots: Record<string, { slots: { id: string; dx: number; dy: number }[]; alts?: { id: string; dx: number; dy: number }[][] }>; cashierPads: Pair[] };
   /** Read by the 3D renderer: pad plate and operator plate across (world units). */
   render: { pad: number; plate: number };
 }
@@ -96,30 +149,10 @@ export function computePlots(inp: PlotInput): PlotData {
     return out;
   };
 
-  // pad slots hugging the model: front rows, or the side-preferring pads on the side; whichever plot is smallest
-  const slotsFor = (b: Box4, pads: { id: string; side?: "L" }[], edge: boolean) => {
-    const cx = (b[0] + b[2]) / 2;
-    // neighbouring pads keep their pay ranges apart, and a front-edge standing spot stays out of their range
-    const step = Math.max(P + G, 2 * padRange + 2);
-    const row0 = b[3] + (edge ? Math.max(plate / 2 + G + P / 2, padRange + inp.standR + 2) : G + P / 2);
-    const rows = (list: typeof pads, k: number) => list.map((p, i) => {
-      const r = Math.floor(i / k), inRow = Math.min(k, list.length - r * k), c = i - r * k;
-      return { id: p.id, dx: cx + (c - (inRow - 1) / 2) * step, dy: row0 + r * step };
-    });
-    const cands: { id: string; dx: number; dy: number }[][] = [];
-    for (let k = 1; k <= Math.max(1, pads.length); k++) cands.push(rows(pads, k));
-    const sided = pads.filter((p) => p.side), rest = pads.filter((p) => !p.side);
-    if (sided.length) {
-      const sides = sided.map((p) => ({ id: p.id, dx: b[0] - G - P / 2, dy: Math.max(b[1] + P / 2, b[3] - P / 2) }));
-      for (let k = 1; k <= Math.max(1, rest.length); k++) cands.push([...sides, ...rows(rest, k)]);
-    }
-    const area = (l: { dx: number; dy: number }[]) => {
-      let x0 = b[0], y0 = b[1], x1 = b[2], y1 = b[3] + (edge ? plate / 2 : 0);
-      for (const s of l) { x0 = Math.min(x0, s.dx - P / 2); y0 = Math.min(y0, s.dy - P / 2); x1 = Math.max(x1, s.dx + P / 2); y1 = Math.max(y1, s.dy + P / 2); }
-      return (x1 - x0) * (y1 - y0);
-    };
-    return cands.reduce((a, c) => (area(c) < area(a) - 0.5 ? c : a)).map((s) => ({ id: s.id, dx: Math.round(s.dx), dy: Math.round(s.dy) }));
-  };
+  // neighbouring pads keep their pay ranges apart
+  const step = Math.max(P + G, 2 * padRange + 2);
+  // the reactor's lit circle at its first level (sink.core safeRadius): its pads stand inside it
+  const coreCircle = (inp.base.sinks["sink.core"] as unknown as { levels: { safeRadius: number }[] }).levels[0]!.safeRadius;
 
   const base = inp.base;
   const converters: PlotData["content"]["converters"] = {};
@@ -139,8 +172,9 @@ export function computePlots(inp: PlotInput): PlotData {
     const b = mb.b;
     footprints[type] = [Math.round(b[0]), Math.round(b[1] - OCCLUDE * mb.h), Math.round(b[2]), Math.round(b[3])];
     bodies[type] = [Math.round(b[0]), Math.round(b[1]), Math.round(b[2]), Math.round(b[3])];
-    plots[type] = { slots: slotsFor(b, def.pads, def.edge) };
     const cx = Math.round((b[0] + b[2]) / 2), front = Math.round(b[3]);
+    // the plot's standing spots and pick-up circles, which a pad keeps its reach off
+    const spots: [number, number, number][] = [];
     if (type.startsWith("conv.")) {
       // operator on the front edge; the pickup tray (0.7 of the operator plate across) at the front right end, on the
       // front edge too, just clear of the operator plate (R5 #30b: the player stands at the edge, not inside the machine)
@@ -153,9 +187,26 @@ export function computePlots(inp: PlotInput): PlotData {
         operatorOffset: [cx, front],
         pickupOffset: [Math.round(Math.max(b[2] - r - 3, cx + plate / 2 + G + r)), front],
       };
+      spots.push([cx, front, plate / 2], [converters[type]!.pickupOffset[0], front, inp.standR]);
     }
-    if (type === "struct.depot") depot.dropOffset = [cx, front];
+    if (type === "struct.depot") {
+      depot.dropOffset = [cx, front];
+      const pr = (base.structures["struct.depot"] as unknown as { padRange?: number }).padRange ?? padRange;
+      for (const o of [depot.dropOffset, ...depot.pickupOffsets]) spots.push([o[0], o[1], pr]);
+    }
     if (type === "struct.medical") heal = [cx, front];
+    const round = def.round ? Math.max(b[2] - cx, cx - b[0], b[3] - (b[1] + b[3]) / 2) : undefined;
+    const so = { P, G, step, reach: padRange, spots, ...(round !== undefined ? { round, limit: coreCircle } : {}) };
+    const slots = southEastSlots(b, def.pads, so);
+    // box buildings: up to three alternatives further along the south-east side, for spots where the first is blocked
+    const alts: typeof slots[] = [];
+    if (round === undefined && def.pads.length) for (let k = 1; k <= 3; k++) {
+      try {
+        const a = southEastSlots(b, def.pads, { ...so, skip: k }), key = JSON.stringify(a);
+        if (key !== JSON.stringify(slots) && !alts.some((x) => JSON.stringify(x) === key)) alts.push(a);
+      } catch { /* no room that far along */ }
+    }
+    plots[type] = { slots, ...(alts.length ? { alts } : {}) };
   }
   // the kiosk keeps its own register, coin pile, queue and cashier layout, scaled with it from the base size
   const kB = base.sinks["sink.sales_point"] as unknown as { registerOffset: Pair; pileOffset: Pair; queueOffset: Pair };

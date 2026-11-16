@@ -100,7 +100,9 @@ export function lifetimeVisibility(m: Manifest, win: Map<string, PadWindow> = pa
 
 type Box = [number, number, number, number];
 const GEN = genData as unknown as { footprints: Record<string, Box>; spacing: { standR: number; screen: [number, number]; screenRadius: number; footprintGap: number } };
-const FP = GEN.footprints, S = GEN.spacing;
+const S = GEN.spacing;
+/** Footprints the legality checks use: the data file's, or the generator's live ones while repairPads runs with opts.footprints. */
+let FP: Record<string, Box> = GEN.footprints;
 const boxAt = (p: Pt, k: string): Box => { const f = FP[k]!; return [p[0] + f[0], p[1] + f[1], p[0] + f[2], p[1] + f[3]]; };
 const hit = (u: Box, v: Box, g = S.footprintGap) => u[0] < v[2] + g && v[0] < u[2] + g && u[1] < v[3] + g && v[1] < u[3] + g;
 
@@ -293,7 +295,12 @@ function shift(e: ViewEnt, d: Pt, w: number, h: number): void {
  * farther out; the Core, wall pieces and a pad that raises its building where it stands are never moved. Windows are those of
  * the level as it was (`win`).
  */
-export function repairPads(m0: Manifest, win: Map<string, PadWindow>, opts: { content?: Content; push?: boolean } = {}): RepairResult {
+export function repairPads(m0: Manifest, win: Map<string, PadWindow>, opts: { content?: Content; push?: boolean; footprints?: Readonly<Record<string, readonly [number, number, number, number]>> } = {}): RepairResult {
+  const keep = FP;
+  if (opts.footprints) FP = opts.footprints as Record<string, Box>;
+  try { return repairRun(m0, win, opts); } finally { FP = keep; }
+}
+function repairRun(m0: Manifest, win: Map<string, PadWindow>, opts: { content?: Content; push?: boolean }): RepairResult {
   const content = opts.content ?? defaultContent;
   let m: Manifest = JSON.parse(JSON.stringify(m0)) as Manifest;
   const moves: PadMove[] = [], pushes: Push[] = [], unresolved: PadUnresolved[] = [];

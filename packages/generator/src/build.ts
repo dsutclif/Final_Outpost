@@ -1,5 +1,6 @@
 import { CONTENT_VERSION, LOOK, PLOT, maxModelScale, content as defaultContent, type PlotFile, type Content, type Manifest } from "@fo/content";
-import { padVisibilityReport, type PadVisibilityReport, type ViewEnt } from "./viewVisibility.js";
+import { padVisibilityReport, shadowTest, type PadVisibilityReport, type ViewEnt } from "./viewVisibility.js";
+import { lifetimeVisibility, repairPads, staticWindows, type Manifest as RepairManifest } from "./padRepair.js";
 import { ENGINE_VERSION, createSim, salesLayout, type Compiled } from "@fo/sim";
 import { MEDIC_FAR_BAY, planBot } from "@fo/bots";
 import templatesData from "../data/templates.json";
@@ -59,7 +60,7 @@ export const GEN = genData as unknown as {
    * reserves its slots (mirrored if blocked), and its pads stand on them: a machine's workers and upgrade
    * share its one staff slot, chained in hire order. Footprints are set alongside it by the same tool.
    */
-  plots?: Record<string, { slots: { id: string; dx: number; dy: number }[] }> | null;
+  plots?: Record<string, { slots: { id: string; dx: number; dy: number }[]; alts?: { id: string; dx: number; dy: number }[][] }> | null;
   /** Plot layout: each plotted building's model box without the ground it hides (gatherables may lie there). */
   plotBodies?: Record<string, [number, number, number, number]> | null;
   /** Share of the way from the template's kiosk spot toward the core where the kiosk search centres. */
@@ -87,7 +88,7 @@ export const GEN = genData as unknown as {
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
   medicPad: { u: number; v: number; near: number };
   /** Camera view rules: no pad behind a building or wall; attack sides face the camera; see generator.json. */
-  viewClear: { wallShadow: number; attackSides: ("n" | "e" | "s" | "w")[]; realCamera: boolean };
+  viewClear: { wallShadow: number; attackSides: ("n" | "e" | "s" | "w")[]; realCamera: boolean; placeShade?: boolean };
   defendSockets: { keepForest: number; startInside: number; inside: [number, number][]; insideEW: [number, number][]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number };
   /** Batch 3: the padded defend map and the socket-lined roads; see generator.json. */
   defendRoad: { pad: number; maxPairs: number; first: number; step: number; towerU: number; towerUEW: number; endGap: number; priceGrowth: number };
@@ -205,6 +206,23 @@ function checkPadView(m: Manifest, fail: (why: string) => never): PadVisibilityR
     if (bad.length) fail(`pad hidden on screen: ${bad.map((p) => `${p.id} by ${p.by}`).join(", ")}`);
   }
   return rep;
+}
+/**
+ * The safety net (Doug, 2026-11-15): pads are placed south-east of their building and out of every shadow, so this rarely
+ * acts. Any pad still hidden during its window (any purchase order; tower pads excepted) goes through the repair loop
+ * (padRepair.ts: the south-east spots of its own building, then pushing what hides it), kept only when fewer pads stay hidden.
+ * Entities are replaced in place; the generator's bots and rater then judge the level as any other.
+ */
+function padSafetyNet(m: Manifest, c: Content, notes: string[]): void {
+  const mm = m as unknown as RepairManifest, win = staticWindows(mm);
+  const hidden = (x: RepairManifest) => lifetimeVisibility(x, win).filter((v) => v.hidden > 0 && !/^tower/.test(v.id)).length;
+  const n0 = hidden(mm);
+  if (n0 === 0) return;
+  const r = repairPads(mm, win, { content: c, footprints: GEN.footprints });
+  const n1 = hidden(r.manifest);
+  if (n1 >= n0) return;
+  mm.entities = r.manifest.entities;
+  notes.push(`pad safety net: hidden pads ${n0} -> ${n1} (${r.moves.length} moved, ${r.pushes.length} pushed)`);
 }
 export class LayoutError extends Error {
   constructor(message: string, readonly layout?: LayoutSnapshot) { super(message); }
@@ -363,6 +381,13 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     : [Math.round(r[0] + (core[0] - (r[0] + r[2] / 2)) * fp0), Math.round(r[1] + (core[1] - (r[1] + r[3] / 2)) * fp0), r[2], r[3]];
   const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, [S.screen[0], S.screen[1], S.screenRadius], c, GEN.footprints, S.footprintGap, S.corePull);
   placer = P;
+  // real-camera shadows while placing (Doug, 2026-11-15): no pad in a shadow, nothing tall whose shadow falls on a pad
+  // (wall towers stand in the wall line by design and are left out, as walls are)
+  if (GEN.viewClear.placeShade) P.shadeOf = (kind, p) => {
+    if (kind.startsWith("struct.ranged_defense")) return null;
+    const t = shadowTest(kind, [p[0], p[1]]);
+    return t ? (q) => t([q[0], q[1]]) : null;
+  };
   if (ring) ring.points.forEach((p, i) => P.walls.push([p, ring!.points[(i + 1) % ring!.points.length]!]));
   P.lots = GEN.lots;
   // Plot layout (GEN.plots, set only by the layout sandbox): a building's pad slots come with its placement
@@ -371,31 +396,29 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   P.bodies = plotOn ? GEN.plotBodies ?? null : null;
   // a machine's upgrade slot is kept only where the level has its level pad (R5 #6: the food processor's, with converter levels)
   const levelled = new Set(feat.has("converter_levels") ? ["conv.food_processor"] : []);
-  const plotSlots = (type: string) => {
-    const all = GEN.plots?.[type]?.slots ?? [];
+  const slotList = (type: string, all: readonly { id: string; dx: number; dy: number }[]) => {
     const gone = all.find((o) => o.id === "upgrade" && type.startsWith("conv.") && !levelled.has(type));
-    // without it, the rest of its row closes up to stay centred on the machine
-    const row = gone ? all.filter((o) => o !== gone && o.dy === gone.dy) : [];
-    const shift = row.length > 0 ? (gone!.dx - Math.max(...row.map((o) => o.dx))) / 2 : 0;
-    return all.filter((o) => o !== gone).map((o) => ({ id: o.id, dx: Math.round(o.dx + (row.includes(o) ? shift : 0)), dy: o.dy, r: R.pad, fp: "pad" }));
+    // the pads keep their south-east spots (the staff pad takes the first, so nothing moves up when the upgrade is gone)
+    return all.filter((o) => o !== gone).map((o) => ({ id: o.id, dx: o.dx, dy: o.dy, r: R.pad, fp: "pad" }));
   };
-  const plotOpts = (type: string) => (plotOn && GEN.plots?.[type] ? { slots: plotSlots(type), mirror: true } : {});
+  const plotSlots = (type: string) => slotList(type, GEN.plots?.[type]?.slots ?? []);
+  // alternatives further along the south-east side (the same pads; one that only differs by a dropped upgrade slot is skipped)
+  const plotAlts = (type: string) => {
+    const main = JSON.stringify(plotSlots(type));
+    return (GEN.plots?.[type]?.alts ?? []).map((a) => slotList(type, a)).filter((a, i, l) => JSON.stringify(a) !== main && l.findIndex((b) => JSON.stringify(b) === JSON.stringify(a)) === i);
+  };
+  const plotOpts = (type: string) => (plotOn && GEN.plots?.[type] ? { slots: plotSlots(type), alts: plotAlts(type), mirror: false } : {});
   const slotAt = (owner: string, slot: string): Pt => {
     const s = P.stations.find((x) => x.id === `${owner}:${slot}`);
     return s ? [s.x, s.y] : fail(`no ${slot} slot on ${owner}`);
   };
 
   let startPt: Pt = [core[0] + tpl.start[0], Math.max(inner[1] + 10, Math.min(inner[1] + inner[3] - 10, core[1] + tpl.start[1]))];
-  // plot layout: the core's pads take whichever side keeps the player's start clear, else the start steps out in front of them
-  let coreSlots = plotOn ? plotSlots("sink.core") : [];
-  if (plotOn) {
-    const clearOf = (sl: typeof coreSlots) => sl.every((o) => dist([core[0] + o.dx, core[1] + o.dy], startPt) >= R.pad + 4);
-    const flipped = coreSlots.map((o) => ({ ...o, dx: -o.dx }));
-    if (!clearOf(coreSlots)) {
-      if (clearOf(flipped)) coreSlots = flipped;
-      else startPt = [core[0], Math.round(core[1] + Math.max(...coreSlots.map((o) => o.dy)) + R.pad + 24)];
-    }
-  }
+  // plot layout: the core's pads stay on its south-east side, inside its lit circle (Doug, 2026-11-15); a player start on
+  // them steps out in front of them
+  const coreSlots = plotOn ? plotSlots("sink.core") : [];
+  if (plotOn && !coreSlots.every((o) => dist([core[0] + o.dx, core[1] + o.dy], startPt) >= R.pad + 4))
+    startPt = [core[0], Math.round(core[1] + Math.max(...coreSlots.map((o) => o.dy)) + R.pad + 24)];
   P.add("core", core, R.core, { key: true, fp: "sink.core", ...(plotOn ? { slots: coreSlots } : {}) });
   P.spot("start", startPt, 18);
 
@@ -443,7 +466,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       // the spot snapped into a lot first, then the spot as drawn
       const lp = P.toLot(raw, "sink.sales_point"), n0 = cands.length;
       for (const p of lp[0] === raw[0] && lp[1] === raw[1] ? [raw] : [lp, raw]) {
-        if (!P.onScreen(p) || !P.ok("shop", p, R.shop) || coversPad(p, "sink.sales_point")) { why.ok++; continue; }
+        if (!P.onScreen(p) || !P.ok("shop", p, R.shop) || coversPad(p, "sink.sales_point") || P.castsOnPad("sink.sales_point", p)) { why.ok++; continue; }
         // the clerk spot goes south of the stall if it fits, else east, else west (all in view of the camera)
         for (const side of [0, 1, 2]) {
           const sp = salesSpots(p, core, c, side);
@@ -495,7 +518,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     ents.push({ type: "sink.sales_point", id: "shop", at: [...shopAt], sells });
     const fr = tpl.fields.food;
     const foodRegion: Rect = ring ? inner : pullRect([fr[0], fr[1], fr[2], fr[3]]);
-    food1 = P.place("food1", R.food, foodRegion, { near: [(shopAt[0] + core[0]) / 2 + (shopAt[0] > core[0] ? 60 : -60), shopAt[1] - 40], key: true, samples: 160, fp: "node.food_source", ...plotOpts("node.food_source") })
+    const f1Opts = { near: [(shopAt[0] + core[0]) / 2 + (shopAt[0] > core[0] ? 60 : -60), shopAt[1] - 40] as Pt, key: true, fp: "node.food_source", ...plotOpts("node.food_source") };
+    food1 = P.place("food1", R.food, foodRegion, { ...f1Opts, samples: 160 }) ?? P.place("food1", R.food, foodRegion, { ...f1Opts, samples: 1200 })
       ?? fail("no room for food");
     ents.push({ type: "node.food_source", id: "food1", at: [...food1] });
   }
@@ -591,7 +615,10 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const n = goal === "unlock" && K.costScale > 1.05 ? 2 : 1;
     for (let k = 0; k < n; k++) {
       const id = `food${k + 2}`;
-      const f = P.place(id, R.food, ring ? inner : pullRect(tpl.fields.food), { near: food1, samples: 160, key: true, fp: "node.food_source", ...plotOpts("node.food_source") }) ?? fail("no room for the gated food source");
+      const fOpts = { near: food1, key: true, fp: "node.food_source", ...plotOpts("node.food_source") };
+      // its field first, then anywhere near the first dome (its pad must stay south-east of it and out of every shadow)
+      const f = P.place(id, R.food, ring ? inner : pullRect(tpl.fields.food), { ...fOpts, samples: 160 })
+        ?? P.place(id, R.food, inner, { ...fOpts, samples: 1200 }) ?? fail("no room for the gated food source");
       ents.push({ type: "node.food_source", id, at: [...f], enabled: false });
       P.add(`unlock_${id}`, f, R.pad, { key: true, on: id });
       pad({ type: "pad.build", id: `unlock_${id}`, at: [...f], cost: { "res.currency": cost("unlock") + 5 * k }, build: "node.enable", target: id, ...(workers ? { requires: { pad: "hire_food" } } : {}) });
@@ -614,8 +641,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   if (indus && shopAt && food1) {
     // the search area reaches well past the kiosk on every side: its own footprint fills the middle
     const gSlots = plotOn ? plotOpts("conv.food_processor") : { slots: crewSlots(["op", "out"]) };
-    const g = P.place("grill", R.conv, ring ? inner : [shopAt[0] - 250, shopAt[1] - 280, 500, 440], { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), ...gSlots, samples: 2000, fp: "conv.food_processor" })
-      ?? P.place("grill", R.conv, inner, { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, spots: convSpots("conv.food_processor"), ...gSlots, samples: 4000, fp: "conv.food_processor" })
+    const g = P.place("grill", R.conv, ring ? inner : [shopAt[0] - 250, shopAt[1] - 280, 500, 440], { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, pad: true, spots: convSpots("conv.food_processor"), ...gSlots, samples: 2000, fp: "conv.food_processor" })
+      ?? P.place("grill", R.conv, inner, { near: [shopAt[0] - 110, shopAt[1] - 30], key: true, pad: true, spots: convSpots("conv.food_processor"), ...gSlots, samples: 4000, fp: "conv.food_processor" })
       ?? fail("no room for the food processor");
     pad({ type: "pad.build", id: "grill", at: [...g], cost: { "res.currency": cost("grill") }, build: "conv.food_processor" });
     // The food processor's feeder has its own field, so the shelf's farm worker does not starve it.
@@ -658,7 +685,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         }
         return false;
       };
-      const sawOpts = { near: toward(forestC, core, 0.5), key: true, spots: convSpots("conv.material_processor"), slots: machineSlots("conv.material_processor", ["op"]), mirror: plotOn, fp: "conv.material_processor", ...(belted ? { accept: pairOk } : {}) };
+      const sawOpts = { near: toward(forestC, core, 0.5), key: true, pad: true, spots: convSpots("conv.material_processor"), slots: machineSlots("conv.material_processor", ["op"]), ...(plotOn ? { alts: plotAlts("conv.material_processor") } : {}), mirror: false, fp: "conv.material_processor", ...(belted ? { accept: pairOk } : {}) };
       let s0 = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...sawOpts, samples: 2000 })
         ?? P.place("saw", R.conv, inner, { ...sawOpts, samples: 4000 });
       if (!s0 && belted) {
@@ -697,7 +724,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
             && machineSlots("conv.alloy_works").every((o) => { const sq: Pt = [q[0] + o.dx, q[1] + o.dy]; return dist(mid, sq) >= R.pad + S.margin && !clash(P.box(sq, "pad")); });
         };
         // with a belt the belt is the parts works' input (no input hauler), so only its operator and output slots
-        const alloyOpts = { near: feat.has("conveyors") ? beside : toward(s, shopAt, 0.5), key: true, spots: convSpots("conv.alloy_works"), slots: machineSlots("conv.alloy_works", belted ? ["op", "out"] : undefined), mirror: plotOn, fp: "conv.alloy_works", ...(feat.has("conveyors") ? { accept: beltOk } : {}) };
+        const alloyOpts = { near: feat.has("conveyors") ? beside : toward(s, shopAt, 0.5), key: true, pad: true, spots: convSpots("conv.alloy_works"), slots: machineSlots("conv.alloy_works", belted ? ["op", "out"] : undefined), ...(plotOn && !belted ? { alts: plotAlts("conv.alloy_works") } : {}), mirror: false, fp: "conv.alloy_works", ...(feat.has("conveyors") ? { accept: beltOk } : {}) };
         // with a belt the pair check already cleared the exact spot beside the smelter
         const a = (belted ? P.place("alloy", R.conv, [beside[0] - 1, beside[1] - 1, 2, 2], { ...alloyOpts, near: beside, samples: 40 }) : null)
           ?? P.place("alloy", R.conv, ring ? inner : [16, 340, 448, 500], { ...alloyOpts, samples: 8000 })
@@ -1081,7 +1108,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         const MP = GEN.medicPad;
         for (const { m, o, al } of gates) for (const sg of [1, -1]) {
           const q = find(m, al, o, [sg * MP.u, MP.v], "pad", R.pad + S.margin, false);
-          if (q && dist(q, m) <= MP.near) return q;
+          if (q && dist(q, m) <= MP.near && !P.inShade(q)) return q;
         }
         return null;
       };
@@ -1095,7 +1122,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           const q: Pt = [Math.round(lo[0] + hr.float() * (hi[0] - lo[0])), Math.round(lo[1] + hr.float() * (hi[1] - lo[1]))];
           if (rectDist(q, rr) < SH.outside || rectDist(q, rr) > SH.outside + SH.band) continue;
           if (lanes.some(([a, b2]) => segDist(q, a, b2) < SH.roadGap)) continue;
-          if (!boxOk(q, "node.salvage_pile", rFp, false)) continue;
+          if (!boxOk(q, "node.salvage_pile", rFp, false) || P.castsOnPad("node.salvage_pile", q)) continue;
           P.add(`heap${k}`, q, rFp, { fp: "node.salvage_pile" });
           ents.push({ type: "node.salvage_pile", at: [...q] });
           k++;
@@ -1668,7 +1695,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const d = GEN.defendRoad.pad;
     padMap(m, d);
     for (const s of P.stations) { s.x += d; s.y += d; if (s.fp) s.fp = [s.fp[0] + d, s.fp[1] + d, s.fp[2] + d, s.fp[3] + d]; }
+    padSafetyNet(m, c, notes);
     return { manifest: m, flow, stations: P.stations, notes, sizing, queue: queue.map((q) => [q[0] + d, q[1] + d] as Pt), layout: snapshot(P, d), padVisibility: checkPadView(m, fail) };
   }
+  padSafetyNet(m, c, notes);
   return { manifest: m, flow, stations: P.stations, notes, sizing, queue, layout: snapshot(P), padVisibility: checkPadView(m, fail) };
 }

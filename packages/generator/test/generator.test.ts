@@ -4,6 +4,7 @@ import { createSim, outsideLines, pointInPoly, salesLayout, fp } from "@fo/sim";
 import { planBot } from "@fo/bots";
 import { closure, sequenceRange } from "@fo/sequencer";
 import type { CandidateRecord } from "../src/index.js";
+import { lifetimeVisibility, staticWindows, type Manifest as RepairManifest } from "../src/padRepair.js";
 import { buildLevel, capWavePoints, flowModel, generate, generateDetailed, idleFeatures, knobsFor, newSearchMemory, skinText, templateById, unreadablePairs, timeTarget, TEMPLATES, GEN } from "../src/index.js";
 
 const reqs = sequenceRange(1, 60);
@@ -241,18 +242,62 @@ describe("strict crew slots", () => {
       for (const e of ents) {
         const rule = e.id ? plotPads[e.id]?.[0] : undefined;
         if (!rule || !e.at) continue;
-        const o = at.get(rule.owner)!, slots = GEN.plots![rule.type]!.slots, s = slots.find((x) => x.id === rule.slot)!;
-        // R5 #6: a machine without its level pad on this level closes its staff slot up to the middle of the row
-        const up = slots.find((x) => x.id === "upgrade");
-        const unused = rule.type.startsWith("conv.") && up && !(rule.owner === "grill" && at.has("grill_level"));
-        const dx = unused && rule.slot === "staff" && up.dy === s.dy ? Math.round((s.dx + up.dx) / 2) : s.dx;
-        const ok = [1, -1].some((m) => e.at![0] === o[0] + m * dx && e.at![1] === o[1] + s.dy);
+        // Doug, 2026-11-15: on its south-east slot, or one of the alternatives further along the south-east side (never mirrored)
+        if (b.notes.some((n) => n.startsWith("pad safety net"))) continue;
+        const o = at.get(rule.owner)!, pl = GEN.plots![rule.type]!;
+        const ok = [pl.slots, ...(pl.alts ?? [])].some((sl) => sl.some((s) => s.id === rule.slot && e.at![0] === o[0] + s.dx && e.at![1] === o[1] + s.dy));
         expect([e.id, ok]).toEqual([e.id, true]);
         if (rule.after && at.has(rule.after)) expect([e.id, e.requires?.pad]).toEqual([e.id, rule.after]);
         checked++;
       }
     }
     expect(checked).toBeGreaterThan(10);
+  }, 120_000);
+  // Doug, 2026-11-15: the Core's pads touch it on its south-east side, inside its lit circle; every other building's pads
+  // touch it on its south-east side, in a fixed order, clear of its model and of each other.
+  it.runIf(!!GEN.plots)("lays every building's pads touching it on its south-east side, the Core's inside its lit circle", () => {
+    const P = 36, G = 4, body = GEN.plotBodies!;
+    const circle = (content.sinks["sink.core"] as unknown as { levels: { safeRadius: number }[] }).levels[0]!.safeRadius;
+    for (const [type, pl] of Object.entries(GEN.plots!)) for (const sl of [pl.slots, ...(pl.alts ?? [])]) {
+      const b = body[type]!, cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
+      for (const s of sl) {
+        // south-east of the centre, clear of the model's box, and touching it: within a gap of the box (or, round, of the model)
+        expect([type, s.id, s.dx > cx && s.dy > cy]).toEqual([type, s.id, true]);
+        const gx = s.dx - P / 2 - b[2], gy = s.dy - P / 2 - b[3];
+        expect([type, s.id, gx >= -1 || gy >= -1]).toEqual([type, s.id, true]);
+        if (type === "sink.core") {
+          const r = Math.hypot(s.dx - cx, s.dy - cy), round = Math.max(b[2] - cx, b[3] - cy);
+          expect([s.id, r <= circle, r - round - P / 2 <= G + 8]).toEqual([s.id, true, true]);
+        } else expect([type, s.id, Math.max(gx, gy) <= G + 1, Math.min(gx, gy) <= G + 1 - P / 2 || (gx <= G + 1 && gy <= G + 1)]).toEqual([type, s.id, true, true]);
+        for (const t of sl) if (t !== s) expect(Math.hypot(t.dx - s.dx, t.dy - s.dy)).toBeGreaterThanOrEqual(P);
+      }
+    }
+    // and the levels: the Core's pads where the plot puts them, on the levels that have them
+    let core = 0;
+    for (const i of [3, 8, 9, 14, 19, 25, 30, 41, 47]) {
+      const b = build(i);
+      if (!b || b.notes.some((n) => n.startsWith("pad safety net"))) continue;
+      const ents = b.manifest.entities as E[], c = ents.find((e) => e.type === "sink.core")!.at!;
+      for (const e of ents) if (e.at && (e.id === "hire_core" || /^core_level/.test(e.id ?? ""))) {
+        const dx = e.at[0] - c[0], dy = e.at[1] - c[1];
+        expect([e.id, dx > 0, dy > 0, Math.hypot(dx, dy) <= circle]).toEqual([e.id, true, true, true]);
+        core++;
+      }
+    }
+    expect(core).toBeGreaterThan(4);
+  }, 120_000);
+  // Before the south-east default and shadow-aware placement, 34 of the first 60 layouts hid a pad while it could be bought.
+  it("leaves no pad hidden on screen while it can be bought (any purchase order), with the generator's real-camera placement", () => {
+    let n = 0;
+    for (const i of [3, 8, 12, 14, 20, 25, 30, 38, 41, 47, 49, 58]) {
+      const b = build(i);
+      if (!b) continue;
+      const m = b.manifest as unknown as RepairManifest;
+      const bad = lifetimeVisibility(m, staticWindows(m)).filter((v) => v.hidden > 0 && !/^tower/.test(v.id)).map((v) => `${v.id} by ${v.by}`);
+      expect([i, bad]).toEqual([i, []]);
+      n++;
+    }
+    expect(n).toBeGreaterThan(9);
   }, 120_000);
   // Collectors (the machine's and the warehouse's input workers) stand by their source instead: see below.
   it("puts every crew pad exactly at its machine's slot offset, the belt pad on the belt and the cashier past the clerk", () => {

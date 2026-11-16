@@ -76,55 +76,55 @@
         "slots": [
           {
             "id": "collector",
-            "dx": -23,
-            "dy": 110
+            "dx": 39,
+            "dy": 84
           },
           {
             "id": "upgrade",
-            "dx": 23,
-            "dy": 110
+            "dx": 81,
+            "dy": 38
           }
         ]
       },
       "conv.food_processor": {
         "slots": [
           {
-            "id": "upgrade",
-            "dx": -23,
-            "dy": 89
+            "id": "staff",
+            "dx": 77,
+            "dy": 66
           },
           {
-            "id": "staff",
-            "dx": 23,
-            "dy": 89
+            "id": "upgrade",
+            "dx": 77,
+            "dy": 20
           }
         ]
       },
       "conv.material_processor": {
         "slots": [
           {
-            "id": "upgrade",
-            "dx": -23,
-            "dy": 87
+            "id": "staff",
+            "dx": 77,
+            "dy": 64
           },
           {
-            "id": "staff",
-            "dx": 23,
-            "dy": 87
+            "id": "upgrade",
+            "dx": 77,
+            "dy": 18
           }
         ]
       },
       "conv.alloy_works": {
         "slots": [
           {
-            "id": "upgrade",
-            "dx": -23,
-            "dy": 77
+            "id": "staff",
+            "dx": 77,
+            "dy": 55
           },
           {
-            "id": "staff",
-            "dx": 23,
-            "dy": 77
+            "id": "upgrade",
+            "dx": 77,
+            "dy": 9
           }
         ]
       },
@@ -132,17 +132,33 @@
         "slots": [
           {
             "id": "staff",
-            "dx": 0,
+            "dx": 59,
             "dy": 61
           }
+        ],
+        "alts": [
+          [
+            {
+              "id": "staff",
+              "dx": 59,
+              "dy": 15
+            }
+          ],
+          [
+            {
+              "id": "staff",
+              "dx": 13,
+              "dy": 61
+            }
+          ]
         ]
       },
       "struct.depot": {
         "slots": [
           {
             "id": "staff",
-            "dx": 0,
-            "dy": 95
+            "dx": 70,
+            "dy": 26
           }
         ]
       },
@@ -150,14 +166,28 @@
         "slots": [
           {
             "id": "staff",
-            "dx": 0,
+            "dx": 48,
             "dy": 63
           },
           {
             "id": "upgrade",
-            "dx": 0,
-            "dy": 109
+            "dx": 48,
+            "dy": 17
           }
+        ],
+        "alts": [
+          [
+            {
+              "id": "staff",
+              "dx": 48,
+              "dy": 17
+            },
+            {
+              "id": "upgrade",
+              "dx": 2,
+              "dy": 63
+            }
+          ]
         ]
       },
       "struct.medical": {

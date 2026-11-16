@@ -196,6 +196,22 @@ export function padVisibilityReport(ents: readonly ViewEnt[], opts: ViewOpts = {
   return { pads, hidden: n(pads, "hidden"), partly: n(pads, "partly"), visible: n(pads, "visible"), final, hiddenFinal: n(final, "hidden"), partlyFinal: n(final, "partly") };
 }
 
+/**
+ * The shadow a model of `kind` standing at `at` casts at its biggest size (its top level, every scrap heap model), as a test
+ * "does it hide any sample point of a pad of radius r at q" (null: the kind is not drawn tall). The generator places with it
+ * (Doug, 2026-11-15: no pad in a shadow, no tall thing whose shadow falls on a pad).
+ */
+export function shadowTest(kind: string, at: Pt, r = PAD_RADIUS): ((q: Pt) => boolean) | null {
+  const fut = Object.keys(T.future).filter((k) => k.startsWith(kind + "@"));
+  const typ = Object.keys(T.types).filter((k) => k === kind || k.startsWith(kind + "@"));
+  const tabs = [...fut.map((k) => T.future[k]!), ...typ.map((k) => T.types[k]!)];
+  if (!tabs.length) return null;
+  const occs: Occluder[] = tabs.map((t) => ({ name: kind, bx: at[0], bz: at[1], ang: 0, sx: t.scale[0], sz: t.scale[2], sy: t.scale[1], y: t.y, box: t.box }));
+  // nothing farther than the box's far corner plus the shadow's reach plus the pad can be hidden
+  const far = Math.max(...occs.map((o) => Math.hypot(Math.max(Math.abs(o.box[0]), Math.abs(o.box[1])) * o.sx, Math.max(Math.abs(o.box[2]), Math.abs(o.box[3])) * o.sz) + (o.y + o.box[4] * o.sy) / SIGHT.slope)) + r + 1;
+  return (q) => Math.hypot(q[0] - at[0], q[1] - at[1]) <= far && discPoints(q, r).some((d) => occs.some((o) => hides(o, d[0], d[1])));
+}
+
 const futureKey = (base: string, level: number): string | undefined => {
   const ks = Object.keys(T.future).filter((k) => k.startsWith(base + "@")).map((k) => Number(k.split("@")[1])).sort((a, b) => a - b);
   const l = ks.filter((k) => k <= level).pop() ?? ks[0];

@@ -84,6 +84,8 @@
     "wallShadow": 30,
     "realCamera": false,
     "realCamera_doc": "ON rejects a layout when a pad (tower pads excepted) is hidden on screen under the real camera (yaw 45, tilt 30; src/viewVisibility.ts, the renderer's own test: 75% or more of the pad disc covered by a building, node, gate or wall). OFF (default): the same measurement is only reported on Built.padVisibility. Leave OFF until the shipped levels' pads have been moved, or most layouts fail.",
+    "placeShade": true,
+    "placeShade_doc": "Doug, 2026-11-15: ON places with the real camera's shadows (src/viewVisibility.ts shadowTest, each model at its biggest size): a pad or a building's pad slot is never placed where a model already placed hides any of it, and nothing tall is placed where its shadow falls on a pad already placed (wall towers and walls are left out). Pads themselves touch their building on its south-east side (plot.json slots, tools/build-plots.ts).",
     "attackSides": ["s", "e"]
   },
   "defendSockets": {

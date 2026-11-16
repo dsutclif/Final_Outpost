@@ -15,7 +15,11 @@ export interface Station { id: string; x: number; y: number; r: number; key: boo
   /** First footprint key (the entity type for a building), for tools that draw the layout. */
   kind?: string | undefined;
   /** Plot layout: the drawn model alone (no hidden ground behind it), which packed gatherables must clear. */
-  body?: Box | undefined }
+  body?: Box | undefined;
+  /** A pad stands here (a hire or build pad, or a pad slot reserved with its building): no shadow may fall on it. */
+  pad?: boolean | undefined;
+  /** The real-camera shadow this station's model casts (Placer.shadeOf): true when it hides any of a pad at q. */
+  hider?: ((q: Pt) => boolean) | undefined }
 /** A spot the player stands on to act (register, pile, operator): no station radius may cover it. */
 export interface Spot { id: string; x: number; y: number; r: number }
 
@@ -45,10 +49,14 @@ export interface PlaceOpts {
   slots?: { id: string; dx: number; dy: number; r: number; fp: string | readonly string[] }[];
   /** Plot layout: a spot where the slots are blocked may still take them mirrored left to right (standing spots stay: the sim never flips a machine). */
   mirror?: boolean;
+  /** Plot layout: alternative slot layouts (further along the south-east side), tried in order before the mirror. */
+  alts?: readonly { id: string; dx: number; dy: number; r: number; fp: string | readonly string[] }[][];
   /** The station sits on a wall (a belt's own build pad): the wall test is skipped. */
   onWall?: boolean;
   /** false: rank by `near` alone, without the pull toward the core (a pad that must hug what it serves). */
   pull?: boolean;
+  /** A pad stands at the centre too (a machine's build pad, placed with the machine's own footprint): kept out of shadows. */
+  pad?: boolean;
   /** Extra candidate filter (a layout rule that depends on where the machine goes, e.g. its belt run). */
   accept?: (p: Pt) => boolean;
 }
@@ -74,6 +82,18 @@ export class Placer {
   bodies: Readonly<Record<string, Box>> | null = null;
   /** The last place() call that found no valid spot: what it was and where it searched (the layout sandbox draws it). */
   lastMiss: { id: string; r: number; regions: readonly Rect[]; fp: Box | undefined } | null = null;
+  /**
+   * Real-camera shadows (Doug, 2026-11-15, set by build.ts from viewVisibility): the shadow a model of this footprint kind
+   * casts from p at its biggest size, as a test "does it hide any of a pad at q", or null for flat things. When set, a pad
+   * (or a building's pad slot) is never placed in a shadow, and nothing tall is placed where its shadow falls on a pad.
+   */
+  shadeOf: ((kind: string, p: Pt) => ((q: Pt) => boolean) | null) | null = null;
+  private kindOf(fp: string | readonly string[] | undefined): string | undefined {
+    return typeof fp === "string" ? fp : fp?.find((k) => this.bodies?.[k]) ?? fp?.find((k) => !k.startsWith("pad")) ?? fp?.[0];
+  }
+  private static isPad(fp: string | readonly string[] | undefined): boolean {
+    return (fp === undefined ? [] : typeof fp === "string" ? [fp] : fp).some((k) => k.startsWith("pad"));
+  }
   constructor(readonly rand: Rand, readonly margin: number, readonly standR: number,
     readonly bounds: Rect, readonly core: Pt, readonly screen: readonly [number, number, number?], readonly c: Content = defaultContent,
     readonly footprints: Readonly<Record<string, Box>> = {}, readonly footprintGap = 0,
@@ -165,7 +185,27 @@ export class Placer {
         for (let j = i + 1; j < sl.length; j++) if (dist(q, qs[j]!) < o.r + sl[j]!.r + this.margin || hit(boxes[i], boxes[j])) return false;
       }
     }
+    if (this.shadeOf) {
+      const kind = this.kindOf(opts.fp), mine = kind ? this.shadeOf(kind, p) : null;
+      // a pad stays out of every shadow already standing (the thing it acts on excepted)
+      if ((opts.pad || Placer.isPad(opts.fp)) && this.inShade(p, opts.on)) return false;
+      // its building's own shadow keeps off its slots, and a tall thing's shadow off every pad placed so far
+      if (mine) {
+        for (const o of opts.slots ?? []) if (mine([p[0] + o.dx, p[1] + o.dy])) return false;
+        if (this.stations.some((s) => s.pad && s.on !== id && s.id !== opts.on && mine([s.x, s.y]))) return false;
+      }
+    }
     return true;
+  }
+
+  /** Is a pad at p in the shadow of a model already placed (the station `on`, which the pad acts on, excepted)? */
+  inShade(p: Pt, on?: string): boolean {
+    return !!this.shadeOf && this.stations.some((s) => s.hider && s.id !== on && s.hider(p));
+  }
+  /** Would a model of `kind` standing at p hide a pad already placed? */
+  castsOnPad(kind: string, p: Pt): boolean {
+    const mine = this.shadeOf?.(kind, p);
+    return !!mine && this.stations.some((s) => s.pad && mine([s.x, s.y]));
   }
 
   /** Sample the region, keep valid candidates, return the best by the preference (or null). */
@@ -176,9 +216,13 @@ export class Placer {
     // a building goes in a lot whenever some valid spot is in one (flat pads and gatherables may use the streets)
     const lot = this.lots !== null && this.building(opts.fp);
     const inLot: Pt[] = [];
-    // a plot's pads may take the mirror layout where the usual one is blocked; remember which a spot needs
-    const mirrored: PlaceOpts | null = opts.mirror && opts.slots ? { ...opts, slots: opts.slots.map((o) => ({ ...o, dx: -o.dx })) } : null;
-    const flip = new Set<string>();
+    // a plot's pads may take an alternative south-east layout, then the mirror layout, where the usual one is blocked;
+    // remember which a spot needs
+    const variants: PlaceOpts[] = [
+      ...(opts.slots ? (opts.alts ?? []).map((sl) => ({ ...opts, slots: sl })) : []),
+      ...(opts.mirror && opts.slots ? [{ ...opts, slots: opts.slots.map((o) => ({ ...o, dx: -o.dx })) }] : []),
+    ];
+    const flip = new Map<string, PlaceOpts>();
     for (let i = 0; i < n; i++) {
       const rg = regions[i % regions.length]!;
       // buildings on a lot grid snap to a 10-unit step so neighbours line up
@@ -187,7 +231,8 @@ export class Placer {
       const fits = (p: Pt, o: PlaceOpts) => (!o.key || this.onScreen(p)) && this.ok(id, p, r, o) && (!o.accept || o.accept(p));
       const valid = (p: Pt) => {
         if (fits(p, opts)) return true;
-        if (mirrored && fits(p, mirrored)) { flip.add(`${p[0]},${p[1]}`); return true; }
+        const v = variants.find((o) => fits(p, o));
+        if (v) { flip.set(`${p[0]},${p[1]}`, v); return true; }
         return false;
       };
       const lp = lot ? this.toLot(raw, opts.fp) : raw;
@@ -207,7 +252,7 @@ export class Placer {
       const cost = (q: Pt) => dist(q, nr) + w * dist(q, this.core);
       best = cands.reduce((a, b) => (cost(b) < cost(a) ? b : a));
     } else best = cands[0]!;
-    this.add(id, best, r, mirrored && flip.has(`${best[0]},${best[1]}`) ? mirrored : opts);
+    this.add(id, best, r, flip.get(`${best[0]},${best[1]}`) ?? opts);
     return best;
   }
 
@@ -216,11 +261,12 @@ export class Placer {
     const solid = (opts.fp === undefined ? [] : typeof opts.fp === "string" ? [opts.fp] : opts.fp).some((k) => !k.startsWith("pad"));
     const kind = typeof opts.fp === "string" ? opts.fp : opts.fp?.find((k) => this.bodies?.[k]) ?? opts.fp?.[0];
     const bb = kind ? this.bodies?.[kind] : undefined;
+    const sk = this.shadeOf ? this.kindOf(opts.fp) : undefined, hider = sk ? this.shadeOf!(sk, p) ?? undefined : undefined;
     this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight, fp: this.box(p, opts.fp), solid, kind,
-      body: bb && [p[0] + bb[0], p[1] + bb[1], p[0] + bb[2], p[1] + bb[3]] });
+      body: bb && [p[0] + bb[0], p[1] + bb[1], p[0] + bb[2], p[1] + bb[3]], pad: !!opts.pad || Placer.isPad(opts.fp), hider });
     for (const o of opts.slots ?? []) {
       const q: Pt = [p[0] + o.dx, p[1] + o.dy];
-      this.stations.push({ id: `${id}:${o.id}`, x: q[0], y: q[1], r: o.r, key: true, fp: this.box(q, o.fp) });
+      this.stations.push({ id: `${id}:${o.id}`, x: q[0], y: q[1], r: o.r, key: true, fp: this.box(q, o.fp), pad: true });
     }
     for (const o of opts.spots ?? []) this.spots.push({ id: `${id}:${o.id}`, x: p[0] + o.dx, y: p[1] + o.dy, r: this.standR });
   }

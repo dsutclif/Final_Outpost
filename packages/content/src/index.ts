@@ -48,7 +48,7 @@ const raw = {
 /** Plot layout data (data/plot.json, written by pnpm plots:build): the generator's slots and footprints, the renderer's pad sizes. */
 export interface PlotFile {
   content: Record<"converters" | "structures" | "sinks" | "defaults", Record<string, unknown>>;
-  generator: { footprints: Record<string, [number, number, number, number]>; bodies?: Record<string, [number, number, number, number]>; plots: Record<string, { slots: { id: string; dx: number; dy: number }[] }>; cashierPads: [number, number][] };
+  generator: { footprints: Record<string, [number, number, number, number]>; bodies?: Record<string, [number, number, number, number]>; plots: Record<string, { slots: { id: string; dx: number; dy: number }[]; alts?: { id: string; dx: number; dy: number }[][] }>; cashierPads: [number, number][] };
   render: { pad: number; plate: number };
 }
 const plotFile = plot as unknown as Partial<PlotFile>;
