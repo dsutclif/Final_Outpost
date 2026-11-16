@@ -17,9 +17,10 @@ function idleModules(ms: Measurement, c: Content): string[] {
   const anyWin = Object.values(ms.runs).some((rs) => rs.some((r) => r.won));
   if (!anyWin) return [];
   // A module pulled in only as a dependency, with nothing of its own in the level (build pads on a level
-  // without a single pad), cannot be exercised and is not counted. Walls get no such exemption.
+  // without a single pad), cannot be exercised and is not counted. Walls get that exemption only on a wall-free level (outpost-ops#208).
   const pads = ms.manifest.entities.some((e) => e.type === "pad.hire" || e.type === "pad.build");
-  return ms.manifest.modules.filter((id) => !c.modules[id]?.alwaysOn && !used.has(id) && !(id === "build_pads" && !pads));
+  const walls = ms.manifest.entities.some((e) => e.type === "barrier.line");
+  return ms.manifest.modules.filter((id) => !c.modules[id]?.alwaysOn && !used.has(id) && !(id === "build_pads" && !pads) && !(id === "barrier_lines" && !walls));
 }
 
 interface Station { id: string; x: number; y: number; r: number; key: boolean; target?: string | undefined; requires?: string | undefined }

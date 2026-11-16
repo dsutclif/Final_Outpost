@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: new balance tools that let bots test wall-free defend settings quickly before any level changes. No level changes."]}
+{"notes":["Behind the scenes: levels built without walls now defend with a ring of tower sockets around the reactor, with at most two attack lanes. No existing level changes."]}

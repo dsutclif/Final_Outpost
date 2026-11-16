@@ -100,6 +100,12 @@
     "_doc": "Batch 3 (after Kingshot): a defend level's map is padded by pad world units on every side, so each wave walks a long road from the map edge to its gate and the player can run out to meet it. The road out of each attack gate is lined with socket pairs: the first pair v = first units out, then every step (at most maxPairs pairs, endGap short of the edge); a tower borders the road: its footprint edge is a hand off the lane, towerU (towerUEW on an east or west road, the footprint being long along y) from the road line, to either side, and its pad stands directly behind it on the side away from the road (R14: the turret covers the road, the pad is out of the line of fire and in the camera view). The nearest pair stands from the start, pair k opens once k waves have started (the rest with the last wave). Every defence purchase (guard, tower, tower level) raises the next one's price by priceGrowth (the level's pads.defenceGrowth).",
     "pad": 360, "maxPairs": 2, "first": 60, "step": 75, "towerU": 38, "towerUEW": 62, "endGap": 60, "priceGrowth": 1.08
   },
+  "defendFree": {
+    "_doc": "Wall-free defend levels only (outpost-ops#208; walled levels never read this). The main defence is a ring of tower sockets around the reactor: `sockets` sites at frac of the heat circle's radius at core level refLevel (level 2: the level-1 circle, 95, is smaller than the buildings round the core and holds only 2-3 sockets; a level-2 ring stays inside every later, bigger circle), never outside band (fractions of that radius), evenly spaced from phase degrees, each free to slide angleSearch degrees either way to find room; the nearest `start` stand from the start, the rest open one per wave; fewer than minSockets found rejects the layout. A socket's pad stands padDepth world units from its tower. The road pairs stay as the early forward post. lanesBeforeCore2: attack lanes at most this many. Early salvage floor (default off = 1): firstTowerScale cuts the first tower's price, earlyDrops multiplies the swarm of the first earlyWaves waves (more scrap dropped).",
+    "refLevel": 2, "band": [0.7, 0.9], "frac": 0.8, "sockets": 6, "start": 2, "minSockets": 4, "phase": 45, "angleSearch": 30, "padDepth": 62,
+    "lanesBeforeCore2": 2,
+    "firstTowerScale": 1, "earlyWaves": 3, "earlyDrops": 1
+  },
   "conveyorGoals": ["produce", "chain", "converters_running", "automate", "stockpile"],
   "footprints": {
     "pad": [-25, -25, 25, 25], "pad.big": [-35, -35, 35, 35],

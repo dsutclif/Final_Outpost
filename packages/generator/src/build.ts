@@ -90,6 +90,8 @@ export const GEN = genData as unknown as {
   /** Camera view rules: no pad behind a building or wall; attack sides face the camera; see generator.json. */
   viewClear: { wallShadow: number; attackSides: ("n" | "e" | "s" | "w")[]; realCamera: boolean; placeShade?: boolean };
   defendSockets: { keepForest: number; startInside: number; inside: [number, number][]; insideEW: [number, number][]; edge: number; wallClear: number; laneClear: number; siteR: number; search: number };
+  /** Wall-free defend levels (outpost-ops#208): the reactor-ring sockets, the lane cap and the early salvage floor; see generator.json. */
+  defendFree: { refLevel: number; band: [number, number]; frac: number; sockets: number; start: number; minSockets: number; phase: number; angleSearch: number; padDepth: number; lanesBeforeCore2: number; firstTowerScale: number; earlyWaves: number; earlyDrops: number };
   /** Batch 3: the padded defend map and the socket-lined roads; see generator.json. */
   defendRoad: { pad: number; maxPairs: number; first: number; step: number; towerU: number; towerUEW: number; endGap: number; priceGrowth: number };
   conveyorGoals: string[];
@@ -934,12 +936,17 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   /** Attack-gate spot for a medic's hire pad (R5): needs the socket search, so it is set inside the sockets block. */
   let medicSpot: () => Pt | null = () => null;
   let medicHire = false;
+  /** Wall-free levels: the reactor ring of sockets, set inside the sockets block (needs its helpers) and run after the buildings are placed, so they keep their room. */
+  let ringSockets: () => void = () => {};
   if (defend && ring) {
     const all: ("n" | "e" | "s" | "w")[] = ["n", "e", "w", "s"];
     // a two-family finale splits attention with its other family: at most two attack sides there
     // Attacks come only from the sides facing the camera (viewClear.attackSides), so a multi-side level takes as many of them as there are.
     const facing = VC.attackSides;
-    const nSides = Math.min(facing.length, feat.has("multi_side") ? (K.waves >= 4 && !inp.secondary ? 3 : 2) : 1);
+    // Wall-free levels (outpost-ops#208): at most defendFree.lanesBeforeCore2 attack lanes. A lane opened later, once the core
+    // reaches its second level, needs a wave rule the sim does not have, so for now the cap holds for the whole level.
+    const laneCap = wallsOn ? Infinity : GEN.defendFree.lanesBeforeCore2;
+    const nSides = Math.min(facing.length, laneCap, feat.has("multi_side") ? (K.waves >= 4 && !inp.secondary ? 3 : 2) : 1);
     const first = facing[rand.int(0, facing.length - 1)]!;
     sides = [first, ...facing.filter((s) => s !== first)].slice(0, nSides);
     const quiet = all.filter((s) => !sides.includes(s));
@@ -1108,6 +1115,76 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         }
         if (opened === 0) fail(`no room for a turret socket on the ${sd} road`);
       }
+      // Wall-free levels (outpost-ops#208): the main defence is a ring of sockets around the reactor, inside its level-refLevel
+      // heat circle (so inside every later one too), the nearest `start` standing from the start and one more opening per wave.
+      // The road pairs above stay as the early forward post.
+      if (!wallsOn) ringSockets = () => {
+        const FR = GEN.defendFree;
+        const lv = (c.sinks["sink.core"] as { levels: { safeRadius: number }[] }).levels;
+        const refR = lv[Math.min(Math.max(1, FR.refLevel), lv.length) - 1]!.safeRadius;
+        const rLo = FR.band[0] * refR, rHi = FR.band[1] * refR;
+        // Gatherables under a ring tower or pad give way, but never below keepForest ore scrap nodes (clearTight): a spot that would
+        // leave one standing under it is no spot (the rater calls that overlap unreadable).
+        const forestOk = (spots: [Pt, string, number][]): boolean => {
+          const gone = new Set<number>();
+          for (const [q, fp, rr] of spots) {
+            const b = P.box(q, fp)!;
+            for (const s of P.stations) {
+              if (!s.tight) continue;
+              const hit = dist(q, [s.x, s.y]) < s.r + rr || (!!s.fp && b[0] < s.fp[2] + g && s.fp[0] < b[2] + g && b[1] < s.fp[3] + g && s.fp[1] < b[3] + g);
+              if (!hit) continue;
+              const k = ents.findIndex((e) => e.type === "node.fuel_scrap" && Array.isArray(e["at"]) && (e["at"] as number[])[0] === s.x && (e["at"] as number[])[1] === s.y);
+              if (k >= 0) gone.add(k);
+            }
+          }
+          return gone.size === 0 || ents.filter((e) => e.type === "node.fuel_scrap").length - gone.size >= SK.keepForest;
+        };
+        // sockets facing the attack sides first, so the ones standing from the start meet the first raids
+        const att = sides.reduce((v, sd) => [v[0] + OUT[sd]![0], v[1] + OUT[sd]![1]] as Pt, [0, 0] as Pt);
+        const slots = Array.from({ length: FR.sockets }, (_, k) => (FR.phase + (360 * k) / FR.sockets) * Math.PI / 180)
+          .sort((a, b) => (Math.cos(b) * att[0] + Math.sin(b) * att[1]) - (Math.cos(a) * att[0] + Math.sin(a) * att[1]));
+        const fracs = [0, 1, 2, 3, 4].map((i) => FR.band[0] + (FR.band[1] - FR.band[0]) * i / 4).sort((a, b) => Math.abs(a - FR.frac) - Math.abs(b - FR.frac));
+        const dirs: Pt[] = [[0, 1], [1, 1], [-1, 1], [1, 0], [-1, 0], [0, -1], [1, -1], [-1, -1]];
+        const step = Math.max(1, FR.angleSearch / 5);
+        let placed = 0;
+        for (const th0 of slots) {
+          let done = false;
+          for (let da = 0; da <= FR.angleSearch && !done; da += step) for (const sg of da === 0 ? [1] : [1, -1]) {
+            if (done) break;
+            const th = th0 + (sg * da * Math.PI) / 180;
+            for (const f of fracs) {
+              const r = f * refR;
+              if (r < rLo - 1e-6 || r > rHi + 1e-6) continue;
+              const site: Pt = [Math.round(core[0] + Math.cos(th) * r), Math.round(core[1] + Math.sin(th) * r)];
+              if (dist(site, core) < rLo || dist(site, core) > rHi) continue;
+              if (!boxOk(site, "struct.ranged_defense", SK.siteR, false)) continue;
+              if (!forestOk([[site, "struct.ranged_defense", SK.siteR]])) continue;
+              // a ring tower never hides a pad already placed (the pad safety net would push it out of the ring to fix that)
+              const shade = shadowTest("struct.ranged_defense", [site[0], site[1]]);
+              if (shade && P.stations.some((s) => s.pad && shade([s.x, s.y]))) continue;
+              P.add("probe@site", site, 0, { fp: "struct.ranged_defense" });
+              let tp: Pt | null = null;
+              for (const shade of [false, true]) {
+                for (const dv of dirs) {
+                  const dl = Math.hypot(dv[0], dv[1]);
+                  const q: Pt = [Math.round(site[0] + (dv[0] / dl) * FR.padDepth), Math.round(site[1] + (dv[1] / dl) * FR.padDepth)];
+                  if (boxOk(q, "pad", R.pad + S.margin, true) && forestOk([[site, "struct.ranged_defense", SK.siteR], [q, "pad", R.pad + S.margin]]) && (shade || !P.inShade(q))) { tp = q; break; }
+                }
+                if (tp) break;
+              }
+              P.stations.splice(P.stations.findIndex((x) => x.id === "probe@site"), 1);
+              if (!tp) continue;
+              clearTight(site, "struct.ranged_defense", SK.siteR);
+              clearTight(tp, "pad", R.pad + S.margin);
+              socket("r", site, tp, placed < FR.start ? 0 : Math.min(placed - FR.start + 1, nW0 - 1));
+              placed++;
+              done = true;
+              break;
+            }
+          }
+        }
+        if (placed < FR.minSockets) fail(`no room for ${FR.minSockets} ring sockets around the reactor (found ${placed})`);
+      };
       // A medic's pad (Doug): outside the wall, beside an attack gate, off its road.
       medicSpot = () => {
         const MP = GEN.medicPad;
@@ -1163,6 +1240,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       }
     }
 
+    ringSockets();
     const DW = GEN.defendWaves;
     const buyable = feat.has("turrets") || guards;
     // With defence to buy there are always two waves past the weak ones, so it has to carry some.
@@ -1187,6 +1265,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       const w = { t: Math.round(t0 - early + k * K.waveGap), counts, side: wSides, gap: late ? DW.lateGap : DW.gap };
       waves.push(w);
       regular.add(w);
+    }
+    // Early salvage floor on wall-free levels (outpost-ops#208; both knobs default to 1 = off): a cheaper first tower, and more
+    // attackers (so more scrap dropped) in the first waves.
+    if (!wallsOn) {
+      const FR = GEN.defendFree;
+      const first = towers.find((t) => !(t.requires as { wave?: number } | undefined)?.wave);
+      if (first && FR.firstTowerScale !== 1) { const cs = first.cost as Record<string, number>; cs["res.salvage"] = Math.max(1, Math.round(cs["res.salvage"]! * FR.firstTowerScale)); }
+      if (FR.earlyDrops !== 1) for (const w of waves.slice(0, FR.earlyWaves)) w.counts["hostile.swarmling"] = Math.max(1, Math.round((w.counts["hostile.swarmling"] ?? 0) * FR.earlyDrops));
     }
     // The med bay needs patients: its dense probe raid comes through the breach on a quiet, unguarded
     // side before the player has the scrap to wall it, so some of it reaches the base.
