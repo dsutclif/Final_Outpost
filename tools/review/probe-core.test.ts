@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  Tracker, cropRegion, analyzeCaption, analyzeLineHold, analyzeLineSight, gatesFor, analyzeSample, area, contrast, continuityHits, coveredFraction, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats,
+  Tracker, cropRegion, analyzeCaption, analyzeLineHold, analyzeLineOrder, analyzeLineSight, gatesFor, analyzeSample, area, contrast, continuityHits, coveredFraction, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats,
   intersect, labelSubject, meanLuminance, overlapArea, parseArgs, parseColour, plain, shrink, toCandidate, visibleFraction, type Limits,
 } from "./probe-core.js";
 import type { Box, CaptionSample, DomItem, FrameRec, Sample, StorySnapshot, ThingSample } from "./probe-types.js";
@@ -474,5 +474,13 @@ describe("story line timing", () => {
     expect(h[0]).toMatchObject({ check: "line-play-not-held", cat: 5, track: "story", severity: 3, subject: "That light #." });
     expect(analyzeLineHold(c, 100, 130, true, true, L)[0]!.severity).toBe(2);
     expect(analyzeLineHold(c, 100, 130, false, true, L)).toEqual([]);
+  });
+  it("flags a line that comes up before the line it follows", () => {
+    const ordered = [{ line: "A reactor", after: ["That light"], why: "Question first." }];
+    const early = analyzeLineOrder(cap("A reactor, and it's cold."), ["What happened? Where's the rest of my crew?"], ordered);
+    expect(early).toHaveLength(1);
+    expect(early[0]).toMatchObject({ check: "line-out-of-order", cat: 5, track: "story", severity: 2, subject: "That light" });
+    expect(early[0]!.detail).toContain("Question first.");
+    expect(analyzeLineOrder(cap("A reactor, and it's cold."), ["What happened?", "That light. Someone's out there."], ordered)).toEqual([]);
   });
 });

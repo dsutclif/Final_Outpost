@@ -314,8 +314,22 @@ export function analyzeCaption(c: CaptionSample, s: Sample, L: Limits): Hit[] {
   return out;
 }
 
-/** A story line that must play before (`unseen`) or after (`seen`) things come on screen. Ids are `things[].id` from the page's snap. */
-export interface StoryGate { line: string; unseen?: string[]; seen?: string[]; why?: string }
+/**
+ * A story line that must play before (`unseen`) or after (`seen`) things come on screen, or only once other lines have
+ * played (`after`: the question before its answer). Ids are `things[].id` from the page's snap; `after` holds substrings
+ * of the earlier lines' text.
+ */
+export interface StoryGate { line: string; unseen?: string[]; seen?: string[]; after?: string[]; why?: string }
+
+/** A line that came up before a line it has to follow. `shown` is every caption so far in the level, this one excluded. */
+export function analyzeLineOrder(c: CaptionSample, shown: readonly string[], gates: readonly StoryGate[]): Hit[] {
+  const out: Hit[] = [];
+  const had = (first: string): boolean => shown.some((t) => t.toLowerCase().includes(first.toLowerCase()));
+  for (const g of gatesFor(c.text, gates)) for (const first of g.after ?? []) {
+    if (!had(first)) out.push(hit("line-out-of-order", 5, 2, first, "A story line plays before the line it follows", `"${c.text.slice(0, 50)}" came up before "${first}" had played.${g.why ? ` ${g.why}` : ""}`, "linesBefore", shown.length, 0, 0, "story"));
+  }
+  return out;
+}
 
 export function gatesFor(text: string, gates: readonly StoryGate[]): StoryGate[] {
   const t = text.toLowerCase();

@@ -638,7 +638,9 @@ left or what the signal is.
 Each line is a change against the live game as of 2026-11-12. The numbered work is in `docs/BACKLOG.md`.
 
 **All levels**
-- Every line holds play, including the opening lines. Level 1's first two lines let the player walk today.
+- Every line holds play, as it does today. What is new is that level 1 also holds movement until the "Reach the
+  light" card is tapped: today the player can walk in the three seconds between the first line and "That light",
+  reach the reactor, and hear "A reactor, and it's cold" first (seen in a browser run on 2026-11-12).
 - Every goal has a star: 4 in level 1, 3 in level 2, 8 in level 3, 5 in level 4, 6 in level 5.
 - Each level starts with what the last one built and trained.
 - KILN's readout carries the day.

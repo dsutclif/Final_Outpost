@@ -6,7 +6,7 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium, type Browser, type BrowserContext, type CDPSession, type Page } from "playwright";
-import { parseArgs, type Args, cropRegion, plain, analyzeCaption, analyzeLineHold, analyzeLineSight, gatesFor, type StoryGate, analyzeSample, continuityHits, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats, meanLuminance, parseColour, toCandidate, Tracker, type Candidate, type Finding, type Hit, type Limits } from "./probe-core.js";
+import { parseArgs, type Args, cropRegion, plain, analyzeCaption, analyzeLineHold, analyzeLineOrder, analyzeLineSight, gatesFor, type StoryGate, analyzeSample, continuityHits, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats, meanLuminance, parseColour, toCandidate, Tracker, type Candidate, type Finding, type Hit, type Limits } from "./probe-core.js";
 import type { Box, FilmEnd, FrameRec, ReviewApi, Sample, StorySnapshot } from "./probe-types.js";
 
 // pnpm review:probe -- --out <dir> --levels <id,...> [--story <id,...>] [--base <url>] [--throttle 4]
@@ -493,9 +493,10 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
       const shot = await shots.take(`line${String(lineNo).padStart(2, "0")}`, true);
       const matched = gatesFor(s.caption.text, gates);
       matched.forEach((g) => gateSeen.add(g));
+      const shown = lines.map((l) => l.text);
       const entry = { n: lineNo, text: s.caption.text, speaker: s.caption.speaker, shot, heldTicks: 0, gates: matched.map((g) => g.why ?? g.line) };
       lines.push(entry);
-      for (const hit of [...analyzeCaption(s.caption, s, L), ...analyzeLineSight(s.caption, s, gates, L)]) {
+      for (const hit of [...analyzeCaption(s.caption, s, L), ...analyzeLineSight(s.caption, s, gates, L), ...analyzeLineOrder(s.caption, shown, gates)]) {
         const [f] = tracker.observe(Date.now(), [{ ...hit, subject: `${hit.subject}.line` }]);
         const ev = f ? await shots.evidenceFor(f, `line${String(lineNo).padStart(2, "0")}-${f.check}`) : null;
         if (f && ev) evidence.set(f.fingerprint, ev);

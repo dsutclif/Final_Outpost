@@ -48,8 +48,13 @@ The screen probe (`probe.ts`, story levels) checks two things at every caption, 
   carries `heldTicks` and the `why` of its gates.
 - **Gates** (`story-gates.json`, one list per level id): `line-after-sight` when a line holding something `unseen` plays
   while that thing is at least `seenFraction` (0.25) on screen; `line-names-unseen` when a line that needs something
-  `seen` plays and it is not. Gates that never showed are listed in `extras.gatesNotReached`.
+  `seen` plays and it is not; `line-out-of-order` when a line comes up before a line listed in its `after` has played
+  (the answer before the question). Gates that never showed are listed in `extras.gatesNotReached`.
 
-To add a gate, add `{ "line": "<substring of the caption text>", "unseen": [ids], "seen": [ids], "why": "<one sentence>" }`
+A real run on story-L001 (2026-11-12) showed why the order gate matters: every line held play, but the bot reached the
+reactor in about 2.3 s and got "A reactor, and it's cold" while "That light. Someone's out there." was still waiting on
+its 3 s timer.
+
+To add a gate, add `{ "line": "<substring of the caption text>", "unseen": [ids], "seen": [ids], "after": ["<substring of an earlier line>"], "why": "<one sentence>" }`
 under the level id. Ids must match `things[].id` from `window.R.snap()` (`sink.core`, `node.fuel_deposit`, ...). Add one
 whenever a script line asks about or points at something.
