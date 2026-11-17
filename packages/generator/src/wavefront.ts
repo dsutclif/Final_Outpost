@@ -52,9 +52,15 @@ export interface WfBuilding {
   spotR?: number;
   /** "settlement": the pad spots face the already-placed settlement (a rockfall's clear pad sits on the side away from the zone it opens). */
   side?: "settlement";
+  /**
+   * A rockfall on a walled level: placed after the walls, directly outside a gate (south gate first, else east), centred on it, about the gate's
+   * width (whole pad-sized squares), with a row of clear pads (one per square) between the gate and the rockfall, touching its gate-facing edge.
+   * Its depth is the footprint's smaller side. Flat (no occluder).
+   */
+  gateRock?: boolean;
 }
 export const SALVAGE_KIND = "node.salvage_pile";
-/** The perimeter wall ring a level has (defend / rescue levels): minimum size, sections per side, sides that carry a gate. */
+/** The perimeter wall ring a level has (defend / rescue levels): the shipped size (informational only: the ring is fitted to the settlement), sections per side, sides that carry a gate (moved to south / east). */
 export interface WfWallSpec { dims: [number, number]; split: [number, number]; gateSides: readonly ("n" | "e" | "s" | "w")[] }
 /** The medic's hire pad: standalone, not a Core pad; it stands outside the settlement. */
 export interface WfMedic { id: string; coexist: readonly string[]; radius?: number }
@@ -95,6 +101,7 @@ export type TraceStep =
   | { t: "lock"; n: number }
   | { t: "walls"; rect: Box4; strip: { s: number; e: number }; gates: number[] }
   | { t: "medic"; at: Pt }
+  | { t: "rock"; id: string; rect: Box4; side: string; pads: Pt[] }
   | { t: "scrap"; id: string; at: Pt; side: string; tries: number; relaxed: boolean };
 export interface WfStats { rejected: number; pushes: number; totalPushDistance: number; hiddenPads: number; fallbacks: number; repairs: number; scrapRelaxed: number; sidePads: number }
 export interface WfWalls { rect: Box4; points: Pt[]; side: ("n" | "e" | "s" | "w")[]; gates: number[]; /** Hidden ground beyond the wall's centre line, south and east (the strips the lines were placed by). */ strip: { s: number; e: number } }
@@ -107,6 +114,8 @@ export interface WfResult {
   padAt: Record<string, Pt>;
   walls: WfWalls | null;
   medic: Pt | null;
+  /** The gate rockfall (walled levels): its rectangle, the gate side, and one clear-pad point per square (the pad's own padAt entry is the first). */
+  rock: Record<string, { rect: Box4; side: string; pads: Pt[] }>;
   scrap: Record<string, { at: Pt; variant: number; side: string }>;
   hidden: string[];
   stats: WfStats;
@@ -206,6 +215,8 @@ export class WfState {
   /** Occluders beyond the buildings that every pad is tested against (the finished wall ring): set after the walls. */
   extra: Occluder[] = [];
   medicAt: Pt | null = null;
+  /** Extra pad boxes that nothing may stand on (the gate rockfall's clear pads). */
+  reserved: Box4[] = [];
   locked = -1;
   pushes = 0; pushDist = 0; repairs = 0;
   rejected: WfResult["rejected"] = null;
@@ -267,6 +278,7 @@ export class WfState {
       if (!skip.has(`fp:${id}`) && overlaps(bx, boxAt(p.at, p.b.footprint))) return false;
       if (p.b.pads.length && !skip.has(`pad:${id}`) && this.padBoxes(id).some((q) => overlaps(bx, q))) return false;
     }
+    if (this.reserved.some((q) => overlaps(bx, q))) return false;
     if (this.medicAt && !skip.has("pad:medic") && overlaps(bx, boxAt(this.medicAt, PAD_BOX))) return false;
     return true;
   }
@@ -432,17 +444,18 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
   const origin: Pt = [base[0] + U[0] * ju + V[0] * jv, base[1] + U[1] * ju + V[1] * jv];
   const offs = offsets(step, Math.hypot(w, h));
   let fallbacks = 0, scrapRelaxed = 0, walls: WfWalls | null = null;
-  const scrapOut: WfResult["scrap"] = {};
+  const scrapOut: WfResult["scrap"] = {}, rockOut: WfResult["rock"] = {};
   const done = (): WfResult => {
     const hidden = S.rejected ? [] : S.hiddenPads().map((p) => p.id);
     const padAt: Record<string, Pt> = {};
     for (const [, p] of S.placed) for (const pad of p.b.pads) padAt[pad.id] = S.padAt(pad);
     if (S.medicAt && input.medic) padAt[input.medic.id] = S.medicAt;
+    for (const [id, r] of Object.entries(rockOut)) for (const pad of input.buildings.find((x) => x.id === id)?.pads ?? []) padAt[pad.id] = r.pads[0]!;
     return {
       rejected: S.rejected,
       positions: Object.fromEntries([...S.placed].map(([id, p]) => [id, p.at])),
       padSpots: Object.fromEntries([...S.placed].filter(([, p]) => p.b.pads.length).map(([id, p]) => [id, { i: p.spot, at: S.spotAt(id) }])),
-      padAt, walls, medic: S.medicAt, scrap: scrapOut,
+      padAt, walls, medic: S.medicAt, rock: rockOut, scrap: scrapOut,
       hidden,
       stats: { rejected: S.rejected ? 1 : 0, pushes: S.pushes, totalPushDistance: S.pushDist, hiddenPads: hidden.length, fallbacks, repairs: S.repairs, scrapRelaxed, sidePads: [...S.slots.values()].reduce((a, n) => a + Math.max(0, n - 1), 0) },
       trace: S.trace,
@@ -461,7 +474,8 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
       S.log({ t: "place", id: b.id, at, spot: 0, checked: false, fallback: false, tried: 0 });
     }
   }
-  const waves = wavefronts(input.buildings.filter((b) => b.kind !== SALVAGE_KIND));
+  const gateRocks = input.walls ? input.buildings.filter((b) => b.gateRock) : [];
+  const waves = wavefronts(input.buildings.filter((b) => b.kind !== SALVAGE_KIND && !(input.walls && b.gateRock)));
   let front = depth(origin);
   for (let n = 0; n < waves.length; n++) {
     const wave = waves[n]!;
@@ -546,6 +560,12 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
     S.extra = occluders([{ type: "barrier.line", id: "ring", points: fit.points, closed: true, gates: fit.gates, prebuilt: fit.points.map((_, i) => i) } as never], { final: true });
     S.log({ t: "walls", rect: fit.rect, strip, gates: fit.gates });
   }
+  // gate rockfalls, outside a gate, before the medic and the scrap (which stay clear of them)
+  for (const b of gateRocks) {
+    const r = placeGateRock(S, b, walls!);
+    if (!r) { S.rejected = { id: b.id, kind: b.kind, pad: b.pads[0]?.id ?? "" }; S.log({ t: "reject", id: b.id, kind: b.kind, pad: b.pads[0]?.id ?? "", d: 0, dir: "no gate rockfall site" }); return done(); }
+    rockOut[b.id] = r;
+  }
   // the medic's hire pad, outside the settlement
   if (input.medic) {
     const at = placeMedic(S, walls, strip);
@@ -570,7 +590,7 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
 type Side = "n" | "e" | "s" | "w";
 const SIDES: readonly Side[] = ["n", "e", "s", "w"];
 const NORMAL: Record<Side, Pt> = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
-const GATE_WIDTH = (occ as unknown as { gate: { width: number } }).gate.width;
+export const GATE_WIDTH = (occ as unknown as { gate: { width: number } }).gate.width;
 
 /** Settlement extent: every placed building footprint (scrap heaps excluded) and pad box, plus the pads' furthest reach. */
 function settlementBox(S: WfState): { box: Box4; padMaxX: number; padMaxY: number } {
@@ -585,35 +605,69 @@ function settlementBox(S: WfState): { box: Box4; padMaxX: number; padMaxY: numbe
   return { box: [x0, y0, x1, y1], padMaxX: px, padMaxY: py };
 }
 
+/** Gate sides after Doug's rule (2026-11-16): gates stand on the south and east sides only; a north gate moves to the south, a west gate to the east. South first. */
+export function gateSidesOf(sides: readonly Side[]): Side[] {
+  const set = new Set<Side>(sides.map((x) => (x === "n" ? "s" : x === "w" ? "e" : x)));
+  if (!set.size) set.add("s");
+  return (["s", "e"] as Side[]).filter((x) => set.has(x));
+}
+
 /**
  * The wall ring, fitted once all buildings are locked: the north and west lines keep the wall's half thickness + wallClear from every
  * building and pad box; the south and east lines go at least the hidden strip beyond the furthest south / east pad (plus its radius).
- * The ring is at least the level's own ring size (spec.dims), grown outward only where the map allows. Null when a required line is off the map.
+ * The ring fits the settlement only (spec.dims is not used). Gates stand on the south and east sides only (see gateSidesOf). Null when a required line is off the map.
  */
 export function fitWalls(S: WfState, spec: WfWallSpec, clear: number, strip: { s: number; e: number }, edge = 14): WfWalls | null {
   const { box, padMaxX, padMaxY } = settlementBox(S), c = WALL_HALF + clear, { w, h } = S.input.map;
-  // a south or east line that carries a gate hides as far as the gate model does
-  const gs = gateStrip(), need = { s: spec.gateSides.includes("s") ? Math.max(strip.s, gs.s) : strip.s, e: spec.gateSides.includes("e") ? Math.max(strip.e, gs.e) : strip.e };
+  // Doug 2026-11-16: the ring fits the settlement only (no shipped-size minimum). The south and east lines sit at least the gate's hidden strip
+  // beyond the furthest pad, since gates go on those two sides.
+  const gs = gateStrip(), need = { s: Math.max(strip.s, gs.s), e: Math.max(strip.e, gs.e) };
   let x0 = box[0] - c, y0 = box[1] - c, x1 = Math.max(box[2] + c, padMaxX + need.e), y1 = Math.max(box[3] + c, padMaxY + need.s);
   x0 = Math.floor(x0); y0 = Math.floor(y0); x1 = Math.ceil(x1); y1 = Math.ceil(y1);
   if (x0 < edge || y0 < edge || x1 > w - edge || y1 > h - edge) { S.log({ t: "walls", rect: [x0, y0, x1, y1], strip, gates: [] }); return null; }
-  const grow = (lo: number, hi: number, want: number, min: number, max: number): [number, number] => {
-    let need = want - (hi - lo);
-    if (need <= 0) return [lo, hi];
-    const a = Math.min(need / 2, lo - min); lo -= a; need -= a;
-    const b = Math.min(need, max - hi); hi += b; need -= b;
-    const a2 = Math.min(need, lo - min); lo -= a2;
-    return [lo, hi];
-  };
-  [x0, x1] = grow(x0, x1, spec.dims[0], edge, w - edge); [y0, y1] = grow(y0, y1, spec.dims[1], edge, h - edge);
-  x0 = Math.floor(x0); y0 = Math.floor(y0); x1 = Math.ceil(x1); y1 = Math.ceil(y1);
   const [hh, vv] = spec.split, points: Pt[] = [], side: Side[] = [], r = Math.round;
   for (let k = 0; k < hh; k++) { points.push([r(x0 + ((x1 - x0) * k) / hh), y0]); side.push("n"); }
   for (let k = 0; k < vv; k++) { points.push([x1, r(y0 + ((y1 - y0) * k) / vv)]); side.push("e"); }
   for (let k = 0; k < hh; k++) { points.push([r(x1 - ((x1 - x0) * k) / hh), y1]); side.push("s"); }
   for (let k = 0; k < vv; k++) { points.push([x0, r(y1 - ((y1 - y0) * k) / vv)]); side.push("w"); }
-  const gates = [...new Set(spec.gateSides)].map((gs) => { const ix = side.map((sd, i) => ({ sd, i })).filter((q) => q.sd === gs); return ix[Math.floor(ix.length / 2)]!.i; });
+  const gates = gateSidesOf(spec.gateSides).map((gs) => { const ix = side.map((sd, i) => ({ sd, i })).filter((q) => q.sd === gs); return ix[Math.floor(ix.length / 2)]!.i; });
   return { rect: [x0, y0, x1, y1], points, side, gates, strip };
+}
+
+/** One rockfall square is as wide as a pad box. */
+export const ROCK_SQUARE = PAD_BOX[2] - PAD_BOX[0];
+/** Squares in a gate-width rockfall. */
+export const gateRockSquares = (): number => Math.max(1, Math.round(GATE_WIDTH / ROCK_SQUARE));
+
+/**
+ * The gate rockfall (Doug's drawing): beyond the first gate on the south side (else east) the wall, a row of clear pads (one per square, a pad
+ * box wide, clear of the wall band), then the rockfall touching the row's outer edge, centred on the gate, gateRockSquares() squares wide.
+ * A gate whose pads would be hidden, off the map or on something is skipped; null when no gate works. The rockfall is registered as a flat building.
+ */
+export function placeGateRock(S: WfState, b: WfBuilding, wl: WfWalls): { rect: Box4; side: string; pads: Pt[] } | null {
+  const n = gateRockSquares(), depthR = Math.min(b.footprint[2] - b.footprint[0], b.footprint[3] - b.footprint[1]), pad = b.pads[0], band = ringBand(wl), half = ROCK_SQUARE / 2;
+  const order = [...wl.gates].sort((x, y) => (wl.side[x] === "s" ? 0 : 1) - (wl.side[y] === "s" ? 0 : 1));
+  for (const gi of order) {
+    const sd = wl.side[gi]!, a = wl.points[gi]!, c = wl.points[(gi + 1) % wl.points.length]!;
+    const mid: Pt = [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2], nrm = NORMAL[sd], tan: Pt = [-nrm[1], nrm[0]];
+    const at = (t: number, o: number): Pt => [Math.round(mid[0] + tan[0] * t + nrm[0] * o), Math.round(mid[1] + tan[1] * t + nrm[1] * o)];
+    // offsets along the outward normal from the ring line: the wall band's outer edge, then the pad row, then the rockfall
+    const o0 = (sd === "s" ? band[3] - mid[1] : band[2] - mid[0]) + 1;
+    const pads: Pt[] = [];
+    for (let k = 0; k < n; k++) pads.push(at((k - (n - 1) / 2) * ROCK_SQUARE, o0 + half));
+    const p0 = at(-n * half, o0 + ROCK_SQUARE), p1 = at(n * half, o0 + ROCK_SQUARE + depthR);
+    const rect: Box4 = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1]), Math.max(p0[0], p1[0]), Math.max(p0[1], p1[1])];
+    const boxes = pads.map((q) => boxAt(q, PAD_BOX));
+    if (![...boxes, rect].every((bx) => S.inMap(bx) && S.clear(bx, new Set()))) continue;
+    if (pad && pads.some((q) => S.padHidden(pad, q))) continue;
+    const ctr: Pt = [(rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2];
+    S.by.set(b.id, { ...b, footprint: [rect[0] - ctr[0], rect[1] - ctr[1], rect[2] - ctr[0], rect[3] - ctr[1]], pads: [], occ: null });
+    S.place(b.id, ctr, -1);
+    S.reserved.push(...boxes);
+    S.log({ t: "rock", id: b.id, rect, side: sd, pads });
+    return { rect, side: sd, pads };
+  }
+  return null;
 }
 
 /** The ring's wall band: the ring rectangle grown by the wall's half thickness and a small gap (a box inside it touches a wall or is inside the ring). */

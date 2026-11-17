@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import gen from "../data/generator.json";
-import { WALL_HALF, WfState, gateStrip, placeWavefront, scrapShape, scrapStrip, spotsOf, tallestShape, wallStrip, wavefronts, type TraceStep, type WfBuilding } from "../src/wavefront.js";
+import { ROCK_SQUARE, WALL_HALF, WfState, gateRockSquares, gateSidesOf, gateStrip, placeGateRock, placeWavefront, scrapShape, scrapStrip, spotsOf, tallestShape, wallStrip, wavefronts, type TraceStep, type WfBuilding } from "../src/wavefront.js";
 import { occluders, viewOf } from "../src/viewVisibility.js";
 
 // outpost-ops#202: the wavefront placement loop and the pad repair loop as Doug agreed them (2026-11-16).
@@ -215,7 +215,7 @@ describe("walls, medic pad and scrap (Doug 2026-11-16)", () => {
       expect(r.rejected).toBeNull();
       const w = r.walls!, pads = Object.values(r.padAt), strip = wallStrip(), gs = gateStrip();
       expect(w.rect[3]).toBeGreaterThanOrEqual(Math.max(...pads.map((p) => p[1])) + R + gs.s - 1);
-      expect(w.rect[2]).toBeGreaterThanOrEqual(Math.max(...pads.map((p) => p[0])) + R + strip.e - 1);
+      expect(w.rect[2]).toBeGreaterThanOrEqual(Math.max(...pads.map((p) => p[0])) + R + gs.e - 1);
       for (const id of ["core", "m1"]) {
         const f = FP[id === "core" ? "sink.core" : "conv.food_processor"]!, at = r.positions[id]!;
         expect(at[0] + f[0]).toBeGreaterThanOrEqual(w.rect[0] + WALL_HALF);
@@ -292,5 +292,69 @@ describe("walls, medic pad and scrap (Doug 2026-11-16)", () => {
       return ds.reduce((a, b) => a + b, 0) / ds.length;
     };
     expect(mean([450, 700])).toBeGreaterThan(mean([150, 300]) + 100);
+  });
+});
+
+describe("ring fit, gate sides and the gate rockfall (outpost-ops#202, Doug 2026-11-16)", () => {
+  const MAP = { w: 1200, h: 1620 };
+  const spec = { dims: [900, 1200] as [number, number], split: [3, 3] as [number, number], gateSides: ["n"] as ("n" | "e" | "s" | "w")[] };
+  const rock = (): WfBuilding => ({ id: "pass", kind: "zone.blocked", footprint: [-240, -22, 240, 22], occ: null, appear: 1, pads: [{ id: "clear_pass", coexist: ["core"] }], side: "settlement", gateRock: true });
+  const level = (): WfBuilding[] => [core(["core"]), rock()];
+
+  it("fits the settlement only: a big shipped ring size is not a minimum", () => {
+    const r = placeWavefront({ buildings: level(), map: MAP, walls: spec }, { seed: 1, siteChecks: true });
+    expect(r.rejected).toBeNull();
+    const w = r.walls!;
+    expect(w.rect[2] - w.rect[0]).toBeLessThan(500);
+    expect(w.rect[3] - w.rect[1]).toBeLessThan(500);
+  });
+
+  it("moves gates to the south and east sides only (north to south, west to east, south first)", () => {
+    expect(gateSidesOf(["n"])).toEqual(["s"]);
+    expect(gateSidesOf(["w", "n"])).toEqual(["s", "e"]);
+    expect(gateSidesOf(["e", "s"])).toEqual(["s", "e"]);
+    expect(gateSidesOf([])).toEqual(["s"]);
+    const r = placeWavefront({ buildings: level(), map: MAP, walls: { ...spec, gateSides: ["n", "w"] } }, { seed: 2, siteChecks: true });
+    expect(r.walls!.gates.map((i) => r.walls!.side[i])).toEqual(["s", "e"]);
+  });
+
+  it("puts the rockfall outside the south gate, gate-width, with one clear pad per square between gate and rockfall, all visible", () => {
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const r = placeWavefront({ buildings: level(), map: MAP, walls: spec }, { seed, siteChecks: true });
+      expect(r.rejected).toBeNull();
+      const w = r.walls!, k = r.rock["pass"]!, n = gateRockSquares(), gi = w.gates.find((i) => w.side[i] === "s")!;
+      const a = w.points[gi]!, b = w.points[(gi + 1) % w.points.length]!, gx = (a[0] + b[0]) / 2;
+      expect(k.side).toBe("s");
+      expect(k.pads).toHaveLength(n);
+      expect(Math.abs(k.rect[2] - k.rect[0] - n * ROCK_SQUARE)).toBeLessThanOrEqual(1);
+      expect(Math.abs((k.rect[0] + k.rect[2]) / 2 - gx)).toBeLessThanOrEqual(1);
+      // the pads sit between the wall and the rockfall, touching its gate-facing (north) edge and outside the wall
+      for (const p of k.pads) {
+        expect(Math.abs(p[1] + ROCK_SQUARE / 2 - k.rect[1])).toBeLessThanOrEqual(1);
+        expect(p[1] - ROCK_SQUARE / 2).toBeGreaterThan(w.rect[3] + WALL_HALF);
+      }
+      expect(r.padAt["clear_pass"]).toEqual(k.pads[0]);
+      // flat: no occluder, nothing hidden
+      expect(r.stats.hiddenPads).toBe(0);
+    }
+  });
+
+  it("falls to the east gate when the south one has no room on the map", () => {
+    // a ring whose south line is 20 above the map edge: no room for pads and rockfall below it; the east side has room
+    const S = new WfState({ buildings: [rock()], map: { w: 1200, h: 800 } }, { step: 6, trace: false, maxRepairs: 10 });
+    const walls = { rect: [100, 100, 500, 780] as [number, number, number, number], points: [[100, 100], [500, 100], [500, 780], [100, 780]] as [number, number][], side: ["n", "e", "s", "w"] as ("n" | "e" | "s" | "w")[], gates: [2, 1], strip: wallStrip() };
+    const k = placeGateRock(S, rock(), walls)!;
+    expect(k.side).toBe("e");
+    expect(k.pads).toHaveLength(gateRockSquares());
+    // the pads touch the west edge of the rockfall, east of the wall
+    for (const p of k.pads) { expect(Math.abs(p[0] + ROCK_SQUARE / 2 - k.rect[0])).toBeLessThanOrEqual(1); expect(p[0] - ROCK_SQUARE / 2).toBeGreaterThan(500 + WALL_HALF); }
+  });
+
+  it("an unwalled level keeps the rockfall in the wavefront with its pad beside it", () => {
+    const r = placeWavefront({ buildings: level(), map: MAP }, { seed: 1, siteChecks: true });
+    expect(r.rejected).toBeNull();
+    expect(Object.keys(r.rock)).toHaveLength(0);
+    expect(r.positions["pass"]).toBeDefined();
+    expect(r.padAt["clear_pass"]).toBeDefined();
   });
 });
