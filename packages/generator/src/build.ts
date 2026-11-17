@@ -81,7 +81,7 @@ export const GEN = genData as unknown as {
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
-  defendWaves: { maxPoints: number; waveCap: number; lateWaveGap: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
+  defendWaves: { maxPoints: number; waveCap: number; lateWaveGap: number; lateWaveMin: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
   storms: { warn: number; duration: number; growStep: number; maxDuration: number };
@@ -123,7 +123,7 @@ type SplitWave = { t: number; counts: Record<string, number>; side?: string | st
  * cap 0 is off. Returns whether anything changed.
  */
 export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Content,
-  o: { cap: number; lateGap: number; spacing: number; sides: readonly string[]; bosses: boolean }): boolean {
+  o: { cap: number; lateGap: number; spacing: number; minSpacing: number; sides: readonly string[]; bosses: boolean }): boolean {
   const BOSS = "hostile.boss", SW = "hostile.swarmling";
   const reg = waves.filter((w) => regular.has(w));
   const bossHp = c.hostiles[BOSS]?.hp ?? 0;
@@ -134,7 +134,6 @@ export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Conte
   const bossesOld = reg.reduce((a, w) => a + (w.counts[BOSS] ?? 0), 0);
   for (const w of reg) delete w.counts[BOSS];
   const head = reg.slice(0, from), tail: SplitWave[] = [];
-  let t = reg[from]!.t;
   for (const w of reg.slice(from)) {
     // even shares, the remainder going to the first pieces (one more piece while a remainder tips one over)
     const share = (n: number, i: number) => {
@@ -146,10 +145,18 @@ export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Conte
     while (wavePoints(share(n, 0), c) > effCap) n++;
     for (let i = 0; i < n; i++) {
       const counts = share(n, i);
-      tail.push({ t: Math.round(Math.max(t, w.t)), counts, gap: n > 1 ? Math.max(w.gap ?? o.lateGap, o.lateGap) : w.gap ?? o.lateGap });
-      t = Math.max(t, w.t) + o.spacing;
+      tail.push({ t: w.t, counts, gap: n > 1 ? Math.max(w.gap ?? o.lateGap, o.lateGap) : w.gap ?? o.lateGap });
     }
   }
+  // The pieces fit into the time the old waves took: the last starts no later than the old last wave did (attempt 1
+  // pushed it out by up to 3 minutes), the spacing tightening down to minSpacing where there are many pieces; past
+  // that the first pieces start earlier (never before the wave ahead of them), and only then do they close up further.
+  const end = reg.at(-1)!.t, m = Math.max(1, tail.length - 1);
+  const floor = from > 0 ? reg[from - 1]!.t + o.minSpacing : 0;
+  let step = Math.max(o.minSpacing, Math.min(o.spacing, (end - reg[from]!.t) / m));
+  const start = Math.max(floor, Math.min(reg[from]!.t, end - m * step));
+  step = Math.min(step, Math.max(0, end - start) / m);
+  tail.forEach((w, k) => { w.t = Math.round(start + k * step); });
   const all = [...head, ...tail];
   all.forEach((w, k) => { if (k >= from) w.side = o.sides[k % o.sides.length]!; });
   if (o.bosses && bossesOld > 0) {
@@ -1816,7 +1823,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       && Math.max(...waves.filter((w) => regular.has(w)).map((w) => wavePoints(w.counts, c))) < DW.maxPoints;
     for (let k = 0; k < DW.fullGrowMax && waveScrap(waves, c) < fullAt(defGrowth) && room(); k++) { grow(growing); shape(); }
     capWavePoints(waves, c, DW.maxPoints);
-    if (splitWaves(waves, regular, c, { cap: DW.waveCap, lateGap: DW.lateGap, spacing: K.waveGap * DW.lateWaveGap, sides, bosses: feat.has("bosses") })
+    if (splitWaves(waves, regular, c, { cap: DW.waveCap, lateGap: DW.lateGap, spacing: K.waveGap * DW.lateWaveGap, minSpacing: DW.lateWaveMin, sides, bosses: feat.has("bosses") })
       && (goal === "survive" || goal === "waves_survived" || goal === "boss")) Object.assign(gparams, params0());
     for (const w of waves) if (regular.has(w) && size(w) * w.gap! > DW.spawnMax) w.gap = Math.max(DW.minGap, Math.floor((DW.spawnMax / size(w)) * 100) / 100);
     // Waves alone would take thousands of attackers (rising prices make the full ladder several times its base
