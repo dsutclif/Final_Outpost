@@ -78,7 +78,8 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
       `ceil(costPerSection × barrier.repairK)` (0.5), paid at once. A destroyed section is rebuilt
       at the same repair price.
     - Pile collapse: REMOVED (2026-11-17, outpost-ops#81). A full converter output only stops that machine; it never ends
-      the level, and hired operators no longer pause one short of a full tray. Kiosk shelves never counted.
+      the level. Hired operators still pause one short of a full tray, and the bots still keep trays tidy on levels with
+      converters, so the levels already rated keep their pacing (levels:check needed it). Kiosk shelves never counted.
     - Time target: generated time targets and `level.budgetSeconds` are 1.4× (`timeTargetK`);
       Settings scales the time star 100–200% per player, applied to the manifest before the sim
       starts. The rater's trivial-budget share drops to 0.286 so it cuts at the same time as before.

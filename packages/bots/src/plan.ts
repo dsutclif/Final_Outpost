@@ -391,7 +391,9 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
     fillCore: goal.type === "fuel_full",
     serveFirst: kinds.has("no_angry_customers") || kinds.has("streak"),
     holdShelf: goal.type === "shelves_full",
-    noOverload: kinds.has("no_stockpile_overload"),
+    // Bots keep a converter tray from sitting full on any level with converters: an idle full tray wastes the machine
+    // (the pile no longer ends the level, but the shipped levels were rated with bots that avoided it).
+    noOverload: kinds.has("no_stockpile_overload") || m.entities.some((e) => e.type.startsWith("conv.")) || pads.some((p) => p.type === "pad.build" && p.build.startsWith("conv.") && p.build !== "conv.level"),
     handsOff: goal.type === "automate",
     handsOffMachines: goal.type === "automate" ? Number((g as { machines?: number }).machines ?? 0) : 0,
     collect: kinds.has("salvage") ? ["res.salvage"] : [],

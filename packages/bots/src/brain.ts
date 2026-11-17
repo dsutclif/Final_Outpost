@@ -498,12 +498,15 @@ export class Brain {
     for (const cv of st.converters) {
       const def = cp.converters[cv.type]!;
       const forPlan = capped[def.output] ?? 0;
+      const tidy = this.pol.noOverload;
       const sells = this.sellable(st).includes(def.output);
       const forSale = sells || this.wantedOut(st, def.output);
+      // Keep a tray from sitting full: collect from a nearly full pile first, even an unwanted one, and stop operating one short of the cap.
+      if (tidy && cv.out >= def.outCap - 2 && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) T("fetch", 85, cv.id);
       if (forPlan <= 0 && !forSale) continue;
       const opByWorker = st.residents.some((r) => r.status === "ok" && r.role === def.role && r.assign.to === cv.type && near(r.pos, cv.operatorPos, cp.convParams.operatorRange));
       // Working a machine by hand restarts the hands-off clock.
-      if (cv.inQ.length > 0 && cv.out < def.outCap && !opByWorker && !this.handsOff(st)) T("operate", forPlan > 0 ? 45 : 38, cv.id);
+      if (cv.inQ.length > 0 && cv.out < (tidy ? def.outCap - 1 : def.outCap) && !opByWorker && !this.handsOff(st)) T("operate", forPlan > 0 ? 45 : 38, cv.id);
       const served = st.residents.some((r) => r.status === "ok" && r.assign.from === cv.type && this.cp.roles[r.role]?.behavior === "collect_deliver");
       // Intermediate goods (refined material for a tier-2 converter) and outputs about to overflow.
       if (forPlan <= 0 && cv.out > 0 && !served && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) {

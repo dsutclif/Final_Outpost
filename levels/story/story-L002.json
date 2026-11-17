@@ -1,7 +1,7 @@
 {
  "id": "story-L002",
  "seed": 1002,
- "engineVersion": "0.32.0",
+ "engineVersion": "0.33.0",
  "contentVersion": "0.23.0",
  "map": {
   "w": 980,
