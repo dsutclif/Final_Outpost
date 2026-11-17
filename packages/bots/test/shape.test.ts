@@ -55,3 +55,18 @@ describe("play shape", () => {
     expect(r.distU).toBeGreaterThan(0);
   });
 });
+
+describe("beat sheet accumulator", () => {
+  it("keeps the first occurrence of each beat in order, with ticks", async () => {
+    const { createBeats, beatsNote, beatsResult } = await import("../src/index.js");
+    const acc = createBeats();
+    const built = (build: string): SimEvent => ({ t: "built", pad: "p", build, at: { x: 0, y: 0 } });
+    const hitPrey = (by: "player" | "structure"): SimEvent => ({ t: "hit", target: "prey", id: 1, at: { x: 0, y: 0 }, by });
+    beatsNote(acc, 5, built("struct.a"));
+    beatsNote(acc, 6, built("struct.a")); // repeat: ignored
+    beatsNote(acc, 7, hitPrey("structure")); // not the player: no hunt
+    beatsNote(acc, 9, hitPrey("player"));
+    beatsNote(acc, 12, built("struct.b"));
+    expect(beatsResult(acc)).toEqual([{ beat: "built:struct.a", tick: 5 }, { beat: "hunt", tick: 9 }, { beat: "built:struct.b", tick: 12 }]);
+  });
+});

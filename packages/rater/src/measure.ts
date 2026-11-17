@@ -1,5 +1,5 @@
 import { Manifest as ManifestSchema, content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { LADDER, PROFILES, TIME_FIXED_GOALS, planBot, playBot, type BotProfile, type BotResult, type Plan } from "@fo/bots";
+import { LADDER, PROFILES, TIME_FIXED_GOALS, planBot, playBot, type BotProfile, type BotResult, type Plan, type Beat } from "@fo/bots";
 import { TPS } from "@fo/sim";
 import { terrainStats, type TerrainStats } from "./terrain.js";
 
@@ -14,7 +14,7 @@ export type MetricName = (typeof METRIC_NAMES)[number];
 export type Metrics = Record<MetricName, number>;
 
 /** A level the player saw recently, for novelty and duplicate checks. */
-export interface HistoryEntry { id?: string; modules: string[]; goal: string; template?: string }
+export interface HistoryEntry { id?: string; modules: string[]; goal: string; template?: string; /** Beat sheet of the level when it was rated. */ beats?: Beat[] }
 
 export interface MeasureOptions {
   content?: Content;
@@ -55,6 +55,8 @@ export interface Measurement {
   /** Worst `loopMax` (longest run of identical player trips) over the reference-bot runs, and the trip behind it. */
   loopMax: number;
   loopKey: string;
+  /** Beat sheet of the median bot's median-length run: ordered first occurrences with ticks (bots shape.ts). */
+  beats: Beat[];
   /** Geography: pieces, map share and blocked approach lanes (not z-scored). */
   terrain: TerrainStats;
   budgetTicks: number;
@@ -69,6 +71,13 @@ export const MEDIAN = LADDER[Math.floor(LADDER.length / 2)]!.name;
 const mean = (xs: readonly number[]): number => (xs.length === 0 ? 0 : xs.reduce((a, b) => a + b, 0) / xs.length);
 export const winRate = (rs: readonly BotResult[]): number => mean(rs.map((r) => (r.won ? 1 : 0)));
 export const meanMargin = (rs: readonly BotResult[]): number => mean(rs.map((r) => r.margin));
+
+/** The beat sheet of the median rung's run of median length (lowest seed on a tie): deterministic for a given manifest. */
+export function medianBeats(rs: readonly BotResult[]): Beat[] {
+  if (rs.length === 0) return [];
+  const order = [...rs].sort((a, b) => a.ticks - b.ticks || a.seed - b.seed);
+  return order[Math.floor((order.length - 1) / 2)]!.trace.beats.map((b) => ({ ...b }));
+}
 
 export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measurement {
   const content = opts.content ?? defaultContent;
@@ -114,7 +123,7 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const medicShare = downs > 0 ? runs[REFERENCE]!.reduce((a, r) => a + r.trace.guards.medicHeals, 0) / downs : -1;
   const capHoldMax = Math.max(0, ...runs[REFERENCE]!.map((r) => r.trace.capHoldMax));
   const worst = runs[REFERENCE]!.reduce((a, r) => (r.trace.loopMax > a.trace.loopMax ? r : a));
-  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, story, rallyShare, guardLoss, medicShare, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, terrain: terrainStats(manifest), budgetTicks, template, history };
+  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, story, rallyShare, guardLoss, medicShare, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, beats: medianBeats(runs[MEDIAN]!), terrain: terrainStats(manifest), budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,

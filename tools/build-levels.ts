@@ -64,6 +64,8 @@ export interface LevelResult {
   margin: Record<string, number>;
   winRate: Record<string, number>;
   botsPassed: string[];
+  /** Beat sheet from the rater's median bot run (outpost-ops#149): ordered first occurrences with ticks. */
+  beats: { beat: string; tick: number }[];
   seconds: number;
   seed: number;
   attempts: number;
@@ -125,7 +127,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
     family: req.family, secondary: req.secondary, features: req.features, objectives: (m.objectives ?? []) as LevelResult["objectives"],
     stars: pick.stars, starsByRung: pick.starsByRung,
     modules: m.modules, goal: m.goal.type, template: req.template, target: req.target, D: r.D, F: r.F, onTarget: shipped !== null,
-    margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, seconds: (Date.now() - t0) / 1000, seed: m.seed,
+    margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, beats: r.beats, seconds: (Date.now() - t0) / 1000, seed: m.seed,
     attempts, rejects, ratings,
   };
   process.stdout.write(`RESULT ${JSON.stringify({ ...res, req })}\n`);
@@ -246,11 +248,11 @@ async function main(): Promise<void> {
 
   // pack.json: merge with any levels already in the pack outside this range.
   const packPath = join(outDir, "pack.json");
-  type Entry = { id: string; file: string; title: string; family: string; secondary?: string; modules: string[]; goal: string; rating: number; fun: number; target: number };
+  type Entry = { id: string; file: string; title: string; family: string; secondary?: string; modules: string[]; goal: string; rating: number; fun: number; target: number; beats?: { beat: string; tick: number }[] };
   const old: Entry[] = existsSync(packPath) ? (JSON.parse(readFileSync(packPath, "utf8")) as { levels: Entry[]; engineVersion: string }).levels : [];
   const byId = new Map<string, Entry>();
   for (const e of old) byId.set(e.id, e);
-  for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, family: r.family, ...(r.secondary ? { secondary: r.secondary } : {}), modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target });
+  for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, family: r.family, ...(r.secondary ? { secondary: r.secondary } : {}), modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target, beats: r.beats });
   // Titles are unique across the pack: a level keeps the title players know unless its goal changed;
   // new or re-goaled levels are deduped against the kept ones.
   const keep: Record<string, string> = {};

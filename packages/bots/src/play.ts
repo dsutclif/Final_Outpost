@@ -4,6 +4,7 @@ import { Brain } from "./brain.js";
 import { TIME_FIXED_GOALS, planBot, type Plan } from "./plan.js";
 import { withLearning, type BotProfile } from "./profiles.js";
 import { Perception, viewFor } from "./view.js";
+import { beatsNote, beatsResult, createBeats, type Beat } from "./shape.js";
 
 /** Content default of `level.budgetSeconds`, kept as a named export for callers. */
 export const DEFAULT_TIME_BUDGET_SECONDS: number = defaultContent.defaults["level.budgetSeconds"] ?? 300;
@@ -99,6 +100,8 @@ export interface BotTrace {
   loopMax: number;
   /** The repeated trip behind `loopMax` ("src>res>target + ...", "" when the player made no trips). */
   loopKey: string;
+  /** Beat sheet: first occurrence of each beat with its tick, in order (shape.ts). */
+  beats: Beat[];
 }
 
 /** Tracks the player's get/put cycles and the longest run of identical ones. */
@@ -336,6 +339,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const capRun: number[] = [];
   let capHoldMax = 0;
   const loops = new LoopTracker();
+  const beatAcc = createBeats();
   const lines = new Set<string>(), nodesUsed = new Set<string>(), convUsed = new Set<string>();
   let capturesHome = 0;
   const builtPads = new Set<string>();
@@ -400,6 +404,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
       if (e.t === "released" || e.t === "crate_delivered") capturesHome++;
       if ((e.t === "gathered" || e.t === "deposited" || e.t === "collected" || e.t === "picked" || e.t === "pad_paid" || e.t === "barrier_progress") && !("by" in e && e.by !== undefined)) acted = true;
       noteLoop(loops, e, st);
+      beatsNote(beatAcc, st.tick, e);
       noteModule(used, e, cp.upgrades);
     }
     void currencyBefore;
@@ -515,6 +520,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     capHoldMax: capHoldMax / TPS,
     loopMax: loops.max,
     loopKey: loops.maxKey,
+    beats: beatsResult(beatAcc),
   };
   const runStats: RunStats = {
     heatMin: s.heatMin, hpMin, fuelOuts: s.fuelOuts, froze: s.froze, customersAngry: s.customersAngry, injured: s.injured,

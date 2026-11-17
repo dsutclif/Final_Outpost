@@ -1,5 +1,5 @@
 import { content as defaultContent, Manifest as ManifestSchema, type Content } from "@fo/content";
-import { LADDER } from "@fo/bots";
+import { LADDER, type Beat } from "@fo/bots";
 import { funProxies, PROXY_NAMES, type Proxies } from "./fun.js";
 import { qualityFilters, type FilterEvidence, type Filters } from "./filters.js";
 import type { TerrainStats } from "./terrain.js";
@@ -60,6 +60,8 @@ export interface Rating {
   evidence: FilterEvidence;
   /** Geography of the level: reported, never z-scored. */
   terrain: TerrainStats;
+  /** Beat sheet from the median bot run (outpost-ops#149). */
+  beats: Beat[];
   /** Feasible and no filter fired. */
   ok: boolean;
 }
@@ -109,6 +111,7 @@ export function score(ms: Measurement, opts: RateOptions = {}): Rating {
     evidence,
     ok: feasible && !Object.values(filters).some(Boolean),
     terrain: ms.terrain,
+    beats: ms.beats,
   };
 }
 
@@ -140,7 +143,7 @@ export function rateBatch(manifests: readonly unknown[], opts: RateOptions = {})
   const out: Rating[] = [];
   for (const m of manifests) {
     out.push(rate(m, { ...opts, history: [...history] }));
-    history.push(historyEntry(m));
+    history.push({ ...historyEntry(m), beats: out[out.length - 1]!.beats });
   }
   return out;
 }

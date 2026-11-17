@@ -96,3 +96,40 @@ export function shapeResult(acc: ShapeAcc): PlayShape {
     sameRunMax: acc.runMax,
   };
 }
+
+// ---- Beat sheet (outpost-ops#149): the ordered first occurrence of each kind of beat, with its tick. Bots only;
+// the player telemetry contract does not change. Two levels that "play the same" share the beat order.
+
+export interface Beat {
+  /** `built:<structure>`, `sold`, `hired:<role>`, `hunt`, `captured`, `released`, `wave_started`, `core_upgraded`, `unlocked`, `zone_cleared`. */
+  beat: string;
+  tick: number;
+}
+
+export interface BeatAcc {
+  seen: Set<string>;
+  beats: Beat[];
+}
+
+export const createBeats = (): BeatAcc => ({ seen: new Set(), beats: [] });
+
+/** The beat key an event opens, or null when it is not a beat. A hunt is the player's first hit on prey. */
+export function beatKey(e: SimEvent): string | null {
+  switch (e.t) {
+    case "built": return `built:${e.build}`;
+    case "hired": return `hired:${e.role}`;
+    case "hit": return e.target === "prey" && e.by === "player" ? "hunt" : null;
+    case "sold": case "captured": case "released": case "wave_started": case "core_upgraded": case "unlocked": case "zone_cleared": return e.t;
+    default: return null;
+  }
+}
+
+export function beatsNote(acc: BeatAcc, tick: number, e: SimEvent): void {
+  const k = beatKey(e);
+  if (k === null || acc.seen.has(k)) return;
+  acc.seen.add(k);
+  acc.beats.push({ beat: k, tick });
+}
+
+/** Events arrive in tick order, so the list is already ordered by first occurrence. */
+export const beatsResult = (acc: BeatAcc): Beat[] => acc.beats.map((b) => ({ ...b }));
