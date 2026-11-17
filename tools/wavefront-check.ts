@@ -64,7 +64,7 @@ export function convert(m0: Manifest): Converted {
   // rockfall squares: flat (no occluder), one clear pad each, on the settlement side; the rockfall joins the wavefront of its clear pad
   for (const e of ents) if (e.type === "zone.blocked" && Array.isArray(e["rect"]) && pads.some((p) => p["target"] === e.id)) {
     const [, , w, h] = e["rect"] as number[];
-    start.push({ id: String(e.id), kind: "zone.blocked", footprint: [-w! / 2, -h! / 2, w! / 2, h! / 2], occ: null, appear: Math.min(...pads.filter((p) => p["target"] === e.id).map((p) => padDepth(String(p.id)))), pads: [], side: "settlement" });
+    start.push({ id: String(e.id), kind: "zone.blocked", footprint: [-w! / 2, -h! / 2, w! / 2, h! / 2], occ: null, appear: Math.min(...pads.filter((p) => p["target"] === e.id).map((p) => padDepth(String(p.id)))), pads: [], side: "settlement", ...(ents.some((x) => x.type === "barrier.line") ? { gateRock: true } : {}) });
   }
   for (const e of pads) if (e.type === "pad.build" && !isUpgradePad(e) && FP[build(e)] && build(e) !== "pad") built.push(mk(String(e.id), build(e), padDepth(String(e.id)), FP[build(e)]!));
   built.sort((a, b) => a.appear - b.appear);
