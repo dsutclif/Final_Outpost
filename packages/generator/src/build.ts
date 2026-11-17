@@ -81,7 +81,7 @@ export const GEN = genData as unknown as {
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
-  defendWaves: { maxPoints: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
+  defendWaves: { maxPoints: number; waveCap: number; lateWaveGap: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
   storms: { warn: number; duration: number; growStep: number; maxDuration: number };
@@ -112,6 +112,63 @@ export function capWavePoints(waves: readonly { counts: Record<string, number> }
     const over = wavePoints(w.counts, c) - max;
     if (over > 0 && w.counts["hostile.swarmling"]) w.counts["hostile.swarmling"] = Math.max(0, w.counts["hostile.swarmling"] - over);
   }
+}
+
+type SplitWave = { t: number; counts: Record<string, number>; side?: string | string[]; gap?: number };
+/**
+ * Denser, not bigger (Doug: the last waves dragged on): every regular wave from the first one over cap points on is
+ * split into even pieces of at most cap points, the pieces arriving `spacing` s apart from that wave's start. The
+ * warlords are placed again by the count rule (the last wave, and the third from last when there are 5 or more); a
+ * warlord added that way takes its points out of the swarmlings, so the level's total points and drops stay the same.
+ * cap 0 is off. Returns whether anything changed.
+ */
+export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Content,
+  o: { cap: number; lateGap: number; spacing: number; sides: readonly string[]; bosses: boolean }): boolean {
+  const BOSS = "hostile.boss", SW = "hostile.swarmling";
+  const reg = waves.filter((w) => regular.has(w));
+  const bossHp = c.hostiles[BOSS]?.hp ?? 0;
+  const effCap = o.cap - (o.bosses ? bossHp : 0);
+  const bare = (w: SplitWave) => wavePoints(w.counts, c) - (w.counts[BOSS] ?? 0) * bossHp;
+  const from = reg.findIndex((w) => bare(w) > effCap);
+  if (o.cap <= 0 || effCap <= 0 || from < 0) return false;
+  const bossesOld = reg.reduce((a, w) => a + (w.counts[BOSS] ?? 0), 0);
+  for (const w of reg) delete w.counts[BOSS];
+  const head = reg.slice(0, from), tail: SplitWave[] = [];
+  let t = reg[from]!.t;
+  for (const w of reg.slice(from)) {
+    // even shares, the remainder going to the first pieces (one more piece while a remainder tips one over)
+    const share = (n: number, i: number) => {
+      const counts: Record<string, number> = {};
+      for (const [h, v] of Object.entries(w.counts)) { const q = Math.floor(v / n) + (i < v % n ? 1 : 0); if (q > 0) counts[h] = q; }
+      return counts;
+    };
+    let n = Math.max(1, Math.ceil(bare(w) / effCap));
+    while (wavePoints(share(n, 0), c) > effCap) n++;
+    for (let i = 0; i < n; i++) {
+      const counts = share(n, i);
+      tail.push({ t: Math.round(Math.max(t, w.t)), counts, gap: n > 1 ? Math.max(w.gap ?? o.lateGap, o.lateGap) : w.gap ?? o.lateGap });
+      t = Math.max(t, w.t) + o.spacing;
+    }
+  }
+  const all = [...head, ...tail];
+  all.forEach((w, k) => { if (k >= from) w.side = o.sides[k % o.sides.length]!; });
+  if (o.bosses && bossesOld > 0) {
+    const at = [all.length - 1, ...(all.length >= 5 ? [all.length - 3] : [])];
+    for (const k of at) all[k]!.counts[BOSS] = 1;
+    // a warlord the longer list adds takes its points out of the swarmlings, largest pieces first
+    let extra = (at.length - bossesOld) * bossHp;
+    while (extra > 0) {
+      const big = tail.reduce((a, w) => ((w.counts[SW] ?? 0) > (a.counts[SW] ?? 0) ? w : a), tail[0]!);
+      if ((big.counts[SW] ?? 0) <= 3) break;
+      big.counts[SW]! -= 1; extra--;
+    }
+  }
+  const rest = waves.filter((w) => !regular.has(w));
+  regular.clear();
+  for (const w of all) regular.add(w);
+  waves.length = 0;
+  waves.push(...[...rest, ...all].sort((a, b) => a.t - b.t));
+  return true;
 }
 
 /** Footprints of what the renderer draws larger (look.json buildScale: buildings and the greenhouse dome) grow with it. */
@@ -1759,6 +1816,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       && Math.max(...waves.filter((w) => regular.has(w)).map((w) => wavePoints(w.counts, c))) < DW.maxPoints;
     for (let k = 0; k < DW.fullGrowMax && waveScrap(waves, c) < fullAt(defGrowth) && room(); k++) { grow(growing); shape(); }
     capWavePoints(waves, c, DW.maxPoints);
+    if (splitWaves(waves, regular, c, { cap: DW.waveCap, lateGap: DW.lateGap, spacing: K.waveGap * DW.lateWaveGap, sides, bosses: feat.has("bosses") })
+      && (goal === "survive" || goal === "waves_survived" || goal === "boss")) Object.assign(gparams, params0());
     for (const w of waves) if (regular.has(w) && size(w) * w.gap! > DW.spawnMax) w.gap = Math.max(DW.minGap, Math.floor((DW.spawnMax / size(w)) * 100) / 100);
     // Waves alone would take thousands of attackers (rising prices make the full ladder several times its base
     // price): what they cannot pay within spawnMax, the level's price growth eases to cover, and only then its scrap prices.
