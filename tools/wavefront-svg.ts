@@ -17,7 +17,7 @@ for (const entry of levels) {
   const c = convert(m); const inp = c.input;
   const fam = m.meta?.family ?? JSON.stringify(m).match(/"family":"([^"]+)"/)?.[1];
   let r = placeWavefront(inp, { seed, siteChecks: true, repair: "always", trace: true } as never);
-  const shift = (r.trace as { t: string; d?: number[] }[]).find((t) => t.t === "shift")?.d;
+  const shift = (r.trace as { t: string; d?: number[] }[]).find((t) => t.t === "shift")?.d as [number, number] | undefined;
   const noWall = r.rejected ? placeWavefront((({ walls: _w, ...rest }) => rest)(inp), { seed, siteChecks: true, repair: "always" } as never) : r;
   const show = noWall;
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const shapes: string[] = [];
