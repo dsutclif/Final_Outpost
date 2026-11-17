@@ -4,6 +4,7 @@ import { cpus } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { HUMAN, LADDER, playBot } from "../packages/bots/src/index.js";
+import { loopOverCap } from "../packages/generator/src/loops.js";
 
 // pnpm levels:check [--pack levels/packs/s1 | levels/story] [--jobs N] [--seeds 10] [--others 3] [--strict-stars]
 //
@@ -37,7 +38,7 @@ interface HumanRow {
   /** Why the level misses the human bar ("" when it meets it). */
   miss: string;
 }
-interface Row { id: string; family: string; feasible: boolean; refMinMargin: number; stalls: string[]; wins: Record<string, number>; stars: Record<string, number>; goodThree: number; human: HumanRow; seconds: number }
+interface Row { id: string; family: string; feasible: boolean; refMinMargin: number; stalls: string[]; wins: Record<string, number>; stars: Record<string, number>; goodThree: number; loopBad: string[]; human: HumanRow; seconds: number }
 
 function humanRung(m: unknown): HumanRow {
   const rs = Array.from({ length: HS.seeds }, (_, i) => playBot(m, HUMAN, i + 1));
@@ -63,6 +64,9 @@ function checkLevel(file: string, refSeeds: number, otherSeeds: number): Row {
   const stars: Record<string, number> = {};
   let goodThree = 0;
   let feasible = true, refMin = Infinity;
+  // outpost-ops#87: levels that carry a recorded loopMax are re-checked against the loop bound (older levels carry none and are skipped)
+  const recLoop = (m as { rating?: { loopMax?: number } }).rating?.loopMax;
+  const loopBad: string[] = [];
   for (const p of LADDER) {
     const n = p.name === "good" ? refSeeds : otherSeeds;
     let w = 0, st = 0;
@@ -71,6 +75,7 @@ function checkLevel(file: string, refSeeds: number, otherSeeds: number): Row {
       if (r.won) w++;
       st += r.stars;
       if (p.name === "good" && r.stars === 3) goodThree++;
+      if (recLoop !== undefined && p.name === "good" && loopOverCap(r.trace.loopMax, r.trace.loopKey, (m as unknown as { entities: never[] }).entities)) loopBad.push(`${r.trace.loopMax} x ${r.trace.loopKey} (seed ${s})`);
       if (r.stalls > 0) stalls.push(`${p.name}#${s}@${r.stallStates[0]?.tick ?? 0}`);
       if (p.name === "good") { refMin = Math.min(refMin, r.won ? r.margin : -1); if (!r.won || r.margin < 0.2) feasible = false; }
     }
@@ -78,7 +83,7 @@ function checkLevel(file: string, refSeeds: number, otherSeeds: number): Row {
     stars[p.name] = st / n;
   }
   const human = humanRung(m);
-  return { id: m.id, family: m.family ?? "-", feasible, refMinMargin: refMin, stalls, wins, stars, goodThree: goodThree / refSeeds, human, seconds: (Date.now() - t0) / 1000 };
+  return { id: m.id, family: m.family ?? "-", feasible, refMinMargin: refMin, stalls, wins, stars, goodThree: goodThree / refSeeds, loopBad, human, seconds: (Date.now() - t0) / 1000 };
 }
 
 function runChild(args: string[]): Promise<string> {
@@ -112,11 +117,11 @@ async function main(): Promise<void> {
   for (const r of rows) {
     const h = r.human;
     const starFail = h.miss !== "" && (h.recorded !== null || strictStars);
-    const ok = r.feasible && r.stalls.length === 0 && !starFail;
+    const ok = r.feasible && r.stalls.length === 0 && !starFail && r.loopBad.length === 0;
     if (!ok) bad++;
     if (h.miss !== "") starBad++;
     const hs = ` human=${h.mean.toFixed(1)}${h.recorded !== null ? `(rec ${h.recorded.toFixed(1)})` : ""} [${h.earned.map((e) => `${e.kind} ${e.n}/${HS.seeds}`).join(", ")}]${h.miss ? ` MISS ${h.miss}` : ""}`;
-    console.log(`${ok ? "ok  " : "FAIL"} ${r.id} ${r.family} refMin=${r.refMinMargin.toFixed(2)} wins=${LADDER.map((p) => (r.wins[p.name] ?? 0).toFixed(2)).join("/")} stars=${LADDER.map((p) => (r.stars[p.name] ?? 0).toFixed(1)).join("/")}${hs}${r.stalls.length ? " stalls=" + r.stalls.join(",") : ""} ${r.seconds.toFixed(0)}s`);
+    console.log(`${ok ? "ok  " : "FAIL"} ${r.id} ${r.family} refMin=${r.refMinMargin.toFixed(2)} wins=${LADDER.map((p) => (r.wins[p.name] ?? 0).toFixed(2)).join("/")} stars=${LADDER.map((p) => (r.stars[p.name] ?? 0).toFixed(1)).join("/")}${hs}${r.stalls.length ? " stalls=" + r.stalls.join(",") : ""}${r.loopBad.length ? " LOOP " + r.loopBad.join(",") : ""} ${r.seconds.toFixed(0)}s`);
   }
   console.log("\nper family (levels; mean stars good/average/weak/novice/floor; good 3-star share; good win share):");
   for (const f of [...new Set(rows.map((r) => r.family))]) {

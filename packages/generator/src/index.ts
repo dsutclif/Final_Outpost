@@ -6,6 +6,7 @@ import genData from "../data/generator.json";
 import startData from "../data/start.json";
 import { ENGINE_VERSION } from "@fo/sim";
 import { DEFAULT_CONFIG, closure, conflicts } from "@fo/sequencer";
+import { loopOverCap } from "./loops.js";
 import { GEN, TEMPLATES, buildLevel, dressingKnobs, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
@@ -350,14 +351,9 @@ function challengeCandidates(fam: Family, goodRuns: BotResult[], allowed: readon
  * seeds that some ladder run misses (so it is never trivially satisfied). Preference rotates with the
  * level seed so the pack uses the whole family list.
  */
-/**
- * Over the loop cap? Feeding the reactor by hand is exempt on a level with nobody to hire for it (no
- * hire pad delivers to the core): cheaper hires are then no fix to offer.
- */
+/** Over the loop cap (src/loops.ts)? A run longer than loopCap needs a hire pad that takes over every leg of the trip. */
 function overLoopCap(ms: Measurement): boolean {
-  if (ms.loopMax <= GEN.search.loopCap) return false;
-  const coreHire = ms.manifest.entities.some((e) => e.type === "pad.hire" && (e as { role?: { to?: string } }).role?.to === "sink.core");
-  return !(ms.loopKey.includes(">sink.core") && !coreHire);
+  return loopOverCap(ms.loopMax, ms.loopKey, ms.manifest.entities as never);
 }
 
 /** Exported for tests. */
@@ -540,17 +536,17 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
           else if (!v.starsOk) { reject("stars"); log(`  it${rec!.iteration} ${humanStars ? `human-view bot misses a star on more than ${HUMAN_STARS.seeds - HUMAN_STARS.minEarned} of ${HUMAN_STARS.seeds} seeds or never earns all three` : "good bot never earns all three stars"}`); }
           else {
             // No pad the level can be finished (stars included) without: re-rate the trimmed level and keep it if it still passes.
-            let fin = { m, r, v, err };
+            let fin = { m, r, v, err, loopMax: ms.loopMax };
             const lean = spareCut(m, c);
             if (lean) {
               stats.ratings++;
               const ms2 = measure(lean, { content: c, refSeeds: (opts.seeds?.full ?? S.fullSeeds).ref, otherSeeds: (opts.seeds?.full ?? S.fullSeeds).other, history });
               const r2 = score(ms2, { content: c, reference });
               const v2 = r2.ok && !overLoopCap(ms2) && idleElements(lean, ms2.runs["good"]!).length === 0 ? verifyStars(lean, c, humanStars) : null;
-              if (v2 && v2.feasible && v2.starsOk) fin = { m: lean, r: r2, v: v2, err: Math.abs(r2.D - req.target) };
+              if (v2 && v2.feasible && v2.starsOk) fin = { m: lean, r: r2, v: v2, err: Math.abs(r2.D - req.target), loopMax: ms2.loopMax };
               log(`  it${rec!.iteration} spare pads: ${m.entities.filter((e) => "id" in e && !lean.entities.some((x) => "id" in x && x.id === e.id)).map((e) => (e as { id: string }).id).join(", ")}${fin.m === lean ? " dropped" : " kept (the trimmed level fails)"}`);
             }
-            attachRating(fin.m, fin.r, req.introduced ?? [], fin.v.summary);
+            attachRating(fin.m, fin.r, req.introduced ?? [], fin.v.summary, fin.loopMax);
             const cand: Candidate = { manifest: fin.m, rating: fin.r, p, err: fin.err, stars: fin.v.summary, starsByRung: fin.v.byRung };
             if (!best || cand.err < best.err) { best = cand; rec!.kept = true; }
             if (fin.err <= tol && fin.r.F >= fmin) { rec!.shipped = true; flush(); return { r, done: { manifest: fin.m, best: cand, stats } }; }
@@ -759,10 +755,11 @@ function verifyStars(m: Manifest, c: Content, human = false): { summary: StarSum
 }
 
 /** Rating block and launch-skin text on the manifest. */
-export function attachRating(m: Manifest, r: Rating, introduced: readonly string[], stars?: StarSummary): void {
+export function attachRating(m: Manifest, r: Rating, introduced: readonly string[], stars?: StarSummary, loopMax?: number): void {
   (m as unknown as { rating: unknown }).rating = {
     difficulty: round3(r.D), fun: round3(r.F), botMargin: round3(r.margin["good"] ?? 0), botsPassed: [...r.botsPassed],
     ...(stars ? { stars } : {}),
+    ...(loopMax !== undefined ? { loopMax } : {}),
   };
   m.text = { mars_greenhouse: skinText(m, introduced) };
 }
