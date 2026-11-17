@@ -86,7 +86,7 @@ export function ratingDetail(ms: Measurement, ratingIn?: Rating, opts: RateOptio
     filters: { ...rating.filters }, evidence: { ...rating.evidence }, terrain: { ...rating.terrain },
     extras: {
       reference: REFERENCE, median: MEDIAN, playerKillShare: ms.playerKillShare, ladderLeft: ms.ladderLeft, depotPicks: ms.depotPicks, rallyShare: ms.rallyShare,
-      guardLoss: ms.guardLoss, medicShare: ms.medicShare, capHoldMax: ms.capHoldMax, loopMax: ms.loopMax, loopKey: ms.loopKey, budgetTicks: ms.budgetTicks, template: ms.template,
+      guardLoss: ms.guardLoss, medicShare: ms.medicShare, loopMax: ms.loopMax, loopKey: ms.loopKey, budgetTicks: ms.budgetTicks, template: ms.template,
       litSeconds: ms.story.litSeconds, joined: ms.story.joined, decoys: ms.story.decoys, retreats: ms.story.retreats, items: ms.story.items,
     },
     options: { refSeeds: ms.runs[REFERENCE]!.length, otherSeeds: ms.runs[MEDIAN]!.length, history: ms.history.length },

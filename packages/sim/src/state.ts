@@ -530,8 +530,6 @@ export interface State {
   automation?: number;
   /** Conveyor belts, created with the first one built (absent before, so older levels hash as they did). */
   conveyors?: ConveyorState[];
-  /** Ticks each capped stock has sat at cap, by stock key. Absent while the collapse rule is off. */
-  collapse?: Record<string, number>;
   lastHint: HintState | null;
   over: boolean;
   won: boolean | null;

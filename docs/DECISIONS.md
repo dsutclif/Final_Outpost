@@ -77,9 +77,8 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     - Wall repair: walking a damaged section with the line's resource restores full HP for
       `ceil(costPerSection × barrier.repairK)` (0.5), paid at once. A destroyed section is rebuilt
       at the same repair price.
-    - Pile collapse: a converter output held at its cap for `stock.collapseSeconds` (8 s) collapses
-      and fails the level (`pile_collapse`); no goods are lost. Kiosk shelves never count, since a
-      full shelf is the healthy state.
+    - Pile collapse: REMOVED (2026-11-17, outpost-ops#81). A full converter output only stops that machine; it never ends
+      the level, and hired operators no longer pause one short of a full tray. Kiosk shelves never counted.
     - Time target: generated time targets and `level.budgetSeconds` are 1.4× (`timeTargetK`);
       Settings scales the time star 100–200% per player, applied to the manifest before the sim
       starts. The rater's trivial-budget share drops to 0.286 so it cuts at the same time as before.
@@ -88,8 +87,7 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     - Conveyors: new module `conveyors` (`struct.conveyor`, `pad.build.link {from, to}`); a belt
       moves units at `conveyor.speed`, one per `conveyor.everySeconds`, backs up when the target is
       full. Introduced with the warehouse as the industrialize step after haulers.
-    - Hired operators pause one short of a full tray while piles can collapse, so only the player can
-      overfill one (automation relieves the pressure). A belt is laid only for goals that ride on its
+    - A belt is laid only for goals that ride on its
       chain (`conveyorGoals`). Boss levels without a med bay get two wall towers per attack side; the
       med bay's early raid hits a quiet, unguarded side so injuries still happen.
     - "Every shelf full" is back in the harvest pool with `adds: ["hunting"]` (and `avoid: source_unlocks`): the kiosk also sells hunted goods, so filling every shelf needs the hunt as well as the farm. (It left the pool earlier because with purchase time shelves fill in

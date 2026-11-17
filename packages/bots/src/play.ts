@@ -90,8 +90,6 @@ export interface BotTrace {
   threat: number[];
   /** Seconds of warning before the failure condition triggered (loss only; -1 otherwise). */
   warningLead: number;
-  /** Longest unbroken stretch, in seconds, that any converter output sat at its cap (collapse metric). */
-  capHoldMax: number;
   /**
    * Longest run of identical player trips in a row (REDESIGN-R3 item 7). A trip is one get phase
    * (gather / pick up / collect cash) followed by one put phase (deposit, pay a pad, build a barrier);
@@ -336,8 +334,6 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   let dSpent = 0, firstContact = -1, firstWaveTick = -1;
   let hpMin = 100, overload = false, heatSum = 0, heatN = 0, lastObj = 0;
   let rallyOn = 0, rallyN = 0;
-  const capRun: number[] = [];
-  let capHoldMax = 0;
   const loops = new LoopTracker();
   const beatAcc = createBeats();
   const lines = new Set<string>(), nodesUsed = new Set<string>(), convUsed = new Set<string>();
@@ -421,11 +417,6 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     const hp = st.meters.baseHealthMax > 0 ? (st.meters.baseHealth * 100) / st.meters.baseHealthMax : 100;
     if (hp < hpMin) hpMin = hp;
     if (!overload) overload = st.converters.some((cv) => cv.out >= cp.converters[cv.type]!.outCap);
-    st.converters.forEach((cv, i) => {
-      const run = cv.out >= cp.converters[cv.type]!.outCap ? (capRun[i] ?? 0) + 1 : 0;
-      capRun[i] = run;
-      if (run > capHoldMax) capHoldMax = run;
-    });
     if (progressed) lastProgress = st.tick;
     else if (st.tick - lastProgress >= STALL_SECONDS * TPS) {
       stalls++;
@@ -517,7 +508,6 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     progress: progressS,
     threat: threatS,
     warningLead: !won && warnStart >= 0 ? (ticks - warnStart) / TPS : -1,
-    capHoldMax: capHoldMax / TPS,
     loopMax: loops.max,
     loopKey: loops.maxKey,
     beats: beatsResult(beatAcc),

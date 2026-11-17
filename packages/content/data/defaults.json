@@ -126,7 +126,6 @@
   "barrier.costPerSection": 2,
   "defense.playerHitRange": 18,
   "defense.playerHitInterval": 1,
-  "stock.collapseSeconds": 8,
   "guards.downPct": 25,
   "guards.downSeconds": 15,
   "guards.fallSeconds": 1.5,

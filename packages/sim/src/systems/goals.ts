@@ -2,7 +2,6 @@ import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import type { State } from "../state.js";
 import { endLevel, population } from "./common.js";
-import { collapsedConverter } from "./stock.js";
 import { wavesDone } from "./defense.js";
 import { objectiveSettled, settleObjectives } from "./objectives.js";
 
@@ -20,7 +19,7 @@ const FAILS: Record<string, (st: State, cp: Compiled) => boolean> = {
 /**
  * The level ends on its slowest goal: once the main goal (objective 0, which mirrors the manifest goal)
  * is done, it ends when every objective is done or can no longer be done, or when the overtime runs
- * out, and never while attack waves are still to come (Batch 3). Fails, a pile collapse and the timer still end it early: a loss before the main goal, a win
+ * out, and never while attack waves are still to come (Batch 3). Fails and the timer still end it early: a loss before the main goal, a win
  * after it (the open stars are lost). The exception: a fail while attack waves are still to come is a loss even after
  * the main goal, since the defence has to hold to the end (R5).
  */
@@ -28,10 +27,6 @@ export function checkEnd(st: State, cp: Compiled, out: SimEvent[]): void {
   const main = st.objectives[0];
   let won = main?.done ?? false;
   let why = cp.manifest.fail.find((f) => FAILS[f]?.(st, cp)) ?? null;
-  if (why === null) {
-    const pile = collapsedConverter(st, cp);
-    if (pile !== null) { out.push({ t: "pile_collapsed", conv: pile }); why = "pile_collapse"; }
-  }
   if (why === null && cp.timerTicks > 0 && st.tick >= cp.timerTicks) why = "timer";
   // R5 #21: nothing can win the level once the main goal has failed.
   if (why === null && main?.failed) why = "goal_failed";

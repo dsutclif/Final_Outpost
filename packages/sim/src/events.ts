@@ -14,7 +14,6 @@ export type SimEvent =
   // a dormant core took its first fuel and lit
   | { t: "core_lit"; at: Vec }
   | { t: "hint"; key: HintKey }
-  | { t: "pile_collapsed"; conv: string }
   | { t: "level_end"; won: boolean; reason: string }
   // build pads
   | { t: "pad_paid"; pad: string; res: string; n: number }

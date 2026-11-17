@@ -50,8 +50,6 @@ export interface Measurement {
   guardLoss: number;
   /** Share of guard downs a medic healed where the guard fell, over the reference runs (-1: no guard went down). */
   medicShare: number;
-  /** Longest time, in seconds, any stock sat at cap in any reference-bot run (0 when none did). */
-  capHoldMax: number;
   /** Worst `loopMax` (longest run of identical player trips) over the reference-bot runs, and the trip behind it. */
   loopMax: number;
   loopKey: string;
@@ -121,9 +119,8 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const guardLoss = guardRuns.length > 0 ? mean(guardRuns.map((r) => r.trace.guards.lost / r.trace.guards.fielded)) : -1;
   const downs = runs[REFERENCE]!.reduce((a, r) => a + r.trace.guards.down, 0);
   const medicShare = downs > 0 ? runs[REFERENCE]!.reduce((a, r) => a + r.trace.guards.medicHeals, 0) / downs : -1;
-  const capHoldMax = Math.max(0, ...runs[REFERENCE]!.map((r) => r.trace.capHoldMax));
   const worst = runs[REFERENCE]!.reduce((a, r) => (r.trace.loopMax > a.trace.loopMax ? r : a));
-  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, story, rallyShare, guardLoss, medicShare, capHoldMax, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, beats: medianBeats(runs[MEDIAN]!), terrain: terrainStats(manifest), budgetTicks, template, history };
+  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, story, rallyShare, guardLoss, medicShare, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, beats: medianBeats(runs[MEDIAN]!), terrain: terrainStats(manifest), budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,
