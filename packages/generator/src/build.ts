@@ -123,7 +123,7 @@ type SplitWave = { t: number; counts: Record<string, number>; side?: string | st
  * cap 0 is off. Returns whether anything changed.
  */
 export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Content,
-  o: { cap: number; lateGap: number; spacing: number; minSpacing: number; sides: readonly string[]; bosses: boolean }): boolean {
+  o: { cap: number; lateGap: number; spacing: number; minSpacing: number; spawnMax: number; sides: readonly string[]; bosses: boolean }): boolean {
   const BOSS = "hostile.boss", SW = "hostile.swarmling";
   const reg = waves.filter((w) => regular.has(w));
   const bossHp = c.hostiles[BOSS]?.hp ?? 0;
@@ -148,10 +148,12 @@ export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Conte
       tail.push({ t: w.t, counts, gap: n > 1 ? Math.max(w.gap ?? o.lateGap, o.lateGap) : w.gap ?? o.lateGap });
     }
   }
-  // The pieces fit into the time the old waves took: the last starts no later than the old last wave did (attempt 1
-  // pushed it out by up to 3 minutes), the spacing tightening down to minSpacing where there are many pieces; past
-  // that the first pieces start earlier (never before the wave ahead of them), and only then do they close up further.
-  const end = reg.at(-1)!.t, m = Math.max(1, tail.length - 1);
+  // The pieces fit into the time the old waves took: the last piece finishes spawning when the old last wave did, so
+  // it starts no more than that wave's spawning time later (attempt 1 pushed it out by up to 3 minutes; packing them
+  // before the old last start made the levels unwinnable). The spacing tightens down to minSpacing where there are
+  // many pieces; past that the first pieces start earlier (never before the wave ahead of them), then close up further.
+  const dur = (w: SplitWave) => Math.min(o.spawnMax, Object.values(w.counts).reduce((a, n) => a + n, 0) * (w.gap ?? o.lateGap));
+  const end = reg.at(-1)!.t + dur(reg.at(-1)!) - dur(tail.at(-1)!), m = Math.max(1, tail.length - 1);
   const floor = from > 0 ? reg[from - 1]!.t + o.minSpacing : 0;
   let step = Math.max(o.minSpacing, Math.min(o.spacing, (end - reg[from]!.t) / m));
   const start = Math.max(floor, Math.min(reg[from]!.t, end - m * step));
@@ -1823,7 +1825,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       && Math.max(...waves.filter((w) => regular.has(w)).map((w) => wavePoints(w.counts, c))) < DW.maxPoints;
     for (let k = 0; k < DW.fullGrowMax && waveScrap(waves, c) < fullAt(defGrowth) && room(); k++) { grow(growing); shape(); }
     capWavePoints(waves, c, DW.maxPoints);
-    if (splitWaves(waves, regular, c, { cap: DW.waveCap, lateGap: DW.lateGap, spacing: K.waveGap * DW.lateWaveGap, minSpacing: DW.lateWaveMin, sides, bosses: feat.has("bosses") })
+    if (splitWaves(waves, regular, c, { cap: DW.waveCap, lateGap: DW.lateGap, spacing: K.waveGap * DW.lateWaveGap, minSpacing: DW.lateWaveMin, spawnMax: DW.spawnMax, sides, bosses: feat.has("bosses") })
       && (goal === "survive" || goal === "waves_survived" || goal === "boss")) Object.assign(gparams, params0());
     for (const w of waves) if (regular.has(w) && size(w) * w.gap! > DW.spawnMax) w.gap = Math.max(DW.minGap, Math.floor((DW.spawnMax / size(w)) * 100) / 100);
     // Waves alone would take thousands of attackers (rising prices make the full ladder several times its base

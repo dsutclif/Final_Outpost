@@ -6,7 +6,7 @@ import { wavePoints } from "../src/build.js";
 
 // Denser waves, not only bigger ones (Doug: the last defend waves dragged on). Over 40 defend builds: no wave above
 // defendWaves.waveCap points, the same total points as the old sizing (waveCap 0 reproduces it), the later waves
-// arriving no further apart than the early ones, the last one starting no later than before, every wave spawning within spawnMax, and the warlord rule kept.
+// arriving no further apart than the early ones, the last one done spawning no later than before, every wave spawning within spawnMax, and the warlord rule kept.
 type W = { t: number; counts: Record<string, number>; side?: unknown; gap?: number };
 const DW = GEN.defendWaves;
 const defs = sequenceRange(1, 60).filter((r) => r.family === "defend");
@@ -44,9 +44,11 @@ describe("defend waves: denser, not only bigger", () => {
       const early = step.filter((s) => !s.late).map((s) => s.d), late = step.filter((s) => s.late).map((s) => s.d);
       if (early.length && late.length) expect(Math.max(...late), tag).toBeLessThanOrEqual(Math.min(...early));
       for (const w of reg) expect(size(w) * (w.gap ?? 0), tag).toBeLessThanOrEqual(DW.spawnMax);
-      // the last wave starts no later than before (attempt 1 pushed it out by up to 3 minutes)
+      // the last wave finishes spawning no later than before (attempt 1 started it up to 3 minutes later)
       const oldReg = old.filter((w) => w.gap !== DW.raid.gap);
-      expect(reg.at(-1)!.t, tag).toBeLessThanOrEqual(oldReg.at(-1)!.t);
+      const ends = (w: W) => w.t + size(w) * (w.gap ?? 0);
+      expect(ends(reg.at(-1)!), tag).toBeLessThanOrEqual(ends(oldReg.at(-1)!) + 5); // rounding and the spawnMax gap trim
+      expect(reg.at(-1)!.t - oldReg.at(-1)!.t, tag).toBeLessThanOrEqual(DW.spawnMax);
       const bosses = reg.map((w) => w.counts["hostile.boss"] ?? 0);
       if (bosses.some((n) => n > 0)) {
         expect(Math.max(...bosses), tag).toBe(1);
