@@ -185,16 +185,16 @@ console.log("hidden pads by id prefix:", JSON.stringify(hidden));
 {
   const main = runs.filter((x) => x.v === VARIANTS[0]!.name && !x.r.rejected);
   const ws = wallStrip(), sides: Record<string, number> = {}, vars: Record<string, Record<string, number>> = {};
-  let relaxed = 0, pieces = 0, medics = 0, walled = 0;
+  let relaxed = 0, packedSeeds = 0, pieces = 0, medics = 0, walled = 0;
   for (const x of main) {
     if (x.r.walls) walled++;
     if (x.r.medic) medics++;
-    relaxed += x.r.stats.scrapRelaxed;
+    relaxed += x.r.stats.scrapRelaxed; packedSeeds += x.r.stats.scrapPacked;
     for (const [, sc] of Object.entries(x.r.scrap)) { pieces++; sides[sc.side] = (sides[sc.side] ?? 0) + 1; (vars[sc.variant] ??= {})[sc.side] = ((vars[sc.variant] ??= {})[sc.side] ?? 0) + 1; }
   }
   console.log(`wall strip from the centre line (south, east): ${ws.s}, ${ws.e}; wall half thickness ${WALL_HALF.toFixed(1)}; gate strip: ${JSON.stringify(gateStrip())}`);
   console.log("scrap strips beyond own back face (s, e) per variant:", JSON.stringify([1, 2, 3].map((v) => [v, scrapStrip(v)])), "wall back-face strip:", (ws.s - WALL_HALF).toFixed(1));
-  console.log(`placed seeds: walled ${walled}, with a medic pad ${medics}; scrap pieces ${pieces}, relaxed range ${relaxed}; by side ${JSON.stringify(sides)}; by variant ${JSON.stringify(vars)}; default scrap range ${SCRAP_RANGE}`);
+  console.log(`placed seeds: walled ${walled}, with a medic pad ${medics}; scrap pieces ${pieces}, relaxed range ${relaxed}, seeds repacked from the north-west ${packedSeeds}; by side ${JSON.stringify(sides)}; by variant ${JSON.stringify(vars)}; default scrap range ${SCRAP_RANGE}`);
   const gaps: number[] = [];
   for (const x of main) if (x.r.walls) for (const sc of Object.values(x.r.scrap)) gaps.push(Math.min(...x.r.walls.gates.map((g) => Math.hypot(sc.at[0] - x.r.walls!.points[g]![0], sc.at[1] - x.r.walls!.points[g]![1]))));
   gaps.sort((a, b) => a - b);
