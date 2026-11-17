@@ -4,6 +4,7 @@ Two Claude accounts push to this repo. **Read this file before you start, and fe
 
 | Who | Works on |
 |---|---|
+| 2026-11-17 | mit-b (rebuild-prep run) | s81 | engine bump 0.33.0, packages/sim, levels re-pin | outpost-ops#81 |
 | Account A (built everything up to 2026-11-01) | Level 1, the R5/R6 backlog, generated levels, engine and generator |
 | Account B (from 2026-11-02) | Story levels 2–5 (G2–G5 in `docs/STORY-LEVELS-V2-PLAN.md`), one level at a time |
 
