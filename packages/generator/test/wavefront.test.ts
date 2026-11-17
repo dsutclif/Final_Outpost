@@ -293,6 +293,39 @@ describe("walls, medic pad and scrap (Doug 2026-11-16)", () => {
     };
     expect(mean([450, 700])).toBeGreaterThan(mean([150, 300]) + 100);
   });
+
+  it("re-anchors a settlement whose ring would run off the west edge: one rigid move, ring centred across, every pad still visible", () => {
+    const origin: [number, number] = [70, 450];
+    const bare = placeWavefront({ buildings: level(), map: MAP }, { seed: 1, siteChecks: true, origin });
+    const r = placeWavefront({ buildings: level(), map: MAP, walls: spec }, { seed: 1, siteChecks: true, origin, trace: true });
+    expect(r.rejected).toBeNull();
+    const sh = r.trace.find((t) => t.t === "shift") as Extract<TraceStep, { t: "shift" }>;
+    expect(sh.d[0]).toBeGreaterThan(0);
+    for (const id of ["core", "m1"]) expect(r.positions[id]).toEqual([bare.positions[id]![0] + sh.d[0], bare.positions[id]![1] + sh.d[1]]);
+    const w = r.walls!.rect;
+    expect(w[0]).toBeGreaterThanOrEqual(14);
+    expect(Math.abs(w[0] - (MAP.w - w[2]))).toBeLessThanOrEqual(1);
+    expect(r.stats.hiddenPads).toBe(0);
+  });
+
+  it("when random scatter leaves no room for the north/west-only heaps, repacks them from the north-west corner instead of rejecting", () => {
+    const bs = [...level(), ...[1, 3, 1, 3, 1].map((v, i) => pile(`s${i}`, v))];
+    let repacked = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      const r = placeWavefront({ buildings: bs, map: BIG, walls: spec }, { seed, siteChecks: true });
+      expect(r.rejected).toBeNull();
+      repacked += r.stats.scrapPacked;
+      const boxes: [number, number, number, number][] = [];
+      for (let i = 0; i < 5; i++) {
+        const at = r.positions[`s${i}`]!, f = FP["node.salvage_pile"]!, bx: [number, number, number, number] = [at[0] + f[0], at[1] + f[1], at[0] + f[2], at[1] + f[3]];
+        expect(["n", "w"]).toContain(r.scrap[`s${i}`]!.side);
+        for (const o of boxes) expect(bx[0] < o[2] && o[0] < bx[2] && bx[1] < o[3] && o[1] < bx[3]).toBe(false);
+        boxes.push(bx);
+      }
+      expect(r.stats.hiddenPads).toBe(0);
+    }
+    expect(repacked).toBeGreaterThan(0);
+  });
 });
 
 describe("ring fit, gate sides and the gate rockfall (outpost-ops#202, Doug 2026-11-16)", () => {

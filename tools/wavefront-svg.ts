@@ -10,13 +10,15 @@ import { fileURLToPath } from "node:url";
 const dir = fileURLToPath(root);
 const files = readdirSync(dir, { recursive: true }) as string[];
 const cards: string[] = [];
-for (const L of levels) {
+for (const entry of levels) {
+  const [L, seedS] = entry.split(":") as [string, string?]; const seed = Number(seedS ?? 1), num = Number(L.replace(/^s1-L0*/, ""));
   const f = files.find((x) => x.split(String.fromCharCode(92)).join("/").endsWith(L + ".json"))!;
   const m = JSON.parse(readFileSync(dir + f, "utf8"));
   const c = convert(m); const inp = c.input;
   const fam = m.meta?.family ?? JSON.stringify(m).match(/"family":"([^"]+)"/)?.[1];
-  let r = placeWavefront(inp, { seed: 1, siteChecks: true, repair: "always" } as never);
-  const noWall = r.rejected ? placeWavefront((({ walls: _w, ...rest }) => rest)(inp), { seed: 1, siteChecks: true, repair: "always" } as never) : r;
+  let r = placeWavefront(inp, { seed, siteChecks: true, repair: "always", trace: true } as never);
+  const shift = (r.trace as { t: string; d?: number[] }[]).find((t) => t.t === "shift")?.d;
+  const noWall = r.rejected ? placeWavefront((({ walls: _w, ...rest }) => rest)(inp), { seed, siteChecks: true, repair: "always" } as never) : r;
   const show = noWall;
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const shapes: string[] = [];
   for (const b of inp.buildings) { const p = show.positions[b.id]; if (!p) continue; const fp = b.footprint;
@@ -33,8 +35,9 @@ for (const L of levels) {
   for (const s of Object.values(show.scrap)) shapes.push(`<circle cx="${s.at[0]}" cy="${s.at[1]}" r="12" fill="#b0773a"/>`);
   const W = inp.map.w, H = inp.map.h, dims = inp.walls?.dims;
   if (dims && r.rejected) { const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2; shapes.push(`<rect x="${cx - dims[0] / 2}" y="${cy - dims[1] / 2}" width="${dims[0]}" height="${dims[1]}" fill="none" stroke="#e5484d" stroke-width="5" stroke-dasharray="14 8"/>`); }
-  const info = `${L} (${fam}) · map ${W}×${H} · settlement ${Math.round(x1 - x0)}×${Math.round(y1 - y0)} · shipped ring ${dims ? dims.map(Math.round).join("×") : "none"} · ${r.rejected ? "REJECTED: " + r.rejected.id : "fits"} · buildings ${inp.buildings.length}, pads ${Object.keys(show.padAt).length}`;
+  const notes = [shift ? `ring re-anchored ${shift[0] > 0 ? shift[0] + " east" : ""}${shift[1] ? " " + shift[1] + " south" : ""}` : "", r.stats.scrapPacked ? "scrap repacked from the north-west" : ""].filter(Boolean).join(" · ");
+  const info = `<b>Level ${num}</b>, seed ${seed}${notes ? " · <b>" + notes + "</b>" : ""} · ${fam} · map ${W}×${H} · settlement ${Math.round(x1 - x0)}×${Math.round(y1 - y0)} · shipped ring ${dims ? dims.map(Math.round).join("×") : "none"} · ${r.rejected ? "REJECTED: " + r.rejected.id : "fits"} · buildings ${inp.buildings.length}, pads ${Object.keys(show.padAt).length}`;
   console.log(info);
   cards.push(`<figure><svg viewBox="-60 -60 ${W + 120} ${H + 120}" width="300"><rect x="0" y="0" width="${W}" height="${H}" fill="#1b1d21" stroke="#777" stroke-dasharray="10 6" stroke-width="3"/>${shapes.join("")}</svg><figcaption>${info}</figcaption></figure>`);
 }
-writeFileSync(out, `<!doctype html><meta charset="utf-8"><title>Wavefront layouts</title><style>body{background:#111;color:#ddd;font:13px system-ui;margin:16px}main{display:flex;flex-wrap:wrap;gap:16px}figure{margin:0;width:300px}figcaption{margin-top:6px}</style><h1>Wavefront layouts: rescue vs automation</h1><p>North-west is top-left. Grey = buildings, blue = Core, brown = salvage, green = pads, yellow = wall ring, red dashed = the shipped level ring size (not used by the fit); brown block = gate rockfall with its clear-pad row.</p><main>${cards.join("")}</main>`);
+writeFileSync(out, `<!doctype html><meta charset="utf-8"><title>Wavefront layouts</title><style>body{background:#111;color:#ddd;font:13px system-ui;margin:16px}main{display:flex;flex-wrap:wrap;gap:16px}figure{margin:0;width:300px}figcaption{margin-top:6px}</style><h1>Wavefront layouts</h1><p>North-west is top-left. Grey = buildings, blue = Core, brown = salvage, green = pads, yellow = wall ring, red dashed = the shipped level ring size (not used by the fit); brown block = gate rockfall with its clear-pad row. The first five cards are the same levels as before. The last four used to be rejected: the wall ring ran off the west edge (Levels 12 and 30), or a scrap heap found no site (Levels 165 and 60).</p><main>${cards.join("")}</main>`);

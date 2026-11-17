@@ -102,8 +102,11 @@ export type TraceStep =
   | { t: "walls"; rect: Box4; strip: { s: number; e: number }; gates: number[] }
   | { t: "medic"; at: Pt }
   | { t: "rock"; id: string; rect: Box4; side: string; pads: Pt[] }
-  | { t: "scrap"; id: string; at: Pt; side: string; tries: number; relaxed: boolean };
-export interface WfStats { rejected: number; pushes: number; totalPushDistance: number; hiddenPads: number; fallbacks: number; repairs: number; scrapRelaxed: number; sidePads: number }
+  | { t: "scrap"; id: string; at: Pt; side: string; tries: number; relaxed: boolean; packed?: boolean }
+  | { t: "shift"; d: Pt }
+  | { t: "scrap-repack"; failed: string }
+  | { t: "noscrap"; id: string; variant: number; restricted: boolean; why: Record<string, number> };
+export interface WfStats { rejected: number; pushes: number; totalPushDistance: number; hiddenPads: number; fallbacks: number; repairs: number; scrapRelaxed: number; scrapPacked: number; sidePads: number }
 export interface WfWalls { rect: Box4; points: Pt[]; side: ("n" | "e" | "s" | "w")[]; gates: number[]; /** Hidden ground beyond the wall's centre line, south and east (the strips the lines were placed by). */ strip: { s: number; e: number } }
 export interface WfResult {
   rejected: { id: string; kind: string; pad: string } | null;
@@ -443,7 +446,7 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
   const ju = rng.range(-jit, jit), jv = rng.range(-jit, jit);
   const origin: Pt = [base[0] + U[0] * ju + V[0] * jv, base[1] + U[1] * ju + V[1] * jv];
   const offs = offsets(step, Math.hypot(w, h));
-  let fallbacks = 0, scrapRelaxed = 0, walls: WfWalls | null = null;
+  let fallbacks = 0, scrapRelaxed = 0, scrapPacked = 0, walls: WfWalls | null = null;
   const scrapOut: WfResult["scrap"] = {}, rockOut: WfResult["rock"] = {};
   const done = (): WfResult => {
     const hidden = S.rejected ? [] : S.hiddenPads().map((p) => p.id);
@@ -457,7 +460,7 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
       padSpots: Object.fromEntries([...S.placed].filter(([, p]) => p.b.pads.length).map(([id, p]) => [id, { i: p.spot, at: S.spotAt(id) }])),
       padAt, walls, medic: S.medicAt, rock: rockOut, scrap: scrapOut,
       hidden,
-      stats: { rejected: S.rejected ? 1 : 0, pushes: S.pushes, totalPushDistance: S.pushDist, hiddenPads: hidden.length, fallbacks, repairs: S.repairs, scrapRelaxed, sidePads: [...S.slots.values()].reduce((a, n) => a + Math.max(0, n - 1), 0) },
+      stats: { rejected: S.rejected ? 1 : 0, pushes: S.pushes, totalPushDistance: S.pushDist, hiddenPads: hidden.length, fallbacks, repairs: S.repairs, scrapRelaxed, scrapPacked, sidePads: [...S.slots.values()].reduce((a, n) => a + Math.max(0, n - 1), 0) },
       trace: S.trace,
     };
   };
@@ -554,6 +557,8 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
   // walls, once every building is locked (south and east lines a wall strip beyond the furthest pad)
   const strip = wallStrip();
   if (input.walls) {
+    const sh = shiftToFit(S, ringRect(S, o.wallClear ?? 6, strip));
+    if (sh) S.log({ t: "shift", d: sh });
     const fit = fitWalls(S, input.walls, o.wallClear ?? 6, strip);
     if (!fit) { S.rejected = { id: "ring", kind: "barrier.line", pad: "" }; S.log({ t: "reject", id: "ring", kind: "barrier.line", pad: "", d: 0, dir: "off the map" }); return done(); }
     walls = fit;
@@ -576,12 +581,22 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
   // scrap, after the walls
   if (piles.length && o.scrap !== "nw-first") {
     const sr = new Rand((Math.imul(o.seed >>> 0, 2654435761) ^ 0x5c4a9) >>> 0);
-    for (const b of piles) {
-      const r = scatterScrap(S, sr, b, walls, strip, o.scrapRange ?? SCRAP_RANGE);
-      if (!r) { S.rejected = { id: b.id, kind: b.kind, pad: "" }; S.log({ t: "reject", id: b.id, kind: b.kind, pad: "", d: 0, dir: "no scrap site" }); return done(); }
-      if (r.relaxed) scrapRelaxed++;
-      scrapOut[b.id] = { at: r.at, variant: b.variant ?? 0, side: r.side };
-      S.log({ t: "scrap", id: b.id, at: r.at, side: r.side, tries: r.tries, relaxed: r.relaxed });
+    const order = [...piles].sort((a, c) => Number(scrapRestricted(c, walls, strip)) - Number(scrapRestricted(a, walls, strip)));
+    // random scatter first; if a heap finds no site, lift them all and place the north/west-only heaps packed from the north-west corner
+    for (const packed of [false, true]) {
+      let failed: WfBuilding | null = null;
+      for (const b of order) {
+        const r = scatterScrap(S, sr, b, walls, strip, o.scrapRange ?? SCRAP_RANGE, packed && scrapRestricted(b, walls, strip));
+        if (!r) { failed = b; break; }
+        if (r.relaxed) scrapRelaxed++;
+        scrapOut[b.id] = { at: r.at, variant: b.variant ?? 0, side: r.side };
+        S.log({ t: "scrap", id: b.id, at: r.at, side: r.side, tries: r.tries, relaxed: r.relaxed, packed: r.packed });
+      }
+      if (!failed) { if (packed) scrapPacked = 1; break; }
+      if (packed) { S.rejected = { id: failed.id, kind: failed.kind, pad: "" }; S.log({ t: "reject", id: failed.id, kind: failed.kind, pad: "", d: 0, dir: "no scrap site" }); return done(); }
+      for (const id of Object.keys(scrapOut)) { S.placed.delete(id); delete scrapOut[id]; }
+      scrapRelaxed = 0;
+      S.log({ t: "scrap-repack", failed: failed.id });
     }
   }
   return done();
@@ -617,13 +632,41 @@ export function gateSidesOf(sides: readonly Side[]): Side[] {
  * building and pad box; the south and east lines go at least the hidden strip beyond the furthest south / east pad (plus its radius).
  * The ring fits the settlement only (spec.dims is not used). Gates stand on the south and east sides only (see gateSidesOf). Null when a required line is off the map.
  */
-export function fitWalls(S: WfState, spec: WfWallSpec, clear: number, strip: { s: number; e: number }, edge = 14): WfWalls | null {
-  const { box, padMaxX, padMaxY } = settlementBox(S), c = WALL_HALF + clear, { w, h } = S.input.map;
-  // Doug 2026-11-16: the ring fits the settlement only (no shipped-size minimum). The south and east lines sit at least the gate's hidden strip
-  // beyond the furthest pad, since gates go on those two sides.
+/**
+ * The ring rectangle the locked settlement needs (not checked against the map). Doug 2026-11-16: the ring fits the settlement only (no
+ * shipped-size minimum). The south and east lines sit at least the gate's hidden strip beyond the furthest pad, since gates go on those two sides.
+ */
+export function ringRect(S: WfState, clear: number, strip: { s: number; e: number }): Box4 {
+  const { box, padMaxX, padMaxY } = settlementBox(S), c = WALL_HALF + clear;
   const gs = gateStrip(), need = { s: Math.max(strip.s, gs.s), e: Math.max(strip.e, gs.e) };
-  let x0 = box[0] - c, y0 = box[1] - c, x1 = Math.max(box[2] + c, padMaxX + need.e), y1 = Math.max(box[3] + c, padMaxY + need.s);
-  x0 = Math.floor(x0); y0 = Math.floor(y0); x1 = Math.ceil(x1); y1 = Math.ceil(y1);
+  return [Math.floor(box[0] - c), Math.floor(box[1] - c), Math.ceil(Math.max(box[2] + c, padMaxX + need.e)), Math.ceil(Math.max(box[3] + c, padMaxY + need.s))];
+}
+
+/**
+ * Re-anchor the locked settlement when its ring runs off one edge of the map but the ring is narrower than the map on that axis: every placed
+ * building moves by the same whole-unit offset, so the ring is centred on that axis. A rigid move keeps every pad's visibility (the view is the
+ * same from every point of the map). Nothing moves when the ring already fits, or when it is too big for the map (the seed is then rejected).
+ * Returns the move, or null.
+ */
+export function shiftToFit(S: WfState, rect: Box4, edge = 14): Pt | null {
+  const { w, h } = S.input.map;
+  const axis = (lo: number, hi: number, size: number): number => {
+    if (lo >= edge && hi <= size - edge) return 0;
+    if (hi - lo > size - 2 * edge) return 0;
+    return Math.round((size - (hi - lo)) / 2 - lo);
+  };
+  const d: Pt = [axis(rect[0], rect[2], w), axis(rect[1], rect[3], h)];
+  if (!d[0] && !d[1]) return null;
+  const moved = [...S.placed.values()].map((p) => [p, p.at] as const);
+  for (const [p] of moved) p.at = [p.at[0] + d[0], p.at[1] + d[1]];
+  const ok = [...S.placed].every(([id, p]) => S.inMap(boxAt(p.at, p.b.footprint)) && S.padBoxes(id).every((bx) => S.inMap(bx)));
+  if (!ok) { for (const [p, at] of moved) p.at = at; return null; }
+  return d;
+}
+
+export function fitWalls(S: WfState, spec: WfWallSpec, clear: number, strip: { s: number; e: number }, edge = 14): WfWalls | null {
+  const { w, h } = S.input.map;
+  const [x0, y0, x1, y1] = ringRect(S, clear, strip);
   if (x0 < edge || y0 < edge || x1 > w - edge || y1 > h - edge) { S.log({ t: "walls", rect: [x0, y0, x1, y1], strip, gates: [] }); return null; }
   const [hh, vv] = spec.split, points: Pt[] = [], side: Side[] = [], r = Math.round;
   for (let k = 0; k < hh; k++) { points.push([r(x0 + ((x1 - x0) * k) / hh), y0]); side.push("n"); }
@@ -716,35 +759,57 @@ export function placeMedic(S: WfState, wl: WfWalls | null, strip: { s: number; e
   return null;
 }
 
+/** A heap whose hidden strip beyond its back face is longer than the wall's: on a walled level only the north and west sides. */
+export function scrapRestricted(b: WfBuilding, wl: WfWalls | null, strip: { s: number; e: number }): boolean {
+  const st = b.variant !== undefined ? scrapStrip(b.variant) : { s: 0, e: 0 };
+  return !!wl && (st.s > strip.s - WALL_HALF || st.e > strip.e - WALL_HALF);
+}
+
 /**
  * One scrap heap, at random outside the walls (or around the settlement with none) within the walking range of a gate (the settlement edge
  * with no walls). A heap whose own hidden strip beyond its back face is longer than the wall's goes only on the north and west sides (it
  * could hide a pad one wall strip inside a south or east wall). It stays off walls, gates, buildings, pads and other heaps, and never hides a pad.
- * After 400 tries inside the range it relaxes the range once (counted); null when nothing fits.
+ * After 400 random tries inside the range it scans a 12-unit grid of the whole map in random order; then the same without the range (counted
+ * as relaxed). Restricted heaps go first (see scrapRestricted). With `packed` (the fallback when a random pass leaves no room) it skips the
+ * random tries and takes the first fitting grid point from the north-west corner, row by row, so the heaps sit tight. Null when nothing fits.
  */
-export function scatterScrap(S: WfState, rng: Rand, b: WfBuilding, wl: WfWalls | null, strip: { s: number; e: number }, range: [number, number]): { at: Pt; side: string; tries: number; relaxed: boolean } | null {
-  const { w, h } = S.input.map, st = b.variant !== undefined ? scrapStrip(b.variant) : { s: 0, e: 0 };
-  const restricted = !!wl && (st.s > strip.s - WALL_HALF || st.e > strip.e - WALL_HALF);
+export function scatterScrap(S: WfState, rng: Rand, b: WfBuilding, wl: WfWalls | null, strip: { s: number; e: number }, range: [number, number], packed = false): { at: Pt; side: string; tries: number; relaxed: boolean; packed: boolean } | null {
+  const { w, h } = S.input.map, restricted = scrapRestricted(b, wl, strip);
   const band = wl ? ringBand(wl) : null, { box: sb } = settlementBox(S);
   const gates = wl ? wl.gates.map((i) => { const a = wl.points[i]!, c = wl.points[(i + 1) % wl.points.length]!; return [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2] as Pt; }) : [];
   const dist = (q: Pt): number => wl ? Math.min(...gates.map((g) => Math.hypot(q[0] - g[0], q[1] - g[1]))) : Math.hypot(Math.max(sb[0] - q[0], 0, q[0] - sb[2]), Math.max(sb[1] - q[1], 0, q[1] - sb[3]));
   const sideOf = (q: Pt): string => !wl ? "-" : q[1] > wl.rect[3] ? "s" : q[0] > wl.rect[2] ? "e" : q[1] < wl.rect[1] ? "n" : q[0] < wl.rect[0] ? "w" : "in";
   const base = S.hiddenPads().length;
   let tries = 0;
+  const why: Record<string, number> = {}, no = (k: string) => { why[k] = (why[k] ?? 0) + 1; };
+  // random tries first; when they all miss, every grid point (GRID apart) that passes the cheap tests, in random order
+  const GRID = 12, grid = (): Pt[] => {
+    const out: Pt[] = [];
+    for (let y = 0; y <= h; y += GRID) for (let x = 0; x <= w; x += GRID) out.push([x, y]);
+    for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(rng.float() * (i + 1)); [out[i], out[j]] = [out[j]!, out[i]!]; }
+    return out;
+  };
+  // packed: no random tries, the grid in reading order from the north-west corner (rows north to south, each west to east)
+  const rows = (): Pt[] => { const out: Pt[] = []; for (let y = 0; y <= h; y += GRID) for (let x = 0; x <= w; x += GRID) out.push([x, y]); return out; };
+  const skip = packed ? 0 : 400;
   for (const relaxed of [false, true]) {
-    for (let k = 0; k < 400; k++) {
+    let pts: Pt[] | null = null;
+    for (let k = 0; ; k++) {
+      if (k === skip) pts = packed ? rows() : grid();
+      if (pts && k - skip >= pts.length) break;
       tries++;
-      const q: Pt = [Math.round(rng.range(0, w)), Math.round(rng.range(0, h))], fp = boxAt(q, b.footprint);
-      if (!S.inMap(fp)) continue;
-      if (band && fp[0] < band[2] && band[0] < fp[2] && fp[1] < band[3] && band[1] < fp[3]) continue;
+      const q: Pt = pts ? pts[k - skip]! : [Math.round(rng.range(0, w)), Math.round(rng.range(0, h))], fp = boxAt(q, b.footprint);
+      if (!S.inMap(fp)) { no("map"); continue; }
+      if (band && fp[0] < band[2] && band[0] < fp[2] && fp[1] < band[3] && band[1] < fp[3]) { no("wall"); continue; }
       const sd = sideOf(q);
-      if (restricted && sd !== "n" && sd !== "w") continue;
-      if (!relaxed) { const dd = dist(q); if (dd < range[0] || dd > range[1]) continue; }
-      if (!S.clear(fp, new Set())) continue;
+      if (restricted && sd !== "n" && sd !== "w") { no("side"); continue; }
+      if (!relaxed) { const dd = dist(q); if (dd < range[0] || dd > range[1]) { no("range"); continue; } }
+      if (!S.clear(fp, new Set())) { no("blocked"); continue; }
       S.place(b.id, q, -1);
-      if (S.hiddenPads().length > base) { S.placed.delete(b.id); continue; }
-      return { at: q, side: sd, tries, relaxed };
+      if (S.hiddenPads().length > base) { S.placed.delete(b.id); no("hides"); continue; }
+      return { at: q, side: sd, tries, relaxed, packed };
     }
   }
+  S.log({ t: "noscrap", id: b.id, variant: b.variant ?? 0, restricted, why });
   return null;
 }
