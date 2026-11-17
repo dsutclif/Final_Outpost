@@ -85,6 +85,7 @@ export const GEN = genData as unknown as {
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
   storms: { warn: number; duration: number; growStep: number; maxDuration: number };
+  rockslide: { rewards: { kind: string; weight: number; node: string; count: number; resource: string }[] };
   scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
   medicPad: { u: number; v: number; near: number };
@@ -838,7 +839,13 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       if (!zr) throw new Error("no room for rubble");
       ents.push({ type: "zone.blocked", id: `rubble${k}`, rect: [...zr] });
       P.blocked.push(zr);
-      for (let i = 0; i < 3; i++) ents.push({ type: "node.fuel_scrap", at: [Math.round(zr[0] + 25 + 35 * i), Math.round(zr[1] + zr[3] / 2)] });
+      // What the slide hides: drawn from generator.json, only kinds whose resource this level uses (rock slides
+      // only occur on wall-free levels, which never use salvage). Its own stream, so the rest of the level never shifts.
+      const rsr = new Rand(mix(inp.seed >>> 0, hashStr("rockslide") + k));
+      const pool = GEN.rockslide.rewards.filter((w) => w.weight > 0 && (w.resource !== "res.salvage" || !!ring));
+      let pick = rsr.float() * pool.reduce((a, w) => a + w.weight, 0), reward = pool[0]!;
+      for (const w of pool) { if (pick < w.weight) { reward = w; break; } pick -= w.weight; }
+      for (let i = 0; i < reward.count; i++) ents.push({ type: reward.node, at: [Math.round(zr[0] + zr[2] / 2 + 35 * (i - (reward.count - 1) / 2)), Math.round(zr[1] + zr[3] / 2)] });
       const zp = placePad(`clear${k}`, [zr[0] + zr[2] / 2, zr[1] + (zr[1] > core[1] ? -45 : zr[3] + 45)]);
       void zp;
       pad({ type: "pad.build", id: `clear${k}`, at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: `rubble${k}`, requires: { coreLevel: 2 } });
@@ -1790,6 +1797,11 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const flow = flowModel(m, planBot(m, c), c, m.params["level.budgetSeconds"]!);
   if (!flow.ok) fail(`flow: ${flow.reason}`);
   void register;
+  for (const e of ents) {
+    if (e.type !== "zone.blocked" || !String(e.id).startsWith("rubble")) continue;
+    const r = e.rect as Rect, kinds = new Set(GEN.rockslide.rewards.map((w) => w.node));
+    if (!ents.some((n) => kinds.has(n.type) && (n.at as Pt)[0] >= r[0] && (n.at as Pt)[0] <= r[0] + r[2] && (n.at as Pt)[1] >= r[1] && (n.at as Pt)[1] <= r[1] + r[3])) fail(`${String(e.id)} hides nothing`);
+  }
   if (defend) {
     // Batch 3: the defend map is padded on every side (the long roads); everything moves by the padding.
     const d = GEN.defendRoad.pad;

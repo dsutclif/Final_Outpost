@@ -71,6 +71,10 @@
     "_doc": "Dust storms (dust_storms feature): warned warn s ahead, lasting duration s. R5 #29: a run where the player stops helping at a storm's start (the hauler and other hires carry on) must lose before that storm ends; until it does, the storm lasts growStep s longer, up to maxDuration, and a level still survivable then is rejected.",
     "warn": 8, "duration": 22, "growStep": 6, "maxDuration": 58
   },
+  "rockslide": { "rewards": [
+    { "kind": "fuel_scrap", "weight": 2, "node": "node.fuel_scrap", "count": 3, "resource": "res.material_basic" },
+    { "kind": "fuel_cache", "weight": 1, "node": "node.fuel_deposit", "count": 1, "resource": "res.fuel_dense" }
+  ] },
   "scrapHeaps": {
     "_doc": "Batch 3 (Doug): on a share (chance) of defend levels, n scrap heaps (node.salvage_pile, a little scrap each, never regrowing) lie out in the wilds beyond the wall, at least outside units past the ring and within band of that, and roadGap clear of every attack road, so the player scavenges for the first defences.",
     "chance": 0.8, "n": [3, 5], "outside": 70, "band": 240, "roadGap": 80
