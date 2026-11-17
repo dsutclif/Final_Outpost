@@ -73,7 +73,16 @@ export class TitleBackdrop {
     });
     this.video = v;
     this.canvas.after(v);
-    if (this.raf) v.play().catch(() => { /* autoplay refused (low power mode): the poster stays */ });
+    if (this.raf) this.tryPlay(v);
+  }
+
+  /** Autoplay refused (low power mode): the poster stays, and the player's first tap anywhere starts the loop. */
+  private tryPlay(v: HTMLVideoElement): void {
+    v.play()?.catch(() => {
+      const doc = this.host.ownerDocument;
+      const retry = (): void => { doc.removeEventListener("pointerdown", retry, true); if (this.video === v) v.play()?.catch(() => { /* still refused */ }); };
+      doc.addEventListener("pointerdown", retry, true);
+    });
   }
 
   /** Show the canvas scene (and hide the video) only while the video cannot play. */
@@ -97,8 +106,7 @@ export class TitleBackdrop {
       this.draw((now - this.t0) / 1000);
     };
     this.raf = requestAnimationFrame(loop);
-    const p = this.video?.play();
-    if (p) p.catch(() => { /* autoplay refused (low power mode): the canvas keeps showing */ });
+    if (this.video) this.tryPlay(this.video);
   }
 
   stop(): void {
