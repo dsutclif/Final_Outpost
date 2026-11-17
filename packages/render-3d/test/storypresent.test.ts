@@ -10,10 +10,23 @@ const make = () => {
   const t = deriveTokens(skin), sc = new Scene();
   const lights = new StoryLights(sc, storyLightColors(t), null);
   const spirit = createCoreSpirit(sc, t, { at: { x: 0, y: 0, z: 0 } });
-  return { sp: new StoryPresent(lights, spirit), spirit };
+  return { sp: new StoryPresent(lights, spirit), spirit, sc };
 };
 
 describe("story presentation", () => {
+  it("keeps the tow tally over the drawn hero between sim ticks (outpost-ops#186)", () => {
+    const { sp, sc } = make();
+    sp.tally(10, 5, 20, ["done", "empty", "empty"]);
+    let tally: { position: { x: number; y: number; z: number }; visible: boolean } | undefined;
+    sc.traverse((o) => { if (!tally && o.children.length === 3 && o.position.x === 10 && o.position.z === 20) tally = o; });
+    expect(tally).toBeDefined();
+    sp.frame(1, 0.016, 0, 0, 300, 300, { x: 10.4, z: 20.2 });
+    expect([tally!.position.x, tally!.position.y, tally!.position.z]).toEqual([10.4, 5, 20.2]);
+    // hidden: it stays where it was
+    sp.tally(0, 0, 0, null);
+    sp.frame(2, 0.016, 0, 0, 300, 300, { x: 50, z: 50 });
+    expect(tally!.position.x).toBe(10.4);
+  });
   it("lets only the two lowest ranks pulse", () => {
     const { sp } = make();
     sp.light("goal", 0, 5, 0, "goal", 3);

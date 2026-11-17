@@ -156,6 +156,8 @@ export class StoryPresent implements StoryPresentation {
     this.now = t;
     this.movers?.stepStaged(dt);
     this.moveCloud(dt, hero);
+    // the tally is set from the sim position each tick; between ticks it rides the drawn hero, so it does not step against her
+    if (hero) this.lights.tallyAt(hero.x, hero.z);
     if (this.target !== null) this.cur = this.snapNow ? this.target : this.cur + (this.target - this.cur) * Math.min(1, dt * 1.5);
     this.snapNow = false;
     this.lights.setProgress(this.cur);

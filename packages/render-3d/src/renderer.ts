@@ -3170,7 +3170,8 @@ export class Renderer3D implements Renderer {
       let sp = this.guideSprite;
       if (!sp) { sp = new Sprite(); sp.renderOrder = 15; this.dynamic.add(sp); this.guideSprite = sp; }
       const hh = textSprite(TEXT.main, 34, 64);
-      sp.visible = this.labels.apply(sp, `guide|${g!.text}`, () => this.guideArt(g!.text), hh);
+      // no line to say: no pill (the ground arrow and chevrons still show the way)
+      sp.visible = !!g.text && this.labels.apply(sp, `guide|${g!.text}`, () => this.guideArt(g!.text), hh);
       // the line rides the marker; with the target off screen it rides the ground arrow instead
       const scr = this.toScreen(v3(g.at.x, ART_M * 2.2, g.at.y));
       const off = scr.x < 70 || scr.x > this.cssW - 70 || scr.y < 40 || scr.y > this.cssH - 40;

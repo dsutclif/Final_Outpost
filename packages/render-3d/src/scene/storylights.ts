@@ -205,6 +205,9 @@ export class StoryLights {
     if (e) { this.root.remove(e.light); this.lights.delete(id); }
   }
 
+  /** Keep the shown tally over (x,z): the hero is drawn between sim ticks, so the tally follows the drawn position. */
+  tallyAt(x: number, z: number): void { if (this.tallyGroup.visible) { this.tallyGroup.position.x = x; this.tallyGroup.position.z = z; } }
+
   /** Three star slots in a row above (x,y,z), facing the camera; null hides them. */
   tally(x: number, y: number, z: number, slots: readonly [TallySlot, TallySlot, TallySlot] | null, yaw = Math.PI / 4, scale = 1): void {
     this.tallyGroup.visible = !!slots;
