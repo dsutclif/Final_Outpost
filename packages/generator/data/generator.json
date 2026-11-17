@@ -69,7 +69,7 @@
     "raiders": 0.15, "lateRaiders": 0.25, "gap": 0.7, "lateGap": 0.45, "dropsPerNeed": 1.1, "dropsPerEarlyNeed": 1.3, "lateStep": 1.3, "surviveTail": 30, "fullGrowMax": 6, "growthStep": 0.01, "spawnMax": 75, "minGap": 0.2,
     "raid": { "t": 6, "swarmlings": 12, "raiders": 0, "gap": 0.12 },
     "mix_doc": "Mixed waves (outpost-ops#92): from the second wave on, a share of each wave's swarmling points comes as creatures (mid: the early raids; late: the packed waves), 1 creature for 3 swarmlings so points and drops stay the same; a late wave always holds swarmlings, raiders and creatures. Then each late wave gains late.extra x its points as more creatures, as far as it still spawns within spawnMax and stays within waveCap points.",
-    "mix": { "mid": { "creature": 0.2 }, "late": { "creature": 0.3, "extra": 0.1 } }
+    "mix": { "mid": { "creature": 0.1 }, "late": { "creature": 0.2, "extra": 0.25 } }
   },
   "storms": {
     "_doc": "Dust storms (dust_storms feature): warned warn s ahead, lasting duration s. R5 #29: a run where the player stops helping at a storm's start (the hauler and other hires carry on) must lose before that storm ends; until it does, the storm lasts growStep s longer, up to maxDuration, and a level still survivable then is rejected.",
