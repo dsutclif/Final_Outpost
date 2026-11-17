@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: the level pacing check now counts every attack wave and any change in what you are doing, but not the same short collect-and-sell round repeated. It still only reports; it does not reject levels yet. Nothing changes in the game."]}
+{"notes":["Behind the scenes: new defend levels can send more, smaller attack waves instead of a few huge final ones, and the last wave arrives no later than before. A level that can't be built well that way keeps today's waves. Levels already in the game do not change."]}
