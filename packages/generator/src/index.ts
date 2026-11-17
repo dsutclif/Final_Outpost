@@ -6,12 +6,12 @@ import genData from "../data/generator.json";
 import startData from "../data/start.json";
 import { ENGINE_VERSION } from "@fo/sim";
 import { DEFAULT_CONFIG, closure, conflicts } from "@fo/sequencer";
-import { GEN, TEMPLATES, buildLevel, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
+import { GEN, TEMPLATES, buildLevel, dressingKnobs, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
 import { candidateSettings, roundKnobs, type CandidateRecord } from "./record.js";
 
-export { capWavePoints, wavePoints, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, applyNightCadence, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
+export { dressingKnobs, capWavePoints, wavePoints, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, applyNightCadence, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
 export { scrapBudget, scrapNeed, waveScrap } from "./budget.js";
 export { skinText, dedupeTitles } from "./text.js";
@@ -573,15 +573,13 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     stats.iterations++;
     const mut: Record<string, number> = {};
     if (it > 0) for (const k of Object.keys(GEN.knobs)) mut[k] = (mrand.float() * 2 - 1) * GEN.jitter;
-    const knobs = knobsFor(p, mut);
+    const knobs = { ...knobsFor(p, mut), ...dressingKnobs(req.seed) };
     rec = { iteration: it, p: round3(p), knobs: {}, rejects: [], kept: false, shipped: false };
     recAt = Date.now();
     // Levers against a repeated player loop, scaled by how often the search has had to ease it:
     // a slower burn (fewer core feeding trips), a shorter level (fewer trips overall), a little
     // more starting currency (the first worker hire arrives sooner). Hire prices ease in buildLevel.
-    knobs.burn *= 1 + S.loopBurnEase * ease;
     knobs.length *= 1 - S.loopLengthCut * ease;
-    knobs.startCurrency += S.loopStartCurrency * ease;
     rec.knobs = roundKnobs(knobs as unknown as Record<string, number>);
     let built: Built | null = null;
     let why = "";

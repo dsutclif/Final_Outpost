@@ -36,6 +36,7 @@ export const TEMPLATES = templatesData as unknown as TemplatesFile;
 type RingDims = { hw: number; hh: number; split: [number, number] };
 export const GEN = genData as unknown as {
   knobs: Record<string, [number, number]>;
+  dressing: string[];
   /** Dangerous prey: odds that a hunting level that earns any (knob `dangerPrey` rounds above 0) gets them, and the most in one zone. */
   danger: { chance: number; max: number };
   jitter: number;
@@ -165,6 +166,14 @@ export function knobsFor(p: number, mut: Partial<Record<string, number>> = {}): 
   const out = {} as Record<string, number>;
   for (const [k, [a, b]] of Object.entries(GEN.knobs)) out[k] = lerp(a, b, clamp01(p + (mut[k] ?? 0)));
   return out as Knobs;
+}
+
+/** Map-dressing knobs (GEN.dressing), each drawn between its two ends from the level seed alone, never from the search pressure (outpost-ops#85). */
+export function dressingKnobs(seed: number): Record<string, number> {
+  const r = new Rand((seed ^ 0x5bd1e995) >>> 0);
+  const out: Record<string, number> = {};
+  for (const k of GEN.dressing) { const [a, b] = GEN.knobs[k]!; out[k] = lerp(a, b, r.float()); }
+  return out;
 }
 
 export interface BuildInput {
@@ -334,7 +343,7 @@ export function applyNightCadence(m: Manifest, levelNo: number): void {
 /** Build one candidate manifest; throws a reason string (Error) when a constraint cannot be met. */
 export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const c = inp.content ?? defaultContent;
-  const K = inp.knobs;
+  const K = { ...inp.knobs, ...dressingKnobs(inp.seed) };
   const fam = inp.family;
   const fams = new Set<Family>([fam, ...(inp.secondary ? [inp.secondary] : [])]);
   const feat = new Set(inp.features);
@@ -619,7 +628,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   // ---------- harvest mechanics ----------
   let gated = 0;
   if (feat.has("source_unlocks") && food1 && shopAt) {
-    const n = goal === "unlock" && K.costScale > 1.05 ? 2 : 1;
+    const n = 1;
     for (let k = 0; k < n; k++) {
       const id = `food${k + 2}`;
       const fOpts = { near: food1, key: true, fp: "node.food_source", ...plotOpts("node.food_source") };
@@ -668,7 +677,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     if (feat.has("converter_levels")) {
       const lp = plotOn ? slotAt("grill", "upgrade") : placePad("grill_level", [g[0] + 70, g[1] - 40]);
       // Repeatable only when the goal needs more than one level: a repeatable pad is never "done", so nothing could require it.
-      const rep = goal === "converter_level" && K.costScale > 1.15;
+      const rep = false;
       pad({ type: "pad.build", id: "grill_level", at: [...lp], cost: { "res.currency": cost("conv.level") }, build: "conv.level", target: "grill", requires: { pad: gStaff ? "server" : "grill" }, ...(rep ? { repeatable: true } : {}) });
     }
     if (feat.has("material_processor")) {
@@ -804,7 +813,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const corePads: Ent[] = [];
   if (feat.has("core_levels") || feat.has("rockslides") || feat.has("clearing_pass") || goal === "core_level") {
     // A core-level goal with rubble needs a second level pad to hang the clearing pad from.
-    const nLv = goal === "core_level" && (K.costScale > 1.1 || feat.has("rockslides")) ? 2 : 1;
+    const nLv = goal === "core_level" && feat.has("rockslides") ? 2 : 1;
     for (let k = 0; k < nLv; k++) {
       // plot layout: one upgrade slot on the core's plot takes L2, then L3
       const lp = plotOn ? slotAt("core", "upgrade") : placePad(`core_level${k}`, [core[0] + (k === 0 ? -1 : 1) * GEN.corePadBeside[0], core[1] + GEN.corePadBeside[1]], { region: [core[0] - 130, core[1] - 60, 260, 170] });
@@ -813,7 +822,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   }
   let zones = 0;
   if (feat.has("rockslides") && !ring) {
-    const n = goal === "clear_zones" && K.costScale > 1.1 ? 2 : 1;
+    const n = 1;
     for (let k = 0; k < n; k++) {
       // Rubble over part of a fuel grove: clearing it opens more fuel near the base.
       let zr: Rect | null = null;
@@ -1341,7 +1350,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       case "automate": return { seconds: Math.round(20 + K.length * 0.1), machines: Math.min(2, 1 + (saw ? 1 : 0)) };
       case "stockpile": return { res: "res.material_basic", n: 8 };
       case "build": return { target: "landmark" };
-      case "converter_level": return { n: 2 + (K.costScale > 1.15 ? 1 : 0) };  // 3 only with the repeatable pad
+      case "converter_level": return { n: 2 };
       case "waves": return {};
       case "waves_survived": return { n: Math.max(1, waves.length - 1) };
       case "boss": return { n: waves.reduce((a, w) => a + (w.counts["hostile.boss"] ?? 0), 0) };
@@ -1761,7 +1770,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
 
   // ---------- economy sizing ----------
   const evalCost = (cst: number) => {
-    const m = finish(cst, saw && !alloy ? Math.round(6 + 6 * K.costScale) : 0, extra);
+    const m = finish(cst, saw && !alloy ? 12 : 0, extra);
     return { m, f: flowModel(m, planBot(m, c), c, 1e9) };
   };
   let chosen = evalCost(40);
