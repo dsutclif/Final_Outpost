@@ -1,14 +1,18 @@
 import type { Content, Manifest } from "@fo/content";
 import { LADDER, TIME_FIXED_GOALS } from "@fo/bots";
 import { REFERENCE, meanMargin, winRate, type HistoryEntry, type Measurement } from "./measure.js";
+import { playShapeFails, playShapeNumbers, type PlayShapeParams } from "./playShape.js";
 import filterData from "../data/filters.json";
+import { sameAsEarlier, varietySignature } from "./variety.js";
 
 // Quality filters from the spec. Each returns a flag plus the evidence behind it.
 
-export interface Filters { idleModule: boolean; trivial: boolean; stall: boolean; unreadable: boolean; duplicate: boolean; ladderSpent: boolean }
-export interface FilterEvidence { idleModules: string[]; unreadable: string[]; stallRuns: string[]; duplicateOf: string | null }
+export interface Filters { idleModule: boolean; trivial: boolean; stall: boolean; unreadable: boolean; duplicate: boolean; ladderSpent: boolean; playShape: boolean }
+export interface FilterEvidence { idleModules: string[]; unreadable: string[]; stallRuns: string[]; duplicateOf: string | null; playShape: string[] }
 
-export const FILTER_PARAMS = filterData as { screenRadius: number; trivialBudgetShare: number; trivialWavesMargin: number; duplicateWindow: number; ladderLeftMin: number };
+export const FILTER_PARAMS = filterData as { screenRadius: number; trivialBudgetShare: number; trivialWavesMargin: number; ladderLeftMin: number };
+
+const PLAY_SHAPE = (filterData as unknown as { playShape: PlayShapeParams & { exempt: string[]; enforce: boolean } }).playShape;
 
 /** Modules the manifest switches on that no winning run of any rung ever exercised. */
 function idleModules(ms: Measurement, c: Content): string[] {
@@ -86,15 +90,10 @@ function unreadable(m: Manifest, c: Content): string[] {
   return out;
 }
 
+/** The rule replaced a 10-level window on modules, goal and template (outpost-ops#150): the whole pack, on the full signature.
+ * History entries without a signature (planned requests, levels from before the rule) cannot match. */
 function duplicateOf(ms: Measurement, history: readonly HistoryEntry[]): string | null {
-  const key = (mods: readonly string[], goal: string, tpl: string | undefined) => `${[...mods].sort().join(",")}|${goal}|${tpl ?? ""}`;
-  const mine = key(ms.manifest.modules, ms.manifest.goal.type, ms.template);
-  const recent = history.slice(-FILTER_PARAMS.duplicateWindow);
-  for (let i = recent.length - 1; i >= 0; i--) {
-    const h = recent[i]!;
-    if (key(h.modules, h.goal, h.template) === mine) return h.id ?? `history[${i}]`;
-  }
-  return null;
+  return sameAsEarlier(ms.manifest.id, varietySignature(ms.manifest, ms.template, ms.beats), history);
 }
 
 export function qualityFilters(ms: Measurement, c: Content): { filters: Filters; evidence: FilterEvidence } {
@@ -111,10 +110,11 @@ export function qualityFilters(ms: Measurement, c: Content): { filters: Filters;
   for (const [p, rs] of Object.entries(ms.runs)) for (const r of rs) if (r.stalls > 0) stallRuns.push(`${p}#${r.seed}@${r.stallStates[0]?.tick ?? 0}`);
   const unread = unreadable(ms.manifest, c);
   const dup = duplicateOf(ms, ms.history);
+  const shape = PLAY_SHAPE.exempt.includes(ms.manifest.id) || ms.beats.length === 0 ? [] : playShapeFails(playShapeNumbers(ms.beats, ms.beatsEnd), ms.beatsEnd, PLAY_SHAPE);
   return {
     // Batch 3: a defend level always leaves something to build; a reference bot that bought the whole turret ladder ran out of it.
     filters: { idleModule: idle.length > 0, trivial, stall: stallRuns.length > 0, unreadable: unread.length > 0, duplicate: dup !== null,
-      ladderSpent: ms.ladderLeft >= 0 && ms.ladderLeft < FILTER_PARAMS.ladderLeftMin },
-    evidence: { idleModules: idle, unreadable: unread, stallRuns, duplicateOf: dup },
+      ladderSpent: ms.ladderLeft >= 0 && ms.ladderLeft < FILTER_PARAMS.ladderLeftMin, playShape: PLAY_SHAPE.enforce && shape.length > 0 },
+    evidence: { idleModules: idle, unreadable: unread, stallRuns, duplicateOf: dup, playShape: shape },
   };
 }

@@ -14,7 +14,7 @@ export type MetricName = (typeof METRIC_NAMES)[number];
 export type Metrics = Record<MetricName, number>;
 
 /** A level the player saw recently, for novelty and duplicate checks. */
-export interface HistoryEntry { id?: string; modules: string[]; goal: string; template?: string; /** Beat sheet of the level when it was rated. */ beats?: Beat[] }
+export interface HistoryEntry { id?: string; modules: string[]; goal: string; template?: string; /** Beat sheet of the level when it was rated. */ beats?: Beat[]; /** Variety signature (outpost-ops#150); entries without one never match. */ signature?: string }
 
 export interface MeasureOptions {
   content?: Content;
@@ -55,6 +55,8 @@ export interface Measurement {
   loopKey: string;
   /** Beat sheet of the median bot's median-length run: ordered first occurrences with ticks (bots shape.ts). */
   beats: Beat[];
+  /** Level end in ticks of that same run: when its main goal was done (goalTicks; the run length if never); 0 when no run happened. */
+  beatsEnd: number;
   /** Geography: pieces, map share and blocked approach lanes (not z-scored). */
   terrain: TerrainStats;
   budgetTicks: number;
@@ -71,10 +73,17 @@ export const winRate = (rs: readonly BotResult[]): number => mean(rs.map((r) => 
 export const meanMargin = (rs: readonly BotResult[]): number => mean(rs.map((r) => r.margin));
 
 /** The beat sheet of the median rung's run of median length (lowest seed on a tie): deterministic for a given manifest. */
-export function medianBeats(rs: readonly BotResult[]): Beat[] {
-  if (rs.length === 0) return [];
+function medianRun(rs: readonly BotResult[]): BotResult | undefined {
+  if (rs.length === 0) return undefined;
   const order = [...rs].sort((a, b) => a.ticks - b.ticks || a.seed - b.seed);
-  return order[Math.floor((order.length - 1) / 2)]!.trace.beats.map((b) => ({ ...b }));
+  return order[Math.floor((order.length - 1) / 2)]!;
+}
+export function medianBeats(rs: readonly BotResult[]): Beat[] {
+  return medianRun(rs)?.trace.beats.map((b) => ({ ...b })) ?? [];
+}
+/** Level end of the run `medianBeats` reads. */
+export function medianBeatsEnd(rs: readonly BotResult[]): number {
+  return medianRun(rs)?.goalTicks ?? 0;
 }
 
 export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measurement {
@@ -120,7 +129,7 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const downs = runs[REFERENCE]!.reduce((a, r) => a + r.trace.guards.down, 0);
   const medicShare = downs > 0 ? runs[REFERENCE]!.reduce((a, r) => a + r.trace.guards.medicHeals, 0) / downs : -1;
   const worst = runs[REFERENCE]!.reduce((a, r) => (r.trace.loopMax > a.trace.loopMax ? r : a));
-  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, story, rallyShare, guardLoss, medicShare, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, beats: medianBeats(runs[MEDIAN]!), terrain: terrainStats(manifest), budgetTicks, template, history };
+  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, story, rallyShare, guardLoss, medicShare, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, beats: medianBeats(runs[MEDIAN]!), beatsEnd: medianBeatsEnd(runs[MEDIAN]!), terrain: terrainStats(manifest), budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,

@@ -99,8 +99,9 @@ describe("quality filters", () => {
     expect(rate(level3, FAST).filters.unreadable).toBe(false);
   });
 
-  it("duplicate: same module set, goal and template as a recent level", () => {
-    const r = rate(level1, { ...FAST, history: [historyEntry(level2), historyEntry(level1)] });
+  it("duplicate: the same variety signature as an earlier level (outpost-ops#150)", () => {
+    const sig = rate(level1, FAST).signature;
+    const r = rate(level1, { ...FAST, history: [{ ...historyEntry(level2), signature: "v1-00000000" }, { ...historyEntry(level1), signature: sig }] });
     expect(r.filters.duplicate).toBe(true);
     expect(r.evidence.duplicateOf).toBe("proto-L001");
     expect(rate(level1, { ...FAST, history: [historyEntry(level2)] }).filters.duplicate).toBe(false);

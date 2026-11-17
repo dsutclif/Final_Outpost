@@ -3,7 +3,14 @@
   "screenRadius": 450,
   "trivialBudgetShare": 0.286,
   "trivialWavesMargin": 0.95,
-  "duplicateWindow": 10,
   "_ladder": "ladderLeftMin: the reference bot must leave at least this much salvage of turret ladder (towers, Lv2, Lv3) unbought on average, so there is always something to build until a defend level ends (Batch 3).",
-  "ladderLeftMin": 4
+  "ladderLeftMin": 4,
+  "_variety": "Variety rule (outpost-ops#150): a generated level whose signature (modules, goal, template, layout entities on a grid x grid map cut, beat order) matches any earlier level in the pack is a duplicate; no window. exempt: level ids never checked and never matched. maxPasses: pack-build passes that rebuild duplicates.",
+  "variety": {
+    "grid": 4,
+    "exempt": [],
+    "maxPasses": 5
+  },
+  "_playShape": "enforce false (2026-11-17): report-only. A scratch build of Levels 7-16 rejected 30-40 of 40 candidates per slot and stopped: beat sheets hold first occurrences only, so the stretch after the last new beat is usually over 45% of the level (7 of 11 sampled s1 levels fail). The limits wait on a call; evidence still lists the failures. Within-level play shape (outpost-ops#151): no phase (gap between consecutive beat ticks, the first from 0, the last to the level end) over maxPhaseShare of the level; at least minBeatTypes beat types (minBeatTypesShort when under shortSeconds); some beat after newBeatAfterShare of the level. exempt: level ids never checked.",
+  "playShape": { "maxPhaseShare": 0.45, "minBeatTypes": 3, "minBeatTypesShort": 2, "shortSeconds": 120, "newBeatAfterShare": 0.3333, "exempt": [], "enforce": false }
 }

@@ -4,6 +4,7 @@ import { funProxies, PROXY_NAMES, type Proxies } from "./fun.js";
 import { qualityFilters, type FilterEvidence, type Filters } from "./filters.js";
 import type { TerrainStats } from "./terrain.js";
 import { METRIC_NAMES, REFERENCE, measure, meanMargin, winRate, type HistoryEntry, type MeasureOptions, type Measurement, type MetricName, type Metrics } from "./measure.js";
+import { varietySignature } from "./variety.js";
 import referenceData from "../data/reference.json";
 import weightsData from "../data/weights.json";
 
@@ -62,6 +63,8 @@ export interface Rating {
   terrain: TerrainStats;
   /** Beat sheet from the median bot run (outpost-ops#149). */
   beats: Beat[];
+  /** Variety signature: modules, goal, template, coarse layout and beat order (outpost-ops#150). */
+  signature: string;
   /** Feasible and no filter fired. */
   ok: boolean;
 }
@@ -112,6 +115,7 @@ export function score(ms: Measurement, opts: RateOptions = {}): Rating {
     ok: feasible && !Object.values(filters).some(Boolean),
     terrain: ms.terrain,
     beats: ms.beats,
+    signature: varietySignature(ms.manifest, ms.template, ms.beats),
   };
 }
 
@@ -143,7 +147,7 @@ export function rateBatch(manifests: readonly unknown[], opts: RateOptions = {})
   const out: Rating[] = [];
   for (const m of manifests) {
     out.push(rate(m, { ...opts, history: [...history] }));
-    history.push({ ...historyEntry(m), beats: out[out.length - 1]!.beats });
+    history.push({ ...historyEntry(m), beats: out[out.length - 1]!.beats, signature: out[out.length - 1]!.signature });
   }
   return out;
 }

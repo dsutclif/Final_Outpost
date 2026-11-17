@@ -11,6 +11,8 @@ import { buildWithRerolls, describeRecipe, stopMessage, type SlotOutcome } from 
 import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
 import { digestLog } from "./candidate-digest.js";
+import { VARIETY } from "../packages/rater/src/variety.js";
+import { varietyPass, type Signed } from "./variety-pass.js";
 
 // pnpm levels:build --from 6 --to 60 --out levels/packs/s1 [--jobs N] [--retries N] [--calibrate] [--verbose]
 //   [--target-offset X] [--no-doc] [--register path]
@@ -66,6 +68,8 @@ export interface LevelResult {
   botsPassed: string[];
   /** Beat sheet from the rater's median bot run (outpost-ops#149): ordered first occurrences with ticks. */
   beats: { beat: string; tick: number }[];
+  /** Variety signature (outpost-ops#150): no two non-exempt levels of a pack share one. */
+  signature?: string;
   seconds: number;
   seed: number;
   attempts: number;
@@ -87,11 +91,19 @@ const requestsFor = (indices: number[], targetOffset: number) => (register: Reci
   return new Map(indices.map((i) => [i, all[i - 1]!] as const));
 };
 
-function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number, retryBase = 0, registerPath = DEFAULT_REGISTER_PATH): void {
+function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number, retryBase = 0, registerPath = DEFAULT_REGISTER_PATH, avoidPath?: string): void {
   const register = loadRegister(registerPath);
   const reqs = sequenceRange(1, index, [], { targetOffset, register, engine: ENGINE_VERSION });
   const req = reqs[index - 1]!;
-  const history = historyFor(reqs, index);
+  // --avoid: signatures of the levels built before this one, from the parent's variety pass (outpost-ops#150)
+  const avoid = avoidPath ? (JSON.parse(readFileSync(avoidPath, "utf8")) as { id: string; signature: string }[]) : [];
+  // merged into the planned entries by id, so novelty (the last five entries) still reads the plan
+  const sig = new Map(avoid.map((a) => [a.id, a.signature] as const));
+  const planned = historyFor(reqs, index);
+  const history: HistoryEntry[] = [
+    ...avoid.filter((a) => !planned.some((h) => h.id === a.id)).map((a) => ({ ...a, modules: [], goal: "" })),
+    ...planned.map((h) => (h.id !== undefined && sig.has(h.id) ? { ...h, signature: sig.get(h.id)! } : h)),
+  ];
   const t0 = Date.now();
   let best: Candidate | null = null;
   let shipped: Candidate | null = null;
@@ -127,7 +139,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
     family: req.family, secondary: req.secondary, features: req.features, objectives: (m.objectives ?? []) as LevelResult["objectives"],
     stars: pick.stars, starsByRung: pick.starsByRung,
     modules: m.modules, goal: m.goal.type, template: req.template, target: req.target, D: r.D, F: r.F, onTarget: shipped !== null,
-    margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, beats: r.beats, seconds: (Date.now() - t0) / 1000, seed: m.seed,
+    margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, beats: r.beats, signature: r.signature, seconds: (Date.now() - t0) / 1000, seed: m.seed,
     attempts, rejects, ratings,
   };
   process.stdout.write(`RESULT ${JSON.stringify({ ...res, req })}\n`);
@@ -208,8 +220,8 @@ async function main(): Promise<void> {
   const registerPath = abs(arg("--register", DEFAULT_REGISTER_PATH)!);
   const register = loadRegister(registerPath);
   const log = (rec: object) => appendFileSync(candPath, JSON.stringify({ run, engine: ENGINE_VERSION, content: CONTENT_VERSION, ...rec }) + "\n");
-  const build = async (i: number, sent: LevelRequest): Promise<SlotOutcome<LevelResult>> => {
-    const out = await runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, "--register", registerPath, ...(verbose ? ["--verbose"] : [])]);
+  const build = async (i: number, sent: LevelRequest, extra: string[] = []): Promise<SlotOutcome<LevelResult>> => {
+    const out = await runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, "--register", registerPath, ...(verbose ? ["--verbose"] : []), ...extra]);
     const r = parseResult(out);
     const cands = out.split("\n").find((l) => l.startsWith("CANDIDATES "));
     if (cands) for (const c of JSON.parse(cands.slice(11)) as object[]) log(c);
@@ -234,7 +246,25 @@ async function main(): Promise<void> {
       console.log(`  L${ev.index}: re-roll -> ${ev.to ? describeRecipe(ev.to) : "none"}`);
     },
   });
-  results.push(...rep.results.values());
+  // Variety pass (outpost-ops#150): no level of the pack the same as an earlier one. Earlier levels outside this
+  // build come from the pack's build log; levels from before the rule carry no signature and match nothing.
+  const logPath = join(outDir, "build-log.json");
+  const prevLog: LevelResult[] = existsSync(logPath) ? JSON.parse(readFileSync(logPath, "utf8")) as LevelResult[] : [];
+  const before: Signed[] = prevLog.filter((r) => !rep.results.has(r.index)).map((r) => ({ index: r.index, id: r.id, signature: r.signature }));
+  const avoidDir = join(root, "levels", "candidates", "avoid");
+  mkdirSync(avoidDir, { recursive: true });
+  const variety = await varietyPass({
+    before, results: rep.results, maxPasses: VARIETY.maxPasses, log: (s) => console.log(s),
+    rebuild: async (i, avoid) => {
+      const file = join(avoidDir, `${packId}-L${i}.json`);
+      writeFileSync(file, JSON.stringify(avoid));
+      const out = await build(i, requestsFor([i], Number(offset))(loadRegister(registerPath)).get(i)!, ["--avoid", file]);
+      log({ kind: "variety", index: i, ok: out.ok, avoided: avoid.length });
+      return out.ok ? out.result! : null;
+    },
+  });
+  for (const u of variety.unresolved) failed.push({ index: u.index, rejects: { duplicateOf: u.sameAs } });
+  results.push(...variety.results.values());
   for (const i of rep.crashed) failed.push({ index: i, rejects: {} });
   if (rep.stopped) {
     const s = rep.stopped;
@@ -248,11 +278,11 @@ async function main(): Promise<void> {
 
   // pack.json: merge with any levels already in the pack outside this range.
   const packPath = join(outDir, "pack.json");
-  type Entry = { id: string; file: string; title: string; family: string; secondary?: string; modules: string[]; goal: string; rating: number; fun: number; target: number; beats?: { beat: string; tick: number }[] };
+  type Entry = { id: string; file: string; title: string; family: string; secondary?: string; modules: string[]; goal: string; rating: number; fun: number; target: number; beats?: { beat: string; tick: number }[]; signature?: string };
   const old: Entry[] = existsSync(packPath) ? (JSON.parse(readFileSync(packPath, "utf8")) as { levels: Entry[]; engineVersion: string }).levels : [];
   const byId = new Map<string, Entry>();
   for (const e of old) byId.set(e.id, e);
-  for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, family: r.family, ...(r.secondary ? { secondary: r.secondary } : {}), modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target, beats: r.beats });
+  for (const r of results) byId.set(r.id, { id: r.id, file: r.file, title: r.title, family: r.family, ...(r.secondary ? { secondary: r.secondary } : {}), modules: r.modules, goal: r.goal, rating: round3(r.D), fun: round3(r.F), target: r.target, beats: r.beats, ...(r.signature ? { signature: r.signature } : {}) });
   // Titles are unique across the pack: a level keeps the title players know unless its goal changed;
   // new or re-goaled levels are deduped against the kept ones.
   const keep: Record<string, string> = {};
@@ -278,8 +308,6 @@ async function main(): Promise<void> {
   writeFileSync(indexPath, JSON.stringify(idx, null, 2) + "\n");
 
   // Run log next to the pack (summary data for docs/LEVELS.md and the report).
-  const logPath = join(outDir, "build-log.json");
-  const prevLog: LevelResult[] = existsSync(logPath) ? JSON.parse(readFileSync(logPath, "utf8")) as LevelResult[] : [];
   const logMap = new Map(prevLog.map((r) => [r.index, r] as const));
   for (const r of results) logMap.set(r.index, r);
   const all = [...logMap.values()].sort((a, b) => a.index - b.index);
@@ -296,6 +324,10 @@ async function main(): Promise<void> {
       for (const r of tried) console.log(`    x ${describeRecipe(r)}`);
     }
   }
+  // Retries per level for the variety rule: duplicate candidates the search rejected, and rebuilds by the pass.
+  console.log(`\nvariety (signature v1, whole pack${VARIETY.exempt.length ? `, exempt ${VARIETY.exempt.join(",")}` : ""}):`);
+  for (const r of results) console.log(`  Level ${r.index}: ${r.rejects["duplicate"] ?? 0} duplicate candidate(s) rejected, ${variety.reruns.get(r.index) ?? 0} rebuild(s), signature ${r.signature ?? "-"}`);
+  for (const u of variety.unresolved) console.log(`  Level ${u.index}: STILL THE SAME AS ${u.sameAs} after ${VARIETY.maxPasses} passes`);
   if (rep.stopped) console.log(`\nBUILD STOPPED. ${stopMessage(rep.stopped)}`);
   if (failed.length > 0) process.exitCode = 1;
 }
@@ -371,6 +403,6 @@ function levelsDoc(packId: string, rs: LevelResult[]): string {
   return lines.join("\n");
 }
 
-if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")), Number(arg("--retry-base", "0")), arg("--register", DEFAULT_REGISTER_PATH)!);
+if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")), Number(arg("--retry-base", "0")), arg("--register", DEFAULT_REGISTER_PATH)!, arg("--avoid"));
 else if (flag("--calib")) workCalib(Number(arg("--index")));
 else void main();

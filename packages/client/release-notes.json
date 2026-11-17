@@ -1,1 +1,1 @@
-{"notes":["The title screen's loop now starts when you tap, instead of leaving a still picture with a play button that did nothing.","Behind the scenes: new checking tools for the coming level rebuild make sure every build pad stays in view while you need it. Nothing changes in the levels you have now."]}
+{"notes":["Behind the scenes: newly made levels can no longer copy an earlier level's buildings, layout and order of events. Nothing changes in the levels you have now."]}

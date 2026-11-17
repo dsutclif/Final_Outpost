@@ -345,3 +345,12 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     Two flaky property tests loosened with it: the pile-spawn test (release2-combat) now piles up to 20 bodies, not 40 (a bigger crowd
     arriving at one gate within 3 s can leave two bodies nearly on top of each other: n=22, 31... at 0.23; 0.22 had n=30), and the
     ranged shot-length test allows one unit of slack (a crowd shove after the shot moved a body 5 milli past the range).
+- **Variety and play-shape rules, engine 0.34.0 (outpost-ops#150, #151; rebuild-prep, 2026-11-17).** New levels only; no pack
+    regeneration. The rater's duplicate filter no longer looks at the last 10 levels' modules, goal and template: a candidate
+    is a duplicate when its variety signature (modules, goal, template, layout entities on a 4x4 cut of the map, beat order)
+    matches any earlier level in the pack (`packages/rater/src/variety.ts`, exempt ids in `filters.json`). The pack build
+    re-checks the built pack in level order and rebuilds a repeat against every earlier signature (`tools/variety-pass.ts`), and
+    stores each level's signature in `pack.json` and `build-log.json`. The play-shape rule (no phase over 45% of the level, at
+    least 3 beat types or 2 under two minutes, a new beat after the first third) ships report-only (`playShape.enforce: false`):
+    on beat sheets of first occurrences, a scratch build of Levels 7-16 rejected 30-40 of 40 candidates per slot and stopped,
+    and 7 of 11 sampled s1 levels fail the phase limit. Its numbers are in each rating's evidence; the limits wait on a call.

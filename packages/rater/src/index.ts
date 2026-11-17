@@ -5,3 +5,4 @@ export { rate, rateBatch, score, zScores, computeReference, historyEntry, DEFAUL
 export { terrainStats, type TerrainStats } from "./terrain.js";
 export { ratingDetail, evalManifest, DETAIL_SCHEMA, round4, type RatingDetail, type RunDetail } from "./detail.js";
 export { defendTrace, type DefendTrace, type WaveTrace } from "./defendTrace.js";
+export { varietySignature, varietyParts, layoutGrid, sameAsEarlier, varietyExempt, VARIETY } from "./variety.js";
