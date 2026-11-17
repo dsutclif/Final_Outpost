@@ -101,7 +101,7 @@ export type TraceStep =
   | { t: "lock"; n: number }
   | { t: "walls"; rect: Box4; strip: { s: number; e: number }; gates: number[] }
   | { t: "medic"; at: Pt }
-  | { t: "rock"; id: string; rect: Box4; side: string; pads: Pt[] }
+  | { t: "rock"; id: string; rect: Box4; side: string; pads: Pt[]; rest: Box4[] }
   | { t: "scrap"; id: string; at: Pt; side: string; tries: number; relaxed: boolean; packed?: boolean }
   | { t: "shift"; d: Pt }
   | { t: "scrap-repack"; failed: string }
@@ -118,7 +118,8 @@ export interface WfResult {
   walls: WfWalls | null;
   medic: Pt | null;
   /** The gate rockfall (walled levels): its rectangle, the gate side, and one clear-pad point per square (the pad's own padAt entry is the first). */
-  rock: Record<string, { rect: Box4; side: string; pads: Pt[] }>;
+  /** Gate rockfalls: the clearable gate-width block, its clear pads, and `rest`, the static band pieces that carry it on to the map edges. */
+  rock: Record<string, { rect: Box4; side: string; pads: Pt[]; rest: Box4[] }>;
   scrap: Record<string, { at: Pt; variant: number; side: string }>;
   hidden: string[];
   stats: WfStats;
@@ -685,9 +686,12 @@ export const gateRockSquares = (): number => Math.max(1, Math.round(GATE_WIDTH /
 /**
  * The gate rockfall (Doug's drawing): beyond the first gate on the south side (else east) the wall, a row of clear pads (one per square, a pad
  * box wide, clear of the wall band), then the rockfall touching the row's outer edge, centred on the gate, gateRockSquares() squares wide.
- * A gate whose pads would be hidden, off the map or on something is skipped; null when no gate works. The rockfall is registered as a flat building.
+ * The rest of the rock pile (Doug 2026-11-16) is a static band in line with the rockfall out to both map edges (west and east of a south
+ * rockfall, north and south of an east one), so the gate rockfall is the only way through; clearing it clears the whole band. A gate whose
+ * pads would be hidden, whose rockfall or band would be off the map or on something is skipped; null when no gate works. The rockfall is
+ * registered as a flat building and the band pieces as reserved boxes.
  */
-export function placeGateRock(S: WfState, b: WfBuilding, wl: WfWalls): { rect: Box4; side: string; pads: Pt[] } | null {
+export function placeGateRock(S: WfState, b: WfBuilding, wl: WfWalls): { rect: Box4; side: string; pads: Pt[]; rest: Box4[] } | null {
   const n = gateRockSquares(), depthR = Math.min(b.footprint[2] - b.footprint[0], b.footprint[3] - b.footprint[1]), pad = b.pads[0], band = ringBand(wl), half = ROCK_SQUARE / 2;
   const order = [...wl.gates].sort((x, y) => (wl.side[x] === "s" ? 0 : 1) - (wl.side[y] === "s" ? 0 : 1));
   for (const gi of order) {
@@ -703,12 +707,18 @@ export function placeGateRock(S: WfState, b: WfBuilding, wl: WfWalls): { rect: B
     const boxes = pads.map((q) => boxAt(q, PAD_BOX));
     if (![...boxes, rect].every((bx) => S.inMap(bx) && S.clear(bx, new Set()))) continue;
     if (pad && pads.some((q) => S.padHidden(pad, q))) continue;
+    // Doug 2026-11-16: the rest of the rock pile, a static band in line with the rockfall out to both map edges, so the gate rockfall is the
+    // only way past it; clearing the gate rockfall clears the whole band (sim side: the engine slice), so pods can then be reached directly.
+    const { w, h } = S.input.map;
+    const rest: Box4[] = (sd === "s" ? [[0, rect[1], rect[0], rect[3]], [rect[2], rect[1], w, rect[3]]] : [[rect[0], 0, rect[2], rect[1]], [rect[0], rect[3], rect[2], h]] as Box4[])
+      .filter((q) => q[2] - q[0] > 0 && q[3] - q[1] > 0) as Box4[];
+    if (!rest.every((q) => S.clear(q, new Set()) && !overlaps(q, band))) continue;
     const ctr: Pt = [(rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2];
     S.by.set(b.id, { ...b, footprint: [rect[0] - ctr[0], rect[1] - ctr[1], rect[2] - ctr[0], rect[3] - ctr[1]], pads: [], occ: null });
     S.place(b.id, ctr, -1);
-    S.reserved.push(...boxes);
-    S.log({ t: "rock", id: b.id, rect, side: sd, pads });
-    return { rect, side: sd, pads };
+    S.reserved.push(...boxes, ...rest);
+    S.log({ t: "rock", id: b.id, rect, side: sd, pads, rest });
+    return { rect, side: sd, pads, rest };
   }
   return null;
 }
