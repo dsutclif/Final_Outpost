@@ -34,7 +34,6 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-17 | mit-c (Claude, Track C) | wip/202.3-wavefront-wiring | ENGINE_VERSION bump 0.34.0 -> 0.35.0, levels repin | outpost-ops#202 slice 202.3 |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
