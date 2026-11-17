@@ -6,7 +6,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import content from "../packages/content/data/sinks.json";
 import gen from "../packages/generator/data/generator.json";
-import { ownerOf, staticWindows, type Manifest } from "../packages/generator/src/padRepair.js";
+import { dependents, ownerOf, staticWindows, type Manifest } from "../packages/generator/src/padRepair.js";
 import { PAD_RADIUS, isUpgradePad, type ViewEnt } from "../packages/generator/src/viewVisibility.js";
 import { defaultSpotR, placeWavefront, tallestShape, type WfBuilding, type WfInput, type WfResult } from "../packages/generator/src/wavefront.js";
 
@@ -59,6 +59,11 @@ export function convert(m0: Manifest): Converted {
     const en = e.type === "node.food_source" && e.enabled === false ? enabler.get(String(e.id)) : undefined;
     (en ? built : start).push(mk(String(e.id), e.type, en ? padDepth(en) : 0, FP[e.type]!));
   }
+  // rockfall squares: flat (no occluder), one clear pad each, on the settlement side; the rockfall joins the wavefront of its clear pad
+  for (const e of ents) if (e.type === "zone.blocked" && Array.isArray(e["rect"]) && pads.some((p) => p["target"] === e.id)) {
+    const [, , w, h] = e["rect"] as number[];
+    start.push({ id: String(e.id), kind: "zone.blocked", footprint: [-w! / 2, -h! / 2, w! / 2, h! / 2], occ: null, appear: Math.min(...pads.filter((p) => p["target"] === e.id).map((p) => padDepth(String(p.id)))), pads: [], side: "settlement" });
+  }
   for (const e of pads) if (e.type === "pad.build" && !isUpgradePad(e) && FP[build(e)] && build(e) !== "pad") built.push(mk(String(e.id), build(e), padDepth(String(e.id)), FP[build(e)]!));
   built.sort((a, b) => a.appear - b.appear);
   const all = [...start, ...built], bmap = new Map(all.map((b) => [b.id, b]));
@@ -68,7 +73,13 @@ export function convert(m0: Manifest): Converted {
   const links: [string, string][] = [];
   for (const e of pads) {
     const id = String(e.id);
-    let owner = bmap.has(id) ? id : ownerOf(m, [e])?.id;
+    let owner = bmap.has(id) ? id : undefined;
+    if (!owner && build(e) === "struct.conveyor") {
+      // a belt's pad goes beside the conveyor's start: the source-end machine (nearest of that kind to where the pad was)
+      const from = (e["link"] as { from?: string } | undefined)?.from, d = (b: WfBuilding) => { const a = byId.get(b.id)?.at, q = e.at!; return a ? Math.hypot(a[0] - q[0], a[1] - q[1]) : 1e9; };
+      owner = all.filter((b) => b.kind === from).sort((x, y) => d(x) - d(y))[0]?.id;
+    }
+    owner ??= ownerOf(m, [e])?.id;
     if (!owner || !bmap.has(owner)) { orphans.push(id); owner = core?.id; }
     if (!owner) continue;
     const paid = win.get(id)!.paidBefore;
@@ -84,7 +95,13 @@ export function convert(m0: Manifest): Converted {
   return { input: { buildings: all, map: { w: m.map.w, h: m.map.h } }, orphans };
 }
 
-interface Row { level: string; seed: number; checks: boolean; r: WfResult; ms: number }
+type Variant = { name: string; checks: boolean; repair: "always" | "fallback" };
+const VARIANTS: Variant[] = [
+  { name: "checks on, repair every placement", checks: true, repair: "always" },
+  { name: "checks on, repair as fallback only", checks: true, repair: "fallback" },
+  { name: "checks off", checks: false, repair: "always" },
+];
+interface Row { level: string; seed: number; v: string; r: WfResult; ms: number }
 const levels: { id: string; m: Manifest }[] = [];
 for (const pack of readdirSync(root, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort())
   for (const f of readdirSync(root + pack).filter((f) => /^s1-L\d+\.json$/.test(f)).sort())
@@ -92,10 +109,11 @@ for (const pack of readdirSync(root, { withFileTypes: true }).filter((d) => d.is
 
 const conv = new Map(levels.map((l) => [l.id, convert(l.m)]));
 const runs: Row[] = [];
-const run = (level: string, seed: number, checks: boolean) => { const t = Date.now(); const r = placeWavefront(conv.get(level)!.input, { seed, siteChecks: checks }); runs.push({ level, seed, checks, r, ms: Date.now() - t }); };
-for (const checks of [true, false]) {
-  for (const l of levels) for (let s = 1; s <= PER; s++) run(l.id, s, checks);
-  if (conv.has("s1-L020")) for (let s = PER + 1; s <= PER + L20; s++) run("s1-L020", s, checks);
+const run = (level: string, seed: number, v: Variant) => { const t = performance.now(); const r = placeWavefront(conv.get(level)!.input, { seed, siteChecks: v.checks, repair: v.repair }); runs.push({ level, seed, v: v.name, r, ms: performance.now() - t }); };
+run(levels[0]!.id, 1, VARIANTS[0]!); runs.pop(); // warm-up
+for (const v of VARIANTS) {
+  for (const l of levels) for (let s = 1; s <= PER; s++) run(l.id, s, v);
+  if (conv.has("s1-L020")) for (let s = PER + 1; s <= PER + L20; s++) run("s1-L020", s, v);
 }
 
 const pct = (n: number, d: number) => (d ? ((100 * n) / d).toFixed(1) : "-") + "%";
@@ -109,24 +127,56 @@ const table = (rows: Row[]) => {
     allVisible: pct(ok.filter((x) => x.r.stats.hiddenPads === 0).length, rows.length),
     rejected: pct(rows.length - ok.length, rows.length),
     pushesMean: mean(push).toFixed(2), pushesMax: Math.max(0, ...push),
-    distPerSeed: mean(dist).toFixed(1), distPerPush: (push.reduce((a, b) => a + b, 0) ? dist.reduce((a, b) => a + b, 0) / push.reduce((a, b) => a + b, 0) : 0).toFixed(1),
+    distPerSeed: mean(dist).toFixed(1),
     hiddenPads: ok.reduce((a, x) => a + x.r.stats.hiddenPads, 0),
     fallbacks: mean(rows.map((x) => x.r.stats.fallbacks)).toFixed(2),
-    msMean: mean(rows.map((x) => x.ms)).toFixed(0),
+    repairs: mean(rows.map((x) => x.r.stats.repairs)).toFixed(2),
+    msMean: mean(rows.map((x) => x.ms)).toFixed(2),
+    msMax: Math.max(...rows.map((x) => x.ms)).toFixed(1),
     rejectKinds: Object.entries(kinds).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k}:${n}`).join(" ") || "-",
   };
 };
 const orph = [...conv.values()].reduce((a, c) => a + c.orphans.length, 0);
 console.log(`levels ${levels.length}, seeds per level ${PER}, Level 20 extra seeds ${L20}; pads with no owning building (put on the Core): ${orph}`);
 const out: Record<string, unknown> = {};
-for (const checks of [true, false]) {
-  const rs = runs.filter((x) => x.checks === checks);
-  out[`all checks=${checks}`] = table(rs);
-  out[`L20 checks=${checks}`] = table(rs.filter((x) => x.level === "s1-L020"));
+for (const v of VARIANTS) {
+  const rs = runs.filter((x) => x.v === v.name);
+  out[`all: ${v.name}`] = table(rs);
+  out[`L20: ${v.name}`] = table(rs.filter((x) => x.level === "s1-L020"));
 }
 console.table(out);
-// hidden pads left on non-rejected seeds: which pad ids (kind prefix), for the report
 const hidden: Record<string, number> = {};
-for (const x of runs) if (!x.r.rejected) for (const id of x.r.hidden) { const k = `${x.checks ? "on" : "off"} ${id.replace(/\d+$/, "")}`; hidden[k] = (hidden[k] ?? 0) + 1; }
+for (const x of runs) if (!x.r.rejected) for (const id of x.r.hidden) { const k = `${x.v} | ${id.replace(/\d+$/, "")}`; hidden[k] = (hidden[k] ?? 0) + 1; }
 console.log("hidden pads by id prefix:", JSON.stringify(hidden));
-if (OUT) writeFileSync(OUT, JSON.stringify(runs.map((x) => ({ level: x.level, seed: x.seed, checks: x.checks, rejected: x.r.rejected, stats: x.r.stats, hidden: x.r.hidden }))));
+
+// Stacked pads: the pads of one building share one spot and must appear one after another. Two pads of a stack can be live at
+// once unless one needs the other spent (padRepair.dependents; a coreLevel requirement counts as needing the core_level pad before it).
+const stackOverlaps: { level: string; building: string; a: string; b: string }[] = [];
+for (const l of levels) {
+  const m = JSON.parse(JSON.stringify(l.m)) as Manifest;
+  m.entities.forEach((e, i) => { if (e.id === undefined) e.id = `${e.type}#${i}`; });
+  for (const e of m.entities) {
+    const r = ((e as { requires?: { coreLevel?: number; pad?: string } }).requires ??= {}) as { coreLevel?: number; pad?: string };
+    if (e.type.startsWith("pad.") && r.coreLevel && r.coreLevel >= 2 && !r.pad && m.entities.some((x) => x.id === `core_level${r.coreLevel! - 2}`) && e.id !== `core_level${r.coreLevel - 2}`) r.pad = `core_level${r.coreLevel - 2}`;
+  }
+  for (const b of conv.get(l.id)!.input.buildings) {
+    const ids = b.pads.map((p) => p.id);
+    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++)
+      if (!dependents(m, ids[i]!).has(ids[j]!) && !dependents(m, ids[j]!).has(ids[i]!)) stackOverlaps.push({ level: l.id, building: b.id, a: ids[i]!, b: ids[j]! });
+  }
+}
+const lvls = new Set(stackOverlaps.map((x) => x.level));
+console.log(`stacked pads live at the same time: ${stackOverlaps.length} pairs in ${lvls.size} levels`);
+for (const x of stackOverlaps.slice(0, 15)) console.log(`  ${x.level} ${x.building}: ${x.a} + ${x.b}`);
+if (OUT) writeFileSync(OUT, JSON.stringify({ runs: runs.map((x) => ({ level: x.level, seed: x.seed, variant: x.v, ms: x.ms, rejected: x.r.rejected, stats: x.r.stats, hidden: x.r.hidden })), stackOverlaps }));
+
+// belt pads sit in the stack of the conveyor's source-end machine; rockfall clear pads in their rockfall's own stack
+let belts = 0, beltOk = 0, rocks = 0, rockOk = 0;
+for (const l of levels) {
+  const inp = conv.get(l.id)!.input;
+  for (const e of l.m.entities) {
+    if (e.type === "pad.build" && (e as { build?: string }).build === "struct.conveyor") { belts++; const o = inp.buildings.find((b) => b.pads.some((p) => p.id === e.id)); if (o && o.kind === (e as unknown as { link: { from: string } }).link.from) beltOk++; }
+    if (e.type === "pad.build" && (e as { build?: string }).build === "zone.clear") { rocks++; const o = inp.buildings.find((b) => b.pads.some((p) => p.id === e.id)); if (o && o.kind === "zone.blocked" && o.id === e["target"]) rockOk++; }
+  }
+}
+console.log(`belt pads on the source machine: ${beltOk}/${belts}; rockfall clear pads on their rockfall: ${rockOk}/${rocks}`);

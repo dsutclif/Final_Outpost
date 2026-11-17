@@ -103,3 +103,54 @@ describe("wavefront placement", () => {
     }
   });
 });
+
+describe("salvage piles, rockfall pads, repair option (Doug 2026-11-16)", () => {
+  const pile = (id: string): WfBuilding => ({ id, kind: "node.salvage_pile", footprint: FP["node.salvage_pile"]!, occ: tallestShape("node.salvage_pile"), appear: 0, pads: [] });
+  const rock: WfBuilding = { id: "rock", kind: "zone.blocked", footprint: [-60, -35, 60, 35], occ: null, appear: 1, side: "settlement", pads: [{ id: "clear0", coexist: ["core", "rock"], ignore: ["rock"] }] };
+  const big = { w: 480, h: 900 };
+
+  it("places every salvage pile first, at the north-west edge, locked and never pushed", () => {
+    const bs: WfBuilding[] = [core(["core", "m1", "p1", "p2"]), machine("m1"), pile("p1"), pile("p2")];
+    for (const siteChecks of [true, false]) {
+      const r = placeWavefront({ buildings: bs, map: big }, { seed: 3, siteChecks, trace: true });
+      expect(r.rejected).toBeNull();
+      const places = r.trace.filter((t) => t.t === "place").map((t) => (t as Extract<TraceStep, { t: "place" }>).id);
+      expect(places.slice(0, 2)).toEqual(["p1", "p2"]);
+      const d = (id: string) => r.positions[id]![0] + r.positions[id]![1];
+      for (const id of ["core", "m1"]) expect(d("p1")).toBeLessThan(d(id));
+      expect(d("p1")).toBeLessThanOrEqual(d("p2"));
+      // a pile stands against the corner: its footprint touches x = 0 or y = 0
+      const f = FP["node.salvage_pile"]!;
+      expect(Math.min(r.positions["p1"]![0] + f[0], r.positions["p1"]![1] + f[1])).toBeLessThan(6);
+      expect(r.trace.some((t) => t.t === "move" && (t.id === "p1" || t.id === "p2"))).toBe(false);
+    }
+  });
+
+  it("puts a rockfall's clear pad right beside it on the settlement side; the rockfall hides nothing", () => {
+    const bs: WfBuilding[] = [core(["core", "rock"]), rock];
+    // with the site checks on the pad is on the near side and visible past the locked Core
+    const r = placeWavefront({ buildings: bs, map: big }, { seed: 5, siteChecks: true });
+    expect(r.rejected).toBeNull();
+    expect(r.stats.hiddenPads).toBe(0);
+    const at = r.positions["rock"]!, c = r.positions["core"]!, pad = r.padSpots["rock"]!.at;
+    expect(Math.hypot(pad[0] - c[0], pad[1] - c[1])).toBeLessThan(Math.hypot(at[0] - c[0], at[1] - c[1]) + 60);
+    // adjacent: the pad box sits against the rockfall's footprint edge, never on it
+    const dx = Math.max(Math.abs(pad[0] - at[0]) - 60, 0), dy = Math.max(Math.abs(pad[1] - at[1]) - 35, 0);
+    expect(Math.hypot(dx, dy)).toBeLessThan(40);
+    expect(Math.abs(pad[0] - at[0]) > 60 || Math.abs(pad[1] - at[1]) > 35).toBe(true);
+    expect(placeWavefront({ buildings: bs, map: big }, { seed: 5, siteChecks: false }).rejected).toBeNull();
+  });
+
+  it("repair 'fallback' skips the repair when a site passed; 'always' gives the same layout when nothing is hidden", () => {
+    const bs: WfBuilding[] = [core(["core", "m1"]), machine("m1")];
+    const a = placeWavefront({ buildings: bs, map: big }, { seed: 9, siteChecks: true, repair: "always" });
+    const f = placeWavefront({ buildings: bs, map: big }, { seed: 9, siteChecks: true, repair: "fallback" });
+    expect(f.positions).toEqual(a.positions);
+    expect(f.stats.repairs).toBe(0);
+    expect(f.stats.hiddenPads).toBe(0);
+    // checks off: the fallback option behaves like 'always'
+    const o1 = placeWavefront({ buildings: bs, map: big }, { seed: 9, siteChecks: false, repair: "always" });
+    const o2 = placeWavefront({ buildings: bs, map: big }, { seed: 9, siteChecks: false, repair: "fallback" });
+    expect(o2).toEqual(o1);
+  });
+});

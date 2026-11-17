@@ -45,12 +45,17 @@ export interface WfBuilding {
   pads: readonly WfPad[];
   /** Distance of the pad spots from the centre (default: the smallest that keeps a pad box off the footprint). */
   spotR?: number;
+  /** "settlement": the pad spots face the already-placed settlement (a rockfall's clear pad sits on the side away from the zone it opens). */
+  side?: "settlement";
 }
+export const SALVAGE_KIND = "node.salvage_pile";
 export interface WfInput { buildings: readonly WfBuilding[]; map: { w: number; h: number } }
 export interface WfOptions {
   seed: number;
   /** The two pre-placement site checks (a visible spot past locked buildings; no live pad under the new building's strip). */
   siteChecks: boolean;
+  /** When the repair loop runs: after every placement ("always", default) or only when no site passed the two checks ("fallback"; with the checks off it behaves as "always"). */
+  repair?: "always" | "fallback";
   /** Wavefront 0's anchor before jitter (default: the map centre moved ORIGIN_BACK north-west along the depth axis). */
   origin?: Pt;
   /** Seeded jitter of the anchor along both axes, +-units (default 30). */
@@ -108,16 +113,16 @@ const boxAt = (p: Pt, f: Box4): Box4 => [p[0] + f[0], p[1] + f[1], p[0] + f[2], 
 const depth = (p: Pt) => p[0] * U[0] + p[1] * U[1];
 
 /** Smallest spot distance at which none of the 3 south-east pad boxes touches the footprint. */
-export function defaultSpotR(fp: Box4): number {
-  for (let r = 1; r < 1000; r++) if (REPAIR_DIRS.every((d) => !overlaps(boxAt([Math.round((d[0] * r) / 1000), Math.round((d[1] * r) / 1000)], PAD_BOX), fp))) return r;
+export function defaultSpotR(fp: Box4, dirs: readonly Pt[] = REPAIR_DIRS): number {
+  for (let r = 1; r < 1000; r++) if (dirs.every((d) => !overlaps(boxAt([Math.round((d[0] * r) / 1000), Math.round((d[1] * r) / 1000)], PAD_BOX), fp))) return r;
   return 1000;
 }
 /** A building's 3 plot spots, south-east first (padRepair.candidates' directions and rounding). */
-export function spotsOf(at: Pt, r: number): Pt[] {
-  return REPAIR_DIRS.map((d) => [at[0] + Math.round((d[0] * r) / 1000), at[1] + Math.round((d[1] * r) / 1000)] as Pt);
+export function spotsOf(at: Pt, r: number, dirs: readonly Pt[] = REPAIR_DIRS): Pt[] {
+  return dirs.map((d) => [at[0] + Math.round((d[0] * r) / 1000), at[1] + Math.round((d[1] * r) / 1000)] as Pt);
 }
 
-interface Placed { b: WfBuilding; at: Pt; spot: number; wave: number; r: number }
+interface Placed { b: WfBuilding; at: Pt; spot: number; wave: number; r: number; dirs: readonly Pt[] }
 /**
  * The mutable layout the loop works on. Exported so tests can set positions by hand and run one repair.
  */
@@ -133,9 +138,27 @@ export class WfState {
     for (const b of input.buildings) { this.by.set(b.id, b); for (const p of b.pads) this.padOwner.set(p.id, b.id); }
   }
   log(s: TraceStep): void { if (this.opts.trace) this.trace.push(s); }
-  spotR(b: WfBuilding): number { return b.spotR ?? defaultSpotR(b.footprint); }
-  place(id: string, at: Pt, wave: number, spot = 0): void { const b = this.by.get(id)!; this.placed.set(id, { b, at, spot, wave, r: this.spotR(b) }); }
-  spotAt(id: string, i?: number): Pt { const p = this.placed.get(id)!; return spotsOf(p.at, p.r)[i ?? p.spot]!; }
+  spotR(b: WfBuilding, dirs: readonly Pt[] = REPAIR_DIRS): number { return b.spotR ?? defaultSpotR(b.footprint, dirs); }
+  /**
+   * The 3 pad-spot directions (x1000) of `b` at `at`: south-east first for most; for side "settlement" (a rockfall) straight toward the
+   * centre of the settlement placed so far, then 40 degrees either side. Salvage piles and other side buildings do not count as settlement.
+   */
+  dirsFor(b: WfBuilding, at: Pt): readonly Pt[] {
+    if (b.side !== "settlement") return REPAIR_DIRS;
+    let sx = 0, sy = 0, n = 0;
+    for (const p of this.placed.values()) if (!p.b.side && p.b.kind !== SALVAGE_KIND) { sx += p.at[0]; sy += p.at[1]; n++; }
+    if (!n) return REPAIR_DIRS;
+    const len = Math.hypot(sx / n - at[0], sy / n - at[1]) || 1, ux = (sx / n - at[0]) / len, uy = (sy / n - at[1]) / len;
+    const rot = (a: number): Pt => [Math.round(1000 * (ux * Math.cos(a) - uy * Math.sin(a))), Math.round(1000 * (ux * Math.sin(a) + uy * Math.cos(a)))];
+    return [rot(0), rot(0.7), rot(-0.7)];
+  }
+  /** Dirs, spot distance and the 3 spots of `b` if it stood at `at`. */
+  spotsAt(b: WfBuilding, at: Pt): { dirs: readonly Pt[]; r: number; spots: Pt[] } {
+    const dirs = this.dirsFor(b, at), r = this.spotR(b, dirs);
+    return { dirs, r, spots: spotsOf(at, r, dirs) };
+  }
+  place(id: string, at: Pt, wave: number, spot = 0): void { const b = this.by.get(id)!; const { dirs, r } = this.spotsAt(b, at); this.placed.set(id, { b, at, spot, wave, r, dirs }); }
+  spotAt(id: string, i?: number): Pt { const p = this.placed.get(id)!; return spotsOf(p.at, p.r, p.dirs)[i ?? p.spot]!; }
   inMap(bx: Box4): boolean { return bx[0] >= 0 && bx[1] >= 0 && bx[2] <= this.input.map.w && bx[3] <= this.input.map.h; }
   /** Boxes standing on the map: every placed footprint and pad stack box, minus the excluded ids ("fp:id" / "pad:id"). */
   clear(bx: Box4, skip: ReadonlySet<string>): boolean {
@@ -234,7 +257,7 @@ export class WfState {
     for (let d = this.opts.step; d <= max; d += this.opts.step) {
       for (const dir of DIRS) {
         const to: Pt = [start[0] + dir.d[0] * d, start[1] + dir.d[1] * d];
-        const fp = boxAt(to, b.footprint), pb = b.pads.length ? boxAt(spotsOf(to, p.r)[p.spot]!, PAD_BOX) : null;
+        const fp = boxAt(to, b.footprint), pb = b.pads.length ? boxAt(spotsOf(to, p.r, p.dirs)[p.spot]!, PAD_BOX) : null;
         if (!this.inMap(fp) || (pb && !this.inMap(pb))) {
           if (!dry) { this.rejected = { id: blocker, kind: b.kind, pad: padId }; this.log({ t: "reject", id: blocker, kind: b.kind, pad: padId, d, dir: dir.name }); }
           return "reject";
@@ -294,7 +317,20 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
       trace: S.trace,
     };
   };
-  const waves = wavefronts(input.buildings);
+  // the salvage piles go first, at the north-west edge of the map, locked (wave -1) so they are never pushed
+  const piles = input.buildings.filter((b) => b.kind === SALVAGE_KIND);
+  if (piles.length) {
+    const sites: Pt[] = [];
+    for (let y = 0; y <= h; y += step) for (let x = 0; x <= w; x += step) sites.push([x, y]);
+    sites.sort((p, q) => p[0] + p[1] - (q[0] + q[1]) || p[1] - q[1]);
+    for (const b of piles) {
+      const at = sites.find((q) => { const fp = boxAt(q, b.footprint); return S.inMap(fp) && S.clear(fp, new Set()); });
+      if (!at) { S.rejected = { id: b.id, kind: b.kind, pad: "" }; S.log({ t: "reject", id: b.id, kind: b.kind, pad: "", d: 0, dir: "no free site" }); return done(); }
+      S.place(b.id, at, -1);
+      S.log({ t: "place", id: b.id, at, spot: 0, checked: false, fallback: false, tried: 0 });
+    }
+  }
+  const waves = wavefronts(input.buildings.filter((b) => b.kind !== SALVAGE_KIND));
   let front = depth(origin);
   for (let n = 0; n < waves.length; n++) {
     const wave = waves[n]!;
@@ -302,13 +338,15 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
     const anchor: Pt = [origin[0] + U[0] * (front - depth(origin)), origin[1] + U[1] * (front - depth(origin))];
     S.log({ t: "wave", n, ids: wave.map((b) => b.id), front: Math.round(front) });
     for (const b of wave) {
-      const flip = rng.chance(0.5) ? -1 : 1, r = S.spotR(b);
+      const flip = rng.chance(0.5) ? -1 : 1;
       let firstFree: Pt | null = null, chosen: { at: Pt; spot: number } | null = null, tried = 0, fb = false;
       for (const [a, bv] of offs) {
         const at: Pt = [anchor[0] + U[0] * a + V[0] * bv * flip, anchor[1] + U[1] * a + V[1] * bv * flip];
+        // a band that spans the whole map width (a rockfall pass) can only stand centred across it
+        if (b.footprint[2] - b.footprint[0] >= w - 2) at[0] = w / 2 - (b.footprint[0] + b.footprint[2]) / 2;
         const fp = boxAt(at, b.footprint);
         if (!S.inMap(fp) || !S.clear(fp, new Set())) continue;
-        const spots = spotsOf(at, r);
+        const spots = S.spotsAt(b, at).spots;
         const legal = b.pads.length ? spots.map((q) => { const bx = boxAt(q, PAD_BOX); return S.inMap(bx) && S.clear(bx, new Set()) && overlaps(bx, fp) === false; }) : [];
         if (b.pads.length && !legal.some(Boolean)) continue;
         firstFree ??= at;
@@ -344,19 +382,19 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
       if (!chosen) {
         if (!firstFree) { S.rejected = { id: b.id, kind: b.kind, pad: "" }; S.log({ t: "reject", id: b.id, kind: b.kind, pad: "", d: 0, dir: "no free site" }); return done(); }
         if (o.siteChecks) { fallbacks++; fb = true; }
-        const spots = spotsOf(firstFree, r);
+        const spots = S.spotsAt(b, firstFree).spots;
         const i = b.pads.length ? Math.max(0, spots.findIndex((q) => S.spotLegal(b.id, q))) : 0;
         chosen = { at: firstFree, spot: i };
       }
       S.place(b.id, chosen.at, n, chosen.spot);
       if (b.pads.length && !chosen.spot && !S.spotLegal(b.id, S.spotAt(b.id))) {
         // the fallback site's spot with no free box: keep the first legal one if any
-        const i = spotsOf(chosen.at, r).findIndex((q) => S.spotLegal(b.id, q));
+        const i = S.spotsAt(b, chosen.at).spots.findIndex((q) => S.spotLegal(b.id, q));
         if (i >= 0) S.placed.get(b.id)!.spot = i;
       }
       S.log({ t: "place", id: b.id, at: chosen.at, spot: S.placed.get(b.id)!.spot, checked: o.siteChecks, fallback: fb, tried });
       // repair every live pad that is hidden now (the fallback's repair; a no-op when the checks held), cascades included
-      const queue = S.hiddenPads();
+      const queue = o.repair === "fallback" && o.siteChecks && !fb ? [] : S.hiddenPads();
       const seen = new Map<string, number>();
       while (queue.length) {
         const pad = queue.shift()!;
