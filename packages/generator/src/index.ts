@@ -12,7 +12,7 @@ import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
 import { candidateSettings, roundKnobs, type CandidateRecord } from "./record.js";
 
-export { dressingKnobs, capWavePoints, wavePoints, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, applyNightCadence, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
+export { dressingKnobs, capWavePoints, wavePoints, withWaveFallback, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, applyNightCadence, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
 export { scrapBudget, scrapNeed, waveScrap } from "./budget.js";
 export { skinText, dedupeTitles } from "./text.js";

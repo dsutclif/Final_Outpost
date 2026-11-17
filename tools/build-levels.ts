@@ -8,7 +8,7 @@ import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { computeReference, type HistoryEntry, type Measurement, type Metrics } from "../packages/rater/src/index.js";
 import { sequenceRange, type LevelRequest, type RecipeRegister } from "../packages/sequencer/src/index.js";
 import { buildWithRerolls, describeRecipe, stopMessage, type SlotOutcome } from "./recipe-reroll.js";
-import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
+import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, withWaveFallback, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
 import { digestLog } from "./candidate-digest.js";
 import { VARIETY } from "../packages/rater/src/variety.js";
@@ -75,6 +75,8 @@ export interface LevelResult {
   attempts: number;
   rejects: Record<string, number>;
   ratings: number;
+  /** Defend levels: false where the denser waves failed and the level was built with today's wave sizing (outpost-ops#93). */
+  denseWaves?: boolean;
 }
 
 const historyFor = (reqs: readonly LevelRequest[], index: number): HistoryEntry[] =>
@@ -105,22 +107,28 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
     ...planned.map((h) => (h.id !== undefined && sig.has(h.id) ? { ...h, signature: sig.get(h.id)! } : h)),
   ];
   const t0 = Date.now();
-  let best: Candidate | null = null;
-  let shipped: Candidate | null = null;
   const rejects: Record<string, number> = {};
   let ratings = 0, attempts = 0;
   const candidates: (CandidateRecord & { attempt: number; seed: number })[] = [];
-  const memory = newSearchMemory();
-  for (let k = retryBase; k <= retryBase + retries && !shipped && !memory.settled; k++) {
-    attempts++;
-    const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
-    const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retryBase + retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
-    for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
-    ratings += d.stats.ratings;
-    if (d.manifest && d.best) shipped = d.best;
-    if (d.best && (!best || d.best.err < best.err)) best = d.best;
-  }
-  const pick = shipped ?? best;
+  const search = () => {
+    let best: Candidate | null = null, shipped: Candidate | null = null;
+    const memory = newSearchMemory();
+    for (let k = retryBase; k <= retryBase + retries && !shipped && !memory.settled; k++) {
+      attempts++;
+      const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
+      const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retryBase + retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
+      for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
+      ratings += d.stats.ratings;
+      if (d.manifest && d.best) shipped = d.best;
+      if (d.best && (!best || d.best.err < best.err)) best = d.best;
+    }
+    return { shipped, pick: shipped ?? best };
+  };
+  // Denser defend waves (outpost-ops#93): a recipe they fail is searched again with today's wave sizing (Doug, 2026-11-17).
+  const failGap = register.settings.failGap;
+  const { result: { shipped, pick }, dense } = withWaveFallback(req.family === "defend" || req.secondary === "defend", search,
+    (s) => !s.pick || Math.abs(s.pick.rating.D - req.target) > failGap);
+  if (verbose && !dense && (req.family === "defend" || req.secondary === "defend")) process.stderr.write(`[${req.id}] built with today's wave sizing\n`);
   const level = { index, id: req.id, family: req.family, secondary: req.secondary, features: req.features, goalType: req.goalType, template: req.template, target: req.target };
   process.stdout.write(`CANDIDATES ${JSON.stringify(candidates.map((c) => ({ ...level, ...c })))}\n`);
   // The recipe failed (outpost-ops#198): nothing ships, or the closest level is further than the
@@ -140,7 +148,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
     stars: pick.stars, starsByRung: pick.starsByRung,
     modules: m.modules, goal: m.goal.type, template: req.template, target: req.target, D: r.D, F: r.F, onTarget: shipped !== null,
     margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, beats: r.beats, signature: r.signature, seconds: (Date.now() - t0) / 1000, seed: m.seed,
-    attempts, rejects, ratings,
+    attempts, rejects, ratings, ...(req.family === "defend" || req.secondary === "defend" ? { denseWaves: dense } : {}),
   };
   process.stdout.write(`RESULT ${JSON.stringify({ ...res, req })}\n`);
 }

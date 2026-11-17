@@ -180,6 +180,19 @@ export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Conte
   return true;
 }
 
+/**
+ * Doug (2026-11-17): where a defend level cannot be built with the denser waves (its search fails: humanLost or
+ * infeasible on every seed), it is built with today's wave sizing instead (waveCap 0) rather than built worse or not
+ * at all. Runs `run` once; on a defend level that `failed`, runs it again with waveCap 0 and puts the cap back.
+ */
+export function withWaveFallback<R>(defend: boolean, run: () => R, failed: (r: R) => boolean): { result: R; dense: boolean } {
+  const DW = GEN.defendWaves, cap = DW.waveCap;
+  const first = run();
+  if (!defend || cap <= 0 || !failed(first)) return { result: first, dense: defend && cap > 0 };
+  DW.waveCap = 0;
+  try { return { result: run(), dense: false }; } finally { DW.waveCap = cap; }
+}
+
 /** Footprints of what the renderer draws larger (look.json buildScale: buildings and the greenhouse dome) grow with it. */
 export const isSizedFootprint = (k: string): boolean => /^(sink|conv|struct)\./.test(k) || k === "node.food_source";
 const GEN_BASE = structuredClone({ footprints: GEN.footprints, crewStations: GEN.crewStations, depotCrewStations: GEN.depotCrewStations, corePadBeside: GEN.corePadBeside, beltGap: GEN.beltGap });
