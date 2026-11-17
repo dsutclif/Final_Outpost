@@ -6,7 +6,7 @@ import { mixWaves, wavePoints } from "../src/build.js";
 
 // Mixed waves (outpost-ops#92): the late, packed defend waves bring swarmlings, raiders and creatures together and a
 // few more attackers, still spawning within spawnMax and within the wave cap. Over 40 defend builds.
-type W = { t: number; counts: Record<string, number>; side?: unknown; gap?: number };
+type W = { t: number; counts: Record<string, number>; side?: string | string[]; gap?: number };
 const DW = GEN.defendWaves;
 const defs = sequenceRange(1, 60).filter((r) => r.family === "defend");
 const cases = Array.from({ length: 40 }, (_, j) => ({ r: defs[j % defs.length]!, seed: defs[j % defs.length]!.seed + Math.floor(j / defs.length) * 7919, p: (j % 5) / 4 }));
