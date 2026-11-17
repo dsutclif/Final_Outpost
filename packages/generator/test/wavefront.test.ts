@@ -334,6 +334,23 @@ describe("ring fit, gate sides and the gate rockfall (outpost-ops#202, Doug 2026
   const rock = (): WfBuilding => ({ id: "pass", kind: "zone.blocked", footprint: [-240, -22, 240, 22], occ: null, appear: 1, pads: [{ id: "clear_pass", coexist: ["core"] }], side: "settlement", gateRock: true });
   const level = (): WfBuilding[] => [core(["core"]), rock()];
 
+  it("carries the gate rockfall on to both map edges as a static band, so the rockfall is the only way past it", () => {
+    for (const seed of [1, 2, 3]) {
+      const r = placeWavefront({ buildings: level(), map: MAP, walls: spec }, { seed, siteChecks: true });
+      expect(r.rejected).toBeNull();
+      const k = r.rock["pass"]!;
+      expect(k.side).toBe("s");
+      expect(k.rest).toHaveLength(2);
+      const [west, east] = k.rest as [number, number, number, number][];
+      // in line with the rockfall, touching it, reaching the map edges: rockfall + band span the whole width
+      expect(west![0]).toBe(0); expect(west![2]).toBe(k.rect[0]); expect(east![0]).toBe(k.rect[2]); expect(east![2]).toBe(MAP.w);
+      for (const q of k.rest) { expect(q[1]).toBe(k.rect[1]); expect(q[3]).toBe(k.rect[3]); expect(q[1]).toBeGreaterThan(r.walls!.rect[3]); }
+      // nothing stands on the band
+      for (const id of Object.keys(r.positions)) if (id !== "pass") for (const q of k.rest) { const p = r.positions[id]!; expect(p[0] > q[0] && p[0] < q[2] && p[1] > q[1] && p[1] < q[3]).toBe(false); }
+      if (r.medic) for (const q of k.rest) expect(r.medic[0] > q[0] && r.medic[0] < q[2] && r.medic[1] > q[1] && r.medic[1] < q[3]).toBe(false);
+    }
+  });
+
   it("fits the settlement only: a big shipped ring size is not a minimum", () => {
     const r = placeWavefront({ buildings: level(), map: MAP, walls: spec }, { seed: 1, siteChecks: true });
     expect(r.rejected).toBeNull();
