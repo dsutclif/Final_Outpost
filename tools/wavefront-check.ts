@@ -8,7 +8,7 @@ import content from "../packages/content/data/sinks.json";
 import gen from "../packages/generator/data/generator.json";
 import { dependents, ownerOf, staticWindows, type Manifest } from "../packages/generator/src/padRepair.js";
 import { PAD_RADIUS, isUpgradePad, type ViewEnt } from "../packages/generator/src/viewVisibility.js";
-import { defaultSpotR, placeWavefront, tallestShape, type WfBuilding, type WfInput, type WfResult } from "../packages/generator/src/wavefront.js";
+import { gateStrip, SCRAP_RANGE, SALVAGE_KIND, defaultSpotR, placeWavefront, scrapShape, scrapStrip, tallestShape, wallStrip, WALL_HALF, type WfBuilding, type WfInput, type WfMedic, type WfResult, type WfWallSpec } from "../packages/generator/src/wavefront.js";
 
 type Box4 = [number, number, number, number];
 const FP = (gen as unknown as { footprints: Record<string, Box4> }).footprints;
@@ -21,7 +21,7 @@ const root = fileURLToPath(new URL("../levels/packs/", import.meta.url));
 /** Not placed: walls, zones, the scrap fuel scatter (no model tall enough to hide a pad, no pads), wall-line gates. */
 const SKIP = new Set(["node.fuel_scrap", "pad", "pad.big"]);
 
-export interface Converted { input: WfInput; orphans: string[] }
+export interface Converted { input: WfInput; orphans: string[]; overlapPairs: { building: string; a: string; b: string }[] }
 /** A level's buildings in order of first appearance, with their pads and live windows; positions are not carried over. */
 export function convert(m0: Manifest): Converted {
   const m = JSON.parse(JSON.stringify(m0)) as Manifest;
@@ -42,12 +42,14 @@ export function convert(m0: Manifest): Converted {
   // the pad that switches a locked grow dome on (it appears then)
   const enabler = new Map(pads.filter((e) => build(e) === "node.enable" && e["target"]).map((e) => [String(e["target"]), String(e.id)]));
   const start: WfBuilding[] = [], built: WfBuilding[] = [];
-  const mk = (id: string, kind: string, appear: number, fp: Box4): WfBuilding => {
-    const occ = tallestShape(kind);
+  const mk = (id: string, kind: string, appear: number, fp: Box4, variant?: number): WfBuilding => {
+    const occ = variant !== undefined ? scrapShape(variant) : tallestShape(kind);
     const spotR = kind === "sink.core" ? Math.min(defaultSpotR(fp), CORE_RING) : undefined;
-    return { id, kind, footprint: fp, occ, appear, pads: [], ...(spotR !== undefined ? { spotR } : {}) };
+    return { id, kind, footprint: fp, occ, appear, pads: [], ...(spotR !== undefined ? { spotR } : {}), ...(variant !== undefined ? { variant } : {}) };
   };
+  let nodeI = 0;
   for (const e of ents) {
+    const ni = e.type.startsWith("node.") ? nodeI++ : -1;
     if (e.type.startsWith("pad.") || !e.at || SKIP.has(e.type)) continue;
     if (e.type === "struct.gate") {
       if (!e["arrivals"]) continue; // walls' gates are ignored; the survivors' arrival gate counts (gate_arrivals levels)
@@ -57,7 +59,7 @@ export function convert(m0: Manifest): Converted {
     }
     if (!FP[e.type]) continue;
     const en = e.type === "node.food_source" && e.enabled === false ? enabler.get(String(e.id)) : undefined;
-    (en ? built : start).push(mk(String(e.id), e.type, en ? padDepth(en) : 0, FP[e.type]!));
+    (en ? built : start).push(mk(String(e.id), e.type, en ? padDepth(en) : 0, FP[e.type]!, e.type === SALVAGE_KIND ? 1 + (ni % 3) : undefined));
   }
   // rockfall squares: flat (no occluder), one clear pad each, on the settlement side; the rockfall joins the wavefront of its clear pad
   for (const e of ents) if (e.type === "zone.blocked" && Array.isArray(e["rect"]) && pads.some((p) => p["target"] === e.id)) {
@@ -71,8 +73,14 @@ export function convert(m0: Manifest): Converted {
   const win = staticWindows(m), orphans: string[] = [];
   const core = all.find((b) => b.kind === "sink.core");
   const links: [string, string][] = [];
+  let medic: WfMedic | undefined;
   for (const e of pads) {
     const id = String(e.id);
+    if (e.type === "pad.hire" && (e["role"] as { role?: string } | undefined)?.role === "role.medic") {
+      const pd = win.get(id)!.paidBefore;
+      medic = { id, coexist: [...startIds, ...all.filter((b) => !startIds.includes(b.id) && (pd.has(b.id) || (enabler.has(b.id) && pd.has(enabler.get(b.id)!)))).map((b) => b.id)] };
+      continue;
+    }
     let owner = bmap.has(id) ? id : undefined;
     if (!owner && build(e) === "struct.conveyor") {
       // a belt's pad goes beside the conveyor's start: the source-end machine (nearest of that kind to where the pad was)
@@ -92,7 +100,33 @@ export function convert(m0: Manifest): Converted {
     if (r.node && r.to && /^conv\./.test(r.to)) { const c = ownerOf(m, [{ ...e, role: { to: r.to } } as ViewEnt]); if (c && bmap.has(r.node) && bmap.has(c.id)) links.push([r.node, c.id]); }
   }
   for (const [a, b] of links) { const x = bmap.get(a)!; x.links = [...(x.links ?? []), b]; }
-  return { input: { buildings: all, map: { w: m.map.w, h: m.map.h } }, orphans };
+  // pads of one building that are live at the same time: a pad needing the other spent is one after another (padRepair.dependents; a coreLevel
+  // requirement counts as needing the core_level pad before it)
+  const m2 = JSON.parse(JSON.stringify(m0)) as Manifest;
+  m2.entities.forEach((e, i) => { if (e.id === undefined) e.id = `${e.type}#${i}`; });
+  for (const e of m2.entities) {
+    const r = ((e as { requires?: { coreLevel?: number; pad?: string } }).requires ??= {}) as { coreLevel?: number; pad?: string };
+    if (e.type.startsWith("pad.") && r.coreLevel && r.coreLevel >= 2 && !r.pad && m2.entities.some((x) => x.id === `core_level${r.coreLevel! - 2}`) && e.id !== `core_level${r.coreLevel - 2}`) r.pad = `core_level${r.coreLevel - 2}`;
+  }
+  const overlapPairs: Converted["overlapPairs"] = [];
+  for (const b of all) {
+    const ps = b.pads as unknown as { id: string; overlaps?: string[] }[];
+    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++)
+      if (!dependents(m2, ps[i]!.id).has(ps[j]!.id) && !dependents(m2, ps[j]!.id).has(ps[i]!.id)) {
+        (ps[i]!.overlaps ??= []).push(ps[j]!.id); (ps[j]!.overlaps ??= []).push(ps[i]!.id);
+        overlapPairs.push({ building: b.id, a: ps[i]!.id, b: ps[j]!.id });
+      }
+  }
+  // the wall ring: its own size, sections per side, and the sides its gates stand on
+  const ring = ents.find((e) => e.type === "barrier.line") as unknown as { points: [number, number][]; gates?: number[] } | undefined;
+  let walls: WfWallSpec | undefined;
+  if (ring) {
+    const xs = ring.points.map((q) => q[0]), ys = ring.points.map((q) => q[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const hh = ring.points.filter((q) => q[1] === y0 && q[0] !== x1).length, vv = ring.points.length / 2 - hh;
+    const sideOfI = (i: number): "n" | "e" | "s" | "w" => (i < hh ? "n" : i < hh + vv ? "e" : i < 2 * hh + vv ? "s" : "w");
+    walls = { dims: [x1 - x0, y1 - y0], split: [hh, vv], gateSides: (ring.gates ?? []).map(sideOfI) };
+  }
+  return { input: { buildings: all, map: { w: m.map.w, h: m.map.h }, ...(walls ? { walls } : {}), ...(medic ? { medic } : {}) }, orphans, overlapPairs };
 }
 
 type Variant = { name: string; checks: boolean; repair: "always" | "fallback" };
@@ -148,23 +182,28 @@ console.table(out);
 const hidden: Record<string, number> = {};
 for (const x of runs) if (!x.r.rejected) for (const id of x.r.hidden) { const k = `${x.v} | ${id.replace(/\d+$/, "")}`; hidden[k] = (hidden[k] ?? 0) + 1; }
 console.log("hidden pads by id prefix:", JSON.stringify(hidden));
-
-// Stacked pads: the pads of one building share one spot and must appear one after another. Two pads of a stack can be live at
-// once unless one needs the other spent (padRepair.dependents; a coreLevel requirement counts as needing the core_level pad before it).
-const stackOverlaps: { level: string; building: string; a: string; b: string }[] = [];
-for (const l of levels) {
-  const m = JSON.parse(JSON.stringify(l.m)) as Manifest;
-  m.entities.forEach((e, i) => { if (e.id === undefined) e.id = `${e.type}#${i}`; });
-  for (const e of m.entities) {
-    const r = ((e as { requires?: { coreLevel?: number; pad?: string } }).requires ??= {}) as { coreLevel?: number; pad?: string };
-    if (e.type.startsWith("pad.") && r.coreLevel && r.coreLevel >= 2 && !r.pad && m.entities.some((x) => x.id === `core_level${r.coreLevel! - 2}`) && e.id !== `core_level${r.coreLevel - 2}`) r.pad = `core_level${r.coreLevel - 2}`;
+{
+  const main = runs.filter((x) => x.v === VARIANTS[0]!.name && !x.r.rejected);
+  const ws = wallStrip(), sides: Record<string, number> = {}, vars: Record<string, Record<string, number>> = {};
+  let relaxed = 0, pieces = 0, medics = 0, walled = 0;
+  for (const x of main) {
+    if (x.r.walls) walled++;
+    if (x.r.medic) medics++;
+    relaxed += x.r.stats.scrapRelaxed;
+    for (const [, sc] of Object.entries(x.r.scrap)) { pieces++; sides[sc.side] = (sides[sc.side] ?? 0) + 1; (vars[sc.variant] ??= {})[sc.side] = ((vars[sc.variant] ??= {})[sc.side] ?? 0) + 1; }
   }
-  for (const b of conv.get(l.id)!.input.buildings) {
-    const ids = b.pads.map((p) => p.id);
-    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++)
-      if (!dependents(m, ids[i]!).has(ids[j]!) && !dependents(m, ids[j]!).has(ids[i]!)) stackOverlaps.push({ level: l.id, building: b.id, a: ids[i]!, b: ids[j]! });
-  }
+  console.log(`wall strip from the centre line (south, east): ${ws.s}, ${ws.e}; wall half thickness ${WALL_HALF.toFixed(1)}; gate strip: ${JSON.stringify(gateStrip())}`);
+  console.log("scrap strips beyond own back face (s, e) per variant:", JSON.stringify([1, 2, 3].map((v) => [v, scrapStrip(v)])), "wall back-face strip:", (ws.s - WALL_HALF).toFixed(1));
+  console.log(`placed seeds: walled ${walled}, with a medic pad ${medics}; scrap pieces ${pieces}, relaxed range ${relaxed}; by side ${JSON.stringify(sides)}; by variant ${JSON.stringify(vars)}; default scrap range ${SCRAP_RANGE}`);
+  const gaps: number[] = [];
+  for (const x of main) if (x.r.walls) for (const sc of Object.values(x.r.scrap)) gaps.push(Math.min(...x.r.walls.gates.map((g) => Math.hypot(sc.at[0] - x.r.walls!.points[g]![0], sc.at[1] - x.r.walls!.points[g]![1]))));
+  gaps.sort((a, b) => a - b);
+  console.log("scrap to section start of nearest gate in the new layouts (min/median/max):", gaps[0]?.toFixed(0), gaps[gaps.length >> 1]?.toFixed(0), gaps[gaps.length - 1]?.toFixed(0));
 }
+
+// Stacked pads: pads of one building live one after another share a spot; pads live at the same time stand side by side on its next spots.
+const stackOverlaps: { level: string; building: string; a: string; b: string }[] = [];
+for (const l of levels) for (const p of conv.get(l.id)!.overlapPairs) stackOverlaps.push({ level: l.id, ...p });
 const lvls = new Set(stackOverlaps.map((x) => x.level));
 console.log(`stacked pads live at the same time: ${stackOverlaps.length} pairs in ${lvls.size} levels`);
 for (const x of stackOverlaps.slice(0, 15)) console.log(`  ${x.level} ${x.building}: ${x.a} + ${x.b}`);
