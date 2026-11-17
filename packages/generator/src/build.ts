@@ -83,7 +83,7 @@ export const GEN = genData as unknown as {
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
-  defendWaves: { maxPoints: number; waveCap: number; lateWaveGap: number; lateWaveMin: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
+  defendWaves: { maxPoints: number; waveCap: number; lateWaveGap: number; lateWaveMin: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; mix: WaveMix; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
   storms: { warn: number; duration: number; growStep: number; maxDuration: number };
@@ -186,6 +186,43 @@ export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Conte
   waves.length = 0;
   waves.push(...[...rest, ...all].sort((a, b) => a.t - b.t));
   return true;
+}
+
+export type WaveMix = { mid: { creature: number }; late: { creature: number; extra: number } };
+/**
+ * Mixed waves (outpost-ops#92): from the second wave on, a share of each regular wave's swarmling points comes as
+ * creatures (one creature = 3 swarmlings in points and drops, so the totals stay the same); a late wave (one that
+ * arrives packed, at lateGap) always holds swarmlings, raiders and creatures, a missing type taking its points from the
+ * swarmlings. Then each late wave gains `late.extra` x its points as more creatures, only as far as the wave still
+ * finishes spawning within spawnMax and stays within cap points (cap 0: within maxPoints).
+ */
+export function mixWaves(waves: readonly SplitWave[], regular: ReadonlySet<SplitWave>, c: Content, mix: WaveMix,
+  o: { lateGap: number; spawnMax: number; cap: number; maxPoints: number }): void {
+  const SW = "hostile.swarmling", RA = "hostile.raider_humanoid", CR = "hostile.creature";
+  const hp = (h: string) => c.hostiles[h]?.hp ?? 1;
+  const reg = waves.filter((w) => regular.has(w));
+  const take = (w: SplitWave, h: string, n: number) => {
+    const cost = n * hp(h);
+    if ((w.counts[SW] ?? 0) - cost < 3) return false;
+    w.counts[SW]! -= cost;
+    w.counts[h] = (w.counts[h] ?? 0) + n;
+    return true;
+  };
+  reg.forEach((w, k) => {
+    if (k === 0) return;
+    const late = w.gap === o.lateGap;
+    const share = late ? mix.late.creature : mix.mid.creature;
+    const n = Math.floor(((w.counts[SW] ?? 0) * share) / hp(CR));
+    if (n > 0) take(w, CR, n);
+    if (!late) return;
+    if (!w.counts[RA]) take(w, RA, 1);
+    if (!w.counts[CR]) take(w, CR, 1);
+    const size = Object.values(w.counts).reduce((a, x) => a + x, 0);
+    const byTime = Math.floor(o.spawnMax / (w.gap ?? o.lateGap)) - size;
+    const byPts = Math.floor(((o.cap > 0 ? o.cap : o.maxPoints) - wavePoints(w.counts, c)) / hp(CR));
+    const add = Math.min(Math.floor((wavePoints(w.counts, c) * mix.late.extra) / hp(CR)), byTime, byPts);
+    if (add > 0) w.counts[CR] = (w.counts[CR] ?? 0) + add;
+  });
 }
 
 /**
@@ -2144,6 +2181,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     capWavePoints(waves, c, DW.maxPoints);
     if (splitWaves(waves, regular, c, { cap: DW.waveCap, lateGap: DW.lateGap, spacing: K.waveGap * DW.lateWaveGap, minSpacing: DW.lateWaveMin, spawnMax: DW.spawnMax, sides, bosses: feat.has("bosses") })
       && (goal === "survive" || goal === "waves_survived" || goal === "boss")) Object.assign(gparams, params0());
+    mixWaves(waves, regular, c, DW.mix, { lateGap: DW.lateGap, spawnMax: DW.spawnMax, cap: DW.waveCap, maxPoints: DW.maxPoints });
     for (const w of waves) if (regular.has(w) && size(w) * w.gap! > DW.spawnMax) w.gap = Math.max(DW.minGap, Math.floor((DW.spawnMax / size(w)) * 100) / 100);
     // Waves alone would take thousands of attackers (rising prices make the full ladder several times its base
     // price): what they cannot pay within spawnMax, the level's price growth eases to cover, and only then its scrap prices.

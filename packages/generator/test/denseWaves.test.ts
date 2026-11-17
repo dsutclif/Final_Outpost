@@ -27,6 +27,10 @@ const size = (w: W) => Object.values(w.counts).reduce((a, n) => a + n, 0);
 describe("defend waves: denser, not only bigger", () => {
   it("40 defend seeds: capped waves, same total points, late waves no further apart, warlords kept", () => {
     expect(DW.waveCap).toBeGreaterThan(0);
+    // mixed waves (outpost-ops#92, mixWaves) change sizes and add points on purpose; this checks the split alone
+    const mix = DW.mix;
+    DW.mix = { mid: { creature: 0 }, late: { creature: 0, extra: 0 } };
+    try {
     let built = 0;
     for (const cs of cases) {
       const cap = DW.waveCap;
@@ -57,5 +61,6 @@ describe("defend waves: denser, not only bigger", () => {
       }
     }
     expect(built).toBeGreaterThanOrEqual(36);
+    } finally { DW.mix = mix; }
   }, 900000);
 });
