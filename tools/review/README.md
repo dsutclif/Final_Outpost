@@ -14,8 +14,9 @@ every limit lives in `boredom-limits.json`, never in code.
 ## Pulse
 
 Per level it runs the rater (`measure` + `score`, with `--seeds` runs per rung instead of the rater's 10/3),
-then the human-view bot for the same number of seeds, and reads three things off the human bot:
+then the human-view bot for the same number of seeds, and reads three things off the human bot (plus `playShape`, below):
 
+- **`playShape`** (outpost-ops#151): per level `{maxPhaseShare, beatTypes, lastNewBeatShare}` from the rater beat sheet, the same numbers the rater's play-shape filter reads. Recorded in each pulse row only (no finding), so `review:calibrate` can tune the limits in `packages/rater/data/filters.json`.
 - **`shape`**: the `PlayShape` real players report (`packages/bots/src/shape.ts`), median over the seeds.
 - **`oneTaskS` / `noTaskS`**: every `sampling.everyTicks` (15) ticks the planner is asked which kinds of
   task it has on offer that score at least `sampling.minScore` (30) (`Brain.taskKinds`, read-only: runs

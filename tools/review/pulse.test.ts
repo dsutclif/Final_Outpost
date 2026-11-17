@@ -43,6 +43,11 @@ describe("pulse of one level", () => {
     expect(p.choiceShare).toBeGreaterThan(0);
     expect(p.choiceShare).toBeLessThanOrEqual(1);
     expect(p.human.seeds).toBe(1);
+    expect(p.playShape!.maxPhaseShare).toBeGreaterThan(0);
+    expect(p.playShape!.maxPhaseShare).toBeLessThanOrEqual(1);
+    expect(p.playShape!.beatTypes).toBeGreaterThan(0);
+    expect(p.playShape!.lastNewBeatShare).toBeGreaterThanOrEqual(0);
+    expect(p.playShape!.lastNewBeatShare).toBeLessThanOrEqual(1);
   });
 
   it("is deterministic: the same level twice gives the same numbers", () => {

@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
 import { createShape, HUMAN, playBot, shapeResult, shapeTick, type PlayShape } from "../../packages/bots/src/index.js";
 import { historyEntry, measure, score, type HistoryEntry } from "../../packages/rater/src/index.js";
+import { playShapeNumbers, type PlayShapeNumbers } from "../../packages/rater/src/playShape.js";
 import { ENGINE_VERSION, TPS } from "../../packages/sim/src/index.js";
 import { candidate, median, mean, round, type Candidate, type Limits } from "./lib.js";
 
@@ -56,6 +57,8 @@ export interface LevelPulse {
   loopMax: number;
   loopKey: string;
   human: HumanSummary;
+  /** The three within-level play-shape numbers (outpost-ops#151) from the rater beat sheet: longest phase share, beat types, last new beat share. Recorded only; no finding reads them. Absent on history rows from before 151.2. */
+  playShape?: PlayShapeNumbers;
 }
 
 export interface PulseMeta {
@@ -190,6 +193,7 @@ export function pulseLevel(manifestIn: unknown, o: PulseOptions): LevelPulse {
     choiceShare: round(median(humanRuns.map((h) => h.sampler.choiceShare)), 3),
     loopMax: round(median(humanRuns.map((h) => h.r.trace.loopMax)), 1),
     loopKey: humanRuns.reduce((a, h) => (h.r.trace.loopMax > a.trace.loopMax ? h.r : a), humanRuns[0]!.r).trace.loopKey,
+    playShape: playShapeNumbers(ms.beats, ms.beatsEnd),
     human: {
       winRate: winRate["human"]!,
       earned,
