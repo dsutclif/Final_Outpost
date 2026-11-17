@@ -88,6 +88,8 @@ export const GEN = genData as unknown as {
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
   storms: { warn: number; duration: number; growStep: number; maxDuration: number };
   rockslide: { rewards: { kind: string; weight: number; node: string; count: number; resource: string }[] };
+  /** Play-shape beat-breakers (outpost-ops#151, 151.4); see generator.json. Costs are keys of `costs`. */
+  beatBreakers: { families: string[]; skipGoals: string[]; lateHires: { id: string; from: "food" | "core"; cost: string }[]; cashierCost: string };
   scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
   /** Batch 3 turret sockets at each attack gate; see generator.json. */
   medicPad: { u: number; v: number; near: number };
@@ -825,6 +827,23 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     // the cashier's pad is exactly on its slot, south of the clerk spot (reserved with the kiosk)
     const cpos: Pt | null = hasCashierSlot ? cashierAt(shopAt, register, cashierSlot) : null;
     if (cpos) hireCashier = pad({ type: "pad.hire", id: "hire_cashier", at: [...cpos], cost: { "res.currency": cost("hire.cashier") }, role: { role: "role.cashier", to: "sink.sales_point" } });
+    // Beat-breakers (outpost-ops#151, 151.4): on harvest levels the bot used to buy its three hires in the first third
+    // and then run one collect-and-sell loop to the end. A ladder of dearer hires (a second farm worker, a second
+    // reactor supplier, then the cashier) chained farm worker -> ladder -> cashier spreads those purchases, each a
+    // play-shape beat, through the middle and late level. Prices are generator.json beatBreakers, set from the bot's
+    // measured purchase times; each ladder pad stands on its first hire's spot and shows once the one before is bought.
+    const BB = GEN.beatBreakers;
+    if (hireCashier && BB.families.some((f) => fams.has(f as Family)) && !BB.skipGoals.includes(goal)) {
+      let prev = "hire_food";
+      for (const h of BB.lateHires) {
+        const first = h.from === "core" ? { at: a, role: { role: "role.supplier", from: "node.fuel_scrap", to: "sink.core" } }
+          : { at: b, role: { role: "role.supplier", from: "node.food_source", to: "sink.sales_point", node: "food1" } };
+        pad({ type: "pad.hire", id: h.id, at: [...first.at], cost: { "res.currency": cost(h.cost) }, role: first.role, requires: { pad: prev } });
+        prev = h.id;
+      }
+      hireCashier.cost = { "res.currency": cost(BB.cashierCost) };
+      hireCashier.requires = { pad: prev };
+    }
   }
 
   // ---------- harvest mechanics ----------

@@ -17,7 +17,9 @@ export interface CandidateRecord {
   humanWins?: number;
   /** The good bot's quick seeds. */
   quick?: { won: boolean; reason: string; seconds: number; hpMin: number; salvage: number; kills: number }[];
-  rating?: { D: number; F: number; feasible: boolean; margin: Record<string, number>; winRate: Record<string, number>; loopMax: number; ladderLeft: number; idleModules: string[]; budget: number | undefined };
+  rating?: { D: number; F: number; feasible: boolean; margin: Record<string, number>; winRate: Record<string, number>; loopMax: number; ladderLeft: number; idleModules: string[]; budget: number | undefined;
+    /** Play shape (outpost-ops#151): the three numbers, the limits failed (enforced or not), the level end and every play-shape beat, in seconds. */
+    playShape?: { maxPhaseShare: number; beatTypes: number; lastNewBeatShare: number; fails: string[]; endS: number; beatS: number[] } };
   idleElements?: string[];
   objectives?: { kind: string; params: Record<string, number | string> }[];
   stars?: Record<string, number>;

@@ -1,10 +1,10 @@
 import { content as defaultContent, type Content, type Manifest } from "@fo/content";
 import { HUMAN, LADDER, PROFILES, TIME_FIXED_GOALS, playBot, type BotResult } from "@fo/bots";
-import { measure, score, type Metrics, type Rating, type ReferenceStats, type HistoryEntry as RaterHistory, type Measurement } from "@fo/rater";
+import { measure, score, playShapeNumbers, type Metrics, type Rating, type ReferenceStats, type HistoryEntry as RaterHistory, type Measurement } from "@fo/rater";
 import referenceData from "../data/reference.json";
 import genData from "../data/generator.json";
 import startData from "../data/start.json";
-import { ENGINE_VERSION } from "@fo/sim";
+import { ENGINE_VERSION, TPS } from "@fo/sim";
 import { DEFAULT_CONFIG, closure, conflicts } from "@fo/sequencer";
 import { loopOverCap } from "./loops.js";
 import { GEN, TEMPLATES, buildLevel, dressingKnobs, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
@@ -494,7 +494,8 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     stats.ratings++;
     const ms = measure(m, { content: c, refSeeds: seeds.ref, otherSeeds: seeds.other, history });
     const r = score(ms, { content: c, reference });
-    rec!.rating = { D: round3(r.D), F: round3(r.F), feasible: r.feasible, margin: r.margin, winRate: r.winRate, loopMax: ms.loopMax, ladderLeft: ms.ladderLeft, idleModules: r.evidence.idleModules, budget: m.params["level.budgetSeconds"] };
+    rec!.rating = { D: round3(r.D), F: round3(r.F), feasible: r.feasible, margin: r.margin, winRate: r.winRate, loopMax: ms.loopMax, ladderLeft: ms.ladderLeft, idleModules: r.evidence.idleModules, budget: m.params["level.budgetSeconds"],
+      playShape: { ...playShapeNumbers(ms.beats, ms.beatsEnd, ms.shapeBeats), fails: r.evidence.playShape, endS: Math.round(ms.beatsEnd / TPS), beatS: ms.shapeBeats.map((b) => Math.round(b.tick / TPS)) } };
     return { ms, r };
   };
   const saveMemory = () => { Object.assign(memory, { best, ease }); };
