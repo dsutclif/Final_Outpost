@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: the nightly review now records how evenly each level spreads its new things, so the pacing limits can be tuned from real numbers. Nothing changes in the game."]}
+{"notes":["Behind the scenes: the level pacing check now counts every attack wave and any change in what you are doing, but not the same short collect-and-sell round repeated. It still only reports; it does not reject levels yet. Nothing changes in the game."]}

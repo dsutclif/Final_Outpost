@@ -193,7 +193,7 @@ export function pulseLevel(manifestIn: unknown, o: PulseOptions): LevelPulse {
     choiceShare: round(median(humanRuns.map((h) => h.sampler.choiceShare)), 3),
     loopMax: round(median(humanRuns.map((h) => h.r.trace.loopMax)), 1),
     loopKey: humanRuns.reduce((a, h) => (h.r.trace.loopMax > a.trace.loopMax ? h.r : a), humanRuns[0]!.r).trace.loopKey,
-    playShape: playShapeNumbers(ms.beats, ms.beatsEnd),
+    playShape: playShapeNumbers(ms.beats, ms.beatsEnd, ms.shapeBeats),
     human: {
       winRate: winRate["human"]!,
       earned,

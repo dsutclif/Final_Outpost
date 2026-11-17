@@ -109,9 +109,26 @@ export interface Beat {
 export interface BeatAcc {
   seen: Set<string>;
   beats: Beat[];
+  /** Tick of every wave start, repeats included. */
+  waves: number[];
+  /** The player's action stream, runs of the same action collapsed to one step (tick of the run's first event). */
+  acts: Beat[];
 }
 
-export const createBeats = (): BeatAcc => ({ seen: new Set(), beats: [] });
+export const createBeats = (): BeatAcc => ({ seen: new Set(), beats: [], waves: [], acts: [] });
+
+/** The player action an event is, or null. Customers buying ("sold") and cash pick-ups follow from the player's
+ *  delivery to the stall, so the delivery is the "sell" step; counting them as well would lengthen every loop. */
+export function actKey(e: SimEvent): string | null {
+  if ("by" in e && e.by !== undefined) return null;
+  switch (e.t) {
+    case "gathered": return `gather:${e.res}`;
+    case "deposited": return `deposit:${e.res}>${e.to}`;
+    case "picked": return `pick:${e.res}`;
+    case "pad_paid": return `pay:${e.pad}`;
+    default: { const k = beatKey(e); return k === null || k === "wave_started" || k === "sold" ? null : k; }
+  }
+}
 
 /** The beat key an event opens, or null when it is not a beat. A hunt is the player's first hit on prey. */
 export function beatKey(e: SimEvent): string | null {
@@ -125,11 +142,54 @@ export function beatKey(e: SimEvent): string | null {
 }
 
 export function beatsNote(acc: BeatAcc, tick: number, e: SimEvent): void {
+  const a = actKey(e);
+  if (a !== null && acc.acts[acc.acts.length - 1]?.beat !== a) acc.acts.push({ beat: a, tick });
   const k = beatKey(e);
-  if (k === null || acc.seen.has(k)) return;
+  if (k === null) return;
+  if (k === "wave_started") acc.waves.push(tick);
+  if (acc.seen.has(k)) return;
   acc.seen.add(k);
   acc.beats.push({ beat: k, tick });
 }
 
 /** Events arrive in tick order, so the list is already ordered by first occurrence. */
 export const beatsResult = (acc: BeatAcc): Beat[] => acc.beats.map((b) => ({ ...b }));
+
+// ---- Play-shape beats (outpost-ops#151, Doug's rule, chat 2026-11-17): "repeated waves are beats. sales are beats if
+// they are not just repeated loops ... any loop of 4 or less actions does not count as new actions."
+
+/** Longest repeating cycle that still counts as a loop; a cycle of LOOP_MAX + 1 actions or more counts every pass. */
+export const LOOP_MAX = 4;
+
+/**
+ * Indices of the action steps that are loop repeats. A step at i repeats with period p when it equals the step p
+ * earlier; a run of consecutive such steps at least p long is a cycle of p actions going round again, so every step
+ * in it (the whole second and later passes) registers nothing. A step that breaks the cycle starts a new run.
+ */
+export function loopRepeats(steps: readonly string[], maxPeriod = LOOP_MAX): Set<number> {
+  const out = new Set<number>();
+  for (let p = 2; p <= maxPeriod; p++) {
+    let start = -1;
+    for (let i = p; i <= steps.length; i++) {
+      const hit = i < steps.length && steps[i] === steps[i - p];
+      if (hit && start < 0) start = i;
+      if (!hit && start >= 0) {
+        if (i - start >= p) for (let j = start; j < i; j++) out.add(j);
+        start = -1;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * The play-shape beat sheet, ordered by tick: the first-occurrence beats, every wave (repeats included), and each
+ * step of the player's action stream (builds, hires and hunts among them) that is not a loop repeat. The
+ * first-occurrence sheet (`beatsResult`) is unchanged: the variety signature and the level index read it.
+ */
+export function shapeBeatsResult(acc: BeatAcc): Beat[] {
+  const rep = loopRepeats(acc.acts.map((a) => a.beat));
+  const acts = acc.acts.filter((_, i) => !rep.has(i)).map((a) => ({ beat: `act:${a.beat}`, tick: a.tick }));
+  const waves = acc.waves.map((tick) => ({ beat: "wave_started", tick }));
+  return [...acc.beats.filter((b) => b.beat !== "wave_started").map((b) => ({ ...b })), ...waves, ...acts].sort((a, b) => a.tick - b.tick);
+}

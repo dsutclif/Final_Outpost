@@ -55,6 +55,8 @@ export interface Measurement {
   loopKey: string;
   /** Beat sheet of the median bot's median-length run: ordered first occurrences with ticks (bots shape.ts). */
   beats: Beat[];
+  /** Play-shape beat sheet of that same run: first occurrences, every wave, action steps that are not loop repeats (outpost-ops#151). */
+  shapeBeats: Beat[];
   /** Level end in ticks of that same run: when its main goal was done (goalTicks; the run length if never); 0 when no run happened. */
   beatsEnd: number;
   /** Geography: pieces, map share and blocked approach lanes (not z-scored). */
@@ -80,6 +82,9 @@ function medianRun(rs: readonly BotResult[]): BotResult | undefined {
 }
 export function medianBeats(rs: readonly BotResult[]): Beat[] {
   return medianRun(rs)?.trace.beats.map((b) => ({ ...b })) ?? [];
+}
+export function medianShapeBeats(rs: readonly BotResult[]): Beat[] {
+  return medianRun(rs)?.trace.shapeBeats.map((b) => ({ ...b })) ?? [];
 }
 /** Level end of the run `medianBeats` reads. */
 export function medianBeatsEnd(rs: readonly BotResult[]): number {
@@ -129,7 +134,7 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
   const downs = runs[REFERENCE]!.reduce((a, r) => a + r.trace.guards.down, 0);
   const medicShare = downs > 0 ? runs[REFERENCE]!.reduce((a, r) => a + r.trace.guards.medicHeals, 0) / downs : -1;
   const worst = runs[REFERENCE]!.reduce((a, r) => (r.trace.loopMax > a.trace.loopMax ? r : a));
-  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, story, rallyShare, guardLoss, medicShare, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, beats: medianBeats(runs[MEDIAN]!), beatsEnd: medianBeatsEnd(runs[MEDIAN]!), terrain: terrainStats(manifest), budgetTicks, template, history };
+  return { manifest, plan, runs, variants, metrics, playerKillShare, ladderLeft, depotPicks, story, rallyShare, guardLoss, medicShare, loopMax: worst.trace.loopMax, loopKey: worst.trace.loopKey, beats: medianBeats(runs[MEDIAN]!), shapeBeats: medianShapeBeats(runs[MEDIAN]!), beatsEnd: medianBeatsEnd(runs[MEDIAN]!), terrain: terrainStats(manifest), budgetTicks, template, history };
 }
 
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,

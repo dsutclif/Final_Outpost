@@ -110,7 +110,7 @@ export function qualityFilters(ms: Measurement, c: Content): { filters: Filters;
   for (const [p, rs] of Object.entries(ms.runs)) for (const r of rs) if (r.stalls > 0) stallRuns.push(`${p}#${r.seed}@${r.stallStates[0]?.tick ?? 0}`);
   const unread = unreadable(ms.manifest, c);
   const dup = duplicateOf(ms, ms.history);
-  const shape = PLAY_SHAPE.exempt.includes(ms.manifest.id) || ms.beats.length === 0 ? [] : playShapeFails(playShapeNumbers(ms.beats, ms.beatsEnd), ms.beatsEnd, PLAY_SHAPE);
+  const shape = PLAY_SHAPE.exempt.includes(ms.manifest.id) || ms.beats.length === 0 ? [] : playShapeFails(playShapeNumbers(ms.beats, ms.beatsEnd, ms.shapeBeats), ms.beatsEnd, PLAY_SHAPE);
   return {
     // Batch 3: a defend level always leaves something to build; a reference bot that bought the whole turret ladder ran out of it.
     filters: { idleModule: idle.length > 0, trivial, stall: stallRuns.length > 0, unreadable: unread.length > 0, duplicate: dup !== null,

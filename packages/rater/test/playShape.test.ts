@@ -32,10 +32,16 @@ describe("playShape", () => {
   it("fails when no beat comes after the first third", () => {
     expect(fails([b("a", 0.05), b("b", 0.15), b("c", 0.25), b("d", 0.3)]).join()).toMatch(/no new beat/);
   });
+  it("phases and the late beat read the play-shape sheet, beat types read first occurrences (151.3)", () => {
+    const first = [{ beat: "sold", tick: 10 }, { beat: "wave_started", tick: 20 }];
+    const shape = [...first, { beat: "wave_started", tick: 50 }, { beat: "act:gather:res.food_raw_1", tick: 75 }];
+    expect(playShapeNumbers(first, 100, shape)).toEqual({ maxPhaseShare: 0.3, beatTypes: 2, lastNewBeatShare: 0.75 });
+    expect(playShapeNumbers(first, 100)).toEqual({ maxPhaseShare: 0.8, beatTypes: 2, lastNewBeatShare: 0.2 });
+  });
   it("numbers", () => expect(playShapeNumbers(good, END)).toEqual({ maxPhaseShare: 0.3, beatTypes: 4, lastNewBeatShare: 0.9 }));
   it("exempt list skips the filter, an empty beat sheet never fires", () => {
     const ms = measure(level1, { refSeeds: 1, otherSeeds: 1 });
-    const bad = { ...ms, beats: [{ beat: "a", tick: 1 }], beatsEnd: 100000 };
+    const bad = { ...ms, beats: [{ beat: "a", tick: 1 }], shapeBeats: [{ beat: "a", tick: 1 }], beatsEnd: 100000 };
     // report-only until the limits are settled: the evidence lists the failures, the filter does not fire
     expect(P.enforce).toBe(false);
     expect(qualityFilters(bad, content).filters.playShape).toBe(false);

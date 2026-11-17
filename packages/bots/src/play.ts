@@ -4,7 +4,7 @@ import { Brain } from "./brain.js";
 import { TIME_FIXED_GOALS, planBot, type Plan } from "./plan.js";
 import { withLearning, type BotProfile } from "./profiles.js";
 import { Perception, viewFor } from "./view.js";
-import { beatsNote, beatsResult, createBeats, type Beat } from "./shape.js";
+import { beatsNote, beatsResult, createBeats, shapeBeatsResult, type Beat } from "./shape.js";
 
 /** Content default of `level.budgetSeconds`, kept as a named export for callers. */
 export const DEFAULT_TIME_BUDGET_SECONDS: number = defaultContent.defaults["level.budgetSeconds"] ?? 300;
@@ -100,6 +100,8 @@ export interface BotTrace {
   loopKey: string;
   /** Beat sheet: first occurrence of each beat with its tick, in order (shape.ts). */
   beats: Beat[];
+  /** Play-shape beat sheet: first occurrences, every wave, and action steps that are not loop repeats (shape.ts). */
+  shapeBeats: Beat[];
 }
 
 /** Tracks the player's get/put cycles and the longest run of identical ones. */
@@ -511,6 +513,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     loopMax: loops.max,
     loopKey: loops.maxKey,
     beats: beatsResult(beatAcc),
+    shapeBeats: shapeBeatsResult(beatAcc),
   };
   const runStats: RunStats = {
     heatMin: s.heatMin, hpMin, fuelOuts: s.fuelOuts, froze: s.froze, customersAngry: s.customersAngry, injured: s.injured,
