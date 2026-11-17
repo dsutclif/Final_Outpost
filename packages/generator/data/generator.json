@@ -77,8 +77,8 @@
     { "kind": "fuel_cache", "weight": 1, "node": "node.fuel_deposit", "count": 1, "resource": "res.fuel_dense" }
   ] },
   "scrapHeaps": {
-    "_doc": "Batch 3 (Doug): on a share (chance) of defend levels, n scrap heaps (node.salvage_pile, a little scrap each, never regrowing) lie out in the wilds beyond the wall, at least outside units past the ring and within band of that, and roadGap clear of every attack road, so the player scavenges for the first defences.",
-    "chance": 0.8, "n": [3, 5], "outside": 70, "band": 240, "roadGap": 80
+    "_doc": "Batch 3 (Doug): on every defend level (chance 1; outpost-ops#86), n scrap heaps (node.salvage_pile, a little scrap each, never regrowing) lie out in the wilds beyond the wall, at least outside units past the ring and within band of that, and roadGap clear of every attack road, so the player scavenges for the first defences.",
+    "chance": 1, "n": [3, 5], "outside": 70, "band": 240, "roadGap": 80
   },
   "medicPad": {
     "_doc": "R5 (Doug): on a defend level with guards and no med bay within the bots' farBay of a gate, a medic's hire pad stands outside the wall by an attack gate and off its road: wanted at [u, v] in the gate's frame (either side), kept at most near units from the gate's middle.",

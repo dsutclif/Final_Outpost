@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: new levels now lay out their buildings in rings growing out from the Core, with the Core in the middle and buildings on both sides of it, instead of dropping buildings at random and moving pads afterwards. Every building pad stays visible. Levels already in the game do not change."]}
+{"notes":["Behind the scenes: every new defend level now has scrap heaps outside the wall that you can walk to before the first raid, so the first scrap always pays for the fuel hauler. Levels already in the game do not change."]}
