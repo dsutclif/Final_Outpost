@@ -204,6 +204,8 @@ export interface ZoneState {
   kind?: string;
   /** Never set on terrain: nothing clears it. */
   cleared: boolean;
+  /** zone.blocked: a static band piece cleared together with this zone.blocked id (a gate rockfall's band). */
+  clearsWith?: string;
 }
 
 export interface PreyZoneState {

@@ -72,15 +72,17 @@ describe("R5 medic pad", () => {
   // the built manifest keeps the raw ring; the schema turns it into sections
   const parsed = (m: Manifest) => ManifestSchema.parse(m);
 
-  it("stands outside the wall, near a gate, off the road, wherever no med bay is near a gate", () => {
+  // outpost-ops#202: the wavefront puts the medic's pad outside the settlement beside a gate (Doug); how far along the wall is its own rule
+  it("stands outside the wall, off the road, wherever no med bay is near a gate", () => {
     let placed = 0;
     expect(guarded.length).toBeGreaterThan(0);
     for (const { r, i } of guarded) {
       const built = build(i + 1)?.manifest;
       if (!built) continue;
       const m = parsed(built);
-      const gates = gatesOf(m), bay = m.entities.find((e) => e.type === "pad.build" && e.build === "struct.medical") as { at: [number, number] } | undefined;
-      const bayNear = !!bay && gates.some((g) => Math.hypot(bay.at[0] - g[0], bay.at[1] - g[1]) <= MEDIC_FAR_BAY);
+      const gates = gatesOf(m), bay = m.entities.find((e) => e.type === "pad.build" && e.build === "struct.medical") as { at: [number, number]; site?: [number, number] } | undefined;
+      const bayAt = bay?.site ?? bay?.at;
+      const bayNear = !!bayAt && gates.some((g) => Math.hypot(bayAt[0] - g[0], bayAt[1] - g[1]) <= MEDIC_FAR_BAY);
       const med = padOf(m);
       expect(!!med, r.id).toBe(!bayNear);
       if (!med) continue;
@@ -89,7 +91,6 @@ describe("R5 medic pad", () => {
       const xs = line.sections.map((s) => s.a[0]), ys = line.sections.map((s) => s.a[1]);
       const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
       expect(med.at[0] < x0 || med.at[0] > x1 || med.at[1] < y0 || med.at[1] > y1, `${r.id} outside the wall`).toBe(true);
-      expect(Math.min(...gates.map((g) => Math.hypot(med.at[0] - g[0], med.at[1] - g[1]))), r.id).toBeLessThanOrEqual(GEN.medicPad.near);
       // the road runs straight out of a gate: past that gate, keep off it, measured across the road
       for (const g of gates) {
         const ew = g[0] === x0 || g[0] === x1;
@@ -139,13 +140,16 @@ describe("R5 #6 / #30b machine plots", () => {
     }
   });
 
-  it("the grill's level pad stands on the upgrade slot, not the staff slot", () => {
+  // outpost-ops#202 (Doug 2026-11-16): a building's pads that appear one after another share one spot, so the level pad (after the
+  // server) takes the staff chain's spot; it is never live with the cook
+  it("the grill's level pad shares the staff chain's spot, after the server", () => {
     const i = reqs.findIndex((r) => r.family === "industrialize" && (r.features ?? []).includes("converter_levels"));
     const b = build(i + 1);
     expect(b).not.toBeNull();
     const at = (id: string) => (b!.manifest.entities.find((e) => (e as { id?: string }).id === id) as { at: [number, number] } | undefined)?.at;
     const lv = at("grill_level"), cook = at("cook");
     expect(lv).toBeDefined();
-    expect(lv).not.toEqual(cook);
+    expect(lv).toEqual(cook);
+    expect((b!.manifest.entities.find((e) => (e as { id?: string }).id === "grill_level") as { requires?: { pad?: string } }).requires?.pad).toBe("server");
   }, 60_000);
 });

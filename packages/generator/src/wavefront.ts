@@ -1,4 +1,4 @@
-import occ from "../data/occluders.json";
+﻿import occ from "../data/occluders.json";
 import genData from "../data/generator.json";
 import { ART_M } from "@fo/render-3d/units";
 import { HIDDEN_AT, PAD_RADIUS, discPoints, hides, occluders, viewOf, type Occluder, type Pt } from "./viewVisibility.js";
@@ -44,6 +44,10 @@ export interface WfBuilding {
   appear: number;
   /** Linked buildings (a collector and its ore): the group joins the earliest one's wavefront. */
   links?: readonly string[];
+  /** A belt's far-end machine: sited beside the machine at the belt's start (nearest first, own side of the front first), as pass 2 places it. */
+  beside?: string;
+  /** The belt's pad (in the start machine's plot): the far end never stands nearer it than the start machine does. */
+  besidePad?: string;
   /** Scrap heap model variant 1..3 (renderer: 1 + node index % 3): 1 ship scrap (tall), 2 scrap field (flat), 3 the fuselage tube. */
   variant?: number;
   /** The pads that sit in this building's plot: pads live one after another share a spot, pads live together take the next spots in order. */
@@ -86,6 +90,13 @@ export interface WfOptions {
   scrapRange?: [number, number];
   /** Wall line clearance from buildings and pads on the north and west sides, beyond the wall's own half thickness (default 6). */
   wallClear?: number;
+  /**
+   * The screen rule (Doug 2026-11-17: everything within one screen of the mid-settlement Core): the camera box half-sizes and the rater's
+   * radius. Every site and pad spot stays inside it around the Core (`at` fixes the centre instead, for tests).
+   */
+  screen?: { box: [number, number]; r: number; at?: Pt };
+  /** Share of a pad's disc points that makes it hidden (default HIDDEN_AT; build.ts asks for any cover at all, the generator's own check). */
+  hiddenAt?: number;
 }
 export type TraceStep =
   | { t: "wave"; n: number; ids: string[]; front: number }
@@ -134,7 +145,9 @@ export const ORIGIN_BACK = 120;
 const R2 = Math.SQRT1_2;
 /** Depth axis (toward the camera, south-east) and the front's own axis. */
 export const U: Pt = [R2, R2], V: Pt = [R2, -R2];
-export const DIRS: readonly { name: "south" | "south-east" | "east"; d: Pt }[] = [{ name: "south", d: [0, 1] }, { name: "south-east", d: [R2, R2] }, { name: "east", d: [1, 0] }];
+export const DIRS: readonly { name: "south" | "south-east" | "east" | "north" | "north-west" | "west"; d: Pt }[] = [{ name: "south", d: [0, 1] }, { name: "south-east", d: [R2, R2] }, { name: "east", d: [1, 0] }];
+/** The push order mirrored, for buildings of the wavefronts that grow north-west of the Core (away from the settlement, into free ground). */
+export const DIRS_BACK: typeof DIRS = [{ name: "north", d: [0, -1] }, { name: "north-west", d: [-R2, -R2] }, { name: "west", d: [-1, 0] }];
 
 /** The tallest model of a kind (its top upgrade, the biggest scrap heap) from data/occluders.json; null when not drawn tall. */
 export function tallestShape(kind: string): OccShape | null {
@@ -219,13 +232,19 @@ export class WfState {
   /** Occluders beyond the buildings that every pad is tested against (the finished wall ring): set after the walls. */
   extra: Occluder[] = [];
   medicAt: Pt | null = null;
+  /** Inside the screen around the Core (true without a screen rule); `m` shrinks the box for a building whose own spots reach past its centre. */
+  onScreen: (p: Pt, m?: number) => boolean = () => true;
+  /** A push of building `id` to `to` is allowed (the Core is never pushed: the screen is measured from it). */
+  pushOk: (id: string, to: Pt) => boolean = () => true;
+  /** Buildings of the wavefronts north-west of the Core: they are pushed north, north-west, west. */
+  readonly back = new Set<string>();
   /** Extra pad boxes that nothing may stand on (the gate rockfall's clear pads). */
   reserved: Box4[] = [];
   locked = -1;
   pushes = 0; pushDist = 0; repairs = 0;
   rejected: WfResult["rejected"] = null;
   readonly trace: TraceStep[] = [];
-  constructor(readonly input: WfInput, readonly opts: { step: number; trace: boolean; maxRepairs: number }) {
+  constructor(readonly input: WfInput, readonly opts: { step: number; trace: boolean; maxRepairs: number; hiddenAt?: number }) {
     for (const b of input.buildings) {
       this.by.set(b.id, b);
       const inSlot: string[][] = [];
@@ -300,7 +319,7 @@ export class WfState {
     return out;
   }
   padHidden(pad: WfPad, at: Pt, only?: (id: string) => boolean): boolean {
-    return viewOf(pad.id, "pad", at, this.occsFor(pad, only), pad.radius ?? PAD_RADIUS).hidden >= HIDDEN_AT;
+    return viewOf(pad.id, "pad", at, this.occsFor(pad, only), pad.radius ?? PAD_RADIUS).hidden >= (this.opts.hiddenAt ?? HIDDEN_AT);
   }
   /** The building ids that cover at least one sample point of the pad at `at`. */
   hiders(pad: WfPad, at: Pt): string[] {
@@ -325,7 +344,7 @@ export class WfState {
   /** A spot the stack of `id` can use: on the map, off every other box. */
   spotLegal(id: string, at: Pt): boolean {
     const bx = boxAt(at, PAD_BOX);
-    return this.inMap(bx) && this.clear(bx, new Set([`pad:${id}`]));
+    return this.inMap(bx) && this.clear(bx, new Set([`pad:${id}`])) && this.onScreen(at);
   }
   /** Spot legality of every spot of `id` at its current site. */
   legalSpots(id: string): boolean[] { const p = this.placed.get(id)!; return spotsOf(p.at, p.r, p.dirs).map((q) => this.spotLegal(id, q)); }
@@ -377,6 +396,21 @@ export class WfState {
   }
   private newlyHidden(before: ReadonlySet<string>): WfPad[] { return this.hiddenPads().filter((p) => !before.has(p.id)); }
   private setSpot(id: string, slot: number, i: number): void { this.placed.get(id)!.spots[slot] = i; }
+  /**
+   * A belt's pad stays in its start machine's plot: when the far end (placed beside it) stands nearer the pad than the start machine
+   * does, the pad moves to the start machine's free spot on the far side (legal and visible). False when there is none (dry: only checks).
+   */
+  keepPadOff(own: string, padId: string, other: Pt, dry = false): boolean {
+    const p = this.placed.get(own)!, slot = this.slotOf(padId), d = (q: Pt, r: Pt) => Math.hypot(q[0] - r[0], q[1] - r[1]);
+    const nearer = (i: number) => { const q = this.spotAt(own, i); return d(q, other) <= d(q, p.at); };
+    if (!nearer(p.spots[slot]!)) return true;
+    const free = [0, 1, 2].filter((i) => !p.spots.some((u, j) => j !== slot && u === i) && !nearer(i));
+    const i = free.sort((x, y) => d(this.spotAt(own, y), other) - d(this.spotAt(own, x), other))
+      .find((x) => { const at = this.spotAt(own, x); return this.spotLegal(own, at) && !this.slotHidden(own, slot, at); });
+    if (i === undefined) return false;
+    if (!dry) { this.setSpot(own, slot, i); this.log({ t: "spot", pad: padId, i, ok: true }); }
+    return true;
+  }
   /** The building's 3 spots in order for the pad's slot: the first one no other slot stands on, legal, where the slot's pads are visible. */
   private trySpots(own: string, padId: string, dry = false): number | null {
     const slot = this.slotOf(padId), used = this.placed.get(own)!.spots;
@@ -397,7 +431,7 @@ export class WfState {
     const p = this.placed.get(blocker)!, start = p.at, b = p.b;
     const skip = new Set([`fp:${blocker}`, `pad:${blocker}`]);
     for (let d = this.opts.step; d <= max; d += this.opts.step) {
-      for (const dir of DIRS) {
+      for (const dir of this.back.has(blocker) ? DIRS_BACK : DIRS) {
         const to: Pt = [start[0] + dir.d[0] * d, start[1] + dir.d[1] * d];
         const fp = boxAt(to, b.footprint), pbs = b.pads.length ? [...new Set(p.spots)].map((i) => boxAt(spotsOf(to, p.r, p.dirs)[i]!, PAD_BOX)) : [];
         if (!this.inMap(fp) || pbs.some((q) => !this.inMap(q))) {
@@ -405,6 +439,7 @@ export class WfState {
           return "reject";
         }
         if (!this.clear(fp, skip) || pbs.some((q) => !this.clear(q, skip))) { if (!dry) this.log({ t: "overlap", id: blocker, dir: dir.name, d }); continue; }
+        if (!this.onScreen(to, b.kind === SALES_KIND ? SALES_REACH : 0) || !this.pushOk(blocker, to)) continue;
         p.at = to;
         if (!dry) this.log({ t: "move", id: blocker, dir: dir.name, d, to });
         const s = this.trySpots(own, padId, dry);
@@ -417,7 +452,7 @@ export class WfState {
   }
 }
 
-/** The wavefronts: groups of linked buildings join the earliest one's; north-west (earliest) first, input order inside. */
+/** The wavefronts: groups of linked buildings join the earliest one's; north-west (earliest) first, input order inside; the Core takes the middle one. */
 export function wavefronts(bs: readonly WfBuilding[]): WfBuilding[][] {
   const parent = new Map(bs.map((b) => [b.id, b.id]));
   const find = (x: string): string => { let r = x; while (parent.get(r)! !== r) r = parent.get(r)!; return r; };
@@ -425,8 +460,51 @@ export function wavefronts(bs: readonly WfBuilding[]): WfBuilding[][] {
   const wave = new Map<string, number>();
   for (const b of bs) { const r = find(b.id); wave.set(r, Math.min(wave.get(r) ?? Infinity, b.appear)); }
   const keys = [...new Set(bs.map((b) => wave.get(find(b.id))!))].sort((a, b) => a - b);
-  return keys.map((k) => bs.filter((b) => wave.get(find(b.id)) === k));
+  // inside a wavefront, appearance order; a belt's far end comes straight after its start machine, so it gets the ground beside it
+  const ws = keys.map((k) => {
+    const w = bs.filter((b) => wave.get(find(b.id)) === k && !(b.beside && bs.some((x) => x.id === b.beside && wave.get(find(x.id)) === k)));
+    for (const e of bs.filter((b) => wave.get(find(b.id)) === k && !w.includes(b))) w.splice(w.findIndex((x) => x.id === e.beside) + 1, 0, e);
+    return w;
+  });
+  // Doug 2026-11-17 (supersedes order of appearance for the Core): the Core is its own wavefront, numbered as the midpoint of all of them
+  // (5 wavefronts: #3; 4: #3); the rest keep appearance order.
+  const core = bs.find((b) => b.kind === CORE_KIND);
+  if (!core) return ws;
+  const rest = ws.map((w) => w.filter((b) => b !== core)).filter((w) => w.length);
+  // When everything besides the Core appears together (one wavefront), it is split in two so the Core has buildings on both sides:
+  // otherwise the whole settlement sits north-west of the Core and spreads wide (Level 14 did not build, 202.3 attempt 2). Linked
+  // buildings (a belt's two machines, a feeder and its machine) stay together; the groups are dealt biggest ground first onto the
+  // lighter side, and each side keeps appearance order.
+  if (rest.length === 1) {
+    const g = new Map<string, WfBuilding[]>();
+    for (const b of rest[0]!) { const r = find(b.id); g.set(r, [...(g.get(r) ?? []), b]); }
+    const ps = [...g.values()];
+    if (ps.length > 1) {
+      const area = (xs: WfBuilding[]) => xs.reduce((a, b) => a + (b.footprint[2] - b.footprint[0]) * (b.footprint[3] - b.footprint[1]), 0);
+      const side: WfBuilding[][][] = [[], []], tot = [0, 0];
+      for (const p of [...ps].sort((x, y) => area(y) - area(x))) { const j = tot[1]! < tot[0]! ? 1 : 0; side[j]!.push(p); tot[j]! += area(p); }
+      rest.splice(0, 1, ...side.map((sd) => sd.sort((x, y) => ps.indexOf(x) - ps.indexOf(y)).flat()));
+    }
+  }
+  rest.splice(Math.floor((rest.length + 1) / 2), 0, [core]);
+  return rest;
 }
+/** The Core's wavefront number, or -1 when the level has no Core. */
+export function coreWave(waves: readonly WfBuilding[][]): number { return waves.findIndex((wv) => wv.some((b) => b.kind === CORE_KIND)); }
+/** Placement order of the wavefront numbers: the Core's, then those before it (nearest first, north-west), then those after it (south-east). */
+export function placementOrder(waves: readonly WfBuilding[][]): number[] {
+  const ci = coreWave(waves);
+  return ci < 0 ? waves.map((_, i) => i) : [ci, ...waves.map((_, i) => ci - 1 - i).filter((i) => i >= 0), ...waves.map((_, i) => i).filter((i) => i > ci)];
+}
+/** How far from its start machine a belt's far end may stand (beyond it the nearest free site is used and the repair loop takes over). */
+const BESIDE_MAX = 150;
+const CORE_KIND = "sink.core", SALES_KIND = "sink.sales_point";
+/** The kiosk's clerk spot, coin pile and first queue square reach this far past its centre (build.ts salesSpots): kept on screen too. */
+const SALES_REACH = 62;
+/** How far north-west of the map centre (along the depth axis) the Core is placed (levels without a Core keep ORIGIN_BACK for wavefront 0). */
+export const CORE_BACK = 0;
+/** Map room a wall ring needs beyond the settlement's building centres, besides its south/east strip: edges, half footprints, clearance. */
+const RING_SLACK = 112;
 
 /** Candidate site offsets (along the depth axis a >= 0, along the front b), nearest first. */
 let OFFS: { step: number; list: [number, number][] } | null = null;
@@ -439,14 +517,30 @@ function offsets(step: number, max: number): [number, number][] {
   return list;
 }
 
+/**
+ * The Core is numbered as the midpoint of the wavefronts (Doug 2026-11-17) and placed first, at the anchor; then the wavefronts numbered before
+ * it grow north-west from it (nearest first) and those after it south-east, so positions still run north-west to south-east in wavefront order.
+ */
 export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
   const step = o.step ?? STEP, rng = new Rand(o.seed);
-  const S = new WfState(input, { step, trace: o.trace ?? false, maxRepairs: o.maxRepairs ?? 400 });
+  const S = new WfState(input, { step, trace: o.trace ?? false, maxRepairs: o.maxRepairs ?? 400, ...(o.hiddenAt !== undefined ? { hiddenAt: o.hiddenAt } : {}) });
   const { w, h } = input.map, jit = o.jitter ?? 30;
-  const base: Pt = o.origin ?? [w / 2 - ORIGIN_BACK * R2, h / 2 - ORIGIN_BACK * R2];
+  const back = input.buildings.some((b) => b.kind === CORE_KIND) ? CORE_BACK : ORIGIN_BACK;
+  const base: Pt = o.origin ?? [w / 2 - back * R2, h / 2 - back * R2];
+  // a walled level's ring must fit the map around the settlement (its south and east strips included): the screen box is capped to leave room
+  const ws = Math.max(wallStrip().s, gateStrip().s), we = Math.max(wallStrip().e, gateStrip().e);
+  const scr = o.screen && input.walls ? { ...o.screen, box: [Math.min(o.screen.box[0], (w - RING_SLACK - we) / 2), Math.min(o.screen.box[1], (h - RING_SLACK - ws) / 2)] as [number, number] } : (o.screen ?? null);
+  const screenAt = (c: Pt) => { if (scr) S.onScreen = (p, m = 0) => Math.abs(p[0] - c[0]) <= scr.box[0] - m && Math.abs(p[1] - c[1]) <= scr.box[1] - m && Math.hypot(p[0] - c[0], p[1] - c[1]) <= scr.r - m; };
+  if (scr?.at) screenAt(scr.at);
   const ju = rng.range(-jit, jit), jv = rng.range(-jit, jit);
   const origin: Pt = [base[0] + U[0] * ju + V[0] * jv, base[1] + U[1] * ju + V[1] * jv];
   const offs = offsets(step, Math.hypot(w, h));
+  // own side of the front first; when the screen holds no site there, the other side (only ever reached with a screen rule)
+  const sided = (dir: number): [number, number][] => [...offs.map(([a, bv]): [number, number] => [a * dir, bv]), ...(scr ? offs.filter(([a]) => a > 0).map(([a, bv]): [number, number] => [-a * dir, bv]) : [])];
+  const offsBy = { 1: sided(1), [-1]: sided(-1) } as Record<number, [number, number][]>;
+  // nearest first in every direction, the front's own side first at each distance
+  const around = (dir: number): [number, number][] => offs.flatMap(([a, bv]): [number, number][] => (a > 0 ? [[a * dir, bv], [-a * dir, bv]] : [[a, bv]]));
+  const aroundBy = { 1: around(1), [-1]: around(-1) } as Record<number, [number, number][]>;
   let fallbacks = 0, scrapRelaxed = 0, scrapPacked = 0, walls: WfWalls | null = null;
   const scrapOut: WfResult["scrap"] = {}, rockOut: WfResult["rock"] = {};
   const done = (): WfResult => {
@@ -480,28 +574,38 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
   }
   const gateRocks = input.walls ? input.buildings.filter((b) => b.gateRock) : [];
   const waves = wavefronts(input.buildings.filter((b) => b.kind !== SALVAGE_KIND && !(input.walls && b.gateRock)));
-  let front = depth(origin);
-  for (let n = 0; n < waves.length; n++) {
-    const wave = waves[n]!;
-    if (n > 0) front = Math.max(front, ...waves[n - 1]!.map((b) => depth(S.placed.get(b.id)!.at)));
+  // placement order: the Core's wavefront, then the ones numbered before it (north-west, nearest first), then the ones after it (south-east)
+  const ci = coreWave(waves), order = placementOrder(waves);
+  let fwd = depth(origin), bwd = depth(origin);
+  for (let k = 0; k < order.length; k++) {
+    const n = order[k]!, wave = waves[n]!, dir = n < ci ? -1 : 1;
+    if (k > 0) {
+      const pn = order[k - 1]!, prev = waves[pn]!.map((b) => depth(S.placed.get(b.id)!.at));
+      if (pn >= ci) fwd = Math.max(fwd, ...prev);
+      if (pn <= ci) bwd = Math.min(bwd, ...prev);
+    }
+    const front = dir > 0 ? fwd : bwd;
     const anchor: Pt = [origin[0] + U[0] * (front - depth(origin)), origin[1] + U[1] * (front - depth(origin))];
     S.log({ t: "wave", n, ids: wave.map((b) => b.id), front: Math.round(front) });
     for (const b of wave) {
       const flip = rng.chance(0.5) ? -1 : 1;
       let firstFree: Pt | null = null, chosen: { at: Pt; spots: number[] } | null = null, tried = 0, fb = false;
-      for (const [a, bv] of offs) {
-        const at: Pt = [anchor[0] + U[0] * a + V[0] * bv * flip, anchor[1] + U[1] * a + V[1] * bv * flip];
+      // a belt's far end grows from its start machine, so the run stays short and never crosses the Core
+      const from = b.beside ? S.placed.get(b.beside)?.at : undefined, base0 = from ?? anchor;
+      for (const [a, bv] of from ? aroundBy[dir]! : offsBy[dir]!) {
+        if (from && Math.hypot(a, bv) > BESIDE_MAX) break;
+        const at: Pt = [base0[0] + U[0] * a + V[0] * bv * flip, base0[1] + U[1] * a + V[1] * bv * flip];
         // a band that spans the whole map width (a rockfall pass) can only stand centred across it
         if (b.footprint[2] - b.footprint[0] >= w - 2) at[0] = w / 2 - (b.footprint[0] + b.footprint[2]) / 2;
         const fp = boxAt(at, b.footprint);
-        if (!S.inMap(fp) || !S.clear(fp, new Set())) continue;
+        if (!S.inMap(fp) || !S.clear(fp, new Set()) || !S.onScreen(at, b.kind === SALES_KIND ? SALES_REACH : 0)) continue;
         const spots = S.spotsAt(b, at).spots;
-        const legal = b.pads.length ? spots.map((q) => { const bx = boxAt(q, PAD_BOX); return S.inMap(bx) && S.clear(bx, new Set()) && overlaps(bx, fp) === false; }) : [];
+        const legal = b.pads.length ? spots.map((q) => { const bx = boxAt(q, PAD_BOX); return S.inMap(bx) && S.clear(bx, new Set()) && overlaps(bx, fp) === false && S.onScreen(q); }) : [];
         if (b.pads.length && legal.filter(Boolean).length < (S.slots.get(b.id) ?? 0)) continue;
         firstFree ??= at;
         tried++;
         if (!o.siteChecks) break;
-        S.place(b.id, at, n);
+        S.place(b.id, at, k);
         const locked = (id: string) => (S.placed.get(id)?.wave ?? Infinity) <= S.locked;
         // check 1: one of B's spots is visible past locked buildings
         const vis = b.pads.length ? S.assign(b.id, legal, locked) : [];
@@ -518,10 +622,12 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
             if (covers) break;
           }
         }
+        // a belt's far end: only where the belt's pad can stay on its start machine's side
+        const padOk = !(b.beside && b.besidePad && S.placed.has(b.beside)) || S.keepPadOff(b.beside, b.besidePad, at, true);
         S.placed.delete(b.id);
-        if (vis && !covers) {
+        if (vis && !covers && padOk) {
           // pads on the first visible spots (against everything placed), else the first visible past locked buildings
-          S.place(b.id, at, n);
+          S.place(b.id, at, k);
           const all = b.pads.length ? S.assign(b.id, legal) : [];
           S.placed.delete(b.id);
           chosen = { at, spots: all ?? vis };
@@ -532,13 +638,17 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
         if (!firstFree) { S.rejected = { id: b.id, kind: b.kind, pad: "" }; S.log({ t: "reject", id: b.id, kind: b.kind, pad: "", d: 0, dir: "no free site" }); return done(); }
         if (o.siteChecks) { fallbacks++; fb = true; }
         // the fallback site: legal spots in order, visible or not
-        S.place(b.id, firstFree, n);
+        S.place(b.id, firstFree, k);
         const lg = S.legalSpots(b.id);
         const as = b.pads.length ? S.assign(b.id, lg, undefined, false) : [];
         S.placed.delete(b.id);
         chosen = { at: firstFree, spots: as ?? [] };
       }
-      S.place(b.id, chosen.at, n, chosen.spots);
+      S.place(b.id, chosen.at, k, chosen.spots);
+      if (b.beside && b.besidePad && S.placed.has(b.beside)) S.keepPadOff(b.beside, b.besidePad, chosen.at);
+      if (dir < 0) S.back.add(b.id);
+      // everything after the Core stays on its screen, and the Core is never pushed from under it
+      if (b.kind === CORE_KIND) { if (!scr?.at) screenAt(chosen.at); S.pushOk = (id) => id !== b.id; }
       S.log({ t: "place", id: b.id, at: chosen.at, spot: S.placed.get(b.id)!.spot, checked: o.siteChecks, fallback: fb, tried });
       // repair every live pad that is hidden now (the fallback's repair; a no-op when the checks held), cascades included
       const queue = o.repair === "fallback" && o.siteChecks && !fb ? [] : S.hiddenPads();
@@ -552,7 +662,7 @@ export function placeWavefront(input: WfInput, o: WfOptions): WfResult {
         queue.push(...more.filter((p) => !queue.some((q) => q.id === p.id)));
       }
     }
-    S.locked = n;
+    S.locked = k;
     S.log({ t: "lock", n });
   }
   // walls, once every building is locked (south and east lines a wall strip beyond the furthest pad)
@@ -736,7 +846,7 @@ export function placeMedic(S: WfState, wl: WfWalls | null, strip: { s: number; e
   const m = S.medicPad()!, R = m.radius ?? PAD_RADIUS;
   const ok = (q: Pt): boolean => {
     const bx = boxAt(q, PAD_BOX);
-    if (!S.inMap(bx) || !S.clear(bx, new Set())) return false;
+    if (!S.inMap(bx) || !S.clear(bx, new Set()) || !S.onScreen(q)) return false;
     if (wl) { const b = ringBand(wl); if (bx[0] < b[2] && b[0] < bx[2] && bx[1] < b[3] && b[1] < bx[3]) return false; }
     return !S.padHidden(m, q);
   };

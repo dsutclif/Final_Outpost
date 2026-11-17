@@ -163,7 +163,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       case "zone.blocked":
       case "zone.terrain":
       case "zone.waiting": {
-        const z: ZoneState = { id: e.id, type: e.type, rect: rect(e.rect), cleared: false, ...(e.type === "zone.terrain" ? { kind: e.kind } : {}) };
+        const z: ZoneState = { id: e.id, type: e.type, rect: rect(e.rect), cleared: false, ...(e.type === "zone.terrain" ? { kind: e.kind } : e.clearsWith !== undefined ? { clearsWith: e.clearsWith } : {}) };
         state.zones.push(z);
         break;
       }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TraceStep, WfBuilding, WfInput } from "../src/wavefront.js";
 import { reviewTrace } from "../src/wavefrontReview.js";
 
-const b = (id: string, appear: number): WfBuilding => ({ id, kind: "sink.core", footprint: [-10, -10, 10, 10], occ: null, appear, pads: [] });
+const b = (id: string, appear: number): WfBuilding => ({ id, kind: "node.material_source", footprint: [-10, -10, 10, 10], occ: null, appear, pads: [] });
 const input: WfInput = { buildings: [b("A", 0), b("B", 1)], map: { w: 1000, h: 1000 } };
 const head: TraceStep[] = [
   { t: "wave", n: 0, ids: ["A"], front: 0 }, { t: "place", id: "A", at: [100, 100], spot: 0, checked: true, fallback: false, tried: 1 }, { t: "lock", n: 0 },

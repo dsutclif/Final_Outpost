@@ -110,7 +110,8 @@ export function planBot(manifestIn: unknown, c: Content = defaultContent): Plan 
   // R5 #26: a medic is hired once a guard is out when no med bay is near the gates (guards fall there); else it waits like the med bay.
   const gates = m.entities.flatMap((e) => (e.type === "barrier.line" ? e.sections.filter((s) => s.gate).map((s) => [(s.a[0] + s.b[0]) / 2, (s.a[1] + s.b[1]) / 2]) : []));
   const bays = pads.filter((p) => p.type === "pad.build" && p.build === "struct.medical");
-  const nearBay = bays.some((b) => (gates.length > 0 ? gates : [coreAt]).some((g) => Math.hypot(b.at[0] - g[0]!, b.at[1] - g[1]!) <= medicData.farBay));
+  // where the bay stands: its build site when the pad has one (outpost-ops#202: the pad sits in the bay's plot)
+  const nearBay = bays.some((b) => { const at = ("site" in b && b.site) || b.at; return (gates.length > 0 ? gates : [coreAt]).some((g) => Math.hypot(at[0] - g[0]!, at[1] - g[1]!) <= medicData.farBay); });
   const medicWhen: StepWhen = nearBay ? "injuries" : "guards";
 
   const steps: PlanStep[] = [];

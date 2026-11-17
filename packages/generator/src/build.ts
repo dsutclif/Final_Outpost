@@ -1,6 +1,8 @@
 import { CONTENT_VERSION, LOOK, PLOT, maxModelScale, content as defaultContent, type PlotFile, type Content, type Manifest } from "@fo/content";
 import { padVisibilityReport, shadowTest, type PadVisibilityReport, type ViewEnt } from "./viewVisibility.js";
-import { lifetimeVisibility, repairPads, staticWindows, type Manifest as RepairManifest } from "./padRepair.js";
+import { lifetimeVisibility, staticWindows, type Manifest as RepairManifest } from "./padRepair.js";
+import { placeWavefront } from "./wavefront.js";
+import { convert } from "./wavefrontConvert.js";
 import { ENGINE_VERSION, createSim, salesLayout, type Compiled } from "@fo/sim";
 import { MEDIC_FAR_BAY, planBot } from "@fo/bots";
 import templatesData from "../data/templates.json";
@@ -45,7 +47,7 @@ export const GEN = genData as unknown as {
   /** Multiplier on the generated time target (time star seconds and level.budgetSeconds): the player-facing time allowance. */
   timeTargetK: number;
   costs: Record<string, number>;
-  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number };
+  rings: { defend: RingDims; rescue: RingDims; rescueShop: RingDims; podGap: number; edge: number; podRoom: number };
   spacing: { margin: number; standR: number; screen: [number, number]; screenRadius: number; footprintGap: number; corePull: number; fieldPull?: number };
   traderRoute: { cell: number; clear: number; door: number };
   /** Ranger pad in the hunting grounds: the 3D renderer's art metre and its two burrow models' half sizes (art metres), and the gap kept to them. */
@@ -300,22 +302,111 @@ function checkPadView(m: Manifest, fail: (why: string) => never): PadVisibilityR
   }
   return rep;
 }
+type Side = "n" | "e" | "s" | "w";
+/** What the first pass leaves for the wavefront: its finished manifest before the defend padding, the placer's stations, the attack sides. */
+interface Pass1 { m: Manifest; stations: readonly { id: string; x: number; y: number; r: number; fp?: Box | undefined }[]; sides: Side[]; /** The defend padding m carries (0 elsewhere). */ shift: number }
 /**
- * The safety net (Doug, 2026-11-15): pads are placed south-east of their building and out of every shadow, so this rarely
- * acts. Any pad still hidden during its window (any purchase order; tower pads excepted) goes through the repair loop
- * (padRepair.ts: the south-east spots of its own building, then pushing what hides it), kept only when fewer pads stay hidden.
- * Entities are replaced in place; the generator's bots and rater then judge the level as any other.
+ * The wavefront result as pass 2 uses it (outpost-ops#202): placer ids pinned to their sites (a build pad's id to its building's site, with
+ * its own pad point), the ground they reserve, each pad's final point (and site), the wall ring, the gate rockfalls and other rockfalls.
  */
-function padSafetyNet(m: Manifest, c: Content, notes: string[]): void {
-  const mm = m as unknown as RepairManifest, win = staticWindows(mm);
-  const hidden = (x: RepairManifest) => lifetimeVisibility(x, win).filter((v) => v.hidden > 0 && !/^tower/.test(v.id)).length;
-  const n0 = hidden(mm);
-  if (n0 === 0) return;
-  const r = repairPads(mm, win, { content: c, footprints: GEN.footprints });
-  const n1 = hidden(r.manifest);
-  if (n1 >= n0) return;
-  mm.entities = r.manifest.entities;
-  notes.push(`pad safety net: hidden pads ${n0} -> ${n1} (${r.moves.length} moved, ${r.pushes.length} pushed)`);
+interface Pin {
+  core: Pt;
+  at: Map<string, { at: Pt; pad?: Pt; padR?: number }>;
+  reserved: { id: string; x: number; y: number; r: number; fp?: Box | undefined; pad?: boolean }[];
+  pads: Map<string, { at: Pt; site?: Pt }>;
+  ring: { points: Pt[]; side: Side[]; rect: Rect; gates: number[] } | null;
+  rock: Map<string, { rect: Rect; rest: Rect[]; side: Side }>;
+  zones: Map<string, Rect>;
+  sides: Side[];
+}
+/** Wall towers stand on the ring and its roads, and the ranger's pad in the hunting grounds: build.ts places those itself. */
+const ownSpot = (e: ViewEnt): boolean => /^struct\.ranged_defense/.test(String((e as { build?: string }).build ?? "")) || (e["role"] as { role?: string } | undefined)?.role === "role.hunter";
+/**
+ * Wavefront placement (outpost-ops#202, Doug 2026-11-16) on the first pass's level: building sites, pad points, the wall ring, the medic's
+ * pad, scrap heaps and gate rockfalls. A rejected seed or a pad it leaves hidden is a LayoutError (the caller's salt loop tries again);
+ * there is no repair step after it.
+ */
+function wavefrontPins(pre: Pass1, seed: number, padR: number): Pin {
+  const zr = pre.m.entities.filter((e) => e.type === "zone.blocked").map((e) => (e as unknown as { rect: number[] }).rect);
+  const inZone = (p: readonly number[]) => zr.some((z) => p[0]! >= z[0]! && p[0]! <= z[0]! + z[2]! && p[1]! >= z[1]! && p[1]! <= z[1]! + z[3]!);
+  // the fuel scatter needs its room too (inside a ring the ring is fitted to what the wavefront places; a rock slide's hidden reward stays under its slide)
+  const { input } = convert(pre.m as unknown as RepairManifest, { skip: ownSpot, place: (e) => e.type === "node.fuel_scrap" && !!e.at && !inZone(e.at), footprint: (k) => (k === "sink.sales_point" ? kioskGround() : undefined) });
+  // any cover at all counts as hidden here: the level's own check after pass 2 (hiddenPads) is that strict
+  // the screen rule: every site and pad within the camera box and the rater's radius of the mid-settlement Core (Doug 2026-11-17)
+  const sc = GEN.spacing, sm = 6;
+  const wf = placeWavefront(input, { seed, siteChecks: true, hiddenAt: 1e-6, screen: { box: [sc.screen[0] - sm, sc.screen[1] - sm], r: sc.screenRadius - sm } });
+  if (wf.rejected) throw new LayoutError(`wavefront: no site for ${wf.rejected.kind} ${wf.rejected.id}`);
+  if (wf.hidden.length) throw new LayoutError(`wavefront: pad hidden ${wf.hidden.join(", ")}`);
+  // defend levels are placed on the padded map (the long roads give the scrap its room) and pinned back in the unpadded frame
+  const d = pre.shift;
+  // A gate rockfall's band runs map-wide beyond the south (east) wall and the pods go beyond it: the whole layout moves north (west) as one
+  // piece until there is room for them (a rigid move keeps every pad's visibility), never past the map's edge.
+  const mv: [number, number] = [0, 0];
+  for (const rk of Object.values(wf.rock)) {
+    const ax = rk.side === "e" ? 0 : 1, W = (ax === 0 ? pre.m.map.w : pre.m.map.h) - d, far = rk.rect[ax + 2]!;
+    const lo = Math.min(...Object.values(wf.positions).map((p) => p[ax]!), ...(wf.walls ? [wf.walls.rect[ax]!] : []), ...Object.values(wf.padAt).map((p) => p[ax]!)) - d;
+    const room = W - GEN.rings.edge - (far - d + GEN.rings.podGap);
+    mv[ax] = -Math.max(0, Math.min(lo - 14, GEN.rings.podRoom - room));
+  }
+  const rp = (p: readonly number[]): Pt => [Math.round(p[0]!) - d + mv[0], Math.round(p[1]!) - d + mv[1]];
+  const rr = (b: readonly number[]): Rect => [Math.round(b[0]!) - d + mv[0], Math.round(b[1]!) - d + mv[1], Math.round(b[2]!) - Math.round(b[0]!), Math.round(b[3]!) - Math.round(b[1]!)];
+  const padFp = GEN.footprints["pad"]!;
+  const pin: Pin = { core: rp(wf.positions["core"] ?? [0, 0]), at: new Map(), reserved: [], pads: new Map(), ring: null, rock: new Map(), zones: new Map(), sides: [...pre.sides] };
+  if (!wf.positions["core"]) throw new LayoutError("wavefront: no core");
+  const reserve = (id: string, at: Pt, st: Pass1["stations"][number] | undefined, isPad: boolean) => {
+    const fp = st?.fp ? [st.fp[0] - st.x, st.fp[1] - st.y, st.fp[2] - st.x, st.fp[3] - st.y] : isPad ? padFp : undefined;
+    pin.reserved.push({ id, x: at[0], y: at[1], r: st?.r ?? padR, ...(fp ? { fp: [at[0] + fp[0]!, at[1] + fp[1]!, at[0] + fp[2]!, at[1] + fp[3]!] as Box } : {}), ...(isPad ? { pad: true } : {}) });
+  };
+  pre.m.entities.forEach((e0, i) => {
+    const e = e0 as unknown as ViewEnt & { rect?: number[] };
+    const wid = e.id !== undefined ? String(e.id) : `${e.type}#${i}`;
+    const st = (e.id !== undefined ? pre.stations.find((s) => s.id === e.id) : undefined)
+      ?? (e.at ? pre.stations.find((s) => s.x === e.at![0] && s.y === e.at![1] && !/[:@]/.test(s.id)) : undefined);
+    const pid = st?.id ?? wid;
+    if (e.type.startsWith("pad.")) {
+      const q = wf.padAt[wid], site = wf.positions[wid];
+      if (!q) return;
+      const at = rp(q);
+      if (site) {
+        const s = rp(site);
+        pin.at.set(pid, { at: s, pad: at, padR: (e as { big?: boolean }).big ? defaultContent.defaults["pads.bigRange"]! : padR }); pin.pads.set(wid, { at, site: s });
+        reserve(pid, s, st, false); reserve(`${pid}:pad`, at, undefined, true);
+      } else { pin.at.set(pid, { at }); pin.pads.set(wid, { at }); reserve(pid, at, st, true); }
+      return;
+    }
+    const rk = wf.rock[wid];
+    if (rk) { pin.rock.set(wid, { rect: rr(rk.rect), rest: rk.rest.map(rr), side: rk.side as Side }); return; }
+    const p = wf.scrap[wid]?.at ?? wf.positions[wid];
+    if (!p) return;
+    if (Array.isArray(e.rect)) { const [, , w, h] = e.rect as number[]; pin.zones.set(wid, [Math.round(p[0] - w! / 2) - d + mv[0], Math.round(p[1] - h! / 2) - d + mv[1], w!, h!]); return; }
+    pin.at.set(pid, { at: rp(p) });
+    reserve(pid, rp(p), st, false);
+  });
+  if (wf.walls) {
+    const w = wf.walls;
+    pin.ring = { points: w.points.map(rp), side: [...w.side], rect: rr(w.rect), gates: [...w.gates].sort((a, b) => a - b) };
+  }
+  return pin;
+}
+/**
+ * The kiosk's ground for the wavefront: its model plus the standing spots in front of it (register and coin pile, clerk south of the stall)
+ * and the clearance the placer keeps between a standing spot and another station's centre (its reach past its footprint). The line is left
+ * out: it bends, and with it in, big late buildings (a landmark) found no site far more often.
+ */
+function kioskGround(): [number, number, number, number] {
+  const sp = salesSpots([0, 0], [0, -200], defaultContent, 0), f = GEN.footprints["sink.sales_point"]!;
+  const reach = Math.max(...(["sink.core", "node.food_source", "node.material_source", "node.fuel_scrap"] as const).map((k) => {
+    const r = k === "sink.core" ? (defaultContent.sinks[k] as { range: number }).range : defaultContent.nodes[k]!.range, b = GEN.footprints[k]!;
+    return r - Math.min(-b[0], b[2], -b[1], b[3]);
+  }));
+  const m = GEN.spacing.standR + Math.max(0, reach);
+  const pts = [sp.register, sp.pile];
+  return [Math.min(f[0], ...pts.map((p) => p[0] - m)), Math.min(f[1], ...pts.map((p) => p[1] - m)), Math.max(f[2], ...pts.map((p) => p[0] + m)), Math.max(f[3], ...pts.map((p) => p[1] + m))];
+}
+/** Pass 2's last check: no pad (wall towers aside) is hidden during its window under the real camera. */
+function hiddenPads(m: Manifest): string[] {
+  const mm = m as unknown as RepairManifest;
+  return lifetimeVisibility(mm, staticWindows(mm)).filter((v) => v.hidden > 0 && !/^tower/.test(v.id)).map((v) => `${v.id} (by ${v.by})`);
 }
 export class LayoutError extends Error {
   constructor(message: string, readonly layout?: LayoutSnapshot) { super(message); }
@@ -420,8 +511,21 @@ export function applyNightCadence(m: Manifest, levelNo: number): void {
   else delete m.lighting;
 }
 
-/** Build one candidate manifest; throws a reason string (Error) when a constraint cannot be met. */
+/**
+ * Build one candidate manifest; throws a reason string (Error) when a constraint cannot be met. Two passes (outpost-ops#202): the first
+ * lays the level out as before to learn its structure; the wavefront loop places its buildings, pads, walls, medic pad, scrap and gate
+ * rockfall; the second builds the same input again with those pinned, so everything derived from positions follows the new sites.
+ */
 export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
+  const first = buildOnce(inp, layoutSalt, null);
+  const c = inp.content ?? defaultContent;
+  const pin = wavefrontPins(first.pre!, (inp.seed ^ Math.imul(layoutSalt + 1, 0x9e3779b1)) >>> 0, c.defaults["pads.range"]!);
+  const out = buildOnce(inp, layoutSalt, pin);
+  delete out.pre;
+  return out;
+}
+
+function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built & { pre?: Pass1 } {
   const c = inp.content ?? defaultContent;
   const K = { ...inp.knobs, ...dressingKnobs(inp.seed) };
   const fam = inp.family;
@@ -436,7 +540,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const rand = new Rand((inp.seed ^ Math.imul(layoutSalt + 1, 0x9e3779b1)) >>> 0);
   const notes: string[] = [];
   const S = GEN.spacing;
-  const core: Pt = tpl.core;
+  const core: Pt = pin?.core ?? tpl.core;
   const toward = (a: Pt, b: Pt, t: number): Pt => [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t)];
   const hireK = 1 - GEN.search.loopHireCut * (inp.hireEase ?? 0);
   const cost = (k: string) => Math.max(1, Math.round((GEN.costs[k] ?? 10) * K.costScale * (k.startsWith("hire.") ? hireK : 1)));
@@ -468,7 +572,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   let sides: ("n" | "e" | "s" | "w")[] = [];
   if (defend || rescue) {
     const dims = defend ? GEN.rings.defend : needsCurrency ? GEN.rings.rescueShop : GEN.rings.rescue;
-    ring = ringPoints(core, dims);
+    // pass 2: the ring the wavefront fitted to the settlement
+    ring = pin?.ring ? { points: pin.ring.points, side: pin.ring.side, rect: pin.ring.rect } : ringPoints(core, dims);
   }
   const inner: Rect = ring ? [ring.rect[0] + 12, ring.rect[1] + 12, ring.rect[2] - 24, ring.rect[3] - 24] : [16, 40, 448, 836];
   // fieldPull (0..1, default 0 = unchanged) draws the template's resource fields toward the core
@@ -477,6 +582,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     : [Math.round(r[0] + (core[0] - (r[0] + r[2] / 2)) * fp0), Math.round(r[1] + (core[1] - (r[1] + r[3] / 2)) * fp0), r[2], r[3]];
   const P = new Placer(rand.fork("place"), S.margin, S.standR, inner, core, [S.screen[0], S.screen[1], S.screenRadius], c, GEN.footprints, S.footprintGap, S.corePull);
   placer = P;
+  if (pin) { P.pins = pin.at; P.reserved = pin.reserved; }
   // real-camera shadows while placing (Doug, 2026-11-15): no pad in a shadow, nothing tall whose shadow falls on a pad
   // (wall towers stand in the wall line by design and are left out, as walls are)
   if (GEN.viewClear.placeShade) P.shadeOf = (kind, p) => {
@@ -506,7 +612,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const plotOpts = (type: string) => (plotOn && GEN.plots?.[type] ? { slots: plotSlots(type), alts: plotAlts(type), mirror: false } : {});
   const slotAt = (owner: string, slot: string): Pt => {
     const s = P.stations.find((x) => x.id === `${owner}:${slot}`);
-    return s ? [s.x, s.y] : fail(`no ${slot} slot on ${owner}`);
+    // pass 2: a pinned building has no slots; its pads take the wavefront's points at the end
+    const own = pin ? P.pinAt(owner) : undefined;
+    return s ? [s.x, s.y] : own ?? fail(`no ${slot} slot on ${owner}`);
   };
 
   let startPt: Pt = [core[0] + tpl.start[0], Math.max(inner[1] + 10, Math.min(inner[1] + inner[3] - 10, core[1] + tpl.start[1]))];
@@ -515,6 +623,16 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   const coreSlots = plotOn ? plotSlots("sink.core") : [];
   if (plotOn && !coreSlots.every((o) => dist([core[0] + o.dx, core[1] + o.dy], startPt) >= R.pad + 4))
     startPt = [core[0], Math.round(core[1] + Math.max(...coreSlots.map((o) => o.dy)) + R.pad + 24)];
+  // pass 2: the start spot nearest the usual one that keeps off every pinned station
+  if (pin) {
+    const want = startPt, free = (q: Pt) => pin.reserved.every((x) => x.id === "core" || dist(q, [x.x, x.y]) >= x.r + 4);
+    let best: Pt | null = null;
+    for (let d = 0; d <= 240 && !best; d += 6) for (let a = 0; a < 24 && !best; a++) {
+      const q: Pt = [Math.round(want[0] + d * Math.cos((a * Math.PI) / 12)), Math.round(want[1] + d * Math.sin((a * Math.PI) / 12))];
+      if (inRect(q, inner) && free(q)) best = q;
+    }
+    startPt = best ?? fail("no free start spot");
+  }
   P.add("core", core, R.core, { key: true, fp: "sink.core", ...(plotOn ? { slots: coreSlots } : {}) });
   P.spot("start", startPt, 18);
 
@@ -555,14 +673,16 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   if (needsCurrency) {
     const cands: { p: Pt; sp: ReturnType<typeof salesSpots>; d: number; slot: number; side: number; lot: boolean }[] = [];
     const why = { ok: 0, screen: 0, clear: 0, reg: 0, pile: 0 };
-    for (let i = 0; i < 500; i++) {
+    // pass 2: the wavefront's kiosk site is the only candidate (its clerk side and line still chosen here)
+    const shopPin = P.pinAt("shop");
+    for (let i = 0; i < (shopPin ? 1 : 500); i++) {
       const base: Pt = ring ? [Math.min(inner[0] + inner[2] - 30, Math.max(inner[0] + 30, tpl.shop[0])), Math.min(inner[1] + inner[3] - 30, Math.max(inner[1] + 30, tpl.shop[1]))] : toward(tpl.shop, core, GEN.shopPull);
       const spread = i < 160 ? 160 : 400;
-      const raw: Pt = [Math.round(base[0] + (rand.float() - 0.5) * spread), Math.round(base[1] + (rand.float() - 0.5) * spread)];
+      const raw: Pt = shopPin ?? [Math.round(base[0] + (rand.float() - 0.5) * spread), Math.round(base[1] + (rand.float() - 0.5) * spread)];
       // the spot snapped into a lot first, then the spot as drawn
-      const lp = P.toLot(raw, "sink.sales_point"), n0 = cands.length;
+      const lp = shopPin ?? P.toLot(raw, "sink.sales_point"), n0 = cands.length;
       for (const p of lp[0] === raw[0] && lp[1] === raw[1] ? [raw] : [lp, raw]) {
-        if (!P.onScreen(p) || !P.ok("shop", p, R.shop) || coversPad(p, "sink.sales_point") || P.castsOnPad("sink.sales_point", p)) { why.ok++; continue; }
+        if (!shopPin && (!P.onScreen(p) || !P.ok("shop", p, R.shop) || coversPad(p, "sink.sales_point") || P.castsOnPad("sink.sales_point", p))) { why.ok++; continue; }
         // the clerk spot goes south of the stall if it fits, else east, else west (all in view of the camera)
         for (const side of [0, 1, 2]) {
           const sp = salesSpots(p, core, c, side);
@@ -573,7 +693,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
             const qOwn = plotOn ? sp.queue.slice(0, 1) : sp.queue;
             if (![sp.register, sp.pile, ...qOwn].every(onScreen)) { why.screen++; return null; }
             const clear = (q: Pt, r: number) => P.stations.every((s) => dist(q, [s.x, s.y]) >= s.r + r) && P.spots.every((s) => s.id === "start" || dist(q, [s.x, s.y]) >= s.r + r)
-              && P.walls.every((w) => segDist(q, w[0], w[1]) >= r + 2);
+              && P.walls.every((w) => segDist(q, w[0], w[1]) >= r + 2)
+              && P.reserved.every((s) => s.id === "shop" || dist(q, [s.x, s.y]) >= s.r + r);
             if (!clear(sp.register, S.standR)) { why.reg++; return null; }
             if (!clear(sp.pile, S.standR)) { why.pile++; return null; }
             if (!qOwn.every((q) => clear(q, 10))) { why.clear++; if (process.env["FO_DEBUG"]) console.log(JSON.stringify({ p, q: sp.queue, st: P.stations.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id), sp: P.spots.filter((s) => sp.queue.some((q) => dist(q, [s.x, s.y]) < s.r + 10)).map((s) => s.id) })); return null; }
@@ -588,7 +709,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
                   && dist(cs, sp.register) >= R.pad + S.standR && dist(cs, sp.pile) >= R.pad + S.standR
                   && !qOwn.some((q) => dist(cs, q) < R.pad + 12 + 10);
               };
-              slot = GEN.cashierPads.findIndex((_, k) => fits(cashierAt(p, sp.register, k)));
+              // pass 2: the cashier's pad stands where the wavefront put it, so the slot is not searched
+              slot = shopPin ? 0 : GEN.cashierPads.findIndex((_, k) => fits(cashierAt(p, sp.register, k)));
               if (slot < 0) { why.clear++; return null; }
             }
             return { slot };
@@ -609,7 +731,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     (plotOn ? best.sp.queue.slice(0, 1) : best.sp.queue).forEach((q, k) => P.spot(`queue${k}`, q, 12));
     cashierSlot = best.slot;
     clerkSide = best.side;
-    if (hasCashierSlot) P.add("shop:cashier", cashierAt(shopAt, register, cashierSlot), R.pad, { key: true, fp: "pad" });
+    if (hasCashierSlot && !shopPin) P.add("shop:cashier", cashierAt(shopAt, register, cashierSlot), R.pad, { key: true, fp: "pad" });
     sells.push("res.food_raw_1");
     ents.push({ type: "sink.sales_point", id: "shop", at: [...shopAt], sells });
     const fr = tpl.fields.food;
@@ -848,13 +970,14 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           const d = c.converters["conv.material_processor"]!.pickupOffset;
           const from: Pt = [s[0] + d[0], s[1] + d[1]];
           for (const st of P.stations) {
-            if (["saw", "alloy"].includes(st.id) || st.id.startsWith("alloy:") || st.tight) continue;
+            // (pass 2: the machines' own build pads are spent before the belt can be bought)
+            if (["saw", "alloy", "saw:pad"].includes(st.id) || st.id.startsWith("alloy:") || st.tight) continue;
             if (segDist([st.x, st.y], from, a) < st.r + 8) fail(`belt run blocked by ${st.id}`);
           }
           P.walls.push([from, a]);
           // the belt's own build pad sits on the belt, at the middle of the run (the run is a wall, so it is exempt)
           const bp = toward(from, a, 0.5);
-          if (!P.ok("belt", bp, R.pad, { key: true, fp: ["pad"], onWall: true })) fail("no room for the belt pad on its run");
+          if (!P.pinAt("belt") && !P.ok("belt", bp, R.pad, { key: true, fp: ["pad"], onWall: true })) fail("no room for the belt pad on its run");
           P.add("belt", bp, R.pad, { key: true, fp: ["pad"] });
           pad({ type: "pad.build", id: "belt", at: [...bp], cost: { "res.currency": cost("belt") }, build: "struct.conveyor", link: { from: "conv.material_processor", to: "conv.alloy_works" }, requires: { pad: "alloy" } });
         }
@@ -884,7 +1007,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
 
   // ---------- shelter mechanics ----------
   let arrivals = 0;
-  const gatePos: Pt | null = feat.has("gate_arrivals") ? (ring ? [core[0], Math.min(880, ring.rect[1] + ring.rect[3] + 26)] : [core[0], Math.min(860, core[1] + 300)]) : null;
+  const gatePos: Pt | null = feat.has("gate_arrivals") ? (P.pinAt("gate") ?? (ring ? [core[0], Math.min(880, ring.rect[1] + ring.rect[3] + 26)] : [core[0], Math.min(860, core[1] + 300)])) : null;
   if (gatePos) {
     arrivals = Math.round(K.arrivals);
     P.spot("admit", [gatePos[0], gatePos[1] - 20], 22);
@@ -905,7 +1028,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const n = 1;
     for (let k = 0; k < n; k++) {
       // Rubble over part of a fuel grove: clearing it opens more fuel near the base.
-      let zr: Rect | null = null;
+      let zr: Rect | null = pin?.zones.get(`rubble${k}`) ?? null;
       for (let t = 0; t < 40 && !zr; t++) {
         const ang = rand.float() * Math.PI * 2, d = 130 + rand.float() * 90;
         const zc: Pt = [Math.round(core[0] + Math.cos(ang) * d), Math.round(core[1] + Math.sin(ang) * d * 1.2)];
@@ -954,16 +1077,30 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
   let pods = 0, crates = 0;
   if (rescue && ring) {
     const rr = ring.rect;
-    const north = core[1] - rr[1] < 0 ? false : rr[1] > 900 - (rr[1] + rr[3]);
+    const north = pin?.ring ? false : core[1] - rr[1] < 0 ? false : rr[1] > 900 - (rr[1] + rr[3]);
     const gateSide = north ? "n" : "s";
     // Gate: the middle-most section on the pods' side.
     const gIdx = ring.side.map((s, i) => ({ s, i })).filter((x) => x.s === gateSide);
-    ringGates = kioskGate([gIdx[Math.floor(gIdx.length / 2)]!.i]);
+    ringGates = pin?.ring ? [...pin.ring.gates] : kioskGate([gIdx[Math.floor(gIdx.length / 2)]!.i]);
     if (wallsOn) ents.push({ type: "barrier.line", id: "ring", res: "res.currency", costPerSection: 1, points: ring.points.map((p) => [...p]), closed: true,
       gates: ringGates, prebuilt: ring.points.map((_, i) => i) });
     const E = GEN.rings.edge, gap = GEN.rings.podGap;
     let passRect: Rect | null = null;
-    if (feat.has("clearing_pass")) {
+    // pass 2 (Doug 2026-11-16): a gate-width rockfall outside the gate replaces the map-wide pass; the rest of the band out to the map
+    // edges is static and clears with it (clearsWith)
+    const gateRock = pin?.rock.get("pass");
+    const band: Rect[] = gateRock?.rest ?? [];
+    const podSide: Side = gateRock?.side ?? (pin?.ring ? (ringGates.some((i) => ring!.side[i] === "s") ? "s" : "e") : north ? "n" : "s");
+    if (feat.has("clearing_pass") && gateRock) {
+      passRect = gateRock.rect;
+      ents.push({ type: "zone.blocked", id: "pass", rect: [...passRect] });
+      band.forEach((b, k) => ents.push({ type: "zone.blocked", id: `pass_band${k}`, rect: [...b], clearsWith: "pass" }));
+      const zp = P.pinAt("clear_pass") ?? fail("no pad for the gate rockfall");
+      if (!P.onScreen(zp)) fail("pass pad off screen");
+      P.add("clear_pass", zp, R.pad, { key: true, fp: "pad" });
+      pad({ type: "pad.build", id: "clear_pass", at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: "pass", requires: { coreLevel: 2 } });
+      zones++;
+    } else if (feat.has("clearing_pass")) {
       const y = north ? Math.round(rr[1] * 0.42) - 20 : Math.round(900 - (900 - rr[1] - rr[3]) * 0.42) - 24;
       passRect = [0, y, 480, 44];
       ents.push({ type: "zone.blocked", id: "pass", rect: [...passRect] });
@@ -974,9 +1111,11 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       pad({ type: "pad.build", id: "clear_pass", at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: "pass", requires: { coreLevel: 2 } });
       zones++;
     }
+    const sideOk = (p: Pt) => (podSide === "n" ? p[1] <= rr[1] + rr[3] : podSide === "s" ? p[1] >= rr[1] : podSide === "e" ? p[0] >= rr[0] : p[0] <= rr[0] + rr[2]);
     const outside = (p: Pt) => rectDist(p, rr) >= gap && p[0] >= E && p[0] <= 480 - E && p[1] >= E && p[1] <= 900 - E
-      && !(passRect && rectDist(p, passRect) < 50) && !(north ? p[1] > rr[1] + rr[3] : p[1] < rr[1]);
-    const behind = (p: Pt) => passRect !== null && (north ? p[1] < passRect[1] : p[1] > passRect[1] + passRect[3]);
+      && !(passRect && rectDist(p, passRect) < 50) && !band.some((b) => rectDist(p, b) < 50) && sideOk(p);
+    const behind = (p: Pt) => passRect !== null && (podSide === "n" ? p[1] < passRect[1] : podSide === "s" ? p[1] > passRect[1] + passRect[3]
+      : podSide === "e" ? p[0] > passRect[0] + passRect[2] : p[0] < passRect[0]);
     const placed: Pt[] = [];
     const take = (n: number, type: string, wantBehind: number, freeze: (k: number, p: Pt) => number | null) => {
       let k = 0, b = 0;
@@ -987,7 +1126,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         if (!outside(p) || placed.some((q) => dist(p, q) < spread)) continue;
         // Recruits behind the pass fill the "behind" quota first; the rest stay on the near side.
         const isBehind = behind(p);
-        if (passRect && isBehind !== b < wantBehind) continue;
+        if (passRect && wantBehind >= 0 && isBehind !== b < wantBehind) continue;
         placed.push(p);
         const fz = freeze(k, p);
         ents.push({ type, at: [...p], ...(fz !== null ? { freeze: fz } : {}) });
@@ -996,12 +1135,13 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       return k;
     };
     const nPods = goal === "crates" ? 1 + Math.round(K.pods / 3) : Math.round(K.pods);
-    pods = take(nPods, "capture.recruit_container", passRect ? Math.ceil(nPods / 2) : 0,
+    // a gate rockfall's band hugs the gate, leaving no near side: the pods go beyond the band, the crates on either side of it
+    pods = take(nPods, "capture.recruit_container", passRect ? (gateRock ? nPods : Math.ceil(nPods / 2)) : 0,
       (k, p) => feat.has("pod_timers") ? Math.round(K.podFreeze + 18 * k + dist(p, core) / 8) : null);
     if (pods < 2) fail("no room for pods");
     if ((goal === "tow_trip" || goal === "tow_full_trip") && pods + crates < 3) fail("a tow goal needs three captives");
     if (feat.has("crates")) {
-      crates = take(Math.round(K.crates), "capture.supply_crate", 0, () => null);
+      crates = take(Math.round(K.crates), "capture.supply_crate", gateRock ? -1 : 0, () => null);
       if (crates < 1) fail("no room for crates");
     }
     if (feat.has("hunting")) {
@@ -1043,7 +1183,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const laneCap = wallsOn ? Infinity : GEN.defendFree.lanesBeforeCore2;
     const nSides = Math.min(facing.length, laneCap, feat.has("multi_side") ? (K.waves >= 4 && !inp.secondary ? 3 : 2) : 1);
     const first = facing[rand.int(0, facing.length - 1)]!;
-    sides = [first, ...facing.filter((s) => s !== first)].slice(0, nSides);
+    sides = pin ? [...pin.sides] : [first, ...facing.filter((s) => s !== first)].slice(0, nSides);
     const quiet = all.filter((s) => !sides.includes(s));
     // R3 playtest: every side attackers come from has a gate and tower posts, so the probe raid comes
     // from the first attack side (through its still-unbuilt wall, never its gate) like the early raids.
@@ -1056,7 +1196,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       const gIdx = ring!.side.map((s, i) => ({ s, i })).filter((x) => x.s === gs);
       return gIdx[Math.floor(gIdx.length / 2)]!.i;
     });
-    ringGates = kioskGate(ringGates);
+    ringGates = pin?.ring ? [...pin.ring.gates] : kioskGate(ringGates);
+    // Doug 2026-11-16: the wavefront's ring has gates on the south and east sides only
+    if (pin?.ring && sides.some((sd) => !ringGates.some((i) => ring!.side[i] === sd))) fail(`attack side without a gate (${sides.join("")}; gates stand on the south and east sides only)`);
     const wallsCurrency = goal === "perimeter_before_wave1";
     const pre: number[] = [];
     // Gates stand from the start. Where towers are to be bought, so do the corner sections, so the
@@ -1101,6 +1243,9 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
           if (s.fp && b[0] < s.fp[2] + g && s.fp[0] < b[2] + g && b[1] < s.fp[3] + g && s.fp[1] < b[3] + g) return false;
         }
         for (const sp of P.spots) if (dist(q, [sp.x, sp.y]) < sp.r + r) return false;
+        // pass 2: a tower never hides one of the wavefront's pads (there is no repair step after placement)
+        const shade = pin && fp === "struct.ranged_defense" ? shadowTest(fp, [q[0], q[1]]) : null;
+        if (shade && P.padPoints().some((p) => shade([p[0], p[1]]))) return false;
         return true;
       };
       // Gatherables (forest nodes) under a socket's tower or its pad are taken off the map, while the forest keeps enough.
@@ -1256,7 +1401,7 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
               if (!forestOk([[site, "struct.ranged_defense", SK.siteR]])) continue;
               // a ring tower never hides a pad already placed (the pad safety net would push it out of the ring to fix that)
               const shade = shadowTest("struct.ranged_defense", [site[0], site[1]]);
-              if (shade && P.stations.some((s) => s.pad && shade([s.x, s.y]))) continue;
+              if (shade && P.padPoints().some((q) => shade([q[0], q[1]]))) continue;
               P.add("probe@site", site, 0, { fp: "struct.ranged_defense" });
               let tp: Pt | null = null;
               for (const shade of [false, true]) {
@@ -1282,6 +1427,8 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
       };
       // A medic's pad (Doug): outside the wall, beside an attack gate, off its road.
       medicSpot = () => {
+        const pm = P.pinAt("medic_hire");
+        if (pm) return pm;
         const MP = GEN.medicPad;
         for (const { m, o, al } of gates) for (const sg of [1, -1]) {
           const q = find(m, al, o, [sg * MP.u, MP.v], "pad", R.pad + S.margin, false);
@@ -1296,10 +1443,13 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
         const want = hr.int(SH.n[0], SH.n[1]), rr = ring.rect;
         const rFp = c.nodes["node.salvage_pile"]!.range;
         for (let k = 0, tries = 0; k < want && tries < 400; tries++) {
-          const q: Pt = [Math.round(lo[0] + hr.float() * (hi[0] - lo[0])), Math.round(lo[1] + hr.float() * (hi[1] - lo[1]))];
-          if (rectDist(q, rr) < SH.outside || rectDist(q, rr) > SH.outside + SH.band) continue;
-          if (lanes.some(([a, b2]) => segDist(q, a, b2) < SH.roadGap)) continue;
-          if (!boxOk(q, "node.salvage_pile", rFp, false) || P.castsOnPad("node.salvage_pile", q)) continue;
+          // pass 2: the wavefront's scrap site (after the walls, within a gate's walking range)
+          const hp = P.pinAt(`heap${k}`);
+          const q: Pt = hp ?? [Math.round(lo[0] + hr.float() * (hi[0] - lo[0])), Math.round(lo[1] + hr.float() * (hi[1] - lo[1]))];
+          if (!hp && pin) fail(`no wavefront site for heap${k}`);
+          if (!hp && (rectDist(q, rr) < SH.outside || rectDist(q, rr) > SH.outside + SH.band)) continue;
+          if (!hp && lanes.some(([a, b2]) => segDist(q, a, b2) < SH.roadGap)) continue;
+          if (!hp && (!boxOk(q, "node.salvage_pile", rFp, false) || P.castsOnPad("node.salvage_pile", q))) continue;
           P.add(`heap${k}`, q, rFp, { fp: "node.salvage_pile" });
           ents.push({ type: "node.salvage_pile", at: [...q] });
           k++;
@@ -1398,6 +1548,18 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     landmark = pad({ type: "pad.build", id: "landmark", at: [...lp], cost: { "res.currency": 40 }, build: "struct.landmark", big: true });
   }
 
+  // pass 2: every pad the wavefront placed stands on its own point (a build pad's building on its site); none may stand on a spot
+  // the player or a worker stands on to act (register, pile, line, converter spots, the gate's admit spot)
+  if (pin) for (const e of pads) {
+    const q = pin.pads.get(String(e.id));
+    if (!q) continue;
+    e.at = [...q.at];
+    if (q.site) e.site = [...q.site];
+    const sp = P.spots.find((x) => x.id !== "start" && dist(q.at, [x.x, x.y]) < R.pad + x.r - 8);
+    if (sp) fail(`pad ${String(e.id)} on the ${sp.id} spot`);
+    // key pads stay within a screen of the core (the rater's offscreen rule)
+    if (dist(q.at, core) > S.screenRadius) fail(`pad ${String(e.id)} off screen`);
+  }
   for (const s of P.stations) if (s.id !== "core" && dist([s.x, s.y], startPt) < s.r + 4) fail(`start overlaps ${s.id}`);
 
   // ---------- goal ----------
@@ -1883,14 +2045,17 @@ export function buildLevel(inp: BuildInput, layoutSalt = 0): Built {
     const r = e.rect as Rect, kinds = new Set(GEN.rockslide.rewards.map((w) => w.node));
     if (!ents.some((n) => kinds.has(n.type) && (n.at as Pt)[0] >= r[0] && (n.at as Pt)[0] <= r[0] + r[2] && (n.at as Pt)[1] >= r[1] && (n.at as Pt)[1] <= r[1] + r[3])) fail(`${String(e.id)} hides nothing`);
   }
+  // pass 1 hands its level to the wavefront (before the defend padding); pass 2 checks no pad is left hidden (there is no repair step)
+  const pass1 = (shift: number): Pass1 | undefined => pin ? undefined : { m: structuredClone(m), stations: P.stations.map((s) => ({ id: s.id, x: s.x, y: s.y, r: s.r, fp: s.fp })), sides: [...sides], shift };
+  if (pin) { const h = hiddenPads(m); if (h.length) fail(`pad hidden after placement: ${h.join(", ")}`); }
   if (defend) {
     // Batch 3: the defend map is padded on every side (the long roads); everything moves by the padding.
     const d = GEN.defendRoad.pad;
     padMap(m, d);
     for (const s of P.stations) { s.x += d; s.y += d; if (s.fp) s.fp = [s.fp[0] + d, s.fp[1] + d, s.fp[2] + d, s.fp[3] + d]; }
-    padSafetyNet(m, c, notes);
-    return { manifest: m, flow, stations: P.stations, notes, sizing, queue: queue.map((q) => [q[0] + d, q[1] + d] as Pt), layout: snapshot(P, d), padVisibility: checkPadView(m, fail) };
+    const pre = pass1(d);
+    return { manifest: m, flow, stations: P.stations, notes, sizing, queue: queue.map((q) => [q[0] + d, q[1] + d] as Pt), layout: snapshot(P, d), padVisibility: checkPadView(m, fail), ...(pre ? { pre } : {}) };
   }
-  padSafetyNet(m, c, notes);
-  return { manifest: m, flow, stations: P.stations, notes, sizing, queue, layout: snapshot(P), padVisibility: checkPadView(m, fail) };
+  const pre = pass1(0);
+  return { manifest: m, flow, stations: P.stations, notes, sizing, queue, layout: snapshot(P), padVisibility: checkPadView(m, fail), ...(pre ? { pre } : {}) };
 }

@@ -88,6 +88,17 @@ export class Placer {
    * (or a building's pad slot) is never placed in a shadow, and nothing tall is placed where its shadow falls on a pad.
    */
   shadeOf: ((kind: string, p: Pt) => ((q: Pt) => boolean) | null) | null = null;
+  /**
+   * Wavefront placement (outpost-ops#202, build.ts pass 2): stations whose spot is already decided. place() and add() put a pinned id at its
+   * pin without a search (an extra `pad` point adds the building's own build pad there as `${id}:pad`); every other placement keeps off the
+   * reserved ground of the pins not yet added, as it keeps off stations.
+   */
+  pins: ReadonlyMap<string, { at: Pt; pad?: Pt; padR?: number }> | null = null;
+  reserved: readonly { id: string; x: number; y: number; r: number; fp?: Box | undefined; pad?: boolean }[] = [];
+  /** Every pad point known so far: pads placed, and in pass 2 the pinned pads not placed yet (a pad on a plot slot has no station of its own). */
+  padPoints(): Pt[] { return [...this.stations.filter((s) => s.pad).map((s): Pt => [s.x, s.y]), ...this.reserved.filter((s) => s.pad).map((s): Pt => [s.x, s.y])]; }
+  private readonly added = new Set<string>();
+  pinAt(id: string): Pt | undefined { return this.pins?.get(id)?.at; }
   private kindOf(fp: string | readonly string[] | undefined): string | undefined {
     return typeof fp === "string" ? fp : fp?.find((k) => this.bodies?.[k]) ?? fp?.find((k) => !k.startsWith("pad")) ?? fp?.[0];
   }
@@ -159,6 +170,12 @@ export class Placer {
         if (fb[0] < o[2] + g && o[0] < fb[2] + g && fb[1] < o[3] + g && o[1] < fb[3] + g) return false;
       }
     }
+    for (const s of this.reserved) {
+      if (s.id === id || s.id === opts.on || this.added.has(s.id)) continue;
+      if (dist(p, [s.x, s.y]) < Math.max(r, s.r) + this.margin) return false;
+      const g = this.footprintGap;
+      if (fb && s.fp && fb[0] < s.fp[2] + g && s.fp[0] < fb[2] + g && fb[1] < s.fp[3] + g && s.fp[1] < fb[3] + g) return false;
+    }
     for (const sp of this.spots) if (dist(p, [sp.x, sp.y]) < r + sp.r) return false;
     // plot layout: a footprint may not cover a standing spot either (the queue's first square stays reachable)
     if (this.boxSpots && fb) for (const sp of this.spots) {
@@ -210,6 +227,8 @@ export class Placer {
 
   /** Sample the region, keep valid candidates, return the best by the preference (or null). */
   place(id: string, r: number, region: Rect | readonly Rect[], opts: PlaceOpts = {}): Pt | null {
+    const pin = this.pinAt(id);
+    if (pin) { this.add(id, pin, r, opts); return pin; }
     const regions: readonly Rect[] = Array.isArray(region[0]) ? region as readonly Rect[] : [region as Rect];
     const n = opts.samples ?? 80;
     const cands: Pt[] = [];
@@ -256,7 +275,10 @@ export class Placer {
     return best;
   }
 
-  add(id: string, p: Pt, r: number, opts: PlaceOpts = {}): void {
+  add(id: string, p0: Pt, r: number, opts: PlaceOpts = {}): void {
+    const pin = this.pins?.get(id), p = pin?.at ?? p0;
+    this.added.add(id);
+    if (pin?.pad) this.stations.push({ id: `${id}:pad`, x: pin.pad[0], y: pin.pad[1], r: pin.padR ?? r, key: true, on: id, fp: this.box(pin.pad, "pad"), pad: true });
     // a footprint with anything beyond a flat pad stands up off the ground (traders walk around it)
     const solid = (opts.fp === undefined ? [] : typeof opts.fp === "string" ? [opts.fp] : opts.fp).some((k) => !k.startsWith("pad"));
     const kind = typeof opts.fp === "string" ? opts.fp : opts.fp?.find((k) => this.bodies?.[k]) ?? opts.fp?.[0];
@@ -264,7 +286,8 @@ export class Placer {
     const sk = this.shadeOf ? this.kindOf(opts.fp) : undefined, hider = sk ? this.shadeOf!(sk, p) ?? undefined : undefined;
     this.stations.push({ id, x: p[0], y: p[1], r, key: opts.key ?? false, on: opts.on, tight: opts.tight, fp: this.box(p, opts.fp), solid, kind,
       body: bb && [p[0] + bb[0], p[1] + bb[1], p[0] + bb[2], p[1] + bb[3]], pad: !!opts.pad || Placer.isPad(opts.fp), hider });
-    for (const o of opts.slots ?? []) {
+    // a pinned building's pads stand where the wavefront put them (pinned on their own), not on its plot slots
+    for (const o of pin ? [] : opts.slots ?? []) {
       const q: Pt = [p[0] + o.dx, p[1] + o.dy];
       this.stations.push({ id: `${id}:${o.id}`, x: q[0], y: q[1], r: o.r, key: true, fp: this.box(q, o.fp), pad: true });
     }
@@ -287,6 +310,8 @@ export function unreadablePairs(stations: readonly Station[], core: Pt, screenRa
     const a = stations[i]!, b = stations[j]!;
     // a pad on what it acts on, or two pads on one thing (a tower's Lv2 and Lv3 share a spot, one shows at a time)
     if (a.on === b.id || b.on === a.id || (a.on !== undefined && a.on === b.on)) continue;
+    // two pads on one exact spot show one at a time (the wavefront stacks only pads live one after another; the rater's rule)
+    if (a.pad && b.pad && a.x === b.x && a.y === b.y) continue;
     if (dist([a.x, a.y], [b.x, b.y]) < Math.max(a.r, b.r)) out.push(`${a.id}~${b.id}`);
   }
   for (const s of stations) if (s.key && dist([s.x, s.y], core) > screenRadius) out.push(`offscreen ${s.id}`);

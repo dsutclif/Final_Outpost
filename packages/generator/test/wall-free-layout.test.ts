@@ -65,10 +65,9 @@ describe("wall-free defend layout (outpost-ops#208)", () => {
         expect(b.manifest.waves.flatMap((w) => (Array.isArray(w.side) ? w.side : [w.side ?? "n"]))).toBeTruthy();
         const sides = new Set(b.manifest.waves.flatMap((w) => (Array.isArray(w.side) ? w.side : [w.side ?? "n"])));
         expect(sides.size).toBeLessThanOrEqual(2);
-        // walled levels keep their three lanes (the cap is wall-free only)
-        const walled = mk(r, true, 0.8)!;
-        const wsides = new Set(walled.manifest.waves.flatMap((w) => (Array.isArray(w.side) ? w.side : [w.side ?? "n"])));
-        expect(wsides.size).toBeGreaterThanOrEqual(sides.size);
+        // walled levels: gates stand on the south and east sides only (Doug 2026-11-16, outpost-ops#202), so a west attack side has no
+        // walled layout; with south and east only they keep their lanes (the cap is wall-free only)
+        expect(mk(r, true, 0.8)).toBeNull();
       }
     } finally { GEN.viewClear.attackSides = saved as typeof GEN.viewClear.attackSides; }
   });

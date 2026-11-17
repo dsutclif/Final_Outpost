@@ -4068,6 +4068,8 @@ export class Renderer3D implements Renderer {
       }
       case "zone_cleared":
         fx.pop(`zone:${String(e["zone"])}`);
+        // a gate rockfall's band fades out with it
+        for (const id of (e["also"] as string[] | undefined) ?? []) fx.pop(`zone:${id}`);
         fx.dustRing(at, mix(t.groundAlt, t.structure, 0.3), 28, 140, 9);
         fx.floater(ft("zone_cleared"), white, up(at, ART_M * 1.2), 44);
         break;

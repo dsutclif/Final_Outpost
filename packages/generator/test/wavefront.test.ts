@@ -408,3 +408,35 @@ describe("ring fit, gate sides and the gate rockfall (outpost-ops#202, Doug 2026
     expect(r.padAt["clear_pass"]).toBeDefined();
   });
 });
+
+describe("belt far end (outpost-ops#202, Level 58)", () => {
+  it("joins its start machine's wavefront and is placed straight after it, next to it", () => {
+    const saw = { ...machine("saw", 0), links: ["alloy"] }, alloy = { ...machine("alloy", 3), beside: "saw" };
+    const bs = [core([]), saw, machine("depot", 0), machine("grill", 1), alloy];
+    const ids = wavefronts(bs).map((w) => w.map((b) => b.id));
+    const w = ids.find((x) => x.includes("saw"))!;
+    expect(w.indexOf("alloy")).toBe(w.indexOf("saw") + 1);
+    const r = placeWavefront({ buildings: bs, map: MAP }, { seed: 1, siteChecks: true });
+    const [a, s] = [r.positions["alloy"]!, r.positions["saw"]!];
+    expect(Math.hypot(a[0] - s[0], a[1] - s[1])).toBeLessThan(150);
+  });
+});
+
+describe("one wavefront besides the Core (outpost-ops#202, Level 14)", () => {
+  it("is split so the Core has buildings on both sides, linked buildings together, ground balanced", () => {
+    const saw = { ...machine("saw", 0), links: ["alloy"] }, alloy = { ...machine("alloy", 0), beside: "saw" };
+    const bs = [core([]), machine("shop", 0), saw, machine("food", 0), alloy, machine("depot", 0)];
+    const ids = wavefronts(bs).map((w) => w.map((b) => b.id));
+    expect(ids).toHaveLength(3);
+    expect(ids[1]).toEqual(["core"]);
+    const w = ids.find((x) => x.includes("saw"))!;
+    expect(w.indexOf("alloy")).toBe(w.indexOf("saw") + 1);
+    expect(Math.abs(ids[0]!.length - ids[2]!.length)).toBeLessThanOrEqual(1);
+    // each side keeps appearance order
+    for (const side of [ids[0]!, ids[2]!]) expect(side).toEqual(["shop", "saw", "alloy", "food", "depot"].filter((x) => side.includes(x)));
+  });
+  it("leaves a level with wavefronts on both sides already alone", () => {
+    const ids = wavefronts([core([]), machine("a", 0), machine("b", 1)]).map((w) => w.map((b) => b.id));
+    expect(ids).toEqual([["a"], ["core"], ["b"]]);
+  });
+});

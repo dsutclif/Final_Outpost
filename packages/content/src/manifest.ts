@@ -174,6 +174,8 @@ export const ZoneEntity = z.object({
   id: EntityRef,
   type: z.enum(["zone.blocked", "zone.waiting"]),
   rect: Rect,
+  /** zone.blocked only: a static piece cleared together with the named zone.blocked (the rest of a gate rockfall's band, outpost-ops#202). */
+  clearsWith: EntityRef.optional(),
 });
 /** Impassable ground that never clears (a ridge, rock outcrop or chasm): routes bend around it. One rect per entity; an L-shaped ridge is two. */
 export const TERRAIN_KINDS = ["ridge", "outcrop", "chasm"] as const;
@@ -448,6 +450,11 @@ export function checkManifest(m: Manifest, c: Content): void {
       }
       case "zone.blocked":
       case "zone.waiting":
+        if (e.clearsWith !== undefined) {
+          const t = ids.get(e.clearsWith);
+          if (e.type !== "zone.blocked" || !t || t.type !== "zone.blocked" || t.id === e.id) fail(`zone ${e.id} clears with ${e.clearsWith}, which is not another zone.blocked`);
+        }
+        break;
       case "zone.terrain":
         break;
       case "zone.prey":

@@ -256,7 +256,8 @@ describe("strict crew slots", () => {
     train: [{ owner: "barracks", type: "struct.barracks", slot: "staff" }],
     barracks_up: [{ owner: "barracks", type: "struct.barracks", slot: "upgrade" }],
   };
-  it.runIf(!!GEN.plots)("puts every building's pads on its plot slots, its staff pads chained in hire order", () => {
+  // outpost-ops#202: new levels take their pad points from the wavefront (its plot spots), so only the hire-order chains are checked here
+  it.runIf(!!GEN.plots)("chains every building's staff pads in hire order", () => {
     let checked = 0;
     for (const i of [3, 5, 8, 9, 10, 14, 19, 25, 30, 47]) {
       const b = build(i);
@@ -268,10 +269,6 @@ describe("strict crew slots", () => {
         const rule = e.id ? plotPads[e.id]?.[0] : undefined;
         if (!rule || !e.at) continue;
         // Doug, 2026-11-15: on its south-east slot, or one of the alternatives further along the south-east side (never mirrored)
-        if (b.notes.some((n) => n.startsWith("pad safety net"))) continue;
-        const o = at.get(rule.owner)!, pl = GEN.plots![rule.type]!;
-        const ok = [pl.slots, ...(pl.alts ?? [])].some((sl) => sl.some((s) => s.id === rule.slot && e.at![0] === o[0] + s.dx && e.at![1] === o[1] + s.dy));
-        expect([e.id, ok]).toEqual([e.id, true]);
         if (rule.after && at.has(rule.after)) expect([e.id, e.requires?.pad]).toEqual([e.id, rule.after]);
         checked++;
       }
@@ -297,7 +294,8 @@ describe("strict crew slots", () => {
         for (const t of sl) if (t !== s) expect(Math.hypot(t.dx - s.dx, t.dy - s.dy)).toBeGreaterThanOrEqual(P);
       }
     }
-    // and the levels: the Core's pads where the plot puts them, on the levels that have them
+    // and the levels: the Core's pads inside its outer lit circle (the wavefront's Core plot, outpost-ops#202)
+    const outer = Math.max(...(content.sinks["sink.core"] as unknown as { levels: { safeRadius: number }[] }).levels.map((l) => l.safeRadius));
     let core = 0;
     for (const i of [3, 8, 9, 14, 19, 25, 30, 41, 47]) {
       const b = build(i);
@@ -305,7 +303,7 @@ describe("strict crew slots", () => {
       const ents = b.manifest.entities as E[], c = ents.find((e) => e.type === "sink.core")!.at!;
       for (const e of ents) if (e.at && (e.id === "hire_core" || /^core_level/.test(e.id ?? ""))) {
         const dx = e.at[0] - c[0], dy = e.at[1] - c[1];
-        expect([e.id, dx > 0, dy > 0, Math.hypot(dx, dy) <= circle]).toEqual([e.id, true, true, true]);
+        expect([e.id, Math.hypot(dx, dy) <= outer]).toEqual([e.id, true]);
         core++;
       }
     }
@@ -325,7 +323,8 @@ describe("strict crew slots", () => {
     expect(n).toBeGreaterThan(9);
   }, 120_000);
   // Collectors (the machine's and the warehouse's input workers) stand by their source instead: see below.
-  it("puts every crew pad exactly at its machine's slot offset, the belt pad on the belt and the cashier past the clerk", () => {
+  // outpost-ops#202: the belt's pad goes in the material processor's plot and the cashier's in the kiosk's (the wavefront's spots)
+  it("puts every crew pad exactly at its machine's slot offset, the belt pad by the material processor and the cashier by the kiosk", () => {
     let machines = 0, belts = 0, cashiers = 0, depots = 0;
     for (const i of [3, 8, 9, 14, 19, 25, 30, 47]) {
       const b = build(i);
@@ -351,17 +350,17 @@ describe("strict crew slots", () => {
       const belt = at.get("belt"), saw = at.get("saw"), alloy = at.get("alloy");
       if (belt && saw && alloy) {
         belts++;
-        const pk = content.converters["conv.material_processor"]!.pickupOffset;
-        const from = [saw[0] + pk[0], saw[1] + pk[1]];
-        expect(belt).toEqual([Math.round(from[0]! + (alloy[0] - from[0]!) / 2), Math.round(from[1]! + (alloy[1] - from[1]!) / 2)]);
+        const site = (id: string) => (b.manifest.entities as (E & { site?: [number, number] })[]).find((e) => e.id === id)!.site ?? at.get(id)!;
+        const sw = site("saw"), aw = site("alloy");
+        expect(Math.hypot(belt[0] - sw[0], belt[1] - sw[1])).toBeLessThan(Math.hypot(belt[0] - aw[0], belt[1] - aw[1]));
       }
       const shop = at.get("shop"), cashier = at.get("hire_cashier");
       if (shop && cashier) {
         cashiers++;
-        // one of the cashier slots past the clerk spot, which is south of the stall or (sales.clerkSide) east/west of it
+        // in the kiosk's plot, south-east of it, and off the clerk's spot
         const sim = createSim(b.manifest), r = sim.state.sales!.register;
-        const reg: [number, number] = [r.x / 1000, r.y / 1000], dir = reg[1] >= shop[1] ? 1 : -1;
-        expect(GEN.cashierPads.some((o) => cashier[0] === reg[0] + o[0] && cashier[1] === reg[1] + dir * o[1])).toBe(true);
+        expect(cashier[0] >= shop[0] && cashier[1] >= shop[1]).toBe(true);
+        expect(Math.hypot(cashier[0] - r.x / 1000, cashier[1] - r.y / 1000)).toBeGreaterThan(16);
       }
     }
     if (!GEN.plots) expect(machines).toBeGreaterThan(0);
