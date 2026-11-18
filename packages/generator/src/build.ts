@@ -89,7 +89,9 @@ export const GEN = genData as unknown as {
   storms: { warn: number; duration: number; growStep: number; maxDuration: number };
   rockslide: { rewards: { kind: string; weight: number; node: string; count: number; resource: string }[];
     /** Building-site reward (outpost-ops#88, 88.2): a later building stands behind the slide; see generator.json. */
-    site: { weight: number; build: string; rect: [number, number]; at: [number, number]; pad: [number, number] } };
+    site: { weight: number; build: string; rect: [number, number]; at: [number, number]; pad: [number, number] };
+    /** Hunting-grounds slide (outpost-ops#88, 88.4): a rock slide hides the hopper flats; see generator.json. */
+    hunting: { chance: number; depth: number; overhang: number } };
   /** Play-shape beat-breakers (outpost-ops#151, 151.4); see generator.json. Costs are keys of `costs`. */
   beatBreakers: { families: string[]; skipGoals: string[]; lateHires: { id: string; from: "food" | "core"; cost: string }[]; cashierCost: string };
   scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
@@ -1725,6 +1727,50 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     }
   }
 
+  // ---------- 88.4 (Doug 2026-11-18): a rock slide over the hunting grounds ----------
+  // On a hunting level whose catch is sold (it has a ranger), a seeded chance puts rubble against the side of the hopper flats nearest
+  // the Core; the ranger's hire pad needs it cleared. Its own stream, drawn in both passes, so nothing else shifts. Pass 2 only (as 88.2's
+  // house): the wavefront would treat a rockfall on a walled level as a gate rockfall, and the flats lie outside its layout anyway.
+  let huntSlide: { rect: Rect; clear: string } | null = null;
+  const HS = GEN.rockslide.hunting;
+  const huntCatch = feat.has("hunting") && !!shopAt && Object.keys(c.animals["node.prey"]!.drops).some((r) => sells.includes(r));
+  if (huntCatch && new Rand(mix(inp.seed >>> 0, hashStr("rockslide_hunt"))).chance(HS.chance) && pin) {
+    const pz = ents.find((e) => e.type === "zone.prey")?.["rect"] as Rect | undefined ?? fail("hunting slide: no hunting grounds");
+    const [x, y, w, h] = pz, D = HS.depth, o = HS.overhang, mid = (r: Rect): Pt => [r[0] + r[2] / 2, r[1] + r[3] / 2];
+    const ov = (a: Rect, b: Rect, g = 0) => a[0] < b[0] + b[2] + g && b[0] < a[0] + a[2] + g && a[1] < b[1] + b[3] + g && b[1] < a[1] + a[3] + g;
+    const solid = ents.filter((e) => (e.type === "zone.blocked" || e.type === "zone.terrain") && Array.isArray(e["rect"])).map((e) => e["rect"] as Rect);
+    const things = ents.filter((e) => /^(capture|node|struct|sink|conv)\./.test(e.type) && Array.isArray(e["at"])).map((e) => e["at"] as Pt);
+    // clipped to the map: flats often run to its edge
+    const clip = (r: Rect): Rect => { const x0 = Math.max(0, r[0]), y0 = Math.max(0, r[1]); return [x0, y0, Math.min(480, r[0] + r[2]) - x0, Math.min(900, r[1] + r[3]) - y0]; };
+    const cands: Rect[] = [[x - o, y - D, w + 2 * o, D], [x - o, y + h, w + 2 * o, D], [x - D, y - o, D, h + 2 * o], [x + w, y - o, D, h + 2 * o]].map((r) => clip(r as Rect));
+    const ok = (r: Rect) => r[2] >= 30 && r[3] >= 30
+      && dist(core, mid(r)) < dist(core, mid(pz)) && (!ring || !ov(r, ring.rect, 8))
+      && !P.stations.some((s) => rectDist([s.x, s.y], r) < s.r + 6) && !P.spots.some((s) => rectDist([s.x, s.y], r) < s.r + 6)
+      && !solid.some((b) => ov(r, b, 10)) && !things.some((q) => rectDist(q, r) < 20) && !pads.some((p) => rectDist(p.at as Pt, r) < R.pad + 6);
+    // no room (a crowded edge, say Level 80's harvest buildings): the level keeps open grounds rather than losing the layout
+    const zr = cands.filter(ok).sort((a, b) => dist(core, mid(a)) - dist(core, mid(b)))[0] ?? null;
+    // the clearing pad stands on the Core's side of the rubble, nearest the Core, outside the wall like the ranger's
+    const pb0 = P.box([0, 0], "pad")!, cq: Pt[] = [];
+    if (zr) for (let yy = zr[1] - 80; yy <= zr[1] + zr[3] + 80; yy += 4) for (let xx = zr[0] - 80; xx <= zr[0] + zr[2] + 80; xx += 4) cq.push([xx, yy]);
+    cq.sort((a, b) => dist(a, core) - dist(b, core) || a[1] - b[1] || a[0] - b[0]);
+    const zp = zr && cq.find((q) => {
+      const b: Rect = [q[0] + pb0[0], q[1] + pb0[1], pb0[2] - pb0[0], pb0[3] - pb0[1]];
+      return b[0] >= 0 && b[1] >= 0 && b[0] + b[2] <= 480 && b[1] + b[3] <= 900 && rectDist(q, zr) <= R.pad + 30 && !ov(b, zr, 4) && !ov(b, pz, 4)
+        && (!ring || !inRect(q, ring.rect)) && P.onScreen(q) && dist(q, core) <= S.screenRadius && !solid.some((s) => ov(b, s, 4))
+        && P.walls.every((wl) => segDist(q, wl[0], wl[1]) >= R.pad + 10) && P.stations.every((st) => dist(q, [st.x, st.y]) >= Math.max(R.pad, st.r) + P.margin)
+        && P.spots.every((sp) => dist(q, [sp.x, sp.y]) >= R.pad + sp.r) && things.every((t) => dist(q, t) >= R.pad + 10);
+    });
+    if (!zr || !zp) notes.push("no room for a rock slide over the hunting grounds");
+    else {
+      ents.push({ type: "zone.blocked", id: "rubble_hunt", rect: [...zr] });
+      P.blocked.push(zr);
+      P.add("clear_hunt", zp, R.pad, { key: true, fp: ["pad"] });
+      pad({ type: "pad.build", id: "clear_hunt", at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: "rubble_hunt" });
+      huntSlide = { rect: zr, clear: "clear_hunt" };
+      notes.push("rock slide over the hunting grounds");
+    }
+  }
+
   // ---------- geography (R3 item 17): impassable ridges, outcrops and chasms on some levels ----------
   // Placed last so every station is where it would be without terrain; its own random stream leaves other draws alone.
   {
@@ -1788,7 +1834,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
         rp = P.place("ranger", R.pad, ring ? inner : [near[0] - 70, near[1] - 70, 140, 140], { near, key: true, fp: ["pad"], samples: 600 });
         if (rp) notes.push("ranger pad outside the hunting grounds (no clear spot inside)");
       }
-      if (rp) pad({ type: "pad.hire", id: "ranger", at: [...rp], cost: { "res.currency": cost("hire.hunter") }, role: { role: "role.hunter", from: "node.prey", to: "sink.sales_point" } });
+      if (rp) pad({ type: "pad.hire", id: "ranger", at: [...rp], cost: { "res.currency": cost("hire.hunter") }, role: { role: "role.hunter", from: "node.prey", to: "sink.sales_point" }, ...(huntSlide ? { requires: { pad: huntSlide.clear } } : {}) });
       else notes.push("no room for the ranger pad");
     }
   }
@@ -2086,6 +2132,13 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     if (e.type !== "zone.blocked" || !String(e.id).startsWith("rubble")) continue;
     const r = e.rect as Rect, kinds = new Set(GEN.rockslide.rewards.map((w) => w.node));
     const inR = (q: Pt) => q[0] >= r[0] && q[0] <= r[0] + r[2] && q[1] >= r[1] && q[1] <= r[1] + r[3];
+    if (huntSlide && e.id === "rubble_hunt") {
+      // 88.4: the hopper flats lie beyond the rubble from the Core, and the ranger's hire pad needs it cleared
+      const pz = ents.find((x) => x.type === "zone.prey")?.["rect"] as Rect | undefined, mid = (q: Rect): Pt => [q[0] + q[2] / 2, q[1] + q[3] / 2];
+      if (!pz || dist(core, mid(pz)) <= dist(core, mid(r))) fail("rubble_hunt: the hunting grounds are not behind the slide");
+      if ((pads.find((p) => p.id === "ranger")?.requires as { pad?: string } | undefined)?.pad !== huntSlide.clear) fail("rubble_hunt: the ranger does not need the slide cleared");
+      continue;
+    }
     const sl = siteSlides.find((x) => x.rect[0] === r[0] && x.rect[1] === r[1]);
     if (sl) {
       // pass 1 has not moved the building yet (see above)
