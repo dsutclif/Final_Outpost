@@ -1,4 +1,5 @@
 import type { Content, Manifest } from "@fo/content";
+import type { BotResult } from "@fo/bots";
 import { wavePoints } from "./build.js";
 
 /**
@@ -31,7 +32,35 @@ export interface CandidateRecord {
   final?: boolean;
   /** Time spent on this iteration. */
   ms?: number;
+  // ---- #251 part 1: what the log needs to say why a candidate failed and to replay it. Logging only: nothing here feeds a decision. ----
+  /** One entry per reject label, same order as `rejects`: the numbers behind it (objective + params + what the bots got, layout message, idle names, D / target / signed gap, ...). */
+  rejectDetail?: RejectDetail[];
+  /** The request's target D, and `D - target` (signed) of the quick or full rating. */
+  target?: number;
+  gap?: number;
+  /** The layout seed (the level's request seed, which fixes the map) and the layout salt that built; bots have their own seeds per run (see `runs`). */
+  layoutSeed?: number;
+  layoutSalt?: number;
+  /** Per bot run of the last rating: profile, in-level seed, won, goal seconds, lowest hp, margin. */
+  runs?: RunRow[];
+  /** Wall milliseconds split: building the level, the quick/human bot checks, the ratings (quick + full). */
+  msSplit?: { build: number; bots: number; rate: number };
+  /** The search step: the iteration before this one (-1 for the first), how far p moved from it, and the change in D since the previous rated iteration. */
+  step?: { prev: number; dp: number; dD?: number };
+  /** The built manifest as it was rated or played. levels:build stores it gzipped as `manifestGz` (tools/candidate-log.ts) so `pnpm trace --candidate <jsonl> --n <n>` can replay the candidate. */
+  manifest?: Manifest;
 }
+
+/** The numbers behind one reject label. `kind` is the label; the other fields depend on it. */
+export type RejectDetail = { kind: string } & Record<string, unknown>;
+
+export interface RunRow { bot: string; seed: number; won: boolean; s: number; hp: number; m: number }
+
+/** Compact rows of every bot run of a measurement (no per-tick data). */
+export function runRows(runs: Record<string, BotResult[]>): RunRow[] {
+  return Object.values(runs).flat().map((r) => ({ bot: r.profile, seed: r.seed, won: r.won, s: Math.round(r.goalTicks / 30), hp: r.runStats.hpMin, m: r3(r.margin) }));
+}
+
 
 export interface CandidateSettings {
   goal: Manifest["goal"];

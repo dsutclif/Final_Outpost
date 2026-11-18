@@ -29,6 +29,14 @@ describe("candidate digest", () => {
     expect(settingsOf(cand())).not.toHaveProperty("peakWave");
   });
 
+  it("skips the non-candidate rows of the log (build, recipe, buildEnd, variety, reroll)", () => {
+    const { raw, out } = setup();
+    const extra = [{ kind: "build" }, { kind: "recipe", Dmin: 0.1 }, { kind: "buildEnd" }, { kind: "variety" }, { kind: "reroll" }].map((r) => line({ run: "2026-10-30T12:00:00.000Z", engine: "0.14.0", ...r } as never));
+    writeFileSync(raw, extra[0] + line(cand({ rejects: ["infeasible"] })) + extra.slice(1).join(""));
+    expect(digestLog(raw, out, NOW)).toEqual(["2026-10-30"]);
+    expect(read(out, "2026-10-30").candidates).toBe(1);
+  });
+
   it("counts a run once however often it is digested, and adds later runs to the day", () => {
     const { raw, out } = setup();
     writeFileSync(raw, line(cand({ rejects: ["infeasible"] })) + line(cand({ kept: true, ms: 40 })));

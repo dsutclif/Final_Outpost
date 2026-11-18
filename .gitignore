@@ -6,5 +6,6 @@ coverage/
 .DS_Store
 Thumbs.db
 levels/candidates/*.jsonl
+levels/candidates/archive/
 levels/sweeps/
 levels/check-cache/

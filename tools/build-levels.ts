@@ -1,12 +1,13 @@
 import { spawn } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { compactRow, keepRawLog } from "./candidate-log.js";
 import { cpus } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CONTENT_VERSION } from "../packages/content/src/index.js";
 import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { computeReference, type HistoryEntry, type Measurement, type Metrics } from "../packages/rater/src/index.js";
-import { sequenceRange, type LevelRequest, type RecipeRegister } from "../packages/sequencer/src/index.js";
+import { recipeKey, recipeOf, sequenceRange, type LevelRequest, type RecipeRegister } from "../packages/sequencer/src/index.js";
 import { buildWithRerolls, describeRecipe, stopMessage, type SlotOutcome } from "./recipe-reroll.js";
 import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, withWaveFallback, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
@@ -227,12 +228,25 @@ async function main(): Promise<void> {
   // A failed recipe is registered and the slot re-rolled (tools/recipe-reroll.ts, outpost-ops#198).
   const registerPath = abs(arg("--register", DEFAULT_REGISTER_PATH)!);
   const register = loadRegister(registerPath);
-  const log = (rec: object) => appendFileSync(candPath, JSON.stringify({ run, engine: ENGINE_VERSION, content: CONTENT_VERSION, ...rec }) + "\n");
+  // #251: every row of this build is also kept in memory, so the raw log can be archived whole (levels/candidates/archive, and the ops backup) at the end.
+  const buildId = run.replace(/[:.]/g, "-");
+  const rowsOfBuild: string[] = [];
+  const log = (rec: object) => { const line = JSON.stringify({ run, engine: ENGINE_VERSION, content: CONTENT_VERSION, ...rec }); rowsOfBuild.push(line); appendFileSync(candPath, line + "\n"); };
+  log({ kind: "build", buildId, pack: packId, start: run, jobs, retries, only: only ?? null, from, to, targetOffset: Number(arg("--target-offset", "0")), indices });
+  const rerolls = new Map<number, number>();
+  let candN = 0;
   const build = async (i: number, sent: LevelRequest, extra: string[] = []): Promise<SlotOutcome<LevelResult>> => {
     const out = await runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, "--register", registerPath, ...(verbose ? ["--verbose"] : []), ...extra]);
     const r = parseResult(out);
     const cands = out.split("\n").find((l) => l.startsWith("CANDIDATES "));
-    if (cands) for (const c of JSON.parse(cands.slice(11)) as object[]) log(c);
+    if (cands) {
+      const rows = JSON.parse(cands.slice(11)) as (CandidateRecord & { index: number })[];
+      const recipeId = recipeKey(recipeOf(sent)), reroll = rerolls.get(i) ?? 0;
+      for (const c of rows) log({ n: ++candN, recipeId, reroll, ...compactRow(c) });
+      // per recipe: the lowest and highest D any candidate reached (a target outside it is out of reach for this recipe)
+      const Ds = rows.map((c) => c.rating?.D).filter((d): d is number => typeof d === "number");
+      log({ kind: "recipe", index: i, id: sent.id, recipeId, reroll, target: sent.target, candidates: rows.length, rated: Ds.length, Dmin: Ds.length ? Math.min(...Ds) : null, Dmax: Ds.length ? Math.max(...Ds) : null, shipped: rows.some((c) => c.shipped) });
+    }
     if (!r) { console.log(`  L${i}: worker crashed`); return { req: sent, ok: false, crashed: true, closestD: null, seeds: 0, rejects: {} }; }
     const req = r["req"] as LevelRequest;
     if (r["failed"]) {
@@ -250,6 +264,7 @@ async function main(): Promise<void> {
     // written whole then renamed, so a worker starting meanwhile never reads half a file
     onRegister: (_e, reg) => { writeFileSync(`${registerPath}.tmp`, JSON.stringify(reg, null, 2) + "\n"); renameSync(`${registerPath}.tmp`, registerPath); },
     onEvent: (ev) => {
+      rerolls.set(ev.index, (rerolls.get(ev.index) ?? 0) + 1);
       log({ kind: "reroll", index: ev.index, id: ev.id, from: ev.from, to: ev.to, reason: ev.reason });
       console.log(`  L${ev.index}: re-roll -> ${ev.to ? describeRecipe(ev.to) : "none"}`);
     },
@@ -281,6 +296,8 @@ async function main(): Promise<void> {
     const req = requestsFor([s.index], Number(offset))({ ...register, entries: [] }).get(s.index)!;
     dropped.push({ index: s.index, id: req.id, family: req.family, secondary: req.secondary, rejects: { recipes: s.tried.length } });
   }
+  log({ kind: "buildEnd", buildId, end: new Date().toISOString(), seconds: Math.round((Date.now() - t0) / 1000), candidates: candN });
+  keepRawLog(rowsOfBuild, join(dirname(candPath), "archive"), `${packId}-${buildId}.jsonl.gz`, flag("--no-backup") ? null : join(root, "..", "outpost-ops", "data", "bot-runs", "candidates"));
   digestLog(candPath, join(dirname(candPath), "digest"));
   results.sort((a, b) => a.index - b.index);
 

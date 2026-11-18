@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { gunzipSync } from "node:zlib";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PROFILES, playBot } from "../packages/bots/src/index.js";
@@ -7,7 +8,7 @@ import { ACTION_EVENTS, ENGINE_VERSION, TPS, type SimEvent } from "../packages/s
 // Play trace: a compact, deterministic event timeline for ONE bot run of ONE level.
 //
 //   pnpm trace --level <file | id> --seed <n> [--bot good] [--out file.json] [--idle 10]
-//   pnpm trace --candidate levels/candidates/<pack>.jsonl --line <n> --seed <n>   (record must carry `manifest`)
+//   pnpm trace --candidate levels/candidates/<pack>.jsonl (--line <n> | --n <candidate n>) --seed <n>   (.jsonl or .jsonl.gz; the row carries `manifestGz`, #251)
 //
 // As a function (the build pipeline's way):  traceRun(manifest, { seed, bot, idleSeconds })  -> Trace
 //                                            traceText(trace)                                 -> the exact file text
@@ -180,12 +181,21 @@ export function loadManifest(levelArg: string, cwd: string = process.cwd()): unk
  */
 export function manifestOfCandidate(rec: Record<string, unknown>): unknown {
   if (rec["manifest"] && typeof rec["manifest"] === "object") return rec["manifest"];
+  // #251 part 1: the generator logs the manifest as it was rated or played, gzip + base64 (CandidateRecord.manifestGz)
+  if (typeof rec["manifestGz"] === "string") return JSON.parse(gunzipSync(Buffer.from(rec["manifestGz"], "base64")).toString("utf8"));
   if (typeof rec["manifestPath"] === "string") return JSON.parse(readFileSync(rec["manifestPath"], "utf8"));
   throw new Error("candidate record has no `manifest`/`manifestPath`: the generator must log the built manifest (or a path) per candidate before it can be traced");
 }
 
-export function readCandidate(file: string, line: number): Record<string, unknown> {
-  const ls = readFileSync(file, "utf8").split("\n").filter((l) => l.trim() !== "");
+/** Row `line` (1-based), or with `n` the candidate row whose `n` field matches. Reads .jsonl and .jsonl.gz. */
+export function readCandidate(file: string, line: number, n?: number): Record<string, unknown> {
+  const raw = file.endsWith(".gz") ? gunzipSync(readFileSync(file)).toString("utf8") : readFileSync(file, "utf8");
+  const ls = raw.split("\n").filter((l) => l.trim() !== "");
+  if (n !== undefined) {
+    const hit = ls.map((x) => JSON.parse(x) as Record<string, unknown>).find((r) => r["n"] === n);
+    if (!hit) throw new Error(`${file} has no candidate with n=${n}`);
+    return hit;
+  }
   const l = ls[line - 1];
   if (l === undefined) throw new Error(`${file} has ${ls.length} records; no line ${line}`);
   return JSON.parse(l) as Record<string, unknown>;
@@ -197,7 +207,7 @@ function main(): void {
   const base = process.env["INIT_CWD"] ?? process.cwd();
   const seed = Number(arg("--seed", "1"));
   let manifest: unknown;
-  if (arg("--candidate")) manifest = manifestOfCandidate(readCandidate(resolve(base, arg("--candidate")!), Number(arg("--line", "1"))));
+  if (arg("--candidate")) manifest = manifestOfCandidate(readCandidate(resolve(base, arg("--candidate")!), Number(arg("--line", "1")), arg("--n") !== undefined ? Number(arg("--n")) : undefined));
   else if (arg("--level")) manifest = loadManifest(arg("--level")!, base);
   else { console.error("usage: pnpm trace --level <file|id> --seed <n> [--bot good] [--idle 10] [--out file.json]\n       pnpm trace --candidate <file.jsonl> --line <n> --seed <n>"); process.exit(2); }
   const idle = arg("--idle");

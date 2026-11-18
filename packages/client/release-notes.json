@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: added a play-trace tool that writes a short, repeatable timeline of one bot run of a level, for reviewing levels that miss their difficulty target. Nothing in the game changes."]}
+{"notes":["Behind the scenes: level builds now keep a full log of every candidate they try, with the reason and numbers for each rejection, so failed levels can be diagnosed and replayed. Nothing in the game changes."]}
