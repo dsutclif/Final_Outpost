@@ -87,7 +87,9 @@ export const GEN = genData as unknown as {
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
   storms: { warn: number; duration: number; growStep: number; maxDuration: number };
-  rockslide: { rewards: { kind: string; weight: number; node: string; count: number; resource: string }[] };
+  rockslide: { rewards: { kind: string; weight: number; node: string; count: number; resource: string }[];
+    /** Building-site reward (outpost-ops#88, 88.2): a later building stands behind the slide; see generator.json. */
+    site: { weight: number; build: string; rect: [number, number]; at: [number, number]; pad: [number, number] } };
   /** Play-shape beat-breakers (outpost-ops#151, 151.4); see generator.json. Costs are keys of `costs`. */
   beatBreakers: { families: string[]; skipGoals: string[]; lateHires: { id: string; from: "food" | "core"; cost: string }[]; cashierCost: string };
   scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
@@ -1043,30 +1045,40 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     }
   }
   let zones = 0;
+  const housingOn = feat.has("housing") || goal === "rescue_housed";
+  // Rock slides whose reward is a later building's site (88.2): filled in once that building's pad exists.
+  const siteSlides: { rect: Rect; clear: string }[] = [];
   if (feat.has("rockslides") && !ring) {
     const n = 1;
     for (let k = 0; k < n; k++) {
       // Rubble over part of a fuel grove: clearing it opens more fuel near the base.
+      // What the slide hides: drawn from generator.json, only kinds whose resource this level uses (rock slides
+      // only occur on wall-free levels, which never use salvage). Its own stream, so the rest of the level never shifts.
+      // The building-site kind (88.2) joins the draw only where the level raises that building later; a building
+      // with crew pads around it cannot move, so the data names one without (housing).
+      const rsr = new Rand(mix(inp.seed >>> 0, hashStr("rockslide") + k));
+      const pool = GEN.rockslide.rewards.filter((w) => w.weight > 0 && (w.resource !== "res.salvage" || !!ring));
+      const siteOk = GEN.rockslide.site.weight > 0 && GEN.rockslide.site.build === "struct.housing" && housingOn;
+      const total = pool.reduce((a, w) => a + w.weight, 0) + (siteOk ? GEN.rockslide.site.weight : 0);
+      let pick = rsr.float() * total, reward: (typeof pool)[number] | null = null;
+      for (const w of pool) { if (pick < w.weight) { reward = w; break; } pick -= w.weight; }
+      if (!reward && !siteOk) reward = pool[0]!;
+      const [zw, zh] = reward ? [120, 70] : GEN.rockslide.site.rect;
       let zr: Rect | null = pin?.zones.get(`rubble${k}`) ?? null;
       for (let t = 0; t < 40 && !zr; t++) {
         const ang = rand.float() * Math.PI * 2, d = 130 + rand.float() * 90;
         const zc: Pt = [Math.round(core[0] + Math.cos(ang) * d), Math.round(core[1] + Math.sin(ang) * d * 1.2)];
-        const cand: Rect = [Math.max(20, Math.min(340, zc[0] - 60)), Math.max(60, Math.min(770, zc[1] - 35)), 120, 70];
+        const cand: Rect = [Math.max(20, Math.min(460 - zw, zc[0] - zw / 2)), Math.max(60, Math.min(840 - zh, zc[1] - zh / 2)), zw, zh];
         const clear = !P.stations.some((s) => s.id !== "core" && rectDist([s.x, s.y], cand) < s.r + 6) && rectDist(core, cand) >= R.core + 30
           && !P.spots.some((s) => rectDist([s.x, s.y], cand) < s.r + 6) && P.blocked.every((b) => rectDist([b[0] + b[2] / 2, b[1] + b[3] / 2], cand) > 90)
-          && P.onScreen([cand[0] + 60, cand[1] + 35]);
+          && P.onScreen([cand[0] + zw / 2, cand[1] + zh / 2]);
         if (clear) zr = cand;
       }
       if (!zr) throw new Error("no room for rubble");
       ents.push({ type: "zone.blocked", id: `rubble${k}`, rect: [...zr] });
       P.blocked.push(zr);
-      // What the slide hides: drawn from generator.json, only kinds whose resource this level uses (rock slides
-      // only occur on wall-free levels, which never use salvage). Its own stream, so the rest of the level never shifts.
-      const rsr = new Rand(mix(inp.seed >>> 0, hashStr("rockslide") + k));
-      const pool = GEN.rockslide.rewards.filter((w) => w.weight > 0 && (w.resource !== "res.salvage" || !!ring));
-      let pick = rsr.float() * pool.reduce((a, w) => a + w.weight, 0), reward = pool[0]!;
-      for (const w of pool) { if (pick < w.weight) { reward = w; break; } pick -= w.weight; }
-      for (let i = 0; i < reward.count; i++) ents.push({ type: reward.node, at: [Math.round(zr[0] + zr[2] / 2 + 35 * (i - (reward.count - 1) / 2)), Math.round(zr[1] + zr[3] / 2)] });
+      if (!reward) siteSlides.push({ rect: zr, clear: `clear${k}` });
+      else for (let i = 0; i < reward.count; i++) ents.push({ type: reward.node, at: [Math.round(zr[0] + zr[2] / 2 + 35 * (i - (reward.count - 1) / 2)), Math.round(zr[1] + zr[3] / 2)] });
       const zp = placePad(`clear${k}`, [zr[0] + zr[2] / 2, zr[1] + (zr[1] > core[1] ? -45 : zr[3] + 45)]);
       void zp;
       pad({ type: "pad.build", id: `clear${k}`, at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: `rubble${k}`, requires: { coreLevel: 2 } });
@@ -1550,7 +1562,6 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
   // ---------- housing ----------
   const housingPads: Ent[] = [];
   const perHousing = c.defaults["housing.perBuilding"]!;
-  const housingOn = feat.has("housing") || goal === "rescue_housed";
   if (housingOn) {
     const newcomers = arrivals + pods;
     const nH = Math.max(1, Math.ceil(newcomers / perHousing));
@@ -1580,6 +1591,18 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     if (dist(q.at, core) > S.screenRadius) fail(`pad ${String(e.id)} off screen`);
   }
   for (const s of P.stations) if (s.id !== "core" && dist([s.x, s.y], startPt) < s.r + 4) fail(`start overlaps ${s.id}`);
+  // 88.2: the last housing building stands behind its rock slide; its pad shows once the slide is cleared. Pass 2 only:
+  // the wavefront lays the level out without it, and the rubble rect it pins keeps everything else out.
+  if (pin) for (const sl of siteSlides) {
+    const h = housingPads[housingPads.length - 1] ?? fail(`${sl.clear}: no building for the site`);
+    const S2 = GEN.rockslide.site, [x, y] = sl.rect;
+    const site: Pt = [x + S2.at[0], y + S2.at[1]], at: Pt = [x + S2.pad[0], y + S2.pad[1]];
+    h.at = [...at]; h.site = [...site];
+    h.requires = { ...((h.requires as object) ?? {}), pad: sl.clear };
+    const st = P.stations.find((s) => s.id === h.id);
+    const fp = GEN.footprints[String(h.build)]!;
+    if (st) { st.x = site[0]; st.y = site[1]; st.fp = [site[0] + fp[0], site[1] + fp[1], site[0] + fp[2], site[1] + fp[3]]; }
+  }
 
   // ---------- goal ----------
   const params0 = (): Record<string, number | string> => {
@@ -2062,6 +2085,13 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
   for (const e of ents) {
     if (e.type !== "zone.blocked" || !String(e.id).startsWith("rubble")) continue;
     const r = e.rect as Rect, kinds = new Set(GEN.rockslide.rewards.map((w) => w.node));
+    const inR = (q: Pt) => q[0] >= r[0] && q[0] <= r[0] + r[2] && q[1] >= r[1] && q[1] <= r[1] + r[3];
+    const sl = siteSlides.find((x) => x.rect[0] === r[0] && x.rect[1] === r[1]);
+    if (sl) {
+      // pass 1 has not moved the building yet (see above)
+      if (pin && !pads.some((p) => p.build === GEN.rockslide.site.build && inR(p.at as Pt) && inR(p.site as Pt) && (p.requires as { pad?: string } | undefined)?.pad === sl.clear)) fail(`${String(e.id)} hides no building site`);
+      continue;
+    }
     if (!ents.some((n) => kinds.has(n.type) && (n.at as Pt)[0] >= r[0] && (n.at as Pt)[0] <= r[0] + r[2] && (n.at as Pt)[1] >= r[1] && (n.at as Pt)[1] <= r[1] + r[3])) fail(`${String(e.id)} hides nothing`);
   }
   // pass 1 hands its level to the wavefront (before the defend padding); pass 2 checks no pad is left hidden (there is no repair step)

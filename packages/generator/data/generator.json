@@ -76,7 +76,9 @@
   "rockslide": { "rewards": [
     { "kind": "fuel_scrap", "weight": 2, "node": "node.fuel_scrap", "count": 3, "resource": "res.material_basic" },
     { "kind": "fuel_cache", "weight": 1, "node": "node.fuel_deposit", "count": 1, "resource": "res.fuel_dense" }
-  ] },
+  ],
+    "site": { "_doc": "88.2 (outpost-ops#88): clearing the slide frees the site of a later building. Joins the draw only on levels that raise this building (one with no crew pads around it, so it can move); the slide is rect [w, h], the building stands at `at` and its pad at `pad`, both offsets from the rect's top-left. The rect stays the usual slide size: a bigger one closes the traders' way to the kiosk line on Level 105; only the roof rises past the rubble.",
+      "weight": 2, "build": "struct.housing", "rect": [120, 70], "at": [36, 52], "pad": [92, 38] } },
   "beatBreakers": {
     "_doc": "Play-shape beat-breakers (outpost-ops#151, 151.4; Doug: no phase over 40% of the level). On these families, with workers and a cashier, a ladder of dearer hires stands between the farm worker and the cashier (farm worker -> lateHires in order -> cashier), so the bot buys one about every fifth of the level instead of all three hires in the first third and then running one collect-and-sell loop to the end. Each purchase is a play-shape beat. Prices are costs keys (scaled like every hire), set from the bot's measured purchase times: Level 8 (serve 16 premium customers) bought its old hires at 19/34/55 s of 178 s (longest phase 0.65); with this ladder at 19/34/54/86/119 s of 169 s (longest phase 0.20). skipGoals: goals whose cashier waits for the goal (shelves_full).",
     "families": ["harvest"], "skipGoals": ["shelves_full"],
