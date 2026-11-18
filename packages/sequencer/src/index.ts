@@ -17,7 +17,31 @@ export type Family = "shelter" | "rescue" | "harvest" | "industrialize" | "defen
 export type Phase = "teach" | "intro" | "mix" | "finale";
 
 export interface FeatureDef { family: Family; modules: string[]; anchor?: boolean; with?: string[] }
-export interface GoalDef { family: Family; kind?: string; needs: string[]; adds?: string[]; anchor?: boolean; avoid?: string[] }
+export interface GoalDef { family: Family; kind?: string; needs: string[]; adds?: string[]; anchor?: boolean; avoid?: string[]; reach?: Reach }
+
+/**
+ * Measured difficulty reach (outpost-ops#98, slice 98.2; docs/GOAL-DIFFICULTY-REACH.md): the targets a goal (or a
+ * finale's family pair) can be built at. Targets from lo to hi, minus the open gap between gap[0] and gap[1];
+ * `with` limits a goal's reach to levels that have every one of those features (rescue_all with pod timers).
+ */
+export interface Reach { lo?: number; hi?: number; gap?: [number, number]; with?: string[]; _doc?: string }
+
+/** True when the target is inside the reach. */
+export const inReach = (t: number, r: Reach): boolean =>
+  t >= (r.lo ?? 0) && t <= (r.hi ?? 1) && !(r.gap && t > r.gap[0] && t < r.gap[1]);
+
+/** The nearest target inside the reach (a target in the gap goes to its nearer edge, the easier one on a tie). */
+export function intoReach(t: number, r: Reach): number {
+  let x = Math.min(r.hi ?? 1, Math.max(r.lo ?? 0, t));
+  if (r.gap && x > r.gap[0] && x < r.gap[1]) x = x - r.gap[0] <= r.gap[1] - x ? r.gap[0] : r.gap[1];
+  return Math.round(x * 1000) / 1000;
+}
+
+/** A goal's reach on a level with these features (null: none measured, or its `with` features are missing). */
+export function goalReach(goal: string, features: readonly string[], cfg: SequencerConfig = DEFAULT_CONFIG): Reach | null {
+  const r = cfg.goals[goal]?.reach;
+  return r && (r.with ?? []).every((f) => features.includes(f)) ? r : null;
+}
 export interface FamilyDef { modules: string[]; teachGoal: string; intro: string[][]; challenges: string[] }
 
 export interface SequencerConfig {
@@ -45,6 +69,8 @@ export interface SequencerConfig {
   implies: Record<string, string[]>;
   familyOrder: Family[];
   finales: [Family, Family][];
+  /** Measured reach of a finale, keyed "family+secondary" (98.2); a finale's goals' own reach does not apply. */
+  finaleReach?: Record<string, Reach>;
   mixFeatures: { min: number; max: number };
   features: Record<string, FeatureDef>;
   families: Record<Family, FamilyDef>;
@@ -351,16 +377,28 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
   let { target, breather } = targetFor(index, slot.phase, cfg);
   if (opts.targetOffset) target = Math.min(0.95, Math.max(0.05, Math.round((target + opts.targetOffset) * 1000) / 1000));
   if (opts.recovery && prev?.fails !== undefined && prev.fails >= 2) target = Math.max(0.05, Math.round((target - cfg.recoveryDrop) * 1000) / 1000);
+  // Measured reach (98.2): after the tutorial arc no goal or finale is asked for a target it cannot be built at.
+  // A finale moves its target inside the pair's reach; a mix level picks a goal whose reach holds the target
+  // and, when none does, moves the target inside the picked goal's reach. The tutorial arc keeps its curve.
+  const ranged = index > cfg.tutorialLength;
+  const fr = ranged && slot.secondary ? cfg.finaleReach?.[`${slot.family}+${slot.secondary}`] : undefined;
+  if (fr) target = intoReach(target, fr);
+  const aim = (goal: string, features: readonly string[]): number => {
+    const r = ranged && !slot.secondary ? goalReach(goal, features, cfg) : null;
+    return r ? intoReach(target, r) : target;
+  };
   // Target, breather and introduced mechanics come from the slot; the register only steers the rest.
   const introduced = slot.phase === "teach" ? [`family:${slot.family}`] : [...slot.introduced].sort();
   const keys = activeKeys(opts.register, opts.engine);
-  const band = bandOf(target, opts.register?.settings.targetBand ?? DEFAULT_REGISTER.settings.targetBand);
+  const tb = opts.register?.settings.targetBand ?? DEFAULT_REGISTER.settings.targetBand;
   // With nothing registered nothing is blocked, so the pick is exactly the unregistered one.
   // Template "*" asks whether the features + goal failed with any template (see choose).
+  // The band is the one the goal would be asked for, so a re-roll matches the recipe the register holds.
   const near = new Set([...(opts.register?.entries ?? [])].filter((e) => keys.has(e.key)).map((e) => recipeKey({ ...e.recipe, template: "*" })));
   const blocked: Blocked | null = keys.size === 0 ? null : (features, modules, goalId, template) =>
-    (template === "*" ? near : keys).has(recipeKey({ family: slot.family, secondary: slot.secondary, features, modules, introduced, goalId, template, band }));
-  const pick = choose(index, slot, families, history, c, cfg, salt, blocked);
+    (template === "*" ? near : keys).has(recipeKey({ family: slot.family, secondary: slot.secondary, features, modules, introduced, goalId, template, band: bandOf(aim(goalId, features), tb) }));
+  const pick = choose(index, slot, families, history, c, cfg, salt, blocked, (g, fs) => aim(g, fs) === target);
+  target = aim(pick.goal, pick.features);
   return {
     index,
     id: `${cfg.packId}-L${String(index).padStart(3, "0")}`,
@@ -387,7 +425,7 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
 interface Pick { features: string[]; modules: string[]; goal: string; template: string }
 type Blocked = (features: string[], modules: string[], goalId: string, template: string) => boolean;
 
-function choose(index: number, slot: Slot, families: Family[], history: readonly HistoryEntry[], c: Content, cfg: SequencerConfig, salt: string, blocked: Blocked | null = null): Pick {
+function choose(index: number, slot: Slot, families: Family[], history: readonly HistoryEntry[], c: Content, cfg: SequencerConfig, salt: string, blocked: Blocked | null = null, fits: (goal: string, features: string[]) => boolean = () => true): Pick {
   const fam = slot.family;
   const prevSame = [...history].reverse().find((h) => h.family === fam);
   // With a register, a first pass also avoids features + goal that already failed with another
@@ -416,7 +454,9 @@ function choose(index: number, slot: Slot, families: Family[], history: readonly
     if (conflicts(modules, c).length > 0) continue;
     const goals = goalsFor(fam, features, families, cfg);
     if (goals.length === 0) continue;
-    const goal = pickGoal(goals, slot, history, cfg, s);
+    // goals that can be built at the target come first (98.2); with none, the pick moves the target instead
+    const fit = goals.filter((g) => fits(g, features));
+    const goal = pickGoal(fit.length > 0 ? fit : goals, slot, history, cfg, s);
     const adds = (cfg.goals[goal]?.adds ?? []).filter((f) => !features.includes(f));
     if (adds.length > 0) {
       // The goal pulls in features of its own (shelves_full: a hunted good beside the farmed one).
