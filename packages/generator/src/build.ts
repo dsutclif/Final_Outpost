@@ -123,6 +123,14 @@ export function capWavePoints(waves: readonly { counts: Record<string, number> }
 }
 
 type SplitWave = { t: number; counts: Record<string, number>; side?: string | string[]; gap?: number };
+/** Warlords in the final wave for a difficulty target (outpost-ops#92 part 2): the last [target, n] row the target reaches; 1 below them or with no target. */
+export function warlordsFor(target: number | undefined, rows: readonly (readonly number[])[]): number {
+  let n = 1;
+  if (target === undefined) return n;
+  for (const [t, k] of rows) if (target >= t! - 1e-9) n = k!;
+  return Math.max(1, Math.round(n));
+}
+
 /**
  * Denser, not bigger (Doug: the last waves dragged on): every regular wave from the first one over cap points on is
  * split into even pieces of at most cap points, the pieces arriving `spacing` s apart from that wave's start. The
@@ -131,7 +139,7 @@ type SplitWave = { t: number; counts: Record<string, number>; side?: string | st
  * cap 0 is off. Returns whether anything changed.
  */
 export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Content,
-  o: { cap: number; lateGap: number; spacing: number; minSpacing: number; spawnMax: number; sides: readonly string[]; bosses: boolean }): boolean {
+  o: { cap: number; lateGap: number; spacing: number; minSpacing: number; spawnMax: number; sides: readonly string[]; bosses: boolean; finalBosses?: number }): boolean {
   const BOSS = "hostile.boss", SW = "hostile.swarmling";
   const reg = waves.filter((w) => regular.has(w));
   const bossHp = c.hostiles[BOSS]?.hp ?? 0;
@@ -171,9 +179,9 @@ export function splitWaves(waves: SplitWave[], regular: Set<SplitWave>, c: Conte
   all.forEach((w, k) => { if (k >= from) w.side = o.sides[k % o.sides.length]!; });
   if (o.bosses && bossesOld > 0) {
     const at = [all.length - 1, ...(all.length >= 5 ? [all.length - 3] : [])];
-    for (const k of at) all[k]!.counts[BOSS] = 1;
+    at.forEach((k, i) => { all[k]!.counts[BOSS] = i === 0 ? Math.max(1, o.finalBosses ?? 1) : 1; });
     // a warlord the longer list adds takes its points out of the swarmlings, largest pieces first
-    let extra = (at.length - bossesOld) * bossHp;
+    let extra = (at.reduce((a, k) => a + all[k]!.counts[BOSS]!, 0) - bossesOld) * bossHp;
     while (extra > 0) {
       const big = tail.reduce((a, w) => ((w.counts[SW] ?? 0) > (a.counts[SW] ?? 0) ? w : a), tail[0]!);
       if ((big.counts[SW] ?? 0) <= 3) break;
@@ -312,6 +320,8 @@ export interface BuildInput {
   modules: string[];
   template: Template;
   knobs: Knobs;
+  /** The request's difficulty target (0..1); the final wave's warlord count follows it (defendWaves.warlords). */
+  target?: number;
   /** 0..1: how far the search has eased worker hire prices to break a repeated player loop (REDESIGN-R3 item 7). */
   hireEase?: number;
   /** Perimeter wall ring (barrier.line). On for defend levels and the rescue pen unless false; other families never get one. */
@@ -1557,6 +1567,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
 
     ringSockets();
     const DW = GEN.defendWaves;
+    const finalBosses = warlordsFor(inp.target, DW.warlords);
     const buyable = feat.has("turrets") || guards;
     // With defence to buy there are always two waves past the weak ones, so it has to carry some.
     const lateFrom = DW.lateFrom;
@@ -1573,7 +1584,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       const mult = k === 0 ? DW.firstShare : late ? 1 + DW.earlyGrowth * (lateFrom - 1) + DW.lateGrowth * (inp.secondary ? DW.finaleGrowthK : 1) * (k - lateFrom + 1) : 1 + DW.earlyGrowth * (k - 1);
       const counts: Record<string, number> = { "hostile.swarmling": Math.max(3, Math.round(K.swarm * mult)) };
       if (k >= 1) counts["hostile.raider_humanoid"] = Math.max(1, Math.round(K.swarm * (late ? DW.lateRaiders : DW.raiders) * k));
-      if (feat.has("bosses") && (k === nW - 1 || (k === nW - 3 && nW >= 5))) counts["hostile.boss"] = 1;
+      if (feat.has("bosses") && (k === nW - 1 || (k === nW - 3 && nW >= 5))) counts["hostile.boss"] = k === nW - 1 ? finalBosses : 1;
       // Every wave hits one side, and the next wave moves on to the next attack side (Doug, 2026-10-18):
       // the guards rally to it and the player meets it there. The first wave (and the med bay's probe raid) is the first side's.
       const wSides = sides[k % sides.length]!;
@@ -2179,7 +2190,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       && Math.max(...waves.filter((w) => regular.has(w)).map((w) => wavePoints(w.counts, c))) < DW.maxPoints;
     for (let k = 0; k < DW.fullGrowMax && waveScrap(waves, c) < fullAt(defGrowth) && room(); k++) { grow(growing); shape(); }
     capWavePoints(waves, c, DW.maxPoints);
-    if (splitWaves(waves, regular, c, { cap: DW.waveCap, lateGap: DW.lateGap, spacing: K.waveGap * DW.lateWaveGap, minSpacing: DW.lateWaveMin, spawnMax: DW.spawnMax, sides, bosses: feat.has("bosses") })
+    if (splitWaves(waves, regular, c, { cap: DW.waveCap, lateGap: DW.lateGap, spacing: K.waveGap * DW.lateWaveGap, minSpacing: DW.lateWaveMin, spawnMax: DW.spawnMax, sides, bosses: feat.has("bosses"), finalBosses: warlordsFor(inp.target, DW.warlords) })
       && (goal === "survive" || goal === "waves_survived" || goal === "boss")) Object.assign(gparams, params0());
     mixWaves(waves, regular, c, DW.mix, { lateGap: DW.lateGap, spawnMax: DW.spawnMax, cap: DW.waveCap, maxPoints: DW.maxPoints });
     for (const w of waves) if (regular.has(w) && size(w) * w.gap! > DW.spawnMax) w.gap = Math.max(DW.minGap, Math.floor((DW.spawnMax / size(w)) * 100) / 100);
