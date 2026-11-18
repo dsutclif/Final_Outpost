@@ -1,12 +1,13 @@
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
 import { cpus } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { HUMAN, LADDER, playBot } from "../packages/bots/src/index.js";
 import { loopOverCap } from "../packages/generator/src/loops.js";
 
-// pnpm levels:check [--pack levels/packs/s1 | levels/story] [--jobs N] [--seeds 10] [--others 3] [--strict-stars]
+// pnpm levels:check [--pack levels/packs/s1 | levels/story] [--jobs N] [--seeds 10] [--others 3] [--strict-stars] [--no-cache]
 //
 // Bot regression over a shipped pack: every level replayed by the whole ladder (10 seeds for the
 // reference bot, 3 for each other rung). Fails when any run stalls or the reference bot does not win
@@ -18,6 +19,11 @@ import { loopOverCap } from "../packages/generator/src/loops.js";
 // below the mean recorded at generation (rating.stars.human), or when a star objective is earned on
 // fewer than minEarned seeds. Levels generated before that rule carry no record: they are reported
 // and only fail with --strict-stars.
+//
+// Result cache (outpost-ops#245): each level's row is saved in levels/check-cache/<pack>.json under a key made
+// from the level file, the code the replay runs (sim, bots, content, generator loops + data, this tool) and
+// the seed counts. A later run reuses rows whose key is unchanged and replays only the rest. --no-cache
+// replays every level (use it when identical results before/after a pure speed-up are the proof).
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -86,6 +92,19 @@ function checkLevel(file: string, refSeeds: number, otherSeeds: number): Row {
   return { id: m.id, family: m.family ?? "-", feasible, refMinMargin: refMin, stalls, wins, stars, goodThree: goodThree / refSeeds, loopBad, human, seconds: (Date.now() - t0) / 1000 };
 }
 
+/** Hash of every source and data file the replay depends on; any change re-runs every level. */
+function codeHash(): string {
+  const h = createHash("sha256");
+  const dirs = ["packages/sim/src", "packages/bots/src", "packages/bots/data", "packages/content/src", "packages/content/data", "packages/generator/data"];
+  const files = [...dirs.flatMap((d) => existsSync(join(root, d))
+    ? readdirSync(join(root, d), { recursive: true }).map((f) => join(d, String(f))).filter((f) => /\.(ts|json)$/.test(f))
+    : []), "packages/generator/src/loops.ts", "tools/regress-levels.ts"].map((f) => f.replace(/\\/g, "/")).sort();
+  for (const f of files) h.update(f).update("\0").update(readFileSync(join(root, f))).update("\0");
+  return h.digest("hex");
+}
+
+interface Cache { rows: Record<string, { key: string; row: Row }> }
+
 function runChild(args: string[]): Promise<string> {
   const viteNode = join(root, "node_modules", "vite-node", "vite-node.mjs");
   return new Promise((ok) => {
@@ -105,13 +124,39 @@ async function main(): Promise<void> {
   const seeds = arg("--seeds", "10")!, others = arg("--others", "3")!;
   const t0 = Date.now();
   const files = pack.levels.map((l) => l.file);
-  const chunks: string[][] = Array.from({ length: jobs }, () => []);
-  files.forEach((f, i) => chunks[i % jobs]!.push(f));
+  const useCache = !argv.includes("--no-cache");
+  const cacheDir = join(root, "levels", "check-cache");
+  const cachePath = join(cacheDir, `${pack.id}.json`);
+  let cache: Cache = { rows: {} };
+  if (useCache && existsSync(cachePath)) { try { cache = JSON.parse(readFileSync(cachePath, "utf8")) as Cache; } catch { console.log("check cache unreadable, replaying every level"); } }
+  const code = codeHash();
+  const keyOf = (f: string) => createHash("sha256").update(code).update(`|${seeds}|${others}|`).update(readFileSync(join(packDir, f))).digest("hex");
+  const keys = new Map(files.map((f) => [f, keyOf(f)]));
   const rows: Row[] = [];
+  const reused = new Set<string>();
+  const todo: string[] = [];
+  for (const f of files) {
+    const c = useCache ? cache.rows[f] : undefined;
+    if (c && c.key === keys.get(f)) { rows.push(c.row); reused.add(c.row.id); } else todo.push(f);
+  }
+  const fileOfId = new Map<string, string>();
+  for (const f of todo) fileOfId.set((JSON.parse(readFileSync(join(packDir, f), "utf8")) as { id: string }).id, f);
+  const chunks: string[][] = Array.from({ length: jobs }, () => []);
+  todo.forEach((f, i) => chunks[i % jobs]!.push(f));
   await Promise.all(chunks.filter((c) => c.length > 0).map(async (c) => {
     const out = await runChild(["--worker", "--pack", packDir, "--files", c.join(","), "--seeds", seeds, "--others", others]);
     for (const line of out.split(/\r?\n/)) if (line.startsWith("ROW ")) rows.push(JSON.parse(line.slice(4)) as Row);
   }));
+  // save every row this run holds (fresh or reused) under its current key; levels no longer in the pack drop out
+  const next: Cache = { rows: {} };
+  for (const r of rows) {
+    const f = reused.has(r.id) ? files.find((x) => cache.rows[x]?.row.id === r.id) : fileOfId.get(r.id);
+    if (f) next.rows[f] = { key: keys.get(f)!, row: r };
+  }
+  mkdirSync(cacheDir, { recursive: true });
+  writeFileSync(cachePath + ".tmp", JSON.stringify(next));
+  renameSync(cachePath + ".tmp", cachePath);
+  if (useCache) console.log(`check cache: ${reused.size} reused, ${todo.length} replayed (--no-cache replays every level)\n`);
   rows.sort((a, b) => (a.id < b.id ? -1 : 1));
   let bad = 0, starBad = 0;
   for (const r of rows) {
@@ -121,7 +166,7 @@ async function main(): Promise<void> {
     if (!ok) bad++;
     if (h.miss !== "") starBad++;
     const hs = ` human=${h.mean.toFixed(1)}${h.recorded !== null ? `(rec ${h.recorded.toFixed(1)})` : ""} [${h.earned.map((e) => `${e.kind} ${e.n}/${HS.seeds}`).join(", ")}]${h.miss ? ` MISS ${h.miss}` : ""}`;
-    console.log(`${ok ? "ok  " : "FAIL"} ${r.id} ${r.family} refMin=${r.refMinMargin.toFixed(2)} wins=${LADDER.map((p) => (r.wins[p.name] ?? 0).toFixed(2)).join("/")} stars=${LADDER.map((p) => (r.stars[p.name] ?? 0).toFixed(1)).join("/")}${hs}${r.stalls.length ? " stalls=" + r.stalls.join(",") : ""}${r.loopBad.length ? " LOOP " + r.loopBad.join(",") : ""} ${r.seconds.toFixed(0)}s`);
+    console.log(`${ok ? "ok  " : "FAIL"} ${r.id} ${r.family} refMin=${r.refMinMargin.toFixed(2)} wins=${LADDER.map((p) => (r.wins[p.name] ?? 0).toFixed(2)).join("/")} stars=${LADDER.map((p) => (r.stars[p.name] ?? 0).toFixed(1)).join("/")}${hs}${r.stalls.length ? " stalls=" + r.stalls.join(",") : ""}${r.loopBad.length ? " LOOP " + r.loopBad.join(",") : ""} ${reused.has(r.id) ? "cached" : `${r.seconds.toFixed(0)}s`}`);
   }
   console.log("\nper family (levels; mean stars good/average/weak/novice/floor; good 3-star share; good win share):");
   for (const f of [...new Set(rows.map((r) => r.family))]) {

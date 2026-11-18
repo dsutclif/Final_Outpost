@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: the level builder now accepts defend levels at a fairer fun score than farming and factory levels, so it wastes fewer good defend candidates. Levels already in the game do not change."]}
+{"notes":["Behind the scenes: the level check now remembers each level's result and only replays levels whose file or game rules changed, so checking one fixed level takes seconds instead of a full run. Nothing in the game changes."]}
