@@ -3,13 +3,15 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { content } from "@fo/content";
 import {
-  DEFAULT_CONFIG, DEFAULT_REGISTER, FAMILIES, compareVersions, recipeKey, recipeOf, adaptOffset, alwaysOn, closure, conflicts, familyCounts, goalKind, historyOf, sequence, sequenceRange, slotFor, targetFor,
-  type HistoryEntry, type LevelRequest, type RecipeRegister, type RegisterEntry, type SequencerConfig,
+  DEFAULT_CONFIG, DEFAULT_REGISTER, FAMILIES, compareVersions, goalReach, inReach, intoReach, recipeKey, recipeOf, adaptOffset, alwaysOn, closure, conflicts, familyCounts, goalKind, historyOf, sequence, sequenceRange, slotFor, targetFor,
+  type HistoryEntry, type LevelRequest, type Reach, type RecipeRegister, type RegisterEntry, type SequencerConfig,
 } from "../src/index.js";
 
 const N = 60;
 const reqs: LevelRequest[] = sequenceRange(1, N);
 const cfg = DEFAULT_CONFIG;
+// the config without measured reach (98.2), for properties of the curve and tuning on their own
+const noReach: SequencerConfig = { ...cfg, finaleReach: {}, goals: Object.fromEntries(Object.entries(cfg.goals).map(([k, { reach: _r, ...g }]) => [k, g])) };
 const key = (r: LevelRequest) => `${r.modules.join(",")}|${r.goalType}|${r.template}`;
 
 describe("sequencer (level families, REDESIGN-R2 §5)", () => {
@@ -135,8 +137,8 @@ describe("batch tuning", () => {
   const played = (stars: number, attempts: number, n = 10) => Array.from({ length: n }, (_, i) => ({ index: 61 + i, stars, attempts }));
 
   it("shifts every target by the offset, the sequence otherwise unchanged", () => {
-    const base = sequenceRange(61, 80);
-    const eased = sequenceRange(61, 80, [], { targetOffset: -0.1 });
+    const base = sequenceRange(61, 80, [], { config: noReach });
+    const eased = sequenceRange(61, 80, [], { targetOffset: -0.1, config: noReach });
     for (let i = 0; i < base.length; i++) {
       expect(eased[i]!.target).toBeCloseTo(Math.max(0.05, base[i]!.target - 0.1), 3);
       expect({ ...eased[i]!, target: 0 }).toEqual({ ...base[i]!, target: 0 });
@@ -223,5 +225,70 @@ describe("recipe register (outpost-ops#198)", () => {
     expect(DEFAULT_REGISTER.settings.failGap).toBe(0.1);
     expect(DEFAULT_REGISTER.settings.maxRerolls).toBeGreaterThan(0);
     for (const e of DEFAULT_REGISTER.entries) expect(e.key).toBe(recipeKey(e.recipe));
+  });
+});
+
+describe("measured reach (outpost-ops#98, slice 98.2)", () => {
+  const strip = (c: SequencerConfig): SequencerConfig => ({
+    ...c, finaleReach: {},
+    goals: Object.fromEntries(Object.entries(c.goals).map(([k, { reach: _r, ...g }]) => [k, g])),
+  });
+  const reachOf = (r: LevelRequest): Reach | null =>
+    r.secondary ? (cfg.finaleReach?.[`${r.family}+${r.secondary}`] ?? null) : goalReach(r.goalId, r.features, cfg);
+
+  it("moves a target to the nearest one inside the reach (a gap to its nearer edge)", () => {
+    expect(intoReach(0.8, { hi: 0.4 })).toBe(0.4);
+    expect(intoReach(0.4, { lo: 0.7 })).toBe(0.7);
+    expect(intoReach(0.55, { lo: 0.2, hi: 0.9 })).toBe(0.55);
+    expect(intoReach(0.7, { gap: [0.65, 0.9] })).toBe(0.65);
+    expect(intoReach(0.8, { gap: [0.65, 0.9] })).toBe(0.9);
+    expect(inReach(0.8, { gap: [0.65, 0.9] })).toBe(false);
+    expect(inReach(0.65, { gap: [0.65, 0.9] })).toBe(true);
+    expect(goalReach("rescue_all", [], cfg)).toBeNull();
+    expect(goalReach("rescue_all", ["pod_timers"], cfg)).not.toBeNull();
+  });
+
+  it("the config measures some goals and finales (docs/GOAL-DIFFICULTY-REACH.md)", () => {
+    expect(Object.values(cfg.goals).some((g) => g.reach)).toBe(true);
+    for (const [k, r] of Object.entries(cfg.finaleReach ?? {}).filter(([k]) => !k.startsWith("_"))) {
+      expect(cfg.finales.map(([a, b]) => `${a}+${b}`)).toContain(k);
+      expect((r.lo ?? 0) <= (r.hi ?? 1)).toBe(true);
+    }
+  });
+
+  it("past the tutorial arc no goal or finale is asked for a target outside its reach", () => {
+    for (const r of sequenceRange(21, 120)) {
+      const reach = reachOf(r);
+      if (reach) expect(inReach(r.target, reach), `${r.id} ${r.goalId} ${r.target}`).toBe(true);
+    }
+  });
+
+  it("the tutorial arc (Levels 1-20) is exactly what it was without reach", () => {
+    expect(sequenceRange(1, 20)).toEqual(sequenceRange(1, 20, [], { config: strip(cfg) }));
+  });
+
+  it("a mix level picks a goal that reaches its target before it moves the target", () => {
+    const plain = sequenceRange(1, 120, [], { config: strip(cfg) });
+    const ranged = sequenceRange(1, 120);
+    let swapped = 0;
+    for (let i = 20; i < 120; i++) {
+      const a = plain[i]!, b = ranged[i]!;
+      if (a.secondary) continue;
+      const r = goalReach(a.goalId, a.features, cfg);
+      // the old pick could not reach the target: the new one changed goal or (only when none reaches it) target
+      if (r && !inReach(a.target, r) && b.goalId !== a.goalId) { if (b.target === a.target) swapped++; }
+    }
+    expect(swapped).toBeGreaterThan(0);
+  });
+
+  it("a re-roll of a level whose target moved skips the recipe it registered", () => {
+    const all = sequenceRange(1, 120);
+    const moved = all.filter((r) => r.index > 20 && r.target !== targetFor(r.index, r.phase, cfg).target);
+    expect(moved.length).toBeGreaterThan(0);
+    for (const r of moved.slice(0, 6)) {
+      const reg: RecipeRegister = { settings: { failGap: 0.1, maxRerolls: 8, targetBand: 0.1 }, entries: [{ key: recipeKey(recipeOf(r)), recipe: recipeOf(r), engine: "0.29.0", date: "2026-11-18" }] };
+      const again = sequence(r.index, all.slice(0, r.index - 1).map(historyOf), { register: reg, engine: "0.29.0" });
+      expect(recipeKey(recipeOf(again))).not.toBe(recipeKey(recipeOf(r)));
+    }
   });
 });
