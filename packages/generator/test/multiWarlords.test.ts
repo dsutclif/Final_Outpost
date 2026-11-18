@@ -11,7 +11,7 @@ const BOSS = "hostile.boss";
 const defs = sequenceRange(1, 80).filter((r) => r.family === "defend");
 const withBosses = defs.filter((r) => r.features.includes("bosses"));
 const pool = (withBosses.length >= 4 ? withBosses : defs.map((r) => ({ ...r, features: [...r.features, "bosses"] }))).slice(0, 6);
-const finalWave = (target: number | undefined, r: (typeof pool)[number], p: number): W | null => {
+const finalWave = (target: number, r: (typeof pool)[number], p: number): W | null => {
   for (let salt = 0; salt < GEN.search.layoutTries; salt++) {
     try {
       const b = buildLevel({ id: r.id, seed: r.seed, target, family: r.family, secondary: r.secondary, features: r.features, goalType: r.goalType,
