@@ -16,6 +16,8 @@ export interface CandidateRecord {
   /** Wins of the human-view bot in its early check. */
   humanWins?: number;
   /** The good bot's quick seeds. */
+  /** Per-level defend tuning (98.1): the scales tried and their quick D, the scale kept, the built level's D. */
+  tune?: { steps: { scale: number; D: number }[]; scale: number; from: number };
   quick?: { won: boolean; reason: string; seconds: number; hpMin: number; salvage: number; kills: number }[];
   rating?: { D: number; F: number; feasible: boolean; margin: Record<string, number>; winRate: Record<string, number>; loopMax: number; ladderLeft: number; idleModules: string[]; budget: number | undefined;
     /** Play shape (outpost-ops#151): the three numbers, the limits failed (enforced or not), the level end and every play-shape beat, in seconds. */
