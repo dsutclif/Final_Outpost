@@ -3,6 +3,7 @@ import type { SimEvent } from "../events.js";
 import { FP, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import type { BarrierSectionState, BarrierState, HostileState, State } from "../state.js";
 import { safeRadius } from "./core.js";
+import { gridFirstCrossing, wallsChanged } from "./wallgrid.js";
 import { hint, moveAgent, nearSegment, pointInPoly, segCross, stepDown, take } from "./common.js";
 
 export const sectionHpMax = (st: State, gate: boolean): number =>
@@ -11,6 +12,7 @@ export const sectionHpMax = (st: State, gate: boolean): number =>
 /** A section becomes solid: full hp from the runtime params (reinforcement raises them). */
 export function buildSection(st: State, cp: Compiled, line: BarrierState, s: BarrierSectionState): void {
   s.built = true;
+  wallsChanged(st);
   s.hpMax = sectionHpMax(st, s.gate);
   s.hp = s.hpMax;
   s.paid = line.costPerSection;
@@ -37,6 +39,7 @@ function unstick(st: State, cp: Compiled, s: BarrierSectionState): void {
 export function breakSection(st: State, line: BarrierState, idx: number, out: SimEvent[]): void {
   const s = line.sections[idx]!;
   s.built = false;
+  wallsChanged(st);
   s.hp = 0;
   s.paid = 0;
   s.broken = true;
@@ -200,16 +203,7 @@ export function gatedMove(st: State, cp: Compiled, pos: Vec, target: Vec, step: 
 
 /** The first built section (gates included) that segment a→b crosses, nearest to a; null if none. */
 export function firstCrossing(st: State, a: Vec, b: Vec): { line: BarrierState; idx: number; t: number } | null {
-  let best: { line: BarrierState; idx: number; t: number } | null = null;
-  for (const line of st.barriers) {
-    for (let i = 0; i < line.sections.length; i++) {
-      const s = line.sections[i]!;
-      if (!s.built) continue;
-      const t = segCross(a, b, s.a, s.b);
-      if (t >= 0 && (!best || t < best.t)) best = { line, idx: i, t };
-    }
-  }
-  return best;
+  return gridFirstCrossing(st, a, b);
 }
 
 /**

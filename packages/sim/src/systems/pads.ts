@@ -6,6 +6,7 @@ import { hint, idleResidents, take } from "./common.js";
 import { coreFuelCap } from "./core.js";
 import { placeConverter } from "./converters.js";
 import { isAutomation, isDefence, jobDone, jobOf, padCost } from "./economy.js";
+import { wallsChanged } from "./wallgrid.js";
 
 type HireEnt = Extract<Compiled["entityById"][string], { type: "pad.hire" }>;
 type BuildEnt = Extract<Compiled["entityById"][string], { type: "pad.build" }>;
@@ -152,9 +153,11 @@ function applyBuild(st: State, cp: Compiled, pad: PadState, e: BuildEnt, out: Si
   if (b === "zone.clear") {
     const z = st.zones.find((x) => x.id === e.target);
     if (z) z.cleared = true;
+    wallsChanged(st);
     // the rest of a gate rockfall's band (zones that clear with it) goes too
     const also: string[] = [];
     for (const b of st.zones) if (b.type === "zone.blocked" && b.clearsWith === e.target && !b.cleared) { b.cleared = true; also.push(b.id); }
+    wallsChanged(st);
     out.push({ t: "zone_cleared", zone: e.target!, ...(also.length ? { also } : {}) });
     return;
   }

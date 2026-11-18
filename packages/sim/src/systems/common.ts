@@ -3,6 +3,7 @@ import type { HintKey, SimEvent } from "../events.js";
 import { FP, clamp, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import { between } from "../rng.js";
 import type { DepotState, ResidentState, ResidentStatus, State } from "../state.js";
+import { gridBlockedAt } from "./wallgrid.js";
 
 /** Hints repeat only after this many ticks, matching the prototype's 1.5 s hint life. */
 const HINT_TICKS = 45;
@@ -118,12 +119,7 @@ export function segCross(p1: Vec, p2: Vec, q1: Vec, q2: Vec): number {
 
 /** Uncleared blocked zones and built wall sections block walkers; gates do not. */
 export function blockedAt(st: State, cp: Compiled, x: number, y: number): boolean {
-  const p = { x, y };
-  for (const z of st.zones) if ((z.type === "zone.blocked" || z.type === "zone.terrain") && !z.cleared && inRect(p, z.rect, cp.zones.blockMargin)) return true;
-  for (const line of st.barriers) {
-    for (const s of line.sections) if (s.built && !s.gate && nearSegment(p, s.a, s.b, cp.barrier.thickness)) return true;
-  }
-  return false;
+  return gridBlockedAt(st, cp.barrier.thickness, cp.zones.blockMargin, x, y);
 }
 
 /** Move pos toward target by at most step, axis by axis so a wall slides rather than sticks. Returns true when arrived. */
