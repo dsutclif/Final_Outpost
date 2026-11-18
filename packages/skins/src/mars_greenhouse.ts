@@ -906,14 +906,14 @@ export const marsGreenhouse: Skin = {
             { freeze: true },
             { camera: { to: { entity: "core" }, pan: 0.5, hold: 0.3, back: 0.2, zoom: 0.8 } },
             // KILN's first readout opens with its boot header (Doug, 2026-11-05); no extra line or tap
-            { line: "Commander. You're late.", who: "kiln", seconds: 2.6, head: "K.I.L.N. · KNOWLEDGE INTEGRATION AND LOGISTICS NETWORK · BATTERY 2%" },
+            { line: "Commander. You're late.", who: "kiln", seconds: 2.6, head: "K.I.L.N. · KNOWLEDGE INTEGRATION AND LOGISTICS NETWORK · BATTERY 2% · DAY 1" },
             { freeze: false },
             { line: "I'm KILN, the support system of the Halcyon, your colony ship. Your stasis pod, bay nine, finally opened.", who: "kiln" },
             { line: "I've been running on my last battery. Hurry and fill the reactor before it dies, and me with it.", who: "kiln" },
             { goal: "fill" },
           ] },
           { on: { goal: "fill", is: "done" }, do: [
-            { line: "Thank you. The four pods here on the deck are still sealed: bays five to eight.", who: "kiln", head: "K.I.L.N. · REACTOR ONLINE" },
+            { line: "Thank you. The four pods here on the deck are still sealed: bays five to eight.", who: "kiln", head: "K.I.L.N. · REACTOR ONLINE · DAY 1" },
             { line: "My first officer, Vale, is in bay five. Open them.", who: "commander" },
             { line: "Not yet. The reactor has to burn all night before there's power to open them. Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.", who: "kiln" },
             { goal: "main" },
@@ -965,7 +965,7 @@ export const marsGreenhouse: Skin = {
             { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
           ] },
           { on: { start: true }, ordered: true, do: [
-            { line: "Bays one to four were thrown clear when we hit. My sensors pick up four crew in those pods, and they're freezing.", who: "kiln" },
+            { line: "Bays one to four were thrown clear when we hit. My sensors pick up four crew in those pods, and they're freezing.", who: "kiln", head: "K.I.L.N. · DAY 2" },
             { guide: true },
             { line: "I'm adding pointers to your heads-up display to help you find them.", who: "kiln" },
             { line: "There's a fifth pod. It's one of ours, an escape pod from the lander, but nobody was assigned to it.", who: "kiln" },
@@ -1056,7 +1056,7 @@ export const marsGreenhouse: Skin = {
             { line: "Settlements? There are other people on this planet?", who: "commander" },
             { line: "Colony ships have been landing on the coast for years. You came down a long way from the landing fields. Nobody comes out this far.", who: "sela" },
             { line: "Three towns along this road, and every one of them is hungry. You've got a grow dome there. I'll pay for greens.", who: "sela" },
-            { line: "People who trade. Commander, if we sell her our greens, we can afford a real shelter for the crew.", who: "kiln" },
+            { line: "People who trade. Commander, if we sell her our greens, we can afford a real shelter for the crew.", who: "kiln", head: "K.I.L.N. · DAY 3" },
             { goal: "first" },
             { dots: [{ entity: "field1" }], period: 3 },
           ] },
@@ -1127,7 +1127,7 @@ export const marsGreenhouse: Skin = {
             { line: "KILN. Is it true? Eleven years?", who: "commander" },
             { spirit: "fading" },
             // KILN's basis for the new date: the stars and Sela's clock (Doug, 2026-11-04)
-            { line: "I shut down everything except the pods to save power, my clock too. It stopped on day five.", who: "kiln" },
+            { line: "I shut down everything except the pods to save power, my clock too. It stopped on day five.", who: "kiln", head: "K.I.L.N. · DAY 4" },
             { line: "I've reset it against the stars overhead, and against Sela's clock. They agree. It's been four thousand and twenty-three days.", who: "kiln" },
             { spirit: "idle" },
             { day: "DAY 4,023", sub: "KILN's clock had stopped at DAY 5.", seconds: 3 },
