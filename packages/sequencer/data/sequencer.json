@@ -33,7 +33,7 @@
     ["defend", "shelter"]
   ],
   "finaleReach": {
-    "_doc": "Measured reach (outpost-ops#98, 98.2; docs/GOAL-DIFFICULTY-REACH.md, 98.1a): after the tutorial arc a finale target moves inside its pair reach, and a mix level picks a goal whose reach holds its target (goals.*.reach), or moves the target inside the picked goal reach when none does. One slot per family and target, so the edges are rough. Defend goals are not measured (98.1 parked).",
+    "_doc": "Measured reach (outpost-ops#98, 98.2; docs/GOAL-DIFFICULTY-REACH.md, 98.1a): after the tutorial arc a finale target moves inside its pair reach, and a mix level picks a goal whose reach holds its target (goals.*.reach), or moves the target inside the picked goal reach when none does. One slot per family and target, so the edges are rough. Defend goals are not measured (98.1 parked). Every industrialize goal is capped at 0.4, measured or not (the six measured all stayed under 0.4), so a level eases its target instead of swapping to an unmeasured goal; rescue with pod timers shares the rescue_all floor (Level 23 rated about 1.0 at 0.494).",
     "rescue+harvest": { "lo": 0.7 },
     "harvest+industrialize": { "hi": 0.6 }
   },
@@ -107,7 +107,7 @@
     "clear_zones": { "family": "shelter", "needs": ["rockslides"], "anchor": true },
     "house_all": { "family": "shelter", "needs": ["gate_arrivals", "housing"], "anchor": true },
 
-    "rescue": { "family": "rescue", "needs": [], "avoid": ["hunting"] },
+    "rescue": { "family": "rescue", "needs": [], "avoid": ["hunting"], "reach": { "lo": 0.7, "with": ["pod_timers"] } },
     "rescue_all": { "family": "rescue", "needs": [], "avoid": ["hunting"], "reach": { "lo": 0.7, "with": ["pod_timers"] } },
     "rescue_before_freeze": { "family": "rescue", "needs": ["pod_timers"], "avoid": ["hunting"] },
     "hunt": { "family": "rescue", "needs": ["hunting"], "avoid": ["clearing_pass"] },
@@ -131,10 +131,10 @@
     "haul": { "family": "industrialize", "needs": ["depot"], "anchor": true, "reach": { "hi": 0.4 } },
     "chain": { "family": "industrialize", "needs": ["tier2"], "anchor": true, "reach": { "hi": 0.4 } },
     "automate": { "family": "industrialize", "needs": [], "anchor": true, "reach": { "hi": 0.4 } },
-    "stockpile": { "family": "industrialize", "needs": ["depot"], "anchor": true },
+    "stockpile": { "family": "industrialize", "needs": ["depot"], "anchor": true, "reach": { "hi": 0.4 } },
     "build": { "family": "industrialize", "needs": ["material_processor"], "anchor": true, "reach": { "hi": 0.4 } },
-    "converter_level": { "family": "industrialize", "needs": ["converter_levels"], "anchor": true },
-    "hire_ops": { "family": "industrialize", "kind": "hire", "needs": [], "anchor": true },
+    "converter_level": { "family": "industrialize", "needs": ["converter_levels"], "anchor": true, "reach": { "hi": 0.4 } },
+    "hire_ops": { "family": "industrialize", "kind": "hire", "needs": [], "anchor": true, "reach": { "hi": 0.4 } },
 
     "waves": { "family": "defend", "needs": [], "anchor": true },
     "waves_survived": { "family": "defend", "needs": [], "anchor": true },
