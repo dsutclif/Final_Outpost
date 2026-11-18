@@ -11,6 +11,8 @@ import { GEN, TEMPLATES, buildLevel, dressingKnobs, knobsFor, templateById, time
 import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
 import { candidateSettings, roundKnobs, type CandidateRecord } from "./record.js";
+import { scaleAttack, tuneScale, type AttackTune } from "./attackTune.js";
+const TUNE = (genData as unknown as { attackTune: AttackTune }).attackTune;
 
 export { dressingKnobs, capWavePoints, wavePoints, withWaveFallback, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, applyNightCadence, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
@@ -679,6 +681,29 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     if (!r.feasible || hardFlags.includes("stall")) { hi = p; p = (lo + p) / 2; continue; }
     if (flags.includes("trivial")) { lo = p; p = (p + hi) / 2; continue; }
     if (hardFlags.length > 0) { p = clamp01(p + (mrand.float() - 0.5) * 0.2); continue; }
+    // The pressure search steers by the level as built; the tuned attack below only moves this candidate.
+    const builtD = r.D;
+    let tuned = false;
+    if ((req.family === "defend" || req.secondary === "defend") && m.waves.length > 0 && Math.abs(r.D - req.target) > TUNE.trigger) {
+      const base = m.waves, DW = GEN.defendWaves;
+      const lim = { maxPoints: DW.maxPoints, cap: DW.waveCap, spawnMax: DW.spawnMax, minGap: DW.minGap };
+      const seen = new Map<number, { waves: Manifest["waves"]; r: Rating; flags: string[] }>();
+      const tr = tuneScale(req.target, r.D, (f) => {
+        m.waves = scaleAttack(base, f, c, lim);
+        const q = rateIt(m, opts.seeds?.quick ?? S.quickSeeds);
+        const fl = Object.entries(q.r.filters).filter(([, v]) => v).map(([k]) => k);
+        // a scale the level cannot take (the good bot loses, a stall, a repeated loop) is no use, whatever its D
+        const bad = !q.r.feasible || fl.some((k) => k !== "trivial") || overLoopCap(q.ms);
+        seen.set(Math.round(f * 1000) / 1000, { waves: m.waves, r: q.r, flags: fl });
+        return bad ? (q.r.D > req.target ? 1 : 0) : q.r.D;
+      }, TUNE);
+      const pick = tr.scale === 1 ? null : seen.get(tr.scale);
+      m.waves = pick ? pick.waves : base;
+      if (pick) r = pick.r;
+      tuned = true;
+      rec.tune = { steps: tr.steps.map((s) => ({ scale: s.scale, D: round3(s.D) })), scale: tr.scale, from: round3(builtD) };
+      log(`  it${it} attack tuning: D ${builtD.toFixed(3)} -> ${r.D.toFixed(3)} at x${tr.scale} in ${tr.steps.length} step(s)`);
+    }
     const err = Math.abs(r.D - req.target);
     // Quick ratings run a little off the full one, so a near miss may be on target; one no closer than the best has nothing to add.
     if (err <= S.verifyWithin && (!best || err < best.err)) {
@@ -691,7 +716,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       reject("offTarget");
       memory.pool.push({ m, p, err, seed: req.seed, knobs: rec.knobs });
     }
-    if (r.D < req.target) lo = p; else hi = p;
+    if ((tuned ? builtD : r.D) < req.target) lo = p; else hi = p;
     p = (lo + hi) / 2;
   }
   flush();

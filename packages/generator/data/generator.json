@@ -149,6 +149,10 @@
     "stationGap": 22, "coreGap": 100, "edgeGap": 30, "wallGap": 24, "pathGap": 26, "pieceGap": 24,
     "maxShare": 0.08, "tries": 80, "cell": 10, "walker": 14, "minBand": 60
   },
+  "attackTune": {
+    "_doc": "Per-level defend tuning (outpost-ops#98, 98.1; Doug 2026-11-17): a defend candidate whose quick rating misses its target by more than trigger keeps its layout and has its attackers scaled (warlords kept; rule 7 maxPoints and the dense-wave cap kept; gaps tighten to spawnMax) and re-rated, a secant step on the rating each time (the first step: scale x (1 + gain x miss)), at most maxSteps steps, stopping within stopWithin; the closest scale goes on through the usual checks and today's re-roll. Each step moves the scale at most maxStepRatio either way, within [minScale, maxScale] of the built level. Generator only: drone rate and guard strength untouched.",
+    "trigger": 0.1, "stopWithin": 0.05, "maxSteps": 4, "gain": 2, "minScale": 0.4, "maxScale": 2.5, "maxStepRatio": 1.6
+  },
   "search": {
     "maxIterations": 10,
     "tolerance": 0.05,
