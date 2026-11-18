@@ -19,3 +19,15 @@ describe("first-launch progress", () => {
     expect(megabytes(10)).toBe(1);
   });
 });
+
+describe("offline download list", () => {
+  it("includes the crash film, so a first launch counts and caches it", async () => {
+    const { PRECACHE_GLOBS } = await import("../src/precache-globs");
+    expect(PRECACHE_GLOBS).toContain("assets/crash_open-*.mp4");
+    // the film's built name (assets/[name]-[hash].mp4) is matched by that glob and by no other film's
+    const re = (g: string) => new RegExp("^" + g.replace(/\./g, "\\.").replace(/\*/g, "[^/]*") + "$");
+    const hit = (f: string) => PRECACHE_GLOBS.some((g) => !g.includes("{") && !g.startsWith("**") && re(g).test(f));
+    expect(hit("assets/crash_open-AbC123.mp4")).toBe(true);
+    expect(hit("assets/helmet_reveal-AbC123.mp4")).toBe(false);
+  });
+});

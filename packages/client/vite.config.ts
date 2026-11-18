@@ -7,6 +7,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import { marsGreenhouse as skin } from "../skins/src/mars_greenhouse";
 import { PROGRESS_EPOCH } from "./src/epoch";
 import { findTitleFonts, findTitleVideo, fontPreloadTag, titleVideoPreloadTag } from "./src/titlepreload";
+import { PRECACHE_GLOBS } from "./src/precache-globs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PACKS = resolve(here, "../../levels/packs");
@@ -161,16 +162,16 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // The game must work fully offline (Doug: download everything, about 57 MB; the first-launch screen, loader.ts, shows the progress), so the install precaches the
+        // The game must work fully offline (Doug: download everything, about 62 MB with the crash film; the first-launch screen, loader.ts, shows the progress), so the install precaches the
         // three.js chunk, fonts and every Meshy model. Models are fetched with ?v=<hash>; the precache
         // matches them without it, and its own revisions replace a file when its content changes.
         // Levels stay on the runtime routes below: the app prefetches every level while online and
         // polls pack.json for new batches, which a precached copy would hide.
-        globPatterns: ["**/*.{js,css,html,svg,png,webmanifest,woff2}", "models/**/*.glb"],
+        globPatterns: PRECACHE_GLOBS,
         globIgnores: ["store/**", "sandbox.html", "assets/sandbox-*.js", "layout.html", "assets/layout-*.js", "dev/**", "levels/**", "assets/*.poster-*.png", "models/decor.buggy*.glb"],
-        // Cinematic videos (src/cinematics) are not precached: the globs above never match .mp4, which keeps the
-        // install small and keeps the worker out of the way of iOS Safari range requests. Offline they simply
-        // fail to load and the client skips ahead (cinematics.ts); the title falls back to its canvas backdrop.
+        // Cinematic videos (src/cinematics) are not precached except the crash film (src/precache-globs.ts), so a first
+        // launch can play it offline. The others simply fail to load offline and the client skips ahead
+        // (cinematics.ts); the title falls back to its canvas backdrop.
         ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
         // 8 MB: the story wreck (decor.halcyon_wreck, the crash film's site at 100k tris) is 7.7 MB
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
