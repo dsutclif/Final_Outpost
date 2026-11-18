@@ -11,7 +11,7 @@ Moving, ore and the ore pile, the reactor, heat and the safe radius, dust storms
 line, stasis pods, gentle pod freezing, crew who join as workers (L2); greens and the grow dome,
 the kiosk counter, credits, traders, rockslides, rock ridges, the hopper flats, rock hoppers
 and protein, source unlocks, the habitat hub (L3); the galley and meals, hire pads (hauler, technician, picker,
-clerk), automation (L4); night, walls and the airlock gate,
+clerk), automation (L4); night, walls and the gate,
 raiders, scrap, wall turrets, guards and the guard post, Colony HP, a retreating boss (L5).
 
 ## How the triggers work

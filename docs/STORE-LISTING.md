@@ -34,7 +34,7 @@ cold creeps in.
 
 - Carry ore on your back, stock the kiosk and ring up traders at the register.
 - Spend credits on build pads: hire haulers, clerks and technicians who work on their own.
-- Tow stasis pods home through the airlock and wake new colonists in the reactor's warmth.
+- Tow stasis pods home through the gate and wake new colonists in the reactor's warmth.
 - Raise walls and turrets before the raiders and dust crawlers arrive.
 - Ride out dust storms, run galleys and smelters, upgrade your reactor.
 - Every mission is checked by a team of test bots, so every level is beatable.

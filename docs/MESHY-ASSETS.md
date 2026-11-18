@@ -70,7 +70,7 @@ Skip **AI Texturing** (it re-paints the model and costs credits). Credits: Meshy
 after the first one and tell Claude if it is much higher.
 
 **Moving parts.** The game animates a few parts on their own, so those are generated as
-**separate objects** (noted per asset): turret head and base, airlock door and frame. The
+**separate objects** (noted per asset): turret head and base, gate door and frame. The
 reactor's plasma glow stays code-built inside a model with an open top.
 
 **Tools in hands.** Characters are generated **empty-handed**: held tools break auto-rigging.
@@ -163,7 +163,7 @@ Triangle targets are lower than batch 1 because these repeat (walls, doors, head
 | Second batch | Id | Tris | Notes |
 |---|---|---|---|
 | Gate frame | `struct.gate` (`replace: frame`) | 650 | 2.7 m; the renderer still stretches it along x to the gate section |
-| Gate door | `struct.gate` (`slot: doorL`, `replace: doorR`) | 250 | One door fills the whole opening (Doug's airlock concept); it sinks into the ground to open. A slot entry's `replace` drops parts it makes redundant, `parts` keyed by the slot name moves the part itself |
+| Gate door | `struct.gate` (`slot: doorL`, `replace: doorR`) | 250 | One door fills the whole opening (Doug's gate concept); it sinks into the ground to open. A slot entry's `replace` drops parts it makes redundant, `parts` keyed by the slot name moves the part itself |
 | Hab Pod | `struct.housing` | 1,300 | Door and ramp to +z; nudged 4 cm back to sit inside the footprint |
 | Med Bay | `struct.medical` | 1,400 | 1.75 m, shifted 12 cm left so the heal spot (+0.93 m) is outside the wall |
 | Warehouse | `struct.depot` | 1,400 | Open-roof bin, low front lip to +z; 2.1 m (near square, so narrower than the code bin); deposit/pickup moved to z 1.15. `store.depot` stays code-built |
@@ -352,8 +352,8 @@ has a Meshy file.
 | `struct.ranged_defense.t3.head` | Turret head Lv3 (optional: the game has no Lv3 turret yet) | Attach the Lv2 head image. Heavy head like "Turret Lv3": wide armoured housing, twin long barrels with glowing orange coils, side ammunition packs. Head only, no base. |
 | `struct.barrier` | Wall section | Wall section from the sheet: one straight segment of poured-concrete barrier, about three times as long as tall and thin, with angled buttresses on the back face and yellow-black hazard stripes. Seen so the long face is clearly visible. |
 | `struct.barrier.reinforced` | Reinforced wall | Attach the wall image. The same wall segment reinforced like "Reinforced wall": extra steel plating, more buttresses, hazard stripes, small lights and an antenna. Same length and thickness. |
-| `struct.gate.frame` | Airlock gate frame | Airlock gate frame only, from "Airlock gate": a heavy concrete frame with yellow lights and a keypad, **the doorway open and empty** (the doors are a separate model). Same length as one wall segment. |
-| `struct.gate.door` | Airlock gate door | One sliding airlock door panel for the attached frame image: thick steel slab with panel lines and a yellow stripe, flat-on three-quarter view, nothing else. |
+| `struct.gate.frame` | Gate frame | Gate frame only, from "Gate": a heavy concrete frame with yellow lights and a keypad, **the doorway open and empty** (the doors are a separate model). Same length as one wall segment. |
+| `struct.gate.door` | Gate door | One sliding gate door panel for the attached frame image: thick steel slab with panel lines and a yellow stripe, flat-on three-quarter view, nothing else. |
 | `struct.landmark` | Habitat hub | Habitat hub from the sheet: a large ribbed concrete dome with round porthole windows on top of a chunky base with side modules, pipes and an entrance ramp. |
 | `struct.housing` | Hab pod | Hab pod from the sheet: a small rounded steel living pod with a big round porthole window and a short entry airlock. |
 | `struct.medical` | Med bay | Med bay from the sheet: a rounded white-grey medical module with faded red crosses on the sides and an antenna on the roof. |

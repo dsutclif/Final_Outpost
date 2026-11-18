@@ -115,7 +115,7 @@ Also show each item as a **tall back stack** (1, 3, 6 and MAX) and as a **ground
 
 ### Defences
 - **Wall section** (struct.barrier): chunky composite panel segment. States: unbuilt line (dashed "WALK HERE" floor marking), built, cracked/damaged, destroyed (rubble), reinforced (extra plating).
-- **Airlock gate** (struct.gate): gate in the wall with its own frame and light.
+- **Gate** (struct.gate): gate in the wall with its own frame and light.
 - **Turret Lv1 / Lv2** (struct.ranged_defense / .t2): wall-mounted tower on a ring post. Lv2 gets a bigger head, a double barrel and a longer range. Show the muzzle flash.
 - **Freestanding turret** for levels without walls.
 
@@ -128,7 +128,7 @@ Also show each item as a **tall back stack** (1, 3, 6 and MAX) and as a **ground
 - **Build pad** (pad.build): dashed outline with a white silhouette of the building plus its cost and a fill bar.
 - **Hire pad** (pad.hire): role icon plus machine or source icon, price, and a locked state.
 - **Operator platform**: always visible beside each converter.
-- **Arrivals pad** (zone.waiting): waiting area for new colonists by the airlock.
+- **Arrivals pad** (zone.waiting): waiting area for new colonists by the gate.
 - **Rockslide** (zone.blocked): boulder pile blocking a path, with a clear pad.
 - **Rock ridge** (zone.terrain): impassable ridge.
 - **Interaction rings**: cyan proximity ring and the safe-radius ring around the reactor.
@@ -188,7 +188,7 @@ showing inventory, and a Conveyor belt (straight and bent) carrying items."
 **10. Build sequence.** "One building (Hab pod) shown as: dashed build pad with a white
 silhouette and price, scaffold, squash-and-stretch pop with a dust ring, finished."
 
-**11. Defences.** "Wall sections: unbuilt dashed line, built, cracked, rubble, reinforced. Airlock
+**11. Defences.** "Wall sections: unbuilt dashed line, built, cracked, rubble, reinforced. Gate
 gate. Wall towers Lv1 and Lv2 with a muzzle flash. A freestanding turret."
 
 **12. Captures.** "A stasis pod with a colonist inside (frozen and thawing open), a supply crate
@@ -224,8 +224,8 @@ families, each with its own mood. Generate one gameplay scene per family plus th
 
 | Environment | What the player sees | Mood / key elements |
 |---|---|---|
-| **Shelter** (heat and settlers) | Reactor at the centre, dense ore-pile "fuel forests", hab pods, an arrivals pad by the airlock, rockslides blocking side areas | Cosy warm glow against cold dusk; orange safe ring; colonists gathering |
-| **Rescue** (expeditions) | Perimeter wall with an airlock, open wasteland outside with stasis pods and supply crates scattered far out, hopper flats, a blocked pass | Lonely, wide, exploratory; frost on pods; a tow cable trailing the hero |
+| **Shelter** (heat and settlers) | Reactor at the centre, dense ore-pile "fuel forests", hab pods, an arrivals pad by the gate, rockslides blocking side areas | Cosy warm glow against cold dusk; orange safe ring; colonists gathering |
+| **Rescue** (expeditions) | Perimeter wall with a gate, open wasteland outside with stasis pods and supply crates scattered far out, hopper flats, a blocked pass | Lonely, wide, exploratory; frost on pods; a tow cable trailing the hero |
 | **Harvest** (farm and market) | Rows of grow domes, the kiosk with a long trader queue, credits stacking, bulk traders arriving on a dusty road | Busy, cheerful market; greens and gold everywhere |
 | **Industrialize** (supply chains) | Galley, smelter and parts works linked by conveyors, the warehouse cutaway, couriers moving goods | Industrial bustle; glows, smoke, moving belts, tidy logistics |
 | **Defend** (hold the colony) | Closed perimeter ring, a gate per attack side, wall towers, guards at posts, dirt paths where raiders and crawlers approach from 1–3 edges, a boss | Tense; red danger accents; muzzle flashes; edge "ENEMY" tags |
@@ -252,7 +252,7 @@ recolour. The table gives the core idea per skin, and the right-hand columns sho
 |---|---|---|
 | **Frozen camp** (next candidate) | Warmth / barrel stove with log pile / blizzard | Survivor in a parka; logs, coal, fish, meat; wooden market stall; tents; wolves and raiders; ice-block captures; snowdrift blockers |
 | **Deep Sea Colony** | Air / oxygen plant / hull breach | Dive suits, kelp farms, glass habitats on the seabed, bioluminescence |
-| **Space Station Salvage** | Power / reactor core / solar flare | Station modules, airlocks, floating scrap, starfield |
+| **Space Station Salvage** | Power / reactor core / solar flare | Station modules, gates, floating scrap, starfield |
 | **Arctic Research Station** | Heat and power / generator / whiteout | Research huts, snowcats, ice cores, aurora |
 | **Desert Oasis Caravan** | Water / well pump / sandstorm | Tents, camels or carts, palm groves, sand dunes |
 | **Lighthouse Keepers** | Light / beacon lamp / sea storm | Rocky island, cottages, fishing boats, crashing waves |

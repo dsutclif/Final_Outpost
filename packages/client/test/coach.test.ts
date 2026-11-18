@@ -80,6 +80,6 @@ describe("HUD and intro for later modules", () => {
     const seen = new Set<string>(golden[0]!.modules);
     const t = levelText(sim.compiled.manifest, marsGreenhouse, 1, seen);
     expect(t.tips.length).toBeGreaterThan(0);
-    expect(t.tips.join(" ")).toMatch(/airlock|tow/i);
+    expect(t.tips.join(" ")).toMatch(/gate|tow/i);
   });
 });
