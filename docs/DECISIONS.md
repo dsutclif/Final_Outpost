@@ -354,3 +354,8 @@ Decisions made after `SPEC.md` was written. Where they conflict with the spec, t
     least 3 beat types or 2 under two minutes, a new beat after the first third) ships report-only (`playShape.enforce: false`):
     on beat sheets of first occurrences, a scratch build of Levels 7-16 rejected 30-40 of 40 candidates per slot and stopped,
     and 7 of 11 sampled s1 levels fail the phase limit. Its numbers are in each rating's evidence; the limits wait on a call.
+
+- **Defend fun bar 0.20 (outpost-ops#99 part 1, 2026-11-18).** On a scratch pack with the new wave rules, defend levels
+  rate F 0.25-0.45 (mean 0.35) against 0.85-0.92 for economy levels; two proxies (threat peaks, reward gaps) score every
+  defend level -1 by construction. Call: a defend entry of 0.20 in sequencer `funThresholds`, no proxy fix now. Table,
+  reasons and the exact part-2 change are in `docs/DEFEND-FUN.md`.

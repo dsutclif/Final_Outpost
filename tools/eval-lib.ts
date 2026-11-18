@@ -51,3 +51,38 @@ export function evalPack(opts: EvalOptions): EvalIndexRow[] {
   }
   return [...rows.values()];
 }
+
+/** Goal group for the fun table (outpost-ops#99): defend family against every economy family. */
+export const funGroup = (family: string): "defend" | "economy" => (family === "defend" ? "defend" : "economy");
+
+/**
+ * Per-proxy fun table from a pack's side files: for each group, the mean raw value, mean y (-1..1), mean
+ * contribution (weight · y) of every proxy, plus mean F and how many levels clear `bar`. F = σ(Σ v·y + bias).
+ */
+export function funTable(root: string, pack: string, bar = 0.4): string {
+  const dir = join(root, "levels", "eval", pack);
+  const levels = readPack(root, pack).levels.filter((l) => existsSync(join(dir, `${l.id}.json`)));
+  const ds = levels.map((l) => JSON.parse(readFileSync(join(dir, `${l.id}.json`), "utf8")) as RatingDetail);
+  const groups = new Map<string, RatingDetail[]>();
+  for (const d of ds) { const g = funGroup(d.family); groups.set(g, [...(groups.get(g) ?? []), d]); }
+  const order = ["defend", "economy"].filter((g) => groups.has(g));
+  const names = [...new Set(ds.flatMap((d) => Object.keys(d.fun.proxies)))];
+  const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
+  const f2 = (x: number) => (x >= 0 ? " " : "") + x.toFixed(2);
+  const lines = [`fun per proxy, pack ${pack} (mean over levels; y in -1..1; contribution = weight * y)`];
+  lines.push(["proxy".padEnd(16), "w", ...order.flatMap((g) => [`${g} raw`, `${g} y`, `${g} v*y`])].join("\t"));
+  for (const k of names) {
+    const w = ds.find((d) => d.fun.proxies[k])?.fun.proxies[k]!.weight ?? 0;
+    const cells = order.flatMap((g) => {
+      const ps = groups.get(g)!.map((d) => d.fun.proxies[k]).filter((p) => p !== undefined);
+      return [f2(mean(ps.map((p) => p.raw))), f2(mean(ps.map((p) => p.y))), f2(mean(ps.map((p) => p.contribution)))];
+    });
+    lines.push([k.padEnd(16), w.toFixed(1), ...cells].join("\t"));
+  }
+  for (const g of order) {
+    const gs = groups.get(g)!;
+    lines.push(`${g}: n=${gs.length} sum ${f2(mean(gs.map((d) => d.fun.sum)))} F ${mean(gs.map((d) => d.F)).toFixed(2)} (min ${Math.min(...gs.map((d) => d.F)).toFixed(2)}, max ${Math.max(...gs.map((d) => d.F)).toFixed(2)}), ${gs.filter((d) => d.F >= bar).length}/${gs.length} at or over ${bar}`);
+    lines.push(`  ${gs.map((d) => `${d.id} ${d.goal} F=${d.F.toFixed(2)}`).join(", ")}`);
+  }
+  return lines.join("\n");
+}

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { evalLevel } from "./eval-lib.js";
+import { evalLevel, funTable } from "./eval-lib.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const json = (p: string) => JSON.parse(readFileSync(p, "utf8")) as Record<string, any>;
@@ -47,5 +47,15 @@ describe("re-rating", () => {
     expect(d.schema).toBe(1);
     expect(existsSync(join(tmp, "levels/eval/s1", `${first.id}.json`))).toBe(true);
     expect([sha(join(dir, "pack.json")), sha(join(dir, first.file)), sha(join(src, "pack.json"))]).toEqual(before);
+  });
+});
+
+describe("fun table (outpost-ops#99)", () => {
+  it("splits s1 into defend and economy rows for every proxy", () => {
+    const t = funTable(root, "s1");
+    expect(t).toMatch(/^closeFinish\s/m);
+    expect(t).toMatch(/^novelty\s/m);
+    expect(t).toMatch(/^defend: n=\d+ /m);
+    expect(t).toMatch(/^economy: n=\d+ /m);
   });
 });
