@@ -73,6 +73,8 @@ export interface TerrainCtx {
   walkPoints: readonly Pt[];
   /** The stall's queue slots and which map edge customers arrive from; null when there is no stall. */
   shop: { queue: readonly Pt[]; edgeRight: boolean } | null;
+  /** Rects new pieces keep clear of (88.3: the hunting slide and the ridges round its flats). */
+  avoid?: readonly Rect[];
 }
 
 export function placeTerrain(x: TerrainCtx): TerrainPiece[] {
@@ -116,6 +118,7 @@ export function placeTerrain(x: TerrainCtx): TerrainPiece[] {
     for (const sp of P.spots) if (rectDist([sp.x, sp.y], rect) < sp.r + T.stationGap) return false;
     for (const w of P.walls) if (segHitsRect(w[0], w[1], inflate(rect, T.wallGap))) return false;
     for (const q of placed) if (rectsTouch(inflate(rect, T.pieceGap), q.rect)) return false;
+    for (const q of x.avoid ?? []) if (rectsTouch(inflate(rect, T.pieceGap), q)) return false;
     const fat = inflate(rect, T.pathGap);
     for (let i = 0; i < walk.length; i++) for (let j = i + 1; j < walk.length; j++) if (segHitsRect(walk[i]!, walk[j]!, fat)) return false;
     for (const [a, b] of x.lanes ?? []) if (segHitsRect(a, b, fat)) return false;

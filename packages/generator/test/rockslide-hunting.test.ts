@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { PROFILES, playBot, planBot } from "@fo/bots";
+import { FP, blockedAt, compile, createSim } from "@fo/sim";
 import { closure, sequenceRange } from "@fo/sequencer";
 import { buildLevel, knobsFor, templateById, GEN } from "../src/index.js";
 
 // 88.4 (outpost-ops#88, Doug 2026-11-18): on a new hunting level whose catch is sold, a seeded chance puts a rock slide over the
 // hunting grounds: the hopper flats lie beyond the rubble from the Core and the ranger's hire pad needs the slide cleared.
+// 88.3: ridges close the other three sides of the flats, so the cleared slide is the only way in.
 const reqs = sequenceRange(1, 120).filter((r) => r.features.includes("hunting") && r.goalType === "protein");
 type Ent = { type: string; id?: string; rect?: number[]; at?: number[]; target?: string; build?: string; requires?: { pad?: string } };
 const mid = (r: number[]) => [r[0]! + r[2]! / 2, r[1]! + r[3]! / 2];
@@ -46,6 +48,41 @@ describe("rock slide over the hunting grounds", () => {
       if (plan.includes("ranger")) expect(plan.indexOf(clear!.id!), at).toBeLessThan(plan.indexOf("ranger"));
     }
   });
+
+
+  // 88.3: the flats are shut in. A flood fill over the sim's own blockedAt (uncleared rubble, terrain, built walls) from the Core
+  // never gets within the player's melee reach of the flats; once the slide is cleared it reaches them.
+  it("the slide is the only way into the flats", () => {
+    const slid = built.filter((x) => x.slide);
+    expect(slid.length).toBeGreaterThan(5);
+    for (const b of slid) {
+      const ents = b.m.entities as unknown as Ent[], at = `${b.id}@${b.seed}`;
+      const sim = createSim({ ...(b.m as object), seed: 1 }), cp = compile({ ...(b.m as object), seed: 1 });
+      const st = sim.state, pz = ents.find((e) => e.type === "zone.prey")!.rect!, core = ents.find((e) => e.type === "sink.core")!.at!;
+      expect(ents.filter((e) => e.type === "zone.terrain" && String(e.id).startsWith("hunt_ridge")).length, at).toBeGreaterThan(0);
+      const reach = cp.player.attackRange / FP;
+      const gap = (px: number, py: number) => Math.hypot(Math.max(pz[0]! - px, 0, px - pz[0]! - pz[2]!), Math.max(pz[1]! - py, 0, py - pz[1]! - pz[3]!));
+      const flood = (): number => {
+        // cell centres sit off whole units: the sim leaves the exact row through a wall joint open (nearSegment skips endpoints)
+        const C = 4, O = 1.5, GW = 480 / C, GH = 900 / C, seen = new Uint8Array(GW * GH), q = [Math.floor(core[1]! / C) * GW + Math.floor(core[0]! / C)];
+        let best = Infinity;
+        seen[q[0]!] = 1;
+        for (let k = 0; k < q.length; k++) {
+          const i = q[k]! % GW, j = Math.floor(q[k]! / GW);
+          best = Math.min(best, gap(i * C + O, j * C + O));
+          for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+            const ni = i + di, nj = j + dj, n = nj * GW + ni;
+            if (ni < 0 || nj < 0 || ni >= GW || nj >= GH || seen[n] || blockedAt(st, cp, (ni * C + O) * FP, (nj * C + O) * FP)) continue;
+            seen[n] = 1; q.push(n);
+          }
+        }
+        return best;
+      };
+      expect(flood(), at).toBeGreaterThan(reach);
+      st.zones.find((z) => z.id === "rubble_hunt")!.cleared = true;
+      expect(flood(), at).toBe(0);
+    }
+  }, 120_000);
 
   it("the good bot wins three slide levels", () => {
     const pick = built.filter((x) => x.slide).filter((x, i, a) => a.findIndex((y) => y.id === x.id) === i).slice(0, 3);

@@ -91,7 +91,7 @@ export const GEN = genData as unknown as {
     /** Building-site reward (outpost-ops#88, 88.2): a later building stands behind the slide; see generator.json. */
     site: { weight: number; build: string; rect: [number, number]; at: [number, number]; pad: [number, number] };
     /** Hunting-grounds slide (outpost-ops#88, 88.4): a rock slide hides the hopper flats; see generator.json. */
-    hunting: { chance: number; depth: number; overhang: number } };
+    hunting: { chance: number; depth: number; overhang: number; wall: number; ridge: string; minFlats: number } };
   /** Play-shape beat-breakers (outpost-ops#151, 151.4); see generator.json. Costs are keys of `costs`. */
   beatBreakers: { families: string[]; skipGoals: string[]; lateHires: { id: string; from: "food" | "core"; cost: string }[]; cashierCost: string };
   scrapHeaps: { chance: number; n: [number, number]; outside: number; band: number; roadGap: number };
@@ -1731,42 +1731,95 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
   // On a hunting level whose catch is sold (it has a ranger), a seeded chance puts rubble against the side of the hopper flats nearest
   // the Core; the ranger's hire pad needs it cleared. Its own stream, drawn in both passes, so nothing else shifts. Pass 2 only (as 88.2's
   // house): the wavefront would treat a rockfall on a walled level as a gate rockfall, and the flats lie outside its layout anyway.
-  let huntSlide: { rect: Rect; clear: string } | null = null;
+  let huntSlide: { rect: Rect; clear: string; ridges: Rect[] } | null = null;
   const HS = GEN.rockslide.hunting;
   const huntCatch = feat.has("hunting") && !!shopAt && Object.keys(c.animals["node.prey"]!.drops).some((r) => sells.includes(r));
   if (huntCatch && new Rand(mix(inp.seed >>> 0, hashStr("rockslide_hunt"))).chance(HS.chance) && pin) {
-    const pz = ents.find((e) => e.type === "zone.prey")?.["rect"] as Rect | undefined ?? fail("hunting slide: no hunting grounds");
-    const [x, y, w, h] = pz, D = HS.depth, o = HS.overhang, mid = (r: Rect): Pt => [r[0] + r[2] / 2, r[1] + r[3] / 2];
+    const pz0 = ents.find((e) => e.type === "zone.prey")?.["rect"] as Rect | undefined ?? fail("hunting slide: no hunting grounds");
+    const D = HS.depth, o = HS.overhang, W = HS.wall, mid = (r: Rect): Pt => [r[0] + r[2] / 2, r[1] + r[3] / 2];
     const ov = (a: Rect, b: Rect, g = 0) => a[0] < b[0] + b[2] + g && b[0] < a[0] + a[2] + g && a[1] < b[1] + b[3] + g && b[1] < a[1] + a[3] + g;
     const solid = ents.filter((e) => (e.type === "zone.blocked" || e.type === "zone.terrain") && Array.isArray(e["rect"])).map((e) => e["rect"] as Rect);
     const things = ents.filter((e) => /^(capture|node|struct|sink|conv)\./.test(e.type) && Array.isArray(e["at"])).map((e) => e["at"] as Pt);
     // clipped to the map: flats often run to its edge
     const clip = (r: Rect): Rect => { const x0 = Math.max(0, r[0]), y0 = Math.max(0, r[1]); return [x0, y0, Math.min(480, r[0] + r[2]) - x0, Math.min(900, r[1] + r[3]) - y0]; };
+    // 88.3: the flats are shut in so the slide is the only way in, as on story Level 3: ridges `wall` deep (past the player's melee
+    // reach; the sim's block margin only applies along y) close the other sides, corners included. A wall ring that stands from the
+    // start (the rescue pen) can be one side of the pen: walkers never cross its sections, only its gates. Flats hug that ring
+    // (zones.preyReach), so their near edge pulls back until nobody inside the wall can reach a hopper across it.
+    const ringE = ents.find((e) => e.type === "barrier.line" && e.id === "ring");
+    const ringSolid = !!ring && !!ringE && ((ringE["prebuilt"] as number[] | undefined)?.length ?? 0) === ring.points.length;
+    const gateSegs: [Pt, Pt][] = ring && ringE ? (ringE["gates"] as number[]).map((i): [Pt, Pt] => [ring!.points[i]!, ring!.points[(i + 1) % ring!.points.length]!]) : [];
+    const reach = c.defaults["player.attackRange"]!, keep = reach - c.defaults["barrier.thickness"]! + 2;
+    const pz: [number, number, number, number] = [...pz0];
+    if (ring) {
+      const rr = ring.rect, inY = pz[1] < rr[1] + rr[3] && rr[1] < pz[1] + pz[3], inX = pz[0] < rr[0] + rr[2] && rr[0] < pz[0] + pz[2];
+      if (inY && pz[0] >= rr[0] + rr[2]) { const g = keep - (pz[0] - rr[0] - rr[2]); if (g > 0) { pz[0] += g; pz[2] -= g; } }
+      if (inY && pz[0] + pz[2] <= rr[0]) { const g = keep - (rr[0] - pz[0] - pz[2]); if (g > 0) pz[2] -= g; }
+      if (inX && pz[1] >= rr[1] + rr[3]) { const g = keep - (pz[1] - rr[1] - rr[3]); if (g > 0) { pz[1] += g; pz[3] -= g; } }
+      if (inX && pz[1] + pz[3] <= rr[1]) { const g = keep - (rr[1] - pz[1] - pz[3]); if (g > 0) pz[3] -= g; }
+    }
+    const [x, y, w, h] = pz, onMap = clip(pz);
     const cands: Rect[] = ([[x - o, y - D, w + 2 * o, D], [x - o, y + h, w + 2 * o, D], [x - D, y - o, D, h + 2 * o], [x + w, y - o, D, h + 2 * o]] as Rect[]).map(clip);
-    const ok = (r: Rect) => r[2] >= 30 && r[3] >= 30
-      && dist(core, mid(r)) < dist(core, mid(pz)) && (!ring || !ov(r, ring.rect, 8))
-      && !P.stations.some((s) => rectDist([s.x, s.y], r) < s.r + 6) && !P.spots.some((s) => rectDist([s.x, s.y], r) < s.r + 6)
+    // r minus the ring's box (what is left lies outside the wall and runs up to it)
+    const outsideRing = (r: Rect): Rect[] => {
+      if (!ring || !ov(r, ring.rect)) return [r];
+      const R0 = ring.rect, x0 = Math.max(r[0], R0[0]), x1 = Math.min(r[0] + r[2], R0[0] + R0[2]);
+      return ([[r[0], r[1], R0[0] - r[0], r[3]], [R0[0] + R0[2], r[1], r[0] + r[2] - R0[0] - R0[2], r[3]],
+        [x0, r[1], x1 - x0, R0[1] - r[1]], [x0, R0[1] + R0[3], x1 - x0, r[1] + r[3] - R0[1] - R0[3]]] as Rect[]).filter((q) => q[2] > 0 && q[3] > 0);
+    };
+    const ridgesFor = (side: number): Rect[] | null => {
+      const raw = (([
+        [[x - W, y - D, W, h + D + W], [x + w, y - D, W, h + D + W], [x, y + h, w, W]],
+        [[x - W, y - W, W, h + D + W], [x + w, y - W, W, h + D + W], [x, y - W, w, W]],
+        [[x - D, y - W, w + D + W, W], [x - D, y + h, w + D + W, W], [x + w, y, W, h]],
+        [[x - W, y - W, w + D + W, W], [x - W, y + h, w + D + W, W], [x - W, y, W, h]],
+      ] as Rect[][])[side]!).map(clip).filter((r) => r[2] > 0 && r[3] > 0);
+      if (!raw.some((r) => ring && ov(r, ring.rect, 8))) return raw;
+      if (!ringSolid) return null;
+      // the ring closes this side: no gate of it opens into the pen
+      const pen = raw.reduce((a, r): Rect => { const x0 = Math.min(a[0], r[0]), y0 = Math.min(a[1], r[1]); return [x0, y0, Math.max(a[0] + a[2], r[0] + r[2]) - x0, Math.max(a[1] + a[3], r[1] + r[3]) - y0]; }, pz);
+      for (const [a, b] of gateSegs) for (let t = 0; t <= 1; t += 0.05) if (rectDist([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t], pen) < 24) return null;
+      // scraps left at the ring's corner that do not touch the flats seal nothing (the flood check below proves the pen)
+      return raw.flatMap(outsideRing).filter((q) => Math.min(q[2], q[3]) >= 16 || ov(q, pz, 1));
+    };
+    const clearOf = (r: Rect) => !P.stations.some((s) => rectDist([s.x, s.y], r) < s.r + 6) && !P.spots.some((s) => rectDist([s.x, s.y], r) < s.r + 6)
       && !solid.some((b) => ov(r, b, 10)) && !things.some((q) => rectDist(q, r) < 20) && !pads.some((p) => rectDist(p.at as Pt, r) < R.pad + 6);
-    // no room (a crowded edge, say Level 80's harvest buildings): the level keeps open grounds rather than losing the layout
-    const zr = cands.filter(ok).sort((a, b) => dist(core, mid(a)) - dist(core, mid(b)))[0] ?? null;
+    const ok = (r: Rect) => r[2] >= 30 && r[3] >= 30 && dist(core, mid(r)) < dist(core, mid(pz)) && (!ring || !ov(r, ring.rect, 8)) && clearOf(r);
+    // nothing but the hoppers may end up shut in with them, and enough of the flats must be left on the map
+    const shutIn = things.some((q) => inRect(q, pz0)) || pads.some((p) => inRect(p.at as Pt, pz0)) || onMap[2] < HS.minFlats || onMap[3] < HS.minFlats;
+    const pb0 = P.box([0, 0], "pad")!;
     // the clearing pad stands on the Core's side of the rubble, nearest the Core, outside the wall like the ranger's
-    const pb0 = P.box([0, 0], "pad")!, cq: Pt[] = [];
-    if (zr) for (let yy = zr[1] - 80; yy <= zr[1] + zr[3] + 80; yy += 4) for (let xx = zr[0] - 80; xx <= zr[0] + zr[2] + 80; xx += 4) cq.push([xx, yy]);
-    cq.sort((a, b) => dist(a, core) - dist(b, core) || a[1] - b[1] || a[0] - b[0]);
-    const zp = zr && cq.find((q) => {
-      const b: Rect = [q[0] + pb0[0], q[1] + pb0[1], pb0[2] - pb0[0], pb0[3] - pb0[1]];
-      return b[0] >= 0 && b[1] >= 0 && b[0] + b[2] <= 480 && b[1] + b[3] <= 900 && rectDist(q, zr) <= R.pad + 30 && !ov(b, zr, 4) && !ov(b, pz, 4)
-        && (!ring || !inRect(q, ring.rect)) && P.onScreen(q) && dist(q, core) <= S.screenRadius && !solid.some((s) => ov(b, s, 4))
-        && P.walls.every((wl) => segDist(q, wl[0], wl[1]) >= R.pad + 10) && P.stations.every((st) => dist(q, [st.x, st.y]) >= Math.max(R.pad, st.r) + P.margin)
-        && P.spots.every((sp) => dist(q, [sp.x, sp.y]) >= R.pad + sp.r) && things.every((t) => dist(q, t) >= R.pad + 10);
-    });
-    if (!zr || !zp) notes.push("no room for a rock slide over the hunting grounds");
+    const padFor = (zr: Rect, ridges: Rect[]): Pt | null => {
+      const cq: Pt[] = [];
+      for (let yy = zr[1] - 80; yy <= zr[1] + zr[3] + 80; yy += 4) for (let xx = zr[0] - 80; xx <= zr[0] + zr[2] + 80; xx += 4) cq.push([xx, yy]);
+      cq.sort((a, b) => dist(a, core) - dist(b, core) || a[1] - b[1] || a[0] - b[0]);
+      return cq.find((q) => {
+        const b: Rect = [q[0] + pb0[0], q[1] + pb0[1], pb0[2] - pb0[0], pb0[3] - pb0[1]];
+        return b[0] >= 0 && b[1] >= 0 && b[0] + b[2] <= 480 && b[1] + b[3] <= 900 && rectDist(q, zr) <= R.pad + 30 && !ov(b, zr, 4) && !ov(b, pz0, 4)
+          && (!ring || !inRect(q, ring.rect)) && P.onScreen(q) && dist(q, core) <= S.screenRadius && ![...solid, ...ridges].some((s) => ov(b, s, 4))
+          && P.walls.every((wl) => segDist(q, wl[0], wl[1]) >= R.pad + 10) && P.stations.every((st) => dist(q, [st.x, st.y]) >= Math.max(R.pad, st.r) + P.margin)
+          && P.spots.every((sp) => dist(q, [sp.x, sp.y]) >= R.pad + sp.r) && things.every((t) => dist(q, t) >= R.pad + 10);
+      }) ?? null;
+    };
+    // nearest side to the Core first; a side whose rubble, ridges or clearing pad will not fit gives way to the next. No room (a crowded
+    // edge, say Level 80's harvest buildings): the level keeps open grounds rather than losing the layout, never a half-closed pen.
+    let pick: { zr: Rect; zp: Pt; ridges: Rect[] } | null = null;
+    if (!shutIn) for (const side of [0, 1, 2, 3].sort((a, b) => dist(core, mid(cands[a]!)) - dist(core, mid(cands[b]!)))) {
+      const zr = cands[side]!, ridges = ridgesFor(side);
+      if (!ridges || !ok(zr) || !ridges.every(clearOf)) continue;
+      const zp = padFor(zr, ridges);
+      if (zp) { pick = { zr, zp, ridges }; break; }
+    }
+    if (!pick) notes.push("no room for a rock slide over the hunting grounds");
     else {
+      const { zr, zp, ridges } = pick;
+      for (const e of ents) if (e.type === "zone.prey") e["rect"] = [...pz];
       ents.push({ type: "zone.blocked", id: "rubble_hunt", rect: [...zr] });
       P.blocked.push(zr);
+      ridges.forEach((r, i) => { ents.push({ type: "zone.terrain", id: `hunt_ridge${i}`, kind: HS.ridge, rect: [...r] }); P.blocked.push(r); });
       P.add("clear_hunt", zp, R.pad, { key: true, fp: ["pad"] });
       pad({ type: "pad.build", id: "clear_hunt", at: [...zp], cost: { "res.currency": cost("zone") }, build: "zone.clear", target: "rubble_hunt" });
-      huntSlide = { rect: zr, clear: "clear_hunt" };
+      huntSlide = { rect: zr, clear: "clear_hunt", ridges };
       notes.push("rock slide over the hunting grounds");
     }
   }
@@ -1779,6 +1832,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       rand: new Rand(mix(inp.seed >>> 0, hashStr("terrain") ^ Math.imul(layoutSalt + 1, 0x9e3779b1))), P, T: GEN.terrain,
       families: [fam, ...(inp.secondary ? [inp.secondary] : [])], defend, core, start: startPt, ring: ring ? ring.rect : null, attackSides: sides, lanes,
       walkPoints, shop: shopAt ? { queue, edgeRight: shopAt[0] * 2 >= 480 } : null,
+      avoid: huntSlide ? [huntSlide.rect, ...huntSlide.ridges] : [],
     });
     for (const t of pieces) ents.push({ type: "zone.terrain", id: t.id, kind: t.kind, rect: [...t.rect] });
     if (pieces.length > 0) notes.push(`terrain ${pieces.map((t) => t.kind).join(",")}`);
@@ -2137,6 +2191,30 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       const pz = ents.find((x) => x.type === "zone.prey")?.["rect"] as Rect | undefined, mid = (q: Rect): Pt => [q[0] + q[2] / 2, q[1] + q[3] / 2];
       if (!pz || dist(core, mid(pz)) <= dist(core, mid(r))) fail("rubble_hunt: the hunting grounds are not behind the slide");
       if ((pads.find((p) => p.id === "ranger")?.requires as { pad?: string } | undefined)?.pad !== huntSlide.clear) fail("rubble_hunt: the ranger does not need the slide cleared");
+      // 88.3: walking from the Core (as the sim blocks: uncleared rubble, terrain and the standing wall; margin along y only) never gets within the
+      // player's melee reach of the flats; with the slide cleared it gets in
+      const reachFlats = (skip: string): boolean => {
+        const C = 4, GW = 480 / C, GH = 900 / C, m = c.defaults["zones.blockMargin"]!, reach = c.defaults["player.attackRange"]!;
+        const walls = ents.filter((x) => (x.type === "zone.blocked" || x.type === "zone.terrain") && x.id !== skip && Array.isArray(x["rect"])).map((x) => x["rect"] as Rect);
+        const rl = ents.find((x) => x.type === "barrier.line" && x.id === "ring"), pts = (rl?.["points"] ?? []) as Pt[], gates = new Set((rl?.["gates"] ?? []) as number[]);
+        const segs = ((rl?.["prebuilt"] ?? []) as number[]).filter((i) => !gates.has(i)).map((i): [Pt, Pt] => [pts[i]!, pts[(i + 1) % pts.length]!]), th = c.defaults["barrier.thickness"]!;
+        const free = (i: number, j: number) => { const px = i * C + C / 2, py = j * C + C / 2; return !walls.some((b) => px > b[0] && px < b[0] + b[2] && py > b[1] - m && py < b[1] + b[3] + m) && segs.every(([a, b]) => segDist([px, py], a, b) >= th); };
+        const seen = new Uint8Array(GW * GH), q: number[] = [];
+        const c0 = Math.floor(core[1] / C) * GW + Math.floor(core[0] / C);
+        seen[c0] = 1; q.push(c0);
+        for (let k = 0; k < q.length; k++) {
+          const i = q[k]! % GW, j = Math.floor(q[k]! / GW);
+          if (rectDist([i * C + C / 2, j * C + C / 2], pz!) < reach) return true;
+          for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+            const ni = i + di, nj = j + dj, n = nj * GW + ni;
+            if (ni < 0 || nj < 0 || ni >= GW || nj >= GH || seen[n] || !free(ni, nj)) continue;
+            seen[n] = 1; q.push(n);
+          }
+        }
+        return false;
+      };
+      if (reachFlats("")) fail("rubble_hunt: the hunting grounds can be reached without clearing the slide");
+      if (!reachFlats("rubble_hunt")) fail("rubble_hunt: the hunting grounds cannot be reached after the clear");
       continue;
     }
     const sl = siteSlides.find((x) => x.rect[0] === r[0] && x.rect[1] === r[1]);
