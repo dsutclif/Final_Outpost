@@ -7,7 +7,7 @@
   "breatherTarget": 0.4,
   "teachTarget": 0.42,
   "tutorialTeachDrop": 0.04,
-  "funThresholds": { "tutorial": 0.2, "band": 0.4 },
+  "funThresholds": { "tutorial": 0.2, "band": 0.4, "defend": 0.2 },
   "recoveryDrop": 0.1,
   "adapt": {
     "enabled": false,

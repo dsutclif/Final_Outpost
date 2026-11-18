@@ -29,7 +29,7 @@ export interface SequencerConfig {
   breatherTarget: number;
   teachTarget: number;
   tutorialTeachDrop: number;
-  funThresholds: { tutorial: number; band: number };
+  funThresholds: { tutorial: number; band: number; defend: number };
   recoveryDrop: number;
   /** Batch tuning from the player's results (adaptOffset). */
   adapt: AdaptConfig;
@@ -380,7 +380,7 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
     breather,
     // defend levels and the rescue pen always have walls; the generator never builds a ring for other families
     walls: true,
-    funThreshold: index <= cfg.tutorialLength ? cfg.funThresholds.tutorial : cfg.funThresholds.band,
+    funThreshold: index <= cfg.tutorialLength ? cfg.funThresholds.tutorial : slot.family === "defend" ? cfg.funThresholds.defend : cfg.funThresholds.band,
   };
 }
 

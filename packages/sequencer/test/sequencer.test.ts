@@ -102,6 +102,18 @@ describe("sequencer (level families, REDESIGN-R2 §5)", () => {
     for (let i = 1; i < tut.length; i++) expect(tut[i]!).toBeGreaterThanOrEqual(tut[i - 1]!);
   });
 
+  it("fun bar: tutorial slots 0.2, a defend slot the defend bar, every other band slot the band bar (outpost-ops#99)", () => {
+    const post = reqs.slice(cfg.tutorialLength);
+    const defend = post.filter((r) => r.family === "defend");
+    const other = post.filter((r) => r.family !== "defend");
+    expect(defend.length).toBeGreaterThan(0);
+    for (const r of defend) expect(r.funThreshold).toBe(cfg.funThresholds.defend);
+    for (const r of other) expect(r.funThreshold).toBe(cfg.funThresholds.band);
+    expect(cfg.funThresholds.defend).toBe(0.2);
+    expect(cfg.funThresholds.band).toBe(0.4);
+    for (const r of reqs.slice(0, cfg.tutorialLength)) expect(r.funThreshold).toBe(cfg.funThresholds.tutorial);
+  });
+
   it("recovery (optional flag): after two failed attempts the next target drops by 0.1", () => {
     const h: HistoryEntry[] = reqs.slice(0, 33).map(historyOf);
     const plain = sequence(34, h);
