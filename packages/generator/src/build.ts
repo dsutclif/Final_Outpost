@@ -1742,7 +1742,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     const things = ents.filter((e) => /^(capture|node|struct|sink|conv)\./.test(e.type) && Array.isArray(e["at"])).map((e) => e["at"] as Pt);
     // clipped to the map: flats often run to its edge
     const clip = (r: Rect): Rect => { const x0 = Math.max(0, r[0]), y0 = Math.max(0, r[1]); return [x0, y0, Math.min(480, r[0] + r[2]) - x0, Math.min(900, r[1] + r[3]) - y0]; };
-    const cands: Rect[] = [[x - o, y - D, w + 2 * o, D], [x - o, y + h, w + 2 * o, D], [x - D, y - o, D, h + 2 * o], [x + w, y - o, D, h + 2 * o]].map((r) => clip(r as Rect));
+    const cands: Rect[] = ([[x - o, y - D, w + 2 * o, D], [x - o, y + h, w + 2 * o, D], [x - D, y - o, D, h + 2 * o], [x + w, y - o, D, h + 2 * o]] as Rect[]).map(clip);
     const ok = (r: Rect) => r[2] >= 30 && r[3] >= 30
       && dist(core, mid(r)) < dist(core, mid(pz)) && (!ring || !ov(r, ring.rect, 8))
       && !P.stations.some((s) => rectDist([s.x, s.y], r) < s.r + 6) && !P.spots.some((s) => rectDist([s.x, s.y], r) < s.r + 6)
