@@ -687,22 +687,24 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     if ((req.family === "defend" || req.secondary === "defend") && m.waves.length > 0 && Math.abs(r.D - req.target) > TUNE.trigger) {
       const base = m.waves, DW = GEN.defendWaves;
       const lim = { maxPoints: DW.maxPoints, cap: DW.waveCap, spawnMax: DW.spawnMax, minGap: DW.minGap };
-      const seen = new Map<number, { waves: Manifest["waves"]; r: Rating; flags: string[] }>();
+      const seen = new Map<number, { waves: Manifest["waves"]; r: Rating; bad: boolean }>();
       const tr = tuneScale(req.target, r.D, (f) => {
         m.waves = scaleAttack(base, f, c, lim);
         const q = rateIt(m, opts.seeds?.quick ?? S.quickSeeds);
         const fl = Object.entries(q.r.filters).filter(([, v]) => v).map(([k]) => k);
         // a scale the level cannot take (the good bot loses, a stall, a repeated loop) is no use, whatever its D
         const bad = !q.r.feasible || fl.some((k) => k !== "trivial") || overLoopCap(q.ms);
-        seen.set(Math.round(f * 1000) / 1000, { waves: m.waves, r: q.r, flags: fl });
+        seen.set(Math.round(f * 1000) / 1000, { waves: m.waves, r: q.r, bad });
         return bad ? (q.r.D > req.target ? 1 : 0) : q.r.D;
       }, TUNE);
-      const pick = tr.scale === 1 ? null : seen.get(tr.scale);
+      // a scale the level cannot take is never kept, even if its stand-in D happens to be the closest
+      const hit = tr.scale === 1 ? undefined : seen.get(tr.scale);
+      const pick = hit && !hit.bad ? hit : null;
       m.waves = pick ? pick.waves : base;
       if (pick) r = pick.r;
       tuned = true;
-      rec.tune = { steps: tr.steps.map((s) => ({ scale: s.scale, D: round3(s.D) })), scale: tr.scale, from: round3(builtD) };
-      log(`  it${it} attack tuning: D ${builtD.toFixed(3)} -> ${r.D.toFixed(3)} at x${tr.scale} in ${tr.steps.length} step(s)`);
+      rec.tune = { steps: tr.steps.map((s) => ({ scale: s.scale, D: round3(s.D) })), scale: pick ? tr.scale : 1, from: round3(builtD) };
+      log(`  it${it} attack tuning: D ${builtD.toFixed(3)} -> ${r.D.toFixed(3)} at x${pick ? tr.scale : 1} in ${tr.steps.length} step(s)`);
     }
     const err = Math.abs(r.D - req.target);
     // Quick ratings run a little off the full one, so a near miss may be on target; one no closer than the best has nothing to add.
