@@ -332,10 +332,14 @@ export class Brain {
   }
 
   /** Automate goals: once suppliers, a cashier and a core supplier run the economy, the player stops depositing. */
+  private handsOffLatched = false;
   private handsOff(st: State): boolean {
     if (!this.pol.handsOff || !st.sales || this.nextStep(st) !== null) return false;
-    if (this.pol.handsOffMachines > 0
-      && st.converters.filter((cv) => converterRunnable(this.cp, cv) && operated(st, this.cp, cv)).length < this.pol.handsOffMachines) return false;
+    // The machine count is only the trigger: a chain that pauses on a full tray must not bring the captain back to hand-feed it.
+    if (this.pol.handsOffMachines > 0 && !this.handsOffLatched) {
+      if (st.converters.filter((cv) => converterRunnable(this.cp, cv) && operated(st, this.cp, cv)).length < this.pol.handsOffMachines) return false;
+      this.handsOffLatched = true;
+    }
     return this.coreSupplied(st) && this.cashier(st) && st.sales.sells.some((r) => this.supplied(st, r));
   }
 
@@ -512,7 +516,9 @@ export class Brain {
       const sells = this.sellable(st).includes(def.output);
       const forSale = sells || this.wantedOut(st, def.output);
       // Keep a tray from sitting full: collect from a nearly full pile first, even an unwanted one, and stop operating one short of the cap.
-      if (tidy && cv.out >= def.outCap - 2 && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) T("fetch", 85, cv.id);
+      // Automate goals: a tray a hired server already drains is not the captain's to tidy; fetching it by hand restarts the hands-off clock.
+      const drained = this.pol.handsOff && st.residents.some((r) => r.status === "ok" && r.assign.from === cv.type && this.cp.roles[r.role]?.behavior === "collect_deliver");
+      if (tidy && !drained && cv.out >= def.outCap - 2 && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) T("fetch", 85, cv.id);
       if (forPlan <= 0 && !forSale) continue;
       const opByWorker = st.residents.some((r) => r.status === "ok" && r.role === def.role && r.assign.to === cv.type && near(r.pos, cv.operatorPos, cp.convParams.operatorRange));
       // Working a machine by hand restarts the hands-off clock.

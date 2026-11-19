@@ -589,7 +589,7 @@ describe("bulk orders, tier-2 converters and converter levels", () => {
       ],
     }));
     const cp = sim.compiled;
-    expect(cp.converters["conv.food_processor"]!.rateTicksByLevel).toEqual([48, 33, 24]);
+    expect(cp.converters["conv.food_processor"]!.rateTicksByLevel).toEqual([36, 26, 18]);
     const cv = sim.state.converters.find((c) => c.id === "oven")!;
     expect(cv.level).toBe(1);
     grant(sim, { currency: 10 - sim.state.currency + 4 });

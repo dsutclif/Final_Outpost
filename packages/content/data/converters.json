@@ -2,14 +2,14 @@
   "conv.food_processor": {
     "inputs": ["res.food_raw_1", "res.food_raw_2"],
     "output": "res.food_prepared",
-    "rate": 1.6,
+    "rate": 1.2,
     "inCap": 10,
     "outCap": 12,
     "role": "role.operator",
     "range": 30,
     "operatorOffset": [0, 48],
     "pickupOffset": [54, 0],
-    "upgradeRates": [1.1, 0.8]
+    "upgradeRates": [0.85, 0.6]
   },
   "conv.material_processor": {
     "inputs": ["res.material_basic"],
@@ -26,13 +26,13 @@
   "conv.alloy_works": {
     "inputs": ["res.material_refined"],
     "output": "res.component",
-    "rate": 2.0,
+    "rate": 1.2,
     "inCap": 8,
     "outCap": 10,
     "role": "role.operator",
     "range": 30,
     "operatorOffset": [0, 48],
     "pickupOffset": [54, 0],
-    "upgradeRates": [1.4, 1.0]
+    "upgradeRates": [0.85, 0.6]
   }
 }
