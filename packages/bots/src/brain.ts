@@ -381,9 +381,18 @@ export class Brain {
     // Fuel.
     const cap = this.coreCap(st), fuel = st.core.fuel, frac = fuel / cap;
     const ttl = fuel * this.burnTicks(st) - st.core.burnAcc / FP;
-    const carriedFuel = this.fuelValueCarried(st);
     const hazard = st.hazard.phase !== "none";
     const toCore = this.travel(st, p.pos, st.core.pos);
+    // Carried fuel that the plan needs elsewhere (raw material on its way to the converter that makes a plan cost) is not
+    // burned while the core still has time: a multitasking captain would otherwise detour to feed it in and lose the trip.
+    const reserved = (r: string): boolean => {
+      const capNeed = this.cappedNeed(st);
+      return (capNeed[r] ?? 0) > 0 || Object.values(cp.converters).some((d) => d.inputs.includes(r) && (capNeed[d.output] ?? 0) > 0);
+    };
+    const spare = ttl >= toCore + 20 * TPS && !hazard && this.pol.heatFloor <= 0 && !this.pol.fillCore;
+    const carriedFuel = spare
+      ? p.stack.reduce((v, s) => v + (reserved(s) ? 0 : (this.cp.core.accepts[s] ?? 0)), 0)
+      : this.fuelValueCarried(st);
     if (carriedFuel > 0 && fuel < cap) {
       const room = cap - fuel;
       let sc = frac < 0.75 || carriedFuel <= room ? 30 + (1 - frac) * 50 : 10;
