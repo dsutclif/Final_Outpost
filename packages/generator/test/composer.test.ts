@@ -53,7 +53,8 @@ describe("composer", () => {
   });
 
   it("required features: introduced plus goal needs; the pool leaves out avoided and locked ones", () => {
-    expect(requiredFeatures(at(12))).toEqual(["clearing_pass", "pod_timers"]);
+    expect(requiredFeatures(at(12))).toEqual(["pod_timers"]); // clearing_pass waits for a rescue level whose target reaches its step (L23)
+    expect(requiredFeatures(at(23))).toEqual(["clearing_pass"]);
     const pool = composerPool(at(12), GEN.conveyorGoals);
     expect(pool).not.toContain("hunting"); // rescue_before_freeze avoids it
     expect(pool).not.toContain("dust_storms"); // locked for rescue until its guest level

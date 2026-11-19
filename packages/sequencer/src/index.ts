@@ -400,8 +400,45 @@ export function targetFor(index: number, phase: Phase, cfg: SequencerConfig = DE
 
 interface Slot { family: Family; secondary: Family | null; phase: Phase; introduced: string[] }
 
-/** Family, phase and introduced features of a level index (pure). */
+/**
+ * Family, phase and introduced features of a level index (pure). A feature whose difficulty step starts
+ * above its intro slot's target is not introduced there: it moves to the next later mix slot of its family
+ * whose target reaches the step's low end (that level becomes an intro-phase level carrying it).
+ */
 export function slotFor(index: number, cfg: SequencerConfig = DEFAULT_CONFIG): Slot {
+  const base = baseSlot(index, cfg);
+  const moved = deferredIntros(cfg);
+  if (base.phase === "intro") return { ...base, introduced: base.introduced.filter((f) => !moved.has(f)) };
+  if (base.phase === "mix") {
+    const here = [...moved].filter(([, at]) => at === index).map(([f]) => f);
+    if (here.length > 0) return { ...base, phase: "intro", introduced: here };
+  }
+  return base;
+}
+
+const deferCache = new WeakMap<SequencerConfig, Map<string, number>>();
+/** Features whose introduction moved off their intro slot (target below the step's low end) -> the level that introduces them. */
+export function deferredIntros(cfg: SequencerConfig = DEFAULT_CONFIG): Map<string, number> {
+  const hit = deferCache.get(cfg);
+  if (hit) return hit;
+  const out = new Map<string, number>();
+  for (let i = cfg.storyLength + 1; i <= cfg.introLength; i++) {
+    const s = baseSlot(i, cfg);
+    const { target } = targetFor(i, "intro", cfg);
+    for (const f of s.introduced) {
+      const lo = cfg.features[f]?.dStep?.[0] ?? 0;
+      if (lo <= target) continue;
+      for (let j = cfg.introLength + 1; j <= cfg.introLength + 400; j++) {
+        const m = baseSlot(j, cfg);
+        if (m.phase === "mix" && m.family === s.family && targetFor(j, "mix", cfg).target >= lo) { out.set(f, j); break; }
+      }
+    }
+  }
+  deferCache.set(cfg, out);
+  return out;
+}
+
+function baseSlot(index: number, cfg: SequencerConfig): Slot {
   const F = cfg.familyOrder;
   if (index <= cfg.storyLength) return { family: F[index - 1]!, secondary: null, phase: "teach", introduced: [] };
   if (index <= cfg.introLength) {
@@ -425,9 +462,9 @@ export function slotFor(index: number, cfg: SequencerConfig = DEFAULT_CONFIG): S
 /** Features a family has unlocked by level `index`. */
 export function unlockedFeatures(family: Family, index: number, cfg: SequencerConfig = DEFAULT_CONFIG): string[] {
   const out: string[] = index > cfg.storyLength ? cfg.storyTaught.filter((f) => cfg.features[f]?.family === family) : [];
-  for (let i = cfg.storyLength + 1; i <= Math.min(index, cfg.introLength); i++) {
+  for (let i = cfg.storyLength + 1; i <= index; i++) {
     const s = slotFor(i, cfg);
-    if (s.family === family) out.push(...s.introduced);
+    if (s.phase === "intro" && s.family === family) out.push(...s.introduced);
   }
   return out;
 }
@@ -436,14 +473,14 @@ export function unlockedFeatures(family: Family, index: number, cfg: SequencerCo
 export function featureUnlocked(f: string, family: Family, index: number, cfg: SequencerConfig = DEFAULT_CONFIG): boolean {
   const def = cfg.features[f];
   if (!def) return false;
-  if (def.family === family && index >= (def.firstLevel ?? Number.POSITIVE_INFINITY)) return true;
+  if (def.family === family && index >= (deferredIntros(cfg).get(f) ?? def.firstLevel ?? Number.POSITIVE_INFINITY)) return true;
   const g = cfg.families[family]?.guests?.[f];
   return g !== undefined && index >= g;
 }
 
 /** Every feature a level of `family` at `index` may carry, sorted by first level (oldest first), then id. */
 export function addonPool(family: Family, index: number, cfg: SequencerConfig = DEFAULT_CONFIG): string[] {
-  const at = (f: string) => (cfg.features[f]!.family === family ? cfg.features[f]!.firstLevel ?? 0 : cfg.families[family]?.guests?.[f] ?? 0);
+  const at = (f: string) => (cfg.features[f]!.family === family ? deferredIntros(cfg).get(f) ?? cfg.features[f]!.firstLevel ?? 0 : cfg.families[family]?.guests?.[f] ?? 0);
   return Object.keys(cfg.features).filter((f) => featureUnlocked(f, family, index, cfg)).sort((a, b) => at(a) - at(b) || a.localeCompare(b));
 }
 
