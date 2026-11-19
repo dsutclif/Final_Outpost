@@ -284,7 +284,26 @@ function idleElements(m: Manifest, runs: readonly BotResult[]): string[] {
   return out;
 }
 
-type Obj = { id: string; kind: string; params: Record<string, number | string> };
+/**
+ * A deterministic step before any reviewer: take out what the winning runs never used. Pads (housing, hires, converters),
+ * barrier lines and idle gatherable types go; what cannot be removed cleanly (turret ladder, captures, prey, sales point,
+ * gate, hazard, conveyor use, no winning run) returns null and the candidate is rejected as before.
+ */
+export function stripIdle(m: Manifest, idle: readonly string[]): Manifest | null {
+  if (idle.length === 0 || !idle.every((s) => /^(pad|line|converter|nodes) /.test(s))) return null;
+  const next = structuredClone(m);
+  const padIds = new Set<string>();
+  for (const s of idle) {
+    const kind = s.slice(0, s.indexOf(" ")), id = s.slice(s.indexOf(" ") + 1);
+    if (kind === "pad" || kind === "converter") padIds.add(id);
+    else if (kind === "line") next.entities = next.entities.filter((e) => !(e.type === "barrier.line" && e.id === id));
+    else for (const e of next.entities) if (e.type === id) (e as { enabled?: boolean }).enabled = false;
+  }
+  if (padIds.size > 0) dropPads(next, padIds);
+  return next;
+}
+
+type Obj ={ id: string; kind: string; params: Record<string, number | string> };
 
 /** Did a run earn this objective? Exact for the kinds used as stars (time from ticks, guards from run stats). */
 function earned(o: Obj, r: BotResult): boolean {
@@ -523,7 +542,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   const saveMemory = () => { Object.assign(memory, { best, ease }); };
 
   /** The full check: full rating, idle elements, stars, spare pads. Done when the level can ship. */
-  const verify = (m: Manifest, p: number, seed: number): { r: Rating; done?: GenDetail; repetitive?: boolean } => {
+  const verify = (m: Manifest, p: number, seed: number, stripped?: boolean): { r: Rating; done?: GenDetail; repetitive?: boolean } => {
       const { ms, r } = rateIt(m, opts.seeds?.full ?? S.fullSeeds);
       const err = Math.abs(r.D - req.target);
       if (overLoopCap(ms)) {
@@ -536,6 +555,23 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       rec!.idleElements = idle;
       if (!r.ok) Object.entries(r.filters).filter(([, v]) => v).forEach(([k]) => reject(k, { D: round3(r.D), target: req.target, F: round3(r.F), feasible: r.feasible, idleModules: r.evidence.idleModules }));
       else if (idle.length > 0) {
+        const lean0 = stripped ? null : stripIdle(m, idle);
+        // Remove the idle elements first, then rate that level once; it is the candidate if it passes.
+        if (lean0) {
+          const beforeD = round3(r.D);
+          for (const s of idle) if (s.startsWith("pad ") || s.startsWith("converter ")) {
+            const id = s.slice(s.indexOf(" ") + 1);
+            const e = m.entities.find((x) => "id" in x && x.id === id);
+            dropped.add(id);
+            if (e && e.type === "pad.build" && e.build === "struct.medical") droppedMods.add("medical");
+          }
+          log(`  it${rec!.iteration} idle elements stripped: ${idle.join(", ")} (D ${beforeD}, re-rating)`);
+          const prevRec = rec!;
+          const out = verify(lean0, p, seed, true);
+          prevRec.stripped = { elements: [...idle], beforeD, afterD: round3(out.r.D) };
+          log(`  it${prevRec.iteration} stripped level D ${beforeD} -> ${round3(out.r.D)} (target ${req.target})${out.done ? " ships" : " does not ship"}`);
+          return out;
+        }
         reject("idleElement", { elements: idle });
         // Optional automation the winning bot never needed (manual-first and the automation tax make the
         // late extras not worth buying): later builds of this level leave those pads out.

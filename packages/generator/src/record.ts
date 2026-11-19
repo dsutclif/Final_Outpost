@@ -23,6 +23,7 @@ export interface CandidateRecord {
     playShape?: { maxPhaseShare: number; beatTypes: number; lastNewBeatShare: number; fails: string[]; endS: number; beatS: number[] } };
   idleElements?: string[];
   /** The spare-pad trim passed but moved D further from target, so the untrimmed candidate was kept. */
+  stripped?: { elements: string[]; beforeD: number; afterD: number };
   trimRefused?: { D: number; trimmedD: number; target: number };
   objectives?: { kind: string; params: Record<string, number | string> }[];
   stars?: Record<string, number>;
