@@ -527,14 +527,6 @@
    ]
   },
   {
-   "type": "node.food_source",
-   "id": "field2",
-   "at": [
-    310,
-    1020
-   ]
-  },
-  {
    "type": "zone.prey",
    "id": "flats",
    "rect": [
@@ -686,14 +678,20 @@
   },
   {
    "role": "idle"
+  },
+  {
+   "role": "role.supplier",
+   "from": "node.food_source",
+   "to": "sink.sales_point",
+   "node": "field1"
   }
  ],
  "waves": [],
  "events": [],
  "params": {
-  "start.currency": 12,
+  "start.currency": 20,
   "core.burn": 3,
-  "housing.base": 8,
+  "housing.base": 9,
   "lots.block": 0,
   "lots.street": 0,
   "customers.spawn": 2,

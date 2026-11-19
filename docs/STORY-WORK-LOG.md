@@ -34,6 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-19 | pro-s3 (#124) | s3-124 | levels/story/story-L003..005.json, story-canon + new story-carry test, mars_greenhouse.ts (one line) | carry-forward |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -575,3 +576,8 @@ Release 2 combat is in (every call is in docs/DECISIONS.md, "Release 2 combat").
 ### 2026-11-14 (nightly/R10-83-p1): engine 0.25.0 / content 0.22.0, attackers spawn out of view (outpost-ops#83).
 
 Attackers now appear `defense.spawnDistance` beyond the map edge (real metres by family: defend 32 m, others 22 m; `world.metre` 28) and walk in to the old spawn line, arriving on their old spawn tick (walk-ins are drawn only, `state.approaching`; the fight is unchanged). All levels re-pinned with `levels:repin`; story level 5 attackers now walk in from out of view too.
+
+### 2026-11-19 (pro-s3, outpost-ops#124): story levels carry forward what earlier goals built. No engine bump.
+- Second grow dome (`field2`, `unlock_field2`, KILN's "second grow dome" line) removed from levels 3-5. Level 4 now opens with Tam working the dome (people: supplier field1 to the kiosk); level 5 opens with Tam at the galley, the cook (operator) and the runner (server) at their posts, beside the existing clerk. Level 4 housing.base 9, level 5 10 (the extra hands).
+- Level 4 `start.currency` is 20 (was 12): with Tam pre-hired the floor bot stalled once at 12 (levels:check, floor#2). The Level 4 rebuild card should re-check the opening economy.
+- New `packages/content/test/story-carry.test.ts` walks the five manifests; `story-canon` no longer lists the dome pad as level-own.

@@ -1083,7 +1083,6 @@ export const marsGreenhouse: Skin = {
           ] },
           { on: { event: "sold", match: { res: "res.food_raw_2" } }, do: [
             { line: "Boss, let me work the fields. You hunt; I'll keep the shelf full of greens.", who: "tam" },
-            { line: "With Tam picking, a second grow dome would pay for itself.", who: "kiln" },
             { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
           ] },
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land

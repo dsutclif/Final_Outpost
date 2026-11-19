@@ -519,28 +519,6 @@
    ]
   },
   {
-   "type": "node.food_source",
-   "id": "field2",
-   "at": [
-    310,
-    720
-   ],
-   "enabled": false
-  },
-  {
-   "type": "pad.build",
-   "id": "unlock_field2",
-   "at": [
-    310,
-    720
-   ],
-   "cost": {
-    "res.currency": 10
-   },
-   "build": "node.enable",
-   "target": "field2"
-  },
-  {
    "type": "zone.prey",
    "id": "flats",
    "rect": [
