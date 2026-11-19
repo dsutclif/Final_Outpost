@@ -631,6 +631,21 @@
    "kind": "perimeter_before_wave1",
    "params": {},
    "label": "Build the camp wall"
+  },
+  {
+   "id": "clear",
+   "kind": "clear_zones",
+   "params": {
+    "n": 1
+   }
+  },
+  {
+   "id": "meat",
+   "kind": "sell",
+   "params": {
+    "res": "res.food_raw_2",
+    "n": 1
+   }
   }
  ],
  "fail": [

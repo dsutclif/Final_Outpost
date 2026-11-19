@@ -1028,8 +1028,8 @@ export const marsGreenhouse: Skin = {
           { id: "first", hold: true, label: "Sell Sela some greens" },
           // S43 (Doug, 2026-11-07): the ring is no longer prebuilt; the player builds it here, the star is the wall
           { id: "walls", label: "Build the camp wall (8)" },
-          { id: "clear", label: "Clear the rockslide (12)", until: { event: "zone_cleared" } },
-          { id: "meat", label: "Sell meat at the kiosk", until: { event: "sold", match: { res: "res.food_raw_2" } } },
+          { id: "clear", label: "Clear the rockslide (12)" },
+          { id: "meat", label: "Sell meat at the kiosk" },
           { id: "main", label: "Build the habitat hub (150)" },
         ],
         cues: [
@@ -1110,7 +1110,7 @@ export const marsGreenhouse: Skin = {
         goals: [
           { id: "galleyBuilt", label: "Build the galley" },
           // the fourth job is a cashier, so the kiosk is minded from here on and level 5's arrows leave it alone (Doug)
-          { id: "train", label: "Train the crew for all four jobs", until: { event: "hired", match: { pad: "cashier" } } },
+          { id: "train", label: "Train the crew for all four jobs" },
           { id: "auto", label: "Reach the wreck while the town runs itself" },
           { id: "main", label: "Bring the flight recorder home" },
         ],
@@ -1186,9 +1186,9 @@ export const marsGreenhouse: Skin = {
         fleeingModels: { "hostile.boss": "hostile.boss_vale" },
         showDropped: true,
         goals: [
-          { id: "first", label: "Stop the first raiders", until: { event: "wave_cleared", match: { idx: 0 } } },
+          { id: "first", label: "Stop the first raiders" },
           { id: "turret", label: "Build a turret" },
-          { id: "train", label: "Train a guard", until: { event: "hired", match: { pad: "train" } } },
+          { id: "train", label: "Train a guard" },
           { id: "hold", label: "Hold until dawn" },
           { id: "main", label: "Bring the helmet home" },
         ],

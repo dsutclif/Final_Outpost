@@ -520,7 +520,9 @@ export function checkManifest(m: Manifest, c: Content): void {
   if (["waves_survived", "kills", "boss", "perimeter_before_wave1"].includes(m.goal.type) && m.waves.length === 0) fail(`${m.goal.type} goal needs waves`);
   if (m.goal.type === "boss" && !m.waves.some((w) => Object.keys(w.counts).some((h) => c.hostiles[h]?.boss))) fail(`boss goal needs a boss in a wave`);
   if (m.objectives !== undefined) {
-    if (m.objectives.length !== 3) fail(`objectives must list exactly three (main goal first), found ${m.objectives.length}`);
+    // Generated levels have exactly three; story levels get one star per goal (outpost-ops#123), up to eight.
+    const most = m.id.startsWith("story-") ? 8 : 3;
+    if (m.objectives.length < 3 || m.objectives.length > most) fail(`objectives must list exactly three (main goal first)${most > 3 ? `, or up to ${most} in a story level` : ""}, found ${m.objectives.length}`);
     const seen = new Set<string>();
     m.objectives.forEach((o, i) => {
       if (seen.has(o.id)) fail(`duplicate objective id ${o.id}`);

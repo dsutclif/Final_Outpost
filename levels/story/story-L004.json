@@ -727,6 +727,14 @@
     "seconds": 12,
     "sources": 1
    }
+  },
+  {
+   "id": "train",
+   "kind": "hire",
+   "params": {
+    "n": 1,
+    "role": "role.cashier"
+   }
   }
  ],
  "fail": [

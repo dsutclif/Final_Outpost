@@ -581,3 +581,8 @@ Attackers now appear `defense.spawnDistance` beyond the map edge (real metres by
 - Second grow dome (`field2`, `unlock_field2`, KILN's "second grow dome" line) removed from levels 3-5. Level 4 now opens with Tam working the dome (people: supplier field1 to the kiosk); level 5 opens with Tam at the galley, the cook (operator) and the runner (server) at their posts, beside the existing clerk. Level 4 housing.base 9, level 5 10 (the extra hands).
 - Level 4 `start.currency` is 20 (was 12): with Tam pre-hired the floor bot stalled once at 12 (levels:check, floor#2). The Level 4 rebuild card should re-check the opening economy.
 - New `packages/content/test/story-carry.test.ts` walks the five manifests; `story-canon` no longer lists the dome pad as level-own.
+
+### 2026-11-19, pro-s4: a star for every goal, part 1 (outpost-ops#123)
+- Story goals that were unstarred `until` steps are now manifest objectives (L3 `clear` clear_zones, `meat` sell; L4 `train` hire cashier; L5 `first` waves_survived, `train` hire defender); their `until` is gone from the skin. Goals per level now 4, 3, 5, 4, 5 (plan 4, 3, 8, 5, 6 needs the L3-5 rebuild to add goals).
+- Level 1 "Reach the light" is still a step with no star: no objective kind for reaching a place (needs a new sim kind + engine bump).
+- `checkManifest`: story levels (`story-` ids) may list 3 to 8 objectives; generated levels stay exactly 3. Part 2 (result card, save, menu totals) must handle stars above 3. Pin: `packages/client/test/story-stars.test.ts`. No engine bump.

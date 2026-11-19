@@ -718,6 +718,21 @@
    "params": {
     "target": "turret1"
    }
+  },
+  {
+   "id": "first",
+   "kind": "waves_survived",
+   "params": {
+    "n": 1
+   }
+  },
+  {
+   "id": "train",
+   "kind": "hire",
+   "params": {
+    "n": 1,
+    "role": "role.defender"
+   }
   }
  ],
  "fail": [
