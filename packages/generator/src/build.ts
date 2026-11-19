@@ -618,7 +618,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
   // Batch 3: every defend level has guards (the defend family's modules include defenders), not just the guards feature's.
   const guards = has("defenders");
   const rescue = fams.has("rescue");
-  const needsCurrency = fams.has("harvest") || fams.has("industrialize") || feat.has("housing") || feat.has("gate_arrivals")
+  const needsCurrency = fams.has("harvest") || fams.has("industrialize") || feat.has("housing") || feat.has("pod_housing") || feat.has("gate_arrivals")
     || feat.has("core_levels") || feat.has("rockslides") || feat.has("clearing_pass") || goal === "protein" || goal === "perimeter_before_wave1";
   let ring: ReturnType<typeof ringPoints> | null = null;
   let ringGates: number[] = [];
@@ -1094,7 +1094,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     }
   }
   let zones = 0;
-  const housingOn = feat.has("housing") || goal === "rescue_housed";
+  const housingOn = feat.has("housing") || feat.has("pod_housing") || goal === "rescue_housed";
   // Rock slides whose reward is a later building's site (88.2): filled in once that building's pad exists.
   const siteSlides: { rect: Rect; clear: string }[] = [];
   if (feat.has("rockslides") && !ring) {

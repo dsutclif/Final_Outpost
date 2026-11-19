@@ -325,6 +325,7 @@ function earned(o: Obj, r: BotResult): boolean {
     case "streak": return s.streakMax >= Number(o.params["n"]);
     case "hire": return s.hired >= Number(o.params["n"]);
     case "rescue": return s.rescued >= Number(o.params["n"]);
+    case "rescue_housed": return s.housedRescued >= Number(o.params["n"]);
     case "admit": return s.admitted >= Number(o.params["n"]);
     case "kills": return s.kills >= Number(o.params["n"]);
     case "salvage": return s.salvage >= Number(o.params["n"]);
@@ -362,6 +363,7 @@ function challengeCandidates(fam: Family, goodRuns: BotResult[], allowed: readon
         break;
       }
       case "rescue": { const n = Math.floor(pctile(S.map((s) => s.rescued), 0.3)); if (n >= 2) add(k, { n }); break; }
+      case "rescue_housed": { const n = Math.floor(pctile(S.map((s) => s.housedRescued), 0.3)); if (n >= 2) add(k, { n }); break; }
       case "streak": { const n = Math.floor(pctile(S.map((s) => s.streakMax), 0.3) * 0.9); if (n >= 4) add(k, { n: Math.min(STAR_CAPS.streak, n) }); break; }
       case "hire": { const n = Math.floor(pctile(S.map((s) => s.hired), 0.3)); if (n >= 2) add(k, { n }); break; }
       case "turret_level": { const n = Math.floor(pctile(S.map((s) => s.turretMax), 0.3)); if (n >= 2) add(k, { n }); break; }

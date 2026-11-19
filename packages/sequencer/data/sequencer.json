@@ -41,6 +41,7 @@
     "dust_storms": { "family": "shelter", "modules": ["hazard_events"] },
     "hunting": { "family": "rescue", "modules": ["hunting"] },
     "crates": { "family": "rescue", "modules": [] },
+    "pod_housing": { "family": "rescue", "modules": ["housing"] },
     "pod_timers": { "family": "rescue", "modules": [] },
     "clearing_pass": { "family": "rescue", "modules": ["blocked_zones"] },
     "vips": { "family": "harvest", "modules": ["customer_variety"] },
@@ -69,7 +70,7 @@
       "modules": ["lasso"],
       "teachGoal": "rescue",
       "intro": [["hunting", "crates"], ["pod_timers", "clearing_pass"]],
-      "challenges": ["tow_full_trip", "rescue_all", "tow_trip", "rescue"]
+      "challenges": ["tow_full_trip", "rescue_all", "tow_trip", "rescue", "rescue_housed"]
     },
     "harvest": {
       "modules": ["workers"],
@@ -104,7 +105,7 @@
 
     "rescue": { "family": "rescue", "needs": [], "avoid": ["hunting"] },
     "rescue_all": { "family": "rescue", "needs": [], "avoid": ["hunting"] },
-    "rescue_before_freeze": { "family": "rescue", "needs": ["pod_timers"], "avoid": ["hunting"] },
+    "rescue_before_freeze": { "family": "rescue", "needs": ["pod_timers"], "adds": ["crates", "dust_storms", "pod_housing"], "avoid": ["hunting"] },
     "hunt": { "family": "rescue", "needs": ["hunting"], "avoid": ["clearing_pass"] },
     "protein": { "family": "rescue", "needs": ["hunting"], "avoid": ["clearing_pass"] },
     "rescue_housed": { "family": "rescue", "needs": ["housing"], "anchor": true },
