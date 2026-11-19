@@ -194,6 +194,8 @@ export interface RunStats {
   /** Recruit pods still on the map at the end. */
   podsLeft: number;
   rescued: number;
+  /** Rescued colonists living in the base at the end (rescue_housed). */
+  housedRescued: number;
   streakMax: number;
   hired: number;
   /** Mean core fuel share over the run (sampled each second). */
@@ -519,6 +521,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     heatMin: s.heatMin, hpMin, fuelOuts: s.fuelOuts, froze: s.froze, customersAngry: s.customersAngry, injured: s.injured,
     barriersLost: s.barriersLost, overload, tripBest: s.tripBest, tripBestClean: s.tripBestClean, podsLost: s.podsLost,
     podsLeft: st.captures.filter((c) => cp.lassoables[c.type]?.result === "recruit" && c.state !== "hidden").length, rescued: s.rescued,
+    housedRescued: st.residents.filter((r) => r.origin === "rescue" && (r.status === "ok" || r.status === "injured" || r.status === "healing")).length,
     streakMax: s.streakMax, hired: s.hired, heatMean: heatSum / Math.max(1, heatN),
     admitted: s.admitted, kills: s.kills, salvage: s.salvage,
     turretMax: st.structures.reduce((a, x) => (cp.structures[x.type]?.tiers ? Math.max(a, x.level) : a), 0),
