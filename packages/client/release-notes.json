@@ -1,1 +1,1 @@
-{"notes":["Behind the scenes: level builds now keep a full log of every candidate they try, with the reason and numbers for each rejection, so failed levels can be diagnosed and replayed. Nothing in the game changes."]}
+{"notes":["Moving between levels now releases the old graphics properly, so the game no longer piles up leftover graphics memory when you play level after level."]}

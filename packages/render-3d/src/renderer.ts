@@ -90,7 +90,7 @@ const SHELF_K = 1.05 / ITEM_K;
 /** The subset of WebGLRenderer the 3D renderer uses; tests inject a fake (no WebGL in Node). */
 export interface GLLike {
   domElement: HTMLCanvasElement;
-  info: { render: { calls: number; triangles: number } };
+  info: { render: { calls: number; triangles: number }; memory?: { geometries: number; textures: number }; programs?: ArrayLike<unknown> | null };
   shadowMap: { enabled: boolean; type: ShadowMapType };
   outputColorSpace: ColorSpace;
   toneMapping: ToneMapping;
@@ -101,7 +101,16 @@ export interface GLLike {
   /** Builds shader programs ahead of use (three's WebGLRenderer has it; test fakes may not). */
   compile?(scene: Object3D, camera: ThreeCamera, targetScene?: Scene | null): unknown;
   compileAsync?(scene: Object3D, camera: ThreeCamera, targetScene?: Scene | null): Promise<unknown>;
+  /** Releases the WebGL context at once; dispose() alone leaves it to the garbage collector (three's has it; fakes may not). */
+  forceContextLoss?(): void;
   dispose(): void;
+}
+
+/** Per-session graphics counters for the probe: contexts opened, contexts released, and what each level load compiled. */
+export interface GLLog { opened: number; closed: number; loads: { programs: number; geometries: number; textures: number }[] }
+export function glLog(): GLLog {
+  const g = globalThis as { __foGlLog?: GLLog };
+  return (g.__foGlLog ??= { opened: 0, closed: 0, loads: [] });
 }
 
 export interface Renderer3DOptions {
@@ -587,6 +596,7 @@ export class Renderer3D implements Renderer {
     canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none";
     mount.appendChild(canvas);
     this.gl = this.createGL(canvas);
+    glLog().opened++;
     this.gl.outputColorSpace = SRGBColorSpace;
     this.gl.toneMapping = ACESFilmicToneMapping;
     this.gl.toneMappingExposure = EXPOSURE;
@@ -790,8 +800,15 @@ export class Renderer3D implements Renderer {
     this.keepQ = [];
     this.keepScan = 0;
     if (this.bctx) disposeBuildCtx(this.bctx);
-    this.gl?.domElement.remove?.();
-    this.gl?.dispose();
+    if (this.gl) {
+      const log = glLog();
+      const info = this.gl.info;
+      log.loads.push({ programs: info.programs?.length ?? 0, geometries: info.memory?.geometries ?? 0, textures: info.memory?.textures ?? 0 });
+      this.gl.dispose();
+      this.gl.forceContextLoss?.();
+      this.gl.domElement.remove?.();
+      log.closed++;
+    }
     this.hintEl?.remove();
     this.bannerEl?.remove();
     this.vignetteEl?.remove();
