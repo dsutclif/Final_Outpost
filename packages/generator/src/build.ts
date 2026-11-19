@@ -2244,6 +2244,14 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     const trip = (2 * (far + 60)) / SERVER_SPEED + 3;
     m.params["residents.serverSpeed"] = SERVER_SPEED;
     m.params["residents.serverCarry"] = Math.min(40, Math.max(3, Math.ceil(OUT_RATE * trip)));
+    // Input side (Doug: "supplier also keeps up"): suppliers and haulers walk at the same speed, gather in 0.25 s a unit, and carry
+    // enough per trip to cover the farthest source (node, core or depot) of any converter at the same rate.
+    const srcs = ents.filter((e) => /^node.|^sink.core$|^struct.depot$/.test(String(e.type)) && Array.isArray(e.at)).map((e) => e.at as Pt);
+    const feedFar = Math.max(0, ...pads.filter((p) => String(p.build ?? "").startsWith("conv.") && p.build !== "conv.level").flatMap((p) => srcs.map((q) => dist(p.at as Pt, q))));
+    const feedTrip = (2 * (feedFar + 60)) / SERVER_SPEED + 3;
+    m.params["residents.carrierSpeed"] = SERVER_SPEED;
+    m.params["residents.carrierGather"] = 0.25;
+    m.params["residents.carrierCarry"] = Math.min(40, Math.max(3, Math.ceil(OUT_RATE * (feedTrip + 0.25 * 3))));
   }
   const flow = flowModel(m, planBot(m, c), c, m.params["level.budgetSeconds"]!);
   if (!flow.ok) fail(`flow: ${flow.reason}`);
