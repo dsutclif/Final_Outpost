@@ -28,6 +28,17 @@ export function duplicatesInOrder(before: readonly Signed[], results: ReadonlyMa
   return out;
 }
 
+/** Shipped pack levels (in pack order) sharing a signature with an earlier non-exempt level (outpost-ops#150.2). Levels with no signature match nothing. */
+export function packDuplicates(levels: readonly { id: string; signature?: string | undefined }[]): { id: string; sameAs: string }[] {
+  const out: { id: string; sameAs: string }[] = [];
+  levels.forEach((l, k) => {
+    if (l.signature === undefined) return;
+    const hit = sameAsEarlier(l.id, l.signature, levels.slice(0, k));
+    if (hit !== null) out.push({ id: l.id, sameAs: hit });
+  });
+  return out;
+}
+
 export async function varietyPass<R extends Signed>(opts: {
   before: readonly Signed[];
   results: Map<number, R>;

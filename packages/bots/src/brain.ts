@@ -108,12 +108,22 @@ export class Brain {
     return st.timers.gateLeft > 0 || st.gateQueue.length > 0 || st.captures.some((c) => !c.decoy && c.state !== "hidden") || st.residents.some((r) => r.status === "waiting");
   }
 
+  /** 86.2: the core supplier hire of a defend level, still hidden within the first 90 s (the bot is doing its hand job). */
+  private hauler86(st: State, s: PlanStep): boolean {
+    const e = this.cp.entityById[s.pad];
+    return this.cp.waves.length > 0 && st.tick < 90 * TPS && s.reason === "economy" && !!e && e.type === "pad.hire" && e.manual === true && e.role.to === "sink.core";
+  }
+
   /** The first plan step that can take a payment now. */
   nextStep(st: State): { step: PlanStep; pad: PadState } | null {
     let first: { step: PlanStep; pad: PadState } | null = null, best: { step: PlanStep; pad: PadState } | null = null, bk = Infinity;
     for (const s of this.plan.steps) {
       if (this.stepDone(st, s) || !this.whenHolds(st, s) || this.skip.has(s.pad)) continue;
       const pad = st.pads.find((p) => p.id === s.pad)!;
+      // 86.2: on defend levels the fuel hauler (the core supplier hire) is the first purchase. Its pad shows only after the
+      // job was done once by hand, so while it is still hidden no defence purchase jumps ahead of it (for a bounded time,
+      // so a level where the hand job cannot be done is never stuck).
+      if (!pad.visible && this.hauler86(st, s)) return null;
       if (!pad.visible || pad.locked) continue;
       // Help for the hurt jumps the defence ladder (R5 #26): a medic or med bay after every tower would never come.
       if (s.reason === "medical") return { step: s, pad };

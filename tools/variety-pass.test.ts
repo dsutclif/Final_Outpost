@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { duplicatesInOrder, varietyPass, type Signed } from "./variety-pass.js";
+import { duplicatesInOrder, packDuplicates, varietyPass, type Signed } from "./variety-pass.js";
 
 // Pack-build variety pass (outpost-ops#150): levels built in parallel are re-checked in order and duplicates rebuilt.
 const lv = (index: number, signature: string): Signed => ({ index, id: `s1-L${String(index).padStart(3, "0")}`, signature });
@@ -31,5 +31,10 @@ describe("variety pass", () => {
     const rep = await varietyPass({ before: [], results: res, maxPasses: 3, rebuild: async () => null });
     expect(rep.unresolved).toEqual([{ index: 9, id: "s1-L009", sameAs: "s1-L008" }]);
     expect(rep.reruns.get(9)).toBe(1);
+  });
+
+  it("levels:check asserts no two shipped levels share a signature; unsigned levels match nothing (150.2)", () => {
+    expect(packDuplicates([lv(7, "a"), lv(8, "b"), lv(9, "a")])).toEqual([{ id: "s1-L009", sameAs: "s1-L007" }]);
+    expect(packDuplicates([{ id: "x" }, { id: "y" }, lv(9, "a"), lv(10, "b")])).toEqual([]);
   });
 });
