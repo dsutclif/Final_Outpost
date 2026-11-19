@@ -22,6 +22,8 @@ export interface CandidateRecord {
     /** Play shape (outpost-ops#151): the three numbers, the limits failed (enforced or not), the level end and every play-shape beat, in seconds. */
     playShape?: { maxPhaseShare: number; beatTypes: number; lastNewBeatShare: number; fails: string[]; endS: number; beatS: number[] } };
   idleElements?: string[];
+  /** The spare-pad trim passed but moved D further from target, so the untrimmed candidate was kept. */
+  trimRefused?: { D: number; trimmedD: number; target: number };
   objectives?: { kind: string; params: Record<string, number | string> }[];
   stars?: Record<string, number>;
   /** Passed every check and became the best so far. */

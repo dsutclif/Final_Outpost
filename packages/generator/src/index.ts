@@ -460,6 +460,11 @@ export function idleFeatures(req: GenRequest, idleModules: readonly string[]): s
   });
 }
 
+/** Keep the spare-pad-trimmed level only when it still passes and is no further from the target than the untrimmed one. */
+export function keepTrim(trimmedPasses: boolean, trimmedErr: number, untrimmedErr: number): boolean {
+  return trimmedPasses && trimmedErr <= untrimmedErr;
+}
+
 export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDetail {
   const c = opts.content ?? defaultContent;
   const S = GEN.search;
@@ -563,8 +568,13 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
               const ms2 = measure(lean, { content: c, refSeeds: (opts.seeds?.full ?? S.fullSeeds).ref, otherSeeds: (opts.seeds?.full ?? S.fullSeeds).other, history });
               const r2 = score(ms2, { content: c, reference });
               const v2 = r2.ok && !overLoopCap(ms2) && idleElements(lean, ms2.runs["good"]!).length === 0 ? verifyStars(lean, c, humanStars) : null;
-              if (v2 && v2.feasible && v2.starsOk) fin = { m: lean, r: r2, v: v2, err: Math.abs(r2.D - req.target), loopMax: ms2.loopMax };
-              log(`  it${rec!.iteration} spare pads: ${m.entities.filter((e) => "id" in e && !lean.entities.some((x) => "id" in x && x.id === e.id)).map((e) => (e as { id: string }).id).join(", ")}${fin.m === lean ? " dropped" : " kept (the trimmed level fails)"}`);
+              const err2 = Math.abs(r2.D - req.target);
+              const passes = !!(v2 && v2.feasible && v2.starsOk);
+              if (keepTrim(passes, err2, err)) fin = { m: lean, r: r2, v: v2!, err: err2, loopMax: ms2.loopMax };
+              // A trim that still passes but lands further from the target is refused: it would swap an on-target candidate for an off-target one.
+              const refused = passes && !keepTrim(passes, err2, err);
+              if (refused) rec!.trimRefused = { D: round3(r.D), trimmedD: round3(r2.D), target: req.target };
+              log(`  it${rec!.iteration} spare pads: ${m.entities.filter((e) => "id" in e && !lean.entities.some((x) => "id" in x && x.id === e.id)).map((e) => (e as { id: string }).id).join(", ")}${fin.m === lean ? " dropped" : refused ? ` kept (trim refused: D ${round3(r2.D)} is further from target ${req.target} than untrimmed D ${round3(r.D)})` : " kept (the trimmed level fails)"}`);
             }
             attachRating(fin.m, fin.r, req.introduced ?? [], fin.v.summary, fin.loopMax);
             const cand: Candidate = { manifest: fin.m, rating: fin.r, p, err: fin.err, stars: fin.v.summary, starsByRung: fin.v.byRung };
