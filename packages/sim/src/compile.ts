@@ -436,7 +436,9 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
   const roles: Record<string, CompiledRole> = {};
   for (const [id, r] of Object.entries(c.roles)) {
     roles[id] = {
-      behavior: r.behavior, speed: perTick(r.speed), carry: r.carry ?? 1,
+      // Automate levels set residents.serverCarry / serverSpeed so a server out-runs the machine it serves (0 = the role default).
+      behavior: r.behavior, speed: perTick(r.behavior === "collect_deliver" && param("residents.serverSpeed") > 0 ? param("residents.serverSpeed") : r.speed),
+      carry: r.behavior === "collect_deliver" && param("residents.serverCarry") > 0 ? int("residents.serverCarry") : r.carry ?? 1,
       gatherTicks: ticks(r.gatherInterval ?? 0), deliverTicks: ticks(r.deliverInterval ?? 0),
       attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1, rally: r.rally, sortie: r.sortie,
       hp: r.hp ?? 0, healTicks: r.healInterval === undefined ? 0 : ticks(r.healInterval),

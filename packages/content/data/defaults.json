@@ -119,6 +119,8 @@
   "level.overtimeSeconds": 90,
   "customers.refillSpawn": 1.0,
   "customers.refillBelow": 3,
+  "residents.serverCarry": 0,
+  "residents.serverSpeed": 0,
   "customers.bulkShare": 0,
   "freeze.frostDecay": 4,
   "freeze.othersRate": 0.5,

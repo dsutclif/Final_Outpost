@@ -2236,6 +2236,15 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
   const evEnd = events.reduce((a, e) => Math.max(a, e.end), 0);
   const fixedEnd = Math.max(waveEnd, evEnd, goal === "survive" ? Number(gparams["seconds"]) : 0);
   m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(90, Math.round(Math.max(fixedEnd + 60, chosen.f.T / (1 - K.margin)) / 10) * 10)), 10);
+  if (goal === "automate" && shopAt) {
+    // Doug 2026-11-19: a server keeps up with its machine. Fastest machine output (top level when upgrades exist, else level 1),
+    // doubled walking speed, and a carry that covers one round trip of the farthest converter (+ pickup/drop time) at that rate.
+    const SERVER_SPEED = 160, OUT_RATE = 1 / 0.6;
+    const far = Math.max(0, ...pads.filter((p) => String(p.build ?? "").startsWith("conv.") && p.build !== "conv.level").map((p) => dist(p.at as Pt, shopAt!)));
+    const trip = (2 * (far + 60)) / SERVER_SPEED + 3;
+    m.params["residents.serverSpeed"] = SERVER_SPEED;
+    m.params["residents.serverCarry"] = Math.min(40, Math.max(3, Math.ceil(OUT_RATE * trip)));
+  }
   const flow = flowModel(m, planBot(m, c), c, m.params["level.budgetSeconds"]!);
   if (!flow.ok) fail(`flow: ${flow.reason}`);
   void register;
