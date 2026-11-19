@@ -131,7 +131,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
         attempts++;
         const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
         const d = generateDetailed({ ...creq, seed }, { history, memory, finish: k === retryBase + retries,
-          onCandidate: (c) => { candidates.push({ ...c, attempt: k, seed, composer: clog }); if (c.rating) measured.push(c.rating.D); }, ...(verbose ? { log: say } : {}) });
+          onCandidate: (c) => { candidates.push({ ...c, attempt: k, seed, composer: clog }); if (c.rating?.feasible) measured.push(c.rating.D); }, ...(verbose ? { log: say } : {}) });
         for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
         ratings += d.stats.ratings;
         if (d.manifest && d.best) shipped = d.best;

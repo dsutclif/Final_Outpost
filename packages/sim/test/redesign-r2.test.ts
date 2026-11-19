@@ -534,8 +534,8 @@ describe("pods, tows and crates", () => {
     const cur = sim.state.currency;
     const back = [...walkPath(sim, [at(240, 800), at(240, 740), at(300, 600), at(300, 500), at(255, 425)]), ...idle(sim, 30)];
     const crate = find(back, "crate_delivered")!;
-    expect(crate.bundle).toEqual({ "res.material_basic": 4, "res.currency": 8 });
-    expect(sim.state.currency).toBe(cur + 8);
+    expect(crate.bundle).toEqual({ "res.material_basic": 4, "res.currency": 12 });
+    expect(sim.state.currency).toBe(cur + 12);
     expect(all(back, "drop").filter((d) => d.res === "res.material_basic").length).toBe(4);
     expect(sim.state.stats.crates).toBe(1);
     expect(sim.state.stats.tripBest).toBe(2);

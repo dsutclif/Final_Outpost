@@ -144,6 +144,7 @@ export interface SwapDecision { action: "add" | "remove" | "none"; feature?: str
  * After the knob search on a set: when every measured D sits above the target (or no candidate was
  * feasible), drop the extra with the largest step (newest on a tie); when every one sits below, add the pool
  * feature whose step best fills the gap within the caps. Otherwise the set can reach the target and stays.
+ * `measured` holds the D of feasible candidates only (an unwinnable one says nothing about where the slope lies).
  */
 export function composerSwap(r: ComposeRequest, comp: Composition, measured: readonly number[], tol: number, swapsDone: number,
   c: Content = defaultContent, cfg: SequencerConfig = DEFAULT_CONFIG): SwapDecision {
