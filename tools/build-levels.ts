@@ -11,6 +11,7 @@ import { recipeKey, recipeOf, sequenceRange, type LevelRequest, type RecipeRegis
 import { buildWithRerolls, describeRecipe, stopMessage, type SlotOutcome } from "./recipe-reroll.js";
 import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, withWaveFallback, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
+import { EARLY_STOP } from "../packages/generator/src/early-stop.js";
 import { digestLog } from "./candidate-digest.js";
 import { VARIETY } from "../packages/rater/src/variety.js";
 import { varietyPass, type Signed } from "./variety-pass.js";
@@ -40,6 +41,8 @@ const arg = (name: string, def?: string): string | undefined => {
   return i >= 0 ? argv[i + 1] : def;
 };
 const flag = (name: string): boolean => argv.includes(name);
+/** Phase C cheap stop rules (packages/generator/src/early-stop.ts): --early-stop / --no-early-stop, else the default in EARLY_STOP.defaultOn. */
+const earlyStopOn = (): boolean => flag("--early-stop") ? true : flag("--no-early-stop") ? false : EARLY_STOP.defaultOn;
 const base = process.env["INIT_CWD"] ?? process.cwd();
 const abs = (p: string) => (isAbsolute(p) ? p : resolve(base, p));
 
@@ -94,7 +97,7 @@ const requestsFor = (indices: number[], targetOffset: number) => (register: Reci
   return new Map(indices.map((i) => [i, all[i - 1]!] as const));
 };
 
-function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number, retryBase = 0, registerPath = DEFAULT_REGISTER_PATH, avoidPath?: string): void {
+function workLevel(index: number, outDir: string, retries: number, verbose: boolean, earlyStop: boolean, targetOffset: number, retryBase = 0, registerPath = DEFAULT_REGISTER_PATH, avoidPath?: string): void {
   const register = loadRegister(registerPath);
   const reqs = sequenceRange(1, index, [], { targetOffset, register, engine: ENGINE_VERSION });
   const req = reqs[index - 1]!;
@@ -114,10 +117,10 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   const search = () => {
     let best: Candidate | null = null, shipped: Candidate | null = null;
     const memory = newSearchMemory();
-    for (let k = retryBase; k <= retryBase + retries && !shipped && !memory.settled; k++) {
+    for (let k = retryBase; k <= retryBase + retries && !shipped && !memory.settled && !memory.stop; k++) {
       attempts++;
       const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
-      const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retryBase + retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
+      const d = generateDetailed({ ...req, seed }, { history, memory, earlyStop, finish: k === retryBase + retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
       for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
       ratings += d.stats.ratings;
       if (d.manifest && d.best) shipped = d.best;
@@ -236,7 +239,7 @@ async function main(): Promise<void> {
   const rerolls = new Map<number, number>();
   let candN = 0;
   const build = async (i: number, sent: LevelRequest, extra: string[] = []): Promise<SlotOutcome<LevelResult>> => {
-    const out = await runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, "--register", registerPath, ...(verbose ? ["--verbose"] : []), ...extra]);
+    const out = await runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, "--register", registerPath, ...(verbose ? ["--verbose"] : []), ...(earlyStopOn() ? ["--early-stop"] : ["--no-early-stop"]), ...extra]);
     const r = parseResult(out);
     const cands = out.split("\n").find((l) => l.startsWith("CANDIDATES "));
     if (cands) {
@@ -245,7 +248,8 @@ async function main(): Promise<void> {
       for (const c of rows) log({ n: ++candN, recipeId, reroll, ...compactRow(c) });
       // per recipe: the lowest and highest D any candidate reached (a target outside it is out of reach for this recipe)
       const Ds = rows.map((c) => c.rating?.D).filter((d): d is number => typeof d === "number");
-      log({ kind: "recipe", index: i, id: sent.id, recipeId, reroll, target: sent.target, candidates: rows.length, rated: Ds.length, Dmin: Ds.length ? Math.min(...Ds) : null, Dmax: Ds.length ? Math.max(...Ds) : null, shipped: rows.some((c) => c.shipped) });
+      const stopRow = rows.find((c) => c.stop)?.stop;
+      log({ kind: "recipe", index: i, stop: stopRow ?? null, id: sent.id, recipeId, reroll, target: sent.target, candidates: rows.length, rated: Ds.length, Dmin: Ds.length ? Math.min(...Ds) : null, Dmax: Ds.length ? Math.max(...Ds) : null, shipped: rows.some((c) => c.shipped) });
     }
     if (!r) { console.log(`  L${i}: worker crashed`); return { req: sent, ok: false, crashed: true, closestD: null, seeds: 0, rejects: {} }; }
     const req = r["req"] as LevelRequest;
@@ -428,6 +432,6 @@ function levelsDoc(packId: string, rs: LevelResult[]): string {
   return lines.join("\n");
 }
 
-if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")), Number(arg("--retry-base", "0")), arg("--register", DEFAULT_REGISTER_PATH)!, arg("--avoid"));
+if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), earlyStopOn(), Number(arg("--target-offset", "0")), Number(arg("--retry-base", "0")), arg("--register", DEFAULT_REGISTER_PATH)!, arg("--avoid"));
 else if (flag("--calib")) workCalib(Number(arg("--index")));
 else void main();

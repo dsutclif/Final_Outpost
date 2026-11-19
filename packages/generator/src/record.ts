@@ -1,6 +1,7 @@
 import type { Content, Manifest } from "@fo/content";
 import type { BotResult } from "@fo/bots";
 import { wavePoints } from "./build.js";
+import type { StopVerdict } from "./early-stop.js";
 
 /**
  * One search iteration, whatever became of it: what was built and how far it got. levels:build appends
@@ -47,6 +48,8 @@ export interface CandidateRecord {
   msSplit?: { build: number; bots: number; rate: number };
   /** The search step: the iteration before this one (-1 for the first), how far p moved from it, and the change in D since the previous rated iteration. */
   step?: { prev: number; dp: number; dD?: number };
+  /** Phase C: the early-stop rule that ended this recipe's search on this candidate, with its numbers (early-stop.ts). Absent on all others. */
+  stop?: StopVerdict;
   /** The built manifest as it was rated or played. levels:build stores it gzipped as `manifestGz` (tools/candidate-log.ts) so `pnpm trace --candidate <jsonl> --n <n>` can replay the candidate. */
   manifest?: Manifest;
 }

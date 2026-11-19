@@ -10,6 +10,7 @@ import { loopOverCap } from "./loops.js";
 import { GEN, TEMPLATES, buildLevel, dressingKnobs, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
+import { earlyStopCheck, type StopEntry, type StopVerdict } from "./early-stop.js";
 import { candidateSettings, roundKnobs, runRows, type CandidateRecord } from "./record.js";
 
 export { dressingKnobs, capWavePoints, wavePoints, withWaveFallback, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, applyNightCadence, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
@@ -59,6 +60,8 @@ export interface GenOptions {
   memory?: SearchMemory;
   /** Fully verify the closest candidates when the search ends. False on all but a level's last attempt. */
   finish?: boolean;
+  /** Phase C cheap stop rules (early-stop.ts): end the recipe's search once it is unreachable or a gate dominates. Default off. */
+  earlyStop?: boolean;
 }
 
 /** One level's search across its attempts: what was learned, and the candidates awaiting verification. */
@@ -72,6 +75,9 @@ export interface SearchMemory {
   best: Candidate | null;
   /** Clean on the quick rating but off target, so not yet worth the full verification. */
   pool: { m: Manifest; p: number; err: number; seed: number; knobs: Record<string, number> }[];
+  /** Early-stop bookkeeping (early-stop.ts): every search candidate of the slot so far, and the verdict once a rule fired. */
+  stopLog?: StopEntry[];
+  stop?: StopVerdict;
 }
 
 export const newSearchMemory = (): SearchMemory => ({ ease: 0, dropped: new Set(), droppedMods: new Set(), droppedFeatures: new Set(), settled: false, best: null, pool: [] });
@@ -469,7 +475,18 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   const stats: GenStats = { iterations: 0, rejects: {}, ratings: 0 };
   let rec: CandidateRecord | null = null;
   let recAt = 0;
-  const flush = () => { if (rec) { rec.ms = Date.now() - recAt; rec.msSplit = { build: msBuild, bots: Math.max(0, rec.ms - msBuild - msRate), rate: msRate }; opts.onCandidate?.(rec); } rec = null; };
+  const flush = () => {
+    if (rec) {
+      rec.ms = Date.now() - recAt; rec.msSplit = { build: msBuild, bots: Math.max(0, rec.ms - msBuild - msRate), rate: msRate };
+      if (opts.earlyStop && !rec.final && !memory.stop) {
+        (memory.stopLog ??= []).push({ p: rec.p, D: rec.rating?.D, firstReject: rec.rejects[0] ?? null });
+        const v = earlyStopCheck(memory.stopLog, req.target);
+        if (v) { memory.stop = v; rec.stop = v; }
+      }
+      opts.onCandidate?.(rec);
+    }
+    rec = null;
+  };
   const reject = (k: string, detail?: Record<string, unknown>) => { stats.rejects[k] = (stats.rejects[k] ?? 0) + 1; rec?.rejects.push(k); if (rec) (rec.rejectDetail ??= []).push({ kind: k, ...detail }); };
   // #251 logging state: wall time spent building and in ratings, the previous iteration and the previous rated D (for the search-step fields)
   let msRate = 0, msBuild = 0, lastIt = -1, lastP = -1, lastD: number | undefined;
@@ -571,6 +588,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
 
   for (let it = 0; it < maxIt; it++) {
     flush();
+    if (memory.stop) { log(`  early stop (${memory.stop.rule}): ${memory.stop.reason}`); break; }
     if (hi - lo < 0.02) {
       widened++;
       // Closed repeatedly and still far off: this seed cannot reach the target, so the next one gets the time.
