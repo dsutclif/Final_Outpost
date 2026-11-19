@@ -8,9 +8,9 @@
     "h": 900,
     "zones": [
       "base",
-      "sources-far-w",
-      "food-far-e",
-      "shop-s",
+      "sources-e",
+      "food-se",
+      "shop-w",
       "landmark-sw"
     ]
   },
@@ -26,19 +26,19 @@
     "sales"
   ],
   "start": [
-    240,
-    612
+    225,
+    471
   ],
   "entities": [
     {
       "type": "sink.core",
       "id": "core",
       "at": [
-        240,
-        520
+        189,
+        358
       ],
       "params": {
-        "fuel": 12,
+        "fuel": 15,
         "level": 1
       }
     },
@@ -46,46 +46,70 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        175,
-        598
+        185,
+        159
       ],
       "sells": [
         "res.food_raw_1"
       ],
       "queue": [
         [
-          236,
-          598
+          246,
+          159
         ],
         [
           270,
-          598
+          135
         ],
         [
-          304,
-          598
+          294,
+          111
         ],
         [
-          328,
-          622
+          318,
+          87
         ]
       ],
       "route": [
         [
-          -20,
-          645
+          500,
+          579
         ],
         [
-          3,
-          645
+          477,
+          579
         ],
         [
           249,
-          639
+          579
         ],
         [
-          270,
-          598
+          255,
+          561
+        ],
+        [
+          255,
+          555
+        ],
+        [
+          375,
+          465
+        ],
+        [
+          375,
+          417
+        ],
+        [
+          339,
+          285
+        ],
+        [
+          255,
+          159
+        ],
+        [
+          246,
+          159
         ]
       ]
     },
@@ -93,78 +117,71 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        342,
-        518
+        291,
+        358
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        161,
-        495
+        193,
+        439
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        219,
+        159,
+        439
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        227,
+        439
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        125,
+        439
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        265,
+        282
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        315,
         441
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        132,
-        488
+        338,
+        411
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        153,
-        453
+        189,
+        468
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        183,
-        436
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        119,
-        555
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        112,
-        511
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        124,
-        459
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        99,
-        484
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        97,
-        583
+        347,
+        444
       ]
     },
     {
@@ -174,58 +191,57 @@
       "costPerSection": 1,
       "points": [
         [
-          60,
-          320
+          84,
+          52
         ],
         [
-          180,
-          320
+          188,
+          52
         ],
         [
-          300,
-          320
+          293,
+          52
         ],
         [
-          420,
-          320
+          397,
+          52
         ],
         [
-          420,
-          453
+          397,
+          223
         ],
         [
-          420,
-          587
+          397,
+          395
         ],
         [
-          420,
-          720
+          397,
+          566
         ],
         [
-          300,
-          720
+          293,
+          566
         ],
         [
-          180,
-          720
+          188,
+          566
         ],
         [
-          60,
-          720
+          84,
+          566
         ],
         [
-          60,
-          587
+          84,
+          395
         ],
         [
-          60,
-          453
+          84,
+          223
         ]
       ],
       "closed": true,
       "gates": [
-        1,
-        9
+        7
       ],
       "prebuilt": [
         0,
@@ -246,60 +262,67 @@
       "type": "zone.blocked",
       "id": "pass",
       "rect": [
-        0,
-        114,
-        480,
+        191,
+        638,
+        100,
         44
       ]
     },
     {
-      "type": "capture.recruit_container",
-      "at": [
-        361,
-        55
+      "type": "zone.blocked",
+      "id": "pass_band0",
+      "rect": [
+        0,
+        638,
+        191,
+        44
       ],
-      "freeze": 134
+      "clearsWith": "pass"
+    },
+    {
+      "type": "zone.blocked",
+      "id": "pass_band1",
+      "rect": [
+        291,
+        638,
+        189,
+        44
+      ],
+      "clearsWith": "pass"
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        238,
-        61
+        350,
+        770
       ],
-      "freeze": 149
+      "freeze": 140
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        105,
-        221
+        116,
+        811
       ],
-      "freeze": 151
+      "freeze": 160
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        356,
-        254
+        228,
+        798
       ],
-      "freeze": 164
-    },
-    {
-      "type": "capture.supply_crate",
-      "at": [
-        272,
-        218
-      ]
+      "freeze": 176
     },
     {
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        263,
-        630
+        276,
+        445
       ],
       "cost": {
-        "res.currency": 29
+        "res.currency": 25
       },
       "build": "sink.core.level"
     },
@@ -307,11 +330,11 @@
       "type": "pad.build",
       "id": "clear_pass",
       "at": [
-        310,
-        239
+        266,
+        613
       ],
       "cost": {
-        "res.currency": 17
+        "res.currency": 15
       },
       "build": "zone.clear",
       "target": "pass",
@@ -324,15 +347,15 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 5,
-    "core.burn": 2.5,
-    "housing.base": 6,
+    "start.currency": 0,
+    "core.burn": 2.9,
+    "housing.base": 5,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 3.1,
+    "customers.spawn": 2.9,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 140
+    "level.budgetSeconds": 150
   },
   "goal": {
     "type": "rescue_all"
@@ -355,7 +378,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 90
+        "seconds": 104
       }
     }
   ],
@@ -367,19 +390,20 @@
       "title": "Drift Cables and Every Pod",
       "goal": "rescue_all",
       "tips": [
-        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+        "Step out through the gate and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.862,
-    "fun": 0.775,
-    "botMargin": 0.605,
+    "difficulty": 0.568,
+    "fun": 0.726,
+    "botMargin": 0.592,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice"
+      "novice",
+      "floor"
     ],
     "stars": {
       "good": 3,
@@ -387,6 +411,7 @@
       "goodAll": 1,
       "human": 3,
       "humanAll": 1
-    }
+    },
+    "loopMax": 2
   }
 }

@@ -6,7 +6,6 @@ import genData from "../data/generator.json";
 import startData from "../data/start.json";
 import { ENGINE_VERSION, TPS } from "@fo/sim";
 import { DEFAULT_CONFIG, closure, conflicts } from "@fo/sequencer";
-import { readFileSync } from "node:fs";
 import { loopOverCap } from "./loops.js";
 import { GEN, TEMPLATES, buildLevel, dressingKnobs, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
@@ -15,9 +14,10 @@ import { candidateSettings, roundKnobs, runRows, type CandidateRecord } from "./
 
 /** Rebuild session (outpost-ops#254): per-level knob fixes from the JSON file named by FO_KNOB_OVERRIDES ({ "<level id>": { knob: value } }). Unset: no effect. */
 function slotKnobOverrides(id: string): Record<string, number> {
-  const f = process.env["FO_KNOB_OVERRIDES"];
+  const f = typeof process === "undefined" ? undefined : process.env["FO_KNOB_OVERRIDES"];
   if (!f) return {};
-  try { return (JSON.parse(readFileSync(f, "utf8")) as Record<string, Record<string, number>>)[id] ?? {}; } catch { return {}; }
+  // fs is fetched at call time (node only) so the browser bundle never imports node:fs
+  try { const fs = (process as unknown as { getBuiltinModule(n: string): typeof import("node:fs") }).getBuiltinModule("node:fs"); return (JSON.parse(fs.readFileSync(f, "utf8")) as Record<string, Record<string, number>>)[id] ?? {}; } catch { return {}; }
 }
 
 export { dressingKnobs, capWavePoints, wavePoints, withWaveFallback, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, applyNightCadence, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
