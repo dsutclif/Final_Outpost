@@ -9,7 +9,7 @@ import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { computeReference, type HistoryEntry, type Measurement, type Metrics } from "../packages/rater/src/index.js";
 import { recipeKey, recipeOf, sequenceRange, type LevelRequest, type RecipeRegister } from "../packages/sequencer/src/index.js";
 import { buildWithRerolls, describeRecipe, stopMessage, type SlotOutcome } from "./recipe-reroll.js";
-import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, withWaveFallback, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
+import { GEN, applyNightCadence, calibrationSample, composeStart, composerSwap, dedupeTitles, generateDetailed, newSearchMemory, templateById, withWaveFallback, type Candidate, type CandidateRecord, type ComposerLog, type Composition } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
 import { digestLog } from "./candidate-digest.js";
 import { VARIETY } from "../packages/rater/src/variety.js";
@@ -111,17 +111,39 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   const rejects: Record<string, number> = {};
   let ratings = 0, attempts = 0;
   const candidates: (CandidateRecord & { attempt: number; seed: number })[] = [];
+  // Add-on composer (packages/generator/src/composer.ts): the starting set from the add-ons' difficulty steps, the knob
+  // search on it, then at most composer.maxSwaps single add/remove swaps when every measured D misses the target one way.
+  let composed: Composition | null = null;
+  const say = (s: string) => process.stderr.write(`[${req.id}] ${s}\n`);
   const search = () => {
     let best: Candidate | null = null, shipped: Candidate | null = null;
-    const memory = newSearchMemory();
-    for (let k = retryBase; k <= retryBase + retries && !shipped && !memory.settled; k++) {
-      attempts++;
-      const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
-      const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retryBase + retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
-      for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
-      ratings += d.stats.ratings;
-      if (d.manifest && d.best) shipped = d.best;
-      if (d.best && (!best || d.best.err < best.err)) best = d.best;
+    let comp = composeStart(req, GEN.conveyorGoals);
+    let decision: ComposerLog["decision"] = { action: "start", why: `estimate ${comp.estimate.lo}-${comp.estimate.hi} (mid ${comp.estimate.mid}) for target ${req.target}` };
+    for (let round = 0; ; round++) {
+      const clog: ComposerLog = { round, features: comp.features, estimate: comp.estimate, cap: comp.cap, optionalModules: comp.optionalModules, decision,
+        ...(comp.dropped.length > 0 ? { dropped: comp.dropped } : {}), ...(comp.notes.length > 0 ? { notes: comp.notes } : {}) };
+      say(`composer round ${round}: ${decision.action}${decision.feature ? ` ${decision.feature}` : ""} (${decision.why}) -> [${comp.features.join(", ")}] est ${comp.estimate.mid}, optional modules ${comp.optionalModules}/${comp.cap}`
+        + (comp.dropped.length > 0 ? `, left out ${comp.dropped.map((d) => `${d.feature}: ${d.why}`).join("; ")}` : "") + (comp.notes.length > 0 ? `, ${comp.notes.join("; ")}` : ""));
+      const creq = { ...req, features: comp.features, modules: comp.modules };
+      const measured: number[] = [];
+      const memory = newSearchMemory();
+      for (let k = retryBase; k <= retryBase + retries && !shipped && !memory.settled; k++) {
+        attempts++;
+        const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
+        const d = generateDetailed({ ...creq, seed }, { history, memory, finish: k === retryBase + retries,
+          onCandidate: (c) => { candidates.push({ ...c, attempt: k, seed, composer: clog }); if (c.rating) measured.push(c.rating.D); }, ...(verbose ? { log: say } : {}) });
+        for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
+        ratings += d.stats.ratings;
+        if (d.manifest && d.best) shipped = d.best;
+        if (d.best && (!best || d.best.err < best.err)) { best = d.best; composed = comp; }
+      }
+      if (shipped) { composed = comp; break; }
+      const sw = composerSwap(req, comp, measured, GEN.search.tolerance, round);
+      say(`composer round ${round} measured D ${measured.length > 0 ? `${Math.min(...measured).toFixed(3)}-${Math.max(...measured).toFixed(3)} (n ${measured.length})` : "none"}: ${sw.action}${sw.feature ? ` ${sw.feature}` : ""} (${sw.why})`);
+      if (sw.action === "none" || !sw.next) break;
+      decision = { action: sw.action, ...(sw.feature ? { feature: sw.feature } : {}), why: sw.why,
+        measured: { n: measured.length, min: measured.length > 0 ? Math.min(...measured) : 0, max: measured.length > 0 ? Math.max(...measured) : 0 } };
+      comp = sw.next;
     }
     return { shipped, pick: shipped ?? best };
   };
@@ -130,7 +152,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   const { result: { shipped, pick }, dense } = withWaveFallback(req.family === "defend" || req.secondary === "defend", search,
     (s) => !s.pick || Math.abs(s.pick.rating.D - req.target) > failGap);
   if (verbose && !dense && (req.family === "defend" || req.secondary === "defend")) process.stderr.write(`[${req.id}] built with today's wave sizing\n`);
-  const level = { index, id: req.id, family: req.family, secondary: req.secondary, features: req.features, goalType: req.goalType, template: req.template, target: req.target };
+  const level = { index, id: req.id, family: req.family, secondary: req.secondary, features: (composed as Composition | null)?.features ?? req.features, goalType: req.goalType, template: req.template, target: req.target };
   process.stdout.write(`CANDIDATES ${JSON.stringify(candidates.map((c) => ({ ...level, ...c })))}\n`);
   // The recipe failed (outpost-ops#198): nothing ships, or the closest level is further than the
   // register's failGap from its target. Nothing is written; the parent registers it and re-rolls.
@@ -145,7 +167,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   const r = pick.rating;
   const res: LevelResult = {
     index, id: m.id, file, title: m.text["mars_greenhouse"]?.title ?? m.id, phase: req.phase, introduced: req.introduced,
-    family: req.family, secondary: req.secondary, features: req.features, objectives: (m.objectives ?? []) as LevelResult["objectives"],
+    family: req.family, secondary: req.secondary, features: (composed as Composition | null)?.features ?? req.features, objectives: (m.objectives ?? []) as LevelResult["objectives"],
     stars: pick.stars, starsByRung: pick.starsByRung,
     modules: m.modules, goal: m.goal.type, template: req.template, target: req.target, D: r.D, F: r.F, onTarget: shipped !== null,
     margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, beats: r.beats, signature: r.signature, seconds: (Date.now() - t0) / 1000, seed: m.seed,

@@ -16,9 +16,21 @@ import registerData from "../data/recipe-register.json";
 export type Family = "shelter" | "rescue" | "harvest" | "industrialize" | "defend";
 export type Phase = "teach" | "intro" | "mix" | "finale";
 
-export interface FeatureDef { family: Family; modules: string[]; anchor?: boolean; with?: string[] }
+/** firstLevel: the first level index the feature may join a level of its own family; dStep: its measured difficulty step [lo, hi]. */
+export interface FeatureDef { family: Family; modules: string[]; anchor?: boolean; with?: string[]; firstLevel?: number; dStep?: [number, number] }
 export interface GoalDef { family: Family; kind?: string; needs: string[]; adds?: string[]; anchor?: boolean; avoid?: string[] }
-export interface FamilyDef { modules: string[]; teachGoal: string; intro: string[][]; challenges: string[] }
+/** guests: other families' features this family may borrow, with the first level each may join. */
+export interface FamilyDef { modules: string[]; teachGoal: string; intro: string[][]; challenges: string[]; guests?: Record<string, number> }
+
+/** The generator's add-on composer (sequencer.json notes.composer). */
+export interface ComposerConfig {
+  base: Record<Family, number>;
+  moduleCap: [number, number][];
+  extras: Record<string, number>;
+  /** Families whose levels keep the sequencer's features (no composing, no swaps). */
+  fixed: Family[];
+  maxSwaps: number;
+}
 
 export interface SequencerConfig {
   packId: string;
@@ -46,6 +58,7 @@ export interface SequencerConfig {
   familyOrder: Family[];
   finales: [Family, Family][];
   mixFeatures: { min: number; max: number };
+  composer: ComposerConfig;
   features: Record<string, FeatureDef>;
   families: Record<Family, FamilyDef>;
   goals: Record<string, GoalDef>;
@@ -337,6 +350,21 @@ export function unlockedFeatures(family: Family, index: number, cfg: SequencerCo
   return out;
 }
 
+/** Whether feature `f` may join a level of `family` at index `index` (its own family from firstLevel on, or as the family's guest). */
+export function featureUnlocked(f: string, family: Family, index: number, cfg: SequencerConfig = DEFAULT_CONFIG): boolean {
+  const def = cfg.features[f];
+  if (!def) return false;
+  if (def.family === family && index >= (def.firstLevel ?? Number.POSITIVE_INFINITY)) return true;
+  const g = cfg.families[family]?.guests?.[f];
+  return g !== undefined && index >= g;
+}
+
+/** Every feature a level of `family` at `index` may carry, sorted by first level (oldest first), then id. */
+export function addonPool(family: Family, index: number, cfg: SequencerConfig = DEFAULT_CONFIG): string[] {
+  const at = (f: string) => (cfg.features[f]!.family === family ? cfg.features[f]!.firstLevel ?? 0 : cfg.families[family]?.guests?.[f] ?? 0);
+  return Object.keys(cfg.features).filter((f) => featureUnlocked(f, family, index, cfg)).sort((a, b) => at(a) - at(b) || a.localeCompare(b));
+}
+
 const key = (mods: readonly string[], goal: string, tpl: string | undefined) => `${[...mods].sort().join(",")}|${goal}|${tpl ?? ""}`;
 
 /** The request for level `index` (1-based) given the levels before it (most recent last). Pure. */
@@ -417,7 +445,8 @@ function choose(index: number, slot: Slot, families: Family[], history: readonly
     const goals = goalsFor(fam, features, families, cfg);
     if (goals.length === 0) continue;
     const goal = pickGoal(goals, slot, history, cfg, s);
-    const adds = (cfg.goals[goal]?.adds ?? []).filter((f) => !features.includes(f));
+    // a goal's adds count only once the feature is unlocked for this family (composer unlock order)
+    const adds = (cfg.goals[goal]?.adds ?? []).filter((f) => !features.includes(f) && featureUnlocked(f, fam, index, cfg));
     if (adds.length > 0) {
       // The goal pulls in features of its own (shelves_full: a hunted good beside the farmed one).
       features = featureClosure([...features, ...adds], cfg);

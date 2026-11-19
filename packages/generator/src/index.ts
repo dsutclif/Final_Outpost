@@ -25,7 +25,8 @@ export { flowModel, type Flow } from "./flow.js";
 export { scrapBudget, scrapNeed, waveScrap } from "./budget.js";
 export { skinText, dedupeTitles } from "./text.js";
 export { Placer, unreadablePairs } from "./layout.js";
-export type { CandidateRecord, CandidateSettings } from "./record.js";
+export type { CandidateRecord, CandidateSettings, ComposerLog } from "./record.js";
+export { composeStart, composerSwap, composerPool, requiredFeatures, estimateD, moduleCap, type Composition, type ComposeRequest, type SwapDecision } from "./composer.js";
 
 /** Contract 5 request, from the sequencer (family, features, goal kind, modules). */
 export interface GenRequest {
@@ -637,7 +638,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     stats.iterations++;
     const mut: Record<string, number> = {};
     if (it > 0) for (const k of Object.keys(GEN.knobs)) mut[k] = (mrand.float() * 2 - 1) * GEN.jitter;
-    const knobs = { ...knobsFor(p, mut), ...dressingKnobs(req.seed), ...slotKnobOverrides(req.id ?? "") };
+    const knobs = { ...knobsFor(p, mut, req.family), ...dressingKnobs(req.seed), ...slotKnobOverrides(req.id ?? "") };
     rec = { iteration: it, p: round3(p), knobs: {}, rejects: [], kept: false, shipped: false, layoutSeed: req.seed, step: { prev: lastIt, dp: lastP < 0 ? 0 : round3(p - lastP) } };
     lastIt = it; lastP = p;
     recAt = Date.now(); msRate = 0; msBuild = 0;
@@ -844,7 +845,7 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
   const c = opts.content ?? defaultContent;
   const mods = closure(req.modules, c);
   const tpl = templateById(req.template ?? TEMPLATES.templates[0]!.id);
-  const knobs = knobsFor(clamp01((req.target - 0.08) / 0.8));
+  const knobs = knobsFor(clamp01((req.target - 0.08) / 0.8), {}, req.family);
   for (let salt = 0; salt < GEN.search.layoutTries; salt++) {
     let built: Built;
     try { built = buildLevel({ id: req.id ?? "calib", seed: req.seed, target: req.target, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods, template: tpl, knobs, walls: req.walls !== false, content: c }, salt); }

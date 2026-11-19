@@ -38,6 +38,8 @@ export const TEMPLATES = templatesData as unknown as TemplatesFile;
 type RingDims = { hw: number; hh: number; split: [number, number] };
 export const GEN = genData as unknown as {
   knobs: Record<string, [number, number]>;
+  /** Per-family [p=0, p=1] knob ends that replace knobs (composer search ranges). */
+  familyKnobs: Record<string, unknown>;
   dressing: string[];
   /** Dangerous prey: odds that a hunting level that earns any (knob `dangerPrey` rounds above 0) gets them, and the most in one zone. */
   danger: { chance: number; max: number };
@@ -295,9 +297,11 @@ export const templateById = (id: string): Template => {
 export type Knobs = Record<keyof typeof genData.knobs, number>;
 
 /** Knob values at pressure p, each jittered by its own mutation offset (in pressure units). */
-export function knobsFor(p: number, mut: Partial<Record<string, number>> = {}): Knobs {
+export function knobsFor(p: number, mut: Partial<Record<string, number>> = {}, family?: Family): Knobs {
   const out = {} as Record<string, number>;
-  for (const [k, [a, b]] of Object.entries(GEN.knobs)) out[k] = lerp(a, b, clamp01(p + (mut[k] ?? 0)));
+  // the family's own search ranges (generator.json familyKnobs) replace the shared ones
+  const fam = (family ? (GEN.familyKnobs as Record<string, Record<string, [number, number]>>)[family] : undefined) ?? {};
+  for (const [k, ab] of Object.entries(GEN.knobs)) { const [a, b] = fam[k] ?? ab; out[k] = lerp(a, b, clamp01(p + (mut[k] ?? 0))); }
   return out as Knobs;
 }
 
@@ -2237,21 +2241,28 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
   const fixedEnd = Math.max(waveEnd, evEnd, goal === "survive" ? Number(gparams["seconds"]) : 0);
   m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(90, Math.round(Math.max(fixedEnd + 60, chosen.f.T / (1 - K.margin)) / 10) * 10)), 10);
   if (goal === "automate" && shopAt) {
-    // Doug 2026-11-19: a server keeps up with its machine. Fastest machine output (top level when upgrades exist, else level 1),
-    // doubled walking speed, and a carry that covers one round trip of the farthest converter (+ pickup/drop time) at that rate.
-    const SERVER_SPEED = 160, OUT_RATE = 1 / 0.6;
-    const far = Math.max(0, ...pads.filter((p) => String(p.build ?? "").startsWith("conv.") && p.build !== "conv.level").map((p) => dist(p.at as Pt, shopAt!)));
-    const trip = (2 * (far + 60)) / SERVER_SPEED + 3;
+    // Doug 2026-11-19: a server keeps up with its machine: doubled walking speed, and a carry that covers one round trip
+    // (+ pickup/drop time) of each converter at the fastest output that converter can reach on this level (content rate,
+    // then upgradeRates for each conv.level step its pads allow), the largest over the converters.
+    const SERVER_SPEED = 160;
+    const convs = pads.filter((p) => String(p.build ?? "").startsWith("conv.") && p.build !== "conv.level");
+    const topRate = (p: Ent): number => {
+      const def = c.converters[String(p.build)];
+      if (!def) return 1;
+      const ups = pads.filter((q) => q.build === "conv.level" && q.target === p.id);
+      const lv = ups.length === 0 ? 0 : ups.some((q) => q.repeatable) ? def.upgradeRates.length : Math.min(ups.length, def.upgradeRates.length);
+      return 1 / (lv === 0 ? def.rate : def.upgradeRates[lv - 1]!);
+    };
+    const trip = Math.max(0, ...convs.map((p) => topRate(p) * ((2 * (dist(p.at as Pt, shopAt!) + 60)) / SERVER_SPEED + 3)));
     m.params["residents.serverSpeed"] = SERVER_SPEED;
-    m.params["residents.serverCarry"] = Math.min(40, Math.max(3, Math.ceil(OUT_RATE * trip)));
+    m.params["residents.serverCarry"] = Math.min(40, Math.max(3, Math.ceil(trip)));
     // Input side (Doug: "supplier also keeps up"): suppliers and haulers walk at the same speed, gather in 0.25 s a unit, and carry
     // enough per trip to cover the farthest source (node, core or depot) of any converter at the same rate.
     const srcs = ents.filter((e) => /^node.|^sink.core$|^struct.depot$/.test(String(e.type)) && Array.isArray(e.at)).map((e) => e.at as Pt);
-    const feedFar = Math.max(0, ...pads.filter((p) => String(p.build ?? "").startsWith("conv.") && p.build !== "conv.level").flatMap((p) => srcs.map((q) => dist(p.at as Pt, q))));
-    const feedTrip = (2 * (feedFar + 60)) / SERVER_SPEED + 3;
+    const feedCarry = Math.max(0, ...convs.map((p) => topRate(p) * ((2 * (Math.max(0, ...srcs.map((q) => dist(p.at as Pt, q))) + 60)) / SERVER_SPEED + 3 + 0.25 * 3)));
     m.params["residents.carrierSpeed"] = SERVER_SPEED;
     m.params["residents.carrierGather"] = 0.25;
-    m.params["residents.carrierCarry"] = Math.min(40, Math.max(3, Math.ceil(OUT_RATE * (feedTrip + 0.25 * 3))));
+    m.params["residents.carrierCarry"] = Math.min(40, Math.max(3, Math.ceil(feedCarry)));
   }
   const flow = flowModel(m, planBot(m, c), c, m.params["level.budgetSeconds"]!);
   if (!flow.ok) fail(`flow: ${flow.reason}`);

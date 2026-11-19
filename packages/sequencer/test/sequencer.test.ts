@@ -41,7 +41,9 @@ describe("sequencer (level families, REDESIGN-R2 §5)", () => {
     }
     // every feature is taught once: by the hand-made story levels (storyTaught) or introduced here, never re-introduced
     const introduced = new Set(intro.flatMap((r) => r.features));
-    for (const f of Object.keys(cfg.features)) expect({ f, taught: introduced.has(f) || cfg.storyTaught.includes(f) }).toEqual({ f, taught: true });
+    // a composer-only add-on (pod_housing) is taught by the feature that introduces its mechanic (housing)
+    const taughtMech = (f: string) => cfg.features[f]!.modules.length > 0 && cfg.features[f]!.modules.every((m) => [...introduced].some((g) => cfg.features[g]?.modules.includes(m)));
+    for (const f of Object.keys(cfg.features)) expect({ f, taught: introduced.has(f) || cfg.storyTaught.includes(f) || taughtMech(f) }).toEqual({ f, taught: true });
     for (const r of intro) for (const f of r.introduced) expect(cfg.storyTaught).not.toContain(f);
     // Each intro goal exercises a newly introduced feature.
     for (const r of intro) expect(cfg.goals[r.goalId]!.needs.some((n) => r.introduced.includes(n) || r.features.includes(n)) || cfg.goals[r.goalId]!.needs.length === 0).toBe(true);

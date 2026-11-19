@@ -33,31 +33,38 @@
     ["defend", "shelter"]
   ],
   "mixFeatures": { "min": 1, "max": 3 },
+  "composer": {
+    "base": { "shelter": 0.03, "rescue": 0.03, "harvest": 0.05, "industrialize": 0.08, "defend": 0.25 },
+    "moduleCap": [[0.3, 4], [0.5, 5], [0.7, 6], [1, 7]],
+    "extras": { "teach": 0, "intro": 0, "mix": 3, "finale": 3 },
+    "fixed": ["defend"],
+    "maxSwaps": 2
+  },
   "features": {
-    "housing": { "family": "shelter", "modules": ["housing"], "with": ["gate_arrivals"] },
-    "gate_arrivals": { "family": "shelter", "modules": ["housing"] },
-    "core_levels": { "family": "shelter", "modules": ["core_levels"], "anchor": true },
-    "rockslides": { "family": "shelter", "modules": ["blocked_zones"], "anchor": true, "with": ["core_levels"] },
-    "dust_storms": { "family": "shelter", "modules": ["hazard_events"] },
-    "hunting": { "family": "rescue", "modules": ["hunting"] },
-    "crates": { "family": "rescue", "modules": [] },
-    "pod_housing": { "family": "rescue", "modules": ["housing"] },
-    "pod_timers": { "family": "rescue", "modules": [] },
-    "clearing_pass": { "family": "rescue", "modules": ["blocked_zones"] },
-    "vips": { "family": "harvest", "modules": ["customer_variety"] },
-    "source_unlocks": { "family": "harvest", "modules": ["source_gating"], "anchor": true },
-    "bulk_orders": { "family": "harvest", "modules": [] },
-    "material_processor": { "family": "industrialize", "modules": [], "with": ["tier2"] },
-    "converter_levels": { "family": "industrialize", "modules": [], "anchor": true },
-    "tier2": { "family": "industrialize", "modules": [], "with": ["material_processor"] },
-    "depot": { "family": "industrialize", "modules": ["supply_routing"] },
-    "conveyors": { "family": "industrialize", "modules": ["conveyors"], "with": ["tier2"] },
-    "turrets": { "family": "defend", "modules": [], "with": ["salvage_upgrades"] },
-    "salvage_upgrades": { "family": "defend", "modules": ["salvage_upgrades"], "with": ["turrets"] },
-    "multi_side": { "family": "defend", "modules": [], "with": ["turrets"] },
-    "defenders": { "family": "defend", "modules": ["defenders"], "with": ["turrets"] },
-    "bosses": { "family": "defend", "modules": [], "with": ["turrets", "defenders"] },
-    "med_bay": { "family": "defend", "modules": ["medical"], "with": ["turrets"] }
+    "housing": { "family": "shelter", "firstLevel": 6, "dStep": [0, 0.12], "modules": ["housing"], "with": ["gate_arrivals"] },
+    "gate_arrivals": { "family": "shelter", "firstLevel": 6, "dStep": [0, 0.05], "modules": ["housing"] },
+    "core_levels": { "family": "shelter", "firstLevel": 11, "dStep": [0.04, 0.12], "modules": ["core_levels"], "anchor": true },
+    "rockslides": { "family": "shelter", "firstLevel": 6, "dStep": [0.3, 0.55], "modules": ["blocked_zones"], "anchor": true, "with": ["core_levels"] },
+    "dust_storms": { "family": "shelter", "firstLevel": 6, "dStep": [0.05, 0.2], "modules": ["hazard_events"] },
+    "hunting": { "family": "rescue", "firstLevel": 6, "dStep": [0.2, 0.5], "modules": ["hunting"] },
+    "crates": { "family": "rescue", "firstLevel": 7, "dStep": [0, 0.15], "modules": [] },
+    "pod_housing": { "family": "rescue", "firstLevel": 12, "dStep": [0.05, 0.2], "modules": ["housing"] },
+    "pod_timers": { "family": "rescue", "firstLevel": 12, "dStep": [0, 0.05], "modules": [] },
+    "clearing_pass": { "family": "rescue", "firstLevel": 12, "dStep": [0.45, 0.7], "modules": ["blocked_zones"] },
+    "vips": { "family": "harvest", "firstLevel": 8, "dStep": [0.02, 0.05], "modules": ["customer_variety"] },
+    "source_unlocks": { "family": "harvest", "firstLevel": 6, "dStep": [0.1, 0.15], "modules": ["source_gating"], "anchor": true },
+    "bulk_orders": { "family": "harvest", "firstLevel": 13, "dStep": [0, 0.03], "modules": [] },
+    "material_processor": { "family": "industrialize", "firstLevel": 9, "dStep": [0.02, 0.08], "modules": [], "with": ["tier2"] },
+    "converter_levels": { "family": "industrialize", "firstLevel": 9, "dStep": [0, 0.05], "modules": [], "anchor": true },
+    "tier2": { "family": "industrialize", "firstLevel": 9, "dStep": [0, 0.02], "modules": [], "with": ["material_processor"] },
+    "depot": { "family": "industrialize", "firstLevel": 14, "dStep": [0.15, 0.3], "modules": ["supply_routing"] },
+    "conveyors": { "family": "industrialize", "firstLevel": 14, "dStep": [0, 0.02], "modules": ["conveyors"], "with": ["tier2"] },
+    "turrets": { "family": "defend", "firstLevel": 6, "dStep": [0.05, 0.4], "modules": [], "with": ["salvage_upgrades"] },
+    "salvage_upgrades": { "family": "defend", "firstLevel": 10, "dStep": [0, 0.1], "modules": ["salvage_upgrades"], "with": ["turrets"] },
+    "multi_side": { "family": "defend", "firstLevel": 10, "dStep": [0.05, 0.2], "modules": [], "with": ["turrets"] },
+    "defenders": { "family": "defend", "firstLevel": 6, "dStep": [0, 0.1], "modules": ["defenders"], "with": ["turrets"] },
+    "bosses": { "family": "defend", "firstLevel": 6, "dStep": [0.1, 0.3], "modules": [], "with": ["turrets", "defenders"] },
+    "med_bay": { "family": "defend", "firstLevel": 15, "dStep": [0, 0.1], "modules": ["medical"], "with": ["turrets"] }
   },
   "families": {
     "shelter": {
@@ -70,6 +77,7 @@
       "modules": ["lasso"],
       "teachGoal": "rescue",
       "intro": [["hunting", "crates"], ["pod_timers", "clearing_pass"]],
+      "guests": { "dust_storms": 17 },
       "challenges": ["tow_full_trip", "rescue_all", "tow_trip", "rescue", "rescue_housed"]
     },
     "harvest": {
@@ -105,7 +113,7 @@
 
     "rescue": { "family": "rescue", "needs": [], "avoid": ["hunting"] },
     "rescue_all": { "family": "rescue", "needs": [], "avoid": ["hunting"] },
-    "rescue_before_freeze": { "family": "rescue", "needs": ["pod_timers"], "adds": ["crates", "dust_storms", "pod_housing"], "avoid": ["hunting"] },
+    "rescue_before_freeze": { "family": "rescue", "needs": ["pod_timers"], "avoid": ["hunting"] },
     "hunt": { "family": "rescue", "needs": ["hunting"], "avoid": ["clearing_pass"] },
     "protein": { "family": "rescue", "needs": ["hunting"], "avoid": ["clearing_pass"] },
     "rescue_housed": { "family": "rescue", "needs": ["housing"], "anchor": true },
@@ -142,6 +150,7 @@
   "notes": {
     "goals": "Goal ids are unique per family; `avoid` lists features the goal would leave unused (the level ends before they matter); `kind` names the objective kind when it differs (the rescue family's 'clear the pass' is clear_zones, defend's 'train N defenders' is hire). `adds` lists features the goal pulls in (shelves_full adds hunting, so the kiosk sells a hunted good beside the farmed one and every shelf takes planning); `needs` lists features the goal requires (@two_goods: at least two sellable goods). `anchor`: the goal puts a pad on the bot's plan that anchored features can hang their pads from.",
     "features": "`anchor` features add pads the bot only buys when they sit on its plan, so they need an anchoring goal. `with` pulls in companion features (salvage upgrades need turrets, tier 2 needs the material processor).",
+    "composer": "The generator's add-on composer (generator src/composer.ts). A feature may join a level of its own family from `firstLevel` on, and a family's `guests` name other families' features it may borrow from that level on; a goal's `adds` count only once unlocked. `dStep` is the feature's measured difficulty step [lo, hi] (ops docs/reference/addons.md); a level's estimate is the family `base` plus the steps. `moduleCap` caps optional modules by target D ([upTo, cap] rows, first row whose upTo >= target); over the cap the newest extra goes. `extras` caps the features beyond the required ones (introduced, goal needs, finale) per phase (intro levels teach their new feature alone). `fixed` families keep the sequencer's set and never swap (defend D is a cliff, not a slope). After the knob search, at most `maxSwaps` add-on swaps (add one when every measured D is under the target, drop one when every one is over).",
     "finales": "Every 10th level combines two families: the first is the level's family and goal, the second adds its core modules and one feature. Rescue never pairs with defend (content: lasso excludes defense)."
   }
 }
