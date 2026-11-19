@@ -22,6 +22,8 @@ export interface CandidateRecord {
     /** Play shape (outpost-ops#151): the three numbers, the limits failed (enforced or not), the level end and every play-shape beat, in seconds. */
     playShape?: { maxPhaseShare: number; beatTypes: number; lastNewBeatShare: number; fails: string[]; endS: number; beatS: number[] } };
   idleElements?: string[];
+  /** Idle elements were stripped and the candidate re-rated once (before/after D). */
+  stripped?: { elements: string[]; beforeD: number; afterD: number };
   objectives?: { kind: string; params: Record<string, number | string> }[];
   stars?: Record<string, number>;
   /** Passed every check and became the best so far. */
