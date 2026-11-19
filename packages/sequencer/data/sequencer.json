@@ -147,6 +147,22 @@
     "train_defenders": { "family": "defend", "kind": "hire", "needs": ["defenders"], "anchor": true },
     "hold_out": { "family": "defend", "kind": "survive", "needs": [], "anchor": true }
   },
+  "goalRanges": {
+    "_doc": "Written by tools/goal-ranges.ts from build logs and level pools (engine 0.35.0+, at least 3 winnable samples): per goal id, winnable D less the composer estimate (mid) of the features each sample carried; n winnable, lost unwinnable. A side is set only where a slot asked for more than 0.05 past it; null and unlisted goals are never ruled out on that side. Rules in ops docs/reference/composer.md.",
+    "automate": {"lo":null,"hi":-0.061,"n":35,"lost":618},
+    "build": {"lo":null,"hi":0.21,"n":482,"lost":0},
+    "bulk_order": {"lo":null,"hi":-0.03,"n":218,"lost":0},
+    "converters_running": {"lo":null,"hi":0.025,"n":40,"lost":41},
+    "currency": {"lo":null,"hi":0.009,"n":316,"lost":0},
+    "earn_within": {"lo":0.593,"hi":null,"n":215,"lost":58},
+    "haul": {"lo":null,"hi":-0.035,"n":43,"lost":0},
+    "hire": {"lo":null,"hi":0.145,"n":44,"lost":0},
+    "hire_ops": {"lo":null,"hi":0.018,"n":556,"lost":0},
+    "produce": {"lo":0.695,"hi":null,"n":54,"lost":0},
+    "serve_premium": {"lo":null,"hi":-0.003,"n":738,"lost":0},
+    "survive": {"lo":null,"hi":-0.085,"n":282,"lost":0},
+    "turret_level": {"lo":-0.368,"hi":null,"n":870,"lost":0}
+  },
   "notes": {
     "goals": "Goal ids are unique per family; `avoid` lists features the goal would leave unused (the level ends before they matter); `kind` names the objective kind when it differs (the rescue family's 'clear the pass' is clear_zones, defend's 'train N defenders' is hire). `adds` lists features the goal pulls in (shelves_full adds hunting, so the kiosk sells a hunted good beside the farmed one and every shelf takes planning); `needs` lists features the goal requires (@two_goods: at least two sellable goods). `anchor`: the goal puts a pad on the bot's plan that anchored features can hang their pads from.",
     "features": "`anchor` features add pads the bot only buys when they sit on its plan, so they need an anchoring goal. `with` pulls in companion features (salvage upgrades need turrets, tier 2 needs the material processor).",

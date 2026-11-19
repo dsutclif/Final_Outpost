@@ -1,5 +1,5 @@
 import { content as defaultContent, type Content } from "@fo/content";
-import { DEFAULT_CONFIG, addonPool, conflicts, featureClosure, modulesFor, optionalOf, type SequencerConfig } from "@fo/sequencer";
+import { DEFAULT_CONFIG, addonPool, conflicts, estimateD, featureClosure, moduleCap, modulesFor, optionalOf, type Estimate, type SequencerConfig } from "@fo/sequencer";
 import type { Family } from "./build.js";
 
 /**
@@ -21,7 +21,8 @@ export interface ComposeRequest {
   introduced?: readonly string[] | undefined;
 }
 
-export interface Estimate { lo: number; mid: number; hi: number }
+// the estimate and the module cap live in the sequencer (goal ranges use them too)
+export { estimateD, moduleCap, type Estimate };
 
 export interface Composition {
   features: string[];
@@ -44,19 +45,6 @@ const lexLess = (a: readonly number[], b: readonly number[]): boolean => {
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i]! < b[i]!;
   return false;
 };
-
-/** Optional-module cap for target D (first moduleCap row whose bound is at or above the target). */
-export function moduleCap(target: number, cfg: SequencerConfig = DEFAULT_CONFIG): number {
-  const rows = cfg.composer.moduleCap;
-  return (rows.find(([upTo]) => target <= upTo) ?? rows[rows.length - 1]!)[1];
-}
-
-/** Estimated D of a family level carrying `features`: the family base plus each feature's step. */
-export function estimateD(family: Family, features: readonly string[], cfg: SequencerConfig = DEFAULT_CONFIG): Estimate {
-  let lo = cfg.composer.base[family] ?? 0, hi = lo;
-  for (const f of features) { const [a, b] = cfg.features[f]?.dStep ?? [0, 0]; lo += a; hi += b; }
-  return { lo: round3(lo), mid: round3((lo + hi) / 2), hi: round3(hi) };
-}
 
 const familiesOf = (r: ComposeRequest): Family[] => (r.secondary ? [r.family, r.secondary] : [r.family]);
 

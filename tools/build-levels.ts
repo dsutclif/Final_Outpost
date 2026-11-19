@@ -306,6 +306,8 @@ async function main(): Promise<void> {
   const poolEntry = (e: PoolEntry) => `${e.id} (D ${e.D}, ${e.family}, goal ${e.goalId}, from ${e.slotId})`;
   const build = async (i: number, sent: LevelRequest, extra: string[] = []): Promise<SlotOutcome<LevelResult>> => {
     let fit: PoolEntry | null = null;
+    // goal ranges: no goal of the family reaches the target, so the sequencer took the nearest (ops composer.md)
+    if (sent.goalNote) { log({ kind: "goalRange", index: i, id: sent.id, target: sent.target, goalId: sent.goalId, note: sent.goalNote }); console.log(`  goal range: L${i} ${sent.goalNote}`); }
     if (poolOn && extra.length === 0) {
       const reqs = sequenceRange(1, i, [], { targetOffset: Number(offset), register, engine: ENGINE_VERSION });
       const hist = reqs.slice(0, i - 1).map(historyOf);

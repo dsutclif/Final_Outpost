@@ -130,8 +130,10 @@ describe("composer knob ranges and automate keep-up", () => {
   it("automate: a server's carry covers a round trip at the fastest rate each converter can reach on the level", async () => {
     const { buildLevel, knobsFor, templateById } = await import("../src/build.js");
     const { closure } = await import("@fo/sequencer");
-    const r = composeStart(at(25), GEN.conveyorGoals);
-    const req = { ...at(25), features: r.features, modules: r.modules };
+    // Level 25's slot: goal ranges move it off automate, so the goal is set here
+    const slot = { ...at(25), goalType: "automate", goalId: "automate" };
+    const r = composeStart(slot, GEN.conveyorGoals);
+    const req = { ...slot, features: r.features, modules: r.modules };
     let m = null;
     for (let salt = 0; salt < GEN.search.layoutTries && !m; salt++) {
       try { m = buildLevel({ id: req.id, seed: req.seed, target: req.target, family: req.family, secondary: null, features: req.features, goalType: req.goalType, modules: closure(req.modules), template: templateById(req.template), knobs: knobsFor(0.5, {}, req.family) }, salt).manifest; } catch { /* next salt */ }

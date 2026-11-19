@@ -1,5 +1,5 @@
 {
-  "_doc": "Generator knobs. Every knob is a [easy, hard] pair interpolated by the search's pressure p in [0, 1], then jittered by the mutation step. Only burn, length, swarm and waves are real difficulty levers (outpost-ops#85): fuel0 0.75, startCurrency 0, costScale 1 and margin 0.37 are constants, the noise settings sit at the middle of their old range (constants too), and the map-dressing knobs listed under dressing are drawn from the level seed. Costs are in currency at costScale 1 unless keyed salvage.*.",
+  "_doc": "Generator knobs. Every knob is a [easy, hard] pair interpolated by the search's pressure p in [0, 1], then jittered by the mutation step. Only burn, length, swarm and waves are real difficulty levers (outpost-ops#85): fuel0 0.75, startCurrency 0, costScale 1 and margin 0.37 are constants, machines is the automate goal's converters-running count (2 up to the level's converters), the noise settings sit at the middle of their old range (constants too), and the map-dressing knobs listed under dressing are drawn from the level seed. Costs are in currency at costScale 1 unless keyed salvage.*.",
   "knobs": {
     "burn": [3.0, 2.1],
     "fuel0": [0.75, 0.75],
@@ -28,7 +28,8 @@
     "arrivalEvery": [16, 16],
     "heatPct": [55, 55],
     "bulkShare": [0.2, 0.2],
-    "dangerPrey": [-1.5, 2.4]
+    "dangerPrey": [-1.5, 2.4],
+    "machines": [2, 3]
   },
   "familyKnobs": {
     "_doc": "Composer knob search (ops docs/reference/addons.md): per-family [p=0, p=1] ends that replace the knobs entry for that family's levels. Cost scale and fuel burn move with the pressure so the search can tune the composed add-on set; rescue's pod freeze clock too.",

@@ -1690,8 +1690,13 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       case "produce": return { n: 10, res: alloy ? "res.component" : "res.food_prepared" };
       case "converters_running": return { k: 2, seconds: Math.round(8 + K.length * 0.05) };
       case "chain": return { n: 3 };
-      // machines: the hands-off clock only runs while this many converters do (the grill, plus the smelter when built)
-      case "automate": return { seconds: Math.round(20 + K.length * 0.1), machines: Math.min(2, 1 + (saw ? 1 : 0)) };
+      // machines: the hands-off clock only runs while this many converters do. A dial the knob search turns
+      // (machines knob, 2 up to every converter on the level: grill, smelter, parts works); the hold stays, since a
+      // stable chain runs forever and a longer hold is no harder (Doug). With one converter it is that one.
+      case "automate": {
+        const convs = 1 + (saw ? 1 : 0) + (alloy ? 1 : 0);
+        return { seconds: Math.round(20 + K.length * 0.1), machines: convs < 2 ? convs : Math.min(convs, Math.max(2, Math.round(K.machines))) };
+      }
       case "stockpile": return { res: "res.material_basic", n: 8 };
       case "build": return { target: "landmark" };
       case "converter_level": return { n: 2 };
