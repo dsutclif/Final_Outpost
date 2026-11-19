@@ -6,11 +6,19 @@ import genData from "../data/generator.json";
 import startData from "../data/start.json";
 import { ENGINE_VERSION, TPS } from "@fo/sim";
 import { DEFAULT_CONFIG, closure, conflicts } from "@fo/sequencer";
+import { readFileSync } from "node:fs";
 import { loopOverCap } from "./loops.js";
 import { GEN, TEMPLATES, buildLevel, dressingKnobs, knobsFor, templateById, timeTarget, type Built, type Family } from "./build.js";
 import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
 import { candidateSettings, roundKnobs, runRows, type CandidateRecord } from "./record.js";
+
+/** Rebuild session (outpost-ops#254): per-level knob fixes from the JSON file named by FO_KNOB_OVERRIDES ({ "<level id>": { knob: value } }). Unset: no effect. */
+function slotKnobOverrides(id: string): Record<string, number> {
+  const f = process.env["FO_KNOB_OVERRIDES"];
+  if (!f) return {};
+  try { return (JSON.parse(readFileSync(f, "utf8")) as Record<string, Record<string, number>>)[id] ?? {}; } catch { return {}; }
+}
 
 export { dressingKnobs, capWavePoints, wavePoints, withWaveFallback, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, applyNightCadence, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
@@ -581,7 +589,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     stats.iterations++;
     const mut: Record<string, number> = {};
     if (it > 0) for (const k of Object.keys(GEN.knobs)) mut[k] = (mrand.float() * 2 - 1) * GEN.jitter;
-    const knobs = { ...knobsFor(p, mut), ...dressingKnobs(req.seed) };
+    const knobs = { ...knobsFor(p, mut), ...dressingKnobs(req.seed), ...slotKnobOverrides(req.id ?? "") };
     rec = { iteration: it, p: round3(p), knobs: {}, rejects: [], kept: false, shipped: false, layoutSeed: req.seed, step: { prev: lastIt, dp: lastP < 0 ? 0 : round3(p - lastP) } };
     lastIt = it; lastP = p;
     recAt = Date.now(); msRate = 0; msBuild = 0;
