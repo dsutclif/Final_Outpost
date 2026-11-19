@@ -873,12 +873,12 @@ export const marsGreenhouse: Skin = {
           // (south of the ledge), then on to the reactor, so the walk is direct and the ore west of the reactor stays out of sight
           { on: { start: true }, walk: true, do: [{ guide: true, to: { at: [600, 300] } }] },
           { on: { near: { at: [600, 300] }, r: 45 }, do: [{ guide: true, to: { entity: "core" } }] },
-          { id: "woke", on: { start: true }, walk: true, do: [
+          // one cue, so the light beat starts on the first line's tap, not on a timer: nothing runs before that tap, and the
+          // commander cannot walk until "Reach the light" is tapped (every line and card holds play). The edge pulse is one
+          // bright white flash from the reactor's side of the screen, then its soft glow stays with a pointer in it until
+          // the reactor comes into view
+          { id: "woke", on: { start: true }, walk: true, ordered: true, do: [
             { line: "What happened? Where's the rest of my crew?", who: "commander", seconds: 3 },
-          ] },
-          // once the film's framing has eased out: one bright white pulse from the reactor's side of the screen, then
-          // its soft glow stays on that edge with a pointer in it until the reactor comes into view
-          { id: "looked", on: { after: "woke", ticks: 90 }, walk: true, ordered: true, do: [
             { edgeGlow: { entity: "core", size: 140, strength: 1 } },
             { wait: 0.7 },
             { edgeGlow: { entity: "core", size: 30, strength: 0.32, arrow: true } },

@@ -1,1 +1,1 @@
-{"notes":["Moving between levels now releases the old graphics properly, so the game no longer piles up leftover graphics memory when you play level after level."]}
+{"notes":["The opening of Cold Start now waits for you: you cannot move until you tap \"Reach the light\", and the light shows up as soon as you tap the first line."]}
