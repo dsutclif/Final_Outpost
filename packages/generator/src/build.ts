@@ -1728,6 +1728,14 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       if (clerkSide !== 0) params["sales.clerkSide"] = clerkSide;
       params["customers.orderMin"] = 1;
       params["customers.orderMax"] = Math.round(K.orderMax);
+      // Automate levels: demand stays well above what the machines make (about 0.5 units/s against 1.7/s from two), so a full
+      // tray is never because customers stopped buying. A short line refills at once; unmet demand only costs sales.
+      if (goal === "automate") {
+        params["customers.spawn"] = 1;
+        params["customers.orderMax"] = 4;
+        params["customers.refillSpawn"] = 0.6;
+        params["customers.refillBelow"] = 6;
+      }
     }
     if (has("customer_variety")) { params["customers.impatientShare"] = round2(K.impatient); params["customers.premiumShare"] = round2(K.premium); }
     if (feat.has("bulk_orders")) params["customers.bulkShare"] = round2(K.bulkShare);
