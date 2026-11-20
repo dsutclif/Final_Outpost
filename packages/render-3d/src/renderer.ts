@@ -84,6 +84,8 @@ import { ART_M, BUILD_K, CHAR_K, DRONE_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VI
 
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
 /** How far the old orange pod's hatch hangs open on its hinge, radians (a Halcyon lander pod opened from inside long ago). */
+/** Beacon lamp size: slow blink on a dead reactor, steady once lit. Pure so a test can pin it (outpost-ops#125). */
+export const beaconScale = (dormant: boolean, t: number): number => (dormant ? 0.7 + 0.5 * Math.max(0, Math.sin(t * 3)) : 1);
 const DECOY_LID = 1.35;
 const SHELF_K = 1.05 / ITEM_K;
 
@@ -1667,8 +1669,10 @@ export class Renderer3D implements Renderer {
     // a dark core lies half buried and heaves itself out when it lights
     this.coreSink = s.core.dormant ? 1 : Math.max(0, this.coreSink - 0.02);
     if (this.coreSink > 0) p.model.root.position.y -= ART_M * CORE_BURIED * this.coreSink;
-    const { orb, flame, spin } = p.model.parts;
+    const { orb, flame, spin, beacon } = p.model.parts;
     const k = this.fuelK;
+    // the beacon lamp blinks while the reactor is dead (the edge glow's source) and burns steady once the cells light it
+    if (beacon) beacon.scale.setScalar(beaconScale(!!s.core.dormant, this.t));
     const out = s.core.fuel <= 0;
     const flicker = k < 0.25 ? 0.8 + 0.2 * Math.sin(this.t * 25) : 1;
     if (orb) { orb.visible = !s.core.dormant; orb.scale.setScalar((out ? 0.35 : 0.55 + 0.5 * k) * flicker); }

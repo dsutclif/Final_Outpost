@@ -74,7 +74,10 @@ export function buildCore(ctx: BuildCtx): Model {
   spin.add(mesh(ring.build(), mats.std, "spinRing"));
   spin.visible = ctx.level >= 2;
   m.root.add(spin);
-  Object.assign(m.parts, { orb, flame, glass, spin });
+  // the beacon lamp on the cap: the source of the story's edge glow while the reactor is dead (outpost-ops#125)
+  const beacon = mesh(new GeoBuilder().sphere(0.1, 10, 8, t.plasmaHot, { at: [0, 1.62, 0] }).build(), mats.glow, "beacon");
+  m.root.add(beacon);
+  Object.assign(m.parts, { orb, flame, glass, spin, beacon });
   anchor(m.root, "deposit", 0, 0.55, 0.95);
   anchor(m.root, "safe", 0, 0, 0);
   anchor(m.root, "interact", 0, 0, 1.45);
