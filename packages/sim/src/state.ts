@@ -263,6 +263,8 @@ export interface HostileState {
   /** "core" while walking in, "barrier" while hitting a section, "base" while attacking the core, "troop" while fighting a soldier. */
   target: "core" | "barrier" | "base" | "troop";
   acc: number;
+  /** Only with defense.maxLive > 1: the wave (1-based) it belongs to. */
+  w?: number;
   /** Hp at or below which it breaks off and retreats (a wave's bossRetreat); absent = fights to the end. */
   retreatHp?: number;
   /** Stops walking while a defender is this close, and shoots this far (a wave's bossStandoff); absent = walks on. */
@@ -318,11 +320,14 @@ export interface MetersState {
 
 export interface WavesState {
   idx: number;
-  pending: { tick: number; type: string; side: "n" | "e" | "s" | "w"; retreatPct?: number; standoff?: number }[];
+  pending: { tick: number; type: string; side: "n" | "e" | "s" | "w"; retreatPct?: number; standoff?: number; w?: number }[];
   /** True once a wave has spawned until every hostile is dead. */
   active: boolean;
   /** No wave starts before this tick (a quiet spell after the last one was cleared). */
   quietUntil: number;
+  /** Only with defense.maxLive > 1: the waves (1-based start order) with attackers still to spawn or alive, and when the last one started. */
+  live?: number[];
+  lastStart?: number;
 }
 
 export interface HazardState {

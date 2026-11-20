@@ -18,7 +18,19 @@ export interface BotProfile {
   evalTicks: number;
   /** Sees only the screen around the hero and the HUD (src/view.ts) instead of the whole State. */
   view?: boolean;
+  /**
+   * Opt-in fixed defence strategy (defend redesign S0): a buy order over the same pads. Absent = today's mixed order, so the
+   * ladder's results are unchanged. turrets_first: first guards, towers, more guards, barracks Lv2 ("drones");
+   * guards_first: all guards, towers, drones; drones_first: first guards, drones as early as affordable, guards, towers.
+   */
+  strategy?: Strategy;
 }
+
+export type Strategy = "turrets_first" | "guards_first" | "drones_first";
+export const STRATEGIES: readonly Strategy[] = ["turrets_first", "guards_first", "drones_first"];
+
+/** The good bot locked to one strategy: what the generator's breaking-volume probe and `strategyGap` play. */
+export const strategyProfile = (s: Strategy): BotProfile => ({ ...LADDER[0]!, name: `good:${s}`, strategy: s });
 
 export const LADDER: readonly BotProfile[] = [
   { name: "good", reactionTicks: 3, routeNoise: 0, priorityErr: 0, multitask: true, learn: 0.3, evalTicks: 4 },

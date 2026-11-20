@@ -105,6 +105,8 @@
   "defense.troopContact": 18,
   "defense.postOffset": 34,
   "defense.waveQuiet": 8,
+  "defense.maxLive": 1,
+  "defense.overlapMin": 6,
   "meters.baseHealth": 15,
   "routing.hintFill": 0.3,
   "stats.lifelineLow": 0.25,
