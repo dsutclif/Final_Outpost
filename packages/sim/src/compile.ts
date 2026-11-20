@@ -131,6 +131,8 @@ export interface CompiledRole {
   speed: number;
   carry: number;
   gatherTicks: number;
+  /** Automate levels size a supplier's gather time (carrierGather); the node's own worker rate then no longer slows it. */
+  gatherFixed: boolean;
   deliverTicks: number;
   attackTicks: number;
   attackRange: number;
@@ -443,6 +445,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
         : feeds && param("residents.carrierSpeed") > 0 ? param("residents.carrierSpeed") : r.speed),
       carry: r.behavior === "collect_deliver" && param("residents.serverCarry") > 0 ? int("residents.serverCarry")
         : feeds && param("residents.carrierCarry") > 0 ? int("residents.carrierCarry") : r.carry ?? 1,
+      gatherFixed: r.behavior === "gather_deliver" && param("residents.carrierGather") > 0,
       gatherTicks: ticks(r.behavior === "gather_deliver" && param("residents.carrierGather") > 0 ? param("residents.carrierGather") : r.gatherInterval ?? 0), deliverTicks: ticks(r.deliverInterval ?? 0),
       attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1, rally: r.rally, sortie: r.sortie,
       hp: r.hp ?? 0, healTicks: r.healInterval === undefined ? 0 : ticks(r.healInterval),

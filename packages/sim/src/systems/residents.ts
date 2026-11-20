@@ -149,7 +149,7 @@ function supplierStep(st: State, cp: Compiled, r: ResidentState, role: CompiledR
   if (!node) { if (r.n > 0) r.mode = "deliver"; return; }
   const def = cp.nodes[node.type]!;
   if (!within(r.pos, node.pos, cp.residents.workRange) && !gatedMove(st, cp, r.pos, node.pos, role.speed, cp.residents.workRange)) return;
-  if (!ready(r, def.workerRateTicks ?? role.gatherTicks)) return;
+  if (!ready(r, role.gatherFixed ? role.gatherTicks : def.workerRateTicks ?? role.gatherTicks)) return;
   if (node.stock !== null) node.stock--;
   r.n++;
   r.carry = def.yields;

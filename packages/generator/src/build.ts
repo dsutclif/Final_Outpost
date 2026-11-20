@@ -977,7 +977,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
         }
         return false;
       };
-      const sawOpts = { near: toward(forestC, core, 0.5), key: true, pad: true, spots: convSpots("conv.material_processor"), slots: machineSlots("conv.material_processor", ["op"]), ...(plotOn ? { alts: plotAlts("conv.material_processor") } : {}), mirror: false, fp: "conv.material_processor", ...(belted ? { accept: pairOk } : {}) };
+      const sawOpts = { near: toward(forestC, core, 0.5), key: true, pad: true, spots: convSpots("conv.material_processor"), slots: machineSlots("conv.material_processor", feat.has("tier2") ? ["op"] : ["op", "out"]), ...(plotOn ? { alts: plotAlts("conv.material_processor") } : {}), mirror: false, fp: "conv.material_processor", ...(belted ? { accept: pairOk } : {}) };
       let s0 = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...sawOpts, samples: 2000 })
         ?? P.place("saw", R.conv, inner, { ...sawOpts, samples: 4000 });
       if (!s0 && belted) {
@@ -986,7 +986,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
         feat.delete("conveyors");
         const { accept: _pair, ...plainBase } = sawOpts as typeof sawOpts & { accept?: unknown };
         void _pair;
-        const plain = { ...plainBase, slots: machineSlots("conv.material_processor", ["op"]) };
+        const plain = { ...plainBase, slots: machineSlots("conv.material_processor", feat.has("tier2") ? ["op"] : ["op", "out"]) };
         s0 = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...plain, samples: 2000 })
           ?? P.place("saw", R.conv, inner, { ...plain, samples: 4000 });
       }
@@ -998,6 +998,13 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "saw" } });
       const sw = sStaff ?? stationPad(s, "op");
       pad({ type: "pad.hire", id: "sawyer", at: [...sw], cost: { "res.currency": cost("hire.sawyer") }, role: { role: "role.operator", to: "conv.material_processor" }, requires: { pad: "saw_feeder" } });
+      // A converter's output always has a buyer (engine 0.37): with no parts works to take the ingots, a server carries
+      // them to the sales point, so the smelter keeps running like the grill does.
+      if (!feat.has("tier2")) {
+        const iv = sStaff ?? stationPad(s, "out");
+        pad({ type: "pad.hire", id: "ingot_server", at: [...iv], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "sink.sales_point" }, requires: { pad: "sawyer" } });
+        sells.push("res.material_refined");
+      }
       if (feat.has("tier2")) {
         alloy = true;
         // With a belt the parts works stands just past the smelter tray (to its right), so the run
@@ -2039,8 +2046,11 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     // Without an anchor, housing pads stay conditional (bought once recruits wait); anything else fails.
     if (!anchorStep && unplanned.some((p) => p.build !== "struct.housing")) fail("no anchor for the unplanned pads");
     const byId = (id: string) => pads.find((p) => p.id === id)!;
-    const root = (e: Ent): Ent => { let x = e; for (let i = 0; i < 10; i++) { const r = (x.requires as { pad?: string } | undefined)?.pad; if (!r) break; x = byId(r); } return x; };
-    const chainOf = (e: Ent): Set<string> => { const out = new Set<string>(); let x: Ent | undefined = e; for (let i = 0; i < 10 && x; i++) { out.add(String(x.id)); const r: string | undefined = (x.requires as { pad?: string } | undefined)?.pad; x = r ? byId(r) : undefined; } return out; };
+    // The edge the planner follows: the alternative (a belt instead of the input worker) when it exists, else the pad.
+    // Walks that ignored it let a pad be chained below the belt while the belt waited on that pad (a requirement loop).
+    const reqOf = (x: Ent): string | undefined => { const r = x.requires as { pad?: string; orPad?: string } | undefined; return r?.orPad !== undefined && pads.some((p) => p.id === r.orPad) ? r.orPad : r?.pad; };
+    const root = (e: Ent): Ent => { let x = e; for (let i = 0; i < 10; i++) { const r = reqOf(x); if (!r) break; x = byId(r); } return x; };
+    const chainOf = (e: Ent): Set<string> => { const out = new Set<string>(); let x: Ent | undefined = e; for (let i = 0; i < 10 && x; i++) { out.add(String(x.id)); const r: string | undefined = reqOf(x); x = r ? byId(r) : undefined; } return out; };
     for (const u of anchorStep ? unplanned : []) {
       if (planned().has(String(u.id)) && !late.has(String(u.id))) continue;
       // A repeatable pad is never "done", so nothing may require it.
@@ -2057,7 +2067,8 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       const r = root(u);
       // Any edit that would close a requirement loop is undone and u is left for the checks below.
       const snapshot = pads.map((p) => (p.requires ? { ...(p.requires as object) } : undefined));
-      const loops = () => pads.some((p) => { let x: Ent | undefined = p; for (let i = 0; i <= pads.length && x; i++) { const q: string | undefined = (x.requires as { pad?: string } | undefined)?.pad; x = q ? byId(q) : undefined; if (x === p) return true; } return false; });
+      // A loop through either edge counts (the pad edge is what the order checks walk, the alternative what the planner walks).
+      const loops = () => pads.some((p) => { const seen = new Set<string>(); const go = (x: Ent): boolean => { const rq = x.requires as { pad?: string; orPad?: string } | undefined; for (const q of [rq?.pad, rq?.orPad]) { if (!q || !pads.some((y) => y.id === q)) continue; if (q === String(p.id)) return true; if (seen.has(q)) continue; seen.add(q); if (go(byId(q))) return true; } return false; }; return go(p); });
       const revert = () => pads.forEach((p, i) => { if (snapshot[i]) p.requires = snapshot[i]; else delete p.requires; });
       if (prevReq && !ch.has(prevReq)) {
         // The anchor's chain and u's chain may share a pad (two hires both needing the depot): splice u in
