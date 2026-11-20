@@ -1,0 +1,16 @@
+$ vite-node tools/build-levels.ts -- "--only" "13" "--from" "7" "--to" "25" "--out" "levels/scratch/rebuild-7-25-newd" "--register" "C:/Users/dougl/AppData/Local/Temp/claude/5727d705018f10c0/16bce6e5-e58c-4328-b52e-19691fdb1d4d/scratchpad/reg-head.json" "--retries" "3" "--no-doc"
+building rebuild-7-25-newd levels 13 with 10 jobs
+  pool: HIT L13 (target 0.255) takes 9ab20437c0ff (D 0.155, harvest, goal sell, from s1-L013)
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+  pool: 9ab20437c0ff failed its re-check for L13 (POOL recheck-failed {"entry":"9ab20437c0ff","why":"D 0.151 is 0.104 from target 0.255"}); dropped, slot searched normally
+  L13 ok  D=0.244 (target 0.255) F=0.830 12s
+
+idx	modules	goal	target	D	F	good	aver	weak	novi	floo	time
+13	build_pads,workers	sell	0.26	0.244	0.830	W54%	W50%	W45%	W39%	W19%	12s
+
+1 levels, 0 off target (*), 0 failed, 14 s wall; rejected candidates: {"layout":6,"stall":2}
+harvest: 1 levels; goals: sell; star objectives: no_angry_customers, time_target; mean stars: good 3.00 / average 3.00 / weak 3.00 / novice 3.00 / floor 1.00
+
+variety (signature v1, whole pack):
+  Level 13: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-7cf72b7a
+EXIT 0

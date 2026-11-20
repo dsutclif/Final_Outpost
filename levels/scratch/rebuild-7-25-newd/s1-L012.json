@@ -1,0 +1,266 @@
+{
+  "id": "s1-L012",
+  "seed": 1417805574,
+  "engineVersion": "0.36.0",
+  "contentVersion": "0.23.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-sw",
+      "food-se",
+      "shop-ne",
+      "landmark-s"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    244,
+    372
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        244,
+        462
+      ],
+      "params": {
+        "fuel": 15,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        167,
+        462
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        320,
+        462
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        167,
+        428
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        248,
+        542
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        167,
+        496
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        320,
+        496
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        167,
+        394
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        198,
+        543
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          130,
+          314
+        ],
+        [
+          244,
+          314
+        ],
+        [
+          357,
+          314
+        ],
+        [
+          357,
+          447
+        ],
+        [
+          357,
+          580
+        ],
+        [
+          244,
+          580
+        ],
+        [
+          130,
+          580
+        ],
+        [
+          130,
+          447
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        5
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        66,
+        625
+      ],
+      "freeze": 115
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        299,
+        762
+      ],
+      "freeze": 141
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        419,
+        753
+      ],
+      "freeze": 163
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        426,
+        503
+      ],
+      "freeze": 162
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        270,
+        670
+      ],
+      "freeze": 183
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        49,
+        526
+      ],
+      "freeze": 201
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 0,
+    "core.burn": 2.2,
+    "housing.base": 8,
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 80
+  },
+  "goal": {
+    "type": "rescue_before_freeze",
+    "n": 6
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "rescue_before_freeze",
+      "params": {
+        "n": 6
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 900
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "tow_full_trip",
+      "params": {
+        "n": 2
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Beat the Frost",
+      "goal": "rescue_before_freeze",
+      "tips": [
+        "Feed ore to the reactor. If it runs dry, the colony starts to freeze."
+      ]
+    }
+  },
+  "lighting": "night",
+  "rating": {
+    "difficulty": 0.145,
+    "fun": 0.431,
+    "botMargin": 0.688,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ]
+  }
+}

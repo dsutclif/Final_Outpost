@@ -1,0 +1,231 @@
+$ vite-node tools/build-levels.ts -- "--only" "10,12,14,15,17,21,23,25" "--from" "7" "--to" "25" "--out" "levels/scratch/rebuild-7-25-newd" "--register" "C:/Users/dougl/AppData/Local/Temp/claude/5727d705018f10c0/16bce6e5-e58c-4328-b52e-19691fdb1d4d/scratchpad/reg-run3.json" "--retries" "3" "--no-doc"
+building rebuild-7-25-newd levels 10,12,14,15,17,21,23,25 with 10 jobs
+  pool: miss L10 (target 0.219), 400 pooled; nearest same-family 397e3f720ec5 D 0.638: D 0.638 is 0.419 from target 0.219 (gap 0.1)
+  pool: miss L12 (target 0.243), 400 pooled; nearest same-family 70b01ff27493 D 0.139: D 0.139 is 0.104 from target 0.243 (gap 0.1)
+  pool: miss L14 (target 0.267), 400 pooled; nearest same-family 367d5cb8b4f7 D 0.271: introduces [], slot introduces [conveyors,depot]
+  pool: miss L15 (target 0.279), 400 pooled; nearest same-family 397e3f720ec5 D 0.638: D 0.638 is 0.359 from target 0.279 (gap 0.1)
+  pool: miss L17 (target 0.344), 400 pooled; nearest same-family 70b01ff27493 D 0.139: D 0.139 is 0.205 from target 0.344 (gap 0.1)
+  pool: miss L21 (target 0.4), 400 pooled; nearest same-family 397e3f720ec5 D 0.638: D 0.638 is 0.238 from target 0.4 (gap 0.1)
+  pool: miss L23 (target 0.494), 400 pooled; nearest same-family ca5d33e70647 D 0.612: D 0.612 is 0.118 from target 0.494 (gap 0.1)
+  pool: miss L25 (target 0.581), 400 pooled; nearest same-family 51a815dfc329 D 0.57: introduces a feature in a mix slot
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L012] composer round 0: start (estimate 0.17-0.22 (mid 0.195) for target 0.243) -> [pod_timers] est 0.195, optional modules 3/4
+[s1-L017] composer round 0: start (estimate 0.32-0.57 (mid 0.445) for target 0.344) -> [hunting] est 0.445, optional modules 4/5, left out crates: estimate further from the target
+[s1-L021] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.4) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/5, defend keeps the sequencer's set
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L025] composer round 0: start (estimate 0.37-0.77 (mid 0.57) for target 0.581) -> [converter_levels, depot, dust_storms, material_processor, tier2] est 0.57, optional modules 5/6, left out conveyors: not in the pool (locked, avoided by the goal, or unbuildable)
+[s1-L023] composer round 0: start (estimate 0.62-0.87 (mid 0.745) for target 0.494) -> [clearing_pass] est 0.745, optional modules 5/5
+  pool: saved 64ecd97c6fb2 (D 0.778, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 1ba59234bb21 (D 0.744, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 73e9fcf49a8a (D 0.608, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 5b81eecc7ed4 (D 0.589, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 14330cc63003 (D 0.627, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 52c84a5863f4 (D 0.734, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved cfc5b76583b9 (D 0.631, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved a75a952473e9 (D 0.624, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved f090d22ddb92 (D 0.569, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 37cc9c760b85 (D 0.676, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 71141bf334d9 (D 0.716, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 81f734fa498d (D 0.574, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 7ec45153c02a (D 0.619, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved ff03708fa03e (D 0.611, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  L23 ok  D=0.518 (target 0.494) F=0.750 46s
+[s1-L012] composer round 0 measured D 0.052-0.251 (n 60): none (measured D 0.052-0.251 spans the target)
+  pool: saved 59fb5848efa2 (D 0.091, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 754fd62ae28c (D 0.132, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved a58ffeb755c6 (D 0.117, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 8e77f01d252a (D 0.132, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 9707b223dae6 (D 0.14, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 04b34fb338b5 (D 0.14, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved f5421d823b44 (D 0.132, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e278faa248dd (D 0.106, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 302065f5e45a (D 0.106, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 557912dcb4b9 (D 0.119, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e801ea828c25 (D 0.072, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 90b7eab0db79 (D 0.108, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e687d9f49430 (D 0.126, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved d2b6fbf2b3e9 (D 0.126, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 6976d51ad5a8 (D 0.126, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved cf0c4196be09 (D 0.134, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 76c941198cc7 (D 0.134, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved f889aef98ce3 (D 0.14, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  L12: recipe failed (nothing shipped) {"trivial":4,"offTarget":20,"objectives":36}
+  L12: re-roll -> rescue goal rescue_before_freeze, template corridor, features [pod_timers], target band 0.2
+  pool: miss L12 (target 0.243), 400 pooled; nearest same-family 9707b223dae6 D 0.14: D 0.14 is 0.103 from target 0.243 (gap 0.1)
+[s1-L012] composer round 0: start (estimate 0.17-0.22 (mid 0.195) for target 0.243) -> [pod_timers] est 0.195, optional modules 3/4
+[s1-L025] composer round 0 measured D none: remove depot (no feasible candidate)
+[s1-L025] composer round 1: remove depot (no feasible candidate) -> [converter_levels, dust_storms, material_processor, tier2] est 0.43, optional modules 4/6
+[s1-L012] composer round 0 measured D 0.052-0.247 (n 55): none (measured D 0.052-0.247 spans the target)
+  pool: saved 2a6f6a68d448 (D 0.088, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved b3d0fd1dd16b (D 0.123, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved a95e1288f8b2 (D 0.11, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 60777ce3be19 (D 0.123, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 70b01ff27493 (D 0.139, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 18a6db371abe (D 0.139, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e9b42b6a6287 (D 0.123, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 495f9cac310a (D 0.106, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 7b029d8ac14d (D 0.106, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved c452761ec631 (D 0.119, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 9793e725c2b8 (D 0.071, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved ea156382e992 (D 0.107, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved b42d41a90f73 (D 0.098, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  L12: recipe failed (nothing shipped) {"trivial":4,"offTarget":15,"objectives":36}
+  L12: re-roll -> rescue goal rescue_before_freeze, template south_fields, features [pod_timers], target band 0.2
+  pool: miss L12 (target 0.243), 400 pooled; nearest same-family 9707b223dae6 D 0.14: D 0.14 is 0.103 from target 0.243 (gap 0.1)
+[s1-L012] composer round 0: start (estimate 0.17-0.22 (mid 0.195) for target 0.243) -> [pod_timers] est 0.195, optional modules 3/4
+[s1-L025] composer round 1 measured D none: remove dust_storms (no feasible candidate)
+[s1-L025] composer round 2: remove dust_storms (no feasible candidate) -> [converter_levels, material_processor, tier2] est 0.305, optional modules 3/6
+[s1-L012] composer round 0 measured D 0.054-0.240 (n 56): none (measured D 0.054-0.24 spans the target)
+  pool: saved 10494e37abb4 (D 0.081, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved d6e79b78423a (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 5972bb41c584 (D 0.115, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 84c218c7fdfa (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 1fe9a7806d09 (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved ca87768b7321 (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e0400dcaec92 (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 1238cb3e7002 (D 0.097, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved f0661da77b9f (D 0.097, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 1cd61e6ce372 (D 0.109, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 45934a630b4b (D 0.145, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 8cee03faee98 (D 0.083, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 7f8fddfdc964 (D 0.134, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 22063ef7a6c9 (D 0.115, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  L12: recipe failed (nothing shipped) {"trivial":4,"offTarget":16,"objectives":36}
+  L12: re-roll -> rescue goal rescue_before_freeze, template north_fields, features [pod_timers], target band 0.2
+  pool: HIT L12 (target 0.243) takes 45934a630b4b (D 0.145, rescue, goal rescue_before_freeze, from s1-L012)
+  L17 ok  D=0.332 (target 0.344) F=0.351 163s
+  pool: placed 45934a630b4b in L12, removed from the pool
+  L12 off D=0.145 (target 0.243) F=0.431 1s
+  pool: saved 0a73b1943e78 (D 0.359, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved d6e041ccbfcb (D 0.348, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  L14 ok  D=0.280 (target 0.267) F=0.788 172s
+  pool: saved 43034fe851f6 (D 0.425, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 32ed0f7b8abb (D 0.493, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved b65d112597e7 (D 0.497, industrialize, goal build, from s1-L025) (slot target 0.581)
+  L25 ok  D=0.614 (target 0.581) F=0.956 180s
+[s1-L021] composer round 0 measured D 0.738-0.970 (n 12): none (defend keeps the sequencer's set)
+[s1-L021] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.4) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/5, defend keeps the sequencer's set
+[s1-L015] composer round 0 measured D 0.528-0.688 (n 26): none (defend keeps the sequencer's set)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L010] composer round 0 measured D 0.674-0.903 (n 31): none (defend keeps the sequencer's set)
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L015] composer round 0 measured D 0.580-0.751 (n 24): none (defend keeps the sequencer's set)
+  pool: saved 11873652cfbc (D 0.537, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved d558df596ff6 (D 0.549, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved ca736defe71d (D 0.548, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 533ef9e486c7 (D 0.543, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 7f41f578b20c (D 0.632, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 56c2b6bf5a1b (D 0.558, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 0df0a5f71294 (D 0.559, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 1f29454cdb9f (D 0.599, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 4b082ea3cb8e (D 0.553, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved eaae4d5c4797 (D 0.551, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 2d9d01ee316b (D 0.571, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 00a69785aea5 (D 0.573, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 3b93e905c3f4 (D 0.585, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 3ca651de1887 (D 0.586, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 4aa476e1ff96 (D 0.585, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved ba485410dc24 (D 0.58, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 2128524b5835 (D 0.613, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved b188f386e98b (D 0.645, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 08e6fcc9500e (D 0.614, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved e0447cc65cd0 (D 0.608, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 39757da58036 (D 0.611, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved f1327ab53ebc (D 0.603, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved ba5a14de8ad7 (D 0.624, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  L15: recipe failed (closest D=0.581, target 0.279) {"layout":560,"ladderSpent":18,"offTarget":32}
+  L15: re-roll -> defend goal waves_survived, template west_fields, features [med_bay, salvage_upgrades, turrets], target band 0.3
+  pool: miss L15 (target 0.279), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.258 from target 0.279 (gap 0.1)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L021] composer round 0 measured D 0.718-0.974 (n 41): none (defend keeps the sequencer's set)
+  L21: recipe failed (closest D=0.829, target 0.4) {"offTarget":28,"infeasible":20,"trivial":25,"layout":34}
+  pool: miss L21 (target 0.4), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.137 from target 0.4 (gap 0.1)
+[s1-L021] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.4) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/5, defend keeps the sequencer's set
+[s1-L015] composer round 0 measured D 0.636-0.852 (n 20): none (defend keeps the sequencer's set)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L010] composer round 0 measured D 0.684-0.985 (n 40): none (defend keeps the sequencer's set)
+  L10: recipe failed (closest D=0.684, target 0.219) {"layout":40,"trivial":35,"offTarget":36,"infeasible":5}
+  L10: re-roll -> defend goal waves, template south_fields, features [multi_side, salvage_upgrades, turrets], target band 0.2
+  pool: miss L10 (target 0.219), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.318 from target 0.219 (gap 0.1)
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L010] composer round 0 measured D none: none (defend keeps the sequencer's set)
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L010] composer round 0 measured D 0.853-0.982 (n 8): none (defend keeps the sequencer's set)
+  pool: saved 8c7c49ce5785 (D 0.982, defend, goal waves, from s1-L010) (slot target 0.219)
+  pool: saved 11ecaef39ba1 (D 0.97, defend, goal waves, from s1-L010) (slot target 0.219)
+  pool: saved 1b691c43ee70 (D 0.936, defend, goal waves, from s1-L010) (slot target 0.219)
+  pool: saved ad2c333b9ba6 (D 0.853, defend, goal waves, from s1-L010) (slot target 0.219)
+  L10: recipe failed (closest D=0.862, target 0.219) {"layout":816,"infeasible":38,"offTarget":7,"humanLost":3,"trivial":1}
+  L10: re-roll -> defend goal waves_survived, template east_fields, features [multi_side, salvage_upgrades, turrets], target band 0.2
+  pool: miss L10 (target 0.219), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.318 from target 0.219 (gap 0.1)
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L021] composer round 0 measured D 0.582-0.934 (n 30): none (defend keeps the sequencer's set)
+[s1-L021] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.4) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/5, defend keeps the sequencer's set
+[s1-L015] composer round 0 measured D 0.655-0.930 (n 44): none (defend keeps the sequencer's set)
+  L15: recipe failed (closest D=0.755, target 0.279) {"layout":240,"infeasible":19,"offTarget":29,"trivial":25,"ladderSpent":12}
+  L15: re-roll -> defend goal waves, template east_fields, features [med_bay, salvage_upgrades, turrets], target band 0.3
+  pool: miss L15 (target 0.279), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.258 from target 0.279 (gap 0.1)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L010] composer round 0 measured D 0.720-0.934 (n 12): none (defend keeps the sequencer's set)
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L015] composer round 0 measured D none: none (defend keeps the sequencer's set)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L021] composer round 0 measured D 0.633-0.975 (n 30): none (defend keeps the sequencer's set)
+  pool: saved 3ee8772a28f4 (D 0.839, defend, goal turret_level, from s1-L021) (slot target 0.4)
+  pool: saved 3086792f1563 (D 0.843, defend, goal turret_level, from s1-L021) (slot target 0.4)
+  pool: saved 8f437b00f717 (D 0.819, defend, goal turret_level, from s1-L021) (slot target 0.4)
+  pool: saved 6265c3f0f4fd (D 0.801, defend, goal turret_level, from s1-L021) (slot target 0.4)
+  pool: saved 832ed0d5ad61 (D 0.741, defend, goal turret_level, from s1-L021) (slot target 0.4)
+  pool: saved 66b4c90acd82 (D 0.755, defend, goal turret_level, from s1-L021) (slot target 0.4)
+  pool: saved 9649e5dc8791 (D 0.703, defend, goal turret_level, from s1-L021) (slot target 0.4)
+  pool: saved 8a162add150e (D 0.635, defend, goal turret_level, from s1-L021) (slot target 0.4)
+  L21: recipe failed (closest D=0.635, target 0.4) {"offTarget":58,"ladderSpent":1,"layout":28,"stars":1}
+  L21: re-roll -> defend goal hold_out, template south_fields, features [bosses, defenders, multi_side, salvage_upgrades, turrets], target band 0.4
+  pool: miss L21 (target 0.4), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.137 from target 0.4 (gap 0.1)
+[s1-L021] composer round 0: start (estimate 0.45-1.35 (mid 0.9) for target 0.4) -> [bosses, defenders, multi_side, salvage_upgrades, turrets] est 0.9, optional modules 6/5, defend keeps the sequencer's set
+[s1-L015] composer round 0 measured D 0.659-0.935 (n 32): none (defend keeps the sequencer's set)
+  pool: saved 558bb8bad4d6 (D 0.747, defend, goal waves, from s1-L015) (slot target 0.279)
+  pool: saved c9581ef98773 (D 0.83, defend, goal waves, from s1-L015) (slot target 0.279)
+  pool: saved 5b19bae65979 (D 0.919, defend, goal waves, from s1-L015) (slot target 0.279)
+  pool: saved c37b4fbf543b (D 0.935, defend, goal waves, from s1-L015) (slot target 0.279)
+  pool: saved c09655f92da0 (D 0.786, defend, goal waves, from s1-L015) (slot target 0.279)
+  pool: saved d74de33e0a0e (D 0.881, defend, goal waves, from s1-L015) (slot target 0.279)
+  L15: recipe failed (closest D=0.744, target 0.279) {"layout":20,"infeasible":46,"ladderSpent":16,"trivial":11,"offTarget":11}
+  L15: re-roll -> defend goal hold_out, template crescent, features [med_bay, salvage_upgrades, turrets], target band 0.3
+  pool: miss L15 (target 0.279), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.258 from target 0.279 (gap 0.1)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L010] composer round 0 measured D 0.743-0.987 (n 41): none (defend keeps the sequencer's set)
+  pool: saved 2f98e32d0291 (D 0.836, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved 7efb9c75e24f (D 0.921, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved 6a0e9d83ae6c (D 0.908, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved b7767f7d00cf (D 0.885, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved fb7874618a8c (D 0.874, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved b581be279a32 (D 0.966, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved c53b6da50370 (D 0.95, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved fdff797d60d0 (D 0.968, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved 3ef434181030 (D 0.933, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved de9cfda59b16 (D 0.94, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  pool: saved d42d38ed9fb3 (D 0.965, defend, goal waves_survived, from s1-L010) (slot target 0.219)
+  L10: recipe failed (closest D=0.827, target 0.219) {"infeasible":25,"offTarget":29,"layout":40,"trivial":24}
+  L10: re-roll -> defend goal hold_out, template north_fields, features [multi_side, salvage_upgrades, turrets], target band 0.2
+  pool: miss L10 (target 0.219), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.318 from target 0.219 (gap 0.1)
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L015] composer round 0 measured D 0.659-0.841 (n 15): none (defend keeps the sequencer's set)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L021] composer round 0 measured D 0.781-0.982 (n 31): none (defend keeps the sequencer's set)
+[s1-L021] composer round 0: start (estimate 0.45-1.35 (mid 0.9) for target 0.4) -> [bosses, defenders, multi_side, salvage_upgrades, turrets] est 0.9, optional modules 6/5, defend keeps the sequencer's set
+[s1-L010] composer round 0 measured D 0.680-0.965 (n 31): none (defend keeps the sequencer's set)
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L015] composer round 0 measured D 0.679-0.930 (n 41): none (defend keeps the sequencer's set)
+  pool: saved 73a0ef861653 (D 0.833, defend, goal hold_out, from s1-L015) (slot target 0.279)
+  pool: saved e68e4725b53b (D 0.801, defend, goal hold_out, from s1-L015) (slot target 0.279)
+  L15: recipe failed (closest D=0.761, target 0.279) {"infeasible":22,"trivial":29,"ladderSpent":19,"offTarget":18}
+  L15: re-roll -> defend goal turret_level, template crescent, features [med_bay, salvage_upgrades, turrets], target band 0.3
+  pool: miss L15 (target 0.279), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.258 from target 0.279 (gap 0.1)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L021] composer round 0 measured D 0.648-0.967 (n 33): none (defend keeps the sequencer's set)
+  L21: recipe failed (closest D=0.790, target 0.4) {"layout":820,"trivial":31,"infeasible":1,"offTarget":33}
+  pool: miss L21 (target 0.4), 400 pooled; nearest same-family 11873652cfbc D 0.537: D 0.537 is 0.137 from target 0.4 (gap 0.1)
+[s1-L021] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.4) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/5, defend keeps the sequencer's set
+EXIT 127

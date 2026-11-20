@@ -1,0 +1,280 @@
+{
+  "id": "s1-L017",
+  "seed": 327552485,
+  "engineVersion": "0.36.0",
+  "contentVersion": "0.23.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-e",
+      "food-se",
+      "shop-w",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "hunting",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    183,
+    554
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        204,
+        450
+      ],
+      "params": {
+        "fuel": 15,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        128,
+        450
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        281,
+        450
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        128,
+        416
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        208,
+        531
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        128,
+        484
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        281,
+        484
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        281,
+        411
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        258,
+        371
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        199,
+        371
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          91,
+          302
+        ],
+        [
+          205,
+          302
+        ],
+        [
+          318,
+          302
+        ],
+        [
+          318,
+          435
+        ],
+        [
+          318,
+          568
+        ],
+        [
+          205,
+          568
+        ],
+        [
+          91,
+          568
+        ],
+        [
+          91,
+          435
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        5
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        279,
+        688
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        114,
+        771
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        174,
+        694
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        369,
+        784
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        172,
+        849
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        338,
+        332,
+        122,
+        150
+      ],
+      "animal": "node.prey",
+      "n": 3
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 0,
+    "core.burn": 2.7,
+    "housing.base": 7,
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 450
+  },
+  "goal": {
+    "type": "hunt",
+    "n": 32
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "hunt",
+      "params": {
+        "n": 32
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "rescue_housed",
+      "params": {
+        "n": 5
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 380
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Drift Cables and The Hunt",
+      "goal": "hunt",
+      "tips": [
+        "Step out through the gate and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.332,
+    "fun": 0.351,
+    "botMargin": 0.646,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 2.67,
+      "humanAll": 0.67
+    },
+    "loopMax": 10
+  }
+}

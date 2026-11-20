@@ -5,5 +5,631 @@
     "maxRerolls": 8,
     "targetBand": 0.1
   },
-  "entries": []
+  "entries": [
+    {
+      "key": "rescue+-|f:pod_timers|m:barrier_lines,build_pads,carry,core,gather,lasso,sales|i:pod_timers|g:rescue_before_freeze|t:crescent|b:0.2",
+      "recipe": {
+        "family": "rescue",
+        "secondary": null,
+        "features": [
+          "pod_timers"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "lasso",
+          "sales"
+        ],
+        "introduced": [
+          "pod_timers"
+        ],
+        "goalId": "rescue_before_freeze",
+        "template": "crescent",
+        "band": 0.2
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.243,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "trivial": 4,
+        "offTarget": 20,
+        "objectives": 36
+      }
+    },
+    {
+      "key": "harvest+-|f:vips|m:build_pads,carry,core,customer_variety,gather,sales,workers|i:|g:currency|t:west_fields|b:0.4",
+      "recipe": {
+        "family": "harvest",
+        "secondary": null,
+        "features": [
+          "vips"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "core",
+          "customer_variety",
+          "gather",
+          "sales",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "currency",
+        "template": "west_fields",
+        "band": 0.4
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.356,
+      "closestD": 0.1745999026242322,
+      "seeds": 4,
+      "rejects": {
+        "idleModule": 1,
+        "offTarget": 34
+      }
+    },
+    {
+      "key": "rescue+-|f:clearing_pass|m:barrier_lines,blocked_zones,build_pads,carry,core,core_levels,gather,lasso,sales|i:clearing_pass|g:rescue_all|t:corridor|b:0.5",
+      "recipe": {
+        "family": "rescue",
+        "secondary": null,
+        "features": [
+          "clearing_pass"
+        ],
+        "modules": [
+          "barrier_lines",
+          "blocked_zones",
+          "build_pads",
+          "carry",
+          "core",
+          "core_levels",
+          "gather",
+          "lasso",
+          "sales"
+        ],
+        "introduced": [
+          "clearing_pass"
+        ],
+        "goalId": "rescue_all",
+        "template": "corridor",
+        "band": 0.5
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.494,
+      "closestD": 0.6786528195108945,
+      "seeds": 4,
+      "rejects": {
+        "offTarget": 41,
+        "objectives": 16
+      }
+    },
+    {
+      "key": "rescue+-|f:pod_timers|m:barrier_lines,build_pads,carry,core,gather,lasso,sales|i:pod_timers|g:rescue_before_freeze|t:corridor|b:0.2",
+      "recipe": {
+        "family": "rescue",
+        "secondary": null,
+        "features": [
+          "pod_timers"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "lasso",
+          "sales"
+        ],
+        "introduced": [
+          "pod_timers"
+        ],
+        "goalId": "rescue_before_freeze",
+        "template": "corridor",
+        "band": 0.2
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.243,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "trivial": 4,
+        "offTarget": 15,
+        "objectives": 36
+      }
+    },
+    {
+      "key": "industrialize+-|f:conveyors,depot,material_processor,tier2|m:build_pads,carry,converters,conveyors,core,gather,sales,supply_routing,workers|i:conveyors,depot|g:stockpile|t:corridor|b:0.3",
+      "recipe": {
+        "family": "industrialize",
+        "secondary": null,
+        "features": [
+          "conveyors",
+          "depot",
+          "material_processor",
+          "tier2"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "converters",
+          "conveyors",
+          "core",
+          "gather",
+          "sales",
+          "supply_routing",
+          "workers"
+        ],
+        "introduced": [
+          "conveyors",
+          "depot"
+        ],
+        "goalId": "stockpile",
+        "template": "corridor",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.267,
+      "closestD": 0.4125280459188528,
+      "seeds": 4,
+      "rejects": {
+        "humanLost": 6,
+        "offTarget": 18,
+        "infeasible": 7,
+        "probe": 2,
+        "layout": 10,
+        "objectives": 2
+      }
+    },
+    {
+      "key": "rescue+-|f:pod_timers|m:barrier_lines,build_pads,carry,core,gather,lasso,sales|i:pod_timers|g:rescue_before_freeze|t:south_fields|b:0.2",
+      "recipe": {
+        "family": "rescue",
+        "secondary": null,
+        "features": [
+          "pod_timers"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "lasso",
+          "sales"
+        ],
+        "introduced": [
+          "pod_timers"
+        ],
+        "goalId": "rescue_before_freeze",
+        "template": "south_fields",
+        "band": 0.2
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.243,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "trivial": 4,
+        "offTarget": 16,
+        "objectives": 36
+      }
+    },
+    {
+      "key": "harvest+-|f:bulk_orders|m:build_pads,carry,core,gather,sales,workers|i:bulk_orders|g:sell|t:crescent|b:0.3",
+      "recipe": {
+        "family": "harvest",
+        "secondary": null,
+        "features": [
+          "bulk_orders"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "sales",
+          "workers"
+        ],
+        "introduced": [
+          "bulk_orders"
+        ],
+        "goalId": "sell",
+        "template": "crescent",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.255,
+      "closestD": 0.1445427711970786,
+      "seeds": 4,
+      "rejects": {
+        "offTarget": 32,
+        "stall": 10,
+        "objectives": 1
+      }
+    },
+    {
+      "key": "harvest+-|f:bulk_orders|m:build_pads,carry,core,gather,sales,workers|i:bulk_orders|g:sell|t:south_fields|b:0.3",
+      "recipe": {
+        "family": "harvest",
+        "secondary": null,
+        "features": [
+          "bulk_orders"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "sales",
+          "workers"
+        ],
+        "introduced": [
+          "bulk_orders"
+        ],
+        "goalId": "sell",
+        "template": "south_fields",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.255,
+      "closestD": 0.13884137473674596,
+      "seeds": 4,
+      "rejects": {
+        "layout": 110,
+        "offTarget": 27,
+        "stall": 14
+      }
+    },
+    {
+      "key": "industrialize+-|f:conveyors,depot,material_processor,tier2|m:build_pads,carry,converters,conveyors,core,gather,sales,supply_routing,workers|i:conveyors,depot|g:stockpile|t:south_fields|b:0.3",
+      "recipe": {
+        "family": "industrialize",
+        "secondary": null,
+        "features": [
+          "conveyors",
+          "depot",
+          "material_processor",
+          "tier2"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "converters",
+          "conveyors",
+          "core",
+          "gather",
+          "sales",
+          "supply_routing",
+          "workers"
+        ],
+        "introduced": [
+          "conveyors",
+          "depot"
+        ],
+        "goalId": "stockpile",
+        "template": "south_fields",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.267,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "layout": 116,
+        "probe": 5,
+        "infeasible": 22,
+        "offTarget": 7,
+        "humanLost": 4,
+        "objectives": 2
+      }
+    },
+    {
+      "key": "harvest+-|f:bulk_orders|m:build_pads,carry,core,gather,sales,workers|i:bulk_orders|g:sell|t:corridor|b:0.3",
+      "recipe": {
+        "family": "harvest",
+        "secondary": null,
+        "features": [
+          "bulk_orders"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "sales",
+          "workers"
+        ],
+        "introduced": [
+          "bulk_orders"
+        ],
+        "goalId": "sell",
+        "template": "corridor",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.255,
+      "closestD": 0.14560341793563694,
+      "seeds": 4,
+      "rejects": {
+        "offTarget": 29,
+        "stall": 13,
+        "objectives": 1
+      }
+    },
+    {
+      "key": "industrialize+-|f:conveyors,depot,material_processor,tier2|m:build_pads,carry,converters,conveyors,core,gather,sales,supply_routing,workers|i:|g:build|t:corridor|b:0.6",
+      "recipe": {
+        "family": "industrialize",
+        "secondary": null,
+        "features": [
+          "conveyors",
+          "depot",
+          "material_processor",
+          "tier2"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "converters",
+          "conveyors",
+          "core",
+          "gather",
+          "sales",
+          "supply_routing",
+          "workers"
+        ],
+        "introduced": [],
+        "goalId": "build",
+        "template": "corridor",
+        "band": 0.6
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.581,
+      "closestD": 0.45780994907180894,
+      "seeds": 12,
+      "rejects": {
+        "storm": 80,
+        "offTarget": 37,
+        "humanLost": 6
+      }
+    },
+    {
+      "key": "harvest+-|f:bulk_orders|m:build_pads,carry,core,gather,sales,workers|i:bulk_orders|g:sell|t:east_fields|b:0.3",
+      "recipe": {
+        "family": "harvest",
+        "secondary": null,
+        "features": [
+          "bulk_orders"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "sales",
+          "workers"
+        ],
+        "introduced": [
+          "bulk_orders"
+        ],
+        "goalId": "sell",
+        "template": "east_fields",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.255,
+      "closestD": 0.14333860806188728,
+      "seeds": 4,
+      "rejects": {
+        "offTarget": 29,
+        "stall": 13,
+        "layout": 10
+      }
+    },
+    {
+      "key": "harvest+-|f:bulk_orders|m:build_pads,carry,core,gather,sales,workers|i:bulk_orders|g:sell|t:crossroads|b:0.3",
+      "recipe": {
+        "family": "harvest",
+        "secondary": null,
+        "features": [
+          "bulk_orders"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "sales",
+          "workers"
+        ],
+        "introduced": [
+          "bulk_orders"
+        ],
+        "goalId": "sell",
+        "template": "crossroads",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.255,
+      "closestD": 0.1445427711970786,
+      "seeds": 4,
+      "rejects": {
+        "offTarget": 29,
+        "stall": 13,
+        "objectives": 1
+      }
+    },
+    {
+      "key": "defend+-|f:med_bay,salvage_upgrades,turrets|m:barrier_lines,build_pads,carry,core,defenders,defense,gather,medical,sales,salvage_upgrades,workers|i:med_bay|g:turret_level|t:south_fields|b:0.3",
+      "recipe": {
+        "family": "defend",
+        "secondary": null,
+        "features": [
+          "med_bay",
+          "salvage_upgrades",
+          "turrets"
+        ],
+        "modules": [
+          "barrier_lines",
+          "build_pads",
+          "carry",
+          "core",
+          "defenders",
+          "defense",
+          "gather",
+          "medical",
+          "sales",
+          "salvage_upgrades",
+          "workers"
+        ],
+        "introduced": [
+          "med_bay"
+        ],
+        "goalId": "turret_level",
+        "template": "south_fields",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.279,
+      "closestD": 0.6827116365134861,
+      "seeds": 8,
+      "rejects": {
+        "layout": 720,
+        "humanLost": 30,
+        "offTarget": 17,
+        "ladderSpent": 6
+      }
+    },
+    {
+      "key": "harvest+-|f:bulk_orders|m:build_pads,carry,core,gather,sales,workers|i:bulk_orders|g:sell|t:west_fields|b:0.3",
+      "recipe": {
+        "family": "harvest",
+        "secondary": null,
+        "features": [
+          "bulk_orders"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "sales",
+          "workers"
+        ],
+        "introduced": [
+          "bulk_orders"
+        ],
+        "goalId": "sell",
+        "template": "west_fields",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.255,
+      "closestD": 0.14532775226403866,
+      "seeds": 4,
+      "rejects": {
+        "offTarget": 29,
+        "stall": 13,
+        "objectives": 1
+      }
+    },
+    {
+      "key": "industrialize+-|f:conveyors,depot,material_processor,tier2|m:build_pads,carry,converters,conveyors,core,gather,sales,supply_routing,workers|i:conveyors,depot|g:stockpile|t:crescent|b:0.3",
+      "recipe": {
+        "family": "industrialize",
+        "secondary": null,
+        "features": [
+          "conveyors",
+          "depot",
+          "material_processor",
+          "tier2"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "converters",
+          "conveyors",
+          "core",
+          "gather",
+          "sales",
+          "supply_routing",
+          "workers"
+        ],
+        "introduced": [
+          "conveyors",
+          "depot"
+        ],
+        "goalId": "stockpile",
+        "template": "crescent",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.267,
+      "closestD": null,
+      "seeds": 4,
+      "rejects": {
+        "layout": 70,
+        "infeasible": 14,
+        "trivial": 1,
+        "probe": 3,
+        "humanLost": 8,
+        "offTarget": 15,
+        "stall": 6,
+        "objectives": 2
+      }
+    },
+    {
+      "key": "harvest+-|f:bulk_orders|m:build_pads,carry,core,gather,sales,workers|i:bulk_orders|g:sell|t:north_fields|b:0.3",
+      "recipe": {
+        "family": "harvest",
+        "secondary": null,
+        "features": [
+          "bulk_orders"
+        ],
+        "modules": [
+          "build_pads",
+          "carry",
+          "core",
+          "gather",
+          "sales",
+          "workers"
+        ],
+        "introduced": [
+          "bulk_orders"
+        ],
+        "goalId": "sell",
+        "template": "north_fields",
+        "band": 0.3
+      },
+      "engine": "0.36.0",
+      "date": "2026-11-20",
+      "target": 0.255,
+      "closestD": 0.1445427711970786,
+      "seeds": 4,
+      "rejects": {
+        "offTarget": 29,
+        "stall": 13,
+        "objectives": 1
+      }
+    }
+  ]
 }

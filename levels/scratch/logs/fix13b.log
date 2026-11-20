@@ -1,0 +1,23 @@
+$ vite-node tools/build-levels.ts -- "--only" "13" "--from" "7" "--to" "25" "--out" "levels/scratch/rebuild-7-25-newd" "--register" "C:/Users/dougl/AppData/Local/Temp/claude/5727d705018f10c0/16bce6e5-e58c-4328-b52e-19691fdb1d4d/scratchpad/reg-head.json" "--retries" "3" "--no-doc"
+building rebuild-7-25-newd levels 13 with 10 jobs
+  pool: miss L13 (target 0.255), 399 pooled; nearest same-family 4b94eb4cc0f2 D 0.241: introduces [], slot introduces [bulk_orders]
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+  pool: saved 66984a9a5ef9 (D 0.15, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 45349c7c4eeb (D 0.167, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved af553e02155c (D 0.156, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved cea424712c02 (D 0.155, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved ccf24ad2807e (D 0.166, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 705f8126a852 (D 0.164, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved ebf5d6639148 (D 0.145, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 433184035b91 (D 0.167, harvest, goal sell, from s1-L013) (slot target 0.255)
+  L13 ok  D=0.228 (target 0.255) F=0.911 72s
+
+idx	modules	goal	target	D	F	good	aver	weak	novi	floo	time
+13	build_pads,workers	sell	0.26	0.228	0.911	W44%	W40%	W34%	W26%	w8%	72s
+
+1 levels, 0 off target (*), 0 failed, 74 s wall; rejected candidates: {"layout":54,"objectives":9,"stall":9,"offTarget":13}
+harvest: 1 levels; goals: sell; star objectives: no_angry_customers, time_target; mean stars: good 3.00 / average 3.00 / weak 3.00 / novice 3.00 / floor 2.00
+
+variety (signature v1, whole pack):
+  Level 13: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-f5cc190b
+EXIT 0

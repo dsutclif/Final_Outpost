@@ -1,0 +1,694 @@
+$ vite-node tools/build-levels.ts -- "--from" "7" "--to" "25" "--out" "levels/scratch/rebuild-7-25-newd" "--retries" "3" "--no-doc"
+building rebuild-7-25-newd levels 7-25 with 10 jobs
+  pool: miss L7 (target 0.183), 0 pooled
+  pool: miss L8 (target 0.195), 0 pooled
+  pool: miss L9 (target 0.207), 0 pooled
+  pool: miss L10 (target 0.219), 0 pooled
+  pool: miss L11 (target 0.231), 0 pooled
+  pool: miss L12 (target 0.243), 0 pooled
+  pool: miss L13 (target 0.255), 0 pooled
+  pool: miss L14 (target 0.267), 0 pooled
+  pool: miss L15 (target 0.279), 0 pooled
+  pool: miss L16 (target 0.332), 0 pooled
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+[s1-L009] composer round 0: start (estimate 0.24-0.37 (mid 0.305) for target 0.207) -> [converter_levels, material_processor, tier2] est 0.305, optional modules 3/4
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L007] composer round 0: start (estimate 0.17-0.32 (mid 0.245) for target 0.183) -> [crates] est 0.245, optional modules 3/4
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L008] composer round 0: start (estimate 0.15-0.18 (mid 0.165) for target 0.195) -> [vips] est 0.165, optional modules 3/4
+[s1-L011] composer round 0: start (estimate 0.1-0.18 (mid 0.14) for target 0.231) -> [core_levels] est 0.14, optional modules 2/4
+[s1-L012] composer round 0: start (estimate 0.17-0.22 (mid 0.195) for target 0.243) -> [pod_timers] est 0.195, optional modules 3/4
+[s1-L016] composer round 0: start (estimate 0.4-0.73 (mid 0.565) for target 0.332) -> [core_levels, rockslides] est 0.565, optional modules 3/5, left out dust_storms: estimate further from the target; gate_arrivals: estimate further from the target
+  pool: saved fc31d9420aaf (D 0.038, shelter, goal core_level, from s1-L011) (slot target 0.231)
+  pool: saved d37828c069e7 (D 0.365, shelter, goal core_level, from s1-L011) (slot target 0.231)
+  L11 ok  D=0.232 (target 0.231) F=0.852 8s
+  pool: miss L17 (target 0.344), 2 pooled
+  pool: saved 56fbece5639b (D 0.106, rescue, goal crates, from s1-L007) (slot target 0.183)
+  pool: saved 9ea0811110a2 (D 0.103, rescue, goal crates, from s1-L007) (slot target 0.183)
+  L7 ok  D=0.148 (target 0.183) F=0.505 14s
+  pool: miss L18 (target 0.356), 4 pooled
+[s1-L017] composer round 0: start (estimate 0.32-0.57 (mid 0.445) for target 0.344) -> [hunting] est 0.445, optional modules 4/5, left out crates: estimate further from the target
+[s1-L018] composer round 0: start (estimate 0.28-0.43 (mid 0.355) for target 0.356) -> [source_unlocks] est 0.355, optional modules 3/5, left out vips: estimate further from the target
+  pool: saved 2444b5f2ca7b (D 0.3, harvest, goal streak, from s1-L008) (slot target 0.195)
+  L8 ok  D=0.212 (target 0.195) F=0.904 26s
+  pool: miss L19 (target 0.368), 5 pooled
+[s1-L019] composer round 0: start (estimate 0.29-0.52 (mid 0.405) for target 0.368) -> [dust_storms, material_processor, tier2] est 0.405, optional modules 4/5, left out conveyors: estimate further from the target; depot: estimate further from the target; converter_levels: estimate further from the target
+  pool: saved 09763fb61b3b (D 0.537, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 01fc9cbd77b1 (D 0.765, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 8cdfbee90997 (D 0.608, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 41da1e1fef93 (D 0.739, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 1b36ef2d22d4 (D 0.527, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved c01446ead33c (D 0.509, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 8686915ccb4a (D 0.534, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved ff77f7ea2d73 (D 0.709, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 91cb6684357d (D 0.434, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 8b510f9ac39f (D 0.474, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved c22eafcf735d (D 0.644, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 40da2fef10b4 (D 0.405, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 2139f7799bf2 (D 0.454, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 2abbd50f66c9 (D 0.704, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 208859c5097a (D 0.527, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 3c9c18bcab31 (D 0.603, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 9f7fb69093d0 (D 0.514, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 5f4c0357b814 (D 0.512, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved e5889bf1c049 (D 0.429, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  pool: saved 7e4410e97ca0 (D 0.43, shelter, goal clear_zones, from s1-L016) (slot target 0.332)
+  L16 ok  D=0.331 (target 0.332) F=0.794 44s
+  pool: miss L20 (target 0.38), 25 pooled
+[s1-L020] composer round 0: start (estimate 0.16-0.54 (mid 0.35) for target 0.38) -> [bulk_orders, dust_storms, gate_arrivals, housing] est 0.35, optional modules 4/5, left out core_levels: estimate further from the target
+[s1-L012] composer round 0 measured D 0.052-0.251 (n 60): none (measured D 0.052-0.251 spans the target)
+  pool: saved 59fb5848efa2 (D 0.091, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 754fd62ae28c (D 0.132, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved a58ffeb755c6 (D 0.117, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 8e77f01d252a (D 0.132, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 9707b223dae6 (D 0.14, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 04b34fb338b5 (D 0.14, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved f5421d823b44 (D 0.132, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e278faa248dd (D 0.106, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 302065f5e45a (D 0.106, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 557912dcb4b9 (D 0.119, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e801ea828c25 (D 0.072, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 90b7eab0db79 (D 0.108, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e687d9f49430 (D 0.126, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved d2b6fbf2b3e9 (D 0.126, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 6976d51ad5a8 (D 0.126, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved cf0c4196be09 (D 0.134, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 76c941198cc7 (D 0.134, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved f889aef98ce3 (D 0.14, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  L12: recipe failed (nothing shipped) {"trivial":4,"offTarget":20,"objectives":36}
+  L12: re-roll -> rescue goal rescue_before_freeze, template corridor, features [pod_timers], target band 0.2
+  pool: miss L21 (target 0.4), 43 pooled
+[s1-L021] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.4) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/5, defend keeps the sequencer's set
+[s1-L020] composer round 0 measured D none: remove dust_storms (no feasible candidate)
+[s1-L020] composer round 1: remove dust_storms (no feasible candidate) -> [bulk_orders, gate_arrivals, housing] est 0.225, optional modules 3/5
+[s1-L019] composer round 0 measured D none: remove dust_storms (no feasible candidate)
+[s1-L019] composer round 1: remove dust_storms (no feasible candidate) -> [material_processor, tier2] est 0.28, optional modules 3/5
+  pool: saved 56fa64b74ecc (D 0.153, industrialize, goal converter_level, from s1-L009) (slot target 0.207)
+  pool: saved 7b238069f450 (D 0.146, industrialize, goal converter_level, from s1-L009) (slot target 0.207)
+  L9 ok  D=0.165 (target 0.207) F=0.905 264s
+  pool: miss L22 (target 0.45), 45 pooled; nearest same-family 2139f7799bf2 D 0.454: duplicate of a level in the last 10
+[s1-L013] composer round 0 measured D 0.076-0.151 (n 41): none (every D (max 0.151) under the target and no add-on fits the caps)
+  pool: saved ab5048d4edd3 (D 0.076, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 5583a86f61b3 (D 0.081, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 0e1ede57440a (D 0.08, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved f864bc1a0d29 (D 0.081, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1fc3f79e9559 (D 0.087, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved b9ce636313d2 (D 0.086, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 42d49c4d726f (D 0.078, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved d66dd7f6a4e3 (D 0.085, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 5e50db0e9815 (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  L13: recipe failed (closest D=0.139, target 0.255) {"layout":110,"offTarget":27,"stall":14}
+  pool: miss L23 (target 0.494), 54 pooled; nearest same-family 9707b223dae6 D 0.14: D 0.14 is 0.354 from target 0.494 (gap 0.1)
+[s1-L022] composer round 0: start (estimate 0.2-0.63 (mid 0.415) for target 0.45) -> [core_levels, dust_storms, gate_arrivals, housing] est 0.415, optional modules 4/5, left out rockslides: estimate further from the target
+[s1-L023] composer round 0: start (estimate 0.62-0.87 (mid 0.745) for target 0.494) -> [clearing_pass] est 0.745, optional modules 5/5
+[s1-L018] composer round 0 measured D 0.104-0.715 (n 35): none (measured D 0.104-0.715 spans the target)
+  pool: saved 5221da6dd729 (D 0.104, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 61a5b377eb52 (D 0.105, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 939ef0bacc60 (D 0.105, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved e160013081c1 (D 0.126, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved f3bd29d7a24c (D 0.12, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 338a7c2d6a66 (D 0.112, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved dfb3a5490c71 (D 0.116, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 923ac6676916 (D 0.129, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 53ba2eb8da48 (D 0.147, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved c8015ce3880e (D 0.148, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 1acb02740b49 (D 0.172, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 81e491b24310 (D 0.157, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 5834514e961d (D 0.183, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 71eaa322584f (D 0.179, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 306a23526146 (D 0.184, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 358dd1043ab5 (D 0.118, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 074a0bc329bf (D 0.153, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved f749733964f4 (D 0.184, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved cf1acd76f17e (D 0.16, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 50a9419592ea (D 0.186, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 0dd28f6c21c5 (D 0.16, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 4783b515f11f (D 0.184, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved ab556dce8ff2 (D 0.172, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 332a963f79ae (D 0.122, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved e09f9eb5f9b5 (D 0.147, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 18dc7e7fea3e (D 0.177, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 3bdae39b1659 (D 0.155, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 7dc765a6542a (D 0.19, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 5a9586d4905b (D 0.18, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved ba78bd67a89c (D 0.186, harvest, goal currency, from s1-L018) (slot target 0.356)
+  pool: saved 4d24f0976726 (D 0.167, harvest, goal currency, from s1-L018) (slot target 0.356)
+  L18: recipe failed (closest D=0.175, target 0.356) {"idleModule":1,"offTarget":34}
+  L18: re-roll -> harvest goal hire, template south_fields, features [source_unlocks, vips], target band 0.4
+  pool: miss L24 (target 0.538), 85 pooled; nearest same-family 2444b5f2ca7b D 0.3: D 0.3 is 0.238 from target 0.538 (gap 0.1)
+[s1-L024] composer round 0: start (estimate 0.38-0.71 (mid 0.545) for target 0.538) -> [bulk_orders, depot, source_unlocks, vips] est 0.545, optional modules 5/6
+  pool: saved 9d0558e55e46 (D 0.606, shelter, goal core_level, from s1-L022) (slot target 0.45)
+  pool: saved b6c887c3d6e6 (D 0.618, shelter, goal core_level, from s1-L022) (slot target 0.45)
+  pool: saved 68e3c0a8abe3 (D 0.553, shelter, goal core_level, from s1-L022) (slot target 0.45)
+  pool: saved 563a539c9bff (D 0.701, shelter, goal core_level, from s1-L022) (slot target 0.45)
+  pool: saved c8132926d2f8 (D 0.673, shelter, goal core_level, from s1-L022) (slot target 0.45)
+  pool: saved 27dc95ecced2 (D 0.772, shelter, goal core_level, from s1-L022) (slot target 0.45)
+  pool: saved be68a1c6c7c3 (D 0.747, shelter, goal core_level, from s1-L022) (slot target 0.45)
+  pool: saved 1263a45a2a14 (D 0.558, shelter, goal core_level, from s1-L022) (slot target 0.45)
+  L22 ok  D=0.460 (target 0.45) F=0.717 79s
+  pool: miss L25 (target 0.581), 93 pooled; nearest same-family 56fa64b74ecc D 0.153: D 0.153 is 0.428 from target 0.581 (gap 0.1)
+[s1-L025] composer round 0: start (estimate 0.37-0.77 (mid 0.57) for target 0.581) -> [converter_levels, depot, dust_storms, material_processor, tier2] est 0.57, optional modules 5/6, left out conveyors: not in the pool (locked, avoided by the goal, or unbuildable)
+[s1-L020] composer round 1 measured D 0.178-0.302 (n 36): add core_levels (every D (max 0.302) under the target by 0.078)
+[s1-L020] composer round 2: add core_levels (every D (max 0.302) under the target by 0.078) -> [bulk_orders, core_levels, gate_arrivals, housing] est 0.305, optional modules 4/5
+[s1-L023] composer round 0 measured D 0.584-0.886 (n 57): none (every D (min 0.584) over the target and no extra to drop)
+  pool: saved aa26be6b9be8 (D 0.862, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 12202b909d4d (D 0.857, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved cab7399619a4 (D 0.637, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 122e433c1565 (D 0.627, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved aceca8a2cb47 (D 0.661, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved f03723ae7985 (D 0.734, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved f27f2289c68d (D 0.682, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 0a50bb72aadf (D 0.865, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved a86df902554c (D 0.784, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved dbbafd66878d (D 0.816, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 0df189b38d4b (D 0.601, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved a9aef2b7b60c (D 0.624, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved b8f068ea6dc3 (D 0.668, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 9d1e5596477e (D 0.768, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 2cbf64b18f2c (D 0.886, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 3a3fa08642b5 (D 0.664, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 06367247704e (D 0.813, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 029546ecba3d (D 0.742, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved a9d0cacdff5d (D 0.717, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 7ab7d3877653 (D 0.688, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 1049f034343a (D 0.723, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved e85e258d0828 (D 0.88, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 4079060fb41a (D 0.881, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 4654d7c5fee7 (D 0.855, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved f89af5c34740 (D 0.708, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 4b1a36e888f9 (D 0.658, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 633c2bcde99a (D 0.62, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  pool: saved 83d5d1328e93 (D 0.695, rescue, goal rescue_all, from s1-L023) (slot target 0.494)
+  L23: recipe failed (closest D=0.679, target 0.494) {"offTarget":41,"objectives":16}
+  L23: re-roll -> rescue goal rescue, template east_fields, features [clearing_pass], target band 0.5
+  pool: miss L12 (target 0.243), 121 pooled; nearest same-family 9707b223dae6 D 0.14: D 0.14 is 0.103 from target 0.243 (gap 0.1)
+[s1-L012] composer round 0: start (estimate 0.17-0.22 (mid 0.195) for target 0.243) -> [pod_timers] est 0.195, optional modules 3/4
+  pool: saved 038b2a969e50 (D 0.194, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved 7349afcd9c09 (D 0.197, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved 2b562d814100 (D 0.224, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved 1cc4ecc8600f (D 0.217, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved b1daa554b1ab (D 0.205, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved 104085f4441b (D 0.215, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved 304fd68d4c75 (D 0.198, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved ff832d478b82 (D 0.198, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved c0601e314eef (D 0.274, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved af880ddefb1a (D 0.259, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved 714002e36948 (D 0.288, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved 3bf322fd6de9 (D 0.272, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  pool: saved a039920d816a (D 0.293, shelter, goal build_count, from s1-L020) (slot target 0.38)
+  L20 ok  D=0.346 (target 0.38) F=0.850 405s
+  pool: miss L13 (target 0.255), 134 pooled; nearest same-family 2444b5f2ca7b D 0.3: introduces [vips], slot introduces [bulk_orders]
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+[s1-L025] composer round 0 measured D none: remove depot (no feasible candidate)
+[s1-L025] composer round 1: remove depot (no feasible candidate) -> [converter_levels, dust_storms, material_processor, tier2] est 0.43, optional modules 4/6
+[s1-L024] composer round 0 measured D 0.612-0.742 (n 20): remove depot (every D (min 0.612) over the target)
+[s1-L024] composer round 1: remove depot (every D (min 0.612) over the target) -> [bulk_orders, source_unlocks, vips] est 0.405, optional modules 4/6
+[s1-L017] composer round 0 measured D 0.346-0.572 (n 35): none (measured D 0.346-0.572 spans the target)
+  pool: saved 42bfa4f160b9 (D 0.477, rescue, goal hunt, from s1-L017) (slot target 0.344)
+  pool: saved 1d2ce75eaf7d (D 0.429, rescue, goal hunt, from s1-L017) (slot target 0.344)
+  pool: saved f156c88fbe06 (D 0.423, rescue, goal hunt, from s1-L017) (slot target 0.344)
+  pool: saved 2c5114f3d58f (D 0.419, rescue, goal hunt, from s1-L017) (slot target 0.344)
+  L17 off D=0.410 (target 0.344) F=0.337 501s
+  pool: miss L18 (target 0.356), 138 pooled; nearest same-family 2444b5f2ca7b D 0.3: introduces a feature in a mix slot
+[s1-L018] composer round 0: start (estimate 0.28-0.43 (mid 0.355) for target 0.356) -> [source_unlocks] est 0.355, optional modules 3/5, left out vips: estimate further from the target
+  pool: saved 32b97dcd738d (D 0.677, harvest, goal unlock, from s1-L024) (slot target 0.538)
+  pool: saved 9de55f53f36a (D 0.611, harvest, goal unlock, from s1-L024) (slot target 0.538)
+  pool: saved 7b46479785a4 (D 0.616, harvest, goal unlock, from s1-L024) (slot target 0.538)
+  pool: saved 93eeb29c85bc (D 0.61, harvest, goal unlock, from s1-L024) (slot target 0.538)
+  L24 ok  D=0.558 (target 0.538) F=0.695 214s
+  pool: miss L23 (target 0.494), 142 pooled; nearest same-family 42bfa4f160b9 D 0.477: introduces [], slot introduces [clearing_pass]
+[s1-L012] composer round 0 measured D 0.052-0.247 (n 55): none (measured D 0.052-0.247 spans the target)
+  pool: saved 2a6f6a68d448 (D 0.088, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved b3d0fd1dd16b (D 0.123, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved a95e1288f8b2 (D 0.11, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 60777ce3be19 (D 0.123, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 70b01ff27493 (D 0.139, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 18a6db371abe (D 0.139, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e9b42b6a6287 (D 0.123, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 495f9cac310a (D 0.106, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 7b029d8ac14d (D 0.106, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved c452761ec631 (D 0.119, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 9793e725c2b8 (D 0.071, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved ea156382e992 (D 0.107, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved b42d41a90f73 (D 0.098, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  L12: recipe failed (nothing shipped) {"trivial":4,"offTarget":15,"objectives":36}
+  L12: re-roll -> rescue goal rescue_before_freeze, template south_fields, features [pod_timers], target band 0.2
+  pool: miss L12 (target 0.243), 155 pooled; nearest same-family 9707b223dae6 D 0.14: D 0.14 is 0.103 from target 0.243 (gap 0.1)
+[s1-L023] composer round 0: start (estimate 0.62-0.87 (mid 0.745) for target 0.494) -> [clearing_pass] est 0.745, optional modules 5/5
+[s1-L012] composer round 0: start (estimate 0.17-0.22 (mid 0.195) for target 0.243) -> [pod_timers] est 0.195, optional modules 3/4
+  pool: saved 4b94eb4cc0f2 (D 0.241, harvest, goal hire, from s1-L018) (slot target 0.356)
+  pool: saved 90a8212ee6aa (D 0.274, harvest, goal hire, from s1-L018) (slot target 0.356)
+  pool: saved 366423034551 (D 0.272, harvest, goal hire, from s1-L018) (slot target 0.356)
+  pool: saved 5f6e58699622 (D 0.285, harvest, goal hire, from s1-L018) (slot target 0.356)
+  pool: saved d12415c951d2 (D 0.414, harvest, goal hire, from s1-L018) (slot target 0.356)
+  L18 ok  D=0.357 (target 0.356) F=0.917 55s
+[s1-L014] composer round 0 measured D 0.389-0.487 (n 20): none (every D (min 0.389) over the target and no extra to drop)
+  pool: saved f3f93d603ee5 (D 0.432, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 477db759bc79 (D 0.47, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 80e8c392ec54 (D 0.433, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 9008748bbdcc (D 0.44, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 0702e04a9225 (D 0.487, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 1aaa05d67434 (D 0.431, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved d915deaf1cca (D 0.412, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved ac3af0df110b (D 0.463, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  L14: recipe failed (closest D=0.413, target 0.267) {"humanLost":6,"offTarget":18,"infeasible":7,"probe":2,"layout":10,"objectives":2}
+  L14: re-roll -> industrialize goal stockpile, template south_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  pool: miss L14 (target 0.267), 168 pooled; nearest same-family 56fa64b74ecc D 0.153: D 0.153 is 0.114 from target 0.267 (gap 0.1)
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L015] composer round 0 measured D none: none (defend keeps the sequencer's set)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L025] composer round 1 measured D none: remove dust_storms (no feasible candidate)
+[s1-L025] composer round 2: remove dust_storms (no feasible candidate) -> [converter_levels, material_processor, tier2] est 0.305, optional modules 3/6
+[s1-L012] composer round 0 measured D 0.054-0.240 (n 56): none (measured D 0.054-0.24 spans the target)
+  pool: saved 10494e37abb4 (D 0.081, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved d6e79b78423a (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 5972bb41c584 (D 0.115, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 84c218c7fdfa (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 1fe9a7806d09 (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved ca87768b7321 (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved e0400dcaec92 (D 0.128, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 1238cb3e7002 (D 0.097, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved f0661da77b9f (D 0.097, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 1cd61e6ce372 (D 0.109, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 45934a630b4b (D 0.145, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 8cee03faee98 (D 0.083, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 7f8fddfdc964 (D 0.134, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  pool: saved 22063ef7a6c9 (D 0.115, rescue, goal rescue_before_freeze, from s1-L012) (slot target 0.243)
+  L12: recipe failed (nothing shipped) {"trivial":4,"offTarget":16,"objectives":36}
+  L12: re-roll -> rescue goal rescue_before_freeze, template north_fields, features [pod_timers], target band 0.2
+  pool: HIT L12 (target 0.243) takes 45934a630b4b (D 0.145, rescue, goal rescue_before_freeze, from s1-L012)
+[s1-L023] composer round 0 measured D 0.532-0.904 (n 42): none (measured D 0.532-0.904 spans the target)
+  pool: saved acefab16de6a (D 0.856, rescue, goal rescue, from s1-L023) (slot target 0.494)
+  pool: saved e20185feb2d5 (D 0.804, rescue, goal rescue, from s1-L023) (slot target 0.494)
+  pool: saved ca5d33e70647 (D 0.612, rescue, goal rescue, from s1-L023) (slot target 0.494)
+  pool: saved c28448ed9ab0 (D 0.759, rescue, goal rescue, from s1-L023) (slot target 0.494)
+  pool: saved 1d915673e8a8 (D 0.638, rescue, goal rescue, from s1-L023) (slot target 0.494)
+  pool: saved 404c8061a380 (D 0.638, rescue, goal rescue, from s1-L023) (slot target 0.494)
+  L23 off D=0.588 (target 0.494) F=0.803 121s
+  pool: placed 45934a630b4b in L12, removed from the pool
+  L12 off D=0.145 (target 0.243) F=0.431 1s
+[s1-L013] composer round 0 measured D 0.092-0.168 (n 43): none (every D (max 0.168) under the target and no add-on fits the caps)
+  pool: saved 4ea93c4685e1 (D 0.092, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 8529e3812c41 (D 0.114, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved da1dc8cfbcd1 (D 0.126, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved b8518ed0633c (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1c1d299c9fdd (D 0.123, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 281ac32fea55 (D 0.126, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 4120fc3d7bb1 (D 0.129, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved c46db2139cc8 (D 0.127, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 7c8552c60781 (D 0.14, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1386d1be25d6 (D 0.097, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 175a8e31a026 (D 0.093, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 72b85a3e03ce (D 0.135, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 8db998b8d6f7 (D 0.132, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved d51aca2492bf (D 0.116, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved d5412101c9f6 (D 0.118, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved cc365657d0b4 (D 0.15, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved ea20e064916f (D 0.102, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved c7847c3e950b (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 415eb6e4527d (D 0.155, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1ca9e2322a50 (D 0.142, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 5ac3de2286ed (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved aeadd6e32268 (D 0.137, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved c8f78850a3fe (D 0.14, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 0fbf7e1320af (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved cd92fbdefaa5 (D 0.114, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved cf9e390f8fee (D 0.148, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved eee8e6d4abd7 (D 0.12, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 074e4b8c2d5f (D 0.145, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved f11f2209417c (D 0.119, harvest, goal sell, from s1-L013) (slot target 0.255)
+  L13: recipe failed (closest D=0.145, target 0.255) {"offTarget":32,"stall":10,"objectives":1}
+  L13: re-roll -> harvest goal sell, template south_fields, features [bulk_orders], target band 0.3
+  pool: HIT L13 (target 0.255) takes 415eb6e4527d (D 0.155, harvest, goal sell, from s1-L013)
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+  pool: saved b8866277c5a6 (D 0.261, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved b3e205f6a7b3 (D 0.261, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved 53aab234a426 (D 0.231, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved 8297b2a5e7be (D 0.229, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved 0d53ea655830 (D 0.185, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved ff53d7e548b3 (D 0.262, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved 0066dbfb7bca (D 0.22, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved 7ba4172e2a8f (D 0.202, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved 2ac2b80e005f (D 0.625, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved f7bd877a7b8d (D 0.176, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved 96113237103f (D 0.161, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved 48d9cef40c1a (D 0.229, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  pool: saved db1f5d10caee (D 0.423, industrialize, goal chain, from s1-L019) (slot target 0.368)
+  L19 ok  D=0.357 (target 0.368) F=0.932 741s
+[s1-L013] composer round 0 measured D 0.076-0.151 (n 41): none (every D (max 0.151) under the target and no add-on fits the caps)
+  pool: 415eb6e4527d failed its re-check for L13 (POOL recheck-failed {"entry":"415eb6e4527d","why":"D 0.151 is 0.104 from target 0.255"}); dropped, slot searched normally
+  L13: recipe failed (closest D=0.139, target 0.255) {"layout":110,"offTarget":27,"stall":14}
+  L13: re-roll -> harvest goal sell, template corridor, features [bulk_orders], target band 0.3
+  pool: miss L13 (target 0.255), 228 pooled; nearest same-family 4b94eb4cc0f2 D 0.241: introduces [], slot introduces [bulk_orders]
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+[s1-L014] composer round 0 measured D 0.400-0.487 (n 12): none (every D (min 0.4) over the target and no extra to drop)
+  L14: recipe failed (nothing shipped) {"layout":116,"probe":5,"infeasible":22,"offTarget":7,"humanLost":4,"objectives":2}
+  L14: re-roll -> industrialize goal stockpile, template crescent, features [conveyors, depot, material_processor, tier2], target band 0.3
+  pool: miss L14 (target 0.267), 228 pooled; nearest same-family ff53d7e548b3 D 0.262: introduces [], slot introduces [conveyors,depot]
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L013] composer round 0 measured D 0.092-0.168 (n 43): none (every D (max 0.168) under the target and no add-on fits the caps)
+  pool: saved 7068b7782051 (D 0.092, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved fbfc8a09d400 (D 0.122, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1cf6c45cd6da (D 0.1, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved c9e1ae467e8a (D 0.108, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 52bf6571da78 (D 0.104, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 8475665f939d (D 0.112, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 9617a33c7a55 (D 0.1, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved eec209851410 (D 0.097, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 3616f73e2646 (D 0.093, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 3940b137caff (D 0.135, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved f72e24b9dd64 (D 0.131, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 92fd240dfb00 (D 0.116, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 50fc45d0f1d5 (D 0.118, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved f34a8332d7cc (D 0.152, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved cab4ef33bb8d (D 0.102, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved dcb118c657de (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved ab612937a4e6 (D 0.155, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 47583f9fe52e (D 0.142, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 9238687f11f1 (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved c9c6a285ae13 (D 0.137, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 47e275c16527 (D 0.14, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 0cd590e82110 (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 50bef0427bd1 (D 0.114, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 082ebaeb22fe (D 0.148, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 9728983ae1dd (D 0.12, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 915a5224b125 (D 0.145, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 274f186f877f (D 0.119, harvest, goal sell, from s1-L013) (slot target 0.255)
+  L13: recipe failed (closest D=0.146, target 0.255) {"offTarget":29,"stall":13,"objectives":1}
+  L13: re-roll -> harvest goal sell, template east_fields, features [bulk_orders], target band 0.3
+  pool: HIT L13 (target 0.255) takes ab612937a4e6 (D 0.155, harvest, goal sell, from s1-L013)
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+[s1-L025] composer round 2 measured D 0.225-0.469 (n 37): none (swap limit 2 reached)
+  pool: saved 3d1df5830124 (D 0.249, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 367d5cb8b4f7 (D 0.271, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved a0411e896863 (D 0.252, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 206e3e89b31f (D 0.385, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 65d3987bd196 (D 0.458, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 4483be6ccefc (D 0.425, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 0366042ca148 (D 0.423, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved e8a15bd427c1 (D 0.285, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved b695376d1930 (D 0.225, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 74e508a19135 (D 0.271, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved f5b89418bb50 (D 0.445, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved a5f1e74da8a9 (D 0.335, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 6ce366a2a081 (D 0.327, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 107b2a04aa0b (D 0.463, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 2dd3b64a5bcf (D 0.239, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 62c2bdfc7c04 (D 0.249, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved ef14523eb8f9 (D 0.251, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved df5437dc347f (D 0.469, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 9c04c71ff340 (D 0.352, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 46b180bc03e6 (D 0.469, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 3c6a4446a4e0 (D 0.467, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved e5f1e2da79c0 (D 0.463, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 967f07a614c4 (D 0.466, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 4a85e2f3bd13 (D 0.23, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved eead69ef2218 (D 0.225, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 84357e8674a0 (D 0.439, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 6b84a60a1675 (D 0.462, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved c579071b37d7 (D 0.334, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 99950d367d99 (D 0.468, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 34a898f6d206 (D 0.461, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 611803870a97 (D 0.462, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 02b308aca1f7 (D 0.37, industrialize, goal build, from s1-L025) (slot target 0.581)
+  L25: recipe failed (closest D=0.458, target 0.581) {"storm":80,"offTarget":37,"humanLost":6}
+  L25: re-roll -> industrialize goal converter_level, template north_fields, features [converter_levels], target band 0.6
+  pool: miss L25 (target 0.581), 287 pooled; nearest same-family 2ac2b80e005f D 0.625: features [tier2] not unlocked at level 25
+[s1-L025] composer round 0: start (estimate 0.37-0.77 (mid 0.57) for target 0.581) -> [converter_levels, depot, dust_storms, material_processor, tier2] est 0.57, optional modules 5/6
+[s1-L021] composer round 0 measured D 0.738-0.970 (n 12): none (defend keeps the sequencer's set)
+[s1-L021] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.4) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/5, defend keeps the sequencer's set
+[s1-L013] composer round 0 measured D 0.093-0.178 (n 42): none (every D (max 0.178) under the target and no add-on fits the caps)
+  pool: ab612937a4e6 failed its re-check for L13 (POOL recheck-failed {"entry":"ab612937a4e6","why":"D 0.151 is 0.104 from target 0.255"}); dropped, slot searched normally
+  pool: saved 9b5c0c2d33e7 (D 0.108, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 3791ea156548 (D 0.117, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved c2c971ff34fa (D 0.118, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 03aec6f1edfd (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 7767f4b4e9cc (D 0.116, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1a55a45acbf0 (D 0.123, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1e647a2521d2 (D 0.113, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved f33986b5cdbd (D 0.093, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 9e9ec8f6aad2 (D 0.093, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 68d3586b6a50 (D 0.101, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved b55c55490352 (D 0.102, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 31411ff5aa52 (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 9ffbd3379784 (D 0.105, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 4b9e217f75a1 (D 0.117, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 0f3c179d5e35 (D 0.099, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 0199e95de2a4 (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 51bca7172fd7 (D 0.114, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved f7eaeed56b3e (D 0.148, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved e95337241324 (D 0.12, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 0d6457a170ae (D 0.145, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved e127d0fa4c97 (D 0.119, harvest, goal sell, from s1-L013) (slot target 0.255)
+  L13: recipe failed (closest D=0.143, target 0.255) {"offTarget":29,"stall":13,"layout":10}
+  L13: re-roll -> harvest goal sell, template crossroads, features [bulk_orders], target band 0.3
+  pool: miss L13 (target 0.255), 307 pooled; nearest same-family 4b94eb4cc0f2 D 0.241: introduces [], slot introduces [bulk_orders]
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+[s1-L025] composer round 0 measured D none: remove depot (no feasible candidate)
+[s1-L025] composer round 1: remove depot (no feasible candidate) -> [converter_levels, dust_storms, material_processor, tier2] est 0.43, optional modules 4/6
+[s1-L025] composer round 1 measured D none: remove dust_storms (no feasible candidate)
+[s1-L025] composer round 2: remove dust_storms (no feasible candidate) -> [converter_levels, material_processor, tier2] est 0.305, optional modules 3/6
+[s1-L013] composer round 0 measured D 0.092-0.168 (n 43): none (every D (max 0.168) under the target and no add-on fits the caps)
+  pool: saved cc470b542562 (D 0.092, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1c9c4c7c5d31 (D 0.116, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved b3d0c7694bf2 (D 0.097, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 300828b7cbd6 (D 0.108, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 222516c3bf99 (D 0.103, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved c3247718882e (D 0.109, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 084bb851945a (D 0.1, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved af38499fceb2 (D 0.097, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 51aeaaabd1f7 (D 0.093, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 132f376b674b (D 0.135, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved f5dd0e135c9e (D 0.132, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 2491f84cf9d4 (D 0.116, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 401395414c2c (D 0.118, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 5663a2aa7fa4 (D 0.15, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 37b8b383553b (D 0.102, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 0938a4f17192 (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 7006b87aea22 (D 0.155, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved df09e1634d50 (D 0.142, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved a7311f4f1c8c (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 12c8579e4248 (D 0.137, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 6237c6f71ce3 (D 0.14, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 34733b07113e (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved b1708fc2a9d4 (D 0.114, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved a27d06dd920e (D 0.148, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 5561cbfad1a1 (D 0.12, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 4a97b0d93cc9 (D 0.145, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 6ffe4f936aad (D 0.119, harvest, goal sell, from s1-L013) (slot target 0.255)
+  L13: recipe failed (closest D=0.145, target 0.255) {"offTarget":29,"stall":13,"objectives":1}
+  L13: re-roll -> harvest goal sell, template west_fields, features [bulk_orders], target band 0.3
+  pool: HIT L13 (target 0.255) takes 7006b87aea22 (D 0.155, harvest, goal sell, from s1-L013)
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+[s1-L015] composer round 0 measured D 0.674-0.901 (n 23): none (defend keeps the sequencer's set)
+  pool: saved 440c4df7d6a3 (D 0.721, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved cdd4638e6b88 (D 0.696, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 91e0153e74d1 (D 0.674, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 8e552360255d (D 0.696, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved f769788a8b60 (D 0.828, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved aa765f72a2a8 (D 0.827, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 5f2530a0c88d (D 0.732, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved a9031e906a45 (D 0.764, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 2f2e962920c7 (D 0.743, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 783b7ba7e724 (D 0.742, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  pool: saved 76bd5f7930ec (D 0.764, defend, goal turret_level, from s1-L015) (slot target 0.279)
+  L15: recipe failed (closest D=0.683, target 0.279) {"layout":720,"humanLost":30,"offTarget":17,"ladderSpent":6}
+  L15: re-roll -> defend goal waves_survived, template west_fields, features [med_bay, salvage_upgrades, turrets], target band 0.3
+  pool: miss L15 (target 0.279), 345 pooled; nearest same-family 91e0153e74d1 D 0.674: D 0.674 is 0.395 from target 0.279 (gap 0.1)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L013] composer round 0 measured D 0.093-0.168 (n 43): none (every D (max 0.168) under the target and no add-on fits the caps)
+  pool: 7006b87aea22 failed its re-check for L13 (POOL recheck-failed {"entry":"7006b87aea22","why":"D 0.151 is 0.104 from target 0.255"}); dropped, slot searched normally
+  pool: saved 4ce115e2ab26 (D 0.108, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 865f0a1d6a25 (D 0.117, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 2cc9de1c2b6d (D 0.118, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved eade9c98a9de (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 4592aff8b2ab (D 0.115, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 2fc2a956bb08 (D 0.123, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved ac15ec1731e1 (D 0.113, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 730c647f8978 (D 0.097, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved be27f2c1ae72 (D 0.093, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved d76cbea8a38a (D 0.135, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 5acce3ae3786 (D 0.132, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 67027444c244 (D 0.116, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 3d96d4d5db1c (D 0.12, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 6819156aa827 (D 0.151, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 2bcb04f950ec (D 0.102, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 438ff38f05ce (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved c7006de37504 (D 0.155, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 9718d87cfa9d (D 0.142, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 13a334f17e8e (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 0fa4fc3126a0 (D 0.137, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 8a2305eef331 (D 0.14, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved f0aadf2d6691 (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1a8989c4bd78 (D 0.114, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved e7110b29e6f4 (D 0.148, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved d682902f6618 (D 0.12, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 776d3f790b6d (D 0.145, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 7b7f483db063 (D 0.119, harvest, goal sell, from s1-L013) (slot target 0.255)
+  L13: recipe failed (closest D=0.145, target 0.255) {"offTarget":29,"stall":13,"objectives":1}
+  L13: re-roll -> harvest goal sell, template north_fields, features [bulk_orders], target band 0.3
+  pool: HIT L13 (target 0.255) takes c7006de37504 (D 0.155, harvest, goal sell, from s1-L013)
+[s1-L013] composer round 0: start (estimate 0.13-0.16 (mid 0.145) for target 0.255) -> [bulk_orders] est 0.145, optional modules 2/4
+[s1-L014] composer round 0 measured D 0.242-0.467 (n 19): none (measured D 0.242-0.467 spans the target)
+  L14: recipe failed (nothing shipped) {"layout":70,"infeasible":14,"trivial":1,"probe":3,"humanLost":8,"offTarget":15,"stall":6,"objectives":2}
+  L14: re-roll -> industrialize goal stockpile, template west_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  pool: miss L14 (target 0.267), 371 pooled; nearest same-family 367d5cb8b4f7 D 0.271: introduces [], slot introduces [conveyors,depot]
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L013] composer round 0 measured D 0.092-0.168 (n 43): none (every D (max 0.168) under the target and no add-on fits the caps)
+  pool: c7006de37504 failed its re-check for L13 (POOL recheck-failed {"entry":"c7006de37504","why":"D 0.151 is 0.104 from target 0.255"}); dropped, slot searched normally
+  pool: saved a4b9a41a0083 (D 0.092, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved b5ce16d72a18 (D 0.116, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 0fb72f08f70d (D 0.097, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 5c1692941eec (D 0.108, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved ce428d62c0b4 (D 0.103, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 5567b0ac7d18 (D 0.109, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 2cbaf9483485 (D 0.1, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved b65bd739130f (D 0.097, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 692b052e0454 (D 0.093, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved acb15edf257d (D 0.135, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved db90e86ad029 (D 0.132, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved e3d891cca595 (D 0.116, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 4c40e38a3941 (D 0.118, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved cadf812628a1 (D 0.15, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved fb7698cc50fc (D 0.102, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 42eadb721ab3 (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 9ab20437c0ff (D 0.155, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 7f727992fb7c (D 0.142, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1318ce162ae2 (D 0.139, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 4bc8a0722faa (D 0.137, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved b10640411dd9 (D 0.14, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 73411b343da7 (D 0.107, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 4e7653a264e3 (D 0.114, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 19627f0b0125 (D 0.148, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 1eb3f3d03a36 (D 0.12, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved ce4a3711ed52 (D 0.145, harvest, goal sell, from s1-L013) (slot target 0.255)
+  pool: saved 528e5e1a68cf (D 0.119, harvest, goal sell, from s1-L013) (slot target 0.255)
+  L13: recipe failed (closest D=0.145, target 0.255) {"offTarget":29,"stall":13,"objectives":1}
+[s1-L025] composer round 2 measured D 0.172-0.298 (n 30): none (swap limit 2 reached)
+  pool: saved d7563cc64d7d (D 0.207, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved d4dc0f624ce5 (D 0.227, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved d364e949581d (D 0.244, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 31280f413e23 (D 0.298, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved d1a28b83f5e8 (D 0.217, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 4e9ea8ea43fa (D 0.22, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 6f4543a2f0a1 (D 0.189, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 2c87e76e953f (D 0.254, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 89c08a78d5fc (D 0.252, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved f80dbb051156 (D 0.237, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved fa9ba6bcfdb8 (D 0.221, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 0044ebd131d1 (D 0.196, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved dcd4fd7c35d1 (D 0.238, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 0c560f797fad (D 0.229, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 91df8ff7a064 (D 0.223, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved ee8f7eb5448b (D 0.207, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 87fbbed13edd (D 0.284, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved fbe983bd64f7 (D 0.282, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved ba58f8d6a881 (D 0.221, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  pool: saved 24adf31b7317 (D 0.26, industrialize, goal converter_level, from s1-L025) (slot target 0.581)
+  L25: recipe failed (closest D=0.292, target 0.581) {"storm":80,"stall":5,"offTarget":24,"humanLost":12,"objectives":1}
+[s1-L010] composer round 0 measured D 0.674-0.903 (n 31): none (defend keeps the sequencer's set)
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L014] composer round 0 measured D 0.223-0.564 (n 16): none (measured D 0.223-0.564 spans the target)
+  pool: saved f87c93ea52c8 (D 0.408, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  L14: recipe failed (closest D=0.408, target 0.267) {"layout":230,"objectives":1,"offTarget":11,"probe":16,"humanLost":6,"stall":4,"infeasible":2}
+[s1-L015] composer round 0 measured D 0.636-0.852 (n 20): none (defend keeps the sequencer's set)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L021] composer round 0 measured D 0.718-0.974 (n 41): none (defend keeps the sequencer's set)
+  pool: saved f3a743dc902b (D 0.929, defend, goal waves_survived, from s1-L021) (slot target 0.4)
+  pool: saved 18361291bc11 (D 0.923, defend, goal waves_survived, from s1-L021) (slot target 0.4)
+  L21: recipe failed (closest D=0.829, target 0.4) {"offTarget":28,"infeasible":20,"trivial":25,"layout":34}
+[s1-L010] composer round 0 measured D 0.684-0.985 (n 40): none (defend keeps the sequencer's set)
+  L10: recipe failed (closest D=0.684, target 0.219) {"layout":40,"trivial":35,"offTarget":36,"infeasible":5}
+[s1-L015] composer round 0 measured D 0.655-0.930 (n 44): none (defend keeps the sequencer's set)
+  pool: saved 397e3f720ec5 (D 0.638, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved ca6d24f184b8 (D 0.642, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 80bf39e3283a (D 0.647, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved b14cc2b16a4e (D 0.647, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved b4fc207e4503 (D 0.645, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved fcc868d61cdf (D 0.648, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved aeed5485bb90 (D 0.832, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved c255b130dad0 (D 0.67, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 0b5d8f2f036f (D 0.713, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 4490ed5c9067 (D 0.663, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 45e4ad0f129f (D 0.67, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved d8cdcfa8dd09 (D 0.873, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 80cce3e026b9 (D 0.875, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 9db7bec45223 (D 0.814, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 4b1fa23afa5e (D 0.854, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 477aa7a350bc (D 0.887, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 1e902f315a6a (D 0.779, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  L15: recipe failed (closest D=0.755, target 0.279) {"layout":240,"infeasible":19,"offTarget":29,"trivial":25,"ladderSpent":12}
+
+idx	modules	goal	target	D	F	good	aver	weak	novi	floo	time
+7	barrier_lines,build_pads,lasso	crates	0.18	0.148	0.505	W59%	W56%	W56%	W45%	W39%	14s
+8	build_pads,customer_variety,workers	streak	0.20	0.212	0.904	W56%	W54%	W44%	W38%	W26%	26s
+9	build_pads,converters,workers	converter_level	0.21	0.165	0.905	W56%	W54%	W51%	W46%	W34%	264s
+11	build_pads,core_levels	core_level	0.23	0.232	0.852	W60%	W55%	W44%	W35%	L-50%	8s
+12	barrier_lines,build_pads,lasso	rescue_before_freeze	0.24	0.145*	0.431	W69%	W67%	W65%	W61%	W53%	1s
+16	blocked_zones,build_pads,core_levels	clear_zones	0.33	0.331	0.794	W64%	W54%	W53%	W34%	L-100%	44s
+17	barrier_lines,build_pads,hunting,lasso	hunt	0.34	0.410*	0.337	W58%	W57%	W58%	W49%	W36%	501s
+18	build_pads,source_gating,workers	hire	0.36	0.357	0.917	W55%	W52%	W48%	W42%	W24%	55s
+19	build_pads,converters,workers	chain	0.37	0.357	0.932	W56%	W53%	W46%	W36%	L-89%	741s
+20	build_pads,core_levels,housing,workers	build_count	0.38	0.346	0.850	W55%	W52%	W47%	W39%	W25%	405s
+22	build_pads,core_levels,hazard_events,housing	core_level	0.45	0.460	0.717	W59%	W56%	W50%	W33%	L-50%	79s
+23	barrier_lines,blocked_zones,build_pads,core_levels,lasso	rescue	0.49	0.588*	0.803	W66%	W62%	W64%	W55%	w-22%	121s
+24	build_pads,customer_variety,source_gating,workers	unlock	0.54	0.558	0.695	W51%	W51%	W45%	W35%	W17%	214s
+
+13 levels, 3 off target (*), 1 failed, 3769 s wall; rejected candidates: {"trivial":1,"offTarget":144,"objectives":42,"humanLost":33,"stars":1,"layout":900,"storm":80,"stall":33}
+rescue: 4 levels; goals: crates, rescue_before_freeze, hunt, rescue; star objectives: rescue_housed, time_target, tow_full_trip, rescue_all; mean stars: good 2.25 / average 2.25 / weak 2.25 / novice 2.25 / floor 2.00
+harvest: 3 levels; goals: streak, hire, unlock; star objectives: no_angry_customers, time_target; mean stars: good 2.93 / average 3.00 / weak 2.78 / novice 2.67 / floor 1.44
+industrialize: 2 levels; goals: converter_level, chain; star objectives: heat_floor, time_target; mean stars: good 3.00 / average 3.00 / weak 3.00 / novice 2.50 / floor 1.33
+shelter: 4 levels; goals: core_level, clear_zones, build_count; star objectives: no_colonist_freezes, time_target, heat_floor; mean stars: good 3.00 / average 3.00 / weak 3.00 / novice 2.33 / floor 0.25
+
+re-rolls (register packages\sequencer\data\recipe-register.json, 17 entries):
+  Level 12: 3 recipe(s) failed; built with rescue goal rescue_before_freeze, template north_fields, features [pod_timers], target band 0.2
+    x rescue goal rescue_before_freeze, template crescent, features [pod_timers], target band 0.2
+    x rescue goal rescue_before_freeze, template corridor, features [pod_timers], target band 0.2
+    x rescue goal rescue_before_freeze, template south_fields, features [pod_timers], target band 0.2
+  Level 13: 7 recipe(s) failed; not built
+    x harvest goal sell, template crescent, features [bulk_orders], target band 0.3
+    x harvest goal sell, template south_fields, features [bulk_orders], target band 0.3
+    x harvest goal sell, template corridor, features [bulk_orders], target band 0.3
+    x harvest goal sell, template east_fields, features [bulk_orders], target band 0.3
+    x harvest goal sell, template crossroads, features [bulk_orders], target band 0.3
+    x harvest goal sell, template west_fields, features [bulk_orders], target band 0.3
+    x harvest goal sell, template north_fields, features [bulk_orders], target band 0.3
+  Level 14: 3 recipe(s) failed; not built
+    x industrialize goal stockpile, template corridor, features [conveyors, depot, material_processor, tier2], target band 0.3
+    x industrialize goal stockpile, template south_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+    x industrialize goal stockpile, template crescent, features [conveyors, depot, material_processor, tier2], target band 0.3
+  Level 15: 1 recipe(s) failed; not built
+    x defend goal turret_level, template south_fields, features [med_bay, salvage_upgrades, turrets], target band 0.3
+  Level 18: 1 recipe(s) failed; built with harvest goal hire, template south_fields, features [source_unlocks, vips], target band 0.4
+    x harvest goal currency, template west_fields, features [vips], target band 0.4
+  Level 23: 1 recipe(s) failed; built with rescue goal rescue, template east_fields, features [clearing_pass], target band 0.5
+    x rescue goal rescue_all, template corridor, features [clearing_pass], target band 0.5
+  Level 25: 1 recipe(s) failed; not built
+    x industrialize goal build, template corridor, features [conveyors, depot, material_processor, tier2], target band 0.6
+
+variety (signature v1, whole pack):
+  Level 7: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-c593ed0f
+  Level 8: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-1a9508f0
+  Level 9: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-7a6df9bc
+  Level 11: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-b1041f54
+  Level 12: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-509754e6
+  Level 16: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-d71a9eed
+  Level 17: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-523a8747
+  Level 18: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-37ecfa1b
+  Level 19: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-f6de5769
+  Level 20: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-d208f36e
+  Level 22: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-af3469f4
+  Level 23: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-2b8c4670
+  Level 24: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-99bd9b04
+
+BUILD STOPPED. Level 13 cannot be built: the sequencer has no recipe left (sequencer: no valid request for level 13 (harvest, intro) outside the recipe register). Recipes tried:
+  1. harvest goal sell, template crescent, features [bulk_orders], target band 0.3
+  2. harvest goal sell, template south_fields, features [bulk_orders], target band 0.3
+  3. harvest goal sell, template corridor, features [bulk_orders], target band 0.3
+  4. harvest goal sell, template east_fields, features [bulk_orders], target band 0.3
+  5. harvest goal sell, template crossroads, features [bulk_orders], target band 0.3
+  6. harvest goal sell, template west_fields, features [bulk_orders], target band 0.3
+  7. harvest goal sell, template north_fields, features [bulk_orders], target band 0.3
+[ELIFECYCLE] Command failed with exit code 1.
+EXIT 1

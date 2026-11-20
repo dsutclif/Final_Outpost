@@ -1,0 +1,232 @@
+$ vite-node tools/build-levels.ts -- "--only" "10,14,15,21,25" "--from" "7" "--to" "25" "--out" "levels/scratch/rebuild-7-25-newd" "--register" "C:/Users/dougl/AppData/Local/Temp/claude/5727d705018f10c0/16bce6e5-e58c-4328-b52e-19691fdb1d4d/scratchpad/reg-run2.json" "--retries" "3" "--no-doc"
+building rebuild-7-25-newd levels 10,14,15,21,25 with 10 jobs
+  pool: miss L10 (target 0.219), 400 pooled; nearest same-family 397e3f720ec5 D 0.638: D 0.638 is 0.419 from target 0.219 (gap 0.1)
+  pool: miss L14 (target 0.267), 400 pooled; nearest same-family 367d5cb8b4f7 D 0.271: introduces [], slot introduces [conveyors,depot]
+  pool: miss L15 (target 0.279), 400 pooled; nearest same-family 397e3f720ec5 D 0.638: D 0.638 is 0.359 from target 0.279 (gap 0.1)
+  pool: miss L21 (target 0.4), 400 pooled; nearest same-family 397e3f720ec5 D 0.638: D 0.638 is 0.238 from target 0.4 (gap 0.1)
+  pool: miss L25 (target 0.581), 400 pooled; nearest same-family 2ac2b80e005f D 0.625: features [tier2] not unlocked at level 25
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L021] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.4) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/5, defend keeps the sequencer's set
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L025] composer round 0: start (estimate 0.37-0.77 (mid 0.57) for target 0.581) -> [converter_levels, depot, dust_storms, material_processor, tier2] est 0.57, optional modules 5/6, left out conveyors: not in the pool (locked, avoided by the goal, or unbuildable)
+[s1-L025] composer round 0 measured D none: remove depot (no feasible candidate)
+[s1-L025] composer round 1: remove depot (no feasible candidate) -> [converter_levels, dust_storms, material_processor, tier2] est 0.43, optional modules 4/6
+[s1-L025] composer round 1 measured D none: remove dust_storms (no feasible candidate)
+[s1-L025] composer round 2: remove dust_storms (no feasible candidate) -> [converter_levels, material_processor, tier2] est 0.305, optional modules 3/6
+[s1-L015] composer round 0 measured D none: none (defend keeps the sequencer's set)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L014] composer round 0 measured D 0.389-0.487 (n 20): none (every D (min 0.389) over the target and no extra to drop)
+  L14: recipe failed (closest D=0.413, target 0.267) {"humanLost":6,"offTarget":18,"infeasible":7,"probe":2,"layout":10,"objectives":2}
+  L14: re-roll -> industrialize goal stockpile, template crescent, features [conveyors, depot, material_processor, tier2], target band 0.3
+  pool: miss L14 (target 0.267), 400 pooled; nearest same-family 367d5cb8b4f7 D 0.271: introduces [], slot introduces [conveyors,depot]
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L025] composer round 2 measured D 0.225-0.469 (n 37): none (swap limit 2 reached)
+  L25: recipe failed (closest D=0.458, target 0.581) {"storm":80,"offTarget":37,"humanLost":6}
+  L25: re-roll -> industrialize goal converter_level, template north_fields, features [converter_levels], target band 0.6
+  pool: miss L25 (target 0.581), 400 pooled; nearest same-family 2ac2b80e005f D 0.625: features [tier2] not unlocked at level 25
+[s1-L025] composer round 0: start (estimate 0.37-0.77 (mid 0.57) for target 0.581) -> [converter_levels, depot, dust_storms, material_processor, tier2] est 0.57, optional modules 5/6
+[s1-L025] composer round 0 measured D none: remove depot (no feasible candidate)
+[s1-L025] composer round 1: remove depot (no feasible candidate) -> [converter_levels, dust_storms, material_processor, tier2] est 0.43, optional modules 4/6
+[s1-L021] composer round 0 measured D 0.738-0.970 (n 12): none (defend keeps the sequencer's set)
+[s1-L021] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.4) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/5, defend keeps the sequencer's set
+[s1-L025] composer round 1 measured D none: remove dust_storms (no feasible candidate)
+[s1-L025] composer round 2: remove dust_storms (no feasible candidate) -> [converter_levels, material_processor, tier2] est 0.305, optional modules 3/6
+[s1-L014] composer round 0 measured D 0.242-0.467 (n 19): none (measured D 0.242-0.467 spans the target)
+  L14: recipe failed (nothing shipped) {"layout":70,"infeasible":14,"trivial":1,"probe":3,"humanLost":8,"offTarget":15,"stall":6,"objectives":2}
+  L14: re-roll -> industrialize goal stockpile, template west_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  pool: miss L14 (target 0.267), 400 pooled; nearest same-family 367d5cb8b4f7 D 0.271: introduces [], slot introduces [conveyors,depot]
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L025] composer round 2 measured D 0.172-0.298 (n 30): none (swap limit 2 reached)
+  L25: recipe failed (closest D=0.292, target 0.581) {"storm":80,"stall":5,"offTarget":24,"humanLost":12,"objectives":1}
+  L25: re-roll -> industrialize goal build, template crescent, features [material_processor, tier2], target band 0.6
+  pool: miss L25 (target 0.581), 400 pooled; nearest same-family 2ac2b80e005f D 0.625: features [tier2] not unlocked at level 25
+[s1-L025] composer round 0: start (estimate 0.37-0.77 (mid 0.57) for target 0.581) -> [converter_levels, depot, dust_storms, material_processor, tier2] est 0.57, optional modules 5/6
+[s1-L015] composer round 0 measured D 0.674-0.901 (n 23): none (defend keeps the sequencer's set)
+  L15: recipe failed (closest D=0.683, target 0.279) {"layout":720,"humanLost":30,"offTarget":17,"ladderSpent":6}
+  L15: re-roll -> defend goal waves_survived, template crossroads, features [med_bay, salvage_upgrades, turrets], target band 0.3
+  pool: miss L15 (target 0.279), 400 pooled; nearest same-family 397e3f720ec5 D 0.638: D 0.638 is 0.359 from target 0.279 (gap 0.1)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L014] composer round 0 measured D 0.223-0.564 (n 16): none (measured D 0.223-0.564 spans the target)
+  L14: recipe failed (closest D=0.408, target 0.267) {"layout":230,"objectives":1,"offTarget":11,"probe":16,"humanLost":6,"stall":4,"infeasible":2}
+  L14: re-roll -> industrialize goal stockpile, template crossroads, features [conveyors, depot, material_processor, tier2], target band 0.3
+  pool: miss L14 (target 0.267), 400 pooled; nearest same-family 367d5cb8b4f7 D 0.271: introduces [], slot introduces [conveyors,depot]
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L025] composer round 0 measured D none: remove depot (no feasible candidate)
+[s1-L025] composer round 1: remove depot (no feasible candidate) -> [converter_levels, dust_storms, material_processor, tier2] est 0.43, optional modules 4/6
+[s1-L025] composer round 1 measured D none: remove dust_storms (no feasible candidate)
+[s1-L025] composer round 2: remove dust_storms (no feasible candidate) -> [converter_levels, material_processor, tier2] est 0.305, optional modules 3/6
+[s1-L014] composer round 0 measured D 0.412-0.570 (n 16): none (every D (min 0.412) over the target and no extra to drop)
+  pool: saved b2412a9b357e (D 0.432, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved b454621c35e3 (D 0.47, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved d957aa5d06e7 (D 0.433, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved ab7172a31868 (D 0.44, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 1b5cdbb026ff (D 0.487, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved e128d239a121 (D 0.431, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 7836a4a51f15 (D 0.412, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved a1dca0a1a3b6 (D 0.463, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved f81f81177ef8 (D 0.417, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 44ebd25bb421 (D 0.426, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved e242fbb20eb3 (D 0.439, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 063766fc1d09 (D 0.43, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 51a815dfc329 (D 0.57, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  L14: recipe failed (closest D=0.413, target 0.267) {"humanLost":8,"offTarget":16,"infeasible":6,"probe":3}
+  L14: re-roll -> industrialize goal stockpile, template north_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  pool: miss L14 (target 0.267), 400 pooled; nearest same-family 367d5cb8b4f7 D 0.271: introduces [], slot introduces [conveyors,depot]
+[s1-L010] composer round 0 measured D 0.674-0.903 (n 31): none (defend keeps the sequencer's set)
+[s1-L010] composer round 0: start (estimate 0.35-0.95 (mid 0.65) for target 0.219) -> [multi_side, salvage_upgrades, turrets] est 0.65, optional modules 6/4, defend keeps the sequencer's set
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L025] composer round 2 measured D 0.225-0.469 (n 37): none (swap limit 2 reached)
+  pool: saved 10a3bff29749 (D 0.249, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 066a32a3b8f9 (D 0.271, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved d6816011abd1 (D 0.252, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 6cadce6eedc7 (D 0.385, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved fa265fb9e44d (D 0.458, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved c8cd828e1d0f (D 0.425, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 4e1e3c9413bf (D 0.423, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved a1ae49b6f5ed (D 0.285, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved e7d889788772 (D 0.225, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 9803339319bc (D 0.271, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 30c4a50f2199 (D 0.445, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved a0409105fade (D 0.335, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 161aa5084d12 (D 0.327, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved f92108627111 (D 0.463, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved da261ead450c (D 0.239, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 9bef7e179eb0 (D 0.249, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved bd863a41bc48 (D 0.251, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 95c6cb131cac (D 0.469, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 5be8274bbb20 (D 0.352, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved aa534f1590a1 (D 0.469, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved efbd6a78b891 (D 0.467, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 4f68d75217cf (D 0.463, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 88964c88e898 (D 0.466, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved a5d27baa1542 (D 0.23, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 36ce93aae3d7 (D 0.225, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved ab487c70d38d (D 0.439, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 71806472a063 (D 0.462, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 5e016d726d7f (D 0.334, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 9eb980348471 (D 0.468, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 5684b10b8984 (D 0.461, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 5a5806ccbcc8 (D 0.462, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved b055a8d0897b (D 0.37, industrialize, goal build, from s1-L025) (slot target 0.581)
+  L25: recipe failed (closest D=0.458, target 0.581) {"storm":80,"offTarget":37,"humanLost":6}
+  L25: re-roll -> industrialize goal build, template west_fields, features [conveyors, material_processor, tier2], target band 0.6
+  pool: miss L25 (target 0.581), 400 pooled; nearest same-family 51a815dfc329 D 0.57: introduces a feature in a mix slot
+[s1-L025] composer round 0: start (estimate 0.37-0.77 (mid 0.57) for target 0.581) -> [converter_levels, depot, dust_storms, material_processor, tier2] est 0.57, optional modules 5/6, left out conveyors: not in the pool (locked, avoided by the goal, or unbuildable)
+[s1-L014] composer round 0 measured D 0.242-0.570 (n 14): none (measured D 0.242-0.57 spans the target)
+  pool: saved af04dc26fb6a (D 0.44, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 1e92f6b41650 (D 0.487, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 7fe2d1d0e39b (D 0.431, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 0acb5690fdba (D 0.412, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved e90c0e45e79d (D 0.463, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved fae53f6d827d (D 0.417, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved f8d739b24f45 (D 0.426, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 2d24880aed15 (D 0.439, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved c5aa79629a6b (D 0.43, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 3176dbc84f53 (D 0.57, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  L14: recipe failed (closest D=0.413, target 0.267) {"layout":10,"infeasible":13,"trivial":1,"probe":4,"humanLost":6,"offTarget":13}
+  L14: re-roll -> industrialize goal stockpile, template east_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  pool: miss L14 (target 0.267), 400 pooled; nearest same-family 367d5cb8b4f7 D 0.271: introduces [], slot introduces [conveyors,depot]
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L025] composer round 0 measured D none: remove depot (no feasible candidate)
+[s1-L025] composer round 1: remove depot (no feasible candidate) -> [converter_levels, dust_storms, material_processor, tier2] est 0.43, optional modules 4/6
+[s1-L015] composer round 0 measured D 0.651-0.852 (n 14): none (defend keeps the sequencer's set)
+[s1-L015] composer round 0: start (estimate 0.3-0.85 (mid 0.575) for target 0.279) -> [med_bay, salvage_upgrades, turrets] est 0.575, optional modules 7/4, defend keeps the sequencer's set
+[s1-L025] composer round 1 measured D none: remove dust_storms (no feasible candidate)
+[s1-L025] composer round 2: remove dust_storms (no feasible candidate) -> [converter_levels, material_processor, tier2] est 0.305, optional modules 3/6
+[s1-L014] composer round 0 measured D 0.417-0.570 (n 8): none (every D (min 0.417) over the target and no extra to drop)
+  pool: saved 941f0e95903b (D 0.417, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 6bc89ac00aac (D 0.426, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved 0a5838059213 (D 0.439, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved a4e8a953859a (D 0.43, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  pool: saved c5f8f0b1c422 (D 0.57, industrialize, goal stockpile, from s1-L014) (slot target 0.267)
+  L14: recipe failed (nothing shipped) {"layout":46,"probe":13,"infeasible":10,"humanLost":3,"offTarget":8,"stall":4}
+  L14: re-roll -> industrialize goal stockpile, template south_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  pool: miss L14 (target 0.267), 400 pooled; nearest same-family 367d5cb8b4f7 D 0.271: introduces [], slot introduces [conveyors,depot]
+[s1-L014] composer round 0: start (estimate 0.32-0.54 (mid 0.43) for target 0.267) -> [conveyors, depot, material_processor, tier2] est 0.43, optional modules 5/4, required set carries 5 optional modules, over the cap 4
+[s1-L025] composer round 2 measured D 0.225-0.519 (n 35): none (swap limit 2 reached)
+  pool: saved 87d033d9fb0c (D 0.249, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 252cc960fa5c (D 0.271, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 2d80687d21b7 (D 0.252, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 1ee4a3721082 (D 0.385, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 51247a58ff2a (D 0.458, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 28babcf88567 (D 0.425, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved c31b5378da1b (D 0.423, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved b47f1561f00e (D 0.285, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 4c50a6840880 (D 0.225, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 12a085e8f2c4 (D 0.271, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved eec3e2d1bc8f (D 0.445, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved e50a534302bc (D 0.335, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 443e6ff5de3c (D 0.327, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 443f90ffb31f (D 0.463, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved fec0d2b07776 (D 0.239, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved d7d8c0b0e41b (D 0.249, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 9ef899597f7b (D 0.251, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved ad0e55950b8a (D 0.469, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 623eb9378035 (D 0.352, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved d3ebd4abac1b (D 0.469, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved b5227b8514b3 (D 0.467, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 4a033e5c66af (D 0.463, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved d2f7afbf48dd (D 0.466, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 1335b82b2f33 (D 0.231, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved f2878c13f663 (D 0.235, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 689b652a7bea (D 0.457, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 4e2f5f812f87 (D 0.485, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved ea15a82f27ae (D 0.519, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved f8a31ee216f2 (D 0.315, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 2dee415baee3 (D 0.515, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved cc2dd2e18f32 (D 0.473, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved caae592fa769 (D 0.506, industrialize, goal build, from s1-L025) (slot target 0.581)
+  pool: saved 769b9d0add44 (D 0.379, industrialize, goal build, from s1-L025) (slot target 0.581)
+  L25 off D=0.519 (target 0.581) F=0.912 348s
+[s1-L014] composer round 0 measured D 0.400-0.487 (n 12): none (every D (min 0.4) over the target and no extra to drop)
+  L14: recipe failed (nothing shipped) {"layout":116,"probe":5,"infeasible":22,"offTarget":7,"humanLost":4,"objectives":2}
+[s1-L021] composer round 0 measured D 0.718-0.974 (n 41): none (defend keeps the sequencer's set)
+  L21: recipe failed (closest D=0.829, target 0.4) {"offTarget":28,"infeasible":20,"trivial":25,"layout":34}
+[s1-L010] composer round 0 measured D 0.684-0.985 (n 40): none (defend keeps the sequencer's set)
+  L10: recipe failed (closest D=0.684, target 0.219) {"layout":40,"trivial":35,"offTarget":36,"infeasible":5}
+[s1-L015] composer round 0 measured D 0.670-0.966 (n 41): none (defend keeps the sequencer's set)
+  pool: saved b3ba668974f1 (D 0.832, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 79fab2f5a725 (D 0.857, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 49a0c7705ea9 (D 0.864, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved af369266febd (D 0.829, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 38c0a08faa8a (D 0.854, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved 08f289c48f35 (D 0.887, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  pool: saved b1b954aede72 (D 0.779, defend, goal waves_survived, from s1-L015) (slot target 0.279)
+  L15: recipe failed (closest D=0.774, target 0.279) {"layout":380,"infeasible":23,"trivial":29,"ladderSpent":18,"offTarget":17}
+
+idx	modules	goal	target	D	F	good	aver	weak	novi	floo	time
+25	build_pads,converters,workers	build	0.58	0.519*	0.912	W54%	W50%	W47%	W40%	L-100%	348s
+
+1 levels, 1 off target (*), 1 failed, 2038 s wall; rejected candidates: {"storm":80,"offTarget":35,"humanLost":5}
+industrialize: 1 levels; goals: build; star objectives: hire, time_target; mean stars: good 3.00 / average 3.00 / weak 3.00 / novice 3.00 / floor 0.00
+
+re-rolls (register ..\..\..\..\..\..\..\..\AppData\Local\Temp\claude\5727d705018f10c0\16bce6e5-e58c-4328-b52e-19691fdb1d4d\scratchpad\reg-run2.json, 11 entries):
+  Level 14: 7 recipe(s) failed; not built
+    x industrialize goal stockpile, template corridor, features [conveyors, depot, material_processor, tier2], target band 0.3
+    x industrialize goal stockpile, template crescent, features [conveyors, depot, material_processor, tier2], target band 0.3
+    x industrialize goal stockpile, template west_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+    x industrialize goal stockpile, template crossroads, features [conveyors, depot, material_processor, tier2], target band 0.3
+    x industrialize goal stockpile, template north_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+    x industrialize goal stockpile, template east_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+    x industrialize goal stockpile, template south_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  Level 15: 1 recipe(s) failed; not built
+    x defend goal turret_level, template south_fields, features [med_bay, salvage_upgrades, turrets], target band 0.3
+  Level 25: 3 recipe(s) failed; built with industrialize goal build, template west_fields, features [conveyors, material_processor, tier2], target band 0.6
+    x industrialize goal build, template corridor, features [conveyors, depot, material_processor, tier2], target band 0.6
+    x industrialize goal converter_level, template north_fields, features [converter_levels], target band 0.6
+    x industrialize goal build, template crescent, features [material_processor, tier2], target band 0.6
+
+variety (signature v1, whole pack):
+  Level 25: 0 duplicate candidate(s) rejected, 0 rebuild(s), signature v1-fdc66269
+
+BUILD STOPPED. Level 14 cannot be built: the sequencer has no recipe left (sequencer: no valid request for level 14 (industrialize, intro) outside the recipe register). Recipes tried:
+  1. industrialize goal stockpile, template corridor, features [conveyors, depot, material_processor, tier2], target band 0.3
+  2. industrialize goal stockpile, template crescent, features [conveyors, depot, material_processor, tier2], target band 0.3
+  3. industrialize goal stockpile, template west_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  4. industrialize goal stockpile, template crossroads, features [conveyors, depot, material_processor, tier2], target band 0.3
+  5. industrialize goal stockpile, template north_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  6. industrialize goal stockpile, template east_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+  7. industrialize goal stockpile, template south_fields, features [conveyors, depot, material_processor, tier2], target band 0.3
+[ELIFECYCLE] Command failed with exit code 1.
+EXIT 1

@@ -1,0 +1,402 @@
+{
+  "id": "s1-L008",
+  "seed": 1067227942,
+  "engineVersion": "0.36.0",
+  "contentVersion": "0.23.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "sources-e",
+      "shop-se",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "build_pads",
+    "carry",
+    "core",
+    "customer_variety",
+    "gather",
+    "sales",
+    "workers"
+  ],
+  "start": [
+    269,
+    538
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        275,
+        446
+      ],
+      "params": {
+        "fuel": 15,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        152,
+        442
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          91,
+          442
+        ],
+        [
+          91,
+          408
+        ],
+        [
+          91,
+          374
+        ],
+        [
+          91,
+          340
+        ]
+      ],
+      "route": [
+        [
+          -20,
+          441
+        ],
+        [
+          3,
+          441
+        ],
+        [
+          91,
+          442
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        279,
+        577
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        352,
+        446
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        352,
+        480
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        352,
+        412
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        224,
+        531
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        381,
+        433
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        381,
+        399
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        224,
+        565
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        381,
+        365
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        411,
+        437
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        335,
+        573
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        411,
+        403
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        428,
+        353
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        403,
+        522
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        352,
+        370
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        369,
+        573
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        195,
+        340
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        224,
+        599
+      ]
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core",
+      "at": [
+        362,
+        533
+      ],
+      "cost": {
+        "res.currency": 7
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "sink.core"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food",
+      "at": [
+        341,
+        639
+      ],
+      "cost": {
+        "res.currency": 11
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_cashier",
+      "at": [
+        183,
+        558
+      ],
+      "cost": {
+        "res.currency": 31
+      },
+      "role": {
+        "role": "role.cashier",
+        "to": "sink.sales_point"
+      },
+      "requires": {
+        "pad": "hire_core_b"
+      },
+      "manual": true
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_food_b",
+      "at": [
+        341,
+        639
+      ],
+      "cost": {
+        "res.currency": 18
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.food_source",
+        "to": "sink.sales_point",
+        "node": "food1"
+      },
+      "requires": {
+        "pad": "hire_food"
+      }
+    },
+    {
+      "type": "pad.hire",
+      "id": "hire_core_b",
+      "at": [
+        394,
+        478
+      ],
+      "cost": {
+        "res.currency": 24
+      },
+      "role": {
+        "role": "role.supplier",
+        "from": "node.fuel_scrap",
+        "to": "sink.core"
+      },
+      "requires": {
+        "pad": "hire_food_b"
+      }
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 0,
+    "core.burn": 2.9,
+    "housing.base": 8,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 2.9,
+    "sales.clerkSide": 1,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "customers.impatientShare": 0.23,
+    "customers.premiumShare": 0.23,
+    "level.budgetSeconds": 220
+  },
+  "goal": {
+    "type": "streak",
+    "n": 47
+  },
+  "family": "harvest",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "streak",
+      "params": {
+        "n": 47
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "no_angry_customers",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 155
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Hurried Traders and Hot Streak",
+      "goal": "streak",
+      "tips": [
+        "Feed ore to the reactor. If it runs dry, the colony starts to freeze."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.212,
+    "fun": 0.904,
+    "botMargin": 0.562,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 2.67,
+      "goodAll": 1,
+      "human": 2.83,
+      "humanAll": 0.83
+    },
+    "loopMax": 2
+  },
+  "lighting": "night"
+}

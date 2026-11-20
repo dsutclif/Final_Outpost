@@ -1,0 +1,295 @@
+{
+  "id": "s1-L007",
+  "seed": 1793842133,
+  "engineVersion": "0.36.0",
+  "contentVersion": "0.23.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-nw",
+      "food-ne",
+      "fuel-w",
+      "shop-s"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    209,
+    580
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        230,
+        476
+      ],
+      "params": {
+        "fuel": 15,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        476
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        306,
+        476
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        442
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        234,
+        557
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        510
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        306,
+        510
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        211,
+        394
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        242,
+        369
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        408
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        178,
+        382
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          116,
+          328
+        ],
+        [
+          230,
+          328
+        ],
+        [
+          343,
+          328
+        ],
+        [
+          343,
+          461
+        ],
+        [
+          343,
+          594
+        ],
+        [
+          230,
+          594
+        ],
+        [
+          116,
+          594
+        ],
+        [
+          116,
+          461
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        5
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        69,
+        754
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        428,
+        444
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        273,
+        815
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        376,
+        648
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        317,
+        727
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        190,
+        669
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        392,
+        862
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        36,
+        442
+      ]
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 0,
+    "core.burn": 2.1,
+    "housing.base": 5,
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 80
+  },
+  "goal": {
+    "type": "crates",
+    "n": 5
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "crates",
+      "params": {
+        "n": 5
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "rescue_housed",
+      "params": {
+        "n": 2
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 53
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Tow Lines and Cargo",
+      "goal": "crates",
+      "tips": [
+        "Feed ore to the reactor. If it runs dry, the colony starts to freeze."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.148,
+    "fun": 0.505,
+    "botMargin": 0.594,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    },
+    "loopMax": 1
+  }
+}
