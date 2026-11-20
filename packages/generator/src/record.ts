@@ -22,9 +22,8 @@ export interface CandidateRecord {
     /** Play shape (outpost-ops#151): the three numbers, the limits failed (enforced or not), the level end and every play-shape beat, in seconds. */
     playShape?: { maxPhaseShare: number; beatTypes: number; lastNewBeatShare: number; fails: string[]; endS: number; beatS: number[] } };
   idleElements?: string[];
-  /** The spare-pad trim passed but moved D further from target, so the untrimmed candidate was kept. */
+  /** Idle elements were stripped and the candidate re-rated once (before/after D). */
   stripped?: { elements: string[]; beforeD: number; afterD: number };
-  trimRefused?: { D: number; trimmedD: number; target: number };
   objectives?: { kind: string; params: Record<string, number | string> }[];
   stars?: Record<string, number>;
   /** Passed every check and became the best so far. */
@@ -52,21 +51,6 @@ export interface CandidateRecord {
   step?: { prev: number; dp: number; dD?: number };
   /** The built manifest as it was rated or played. levels:build stores it gzipped as `manifestGz` (tools/candidate-log.ts) so `pnpm trace --candidate <jsonl> --n <n>` can replay the candidate. */
   manifest?: Manifest;
-  /** Add-on composer (src/composer.ts): the set this candidate was built with, its estimate, and the swap round (0 = starting set). */
-  composer?: ComposerLog;
-}
-
-/** One composer decision, logged on every candidate of the set it chose. */
-export interface ComposerLog {
-  round: number;
-  features: string[];
-  estimate: { lo: number; mid: number; hi: number };
-  cap: number;
-  optionalModules: number;
-  /** How this set came about: the starting set, or the swap (add/remove one feature) after the previous round's measured D. */
-  decision: { action: "start" | "add" | "remove"; feature?: string; why: string; measured?: { n: number; min: number; max: number } };
-  dropped?: { feature: string; why: string }[];
-  notes?: string[];
 }
 
 /** The numbers behind one reject label. `kind` is the label; the other fields depend on it. */

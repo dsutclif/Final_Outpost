@@ -1,16 +1,16 @@
 {
   "id": "s1-L023",
   "seed": 886907390,
-  "engineVersion": "0.36.0",
+  "engineVersion": "0.35.0",
   "contentVersion": "0.23.0",
   "map": {
     "w": 480,
     "h": 900,
     "zones": [
       "base",
-      "sources-e",
-      "food-se",
-      "shop-w",
+      "sources-far-w",
+      "food-far-e",
+      "shop-s",
       "landmark-sw"
     ]
   },
@@ -26,19 +26,19 @@
     "sales"
   ],
   "start": [
-    225,
-    471
+    240,
+    612
   ],
   "entities": [
     {
       "type": "sink.core",
       "id": "core",
       "at": [
-        189,
-        358
+        240,
+        520
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 12,
         "level": 1
       }
     },
@@ -46,70 +46,46 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        185,
-        159
+        175,
+        598
       ],
       "sells": [
         "res.food_raw_1"
       ],
       "queue": [
         [
-          246,
-          159
+          236,
+          598
         ],
         [
           270,
-          135
+          598
         ],
         [
-          294,
-          111
+          304,
+          598
         ],
         [
-          318,
-          87
+          328,
+          622
         ]
       ],
       "route": [
         [
-          500,
-          579
+          -20,
+          645
         ],
         [
-          477,
-          579
+          3,
+          645
         ],
         [
           249,
-          579
+          639
         ],
         [
-          255,
-          561
-        ],
-        [
-          255,
-          555
-        ],
-        [
-          375,
-          465
-        ],
-        [
-          375,
-          417
-        ],
-        [
-          339,
-          285
-        ],
-        [
-          255,
-          159
-        ],
-        [
-          246,
-          159
+          270,
+          598
         ]
       ]
     },
@@ -117,71 +93,78 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        291,
-        358
+        342,
+        518
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        193,
-        439
+        161,
+        495
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        159,
-        439
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        227,
-        439
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        125,
-        439
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        265,
-        282
-      ]
-    },
-    {
-      "type": "node.fuel_scrap",
-      "at": [
-        315,
+        219,
         441
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        338,
-        411
+        132,
+        488
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        189,
-        468
+        153,
+        453
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        347,
-        444
+        183,
+        436
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        555
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        112,
+        511
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        124,
+        459
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        99,
+        484
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        97,
+        583
       ]
     },
     {
@@ -191,57 +174,58 @@
       "costPerSection": 1,
       "points": [
         [
-          84,
-          52
+          60,
+          320
         ],
         [
-          188,
-          52
+          180,
+          320
         ],
         [
-          293,
-          52
+          300,
+          320
         ],
         [
-          397,
-          52
+          420,
+          320
         ],
         [
-          397,
-          223
+          420,
+          453
         ],
         [
-          397,
-          395
+          420,
+          587
         ],
         [
-          397,
-          566
+          420,
+          720
         ],
         [
-          293,
-          566
+          300,
+          720
         ],
         [
-          188,
-          566
+          180,
+          720
         ],
         [
-          84,
-          566
+          60,
+          720
         ],
         [
-          84,
-          395
+          60,
+          587
         ],
         [
-          84,
-          223
+          60,
+          453
         ]
       ],
       "closed": true,
       "gates": [
-        7
+        1,
+        9
       ],
       "prebuilt": [
         0,
@@ -262,67 +246,60 @@
       "type": "zone.blocked",
       "id": "pass",
       "rect": [
-        191,
-        638,
-        100,
+        0,
+        114,
+        480,
         44
       ]
     },
     {
-      "type": "zone.blocked",
-      "id": "pass_band0",
-      "rect": [
-        0,
-        638,
-        191,
-        44
+      "type": "capture.recruit_container",
+      "at": [
+        361,
+        55
       ],
-      "clearsWith": "pass"
-    },
-    {
-      "type": "zone.blocked",
-      "id": "pass_band1",
-      "rect": [
-        291,
-        638,
-        189,
-        44
-      ],
-      "clearsWith": "pass"
+      "freeze": 134
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        350,
-        770
+        238,
+        61
       ],
-      "freeze": 140
+      "freeze": 149
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        116,
-        811
+        105,
+        221
       ],
-      "freeze": 160
+      "freeze": 151
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        228,
-        798
+        356,
+        254
       ],
-      "freeze": 176
+      "freeze": 164
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        272,
+        218
+      ]
     },
     {
       "type": "pad.build",
       "id": "core_level0",
       "at": [
-        276,
-        445
+        263,
+        630
       ],
       "cost": {
-        "res.currency": 25
+        "res.currency": 29
       },
       "build": "sink.core.level"
     },
@@ -330,11 +307,11 @@
       "type": "pad.build",
       "id": "clear_pass",
       "at": [
-        266,
-        613
+        310,
+        239
       ],
       "cost": {
-        "res.currency": 15
+        "res.currency": 17
       },
       "build": "zone.clear",
       "target": "pass",
@@ -347,15 +324,15 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
-    "core.burn": 2.9,
-    "housing.base": 5,
+    "start.currency": 5,
+    "core.burn": 2.5,
+    "housing.base": 6,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 2.9,
+    "customers.spawn": 3.1,
     "customers.orderMin": 1,
     "customers.orderMax": 3,
-    "level.budgetSeconds": 150
+    "level.budgetSeconds": 140
   },
   "goal": {
     "type": "rescue_all"
@@ -378,7 +355,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 104
+        "seconds": 90
       }
     }
   ],
@@ -390,20 +367,19 @@
       "title": "Drift Cables and Every Pod",
       "goal": "rescue_all",
       "tips": [
-        "Step out through the gate and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.568,
-    "fun": 0.726,
-    "botMargin": 0.592,
+    "difficulty": 0.862,
+    "fun": 0.775,
+    "botMargin": 0.605,
     "botsPassed": [
       "good",
       "average",
       "weak",
-      "novice",
-      "floor"
+      "novice"
     ],
     "stars": {
       "good": 3,
@@ -411,7 +387,6 @@
       "goodAll": 1,
       "human": 3,
       "humanAll": 1
-    },
-    "loopMax": 2
+    }
   }
 }

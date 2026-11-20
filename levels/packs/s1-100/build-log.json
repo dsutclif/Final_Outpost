@@ -1,0 +1,895 @@
+[
+ {
+  "index": 101,
+  "id": "s1-L101",
+  "file": "s1-L101.json",
+  "title": "Drift Cables and Protein Run",
+  "phase": "mix",
+  "introduced": [],
+  "family": "rescue",
+  "secondary": null,
+  "features": [
+   "crates",
+   "hunting",
+   "pod_timers"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "protein",
+    "params": {
+     "n": 39
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "tow_full_trip",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 206
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1.33,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "hunting",
+   "lasso",
+   "sales"
+  ],
+  "goal": "protein",
+  "template": "crossroads",
+  "target": 0.4,
+  "D": 0.3397076159584379,
+  "F": 0.6947832566389888,
+  "onTarget": false,
+  "margin": {
+   "good": 0.6309523809523809,
+   "average": 0.6037777777777777,
+   "weak": 0.5533015873015873,
+   "novice": 0.5173333333333333,
+   "floor": 0.1453382173382173
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 315.702,
+  "seed": 982217886,
+  "attempts": 7,
+  "rejects": {
+   "layout": 20,
+   "offTarget": 62,
+   "objectives": 3,
+   "stall": 5
+  },
+  "ratings": 74
+ },
+ {
+  "index": 102,
+  "id": "s1-L102",
+  "file": "s1-L102.json",
+  "title": "Sealed Veins and First Class",
+  "phase": "mix",
+  "introduced": [],
+  "family": "harvest",
+  "secondary": null,
+  "features": [
+   "bulk_orders",
+   "source_unlocks",
+   "vips"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "serve_premium",
+    "params": {
+     "n": 14
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_angry_customers",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 263
+    }
+   }
+  ],
+  "stars": {
+   "good": 2.9,
+   "median": 3,
+   "goodAll": 0.9,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 2.9,
+   "average": 2.67,
+   "weak": 3,
+   "novice": 2.33,
+   "floor": 2,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "customer_variety",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "serve_premium",
+  "template": "crescent",
+  "target": 0.45,
+  "D": 0.5009838609543869,
+  "F": 0.7276810588073809,
+  "onTarget": false,
+  "margin": {
+   "good": 0.5939270833333332,
+   "average": 0.5936805555555554,
+   "weak": 0.5662847222222223,
+   "novice": 0.46031250000000007,
+   "floor": 0.34739583333333335
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 132.637,
+  "seed": 498833225,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 66,
+   "objectives": 3,
+   "stall": 1,
+   "infeasible": 1
+  },
+  "ratings": 83
+ },
+ {
+  "index": 103,
+  "id": "s1-L103",
+  "file": "s1-L103.json",
+  "title": "Presses and Hiring Drive",
+  "phase": "mix",
+  "introduced": [],
+  "family": "industrialize",
+  "secondary": null,
+  "features": [
+   "converter_levels",
+   "material_processor",
+   "tier2"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "hire",
+    "params": {
+     "n": 11
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 30
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 480
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 2,
+   "humanAll": 0.67
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2.67,
+   "floor": 0.33,
+   "human": 2
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "hire",
+  "template": "south_fields",
+  "target": 0.494,
+  "D": 0.6007985215949417,
+  "F": 0.933806743327407,
+  "onTarget": false,
+  "margin": {
+   "good": 0.45349090909090906,
+   "average": 0.4158787878787879,
+   "weak": 0.345030303030303,
+   "novice": 0.26595959595959595,
+   "floor": -0.03420202020202023
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.3333333333333333
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 347.554,
+  "seed": 1794552599,
+  "attempts": 7,
+  "rejects": {
+   "stall": 20,
+   "offTarget": 51,
+   "layout": 15,
+   "humanLost": 1
+  },
+  "ratings": 71
+ },
+ {
+  "index": 104,
+  "id": "s1-L104",
+  "file": "s1-L104.json",
+  "title": "Scrap and Gun Line",
+  "phase": "mix",
+  "introduced": [],
+  "family": "defend",
+  "secondary": null,
+  "features": [
+   "med_bay",
+   "salvage_upgrades",
+   "turrets"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "turret_level",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "hire",
+    "params": {
+     "n": 5
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "gate_held",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 2.67,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 2.67,
+   "novice": 2.33,
+   "floor": 2,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "turret_level",
+  "template": "corridor",
+  "target": 0.538,
+  "D": 0.5824734052488394,
+  "F": 0.09730565669546386,
+  "onTarget": false,
+  "margin": {
+   "good": 0.5975483870967742,
+   "average": 0.5924731182795698,
+   "weak": 0.5844086021505376,
+   "novice": 0.4745161290322581,
+   "floor": -0.05347670250896056
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 245.143,
+  "seed": 1871291851,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 8,
+   "idleModule": 1,
+   "lowFun": 1
+  },
+  "ratings": 11
+ },
+ {
+  "index": 105,
+  "id": "s1-L105",
+  "file": "s1-L105.json",
+  "title": "Hab Pods and Building Spree",
+  "phase": "mix",
+  "introduced": [],
+  "family": "shelter",
+  "secondary": null,
+  "features": [
+   "core_levels",
+   "dust_storms",
+   "gate_arrivals",
+   "housing",
+   "rockslides"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "build_count",
+    "params": {
+     "build": "struct.housing",
+     "n": 2
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 203
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2,
+   "floor": 0.67,
+   "human": 3
+  },
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "hazard_events",
+   "housing",
+   "sales"
+  ],
+  "goal": "build_count",
+  "template": "south_fields",
+  "target": 0.581,
+  "D": 0.5272407583601042,
+  "F": 0.48006771163084605,
+  "onTarget": false,
+  "margin": {
+   "good": 0.6397714285714285,
+   "average": 0.5864761904761905,
+   "weak": 0.5612380952380952,
+   "novice": 0.3703174603174603,
+   "floor": -0.1426031746031746
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 131.635,
+  "seed": 1693317936,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 67,
+   "layout": 323,
+   "storm": 3
+  },
+  "ratings": 68
+ },
+ {
+  "index": 106,
+  "id": "s1-L106",
+  "file": "s1-L106.json",
+  "title": "Drift Cables and Last Calls",
+  "phase": "mix",
+  "introduced": [],
+  "family": "rescue",
+  "secondary": null,
+  "features": [
+   "clearing_pass",
+   "crates"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "rescue",
+    "params": {
+     "n": 4
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "tow_full_trip",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 95
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1.33,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "lasso",
+   "sales"
+  ],
+  "goal": "rescue",
+  "template": "north_fields",
+  "target": 0.625,
+  "D": 0.6210074971092807,
+  "F": 0.7955222553566432,
+  "onTarget": true,
+  "margin": {
+   "good": 0.6029761904761904,
+   "average": 0.5688888888888889,
+   "weak": 0.5203968253968254,
+   "novice": 0.3811111111111111,
+   "floor": -0.04325396825396826
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 7.916,
+  "seed": 232536213,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 2
+  },
+  "ratings": 4
+ },
+ {
+  "index": 107,
+  "id": "s1-L107",
+  "file": "s1-L107.json",
+  "title": "Locked Caches and Profit",
+  "phase": "mix",
+  "introduced": [],
+  "family": "harvest",
+  "secondary": null,
+  "features": [
+   "bulk_orders",
+   "source_unlocks",
+   "vips"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "currency",
+    "params": {
+     "n": 433
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "streak",
+    "params": {
+     "n": 20
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 332
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1.67,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "customer_variety",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "currency",
+  "template": "east_fields",
+  "target": 0.669,
+  "D": 0.6207352349151235,
+  "F": 0.9275093812220798,
+  "onTarget": true,
+  "margin": {
+   "good": 0.45119607843137255,
+   "average": 0.41754901960784313,
+   "weak": 0.3704575163398693,
+   "novice": 0.2549019607843137,
+   "floor": -0.06403832510679408
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 117.15,
+  "seed": 1864099170,
+  "attempts": 5,
+  "rejects": {
+   "offTarget": 44,
+   "stall": 3,
+   "infeasible": 2
+  },
+  "ratings": 56
+ },
+ {
+  "index": 108,
+  "id": "s1-L108",
+  "file": "s1-L108.json",
+  "title": "Belt Lines and Hands Off",
+  "phase": "mix",
+  "introduced": [],
+  "family": "industrialize",
+  "secondary": null,
+  "features": [
+   "conveyors",
+   "material_processor",
+   "tier2"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "automate",
+    "params": {
+     "seconds": 33,
+     "machines": 2
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 1142
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 2.5,
+   "humanAll": 0.83
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2,
+   "floor": 3,
+   "human": 2.5
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "conveyors",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "automate",
+  "template": "west_fields",
+  "target": 0.713,
+  "D": 0.05668068455934992,
+  "F": 0.923275308995696,
+  "onTarget": false,
+  "margin": {
+   "good": 0.7127540983606557,
+   "average": 0.8138069216757741,
+   "weak": 0.7449271402550091,
+   "novice": 0.2586360876524811,
+   "floor": 0.618087431693989
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 0.6666666666666666,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 259.497,
+  "seed": 903385916,
+  "attempts": 7,
+  "rejects": {
+   "infeasible": 57,
+   "humanLost": 2,
+   "offTarget": 6
+  },
+  "ratings": 9
+ },
+ {
+  "index": 109,
+  "id": "s1-L109",
+  "file": "s1-L109.json",
+  "title": "Scrap and Hiring Drive",
+  "phase": "mix",
+  "introduced": [],
+  "family": "defend",
+  "secondary": null,
+  "features": [
+   "bosses",
+   "defenders",
+   "multi_side",
+   "salvage_upgrades",
+   "turrets"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "hire",
+    "params": {
+     "n": 4,
+     "role": "role.defender"
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "salvage",
+    "params": {
+     "n": 126
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_injuries",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "hire",
+  "template": "crossroads",
+  "target": 0.756,
+  "D": 0.7326295217376333,
+  "F": 0.2689414213699951,
+  "onTarget": false,
+  "margin": {
+   "good": 0.703021505376344,
+   "average": 0.6630465949820789,
+   "weak": 0.7831899641577061,
+   "novice": 0.7129032258064516,
+   "floor": -0.4707885304659498
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.3333333333333333
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 463.73,
+  "seed": 654360668,
+  "attempts": 2,
+  "rejects": {
+   "infeasible": 2,
+   "trivial": 3,
+   "offTarget": 8,
+   "humanLost": 6,
+   "lowFun": 1
+  },
+  "ratings": 13
+ }
+]

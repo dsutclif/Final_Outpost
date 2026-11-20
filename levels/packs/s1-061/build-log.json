@@ -1,0 +1,1719 @@
+[
+ {
+  "index": 61,
+  "id": "s1-L061",
+  "file": "s1-L061.json",
+  "title": "Reactors and Sweep",
+  "phase": "mix",
+  "introduced": [],
+  "family": "shelter",
+  "secondary": null,
+  "features": [
+   "core_levels",
+   "rockslides"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "clear_zones",
+    "params": {
+     "n": 1
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_colonist_freezes",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 73
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 2.67,
+   "humanAll": 0.67
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2,
+   "floor": 0,
+   "human": 2.67
+  },
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "sales"
+  ],
+  "goal": "clear_zones",
+  "template": "south_fields",
+  "target": 0.4,
+  "D": 0.4159340747207278,
+  "F": 0.67771992157399,
+  "onTarget": true,
+  "margin": {
+   "good": 0.5949696969696969,
+   "average": 0.49707070707070705,
+   "weak": 0.4728282828282828,
+   "novice": 0.1932323232323232,
+   "floor": -1
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 2.639,
+  "seed": 1398726059,
+  "attempts": 1,
+  "rejects": {
+   "layout": 12
+  },
+  "ratings": 2
+ },
+ {
+  "index": 62,
+  "id": "s1-L062",
+  "file": "s1-L062.json",
+  "title": "Tow Lines and Rescue",
+  "phase": "mix",
+  "introduced": [],
+  "family": "rescue",
+  "secondary": null,
+  "features": [
+   "clearing_pass",
+   "pod_timers"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "rescue",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "tow_full_trip",
+    "params": {
+     "n": 2
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 74
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2,
+   "floor": 1.33,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "lasso",
+   "sales"
+  ],
+  "goal": "rescue",
+  "template": "corridor",
+  "target": 0.45,
+  "D": 0.4329592277494218,
+  "F": 0.8524446300216748,
+  "onTarget": true,
+  "margin": {
+   "good": 0.6788571428571428,
+   "average": 0.6301587301587301,
+   "weak": 0.5757142857142857,
+   "novice": 0.3857936507936508,
+   "floor": -0.21039682539682544
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 7.915,
+  "seed": 577417692,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 3
+  },
+  "ratings": 5
+ },
+ {
+  "index": 63,
+  "id": "s1-L063",
+  "file": "s1-L063.json",
+  "title": "Hurried Traders and Quick Credits",
+  "phase": "mix",
+  "introduced": [],
+  "family": "harvest",
+  "secondary": null,
+  "features": [
+   "vips"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "earn_within",
+    "params": {
+     "n": 226,
+     "seconds": 105
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "streak",
+    "params": {
+     "n": 20
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 154
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 2,
+   "goodAll": 1,
+   "human": 2.5,
+   "humanAll": 0.83
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 2,
+   "novice": 0,
+   "floor": 0,
+   "human": 2.5
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "customer_variety",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "earn_within",
+  "template": "north_fields",
+  "target": 0.494,
+  "D": 0.4357465063887213,
+  "F": 0.8179135161565197,
+  "onTarget": false,
+  "margin": {
+   "good": 0.6889885057471263,
+   "average": 0.6575862068965518,
+   "weak": 0.40410232936629037,
+   "novice": -0.2507374631268437,
+   "floor": -0.4306784660766962
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 0.6666666666666666,
+   "novice": 0,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak"
+  ],
+  "seconds": 36.666,
+  "seed": 1603035273,
+  "attempts": 7,
+  "rejects": {
+   "humanLost": 20,
+   "infeasible": 31,
+   "offTarget": 8,
+   "objectives": 1
+  },
+  "ratings": 41
+ },
+ {
+  "index": 64,
+  "id": "s1-L064",
+  "file": "s1-L064.json",
+  "title": "Warehouses and Hiring Drive",
+  "phase": "mix",
+  "introduced": [],
+  "family": "industrialize",
+  "secondary": null,
+  "features": [
+   "depot"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "hire",
+    "params": {
+     "n": 8
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 30
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 225
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 2.5,
+   "humanAll": 0.83
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1,
+   "human": 2.5
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "gather",
+   "sales",
+   "supply_routing",
+   "workers"
+  ],
+  "goal": "hire",
+  "template": "crossroads",
+  "target": 0.538,
+  "D": 0.485780403037638,
+  "F": 0.8249363166165431,
+  "onTarget": false,
+  "margin": {
+   "good": 0.4788641975308642,
+   "average": 0.43102880658436216,
+   "weak": 0.3702057613168724,
+   "novice": 0.2508641975308642,
+   "floor": 0.03465020576131687
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 107.626,
+  "seed": 1372321526,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 67,
+   "humanLost": 5
+  },
+  "ratings": 68
+ },
+ {
+  "index": 66,
+  "id": "s1-L066",
+  "file": "s1-L066.json",
+  "title": "Hab Pods",
+  "phase": "mix",
+  "introduced": [],
+  "family": "shelter",
+  "secondary": null,
+  "features": [
+   "dust_storms",
+   "gate_arrivals",
+   "housing"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "hazard_survive",
+    "params": {}
+   },
+   {
+    "id": "challenge2",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 35
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 2.33,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 2.33,
+   "novice": 1,
+   "floor": 1,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "hazard_events",
+   "housing",
+   "sales"
+  ],
+  "goal": "hazard_survive",
+  "template": "crescent",
+  "target": 0.625,
+  "D": 0.04758909351717338,
+  "F": 0.43696657055821087,
+  "onTarget": false,
+  "margin": {
+   "good": 0.803854748603352,
+   "average": 0.7676908752327746,
+   "weak": 0.6210428305400373,
+   "novice": 0.41955307262569835,
+   "floor": 0.21918063314711364
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 78.575,
+  "seed": 1827931580,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 45
+  },
+  "ratings": 45
+ },
+ {
+  "index": 67,
+  "id": "s1-L067",
+  "file": "s1-L067.json",
+  "title": "Tow Lines and Every Pod",
+  "phase": "mix",
+  "introduced": [],
+  "family": "rescue",
+  "secondary": null,
+  "features": [
+   "crates"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "rescue_all",
+    "params": {}
+   },
+   {
+    "id": "challenge",
+    "kind": "tow_trip",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 80
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 0,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "lasso",
+   "sales"
+  ],
+  "goal": "rescue_all",
+  "template": "corridor",
+  "target": 0.669,
+  "D": 0.6607966419825431,
+  "F": 0.9736207578745226,
+  "onTarget": true,
+  "margin": {
+   "good": 0.3812916666666667,
+   "average": 0.32263888888888886,
+   "weak": 0.3536111111111111,
+   "novice": 0.16527777777777777,
+   "floor": -0.26666666666666666
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 35.165,
+  "seed": 561160057,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 55
+  },
+  "ratings": 57
+ },
+ {
+  "index": 68,
+  "id": "s1-L068",
+  "file": "s1-L068.json",
+  "title": "Sealed Veins and Bulk Orders",
+  "phase": "mix",
+  "introduced": [],
+  "family": "harvest",
+  "secondary": null,
+  "features": [
+   "bulk_orders",
+   "source_unlocks"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "bulk_order",
+    "params": {
+     "n": 16
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_angry_customers",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 344
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2.33,
+   "floor": 0.67,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "bulk_order",
+  "template": "south_fields",
+  "target": 0.713,
+  "D": 0.8627382566304933,
+  "F": 0.8652535716819604,
+  "onTarget": false,
+  "margin": {
+   "good": 0.5439379844961241,
+   "average": 0.5131266149870801,
+   "weak": 0.46930232558139534,
+   "novice": 0.38666666666666666,
+   "floor": 0.05567183462532299
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.3333333333333333
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 160.31,
+  "seed": 699072692,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 69
+  },
+  "ratings": 86
+ },
+ {
+  "index": 69,
+  "id": "s1-L069",
+  "file": "s1-L069.json",
+  "title": "Belt Lines and Hands Off",
+  "phase": "mix",
+  "introduced": [],
+  "family": "industrialize",
+  "secondary": null,
+  "features": [
+   "conveyors",
+   "material_processor",
+   "tier2"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "automate",
+    "params": {
+     "seconds": 40
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 416
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 1.33,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "conveyors",
+   "core",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "automate",
+  "template": "corridor",
+  "target": 0.756,
+  "D": 0.4103012923091472,
+  "F": 0.9686165698050593,
+  "onTarget": false,
+  "margin": {
+   "good": 0.47274829931972795,
+   "average": 0.3986621315192744,
+   "weak": 0.3170748299319728,
+   "novice": 0.29299319727891154,
+   "floor": -0.1545124716553288
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 207.614,
+  "seed": 187766291,
+  "attempts": 7,
+  "rejects": {
+   "infeasible": 31,
+   "trivial": 3,
+   "offTarget": 33
+  },
+  "ratings": 38
+ },
+ {
+  "index": 70,
+  "id": "s1-L070",
+  "file": "s1-L070.json",
+  "title": "Hurried Traders and Brighter Cores",
+  "phase": "finale",
+  "introduced": [],
+  "family": "shelter",
+  "secondary": "harvest",
+  "features": [
+   "core_levels",
+   "rockslides",
+   "vips"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "core_level",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 164
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 0,
+   "human": 3
+  },
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "customer_variety",
+   "gather",
+   "sales",
+   "workers"
+  ],
+  "goal": "core_level",
+  "template": "crescent",
+  "target": 0.8,
+  "D": 0.7844407589275066,
+  "F": 0.7825047926923597,
+  "onTarget": true,
+  "margin": {
+   "good": 0.5348030303030303,
+   "average": 0.48141414141414146,
+   "weak": 0.4059595959595959,
+   "novice": 0.3141919191919192,
+   "floor": -0.3333333333333333
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 8.049,
+  "seed": 1935856185,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 2
+  },
+  "ratings": 5
+ },
+ {
+  "index": 71,
+  "id": "s1-L071",
+  "file": "s1-L071.json",
+  "title": "Scrap and Hiring Drive",
+  "phase": "mix",
+  "introduced": [],
+  "family": "defend",
+  "secondary": null,
+  "features": [
+   "defenders",
+   "salvage_upgrades",
+   "turrets"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "hire",
+    "params": {
+     "n": 4,
+     "role": "role.defender"
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "turret_level",
+    "params": {
+     "n": 2
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "gate_held",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 2.67,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "hire",
+  "template": "south_fields",
+  "target": 0.4,
+  "D": 0.42365509738806684,
+  "F": 0.14476106921768067,
+  "onTarget": false,
+  "margin": {
+   "good": 0.7321925925925926,
+   "average": 0.7314814814814814,
+   "weak": 0.7275555555555555,
+   "novice": 0.7283456790123456,
+   "floor": 0.718962962962963
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 378.777,
+  "seed": 1184266522,
+  "attempts": 2,
+  "rejects": {
+   "ladderSpent": 14,
+   "trivial": 1,
+   "offTarget": 4,
+   "lowFun": 1
+  },
+  "ratings": 22
+ },
+ {
+  "index": 72,
+  "id": "s1-L072",
+  "file": "s1-L072.json",
+  "title": "Hab Pods and Many Hands",
+  "phase": "mix",
+  "introduced": [],
+  "family": "shelter",
+  "secondary": null,
+  "features": [
+   "dust_storms",
+   "gate_arrivals",
+   "housing"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "build_count",
+    "params": {
+     "build": "struct.housing",
+     "n": 2
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 123
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2,
+   "floor": 0,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "hazard_events",
+   "housing",
+   "sales"
+  ],
+  "goal": "build_count",
+  "template": "west_fields",
+  "target": 0.45,
+  "D": 0.4092348879276172,
+  "F": 0.6127179134181505,
+  "onTarget": true,
+  "margin": {
+   "good": 0.6446666666666666,
+   "average": 0.5962433862433861,
+   "weak": 0.5554497354497353,
+   "novice": 0.37153439153439155,
+   "floor": -0.5
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 6.788,
+  "seed": 1811884767,
+  "attempts": 1,
+  "rejects": {
+   "offTarget": 3
+  },
+  "ratings": 6
+ },
+ {
+  "index": 73,
+  "id": "s1-L073",
+  "file": "s1-L073.json",
+  "title": "Drift Cables and Thin Ice",
+  "phase": "mix",
+  "introduced": [],
+  "family": "rescue",
+  "secondary": null,
+  "features": [
+   "clearing_pass",
+   "pod_timers"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "rescue_before_freeze",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "tow_full_trip",
+    "params": {
+     "n": 2
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 78
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2.67,
+   "floor": 1.33,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "lasso",
+   "sales"
+  ],
+  "goal": "rescue_before_freeze",
+  "template": "crossroads",
+  "target": 0.494,
+  "D": 0.4923789686020728,
+  "F": 0.8251382888432268,
+  "onTarget": true,
+  "margin": {
+   "good": 0.6543095238095238,
+   "average": 0.5875396825396826,
+   "weak": 0.5457936507936508,
+   "novice": 0.4400793650793651,
+   "floor": -0.12158730158730159
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 18.085,
+  "seed": 144096141,
+  "attempts": 2,
+  "rejects": {
+   "layout": 50,
+   "offTarget": 11,
+   "objectives": 1
+  },
+  "ratings": 16
+ },
+ {
+  "index": 74,
+  "id": "s1-L074",
+  "file": "s1-L074.json",
+  "title": "Sealed Veins and Sold Out",
+  "phase": "mix",
+  "introduced": [],
+  "family": "harvest",
+  "secondary": null,
+  "features": [
+   "bulk_orders",
+   "source_unlocks",
+   "vips"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "sell",
+    "params": {
+     "res": "res.food_raw_1",
+     "n": 185
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_angry_customers",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 270
+    }
+   }
+  ],
+  "stars": {
+   "good": 2.7,
+   "median": 2,
+   "goodAll": 0.7,
+   "human": 2.67,
+   "humanAll": 0.67
+  },
+  "starsByRung": {
+   "good": 2.7,
+   "average": 2.33,
+   "weak": 2,
+   "novice": 2,
+   "floor": 1,
+   "human": 2.67
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "customer_variety",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "sell",
+  "template": "north_fields",
+  "target": 0.538,
+  "D": 0.4866775617616286,
+  "F": 0.918570793603103,
+  "onTarget": false,
+  "margin": {
+   "good": 0.5104215686274509,
+   "average": 0.465,
+   "weak": 0.3938888888888889,
+   "novice": 0.3154248366013072,
+   "floor": 0.14101307189542484
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 108.392,
+  "seed": 888725626,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 63,
+   "objectives": 5,
+   "stall": 3,
+   "infeasible": 1
+  },
+  "ratings": 78
+ },
+ {
+  "index": 75,
+  "id": "s1-L075",
+  "file": "s1-L075.json",
+  "title": "Couriers and Heavy Loads",
+  "phase": "mix",
+  "introduced": [],
+  "family": "industrialize",
+  "secondary": null,
+  "features": [
+   "converter_levels",
+   "depot"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "haul",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "hire",
+    "params": {
+     "n": 7
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 295
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 0,
+   "floor": 0,
+   "human": 3
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "converters",
+   "core",
+   "gather",
+   "sales",
+   "supply_routing",
+   "workers"
+  ],
+  "goal": "haul",
+  "template": "east_fields",
+  "target": 0.581,
+  "D": 0.9998221596552631,
+  "F": 0.8709177833428987,
+  "onTarget": false,
+  "margin": {
+   "good": 0.4211274509803921,
+   "average": 0.32859477124183006,
+   "weak": 0.32019607843137254,
+   "novice": -1,
+   "floor": -1
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 0,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak"
+  ],
+  "seconds": 211.24,
+  "seed": 1870431099,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 69,
+   "layout": 20,
+   "stall": 4
+  },
+  "ratings": 78
+ },
+ {
+  "index": 76,
+  "id": "s1-L076",
+  "file": "s1-L076.json",
+  "title": "Scrap and Gun Line",
+  "phase": "mix",
+  "introduced": [],
+  "family": "defend",
+  "secondary": null,
+  "features": [
+   "med_bay",
+   "salvage_upgrades",
+   "turrets"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "turret_level",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "hire",
+    "params": {
+     "n": 5
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "gate_held",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2,
+   "floor": 0,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "turret_level",
+  "template": "corridor",
+  "target": 0.625,
+  "D": 0.6175594026703984,
+  "F": 0.23260379684738705,
+  "onTarget": false,
+  "margin": {
+   "good": 0.6102291666666668,
+   "average": 0.6013541666666667,
+   "weak": 0.6058333333333333,
+   "novice": 0.5054166666666666,
+   "floor": -0.11111111111111112
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 617.673,
+  "seed": 1531169452,
+  "attempts": 5,
+  "rejects": {
+   "offTarget": 44,
+   "idleModule": 1,
+   "humanLost": 3,
+   "lowFun": 2
+  },
+  "ratings": 49
+ },
+ {
+  "index": 77,
+  "id": "s1-L077",
+  "file": "s1-L077.json",
+  "title": "Reactors and Cleared Ground",
+  "phase": "mix",
+  "introduced": [],
+  "family": "shelter",
+  "secondary": null,
+  "features": [
+   "core_levels",
+   "rockslides"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "clear_zones",
+    "params": {
+     "n": 2
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "settlement_never_freezes",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 112
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 2.33,
+   "goodAll": 1,
+   "human": 2.83,
+   "humanAll": 0.83
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 2.33,
+   "novice": 0.67,
+   "floor": 0,
+   "human": 2.83
+  },
+  "modules": [
+   "blocked_zones",
+   "build_pads",
+   "carry",
+   "core",
+   "core_levels",
+   "gather",
+   "sales"
+  ],
+  "goal": "clear_zones",
+  "template": "south_fields",
+  "target": 0.669,
+  "D": 0.6764656375081446,
+  "F": 0.8812784280872911,
+  "onTarget": true,
+  "margin": {
+   "good": 0.6093148148148148,
+   "average": 0.4862962962962963,
+   "weak": 0.3705555555555556,
+   "novice": -0.3166049382716049,
+   "floor": -1
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 0.3333333333333333,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak"
+  ],
+  "seconds": 47.858,
+  "seed": 1737613764,
+  "attempts": 7,
+  "rejects": {
+   "layout": 110,
+   "offTarget": 65
+  },
+  "ratings": 70
+ },
+ {
+  "index": 78,
+  "id": "s1-L078",
+  "file": "s1-L078.json",
+  "title": "Drift Cables and Cargo",
+  "phase": "mix",
+  "introduced": [],
+  "family": "rescue",
+  "secondary": null,
+  "features": [
+   "crates"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "crates",
+    "params": {
+     "n": 4
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "tow_full_trip",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 55
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 0.67,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "gather",
+   "lasso",
+   "sales"
+  ],
+  "goal": "crates",
+  "template": "crescent",
+  "target": 0.713,
+  "D": 0.340035184699104,
+  "F": 0.8690086993490469,
+  "onTarget": false,
+  "margin": {
+   "good": 0.5695,
+   "average": 0.5361111111111111,
+   "weak": 0.5555555555555555,
+   "novice": 0.42013888888888884,
+   "floor": -0.1223611111111111
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0.3333333333333333
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "seconds": 19.37,
+  "seed": 1526969286,
+  "attempts": 7,
+  "rejects": {
+   "offTarget": 29
+  },
+  "ratings": 29
+ },
+ {
+  "index": 79,
+  "id": "s1-L079",
+  "file": "s1-L079.json",
+  "title": "Vaults and Hot Streak",
+  "phase": "mix",
+  "introduced": [],
+  "family": "harvest",
+  "secondary": null,
+  "features": [
+   "source_unlocks",
+   "vips"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "streak",
+    "params": {
+     "n": 81
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "no_angry_customers",
+    "params": {}
+   },
+   {
+    "id": "time",
+    "kind": "time_target",
+    "params": {
+     "seconds": 242
+    }
+   }
+  ],
+  "stars": {
+   "good": 2.6,
+   "median": 3,
+   "goodAll": 0.6,
+   "human": 2.83,
+   "humanAll": 0.83
+  },
+  "starsByRung": {
+   "good": 2.6,
+   "average": 2.67,
+   "weak": 3,
+   "novice": 2.33,
+   "floor": 1,
+   "human": 2.83
+  },
+  "modules": [
+   "build_pads",
+   "carry",
+   "core",
+   "customer_variety",
+   "gather",
+   "sales",
+   "source_gating",
+   "workers"
+  ],
+  "goal": "streak",
+  "template": "south_fields",
+  "target": 0.756,
+  "D": 0.7853921867465727,
+  "F": 0.8446036991800872,
+  "onTarget": true,
+  "margin": {
+   "good": 0.5776666666666667,
+   "average": 0.5485185185185185,
+   "weak": 0.5304629629629629,
+   "novice": 0.45024691358024693,
+   "floor": 0.27663580246913577
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "seconds": 69.072,
+  "seed": 131088249,
+  "attempts": 4,
+  "rejects": {
+   "offTarget": 31,
+   "objectives": 6,
+   "layout": 85
+  },
+  "ratings": 48
+ }
+]

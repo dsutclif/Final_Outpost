@@ -1,7 +1,7 @@
 {
   "id": "s1-L017",
-  "seed": 566427356,
-  "engineVersion": "0.36.0",
+  "seed": 327552485,
+  "engineVersion": "0.35.0",
   "contentVersion": "0.23.0",
   "map": {
     "w": 480,
@@ -25,19 +25,19 @@
     "sales"
   ],
   "start": [
-    255,
-    538
+    218,
+    592
   ],
   "entities": [
     {
       "type": "sink.core",
       "id": "core",
       "at": [
-        224,
-        428
+        218,
+        500
       ],
       "params": {
-        "fuel": 15,
+        "fuel": 14,
         "level": 1
       }
     },
@@ -45,8 +45,8 @@
       "type": "sink.sales_point",
       "id": "shop",
       "at": [
-        220,
-        229
+        122,
+        637
       ],
       "sells": [
         "res.food_raw_1",
@@ -54,54 +54,46 @@
       ],
       "queue": [
         [
-          281,
-          229
+          61,
+          637
         ],
         [
-          305,
-          205
+          61,
+          671
         ],
         [
-          329,
-          181
+          61,
+          705
         ],
         [
-          353,
-          157
+          61,
+          739
         ]
       ],
       "route": [
         [
-          500,
-          591
+          -20,
+          711
         ],
         [
-          477,
-          591
+          3,
+          711
         ],
         [
-          261,
-          591
+          87,
+          711
         ],
         [
-          267,
-          555
+          87,
+          687
         ],
         [
-          321,
-          543
+          63,
+          675
         ],
         [
-          375,
-          477
-        ],
-        [
-          375,
-          351
-        ],
-        [
-          305,
-          205
+          61,
+          637
         ]
       ]
     },
@@ -109,64 +101,85 @@
       "type": "node.food_source",
       "id": "food1",
       "at": [
-        326,
-        428
+        119,
+        444
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        229,
-        509
+        293,
+        473
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        195,
-        509
+        299,
+        522
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        263,
-        509
+        252,
+        420
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        301,
-        488
+        297,
+        443
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        161,
-        509
+        324,
+        478
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        301,
-        352
+        280,
+        407
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        224,
-        539
+        338,
+        513
       ]
     },
     {
       "type": "node.fuel_scrap",
       "at": [
-        296,
-        517
+        330,
+        443
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        341,
+        544
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        354,
+        467
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        336,
+        400
       ]
     },
     {
@@ -176,57 +189,58 @@
       "costPerSection": 1,
       "points": [
         [
-          119,
-          122
+          38,
+          300
         ],
         [
-          208,
-          122
+          158,
+          300
         ],
         [
-          297,
-          122
+          278,
+          300
         ],
         [
-          386,
-          122
+          398,
+          300
         ],
         [
-          386,
-          273
+          398,
+          433
         ],
         [
-          386,
-          425
+          398,
+          567
         ],
         [
-          386,
-          576
+          398,
+          700
         ],
         [
-          297,
-          576
+          278,
+          700
         ],
         [
-          208,
-          576
+          158,
+          700
         ],
         [
-          119,
-          576
+          38,
+          700
         ],
         [
-          119,
-          425
+          38,
+          567
         ],
         [
-          119,
-          273
+          38,
+          433
         ]
       ],
       "closed": true,
       "gates": [
-        7
+        1,
+        8
       ],
       "prebuilt": [
         0,
@@ -246,96 +260,70 @@
     {
       "type": "capture.recruit_container",
       "at": [
-        288,
-        651
+        355,
+        176
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        273,
-        829
+        233,
+        38
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        194,
-        756
+        75,
+        226
       ]
     },
     {
       "type": "capture.recruit_container",
       "at": [
-        328,
-        745
-      ]
-    },
-    {
-      "type": "capture.recruit_container",
-      "at": [
-        63,
-        640
+        430,
+        106
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        55,
-        316
+        191,
+        237
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        151,
-        669
+        108,
+        57
       ]
     },
     {
       "type": "capture.supply_crate",
       "at": [
-        56,
-        747
-      ]
-    },
-    {
-      "type": "capture.supply_crate",
-      "at": [
-        400,
-        809
+        249,
+        144
       ]
     },
     {
       "type": "zone.prey",
       "id": "prey",
       "rect": [
-        406,
-        152,
+        418,
+        330,
         60,
         150
       ],
       "animal": "node.prey",
-      "n": 1
-    },
-    {
-      "type": "zone.prey",
-      "id": "prey_danger",
-      "rect": [
-        406,
-        152,
-        60,
-        150
-      ],
-      "animal": "node.prey_dangerous",
-      "n": 2
+      "n": 3
     },
     {
       "type": "pad.hire",
       "id": "ranger",
       "at": [
-        436,
-        164
+        448,
+        342
       ],
       "cost": {
         "res.currency": 12
@@ -359,19 +347,20 @@
   "waves": [],
   "events": [],
   "params": {
-    "start.currency": 0,
-    "core.burn": 2.7,
-    "housing.base": 9,
+    "start.currency": 6,
+    "core.burn": 2.6,
+    "housing.base": 8,
     "lots.block": 60,
     "lots.street": 0,
-    "customers.spawn": 2.9,
+    "customers.spawn": 2.8,
+    "sales.clerkSide": 1,
     "customers.orderMin": 1,
-    "customers.orderMax": 3,
-    "level.budgetSeconds": 210
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 350
   },
   "goal": {
     "type": "protein",
-    "n": 13
+    "n": 28
   },
   "family": "rescue",
   "objectives": [
@@ -379,7 +368,7 @@
       "id": "main",
       "kind": "protein",
       "params": {
-        "n": 13
+        "n": 28
       }
     },
     {
@@ -391,7 +380,7 @@
       "id": "time",
       "kind": "time_target",
       "params": {
-        "seconds": 154
+        "seconds": 206
       }
     }
   ],
@@ -403,14 +392,14 @@
       "title": "Drift Cables and Protein Run",
       "goal": "protein",
       "tips": [
-        "Step out through the gate and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
       ]
     }
   },
   "rating": {
-    "difficulty": 0.323,
-    "fun": 0.84,
-    "botMargin": 0.544,
+    "difficulty": 0.282,
+    "fun": 0.719,
+    "botMargin": 0.638,
     "botsPassed": [
       "good",
       "average",
@@ -424,7 +413,6 @@
       "goodAll": 1,
       "human": 2.83,
       "humanAll": 0.83
-    },
-    "loopMax": 1
+    }
   }
 }

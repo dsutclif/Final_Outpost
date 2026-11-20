@@ -6,20 +6,17 @@ import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CONTENT_VERSION } from "../packages/content/src/index.js";
 import { ENGINE_VERSION } from "../packages/sim/src/index.js";
-import { computeReference, measure, score, type HistoryEntry, type Measurement, type Metrics } from "../packages/rater/src/index.js";
-import { content as defaultContent } from "../packages/content/src/index.js";
-import { findFit, whyNotFit, type PoolEntry } from "../packages/sequencer/src/pool.js";
-import { historyOf, recipeKey, recipeOf, sequenceRange, type LevelRequest, type RecipeRegister } from "../packages/sequencer/src/index.js";
-import { loadPool, readPoolLevel, removeEntry, savePassing } from "./level-pool.js";
+import { computeReference, type HistoryEntry, type Measurement, type Metrics } from "../packages/rater/src/index.js";
+import { recipeKey, recipeOf, sequenceRange, type LevelRequest, type RecipeRegister } from "../packages/sequencer/src/index.js";
 import { buildWithRerolls, describeRecipe, stopMessage, type SlotOutcome } from "./recipe-reroll.js";
-import { GEN, GENERATOR_REFERENCE, applyNightCadence, attachRating, calibrationSample, composeStart, composerSwap, dedupeTitles, generateDetailed, newSearchMemory, templateById, withWaveFallback, type Candidate, type CandidateRecord, type ComposerLog, type Composition } from "../packages/generator/src/index.js";
+import { applyNightCadence, calibrationSample, dedupeTitles, generateDetailed, newSearchMemory, templateById, withWaveFallback, type Candidate, type CandidateRecord } from "../packages/generator/src/index.js";
 import { hashStr, mix } from "../packages/generator/src/rand.js";
 import { digestLog } from "./candidate-digest.js";
 import { VARIETY } from "../packages/rater/src/variety.js";
 import { varietyPass, type Signed } from "./variety-pass.js";
 
 // pnpm levels:build --from 6 --to 60 --out levels/packs/s1 [--jobs N] [--retries N] [--calibrate] [--verbose]
-//   [--target-offset X] [--no-doc] [--register path] [--pool path] [--no-pool]
+//   [--target-offset X] [--no-doc] [--register path]
 //
 // Sequencer -> generator -> rater for each index. Requests come from the sequencer with the earlier
 // requests as history, so every level can be generated independently: the CLI runs one child
@@ -34,11 +31,6 @@ import { varietyPass, type Signed } from "./variety-pass.js";
 // Every search iteration, rejected or not, is appended to levels/candidates/<pack>.jsonl (outside
 // levels/packs, which the client serves; gitignored) and folded into a small daily digest for working
 // out up-front generation rules (tools/candidate-digest.ts).
-// Pool and place (outpost-ops#254): a candidate that passes every check except its slot's D target is saved
-// in the level pool (packages/sequencer/data/level-pool.json, or --pool) instead of being thrown away. Before a
-// slot is generated, the parent looks for a pool level that fits it (D within failGap, family, goal, features,
-// no duplicate in the window); a placed level is re-rated before it is written and leaves the pool. `--no-pool`
-// builds from scratch: nothing is placed and nothing is saved.
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -94,7 +86,6 @@ const historyFor = (reqs: readonly LevelRequest[], index: number): HistoryEntry[
 // ---------- worker: one level ----------
 
 const DEFAULT_REGISTER_PATH = join(root, "packages", "sequencer", "data", "recipe-register.json");
-const DEFAULT_POOL_PATH = join(root, "packages", "sequencer", "data", "level-pool.json");
 const loadRegister = (path: string): RecipeRegister => JSON.parse(readFileSync(path, "utf8")) as RecipeRegister;
 
 /** Requests of `indices` given the register (entries from an older engine are ignored). */
@@ -103,7 +94,7 @@ const requestsFor = (indices: number[], targetOffset: number) => (register: Reci
   return new Map(indices.map((i) => [i, all[i - 1]!] as const));
 };
 
-function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number, retryBase = 0, registerPath = DEFAULT_REGISTER_PATH, avoidPath?: string, placeId?: string, poolPath = DEFAULT_POOL_PATH): void {
+function workLevel(index: number, outDir: string, retries: number, verbose: boolean, targetOffset: number, retryBase = 0, registerPath = DEFAULT_REGISTER_PATH, avoidPath?: string): void {
   const register = loadRegister(registerPath);
   const reqs = sequenceRange(1, index, [], { targetOffset, register, engine: ENGINE_VERSION });
   const req = reqs[index - 1]!;
@@ -119,72 +110,18 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   const t0 = Date.now();
   const rejects: Record<string, number> = {};
   let ratings = 0, attempts = 0;
-  // Pool placement (outpost-ops#254): the parent picked a pool level for this slot. It is re-rated here with the
-  // full ladder against the slot's target and fun bar before anything is written; a level that fails goes back to the normal search.
-  if (placeId) {
-    const e = loadPool(poolPath).entries.find((x) => x.id === placeId);
-    const m = e ? readPoolLevel(poolPath, e) as ReturnType<typeof JSON.parse> : null;
-    if (e && m) {
-      m.id = req.id;
-      applyNightCadence(m, index);
-      const ms = measure(m, { content: defaultContent, refSeeds: GEN.search.fullSeeds.ref, otherSeeds: GEN.search.fullSeeds.other, history });
-      const r = score(ms, { content: defaultContent, reference: GENERATOR_REFERENCE });
-      const gap = Math.abs(r.D - req.target);
-      const why = !r.ok ? `rating filters failed (${Object.entries(r.filters).filter(([, v]) => v).map(([k]) => k).join(", ")})` : r.F < req.funThreshold ? `fun ${r.F.toFixed(3)} below ${req.funThreshold}` : gap > register.settings.failGap ? `D ${r.D.toFixed(3)} is ${gap.toFixed(3)} from target ${req.target}` : null;
-      if (why) process.stdout.write(`POOL recheck-failed ${JSON.stringify({ entry: e.id, why })}\n`);
-      else {
-        const stars = (m.rating?.stars ?? { good: 0, median: 0, goodAll: 0 }) as { good: number; median: number; goodAll: number };
-        attachRating(m, r, req.introduced, m.rating?.stars, m.rating?.loopMax);
-        const file = `${m.id}.json`;
-        writeFileSync(join(outDir, file), JSON.stringify(m, null, 2) + "\n");
-        const res: LevelResult = {
-          index, id: m.id, file, title: m.text["mars_greenhouse"]?.title ?? m.id, phase: req.phase, introduced: req.introduced,
-          family: req.family, secondary: req.secondary, features: req.features, objectives: (m.objectives ?? []) as LevelResult["objectives"],
-          stars, starsByRung: e.starsByRung, modules: m.modules, goal: m.goal.type, template: req.template, target: req.target, D: r.D, F: r.F,
-          onTarget: gap <= GEN.search.tolerance, margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, beats: r.beats, signature: r.signature,
-          seconds: (Date.now() - t0) / 1000, seed: m.seed, attempts: 0, rejects: {}, ratings: 1,
-        };
-        process.stdout.write(`POOL placed ${JSON.stringify({ entry: e.id, D: r.D, from: e.slotId })}\n`);
-        process.stdout.write(`CANDIDATES []\n`);
-        process.stdout.write(`RESULT ${JSON.stringify({ ...res, req })}\n`);
-        return;
-      }
-    } else process.stdout.write(`POOL recheck-failed ${JSON.stringify({ entry: placeId, why: "entry or its level file is missing" })}\n`);
-  }
   const candidates: (CandidateRecord & { attempt: number; seed: number })[] = [];
-  // Add-on composer (packages/generator/src/composer.ts): the starting set from the add-ons' difficulty steps, the knob
-  // search on it, then at most composer.maxSwaps single add/remove swaps when every measured D misses the target one way.
-  let composed: Composition | null = null;
-  const say = (s: string) => process.stderr.write(`[${req.id}] ${s}\n`);
   const search = () => {
     let best: Candidate | null = null, shipped: Candidate | null = null;
-    let comp = composeStart(req, GEN.conveyorGoals);
-    let decision: ComposerLog["decision"] = { action: "start", why: `estimate ${comp.estimate.lo}-${comp.estimate.hi} (mid ${comp.estimate.mid}) for target ${req.target}` };
-    for (let round = 0; ; round++) {
-      const clog: ComposerLog = { round, features: comp.features, estimate: comp.estimate, cap: comp.cap, optionalModules: comp.optionalModules, decision,
-        ...(comp.dropped.length > 0 ? { dropped: comp.dropped } : {}), ...(comp.notes.length > 0 ? { notes: comp.notes } : {}) };
-      say(`composer round ${round}: ${decision.action}${decision.feature ? ` ${decision.feature}` : ""} (${decision.why}) -> [${comp.features.join(", ")}] est ${comp.estimate.mid}, optional modules ${comp.optionalModules}/${comp.cap}`
-        + (comp.dropped.length > 0 ? `, left out ${comp.dropped.map((d) => `${d.feature}: ${d.why}`).join("; ")}` : "") + (comp.notes.length > 0 ? `, ${comp.notes.join("; ")}` : ""));
-      const creq = { ...req, features: comp.features, modules: comp.modules };
-      const measured: number[] = [];
-      const memory = newSearchMemory();
-      for (let k = retryBase; k <= retryBase + retries && !shipped && !memory.settled; k++) {
-        attempts++;
-        const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
-        const d = generateDetailed({ ...creq, seed }, { history, memory, finish: k === retryBase + retries,
-          onCandidate: (c) => { candidates.push({ ...c, attempt: k, seed, composer: clog }); if (c.rating?.feasible) measured.push(c.rating.D); }, ...(verbose ? { log: say } : {}) });
-        for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
-        ratings += d.stats.ratings;
-        if (d.manifest && d.best) shipped = d.best;
-        if (d.best && (!best || d.best.err < best.err)) { best = d.best; composed = comp; }
-      }
-      if (shipped) { composed = comp; break; }
-      const sw = composerSwap(req, comp, measured, GEN.search.tolerance, round);
-      say(`composer round ${round} measured D ${measured.length > 0 ? `${Math.min(...measured).toFixed(3)}-${Math.max(...measured).toFixed(3)} (n ${measured.length})` : "none"}: ${sw.action}${sw.feature ? ` ${sw.feature}` : ""} (${sw.why})`);
-      if (sw.action === "none" || !sw.next) break;
-      decision = { action: sw.action, ...(sw.feature ? { feature: sw.feature } : {}), why: sw.why,
-        measured: { n: measured.length, min: measured.length > 0 ? Math.min(...measured) : 0, max: measured.length > 0 ? Math.max(...measured) : 0 } };
-      comp = sw.next;
+    const memory = newSearchMemory();
+    for (let k = retryBase; k <= retryBase + retries && !shipped && !memory.settled; k++) {
+      attempts++;
+      const seed = k === 0 ? req.seed : mix(req.seed, hashStr(`retry${k}`)) & 0x7fffffff;
+      const d = generateDetailed({ ...req, seed }, { history, memory, finish: k === retryBase + retries, onCandidate: (c) => candidates.push({ ...c, attempt: k, seed }), ...(verbose ? { log: (s: string) => process.stderr.write(`[${req.id}] ${s}\n`) } : {}) });
+      for (const [r, n] of Object.entries(d.stats.rejects)) rejects[r] = (rejects[r] ?? 0) + n;
+      ratings += d.stats.ratings;
+      if (d.manifest && d.best) shipped = d.best;
+      if (d.best && (!best || d.best.err < best.err)) best = d.best;
     }
     return { shipped, pick: shipped ?? best };
   };
@@ -193,7 +130,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   const { result: { shipped, pick }, dense } = withWaveFallback(req.family === "defend" || req.secondary === "defend", search,
     (s) => !s.pick || Math.abs(s.pick.rating.D - req.target) > failGap);
   if (verbose && !dense && (req.family === "defend" || req.secondary === "defend")) process.stderr.write(`[${req.id}] built with today's wave sizing\n`);
-  const level = { index, id: req.id, family: req.family, secondary: req.secondary, features: (composed as Composition | null)?.features ?? req.features, goalType: req.goalType, template: req.template, target: req.target };
+  const level = { index, id: req.id, family: req.family, secondary: req.secondary, features: req.features, goalType: req.goalType, template: req.template, target: req.target };
   process.stdout.write(`CANDIDATES ${JSON.stringify(candidates.map((c) => ({ ...level, ...c })))}\n`);
   // The recipe failed (outpost-ops#198): nothing ships, or the closest level is further than the
   // register's failGap from its target. Nothing is written; the parent registers it and re-rolls.
@@ -208,7 +145,7 @@ function workLevel(index: number, outDir: string, retries: number, verbose: bool
   const r = pick.rating;
   const res: LevelResult = {
     index, id: m.id, file, title: m.text["mars_greenhouse"]?.title ?? m.id, phase: req.phase, introduced: req.introduced,
-    family: req.family, secondary: req.secondary, features: (composed as Composition | null)?.features ?? req.features, objectives: (m.objectives ?? []) as LevelResult["objectives"],
+    family: req.family, secondary: req.secondary, features: req.features, objectives: (m.objectives ?? []) as LevelResult["objectives"],
     stars: pick.stars, starsByRung: pick.starsByRung,
     modules: m.modules, goal: m.goal.type, template: req.template, target: req.target, D: r.D, F: r.F, onTarget: shipped !== null,
     margin: r.margin, winRate: r.winRate, botsPassed: r.botsPassed, beats: r.beats, signature: r.signature, seconds: (Date.now() - t0) / 1000, seed: m.seed,
@@ -265,7 +202,7 @@ async function main(): Promise<void> {
   const retryBase = arg("--retry-base", "0")!;
   const t0 = Date.now();
 
-  if (flag("--calibrate") || flag("--calib-only")) {
+  if (flag("--calibrate")) {
     console.log(`calibrating: one unsearched sample per level, ${jobs} jobs`);
     const samples: { goal: string; metrics: Metrics }[] = [];
     await pool(indices, jobs, (i) => runChild(["--calib", "--index", String(i)]), (i, out) => {
@@ -277,8 +214,6 @@ async function main(): Promise<void> {
     const refPath = join(root, "packages", "generator", "data", "reference.json");
     writeFileSync(refPath, JSON.stringify(ref, null, 2) + "\n");
     console.log(`wrote ${relative(root, refPath)} from ${samples.length} samples in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
-    // --calib-only: refresh the reference and stop (no pack build), e.g. after a change to how D is computed.
-    if (flag("--calib-only")) process.exit(0);
   }
 
   console.log(`building ${packId} levels ${only ? indices.join(",") : `${from}-${to}`} with ${jobs} jobs`);
@@ -300,47 +235,14 @@ async function main(): Promise<void> {
   log({ kind: "build", buildId, pack: packId, start: run, jobs, retries, only: only ?? null, from, to, targetOffset: Number(arg("--target-offset", "0")), indices });
   const rerolls = new Map<number, number>();
   let candN = 0;
-  // Pool and place (#254). Entries a running slot has claimed are not offered to another slot.
-  const poolOn = !flag("--no-pool");
-  const poolPath = abs(arg("--pool", DEFAULT_POOL_PATH)!);
-  const claimed = new Set<string>();
-  const poolLog = (rec: Record<string, unknown>, text: string) => { log({ kind: "pool", ...rec }); console.log(`  pool: ${text}`); };
-  const poolEntry = (e: PoolEntry) => `${e.id} (D ${e.D}, ${e.family}, goal ${e.goalId}, from ${e.slotId})`;
   const build = async (i: number, sent: LevelRequest, extra: string[] = []): Promise<SlotOutcome<LevelResult>> => {
-    let fit: PoolEntry | null = null;
-    // goal ranges: no goal of the family reaches the target, so the sequencer took the nearest (ops composer.md)
-    if (sent.goalNote) { log({ kind: "goalRange", index: i, id: sent.id, target: sent.target, goalId: sent.goalId, note: sent.goalNote }); console.log(`  goal range: L${i} ${sent.goalNote}`); }
-    if (poolOn && extra.length === 0) {
-      const reqs = sequenceRange(1, i, [], { targetOffset: Number(offset), register, engine: ENGINE_VERSION });
-      const hist = reqs.slice(0, i - 1).map(historyOf);
-      const opts = { failGap: register.settings.failGap, engine: ENGINE_VERSION, claimed };
-      const pool = loadPool(poolPath);
-      fit = findFit(pool, sent, hist, opts);
-      if (fit) { claimed.add(fit.id); poolLog({ event: "hit", index: i, id: sent.id, target: sent.target, entry: fit.id, D: fit.D, family: fit.family, goalId: fit.goalId, from: fit.slotId }, `HIT L${i} (target ${sent.target}) takes ${poolEntry(fit)}`); }
-      else {
-        const near = pool.entries.filter((e) => e.family === sent.family && e.secondary === sent.secondary).map((e) => ({ e, why: whyNotFit(e, sent, hist, opts) })).filter((x) => x.why !== null).sort((a, b) => Math.abs(a.e.D - sent.target) - Math.abs(b.e.D - sent.target))[0];
-        poolLog({ event: "miss", index: i, id: sent.id, target: sent.target, pooled: pool.entries.length, nearest: near ? { entry: near.e.id, D: near.e.D, why: near.why } : null }, `miss L${i} (target ${sent.target}), ${pool.entries.length} pooled${near ? `; nearest same-family ${near.e.id} D ${near.e.D}: ${near.why}` : ""}`);
-      }
-    }
-    const out = await runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, "--register", registerPath, "--pool", poolPath, ...(fit ? ["--place", fit.id] : []), ...(verbose ? ["--verbose"] : []), ...extra]);
-    if (fit) {
-      const line = out.split("\n").map((l) => l.trim()).find((l) => l.startsWith("POOL "));
-      claimed.delete(fit.id);
-      if (line?.startsWith("POOL placed")) { removeEntry(poolPath, fit.id); poolLog({ event: "placed", index: i, id: sent.id, entry: fit.id }, `placed ${fit.id} in L${i}, removed from the pool`); }
-      else { removeEntry(poolPath, fit.id); poolLog({ event: "recheck-failed", index: i, id: sent.id, entry: fit.id, detail: line ? JSON.parse(line.slice(line.indexOf("{"))) : null }, `${fit.id} failed its re-check for L${i} (${line ?? "no report"}); dropped, slot searched normally`); }
-    }
+    const out = await runChild(["--worker", "--index", String(i), "--out", outDir, "--retries", String(retries), "--retry-base", retryBase, "--target-offset", offset, "--register", registerPath, ...(verbose ? ["--verbose"] : []), ...extra]);
     const r = parseResult(out);
     const cands = out.split("\n").find((l) => l.startsWith("CANDIDATES "));
     if (cands) {
       const rows = JSON.parse(cands.slice(11)) as (CandidateRecord & { index: number })[];
       const recipeId = recipeKey(recipeOf(sent)), reroll = rerolls.get(i) ?? 0;
       for (const c of rows) log({ n: ++candN, recipeId, reroll, ...compactRow(c) });
-      if (poolOn) {
-        // every candidate that passed all checks but the slot's D target is kept (the level that shipped is not)
-        const shippedD = r && !r["failed"] ? (r["D"] as number) : null;
-        const saved = savePassing(poolPath, sent, recipeId, rows as never, { engine: ENGINE_VERSION, date: run.slice(0, 10), skipD: shippedD });
-        for (const e of saved) poolLog({ event: "save", index: i, id: sent.id, entry: e.id, D: e.D, F: e.F, target: sent.target, family: e.family, goalId: e.goalId, recipeId }, `saved ${poolEntry(e)} (slot target ${sent.target})`);
-      }
       // per recipe: the lowest and highest D any candidate reached (a target outside it is out of reach for this recipe)
       const Ds = rows.map((c) => c.rating?.D).filter((d): d is number => typeof d === "number");
       log({ kind: "recipe", index: i, id: sent.id, recipeId, reroll, target: sent.target, candidates: rows.length, rated: Ds.length, Dmin: Ds.length ? Math.min(...Ds) : null, Dmax: Ds.length ? Math.max(...Ds) : null, shipped: rows.some((c) => c.shipped) });
@@ -526,6 +428,6 @@ function levelsDoc(packId: string, rs: LevelResult[]): string {
   return lines.join("\n");
 }
 
-if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")), Number(arg("--retry-base", "0")), arg("--register", DEFAULT_REGISTER_PATH)!, arg("--avoid"), arg("--place"), arg("--pool", DEFAULT_POOL_PATH));
+if (flag("--worker")) workLevel(Number(arg("--index")), arg("--out")!, Number(arg("--retries", "3")), flag("--verbose"), Number(arg("--target-offset", "0")), Number(arg("--retry-base", "0")), arg("--register", DEFAULT_REGISTER_PATH)!, arg("--avoid"));
 else if (flag("--calib")) workCalib(Number(arg("--index")));
 else void main();

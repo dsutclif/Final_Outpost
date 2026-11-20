@@ -1,5 +1,5 @@
 import { content as defaultContent, Manifest as ManifestSchema, type Content } from "@fo/content";
-import { LADDER, TIME_FIXED_GOALS, type Beat } from "@fo/bots";
+import { LADDER, type Beat } from "@fo/bots";
 import { funProxies, PROXY_NAMES, type Proxies } from "./fun.js";
 import { qualityFilters, type FilterEvidence, type Filters } from "./filters.js";
 import type { TerrainStats } from "./terrain.js";
@@ -73,25 +73,11 @@ const sigma = (x: number): number => 1 / (1 + Math.exp(-x));
 /** Keep the indexes strictly inside (0, 1) even for extreme inputs. */
 const open01 = (x: number): number => Math.min(1 - 1e-6, Math.max(1e-6, x));
 
-/**
- * Robust z (outpost-ops#262): a reference sd is never read below SD_FLOOR[k], so a metric that was near-constant
- * in the calibration batch cannot turn a small absolute change into a huge z, and no single term can move D by more
- * than Z_CLAMP sd times its weight.
- */
-export const Z_CLAMP = 3;
-export const SD_FLOOR: Record<MetricName, number> = {
-  skillNeeded: 0.1, marginRef: 0.05, marginMedian: 0.05, lifelineRisk: 0.05, concurrentDemand: 0.05, routeLoad: 0.05,
-  threatPressure: 0.1, animalHits: 0.5, economyTightness: 0.1, moduleCount: 1, novelty: 1,
-};
-
 export function zScores(m: Metrics, ref: ReferenceStats, goal?: string): Metrics {
   const z = {} as Metrics;
   for (const k of METRIC_NAMES) {
-    const row = goal !== undefined ? ref.byGoal?.[goal]?.metrics[k] : undefined;
-    // Margins of the time-fixed goals are health or warmth, not time left: without their own row they are not comparable, so neutral.
-    if (!row && GOAL_SCALED.includes(k) && goal !== undefined && TIME_FIXED_GOALS.has(goal)) { z[k] = 0; continue; }
-    const s = row ?? ref.metrics[k];
-    z[k] = s ? Math.max(-Z_CLAMP, Math.min(Z_CLAMP, (m[k] - s.mean) / Math.max(s.sd, SD_FLOOR[k]))) : 0;
+    const s = (goal !== undefined ? ref.byGoal?.[goal]?.metrics[k] : undefined) ?? ref.metrics[k];
+    z[k] = s ? (m[k] - s.mean) / (s.sd > 1e-9 ? s.sd : 1) : 0;
   }
   return z;
 }

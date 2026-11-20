@@ -131,8 +131,6 @@ export interface CompiledRole {
   speed: number;
   carry: number;
   gatherTicks: number;
-  /** Automate levels size a supplier's gather time (carrierGather); the node's own worker rate then no longer slows it. */
-  gatherFixed: boolean;
   deliverTicks: number;
   attackTicks: number;
   attackRange: number;
@@ -437,16 +435,9 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
   }
   const roles: Record<string, CompiledRole> = {};
   for (const [id, r] of Object.entries(c.roles)) {
-    // Suppliers and haulers feed the machines; on automate levels they are sized to keep up (carrierCarry / carrierSpeed / carrierGather, 0 = role default).
-    const feeds = r.behavior === "gather_deliver" || r.behavior === "haul";
     roles[id] = {
-      // Automate levels set residents.serverCarry / serverSpeed so a server out-runs the machine it serves (0 = the role default).
-      behavior: r.behavior, speed: perTick(r.behavior === "collect_deliver" && param("residents.serverSpeed") > 0 ? param("residents.serverSpeed")
-        : feeds && param("residents.carrierSpeed") > 0 ? param("residents.carrierSpeed") : r.speed),
-      carry: r.behavior === "collect_deliver" && param("residents.serverCarry") > 0 ? int("residents.serverCarry")
-        : feeds && param("residents.carrierCarry") > 0 ? int("residents.carrierCarry") : r.carry ?? 1,
-      gatherFixed: r.behavior === "gather_deliver" && param("residents.carrierGather") > 0,
-      gatherTicks: ticks(r.behavior === "gather_deliver" && param("residents.carrierGather") > 0 ? param("residents.carrierGather") : r.gatherInterval ?? 0), deliverTicks: ticks(r.deliverInterval ?? 0),
+      behavior: r.behavior, speed: perTick(r.speed), carry: r.carry ?? 1,
+      gatherTicks: ticks(r.gatherInterval ?? 0), deliverTicks: ticks(r.deliverInterval ?? 0),
       attackTicks: ticks(r.attackInterval ?? 0), attackRange: fp(r.attackRange ?? 0), damage: r.damage ?? 1, rally: r.rally, sortie: r.sortie,
       hp: r.hp ?? 0, healTicks: r.healInterval === undefined ? 0 : ticks(r.healInterval),
     };

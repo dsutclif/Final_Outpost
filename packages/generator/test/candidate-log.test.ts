@@ -9,7 +9,7 @@ import { generateDetailed, newSearchMemory, settleObjectives, type CandidateReco
 const run = (): BotResult => ({
   profile: "good", seed: 1, won: true, goalTicks: 60 * 30, stars: 3, objectives: [], margin: 0.5,
   runStats: { fuelOuts: 0, froze: 0, heatMin: 800, admitted: 5, hpMin: 100, injured: 0, barriersLost: 0, customersAngry: 0, overload: false,
-    tripBest: 3, tripBestClean: 3, podsLost: 0, podsLeft: 0, rescued: 3, housedRescued: 0, streakMax: 0, hired: 0, heatMean: 0.8, kills: 0, salvage: 0 },
+    tripBest: 3, tripBestClean: 3, podsLost: 0, podsLeft: 0, rescued: 3, streakMax: 0, hired: 0, heatMean: 0.8, kills: 0, salvage: 0 },
 }) as unknown as BotResult;
 
 describe("objectives reject detail", () => {

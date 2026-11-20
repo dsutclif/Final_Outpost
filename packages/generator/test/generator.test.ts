@@ -269,8 +269,7 @@ describe("strict crew slots", () => {
         const rule = e.id ? plotPads[e.id]?.[0] : undefined;
         if (!rule || !e.at) continue;
         // Doug, 2026-11-15: on its south-east slot, or one of the alternatives further along the south-east side (never mirrored)
-        // (a converter-level goal on a depot level chains the upgrade after the depot's supplier, the plan's own order)
-        if (rule.after && at.has(rule.after) && !(e.requires?.pad === "depot_supplier" && at.has("depot_supplier"))) expect([e.id, e.requires?.pad]).toEqual([e.id, rule.after]);
+        if (rule.after && at.has(rule.after)) expect([e.id, e.requires?.pad]).toEqual([e.id, rule.after]);
         checked++;
       }
     }

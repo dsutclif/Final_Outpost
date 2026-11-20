@@ -108,22 +108,12 @@ export class Brain {
     return st.timers.gateLeft > 0 || st.gateQueue.length > 0 || st.captures.some((c) => !c.decoy && c.state !== "hidden") || st.residents.some((r) => r.status === "waiting");
   }
 
-  /** 86.2: the core supplier hire of a defend level, still hidden within the first 90 s (the bot is doing its hand job). */
-  private hauler86(st: State, s: PlanStep): boolean {
-    const e = this.cp.entityById[s.pad];
-    return this.cp.waves.length > 0 && st.tick < 90 * TPS && s.reason === "economy" && !!e && e.type === "pad.hire" && e.manual === true && e.role.to === "sink.core";
-  }
-
   /** The first plan step that can take a payment now. */
   nextStep(st: State): { step: PlanStep; pad: PadState } | null {
     let first: { step: PlanStep; pad: PadState } | null = null, best: { step: PlanStep; pad: PadState } | null = null, bk = Infinity;
     for (const s of this.plan.steps) {
       if (this.stepDone(st, s) || !this.whenHolds(st, s) || this.skip.has(s.pad)) continue;
       const pad = st.pads.find((p) => p.id === s.pad)!;
-      // 86.2: on defend levels the fuel hauler (the core supplier hire) is the first purchase. Its pad shows only after the
-      // job was done once by hand, so while it is still hidden no defence purchase jumps ahead of it (for a bounded time,
-      // so a level where the hand job cannot be done is never stuck).
-      if (!pad.visible && this.hauler86(st, s)) return null;
       if (!pad.visible || pad.locked) continue;
       // Help for the hurt jumps the defence ladder (R5 #26): a medic or med bay after every tower would never come.
       if (s.reason === "medical") return { step: s, pad };
@@ -332,14 +322,10 @@ export class Brain {
   }
 
   /** Automate goals: once suppliers, a cashier and a core supplier run the economy, the player stops depositing. */
-  private handsOffLatched = false;
   private handsOff(st: State): boolean {
     if (!this.pol.handsOff || !st.sales || this.nextStep(st) !== null) return false;
-    // The machine count is only the trigger: a chain that pauses on a full tray must not bring the captain back to hand-feed it.
-    if (this.pol.handsOffMachines > 0 && !this.handsOffLatched) {
-      if (st.converters.filter((cv) => converterRunnable(this.cp, cv) && operated(st, this.cp, cv)).length < this.pol.handsOffMachines) return false;
-      this.handsOffLatched = true;
-    }
+    if (this.pol.handsOffMachines > 0
+      && st.converters.filter((cv) => converterRunnable(this.cp, cv) && operated(st, this.cp, cv)).length < this.pol.handsOffMachines) return false;
     return this.coreSupplied(st) && this.cashier(st) && st.sales.sells.some((r) => this.supplied(st, r));
   }
 
@@ -381,18 +367,9 @@ export class Brain {
     // Fuel.
     const cap = this.coreCap(st), fuel = st.core.fuel, frac = fuel / cap;
     const ttl = fuel * this.burnTicks(st) - st.core.burnAcc / FP;
+    const carriedFuel = this.fuelValueCarried(st);
     const hazard = st.hazard.phase !== "none";
     const toCore = this.travel(st, p.pos, st.core.pos);
-    // Carried fuel that the plan needs elsewhere (raw material on its way to the converter that makes a plan cost) is not
-    // burned while the core still has time: a multitasking captain would otherwise detour to feed it in and lose the trip.
-    const reserved = (r: string): boolean => {
-      const capNeed = this.cappedNeed(st);
-      return (capNeed[r] ?? 0) > 0 || Object.values(cp.converters).some((d) => d.inputs.includes(r) && (capNeed[d.output] ?? 0) > 0);
-    };
-    const spare = ttl >= toCore + 20 * TPS && !hazard && this.pol.heatFloor <= 0 && !this.pol.fillCore;
-    const carriedFuel = spare
-      ? p.stack.reduce((v, s) => v + (reserved(s) ? 0 : (this.cp.core.accepts[s] ?? 0)), 0)
-      : this.fuelValueCarried(st);
     if (carriedFuel > 0 && fuel < cap) {
       const room = cap - fuel;
       let sc = frac < 0.75 || carriedFuel <= room ? 30 + (1 - frac) * 50 : 10;
@@ -525,9 +502,7 @@ export class Brain {
       const sells = this.sellable(st).includes(def.output);
       const forSale = sells || this.wantedOut(st, def.output);
       // Keep a tray from sitting full: collect from a nearly full pile first, even an unwanted one, and stop operating one short of the cap.
-      // Automate goals: a tray a hired server already drains is not the captain's to tidy; fetching it by hand restarts the hands-off clock.
-      const drained = this.pol.handsOff && st.residents.some((r) => r.status === "ok" && r.assign.from === cv.type && this.cp.roles[r.role]?.behavior === "collect_deliver");
-      if (tidy && !drained && cv.out >= def.outCap - 2 && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) T("fetch", 85, cv.id);
+      if (tidy && cv.out >= def.outCap - 2 && count(p.stack, def.output) < (cp.resources[def.output]?.cap ?? 6)) T("fetch", 85, cv.id);
       if (forPlan <= 0 && !forSale) continue;
       const opByWorker = st.residents.some((r) => r.status === "ok" && r.role === def.role && r.assign.to === cv.type && near(r.pos, cv.operatorPos, cp.convParams.operatorRange));
       // Working a machine by hand restarts the hands-off clock.

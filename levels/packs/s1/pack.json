@@ -1,6 +1,6 @@
 {
   "id": "s1",
-  "engineVersion": "0.36.0",
+  "engineVersion": "0.35.0",
   "contentVersion": "0.23.0",
   "levels": [
     {
@@ -36,25 +36,14 @@
         "sales"
       ],
       "goal": "crates",
-      "rating": 0.138,
-      "fun": 0.875,
-      "target": 0.183,
-      "beats": [
-        {
-          "beat": "captured",
-          "tick": 248
-        },
-        {
-          "beat": "released",
-          "tick": 498
-        }
-      ],
-      "signature": "v1-832aa3b7"
+      "rating": 0.098,
+      "fun": 0.633,
+      "target": 0.183
     },
     {
       "id": "s1-L008",
       "file": "s1-L008.json",
-      "title": "Hurried Traders and VIPs",
+      "title": "Open Vault",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -66,25 +55,14 @@
         "workers"
       ],
       "goal": "serve_premium",
-      "rating": 0.139,
-      "fun": 0.907,
-      "target": 0.195,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 153
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 640
-        }
-      ],
-      "signature": "v1-849b762c"
+      "rating": 0.175,
+      "fun": 0.909,
+      "target": 0.195
     },
     {
       "id": "s1-L009",
       "file": "s1-L009.json",
-      "title": "Presses and Raising the Hub",
+      "title": "Second Gear",
       "family": "industrialize",
       "modules": [
         "build_pads",
@@ -95,58 +73,15 @@
         "sales",
         "workers"
       ],
-      "goal": "build",
-      "rating": 0.143,
-      "fun": 0.901,
-      "target": 0.207,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 478
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 962
-        },
-        {
-          "beat": "hired:role.cashier",
-          "tick": 2373
-        },
-        {
-          "beat": "built:conv.food_processor",
-          "tick": 2629
-        },
-        {
-          "beat": "built:conv.material_processor",
-          "tick": 2975
-        },
-        {
-          "beat": "hired:role.operator",
-          "tick": 3669
-        },
-        {
-          "beat": "hired:role.server",
-          "tick": 4084
-        },
-        {
-          "beat": "built:conv.alloy_works",
-          "tick": 5055
-        },
-        {
-          "beat": "built:conv.level",
-          "tick": 7191
-        },
-        {
-          "beat": "built:struct.landmark",
-          "tick": 7775
-        }
-      ],
-      "signature": "v1-b882023a"
+      "goal": "converter_level",
+      "rating": 0.221,
+      "fun": 0.94,
+      "target": 0.207
     },
     {
       "id": "s1-L010",
       "file": "s1-L010.json",
-      "title": "Rust and Gun Line",
+      "title": "Gun Line",
       "family": "defend",
       "modules": [
         "barrier_lines",
@@ -161,45 +96,14 @@
         "workers"
       ],
       "goal": "turret_level",
-      "rating": 0.294,
-      "fun": 0.576,
-      "target": 0.219,
-      "beats": [
-        {
-          "beat": "wave_started",
-          "tick": 600
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 2026
-        },
-        {
-          "beat": "hired:role.defender",
-          "tick": 2096
-        },
-        {
-          "beat": "hired:role.medic",
-          "tick": 2242
-        },
-        {
-          "beat": "built:struct.ranged_defense",
-          "tick": 2508
-        },
-        {
-          "beat": "built:struct.ranged_defense.t2",
-          "tick": 3264
-        },
-        {
-          "beat": "built:struct.ranged_defense.t3",
-          "tick": 6462
-        }
-      ],
-      "signature": "v1-21d2fde6"
+      "rating": 0.23,
+      "fun": 0.142,
+      "target": 0.219
     },
     {
       "id": "s1-L011",
       "file": "s1-L011.json",
-      "title": "Reactors and Power Up",
+      "title": "Rising Flares",
       "family": "shelter",
       "modules": [
         "build_pads",
@@ -210,29 +114,35 @@
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.144,
-      "fun": 0.837,
-      "target": 0.231,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 193
-        },
-        {
-          "beat": "core_upgraded",
-          "tick": 1377
-        },
-        {
-          "beat": "built:sink.core.level",
-          "tick": 1377
-        }
+      "rating": 0.198,
+      "fun": 0.882,
+      "target": 0.231
+    },
+    {
+      "id": "s1-L012",
+      "file": "s1-L012.json",
+      "title": "Thin Ice",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "lasso",
+        "sales"
       ],
-      "signature": "v1-0c09276a"
+      "goal": "rescue_before_freeze",
+      "rating": 0.373,
+      "fun": 0.675,
+      "target": 0.243
     },
     {
       "id": "s1-L013",
       "file": "s1-L013.json",
-      "title": "Build Sites and Bulk Orders",
+      "title": "Big Orders",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -243,25 +153,14 @@
         "workers"
       ],
       "goal": "bulk_order",
-      "rating": 0.219,
-      "fun": 0.882,
-      "target": 0.255,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 165
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 585
-        }
-      ],
-      "signature": "v1-2de4e64e"
+      "rating": 0.269,
+      "fun": 0.899,
+      "target": 0.255
     },
     {
       "id": "s1-L014",
       "file": "s1-L014.json",
-      "title": "Conveyors and Reserves",
+      "title": "Warehouse Rush",
       "family": "industrialize",
       "modules": [
         "build_pads",
@@ -275,52 +174,52 @@
         "workers"
       ],
       "goal": "stockpile",
-      "rating": 0.366,
-      "fun": 0.743,
-      "target": 0.267,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 210
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 368
-        },
-        {
-          "beat": "hired:role.cashier",
-          "tick": 1634
-        },
-        {
-          "beat": "built:conv.food_processor",
-          "tick": 1730
-        },
-        {
-          "beat": "hired:role.operator",
-          "tick": 2654
-        },
-        {
-          "beat": "hired:role.server",
-          "tick": 2990
-        },
-        {
-          "beat": "built:conv.material_processor",
-          "tick": 3289
-        },
-        {
-          "beat": "built:conv.alloy_works",
-          "tick": 4749
-        },
-        {
-          "beat": "built:struct.conveyor",
-          "tick": 5202
-        },
-        {
-          "beat": "built:struct.depot",
-          "tick": 6752
-        }
+      "rating": 0.246,
+      "fun": 0.8,
+      "target": 0.267
+    },
+    {
+      "id": "s1-L015",
+      "file": "s1-L015.json",
+      "title": "Wreckage and Hardpoints",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
       ],
-      "signature": "v1-2ad75dc7"
+      "goal": "turret_level",
+      "rating": 0.24,
+      "fun": 0.207,
+      "target": 0.279
+    },
+    {
+      "id": "s1-L016",
+      "file": "s1-L016.json",
+      "title": "Hab Pods and Sweep",
+      "family": "shelter",
+      "modules": [
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "hazard_events",
+        "housing",
+        "sales"
+      ],
+      "goal": "clear_zones",
+      "rating": 0.334,
+      "fun": 0.461,
+      "target": 0.332
     },
     {
       "id": "s1-L017",
@@ -338,37 +237,14 @@
         "sales"
       ],
       "goal": "protein",
-      "rating": 0.323,
-      "fun": 0.84,
-      "target": 0.344,
-      "beats": [
-        {
-          "beat": "captured",
-          "tick": 87
-        },
-        {
-          "beat": "released",
-          "tick": 343
-        },
-        {
-          "beat": "hunt",
-          "tick": 1407
-        },
-        {
-          "beat": "hired:role.hunter",
-          "tick": 1563
-        },
-        {
-          "beat": "sold",
-          "tick": 1981
-        }
-      ],
-      "signature": "v1-69b54522"
+      "rating": 0.282,
+      "fun": 0.719,
+      "target": 0.344
     },
     {
       "id": "s1-L018",
       "file": "s1-L018.json",
-      "title": "Vaults and Unsealed",
+      "title": "Vaults and Ledgers",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -377,41 +253,17 @@
         "customer_variety",
         "gather",
         "sales",
-        "source_gating",
         "workers"
       ],
-      "goal": "unlock",
-      "rating": 0.322,
-      "fun": 0.776,
-      "target": 0.356,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 283
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 487
-        },
-        {
-          "beat": "hired:role.cashier",
-          "tick": 2890
-        },
-        {
-          "beat": "unlocked",
-          "tick": 3067
-        },
-        {
-          "beat": "built:node.enable",
-          "tick": 3067
-        }
-      ],
-      "signature": "v1-1af5e097"
+      "goal": "currency",
+      "rating": 0.304,
+      "fun": 0.923,
+      "target": 0.356
     },
     {
       "id": "s1-L019",
       "file": "s1-L019.json",
-      "title": "Couriers and Hiring Drive",
+      "title": "Conveyors and Hiring Drive",
       "family": "industrialize",
       "modules": [
         "build_pads",
@@ -424,56 +276,9 @@
         "workers"
       ],
       "goal": "hire",
-      "rating": 0.339,
-      "fun": 0.916,
-      "target": 0.368,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 651
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 865
-        },
-        {
-          "beat": "hired:role.cashier",
-          "tick": 2553
-        },
-        {
-          "beat": "built:struct.depot",
-          "tick": 3010
-        },
-        {
-          "beat": "hired:role.hauler",
-          "tick": 3391
-        },
-        {
-          "beat": "built:conv.food_processor",
-          "tick": 3657
-        },
-        {
-          "beat": "hired:role.operator",
-          "tick": 4720
-        },
-        {
-          "beat": "hired:role.server",
-          "tick": 5346
-        },
-        {
-          "beat": "built:conv.material_processor",
-          "tick": 5614
-        },
-        {
-          "beat": "built:conv.alloy_works",
-          "tick": 6766
-        },
-        {
-          "beat": "built:conv.level",
-          "tick": 10528
-        }
-      ],
-      "signature": "v1-53bf06be"
+      "rating": 0.345,
+      "fun": 0.964,
+      "target": 0.368
     },
     {
       "id": "s1-L020",
@@ -492,36 +297,9 @@
         "workers"
       ],
       "goal": "build_count",
-      "rating": 0.331,
-      "fun": 0.697,
-      "target": 0.38,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 350
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 477
-        },
-        {
-          "beat": "hired:role.cashier",
-          "tick": 4195
-        },
-        {
-          "beat": "built:struct.housing",
-          "tick": 4396
-        },
-        {
-          "beat": "core_upgraded",
-          "tick": 5110
-        },
-        {
-          "beat": "built:sink.core.level",
-          "tick": 5110
-        }
-      ],
-      "signature": "v1-4c088c19"
+      "rating": 0.422,
+      "fun": 0.771,
+      "target": 0.38
     },
     {
       "id": "s1-L021",
@@ -541,36 +319,9 @@
         "workers"
       ],
       "goal": "waves_survived",
-      "rating": 0.469,
-      "fun": 0.198,
-      "target": 0.4,
-      "beats": [
-        {
-          "beat": "wave_started",
-          "tick": 600
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 785
-        },
-        {
-          "beat": "hired:role.defender",
-          "tick": 1611
-        },
-        {
-          "beat": "hired:role.medic",
-          "tick": 1773
-        },
-        {
-          "beat": "built:struct.ranged_defense",
-          "tick": 1881
-        },
-        {
-          "beat": "built:struct.ranged_defense.t2",
-          "tick": 6825
-        }
-      ],
-      "signature": "v1-1926fab0"
+      "rating": 0.315,
+      "fun": 0.069,
+      "target": 0.4
     },
     {
       "id": "s1-L022",
@@ -588,32 +339,9 @@
         "sales"
       ],
       "goal": "core_level",
-      "rating": 0.5,
-      "fun": 0.63,
-      "target": 0.45,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 220
-        },
-        {
-          "beat": "core_upgraded",
-          "tick": 3188
-        },
-        {
-          "beat": "built:sink.core.level",
-          "tick": 3188
-        },
-        {
-          "beat": "zone_cleared",
-          "tick": 3521
-        },
-        {
-          "beat": "built:zone.clear",
-          "tick": 3521
-        }
-      ],
-      "signature": "v1-159e51f4"
+      "rating": 0.498,
+      "fun": 0.582,
+      "target": 0.45
     },
     {
       "id": "s1-L023",
@@ -632,45 +360,116 @@
         "sales"
       ],
       "goal": "rescue_all",
-      "rating": 0.568,
-      "fun": 0.726,
-      "target": 0.494,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 201
-        },
-        {
-          "beat": "core_upgraded",
-          "tick": 1105
-        },
-        {
-          "beat": "built:sink.core.level",
-          "tick": 1105
-        },
-        {
-          "beat": "zone_cleared",
-          "tick": 1685
-        },
-        {
-          "beat": "built:zone.clear",
-          "tick": 1685
-        },
-        {
-          "beat": "captured",
-          "tick": 1895
-        },
-        {
-          "beat": "released",
-          "tick": 2187
-        }
-      ],
-      "signature": "v1-ccf5d9cc"
+      "rating": 0.862,
+      "fun": 0.775,
+      "target": 0.494
     },
     {
       "id": "s1-L024",
       "file": "s1-L024.json",
-      "title": "Hurried Traders and Market Day",
+      "title": "Locked Caches and Beat the Clock",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "earn_within",
+      "rating": 0.562,
+      "fun": 0.509,
+      "target": 0.538
+    },
+    {
+      "id": "s1-L025",
+      "file": "s1-L025.json",
+      "title": "Couriers and Hands Off",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "conveyors",
+        "core",
+        "gather",
+        "sales",
+        "supply_routing",
+        "workers"
+      ],
+      "goal": "automate",
+      "rating": 0.417,
+      "fun": 0.843,
+      "target": 0.581
+    },
+    {
+      "id": "s1-L026",
+      "file": "s1-L026.json",
+      "title": "Wreckage and Endurance",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "medical",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "survive",
+      "rating": 0.694,
+      "fun": 0.177,
+      "target": 0.625
+    },
+    {
+      "id": "s1-L027",
+      "file": "s1-L027.json",
+      "title": "Hab Pods and Admissions",
+      "family": "shelter",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "housing",
+        "sales"
+      ],
+      "goal": "admit",
+      "rating": 0.066,
+      "fun": 0.85,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L028",
+      "file": "s1-L028.json",
+      "title": "Stasis Pods and The Hunt",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "hunting",
+        "lasso",
+        "sales"
+      ],
+      "goal": "hunt",
+      "rating": 0.636,
+      "fun": 0.614,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L029",
+      "file": "s1-L029.json",
+      "title": "Hurried Traders and Sold Out",
       "family": "harvest",
       "modules": [
         "build_pads",
@@ -682,31 +481,639 @@
         "workers"
       ],
       "goal": "sell",
-      "rating": 0.449,
-      "fun": 0.898,
-      "target": 0.538,
-      "beats": [
-        {
-          "beat": "sold",
-          "tick": 250
-        },
-        {
-          "beat": "hired:role.supplier",
-          "tick": 482
-        }
-      ],
-      "signature": "v1-b427bce5"
-    }
-  ],
-  "dropped": [
+      "rating": 0.722,
+      "fun": 0.935,
+      "target": 0.756
+    },
     {
-      "index": 15,
-      "id": "s1-L015",
+      "id": "s1-L030",
+      "file": "s1-L030.json",
+      "title": "Tow Lines and Last Calls",
+      "family": "rescue",
+      "secondary": "harvest",
+      "modules": [
+        "barrier_lines",
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "lasso",
+        "sales",
+        "workers"
+      ],
+      "goal": "rescue",
+      "rating": 0.831,
+      "fun": 0.771,
+      "target": 0.8
+    },
+    {
+      "id": "s1-L031",
+      "file": "s1-L031.json",
+      "title": "Smelters and Full Steam",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "converters_running",
+      "rating": 0.179,
+      "fun": 0.877,
+      "target": 0.4
+    },
+    {
+      "id": "s1-L032",
+      "file": "s1-L032.json",
+      "title": "Scrap and Titan Night",
       "family": "defend",
-      "secondary": null,
-      "rejects": {
-        "recipes": 1
-      }
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "boss",
+      "rating": 0.445,
+      "fun": 0.165,
+      "target": 0.45
+    },
+    {
+      "id": "s1-L033",
+      "file": "s1-L033.json",
+      "title": "Domes and New Arrivals",
+      "family": "shelter",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "housing",
+        "sales"
+      ],
+      "goal": "population",
+      "rating": 0.336,
+      "fun": 0.889,
+      "target": 0.494
+    },
+    {
+      "id": "s1-L034",
+      "file": "s1-L034.json",
+      "title": "Drift Cables and Hunters' Larder",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "hunting",
+        "lasso",
+        "sales"
+      ],
+      "goal": "protein",
+      "rating": 0.527,
+      "fun": 0.895,
+      "target": 0.538
+    },
+    {
+      "id": "s1-L035",
+      "file": "s1-L035.json",
+      "title": "Vaults and Hot Streak",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "streak",
+      "rating": 0.508,
+      "fun": 0.786,
+      "target": 0.581
+    },
+    {
+      "id": "s1-L036",
+      "file": "s1-L036.json",
+      "title": "Warehouses and Long Hauls",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "supply_routing",
+        "workers"
+      ],
+      "goal": "haul",
+      "rating": 0.373,
+      "fun": 0.799,
+      "target": 0.625
+    },
+    {
+      "id": "s1-L037",
+      "file": "s1-L037.json",
+      "title": "Wreckage and Hold Fast",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "waves",
+      "rating": 0.609,
+      "fun": 0.802,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L038",
+      "file": "s1-L038.json",
+      "title": "Storms and Sweep",
+      "family": "shelter",
+      "modules": [
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "hazard_events",
+        "sales"
+      ],
+      "goal": "clear_zones",
+      "rating": 0.727,
+      "fun": 0.597,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L039",
+      "file": "s1-L039.json",
+      "title": "Stasis Pods and Thin Ice",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "lasso",
+        "sales"
+      ],
+      "goal": "rescue_before_freeze",
+      "rating": 0.726,
+      "fun": 0.624,
+      "target": 0.756
+    },
+    {
+      "id": "s1-L040",
+      "file": "s1-L040.json",
+      "title": "Vaults and Open Sesame",
+      "family": "harvest",
+      "secondary": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "unlock",
+      "rating": 0.789,
+      "fun": 0.944,
+      "target": 0.8
+    },
+    {
+      "id": "s1-L041",
+      "file": "s1-L041.json",
+      "title": "Vaults and New Hands",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "hire",
+      "rating": 0.342,
+      "fun": 0.918,
+      "target": 0.4
+    },
+    {
+      "id": "s1-L042",
+      "file": "s1-L042.json",
+      "title": "Warehouses and Scaffolds",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "supply_routing",
+        "workers"
+      ],
+      "goal": "build",
+      "rating": 0.424,
+      "fun": 0.914,
+      "target": 0.45
+    },
+    {
+      "id": "s1-L043",
+      "file": "s1-L043.json",
+      "title": "Wreckage and New Hands",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "hire",
+      "rating": 0.503,
+      "fun": 0.07,
+      "target": 0.494
+    },
+    {
+      "id": "s1-L044",
+      "file": "s1-L044.json",
+      "title": "Hab Pods and Endurance",
+      "family": "shelter",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "housing",
+        "sales"
+      ],
+      "goal": "survive",
+      "rating": 0.023,
+      "fun": 0.727,
+      "target": 0.538
+    },
+    {
+      "id": "s1-L045",
+      "file": "s1-L045.json",
+      "title": "Tow Lines and Game Trails",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "hunting",
+        "lasso",
+        "sales"
+      ],
+      "goal": "hunt",
+      "rating": 0.621,
+      "fun": 0.324,
+      "target": 0.581
+    },
+    {
+      "id": "s1-L046",
+      "file": "s1-L046.json",
+      "title": "Blueprints and Earnings",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "earn",
+      "rating": 0.582,
+      "fun": 0.905,
+      "target": 0.625
+    },
+    {
+      "id": "s1-L047",
+      "file": "s1-L047.json",
+      "title": "Presses and Supply Lines",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "chain",
+      "rating": 0.631,
+      "fun": 0.918,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L048",
+      "file": "s1-L048.json",
+      "title": "Rust and Hardpoints",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "turret_level",
+      "rating": 0.703,
+      "fun": 0.215,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L049",
+      "file": "s1-L049.json",
+      "title": "Flares and Brighter Cores",
+      "family": "shelter",
+      "modules": [
+        "blocked_zones",
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "hazard_events",
+        "sales"
+      ],
+      "goal": "core_level",
+      "rating": 0.751,
+      "fun": 0.517,
+      "target": 0.756
+    },
+    {
+      "id": "s1-L050",
+      "file": "s1-L050.json",
+      "title": "Warehouses and Assembly",
+      "family": "industrialize",
+      "secondary": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "produce",
+      "rating": 0.988,
+      "fun": 0.688,
+      "target": 0.8
+    },
+    {
+      "id": "s1-L051",
+      "file": "s1-L051.json",
+      "title": "Stasis Pods and No One Left",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "lasso",
+        "sales"
+      ],
+      "goal": "rescue_all",
+      "rating": 0.149,
+      "fun": 0.662,
+      "target": 0.4
+    },
+    {
+      "id": "s1-L052",
+      "file": "s1-L052.json",
+      "title": "Hurried Traders and Guests",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "customer_variety",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "serve_premium",
+      "rating": 0.551,
+      "fun": 0.928,
+      "target": 0.45
+    },
+    {
+      "id": "s1-L053",
+      "file": "s1-L053.json",
+      "title": "Presses and Upgrades",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "core",
+        "gather",
+        "sales",
+        "workers"
+      ],
+      "goal": "converter_level",
+      "rating": 0.188,
+      "fun": 0.919,
+      "target": 0.494
+    },
+    {
+      "id": "s1-L054",
+      "file": "s1-L054.json",
+      "title": "Scrap and Long Night",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "waves_survived",
+      "rating": 0.561,
+      "fun": 0.073,
+      "target": 0.538
+    },
+    {
+      "id": "s1-L055",
+      "file": "s1-L055.json",
+      "title": "Domes and Roof Overhead",
+      "family": "shelter",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "core_levels",
+        "gather",
+        "housing",
+        "sales"
+      ],
+      "goal": "house_all",
+      "rating": 0.564,
+      "fun": 0.771,
+      "target": 0.581
+    },
+    {
+      "id": "s1-L056",
+      "file": "s1-L056.json",
+      "title": "Stasis Pods and Cargo",
+      "family": "rescue",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "lasso",
+        "sales"
+      ],
+      "goal": "crates",
+      "rating": 0.447,
+      "fun": 0.933,
+      "target": 0.625
+    },
+    {
+      "id": "s1-L057",
+      "file": "s1-L057.json",
+      "title": "Sealed Veins and Credits",
+      "family": "harvest",
+      "modules": [
+        "build_pads",
+        "carry",
+        "core",
+        "gather",
+        "sales",
+        "source_gating",
+        "workers"
+      ],
+      "goal": "currency",
+      "rating": 0.738,
+      "fun": 0.91,
+      "target": 0.669
+    },
+    {
+      "id": "s1-L058",
+      "file": "s1-L058.json",
+      "title": "Warehouses and Reserves",
+      "family": "industrialize",
+      "modules": [
+        "build_pads",
+        "carry",
+        "converters",
+        "conveyors",
+        "core",
+        "gather",
+        "sales",
+        "supply_routing",
+        "workers"
+      ],
+      "goal": "stockpile",
+      "rating": 0.763,
+      "fun": 0.915,
+      "target": 0.713
+    },
+    {
+      "id": "s1-L059",
+      "file": "s1-L059.json",
+      "title": "Rust and Endurance",
+      "family": "defend",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "medical",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "survive",
+      "rating": 0.689,
+      "fun": 0.208,
+      "target": 0.756
+    },
+    {
+      "id": "s1-L060",
+      "file": "s1-L060.json",
+      "title": "Rust and The Big One",
+      "family": "defend",
+      "secondary": "shelter",
+      "modules": [
+        "barrier_lines",
+        "build_pads",
+        "carry",
+        "core",
+        "defenders",
+        "defense",
+        "gather",
+        "housing",
+        "sales",
+        "salvage_upgrades",
+        "workers"
+      ],
+      "goal": "boss",
+      "rating": 0.674,
+      "fun": 0.858,
+      "target": 0.8
     }
   ]
 }

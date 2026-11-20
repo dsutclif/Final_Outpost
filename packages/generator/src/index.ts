@@ -12,21 +12,12 @@ import { Rand, clamp01 } from "./rand.js";
 import { skinText } from "./text.js";
 import { candidateSettings, roundKnobs, runRows, type CandidateRecord } from "./record.js";
 
-/** Rebuild session (outpost-ops#254): per-level knob fixes from the JSON file named by FO_KNOB_OVERRIDES ({ "<level id>": { knob: value } }). Unset: no effect. */
-function slotKnobOverrides(id: string): Record<string, number> {
-  const f = typeof process === "undefined" ? undefined : process.env["FO_KNOB_OVERRIDES"];
-  if (!f) return {};
-  // fs is fetched at call time (node only) so the browser bundle never imports node:fs
-  try { const fs = (process as unknown as { getBuiltinModule(n: string): typeof import("node:fs") }).getBuiltinModule("node:fs"); return (JSON.parse(fs.readFileSync(f, "utf8")) as Record<string, Record<string, number>>)[id] ?? {}; } catch { return {}; }
-}
-
 export { dressingKnobs, capWavePoints, wavePoints, withWaveFallback, TEMPLATES, GEN, isSizedFootprint, applyLookScale, applyPlotLayout, applyNightCadence, GEN_CASHIER_BASE, timeTarget, buildLevel, knobsFor, templateById, CHALLENGE_PLACEHOLDER, LayoutError, type LayoutSnapshot, type Template, type Knobs, type Built, type Family, type Sizing } from "./build.js";
 export { flowModel, type Flow } from "./flow.js";
 export { scrapBudget, scrapNeed, waveScrap } from "./budget.js";
 export { skinText, dedupeTitles } from "./text.js";
 export { Placer, unreadablePairs } from "./layout.js";
-export type { CandidateRecord, CandidateSettings, ComposerLog } from "./record.js";
-export { composeStart, composerSwap, composerPool, requiredFeatures, estimateD, moduleCap, type Composition, type ComposeRequest, type SwapDecision } from "./composer.js";
+export type { CandidateRecord, CandidateSettings } from "./record.js";
 
 /** Contract 5 request, from the sequencer (family, features, goal kind, modules). */
 export interface GenRequest {
@@ -326,7 +317,6 @@ function earned(o: Obj, r: BotResult): boolean {
     case "streak": return s.streakMax >= Number(o.params["n"]);
     case "hire": return s.hired >= Number(o.params["n"]);
     case "rescue": return s.rescued >= Number(o.params["n"]);
-    case "rescue_housed": return s.housedRescued >= Number(o.params["n"]);
     case "admit": return s.admitted >= Number(o.params["n"]);
     case "kills": return s.kills >= Number(o.params["n"]);
     case "salvage": return s.salvage >= Number(o.params["n"]);
@@ -364,7 +354,6 @@ function challengeCandidates(fam: Family, goodRuns: BotResult[], allowed: readon
         break;
       }
       case "rescue": { const n = Math.floor(pctile(S.map((s) => s.rescued), 0.3)); if (n >= 2) add(k, { n }); break; }
-      case "rescue_housed": { const n = Math.floor(pctile(S.map((s) => s.housedRescued), 0.3)); if (n >= 2) add(k, { n }); break; }
       case "streak": { const n = Math.floor(pctile(S.map((s) => s.streakMax), 0.3) * 0.9); if (n >= 4) add(k, { n: Math.min(STAR_CAPS.streak, n) }); break; }
       case "hire": { const n = Math.floor(pctile(S.map((s) => s.hired), 0.3)); if (n >= 2) add(k, { n }); break; }
       case "turret_level": { const n = Math.floor(pctile(S.map((s) => s.turretMax), 0.3)); if (n >= 2) add(k, { n }); break; }
@@ -480,11 +469,6 @@ export function idleFeatures(req: GenRequest, idleModules: readonly string[]): s
     // what another feature of the level brings along stays
     return !features.some((o) => o !== f && (cfg.features[o]?.with ?? []).includes(f));
   });
-}
-
-/** Keep the spare-pad-trimmed level only when it still passes and is no further from the target than the untrimmed one. */
-export function keepTrim(trimmedPasses: boolean, trimmedErr: number, untrimmedErr: number): boolean {
-  return trimmedPasses && trimmedErr <= untrimmedErr;
 }
 
 export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDetail {
@@ -607,13 +591,8 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
               const ms2 = measure(lean, { content: c, refSeeds: (opts.seeds?.full ?? S.fullSeeds).ref, otherSeeds: (opts.seeds?.full ?? S.fullSeeds).other, history });
               const r2 = score(ms2, { content: c, reference });
               const v2 = r2.ok && !overLoopCap(ms2) && idleElements(lean, ms2.runs["good"]!).length === 0 ? verifyStars(lean, c, humanStars) : null;
-              const err2 = Math.abs(r2.D - req.target);
-              const passes = !!(v2 && v2.feasible && v2.starsOk);
-              if (keepTrim(passes, err2, err)) fin = { m: lean, r: r2, v: v2!, err: err2, loopMax: ms2.loopMax };
-              // A trim that still passes but lands further from the target is refused: it would swap an on-target candidate for an off-target one.
-              const refused = passes && !keepTrim(passes, err2, err);
-              if (refused) rec!.trimRefused = { D: round3(r.D), trimmedD: round3(r2.D), target: req.target };
-              log(`  it${rec!.iteration} spare pads: ${m.entities.filter((e) => "id" in e && !lean.entities.some((x) => "id" in x && x.id === e.id)).map((e) => (e as { id: string }).id).join(", ")}${fin.m === lean ? " dropped" : refused ? ` kept (trim refused: D ${round3(r2.D)} is further from target ${req.target} than untrimmed D ${round3(r.D)})` : " kept (the trimmed level fails)"}`);
+              if (v2 && v2.feasible && v2.starsOk) fin = { m: lean, r: r2, v: v2, err: Math.abs(r2.D - req.target), loopMax: ms2.loopMax };
+              log(`  it${rec!.iteration} spare pads: ${m.entities.filter((e) => "id" in e && !lean.entities.some((x) => "id" in x && x.id === e.id)).map((e) => (e as { id: string }).id).join(", ")}${fin.m === lean ? " dropped" : " kept (the trimmed level fails)"}`);
             }
             attachRating(fin.m, fin.r, req.introduced ?? [], fin.v.summary, fin.loopMax);
             const cand: Candidate = { manifest: fin.m, rating: fin.r, p, err: fin.err, stars: fin.v.summary, starsByRung: fin.v.byRung };
@@ -638,7 +617,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     stats.iterations++;
     const mut: Record<string, number> = {};
     if (it > 0) for (const k of Object.keys(GEN.knobs)) mut[k] = (mrand.float() * 2 - 1) * GEN.jitter;
-    const knobs = { ...knobsFor(p, mut, req.family), ...dressingKnobs(req.seed), ...slotKnobOverrides(req.id ?? "") };
+    const knobs = { ...knobsFor(p, mut), ...dressingKnobs(req.seed) };
     rec = { iteration: it, p: round3(p), knobs: {}, rejects: [], kept: false, shipped: false, layoutSeed: req.seed, step: { prev: lastIt, dp: lastP < 0 ? 0 : round3(p - lastP) } };
     lastIt = it; lastP = p;
     recAt = Date.now(); msRate = 0; msBuild = 0;
@@ -698,7 +677,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       continue;
     }
     if (!TIME_FIXED_GOALS.has(m.goal.type)) {
-      const tMax = Math.max(...quick.map((r) => Math.max(r.goalTicks, r.ticks))) / 30;
+      const tMax = Math.max(...quick.map((r) => r.goalTicks)) / 30;
       m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(60, Math.round(tMax / (1 - knobs.margin) / 10) * 10)), 10);
     }
     // A level the human-view bot cannot win is too hard for a person, however well the good bot does: ease off now, before the costly checks.
@@ -845,7 +824,7 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
   const c = opts.content ?? defaultContent;
   const mods = closure(req.modules, c);
   const tpl = templateById(req.template ?? TEMPLATES.templates[0]!.id);
-  const knobs = knobsFor(clamp01((req.target - 0.08) / 0.8), {}, req.family);
+  const knobs = knobsFor(clamp01((req.target - 0.08) / 0.8));
   for (let salt = 0; salt < GEN.search.layoutTries; salt++) {
     let built: Built;
     try { built = buildLevel({ id: req.id ?? "calib", seed: req.seed, target: req.target, family: req.family, secondary: req.secondary ?? null, features: req.features ?? [], goalType: req.goalType, modules: mods, template: tpl, knobs, walls: req.walls !== false, content: c }, salt); }
@@ -854,7 +833,7 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
     const m = built.manifest;
     const quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
     if (quick.some((r) => !r.won)) return null;
-    if (!TIME_FIXED_GOALS.has(m.goal.type)) m.params["level.budgetSeconds"] = timeTarget(Math.round(Math.max(...quick.map((r) => Math.max(r.goalTicks, r.ticks))) / 30 / (1 - knobs.margin) / 10) * 10, 10);
+    if (!TIME_FIXED_GOALS.has(m.goal.type)) m.params["level.budgetSeconds"] = timeTarget(Math.round(Math.max(...quick.map((r) => r.goalTicks)) / 30 / (1 - knobs.margin) / 10) * 10, 10);
     const ms = measure(m, { content: c, refSeeds: GEN.search.fullSeeds.ref, otherSeeds: GEN.search.fullSeeds.other });
     return { goal: m.goal.type, metrics: ms.metrics };
   }

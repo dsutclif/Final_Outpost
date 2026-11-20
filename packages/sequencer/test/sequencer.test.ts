@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { content } from "@fo/content";
 import {
-  DEFAULT_CONFIG, DEFAULT_REGISTER, FAMILIES, compareVersions, recipeKey, recipeOf, adaptOffset, alwaysOn, closure, conflicts, familyCounts, deferredIntros, featureUnlocked, goalKind, historyOf, sequence, sequenceRange, slotFor, targetFor,
+  DEFAULT_CONFIG, DEFAULT_REGISTER, FAMILIES, compareVersions, recipeKey, recipeOf, adaptOffset, alwaysOn, closure, conflicts, familyCounts, goalKind, historyOf, sequence, sequenceRange, slotFor, targetFor,
   type HistoryEntry, type LevelRequest, type RecipeRegister, type RegisterEntry, type SequencerConfig,
 } from "../src/index.js";
 
@@ -30,7 +30,7 @@ describe("sequencer (level families, REDESIGN-R2 §5)", () => {
   });
 
   it("levels 6-15 introduce every family's deeper mechanics inside the family", () => {
-    const intro = reqs.filter((r) => r.phase === "intro"); // levels 6-15, plus a mechanic held back until a target reaches its step (clearing_pass, L23)
+    const intro = reqs.slice(5, 15);
     for (const r of intro) {
       expect(r.phase).toBe("intro");
       expect(r.introduced.length).toBeGreaterThan(0);
@@ -41,9 +41,7 @@ describe("sequencer (level families, REDESIGN-R2 §5)", () => {
     }
     // every feature is taught once: by the hand-made story levels (storyTaught) or introduced here, never re-introduced
     const introduced = new Set(intro.flatMap((r) => r.features));
-    // a composer-only add-on (pod_housing) is taught by the feature that introduces its mechanic (housing)
-    const taughtMech = (f: string) => cfg.features[f]!.modules.length > 0 && cfg.features[f]!.modules.every((m) => [...introduced].some((g) => cfg.features[g]?.modules.includes(m)));
-    for (const f of Object.keys(cfg.features)) expect({ f, taught: introduced.has(f) || cfg.storyTaught.includes(f) || taughtMech(f) }).toEqual({ f, taught: true });
+    for (const f of Object.keys(cfg.features)) expect({ f, taught: introduced.has(f) || cfg.storyTaught.includes(f) }).toEqual({ f, taught: true });
     for (const r of intro) for (const f of r.introduced) expect(cfg.storyTaught).not.toContain(f);
     // Each intro goal exercises a newly introduced feature.
     for (const r of intro) expect(cfg.goals[r.goalId]!.needs.some((n) => r.introduced.includes(n) || r.features.includes(n)) || cfg.goals[r.goalId]!.needs.length === 0).toBe(true);
@@ -225,22 +223,5 @@ describe("recipe register (outpost-ops#198)", () => {
     expect(DEFAULT_REGISTER.settings.failGap).toBe(0.1);
     expect(DEFAULT_REGISTER.settings.maxRerolls).toBeGreaterThan(0);
     for (const e of DEFAULT_REGISTER.entries) expect(e.key).toBe(recipeKey(e.recipe));
-  });
-});
-
-describe("introductions wait for a target that reaches the step", () => {
-  it("never introduces a feature on a level whose target is below its dStep low end", () => {
-    for (let i = DEFAULT_CONFIG.storyLength + 1; i <= 60; i++) {
-      const s = slotFor(i);
-      for (const f of s.introduced) expect(targetFor(i, s.phase).target, `${f} at L${i}`).toBeGreaterThanOrEqual(DEFAULT_CONFIG.features[f]!.dStep![0]);
-    }
-  });
-  it("moves clearing_pass from level 12 to the next rescue level whose target is high enough, and unlocks it only there", () => {
-    expect(slotFor(12).introduced).toEqual(["pod_timers"]);
-    expect(deferredIntros().get("clearing_pass")).toBe(23);
-    expect(slotFor(23)).toMatchObject({ family: "rescue", phase: "intro", introduced: ["clearing_pass"] });
-    expect(featureUnlocked("clearing_pass", "rescue", 17)).toBe(false);
-    expect(featureUnlocked("clearing_pass", "rescue", 23)).toBe(true);
-    expect([...deferredIntros().keys()]).toEqual(["clearing_pass"]);
   });
 });

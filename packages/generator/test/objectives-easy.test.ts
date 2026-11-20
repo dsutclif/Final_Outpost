@@ -9,7 +9,7 @@ import { settleObjectives } from "../src/index.js";
 const run = (froze = 0): BotResult => ({
   won: true, goalTicks: 190 * 30, stars: 3, objectives: [],
   runStats: { fuelOuts: 0, froze, heatMin: 800, admitted: 5, hpMin: 100, injured: 0, barriersLost: 0, customersAngry: 0, overload: false,
-    tripBest: 0, tripBestClean: 0, podsLost: 0, podsLeft: 0, rescued: 0, housedRescued: 0, streakMax: 0, hired: 0, heatMean: 0.8, kills: 0, salvage: 0 },
+    tripBest: 0, tripBestClean: 0, podsLost: 0, podsLeft: 0, rescued: 0, streakMax: 0, hired: 0, heatMean: 0.8, kills: 0, salvage: 0 },
 }) as unknown as BotResult;
 
 describe("star challenges on an easy time-fixed level", () => {

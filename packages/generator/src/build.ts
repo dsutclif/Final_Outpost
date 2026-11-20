@@ -38,8 +38,6 @@ export const TEMPLATES = templatesData as unknown as TemplatesFile;
 type RingDims = { hw: number; hh: number; split: [number, number] };
 export const GEN = genData as unknown as {
   knobs: Record<string, [number, number]>;
-  /** Per-family [p=0, p=1] knob ends that replace knobs (composer search ranges). */
-  familyKnobs: Record<string, unknown>;
   dressing: string[];
   /** Dangerous prey: odds that a hunting level that earns any (knob `dangerPrey` rounds above 0) gets them, and the most in one zone. */
   danger: { chance: number; max: number };
@@ -297,11 +295,9 @@ export const templateById = (id: string): Template => {
 export type Knobs = Record<keyof typeof genData.knobs, number>;
 
 /** Knob values at pressure p, each jittered by its own mutation offset (in pressure units). */
-export function knobsFor(p: number, mut: Partial<Record<string, number>> = {}, family?: Family): Knobs {
+export function knobsFor(p: number, mut: Partial<Record<string, number>> = {}): Knobs {
   const out = {} as Record<string, number>;
-  // the family's own search ranges (generator.json familyKnobs) replace the shared ones
-  const fam = (family ? (GEN.familyKnobs as Record<string, Record<string, [number, number]>>)[family] : undefined) ?? {};
-  for (const [k, ab] of Object.entries(GEN.knobs)) { const [a, b] = fam[k] ?? ab; out[k] = lerp(a, b, clamp01(p + (mut[k] ?? 0))); }
+  for (const [k, [a, b]] of Object.entries(GEN.knobs)) out[k] = lerp(a, b, clamp01(p + (mut[k] ?? 0)));
   return out as Knobs;
 }
 
@@ -489,7 +485,7 @@ export const CHALLENGE_PLACEHOLDER: Record<Family, { kind: string; params: Recor
   defend: { kind: "no_injuries", params: {} },
 };
 
-const RATE_GOALS = new Set(["hunt", "protein", "currency", "sell", "earn", "serve_premium", "streak", "bulk_order",
+const RATE_GOALS = new Set(["hunt", "protein", "currency", "sell", "earn", "serve_premium", "streak", "sell_each", "bulk_order",
   "produce", "haul", "chain", "stockpile", "kills", "salvage", "earn_within"]);
 const FILL_GOALS = new Set(["fuel_full"]);
 
@@ -622,7 +618,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
   // Batch 3: every defend level has guards (the defend family's modules include defenders), not just the guards feature's.
   const guards = has("defenders");
   const rescue = fams.has("rescue");
-  const needsCurrency = fams.has("harvest") || fams.has("industrialize") || feat.has("housing") || feat.has("pod_housing") || feat.has("gate_arrivals")
+  const needsCurrency = fams.has("harvest") || fams.has("industrialize") || feat.has("housing") || feat.has("gate_arrivals")
     || feat.has("core_levels") || feat.has("rockslides") || feat.has("clearing_pass") || goal === "protein" || goal === "perimeter_before_wave1";
   let ring: ReturnType<typeof ringPoints> | null = null;
   let ringGates: number[] = [];
@@ -977,7 +973,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
         }
         return false;
       };
-      const sawOpts = { near: toward(forestC, core, 0.5), key: true, pad: true, spots: convSpots("conv.material_processor"), slots: machineSlots("conv.material_processor", feat.has("tier2") ? ["op"] : ["op", "out"]), ...(plotOn ? { alts: plotAlts("conv.material_processor") } : {}), mirror: false, fp: "conv.material_processor", ...(belted ? { accept: pairOk } : {}) };
+      const sawOpts = { near: toward(forestC, core, 0.5), key: true, pad: true, spots: convSpots("conv.material_processor"), slots: machineSlots("conv.material_processor", ["op"]), ...(plotOn ? { alts: plotAlts("conv.material_processor") } : {}), mirror: false, fp: "conv.material_processor", ...(belted ? { accept: pairOk } : {}) };
       let s0 = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...sawOpts, samples: 2000 })
         ?? P.place("saw", R.conv, inner, { ...sawOpts, samples: 4000 });
       if (!s0 && belted) {
@@ -986,7 +982,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
         feat.delete("conveyors");
         const { accept: _pair, ...plainBase } = sawOpts as typeof sawOpts & { accept?: unknown };
         void _pair;
-        const plain = { ...plainBase, slots: machineSlots("conv.material_processor", feat.has("tier2") ? ["op"] : ["op", "out"]) };
+        const plain = { ...plainBase, slots: machineSlots("conv.material_processor", ["op"]) };
         s0 = P.place("saw", R.conv, ring ? inner : [forestC[0] - 150, forestC[1] - 150, 300, 300], { ...plain, samples: 2000 })
           ?? P.place("saw", R.conv, inner, { ...plain, samples: 4000 });
       }
@@ -998,13 +994,6 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       pad({ type: "pad.hire", id: "saw_feeder", at: [...sf], cost: { "res.currency": cost("hire.feeder") }, role: { role: "role.supplier", from: "node.fuel_scrap", to: "conv.material_processor" }, requires: { pad: "saw" } });
       const sw = sStaff ?? stationPad(s, "op");
       pad({ type: "pad.hire", id: "sawyer", at: [...sw], cost: { "res.currency": cost("hire.sawyer") }, role: { role: "role.operator", to: "conv.material_processor" }, requires: { pad: "saw_feeder" } });
-      // A converter's output always has a buyer (engine 0.37): with no parts works to take the ingots, a server carries
-      // them to the sales point, so the smelter keeps running like the grill does.
-      if (!feat.has("tier2")) {
-        const iv = sStaff ?? stationPad(s, "out");
-        pad({ type: "pad.hire", id: "ingot_server", at: [...iv], cost: { "res.currency": cost("hire.server") }, role: { role: "role.server", from: "conv.material_processor", to: "sink.sales_point" }, requires: { pad: "sawyer" } });
-        sells.push("res.material_refined");
-      }
       if (feat.has("tier2")) {
         alloy = true;
         // With a belt the parts works stands just past the smelter tray (to its right), so the run
@@ -1105,7 +1094,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     }
   }
   let zones = 0;
-  const housingOn = feat.has("housing") || feat.has("pod_housing") || goal === "rescue_housed";
+  const housingOn = feat.has("housing") || goal === "rescue_housed";
   // Rock slides whose reward is a later building's site (88.2): filled in once that building's pad exists.
   const siteSlides: { rect: Rect; clear: string }[] = [];
   if (feat.has("rockslides") && !ring) {
@@ -1697,13 +1686,8 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       case "produce": return { n: 10, res: alloy ? "res.component" : "res.food_prepared" };
       case "converters_running": return { k: 2, seconds: Math.round(8 + K.length * 0.05) };
       case "chain": return { n: 3 };
-      // machines: the hands-off clock only runs while this many converters do. A dial the knob search turns
-      // (machines knob, 2 up to every converter on the level: grill, smelter, parts works); the hold stays, since a
-      // stable chain runs forever and a longer hold is no harder (Doug). With one converter it is that one.
-      case "automate": {
-        const convs = 1 + (saw ? 1 : 0) + (alloy ? 1 : 0);
-        return { seconds: Math.round(20 + K.length * 0.1), machines: convs < 2 ? convs : Math.min(convs, Math.max(2, Math.round(K.machines))) };
-      }
+      // machines: the hands-off clock only runs while this many converters do (the grill, plus the smelter when built)
+      case "automate": return { seconds: Math.round(20 + K.length * 0.1), machines: Math.min(2, 1 + (saw ? 1 : 0)) };
       case "stockpile": return { res: "res.material_basic", n: 8 };
       case "build": return { target: "landmark" };
       case "converter_level": return { n: 2 };
@@ -1744,14 +1728,6 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       if (clerkSide !== 0) params["sales.clerkSide"] = clerkSide;
       params["customers.orderMin"] = 1;
       params["customers.orderMax"] = Math.round(K.orderMax);
-      // Automate levels: demand stays well above what the machines make (about 0.5 units/s against 1.7/s from two), so a full
-      // tray is never because customers stopped buying. A short line refills at once; unmet demand only costs sales.
-      if (goal === "automate") {
-        params["customers.spawn"] = 1;
-        params["customers.orderMax"] = 4;
-        params["customers.refillSpawn"] = 0.6;
-        params["customers.refillBelow"] = 6;
-      }
     }
     if (has("customer_variety")) { params["customers.impatientShare"] = round2(K.impatient); params["customers.premiumShare"] = round2(K.premium); }
     if (feat.has("bulk_orders")) params["customers.bulkShare"] = round2(K.bulkShare);
@@ -2046,11 +2022,8 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     // Without an anchor, housing pads stay conditional (bought once recruits wait); anything else fails.
     if (!anchorStep && unplanned.some((p) => p.build !== "struct.housing")) fail("no anchor for the unplanned pads");
     const byId = (id: string) => pads.find((p) => p.id === id)!;
-    // The edge the planner follows: the alternative (a belt instead of the input worker) when it exists, else the pad.
-    // Walks that ignored it let a pad be chained below the belt while the belt waited on that pad (a requirement loop).
-    const reqOf = (x: Ent): string | undefined => { const r = x.requires as { pad?: string; orPad?: string } | undefined; return r?.orPad !== undefined && pads.some((p) => p.id === r.orPad) ? r.orPad : r?.pad; };
-    const root = (e: Ent): Ent => { let x = e; for (let i = 0; i < 10; i++) { const r = reqOf(x); if (!r) break; x = byId(r); } return x; };
-    const chainOf = (e: Ent): Set<string> => { const out = new Set<string>(); let x: Ent | undefined = e; for (let i = 0; i < 10 && x; i++) { out.add(String(x.id)); const r: string | undefined = reqOf(x); x = r ? byId(r) : undefined; } return out; };
+    const root = (e: Ent): Ent => { let x = e; for (let i = 0; i < 10; i++) { const r = (x.requires as { pad?: string } | undefined)?.pad; if (!r) break; x = byId(r); } return x; };
+    const chainOf = (e: Ent): Set<string> => { const out = new Set<string>(); let x: Ent | undefined = e; for (let i = 0; i < 10 && x; i++) { out.add(String(x.id)); const r: string | undefined = (x.requires as { pad?: string } | undefined)?.pad; x = r ? byId(r) : undefined; } return out; };
     for (const u of anchorStep ? unplanned : []) {
       if (planned().has(String(u.id)) && !late.has(String(u.id))) continue;
       // A repeatable pad is never "done", so nothing may require it.
@@ -2067,8 +2040,7 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
       const r = root(u);
       // Any edit that would close a requirement loop is undone and u is left for the checks below.
       const snapshot = pads.map((p) => (p.requires ? { ...(p.requires as object) } : undefined));
-      // A loop through either edge counts (the pad edge is what the order checks walk, the alternative what the planner walks).
-      const loops = () => pads.some((p) => { const seen = new Set<string>(); const go = (x: Ent): boolean => { const rq = x.requires as { pad?: string; orPad?: string } | undefined; for (const q of [rq?.pad, rq?.orPad]) { if (!q || !pads.some((y) => y.id === q)) continue; if (q === String(p.id)) return true; if (seen.has(q)) continue; seen.add(q); if (go(byId(q))) return true; } return false; }; return go(p); });
+      const loops = () => pads.some((p) => { let x: Ent | undefined = p; for (let i = 0; i <= pads.length && x; i++) { const q: string | undefined = (x.requires as { pad?: string } | undefined)?.pad; x = q ? byId(q) : undefined; if (x === p) return true; } return false; });
       const revert = () => pads.forEach((p, i) => { if (snapshot[i]) p.requires = snapshot[i]; else delete p.requires; });
       if (prevReq && !ch.has(prevReq)) {
         // The anchor's chain and u's chain may share a pad (two hires both needing the depot): splice u in
@@ -2256,30 +2228,6 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
   const evEnd = events.reduce((a, e) => Math.max(a, e.end), 0);
   const fixedEnd = Math.max(waveEnd, evEnd, goal === "survive" ? Number(gparams["seconds"]) : 0);
   m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(90, Math.round(Math.max(fixedEnd + 60, chosen.f.T / (1 - K.margin)) / 10) * 10)), 10);
-  if (goal === "automate" && shopAt) {
-    // Doug 2026-11-19: a server keeps up with its machine: doubled walking speed, and a carry that covers one round trip
-    // (+ pickup/drop time) of each converter at the fastest output that converter can reach on this level (content rate,
-    // then upgradeRates for each conv.level step its pads allow), the largest over the converters.
-    const SERVER_SPEED = 160;
-    const convs = pads.filter((p) => String(p.build ?? "").startsWith("conv.") && p.build !== "conv.level");
-    const topRate = (p: Ent): number => {
-      const def = c.converters[String(p.build)];
-      if (!def) return 1;
-      const ups = pads.filter((q) => q.build === "conv.level" && q.target === p.id);
-      const lv = ups.length === 0 ? 0 : ups.some((q) => q.repeatable) ? def.upgradeRates.length : Math.min(ups.length, def.upgradeRates.length);
-      return 1 / (lv === 0 ? def.rate : def.upgradeRates[lv - 1]!);
-    };
-    const trip = Math.max(0, ...convs.map((p) => topRate(p) * ((2 * (dist(p.at as Pt, shopAt!) + 60)) / SERVER_SPEED + 3)));
-    m.params["residents.serverSpeed"] = SERVER_SPEED;
-    m.params["residents.serverCarry"] = Math.min(40, Math.max(3, Math.ceil(trip)));
-    // Input side (Doug: "supplier also keeps up"): suppliers and haulers walk at the same speed, gather in 0.25 s a unit, and carry
-    // enough per trip to cover the farthest source (node, core or depot) of any converter at the same rate.
-    const srcs = ents.filter((e) => /^node.|^sink.core$|^struct.depot$/.test(String(e.type)) && Array.isArray(e.at)).map((e) => e.at as Pt);
-    const feedCarry = Math.max(0, ...convs.map((p) => topRate(p) * ((2 * (Math.max(0, ...srcs.map((q) => dist(p.at as Pt, q))) + 60)) / SERVER_SPEED + 3 + 0.25 * 3)));
-    m.params["residents.carrierSpeed"] = SERVER_SPEED;
-    m.params["residents.carrierGather"] = 0.25;
-    m.params["residents.carrierCarry"] = Math.min(40, Math.max(3, Math.ceil(feedCarry)));
-  }
   const flow = flowModel(m, planBot(m, c), c, m.params["level.budgetSeconds"]!);
   if (!flow.ok) fail(`flow: ${flow.reason}`);
   void register;

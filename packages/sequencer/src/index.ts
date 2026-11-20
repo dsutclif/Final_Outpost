@@ -16,21 +16,9 @@ import registerData from "../data/recipe-register.json";
 export type Family = "shelter" | "rescue" | "harvest" | "industrialize" | "defend";
 export type Phase = "teach" | "intro" | "mix" | "finale";
 
-/** firstLevel: the first level index the feature may join a level of its own family; dStep: its measured difficulty step [lo, hi]. */
-export interface FeatureDef { family: Family; modules: string[]; anchor?: boolean; with?: string[]; firstLevel?: number; dStep?: [number, number] }
+export interface FeatureDef { family: Family; modules: string[]; anchor?: boolean; with?: string[] }
 export interface GoalDef { family: Family; kind?: string; needs: string[]; adds?: string[]; anchor?: boolean; avoid?: string[] }
-/** guests: other families' features this family may borrow, with the first level each may join. */
-export interface FamilyDef { modules: string[]; teachGoal: string; intro: string[][]; challenges: string[]; guests?: Record<string, number> }
-
-/** The generator's add-on composer (sequencer.json notes.composer). */
-export interface ComposerConfig {
-  base: Record<Family, number>;
-  moduleCap: [number, number][];
-  extras: Record<string, number>;
-  /** Families whose levels keep the sequencer's features (no composing, no swaps). */
-  fixed: Family[];
-  maxSwaps: number;
-}
+export interface FamilyDef { modules: string[]; teachGoal: string; intro: string[][]; challenges: string[] }
 
 export interface SequencerConfig {
   packId: string;
@@ -58,16 +46,10 @@ export interface SequencerConfig {
   familyOrder: Family[];
   finales: [Family, Family][];
   mixFeatures: { min: number; max: number };
-  composer: ComposerConfig;
   features: Record<string, FeatureDef>;
   families: Record<Family, FamilyDef>;
   goals: Record<string, GoalDef>;
-  /** Measured winnable D per goal id, add-on estimate taken out (tools/goal-ranges.ts writes it; "_" keys are notes). */
-  goalRanges?: Record<string, GoalRange | string>;
 }
-
-/** A goal's winnable D less the composer estimate (mid) of the features each sample carried; n winnable samples, lost unwinnable ones. */
-export interface GoalRange { lo: number | null; hi: number | null; n: number; lost?: number }
 
 /**
  * How a new batch of levels leans on the player's recent results. Each cleared level reports its
@@ -134,8 +116,6 @@ export interface LevelRequest {
   funThreshold: number;
   /** Perimeter walls: defend levels and the rescue pen always have them; other families never (Doug 2026-11-16). */
   walls: boolean;
-  /** Set when no goal's range reached the target and the nearest was taken (goal ranges, ops composer.md). */
-  goalNote?: string;
 }
 
 export interface SequenceOptions {
@@ -299,81 +279,6 @@ export function goalsFor(family: Family, features: readonly string[], families: 
   }).map(([id]) => id);
 }
 
-// ---------- goal ranges (ops docs/reference/composer.md) ----------
-
-export interface Estimate { lo: number; mid: number; hi: number }
-const round3 = (x: number) => Math.round(x * 1000) / 1000;
-
-/** Composer estimate of a family level's D with `features`: the family base plus each feature's dStep. */
-export function estimateD(family: Family, features: readonly string[], cfg: SequencerConfig = DEFAULT_CONFIG): Estimate {
-  let lo = cfg.composer.base[family] ?? 0, hi = lo;
-  for (const f of features) { const [a, b] = cfg.features[f]?.dStep ?? [0, 0]; lo += a; hi += b; }
-  return { lo: round3(lo), mid: round3((lo + hi) / 2), hi: round3(hi) };
-}
-
-/** Optional-module cap for target D (first moduleCap row whose bound is at or above the target). */
-export function moduleCap(target: number, cfg: SequencerConfig = DEFAULT_CONFIG): number {
-  const rows = cfg.composer.moduleCap;
-  return (rows.find(([upTo]) => target <= upTo) ?? rows[rows.length - 1]!)[1];
-}
-
-export interface GoalSlot { family: Family; secondary: Family | null; phase: Phase; introduced: readonly string[] }
-
-/**
- * D a slot can reach with goal `goal`: the goal's measured range (relative to the estimate's mid) widened by
- * the add-ons the composer could give it here (lo: the required set alone; hi: the extras subset with the
- * highest estimate, within the phase's extras and the target's module cap; both by estimate mid). A finale
- * also gets its second family's largest step on hi.
- * Null when the goal has no measured range (it is never ruled out); an open side (null) is unbounded.
- */
-export function goalReach(goal: string, slot: GoalSlot, index: number, target: number, c: Content = defaultContent, cfg: SequencerConfig = DEFAULT_CONFIG): { lo: number; hi: number } | null {
-  const r = cfg.goalRanges?.[goal];
-  const g = cfg.goals[goal];
-  if (!r || typeof r === "string" || !g) return null;
-  const fams: Family[] = slot.secondary ? [slot.family, slot.secondary] : [slot.family];
-  const required = featureClosure([...slot.introduced, ...g.needs].filter((f) => cfg.features[f] !== undefined), cfg);
-  const avoid = new Set(g.avoid ?? []);
-  const pool = addonPool(slot.family, index, cfg).filter((f) => {
-    const d = cfg.features[f]!;
-    return !required.includes(f) && !avoid.has(f) && !(d.with ?? []).some((w) => avoid.has(w)) && !(d.anchor && !g.anchor) && guestFits(f, slot.family, target, cfg);
-  }).slice(0, 12);
-  const maxExtras = cfg.composer.extras[slot.phase] ?? cfg.mixFeatures.max;
-  const baseOpt = optionalOf(modulesFor(fams, required, c, cfg), c).length;
-  const cap = Math.max(moduleCap(target, cfg), baseOpt);
-  let hi = estimateD(slot.family, required, cfg).mid;
-  for (let mask = 1; mask < 1 << pool.length; mask++) {
-    const extras = pool.filter((_, i) => mask & (1 << i));
-    if (extras.length > maxExtras) continue;
-    const fs = featureClosure([...required, ...extras], cfg);
-    const est = estimateD(slot.family, fs, cfg).mid;
-    if (est <= hi) continue;
-    const mods = modulesFor(fams, fs, c, cfg);
-    if (conflicts(mods, c).length > 0 || optionalOf(mods, c).length > cap) continue;
-    hi = est;
-  }
-  if (slot.secondary) hi += Math.max(0, ...unlockedFeatures(slot.secondary, index, cfg).filter((f) => !cfg.features[f]?.anchor).map((f) => { const [a, b] = cfg.features[f]?.dStep ?? [0, 0]; return (a + b) / 2; }));
-  return { lo: r.lo === null ? -Infinity : round3(r.lo + estimateD(slot.family, required, cfg).mid), hi: r.hi === null ? Infinity : round3(r.hi + hi) };
-}
-
-/** Goals whose reach covers the target; when none does, the nearest one, with a note saying so. */
-const reachCache = new WeakMap<SequencerConfig, Map<string, { lo: number; hi: number } | null>>();
-const reachOf = (g: string, slot: GoalSlot, index: number, target: number, c: Content, cfg: SequencerConfig) => {
-  let m = reachCache.get(cfg);
-  if (!m) reachCache.set(cfg, (m = new Map()));
-  const k = `${g}|${slot.family}|${slot.secondary}|${slot.phase}|${slot.introduced.join(",")}|${index}|${moduleCap(target, cfg)}`;
-  if (!m.has(k)) m.set(k, goalReach(g, slot, index, target, c, cfg));
-  return m.get(k)!;
-};
-
-export function goalsInReach(goals: readonly string[], target: number, slot: GoalSlot, index: number, c: Content = defaultContent, cfg: SequencerConfig = DEFAULT_CONFIG): { goals: string[]; note?: string } {
-  const gap = (g: string) => { const r = reachOf(g, slot, index, target, c, cfg); return r ? Math.max(0, r.lo - target, target - r.hi) : 0; };
-  const fit = goals.filter((g) => gap(g) === 0);
-  if (fit.length > 0) return { goals: fit };
-  const best = Math.min(...goals.map(gap));
-  const near = goals.filter((g) => gap(g) === best);
-  return { goals: near, note: `no goal reaches D ${target}: nearest ${near.join("/")} (off by ${round3(best)})` };
-}
-
 // ---------- targets ----------
 
 /**
@@ -400,45 +305,8 @@ export function targetFor(index: number, phase: Phase, cfg: SequencerConfig = DE
 
 interface Slot { family: Family; secondary: Family | null; phase: Phase; introduced: string[] }
 
-/**
- * Family, phase and introduced features of a level index (pure). A feature whose difficulty step starts
- * above its intro slot's target is not introduced there: it moves to the next later mix slot of its family
- * whose target reaches the step's low end (that level becomes an intro-phase level carrying it).
- */
+/** Family, phase and introduced features of a level index (pure). */
 export function slotFor(index: number, cfg: SequencerConfig = DEFAULT_CONFIG): Slot {
-  const base = baseSlot(index, cfg);
-  const moved = deferredIntros(cfg);
-  if (base.phase === "intro") return { ...base, introduced: base.introduced.filter((f) => !moved.has(f)) };
-  if (base.phase === "mix") {
-    const here = [...moved].filter(([, at]) => at === index).map(([f]) => f);
-    if (here.length > 0) return { ...base, phase: "intro", introduced: here };
-  }
-  return base;
-}
-
-const deferCache = new WeakMap<SequencerConfig, Map<string, number>>();
-/** Features whose introduction moved off their intro slot (target below the step's low end) -> the level that introduces them. */
-export function deferredIntros(cfg: SequencerConfig = DEFAULT_CONFIG): Map<string, number> {
-  const hit = deferCache.get(cfg);
-  if (hit) return hit;
-  const out = new Map<string, number>();
-  for (let i = cfg.storyLength + 1; i <= cfg.introLength; i++) {
-    const s = baseSlot(i, cfg);
-    const { target } = targetFor(i, "intro", cfg);
-    for (const f of s.introduced) {
-      const lo = cfg.features[f]?.dStep?.[0] ?? 0;
-      if (lo <= target) continue;
-      for (let j = cfg.introLength + 1; j <= cfg.introLength + 400; j++) {
-        const m = baseSlot(j, cfg);
-        if (m.phase === "mix" && m.family === s.family && targetFor(j, "mix", cfg).target >= lo) { out.set(f, j); break; }
-      }
-    }
-  }
-  deferCache.set(cfg, out);
-  return out;
-}
-
-function baseSlot(index: number, cfg: SequencerConfig): Slot {
   const F = cfg.familyOrder;
   if (index <= cfg.storyLength) return { family: F[index - 1]!, secondary: null, phase: "teach", introduced: [] };
   if (index <= cfg.introLength) {
@@ -462,32 +330,11 @@ function baseSlot(index: number, cfg: SequencerConfig): Slot {
 /** Features a family has unlocked by level `index`. */
 export function unlockedFeatures(family: Family, index: number, cfg: SequencerConfig = DEFAULT_CONFIG): string[] {
   const out: string[] = index > cfg.storyLength ? cfg.storyTaught.filter((f) => cfg.features[f]?.family === family) : [];
-  for (let i = cfg.storyLength + 1; i <= index; i++) {
+  for (let i = cfg.storyLength + 1; i <= Math.min(index, cfg.introLength); i++) {
     const s = slotFor(i, cfg);
-    if (s.phase === "intro" && s.family === family) out.push(...s.introduced);
+    if (s.family === family) out.push(...s.introduced);
   }
   return out;
-}
-
-/** Whether feature `f` may join a level of `family` at index `index` (its own family from firstLevel on, or as the family's guest). */
-export function featureUnlocked(f: string, family: Family, index: number, cfg: SequencerConfig = DEFAULT_CONFIG): boolean {
-  const def = cfg.features[f];
-  if (!def) return false;
-  if (def.family === family && index >= (deferredIntros(cfg).get(f) ?? def.firstLevel ?? Number.POSITIVE_INFINITY)) return true;
-  const g = cfg.families[family]?.guests?.[f];
-  return g !== undefined && index >= g;
-}
-
-/** A borrowed (guest) feature joins only a level whose target reaches the low end of its dStep (fix 1 applies to guests too); a family's own features are not gated here. */
-export function guestFits(f: string, family: Family, target: number, cfg: SequencerConfig = DEFAULT_CONFIG): boolean {
-  const def = cfg.features[f];
-  return !def || def.family === family || target >= (def.dStep?.[0] ?? 0);
-}
-
-/** Every feature a level of `family` at `index` may carry, sorted by first level (oldest first), then id. */
-export function addonPool(family: Family, index: number, cfg: SequencerConfig = DEFAULT_CONFIG): string[] {
-  const at = (f: string) => (cfg.features[f]!.family === family ? deferredIntros(cfg).get(f) ?? cfg.features[f]!.firstLevel ?? 0 : cfg.families[family]?.guests?.[f] ?? 0);
-  return Object.keys(cfg.features).filter((f) => featureUnlocked(f, family, index, cfg)).sort((a, b) => at(a) - at(b) || a.localeCompare(b));
 }
 
 const key = (mods: readonly string[], goal: string, tpl: string | undefined) => `${[...mods].sort().join(",")}|${goal}|${tpl ?? ""}`;
@@ -502,8 +349,6 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
   const prev = history[history.length - 1];
   const families: Family[] = slot.secondary ? [slot.family, slot.secondary] : [slot.family];
   let { target, breather } = targetFor(index, slot.phase, cfg);
-  // goals are chosen for the curve's target: a batch offset or recovery drop only moves the target
-  const curveTarget = target;
   if (opts.targetOffset) target = Math.min(0.95, Math.max(0.05, Math.round((target + opts.targetOffset) * 1000) / 1000));
   if (opts.recovery && prev?.fails !== undefined && prev.fails >= 2) target = Math.max(0.05, Math.round((target - cfg.recoveryDrop) * 1000) / 1000);
   // Target, breather and introduced mechanics come from the slot; the register only steers the rest.
@@ -515,7 +360,7 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
   const near = new Set([...(opts.register?.entries ?? [])].filter((e) => keys.has(e.key)).map((e) => recipeKey({ ...e.recipe, template: "*" })));
   const blocked: Blocked | null = keys.size === 0 ? null : (features, modules, goalId, template) =>
     (template === "*" ? near : keys).has(recipeKey({ family: slot.family, secondary: slot.secondary, features, modules, introduced, goalId, template, band }));
-  const pick = choose(index, slot, families, history, c, cfg, salt, blocked, curveTarget);
+  const pick = choose(index, slot, families, history, c, cfg, salt, blocked);
   return {
     index,
     id: `${cfg.packId}-L${String(index).padStart(3, "0")}`,
@@ -535,15 +380,14 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
     breather,
     // defend levels and the rescue pen always have walls; the generator never builds a ring for other families
     walls: true,
-    ...(pick.note ? { goalNote: pick.note } : {}),
     funThreshold: index <= cfg.tutorialLength ? cfg.funThresholds.tutorial : slot.family === "defend" ? cfg.funThresholds.defend : cfg.funThresholds.band,
   };
 }
 
-interface Pick { features: string[]; modules: string[]; goal: string; template: string; note?: string }
+interface Pick { features: string[]; modules: string[]; goal: string; template: string }
 type Blocked = (features: string[], modules: string[], goalId: string, template: string) => boolean;
 
-function choose(index: number, slot: Slot, families: Family[], history: readonly HistoryEntry[], c: Content, cfg: SequencerConfig, salt: string, blocked: Blocked | null = null, target?: number): Pick {
+function choose(index: number, slot: Slot, families: Family[], history: readonly HistoryEntry[], c: Content, cfg: SequencerConfig, salt: string, blocked: Blocked | null = null): Pick {
   const fam = slot.family;
   const prevSame = [...history].reverse().find((h) => h.family === fam);
   // With a register, a first pass also avoids features + goal that already failed with another
@@ -570,12 +414,10 @@ function choose(index: number, slot: Slot, families: Family[], history: readonly
     }
     let modules = modulesFor(families, features, c, cfg);
     if (conflicts(modules, c).length > 0) continue;
-    const all = goalsFor(fam, features, families, cfg);
-    if (all.length === 0) continue;
-    const { goals, note } = target === undefined || slot.phase === "teach" ? { goals: all, note: undefined } : goalsInReach(all, target, slot, index, c, cfg);
+    const goals = goalsFor(fam, features, families, cfg);
+    if (goals.length === 0) continue;
     const goal = pickGoal(goals, slot, history, cfg, s);
-    // a goal's adds count only once the feature is unlocked for this family (composer unlock order)
-    const adds = (cfg.goals[goal]?.adds ?? []).filter((f) => !features.includes(f) && featureUnlocked(f, fam, index, cfg));
+    const adds = (cfg.goals[goal]?.adds ?? []).filter((f) => !features.includes(f));
     if (adds.length > 0) {
       // The goal pulls in features of its own (shelves_full: a hunted good beside the farmed one).
       features = featureClosure([...features, ...adds], cfg);
@@ -586,7 +428,7 @@ function choose(index: number, slot: Slot, families: Family[], history: readonly
     if (pass === 0 && blocked!(fm, mm, goal, "*")) continue;
     const template = pickTemplate(modules, goalKind(goal, cfg), history, cfg, s, blocked && ((t) => blocked(fm, mm, goal, t)));
     if (template === null) continue;
-    return { features, modules, goal, template, ...(note ? { note } : {}) };
+    return { features, modules, goal, template };
   }
   throw new Error(`sequencer: no valid request for level ${index} (${slot.family}, ${slot.phase})${blocked ? " outside the recipe register" : ""}`);
 }

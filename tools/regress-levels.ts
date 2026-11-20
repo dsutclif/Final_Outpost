@@ -5,7 +5,6 @@ import { cpus } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { HUMAN, LADDER, playBot } from "../packages/bots/src/index.js";
-import { packDuplicates } from "./variety-pass.js";
 import { loopOverCap } from "../packages/generator/src/loops.js";
 import { QUICK_LABEL, pickLevels, planRun } from "./regress-quick.js";
 
@@ -128,8 +127,8 @@ function runChild(args: string[]): Promise<string> {
 
 async function main(): Promise<void> {
   // a folder of hand-made levels with no pack.json (levels/story) replays every manifest in it
-  const pack: { id: string; levels: { id: string; file: string; signature?: string }[] } = existsSync(join(packDir, "pack.json"))
-    ? JSON.parse(readFileSync(join(packDir, "pack.json"), "utf8")) as { id: string; levels: { id: string; file: string; signature?: string }[] }
+  const pack = existsSync(join(packDir, "pack.json"))
+    ? JSON.parse(readFileSync(join(packDir, "pack.json"), "utf8")) as { id: string; levels: { id: string; file: string }[] }
     : { id: basename(packDir), levels: readdirSync(packDir).filter((f) => f.endsWith(".json")).sort().map((f) => ({ id: f.replace(/\.json$/, ""), file: f })) };
   const jobs = Number(arg("--jobs", String(Math.max(1, cpus().length - 2))));
   const plan = planRun(argv);
@@ -198,12 +197,8 @@ async function main(): Promise<void> {
   console.log(`median-bot (weak) mean stars per level, rounded: ${JSON.stringify(dist)}; levels where the good bot averages >= 2.5 stars: ${rows.filter((r) => (r.stars["good"] ?? 0) >= 2.5).length}/${rows.length}`);
   const missing = files.length - rows.length;
   console.log(`\n${pack.id}: ${rows.length} levels replayed, ${bad} failing, ${missing} missing, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
-  // No two non-exempt shipped levels share a variety signature (outpost-ops#150.2); levels without one match nothing.
-  const dups = packDuplicates(pack.levels);
-  for (const d of dups) console.log(`FAIL duplicate signature: ${d.id} repeats ${d.sameAs}`);
-  console.log(`variety: ${pack.levels.filter((l) => l.signature !== undefined).length}/${pack.levels.length} levels carry a signature, ${dups.length} duplicate(s)`);
   if (plan.quick) console.log(`\n${QUICK_LABEL}`);
-  if (bad > 0 || missing > 0 || dups.length > 0) process.exitCode = 1;
+  if (bad > 0 || missing > 0) process.exitCode = 1;
 }
 
 if (argv.includes("--worker")) {
