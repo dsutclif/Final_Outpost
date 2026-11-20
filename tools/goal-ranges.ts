@@ -32,7 +32,7 @@ for (const f of inputs.flatMap(files)) {
   if (f.endsWith(".json")) {
     // a level pool: every entry passed every check but the target, so it is winnable
     const pool = JSON.parse(readFileSync(f, "utf8")) as { entries?: { goalId: string; D: number; family: Family; features: string[]; engine: string }[] };
-    for (const e of pool.entries ?? []) if (okEngine(e.engine)) samples.push({ goal: e.goalId, D: e.D, res: e.D - estimateD(e.family, e.features).mid, src: "pool", ...(typeof (e as any).slotTarget === "number" ? { target: (e as any).slotTarget } : {}) });
+    for (const e of Array.isArray(pool.entries) ? pool.entries : []) if (okEngine(e.engine) && Array.isArray(e.features)) samples.push({ goal: e.goalId, D: e.D, res: e.D - estimateD(e.family, e.features).mid, src: "pool", ...(typeof (e as any).slotTarget === "number" ? { target: (e as any).slotTarget } : {}) });
     continue;
   }
   if (!/\.jsonl(\.gz)?$/.test(f)) continue;

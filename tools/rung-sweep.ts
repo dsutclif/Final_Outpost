@@ -23,13 +23,15 @@ const CELLS: Record<string, { goal: string; features: string[]; machines: number
   C3: { goal: "chain", features: ["material_processor", "tier2"], machines: 3 },
   C3x: { goal: "chain", features: ["conveyors", "depot", "material_processor", "tier2"], machines: 3 },
 };
-const TARGETS = [0.2, 0.4, 0.6, 0.8];
+const TARGETS = (arg("--targets", "0.2,0.4,0.6,0.8")).split(",").map(Number);
+// --knobs '{"margin":0.5}' overrides knob values for the cell; --tag names the output files so variants sit side by side
+const TAG = arg("--tag"), KNOBS = JSON.parse(arg("--knobs", "{}")) as Record<string, number>;
 
 if (arg("--cell")) {
   const name = arg("--cell"), t = Number(arg("--target")), c = CELLS[name]!, out = arg("--out"), deadline = Date.now() + Number(arg("--minutes", "12")) * 60000;
-  const id = `rung-${name}-${t}`;
+  const id = `rung-${name}${TAG}-${t}`;
   const knobFile = join(out, `knobs-${id}.json`);
-  writeFileSync(knobFile, JSON.stringify({ [id]: c.goal === "automate" && c.features.length > 0 ? { machines: c.machines } : {} }));
+  writeFileSync(knobFile, JSON.stringify({ [id]: { ...(c.goal === "automate" && c.features.length > 0 ? { machines: c.machines } : {}), ...KNOBS } }));
   process.env["FO_KNOB_OVERRIDES"] = knobFile;
   const base = sequenceRange(1, 25, [], { targetOffset: 0 })[24]!;
   const modules = c.features.includes("conveyors") ? MODS : MODS.filter((m) => m !== "conveyors");
@@ -53,7 +55,7 @@ if (arg("--cell")) {
   const next = () => {
     while (running < jobs && i < todo.length) {
       const [n, t] = todo[i++]!; running++;
-      const ch = spawn(process.execPath, [viteNode, fileURLToPath(import.meta.url), "--", "--cell", n, "--target", String(t), "--out", out, "--minutes", minutes], { stdio: "inherit" });
+      const ch = spawn(process.execPath, [viteNode, fileURLToPath(import.meta.url), "--", "--cell", n, "--target", String(t), "--out", out, "--minutes", minutes, "--tag", TAG, "--knobs", JSON.stringify(KNOBS)], { stdio: "inherit" });
       ch.on("close", () => { running--; console.log(`cell ${n} ${t} done (${i}/${todo.length} started)`); next(); });
     }
   };
