@@ -10,5 +10,8 @@
   "story-L003": [
     { "line": "Lights, to the south", "unseen": ["sink.sales_point"], "why": "The commander sees only lights far to the south; the old kiosk is not yet in view (a glow on the screen edge points the way)." },
     { "line": "A road. And a kiosk", "seen": ["sink.sales_point"], "after": ["Lights, to the south"], "why": "The commander finds the road and the shut-up kiosk only after walking to it, and only after the lights line." }
+  ],
+  "story-L004": [
+    { "line": "Bring it home to me", "seen": ["capture.recorder"], "why": "KILN asks for the recorder by pointing at it, so the steel crate must be on screen when the line plays." }
   ]
 }

@@ -1252,9 +1252,8 @@ export const marsGreenhouse: Skin = {
           { on: { near: { entity: "recorder" }, r: 140 }, do: [{ edgeGlow: null }] },
           { on: { near: { entity: "recorder" }, r: 50 }, do: [{ dotsOff: true }] },
           { id: "revealed", on: { event: "capture_revealed" }, do: [] },
-          { on: { near: { entity: "recorder" }, r: 150, after: "revealed" }, do: [{ line: "That's it. Bring it home to me.", who: "kiln" }] },
-          // in tow: the arrows lead home again
-          { on: { event: "captured" }, do: [{ guide: true }] },
+          // in tow: KILN speaks once the crate is hooked (it is the only capture here, and the commander is beside it, so it is on screen), and the arrows lead home again
+          { on: { event: "captured" }, ordered: true, do: [{ guide: true }, { camera: { to: { entity: "recorder" }, pan: 0.5, hold: 0.4, back: 0.6 } }, { line: "That's it. Bring it home to me.", who: "kiln" }] },
           // home with the recorder: KILN plays its bay-camera footage (the crash_log live scene)
           { on: { event: "crate_delivered" }, ordered: true, do: [
             { spirit: "pulse" },
