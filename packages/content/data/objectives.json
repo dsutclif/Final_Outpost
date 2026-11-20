@@ -24,6 +24,7 @@
   "earn": { "description": "Earn N credits in sales", "families": ["harvest"], "main": true, "guard": false, "params": { "n": "int" } },
   "serve_premium": { "description": "Serve N premium customers", "families": ["harvest"], "main": true, "guard": false, "params": { "n": "int" } },
   "unlock": { "description": "Unlock N sources", "families": ["harvest"], "main": true, "guard": false, "params": { "n": "int" } },
+  "sales_opened": { "description": "Find the sales point: it opens once the player has walked up to it (manifest openAfter)", "families": ["harvest"], "main": true, "guard": false, "params": {} },
   "shelves_full": { "description": "Every shelf full at once", "families": ["harvest"], "main": true, "guard": false, "params": {} },
   "streak": { "description": "Serve N customers in a row with none leaving angry", "families": ["harvest"], "main": true, "guard": false, "params": { "n": "int" } },
   "sell_each": { "description": "Sell at least N of each of K goods", "families": ["harvest"], "main": true, "guard": false, "params": { "n": "int", "k": "int" } },

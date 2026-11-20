@@ -598,6 +598,9 @@
    "cost": {
     "res.currency": 9
    },
+   "requires": {
+    "objective": "meat"
+   },
    "role": {
     "role": "role.supplier",
     "from": "node.food_source",
@@ -657,6 +660,12 @@
     "n": 1
    },
    "label": "Build the grow dome"
+  },
+  {
+   "id": "lights",
+   "kind": "sales_opened",
+   "params": {},
+   "label": "Follow the lights"
   },
   {
    "id": "first",

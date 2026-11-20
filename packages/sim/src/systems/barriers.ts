@@ -118,6 +118,13 @@ function pointSeg(p: Vec, a: Vec, b: Vec): number {
 }
 
 /** True when a→b crosses, or passes within the wall's thickness of, a built wall section that is not a gate (any, not only the first). */
+/** True when pos stands within the thickness of a built wall section. */
+function onWall(st: State, cp: Compiled, pos: Vec): boolean {
+  const r = cp.barrier.thickness;
+  for (const line of st.barriers) for (const s of line.sections) if (s.built && !s.gate && pointSeg(pos, s.a, s.b) < r) return true;
+  return false;
+}
+
 export function wallBetween(st: State, cp: Compiled, a: Vec, b: Vec): boolean {
   const r = cp.barrier.thickness;
   for (const line of st.barriers) for (const s of line.sections) {
@@ -197,6 +204,12 @@ export function gatedMove(st: State, cp: Compiled, pos: Vec, target: Vec, step: 
   if (st.barriers.length > 0 && wallBetween(st, cp, pos, target)) {
     const via = routeStep(st, cp, pos, target, 2 * cp.residents.arrive);
     if (via) { moveAgent(st, cp, pos, via, step, cp.residents.arrive); return false; }
+    // no way found because pos is on a wall that rose under it: step free of the line (moveAgent would keep it pinned for good)
+    if (onWall(st, cp, pos)) {
+      const dx = target.x - pos.x, dy = target.y - pos.y, d = isqrt(dx * dx + dy * dy);
+      if (d > arrive) { pos.x += mulDiv(dx, step, d); pos.y += mulDiv(dy, step, d); }
+      return false;
+    }
   }
   return moveAgent(st, cp, pos, target, step, arrive);
 }

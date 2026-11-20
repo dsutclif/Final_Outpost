@@ -21,6 +21,8 @@ export const Requirement = z.object({
   orPad: EntityRef.optional(),
   coreLevel: z.number().int().positive().optional(),
   wave: z.number().int().positive().optional(),
+  // Opt-in: the pad stays out of sight until this objective is done (story level 3: Tam's pad appears once protein has sold).
+  objective: z.string().min(1).optional(),
 });
 
 const base = { id: EntityRef.optional(), at: Point };
@@ -239,7 +241,7 @@ export const LevelEvent = z.object({
 export const FAMILY_GOAL_TYPES = [
   "core_lit", "core_level", "build_count", "hazard_survive", "heat_hold", "fuel_full", "admit", "clear_zones", "house_all", "survive",
   "rescue", "rescue_all", "tow_trip", "rescue_before_freeze", "hunt", "protein", "rescue_housed", "tow_full_trip", "crates",
-  "sell", "earn", "unlock", "shelves_full", "streak", "sell_each", "hire", "earn_within", "bulk_order",
+  "sell", "earn", "unlock", "sales_opened", "shelves_full", "streak", "sell_each", "hire", "earn_within", "bulk_order",
   "produce", "converters_running", "haul", "chain", "automate", "stockpile", "converter_level",
   "waves_survived", "kills", "boss", "turret_level", "salvage", "perimeter_before_wave1",
 ] as const;
@@ -498,6 +500,8 @@ export function checkManifest(m: Manifest, c: Content): void {
     for (const req of [e.requires?.pad, e.requires?.orPad, isHire(e) ? e.dropWhen?.pad : undefined]) {
       if (req !== undefined && !padBuilds.has(req) && !m.entities.some((x) => isHire(x) && x.id === req)) fail(`pad ${e.id} requires unknown pad ${req}`);
     }
+    const reqObj = e.requires?.objective;
+    if (reqObj !== undefined && !m.objectives?.some((o) => o.id === reqObj)) fail(`pad ${e.id} requires unknown objective ${reqObj}`);
     if (isBuild(e) && e.target !== undefined && !ids.has(e.target)) fail(`pad ${e.id} targets unknown entity ${e.target}`);
   }
   for (const [k, p] of m.people.entries()) checkBinding(`person ${k}`, p);

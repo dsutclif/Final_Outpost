@@ -1050,6 +1050,7 @@ export const marsGreenhouse: Skin = {
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 }, trader: { entity: "kiosk" } },
         goals: [
           { id: "dome", hold: true, label: "Build the grow dome (8 scrap)" },
+          { id: "lights", hold: true, label: "Follow the lights" },
           { id: "first", hold: true, label: "Sell Sela some greens" },
           // S43 (Doug, 2026-11-07): the ring is no longer prebuilt; the player builds it here, the star is the wall
           { id: "walls", label: "Build the camp wall (8)" },
@@ -1078,6 +1079,7 @@ export const marsGreenhouse: Skin = {
             { line: "Lights, to the south. Something's moving out there.", who: "commander" },
             { guide: false },
             { edgeGlow: { entity: "kiosk", size: 28, strength: 0.35, arrow: true } },
+            { goal: "lights" },
           ] },
           // found by walking: the glow goes out at the road, the kiosk's door
           { id: "kioskFound", on: { near: { entity: "kiosk" }, r: 170 }, do: [

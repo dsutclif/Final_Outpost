@@ -118,6 +118,7 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
   earn: ({ st, p, o }) => count(o, st.stats.earned, num(p, "n")),
   serve_premium: ({ st, p, o }) => count(o, st.sales?.premiumServed ?? 0, num(p, "n")),
   unlock: ({ st, p, o }) => count(o, st.stats.unlocked, num(p, "n")),
+  sales_opened: ({ st, o }) => count(o, st.sales?.opened ? 1 : 0, 1),
   shelves_full: ({ st, cp, o }) => {
     const s = st.sales;
     if (!s) return count(o, 0, 1);

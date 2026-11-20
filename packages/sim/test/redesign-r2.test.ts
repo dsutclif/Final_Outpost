@@ -458,7 +458,7 @@ describe("objectives", () => {
       population: { n: 5 }, core_level: { n: 2 }, build_count: { build: "struct.housing", n: 1 }, hazard_survive: {}, heat_hold: { pct: 30, seconds: 3 },
       fuel_full: { seconds: 20 }, admit: { n: 1 }, clear_zones: { n: 1 }, house_all: {}, survive: { seconds: 5 }, rescue: { n: 1 }, rescue_all: {},
       tow_trip: { n: 2 }, rescue_before_freeze: { n: 1 }, hunt: { n: 1 }, protein: { n: 1 }, rescue_housed: { n: 1 }, tow_full_trip: {}, crates: { n: 1 },
-      currency: { n: 5 }, sell: { res: "res.food_raw_1", n: 2 }, earn: { n: 4 }, serve_premium: { n: 1 }, unlock: { n: 1 }, shelves_full: {}, streak: { n: 2 },
+      currency: { n: 5 }, sell: { res: "res.food_raw_1", n: 2 }, earn: { n: 4 }, serve_premium: { n: 1 }, unlock: { n: 1 }, sales_opened: {}, shelves_full: {}, streak: { n: 2 },
       sell_each: { n: 1, k: 1 }, hire: { n: 1 }, earn_within: { n: 4, seconds: 30 }, bulk_order: {}, produce: { n: 1 }, converters_running: { k: 1, seconds: 2 },
       haul: { n: 1 }, chain: {}, automate: { seconds: 5 }, stockpile: { res: "res.food_raw_1", n: 1 }, converter_level: { n: 2 },
       waves: {}, waves_survived: { n: 1 }, kills: { n: 1 }, boss: {}, turret_level: { n: 2 }, salvage: { n: 1 }, perimeter_before_wave1: {},

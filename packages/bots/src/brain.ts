@@ -316,6 +316,11 @@ export class Brain {
     return null;
   }
 
+  /** A star that asks for a sale of this good is still open (story level 3: protein sold at the kiosk). */
+  private starNeedsSale(st: State, res: string): boolean {
+    return (this.cp.manifest.objectives ?? []).some((d) => d.kind === "sell" && d.params.res === res && !st.objectives.find((o) => o.id === d.id)?.done);
+  }
+
   private huntedBy(st: State, res: string): boolean {
     return st.residents.some((r) => r.status === "ok" && this.cp.roles[r.role]?.behavior === "gather_deliver"
       && r.assign.from != null && this.cp.animals[r.assign.from]?.drops[res] !== undefined);
@@ -560,9 +565,10 @@ export class Brain {
     if (hurt) {
       // stay out of reach until healed
     } else if (this.pol.hunt && st.prey.some((d) => d.alive) && (hres === null || count(p.stack, hres) < (cp.resources[hres]?.cap ?? 6))) { T("hunt", 50); huntWanted = true; }
-    else if (hres !== null && !this.huntedBy(st, hres) && count(p.stack, hres) < Math.min(cp.resources[hres]?.cap ?? 6, 4)
+    else if (hres !== null && (!this.huntedBy(st, hres) || this.starNeedsSale(st, hres)) && count(p.stack, hres) < Math.min(cp.resources[hres]?.cap ?? 6, 4)
       && st.prey.some((d) => d.alive)) {
-      T("hunt", 34);
+      // an open star that asks for this good sells it first, once the shop is open and the reactor is not low (story level 3: protein)
+      T("hunt", this.starNeedsSale(st, hres) && st.sales?.opened && frac >= 0.6 && st.prey.some((d) => d.alive && this.nav.reachable(p.pos, d.pos)) ? 56 : 34);
       huntWanted = true;
     }
     // Rockslides dug by hand (zones.digSeconds): stand against one a clear-zones goal or star names until it is gone.
