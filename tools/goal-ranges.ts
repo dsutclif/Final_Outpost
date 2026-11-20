@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { join } from "node:path";
+import { GENERATOR_REFERENCE } from "../packages/generator/src/index.js";
+import { rerate } from "./rerate-log.js";
 import { DEFAULT_CONFIG, compareVersions, estimateD, type Family, type GoalRange } from "../packages/sequencer/src/index.js";
 
 // Goal ranges (ops docs/reference/composer.md): recompute each goal's winnable D range from build logs
@@ -21,6 +23,9 @@ const tol = Number(opt("--tol", "0.05"));
 const write = args.includes("--write");
 const keep = args.includes("--keep"); // keep existing entries of goals these inputs do not cover (not re-measured)
 const exclude = opt("--exclude", "").split(",").filter(Boolean); // goals that never get a range (e.g. stuck at ~0)
+// --rerate <old reference.json>: candidate rows' D is re-derived from the log (tools/rerate-log.ts) under the current reference; pool files are read as saved
+const oldRefPath = opt("--rerate", "");
+const oldRef = oldRefPath ? JSON.parse(readFileSync(oldRefPath, "utf8")) : null;
 const inputs = args.filter((a) => !a.startsWith("--"));
 
 interface Sample { goal: string; D: number | null; res: number | null; target?: number; machines?: number; src: string }
@@ -48,7 +53,9 @@ for (const f of inputs.flatMap(files)) {
     const machines = row.settings?.goal?.machines as number | undefined;
     const target = typeof row.target === "number" ? { target: row.target as number } : {};
     if (row.rating?.feasible === true && typeof row.rating.D === "number") {
-      samples.push({ goal, D: row.rating.D, res: row.rating.D - estimateD(row.family, row.features ?? []).mid, ...target, ...(machines ? { machines } : {}), src: f });
+      const D = oldRef ? rerate(row as never, oldRef, GENERATOR_REFERENCE)?.Dnew ?? null : row.rating.D;
+      if (D === null) continue;
+      samples.push({ goal, D, res: D - estimateD(row.family, row.features ?? []).mid, ...target, ...(machines ? { machines } : {}), src: f });
     } else if ((row.rejects ?? []).includes("infeasible")) samples.push({ goal, D: null, res: null, ...target, ...(machines ? { machines } : {}), src: f });
   }
 }
