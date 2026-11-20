@@ -698,7 +698,7 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
       continue;
     }
     if (!TIME_FIXED_GOALS.has(m.goal.type)) {
-      const tMax = Math.max(...quick.map((r) => r.goalTicks)) / 30;
+      const tMax = Math.max(...quick.map((r) => Math.max(r.goalTicks, r.ticks))) / 30;
       m.params["level.budgetSeconds"] = timeTarget(Math.min(900, Math.max(60, Math.round(tMax / (1 - knobs.margin) / 10) * 10)), 10);
     }
     // A level the human-view bot cannot win is too hard for a person, however well the good bot does: ease off now, before the costly checks.
@@ -868,7 +868,7 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
     const m = built.manifest;
     const quick = [1, 2, 3].map((s) => playBot(m, REF, s, { content: c, timeBudgetSeconds: 900 }));
     if (quick.some((r) => !r.won)) return null;
-    if (!TIME_FIXED_GOALS.has(m.goal.type)) m.params["level.budgetSeconds"] = timeTarget(Math.round(Math.max(...quick.map((r) => r.goalTicks)) / 30 / (1 - knobs.margin) / 10) * 10, 10);
+    if (!TIME_FIXED_GOALS.has(m.goal.type)) m.params["level.budgetSeconds"] = timeTarget(Math.round(Math.max(...quick.map((r) => Math.max(r.goalTicks, r.ticks))) / 30 / (1 - knobs.margin) / 10) * 10, 10);
     const ms = measure(m, { content: c, refSeeds: GEN.search.fullSeeds.ref, otherSeeds: GEN.search.fullSeeds.other });
     return { goal: m.goal.type, ...(m.family ? { family: m.family } : {}), metrics: ms.metrics };
   }
