@@ -267,12 +267,12 @@ async function main(): Promise<void> {
 
   if (flag("--calibrate") || flag("--calib-only")) {
     console.log(`calibrating: one unsearched sample per level, ${jobs} jobs`);
-    const samples: { goal: string; metrics: Metrics }[] = [];
+    const samples: { goal: string; family?: string; metrics: Metrics }[] = [];
     await pool(indices, jobs, (i) => runChild(["--calib", "--index", String(i)]), (i, out) => {
-      const r = parseResult(out) as { sample: { goal: string; metrics: Metrics } | null } | null;
+      const r = parseResult(out) as { sample: { goal: string; family?: string; metrics: Metrics } | null } | null;
       if (r?.sample) samples.push(r.sample); else console.log(`  L${i}: no calibration sample`);
     });
-    const ref = computeReference(samples.map((s) => ({ metrics: s.metrics, manifest: { goal: { type: s.goal } } }) as unknown as Measurement),
+    const ref = computeReference(samples.map((s) => ({ metrics: s.metrics, manifest: { goal: { type: s.goal }, family: s.family } }) as unknown as Measurement),
       `generated calibration batch: ${samples.length} unsearched samples of levels ${from}-${to} (refSeeds 10, others 3)`);
     const refPath = join(root, "packages", "generator", "data", "reference.json");
     writeFileSync(refPath, JSON.stringify(ref, null, 2) + "\n");

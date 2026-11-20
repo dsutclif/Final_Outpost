@@ -22,11 +22,18 @@ export interface ReferenceStats {
    * so they only compare within a goal type.
    */
   byGoal?: Record<string, { n: number; metrics: Partial<Record<MetricName, { mean: number; sd: number }>> }>;
+  /**
+   * Per family overrides of the family-scaled metrics (moduleCount), for families with at least BY_GOAL_MIN levels in the
+   * batch: a family's standard kit (defend ships 6-7 optional modules) is not difficulty (stuck-fixes, Doug-approved).
+   */
+  byFamily?: Record<string, { n: number; metrics: Partial<Record<MetricName, { mean: number; sd: number }>> }>;
 }
 
 export const BY_GOAL_MIN = 3;
 /** Metrics whose scale depends on the goal type. */
 const GOAL_SCALED: readonly MetricName[] = ["marginRef", "marginMedian"];
+/** Metrics whose scale depends on the family (its standard kit). */
+const FAMILY_SCALED: readonly MetricName[] = ["moduleCount"];
 
 export interface Weights {
   difficulty: { bias: number; w: Record<MetricName, number> };
@@ -84,12 +91,13 @@ export const SD_FLOOR: Record<MetricName, number> = {
   threatPressure: 0.1, animalHits: 0.5, economyTightness: 0.1, moduleCount: 1, novelty: 1,
 };
 
-export function zScores(m: Metrics, ref: ReferenceStats, goal?: string): Metrics {
+export function zScores(m: Metrics, ref: ReferenceStats, goal?: string, family?: string): Metrics {
   const z = {} as Metrics;
   for (const k of METRIC_NAMES) {
-    const row = goal !== undefined ? ref.byGoal?.[goal]?.metrics[k] : undefined;
-    // Margins of the time-fixed goals are health or warmth, not time left: without their own row they are not comparable, so neutral.
-    if (!row && GOAL_SCALED.includes(k) && goal !== undefined && TIME_FIXED_GOALS.has(goal)) { z[k] = 0; continue; }
+    // Time-fixed goals' margins are health or warmth, not time left: they count again (stuck-fixes), against the global
+    // row and clamped like every term, unless the batch gave the goal its own row.
+    const row = (goal !== undefined ? ref.byGoal?.[goal]?.metrics[k] : undefined)
+      ?? (family !== undefined && FAMILY_SCALED.includes(k) ? ref.byFamily?.[family]?.metrics[k] : undefined);
     const s = row ?? ref.metrics[k];
     z[k] = s ? Math.max(-Z_CLAMP, Math.min(Z_CLAMP, (m[k] - s.mean) / Math.max(s.sd, SD_FLOOR[k]))) : 0;
   }
@@ -101,7 +109,7 @@ export function score(ms: Measurement, opts: RateOptions = {}): Rating {
   const content = opts.content ?? defaultContent;
   const ref = opts.reference ?? DEFAULT_REFERENCE;
   const W = opts.weights ?? DEFAULT_WEIGHTS;
-  const z = zScores(ms.metrics, ref, ms.manifest.goal.type);
+  const z = zScores(ms.metrics, ref, ms.manifest.goal.type, ms.manifest.family ?? undefined);
   let sd = W.difficulty.bias;
   for (const k of METRIC_NAMES) sd += (W.difficulty.w[k] ?? 0) * z[k];
   const novelty = noveltyElements(ms, content);
@@ -182,8 +190,16 @@ export function computeReference(batch: readonly Measurement[], source = "batch"
   const goals = [...new Set(batch.map((b) => b.manifest.goal.type))].sort();
   for (const g of goals) {
     const rows = batch.filter((b) => b.manifest.goal.type === g).map((b) => b.metrics);
-    if (rows.length < BY_GOAL_MIN) continue;
+    // time-fixed goals (health, not time left) are compared on the global margin row, clamped: a batch of all-win levels
+    // would otherwise make "full health" the norm and blank the evidence again (stuck-fixes)
+    if (rows.length < BY_GOAL_MIN || TIME_FIXED_GOALS.has(g)) continue;
     (ref.byGoal ??= {})[g] = { n: rows.length, metrics: stats(rows, GOAL_SCALED) };
+  }
+  const families = [...new Set(batch.map((b) => b.manifest.family).filter((x) => !!x))].sort() as string[];
+  for (const fam of families) {
+    const rows = batch.filter((b) => b.manifest.family === fam).map((b) => b.metrics);
+    if (rows.length < BY_GOAL_MIN) continue;
+    (ref.byFamily ??= {})[fam] = { n: rows.length, metrics: stats(rows, FAMILY_SCALED) };
   }
   return ref;
 }

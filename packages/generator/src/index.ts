@@ -753,6 +753,13 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
     if (flags.includes("trivial")) { lo = p; p = (p + hi) / 2; continue; }
     if (hardFlags.length > 0) { p = clamp01(p + (mrand.float() - 0.5) * 0.2); continue; }
     const err = Math.abs(r.D - req.target);
+    // A D on target that no rung earns is a rating artifact (defend: every bot wins at full health, the kit alone sets D):
+    // off target, with the reason logged, and the search presses on as for a trivial level (stuck-fixes, Doug-approved).
+    if (err <= S.verifyWithin && flatLadder(r.winRate, r.margin, S.flatLadderSpread)) {
+      reject("flatLadder", { D: round3(r.D), target: req.target, winRate: r.winRate, margin: r.margin, why: "D on target but no rung loses anything: off target" });
+      log(`  it${it} D on target but no rung loses anything (every rung wins; margin spread < ${S.flatLadderSpread}): off target`);
+      lo = p; p = (p + hi) / 2; continue;
+    }
     // Quick ratings run a little off the full one, so a near miss may be on target; one no closer than the best has nothing to add.
     if (err <= S.verifyWithin && (!best || err < best.err)) {
       const v = verify(m, p, req.seed);
@@ -788,6 +795,13 @@ export function generateDetailed(req: GenRequest, opts: GenOptions = {}): GenDet
   }
   saveMemory();
   return { manifest: null, best, stats };
+}
+
+/** No rung loses a run and the margins of the rungs sit within `spread` of each other: the ladder measures nothing. */
+export function flatLadder(winRate: Record<string, number>, margin: Record<string, number>, spread: number): boolean {
+  const w = Object.values(winRate), m = Object.values(margin);
+  if (w.length === 0 || m.length === 0) return false;
+  return w.every((x) => x >= 1) && Math.max(...m) - Math.min(...m) < spread;
 }
 
 /** The human-view bot on HUMAN_STARS.seeds in-level seeds (the same seeds levels:check replays). */
@@ -841,7 +855,7 @@ export function attachRating(m: Manifest, r: Rating, introduced: readonly string
 const round3 = (x: number) => Math.round(x * 1000) / 1000;
 
 /** One unsearched sample at the pressure the target suggests, measured with the full ladder (reference stats). */
-export function calibrationSample(req: GenRequest, opts: { content?: Content } = {}): { goal: string; metrics: Metrics } | null {
+export function calibrationSample(req: GenRequest, opts: { content?: Content } = {}): { goal: string; family?: string; metrics: Metrics } | null {
   const c = opts.content ?? defaultContent;
   const mods = closure(req.modules, c);
   const tpl = templateById(req.template ?? TEMPLATES.templates[0]!.id);
@@ -856,7 +870,7 @@ export function calibrationSample(req: GenRequest, opts: { content?: Content } =
     if (quick.some((r) => !r.won)) return null;
     if (!TIME_FIXED_GOALS.has(m.goal.type)) m.params["level.budgetSeconds"] = timeTarget(Math.round(Math.max(...quick.map((r) => r.goalTicks)) / 30 / (1 - knobs.margin) / 10) * 10, 10);
     const ms = measure(m, { content: c, refSeeds: GEN.search.fullSeeds.ref, otherSeeds: GEN.search.fullSeeds.other });
-    return { goal: m.goal.type, metrics: ms.metrics };
+    return { goal: m.goal.type, ...(m.family ? { family: m.family } : {}), metrics: ms.metrics };
   }
   return null;
 }

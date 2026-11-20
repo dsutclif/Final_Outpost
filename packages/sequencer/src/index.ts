@@ -497,10 +497,10 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
   if (!Number.isInteger(index) || index < 1) throw new Error(`level index must be a positive integer, got ${index}`);
   const c = opts.content ?? defaultContent;
   const cfg = opts.config ?? DEFAULT_CONFIG;
-  const slot = slotFor(index, cfg);
+  let slot = slotFor(index, cfg);
   const salt = `${cfg.packId}:${index}`;
   const prev = history[history.length - 1];
-  const families: Family[] = slot.secondary ? [slot.family, slot.secondary] : [slot.family];
+  let families: Family[] = slot.secondary ? [slot.family, slot.secondary] : [slot.family];
   let { target, breather } = targetFor(index, slot.phase, cfg);
   // goals are chosen for the curve's target: a batch offset or recovery drop only moves the target
   const curveTarget = target;
@@ -515,7 +515,23 @@ export function sequence(index: number, history: readonly HistoryEntry[], opts: 
   const near = new Set([...(opts.register?.entries ?? [])].filter((e) => keys.has(e.key)).map((e) => recipeKey({ ...e.recipe, template: "*" })));
   const blocked: Blocked | null = keys.size === 0 ? null : (features, modules, goalId, template) =>
     (template === "*" ? near : keys).has(recipeKey({ family: slot.family, secondary: slot.secondary, features, modules, introduced, goalId, template, band }));
-  const pick = choose(index, slot, families, history, c, cfg, salt, blocked, curveTarget);
+  let pick = choose(index, slot, families, history, c, cfg, salt, blocked, curveTarget);
+  // A fixed family (defend) keeps no composer; when none of its goals reaches the slot's target (honest defend D is low:
+  // no rung loses), a mix slot goes to the next family in the rotation whose goals do (stuck-fixes, Doug-approved).
+  if (pick.note && slot.phase === "mix" && !slot.secondary && cfg.composer.fixed.includes(slot.family)) {
+    const order = cfg.familyOrder, at = order.indexOf(slot.family);
+    for (let k = 1; k < order.length; k++) {
+      const alt = order[(at + k) % order.length]!;
+      if (cfg.composer.fixed.includes(alt)) continue;
+      const altSlot: Slot = { ...slot, family: alt, introduced: [] };
+      const altFamilies: Family[] = [alt];
+      let p: Pick;
+      try { p = choose(index, altSlot, altFamilies, history, c, cfg, salt, null, curveTarget); } catch { continue; }
+      if (p.note) continue;
+      slot = altSlot; families = altFamilies; pick = { ...p, note: `${order[at]} has no goal reaching D ${curveTarget}: slot went to ${alt}` };
+      break;
+    }
+  }
   return {
     index,
     id: `${cfg.packId}-L${String(index).padStart(3, "0")}`,

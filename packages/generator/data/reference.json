@@ -3,44 +3,44 @@
   "n": 54,
   "metrics": {
     "skillNeeded": {
-      "mean": 0.19667,
-      "sd": 0.346139
+      "mean": 0.137263,
+      "sd": 0.257338
     },
     "marginRef": {
-      "mean": 0.541152,
-      "sd": 0.209328
+      "mean": 0.576694,
+      "sd": 0.166017
     },
     "marginMedian": {
-      "mean": 0.460111,
-      "sd": 0.293156
+      "mean": 0.513659,
+      "sd": 0.190317
     },
     "lifelineRisk": {
-      "mean": 0.277648,
-      "sd": 0.072736
+      "mean": 0.280955,
+      "sd": 0.082138
     },
     "concurrentDemand": {
-      "mean": 0.002324,
-      "sd": 0.010906
+      "mean": 0.004183,
+      "sd": 0.01341
     },
     "routeLoad": {
-      "mean": 0.835418,
-      "sd": 0.079439
+      "mean": 0.838807,
+      "sd": 0.077283
     },
     "threatPressure": {
-      "mean": 0.00339,
-      "sd": 0.012161
+      "mean": 0.003721,
+      "sd": 0.012644
     },
     "animalHits": {
-      "mean": 0.043923,
-      "sd": 0.145604
+      "mean": 0.052013,
+      "sd": 0.199254
     },
     "economyTightness": {
-      "mean": 0.260805,
-      "sd": 0.391144
+      "mean": 0.33261,
+      "sd": 0.532558
     },
     "moduleCount": {
-      "mean": 3.907407,
-      "sd": 1.545151
+      "mean": 3.888889,
+      "sd": 1.525465
     },
     "novelty": {
       "mean": 0,
@@ -61,29 +61,63 @@
         }
       }
     },
-    "earn": {
+    "hire": {
       "n": 3,
       "metrics": {
         "marginRef": {
-          "mean": 0.552487,
-          "sd": 0.00386
+          "mean": 0.17416,
+          "sd": 0.301655
         },
         "marginMedian": {
-          "mean": 0.490595,
-          "sd": 0.002383
+          "mean": 0.17096,
+          "sd": 0.296112
+        }
+      }
+    }
+  },
+  "byFamily": {
+    "defend": {
+      "n": 8,
+      "metrics": {
+        "moduleCount": {
+          "mean": 6.5,
+          "sd": 0.534522
         }
       }
     },
-    "streak": {
-      "n": 3,
+    "harvest": {
+      "n": 12,
       "metrics": {
-        "marginRef": {
-          "mean": 0.556298,
-          "sd": 0.025202
-        },
-        "marginMedian": {
-          "mean": 0.473076,
-          "sd": 0.047016
+        "moduleCount": {
+          "mean": 3.166667,
+          "sd": 0.937437
+        }
+      }
+    },
+    "industrialize": {
+      "n": 11,
+      "metrics": {
+        "moduleCount": {
+          "mean": 4.090909,
+          "sd": 0.94388
+        }
+      }
+    },
+    "rescue": {
+      "n": 11,
+      "metrics": {
+        "moduleCount": {
+          "mean": 3.727273,
+          "sd": 0.786245
+        }
+      }
+    },
+    "shelter": {
+      "n": 12,
+      "metrics": {
+        "moduleCount": {
+          "mean": 2.833333,
+          "sd": 1.403459
         }
       }
     }

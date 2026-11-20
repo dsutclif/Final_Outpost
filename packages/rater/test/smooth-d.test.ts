@@ -52,6 +52,26 @@ describe("robust z", () => {
   });
 });
 
+describe("stuck-fixes: time-fixed margins count, module count is family-relative", () => {
+  const ref: ReferenceStats = {
+    source: "t", n: 9,
+    metrics: Object.fromEntries(METRIC_NAMES.map((k) => [k, { mean: 0.5, sd: 0.2 }])) as ReferenceStats["metrics"],
+    byFamily: { defend: { n: 8, metrics: { moduleCount: { mean: 6.5, sd: 0.5 } } } },
+  };
+  const m = Object.fromEntries(METRIC_NAMES.map((k) => [k, 0.5])) as Metrics;
+  it("a survive level at full health scores a margin z (no longer neutral), clamped", () => {
+    const z = zScores({ ...m, marginRef: 1, marginMedian: 1 }, ref, "survive");
+    expect(z.marginRef).toBeCloseTo(2.5, 6);
+    expect(zScores({ ...m, marginRef: 100 }, ref, "survive").marginRef).toBe(Z_CLAMP);
+    expect(zScores({ ...m, marginRef: 1 }, ref, "earn").marginRef).toBeCloseTo(z.marginRef, 6);
+  });
+  it("moduleCount reads the family's own row; other families keep the global one", () => {
+    expect(zScores({ ...m, moduleCount: 6.5 }, ref, "survive", "defend").moduleCount).toBe(0);
+    expect(zScores({ ...m, moduleCount: 6.5 }, ref, "earn", "harvest").moduleCount).toBeGreaterThan(2);
+    expect(zScores({ ...m, moduleCount: 6.5 }, ref, "survive").moduleCount).toBeGreaterThan(2);
+  });
+});
+
 describe("produce fixture s1-L050 (outpost-ops#262)", () => {
   it("no longer rates 1.000 and no single term exceeds 3 sd", () => {
     const m = JSON.parse(readFileSync(new URL("../../generator/test/fixtures/pad-visibility-levels/s1-L050.json", import.meta.url), "utf8"));

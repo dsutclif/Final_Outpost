@@ -109,7 +109,7 @@ export const GEN = genData as unknown as {
   conveyorGoals: string[];
   /** Geography: how often and how a level gets ridges, outcrops and chasms (terrain.ts). */
   terrain: TerrainData;
-  search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number; humanCheck: { seeds: number; minWins: number }; verifyWithin: number; finalTries: number; maxWidens: number; outOfReachErr: number; loopCap: number; loopHireCut: number; loopEaseSteps: number; loopBurnEase: number; loopLengthCut: number; loopStartCurrency: number };
+  search: { maxIterations: number; tolerance: number; funThreshold: number; quickSeeds: { ref: number; other: number }; fullSeeds: { ref: number; other: number }; layoutTries: number; humanCheck: { seeds: number; minWins: number }; verifyWithin: number; flatLadderSpread: number; finalTries: number; maxWidens: number; outOfReachErr: number; loopCap: number; loopHireCut: number; loopEaseSteps: number; loopBurnEase: number; loopLengthCut: number; loopStartCurrency: number };
 };
 
 /** A wave's strength: the HP of everything in it. */

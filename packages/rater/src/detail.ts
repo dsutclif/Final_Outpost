@@ -60,7 +60,7 @@ export function ratingDetail(ms: Measurement, ratingIn?: Rating, opts: RateOptio
   const metrics: RatingDetail["difficulty"]["metrics"] = {};
   let dsum = W.difficulty.bias;
   for (const k of METRIC_NAMES) {
-    const s = ref.byGoal?.[goal]?.metrics[k] ?? ref.metrics[k];
+    const s = ref.byGoal?.[goal]?.metrics[k] ?? (k === "moduleCount" ? ref.byFamily?.[ms.manifest.family ?? ""]?.metrics[k] : undefined) ?? ref.metrics[k];
     const w = W.difficulty.w[k] ?? 0;
     metrics[k] = { raw: ms.metrics[k], mean: s?.mean ?? 0, sd: s?.sd ?? 0, z: rating.z[k], weight: w, contribution: w * rating.z[k] };
     dsum += w * rating.z[k];
