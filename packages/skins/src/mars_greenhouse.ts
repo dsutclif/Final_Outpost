@@ -1055,6 +1055,7 @@ export const marsGreenhouse: Skin = {
           { id: "walls", label: "Build the camp wall (8)" },
           { id: "clear", label: "Clear the rockslide (12)" },
           { id: "meat", label: "Sell protein at the kiosk" },
+          { id: "train", hold: true, label: "Train Tam to run the dome" },
           { id: "main", label: "Build the habitat hub (150)" },
         ],
         cues: [
@@ -1111,11 +1112,17 @@ export const marsGreenhouse: Skin = {
             { show: ["credits"] },
             { dotsOff: true },
             { line: "Those C coins are credits. Every sale pays them in, and credits buy what the camp builds.", who: "kiln" },
+            { line: "You built that dome yourselves? Out of your own hull?", who: "sela" },
+            { line: "Save your scrap. My road crew builds for credits, and they bring their own steel.", who: "sela" },
             { line: "A road that brings traders can bring raiders. Wall first, before anything else.", who: "okafor" },
             { line: "Once you've saved enough credits, walk the dashed line and the wall goes up behind you.", who: "kiln" },
           ] },
           // the wall stands: the hub and its price, then the trader who wants meat and the slide in the way
           { on: { goal: "walls", is: "done" }, ordered: true, do: [
+            // Sela's road crew come up the road for each paid build: the buggy drives in, waits a moment and goes
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [560, 430] }], seconds: 5, lights: true },
+            { wait: 3 },
+            { vehicleOff: "buggy" },
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
             { line: "Sell some more and save up credits to build that hub.", who: "kiln" },
@@ -1125,13 +1132,26 @@ export const marsGreenhouse: Skin = {
             { camera: { to: { entity: "clear0" }, pan: 0.4, hold: 1, back: 0.8 } },
             { line: "Save up a little and we can clear that slide.", who: "kiln" },
           ] },
-          { on: { event: "zone_cleared" }, do: [
+          { on: { event: "zone_cleared" }, ordered: true, do: [
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 800] }, { entity: "clear0" }], seconds: 5, lights: true },
+            { wait: 3 },
+            { vehicleOff: "buggy" },
             { line: "That slide is fresh. Something up on the ridge shook it loose.", who: "kiln" },
             { line: "Rock hoppers. Run into one to knock it down, then pick up the protein when it falls.", who: "kiln" },
           ] },
-          { on: { event: "sold", match: { res: "res.food_raw_2" } }, do: [
-            { line: "Boss, let me work the fields. You hunt; I'll keep the shelf full of greens.", who: "tam" },
+          { on: { event: "sold", match: { res: "res.food_raw_2" } }, ordered: true, do: [
+            { line: "Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.", who: "tam" },
+            { line: "Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear, and gear costs credits. Stand on Tam's pad when you have them.", who: "kiln" },
+            { goal: "train" },
+          ] },
+          { id: "tamTrained", on: { goal: "train", is: "done" }, do: [
             { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
+          ] },
+          // about half the hub's price: a trader at the counter looks up at the ridge
+          { on: { credits: 75, after: "tamTrained" }, ordered: true, do: [
+            { line: "A town, this close to the ridge? Brave.", who: "trader" },
+            { line: "What's on the ridge?", who: "commander" },
+            { line: "Folk who don't trade.", who: "trader" },
           ] },
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land
           { on: { goal: "main", is: "done" }, ordered: true, do: [

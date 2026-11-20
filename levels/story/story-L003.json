@@ -702,6 +702,15 @@
     "res": "res.food_raw_2",
     "n": 1
    }
+  },
+  {
+   "id": "train",
+   "kind": "hire",
+   "params": {
+    "n": 1,
+    "role": "role.supplier"
+   },
+   "label": "Train Tam to run the dome"
   }
  ],
  "fail": [

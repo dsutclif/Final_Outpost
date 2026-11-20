@@ -356,6 +356,7 @@ export class StoryDirector {
   }
 
   private hostileNear(on: StoryTrigger, st: State): boolean {
+    if ("credits" in on) return (on.after === undefined || this.firedAt.has(on.after)) && st.currency >= on.credits;
     if ("who" in on) {
       if (on.after !== undefined && !this.firedAt.has(on.after)) return false;
       const p = this.castAt(on.who, st), q = this.place(on.at);

@@ -22,6 +22,8 @@ export type StoryTrigger =
    * ones breaking off (bossRetreat) instead of the ones fighting. Fires once the cue `after` has fired, when given.
    */
   | { hostile: string; r: number; at?: StoryPlace; fleeing?: boolean; after?: string }
+  /** The camp holds at least `credits` credits (once the cue `after` has fired, when given). */
+  | { credits: number; after?: string }
   /** Cast member `who` (the level's `cast`) came within `r` world units of `at`. Fires once the cue `after` has fired, when given. */
   | { who: string; r: number; at: StoryPlace; after?: string };
 
