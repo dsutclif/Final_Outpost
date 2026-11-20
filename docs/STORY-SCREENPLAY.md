@@ -193,6 +193,8 @@ The pods themselves glow; no light shines down on them. The lander's escape pod 
 
 **KILN:** Their glow fades as they freeze. If a pod goes dark, we've lost them. I'll mark them for you.
 
+**KILN:** Loop a pod and your tow line catches. The tally over your head fills a slot for every pod in tow.
+
 *Pointers appear at the screen edge, one for each of the four pods.*
 
 > GOAL CARD: **Tow the nearest pod into the heat**
@@ -319,6 +321,8 @@ greens.
 *The commander picks greens at the dome, carries them to the kiosk, stocks the shelf and stands at the counter. C
 coins fly; the credits counter appears. Goal star.*
 
+**KILN:** Those C coins are credits. Every sale pays them in, and credits buy what the camp builds.
+
 **SELA:** You built that dome yourselves? Out of your own hull?
 
 **SELA:** Save your scrap. My road crew builds for credits, and they bring their own steel.
@@ -426,7 +430,7 @@ dome, picking.*
 **KILN:** I've set it against the stars overhead, and against Sela's clock. They agree. It's been four thousand and
 twenty-three days.
 
-*A card: DAY 4, struck through and replaced by DAY 4,023. Under it, smaller: "KILN's clock only started when the
+*A card: DAY 4, struck through and replaced by DAY 4,023. Under it, smaller: "KILN's day counter restarted when the
 reactor was relit."*
 
 **RHEE:** I asked how long we were under. I didn't really want to know.
@@ -514,7 +518,7 @@ turn to OCCUPIED. Static.*
 
 **COMMANDER:** Four seats. So they saved themselves, and left the rest of us asleep.
 
-**KILN:** Not quite. Someone hauled the reactor off the ship and wired it to your pods. It must have been them.
+**KILN:** Not quite. Someone hauled the reactor off the ship, set it out on the sand with a beacon on it, and wired it to your pods. It must have been them.
 
 **KILN:** It ran on fuel cells until the cells ran out. The ore was under the sand then.
 
@@ -546,7 +550,7 @@ are dozens.*
 
 **RHEE:** Anyone who goes down, I'll get back on their feet.
 
-**KILN:** Three are coming first. Get close, as you did with the hoppers, and you'll open fire.
+**KILN:** Three are coming first. Get close, like the hoppers. Your rifle does the rest.
 
 > GOAL CARD: **Stop the first raiders**
 
@@ -730,4 +734,7 @@ Each line is a change against the live game as of 2026-11-12. The work items are
 - **Doug's answers (2026-11-16):** the *Halcyon* is an advance resource ship sent to set up the settlement and install
   the reactor; the three bay plate names are approved; the note on the raiders and the signal is the working answer
   for a later reveal.
+- **Reader-test fixes (2026-11-19),** text only: level 2 names the tally before its first slot fills; level 3 ties the C
+  coin to credits on the first sale; level 4's card says KILN's day counter restarted and one line explains the
+  reactor's beacon; level 5's firing line says the rifle does the rest.
 - **Still to run:** the first-time-reader test and both outside reviews on this draft.
