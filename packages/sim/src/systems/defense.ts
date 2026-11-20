@@ -161,25 +161,36 @@ function hitGate(st: State, cp: Compiled, line: BarrierState, idx: number, h: Ho
  */
 export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   const W = st.waves;
-  const wave = cp.waves[W.idx];
-  if (wave && st.tick >= wave.tick && !W.active && st.tick >= W.quietUntil) {
+  const wave = cp.waves[W.idx], M = cp.defense.maxLive;
+  // maxLive 1 (default): one wave at a time, the quiet spell after it. More: a wave also starts while fewer than maxLive are live,
+  // no sooner than overlapMin after the last start (spec 1.2). `live` and the `w` tags exist only then, so the default state is unchanged.
+  const liveN = M > 1 ? (W.live?.length ?? 0) : W.active ? 1 : 0;
+  const startOk = M > 1 && liveN > 0 ? liveN < M && st.tick >= (W.lastStart ?? 0) + cp.defense.overlapMinTicks : liveN === 0 && st.tick >= W.quietUntil;
+  if (wave && st.tick >= wave.tick && startOk) {
     wave.types.forEach((type, k) => {
       const p: (typeof W.pending)[number] = { tick: st.tick + k * wave.gapTicks, type, side: wave.sides[k % wave.sides.length]! };
+      if (M > 1) p.w = W.idx + 1;
       if (wave.retreatPct !== undefined && cp.hostiles[type]!.boss) p.retreatPct = wave.retreatPct;
       if (wave.standoff !== undefined && cp.hostiles[type]!.boss) p.standoff = wave.standoff;
       W.pending.push(p);
     });
     W.idx++;
     W.active = true;
+    if (M > 1) {
+      (W.live ??= []).push(W.idx);
+      W.lastStart = st.tick;
+      W.pending.sort((a, b) => a.tick - b.tick); // stable: two overlapping waves interleave by spawn tick
+    }
     out.push({ t: "wave_started", idx: W.idx });
     hint(st, out, "wave_incoming");
   }
   stepApproach(st, cp);
   while (W.pending.length > 0 && st.tick >= W.pending[0]!.tick) {
-    const { type, side, retreatPct, standoff } = W.pending.shift()!;
+    const { type, side, retreatPct, standoff, w } = W.pending.shift()!;
     const def = cp.hostiles[type]!;
     const h: HostileState = { id: st.nextHostileId++, type, pos: spawnPoint(st, cp, side), hp: def.hp, hpMax: def.hp, side, target: "core", acc: 0, shotCd: 0, windup: 0, lungeCd: 0 };
     if (st.approaching) st.approaching = st.approaching.filter((a) => a.id !== h.id);
+    if (w !== undefined) h.w = w;
     if (retreatPct !== undefined) h.retreatHp = Math.max(1, mulDiv(def.hp, retreatPct, 100));
     if (standoff !== undefined) h.standoff = standoff;
     st.hostiles.push(h);
@@ -292,7 +303,14 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
     }
   }
 
-  if (W.active && W.pending.length === 0 && st.hostiles.length === 0) {
+  if (M > 1 && W.live) {
+    const still = new Set<number>();
+    for (const p of W.pending) if (p.w !== undefined) still.add(p.w);
+    for (const h of st.hostiles) if (h.w !== undefined) still.add(h.w);
+    for (const idx of W.live) if (!still.has(idx)) out.push({ t: "wave_cleared", idx });
+    W.live = W.live.filter((idx) => still.has(idx));
+    if (W.active && W.live.length === 0) { W.active = false; W.quietUntil = st.tick + cp.defense.waveQuietTicks; }
+  } else if (W.active && W.pending.length === 0 && st.hostiles.length === 0) {
     W.active = false;
     W.quietUntil = st.tick + cp.defense.waveQuietTicks;
     out.push({ t: "wave_cleared", idx: W.idx });

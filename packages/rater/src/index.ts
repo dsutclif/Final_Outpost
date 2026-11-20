@@ -7,3 +7,4 @@ export { ratingDetail, evalManifest, DETAIL_SCHEMA, round4, type RatingDetail, t
 export { defendTrace, type DefendTrace, type WaveTrace } from "./defendTrace.js";
 export { varietySignature, varietyParts, layoutGrid, sameAsEarlier, varietyExempt, VARIETY } from "./variety.js";
 export { playShapeNumbers, playShapeFails, type PlayShapeNumbers, type PlayShapeParams, type PlayShapeBeat } from "./playShape.js";
+export { repin, scaleWaves, breakingMultiplier, strategyGap, type BreakOptions, type BreakResult, type StrategyGap } from "./defendBreak.js";

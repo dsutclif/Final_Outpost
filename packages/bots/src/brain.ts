@@ -145,9 +145,32 @@ export class Brain {
   private ladderRank(s: PlanStep): number {
     const e = this.cp.entityById[s.pad];
     if (!e) return -1;
-    if (e.type === "pad.hire") return this.cp.roles[e.role.role]?.behavior !== "guard" ? -1 : (this.hiresByPad[s.pad] ?? 0) < FIRST_GUARDS ? 0 : 1;
+    const strat = this.prof.strategy;
+    if (e.type === "pad.hire") {
+      if (this.cp.roles[e.role.role]?.behavior !== "guard") return -1;
+      if ((this.hiresByPad[s.pad] ?? 0) < FIRST_GUARDS && strat !== undefined) return 0;
+      return strat === undefined ? ((this.hiresByPad[s.pad] ?? 0) < FIRST_GUARDS ? 0 : 1) : strat === "guards_first" ? 1 : 2;
+    }
     if (e.type !== "pad.build") return -1;
-    return e.build.startsWith("struct.ranged_defense") || e.build === "struct.barracks.t2" ? 1 : -1;
+    const tower = e.build.startsWith("struct.ranged_defense"), drones = e.build === "struct.barracks.t2";
+    if (!tower && !drones) return -1;
+    if (strat === undefined) return 1;
+    // after the first guards: the strategy's own purchase first, then the others in its order
+    return strat === "turrets_first" ? (tower ? 1 : 3) : strat === "guards_first" ? (tower ? 2 : 3) : drones ? 1 : 3;
+  }
+
+  /**
+   * Sides worth defending now. One wave at a time (maxLive 1): the next wave's side, as before (null when none is left).
+   * With overlapping waves (S1): every side a live wave attacks from, its unspawned attackers' sides, and the next wave's,
+   * so a stacked load buys for the lane that is about to carry both.
+   */
+  private stackedSides(st: State, next: string | null): Set<string> | null {
+    if (this.cp.defense.maxLive <= 1) return next === null ? null : new Set([next]);
+    const out = new Set<string>();
+    if (next !== null) out.add(next);
+    for (const h of st.hostiles) out.add(h.side);
+    for (const p of st.waves.pending) out.add(p.side);
+    return out.size === 0 ? null : out;
   }
 
   private ladderKey(st: State, s: PlanStep, pad: PadState): number {
@@ -163,7 +186,9 @@ export class Brain {
     // a goal on the ladder (a tower level, N guards) is bought toward first
     const rank = this.ladderRank(s);
     // the first guards come first of all (the guard post stands: hiring is the first purchase)
-    return (rank === 0 || s.goalPath ? 0 : 1e7) + rank * 1e6 + (next !== null && side !== null && side !== next ? 1e5 : 0) + cost;
+    // a strategy bot follows its own order even where the goal path names a purchase: the probe measures defence, not goal speed
+    const sides = this.stackedSides(st, next);
+    return (rank === 0 || (s.goalPath && this.prof.strategy === undefined) ? 0 : 1e7) + rank * 1e6 + (sides !== null && side !== null && !sides.has(side) ? 1e5 : 0) + cost;
   }
 
   /** Remaining cost of a pad at its current (automation-taxed) price, per resource. */

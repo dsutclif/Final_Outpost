@@ -319,7 +319,10 @@ export interface Compiled {
     troopContact: number;
     postOffset: number;
     /** Quiet ticks after a wave is cleared before the next may start. */
-    waveQuietTicks: number; playerHitRange: number; troopRadius: number; playerHitTicks: number;
+    waveQuietTicks: number;
+    /** Waves that may be on the field at once (1 = one at a time) and the least time between two wave starts while another is live (S1, spec 1.2). */
+    maxLive: number; overlapMinTicks: number;
+    playerHitRange: number; troopRadius: number; playerHitTicks: number;
   };
   waves: CompiledWave[];
   /** Main goal first; synthesised from `goal` when the manifest lists no objectives. */
@@ -649,6 +652,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       laneHalfWidth: fp(param("defense.laneHalfWidth")),
       gateHitters: Math.max(1, int("defense.gateHitters")), fanSlots: Math.max(1, int("defense.fanSlots")), fanStep: fp(param("defense.fanStep")), troopContact: fp(param("defense.troopContact")),
       postOffset: fp(param("defense.postOffset")), waveQuietTicks: ticks(param("defense.waveQuiet")),
+      maxLive: Math.max(1, int("defense.maxLive")), overlapMinTicks: ticks(param("defense.overlapMin")),
       playerHitRange: fp(param("defense.playerHitRange")), troopRadius: fp(param("defense.troopRadius")), playerHitTicks: ticks(param("defense.playerHitInterval")),
     },
     waves,
