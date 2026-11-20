@@ -530,7 +530,8 @@
     360
    ],
    "decoy": true,
-   "freeze": 0
+   "freeze": 0,
+   "hiddenUntil": "pair"
   }
  ],
  "people": [],

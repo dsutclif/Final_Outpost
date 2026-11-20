@@ -2603,7 +2603,8 @@ export class Renderer3D implements Renderer {
     for (const c of s.captures) {
       if (c.heldBy) this.bossHeld.add(c.id);
       // hidden stays off the map, unless a story level shows what a boss dropped where it lies (level 5: the helmet)
-      if (c.state === "hidden" && !(this.storyP?.droppedShown && this.bossHeld.has(c.id) && !c.heldBy)) continue;
+      const darkOnly = c.state === "hidden" && !!this.storyP?.darkShown && !c.heldBy && c.hiddenUntil !== undefined;
+      if (c.state === "hidden" && !darkOnly && !(this.storyP?.droppedShown && this.bossHeld.has(c.id) && !c.heldBy)) continue;
       const key = `c:${c.id}`;
       const pos = this.interp.pos(key, c.pos, a);
       // an empty decoy pod has its own tinted model

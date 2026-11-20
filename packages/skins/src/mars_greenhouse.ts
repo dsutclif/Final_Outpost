@@ -963,6 +963,8 @@ export const marsGreenhouse: Skin = {
         hide: ["credits", "walls"],
         solid: ["sink.core"],
         podLights: "glow",
+        // the lander's escape pod (manifest hiddenUntil: pair) lies dark and unmarked until KILN names it
+        darkPods: true,
         noWallMarks: true,
         tally: true,
         goalCards: true,
@@ -996,7 +998,7 @@ export const marsGreenhouse: Skin = {
             { line: "Give me something to carry. Ore in, fire stays on.", who: "pip" },
             { line: "Two pods came down close together. Bring them both in one trip.", who: "kiln" },
           ] },
-          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
+          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }, { aidStation: true }] },
           // Okafor walks the camp's edge as he says it (S6), then is let go back to his post
           { on: { event: "joined", match: { capture: 2 } }, ordered: true, do: [
             { walk: "okafor", to: { at: [462, 330] } },
@@ -1004,6 +1006,8 @@ export const marsGreenhouse: Skin = {
             { walk: "okafor", to: false },
           ] },
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
+            // the lander pod lights (manifest hiddenUntil: pair): the camera looks out to it, so KILN names what the player can see
+            { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 1.2, back: 0.7 } },
             { line: "One more out there. A fifth pod. It's ours, the lander's escape pod, but nobody was assigned to it.", who: "kiln" },
             { line: "Then I'll bring in all five.", who: "commander" },
             { goal: "main" },
@@ -1035,6 +1039,8 @@ export const marsGreenhouse: Skin = {
       // Open for Trade (docs/STORY-SCREENPLAY.md, level 3). Sela comes first, then the hub and its price; selling meat is a
       // story step (no star). The H coin close-up is a card with the coin's render.
       "story-L003": {
+        // Rhee's aid station stays beside the reactor from level 2 on
+        aidStation: true,
         hide: ["credits", "walls"],
         // the level opens on the road, where the buggy comes up (the first beat cuts to the same spot), not on the commander
         openAt: [800, 928],
@@ -1125,6 +1131,8 @@ export const marsGreenhouse: Skin = {
       // Halcyon Works (docs/STORY-SCREENPLAY.md, level 4). The crash_log live scene plays when the recorder is home. Ordered cues
       // put KILN's dim, the look east and the ridge flash on their lines. Training the crew is a story step (no star).
       "story-L004": {
+        // Rhee's aid station stays beside the reactor from level 2 on
+        aidStation: true,
         hide: ["walls"],
         solid: ["sink.core"],
         goalCards: true,
@@ -1206,6 +1214,8 @@ export const marsGreenhouse: Skin = {
       // last wave: the main goal tows it home. Stopping the first raiders and training a guard are story steps (no star).
       // The lieutenant's slow-motion fall is a text card until it is made.
       "story-L005": {
+        // Rhee's aid station stays beside the reactor from level 2 on
+        aidStation: true,
         hide: ["credits"],
         solid: ["sink.core"],
         goalCards: true,

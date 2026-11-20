@@ -11,10 +11,15 @@ import { PROFILES, playBot } from "../src/index.js";
 
 type Ent = { type: string; [k: string]: unknown };
 const here = dirname(fileURLToPath(import.meta.url));
-const story = (f: string): Record<string, unknown> & { entities: Ent[] } => ({
-  ...JSON.parse(readFileSync(resolve(here, "../../../levels/story", f), "utf8")),
-  engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION,
-});
+const story = (f: string): Record<string, unknown> & { entities: Ent[] } => {
+  const L = {
+    ...JSON.parse(readFileSync(resolve(here, "../../../levels/story", f), "utf8")),
+    engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION,
+  } as Record<string, unknown> & { entities: Ent[] };
+  // level 2's lander pod waits on its own "pair" objective (outpost-ops#127), which the swapped-in lists do not have
+  if (f === "story-L002.json") L.entities = L.entities.map((e) => { const { hiddenUntil: _h, ...rest } = e; return rest as Ent; });
+  return L;
+};
 const objs = (kind: string, params: Record<string, unknown>, second: Record<string, unknown>): unknown[] => [
   { id: "main", kind, params }, { id: "gate", ...second }, { id: "b", kind: "no_colonist_freezes", params: {} },
 ];

@@ -106,6 +106,8 @@ export type StoryAction =
   | { ridgeFlash: number }
   /** The reactor spirit: bloom out of the flare, glitch red, or an explicit state. */
   | { spirit: "bloom" | "pulse" | "idle" | "fading" | "off" }
+  /** Rhee's aid station (a med crate and a lamp) stands beside the reactor from here on. */
+  | { aidStation: true }
   /**
    * The cloud drifts to the player and floats beside them, at a fixed offset in screen directions (ground
    * units: `right` toward the screen's right, `up` toward its top) with a soft lag, its ground patch with it.
@@ -226,6 +228,11 @@ export interface StoryLevel {
   /** A capture a boss carried shows where it was dropped before its `hiddenUntil` reveals it (story level 5: Vale's
    *  helmet lies at the fall spot); it can be towed only once revealed. */
   showDropped?: boolean;
+  /** Captures that wait on a `hiddenUntil` are drawn dark where they lie (no glow, no pointer), and cannot be towed until
+   *  revealed (story level 2: the lander's escape pod, lit by KILN's line after the pair). */
+  darkPods?: boolean;
+  /** Rhee's aid station stands beside the reactor from the first frame (story levels 3-5; level 2 adds it by cue). */
+  aidStation?: boolean;
 }
 
 export interface StorySpeaker {
