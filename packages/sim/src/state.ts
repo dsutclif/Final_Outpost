@@ -88,6 +88,9 @@ export interface SalesState {
   queue: CustomerState[];
   leaving: CustomerState[];
   spawnAcc: number;
+  /** Opt-in: no customer spawns until this cue holds (see manifest `openAfter`); `opened` latches once it does. */
+  openAfter?: string;
+  opened?: boolean;
   premiumServed: number;
   nextCustomerId: number;
   /** Queue slot 0 (beside the stall, on the side facing the map interior); slot k = queueAt + k × queueStep. */

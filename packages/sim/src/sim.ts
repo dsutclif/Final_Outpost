@@ -140,6 +140,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           // Without a generated route customers walk straight in from the edge on the stall's side.
           route: e.route ? e.route.map(vec) : [{ x: lay.edgeX, y: lay.queueAt.y }],
         };
+        if (e.openAfter) sales.openAfter = e.openAfter;
         if (e.queue) { sales.queueSlots = e.queue.map(vec); sales.queueAt = sales.queueSlots[0]!; }
         state.sales = sales;
         break;

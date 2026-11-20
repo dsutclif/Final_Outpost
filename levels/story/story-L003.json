@@ -22,8 +22,8 @@
   "workers"
  ],
  "start": [
-  550,
-  835
+  370,
+  395
  ],
  "entities": [
   {
@@ -508,7 +508,8 @@
      630,
      905
     ]
-   ]
+   ],
+   "openAfter": "@reach:580,800,170"
   },
   {
    "type": "node.food_source",
@@ -516,7 +517,8 @@
    "at": [
     440,
     610
-   ]
+   ],
+   "enabled": false
   },
   {
    "type": "zone.prey",
@@ -531,6 +533,43 @@
    "n": 3
   },
   {
+   "type": "node.salvage_pile",
+   "id": "scrapA",
+   "at": [
+    620,
+    150
+   ]
+  },
+  {
+   "type": "node.salvage_pile",
+   "id": "scrapB",
+   "at": [
+    700,
+    135
+   ]
+  },
+  {
+   "type": "node.salvage_pile",
+   "id": "scrapC",
+   "at": [
+    745,
+    100
+   ]
+  },
+  {
+   "type": "pad.build",
+   "id": "dome",
+   "at": [
+    440,
+    610
+   ],
+   "cost": {
+    "res.salvage": 8
+   },
+   "build": "node.enable",
+   "target": "field1"
+  },
+  {
    "type": "pad.build",
    "id": "clear0",
    "at": [
@@ -541,7 +580,10 @@
     "res.currency": 12
    },
    "build": "zone.clear",
-   "target": "rockslide"
+   "target": "rockslide",
+   "requires": {
+    "pad": "dome"
+   }
   },
   {
    "type": "pad.build",
@@ -554,7 +596,10 @@
     "res.currency": 150
    },
    "build": "struct.landmark",
-   "big": true
+   "big": true,
+   "requires": {
+    "pad": "dome"
+   }
   },
   {
    "type": "pad.hire",
@@ -618,6 +663,14 @@
    "params": {
     "target": "hub"
    }
+  },
+  {
+   "id": "dome",
+   "kind": "unlock",
+   "params": {
+    "n": 1
+   },
+   "label": "Build the grow dome"
   },
   {
    "id": "first",

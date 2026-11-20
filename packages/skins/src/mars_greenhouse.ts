@@ -1042,8 +1042,6 @@ export const marsGreenhouse: Skin = {
         // Rhee's aid station stays beside the reactor from level 2 on
         aidStation: true,
         hide: ["credits", "walls"],
-        // the level opens on the road, where the buggy comes up (the first beat cuts to the same spot), not on the commander
-        openAt: [800, 928],
         solid: ["sink.core"],
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam. Sela is the first trader to arrive and speaks from where she
@@ -1051,6 +1049,7 @@ export const marsGreenhouse: Skin = {
         customerModels: { 0: "unit.customer_sela" },
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 }, trader: { entity: "kiosk" } },
         goals: [
+          { id: "dome", hold: true, label: "Build the grow dome (8 scrap)" },
           { id: "first", hold: true, label: "Sell Sela some greens" },
           // S43 (Doug, 2026-11-07): the ring is no longer prebuilt; the player builds it here, the star is the wall
           { id: "walls", label: "Build the camp wall (8)" },
@@ -1064,6 +1063,26 @@ export const marsGreenhouse: Skin = {
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
             { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
+            { line: "You promised me a grow dome, Boss. Give me one and I'll feed this camp.", who: "tam" },
+            { line: "There's hull scrap lying all round the wreck. Enough to build one.", who: "commander" },
+            { line: "Carry scrap to the dome's frame. It goes up when the frame is full.", who: "kiln", head: "K.I.L.N. · DAY 3" },
+            { goal: "dome" },
+            { dots: [{ entity: "scrapA" }], period: 2.4 },
+          ] },
+          // the dome stands and night falls: a pair of lights moves far to the south, a soft glow on the screen edge points the way
+          { on: { goal: "dome", is: "done" }, ordered: true, do: [
+            { dotsOff: true },
+            { light: "night", seconds: 6 },
+            { line: "It'll do.", who: "tam" },
+            { line: "Lights, to the south. Something's moving out there.", who: "commander" },
+            { guide: false },
+            { edgeGlow: { entity: "kiosk", size: 28, strength: 0.35, arrow: true } },
+          ] },
+          // found by walking: the glow goes out at the road, the kiosk's door
+          { id: "kioskFound", on: { near: { entity: "kiosk" }, r: 170 }, do: [
+            { edgeGlow: null },
+            { guide: true },
+            { line: "A road. And a kiosk, shut up for years. People were here.", who: "commander" },
           ] },
           // the only moving light: Sela's buggy comes up the road and parks (the sela_arrival live scene), then the
           // camera follows her on foot to the old kiosk

@@ -4,7 +4,7 @@ import { FP, moveToward, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between, chance } from "../rng.js";
 import type { CustomerState, SalesState, State } from "../state.js";
 import { hint } from "./common.js";
-import { converterIdle, dropOnly, producible } from "./nodes.js";
+import { converterIdle, dropOnly, nodeUncovered, producible } from "./nodes.js";
 
 /** Content offsets point "toward" a reference: each axis flips so a positive component faces it. */
 const toward = (off: Vec, from: Vec, to: Vec): Vec => ({ x: to.x >= from.x ? off.x : 0 - off.x, y: to.y >= from.y ? off.y : 0 - off.y });
@@ -67,6 +67,10 @@ export function stepSales(st: State, cp: Compiled, out: SimEvent[]): void {
 
 function spawn(st: State, cp: Compiled, s: SalesState, out: SimEvent[]): void {
   const S = cp.sales;
+  if (s.openAfter !== undefined && !s.opened) {
+    if (!nodeUncovered(st, s.openAfter)) return;
+    s.opened = true;
+  }
   s.spawnAcc--;
   // A short line refills fast, so three or four customers are usually waiting.
   if (s.queue.length < S.refillBelow && s.spawnAcc > S.refillTicks) s.spawnAcc = S.refillTicks;

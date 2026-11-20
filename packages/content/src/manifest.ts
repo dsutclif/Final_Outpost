@@ -49,6 +49,9 @@ export const SalesPointEntity = z.object({
   // Opt-in: the queue's slots in order, slot 0 at the window (generator; the line bends round what stands in the
   // way: plot plan). Without it the line is straight (content queueOffset/queueStep).
   queue: z.array(Point).min(1).optional(),
+  // No customer arrives until this objective id is done or this built-in cue holds: `@reach:x,y,r` (the player has walked
+  // within r of the point), `@lit:S`, `@storm`. Story level 3: Sela comes after the kiosk is found.
+  openAfter: z.string().min(1).optional(),
 });
 export const RoleBinding = z.object({
   role: RoleId,
