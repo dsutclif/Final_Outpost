@@ -11,7 +11,7 @@ import { DEFAULT_CONFIG, compareVersions, estimateD, type Family, type GoalRange
 // hi counts when some slot of that goal had a target above the highest winnable D by more than --tol
 // (asked for more, never got it winnably); lo likewise below. Otherwise that side stays open (null).
 //
-//   vite-node tools/goal-ranges.ts -- <file or folder>... [--min-engine 0.35.0] [--min-n 3] [--write]
+//   vite-node tools/goal-ranges.ts -- <file or folder>... [--min-engine 0.35.0] [--min-n 3] [--exclude g,g] [--keep] [--write]
 
 const args = process.argv.slice(2).filter((a) => a !== "--");
 const opt = (k: string, d: string) => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1]! : d; };
@@ -19,6 +19,8 @@ const minEngine = opt("--min-engine", "0.35.0");
 const minN = Number(opt("--min-n", "3"));
 const tol = Number(opt("--tol", "0.05"));
 const write = args.includes("--write");
+const keep = args.includes("--keep"); // keep existing entries of goals these inputs do not cover (not re-measured)
+const exclude = opt("--exclude", "").split(",").filter(Boolean); // goals that never get a range (e.g. stuck at ~0)
 const inputs = args.filter((a) => !a.startsWith("--"));
 
 interface Sample { goal: string; D: number | null; res: number | null; target?: number; machines?: number; src: string }
@@ -53,7 +55,7 @@ for (const f of inputs.flatMap(files)) {
 
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 const ranges: Record<string, GoalRange> = {};
-const goals = [...new Set(samples.map((s) => s.goal))].filter((g) => DEFAULT_CONFIG.goals[g]).sort();
+const goals = [...new Set(samples.map((s) => s.goal))].filter((g) => DEFAULT_CONFIG.goals[g] && !exclude.includes(g)).sort();
 console.log("goal                   n  lost   D lo   D hi  res lo res hi  asked     limit");
 for (const g of goals) {
   const won = samples.filter((s) => s.goal === g && s.res !== null);
@@ -77,6 +79,7 @@ if (write) {
   const path = join(import.meta.dirname ?? __dirname, "..", "packages", "sequencer", "data", "sequencer.json");
   if (!existsSync(path)) throw new Error(`no ${path}`);
   const lines = readFileSync(path, "utf8").split("\n");
+  if (keep) for (const [g, r] of Object.entries((JSON.parse(readFileSync(path, "utf8")).goalRanges ?? {}) as Record<string, GoalRange>)) if (g !== "_doc" && !goals.includes(g) && !(g in ranges)) ranges[g] = r;
   const block = [
     `  "goalRanges": {`,
     `    "_doc": "Written by tools/goal-ranges.ts from build logs and level pools (engine ${minEngine}+, at least ${minN} winnable samples): per goal id, winnable D less the composer estimate (mid) of the features each sample carried; n winnable, lost unwinnable. A side is set only where a slot asked for more than ${tol} past it; null and unlisted goals are never ruled out on that side. Rules in ops docs/reference/composer.md.",`,

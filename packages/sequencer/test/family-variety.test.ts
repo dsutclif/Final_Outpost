@@ -50,8 +50,8 @@ describe("goal ranges (ops docs/reference/composer.md)", () => {
     expect(req.goalId).not.toBe("automate");
   });
 
-  it("a goal with no measured range is never ruled out", () => {
-    expect(goalReach("chain", slotFor(25, cfg), 25, 0.581, undefined, cfg)).toBeNull();
+  it("a goal with no usable range (heat_hold: stuck near 0) is never ruled out", () => {
+    expect(goalReach("heat_hold", slotFor(25, cfg), 25, 0.581, undefined, cfg)).toBeNull();
   });
 
   it("when no goal reaches the target the nearest is taken, with a note", () => {
