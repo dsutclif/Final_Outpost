@@ -1,0 +1,262 @@
+{
+  "id": "s1-L028",
+  "seed": 693082942,
+  "engineVersion": "0.36.0",
+  "contentVersion": "0.23.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-w",
+      "sources-e",
+      "shop-se",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "hunting",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    240,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        500
+      ],
+      "params": {
+        "fuel": 11,
+        "level": 1
+      }
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        162,
+        499
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        163,
+        460
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        195,
+        419
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        157,
+        429
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        154,
+        529
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        142,
+        403
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        224,
+        412
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          105,
+          350
+        ],
+        [
+          240,
+          350
+        ],
+        [
+          375,
+          350
+        ],
+        [
+          375,
+          500
+        ],
+        [
+          375,
+          650
+        ],
+        [
+          240,
+          650
+        ],
+        [
+          105,
+          650
+        ],
+        [
+          105,
+          500
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        116,
+        278
+      ],
+      "freeze": 108
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        231,
+        279
+      ],
+      "freeze": 122
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        423,
+        271
+      ],
+      "freeze": 149
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        400,
+        174
+      ],
+      "freeze": 176
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        395,
+        380,
+        65,
+        150
+      ],
+      "animal": "node.prey",
+      "n": 3
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 2,
+    "core.burn": 2.3,
+    "housing.base": 6,
+    "lots.block": 60,
+    "lots.street": 0,
+    "level.budgetSeconds": 280
+  },
+  "goal": {
+    "type": "hunt",
+    "n": 29
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "hunt",
+      "params": {
+        "n": 29
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "tow_trip",
+      "params": {
+        "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 285
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Stasis Pods and The Hunt",
+      "goal": "hunt",
+      "tips": [
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.636,
+    "fun": 0.614,
+    "botMargin": 0.503,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 2,
+      "humanAll": 0.67
+    }
+  },
+  "lighting": "night"
+}

@@ -11,7 +11,7 @@ import { manifestObjectives, labelOf } from "../src/objectives.js";
 
 const skin = getSkin(DEFAULT_SKIN);
 const level = (n: number): Manifest => {
-  const raw = JSON.parse(readFileSync(resolve(__dirname, `../../../levels/packs/s1/s1-L${String(n).padStart(3, "0")}.json`), "utf8"));
+  const raw = JSON.parse(readFileSync(resolve(__dirname, `../../../levels/fixtures/s1-old/s1-L${String(n).padStart(3, "0")}.json`), "utf8"));
   return (raw.manifest ?? raw) as Manifest;
 };
 // level 1-5 are the story levels (the pack starts at 6); story level 4 brings in the galley

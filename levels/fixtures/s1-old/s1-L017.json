@@ -1,0 +1,418 @@
+{
+  "id": "s1-L017",
+  "seed": 327552485,
+  "engineVersion": "0.36.0",
+  "contentVersion": "0.23.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-e",
+      "food-se",
+      "shop-w",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "build_pads",
+    "carry",
+    "core",
+    "gather",
+    "hunting",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    218,
+    592
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        218,
+        500
+      ],
+      "params": {
+        "fuel": 14,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        122,
+        637
+      ],
+      "sells": [
+        "res.food_raw_1",
+        "res.food_raw_2"
+      ],
+      "queue": [
+        [
+          61,
+          637
+        ],
+        [
+          61,
+          671
+        ],
+        [
+          61,
+          705
+        ],
+        [
+          61,
+          739
+        ]
+      ],
+      "route": [
+        [
+          -20,
+          711
+        ],
+        [
+          3,
+          711
+        ],
+        [
+          87,
+          711
+        ],
+        [
+          87,
+          687
+        ],
+        [
+          63,
+          675
+        ],
+        [
+          61,
+          637
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        119,
+        444
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        293,
+        473
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        299,
+        522
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        252,
+        420
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        297,
+        443
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        324,
+        478
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        280,
+        407
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        338,
+        513
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        330,
+        443
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        341,
+        544
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        354,
+        467
+      ]
+    },
+    {
+      "type": "node.material_source",
+      "at": [
+        336,
+        400
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          38,
+          300
+        ],
+        [
+          158,
+          300
+        ],
+        [
+          278,
+          300
+        ],
+        [
+          398,
+          300
+        ],
+        [
+          398,
+          433
+        ],
+        [
+          398,
+          567
+        ],
+        [
+          398,
+          700
+        ],
+        [
+          278,
+          700
+        ],
+        [
+          158,
+          700
+        ],
+        [
+          38,
+          700
+        ],
+        [
+          38,
+          567
+        ],
+        [
+          38,
+          433
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1,
+        8
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        355,
+        176
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        233,
+        38
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        75,
+        226
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        430,
+        106
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        191,
+        237
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        108,
+        57
+      ]
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        249,
+        144
+      ]
+    },
+    {
+      "type": "zone.prey",
+      "id": "prey",
+      "rect": [
+        418,
+        330,
+        60,
+        150
+      ],
+      "animal": "node.prey",
+      "n": 3
+    },
+    {
+      "type": "pad.hire",
+      "id": "ranger",
+      "at": [
+        448,
+        342
+      ],
+      "cost": {
+        "res.currency": 12
+      },
+      "role": {
+        "role": "role.hunter",
+        "from": "node.prey",
+        "to": "sink.sales_point"
+      },
+      "manual": true
+    }
+  ],
+  "people": [
+    {
+      "role": "idle"
+    },
+    {
+      "role": "idle"
+    }
+  ],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 6,
+    "core.burn": 2.6,
+    "housing.base": 8,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 2.8,
+    "sales.clerkSide": 1,
+    "customers.orderMin": 1,
+    "customers.orderMax": 2,
+    "level.budgetSeconds": 350
+  },
+  "goal": {
+    "type": "protein",
+    "n": 28
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "protein",
+      "params": {
+        "n": 28
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "rescue_all",
+      "params": {}
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 206
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Drift Cables and Protein Run",
+      "goal": "protein",
+      "tips": [
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.282,
+    "fun": 0.719,
+    "botMargin": 0.638,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice",
+      "floor"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 2.83,
+      "humanAll": 0.83
+    }
+  }
+}

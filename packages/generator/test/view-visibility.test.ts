@@ -7,7 +7,7 @@ import { SIGHT, occluders, padVisibility, padVisibilityReport, viewOf, type View
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 // Levels whose pads were moved after the renderer fixture was recorded keep their recorded layout in fixtures/pad-visibility-levels.
 const FIX = fileURLToPath(new URL("./fixtures/pad-visibility-levels/", import.meta.url));
-const level = (id: string): { id: string; entities: ViewEnt[] } => JSON.parse(readFileSync(existsSync(`${FIX}${id}.json`) ? `${FIX}${id}.json` : `${root}levels/packs/s1/${id}.json`, "utf8"));
+const level = (id: string): { id: string; entities: ViewEnt[] } => JSON.parse(readFileSync(existsSync(`${FIX}${id}.json`) ? `${FIX}${id}.json` : `${root}levels/fixtures/s1-old/${id}.json`, "utf8"));
 type Truth = Record<string, { id: string; class: string; hiddenFraction: number; by: string[] }[]>;
 // What the running renderer says for every pad of every pack level: tools/review/pad-visibility.cjs (its own padsBehind test
 // on 17 points over the pad disc), with the models loaded. Remake with that tool after a model or scale change.

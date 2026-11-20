@@ -19,11 +19,12 @@ const build = (i: number, p = 0.3) => {
 };
 
 describe("play-shape beat-breakers (harvest)", () => {
-  const lv = build(8);
+  const slot = reqs.findIndex((r) => r.family === "harvest" && r.index > 5 && r.goalType === "hire") + 1; // a harvest slot whose goal buys the ladder (the goal in slot 8 moved with the sequencer)
+  const lv = build(slot);
   const m = lv!.manifest as unknown as { entities: { id: string; requires?: { pad: string }; cost?: Record<string, number> }[] };
 
   it("chains farm worker -> late hires -> cashier, each dearer than the last", () => {
-    expect(reqs[7]!.family).toBe("harvest");
+    expect(reqs[slot - 1]!.family).toBe("harvest");
     const byId = (id: string) => m.entities.find((e) => e.id === id)!;
     const chain = ["hire_food", ...GEN.beatBreakers.lateHires.map((h) => h.id), "hire_cashier"];
     for (let k = 1; k < chain.length; k++) {

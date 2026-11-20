@@ -6,7 +6,7 @@ import { buildSection } from "../src/systems/barriers.js";
 
 // outpost-ops#232: the wall grid and blocked-spot grid must answer exactly like the plain scans.
 
-const pack = (id: string): unknown => JSON.parse(readFileSync(new URL(`../../../levels/packs/s1/${id}.json`, import.meta.url), "utf8"));
+const pack = (id: string): unknown => JSON.parse(readFileSync(new URL(`../../../levels/fixtures/s1-old/${id}.json`, import.meta.url), "utf8"));
 
 /** Small deterministic generator (the test's own; the sim's rng is not touched). */
 const lcg = (seed: number) => { let s = seed >>> 0; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; };

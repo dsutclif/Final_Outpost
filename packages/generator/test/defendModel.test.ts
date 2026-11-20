@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { content } from "@fo/content";
 import { DEFEND_FIT, defendInput, predictRho } from "../src/defendModel.js";
 
-const load = (id: string) => defendInput(JSON.parse(readFileSync(new URL(`../../../levels/packs/s1/${id}.json`, import.meta.url), "utf8")), content);
+const load = (id: string) => defendInput(JSON.parse(readFileSync(new URL(`../../../levels/fixtures/s1-old/${id}.json`, import.meta.url), "utf8")), content);
 
 describe("attack-defence model v0", () => {
   const inp = load("s1-L026");

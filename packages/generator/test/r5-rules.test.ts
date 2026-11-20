@@ -117,8 +117,9 @@ describe("R5 medic pad", () => {
 
 describe("R5 #29 storms", () => {
   it("a storm level is deadly once the player stops helping", () => {
-    const i = reqs.findIndex((r) => (r.features ?? []).includes("dust_storms"));
-    const b = build(i + 1);
+    // the first storm slot that builds (a slot's layout can fail to draw; the sequencer's goals move slots around)
+    let b = null as ReturnType<typeof build>;
+    for (let i = 0; i < reqs.length && !b; i++) if ((reqs[i]!.features ?? []).includes("dust_storms")) b = build(i + 1);
     expect(b).not.toBeNull();
     const m = b!.manifest;
     // the check reports a storm the colony rides out alone; a level with an endless calm core would be one

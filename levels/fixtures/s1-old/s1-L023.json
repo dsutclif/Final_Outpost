@@ -1,0 +1,392 @@
+{
+  "id": "s1-L023",
+  "seed": 886907390,
+  "engineVersion": "0.36.0",
+  "contentVersion": "0.23.0",
+  "map": {
+    "w": 480,
+    "h": 900,
+    "zones": [
+      "base",
+      "sources-far-w",
+      "food-far-e",
+      "shop-s",
+      "landmark-sw"
+    ]
+  },
+  "modules": [
+    "barrier_lines",
+    "blocked_zones",
+    "build_pads",
+    "carry",
+    "core",
+    "core_levels",
+    "gather",
+    "lasso",
+    "sales"
+  ],
+  "start": [
+    240,
+    612
+  ],
+  "entities": [
+    {
+      "type": "sink.core",
+      "id": "core",
+      "at": [
+        240,
+        520
+      ],
+      "params": {
+        "fuel": 12,
+        "level": 1
+      }
+    },
+    {
+      "type": "sink.sales_point",
+      "id": "shop",
+      "at": [
+        175,
+        598
+      ],
+      "sells": [
+        "res.food_raw_1"
+      ],
+      "queue": [
+        [
+          236,
+          598
+        ],
+        [
+          270,
+          598
+        ],
+        [
+          304,
+          598
+        ],
+        [
+          328,
+          622
+        ]
+      ],
+      "route": [
+        [
+          -20,
+          645
+        ],
+        [
+          3,
+          645
+        ],
+        [
+          249,
+          639
+        ],
+        [
+          270,
+          598
+        ]
+      ]
+    },
+    {
+      "type": "node.food_source",
+      "id": "food1",
+      "at": [
+        342,
+        518
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        161,
+        495
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        219,
+        441
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        132,
+        488
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        153,
+        453
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        183,
+        436
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        119,
+        555
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        112,
+        511
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        124,
+        459
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        99,
+        484
+      ]
+    },
+    {
+      "type": "node.fuel_scrap",
+      "at": [
+        97,
+        583
+      ]
+    },
+    {
+      "type": "barrier.line",
+      "id": "ring",
+      "res": "res.currency",
+      "costPerSection": 1,
+      "points": [
+        [
+          60,
+          320
+        ],
+        [
+          180,
+          320
+        ],
+        [
+          300,
+          320
+        ],
+        [
+          420,
+          320
+        ],
+        [
+          420,
+          453
+        ],
+        [
+          420,
+          587
+        ],
+        [
+          420,
+          720
+        ],
+        [
+          300,
+          720
+        ],
+        [
+          180,
+          720
+        ],
+        [
+          60,
+          720
+        ],
+        [
+          60,
+          587
+        ],
+        [
+          60,
+          453
+        ]
+      ],
+      "closed": true,
+      "gates": [
+        1,
+        9
+      ],
+      "prebuilt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "type": "zone.blocked",
+      "id": "pass",
+      "rect": [
+        0,
+        114,
+        480,
+        44
+      ]
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        361,
+        55
+      ],
+      "freeze": 134
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        238,
+        61
+      ],
+      "freeze": 149
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        105,
+        221
+      ],
+      "freeze": 151
+    },
+    {
+      "type": "capture.recruit_container",
+      "at": [
+        356,
+        254
+      ],
+      "freeze": 164
+    },
+    {
+      "type": "capture.supply_crate",
+      "at": [
+        272,
+        218
+      ]
+    },
+    {
+      "type": "pad.build",
+      "id": "core_level0",
+      "at": [
+        263,
+        630
+      ],
+      "cost": {
+        "res.currency": 29
+      },
+      "build": "sink.core.level"
+    },
+    {
+      "type": "pad.build",
+      "id": "clear_pass",
+      "at": [
+        310,
+        239
+      ],
+      "cost": {
+        "res.currency": 17
+      },
+      "build": "zone.clear",
+      "target": "pass",
+      "requires": {
+        "coreLevel": 2
+      }
+    }
+  ],
+  "people": [],
+  "waves": [],
+  "events": [],
+  "params": {
+    "start.currency": 5,
+    "core.burn": 2.5,
+    "housing.base": 6,
+    "lots.block": 60,
+    "lots.street": 0,
+    "customers.spawn": 3.1,
+    "customers.orderMin": 1,
+    "customers.orderMax": 3,
+    "level.budgetSeconds": 140
+  },
+  "goal": {
+    "type": "rescue_all"
+  },
+  "family": "rescue",
+  "objectives": [
+    {
+      "id": "main",
+      "kind": "rescue_all",
+      "params": {}
+    },
+    {
+      "id": "challenge",
+      "kind": "tow_full_trip",
+      "params": {
+        "n": 3
+      }
+    },
+    {
+      "id": "time",
+      "kind": "time_target",
+      "params": {
+        "seconds": 90
+      }
+    }
+  ],
+  "fail": [
+    "meter.lifeline"
+  ],
+  "text": {
+    "mars_greenhouse": {
+      "title": "Drift Cables and Every Pod",
+      "goal": "rescue_all",
+      "tips": [
+        "Step out through an airlock and walk a loop around a stasis pod to tow it. Bring it into the reactor's heat to thaw it."
+      ]
+    }
+  },
+  "rating": {
+    "difficulty": 0.862,
+    "fun": 0.775,
+    "botMargin": 0.605,
+    "botsPassed": [
+      "good",
+      "average",
+      "weak",
+      "novice"
+    ],
+    "stars": {
+      "good": 3,
+      "median": 3,
+      "goodAll": 1,
+      "human": 3,
+      "humanAll": 1
+    }
+  }
+}

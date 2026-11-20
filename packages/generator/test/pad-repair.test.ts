@@ -9,7 +9,7 @@ const root = fileURLToPath(new URL("../../../", import.meta.url));
 
 describe("pads visible for their whole life (Doug, 2026-11-15)", () => {
   it("does not count walls or wall-line gates, but counts the survivors' arrival gate", () => {
-    const m = JSON.parse(readFileSync(`${root}levels/packs/s1/s1-L060.json`, "utf8")) as Manifest;
+    const m = JSON.parse(readFileSync(`${root}levels/fixtures/s1-old/s1-L060.json`, "utf8")) as Manifest;
     const names = occluders(m.entities, { walls: "none" }).map((o) => o.name);
     expect(names).not.toContain("wall");
     expect(names.filter((n) => n === "struct.gate")).toHaveLength(1);

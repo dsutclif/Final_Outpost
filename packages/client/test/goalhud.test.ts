@@ -12,7 +12,7 @@ import { alertMarks, alertOf, goalIcon, goalTokens } from "../src/goalhud.js";
 const skin = getSkin(DEFAULT_SKIN);
 // levels 1-5 are the hand-made story levels; the pack holds 6-50 (regenerated, so goals are picked by kind)
 const level = (n: number, over?: Partial<Manifest>) => {
-  const file = n <= 5 ? `story/story-L${String(n).padStart(3, "0")}.json` : `packs/s1/s1-L${String(n).padStart(3, "0")}.json`;
+  const file = n <= 5 ? `story/story-L${String(n).padStart(3, "0")}.json` : `fixtures/s1-old/s1-L${String(n).padStart(3, "0")}.json`;
   const raw = JSON.parse(readFileSync(resolve(__dirname, `../../../levels/${file}`), "utf8"));
   const sim = createSim({ ...(raw.manifest ?? raw), ...over } as Manifest);
   return { sim, m: sim.compiled.manifest, cp: sim.compiled };

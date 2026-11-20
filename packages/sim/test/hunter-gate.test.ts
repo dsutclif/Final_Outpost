@@ -8,7 +8,7 @@ import { createSim, blockedAt, fp, FP, type Sim } from "../src/index.js";
 // the shop (the hopper he delivers to) inside.
 
 type Loose = Record<string, any>;
-const level = () => JSON.parse(readFileSync("levels/packs/s1/s1-L017.json", "utf8")) as Loose;
+const level = () => JSON.parse(readFileSync("levels/fixtures/s1-old/s1-L017.json", "utf8")) as Loose;
 const RING_X = 398; // east wall of the ring; the prey zone lies beyond it
 
 const distToSegment = (px: number, py: number, a: { x: number; y: number }, b: { x: number; y: number }): number => {
