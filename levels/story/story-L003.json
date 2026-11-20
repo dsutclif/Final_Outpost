@@ -519,28 +519,6 @@
    ]
   },
   {
-   "type": "node.food_source",
-   "id": "field2",
-   "at": [
-    310,
-    720
-   ],
-   "enabled": false
-  },
-  {
-   "type": "pad.build",
-   "id": "unlock_field2",
-   "at": [
-    310,
-    720
-   ],
-   "cost": {
-    "res.currency": 10
-   },
-   "build": "node.enable",
-   "target": "field2"
-  },
-  {
    "type": "zone.prey",
    "id": "flats",
    "rect": [
@@ -653,6 +631,21 @@
    "kind": "perimeter_before_wave1",
    "params": {},
    "label": "Build the camp wall"
+  },
+  {
+   "id": "clear",
+   "kind": "clear_zones",
+   "params": {
+    "n": 1
+   }
+  },
+  {
+   "id": "meat",
+   "kind": "sell",
+   "params": {
+    "res": "res.food_raw_2",
+    "n": 1
+   }
   }
  ],
  "fail": [

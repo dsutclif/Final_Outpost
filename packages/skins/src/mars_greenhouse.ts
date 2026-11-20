@@ -827,7 +827,7 @@ export const marsGreenhouse: Skin = {
       pip: { name: "PIP", tag: "hauler", bust: "busts/pip.webp" },
       rhee: { name: "RHEE", tag: "medic", bust: "busts/rhee.webp" },
       okafor: { name: "OKAFOR", tag: "guard", bust: "busts/okafor.webp" },
-      tam: { name: "TAM", tag: "settler", bust: "busts/tam.webp" },
+      tam: { name: "TAM", tag: "grower", bust: "busts/tam.webp" },
       sela: { name: "SELA", tag: "trader", bust: "busts/sela.webp" },
       trader: { name: "TRADER" },
       lieutenant: { name: "RAIDER", bust: "busts/lieutenant.webp" },
@@ -873,18 +873,22 @@ export const marsGreenhouse: Skin = {
           // (south of the ledge), then on to the reactor, so the walk is direct and the ore west of the reactor stays out of sight
           { on: { start: true }, walk: true, do: [{ guide: true, to: { at: [600, 300] } }] },
           { on: { near: { at: [600, 300] }, r: 45 }, do: [{ guide: true, to: { entity: "core" } }] },
-          { id: "woke", on: { start: true }, walk: true, do: [
+          // one cue, so the light beat starts on the first line's tap, not on a timer: nothing runs before that tap, and the
+          // commander cannot walk until "Reach the light" is tapped (every line and card holds play). The edge pulse is one
+          // bright white flash from the reactor's side of the screen, then its soft glow stays with a pointer in it until
+          // the reactor comes into view
+          { id: "woke", on: { start: true }, walk: true, ordered: true, do: [
             { line: "What happened? Where's the rest of my crew?", who: "commander", seconds: 3 },
-          ] },
-          // once the film's framing has eased out: one bright white pulse from the reactor's side of the screen, then
-          // its soft glow stays on that edge with a pointer in it until the reactor comes into view
-          { id: "looked", on: { after: "woke", ticks: 90 }, walk: true, ordered: true, do: [
             { edgeGlow: { entity: "core", size: 140, strength: 1 } },
             { wait: 0.7 },
             { edgeGlow: { entity: "core", size: 30, strength: 0.32, arrow: true } },
             { line: "That light. Someone's out there.", who: "commander", seconds: 2.2 },
             { goal: "reach" },
           ] },
+          // two half-buried fuel cells lie on the path (outpost-ops#125): the commander finds them on the way to the light,
+          // and carrying one to the reactor lights it. The beacon lamp on the dead reactor is the edge glow's source above.
+          { on: { near: { entity: "cell1" }, r: 40 }, do: [{ line: "Something half-buried in the sand. A fuel cell, sealed and still heavy.", who: "commander" }] },
+          { on: { near: { entity: "cell2" }, r: 40 }, do: [{ line: "Another cell. Whoever lit that beacon left these out for the finding.", who: "commander" }] },
           // the reactor's own lights come on only once it is found
           { on: { near: { entity: "core" }, r: 90 }, do: [
             // released here too, for a run from the retry spot (the walk's cues do not fire there)
@@ -908,18 +912,23 @@ export const marsGreenhouse: Skin = {
             // KILN's first readout opens with its boot header (Doug, 2026-11-05); no extra line or tap
             { line: "Commander. You're late.", who: "kiln", seconds: 2.6, head: "K.I.L.N. · KNOWLEDGE INTEGRATION AND LOGISTICS NETWORK · BATTERY 2% · DAY 1" },
             { freeze: false },
-            { line: "I'm KILN, the support system of the Halcyon, your colony ship. Your stasis pod, bay nine, finally opened.", who: "kiln" },
-            { line: "I've been running on my last battery. Hurry and fill the reactor before it dies, and me with it.", who: "kiln" },
+            { line: "I'm KILN, the support system of the advance ship Halcyon.", who: "kiln" },
+            { line: "Your stasis pod, bay nine, finally opened. I kept that beacon lit on the last of my battery.", who: "kiln" },
+            { line: "Fill the reactor before it dies, and me with it.", who: "kiln" },
             { goal: "fill" },
           ] },
           { on: { goal: "fill", is: "done" }, do: [
-            { line: "Thank you. The four pods here on the deck are still sealed: bays five to eight.", who: "kiln", head: "K.I.L.N. · REACTOR ONLINE · DAY 1" },
+            { line: "Thank you. Four pods by the wreck are still sealed: bays five to eight.", who: "kiln", head: "K.I.L.N. · REACTOR ONLINE · DAY 1" },
             { line: "My first officer, Vale, is in bay five. Open them.", who: "commander" },
-            { line: "Not yet. The reactor has to burn all night before there's power to open them. Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.", who: "kiln" },
+            { line: "Not yet. The reactor has to burn all night before there's power to open them.", who: "kiln" },
+            { line: "Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.", who: "kiln" },
             { goal: "main" },
           ] },
           { on: { goal: "fill", is: "failed" }, do: [
-            { line: "Not yet. The reactor has to burn all night before there's power to open them. Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.", who: "kiln" },
+            { line: "Barely in time. Four pods by the wreck are still sealed: bays five to eight.", who: "kiln", head: "K.I.L.N. · REACTOR ONLINE · DAY 1" },
+            { line: "My first officer, Vale, is in bay five. Open them.", who: "commander" },
+            { line: "Not yet. The reactor has to burn all night before there's power to open them.", who: "kiln" },
+            { line: "Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.", who: "kiln" },
             { goal: "main" },
           ] },
           // mid-storm the ridge shows red for the first time, and the camera nudges toward it
@@ -933,7 +942,7 @@ export const marsGreenhouse: Skin = {
           ] },
           { on: { event: "hazard_end" }, do: [{ light: "sunrise", seconds: 35 }] },
           { on: { event: "level_end", match: { won: false } }, do: [
-            { line: "Not yet...", who: "commander", seconds: 1.8 },
+            { line: "The reactor's out.", who: "commander", seconds: 1.8 },
             { tryAgain: true },
           ] },
         ],
@@ -965,14 +974,14 @@ export const marsGreenhouse: Skin = {
             { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
           ] },
           { on: { start: true }, ordered: true, do: [
-            { line: "Bays one to four were thrown clear when we hit. My sensors pick up four crew in those pods, and they're freezing.", who: "kiln", head: "K.I.L.N. · DAY 2" },
+            { line: "The reactor held. There's still not enough power for bays five to eight, but my sensors are back.", who: "kiln", head: "K.I.L.N. · DAY 2" },
+            { line: "Bays one to four were thrown clear when we hit. Four crew are out there in their pods, and they're freezing.", who: "kiln" },
+            { line: "Their glow fades as they freeze. If a pod goes dark, we've lost them. I'll mark them for you.", who: "kiln" },
             { guide: true },
-            { line: "I'm adding pointers to your heads-up display to help you find them.", who: "kiln" },
-            { line: "There's a fifth pod. It's one of ours, an escape pod from the lander, but nobody was assigned to it.", who: "kiln" },
-            { line: "Then I'll bring all five in.", who: "commander" },
+            { line: "Loop a pod and your tow line catches. The tally over your head fills a slot for every pod in tow.", who: "kiln" },
           ] },
           { on: { event: "joined", match: { capture: 0 } }, do: [
-            { crew: "Boss! We made it? I thought I'd wake up on the colony. Where is everyone?", who: "pip" },
+            { crew: "Boss! Tell me this is the landing site. No? Thought not. Where is everyone?", who: "pip" },
             { line: "Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?", who: "commander" },
             { line: "Give me something to carry. Ore in, fire stays on.", who: "pip" },
             { line: "Two pods came down close together. Bring them both in one trip.", who: "kiln" },
@@ -985,29 +994,30 @@ export const marsGreenhouse: Skin = {
             { walk: "okafor", to: false },
           ] },
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
-            { line: "Their glow fades as they freeze. If a pod goes dark, that crewmate is lost. Bring the last crew pod home, and the lander pod too.", who: "kiln" },
+            { line: "One more out there. A fifth pod. It's ours, the lander's escape pod, but nobody was assigned to it.", who: "kiln" },
+            { line: "Then I'll bring in all five.", who: "commander" },
             { goal: "main" },
           ] },
           { on: { event: "released", match: { capture: 3 } }, do: [
-            { crew: "We made it! I dreamed we never landed. Give me something to do.", who: "tam" },
-            { line: "Soon. We'll need someone to work the fields.", who: "commander" },
+            { crew: "So this is the new world. Bit cold. Give me something to do.", who: "tam" },
+            { line: "Soon. We'll need a grow dome, and someone to run it.", who: "commander" },
           ] },
           // the scorched pod in the heat, still there while the lines play (they pause the sim); Rhee walks over to it
           { on: { event: "pod_home", match: { decoy: true } }, ordered: true, do: [
             { walk: "rhee", to: { last: "pod_home" } },
             { line: "Who was in this?", who: "commander" },
-            { line: "It's the lander's escape pod. My logs say it never launched, so someone launched it by hand.", who: "kiln" },
+            { line: "My logs say it never launched. Someone launched it by hand.", who: "kiln" },
             { line: "Opened from the inside. The hatch is packed with dust. Whoever rode it down walked away, a while back.", who: "rhee" },
             { walk: "rhee", to: false },
           ] },
           // every pod home: the reactor brightens and KILN opens the sealed bays
           { on: { goal: "main", is: "done" }, ordered: true, do: [
             { spirit: "pulse" },
-            { line: "Power's up. I can open bays five to eight now. Here's my camera on the deck.", who: "kiln" },
+            { line: "Power's up. I can open bays five to eight now. Here's my camera at the wreck.", who: "kiln" },
             // in a frame over play, so the crew still speak beside it; their lines come once the glass has lifted
             { inset: "empty_bays" },
             { wait: 5.4 },
-            { line: "All four read occupied. But Vale's is empty.", who: "commander" },
+            { line: "All four read occupied. All four are empty.", who: "commander" },
             { line: "Then where is Vale?", who: "rhee" },
           ] },
         ],
@@ -1028,8 +1038,8 @@ export const marsGreenhouse: Skin = {
           { id: "first", hold: true, label: "Sell Sela some greens" },
           // S43 (Doug, 2026-11-07): the ring is no longer prebuilt; the player builds it here, the star is the wall
           { id: "walls", label: "Build the camp wall (8)" },
-          { id: "clear", label: "Clear the rockslide (12)", until: { event: "zone_cleared" } },
-          { id: "meat", label: "Sell meat at the kiosk", until: { event: "sold", match: { res: "res.food_raw_2" } } },
+          { id: "clear", label: "Clear the rockslide (12)" },
+          { id: "meat", label: "Sell protein at the kiosk" },
           { id: "main", label: "Build the habitat hub (150)" },
         ],
         cues: [
@@ -1052,11 +1062,12 @@ export const marsGreenhouse: Skin = {
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
           { on: { who: "sela", at: { entity: "kiosk" }, r: 150, after: "selaIn" }, ordered: true, do: [
-            { line: "Well. Somebody's living out here. I'm Sela. I trade between the settlements: salvage, food, whatever people need.", who: "sela" },
+            { line: "Well. Somebody's living out here. I'm Sela.", who: "sela" },
+            { line: "I trade between the settlements. Salvage, food, whatever people need.", who: "sela" },
             { line: "Settlements? There are other people on this planet?", who: "commander" },
-            { line: "Colony ships have been landing on the coast for years. You came down a long way from the landing fields. Nobody comes out this far.", who: "sela" },
-            { line: "Three towns along this road, and every one of them is hungry. You've got a grow dome there. I'll pay for greens.", who: "sela" },
-            { line: "People who trade. Commander, if we sell her our greens, we can afford a real shelter for the crew.", who: "kiln", head: "K.I.L.N. · DAY 3" },
+            { line: "Colony ships have been setting down at the landing fields for years. You came down a long way off. Hardly anyone drives out this far.", who: "sela" },
+            { line: "Three towns along this road, and every one of them is hungry. Open this old kiosk up and I'll buy your greens.", who: "sela" },
+            { line: "Traders. Stock the kiosk's shelf with greens, then stand at the counter so she can pay.", who: "kiln", head: "K.I.L.N. · DAY 3" },
             { goal: "first" },
             { dots: [{ entity: "field1" }], period: 3 },
           ] },
@@ -1064,26 +1075,27 @@ export const marsGreenhouse: Skin = {
           { on: { goal: "first", is: "done" }, ordered: true, do: [
             { show: ["credits"] },
             { dotsOff: true },
-            { line: "Before we spend on anything else, a wall. The nights out here are long, and a road that brings traders can bring raiders too.", who: "kiln" },
-            { line: "Walk along the dashed line to raise it. Each section costs one credit.", who: "kiln" },
+            { line: "Those C coins are credits. Every sale pays them in, and credits buy what the camp builds.", who: "kiln" },
+            { line: "A road that brings traders can bring raiders. Wall first, before anything else.", who: "okafor" },
+            { line: "Once you've saved enough credits, walk the dashed line and the wall goes up behind you.", who: "kiln" },
           ] },
           // the wall stands: the hub and its price, then the trader who wants meat and the slide in the way
           { on: { goal: "walls", is: "done" }, ordered: true, do: [
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
             { line: "Sell some more and save up credits to build that hub.", who: "kiln" },
-            { line: "No meat? I'm not waiting.", who: "trader" },
-            { line: "Protein sells for a premium around here. If you can hunt some of those rock hoppers past the rockslide, you'll get a good price.", who: "sela" },
+            { line: "No protein? I'm leaving.", who: "trader" },
+            { line: "Protein sells for a premium around here. Those rock hoppers past the rockslide would fetch a good price.", who: "sela" },
             { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.3 } },
             { camera: { to: { entity: "clear0" }, pan: 0.4, hold: 1, back: 0.8 } },
             { line: "Save up a little and we can clear that slide.", who: "kiln" },
           ] },
           { on: { event: "zone_cleared" }, do: [
-            { line: "That slide is fresh. Something shook it loose. Maybe that signal from the ridge.", who: "kiln" },
+            { line: "That slide is fresh. Something up on the ridge shook it loose.", who: "kiln" },
+            { line: "Rock hoppers. Run into one to knock it down, then pick up the protein when it falls.", who: "kiln" },
           ] },
           { on: { event: "sold", match: { res: "res.food_raw_2" } }, do: [
             { line: "Boss, let me work the fields. You hunt; I'll keep the shelf full of greens.", who: "tam" },
-            { line: "With Tam picking, a second grow dome would pay for itself.", who: "kiln" },
             { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
           ] },
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land
@@ -1093,7 +1105,7 @@ export const marsGreenhouse: Skin = {
             { line: "For your first night under a roof. A Halcyon chip.", who: "sela" },
             { line: "Halcyon chips? That's our ship's money. Where did you get it?", who: "commander" },
             { line: "Four people in suits like yours still spend them. Up on the ridge.", who: "sela" },
-            { line: "That's not possible. We landed four days ago.", who: "commander" },
+            { line: "That's not possible. We've only been down three days.", who: "commander" },
             { line: "Friend. The Halcyon came down eleven years ago.", who: "sela" },
             { line: "Eleven... years?", who: "pip" },
             { card: "", seconds: 2 },
@@ -1111,7 +1123,7 @@ export const marsGreenhouse: Skin = {
         goals: [
           { id: "galleyBuilt", label: "Build the galley" },
           // the fourth job is a cashier, so the kiosk is minded from here on and level 5's arrows leave it alone (Doug)
-          { id: "train", label: "Train the crew for all four jobs", until: { event: "hired", match: { pad: "cashier" } } },
+          { id: "train", label: "Train the crew for all four jobs" },
           { id: "auto", label: "Reach the wreck while the town runs itself" },
           { id: "main", label: "Bring the flight recorder home" },
         ],
@@ -1127,17 +1139,19 @@ export const marsGreenhouse: Skin = {
             { line: "KILN. Is it true? Eleven years?", who: "commander" },
             { spirit: "fading" },
             // KILN's basis for the new date: the stars and Sela's clock (Doug, 2026-11-04)
-            { line: "I shut down everything except the pods to save power, my clock too. It stopped on day five.", who: "kiln", head: "K.I.L.N. · DAY 4" },
-            { line: "I've reset it against the stars overhead, and against Sela's clock. They agree. It's been four thousand and twenty-three days.", who: "kiln" },
+            { line: "I shut down everything except the pods to save power, my clock too. It only started again when you woke me.", who: "kiln", head: "K.I.L.N. · DAY 4" },
+            { line: "I've set it against the stars overhead, and against Sela's clock. They agree. It's been four thousand and twenty-three days.", who: "kiln" },
             { spirit: "idle" },
-            { day: "DAY 4,023", sub: "KILN's clock had stopped at DAY 5.", seconds: 3 },
-            { line: "Eleven years. And Vale's pod was empty. Why?", who: "commander" },
-            { line: "It looks like the flight recorder survived the crash. It's still in the wreck. Bring it to me and I can read it.", who: "kiln" },
+            { day: "DAY 4,023", sub: "KILN's day counter restarted when the reactor was relit.", seconds: 3 },
+            { line: "I asked how long we were under. I didn't really want to know.", who: "rhee" },
+            { line: "Eleven years. And four empty pods. Why?", who: "commander" },
+            { line: "With the reactor up I can scan the wreck. The flight recorder survived. Bring it to me and I can read it.", who: "kiln" },
             { camera: { to: { entity: "recorder" }, pan: 1.3, hold: 1.2, back: 1.1 } },
-            { line: "The wreck's a long walk east. They need me here to keep the town fed and the kiosk stocked.", who: "commander" },
+            { line: "That's a long walk, and there's a line at the kiosk. If I go, the town stops.", who: "commander" },
             { line: "Then we'll learn to run things on our own. We need that box to know what happened to us.", who: "rhee" },
             { line: "You'll need to train the team to keep the town running without you.", who: "kiln" },
-            { line: "Storm season's close. I know some other settlers who'd pay good credits for hot meals, if your team can cook them. And two of my drivers want steady work, if you'll train them.", who: "sela" },
+            { line: "Storm season's close. The towns will pay well for hot meals.", who: "sela" },
+            { line: "I've brought three hands who want steady work. They're at your gate.", who: "sela" },
             { line: "A galley cooks greens into meals.", who: "kiln" },
           ] },
           // morning turns to dusk while the town learns to run itself
@@ -1165,10 +1179,14 @@ export const marsGreenhouse: Skin = {
           { on: { event: "crate_delivered" }, ordered: true, do: [
             { spirit: "pulse" },
             { film: "crash_log" },
-            { line: "Four minutes before impact, they let themselves out. Then they locked their pods behind them, empty, so the pods would still read occupied.", who: "kiln" },
-            { line: "Bays five to eight. Vale and three others walked away from their own pods?", who: "commander" },
-            { line: "And into the lander's escape pod, the scorched one on the plain. It has four seats.", who: "kiln" },
+            { line: "Four minutes before impact, they let themselves out.", who: "kiln" },
+            { line: "Then they locked their pods behind them, empty, so the pods would still read occupied.", who: "kiln" },
+            { line: "Vale and three others walked away from their own pods?", who: "commander" },
+            { line: "And into the lander's escape pod, the scorched one you towed in. It has four seats.", who: "kiln" },
             { line: "Four seats. So they saved themselves, and left the rest of us asleep.", who: "commander" },
+            { line: "Not quite. Someone hauled the reactor off the ship, set it out on the sand with a beacon on it, and wired it to your pods. It must have been them.", who: "kiln" },
+            { line: "It ran on fuel cells until the cells ran out. The ore was under the sand then.", who: "kiln" },
+            { line: "They kept us alive. Then they left. Why?", who: "commander" },
             { ridgeFlash: 2 },
             { line: "Movement on the ridge.", who: "kiln" },
           ] },
@@ -1187,11 +1205,11 @@ export const marsGreenhouse: Skin = {
         fleeingModels: { "hostile.boss": "hostile.boss_vale" },
         showDropped: true,
         goals: [
-          { id: "first", label: "Stop the first raiders", until: { event: "wave_cleared", match: { idx: 0 } } },
+          { id: "first", label: "Stop the first raiders" },
           { id: "turret", label: "Build a turret" },
-          { id: "train", label: "Train a guard", until: { event: "hired", match: { pad: "train" } } },
+          { id: "train", label: "Train a guard" },
           { id: "hold", label: "Hold until dawn" },
-          { id: "main", label: "Bring the helmet home" },
+          { id: "main", label: "Pick up the helmet" },
         ],
         cues: [
           { on: { start: true }, do: [
@@ -1205,8 +1223,11 @@ export const marsGreenhouse: Skin = {
             { camera: { to: { at: [900, 700] }, pan: 0.9, hold: 2.2, back: 0.8 } },
             { ridgeFlash: 3 },
             { line: "Raiders, coming down off the ridge. They'll go for the gate.", who: "okafor" },
-            { line: "Then we hold the gate.", who: "commander" },
-            { line: "Three are coming first. Once you get close, you'll be able to shoot.", who: "kiln" },
+            { line: "Sela said four people lived up there. I count dozens.", who: "commander" },
+            { line: "Count them later. Hold the gate now.", who: "okafor" },
+            { line: "The town runs without you now. Keep them off the hub and the reactor, or we lose everything.", who: "rhee" },
+            { line: "Anyone who goes down, I'll get back on their feet.", who: "rhee" },
+            { line: "Three are coming first. Get close, like the hoppers. Your rifle does the rest.", who: "kiln" },
           ] },
           // scrap on the sand: the socket between the ridge and the first building lights up
           { on: { event: "wave_cleared", match: { idx: 0 } }, do: [
@@ -1227,6 +1248,7 @@ export const marsGreenhouse: Skin = {
           // (light about -0.75 then), the rest finishes while the helmet is towed; slower runs simply arrive darker
           { on: { start: true }, do: [{ light: "ember", seconds: 200 }] },
           // just before the warlord walks into frame (it spawns beyond the map's edge), not when it spawns (Doug)
+          { on: { hostile: "hostile.swarmling", r: 330 }, do: [{ line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
           { on: { hostile: "hostile.boss", r: 330 }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
             // the commander's last shot: the warlord is thrown down, the helmet comes off, Vale gets up and runs (S32),
@@ -1238,6 +1260,7 @@ export const marsGreenhouse: Skin = {
           // on the helmet where it fell (manifest heldBy: boss; showDropped draws it there before dawn reveals it to tow)
           { on: { after: "fall", ticks: 95 }, do: [
             { line: "They're running. It's over for tonight.", who: "kiln" },
+            { line: "But the signal hasn't stopped. That was never them.", who: "kiln" },
             { line: "They dropped something.", who: "kiln" },
             { dots: [{ entity: "helmet" }], period: 1.2 },
           ] },

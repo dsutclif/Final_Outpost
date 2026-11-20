@@ -35,6 +35,22 @@
   },
   {
    "type": "node.fuel_scrap",
+   "id": "cell1",
+   "at": [
+    548,
+    318
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "cell2",
+   "at": [
+    452,
+    362
+   ]
+  },
+  {
+   "type": "node.fuel_scrap",
    "id": "ore1",
    "at": [
     138.4,

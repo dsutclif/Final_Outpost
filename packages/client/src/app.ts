@@ -15,7 +15,7 @@ import { FixedStepper } from "./loop.js";
 import { TIME_TARGET_STEPS, applyTimeTarget, normalizeTimeTargetPct } from "./timetarget.js";
 import { webPlatform, type Platform } from "./platform.js";
 import { progressReport, reportProgress } from "./supply.js";
-import { chapters, isUnlocked, nextLevel, starText } from "./progress.js";
+import { chapters, isUnlocked, nextLevel, starText, starTotalOf } from "./progress.js";
 import { PROBE_SEC, autoTier, createRenderer, thumbnails, warm3D, webglAvailable, type GameRenderer, type Tier } from "./render.js";
 import { fetchRelease, type ReleaseInfo } from "./pwa.js";
 import { DEFAULT_PROGRESS, PROGRESS_EPOCH, type Progress, type ProgressMode, type SaveStore, type Settings } from "./save.js";
@@ -671,7 +671,7 @@ export class App {
       const skipped = !cleared && !!this.progress.skipped[l.id];
       const sub = skipped ? esc(uiText(s, "skipped"))
         : cleared
-        ? `<span class="stars" aria-label="${esc(uiText(s, "stars", { n: stars || 1 }))}">${starText(stars || 1)}</span>${best !== undefined ? `<span class="t">${esc(formatTicks(best))}</span>` : ""}`
+        ? `<span class="stars" aria-label="${esc(uiText(s, "stars", { n: stars || 1 }))}">${starText(stars || 1, starTotalOf(l))}</span>${best !== undefined ? `<span class="t">${esc(formatTicks(best))}</span>` : ""}`
         : open ? esc(uiText(s, "notPlayed")) : `<span class="lock" aria-hidden="true"></span>${esc(uiText(s, "locked"))}`;
       return `<button class="lvtile${cleared ? " cleared" : ""}${skipped ? " skipped" : ""}${open ? "" : " locked"}${l.id === next ? " next" : ""}" data-id="${esc(l.id)}" ${open ? "" : "disabled"}>
         <span class="num">${l.index + 1}</span>${l.family ? `<span class="fams">${[l.family, l.secondary].filter((f): f is string => !!f).map((f) => familyIcon(f, uiText(s, `family_${f}`))).join("")}</span>` : ""}
@@ -694,7 +694,8 @@ export class App {
 
   /** Stars earned on a level: the best-ever set of objectives, or a legacy count. */
   private starCount(id: string): number {
-    return Math.min(3, Math.max(this.progress.starSet[id]?.length ?? 0, this.progress.stars[id] ?? 0));
+    const total = starTotalOf(this.levels.find((l) => l.id === id));
+    return Math.min(total, Math.max(this.progress.starSet[id]?.length ?? 0, this.progress.stars[id] ?? 0));
   }
 
   /** Leave Settings for where it was opened from: back into the paused level, else the title. */
@@ -951,7 +952,7 @@ export class App {
     const i = Math.min(this.introStep, steps.length - 1), step = steps[i]!, last = i === steps.length - 1;
     const best = this.progress.best[meta.id];
     const stars = this.starCount(meta.id);
-    const head = i === 0 ? `<div class="lbl">${esc(uiText(s, "levelWord"))} ${meta.index + 1} / ${this.levels.length}${best !== undefined ? ` · ${esc(uiText(s, "best"))} ${formatTicks(best)}` : ""}${stars ? ` · <span class="stars">${starText(stars)}</span>` : ""}</div><h2>${esc(t.title)}</h2>` : "";
+    const head = i === 0 ? `<div class="lbl">${esc(uiText(s, "levelWord"))} ${meta.index + 1} / ${this.levels.length}${best !== undefined ? ` · ${esc(uiText(s, "best"))} ${formatTicks(best)}` : ""}${stars ? ` · <span class="stars">${starText(stars, starTotalOf(meta))}</span>` : ""}</div><h2>${esc(t.title)}</h2>` : "";
     const tips = i === 0 && meta.index === 0 ? `<p class="how">${esc(uiText(s, "howTo"))}</p>` : "";
     ov.innerHTML = `<div class="gintro">${head}<div class="gicon">${step.icon}</div><p class="gsay">${esc(step.say)}</p>${tips}
       <p class="gtap"><span class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</span>${esc(uiText(s, last ? "introPlay" : "introNext"))}</p></div>`;
@@ -1126,7 +1127,7 @@ export class App {
     if (s.sim.compiled.waves.length) stats.push([uiText(sk, "statRaids"), `${s.wavesCleared}/${s.sim.compiled.waves.length}`]);
     const rows = liveObjectives(st, s.manifest, sk);
     const objList = won && rows.length ? `<ul class="objlist">${rows.map((o) => `<li class="${o.done ? "on" : "missed"}">${iconSvg(o.icon)}<span class="otxt">${esc(s.director?.goalLabel(o.id) ?? o.label)}</span><span class="omark">${o.done ? "\u2713" : esc(uiText(sk, "starMissed"))}</span><span class="ost">\u2605</span></li>`).join("")}</ul>` : "";
-    const starRow = won ? `<div class="starrow" aria-label="${esc(uiText(sk, "stars", { n: stars }))}">${[1, 2, 3].map((i) => `<span class="star${i <= stars ? " on" : ""}" style="animation-delay:${0.2 + i * 0.18}s">★</span>`).join("")}</div>` : "";
+    const starRow = won ? `<div class="starrow" aria-label="${esc(uiText(sk, "stars", { n: stars }))}">${Array.from({ length: starTotalOf(s.meta) }, (_, k) => k + 1).map((i, _k, all) => `<span class="star${i <= stars ? " on" : ""}${all.length > 3 ? " many" : ""}" style="animation-delay:${0.2 + i * 0.18}s">★</span>`).join("")}</div>` : "";
     ov.innerHTML = `<div class="card center result ${won ? "won" : "lost"}">
       ${won ? starRow : `<div class="badge">!</div>`}
       <h2>${esc(uiText(sk, won ? "win" : "lose"))}</h2>

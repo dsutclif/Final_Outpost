@@ -22,6 +22,8 @@ export interface LevelMeta {
   rating?: number;
   /** Level family (shelter, rescue, harvest, industrialize, defend), when known. */
   family?: string;
+  /** Star slots in the level (its objectives); absent means the usual 3. Read it with starTotalOf. */
+  starTotal?: number;
   /** Second family of a two-family finale (every 10th level after the teaching arc). */
   secondary?: string;
   /** Absolute or base-relative URL of the manifest for fetched levels; absent for bundled ones. */
@@ -36,6 +38,7 @@ export interface LevelSource {
 const metaOf = (m: Manifest, index: number): LevelMeta => ({
   id: m.id, index, modules: m.modules, goalType: m.goal.type, text: m.text,
   engineVersion: m.engineVersion, contentVersion: m.contentVersion, ...(m.family ? { family: m.family } : {}),
+  ...(m.objectives ? { starTotal: m.objectives.length } : {}),
 });
 
 /** Manifests already in memory (bundled JSON, tests). */

@@ -86,3 +86,19 @@ describe("terrain (R3 item 17)", () => {
   }
 });
 
+
+describe("reactor beacon lamp (outpost-ops#125)", () => {
+  it("the core model carries a beacon part on every skin and level", () => {
+    for (const skin of Object.values(SKINS)) {
+      const ctx = createBuildCtx(skin);
+      expect(buildModel("sink.core", ctx).parts["beacon"], skin.id).toBeDefined();
+    }
+  });
+  it("the lamp blinks while the reactor is dead and burns steady once lit", async () => {
+    const { beaconScale } = await import("../src/renderer.js");
+    expect(beaconScale(false, 0)).toBe(1);
+    expect(beaconScale(false, 1.234)).toBe(1);
+    const dead = [0, 0.3, 0.52, 1.0, 2.1].map((t) => beaconScale(true, t));
+    expect(Math.max(...dead)).toBeGreaterThan(Math.min(...dead));
+  });
+});

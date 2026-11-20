@@ -7,7 +7,7 @@ import level1 from "../../../levels/golden/proto-L001.json";
 import level3 from "../../../levels/golden/proto-L003.json";
 import level4 from "../../../levels/golden/proto-L004.json";
 import { MAX_DRAW_CALLS, MAX_TRIANGLES, createCamera } from "../src/index.js";
-import { Renderer3D, type GLLike } from "../src/renderer.js";
+import { Renderer3D, glLog, type GLLike } from "../src/renderer.js";
 import { ART_M, BUILD_K } from "../src/units.js";
 
 // The renderer runs headless here: three's scene graph is real, WebGLRenderer is replaced by
@@ -40,7 +40,7 @@ function fakeMount(): HTMLElement {
   return el() as unknown as HTMLElement;
 }
 
-function fakeGL(): GLLike & { renders: number } {
+function fakeGL(): GLLike & { renders: number; lost?: number } {
   return {
     renders: 0,
     domElement: { remove: () => undefined } as unknown as HTMLCanvasElement,
@@ -52,8 +52,9 @@ function fakeGL(): GLLike & { renders: number } {
     setPixelRatio: () => undefined,
     setSize: () => undefined,
     render(): void { this.renders++; },
+    forceContextLoss() { this.lost = (this.lost ?? 0) + 1; },
     dispose: () => undefined,
-  };
+  } as GLLike & { renders: number; lost?: number };
 }
 
 const pin = <T extends object>(m: T): T => ({ ...m, engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION });
@@ -132,6 +133,17 @@ describe("Renderer3D (fake WebGL)", () => {
     expect(s.estTriangles).toBeLessThanOrEqual(MAX_TRIANGLES);
     expect(sim.state.tick).toBeGreaterThan(100);
     r.dispose();
+  });
+
+  it("dispose releases the context, removes the canvas and logs the load", () => {
+    const log = glLog();
+    const open0 = log.opened - log.closed;
+    const { r, gl } = run(pin(level1), 5, wander);
+    expect(log.opened - log.closed).toBe(open0 + 1);
+    r.dispose();
+    expect(gl.lost).toBe(1);
+    expect(log.opened - log.closed).toBe(open0);
+    expect(log.loads.length).toBeGreaterThan(0);
   });
 
   it("draws a built converter at full model size", () => {

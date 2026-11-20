@@ -34,6 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
+| 2026-11-19 | pro-s3 (#124) | s3-124 | levels/story/story-L003..005.json, story-canon + new story-carry test, mars_greenhouse.ts (one line) | carry-forward |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -138,6 +139,8 @@ The WRAP UP account owned all story work from 2026-11-06 (Doug: "You own R4") an
 **Open questions for Doug:** moved to `docs/BACKLOG.md` (2026-11-07). Level 1 sign-off was dropped, `empty_bays` is #1, the pod count was decided (#3: five pods), and the ranger pad rule and s1-L065 were decided (#7, #8).
 
 ## Log
+
+- **2026-11-19, level 1 opening hold (outpost-ops#122, s2):** `story-L001` cues in `packages/skins/src/mars_greenhouse.ts` — the `woke` and `looked` cues are now one ordered cue (`walk: true` kept), so the light beat starts on the first line's tap, not a 90-tick timer. Cues only; no engine bump.
 
 - **2026-11-12, screenplay draft 5 and story line-timing checks (docs and review tools only; no engine bump, no level or cue change).** `docs/STORY-SCREENPLAY.md` is rewritten as draft 5 and **Doug approved it on 2026-11-16** (his answers: the *Halcyon* is an advance resource ship sent to set up the settlement and install the reactor; the bay plate names Brandt, Imani and Sorrel are approved; the many-wrecks answer is a note for later levels only): it brings the script up to date with the live cues and applies two outside reviews plus Doug's rulings of 2026-11-12 (reactor found on the plain and explained in level 4; kiosk found by walking; grow dome built from scrap, then credits once Sela offers her road crew; rockslides dug; trained people carry over; a star for every goal; C credits; "gate"; level 5 ends at the helmet). The game work that follows from it is on the outpost-ops board (`dsutclif/outpost-ops`, project 1), not in `docs/BACKLOG.md`. New `docs/STORY-REVIEW-PROMPT.md` for the outside reviews. Review tools: `tools/review/probe.ts` and `probe-core.ts` gain four story checks at every caption (`line-play-not-held`, `line-after-sight`, `line-names-unseen`, `line-out-of-order`). A browser run on story-L001 showed every line holds play, but the bot reached the reactor and got "A reactor, and it's cold" before "That light" had played, with limits under `story` in `probe-limits.json` and gates in the new `story-gates.json` (two gates for story-L001); `tools/review/README.md` has the section. No story file is claimed.
 
@@ -573,3 +576,13 @@ Release 2 combat is in (every call is in docs/DECISIONS.md, "Release 2 combat").
 ### 2026-11-14 (nightly/R10-83-p1): engine 0.25.0 / content 0.22.0, attackers spawn out of view (outpost-ops#83).
 
 Attackers now appear `defense.spawnDistance` beyond the map edge (real metres by family: defend 32 m, others 22 m; `world.metre` 28) and walk in to the old spawn line, arriving on their old spawn tick (walk-ins are drawn only, `state.approaching`; the fight is unchanged). All levels re-pinned with `levels:repin`; story level 5 attackers now walk in from out of view too.
+
+### 2026-11-19 (pro-s3, outpost-ops#124): story levels carry forward what earlier goals built. No engine bump.
+- Second grow dome (`field2`, `unlock_field2`, KILN's "second grow dome" line) removed from levels 3-5. Level 4 now opens with Tam working the dome (people: supplier field1 to the kiosk); level 5 opens with Tam at the galley, the cook (operator) and the runner (server) at their posts, beside the existing clerk. Level 4 housing.base 9, level 5 10 (the extra hands).
+- Level 4 `start.currency` is 20 (was 12): with Tam pre-hired the floor bot stalled once at 12 (levels:check, floor#2). The Level 4 rebuild card should re-check the opening economy.
+- New `packages/content/test/story-carry.test.ts` walks the five manifests; `story-canon` no longer lists the dome pad as level-own.
+
+### 2026-11-19, pro-s4: a star for every goal, part 1 (outpost-ops#123)
+- Story goals that were unstarred `until` steps are now manifest objectives (L3 `clear` clear_zones, `meat` sell; L4 `train` hire cashier; L5 `first` waves_survived, `train` hire defender); their `until` is gone from the skin. Goals per level now 4, 3, 5, 4, 5 (plan 4, 3, 8, 5, 6 needs the L3-5 rebuild to add goals).
+- Level 1 "Reach the light" is still a step with no star: no objective kind for reaching a place (needs a new sim kind + engine bump).
+- `checkManifest`: story levels (`story-` ids) may list 3 to 8 objectives; generated levels stay exactly 3. Part 2 (result card, save, menu totals) must handle stars above 3. Pin: `packages/client/test/story-stars.test.ts`. No engine bump.

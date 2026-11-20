@@ -528,14 +528,6 @@
    ]
   },
   {
-   "type": "node.food_source",
-   "id": "field2",
-   "at": [
-    310,
-    1020
-   ]
-  },
-  {
    "type": "zone.prey",
    "id": "flats",
    "rect": [
@@ -641,6 +633,21 @@
   {
    "role": "role.cashier",
    "to": "sink.sales_point"
+  },
+  {
+   "role": "role.supplier",
+   "from": "node.food_source",
+   "to": "conv.food_processor",
+   "node": "field1"
+  },
+  {
+   "role": "role.operator",
+   "to": "conv.food_processor"
+  },
+  {
+   "role": "role.server",
+   "from": "conv.food_processor",
+   "to": "sink.sales_point"
   }
  ],
  "waves": [
@@ -678,7 +685,7 @@
  "params": {
   "start.currency": 0,
   "core.burn": 2.8,
-  "housing.base": 8,
+  "housing.base": 10,
   "lots.block": 0,
   "lots.street": 0,
   "meters.baseHealth": 11,
@@ -710,6 +717,21 @@
    "kind": "build",
    "params": {
     "target": "turret1"
+   }
+  },
+  {
+   "id": "first",
+   "kind": "waves_survived",
+   "params": {
+    "n": 1
+   }
+  },
+  {
+   "id": "train",
+   "kind": "hire",
+   "params": {
+    "n": 1,
+    "role": "role.defender"
    }
   }
  ],
