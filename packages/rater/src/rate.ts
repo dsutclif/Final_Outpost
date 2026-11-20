@@ -1,5 +1,5 @@
 import { content as defaultContent, Manifest as ManifestSchema, type Content } from "@fo/content";
-import { LADDER, type Beat } from "@fo/bots";
+import { LADDER, TIME_FIXED_GOALS, type Beat } from "@fo/bots";
 import { funProxies, PROXY_NAMES, type Proxies } from "./fun.js";
 import { qualityFilters, type FilterEvidence, type Filters } from "./filters.js";
 import type { TerrainStats } from "./terrain.js";
@@ -87,7 +87,10 @@ export const SD_FLOOR: Record<MetricName, number> = {
 export function zScores(m: Metrics, ref: ReferenceStats, goal?: string): Metrics {
   const z = {} as Metrics;
   for (const k of METRIC_NAMES) {
-    const s = (goal !== undefined ? ref.byGoal?.[goal]?.metrics[k] : undefined) ?? ref.metrics[k];
+    const row = goal !== undefined ? ref.byGoal?.[goal]?.metrics[k] : undefined;
+    // Margins of the time-fixed goals are health or warmth, not time left: without their own row they are not comparable, so neutral.
+    if (!row && GOAL_SCALED.includes(k) && goal !== undefined && TIME_FIXED_GOALS.has(goal)) { z[k] = 0; continue; }
+    const s = row ?? ref.metrics[k];
     z[k] = s ? Math.max(-Z_CLAMP, Math.min(Z_CLAMP, (m[k] - s.mean) / Math.max(s.sd, SD_FLOOR[k]))) : 0;
   }
   return z;

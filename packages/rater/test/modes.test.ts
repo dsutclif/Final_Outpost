@@ -20,15 +20,15 @@ describe.each(["harvest", "rescue", "defend"])("hand-made difficulty modes: %s",
       expect(captain.D, `captain ${captain.D} pilot ${pilot.D}`).toBeGreaterThan(pilot.D);
     });
   } else {
-    // Pilot's D is already at the rater's floor (about 0.015), so Cadet cannot rate meaningfully lower on D (it lands within
-    // noise of Pilot). It is easier by the weakest bot's results. Captain (+20% swarm) is far harder: no bot wins.
-    it("Cadet sits at the D floor but the weakest bot does better; Captain is much harder", () => {
+    // With the graded skillNeeded the floor bot losing this level (and the novice/weak bots nearly) shows up in D, so the three
+    // modes now order cleanly: Cadet (floor bot wins) ~0.13, Pilot ~0.70, Captain (+20% swarm, no bot wins) ~0.84.
+    it("Cadet rates easier than Pilot, Captain harder; the weakest bot does better on Cadet", () => {
       const [cadet, pilot, captain] = get();
-      expect(cadet.D).toBeLessThan(0.05);
-      expect(pilot.D).toBeLessThan(0.05);
+      expect(cadet.D).toBeLessThan(0.3);
+      expect(pilot.D).toBeGreaterThan(cadet.D + 0.3);
+      expect(captain.D).toBeGreaterThan(pilot.D);
       expect(cadet.winRate["floor"]!).toBeGreaterThan(pilot.winRate["floor"]!);
       expect(cadet.margin["floor"]!).toBeGreaterThan(pilot.margin["floor"]!);
-      expect(captain.D).toBeGreaterThan(pilot.D + 0.5);
     });
   }
 });

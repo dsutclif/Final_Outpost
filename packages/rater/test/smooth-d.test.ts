@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { METRIC_NAMES, gradedSkillNeeded, type Metrics } from "../src/index.js";
+import { METRIC_NAMES, gradedSkillNeeded, rate, type Metrics } from "../src/index.js";
 import { SD_FLOOR, Z_CLAMP, zScores, type ReferenceStats } from "../src/rate.js";
 
 const run = (won: boolean, margin: number) => ({ won, margin });
@@ -49,4 +50,14 @@ describe("robust z", () => {
     const lo = zScores(Object.fromEntries(METRIC_NAMES.map((k) => [k, -1e6])) as Metrics, ref);
     for (const k of METRIC_NAMES) expect(lo[k]).toBe(-Z_CLAMP);
   });
+});
+
+describe("produce fixture s1-L050 (outpost-ops#262)", () => {
+  it("no longer rates 1.000 and no single term exceeds 3 sd", () => {
+    const m = JSON.parse(readFileSync(new URL("../../generator/test/fixtures/pad-visibility-levels/s1-L050.json", import.meta.url), "utf8"));
+    const gref = JSON.parse(readFileSync(new URL("../../generator/data/reference.json", import.meta.url), "utf8")) as ReferenceStats;
+    const r = rate(m, { reference: gref });
+    expect(r.D).toBeLessThan(0.9);
+    for (const k of METRIC_NAMES) expect(Math.abs(r.z[k])).toBeLessThanOrEqual(Z_CLAMP);
+  }, 120_000);
 });
