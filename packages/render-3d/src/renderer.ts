@@ -1883,8 +1883,11 @@ export class Renderer3D implements Renderer {
       const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? 1 + (i % 3) : 1);
       // a locked grow dome is an unbuilt thing like any other: the blue blueprint, with its unlock pad
       const ghosted = !n.enabled && n.type === "node.food_source";
-      p.model.root.visible = !ghosted;
-      if (ghosted) {
+      // a buried node (hiddenUntil) is not on the map yet: no model, no ghost, no lock label
+      const buried = n.hiddenUntil !== undefined;
+      p.model.root.visible = !ghosted && !buried;
+      if (buried) this.hideGhost(p);
+      else if (ghosted) {
         this.syncGhost(p, { id: n.type, level: 1, at: "site" }, this.wv(n.pos), 0);
       } else this.hideGhost(p);
       const body = p.model.parts["body"] as Mesh | undefined;
@@ -1911,7 +1914,7 @@ export class Renderer3D implements Renderer {
       if (glass) glass.visible = true;
       // a locked node shows a padlock-style label until its unlock pad completes
       const sp = this.sprite(p, 0);
-      if (!n.enabled && !ghosted) {
+      if (!n.enabled && !ghosted && !buried) {
         const txt = uiText(this.skin, "locked");
         sp.visible = this.labels.apply(sp, `lock|${txt}`, () => this.labels.text(txt, this.tokens.paper.panel, 34), textSprite(TEXT.sub, 34, 34 * 1.45));
         sp.position.set(p.model.root.position.x, ART_M * 2.2, p.model.root.position.z); // above the unlock pad's label

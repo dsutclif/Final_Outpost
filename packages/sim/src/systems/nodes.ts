@@ -1,5 +1,25 @@
 import type { Compiled } from "../compile.js";
 import type { State } from "../state.js";
+import type { SimEvent } from "../events.js";
+import { TPS } from "../fixed.js";
+
+/** `@lit:S` is S seconds after the reactor is first lit, `@storm` the first hazard's start; anything else is an objective id. */
+function nodeUncovered(st: State, until: string): boolean {
+  if (!until.startsWith("@")) return st.objectives.some((o) => o.id === until && o.done);
+  if (until === "@storm") return st.hazard.phase === "active" || st.stats.hazardsSurvived > 0;
+  const lit = st.stats.litTick;
+  return lit !== undefined && st.tick >= lit + Math.round(Number(until.slice(5)) * TPS);
+}
+
+/** After the objectives: a buried node whose objective is done is uncovered and gatherable where the manifest put it. */
+export function revealNodes(st: State, out: SimEvent[]): void {
+  st.nodes.forEach((n, i) => {
+    if (n.hiddenUntil === undefined || !nodeUncovered(st, n.hiddenUntil)) return;
+    n.enabled = true;
+    delete n.hiddenUntil;
+    out.push({ t: "node_revealed", node: i, at: { ...n.pos } });
+  });
+}
 
 /** Finite nodes regrow one item per regrow interval while below their stock. */
 export function stepNodes(st: State, cp: Compiled): void {

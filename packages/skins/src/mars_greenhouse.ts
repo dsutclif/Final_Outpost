@@ -896,7 +896,8 @@ export const marsGreenhouse: Skin = {
             { edgeGlow: null },
             { guide: true },
             { dots: [{ at: [382, 380] }, { at: [336, 452] }, { at: [286, 376] }, { at: [402, 452] }], period: 4 },
-            { line: "A reactor, and it's cold. That ore out past it should burn.", who: "commander" },
+            { line: "A reactor? All the way out here?", who: "commander" },
+            { line: "It's ours, the one we came here to install. Somebody set it up, and let it run dry.", who: "commander" },
             { goal: "ignite" },
           ] },
           { id: "lit", on: { event: "core_lit" }, do: [
@@ -914,7 +915,14 @@ export const marsGreenhouse: Skin = {
             { freeze: false },
             { line: "I'm KILN, the support system of the advance ship Halcyon.", who: "kiln" },
             { line: "Your stasis pod, bay nine, finally opened. I kept that beacon lit on the last of my battery.", who: "kiln" },
-            { line: "Fill the reactor before it dies, and me with it.", who: "kiln" },
+            { line: "Then who put the reactor out here?", who: "commander" },
+            { line: "I have no record. My logs stop at the crash.", who: "kiln" },
+          ] },
+          // a gust runs ahead of the storm and strips the sand off a seam of ore just past the reactor (outpost-ops#125):
+          // the ore is buried (hiddenUntil gust1/gust2) until a second after the reactor lights
+          { id: "gust", on: { event: "node_revealed" }, do: [
+            { camera: { to: { entity: "ore16" }, pan: 0.5, hold: 0.8, back: 0.4, zoom: 0.8 } },
+            { line: "Those cells won't last the night. The wind just uncovered ore, and ore burns. Fill the reactor before it dies, and me with it.", who: "kiln" },
             { goal: "fill" },
           ] },
           { on: { goal: "fill", is: "done" }, do: [
@@ -933,6 +941,8 @@ export const marsGreenhouse: Skin = {
           ] },
           // mid-storm the ridge shows red for the first time, and the camera nudges toward it
           { id: "storm", on: { event: "hazard_start" }, do: [] },
+          // the storm's wind uncovers more ore closer to the reactor (buried until the storm objective)
+          { on: { after: "storm", ticks: 30 }, do: [{ camera: { to: { entity: "ore21" }, pan: 0.4, hold: 0.6, back: 0.4, freeze: false } }] },
           { on: { after: "storm", ticks: 450 }, do: [
             { ridge: "right", period: 4, k: 0.4 },
             { ridgeFlash: 2 },

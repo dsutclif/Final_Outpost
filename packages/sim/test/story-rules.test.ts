@@ -211,3 +211,51 @@ describe("defense.fleeSpeed", () => {
     expect(fast).not.toBe(own);
   });
 });
+
+describe("buried nodes (outpost-ops#125)", () => {
+  const nodeIdx = L1.entities.findIndex((e) => e.type.startsWith("node."));
+  const burying = (kind = "survive", params: Record<string, unknown> = { seconds: 1 }): Loose => ({
+    ...L1, objectives: [(L1.objectives as unknown[])[0], { id: "gust", kind, params }, { id: "b", kind: "no_colonist_freezes", params: {} }],
+    entities: L1.entities.map((e, i) => (i === nodeIdx ? { ...e, hiddenUntil: "gust" } : e)),
+  });
+
+  it("cannot be gathered or counted until its objective is done, then is uncovered on that tick", () => {
+    const sim = newSim({}, burying());
+    const n = sim.state.nodes[0]!;
+    expect(n.enabled).toBe(false);
+    expect(n.hiddenUntil).toBe("gust");
+    const ev = idle(sim, TPS);
+    expect(n.enabled).toBe(true);
+    expect(n.hiddenUntil).toBeUndefined();
+    expect(sim.state.objectives[1]!.doneTick).toBe(TPS);
+    expect(ev.filter((e) => e.t === "node_revealed")).toHaveLength(1);
+  });
+
+  it("must name an objective that can be done in play", () => {
+    const bad = (m: Loose) => () => checkManifest(parse(m), content);
+    expect(bad({ ...burying(), objectives: L1.objectives })).toThrow(/unknown objective/);
+    expect(bad(burying("no_injuries", {}))).toThrow(/guard/);
+  });
+
+  it("a built-in cue uncovers it: @lit:S seconds after the reactor is lit, @storm when the first hazard starts", () => {
+    const cued = (cue: string, over: Record<string, unknown> = {}): Loose => ({
+      ...dark(over), entities: dark().entities.map((e, i) => (i === nodeIdx ? { ...e, hiddenUntil: cue } : e)),
+    });
+    expect(() => checkManifest(parse(cued("@sometime")), content)).toThrow(/not @lit/);
+    const sim = newSim({}, cued("@lit:1"));
+    idle(sim, 3 * TPS);
+    expect(sim.state.nodes[0]!.enabled).toBe(false);
+    light(sim);
+    const lit = sim.state.stats.litTick!;
+    const ev = idle(sim, 2 * TPS);
+    expect(sim.state.nodes[0]!.enabled).toBe(true);
+    expect(sim.state.tick).toBeGreaterThanOrEqual(lit + TPS);
+    expect(ev.filter((e) => e.t === "node_revealed")).toHaveLength(1);
+    const st = newSim({}, cued("@storm", { events: storm }));
+    idle(st, 3 * TPS);
+    expect(st.state.nodes[0]!.enabled).toBe(false);
+    idle(st, 2 * TPS);
+    expect(st.state.hazard.phase).toBe("active");
+    expect(st.state.nodes[0]!.enabled).toBe(true);
+  });
+});

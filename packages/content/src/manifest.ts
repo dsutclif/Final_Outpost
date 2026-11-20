@@ -36,6 +36,9 @@ export const NodeEntity = z.object({
   type: NodeId,
   // Disabled nodes exist on the map but cannot be gathered until a pad enables them (source gating).
   enabled: z.boolean().default(true),
+  // Not on the map (nothing can see or gather it) until this objective id is done, or a built-in cue: `@lit:S` (S seconds
+  // after the reactor is first lit) or `@storm` (the first hazard starts). Story level 1: the gust and the storm uncover ore.
+  hiddenUntil: z.string().min(1).optional(),
 });
 export const SalesPointEntity = z.object({
   ...base,
@@ -536,6 +539,19 @@ export function checkManifest(m: Manifest, c: Content): void {
         && Object.entries(gp).every(([k, v]) => main.params[k] === v);
       if (!same) fail(`objective ${main.id} must mirror the goal (${m.goal.type})`);
     }
+  }
+  for (const e of m.entities) {
+    if (!e.type.startsWith("node.")) continue;
+    const until = (e as z.infer<typeof NodeEntity>).hiddenUntil;
+    if (until === undefined) continue;
+    // `@lit:S` (S seconds after the reactor is first lit) and `@storm` (the first hazard starts) are built-in cues, not objectives
+    if (until.startsWith("@")) {
+      if (!/^@(lit:\d+(\.\d+)?|storm)$/.test(until)) fail(`${e.type}: hiddenUntil cue ${until} is not @lit:<seconds> or @storm`);
+      continue;
+    }
+    const o = (m.objectives ?? []).find((x) => x.id === until);
+    if (!o) fail(`${e.type}: hiddenUntil names unknown objective ${until}`);
+    else if (c.objectives[o.kind]?.guard) fail(`${e.type}: hiddenUntil cannot wait on guard objective ${until}`);
   }
   for (const e of m.entities) {
     if (!e.type.startsWith("capture.")) continue;

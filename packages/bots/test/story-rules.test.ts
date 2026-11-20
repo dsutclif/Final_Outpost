@@ -44,6 +44,8 @@ describe("bots on the story rules", () => {
 
   it("lights a dark core for core_lit and for a lit clock", () => {
     const L = story("story-L001.json");
+    // the buried ore waits on level 1's own objectives, which the swapped-in lists do not have: dig it up
+    L.entities = L.entities.map((e) => { const { hiddenUntil: _h, ...rest } = e; return rest as Ent; });
     expect(L.entities.some((e) => e.type === "sink.core" && (e["params"] as { lit?: boolean }).lit === false)).toBe(true);
     const lit = playBot(Manifest.parse({ ...L, goal: { type: "core_lit" }, objectives: objs("core_lit", {}, { kind: "settlement_never_freezes", params: {} }) }), good, 1);
     expect(lit.won).toBe(true);
@@ -72,5 +74,19 @@ describe("bots on the story rules", () => {
     const d = (a: [number, number], b: [number, number]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
     const ore = L.entities.filter((e) => e["type"] === "node.fuel_scrap" && !cells.includes(e));
     for (const c of cells) for (const o of ore) expect(d(at(c), start)).toBeLessThan(d(at(o), start));
+  });
+
+  it("level 1: all ore is buried until the gust, the storm uncovers piles nearer the reactor, and the bot still wins (outpost-ops#125)", () => {
+    const L = story("story-L001.json");
+    const at = (e: Record<string, unknown>) => e["at"] as [number, number];
+    const core = at(L.entities.find((e) => e["id"] === "core")!);
+    const ore = L.entities.filter((e) => /^ore\d+$/.test(String(e["id"])));
+    expect(ore.every((e) => typeof e["hiddenUntil"] === "string")).toBe(true);
+    expect(L.entities.filter((e) => /^cell[12]$/.test(String(e["id"]))).every((e) => e["hiddenUntil"] === undefined)).toBe(true);
+    const d = (e: Ent) => Math.hypot(at(e)[0] - core[0], at(e)[1] - core[1]);
+    const nearest = (h: string) => Math.min(...ore.filter((e) => String(e["hiddenUntil"]).startsWith(h === "gust" ? "@lit" : "@storm")).map(d));
+    expect(nearest("storm")).toBeLessThan(nearest("gust"));
+    const r = playBot(Manifest.parse(L), good, 1);
+    expect({ won: r.won, stalls: r.stalls }).toEqual({ won: true, stalls: 0 });
   });
 });
