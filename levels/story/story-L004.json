@@ -353,12 +353,13 @@
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    660.4,
-    380.7
+    677.9,
+    393
    ],
    "yaw": -125,
-   "lift": 27.3,
-   "scale": 0.6674
+   "lift": 31.5,
+   "scale": 0.6674,
+   "roll": -105
   },
   {
    "type": "decor.stasis_pod",
@@ -375,12 +376,13 @@
    "type": "decor.stasis_glass",
    "id": "lid3",
    "at": [
-    786,
-    262
+    806.1,
+    255.9
    ],
    "yaw": -78,
-   "lift": 27.3,
-   "scale": 0.6674
+   "lift": 31.5,
+   "scale": 0.6674,
+   "roll": -105
   },
   {
    "type": "decor.stasis_pod",
@@ -397,12 +399,13 @@
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    696.4,
-    261.7
+    711.1,
+    277.3
    ],
    "yaw": -140,
-   "lift": 27.3,
-   "scale": 0.6674
+   "lift": 31.5,
+   "scale": 0.6674,
+   "roll": -105
   },
   {
    "type": "decor.stasis_pod",

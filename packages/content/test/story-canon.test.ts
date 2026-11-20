@@ -35,8 +35,8 @@ const LEVEL_OWN = new Set([
   "ring", "kiosk", "field1", "clear0", "hub", "picker", "pod_pip", "pod_rhee", "pod_okafor", "pod_tam", "pod_old",
   "cell1", "cell2", "ore15", "ore16", "ore17", "ore18", "ore19", "ore20", "ore21", "ore22", "ore23", "galley", "feeder", "cook", "server", "cashier", "recorder", "barracks", "turret1", "train", "helmet", "flats",
 ]);
-/** Bay 5's lid is opened in levels 3-5 (empty_bays): its offset and lift change on purpose. */
-const OPEN_LID = { id: "lid1", levels: [3, 4, 5] };
+/** Bays 5-8 (lid1-lid4) are opened in levels 3-5 (empty_bays): their offset and lift change on purpose. */
+const OPEN_LID = { ids: ["lid1", "lid2", "lid3", "lid4"], levels: [3, 4, 5] };
 
 const geo = (e: Ent, c: number[]): string => {
   const s = (p: number[]): number[] => [r1(p[0]! - c[0]!), r1(p[1]! - c[1]!)];
@@ -65,7 +65,7 @@ describe("story levels 1-5 are one map", () => {
     for (const id of ids) {
       if (LEVEL_OWN.has(id) || id === "core") continue;
       const seen = data.filter((d) => d.by.has(id));
-      const open = id === OPEN_LID.id;
+      const open = OPEN_LID.ids.includes(id);
       const base = seen[0]!;
       for (const d of seen.slice(1)) {
         if (TRIMMED[id]?.level === d.n || TRIMMED[id]?.level === base.n) continue;

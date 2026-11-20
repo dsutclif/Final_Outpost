@@ -61,7 +61,7 @@ function gameLens(camera: PerspectiveCamera, target: Vector3): void {
 }
 const span = (t: number, a: number, b: number): number => ease((t - a) / (b - a));
 
-/** The cryo deck on KILN's bay camera: four sealed pods read OCCUPIED, bay 5 unlocks, its glass lifts on nobody. */
+/** The four bay pods in the sand beside the wreck on KILN's camera: all read OCCUPIED; bays 5-8 unlock in turn, each plate shows its crew member, each glass lifts on nobody. */
 function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Staged {
   const scene = new Scene();
   scene.background = new Color("#05080a");
@@ -70,7 +70,8 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
   const key = new DirectionalLight("#dfe9f5", 2.2);
   key.position.set(-6, 12, 8);
   scene.add(key);
-  const deck = new Mesh(new BoxGeometry(24, 0.6, 9), new MeshStandardMaterial({ color: "#3a4048", roughness: 0.8, metalness: 0.4 }));
+  // the pods lie in the sand beside the wreck, there is no deck (screenplay, Doug 2026-11-04)
+  const deck = new Mesh(new BoxGeometry(40, 0.6, 14), new MeshStandardMaterial({ color: "#7d6446", roughness: 1, metalness: 0 }));
   deck.position.y = -0.3;
   scene.add(deck);
   const labels: Staged["labels"] = [];
@@ -107,34 +108,45 @@ function emptyBays(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): St
     overlay.append(el);
     labels.push({ at: new Vector3((i - 1.5) * 4.6 * POD_K, 2.6 * POD_K + LIFT, 2.9 * POD_K), el });
   }
-  const plate = doc.createElement("div");
-  plate.className = "live-plate";
-  plate.innerHTML = `<img alt="" src="${o.images["badge"] ?? ""}"><b></b><span></span>`;
-  plate.querySelector("b")!.textContent = o.text["name"] ?? "";
-  plate.querySelector("span")!.textContent = o.text["rank"] ?? "";
-  overlay.append(plate);
-  const bay5 = bays[0]!;
+  // bays 5-8 unlock one after another; each has its own plate (photo, name, rank), shown while it unlocks
+  const plates = [5, 6, 7, 8].map((n) => {
+    const plate = doc.createElement("div");
+    plate.className = "live-plate";
+    plate.innerHTML = `<img alt="" src="${o.images[`badge${n}`] ?? ""}"><b></b><span></span>`;
+    plate.querySelector("b")!.textContent = o.text[`name${n}`] ?? "";
+    plate.querySelector("span")!.textContent = o.text[`rank${n}`] ?? "";
+    overlay.append(plate);
+    return plate;
+  });
+  const STEP = 2.2, FIRST = 1.2;
+  const unlockAt = (i: number): number => FIRST + STEP * i;
+  const bayX = (i: number): number => (i - 1.5) * 4.6 * POD_K;
   return {
-    seconds: 6.2,
+    seconds: unlockAt(3) + 3.4,
     scene, camera, labels,
     pose(t) {
-      // a high security camera that drifts in on bay 5
-      const k = span(t, 0, 6);
-      camera.position.set((-2 - 4.5 * k) * POD_K, (15 - 3.5 * k) * POD_K + LIFT, (10 - 2.6 * k) * POD_K);
-      const look = new Vector3((-1.5 - 5.2 * k) * POD_K, 0.4 * POD_K + LIFT, 0.4 * POD_K);
+      // a high security camera that drifts along the four pods, following the bay being unlocked
+      let fx = bayX(0);
+      for (let i = 1; i < 4; i++) fx += (bayX(i) - bayX(i - 1)) * span(t, unlockAt(i) - 1.1, unlockAt(i) - 0.1);
+      const k = span(t, 0, unlockAt(3) + 3);
+      const look = new Vector3(fx - 0.5 * POD_K, 0.4 * POD_K + LIFT, 0.4 * POD_K);
+      camera.position.set(look.x + (0.7 - 1.2 * k) * POD_K, look.y + (13 - 2.2 * k) * POD_K, look.z + (9.4 - 1.6 * k) * POD_K);
       camera.lookAt(look);
       gameLens(camera, look);
-      // bay 5's lock releases at 1.6 s: OCCUPIED turns amber, the glass jolts, then swings up on its back hinge
-      const open = t >= 1.6;
-      bay5.mat.emissive.set(open ? "#ffb02e" : "#3cff7a");
-      labels[0]!.el.textContent = (open ? o.text["unlocked"] : o.text["occupied"]) ?? "";
-      labels[0]!.el.classList.toggle("warn", open);
-      const jolt = t > 1.6 && t < 1.8 ? 0.04 : 0;
-      bay5.hinge.position.y = 0.1 + jolt;
-      bay5.hinge.rotation.x = 1.75 * span(t, 3.2, 5.0);
-      bay5.glow.intensity = 6 * span(t, 3.4, 4.6);
-      plate.classList.toggle("on", t >= 1.9 && t < 4.6);
-      for (const b of bays.slice(1)) b.mat.emissiveIntensity = 1.6 + 0.4 * Math.sin(t * 9 + b.light.id);
+      bays.forEach((b, i) => {
+        const at = unlockAt(i);
+        // the lock releases: OCCUPIED turns amber, the glass jolts, then swings up on its back hinge
+        const open = t >= at;
+        b.mat.emissive.set(open ? "#ffb02e" : "#3cff7a");
+        b.mat.emissiveIntensity = open ? 2 : 1.6 + 0.4 * Math.sin(t * 9 + b.light.id);
+        labels[i]!.el.textContent = (open ? o.text["unlocked"] : o.text["occupied"]) ?? "";
+        labels[i]!.el.classList.toggle("warn", open);
+        const jolt = t > at && t < at + 0.2 ? 0.04 : 0;
+        b.hinge.position.y = 0.1 + jolt;
+        b.hinge.rotation.x = 1.75 * span(t, at + 1.6, at + 3.2);
+        b.glow.intensity = 6 * span(t, at + 1.8, at + 2.9);
+        plates[i]!.classList.toggle("on", t >= at + 0.3 && t < at + 0.3 + STEP - 0.15);
+      });
     },
     dispose() { disposeAll(scene); },
   };
@@ -233,7 +245,9 @@ function crashLog(doc: Document, o: LiveSceneOptions, overlay: HTMLElement): Sta
         b.hinge.rotation.x = 1.75 * (span(s, 0.6, 1.8) - span(s, 4.4, 5.4));
         const locked = s >= 5.5;
         b.mat.emissive.set(locked ? "#3cff7a" : "#ff4a3a");
-        b.el.textContent = (locked ? o.text["occupied"] : o.text["unsealed"]) ?? "";
+        b.el.style.whiteSpace = "pre"; // the crew name over the status, so four tags fit side by side
+        b.el.textContent = `${o.text[`name${5 + bays.indexOf(b)}`] ?? ""}
+${(locked ? o.text["occupied"] : o.text["unsealed"]) ?? ""}`;
         b.el.classList.toggle("warn", !locked);
         const f = b.fig;
         if (!f) continue;

@@ -54,7 +54,9 @@ describe("level 3: scrap dome and the found kiosk", () => {
 describe("levels:check three-star rule", () => {
   it("counts a seed that earns more than three stars as a three-star seed", () => {
     const src = readFileSync(resolve(here, "../../../tools/regress-levels.ts"), "utf8");
-    expect(src).toContain("rs.filter((r) => r.stars >= 3).length");
+    // a full-star run is every star slot of the level (never below 3), not exactly three (outpost-ops#126)
+    expect(src).toContain("rs.filter((r) => r.stars >= slots).length");
+    expect(src).toContain("Math.max(3, objs.length)");
     expect(src).not.toContain("rs.filter((r) => r.stars === 3).length");
   });
 });

@@ -834,14 +834,14 @@ export const marsGreenhouse: Skin = {
     },
     scenes: {
       empty_bays: {
-        text: { feed: "KILN · BAY CAM 05–08 · REC", occupied: "OCCUPIED", unlocked: "UNLOCKED", name: "VALE", rank: "FIRST OFFICER" },
-        images: { badge: "scenes/badge_bay5.png" },
+        text: { feed: "KILN · BAY CAM 05–08 · REC", occupied: "OCCUPIED", unlocked: "UNLOCKED", name5: "VALE", rank5: "FIRST OFFICER", name6: "BRANDT", rank6: "ENGINEER", name7: "IMANI", rank7: "PILOT", name8: "SORREL", rank8: "NAVIGATOR" },
+        images: { badge5: "scenes/badge_bay5.png", badge6: "scenes/badge_bay6.png", badge7: "scenes/badge_bay7.png", badge8: "scenes/badge_bay8.png" },
       },
       sela_arrival: { text: {}, images: {} },
       warlord_fall: { text: {}, images: {} },
       chip_handoff: { text: {}, images: {} },
       crash_log: {
-        text: { feed: "KILN · RECORDER · BAY CAM 05–08", impact: "FOUR MINUTES TO IMPACT", unsealed: "UNSEALED", occupied: "OCCUPIED" },
+        text: { feed: "KILN · RECORDER · BAY CAM 05–08", impact: "FOUR MINUTES TO IMPACT", unsealed: "UNSEALED", occupied: "OCCUPIED", name5: "VALE", name6: "BRANDT", name7: "IMANI", name8: "SORREL" },
         images: {},
       },
     },
