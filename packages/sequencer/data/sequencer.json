@@ -36,7 +36,7 @@
   "composer": {
     "base": { "shelter": 0.03, "rescue": 0.03, "harvest": 0.05, "industrialize": 0.08, "defend": 0.25 },
     "moduleCap": [[0.3, 4], [0.5, 5], [0.7, 6], [1, 7]],
-    "extras": { "teach": 0, "intro": 0, "mix": 3, "finale": 3 },
+    "extras": { "teach": 0, "intro": 3, "mix": 3, "finale": 3 },
     "fixed": ["defend"],
     "maxSwaps": 2
   },
