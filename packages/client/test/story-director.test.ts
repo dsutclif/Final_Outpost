@@ -99,6 +99,18 @@ describe("story director cues", () => {
     expect(h.log.at(-1)).toBe("hud:");
   });
 
+  it("fires once the camp holds enough credits, after another cue", () => {
+    const h = harness(levelOf(
+      { id: "a", on: { start: true }, do: [] },
+      { on: { credits: 75, after: "a" }, do: [{ hide: ["credits"] }] },
+    ));
+    h.d.update(16, state());
+    h.d.afterTick(state({ tick: 1, currency: 74 } as Partial<State>));
+    expect(h.log.join()).not.toContain("hud:credits");
+    h.d.afterTick(state({ tick: 2, currency: 75 } as Partial<State>));
+    expect(h.log.at(-1)).toBe("hud:credits");
+  });
+
   it("hides HUD parts from the first frame", () => {
     expect(harness({ goals: [], cues: [], hide: ["credits", "fuel"] }).log).toEqual(["hud:credits,fuel"]);
   });

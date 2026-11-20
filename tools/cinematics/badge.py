@@ -65,6 +65,16 @@ cover = bpy.context.object
 cover.scale = (bx - ax, ay - by, 1)
 cover.data.materials.append(flat("cover", color=bg))
 
+# Optional 4th arg: a portrait already cropped to PHOTO's aspect (796x1036), pasted over the card's photo.
+PHOTO = (182, 188, 978, 1224)
+if len(args) > 3:
+    pimg = bpy.data.images.load(os.path.join(HERE, args[3]))
+    (px0, py0), (px1, py1) = world(PHOTO[0], PHOTO[1]), world(PHOTO[2], PHOTO[3])
+    bpy.ops.mesh.primitive_plane_add(size=1, location=((px0 + px1) / 2, (py0 + py1) / 2, 0.005))
+    ph = bpy.context.object
+    ph.scale = (px1 - px0, py0 - py1, 1)
+    ph.data.materials.append(flat("portrait", image=pimg))
+
 def text(body, at, size_px, font, color):
     bpy.ops.object.text_add(location=(*world(*at), 0.02))
     t = bpy.context.object

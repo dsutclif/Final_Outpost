@@ -86,13 +86,15 @@ export interface StoryWorld {
   /** Cast members held at a drawn place (see the walk action); a null `to` walks them back. */
   actors: readonly { who: string; to: { x: number; y: number } | null }[];
   /** Vehicles in the world (see the vehicle action); `seq` counts requests so a redrive reads as new. */
+  /** Rhee's aid station is up beside the reactor (see the aidStation action). */
+  aid: boolean;
   vehicles: readonly { id: string; path: readonly { x: number; y: number }[]; seconds: number; lights: boolean; seq: number; rider?: number }[];
 }
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
 
 const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "fall" in a || "wait" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
-const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
+const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "aidStation" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
 const CARD_SECONDS = 3;
 const GOAL_GAP_S = 0.7;
 const TAP_GUARD_MS = 250;
@@ -154,7 +156,7 @@ export class StoryDirector {
     /** This run started at the level's `retryFrom`, so the cues of the walk there do not fire. */
     private readonly fromRetrySpot = false,
   ) {
-    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [], vehicles: [] };
+    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [], vehicles: [], aid: !!level.aidStation };
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
     if (level.openZoom && !replay && !fromRetrySpot) {
@@ -354,6 +356,7 @@ export class StoryDirector {
   }
 
   private hostileNear(on: StoryTrigger, st: State): boolean {
+    if ("credits" in on) return (on.after === undefined || this.firedAt.has(on.after)) && st.currency >= on.credits;
     if ("who" in on) {
       if (on.after !== undefined && !this.firedAt.has(on.after)) return false;
       const p = this.castAt(on.who, st), q = this.place(on.at);
@@ -372,6 +375,12 @@ export class StoryDirector {
     if (on.after !== undefined && !this.firedAt.has(on.after)) return false;
     const p = this.place(on.near);
     return !!p && (p.x - x) ** 2 + (p.y - y) ** 2 <= on.r * on.r;
+  }
+
+  /** Where the aid station stands: beside the reactor, on its south-east side, in world units; null before the reactor is placed. */
+  aidAt(): { x: number; y: number } | null {
+    const c = this.host.entityAt("core");
+    return c ? { x: c.x + 60, y: c.y + 70 } : null;
   }
 
   private place(p: StoryPlace): { x: number; y: number } | null {
@@ -464,6 +473,8 @@ export class StoryDirector {
       this.world = { ...this.world, flash: { n: a.ridgeFlash, seq: ++this.seq } };
     } else if ("spirit" in a) {
       this.world = { ...this.world, spirit: { state: a.spirit, seq: ++this.seq } };
+    } else if ("aidStation" in a) {
+      this.world = { ...this.world, aid: true };
     } else if ("spiritFollow" in a) {
       this.world = { ...this.world, follow: a.spiritFollow || null };
     } else if ("edgeGlow" in a) {

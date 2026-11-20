@@ -55,7 +55,8 @@
    "at": [
     138.4,
     456.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -63,7 +64,8 @@
    "at": [
     116.4,
     466.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -71,7 +73,8 @@
    "at": [
     160.4,
     478.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -79,7 +82,8 @@
    "at": [
     98.4,
     486.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -87,7 +91,8 @@
    "at": [
     138.4,
     496.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -95,7 +100,8 @@
    "at": [
     178.4,
     458.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -103,7 +109,8 @@
    "at": [
     118.4,
     506.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -111,7 +118,8 @@
    "at": [
     160.4,
     516.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -119,7 +127,8 @@
    "at": [
     193.4,
     491.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -127,7 +136,8 @@
    "at": [
     83.4,
     511.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -135,7 +145,8 @@
    "at": [
     178.4,
     536.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -143,7 +154,8 @@
    "at": [
     138.4,
     536.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -151,7 +163,8 @@
    "at": [
     203.4,
     526.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
   },
   {
    "type": "node.fuel_scrap",
@@ -159,7 +172,89 @@
    "at": [
     103.4,
     541.3
-   ]
+   ],
+   "hiddenUntil": "@lit:3"
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore15",
+   "at": [
+    268,
+    436
+   ],
+   "hiddenUntil": "@lit:1"
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore16",
+   "at": [
+    252,
+    470
+   ],
+   "hiddenUntil": "@lit:1"
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore17",
+   "at": [
+    284,
+    488
+   ],
+   "hiddenUntil": "@lit:1"
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore18",
+   "at": [
+    236,
+    418
+   ],
+   "hiddenUntil": "@lit:1"
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore19",
+   "at": [
+    228,
+    444
+   ],
+   "hiddenUntil": "@lit:1"
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore20",
+   "at": [
+    214,
+    468
+   ],
+   "hiddenUntil": "@lit:1"
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore21",
+   "at": [
+    296,
+    432
+   ],
+   "hiddenUntil": "@storm"
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore22",
+   "at": [
+    288,
+    458
+   ],
+   "hiddenUntil": "@storm"
+  },
+  {
+   "type": "node.fuel_scrap",
+   "id": "ore23",
+   "at": [
+    304,
+    482
+   ],
+   "hiddenUntil": "@storm"
   },
   {
    "type": "zone.terrain",

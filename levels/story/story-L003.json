@@ -22,8 +22,8 @@
   "workers"
  ],
  "start": [
-  550,
-  835
+  370,
+  395
  ],
  "entities": [
   {
@@ -353,12 +353,13 @@
    "type": "decor.stasis_glass",
    "id": "lid2",
    "at": [
-    660.4,
-    80.7
+    677.9,
+    93
    ],
    "yaw": -125,
-   "lift": 27.3,
-   "scale": 0.6674
+   "lift": 31.5,
+   "scale": 0.6674,
+   "roll": -105
   },
   {
    "type": "decor.stasis_pod",
@@ -375,12 +376,13 @@
    "type": "decor.stasis_glass",
    "id": "lid3",
    "at": [
-    786,
-    -38
+    806.1,
+    -44.1
    ],
    "yaw": -78,
-   "lift": 27.3,
-   "scale": 0.6674
+   "lift": 31.5,
+   "scale": 0.6674,
+   "roll": -105
   },
   {
    "type": "decor.stasis_pod",
@@ -397,12 +399,13 @@
    "type": "decor.stasis_glass",
    "id": "lid4",
    "at": [
-    696.4,
-    -38.3
+    711.1,
+    -22.7
    ],
    "yaw": -140,
-   "lift": 27.3,
-   "scale": 0.6674
+   "lift": 31.5,
+   "scale": 0.6674,
+   "roll": -105
   },
   {
    "type": "decor.stasis_pod",
@@ -508,7 +511,8 @@
      630,
      905
     ]
-   ]
+   ],
+   "openAfter": "@reach:580,800,170"
   },
   {
    "type": "node.food_source",
@@ -516,7 +520,8 @@
    "at": [
     440,
     610
-   ]
+   ],
+   "enabled": false
   },
   {
    "type": "zone.prey",
@@ -531,6 +536,43 @@
    "n": 3
   },
   {
+   "type": "node.salvage_pile",
+   "id": "scrapA",
+   "at": [
+    620,
+    150
+   ]
+  },
+  {
+   "type": "node.salvage_pile",
+   "id": "scrapB",
+   "at": [
+    700,
+    135
+   ]
+  },
+  {
+   "type": "node.salvage_pile",
+   "id": "scrapC",
+   "at": [
+    745,
+    100
+   ]
+  },
+  {
+   "type": "pad.build",
+   "id": "dome",
+   "at": [
+    440,
+    610
+   ],
+   "cost": {
+    "res.salvage": 8
+   },
+   "build": "node.enable",
+   "target": "field1"
+  },
+  {
    "type": "pad.build",
    "id": "clear0",
    "at": [
@@ -541,7 +583,10 @@
     "res.currency": 12
    },
    "build": "zone.clear",
-   "target": "rockslide"
+   "target": "rockslide",
+   "requires": {
+    "pad": "dome"
+   }
   },
   {
    "type": "pad.build",
@@ -554,7 +599,10 @@
     "res.currency": 150
    },
    "build": "struct.landmark",
-   "big": true
+   "big": true,
+   "requires": {
+    "pad": "dome"
+   }
   },
   {
    "type": "pad.hire",
@@ -620,6 +668,14 @@
    }
   },
   {
+   "id": "dome",
+   "kind": "unlock",
+   "params": {
+    "n": 1
+   },
+   "label": "Build the grow dome"
+  },
+  {
    "id": "first",
    "kind": "earn",
    "params": {
@@ -646,6 +702,15 @@
     "res": "res.food_raw_2",
     "n": 1
    }
+  },
+  {
+   "id": "train",
+   "kind": "hire",
+   "params": {
+    "n": 1,
+    "role": "role.supplier"
+   },
+   "label": "Train Tam to run the dome"
   }
  ],
  "fail": [

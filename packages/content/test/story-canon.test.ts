@@ -19,6 +19,10 @@ const ONLY_IN: Record<string, { levels: number[]; why: string }> = {
   ridgeE1: { levels: [1, 4, 5], why: "level 1's north-east ridge stretch lies above the top of levels 2 and 3's maps (their reactor sits 80 higher on the map)" },
   rockslide: { levels: [1, 2, 3], why: "cleared in level 3, gone after" },
   flats: { levels: [3, 4, 5], why: "the rock hoppers (prey) are a hunting objective, taught from level 3" },
+  scrapA: { levels: [3], why: "level 3 only: the dome is built from carried ship scrap here and stands finished (an enabled dome) from level 4" },
+  scrapB: { levels: [3], why: "level 3 only: the dome is built from carried ship scrap here and stands finished (an enabled dome) from level 4" },
+  scrapC: { levels: [3], why: "level 3 only: the dome is built from carried ship scrap here and stands finished (an enabled dome) from level 4" },
+  dome: { levels: [3], why: "level 3 only: the dome is built from carried ship scrap here and stands finished (an enabled dome) from level 4" },
   lid1: { levels: [1, 2, 3, 4, 5], why: "present everywhere; bay 5's lid is open from level 3 (lift, roll, position differ: see OPEN_LID)" },
 };
 /** Objects whose shape differs in one level on purpose (same place, trimmed). */
@@ -29,10 +33,10 @@ const TRIMMED: Record<string, { level: number; why: string }> = {
 /** Objects that belong to one level's play (gameplay, not the shared map). */
 const LEVEL_OWN = new Set([
   "ring", "kiosk", "field1", "clear0", "hub", "picker", "pod_pip", "pod_rhee", "pod_okafor", "pod_tam", "pod_old",
-  "cell1", "cell2", "galley", "feeder", "cook", "server", "cashier", "recorder", "barracks", "turret1", "train", "helmet", "flats",
+  "cell1", "cell2", "ore15", "ore16", "ore17", "ore18", "ore19", "ore20", "ore21", "ore22", "ore23", "galley", "feeder", "cook", "server", "cashier", "recorder", "barracks", "turret1", "train", "helmet", "flats",
 ]);
-/** Bay 5's lid is opened in levels 3-5 (empty_bays): its offset and lift change on purpose. */
-const OPEN_LID = { id: "lid1", levels: [3, 4, 5] };
+/** Bays 5-8 (lid1-lid4) are opened in levels 3-5 (empty_bays): their offset and lift change on purpose. */
+const OPEN_LID = { ids: ["lid1", "lid2", "lid3", "lid4"], levels: [3, 4, 5] };
 
 const geo = (e: Ent, c: number[]): string => {
   const s = (p: number[]): number[] => [r1(p[0]! - c[0]!), r1(p[1]! - c[1]!)];
@@ -42,8 +46,9 @@ const geo = (e: Ent, c: number[]): string => {
   if (e.points) o["points"] = e.points.map(s);
   if (e.site) o["site"] = s(e.site);
   if (e.route) o["route"] = e.route.map(s);
-  const { at, rect, points, site, route, ...rest } = e;
-  void at; void rect; void points; void site; void route;
+  // hiddenUntil is when level 1 uncovers an ore pile (outpost-ops#125), not where it is
+  const { at, rect, points, site, route, hiddenUntil, ...rest } = e as Ent & { hiddenUntil?: string };
+  void at; void rect; void points; void site; void route; void hiddenUntil;
   return JSON.stringify({ o, rest });
 };
 
@@ -60,7 +65,7 @@ describe("story levels 1-5 are one map", () => {
     for (const id of ids) {
       if (LEVEL_OWN.has(id) || id === "core") continue;
       const seen = data.filter((d) => d.by.has(id));
-      const open = id === OPEN_LID.id;
+      const open = OPEN_LID.ids.includes(id);
       const base = seen[0]!;
       for (const d of seen.slice(1)) {
         if (TRIMMED[id]?.level === d.n || TRIMMED[id]?.level === base.n) continue;

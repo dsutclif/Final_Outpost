@@ -54,6 +54,7 @@ pnpm dev           # client on 0.0.0.0:5180
 pnpm build         # production build into ./dist (Vercel output)
 pnpm levels:build --from 6 --to 60 --out levels/packs/s1   # regenerate the pack (~45 min); 1-5 are the story levels
 pnpm levels:check  # replay every pack level with the bot ladder (~30 s)
+pnpm levels:check --quick [--levels id,id]  # while tuning only: 3/1 seeds, named or git-changed levels, no cache; never a ship check
 ```
 
 ## Working on this project (for any machine)

@@ -16,6 +16,7 @@ import { leashLine } from "./systems/guards.js";
 import { stepFreeze } from "./systems/freeze.js";
 import { initObjectives, stepObjectives } from "./systems/objectives.js";
 import { revealCaptures } from "./systems/lasso.js";
+import { revealNodes } from "./systems/nodes.js";
 import { checkEnd } from "./systems/goals.js";
 import { stepHazard } from "./systems/hazard.js";
 import { stepGate, stepHousing } from "./systems/housing.js";
@@ -139,6 +140,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           // Without a generated route customers walk straight in from the edge on the stall's side.
           route: e.route ? e.route.map(vec) : [{ x: lay.edgeX, y: lay.queueAt.y }],
         };
+        if (e.openAfter) sales.openAfter = e.openAfter;
         if (e.queue) { sales.queueSlots = e.queue.map(vec); sales.queueAt = sales.queueSlots[0]!; }
         state.sales = sales;
         break;
@@ -178,6 +180,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           const def = cp.nodes[t];
           if (!def) throw new Error(`${m.id}: unknown node type ${t}`);
           const n: NodeState = { id: e.id ?? null, type: t, pos: vec(e.at), stock: def.stock, regrowAcc: 0, enabled: "enabled" in e ? e.enabled : true };
+          if ("hiddenUntil" in e && e.hiddenUntil) { n.enabled = false; n.hiddenUntil = e.hiddenUntil; }
           state.nodes.push(n);
         } else if (t.startsWith("conv.")) {
           placeConverter(state, cp, e.id ?? `${t}#${state.converters.length}`, t, vec(e.at));
@@ -250,6 +253,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       stepStats(state, cp, out);
       stepObjectives(state, cp, out);
       revealCaptures(state, out);
+      revealNodes(state, out);
       checkEnd(state, cp, out);
       return out;
     },

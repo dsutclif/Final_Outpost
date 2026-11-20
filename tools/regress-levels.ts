@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
 import { cpus } from "node:os";
@@ -7,8 +7,10 @@ import { fileURLToPath } from "node:url";
 import { HUMAN, LADDER, playBot } from "../packages/bots/src/index.js";
 import { packDuplicates } from "./variety-pass.js";
 import { loopOverCap } from "../packages/generator/src/loops.js";
+import { QUICK_LABEL, pickLevels, planRun } from "./regress-quick.js";
 
 // pnpm levels:check [--pack levels/packs/s1 | levels/story] [--jobs N] [--seeds 10] [--others 3] [--strict-stars] [--no-cache]
+//                    [--quick [--levels id,id]]  fast look while tuning (3/1 seeds, only named or git-changed levels, no cache); never a ship check
 //
 // Bot regression over a shipped pack: every level replayed by the whole ladder (10 seeds for the
 // reference bot, 3 for each other rung). Fails when any run stalls or the reference bot does not win
@@ -54,7 +56,9 @@ function humanRung(m: unknown): HumanRow {
   const mean = rs.reduce((a, r) => a + r.stars, 0) / rs.length;
   const rec = (m as { rating?: { stars?: { human?: number } } }).rating?.stars?.human;
   const recorded = typeof rec === "number" ? rec : null;
-  const three = rs.filter((r) => r.stars === 3).length;
+  // a full-star run: every star slot of the level (story levels list up to 8 objectives, #123; s1 levels have 3)
+  const slots = Math.max(3, objs.length);
+  const three = rs.filter((r) => r.stars >= slots).length;
   const miss = [
     ...(recorded !== null && mean < recorded - HS.regressTolerance ? [`human stars ${mean.toFixed(2)} < recorded ${recorded.toFixed(2)}`] : []),
     ...earned.filter((e) => e.n < HS.minEarned).map((e) => `${e.kind} ${e.n}/${HS.seeds}`),
@@ -104,6 +108,12 @@ function codeHash(): string {
   return h.digest("hex");
 }
 
+/** Files git shows as changed against origin/main, plus untracked ones (for --quick without --levels). */
+function changedFiles(): string[] {
+  const git = (a: string[]) => { try { return execFileSync("git", a, { cwd: root, encoding: "utf8" }).split(/\r?\n/).filter(Boolean); } catch { return []; } };
+  return [...git(["diff", "--name-only", "origin/main"]), ...git(["ls-files", "--others", "--exclude-standard"])];
+}
+
 interface Cache { rows: Record<string, { key: string; row: Row }> }
 
 function runChild(args: string[]): Promise<string> {
@@ -122,10 +132,12 @@ async function main(): Promise<void> {
     ? JSON.parse(readFileSync(join(packDir, "pack.json"), "utf8")) as { id: string; levels: { id: string; file: string; signature?: string }[] }
     : { id: basename(packDir), levels: readdirSync(packDir).filter((f) => f.endsWith(".json")).sort().map((f) => ({ id: f.replace(/\.json$/, ""), file: f })) };
   const jobs = Number(arg("--jobs", String(Math.max(1, cpus().length - 2))));
-  const seeds = arg("--seeds", "10")!, others = arg("--others", "3")!;
+  const plan = planRun(argv);
+  const { seeds, others, useCache } = plan;
   const t0 = Date.now();
-  const files = pack.levels.map((l) => l.file);
-  const useCache = !argv.includes("--no-cache");
+  if (plan.quick) console.log(`${QUICK_LABEL}\n`);
+  const files = pickLevels(pack.levels, plan, plan.quick && !plan.only ? changedFiles() : []).map((l) => l.file);
+  if (plan.quick && files.length === 0) { console.log("quick: no level named (--levels id,id) and none changed vs origin/main; nothing replayed"); return; }
   const cacheDir = join(root, "levels", "check-cache");
   const cachePath = join(cacheDir, `${pack.id}.json`);
   let cache: Cache = { rows: {} };
@@ -154,9 +166,11 @@ async function main(): Promise<void> {
     const f = reused.has(r.id) ? files.find((x) => cache.rows[x]?.row.id === r.id) : fileOfId.get(r.id);
     if (f) next.rows[f] = { key: keys.get(f)!, row: r };
   }
-  mkdirSync(cacheDir, { recursive: true });
-  writeFileSync(cachePath + ".tmp", JSON.stringify(next));
-  renameSync(cachePath + ".tmp", cachePath);
+  if (!plan.quick) { // a quick run holds only part of the pack: never overwrite the full-run cache with it
+    mkdirSync(cacheDir, { recursive: true });
+    writeFileSync(cachePath + ".tmp", JSON.stringify(next));
+    renameSync(cachePath + ".tmp", cachePath);
+  }
   if (useCache) console.log(`check cache: ${reused.size} reused, ${todo.length} replayed (--no-cache replays every level)\n`);
   rows.sort((a, b) => (a.id < b.id ? -1 : 1));
   let bad = 0, starBad = 0;
@@ -188,6 +202,7 @@ async function main(): Promise<void> {
   const dups = packDuplicates(pack.levels);
   for (const d of dups) console.log(`FAIL duplicate signature: ${d.id} repeats ${d.sameAs}`);
   console.log(`variety: ${pack.levels.filter((l) => l.signature !== undefined).length}/${pack.levels.length} levels carry a signature, ${dups.length} duplicate(s)`);
+  if (plan.quick) console.log(`\n${QUICK_LABEL}`);
   if (bad > 0 || missing > 0 || dups.length > 0) process.exitCode = 1;
 }
 

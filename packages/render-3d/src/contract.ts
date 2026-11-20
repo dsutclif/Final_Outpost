@@ -149,6 +149,10 @@ export interface StoryPresentation {
   vehicle?(id: string, spec: StoryVehicleSpec | null): void;
   /** Show a capture a boss dropped where it lies, before its hiddenUntil reveals it. */
   showDropped(on: boolean): void;
+  /** Draw captures that wait on a `hiddenUntil` dark where they lie (no glow, no ring, not towable) until revealed (story level 2: the lander pod). */
+  showDark?(on: boolean): void;
+  /** Rhee's aid station (a med crate and a lamp) at this spot; null takes it away. */
+  aidStation?(at: { x: number; z: number } | null): void;
   /** Stop drawing unbuilt wall lines (their dashes and cost) while on. */
   wallMarks?(on: boolean): void;
   /** Entity ids the renderer keeps solid (never faded) when the hero stands among them. */

@@ -834,14 +834,14 @@ export const marsGreenhouse: Skin = {
     },
     scenes: {
       empty_bays: {
-        text: { feed: "KILN · BAY CAM 05–08 · REC", occupied: "OCCUPIED", unlocked: "UNLOCKED", name: "VALE", rank: "FIRST OFFICER" },
-        images: { badge: "scenes/badge_bay5.png" },
+        text: { feed: "KILN · BAY CAM 05–08 · REC", occupied: "OCCUPIED", unlocked: "UNLOCKED", name5: "VALE", rank5: "FIRST OFFICER", name6: "BRANDT", rank6: "ENGINEER", name7: "IMANI", rank7: "PILOT", name8: "SORREL", rank8: "NAVIGATOR" },
+        images: { badge5: "scenes/badge_bay5.png", badge6: "scenes/badge_bay6.png", badge7: "scenes/badge_bay7.png", badge8: "scenes/badge_bay8.png" },
       },
       sela_arrival: { text: {}, images: {} },
       warlord_fall: { text: {}, images: {} },
       chip_handoff: { text: {}, images: {} },
       crash_log: {
-        text: { feed: "KILN · RECORDER · BAY CAM 05–08", impact: "FOUR MINUTES TO IMPACT", unsealed: "UNSEALED", occupied: "OCCUPIED" },
+        text: { feed: "KILN · RECORDER · BAY CAM 05–08", impact: "FOUR MINUTES TO IMPACT", unsealed: "UNSEALED", occupied: "OCCUPIED", name5: "VALE", name6: "BRANDT", name7: "IMANI", name8: "SORREL" },
         images: {},
       },
     },
@@ -896,7 +896,8 @@ export const marsGreenhouse: Skin = {
             { edgeGlow: null },
             { guide: true },
             { dots: [{ at: [382, 380] }, { at: [336, 452] }, { at: [286, 376] }, { at: [402, 452] }], period: 4 },
-            { line: "A reactor, and it's cold. That ore out past it should burn.", who: "commander" },
+            { line: "A reactor? All the way out here?", who: "commander" },
+            { line: "It's ours, the one we came here to install. Somebody set it up, and let it run dry.", who: "commander" },
             { goal: "ignite" },
           ] },
           { id: "lit", on: { event: "core_lit" }, do: [
@@ -914,7 +915,14 @@ export const marsGreenhouse: Skin = {
             { freeze: false },
             { line: "I'm KILN, the support system of the advance ship Halcyon.", who: "kiln" },
             { line: "Your stasis pod, bay nine, finally opened. I kept that beacon lit on the last of my battery.", who: "kiln" },
-            { line: "Fill the reactor before it dies, and me with it.", who: "kiln" },
+            { line: "Then who put the reactor out here?", who: "commander" },
+            { line: "I have no record. My logs stop at the crash.", who: "kiln" },
+          ] },
+          // a gust runs ahead of the storm and strips the sand off a seam of ore just past the reactor (outpost-ops#125):
+          // the ore is buried (hiddenUntil gust1/gust2) until a second after the reactor lights
+          { id: "gust", on: { event: "node_revealed" }, do: [
+            { camera: { to: { entity: "ore16" }, pan: 0.5, hold: 0.8, back: 0.4, zoom: 0.8 } },
+            { line: "Those cells won't last the night. The wind just uncovered ore, and ore burns. Fill the reactor before it dies, and me with it.", who: "kiln" },
             { goal: "fill" },
           ] },
           { on: { goal: "fill", is: "done" }, do: [
@@ -933,6 +941,8 @@ export const marsGreenhouse: Skin = {
           ] },
           // mid-storm the ridge shows red for the first time, and the camera nudges toward it
           { id: "storm", on: { event: "hazard_start" }, do: [] },
+          // the storm's wind uncovers more ore closer to the reactor (buried until the storm objective)
+          { on: { after: "storm", ticks: 30 }, do: [{ camera: { to: { entity: "ore21" }, pan: 0.4, hold: 0.6, back: 0.4, freeze: false } }] },
           { on: { after: "storm", ticks: 450 }, do: [
             { ridge: "right", period: 4, k: 0.4 },
             { ridgeFlash: 2 },
@@ -953,6 +963,8 @@ export const marsGreenhouse: Skin = {
         hide: ["credits", "walls"],
         solid: ["sink.core"],
         podLights: "glow",
+        // the lander's escape pod (manifest hiddenUntil: pair) lies dark and unmarked until KILN names it
+        darkPods: true,
         noWallMarks: true,
         tally: true,
         goalCards: true,
@@ -986,7 +998,7 @@ export const marsGreenhouse: Skin = {
             { line: "Give me something to carry. Ore in, fire stays on.", who: "pip" },
             { line: "Two pods came down close together. Bring them both in one trip.", who: "kiln" },
           ] },
-          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
+          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }, { aidStation: true }] },
           // Okafor walks the camp's edge as he says it (S6), then is let go back to his post
           { on: { event: "joined", match: { capture: 2 } }, ordered: true, do: [
             { walk: "okafor", to: { at: [462, 330] } },
@@ -994,6 +1006,8 @@ export const marsGreenhouse: Skin = {
             { walk: "okafor", to: false },
           ] },
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
+            // the lander pod lights (manifest hiddenUntil: pair): the camera looks out to it, so KILN names what the player can see
+            { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 1.2, back: 0.7 } },
             { line: "One more out there. A fifth pod. It's ours, the lander's escape pod, but nobody was assigned to it.", who: "kiln" },
             { line: "Then I'll bring in all five.", who: "commander" },
             { goal: "main" },
@@ -1025,9 +1039,9 @@ export const marsGreenhouse: Skin = {
       // Open for Trade (docs/STORY-SCREENPLAY.md, level 3). Sela comes first, then the hub and its price; selling meat is a
       // story step (no star). The H coin close-up is a card with the coin's render.
       "story-L003": {
+        // Rhee's aid station stays beside the reactor from level 2 on
+        aidStation: true,
         hide: ["credits", "walls"],
-        // the level opens on the road, where the buggy comes up (the first beat cuts to the same spot), not on the commander
-        openAt: [800, 928],
         solid: ["sink.core"],
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam. Sela is the first trader to arrive and speaks from where she
@@ -1035,11 +1049,13 @@ export const marsGreenhouse: Skin = {
         customerModels: { 0: "unit.customer_sela" },
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 }, trader: { entity: "kiosk" } },
         goals: [
+          { id: "dome", hold: true, label: "Build the grow dome (8 scrap)" },
           { id: "first", hold: true, label: "Sell Sela some greens" },
           // S43 (Doug, 2026-11-07): the ring is no longer prebuilt; the player builds it here, the star is the wall
           { id: "walls", label: "Build the camp wall (8)" },
           { id: "clear", label: "Clear the rockslide (12)" },
           { id: "meat", label: "Sell protein at the kiosk" },
+          { id: "train", hold: true, label: "Train Tam to run the dome" },
           { id: "main", label: "Build the habitat hub (150)" },
         ],
         cues: [
@@ -1048,6 +1064,26 @@ export const marsGreenhouse: Skin = {
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
             { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
+            { line: "You promised me a grow dome, Boss. Give me one and I'll feed this camp.", who: "tam" },
+            { line: "There's hull scrap lying all round the wreck. Enough to build one.", who: "commander" },
+            { line: "Carry scrap to the dome's frame. It goes up when the frame is full.", who: "kiln", head: "K.I.L.N. · DAY 3" },
+            { goal: "dome" },
+            { dots: [{ entity: "scrapA" }], period: 2.4 },
+          ] },
+          // the dome stands and night falls: a pair of lights moves far to the south, a soft glow on the screen edge points the way
+          { on: { goal: "dome", is: "done" }, ordered: true, do: [
+            { dotsOff: true },
+            { light: "night", seconds: 6 },
+            { line: "It'll do.", who: "tam" },
+            { line: "Lights, to the south. Something's moving out there.", who: "commander" },
+            { guide: false },
+            { edgeGlow: { entity: "kiosk", size: 28, strength: 0.35, arrow: true } },
+          ] },
+          // found by walking: the glow goes out at the road, the kiosk's door
+          { id: "kioskFound", on: { near: { entity: "kiosk" }, r: 170 }, do: [
+            { edgeGlow: null },
+            { guide: true },
+            { line: "A road. And a kiosk, shut up for years. People were here.", who: "commander" },
           ] },
           // the only moving light: Sela's buggy comes up the road and parks (the sela_arrival live scene), then the
           // camera follows her on foot to the old kiosk
@@ -1076,11 +1112,17 @@ export const marsGreenhouse: Skin = {
             { show: ["credits"] },
             { dotsOff: true },
             { line: "Those C coins are credits. Every sale pays them in, and credits buy what the camp builds.", who: "kiln" },
+            { line: "You built that dome yourselves? Out of your own hull?", who: "sela" },
+            { line: "Save your scrap. My road crew builds for credits, and they bring their own steel.", who: "sela" },
             { line: "A road that brings traders can bring raiders. Wall first, before anything else.", who: "okafor" },
             { line: "Once you've saved enough credits, walk the dashed line and the wall goes up behind you.", who: "kiln" },
           ] },
           // the wall stands: the hub and its price, then the trader who wants meat and the slide in the way
           { on: { goal: "walls", is: "done" }, ordered: true, do: [
+            // Sela's road crew come up the road for each paid build: the buggy drives in, waits a moment and goes
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [560, 430] }], seconds: 5, lights: true },
+            { wait: 3 },
+            { vehicleOff: "buggy" },
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
             { line: "Sell some more and save up credits to build that hub.", who: "kiln" },
@@ -1090,13 +1132,26 @@ export const marsGreenhouse: Skin = {
             { camera: { to: { entity: "clear0" }, pan: 0.4, hold: 1, back: 0.8 } },
             { line: "Save up a little and we can clear that slide.", who: "kiln" },
           ] },
-          { on: { event: "zone_cleared" }, do: [
+          { on: { event: "zone_cleared" }, ordered: true, do: [
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 800] }, { entity: "clear0" }], seconds: 5, lights: true },
+            { wait: 3 },
+            { vehicleOff: "buggy" },
             { line: "That slide is fresh. Something up on the ridge shook it loose.", who: "kiln" },
             { line: "Rock hoppers. Run into one to knock it down, then pick up the protein when it falls.", who: "kiln" },
           ] },
-          { on: { event: "sold", match: { res: "res.food_raw_2" } }, do: [
-            { line: "Boss, let me work the fields. You hunt; I'll keep the shelf full of greens.", who: "tam" },
+          { on: { event: "sold", match: { res: "res.food_raw_2" } }, ordered: true, do: [
+            { line: "Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.", who: "tam" },
+            { line: "Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear, and gear costs credits. Stand on Tam's pad when you have them.", who: "kiln" },
+            { goal: "train" },
+          ] },
+          { id: "tamTrained", on: { goal: "train", is: "done" }, do: [
             { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
+          ] },
+          // about half the hub's price: a trader at the counter looks up at the ridge
+          { on: { credits: 75, after: "tamTrained" }, ordered: true, do: [
+            { line: "A town, this close to the ridge? Brave.", who: "trader" },
+            { line: "What's on the ridge?", who: "commander" },
+            { line: "Folk who don't trade.", who: "trader" },
           ] },
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land
           { on: { goal: "main", is: "done" }, ordered: true, do: [
@@ -1115,6 +1170,8 @@ export const marsGreenhouse: Skin = {
       // Halcyon Works (docs/STORY-SCREENPLAY.md, level 4). The crash_log live scene plays when the recorder is home. Ordered cues
       // put KILN's dim, the look east and the ridge flash on their lines. Training the crew is a story step (no star).
       "story-L004": {
+        // Rhee's aid station stays beside the reactor from level 2 on
+        aidStation: true,
         hide: ["walls"],
         solid: ["sink.core"],
         goalCards: true,
@@ -1196,6 +1253,8 @@ export const marsGreenhouse: Skin = {
       // last wave: the main goal tows it home. Stopping the first raiders and training a guard are story steps (no star).
       // The lieutenant's slow-motion fall is a text card until it is made.
       "story-L005": {
+        // Rhee's aid station stays beside the reactor from level 2 on
+        aidStation: true,
         hide: ["credits"],
         solid: ["sink.core"],
         goalCards: true,

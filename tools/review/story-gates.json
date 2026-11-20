@@ -3,5 +3,8 @@
   "story-L001": [
     { "line": "That light", "unseen": ["sink.core"], "why": "The commander asks what the light is before the reactor can be seen." },
     { "line": "A reactor", "seen": ["sink.core"], "after": ["That light"], "why": "The commander finds the reactor only after asking what the light is." }
+  ],
+  "story-L002": [
+    { "line": "A fifth pod", "seen": ["capture.recruit_container.decoy"], "why": "KILN names the lander's escape pod only once it has lit and the camera has shown it; until the pair is home it lies dark and unmarked." }
   ]
 }
