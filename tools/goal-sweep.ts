@@ -31,7 +31,7 @@ if (arg("--goal")) {
   let n = 0;
   for (let k = 0; Date.now() < deadline; k++) {
     const seed = mix(base.seed, hashStr(`gs${goal}${k}`)) & 0x7fffffff;
-    const req = { ...base, id, target: t, goalType: goal, goalId: goal, features, modules, introduced: [], ...(two ? { secondary: "rescue" } : {}), seed, funThreshold: 0.2, phase: "mix" };
+    const req = { ...base, id, target: t, goalType: g.kind ?? goal, goalId: goal, features, modules, introduced: [], ...(two ? { secondary: "rescue" } : {}), seed, funThreshold: 0.2, phase: "mix" };
     const rows: Record<string, unknown>[] = [];
     try {
       generateDetailed(req as never, { history: [], memory: newSearchMemory(), finish: true,
