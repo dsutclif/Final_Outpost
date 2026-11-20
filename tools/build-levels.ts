@@ -265,7 +265,7 @@ async function main(): Promise<void> {
   const retryBase = arg("--retry-base", "0")!;
   const t0 = Date.now();
 
-  if (flag("--calibrate")) {
+  if (flag("--calibrate") || flag("--calib-only")) {
     console.log(`calibrating: one unsearched sample per level, ${jobs} jobs`);
     const samples: { goal: string; metrics: Metrics }[] = [];
     await pool(indices, jobs, (i) => runChild(["--calib", "--index", String(i)]), (i, out) => {
@@ -277,6 +277,8 @@ async function main(): Promise<void> {
     const refPath = join(root, "packages", "generator", "data", "reference.json");
     writeFileSync(refPath, JSON.stringify(ref, null, 2) + "\n");
     console.log(`wrote ${relative(root, refPath)} from ${samples.length} samples in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+    // --calib-only: refresh the reference and stop (no pack build), e.g. after a change to how D is computed.
+    if (flag("--calib-only")) process.exit(0);
   }
 
   console.log(`building ${packId} levels ${only ? indices.join(",") : `${from}-${to}`} with ${jobs} jobs`);

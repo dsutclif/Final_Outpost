@@ -74,6 +74,22 @@ const mean = (xs: readonly number[]): number => (xs.length === 0 ? 0 : xs.reduce
 export const winRate = (rs: readonly BotResult[]): number => mean(rs.map((r) => (r.won ? 1 : 0)));
 export const meanMargin = (rs: readonly BotResult[]): number => mean(rs.map((r) => r.margin));
 
+/** Width of the pass/fail blur in margin units: a run 0.1 inside the line counts ~73%, 0.1 outside ~27%. */
+export const PASS_SOFTNESS = 0.1;
+/** How well one run passed, 0..1: sigmoid of its margin (time left on a win, -(1 - progress) on a loss). */
+export const runPass = (r: { margin: number }): number => 1 / (1 + Math.exp(-r.margin / PASS_SOFTNESS));
+
+/**
+ * Skill needed, graded: each rung below the reference contributes (1 - its mean run pass)/4, so a rung the bot
+ * only just misses adds a little and one that fails at half progress adds about a quarter. 1.25 when even the
+ * reference bot fails (as before). Replaces the "weakest passing rung" index, which jumped +1 per rung.
+ */
+export function gradedSkillNeeded(runs: Record<string, readonly { won: boolean; margin: number }[]>): number {
+  if (mean(runs[REFERENCE]!.map((r) => (r.won ? 1 : 0))) < 0.5) return 1.25;
+  const lower = LADDER.filter((p) => p.name !== REFERENCE);
+  return lower.reduce((a, p) => a + (1 - mean(runs[p.name]!.map(runPass))), 0) / lower.length;
+}
+
 /** The beat sheet of the median rung's run of median length (lowest seed on a tie): deterministic for a given manifest. */
 function medianRun(rs: readonly BotResult[]): BotResult | undefined {
   if (rs.length === 0) return undefined;
@@ -140,11 +156,7 @@ export function measure(manifestIn: unknown, opts: MeasureOptions = {}): Measure
 function computeMetrics(m: Manifest, c: Content, plan: Plan, runs: Record<string, BotResult[]>, budgetTicks: number,
   history: readonly HistoryEntry[]): Metrics {
   const ref = runs[REFERENCE]!, med = runs[MEDIAN]!;
-  // Weakest rung that still wins a majority of its runs; 1.25 when even the reference bot fails.
-  let weakest = -1;
-  LADDER.forEach((p, i) => { if (winRate(runs[p.name]!) >= 0.5) weakest = i; });
-  const top = LADDER.length - 1;
-  const skillNeeded = weakest < 0 ? 1.25 : (top - weakest) / top;
+  const skillNeeded = gradedSkillNeeded(runs);
 
   const lifelineRisk = mean(med.map((r) => 0.5 * (1 - r.trace.lifelineMin) + 0.5 * (r.trace.lifelineLowTicks / Math.max(1, r.ticks))));
   const concurrentDemand = mean(ref.map((r) => r.trace.concurrentDemand));
