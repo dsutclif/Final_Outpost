@@ -31,7 +31,8 @@ export class Nav {
   /** Rebuild the blocked grid when walls or zones change. Cheap to call every tick. */
   refresh(st: State): void {
     let k = "";
-    for (const z of st.zones) k += z.cleared ? "1" : "0";
+    // a rockslide being dug shrinks: its rect is part of the key
+    for (const z of st.zones) k += (z.cleared ? "1" : "0") + (z.digEdge !== undefined ? `${z.rect.x},${z.rect.y},${z.rect.w},${z.rect.h};` : "");
     for (const l of st.barriers) for (const s of l.sections) k += s.built ? "1" : "0";
     if (k === this.key) return;
     this.key = k;

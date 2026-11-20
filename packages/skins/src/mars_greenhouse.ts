@@ -1053,7 +1053,7 @@ export const marsGreenhouse: Skin = {
           { id: "first", hold: true, label: "Sell Sela some greens" },
           // S43 (Doug, 2026-11-07): the ring is no longer prebuilt; the player builds it here, the star is the wall
           { id: "walls", label: "Build the camp wall (8)" },
-          { id: "clear", label: "Clear the rockslide (12)" },
+          { id: "clear", label: "Dig through the rockslide" },
           { id: "meat", label: "Sell protein at the kiosk" },
           { id: "train", hold: true, label: "Train Tam to run the dome" },
           { id: "main", label: "Build the habitat hub (150)" },
@@ -1129,13 +1129,11 @@ export const marsGreenhouse: Skin = {
             { line: "No protein? I'm leaving.", who: "trader" },
             { line: "Protein sells for a premium around here. Those rock hoppers past the rockslide would fetch a good price.", who: "sela" },
             { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.3 } },
-            { camera: { to: { entity: "clear0" }, pan: 0.4, hold: 1, back: 0.8 } },
-            { line: "Save up a little and we can clear that slide.", who: "kiln" },
+            { camera: { to: { entity: "rockslide" }, pan: 0.4, hold: 1, back: 0.8 } },
+            { line: "The slide is loose rock. Stand against it and dig; it clears a square at a time.", who: "kiln" },
           ] },
+          // dug by hand: no credits, so no road crew
           { on: { event: "zone_cleared" }, ordered: true, do: [
-            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 800] }, { entity: "clear0" }], seconds: 5, lights: true },
-            { wait: 3 },
-            { vehicleOff: "buggy" },
             { line: "That slide is fresh. Something up on the ridge shook it loose.", who: "kiln" },
             { line: "Rock hoppers. Run into one to knock it down, then pick up the protein when it falls.", who: "kiln" },
           ] },

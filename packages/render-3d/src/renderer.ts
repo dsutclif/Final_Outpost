@@ -503,6 +503,8 @@ export class Renderer3D implements Renderer {
   private lasso: { trail: Mesh; rope: Mesh; ropePts: Vector3[]; ropePrev: Vector3[] } | null = null;
   private scaffoldGeo: BufferGeometry | null = null;
   private padPlane: PlaneGeometry | null = null;
+  /** The ring that fills over the rockslide square being dug (zones.digSeconds). */
+  private digRing: Mesh | null = null;
   /** Warehouse drop-off pad (the player only drops there). */
   private depotPads: Mesh[] = [];
   /** Pad ground points of the last frame, and which of them something taller hides from the camera this frame (id -> that thing's top, world): the pin-and-pole of a hidden pad (#89). */
@@ -2544,11 +2546,42 @@ export class Renderer3D implements Renderer {
     };
   }
 
+  /** A rockslide being dug: the shovel swings and a ring fills over the square at the commander's edge. */
+  private syncDig(z: State["zones"][number]): void {
+    const need = this.cp?.zones.digTicks ?? 0, sq = this.cp?.zones.digSquare ?? 0;
+    const ring = this.digRing;
+    if (need <= 0 || z.cleared || !z.dig || !z.digEdge) { if (ring && this.digRingFor === z.id) ring.visible = false; return; }
+    const r = z.rect, e = z.digEdge;
+    const cut = Math.min(sq, e === "w" || e === "e" ? r.w : r.h);
+    const cx = e === "w" ? r.x + cut / 2 : e === "e" ? r.x + r.w - cut / 2 : r.x + r.w / 2;
+    const cy = e === "n" ? r.y + cut / 2 : e === "s" ? r.y + r.h - cut / 2 : r.y + r.h / 2;
+    const at = v3(cx / FP, 2.8, cy / FP);
+    this.acts.set("player", { act: "dig", until: this.t + 0.25, at: { x: at.x, y: at.z } });
+    let m = this.digRing;
+    if (!m) {
+      m = new Mesh(this.padPlane!, new MeshBasicMaterial({ visible: false }));
+      m.renderOrder = 2;
+      this.dynamic.add(m);
+      this.digRing = m;
+    }
+    this.digRingFor = z.id;
+    const q = Math.round(Math.min(1, z.dig / need) * 24);
+    const mat = this.labels.meshMaterial(`dr|${q}`, () => this.padRingArt(true, 1, false, q / 24));
+    if (!mat) { m.visible = false; return; }
+    m.material = mat;
+    m.visible = true;
+    m.position.copy(at);
+    m.scale.setScalar(Math.max(sq / FP, 20) * 1.5 * (256 / 236));
+  }
+
+  private digRingFor = "";
+
   private syncZones(s: State): void {
     const W = this.walls!;
     for (const z of s.zones) {
       const x = z.rect.x / FP, y = z.rect.y / FP, w = z.rect.w / FP, h = z.rect.h / FP;
       if (z.type === "zone.blocked") {
+        this.syncDig(z);
         const age = this.fx!.popAge(`zone:${z.id}`);
         if (z.cleared && age > 0.6) continue;
         const k = z.cleared ? Math.max(0, 1 - age / 0.6) : 1;
@@ -4089,6 +4122,12 @@ export class Renderer3D implements Renderer {
         fx.dustRing(c, t.accent, 30, 160, 8);
         fx.burst(up(c, ART_M * 1.2), [t.accent, mix(t.accent, t.structure, 0.6)], 26, 160, 260, 5);
         fx.floater(ft("core_upgraded", { n: Number(e["level"] ?? this.world?.core.level ?? 2) }), white, up(c, ART_M * 2.6), 46);
+        break;
+      }
+      case "zone_dug": {
+        // one square sinks: a burst of dust where it was
+        const sq = e["at"] as { x: number; y: number };
+        fx.dustRing(this.wv(sq), mix(t.groundAlt, t.structure, 0.3), 22, 120, 8);
         break;
       }
       case "zone_cleared":

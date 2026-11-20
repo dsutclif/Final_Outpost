@@ -297,7 +297,8 @@ export interface Compiled {
   guards: { downPct: number; leash: number | null; downTicks: number; fallTicks: number; reviveTicks: number; reviveRange: number; radius: number };
   waiting: Vec;
   gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
-  zones: { blockMargin: number };
+  /** digTicks: seconds to dig one square of a rockslide (0 = rockslides are bought with a pad, the default); digSquare: its side. */
+  zones: { blockMargin: number; digTicks: number; digSquare: number };
   barrier: { thickness: number; buildRange: number; buildTicks: number; hp: number; gateHp: number; costPerSection: number };
   drops: { pickupRange: number; scatterX: number; scatterY: number };
   convParams: { playerOperateRange: number; operatorRange: number; pickupRange: number; hintRange: number };
@@ -622,7 +623,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
     },
     waiting,
     gate,
-    zones: { blockMargin: fp(param("zones.blockMargin")) },
+    zones: { blockMargin: fp(param("zones.blockMargin")), digTicks: Math.max(0, Math.round(param("zones.digSeconds") * TPS)), digSquare: fp(param("zones.digSquare")) },
     barrier: {
       thickness: fp(param("barrier.thickness")), buildRange: fp(param("barrier.buildRange")), buildTicks: ticks(param("barrier.buildInterval")),
       hp: c.structures["struct.barrier"]!.hp!, gateHp: c.structures["struct.gate"]!.hp!, costPerSection: int("barrier.costPerSection"),

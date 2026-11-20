@@ -574,22 +574,6 @@
   },
   {
    "type": "pad.build",
-   "id": "clear0",
-   "at": [
-    650,
-    610
-   ],
-   "cost": {
-    "res.currency": 12
-   },
-   "build": "zone.clear",
-   "target": "rockslide",
-   "requires": {
-    "pad": "dome"
-   }
-  },
-  {
-   "type": "pad.build",
    "id": "hub",
    "at": [
     670,
@@ -619,9 +603,6 @@
     "from": "node.food_source",
     "to": "sink.sales_point",
     "node": "field1"
-   },
-   "requires": {
-    "pad": "clear0"
    }
   }
  ],
@@ -652,7 +633,9 @@
   "customers.spawn": 2,
   "customers.orderMin": 1,
   "customers.orderMax": 3,
-  "level.budgetSeconds": 300
+  "level.budgetSeconds": 300,
+  "zones.digSeconds": 2,
+  "zones.digSquare": 16
  },
  "goal": {
   "type": "build",

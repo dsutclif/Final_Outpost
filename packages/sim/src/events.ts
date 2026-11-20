@@ -21,6 +21,7 @@ export type SimEvent =
   | { t: "built"; pad: string; build: string; at: Vec }
   | { t: "unlocked"; pad: string; target: string }
   | { t: "core_upgraded"; level: number }
+  | { t: "zone_dug"; zone: string; /** Centre of the square that just sank. */ at: Vec }
   | { t: "zone_cleared"; zone: string; /** Band pieces cleared with it (zones whose clearsWith names it). */ also?: string[] }
   // lasso, housing, gate
   | { t: "captured"; capture: number; at: Vec }

@@ -211,6 +211,10 @@ export interface ZoneState {
   cleared: boolean;
   /** zone.blocked: a static band piece cleared together with this zone.blocked id (a gate rockfall's band). */
   clearsWith?: string;
+  /** zone.blocked dug by hand (zones.digSeconds > 0): ticks spent on the square at the edge being dug; absent until digging starts. */
+  dig?: number;
+  /** The edge being dug (the side the commander stands on): its square is the one the ring fills over. */
+  digEdge?: "w" | "e" | "n" | "s";
 }
 
 export interface PreyZoneState {

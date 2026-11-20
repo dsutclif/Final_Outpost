@@ -24,6 +24,7 @@ import { spawnPrey, stepHunting } from "./systems/hunting.js";
 import { stepLasso } from "./systems/lasso.js";
 import { stepNodes } from "./systems/nodes.js";
 import { applyEffects, refreshPads } from "./systems/pads.js";
+import { stepDig } from "./systems/dig.js";
 import { collectPile, movePlayer, pickDrops, playerAct, playerCombat, type Input } from "./systems/player.js";
 import { stepResidents } from "./systems/residents.js";
 import { salesLayout, stepSales } from "./systems/sales.js";
@@ -236,6 +237,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       stepNodes(state, cp);
       stepBarrierBuild(state, cp, out);
       playerAct(state, cp, out);
+      stepDig(state, cp, out);
       playerCombat(state, cp, out);
       pickDrops(state, cp, out);
       collectPile(state, cp, out);

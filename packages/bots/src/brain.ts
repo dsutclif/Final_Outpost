@@ -10,7 +10,7 @@ import type { BotProfile } from "./profiles.js";
 
 export type TaskKind =
   | "feed" | "fuel" | "gather" | "stock" | "register" | "pile" | "pay" | "barrier" | "operate" | "deposit"
-  | "fetch" | "drop" | "admit" | "fight" | "revive" | "lasso" | "hunt" | "depot" | "wait";
+  | "fetch" | "drop" | "admit" | "fight" | "revive" | "lasso" | "hunt" | "depot" | "wait" | "dig";
 
 export interface Task {
   kind: TaskKind;
@@ -553,15 +553,23 @@ export class Brain {
 
     // Hunting: when nothing more urgent is on, take prey whose drop feeds a converter or the shelf.
     const hres = this.huntRes(st);
+    let huntWanted = false;
     // Hurt and something out there bites: let health come back first.
     // Attackers can shoot the commander now (Release 2), so hurt under fire also means: no hunting trips until the wave is over.
     const hurt = st.player.hp * 2 < cp.player.hp && (st.hostiles.length > 0 || st.prey.some((d) => d.alive && isDangerousAnimal(cp, st.preyZones[d.zone]!.animal)));
     if (hurt) {
       // stay out of reach until healed
-    } else if (this.pol.hunt && st.prey.some((d) => d.alive) && (hres === null || count(p.stack, hres) < (cp.resources[hres]?.cap ?? 6))) T("hunt", 50);
+    } else if (this.pol.hunt && st.prey.some((d) => d.alive) && (hres === null || count(p.stack, hres) < (cp.resources[hres]?.cap ?? 6))) { T("hunt", 50); huntWanted = true; }
     else if (hres !== null && !this.huntedBy(st, hres) && count(p.stack, hres) < Math.min(cp.resources[hres]?.cap ?? 6, 4)
       && st.prey.some((d) => d.alive)) {
       T("hunt", 34);
+      huntWanted = true;
+    }
+    // Rockslides dug by hand (zones.digSeconds): stand against one a clear-zones goal or star names until it is gone.
+    // Right after the hunt's own rank when the prey wait behind it, otherwise at the bottom of the list (spare minutes only).
+    if (cp.zones.digTicks > 0 && [cp.manifest.goal.type, ...(cp.manifest.objectives ?? []).map((o) => o.kind)].includes("clear_zones")) {
+      const slide = st.zones.find((z) => z.type === "zone.blocked" && !z.cleared);
+      if (slide) T("dig", huntWanted ? 52 : 22, slide.id);
     }
 
     // Raw inputs in the backpack go into the converter that turns them into something sold.
@@ -925,6 +933,20 @@ export class Brain {
         return g ? { pos: g.pos, r: cp.guards.reviveRange - 4 * U } : null;
       }
       case "lasso": return this.lassoTarget(st);
+      case "dig": {
+        const z = st.zones.find((q) => q.id === t.key && !q.cleared);
+        if (!z) return null;
+        // against the side of the rock nearest the bot that is open ground: clear of the nav grid's probe margin, inside digging reach
+        const gap = cp.zones.blockMargin + 9 * U, r = z.rect, cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+        const spots: Vec[] = [{ x: r.x - gap, y: cy }, { x: r.x + r.w + gap, y: cy }, { x: cx, y: r.y - gap }, { x: cx, y: r.y + r.h + gap }];
+        let best: Vec | null = null, bd = Infinity;
+        for (const sp of spots) {
+          if (blockedAt(st, cp, sp.x, sp.y)) continue;
+          const dd = d2(sp, p.pos);
+          if (dd < bd) { bd = dd; best = sp; }
+        }
+        return best ? { pos: best, r: 3 * U } : null;
+      }
       case "hunt": {
         const res = this.huntRes(st);
         if (!this.pol.hunt && (res === null || count(p.stack, res) >= Math.min(cp.resources[res]?.cap ?? 6, 4))) return null;
