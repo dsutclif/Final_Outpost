@@ -1,5 +1,5 @@
 import { content as defaultContent, type Content } from "@fo/content";
-import { DEFAULT_CONFIG, addonPool, conflicts, estimateD, featureClosure, moduleCap, modulesFor, optionalOf, type Estimate, type SequencerConfig } from "@fo/sequencer";
+import { DEFAULT_CONFIG, addonPool, conflicts, guestFits, estimateD, featureClosure, moduleCap, modulesFor, optionalOf, type Estimate, type SequencerConfig } from "@fo/sequencer";
 import type { Family } from "./build.js";
 
 /**
@@ -63,6 +63,7 @@ export function composerPool(r: ComposeRequest, conveyorGoals: readonly string[]
   const req = new Set(requiredFeatures(r, cfg));
   return addonPool(r.family, r.index, cfg).filter((f) => {
     if (req.has(f)) return false;
+    if (!guestFits(f, r.family, r.target, cfg)) return false;
     const d = cfg.features[f]!;
     if (avoid.has(f) || (d.with ?? []).some((w) => avoid.has(w))) return false;
     // anchored features only work with an anchoring goal; belts only with a goal that rides the chain (build.ts drops them otherwise)

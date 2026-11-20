@@ -32,14 +32,14 @@
     "machines": [2, 3]
   },
   "familyKnobs": {
-    "_doc": "Composer knob search (ops docs/reference/addons.md): per-family [p=0, p=1] ends that replace the knobs entry for that family's levels. Cost scale and fuel burn move with the pressure so the search can tune the composed add-on set; rescue's pod freeze clock too.",
+    "_doc": "Composer knob search (ops docs/reference/addons.md): per-family [p=0, p=1] ends that replace the knobs entry for that family's levels. Cost scale and fuel burn move with the pressure so the search can tune the composed add-on set; rescue's pod freeze clock, pod count and crate count too (the counts follow the search pressure, which starts from the slot's target).",
     "shelter": { "costScale": [0.85, 1.4] },
-    "rescue": { "costScale": [0.8, 1.4], "burn": [3.4, 2.1], "podFreeze": [220, 85] },
+    "rescue": { "costScale": [0.8, 1.4], "burn": [3.4, 2.1], "podFreeze": [220, 85], "pods": [3, 6], "crates": [2, 5] },
     "harvest": { "costScale": [0.85, 1.4] },
     "industrialize": { "costScale": [0.85, 1.4], "burn": [3, 1.8] },
     "defend": { "costScale": [1, 1.3] }
   },
-  "dressing": ["forest", "forestReach", "pods", "crates", "dangerPrey"],
+  "dressing": ["forest", "forestReach", "dangerPrey"],
   "danger": { "chance": 0.6, "max": 2 },
   "timeTargetK": 1.4,
   "jitter": 0.12,

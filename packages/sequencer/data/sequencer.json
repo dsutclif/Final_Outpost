@@ -77,19 +77,21 @@
       "modules": ["lasso"],
       "teachGoal": "rescue",
       "intro": [["hunting", "crates"], ["pod_timers", "clearing_pass"]],
-      "guests": { "dust_storms": 17 },
+      "guests": { "dust_storms": 12 },
       "challenges": ["tow_full_trip", "rescue_all", "tow_trip", "rescue", "rescue_housed"]
     },
     "harvest": {
       "modules": ["workers"],
       "teachGoal": "earn",
       "intro": [["vips", "source_unlocks"], ["bulk_orders"]],
+      "guests": { "dust_storms": 12, "depot": 15 },
       "challenges": ["no_angry_customers", "streak"]
     },
     "industrialize": {
       "modules": ["converters"],
       "teachGoal": "produce",
       "intro": [["material_processor", "converter_levels"], ["depot", "conveyors"]],
+      "guests": { "dust_storms": 12, "bulk_orders": 14 },
       "challenges": ["hire", "settlement_never_freezes", "heat_floor"]
     },
     "defend": {

@@ -21,17 +21,43 @@ describe("add-on unlock order", () => {
       expect(featureUnlocked(f, r.family, r.index) || (!!r.secondary && featureUnlocked(f, r.secondary, r.index)), `${r.id} ${f}`).toBe(true);
   });
 
-  it("rescue order: crates, then pod housing, then dust storms (as a guest)", () => {
+  it("rescue order: crates, then pod housing, with dust storms as a guest from the same level", () => {
     const first = (f: string) => reqs.find((r) => r.family === "rescue" && addonPool("rescue", r.index).includes(f))!.index;
     expect(first("crates")).toBeLessThan(first("pod_housing"));
-    expect(first("pod_housing")).toBeLessThan(first("dust_storms"));
-    expect(featureUnlocked("dust_storms", "rescue", 12)).toBe(false);
+    expect(first("pod_housing")).toBeLessThanOrEqual(first("dust_storms"));
+    expect(featureUnlocked("dust_storms", "rescue", 11)).toBe(false);
+    expect(featureUnlocked("dust_storms", "rescue", 12)).toBe(true);
     expect(featureUnlocked("dust_storms", "shelter", 12)).toBe(true);
+  });
+
+  it("borrowed add-ons: harvest and industrialize borrow dust storms, harvest the depot, industrialize bulk orders", () => {
+    expect(featureUnlocked("dust_storms", "harvest", 12)).toBe(true);
+    expect(featureUnlocked("depot", "harvest", 14)).toBe(false);
+    expect(featureUnlocked("depot", "harvest", 15)).toBe(true);
+    expect(featureUnlocked("dust_storms", "industrialize", 12)).toBe(true);
+    expect(featureUnlocked("bulk_orders", "industrialize", 13)).toBe(false);
+    expect(featureUnlocked("bulk_orders", "industrialize", 14)).toBe(true);
+  });
+
+  it("a guest joins only a level whose target reaches the low end of its dStep (fix 1)", () => {
+    for (const r of reqs) {
+      if (r.index <= cfg.storyLength) continue;
+      const p = composerPool(r, GEN.conveyorGoals, content, cfg);
+      for (const f of p) {
+        const d = cfg.features[f]!;
+        if (d.family !== r.family) expect(r.target, `${r.id} ${f}`).toBeGreaterThanOrEqual(d.dStep![0]);
+      }
+    }
+    // a low-target harvest level never gets the depot (low end 0.15), a high one may
+    const h = { ...reqs.find((r) => r.family === "harvest" && r.index >= 18 && r.phase === "mix")!, target: 0.1 };
+    expect(composerPool(h, GEN.conveyorGoals, content, cfg)).not.toContain("depot");
+    expect(composerPool({ ...h, target: 0.5 }, GEN.conveyorGoals, content, cfg)).toContain("depot");
   });
 
   it("a goal's adds count only once the feature is unlocked", () => {
     const c2 = structuredClone(cfg) as SequencerConfig;
     c2.goals["rescue_before_freeze"]!.adds = ["dust_storms"];
+    c2.families["rescue"]!.guests = { dust_storms: 17 }; // pin the guest level later than Level 12 for this check
     const l12 = sequence(12, [], { config: c2 });
     expect(l12.goalType).toBe("rescue_before_freeze");
     expect(l12.features).not.toContain("dust_storms");
@@ -57,7 +83,7 @@ describe("composer", () => {
     expect(requiredFeatures(at(23))).toEqual(["clearing_pass"]);
     const pool = composerPool(at(12), GEN.conveyorGoals);
     expect(pool).not.toContain("hunting"); // rescue_before_freeze avoids it
-    expect(pool).not.toContain("dust_storms"); // locked for rescue until its guest level
+    expect(pool).toContain("dust_storms"); // a guest from Level 12, and the target (0.243) reaches its low end (0.05)
   });
 
   it("intro and teach levels keep only their required features", () => {
@@ -76,9 +102,9 @@ describe("composer", () => {
     }
   });
 
-  it("the starting set's estimate is the nearest the pool allows (Level 25 automate takes every industrialize add-on)", () => {
+  it("the starting set's estimate is the nearest the pool allows (Level 25 takes the depot and the borrowed dust storms: closest to 0.581)", () => {
     const c = composeStart(at(25), GEN.conveyorGoals);
-    expect(c.features).toEqual(["converter_levels", "conveyors", "depot", "material_processor", "tier2"]);
+    expect(c.features).toEqual(["converter_levels", "depot", "dust_storms", "material_processor", "tier2"]);
     expect(c.estimate.mid).toBeLessThan(at(25).target);
   });
 

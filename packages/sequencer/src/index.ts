@@ -335,7 +335,7 @@ export function goalReach(goal: string, slot: GoalSlot, index: number, target: n
   const avoid = new Set(g.avoid ?? []);
   const pool = addonPool(slot.family, index, cfg).filter((f) => {
     const d = cfg.features[f]!;
-    return !required.includes(f) && !avoid.has(f) && !(d.with ?? []).some((w) => avoid.has(w)) && !(d.anchor && !g.anchor);
+    return !required.includes(f) && !avoid.has(f) && !(d.with ?? []).some((w) => avoid.has(w)) && !(d.anchor && !g.anchor) && guestFits(f, slot.family, target, cfg);
   }).slice(0, 12);
   const maxExtras = cfg.composer.extras[slot.phase] ?? cfg.mixFeatures.max;
   const baseOpt = optionalOf(modulesFor(fams, required, c, cfg), c).length;
@@ -476,6 +476,12 @@ export function featureUnlocked(f: string, family: Family, index: number, cfg: S
   if (def.family === family && index >= (deferredIntros(cfg).get(f) ?? def.firstLevel ?? Number.POSITIVE_INFINITY)) return true;
   const g = cfg.families[family]?.guests?.[f];
   return g !== undefined && index >= g;
+}
+
+/** A borrowed (guest) feature joins only a level whose target reaches the low end of its dStep (fix 1 applies to guests too); a family's own features are not gated here. */
+export function guestFits(f: string, family: Family, target: number, cfg: SequencerConfig = DEFAULT_CONFIG): boolean {
+  const def = cfg.features[f];
+  return !def || def.family === family || target >= (def.dStep?.[0] ?? 0);
 }
 
 /** Every feature a level of `family` at `index` may carry, sorted by first level (oldest first), then id. */
