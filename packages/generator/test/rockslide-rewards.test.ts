@@ -4,8 +4,8 @@ import { buildLevel, knobsFor, templateById, GEN } from "../src/index.js";
 
 // Every rock slide hides a reward from generator.json (rockslide.rewards), and the level uses that reward's resource;
 // or (88.2, rockslide.site) it is the site of a later building whose pad needs the slide cleared.
-// Levels to 120: the first rock-slide level that raises housing is past Level 60.
-const reqs = sequenceRange(1, 120).filter((r) => r.features.includes("rockslides") && r.family !== "defend" && r.family !== "rescue");
+// Levels to 180: the first rock-slide level that raises housing is past Level 60.
+const reqs = sequenceRange(1, 180).filter((r) => r.features.includes("rockslides") && r.family !== "defend" && r.family !== "rescue");
 type Ent = { type: string; id?: string; rect?: number[]; at?: number[]; site?: number[]; build?: string; requires?: { pad?: string } };
 const inRect = (p: number[] | undefined, [x, y, w, h]: number[]) => !!p && p[0]! >= x! && p[0]! <= x! + w! && p[1]! >= y! && p[1]! <= y! + h!;
 

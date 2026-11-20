@@ -42,7 +42,7 @@ describe("builder re-roll (outpost-ops#198)", () => {
   });
 
   it("rebuilds later slots whose request changed after a re-roll, and drops their stale results", async () => {
-    const idx = [24, 25, 26, 27, 28, 29, 30];
+    const idx = [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36];
     const before = requestsFor(idx)(fresh());
     const bad = key(before.get(24)!);
     const { build, calls } = stub((r) => key(r) === bad);

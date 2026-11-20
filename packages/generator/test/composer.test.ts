@@ -48,8 +48,8 @@ describe("add-on unlock order", () => {
         if (d.family !== r.family) expect(r.target, `${r.id} ${f}`).toBeGreaterThanOrEqual(d.dStep![0]);
       }
     }
-    // a low-target harvest level never gets the depot (low end 0.15), a high one may
-    const h = { ...reqs.find((r) => r.family === "harvest" && r.index >= 18 && r.phase === "mix")!, target: 0.1 };
+    // a low-target harvest level never gets the depot (low end 0.08), a high one may
+    const h = { ...reqs.find((r) => r.family === "harvest" && r.index >= 18 && r.phase === "mix")!, target: 0.05 };
     expect(composerPool(h, GEN.conveyorGoals, content, cfg)).not.toContain("depot");
     expect(composerPool({ ...h, target: 0.5 }, GEN.conveyorGoals, content, cfg)).toContain("depot");
   });
