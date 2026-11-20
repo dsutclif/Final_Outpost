@@ -51,7 +51,7 @@ describe("goal ranges (ops docs/reference/composer.md)", () => {
   });
 
   it("a goal with no measured range is never ruled out", () => {
-    expect(goalReach("hold_out", slotFor(25, cfg), 25, 0.581, undefined, cfg)).toBeNull();
+    expect(goalReach("sell", slotFor(25, cfg), 25, 0.581, undefined, cfg)).toBeNull();
   });
 
   it("when no goal reaches the target the nearest is taken, with a note", () => {

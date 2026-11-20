@@ -79,7 +79,7 @@ if (write) {
   const path = join(import.meta.dirname ?? __dirname, "..", "packages", "sequencer", "data", "sequencer.json");
   if (!existsSync(path)) throw new Error(`no ${path}`);
   const lines = readFileSync(path, "utf8").split("\n");
-  if (keep) for (const [g, r] of Object.entries((JSON.parse(readFileSync(path, "utf8")).goalRanges ?? {}) as Record<string, GoalRange>)) if (g !== "_doc" && !goals.includes(g) && !(g in ranges)) ranges[g] = r;
+  if (keep) for (const [g, r] of Object.entries((JSON.parse(readFileSync(path, "utf8")).goalRanges ?? {}) as Record<string, GoalRange>)) if (g !== "_doc" && !(g in ranges) && !(goals.includes(g) && samples.filter((x) => x.goal === g && x.res !== null).length >= minN)) ranges[g] = r;
   const block = [
     `  "goalRanges": {`,
     `    "_doc": "Written by tools/goal-ranges.ts from build logs and level pools (engine ${minEngine}+, at least ${minN} winnable samples): per goal id, winnable D less the composer estimate (mid) of the features each sample carried; n winnable, lost unwinnable. A side is set only where a slot asked for more than ${tol} past it; null and unlisted goals are never ruled out on that side. Rules in ops docs/reference/composer.md.",`,
