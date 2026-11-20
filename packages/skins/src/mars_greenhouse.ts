@@ -1183,9 +1183,10 @@ export const marsGreenhouse: Skin = {
         // manifest people order: Pip, Rhee, Okafor, Tam, then Sela's two drivers
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { entity: "kiosk" } },
         goals: [
-          { id: "galleyBuilt", label: "Build the galley" },
-          // the fourth job is a cashier, so the kiosk is minded from here on and level 5's arrows leave it alone (Doug)
-          { id: "train", label: "Train the crew for all four jobs" },
+          { id: "arrive", hold: true, label: "Let the newcomers in" },
+          { id: "galleyBuilt", hold: true, label: "Build the galley" },
+          // the third job is the clerk, so the kiosk is minded from here on and level 5's arrows leave it alone (Doug)
+          { id: "train", hold: true, label: "Train the three newcomers" },
           { id: "auto", label: "Reach the wreck while the town runs itself" },
           { id: "main", label: "Bring the flight recorder home" },
         ],
@@ -1211,20 +1212,34 @@ export const marsGreenhouse: Skin = {
             { camera: { to: { entity: "recorder" }, pan: 1.3, hold: 1.2, back: 1.1 } },
             { line: "That's a long walk, and there's a line at the kiosk. If I go, the town stops.", who: "commander" },
             { line: "Then we'll learn to run things on our own. We need that box to know what happened to us.", who: "rhee" },
-            { line: "You'll need to train the team to keep the town running without you.", who: "kiln" },
+            // Sela's buggy pulls up at the kiosk again; her three hands climb out and walk to the camp gate (the arrivals
+            // rule: they spawn near the kiosk, level params gate.spawnOffsetY)
+            { vehicle: "buggy", path: [{ at: [950, 1160] }, { at: [780, 1135] }, { at: [650, 1120] }], seconds: 4, lights: true },
+            { wait: 4.5 },
             { line: "Storm season's close. The towns will pay well for hot meals.", who: "sela" },
             { line: "I've brought three hands who want steady work. They're at your gate.", who: "sela" },
-            { line: "A galley cooks greens into meals.", who: "kiln" },
+            { line: "Stand by the gate to let them in.", who: "kiln" },
+            { goal: "arrive" },
+          ] },
+          // the three are in: the road crew's buggy leaves and the galley is next
+          { on: { goal: "arrive", is: "done" }, ordered: true, do: [
+            { vehicleOff: "buggy" },
+            { line: "A galley cooks greens into meals. Pay for it at its outline and the road crew will raise it.", who: "kiln" },
+            { goal: "galleyBuilt" },
           ] },
           // morning turns to dusk while the town learns to run itself
           { on: { goal: "galleyBuilt", is: "done" }, do: [
             { light: "dusk", seconds: 120 },
-            { line: "Three jobs keep it running: carry greens from the dome, cook at the galley, carry meals to the kiosk.", who: "kiln" },
+          ] },
+          // Tam's greens now go to the galley (the galley pad's repoint): no pad, no cost
+          { on: { goal: "galleyBuilt", is: "done" }, ordered: true, do: [
+            { line: "Tam, greens go to the galley from now on.", who: "commander" },
+            { line: "Greens to the galley. Fine.", who: "tam" },
+            { line: "Three more jobs will keep it running: cook at the galley, carry meals to the kiosk, mind the counter.", who: "kiln" },
+            { line: "Do each job once yourself and its training pad lights. Then stand on the pad to train one of the newcomers.", who: "kiln" },
+            { goal: "train" },
           ] },
           // all three trained: a small light starts blinking at the wreck
-          { on: { event: "hired", match: { pad: "server" } }, do: [
-            { line: "One more. Somebody has to mind the kiosk and take the coins while you're gone.", who: "rhee" },
-          ] },
           { on: { event: "hired", match: { pad: "cashier" } }, do: [
             { guide: false },
             { line: "They've got it. Head east to the wreck while the town runs without you.", who: "kiln" },

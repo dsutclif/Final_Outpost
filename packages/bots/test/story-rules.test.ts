@@ -63,7 +63,8 @@ describe("bots on the story rules", () => {
   it("works a staffed source for converters_running sources", () => {
     const L = story("story-L004.json");
     // level 4's flight recorder waits on its own objective, which this swapped-in list does not have
-    const entities = L.entities.filter((e) => !e["hiddenUntil"]);
+    // the galley pad waits on the "arrive" goal (the gate), which the swapped-in list does not have either
+    const entities = L.entities.filter((e) => !e["hiddenUntil"]).map((e) => { const { requires: r, ...rest } = e as Ent & { requires?: { objective?: string } }; return r?.objective ? (rest as Ent) : e; });
     const modules = (L["modules"] as string[]).filter((x) => x !== "lasso");
     const m = Manifest.parse({ ...L, entities, modules, goal: { type: "converters_running", k: 1, seconds: 5, sources: 1 }, objectives: objs("converters_running", { k: 1, seconds: 5, sources: 1 }, { kind: "no_injuries", params: {} }) });
     const r = playBot(m, good, 1);

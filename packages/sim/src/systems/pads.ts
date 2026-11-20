@@ -110,6 +110,13 @@ function build(st: State, cp: Compiled, pad: PadState, e: HireEnt | BuildEnt, ou
   } else {
     applyBuild(st, cp, pad, e, out);
     out.push({ t: "built", pad: pad.id, build: e.build, at: { ...pad.pos } });
+    if (e.repoint) {
+      for (const r of st.residents) {
+        if (r.assign?.to !== e.repoint.from) continue;
+        r.assign.to = e.repoint.to;
+        r.mode = "gather"; r.n = 0; r.carry = null; r.acc = 0; r.target = null;
+      }
+    }
     if (isAutomation(cp, e)) st.automation = (st.automation ?? 0) + 1;
     if (!st.built.includes(pad.id)) st.built.push(pad.id);
   }

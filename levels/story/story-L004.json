@@ -550,6 +550,18 @@
    ]
   },
   {
+   "type": "struct.gate",
+   "id": "gate",
+   "at": [
+    505,
+    805
+   ],
+   "arrivals": {
+    "every": 3,
+    "total": 3
+   }
+  },
+  {
    "type": "pad.build",
    "id": "galley",
    "at": [
@@ -559,28 +571,14 @@
    "cost": {
     "res.currency": 11
    },
-   "build": "conv.food_processor"
-  },
-  {
-   "type": "pad.hire",
-   "id": "feeder",
-   "at": [
-    450,
-    1000
-   ],
-   "cost": {
-    "res.currency": 9
-   },
-   "role": {
-    "role": "role.supplier",
-    "from": "node.food_source",
-    "to": "conv.food_processor",
-    "node": "field1"
+   "build": "conv.food_processor",
+   "repoint": {
+    "from": "sink.sales_point",
+    "to": "conv.food_processor"
    },
    "requires": {
-    "pad": "galley"
-   },
-   "manual": true
+    "objective": "arrive"
+   }
   },
   {
    "type": "pad.hire",
@@ -597,7 +595,7 @@
     "to": "conv.food_processor"
    },
    "requires": {
-    "pad": "feeder"
+    "pad": "galley"
    },
    "manual": true
   },
@@ -671,18 +669,6 @@
    "role": "role.defender"
   },
   {
-   "role": "idle"
-  },
-  {
-   "role": "idle"
-  },
-  {
-   "role": "idle"
-  },
-  {
-   "role": "idle"
-  },
-  {
    "role": "role.supplier",
    "from": "node.food_source",
    "to": "sink.sales_point",
@@ -700,7 +686,8 @@
   "customers.spawn": 2,
   "customers.orderMin": 1,
   "customers.orderMax": 3,
-  "level.budgetSeconds": 300
+  "level.budgetSeconds": 300,
+  "gate.spawnOffsetY": -190
  },
  "goal": {
   "type": "crates",
@@ -716,10 +703,24 @@
    }
   },
   {
+   "id": "arrive",
+   "kind": "admit",
+   "params": {
+    "n": 3
+   }
+  },
+  {
    "id": "galleyBuilt",
    "kind": "build",
    "params": {
     "target": "galley"
+   }
+  },
+  {
+   "id": "train",
+   "kind": "hire",
+   "params": {
+    "n": 3
    }
   },
   {
@@ -729,14 +730,6 @@
     "k": 3,
     "seconds": 12,
     "sources": 1
-   }
-  },
-  {
-   "id": "train",
-   "kind": "hire",
-   "params": {
-    "n": 1,
-    "role": "role.cashier"
    }
   }
  ],

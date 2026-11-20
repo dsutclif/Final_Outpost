@@ -95,6 +95,9 @@ export const BuildPad = z.object({
   // struct.conveyor: the belt's source (a converter type or store.depot) and target (a converter
   // type, sink.sales_point, sink.core or store.depot), looked up by type like worker roles.
   link: z.object({ from: z.string(), to: z.string() }).optional(),
+  // Opt-in (story level 4): once built, every worker whose delivery target is `from` (a sink or converter
+  // type) is re-pointed to `to`, with no pad and no cost. Off by default.
+  repoint: z.object({ from: z.string(), to: z.string() }).optional(),
 });
 // A pre-placed converter or structure.
 export const ConverterEntity = z.object({ ...base, type: ConvId });

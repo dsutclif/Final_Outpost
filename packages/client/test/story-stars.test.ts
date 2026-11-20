@@ -9,7 +9,7 @@ import { marsGreenhouse } from "@fo/skins";
 // Goals per level today: 4, 3, 8, 4, 5 (the plan is 4, 3, 8, 5, 6 once levels 4-5 are rebuilt with more goals).
 const here = dirname(fileURLToPath(import.meta.url));
 const manifest = (n: number): { objectives: { id: string }[] } => JSON.parse(readFileSync(resolve(here, `../../../levels/story/story-L00${n}.json`), "utf8"));
-const GOALS = [4, 3, 8, 4, 5];
+const GOALS = [4, 3, 8, 5, 5];
 const UNSTARRED = new Set(["story-L001:reach"]);
 
 describe("story goals and stars", () => {
