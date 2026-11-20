@@ -830,6 +830,7 @@ export const marsGreenhouse: Skin = {
       tam: { name: "TAM", tag: "grower", bust: "busts/tam.webp" },
       sela: { name: "SELA", tag: "trader", bust: "busts/sela.webp" },
       trader: { name: "TRADER" },
+      settler: { name: "SETTLER" },
       lieutenant: { name: "RAIDER", bust: "busts/lieutenant.webp" },
     },
     scenes: {
@@ -1280,14 +1281,16 @@ export const marsGreenhouse: Skin = {
         hide: ["credits"],
         solid: ["sink.core"],
         goalCards: true,
-        // manifest people order: Pip, Rhee, Okafor, Tam, then the hub's two new settlers
-        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, lieutenant: { boss: true } },
+        // manifest people order: Pip, Rhee, Okafor, Tam, the cook, the runner and the clerk (level 4's town, at its posts all
+        // level), then the two settlers who come in at the gate
+        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, settler: { person: 7 }, lieutenant: { boss: true } },
         // after the fall scene the warlord runs off in play as Vale, helmet off, and the helmet lies where it fell (#6)
         fleeingModels: { "hostile.boss": "hostile.boss_vale" },
         showDropped: true,
         goals: [
           { id: "first", label: "Stop the first raiders" },
           { id: "turret", label: "Build a turret" },
+          { id: "arrive", hold: true, label: "Let the settlers in" },
           { id: "train", label: "Train a guard" },
           { id: "hold", label: "Hold until dawn" },
           { id: "main", label: "Pick up the helmet" },
@@ -1315,9 +1318,15 @@ export const marsGreenhouse: Skin = {
             { dots: [{ entity: "turret1" }], period: 2 },
             { line: "Their scrap will build a turret on that socket.", who: "kiln" },
           ] },
-          { on: { goal: "turret", is: "done" }, do: [
+          // two settlers run up the road to the gate (the arrivals rule; level params gate.initialDelay, gate.spawnOffsetY)
+          { on: { goal: "turret", is: "done" }, ordered: true, do: [
+            { line: "Let us in! They burned our camp on the road!", who: "settler" },
+            { line: "Two at the gate. Stand by it to let them in.", who: "kiln" },
+            { goal: "arrive" },
+          ] },
+          { on: { goal: "arrive", is: "done" }, ordered: true, do: [
             { dots: [{ entity: "train" }], period: 2 },
-            { line: "Good. The hub's taken in two new settlers. Train one as a guard to hold the gate with me.", who: "okafor" },
+            { line: "Good. Train one as a guard to hold the gate with me.", who: "okafor" },
           ] },
           { on: { event: "hired", match: { pad: "train" } }, do: [
             { dotsOff: true },
