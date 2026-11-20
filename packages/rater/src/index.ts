@@ -8,3 +8,4 @@ export { defendTrace, type DefendTrace, type WaveTrace } from "./defendTrace.js"
 export { varietySignature, varietyParts, layoutGrid, sameAsEarlier, varietyExempt, VARIETY } from "./variety.js";
 export { playShapeNumbers, playShapeFails, type PlayShapeNumbers, type PlayShapeParams, type PlayShapeBeat } from "./playShape.js";
 export { repin, scaleWaves, breakingMultiplier, strategyGap, type BreakOptions, type BreakResult, type StrategyGap } from "./defendBreak.js";
+export { s1Metrics, type S1Metrics } from "./defendS1.js";
