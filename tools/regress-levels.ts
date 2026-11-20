@@ -55,7 +55,9 @@ function humanRung(m: unknown): HumanRow {
   const mean = rs.reduce((a, r) => a + r.stars, 0) / rs.length;
   const rec = (m as { rating?: { stars?: { human?: number } } }).rating?.stars?.human;
   const recorded = typeof rec === "number" ? rec : null;
-  const three = rs.filter((r) => r.stars >= 3).length; // story levels list up to 8 objectives (#123), so a full run earns more than 3 stars
+  // a full-star run: every star slot of the level (story levels list up to 8 objectives, #123; s1 levels have 3)
+  const slots = Math.max(3, objs.length);
+  const three = rs.filter((r) => r.stars >= slots).length;
   const miss = [
     ...(recorded !== null && mean < recorded - HS.regressTolerance ? [`human stars ${mean.toFixed(2)} < recorded ${recorded.toFixed(2)}`] : []),
     ...earned.filter((e) => e.n < HS.minEarned).map((e) => `${e.kind} ${e.n}/${HS.seeds}`),
