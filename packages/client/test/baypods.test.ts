@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,11 +24,15 @@ describe("bay pods", () => {
       expect(existsSync(resolve(root, "packages/client/public", img))).toBe(true);
     });
   });
+  it("the four badge files are different pictures (each crew member has their own face)", () => {
+    const sums = [5, 6, 7, 8].map((n) => createHash("sha1").update(readFileSync(resolve(root, `packages/client/public/scenes/badge_bay${n}.png`))).digest("hex"));
+    expect(new Set(sums).size).toBe(4);
+  });
   it("crash_log names the same four crew", () => {
     NAMES.forEach((name, i) => expect(scenes["crash_log"]!.text[`name${i + 5}`]).toBe(name));
   });
   it("both films were re-versioned", () => {
-    expect(FILM_VERSIONS.empty_bays).toBeGreaterThanOrEqual(2);
+    expect(FILM_VERSIONS.empty_bays).toBeGreaterThanOrEqual(3);
     expect(FILM_VERSIONS.crash_log).toBeGreaterThanOrEqual(2);
   });
   it.each([1, 2, 3, 4, 5])("level %i has the commander's pod plus four bay pods", (n) => {
