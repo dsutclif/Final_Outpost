@@ -1155,7 +1155,12 @@ export const marsGreenhouse: Skin = {
           ] },
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land
           { on: { goal: "main", is: "done" }, ordered: true, do: [
-            // Sela hands the commander the chip (the chip_handoff live scene), then her line
+            // Sela's road crew raise the hub like every paid build (they drive up, wait and go), then she hands the commander the chip
+            // (the chip_handoff live scene) and speaks
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [600, 420] }], seconds: 5, lights: true },
+            { camera: { to: { at: [640, 440] }, pan: 1, hold: 4.5, back: 0.4, freeze: false } },
+            { wait: 5.5 },
+            { vehicleOff: "buggy" },
             { film: "chip_handoff" },
             { line: "For your first night under a roof. A Halcyon chip.", who: "sela" },
             { line: "Halcyon chips? That's our ship's money. Where did you get it?", who: "commander" },

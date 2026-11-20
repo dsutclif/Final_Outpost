@@ -6,5 +6,9 @@
   ],
   "story-L002": [
     { "line": "A fifth pod", "seen": ["capture.recruit_container.decoy"], "why": "KILN names the lander's escape pod only once it has lit and the camera has shown it; until the pair is home it lies dark and unmarked." }
+  ],
+  "story-L003": [
+    { "line": "Lights, to the south", "unseen": ["sink.sales_point"], "why": "The commander sees only lights far to the south; the old kiosk is not yet in view (a glow on the screen edge points the way)." },
+    { "line": "A road. And a kiosk", "seen": ["sink.sales_point"], "after": ["Lights, to the south"], "why": "The commander finds the road and the shut-up kiosk only after walking to it, and only after the lights line." }
   ]
 }
