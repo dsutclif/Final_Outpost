@@ -1187,7 +1187,8 @@ export const marsGreenhouse: Skin = {
           { id: "galleyBuilt", hold: true, label: "Build the galley" },
           // the third job is the clerk, so the kiosk is minded from here on and level 5's arrows leave it alone (Doug)
           { id: "train", hold: true, label: "Train the three newcomers" },
-          { id: "auto", label: "Reach the wreck while the town runs itself" },
+          // the ring counts seconds the galley, the runner and the counter all work without you
+          { id: "auto", label: "Walk to the wreck while the town runs itself for 12 seconds" },
           { id: "main", label: "Bring the flight recorder home" },
         ],
         cues: [
@@ -1240,12 +1241,14 @@ export const marsGreenhouse: Skin = {
             { goal: "train" },
           ] },
           // all three trained: a small light starts blinking at the wreck
-          { on: { event: "hired", match: { pad: "cashier" } }, do: [
+          { id: "handsOff", on: { event: "hired", match: { pad: "cashier" } }, do: [
             { guide: false },
             { line: "They've got it. Head east to the wreck while the town runs without you.", who: "kiln" },
             { dots: [{ entity: "recorder" }], period: 1.2 },
             { edgeGlow: { entity: "recorder", size: 28, strength: 0.35 } },
           ] },
+          // a job stops on the walk: the ring drops to nothing and the arrows lead back to it
+          { on: { stalled: "auto", after: "handsOff" }, repeat: true, do: [{ guide: true }, { line: "Something stopped. Go back and look.", who: "kiln" }] },
           { on: { near: { entity: "recorder" }, r: 140 }, do: [{ edgeGlow: null }] },
           { on: { near: { entity: "recorder" }, r: 50 }, do: [{ dotsOff: true }] },
           { id: "revealed", on: { event: "capture_revealed" }, do: [] },

@@ -134,33 +134,30 @@ export function buildSupplyCrate(ctx: BuildCtx): Model {
 }
 
 /**
- * A flight recorder (capture.recorder): a chunky bevelled orange box with hazard stripes and a
- * beacon that blinks. Part "beacon" is a clone of the glow material; the renderer pulses it.
+ * A flight recorder (capture.recorder): a crate-sized plain steel box (same footprint as the supply crate) with dark
+ * corner straps, a data-port plate and a locator beacon that blinks. Part "beacon" is a clone of the glow material;
+ * the renderer pulses it.
  */
 export function buildRecorder(ctx: BuildCtx): Model {
   const { t, mats } = ctx;
   const m = model("scatter");
-  const shell = t.accent, stripe = t.ink;
   const b = new GeoBuilder()
-    .rbox(0.7, 0.42, 0.5, 0.09, shell, { at: [0, 0.21, 0] }, 1)
-    .rbox(0.74, 0.08, 0.54, 0.04, t.metalDark, { at: [0, 0.04, 0] }, 1)
-    // hazard stripes: diagonal bands across the front and back faces
-    .box(0.1, 0.3, 0.02, stripe, { at: [-0.22, 0.22, 0.255], rot: [0, 0, 0.6] })
-    .box(0.1, 0.3, 0.02, stripe, { at: [0, 0.22, 0.255], rot: [0, 0, 0.6] })
-    .box(0.1, 0.3, 0.02, stripe, { at: [0.22, 0.22, 0.255], rot: [0, 0, 0.6] })
-    .box(0.1, 0.3, 0.02, stripe, { at: [-0.22, 0.22, -0.255], rot: [0, 0, -0.6] })
-    .box(0.1, 0.3, 0.02, stripe, { at: [0, 0.22, -0.255], rot: [0, 0, -0.6] })
-    .box(0.1, 0.3, 0.02, stripe, { at: [0.22, 0.22, -0.255], rot: [0, 0, -0.6] })
-    // carry handle and a locator-beacon stub
-    .box(0.4, 0.04, 0.04, t.metal, { at: [0, 0.46, 0] })
-    .box(0.04, 0.06, 0.04, t.metal, { at: [-0.18, 0.43, 0] })
-    .box(0.04, 0.06, 0.04, t.metal, { at: [0.18, 0.43, 0] })
-    .cyl(0.03, 0.03, 0.1, 6, t.metalDark, { at: [0.25, 0.47, -0.15] });
+    .rbox(0.8, 0.5, 0.6, 0.05, t.structure, { at: [0, 0.25, 0] }, 1)
+    .rbox(0.84, 0.06, 0.64, 0.03, t.metal, { at: [0, 0.03, 0] }, 1)
+    // dark steel straps round the box, a plate with a port on the front and a carry handle
+    .box(0.06, 0.52, 0.62, t.metal, { at: [-0.25, 0.26, 0] })
+    .box(0.06, 0.52, 0.62, t.metal, { at: [0.25, 0.26, 0] })
+    .box(0.26, 0.2, 0.02, t.trim, { at: [0, 0.27, 0.305] })
+    .cyl(0.04, 0.04, 0.03, 8, t.ink, { at: [0, 0.27, 0.32], rot: [Math.PI / 2, 0, 0] })
+    .box(0.4, 0.04, 0.04, t.metalDark, { at: [0, 0.54, 0] })
+    .box(0.04, 0.06, 0.04, t.metalDark, { at: [-0.18, 0.51, 0] })
+    .box(0.04, 0.06, 0.04, t.metalDark, { at: [0.18, 0.51, 0] })
+    .cyl(0.03, 0.03, 0.1, 6, t.metalDark, { at: [0.3, 0.52, -0.2] });
   m.root.add(mesh(b.build(), mats.std, "body"));
   const glowMat = mats.glow.clone();
   glowMat.color.set(t.danger);
   const beacon = mesh(new GeoBuilder().sphere(0.05, 8, 6, WHITE).build(), glowMat, "beacon");
-  beacon.position.set(0.25, 0.55, -0.15);
+  beacon.position.set(0.3, 0.62, -0.2);
   m.root.add(beacon);
   m.parts["beacon"] = beacon;
   anchor(m.root, "interact", 0, 0, 0.6);

@@ -603,8 +603,8 @@
    "type": "pad.hire",
    "id": "server",
    "at": [
-    450,
-    1000
+    380,
+    1050
    ],
    "cost": {
     "res.currency": 9
@@ -624,7 +624,7 @@
    "id": "cashier",
    "at": [
     450,
-    1000
+    1100
    ],
    "cost": {
     "res.currency": 9
@@ -678,7 +678,7 @@
  "waves": [],
  "events": [],
  "params": {
-  "start.currency": 20,
+  "start.currency": 12,
   "core.burn": 3,
   "housing.base": 9,
   "lots.block": 0,

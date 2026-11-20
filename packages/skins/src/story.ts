@@ -24,6 +24,8 @@ export type StoryTrigger =
   | { hostile: string; r: number; at?: StoryPlace; fleeing?: boolean; after?: string }
   /** The camp holds at least `credits` credits (once the cue `after` has fired, when given). */
   | { credits: number; after?: string }
+  /** A hold goal `stalled` (manifest objective id) lost its progress: a job it counts stopped. Needs the cue `after` to have fired; pair with `repeat`. */
+  | { stalled: string; after?: string }
   /** Cast member `who` (the level's `cast`) came within `r` world units of `at`. Fires once the cue `after` has fired, when given. */
   | { who: string; r: number; at: StoryPlace; after?: string };
 

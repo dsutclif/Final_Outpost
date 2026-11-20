@@ -243,7 +243,7 @@ export class StoryDirector {
     const p = st.player.pos;
     this.tick = st.tick;
     for (const c of this.level.cues) {
-      if (this.armed(c) && (this.timeReached(c.on, st) || this.playerNear(c.on, p.x / FP, p.y / FP) || this.hostileNear(c.on, st))) this.fire(c, st);
+      if (this.armed(c) && (this.timeReached(c.on, st) || this.playerNear(c.on, p.x / FP, p.y / FP) || this.hostileNear(c.on, st) || this.stalledNow(c.on, st))) this.fire(c, st);
     }
     for (const g of this.level.goals) if (g.until && this.playerNear(g.until, p.x / FP, p.y / FP)) this.stepDone.add(g.id);
     this.pump();
@@ -353,6 +353,19 @@ export class StoryDirector {
     if (!("ticks" in on)) return false;
     const base = on.after === undefined ? 0 : this.firedAt.get(on.after);
     return base !== undefined && st.tick - base >= on.ticks;
+  }
+
+  private lastProgress = new Map<string, number>();
+
+  /** A hold goal that had progress and now has none (a job it counts stopped); the last progress is kept per goal. */
+  private stalledNow(on: StoryTrigger, st: State): boolean {
+    if (!("stalled" in on)) return false;
+    const o = st.objectives?.find((x) => x.id === on.stalled);
+    if (!o) return false;
+    const prev = this.lastProgress.get(on.stalled) ?? 0;
+    this.lastProgress.set(on.stalled, o.progress);
+    if (o.done || (on.after !== undefined && !this.firedAt.has(on.after))) return false;
+    return prev > 0 && o.progress < prev;
   }
 
   private hostileNear(on: StoryTrigger, st: State): boolean {
