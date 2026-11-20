@@ -489,7 +489,8 @@ export const CHALLENGE_PLACEHOLDER: Record<Family, { kind: string; params: Recor
   defend: { kind: "no_injuries", params: {} },
 };
 
-const RATE_GOALS = new Set(["hunt", "protein", "currency", "sell", "earn", "serve_premium", "streak", "sell_each", "bulk_order",
+// sell_each is not here: its progress is a goods count (0..k), so the sizeGoal probe (n = 1e6) could never succeed; it stays {n:3,k}
+export const RATE_GOALS = new Set(["hunt", "protein", "currency", "sell", "earn", "serve_premium", "streak", "bulk_order",
   "produce", "haul", "chain", "stockpile", "kills", "salvage", "earn_within"]);
 const FILL_GOALS = new Set(["fuel_full"]);
 

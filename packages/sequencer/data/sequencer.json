@@ -165,6 +165,8 @@
     "rescue_all": {"lo":null,"hi":0.299,"n":449,"lost":0},
     "rescue_before_freeze": {"lo":null,"hi":0.243,"n":426,"lost":0},
     "stockpile": {"lo":null,"hi":0.24,"n":114,"lost":0},
+    "sell_each": {"lo":null,"hi":0.091,"n":0,"lost":0},
+    "heat_hold": {"lo":null,"hi":-0.05,"n":0,"lost":0},
     "streak": {"lo":null,"hi":0.082,"n":109,"lost":0},
     "unlock": {"lo":null,"hi":0.18,"n":107,"lost":0},
     "automate": {"lo":null,"hi":-0.201,"n":35,"lost":618},

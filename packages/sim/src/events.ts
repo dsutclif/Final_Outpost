@@ -31,6 +31,8 @@ export type SimEvent =
   | { t: "tow_dropped"; capture: number; at: Vec; reason: "hit" }
   | { t: "crate_delivered"; capture: number; at: Vec; bundle: Record<string, number>; item?: true }
   | { t: "capture_revealed"; capture: number; at: Vec }
+  // a buried ore node whose objective is done: it is on the map and gatherable from now
+  | { t: "node_revealed"; node: number; at: Vec }
   // story pods: a crew member who starts work on release, an empty pod
   | { t: "joined"; capture: number; resident: number; role: string }
   | { t: "decoy_opened"; capture: number; at: Vec }

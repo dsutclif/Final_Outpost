@@ -896,7 +896,8 @@ export const marsGreenhouse: Skin = {
             { edgeGlow: null },
             { guide: true },
             { dots: [{ at: [382, 380] }, { at: [336, 452] }, { at: [286, 376] }, { at: [402, 452] }], period: 4 },
-            { line: "A reactor, and it's cold. That ore out past it should burn.", who: "commander" },
+            { line: "A reactor? All the way out here?", who: "commander" },
+            { line: "It's ours, the one we came here to install. Somebody set it up, and let it run dry.", who: "commander" },
             { goal: "ignite" },
           ] },
           { id: "lit", on: { event: "core_lit" }, do: [
@@ -914,7 +915,14 @@ export const marsGreenhouse: Skin = {
             { freeze: false },
             { line: "I'm KILN, the support system of the advance ship Halcyon.", who: "kiln" },
             { line: "Your stasis pod, bay nine, finally opened. I kept that beacon lit on the last of my battery.", who: "kiln" },
-            { line: "Fill the reactor before it dies, and me with it.", who: "kiln" },
+            { line: "Then who put the reactor out here?", who: "commander" },
+            { line: "I have no record. My logs stop at the crash.", who: "kiln" },
+          ] },
+          // a gust runs ahead of the storm and strips the sand off a seam of ore just past the reactor (outpost-ops#125):
+          // the ore is buried (hiddenUntil gust1/gust2) until a second after the reactor lights
+          { id: "gust", on: { event: "node_revealed" }, do: [
+            { camera: { to: { entity: "ore16" }, pan: 0.5, hold: 0.8, back: 0.4, zoom: 0.8 } },
+            { line: "Those cells won't last the night. The wind just uncovered ore, and ore burns. Fill the reactor before it dies, and me with it.", who: "kiln" },
             { goal: "fill" },
           ] },
           { on: { goal: "fill", is: "done" }, do: [
@@ -933,6 +941,8 @@ export const marsGreenhouse: Skin = {
           ] },
           // mid-storm the ridge shows red for the first time, and the camera nudges toward it
           { id: "storm", on: { event: "hazard_start" }, do: [] },
+          // the storm's wind uncovers more ore closer to the reactor (buried until the storm objective)
+          { on: { after: "storm", ticks: 30 }, do: [{ camera: { to: { entity: "ore21" }, pan: 0.4, hold: 0.6, back: 0.4, freeze: false } }] },
           { on: { after: "storm", ticks: 450 }, do: [
             { ridge: "right", period: 4, k: 0.4 },
             { ridgeFlash: 2 },
@@ -953,6 +963,8 @@ export const marsGreenhouse: Skin = {
         hide: ["credits", "walls"],
         solid: ["sink.core"],
         podLights: "glow",
+        // the lander's escape pod (manifest hiddenUntil: pair) lies dark and unmarked until KILN names it
+        darkPods: true,
         noWallMarks: true,
         tally: true,
         goalCards: true,
@@ -986,7 +998,7 @@ export const marsGreenhouse: Skin = {
             { line: "Give me something to carry. Ore in, fire stays on.", who: "pip" },
             { line: "Two pods came down close together. Bring them both in one trip.", who: "kiln" },
           ] },
-          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
+          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }, { aidStation: true }] },
           // Okafor walks the camp's edge as he says it (S6), then is let go back to his post
           { on: { event: "joined", match: { capture: 2 } }, ordered: true, do: [
             { walk: "okafor", to: { at: [462, 330] } },
@@ -994,6 +1006,8 @@ export const marsGreenhouse: Skin = {
             { walk: "okafor", to: false },
           ] },
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
+            // the lander pod lights (manifest hiddenUntil: pair): the camera looks out to it, so KILN names what the player can see
+            { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 1.2, back: 0.7 } },
             { line: "One more out there. A fifth pod. It's ours, the lander's escape pod, but nobody was assigned to it.", who: "kiln" },
             { line: "Then I'll bring in all five.", who: "commander" },
             { goal: "main" },
@@ -1025,6 +1039,8 @@ export const marsGreenhouse: Skin = {
       // Open for Trade (docs/STORY-SCREENPLAY.md, level 3). Sela comes first, then the hub and its price; selling meat is a
       // story step (no star). The H coin close-up is a card with the coin's render.
       "story-L003": {
+        // Rhee's aid station stays beside the reactor from level 2 on
+        aidStation: true,
         hide: ["credits", "walls"],
         // the level opens on the road, where the buggy comes up (the first beat cuts to the same spot), not on the commander
         openAt: [800, 928],
@@ -1115,6 +1131,8 @@ export const marsGreenhouse: Skin = {
       // Halcyon Works (docs/STORY-SCREENPLAY.md, level 4). The crash_log live scene plays when the recorder is home. Ordered cues
       // put KILN's dim, the look east and the ridge flash on their lines. Training the crew is a story step (no star).
       "story-L004": {
+        // Rhee's aid station stays beside the reactor from level 2 on
+        aidStation: true,
         hide: ["walls"],
         solid: ["sink.core"],
         goalCards: true,
@@ -1196,6 +1214,8 @@ export const marsGreenhouse: Skin = {
       // last wave: the main goal tows it home. Stopping the first raiders and training a guard are story steps (no star).
       // The lieutenant's slow-motion fall is a text card until it is made.
       "story-L005": {
+        // Rhee's aid station stays beside the reactor from level 2 on
+        aidStation: true,
         hide: ["credits"],
         solid: ["sink.core"],
         goalCards: true,

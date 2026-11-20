@@ -1,5 +1,5 @@
 import type { CameraBeat, FallScene, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
-import { StoryProps } from "./storyprop.js";
+import { AidStation, StoryProps } from "./storyprop.js";
 import type { RideExit } from "./selaride.js";
 import type { Interp } from "../interp.js";
 import type { CoreSpirit } from "./corespirit.js";
@@ -49,6 +49,11 @@ export class StoryPresent implements StoryPresentation {
 
   private readonly props = new StoryProps((o) => this.lights.attach(o), (o) => this.lights.detach(o));
   vehicle(id: string, spec: StoryVehicleSpec | null): void { this.props.vehicle(id, spec); }
+  private readonly aid = new AidStation((o) => this.lights.attach(o), (o) => this.lights.detach(o));
+  aidStation(at: { x: number; z: number } | null): void { this.aid.set(at); }
+  /** Captures hidden by a manifest `hiddenUntil` are drawn dark where they lie; the renderer reads it. */
+  darkShown = false;
+  showDark(on: boolean): void { this.darkShown = on; }
 
   /** True while customer `id` is still in a vehicle or climbing out of it (her figure is drawn by StoryProps, not the renderer). */
   riding(id: number, model: string | undefined, height: number, out: RideExit, leaving = false): boolean { return this.props.riding(id, model, height, out, leaving); }

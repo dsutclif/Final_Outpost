@@ -111,6 +111,8 @@ export class StoryStage {
     for (const [id, model] of Object.entries(this.director.level.customerModels ?? {})) p.customerModel(Number(id), model);
     for (const [kind, model] of Object.entries(this.director.level.fleeingModels ?? {})) p.fleeingModel(kind, model);
     if (this.director.level.showDropped) p.showDropped(true);
+    if (this.director.level.darkPods) p.showDark?.(true);
+    if (w.aid !== seen.aid) { seen.aid = w.aid; const at = w.aid ? this.director.aidAt() : null; p.aidStation?.(at ? { x: at.x, z: at.y } : null); }
     if (this.director.level.podLights) this.pods(st);
     if (this.director.level.tally) this.tally(st);
     if (w.actors !== seen.actors) {

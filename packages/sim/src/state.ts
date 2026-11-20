@@ -47,6 +47,8 @@ export interface NodeState {
   stock: number | null;
   regrowAcc: number;
   enabled: boolean;
+  /** Set while the node is buried: disabled and not drawn until this objective is done (then cleared). */
+  hiddenUntil?: string;
 }
 
 export interface CoreState {
