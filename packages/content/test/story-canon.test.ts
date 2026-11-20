@@ -29,7 +29,7 @@ const TRIMMED: Record<string, { level: number; why: string }> = {
 /** Objects that belong to one level's play (gameplay, not the shared map). */
 const LEVEL_OWN = new Set([
   "ring", "kiosk", "field1", "clear0", "hub", "picker", "pod_pip", "pod_rhee", "pod_okafor", "pod_tam", "pod_old",
-  "galley", "feeder", "cook", "server", "cashier", "recorder", "barracks", "turret1", "train", "helmet", "flats",
+  "cell1", "cell2", "galley", "feeder", "cook", "server", "cashier", "recorder", "barracks", "turret1", "train", "helmet", "flats",
 ]);
 /** Bay 5's lid is opened in levels 3-5 (empty_bays): its offset and lift change on purpose. */
 const OPEN_LID = { id: "lid1", levels: [3, 4, 5] };

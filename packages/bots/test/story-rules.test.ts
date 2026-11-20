@@ -62,4 +62,15 @@ describe("bots on the story rules", () => {
     const r = playBot(m, good, 1);
     expect(r.won).toBe(true);
   });
+
+  it("level 1 has two fuel cells on the path, nearer the start than any ore (outpost-ops#125)", () => {
+    const L = story("story-L001.json");
+    const at = (e: Record<string, unknown>) => e["at"] as [number, number];
+    const cells = L.entities.filter((e) => /^cell[12]$/.test(String(e["id"])));
+    expect(cells.map((e) => e["type"])).toEqual(["node.fuel_scrap", "node.fuel_scrap"]);
+    const start = L["start"] as [number, number];
+    const d = (a: [number, number], b: [number, number]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+    const ore = L.entities.filter((e) => e["type"] === "node.fuel_scrap" && !cells.includes(e));
+    for (const c of cells) for (const o of ore) expect(d(at(c), start)).toBeLessThan(d(at(o), start));
+  });
 });
