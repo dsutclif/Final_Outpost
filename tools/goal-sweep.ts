@@ -21,15 +21,17 @@ if (arg("--goal")) {
   const g = cfg.goals[goal]!;
   // a mix level of the goal's family is the base request (template, slot shape); everything else is overridden
   const base = sequenceRange(1, 60).find((r) => r.index > 15 && r.family === g.family && r.phase === "mix")!;
-  const features = featureClosure(g.needs.filter((f) => cfg.features[f] !== undefined), cfg);
-  const modules = modulesFor([g.family], features);
+  // @two_goods goals (sell_each) exist only on a finale whose second family supplies the second good: pair with rescue's hunting
+  const two = g.needs.includes("@two_goods");
+  const features = featureClosure([...g.needs.filter((f) => cfg.features[f] !== undefined), ...(two ? ["hunting"] : [])], cfg);
+  const modules = modulesFor(two ? [g.family, "rescue"] : [g.family], features);
   const id = `gs-${goal}-${t}`;
   const recipeId = `${g.family}|g:${goal}|f:${features.join(",")}`;
   const file = join(out, `${id}.jsonl`);
   let n = 0;
   for (let k = 0; Date.now() < deadline; k++) {
     const seed = mix(base.seed, hashStr(`gs${goal}${k}`)) & 0x7fffffff;
-    const req = { ...base, id, target: t, goalType: goal, goalId: goal, features, modules, introduced: [], seed, funThreshold: 0.2, phase: "mix" };
+    const req = { ...base, id, target: t, goalType: goal, goalId: goal, features, modules, introduced: [], ...(two ? { secondary: "rescue" } : {}), seed, funThreshold: 0.2, phase: "mix" };
     const rows: Record<string, unknown>[] = [];
     try {
       generateDetailed(req as never, { history: [], memory: newSearchMemory(), finish: true,
