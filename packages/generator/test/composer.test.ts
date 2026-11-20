@@ -86,8 +86,8 @@ describe("composer", () => {
     expect(pool).toContain("dust_storms"); // a guest from Level 12, and the target (0.243) reaches its low end (0.05)
   });
 
-  it("intro and teach levels keep only their required features", () => {
-    for (const r of reqs.filter((x) => x.phase === "intro" && !cfg.composer.fixed.includes(x.family))) expect(composeStart(r, GEN.conveyorGoals).features, r.id).toEqual([...r.features].sort());
+  it("only teach levels (1-5) keep just their required features; intro levels from 6 up may carry extras (Doug, 2026-11-20)", () => {
+    expect(cfg.composer.extras["intro"]).toBeGreaterThan(0);
     for (const r of reqs.filter((x) => x.phase === "teach")) expect(composeStart(r, GEN.conveyorGoals).features).toEqual([]);
   });
 
