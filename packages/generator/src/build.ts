@@ -489,7 +489,7 @@ export const CHALLENGE_PLACEHOLDER: Record<Family, { kind: string; params: Recor
   defend: { kind: "no_injuries", params: {} },
 };
 
-const RATE_GOALS = new Set(["hunt", "protein", "currency", "sell", "earn", "serve_premium", "streak", "sell_each", "bulk_order",
+const RATE_GOALS = new Set(["hunt", "protein", "currency", "sell", "earn", "serve_premium", "streak", "bulk_order",
   "produce", "haul", "chain", "stockpile", "kills", "salvage", "earn_within"]);
 const FILL_GOALS = new Set(["fuel_full"]);
 
