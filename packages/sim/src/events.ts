@@ -26,6 +26,7 @@ export type SimEvent =
   // lasso, housing, gate
   | { t: "captured"; capture: number; at: Vec }
   | { t: "released"; capture: number; resident: number; at: Vec }
+  | { t: "gate_arrival"; resident: number }
   | { t: "recruit_arrived"; resident: number; at: Vec }
   | { t: "moved_in"; resident: number }
   | { t: "pod_lost"; capture: number; at: Vec }

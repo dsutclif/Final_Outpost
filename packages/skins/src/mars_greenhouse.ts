@@ -1292,7 +1292,7 @@ export const marsGreenhouse: Skin = {
           { id: "turret", label: "Build a turret" },
           { id: "arrive", hold: true, label: "Let the settlers in" },
           { id: "train", label: "Train a guard" },
-          { id: "hold", label: "Hold until dawn" },
+          { id: "hold", label: "Hold until dawn: {waves}" },
           { id: "main", label: "Pick up the helmet" },
         ],
         cues: [
@@ -1319,7 +1319,9 @@ export const marsGreenhouse: Skin = {
             { line: "Their scrap will build a turret on that socket.", who: "kiln" },
           ] },
           // two settlers run up the road to the gate (the arrivals rule; level params gate.initialDelay, gate.spawnOffsetY)
-          { on: { goal: "turret", is: "done" }, ordered: true, do: [
+          // they appear only once the turret is built and no raider is alive (arrivals.after in the manifest), so the line
+          // plays when they do, not on a timer a slow player could outrun
+          { on: { event: "gate_arrival" }, ordered: true, do: [
             { line: "Let us in! They burned our camp on the road!", who: "settler" },
             { line: "Two at the gate. Stand by it to let them in.", who: "kiln" },
             { goal: "arrive" },
@@ -1337,8 +1339,10 @@ export const marsGreenhouse: Skin = {
           // too fast). Game time, so it holds through lines and the paused fall. A good run reaches the retreat at ~160 s
           // (light about -0.75 then), the rest finishes while the helmet is towed; slower runs simply arrive darker
           { on: { start: true }, do: [{ light: "ember", seconds: 200 }] },
+          // the first dust mites up out of the sand, measured from the east side of the base, wide enough to cover the whole east edge (not the player, who may be at the
+          // far pad: a nearby kill never let the line play), as they come in among the raiders
+          { on: { hostile: "hostile.swarmling", r: 800, at: { at: [1000, 800] } }, do: [{ line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
           // just before the warlord walks into frame (it spawns beyond the map's edge), not when it spawns (Doug)
-          { on: { hostile: "hostile.swarmling", r: 330 }, do: [{ line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
           { on: { hostile: "hostile.boss", r: 330 }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
             // the commander's last shot: the warlord is thrown down, the helmet comes off, Vale gets up and runs (S32),
@@ -1349,6 +1353,8 @@ export const marsGreenhouse: Skin = {
           // once Vale has run off screen (about 3 s at the fleeing pace, measured on a phone-shaped view), KILN, with dots
           // on the helmet where it fell (manifest heldBy: boss; showDropped draws it there before dawn reveals it to tow)
           { on: { after: "fall", ticks: 95 }, do: [
+            // the visors are gone; the ridge's red pulse beats on, quicker and stronger than before
+            { ridge: "right", period: 2, k: 0.8 },
             { line: "They're running. It's over for tonight.", who: "kiln" },
             { line: "But the signal hasn't stopped. That was never them.", who: "kiln" },
             { line: "They dropped something.", who: "kiln" },

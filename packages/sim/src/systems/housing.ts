@@ -43,13 +43,17 @@ export function stepGate(st: State, cp: Compiled, out: SimEvent[]): void {
   const g = cp.gate;
   if (!g) return;
   const T = st.timers;
-  T.gateAcc--;
-  if (T.gateAcc <= 0 && T.gateLeft > 0 && st.gateQueue.length < g.queueMax) {
+  // opt-in (arrivals.after): the timer waits for that objective, and a recruit only appears with no hostile alive
+  const waiting = g.after !== null && !st.objectives.some((o) => o.id === g.after && o.done);
+  if (!waiting) T.gateAcc--;
+  const lull = g.after === null || st.hostiles.length === 0;
+  if (!waiting && T.gateAcc <= 0 && T.gateLeft > 0 && lull && st.gateQueue.length < g.queueMax) {
     T.gateAcc = g.everyTicks;
     T.gateLeft--;
     const pos = { x: g.pos.x + between(st.rng, -g.spawnSpread, g.spawnSpread + 1), y: cp.map.h + g.spawnOffsetY };
     const r = newResident(st, pos, "idle", "arriving", "gate");
     st.gateQueue.push(r.id);
+    if (g.after !== null) out.push({ t: "gate_arrival", resident: r.id });
   }
   st.gateQueue.forEach((id, k) => {
     const r = st.residents.find((x) => x.id === id)!;

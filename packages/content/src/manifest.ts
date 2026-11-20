@@ -105,7 +105,9 @@ export const StructureEntity = z.object({
   ...base,
   type: StructId,
   // struct.gate only: recruits arrive here on a timer and queue until the player admits them.
-  arrivals: z.object({ every: z.number().positive(), total: z.number().int().positive() }).optional(),
+  // `after` (optional): an objective id; the arrival timer starts only once that objective is done, and each recruit
+  // appears only while no hostile is alive (story Level 5: settlers come after the turret, between waves).
+  arrivals: z.object({ every: z.number().positive(), total: z.number().int().positive(), after: z.string().optional() }).optional(),
 });
 export const CaptureEntity = z.object({
   ...base,
@@ -497,6 +499,10 @@ export function checkManifest(m: Manifest, c: Content): void {
   if (waiting.length > 1) fail(`at most one zone.waiting`);
   const gates = m.entities.filter((e) => e.type === "struct.gate" && "arrivals" in e && e.arrivals);
   if (gates.length > 1) fail(`at most one arrivals gate`);
+  for (const g of gates) {
+    const after = g.type === "struct.gate" ? g.arrivals?.after : undefined;
+    if (after !== undefined && !m.objectives?.some((o) => o.id === after)) fail(`gate arrivals after unknown objective ${after}`);
+  }
 
   for (const e of m.entities) {
     if (!isHire(e) && !isBuild(e)) continue;

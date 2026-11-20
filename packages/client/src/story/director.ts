@@ -185,7 +185,7 @@ export class StoryDirector {
 
   /** A goal's own wording, where the level gives one, without the time left. */
   goalLabel(id: string): string | undefined {
-    return this.level.goals.find((g) => g.id === id)?.label?.replace(/[:\s]*\{left\}/, "");
+    return this.level.goals.find((g) => g.id === id)?.label?.replace(/[:\s]*\{(left|waves)\}/, "");
   }
 
   /** Entities the renderer keeps solid. */
@@ -600,7 +600,10 @@ export class StoryDirector {
     if (!g.label) return tokens.find((t) => t.id === g.id)?.label ?? null;
     const o = this.objectives.find((x) => x.id === g.id);
     const left = Math.ceil(Math.max(0, (o?.target ?? 0) - (o?.progress ?? 0)) / TPS);
-    return g.label.replace("{left}", `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`);
+    const waves = Math.max(0, (o?.target ?? 0) - (o?.progress ?? 0));
+    return g.label
+      .replace("{left}", `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`)
+      .replace("{waves}", `${waves} wave${waves === 1 ? "" : "s"} left`);
   }
 
   private currentGoal(): StoryGoal | null {

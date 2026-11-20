@@ -296,7 +296,7 @@ export interface Compiled {
   /** #92: a downed guard has downTicks to be healed before it dies; for the first fallTicks (the fall) no one can start healing it; the commander heals within reviveRange in reviveTicks. */
   guards: { downPct: number; leash: number | null; downTicks: number; fallTicks: number; reviveTicks: number; reviveRange: number; radius: number };
   waiting: Vec;
-  gate: { pos: Vec; everyTicks: number; total: number; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
+  gate: { pos: Vec; everyTicks: number; total: number; after: string | null; initialTicks: number; queueMax: number; queueSpacing: number; queueOffsetY: number; admitOffsetY: number; admitRange: number; spawnSpread: number; spawnOffsetY: number } | null;
   /** digTicks: seconds to dig one square of a rockslide (0 = rockslides are bought with a pad, the default); digSquare: its side. */
   zones: { blockMargin: number; digTicks: number; digSquare: number };
   barrier: { thickness: number; buildRange: number; buildTicks: number; hp: number; gateHp: number; costPerSection: number };
@@ -522,7 +522,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
   const gateEnt = manifest.entities.find((e) => e.type === "struct.gate" && "arrivals" in e && e.arrivals);
   const gate: Compiled["gate"] = gateEnt && gateEnt.type === "struct.gate" && gateEnt.arrivals
     ? {
-      pos: vec(gateEnt.at), everyTicks: ticks(gateEnt.arrivals.every), total: gateEnt.arrivals.total,
+      pos: vec(gateEnt.at), everyTicks: ticks(gateEnt.arrivals.every), total: gateEnt.arrivals.total, after: gateEnt.arrivals.after ?? null,
       initialTicks: ticks(param("gate.initialDelay")), queueMax: int("gate.queueMax"), queueSpacing: fp(param("gate.queueSpacing")),
       queueOffsetY: fp(param("gate.queueOffsetY")), admitOffsetY: fp(param("gate.admitOffsetY")), admitRange: fp(param("gate.admitRange")),
       spawnSpread: fp(param("gate.spawnSpread")), spawnOffsetY: fp(param("gate.spawnOffsetY")),

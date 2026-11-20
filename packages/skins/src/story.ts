@@ -166,7 +166,7 @@ export interface StoryGoal {
   tryAgain?: boolean;
   /** Wait for a `{ goal: id }` action before appearing. The slot still shows. */
   hold?: boolean;
-  /** The goal's wording here and on the result screen, instead of the skin's generic one. `{left}` is the time left on a timed goal. */
+  /** The goal's wording here and on the result screen, instead of the skin's generic one. `{left}` is the time left on a timed goal; `{waves}` is "n waves left" on a waves goal. */
   label?: string;
   /**
    * A story step, not a manifest objective: it shows like a goal (card and top line) but has no star slot, and it is

@@ -567,7 +567,8 @@
    ],
    "arrivals": {
     "every": 3,
-    "total": 2
+    "total": 2,
+    "after": "turret"
    }
   },
   {
@@ -700,7 +701,7 @@
   "level.budgetSeconds": 300,
   "defense.fleeSpeed": 50,
   "gate.spawnOffsetY": -190,
-  "gate.initialDelay": 40
+  "gate.initialDelay": 3
  },
  "goal": {
   "type": "crates",
