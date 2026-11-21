@@ -359,6 +359,137 @@
   "ratings": 9
  },
  {
+  "index": 10,
+  "id": "s1-L010",
+  "file": "s1-L010.json",
+  "title": "Rust and Gun Line",
+  "phase": "intro",
+  "introduced": [
+   "multi_side",
+   "salvage_upgrades"
+  ],
+  "family": "defend",
+  "secondary": null,
+  "features": [
+   "multi_side",
+   "salvage_upgrades",
+   "turrets"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "turret_level",
+    "params": {
+     "n": 3
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "hire",
+    "params": {
+     "n": 5
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "heat_floor",
+    "params": {
+     "pct": 20
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 2.33,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 2.33,
+   "novice": 3,
+   "floor": 2.67,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "turret_level",
+  "template": "crossroads",
+  "target": 0.219,
+  "D": 0.2781515689262237,
+  "F": 0.32928872725727076,
+  "onTarget": false,
+  "margin": {
+   "good": 0.6970325203252032,
+   "average": 0.5934417344173442,
+   "weak": 0.5476693766937669,
+   "novice": 0.5292140921409214,
+   "floor": 0.38818428184281845
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 1
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "beats": [
+   {
+    "beat": "wave_started",
+    "tick": 600
+   },
+   {
+    "beat": "hired:role.supplier",
+    "tick": 1601
+   },
+   {
+    "beat": "hired:role.defender",
+    "tick": 1681
+   },
+   {
+    "beat": "hired:role.medic",
+    "tick": 1948
+   },
+   {
+    "beat": "built:struct.ranged_defense",
+    "tick": 3316
+   },
+   {
+    "beat": "built:struct.ranged_defense.t2",
+    "tick": 3667
+   },
+   {
+    "beat": "built:struct.ranged_defense.t3",
+    "tick": 5554
+   }
+  ],
+  "signature": "v1-14901421",
+  "seconds": 32.839,
+  "seed": 1831604568,
+  "attempts": 0,
+  "rejects": {},
+  "ratings": 1
+ },
+ {
   "index": 11,
   "id": "s1-L011",
   "file": "s1-L011.json",
@@ -672,6 +803,144 @@
    "offTarget": 13
   },
   "ratings": 45
+ },
+ {
+  "index": 15,
+  "id": "s1-L015",
+  "file": "s1-L015.json",
+  "title": "Wreckage and Survivors",
+  "phase": "intro",
+  "introduced": [
+   "med_bay"
+  ],
+  "family": "defend",
+  "secondary": null,
+  "features": [
+   "med_bay",
+   "salvage_upgrades",
+   "turrets"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "waves_survived",
+    "params": {
+     "n": 7
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "hire",
+    "params": {
+     "n": 5
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "hp_floor",
+    "params": {
+     "pct": 80
+    }
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 2,
+   "floor": 2,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "medical",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "waves_survived",
+  "template": "crossroads",
+  "target": 0.279,
+  "D": 0.1940393345679453,
+  "F": 0.24973989440488234,
+  "onTarget": false,
+  "margin": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 0.4021164021164021,
+   "floor": 0.4761904761904762
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 0.6666666666666666,
+   "floor": 0.6666666666666666
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice",
+   "floor"
+  ],
+  "beats": [
+   {
+    "beat": "wave_started",
+    "tick": 180
+   },
+   {
+    "beat": "hired:role.supplier",
+    "tick": 631
+   },
+   {
+    "beat": "hired:role.defender",
+    "tick": 1645
+   },
+   {
+    "beat": "hired:role.medic",
+    "tick": 1795
+   },
+   {
+    "beat": "built:struct.ranged_defense",
+    "tick": 1903
+   },
+   {
+    "beat": "built:struct.ranged_defense.t2",
+    "tick": 4297
+   },
+   {
+    "beat": "built:struct.ranged_defense.t3",
+    "tick": 5953
+   }
+  ],
+  "signature": "v1-cb7e23a5",
+  "seconds": 371.342,
+  "seed": 1356976449,
+  "attempts": 4,
+  "rejects": {
+   "layout": 190,
+   "infeasible": 28,
+   "trivial": 8,
+   "ladderSpent": 7,
+   "offTarget": 2
+  },
+  "ratings": 14,
+  "denseWaves": true
  },
  {
   "index": 16,
@@ -1276,6 +1545,134 @@
    "offTarget": 17
   },
   "ratings": 54
+ },
+ {
+  "index": 21,
+  "id": "s1-L021",
+  "file": "s1-L021.json",
+  "title": "Wreckage and Make It Through",
+  "phase": "mix",
+  "introduced": [],
+  "family": "defend",
+  "secondary": null,
+  "features": [
+   "multi_side",
+   "salvage_upgrades",
+   "turrets"
+  ],
+  "objectives": [
+   {
+    "id": "main",
+    "kind": "survive",
+    "params": {
+     "seconds": 220
+    }
+   },
+   {
+    "id": "challenge2",
+    "kind": "hire",
+    "params": {
+     "n": 5
+    }
+   },
+   {
+    "id": "challenge",
+    "kind": "gate_held",
+    "params": {}
+   }
+  ],
+  "stars": {
+   "good": 3,
+   "median": 3,
+   "goodAll": 1,
+   "human": 3,
+   "humanAll": 1
+  },
+  "starsByRung": {
+   "good": 3,
+   "average": 3,
+   "weak": 3,
+   "novice": 3,
+   "floor": 0,
+   "human": 3
+  },
+  "modules": [
+   "barrier_lines",
+   "build_pads",
+   "carry",
+   "core",
+   "defenders",
+   "defense",
+   "gather",
+   "sales",
+   "salvage_upgrades",
+   "workers"
+  ],
+  "goal": "survive",
+  "template": "crossroads",
+  "target": 0.4,
+  "D": 0.42999491432137743,
+  "F": 0.04310725494108614,
+  "onTarget": false,
+  "margin": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 0.7777777777777777,
+   "floor": -0.16424242424242422
+  },
+  "winRate": {
+   "good": 1,
+   "average": 1,
+   "weak": 1,
+   "novice": 1,
+   "floor": 0
+  },
+  "botsPassed": [
+   "good",
+   "average",
+   "weak",
+   "novice"
+  ],
+  "beats": [
+   {
+    "beat": "wave_started",
+    "tick": 600
+   },
+   {
+    "beat": "hired:role.supplier",
+    "tick": 1901
+   },
+   {
+    "beat": "hired:role.defender",
+    "tick": 2007
+   },
+   {
+    "beat": "hired:role.medic",
+    "tick": 2182
+   },
+   {
+    "beat": "built:struct.ranged_defense",
+    "tick": 3896
+   },
+   {
+    "beat": "built:struct.ranged_defense.t2",
+    "tick": 10517
+   }
+  ],
+  "signature": "v1-8bdcf0b5",
+  "seconds": 2912.935,
+  "seed": 381296644,
+  "attempts": 4,
+  "rejects": {
+   "offTarget": 20,
+   "trivial": 8,
+   "infeasible": 10,
+   "layout": 20,
+   "lowFun": 2
+  },
+  "ratings": 38,
+  "denseWaves": true
  },
  {
   "index": 22,
