@@ -21,6 +21,8 @@ export interface GameRenderer {
   snapCamera(): void;
   /** World point (world units) to mount CSS px with the last camera. */
   worldToScreen(p: { x: number; y: number }, height?: number): { x: number; y: number };
+  /** A rigged character's head on screen now, for a story caption to sit above (null when not drawn or not known). */
+  characterHead(key: string): { x: number; y: number; feetY: number } | null;
   /** Dev review probes: what is drawn now (null when the renderer cannot say). */
   debugScene(): DebugScene | null;
   /** Canonical id of the object under a mount CSS px point, or null. */
@@ -72,6 +74,7 @@ class Wrap3D implements GameRenderer {
   setAlertMarks(marks: readonly AlertMark[]): void { this.r.setAlertMarks(marks); }
   snapCamera(): void { this.r.snapCamera(); }
   worldToScreen(p: { x: number; y: number }, h = 0): { x: number; y: number } { return this.r.worldToScreen(p, h); }
+  characterHead(key: string): { x: number; y: number; feetY: number } | null { return this.r.characterHead(key); }
   debugScene(): DebugScene | null { return this.r.debugScene(); }
   pick(x: number, y: number): string | null { return this.r.pick(x, y); }
   inspect(x: number, y: number): { id: string; name: string; purpose: string } | null { return this.r.inspect(x, y); }

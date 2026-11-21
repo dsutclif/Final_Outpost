@@ -73,7 +73,7 @@ import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
 import { viewFrustum } from "./scene/animCull.js";
-import { collectDebugScene, type DebugScene } from "./probe.js";
+import { characterHeadScreen, collectDebugScene, type DebugScene } from "./probe.js";
 import { LOOK_TUNE, LookTest } from "./lookTest.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
@@ -1037,6 +1037,14 @@ export class Renderer3D implements Renderer {
     return this.toScreen(v3(p.x, height, p.y));
   }
 
+  /** Where a rigged character's head is on screen now (a story caption sits above it), or null when it is not drawn. */
+  characterHead(key: string): (V & { feetY: number }) | null {
+    this.headWanted.add(key);
+    return this.headNow.get(key) ?? null;
+  }
+  private readonly headWanted = new Set<string>();
+  private readonly headNow = new Map<string, V & { feetY: number }>();
+
   /** Characters drawn from the crowd this frame, logged only once a review probe has asked (the first call turns it on). */
   private probeOn = false;
   private crowdLog: { key: string; id: string; x: number; z: number; y: number; height: number }[] = [];
@@ -1149,6 +1157,20 @@ export class Renderer3D implements Renderer {
     this.items.end();
     this.crowd.end();
     this.rigged?.end(dt, viewFrustum(this.viewVolume, this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+    // heads of the characters a story caption has asked about, measured once the poses are updated (a caption sits above them)
+    if (this.headWanted.size) {
+      this.headNow.clear();
+      for (const e of this.rigged?.entries() ?? []) {
+        if (!this.headWanted.has(e.key)) continue;
+        const h = characterHeadScreen(this.camera, this.cssW, this.cssH, e.root);
+        if (h) this.headNow.set(e.key, h);
+      }
+      for (const k of this.headWanted) {
+        const p = this.placed.get(k);
+        const h = p && !this.headNow.has(k) ? characterHeadScreen(this.camera, this.cssW, this.cssH, p.model.root) : null;
+        if (h) this.headNow.set(k, h);
+      }
+    }
     this.markRigged();
     for (const [k, d] of this.drones) if (d.seen !== this.frameNo) { this.dynamic.remove(d.root); this.drones.delete(k); }
     this.blobs.end();

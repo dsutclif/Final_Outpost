@@ -8,7 +8,7 @@ import "./story.css";
 export interface DialogueStyle {
   show(l: DialogueLine, tapLabel: string): void; clear(): void; finish?(): boolean; frame?(t: number): void; dispose?(): void;
   /** The speaker's head on screen (px) this frame; null when they are not on the map. */
-  anchor?(p: { x: number; y: number } | null, vw: number, vh: number): void;
+  anchor?(p: { x: number; y: number; feetY?: number } | null, vw: number, vh: number): void;
 }
 
 /** A portrait that draws itself: its canvas goes in the slot and `update` keeps it moving while it shows. */
@@ -120,6 +120,8 @@ function bubbleDialogue(layer: HTMLElement): DialogueStyle {
   layer.append(root);
   const $ = <T extends HTMLElement>(sel: string): T => root.querySelector<T>(sel)!;
   const MARGIN = 10, GAP = 14;
+  // the last place the stage gave us: a new line starts there, not at the screen's corner, until its own frame places it
+  let last: { p: { x: number; y: number; feetY?: number } | null; vw: number; vh: number } | null = null;
   return {
     show(l, tapLabel) {
       const bust = $<HTMLImageElement>(".sdlg-bust");
@@ -135,9 +137,12 @@ function bubbleDialogue(layer: HTMLElement): DialogueStyle {
       root.classList.remove("in");
       void root.offsetWidth;
       root.classList.add("in");
+      // the very first line has no place yet: low on the screen, as for a speaker off the map, until its own frame anchors it
+      if (last) this.anchor?.(last.p, last.vw, last.vh); else root.classList.add("free");
     },
     clear() { root.hidden = true; },
     anchor(p, vw, vh) {
+      last = { p, vw, vh };
       if (root.hidden) return;
       root.classList.toggle("free", !p);
       if (!p) { root.style.left = root.style.top = ""; return; }
@@ -147,7 +152,9 @@ function bubbleDialogue(layer: HTMLElement): DialogueStyle {
       const below = p.y - GAP - h < MARGIN + safeTop;
       const x = Math.max(MARGIN, Math.min(vw - w - MARGIN, p.x - w / 2));
       // a speaker off the bottom of the screen still gets a bubble on it, its tail toward them
-      const y = Math.min(vh - h - MARGIN, below ? p.y + GAP * 3 : Math.max(MARGIN + safeTop, p.y - GAP - h));
+      // no room above: below the face (the head's top third), never over it; with the head off the screen, at the top margin
+      const belowFace = Math.max(MARGIN + safeTop, p.y + (p.feetY !== undefined ? Math.max(0, p.feetY - p.y) * 0.34 : GAP * 3));
+      const y = Math.min(vh - h - MARGIN, below ? belowFace : Math.max(MARGIN + safeTop, p.y - GAP - h));
       root.classList.toggle("below", below);
       root.style.left = `${x}px`;
       root.style.top = `${y}px`;

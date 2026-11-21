@@ -126,6 +126,18 @@ function skinnedBox(root: Object3D, out: Box3): Box3 {
   return out;
 }
 
+/** A rigged character's head on screen as posed now (the top of its bounds, over its centre), or null when it is not drawn. */
+export function characterHeadScreen(camera: PerspectiveCamera, w: number, h: number, root: Object3D): { x: number; y: number; feetY: number } | null {
+  if (!root.visible) return null;
+  let b = skinnedBox(root, new Box3());
+  if (b.isEmpty()) b = new Box3().setFromObject(root);
+  if (b.isEmpty()) return null;
+  camera.updateMatrixWorld();
+  const cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2;
+  const head = project(camera, w, h, new Vector3(cx, b.max.y, cz));
+  return { x: head.x, y: head.y, feetY: project(camera, w, h, new Vector3(cx, b.min.y, cz)).y };
+}
+
 export function collectDebugScene(i: ProbeInput): DebugScene {
   const { camera, w, h } = i;
   camera.updateMatrixWorld();

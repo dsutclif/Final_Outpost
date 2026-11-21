@@ -33,6 +33,8 @@ export interface Renderer3DHandle extends Renderer {
   debugScene(): DebugScene;
   /** World point (world units, on the ground) to mount CSS px, with the last camera. */
   worldToScreen(p: { x: number; y: number }, height?: number): { x: number; y: number };
+  /** A rigged character's head on screen now (null when not drawn). */
+  characterHead(key: string): { x: number; y: number; feetY: number } | null;
   /** Canonical id of the object under a mount CSS px point (tap to inspect), or null. */
   pick(x: number, y: number): string | null;
   /** pick() with display text: hire pads and hired colonists are named for what they work. */

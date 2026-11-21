@@ -49,6 +49,8 @@ export class StoryStage {
     ridgeColor: string,
     /** Ground width on screen now (the family's view width over the camera zoom): KILN keeps one size on screen. */
     private readonly groundW: () => number = () => 0,
+    /** A drawn character's real head on screen (null when not a rigged figure): the caption sits above it. */
+    private readonly headOf: (key: string) => { x: number; y: number; feetY: number } | null = () => null,
   ) {
     present.solid(director.solid);
     present.wallMarks?.(!director.level.noWallMarks);
@@ -139,8 +141,10 @@ export class StoryStage {
     const drawn = key ? this.present.actorAt(key) : null;
     const at = drawn ? { x: drawn.x, y: drawn.z } : this.director.castAt(w.talker, st);
     if (!at) { view.anchor(null, vw, vh); return; }
+    const real = key ? this.headOf(key) : null;
+    if (real && Number.isFinite(real.x) && Number.isFinite(real.y)) { view.anchor(real, vw, vh); return; }
     const feet = this.toScreen(at), top = this.toScreen(at, PERSON_H);
-    view.anchor({ x: top.x, y: top.y !== feet.y ? top.y : feet.y - HEAD_PX }, vw, vh);
+    view.anchor({ x: top.x, y: top.y !== feet.y ? top.y : feet.y - HEAD_PX, feetY: feet.y }, vw, vh);
   }
 
   private spirit(w: StoryWorld, fuelK: number, now: number): void {

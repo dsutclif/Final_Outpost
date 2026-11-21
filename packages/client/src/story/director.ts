@@ -33,7 +33,7 @@ export interface StoryView {
   goalCard?(text: string): void;
   clearGoalCard?(): void;
   /** Where the speaker stands on screen this frame (px), or null when they cannot be placed. */
-  anchor?(p: { x: number; y: number } | null, viewW: number, viewH: number): void;
+  anchor?(p: { x: number; y: number; feetY?: number } | null, viewW: number, viewH: number): void;
   /** Where a tap anywhere goes, or null when nothing waits on one. */
   onTap(fn: (() => void) | null): void;
   prompt(p: { text: string; retry: string; other: string }, retry: () => void, other: () => void): void;
