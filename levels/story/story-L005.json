@@ -622,7 +622,8 @@
     790
    ],
    "hiddenUntil": "hold",
-   "heldBy": "boss"
+   "heldBy": "boss",
+   "pickup": true
   }
  ],
  "people": [

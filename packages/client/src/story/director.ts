@@ -57,6 +57,8 @@ export interface StoryHost {
   inset?(id: string): void;
   /** Film a hostile's fall in the level itself (StoryAction fall); resolves when it ends. */
   fall?(o: { kind: string; zoom?: number; pitch?: number; film?: string }): Promise<void>;
+  /** The commander kneels and lifts what was picked up at `at` (StoryAction kneel); resolves when the lift ends. */
+  kneel?(at: { x: number; y: number }): Promise<void>;
   /** Restart the level. */
   retry(): void;
   /** A goal's turn came and it is settled: chime and toast. */
@@ -66,7 +68,7 @@ export interface StoryHost {
 /** What the renderer's wiring reads each frame; the director only ever replaces these values. */
 export interface StoryWorld {
   /** `atTick`: the sim tick it was asked for, so the change runs on sim time and a freeze holds it. */
-  light: { preset: string; seconds: number; atTick?: number } | null;
+  light: { preset: string; seconds: number; atTick?: number; real?: boolean } | null;
   ghosts: readonly (StoryGhost & { pos: { x: number; y: number } })[];
   dots: { pts: readonly { x: number; y: number }[]; period?: number | undefined } | null;
   ridge: { side: "left" | "right" | "top" | "bottom"; period: number; k: number } | null;
@@ -93,7 +95,7 @@ export interface StoryWorld {
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
 
-const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "fall" in a || "wait" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
+const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "fall" in a || "kneel" in a || "wait" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
 const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "aidStation" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
 const CARD_SECONDS = 3;
 const GOAL_GAP_S = 0.7;
@@ -329,7 +331,7 @@ export class StoryDirector {
 
   // ------------------------------------------------------------------ cues
 
-  private armed(c: StoryCue): boolean { return (!!c.repeat || !this.fired.has(c)) && !(c.walk && this.fromRetrySpot); }
+  private armed(c: StoryCue): boolean { return (!!c.repeat || !this.fired.has(c)) && !(c.walk && this.fromRetrySpot) && !(c.unless !== undefined && this.firedAt.has(c.unless)); }
 
   private fire(c: StoryCue, st: State): void {
     this.fired.add(c);
@@ -446,11 +448,17 @@ export class StoryDirector {
     } else if ("tap" in a) {
       this.waitTap(() => {});
     } else if ("light" in a) {
-      this.world = { ...this.world, light: { preset: a.light, seconds: a.seconds ?? 0, atTick: this.tick } };
+      this.world = { ...this.world, light: { preset: a.light, seconds: a.seconds ?? 0, atTick: this.tick, ...(a.real ? { real: true } : {}) } };
     } else if ("film" in a) {
       const waiting: Active = { k: "wait", freezes: true };
       this.active = waiting;
       void this.host.film(a.film).then(() => { if (this.active === waiting) { this.active = null; this.pump(); } });
+    } else if ("kneel" in a) {
+      const waiting: Active = { k: "wait", freezes: true };
+      this.active = waiting;
+      const at = this.lastAt.get("captured");
+      const run = at && this.host.kneel ? this.host.kneel(at) : Promise.resolve();
+      void run.then(() => { if (this.active === waiting) { this.active = null; this.pump(); } });
     } else if ("fall" in a) {
       const waiting: Active = { k: "wait", freezes: true };
       this.active = waiting;

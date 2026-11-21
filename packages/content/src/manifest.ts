@@ -122,6 +122,9 @@ export const CaptureEntity = z.object({
   hiddenUntil: z.string().min(1).optional(),
   // A boss carries it: it moves to where the first boss breaks off or dies (still hidden until `hiddenUntil`).
   heldBy: z.literal("boss").optional(),
+  // Picked up by hand (story level 5's helmet): once idle, walking up to it takes it at once,
+  // with no loop, tow or trip home. An item lassoable only; it counts as delivered (a crates goal). Default off.
+  pickup: z.literal(true).optional(),
   // Renderer only (the sim keeps it on the ground at `at`): drawn lodged `h` art metres up, offset `from` (world units),
   // until the hero comes within `r`; then it rattles loose and falls to `at` (story level 4's recorder in the hull).
   drop: z.object({ h: z.number().positive(), r: z.number().positive(), from: z.tuple([z.number(), z.number()]).optional() }).optional(),
@@ -485,6 +488,7 @@ export function checkManifest(m: Manifest, c: Content): void {
           if (!c.lassoables[t]) fail(`unknown lassoable ${t}`);
           const cap = e as z.infer<typeof CaptureEntity>;
           if ((cap.joins || cap.decoy) && c.lassoables[t]!.result !== "recruit") fail(`${t}: joins and decoy need a recruit lassoable`);
+          if (cap.pickup && c.lassoables[t]!.result !== "item") fail(`${t}: pickup needs an item lassoable`);
           if (cap.joins && cap.decoy) fail(`${t}: a decoy pod has nobody to join`);
           if (cap.joins) checkBinding(`capture ${cap.id ?? t}`, cap.joins);
         }

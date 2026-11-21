@@ -164,7 +164,7 @@ const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.shi
 const CORE_BURIED = 0.9;
 
 const NO_STORY: StoryPresentation = {
-  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {}, fleeingModel() {}, showDropped() {}, fall: () => Promise.resolve(false),
+  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {}, fleeingModel() {}, showDropped() {}, fall: () => Promise.resolve(false), kneel: () => Promise.resolve(false),
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
 };
@@ -825,6 +825,8 @@ export class Renderer3D implements Renderer {
     this.storyLights?.dispose();
     this.spirit?.dispose();
     this.storyLights = null; this.spirit = null; this.storyP = null;
+    this.kneelStage?.helmet?.removeFromParent();
+    this.kneelStage = null; this.pickupModel = null;
     this.guideSprite = null;
     this.guideMark = null;
     this.pointers = null;
@@ -1108,6 +1110,7 @@ export class Renderer3D implements Renderer {
     const sp = Math.min(1, Math.hypot(pv.x, pv.y) / 3);
     this.moving += (sp - this.moving) * Math.min(1, dt * 10);
     this.fallTick(state, dt);
+    this.kneelTick(state, dt);
     this.followCamera(cam, pl, dt);
 
     for (const p of this.placed.values()) p.seen = false;
@@ -1819,6 +1822,14 @@ export class Renderer3D implements Renderer {
   private fallStage: FallStage | null = null;
   /** After a filmed fall: where the clip left the runner against the sim spot (world units); its run starts there. */
   private fleeOff = new Map<string, { x: number; y: number; t0: number }>();
+  /**
+   * The commander's kneel-and-lift (story `kneel`, kneelTick): play paused, the commander steps up to where the picked-up
+   * helmet lay, plays the `kneel` clip once (outpost-ops#258) and holds its last pose, helmet in both hands, to the
+   * level's end. The helmet follows the clip's own path (tools/cinematics/s258/kneel_lift.py anchor_state).
+   */
+  private kneelStage: KneelStage | null = null;
+  /** The last drawn model of a pickup capture (manifest pickup): the lift starts from its size. */
+  private pickupModel: Object3D | null = null;
   /** Captures seen carried by a boss (heldBy): once dropped, story showDropped draws them before they are revealed. */
   private bossHeld = new Set<number>();
   private customer(key: string, c: CustomerState, a: number, queued: boolean, kiosk: Placed, serving?: { customer: number; ticks: number; of: number }): void {
@@ -2650,6 +2661,7 @@ export class Renderer3D implements Renderer {
       // an empty decoy pod has its own tinted model
       const p = this.place(`cap:${c.id}`, c.decoy ? `${c.type}.decoy` : c.type, v3(pos.x, 0, pos.y));
       if (this.fallStage?.cap === c.id) p.model.root.visible = false; // its copy is worn, then tumbling (fallHelmet)
+      if (c.pickup) this.pickupModel = p.model.root;
       const lodged = this.captureDrop(c, p, pos, s);
       // a flight recorder's locator beacon blinks
       const bc = p.model.parts["beacon"];
@@ -2795,6 +2807,70 @@ export class Renderer3D implements Renderer {
     if (st.clock >= st.start + st.dur) this.fallEnd(true);
   }
 
+  /** A kneel-and-lift (story `kneel`): take the request, wait for the clip, run its length, answer, then hold the pose. */
+  private kneelTick(s: State, dt: number): void {
+    const req = this.storyP?.kneelReq;
+    if (req && !this.kneelStage) {
+      this.storyP!.kneelReq = null;
+      const pl = { x: s.player.pos.x / FP, y: s.player.pos.y / FP }, at = req.o.at, src = this.pickupModel;
+      this.kneelStage = {
+        done: req.done, at, from: pl, yaw: Math.atan2(at.x - pl.x, at.y - pl.y), clock: 0, dur: 0, ended: false,
+        helmet: null, mid: null, hh: 1, s0: src ? src.getWorldScale(new Vector3()).x : 0,
+      };
+    }
+    const st = this.kneelStage;
+    if (!st || st.ended) return;
+    // the frame clock the clips run on (capped steps), as the filmed fall
+    st.clock += dt;
+    if (!st.dur) {
+      const e = this.rigged?.entryFor("unit.player"), name = e?.clips?.["kneel"];
+      const clip = e && name ? meshyRig(e.file)?.clips.find((c) => c.name === name) : undefined;
+      if (clip) { st.dur = clip.duration; st.clock = 0; }
+      else if (st.clock > 3) { this.kneelStage = null; st.done(false); }
+      return;
+    }
+    if (st.clock >= st.dur) { st.ended = true; st.done(true); }
+  }
+
+  /** The kneeling commander (height `H`, world units) and the helmet on the clip's path, frame by frame. */
+  private kneelDraw(st: KneelStage, H: number): void {
+    const f = Math.min(KNEEL_F1, 1 + st.clock * 30), k = H / KNEEL_H;
+    const sn = Math.sin(st.yaw), cs = Math.cos(st.yaw);
+    // the clip reaches KNEEL_REACH ahead of its feet: it stands there, stepping in from where play left the commander
+    const sx = st.at.x - sn * KNEEL_REACH * k, sz = st.at.y - cs * KNEEL_REACH * k;
+    const sm = (x: number): number => { const c = clamp01(x); return c * c * (3 - 2 * c); };
+    const e = sm(st.clock / 0.7);
+    const x = st.from.x + (sx - st.from.x) * e, z = st.from.y + (sz - st.from.y) * e;
+    this.rigged!.add("player", "unit.player", this.rigged!.entryFor("unit.player")!, { moving: false, hurried: false, cheer: false, once: "kneel" }, x, z, st.yaw, H / 0.9);
+    this.blobs!.add(x, z, 10 * k * KNEEL_H / ART_M);
+    if (!st.helmet) {
+      const src = meshyScene("item.lieutenant_helmet");
+      if (!src) return;
+      const h = src.clone();
+      h.position.set(0, 0, 0); h.quaternion.identity(); h.scale.setScalar(1);
+      const b = new Box3().setFromObject(h);
+      st.mid = b.getCenter(new Vector3()); st.hh = Math.max(1e-6, b.max.y - b.min.y);
+      st.helmet = h;
+      this.dynamic.add(h);
+    }
+    // anchor_state(f) in the clip's frame (Blender: x right, -y forward, z up), turned into the commander's
+    const t = f <= 64 ? 0 : sm((f - 64) / 28);
+    const bx = KNEEL_GROUND[0]! + (KNEEL_END[0]! - KNEEL_GROUND[0]!) * t;
+    const by = KNEEL_GROUND[1]! + (KNEEL_END[1]! - KNEEL_GROUND[1]!) * t;
+    const bz = KNEEL_GROUND[2]! + (KNEEL_END[2]! - KNEEL_GROUND[2]!) * t + 0.12 * Math.sin(Math.PI * t);
+    const lx = bx * k, ly = bz * k, lz = -by * k;
+    const w = new Vector3(sx + lx * cs + lz * sn, ly, sz - lx * sn + lz * cs);
+    const ex = (KNEEL_TIP * t * Math.PI) / 180;
+    const q = new Quaternion().setFromAxisAngle(Y_UP, st.yaw + (KNEEL_YAW * Math.PI) / 180).multiply(new Quaternion().setFromAxisAngle(X_AX, ex));
+    // from the size play drew it at to the clip's, before the hands reach it
+    const want = (KNEEL_HELM_H * k) / st.hh, s0 = st.s0 || want;
+    const s = s0 + (want - s0) * sm((f - 1) / 40);
+    const h = st.helmet;
+    h.scale.setScalar(s);
+    h.quaternion.copy(q);
+    h.position.copy(w).sub(st.mid!.clone().multiplyScalar(s).applyQuaternion(q));
+  }
+
   /** 0..1: how far the camera has moved to the filmed fall (in over FALL_CAM_IN, out over the clip's last FALL_CAM_OUT). */
   private fallCamK(): number {
     const st = this.fallStage;
@@ -2887,7 +2963,9 @@ export class Renderer3D implements Renderer {
     const prig = this.rigged?.entryFor("unit.player");
     const pmove = this.moving > 0.15;
     const pyaw = this.faceAct("player", pl, yaw, pmove);
-    if (prig) {
+    const ks = prig && this.kneelStage?.dur ? this.kneelStage : null;
+    if (ks) this.kneelDraw(ks, ART_M * look.scale * this.devCharScale * this.heroK);
+    else if (prig) {
       this.rigged!.add("player", "unit.player", prig, { moving: pmove, hurried: false, run: true, cheer: anim.cheer > 0, act: this.actOf("player")?.act, speed: this.moving }, pl.x, pl.y, pyaw, ART_M * look.scale * this.devCharScale * this.heroK / 0.9);
       this.blobs!.add(pl.x, pl.y, 10 * look.scale * this.devCharScale * this.heroK);
     } else this.addCharacter(look, anim, pl, yaw, t.frost);
@@ -4499,5 +4577,16 @@ interface FallStage {
   aim: V; hips: Object3D | null;
   helmet: Object3D | null; mid: Vector3 | null; head0: number; headPrev: number; off: number | null; from: Pose | null;
 }
+/** The commander's kneel-and-lift (Renderer3D.kneelStage). Times on the clips' frame clock. */
+interface KneelStage {
+  done: (ok: boolean) => void; at: V; from: V; yaw: number; clock: number; dur: number; ended: boolean;
+  helmet: Object3D | null; mid: Vector3 | null; hh: number; s0: number;
+}
+/** The kneel-and-lift clip's own measures (tools/cinematics/s258/kneel_lift.py, metres on a 1.8 m commander): last
+ *  frame, how far ahead of the feet the helmet lies, its height, its centre on the sand and held (x, y, z: -y forward),
+ *  its turn (degrees about up) and how far it tips back as it is lifted (degrees about x). */
+const KNEEL_H = 1.8, KNEEL_F1 = 96, KNEEL_REACH = 0.42, KNEEL_HELM_H = 0.413 * (0.42 / 0.447);
+const KNEEL_GROUND = [0, -0.42, KNEEL_HELM_H / 2], KNEEL_END = [0.02, -0.26, 0.72], KNEEL_YAW = 18, KNEEL_TIP = -35;
+const Y_UP = new Vector3(0, 1, 0), X_AX = new Vector3(1, 0, 0);
 /** A guard back on its feet runs to where the sim has it at this speed (art metres per second). */
 const CATCH_UP = 3.2;

@@ -912,6 +912,7 @@ export class App {
         const ok = (await s.renderer.story()?.fall(o)) ?? false;
         if (!ok && o.film && filmDue(o.film, this.progress.cinematics)) await this.cinematic(o.film as CinematicId);
       },
+      kneel: async (at) => { await s.renderer.story()?.kneel({ at }); },
       inset: (f) => { void playCinematic(this.el.app, f as CinematicId, { scene: this.skin.story?.scenes?.[f], inset: true }); },
       retry: () => void this.openLevel(s.meta, true),
       goalSettled: (label, done) => {

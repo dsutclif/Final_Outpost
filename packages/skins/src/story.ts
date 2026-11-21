@@ -74,7 +74,7 @@ export type StoryAction =
   /** Beat: wait for a tap, paused. */
   | { tap: true }
   /** Change the world lighting to a named preset over `seconds`. The renderer reads it from director.world. */
-  | { light: string; seconds?: number }
+  | { light: string; seconds?: number; real?: boolean }
   /** Beat: a film or live scene by id, paused until it ends. An unknown id is skipped. */
   | { film: string }
   /**
@@ -84,6 +84,12 @@ export type StoryAction =
    * play, and the camera eases back. Without the models it plays `film` instead (when given).
    */
   | { fall: { kind: string; zoom?: number; pitch?: number; film?: string } }
+  /**
+   * Beat, paused: the commander kneels and lifts in both hands what the player just picked up (the last `captured`
+   * spot; manifest `pickup`), with the commander model's `kneel` clip, and holds that pose to the level's end.
+   * Skipped when the clip is missing.
+   */
+  | { kneel: true }
   /** A live scene in a small frame over play; the queue carries on beside it (lines keep coming). */
   | { inset: string }
   /** Beat: wait this many seconds (play carries on), e.g. for an inset to reach its moment. */
@@ -156,6 +162,8 @@ export interface StoryCue {
   ordered?: boolean;
   /** Belongs to the walk from the level's start: skipped when an in-level retry starts at `retryFrom` instead. */
   walk?: boolean;
+  /** Skipped once the cue with this id has fired: a fallback for a trigger the player can outrun (the level 5 retreat lines when the helmet is picked up first). */
+  unless?: string;
 }
 
 /** One star slot, in display order. Goals show one at a time; one met early completes on its turn. */

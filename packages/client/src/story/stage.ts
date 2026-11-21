@@ -23,6 +23,8 @@ export class StoryStage {
   private seen: Partial<StoryWorld> = {};
   private lightFrom = 0;
   private lightNow = 0;
+  /** Wall-clock seconds the current light change began (a `real` light runs on it). */
+  private lightAt = 0;
   private lightSet = false;
   private spiritOn = false;
   private spiritShown = "";
@@ -69,11 +71,13 @@ export class StoryStage {
     const w = this.director.world, p = this.present, seen = this.seen;
     if (w.light && w.light !== seen.light) {
       this.lightFrom = this.lightNow;
+      this.lightAt = now;
       seen.light = w.light;
     }
     if (w.light) {
       const to = this.story.lights?.[w.light.preset] ?? 0, ticks = w.light.seconds * TPS;
-      const k = ticks > 0 ? Math.min(1, (st.tick - (w.light.atTick ?? 0)) / ticks) : 1;
+      // `real`: on the wall clock, so it still moves once play has stopped (level 5's dawn after the level ends)
+      const k = ticks <= 0 ? 1 : w.light.real ? Math.min(1, (now - this.lightAt) / w.light.seconds) : Math.min(1, (st.tick - (w.light.atTick ?? 0)) / ticks);
       this.lightNow = this.lightFrom + (to - this.lightFrom) * Math.max(0, k);
       p.lighting(this.lightNow, !this.lightSet);
       this.lightSet = true;

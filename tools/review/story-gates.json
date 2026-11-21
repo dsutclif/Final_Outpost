@@ -13,5 +13,8 @@
   ],
   "story-L004": [
     { "line": "Bring it home to me", "seen": ["capture.recorder"], "why": "KILN asks for the recorder by pointing at it, so the steel crate must be on screen when the line plays." }
+  ],
+  "story-L005": [
+    { "line": "They dropped something", "seen": ["capture.helmet"], "why": "KILN points at the helmet the raider dropped, so it must be on screen when the line plays; the player then walks up and picks it up by hand." }
   ]
 }

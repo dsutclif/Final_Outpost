@@ -97,6 +97,8 @@ export interface LiveLook {
 
 /** A hostile's fall filmed in the level (story `fall`): which kind, and the closer, lower camera (zoom x, pitch degrees). */
 export interface FallScene { kind: string; zoom?: number; pitch?: number }
+/** The commander kneels and lifts what was just picked up (story `kneel`): where it lay, world units. */
+export interface KneelScene { at: { x: number; y: number } }
 
 /**
  * What the story director drives (client/src/story). All positions are world units (x, z on the
@@ -163,4 +165,6 @@ export interface StoryPresentation {
   readonly beating: boolean;
   /** Film the fall of the hostile of `kind` that just broke off, in the level; false at once when it cannot be staged. */
   fall(o: FallScene): Promise<boolean>;
+  /** The commander kneels and lifts the picked-up helmet (its `kneel` clip) and holds it to the level's end; false at once without the clip. */
+  kneel(o: KneelScene): Promise<boolean>;
 }

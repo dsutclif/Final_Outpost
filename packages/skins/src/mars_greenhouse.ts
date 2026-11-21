@@ -205,7 +205,7 @@ const purposes: Record<string, string> = {
   "capture.recruit_container": "Walk a loop around it to tow it home",
   "capture.supply_crate": "Tow it into the heat to unpack it",
   "capture.recorder": "Walk a loop around it to tow it home",
-  "capture.helmet": "Walk a loop around it to bring it home",
+  "capture.helmet": "Walk up to it to pick it up",
   "hostile.swarmling": "Weak but fast; comes in swarms",
   "hostile.boss": "Big, slow and tough; pays out big",
   "hostile.raider_humanoid": "Attacks the colony; walk into it to fight",
@@ -1273,7 +1273,7 @@ export const marsGreenhouse: Skin = {
         ],
       },
       // First Watch (docs/STORY-SCREENPLAY.md, level 5). The level ends on the helmet the lieutenant drops, not on the
-      // last wave: the main goal tows it home. Stopping the first raiders and training a guard are story steps (no star).
+      // last wave: the main goal is picking it up by hand. Stopping the first raiders and training a guard are story steps (no star).
       // The lieutenant's slow-motion fall is a text card until it is made.
       "story-L005": {
         // Rhee's aid station stays beside the reactor from level 2 on
@@ -1352,7 +1352,7 @@ export const marsGreenhouse: Skin = {
           ] },
           // once Vale has run off screen (about 3 s at the fleeing pace, measured on a phone-shaped view), KILN, with dots
           // on the helmet where it fell (manifest heldBy: boss; showDropped draws it there before dawn reveals it to tow)
-          { on: { after: "fall", ticks: 95 }, do: [
+          { id: "retreat", on: { after: "fall", ticks: 95 }, do: [
             // the visors are gone; the ridge's red pulse beats on, quicker and stronger than before
             { ridge: "right", period: 2, k: 0.8 },
             { line: "They're running. It's over for tonight.", who: "kiln" },
@@ -1360,20 +1360,29 @@ export const marsGreenhouse: Skin = {
             { line: "They dropped something.", who: "kiln" },
             { dots: [{ entity: "helmet" }], period: 1.2 },
           ] },
+          // picked up before those lines came (the commander was already standing at the fall spot): they play now, ahead of
+          // the kneel, so the helmet is never taken in silence
+          { on: { event: "captured" }, unless: "retreat", ordered: true, do: [
+            { line: "They're running. It's over for tonight.", who: "kiln" },
+            { line: "But the signal hasn't stopped. That was never them.", who: "kiln" },
+            { line: "They dropped something.", who: "kiln" },
+          ] },
           // dawn: the waves are done and the helmet can be towed
           { id: "dawn", on: { goal: "hold", is: "done" }, do: [] },
           // if that line was missed (the warlord died instead of breaking off), the ground dots still find it
           { on: { after: "dawn", ticks: 150 }, do: [{ dots: [{ entity: "helmet" }], period: 1.2 }] },
           { on: { near: { entity: "helmet" }, r: 50 }, do: [{ dotsOff: true }] },
-          // the helmet is caught on the tow line: its film, then "Vale?", before the walk home
-          { on: { event: "captured" }, do: [
+          // the commander walks up to the helmet and picks it up by hand (manifest pickup: no tow, no walk home; the
+          // level is won there): kneels and lifts it in both hands (the kneel clip, outpost-ops#258), its film from that
+          // held pose, "Vale?", then dawn comes up behind the commander and the level ends (Doug, 2026-11-12). The dawn
+          // runs on the wall clock (light real), as play has stopped; the result card waits for the wait to run out
+          { on: { event: "captured" }, ordered: true, do: [
             { dotsOff: true },
+            { kneel: true },
             { film: "helmet_reveal" },
-            // and from here the light comes back up toward sunrise at the rate it went down (1 per 200 s: ember -1 to
-            // sunrise 1 in 400 s). Game time, so it starts as play resumes after the film (Doug, 2026-11-09)
-            { light: "sunrise", seconds: 400 },
-            // then the last line (the commander's run with the helmet, S33 vale_run, was dropped: Doug, 2026-11-07)
             { line: "Vale?", who: "commander" },
+            { light: "sunrise", seconds: 4, real: true },
+            { wait: 4.5 },
           ] },
         ],
       },

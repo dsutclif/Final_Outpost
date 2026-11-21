@@ -1,4 +1,4 @@
-import type { CameraBeat, FallScene, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
+import type { CameraBeat, FallScene, KneelScene, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
 import { AidStation, StoryProps } from "./storyprop.js";
 import type { RideExit } from "./selaride.js";
 import type { Interp } from "../interp.js";
@@ -75,6 +75,12 @@ export class StoryPresent implements StoryPresentation {
   fall(o: FallScene): Promise<boolean> {
     this.fallReq?.done(false);
     return new Promise((done) => { this.fallReq = { o, done }; });
+  }
+  /** A kneel-and-lift to stage (story `kneel`), waiting for the renderer to take it; it answers through `done`. */
+  kneelReq: { o: KneelScene; done: (ok: boolean) => void } | null = null;
+  kneel(o: KneelScene): Promise<boolean> {
+    this.kneelReq?.done(false);
+    return new Promise((done) => { this.kneelReq = { o, done }; });
   }
   showDropped(on: boolean): void { this.droppedShown = on; }
 

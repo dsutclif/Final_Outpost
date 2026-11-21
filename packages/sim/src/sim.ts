@@ -201,6 +201,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
           if ("decoy" in e && e.decoy) c.decoy = true;
           if ("hiddenUntil" in e && e.hiddenUntil) { c.state = "hidden"; c.hiddenUntil = e.hiddenUntil; }
           if ("heldBy" in e && e.heldBy) c.heldBy = e.heldBy;
+          if ("pickup" in e && e.pickup) c.pickup = true;
           state.captures.push(c);
         }
       }

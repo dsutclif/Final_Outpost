@@ -240,6 +240,10 @@ export interface CaptureState {
   hiddenUntil?: string;
   /** Carried by a boss until it breaks off or dies, then left where that happened (cleared once dropped). */
   heldBy?: "boss";
+  /** Taken by walking up to it (manifest `pickup`): never looped or towed. */
+  pickup?: true;
+  /** A pickup capture cannot be taken before this tick: revealed, it is seen and spoken of first (level 5 helmet). */
+  takeAt?: number;
 }
 
 export interface PreyState {

@@ -193,6 +193,40 @@ describe("retreating boss (bossRetreat)", () => {
     expect(() => checkManifest(Manifest.parse({ ...helmetOf({ heldBy: "boss", hiddenUntil: "dawn" }), waves: [{ t: 2, counts: { "hostile.raider_humanoid": 2 } }] }), content)).toThrow(/heldBy needs a boss/);
   });
 
+  it("a pickup capture is taken by walking up to it: no loop, no tow, delivered at once", () => {
+    const m = { ...carried, entities: [...((LEVEL_4 as { entities: unknown[] }).entities), { type: "capture.helmet", id: "helmet", at: [160, 160], pickup: true }] };
+    const sim = createSim(m);
+    const c = sim.state.captures.find((x) => x.type === "capture.helmet")!;
+    expect(c.pickup).toBe(true);
+    const evs: SimEvent[] = [];
+    for (let i = 0; i < 2000 && !evs.some((e) => e.t === "crate_delivered"); i++) {
+      const p = sim.state.player.pos;
+      evs.push(...sim.step({ dx: c.pos.x - p.x, dy: c.pos.y - p.y }));
+    }
+    expect(evs.map((e) => e.t)).toEqual(expect.arrayContaining(["captured", "crate_delivered"]));
+    expect(sim.state.captures.includes(c)).toBe(false);
+    expect(sim.state.player.tow).toEqual([]);
+    expect(sim.state.stats.crates).toBe(1);
+  });
+
+  it("a revealed pickup waits before it can be taken, so the lines about it come first", () => {
+    const m = { ...carried, entities: [...((LEVEL_4 as { entities: unknown[] }).entities), { type: "capture.helmet", id: "helmet", at: [160, 160], pickup: true }] };
+    const sim = createSim(m);
+    const c = sim.state.captures.find((x) => x.type === "capture.helmet")!;
+    sim.state.player.pos = { ...c.pos };
+    c.takeAt = sim.state.tick + 30;
+    const evs: SimEvent[] = [];
+    for (let i = 0; i < 20; i++) evs.push(...sim.step({ dx: 0, dy: 0 }));
+    expect(evs.some((e) => e.t === "captured")).toBe(false);
+    for (let i = 0; i < 20; i++) evs.push(...sim.step({ dx: 0, dy: 0 }));
+    expect(evs.some((e) => e.t === "captured")).toBe(true);
+  });
+
+  it("checkManifest wants pickup on an item lassoable", () => {
+    const m = { ...carried, entities: [...((LEVEL_4 as { entities: unknown[] }).entities), { type: "capture.recruit_container", id: "pod", at: [100, 100], pickup: true }] };
+    expect(() => checkManifest(Manifest.parse(m), content)).toThrow(/pickup needs an item/);
+  });
+
   it("checkManifest rejects bossRetreat on a wave without a boss", () => {
     const m = { ...bossLevel, waves: [{ t: 2, counts: { "hostile.raider_humanoid": 2 }, bossRetreat: 25 }] };
     expect(() => checkManifest(Manifest.parse(m), content)).toThrow(/bossRetreat/);

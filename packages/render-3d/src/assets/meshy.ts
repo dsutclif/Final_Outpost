@@ -33,6 +33,9 @@ export interface MeshyEntry {
   width?: number;
   /** Character clips by role (walk, run, idle, wait, cheer) → clip name in the file. */
   clips?: Record<string, string>;
+  /** More clips for this character from other files under models/ (no mesh used; bones bind by name), e.g. the
+   *  commander's kneel-and-lift (outpost-ops#258). A miss only loses those clips. */
+  clipFiles?: string[];
   /** Character props by variant id ("*": every variant), see MeshyHeld. */
   held?: Record<string, MeshyHeld[]>;
   /** `clips` keys whose clip walks the body about: played on the spot (hips keep only their height). */
@@ -300,9 +303,12 @@ export function loadMeshy(onLoad?: (e: MeshyEntry) => void, ids?: ReadonlySet<st
         glb(l),
         // a missing outline only means the blueprint stays code-built
         outlineUrl ? l.loadAsync(outlineUrl).catch(() => null) : null,
-      ])).then(([gltf, outline]) => {
+        // bone transforms only: a baked clip's scale keys (about 1) are dropped
+        Promise.all((e.clipFiles ?? []).map((f) => l.loadAsync(new URL(`models/${f}.glb`, root).href).then((g) => g.animations.map((c) => { c.tracks = c.tracks.filter((t) => !t.name.endsWith(".scale")); return c; })).catch((err: unknown) => { console.warn(`meshy: clips ${f} failed`, err); return []; }))),
+      ])).then(([gltf, outline, extra]) => {
         prepare(gltf.scene);
-        if (gltf.animations.length) clips.set(e.file, gltf.animations);
+        const all = [...gltf.animations, ...extra.flat()];
+        if (all.length) clips.set(e.file, all);
         if (outline) { prepare(outline.scene, true); outlines.set(e.file, outline.scene); }
         cache.set(e.file, gltf.scene);
       }).catch((err: unknown) => { console.warn(`meshy: ${e.file} failed, keeping the code model`, err); });

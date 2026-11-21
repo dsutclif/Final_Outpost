@@ -468,7 +468,7 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   const filmShots: (string | null)[] = [];
   extras["cards"] = cards;
   extras["filmShots"] = filmShots;
-  for (let guard = 0; guard < 600 && Date.now() - t0 < Math.min(a.wall, 600) * 1000; guard++) {
+  for (let guard = 0; guard < 900 && Date.now() - t0 < Math.min(a.wall, 600) * 1000; guard++) {
     // a film or live scene over the level (the director's `film` cue): pictured once, then skipped with a tap
     if (await page.locator(".cine:visible").count()) {
       await page.waitForTimeout(2500);
@@ -479,7 +479,9 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
     }
     const r = await page.evaluate(([sec, seen]) => window.R.ff(sec, seen), [5, seq] as const);
     result.simSeconds = Math.round((r.tick / TPS) * 10) / 10;
-    if (r.over) { result.outcome = { over: true, won: null, reason: "level ended" }; break; }
+    // the level ending does not end the story: the director may still hold lines, a film and a card (level 5: the helmet is picked up
+    // before the retreat lines, then the kneel, the film, "Vale?"), so keep reading until it goes quiet
+    if (r.over) result.outcome = { over: true, won: null, reason: "level ended" };
     if (r.tick / TPS >= limit) break;
     if (r.seq !== seq) {
       seq = r.seq;
@@ -528,7 +530,9 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
     }
     frozenFor = r.tick === lastTick ? frozenFor + 1 : 0;
     lastTick = r.tick;
-    if (frozenFor >= 6) break; // nothing moves: the story waits on something the bot cannot give
+    // the fall, kneel and dawn run on the wall clock, which R.ff cannot step: give them real time before giving up
+    if (frozenFor >= 1) await page.waitForTimeout(1000);
+    if (frozenFor >= (r.over ? 20 : 120)) { extras["frozenShot"] = await shots.take("frozen", true); extras["stoppedFrozen"] = { tick: r.tick, seq: r.seq, over: r.over, dom: await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("[class]")).filter((e) => e.offsetParent !== null && /cine|story|sdlg|result|card/.test(e.className.toString())).map((e) => e.className.toString()).slice(0, 12)) }; break; } // nothing moves: the story waits on something the bot cannot give
     // the rest of the screen is held to the same rules every few seconds of the story
     if (r.tick / TPS >= nextSample) {
       nextSample = r.tick / TPS + 5;

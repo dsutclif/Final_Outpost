@@ -1107,6 +1107,8 @@ export class Brain {
         L.phase = "return";
         return this.lassoTarget(st);
       }
+      // picked up by hand (manifest pickup): walk onto it, no loop
+      if (cap.pickup) return { pos: cap.pos, r: 2 * U };
       if (L.idx < 0) {
         // Not outside yet or not at the loop: walk to the nearest loop point first.
         let bi = 0, bd = Infinity;
