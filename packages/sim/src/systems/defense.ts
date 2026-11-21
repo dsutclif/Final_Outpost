@@ -3,9 +3,10 @@ import type { SimEvent } from "../events.js";
 import { FP, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between } from "../rng.js";
 import type { BarrierState, HostileState, ResidentState, State, TroopState } from "../state.js";
-import { attackGate, breakSection, firstCrossing, outsideLines, sectionMid, sectionSide } from "./barriers.js";
+import { attackGate, breakSection, firstCrossing, outsideLines, sectionMid } from "./barriers.js";
 import { hitHostile, nearestHostile, shotEvent } from "./combat.js";
 import { blockedAt, hint, ringPoint, stepDown, walkAround } from "./common.js";
+import { openMids } from "./wallgrid.js";
 import { dropTow } from "./lasso.js";
 import { hitGuard, leashedMove, nearestGuard, segDist, wallDist } from "./guards.js";
 
@@ -104,9 +105,8 @@ function walkTarget(st: State, cp: Compiled, h: HostileState): Vec {
     return d <= k ? st.core.pos : { x: m.x + mulDiv(dx, k, d), y: m.y + mulDiv(dy, k, d) };
   };
   let best: Vec | null = null, bd = 0;
-  for (const line of st.barriers) for (const s of line.sections) {
-    if (s.built || sectionSide(st, s) !== h.side) continue;
-    const m = sectionMid(s), dx = m.x - h.pos.x, dy = m.y - h.pos.y, d = dx * dx + dy * dy;
+  for (const m of openMids(st, h.side)) {
+    const dx = m.x - h.pos.x, dy = m.y - h.pos.y, d = dx * dx + dy * dy;
     if (!best || d < bd) { best = m; bd = d; }
   }
   if (best) return through(best);
@@ -132,7 +132,7 @@ function fanPoint(st: State, cp: Compiled, h: HostileState, gate: { line: Barrie
 /** The gate this hostile is standing at, hitting it: outside, no opening on its side, and within a stand-off of the gate. */
 function gateStand(st: State, cp: Compiled, h: HostileState, busy: Map<BarrierState, number>): { line: BarrierState; idx: number; wait: boolean } | null {
   if (st.barriers.length === 0 || !outsideLines(st, h.pos)) return null;
-  for (const line of st.barriers) for (const s of line.sections) if (!s.built && sectionSide(st, s) === h.side) return null;
+  if (openMids(st, h.side).length > 0) return null;
   const g = attackGate(st, h.side);
   if (!g) return null;
   // the old reach: a body hits the gate once it is a stand-off (plus a step) from it, wherever along it, so the number of

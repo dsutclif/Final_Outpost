@@ -1,6 +1,7 @@
 import type { Vec } from "../fixed.js";
 import type { BarrierSectionState, BarrierState, State } from "../state.js";
 import { inRect, nearSegment, segCross } from "./common.js";
+import { sectionMid, sectionSide } from "./barriers.js";
 
 /**
  * Derived lookup grids for the defend hot paths (outpost-ops#232). A pure speed-up: the answers are exactly those of the
@@ -31,6 +32,8 @@ interface Cache {
   items: Item[];
   /** Built sections per cell, as ordinals. */
   walls: number[][];
+  /** Middles of the unbuilt sections per attack side, in line/section order (outpost-ops#239). The core never moves, so a section's side is fixed. */
+  open: Record<"n" | "e" | "s" | "w", Vec[]>;
   stamp: Int32Array;
   query: number;
   /** blockedAt candidates per cell; built on first use with that call's thickness and margin. */
@@ -90,8 +93,10 @@ function build(st: State, prev: Cache | undefined): Cache {
   let k = 0;
   for (const line of st.barriers) for (const s of line.sections) sig[k++] = (s.built ? 1 : 0) | (s.gate ? 2 : 0);
   for (const z of st.zones) sig[k++] = z.cleared ? 1 : 0;
+  const open: Cache["open"] = { n: [], e: [], s: [], w: [] };
+  for (const it of items) if (!it.s.built) open[sectionSide(st, it.s)].push(sectionMid(it.s));
   const need = items.length + 16;
-  return { tick: st.tick, dirty: false, sig, frame, items, walls, stamp: prev && prev.stamp.length >= need ? prev.stamp : new Int32Array(need), query: prev?.query ?? 0, blocked: null, thickness: 0, margin: 0 };
+  return { tick: st.tick, dirty: false, sig, frame, items, walls, open, stamp: prev && prev.stamp.length >= need ? prev.stamp : new Int32Array(need), query: prev?.query ?? 0, blocked: null, thickness: 0, margin: 0 };
 }
 
 function get(st: State): Cache {
@@ -101,6 +106,11 @@ function get(st: State): Cache {
     if (sameSig(st, c.sig)) c.tick = st.tick; else { c = build(st, c); caches.set(st, c); }
   }
   return c;
+}
+
+/** Middles of the unbuilt wall sections facing `side`, in original line/section order (read-only; rebuilt when the walls change). */
+export function openMids(st: State, side: "n" | "e" | "s" | "w"): readonly Vec[] {
+  return get(st).open[side];
 }
 
 /** The first built section (gates included) that segment a→b crosses, nearest to a (ties: original line/section order); null if none. */
