@@ -106,10 +106,9 @@ export function stepLasso(st: State, cp: Compiled, out: SimEvent[]): void {
   L.towing = [...p.tow];
 }
 
-/**
-/** World units: how close the player walks to a pickup capture to take it (the body over it: the kneel-and-lift clip
- * reaches about 6 units ahead of the feet). */
-const PICKUP_R = 10 * FP;
+/** World units: how close the player walks to a pickup capture to take it. The kneel-and-lift clip stands about 12.9 back
+ * (KNEEL_REACH in the renderer), so taking it from 12.9-15 makes the step-in at most a couple of units, with no slide back (outpost-ops#276). */
+const PICKUP_R = 15 * FP;
 /** Ticks a revealed pickup capture waits before it can be taken: the story's lines about it (about 3 s after the drop) come first. */
 const PICKUP_WAIT = 100;
 

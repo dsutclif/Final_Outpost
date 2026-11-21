@@ -37,3 +37,19 @@ describe("gate arrivals after an objective", () => {
     expect(sim.state.gateQueue.length).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe("a hostile that stays alive", () => {
+  it("holds the settlers back for a while, then they come anyway (outpost-ops#279)", () => {
+    const sim = createSim(L5);
+    sim.state.objectives.find((o) => o.id === "turret")!.done = true;
+    const arrivals: number[] = [];
+    for (let i = 0; i < 40 * 30; i++) {
+      // keep one hostile alive the whole time
+      if (sim.state.hostiles.length === 0) sim.state.hostiles.push({ id: 9999, type: "hostile.swarmling", pos: { x: 0, y: 0 }, hp: 1e9, hpMax: 1e9, side: "n", target: "core", acc: 0, standoff: 1e9 });
+      if (sim.step({ dx: 0, dy: 0 }).some((e) => e.t === "gate_arrival")) arrivals.push(i);
+    }
+    expect(arrivals.length).toBeGreaterThanOrEqual(1);
+    expect(arrivals[0]).toBeGreaterThan(15 * 30); // not at once
+    expect(arrivals[0]).toBeLessThan(35 * 30);
+  });
+});

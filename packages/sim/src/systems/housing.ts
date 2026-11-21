@@ -1,6 +1,6 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
-import { within } from "../fixed.js";
+import { TPS, within } from "../fixed.js";
 import { between } from "../rng.js";
 import type { State } from "../state.js";
 import { admitRecruit, freeSlots, moveAgent, newResident } from "./common.js";
@@ -38,6 +38,9 @@ export function stepHousing(st: State, cp: Compiled, out: SimEvent[]): void {
   }
 }
 
+/** Ticks a recruit waits for a hostile-free lull (arrivals.after) before it appears regardless. */
+const GATE_LULL_WAIT = 20 * TPS;
+
 /** Recruits appear at the arrivals gate on a timer, queue, and are admitted when the player stands by the gate. */
 export function stepGate(st: State, cp: Compiled, out: SimEvent[]): void {
   const g = cp.gate;
@@ -46,7 +49,8 @@ export function stepGate(st: State, cp: Compiled, out: SimEvent[]): void {
   // opt-in (arrivals.after): the timer waits for that objective, and a recruit only appears with no hostile alive
   const waiting = g.after !== null && !st.objectives.some((o) => o.id === g.after && o.done);
   if (!waiting) T.gateAcc--;
-  const lull = g.after === null || st.hostiles.length === 0;
+  // a hostile that never dies must not hold the settlers back for good: after GATE_LULL_WAIT of waiting they come anyway
+  const lull = g.after === null || st.hostiles.length === 0 || T.gateAcc <= -GATE_LULL_WAIT;
   if (!waiting && T.gateAcc <= 0 && T.gateLeft > 0 && lull && st.gateQueue.length < g.queueMax) {
     T.gateAcc = g.everyTicks;
     T.gateLeft--;
