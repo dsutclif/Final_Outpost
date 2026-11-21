@@ -1,4 +1,5 @@
-import { AnimationClip, AnimationMixer, LoopOnce, Box3, Euler, Matrix4, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack, type AnimationAction, type Bone, type BufferGeometry, type Material, type Mesh, type Object3D, type SkinnedMesh } from "three";
+import { needsAnimation, stepFor } from "./animCull.js";
+import { AnimationClip, AnimationMixer, LoopOnce, Box3, Euler, Matrix4, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack, type AnimationAction, type Bone, type BufferGeometry, type Material, type Mesh, type Object3D, type SkinnedMesh, type Frustum } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { meshyCharacters, meshyGeometry, meshyLoaded, meshyRig, meshyScene, type MeshyEntry, type MeshyHeld } from "../assets/meshy.js";
 
@@ -68,6 +69,8 @@ interface Inst {
   shield: { bones: [Bone, Bone, Bone]; chest: Bone; at: Vector3[] } | null;
   legs: Leg[] | null;
   phase: number;
+  /** Seconds of animation skipped while off screen, applied on the next visible frame. */
+  owed: number;
   /** Time into the current clip of an alternating action pair, last frame (a drop means it wrapped). */
   altLast: number;
   /** Props still loading when this copy was made: it is rebuilt once they land. */
@@ -258,6 +261,9 @@ export function heldInHand(root: Object3D, mixer: AnimationMixer, h: MeshyHeld, 
 export class Rigged {
   private pool = new Map<string, Inst>();
   private clock = 0;
+  /** Mixer updates run / skipped off screen, last end() (for the review probes). */
+  mixed = 0;
+  culled = 0;
 
   constructor(private readonly parent: Object3D) {}
 
@@ -420,8 +426,10 @@ export class Rigged {
   }
 
   /** Advance every visible character's clips; hide the ones not placed this frame. */
-  end(dt: number): void {
+  end(dt: number, view?: Frustum): void {
     this.clock += dt;
+    this.mixed = 0;
+    this.culled = 0;
     for (const [k, i] of this.pool) {
       if (i.yawOff) i.yawOff = Math.abs(i.yawOff) < 0.01 ? 0 : i.yawOff * Math.exp(-GETUP_TURN_BACK * dt);
       if (!i.seen) {
@@ -434,8 +442,18 @@ export class Rigged {
       }
       i.root.userData["idle"] = 0;
       if (i.still) continue;
-      if (i.legs) { this.gait(i, dt); continue; }
-      i.mixer.update(dt);
+      // out of the camera's view: skip the skeleton work (positions are set in add(), so pointers still follow)
+      const seen = !view || needsAnimation(view, i.root.position, i.root.scale.y);
+      if (i.legs) {
+        if (seen) { this.mixed++; this.gait(i, dt); }
+        else { this.culled++; i.phase += dt * (((i.root.userData["speed"] as number | undefined) ?? 0)) * 13; } // phase is all the gait remembers
+        continue;
+      }
+      const step = stepFor(seen, dt, i.owed);
+      i.owed = step.owed;
+      if (!step.advance && dt > 0) { this.culled++; continue; }
+      this.mixed++;
+      i.mixer.update(step.advance);
       if (i.grip) this.reach(i);
       if (i.shield) this.brace(i);
     }
@@ -502,7 +520,7 @@ export class Rigged {
       if (!idles.has(e.file)) idles.set(e.file, idleFrom(walk));
       actions.set("__idle", mixer.clipAction(idles.get(e.file)!));
     }
-    const inst: Inst = { id, root, mixer, actions, current: "", seen: true, grip: null, arms: [], props: [], shield: null, legs: null, phase: 0, altLast: 0, missing: [], ice: false, still: false, beat: 0, down: 0, yawOff: 0 };
+    const inst: Inst = { id, root, mixer, actions, current: "", seen: true, grip: null, arms: [], props: [], shield: null, legs: null, phase: 0, owed: 0, altLast: 0, missing: [], ice: false, still: false, beat: 0, down: 0, yawOff: 0 };
     root.updateMatrixWorld(true);
     if (!rig.clips.length) inst.legs = legsOf(root, height);
     if (e.shieldArm) inst.shield = this.shieldPose(root);

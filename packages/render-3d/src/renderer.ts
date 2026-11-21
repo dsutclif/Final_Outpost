@@ -72,6 +72,7 @@ import { StoryLights, nightFloor, storyLightColors, storyLighting } from "./scen
 import { StoryPresent } from "./scene/storypresent.js";
 import { Environment, SLAB_TOP, type Road, type Site } from "./scene/environment.js";
 import { Rigged } from "./scene/rigged.js";
+import { viewFrustum } from "./scene/animCull.js";
 import { collectDebugScene, type DebugScene } from "./probe.js";
 import { LOOK_TUNE, LookTest } from "./lookTest.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
@@ -398,6 +399,7 @@ export class Renderer3D implements Renderer {
   private dropTick = 0;
   private crowd: Crowd | null = null;
   private rigged: Rigged | null = null;
+  private readonly viewVolume = new Frustum();
   /** Wall segments as boxes in their own frame (rebuilt each frame), the see-through copies of the four wall batches, and the shared fade. */
   private wallCtx = { px: 0, pz: 0, ux: 0, uz: 1, slope: 1, half: 0, dt: 0 };
   /** Opacity of each wall piece by position, eased frame to frame (this frame's map is built as pieces are laid). */
@@ -1143,7 +1145,7 @@ export class Renderer3D implements Renderer {
     this.fx.draw(this.items);
     this.items.end();
     this.crowd.end();
-    this.rigged?.end(dt);
+    this.rigged?.end(dt, viewFrustum(this.viewVolume, this.camera.projectionMatrix, this.camera.matrixWorldInverse));
     this.markRigged();
     for (const [k, d] of this.drones) if (d.seen !== this.frameNo) { this.dynamic.remove(d.root); this.drones.delete(k); }
     this.blobs.end();
@@ -1299,6 +1301,11 @@ export class Renderer3D implements Renderer {
     if (t) return this.copyModel(t, !ghost);
     if (KEEPABLE.test(id) && !this.unkept.has(key) && !this.keepQ.includes(key)) this.keepQ.unshift(key);
     return buildModel(id, { ...this.bctx!, level, ...(ghost ? { ghost: true } : {}) });
+  }
+
+  /** Rigged characters drawn last frame: animation advanced vs skipped off screen (review probes). */
+  animStats(): { mixed: number; culled: number } {
+    return { mixed: this.rigged?.mixed ?? 0, culled: this.rigged?.culled ?? 0 };
   }
 
   /** The kept model for a kind, built now if missing; null for kinds that are never kept (characters, items, rigs). */
