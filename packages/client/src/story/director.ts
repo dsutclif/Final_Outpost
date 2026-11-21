@@ -308,12 +308,15 @@ export class StoryDirector {
     if (key !== this.paintKey) { this.paintKey = key; this.view.goals(this.settled.filter((_, i) => !this.level.goals[i]?.until), label); }
   }
 
+  /** True while a line, card, film or the prompt is still active or queued. */
+  get pendingStory(): boolean { return !!this.active || this.queue.length > 0 || this.promptOpen; }
+
   /**
    * The result screen waits for the queue (a last line, a card, the prompt). True: held, and `show`
    * runs when the queue is done. False: nothing to wait for.
    */
   holdResult(show: () => void): boolean {
-    if (!this.active && !this.queue.length && !this.promptOpen) return false;
+    if (!this.pendingStory) return false;
     this.held = show;
     return true;
   }

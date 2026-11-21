@@ -47,6 +47,8 @@ interface Session {
   director: StoryDirector | null;
   stage?: StoryStage | null;
   ended: boolean;
+  /** A won level_end whose fanfare and confetti wait for the story to finish (see handleEvent). */
+  lateEnd?: SimEvent | null;
   /** The player has been told the main goal is out of reach (asked once a level, R5 #21). */
   deadEndAsked?: boolean;
   /** Currency gained over the attempt (collected from the register and picked up). */
@@ -1105,6 +1107,13 @@ export class App {
     const showResult = async (): Promise<void> => {
       if (post) await this.cinematic(post);
       if (this.session !== s) return;
+      if (s.lateEnd) {
+        const le = s.lateEnd;
+        s.lateEnd = null;
+        this.celebrate(s, le);
+        await new Promise((r) => setTimeout(r, 1500)); // let the confetti land before the card covers the stage
+        if (this.session !== s) return;
+      }
       this.renderResult(won, reason, ticks, newBest, stars);
       this.show("result");
     };
@@ -1446,9 +1455,9 @@ export class App {
     s.director?.onEvent(e, s.sim.state);
     // coach hints ("Your pack is full of that") never talk over a line or a story beat
     if (e.t === "hint" && s.director?.busy) return;
-    s.renderer.onEvent(e);
-    this.haptics.play(e);
-    this.synth.playEvent(e, this.skin);
+    // a won level whose story still has lines or a film to play saves its fanfare and confetti for the result card
+    if (e.t === "level_end" && e.won && s.director?.pendingStory) s.lateEnd = e;
+    else this.celebrate(s, e);
     if (s.coach.onEvent(e, s.sim.compiled).length) this.saveProgressSoon();
     const touched = touchedBy(e, s.sim.state);
     if (touched.length) this.discover(touched);
@@ -1463,6 +1472,12 @@ export class App {
     if (e.t === "objective") this.objectiveEvent(s, e);
     this.logEvent(s, e);
     if (e.t === "level_end") this.finish(e.won, e.reason);
+  }
+
+  private celebrate(s: Session, e: SimEvent): void {
+    s.renderer.onEvent(e);
+    this.haptics.play(e);
+    this.synth.playEvent(e, this.skin);
   }
 
   private logEvent(s: Session, e: SimEvent): void {
