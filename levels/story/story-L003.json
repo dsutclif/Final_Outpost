@@ -580,7 +580,7 @@
     400
    ],
    "cost": {
-    "res.currency": 150
+    "res.currency": 120
    },
    "build": "struct.landmark",
    "big": true,

@@ -1060,7 +1060,7 @@ export const marsGreenhouse: Skin = {
           { id: "clear", label: "Dig through the rockslide" },
           { id: "meat", label: "Sell protein at the kiosk" },
           { id: "train", hold: true, label: "Train Tam to run the dome" },
-          { id: "main", label: "Build the habitat hub (150)" },
+          { id: "main", label: "Build the habitat hub (120)" },
         ],
         cues: [
           { on: { start: true }, do: [
@@ -1098,7 +1098,7 @@ export const marsGreenhouse: Skin = {
             // story-L003) and the camera then glides on to the kiosk, where she and the commander stand and talk.
             { light: "night", seconds: 1.5 },
             { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }], seconds: 6.5, lights: true, rider: "sela" },
-            { camera: { to: { at: [800, 928] }, pan: 0.001, hold: 9.7, back: 0.001 } },
+            { camera: { to: { at: [690, 858] }, zoom: 0.72, pan: 0.001, hold: 9.7, back: 0.001 } },
             { camera: { to: { entity: "kiosk" }, pan: 1.4, hold: 24, back: 0.9, freeze: false } },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
