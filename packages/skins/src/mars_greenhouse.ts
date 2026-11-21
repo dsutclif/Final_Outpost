@@ -1007,8 +1007,10 @@ export const marsGreenhouse: Skin = {
             { walk: "okafor", to: false },
           ] },
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
-            // the lander pod lights (manifest hiddenUntil: pair): the camera looks out to it, so KILN names what the player can see
-            { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 1.2, back: 0.7 } },
+            // the lander pod lights (manifest hiddenUntil: pair): the camera looks out to it and stays there while KILN names it,
+            // so the line comes up with the pod on screen (a nudge runs beside the line; a frozen beat would hand back first)
+            { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 8, back: 0.7, freeze: false } },
+            { wait: 1 },
             { line: "One more out there. A fifth pod. It's ours, the lander's escape pod, but nobody was assigned to it.", who: "kiln" },
             { line: "Then I'll bring in all five.", who: "commander" },
             { goal: "main" },
