@@ -172,6 +172,9 @@ export class App {
   private settingsTab: "settings" | "guide" = "settings";
   private thumbs = new Map<string, string>();
   private beatAt = 0;
+  /** KILN's pull-back line: when it may speak again (ms), and whether the last fight is over so it may. */
+  private pullAt = 0;
+  private pullArmed = true;
   /** Pad the player last stepped onto, so the "no free settlers" hint shows on arrival, not after the pay dwell. */
   private arrivedPad: string | null = null;
   private resetArmed = false;
@@ -1330,6 +1333,7 @@ export class App {
       }
       this.updateCoach(s);
       this.heartbeat(s, now);
+      this.pullBack(s, now);
       this.padArrival(s);
       this.probe(s, dt);
       this.reporter?.frame(dt);
@@ -1451,6 +1455,20 @@ export class App {
     this.haptics.pulse([18, 90, 12]);
   }
 
+  /** KILN tells the commander to get back from attackers at 3 hp or less: once per fight, and again after a cooldown (text lives in the skin). */
+  private pullBack(s: Session, now: number): void {
+    const st = s.sim.state;
+    if (!st.hostiles.length) { this.pullArmed = true; return; }
+    if (!this.pullArmed || st.player.hp > 3 || st.player.hp <= 0 || now < this.pullAt || s.director?.busy) return;
+    this.sayPullBack(s, now);
+  }
+
+  private sayPullBack(s: Session, now: number): void {
+    this.pullArmed = false;
+    this.pullAt = now + 20000;
+    s.renderer.onEvent({ t: "hint", key: "kiln_pull_back" } as unknown as SimEvent);
+  }
+
   private handleEvent(s: Session, e: SimEvent): void {
     s.director?.onEvent(e, s.sim.state);
     // coach hints ("Your pack is full of that") never talk over a line or a story beat
@@ -1467,6 +1485,7 @@ export class App {
       const f = this.el.stage.querySelector<HTMLElement>("#downFlash");
       if (f) { f.classList.remove("on"); void f.offsetWidth; f.classList.add("on"); }
       this.haptics.pulse([120, 60, 120, 60, 240]);
+      if (!s.director?.busy) this.sayPullBack(s, performance.now());
     }
     if (e.t === "wave_cleared") s.wavesCleared++;
     if (e.t === "objective") this.objectiveEvent(s, e);

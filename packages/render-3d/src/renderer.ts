@@ -1188,6 +1188,7 @@ export class Renderer3D implements Renderer {
     }
     this.env.update(dt, this.t, this.look, coreW, this.safeR * SAFE_RING_K, this.fuelK, state.hazard?.phase ?? "none", this.camera.position.distanceTo(this.look));
     this.updateDom(state);
+    this.declutterOrders();
     this.synced = true;
     // a filmed fall shows no floating labels (names, prices, tags: sprites drawn over the world), this frame only
     const hid: Sprite[] = [];
@@ -1905,6 +1906,48 @@ export class Renderer3D implements Renderer {
   private healSeen = new Set<string>();
   private healGeo: ExtrudeGeometry | null = null;
   private healMat: MeshStandardMaterial | null = null;
+  /** Screen box (CSS px) of a label sprite: its world size laid along the camera's right and up. */
+  private spriteBox(s: Sprite, right: Vector3, up: Vector3): { x0: number; y0: number; x1: number; y1: number } {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const c = new Vector3();
+    for (const [fx, fy] of [[0, 0], [1, 0], [1, 1], [0, 1]] as const) {
+      c.copy(s.position).addScaledVector(right, (fx - s.center.x) * s.scale.x).addScaledVector(up, (fy - s.center.y) * s.scale.y);
+      const q = this.toScreen(c);
+      x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y);
+    }
+    return { x0, y0, x1, y1 };
+  }
+
+  /** A trader's order bubble is lifted off the shelf chip or guide line it would cover (a crowd at the kiosk stacks them). */
+  private declutterOrders(): void {
+    const ords: Sprite[] = [], fixed: Sprite[] = [];
+    for (const o of this.dynamic.children) {
+      const sp = o as Sprite;
+      if (!sp.isSprite || !sp.visible) continue;
+      const k = sp.userData["label"] as string | undefined;
+      if (k?.startsWith("ord|")) ords.push(sp);
+      else if (k?.startsWith("shelf|") || k?.startsWith("guide|")) fixed.push(sp);
+    }
+    if (!ords.length || !fixed.length) return;
+    this.camera.updateMatrixWorld();
+    const right = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0), up = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 1);
+    const area = (b: { x0: number; y0: number; x1: number; y1: number }): number => Math.max(0, b.x1 - b.x0) * Math.max(0, b.y1 - b.y0);
+    const fb = fixed.map((f) => this.spriteBox(f, right, up));
+    for (const sp of ords) {
+      const home = sp.position.y;
+      for (let n = 0; n < 6; n++) {
+        const b = this.spriteBox(sp, right, up);
+        const hit = fb.some((f) => {
+          const w = Math.min(b.x1, f.x1) - Math.max(b.x0, f.x0), h = Math.min(b.y1, f.y1) - Math.max(b.y0, f.y0);
+          return w > 0 && h > 0 && w * h > 0.1 * Math.min(area(b), area(f));
+        });
+        if (!hit) break;
+        sp.position.y += sp.scale.y * 0.5;
+      }
+      if (sp.position.y > home + sp.scale.y * 3) sp.position.y = home;
+    }
+  }
+
   private bubbleSprite(key: string): Sprite {
     let b = this.bubbles.get(key);
     if (!b) {

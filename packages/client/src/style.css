@@ -53,7 +53,7 @@ body {
 .fhud .fname, .fhud .gdisc, .gnum { filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 5px rgba(0, 0, 0, 0.3)); }
 .gnum small { font-size: 11px; opacity: 0.8; }
 .gnum.low { top: calc(100% + 2px); }
-.fhud .fname { font-size: 19px; letter-spacing: 0.04em; padding: 4px 2px; }
+.fhud .fname { font-size: 19px; letter-spacing: 0.04em; padding: 0 2px; min-height: 44px; min-width: 52px; text-align: center; }
 .fhud .fname { color: #fff; }
 .fname::after { content: ""; flex: none; width: 5px; height: 5px; border: solid #fff; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg) translateY(-2px); opacity: 0.75; margin-left: 3px; }
 .fname { white-space: nowrap; display: block; }
@@ -498,7 +498,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- Help sheet (R5 #12): bottom-middle button and the paused sheet ---------- */
 .fhud .fhelp {
-  position: absolute; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); min-height: 40px; padding: 0 20px;
+  position: absolute; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); min-height: 44px; min-width: 72px; padding: 0 20px;
   border-radius: 20px; background: rgba(18, 20, 23, 0.7); color: #fff; font: 800 15px var(--display); letter-spacing: 0.06em; text-transform: uppercase;
 }
 .help-card { max-height: calc(100% - 16px); display: flex; flex-direction: column; }
