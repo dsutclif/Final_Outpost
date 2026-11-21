@@ -28,6 +28,7 @@ import {
   ACESFilmicToneMapping,
   Object3D,
   PCFShadowMap,
+  PointLight,
   Quaternion,
   Shape,
   PCFSoftShadowMap,
@@ -826,6 +827,7 @@ export class Renderer3D implements Renderer {
     this.spirit?.dispose();
     this.storyLights = null; this.spirit = null; this.storyP = null;
     this.kneelStage?.helmet?.removeFromParent();
+    this.kneelLight?.removeFromParent(); this.kneelLight = null;
     this.kneelStage = null; this.pickupModel = null;
     this.guideSprite = null;
     this.guideMark = null;
@@ -1851,6 +1853,8 @@ export class Renderer3D implements Renderer {
    * level's end. The helmet follows the clip's own path (tools/cinematics/s258/kneel_lift.py anchor_state).
    */
   private kneelStage: KneelStage | null = null;
+  /** The warm fill over the kneeling commander (outpost-ops#277): the helmet beat is the story's end and the night floor left it dark. */
+  private kneelLight: PointLight | null = null;
   /** The last drawn model of a pickup capture (manifest pickup): the lift starts from its size. */
   private pickupModel: Object3D | null = null;
   /** Captures seen carried by a boss (heldBy): once dropped, story showDropped draws them before they are revealed. */
@@ -2908,6 +2912,13 @@ export class Renderer3D implements Renderer {
     const x = st.from.x + (sx - st.from.x) * e, z = st.from.y + (sz - st.from.y) * e;
     this.rigged!.add("player", "unit.player", this.rigged!.entryFor("unit.player")!, { moving: false, hurried: false, cheer: false, once: "kneel" }, x, z, st.yaw, H / 0.9);
     this.blobs!.add(x, z, 10 * k * KNEEL_H / ART_M);
+    // story light: a lamp-warm point above and toward the camera, fading in with the kneel and out as dawn rises (no daylighting)
+    if (!this.kneelLight) { this.kneelLight = new PointLight(new Color(this.tokens.lampWarm), 0, 0, KNEEL_LIGHT.decay); this.scene.add(this.kneelLight); }
+    const nightK = 1 - (this.env?.story?.sun ?? 0.5);
+    const cdx = this.camera.position.x - x, cdz = this.camera.position.z - z, cl = Math.hypot(cdx, cdz) || 1;
+    this.kneelLight.position.set(x + (cdx / cl) * H * KNEEL_LIGHT.toward, H * KNEEL_LIGHT.up, z + (cdz / cl) * H * KNEEL_LIGHT.toward);
+    this.kneelLight.distance = H * KNEEL_LIGHT.reach;
+    this.kneelLight.intensity = KNEEL_LIGHT.power * sm(st.clock / 0.8) * nightK;
     if (!st.helmet) {
       const src = meshyScene("item.lieutenant_helmet");
       if (!src) return;
@@ -4652,6 +4663,8 @@ interface KneelStage {
  *  its turn (degrees about up) and how far it tips back as it is lifted (degrees about x). */
 const KNEEL_H = 1.8, KNEEL_F1 = 96, KNEEL_REACH = 0.42, KNEEL_HELM_H = 0.413 * (0.42 / 0.447);
 const KNEEL_GROUND = [0, -0.42, KNEEL_HELM_H / 2], KNEEL_END = [0.02, -0.26, 0.72], KNEEL_YAW = 18, KNEEL_TIP = -35;
+/** The kneel's night fill: height and pull toward the camera (x commander height), reach, decay, power (core light is 70). */
+const KNEEL_LIGHT = { up: 1.15, toward: 0.6, reach: 3.2, decay: 1.1, power: 45 };
 const Y_UP = new Vector3(0, 1, 0), X_AX = new Vector3(1, 0, 0);
 /** A guard back on its feet runs to where the sim has it at this speed (art metres per second). */
 const CATCH_UP = 3.2;

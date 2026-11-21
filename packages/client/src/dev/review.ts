@@ -357,6 +357,16 @@ export function installReview(app: App): void {
     errors: () => errors.slice(),
     state,
     filmEnd,
+    kneel(night = 0, at) {
+      // stage the story kneel-and-lift where the commander stands, at night (lighting `night`: 0 = full night, 1 = noon); step it with settle()
+      const sp = app.debugView?.renderer.story(), sim = app.debugSim;
+      if (!sp || !sim) return false;
+      sp.lighting(night, true);
+      if (at) { sim.state.player.pos.x = Math.round(at.x * FP); sim.state.player.pos.y = Math.round(at.y * FP); }
+      const p = sim.state.player.pos;
+      void sp.kneel({ at: { x: p.x / FP + 0.6, y: p.y / FP + 0.6 } });
+      return true;
+    },
     visibility(visible) {
       Object.defineProperty(doc, "visibilityState", { configurable: true, get: () => (visible ? "visible" : "hidden") });
       Object.defineProperty(doc, "hidden", { configurable: true, get: () => !visible });

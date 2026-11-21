@@ -85,9 +85,11 @@ RFOOT = {1: REST["RightFoot"] - DZ, 22: REST["RightFoot"] - DZ, (22 + TLAND) // 
 # v2: the kneeling foot is plantar-flexed about the world X axis (no 180 yaw: that twisted the shin into the boot and folded the mesh)
 RFSPIN = {1: 0.0, 22: 0.0, TLAND - 6: 0.0, TLAND: ENV("ROTA", 103.0), 96: ENV("ROTA", 103.0)}
 TOEFLAT = {1: 0.0, 22: 0.0, TLAND - 6: 0.0, TLAND: ENV("TOEA", 15.0), 96: ENV("TOEA", 15.0)}
-LEAN = {1: 0.0, 14: 0.0, 30: 14.0, 46: 40.0, 56: 55.0, 64: 55.0, 76: 28.0, 92: 8.0, 96: 6.0}
-PITCH = {1: 0.0, 14: 0.0, 30: 10.0, 46: 25.0, 56: 36.0, 64: 36.0, 76: 14.0, 92: 4.0, 96: 4.0}
-HEADTILT = {1: 0.0, 46: -10.0, 64: -14.0, 92: 6.0, 96: 6.0}
+# v4 (outpost-ops#280): a shallower lean (peak 55 -> LEANK of that) and a settle to rest at the end (zero speed at frame 96)
+LK = ENV("LEANK", 0.72)
+LEAN = {1: 0.0, 14: 0.0, 30: 12.0, 46: 40.0 * LK, 56: 55.0 * LK, 64: 55.0 * LK, 76: 26.0, 88: 6.0, 96: 2.0}
+PITCH = {1: 0.0, 14: 0.0, 30: 8.0, 46: 25.0 * LK, 56: 36.0 * LK, 64: 36.0 * LK, 76: 12.0, 88: 3.0, 96: 1.0}
+HEADTILT = {1: 0.0, 46: -10.0, 64: -14.0, 84: 4.0, 96: 2.0}
 SIGN = ENV("SIGN", 1.0)
 
 A_GROUND = V((0.0, ENV("AGY", -0.42), HELM_H / 2))
@@ -135,6 +137,14 @@ for f in range(F0, F1 + 1):
     for n, k in (("Spine", 0.3), ("Spine1", 0.35), ("Spine2", 0.35)):
         rot_world_axis(n, Xa, lean * k, f)
     rot_world_axis("Head", Xa, interp(HEADTILT, float(f)) * SIGN, f)
+    # v4: the fingers curl round the helmet rim as the hands reach it (frame 46 -> 64) and stay curled
+    cu = smooth(min(1.0, max(0.0, (f - 46) / 18.0))) * ENV("CURL", 1.0)
+    for side in ("Left", "Right"):
+        for fn, (a1, a2, a3) in (("Index", (35, 55, 35)), ("Middle", (40, 60, 40)), ("Ring", (45, 65, 40)), ("Pinky", (50, 65, 40)), ("Thumb", (10, 25, 20))):
+            for i, a in enumerate((a1, a2, a3), 1):
+                pb = PB(f"{side}Hand{fn}{i}"); pb.rotation_mode = "XYZ"
+                pb.rotation_euler = (math.radians(a * cu * ENV("CSIGN", 1.0)), 0, 0)
+                pb.keyframe_insert("rotation_euler", frame=f)
     rot_world_axis("RightToeBase", Xa, interp(TOEFLAT, float(f)), f)
     key_t(tgt["LF"], interp(LFOOT, f), REST_M["LeftFoot"].to_3x3(), f)
     key_t(tgt["RF"], interp(RFOOT, f), Matrix.Rotation(math.radians(interp(RFSPIN, float(f))), 3, "X") @ REST_M["RightFoot"].to_3x3(), f)

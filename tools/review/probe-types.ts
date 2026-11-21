@@ -154,6 +154,8 @@ export interface ReviewApi {
   state(): StorySnapshot | null;
   /** Play a live scene held at its last second and report what it staged; null for a film that is a video. */
   filmEnd(film: string): Promise<FilmEnd | null>;
+  /** Dev: stage the story kneel-and-lift at the commander at the given night lighting (0 = full night), optionally first moving the commander to `at` (world units), step it with settle(); false outside a story level. */
+  kneel(night?: number, at?: { x: number; y: number }): boolean;
   /** Hold or release the whole page's visibility, as a phone does when the app goes to the background. */
   visibility(visible: boolean): void;
   /** Milliseconds since the level opened. */
