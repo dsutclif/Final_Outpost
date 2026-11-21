@@ -505,8 +505,8 @@
    "type": "capture.recruit_container",
    "id": "pod_okafor",
    "at": [
-    760,
-    480
+    520,
+    610
    ],
    "freeze": 160,
    "joins": {
