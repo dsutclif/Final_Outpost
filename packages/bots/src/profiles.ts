@@ -24,20 +24,26 @@ export interface BotProfile {
    * guards_first: all guards, towers, drones; drones_first: first guards, drones as early as affordable, guards, towers.
    */
   strategy?: Strategy;
+  /**
+   * Defend S3 (outpost-ops#273): 0..1 quality of the bot's defence choices (strategy, site, coins on towers; carry hook for S6). At each decision point it
+   * picks argmax(model margin + noise, sigma 0.5(1-j)) over a horizon of 1+round(2j) waves, from its own seeded noise. Absent (a fixed `strategy`
+   * profile, hand-built profiles) = today's behaviour. Every ladder rung has one; none keeps a fixed order.
+   */
+  judgment?: number;
 }
 
 export type Strategy = "turrets_first" | "guards_first" | "drones_first";
 export const STRATEGIES: readonly Strategy[] = ["turrets_first", "guards_first", "drones_first"];
 
 /** The good bot locked to one strategy: what the generator's breaking-volume probe and `strategyGap` play. */
-export const strategyProfile = (s: Strategy): BotProfile => ({ ...LADDER[0]!, name: `good:${s}`, strategy: s });
+export const strategyProfile = (s: Strategy): BotProfile => { const { judgment: _j, ...rest } = LADDER[0]!; return { ...rest, name: `good:${s}`, strategy: s }; };
 
 export const LADDER: readonly BotProfile[] = [
-  { name: "good", reactionTicks: 3, routeNoise: 0, priorityErr: 0, multitask: true, learn: 0.3, evalTicks: 4 },
-  { name: "average", reactionTicks: 10, routeNoise: 0.2, priorityErr: 0.06, multitask: true, learn: 0.3, evalTicks: 6 },
-  { name: "weak", reactionTicks: 20, routeNoise: 0.4, priorityErr: 0.15, multitask: false, learn: 0.3, evalTicks: 8 },
-  { name: "novice", reactionTicks: 40, routeNoise: 0.6, priorityErr: 0.28, multitask: false, learn: 0.3, evalTicks: 12 },
-  { name: "floor", reactionTicks: 70, routeNoise: 0.8, priorityErr: 0.42, multitask: false, learn: 0.3, evalTicks: 16 },
+  { name: "good", reactionTicks: 3, routeNoise: 0, priorityErr: 0, multitask: true, learn: 0.3, evalTicks: 4, judgment: 1 },
+  { name: "average", reactionTicks: 10, routeNoise: 0.2, priorityErr: 0.06, multitask: true, learn: 0.3, evalTicks: 6, judgment: 0.8 },
+  { name: "weak", reactionTicks: 20, routeNoise: 0.4, priorityErr: 0.15, multitask: false, learn: 0.3, evalTicks: 8, judgment: 0.6 },
+  { name: "novice", reactionTicks: 40, routeNoise: 0.6, priorityErr: 0.28, multitask: false, learn: 0.3, evalTicks: 12, judgment: 0.4 },
+  { name: "floor", reactionTicks: 70, routeNoise: 0.8, priorityErr: 0.42, multitask: false, learn: 0.3, evalTicks: 16, judgment: 0.2 },
 ];
 
 /**
@@ -45,7 +51,7 @@ export const LADDER: readonly BotProfile[] = [
  * Half a second to react, a little wander and misjudgement, and it perceives only what a player can
  * (src/view.ts). Star challenges must be earned by this bot, not by the omniscient good bot.
  */
-export const HUMAN: BotProfile = { name: "human", reactionTicks: 15, routeNoise: 0.15, priorityErr: 0.05, multitask: true, learn: 0.3, evalTicks: 6, view: true };
+export const HUMAN: BotProfile = { name: "human", reactionTicks: 15, routeNoise: 0.15, priorityErr: 0.05, multitask: true, learn: 0.3, evalTicks: 6, view: true, judgment: 0.85 };
 
 export const PROFILES: Readonly<Record<string, BotProfile>> = Object.fromEntries([...LADDER, HUMAN].map((p) => [p.name, p]));
 

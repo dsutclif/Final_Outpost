@@ -10,3 +10,4 @@ export { playShapeNumbers, playShapeFails, type PlayShapeNumbers, type PlayShape
 export { repin, scaleWaves, breakingMultiplier, strategyGap, type BreakOptions, type BreakResult, type StrategyGap } from "./defendBreak.js";
 export { sideMetrics, type SideMetrics } from "./defendSides.js";
 export { s1Metrics, type S1Metrics } from "./defendS1.js";
+export { judgmentShare, type JudgmentShare } from "./defendJudgment.js";

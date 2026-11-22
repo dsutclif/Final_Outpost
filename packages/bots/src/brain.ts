@@ -1,7 +1,9 @@
 import { FP, TPS, blockedAt, downLeft, depotDrop, gatherTicks, converterRunnable, operated,playerCap, jobDone, jobOf, nextU32, outsideLines, outsidePerimeter, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
-import type { BotProfile } from "./profiles.js";
+import type { BotProfile, Strategy } from "./profiles.js";
+import type { Content } from "@fo/content";
+import { Judge } from "./judgment.js";
 
 // Utility controller. Every few ticks it scores the tasks the state offers, picks the best
 // (the profile's priority error sometimes takes the runner-up), and after the reaction delay
@@ -71,13 +73,20 @@ export class Brain {
     private readonly plan: Plan,
     private readonly prof: BotProfile,
     private readonly rng: Rng,
+    content?: Content,
   ) {
+    // defend S3: a profile with judgment (and no fixed strategy) chooses its strategy by the defend model; needs the content tables
+    this.judge = content && prof.judgment !== undefined && prof.strategy === undefined && cp.waves.length > 0 ? new Judge(cp, content, prof.judgment, rng.state) : null;
     this.nav = new Nav(cp);
     this.pol = plan.policies ?? DEFAULT_POLICIES;
     this.usesCapped = plan.steps.some((s) => Object.keys(s.cost).some((r) => cp.resources[r]?.cap !== null))
       || plan.barriers.some((b) => cp.resources[b.res]?.cap !== null);
     this.rings = cp.manifest.entities.flatMap((e) => (e.type === "barrier.line" && e.closed ? [e.sections.map((s) => ({ x: s.a[0] * FP, y: s.a[1] * FP }))] : []));
   }
+
+  readonly judge: Judge | null;
+  /** The strategy in force: a fixed profile strategy, else the judgment bot's current pick, else none (today's order). */
+  private strat(): Strategy | undefined { return this.prof.strategy ?? this.judge?.chosen; }
 
   private readonly pol: Policies;
   /** Closed barrier rings as polygons (fixed point). */
@@ -116,6 +125,7 @@ export class Brain {
 
   /** The first plan step that can take a payment now. */
   nextStep(st: State): { step: PlanStep; pad: PadState } | null {
+    this.judge?.refresh(st);
     let first: { step: PlanStep; pad: PadState } | null = null, best: { step: PlanStep; pad: PadState } | null = null, bk = Infinity;
     for (const s of this.plan.steps) {
       if (this.stepDone(st, s) || !this.whenHolds(st, s) || this.skip.has(s.pad)) continue;
@@ -145,7 +155,7 @@ export class Brain {
   private ladderRank(s: PlanStep): number {
     const e = this.cp.entityById[s.pad];
     if (!e) return -1;
-    const strat = this.prof.strategy;
+    const strat = this.strat();
     if (e.type === "pad.hire") {
       if (this.cp.roles[e.role.role]?.behavior !== "guard") return -1;
       if ((this.hiresByPad[s.pad] ?? 0) < FIRST_GUARDS && strat !== undefined) return 0;
@@ -189,7 +199,7 @@ export class Brain {
     // the first guards come first of all (the guard post stands: hiring is the first purchase)
     // a strategy bot follows its own order even where the goal path names a purchase: the probe measures defence, not goal speed
     const sides = this.stackedSides(st, next);
-    return (rank === 0 || (s.goalPath && this.prof.strategy === undefined) ? 0 : 1e7) + rank * 1e6 + (sides !== null && side !== null && !sides.has(side) ? 1e5 : 0) + cost;
+    return (rank === 0 || (s.goalPath && this.strat() === undefined) ? 0 : 1e7) + rank * 1e6 + (sides !== null && side !== null && !sides.has(side) ? 1e5 : 0) + (this.judge ? this.judge.siteKey(s.pad, side, cost) : cost);
   }
 
   /** Remaining cost of a pad at its current (automation-taxed) price, per resource. */

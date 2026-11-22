@@ -250,6 +250,8 @@ export interface BotResult {
   hash: string;
   /** Per-run defend record; present on levels with attack waves. */
   defend?: DefendRecord;
+  /** Defend S3: the judgment bot's strategy decisions (n, how many matched the noiseless best, the picks). */
+  judge?: { n: number; hits: number; picks: string[] };
   inputs?: Input[];
 }
 
@@ -309,7 +311,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
   const plan = opts.plan ?? planBot(manifest, content);
   const profile = withLearning(profileIn, opts.attempt ?? 0);
   const rng = seedRng((seed * 2654435761 + hashName(profile.name)) >>> 0);
-  const brain = new Brain(cp, plan, profile, rng);
+  const brain = new Brain(cp, plan, profile, rng, content);
   // The human-view bot decides from what is on screen; the sim and every statistic below read the real state.
   const eyes = profile.view ? new Perception(viewFor(cp.manifest.family)) : null;
   eyes?.overview(st);
@@ -547,6 +549,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     runStats, used: usedEl, hash: sim.hash(),
   };
   if (defend) res.defend = defend;
+  if (brain.judge) res.judge = brain.judge.report();
   if (opts.recordInputs) res.inputs = inputs;
   return res;
 }
