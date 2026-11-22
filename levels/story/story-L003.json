@@ -659,7 +659,7 @@
    "params": {
     "n": 1
    },
-   "label": "Build the grow dome"
+   "label": "Collect scrap to build the grow dome"
   },
   {
    "id": "lights",

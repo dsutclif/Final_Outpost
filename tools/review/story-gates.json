@@ -11,8 +11,8 @@
     { "line": "Power's up. I can open bays", "afterGoal": ["main"], "why": "KILN opens the bays only once all five pods are home." }
   ],
   "story-L003": [
-    { "line": "Lights, to the south", "unseen": ["sink.sales_point"], "why": "The commander sees only lights far to the south; the old kiosk is not yet in view (a glow on the screen edge points the way)." },
-    { "line": "A road. And a kiosk", "seen": ["sink.sales_point"], "after": ["Lights, to the south"], "why": "The commander finds the road and the shut-up kiosk only after walking to it, and only after the lights line." },
+    { "line": "Those lights to the south", "unseen": ["sink.sales_point"], "why": "The commander sees only lights far to the south; the old kiosk is not yet in view (a glow on the screen edge points the way)." },
+    { "line": "A road. And a kiosk", "seen": ["sink.sales_point"], "after": ["Those lights to the south"], "why": "The commander finds the road and the shut-up kiosk only after walking to it, and only after the lights line." },
     { "line": "It'll do.", "afterGoal": ["dome"], "why": "Tam speaks after the grow dome is unlocked." },
     { "line": "Those C coins are credits", "afterGoal": ["first"], "why": "KILN explains credits after the first sale." }
   ],

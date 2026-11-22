@@ -1054,7 +1054,7 @@ export const marsGreenhouse: Skin = {
         customerModels: { 0: "unit.customer_sela" },
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 }, trader: { entity: "kiosk" } },
         goals: [
-          { id: "dome", hold: true, label: "Build the grow dome (8 scrap)" },
+          { id: "dome", hold: true, label: "Collect scrap to build the grow dome (8)" },
           { id: "lights", hold: true, label: "Follow the lights" },
           { id: "first", hold: true, label: "Sell Sela some greens" },
           // S43 (Doug, 2026-11-07): the ring is no longer prebuilt; the player builds it here, the star is the wall
@@ -1070,7 +1070,7 @@ export const marsGreenhouse: Skin = {
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
             { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
-            { line: "You promised me a grow dome, Boss. Give me one and I'll feed this camp.", who: "tam" },
+            { line: "You promised me a grow dome, Boss. Give me one... and I start feeding the crew.", who: "tam" },
             { line: "There's hull scrap lying all round the wreck. Enough to build one.", who: "commander" },
             { line: "Carry scrap to the dome's frame. It goes up when the frame is full.", who: "kiln", head: "K.I.L.N. · DAY 3" },
             { goal: "dome" },
@@ -1080,8 +1080,8 @@ export const marsGreenhouse: Skin = {
           { on: { goal: "dome", is: "done" }, ordered: true, do: [
             { dotsOff: true },
             { light: "night", seconds: 6 },
-            { line: "It'll do.", who: "tam" },
-            { line: "Lights, to the south. Something's moving out there.", who: "commander" },
+            { line: "It'll do. Now I can start getting the first seeds in the gro...", who: "tam" },
+            { line: "Wait. Those lights to the south...", who: "commander" },
             { guide: false },
             { edgeGlow: { entity: "kiosk", size: 28, strength: 0.35, arrow: true } },
             { goal: "lights" },
@@ -1105,11 +1105,11 @@ export const marsGreenhouse: Skin = {
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
           { on: { who: "sela", at: { entity: "kiosk" }, r: 150, after: "selaIn" }, ordered: true, do: [
-            { line: "Well. Somebody's living out here. I'm Sela.", who: "sela" },
+            { line: "Well, I guess... Sela.", who: "sela" },
             { line: "I trade between the settlements. Salvage, food, whatever people need.", who: "sela" },
             { line: "Settlements? There are other people on this planet?", who: "commander" },
             { line: "Colony ships have been setting down at the landing fields for years. You came down a long way off. Hardly anyone drives out this far.", who: "sela" },
-            { line: "Three towns along this road, and every one of them is hungry. Open this old kiosk up and I'll buy your greens.", who: "sela" },
+            { line: "Three towns along this road, and every one of them is hungry. Start stocking this old kiosk and there are plenty who'll buy your greens.", who: "sela" },
             { line: "Traders. Stock the kiosk's shelf with greens, then stand at the counter so she can pay.", who: "kiln", head: "K.I.L.N. · DAY 3" },
             { goal: "first" },
             { dots: [{ entity: "field1" }], period: 3 },
@@ -1118,26 +1118,33 @@ export const marsGreenhouse: Skin = {
           { on: { goal: "first", is: "done" }, ordered: true, do: [
             { show: ["credits"] },
             { dotsOff: true },
-            { line: "Those C coins are credits. Every sale pays them in, and credits buy what the camp builds.", who: "kiln" },
+            { line: "Those coins seem to be the local currency.", who: "kiln" },
             { line: "You built that dome yourselves? Out of your own hull?", who: "sela" },
             { line: "Save your scrap. My road crew builds for credits, and they bring their own steel.", who: "sela" },
-            { line: "A road that brings traders can bring raiders. Wall first, before anything else.", who: "okafor" },
+            { line: "A road that brings traders can bring raiders, so... let's build a wall first...", who: "okafor" },
             { line: "Once you've saved enough credits, walk the dashed line and the wall goes up behind you.", who: "kiln" },
           ] },
           // the wall stands: the hub and its price, then the trader who wants meat and the slide in the way
-          { on: { goal: "walls", is: "done" }, ordered: true, do: [
+          { id: "wallDone", on: { goal: "walls", is: "done" }, ordered: true, do: [
             // Sela's road crew come up the road for each paid build: the buggy drives in, waits a moment and goes
             { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [560, 430] }], seconds: 5, lights: true },
             { wait: 3 },
             { vehicleOff: "buggy" },
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
-            { line: "Sell some more and save up credits to build that hub.", who: "kiln" },
+            { line: "Take one more load of greens to the kiosk, and keep saving credits for that hub.", who: "kiln" },
+          ] },
+          // picking up greens after the wall: Tam offers to run the dome
+          { on: { event: "gathered", match: { res: "res.food_raw_1" }, after: "wallDone" }, ordered: true, do: [
+            { line: "Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.", who: "tam" },
+          ] },
+          // the checkout sale of those greens: the next trader wants protein
+          { on: { event: "sold", match: { res: "res.food_raw_1" }, after: "wallDone" }, ordered: true, do: [
             { line: "No protein? I'm leaving.", who: "trader" },
             { line: "Protein sells for a premium around here. Those rock hoppers past the rockslide would fetch a good price.", who: "sela" },
             { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.3 } },
             { camera: { to: { entity: "rockslide" }, pan: 0.4, hold: 1, back: 0.8 } },
-            { line: "The slide is loose rock. Stand against it and dig; it clears a square at a time.", who: "kiln" },
+            { line: "The slide is loose rock... walk up to it and dig... one section at a time.", who: "kiln" },
           ] },
           // dug by hand: no credits, so no road crew
           { on: { event: "zone_cleared" }, ordered: true, do: [
@@ -1145,7 +1152,6 @@ export const marsGreenhouse: Skin = {
             { line: "Rock hoppers. Run into one to knock it down, then pick up the protein when it falls.", who: "kiln" },
           ] },
           { on: { event: "sold", match: { res: "res.food_raw_2" } }, ordered: true, do: [
-            { line: "Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.", who: "tam" },
             { line: "Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear, and gear costs credits. Stand on Tam's pad when you have them.", who: "kiln" },
             { goal: "train" },
           ] },
