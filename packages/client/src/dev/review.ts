@@ -321,7 +321,7 @@ export function installReview(app: App): void {
       const st = sim.state;
       return { tick, over: st.over, won: st.won, reason: st.reason };
     },
-    ff(seconds, seenSeq) {
+    ff(seconds, seenSeq, stopOnCamera = false) {
       // Runs the game's own frame function on a made-up clock, 1/30 s a frame, without drawing, so a story that
       // needs minutes of play does not wait on a slow GPU. Stops at the first caption that is not `seen`.
       const a = app as unknown as { frame: (now: number) => void; last: number };
@@ -334,7 +334,7 @@ export function installReview(app: App): void {
       let now = performance.now();
       a.last = now;
       try {
-        for (let i = 0; i < seconds * 30 && !app.debugView?.ended && lineSeq === seenSeq; i++) { now += 1000 / 30; a.frame(now); }
+        for (let i = 0; i < seconds * 30 && !app.debugView?.ended && lineSeq === seenSeq; i++) { now += 1000 / 30; a.frame(now); if (stopOnCamera && app.debugView?.director?.cameraOn) break; }
       } finally {
         window.requestAnimationFrame = raf;
         skipSync = false;
@@ -342,6 +342,19 @@ export function installReview(app: App): void {
       }
       const st = app.debugSim?.state;
       return { tick: st?.tick ?? -1, seq: lineSeq, over: !!app.debugView?.ended || !!st?.over };
+    },
+    cues() {
+      const v = app.debugView, d = v?.director;
+      if (!v || !d) return null;
+      const w = d.world, vis = (sel: string): boolean => { const e = doc.querySelector<HTMLElement>(sel); return !!e && !e.hidden && getComputedStyle(e).display !== "none" && Number.parseFloat(getComputedStyle(e).opacity) > 0.05; };
+      const gq = w.glow ? v.renderer.worldToScreen(w.glow, 0) : null, vw = window.innerWidth, vh = window.innerHeight;
+      const gOff = gq ? Math.max(-gq.x, gq.x - vw, -gq.y, gq.y - vh) + vw * 0.12 > 0 : false;
+      const q = w.guideTo ? v.renderer.worldToScreen(w.guideTo, 0) : null;
+      return {
+        camera: d.cameraOn,
+        glow: { set: !!w.glow, offScreen: gOff, arrowWanted: !!w.glow?.arrow, shown: vis(".story-glow"), arrowShown: vis(".story-arrow") },
+        guide: { to: w.guideTo, off: w.guideOff, drawn: !!v.guide, toOnScreen: q ? q.x >= 0 && q.y >= 0 && q.x <= window.innerWidth && q.y <= window.innerHeight : null },
+      };
     },
     settle(frames) {
       // a few drawn frames on the made-up clock, so a caption finds its place over its speaker

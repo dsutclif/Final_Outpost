@@ -1286,9 +1286,9 @@ export class App {
   get debugSim(): Sim | null { return this.session?.sim ?? null; }
 
   /** Dev hook (review probes, dev/review.ts): what the running level draws with and which screen is up; read-only use. */
-  get debugView(): { screen: string; levelId: string; renderer: GameRenderer; director: StoryDirector | null; cam: Camera; ended: boolean } | null {
+  get debugView(): { screen: string; levelId: string; renderer: GameRenderer; director: StoryDirector | null; cam: Camera; ended: boolean; guide: GuideTarget | null } | null {
     const s = this.session;
-    return s ? { screen: this.screen, levelId: s.meta.id, renderer: s.renderer, director: s.director, cam: s.cam, ended: s.ended } : null;
+    return s ? { screen: this.screen, levelId: s.meta.id, renderer: s.renderer, director: s.director, cam: s.cam, ended: s.ended, guide: s.guideTarget } : null;
   }
 
   /** Dev hook: the screen that is up (title, levels, intro, playing, ...), also when no level is open. */

@@ -177,6 +177,9 @@ export class StoryDirector {
     return this.promptOpen || this.explicitFreeze || !!this.active?.freezes;
   }
 
+  /** A camera beat (pausing or a nudge) is moving the camera now; for the review probe. */
+  get cameraOn(): boolean { return this.active?.k === "camera" || !!this.nudge; }
+
   /** A line, card, film or camera beat is on: coach hints and marks stay quiet so they never talk over the story. */
   get busy(): boolean {
     return this.frozen || !!this.active || this.queue.length > 0 || !!this.nudge;

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  Tracker, cropRegion, analyzeCaption, analyzeLineHold, analyzeLineOrder, analyzeLineSight, gatesFor, analyzeSample, area, contrast, continuityHits, coveredFraction, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats,
+  Tracker, cropRegion, analyzeCaption, analyzeLineHold, analyzeSpeakerSeen, analyzeCues, analyzeLineOrder, analyzeLineSight, gatesFor, analyzeSample, area, contrast, continuityHits, coveredFraction, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats,
   intersect, labelSubject, meanLuminance, overlapArea, parseArgs, parseColour, plain, shrink, toCandidate, visibleFraction, type Limits,
 } from "./probe-core.js";
 import type { Box, CaptionSample, DomItem, FrameRec, Sample, StorySnapshot, ThingSample } from "./probe-types.js";
@@ -482,5 +482,22 @@ describe("story line timing", () => {
     expect(early[0]).toMatchObject({ check: "line-out-of-order", cat: 5, track: "story", severity: 2, subject: "That light" });
     expect(early[0]!.detail).toContain("Question first.");
     expect(analyzeLineOrder(cap("A reactor, and it's cold."), ["What happened?", "That light. Someone's out there."], ordered)).toEqual([]);
+  });
+});
+
+describe("speaker on screen and cue audit", () => {
+  const sp = (speakerBox: Box | null, style: "bubble" | "strip" = "bubble"): CaptionSample => ({ sel: "x", style, box: box(0, 0, 10, 10), text: "Hello there.", speaker: "vale", speakerBox, head: null });
+  it("flags a speaker who is off screen, mildly for a radio strip", () => {
+    expect(analyzeSpeakerSeen(sp(box(100, 300, 140, 400)), sample(), L)).toEqual([]);
+    expect(analyzeSpeakerSeen(sp(box(5000, 300, 5040, 400)), sample(), L)[0]).toMatchObject({ check: "line-speaker-offscreen", severity: 3 });
+    expect(analyzeSpeakerSeen(sp(null, "strip"), sample(), L)[0]).toMatchObject({ severity: 1 });
+    expect(analyzeSpeakerSeen({ ...sp(null), speaker: null }, sample(), L)).toEqual([]);
+  });
+  it("flags a requested guide arrow or edge glow that is not drawn", () => {
+    const ok = { camera: false, glow: { set: true, offScreen: true, arrowWanted: true, shown: true, arrowShown: true }, guide: { to: { x: 1, y: 2 }, off: false, drawn: true, toOnScreen: false } };
+    expect(analyzeCues(ok)).toEqual([]);
+    const bad = { ...ok, glow: { ...ok.glow, shown: false, arrowShown: false }, guide: { ...ok.guide, drawn: false } };
+    expect(analyzeCues(bad).map((h) => h.check)).toEqual(["guide-arrow-missing", "edge-glow-missing", "edge-arrow-missing"]);
+    expect(analyzeCues({ ...bad, glow: { ...bad.glow, offScreen: false } }).map((h) => h.check)).toEqual(["guide-arrow-missing"]);
   });
 });
