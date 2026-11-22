@@ -546,24 +546,28 @@ are dozens.*
 
 **OKAFOR:** Count them later. Hold the gate now.
 
-**RHEE:** The town runs without you now. Keep them off the hub and the reactor, or we lose everything.
+**TAM:** We'll keep the town running. You keep them off the hub and the reactor, or we lose everything.
 
-**RHEE:** Anyone who goes down, I'll get back on their feet.
+**OKAFOR:** I'll come out with you, Commander.
 
-**KILN:** Three are coming first. Get close, like the hoppers. Your rifle does the rest.
+**RHEE:** Well, I better come along with the med kit, in case either of you get hurt.
+
+**KILN:** Three are coming first. Walk out to the road and shoot the attackers as they approach.
+
+*The guide arrows lead to the road the raiders come down (east of the wall, past the hub), not to anything inside the wall.*
 
 > GOAL CARD: **Stop the first raiders**
 
 *The commander closes on each raider and fires. Three fall, and each drops scrap. Walking over the scrap picks it up.
-A socket on the wall beside the gate lights up. Goal star.*
+A socket beside the road, just outside the wall, lights up. Goal star.*
 
-**KILN:** Their scrap will build a turret. Carry it to the socket by the gate.
+**KILN:** Their scrap will build a turret. Carry it to the socket by the road.
 
 > GOAL CARD: **Build a turret**
 
 *The commander carries the scrap to the socket. The turret rises and opens fire in the next wave. Goal star.*
 
-*Two figures run up the road to the gate, lit by the turret's lamp.*
+*Two figures run up the road to the gate, lit by the turret's lamp. The camera moves to show them at the gate, asking to be let in.*
 
 **SETTLER:** Let us in! They burned our camp on the road!
 
@@ -571,7 +575,7 @@ A socket on the wall beside the gate lights up. Goal star.*
 
 > GOAL CARD: **Let the settlers in**
 
-*The commander stands by the gate; it opens and the two run in. The guard post beside the gate lights up. Goal star.*
+*The commander stands by the gate; it opens and the two run in. The guard post lights up, outside the wall beside the hab hub. Goal star.*
 
 **OKAFOR:** Good. Train one as a guard to hold the gate with me.
 
@@ -582,14 +586,15 @@ same way. Goal star.*
 
 **KILN:** Hold them off until sunrise.
 
-> GOAL CARD: **Hold until dawn** *(the card counts the waves left)*
+> GOAL CARD: **Keep collecting scrap, hiring guards, and fighting defenders to protect our camp till sunrise**
+
+*The arrows keep leading to the road until the raiders run.*
 
 *The next wave comes, and with it dust mites, boiling up out of the sand among the raiders.*
 
 **OKAFOR:** Dust mites! The noise is bringing them up out of the sand.
 
-*It stays night and grows darker, to a dim ember orange. Guards who go down lie where they fell; Rhee runs to each
-and gets them up. The town keeps working behind the wall. In the last wave comes a bigger raider with a red name tag.*
+*It stays night and grows darker, to a dim ember orange. Guards who go down lie where they fell; Rhee, who came out with the med kit, gets them up. The town keeps working behind the wall. In the last wave comes a bigger raider with a red name tag.*
 
 **RAIDER:** You should have stayed asleep, Commander.
 
@@ -610,7 +615,7 @@ The camera holds on the helmet. Goal star.*
 
 > GOAL CARD: **Pick up the helmet**
 
-*The arrows lead to it. The commander kneels and lifts it in both hands (a new pick-up animation). `helmet_reveal`:
+*The arrows lead straight to it, a plain line from the commander to the helmet, with no loop round it. The commander kneels and lifts it in both hands (a new pick-up animation). `helmet_reveal`:
 the helmet in the commander's hands, its black paint scratched through to Halcyon white and gold. Inside, an ID card
 with the Halcyon's H: BAY 5 · FIRST OFFICER · VALE, and the face from the plate.*
 
