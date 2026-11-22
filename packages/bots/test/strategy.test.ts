@@ -61,3 +61,25 @@ describe("fixed-strategy bots", () => {
     expect(PROFILES["good"]!.strategy).toBeUndefined();
   });
 });
+
+// Defend redesign S2 (outpost-ops#273): in random-side mode the bot sees a wave's side only from the warning.
+describe("random attack side: the bot", () => {
+  it("heads to the warned side after wave_warning, whichever side the manifest lists first", () => {
+    const lv = level();
+    lv.params = { ...lv.params, "defense.sideMode": 1 };
+    lv.waves = [10, 60, 110].map((t) => ({ t, counts: { "hostile.swarmling": 4 }, side: ["n", "e", "s", "w"], gap: 1 }));
+    const seen: { side: string; dx: number; dy: number }[] = [];
+    let warned: string | null = null;
+    playBot(lv, strategyProfile("turrets_first"), 5, { onTick: (st, _b, ev) => {
+      for (const e of ev) if (e.t === "wave_warning") warned = e.side;
+      if (warned && st.waves.nextSide && st.waves.nextSide.start - st.tick < 15) {
+        seen.push({ side: warned, dx: st.player.pos.x - st.core.pos.x, dy: st.player.pos.y - st.core.pos.y });
+        warned = null;
+      }
+    } });
+    expect(seen.length).toBeGreaterThan(0);
+    // just before the wave starts the commander stands on the warned side of the core (dominant axis)
+    const onSide = seen.filter((s) => (s.side === "n" ? s.dy < 0 : s.side === "s" ? s.dy > 0 : s.side === "w" ? s.dx < 0 : s.dx > 0));
+    expect(onSide.length).toBeGreaterThanOrEqual(Math.ceil(seen.length / 2));
+  });
+});

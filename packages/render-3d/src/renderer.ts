@@ -475,6 +475,8 @@ export class Renderer3D implements Renderer {
   private stockMax = new Map<string, number>();
   private hintEl: HTMLElement | null = null;
   private bannerEl: HTMLElement | null = null;
+  /** Random attack side (S2): the edge arrow shown from wave_warning until the wave starts. */
+  private sideArrowEl: HTMLElement | null = null;
   private vignetteEl: HTMLElement | null = null;
   private pointers: DomPointers | null = null;
   private coachDom: DomCoach | null = null;
@@ -813,6 +815,7 @@ export class Renderer3D implements Renderer {
     }
     this.hintEl?.remove();
     this.bannerEl?.remove();
+    this.sideArrowEl?.remove();
     this.vignetteEl?.remove();
     this.pointers?.dispose();
     this.coachDom?.dispose();
@@ -828,7 +831,7 @@ export class Renderer3D implements Renderer {
     this.coach = null;
     this.env = null; this.fx = null; this.crowd = null; this.rigged = null; this.blobs = null; this.items = null; this.walls = null;
     this.lasso = null; this.bctx = null; this.gl = null; this.mount = null; this.world = null;
-    this.hintEl = null; this.bannerEl = null; this.vignetteEl = null;
+    this.hintEl = null; this.bannerEl = null; this.sideArrowEl = null; this.vignetteEl = null;
     this.scene = new Scene();
   }
 
@@ -900,6 +903,8 @@ export class Renderer3D implements Renderer {
     this.hintEl = el("fo-hint", "");
     this.hintCls = "fo-hint";
     this.bannerEl = el("fo-banner", "display:none");
+    this.sideArrowEl = el("fo-side-arrow", "display:none;position:absolute;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;pointer-events:none;z-index:3;font:900 34px/44px sans-serif;text-align:center;color:#fff;text-shadow:0 0 6px rgba(0,0,0,.8),0 2px 0 rgba(0,0,0,.6)");
+    this.sideArrowEl.textContent = "➤";
     this.shownBanner = "";
     this.shownKind = "";
     void t;
@@ -3654,6 +3659,7 @@ export class Renderer3D implements Renderer {
     }
     this.updatePointers(w);
     this.updateCoach(w, hero);
+    this.updateSideArrow(w);
     if (!this.bannerEl) return;
     let text = "", kind = "";
     const hz = w.hazard;
@@ -3674,6 +3680,22 @@ export class Renderer3D implements Renderer {
       this.bannerEl.style.background = kind === "ok" ? pal.ok : kind === "hazard" ? mix(this.tokens.storm, this.tokens.accent, 0.3) : kind === "danger" ? pal.danger : pal.accent;
       this.bannerEl.style.color = kind === "ok" ? pal.ink : "#ffffff";
     }
+  }
+
+  /** Random sides: an arrow at the screen edge pointing toward the warned side, from the warning until the wave starts. */
+  private updateSideArrow(w: State): void {
+    const a = this.sideArrowEl;
+    if (!a) return;
+    const ns = w.waves.nextSide;
+    if (!ns || w.over) { if (a.style.display !== "none") a.style.display = "none"; return; }
+    const mw = this.manifest.map.w, mh = this.manifest.map.h;
+    const far = ns.side === "n" ? { x: mw / 2, y: -mh } : ns.side === "s" ? { x: mw / 2, y: mh * 2 } : ns.side === "w" ? { x: -mw, y: mh / 2 } : { x: mw * 2, y: mh / 2 };
+    const c = this.worldToScreen({ x: w.core.pos.x / FP, y: w.core.pos.y / FP }), p = this.worldToScreen(far);
+    const dx = p.x - c.x, dy = p.y - c.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
+    const cx = this.cssW / 2, cy = this.cssH / 2, m = 36;
+    const k = Math.min(ux !== 0 ? (cx - m) / Math.abs(ux) : 1e9, uy !== 0 ? (cy - m) / Math.abs(uy) : 1e9);
+    a.style.display = "block";
+    a.style.transform = `translate(${(cx + ux * k).toFixed(1)}px,${(cy + uy * k).toFixed(1)}px) rotate(${Math.atan2(uy, ux).toFixed(3)}rad)`;
   }
 
   private updateCoach(w: State, hero: V): void {
@@ -3714,10 +3736,12 @@ export class Renderer3D implements Renderer {
     // a wave about to land: point at each side it comes from
     const nw = this.nextWave(w);
     const wave = this.cp?.waves[w.waves?.idx ?? -1];
-    if (nw && wave && nw.s <= 6 && sectors.size === 0) {
+    // random sides: only the drawn side (known from the warning) is pointed at, never the manifest's pool
+    const drawn = this.cp?.defense.sideRandom ? w.waves.nextSide?.side : undefined;
+    if (nw && wave && nw.s <= 6 && sectors.size === 0 && (drawn || !this.cp?.defense.sideRandom)) {
       const pl = { x: w.player.pos.x / FP, y: w.player.pos.y / FP };
       const counts = new Map<string, number>();
-      wave.types.forEach((_, i) => { const sd = wave.sides[i % wave.sides.length]!; counts.set(sd, (counts.get(sd) ?? 0) + 1); });
+      wave.types.forEach((_, i) => { const sd = drawn ?? wave.sides[i % wave.sides.length]!; counts.set(sd, (counts.get(sd) ?? 0) + 1); });
       for (const [sd, n] of counts) {
         const e = spawnPointOf(this.cp!, sd, pl);
         targets.push({ p: this.toScreen(v3(e.x, 10, e.y)), color: t.danger, icon: "hostile", big: true, n });
@@ -4064,6 +4088,10 @@ export class Renderer3D implements Renderer {
         const n = Number(e["idx"] ?? 0) + 1;
         this.banner(ft("wave_started", { n }), "danger");
         fx.shake = Math.max(fx.shake, 6);
+        break;
+      }
+      case "wave_warning": {
+        this.banner(ft("wave_warning", { s: Math.ceil(Number(e["inTicks"] ?? 0) / TPS) }), "danger", Number(e["inTicks"] ?? 0) / TPS);
         break;
       }
       case "wave_cleared":

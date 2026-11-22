@@ -322,6 +322,8 @@ export interface Compiled {
     waveQuietTicks: number;
     /** Waves that may be on the field at once (1 = one at a time) and the least time between two wave starts while another is live (S1, spec 1.2). */
     maxLive: number; overlapMinTicks: number;
+    /** defense.sideMode 1: each wave attacks from one side drawn from its sides at a warning (0 = rotate through them). warnTicks: the warning length. */
+    sideRandom: boolean; warnTicks: number;
     playerHitRange: number; troopRadius: number; playerHitTicks: number;
   };
   waves: CompiledWave[];
@@ -653,6 +655,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       gateHitters: Math.max(1, int("defense.gateHitters")), fanSlots: Math.max(1, int("defense.fanSlots")), fanStep: fp(param("defense.fanStep")), troopContact: fp(param("defense.troopContact")),
       postOffset: fp(param("defense.postOffset")), waveQuietTicks: ticks(param("defense.waveQuiet")),
       maxLive: Math.max(1, int("defense.maxLive")), overlapMinTicks: ticks(param("defense.overlapMin")),
+      sideRandom: int("defense.sideMode") === 1, warnTicks: ticks(param("defense.warnSeconds")),
       playerHitRange: fp(param("defense.playerHitRange")), troopRadius: fp(param("defense.troopRadius")), playerHitTicks: ticks(param("defense.playerHitInterval")),
     },
     waves,

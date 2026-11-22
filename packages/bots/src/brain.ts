@@ -10,7 +10,7 @@ import type { BotProfile } from "./profiles.js";
 
 export type TaskKind =
   | "feed" | "fuel" | "gather" | "stock" | "register" | "pile" | "pay" | "barrier" | "operate" | "deposit"
-  | "fetch" | "drop" | "admit" | "fight" | "revive" | "lasso" | "hunt" | "depot" | "wait";
+  | "fetch" | "drop" | "admit" | "fight" | "revive" | "lasso" | "hunt" | "depot" | "wait" | "post";
 
 export interface Task {
   kind: TaskKind;
@@ -175,7 +175,8 @@ export class Brain {
 
   private ladderKey(st: State, s: PlanStep, pad: PadState): number {
     const e = this.cp.entityById[s.pad] as { site?: readonly [number, number]; target?: string };
-    const next = this.cp.waves[Math.min(st.waves.idx, this.cp.waves.length - 1)]?.sides[0] ?? null;
+    // random sides (sideMode 1): the side is known only from the warning (waves.nextSide); before it, unknown. Never the manifest's future sides.
+    const next = this.cp.defense.sideRandom ? (st.waves.nextSide?.side ?? null) : this.cp.waves[Math.min(st.waves.idx, this.cp.waves.length - 1)]?.sides[0] ?? null;
     const site = e.site ?? (e.target ? (this.cp.entityById[e.target] as { site?: readonly [number, number] } | undefined)?.site : undefined);
     const side = site ? sideOf(st, { x: site[0] * FP, y: site[1] * FP }) : null;
     // price per level gained: a tower level (Lv2, Lv3) weighs its price by the level it brings, so upgrades mix in with new towers
@@ -399,6 +400,8 @@ export class Brain {
     const threat = st.hostiles.filter((h) => h.target !== "core" || near(h.pos, st.core.pos, 330 * U));
     if (threat.length > 0) T("fight", 85);
     else if (st.hostiles.length > 0) T("fight", 66);
+    // random sides: after wave_warning, stand on the warned side (nothing else is urgent: no attacker is on the field yet)
+    if (cp.defense.sideRandom && st.waves.nextSide && st.hostiles.length === 0) T("post", 70, st.waves.nextSide.side);
     // #92: a guard shot down has 15 s; stand beside it (no medic, or the medic will be late) while no attacker is near it
     const down = this.reviveTarget(st);
     if (down) T("revive", 88, String(down.id));
@@ -858,6 +861,11 @@ export class Brain {
     const cp = this.cp, p = st.player;
     switch (t.kind) {
       case "wait": return null;
+      case "post": {
+        const d = ({ n: [0, -1], s: [0, 1], w: [-1, 0], e: [1, 0] } as Record<string, [number, number]>)[t.key]!;
+        const off = 3 * cp.defense.postOffset;
+        return { pos: this.nav.free({ x: Math.round(st.core.pos.x + d[0] * off), y: Math.round(st.core.pos.y + d[1] * off) }), r: 8 * U };
+      }
       case "feed": {
         if (this.fuelValueCarried(st) === 0 || st.core.fuel >= this.coreCap(st)) return null;
         return this.ringSpot(st, st.core.pos, cp.core.range - 16 * U);

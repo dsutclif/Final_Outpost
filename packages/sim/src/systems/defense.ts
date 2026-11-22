@@ -71,7 +71,10 @@ function stepApproach(st: State, cp: Compiled): void {
   const wave = W.active ? null : cp.waves[W.idx];
   if (!W.active && !wave) return;
   const n = wave ? wave.types.length : W.pending.length;
-  const t0 = wave ? Math.max(wave.tick, W.quietUntil) : 0;
+  // random sides: the wave's side is known only once the warning drew it, and it never starts before that
+  const drawn = wave && D.sideRandom ? W.nextSide : undefined;
+  if (wave && D.sideRandom && !drawn) return;
+  const t0 = wave ? Math.max(wave.tick, W.quietUntil, drawn?.start ?? 0) : 0;
   const started = new Set((A ?? []).map((a) => a.id));
   let maxLead = 0;
   for (const h of Object.values(cp.hostiles)) maxLead = Math.max(maxLead, leadTicks(cp, h.speed));
@@ -79,7 +82,7 @@ function stepApproach(st: State, cp: Compiled): void {
     const due = wave ? t0 + k * wave.gapTicks : W.pending[k]!.tick;
     if (due - maxLead > st.tick) break; // spawn ticks only grow down the list
     const type = wave ? wave.types[k]! : W.pending[k]!.type;
-    const side = wave ? wave.sides[k % wave.sides.length]! : W.pending[k]!.side;
+    const side = wave ? (drawn ? drawn.side : wave.sides[k % wave.sides.length]!) : W.pending[k]!.side;
     const def = cp.hostiles[type]!, lead = leadTicks(cp, def.speed);
     if (due - lead > st.tick) continue;
     const id = st.nextHostileId + k;
@@ -154,6 +157,28 @@ function hitGate(st: State, cp: Compiled, line: BarrierState, idx: number, h: Ho
 }
 
 /**
+ * Random sides (defense.sideMode 1, spec 1.3): once the next wave's earliest start is known, draw its side from its `sides` with the
+ * sim rng at that start minus max(warnTicks, the approach walk-in lead), store it in waves.nextSide and tell the renderers
+ * (wave_warning). If the start is already nearer than the warning (a short quiet spell), the draw is made at once and the start
+ * is pushed back so the warning is never shorter than warnTicks.
+ */
+function warnSide(st: State, cp: Compiled, wave: Compiled["waves"][number], liveN: number, out: SimEvent[]): void {
+  const D = cp.defense, W = st.waves;
+  let T: number;
+  if (liveN === 0) T = Math.max(wave.tick, W.quietUntil);
+  else if (D.maxLive > 1 && liveN < D.maxLive) T = Math.max(wave.tick, (W.lastStart ?? 0) + D.overlapMinTicks);
+  else return; // the start is not known yet
+  let maxLead = 0;
+  for (const h of Object.values(cp.hostiles)) maxLead = Math.max(maxLead, leadTicks(cp, h.speed));
+  if (st.tick < T - Math.max(D.warnTicks, maxLead)) return;
+  const start = Math.max(T, st.tick + D.warnTicks);
+  const side = wave.sides.length > 1 ? wave.sides[between(st.rng, 0, wave.sides.length)]! : wave.sides[0]!;
+  W.nextSide = { idx: W.idx + 1, side, start };
+  out.push({ t: "wave_warning", idx: W.idx + 1, side, inTicks: start - st.tick });
+  hint(st, out, "wave_side");
+}
+
+/**
  * One wave at a time: a wave starts at its tick, but never while the last one is still on the field,
  * and only after a quiet spell once it is cleared (Doug, 2026-10-18).
  * Waves spawn beyond their attack side(s); hostiles walk to their gate (or an opening), hit the gate
@@ -166,9 +191,12 @@ export function stepDefense(st: State, cp: Compiled, out: SimEvent[]): void {
   // no sooner than overlapMin after the last start (spec 1.2). `live` and the `w` tags exist only then, so the default state is unchanged.
   const liveN = M > 1 ? (W.live?.length ?? 0) : W.active ? 1 : 0;
   const startOk = M > 1 && liveN > 0 ? liveN < M && st.tick >= (W.lastStart ?? 0) + cp.defense.overlapMinTicks : liveN === 0 && st.tick >= W.quietUntil;
-  if (wave && st.tick >= wave.tick && startOk) {
+  if (wave && cp.defense.sideRandom && !W.nextSide) warnSide(st, cp, wave, liveN, out);
+  if (wave && st.tick >= wave.tick && startOk && (!cp.defense.sideRandom || (W.nextSide && st.tick >= W.nextSide.start))) {
+    const drawnSide = cp.defense.sideRandom ? W.nextSide!.side : null;
+    if (drawnSide) delete W.nextSide;
     wave.types.forEach((type, k) => {
-      const p: (typeof W.pending)[number] = { tick: st.tick + k * wave.gapTicks, type, side: wave.sides[k % wave.sides.length]! };
+      const p: (typeof W.pending)[number] = { tick: st.tick + k * wave.gapTicks, type, side: drawnSide ?? wave.sides[k % wave.sides.length]! };
       if (M > 1) p.w = W.idx + 1;
       if (wave.retreatPct !== undefined && cp.hostiles[type]!.boss) p.retreatPct = wave.retreatPct;
       if (wave.standoff !== undefined && cp.hostiles[type]!.boss) p.standoff = wave.standoff;

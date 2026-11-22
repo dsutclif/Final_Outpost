@@ -328,6 +328,8 @@ export interface WavesState {
   /** Only with defense.maxLive > 1: the waves (1-based start order) with attackers still to spawn or alive, and when the last one started. */
   live?: number[];
   lastStart?: number;
+  /** Only with defense.sideMode 1 (random): the next wave's drawn side and the earliest tick it may start; set at the warning, cleared when the wave starts. */
+  nextSide?: { idx: number; side: "n" | "e" | "s" | "w"; start: number };
 }
 
 export interface HazardState {

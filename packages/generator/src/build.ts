@@ -86,7 +86,7 @@ export const GEN = genData as unknown as {
   /** Latest first-wave time, seconds, on single-family levels. */
   waveStartMax: number;
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
-  defendWaves: { maxLive: { single: number; twoFamily: number }; singleFamilyGap: number; overlapMin: number; maxPoints: number; waveCap: number; lateWaveGap: number; lateWaveMin: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; mix: WaveMix; warlords: [number, number][]; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
+  defendWaves: { maxLive: { single: number; twoFamily: number }; singleFamilyGap: number; randomSides: boolean; warnSeconds: number; overlapMin: number; maxPoints: number; waveCap: number; lateWaveGap: number; lateWaveMin: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; mix: WaveMix; warlords: [number, number][]; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Defend redesign S1 (outpost-ops#264, spec 1.1): two-family levels price towers in coins. coinTowers false = off. */
   defendCosts: { coinTowers: boolean; currencyPerSalvage: number };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
@@ -2335,8 +2335,10 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
   if (defend) {
     const DW = GEN.defendWaves, DC = GEN.defendCosts, two = !!inp.secondary;
     const maxLive = two ? DW.maxLive.twoFamily : DW.maxLive.single, gap = two ? 0 : DW.singleFamilyGap, coin = two && DC.coinTowers;
-    if (maxLive > 1 || gap > 0 || coin) {
-      Object.assign(m, applyDefendS1(m, { ...(maxLive > 1 ? { maxLive, overlapMin: DW.overlapMin } : {}), ...(gap > 0 ? { gap } : {}), ...(coin ? { coinTowers: true, currencyPerSalvage: DC.currencyPerSalvage } : {}) }));
+    // S2: random attack side on multi_side levels (the draw pool is every attack side); default off
+    const randomSides = DW.randomSides && feat.has("multi_side") && sides.length > 1 ? [...sides] : undefined;
+    if (maxLive > 1 || gap > 0 || coin || randomSides) {
+      Object.assign(m, applyDefendS1(m, { ...(randomSides ? { randomSides, warnSeconds: DW.warnSeconds } : {}), ...(maxLive > 1 ? { maxLive, overlapMin: DW.overlapMin } : {}), ...(gap > 0 ? { gap } : {}), ...(coin ? { coinTowers: true, currencyPerSalvage: DC.currencyPerSalvage } : {}) }));
     }
   }
   // pass 1 hands its level to the wavefront (before the defend padding); pass 2 checks no pad is left hidden (there is no repair step)

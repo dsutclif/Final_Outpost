@@ -107,6 +107,8 @@
   "defense.waveQuiet": 8,
   "defense.maxLive": 1,
   "defense.overlapMin": 6,
+  "defense.sideMode": 0,
+  "defense.warnSeconds": 6,
   "meters.baseHealth": 15,
   "routing.hintFill": 0.3,
   "stats.lifelineLow": 0.25,

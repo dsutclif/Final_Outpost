@@ -51,4 +51,27 @@ describe("defend S1 generator switches", () => {
       GEN.defendWaves.maxLive = save.w; GEN.defendWaves.singleFamilyGap = save.g; Object.assign(GEN.defendCosts, save.c);
     }
   }, 120_000);
+
+  it("S2 random sides: default off; on, a multi_side level gets sideMode 1 and every attack side as each wave's pool", () => {
+    expect(GEN.defendWaves.randomSides).toBe(false);
+    expect(GEN.defendWaves.warnSeconds).toBe(6);
+    const multi = defs.filter((r) => r.features.includes("multi_side"));
+    expect(multi.length).toBeGreaterThan(0);
+    const save = GEN.defendWaves.randomSides;
+    try {
+      let found = 0;
+      for (const r of multi.slice(0, 4)) {
+        GEN.defendWaves.randomSides = false;
+        const off = mk(r) as M & { attackSides?: string[]; defend?: { attackSides?: string[] } };
+        expect(off.params?.["defense.sideMode"]).toBeUndefined();
+        GEN.defendWaves.randomSides = true;
+        const on = mk(r) as unknown as { params?: Record<string, number>; waves: { side?: string | string[] }[] };
+        if (on.params?.["defense.sideMode"] !== 1) continue; // a multi_side level that drew one attack side keeps rotating
+        found++;
+        expect(on.params?.["defense.warnSeconds"]).toBe(6);
+        for (const w of on.waves) { expect(Array.isArray(w.side)).toBe(true); expect((w.side as string[]).length).toBeGreaterThan(1); }
+      }
+      expect(found).toBeGreaterThan(0);
+    } finally { GEN.defendWaves.randomSides = save; }
+  }, 240_000);
 });

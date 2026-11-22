@@ -54,6 +54,7 @@ export type SimEvent =
   | { t: "drop"; res: string; at: Vec }
   | { t: "picked"; res: string; at: Vec; by?: number }
   | { t: "wave_started"; idx: number }
+  | { t: "wave_warning"; idx: number; side: "n" | "e" | "s" | "w"; inTicks: number }
   | { t: "boss_spawned"; id: number; kind: string; at: Vec }
   | { t: "wave_cleared"; idx: number }
   | { t: "retreated"; kind: string; id: number; at: Vec }
@@ -87,6 +88,7 @@ export type HintKey =
   | "input_full"
   | "operate_converter"
   | "wave_incoming"
+  | "wave_side"
   | "barrier_broken"
   | "hazard_warning";
 
