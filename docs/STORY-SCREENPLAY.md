@@ -101,8 +101,8 @@ against the cut that shipped on 2026-11-11.*
 **COMMANDER:** What happened? Where's the rest of my crew?
 
 *Far off, beyond the screen's edge, a large soft white glow reaches onto the edge of the screen. It is fixed where it
-is in the world, not a point that moves with the screen. One bright pulse, then an arrow appears at that edge pointing
-toward it. There is no red light yet.*
+is in the world, not a point that moves with the screen. One long, bright pulse (about a second and a half, then fading), and only after it the commander speaks and an arrow
+appears at that edge pointing toward it. There is no red light yet.*
 
 **COMMANDER:** That light. Someone's out there.
 
@@ -154,14 +154,14 @@ heads `K.I.L.N. · REACTOR ONLINE · DAY 1`.*
 
 **COMMANDER:** My first officer, Vale, is in bay five. Open them.
 
-**KILN:** Not yet. The reactor has to burn all night before there's power to open them.
+**KILN:** Not yet, I'm nearly out of power. Keep the reactor burning till I can recharge my batteries and regain control of ship systems.
 
-**KILN:** Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.
+**KILN:** A storm is coming...
 
 > GOAL CARD: **Keep the reactor burning till morning** *(with a countdown)*
 
 *The gauge drains as the reactor burns, and the commander tops it up with ore. The storm comes in: the gauge drains
-twice as fast, and the wind uncovers more ore closer to the reactor as it blows. Mid-storm, the ridge pulses red
+twice as fast, and the wind uncovers more ore closer to the reactor as it blows (no camera move for the ore). Mid-storm, the ridge pulses red
 twice, and the camera nudges toward it.*
 
 **KILN:** Something on that ridge is sending a signal. I can't read it.

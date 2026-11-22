@@ -881,8 +881,10 @@ export const marsGreenhouse: Skin = {
           // the reactor comes into view
           { id: "woke", on: { start: true }, walk: true, ordered: true, do: [
             { line: "What happened? Where's the rest of my crew?", who: "commander", seconds: 3 },
-            { edgeGlow: { entity: "core", size: 140, strength: 1 } },
-            { wait: 0.7 },
+            { edgeGlow: { entity: "core", size: 220, strength: 1 } },
+            { wait: 1.4 },
+            { edgeGlow: { entity: "core", size: 90, strength: 0.7 } },
+            { wait: 0.8 },
             { edgeGlow: { entity: "core", size: 30, strength: 0.32, arrow: true } },
             { line: "That light. Someone's out there.", who: "commander", seconds: 2.2 },
             { goal: "reach" },
@@ -930,21 +932,20 @@ export const marsGreenhouse: Skin = {
           { on: { goal: "fill", is: "done" }, do: [
             { line: "Thank you. Four pods by the wreck are still sealed: bays five to eight.", who: "kiln", head: "K.I.L.N. · REACTOR ONLINE · DAY 1" },
             { line: "My first officer, Vale, is in bay five. Open them.", who: "commander" },
-            { line: "Not yet. The reactor has to burn all night before there's power to open them.", who: "kiln" },
-            { line: "Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.", who: "kiln" },
+            { line: "Not yet, I'm nearly out of power. Keep the reactor burning till I can recharge my batteries and regain control of ship systems.", who: "kiln" },
+            { line: "A storm is coming...", who: "kiln" },
             { goal: "main" },
           ] },
           { on: { goal: "fill", is: "failed" }, do: [
             { line: "Barely in time. Four pods by the wreck are still sealed: bays five to eight.", who: "kiln", head: "K.I.L.N. · REACTOR ONLINE · DAY 1" },
             { line: "My first officer, Vale, is in bay five. Open them.", who: "commander" },
-            { line: "Not yet. The reactor has to burn all night before there's power to open them.", who: "kiln" },
-            { line: "Keep it burning until morning. A storm is coming, and in a storm it eats ore twice as fast.", who: "kiln" },
+            { line: "Not yet, I'm nearly out of power. Keep the reactor burning till I can recharge my batteries and regain control of ship systems.", who: "kiln" },
+            { line: "A storm is coming...", who: "kiln" },
             { goal: "main" },
           ] },
           // mid-storm the ridge shows red for the first time, and the camera nudges toward it
           { id: "storm", on: { event: "hazard_start" }, do: [] },
           // the storm's wind uncovers more ore closer to the reactor (buried until the storm objective)
-          { on: { after: "storm", ticks: 30 }, do: [{ camera: { to: { entity: "ore21" }, pan: 0.4, hold: 0.6, back: 0.4, freeze: false } }] },
           { on: { after: "storm", ticks: 450 }, do: [
             { ridge: "right", period: 4, k: 0.4 },
             { ridgeFlash: 2 },
