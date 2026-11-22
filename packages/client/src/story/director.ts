@@ -229,7 +229,7 @@ export class StoryDirector {
     for (const c of this.level.cues) {
       if (!this.armed(c)) continue;
       const on = c.on;
-      if ("event" in on) { if (on.event === e.t && matches(on.match, e) && this.counted(on)) this.fire(c, st); }
+      if ("event" in on) { if (on.event === e.t && (on.after === undefined || this.firedAt.has(on.after)) && matches(on.match, e) && this.counted(on)) this.fire(c, st); }
       else if ("goal" in on && e.t === "objective" && on.goal === e.id && (on.is === "done" ? e.done : e.failed)) this.fire(c, st);
     }
     if (e.t === "level_end") {

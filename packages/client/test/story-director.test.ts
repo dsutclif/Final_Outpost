@@ -83,6 +83,19 @@ describe("story director cues", () => {
     vi.useRealTimers();
   });
 
+  it("an event cue with `after` ignores events until that cue has fired", () => {
+    const h = harness(levelOf(
+      { id: "a", on: { event: "core_lit" }, do: [] },
+      cue({ event: "core_fuel_restored", after: "a" }, { hide: ["credits"] }),
+    ));
+    const n = h.log.length;
+    h.d.onEvent({ t: "core_fuel_restored" } as never, state({ tick: 1 }));
+    expect(h.log.length).toBe(n);
+    h.d.onEvent({ t: "core_lit", at: { x: 0, y: 0 } } as never, state({ tick: 2 }));
+    h.d.onEvent({ t: "core_fuel_restored" } as never, state({ tick: 3 }));
+    expect(h.log.length).toBeGreaterThan(n);
+  });
+
   it("fires within a radius of an entity, and by sim ticks after another cue", () => {
     const h = harness(levelOf(
       { id: "a", on: { near: { entity: "core" }, r: 10 }, do: [{ hide: ["credits"] }] },

@@ -273,24 +273,24 @@ photo. All empty.*
 
 *Play is held.*
 
-**TAM:** You promised me a grow dome, Boss. Give me one and I'll feed this camp.
+**TAM:** You promised me a grow dome, Boss. Give me one... and I start feeding the crew.
 
 **COMMANDER:** There's hull scrap lying all round the wreck. Enough to build one.
 
 **KILN:** Carry scrap to the dome's frame. It goes up when the frame is full.
 
-> GOAL CARD: **Build the grow dome**
+> GOAL CARD: **Collect scrap to build the grow dome (8)**
 
 *A dome's ghost outline stands beside the camp, with a scrap count on its pad. The arrows lead to the scrap piles. The
 commander gathers scrap and carries it to the frame, load by load. The dome rises, its grow lamps come on and greens
 sprout. Goal star.*
 
-**TAM:** It'll do.
+**TAM:** It'll do. Now I can start getting the first seeds in the gro...
 
 *Night falls. Far to the south, beyond the edge of the map, a pair of lights moves, then stops. A soft glow sits on
 the south screen edge with an arrow in it.*
 
-**COMMANDER:** Lights, to the south. Something's moving out there.
+**COMMANDER:** Wait. Those lights to the south...
 
 > GOAL CARD: **Follow the lights**
 
@@ -302,7 +302,7 @@ old trading kiosk, dark, with sand drifted against its shutter. Goal star.*
 *The lights come up the road: a buggy (the arrival scene as built). It parks by the kiosk. A woman in a navy suit
 climbs out and walks over. Play is held until she has spoken.*
 
-**SELA:** Well. Somebody's living out here. I'm Sela.
+**SELA:** Well, I guess... Sela.
 
 **SELA:** I trade between the settlements. Salvage, food, whatever people need.
 
@@ -311,8 +311,8 @@ climbs out and walks over. Play is held until she has spoken.*
 **SELA:** Colony ships have been setting down at the landing fields for years. You came down a long way off. Hardly
 anyone drives out this far.
 
-**SELA:** Three towns along this road, and every one of them is hungry. Open this old kiosk up and I'll buy your
-greens.
+**SELA:** Three towns along this road, and every one of them is hungry. Start stocking this old kiosk and there are plenty who'll buy
+your greens.
 
 **KILN:** Traders. Stock the kiosk's shelf with greens, then stand at the counter so she can pay.
 
@@ -321,7 +321,7 @@ greens.
 *The commander picks greens at the dome, carries them to the kiosk, stocks the shelf and stands at the counter. C
 coins fly; the credits counter appears. Goal star.*
 
-**KILN:** Those C coins are credits. Every sale pays them in, and credits buy what the camp builds.
+**KILN:** Those coins seem to be the local currency.
 
 **SELA:** You built that dome yourselves? Out of your own hull?
 
@@ -330,7 +330,7 @@ coins fly; the credits counter appears. Goal star.*
 *From here on, every build pad shows a price in credits. When one is paid, Sela's road crew come up the road and raise
 it.*
 
-**OKAFOR:** A road that brings traders can bring raiders. Wall first, before anything else.
+**OKAFOR:** A road that brings traders can bring raiders, so... let's build a wall first...
 
 **KILN:** Once you've saved enough credits, walk the dashed line and the wall goes up behind you.
 
@@ -343,9 +343,13 @@ facing the road and facing the ridge. Goal star.*
 
 *The camera holds on the hub's ghost outline beside the camp, and its price.*
 
-**KILN:** Keep selling. When you have the credits, stand on the hub's outline to pay for it.
+**KILN:** Take one more load of greens to the kiosk, and keep saving credits for that hub.
 
-*A second trader reaches the front of the line, looks at the shelf and turns away.*
+*The commander picks up greens at the dome.*
+
+**TAM:** Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.
+
+*The commander stocks the shelf and sells the greens at the counter. A second trader reaches the front of the line, looks at the shelf and turns away.*
 
 **TRADER:** No protein? I'm leaving.
 
@@ -353,7 +357,7 @@ facing the road and facing the ridge. Goal star.*
 
 *Play pauses; the camera pans past the rubble to hoppers moving in a pool of light, then back to the rubble.*
 
-**KILN:** The slide is loose rock. Stand against it and dig; it clears a square at a time.
+**KILN:** The slide is loose rock... walk up to it and dig... one section at a time.
 
 > GOAL CARD: **Dig through the rockslide**
 
@@ -368,8 +372,6 @@ sinks in a burst of dust; then the next, until a path is open. It costs no credi
 
 *The commander runs into a hopper; it falls and drops protein. The commander picks it up, stocks the shelf and sells
 it. A second trader arrives. Goal star.*
-
-**TAM:** Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.
 
 **KILN:** Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear, and gear costs credits.
 Stand on Tam's pad when you have them.
@@ -413,8 +415,7 @@ inside. Goal star.*
 *Cut to black. The level ends.*
 
 ---
-
-## Level 4: Halcyon Works (DAY 4, morning to dusk)
+on Works (DAY 4, morning to dusk)
 
 *Morning. No opening move: the camera is on the commander at the reactor, the crew nearby. Tam is already at the
 dome, picking.*

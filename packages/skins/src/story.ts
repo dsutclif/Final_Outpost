@@ -9,8 +9,8 @@ export type StoryPlace = { at: readonly [number, number] } | { entity: string } 
 export type StoryTrigger =
   /** Play has begun (after any film). */
   | { start: true }
-  /** A sim event by its `t`; `match` compares the event's own fields, e.g. { role: "role.hauler" }; `count`: on the n-th such event. */
-  | { event: string; match?: Readonly<Record<string, string | number | boolean>>; count?: number }
+  /** A sim event by its `t`; `match` compares the event's own fields, e.g. { role: "role.hauler" }; `count`: on the n-th such event; `after`: only once that cue has fired. */
+  | { event: string; match?: Readonly<Record<string, string | number | boolean>>; count?: number; after?: string }
   /** An objective, by manifest objective id, became done or failed in the sim (even before its turn). */
   | { goal: string; is: "done" | "failed" }
   /** The player came within `r` world units (once the cue `after` has fired, when given). */
