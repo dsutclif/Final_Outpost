@@ -1215,12 +1215,12 @@ export const marsGreenhouse: Skin = {
             { spirit: "fading" },
             // KILN's basis for the new date: the stars and Sela's clock (Doug, 2026-11-04)
             { line: "I shut down everything except the pods to save power, my clock too. It only started again when you woke me.", who: "kiln", head: "K.I.L.N. · DAY 4" },
-            { line: "I've set it against the stars overhead, and against Sela's clock. They agree. It's been four thousand and twenty-three days.", who: "kiln" },
+            { line: "I should be able to check by the stars overhead. Sela's clock says the same, so she's right. It's been four thousand and twenty-three days.", who: "kiln" },
             { spirit: "idle" },
             { day: "DAY 4,023", sub: "KILN's day counter restarted when the reactor was relit.", seconds: 3 },
             { line: "I asked how long we were under. I didn't really want to know.", who: "rhee" },
             { line: "Eleven years. And four empty pods. Why?", who: "commander" },
-            { line: "With the reactor up I can scan the wreck. The flight recorder survived. Bring it to me and I can read it.", who: "kiln" },
+            { line: "I'm scanning the wreck for our flight recorder. It might be able to explain how this happened.", who: "kiln" },
             { camera: { to: { entity: "recorder" }, pan: 1.3, hold: 1.2, back: 1.1 } },
             { line: "That's a long walk, and there's a line at the kiosk. If I go, the town stops.", who: "commander" },
             { line: "Then we'll learn to run things on our own. We need that box to know what happened to us.", who: "rhee" },
@@ -1236,7 +1236,7 @@ export const marsGreenhouse: Skin = {
           // the three are in: the road crew's buggy leaves and the galley is next
           { on: { goal: "arrive", is: "done" }, ordered: true, do: [
             { vehicleOff: "buggy" },
-            { line: "A galley cooks greens into meals. Pay for it at its outline and the road crew will raise it.", who: "kiln" },
+            { line: "Build a galley to turn greens into meals. They sell more that way.", who: "kiln" },
             { goal: "galleyBuilt" },
           ] },
           // morning turns to dusk while the town learns to run itself
@@ -1254,7 +1254,7 @@ export const marsGreenhouse: Skin = {
           // all three trained: a small light starts blinking at the wreck
           { id: "handsOff", on: { event: "hired", match: { pad: "cashier" } }, do: [
             { guide: false },
-            { line: "They've got it. Head east to the wreck while the town runs without you.", who: "kiln" },
+            { line: "They've got it now. Head east to the wreck while the crew keep the town running.", who: "kiln" },
             { dots: [{ entity: "recorder" }], period: 1.2 },
             { edgeGlow: { entity: "recorder", size: 28, strength: 0.35 } },
           ] },
@@ -1275,10 +1275,11 @@ export const marsGreenhouse: Skin = {
             { line: "And into the lander's escape pod, the scorched one you towed in. It has four seats.", who: "kiln" },
             { line: "Four seats. So they saved themselves, and left the rest of us asleep.", who: "commander" },
             { line: "Not quite. Someone hauled the reactor off the ship, set it out on the sand with a beacon on it, and wired it to your pods. It must have been them.", who: "kiln" },
-            { line: "It ran on fuel cells until the cells ran out. The ore was under the sand then.", who: "kiln" },
+            { line: "They kept it running on fuel cells until the cells ran out. With no ore found and no power left for the ship, they had to abandon it.", who: "kiln" },
             { line: "They kept us alive. Then they left. Why?", who: "commander" },
             { ridgeFlash: 2 },
-            { line: "Movement on the ridge.", who: "kiln" },
+            { line: "That red shudder I felt on your first night. It's back.", who: "kiln" },
+            { line: "I'm sensing more movement on the ridge.", who: "kiln" },
           ] },
         ],
       },

@@ -427,8 +427,8 @@ dome, picking.*
 
 *KILN dims as it says it.*
 
-**KILN:** I've set it against the stars overhead, and against Sela's clock. They agree. It's been four thousand and
-twenty-three days.
+**KILN:** I should be able to check by the stars overhead. Sela's clock says the same, so she's right. It's been four
+thousand and twenty-three days.
 
 *A card: DAY 4, struck through and replaced by DAY 4,023. Under it, smaller: "KILN's day counter restarted when the
 reactor was relit."*
@@ -437,7 +437,7 @@ reactor was relit."*
 
 **COMMANDER:** Eleven years. And four empty pods. Why?
 
-**KILN:** With the reactor up I can scan the wreck. The flight recorder survived. Bring it to me and I can read it.
+**KILN:** I'm scanning the wreck for our flight recorder. It might be able to explain how this happened.
 
 *Only now, on KILN's line, the camera travels to the wreck, far out on the plain, and back to the commander, so the
 distance reads.*
@@ -459,7 +459,7 @@ gate, where they wait.*
 
 *The commander stands by the gate. It opens; the three walk in and wait beside the hub. Goal star.*
 
-**KILN:** A galley cooks greens into meals. Pay for it at its outline and the road crew will raise it.
+**KILN:** Build a galley to turn greens into meals. They sell more that way.
 
 > GOAL CARD: **Build the galley**
 
@@ -482,7 +482,7 @@ and rings up the sale. Each step done by hand lights that job's training pad, on
 Each pad shows its price in credits. Standing on a lit pad with enough credits trains one newcomer, who walks to that
 post. The goal card ticks one, two, three. Pip stays on ore, Rhee at the aid station, Okafor on watch. Goal star.*
 
-**KILN:** They've got it. Head for the wreck while the town runs without you.
+**KILN:** They've got it now. Head east to the wreck while the crew keep the town running.
 
 *A small light starts blinking at the wreck, the only new light on the map as the day turns.*
 
@@ -520,13 +520,15 @@ turn to OCCUPIED. Static.*
 
 **KILN:** Not quite. Someone hauled the reactor off the ship, set it out on the sand with a beacon on it, and wired it to your pods. It must have been them.
 
-**KILN:** It ran on fuel cells until the cells ran out. The ore was under the sand then.
+**KILN:** They kept it running on fuel cells until the cells ran out. With no ore found and no power left for the ship, they had to abandon it.
 
 **COMMANDER:** They kept us alive. Then they left. Why?
 
 *The ridge flashes red.*
 
-**KILN:** Movement on the ridge.
+**KILN:** That red shudder I felt on your first night. It's back.
+
+**KILN:** I'm sensing more movement on the ridge.
 
 *The level ends.*
 
