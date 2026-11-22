@@ -1107,8 +1107,8 @@ export class Brain {
         L.phase = "return";
         return this.lassoTarget(st);
       }
-      // picked up by hand (manifest pickup): stop about the kneel distance away (inside the sim range, 15). No loop
-      if (cap.pickup) return { pos: cap.pos, r: 15.5 * U };
+      // picked up by hand (manifest pickup): stop about the kneel distance away (inside the sim range, 15; the bot stops within r of the target, so r must be under 15). No loop
+      if (cap.pickup) return { pos: cap.pos, r: 13 * U };
       if (L.idx < 0) {
         // Not outside yet or not at the loop: walk to the nearest loop point first.
         let bi = 0, bd = Infinity;
