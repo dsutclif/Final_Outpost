@@ -58,7 +58,7 @@ export interface DefendInput {
 export type ModelStrategy = "turrets_first" | "guards_first" | "drones_first";
 /** Start the run from a live state (defend S3): time, wallet, pads already built (by pad id), guards fielded, drone upgrade built, waves already started; `waves` stops after that many more waves have cleared. */
 export interface ModelFrom { t: number; scrap: number; bought: ReadonlySet<string>; guards: number; drone: boolean; waveIdx: number; waves?: number }
-export interface PredictOptions { from?: ModelFrom; dt?: number; strategy?: ModelStrategy | undefined; /** Multiplies every wave's attacker count (breaking-volume probe). */ volume?: number; /** Replaces fit.eta (per-strategy fit). */ eta?: number }
+export interface PredictOptions { from?: ModelFrom; dt?: number; strategy?: ModelStrategy | undefined; /** Multiplies every wave's attacker count (breaking-volume probe). */ volume?: number; /** Per-wave multipliers (wave index from 0; missing = `volume`), the defend gap placement (S4). */ volumes?: number[]; /** Replaces fit.eta (per-strategy fit). */ eta?: number }
 
 const towerDps = (c: Content, tier: number): number => {
   const t = c.structures["struct.ranged_defense"]?.tiers as { rate: number }[] | undefined;
@@ -136,7 +136,7 @@ export interface DefendResult { rho: number; damage: number; budget: number; per
  */
 export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOrOpts: number | PredictOptions = 0.25): DefendResult {
   const o: PredictOptions = typeof dtOrOpts === "number" ? { dt: dtOrOpts } : dtOrOpts;
-  const dt = o.dt ?? 0.25, strategy = o.strategy, eta = o.eta ?? fit.eta, vol = o.volume ?? 1;
+  const dt = o.dt ?? 0.25, strategy = o.strategy, eta = o.eta ?? fit.eta;
   const sides = [...new Set(inp.waves.map((w) => w.side))];
   const lanes = Math.max(1, sides.length);
   const budget = inp.gateHp + inp.baseHp;
@@ -190,7 +190,9 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
     if (f.drone && inp.drone) droneAt = t;
     if (f.waves !== undefined) stopAt = f.waveIdx + f.waves;
   }
-  const horizon = (inp.waves.at(-1)?.t ?? 0) + 600 + t;
+  // the run ends 600 s after the last wave starts, longer when scaled-up waves are still spawning then (breaking-volume probes)
+  const spawnSpan = Math.max(0, ...inp.waves.map((w, i) => w.bodies.length * (o.volumes?.[i] ?? o.volume ?? 1) * w.gap));
+  const horizon = (inp.waves.at(-1)?.t ?? 0) + 600 + spawnSpan + t;
   let lost = false;
   const liveWaves = new Set<number>();
   for (; t < horizon && !lost; t += dt) {
@@ -202,6 +204,7 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
       active = true; waveIdx++; lastStart = t; liveWaves.add(waveIdx);
       perWave.push({ start: t, leak: 0, dps: (towersDps * eta + droneDps()) * skill });
       const walkLen = inp.laneLen[w.side] ?? 600;
+      const vol = o.volumes?.[waveIdx - 1] ?? o.volume ?? 1;
       // volume probe: vol sends floor(vol) copies of every body, plus one more for the fraction of them (evenly spread)
       let k = 0, carry = 0;
       for (const b of w.bodies) {

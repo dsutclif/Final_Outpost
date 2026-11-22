@@ -1,5 +1,5 @@
 import { CONTENT_VERSION, type Manifest } from "@fo/content";
-import { ENGINE_VERSION, FP, IMPLEMENTED_MODULES, METER_MAX, createSim, mainGoalDead, starsOf, type Sim, type SimEvent } from "@fo/sim";
+import { ENGINE_VERSION, FP, defendWarn, type DefendWarn, IMPLEMENTED_MODULES, METER_MAX, createSim, mainGoalDead, starsOf, type Sim, type SimEvent } from "@fo/sim";
 import { viewWFor, createCamera, worldToScreenPlane, type Camera } from "@fo/render-3d";
 import { getSkin, levelTitle, nameOf, purposeOf, uiText, type Skin } from "@fo/skins";
 import { Coach, toWorld } from "./coach.js";
@@ -1441,6 +1441,19 @@ export class App {
     this.haptics.pulse([18, 90, 12]);
   }
 
+  private warnSeen = new WeakMap<Session, DefendWarn>();
+  /** Defend warning (S4): the first leak, and again below half base health, raise an alarm: the red edge flash and the alarm sound (the HUD base-health chip turns red below half). Same trigger as the rater's fairFailure (sim defendWarn). */
+  private defendAlarm(s: Session): void {
+    const st = s.sim.state, w = defendWarn(st.meters.baseHealth, st.meters.baseHealthMax);
+    const rank = (x: DefendWarn): number => (x === "none" ? 0 : x === "leak" ? 1 : 2);
+    if (rank(w) <= rank(this.warnSeen.get(s) ?? "none")) return;
+    this.warnSeen.set(s, w);
+    this.synth.play("alarm");
+    this.haptics.pulse(w === "half" ? [80, 40, 80, 40, 160] : [80, 40, 80]);
+    const f = this.el.stage.querySelector<HTMLElement>("#downFlash");
+    if (f) { f.classList.remove("on"); void f.offsetWidth; f.classList.add("on"); }
+  }
+
   private handleEvent(s: Session, e: SimEvent): void {
     s.director?.onEvent(e, s.sim.state);
     // coach hints ("Your pack is full of that") never talk over a line or a story beat
@@ -1451,7 +1464,10 @@ export class App {
     if (s.coach.onEvent(e, s.sim.compiled).length) this.saveProgressSoon();
     const touched = touchedBy(e, s.sim.state);
     if (touched.length) this.discover(touched);
-    if (e.t === "hit" && e.target === "base") this.hud.hit();
+    if (e.t === "hit" && e.target === "base") {
+      this.hud.hit();
+      this.defendAlarm(s);
+    }
     // the commander is knocked down on a level with a med bay: a red flash round the screen edge and a long buzz (the big "!" is the renderer's)
     if (e.t === "downed" && s.sim.compiled.residents.selfHealTicks === 0) {
       const f = this.el.stage.querySelector<HTMLElement>("#downFlash");

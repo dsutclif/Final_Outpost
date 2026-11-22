@@ -6,3 +6,4 @@ export { Brain, type Task, type TaskKind, type Suggestion, type SuggestKind } fr
 export { Nav } from "./nav.js";
 export { createShape, shapeTick, shapeResult, STILL_UNITS, createBeats, beatsNote, beatsResult, beatKey, actKey, loopRepeats, shapeBeatsResult, LOOP_MAX, type PlayShape, type ShapeAcc, type Beat, type BeatAcc } from "./shape.js";
 export { DEFEND_FIT, defendInput, predictRho, modelBreak, fitEta, type DefendFit, type DefendInput, type DefendResult, type ModelStrategy, type PredictOptions, type ModelBreak, type ModelFrom } from "./defendModel.js";
+export { GAP_STRATEGIES, countsHp, waveBreakMult, gapProfile, profileOf, summary as gapSummary, crossingCount, modelManifest, type GapOptions, type GapProfile, type GapWaveProfile } from "./defendGap.js";

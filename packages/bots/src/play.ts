@@ -1,5 +1,5 @@
 import { content as defaultContent, type Content } from "@fo/content";
-import { FP, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, attackedSide, createSim, guardPost, seedRng, starsOf, type Compiled, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
+import { FP, defendWarn, METER_MAX, REWARD_EVENTS, REWARD_GAP_EDGES, TPS, attackedSide, createSim, guardPost, seedRng, starsOf, type Compiled, type Input, type SimEvent, type State, type Vec } from "@fo/sim";
 import { Brain } from "./brain.js";
 import { TIME_FIXED_GOALS, planBot, type Plan } from "./plan.js";
 import { withLearning, type BotProfile } from "./profiles.js";
@@ -435,7 +435,7 @@ export function playBot(manifest: unknown, profileIn: BotProfile, seed: number, 
     if (f < 0.25) fuelLow++;
     if (acted) acting++; else if (st.player.moving) moveOnly++;
     if (brain.isIdle) dead++;
-    if (st.core.fuel === 0 || st.meters.baseHealth * 3 < st.meters.baseHealthMax) { if (warnStart < 0) warnStart = st.tick; }
+    if (st.core.fuel === 0 || defendWarn(st.meters.baseHealth, st.meters.baseHealthMax) !== "none") { if (warnStart < 0) warnStart = st.tick; }
     else warnStart = -1;
     if (waveN > 0 && st.waves.idx > 0) {
       for (const h of st.hostiles) {

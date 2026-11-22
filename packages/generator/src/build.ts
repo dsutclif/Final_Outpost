@@ -10,6 +10,7 @@ import genData from "../data/generator.json";
 import { flowModel, type Flow } from "./flow.js";
 import { Placer, dist, inRect, segDist, type Box, type Pt, type Rect } from "./layout.js";
 import { applyDefendS1 } from "./defendS1.js";
+import { fitStrategyEtas, placeDefendGap, type DefendGapCfg } from "./defendGap.js";
 import { Rand, clamp01, hashStr, lerp, mix, round1, round2 } from "./rand.js";
 import { placeTerrain, type TerrainData } from "./terrain.js";
 import { traderRoute } from "./route.js";
@@ -88,6 +89,7 @@ export const GEN = genData as unknown as {
   /** Defend wave shape and wall towers (R3 item 3); see generator.json. */
   defendWaves: { maxLive: { single: number; twoFamily: number }; singleFamilyGap: number; randomSides: boolean; warnSeconds: number; overlapMin: number; maxPoints: number; waveCap: number; lateWaveGap: number; lateWaveMin: number; firstShare: number; earlyGrowth: number; lateFrom: number; lateGrowth: number; finaleGrowthK: number; raiders: number; lateRaiders: number; gap: number; lateGap: number; dropsPerNeed: number; dropsPerEarlyNeed: number; lateStep: number; surviveTail: number; fullGrowMax: number; growthStep: number; spawnMax: number; minGap: number; mix: WaveMix; warlords: [number, number][]; raid: { t: number; swarmlings: number; raiders: number; gap: number } };
   /** Defend redesign S1 (outpost-ops#264, spec 1.1): two-family levels price towers in coins. coinTowers false = off. */
+  defendGap: DefendGapCfg & { fitEta: boolean };
   defendCosts: { coinTowers: boolean; currencyPerSalvage: number };
   /** Goals a conveyor belt is laid for (it must be used before the goal lands). */
   /** Batch 3: scrap heaps on some defend levels; see generator.json. */
@@ -2337,8 +2339,18 @@ function buildOnce(inp: BuildInput, layoutSalt: number, pin: Pin | null): Built 
     const maxLive = two ? DW.maxLive.twoFamily : DW.maxLive.single, gap = two ? 0 : DW.singleFamilyGap, coin = two && DC.coinTowers;
     // S2: random attack side on multi_side levels (the draw pool is every attack side); default off
     const randomSides = DW.randomSides && feat.has("multi_side") && sides.length > 1 ? [...sides] : undefined;
+    const DG = GEN.defendGap;
     if (maxLive > 1 || gap > 0 || coin || randomSides) {
-      Object.assign(m, applyDefendS1(m, { ...(randomSides ? { randomSides, warnSeconds: DW.warnSeconds } : {}), ...(maxLive > 1 ? { maxLive, overlapMin: DW.overlapMin } : {}), ...(gap > 0 ? { gap } : {}), ...(coin ? { coinTowers: true, currencyPerSalvage: DC.currencyPerSalvage } : {}) }));
+      // defendGap on: the gap acts inside the placement below, not as S1's after-the-fact retime
+      Object.assign(m, applyDefendS1(m, { ...(randomSides ? { randomSides, warnSeconds: DW.warnSeconds } : {}), ...(maxLive > 1 ? { maxLive, overlapMin: DW.overlapMin } : {}), ...(gap > 0 && !DG.on ? { gap } : {}), ...(coin ? { coinTowers: true, currencyPerSalvage: DC.currencyPerSalvage } : {}) }));
+    }
+    if (DG.on) {
+      // S4 (outpost-ops#273): waves sized into the gap between the strategies' breaking volumes; a level with no crossing is rejected
+      let etas: ReturnType<typeof fitStrategyEtas>["etas"] | undefined;
+      if (DG.fitEta) { try { etas = fitStrategyEtas(m, c).etas; } catch { etas = undefined; } }
+      const gp = placeDefendGap(m, c, { cfg: DG, ...(inp.target !== undefined ? { target: inp.target } : {}), gap, warlords: feat.has("bosses") ? warlordsFor(inp.target, DW.warlords) : 1, ...(etas ? { etas } : {}), coinRate: DC.currencyPerSalvage });
+      if (!gp.ok) fail(`noCrossing: best strategy changes ${gp.crossings}x, gap ratio >= ${DG.minRatio} on ${(gp.ratioShare * 100).toFixed(0)}% of waves`);
+      Object.assign(m, gp.manifest);
     }
   }
   // pass 1 hands its level to the wavefront (before the defend padding); pass 2 checks no pad is left hidden (there is no repair step)

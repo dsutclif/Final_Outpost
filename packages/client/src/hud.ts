@@ -63,7 +63,7 @@ export function hudModel(state: State, m: Manifest, cp: Compiled | null, skin: S
     const bh = w.meters?.baseHealth ?? 0;
     const hf = floorOf("hp_floor");
     const k = bhMax > 0 ? Math.max(0, Math.min(1, bh / bhMax)) : 1;
-    chips.push({ key: "baseHealth", text: `${uiText(skin, "baseHealth")} ${Math.max(0, bh)}/${bhMax}`, color: pal.danger, bar: k, bad: k < 0.3, ticks: hf ? [hf.at] : undefined, tickBad: hf?.bad });
+    chips.push({ key: "baseHealth", text: `${uiText(skin, "baseHealth")} ${Math.max(0, bh)}/${bhMax}`, color: pal.danger, bar: k, bad: k < 0.5, ticks: hf ? [hf.at] : undefined, tickBad: hf?.bad });
   }
 
   const waves = w.waves;

@@ -11,3 +11,4 @@ export { repin, scaleWaves, breakingMultiplier, strategyGap, type BreakOptions, 
 export { sideMetrics, type SideMetrics } from "./defendSides.js";
 export { s1Metrics, type S1Metrics } from "./defendS1.js";
 export { judgmentShare, type JudgmentShare } from "./defendJudgment.js";
+export { gapMetrics, type GapMetrics } from "./defendGap.js";
