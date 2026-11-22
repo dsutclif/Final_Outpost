@@ -1303,7 +1303,7 @@ export const marsGreenhouse: Skin = {
           { id: "turret", label: "Build a turret" },
           { id: "arrive", hold: true, label: "Let the settlers in" },
           { id: "train", label: "Train a guard" },
-          { id: "hold", label: "Hold until dawn: {waves}" },
+          { id: "hold", label: "Keep collecting scrap, hiring guards, and fighting defenders to protect our camp till sunrise" },
           { id: "main", label: "Pick up the helmet" },
         ],
         cues: [
@@ -1320,12 +1320,16 @@ export const marsGreenhouse: Skin = {
             { line: "Raiders, coming down off the ridge. They'll go for the gate.", who: "okafor" },
             { line: "Sela said four people lived up there. I count dozens.", who: "commander" },
             { line: "Count them later. Hold the gate now.", who: "okafor" },
-            { line: "The town runs without you now. Keep them off the hub and the reactor, or we lose everything.", who: "rhee" },
-            { line: "Anyone who goes down, I'll get back on their feet.", who: "rhee" },
-            { line: "Three are coming first. Get close, like the hoppers. Your rifle does the rest.", who: "kiln" },
+            { line: "We'll keep the town running. You keep them off the hub and the reactor, or we lose everything.", who: "tam" },
+            { line: "I'll come out with you, Commander.", who: "okafor" },
+            { line: "Well, I better come along with the med kit, in case either of you get hurt.", who: "rhee" },
+            { line: "Three are coming first. Walk out to the road and shoot the attackers as they approach.", who: "kiln" },
+            // the arrows lead to the road the raiders come down, not to anything inside the wall
+            { guide: true, to: { at: [760, 727] } },
           ] },
           // scrap on the sand: the socket between the ridge and the first building lights up
           { on: { event: "wave_cleared", match: { idx: 0 } }, do: [
+            { guide: true },
             { dots: [{ entity: "turret1" }], period: 2 },
             { line: "Their scrap will build a turret on that socket.", who: "kiln" },
           ] },
@@ -1333,6 +1337,8 @@ export const marsGreenhouse: Skin = {
           // they appear only once the turret is built and no raider is alive (arrivals.after in the manifest), so the line
           // plays when they do, not on a timer a slow player could outrun
           { on: { event: "gate_arrival" }, ordered: true, do: [
+            // the camera shows them at the gate, asking to be let in (Doug, 2026-11-22)
+            { camera: { to: { at: [505, 940] }, zoom: 0.72, pan: 0.8, hold: 5, back: 0.8 } },
             { line: "Let us in! They burned our camp on the road!", who: "settler" },
             { line: "Two at the gate. Stand by it to let them in.", who: "kiln" },
             { goal: "arrive" },
@@ -1344,6 +1350,7 @@ export const marsGreenhouse: Skin = {
           { on: { event: "hired", match: { pad: "train" } }, do: [
             { dotsOff: true },
             { line: "Hold them off until sunrise.", who: "kiln" },
+            { guide: true, to: { at: [760, 727] } },
           ] },
           // night all level, no dawn steps (Doug, 2026-11-08), dimming toward the helmet film's dark orange the whole way, one
           // steady dim from the first tick so the player never sees it change (Doug, 2026-11-09: 40 s after the fall was far
@@ -1366,6 +1373,8 @@ export const marsGreenhouse: Skin = {
           { id: "retreat", on: { after: "fall", ticks: 95 }, do: [
             // the visors are gone; the ridge's red pulse beats on, quicker and stronger than before
             { ridge: "right", period: 2, k: 0.8 },
+            // a straight arrow to the helmet: the guide's own tow step would draw a loop round a pick-up (Doug, 2026-11-22)
+            { guide: true, to: { entity: "helmet" } },
             { line: "They're running. It's over for tonight.", who: "kiln" },
             { line: "But the signal hasn't stopped. That was never them.", who: "kiln" },
             { line: "They dropped something.", who: "kiln" },
@@ -1379,7 +1388,7 @@ export const marsGreenhouse: Skin = {
             { line: "They dropped something.", who: "kiln" },
           ] },
           // dawn: the waves are done and the helmet can be towed
-          { id: "dawn", on: { goal: "hold", is: "done" }, do: [] },
+          { id: "dawn", on: { goal: "hold", is: "done" }, do: [{ guide: true, to: { entity: "helmet" } }] },
           // if that line was missed (the warlord died instead of breaking off), the ground dots still find it
           { on: { after: "dawn", ticks: 150 }, do: [{ dots: [{ entity: "helmet" }], period: 1.2 }] },
           { on: { near: { entity: "helmet" }, r: 50 }, do: [{ dotsOff: true }] },

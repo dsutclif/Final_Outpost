@@ -583,24 +583,24 @@
    "type": "pad.build",
    "id": "turret1",
    "at": [
-    780,
-    585
+    772,
+    662
    ],
    "cost": {
     "res.salvage": 8
    },
    "build": "struct.ranged_defense",
    "site": [
-    808,
-    567
+    800,
+    680
    ]
   },
   {
    "type": "pad.hire",
    "id": "train",
    "at": [
-    275,
-    735
+    625,
+    655
    ],
    "cost": {
     "res.salvage": 5
@@ -761,7 +761,7 @@
  "text": {
   "mars_greenhouse": {
    "title": "First Watch",
-   "goal": "Hold until dawn, then pick up the helmet",
+   "goal": "Keep collecting scrap, hiring guards, and fighting defenders to protect our camp till sunrise, then pick up the helmet",
    "tips": []
   }
  },

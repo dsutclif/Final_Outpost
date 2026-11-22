@@ -1,0 +1,1 @@
+- r2-l5a: guide to a point needs director { guide:true, to:{...} }; the guide's own tow step loops round pick-up captures (helmet), so route pick-ups through guideTo.
