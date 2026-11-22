@@ -1,0 +1,1 @@
+- Learned by r2-l2: Level 2's lines live in the skin (`mars_greenhouse.ts` story-L002 cues), not in `story-L002.json`; the shared module tip for the tow line also lived there and named a gate Level 2 lacks.

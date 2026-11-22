@@ -195,6 +195,8 @@ The pods themselves glow; no light shines down on them. The lander's escape pod 
 
 **KILN:** Loop a pod and your tow line catches. The tally over your head fills a slot for every pod in tow.
 
+**KILN:** Two pods came down close together. Bring them both in one trip.
+
 *Pointers appear at the screen edge, one for each of the four pods.*
 
 > GOAL CARD: **Tow the nearest pod into the heat**
@@ -206,11 +208,9 @@ fills. The pod reaches the heat; frost melts; it opens. Play is held. Pip steps 
 
 **COMMANDER:** Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?
 
-**PIP:** Give me something to carry. Ore in, fire stays on.
+**PIP:** Hand me a sack of ore, Boss. I'll make sure the fire stays on.
 
 *Pip starts carrying ore, and the commander no longer has to. Goal star.*
-
-**KILN:** Two pods came down close together. Bring them both in one trip.
 
 > GOAL CARD: **Tow two pods at once**
 
@@ -219,12 +219,11 @@ a time, play held, a tap for each.*
 
 **RHEE · medic:** How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.
 
-**OKAFOR · guard:** Who's watching the camp? Nobody? Then I am.
+**OKAFOR · guard:** Camp's wide open and nobody's on watch. I'll take the first shift.
 
-*Goal star. Rhee sets a med crate and a lamp beside the reactor: her aid station, there from now on. She kneels
-beside Pip. Okafor walks the camp's edge.*
+*Goal star. Rhee kneels beside Pip; no crate or lamp appears. (The aid station beside the reactor starts in Level 3.) Okafor walks the camp's edge.*
 
-*Far out, a fifth glow comes on, dull scorched orange, and its pointer appears.*
+*Far out, a fifth glow comes on, dull scorched orange, and its pointer appears. The camera swings out to it first and holds there before KILN speaks.*
 
 **KILN:** One more out there. A fifth pod. It's ours, the lander's escape pod, but nobody was assigned to it.
 
@@ -243,7 +242,7 @@ scorched orange by a hot landing, its hatch hanging open on four empty seats. Rh
 
 **COMMANDER:** Who was in this?
 
-**KILN:** My logs say it never launched. Someone launched it by hand.
+**KILN:** My logs record the launch. It went out by hand, from the inside. Nobody was assigned to it.
 
 **RHEE:** Opened from the inside. The hatch is packed with dust. Whoever rode it down walked away, a while back.
 
