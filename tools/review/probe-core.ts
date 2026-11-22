@@ -1,6 +1,6 @@
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Box, CaptionSample, DomItem, FrameRec, LabelSample, Sample, StorySnapshot, ThingSample } from "./probe-types.js";
+import type { Box, CaptionSample, CueSample, DomItem, FrameRec, LabelSample, Sample, StorySnapshot, ThingSample } from "./probe-types.js";
 
 // The judging half of the screen probes: pure functions from one Sample (what the page measured) and the
 // limits in probe-limits.json to findings. No browser, no files, so every rule here is unit tested.
@@ -352,6 +352,25 @@ export function analyzeLineSight(c: CaptionSample, s: Sample, gates: readonly St
       if (on(id).length === 0) out.push(hit("line-names-unseen", 5, 3, id, `A line names ${idName(id)} before it can be seen`, `${said} comes up with ${id} not yet on screen.${why}`, "visibleFraction", 0, L.story.seenFraction, 0, "story"));
     }
   }
+  return out;
+}
+
+/** A line whose speaker is not on screen: the player hears someone they cannot see. */
+export function analyzeSpeakerSeen(c: CaptionSample, s: Sample, L: Limits): Hit[] {
+  if (!c.speaker) return [];
+  const view: Box = { x0: 0, y0: 0, x1: s.viewport.w, y1: s.viewport.h };
+  const seen = c.speakerBox ? visibleFraction(c.speakerBox, view) : 0;
+  if (seen >= L.story.seenFraction) return [];
+  const radio = c.style !== "bubble"; // a strip or terminal can be a voice on the radio: noted, not a fault
+  return [hit("line-speaker-offscreen", 5, radio ? 1 : 3, `caption.${c.speaker}`, `${c.speaker} speaks with nobody on screen to say it`, `"${c.text.slice(0, 50)}" is ${c.speaker}'s line but ${Math.round(seen * 100)}% of them is on screen (need ${Math.round(L.story.seenFraction * 100)}%).${radio ? " Shown as a " + c.style + ", so it may be a radio voice." : ""}`, "speakerVisibleFraction", seen, L.story.seenFraction, 0, "story")];
+}
+
+/** A named guide arrow or edge glow that the director asked for but the screen does not draw. */
+export function analyzeCues(q: CueSample): Hit[] {
+  const out: Hit[] = [];
+  if (q.guide.to && !q.guide.off && !q.guide.drawn) out.push(hit("guide-arrow-missing", 5, 3, "story.guide", "A guide arrow was asked for but is not drawn", `The director points the guide at (${Math.round(q.guide.to.x)}, ${Math.round(q.guide.to.y)}) but the renderer has no guide target.`, "drawn", 0, 1, 0, "story"));
+  if (q.glow.set && q.glow.offScreen && !q.glow.shown) out.push(hit("edge-glow-missing", 5, 3, "story.glow", "A named edge glow is not drawn", "The director's edge glow is set and its place is off screen, but no glow shows at the screen edge.", "shown", 0, 1, 0, "story"));
+  if (q.glow.set && q.glow.arrowWanted && q.glow.offScreen && !q.glow.arrowShown) out.push(hit("edge-arrow-missing", 5, 3, "story.glow", "The edge glow's arrow is not drawn", "The edge glow asks for a pointer arrow and its place is off screen, but no arrow shows.", "arrowShown", 0, 1, 0, "story"));
   return out;
 }
 

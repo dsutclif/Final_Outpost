@@ -69,6 +69,12 @@ export interface CaptionSample {
   head: { x: number; y: number } | null;
 }
 
+export interface CueSample {
+  camera: boolean;
+  glow: { set: boolean; offScreen: boolean; arrowWanted: boolean; shown: boolean; arrowShown: boolean };
+  guide: { to: { x: number; y: number } | null; off: boolean; drawn: boolean; toOnScreen: boolean | null };
+}
+
 export interface Sample {
   /** Milliseconds since the level opened. */
   t: number;
@@ -144,7 +150,9 @@ export interface ReviewApi {
   /** Step the driving bot `ticks` sim ticks at once (no frames between), draw once and report; for runs where the GPU is slow. */
   stepBot(ticks: number): { tick: number; over: boolean; won: boolean | null; reason: string | null } | null;
   /** Runs the game's frame function on a made-up 30 fps clock without drawing, until `seconds` have passed or the story shows a line after the `seenSeq`th. */
-  ff(seconds: number, seenSeq: number): { tick: number; seq: number; over: boolean };
+  ff(seconds: number, seenSeq: number, stopOnCamera?: boolean): { tick: number; seq: number; over: boolean };
+  /** The story's non-caption cues right now: a camera beat moving, the named edge glow and its arrow, the guide arrow. Null outside a story level. */
+  cues(): CueSample | null;
   /** Draws `frames` frames on the made-up clock, so a caption settles over its speaker. */
   settle(frames: number): void;
   /** Frame-time log entries from index `from`. */

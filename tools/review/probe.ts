@@ -6,8 +6,8 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium, type Browser, type BrowserContext, type CDPSession, type Page } from "playwright";
-import { parseArgs, type Args, cropRegion, plain, analyzeCaption, analyzeLineHold, analyzeLineOrder, analyzeLineSight, gatesFor, type StoryGate, analyzeSample, continuityHits, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats, meanLuminance, parseColour, toCandidate, Tracker, type Candidate, type Finding, type Hit, type Limits } from "./probe-core.js";
-import type { Box, FilmEnd, FrameRec, ReviewApi, Sample, StorySnapshot } from "./probe-types.js";
+import { parseArgs, type Args, cropRegion, plain, analyzeCaption, analyzeLineHold, analyzeLineOrder, analyzeLineSight, analyzeSpeakerSeen, analyzeCues, gatesFor, type StoryGate, analyzeSample, continuityHits, deltaE, deuteranopia, errorHits, fingerprintOf, frameHits, frameStats, meanLuminance, parseColour, toCandidate, Tracker, type Candidate, type Finding, type Hit, type Limits } from "./probe-core.js";
+import type { Box, CueSample, FilmEnd, FrameRec, ReviewApi, Sample, StorySnapshot } from "./probe-types.js";
 
 // pnpm review:probe -- --out <dir> --levels <id,...> [--story <id,...>] [--base <url>] [--throttle 4]
 //
@@ -463,6 +463,11 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   const gates = (Array.isArray(allGates[levelId]) ? allGates[levelId]! : []).filter((g) => g && typeof g.line === "string");
   const gateSeen = new Set<StoryGate>();
   const errSeen = new Set<string>();
+  let camBusy = false, camN = 0;
+  const camCues: { n: number; shot: string | null; frames: number; moved: boolean }[] = [];
+  extras["cameraCues"] = camCues;
+  const cueAudit = { guideMissing: 0, glowMissing: 0, arrowMissing: 0 };
+  extras["cueAudit"] = cueAudit;
   let lineNo = 0, seq = 0, frozenFor = 0, lastTick = -1, nextSample = 5, lastCard = "";
   const cards: { n: number; text: string; shot: string | null }[] = [];
   const filmShots: (string | null)[] = [];
@@ -477,7 +482,40 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
       await page.waitForTimeout(800);
       continue;
     }
-    const r = await page.evaluate(([sec, seen]) => window.R.ff(sec, seen), [5, seq] as const);
+    const r = await page.evaluate(([sec, seen, cam]) => window.R.ff(sec, seen, cam), [5, seq, !camBusy] as const);
+    // a camera beat has started: a frame every half second until it ends, joined into one strip so its timing can be judged
+    const cu0: CueSample | null = await page.evaluate(() => window.R.cues());
+    if (!cu0?.camera) camBusy = false;
+    else if (!camBusy && camN < 24 && !process.env["FO_PROBE_NOCAM"]) {
+      camBusy = true; camN++;
+      const sharp = (await import("sharp")).default;
+      const bufs: Buffer[] = [];
+      for (let i = 0; i < 10; i++) {
+        const b = await page.screenshot({ scale: "css", type: "jpeg", quality: 50, timeout: 8_000 }).catch(() => null);
+        if (!b) { shots.failed.push(`cam${String(camN).padStart(2, "0")}: screenshot timed out`); break; }
+        bufs.push(b);
+        await page.evaluate(() => window.R.settle(15));
+        if (!(await page.evaluate(() => window.R.cues()))?.camera) break;
+      }
+      const good = bufs.filter((b) => b.length);
+      let strip: string | null = null;
+      if (good.length) {
+        const w = 188, hh = 406;
+        const tiles = await Promise.all(good.map(async (b) => sharp(b).resize(w, hh, { fit: "fill" }).png().toBuffer()));
+        mkdirSync(join(dir, "shots"), { recursive: true });
+        const file = `cam${String(camN).padStart(2, "0")}-strip.png`;
+        await sharp({ create: { width: w * tiles.length, height: hh, channels: 3, background: "#000" } }).composite(tiles.map((input, i) => ({ input, left: i * w, top: 0 }))).png().toFile(join(dir, "shots", file));
+        strip = `${rel}/shots/${file}`;
+        shots.list.push(strip);
+      }
+      const moved = good.some((b, i) => i > 0 && !b.equals(good[0]!));
+      camCues.push({ n: camN, shot: strip, frames: good.length, moved });
+      if (good.length > 1 && !moved) {
+        const [f] = tracker.observe(Date.now(), [{ check: "camera-cue-empty", cat: 5, severity: 2, subject: "story.camera", title: "A camera move shows nothing moving", detail: `Camera beat ${camN}: ${good.length} frames over about ${good.length * 0.5} s are identical, so the move is empty or pans to where the view already is.`, metric: { name: "framesChanged", value: 0, limit: 1 }, seconds: 0, track: "story" }]);
+        if (f && strip) evidence.set(f.fingerprint, { paths: [strip] });
+      }
+      continue;
+    }
     result.simSeconds = Math.round((r.tick / TPS) * 10) / 10;
     // the level ending does not end the story: the director may still hold lines, a film and a card (level 5: the helmet is picked up
     // before the retreat lines, then the kneel, the film, "Vale?"), so keep reading until it goes quiet
@@ -498,7 +536,10 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
       const shown = lines.map((l) => l.text);
       const entry = { n: lineNo, text: s.caption.text, speaker: s.caption.speaker, shot, heldTicks: 0, gates: matched.map((g) => g.why ?? g.line) };
       lines.push(entry);
-      for (const hit of [...analyzeCaption(s.caption, s, L), ...analyzeLineSight(s.caption, s, gates, L), ...analyzeLineOrder(s.caption, shown, gates)]) {
+      const cues: CueSample | null = await page.evaluate(() => window.R.cues());
+      const cueHits = cues ? analyzeCues(cues) : [];
+      for (const ch of cueHits) { if (ch.check === "guide-arrow-missing") cueAudit.guideMissing++; else if (ch.check === "edge-glow-missing") cueAudit.glowMissing++; else cueAudit.arrowMissing++; }
+      for (const hit of [...analyzeCaption(s.caption, s, L), ...analyzeSpeakerSeen(s.caption, s, L), ...cueHits, ...analyzeLineSight(s.caption, s, gates, L), ...analyzeLineOrder(s.caption, shown, gates)]) {
         const [f] = tracker.observe(Date.now(), [{ ...hit, subject: `${hit.subject}.line` }]);
         const ev = f ? await shots.evidenceFor(f, `line${String(lineNo).padStart(2, "0")}-${f.check}`) : null;
         if (f && ev) evidence.set(f.fingerprint, ev);
