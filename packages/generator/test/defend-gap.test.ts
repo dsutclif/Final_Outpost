@@ -20,7 +20,7 @@ describe("placeDefendGap (S4)", () => {
   const r = place();
   it("places every wave inside [V_lo, 0.9 V_hi] and logs gap positions", () => {
     expect(r.ok).toBe(true);
-    for (const w of r.waves) {
+    for (const w of r.waves.slice(1)) { // wave 0 stays as sized when a probe is used
       expect(w.hp).toBeGreaterThanOrEqual(w.vLo - 1);
       expect(w.hp).toBeLessThanOrEqual(cfg.feasible * w.vHi + 2);
       expect(w.position).not.toBeNull();
@@ -29,7 +29,7 @@ describe("placeDefendGap (S4)", () => {
   });
   it("puts wave k at t0 + gap * k inside the sizing", () => {
     const ws = r.manifest["waves"] as Loose[];
-    expect(ws.map((w) => w.t)).toEqual(ws.map((_, k) => ws[0].t + 20 * k));
+    expect(ws.map((w) => w.t)).toEqual(ws.map((_, k) => ws[0]!.t + 20 * k));
   });
   it("escalates: the last two waves are above every earlier wave", () => {
     const hp = r.waves.map((w) => w.hp), n = hp.length, before = Math.max(...hp.slice(0, n - 2));
@@ -42,7 +42,7 @@ describe("placeDefendGap (S4)", () => {
   });
   it("puts the warlords in the final wave", () => {
     const ws = r.manifest["waves"] as Loose[];
-    expect(ws.at(-1).counts["hostile.boss"]).toBe(2);
+    expect(ws.at(-1)!.counts["hostile.boss"]).toBe(2);
     expect(ws.slice(0, -1).some((w) => w.counts["hostile.boss"])).toBe(false);
   });
   it("is deterministic and leaves the input alone", () => {
@@ -67,7 +67,7 @@ describe("placeDefendGap (S4)", () => {
     const two = JSON.parse(JSON.stringify(base)) as Loose;
     two.params["defense.maxLive"] = 2;
     for (const m of [solo, two]) m.waves.forEach((w: Loose, k: number) => { w.t = 20 + 20 * k; });
-    const a = defendInput(solo, content), b = defendInput(two, content);
+    const a = defendInput(solo as never, content), b = defendInput(two as never, content);
     const prior = [1, 1];
     const vs = waveBreakMult(a, DEFEND_FIT, "turrets_first", DEFEND_FIT.eta, prior), vt = waveBreakMult(b, DEFEND_FIT, "turrets_first", DEFEND_FIT.eta, prior);
     expect(vt).toBeLessThanOrEqual(vs + 1e-9);

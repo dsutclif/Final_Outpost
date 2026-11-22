@@ -16,14 +16,15 @@ const file = args.find((a, i) => a.endsWith(".json") && args[i - 1] !== "--json"
 let m = repin(JSON.parse(readFileSync(file, "utf8"))) as Record<string, any>;
 const pool = [...new Set(((m["waves"] ?? []) as any[]).flatMap((w) => (Array.isArray(w.side) ? w.side : w.side ? [w.side] : ["n"])))];
 m = applyDefendS1(m, { maxLive: 2, overlapMin: 6, ...(pool.length > 1 ? { randomSides: pool, warnSeconds: 6 } : {}), ...(args.includes("--coin-towers") ? { coinTowers: true, currencyPerSalvage: 1.5 } : {}) }) as Record<string, any>;
-const cfg = { ...(gen as any).defendGap, on: true };
+const cfg = { ...(gen as any).defendGap, on: true, iterations: 1 };
 const t0 = Date.now();
 const useSim = args.includes("--sim");
 const etas = useSim || args.includes("--no-fit") ? undefined : fitStrategyEtas(m, content);
 if (etas) console.log(`eta_s ${JSON.stringify(etas.etas)}  sim break multipliers ${JSON.stringify(etas.multipliers)}  (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
-const gp = placeDefendGap(m, content, { cfg, target: val("target", 0.5), gap: val("gap", 20), warlords: 1, ...(etas ? { etas: etas.etas } : {}), ...(useSim ? { breakFn: (cut: any, k: number, s: any) => simBreak(cut, k, s) } : {}) });
+const gp = placeDefendGap(m, content, { cfg, target: val("target", 0.5), gap: val("gap", 20), warlords: 1, ...(etas ? { etas: etas.etas } : {}), ...(useSim ? { breakFn: (cut: any, k: number, s: any) => simBreak(cut, k, s, { lo: 0.25, hi: 4, iterations: 4 }) } : {}) });
 console.log(`${m["id"]}  placed ${gp.waves.length} waves  ok ${gp.ok} ${gp.reason ?? ""}  crossings ${gp.crossings}  ratioShare ${gp.ratioShare.toFixed(2)}`);
 for (const w of gp.waves) console.log(`  w${w.k} t ${w.t}  hp ${w.hp.toFixed(0)}  V ${Object.entries(w.V).map(([s, v]) => `${s[0]} ${v.toFixed(0)}`).join(" ")}  best ${w.best}  position ${w.position === null ? "-" : w.position.toFixed(2)}  counts ${JSON.stringify((gp.manifest["waves"] as any[])[w.k].counts)}`);
+for (const c of gp.compare ?? []) console.log(`  w${c.k} model mult ${JSON.stringify(Object.fromEntries(Object.entries(c.model).map(([s, v]) => [s[0], +v.toFixed(2)])))}  probe mult ${JSON.stringify(Object.fromEntries(Object.entries(c.probe).map(([s, v]) => [s[0], +v.toFixed(2)])))}`);
 for (const n of gp.notes) console.log(`  note: ${n}`);
 if (args.includes("--place-only")) process.exit(0);
 const out = gp.manifest;

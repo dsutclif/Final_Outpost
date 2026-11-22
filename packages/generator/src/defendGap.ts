@@ -38,6 +38,8 @@ export interface GapPlaceOptions {
 }
 
 export interface GapPlacement {
+  /** Per wave, with a breakFn: the model's breaking multiplier next to the probe's, per strategy (to size the model fix). */
+  compare?: { k: number; model: Record<string, number>; probe: Record<string, number> }[];
   ok: boolean;
   /** Reject reason: "noCrossing" (no crossing and too small a gap) or "noWaves". */
   reason?: string;
@@ -68,10 +70,12 @@ export function placeDefendGap(manifest: unknown, c: Content, o: GapPlaceOptions
   const bossHp = Number((c.hostiles[bossId] as Json | undefined)?.["hp"] ?? 0);
   const wantBoss = (o.warlords ?? 0) > 0 && bossHp > 0 ? o.warlords! : 0;
   let result: GapWaveProfile[] = [];
+  let compare: NonNullable<GapPlacement["compare"]> = [];
   let last: number[] = [];
   for (let it = 0; it < Math.max(1, cfg.iterations); it++) {
     notes.length = 0;
     result = [];
+    compare = [];
     const caps: Record<string, number[]> = Object.fromEntries(ss.map((s) => [s, [] as number[]]));
     // the model reads the waves as they stand now (earlier waves at their placed counts; wave k's own counts are the template)
     for (let k = 0; k < ws.length; k++) ws[k]!["counts"] = { ...tpl[k]! };
@@ -84,21 +88,24 @@ export function placeDefendGap(manifest: unknown, c: Content, o: GapPlaceOptions
         if (o.breakFn) {
           const cut = JSON.parse(JSON.stringify({ ...m, waves: ws.slice(0, k + 1) })) as Json;
           for (let j = 0; j < k; j++) cut["waves"][j]["counts"] = scaleCounts(ws[j]!["counts"], caps[s]![j]!);
-          mult[s] = o.breakFn(cut, k, s);
+          mult[s] = k === 0 ? 1 : o.breakFn(cut, k, s);
         } else mult[s] = waveBreakMult(inp, fit, s, o.etas?.[s] ?? fit.eta, caps[s]!);
         V[s] = mult[s]! * T;
       }
+      if (o.breakFn) compare.push({ k, model: Object.fromEntries(ss.map((s) => [s, waveBreakMult(inp, fit, s, o.etas?.[s] ?? fit.eta, caps[s]!)])), probe: { ...mult } });
       const vs = ss.map((s) => V[s]!), vLo = Math.min(...vs), vHi = Math.max(...vs);
       const cap = cfg.feasible * vHi;
       let v = vLo + g * (vHi - vLo);
+      const asIs = !!o.breakFn && k === 0;
+      if (asIs) v = T;
       const nE = Math.min(cfg.escalate.last, ws.length - 1);
-      if (nE > 0 && k >= ws.length - nE && k >= 1) {
+      if (!asIs && nE > 0 && k >= ws.length - nE && k >= 1) {
         const before = Math.max(...done.slice(0, ws.length - nE));
         const floor = before * (1 + cfg.escalate.step);
         if (v < floor) { v = floor; notes.push(`wave ${k}: escalated to ${floor.toFixed(0)} hp`); }
         if (k === ws.length - 1 && done[k - 1]! > v) v = done[k - 1]! * (1 + cfg.escalate.step / 2);
       }
-      if (v > cap) { notes.push(`wave ${k}: clamped to ${(cfg.feasible * 100).toFixed(0)}% of V_hi`); v = cap; }
+      if (!asIs && v > cap) { notes.push(`wave ${k}: clamped to ${(cfg.feasible * 100).toFixed(0)}% of V_hi`); v = cap; }
       if (vHi <= vLo * 1.001) notes.push(`wave ${k}: no gap (V_lo = V_hi)`);
       // counts for v: the template scaled; warlords (final wave) are fixed hp inside it
       const boss = k === ws.length - 1 && wantBoss ? Math.max(wantBoss, tplBoss[k]!) : tplBoss[k]!;
@@ -127,7 +134,7 @@ export function placeDefendGap(manifest: unknown, c: Content, o: GapPlaceOptions
   const crossings = crossingCount(result.map((w) => w.best));
   const ratioShare = result.filter((w) => w.ratio >= cfg.minRatio).length / result.length;
   const ok = crossings >= 2 || ratioShare >= 0.5;
-  return { ok, ...(ok ? {} : { reason: "noCrossing" }), manifest: m, waves: result, crossings, ratioShare, notes };
+  return { ok, ...(ok ? {} : { reason: "noCrossing" }), manifest: m, waves: result, crossings, ratioShare, notes, ...(compare.length ? { compare } : {}) };
 }
 
 /** Wave counts at hit points v: the template's non-warlord kinds scaled together (rounded, a kind present stays at 1 or more), `boss` warlords added. */
@@ -167,6 +174,8 @@ function scaleCounts(counts: Record<string, number>, f: number): Record<string, 
 export function simBreak(cut: Json, k: number, s: ModelStrategy, o: { seed?: number; lo?: number; hi?: number; iterations?: number } = {}): number {
   const base = JSON.parse(JSON.stringify(repin(cut))) as Json;
   const tpl = { ...(base["waves"][k]["counts"] as Record<string, number>) };
+  // the cut has fewer waves than the level: a goal that needs later waves (boss) is probed as "survive this wave and 90 s more"
+  if ((base["goal"] as Json | undefined)?.["type"] !== "survive") { const secs = Math.round(Number(base["waves"][k]["t"]) + 90); base["goal"] = { type: "survive", seconds: secs }; for (const o of (base["objectives"] ?? []) as Json[]) if (o["id"] === "main") { o["kind"] = "survive"; o["params"] = { seconds: secs }; } }
   const bossId = "hostile.boss";
   const profile = strategyProfile(s as Strategy);
   const won = (m: number): boolean => {
