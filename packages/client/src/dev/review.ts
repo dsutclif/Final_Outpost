@@ -222,7 +222,7 @@ export function installReview(app: App): void {
     return {
       t: Math.round(performance.now() - t0), tick: sim.state.tick, levelId: v.levelId, screen: v.screen,
       viewport: { w: window.innerWidth, h: window.innerHeight }, safe: safeInsets(doc),
-      dom: scanDom(doc.querySelector(".app") ?? doc.body), things, labels, caption: caption(v, sim.state, things, o), lighting: sc?.lighting ?? null,
+      dom: scanDom(doc.querySelector(".app") ?? doc.body), things, labels, caption: caption(v, sim.state, things, o), lighting: sc?.lighting ?? null, goals: sim.state.objectives.map((g) => ({ id: g.id, done: g.done })),
       cam: sc ? { x: sc.camera.x, z: sc.camera.z, fx: sc.forward.x, fz: sc.forward.z } : { x: 0, z: 0, fx: -0.7071, fz: -0.7071 },
     };
   };

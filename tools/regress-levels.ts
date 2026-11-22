@@ -6,6 +6,8 @@ import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { HUMAN, LADDER, playBot } from "../packages/bots/src/index.js";
 import { loopOverCap } from "../packages/generator/src/loops.js";
+import { marsGreenhouse } from "../packages/skins/src/index.js";
+import { lintStory, type StoryManifest } from "./story-lint.js";
 import { QUICK_LABEL, pickLevels, planRun } from "./regress-quick.js";
 
 // pnpm levels:check [--pack levels/packs/s1 | levels/story] [--jobs N] [--seeds 10] [--others 3] [--strict-stars] [--no-cache]
@@ -137,6 +139,14 @@ async function main(): Promise<void> {
   if (plan.quick) console.log(`${QUICK_LABEL}\n`);
   const files = pickLevels(pack.levels, plan, plan.quick && !plan.only ? changedFiles() : []).map((l) => l.file);
   if (plan.quick && files.length === 0) { console.log("quick: no level named (--levels id,id) and none changed vs origin/main; nothing replayed"); return; }
+  // story lint (outpost-ops#345): warnings only for now, never a failure; printed for hand-built story levels
+  if (pack.id === "story") {
+    const tips = { module: marsGreenhouse.text.moduleTips, kiln: marsGreenhouse.text.kilnTips ?? {} };
+    const warns = files.flatMap((f) => lintStory(JSON.parse(readFileSync(join(packDir, f), "utf8")) as StoryManifest, tips));
+    for (const w of warns) console.log(`WARN story-lint ${w.level} [${w.rule}] ${w.message}`);
+    const per = files.map((f) => f.replace(/\.json$/, "")).map((id) => `${id}=${warns.filter((w) => w.level === id).length}`);
+    console.log(`story lint: ${warns.length} warnings (not failures yet) ${per.join(" ")}\n`);
+  }
   const cacheDir = join(root, "levels", "check-cache");
   const cachePath = join(cacheDir, `${pack.id}.json`);
   let cache: Cache = { rows: {} };

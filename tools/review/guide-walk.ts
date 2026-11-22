@@ -3,6 +3,7 @@ import { ENGINE_VERSION, FP, createSim } from "../../packages/sim/src/index.js";
 import { marsGreenhouse as skin } from "../../packages/skins/src/index.js";
 import { Guide } from "../../packages/client/src/guide.js";
 import { ProgressTracker, type GuideRecord, type StepChange } from "./guide-core.js";
+import type { ArrowChange, ArrowRecord } from "./arrow-audit.js";
 
 // The walker behind pnpm review:guide. It reaches into the client package, which is not a project
 // reference of tools, so this file stays out of the tools typecheck (as tools/guide-follow.ts does).
@@ -29,7 +30,7 @@ function around(from: { x: number; y: number }, to: { x: number; y: number }, re
 }
 
 /** Walk a level by the arrow alone. Same loop as tools/guide-follow.ts. */
-export async function followGuide(manifest: unknown, levelId: string, pack: string, seconds: number): Promise<GuideRecord> {
+export async function followGuide(manifest: unknown, levelId: string, pack: string, seconds: number): Promise<GuideRecord & { arrowRecord: ArrowRecord }> {
   // pinned to the running engine so a level from an older pack can still be tried
   const sim = createSim({ ...(manifest as object), engineVersion: ENGINE_VERSION, contentVersion: CONTENT_VERSION });
   const guide = await Guide.create(sim.compiled.manifest, sim.compiled);
@@ -38,13 +39,26 @@ export async function followGuide(manifest: unknown, levelId: string, pack: stri
   const progress: number[] = [];
   const tracker = new ProgressTracker();
   let last = "";
+  const arrows: ArrowChange[] = [];
+  const ents = (manifest as { entities: { type: string; id?: string; at?: [number, number] }[] }).entities.filter((e) => e.at && e.id);
+  /** What the arrow's point lies on: the nearest placed entity, or a pod still out there. */
+  const nearest = (x: number, y: number): { id: string; type: string } => {
+    let best = { id: "", type: "" }, bd = 1e9;
+    for (const e of ents) { const d = Math.hypot(e.at![0] - x, e.at![1] - y); if (d < bd) { bd = d; best = { id: e.id!, type: e.type }; } }
+    for (const c of sim.state.captures) { const d = Math.hypot(c.pos.x / FP - x, c.pos.y / FP - y); if (d < bd) { bd = d; best = { id: `capture.${String(c.id)}`, type: "capture.pod" }; } }
+    return best;
+  };
   // the corner being rounded stays the aim until it is reached, so the walk does not flip at the edge of a ridge
   let wp: { x: number; y: number } | null = null;
   for (let t = 0; t < seconds * 30 && !sim.state.over; t++) {
     const st = sim.state;
     const g = guide.update(st, skin);
     const key = g ? g.key : "none";
-    if (key !== last) { steps.push({ tick: st.tick, key, text: g ? g.text : "" }); last = key; }
+    if (key !== last) {
+      steps.push({ tick: st.tick, key, text: g ? g.text : "" }); last = key;
+      const n = g ? nearest(g.at.x, g.at.y) : { id: "", type: "" };
+      arrows.push({ tick: st.tick, key, entityId: n.id, entityType: n.type });
+    }
     if (tracker.note(st)) progress.push(st.tick);
     let dx = 0, dy = 0;
     if (g) {
@@ -59,5 +73,7 @@ export async function followGuide(manifest: unknown, levelId: string, pack: stri
     sim.step({ dx, dy });
   }
   const st = sim.state;
-  return { levelId, pack, ticks: st.tick, over: st.over, won: st.won === true, reason: st.reason ?? "", steps, progress };
+  const defs = (manifest as { objectives?: { id: string; params?: Record<string, unknown> }[] }).objectives ?? [];
+  const goals = st.objectives.map((o) => { const t = defs.find((d) => d.id === o.id)?.params?.["target"]; return { id: o.id, kind: o.kind, target: typeof t === "string" ? t : "", doneTick: o.doneTick }; });
+  return { levelId, pack, ticks: st.tick, over: st.over, won: st.won === true, reason: st.reason ?? "", steps, progress, arrowRecord: { levelId, ticks: st.tick, goals, arrows } };
 }

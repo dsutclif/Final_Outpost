@@ -2,6 +2,7 @@ import { CONTENT_VERSION } from "../../packages/content/src/index.js";
 import { ENGINE_VERSION } from "../../packages/sim/src/index.js";
 import { Args, loadLimits, resolveIn, round, writeJson } from "./lib.js";
 import { analyseGuide, guideCandidates } from "./guide-core.js";
+import { auditArrows, type ArrowWarning } from "./arrow-audit.js";
 import { followGuide } from "./guide-walk.js";
 import { listLevels, readManifest, splitByEngine } from "./pulse-core.js";
 
@@ -24,11 +25,13 @@ async function main(args: Args): Promise<void> {
     .filter((r) => only.length === 0 || only.includes(r.id)));
   const t0 = Date.now();
   const levels = [];
+  const arrowWarnings: ArrowWarning[] = [];
   const errors: { levelId: string; message: string }[] = [];
   for (const ref of refs) {
     try {
       const rec = await followGuide(readManifest(ref), ref.id, ref.pack, seconds);
       levels.push(analyseGuide(rec, L.guide));
+      if (ref.id.startsWith("story-")) arrowWarnings.push(...auditArrows(rec.arrowRecord));
     } catch (e) {
       errors.push({ levelId: ref.id, message: e instanceof Error ? e.message : String(e) });
     }
@@ -40,6 +43,8 @@ async function main(args: Args): Promise<void> {
     levels: Object.fromEntries(levels.map((g) => [g.levelId, g])),
   });
   writeJson(out, "candidates-guide.json", candidates);
+  writeJson(out, "arrow-audit.json", arrowWarnings);
+  for (const w of arrowWarnings) console.log(`WARN arrow-audit ${w.level} [${w.rule}] ${w.message}`);
   console.log(`guide: ${levels.length} levels followed in ${round((Date.now() - t0) / 1000, 1)} s, ${candidates.length} candidates, ${errors.length} errors, ${skipped.length} skipped (pinned to another engine)`);
   for (const e of errors) console.error(`  ${e.levelId}: ${e.message}`);
   if (errors.length > 0) process.exitCode = 1;

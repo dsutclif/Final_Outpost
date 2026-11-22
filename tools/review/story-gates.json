@@ -1,18 +1,24 @@
 {
-  "_about": "Story line gates for the screen probe (story levels 1-5). A gate says what the player must not have seen yet (unseen) or must be able to see (seen) when a caption whose text contains `line` (case-insensitive) is up, and which earlier lines must already have played (after: substrings of their text). Ids must match things[].id from window.R.snap(). Add a gate whenever a script line asks about or points at something, or answers an earlier line.",
+  "_about": "Story line gates for the screen probe (story levels 1-5). A gate says what the player must not have seen yet (unseen) or must be able to see (seen) when a caption whose text contains `line` (case-insensitive) is up, and which earlier lines must already have played (after: substrings of their text). Ids must match things[].id from window.R.snap(). beforeGoal / afterGoal (objective ids) require a line while a goal is not yet done, or only once it is done. Add a gate whenever a script line asks about or points at something, or answers an earlier line.",
   "story-L001": [
     { "line": "That light", "unseen": ["sink.core"], "why": "The commander asks what the light is before the reactor can be seen." },
     { "line": "A reactor", "seen": ["sink.core"], "after": ["That light"], "why": "The commander finds the reactor only after asking what the light is." }
   ],
   "story-L002": [
-    { "line": "A fifth pod", "seen": ["capture.recruit_container.decoy"], "why": "KILN names the lander's escape pod only once it has lit and the camera has shown it; until the pair is home it lies dark and unmarked." }
+    { "line": "A fifth pod", "seen": ["capture.recruit_container.decoy"], "why": "KILN names the lander's escape pod only once it has lit and the camera has shown it; until the pair is home it lies dark and unmarked." },
+    { "line": "Two pods came down close together", "beforeGoal": ["pair"], "why": "The two-pod line must come while the tow-two goal is still open." },
+    { "line": "Then I'll bring in all five", "afterGoal": ["pair"], "why": "The commander agrees to all five only once the pair is home." },
+    { "line": "Power's up. I can open bays", "afterGoal": ["main"], "why": "KILN opens the bays only once all five pods are home." }
   ],
   "story-L003": [
     { "line": "Lights, to the south", "unseen": ["sink.sales_point"], "why": "The commander sees only lights far to the south; the old kiosk is not yet in view (a glow on the screen edge points the way)." },
-    { "line": "A road. And a kiosk", "seen": ["sink.sales_point"], "after": ["Lights, to the south"], "why": "The commander finds the road and the shut-up kiosk only after walking to it, and only after the lights line." }
+    { "line": "A road. And a kiosk", "seen": ["sink.sales_point"], "after": ["Lights, to the south"], "why": "The commander finds the road and the shut-up kiosk only after walking to it, and only after the lights line." },
+    { "line": "It'll do.", "afterGoal": ["dome"], "why": "Tam speaks after the grow dome is unlocked." },
+    { "line": "Those C coins are credits", "afterGoal": ["first"], "why": "KILN explains credits after the first sale." }
   ],
   "story-L004": [
-    { "line": "Bring it home to me", "seen": ["capture.recorder"], "why": "KILN asks for the recorder by pointing at it, so the steel crate must be on screen when the line plays." }
+    { "line": "Bring it home to me", "seen": ["capture.recorder"], "why": "KILN asks for the recorder by pointing at it, so the steel crate must be on screen when the line plays." },
+    { "line": "A galley cooks greens into meals", "afterGoal": ["arrive"], "why": "The galley is explained after the arrivals come through the gate." }
   ],
   "story-L005": [
     { "line": "They dropped something", "seen": ["capture.helmet"], "why": "KILN points at the helmet the raider dropped, so it must be on screen when the line plays; the player then walks up and picks it up by hand." }

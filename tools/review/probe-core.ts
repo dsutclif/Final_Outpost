@@ -319,7 +319,7 @@ export function analyzeCaption(c: CaptionSample, s: Sample, L: Limits): Hit[] {
  * played (`after`: the question before its answer). Ids are `things[].id` from the page's snap; `after` holds substrings
  * of the earlier lines' text.
  */
-export interface StoryGate { line: string; unseen?: string[]; seen?: string[]; after?: string[]; why?: string }
+export interface StoryGate { line: string; unseen?: string[]; seen?: string[]; after?: string[]; beforeGoal?: string[]; afterGoal?: string[]; why?: string }
 
 /** A line that came up before a line it has to follow. `shown` is every caption so far in the level, this one excluded. */
 export function analyzeLineOrder(c: CaptionSample, shown: readonly string[], gates: readonly StoryGate[]): Hit[] {
@@ -327,6 +327,20 @@ export function analyzeLineOrder(c: CaptionSample, shown: readonly string[], gat
   const had = (first: string): boolean => shown.some((t) => t.toLowerCase().includes(first.toLowerCase()));
   for (const g of gatesFor(c.text, gates)) for (const first of g.after ?? []) {
     if (!had(first)) out.push(hit("line-out-of-order", 5, 2, first, "A story line plays before the line it follows", `"${c.text.slice(0, 50)}" came up before "${first}" had played.${g.why ? ` ${g.why}` : ""}`, "linesBefore", shown.length, 0, 0, "story"));
+  }
+  return out;
+}
+
+/** The goal gates on this line: beforeGoal ids must not be done yet when it plays, afterGoal ids must already be done (ids are objective ids). */
+export function analyzeLineGoals(c: CaptionSample, s: Sample, gates: readonly StoryGate[]): Hit[] {
+  const out: Hit[] = [];
+  if (!s.goals) return out;
+  const done = new Set(s.goals.filter((g) => g.done).map((g) => g.id));
+  const said = `"${c.text.slice(0, 50)}"`;
+  for (const g of gatesFor(c.text, gates)) {
+    const why = g.why ? ` ${g.why}` : "";
+    for (const id of g.beforeGoal ?? []) if (done.has(id)) out.push(hit("line-after-goal", 5, 2, id, "A story line plays after the goal it must come before", `${said} comes up after goal "${id}" is already done.${why}`, "goalDone", 1, 0, 0, "story"));
+    for (const id of g.afterGoal ?? []) if (!done.has(id)) out.push(hit("line-before-goal", 5, 2, id, "A story line plays before the goal it must follow", `${said} comes up before goal "${id}" is done.${why}`, "goalDone", 0, 1, 0, "story"));
   }
   return out;
 }

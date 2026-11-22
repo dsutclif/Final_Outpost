@@ -86,6 +86,8 @@ export interface Sample {
   caption: CaptionSample | null;
   /** Story night-to-day progress, or null. */
   lighting: number | null;
+  /** Goals (sim objectives) and whether each is done, for gates that need a line before or after a goal. */
+  goals?: { id: string; done: boolean }[];
 }
 
 /** One frame of the frame-time log. */
