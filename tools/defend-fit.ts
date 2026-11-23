@@ -14,26 +14,18 @@ const force = args.includes("--force");
 const SWEEPS = args.includes("--evals") ? Number(args[args.indexOf("--evals") + 1]) : 2;
 const CEIL = 60, FLOORM = 0.05, TOL = 0.25, GATE = 0.8;
 
-interface Cell { level: string; variant: Variant; strategy: SimStrategy; wave: number; sim: number; censored: boolean; n: number }
+interface Cell { level: string; variant: Variant; strategy: SimStrategy; wave: number; seed: number; prior: number[]; sim: number; censored: boolean }
 const key = (level: string, v: Variant) => `${level}|${v}`;
 
 function loadCells(): Cell[] {
   if (!existsSync(RUNS_FILE)) throw new Error(`no data at ${RUNS_FILE}`);
-  const by = new Map<string, { c: CellLine[] }>();
-  for (const l of readFileSync(RUNS_FILE, "utf8").split("\n")) {
+  const out: Cell[] = [];
+  for (const l of readFileSync(RUNS_FILE, "utf8").split(/\r?\n/)) {
     if (!l.trim()) continue;
     let j: CellLine;
     try { j = JSON.parse(l) as CellLine; } catch { continue; }
-    if (j.kind !== "cell" || j.engine !== ENGINE_VERSION) continue;
-    const k = `${j.level}|${j.variant}|${j.strategy}|${j.wave}`;
-    (by.get(k) ?? by.set(k, { c: [] }).get(k)!).c.push(j);
-  }
-  const out: Cell[] = [];
-  for (const [k, { c }] of by) {
-    const [level, variant, strategy, wave] = k.split("|");
-    const ests = c.map((x) => (x.hi ? (x.lo > 0 ? Math.sqrt(x.lo * x.hi) : x.hi / 1.5) : Math.min(CEIL, x.lo))).sort((a, b) => a - b);
-    const sim = ests[Math.floor(ests.length / 2)]!;
-    out.push({ level: level!, variant: variant as Variant, strategy: strategy as SimStrategy, wave: Number(wave), sim: Math.max(FLOORM, Math.min(CEIL, sim)), censored: c.every((x) => !x.hi && x.lo >= CEIL * 0.99), n: c.length });
+    if (j.kind !== "cell" || j.engine !== ENGINE_VERSION || !j.prior) continue;
+    out.push({ level: j.level, variant: j.variant, strategy: j.strategy, wave: j.wave, seed: j.seed, prior: j.prior, sim: Math.max(FLOORM, Math.min(CEIL, j.est)), censored: !j.hi && j.lo >= CEIL * 0.99 });
   }
   return out;
 }
@@ -46,16 +38,16 @@ function inputFor(level: string, v: Variant): DefendInput {
 }
 
 /** Largest multiplier of wave `k` alone the model still holds (geometric bisection). */
-function modelWave(inp: DefendInput, fit: DefendFit, s: SimStrategy, k: number): number {
-  const n = inp.waves.length;
-  const lost = (m: number) => predictRho(inp, fit, 1, { dt: 0.5, strategy: modelStrategy(s), volumes: Array.from({ length: n }, (_, i) => (i === k ? m : 1)) }).lost;
+function modelWave(full: DefendInput, fit: DefendFit, s: SimStrategy, prior: number[]): number {
+  const inp = { ...full, waves: full.waves.slice(0, prior.length + 1) };
+  const lost = (m: number) => predictRho(inp, fit, 1, { dt: 0.5, strategy: modelStrategy(s), volumes: [...prior, m] }).lost;
   let lo = FLOORM, hi = CEIL;
   if (lost(lo)) return FLOORM;
   if (!lost(hi)) return CEIL;
   for (let i = 0; i < 9; i++) { const mid = Math.sqrt(lo * hi); if (lost(mid)) hi = mid; else lo = mid; }
   return lo;
 }
-const predict = (cells: Cell[], fit: DefendFit): number[] => cells.map((c) => modelWave(inputFor(c.level, c.variant), fit, c.strategy, c.wave));
+const predict = (cells: Cell[], fit: DefendFit): number[] => cells.map((c) => modelWave(inputFor(c.level, c.variant), fit, c.strategy, c.prior));
 const sqErr = (cells: Cell[], preds: number[]): number => cells.reduce((a, c, i) => a + Math.log(preds[i]! / c.sim) ** 2, 0) / Math.max(1, cells.length);
 
 const GRID: { k: "eta" | "presence" | "pickupDelay" | "walkShare" | "pileUse" | "feedWeight" | "reach"; lo: number; hi: number }[] = [
@@ -103,7 +95,7 @@ function score(cells: Cell[], fit: DefendFit): Score {
   let within = 0;
   cells.forEach((c, i) => { const r = corr[i]! / c.sim; if (r >= 1 / (1 + TOL) && r <= 1 + TOL) within++; else if (c.censored && corr[i]! >= CEIL * 0.8) within++; });
   const groups = new Map<string, { c: Cell; m: number }[]>();
-  cells.forEach((c, i) => { const g = `${c.level}|${c.variant}|${c.wave}`; (groups.get(g) ?? groups.set(g, []).get(g)!).push({ c, m: corr[i]! }); });
+  cells.forEach((c, i) => { const g = `${c.level}|${c.variant}|${c.wave}|${c.seed}`; (groups.get(g) ?? groups.set(g, []).get(g)!).push({ c, m: corr[i]! }); });
   let plans = 0, agree = 0;
   for (const g of groups.values()) {
     if (g.length < 2) continue;

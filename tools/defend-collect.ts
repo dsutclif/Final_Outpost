@@ -3,7 +3,7 @@ import { setPriority } from "node:os";
 import { content, CONTENT_VERSION } from "../packages/content/src/index.js";
 import { ENGINE_VERSION } from "../packages/sim/src/index.js";
 import { playBot, strategyProfile, LADDER, type Strategy } from "../packages/bots/src/index.js";
-import { DATA_DIR, LEVELS, RUNS_FILE, SIM_STRATEGIES, STATE_FILE, VARIANTS, loadLevel, scaleWave, type CellLine, type RunLine, type SimStrategy, type Variant } from "./defend-lib.js";
+import { DATA_DIR, LEVELS, RUNS_FILE, SIM_STRATEGIES, STATE_FILE, VARIANTS, loadLevel, shapeWaves, type CellLine, type RunLine, type SimStrategy, type Variant } from "./defend-lib.js";
 
 // Defend model data run (outpost-ops#273). Per (level, variant, strategy, wave, seed) it searches the largest multiplier of that one wave the
 // strategy bot still holds, aiming each next volume from the last run's margin (not halving), and appends every run as a JSON line.
@@ -41,13 +41,15 @@ function buildingElsewhere(): boolean {
 
 const done = new Set<string>();
 const lastMult = new Map<string, number>();
+const estOf = new Map<string, number>();
 if (existsSync(RUNS_FILE)) for (const l of readFileSync(RUNS_FILE, "utf8").split("\n")) {
   if (!l.trim()) continue;
   try {
     const j = JSON.parse(l) as CellLine | RunLine;
     if (j.engine !== ENGINE_VERSION || j.kind !== "cell") continue;
     done.add(`${j.level}|${j.variant}|${j.strategy}|${j.wave}|${j.seed}`);
-    lastMult.set(`${j.level}|${j.variant}|${j.strategy}|${j.wave}`, j.hi ? Math.sqrt(j.lo * j.hi) : j.lo);
+    lastMult.set(`${j.level}|${j.variant}|${j.strategy}|${j.wave}`, j.est);
+    estOf.set(`${j.level}|${j.variant}|${j.strategy}|${j.wave}|${j.seed}`, j.est);
   } catch { /* torn last line from a hard stop */ }
 }
 
@@ -88,13 +90,15 @@ function aim(m: number, held: boolean, margin: number, lo: Pt | null, hi: Pt | n
 
 async function cell(level: string, variant: Variant, strategy: SimStrategy, wave: number, seed: number, base: Record<string, any>): Promise<boolean> {
   const ck = `${level}|${variant}|${strategy}|${wave}`;
+  // earlier waves at 0.9 x this strategy's own limit found for this seed (at most 1), so a wave is probed on a base that still stands
+  const prior = Array.from({ length: wave }, (_, i) => Math.min(1, 0.9 * (estOf.get(`${level}|${variant}|${strategy}|${i}|${seed}`) ?? 1)));
   let m = lastMult.get(ck) ?? 1;
   let lo: Pt | null = null, hi: Pt | null = null, runs = 0;
   while (runs < MAX_RUNS_PER_CELL) {
     while (buildingElsewhere()) { if (Date.now() > deadline) return false; await sleep(60_000); }
     if (Date.now() > deadline) return false;
-    const mult = Array.from({ length: base["waves"].length }, (_, i) => (i === wave ? m : 1));
-    const r = play(scaleWave(base, wave, m), strategy, seed);
+    const mult = [...prior, m];
+    const r = play(shapeWaves(base, mult), strategy, seed);
     runs++;
     const line: RunLine = { kind: "run", ts: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, level, variant, strategy, seed, wave, mult, ...r };
     appendFileSync(RUNS_FILE, JSON.stringify(line) + "\n");
@@ -109,10 +113,12 @@ async function cell(level: string, variant: Variant, strategy: SimStrategy, wave
     m = Math.min(CEIL, Math.max(FLOOR, aim(m, r.held, pm, lo, hi)));
     await sleep(sleepMs);
   }
-  const cl: CellLine = { kind: "cell", ts: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, level, variant, strategy, seed, wave, lo: lo?.m ?? 0, hi: hi?.m ?? null, runs };
+  const est = lo && hi ? Math.sqrt(lo.m * hi.m) : lo ? lo.m : hi ? hi.m / 1.5 : 1;
+  const cl: CellLine = { kind: "cell", ts: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, level, variant, strategy, seed, wave, lo: lo?.m ?? 0, hi: hi?.m ?? null, runs, prior, est };
   appendFileSync(RUNS_FILE, JSON.stringify(cl) + "\n");
   done.add(`${level}|${variant}|${strategy}|${wave}|${seed}`);
-  lastMult.set(ck, lo && hi ? Math.sqrt(lo.m * hi.m) : lo?.m ?? hi?.m ?? 1);
+  lastMult.set(ck, est);
+  estOf.set(`${ck}|${seed}`, est);
   return true;
 }
 

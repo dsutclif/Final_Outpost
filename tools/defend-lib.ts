@@ -43,11 +43,11 @@ export function loadLevel(tag: string, variant: Variant): Record<string, any> {
   return m;
 }
 
-/** Wave `k` of the manifest scaled by `m`, all others left (a kind with attackers keeps one). */
-export function scaleWave(manifest: Record<string, any>, k: number, m: number): Record<string, any> {
+/** The manifest cut to its first mult.length waves, wave i scaled by mult[i] (a kind with attackers keeps one). Later waves are not played: earlier waves that already lose would hide a later wave's own limit. */
+export function shapeWaves(manifest: Record<string, any>, mult: number[]): Record<string, any> {
   const c = JSON.parse(JSON.stringify(manifest)) as Record<string, any>;
-  const counts = c["waves"][k]["counts"] as Record<string, number>;
-  for (const key of Object.keys(counts)) if (counts[key]! > 0) counts[key] = Math.max(1, Math.round(counts[key]! * m));
+  c["waves"] = (c["waves"] as any[]).slice(0, mult.length);
+  c["waves"].forEach((w: any, i: number) => { for (const key of Object.keys(w.counts)) if (w.counts[key] > 0) w.counts[key] = Math.max(1, Math.round(w.counts[key] * mult[i]!)); });
   return c;
 }
 
@@ -57,4 +57,4 @@ export interface RunLine {
   leaks: number[]; baseHp: number[]; purchases: { tick: number; what: string }[]; salvageEarned: number; salvageSpent: number; fuelFed: number; ticks: number;
 }
 /** A finished search for one (level, variant, strategy, wave, seed): the bracket of the breaking multiplier. */
-export interface CellLine { kind: "cell"; ts: string; engine: string; content: string; level: string; variant: Variant; strategy: SimStrategy; seed: number; wave: number; lo: number; hi: number | null; runs: number }
+export interface CellLine { kind: "cell"; ts: string; engine: string; content: string; level: string; variant: Variant; strategy: SimStrategy; seed: number; wave: number; lo: number; hi: number | null; runs: number; /** Multipliers of the waves before this one (0.9 x this strategy's own limit there, at most 1) and the search's estimate. */ prior: number[]; est: number }
