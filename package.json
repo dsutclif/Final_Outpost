@@ -26,7 +26,10 @@
     "review:guide": "vite-node tools/review/guide.ts --",
     "review:telemetry": "vite-node tools/review/telemetry.ts --",
     "review:calibrate": "vite-node tools/review/calibrate.ts --",
-    "review:probe": "vite-node tools/review/probe.ts --"
+    "review:probe": "vite-node tools/review/probe.ts --",
+    "defend:collect": "vite-node tools/defend-collect.ts --",
+    "defend:fit": "vite-node tools/defend-fit.ts --",
+    "defend:refresh": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/defend-worker.ps1 -Fit"
   },
   "devDependencies": {
     "@capacitor/android": "^7.6.9",

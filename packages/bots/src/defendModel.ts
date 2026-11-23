@@ -1,4 +1,5 @@
 import type { Content, Manifest } from "@fo/content";
+import fitJson from "../data/defendFit.json";
 
 // P9 attack-defence model, v0 (BACKLOG #16). A pure function of a defend manifest and the content tables:
 // a small per-lane simulation of defender damage per second against attackers in flight, reinvesting the
@@ -10,7 +11,7 @@ import type { Content, Manifest } from "@fo/content";
 // is not fitted: it comes straight from the price list (dps gained / scrap) in the manifest's pads.
 
 export interface DefendFit {
-  /** Multiplier on tower and guard dps (overkill, out-of-range shots, leashing). */
+  /** Overkill: multiplier on tower and guard dps (out-of-range shots, leashing). */
   eta: number;
   /** Commander's average share of time shooting at the lane. */
   presence: number;
@@ -20,13 +21,28 @@ export interface DefendFit {
   guardsMax: number;
   /** Distance attackers walk under fire before contact (tower range less stand-off, plus guard sorties). */
   reach: number;
+  /** Guards bought before any strategy order applies (the bots' FIRST_GUARDS). */
+  firstGuards: number;
+  /** Seconds from gate to base once the gate is down. */
+  innerWalk: number;
+  /** Seconds between a kill and the scrap reaching the wallet, beyond the walk. */
+  pickupDelay: number;
+  /** Share of the walk to a drop (and to a map pile) the commander really spends. */
+  walkShare: number;
+  /** Share of the map's scrap piles the commander gathers. */
+  pileUse: number;
+  /** Weight of core feeding (burn rate / gather rate) taken off the commander's shooting time. */
+  feedWeight: number;
+  /** Attacker hp per budget point leaked at the break (report only). */
+  leakH: number;
+  /** Residual correction on the model's breaking multiplier: sim = exp(b) * model^a. */
+  residual: { a: number; b: number };
 }
 
-/** Fitted 2026-11-08 on 13 defend levels x 5 rungs of engine 0.21.0 (tools/fit-defend-model.ts): RMSE 0.27 in-sample, 0.32 leave-one-level-out, r 0.76. */
-export const DEFEND_FIT: DefendFit = {
-  eta: 0.608, presence: 0.962, guardsMax: 4, reach: 102,
-  skill: { good: 1, average: 0.982, weak: 0.914, novice: 0.793, floor: 0.756 },
-};
+export interface FitFile extends DefendFit { engine: string; content: string; fittedOn?: string; note?: string }
+/** The fitted behaviour constants (data/defendFit.json), tagged with the engine and content version they were fitted on. Refit with pnpm defend:refresh. */
+export const DEFEND_FIT_FILE: FitFile = fitJson as FitFile;
+export const DEFEND_FIT: DefendFit = fitJson as DefendFit;
 
 type Json = Record<string, any>;
 interface Buy { id: string; cost: number; dps: number; kind: "tower" | "guard"; tower?: number; tier?: number; wave: number }
@@ -43,10 +59,18 @@ export interface DefendInput {
   baseHit: number;
   gateHit: number;
   quiet: number;
-  reach: number;
+  /** Player walk speed and the range drops are pulled in from (content defaults). */
+  speed: number;
+  pickupRange: number;
+  /** Map scrap piles (node.salvage_pile): walk distance from the core, stock, extraction rate. */
+  piles: { dist: number; stock: number; rate: number }[];
+  /** Core feeding: seconds one fuel unit lasts, and the player's fuel-scrap gather rate (units per second). */
+  burn: number;
+  fuelRate: number;
+  /** When the game ends the run (a survive goal's seconds, else level.budgetSeconds); Infinity when the level has no clock. A base still standing then is a win. */
+  endAt: number;
   laneLen: Record<string, number>;
   playerDps: number;
-  innerWalk: number;
   /** defense.maxLive and defense.overlapMin (S1): waves on the field at once, and the least seconds between two starts. 1 = one at a time. */
   maxLive: number;
   overlapMin: number;
@@ -60,19 +84,27 @@ export type ModelStrategy = "turrets_first" | "guards_first" | "drones_first";
 export interface ModelFrom { t: number; scrap: number; bought: ReadonlySet<string>; guards: number; drone: boolean; waveIdx: number; waves?: number }
 export interface PredictOptions { from?: ModelFrom; dt?: number; strategy?: ModelStrategy | undefined; /** Multiplies every wave's attacker count (breaking-volume probe). */ volume?: number; /** Per-wave multipliers (wave index from 0; missing = `volume`), the defend gap placement (S4). */ volumes?: number[]; /** Replaces fit.eta (per-strategy fit). */ eta?: number }
 
+/** A game number from the content tables or the manifest; a missing one is an error, never a silent default. */
+function need(v: unknown, what: string): number {
+  const n = Number(v);
+  if (v === undefined || v === null || !Number.isFinite(n)) throw new Error(`defendModel: missing game number ${what}`);
+  return n;
+}
+
 const towerDps = (c: Content, tier: number): number => {
-  const t = c.structures["struct.ranged_defense"]?.tiers as { rate: number }[] | undefined;
-  const dmg = Number((c.structures["struct.ranged_defense"] as Json | undefined)?.["damage"] ?? 1);
-  return t && t[tier - 1] ? dmg / t[tier - 1]!.rate : 0;
+  const s = c.structures["struct.ranged_defense"] as Json | undefined;
+  const t = s?.["tiers"] as { rate: number }[] | undefined;
+  const dmg = need(s?.["damage"], "struct.ranged_defense.damage");
+  return t && t[tier - 1] ? dmg / need(t[tier - 1]!.rate, "struct.ranged_defense.tiers.rate") : 0;
 };
 
 /** Read what the model needs from a manifest (the price list comes from its pads, not a level-wide counter). */
 export function defendInput(m: Manifest, c: Content, coinRate = 0): DefendInput {
   const mm = m as unknown as Json;
   const ents: Json[] = mm["entities"] ?? [];
-  const D = (k: string, d: number) => Number(mm["params"]?.[k] ?? c.defaults[k] ?? d);
+  const D = (k: string) => need(mm["params"]?.[k] ?? c.defaults[k], k);
   const ring = ents.find((e) => e["type"] === "barrier.line");
-  const W = Number(mm["map"]?.w ?? 1200), H = Number(mm["map"]?.h ?? 1600);
+  const W = need(mm["map"]?.w, "map.w"), H = need(mm["map"]?.h, "map.h");
   const core = ents.find((e) => e["type"] === "sink.core");
   const gates: number[] = ring?.["gates"] ?? [];
   const laneLen: Record<string, number> = {};
@@ -92,12 +124,12 @@ export function defendInput(m: Manifest, c: Content, coinRate = 0): DefendInput 
     // coinRate > 0 (the bots, S3): coin-priced towers count as salvage at that rate; the generator leaves it 0 and sees them as free, as before
     const cost = Number(e["cost"]?.["res.salvage"] ?? 0) + (coinRate > 0 ? Number(e["cost"]?.["res.currency"] ?? 0) / coinRate : 0);
     if (e["type"] === "pad.hire" && c.roles[e["role"]?.role]?.behavior === "guard" && cost > 0) {
-      const dps = hunt ? Number(hunt["damage"] ?? 1) / Number(hunt["attackInterval"] ?? 0.7) : 1.4;
-      guard = { cost, growth: D("pads.defenceGrowth", 1), dps };
+      const dps = need(hunt?.["damage"], "role.defender.damage") / need(hunt?.["attackInterval"], "role.defender.attackInterval");
+      guard = { cost, growth: D("pads.defenceGrowth"), dps };
     } else if (e["type"] === "pad.build" && e["build"] === "struct.barracks.t2" && cost > 0) {
       // barracks troops (content structures.struct.barracks.troops: every 5 s, at most 16, 1 damage per second each)
       const bs = c.structures["struct.barracks"] as Json | undefined, tr = bs?.["troops"] as Json | undefined;
-      drone = { id: String(e["id"]), cost, every: Number(tr?.["every"] ?? 5), max: Number(tr?.["max"] ?? 16), dps: Number(tr?.["damage"] ?? 1) / Number(tr?.["attackInterval"] ?? 1) };
+      drone = { id: String(e["id"]), cost, every: need(tr?.["every"], "barracks.troops.every"), max: need(tr?.["max"], "barracks.troops.max"), dps: need(tr?.["damage"], "barracks.troops.damage") / need(tr?.["attackInterval"], "barracks.troops.attackInterval") };
     } else if (e["type"] === "pad.build" && String(e["build"] ?? "").startsWith("struct.ranged_defense") && cost > 0) {
       const tier = e["build"] === "struct.ranged_defense" ? 1 : Number(String(e["build"]).slice(-1));
       const id = String(e["target"] ?? e["id"]);
@@ -111,17 +143,25 @@ export function defendInput(m: Manifest, c: Content, coinRate = 0): DefendInput 
     t: Number(w["t"]), gap: Number(w["gap"] ?? 0.5), side: String(w["side"] ?? "n"),
     bodies: Object.entries(w["counts"] as Record<string, number>).flatMap(([k, n]) => {
       const h = c.hostiles[k] as Json;
-      const drop = Number(h["drops"]?.["res.salvage"] ?? 0);
-      return Array.from({ length: n }, () => ({ hp: Number(h["hp"]), speed: Number(h["speed"]), dmg: Number(h["damage"] ?? 1), drop }));
+      const drop = Number(h["drops"]?.["res.salvage"] ?? 0); // a kind with no salvage drop is a real zero
+      return Array.from({ length: n }, () => ({ hp: need(h["hp"], k + ".hp"), speed: need(h["speed"], "hostile.speed"), dmg: Number(h["damage"] ?? D("defense.baseDamage")), drop }));
     }),
   }));
-  const pr = D("player.rangedInterval", 0.6);
+  const pr = D("player.rangedInterval");
+  const coreAt = core ? (core["at"] as number[]) : null;
+  const sp = c.nodes?.["node.salvage_pile"] as Json | undefined;
+  const piles = ents.filter((e) => e["type"] === "node.salvage_pile" && coreAt).map((e) => ({
+    dist: Math.hypot(e["at"][0] - coreAt![0]!, e["at"][1] - coreAt![1]!), stock: need(sp?.["stock"], "node.salvage_pile.stock"), rate: need(sp?.["rate"], "node.salvage_pile.rate"),
+  })).sort((a, b) => a.dist - b.dist);
   return {
-    waves, buys, guard, start: D("start.currency", 0),
-    gateHp: gates.length ? Number((c.structures["struct.gate"] as Json)["hp"]) * 1 : 0,
-    baseHp: D("meters.baseHealth", 15), baseHit: D("defense.baseHitInterval", 1.6), gateHit: D("defense.barrierHitInterval", 1),
-    quiet: D("defense.waveQuiet", 8), reach: 100, laneLen: Object.keys(laneLen).length ? laneLen : { n: core ? Number(core["at"][1]) : 600 },
-    playerDps: 1 / pr, innerWalk: 4, maxLive: Math.max(1, D("defense.maxLive", 1)), overlapMin: D("defense.overlapMin", 6), drone,
+    waves, buys, guard, start: D("start.currency"),
+    gateHp: gates.length ? need((c.structures["struct.gate"] as Json)["hp"], "struct.gate.hp") : 0,
+    baseHp: D("meters.baseHealth"), baseHit: D("defense.baseHitInterval"), gateHit: D("defense.barrierHitInterval"),
+    quiet: D("defense.waveQuiet"), speed: D("player.speed"), pickupRange: D("drops.pickupRange"), piles,
+    endAt: Math.min(mm["goal"]?.["type"] === "survive" ? Number(mm["goal"]["seconds"]) : Infinity, mm["params"]?.["level.budgetSeconds"] !== undefined ? Number(mm["params"]["level.budgetSeconds"]) : Infinity),
+    burn: D("core.burn"), fuelRate: need((c.nodes?.["node.fuel_scrap"] as Json | undefined)?.["rate"], "node.fuel_scrap.rate"),
+    laneLen: Object.keys(laneLen).length ? laneLen : { n: need(coreAt?.[1], "core.at") },
+    playerDps: 1 / pr, maxLive: Math.max(1, D("defense.maxLive")), overlapMin: D("defense.overlapMin"), drone,
   };
 }
 
@@ -147,7 +187,16 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
   const live: (Body & { lane: string; w: number })[] = [];
   const perWave: DefendResult["perWave"] = [];
   const towerOwned = new Set<number>();
-  const FIRST = 2;
+  const FIRST = fit.firstGuards;
+  // scrap income not yet in the wallet: kill drops (walk + pickup delay) and the map scrap piles (walked to one after another)
+  const incoming: { at: number; n: number }[] = [];
+  const dropWalk = Math.max(0, fit.reach - inp.pickupRange) / inp.speed;
+  const dropDelay = fit.pickupDelay + fit.walkShare * dropWalk;
+  let pileAt = o.from ? o.from.t : 0;
+  for (const p of inp.piles) { pileAt += (fit.walkShare * 2 * p.dist) / inp.speed + p.stock / p.rate; incoming.push({ at: pileAt, n: p.stock * fit.pileUse }); }
+  // the commander's time core feeding takes (burn rate over gather rate), off shooting
+  const feed = Math.min(1, inp.burn > 0 ? 1 / inp.burn / inp.fuelRate : 0) * fit.feedWeight;
+  const presence = fit.presence * (1 - feed);
   const droneDps = (): number => (droneAt < 0 || !inp.drone ? 0 : Math.min(inp.drone.max, Math.floor((t - droneAt) / inp.drone.every)) * inp.drone.dps);
   // rank of a purchase class under the strategy (lower buys first); the default has no ranks
   const rank = (cls: "tower" | "guard" | "drone"): number => {
@@ -192,10 +241,11 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
   }
   // the run ends 600 s after the last wave starts, longer when scaled-up waves are still spawning then (breaking-volume probes)
   const spawnSpan = Math.max(0, ...inp.waves.map((w, i) => w.bodies.length * (o.volumes?.[i] ?? o.volume ?? 1) * w.gap));
-  const horizon = (inp.waves.at(-1)?.t ?? 0) + 600 + spawnSpan + t;
+  const horizon = Math.min((inp.waves.at(-1)?.t ?? 0) + 600 + spawnSpan + t, inp.endAt);
   let lost = false;
   const liveWaves = new Set<number>();
   for (; t < horizon && !lost; t += dt) {
+    for (let i = incoming.length - 1; i >= 0; i--) if (t >= incoming[i]!.at) { scrap += incoming[i]!.n; incoming.splice(i, 1); }
     buyNext();
     const w = inp.waves[waveIdx];
     // one wave at a time (maxLive 1, today's rule), or another while fewer than maxLive are on the field, overlapMin after the last start
@@ -220,7 +270,7 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
     }
     for (let i = pending.length - 1; i >= 0; i--) if (t >= pending[i]!.at) { live.push(pending[i]!); pending.splice(i, 1); }
     // defender damage this step, spread over the lanes; first in, first killed
-    const dps = ((towersDps * eta + inp.playerDps * fit.presence) * skill + droneDps()) / lanes;
+    const dps = ((towersDps * eta + inp.playerDps * presence) * skill + droneDps()) / lanes;
     for (const lane of sides.length ? sides : ["n"]) {
       let cap = dps * dt;
       for (let i = 0; i < live.length && cap > 0; i++) {
@@ -228,7 +278,7 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
         if (b.lane !== lane || t < b.enter) continue;
         const take = Math.min(cap, b.hp);
         b.hp -= take; cap -= take; hpDealt += take;
-        if (b.hp <= 1e-9) { scrap += b.drop; live.splice(i, 1); i--; }
+        if (b.hp <= 1e-9) { incoming.push({ at: t + dropDelay, n: b.drop }); live.splice(i, 1); i--; }
       }
     }
     // attackers in contact hit the gate, then the base
@@ -236,7 +286,7 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
       if (t < b.contactAt) continue;
       let d: number;
       if (gate > 0) { d = (b.dmg * dt) / inp.gateHit; const hit = Math.min(d, gate); gate -= hit; damage += hit; if (perWave.length) perWave.at(-1)!.leak += hit; }
-      else if (t >= b.contactAt + inp.innerWalk || inp.gateHp === 0) { d = (b.dmg * dt) / inp.baseHit; const hit = Math.min(d, base); base -= hit; damage += hit; if (perWave.length) perWave.at(-1)!.leak += hit; }
+      else if (t >= b.contactAt + fit.innerWalk || inp.gateHp === 0) { d = (b.dmg * dt) / inp.baseHit; const hit = Math.min(d, base); base -= hit; damage += hit; if (perWave.length) perWave.at(-1)!.leak += hit; }
     }
     if (base <= 1e-9) lost = true;
     if (waveIdx >= stopAt && !active) break;
@@ -248,16 +298,17 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
   return { rho: budget > 0 ? damage / budget : 0, damage, budget, perWave, lost, hpDealt, hpTotal };
 }
 
-export interface ModelBreak { multiplier: number; /** Attacker hp per budget point leaked at the breaking volume (spec 3: h). */ h: number }
+export interface ModelBreak { /** Residual-corrected breaking multiplier (fit.residual); raw is the uncorrected one. */ multiplier: number; raw: number; /** Attacker hp per budget point leaked at the breaking volume (spec 3: h). */ h: number }
 
 /** Largest wave-volume multiplier the model's strategy still holds (base standing), by geometric bisection. */
 export function modelBreak(inp: DefendInput, fit: DefendFit, strategy: ModelStrategy | undefined, eta: number, lo = 0.25, hi = 60, iterations = 14): ModelBreak {
   const run = (m: number) => predictRho(inp, fit, 1, { strategy, eta, volume: m });
-  if (run(lo).lost) return { multiplier: 0, h: 0 };
-  if (!run(hi).lost) return { multiplier: hi, h: 0 };
+  const fix = (m: number): number => Math.exp(fit.residual.b) * Math.pow(m, fit.residual.a);
+  if (run(lo).lost) return { multiplier: 0, raw: 0, h: 0 };
+  if (!run(hi).lost) return { multiplier: fix(hi), raw: hi, h: 0 };
   for (let i = 0; i < iterations; i++) { const mid = Math.sqrt(lo * hi); if (run(mid).lost) hi = mid; else lo = mid; }
   const r = run(hi);
-  return { multiplier: lo, h: r.budget > 0 ? Math.max(0, r.hpTotal - r.hpDealt) / r.budget : 0 };
+  return { multiplier: fix(lo), raw: lo, h: r.budget > 0 ? Math.max(0, r.hpTotal - r.hpDealt) / r.budget : 0 };
 }
 
 /** Fit one strategy's eta so the model breaks at the multiplier the sim measured (bisection over eta; the model's break rises with eta). */

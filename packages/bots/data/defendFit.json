@@ -1,0 +1,9 @@
+{
+  "engine": "0.21.0",
+  "content": "0.12.0",
+  "note": "seed values carried from the 2026-11-08 fit; pickupDelay/walkShare/pileUse/feedWeight/residual start neutral until pnpm defend:refresh fits them",
+  "eta": 0.608, "presence": 0.962, "guardsMax": 4, "reach": 102, "firstGuards": 2, "innerWalk": 4,
+  "skill": { "good": 1, "average": 0.982, "weak": 0.914, "novice": 0.793, "floor": 0.756 },
+  "pickupDelay": 2, "walkShare": 0.5, "pileUse": 1, "feedWeight": 0.5, "leakH": 0,
+  "residual": { "a": 1, "b": 0 }
+}

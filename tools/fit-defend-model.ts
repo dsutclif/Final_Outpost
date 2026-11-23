@@ -22,7 +22,7 @@ for (const pack of ["s1", "s1-061"]) {
     rows.push({ id: ev.id, inp, meas: RUNGS.map((_, i) => Math.min(1, (ev.defendTraceByProfile[i].waves as { leak: number }[]).reduce((a, w) => a + w.leak, 0) / B)) });
   }
 }
-const mk = (p: number[]): DefendFit => ({ eta: p[0]!, presence: p[1]!, guardsMax: Math.round(p[2]!), reach: p[7]!, skill: { good: 1, average: p[3]!, weak: p[4]!, novice: p[5]!, floor: p[6]! } });
+const mk = (p: number[]): DefendFit => ({ ...DEFEND_FIT, eta: p[0]!, presence: p[1]!, guardsMax: Math.round(p[2]!), reach: p[7]!, skill: { good: 1, average: p[3]!, weak: p[4]!, novice: p[5]!, floor: p[6]! } });
 const pred = (r: Row, fit: DefendFit) => RUNGS.map((k) => Math.min(1, predictRho(r.inp, fit, fit.skill[k]!).rho));
 const sse = (rs: Row[], p: number[]) => { const fit = mk(p); let s = 0; for (const r of rs) pred(r, fit).forEach((v, i) => { s += (v - r.meas[i]!) ** 2; }); return s; };
 const lo = [0.05, 0, 1, 0.3, 0.1, 0.05, 0.02, 40], hi = [2, 3, 6, 1, 1, 1, 1, 400];
