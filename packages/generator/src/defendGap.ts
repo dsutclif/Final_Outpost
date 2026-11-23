@@ -21,6 +21,8 @@ export interface DefendGapCfg {
   escalate: { last: number; step: number };
   /** Build window (s): with a gap, waves 0 and 1 keep their times and no later wave starts before this time (null: wave 1's own time; 0: off). */
   buildWindow: number | null;
+  /** Relaxed spacing: from the first wave no strategy holds on, the gap before it grows by `step` s at a time (up to `max` s extra) and is re-probed until one holds it; later waves keep it. step 0 = off. */
+  lateGap?: { step: number; max: number };
 }
 
 export interface GapPlaceOptions {
@@ -80,25 +82,42 @@ export function placeDefendGap(manifest: unknown, c: Content, o: GapPlaceOptions
   let result: GapWaveProfile[] = [];
   let compare: NonNullable<GapPlacement["compare"]> = [];
   let last: number[] = [];
+  const relaxNotes: string[] = []; // kept across placement passes (the relaxed times persist)
   for (let it = 0; it < Math.max(1, cfg.iterations); it++) {
-    notes.length = 0;
+    notes.length = 0; notes.push(...relaxNotes);
     result = [];
     compare = [];
     const caps: Record<string, number[]> = Object.fromEntries(ss.map((s) => [s, [] as number[]]));
     // the model reads the waves as they stand now (earlier waves at their placed counts; wave k's own counts are the template)
     for (let k = 0; k < ws.length; k++) ws[k]!["counts"] = { ...tpl[k]! };
     const done: number[] = [];
+    let relax = 0; // extra spacing in force (cfg.lateGap), kept by every later wave
     for (let k = 0; k < ws.length; k++) {
-      const inp = defendInput(modelManifest(m), c, o.coinRate ?? 1.5);
       const T = countsHp(tpl[k]!, c);
-      const mult: Record<string, number> = {}, V: Record<string, number> = {};
-      for (const s of ss) {
-        if (o.breakFn) {
-          const cut = JSON.parse(JSON.stringify({ ...m, waves: ws.slice(0, k + 1) })) as Json;
-          for (let j = 0; j < k; j++) cut["waves"][j]["counts"] = scaleCounts(ws[j]!["counts"], caps[s]![j]!);
-          mult[s] = k === 0 ? 1 : o.breakFn(cut, k, s);
-        } else mult[s] = waveBreakMult(inp, fit, s, o.etas?.[s] ?? fit.eta, caps[s]!);
-        V[s] = mult[s]! * T;
+      let inp = defendInput(modelManifest(m), c, o.coinRate ?? 1.5);
+      let mult: Record<string, number> = {}, V: Record<string, number> = {};
+      const evalWave = (): void => {
+        inp = defendInput(modelManifest(m), c, o.coinRate ?? 1.5);
+        mult = {}; V = {};
+        for (const s of ss) {
+          if (o.breakFn) {
+            const cut = JSON.parse(JSON.stringify({ ...m, waves: ws.slice(0, k + 1) })) as Json;
+            for (let j = 0; j < k; j++) cut["waves"][j]["counts"] = scaleCounts(ws[j]!["counts"], caps[s]![j]!);
+            mult[s] = k === 0 ? 1 : o.breakFn(cut, k, s);
+          } else mult[s] = waveBreakMult(inp, fit, s, o.etas?.[s] ?? fit.eta, caps[s]!);
+          V[s] = mult[s]! * T;
+        }
+      };
+      evalWave();
+      // relaxed spacing (cfg.lateGap): nobody holds wave k at this spacing, so open the gap before it (and every later wave) until someone does
+      const ls = cfg.lateGap;
+      if (o.gap && o.gap > 0 && ls && ls.step > 0 && k >= 2 && Math.max(...ss.map((s) => V[s]!)) <= 0) {
+        for (let extra = relax + ls.step; extra <= ls.max; extra += ls.step) {
+          relax = extra;
+          for (let j = k; j < ws.length; j++) ws[j]!["t"] = Math.round(Number(ws[j - 1]!["t"]) + o.gap + relax);
+          evalWave();
+          if (Math.max(...ss.map((s) => V[s]!)) > 0) { relaxNotes.push(`wave ${k}: spacing relaxed to ${o.gap + relax} s (no strategy held it at tighter spacing)`); break; }
+        }
       }
       if (o.breakFn) compare.push({ k, model: Object.fromEntries(ss.map((s) => [s, waveBreakMult(inp, fit, s, o.etas?.[s] ?? fit.eta, caps[s]!)])), probe: { ...mult } });
       const vs = ss.map((s) => V[s]!), vLo = Math.min(...vs), vHi = Math.max(...vs);
@@ -197,7 +216,8 @@ export function simBreak(cut: Json, k: number, s: ModelStrategy, o: { seed?: num
     return playBot(x, profile, o.seed ?? 1).won;
   };
   let lo = o.lo ?? 0.1, hi = o.hi ?? 16;
-  if (!won(lo)) return 0;
+  // a tiny wave can lose to run-to-run noise (the sim is chaotic) while the wave as sized holds: then bracket from the template volume
+  if (!won(lo)) { if (!(lo < 1 && hi > 1 && won(1))) return 0; lo = 1; }
   if (won(hi)) return hi;
   for (let i = 0; i < (o.iterations ?? 6); i++) { const mid = Math.sqrt(lo * hi); if (won(mid)) lo = mid; else hi = mid; }
   return lo;

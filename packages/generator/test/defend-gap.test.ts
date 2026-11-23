@@ -57,6 +57,22 @@ describe("placeDefendGap (S4)", () => {
     expect(dead.reason).toBe("noHold");
     expect(dead.notes.some((n) => n.includes("wave 3: no strategy holds"))).toBe(true);
   });
+  it("relaxed spacing: from the first unholdable wave the gap grows until a strategy holds it, later waves keep it, and the wave is sized in the gap", () => {
+    // stub: a wave holds only when it starts >= 60 s after the one before (waves 0-1 never checked)
+    const probe = ((cut: Loose, k: number, s: string) => {
+      const w = cut.waves as Loose[];
+      return k >= 2 && w[k]!.t - w[k - 1]!.t < 60 ? 0 : mult(k, s);
+    }) as never;
+    const r2 = place({ breakFn: probe });
+    expect(r2.ok).toBe(true);
+    const ws = r2.manifest["waves"] as Loose[];
+    for (let k = 3; k < ws.length; k++) expect(ws[k]!.t - ws[k - 1]!.t).toBeGreaterThanOrEqual(60);
+    expect(ws[2]!.t - ws[1]!.t).toBeGreaterThanOrEqual(60);
+    expect(r2.notes.some((n) => n.includes("spacing relaxed"))).toBe(true);
+    for (const w of r2.waves.slice(1)) { expect(w.hp).toBeGreaterThanOrEqual(w.vLo - 1); expect(w.hp).toBeLessThanOrEqual(cfg.feasible * w.vHi + 2); }
+    // with the knob off the same level is rejected
+    expect(place({ breakFn: probe, cfg: { ...cfg, lateGap: { step: 0, max: 0 } } }).reason).toBe("noHold");
+  });
   it("rejects a level whose strategies never separate, with the reason noCrossing", () => {
     const flat = place({ breakFn: ((_: Loose, k: number) => 4 + 0 * k) as never });
     expect(flat.ok).toBe(false);
