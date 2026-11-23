@@ -16,7 +16,7 @@ const file = args.find((a, i) => a.endsWith(".json") && args[i - 1] !== "--json"
 let m = repin(JSON.parse(readFileSync(file, "utf8"))) as Record<string, any>;
 const pool = [...new Set(((m["waves"] ?? []) as any[]).flatMap((w) => (Array.isArray(w.side) ? w.side : w.side ? [w.side] : ["n"])))];
 m = applyDefendS1(m, { maxLive: 2, overlapMin: 6, ...(pool.length > 1 ? { randomSides: pool, warnSeconds: 6 } : {}), ...(args.includes("--coin-towers") ? { coinTowers: true, currencyPerSalvage: 1.5 } : {}) }) as Record<string, any>;
-const cfg = { ...(gen as any).defendGap, on: true, iterations: 1 };
+const cfg = { ...(gen as any).defendGap, on: true, iterations: 1, ...(args.includes("--no-window") ? { buildWindow: 0 } : {}) };
 const t0 = Date.now();
 const useSim = args.includes("--sim");
 const etas = useSim || args.includes("--no-fit") ? undefined : fitStrategyEtas(m, content);

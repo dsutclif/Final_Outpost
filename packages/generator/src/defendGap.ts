@@ -19,6 +19,8 @@ export interface DefendGapCfg {
   strategies: ModelStrategy[];
   /** The last `last` waves are sized at least (1 + step) x the biggest earlier wave (within the gap). */
   escalate: { last: number; step: number };
+  /** Build window (s): with a gap, waves 0 and 1 keep their times and no later wave starts before this time (null: wave 1's own time; 0: off). */
+  buildWindow: number | null;
 }
 
 export interface GapPlaceOptions {
@@ -41,7 +43,7 @@ export interface GapPlacement {
   /** Per wave, with a breakFn: the model's breaking multiplier next to the probe's, per strategy (to size the model fix). */
   compare?: { k: number; model: Record<string, number>; probe: Record<string, number> }[];
   ok: boolean;
-  /** Reject reason: "noCrossing" (no crossing and too small a gap) or "noWaves". */
+  /** Reject reason: "noCrossing" (no crossing and too small a gap), "noHold" (some wave no strategy holds: the level is unwinnable at that timing) or "noWaves". */
   reason?: string;
   manifest: Json;
   waves: GapWaveProfile[];
@@ -66,7 +68,13 @@ export function placeDefendGap(manifest: unknown, c: Content, o: GapPlaceOptions
   // templates: the waves as sized (the composition each wave keeps), warlords aside
   const tpl = ws.map((w) => ({ ...(w["counts"] as Record<string, number>) }));
   const tplBoss = tpl.map((t) => t[bossId] ?? 0);
-  if (o.gap && o.gap > 0) { const t0 = Number(ws[0]!["t"]); ws.forEach((w, k) => { w["t"] = Math.round(t0 + o.gap! * k); }); }
+  if (o.gap && o.gap > 0) {
+    // singleFamilyGap, after the build window: waves 0 and 1 keep their times (the first purchase needs about a minute, S4 timing diagnostic);
+    // later waves follow the gap but never start before the window's end
+    const win = cfg.buildWindow === null || cfg.buildWindow === undefined ? Number(ws[1]?.["t"] ?? 0) : cfg.buildWindow;
+    for (let k = 2; k < ws.length; k++) ws[k]!["t"] = Math.round(Math.max(win, Number(ws[k - 1]!["t"]) + o.gap));
+    if (win === 0) { const t0 = Number(ws[0]!["t"]); ws.forEach((w, k) => { w["t"] = Math.round(t0 + o.gap! * k); }); }
+  }
   const bossHp = Number((c.hostiles[bossId] as Json | undefined)?.["hp"] ?? 0);
   const wantBoss = (o.warlords ?? 0) > 0 && bossHp > 0 ? o.warlords! : 0;
   let result: GapWaveProfile[] = [];
@@ -95,9 +103,11 @@ export function placeDefendGap(manifest: unknown, c: Content, o: GapPlaceOptions
       if (o.breakFn) compare.push({ k, model: Object.fromEntries(ss.map((s) => [s, waveBreakMult(inp, fit, s, o.etas?.[s] ?? fit.eta, caps[s]!)])), probe: { ...mult } });
       const vs = ss.map((s) => V[s]!), vLo = Math.min(...vs), vHi = Math.max(...vs);
       const cap = cfg.feasible * vHi;
+      const unholdable = vHi <= 0;
       let v = vLo + g * (vHi - vLo);
-      const asIs = !!o.breakFn && k === 0;
+      const asIs = (!!o.breakFn && k === 0) || unholdable;
       if (asIs) v = T;
+      if (unholdable) notes.push(`wave ${k}: no strategy holds it (V = 0), left as sized`);
       const nE = Math.min(cfg.escalate.last, ws.length - 1);
       if (!asIs && nE > 0 && k >= ws.length - nE && k >= 1) {
         const before = Math.max(...done.slice(0, ws.length - nE));
@@ -133,8 +143,9 @@ export function placeDefendGap(manifest: unknown, c: Content, o: GapPlaceOptions
   }
   const crossings = crossingCount(result.map((w) => w.best));
   const ratioShare = result.filter((w) => w.ratio >= cfg.minRatio).length / result.length;
-  const ok = crossings >= 2 || ratioShare >= 0.5;
-  return { ok, ...(ok ? {} : { reason: "noCrossing" }), manifest: m, waves: result, crossings, ratioShare, notes, ...(compare.length ? { compare } : {}) };
+  const noHold = result.filter((w) => w.vHi <= 0).length;
+  const ok = noHold === 0 && (crossings >= 2 || ratioShare >= 0.5);
+  return { ok, ...(ok ? {} : { reason: noHold > 0 ? "noHold" : "noCrossing" }), manifest: m, waves: result, crossings, ratioShare, notes, ...(compare.length ? { compare } : {}) };
 }
 
 /** Wave counts at hit points v: the template's non-warlord kinds scaled together (rounded, a kind present stays at 1 or more), `boss` warlords added. */

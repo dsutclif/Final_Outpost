@@ -27,9 +27,11 @@ describe("placeDefendGap (S4)", () => {
     }
     expect(r.crossings).toBe(2);
   });
-  it("puts wave k at t0 + gap * k inside the sizing", () => {
+  it("keeps waves 0 and 1 at their times and compresses later ones to the gap, never before the build window", () => {
     const ws = r.manifest["waves"] as Loose[];
-    expect(ws.map((w) => w.t)).toEqual(ws.map((_, k) => ws[0]!.t + 20 * k));
+    expect(ws[0]!.t).toBe(base["waves"][0].t);
+    expect(ws[1]!.t).toBe(base["waves"][1].t);
+    for (let k = 2; k < ws.length; k++) expect(ws[k]!.t).toBe(Math.max(ws[1]!.t, ws[k - 1]!.t + 20));
   });
   it("escalates: the last two waves are above every earlier wave", () => {
     const hp = r.waves.map((w) => w.hp), n = hp.length, before = Math.max(...hp.slice(0, n - 2));
@@ -49,6 +51,11 @@ describe("placeDefendGap (S4)", () => {
     const before = JSON.stringify(base);
     expect(JSON.stringify(place().manifest)).toBe(JSON.stringify(r.manifest));
     expect(JSON.stringify(base)).toBe(before);
+  });
+  it("rejects a wave no strategy holds (noHold) and leaves it as sized", () => {
+    const dead = place({ breakFn: ((_: Loose, k: number) => (k === 3 ? 0 : 4)) as never });
+    expect(dead.reason).toBe("noHold");
+    expect(dead.notes.some((n) => n.includes("wave 3: no strategy holds"))).toBe(true);
   });
   it("rejects a level whose strategies never separate, with the reason noCrossing", () => {
     const flat = place({ breakFn: ((_: Loose, k: number) => 4 + 0 * k) as never });
