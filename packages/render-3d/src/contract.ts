@@ -147,6 +147,8 @@ export interface StoryPresentation {
   talking: boolean;
   /** False keeps the kiosk's clerk decal, shelf crates and coin pile undrawn (story: dark until its lights come on). */
   kioskLit: boolean;
+  /** Seconds over which the ruined kiosk model cross-fades into the ordinary one (null: not yet); the fade starts when this first becomes set. */
+  kioskRestore: number | null;
   /** Draw customer `id` with another character model (a named trader, e.g. Sela); loads it on first use. */
   customerModel(id: number, model: string): void;
   /** Draw hostiles of `kind` that broke off (bossRetreat) with another character model; loads it on first use. */

@@ -1130,6 +1130,8 @@ export const marsGreenhouse: Skin = {
             { dots: [{ entity: "field1" }], period: 3 },
             { guide: true, to: { entity: "field1" } },
           ] },
+          // the first greens go on the shelf: the ruined kiosk fades into the ordinary one (Doug 2026-11-24)
+          { on: { event: "deposited", match: { res: "res.food_raw_1", to: "sink.sales_point" }, after: "selaIn" }, do: [{ kioskRestore: 4 }] },
           // greens in hand: the arrows lead to the kiosk
           { on: { event: "gathered", match: { res: "res.food_raw_1" }, after: "selaIn" }, do: [{ guide: true, to: { entity: "kiosk" } }] },
           // the first coins go on a wall: KILN looks ahead to the nights and to the raiders of level 5

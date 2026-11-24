@@ -45,6 +45,7 @@ export class StoryPresent implements StoryPresentation {
   /** A story line is on screen: staged walkers stand still until it ends. */
   talking = false;
   kioskLit = true;
+  kioskRestore: number | null = null;
   actor(key: string, to: { x: number; z: number } | null): void { this.movers?.stage(key, to ? { x: to.x, y: to.z } : null); }
   actorAt(key: string): { x: number; z: number } | null {
     const p = this.movers?.pos(key, { x: Number.NaN, y: Number.NaN }, 1);

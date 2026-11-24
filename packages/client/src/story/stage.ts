@@ -130,6 +130,7 @@ export class StoryStage {
     }
     p.talking = this.director.lineUp;
     p.kioskLit = w.kioskLit;
+    p.kioskRestore = w.kioskRestore;
     this.speaker(w, st, viewW, viewH);
     this.director.view.frame?.(now);
   }

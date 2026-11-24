@@ -170,6 +170,7 @@ const NO_STORY: StoryPresentation = {
   beating: false,
   talking: false,
   kioskLit: true,
+  kioskRestore: null,
 };
 /** Highest a big pad's floating name and price sit (art metres), whatever its blueprint's height. */
 const BIG_LABEL_LIFT = 3.2;
@@ -194,7 +195,7 @@ const FADE_TO = 0.28;
  * box and top of every mesh rising above half the hero's height, and the see-through material copies
  * swapped in while it fades (made and compiled at placement, so a fade never recompiles a shader).
  */
-interface Occ { x0: number; x1: number; z0: number; z1: number; top: number; fade: number; on: boolean; swaps: [Mesh, Material | Material[], Material | Material[]][]; see: { m: Material; a: number }[] }
+interface Occ { mul?: number; x0: number; x1: number; z0: number; z1: number; top: number; fade: number; on: boolean; swaps: [Mesh, Material | Material[], Material | Material[]][]; see: { m: Material; a: number }[] }
 const v3 = (x = 0, y = 0, z = 0): Vector3 => new Vector3(x, y, z);
 const up3 = (p: Vector3, h: number): Vector3 => new Vector3(p.x, p.y + h, p.z);
 const tmpM = new Matrix4(), tmpV = new Vector3(), tmpV2 = new Vector3();
@@ -1534,11 +1535,12 @@ export class Renderer3D implements Renderer {
         hidden = segHitsBox((wx * c - wz * s) / sx, (wx * s + wz * c) / sz, ((ux * c - uz * s) * reach) / sx, ((ux * s + uz * c) * reach) / sz, o.x0 + ix, o.x1 - ix, o.z0 + iz, o.z1 - iz);
       }
       if (r.visible) this.padsBehind(r.position.x, r.position.z, r.rotation.y, r.scale.x || 1, r.scale.z || 1, o.x0, o.x1, o.z0, o.z1, r.position.y + o.top * r.scale.y, ux, uz, slope);
-      if (o.fade === 1 && !hidden) continue;
+      const mul = o.mul ?? 1;
+      if (o.fade === 1 && !hidden && mul === 1 && !o.on) continue;
       o.fade = hidden ? Math.max(FADE_TO, o.fade - dt * 6) : Math.min(1, o.fade + dt * 4);
-      const on = o.fade < 1;
+      const on = o.fade < 1 || mul < 1;
       if (on !== o.on) { for (const [m, solid, see] of o.swaps) m.material = on ? see : solid; o.on = on; }
-      if (on) for (const e of o.see) e.m.opacity = e.a * o.fade;
+      if (on) for (const e of o.see) e.m.opacity = e.a * o.fade * mul;
     }
   }
 
@@ -1756,11 +1758,50 @@ export class Renderer3D implements Renderer {
     }
   }
 
+  /**
+   * Story kiosk restore (cue `kioskRestore`): the ruined model cross-fades into the ordinary one by opacity over the cue's seconds,
+   * then the ordinary one is the kiosk for the rest of the level. While it is lit and ruined, a warm light stands over it (it fades
+   * out with the ruin). Returns the kiosk placement everything else (crates, chips, customers) hangs from.
+   */
+  private kioskRestore(sales: NonNullable<State["sales"]>, kiosk: Placed): Placed {
+    if (this.kioskFadeDone) return kiosk;
+    const secs = this.storyP?.kioskRestore ?? null;
+    const at = this.wv(sales.pos);
+    const lit = this.storyP?.kioskLit !== false;
+    if (!this.kioskLight && lit) { this.kioskLight = new PointLight(new Color(this.tokens.lampWarm), 0, 0, KIOSK_LIGHT.decay); this.scene.add(this.kioskLight); }
+    let k = 0;
+    if (secs !== null) {
+      this.kioskFadeAt ??= this.t;
+      k = clamp01((this.t - this.kioskFadeAt) / Math.max(0.1, secs));
+    }
+    if (this.kioskLight) {
+      this.kioskLight.position.set(at.x, KIOSK_LIGHT.up * ART_M, at.z + KIOSK_LIGHT.toward * ART_M);
+      this.kioskLight.distance = KIOSK_LIGHT.reach * ART_M;
+      this.kioskLight.intensity = lit ? KIOSK_LIGHT.power * (1 - k) : 0;
+    }
+    if (secs === null) return kiosk;
+    const fresh = this.place("sales2", "sink.sales_point", at, 1);
+    const occ = kiosk.data["occ"] as Occ | undefined, occ2 = fresh.data["occ"] as Occ | undefined;
+    if (occ) occ.mul = 1 - k;
+    if (occ2) occ2.mul = k;
+    if (k < 1) return kiosk;
+    // done: the ordinary kiosk takes over the "sales" key and the ruin goes
+    this.placed.delete("sales2");
+    this.removePlaced(kiosk);
+    fresh.key = "sales";
+    this.placed.set("sales", fresh);
+    if (occ2) occ2.mul = 1;
+    this.kioskFadeDone = true;
+    return fresh;
+  }
+
   private syncSales(s: State, a: number): void {
     const sales = s.sales;
     if (!sales) return;
     // a story level can name the ruined kiosk model with params "kiosk.aged" (outpost-ops#358)
-    const kiosk = this.place("sales", "sink.sales_point", this.wv(sales.pos), (this.manifest.params["kiosk.aged"] ?? 0) ? 2 : 1);
+    const aged = !!(this.manifest.params["kiosk.aged"] ?? 0);
+    let kiosk = this.place("sales", "sink.sales_point", this.wv(sales.pos), aged ? 2 : 1);
+    if (aged) kiosk = this.kioskRestore(sales, kiosk);
     // the clerk pad: whoever stands on it (hero or clerk) rings up the queue; no register object
     const reg = this.place("register", "sink.sales_point.register", this.wv(sales.register));
     // every standing plate (clerk, operator, pickup, drop-off) draws at the one plot plate size
@@ -1875,6 +1916,10 @@ export class Renderer3D implements Renderer {
   private kneelStage: KneelStage | null = null;
   /** The warm fill over the kneeling commander (outpost-ops#277): the helmet beat is the story's end and the night floor left it dark. */
   private kneelLight: PointLight | null = null;
+  /** Story kiosk: the warm light over the lit ruin, when its restore fade began, whether it has finished. */
+  private kioskLight: PointLight | null = null;
+  private kioskFadeAt: number | null = null;
+  private kioskFadeDone = false;
   /** The last drawn model of a pickup capture (manifest pickup): the lift starts from its size. */
   private pickupModel: Object3D | null = null;
   /** Captures seen carried by a boss (heldBy): once dropped, story showDropped draws them before they are revealed. */
@@ -4696,6 +4741,7 @@ interface KneelStage {
 const KNEEL_H = 1.8, KNEEL_F1 = 96, KNEEL_REACH = 0.42, KNEEL_HELM_H = 0.413 * (0.42 / 0.447);
 const KNEEL_GROUND = [0, -0.42, KNEEL_HELM_H / 2], KNEEL_END = [0.02, -0.26, 0.72], KNEEL_YAW = 18, KNEEL_TIP = -35;
 /** The kneel's night fill: height and pull toward the camera (x commander height), reach, decay, power (core light is 70). */
+const KIOSK_LIGHT = { up: 1.3, toward: 0.9, reach: 4.5, decay: 1.1, power: 40 };
 const KNEEL_LIGHT = { up: 1.15, toward: 0.6, reach: 3.2, decay: 1.1, power: 45 };
 const Y_UP = new Vector3(0, 1, 0), X_AX = new Vector3(1, 0, 0);
 /** A guard back on its feet runs to where the sim has it at this speed (art metres per second). */
