@@ -1000,21 +1000,23 @@ export const marsGreenhouse: Skin = {
           { on: { event: "joined", match: { capture: 0 } }, do: [
             { crew: "Boss! Tell me this is the landing site. No? Thought not. Where is everyone?", who: "pip" },
             { line: "Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?", who: "commander" },
-            { line: "Hand me a sack of ore, Boss. I'll make sure the fire stays on.", who: "pip" },
+            { line: "Just hand me a pick, Boss. I'll make sure the fire stays on.", who: "pip" },
           ] },
           { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
           // Okafor walks the camp's edge as he says it (S6), then is let go back to his post
           { on: { event: "joined", match: { capture: 2 } }, ordered: true, do: [
             { walk: "okafor", to: { at: [462, 330] } },
-            { crew: "Camp's wide open and nobody's on watch. I'll take the first shift.", who: "okafor" },
+            { crew: "Camp's wide open and nobody's on guard. I'll watch the perimeter.", who: "okafor" },
             { walk: "okafor", to: false },
           ] },
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
             // the lander pod lights (manifest hiddenUntil: pair): the camera looks out to it and stays there while KILN names it,
             // so the line comes up with the pod on screen (a nudge runs beside the line; a frozen beat would hand back first)
-            { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 14, back: 0.7, freeze: false } },
+            { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 6, back: 0.7, freeze: false } },
             { wait: 1.4 },
             { line: "One more out there. A fifth pod. It's ours, the lander's escape pod, but nobody was assigned to it.", who: "kiln" },
+            // the camera is back on the commander before he speaks (outpost-ops#353): pan 0.8 + hold 6 + back 0.7 ends inside this wait
+            { wait: 6 },
             { line: "Then I'll bring in all five.", who: "commander" },
             { goal: "main" },
           ] },
@@ -1026,7 +1028,7 @@ export const marsGreenhouse: Skin = {
           { on: { event: "pod_home", match: { decoy: true } }, ordered: true, do: [
             { walk: "rhee", to: { last: "pod_home" } },
             { line: "Who was in this?", who: "commander" },
-            { line: "My logs record the launch. It went out by hand, from the inside. Nobody was assigned to it.", who: "kiln" },
+            { line: "My logs record the launch. It was flown down manually, no auto-release. Nobody was assigned to it.", who: "kiln" },
             { line: "Opened from the inside. The hatch is packed with dust. Whoever rode it down walked away, a while back.", who: "rhee" },
             { walk: "rhee", to: false },
           ] },

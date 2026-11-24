@@ -802,7 +802,9 @@ export class Brain {
     if (task.kind === "operate") { const cv = st.converters.find((c) => c.id === task.key); if (cv) target = cv.operatorPos; }
     const path = this.nav.route(p, target);
     const inside = this.insideRings(p);
-    if (this.rings.length > 0 && inside !== this.insideRings(target) && task.kind !== "fight") {
+    // an unbuilt ring blocks nobody, so there is no gate to leave by (level 2 keeps its ring only for the tow rules; outpost-ops#300)
+    const walled = st.barriers.some((l) => l.sections.some((x) => x.built));
+    if (walled && this.rings.length > 0 && inside !== this.insideRings(target) && task.kind !== "fight") {
       // the gate the walk crosses: nearest to where the route first changes sides of the ring
       let cross = p;
       for (const q of path) { if (this.insideRings(q) !== inside) break; cross = q; }
