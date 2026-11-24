@@ -584,8 +584,8 @@
    "type": "pad.hire",
    "id": "cook",
    "at": [
-    450,
-    1000
+    620,
+    950
    ],
    "cost": {
     "res.currency": 9
@@ -603,8 +603,8 @@
    "type": "pad.hire",
    "id": "server",
    "at": [
-    380,
-    1050
+    450,
+    985
    ],
    "cost": {
     "res.currency": 9
@@ -623,8 +623,8 @@
    "type": "pad.hire",
    "id": "cashier",
    "at": [
-    450,
-    1100
+    500,
+    1120
    ],
    "cost": {
     "res.currency": 9
@@ -645,7 +645,7 @@
     788.1,
     147.9
    ],
-   "hiddenUntil": "auto",
+   "hiddenUntil": "train",
    "drop": {
     "h": 1.6,
     "r": 300,

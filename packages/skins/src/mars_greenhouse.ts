@@ -1198,7 +1198,7 @@ export const marsGreenhouse: Skin = {
           { id: "galleyBuilt", hold: true, label: "Build the galley" },
           // the third job is the clerk, so the kiosk is minded from here on and level 5's arrows leave it alone (Doug)
           { id: "train", hold: true, label: "Train the three newcomers" },
-          // the ring counts seconds the galley, the runner and the counter all work without you
+          // the ring counts seconds the galley and the staffed fields run (the player standing at the galley counts too); the recorder waits for the third hire instead, so it never shows before all three jobs are trained
           { id: "auto", label: "Walk to the wreck while the town runs itself for 12 seconds" },
           { id: "main", label: "Bring the flight recorder home" },
         ],
@@ -1211,6 +1211,8 @@ export const marsGreenhouse: Skin = {
           ] },
           // no opening camera move; the camera looks east to the wreck only when KILN names the recorder
           { on: { start: true }, ordered: true, do: [
+            // Rhee stands beside the commander before she speaks (Doug: she is on screen for her lines)
+            { walk: "rhee", to: { at: [630, 790] } },
             { line: "KILN. Is it true? Eleven years?", who: "commander" },
             { spirit: "fading" },
             // KILN's basis for the new date: the stars and Sela's clock (Doug, 2026-11-04)
@@ -1224,6 +1226,7 @@ export const marsGreenhouse: Skin = {
             { camera: { to: { entity: "recorder" }, pan: 1.3, hold: 1.2, back: 1.1 } },
             { line: "That's a long walk, and there's a line at the kiosk. If I go, the town stops.", who: "commander" },
             { line: "Then we'll learn to run things on our own. We need that box to know what happened to us.", who: "rhee" },
+            { walk: "rhee", to: false },
             // Sela's buggy pulls up at the kiosk again; her three hands climb out and walk to the camp gate (the arrivals
             // rule: they spawn near the kiosk, level params gate.spawnOffsetY)
             { vehicle: "buggy", path: [{ at: [950, 1160] }, { at: [780, 1135] }, { at: [650, 1120] }], seconds: 4, lights: true },
@@ -1232,10 +1235,13 @@ export const marsGreenhouse: Skin = {
             { line: "I've brought three hands who want steady work. They're at your gate.", who: "sela" },
             { line: "Stand by the gate to let them in.", who: "kiln" },
             { goal: "arrive" },
+            // the arrows lead to the gate, where the newcomers wait (not the hub or the next pad)
+            { guide: true, to: { entity: "gate" } },
           ] },
           // the three are in: the road crew's buggy leaves and the galley is next
           { on: { goal: "arrive", is: "done" }, ordered: true, do: [
             { vehicleOff: "buggy" },
+            { guide: true },
             { line: "Build a galley to turn greens into meals. They sell more that way.", who: "kiln" },
             { goal: "galleyBuilt" },
           ] },
