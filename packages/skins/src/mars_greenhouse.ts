@@ -1086,12 +1086,11 @@ export const marsGreenhouse: Skin = {
           { on: { event: "pad_paid", match: { pad: "dome" } }, repeat: true, unless: "domeDone", do: [{ guide: true, to: { entity: "scrapA" } }] },
           // Tam walks out to the dome's frame while the commander fills it, so her line comes from beside it, on screen
           { on: { near: { entity: "dome" }, r: 170 }, do: [{ walk: "tam", to: { at: [405, 598] } }] },
-          // the dome stands and night falls: a pair of lights moves far to the south (a parked buggy, lamps on), a soft glow on
-          // the screen edge and the arrows point the way
+          // the dome stands and night falls: the lit kiosk to the south goes dark until the commander sees its lights
+          // (outpost-ops r3: the stray parked-buggy lamps at 850,944 were removed; the kiosk's own lights are the cue)
           { id: "domeDone", on: { goal: "dome", is: "done" }, ordered: true, do: [
             { dotsOff: true },
             { light: "night", seconds: 6 },
-            { vehicle: "buggy", path: [{ at: [1010, 1010] }, { at: [930, 972] }, { at: [850, 944] }], seconds: 14, lights: true },
             { line: "It'll do. Now I can start getting the first seeds in the gro...", who: "tam" },
             { line: "Wait. Those lights to the south...", who: "commander" },
             { kioskLit: true },
