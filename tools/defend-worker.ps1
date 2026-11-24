@@ -31,10 +31,14 @@ Set-Location $repo
 $events = Join-Path $data "worker-events.log"
 function Write-Event([string]$m) { Add-Content -Path $events -Value "$((Get-Date).ToString("o")) $m" }
 Write-Event "worker start pid $PID seeds $Seeds hours $Hours data $data"
+# resolve pnpm by full path: Start-Process cannot always find "pnpm.cmd" on PATH
+$pnpm = (Get-Command pnpm.cmd -ErrorAction SilentlyContinue).Source
+if (-not $pnpm) { $pnpm = Join-Path $env:APPDATA "npm\pnpm.cmd" }
+Write-Event "pnpm $pnpm"
 $try = 0
 while ($true) {
   $log = Join-Path $data "worker-$try.log"
-  $proc = Start-Process -FilePath "pnpm.cmd" -ArgumentList @("exec","vite-node","tools/defend-collect.ts","--","--seeds",$Seeds,"--hours",$Hours) -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError "$log.err"
+  $proc = Start-Process -FilePath $pnpm -ArgumentList @("exec","vite-node","tools/defend-collect.ts","--","--seeds",$Seeds,"--hours",$Hours) -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError "$log.err"
   try { $proc.PriorityClass = "Idle" } catch {}
   Write-Event "collect start try $try pid $($proc.Id)"
   # the node child does the work: keep it at idle priority (it also lowers itself)
@@ -49,6 +53,6 @@ while ($true) {
   Start-Sleep 60
 }
 # the collect ends on its stop target (deadline or sample target); fit whatever is there, then leave a marker
-& pnpm.cmd exec vite-node tools/defend-fit.ts -- *>> (Join-Path $data "fit.log")
+& $pnpm exec vite-node tools/defend-fit.ts -- *>> (Join-Path $data "fit.log")
 Set-Content (Join-Path $data "FIT-DONE") (Get-Date).ToString("o")
 Remove-Item $lock -ErrorAction SilentlyContinue
