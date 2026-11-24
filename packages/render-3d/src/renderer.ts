@@ -1041,6 +1041,11 @@ export class Renderer3D implements Renderer {
 
   /** Where a rigged character's head is on screen now (a story caption sits above it), or null when it is not drawn. */
   characterHead(key: string): (V & { feetY: number }) | null {
+    // "ride:N": customer N while a story vehicle carries her (her caption sits by her in the buggy, not at the kiosk)
+    if (key.startsWith("ride:")) {
+      const root = this.storyP?.riderRoot(Number(key.slice(5)));
+      return root ? characterHeadScreen(this.camera, this.cssW, this.cssH, root) : null;
+    }
     this.headWanted.add(key);
     return this.headNow.get(key) ?? null;
   }
@@ -3351,6 +3356,7 @@ export class Renderer3D implements Renderer {
     const m = this.marks;
     if (!m) return;
     const g = this.guideMark && !s.over ? this.guideMark : null;
+    m.setNight(this.padMarkLight());
     m.guide(pl.x, pl.y, g?.at.x ?? 0, g?.at.y ?? 0, this.t, !!g, g?.path);
     m.hero(pl.x, pl.y, this.t, !s.over);
     if (g) {

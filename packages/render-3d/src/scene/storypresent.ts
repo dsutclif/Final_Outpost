@@ -1,3 +1,4 @@
+import type { Object3D } from "three";
 import type { CameraBeat, FallScene, KneelScene, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
 import { AidStation, StoryProps } from "./storyprop.js";
 import type { RideExit } from "./selaride.js";
@@ -49,6 +50,8 @@ export class StoryPresent implements StoryPresentation {
 
   private readonly props = new StoryProps((o) => this.lights.attach(o), (o) => this.lights.detach(o));
   vehicle(id: string, spec: StoryVehicleSpec | null): void { this.props.vehicle(id, spec); }
+  /** Where a caption for customer `id` sits while she rides (see StoryProps.riderRoot). */
+  riderRoot(id: number): Object3D | null { return this.props.riderRoot(id); }
   private readonly aid = new AidStation((o) => this.lights.attach(o), (o) => this.lights.detach(o));
   aidStation(at: { x: number; z: number } | null): void { this.aid.set(at); }
   /** Captures hidden by a manifest `hiddenUntil` are drawn dark where they lie; the renderer reads it. */
