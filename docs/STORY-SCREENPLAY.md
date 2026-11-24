@@ -277,9 +277,9 @@ photo. All empty.*
 
 *Play is held.*
 
-**TAM:** You promised me a grow dome, Boss. Give me one... and I start feeding the crew.
+**TAM:** You promised me a grow dome, Boss. Give me one and I'll start feeding this camp.
 
-**COMMANDER:** There's hull scrap lying all round the wreck. Enough to build one.
+**COMMANDER:** There's hull scrap lying all round the wreck. That should be enough to build one.
 
 **KILN:** Carry scrap to the dome's frame. It goes up when the frame is full.
 
@@ -308,7 +308,7 @@ old trading kiosk, dark, with sand drifted against its shutter. Goal star.*
 *The commander is already at the kiosk when the lights come up the road: a buggy (the arrival scene as built, no camera cut to the road). It parks by the kiosk. A woman in a navy suit
 climbs out and walks over. Play is held until she has spoken.*
 
-**SELA:** Well, I guess... Sela.
+**SELA:** Well, I guess somebody's living out here. I'm Sela.
 
 **SELA:** I trade between the settlements. Salvage, food, whatever people need.
 
@@ -357,10 +357,6 @@ facing the road and facing the ridge. Goal star.*
 
 **KILN:** Take one more load of greens to the kiosk, and keep saving credits for that hub.
 
-*The commander picks up greens at the dome.*
-
-**TAM:** Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.
-
 *The commander stocks the shelf and sells the greens at the counter. A second trader reaches the front of the line, looks at the shelf and turns away.*
 
 **TRADER:** No protein? I'm leaving.
@@ -387,7 +383,11 @@ sinks in a burst of dust; then the next, until a path is open. It costs no credi
 *The commander runs into a hopper; it falls and drops protein. The commander picks it up, stocks the shelf and sells
 it. A second trader arrives. Goal star.*
 
-**KILN:** Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear, and gear costs credits.
+*Tam walks to the dome and stands beside it.*
+
+**TAM:** Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.
+
+**KILN:** Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear and training, and that costs credits.
 Stand on Tam's pad when you have them.
 
 > GOAL CARD: **Train Tam to run the dome**
@@ -399,7 +399,7 @@ dome, picks greens, carries them to the kiosk shelf and keeps doing it. Goal sta
 
 **RHEE:** Keep selling. When we have enough, we'll build the hub.
 
-> GOAL CARD: **Build the habitat hub (150)**
+> GOAL CARD: **Save up and build the habitat hub**
 
 *While the commander saves, at about half the hub's price, a trader at the counter looks up at the ridge.*
 
@@ -407,7 +407,7 @@ dome, picks greens, carries them to the kiosk shelf and keeps doing it. Goal sta
 
 **COMMANDER:** What's on the ridge?
 
-**TRADER:** Folk who don't trade.
+**TRADER:** I don't know, but those folk don't trade, and they aren't friendly.
 
 *The last coins land. The road crew raise the hub; its windows light, the brightest thing on the map; the crew walk
 inside. Goal star.*
