@@ -374,6 +374,17 @@ describe("story director and the sim", () => {
   });
 });
 
+describe("story director, walking to the commander", () => {
+  it("a walk to the player's spot follows them as they move, and a walk back lets go", () => {
+    const h = harness(levelOf(cue({ start: true }, { walk: "tam", to: { last: "player", by: [10, -20] } })));
+    const at = (x: number, y: number) => state({ player: { pos: { x: x * 1000, y: y * 1000 } } } as Partial<State>);
+    h.d.update(16, at(100, 200));
+    expect(h.d.world.actors).toEqual([{ who: "tam", to: { x: 110, y: 180 } }]);
+    h.d.update(16, at(150, 260));
+    expect(h.d.world.actors).toEqual([{ who: "tam", to: { x: 160, y: 240 } }]);
+  });
+});
+
 describe("lineSeconds", () => {
   it("gives short lines two seconds and long ones time to read", () => {
     expect(lineSeconds("Boss?")).toBe(2);

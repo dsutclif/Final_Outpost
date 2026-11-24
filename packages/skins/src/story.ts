@@ -2,8 +2,12 @@
 // block holds this, keyed by level id; a level without an entry plays exactly as if the director
 // did not exist. Pure presentation: nothing here can reach sim state.
 
-/** A world position (world units), a manifest entity's position by id, or where the last sim event of a type happened. */
-export type StoryPlace = { at: readonly [number, number] } | { entity: string } | { last: string };
+/**
+ * A world position (world units), a manifest entity's position by id, or where the last sim event of a type happened.
+ * `last: "player"` is the commander (a walk to it keeps following them); `by` shifts the spot by that many world units, so a
+ * speaker can stand beside the commander in the same frame.
+ */
+export type StoryPlace = { at: readonly [number, number] } | { entity: string } | { last: string; by?: readonly [number, number] };
 
 /** What fires a cue. Each cue fires once unless it sets `repeat`. */
 export type StoryTrigger =

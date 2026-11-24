@@ -71,6 +71,8 @@ export class StoryProps {
     for (const r of this.runs.values()) {
       if (r.spec.rider !== id) continue;
       if (r.ride?.root.visible) return r.ride.root;
+      // she has stepped out and the buggy stands parked: her caption follows her on foot, not the empty vehicle
+      if (r.exit >= 1 && !r.boardReq) continue;
       if (r.group?.visible !== false && r.group) return r.group;
     }
     return null;

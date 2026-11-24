@@ -1139,20 +1139,26 @@ export const marsGreenhouse: Skin = {
             { show: ["credits"] },
             { dotsOff: true },
             { guide: true, to: { at: [220, 240] } },
-            { walk: "okafor", to: { last: "sold" } },
-            { wait: 7 },
+            // Sela speaks first, while the commander still stands beside her at the counter (she is a trader and cannot walk to
+            // him); Okafor then walks up to the commander wherever he has gone
             { line: "Those coins seem to be the local currency.", who: "kiln" },
             { line: "You built that dome yourselves? Out of your own hull?", who: "sela" },
             { line: "Save your scrap. My road crew builds for credits, and they bring their own steel.", who: "sela" },
+            // play holds while each crew member walks up (about 70 units a second, so the waits cover their longest walk), so the commander stays where the camera is
+            { freeze: true },
+            { walk: "okafor", to: { last: "player", by: [-16, 24] } },
+            { wait: 9 },
             { line: "A road that brings traders can bring raiders, so... let's build a wall first...", who: "okafor" },
+            { freeze: false },
             { line: "Once you've saved enough credits, walk the dashed line and the wall goes up behind you.", who: "kiln" },
             { walk: "okafor", to: false },
           ] },
           // the wall stands: the hub and its price, then the trader who wants meat and the slide in the way
           { id: "wallDone", on: { goal: "walls", is: "done" }, ordered: true, do: [
             // no road-crew buggy here: it drove into a commander walking outside the wall, and it drives in again for the hub
-            { walk: "rhee", to: { last: "barrier_built" } },
-            { wait: 3.5 },
+            { freeze: true },
+            { walk: "rhee", to: { last: "player", by: [16, -24] } },
+            { wait: 6 },
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
             { line: "Take one more load of greens to the kiosk, and keep saving credits for that hub.", who: "kiln" },
@@ -1187,8 +1193,9 @@ export const marsGreenhouse: Skin = {
           // the first protein sale (after the protein customer and Sela's hopper line): Tam stands at the dome to offer to run it
           // (outpost-ops#320), then KILN's gear line and the arrows to her pad
           { on: { event: "sold", match: { res: "res.food_raw_2" } }, ordered: true, do: [
-            { walk: "tam", to: { at: [405, 598] } },
-            { wait: 3.5 },
+            { freeze: true },
+            { walk: "tam", to: { last: "player", by: [-16, 24] } },
+            { wait: 8 },
             { line: "Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.", who: "tam" },
             { guide: true, to: { entity: "picker" } },
             { line: "Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear and training, and that costs credits. Stand on Tam's pad when you have them.", who: "kiln" },
@@ -1197,8 +1204,9 @@ export const marsGreenhouse: Skin = {
           // Tam is hired: her drawn self comes home to the sim's Tam; Rhee walks over so her line comes on screen
           { id: "tamTrained", on: { goal: "train", is: "done" }, ordered: true, do: [
             { walk: "tam", to: false },
-            { walk: "rhee", to: { entity: "picker" } },
-            { wait: 4 },
+            { freeze: true },
+            { walk: "rhee", to: { last: "player", by: [16, -24] } },
+            { wait: 6 },
             { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
             { walk: "rhee", to: false },
             { guide: true, to: { entity: "flats" } },

@@ -126,6 +126,8 @@ export class StoryDirector {
   private readonly fromCapture = new Map<number, number>();
   /** Where the last event of each type happened (world units). */
   private readonly lastAt = new Map<string, { x: number; y: number }>();
+  /** Cast members walking to the commander (a walk to `last: "player"`): their spot follows them as they move. */
+  private readonly following = new Map<string, StoryPlace>();
   private readonly carded = new Set<string>();
   /** Story steps (StoryGoal.until) whose trigger has fired. */
   private readonly stepDone = new Set<string>();
@@ -265,6 +267,8 @@ export class StoryDirector {
     const dt = dtMs / 1000;
     this.tick = st.tick;
     this.objectives = st.objectives;
+    this.lastAt.set("player", { x: st.player.pos.x / FP, y: st.player.pos.y / FP });
+    this.followPlayer();
     if (this.nudge?.step(dt)) this.nudge = null;
     this.stepOpenZoom(dt, st);
     if (!this.started) {
@@ -410,11 +414,19 @@ export class StoryDirector {
   }
 
   private place(p: StoryPlace): { x: number; y: number } | null {
-    if ("last" in p) return this.lastAt.get(p.last) ?? null;
+    if ("last" in p) {
+      const at = this.lastAt.get(p.last);
+      return at ? { x: at.x + (p.by?.[0] ?? 0), y: at.y + (p.by?.[1] ?? 0) } : null;
+    }
     return "at" in p ? { x: p.at[0], y: p.at[1] } : this.host.entityAt(p.entity);
   }
 
   // ------------------------------------------------------------------ the action queue
+
+  private followPlayer(): void {
+    if (!this.following.size) return;
+    this.world = { ...this.world, actors: this.world.actors.map((x) => { const f = this.following.get(x.who); const to = f ? this.place(f) : null; return to ? { ...x, to } : x; }) };
+  }
 
   private pump(): void {
     if (this.disposed) return;
@@ -449,6 +461,7 @@ export class StoryDirector {
       this.world = { ...this.world, vehicles: this.world.vehicles.filter((v) => v.id !== a.vehicleOff) };
     } else if ("walk" in a) {
       const to = a.to ? this.place(a.to) : null;
+      if (a.to && "last" in a.to && a.to.last === "player") this.following.set(a.walk, a.to); else this.following.delete(a.walk);
       this.world = { ...this.world, actors: [...this.world.actors.filter((x) => x.who !== a.walk), { who: a.walk, to }] };
     } else if ("camera" in a) {
       const to = this.place(a.camera.to);
