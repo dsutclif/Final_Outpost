@@ -1336,7 +1336,7 @@ export class App {
     if (playing) {
       const n = s.stepper.advance(dt);
       for (let i = 0; i < n && !s.ended; i++) {
-        this.stepOnce(s, s.director?.talking ? { dx: 0, dy: 0 } : this.input.read());
+        this.stepOnce(s, this.input.read());
         // a cue froze play: stop here, and drop the time owed so it cannot overshoot
         if (s.director?.frozen) { s.stepper.reset(); break; }
       }
