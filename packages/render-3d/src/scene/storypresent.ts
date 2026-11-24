@@ -1,3 +1,4 @@
+import type { Object3D } from "three";
 import type { CameraBeat, FallScene, KneelScene, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
 import { AidStation, StoryProps } from "./storyprop.js";
 import type { RideExit } from "./selaride.js";
@@ -41,6 +42,9 @@ export class StoryPresent implements StoryPresentation {
   /** `home`: where the cloud floats over the reactor, and its height there. */
   constructor(private readonly lights: StoryLights, private readonly cloud: CoreSpirit, private readonly home: { x: number; z: number; h: number } = { x: 0, z: 0, h: 0 }, private readonly movers?: Interp) {}
 
+  /** A story line is on screen: staged walkers stand still until it ends. */
+  talking = false;
+  kioskLit = true;
   actor(key: string, to: { x: number; z: number } | null): void { this.movers?.stage(key, to ? { x: to.x, y: to.z } : null); }
   actorAt(key: string): { x: number; z: number } | null {
     const p = this.movers?.pos(key, { x: Number.NaN, y: Number.NaN }, 1);
@@ -49,6 +53,8 @@ export class StoryPresent implements StoryPresentation {
 
   private readonly props = new StoryProps((o) => this.lights.attach(o), (o) => this.lights.detach(o));
   vehicle(id: string, spec: StoryVehicleSpec | null): void { this.props.vehicle(id, spec); }
+  /** Where a caption for customer `id` sits while she rides (see StoryProps.riderRoot). */
+  riderRoot(id: number): Object3D | null { return this.props.riderRoot(id); }
   private readonly aid = new AidStation((o) => this.lights.attach(o), (o) => this.lights.detach(o));
   aidStation(at: { x: number; z: number } | null): void { this.aid.set(at); }
   /** Captures hidden by a manifest `hiddenUntil` are drawn dark where they lie; the renderer reads it. */
@@ -165,7 +171,7 @@ export class StoryPresent implements StoryPresentation {
   /** Per frame: t seconds on the renderer clock, dt seconds since the last frame, and the camera view on the ground. */
   frame(t: number, dt: number, cx: number, cz: number, halfW: number, halfH: number, hero?: { x: number; z: number }): void {
     this.now = t;
-    this.movers?.stepStaged(dt);
+    this.movers?.stepStaged(dt, this.talking);
     this.moveCloud(dt, hero);
     // the tally is set from the sim position each tick; between ticks it rides the drawn hero, so it does not step against her
     if (hero) this.lights.tallyAt(hero.x, hero.z);

@@ -44,8 +44,10 @@ export class Interp {
   }
 
   /** Per frame: move the staged movers along, `dt` seconds. */
-  stepStaged(dt: number): void {
+  stepStaged(dt: number, hold = false): void {
     for (const [key, s] of this.staged) {
+      // a story line is up: everyone stands still in idle (no walk cycle) and resumes after it
+      if (hold) { s.v = { x: 0, y: 0 }; continue; }
       const home = this.curr.get(key);
       s.at ??= home ? { ...home } : null;
       const goal = s.to ?? home;

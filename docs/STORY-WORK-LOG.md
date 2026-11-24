@@ -35,6 +35,8 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-24 | pro-l3-layout (#364 #305 #309 #358) | train/r3-l3-layout | levels/story/story-L003.json, Level 3 kiosk model; mars_greenhouse.ts only the hub-build buggy stop (one coordinate, #364) | layout |
+| 2026-11-24 | pro-hud (#360 #372 #373 #376 #377) | train/r3-hud | story/director.ts, stage.ts, view.ts, story.css, mars_greenhouse.ts (L5 `hide` only), renderer.ts, groundmarks.ts; no engine bump |
+| 2026-11-24 | pro-kiosk (#358 #309) | train/r3-kiosk | story-L003..005.json (kiosk, road, route, cashier/galley/cook/server pads), mars_greenhouse.ts (buggy paths, L4 camera, kioskLit cues), tools/kiosk-aged, kiosk model | kiosk look + position |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 

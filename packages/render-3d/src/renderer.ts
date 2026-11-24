@@ -168,6 +168,8 @@ const NO_STORY: StoryPresentation = {
   dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {}, fleeingModel() {}, showDropped() {}, fall: () => Promise.resolve(false), kneel: () => Promise.resolve(false),
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
+  talking: false,
+  kioskLit: true,
 };
 /** Highest a big pad's floating name and price sit (art metres), whatever its blueprint's height. */
 const BIG_LABEL_LIFT = 3.2;
@@ -1051,6 +1053,11 @@ export class Renderer3D implements Renderer {
 
   /** Where a rigged character's head is on screen now (a story caption sits above it), or null when it is not drawn. */
   characterHead(key: string): (V & { feetY: number }) | null {
+    // "ride:N": customer N while a story vehicle carries her (her caption sits by her in the buggy, not at the kiosk)
+    if (key.startsWith("ride:")) {
+      const root = this.storyP?.riderRoot(Number(key.slice(5)));
+      return root ? characterHeadScreen(this.camera, this.cssW, this.cssH, root) : null;
+    }
     this.headWanted.add(key);
     return this.headNow.get(key) ?? null;
   }
@@ -1767,18 +1774,20 @@ export class Renderer3D implements Renderer {
       this.dynamic.add(regDecal);
       reg.extra[0] = regDecal;
     }
+    // story: the kiosk stays dark (no coin decal, crates, chips or pile) until a cue lights it
+    const lit = this.storyP?.kioskLit !== false;
     const regLight = this.padMarkLight();
     const rdm = this.labels.meshMaterial(`clerk|${regLight}|${!!this.padIcons?.ready("operate-clerk")}`, () => this.operatePadArt("operate-clerk", regLight));
-    if (rdm) { this.glowFinish(rdm); regDecal.material = rdm; regDecal.visible = true; this.hideUnderCharacters(rdm); } else regDecal.visible = false;
+    if (rdm && lit) { this.glowFinish(rdm); regDecal.material = rdm; regDecal.visible = true; this.hideUnderCharacters(rdm); } else regDecal.visible = false;
     const regAt = this.wv(sales.register);
     regDecal.position.set(regAt.x, 2.4, regAt.z);
     regDecal.scale.setScalar(0.75 * reg.model.root.scale.x);
-    this.shelfCrates(sales, kiosk);
+    if (lit) this.shelfCrates(sales, kiosk);
     // the currency pile by the clerk pad
     const items = this.items!;
     const pile = this.wv(sales.pile);
     const coin = "res.currency";
-    const pn = Math.min(30, sales.pileN);
+    const pn = lit ? Math.min(30, sales.pileN) : 0;
     for (let i = 0; i < pn; i++) {
       const col = i % 3, row = Math.floor(i / 3);
       items.add(coin, pile.x + (col - 1) * 8 + (row % 2) * 2, row * items.height(coin), pile.z + ((col * 7) % 3) * 2, row * 0.7);
@@ -3361,6 +3370,7 @@ export class Renderer3D implements Renderer {
     const m = this.marks;
     if (!m) return;
     const g = this.guideMark && !s.over ? this.guideMark : null;
+    m.setNight(this.padMarkLight());
     m.guide(pl.x, pl.y, g?.at.x ?? 0, g?.at.y ?? 0, this.t, !!g, g?.path);
     m.hero(pl.x, pl.y, this.t, !s.over);
     if (g) {

@@ -1067,6 +1067,7 @@ export const marsGreenhouse: Skin = {
         ],
         cues: [
           { on: { start: true }, do: [
+            { kioskLit: false },
             { light: "dusk" },
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
@@ -1087,6 +1088,7 @@ export const marsGreenhouse: Skin = {
             { vehicle: "buggy", path: [{ at: [1010, 1010] }, { at: [930, 972] }, { at: [850, 944] }], seconds: 14, lights: true },
             { line: "It'll do. Now I can start getting the first seeds in the gro...", who: "tam" },
             { line: "Wait. Those lights to the south...", who: "commander" },
+            { kioskLit: true },
             { guide: true, to: { entity: "kiosk" } },
             { edgeGlow: { entity: "kiosk", size: 28, strength: 0.35, arrow: true } },
             { goal: "lights" },
@@ -1331,7 +1333,6 @@ export const marsGreenhouse: Skin = {
       "story-L005": {
         // Rhee's aid station stays beside the reactor from level 2 on
         aidStation: true,
-        hide: ["credits"],
         solid: ["sink.core"],
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam, the cook, the runner and the clerk (level 4's town, at its posts all

@@ -266,7 +266,10 @@ export function createStoryView(shell: HTMLElement, opts: { dialogue?: string | 
       stars.className = "sslots";
       stars.setAttribute("role", "img");
       stars.setAttribute("aria-label", `${slots.filter((s) => s === "earned").length}/${slots.length}`);
-      stars.innerHTML = slots.map(slotHtml).join("");
+      // more than three stars: "star x/y" instead of a row (Doug, 2026-11-24; the row ran into the chips)
+      stars.innerHTML = slots.length > 3
+        ? `<span class="sslot-count">${slotHtml("earned")}<b>${slots.filter((s) => s === "earned").length}/${slots.length}</b></span>`
+        : slots.map(slotHtml).join("");
       goals.replaceChildren(stars, text("div", "sgoal-now", current ?? ""));
     },
     frame(t) { dialogue?.frame?.(t); },
