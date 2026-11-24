@@ -31,4 +31,10 @@ describe("core spirit cloud", () => {
     expect(renders).toBe(1);
     p.dispose();
   });
+  it("releases its GL context on dispose (outpost-ops#375: leaked contexts crashed iPhone story runs)", () => {
+    let lost = 0;
+    const gl = { domElement: {} as HTMLCanvasElement, setPixelRatio() {}, setSize() {}, render() {}, dispose() {}, forceContextLoss() { lost++; } } as unknown as GLLike;
+    createSpiritPortrait(colors, () => gl, gl.domElement).dispose();
+    expect(lost).toBe(1);
+  });
 });

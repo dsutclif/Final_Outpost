@@ -1022,7 +1022,7 @@ export async function playLiveScene(host: HTMLElement, id: string, o: LiveSceneO
       cancelAnimationFrame(raf);
       removeEventListener("resize", size);
       wrap.classList.add("out");
-      setTimeout(() => { staged.dispose(); gl.dispose(); wrap.remove(); done(r); }, 300);
+      setTimeout(() => { staged.dispose(); gl.dispose(); gl.forceContextLoss(); wrap.remove(); done(r); }, 300);
     };
     if (!o.inset) wrap.addEventListener("click", () => end("skipped"));
     addEventListener("resize", size);

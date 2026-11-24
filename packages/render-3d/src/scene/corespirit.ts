@@ -267,6 +267,6 @@ export function createSpiritPortrait(
       drv.step(t);
       gl.render(scene, cam);
     },
-    dispose() { quad.dispose(); mat.dispose(); gl.dispose(); },
+    dispose() { quad.dispose(); mat.dispose(); gl.dispose(); gl.forceContextLoss?.(); },
   };
 }

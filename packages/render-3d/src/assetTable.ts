@@ -184,7 +184,7 @@ export function createAssetTable(stage: HTMLElement, brightness: number): AssetT
       look.z += w.y;
     },
     centre, setBrightness: setMeshyBrightness, resize, status: state,
-    dispose() { cancelAnimationFrame(raf); gl.dispose(); canvas.remove(); },
+    dispose() { cancelAnimationFrame(raf); gl.dispose(); gl.forceContextLoss(); canvas.remove(); },
   };
 }
 
