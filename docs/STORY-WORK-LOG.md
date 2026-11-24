@@ -34,8 +34,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
-| 2026-11-19 | pro-s3 (#124) | s3-124 | levels/story/story-L003..005.json, story-canon + new story-carry test, mars_greenhouse.ts (one line) | carry-forward |
-| 2026-11-22 | r2-c3 (#167 #168 #169 #171) | r2-c3-fall | engine 0.35.0 -> 0.36.0 (sim.ts, version strings only in levels/golden, levels/story, packs, fixtures) | commander knock-down rules |
+| 2026-11-24 | l3-script (#301 #303 #312 #320 #357 #359 #361 #362 #363 #365) | train/r3-l3-script | mars_greenhouse.ts story-L003 cue block, STORY-SCREENPLAY.md level 3 | refinement round 3 |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 

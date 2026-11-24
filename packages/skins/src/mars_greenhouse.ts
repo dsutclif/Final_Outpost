@@ -1063,7 +1063,7 @@ export const marsGreenhouse: Skin = {
           { id: "clear", label: "Dig through the rockslide" },
           { id: "meat", label: "Sell protein at the kiosk" },
           { id: "train", hold: true, label: "Train Tam to run the dome" },
-          { id: "main", label: "Build the habitat hub (120)" },
+          { id: "main", label: "Save up and build the habitat hub" },
         ],
         cues: [
           { on: { start: true }, do: [
@@ -1071,17 +1071,21 @@ export const marsGreenhouse: Skin = {
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
             { spiritFollow: { right: 60, up: 16, lag: 0.9, height: 80, size: 1.1, glow: 0.6 } },
-            { line: "You promised me a grow dome, Boss. Give me one... and I start feeding the crew.", who: "tam" },
-            { line: "There's hull scrap lying all round the wreck. Enough to build one.", who: "commander" },
+            { line: "You promised me a grow dome, Boss. Give me one and I'll start feeding this camp.", who: "tam" },
+            { line: "There's hull scrap lying all round the wreck. That should be enough to build one.", who: "commander" },
             { line: "Carry scrap to the dome's frame. It goes up when the frame is full.", who: "kiln", head: "K.I.L.N. · DAY 3" },
             { goal: "dome" },
             { dots: [{ entity: "scrapA" }], period: 2.4 },
+            // the arrows lead to the scrap, never the rockslide in front of the hoppers (outpost-ops#303)
+            { guide: true, to: { entity: "scrapA" } },
           ] },
+          { on: { event: "gathered", match: { res: "res.salvage" } }, repeat: true, unless: "domeDone", do: [{ guide: true, to: { entity: "dome" } }] },
+          { on: { event: "pad_paid", match: { pad: "dome" } }, repeat: true, unless: "domeDone", do: [{ guide: true, to: { entity: "scrapA" } }] },
           // Tam walks out to the dome's frame while the commander fills it, so her line comes from beside it, on screen
           { on: { near: { entity: "dome" }, r: 170 }, do: [{ walk: "tam", to: { at: [405, 598] } }] },
           // the dome stands and night falls: a pair of lights moves far to the south (a parked buggy, lamps on), a soft glow on
           // the screen edge and the arrows point the way
-          { on: { goal: "dome", is: "done" }, ordered: true, do: [
+          { id: "domeDone", on: { goal: "dome", is: "done" }, ordered: true, do: [
             { dotsOff: true },
             { light: "night", seconds: 6 },
             { vehicle: "buggy", path: [{ at: [1010, 1010] }, { at: [930, 972] }, { at: [850, 944] }], seconds: 14, lights: true },
@@ -1109,11 +1113,11 @@ export const marsGreenhouse: Skin = {
             { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }], seconds: 6.5, lights: true, rider: "sela" },
             // the commander is already at the kiosk (she only drives in once he has found it), so the camera stays with him and
             // takes one slow nudge toward the kiosk: no cut to the road and back (Doug 2026-11-22)
-            { camera: { to: { entity: "kiosk" }, share: 0.6, pan: 1.4, hold: 24, back: 0.9, freeze: false } },
+            { camera: { to: { entity: "kiosk" }, share: 0.6, pan: 1.4, hold: 36, back: 0.9, freeze: false } },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
           { on: { who: "sela", at: { entity: "kiosk" }, r: 150, after: "selaIn" }, ordered: true, do: [
-            { line: "Well, I guess... Sela.", who: "sela" },
+            { line: "Well, I guess somebody's living out here. I'm Sela.", who: "sela" },
             { line: "I trade between the settlements. Salvage, food, whatever people need.", who: "sela" },
             { line: "Settlements? There are other people on this planet?", who: "commander" },
             { line: "Colony ships have been setting down at the landing fields for years. You came down a long way off. Hardly anyone drives out this far.", who: "sela" },
@@ -1150,16 +1154,14 @@ export const marsGreenhouse: Skin = {
             { walk: "rhee", to: false },
             { guide: true, to: { entity: "field1" } },
           ] },
-          // picking up greens after the wall: Tam offers to run the dome
-          { on: { event: "gathered", match: { res: "res.food_raw_1" }, after: "wallDone" }, ordered: true, do: [
-            { line: "Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.", who: "tam" },
-            { guide: true, to: { entity: "kiosk" } },
-          ] },
+          // picking up greens after the wall: the arrows lead to the kiosk
+          { on: { event: "gathered", match: { res: "res.food_raw_1" }, after: "wallDone" }, do: [{ guide: true, to: { entity: "kiosk" } }] },
           // the checkout sale of those greens: the next trader wants protein
           { on: { event: "sold", match: { res: "res.food_raw_1" }, after: "wallDone" }, ordered: true, do: [
             { line: "No protein? I'm leaving.", who: "trader" },
             { line: "Protein sells for a premium around here. Those rock hoppers past the rockslide would fetch a good price.", who: "sela" },
-            { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.3 } },
+            // back 0.001: the hoppers hand straight over to the rock pile, no re-centre on the commander between them (outpost-ops#361)
+            { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.001 } },
             { camera: { to: { entity: "rockslide" }, pan: 0.4, hold: 1, back: 0.8 } },
             { line: "The slide is loose rock... walk up to it and dig... one section at a time.", who: "kiln" },
             { guide: true, to: { entity: "rockslide" } },
@@ -1177,9 +1179,14 @@ export const marsGreenhouse: Skin = {
           { on: { event: "sold", match: { res: "res.food_raw_2" }, after: "digDone" }, repeat: true, do: [{ guide: true, to: { entity: "kiosk" } }] },
           { on: { event: "collected", match: { res: "res.currency" }, after: "digDone" }, repeat: true, unless: "hubReady", do: [{ guide: true, to: { entity: "flats" } }] },
           { id: "hubReady", on: { credits: 120, after: "digDone" }, do: [{ guide: true, to: { entity: "hub" } }] },
+          // the first protein sale (after the protein customer and Sela's hopper line): Tam stands at the dome to offer to run it
+          // (outpost-ops#320), then KILN's gear line and the arrows to her pad
           { on: { event: "sold", match: { res: "res.food_raw_2" } }, ordered: true, do: [
+            { walk: "tam", to: { at: [405, 598] } },
+            { wait: 3.5 },
+            { line: "Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.", who: "tam" },
             { guide: true, to: { entity: "picker" } },
-            { line: "Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear, and gear costs credits. Stand on Tam's pad when you have them.", who: "kiln" },
+            { line: "Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear and training, and that costs credits. Stand on Tam's pad when you have them.", who: "kiln" },
             { goal: "train" },
           ] },
           // Tam is hired: her drawn self comes home to the sim's Tam; Rhee walks over so her line comes on screen
@@ -1195,15 +1202,19 @@ export const marsGreenhouse: Skin = {
           { on: { credits: 75, after: "tamTrained" }, ordered: true, do: [
             { line: "A town, this close to the ridge? Brave.", who: "trader" },
             { line: "What's on the ridge?", who: "commander" },
-            { line: "Folk who don't trade.", who: "trader" },
+            { line: "I don't know, but those folk don't trade, and they aren't friendly.", who: "trader" },
           ] },
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land
-          { on: { goal: "main", is: "done" }, ordered: true, do: [
+          // outpost-ops#365: before Sela drives in, the arrows walk the commander out of the hub to a spot beside her parking place
+          // (left of the hub, clear of the buggy's path), so the hub turns solid on screen and both speakers share one frame with no
+          // camera move. TODO: the spot follows the buggy stop that train/r3-l3-layout moved for #364 (520,430); re-check if it moves.
+          { id: "hubDone", on: { goal: "main", is: "done" }, do: [{ guide: true, to: { at: [470, 450] } }] },
+          { on: { near: { at: [470, 450] }, r: 45, after: "hubDone" }, ordered: true, do: [
+            { guide: false },
             // Sela's road crew raise the hub like every paid build (they drive up, wait and go), then she hands the commander the chip
             // (the chip_handoff live scene) and speaks; play is held while the buggy drives so it never runs the commander down
             { freeze: true },
             { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [600, 420] }], seconds: 5, lights: true },
-            { camera: { to: { at: [640, 440] }, pan: 1, hold: 4.5, back: 0.4, freeze: false } },
             { wait: 5.5 },
             { vehicleOff: "buggy" },
             { film: "chip_handoff" },
