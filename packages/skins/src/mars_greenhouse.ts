@@ -1382,8 +1382,8 @@ export const marsGreenhouse: Skin = {
           // they appear only once the turret is built and no raider is alive (arrivals.after in the manifest), so the line
           // plays when they do, not on a timer a slow player could outrun
           { on: { event: "gate_arrival" }, ordered: true, do: [
-            // the camera shows them at the gate, asking to be let in (Doug, 2026-11-22)
-            { camera: { to: { at: [505, 940] }, zoom: 0.72, pan: 0.8, hold: 5, back: 0.8 } },
+            // the camera shows them on the road below the gate, asking to be let in (Doug, 2026-11-22); they spawn at y 1110, so centre below the gate (outpost-ops#340)
+            { camera: { to: { at: [505, 1050] }, zoom: 0.72, pan: 0.8, hold: 5, back: 0.8 } },
             { line: "Let us in! They burned our camp on the road!", who: "settler" },
             { line: "Two at the gate. Stand by it to let them in.", who: "kiln" },
             { goal: "arrive" },
