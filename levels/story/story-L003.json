@@ -539,24 +539,24 @@
    "type": "node.salvage_pile",
    "id": "scrapA",
    "at": [
-    620,
-    150
+    600,
+    250
    ]
   },
   {
    "type": "node.salvage_pile",
    "id": "scrapB",
    "at": [
-    700,
-    135
+    560,
+    520
    ]
   },
   {
    "type": "node.salvage_pile",
    "id": "scrapC",
    "at": [
-    745,
-    100
+    300,
+    690
    ]
   },
   {
@@ -638,7 +638,8 @@
   "customers.orderMax": 3,
   "level.budgetSeconds": 300,
   "zones.digSeconds": 2,
-  "zones.digSquare": 16
+  "zones.digSquare": 16,
+  "scrap.look": 2
  },
  "goal": {
   "type": "build",

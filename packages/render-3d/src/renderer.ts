@@ -1968,8 +1968,8 @@ export class Renderer3D implements Renderer {
   private syncNodes(s: State): void {
     s.nodes.forEach((n, i) => {
       const key = `n:${i}`;
-      // scrap heaps take the scrap models in turn (ship scrap, scrap field, wreck): every scrap on such a level is pickable
-      const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? 1 + (i % 3) : 1);
+      // scrap heaps take the scrap models in turn (ship scrap, scrap field, wreck), or the one the level names with params "scrap.look" (outpost-ops#305): every scrap on such a level is pickable
+      const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? (s.params["scrap.look"] || 1 + (i % 3)) : 1);
       // a locked grow dome is an unbuilt thing like any other: the blue blueprint, with its unlock pad
       const ghosted = !n.enabled && n.type === "node.food_source";
       // a buried node (hiddenUntil) is not on the map yet: no model, no ghost, no lock label
