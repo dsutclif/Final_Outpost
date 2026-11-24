@@ -1339,7 +1339,11 @@ export class App {
       this.reporter?.frame(dt);
       if (s.sim.state.tick % 15 === 0) this.discover(nearbyPassive(s.sim.state));
     }
-    else if (s.director?.busy) s.renderer.setCoach(null);
+    else if (s.director?.busy) {
+      s.renderer.setCoach(null);
+      // a cue that points the arrows while a line holds play (level 1 start) takes effect on this frame, not after the tap
+      if (s.director.frozen) this.updateCoach(s);
+    }
     if (this.hidden) return;
     s.cam.lead = this.leadPoint(s);
     if (s.stage) {

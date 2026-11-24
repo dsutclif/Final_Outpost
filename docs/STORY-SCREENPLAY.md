@@ -109,10 +109,14 @@ appears at that edge pointing toward it. There is no red light yet.*
 > GOAL CARD: **Reach the light**
 
 *Only when this card is tapped can the commander move. The floor arrows lead toward the glow. On the way, two fuel
-cells lie half buried in the sand, each with a faint glint, and the arrows run past both. Walking over a cell picks
-it up. On the first:*
+cells lie half buried in the sand, each with a faint glint, and the arrows run past both. Standing beside one digs it
+out: it turns out to be a fuel cell, and the cell appears on the commander's back. On the first:*
 
-**COMMANDER:** Fuel cells. Ship's stock. What are they doing out here?
+**COMMANDER:** Something half-buried in the sand. A fuel cell, sealed and still heavy.
+
+*On the second:*
+
+**COMMANDER:** Another cell. Whoever lit that beacon left these out for the finding.
 
 *The glow stays on the screen edge until the commander is close enough to see its source: a single beacon lamp on a
 dead reactor, standing alone in the sand, its cables running off toward the wreck. Goal star.*
@@ -139,15 +143,11 @@ commander, close enough that it can't be missed. The fuel gauge appears at the t
 
 **KILN:** I have no record. My logs stop at the crash.
 
-*A gust runs ahead of the storm and strips the sand off a seam of ore just past the reactor. Ore piles show, one after
-another.*
-
-**KILN:** Those cells won't last the night. The wind just uncovered ore, and ore burns. Fill the reactor before it
-dies, and me with it.
+**KILN:** Those cells won't last the night. Fill the reactor before it dies, and me with it.
 
 > GOAL CARD: **Fill the reactor in 45 s**
 
-*The commander carries ore from the seam to the reactor; the gauge fills. Goal star. KILN brightens. Its readout now
+*The commander carries the fuel cells to the reactor; the gauge fills. Goal star. KILN brightens. Its readout now
 heads `K.I.L.N. · REACTOR ONLINE · DAY 1`.*
 
 **KILN:** Thank you. Four pods by the wreck are still sealed: bays five to eight.
@@ -160,8 +160,13 @@ heads `K.I.L.N. · REACTOR ONLINE · DAY 1`.*
 
 > GOAL CARD: **Keep the reactor burning till morning** *(with a countdown)*
 
-*The gauge drains as the reactor burns, and the commander tops it up with ore. The storm comes in: the gauge drains
-twice as fast, and the wind uncovers more ore closer to the reactor as it blows (no camera move for the ore). Mid-storm, the ridge pulses red
+*The gauge drains as the reactor burns, and the commander tops it up from the cells. The storm comes in: the gauge drains
+twice as fast, and no ore has been in sight until now. As the storm starts, the camera shows the wind blowing the sand clear of a seam of ore
+past the reactor, and ore piles show, one after another.*
+
+**KILN:** The wind has blown the sand off something. There seems to have been ore under it. Fuel the reactor with it.
+
+*The commander tops the reactor up with ore from then on. Mid-storm, the ridge pulses red
 twice, and the camera nudges toward it.*
 
 **KILN:** Something on that ridge is sending a signal. I can't read it.

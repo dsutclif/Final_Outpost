@@ -71,27 +71,23 @@ describe("bots on the story rules", () => {
     expect(r.won).toBe(true);
   });
 
-  it("level 1 has two fuel cells on the path, nearer the start than any ore (outpost-ops#125)", () => {
+  it("level 1 has two real fuel cells on the path, nearer the start than any ore (outpost-ops#125)", () => {
     const L = story("story-L001.json");
     const at = (e: Record<string, unknown>) => e["at"] as [number, number];
     const cells = L.entities.filter((e) => /^cell[12]$/.test(String(e["id"])));
-    expect(cells.map((e) => e["type"])).toEqual(["node.fuel_scrap", "node.fuel_scrap"]);
+    expect(cells.map((e) => e["type"])).toEqual(["node.fuel_deposit", "node.fuel_deposit"]);
     const start = L["start"] as [number, number];
     const d = (a: [number, number], b: [number, number]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-    const ore = L.entities.filter((e) => e["type"] === "node.fuel_scrap" && !cells.includes(e));
+    const ore = L.entities.filter((e) => e["type"] === "node.fuel_scrap");
     for (const c of cells) for (const o of ore) expect(d(at(c), start)).toBeLessThan(d(at(o), start));
   });
 
-  it("level 1: all ore is buried until the gust, the storm uncovers piles nearer the reactor, and the bot still wins (outpost-ops#125)", () => {
+  it("level 1: all ore stays buried until the storm, the cells are in the open, and the bot still wins (outpost-ops#290)", () => {
     const L = story("story-L001.json");
-    const at = (e: Record<string, unknown>) => e["at"] as [number, number];
-    const core = at(L.entities.find((e) => e["id"] === "core")!);
     const ore = L.entities.filter((e) => /^ore\d+$/.test(String(e["id"])));
-    expect(ore.every((e) => typeof e["hiddenUntil"] === "string")).toBe(true);
+    expect(ore.length).toBeGreaterThan(0);
+    expect(ore.every((e) => e["hiddenUntil"] === "@storm")).toBe(true);
     expect(L.entities.filter((e) => /^cell[12]$/.test(String(e["id"]))).every((e) => e["hiddenUntil"] === undefined)).toBe(true);
-    const d = (e: Ent) => Math.hypot(at(e)[0] - core[0], at(e)[1] - core[1]);
-    const nearest = (h: string) => Math.min(...ore.filter((e) => String(e["hiddenUntil"]).startsWith(h === "gust" ? "@lit" : "@storm")).map(d));
-    expect(nearest("storm")).toBeLessThan(nearest("gust"));
     const r = playBot(Manifest.parse(L), good, 1);
     expect({ won: r.won, stalls: r.stalls }).toEqual({ won: true, stalls: 0 });
   });

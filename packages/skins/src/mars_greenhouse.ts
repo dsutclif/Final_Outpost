@@ -612,9 +612,9 @@ export const marsGreenhouse: Skin = {
     },
     moduleTips: {
       carry: "You carry what you gather on your back. Each kind stacks up to a limit.",
-      gather: "Stand next to ore piles and grow domes to gather from them.",
+      gather: "Stand next to ore or crops to gather from them.",
       core: "Feed ore to the reactor. If it runs dry, the colony starts to freeze.",
-      sales: "Stock the kiosk, then stand on the clerk pad beside it so traders pay. Scoop up the credits pile.",
+      sales: "Stock the shelf, then stand on the clerk pad beside it so traders pay. Scoop up the credits pile.",
       workers: "Stand on a Hire pad to put a free colonist to work. They gather and deliver on their own.",
       source_gating: "Some grow domes start locked. Unlock them with credits on their pad.",
       build_pads: "Stand on a pad to pour credits into it. It builds the moment it is full.",
@@ -637,7 +637,7 @@ export const marsGreenhouse: Skin = {
     // KILN is the ship's AI, powered by the reactor. Reviewed for voice, world and first read (docs/mockups/goal-voices.html).
     kilnTips: {
       core: "Carry ore to the reactor to keep the colony warm. If the reactor runs out of fuel, the colony starts to freeze and I lose power.",
-      sales: "Put goods on the kiosk shelf, then stand on the clerk pad while traders wait. Pick up the credits they leave.",
+      sales: "Put goods on the shelf, then stand on the clerk pad while traders wait. Pick up the credits they leave.",
       workers: "Stand on a Hire pad with enough credits to hire a colonist. The colonist will then do that job for you.",
       source_gating: "This {source} is locked. Stand on its pad with enough credits to unlock it.",
       build_pads: "Stand on a build pad with your credits until the pad is full, and then it builds.",
@@ -657,7 +657,7 @@ export const marsGreenhouse: Skin = {
       supply_routing: "Build a warehouse and hire couriers. They will carry goods between sites for you.",
       conveyors: "Build a conveyor on its pad, and it will carry goods along its belt to the next building without you.",
       carry: "Whatever you gather goes on your back, and each kind stacks up to a limit. Deliver it before you go back for more.",
-      gather: "Stand next to an ore pile or a grow dome to gather from it.",
+      gather: "Stand next to ore or crops to gather from them.",
     },
     plurals: { "res.food_prepared": "meals", "struct.housing": "hab pods", "node.food_source": "grow domes", "node.material_source": "ore piles" },
     coach: {
@@ -921,13 +921,14 @@ export const marsGreenhouse: Skin = {
             { line: "Your stasis pod, bay nine, finally opened. I kept that beacon lit on the last of my battery.", who: "kiln" },
             { line: "Then who put the reactor out here?", who: "commander" },
             { line: "I have no record. My logs stop at the crash.", who: "kiln" },
-          ] },
-          // a gust runs ahead of the storm and strips the sand off a seam of ore just past the reactor (outpost-ops#125):
-          // the ore is buried (hiddenUntil gust1/gust2) until a second after the reactor lights
-          { id: "gust", on: { event: "node_revealed" }, do: [
-            { camera: { to: { entity: "ore16" }, pan: 0.5, hold: 0.8, back: 0.4, zoom: 0.8 } },
-            { line: "Those cells won't last the night. The wind just uncovered ore, and ore burns. Fill the reactor before it dies, and me with it.", who: "kiln" },
+            { line: "Those cells won't last the night. Fill the reactor before it dies, and me with it.", who: "kiln" },
             { goal: "fill" },
+          ] },
+          // the storm's wind blows the sand off a seam of ore past the reactor (outpost-ops#290): every ore pile is buried
+          // (hiddenUntil @storm) until the storm starts. The camera shows the sand blowing clear, then KILN says what it saw
+          { id: "gust", on: { event: "node_revealed" }, do: [
+            { camera: { to: { entity: "ore22" }, pan: 0.5, hold: 1.2, back: 0.4, zoom: 0.8 } },
+            { line: "The wind has blown the sand off something. There seems to have been ore under it. Fuel the reactor with it.", who: "kiln" },
           ] },
           { on: { goal: "fill", is: "done" }, do: [
             { line: "Thank you. Four pods by the wreck are still sealed: bays five to eight.", who: "kiln", head: "K.I.L.N. · REACTOR ONLINE · DAY 1" },
