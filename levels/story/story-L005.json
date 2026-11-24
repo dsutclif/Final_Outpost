@@ -583,8 +583,8 @@
    "type": "pad.build",
    "id": "turret1",
    "at": [
-    772,
-    662
+    800,
+    647
    ],
    "cost": {
     "res.salvage": 8
@@ -599,8 +599,8 @@
    "type": "pad.hire",
    "id": "train",
    "at": [
-    625,
-    655
+    555,
+    840
    ],
    "cost": {
     "res.salvage": 5
