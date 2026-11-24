@@ -55,14 +55,28 @@ if (existsSync(RUNS_FILE)) for (const l of readFileSync(RUNS_FILE, "utf8").split
 
 const profileFor = (s: SimStrategy) => { if (s !== "fastest") return strategyProfile(s as Strategy); const { judgment: _j, ...rest } = LADDER[0]!; return { ...rest, name: "good:fastest" }; };
 
-type Played = Pick<RunLine, "won" | "reason" | "held" | "margin" | "baseLeft" | "leaks" | "baseHp" | "purchases" | "salvageEarned" | "salvageSpent" | "fuelFed" | "ticks">;
+type Played = Pick<RunLine, "won" | "reason" | "held" | "margin" | "baseLeft" | "leaks" | "baseHp" | "purchases" | "salvageEarned" | "salvageSpent" | "fuelFed" | "ticks" | "combat">;
 function play(manifest: Record<string, any>, s: SimStrategy, seed: number): Played {
   const purchases: { tick: number; what: string }[] = [];
   let fuelFed = 0, baseEnd = 1;
+  // #350 F2 terms: kills by source, attacker hits by target, downs, gate crowding, attackers left at the end
+  const cb: NonNullable<RunLine["combat"]> = { kills: {}, hits: {}, guardDowns: 0, cmdDowns: 0, gateQueueMax: 0, gateQueueSec: 0, leftAlive: 0, endSec: 0 };
+  // #350 F1: the clock is pushed past the level budget so a fight can finish (300 s after the last spawn); a run still ended by the clock is unresolved, not held
+  const ws = (manifest["waves"] ?? []) as any[];
+  const lastSpawn = Math.max(0, ...ws.map((w) => Number(w.t) + Object.values(w.counts as Record<string, number>).reduce((a, b) => a + b, 0) * Number(w.gap ?? 0.5)));
+  const budget = Number(manifest["params"]?.["level.budgetSeconds"] ?? 0);
   const r = playBot(manifest, profileFor(s), seed, {
-    content,
+    content, timeBudgetSeconds: Math.max(budget, lastSpawn + 300),
     onTick: (st, _b, ev) => {
+      let q = 0;
+      for (const h of (st as any).hostiles as any[]) if (h.target === "barrier") q++;
+      cb.gateQueueMax = Math.max(cb.gateQueueMax, q); if (q > 2) cb.gateQueueSec += 1 / 30;
+      cb.leftAlive = ((st as any).hostiles as any[]).length; cb.endSec = st.tick / 30;
       for (const e of ev as any[]) {
+        if (e.t === "died" && String(e.kind).startsWith("hostile")) cb.kills[e.by ?? "?"] = (cb.kills[e.by ?? "?"] ?? 0) + 1;
+        else if (e.t === "hit" && e.by === "hostile") cb.hits[e.target] = (cb.hits[e.target] ?? 0) + 1;
+        else if (e.t === "guard_down") cb.guardDowns++;
+        else if (e.t === "downed") cb.cmdDowns++;
         if (e.t === "built") purchases.push({ tick: st.tick, what: String(e.build) });
         else if (e.t === "hired") purchases.push({ tick: st.tick, what: "guard" });
         else if (e.t === "deposited" && e.to === "sink.core" && e.by === undefined) fuelFed++;
@@ -73,7 +87,7 @@ function play(manifest: Record<string, any>, s: SimStrategy, seed: number): Play
   const d = r.defend;
   return {
     won: r.won, reason: r.reason, held: r.won, margin: r.margin, baseLeft: baseEnd,
-    leaks: d?.leaks ?? [], baseHp: d?.baseHp ?? [], purchases, salvageEarned: d?.salvageEarned ?? 0, salvageSpent: d?.salvageSpent ?? 0, fuelFed, ticks: r.ticks,
+    combat: cb, leaks: d?.leaks ?? [], baseHp: d?.baseHp ?? [], purchases, salvageEarned: d?.salvageEarned ?? 0, salvageSpent: d?.salvageSpent ?? 0, fuelFed, ticks: r.ticks,
   };
 }
 
@@ -116,6 +130,7 @@ async function cell(level: string, variant: Variant, strategy: SimStrategy, wave
   const est = lo && hi ? Math.sqrt(lo.m * hi.m) : lo ? lo.m : hi ? hi.m / 1.5 : 1;
   const cl: CellLine = { kind: "cell", ts: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, level, variant, strategy, seed, wave, lo: lo?.m ?? 0, hi: hi?.m ?? null, runs, prior, est };
   appendFileSync(RUNS_FILE, JSON.stringify(cl) + "\n");
+  console.log(`${cl.ts} cell ${level} ${variant} ${strategy} wave ${wave} seed ${seed}: lo ${cl.lo.toFixed(2)} hi ${cl.hi?.toFixed(2) ?? "none"} (${runs} runs)`);
   done.add(`${level}|${variant}|${strategy}|${wave}|${seed}`);
   lastMult.set(ck, est);
   estOf.set(`${ck}|${seed}`, est);

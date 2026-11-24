@@ -6,7 +6,7 @@ import { applyDefendS1 } from "../packages/generator/src/defendS1.js";
 import type { ModelStrategy } from "../packages/bots/src/index.js";
 
 // Shared by tools/defend-collect.ts and tools/defend-fit.ts (outpost-ops#273, defend model refit).
-export const DATA_DIR = process.env["DEFEND_DATA_DIR"] ?? "C:/Users/dougl/OneDrive - Module12 LLC/Desktop/Projects/Mobile game/fo-preserved-data/2026-11-20/defend-model";
+export const DATA_DIR = process.env["DEFEND_DATA_DIR"] ?? "C:/Users/dougl/OneDrive - Module12 LLC/Desktop/Projects/Mobile game/fo-preserved-data/2026-11-24/defend-model";
 export const RUNS_FILE = `${DATA_DIR}/runs.jsonl`;
 export const STATE_FILE = `${DATA_DIR}/state.json`;
 
@@ -55,6 +55,8 @@ export interface RunLine {
   kind: "run"; ts: string; engine: string; content: string; level: string; variant: Variant; strategy: SimStrategy; seed: number;
   wave: number; mult: number[]; won: boolean; reason: string; held: boolean; margin: number; baseLeft: number;
   leaks: number[]; baseHp: number[]; purchases: { tick: number; what: string }[]; salvageEarned: number; salvageSpent: number; fuelFed: number; ticks: number;
+  /** #350 F2 (runs from 2026-11-24): kills by source (structure/resident/player/troop), attacker hits by target (resident = guard, troop, player, barrier, base), guard and commander downs, the most bodies queued at a gate and seconds with more than gateHitters there, attackers alive and seconds at the end. */
+  combat?: { kills: Record<string, number>; hits: Record<string, number>; guardDowns: number; cmdDowns: number; gateQueueMax: number; gateQueueSec: number; leftAlive: number; endSec: number };
 }
 /** A finished search for one (level, variant, strategy, wave, seed): the bracket of the breaking multiplier. */
 export interface CellLine { kind: "cell"; ts: string; engine: string; content: string; level: string; variant: Variant; strategy: SimStrategy; seed: number; wave: number; lo: number; hi: number | null; runs: number; /** Multipliers of the waves before this one (0.9 x this strategy's own limit there, at most 1) and the search's estimate. */ prior: number[]; est: number }

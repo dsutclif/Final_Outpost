@@ -5,7 +5,7 @@
 #   tools/defend-worker.ps1 -Fit       (pnpm defend:refresh) wipe nothing: collect for the new engine, then fit
 param([switch]$Install, [switch]$Stop, [switch]$Fit, [int]$Seeds = 6, [int]$Hours = 72)
 $repo = Split-Path -Parent $PSScriptRoot
-$data = if ($env:DEFEND_DATA_DIR) { $env:DEFEND_DATA_DIR } else { "C:/Users/dougl/OneDrive - Module12 LLC/Desktop/Projects/Mobile game/fo-preserved-data/2026-11-20/defend-model" }
+$data = if ($env:DEFEND_DATA_DIR) { $env:DEFEND_DATA_DIR } else { "C:/Users/dougl/OneDrive - Module12 LLC/Desktop/Projects/Mobile game/fo-preserved-data/2026-11-24/defend-model" }
 $lock = Join-Path $data "worker.pid"
 New-Item -ItemType Directory -Force $data | Out-Null
 if ($Stop) {
@@ -26,10 +26,28 @@ if ((Test-Path $lock) -and -not $Fit) { $old = [int](Get-Content $lock); if (Get
 if (-not $Fit) { Set-Content $lock $PID }
 $log = Join-Path $data "worker.log"
 Set-Location $repo
-$proc = Start-Process -FilePath "pnpm.cmd" -ArgumentList @("exec","vite-node","tools/defend-collect.ts","--","--seeds",$Seeds,"--hours",$Hours) -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError "$log.err"
-try { $proc.PriorityClass = "Idle" } catch {}
-$proc.WaitForExit()
-Get-CimInstance Win32_Process | Where-Object { $_.Name -eq "node.exe" -and $_.CommandLine -match "defend-collect" } | ForEach-Object { try { (Get-Process -Id $_.ProcessId).PriorityClass = "Idle" } catch {} }
+# #350: every start, exit and restart goes to worker-events.log; the collect prints one line per finished cell to worker-<n>.log.
+# A collect that exits without reaching its stop target (crash, killed) is restarted after 60 s, up to 50 times.
+$events = Join-Path $data "worker-events.log"
+function Write-Event([string]$m) { Add-Content -Path $events -Value "$((Get-Date).ToString("o")) $m" }
+Write-Event "worker start pid $PID seeds $Seeds hours $Hours data $data"
+$try = 0
+while ($true) {
+  $log = Join-Path $data "worker-$try.log"
+  $proc = Start-Process -FilePath "pnpm.cmd" -ArgumentList @("exec","vite-node","tools/defend-collect.ts","--","--seeds",$Seeds,"--hours",$Hours) -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError "$log.err"
+  try { $proc.PriorityClass = "Idle" } catch {}
+  Write-Event "collect start try $try pid $($proc.Id)"
+  # the node child does the work: keep it at idle priority (it also lowers itself)
+  for ($k = 0; $k -lt 12 -and -not $proc.HasExited; $k++) { Start-Sleep 5; Get-CimInstance Win32_Process | Where-Object { $_.Name -eq "node.exe" -and $_.CommandLine -match "defend-collect" } | ForEach-Object { try { (Get-Process -Id $_.ProcessId).PriorityClass = "Idle" } catch {} } }
+  $proc.WaitForExit()
+  $out = if (Test-Path $log) { (Get-Content $log -Tail 3 -ErrorAction SilentlyContinue) -join " | " } else { "" }
+  $err = if (Test-Path "$log.err") { (Get-Content "$log.err" -Tail 5 -ErrorAction SilentlyContinue) -join " | " } else { "" }
+  Write-Event "collect exit try $try code $($proc.ExitCode) last: $out err: $err"
+  if ((Test-Path (Join-Path $data "COMPLETE")) -or $out -match "stop target reached|sample target reached") { Write-Event "collect finished"; break }
+  $try++
+  if ($try -ge 50) { Write-Event "giving up after 50 restarts"; break }
+  Start-Sleep 60
+}
 # the collect ends on its stop target (deadline or sample target); fit whatever is there, then leave a marker
 & pnpm.cmd exec vite-node tools/defend-fit.ts -- *>> (Join-Path $data "fit.log")
 Set-Content (Join-Path $data "FIT-DONE") (Get-Date).ToString("o")
