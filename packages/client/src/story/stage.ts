@@ -129,6 +129,7 @@ export class StoryStage {
       }
     }
     p.talking = this.director.lineUp;
+    p.kioskLit = w.kioskLit;
     this.speaker(w, st, viewW, viewH);
     this.director.view.frame?.(now);
   }

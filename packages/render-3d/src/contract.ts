@@ -145,6 +145,8 @@ export interface StoryPresentation {
   actorAt(key: string): { x: number; z: number } | null;
   /** Set while a story line is on screen: staged walkers stand still in idle until it ends. */
   talking: boolean;
+  /** False keeps the kiosk's clerk decal, shelf crates and coin pile undrawn (story: dark until its lights come on). */
+  kioskLit: boolean;
   /** Draw customer `id` with another character model (a named trader, e.g. Sela); loads it on first use. */
   customerModel(id: number, model: string): void;
   /** Draw hostiles of `kind` that broke off (bossRetreat) with another character model; loads it on first use. */

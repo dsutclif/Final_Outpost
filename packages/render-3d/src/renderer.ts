@@ -169,6 +169,7 @@ const NO_STORY: StoryPresentation = {
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
   talking: false,
+  kioskLit: true,
 };
 /** Highest a big pad's floating name and price sit (art metres), whatever its blueprint's height. */
 const BIG_LABEL_LIFT = 3.2;
@@ -1763,18 +1764,20 @@ export class Renderer3D implements Renderer {
       this.dynamic.add(regDecal);
       reg.extra[0] = regDecal;
     }
+    // story: the kiosk stays dark (no coin decal, crates, chips or pile) until a cue lights it
+    const lit = this.storyP?.kioskLit !== false;
     const regLight = this.padMarkLight();
     const rdm = this.labels.meshMaterial(`clerk|${regLight}|${!!this.padIcons?.ready("operate-clerk")}`, () => this.operatePadArt("operate-clerk", regLight));
-    if (rdm) { this.glowFinish(rdm); regDecal.material = rdm; regDecal.visible = true; this.hideUnderCharacters(rdm); } else regDecal.visible = false;
+    if (rdm && lit) { this.glowFinish(rdm); regDecal.material = rdm; regDecal.visible = true; this.hideUnderCharacters(rdm); } else regDecal.visible = false;
     const regAt = this.wv(sales.register);
     regDecal.position.set(regAt.x, 2.4, regAt.z);
     regDecal.scale.setScalar(0.75 * reg.model.root.scale.x);
-    this.shelfCrates(sales, kiosk);
+    if (lit) this.shelfCrates(sales, kiosk);
     // the currency pile by the clerk pad
     const items = this.items!;
     const pile = this.wv(sales.pile);
     const coin = "res.currency";
-    const pn = Math.min(30, sales.pileN);
+    const pn = lit ? Math.min(30, sales.pileN) : 0;
     for (let i = 0; i < pn; i++) {
       const col = i % 3, row = Math.floor(i / 3);
       items.add(coin, pile.x + (col - 1) * 8 + (row % 2) * 2, row * items.height(coin), pile.z + ((col * 7) % 3) * 2, row * 0.7);
