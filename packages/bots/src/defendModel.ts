@@ -37,6 +37,12 @@ export interface DefendFit {
   leakH: number;
   /** Residual correction on the model's breaking multiplier: sim = exp(b) * model^a. */
   residual: { a: number; b: number };
+  /** Share of an attacker's shots and lunges that land on a settler (guard, drone, commander) while it is in reach (#350 F2; default 0.5). */
+  exposure?: number;
+  /** Share of kill drops picked up while attackers are still on the field; the rest wait until the field is clear (#350 F2: the bots fight, then collect; default 0). */
+  fightPickup?: number;
+  /** Seconds a downed guard is out before the commander has it back up (fall + heal + walk; default 6). */
+  reviveDelay?: number;
 }
 
 export interface FitFile extends DefendFit { engine: string; content: string; fittedOn?: string; note?: string }
@@ -46,10 +52,15 @@ export const DEFEND_FIT: DefendFit = fitJson as DefendFit;
 
 type Json = Record<string, any>;
 interface Buy { id: string; cost: number; dps: number; kind: "tower" | "guard"; tower?: number; tier?: number; wave: number }
-interface Body { hp: number; enter: number; speed: number; dmg: number; drop: number; contactAt: number }
+/** An attacker kind's attacks (enemies.json): ranged shot and lunge, damage and seconds between two. */
+interface Attack { dmg: number; every: number }
+interface InBody { hp: number; speed: number; dmg: number; drop: number; shot?: Attack | null; lunge?: Attack | null }
+interface Body extends InBody { enter: number; contactAt: number }
+/** One kind of defender swing: damage per swing and seconds between swings (one swing hits one body; overkill is lost). */
+interface Swing { dmg: number; every: number }
 
 export interface DefendInput {
-  waves: { t: number; gap: number; side: string; bodies: { hp: number; speed: number; dmg: number; drop: number }[] }[];
+  waves: { t: number; gap: number; side: string; bodies: InBody[] }[];
   buys: Buy[];
   /** Guard price list entry (repeatable). */
   guard: { cost: number; growth: number; dps: number } | null;
@@ -76,6 +87,11 @@ export interface DefendInput {
   overlapMin: number;
   /** The barracks Lv2 pad (S0 "drones"): price and the troops it trains (one per `every` s, up to `max`, `dps` each). */
   drone: { id: string; cost: number; every: number; max: number; dps: number } | null;
+  /** Per-body combat (#350 F2), all from content: each defender's swing, the people's health and downs, the gate rules. */
+  combat: {
+    tower: Swing; guard: Swing & { hp: number; downAt: number }; player: Swing & { hp: number; down: number; healDelay: number; healEvery: number };
+    troop: Swing & { hp: number }; gateHitters: number; barrierDamage: number; baseDamage: number; healSeconds: number;
+  };
 }
 
 /** The fixed defence strategies the generator probes (spec section 2): the order the model buys in. */
@@ -140,11 +156,14 @@ export function defendInput(m: Manifest, c: Content, coinRate = 0): DefendInput 
     }
   }
   const waves = ((mm["waves"] ?? []) as Json[]).map((w) => ({
-    t: Number(w["t"]), gap: Number(w["gap"] ?? 0.5), side: String(w["side"] ?? "n"),
+    t: Number(w["t"]), gap: Number(w["gap"] ?? 0.5), side: Array.isArray(w["side"]) ? (w["side"] as string[]).join(",") : String(w["side"] ?? "n"),
     bodies: Object.entries(w["counts"] as Record<string, number>).flatMap(([k, n]) => {
       const h = c.hostiles[k] as Json;
       const drop = Number(h["drops"]?.["res.salvage"] ?? 0); // a kind with no salvage drop is a real zero
-      return Array.from({ length: n }, () => ({ hp: need(h["hp"], k + ".hp"), speed: need(h["speed"], "hostile.speed"), dmg: Number(h["damage"] ?? D("defense.baseDamage")), drop }));
+      const dmg = Number(h["damage"] ?? D("defense.baseDamage"));
+      const shot = h["shot"] ? { dmg: need(h["shot"].damage, k + ".shot.damage"), every: need(h["shot"].interval, k + ".shot.interval") } : null;
+      const lunge = h["lunge"] ? { dmg, every: need(h["lunge"].cooldown, k + ".lunge.cooldown") + Number(h["lunge"].windup ?? 0) } : null;
+      return Array.from({ length: n }, () => ({ hp: need(h["hp"], k + ".hp"), speed: need(h["speed"], "hostile.speed"), dmg, drop, shot, lunge }));
     }),
   }));
   const pr = D("player.rangedInterval");
@@ -162,10 +181,25 @@ export function defendInput(m: Manifest, c: Content, coinRate = 0): DefendInput 
     burn: D("core.burn"), fuelRate: need((c.nodes?.["node.fuel_scrap"] as Json | undefined)?.["rate"], "node.fuel_scrap.rate"),
     laneLen: Object.keys(laneLen).length ? laneLen : { n: need(coreAt?.[1], "core.at") },
     playerDps: 1 / pr, maxLive: Math.max(1, D("defense.maxLive")), overlapMin: D("defense.overlapMin"), drone,
+    combat: {
+      tower: { dmg: need((c.structures["struct.ranged_defense"] as Json | undefined)?.["damage"], "struct.ranged_defense.damage"), every: 1 },
+      guard: {
+        dmg: need(hunt?.["damage"], "role.defender.damage"), every: need(hunt?.["attackInterval"], "role.defender.attackInterval"),
+        hp: need(hunt?.["hp"], "role.defender.hp"), downAt: D("guards.downPct") / 100,
+      },
+      player: { dmg: D("player.attackDamage"), every: pr, hp: D("player.hp"), down: D("player.downSeconds"), healDelay: D("player.healDelay"), healEvery: D("player.healInterval") },
+      troop: (() => { const tr = (c.structures["struct.barracks"] as Json | undefined)?.["troops"] as Json | undefined; return { dmg: need(tr?.["damage"], "barracks.troops.damage"), every: need(tr?.["attackInterval"], "barracks.troops.attackInterval"), hp: need(tr?.["hp"], "barracks.troops.hp") }; })(),
+      gateHitters: D("defense.gateHitters"), barrierDamage: D("defense.barrierDamage"), baseDamage: D("defense.baseDamage"), healSeconds: D("guards.commanderHealSeconds"),
+    },
   };
 }
 
-export interface DefendResult { rho: number; damage: number; budget: number; perWave: { start: number; leak: number; dps: number }[]; lost: boolean; /** Attacker hit points the defenders dealt, and sent at them in all (breaking-volume probe). */ hpDealt: number; hpTotal: number }
+export interface DefendResult {
+  rho: number; damage: number; budget: number; perWave: { start: number; leak: number; dps: number }[];
+  /** Not held: the base fell, or the fight was still going when the run ended (#350 F1: an unfinished fight is never a hold). */
+  lost: boolean; baseFell: boolean; unresolved: boolean;
+  /** Attacker hit points the defenders dealt, and sent at them in all (breaking-volume probe). */ hpDealt: number; hpTotal: number;
+}
 
 /**
  * rho for one skill rung. `skill` scales eta and presence; everything else is the level's own numbers.
@@ -173,23 +207,40 @@ export interface DefendResult { rho: number; damage: number; budget: number; per
  * barracks; guards_first all guards, towers, barracks; drones_first the first guards, the barracks as soon as it is affordable,
  * guards, towers. Under a strategy the order is strict (an unaffordable better-ranked purchase is waited for). Without a
  * strategy the buy is by dps per scrap, as before.
+ *
+ * Combat is per body (#350 F2): every defender swing hits one attacker (the front one in reach on its lane) and overkill is lost,
+ * so a swarm of 1-hp bodies dies at the defenders' swing rate, not their damage rate. Attackers in reach shoot and lunge at the
+ * settlers (guards first, then drones, then the commander): guards go down and come back after fit.reviveDelay, the commander is
+ * downed and stops shooting. Only defense.gateHitters bodies work a gate at once (the rest stack up behind it and shoot at people);
+ * past a fallen gate every body that walks in hits the base. Kill drops lie on the field until the fight there is over.
  */
 export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOrOpts: number | PredictOptions = 0.25): DefendResult {
   const o: PredictOptions = typeof dtOrOpts === "number" ? { dt: dtOrOpts } : dtOrOpts;
   const dt = o.dt ?? 0.25, strategy = o.strategy, eta = o.eta ?? fit.eta;
+  const C = inp.combat;
+  const exposure = fit.exposure ?? 0.5, fightPickup = fit.fightPickup ?? 0, reviveDelay = fit.reviveDelay ?? 6;
   const sides = [...new Set(inp.waves.map((w) => w.side))];
-  const lanes = Math.max(1, sides.length);
-  const budget = inp.gateHp + inp.baseHp;
-  let scrap = inp.start, t = 0, damage = 0, gate = inp.gateHp, base = inp.baseHp, hpDealt = 0, hpTotal = 0;
+  const laneIds = sides.length ? sides : ["n"];
+  const gateOf: Record<string, number> = {};
+  for (const s of laneIds) gateOf[s] = inp.gateHp;
+  const budget = inp.gateHp * laneIds.length + inp.baseHp;
+  let scrap = inp.start, t = 0, damage = 0, base = inp.baseHp, hpDealt = 0, hpTotal = 0;
   const bought = new Set<number>();
   let towersDps = 0, guards = 0, waveIdx = 0, active = false, quietUntil = 0, lastStart = -1e9, droneAt = -1;
-  const pending: (Body & { at: number; lane: string; w: number })[] = [];
-  const live: (Body & { lane: string; w: number })[] = [];
+  type LiveBody = Body & { lane: string; w: number };
+  const pending: (LiveBody & { at: number })[] = [];
+  let live: LiveBody[] = [];
   const perWave: DefendResult["perWave"] = [];
   const towerOwned = new Set<number>();
   const FIRST = fit.firstGuards;
+  // people: guards up (their hp), guards down (back at), drones (their hp), the commander
+  const guardHp: number[] = [];
+  const guardBack: number[] = [];
+  const troopHp: number[] = [];
+  let troopsTrained = 0, cmdHp = C.player.hp, cmdDownUntil = -1, cmdLastHit = -1e9, cmdHealAcc = 0, cmdBusyUntil = -1;
   // scrap income not yet in the wallet: kill drops (walk + pickup delay) and the map scrap piles (walked to one after another)
   const incoming: { at: number; n: number }[] = [];
+  let onField = 0; // kill drops lying on the field until the fight there is over
   const dropWalk = Math.max(0, fit.reach - inp.pickupRange) / inp.speed;
   const dropDelay = fit.pickupDelay + fit.walkShare * dropWalk;
   let pileAt = o.from ? o.from.t : 0;
@@ -197,7 +248,7 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
   // the commander's time core feeding takes (burn rate over gather rate), off shooting
   const feed = Math.min(1, inp.burn > 0 ? 1 / inp.burn / inp.fuelRate : 0) * fit.feedWeight;
   const presence = fit.presence * (1 - feed);
-  const droneDps = (): number => (droneAt < 0 || !inp.drone ? 0 : Math.min(inp.drone.max, Math.floor((t - droneAt) / inp.drone.every)) * inp.drone.dps);
+  const droneDps = (): number => (droneAt < 0 || !inp.drone ? 0 : troopHp.length * inp.drone.dps);
   // rank of a purchase class under the strategy (lower buys first); the default has no ranks
   const rank = (cls: "tower" | "guard" | "drone"): number => {
     if (!strategy) return 0;
@@ -206,6 +257,7 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
       : strategy === "guards_first" ? (cls === "guard" ? 1 : cls === "tower" ? 2 : 3)
       : cls === "drone" ? 1 : cls === "guard" ? 2 : 3;
   };
+  const addGuard = () => { guards++; guardHp.push(C.guard.hp); };
   const buyNext = () => {
     for (;;) {
       let best = -1, be = 0, bg = false, br = Infinity, bd = false, blocked = Infinity;
@@ -227,33 +279,79 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
       }
       if (best === -1 || (strategy && blocked < br)) return;
       if (bd) { scrap -= inp.drone!.cost; droneAt = t; }
-      else if (bg) { scrap -= Math.ceil(inp.guard!.cost * inp.guard!.growth ** guards); guards++; towersDps += inp.guard!.dps; }
+      else if (bg) { scrap -= Math.ceil(inp.guard!.cost * inp.guard!.growth ** guards); addGuard(); }
       else { const b = inp.buys[best]!; scrap -= b.cost; bought.add(best); towersDps += b.dps; if (b.tier === 1) towerOwned.add(b.tower!); }
     }
   };
-  let stopAt = Infinity;
+  let stopAt = inp.waves.length;
   if (o.from) {
     const f = o.from;
-    t = f.t; scrap = f.scrap; waveIdx = f.waveIdx; guards = f.guards; towersDps += guards * (inp.guard?.dps ?? 0);
+    t = f.t; scrap = f.scrap; waveIdx = f.waveIdx;
+    for (let i = 0; i < f.guards; i++) addGuard();
     inp.buys.forEach((b, i) => { if (f.bought.has(b.id)) { bought.add(i); towersDps += b.dps; if (b.tier === 1) towerOwned.add(b.tower!); } });
     if (f.drone && inp.drone) droneAt = t;
-    if (f.waves !== undefined) stopAt = f.waveIdx + f.waves;
+    if (f.waves !== undefined) stopAt = Math.min(stopAt, f.waveIdx + f.waves);
   }
-  // the run ends 600 s after the last wave starts, longer when scaled-up waves are still spawning then (breaking-volume probes)
+  // #350 F1: the run goes on until the fight is over (600 s after the last wave's last spawn at most), even past the level's clock;
+  // a fight still going at the end is not a hold
   const spawnSpan = Math.max(0, ...inp.waves.map((w, i) => w.bodies.length * (o.volumes?.[i] ?? o.volume ?? 1) * w.gap));
-  const horizon = Math.min((inp.waves.at(-1)?.t ?? 0) + 600 + spawnSpan + t, inp.endAt);
-  let lost = false;
+  const lastWaveT = Math.max(0, ...inp.waves.slice(0, stopAt).map((w) => w.t));
+  const horizon = Math.max(lastWaveT + 600 + spawnSpan + t, Number.isFinite(inp.endAt) ? inp.endAt : 0);
+  let baseFell = false, finished = false, killed = false;
   const liveWaves = new Set<number>();
-  for (; t < horizon && !lost; t += dt) {
+  const swingAcc = new Map<string, number>();
+  // one group's swings on one lane this step: each whole swing hits the front body in reach (overkill is lost)
+  type Front = { list: LiveBody[]; i: number };
+  const swing = (key: string, rate: number, dmg: number, f: Front): void => {
+    let acc = (swingAcc.get(key) ?? 0) + rate * dt;
+    while (acc >= 1 && f.i < f.list.length) {
+      const b = f.list[f.i]!;
+      hpDealt += Math.min(dmg, b.hp);
+      b.hp -= dmg; acc -= 1;
+      if (b.hp <= 1e-9) {
+        f.i++; killed = true;
+        if (fightPickup > 0) incoming.push({ at: t + dropDelay, n: b.drop * fightPickup });
+        onField += b.drop * (1 - fightPickup);
+      }
+    }
+    swingAcc.set(key, f.i < f.list.length ? acc : Math.min(acc, 1));
+  };
+  // harm to the settlers: guards first (one at a time, down at guards.downPct), then drones, then the commander
+  const harmPeople = (h: number): void => {
+    while (h > 1e-9 && guardHp.length) {
+      const downAt = C.guard.hp * C.guard.downAt, take = Math.min(h, guardHp[0]! - downAt);
+      guardHp[0] = guardHp[0]! - take; h -= take;
+      if (guardHp[0]! <= downAt + 1e-9) { guardHp.shift(); guardBack.push(t + reviveDelay); }
+    }
+    while (h > 1e-9 && troopHp.length) {
+      const take = Math.min(h, troopHp[0]!);
+      troopHp[0] = troopHp[0]! - take; h -= take;
+      if (troopHp[0]! <= 1e-9) troopHp.shift();
+    }
+    if (h > 1e-9 && t >= cmdDownUntil) {
+      cmdHp -= h; cmdLastHit = t;
+      if (cmdHp <= 1e-9) { cmdHp = C.player.hp; cmdDownUntil = t + C.player.down; }
+    }
+  };
+  for (; t < horizon; t += dt) {
     for (let i = incoming.length - 1; i >= 0; i--) if (t >= incoming[i]!.at) { scrap += incoming[i]!.n; incoming.splice(i, 1); }
     buyNext();
+    // people coming back: revived guards (the commander spends the heal on it), drones trained, the commander's health
+    for (let i = guardBack.length - 1; i >= 0; i--) if (t >= guardBack[i]!) { guardBack.splice(i, 1); guardHp.push(C.guard.hp); cmdBusyUntil = Math.max(cmdBusyUntil, t) + C.healSeconds; }
+    if (droneAt >= 0 && inp.drone) {
+      const due = Math.floor((t - droneAt) / inp.drone.every);
+      while (troopsTrained < due) { troopsTrained++; if (troopHp.length < inp.drone.max) troopHp.push(C.troop.hp); }
+    }
+    if (t >= cmdLastHit + C.player.healDelay && cmdHp < C.player.hp) { cmdHealAcc += dt; while (cmdHealAcc >= C.player.healEvery) { cmdHealAcc -= C.player.healEvery; cmdHp = Math.min(C.player.hp, cmdHp + 1); } }
     const w = inp.waves[waveIdx];
     // one wave at a time (maxLive 1, today's rule), or another while fewer than maxLive are on the field, overlapMin after the last start
     const startOk = inp.maxLive > 1 && liveWaves.size > 0 ? liveWaves.size < inp.maxLive && t >= lastStart + inp.overlapMin : !active && t >= quietUntil;
-    if (w && t >= w.t && startOk) {
+    if (w && waveIdx < stopAt && t >= w.t && startOk) {
       active = true; waveIdx++; lastStart = t; liveWaves.add(waveIdx);
-      perWave.push({ start: t, leak: 0, dps: (towersDps * eta + droneDps()) * skill });
-      const walkLen = inp.laneLen[w.side] ?? 600;
+      perWave.push({ start: t, leak: 0, dps: (towersDps * eta + guardHp.length * (inp.guard?.dps ?? 0) * eta + inp.playerDps * presence) * skill + droneDps() });
+      // a random-side wave (S2: "s,e") walks the mean of its sides' lanes
+      const opts = w.side.split(",").map((x) => inp.laneLen[x]).filter((x): x is number => x !== undefined);
+      const walkLen = opts.length ? opts.reduce((a, b) => a + b, 0) / opts.length : 600;
       const vol = o.volumes?.[waveIdx - 1] ?? o.volume ?? 1;
       // volume probe: vol sends floor(vol) copies of every body, plus one more for the fraction of them (evenly spread)
       let k = 0, carry = 0;
@@ -269,33 +367,56 @@ export function predictRho(inp: DefendInput, fit: DefendFit, skill: number, dtOr
       }
     }
     for (let i = pending.length - 1; i >= 0; i--) if (t >= pending[i]!.at) { live.push(pending[i]!); pending.splice(i, 1); }
-    // defender damage this step, spread over the lanes; first in, first killed
-    const dps = ((towersDps * eta + inp.playerDps * presence) * skill + droneDps()) / lanes;
-    for (const lane of sides.length ? sides : ["n"]) {
-      let cap = dps * dt;
-      for (let i = 0; i < live.length && cap > 0; i++) {
-        const b = live[i]!;
-        if (b.lane !== lane || t < b.enter) continue;
-        const take = Math.min(cap, b.hp);
-        b.hp -= take; cap -= take; hpDealt += take;
-        if (b.hp <= 1e-9) { incoming.push({ at: t + dropDelay, n: b.drop }); live.splice(i, 1); i--; }
+    // the bodies in reach, per lane, in arrival order
+    const front: Record<string, Front> = {};
+    for (const b of live) if (t >= b.enter) (front[b.lane] ??= { list: [], i: 0 }).list.push(b);
+    const hot = laneIds.filter((l) => front[l]?.list.length);
+    // the fight is over (nothing on the field, nothing still to spawn): the drops lying there are walked to and picked up
+    if (!live.length && !pending.length && onField > 0) { incoming.push({ at: t + dropDelay, n: onField }); onField = 0; }
+    // defender swings: towers stand on their own lane (split evenly), guards, drones and the commander go where the fight is
+    const cmdUp = t >= cmdDownUntil && t >= cmdBusyUntil;
+    for (const lane of hot) {
+      const f = front[lane]!, share = 1 / hot.length;
+      swing(`t|${lane}`, (towersDps * eta * skill) / C.tower.dmg / laneIds.length, C.tower.dmg, f);
+      swing(`g|${lane}`, (guardHp.length * eta * skill * share) / C.guard.every, C.guard.dmg, f);
+      if (cmdUp) swing(`p|${lane}`, (presence * skill * share) / C.player.every, C.player.dmg, f);
+      swing(`d|${lane}`, (troopHp.length * share) / C.troop.every, C.troop.dmg, f);
+    }
+    if (killed) { live = live.filter((b) => b.hp > 1e-9); killed = false; }
+    // attackers: the first gateHitters at a standing gate work it; every other body in reach shoots / lunges at the settlers;
+    // past a fallen gate (or with no gate) they walk in and hit the base
+    let harm = 0;
+    for (const lane of hot) {
+      const f = front[lane]!;
+      let hitters = 0;
+      for (let j = f.i; j < f.list.length; j++) {
+        const b = f.list[j]!;
+        const shotRate = b.shot ? b.shot.dmg / b.shot.every : 0;
+        const toPeople = (shotRate + (b.lunge ? b.lunge.dmg / b.lunge.every : 0) + (b.shot ? 0 : b.dmg / inp.gateHit)) * exposure;
+        let hit = 0;
+        if (t >= b.contactAt && inp.gateHp > 0 && gateOf[lane]! > 0) {
+          if (hitters < C.gateHitters) {
+            hitters++;
+            hit = Math.min(gateOf[lane]!, (b.shot ? C.barrierDamage * shotRate : (C.barrierDamage * b.dmg) / inp.gateHit) * dt);
+            gateOf[lane] = gateOf[lane]! - hit;
+          } else harm += toPeople * dt;
+        } else if (t >= b.contactAt + (inp.gateHp > 0 ? fit.innerWalk : 0)) {
+          hit = Math.min(base, (b.shot ? C.baseDamage * shotRate : (C.baseDamage * b.dmg) / inp.baseHit) * dt);
+          base -= hit;
+        } else harm += toPeople * dt;
+        if (hit > 0) { damage += hit; const pw = perWave[b.w - 1]; if (pw) pw.leak += hit; }
       }
     }
-    // attackers in contact hit the gate, then the base
-    for (const b of live) {
-      if (t < b.contactAt) continue;
-      let d: number;
-      if (gate > 0) { d = (b.dmg * dt) / inp.gateHit; const hit = Math.min(d, gate); gate -= hit; damage += hit; if (perWave.length) perWave.at(-1)!.leak += hit; }
-      else if (t >= b.contactAt + fit.innerWalk || inp.gateHp === 0) { d = (b.dmg * dt) / inp.baseHit; const hit = Math.min(d, base); base -= hit; damage += hit; if (perWave.length) perWave.at(-1)!.leak += hit; }
-    }
-    if (base <= 1e-9) lost = true;
-    if (waveIdx >= stopAt && !active) break;
+    if (harm > 0) harmPeople(harm);
+    if (base <= 1e-9) { baseFell = true; break; }
     if (inp.maxLive > 1) {
       for (const idx of [...liveWaves]) if (!pending.some((p) => p.w === idx) && !live.some((b) => b.w === idx)) liveWaves.delete(idx);
       if (active && liveWaves.size === 0) { active = false; quietUntil = t + inp.quiet; }
     } else if (active && live.length === 0 && pending.length === 0) { active = false; quietUntil = t + inp.quiet; }
+    if (waveIdx >= stopAt && !active) { finished = true; break; }
   }
-  return { rho: budget > 0 ? damage / budget : 0, damage, budget, perWave, lost, hpDealt, hpTotal };
+  const unresolved = !baseFell && !finished;
+  return { rho: budget > 0 ? damage / budget : 0, damage, budget, perWave, lost: baseFell || unresolved, baseFell, unresolved, hpDealt, hpTotal };
 }
 
 export interface ModelBreak { /** Residual-corrected breaking multiplier (fit.residual); raw is the uncorrected one. */ multiplier: number; raw: number; /** Attacker hp per budget point leaked at the breaking volume (spec 3: h). */ h: number }

@@ -72,7 +72,7 @@ function play(manifest: Record<string, any>, s: SimStrategy, seed: number): Play
   });
   const d = r.defend;
   return {
-    won: r.won, reason: r.reason, held: r.won || r.reason === "budget", margin: r.margin, baseLeft: baseEnd,
+    won: r.won, reason: r.reason, held: r.won, margin: r.margin, baseLeft: baseEnd,
     leaks: d?.leaks ?? [], baseHp: d?.baseHp ?? [], purchases, salvageEarned: d?.salvageEarned ?? 0, salvageSpent: d?.salvageSpent ?? 0, fuelFed, ticks: r.ticks,
   };
 }
