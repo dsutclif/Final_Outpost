@@ -1371,10 +1371,13 @@ export const marsGreenhouse: Skin = {
           ] },
           // scrap on the sand: the socket between the ridge and the first building lights up
           { on: { event: "wave_cleared", match: { idx: 0 } }, do: [
-            { guide: true },
+            // the arrows go to the turret pad, not the default step toward the hab hub (outpost-ops#369)
+            { guide: true, to: { entity: "turret1" } },
             { dots: [{ entity: "turret1" }], period: 2 },
             { line: "Their scrap will build a turret on that socket.", who: "kiln" },
           ] },
+          // turret built: the arrows go back to the default guide, which takes the player to the gate
+          { on: { goal: "turret", is: "done" }, do: [{ guide: true }] },
           // two settlers run up the road to the gate (the arrivals rule; level params gate.initialDelay, gate.spawnOffsetY)
           // they appear only once the turret is built and no raider is alive (arrivals.after in the manifest), so the line
           // plays when they do, not on a timer a slow player could outrun
@@ -1385,10 +1388,13 @@ export const marsGreenhouse: Skin = {
             { line: "Two at the gate. Stand by it to let them in.", who: "kiln" },
             { goal: "arrive" },
           ] },
-          { on: { goal: "arrive", is: "done" }, ordered: true, do: [
+          // train a guard: arrows to the cash pile at the kiosk until the camp holds the guard's price, then to the guard pad (outpost-ops#371)
+          { id: "trainOpen", on: { goal: "arrive", is: "done" }, ordered: true, do: [
+            { guide: true, to: { at: [518, 1154] } },
             { dots: [{ entity: "train" }], period: 2 },
             { line: "Good. Train one as a guard to hold the gate with me.", who: "okafor" },
           ] },
+          { on: { credits: 5, after: "trainOpen" }, do: [{ guide: true, to: { entity: "train" } }] },
           { on: { event: "hired", match: { pad: "train" } }, do: [
             { dotsOff: true },
             { line: "Hold them off until sunrise.", who: "kiln" },
