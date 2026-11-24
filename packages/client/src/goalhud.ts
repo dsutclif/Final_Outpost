@@ -421,8 +421,15 @@ export class GoalHud {
   private first = true;
   private open: number | null = null;
   private tokens: GoalToken[] = [];
+  /** Scrap levels: the carried-scrap chip (shown once any scrap is held) beside the credits chip (shown once any credits are). */
+  private scrapMode = false;
+  private scrapSeen = false;
+  private cashSeen = false;
+  private scrapShown = 0;
+  private scrapTarget = 0;
+  private scrapIcon = "";
 
-  constructor(private readonly el: { heat: HTMLElement; walls: HTMLElement; goals: HTMLElement; cash: HTMLElement; cashN: HTMLElement; bubble: HTMLElement; frost: HTMLElement }) {}
+  constructor(private readonly el: { heat: HTMLElement; walls: HTMLElement; goals: HTMLElement; cash: HTMLElement; cashN: HTMLElement; scrap: HTMLElement; scrapN: HTMLElement; bubble: HTMLElement; frost: HTMLElement }) {}
 
   reset(currency: number, scrap: boolean): void {
     this.el.goals.textContent = "";
@@ -431,17 +438,20 @@ export class GoalHud {
     this.tokens = [];
     this.shown = this.target = currency;
     this.first = true;
-    this.el.cash.classList.toggle("scrap", scrap);
-    // coins: the credit model itself, rendered flat once (public/ui/coin.png); scrap keeps its glyph
-    const cic = this.el.cash.querySelector(".cic")!;
-    if (scrap) cic.innerHTML = tokenSvg({ glyph: "scrap", fill: 1 }, 22);
-    else cic.innerHTML = `<img src="${new URL("ui/coin.png", this.el.cash.ownerDocument.baseURI).href}" alt="" width="26" height="26">`;
+    this.scrapMode = scrap;
+    this.scrapSeen = this.cashSeen = false;
+    this.scrapShown = this.scrapTarget = 0;
+    this.el.scrap.hidden = true;
+    this.el.cash.hidden = scrap && currency <= 0;
+    // coins: the credit model itself, rendered flat once (public/ui/coin.png)
+    this.el.cash.querySelector(".cic")!.innerHTML = `<img src="${new URL("ui/coin.png", this.el.cash.ownerDocument.baseURI).href}" alt="" width="26" height="26">`;
+    this.paintScrapIcon();
     this.closeBubble();
     this.setAlert({ kind: "none" });
   }
 
   /** Paint the rails, the cash count and the goal icons; `slots` limits how many show (the intro reveals them one by one). */
-  render(st: State, m: Manifest, cp: Compiled | null, skin: Skin, cash: number, slots = Infinity, next = -1): GoalToken[] {
+  render(st: State, m: Manifest, cp: Compiled | null, skin: Skin, cash: number, slots = Infinity, next = -1, scrap = -1): GoalToken[] {
     const heat = heatOf(st, cp), walls = wallsOf(st, m);
     const rk = `${q(heat)}|${walls === null ? "-" : q(walls)}`;
     if (rk !== this.railKey) {
@@ -451,6 +461,13 @@ export class GoalHud {
       if (walls !== null) (this.el.walls.firstElementChild as HTMLElement).style.width = `${walls * 100}%`;
     }
     this.target = cash;
+    if (this.scrapMode) {
+      if (cash > 0) this.cashSeen = true;
+      this.el.cash.hidden = !this.cashSeen;
+      this.scrapTarget = Math.max(0, scrap);
+      if (this.scrapTarget > 0 && !this.scrapSeen) { this.scrapSeen = true; this.scrapShown = this.scrapTarget; this.paintScrap(); }
+      this.el.scrap.hidden = !this.scrapSeen;
+    }
     if (this.first) { this.shown = cash; this.first = false; this.paintCash(); }
     const tokens = goalTokens(st, m, cp, skin);
     this.tokens = tokens;
@@ -485,6 +502,12 @@ export class GoalHud {
 
   /** Per frame: count the cash toward its real value. */
   tick(dtSec: number): void {
+    if (this.scrapShown !== this.scrapTarget) {
+      const d = this.scrapTarget - this.scrapShown;
+      // spending drops the count at once; pickups count up one by one as each piece lands
+      this.scrapShown = d < 0 ? this.scrapTarget : this.scrapShown + Math.min(d, Math.max(1, Math.ceil(d * Math.min(1, dtSec * 9))));
+      this.paintScrap();
+    }
     if (this.shown === this.target) return;
     const diff = this.target - this.shown;
     const step = Math.max(1, Math.ceil(Math.abs(diff) * Math.min(1, dtSec * 9)));
@@ -497,9 +520,23 @@ export class GoalHud {
     if (this.el.cashN.textContent !== s) this.el.cashN.textContent = s;
   }
 
-  /** Coins landing: a short pop on the cash count. */
-  pulse(): void {
-    const c = this.el.cash;
+  private paintScrap(): void {
+    const s = String(this.scrapShown);
+    if (this.el.scrapN.textContent !== s) this.el.scrapN.textContent = s;
+  }
+
+  /** The scrap chip's picture: a rendered scrap bale once it is ready, the flat scrap glyph until then. */
+  setScrapIcon(url: string): void { this.scrapIcon = url; this.paintScrapIcon(); }
+
+  private paintScrapIcon(): void {
+    this.el.scrap.querySelector(".cic")!.innerHTML = this.scrapIcon
+      ? `<img src="${this.scrapIcon}" alt="" width="26" height="26">`
+      : tokenSvg({ glyph: "scrap", fill: 1 }, 22);
+  }
+
+  /** Coins (or a piece of scrap) landing: a short pop on that chip's count. */
+  pulse(res?: string): void {
+    const c = res === "res.salvage" ? this.el.scrap : this.el.cash;
     c.classList.remove("pulse"); void c.offsetWidth; c.classList.add("pulse");
   }
 
@@ -510,7 +547,7 @@ export class GoalHud {
   }
 
   /** Where coins fly to. */
-  anchor(): HTMLElement { return this.el.cash; }
+  anchor(res?: string): HTMLElement { return res === "res.salvage" && !this.el.scrap.hidden ? this.el.scrap : this.el.cash; }
 
   /** Show goal i's sentence under the icons (until the next tap anywhere). */
   showBubble(i: number): void {

@@ -518,7 +518,7 @@ export class Renderer3D implements Renderer {
   private readonly dprFn: () => number;
   private readonly createGL: (canvas: HTMLCanvasElement) => GLLike;
   /** Screen point (CSS px in the mount) the coins fly to; the client points it at the currency chip. */
-  hudAnchor: () => V = () => ({ x: 36, y: -14 });
+  hudAnchor: (res?: string) => V = () => ({ x: 36, y: -14 });
 
   constructor(opts: Renderer3DOptions = {}) {
     this.nowFn = opts.now ?? (() => (globalThis.performance?.now?.() ?? Date.now()));
@@ -529,15 +529,15 @@ export class Renderer3D implements Renderer {
     this.createGL = opts.createGL ?? ((canvas) => new WebGLRenderer({ canvas, antialias: true, stencil: true, powerPreference: "high-performance" }) as unknown as GLLike);
   }
 
-  get onCoinLanded(): (() => void) | null {
+  get onCoinLanded(): ((res?: string) => void) | null {
     return this.coinCb;
   }
 
-  set onCoinLanded(fn: (() => void) | null) {
+  set onCoinLanded(fn: ((res?: string) => void) | null) {
     if (this.fx) this.fx.onCoinLanded = fn;
     this.coinCb = fn;
   }
-  private coinCb: (() => void) | null = null;
+  private coinCb: ((res?: string) => void) | null = null;
 
   // ---------------------------------------------------------------- lifecycle
 
@@ -661,7 +661,7 @@ export class Renderer3D implements Renderer {
       const px = (p: Vector3): number => this.cssH / (2 * Math.max(1, p.distanceTo(this.camera.position)) * tanF);
       const w = this.items?.width(res) ?? 1;
       const start = w * px(from);
-      const end = (this.hudAnchor() as { size?: number }).size ?? 26;
+      const end = (this.hudAnchor(res) as { size?: number }).size ?? 26;
       const e = k * k * (3 - 2 * k);
       return (start + (end - start) * e) / (w * px(at));
     };
@@ -4127,7 +4127,9 @@ export class Renderer3D implements Renderer {
         const wb = this.workerBack(e);
         const res = String(e["res"]);
         const from = up(at, ART_M * 0.6);
-        if (wb) fx.arc(res, from, wb, 0.4);
+        // the commander's scrap is a balance on the HUD (not a load on the back): each piece arcs up to its chip
+        if (!wb && res === "res.salvage" && e["by"] === undefined) fx.coins(from, () => { const h = this.hudAnchor(res); return this.fromScreen(h.x, h.y); }, 1, res, true);
+        else if (wb) fx.arc(res, from, wb, 0.4);
         else fx.arc(res, from, () => this.playerBack(), 0.34, true);
         if (e.t === "gathered") fx.dustRing(at, t.groundAlt, 6, 40, 4);
         break;

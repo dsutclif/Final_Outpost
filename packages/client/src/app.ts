@@ -211,7 +211,7 @@ export class App {
     this.input.onTap = (x, y) => this.inspectAt(x, y);
     // the first touch on the level-start overview starts play
     this.el.stage.addEventListener("pointerdown", () => { const o = this.session?.overview; if (o && !o.go && this.screen === "playing") { o.go = true; this.el.tapstart.hidden = true; } }, { passive: true });
-    this.hud = new GoalHud({ heat: $(root, "#heatRail"), walls: $(root, "#wallRail"), goals: this.el.goals, cash: $(root, "#cash"), cashN: $(root, "#cash b"), bubble: $(root, "#gbubble"), frost: $(root, "#frost") });
+    this.hud = new GoalHud({ heat: $(root, "#heatRail"), walls: $(root, "#wallRail"), goals: this.el.goals, cash: $(root, "#cash"), cashN: $(root, "#cash b"), scrap: $(root, "#scrapChip"), scrapN: $(root, "#scrapChip b"), bubble: $(root, "#gbubble"), frost: $(root, "#frost") });
     this.bindChrome();
   }
 
@@ -477,8 +477,8 @@ export class App {
       this.show("unsupported");
       return;
     }
-    r.hudAnchor = () => this.coinTarget();
-    r.onCoinLanded = () => this.hud.pulse();
+    r.hudAnchor = (res) => this.coinTarget(res);
+    r.onCoinLanded = (res) => this.hud.pulse(res);
     r.setQuality(this.qualityTier());
     s.renderer = r;
     this.resize();
@@ -793,6 +793,14 @@ export class App {
     }).join("")}</ul>`;
   }
 
+  /** The scrap chip shows a rendered scrap bale (the same model as the pickups), made once. */
+  private async paintScrapChip(): Promise<void> {
+    const id = "res.salvage";
+    if (!this.thumbs.has(id)) { const got = await thumbnails([id], this.skin, 52); this.thumbs.set(id, got.get(id) ?? ""); }
+    const url = this.thumbs.get(id);
+    if (url) this.hud.setScrapIcon(url);
+  }
+
   /** Small 3D renders for the field guide, made once per type and swapped in when ready. */
   private async paintThumbs(ov: HTMLElement): Promise<void> {
     const want = Object.keys(this.progress.discovered).filter((id) => !this.thumbs.has(id));
@@ -871,6 +879,7 @@ export class App {
     this.el.lvlName.textContent = uiText(this.skin, "levelShort", { n: meta.index + 1 });
     this.el.lvlName.setAttribute("aria-label", named ? `${uiText(this.skin, "levelWord")} ${meta.index + 1} · ${t.title}` : t.title);
     this.hud.reset(sim.state.currency, this.scrapLevel(this.session.manifest));
+    if (this.scrapLevel(this.session.manifest)) void this.paintScrapChip();
     const sess = this.session;
     sess.director = this.storyDirector(sess, !!retryFrom);
     sess.stage = this.storyStage(sess);
@@ -1535,10 +1544,11 @@ export class App {
 
   private updateHud(s: Session): void {
     const st = s.sim.state;
-    const cash = this.scrapLevel(s.manifest) ? st.player.stack.filter((r) => r === "res.salvage").length : st.currency;
+    // scrap levels keep two chips: the scrap the commander carries, and the credits
+    const scrap = this.scrapLevel(s.manifest) ? st.player.stack.filter((r) => r === "res.salvage").length : -1;
     // during the intro the goals arrive one by one: earlier ones shown, the current one's slot outlined
     const intro = this.screen === "intro";
-    const tokens = this.hud.render(st, s.manifest, s.sim.compiled, this.skin, cash, intro ? this.introStep : Infinity, intro ? this.introStep : -1);
+    const tokens = this.hud.render(st, s.manifest, s.sim.compiled, this.skin, st.currency, intro ? this.introStep : Infinity, intro ? this.introStep : -1, scrap);
     s.director?.syncGoals(tokens);
   }
 
@@ -1566,8 +1576,8 @@ export class App {
 
   /** Where coins fly: the cash count, in stage px (both renderers use this). */
   /** Where coins fly to (stage px) and the on-screen size of the counter's coin icon, which they shrink to. */
-  private coinTarget(): { x: number; y: number; size?: number } {
-    const chip = this.hud.anchor();
+  private coinTarget(res?: string): { x: number; y: number; size?: number } {
+    const chip = this.hud.anchor(res);
     const st = this.el.stage.getBoundingClientRect();
     const r = chip.getBoundingClientRect();
     if (!r.width) return { x: st.width - 40, y: 20 };
@@ -1601,7 +1611,7 @@ const TEMPLATE = `
       <div class="rail" id="heatRail"><i></i></div>
       <div class="rail walls" id="wallRail" hidden><i></i></div>
       <div class="frow">
-        <span class="fcash" id="cash"><span class="cic"></span><b></b></span>
+        <div class="fchips"><span class="fcash fscrap" id="scrapChip" hidden><span class="cic"></span><b></b></span><span class="fcash" id="cash"><span class="cic"></span><b></b></span></div>
         <div class="fgoals" id="goals"></div>
         <button class="fname" id="lvlName" type="button"></button>
       </div>

@@ -35,8 +35,8 @@ export interface GameRenderer {
   spiritPortrait(canvas: HTMLCanvasElement): { readonly canvas: HTMLCanvasElement; update(t: number): void; dispose(): void } | null;
   /** The ground and light right now, for a live scene to match; null when there is none. */
   liveLook(): LiveLook | null;
-  hudAnchor: () => { x: number; y: number };
-  onCoinLanded: (() => void) | null;
+  hudAnchor: (res?: string) => { x: number; y: number };
+  onCoinLanded: ((res?: string) => void) | null;
   /** Measured frame rate. */
   fps(): number;
 }
@@ -78,10 +78,10 @@ class Wrap3D implements GameRenderer {
   debugScene(): DebugScene | null { return this.r.debugScene(); }
   pick(x: number, y: number): string | null { return this.r.pick(x, y); }
   inspect(x: number, y: number): { id: string; name: string; purpose: string } | null { return this.r.inspect(x, y); }
-  get hudAnchor(): () => { x: number; y: number } { return this.r.hudAnchor; }
-  set hudAnchor(fn: () => { x: number; y: number }) { this.r.hudAnchor = fn; }
-  get onCoinLanded(): (() => void) | null { return this.r.onCoinLanded; }
-  set onCoinLanded(fn: (() => void) | null) { this.r.onCoinLanded = fn; }
+  get hudAnchor(): (res?: string) => { x: number; y: number } { return this.r.hudAnchor; }
+  set hudAnchor(fn: (res?: string) => { x: number; y: number }) { this.r.hudAnchor = fn; }
+  get onCoinLanded(): ((res?: string) => void) | null { return this.r.onCoinLanded; }
+  set onCoinLanded(fn: ((res?: string) => void) | null) { this.r.onCoinLanded = fn; }
   story(): StoryPresentation { return this.r.story(); }
   spiritPortrait(canvas: HTMLCanvasElement) { return this.r.spiritPortrait(canvas); }
   liveLook(): LiveLook | null { return this.r.liveLook(); }

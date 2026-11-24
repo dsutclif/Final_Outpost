@@ -19,8 +19,8 @@ export interface Renderer3DHandle extends Renderer {
   setQuality(tier: QualityTier): void;
   getQuality(): QualityTier;
   stats(): RenderStats;
-  hudAnchor: () => { x: number; y: number };
-  onCoinLanded: (() => void) | null;
+  hudAnchor: (res?: string) => { x: number; y: number };
+  onCoinLanded: ((res?: string) => void) | null;
   /** Contextual coach mark (world units), or null to hide it; drawn as a DOM overlay. */
   setCoach(c: { key: string; at: { x: number; y: number }; text: string } | null): void;
   /** Guide arrow target (world units) with its one-line instruction, or null to hide it. */

@@ -33,7 +33,7 @@ export class Fx {
   now = 0;
   shake = 0;
   particleScale = 1;
-  onCoinLanded: (() => void) | null = null;
+  onCoinLanded: ((res?: string) => void) | null = null;
   /** Size multiplier for an item flying to the HUD at `at` (the renderer knows the camera); 1 when unset. */
   hudScale: ((at: Vector3, from: Vector3, k: number, res: string) => number) | null = null;
   /** Look test: soft sprites and bolts of light instead of cubes. */
@@ -200,7 +200,7 @@ export class Fx {
   coins(from: Vector3, to: () => Vector3, n: number, res: string, toHud = false): void {
     for (let i = 0; i < n; i++) {
       const f0 = from.clone().add(new Vector3((Math.random() - 0.5) * 16, Math.random() * 6, (Math.random() - 0.5) * 16));
-      this.flights.push({ res, from: f0, to, age: -i * 0.05, dur: 0.55 + Math.random() * 0.15, h: 40, toPlayer: false, hud: toHud, spin: Math.random() * 6, done: () => this.onCoinLanded?.() });
+      this.flights.push({ res, from: f0, to, age: -i * 0.05, dur: 0.55 + Math.random() * 0.15, h: 40, toPlayer: false, hud: toHud, spin: Math.random() * 6, done: () => this.onCoinLanded?.(res) });
     }
   }
 

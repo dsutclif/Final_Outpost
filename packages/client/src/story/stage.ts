@@ -11,7 +11,7 @@ import { kilnOnScreen } from "./kiln.js";
 const PULSE_S = 0.8;
 // the tally floats above the hero's head and any carried stack (world units; the hero is drawn at charScale),
 // its slots sized to read at the play zoom
-const TALLY_Y = 48;
+const TALLY_Y = 72;
 const TALLY_PER_ITEM = 8;
 const TALLY_SCALE = 1.8;
 // a speaker's head over their feet on screen, at the play zoom

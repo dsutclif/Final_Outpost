@@ -62,6 +62,10 @@ body {
 .fcash .cic { display: grid; }
 .fcash .cic img { width: 26px; height: 26px; display: block; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); }
 .fcash.pulse { animation: pulse 0.25s ease-out; }
+.fcash[hidden] { display: none; }
+.fchips { flex: none; display: flex; align-items: center; gap: 6px; }
+.fcash .cic svg { display: block; }
+.fscrap .cic img { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); }
 .fgoals { flex: 1; min-width: 0; display: flex; justify-content: space-evenly; align-items: center; pointer-events: none; }
 .fhud .gdisc { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; position: relative; padding: 0; border: 0; }
 .gdisc[hidden] { display: grid; visibility: hidden; }
