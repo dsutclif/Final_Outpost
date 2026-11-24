@@ -137,7 +137,8 @@ export class StoryStage {
     const view = this.director.view;
     if (!view.anchor) return;
     if (!w.talker) { view.anchor(null, vw, vh); return; }
-    const key = this.director.castKey(w.talker, st);
+    const cust = this.director.customerOf(w.talker);
+    const key = this.director.castKey(w.talker, st) ?? (cust !== null ? `ride:${cust}` : null);
     const drawn = key ? this.present.actorAt(key) : null;
     const at = drawn ? { x: drawn.x, y: drawn.z } : this.director.castAt(w.talker, st);
     if (!at) { view.anchor(null, vw, vh); return; }

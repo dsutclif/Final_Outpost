@@ -106,7 +106,7 @@ export const lineSeconds = (text: string): number => Math.max(2, text.trim().spl
 
 type Active =
   | { k: "timed"; left: number; end: () => void; freezes: boolean }
-  | { k: "wait"; freezes: boolean }
+  | { k: "wait"; freezes: boolean; talk?: boolean }
   | { k: "camera"; beat: CameraBeatPlayer; freezes: boolean };
 
 export class StoryDirector {
@@ -174,8 +174,15 @@ export class StoryDirector {
 
   /** True while the sim must not step. */
   get frozen(): boolean {
-    return this.promptOpen || this.explicitFreeze || !!this.active?.freezes;
+    return this.promptOpen || this.explicitFreeze || (!!this.active?.freezes && !this.talking);
   }
+
+  /** A line is up and the world keeps moving (characters walk while they talk, Doug 2026-11-24); the commander stands still. A raid in progress still holds it. */
+  get talking(): boolean {
+    const a = this.active;
+    return a?.k === "wait" && !!a.talk && !this.promptOpen && !this.explicitFreeze && this.calmNow;
+  }
+  private calmNow = true;
 
   /** A camera beat (pausing or a nudge) is moving the camera now; for the review probe. */
   get cameraOn(): boolean { return this.active?.k === "camera" || !!this.nudge; }
@@ -259,6 +266,7 @@ export class StoryDirector {
     if (this.disposed) return;
     const dt = dtMs / 1000;
     this.tick = st.tick;
+    this.calmNow = st.hostiles.length === 0 && !st.waves?.active;
     this.objectives = st.objectives;
     if (this.nudge?.step(dt)) this.nudge = null;
     this.stepOpenZoom(dt, st);
@@ -432,6 +440,7 @@ export class StoryDirector {
       });
       this.world = { ...this.world, speaking: !!sp?.spirit, talker: who ?? null };
       this.waitTap(() => { this.view.clearLine(); this.world = { ...this.world, speaking: false, talker: null }; });
+      if (this.active?.k === "wait") this.active.talk = true;
     } else if ("inset" in a) {
       this.host.inset?.(a.inset);
     } else if ("wait" in a) {
@@ -574,6 +583,12 @@ export class StoryDirector {
     if ("person" in c) { const r = st.residents.filter((x) => x.origin === "start").sort((a, b) => a.id - b.id)[c.person]; return r ? `r:${r.id}` : null; }
     if ("boss" in c) { const h = st.hostiles.find((x) => x.retreatHp !== undefined) ?? st.fleeing?.find((x) => x.retreatHp !== undefined); return h ? `h:${h.id}` : null; }
     return null;
+  }
+
+  /** The customer id of a cast member who is a trader (Sela rides in as one), else null. */
+  customerOf(who: string): number | null {
+    const c = this.castRef(who);
+    return c && "customer" in c ? c.customer : null;
   }
 
   /** Where a cast member stands (world units) by the sim; null when they are not on the map. */
