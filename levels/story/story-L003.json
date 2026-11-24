@@ -547,8 +547,8 @@
    "type": "node.salvage_pile",
    "id": "scrapB",
    "at": [
-    560,
-    520
+    500,
+    360
    ]
   },
   {
