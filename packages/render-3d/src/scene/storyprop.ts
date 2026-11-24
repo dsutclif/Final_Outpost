@@ -66,6 +66,16 @@ export class StoryProps {
    * draws her seated, then stepping out to `out`, where the customer figure carries on. `model` is her character id and
    * `height` her height in world units; both and `out` are what the customer figure will have, so the hand-over is seamless.
    */
+  /** What to anchor a caption to for customer `id` while a vehicle carries her: her seated figure, else the vehicle itself. */
+  riderRoot(id: number): Object3D | null {
+    for (const r of this.runs.values()) {
+      if (r.spec.rider !== id) continue;
+      if (r.ride?.root.visible) return r.ride.root;
+      if (r.group?.visible !== false && r.group) return r.group;
+    }
+    return null;
+  }
+
   riding(id: number, model: string | undefined, height: number, out: RideExit, leaving = false): boolean {
     for (const r of this.runs.values()) {
       if (r.spec.rider !== id) continue;

@@ -13,6 +13,8 @@ const mat = (color: string, opacity: number): MeshBasicMaterial =>
 const STEP = 30, START = 24, END_GAP = 10, MAX_CHEVRONS = 160;
 /** The bright band: its spacing along the trail (world units) and how many times a second it passes a point. */
 const PULSE_LEN = 110, PULSE_SPEED = 1.1;
+/** Height of the trail: above the floor slabs' top (1.4), or tiles hide the arrows (Doug, 2026-11-24); still under the hero ring. */
+const TRAIL_Y = 1.9;
 
 /** Soft-edged arrow pointing along +u, white on black, for an alpha map. shadowBlur, because iOS Safari has no canvas filter. */
 function arrowTexture(c: HTMLCanvasElement): CanvasTexture {
@@ -47,8 +49,11 @@ export class GroundMarks {
   private arcQ = -1;
   private arcR = 0;
 
+  private night: boolean;
+
   constructor(private readonly scene: Scene, private readonly c: MarkColors, night: boolean, make: ((w: number, h: number) => HTMLCanvasElement | null) | null) {
     // near-black so the ground shows through by day; blue like the reactor's light by night
+    this.night = night;
     this.bright = new Color(night ? c.light : c.shadow);
     this.dim = new Color(night ? c.light : c.shadow).lerp(new Color(c.ink), night ? 0.45 : 0);
     const arrows = mat("#ffffff", night ? 0.9 : 0.55);
@@ -71,6 +76,19 @@ export class GroundMarks {
       m.renderOrder = 9;
       scene.add(m);
     }
+  }
+
+  /** The light changed (dusk, a dim sky, a storm, day again): the trail takes the night or the day finish at once, not the one it was built with. */
+  setNight(night: boolean): void {
+    if (night === this.night) return;
+    this.night = night;
+    const c = this.c;
+    this.bright.set(night ? c.light : c.shadow);
+    this.dim.set(night ? c.light : c.shadow).lerp(new Color(c.ink), night ? 0.45 : 0);
+    const arrows = this.trail.material as MeshBasicMaterial;
+    arrows.opacity = night ? 0.9 : 0.55;
+    arrows.blending = night ? AdditiveBlending : NormalBlending;
+    arrows.needsUpdate = true;
   }
 
   /**
@@ -96,7 +114,7 @@ export class GroundMarks {
         const yaw = -Math.atan2(dz, dx);
         while (next <= along + L && n < MAX_CHEVRONS) {
           const k = (next - along) / L;
-          this.dummy.position.set(px + dx * k, 1.3, pz + dz * k);
+          this.dummy.position.set(px + dx * k, TRAIL_Y, pz + dz * k);
           this.dummy.rotation.set(0, yaw, 0);
           // a bright band travels outward along the trail; the rest stays dim. Colour only: the arrows keep
           // their size so the trail doesn't look like it's vibrating (Doug, 2026-11-06).

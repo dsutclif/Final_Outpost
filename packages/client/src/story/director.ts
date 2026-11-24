@@ -71,6 +71,7 @@ export interface StoryWorld {
   light: { preset: string; seconds: number; atTick?: number; real?: boolean } | null;
   ghosts: readonly (StoryGhost & { pos: { x: number; y: number } })[];
   dots: { pts: readonly { x: number; y: number }[]; period?: number | undefined } | null;
+  kioskLit: boolean;
   ridge: { side: "left" | "right" | "top" | "bottom"; period: number; k: number } | null;
   /** `seq` counts requests, so the same request twice still reads as new. */
   flash: { n: number; seq: number } | null;
@@ -96,7 +97,7 @@ export interface StoryWorld {
 type QueueItem = StoryAction | { goalCard: string; id: string };
 
 const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "fall" in a || "kneel" in a || "wait" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
-const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "aidStation" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
+const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "kioskLit" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "aidStation" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
 const CARD_SECONDS = 3;
 const GOAL_GAP_S = 0.7;
 const TAP_GUARD_MS = 250;
@@ -158,7 +159,7 @@ export class StoryDirector {
     /** This run started at the level's `retryFrom`, so the cues of the walk there do not fire. */
     private readonly fromRetrySpot = false,
   ) {
-    this.world = { light: null, ghosts: [], dots: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [], vehicles: [], aid: !!level.aidStation };
+    this.world = { light: null, ghosts: [], dots: null, kioskLit: true, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [], vehicles: [], aid: !!level.aidStation };
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
     if (level.openZoom && !replay && !fromRetrySpot) {
@@ -176,6 +177,9 @@ export class StoryDirector {
   get frozen(): boolean {
     return this.promptOpen || this.explicitFreeze || !!this.active?.freezes;
   }
+
+  /** A line is on screen (characters stand still while it is). */
+  lineUp = false;
 
   /** A camera beat (pausing or a nudge) is moving the camera now; for the review probe. */
   get cameraOn(): boolean { return this.active?.k === "camera" || !!this.nudge; }
@@ -431,7 +435,8 @@ export class StoryDirector {
         tap: true, style: sp?.dialogue, bust: sp?.bust, who, ...("line" in a && a.head ? { head: a.head } : {}),
       });
       this.world = { ...this.world, speaking: !!sp?.spirit, talker: who ?? null };
-      this.waitTap(() => { this.view.clearLine(); this.world = { ...this.world, speaking: false, talker: null }; });
+      this.lineUp = true;
+      this.waitTap(() => { this.view.clearLine(); this.lineUp = false; this.world = { ...this.world, speaking: false, talker: null }; });
     } else if ("inset" in a) {
       this.host.inset?.(a.inset);
     } else if ("wait" in a) {
@@ -492,6 +497,8 @@ export class StoryDirector {
     } else if ("dots" in a) {
       const pts = a.dots.flatMap((p) => { const q = this.place(p); return q ? [q] : []; });
       this.world = { ...this.world, dots: { pts, period: a.period } };
+    } else if ("kioskLit" in a) {
+      this.world = { ...this.world, kioskLit: a.kioskLit };
     } else if ("dotsOff" in a) {
       this.world = { ...this.world, dots: null };
     } else if ("ridge" in a) {
@@ -574,6 +581,12 @@ export class StoryDirector {
     if ("person" in c) { const r = st.residents.filter((x) => x.origin === "start").sort((a, b) => a.id - b.id)[c.person]; return r ? `r:${r.id}` : null; }
     if ("boss" in c) { const h = st.hostiles.find((x) => x.retreatHp !== undefined) ?? st.fleeing?.find((x) => x.retreatHp !== undefined); return h ? `h:${h.id}` : null; }
     return null;
+  }
+
+  /** The customer id of a cast member who is a trader (Sela rides in as one), else null. */
+  customerOf(who: string): number | null {
+    const c = this.castRef(who);
+    return c && "customer" in c ? c.customer : null;
   }
 
   /** Where a cast member stands (world units) by the sim; null when they are not on the map. */

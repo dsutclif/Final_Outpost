@@ -110,6 +110,8 @@ export type StoryAction =
   /** Small pulsing lights on the ground, replacing any before; `period` seconds a beat. */
   | { dots: readonly StoryPlace[]; period?: number }
   | { dotsOff: true }
+  /** The kiosk's clerk-pad coin, shelf crates, count chips and coin pile draw only while lit (default lit); false keeps it dark until a cue lights it. */
+  | { kioskLit: boolean }
   /** Slow pulses from one fixed screen side, for as long as the level runs; `k` their strength, 0..1. */
   | { ridge: "left" | "right" | "top" | "bottom"; period?: number; k?: number }
   /** That many quick flashes from the ridge's side, on top of its slow pulse. */
