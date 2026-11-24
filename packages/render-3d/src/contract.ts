@@ -143,6 +143,8 @@ export interface StoryPresentation {
   actor(key: string, to: { x: number; z: number } | null): void;
   /** Where a mover is drawn now (ground units), or null for a key with nothing drawn. */
   actorAt(key: string): { x: number; z: number } | null;
+  /** Set while a story line is on screen: staged walkers stand still in idle until it ends. */
+  talking: boolean;
   /** Draw customer `id` with another character model (a named trader, e.g. Sela); loads it on first use. */
   customerModel(id: number, model: string): void;
   /** Draw hostiles of `kind` that broke off (bossRetreat) with another character model; loads it on first use. */

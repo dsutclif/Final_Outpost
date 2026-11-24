@@ -168,6 +168,7 @@ const NO_STORY: StoryPresentation = {
   dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {}, fleeingModel() {}, showDropped() {}, fall: () => Promise.resolve(false), kneel: () => Promise.resolve(false),
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
+  talking: false,
 };
 /** Highest a big pad's floating name and price sit (art metres), whatever its blueprint's height. */
 const BIG_LABEL_LIFT = 3.2;

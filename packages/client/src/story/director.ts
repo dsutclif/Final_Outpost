@@ -177,6 +177,9 @@ export class StoryDirector {
     return this.promptOpen || this.explicitFreeze || !!this.active?.freezes;
   }
 
+  /** A line is on screen (characters stand still while it is). */
+  lineUp = false;
+
   /** A camera beat (pausing or a nudge) is moving the camera now; for the review probe. */
   get cameraOn(): boolean { return this.active?.k === "camera" || !!this.nudge; }
 
@@ -431,7 +434,8 @@ export class StoryDirector {
         tap: true, style: sp?.dialogue, bust: sp?.bust, who, ...("line" in a && a.head ? { head: a.head } : {}),
       });
       this.world = { ...this.world, speaking: !!sp?.spirit, talker: who ?? null };
-      this.waitTap(() => { this.view.clearLine(); this.world = { ...this.world, speaking: false, talker: null }; });
+      this.lineUp = true;
+      this.waitTap(() => { this.view.clearLine(); this.lineUp = false; this.world = { ...this.world, speaking: false, talker: null }; });
     } else if ("inset" in a) {
       this.host.inset?.(a.inset);
     } else if ("wait" in a) {
@@ -574,6 +578,12 @@ export class StoryDirector {
     if ("person" in c) { const r = st.residents.filter((x) => x.origin === "start").sort((a, b) => a.id - b.id)[c.person]; return r ? `r:${r.id}` : null; }
     if ("boss" in c) { const h = st.hostiles.find((x) => x.retreatHp !== undefined) ?? st.fleeing?.find((x) => x.retreatHp !== undefined); return h ? `h:${h.id}` : null; }
     return null;
+  }
+
+  /** The customer id of a cast member who is a trader (Sela rides in as one), else null. */
+  customerOf(who: string): number | null {
+    const c = this.castRef(who);
+    return c && "customer" in c ? c.customer : null;
   }
 
   /** Where a cast member stands (world units) by the sim; null when they are not on the map. */
