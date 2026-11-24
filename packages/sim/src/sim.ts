@@ -181,7 +181,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
         if (t.startsWith("node.")) {
           const def = cp.nodes[t];
           if (!def) throw new Error(`${m.id}: unknown node type ${t}`);
-          const n: NodeState = { id: e.id ?? null, type: t, pos: vec(e.at), stock: def.stock, regrowAcc: 0, enabled: "enabled" in e ? e.enabled : true };
+          const n: NodeState = { id: e.id ?? null, type: t, pos: vec(e.at), stock: ("stock" in e && e.stock !== undefined ? e.stock : def.stock), regrowAcc: 0, enabled: "enabled" in e ? e.enabled : true };
           if ("hiddenUntil" in e && e.hiddenUntil) { n.enabled = false; n.hiddenUntil = e.hiddenUntil; }
           state.nodes.push(n);
         } else if (t.startsWith("conv.")) {

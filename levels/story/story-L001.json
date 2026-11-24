@@ -42,7 +42,8 @@
    "at": [
     548,
     318
-   ]
+   ],
+   "stock": 2
   },
   {
    "type": "node.fuel_deposit",
@@ -50,7 +51,8 @@
    "at": [
     452,
     362
-   ]
+   ],
+   "stock": 2
   },
   {
    "type": "zone.blocked",
