@@ -1,4 +1,5 @@
 import type { Compiled, CompiledRole } from "../compile.js";
+import { commanderHealable } from "./commander.js";
 import type { SimEvent } from "../events.js";
 import { clamp, fp, isqrt, within, type Vec } from "../fixed.js";
 import type { ResidentState, State } from "../state.js";
@@ -94,6 +95,16 @@ export function healedGuard(r: ResidentState): void {
 
 /** A medic goes to the nearest downed guard and heals it in place; otherwise it waits by the med bay or the core. */
 export function medicStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole, out: SimEvent[]): void {
+  // the downed commander first: a medic beside him patches him up in place
+  if (commanderHealable(st, cp) && (r.target === "player" || !st.residents.some((m) => m !== r && m.target === "player" && cp.roles[m.role]?.behavior === "medic"))) {
+    r.target = "player";
+    if (boxedMove(st, cp, r.pos, st.player.pos, role.speed, cp.residents.workRange)) {
+      st.player.healT = role.healTicks;
+      out.push({ t: "medic_heal", resident: -1, by: r.id, at: { ...st.player.pos } });
+    }
+    return;
+  }
+  if (r.target === "player") r.target = null;
   let patient = r.target === null ? null : st.residents.find((g) => String(g.id) === r.target && (g.status === "injured" || g.status === "healing")) ?? null;
   if (!patient) {
     r.target = null;
@@ -182,7 +193,7 @@ export function leashedMove(st: State, cp: Compiled, pos: Vec, target: Vec, step
  * (no medic or med bay needed). The heal then takes guards.commanderHealSeconds, whether or not he stays.
  */
 export function commanderRevive(st: State, cp: Compiled, out: SimEvent[]): void {
-  if (st.player.stun > 0) return;
+  if (st.player.stun > 0 || st.player.down !== undefined) return;
   for (const g of st.residents) {
     if (!healable(cp, g) || !within(g.pos, st.player.pos, cp.guards.reviveRange)) continue;
     g.status = "healing"; g.timer = cp.guards.reviveTicks;

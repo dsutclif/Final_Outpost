@@ -1,4 +1,5 @@
 import type { Compiled } from "../compile.js";
+import { afterHpLoss, isDown } from "./commander.js";
 import type { SimEvent } from "../events.js";
 import { FP, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between } from "../rng.js";
@@ -428,7 +429,7 @@ function pickPerson(st: State, cp: Compiled, p: Vec, r: number): Person | null {
   const t = nearestTroop(st, p, r);
   if (t) consider(t.pos, { kind: "troop", t });
   // the commander is the last choice: guards and drones draw fire first (he is hit only when nobody else is in reach)
-  if (!best && st.player.stun === 0) consider(st.player.pos, { kind: "player" });
+  if (!best && st.player.stun === 0 && !isDown(st)) consider(st.player.pos, { kind: "player" });
   return best;
 }
 
@@ -455,11 +456,7 @@ export function damagePlayer(st: State, cp: Compiled, dmg: number, out: SimEvent
   out.push({ t: "hit", target: "player", id: 0, at: { ...p.pos }, by: "hostile" });
   p.healCd = cp.player.healDelayTicks;
   p.hp = Math.max(0, p.hp - dmg);
-  if (p.hp > 0) return;
-  p.hp = cp.player.hp;
-  p.stun = cp.player.downTicks;
-  p.stunSlow = 0;
-  out.push({ t: "downed", at: { ...p.pos } });
+  if (afterHpLoss(st, cp, out) !== "down") return;
   let k = 0;
   while (p.stack.length > 0) {
     const at = { x: p.pos.x + (k & 1 ? -1 : 1) * ((k + 1) >> 1) * 12 * FP, y: p.pos.y + 10 * FP };

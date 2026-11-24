@@ -220,6 +220,13 @@ export type ManifestEntity = Manifest["entities"][number];
  * The settlement is every placed entity except the hunting flats and terrain (which roam outside it):
  * the box around their points, grown by `margin` on every side and kept inside the map.
  */
+/** How the commander is healed on this level: a medic (present or hireable) beats a med bay beats self-healing. */
+function commanderMode(manifest: Manifest, roles: Record<string, CompiledRole>): "self" | "bay" | "medic" {
+  const medic = manifest.people.some((p) => roles[p.role]?.behavior === "medic") || manifest.entities.some((e) => e.type === "pad.hire" && roles[e.role.role]?.behavior === "medic");
+  if (medic) return "medic";
+  return manifest.entities.some((e) => (e.type === "pad.build" && e.build === "struct.medical") || e.type === "struct.medical") ? "bay" : "self";
+}
+
 export function walkBox(manifest: Manifest, margin: number): { x0: number; y0: number; x1: number; y1: number } {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   const add = (x: number, y: number, w = 0, h = 0): void => {
@@ -248,6 +255,8 @@ export interface Compiled {
   modules: Set<string>;
   resources: Record<string, CompiledResource>;
   player: { speed: number; radius: number; actTicks: number; attackTicks: number; attackRange: number; attackDamage: number; rangedRange: number; rangedTicks: number; hp: number; healDelayTicks: number; healTicks: number; downTicks: number;
+    /** Commander knock-down rules: self = heals itself, hp 0 fails; bay = only a med bay heals, hp 0 fails; medic = knocked down at downPct of hp, lies knockTicks until a medic heals, else fails. */
+    mode: "legacy" | "self" | "bay" | "medic"; knockTicks: number; downPct: number;
     /** Loadout (backlog R4): gathering speed in percent of each node's rate, and extra carry per resource. */
     gatherSpeed: number; carryBonus: number;
     /** true: the player walks through buildings (core included); walls, gates and turrets stay solid. false: the core keeps its exclusion radius. */
@@ -570,6 +579,7 @@ export function compile(manifestIn: unknown, c: Content = defaultContent): Compi
       healDelayTicks: ticks(param("player.healDelay")),
       healTicks: ticks(param("player.healInterval")),
       downTicks: ticks(param("player.downSeconds")),
+      mode: int("player.commanderRules") === 0 ? "legacy" : commanderMode(manifest, roles), knockTicks: ticks(param("player.knockSeconds")), downPct: int("player.downPct"),
       gatherSpeed: Math.max(1, int("player.gatherSpeed")),
       carryBonus: int("player.carryBonus"),
       walkThrough: int("player.walkThrough") !== 0,

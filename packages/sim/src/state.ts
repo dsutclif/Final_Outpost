@@ -37,6 +37,12 @@ export interface PlayerState {
   hp: number;
   /** Ticks until the next point of healing (restarts at player.healDelay on every hit). */
   healCd: number;
+  /** Knocked down (medic levels): ticks lying so far; absent while up. */
+  down?: number;
+  /** Ticks left of a medic patching the downed commander up (absent when none is at work). */
+  healT?: number;
+  /** Ticks stood at a med bay healing (bay and medic levels). */
+  bayT?: number;
 }
 
 export interface NodeState {

@@ -1,5 +1,5 @@
 import { LOOK, PLOT, modelScaleFor, content as defaultContent, type Content, type Manifest } from "@fo/content";
-import { FP, TPS, beltEnds, downLeft, lyingDown, padCost, compile, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
+import { FP, TPS, beltEnds, commanderDownLeft, downLeft, lyingDown, padCost, compile, safeRadius, type Compiled, type CustomerState, type SimEvent, type State } from "@fo/sim";
 import { floaterText, hintText, mix, nameOf, purposeOf, uiText, workerName, workerPurpose, type Skin, type WorkerVars } from "@fo/skins";
 import {
   Box3,
@@ -3042,7 +3042,17 @@ export class Renderer3D implements Renderer {
     const ks = prig && this.kneelStage?.dur ? this.kneelStage : null;
     if (ks) this.kneelDraw(ks, ART_M * look.scale * this.devCharScale * this.heroK);
     else if (prig) {
-      this.rigged!.add("player", "unit.player", prig, { moving: pmove, hurried: false, run: true, cheer: anim.cheer > 0, act: this.actOf("player")?.act, speed: this.moving }, pl.x, pl.y, pyaw, ART_M * look.scale * this.devCharScale * this.heroK / 0.9);
+      // knocked down (medic levels): the guards' fall, lie and get-up on the spot where he fell
+      let px = pl.x, py = pl.y, pyw = pyaw;
+      const isDownNow = s.player.down !== undefined;
+      if (prig.clips?.["fall"] && prig.clips["getup"]) {
+        const was = this.fallen.get("player");
+        if (isDownNow && !was) this.fallen.set("player", { x: pl.x, y: pl.y, yaw: pyaw });
+        const f = this.fallen.get("player");
+        if (f && (isDownNow || this.rigged!.downed("player"))) { px = f.x; py = f.y; pyw = f.yaw; this.yaw.set("player", f.yaw); }
+        else if (f) { this.fallen.delete("player"); this.yaw.set("player", f.yaw + this.rigged!.takeTurn("player")); }
+      }
+      this.rigged!.add("player", "unit.player", prig, { moving: pmove && !isDownNow, hurried: false, run: true, cheer: anim.cheer > 0, act: isDownNow ? undefined : this.actOf("player")?.act, speed: isDownNow ? 0 : this.moving, down: isDownNow }, px, py, pyw, ART_M * look.scale * this.devCharScale * this.heroK / 0.9);
       this.blobs!.add(pl.x, pl.y, 10 * look.scale * this.devCharScale * this.heroK);
     } else this.addCharacter(look, anim, pl, yaw, t.frost);
     this.backStack(s.player.stack, pl, pyaw, look.scale * this.devCharScale, this.moving, v, true);
@@ -3059,12 +3069,9 @@ export class Renderer3D implements Renderer {
       }
     }
 
-    // knocked down on a level with a med bay (stunSlow 0 only while down): a big bobbing "!" for the down time
-    if (s.player.stun > 0 && s.player.stunSlow === 0 && this.cp?.residents.selfHealTicks === 0) {
-      const sp = this.nextTag();
-      sp.visible = this.labels.apply(sp, "down|!big", () => this.warnArt("!", t.danger), 64);
-      sp.position.set(pl.x, ART_M * look.scale * this.devCharScale * 1.6 + 30 + Math.abs(Math.sin(this.t * 6)) * 7, pl.y);
-    }
+    // knocked down: seconds left over him in the downed guards' pill (green, red in the last third); at 0 the level is lost
+    const pleft = this.cp ? commanderDownLeft(s, this.cp) : null;
+    if (pleft !== null && this.cp) this.downTag(pl.x, ART_M * look.scale * this.devCharScale * 1.5, pl.y, Math.ceil(pleft / TPS), pleft / this.cp.player.knockTicks);
 
     for (const r of s.residents) {
       if (r.status === "towed" || r.status === "releasing") continue;
@@ -4150,6 +4157,8 @@ export class Renderer3D implements Renderer {
         break;
       }
       case "drop":
+        // #169: each piece tumbles off the pack to where it lands (the sim emits them one by one as the commander falls)
+        fx.arc(String(e["res"] ?? "res.currency"), up(this.playerBack(), 10), up(at, 4), 0.45);
         fx.burst(up(at, 6), [white, resToken(t, String(e["res"]))], 6, 60, 160, 3, 0.4);
         break;
       case "sold": {

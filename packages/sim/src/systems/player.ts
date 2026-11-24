@@ -15,14 +15,15 @@ export interface Input {
 
 export function movePlayer(st: State, cp: Compiled, input: Input): void {
   const p = st.player;
-  const dir = clampDir(input.dx, input.dy);
+  const down = p.down !== undefined;
+  const dir = down ? { x: 0, y: 0 } : clampDir(input.dx, input.dy);
   p.moving = dir.x !== 0 || dir.y !== 0;
   // Each towed object slows the player by the lasso penalty.
   let speed = mulDiv(cp.player.speed, Math.max(0, FP - cp.lasso.speedPenalty * p.tow.length), FP);
   // A bite from a dangerous animal slows the walk for a moment.
   if (p.stun > 0) { p.stun--; speed = mulDiv(speed, p.stunSlow, FP); }
   // Health comes back a point at a time once nothing has hit for a while.
-  if (p.hp < cp.player.hp) {
+  if (p.hp < cp.player.hp && (cp.player.mode === "self" || cp.player.mode === "legacy") && !down) {
     if (p.healCd > 0) p.healCd--;
     else { p.hp++; p.healCd = cp.player.healTicks; }
   }
@@ -49,6 +50,7 @@ export function movePlayer(st: State, cp: Compiled, input: Input): void {
 /** Proximity actions, in the prototype's priority order: pads, core, sales point, converters, then gathering. */
 export function playerAct(st: State, cp: Compiled, out: SimEvent[]): void {
   const p = st.player;
+  if (p.down !== undefined) return;
   trackPadDwell(st, cp);
   if (p.actCd > 0) { p.actCd--; return; }
   p.actCd = cp.player.actTicks;
@@ -164,6 +166,7 @@ function gather(st: State, cp: Compiled, out: SimEvent[]): boolean {
 /** The player auto-attacks the nearest prey or hostile in range. */
 export function playerCombat(st: State, cp: Compiled, out: SimEvent[]): void {
   const p = st.player;
+  if (p.down !== undefined) return;
   p.atkCd = stepDown(p.atkCd);
   p.shotCd = stepDown(p.shotCd);
   if (p.atkCd <= 0) {

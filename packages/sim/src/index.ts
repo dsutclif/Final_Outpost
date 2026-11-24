@@ -21,3 +21,4 @@ export { beltEnds } from "./systems/conveyors.js";
 export { isAutomation, isDefence, jobDone, jobOf, padCost } from "./systems/economy.js";
 export { forceBuildPad } from "./systems/pads.js";
 export { downLeft, lyingDown } from "./systems/guards.js";
+export { commanderDownLeft, isDown as commanderIsDown } from "./systems/commander.js";

@@ -1494,7 +1494,7 @@ export class App {
     if (touched.length) this.discover(touched);
     if (e.t === "hit" && e.target === "base") this.hud.hit();
     // the commander is knocked down on a level with a med bay: a red flash round the screen edge and a long buzz (the big "!" is the renderer's)
-    if (e.t === "downed" && s.sim.compiled.residents.selfHealTicks === 0) {
+    if (e.t === "downed") {
       const f = this.el.stage.querySelector<HTMLElement>("#downFlash");
       if (f) { f.classList.remove("on"); void f.offsetWidth; f.classList.add("on"); }
       this.haptics.pulse([120, 60, 120, 60, 240]);

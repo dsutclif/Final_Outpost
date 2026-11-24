@@ -1,4 +1,5 @@
 import type { Compiled, CompiledAnimal } from "../compile.js";
+import { afterHpLoss } from "./commander.js";
 import type { SimEvent } from "../events.js";
 import { FP, clamp, isqrt, mulDiv, within, type Vec } from "../fixed.js";
 import { below, between } from "../rng.js";
@@ -39,7 +40,7 @@ function pickTarget(st: State, cp: Compiled, A: CompiledAnimal, d: PreyState): {
   const R2 = A.aggroRange * A.aggroRange;
   let best: { pos: Vec; res: ResidentState | null } | null = null, bd = R2 + 1;
   const pd = d2(st.player.pos, d.pos);
-  if (pd <= R2) { best = { pos: st.player.pos, res: null }; bd = pd; }
+  if (pd <= R2 && st.player.down === undefined) { best = { pos: st.player.pos, res: null }; bd = pd; }
   if (A.injuresWorkers) {
     for (const r of st.residents) {
       if (r.status !== "ok" || cp.roles[r.role]?.behavior !== "hunt") continue;
@@ -69,13 +70,11 @@ function bite(st: State, cp: Compiled, A: CompiledAnimal, d: PreyState, victim: 
   p.stunSlow = A.stunSlow;
   p.healCd = cp.player.healDelayTicks;
   p.hp = Math.max(0, p.hp - A.damage);
-  if (p.hp === 0 && A.damage > 0) {
-    p.hp = cp.player.hp;
-    p.stun = cp.player.downTicks;
-    p.stunSlow = 0;
+  const fate = A.damage > 0 ? afterHpLoss(st, cp, out) : "ok";
+  if (fate === "dead") return;
+  if (fate === "down") {
     // The animal backs off while the player is down.
-    d.atk = cp.player.downTicks + A.attackTicks;
-    out.push({ t: "downed", at: { ...p.pos } });
+    d.atk = (cp.player.mode === "legacy" ? cp.player.downTicks : cp.player.knockTicks) + A.attackTicks;
     let k = 0;
     while (p.stack.length > 0) fling(st, cp, d, p.stack.pop()!, k++, out);
     while (p.tow.length > 0) dropTow(st, p.tow[p.tow.length - 1]!, "hit", out);

@@ -1,7 +1,7 @@
 {
  "id": "story-L005",
  "seed": 1005,
- "engineVersion": "0.35.0",
+ "engineVersion": "0.36.0",
  "contentVersion": "0.23.0",
  "map": {
   "w": 1410,
@@ -702,7 +702,8 @@
   "level.budgetSeconds": 300,
   "defense.fleeSpeed": 50,
   "gate.spawnOffsetY": -190,
-  "gate.initialDelay": 3
+  "gate.initialDelay": 3,
+  "player.commanderRules": 1
  },
  "goal": {
   "type": "crates",

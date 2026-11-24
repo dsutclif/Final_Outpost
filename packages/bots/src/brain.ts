@@ -10,7 +10,7 @@ import type { BotProfile } from "./profiles.js";
 
 export type TaskKind =
   | "feed" | "fuel" | "gather" | "stock" | "register" | "pile" | "pay" | "barrier" | "operate" | "deposit"
-  | "fetch" | "drop" | "admit" | "fight" | "revive" | "lasso" | "hunt" | "depot" | "wait" | "dig";
+  | "fetch" | "drop" | "admit" | "fight" | "revive" | "lasso" | "hunt" | "depot" | "wait" | "dig" | "retreat";
 
 export interface Task {
   kind: TaskKind;
@@ -54,6 +54,8 @@ export class Brain {
   private pending: { task: Task; at: number } | null = null;
   private since = 0;
   private lasso: LassoMem | null = null;
+  /** Commander pulled out of the fight to heal (#171): sticks until he is healed, so he doesn't dither at the threshold. */
+  private retreating = false;
   /** The step suggest() last named while idle: kept until it is done, so the guide never swaps tasks midway. */
   private held: Task | null = null;
   /** Hires bought per repeatable pad. */
@@ -360,6 +362,18 @@ export class Brain {
     // Lasso in progress: finish it.
     if (this.lasso || p.tow.length > 0) T("lasso", p.tow.length > 0 ? 78 : 60, "cont");
 
+    // #171: a hurt commander leaves the fight. Self mode: out of reach until his own regen has run; bay mode: to the med bay;
+    // medic mode: back toward the medic (or the core) before the down line, where the medic patches him up.
+    {
+      const K = cp.player;
+      // medic mode: his only heal is the medic's, after a fall, so pulling back gains nothing; he fights on
+      if (K.mode === "medic" || K.mode === "legacy") this.retreating = false;
+      const hurtMax = K.mode === "self" ? 35 : K.mode === "bay" ? 40 : K.downPct + 20;
+      const full = K.mode === "self" ? 70 : 100;
+      if (this.retreating && (p.hp * 100 >= full * K.hp || (K.mode === "self" && !st.hostiles.some((h) => near(h.pos, p.pos, 330 * U))))) this.retreating = false;
+      else if (K.mode !== "medic" && K.mode !== "legacy" && !this.retreating && p.down === undefined && p.hp * 100 < hurtMax * K.hp && st.hostiles.some((h) => near(h.pos, p.pos, 260 * U))) this.retreating = true;
+      if (this.retreating && p.down === undefined && p.hp < K.hp) T("retreat", 97);
+    }
     // Fight hostiles that threaten the base.
     // Any hostile on the map: hostiles hitting walls or the base are urgent, the rest are met at the line.
     const threat = st.hostiles.filter((h) => h.target !== "core" || near(h.pos, st.core.pos, 330 * U));
@@ -756,7 +770,7 @@ export class Brain {
   suggest(st: State, _cp?: Compiled): Suggestion | null {
     this.nav.refresh(st);
     const p = st.player.pos;
-    const urgent = (k: TaskKind) => k === "feed" || k === "fight" || k === "revive";
+    const urgent = (k: TaskKind) => k === "feed" || k === "fight" || k === "revive" || k === "retreat";
     let task = this.current;
     let tgt = task.kind === "wait" ? null : this.resolveQuiet(st, task);
     if (!tgt) {
@@ -933,6 +947,22 @@ export class Brain {
         const off = Math.min(30 * U, L);
         const spot = this.nav.free({ x: Math.round(best.x + (dx / L) * off), y: Math.round(best.y + (dy / L) * off) });
         return { pos: spot, r: 3 * U };
+      }
+      case "retreat": {
+        if (!this.retreating || p.down !== undefined) return null;
+        const bay = cp.player.mode === "medic" ? undefined : st.structures.find((x) => x.type === "struct.medical");
+        if (bay) { const d = cp.structures[bay.type]!; return { pos: { x: bay.pos.x + d.healOffset.x, y: bay.pos.y + d.healOffset.y }, r: Math.max(4 * U, cp.guards.reviveRange - 8 * U) }; }
+        if (cp.player.mode === "medic") {
+          const m = st.residents.find((r) => r.status === "ok" && cp.roles[r.role]?.behavior === "medic");
+          if (m) return { pos: m.pos, r: 30 * U };
+        }
+        // away from the nearest hostile, on the core side, at least 220 units clear
+        let nh = null as Vec | null, nd = Infinity;
+        for (const h of st.hostiles) { const dd = d2(h.pos, p.pos); if (dd < nd) { nd = dd; nh = h.pos; } }
+        if (!nh) return { pos: p.pos, r: 1 };
+        if (nd > (220 * U) * (220 * U)) return { pos: p.pos, r: 1 };
+        const dx = p.pos.x - nh.x, dy = p.pos.y - nh.y, L = Math.sqrt(dx * dx + dy * dy) || 1;
+        return { pos: this.nav.free({ x: Math.round(p.pos.x + (dx / L) * 260 * U), y: Math.round(p.pos.y + (dy / L) * 260 * U) }), r: 6 * U };
       }
       case "revive": {
         const g = st.residents.find((r) => String(r.id) === t.key && downLeft(cp, r) !== null);

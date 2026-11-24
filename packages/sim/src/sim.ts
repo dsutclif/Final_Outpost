@@ -1,4 +1,5 @@
 import type { Content } from "@fo/content";
+import { stepCommander } from "./systems/commander.js";
 import { compile, type Compiled } from "./compile.js";
 import type { SimEvent } from "./events.js";
 import { METER_MAX, fp, ticks, type Vec } from "./fixed.js";
@@ -30,7 +31,7 @@ import { stepResidents } from "./systems/residents.js";
 import { salesLayout, stepSales } from "./systems/sales.js";
 import { stepStats } from "./systems/stats.js";
 
-export const ENGINE_VERSION = "0.35.0";
+export const ENGINE_VERSION = "0.36.0";
 
 /** Modules the sim can run today. Anything else in a manifest is loaded as inert data. */
 export const IMPLEMENTED_MODULES: ReadonlySet<string> = new Set([
@@ -232,6 +233,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       state.tick++;
       // System order is fixed; see docs/SIM.md before changing it.
       movePlayer(state, cp, input);
+      stepCommander(state, cp, out);
       stepHazard(state, cp, out);
       stepCore(state, cp, out);
       stepFreeze(state, cp, out);

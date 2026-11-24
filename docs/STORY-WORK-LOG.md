@@ -35,6 +35,7 @@ Add a line when you start editing a shared file. Remove it when your push lands.
 | Since | Who | Branch | Files | For |
 |---|---|---|---|---|
 | 2026-11-19 | pro-s3 (#124) | s3-124 | levels/story/story-L003..005.json, story-canon + new story-carry test, mars_greenhouse.ts (one line) | carry-forward |
+| 2026-11-22 | r2-c3 (#167 #168 #169 #171) | r2-c3-fall | engine 0.35.0 -> 0.36.0 (sim.ts, version strings only in levels/golden, levels/story, packs, fixtures) | commander knock-down rules |
 
 `packages/client/release-notes.json` belongs to whoever is pushing at that moment. Rewrite it from scratch for your own push.
 
@@ -587,3 +588,7 @@ Attackers now appear `defense.spawnDistance` beyond the map edge (real metres by
 - Level 1 "Reach the light" is still a step with no star: no objective kind for reaching a place (needs a new sim kind + engine bump).
 - `checkManifest`: story levels (`story-` ids) may list 3 to 8 objectives; generated levels stay exactly 3. Part 2 (result card, save, menu totals) must handle stars above 3. Pin: `packages/client/test/story-stars.test.ts`. No engine bump.
 - **2026-11-20, level 5 part 1 (outpost-ops#133, s19):** `story-L005` rebuilt: town workers at posts (people = Pip, Rhee, Okafor, Tam, cook, runner, clerk), arrivals gate with two settlers (`gate.initialDelay` 40, `gate.spawnOffsetY` -190) after the turret, new goal `arrive`, train pad requires it. Skin cues + `settler` speaker. No engine bump.
+
+### 2026-11-22 (r2-c3, outpost-ops#167 #168 #169 #171): engine 0.36.0, commander knock-down rules. Version strings re-pinned only.
+- Three modes by what the level has: no med bay or medic = he heals himself, and hp 0 fails the level; a med bay = only the bay heals him (he stands at it), hp 0 fails; a medic = no self-heal, at 25% health (`player.downPct`) he falls, the pack spills, and a medic must heal him within 10 s (`player.knockSeconds`) or the level is lost.
+- Bots retreat when hurt (brain.ts "retreat"). Story levels 1-5 have no medic as authored unless people list one; check Level 5 on the phone.
