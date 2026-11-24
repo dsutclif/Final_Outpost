@@ -130,19 +130,6 @@ describe("story director cues", () => {
 });
 
 describe("story director freezing", () => {
-  it("a line lets the world keep moving while it is calm, and holds it once hostiles are about (outpost-ops#373)", () => {
-    vi.useFakeTimers();
-    const h = harness(levelOf(cue({ event: "joined", match: { role: "a" } }, { crew: "rhee", who: "rhee" })));
-    h.d.onEvent({ t: "joined", capture: 0, resident: 0, role: "a" } as SimEvent, state());
-    h.d.update(16, state());
-    expect(h.d.talking).toBe(true);
-    expect(h.d.frozen).toBe(false);
-    h.d.update(16, state({ hostiles: [{ id: 1 }] } as unknown as Partial<State>));
-    expect(h.d.talking).toBe(false);
-    expect(h.d.frozen).toBe(true);
-    vi.useRealTimers();
-  });
-
   it("crew introductions queue: one per tap, frozen throughout, and a tap resumes play", () => {
     vi.useFakeTimers();
     const crew = (r: string, n: string) => cue({ event: "joined", match: { role: r } }, { crew: n, who: n });
@@ -150,10 +137,10 @@ describe("story director freezing", () => {
     expect(h.d.frozen).toBe(false);
     h.d.onEvent({ t: "joined", capture: 0, resident: 0, role: "a" } as SimEvent, state());
     h.d.onEvent({ t: "joined", capture: 1, resident: 1, role: "b" } as SimEvent, state());
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     expect(h.log.filter((l) => l.startsWith("line:"))).toEqual(["line:rhee:rhee"]);
     h.tap();
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     expect(h.log.filter((l) => l.startsWith("line:"))).toEqual(["line:rhee:rhee", "line:tam:tam"]);
     h.tap();
     expect(h.d.frozen).toBe(false);
@@ -167,7 +154,7 @@ describe("story director freezing", () => {
     h.d.update(16, state());
     expect(h.hasTap()).toBe(true);
     h.earlyTap();
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     h.tap();
     expect(h.d.frozen).toBe(false);
     vi.useRealTimers();
@@ -177,7 +164,7 @@ describe("story director freezing", () => {
     vi.useFakeTimers();
     const h = harness(levelOf(cue({ start: true }, { freeze: true }, { line: "x", seconds: 1 })));
     h.d.update(16, state());
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     h.tap();
     expect(h.d.frozen).toBe(false);
     vi.useRealTimers();
@@ -187,12 +174,12 @@ describe("story director freezing", () => {
     vi.useFakeTimers();
     const h = harness(levelOf(cue({ start: true }, { line: "a", who: "kiln", seconds: 1 }, { line: "b", who: "pip" })));
     h.d.update(16, state());
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     h.d.update(60_000, state());
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     h.tap();
     expect(h.log.filter((l) => l.startsWith("line:"))).toEqual(["line:KILN:a:kiln", "line:PIP:b"]);
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     h.tap();
     expect(h.d.frozen).toBe(false);
     vi.useRealTimers();
@@ -204,7 +191,7 @@ describe("story director freezing", () => {
     const h = harness(levelOf(cue({ start: true }, { line: "long line", who: "kiln" })), false, () => { const was = typing; typing = false; return was; });
     h.d.update(16, state());
     h.tap();
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     expect(h.log).not.toContain("clear");
     h.tap();
     expect(h.d.frozen).toBe(false);
@@ -215,7 +202,7 @@ describe("story director freezing", () => {
     vi.useFakeTimers();
     const h = harness(levelOf(cue({ start: true }, { card: "Bay 5", seconds: 2 }, { day: "DAY 4,023" })));
     h.d.update(16, state());
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     expect(h.log).toContain("card:Bay 5");
     h.d.update(2100, state());
     expect(h.log).toContain("day:DAY 4,023");
@@ -228,7 +215,7 @@ describe("story director freezing", () => {
     const h = harness(levelOf(cue({ start: true }, { film: "crash_open" })));
     h.d.update(16, state());
     expect(h.host.film).toHaveBeenCalledWith("crash_open");
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     await Promise.resolve();
     await Promise.resolve();
     expect(h.d.frozen).toBe(false);
@@ -238,7 +225,7 @@ describe("story director freezing", () => {
     const h = harness(levelOf(cue({ start: true }, { camera: { to: { at: [20, 30] }, pan: 1, hold: 1, back: 1 } }, { camera: { to: { at: [20, 10] }, share: 0.5, pan: 0.5, hold: 0, back: 0.5, freeze: false } })));
     h.d.update(1, state());
     expect(h.cam.follow).toBe(false);
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     h.d.update(1000, state());
     expect(h.cam.x).toBeCloseTo(20);
     expect(h.cam.y).toBeCloseTo(30);
@@ -270,7 +257,7 @@ describe("story director replays", () => {
     expect(h.host.film).not.toHaveBeenCalled();
     expect(h.cam.follow).toBe(true);
     expect(h.log).toContain("line::kept");
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     h.tap();
     expect(h.log).toContain("line:PIP:hi");
     h.tap();
@@ -328,7 +315,7 @@ describe("story director goals", () => {
     h.d.onEvent(miss("a"), state());
     expect(h.d.frozen).toBe(false);
     h.d.onEvent(miss("b"), state());
-    expect(h.d.frozen || h.d.talking).toBe(true);
+    expect(h.d.frozen).toBe(true);
     expect(h.log).toContain("prompt:Missed:Keep");
     h.other();
     expect(h.d.frozen).toBe(false);
@@ -417,7 +404,7 @@ describe("story director, level one's needs", () => {
     expect(w.glow).toEqual({ x: 3, y: 4 });
     expect(w.guideOff).toBe(false);
     expect(w.light).toEqual({ preset: "dawn", seconds: 5, atTick: 7 });
-    expect(h.d.frozen || h.d.talking).toBe(true); // the line pauses play; the nudge still moved the camera
+    expect(h.d.frozen).toBe(true); // the line pauses play; the nudge still moved the camera
     expect(h.log.some((l) => l.startsWith("line:KILN:said"))).toBe(true);
   });
 
