@@ -1295,7 +1295,8 @@ export const marsGreenhouse: Skin = {
           ] },
           // all three trained: a small light starts blinking at the wreck
           { id: "handsOff", on: { event: "hired", match: { pad: "cashier" } }, do: [
-            { guide: false },
+            // the arrows lead east to the flight recorder (Doug, 2026-11-24)
+            { guide: true, to: { entity: "recorder" } },
             { line: "They've got it now. Head east to the wreck while the crew keep the town running.", who: "kiln" },
             { dots: [{ entity: "recorder" }], period: 1.2 },
             { edgeGlow: { entity: "recorder", size: 28, strength: 0.35 } },
