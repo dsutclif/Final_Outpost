@@ -645,15 +645,7 @@
     788.1,
     147.9
    ],
-   "hiddenUntil": "train",
-   "drop": {
-    "h": 1.6,
-    "r": 300,
-    "from": [
-     -10,
-     -85
-    ]
-   }
+   "hiddenUntil": "train"
   }
  ],
  "people": [

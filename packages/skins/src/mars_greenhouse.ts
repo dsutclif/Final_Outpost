@@ -1222,6 +1222,8 @@ export const marsGreenhouse: Skin = {
       "story-L004": {
         // Rhee's aid station stays beside the reactor from level 2 on
         aidStation: true,
+        // the flight recorder lies dark on the sand from the start, so the camera pan to the wreck shows it (Doug: on the sand)
+        darkPods: true,
         hide: ["walls"],
         solid: ["sink.core"],
         goalCards: true,

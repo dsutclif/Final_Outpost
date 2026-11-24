@@ -459,7 +459,7 @@ reactor was relit."*
 *Only now, on KILN's line, the camera travels to the wreck, far out on the plain, and back to the commander, so the
 distance reads.*
 
-*Rhee has stepped up beside the commander before she speaks.*
+*The flight recorder already lies on the sand beside the hull, a steel box with a blinking orange light, so the pan shows it. Rhee has stepped up beside the commander before she speaks.*
 
 **COMMANDER:** That's a long walk, and there's a line at the kiosk. If I go, the town stops.
 
@@ -513,7 +513,7 @@ runner carries and the clerk rings up; the credits counter keeps ticking up.*
 
 *The walk passes the four bay pods in the sand by the hull, lids up, empty. Bay 5's plate still shows Vale's photo.*
 
-*At the hull an orange flight recorder blinks, wedged in a crack: a steel box the size of a crate. Once all three jobs are trained and the commander comes near it rattles, the crack bursts, and it tumbles out onto the sand. Goal star.*
+*At the hull the orange flight recorder blinks on the sand, a steel box the size of a crate. It cannot be taken until all three jobs are trained; then the arrows circle it. Goal star.*
 
 **KILN:** That's it. Bring it home to me.
 
