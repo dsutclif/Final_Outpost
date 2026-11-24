@@ -1207,14 +1207,14 @@ export const marsGreenhouse: Skin = {
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land
           // outpost-ops#365: before Sela drives in, the arrows walk the commander out of the hub to a spot beside her parking place
           // (left of the hub, clear of the buggy's path), so the hub turns solid on screen and both speakers share one frame with no
-          // camera move. TODO: the spot follows the buggy stop that train/r3-l3-layout moved for #364 (520,430); re-check if it moves.
+          // camera move. the spot follows the buggy stop (520,430) from train/r3-l3-layout (#364); re-check if that moves.
           { id: "hubDone", on: { goal: "main", is: "done" }, do: [{ guide: true, to: { at: [470, 450] } }] },
           { on: { near: { at: [470, 450] }, r: 45, after: "hubDone" }, ordered: true, do: [
             { guide: false },
             // Sela's road crew raise the hub like every paid build (they drive up, wait and go), then she hands the commander the chip
             // (the chip_handoff live scene) and speaks; play is held while the buggy drives so it never runs the commander down
             { freeze: true },
-            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [600, 420] }], seconds: 5, lights: true },
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [520, 430] }], seconds: 5, lights: true },
             { wait: 5.5 },
             { vehicleOff: "buggy" },
             { film: "chip_handoff" },
