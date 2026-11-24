@@ -592,8 +592,8 @@
    "type": "pad.hire",
    "id": "picker",
    "at": [
-    520,
-    660
+    530,
+    668
    ],
    "cost": {
     "res.currency": 9

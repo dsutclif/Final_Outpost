@@ -284,10 +284,12 @@ photo. All empty.*
 commander gathers scrap and carries it to the frame, load by load. The dome rises, its grow lamps come on and greens
 sprout. Goal star.*
 
+*Tam has walked out to the dome while the commander fills it, and stands beside it.*
+
 **TAM:** It'll do. Now I can start getting the first seeds in the gro...
 
-*Night falls. Far to the south, beyond the edge of the map, a pair of lights moves, then stops. A soft glow sits on
-the south screen edge with an arrow in it.*
+*Night falls. Far to the south, beyond the edge of the map, a pair of lights moves, then stops (a parked buggy, lamps on). A soft glow sits on
+the south screen edge with an arrow in it, and the guide arrows point south too.*
 
 **COMMANDER:** Wait. Those lights to the south...
 
@@ -298,7 +300,7 @@ old trading kiosk, dark, with sand drifted against its shutter. Goal star.*
 
 **COMMANDER:** A road. And a kiosk, shut up for years. People were here.
 
-*The lights come up the road: a buggy (the arrival scene as built). It parks by the kiosk. A woman in a navy suit
+*The commander is already at the kiosk when the lights come up the road: a buggy (the arrival scene as built, no camera cut to the road). It parks by the kiosk. A woman in a navy suit
 climbs out and walks over. Play is held until she has spoken.*
 
 **SELA:** Well, I guess... Sela.
@@ -317,7 +319,9 @@ your greens.
 
 > GOAL CARD: **Sell Sela some greens**
 
-*The commander picks greens at the dome, carries them to the kiosk, stocks the shelf and stands at the counter. C
+*The commander picks greens at the dome, carries them to the kiosk, stocks the shelf and stands at the counter. The arrows lead to the greens, then to the kiosk.*
+
+*C
 coins fly; the credits counter appears. Goal star.*
 
 **KILN:** Those coins seem to be the local currency.
@@ -329,6 +333,8 @@ coins fly; the credits counter appears. Goal star.*
 *From here on, every build pad shows a price in credits. When one is paid, Sela's road crew come up the road and raise
 it.*
 
+*Okafor walks over to the kiosk first, so he speaks on screen.*
+
 **OKAFOR:** A road that brings traders can bring raiders, so... let's build a wall first...
 
 **KILN:** Once you've saved enough credits, walk the dashed line and the wall goes up behind you.
@@ -337,6 +343,8 @@ it.*
 
 *A dashed line rings the camp. The commander walks it, and each section rises behind them. Gates are left in it,
 facing the road and facing the ridge. Goal star.*
+
+*Sela's road crew do not drive in for the wall (the buggy once ran the commander down outside it); they come for the hub. Rhee walks over to the commander before she speaks.*
 
 **RHEE:** These pods kept us alive, but they won't last another storm. We need a habitat hub.
 
@@ -356,7 +364,7 @@ facing the road and facing the ridge. Goal star.*
 
 *Play pauses; the camera pans past the rubble to hoppers moving in a pool of light, then back to the rubble.*
 
-**KILN:** The slide is loose rock... walk up to it and dig... one section at a time.
+**KILN:** The slide is loose rock... walk up to it and dig... one section at a time. *(Arrows to the rubble start only here, never before.)*
 
 > GOAL CARD: **Dig through the rockslide**
 
@@ -369,6 +377,8 @@ sinks in a burst of dust; then the next, until a path is open. It costs no credi
 
 > GOAL CARD: **Sell protein at the kiosk**
 
+*Arrows go back and forth between the hoppers and the kiosk counter (and its coin pile) until the hub's price is in hand, then lead to the hub.*
+
 *The commander runs into a hopper; it falls and drops protein. The commander picks it up, stocks the shelf and sells
 it. A second trader arrives. Goal star.*
 
@@ -379,6 +389,8 @@ Stand on Tam's pad when you have them.
 
 *Tam's training pad lights beside the dome, with its price. The commander stands on it and pays. Tam walks to the
 dome, picks greens, carries them to the kiosk shelf and keeps doing it. Goal star.*
+
+*Rhee walks over to Tam's pad first.*
 
 **RHEE:** Keep selling. When we have enough, we'll build the hub.
 

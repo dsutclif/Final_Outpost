@@ -1076,32 +1076,39 @@ export const marsGreenhouse: Skin = {
             { goal: "dome" },
             { dots: [{ entity: "scrapA" }], period: 2.4 },
           ] },
-          // the dome stands and night falls: a pair of lights moves far to the south, a soft glow on the screen edge points the way
+          // Tam walks out to the dome's frame while the commander fills it, so her line comes from beside it, on screen
+          { on: { near: { entity: "dome" }, r: 170 }, do: [{ walk: "tam", to: { at: [405, 598] } }] },
+          // the dome stands and night falls: a pair of lights moves far to the south (a parked buggy, lamps on), a soft glow on
+          // the screen edge and the arrows point the way
           { on: { goal: "dome", is: "done" }, ordered: true, do: [
             { dotsOff: true },
             { light: "night", seconds: 6 },
+            { vehicle: "buggy", path: [{ at: [1010, 1010] }, { at: [930, 972] }, { at: [850, 944] }], seconds: 14, lights: true },
             { line: "It'll do. Now I can start getting the first seeds in the gro...", who: "tam" },
             { line: "Wait. Those lights to the south...", who: "commander" },
-            { guide: false },
+            { guide: true, to: { entity: "kiosk" } },
             { edgeGlow: { entity: "kiosk", size: 28, strength: 0.35, arrow: true } },
             { goal: "lights" },
           ] },
           // found by walking: the glow goes out at the road, the kiosk's door
           { id: "kioskFound", on: { near: { entity: "kiosk" }, r: 170 }, do: [
             { edgeGlow: null },
-            { guide: true },
+            { vehicleOff: "buggy" },
+            { walk: "tam", to: false },
+            { guide: false },
             { line: "A road. And a kiosk, shut up for years. People were here.", who: "commander" },
           ] },
           // the only moving light: Sela's buggy comes up the road and parks (the sela_arrival live scene), then the
           // camera follows her on foot to the old kiosk
-          { id: "selaIn", on: { event: "customer_arrived" }, ordered: true, do: [
+          { id: "selaIn", on: { event: "customer_arrived", after: "kioskFound" }, ordered: true, do: [
             // the arrival is one in-level shot, no film ahead of it (Doug 2026-11-09): the camera cuts to the road at once, the buggy
             // drives in and parks with its lights on, Sela steps out at its door (hidden while it drives, where her route starts in
             // story-L003) and the camera then glides on to the kiosk, where she and the commander stand and talk.
             { light: "night", seconds: 1.5 },
             { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }], seconds: 6.5, lights: true, rider: "sela" },
-            { camera: { to: { at: [690, 858] }, zoom: 0.72, pan: 0.001, hold: 9.7, back: 0.001 } },
-            { camera: { to: { entity: "kiosk" }, pan: 1.4, hold: 24, back: 0.9, freeze: false } },
+            // the commander is already at the kiosk (she only drives in once he has found it), so the camera stays with him and
+            // takes one slow nudge toward the kiosk: no cut to the road and back (Doug 2026-11-22)
+            { camera: { to: { entity: "kiosk" }, share: 0.6, pan: 1.4, hold: 24, back: 0.9, freeze: false } },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
           { on: { who: "sela", at: { entity: "kiosk" }, r: 150, after: "selaIn" }, ordered: true, do: [
@@ -1113,30 +1120,39 @@ export const marsGreenhouse: Skin = {
             { line: "Traders. Stock the kiosk's shelf with greens, then stand at the counter so she can pay.", who: "kiln", head: "K.I.L.N. · DAY 3" },
             { goal: "first" },
             { dots: [{ entity: "field1" }], period: 3 },
+            { guide: true, to: { entity: "field1" } },
           ] },
+          // greens in hand: the arrows lead to the kiosk
+          { on: { event: "gathered", match: { res: "res.food_raw_1" }, after: "selaIn" }, do: [{ guide: true, to: { entity: "kiosk" } }] },
           // the first coins go on a wall: KILN looks ahead to the nights and to the raiders of level 5
           { on: { goal: "first", is: "done" }, ordered: true, do: [
             { show: ["credits"] },
             { dotsOff: true },
+            { guide: true, to: { at: [220, 240] } },
+            { walk: "okafor", to: { last: "sold" } },
+            { wait: 7 },
             { line: "Those coins seem to be the local currency.", who: "kiln" },
             { line: "You built that dome yourselves? Out of your own hull?", who: "sela" },
             { line: "Save your scrap. My road crew builds for credits, and they bring their own steel.", who: "sela" },
             { line: "A road that brings traders can bring raiders, so... let's build a wall first...", who: "okafor" },
             { line: "Once you've saved enough credits, walk the dashed line and the wall goes up behind you.", who: "kiln" },
+            { walk: "okafor", to: false },
           ] },
           // the wall stands: the hub and its price, then the trader who wants meat and the slide in the way
           { id: "wallDone", on: { goal: "walls", is: "done" }, ordered: true, do: [
-            // Sela's road crew come up the road for each paid build: the buggy drives in, waits a moment and goes
-            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [560, 430] }], seconds: 5, lights: true },
-            { wait: 3 },
-            { vehicleOff: "buggy" },
+            // no road-crew buggy here: it drove into a commander walking outside the wall, and it drives in again for the hub
+            { walk: "rhee", to: { last: "barrier_built" } },
+            { wait: 3.5 },
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
             { line: "Take one more load of greens to the kiosk, and keep saving credits for that hub.", who: "kiln" },
+            { walk: "rhee", to: false },
+            { guide: true, to: { entity: "field1" } },
           ] },
           // picking up greens after the wall: Tam offers to run the dome
           { on: { event: "gathered", match: { res: "res.food_raw_1" }, after: "wallDone" }, ordered: true, do: [
             { line: "Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.", who: "tam" },
+            { guide: true, to: { entity: "kiosk" } },
           ] },
           // the checkout sale of those greens: the next trader wants protein
           { on: { event: "sold", match: { res: "res.food_raw_1" }, after: "wallDone" }, ordered: true, do: [
@@ -1145,18 +1161,34 @@ export const marsGreenhouse: Skin = {
             { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.3 } },
             { camera: { to: { entity: "rockslide" }, pan: 0.4, hold: 1, back: 0.8 } },
             { line: "The slide is loose rock... walk up to it and dig... one section at a time.", who: "kiln" },
+            { guide: true, to: { entity: "rockslide" } },
           ] },
           // dug by hand: no credits, so no road crew
-          { on: { event: "zone_cleared" }, ordered: true, do: [
+          { id: "digDone", on: { event: "zone_cleared" }, ordered: true, do: [
+            { guide: true, to: { entity: "flats" } },
             { line: "That slide is fresh. Something up on the ridge shook it loose.", who: "kiln" },
             { line: "Rock hoppers. Run into one to knock it down, then pick up the protein when it falls.", who: "kiln" },
           ] },
+          // hunt and cashier, back and forth until the hub's price is in hand, then the hub (Doug, 2026-11-22). Protein in hand: the
+          // cashier; sold: the coin pile at the counter; coins collected: back to the hoppers. The cashier cues sit before the
+          // first-sale cue below so its arrow to Tam's pad wins that once.
+          { on: { event: "picked", match: { res: "res.food_raw_2" }, after: "digDone" }, repeat: true, do: [{ guide: true, to: { entity: "kiosk" } }] },
+          { on: { event: "sold", match: { res: "res.food_raw_2" }, after: "digDone" }, repeat: true, do: [{ guide: true, to: { entity: "kiosk" } }] },
+          { on: { event: "collected", match: { res: "res.currency" }, after: "digDone" }, repeat: true, unless: "hubReady", do: [{ guide: true, to: { entity: "flats" } }] },
+          { id: "hubReady", on: { credits: 120, after: "digDone" }, do: [{ guide: true, to: { entity: "hub" } }] },
           { on: { event: "sold", match: { res: "res.food_raw_2" } }, ordered: true, do: [
+            { guide: true, to: { entity: "picker" } },
             { line: "Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear, and gear costs credits. Stand on Tam's pad when you have them.", who: "kiln" },
             { goal: "train" },
           ] },
-          { id: "tamTrained", on: { goal: "train", is: "done" }, do: [
+          // Tam is hired: her drawn self comes home to the sim's Tam; Rhee walks over so her line comes on screen
+          { id: "tamTrained", on: { goal: "train", is: "done" }, ordered: true, do: [
+            { walk: "tam", to: false },
+            { walk: "rhee", to: { entity: "picker" } },
+            { wait: 4 },
             { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
+            { walk: "rhee", to: false },
+            { guide: true, to: { entity: "flats" } },
           ] },
           // about half the hub's price: a trader at the counter looks up at the ridge
           { on: { credits: 75, after: "tamTrained" }, ordered: true, do: [
@@ -1167,7 +1199,8 @@ export const marsGreenhouse: Skin = {
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land
           { on: { goal: "main", is: "done" }, ordered: true, do: [
             // Sela's road crew raise the hub like every paid build (they drive up, wait and go), then she hands the commander the chip
-            // (the chip_handoff live scene) and speaks
+            // (the chip_handoff live scene) and speaks; play is held while the buggy drives so it never runs the commander down
+            { freeze: true },
             { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [600, 420] }], seconds: 5, lights: true },
             { camera: { to: { at: [640, 440] }, pan: 1, hold: 4.5, back: 0.4, freeze: false } },
             { wait: 5.5 },
