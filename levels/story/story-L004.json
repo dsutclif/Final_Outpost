@@ -498,8 +498,8 @@
    "type": "sink.sales_point",
    "id": "kiosk",
    "at": [
-    580,
-    1100
+    220,
+    1130
    ],
    "sells": [
     "res.food_raw_1",
@@ -512,12 +512,16 @@
      1205
     ],
     [
-     810,
-     1205
+     700,
+     1215
     ],
     [
-     630,
-     1205
+     450,
+     1230
+    ],
+    [
+     290,
+     1235
     ]
    ]
   },
@@ -565,8 +569,8 @@
    "type": "pad.build",
    "id": "galley",
    "at": [
-    530,
-    940
+    350,
+    1010
    ],
    "cost": {
     "res.currency": 11
@@ -584,8 +588,8 @@
    "type": "pad.hire",
    "id": "cook",
    "at": [
-    620,
-    950
+    440,
+    1020
    ],
    "cost": {
     "res.currency": 9
@@ -603,8 +607,8 @@
    "type": "pad.hire",
    "id": "server",
    "at": [
-    450,
-    985
+    270,
+    1055
    ],
    "cost": {
     "res.currency": 9
@@ -623,8 +627,8 @@
    "type": "pad.hire",
    "id": "cashier",
    "at": [
-    500,
-    1120
+    140,
+    1150
    ],
    "cost": {
     "res.currency": 9
