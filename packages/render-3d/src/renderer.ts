@@ -1752,7 +1752,7 @@ export class Renderer3D implements Renderer {
   private syncSales(s: State, a: number): void {
     const sales = s.sales;
     if (!sales) return;
-    const kiosk = this.place("sales", "sink.sales_point", this.wv(sales.pos));
+    const kiosk = this.place("sales", "sink.sales_point", this.wv(sales.pos), this.cp?.manifest.params["kiosk.aged"] ? 2 : 1);
     // the clerk pad: whoever stands on it (hero or clerk) rings up the queue; no register object
     const reg = this.place("register", "sink.sales_point.register", this.wv(sales.register));
     // every standing plate (clerk, operator, pickup, drop-off) draws at the one plot plate size
@@ -1979,7 +1979,7 @@ export class Renderer3D implements Renderer {
     s.nodes.forEach((n, i) => {
       const key = `n:${i}`;
       // scrap heaps take the scrap models in turn (ship scrap, scrap field, wreck), or the one the level names with params "scrap.look" (outpost-ops#305): every scrap on such a level is pickable
-      const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? (s.params["scrap.look"] || 1 + (i % 3)) : 1);
+      const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? ((this.cp?.manifest.params["scrap.look"] ?? 0) || 1 + (i % 3)) : 1);
       // a locked grow dome is an unbuilt thing like any other: the blue blueprint, with its unlock pad
       const ghosted = !n.enabled && n.type === "node.food_source";
       // a buried node (hiddenUntil) is not on the map yet: no model, no ghost, no lock label

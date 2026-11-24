@@ -142,6 +142,30 @@ export function buildKiosk(ctx: BuildCtx, queue: readonly [number, number] = [2.
     .cyl(0.15, 0.15, 0.09, 12, t.glass, { at: [hx + side * 0.41, 1.08, -0.2], rot: [0, 0, Math.PI / 2] })
     .box(0.05, 0.08, 0.5, t.accent, { at: [hx + side * 0.43, 0.82, -0.2] })
     .rbox(0.7, 0.1, 0.9, 0.03, t.metalDark, { at: [hx + side * 0.55, 0.2, -0.2] }, 1);
+  // Level 3's kiosk (manifest params "kiosk.aged", outpost-ops#358): shut up for years. Sand drifted against it, rust and dust streaks,
+  // a half-fallen shutter, a sign hanging off one hinge, a tank slipped off its rack, a bent aerial and cracked glass.
+  if (ctx.level >= 2) {
+    const sand = mix(t.groundAlt, t.sun, 0.15), rust = mix(t.structureDark, "#8a4a22", 0.55), dust = mix(t.structure, sand, 0.55), soot = mix(t.structureDark, t.groundDark, 0.6);
+    b.dome(1.5, 14, 4, sand, { at: [-0.75, 0.12, 0.98], scale: [1.0, 0.3, 0.55] })
+      .dome(1.1, 14, 4, sand, { at: [0.95, 0.12, 0.9], scale: [1.0, 0.22, 0.5] })
+      .dome(0.9, 12, 4, sand, { at: [side * 1.7, 0.1, 0.1], scale: [1.0, 0.3, 0.8] })
+      .box(0.5, 0.9, 0.03, soot, { at: [-0.95, 0.95, 0.54], rot: [0, 0, 0.06] })
+      .box(0.38, 1.1, 0.03, soot, { at: [0.8, 1.0, 0.54], rot: [0, 0, -0.04] })
+      .box(0.7, 0.3, 0.03, rust, { at: [0.3, 0.52, 0.53], rot: [0, 0, 0.09] })
+      .box(0.5, 0.22, 0.03, rust, { at: [-0.7, 1.7, 0.5], rot: [0, 0, -0.12] })
+      .box(0.9, 0.6, 0.03, dust, { at: [0.55, 0.95, 0.5], rot: [0, 0, 0.1] })
+      // the shutter, jammed a third of the way down and sagging at one end
+      .box(1.86, 0.3, 0.05, dust, { at: [0, 1.38, 0.52], rot: [0, 0, 0.05] })
+      .box(1.86, 0.06, 0.07, rust, { at: [0, 1.22, 0.53], rot: [0, 0, 0.05] })
+      // cracks across the glass
+      .box(0.7, 0.02, 0.02, t.metalDark, { at: [-0.4, 0.95, 0.5], rot: [0, 0, 0.7] })
+      .box(0.5, 0.02, 0.02, t.metalDark, { at: [-0.2, 0.8, 0.5], rot: [0, 0, -0.4] })
+      // the sign: one hinge gone, hanging down and turned toward the ground
+      .rbox(1.25, 0.36, 0.14, 0.07, rust, { at: [0.05, 1.98, -0.02], rot: [0, 0, -0.32] }, 1)
+      // a tank off its rack, lying on the sand, and a bent aerial
+      .capsule(0.16, 0.7, t.metalDark, { at: [0.8, 0.2, -1.2], rot: [0.2, 0.5, Math.PI / 2] }, 2, 8)
+      .cyl(0.025, 0.025, 0.5, 5, t.metalDark, { at: [-side * 1.0, 2.15, -0.55], rot: [0, 0, side * 0.8] });
+  }
   m.root.add(mesh(b.build(), mats.panel, "body"));
   const glass = mesh(new GeoBuilder().box(1.8, 0.82, 0.04, t.glass, { at: [0, 1.04, 0.47] }).build(), mats.glass, "glass");
   m.root.add(glass);
