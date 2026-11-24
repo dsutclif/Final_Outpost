@@ -707,7 +707,8 @@
   "defense.fleeSpeed": 50,
   "gate.spawnOffsetY": -190,
   "gate.initialDelay": 3,
-  "player.commanderRules": 1
+  "player.commanderRules": 1,
+  "kiosk.aged": 1
  },
  "goal": {
   "type": "crates",

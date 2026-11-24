@@ -81,6 +81,7 @@
   "zones.digSeconds": 0,
   "zones.digSquare": 26,
   "scrap.look": 0,
+  "kiosk.aged": 0,
   "barrier.thickness": 12,
   "barrier.buildRange": 20,
   "barrier.buildInterval": 0.1,

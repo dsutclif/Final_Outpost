@@ -690,7 +690,8 @@
   "level.budgetSeconds": 300,
   "zones.digSeconds": 2,
   "zones.digSquare": 16,
-  "scrap.look": 2
+  "scrap.look": 2,
+  "kiosk.aged": 1
  },
  "goal": {
   "type": "build",

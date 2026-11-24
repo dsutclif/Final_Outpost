@@ -5,8 +5,9 @@ from mathutils import Vector, Euler
 
 args = sys.argv[sys.argv.index("--") + 1:]
 glb, out, mode, view = args[0], args[1], args[2], (args[3] if len(args) > 3 else "iso")
-ruin = mode == "ruined"  # more damage: crumbling concrete + cracked glass (outpost-ops#358, Doug 2026-11-24)
-aged = mode in ("aged", "ruined")
+export = mode == "bake"  # bake: the ruined look as one textured mesh, written to <out dir>/Trade Kiosk Aged.glb for tools/build-models.ts
+ruin = mode in ("ruined", "bake")  # more damage: crumbling concrete + cracked glass (outpost-ops#358, Doug 2026-11-24)
+aged = mode in ("aged", "ruined", "bake")
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=glb)
 k = [o for o in bpy.data.objects if o.type == "MESH"][0]
@@ -120,6 +121,8 @@ g = bpy.context.object
 gm = bpy.data.materials.new("sand"); gm.use_nodes = True
 gb = gm.node_tree.nodes["Principled BSDF"]; gb.inputs["Base Color"].default_value = (0.36, 0.25, 0.15, 1); gb.inputs["Roughness"].default_value = 1
 g.data.materials.append(gm)
+if export:
+    bpy.data.objects.remove(g)
 if aged:
     sm = bpy.data.materials.new("drift"); sm.use_nodes = True
     sb = sm.node_tree.nodes["Principled BSDF"]; sb.inputs["Base Color"].default_value = (0.42, 0.30, 0.18, 1); sb.inputs["Roughness"].default_value = 1
@@ -147,6 +150,51 @@ if aged:
             hit, loc, _n, _i, _o, _m = sc0.ray_cast(dg, Vector((x, -3.0, z)), Vector((0, 1, 0)))
             return loc.y if hit else None
 
+        def crack_strips(cx, cy, cz, w, h, yaw):
+            # the game cannot draw see-through glass, so a broken pane is solid geometry: thin crack strips radiating from an impact
+            # point, plus jagged shards left in the pane corners
+            import bmesh
+            bm = bmesh.new()
+            ca, sa = math.cos(math.radians(yaw)), math.sin(math.radians(yaw))
+
+            def pt(u, v):
+                return bm.verts.new((cx + u * ca, cy + u * sa, cz + v))
+
+            def quad(a, b, wd):
+                du, dv = b[0] - a[0], b[1] - a[1]
+                ln = math.hypot(du, dv) or 1
+                nu, nv = -dv / ln * wd / 2, du / ln * wd / 2
+                v4 = [pt(a[0] + nu, a[1] + nv), pt(b[0] + nu, b[1] + nv), pt(b[0] - nu, b[1] - nv), pt(a[0] - nu, a[1] - nv)]
+                bm.faces.new(v4)
+
+            ix, iy = random.uniform(-w * 0.25, w * 0.25), random.uniform(-h * 0.2, h * 0.2)
+            for i in range(9):
+                ang = i / 9 * math.tau + random.uniform(-0.2, 0.2)
+                ln = random.uniform(0.35, 0.9) * max(w, h)
+                px, py = ix, iy
+                for _seg in range(3):
+                    nx = px + math.cos(ang) * ln / 3 + random.uniform(-0.02, 0.02)
+                    ny = py + math.sin(ang) * ln / 3 + random.uniform(-0.02, 0.02)
+                    if abs(nx) > w / 2 or abs(ny) > h / 2:
+                        break
+                    quad((px, py), (nx, ny), 0.014)
+                    px, py = nx, ny
+                    ang += random.uniform(-0.3, 0.3)
+            for rr in (0.09, 0.2):
+                pts = [(ix + math.cos(t / 10 * math.tau) * rr * random.uniform(0.85, 1.15), iy + math.sin(t / 10 * math.tau) * rr * random.uniform(0.85, 1.15)) for t in range(11)]
+                for a, b in zip(pts, pts[1:]):
+                    if abs(a[0]) < w / 2 and abs(b[0]) < w / 2 and abs(a[1]) < h / 2 and abs(b[1]) < h / 2:
+                        quad(a, b, 0.012)
+            for sx, sy in ((-1, 1), (1, 1), (-1, -1), (1, -1)):
+                if random.random() < 0.7:
+                    c = (sx * w / 2, sy * h / 2)
+                    bm.faces.new([pt(c[0], c[1]), pt(c[0] - sx * w * random.uniform(0.2, 0.45), c[1]), pt(c[0], c[1] - sy * h * random.uniform(0.12, 0.3))])
+            me = bpy.data.meshes.new("cracks"); bm.to_mesh(me); bm.free()
+            ob = bpy.data.objects.new("cracks", me); bpy.context.collection.objects.link(ob)
+            gm2 = bpy.data.materials.get("shard") or bpy.data.materials.new("shard")
+            gm2.use_nodes = True; gm2.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.62, 0.70, 0.72, 1)
+            ob.data.materials.append(gm2)
+
         gmat = bpy.data.materials.new("cracked_glass"); gmat.use_nodes = True
         if hasattr(gmat, "surface_render_method"):
             gmat.surface_render_method = "BLENDED"
@@ -173,6 +221,9 @@ if aged:
         for cx, cz, w, h, yaw in ((0.04, 0.78, 0.64, 0.84, 0), (-0.45, 0.78, 0.2, 0.84, -28), (0.56, 0.78, 0.26, 0.84, 28)):
             fy_ = front_y(-0.33 if cx < 0.3 else 0.41, cz)  # ray at the mullion beside each pane (a ray down the opening hits the back wall)
             if fy_ is None:
+                continue
+            if export:
+                crack_strips(cx, fy_ + 0.05, cz, w, h, yaw)
                 continue
             bpy.ops.mesh.primitive_plane_add(size=1, location=(cx, fy_ + 0.05, cz), rotation=(math.radians(90), 0, math.radians(yaw)))
             p = bpy.context.object; p.scale = (w, h, 1); p.data.materials.append(gmat)
@@ -203,6 +254,73 @@ if aged:
     am = bpy.data.materials.new("aerial"); am.use_nodes = True
     am.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.05, 0.05, 0.05, 1)
     bpy.context.object.data.materials.append(am)
+
+if export:
+    # one mesh, one atlas. The body is unwrapped BEFORE the damage modifiers (a displaced mesh breaks into a million islands) and
+    # squeezed into the lower-left 88% of the atlas; the loose extras (rubble, crack strips, sand drifts) each map to one flat texel
+    # in the spare corner. Then modifiers are applied, everything is joined and the shaded colour is baked into one image.
+    import numpy as np
+    orig_uv = k.data.uv_layers[0].name
+    uvn = nt.nodes.new("ShaderNodeUVMap"); uvn.uv_map = orig_uv
+    nt.links.new(uvn.outputs["UV"], src.node.inputs["Vector"])
+    cutters = [o for o in bpy.data.objects if o.hide_render]
+    k.data.uv_layers.new(name="bakeUV"); k.data.uv_layers.active = k.data.uv_layers["bakeUV"]
+    bpy.ops.object.select_all(action="DESELECT"); bpy.context.view_layer.objects.active = k; k.select_set(True)
+    bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0.004)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    lay = k.data.uv_layers["bakeUV"]
+    arr = np.zeros(len(lay.uv) * 2, dtype=np.float32); lay.uv.foreach_get("vector", arr); lay.uv.foreach_set("vector", arr * 0.88)
+    spots = {"rubble": (0.95, 0.95), "drift": (0.95, 0.90), "shard": (0.90, 0.95)}
+    extras = []
+    for o in [o for o in bpy.data.objects if o.type == "MESH" and o is not k and not o.hide_render]:
+        bpy.context.view_layer.objects.active = o
+        for m in list(o.modifiers):
+            bpy.ops.object.modifier_apply(modifier=m.name)
+        nm = o.data.materials[0].name if o.data.materials else "rubble"
+        u = o.data.uv_layers.new(name="bakeUV"); o.data.uv_layers.active = u
+        spot = spots.get(nm, (0.95, 0.95))
+        for i in range(len(u.uv)):
+            u.uv[i].vector = spot
+        for ly in [l for l in o.data.uv_layers if l.name != "bakeUV"]:
+            o.data.uv_layers.remove(ly)
+        extras.append(o)
+    bpy.context.view_layer.objects.active = k
+    for m in list(k.modifiers):
+        bpy.ops.object.modifier_apply(modifier=m.name)
+    for o in cutters:
+        bpy.data.objects.remove(o)
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in [k] + extras:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = k
+    bpy.ops.object.join()
+    k.data.uv_layers.active = k.data.uv_layers["bakeUV"]
+    img = bpy.data.images.new("kiosk_aged_albedo", 2048, 2048)
+    for ms in k.material_slots:
+        mt = ms.material.node_tree
+        tn = mt.nodes.new("ShaderNodeTexImage"); tn.image = img; mt.nodes.active = tn
+    sc = bpy.context.scene; sc.render.engine = "CYCLES"; sc.cycles.device = "CPU"; sc.cycles.samples = 8; sc.cycles.use_denoising = False
+    bpy.ops.object.bake(type="DIFFUSE", pass_filter={"COLOR"}, margin=8, use_clear=True)
+    # the extras map to single points (no area to bake): paint their texels straight into the image
+    px = np.zeros(2048 * 2048 * 4, dtype=np.float32); img.pixels.foreach_get(px); px = px.reshape(2048, 2048, 4)
+    for (u, v), col in (((0.95, 0.95), (0.30, 0.27, 0.23)), ((0.95, 0.90), (0.42, 0.30, 0.18)), ((0.90, 0.95), (0.62, 0.70, 0.72))):
+        cx, cy = int(u * 2048), int(v * 2048)
+        px[cy - 20:cy + 20, cx - 20:cx + 20] = (*col, 1.0)
+    img.pixels.foreach_set(px.reshape(-1))
+    flat = bpy.data.materials.new("kiosk_aged"); flat.use_nodes = True
+    fb = flat.node_tree.nodes["Principled BSDF"]
+    ft = flat.node_tree.nodes.new("ShaderNodeTexImage"); ft.image = img
+    flat.node_tree.links.new(ft.outputs["Color"], fb.inputs["Base Color"])
+    fb.inputs["Roughness"].default_value = 0.9
+    k.data.materials.clear(); k.data.materials.append(flat)
+    for ly in [l for l in k.data.uv_layers if l.name != "bakeUV"]:
+        k.data.uv_layers.remove(ly)
+    img.filepath_raw = f"{out}/Trade Kiosk Aged.albedo.png"; img.file_format = "PNG"; img.save()
+    bpy.ops.object.select_all(action="DESELECT"); k.select_set(True)
+    bpy.ops.export_scene.gltf(filepath=f"{out}/Trade Kiosk Aged.glb", export_format="GLB", use_selection=True)
+    print("WROTE", f"{out}/Trade Kiosk Aged.glb")
+    raise SystemExit(0)
 
 sun = bpy.data.lights.new("sun", "SUN"); sun.energy = 4.0; sun.color = (1.0, 0.82, 0.62)
 so = bpy.data.objects.new("sun", sun); bpy.context.collection.objects.link(so); so.rotation_euler = Euler((math.radians(52), 0, math.radians(-35)))

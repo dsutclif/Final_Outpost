@@ -683,7 +683,8 @@
   "customers.orderMin": 1,
   "customers.orderMax": 3,
   "level.budgetSeconds": 300,
-  "gate.spawnOffsetY": -190
+  "gate.spawnOffsetY": -190,
+  "kiosk.aged": 1
  },
  "goal": {
   "type": "crates",
