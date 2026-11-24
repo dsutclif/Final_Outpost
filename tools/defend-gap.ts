@@ -21,7 +21,7 @@ const t0 = Date.now();
 const useSim = args.includes("--sim");
 const etas = useSim || args.includes("--no-fit") ? undefined : fitStrategyEtas(m, content);
 if (etas) console.log(`eta_s ${JSON.stringify(etas.etas)}  sim break multipliers ${JSON.stringify(etas.multipliers)}  (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
-const gp = placeDefendGap(m, content, { cfg, target: val("target", 0.5), gap: val("gap", 20), warlords: 1, ...(etas ? { etas: etas.etas } : {}), ...(useSim ? { breakFn: (cut: any, k: number, s: any) => simBreak(cut, k, s, { lo: 0.25, hi: Number(val("hi", 4)), iterations: val("it", 4) }) } : {}) });
+const gp = placeDefendGap(m, content, { cfg, ...(args.includes("--coin-rate") ? { coinRate: val("coin-rate", 0) } : {}), target: val("target", 0.5), gap: val("gap", 20), warlords: 1, ...(etas ? { etas: etas.etas } : {}), ...(useSim ? { breakFn: (cut: any, k: number, s: any) => simBreak(cut, k, s, { lo: 0.25, hi: Number(val("hi", 4)), iterations: val("it", 4) }) } : {}) });
 console.log(`${m["id"]}  placed ${gp.waves.length} waves  ok ${gp.ok} ${gp.reason ?? ""}  crossings ${gp.crossings}  ratioShare ${gp.ratioShare.toFixed(2)}`);
 for (const w of gp.waves) console.log(`  w${w.k} t ${w.t}  hp ${w.hp.toFixed(0)}  V ${Object.entries(w.V).map(([s, v]) => `${s[0]} ${v.toFixed(0)}`).join(" ")}  best ${w.best}  position ${w.position === null ? "-" : w.position.toFixed(2)}  counts ${JSON.stringify((gp.manifest["waves"] as any[])[w.k].counts)}`);
 for (const c of gp.compare ?? []) console.log(`  w${c.k} model mult ${JSON.stringify(Object.fromEntries(Object.entries(c.model).map(([s, v]) => [s[0], +v.toFixed(2)])))}  probe mult ${JSON.stringify(Object.fromEntries(Object.entries(c.probe).map(([s, v]) => [s[0], +v.toFixed(2)])))}`);
