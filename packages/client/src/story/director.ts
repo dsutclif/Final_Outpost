@@ -266,7 +266,7 @@ export class StoryDirector {
     if (this.disposed) return;
     const dt = dtMs / 1000;
     this.tick = st.tick;
-    this.calmNow = st.hostiles.length === 0 && !st.waves?.active;
+    this.calmNow = (st.hostiles?.length ?? 0) === 0 && !st.waves?.active;
     this.objectives = st.objectives;
     if (this.nudge?.step(dt)) this.nudge = null;
     this.stepOpenZoom(dt, st);
