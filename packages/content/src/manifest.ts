@@ -147,6 +147,9 @@ export const DecorEntity = z.object({
   color: z.string().optional(),
   /** decor.deck_plate only: the crash film's plate grid, panels across the width and depth (seams through the centre). */
   panels: z.tuple([z.number().positive(), z.number().positive()]).optional(),
+  /** decor.road only: the centre line (two or more points) of a packed-dirt road, `width` world units across (`at` is its first point). */
+  points: z.array(Point).min(2).optional(),
+  width: z.number().positive().optional(),
 });
 // Barrier lines: contiguous sections, each built by walking along it with the line's resource.
 export const BarrierSection = z.object({

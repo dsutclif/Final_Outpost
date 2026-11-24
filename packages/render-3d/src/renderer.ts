@@ -375,6 +375,16 @@ function attackRoads(cp: Compiled): Road[] {
   return out;
 }
 
+/** The manifest's decor.road entities (a road the story names, e.g. past the kiosk): each polyline leg is one packed-dirt strip. */
+function manifestRoads(m: { entities: readonly { type: string }[] }): Road[] {
+  const out: Road[] = [];
+  for (const e of m.entities as unknown as { type: string; points?: readonly (readonly [number, number])[]; width?: number }[]) {
+    if (e.type !== "decor.road" || !e.points) continue;
+    for (let i = 1; i < e.points.length; i++) out.push({ ax: e.points[i - 1]![0], az: e.points[i - 1]![1], bx: e.points[i]![0], bz: e.points[i]![1], w: e.width ?? 48 });
+  }
+  return out;
+}
+
 /** Commander hp at or below which the red "!" shows over their head. */
 const LOW_HP_WARN = 3;
 
@@ -648,7 +658,7 @@ export class Renderer3D implements Renderer {
     const core = manifest.entities.find((e) => e.type === "sink.core") as { at?: readonly [number, number] } | undefined;
     const block = manifest.params["lots.block"] ?? 0, street = manifest.params["lots.street"] ?? 0;
     const lots = block > 0 && core?.at ? { x: core.at[0], z: core.at[1], block, street } : null;
-    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots, this.cp ? attackRoads(this.cp) : []);
+    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots, [...(this.cp ? attackRoads(this.cp) : []), ...manifestRoads(manifest)]);
     this.env.night = manifest.lighting === "night";
     if (this.lookOn && this.gl instanceof WebGLRenderer) this.lookT = new LookTest(this.gl, this.scene, this.camera, this.dprFn() || 1, this.env.night);
     // a manifest night keeps the measured floor, so sand and ridge still read
