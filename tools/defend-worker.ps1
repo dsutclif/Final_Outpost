@@ -31,18 +31,21 @@ Set-Location $repo
 $events = Join-Path $data "worker-events.log"
 function Write-Event([string]$m) { Add-Content -Path $events -Value "$((Get-Date).ToString("o")) $m" }
 Write-Event "worker start pid $PID seeds $Seeds hours $Hours data $data"
-# resolve pnpm by full path: Start-Process cannot always find "pnpm.cmd" on PATH
-$pnpm = (Get-Command pnpm.cmd -ErrorAction SilentlyContinue).Source
-if (-not $pnpm) { $pnpm = Join-Path $env:APPDATA "npm\pnpm.cmd" }
-Write-Event "pnpm $pnpm"
+# start node.exe directly with vite-node's script: Start-Process could not launch pnpm.cmd from some
+# terminals ("cannot find the file specified" even with the full path), so no .cmd shim is involved
+$node = (Get-Command node.exe -ErrorAction SilentlyContinue).Source
+if (-not $node) { $node = "C:\Program Files\nodejs\node.exe" }
+$viteNode = Join-Path $repo "node_modules\vite-node\vite-node.mjs"
+Write-Event "node $node vite-node $viteNode"
 $try = 0
 while ($true) {
   $log = Join-Path $data "worker-$try.log"
-  $proc = Start-Process -FilePath $pnpm -ArgumentList @("exec","vite-node","tools/defend-collect.ts","--","--seeds",$Seeds,"--hours",$Hours) -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError "$log.err"
+  $proc = Start-Process -FilePath $node -ArgumentList @("`"$viteNode`"","tools/defend-collect.ts","--","--seeds",$Seeds,"--hours",$Hours) -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError "$log.err"
   try { $proc.PriorityClass = "Idle" } catch {}
   Write-Event "collect start try $try pid $($proc.Id)"
   # the node child does the work: keep it at idle priority (it also lowers itself)
   for ($k = 0; $k -lt 12 -and -not $proc.HasExited; $k++) { Start-Sleep 5; Get-CimInstance Win32_Process | Where-Object { $_.Name -eq "node.exe" -and $_.CommandLine -match "defend-collect" } | ForEach-Object { try { (Get-Process -Id $_.ProcessId).PriorityClass = "Idle" } catch {} } }
+  if (-not $proc) { Write-Event "collect could not start, worker stops: $($Error[0])"; Remove-Item $lock -ErrorAction SilentlyContinue; exit 1 }
   $proc.WaitForExit()
   $out = if (Test-Path $log) { (Get-Content $log -Tail 3 -ErrorAction SilentlyContinue) -join " | " } else { "" }
   $err = if (Test-Path "$log.err") { (Get-Content "$log.err" -Tail 5 -ErrorAction SilentlyContinue) -join " | " } else { "" }
@@ -53,6 +56,6 @@ while ($true) {
   Start-Sleep 60
 }
 # the collect ends on its stop target (deadline or sample target); fit whatever is there, then leave a marker
-& $pnpm exec vite-node tools/defend-fit.ts -- *>> (Join-Path $data "fit.log")
+& $node $viteNode tools/defend-fit.ts -- *>> (Join-Path $data "fit.log")
 Set-Content (Join-Path $data "FIT-DONE") (Get-Date).ToString("o")
 Remove-Item $lock -ErrorAction SilentlyContinue
