@@ -585,6 +585,11 @@ export class Brain {
       T("hunt", this.starNeedsSale(st, hres) && st.sales?.opened && frac >= 0.6 && st.prey.some((d) => d.alive && this.nav.reachable(p.pos, d.pos)) ? 56 : 34);
       huntWanted = true;
     }
+    // rock lying over a node (level 1: the fuel cells under rock, outpost-ops#352) is dug first: nothing else can reach it
+    if (cp.zones.digTicks > 0) {
+      const over = st.zones.find((z) => z.type === "zone.blocked" && !z.cleared && st.nodes.some((n) => n.enabled && n.pos.x >= z.rect.x && n.pos.x <= z.rect.x + z.rect.w && n.pos.y >= z.rect.y && n.pos.y <= z.rect.y + z.rect.h));
+      if (over) T("dig", 90, over.id);
+    }
     // Rockslides dug by hand (zones.digSeconds): stand against one a clear-zones goal or star names until it is gone.
     // Right after the hunt's own rank when the prey wait behind it, otherwise at the bottom of the list (spare minutes only).
     if (cp.zones.digTicks > 0 && [cp.manifest.goal.type, ...(cp.manifest.objectives ?? []).map((o) => o.kind)].includes("clear_zones")) {
@@ -802,7 +807,9 @@ export class Brain {
     if (task.kind === "operate") { const cv = st.converters.find((c) => c.id === task.key); if (cv) target = cv.operatorPos; }
     const path = this.nav.route(p, target);
     const inside = this.insideRings(p);
-    if (this.rings.length > 0 && inside !== this.insideRings(target) && task.kind !== "fight") {
+    // a ring that is not complete blocks nobody, so there is no gate to leave by (level 2 keeps its ring only for the tow rules; outpost-ops#300)
+    const walled = st.barriers.some((l) => l.sections.length > 0 && l.sections.every((x) => x.built) && l.sections.some((x) => x.gate));
+    if (walled && this.rings.length > 0 && inside !== this.insideRings(target) && task.kind !== "fight") {
       // the gate the walk crosses: nearest to where the route first changes sides of the ring
       let cross = p;
       for (const q of path) { if (this.insideRings(q) !== inside) break; cross = q; }

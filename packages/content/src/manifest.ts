@@ -41,6 +41,8 @@ export const NodeEntity = z.object({
   // Not on the map (nothing can see or gather it) until this objective id is done, or a built-in cue: `@lit:S` (S seconds
   // after the reactor is first lit) or `@storm` (the first hazard starts). Story level 1: the gust and the storm uncover ore.
   hiddenUntil: z.string().min(1).optional(),
+  // How many items this node holds before it is spent (default: its type's stock). Story level 1: each cell crate holds a few cells.
+  stock: z.number().int().positive().optional(),
 });
 export const SalesPointEntity = z.object({
   ...base,

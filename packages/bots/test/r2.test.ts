@@ -115,6 +115,18 @@ describe("suggest() for guide arrows", () => {
     expect(brain.current).toBeDefined();
   });
 
+  it("never says gate or gateIn while the ring is incomplete (outpost-ops#300)", () => {
+    const sim = createSim(rescue);
+    const guide = new Brain(sim.compiled, planBot(rescue), { ...good, reactionTicks: 0 }, seedRng(1));
+    const bot = new Brain(sim.compiled, planBot(rescue), { ...good, reactionTicks: 0 }, seedRng(1));
+    for (const l of sim.state.barriers) l.sections[0]!.built = false;
+    for (let t = 0; t < 30 * 20 && !sim.state.over; t++) {
+      for (const l of sim.state.barriers) l.sections[0]!.built = false;
+      if (t % 10 === 0) { const kind = guide.suggest(sim.state, sim.compiled)?.kind; expect(kind === "gate" || kind === "gateIn").toBe(false); }
+      sim.step(bot.tick(sim.state));
+    }
+  });
+
   it("a guide-only brain says out or back in by the player's side, routes the whole walk, and holds a step until it is done", () => {
     const sim = createSim(rescue);
     const bot = new Brain(sim.compiled, planBot(rescue), { ...good, reactionTicks: 0 }, seedRng(1));
