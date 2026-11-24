@@ -1331,7 +1331,6 @@ export const marsGreenhouse: Skin = {
       "story-L005": {
         // Rhee's aid station stays beside the reactor from level 2 on
         aidStation: true,
-        hide: ["credits"],
         solid: ["sink.core"],
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam, the cook, the runner and the clerk (level 4's town, at its posts all
