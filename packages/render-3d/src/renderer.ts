@@ -375,6 +375,16 @@ function attackRoads(cp: Compiled): Road[] {
   return out;
 }
 
+/** The manifest's decor.road entities (a road the story names, e.g. past the kiosk): each polyline leg is one packed-dirt strip. */
+function manifestRoads(m: { entities: readonly { type: string }[] }): Road[] {
+  const out: Road[] = [];
+  for (const e of m.entities as unknown as { type: string; points?: readonly (readonly [number, number])[]; width?: number }[]) {
+    if (e.type !== "decor.road" || !e.points) continue;
+    for (let i = 1; i < e.points.length; i++) out.push({ ax: e.points[i - 1]![0], az: e.points[i - 1]![1], bx: e.points[i]![0], bz: e.points[i]![1], w: e.width ?? 48 });
+  }
+  return out;
+}
+
 /** Commander hp at or below which the red "!" shows over their head. */
 const LOW_HP_WARN = 3;
 
@@ -648,7 +658,7 @@ export class Renderer3D implements Renderer {
     const core = manifest.entities.find((e) => e.type === "sink.core") as { at?: readonly [number, number] } | undefined;
     const block = manifest.params["lots.block"] ?? 0, street = manifest.params["lots.street"] ?? 0;
     const lots = block > 0 && core?.at ? { x: core.at[0], z: core.at[1], block, street } : null;
-    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots, this.cp ? attackRoads(this.cp) : []);
+    this.env = new Environment(this.scene, manifest.map.w, manifest.map.h, this.tokens, mats, manifest.seed ?? 1, sites, lots, [...(this.cp ? attackRoads(this.cp) : []), ...manifestRoads(manifest)]);
     this.env.night = manifest.lighting === "night";
     if (this.lookOn && this.gl instanceof WebGLRenderer) this.lookT = new LookTest(this.gl, this.scene, this.camera, this.dprFn() || 1, this.env.night);
     // a manifest night keeps the measured floor, so sand and ridge still read
@@ -1968,8 +1978,8 @@ export class Renderer3D implements Renderer {
   private syncNodes(s: State): void {
     s.nodes.forEach((n, i) => {
       const key = `n:${i}`;
-      // scrap heaps take the scrap models in turn (ship scrap, scrap field, wreck): every scrap on such a level is pickable
-      const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? 1 + (i % 3) : 1);
+      // scrap heaps take the scrap models in turn (ship scrap, scrap field, wreck), or the one the level names with params "scrap.look" (outpost-ops#305): every scrap on such a level is pickable
+      const p = this.place(key, n.type, this.wv(n.pos), n.type === "node.salvage_pile" ? ((this.manifest.params["scrap.look"] ?? 0) || 1 + (i % 3)) : 1);
       // a locked grow dome is an unbuilt thing like any other: the blue blueprint, with its unlock pad
       const ghosted = !n.enabled && n.type === "node.food_source";
       // a buried node (hiddenUntil) is not on the map yet: no model, no ghost, no lock label
