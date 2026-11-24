@@ -220,6 +220,9 @@ export const Person = z.object({
   from: SourceRef.optional(),
   to: TargetRef.optional(),
   node: EntityRef.optional(),
+  // Opt-in (story level 4: Tam once the crew is trained): after this objective is done the worker carries `carry` per trip and
+  // alternates its deliveries between the two targets. Absent on every other person, so other levels play as before.
+  boost: z.object({ after: EntityRef, carry: z.number().int().positive(), alternate: z.tuple([TargetRef, TargetRef]) }).optional(),
 });
 
 export const SIDES = ["n", "e", "s", "w"] as const;

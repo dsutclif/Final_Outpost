@@ -662,7 +662,15 @@
    "role": "role.supplier",
    "from": "node.food_source",
    "to": "sink.sales_point",
-   "node": "field1"
+   "node": "field1",
+   "boost": {
+    "after": "train",
+    "carry": 6,
+    "alternate": [
+     "conv.food_processor",
+     "sink.sales_point"
+    ]
+   }
   }
  ],
  "waves": [],
