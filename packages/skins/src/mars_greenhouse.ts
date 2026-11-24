@@ -1202,7 +1202,7 @@ export const marsGreenhouse: Skin = {
             // Sela's road crew raise the hub like every paid build (they drive up, wait and go), then she hands the commander the chip
             // (the chip_handoff live scene) and speaks; play is held while the buggy drives so it never runs the commander down
             { freeze: true },
-            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [600, 420] }], seconds: 5, lights: true },
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [520, 430] }], seconds: 5, lights: true },
             { camera: { to: { at: [640, 440] }, pan: 1, hold: 4.5, back: 0.4, freeze: false } },
             { wait: 5.5 },
             { vehicleOff: "buggy" },
