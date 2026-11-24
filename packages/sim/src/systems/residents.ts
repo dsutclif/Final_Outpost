@@ -144,7 +144,13 @@ function deliverStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRo
 // ---------- behaviours ----------
 
 function supplierStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole, out: SimEvent[]): void {
-  if (r.mode === "deliver") return deliverStep(st, cp, r, role, r.assign.to, out);
+  const b = r.boost && st.objectives.some((o) => o.id === r.boost!.after && o.done) ? r.boost : null;
+  if (r.mode === "deliver") {
+    deliverStep(st, cp, r, role, r.assign.to, out);
+    // a finished trip: the next one goes to the other target
+    if (b && (r.mode as string) === "gather") r.assign.to = r.assign.to === b.alternate[0] ? b.alternate[1] : b.alternate[0];
+    return;
+  }
   const node = pickNode(st, cp, r);
   if (!node) { if (r.n > 0) r.mode = "deliver"; return; }
   const def = cp.nodes[node.type]!;
@@ -154,7 +160,7 @@ function supplierStep(st: State, cp: Compiled, r: ResidentState, role: CompiledR
   r.n++;
   r.carry = def.yields;
   out.push({ t: "gathered", res: def.yields, node: st.nodes.indexOf(node), at: { ...node.pos }, by: r.id });
-  if (r.n >= role.carry) r.mode = "deliver";
+  if (r.n >= (b ? b.carry : role.carry)) r.mode = "deliver";
 }
 
 function standStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole): void {

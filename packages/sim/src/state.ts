@@ -138,6 +138,8 @@ export interface ResidentState {
   /** Entity id (node, converter, structure) the worker is heading for, or null. */
   target: string | null;
   assign: Assignment;
+  /** Opt-in per manifest person (see Person.boost): bigger load and alternating delivery targets once `after` is done. */
+  boost?: { after: string; carry: number; alternate: [string, string] };
   /** Ticks until the worker's next work action (gather, deliver, attack). */
   acc: number;
   /** Ticks left in a timed status (healing). */

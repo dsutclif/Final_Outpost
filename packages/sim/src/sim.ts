@@ -218,6 +218,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
   m.people.forEach((p, k) => {
     const r = newResident(state, ringPoint(corePos, k, fp(60), fp(50)), p.role, "ok");
     r.slot = k;
+    if (p.boost) r.boost = { after: p.boost.after, carry: p.boost.carry, alternate: [p.boost.alternate[0], p.boost.alternate[1]] };
     r.assign = { from: p.from ?? null, to: p.to ?? null, node: p.node ?? null, post: null };
     if (cp.roles[p.role]?.behavior === "guard") r.assign.post = state.residents.filter((x) => x.role === p.role).length - 1;
   });
