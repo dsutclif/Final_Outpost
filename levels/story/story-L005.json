@@ -500,8 +500,8 @@
    "type": "sink.sales_point",
    "id": "kiosk",
    "at": [
-    580,
-    1100
+    220,
+    1130
    ],
    "sells": [
     "res.food_raw_1",
@@ -513,12 +513,16 @@
      1205
     ],
     [
-     810,
-     1205
+     700,
+     1215
     ],
     [
-     630,
-     1205
+     450,
+     1230
+    ],
+    [
+     290,
+     1235
     ]
    ]
   },
@@ -554,8 +558,8 @@
    "type": "conv.food_processor",
    "id": "galley",
    "at": [
-    530,
-    940
+    350,
+    1010
    ]
   },
   {
@@ -703,7 +707,8 @@
   "defense.fleeSpeed": 50,
   "gate.spawnOffsetY": -190,
   "gate.initialDelay": 3,
-  "player.commanderRules": 1
+  "player.commanderRules": 1,
+  "kiosk.aged": 1
  },
  "goal": {
   "type": "crates",

@@ -487,8 +487,8 @@
    "type": "sink.sales_point",
    "id": "kiosk",
    "at": [
-    580,
-    800
+    220,
+    830
    ],
    "sells": [
     "res.food_raw_1",
@@ -496,23 +496,23 @@
    ],
    "route": [
     [
-     752,
+     422,
+     954
+    ],
+    [
+     370,
+     948
+    ],
+    [
+     320,
+     942
+    ],
+    [
+     285,
      938
-    ],
-    [
-     710,
-     918
-    ],
-    [
-     655,
-     905
-    ],
-    [
-     630,
-     905
     ]
    ],
-   "openAfter": "@reach:580,800,170"
+   "openAfter": "@reach:220,830,170"
   },
   {
    "type": "node.food_source",
@@ -637,8 +637,20 @@
      905
     ],
     [
-     420,
-     892
+     520,
+     912
+    ],
+    [
+     400,
+     925
+    ],
+    [
+     310,
+     935
+    ],
+    [
+     270,
+     935
     ]
    ],
    "width": 52,
@@ -678,7 +690,8 @@
   "level.budgetSeconds": 300,
   "zones.digSeconds": 2,
   "zones.digSquare": 16,
-  "scrap.look": 2
+  "scrap.look": 2,
+  "kiosk.aged": 1
  },
  "goal": {
   "type": "build",

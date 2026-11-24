@@ -1069,6 +1069,7 @@ export const marsGreenhouse: Skin = {
         ],
         cues: [
           { on: { start: true }, do: [
+            { kioskLit: false },
             { light: "dusk" },
             { ridge: "right", period: 4, k: 0.3 },
             { spirit: "idle" },
@@ -1093,6 +1094,7 @@ export const marsGreenhouse: Skin = {
             { vehicle: "buggy", path: [{ at: [1010, 1010] }, { at: [930, 972] }, { at: [850, 944] }], seconds: 14, lights: true },
             { line: "It'll do. Now I can start getting the first seeds in the gro...", who: "tam" },
             { line: "Wait. Those lights to the south...", who: "commander" },
+            { kioskLit: true },
             { guide: true, to: { entity: "kiosk" } },
             { edgeGlow: { entity: "kiosk", size: 28, strength: 0.35, arrow: true } },
             { goal: "lights" },
@@ -1112,7 +1114,7 @@ export const marsGreenhouse: Skin = {
             // drives in and parks with its lights on, Sela steps out at its door (hidden while it drives, where her route starts in
             // story-L003) and the camera then glides on to the kiosk, where she and the commander stand and talk.
             { light: "night", seconds: 1.5 },
-            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }], seconds: 6.5, lights: true, rider: "sela" },
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }, { at: [630, 905] }, { at: [520, 912] }, { at: [422, 922] }], seconds: 12, lights: true, rider: "sela" },
             // the commander is already at the kiosk (she only drives in once he has found it), so the camera stays with him and
             // takes one slow nudge toward the kiosk: no cut to the road and back (Doug 2026-11-22)
             { camera: { to: { entity: "kiosk" }, share: 0.6, pan: 1.4, hold: 36, back: 0.9, freeze: false } },
@@ -1278,7 +1280,7 @@ export const marsGreenhouse: Skin = {
             { walk: "rhee", to: false },
             // Sela's buggy pulls up at the kiosk again; her three hands climb out and walk to the camp gate (the arrivals
             // rule: they spawn near the kiosk, level params gate.spawnOffsetY)
-            { vehicle: "buggy", path: [{ at: [950, 1160] }, { at: [780, 1135] }, { at: [650, 1120] }], seconds: 4, lights: true },
+            { vehicle: "buggy", path: [{ at: [950, 1160] }, { at: [700, 1170] }, { at: [450, 1175] }, { at: [292, 1150] }], seconds: 8, lights: true },
             { wait: 4.5 },
             { line: "Storm season's close. The towns will pay well for hot meals.", who: "sela" },
             { line: "I've brought three hands who want steady work. They're at your gate.", who: "sela" },
@@ -1395,8 +1397,8 @@ export const marsGreenhouse: Skin = {
           // they appear only once the turret is built and no raider is alive (arrivals.after in the manifest), so the line
           // plays when they do, not on a timer a slow player could outrun
           { on: { event: "gate_arrival" }, ordered: true, do: [
-            // the camera shows them on the road below the gate, asking to be let in (Doug, 2026-11-22); they spawn at y 1110, so centre below the gate (outpost-ops#340)
-            { camera: { to: { at: [505, 1050] }, zoom: 0.72, pan: 0.8, hold: 5, back: 0.8 } },
+            // the camera shows them on the road below the gate, asking to be let in (Doug, 2026-11-22); they spawn about 170 below the gate, so centre below it (outpost-ops#340; gate moved with the kiosk, r3-kiosk)
+            { camera: { to: { at: [325, 1120] }, zoom: 0.72, pan: 0.8, hold: 5, back: 0.8 } },
             { line: "Let us in! They burned our camp on the road!", who: "settler" },
             { line: "Two at the gate. Stand by it to let them in.", who: "kiln" },
             { goal: "arrive" },

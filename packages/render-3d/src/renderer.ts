@@ -1759,7 +1759,8 @@ export class Renderer3D implements Renderer {
   private syncSales(s: State, a: number): void {
     const sales = s.sales;
     if (!sales) return;
-    const kiosk = this.place("sales", "sink.sales_point", this.wv(sales.pos));
+    // a story level can name the ruined kiosk model with params "kiosk.aged" (outpost-ops#358)
+    const kiosk = this.place("sales", "sink.sales_point", this.wv(sales.pos), (this.manifest.params["kiosk.aged"] ?? 0) ? 2 : 1);
     // the clerk pad: whoever stands on it (hero or clerk) rings up the queue; no register object
     const reg = this.place("register", "sink.sales_point.register", this.wv(sales.register));
     // every standing plate (clerk, operator, pickup, drop-off) draws at the one plot plate size
