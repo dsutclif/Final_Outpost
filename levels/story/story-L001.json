@@ -9,8 +9,11 @@
   "zones": []
  },
  "modules": [
+  "blocked_zones",
+  "build_pads",
   "carry",
   "core",
+  "core_levels",
   "gather",
   "hazard_events",
   "sales"
@@ -47,6 +50,26 @@
    "at": [
     452,
     362
+   ]
+  },
+  {
+   "type": "zone.blocked",
+   "id": "rocks1",
+   "rect": [
+    512,
+    282,
+    72,
+    72
+   ]
+  },
+  {
+   "type": "zone.blocked",
+   "id": "rocks2",
+   "rect": [
+    416,
+    326,
+    72,
+    72
    ]
   },
   {
@@ -570,7 +593,9 @@
   "lots.block": 0,
   "lots.street": 0,
   "level.budgetSeconds": 130,
-  "core.grace": 15
+  "core.grace": 15,
+  "zones.digSeconds": 1.5,
+  "zones.digSquare": 16
  },
  "goal": {
   "type": "survive",

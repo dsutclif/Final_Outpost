@@ -891,8 +891,8 @@ export const marsGreenhouse: Skin = {
           ] },
           // two half-buried fuel cells lie on the path (outpost-ops#125): the commander finds them on the way to the light,
           // and carrying one to the reactor lights it. The beacon lamp on the dead reactor is the edge glow's source above.
-          { on: { near: { entity: "cell1" }, r: 40 }, do: [{ line: "Something half-buried in the sand. A fuel cell, sealed and still heavy.", who: "commander" }] },
-          { on: { near: { entity: "cell2" }, r: 40 }, do: [{ line: "Another cell. Whoever lit that beacon left these out for the finding.", who: "commander" }] },
+          { on: { near: { entity: "cell1" }, r: 70 }, do: [{ line: "Something half-buried in the sand. A fuel cell, sealed and still heavy.", who: "commander" }] },
+          { on: { near: { entity: "cell2" }, r: 70 }, do: [{ line: "Another cell. Whoever lit that beacon left these out for the finding.", who: "commander" }] },
           // the reactor's own lights come on only once it is found
           { on: { near: { entity: "core" }, r: 90 }, do: [
             // released here too, for a run from the retry spot (the walk's cues do not fire there)
