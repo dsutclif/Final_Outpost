@@ -1,9 +1,10 @@
 import { CONTENT_VERSION } from "../../packages/content/src/index.js";
 import { ENGINE_VERSION, FP, createSim } from "../../packages/sim/src/index.js";
-import { marsGreenhouse as skin } from "../../packages/skins/src/index.js";
+import { marsGreenhouse, marsGreenhouse as skin } from "../../packages/skins/src/index.js";
 import { Guide } from "../../packages/client/src/guide.js";
 import { ProgressTracker, type GuideRecord, type StepChange } from "./guide-core.js";
 import type { ArrowChange, ArrowRecord } from "./arrow-audit.js";
+import { traceStory } from "../../packages/client/src/story/trace.js";
 
 // The walker behind pnpm review:guide. It reaches into the client package, which is not a project
 // reference of tools, so this file stays out of the tools typecheck (as tools/guide-follow.ts does).
@@ -76,4 +77,108 @@ export async function followGuide(manifest: unknown, levelId: string, pack: stri
   const defs = (manifest as { objectives?: { id: string; params?: Record<string, unknown> }[] }).objectives ?? [];
   const goals = st.objectives.map((o) => { const t = defs.find((d) => d.id === o.id)?.params?.["target"]; return { id: o.id, kind: o.kind, target: typeof t === "string" ? t : "", doneTick: o.doneTick }; });
   return { levelId, pack, ticks: st.tick, over: st.over, won: st.won === true, reason: st.reason ?? "", steps, progress, arrowRecord: { levelId, ticks: st.tick, goals, arrows } };
+}
+
+/**
+ * The arrow audit's walk for a story level: the same follower, but through the REAL story director (client/src/story/trace.ts), so
+ * the arrow is the one the player sees (the story's cues and guide rules first, the default guide where they leave it). Goals are
+ * listed in the story's own order (the order its goal cards show), which is the order they activate in.
+ */
+export async function followStoryArrows(manifest: unknown, levelId: string): Promise<ArrowRecord> {
+  const m = manifest as { entities: { type: string; id?: string; at?: [number, number] }[]; objectives?: { id: string; params?: Record<string, unknown> }[] };
+  const ents = m.entities.filter((e) => e.at && e.id);
+  const arrows: ArrowChange[] = [];
+  let record: ArrowRecord | null = null;
+  const nearest = (x: number, y: number, st: { captures: { id: unknown; pos: { x: number; y: number } }[] }): { id: string; type: string } => {
+    let best = { id: "", type: "" }, bd = 1e9;
+    for (const e of ents) { const d = Math.hypot(e.at![0] - x, e.at![1] - y); if (d < bd) { bd = d; best = { id: e.id!, type: e.type }; } }
+    for (const c of st.captures) { const d = Math.hypot(c.pos.x / FP - x, c.pos.y / FP - y); if (d < bd) { bd = d; best = { id: `capture.${String(c.id)}`, type: "capture.pod" }; } }
+    return best;
+  };
+  let field: Field | null = null;
+  const released = new Map<string, number>();
+  await traceStory(levelId, m, {
+    follow: {
+      drive: (st, at) => {
+        if (!at) return { dx: 0, dy: 0 };
+        if (!field) field = new Field(st);
+        const p = { x: st.player.pos.x / FP, y: st.player.pos.y / FP };
+        const next = field.next(p, at);
+        const ex = next.x - p.x, ey = next.y - p.y, L = Math.hypot(ex, ey);
+        return L > 6 ? { dx: Math.round((ex / L) * 1000), dy: Math.round((ey / L) * 1000) } : { dx: 0, dy: 0 };
+      },
+      onGoal: (tick, id) => { if (!released.has(id)) released.set(id, tick); },
+      onArrow: (tick, key, at, st) => {
+        const n = at ? nearest(at.x, at.y, st) : { id: "", type: "" };
+        arrows.push({ tick, key: at ? key : "none", entityId: n.id, entityType: n.type });
+      },
+      onEnd: (st) => {
+        const defs = m.objectives ?? [];
+        const order = marsGreenhouse.story?.levels[levelId]?.goals.map((g) => g.id) ?? [];
+        const rank = (id: string): number => { const i = order.indexOf(id); return i < 0 ? 1e6 : i; };
+        const goals = st.objectives
+          .map((o) => { const t = defs.find((d) => d.id === o.id)?.params?.["target"]; return { id: o.id, kind: o.kind, target: typeof t === "string" ? t : "", doneTick: o.doneTick, ...(released.has(o.id) ? { activeTick: released.get(o.id)! } : {}) }; })
+          .sort((a, b) => rank(a.id) - rank(b.id));
+        record = { levelId, ticks: st.tick, goals, arrows };
+      },
+    },
+  });
+  if (!record) throw new Error(`story walk of ${levelId} did not finish`);
+  return record;
+}
+
+/** Walkable-cell grid over the map for the story follower: terrain and the camp wall (not the gate) block, and the follower takes the shortest way round, as a player would. */
+class Field {
+  private readonly cell = 10;
+  private readonly w: number;
+  private readonly h: number;
+  private readonly blocked: Uint8Array;
+  private goal = "";
+  private dist: Int32Array;
+  constructor(st: { map?: unknown; zones: { type: string; rect: unknown }[]; barriers: { sections: { a: { x: number; y: number }; b: { x: number; y: number }; built: boolean; gate: boolean }[] }[] }) {
+    this.w = 142; this.h = 131;
+    this.blocked = new Uint8Array(this.w * this.h);
+    this.dist = new Int32Array(this.w * this.h);
+    const rects: R[] = st.zones.filter((z) => z.type === "zone.terrain").map((z) => z.rect as R);
+    for (const b of st.barriers) for (const x of b.sections) if (x.built && !x.gate) rects.push({ x: Math.min(x.a.x, x.b.x), y: Math.min(x.a.y, x.b.y), w: Math.abs(x.a.x - x.b.x), h: Math.abs(x.a.y - x.b.y) });
+    const pad = 9 * FP;
+    for (const r of rects) {
+      const x0 = Math.floor((r.x - pad) / FP / this.cell), x1 = Math.floor((r.x + r.w + pad) / FP / this.cell), y0 = Math.floor((r.y - pad) / FP / this.cell), y1 = Math.floor((r.y + r.h + pad) / FP / this.cell);
+      for (let y = Math.max(0, y0); y <= Math.min(this.h - 1, y1); y++) for (let x = Math.max(0, x0); x <= Math.min(this.w - 1, x1); x++) this.blocked[y * this.w + x] = 1;
+    }
+  }
+  private idx(p: { x: number; y: number }): number { return Math.min(this.h - 1, Math.max(0, Math.floor(p.y / this.cell))) * this.w + Math.min(this.w - 1, Math.max(0, Math.floor(p.x / this.cell))); }
+  /** The next point to walk to from `from` on the way to `to`. */
+  next(from: { x: number; y: number }, to: { x: number; y: number }): { x: number; y: number } {
+    const key = `${Math.round(to.x)},${Math.round(to.y)}`;
+    if (key !== this.goal) {
+      this.goal = key;
+      this.dist.fill(-1);
+      const g = this.idx(to);
+      const q = [g];
+      this.dist[g] = 0;
+      for (let i = 0; i < q.length; i++) {
+        const c = q[i]!, cx = c % this.w, cy = Math.floor(c / this.w);
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+          const nx = cx + dx, ny = cy + dy;
+          if ((dx === 0 && dy === 0) || nx < 0 || ny < 0 || nx >= this.w || ny >= this.h) continue;
+          const n = ny * this.w + nx;
+          if (this.dist[n] !== -1 || this.blocked[n]) continue;
+          if (dx !== 0 && dy !== 0 && (this.blocked[cy * this.w + nx] || this.blocked[ny * this.w + cx])) continue;
+          this.dist[n] = this.dist[c]! + 1;
+          q.push(n);
+        }
+      }
+    }
+    const c = this.idx(from), cx = c % this.w, cy = Math.floor(c / this.w);
+    if (this.dist[c] === -1 || this.dist[c]! <= 1) return to;
+    let best = c, bd = this.dist[c]!;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const nx = cx + dx, ny = cy + dy;
+      if (nx < 0 || ny < 0 || nx >= this.w || ny >= this.h) continue;
+      const n = ny * this.w + nx;
+      if (this.dist[n]! >= 0 && this.dist[n]! < bd) { bd = this.dist[n]!; best = n; }
+    }
+    return { x: (best % this.w) * this.cell + this.cell / 2, y: Math.floor(best / this.w) * this.cell + this.cell / 2 };
+  }
 }

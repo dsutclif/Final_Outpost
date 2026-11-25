@@ -42,11 +42,16 @@
    639     52.0  #2               objective   arrive done
    639     52.0  #2               arrow       off
    639     54.1  #2               goal        galleyBuilt
+   639     54.1  #2               wait        0.5
+   654     54.6  #2               guide_cue   true {"entity":"galley"}
+   654     54.6  #2               arrow       story@350,1010
    710     56.4  #3               cue         goal=galleyBuilt is=done
    710     56.4  #3               light       
+   710     56.4  #3               guide_cue   true ""
    710     56.4  #4               cue         goal=galleyBuilt is=done
    710     56.4  #4               stage       tam
    710     56.4  #4               objective   galleyBuilt done
+   710     56.4  #4               arrow       off
    710     58.0  #4               line        commander: Tam, greens go to the galley from now on. [at 352,1001 37 from centre, in frame; cmdr 352,1001]
    710     58.0  #4               held        1.6 s (stage)
    710     60.0  #4               line        tam: Greens to the galley. Fine. [at 341,1019 47 from centre, in frame; cmdr 352,1001]
