@@ -8,7 +8,7 @@ export interface GoalRec { id: string; kind: string; target: string; doneTick: n
 /** One change of the arrow's target: what the nearest entity to the arrow's point is. */
 export interface ArrowChange { tick: number; key: string; entityId: string; entityType: string }
 export interface ArrowRecord { levelId: string; ticks: number; goals: GoalRec[]; arrows: ArrowChange[] }
-export interface ArrowWarning { level: string; rule: "arrow-wrong-target" | "arrow-early" | "arrow-late" | "arrow-missing"; goal: string; message: string }
+export interface ArrowWarning { level: string; rule: "arrow-wrong-target" | "arrow-early" | "arrow-late" | "arrow-missing" | "arrow-unaudited"; goal: string; message: string }
 
 /** Entity types a goal's arrow may sit on (ore, the reactor and the kiosk excepted: any goal may need those on the way). */
 const GOAL_TARGET: Record<string, (type: string, id: string, goalTarget: string) => boolean> = {
@@ -23,10 +23,15 @@ const GOAL_TARGET: Record<string, (type: string, id: string, goalTarget: string)
   clear_zones: (t) => t === "pad.build" || t.startsWith("zone."),
   sales_opened: (t) => t === "sink.sales_point" || t === "pad.build",
   earn: (t) => t === "sink.sales_point" || t.startsWith("node.") || t === "pad.hire",
+  core_lit: (t) => t === "sink.core" || t.startsWith("node."),
+  perimeter_before_wave1: (t) => t === "pad.build" || t.startsWith("zone."),
+  converters_running: (t) => t.startsWith("capture.") || t.startsWith("conv.") || t.startsWith("node."),
   sell: (t) => t === "sink.sales_point" || t.startsWith("node.") || t.startsWith("conv."),
 };
 /** Goals that tell the player to follow or walk to something: the arrow must show soon after they start. */
-const FOLLOWS = new Set(["build", "unlock", "hire", "crates", "rescue", "admit", "clear_zones", "sales_opened"]);
+const FOLLOWS = new Set(["core_lit", "build", "unlock", "hire", "crates", "rescue", "admit", "clear_zones", "sales_opened"]);
+/** Goals that name no place (survive a timer, fill a store, hold off waves): any arrow is fine, but they are listed so none is skipped unseen. */
+const NO_ARROW = new Set(["survive", "fuel_full", "waves", "waves_survived"]);
 const ALWAYS_OK = (t: string): boolean => t.startsWith("node.") || t === "sink.core" || t.startsWith("store.") || t === "sink.sales_point";
 
 /**
@@ -37,11 +42,15 @@ const ALWAYS_OK = (t: string): boolean => t.startsWith("node.") || t === "sink.c
  */
 export function auditArrows(r: ArrowRecord, lateS = 10, wrongS = 5): ArrowWarning[] {
   const out: ArrowWarning[] = [];
-  const goals = r.goals.filter((g) => g.id !== "main");
+  // every goal is audited, the level goal ("main") included. It is listed first but plays last, so it activates when the others are done
+  const goals = [...r.goals.filter((g) => g.id !== "main"), ...r.goals.filter((g) => g.id === "main")];
   const ok = (g: GoalRec, type: string, id: string): boolean => GOAL_TARGET[g.kind]?.(type, id, g.target) === true;
   const held = r.arrows.map((a, k) => ({ a, from: a.tick, to: r.arrows[k + 1]?.tick ?? r.ticks })).filter((h) => h.a.key !== "none");
   goals.forEach((g, i) => {
-    if (!GOAL_TARGET[g.kind]) return;
+    if (!GOAL_TARGET[g.kind]) {
+      if (!NO_ARROW.has(g.kind)) out.push({ level: r.levelId, rule: "arrow-unaudited", goal: g.id, message: `goal "${g.id}" has kind "${g.kind}", which the arrow audit does not know: add it to GOAL_TARGET or NO_ARROW` });
+      return;
+    }
     const from = i === 0 ? 0 : goals[i - 1]!.doneTick;
     if (from < 0) return; // an earlier goal never finished: this one never activated
     const to = g.doneTick >= 0 ? g.doneTick : r.ticks;

@@ -63,6 +63,23 @@ describe("goal gates", () => {
     expect(analyzeLineGoals(cap, { goals: [{ id: "pair", done: false }, { id: "main", done: false }] } as never, gate).map((h) => h.check)).toEqual(["line-before-goal"]);
     expect(analyzeLineGoals(cap, { goals: [{ id: "pair", done: true }, { id: "main", done: true }] } as never, gate).map((h) => h.check)).toEqual(["line-after-goal"]);
   });
+  it("has a gate for every caption line of story levels 1-5 and no gate that matches no line", () => {
+    const gates = JSON.parse(readFileSync(new URL("./review/story-gates.json", import.meta.url), "utf8")) as Record<string, StoryGate[]>;
+    const skin = readFileSync(new URL("../packages/skins/src/mars_greenhouse.ts", import.meta.url), "utf8").split("\n");
+    let lvl: string | null = null;
+    const lines: Record<string, string[]> = {};
+    for (const l of skin) {
+      const m = /^      "(story-L00[1-5])": \{/.exec(l);
+      if (m) { lvl = m[1]!; lines[lvl] = []; } else if (/^      "/.test(l)) lvl = null;
+      const t = lvl ? /line: "((?:[^"\\]|\\.)*)"/.exec(l) : null;
+      if (lvl && t) lines[lvl]!.push(t[1]!.replace(/\\"/g, "\""));
+    }
+    for (const id of ["story-L001", "story-L002", "story-L003", "story-L004", "story-L005"]) {
+      const list = gates[id] ?? [];
+      for (const text of lines[id] ?? []) expect(list.some((g) => text.toLowerCase().includes(g.line.toLowerCase())), `${id}: no gate for "${text.slice(0, 50)}"`).toBe(true);
+      for (const g of list) expect((lines[id] ?? []).some((t) => t.toLowerCase().includes(g.line.toLowerCase())), `${id}: gate "${g.line}" matches no line`).toBe(true);
+    }
+  });
   it("names only goals the level really has", () => {
     const gates = JSON.parse(readFileSync(new URL("./review/story-gates.json", import.meta.url), "utf8")) as Record<string, StoryGate[]>;
     for (const [id, list] of Object.entries(gates)) {
