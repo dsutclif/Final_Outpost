@@ -179,3 +179,25 @@ export function drawIcon(g: Ctx2D, x: number, y: number, r: number, color: strin
   g.fillStyle = "rgba(255,255,255,0.55)";
   g.fill();
 }
+
+/** A price icon for resource `res`: scrap is a jagged chunk of plate (so it never reads as a coin), everything else the round token. */
+export function drawResIcon(g: Ctx2D, x: number, y: number, r: number, color: string, ink: string, res: string): void {
+  if (res !== "res.salvage") { drawIcon(g, x, y, r, color, ink); return; }
+  // same outline as the HUD's scrap glyph (24-unit box, centred), scaled to the token's radius
+  const pts: readonly (readonly [number, number])[] = [[3, 17], [7, 8], [12, 11], [15, 5], [21, 17], [17, 21], [6, 21]];
+  const k = (r * 2.1) / 24;
+  g.beginPath();
+  pts.forEach(([px, py], i) => { const X = x + (px - 12) * k, Y = y + (py - 13) * k; if (i) g.lineTo(X, Y); else g.moveTo(X, Y); });
+  g.closePath();
+  g.fillStyle = color;
+  g.fill();
+  g.lineJoin = "round";
+  g.lineWidth = r * 0.22;
+  g.strokeStyle = ink;
+  g.stroke();
+  g.beginPath();
+  g.moveTo(x - r * 0.25, y - r * 0.05); g.lineTo(x + r * 0.05, y + r * 0.35);
+  g.lineWidth = r * 0.16;
+  g.strokeStyle = "rgba(255,255,255,0.55)";
+  g.stroke();
+}

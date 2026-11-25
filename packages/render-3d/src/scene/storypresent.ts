@@ -191,7 +191,7 @@ export class StoryPresent implements StoryPresentation {
     for (const [id, l] of this.lamps) this.lights.lightLevel(id, this.allowed.has(l.goal ? 1 : 3) ? l.k : 0);
     if (this.dotPts) this.lights.groundDots(this.dotPts, t, { ...this.dotOpts, lit: this.dotOpts.lit !== false && this.allowed.has(4) });
     this.lights.update(t);
-    this.props.update(t, dt);
+    this.props.update(t, dt, this.talking);
     this.ridgeGlow = this.ridgeSide ? { side: this.ridgeSide, k: this.ridgeNow(t) } : null;
     this.lights.ridgePulse("right", 0, cx, cz, halfW, halfH);
   }
