@@ -102,3 +102,19 @@ describe("reactor beacon lamp (outpost-ops#125)", () => {
     expect(Math.max(...dead)).toBeGreaterThan(Math.min(...dead));
   });
 });
+
+describe("reactor beacon sits on the Meshy body (burn light floats above the reactor)", () => {
+  it("every Meshy core level places the beacon inside its body's height, not at the code body's cap", async () => {
+    const { meshyFor, meshyBounds } = await import("../src/assets/meshy.js");
+    for (const level of [1, 2, 3]) {
+      const e = meshyFor("sink.core", level)!;
+      const top = meshyBounds(e.file)![4]!;
+      const p = e.parts?.["beacon"];
+      expect(p, `core L${level} beacon offset`).toBeDefined();
+      // the lamp's geometry is already built at the code body's cap (1.62); the part offset moves it from there
+      const lamp = 1.62 + p![1]!;
+      expect(lamp, `core L${level} beacon height`).toBeGreaterThan(0);
+      expect(lamp, `core L${level} beacon height`).toBeLessThanOrEqual(top);
+    }
+  });
+});

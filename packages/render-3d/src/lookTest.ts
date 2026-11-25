@@ -77,7 +77,7 @@ function gasMaterial(seed: number): ShaderMaterial {
 /** Reactor glow parts the gas replaces while the look test draws. */
 const GLOW_PARTS = new Set(["flame", "orb"]);
 
-interface Gas { flame: Object3D; parts: Object3D[]; mesh: Mesh; mat: ShaderMaterial; top: number; h: number; w: number }
+interface Gas { body: unknown; flame: Object3D; parts: Object3D[]; mesh: Mesh; mat: ShaderMaterial; top: number; h: number; w: number }
 
 /** Materials this rough are dust or concrete (deck slabs 0.95); Meshy models (0.9) and code structures keep the sky. */
 const DUST_ROUGH = 0.93;
@@ -188,22 +188,35 @@ export class LookTest {
     this.bloom.resolution.set(Math.round(w * this.dpr / 2), Math.round(h * this.dpr / 2));
   }
 
-  /** One gas cloud per reactor: found by its flame part, sized from the reactor body's bounds (local to the model root). */
+  /** The reactor body's bounds, local to the model root (the glow parts, spin ring and gas quad do not count). */
+  private bodyBox(root: Object3D): Box3 {
+    const box = new Box3(), b = new Box3();
+    root.updateMatrixWorld(true);
+    const inv = root.matrixWorld.clone().invert();
+    root.traverse((c) => {
+      const m = c as Mesh;
+      if (!m.isMesh || GLOW_PARTS.has(m.name) || m.name === "spin" || m.name === "lookGas" || m.name === "beacon" || !m.geometry) return;
+      m.geometry.computeBoundingBox();
+      b.copy(m.geometry.boundingBox!).applyMatrix4(m.matrixWorld).applyMatrix4(inv);
+      box.union(b);
+    });
+    return box;
+  }
+
+  /** One gas cloud per reactor: found by its flame part, sized from the reactor body's bounds; re-measured when the Meshy body swaps in. */
   private findGases(): void {
+    for (const g of this.gases) {
+      const body = g.flame.parent?.userData["meshy"];
+      if (!g.flame.parent || body === g.body) continue;
+      const box = this.bodyBox(g.flame.parent);
+      if (box.isEmpty()) continue;
+      g.body = body; g.top = box.max.y; g.h = box.max.y - box.min.y; g.w = Math.max(box.max.x - box.min.x, box.max.z - box.min.z);
+    }
     this.scene.traverse((o) => {
       if (o.name !== "flame" || this.gases.some((g) => g.flame === o) || !o.parent) return;
       const root = o.parent;
       const parts = root.children.filter((c) => GLOW_PARTS.has(c.name));
-      const box = new Box3(), b = new Box3();
-      root.updateMatrixWorld(true);
-      const inv = root.matrixWorld.clone().invert();
-      root.traverse((c) => {
-        const m = c as Mesh;
-        if (!m.isMesh || GLOW_PARTS.has(m.name) || m.name === "spin" || !m.geometry) return;
-        m.geometry.computeBoundingBox();
-        b.copy(m.geometry.boundingBox!).applyMatrix4(m.matrixWorld).applyMatrix4(inv);
-        box.union(b);
-      });
+      const box = this.bodyBox(root);
       if (box.isEmpty()) return;
       const mat = gasMaterial(this.gases.length * 0.37 + 0.13);
       const mesh = new Mesh(this.gasQuad, mat);
@@ -211,7 +224,7 @@ export class LookTest {
       mesh.frustumCulled = false;
       mesh.name = "lookGas";
       root.add(mesh);
-      this.gases.push({ flame: o, parts, mesh, mat, top: box.max.y, h: box.max.y - box.min.y, w: Math.max(box.max.x - box.min.x, box.max.z - box.min.z) });
+      this.gases.push({ flame: o, parts, mesh, mat, body: root.userData["meshy"], top: box.max.y, h: box.max.y - box.min.y, w: Math.max(box.max.x - box.min.x, box.max.z - box.min.z) });
     });
     this.gases = this.gases.filter((g) => { if (g.flame.parent) return true; g.mesh.removeFromParent(); g.mat.dispose(); return false; });
   }
