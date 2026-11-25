@@ -411,14 +411,24 @@ async function lum(png: Buffer): Promise<number> {
   return meanLuminance(data, 8);
 }
 
-async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: string, rel: string, result: LevelResult): Promise<void> {
+/**
+ * Scripted plays that take a path the bot's normal play cannot (`<level>+<variant>` in --story). Each adds the lines only that path says.
+ *  - lose: the commander stands still and never feeds the reactor, so the first fill goal fails and the run is lost (level 1:
+ *    "Barely in time", "The reactor's out."). The bot plays as normal until KILN gives the fill job, then stops.
+ *  - stall: once KILN has sent the commander to the wreck (the hands-off run is under way) a job is stopped by the probe, so
+ *    the run drops to nothing (level 4: "Something stopped. Go back and look.").
+ */
+const VARIANTS: Record<string, string[]> = { "story-L001": ["lose"], "story-L004": ["stall"] };
+
+async function playStory(run: Run, jobId: string, a: Args, L: Limits, outDir: string, rel: string, result: LevelResult): Promise<void> {
   const { page } = run;
   const t0 = Date.now();
-  const dir = join(outDir, "probe", levelId);
+  const [levelId = jobId, variant = ""] = jobId.split("+");
+  const dir = join(outDir, "probe", safe(jobId));
   const shots = new Shots(page, dir, rel, L.shots.perStoryLevel);
   const tracker = new Tracker(levelId);
   const evidence = new Map<string, Evidence>();
-  const lines: { n: number; text: string; speaker: string | null; shot: string | null; heldTicks: number; gates: string[] }[] = [];
+  const lines: { ms?: Record<string, number>; n: number; text: string; speaker: string | null; shot: string | null; heldTicks: number; gates: string[] }[] = [];
   const extras: Record<string, unknown> = { lines, films: [] as unknown[] };
 
   // films first: what a live scene holds on its last frame, to set against the level's first
@@ -454,10 +464,12 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
     }
   }
 
+  if (variant) { extras["variant"] = variant; if (variant !== "lose" && variant !== "stall") throw new Error(`no such variant: ${variant}`); }
   await page.evaluate(() => window.R.drive("good"));
   // The story runs on a made-up clock (R.ff) so minutes of it do not wait on a slow GPU; each caption stops it, gets a
   // few drawn frames to settle over its speaker, is pictured and judged, then a tap sends the story on.
-  const limit = Math.max(a.seconds, 180);
+  const limit = Math.max(a.seconds, a.storySeconds);
+  const wallCap = Math.max(a.wall, a.storyWall);
   let allGates: Record<string, StoryGate[]> = {};
   try { allGates = JSON.parse(readFileSync(join(dirname(a.limits), "story-gates.json"), "utf8")) as Record<string, StoryGate[]>; } catch { /* no gates file: no gates */ }
   const gates = (Array.isArray(allGates[levelId]) ? allGates[levelId]! : []).filter((g) => g && typeof g.line === "string");
@@ -468,12 +480,15 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   extras["cameraCues"] = camCues;
   const cueAudit = { guideMissing: 0, glowMissing: 0, arrowMissing: 0 };
   extras["cueAudit"] = cueAudit;
+  let stallArmed = false;
+  const prompts: { text: string; line: number }[] = [];
+  extras["prompts"] = prompts;
   let lineNo = 0, seq = 0, frozenFor = 0, lastTick = -1, nextSample = 5, lastCard = "";
   const cards: { n: number; text: string; shot: string | null }[] = [];
   const filmShots: (string | null)[] = [];
   extras["cards"] = cards;
   extras["filmShots"] = filmShots;
-  for (let guard = 0; guard < 900 && Date.now() - t0 < Math.min(a.wall, 600) * 1000; guard++) {
+  for (let guard = 0; guard < 900 && Date.now() - t0 < wallCap * 1000; guard++) {
     // a film or live scene over the level (the director's `film` cue): pictured once, then skipped with a tap
     if (await page.locator(".cine:visible").count()) {
       await page.waitForTimeout(2500);
@@ -482,7 +497,19 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
       await page.waitForTimeout(800);
       continue;
     }
-    const r = await page.evaluate(([sec, seen, cam]) => window.R.ff(sec, seen, cam), [5, seq, !camBusy] as const);
+    // a "try again / keep playing" prompt (a failed retry goal, a lost run): the probe plays on, as a player who did not retry would, so the lines after it can be reached
+    const keep = page.locator(".story-other:visible");
+    if (await keep.count()) {
+      const text: string = await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>(".story-prompt")).filter((e) => !e.hidden).map((e) => (e.textContent ?? "").trim()).join(" | "));
+      prompts.push({ text: text.slice(0, 120), line: lineNo });
+      await keep.first().click({ timeout: 4000 }).catch(() => undefined);
+      await page.waitForTimeout(300);
+      frozenFor = 0;
+      continue;
+    }
+    // stall variant: the run of the hands-off goal has started, so stop a job once and let the director see it drop
+    if (stallArmed && (await page.evaluate(() => window.R.progress("auto") ?? 0)) > 2 && (await page.evaluate(() => window.R.breakHold("auto")))) { stallArmed = false; extras["variantAt"] = { line: lineNo }; }
+    const r = await page.evaluate(([sec, seen, cam]) => window.R.ff(sec, seen, cam), [stallArmed ? 1 : 5, seq, !camBusy] as const);
     // a camera beat has started: a frame every half second until it ends, joined into one strip so its timing can be judged
     const cu0: CueSample | null = await page.evaluate(() => window.R.cues());
     if (!cu0?.camera) camBusy = false;
@@ -523,31 +550,50 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
     if (r.tick / TPS >= limit) break;
     if (r.seq !== seq) {
       seq = r.seq;
-      await page.evaluate(() => window.R.settle(3));
+      const tm: Record<string, number> = {}; let tk = Date.now(); const lap = (k: string): void => { const n = Date.now(); tm[k] = n - tk; tk = n; };
+      await page.evaluate(() => window.R.settle(3)); lap("settle");
       await page.waitForTimeout(450); // the bubble's own fade-in; a slow software-GL compositor stretches it, so wait for it to finish
       await page.waitForFunction(() => { const e = document.querySelector<HTMLElement>(".sdlg-bubble:not([hidden]), .sdlg-strip:not([hidden]), .sdlg-term:not([hidden])"); return !e || Number.parseFloat(getComputedStyle(e).opacity) >= 0.95; }, null, { timeout: 6000 }).catch(() => undefined);
-      const s: Sample | null = await page.evaluate(() => window.R.snap());
-      if (!s?.caption) { await page.waitForTimeout(200); continue; }
+      lap("fade");
+      let s: Sample | null = await page.evaluate(() => window.R.snap()); lap("snap");
+      // a line whose bubble is not up yet (a slow compositor, a bubble opening after a camera move) gets a few more frames before it is given up on
+      // (a goal card that opens the line comes first and is tapped away, as the next pass would do)
+      for (let tries = 0; !s?.caption && tries < 6; tries++) {
+        if (await page.locator(".story-goalcard:visible").count()) { await page.mouse.click(187, 420).catch(() => undefined); await page.waitForTimeout(400); }
+        await page.evaluate(() => window.R.settle(6)); await page.waitForTimeout(500); s = await page.evaluate(() => window.R.snap());
+      }
+      if (!s?.caption) {
+        (extras["captionMisses"] as unknown[] | undefined) ??= [];
+        (extras["captionMisses"] as unknown[]).push({ seq, tick: r.tick, dom: await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("[class*=sdlg], [class*=story]")).filter((e) => e.offsetParent !== null).map((e) => `${e.className.toString()}: ${(e.textContent ?? "").trim().slice(0, 50)}`).slice(0, 8)) });
+        await page.waitForTimeout(200); continue;
+      }
       lineNo++;
       result.samples++;
-      const shot = await shots.take(`line${String(lineNo).padStart(2, "0")}`, true);
+      // a picture costs 10 to 15 s on the software renderer, so a line is pictured only when something is found on it (or with --line-shots)
+      let shot = null as string | null;
+      lap("shot");
       const matched = gatesFor(s.caption.text, gates);
       matched.forEach((g) => gateSeen.add(g));
       const shown = lines.map((l) => l.text);
-      const entry = { n: lineNo, text: s.caption.text, speaker: s.caption.speaker, shot, heldTicks: 0, gates: matched.map((g) => g.why ?? g.line) };
+      const entry = { ms: tm, n: lineNo, text: s.caption.text, speaker: s.caption.speaker, shot, heldTicks: 0, gates: matched.map((g) => g.why ?? g.line) };
       lines.push(entry);
+      if (variant === "lose" && /won't last the night/.test(s.caption.text)) { await page.evaluate(() => window.R.drive("")); extras["variantAt"] = { line: lineNo, tick: r.tick }; }
+      if (variant === "stall" && /Head east to the wreck/.test(s.caption.text)) stallArmed = true;
       const cues: CueSample | null = await page.evaluate(() => window.R.cues());
       const cueHits = cues ? analyzeCues(cues) : [];
       for (const ch of cueHits) { if (ch.check === "guide-arrow-missing") cueAudit.guideMissing++; else if (ch.check === "edge-glow-missing") cueAudit.glowMissing++; else cueAudit.arrowMissing++; }
-      for (const hit of [...analyzeCaption(s.caption, s, L), ...analyzeSpeakerSeen(s.caption, s, L), ...cueHits, ...analyzeLineSight(s.caption, s, gates, L), ...analyzeLineOrder(s.caption, shown, gates), ...analyzeLineGoals(s.caption, s, gates)]) {
+      const lineHits = [...analyzeCaption(s.caption, s, L), ...analyzeSpeakerSeen(s.caption, s, L), ...cueHits, ...analyzeLineSight(s.caption, s, gates, L), ...analyzeLineOrder(s.caption, shown, gates), ...analyzeLineGoals(s.caption, s, gates)];
+      if (a.lineShots || lineHits.length) { shot = await shots.take(`line${String(lineNo).padStart(2, "0")}`, true); entry.shot = shot; }
+      for (const hit of lineHits) {
         const [f] = tracker.observe(Date.now(), [{ ...hit, subject: `${hit.subject}.line` }]);
         const ev = f ? await shots.evidenceFor(f, `line${String(lineNo).padStart(2, "0")}-${f.check}`) : null;
         if (f && ev) evidence.set(f.fingerprint, ev);
         else if (f && shot) evidence.set(f.fingerprint, { paths: [shot] });
       }
+      lap("analyse");
       // the hold test: with no tap, play must not run on while the line is up
       const held = await page.evaluate(([sec, sq]) => window.R.ff(sec, sq), [L.story.holdSeconds, seq] as const);
-      entry.heldTicks = held.tick - r.tick;
+      entry.heldTicks = held.tick - r.tick; lap("hold");
       const stillUp = held.seq === seq;
       for (const hit of analyzeLineHold(s.caption, r.tick, held.tick, stillUp, matched.length > 0, L)) {
         const [f] = tracker.observe(Date.now(), [{ ...hit, subject: `${hit.subject}.line` }]);
@@ -573,7 +619,9 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
     lastTick = r.tick;
     // the fall, kneel and dawn run on the wall clock, which R.ff cannot step: give them real time before giving up
     if (frozenFor >= 1) await page.waitForTimeout(1000);
-    if (frozenFor >= (r.over ? 20 : 120)) { extras["frozenShot"] = await shots.take("frozen", true); extras["stoppedFrozen"] = { tick: r.tick, seq: r.seq, over: r.over, dom: await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("[class]")).filter((e) => e.offsetParent !== null && /cine|story|sdlg|result|card/.test(e.className.toString())).map((e) => e.className.toString()).slice(0, 12)) }; break; } // nothing moves: the story waits on something the bot cannot give
+    // a film, stage or camera hold runs on the wall clock and a software renderer can take minutes over one, so it gets more patience than a stuck level
+    const held = frozenFor >= 20 && !r.over ? await page.evaluate(() => window.R.scene()) : null;
+    if (frozenFor >= (r.over ? 20 : held?.on && held.why !== "line" && held.why !== "prompt" ? 400 : 120)) { extras["frozenShot"] = await shots.take("frozen", true); extras["stoppedFrozen"] = { tick: r.tick, seq: r.seq, over: r.over, dom: await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("[class]")).filter((e) => e.offsetParent !== null && /cine|story|sdlg|result|card/.test(e.className.toString())).map((e) => e.className.toString()).slice(0, 12)), text: await page.evaluate(() => (document.querySelector<HTMLElement>(".app")?.innerText ?? "").replace(/s+/g, " ").slice(0, 300)), lines: lineNo, scene: await page.evaluate(() => window.R.scene()), state: await page.evaluate(() => { const s = window.R.state(); return s ? { tick: s.tick, hp: s.player.hp, hostiles: s.hostiles } : null; }) }; break; } // nothing moves: the story waits on something the bot cannot give
     // the rest of the screen is held to the same rules every few seconds of the story
     if (r.tick / TPS >= nextSample) {
       nextSample = r.tick / TPS + 5;
@@ -590,6 +638,7 @@ async function playStory(run: Run, levelId: string, a: Args, L: Limits, outDir: 
     await watchErrors(run, levelId, shots, evidence, errSeen);
   }
   extras["gatesNotReached"] = gates.filter((g) => !gateSeen.has(g)).map((g) => g.line);
+  extras["gatesReached"] = gates.filter((g) => gateSeen.has(g)).map((g) => g.line);
   const { frames } = await page.evaluate(() => window.R.frames());
   result.frames = frameStats(frames, L);
   result.errors = [...new Set([...(await page.evaluate(() => window.R.errors())), ...run.errors])].slice(0, 40);
@@ -616,9 +665,11 @@ async function main(argv: readonly string[]): Promise<number> {
   const candidates: Candidate[] = [];
   let failed = 0;
   try {
-    const jobs: { id: string; story: boolean }[] = [...a.levels.map((id) => ({ id, story: false })), ...a.story.map((id) => ({ id, story: true }))];
+    // a level with scripted variants gets them after its normal play, unless --no-variants or the list names its own
+    const storyIds = a.story.flatMap((id) => [id, ...(a.variants && !id.includes("+") && !a.story.some((x) => x.startsWith(`${id}+`)) ? (VARIANTS[id] ?? []).map((v) => `${id}+${v}`) : [])]);
+    const jobs: { id: string; story: boolean }[] = [...a.levels.map((id) => ({ id, story: false })), ...storyIds.map((id) => ({ id, story: true }))];
     for (const [idx, job] of jobs.entries()) {
-      const rel = `probe/${job.id}`;
+      const rel = `probe/${safe(job.id)}`;
       const res: LevelResult = { levelId: job.id, track: job.story ? "story" : "main", ok: false, simSeconds: 0, wallSeconds: 0, samples: 0, notch: false, throttle: a.throttle, outcome: null, frames: { frames: 0, medMs: 0, p95Ms: 0, worstMs: 0, longFrames: 0 }, errors: [], shots: [], findings: [], extras: {} };
       let run: Run | null = null;
       try {
@@ -645,11 +696,22 @@ async function main(argv: readonly string[]): Promise<number> {
       } finally {
         await run?.ctx.close().catch(() => undefined);
       }
-      mkdirSync(join(a.out, "probe", job.id), { recursive: true });
-      writeFileSync(join(a.out, "probe", job.id, "summary.json"), JSON.stringify(res, null, 2));
+      mkdirSync(join(a.out, "probe", safe(job.id)), { recursive: true });
+      writeFileSync(join(a.out, "probe", safe(job.id), "summary.json"), JSON.stringify(res, null, 2));
       results.push(res);
       for (const f of res.findings) candidates.push(toCandidate(f, job.id, f.evidence, f.box));
       console.log(`${job.id}: ${res.ok ? "ok" : "FAILED"}, ${res.simSeconds}s played in ${res.wallSeconds}s, ${res.findings.length} findings, ${res.shots.length} shots`);
+    }
+    // a line only a variant reaches counts as reached for its level: the level's summary says which variant got it there
+    for (const base of results) {
+      const vs = results.filter((r) => r.ok && r.levelId.startsWith(`${base.levelId}+`));
+      const left = base.extras["gatesNotReached"];
+      if (!vs.length || !Array.isArray(left)) continue;
+      const via: Record<string, string> = {};
+      for (const v of vs) for (const l of (v.extras["gatesReached"] as string[] | undefined) ?? []) via[l] ??= String(v.extras["variant"]);
+      base.extras["gatesNotReached"] = left.filter((l) => !via[l as string]);
+      base.extras["gatesReachedByVariant"] = Object.fromEntries(Object.entries(via).filter(([l]) => left.includes(l)));
+      writeFileSync(join(a.out, "probe", safe(base.levelId), "summary.json"), JSON.stringify(base, null, 2));
     }
   } finally {
     await browser.close().catch(() => undefined);
