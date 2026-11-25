@@ -493,7 +493,8 @@ async function playStory(run: Run, jobId: string, a: Args, L: Limits, outDir: st
     if (await page.locator(".cine:visible").count()) {
       await page.waitForTimeout(2500);
       if (filmShots.length < 6) filmShots.push(await shots.take(`film${String(filmShots.length + 1).padStart(2, "0")}`, true));
-      await page.mouse.click(187, 406).catch(() => undefined);
+      // the picture can take seconds and a live scene ends by itself: tap only while it is still up, or the tap lands on the line that follows it and skips that line unseen (the round-3b out-of-order findings on levels 3 and 4)
+      if (await page.locator(".cine:visible").count()) await page.mouse.click(187, 406).catch(() => undefined);
       await page.waitForTimeout(800);
       continue;
     }
@@ -609,6 +610,8 @@ async function playStory(run: Run, jobId: string, a: Args, L: Limits, outDir: st
     // a card, goal card or prompt that waits for a tap: pictured once, then tapped
     if (await page.locator(".story-tap:visible").count()) {
       const card: string = await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>(".story-card, .story-goalcard, .story-prompt")).filter((e) => !e.hidden).map((e) => (e.textContent ?? "").trim()).join(" | "));
+      // no card text: a line may have come up since the last step (the director runs on the real clock between our steps, as when a film ends), and a tap here would skip it unseen; go round so it is read first
+      if (!card && (await page.evaluate(([sq]) => window.R.ff(0, sq), [seq] as const)).seq !== seq) continue;
       if (card && card !== lastCard) { lastCard = card; cards.push({ n: cards.length + 1, text: card.slice(0, 120), shot: await shots.take(`card${String(cards.length + 1).padStart(2, "0")}`, true) }); }
       await page.mouse.click(187, 420).catch(() => undefined);
       await page.waitForTimeout(150);
@@ -620,8 +623,8 @@ async function playStory(run: Run, jobId: string, a: Args, L: Limits, outDir: st
     // the fall, kneel and dawn run on the wall clock, which R.ff cannot step: give them real time before giving up
     if (frozenFor >= 1) await page.waitForTimeout(1000);
     // a film, stage or camera hold runs on the wall clock and a software renderer can take minutes over one, so it gets more patience than a stuck level
-    const held = frozenFor >= 20 && !r.over ? await page.evaluate(() => window.R.scene()) : null;
-    if (frozenFor >= (r.over ? 20 : held?.on && held.why !== "line" && held.why !== "prompt" ? 400 : 120)) { extras["frozenShot"] = await shots.take("frozen", true); extras["stoppedFrozen"] = { tick: r.tick, seq: r.seq, over: r.over, dom: await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("[class]")).filter((e) => e.offsetParent !== null && /cine|story|sdlg|result|card/.test(e.className.toString())).map((e) => e.className.toString()).slice(0, 12)), text: await page.evaluate(() => (document.querySelector<HTMLElement>(".app")?.innerText ?? "").replace(/s+/g, " ").slice(0, 300)), lines: lineNo, scene: await page.evaluate(() => window.R.scene()), state: await page.evaluate(() => { const s = window.R.state(); return s ? { tick: s.tick, hp: s.player.hp, hostiles: s.hostiles } : null; }) }; break; } // nothing moves: the story waits on something the bot cannot give
+    const held = frozenFor >= 20 ? await page.evaluate(() => window.R.scene()) : null;
+    if (frozenFor >= (r.over ? (held?.on && held.why !== "line" && held.why !== "prompt" ? 400 : 20) : held?.on && held.why !== "line" && held.why !== "prompt" ? 400 : 120)) { extras["frozenShot"] = await shots.take("frozen", true); extras["stoppedFrozen"] = { tick: r.tick, seq: r.seq, over: r.over, dom: await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("[class]")).filter((e) => e.offsetParent !== null && /cine|story|sdlg|result|card/.test(e.className.toString())).map((e) => e.className.toString()).slice(0, 12)), text: await page.evaluate(() => (document.querySelector<HTMLElement>(".app")?.innerText ?? "").replace(/s+/g, " ").slice(0, 300)), lines: lineNo, scene: await page.evaluate(() => window.R.scene()), state: await page.evaluate(() => { const s = window.R.state(); return s ? { tick: s.tick, hp: s.player.hp, hostiles: s.hostiles } : null; }) }; break; } // nothing moves: the story waits on something the bot cannot give
     // the rest of the screen is held to the same rules every few seconds of the story
     if (r.tick / TPS >= nextSample) {
       nextSample = r.tick / TPS + 5;
