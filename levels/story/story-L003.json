@@ -290,7 +290,12 @@
     584,
     32,
     52
-   ]
+   ],
+   "digAfter": {
+    "sold": "res.food_raw_1",
+    "after": "walls",
+    "delay": 9
+   }
   },
   {
    "type": "decor.halcyon_wreck",

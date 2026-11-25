@@ -6,11 +6,22 @@ import { at, idle, walkTo } from "./helpers.js";
 // outpost-ops#130 / #203: a rockslide is dug by hand when the level opts in (zones.digSeconds > 0): standing against
 // it clears a square at a time, no credits; with the default (0) nothing changes.
 
-const L3 = JSON.parse(readFileSync(new URL("../../../levels/story/story-L003.json", import.meta.url), "utf8")) as Record<string, unknown>;
+const L3Locked = JSON.parse(readFileSync(new URL("../../../levels/story/story-L003.json", import.meta.url), "utf8")) as { entities: { id: string; digAfter?: unknown }[] } & Record<string, unknown>;
+// the dig mechanics below run on level 3 with its story lock (digAfter) taken off
+const L3 = { ...L3Locked, entities: L3Locked.entities.map((e) => { if (e.id !== "rockslide") return e; const { digAfter: _lock, ...rest } = e; return rest; }) } as Record<string, unknown>;
 const withParams = (p: Record<string, number>): Record<string, unknown> => ({ ...L3, params: { ...(L3["params"] as object), ...p } });
 const rockOf = (sim: ReturnType<typeof createSim>) => sim.state.zones.find((z) => z.id === "rockslide")!;
 
 describe("dug rockslides (opt-in)", () => {
+  it("story level 3's rockslide stays locked until the cue's sale has happened (digAfter)", () => {
+    const sim = createSim(L3Locked);
+    expect(rockOf(sim).digLock).toBeDefined();
+    walkTo(sim, at(660, 610), 3);
+    for (let i = 0; i < 200; i++) sim.step({ dx: fp(1), dy: 0 });
+    expect(rockOf(sim).dig ?? 0).toBe(0);
+    expect(rockOf(sim).rect.w).toBe(fp(32));
+  });
+
   it("digs a square at a time from the side the commander stands on, then opens the way", () => {
     const sim = createSim(L3);
     expect(sim.compiled.zones.digTicks).toBe(60);

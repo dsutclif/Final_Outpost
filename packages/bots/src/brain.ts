@@ -1,4 +1,4 @@
-import { FP, TPS, blockedAt, downLeft, depotDrop, gatherTicks, converterRunnable, operated,playerCap, jobDone, jobOf, nextU32, outsideLines, outsidePerimeter, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
+import { FP, TPS, digLocked, blockedAt, downLeft, depotDrop, gatherTicks, converterRunnable, operated,playerCap, jobDone, jobOf, nextU32, outsideLines, outsidePerimeter, freeSlots, padCost, pointInPoly, safeRadius, type Compiled, type PadState, type Rng, type State, type Vec } from "@fo/sim";
 import { Nav, type Circle } from "./nav.js";
 import { DEFAULT_POLICIES, type Plan, type PlanStep, type Policies } from "./plan.js";
 import type { BotProfile } from "./profiles.js";
@@ -587,13 +587,13 @@ export class Brain {
     }
     // rock lying over a node (level 1: the fuel cells under rock, outpost-ops#352) is dug first: nothing else can reach it
     if (cp.zones.digTicks > 0) {
-      const over = st.zones.find((z) => z.type === "zone.blocked" && !z.cleared && st.nodes.some((n) => n.enabled && n.pos.x >= z.rect.x && n.pos.x <= z.rect.x + z.rect.w && n.pos.y >= z.rect.y && n.pos.y <= z.rect.y + z.rect.h));
+      const over = st.zones.find((z) => z.type === "zone.blocked" && !z.cleared && !digLocked(st, z) && st.nodes.some((n) => n.enabled && n.pos.x >= z.rect.x && n.pos.x <= z.rect.x + z.rect.w && n.pos.y >= z.rect.y && n.pos.y <= z.rect.y + z.rect.h));
       if (over) T("dig", 90, over.id);
     }
     // Rockslides dug by hand (zones.digSeconds): stand against one a clear-zones goal or star names until it is gone.
     // Right after the hunt's own rank when the prey wait behind it, otherwise at the bottom of the list (spare minutes only).
     if (cp.zones.digTicks > 0 && [cp.manifest.goal.type, ...(cp.manifest.objectives ?? []).map((o) => o.kind)].includes("clear_zones")) {
-      const slide = st.zones.find((z) => z.type === "zone.blocked" && !z.cleared);
+      const slide = st.zones.find((z) => z.type === "zone.blocked" && !z.cleared && !digLocked(st, z));
       if (slide) T("dig", huntWanted ? 52 : 22, slide.id);
     }
 

@@ -197,6 +197,11 @@ export const ZoneEntity = z.object({
   rect: Rect,
   /** zone.blocked only: a static piece cleared together with the named zone.blocked (the rest of a gate rockfall's band, outpost-ops#202). */
   clearsWith: EntityRef.optional(),
+  /**
+   * zone.blocked dug by hand, opt-in (no engine bump): the commander cannot dig it until a sale of `sold` has happened after
+   * objective `after` is done, plus `delay` seconds (the story cue that explains the slide is playing). Story level 3.
+   */
+  digAfter: z.object({ sold: z.string().min(1), after: z.string().min(1), delay: z.number().min(0).default(0) }).optional(),
 });
 /** Impassable ground that never clears (a ridge, rock outcrop or chasm): routes bend around it. One rect per entity; an L-shaped ridge is two. */
 export const TERRAIN_KINDS = ["ridge", "outcrop", "chasm"] as const;
