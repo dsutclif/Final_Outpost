@@ -1155,15 +1155,15 @@ export const marsGreenhouse: Skin = {
             // walk to the kiosk starts at the door; she never speaks from inside the buggy (Doug 2026-11-24)
             { light: "night", seconds: 1.5, real: true },
             { freeze: true },
-            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }, { at: [630, 905] }, { at: [520, 912] }, { at: [440, 913] }, { at: [360, 914] }], seconds: 2.3, lights: true, rider: "sela" },
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }, { at: [630, 905] }, { at: [520, 912] }, { at: [440, 913] }, { at: [360, 914] }], seconds: 2, lights: true, rider: "sela" },
             // the commander is already at the kiosk (she only drives in once he has found it), so the camera stays with him and
             // takes one slow nudge toward the kiosk: no cut to the road and back (Doug 2026-11-22)
             { camera: { to: { entity: "kiosk" }, share: 0.6, pan: 1.4, hold: 36, back: 0.9, freeze: false } },
-            // play stays held until she has climbed out at the door (the step-out takes 0.6 of the drive time, so the drive and the
-            // step-out are 3.7 s together): her sim figure walks the moment play runs, so freeing it earlier left her drawn in the
-            // buggy while the line fired. The park point (360,914) and her route start (the door) are placed so the buggy, her and
-            // the commander all sit in frame under the kiosk camera nudge (levels/story/story-L003.json, openAfter r100)
-            { wait: 3.7 },
+            // play stays held until she has climbed out at the door: the drive (2 s), a pause (0.5 s) and the step-out (1.3 s) take
+            // 3.8 s, so the wait is 3.9 s. Her sim figure walks the moment play runs, so freeing it earlier drew her sliding along
+            // the buggy's side as her step-out target ran off. The park point (360,914) and her route start (the door) are placed so
+            // the buggy, her and the commander all sit in frame under the kiosk camera nudge (levels/story/story-L003.json, openAfter r100)
+            { wait: 3.9 },
             { freeze: false },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)

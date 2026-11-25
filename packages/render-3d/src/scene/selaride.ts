@@ -16,6 +16,8 @@ const ease = (k: number): number => { const c = Math.max(0, Math.min(1, k)); ret
 const KF = SIZES.buggy.length / SIZES.buggy.buildLength;
 const PERSON = SIZES.person;
 const UP = new Vector3(0, 1, 0);
+/** The first share of the climb-out she spends turning in the seat to the door side. */
+const TURN = 0.4;
 
 /** Turn bone `b` so its child `c` points along `dir` (world), keeping the rest of the chain (as the film does). */
 function aimBone(b: Object3D | undefined, c: Object3D | undefined, dir: Vector3): void {
@@ -102,13 +104,16 @@ export class SelaRide {
     const seatHip = new Vector3(seat.x, (1.4 * KF + 0.073 * PERSON) * ART_M, seat.z);
     const doorHip = new Vector3(door.x, this.standHip.y * this.s, door.z);
     for (const [b, q] of this.seated) b.quaternion.slerpQuaternions(q, this.standing.get(b) ?? q, k);
-    const hipW = new Vector3().lerpVectors(seatHip, doorHip, k);
-    hipW.y += 0.35 * ART_M * Math.sin(Math.PI * Math.min(1, k * 1.15));
-    // she faces the way the buggy points, then turns to face where she is going
-    const y0 = yaw - Math.PI / 2;
-    const y1 = out ? Math.atan2(out.faceX - out.x, out.faceZ - out.z) : faceTo ? Math.atan2(faceTo.faceX - door.x, faceTo.faceZ - door.z) : y0 + Math.PI / 2;
-    const dy = Math.atan2(Math.sin(y1 - y0), Math.cos(y1 - y0));
-    const ry = y0 + dy * k;
+    // she first sits where she is and turns to face the door side (the buggy's +z), and only then steps out over that side and
+    // down to the ground: no sliding sideways out of the seat facing the windscreen. TURN is the share of the climb spent turning.
+    const kp = ease((k - TURN * 0.6) / (1 - TURN * 0.6));
+    const hipW = new Vector3().lerpVectors(seatHip, doorHip, kp);
+    hipW.y += 0.35 * ART_M * Math.sin(Math.PI * Math.min(1, kp * 1.15));
+    // she faces the way the buggy points, turns to the door, then turns to face where she is going
+    const y0 = yaw - Math.PI / 2, yDoor = yaw;
+    const y1 = out ? Math.atan2(out.faceX - out.x, out.faceZ - out.z) : faceTo ? Math.atan2(faceTo.faceX - door.x, faceTo.faceZ - door.z) : yDoor;
+    const dy2 = Math.atan2(Math.sin(y1 - yDoor), Math.cos(y1 - yDoor));
+    const ry = y0 + (Math.PI / 2) * ease(k / TURN) + dy2 * ease((k - 0.65) / 0.35);
     const hipM = new Vector3().lerpVectors(this.hip, this.standHip, k).multiplyScalar(this.s).applyAxisAngle(UP, ry);
     this.root.position.copy(hipW.sub(hipM));
     this.root.rotation.set(0, ry, 0);
