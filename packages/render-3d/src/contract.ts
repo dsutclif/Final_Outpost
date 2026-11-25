@@ -76,6 +76,8 @@ export interface CameraBeat { at: { x: number; y: number }; zoom?: number; secon
 
 /** A story vehicle's drive (see StoryPresentation.vehicle): a ground path in world units, eased over `seconds`, then parked. */
 export interface StoryVehicleSpec { seq: number; path: readonly { x: number; z: number }[]; seconds: number; lights?: boolean | undefined; rider?: number | undefined;
+  /** Already parked when placed (no drive, she is already out at the door): a level that opens where the last one ended. */
+  parked?: boolean | undefined;
   /** The rider has no sim customer to hand over to (Sela at the end of a level): the buggy draws her seated, steps her out at the door and keeps her standing there, facing this point. */
   solo?: { faceX: number; faceZ: number } | undefined }
 

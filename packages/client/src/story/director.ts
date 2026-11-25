@@ -104,7 +104,7 @@ export interface StoryWorld {
   /** Cast members held at a drawn place (see the walk action); a null `to` walks them back. */
   actors: readonly { who: string; to: { x: number; y: number } | null; from?: { x: number; y: number }; face?: boolean }[];
   /** Vehicles in the world (see the vehicle action); `seq` counts requests so a redrive reads as new. */
-  vehicles: readonly { id: string; path: readonly { x: number; y: number }[]; seconds: number; lights: boolean; seq: number; rider?: number; solo?: { faceX: number; faceZ: number } }[];
+  vehicles: readonly { id: string; path: readonly { x: number; y: number }[]; seconds: number; lights: boolean; seq: number; parked?: boolean; rider?: number; solo?: { faceX: number; faceZ: number } }[];
 }
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
@@ -525,7 +525,7 @@ export class StoryDirector {
       this.timed(a.wait, () => {});
     } else if ("vehicle" in a) {
       const path = a.path.flatMap((p) => { const q = this.place(p); return q ? [q] : []; });
-      if (path.length) this.world = { ...this.world, vehicles: [...this.world.vehicles.filter((v) => v.id !== a.vehicle), { id: a.vehicle, path, seconds: a.seconds ?? 8, lights: a.lights !== false, seq: ++this.seq, ...this.riderOf(a.rider), ...this.soloOf(a.rider) }] };
+      if (path.length) this.world = { ...this.world, vehicles: [...this.world.vehicles.filter((v) => v.id !== a.vehicle), { id: a.vehicle, path, seconds: a.seconds ?? 8, lights: a.lights !== false, seq: ++this.seq, ...(a.parked ? { parked: true } : {}), ...this.riderOf(a.rider), ...this.soloOf(a.rider) }] };
     } else if ("vehicleOff" in a) {
       this.world = { ...this.world, vehicles: this.world.vehicles.filter((v) => v.id !== a.vehicleOff) };
     } else if ("walk" in a) {
