@@ -4,7 +4,8 @@ import { round } from "./lib.js";
 // Arrow audit (outpost-ops#346): does the guide arrow point at the thing the goal names, and when does it start?
 // The walker (guide-walk.ts) records goals and where the arrow rests; this file judges the record. Warnings only for now.
 
-export interface GoalRec { id: string; kind: string; target: string; doneTick: number }
+/** `activeTick`: when a story released a held goal (the goal cannot start before it). */
+export interface GoalRec { id: string; kind: string; target: string; doneTick: number; activeTick?: number }
 /** One change of the arrow's target: what the nearest entity to the arrow's point is. */
 export interface ArrowChange { tick: number; key: string; entityId: string; entityType: string }
 export interface ArrowRecord { levelId: string; ticks: number; goals: GoalRec[]; arrows: ArrowChange[] }
@@ -51,7 +52,8 @@ export function auditArrows(r: ArrowRecord, lateS = 10, wrongS = 5): ArrowWarnin
       if (!NO_ARROW.has(g.kind)) out.push({ level: r.levelId, rule: "arrow-unaudited", goal: g.id, message: `goal "${g.id}" has kind "${g.kind}", which the arrow audit does not know: add it to GOAL_TARGET or NO_ARROW` });
       return;
     }
-    const from = i === 0 ? 0 : goals[i - 1]!.doneTick;
+    const chained = i === 0 ? 0 : goals[i - 1]!.doneTick;
+    const from = chained < 0 ? chained : Math.max(chained, g.activeTick ?? 0);
     if (from < 0) return; // an earlier goal never finished: this one never activated
     const to = g.doneTick >= 0 ? g.doneTick : r.ticks;
     for (const h of held) {

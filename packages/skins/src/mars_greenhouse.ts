@@ -1336,10 +1336,15 @@ export const marsGreenhouse: Skin = {
             { guide: true },
             { line: "Build a galley to turn greens into meals. They sell more that way.", who: "kiln" },
             { goal: "galleyBuilt" },
+            // the arrows lead to the galley pad once it shows, a moment after the goal opens (the default guide shows nothing here)
+            { wait: 0.5 },
+            { guide: true, to: { entity: "galley" } },
           ] },
           // morning turns to dusk while the town learns to run itself
           { on: { goal: "galleyBuilt", is: "done" }, do: [
             { light: "dusk", seconds: 120 },
+            // the galley is built: the arrow leaves the pad
+            { guide: true },
           ] },
           // Tam's greens now go to the galley (the galley pad's repoint): no pad, no cost
           { on: { goal: "galleyBuilt", is: "done" }, ordered: true, do: [
@@ -1432,7 +1437,7 @@ export const marsGreenhouse: Skin = {
             { guide: true, to: { at: [760, 727] } },
           ] },
           // scrap on the sand: the socket between the ridge and the first building lights up
-          { on: { event: "wave_cleared", match: { idx: 0 } }, do: [
+          { on: { event: "wave_cleared", match: { idx: 1 } }, do: [
             // the arrows go to the turret pad, not the default step toward the hab hub (outpost-ops#369)
             { guide: true, to: { entity: "turret1" } },
             { dots: [{ entity: "turret1" }], period: 2 },
@@ -1450,6 +1455,8 @@ export const marsGreenhouse: Skin = {
             { line: "Let us in! They burned our camp on the road!", who: "settler" },
             { line: "Two at the gate. Stand by it to let them in.", who: "kiln" },
             { goal: "arrive" },
+            // the arrows lead to the gate, where the settlers wait (the default guide shows nothing while raiders are about)
+            { guide: true, to: { entity: "gate" } },
           ] },
           // train a guard (paid in scrap): the guide rules below send the arrows to scrap until the commander carries the price, then to the guard pad
           { id: "trainOpen", on: { goal: "arrive", is: "done" }, ordered: true, do: [
@@ -1486,8 +1493,12 @@ export const marsGreenhouse: Skin = {
             { guide: true, to: { entity: "helmet" } },
             { line: "They're running. It's over for tonight.", who: "kiln" },
             { line: "But the signal hasn't stopped. That was never them.", who: "kiln" },
-            { line: "They dropped something.", who: "kiln" },
             { dots: [{ entity: "helmet" }], period: 1.2 },
+          ] },
+          // KILN points at the helmet only once the commander is close enough to have it on screen (within 100 of it, the phone view
+          // shows everything within 150), wherever the player stood when the warlord fell (outpost-ops#387)
+          { on: { near: { entity: "helmet" }, r: 100, after: "retreat" }, do: [
+            { line: "They dropped something.", who: "kiln" },
           ] },
           // picked up before those lines came (the commander was already standing at the fall spot): they play now, ahead of
           // the kneel, so the helmet is never taken in silence

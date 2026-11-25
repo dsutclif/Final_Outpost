@@ -54,6 +54,18 @@ export interface TraceOpts {
   skinStory?: SkinStory;
   /** Model the renderer's conversation facing (default true). False plays the old renderer, where a speaker only faces the way they last walked: a test uses it to show check (h) catches that. */
   faceTalk?: boolean;
+  /**
+   * Arrow audit mode (tools/review/guide-walk.ts): the player is not the good bot but a follower. `drive` gets the arrow the player
+   * sees (the story's, else the default guide's; null when none) and returns the stick; `onArrow` hears every change of it; `onEnd`
+   * gets the final state. The rest of the trace (director, camera, taps) runs as usual.
+   */
+  follow?: {
+    drive(st: State, at: { x: number; y: number } | null): { dx: number; dy: number };
+    onArrow(tick: number, key: string, at: { x: number; y: number } | null, st: State): void;
+    /** A story `goal` action released a held goal. */
+    onGoal?(tick: number, id: string): void;
+    onEnd?(st: State): void;
+  };
 }
 
 const r1 = (n: number): string => (Math.round(n * 10) / 10).toFixed(1);
@@ -149,6 +161,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
         row("cue", triggerText(n.fired), name);
       } else {
         curCue = actionCue.get(n.start) ?? ("stage" in n.start ? curCue : "-");
+        if ("goal" in n.start) opts.follow?.onGoal?.(st.tick, n.start.goal);
         if ("camera" in n.start) { const to = n.start.camera.to; beatTo = "entity" in to ? host.entityAt(to.entity) : "at" in to ? { x: to.at[0], y: to.at[1] } : null; beatAt = clock; }
         const d = describe(n.start);
         if (d) row(d.what, d.detail);
@@ -332,6 +345,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
 
   // ---- guide arrows (d)
   let arrowKey = "";
+  let followKey = "";
   const arrowNow = (): { at: { x: number; y: number }; from: string } | null => {
     const w = director.world;
     if (w.guideOff) return null;
@@ -400,7 +414,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
         let n = Math.floor(stepper.acc * TPS + 1e-9);
         stepper.acc -= n / TPS;
         for (; n > 0 && !ended; n--) {
-          const ev = sim.step(brain.tick(st));
+          const ev = sim.step(opts.follow ? opts.follow.drive(st, arrowNow()?.at ?? null) : brain.tick(st));
           for (const e of ev) onEvent(e);
           director.afterTick(st);
           if (director.frozen) { stepper.acc = 0; break; }
@@ -423,6 +437,11 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
       checkFacing();
       checkFreeze();
       if (!ended) checkArrow(sc.on);
+      if (opts.follow) {
+        const a = arrowNow();
+        const k = a ? `${a.from}@${Math.round(a.at.x)},${Math.round(a.at.y)}` : "none";
+        if (k !== followKey) { followKey = k; opts.follow.onArrow(st.tick, k, a ? a.at : null, st); }
+      }
       if (ended && !resultAsked && clock - endAt >= RESULT_WAIT_S) {
         resultAsked = true;
         const show = (): void => { resultShown = true; row("result", director.pendingStory ? "shown while story still pending" : "shown"); if (director.pendingStory) fail("e", "result card shown while the story queue still has items"); };
@@ -435,6 +454,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
   } catch (err) {
     fail("f", `threw: ${err instanceof Error ? err.stack?.split("\n").slice(0, 3).join(" | ") : String(err)}`);
   }
+  opts.follow?.onEnd?.(st);
   return { level: levelId, seed, won, rows, failures };
 
   function syncActors(): void {

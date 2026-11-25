@@ -3,7 +3,7 @@ import { ENGINE_VERSION } from "../../packages/sim/src/index.js";
 import { Args, loadLimits, resolveIn, round, writeJson } from "./lib.js";
 import { analyseGuide, guideCandidates } from "./guide-core.js";
 import { auditArrows, type ArrowWarning } from "./arrow-audit.js";
-import { followGuide } from "./guide-walk.js";
+import { followGuide, followStoryArrows } from "./guide-walk.js";
 import { listLevels, readManifest, splitByEngine } from "./pulse-core.js";
 
 // pnpm review:guide -- --out <dir> [--story levels/story] [--pack levels/packs/s1] [--first 10] [--seconds 600] [--only id,id]
@@ -31,7 +31,7 @@ async function main(args: Args): Promise<void> {
     try {
       const rec = await followGuide(readManifest(ref), ref.id, ref.pack, seconds);
       levels.push(analyseGuide(rec, L.guide));
-      if (ref.id.startsWith("story-")) arrowWarnings.push(...auditArrows(rec.arrowRecord));
+      if (ref.id.startsWith("story-")) arrowWarnings.push(...auditArrows(await followStoryArrows(readManifest(ref), ref.id)));
     } catch (e) {
       errors.push({ levelId: ref.id, message: e instanceof Error ? e.message : String(e) });
     }
