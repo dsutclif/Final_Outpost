@@ -1,7 +1,7 @@
 import type { Compiled } from "../compile.js";
 import type { SimEvent } from "../events.js";
 import type { State, ZoneState } from "../state.js";
-import { FP } from "../fixed.js";
+import { FP, TPS } from "../fixed.js";
 import { wallsChanged } from "./wallgrid.js";
 
 /** How far past a rockslide's edge (beyond the walk margin) the commander can still dig it from. */
@@ -20,6 +20,22 @@ function edgeAgainst(st: State, cp: Compiled, z: ZoneState): Edge | null {
   return gaps[0]![1];
 }
 
+/** True while a zone's `digAfter` lock still holds (the commander cannot dig it yet). */
+export function digLocked(st: State, z: ZoneState): boolean {
+  return z.digLock !== undefined && (z.digLock.unlockTick < 0 || st.tick < z.digLock.unlockTick);
+}
+
+/** A zone with a `digAfter` lock opens once a qualifying sale (after its objective is done) happened and the delay has passed. Run after sales. */
+export function armDigLocks(st: State, out: SimEvent[]): void {
+  for (const z of st.zones) {
+    const l = z.digLock;
+    if (!l || l.unlockTick >= 0) continue;
+    const o = st.objectives.find((x) => x.id === l.after);
+    if (!o || !o.done) continue;
+    if (out.some((e) => e.t === "sold" && e.res === l.sold)) l.unlockTick = st.tick + Math.round(l.delay * TPS);
+  }
+}
+
 /**
  * Rockslides dug by hand (zones.digSeconds > 0; off by default, outpost-ops#130): standing against a blocked zone fills a
  * ring over the square at that edge; when it closes the square sinks, then the next, until the zone is gone. No credits.
@@ -30,6 +46,7 @@ export function stepDig(st: State, cp: Compiled, out: SimEvent[]): void {
   if (need <= 0 || sq <= 0) return;
   for (const z of st.zones) {
     if (z.type !== "zone.blocked" || z.cleared) continue;
+    if (digLocked(st, z)) continue;
     const edge = edgeAgainst(st, cp, z);
     if (edge === null || (z.digEdge !== undefined && z.digEdge !== edge)) {
       if (z.dig) z.dig = Math.max(0, z.dig - 2);

@@ -1,3 +1,4 @@
+export { digLocked } from "./systems/dig.js";
 export { createSim, ENGINE_VERSION, IMPLEMENTED_MODULES, type Sim, type SimOptions } from "./sim.js";
 export { compile, type Compiled } from "./compile.js";
 export type { Input } from "./systems/player.js";

@@ -25,7 +25,7 @@ import { spawnPrey, stepHunting } from "./systems/hunting.js";
 import { stepLasso } from "./systems/lasso.js";
 import { stepNodes } from "./systems/nodes.js";
 import { applyEffects, refreshPads } from "./systems/pads.js";
-import { stepDig } from "./systems/dig.js";
+import { armDigLocks, stepDig } from "./systems/dig.js";
 import { collectPile, movePlayer, pickDrops, playerAct, playerCombat, type Input } from "./systems/player.js";
 import { stepResidents } from "./systems/residents.js";
 import { salesLayout, stepSales } from "./systems/sales.js";
@@ -168,6 +168,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       case "zone.terrain":
       case "zone.waiting": {
         const z: ZoneState = { id: e.id, type: e.type, rect: rect(e.rect), cleared: false, ...(e.type === "zone.terrain" ? { kind: e.kind } : e.clearsWith !== undefined ? { clearsWith: e.clearsWith } : {}) };
+        if (e.type === "zone.blocked" && e.digAfter) z.digLock = { ...e.digAfter, unlockTick: -1 };
         state.zones.push(z);
         break;
       }
@@ -250,6 +251,7 @@ export function createSim(manifestIn: unknown, opts: SimOptions = {}): Sim {
       stepGate(state, cp, out);
       stepResidents(state, cp, out);
       stepSales(state, cp, out);
+      armDigLocks(state, out);
       stepConverters(state, cp, out);
       stepConveyors(state, cp, out);
       stepHunting(state, cp, out);

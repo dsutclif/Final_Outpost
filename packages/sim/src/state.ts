@@ -223,6 +223,8 @@ export interface ZoneState {
   dig?: number;
   /** The edge being dug (the side the commander stands on): its square is the one the ring fills over. */
   digEdge?: "w" | "e" | "n" | "s";
+  /** zone.blocked with a manifest `digAfter`: the lock. `unlockTick` is when digging opens (-1 until the qualifying sale happens). */
+  digLock?: { sold: string; after: string; delay: number; unlockTick: number };
 }
 
 export interface PreyZoneState {
