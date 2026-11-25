@@ -23,8 +23,10 @@ describe("per-level star totals", () => {
 
   it("the star text fills to the level's total, and never past it", () => {
     expect(starText(2)).toBe("★★☆");
-    expect(starText(4, 5)).toBe("★★★★☆");
-    expect(starText(7, 5)).toBe("★★★★★");
+    expect(starText(2, 3)).toBe("★★☆");
+    // above 3 stars the count is x/y, never a row of icons (Doug 2026-11-25)
+    expect(starText(4, 5)).toBe("★ 4/5");
+    expect(starText(7, 5)).toBe("★ 5/5");
     expect(starText(3, 7)).toBe("★ 3/7");
   });
 
