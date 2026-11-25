@@ -927,7 +927,9 @@ export const marsGreenhouse: Skin = {
           // the storm's wind blows the sand off a seam of ore past the reactor (outpost-ops#290): every ore pile is buried
           // (hiddenUntil @storm) until the storm starts. The camera shows the sand blowing clear, then KILN says what it saw
           { id: "gust", on: { event: "node_revealed" }, do: [
-            { camera: { to: { entity: "ore22" }, pan: 0.5, hold: 1.2, back: 0.4, zoom: 0.8 } },
+            // the camera holds on the ore while KILN speaks (not frozen: a frozen beat hands back before the line, outpost-ops#381)
+            { camera: { to: { entity: "ore22" }, pan: 0.5, hold: 6, back: 0.6, zoom: 0.8, freeze: false } },
+            { wait: 1.1 },
             { line: "The wind has blown the sand off something. There seems to have been ore under it. Fuel the reactor with it.", who: "kiln" },
           ] },
           { on: { goal: "fill", is: "done" }, do: [
