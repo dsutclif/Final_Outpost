@@ -19,13 +19,6 @@ const ALLOW: readonly { level: string; check: TraceFailure["check"]; cue: string
   { level: "story-L002", check: "a", cue: "#14", has: "rhee speaks off screen", why: PHASE_B },
   { level: "story-L002", check: "e", cue: "#8", has: "capture_revealed", why: PHASE_B },
   { level: "story-L002", check: "e", cue: "#10", has: "released", why: PHASE_B },
-  { level: "story-L003", check: "c", cue: "selaIn", has: "play held", why: PHASE_B },
-  { level: "story-L003", check: "d", cue: "selaMet", has: "pad already done (dome)", why: PHASE_B },
-  { level: "story-L003", check: "c", cue: "tamTrained", has: "play held", why: PHASE_B },
-  { level: "story-L003", check: "c", cue: "wallDone", has: "play held", why: PHASE_B },
-  { level: "story-L003", check: "c", cue: "proteinTip", has: "play held", why: PHASE_B },
-  { level: "story-L003", check: "a", cue: "hubDone", has: "sela speaks off screen", why: PHASE_B },
-  { level: "story-L003", check: "c", cue: "hubDone", has: "play held", why: PHASE_B },
   { level: "story-L004", check: "a", cue: "#1", has: "sela speaks off screen", why: PHASE_B },
   { level: "story-L004", check: "a", cue: "#4", has: "tam speaks off screen", why: PHASE_B },
   { level: "story-L005", check: "a", cue: "#4", has: "settler speaks but has no place", why: PHASE_B },
@@ -53,7 +46,7 @@ describe("story sequence trace, Levels 1-5", () => {
 });
 
 describe("the trace catches what it must", () => {
-  const base = (cues: StoryLevel["cues"], cast: StoryLevel["cast"]): StoryLevel => ({ goals: [], cues, cast });
+  const base = (cues: StoryLevel["cues"], cast: StoryLevel["cast"]): StoryLevel => ({ goals: [], cues, ...(cast ? { cast } : {}) });
 
   it("flags a speaker off screen (a) and a closing cue that can never fire (e)", async () => {
     const level = base([

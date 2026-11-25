@@ -21,7 +21,7 @@ const bulbMat = new MeshBasicMaterial({ color: "#fff6e0" });
 
 interface Run { spec: StoryVehicleSpec; len: number; segs: { x: number; z: number; d: number; yaw: number }[]; t0: number | null; group: Group | null; wheels: Object3D[]; lamps: SpotLight[]; yaw: number; driven: number;
   /** The rider (see riding()): her seated figure, the customer facts the renderer last gave, when the buggy first stood ready, and the exit's progress. */
-  ride: SelaRide | null; info: { model: string; height: number; out: RideExit } | null; w0: number | null; exit: number;
+  ride: SelaRide | null; info: { model: string; height: number; out: RideExit | null } | null; w0: number | null; exit: number;
   /** Where she stepped out (the door) and, once she is walking back to it to leave, the boarding: asked, and its start time on the renderer clock. */
   door: { x: number; z: number } | null; boardReq: boolean; boardT0: number | null }
 
@@ -35,6 +35,9 @@ const WAIT = 4;
 export class StoryProps {
   private readonly runs = new Map<string, Run>();
   private asked = false;
+
+  /** Customer id to her model id (the story's customerModels), for a rider drawn with no sim customer (`solo`). */
+  models: ReadonlyMap<number, string> = new Map();
 
   constructor(private readonly attach: (o: Object3D) => void, private readonly detach: (o: Object3D) => void) {}
 
@@ -71,6 +74,7 @@ export class StoryProps {
     for (const r of this.runs.values()) {
       if (r.spec.rider !== id) continue;
       if (r.ride?.root.visible) return r.ride.root;
+      if (r.spec.solo && r.ride) return r.ride.root;
       // she has stepped out and the buggy stands parked: her caption follows her on foot, not the empty vehicle
       if (r.exit >= 1 && !r.boardReq) continue;
       if (r.group?.visible !== false && r.group) return r.group;
@@ -133,6 +137,7 @@ export class StoryProps {
       r.group ??= this.build(r);
       const g = r.group;
       if (!g || !r.segs.length) continue;
+      if (r.spec.solo && !r.info) { const model = this.models.get(r.spec.rider ?? -1); if (model) r.info = { model, height: ART_M * SIZES.person, out: null }; }
       if (r.spec.rider !== undefined && !r.ride) {
         // her figure is built as soon as the renderer has said who she is and her model is in; the drive waits for her
         r.w0 ??= t;
@@ -169,8 +174,8 @@ export class StoryProps {
         const since = u * r.spec.seconds - r.spec.seconds - SIT;
         r.exit = since <= 0 ? 0 : Math.min(1, since / EXIT);
         // after the climb out the customer figure is drawn (riding() is false), so hers is put away
-        r.ride.root.visible = r.ride.lamp.visible = r.exit < 1;
-        r.ride.pose(g.position.x, g.position.z, g.rotation.y, ease(r.exit), r.info?.out ?? null);
+        r.ride.root.visible = r.ride.lamp.visible = r.exit < 1 || !!r.spec.solo;
+        r.ride.pose(g.position.x, g.position.z, g.rotation.y, ease(r.exit), r.info?.out ?? null, r.spec.solo);
       } else r.exit = u < 1 ? 0 : 1;
     }
   }

@@ -93,7 +93,7 @@ export class SelaRide {
    * Pose her for the buggy at (bx, bz) turned `yaw` (its group's rotation.y): `k` 0 is seated at the wheel, 1 is standing
    * at `out`. The door is on the buggy's +z side, so with no `out` yet she steps down 1.3 m beside it.
    */
-  pose(bx: number, bz: number, yaw: number, k: number, out: RideExit | null): void {
+  pose(bx: number, bz: number, yaw: number, k: number, out: RideExit | null, faceTo?: { faceX: number; faceZ: number }): void {
     const c = Math.cos(yaw), sn = Math.sin(yaw);
     // buggy-local (x forward -x, z to the door side) to world
     const toWorld = (lx: number, lz: number): { x: number; z: number } => ({ x: bx + lx * c + lz * sn, z: bz - lx * sn + lz * c });
@@ -106,7 +106,7 @@ export class SelaRide {
     hipW.y += 0.35 * ART_M * Math.sin(Math.PI * Math.min(1, k * 1.15));
     // she faces the way the buggy points, then turns to face where she is going
     const y0 = yaw - Math.PI / 2;
-    const y1 = out ? Math.atan2(out.faceX - out.x, out.faceZ - out.z) : y0 + Math.PI / 2;
+    const y1 = out ? Math.atan2(out.faceX - out.x, out.faceZ - out.z) : faceTo ? Math.atan2(faceTo.faceX - door.x, faceTo.faceZ - door.z) : y0 + Math.PI / 2;
     const dy = Math.atan2(Math.sin(y1 - y0), Math.cos(y1 - y0));
     const ry = y0 + dy * k;
     const hipM = new Vector3().lerpVectors(this.hip, this.standHip, k).multiplyScalar(this.s).applyAxisAngle(UP, ry);

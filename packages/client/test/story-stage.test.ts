@@ -174,3 +174,26 @@ describe("a closing scene that needs no walking", () => {
     vi.useRealTimers();
   });
 });
+
+describe("a vehicle rider with no sim trader (Sela at the end of a level)", () => {
+  const sales = (queue: unknown[]) => ({ queue, leaving: [], pos: { x: fp(220), y: fp(830) } });
+  const level: StoryLevel = { goals: [], cast, cues: [{ id: "end", on: { start: true }, do: [{ vehicle: "buggy", path: [{ at: [0, 0] }, { last: "player", by: [70, 20] }], seconds: 1, rider: "sela" }] }] };
+
+  it("is drawn by the vehicle (solo, facing the commander) and stands at its park point, not at the kiosk", () => {
+    const h = harness(level);
+    const st = state({ sales: sales([]) });
+    h.d.update(16, st);
+    const v = h.d.world.vehicles[0]!;
+    expect(v.rider).toBe(0);
+    expect(v.solo).toEqual({ faceX: 100, faceZ: 100 });
+    expect(h.d.castAt("sela", st)).toEqual({ x: 170, y: 120 });
+  });
+
+  it("keeps the kiosk fallback and no solo flag while a sim trader exists for her", () => {
+    const h = harness(level);
+    const st = state({ sales: sales([{ id: 0, pos: { x: fp(300), y: fp(310) } }]) });
+    h.d.update(16, st);
+    expect(h.d.world.vehicles[0]!.solo).toBeUndefined();
+    expect(h.d.castAt("sela", st)).toEqual({ x: 300, y: 310 });
+  });
+});
