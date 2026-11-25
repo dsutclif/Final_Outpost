@@ -35,21 +35,20 @@
    412     27.8  #9               arrow       story@790,360
    413     27.8  #13              cue         event=joined match={"capture":0}
    414     27.9  #14              cue         event=joined match={"capture":1}
-   588     33.7  #16              line        commander: Then I'll bring in all five. [at 700,374 23 from centre, in frame]
+   588     33.7  #16              line        commander: Then I'll bring in all five. [at 700,374 23 from centre, in frame; cmdr 700,374]
    588     33.7  #16              arrow       off
    588     35.7  #16              goal        main
    588     35.7  #17              stage       tam
-   588     37.5  #17              line        tam: So this is the new world. Bit cold. Give me something to do. [at 678,396 48 from centre, in frame]
+   588     37.5  #17              line        tam: So this is the new world. Bit cold. Give me something to do. [at 678,396 48 from centre, in frame; cmdr 700,374]
    588     37.5  #17              held        1.8 s (stage)
-   588     39.6  #17              line        commander: Soon. We'll need a grow dome, and someone to run it. [at 700,374 34 from centre, in frame]
+   588     39.6  #17              line        commander: Soon. We'll need a grow dome, and someone to run it. [at 700,374 34 from centre, in frame; cmdr 700,374]
    588     41.6  #13              stage       pip
-   588     43.0  #13              line        pip: Boss! Tell me this is the landing site. No? Thought not. Where is ever [at 676,397 48 from centre, in frame]
+   588     43.0  #13              line        pip: Boss! Tell me this is the landing site. No? Thought not. Where is ever [at 676,397 48 from centre, in frame; cmdr 700,374]
    588     43.0  #13              held        1.4 s (stage)
-   588     45.0  #13              line        commander: Scattered across the plain, and freezing. Can you keep the reactor fed [at 700,374 34 from centre, in frame]
-   588     47.1  #13              stage       pip
-   588     47.1  #13              line        pip: Just hand me a pick, Boss. I'll make sure the fire stays on. [at 676,397 48 from centre, in frame]
+   588     45.0  #13              line        commander: Scattered across the plain, and freezing. Can you keep the reactor fed [at 700,374 34 from centre, in frame; cmdr 700,374]
+   588     47.1  #13              line        pip: Just hand me a pick, Boss. I'll make sure the fire stays on. [at 676,397 48 from centre, in frame; cmdr 700,374]
    588     49.1  #14              stage       rhee
-   588     50.4  #14              line        rhee: How long were we under? Never mind. Is anyone hurt? I'll set up by the [at 676,397 49 from centre, in frame]
+   588     50.4  #14              line        rhee: How long were we under? Never mind. Is anyone hurt? I'll set up by the [at 676,397 49 from centre, in frame; cmdr 700,374]
    588     50.4  #14              held        1.3 s (stage)
    589     52.4  #14              arrow       story@790,360
    665     55.0  oldHome          cue         event=pod_home match={"decoy":true}
@@ -57,14 +56,14 @@
    665     55.0  #12              guide_cue   true ""
    665     55.0  #18              cue         event=pod_home match={"decoy":true}
    665     55.0  #18              walk        rhee -> {"last":"pod_home"}
-   665     55.0  #18              line        commander: Who was in this? [at 394,322 19 from centre, in frame]
+   665     55.0  #18              line        commander: Who was in this? [at 394,322 19 from centre, in frame; cmdr 389,322]
    665     55.0  #18              arrow       off
    665     57.0  #18              line        kiln: My logs record the launch. It was flown down manually, no auto-release
-   665     59.0  #18              line        rhee: Opened from the inside. The hatch is packed with dust. Whoever rode it [at 508,372 159 from centre, in frame]
+   665     59.0  #18              line        rhee: Opened from the inside. The hatch is packed with dust. Whoever rode it [at 508,372 159 from centre, in frame; cmdr 389,322]
    665     61.0  #18              walk        rhee -> false
    711     62.5  #15              cue         event=joined match={"capture":2}
    711     62.5  #15              walk        okafor -> {"at":[462,330]}
-   711     62.5  #15              line        okafor: Camp's wide open and nobody's on guard. I'll watch the perimeter. [at 421,332 68 from centre, in frame]
+   711     62.5  #15              line        okafor: Camp's wide open and nobody's on guard. I'll watch the perimeter. [at 421,332 68 from centre, in frame; cmdr 389,322]
    711     64.6  #15              walk        okafor -> false
    712     64.6  allHome          cue         goal=main is=done
    712     64.6  allHome          guide_cue   false ""
@@ -75,6 +74,6 @@
    712     66.1  allHome          result_held the result waits for the story queue
    712     66.6  allHome          inset       empty_bays
    712     66.6  allHome          wait        5.4
-   712     72.0  allHome          line        commander: All four read occupied. All four are empty. [at 389,322 37 from centre, in frame]
-   712     74.0  allHome          line        rhee: Then where is Vale? [at 367,370 74 from centre, in frame]
+   712     72.0  allHome          line        commander: All four read occupied. All four are empty. [at 389,322 37 from centre, in frame; cmdr 389,322]
+   712     74.0  allHome          line        rhee: Then where is Vale? [at 367,370 74 from centre, in frame; cmdr 389,322]
    712     76.0  allHome          result      shown

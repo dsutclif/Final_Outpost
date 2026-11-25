@@ -1142,7 +1142,8 @@ export class Renderer3D implements Renderer {
     this.moving += (sp - this.moving) * Math.min(1, dt * 10);
     this.fallTick(state, dt);
     this.kneelTick(state, dt);
-    this.followCamera(cam, pl, dt);
+    // a commander the story walked out of a building is drawn there, but the camera stays with the sim: characters move, not the camera
+    this.followCamera(cam, this.interp.isStaged("player") ? { x: state.player.pos.x / FP, y: state.player.pos.y / FP } : pl, dt);
 
     for (const p of this.placed.values()) p.seen = false;
     this.tagUsed = 0;

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { StoryLevel } from "@fo/skins";
+import { marsGreenhouse, type StoryLevel } from "@fo/skins";
 import { traceStory, type TraceFailure } from "../src/story/trace.js";
 
 // r4 (Doug 2026-11-24): the story sequence trace plays Levels 1-5 headless through the real director and sim and fails on
@@ -34,6 +34,22 @@ describe("story sequence trace, Levels 1-5", () => {
 });
 
 describe("the trace catches what it must", () => {
+  it("flags the commander and a vehicle inside a built hub while a line is up (g)", async () => {
+    // Level 3's closing before the walk-out: the commander stays on the hub pad and the buggy parks beside him, inside the hub's body
+    const real = marsGreenhouse.story!.levels["story-L003"]!;
+    const level: StoryLevel = {
+      ...real,
+      cues: real.cues.map((c) => c.id !== "hubDone" ? c : {
+        ...c,
+        do: c.do.filter((a) => !("walk" in a)).map((a) => "vehicle" in a ? { ...a, path: [{ last: "player", by: [160, 70] }, { last: "player", by: [74, 26] }] } : a),
+      }),
+    };
+    const t = await traceStory("story-L003", manifest("story-L003"), { level });
+    const g = t.failures.filter((f) => f.check === "g").map((f) => f.message);
+    expect(g.some((m) => m.startsWith("commander stands inside a built struct.landmark"))).toBe(true);
+    expect(g.some((m) => m.startsWith("vehicle buggy stands inside a built struct.landmark"))).toBe(true);
+  }, 180_000);
+
   const base = (cues: StoryLevel["cues"], cast: StoryLevel["cast"]): StoryLevel => ({ goals: [], cues, ...(cast ? { cast } : {}) });
 
   it("flags a speaker off screen (a) and a closing cue that can never fire (e)", async () => {

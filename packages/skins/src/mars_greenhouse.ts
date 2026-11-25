@@ -1248,15 +1248,19 @@ export const marsGreenhouse: Skin = {
             { line: "I don't know, but those folk don't trade, and they aren't friendly.", who: "trader" },
           ] },
           // the hub stands; Sela pays in Halcyon chips, and the eleven years land. The level ends the moment the hub is paid for and
-          // the sim stops, so nothing here waits for the commander to walk anywhere (Doug 2026-11-24): the whole scene plays where he
-          // stands. Sela's buggy drives in from off screen to a stop beside him, then the coin, then the lines.
+          // the sim stops, so nothing here waits for the commander to walk to a goal (Doug 2026-11-24): a scripted walk-out and Sela's
+          // arrival play, then the coin, then the lines.
           { id: "hubDone", on: { goal: "main", is: "done" }, ordered: true, do: [
             { guide: false },
             { freeze: true },
-            // Sela is a staged actor of the buggy: drawn seated, stepping out at its park point beside the commander (no sim trader
-            // exists once the level is over); the buggy stays parked behind her
-            { vehicle: "buggy", path: [{ last: "player", by: [330, 180] }, { last: "player", by: [160, 70] }, { last: "player", by: [74, 26] }], seconds: 2.2, lights: true, rider: "sela" },
-            { wait: 3.9 },
+            // the commander stands on the hub's pad, inside it (it draws see-through around him): he walks out to open ground in front of
+            // it (the south-east corner: the camera looks from there, and 45 degrees across), a drawn walk only, the camera stays, and the
+            // scene plays there (Doug 2026-11-24). The hub's body is x 585-755, y 332-468 (pad at 670,400). Sela's buggy drives in while he
+            // walks and parks clear of the hub on his right; she is a staged actor of the buggy: drawn seated, stepping out at its park
+            // point (no sim trader exists once the level is over); the buggy stays parked behind her
+            { vehicle: "buggy", path: [{ at: [1000, 565] }, { at: [880, 525] }, { at: [795, 505] }], seconds: 2.2, lights: true, rider: "sela" },
+            { walk: "commander", to: { at: [745, 535] }, arrive: true },
+            { wait: 1.8 },
             { line: "Congratulations. A roof over your heads and a camp worth trading with. Not many manage that out here.", who: "sela" },
             { film: "chip_handoff" },
             { line: "For your first night under a roof. A Halcyon chip.", who: "sela" },

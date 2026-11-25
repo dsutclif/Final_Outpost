@@ -12,13 +12,13 @@
      0      0.0  #7               light       
      0      0.0  #7               arrow       off
      0      3.9  #1               ridgeFlash  
-     0      3.9  #1               line        okafor: Raiders, coming down off the ridge. They'll go for the gate. [at 360,663 69 from centre, in frame]
+     0      3.9  #1               line        okafor: Raiders, coming down off the ridge. They'll go for the gate. [at 360,663 69 from centre, in frame; cmdr 410,640]
      0      3.9  #1               held        3.9 s (camera)
-     0      5.9  #1               line        commander: Sela said four people lived up there. I count dozens. [at 410,640 65 from centre, in frame]
-     0      7.9  #1               line        okafor: Count them later. Hold the gate now. [at 360,663 69 from centre, in frame]
-     0     10.0  #1               line        tam: We'll keep the town running. You keep them off the hub and the reactor [at 330,670 83 from centre, in frame]
-     0     12.0  #1               line        okafor: I'll come out with you, Commander. [at 360,663 69 from centre, in frame]
-     0     14.0  #1               line        rhee: Well, I better come along with the med kit, in case either of you get  [at 382,645 54 from centre, in frame]
+     0      5.9  #1               line        commander: Sela said four people lived up there. I count dozens. [at 410,640 65 from centre, in frame; cmdr 410,640]
+     0      7.9  #1               line        okafor: Count them later. Hold the gate now. [at 360,663 69 from centre, in frame; cmdr 410,640]
+     0     10.0  #1               line        tam: We'll keep the town running. You keep them off the hub and the reactor [at 330,670 83 from centre, in frame; cmdr 410,640]
+     0     12.0  #1               line        okafor: I'll come out with you, Commander. [at 360,663 69 from centre, in frame; cmdr 410,640]
+     0     14.0  #1               line        rhee: Well, I better come along with the med kit, in case either of you get  [at 382,645 54 from centre, in frame; cmdr 410,640]
      0     16.0  #1               line        kiln: Three are coming first. Walk out to the road and shoot the attackers a
      0     18.0  #1               guide_cue   true {"at":[760,727]}
      0     18.0  -                goal_card   Stop the first raiders
@@ -31,16 +31,16 @@
   1505     70.1  #4               cue         event=gate_arrival
   1505     70.1  #4               camera      {"to":{"at":[325,1120]},"zoom":0.72,"pan":0.8,"hold":6,"back":0.8,"freeze":false}
   1505     70.1  #4               wait        1
-  1534     71.1  #4               line        settler: Let us in! They burned our camp on the road! [at 325,1120 0 from centre, in frame]
+  1534     71.1  #4               line        settler: Let us in! They burned our camp on the road! [at 325,1120 0 from centre, in frame; cmdr 222,805]
   1534     73.1  #4               line        kiln: Two at the gate. Stand by it to let them in.
   1534     75.2  #4               goal        arrive
   1675     79.8  trainOpen        cue         goal=arrive is=done
   1675     79.8  trainOpen        dots        
-  1675     79.8  trainOpen        line        okafor: Good. Train one as a guard to hold the gate with me. [at 290,576 213 from centre, in frame]
+  1675     79.8  trainOpen        line        okafor: Good. Train one as a guard to hold the gate with me. [at 290,576 213 from centre, in frame; cmdr 469,750]
   1675     79.8  trainOpen        objective   arrive done
   1800     86.0  #8               cue         hostile=hostile.swarmling r=800 at={"at":[1000,800]}
   1800     86.0  #8               stage       okafor
-  1800     88.7  #8               line        okafor: Dust mites! The noise is bringing them up out of the sand. [at 348,756 147 from centre, in frame]
+  1800     88.7  #8               line        okafor: Dust mites! The noise is bringing them up out of the sand. [at 348,756 147 from centre, in frame; cmdr 380,952]
   1800     88.7  #8               held        2.7 s (stage)
   2963    129.5  #15              cue         near={"entity":"helmet"} r=50
   2963    129.5  #15              dotsOff     
@@ -50,7 +50,7 @@
   4857    192.6  #9               cue         hostile=hostile.boss r=330
   4857    192.6  #9               stage       lieutenant
   4857    192.6  #9               arrow       off
-  4857    195.4  #9               line        lieutenant: You should have stayed asleep, Commander. [at 534,746 46 from centre, in frame]
+  4857    195.4  #9               line        lieutenant: You should have stayed asleep, Commander. [at 534,746 46 from centre, in frame; cmdr 542,723]
   4857    195.4  #9               held        2.8 s (stage)
   4857    197.4  #9               arrow       story@555,840
   4903    198.9  fall             cue         event=retreated
@@ -77,7 +77,7 @@
   5352    225.9  #16              objective   main done
   5352    225.9  #16              arrow       off
   5352    231.9  #16              film        helmet_reveal
-  5352    237.9  #16              line        commander: Vale? [at 856,731 69 from centre, in frame]
+  5352    237.9  #16              line        commander: Vale? [at 856,731 69 from centre, in frame; cmdr 856,731]
   5352    239.9  #16              light       
   5352    239.9  #16              wait        4.5
   5352    239.9  #16              arrow       story@868,733

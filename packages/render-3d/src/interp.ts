@@ -47,6 +47,9 @@ export class Interp {
     else if (to) this.staged.set(key, { at: opts?.from ? { ...opts.from } : null, to, v: { x: 0, y: 0 }, face: !!opts?.face });
   }
 
+  /** The story holds this key at a drawn place (the sim keeps its own). */
+  isStaged(key: string): boolean { return !!this.staged.get(key)?.at; }
+
   /** The mover stands still at a staged spot meant to face the commander (story: a speaker turns to the one they talk to). */
   facesPlayer(key: string): boolean {
     const s = this.staged.get(key);

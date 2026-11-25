@@ -7,7 +7,7 @@
      0      0.0  #1               cue         start=true
      0      0.0  #1               guide_cue   true {"at":[600,300]}
      0      0.0  woke             cue         start=true
-     0      0.0  woke             line        commander: What happened? Where's the rest of my crew? [at 487,123 37 from centre, in frame]
+     0      0.0  woke             line        commander: What happened? Where's the rest of my crew? [at 487,123 37 from centre, in frame; cmdr 487,123]
      0      0.0  woke             arrow       off
      0      2.0  woke             edgeGlow    
      0      2.0  woke             wait        1.4
@@ -19,14 +19,14 @@
     41      3.4  woke             edgeGlow    
     41      3.4  woke             wait        0.8
     65      4.2  woke             edgeGlow    
-    65      4.2  woke             line        commander: That light. Someone's out there. [at 601,318 36 from centre, in frame]
+    65      4.2  woke             line        commander: That light. Someone's out there. [at 601,318 36 from centre, in frame; cmdr 601,318]
     65      4.2  woke             arrow       off
     65      6.2  woke             goal        reach
-    65      6.2  #4               line        commander: Something half-buried in the sand. A fuel cell, sealed and still heavy [at 601,318 37 from centre, in frame]
+    65      6.2  #4               line        commander: Something half-buried in the sand. A fuel cell, sealed and still heavy [at 601,318 37 from centre, in frame; cmdr 601,318]
     65      8.2  -                goal_card   Reach the light
     66     10.2  -                arrow       story@330,400
    276     17.2  #5               cue         near={"entity":"cell2"} r=70
-   276     17.2  #5               line        commander: Another cell. Whoever lit that beacon left these out for the finding. [at 503,314 24 from centre, in frame]
+   276     17.2  #5               line        commander: Another cell. Whoever lit that beacon left these out for the finding. [at 503,314 24 from centre, in frame; cmdr 498,313]
    276     17.2  #5               arrow       off
    276     19.3  #5               arrow       story@330,400
    299     20.0  #6               cue         near={"entity":"core"} r=90
@@ -35,10 +35,10 @@
    299     20.0  #6               guide_cue   true ""
    299     20.0  #6               dots        
    299     20.0  #6               goal        ignite
-   299     20.0  #6               line        commander: A reactor? All the way out here? [at 394,334 41 from centre, in frame]
+   299     20.0  #6               line        commander: A reactor? All the way out here? [at 394,334 41 from centre, in frame; cmdr 391,338]
    299     20.0  #6               arrow       off
    299     20.0  #6               goal        done: Reach the light
-   299     22.0  #6               line        commander: It's ours, the one we came here to install. Somebody set it up, and le [at 391,338 37 from centre, in frame]
+   299     22.0  #6               line        commander: It's ours, the one we came here to install. Somebody set it up, and le [at 391,338 37 from centre, in frame; cmdr 391,338]
    299     24.0  -                goal_card   Restart the reactor
    299     26.0  -                arrow       guide feed@360,370
    307     26.3  lit              cue         event=core_lit
@@ -58,7 +58,7 @@
    307     29.3  lit              freeze      false
    307     29.3  lit              line        kiln: I'm KILN, the support system of the advance ship Halcyon.
    307     31.3  lit              line        kiln: Your stasis pod, bay nine, finally opened. I kept that beacon lit on t
-   307     33.3  lit              line        commander: Then who put the reactor out here? [at 362,368 37 from centre, in frame]
+   307     33.3  lit              line        commander: Then who put the reactor out here? [at 362,368 37 from centre, in frame; cmdr 362,368]
    307     35.4  lit              line        kiln: I have no record. My logs stop at the crash.
    307     37.4  lit              line        kiln: Those cells won't last the night. Fill the reactor before it dies, and
    307     39.4  lit              arrow       guide feed@360,370
@@ -71,7 +71,7 @@
    579     48.4  #9               line        kiln: Thank you. Four pods by the wreck are still sealed: bays five to eight
    579     48.4  #9               objective   fill done
    579     48.4  #9               arrow       off
-   579     50.5  #9               line        commander: My first officer, Vale, is in bay five. Open them. [at 372,383 37 from centre, in frame]
+   579     50.5  #9               line        commander: My first officer, Vale, is in bay five. Open them. [at 372,383 37 from centre, in frame; cmdr 372,383]
    579     52.5  #9               line        kiln: Not yet, I'm nearly out of power. Keep the reactor burning till I can 
    579     54.5  #9               line        kiln: A storm is coming...
    579     56.5  #9               arrow       guide feed@369,384

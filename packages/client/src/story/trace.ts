@@ -1,4 +1,4 @@
-import { viewWidth } from "@fo/content";
+import { PLOT, viewWidth } from "@fo/content";
 import { Brain, PROFILES, planBot } from "@fo/bots";
 import { createSim, FP, seedRng, TPS, type SimEvent, type State } from "@fo/sim";
 import { marsGreenhouse, type SkinStory, type StoryAction, type StoryCue, type StoryLevel } from "@fo/skins";
@@ -31,10 +31,11 @@ export const MAX_DEAD_FREEZE_S = 4;
 const IN_FRAME_MARGIN = 0.04; // app.ts inFrame for the director
 const SPEAKER_INSET = 0.06; // a trader speaker's feet point must sit this far inside the frame (the body is drawn above it)
 const VEHICLE_HALF_W = 0.2; // a parked story vehicle is about 0.4 of the phone width wide: its centre keeps this far from the side edges
+const VEHICLE_HALF_LEN = 30; // world units: a parked story vehicle is about 60 long, so its body must clear a building by this much
 const MAX_SECONDS = 1500;
 
 export interface TraceRow { tick: number; t: number; cue: string; what: string; detail: string }
-export interface TraceFailure { check: "a" | "b" | "c" | "d" | "e" | "f"; tick: number; t: number; cue: string; message: string }
+export interface TraceFailure { check: "a" | "b" | "c" | "d" | "e" | "f" | "g"; tick: number; t: number; cue: string; message: string }
 export interface StoryTrace { level: string; seed: number; won: boolean | null; rows: TraceRow[]; failures: TraceFailure[] }
 
 export interface TraceOpts {
@@ -238,7 +239,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
   const movedUnderLine = new Set<string>();
   const checkStill = (): void => {
     if (!line) return;
-    if (!lineSnap) { lineSnap = snapshot(); return; }
+    if (!lineSnap) { lineSnap = snapshot(); checkInside(); return; }
     const now = snapshot();
     for (const [k, p] of now) {
       const q = lineSnap.get(k);
@@ -251,6 +252,24 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
     for (const k of ["player", ...st.residents.map((r) => `r:${r.id}`)]) {
       const v = interp.vel(k);
       if ((v.x || v.y) && !movedUnderLine.has(`${lineAt}|gait ${k}`)) { movedUnderLine.add(`${lineAt}|gait ${k}`); fail("b", `${k} walks in place (gait) during the line "${line.text.slice(0, 40)}"`); }
+    }
+  };
+
+  // ---- nobody stands inside a built building while a line is up (g)
+  // A building draws see-through around anyone inside its box (the hero fades it), so the players could not see what they built
+  // (Doug 2026-11-24, Level 3's hub). The speaker, the commander and every story vehicle, as DRAWN, must be outside every built
+  // structure's body box (content plot.json bodies, relative to the structure).
+  const checkInside = (): void => {
+    if (!line) return;
+    const bodies = PLOT?.generator.bodies ?? {};
+    const boxes = st.structures.flatMap((s) => { const b = bodies[s.type]; return b ? [{ id: s.type, x0: s.pos.x / FP + b[0], y0: s.pos.y / FP + b[1], x1: s.pos.x / FP + b[2], y1: s.pos.y / FP + b[3] }] : []; });
+    if (!boxes.length) return;
+    const who: [string, { x: number; y: number } | null, number][] = [["commander", interp.pos("player", st.player.pos, 1), 0]];
+    if (line.who && line.who !== "commander" && worldSpeaker(line.who)) who.push([line.who, speakerAt(line.who), 0]);
+    for (const v of vehicles) who.push([`vehicle ${v.id}`, v.at, VEHICLE_HALF_LEN]);
+    for (const [name, p, m] of who) {
+      const b = p && boxes.find((x) => p.x > x.x0 - m && p.x < x.x1 + m && p.y > x.y0 - m && p.y < x.y1 + m);
+      if (p && b) fail("g", `${name} stands inside a built ${b.id} (at ${Math.round(p.x)},${Math.round(p.y)}; its body x ${Math.round(b.x0)}-${Math.round(b.x1)}, y ${Math.round(b.y0)}-${Math.round(b.y1)}) while a line is up: "${line.text.slice(0, 40)}"`);
     }
   };
 
@@ -338,7 +357,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
       interp.stepStaged(FRAME_S, sc.on, movers);
       stepVehicles(FRAME_S, sc.on && !sc.vehicles);
       cam.lead = leadPoint(st);
-      const hero = interp.pos("player", st.player.pos, 0);
+      const hero = interp.isStaged("player") ? { x: st.player.pos.x / FP, y: st.player.pos.y / FP } : interp.pos("player", st.player.pos, 0);
       followStep(cam, hero, FRAME_S, fo, cam.zoom, manifest.map, camFirst && cam.follow);
       if (cam.follow) camFirst = false;
       checkVehicles();

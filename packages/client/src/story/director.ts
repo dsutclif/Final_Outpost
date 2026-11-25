@@ -319,7 +319,9 @@ export class StoryDirector {
     this.st = st;
     this.tick = st.tick;
     this.objectives = st.objectives;
-    this.lastAt.set("player", { x: st.player.pos.x / FP, y: st.player.pos.y / FP });
+    // a commander the story walked somewhere (a drawn move) is where he is DRAWN: the next speaker walks in beside him there
+    const me = this.world.actors.some((x) => x.who === "commander") ? this.host.drawnAt?.("player") : null;
+    this.lastAt.set("player", me ?? { x: st.player.pos.x / FP, y: st.player.pos.y / FP });
     this.followPlayer();
     if (this.nudge?.step(dt)) this.nudge = null;
     this.stepOpenZoom(dt, st);
@@ -523,6 +525,12 @@ export class StoryDirector {
       const to = a.to ? this.place(a.to) : null;
       if (a.to && "last" in a.to && a.to.last === "player") this.following.set(a.walk, a.to); else this.following.delete(a.walk);
       this.world = { ...this.world, actors: [...this.world.actors.filter((x) => x.who !== a.walk), { who: a.walk, to }] };
+      // `arrive`: hold the queue, play held, until the drawn figure stands at the spot (the same wait as a stage step)
+      const st = this.st, key = st ? this.castKey(a.walk, st) : null;
+      if (a.arrive && st && key && a.to) {
+        const w: Extract<Active, { k: "stage" }> = { k: "stage", who: a.walk, key, spot: a.to, left: STAGE_TIMEOUT_S, freezes: true };
+        if (!this.staged(w, st)) this.active = w;
+      }
     } else if ("camera" in a) {
       const to = this.place(a.camera.to);
       // a nudge during play runs beside the lines; a beat that pauses play holds the queue
@@ -715,7 +723,9 @@ export class StoryDirector {
   private soloOf(who: string | undefined): { solo: { faceX: number; faceZ: number } } | Record<string, never> {
     const c = who ? this.castRef(who) : null, st = this.st;
     if (!c || !("customer" in c) || !st?.sales || [...st.sales.queue, ...st.sales.leaving].some((x) => x.id === c.customer)) return {};
-    return { solo: { faceX: st.player.pos.x / FP, faceZ: st.player.pos.y / FP } };
+    // she faces where the commander is DRAWN (a scene can have walked him out of a building)
+    const me = this.host.drawnAt?.("player");
+    return { solo: { faceX: me?.x ?? st.player.pos.x / FP, faceZ: me?.y ?? st.player.pos.y / FP } };
   }
 
   /** A vehicle's rider as a customer id, when the cast key names a customer. */

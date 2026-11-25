@@ -144,8 +144,10 @@ export type StoryAction =
   /**
    * A cast member walks to a place and holds there, drawn only (the sim keeps its own position); `walk: false`
    * walks them back to where the sim has them. Keys are StoryLevel.cast keys.
+   * `arrive`: the queue waits, play held, until the drawn figure stands there (about 8 s at most). The commander can walk too (`walk: "commander"`):
+   * a drawn move only, the camera stays where the sim has him (the level-end scenes walk him out of a building).
    */
-  | { walk: string; to: StoryPlace | false }
+  | { walk: string; to: StoryPlace | false; arrive?: boolean }
   /**
    * Put a cast member on screen beside the commander before the next line: they walk in from just outside the frame (or
    * from where they stand when that is already on screen) to `by` (default [-16, 24]) beside the commander, and the queue
