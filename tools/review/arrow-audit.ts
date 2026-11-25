@@ -10,7 +10,7 @@ export interface ArrowChange { tick: number; key: string; entityId: string; enti
 export interface ArrowRecord { levelId: string; ticks: number; goals: GoalRec[]; arrows: ArrowChange[] }
 export interface ArrowWarning { level: string; rule: "arrow-wrong-target" | "arrow-early" | "arrow-late" | "arrow-missing" | "arrow-unaudited"; goal: string; message: string }
 
-/** Entity types a goal's arrow may sit on (ore, the reactor and the kiosk excepted: any goal may need those on the way). */
+/** Entity types a goal's arrow may sit on (ore, the reactor, the kiosk, a rockslide to dig and prey to hunt excepted: any goal may need those on the way). */
 const GOAL_TARGET: Record<string, (type: string, id: string, goalTarget: string) => boolean> = {
   build: (t, id, g) => t === "pad.build" && (g === "" || id === g),
   unlock: (t) => t === "pad.build",
@@ -32,7 +32,7 @@ const GOAL_TARGET: Record<string, (type: string, id: string, goalTarget: string)
 const FOLLOWS = new Set(["core_lit", "build", "unlock", "hire", "crates", "rescue", "admit", "clear_zones", "sales_opened"]);
 /** Goals that name no place (survive a timer, fill a store, hold off waves): any arrow is fine, but they are listed so none is skipped unseen. */
 const NO_ARROW = new Set(["survive", "fuel_full", "waves", "waves_survived"]);
-const ALWAYS_OK = (t: string): boolean => t.startsWith("node.") || t === "sink.core" || t.startsWith("store.") || t === "sink.sales_point";
+const ALWAYS_OK = (t: string): boolean => t.startsWith("node.") || t === "sink.core" || t.startsWith("store.") || t === "sink.sales_point" || t === "zone.blocked" || t === "zone.prey";
 
 /**
  * Goals activate in order: goal k starts when goal k-1 is done (the first when the level starts).
@@ -68,7 +68,12 @@ export function auditArrows(r: ArrowRecord, lateS = 10, wrongS = 5): ArrowWarnin
     if (FOLLOWS.has(g.kind) && to > from) {
       const first = held.find((h) => h.to > from && h.from < to && ok(g, h.a.entityType, h.a.entityId));
       if (!first) out.push({ level: r.levelId, rule: "arrow-missing", goal: g.id, message: `goal "${g.id}" (${g.kind}) never gets an arrow on what it names` });
-      else if ((Math.max(first.from, from) - from) / TPS > lateS) out.push({ level: r.levelId, rule: "arrow-late", goal: g.id, message: `arrow for goal "${g.id}" starts ${round((Math.max(first.from, from) - from) / TPS, 0)} s after it activates (limit ${lateS} s)` });
+      else {
+        // a pad that costs goods is led to by the arrow to the goods first (scrap piles for the dome): that arrow counts as the start
+        const lead = held.find((h) => h.to > from && h.from < to && (ok(g, h.a.entityType, h.a.entityId) || ((g.kind === "unlock" || g.kind === "build") && h.a.entityType.startsWith("node."))))!;
+        const late = (Math.max(lead.from, from) - from) / TPS;
+        if (late > lateS) out.push({ level: r.levelId, rule: "arrow-late", goal: g.id, message: `arrow for goal "${g.id}" starts ${round(late, 0)} s after it activates (limit ${lateS} s)` });
+      }
     }
   });
   return out;

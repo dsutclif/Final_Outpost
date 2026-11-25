@@ -16,7 +16,7 @@ const hits = (a: { x: number; y: number }, b: { x: number; y: number }, r: R): b
 };
 /** The arrow's point, bent around terrain: when a ridge stands across the straight walk, head for the nearest corner of the chain of ridges that clears it. */
 function around(from: { x: number; y: number }, to: { x: number; y: number }, rects: readonly R[], box: { x0: number; y0: number; x1: number; y1: number }): { x: number; y: number } {
-  const pad = 30 * FP, blocking = rects.map((r) => ({ x: r.x - pad, y: r.y - pad, w: r.w + 2 * pad, h: r.h + 2 * pad })).filter((r) => hits(from, to, r));
+  const pad = 30 * FP, blocking = rects.map((r) => ({ x: r.x - pad, y: r.y - pad, w: r.w + 2 * pad, h: r.h + 2 * pad })).filter((r) => hits(from, to, r) && !(to.x > r.x && to.x < r.x + r.w && to.y > r.y && to.y < r.y + r.h)); // a target inside a ridge's padding (a dig spot against a rockslide) is walked to straight: bending round the ridges for it circled forever
   if (!blocking.length) return to;
   // grow the chain: any ridge touching a blocking one blocks too
   let chain = blocking.slice();
@@ -41,10 +41,14 @@ export async function followGuide(manifest: unknown, levelId: string, pack: stri
   let last = "";
   const arrows: ArrowChange[] = [];
   const ents = (manifest as { entities: { type: string; id?: string; at?: [number, number] }[] }).entities.filter((e) => e.at && e.id);
+  const rectZones = (manifest as { entities: { type: string; id?: string; rect?: number[] }[] }).entities.filter((e) => e.rect && e.id && (e.type === "zone.blocked" || e.type === "zone.prey")).map((e) => ({ id: e.id!, type: e.type, x: e.rect![0]! + e.rect![2]! / 2, y: e.rect![1]! + e.rect![3]! / 2 }));
   /** What the arrow's point lies on: the nearest placed entity, or a pod still out there. */
   const nearest = (x: number, y: number): { id: string; type: string } => {
     let best = { id: "", type: "" }, bd = 1e9;
-    for (const e of ents) { const d = Math.hypot(e.at![0] - x, e.at![1] - y); if (d < bd) { bd = d; best = { id: e.id!, type: e.type }; } }
+    // a pad wins a tie with what it acts on (the dome pad and the field it unlocks stand on one spot)
+    for (const e of ents) { const d = Math.hypot(e.at![0] - x, e.at![1] - y) - (e.type.startsWith('pad.') ? 0.5 : 0); if (d < bd) { bd = d; best = { id: e.id!, type: e.type }; } }
+    // zones are placed by a rectangle (a rockslide to dig, the prey flats): the arrow's point lies on the middle of it
+    for (const z of rectZones) { const d = Math.hypot(z.x - x, z.y - y); if (d < bd) { bd = d; best = { id: z.id, type: z.type }; } }
     for (const c of sim.state.captures) { const d = Math.hypot(c.pos.x / FP - x, c.pos.y / FP - y); if (d < bd) { bd = d; best = { id: `capture.${String(c.id)}`, type: "capture.pod" }; } }
     return best;
   };

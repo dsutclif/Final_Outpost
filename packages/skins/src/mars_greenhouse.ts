@@ -1137,8 +1137,8 @@ export const marsGreenhouse: Skin = {
             { edgeGlow: { entity: "kiosk", size: 28, strength: 0.35, arrow: true } },
             { goal: "lights" },
           ] },
-          // found by walking: the glow goes out at the road, the kiosk's door
-          { id: "kioskFound", on: { near: { entity: "kiosk" }, r: 170 }, do: [
+          // found by walking: the glow goes out at the road, the kiosk's door (r 100, the same reach that opens the kiosk to customers, so the kiosk is on screen when the line plays: outpost-ops#385)
+          { id: "kioskFound", on: { near: { entity: "kiosk" }, r: 100 }, do: [
             { edgeGlow: null },
             { vehicleOff: "buggy" },
             { walk: "tam", to: false },
