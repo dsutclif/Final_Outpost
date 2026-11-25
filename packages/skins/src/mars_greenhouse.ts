@@ -998,13 +998,27 @@ export const marsGreenhouse: Skin = {
             { line: "Loop a pod and your tow line catches. The tally over your head fills a slot for every pod in tow.", who: "kiln" },
             { line: "Two pods came down close together. Bring them both in one trip.", who: "kiln" },
           ] },
+          // Arrows, pod to pod (interim until story guide rules land): each pod coming home moves them to the next pod still out.
+          // Order Pip, Rhee, Okafor, Tam, then the lander pod (hidden until the pair is home). The ids let a cue skip a pod
+          // already home, so the arrows never point at a pod in the heat or at the hidden pod, nor switch off while one is out. Once the
+          // last pod in this order is home the guide's own pick takes over (any pod still out, towed in a different pairing).
+          { on: { event: "joined", match: { capture: 0 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
+          { on: { event: "joined", match: { capture: 1 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_okafor" } }] },
+          { on: { event: "joined", match: { capture: 2 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
+          { id: "pairDone", on: { goal: "pair", is: "done" }, unless: "tamHome", do: [{ guide: true, to: { entity: "pod_tam" } }] },
+          { id: "tamHome", on: { event: "released", match: { capture: 3 } }, do: [] },
+          { id: "oldHome", on: { event: "pod_home", match: { decoy: true } }, do: [] },
+          { on: { event: "capture_revealed", after: "tamHome" }, do: [{ guide: true, to: { entity: "pod_old" } }] },
+          { on: { event: "released", match: { capture: 3 }, after: "pairDone" }, unless: "oldHome", do: [{ guide: true, to: { entity: "pod_old" } }] },
+          { on: { event: "released", match: { capture: 3 }, after: "oldHome" }, do: [{ guide: true }] },
+          { on: { event: "pod_home", match: { decoy: true } }, unless: "tamHome", do: [{ guide: true, to: { entity: "pod_tam" } }] },
+          { on: { event: "pod_home", match: { decoy: true }, after: "tamHome" }, do: [{ guide: true }] },
           { on: { event: "joined", match: { capture: 0 } }, do: [
-            { guide: true, to: { entity: "pod_rhee" } },
             { crew: "Boss! Tell me this is the landing site. No? Thought not. Where is everyone?", who: "pip" },
             { line: "Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?", who: "commander" },
             { line: "Just hand me a pick, Boss. I'll make sure the fire stays on.", who: "pip" },
           ] },
-          { on: { event: "joined", match: { capture: 1 } }, do: [{ guide: true, to: { entity: "pod_okafor" } }, { crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
+          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
           // Okafor walks the camp's edge as he says it (S6), then is let go back to his post
           { on: { event: "joined", match: { capture: 2 } }, ordered: true, do: [
             { walk: "okafor", to: { at: [462, 330] } },
@@ -1012,7 +1026,6 @@ export const marsGreenhouse: Skin = {
             { walk: "okafor", to: false },
           ] },
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
-            { guide: true, to: { entity: "pod_tam" } },
             // the lander pod lights (manifest hiddenUntil: pair): the camera looks out to it and stays there while KILN names it,
             // so the line comes up with the pod on screen (a nudge runs beside the line; a frozen beat would hand back first)
             { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 6, back: 0.7, freeze: false } },
@@ -1024,14 +1037,12 @@ export const marsGreenhouse: Skin = {
             { goal: "main" },
           ] },
           { on: { event: "released", match: { capture: 3 } }, do: [
-            { guide: true, to: { entity: "pod_old" } },
             { crew: "So this is the new world. Bit cold. Give me something to do.", who: "tam" },
             { line: "Soon. We'll need a grow dome, and someone to run it.", who: "commander" },
           ] },
           // the scorched pod in the heat, still there while the lines play (they pause the sim); Rhee walks over to it
           { on: { event: "pod_home", match: { decoy: true } }, ordered: true, do: [
             { walk: "rhee", to: { last: "pod_home" } },
-            { guide: false },
             { line: "Who was in this?", who: "commander" },
             { line: "My logs record the launch. It was flown down manually, no auto-release. Nobody was assigned to it.", who: "kiln" },
             { line: "Opened from the inside. The hatch is packed with dust. Whoever rode it down walked away, a while back.", who: "rhee" },
@@ -1039,6 +1050,7 @@ export const marsGreenhouse: Skin = {
           ] },
           // every pod home: the reactor brightens and KILN opens the sealed bays
           { on: { goal: "main", is: "done" }, ordered: true, do: [
+            { guide: false },
             { spirit: "pulse" },
             { line: "Power's up. I can open bays five to eight now. Here's my camera at the wreck.", who: "kiln" },
             // in a frame over play, so the crew still speak beside it; their lines come once the glass has lifted
