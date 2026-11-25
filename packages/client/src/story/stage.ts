@@ -127,7 +127,9 @@ export class StoryStage {
         if (key) p.actor(key, a.to ? { x: a.to.x, z: a.to.y } : null, { ...(a.from ? { from: { x: a.from.x, z: a.from.y } } : {}), ...(a.face ? { face: true } : {}) });
       }
     }
-    p.talking = this.director.lineUp;
+    // the scene mode holds every actor still but the scene's own walkers (renderer keys)
+    const sc = this.director.scene;
+    p.scene = sc.on ? { movers: new Set(sc.movers.flatMap((who) => { const k = this.director.castKey(who, st); return k ? [k] : []; })), vehicles: sc.vehicles } : null;
     p.kioskLit = w.kioskLit;
     p.kioskRestore = w.kioskRestore;
     this.speaker(w, st, viewW, viewH);

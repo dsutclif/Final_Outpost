@@ -1,5 +1,5 @@
 import type { Object3D } from "three";
-import type { CameraBeat, FallScene, KneelScene, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
+import type { CameraBeat, FallScene, KneelScene, RidgeSide, SceneHold, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
 import { StoryProps } from "./storyprop.js";
 import type { RideExit } from "./selaride.js";
 import type { Interp } from "../interp.js";
@@ -42,8 +42,8 @@ export class StoryPresent implements StoryPresentation {
   /** `home`: where the cloud floats over the reactor, and its height there. */
   constructor(private readonly lights: StoryLights, private readonly cloud: CoreSpirit, private readonly home: { x: number; z: number; h: number } = { x: 0, z: 0, h: 0 }, private readonly movers?: Interp) {}
 
-  /** A story line is on screen: staged walkers stand still until it ends. */
-  talking = false;
+  /** The story's scene mode (see StoryPresentation.scene). */
+  scene: SceneHold | null = null;
   kioskLit = true;
   kioskRestore: number | null = null;
   actor(key: string, to: { x: number; z: number } | null, opts?: { from?: { x: number; z: number }; face?: boolean }): void {
@@ -172,7 +172,7 @@ export class StoryPresent implements StoryPresentation {
   /** Per frame: t seconds on the renderer clock, dt seconds since the last frame, and the camera view on the ground. */
   frame(t: number, dt: number, cx: number, cz: number, halfW: number, halfH: number, hero?: { x: number; z: number }): void {
     this.now = t;
-    this.movers?.stepStaged(dt, this.talking);
+    this.movers?.stepStaged(dt, !!this.scene, this.scene?.movers);
     this.moveCloud(dt, hero);
     // the tally is set from the sim position each tick; between ticks it rides the drawn hero, so it does not step against her
     if (hero) this.lights.tallyAt(hero.x, hero.z);
@@ -191,7 +191,7 @@ export class StoryPresent implements StoryPresentation {
     for (const [id, l] of this.lamps) this.lights.lightLevel(id, this.allowed.has(l.goal ? 1 : 3) ? l.k : 0);
     if (this.dotPts) this.lights.groundDots(this.dotPts, t, { ...this.dotOpts, lit: this.dotOpts.lit !== false && this.allowed.has(4) });
     this.lights.update(t);
-    this.props.update(t, dt, this.talking);
+    this.props.update(t, dt, !!this.scene && !this.scene.vehicles);
     this.ridgeGlow = this.ridgeSide ? { side: this.ridgeSide, k: this.ridgeNow(t) } : null;
     this.lights.ridgePulse("right", 0, cx, cz, halfW, halfH);
   }

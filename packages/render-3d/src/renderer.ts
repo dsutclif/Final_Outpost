@@ -61,7 +61,7 @@ import { buildModel, hasModel } from "./assets/registry.js";
 import { BELT_TOP, buildCrateGeo } from "./assets/props.js";
 import { PadIcons, buildIcon, hireIcon, resourceIcon } from "./scene/padicons.js";
 import { buildRubble, buildTerrain, buildWallPanel, buildBarrierDash, hash01 } from "./assets/scatter.js";
-import { LEAD_WEIGHT, type FallScene, type LiveLook, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
+import { type FallScene, type LiveLook, type StoryPresentation, type AlertMark, type Camera, type CoachMark, type GuideMark, type RenderStats, type Renderer } from "./contract.js";
 import { GeoBuilder, ROCKS } from "./geom.js";
 import { ghostSpec, type GhostSpec } from "./ghost.js";
 import { Interp, type V } from "./interp.js";
@@ -82,7 +82,8 @@ import { ItemIcons } from "./scene/itemicons.js";
 import { Labels, drawIcon, drawResIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { heldJob, padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
-import { ART_M, BUILD_K, CHAR_K, DRONE_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, YAW_DEG, viewWFor, textSprite, type QualityTier } from "./units.js";
+import { cameraPose, followStep, type FrameOpts } from "./camframe.js";
+import { ART_M, BUILD_K, CHAR_K, DRONE_K, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, YAW_DEG, viewWFor, textSprite, type QualityTier } from "./units.js";
 
 /** Shelf items keep their pre-R3 size so they still fit the kiosk crates. */
 /** How far the old orange pod's hatch hangs open on its hinge, radians (a Halcyon lander pod opened from inside long ago). */
@@ -170,7 +171,7 @@ const NO_STORY: StoryPresentation = {
   dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {}, fleeingModel() {}, showDropped() {}, fall: () => Promise.resolve(false), kneel: () => Promise.resolve(false),
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
-  talking: false,
+  scene: null,
   kioskLit: true,
   kioskRestore: null,
 };
@@ -1257,26 +1258,14 @@ export class Renderer3D implements Renderer {
     const z = ((beat?.zoom ?? cam.zoom) || 1) * (1 - fk) + (fs?.o.zoom ?? FALL_ZOOM) * fk;
     if (fk > 0) pitch += (((fs?.o.pitch ?? FALL_PITCH) * Math.PI) / 180 - pitch) * fk;
     if (beat) target = { x: beat.at.x, y: beat.at.y };
-    const vw = viewW / z, vh = (viewW * this.cssH) / this.cssW / z;
+    // the follow easing, lead and map clamp are shared with the headless story trace (camframe.ts)
+    const fo: FrameOpts = { viewW, cssW: this.cssW, cssH: this.cssH, yaw, pitch, fov };
+    const { vw, vh } = followStep(cam, target, dt, fo, z, { w: W, h: H }, cam.follow && !this.camReady);
+    if (cam.follow) this.camReady = true;
     this.labels.screenK = vw / LABEL_VIEW_W;
     this.halfGround.w = vw / 2;
     this.halfGround.h = vh / 2 / Math.sin(pitch);
     this.labels.textK = this.devTextScale;
-    if (cam.follow) {
-      const lead = cam.lead;
-      const lx = lead ? (lead.x - target.x) * LEAD_WEIGHT : 0, ly = lead ? (lead.y - target.y) * LEAD_WEIGHT : 0;
-      // the hero sits a little below centre: shift the look point up the screen (screen up on the ground is away from the camera)
-      const up = (vh * 0.05) / Math.sin(pitch);
-      const tx = target.x + lx - Math.sin(yaw) * up, ty = target.y + ly - Math.cos(yaw) * up;
-      if (!this.camReady) { cam.x = tx; cam.y = ty; this.camReady = true; }
-      const e = 1 - Math.exp(-dt * FOLLOW_RATE);
-      cam.x += (tx - cam.x) * e;
-      cam.y += (ty - cam.y) * e;
-    }
-    // the turned view never lines up with the map's edges, so keep the look point on the map
-    // and let the ground beyond the edges show
-    cam.x = Math.max(0, Math.min(W, cam.x));
-    cam.y = Math.max(0, Math.min(H, cam.y));
 
     const shake = this.fx?.shake ?? 0;
     // the body as it goes (its hips, followed with a little lag: the fall carries it back, the run carries it off),
@@ -1294,10 +1283,8 @@ export class Renderer3D implements Renderer {
     const lx = fs && fk > 0 ? cam.x + (fx - cam.x) * fk : cam.x;
     const ly = fs && fk > 0 ? cam.y + (fy - cam.y) * fk : cam.y;
     this.look.set(lx + (shake ? (Math.random() - 0.5) * shake : 0), 0, ly + (shake ? (Math.random() - 0.5) * shake : 0));
-    const vfov = (this.camera.fov * Math.PI) / 180;
-    const hfov = 2 * Math.atan(Math.tan(vfov / 2) * this.camera.aspect);
-    const d = vw / 2 / Math.tan(hfov / 2);
-    this.camera.position.set(this.look.x + Math.sin(yaw) * Math.cos(pitch) * d, Math.sin(pitch) * d, this.look.z + Math.cos(yaw) * Math.cos(pitch) * d);
+    const pose = cameraPose({ x: this.look.x, z: this.look.z }, fo, z), d = pose.d;
+    this.camera.position.set(pose.x, pose.y, pose.z);
     this.camera.near = Math.max(10, d * 0.2);
     this.camera.far = d * 6;
     this.camera.updateProjectionMatrix();

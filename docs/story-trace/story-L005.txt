@@ -1,0 +1,101 @@
+# story trace story-L005 seed 1 (good bot, phone 390x845, lines tapped after 2 s)
+# outcome: won; failures: 5
+#   (a) tick 1505 t 76.7 cue #4: settler speaks but has no place on the map: "Let us in! They burned our camp on the road!"
+#   (c) tick 1505 t 76.7 cue #4: play held 6.6 s with nothing on screen to read (camera)
+#   (a) tick 1800 t 92.6 cue #9: okafor speaks off screen (290,576; camera 354,880): "Dust mites! The noise is bringing them up out of t"
+#   (d) tick 3100 t 137.9 cue #6: arrow (story) points at a hidden pad (train)
+#   (a) tick 4857 t 196.5 cue #10: lieutenant speaks off screen (868,733; camera 481,718): "You should have stayed asleep, Commander."
+# tick   seconds  cue              what        detail
+     0      0.0  #0               cue         start=true
+     0      0.0  #0               light       
+     0      0.0  #0               ridge       
+     0      0.0  #0               spirit      
+     0      0.0  #0               spiritFollow 
+     0      0.0  #1               cue         start=true
+     0      0.0  #1               camera      {"to":{"at":[900,700]},"pan":0.9,"hold":2.2,"back":0.8}
+     0      0.0  #8               cue         start=true
+     0      0.0  #8               light       
+     0      0.0  #8               arrow       off
+     0      3.9  #1               ridgeFlash  
+     0      3.9  #1               line        okafor: Raiders, coming down off the ridge. They'll go for the gate. [at 360,663 69 from centre, in frame]
+     0      3.9  #1               held        3.9 s (camera)
+     0      5.9  #1               line        commander: Sela said four people lived up there. I count dozens. [at 410,640 65 from centre, in frame]
+     0      7.9  #1               line        okafor: Count them later. Hold the gate now. [at 360,663 69 from centre, in frame]
+     0     10.0  #1               line        tam: We'll keep the town running. You keep them off the hub and the reactor [at 330,670 83 from centre, in frame]
+     0     12.0  #1               line        okafor: I'll come out with you, Commander. [at 360,663 69 from centre, in frame]
+     0     14.0  #1               line        rhee: Well, I better come along with the med kit, in case either of you get  [at 382,645 54 from centre, in frame]
+     0     16.0  #1               line        kiln: Three are coming first. Walk out to the road and shoot the attackers a
+     0     18.0  #1               guide_cue   true {"at":[760,727]}
+     0     18.0  -                goal_card   Stop the first raiders
+     0     20.0  -                arrow       story@760,727
+  1064     55.4  -                objective   first done
+  1415     67.1  #3               cue         goal=turret is=done
+  1415     67.1  #3               guide_cue   true ""
+  1415     67.1  #3               objective   turret done
+  1415     67.1  #3               arrow       off
+  1505     70.1  #4               cue         event=gate_arrival
+  1505     70.1  #4               camera      {"to":{"at":[325,1120]},"zoom":0.72,"pan":0.8,"hold":5,"back":0.8}
+  1505     76.7  #4               FAIL(a)     settler speaks but has no place on the map: "Let us in! They burned our camp on the road!"
+  1505     76.7  #4               line        settler: Let us in! They burned our camp on the road!
+  1505     76.7  #4               FAIL(c)     play held 6.6 s with nothing on screen to read (camera)
+  1505     76.7  #4               held        6.6 s (camera)
+  1505     78.8  #4               line        kiln: Two at the gate. Stand by it to let them in.
+  1505     80.8  #4               goal        arrive
+  1675     86.4  trainOpen        cue         goal=arrive is=done
+  1675     86.4  trainOpen        guide_cue   true {"at":[518,1154]}
+  1675     86.4  trainOpen        dots        
+  1675     86.4  trainOpen        line        okafor: Good. Train one as a guard to hold the gate with me. [at 290,576 213 from centre, in frame]
+  1675     86.4  trainOpen        objective   arrive done
+  1675     88.4  trainOpen        arrow       story@518,1154
+  1800     92.6  #9               cue         hostile=hostile.swarmling r=800 at={"at":[1000,800]}
+  1800     92.6  #9               FAIL(a)     okafor speaks off screen (290,576; camera 354,880): "Dust mites! The noise is bringing them up out of t"
+  1800     92.6  #9               line        okafor: Dust mites! The noise is bringing them up out of the sand. [at 290,576 311 from centre, OFF SCREEN]
+  1800     92.6  #9               arrow       off
+  1800     94.6  #9               arrow       story@518,1154
+  2963    133.4  #16              cue         near={"entity":"helmet"} r=50
+  2963    133.4  #16              dotsOff     
+  3100    137.9  #6               cue         credits=5 after=trainOpen
+  3100    137.9  #6               guide_cue   true {"entity":"train"}
+  3100    137.9  #6               arrow       story@555,840
+  3100    137.9  #6               FAIL(d)     arrow (story) points at a hidden pad (train)
+  4857    196.5  #10              cue         hostile=hostile.boss r=330
+  4857    196.5  #10              FAIL(a)     lieutenant speaks off screen (868,733; camera 481,718): "You should have stayed asleep, Commander."
+  4857    196.5  #10              line        lieutenant: You should have stayed asleep, Commander. [at 868,733 387 from centre, OFF SCREEN]
+  4857    196.5  #10              arrow       off
+  4857    198.5  #10              arrow       story@555,840
+  4903    200.0  fall             cue         event=retreated
+  4903    200.0  fall             fall        hostile.boss
+  4903    200.0  dawn             cue         goal=hold is=done
+  4903    200.0  dawn             guide_cue   true {"entity":"helmet"}
+  4903    200.0  dawn             objective   hold done
+  4903    200.0  dawn             arrow       off
+  4903    206.0  dawn             arrow       story@868,733
+  4998    209.2  retreat          cue         after=fall ticks=95
+  4998    209.2  retreat          ridge       
+  4998    209.2  retreat          guide_cue   true {"entity":"helmet"}
+  4998    209.2  retreat          dots        
+  4998    209.2  retreat          line        kiln: They're running. It's over for tonight.
+  4998    209.2  retreat          arrow       off
+  4998    211.2  retreat          line        kiln: But the signal hasn't stopped. That was never them.
+  4998    213.2  retreat          line        kiln: They dropped something.
+  4998    215.2  retreat          arrow       story@868,733
+  5053    217.0  #15              cue         after=dawn ticks=150
+  5053    217.0  #15              dots        
+  5352    227.0  #17              cue         event=captured
+  5352    227.0  #17              dotsOff     
+  5352    227.0  #17              kneel       
+  5352    227.0  #17              objective   main done
+  5352    227.0  #17              arrow       off
+  5352    233.0  #17              film        helmet_reveal
+  5352    239.0  #17              line        commander: Vale? [at 856,731 69 from centre, in frame]
+  5352    241.0  #17              light       
+  5352    241.0  #17              wait        4.5
+  5352    241.0  #17              arrow       story@868,733
+  5439    243.8  #7               cue         event=hired match={"pad":"train"}
+  5439    243.8  #7               dotsOff     
+  5439    243.8  #7               guide_cue   true {"at":[760,727]}
+  5439    243.8  #7               objective   train done
+  5439    243.8  #7               level_end   won (goal)
+  5439    245.3  #7               result_held the result waits for the story queue
+  5439    245.5  #7               line        kiln: Hold them off until sunrise.
+  5439    247.5  #7               result      shown

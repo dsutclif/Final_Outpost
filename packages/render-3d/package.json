@@ -15,7 +15,9 @@
     "./units": "./src/units.ts",
     "./environment": "./src/scene/environment.ts",
     "./tokens": "./src/tokens.ts",
-    "./padlock": "./src/padlock.ts"
+    "./padlock": "./src/padlock.ts",
+    "./camframe": "./src/camframe.ts",
+    "./interp": "./src/interp.ts"
   },
   "scripts": {
     "dev": "vite dev --config dev/vite.config.ts"

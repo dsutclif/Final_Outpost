@@ -28,12 +28,15 @@ export function capturePositions(w: WorldView): Map<string, V> {
 
 /** Story walks, world units a second. */
 const WALK = 70;
+const NONE: ReadonlySet<string> = new Set();
 
 export class Interp {
   private prev = new Map<string, V>();
   private curr = new Map<string, V>();
   private tick = Number.NaN;
   private holding = false;
+  /** Keys the scene still moves while holding (a stage step's walker). */
+  private movers: ReadonlySet<string> = NONE;
   /** Movers the story holds at a drawn place (the sim keeps its own); `to` null walks back to the sim's spot, then lets go. */
   private readonly staged = new Map<string, { at: V | null; to: V | null; v: V; face: boolean }>();
 
@@ -50,12 +53,13 @@ export class Interp {
     return !!s?.face && !!s.at && s.v.x === 0 && s.v.y === 0;
   }
 
-  /** Per frame: move the staged movers along, `dt` seconds. */
-  stepStaged(dt: number, hold = false): void {
+  /** Per frame: move the staged movers along, `dt` seconds. `hold`: a story scene holds everyone but `movers` still. */
+  stepStaged(dt: number, hold = false, movers: ReadonlySet<string> = NONE): void {
     this.holding = hold;
+    this.movers = hold ? movers : NONE;
     for (const [key, s] of this.staged) {
-      // a story line is up: everyone stands still in idle (no walk cycle) and resumes after it
-      if (hold) { s.v = { x: 0, y: 0 }; continue; }
+      // a scene is on: everyone stands still in idle (no walk cycle) and resumes after it, but the scene's own walkers
+      if (hold && !movers.has(key)) { s.v = { x: 0, y: 0 }; continue; }
       const home = this.curr.get(key);
       s.at ??= home ? { ...home } : null;
       const goal = s.to ?? home;
@@ -105,8 +109,8 @@ export class Interp {
 
   vel(key: string): V {
     // under a story line the sim is frozen but the last tick's step would still read as walking: report standing still
-    if (this.holding) return { x: 0, y: 0 };
     const held = this.staged.get(key);
+    if (this.holding && !(this.movers.has(key) && held?.at)) return { x: 0, y: 0 };
     if (held?.at) return held.v;
     const c = this.curr.get(key), p = this.prev.get(key);
     if (!c || !p) return { x: 0, y: 0 };

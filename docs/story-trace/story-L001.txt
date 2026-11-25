@@ -1,0 +1,125 @@
+# story trace story-L001 seed 1 (good bot, phone 390x845, lines tapped after 2 s)
+# outcome: won; failures: 0
+# tick   seconds  cue              what        detail
+     0      0.0  #0               cue         start=true
+     0      0.0  #0               light       
+     0      0.0  #0               guide_cue   true {"entity":"core"}
+     0      0.0  #1               cue         start=true
+     0      0.0  #1               guide_cue   true {"at":[600,300]}
+     0      0.0  woke             cue         start=true
+     0      0.0  woke             line        commander: What happened? Where's the rest of my crew? [at 487,123 37 from centre, in frame]
+     0      0.0  woke             arrow       off
+     0      2.0  woke             edgeGlow    
+     0      2.0  woke             wait        1.4
+     0      2.0  woke             arrow       story@600,300
+    33      3.1  #2               cue         near={"at":[600,300]} r=45
+    33      3.1  #2               guide_cue   true {"entity":"core"}
+    33      3.1  #2               arrow       story@330,400
+    34      3.1  #4               cue         near={"entity":"cell1"} r=70
+    41      3.4  woke             edgeGlow    
+    41      3.4  woke             wait        0.8
+    65      4.2  woke             edgeGlow    
+    65      4.2  woke             line        commander: That light. Someone's out there. [at 601,318 36 from centre, in frame]
+    65      4.2  woke             arrow       off
+    65      6.2  woke             goal        reach
+    65      6.2  #4               line        commander: Something half-buried in the sand. A fuel cell, sealed and still heavy [at 601,318 37 from centre, in frame]
+    65      8.2  -                goal_card   Reach the light
+    66     10.2  -                arrow       story@330,400
+   276     17.2  #5               cue         near={"entity":"cell2"} r=70
+   276     17.2  #5               line        commander: Another cell. Whoever lit that beacon left these out for the finding. [at 503,314 24 from centre, in frame]
+   276     17.2  #5               arrow       off
+   276     19.3  #5               arrow       story@330,400
+   299     20.0  #6               cue         near={"entity":"core"} r=90
+   299     20.0  #6               goal        reach
+   299     20.0  #6               edgeGlow    
+   299     20.0  #6               guide_cue   true ""
+   299     20.0  #6               dots        
+   299     20.0  #6               goal        ignite
+   299     20.0  #6               line        commander: A reactor? All the way out here? [at 394,334 41 from centre, in frame]
+   299     20.0  #6               arrow       off
+   299     20.0  #6               goal        done: Reach the light
+   299     22.0  #6               line        commander: It's ours, the one we came here to install. Somebody set it up, and le [at 391,338 37 from centre, in frame]
+   299     24.0  -                goal_card   Restart the reactor
+   299     26.0  -                arrow       guide feed@360,370
+   307     26.3  lit              cue         event=core_lit
+   307     26.3  lit              dotsOff     
+   307     26.3  lit              edgeGlow    
+   307     26.3  lit              spirit      
+   307     26.3  lit              spiritFollow 
+   307     26.3  lit              light       
+   307     26.3  lit              goal        fill
+   307     26.3  lit              show        
+   307     26.3  lit              freeze      true
+   307     26.3  lit              camera      {"to":{"entity":"core"},"pan":0.5,"hold":0.3,"back":0.2,"zoom":0.8}
+   307     26.3  lit              objective   ignite done
+   307     26.3  lit              arrow       off
+   307     27.3  lit              line        kiln: Commander. You're late.
+   307     27.3  lit              held        1.0 s (camera)
+   307     29.3  lit              freeze      false
+   307     29.3  lit              line        kiln: I'm KILN, the support system of the advance ship Halcyon.
+   307     31.3  lit              line        kiln: Your stasis pod, bay nine, finally opened. I kept that beacon lit on t
+   307     33.3  lit              line        commander: Then who put the reactor out here? [at 362,368 37 from centre, in frame]
+   307     35.4  lit              line        kiln: I have no record. My logs stop at the crash.
+   307     37.4  lit              line        kiln: Those cells won't last the night. Fill the reactor before it dies, and
+   307     39.4  lit              arrow       guide feed@360,370
+   329     40.1  lit              arrow       guide dig@399,362
+   374     41.6  lit              arrow       guide dig@415,362
+   419     43.1  lit              arrow       guide dig@431,362
+   464     44.6  lit              arrow       guide feed@369,384
+   579     48.4  #9               cue         goal=fill is=done
+   579     48.4  #9               goal        main
+   579     48.4  #9               line        kiln: Thank you. Four pods by the wreck are still sealed: bays five to eight
+   579     48.4  #9               objective   fill done
+   579     48.4  #9               arrow       off
+   579     50.5  #9               line        commander: My first officer, Vale, is in bay five. Open them. [at 372,383 37 from centre, in frame]
+   579     52.5  #9               line        kiln: Not yet, I'm nearly out of power. Keep the reactor burning till I can 
+   579     54.5  #9               line        kiln: A storm is coming...
+   579     56.5  #9               arrow       guide feed@369,384
+   584     56.7  #9               arrow       off
+  1657     92.4  storm            cue         event=hazard_start
+  1657     92.4  gust             cue         event=node_revealed
+  1657     92.4  gust             camera      {"to":{"entity":"ore22"},"pan":0.5,"hold":1.2,"back":0.4,"zoom":0.8}
+  1657     94.5  gust             line        kiln: The wind has blown the sand off something. There seems to have been or
+  1657     94.5  gust             held        2.1 s (camera)
+  1664     96.8  gust             arrow       guide gather@322,455
+  1679     97.3  gust             arrow       guide gather@326,466
+  1694     97.8  gust             arrow       guide feed@330,442
+  1709     98.3  gust             arrow       guide feed@314,439
+  1754     99.8  gust             arrow       guide gather@292,464
+  1769    100.3  gust             arrow       guide feed@300,430
+  1844    102.8  gust             arrow       guide gather@241,432
+  1859    103.3  gust             arrow       guide feed@291,416
+  1904    104.8  gust             arrow       guide feed@300,430
+  1934    105.8  gust             arrow       guide feed@314,439
+  1949    106.3  gust             arrow       off
+  2024    108.8  gust             arrow       guide gather@292,464
+  2039    109.3  gust             arrow       guide feed@314,439
+  2054    109.8  gust             arrow       off
+  2099    111.3  gust             arrow       guide feed@314,439
+  2107    111.5  #12              cue         after=storm ticks=450
+  2107    111.5  #12              ridge       
+  2107    111.5  #12              ridgeFlash  
+  2107    111.5  #12              spirit      
+  2107    111.5  #12              camera      {"to":{"entity":"ridge3"},"share":0.2,"pan":0.35,"hold":1.5,"back":0.5,"freeze":false}
+  2107    111.5  #12              line        kiln: Something on that ridge is sending a signal. I can't read it.
+  2107    111.5  #12              arrow       off
+  2107    113.6  #12              arrow       guide feed@314,439
+  2114    113.8  #12              arrow       off
+  2144    114.8  #12              arrow       guide feed@314,439
+  2189    116.3  #12              arrow       off
+  2249    118.3  #12              arrow       guide gather@292,464
+  2264    118.8  #12              arrow       guide feed@314,439
+  2279    119.3  #12              arrow       off
+  2369    122.3  #12              arrow       guide feed@314,439
+  2384    122.8  #12              arrow       off
+  2474    125.8  #12              arrow       guide feed@330,442
+  2519    127.3  #12              arrow       off
+  2549    128.3  #12              arrow       guide feed@314,439
+  2557    128.5  #13              cue         event=hazard_end
+  2557    128.5  #13              light       
+  2564    128.8  #13              arrow       off
+  2804    136.8  #13              arrow       guide feed@314,439
+  2819    137.3  #13              arrow       off
+  3007    143.6  #13              objective   main done
+  3007    143.6  #13              level_end   won (goal)
+  3007    145.1  #13              result      shown

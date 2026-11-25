@@ -2,7 +2,7 @@ import type { Skin } from "@fo/skins";
 import { StoryDirector, type StoryHost } from "./director.js";
 import { createStoryView, type PortraitMaker } from "./view.js";
 
-export { StoryDirector } from "./director.js";
+export { StoryDirector, type SceneMode, type SceneWhy } from "./director.js";
 export { StoryStage } from "./stage.js";
 export { KilnCloud } from "./kiln.js";
 

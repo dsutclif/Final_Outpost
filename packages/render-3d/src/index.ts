@@ -8,8 +8,9 @@ import type { DebugScene } from "./probe.js";
 
 export type { DebugScene, DebugThing, DebugLabel, ScreenBox, ThingKind } from "./probe.js";
 
-export type { AlertMark, Camera, CameraBeat, CoachMark, FallScene, GuideMark, KneelScene, LiveLook, RenderStats, Renderer, RidgeSide, StoryPresentation, TallySlots } from "./contract.js";
+export type { AlertMark, Camera, CameraBeat, CoachMark, FallScene, GuideMark, KneelScene, LiveLook, RenderStats, Renderer, RidgeSide, SceneHold, StoryPresentation, TallySlots } from "./contract.js";
 export { createCamera, LEAD_WEIGHT } from "./contract.js";
+export { followStep, cameraPose, projectPoint, onScreen, viewSize, DEFAULT_YAW, DEFAULT_PITCH, DEFAULT_FOV, type FrameOpts } from "./camframe.js";
 export { SIZES, POD_K, POD_CAVITY_M } from "./sizes.js";
 export { ART_M, BUILD_K, CHAR_K, viewWFor, FOV_DEG, PITCH_DEG, YAW_DEG, VIEW_W, TEXT, screenToWorld, worldToScreenPlane, QUALITY_TIERS, TIERS, MAX_DRAW_CALLS, MAX_TRIANGLES, type QualityTier, type TierSettings } from "./units.js";
 export { TRI_BUDGET, CLASS_ANCHORS, ANCHOR_NAMES, modelIds, type AssetClass, type AnchorName } from "./ids.js";

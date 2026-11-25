@@ -67,6 +67,12 @@ export interface StoryHost {
   entryFrom?(to: { x: number; y: number }, from: { x: number; y: number }): { x: number; y: number } | null;
   /** Restart the level. */
   retry(): void;
+  /** Wall clock, ms (the tap guard); the headless trace runs its own. Default Date.now. */
+  now?(): number;
+  /** Screen width over height; default the window's. */
+  aspect?(): number;
+  /** The headless story trace listens here: a cue fired, or a queued action started. The app leaves it out. */
+  note?(n: { fired: StoryCue } | { start: StoryAction | { goalCard: string; id: string } }): void;
   /** A goal's turn came and it is settled: chime and toast. */
   goalSettled(label: string, done: boolean): void;
 }
@@ -101,8 +107,27 @@ export interface StoryWorld {
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
 
+/** What holds play while the scene runs (SceneMode.why). */
+export type SceneWhy = "line" | "stage" | "camera" | "film" | "card" | "wait" | "goal" | "tap" | "freeze" | "prompt";
+
+/**
+ * Scene mode (r4, Doug 2026-11-24): the one flag that says a story scene is playing. While `on`, play is held
+ * (the sim does not step, input is ignored) and the renderer poses every actor idle with no change of place,
+ * except the explicit `movers`. Everything that used to ask "is a line up / is play frozen / hold still"
+ * reads this.
+ */
+export interface SceneMode {
+  on: boolean;
+  why: SceneWhy | null;
+  /** Cast keys the scene itself walks (a stage step's walker, a cue `walk`), allowed to move while no line is up. */
+  movers: readonly string[];
+  /** Story vehicles keep driving (false while a line is up). */
+  vehicles: boolean;
+}
+
 const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "fall" in a || "kneel" in a || "wait" in a || "card" in a || "day" in a || "stage" in a || "freeze" in a || ("tap" in a && !("line" in a));
 const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "kioskLit" in a || "kioskRestore" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
+const NO_SCENE: SceneMode = { on: false, why: null, movers: [], vehicles: true };
 const CARD_SECONDS = 3;
 /** A stage step gives up after this long (a blocked walk must not hang the level). */
 const STAGE_TIMEOUT_S = 8;
@@ -114,8 +139,8 @@ const TAP_GUARD_MS = 250;
 export const lineSeconds = (text: string): number => Math.max(2, text.trim().split(/\s+/).length * 0.35);
 
 type Active =
-  | { k: "timed"; left: number; end: () => void; freezes: boolean }
-  | { k: "wait"; freezes: boolean }
+  | { k: "timed"; left: number; end: () => void; freezes: boolean; why: SceneWhy }
+  | { k: "wait"; freezes: boolean; why: SceneWhy }
   /** The stage step: waits for a cast member to be beside the commander (`key`) or, for one the story cannot walk, in frame. */
   | { k: "stage"; who: string; key: string | null; spot: StoryPlace | null; left: number; freezes: boolean }
   | { k: "camera"; beat: CameraBeatPlayer; freezes: boolean };
@@ -181,7 +206,7 @@ export class StoryDirector {
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
     if (level.openZoom && !replay && !fromRetrySpot) {
-      const f = level.openZoom.film, aspect = globalThis.innerWidth / Math.max(1, globalThis.innerHeight);
+      const f = level.openZoom.film, aspect = host.aspect?.() ?? globalThis.innerWidth / Math.max(1, globalThis.innerHeight);
       const from = f ? viewWidth() / Math.min(f[0], f[1] * aspect) : (level.openZoom.from ?? 1);
       const hero = level.openZoom.hero ?? 1;
       this.zoomOpen = { from, hero, seconds: level.openZoom.seconds, hold: level.openZoom.hold ?? 8, t: 0, at: null, easing: null };
@@ -191,10 +216,17 @@ export class StoryDirector {
     view.hud(this.hidden);
   }
 
-  /** True while the sim must not step. */
-  get frozen(): boolean {
-    return this.promptOpen || this.explicitFreeze || !!this.active?.freezes;
+  /** The scene mode: the single source of truth for "a scene holds play" (see SceneMode). */
+  get scene(): SceneMode {
+    const a = this.active;
+    const why: SceneWhy | null = this.lineUp ? "line" : this.promptOpen ? "prompt" : a?.freezes ? (a.k === "stage" ? "stage" : a.k === "camera" ? "camera" : a.why) : this.explicitFreeze ? "freeze" : null;
+    if (!why) return NO_SCENE;
+    const line = why === "line" || why === "prompt";
+    return { on: true, why, movers: line ? [] : this.world.actors.map((x) => x.who), vehicles: !line };
   }
+
+  /** True while the sim must not step: the scene mode is on. */
+  get frozen(): boolean { return this.scene.on; }
 
   /** A line is on screen (characters stand still while it is). */
   lineUp = false;
@@ -374,6 +406,7 @@ export class StoryDirector {
   private fire(c: StoryCue, st: State): void {
     this.fired.add(c);
     if (c.id) this.firedAt.set(c.id, st.tick);
+    this.host.note?.({ fired: c });
     // light and world changes happen on their cue; only lines, beats and cards wait their turn
     for (const a of c.do) {
       if (isWorld(a) && !c.ordered) this.start(a);
@@ -454,9 +487,10 @@ export class StoryDirector {
   }
 
   private start(a: QueueItem): void {
+    this.host.note?.({ start: a });
     if ("goalCard" in a) {
       this.view.goalCard?.(a.goalCard);
-      this.waitTap(() => { this.view.clearGoalCard?.(); this.cardDone.add(a.id); this.syncGoals(this.tokens); });
+      this.waitTap("goal", () => { this.view.clearGoalCard?.(); this.cardDone.add(a.id); this.syncGoals(this.tokens); });
     } else if ("stage" in a) {
       this.startStage(a.stage, a.by ?? STAGE_SPOT);
     } else if ("line" in a || "crew" in a) {
@@ -473,7 +507,7 @@ export class StoryDirector {
       });
       this.world = { ...this.world, speaking: !!sp?.spirit, talker: who ?? null };
       this.lineUp = true;
-      this.waitTap(() => { this.view.clearLine(); this.lineUp = false; this.world = { ...this.world, speaking: false, talker: null }; });
+      this.waitTap("line", () => { this.view.clearLine(); this.lineUp = false; this.world = { ...this.world, speaking: false, talker: null }; });
     } else if ("inset" in a) {
       this.host.inset?.(a.inset);
     } else if ("wait" in a) {
@@ -495,21 +529,21 @@ export class StoryDirector {
     } else if ("freeze" in a) {
       this.explicitFreeze = a.freeze;
     } else if ("tap" in a) {
-      this.waitTap(() => {});
+      this.waitTap("tap", () => {});
     } else if ("light" in a) {
       this.world = { ...this.world, light: { preset: a.light, seconds: a.seconds ?? 0, atTick: this.tick, ...(a.real ? { real: true } : {}) } };
     } else if ("film" in a) {
-      const waiting: Active = { k: "wait", freezes: true };
+      const waiting: Active = { k: "wait", freezes: true, why: "film" };
       this.active = waiting;
       void this.host.film(a.film).then(() => { if (this.active === waiting) { this.active = null; this.pump(); } });
     } else if ("kneel" in a) {
-      const waiting: Active = { k: "wait", freezes: true };
+      const waiting: Active = { k: "wait", freezes: true, why: "film" };
       this.active = waiting;
       const at = this.lastAt.get("captured");
       const run = at && this.host.kneel ? this.host.kneel(at) : Promise.resolve();
       void run.then(() => { if (this.active === waiting) { this.active = null; this.pump(); } });
     } else if ("fall" in a) {
-      const waiting: Active = { k: "wait", freezes: true };
+      const waiting: Active = { k: "wait", freezes: true, why: "film" };
       this.active = waiting;
       const run = this.host.fall ? this.host.fall(a.fall) : a.fall.film ? this.host.film(a.fall.film) : Promise.resolve();
       void run.then(() => { if (this.active === waiting) { this.active = null; this.pump(); } });
@@ -559,13 +593,13 @@ export class StoryDirector {
   }
 
   private timed(seconds: number, end: () => void): void {
-    this.active = { k: "timed", left: seconds, end, freezes: false };
+    this.active = { k: "timed", left: seconds, end, freezes: false, why: "wait" };
   }
 
   private showCard(text: string, sub: string | undefined, day: boolean, seconds: number | undefined, image?: string): void {
     this.view.card({ text, sub, day, image });
     const end = (): void => this.view.clearCard();
-    const card: Active = { k: "timed", left: seconds ?? CARD_SECONDS, end, freezes: true };
+    const card: Active = { k: "timed", left: seconds ?? CARD_SECONDS, end, freezes: true, why: "card" };
     this.active = card;
     this.view.onTap(() => {
       if (this.active !== card) return;
@@ -576,11 +610,13 @@ export class StoryDirector {
     });
   }
 
-  private waitTap(end: () => void): void {
-    const since = Date.now();
-    this.active = { k: "wait", freezes: true };
+  private now(): number { return this.host.now?.() ?? Date.now(); }
+
+  private waitTap(why: SceneWhy, end: () => void): void {
+    const since = this.now();
+    this.active = { k: "wait", freezes: true, why };
     this.view.onTap(() => {
-      if (Date.now() - since < TAP_GUARD_MS) return; // the finger that was already walking
+      if (this.now() - since < TAP_GUARD_MS) return; // the finger that was already walking
       if (this.view.finishLine?.()) return; // a line still typing completes first
       this.view.onTap(null);
       this.active = null;

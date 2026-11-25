@@ -13,6 +13,7 @@
     "build": "pnpm --filter @fo/client build && node -e \"require('fs').rmSync('dist',{recursive:true,force:true});require('fs').cpSync('packages/client/dist','dist',{recursive:true})\"",
     "levels:build": "vite-node tools/build-levels.ts --",
     "trace": "vite-node tools/play-trace.ts --",
+    "story:trace": "vite-node tools/story-trace.ts --",
     "levels:eval": "vite-node tools/eval-pack.ts --",
     "levels:check": "vite-node tools/regress-levels.ts --",
     "levels:repin": "vite-node tools/repin-levels.ts --",

@@ -6,6 +6,9 @@ import type { Skin } from "@fo/skins";
 // hand either renderer the same camera object and swap them freely.
 
 /** Camera in world units; the renderer eases it toward the player, clamps it and writes it back. */
+/** A story scene holds play (StoryPresentation.scene). */
+export interface SceneHold { movers: ReadonlySet<string>; vehicles: boolean }
+
 export interface Camera {
   x: number;
   y: number;
@@ -143,8 +146,12 @@ export interface StoryPresentation {
   actor(key: string, to: { x: number; z: number } | null, opts?: { from?: { x: number; z: number }; face?: boolean }): void;
   /** Where a mover is drawn now (ground units), or null for a key with nothing drawn. */
   actorAt(key: string): { x: number; z: number } | null;
-  /** Set while a story line is on screen: staged walkers stand still in idle until it ends. */
-  talking: boolean;
+  /**
+   * The story's scene mode (client director.scene), set every frame: null while play runs. While set, every mover
+   * stands in idle with no change of place (no walk cycle from the last tick) except the interp keys in `movers`,
+   * and story vehicles pause unless `vehicles`.
+   */
+  scene: SceneHold | null;
   /** False keeps the kiosk's clerk decal, shelf crates and coin pile undrawn (story: dark until its lights come on). */
   kioskLit: boolean;
   /** Seconds over which the ruined kiosk model cross-fades into the ordinary one (null: not yet); the fade starts when this first becomes set. */

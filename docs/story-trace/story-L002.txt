@@ -1,0 +1,85 @@
+# story trace story-L002 seed 1 (good bot, phone 390x845, lines tapped after 2 s)
+# outcome: won; failures: 6
+#   (a) tick 588 t 35.7 cue #17: tam speaks off screen (400,321; camera 678,348): "So this is the new world. Bit cold. Give me someth"
+#   (a) tick 588 t 39.8 cue #13: pip speaks off screen (301,345; camera 678,348): "Boss! Tell me this is the landing site. No? Though"
+#   (a) tick 588 t 43.8 cue #13: pip speaks off screen (301,345; camera 678,348): "Just hand me a pick, Boss. I'll make sure the fire"
+#   (a) tick 588 t 45.8 cue #14: rhee speaks off screen (367,370; camera 678,348): "How long were we under? Never mind. Is anyone hurt"
+#   (e) tick 712 t 60.0 cue #8: level ended with cue #8 still waiting on event=capture_revealed after=tamHome: it can never fire now
+#   (e) tick 712 t 60.0 cue #10: level ended with cue #10 still waiting on event=released match={"capture":3} after=oldHome: it can never fire now
+# tick   seconds  cue              what        detail
+     0      0.0  #0               cue         start=true
+     0      0.0  #0               light       
+     0      0.0  #0               ridge       
+     0      0.0  #0               spirit      
+     0      0.0  #0               spiritFollow 
+     0      0.0  #1               cue         start=true
+     0      0.0  #1               line        kiln: The reactor held. There's still not enough power for bays five to eigh
+     0      0.0  #1               arrow       off
+     0      2.0  #1               line        kiln: Bays one to four were thrown clear when we hit. Four crew are out ther
+     0      4.0  #1               line        kiln: Their glow fades as they freeze. If a pod goes dark, we've lost them. 
+     0      6.1  #1               guide_cue   true {"entity":"pod_pip"}
+     0      6.1  #1               line        kiln: Loop a pod and your tow line catches. The tally over your head fills a
+     0      8.1  #1               line        kiln: Two pods came down close together. Bring them both in one trip.
+     0     10.1  -                goal_card   Tow the nearest pod into the heat
+     0     12.1  -                arrow       story@580,455
+   367     24.3  pairDone         cue         goal=pair is=done
+   367     24.3  pairDone         guide_cue   true {"entity":"pod_tam"}
+   367     24.3  #16              cue         goal=pair is=done
+   367     24.3  #16              camera      {"to":{"entity":"pod_old"},"pan":0.8,"hold":6,"back":0.7,"freeze":false}
+   367     24.3  #16              wait        1.4
+   367     24.3  #16              objective   pair done
+   367     24.3  #16              arrow       story@409,369
+   408     25.7  #16              line        kiln: One more out there. A fifth pod. It's ours, the lander's escape pod, b
+   408     25.7  #16              arrow       off
+   408     27.7  #16              wait        6
+   409     27.7  #16              arrow       story@409,369
+   412     27.8  tamHome          cue         event=released match={"capture":3}
+   412     27.8  #9               cue         event=released match={"capture":3} after=pairDone
+   412     27.8  #9               guide_cue   true {"entity":"pod_old"}
+   412     27.8  #17              cue         event=released match={"capture":3}
+   412     27.8  #9               objective   first done
+   412     27.8  #9               arrow       story@790,360
+   413     27.8  #13              cue         event=joined match={"capture":0}
+   414     27.9  #14              cue         event=joined match={"capture":1}
+   588     33.7  #16              line        commander: Then I'll bring in all five. [at 700,374 23 from centre, in frame]
+   588     33.7  #16              arrow       off
+   588     35.7  #16              goal        main
+   588     35.7  #17              FAIL(a)     tam speaks off screen (400,321; camera 678,348): "So this is the new world. Bit cold. Give me someth"
+   588     35.7  #17              line        tam: So this is the new world. Bit cold. Give me something to do. [at 400,321 279 from centre, OFF SCREEN]
+   588     37.7  #17              line        commander: Soon. We'll need a grow dome, and someone to run it. [at 700,374 34 from centre, in frame]
+   588     39.8  #13              FAIL(a)     pip speaks off screen (301,345; camera 678,348): "Boss! Tell me this is the landing site. No? Though"
+   588     39.8  #13              line        pip: Boss! Tell me this is the landing site. No? Thought not. Where is ever [at 301,345 377 from centre, OFF SCREEN]
+   588     41.8  #13              line        commander: Scattered across the plain, and freezing. Can you keep the reactor fed [at 700,374 34 from centre, in frame]
+   588     43.8  #13              FAIL(a)     pip speaks off screen (301,345; camera 678,348): "Just hand me a pick, Boss. I'll make sure the fire"
+   588     43.8  #13              line        pip: Just hand me a pick, Boss. I'll make sure the fire stays on. [at 301,345 377 from centre, OFF SCREEN]
+   588     45.8  #14              FAIL(a)     rhee speaks off screen (367,370; camera 678,348): "How long were we under? Never mind. Is anyone hurt"
+   588     45.8  #14              line        rhee: How long were we under? Never mind. Is anyone hurt? I'll set up by the [at 367,370 312 from centre, OFF SCREEN]
+   589     47.8  #14              arrow       story@790,360
+   665     50.4  oldHome          cue         event=pod_home match={"decoy":true}
+   665     50.4  #12              cue         event=pod_home match={"decoy":true} after=tamHome
+   665     50.4  #12              guide_cue   true ""
+   665     50.4  #18              cue         event=pod_home match={"decoy":true}
+   665     50.4  #18              walk        rhee -> {"last":"pod_home"}
+   665     50.4  #18              line        commander: Who was in this? [at 394,322 19 from centre, in frame]
+   665     50.4  #18              arrow       off
+   665     52.4  #18              line        kiln: My logs record the launch. It was flown down manually, no auto-release
+   665     54.4  #18              line        rhee: Opened from the inside. The hatch is packed with dust. Whoever rode it [at 367,370 73 from centre, in frame]
+   665     56.4  #18              walk        rhee -> false
+   711     57.9  #15              cue         event=joined match={"capture":2}
+   711     57.9  #15              walk        okafor -> {"at":[462,330]}
+   711     57.9  #15              line        okafor: Camp's wide open and nobody's on guard. I'll watch the perimeter. [at 421,332 68 from centre, in frame]
+   711     59.9  #15              walk        okafor -> false
+   712     60.0  #19              cue         goal=main is=done
+   712     60.0  #19              guide_cue   false ""
+   712     60.0  #19              spirit      
+   712     60.0  #19              line        kiln: Power's up. I can open bays five to eight now. Here's my camera at the
+   712     60.0  #19              objective   main done
+   712     60.0  #19              level_end   won (goal)
+   712     60.0  #8               FAIL(e)     level ended with cue #8 still waiting on event=capture_revealed after=tamHome: it can never fire now
+   712     60.0  #10              FAIL(e)     level ended with cue #10 still waiting on event=released match={"capture":3} after=oldHome: it can never fire now
+   712     61.5  #19              result_held the result waits for the story queue
+   712     62.0  #19              inset       empty_bays
+   712     62.0  #19              wait        5.4
+   712     67.4  #19              line        commander: All four read occupied. All four are empty. [at 389,322 37 from centre, in frame]
+   712     69.4  #19              line        rhee: Then where is Vale? [at 367,370 74 from centre, in frame]
+   712     71.4  #19              result      shown
