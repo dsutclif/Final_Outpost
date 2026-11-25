@@ -14,11 +14,6 @@ import { traceStory, type TraceFailure } from "../src/story/trace.js";
 
 const PHASE_B = "phase B: known sequencing fault found by the r4 trace, to be fixed in the level's data";
 const ALLOW: readonly { level: string; check: TraceFailure["check"]; cue: string; has: string; why: string }[] = [
-  { level: "story-L002", check: "a", cue: "#17", has: "tam speaks off screen", why: PHASE_B },
-  { level: "story-L002", check: "a", cue: "#13", has: "pip speaks off screen", why: PHASE_B },
-  { level: "story-L002", check: "a", cue: "#14", has: "rhee speaks off screen", why: PHASE_B },
-  { level: "story-L002", check: "e", cue: "#8", has: "capture_revealed", why: PHASE_B },
-  { level: "story-L002", check: "e", cue: "#10", has: "released", why: PHASE_B },
   { level: "story-L003", check: "c", cue: "selaIn", has: "play held", why: PHASE_B },
   { level: "story-L003", check: "d", cue: "selaMet", has: "pad already done (dome)", why: PHASE_B },
   { level: "story-L003", check: "c", cue: "tamTrained", has: "play held", why: PHASE_B },

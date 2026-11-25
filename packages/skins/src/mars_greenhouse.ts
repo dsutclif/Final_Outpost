@@ -972,6 +972,8 @@ export const marsGreenhouse: Skin = {
         noWallMarks: true,
         tally: true,
         goalCards: true,
+        // r4: a crew member who is off screen walks in beside the commander before their line
+        autoStage: true,
         // the pointers come on with KILN's line about them
         noGuide: true,
         cast: { pip: { capture: 0 }, rhee: { capture: 1 }, okafor: { capture: 2 }, tam: { capture: 3 } },
@@ -1008,9 +1010,9 @@ export const marsGreenhouse: Skin = {
           { id: "pairDone", on: { goal: "pair", is: "done" }, unless: "tamHome", do: [{ guide: true, to: { entity: "pod_tam" } }] },
           { id: "tamHome", on: { event: "released", match: { capture: 3 } }, do: [] },
           { id: "oldHome", on: { event: "pod_home", match: { decoy: true } }, do: [] },
-          { on: { event: "capture_revealed", after: "tamHome" }, do: [{ guide: true, to: { entity: "pod_old" } }] },
+          { on: { event: "capture_revealed", after: "tamHome" }, unless: "allHome", do: [{ guide: true, to: { entity: "pod_old" } }] },
           { on: { event: "released", match: { capture: 3 }, after: "pairDone" }, unless: "oldHome", do: [{ guide: true, to: { entity: "pod_old" } }] },
-          { on: { event: "released", match: { capture: 3 }, after: "oldHome" }, do: [{ guide: true }] },
+          { on: { event: "released", match: { capture: 3 }, after: "oldHome" }, unless: "allHome", do: [{ guide: true }] },
           { on: { event: "pod_home", match: { decoy: true } }, unless: "tamHome", do: [{ guide: true, to: { entity: "pod_tam" } }] },
           { on: { event: "pod_home", match: { decoy: true }, after: "tamHome" }, do: [{ guide: true }] },
           { on: { event: "joined", match: { capture: 0 } }, do: [
@@ -1049,7 +1051,7 @@ export const marsGreenhouse: Skin = {
             { walk: "rhee", to: false },
           ] },
           // every pod home: the reactor brightens and KILN opens the sealed bays
-          { on: { goal: "main", is: "done" }, ordered: true, do: [
+          { id: "allHome", on: { goal: "main", is: "done" }, ordered: true, do: [
             { guide: false },
             { spirit: "pulse" },
             { line: "Power's up. I can open bays five to eight now. Here's my camera at the wreck.", who: "kiln" },
