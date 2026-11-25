@@ -513,7 +513,7 @@
      938
     ]
    ],
-   "openAfter": "@reach:220,830,100"
+   "openAfter": "@reach:220,830,45"
   },
   {
    "type": "node.food_source",
