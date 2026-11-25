@@ -60,7 +60,7 @@ export interface StoryHost {
   /** The commander kneels and lifts what was picked up at `at` (StoryAction kneel); resolves when the lift ends. */
   kneel?(at: { x: number; y: number }): Promise<void>;
   /** Whether a world point is on screen now (with a margin): the stage step waits for a speaker to be in frame. */
-  inFrame?(p: { x: number; y: number }): boolean;
+  inFrame?(p: { x: number; y: number }, margin?: number): boolean;
   /** Where a cast member's drawn figure is (renderer key), or null. */
   drawnAt?(key: string): { x: number; y: number } | null;
   /** A point just outside the frame on the line from `to` toward `from`: where a speaker walks in from. Null: no such point. */
@@ -131,6 +131,8 @@ const NO_SCENE: SceneMode = { on: false, why: null, movers: [], vehicles: true }
 const CARD_SECONDS = 3;
 /** A stage step gives up after this long (a blocked walk must not hang the level). */
 const STAGE_TIMEOUT_S = 8;
+/** How far inside the frame (share of its size) a walking-in trader must stand before her line starts. */
+const STAGE_INSET = -0.1;
 const STAGE_SPOT: readonly [number, number] = [-16, 24];
 const GOAL_GAP_S = 0.7;
 const TAP_GUARD_MS = 250;
@@ -671,7 +673,8 @@ export class StoryDirector {
   private staged(a: Extract<Active, { k: "stage" }>, st: State): boolean {
     if (!a.key || !a.spot) {
       const at = this.castAt(a.who, st);
-      return !at || !this.host.inFrame || this.host.inFrame(at);
+      // a trader walking in by herself counts as on stage once she is well inside the frame, not when her feet touch the edge (half a figure is cut)
+      return !at || !this.host.inFrame || this.host.inFrame(at, STAGE_INSET);
     }
     if (!this.host.drawnAt) return true;
     const at = this.host.drawnAt(a.key), to = this.place(a.spot);

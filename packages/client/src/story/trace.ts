@@ -29,6 +29,8 @@ const RESULT_WAIT_S = 1.5;
 /** A frozen stretch longer than this with nothing to read is a failure (c). */
 export const MAX_DEAD_FREEZE_S = 4;
 const IN_FRAME_MARGIN = 0.04; // app.ts inFrame for the director
+const SPEAKER_INSET = 0.06; // a trader speaker's feet point must sit this far inside the frame (the body is drawn above it)
+const VEHICLE_HALF_W = 0.2; // a parked story vehicle is about 0.4 of the phone width wide: its centre keeps this far from the side edges
 const MAX_SECONDS = 1500;
 
 export interface TraceRow { tick: number; t: number; cue: string; what: string; detail: string }
@@ -113,7 +115,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
     fall: (o) => later("fall", o.kind),
     kneel: () => later("kneel", ""),
     inset: (f) => row("inset", f),
-    inFrame: (p) => onScreen(projectPoint(p, 0, cam, fo, cam.zoom), fo, IN_FRAME_MARGIN),
+    inFrame: (p, margin) => onScreen(projectPoint(p, 0, cam, fo, cam.zoom), fo, margin ?? IN_FRAME_MARGIN),
     drawnAt: (k) => { const p = interp.pos(k, { x: Number.NaN, y: Number.NaN }, 1); return Number.isFinite(p.x) ? p : null; },
     entryFrom: (to, from) => {
       const far = Math.hypot(from.x - to.x, from.y - to.y);
@@ -136,6 +138,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
         row("cue", triggerText(n.fired), name);
       } else {
         curCue = actionCue.get(n.start) ?? ("stage" in n.start ? curCue : "-");
+        if ("camera" in n.start) { const to = n.start.camera.to; beatTo = "entity" in to ? host.entityAt(to.entity) : "at" in to ? { x: to.at[0], y: to.at[1] } : null; beatAt = clock; }
         const d = describe(n.start);
         if (d) row(d.what, d.detail);
       }
@@ -168,7 +171,8 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
     let place = "";
     if (at) {
       const q = projectPoint(at, 0, cam, fo, cam.zoom);
-      const inF = onScreen(q, fo, 0);
+      // a trader (Sela) must stand well inside the frame, not just have her feet point on it (half a figure cut at the edge fails)
+      const inF = onScreen(q, fo, director.customerOf(who ?? "") !== null ? -SPEAKER_INSET : 0);
       const dist = Math.hypot(at.x - cam.x, at.y - cam.y);
       place = ` [at ${Math.round(at.x)},${Math.round(at.y)} ${Math.round(dist)} from centre, ${inF ? "in frame" : "OFF SCREEN"}; cmdr ${Math.round(st.player.pos.x / FP)},${Math.round(st.player.pos.y / FP)}]`;
       if (worldSpeaker(who) && !inF) fail("a", `${who} speaks off screen (${Math.round(at.x)},${Math.round(at.y)}; camera ${Math.round(cam.x)},${Math.round(cam.y)}): "${l.text.slice(0, 50)}"`);
@@ -188,11 +192,33 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
         if (r) vehicles.splice(vehicles.indexOf(r), 1);
         r = { id: v.id, seq: v.seq, path: v.path, seconds: v.seconds, t: 0, u: 0, at: { ...v.path[0]! }, ...(v.rider !== undefined ? { rider: v.rider } : {}) };
         vehicles.push(r);
+        vehicleAt.set(`${v.id}#${v.seq}`, clock);
         row("vehicle", `${v.id} drives ${v.path.map((p) => `${Math.round(p.x)},${Math.round(p.y)}`).join(" > ")} in ${v.seconds}s`);
       }
       if (!hold) r.t += dt;
       r.u = r.t / Math.max(0.1, r.seconds);
       r.at = alongPath(r.path, Math.min(1, ease(r.u) ** 0.6));
+    }
+  };
+
+  // ---- a parked story vehicle must be fully in frame (a)
+  // The camera beat leaves the camera somewhere between the commander and the beat's target, and where the commander stands when it
+  // fires is up to the player, so the vehicle must also be in frame for a camera centred on the target (the commander at the kiosk door).
+  let beatTo: { x: number; y: number } | null = null, beatAt = -99;
+  const vehicleAt = new Map<string, number>();
+  const vehicleChecked = new Set<string>();
+  const checkVehicles = (): void => {
+    for (const v of vehicles) {
+      const key = `${v.id}#${v.seq}`;
+      if (v.u < 1 || vehicleChecked.has(key)) continue;
+      vehicleChecked.add(key);
+      const q = projectPoint(v.at, 0, cam, fo, cam.zoom);
+      const inside = (p: { x: number; y: number }): boolean => p.x >= fo.cssW * VEHICLE_HALF_W && p.x <= fo.cssW * (1 - VEHICLE_HALF_W) && p.y >= 0 && p.y <= fo.cssH;
+      const bt = beatTo && Math.abs((vehicleAt.get(key) ?? -99) - beatAt) < 0.1 ? beatTo : null; // only a beat fired in the same frame (the same cue)
+      const q2 = bt ? projectPoint(v.at, 0, { ...cam, x: bt.x, y: bt.y }, fo, cam.zoom) : q;
+      const ok = inside(q) && inside(q2);
+      row("vehicle_parked", `${v.id} at ${Math.round(v.at.x)},${Math.round(v.at.y)} screen ${Math.round(q.x)},${Math.round(q.y)}${bt ? ` (camera on the beat target: ${Math.round(q2.x)},${Math.round(q2.y)})` : ""} of ${fo.cssW}x${fo.cssH}${ok ? "" : " NOT FULLY IN FRAME"}`);
+      if (!ok) fail("a", `${v.id} parks at ${Math.round(v.at.x)},${Math.round(v.at.y)} partly out of frame (screen ${Math.round(q.x)},${Math.round(q.y)}, on the beat target ${Math.round(q2.x)},${Math.round(q2.y)}, of ${fo.cssW}x${fo.cssH}; camera ${Math.round(cam.x)},${Math.round(cam.y)})`);
     }
   };
 
@@ -315,6 +341,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
       const hero = interp.pos("player", st.player.pos, 0);
       followStep(cam, hero, FRAME_S, fo, cam.zoom, manifest.map, camFirst && cam.follow);
       if (cam.follow) camFirst = false;
+      checkVehicles();
       checkStill();
       checkFreeze();
       if (!ended) checkArrow(sc.on);

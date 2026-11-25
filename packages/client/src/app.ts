@@ -934,7 +934,7 @@ export class App {
         if (!ok && o.film && filmDue(o.film, this.progress.cinematics)) await this.cinematic(o.film as CinematicId);
       },
       kneel: async (at) => { await s.renderer.story()?.kneel({ at }); },
-      inFrame: (p) => this.inFrame(s, p, 0.04),
+      inFrame: (p, margin) => this.inFrame(s, p, margin ?? 0.04),
       drawnAt: (k) => { const a = s.renderer.story()?.actorAt(k); return a ? { x: a.x, y: a.z } : null; },
       entryFrom: (to, from) => {
         // walk the ray from the spot toward the figure's home out to just past the screen edge
