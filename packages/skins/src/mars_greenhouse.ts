@@ -1290,6 +1290,27 @@ export const marsGreenhouse: Skin = {
         hide: ["walls"],
         solid: ["sink.core"],
         goalCards: true,
+        // the arrows lead through the three jobs the training pads wait on (cook, carry meals, mind the counter), then to each pad once it shows (outpost-ops#395)
+        guideRules: [
+          { when: [{ goal: "galleyBuilt", is: "done" }, { goal: "train", is: "open" }, { not: "cookHired" }, { padVisible: "cook" }, { credits: 9 }], to: { entity: "cook" } },
+          { when: [{ goal: "galleyBuilt", is: "done" }, { goal: "train", is: "open" }, { not: "cookHired" }, { coinsWaiting: true }], to: { entity: "kiosk" } },
+          { when: [{ goal: "galleyBuilt", is: "done" }, { goal: "train", is: "open" }, { not: "cookHired" }, { carrying: "res.food_prepared" }], to: { entity: "kiosk" } },
+          { when: [{ goal: "galleyBuilt", is: "done" }, { goal: "train", is: "open" }, { not: "cookHired" }, { padVisible: "cook" }, { carrying: "res.food_raw_1" }], to: { entity: "kiosk" } },
+          { when: [{ goal: "galleyBuilt", is: "done" }, { goal: "train", is: "open" }, { not: "cookHired" }, { padVisible: "cook" }], to: { entity: "field1" } },
+          { when: [{ goal: "galleyBuilt", is: "done" }, { goal: "train", is: "open" }, { not: "cookHired" }], to: { at: [350, 1058] } },
+          { when: [{ fired: "cookHired" }, { goal: "train", is: "open" }, { not: "serverHired" }, { padVisible: "server" }, { credits: 11 }], to: { entity: "server" } },
+          { when: [{ fired: "cookHired" }, { goal: "train", is: "open" }, { not: "serverHired" }, { coinsWaiting: true }], to: { entity: "kiosk" } },
+          { when: [{ fired: "cookHired" }, { goal: "train", is: "open" }, { not: "serverHired" }, { carrying: "res.food_prepared" }], to: { entity: "kiosk" } },
+          { when: [{ fired: "cookHired" }, { goal: "train", is: "open" }, { not: "serverHired" }, { padVisible: "server" }, { carrying: "res.food_raw_1" }], to: { entity: "kiosk" } },
+          { when: [{ fired: "cookHired" }, { goal: "train", is: "open" }, { not: "serverHired" }, { padVisible: "server" }], to: { entity: "field1" } },
+          { when: [{ fired: "cookHired" }, { goal: "train", is: "open" }, { not: "serverHired" }], to: { at: [404, 1010] } },
+          { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }, { padVisible: "cashier" }, { credits: 13 }], to: { entity: "cashier" } },
+          { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }, { coinsWaiting: true }], to: { entity: "kiosk" } },
+          { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }, { carrying: "res.food_prepared" }], to: { entity: "kiosk" } },
+          { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }, { padVisible: "cashier" }, { carrying: "res.food_raw_1" }], to: { entity: "kiosk" } },
+          { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }, { padVisible: "cashier" }], to: { entity: "field1" } },
+          { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }], to: { entity: "kiosk" } },
+        ],
         // manifest people order: Pip, Rhee, Okafor, Tam, then Sela's two drivers
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 } },
         goals: [
@@ -1328,7 +1349,7 @@ export const marsGreenhouse: Skin = {
             { walk: "rhee", to: false },
             // Sela's buggy pulls up at the kiosk again; her three hands climb out and walk to the camp gate (the arrivals
             // rule: they spawn near the kiosk, level params gate.spawnOffsetY)
-            { vehicle: "buggy", path: [{ at: [950, 1160] }, { at: [700, 1170] }, { at: [450, 1175] }, { at: [292, 1150] }], seconds: 8, lights: true, rider: "sela" },
+            { vehicle: "buggy", path: [{ at: [950, 1262] }, { at: [815, 1224] }, { at: [750, 1206] }, { at: [560, 1190] }, { at: [450, 1180] }, { at: [380, 1175] }, { at: [335, 1170] }], seconds: 8, lights: true, rider: "sela" },
             { wait: 4.5 },
             { stage: "sela" },
             { line: "Storm season's close. The towns will pay well for hot meals.", who: "sela" },
@@ -1365,6 +1386,8 @@ export const marsGreenhouse: Skin = {
             { line: "Do each job once yourself and its training pad lights. Then stand on the pad to train one of the newcomers.", who: "kiln" },
             { goal: "train" },
           ] },
+          { id: "cookHired", on: { event: "hired", match: { pad: "cook" } }, do: [] },
+          { id: "serverHired", on: { event: "hired", match: { pad: "server" } }, do: [] },
           // all three trained: a small light starts blinking at the wreck
           { id: "handsOff", on: { event: "hired", match: { pad: "cashier" } }, do: [
             // the arrows lead east to the flight recorder (Doug, 2026-11-24)

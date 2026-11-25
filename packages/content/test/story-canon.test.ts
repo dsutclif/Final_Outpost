@@ -19,7 +19,7 @@ const ONLY_IN: Record<string, { levels: number[]; why: string }> = {
   ridgeE1: { levels: [1, 4, 5], why: "level 1's north-east ridge stretch lies above the top of levels 2 and 3's maps (their reactor sits 80 higher on the map)" },
   rockslide: { levels: [1, 2, 3], why: "cleared in level 3, gone after" },
   flats: { levels: [3, 4, 5], why: "the rock hoppers (prey) are a hunting objective, taught from level 3" },
-  road: { levels: [3], why: "level 3 only: the road Sela drives in on, past the kiosk (outpost-ops#309)" },
+  road: { levels: [3, 4], why: "levels 3 and 4: the road Sela drives in on, past the kiosk (outpost-ops#309); level 5 has none" },
   scrapA: { levels: [3], why: "level 3 only: the dome is built from carried ship scrap here and stands finished (an enabled dome) from level 4" },
   scrapB: { levels: [3], why: "level 3 only: the dome is built from carried ship scrap here and stands finished (an enabled dome) from level 4" },
   scrapC: { levels: [3], why: "level 3 only: the dome is built from carried ship scrap here and stands finished (an enabled dome) from level 4" },
