@@ -2085,6 +2085,8 @@ export class Renderer3D implements Renderer {
 
   private syncStructures(s: State): void {
     for (const st of s.structures) {
+      // an arrivals gate placed on a wall gate section is that section's gate: the wall draws it, so a second model is not stacked on it
+      if (st.type === "struct.gate" && s.barriers.some((b) => b.sections.some((sec) => sec.gate && Math.hypot((sec.a.x + sec.b.x) / 2 - st.pos.x, (sec.a.y + sec.b.y) / 2 - st.pos.y) < 20 * FP))) continue;
       const key = `s:${st.id}:${st.type}:${st.level}`;
       const site = this.pads.get(st.id)?.site;
       const onWall = st.type === "struct.ranged_defense" && !!site && this.onWallAt(site, s);
