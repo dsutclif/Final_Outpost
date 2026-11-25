@@ -1155,11 +1155,12 @@ export const marsGreenhouse: Skin = {
             // walk to the kiosk starts at the door; she never speaks from inside the buggy (Doug 2026-11-24)
             { light: "night", seconds: 1.5, real: true },
             { freeze: true },
-            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }, { at: [630, 905] }, { at: [520, 912] }, { at: [422, 922] }], seconds: 9, lights: true, rider: "sela" },
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }, { at: [630, 905] }, { at: [520, 912] }, { at: [422, 922] }], seconds: 3.2, lights: true, rider: "sela" },
             // the commander is already at the kiosk (she only drives in once he has found it), so the camera stays with him and
             // takes one slow nudge toward the kiosk: no cut to the road and back (Doug 2026-11-22)
             { camera: { to: { entity: "kiosk" }, share: 0.6, pan: 1.4, hold: 36, back: 0.9, freeze: false } },
-            { wait: 11.4 },
+            // play runs again as she steps out (about 1.8 s), so the held stretch is only the drive
+            { wait: 3.5 },
             { freeze: false },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
@@ -1189,7 +1190,7 @@ export const marsGreenhouse: Skin = {
             { line: "You built that dome yourselves? Out of your own hull?", who: "sela" },
             { line: "Save your scrap. My road crew builds for credits, and they bring their own steel.", who: "sela" },
             // Okafor walks in from the edge of the frame beside the commander, then speaks (no fixed wait)
-            { stage: "okafor", by: [-16, 24] },
+            { stage: "okafor", by: [-20, -28] },
             { line: "A road that brings traders can bring raiders, so... let's build a wall first...", who: "okafor" },
             { line: "Once you've saved enough credits, walk the dashed line and the wall goes up behind you.", who: "kiln" },
             { walk: "okafor", to: false },
@@ -1198,8 +1199,8 @@ export const marsGreenhouse: Skin = {
           { id: "wallDone", on: { goal: "walls", is: "done" }, ordered: true, do: [
             // no road-crew buggy here: it drove into a commander walking outside the wall, and it drives in again for the hub
             // the hub is shown first, then Rhee walks in beside the commander and says what it is for
-            { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
-            { stage: "rhee", by: [16, -24] },
+            { camera: { to: { entity: "hub" }, pan: 0.5, hold: 0.8, back: 0.4 } },
+            { stage: "rhee", by: [40, -70] },
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { line: "Take one more load of greens to the kiosk, and keep saving credits for that hub.", who: "kiln" },
             { walk: "rhee", to: false },
@@ -1210,8 +1211,8 @@ export const marsGreenhouse: Skin = {
             { line: "No protein? I'm leaving.", who: "trader" },
             { line: "Protein sells for a premium around here. Those rock hoppers past the rockslide would fetch a good price.", who: "sela" },
             // back 0.001: the hoppers hand straight over to the rock pile, no re-centre on the commander between them (outpost-ops#361)
-            { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.001 } },
-            { camera: { to: { entity: "rockslide" }, pan: 0.4, hold: 1, back: 0.8 } },
+            { camera: { to: { entity: "flats" }, pan: 0.6, hold: 0.8, back: 0.001 } },
+            { camera: { to: { entity: "rockslide" }, pan: 0.4, hold: 0.7, back: 0.6 } },
             { line: "The slide is loose rock... walk up to it and dig... one section at a time.", who: "kiln" },
           ] },
           // dug by hand: no credits, so no road crew
@@ -1233,7 +1234,7 @@ export const marsGreenhouse: Skin = {
           // Tam is hired: her drawn self comes home to the sim's Tam; Rhee walks over so her line comes on screen
           { id: "tamTrained", on: { goal: "train", is: "done" }, ordered: true, do: [
             { walk: "tam", to: false },
-            { stage: "rhee", by: [16, -24] },
+            { stage: "rhee", by: [40, -70] },
             { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
             { walk: "rhee", to: false },
           ] },
@@ -1249,9 +1250,10 @@ export const marsGreenhouse: Skin = {
           { id: "hubDone", on: { goal: "main", is: "done" }, ordered: true, do: [
             { guide: false },
             { freeze: true },
-            { vehicle: "buggy", path: [{ last: "player", by: [520, 300] }, { last: "player", by: [240, 110] }, { last: "player", by: [74, 26] }], seconds: 6, lights: true },
-            { wait: 6.6 },
-            { vehicleOff: "buggy" },
+            // Sela is a staged actor of the buggy: drawn seated, stepping out at its park point beside the commander (no sim trader
+            // exists once the level is over); the buggy stays parked behind her
+            { vehicle: "buggy", path: [{ last: "player", by: [330, 180] }, { last: "player", by: [160, 70] }, { last: "player", by: [74, 26] }], seconds: 2.2, lights: true, rider: "sela" },
+            { wait: 3.9 },
             { line: "Congratulations. A roof over your heads and a camp worth trading with. Not many manage that out here.", who: "sela" },
             { film: "chip_handoff" },
             { line: "For your first night under a roof. A Halcyon chip.", who: "sela" },

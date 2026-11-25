@@ -71,7 +71,7 @@ export class StoryPresent implements StoryPresentation {
   solid(ids: readonly string[]): void { this.solidIds = new Set(ids); }
   /** Customers drawn with their own model (customer id to model id); the renderer reads it. */
   customerModels = new Map<number, string>();
-  customerModel(id: number, model: string): void { this.customerModels.set(id, model); }
+  customerModel(id: number, model: string): void { this.customerModels.set(id, model); this.props.models = this.customerModels; }
   /** Hostile kinds drawn with another model once they break off (kind to model id); the renderer reads it. */
   fleeingModels = new Map<string, string>();
   fleeingModel(kind: string, model: string): void { this.fleeingModels.set(kind, model); }

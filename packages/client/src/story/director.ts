@@ -102,7 +102,7 @@ export interface StoryWorld {
   /** Cast members held at a drawn place (see the walk action); a null `to` walks them back. */
   actors: readonly { who: string; to: { x: number; y: number } | null; from?: { x: number; y: number }; face?: boolean }[];
   /** Vehicles in the world (see the vehicle action); `seq` counts requests so a redrive reads as new. */
-  vehicles: readonly { id: string; path: readonly { x: number; y: number }[]; seconds: number; lights: boolean; seq: number; rider?: number }[];
+  vehicles: readonly { id: string; path: readonly { x: number; y: number }[]; seconds: number; lights: boolean; seq: number; rider?: number; solo?: { faceX: number; faceZ: number } }[];
 }
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
@@ -514,7 +514,7 @@ export class StoryDirector {
       this.timed(a.wait, () => {});
     } else if ("vehicle" in a) {
       const path = a.path.flatMap((p) => { const q = this.place(p); return q ? [q] : []; });
-      if (path.length) this.world = { ...this.world, vehicles: [...this.world.vehicles.filter((v) => v.id !== a.vehicle), { id: a.vehicle, path, seconds: a.seconds ?? 8, lights: a.lights !== false, seq: ++this.seq, ...this.riderOf(a.rider) }] };
+      if (path.length) this.world = { ...this.world, vehicles: [...this.world.vehicles.filter((v) => v.id !== a.vehicle), { id: a.vehicle, path, seconds: a.seconds ?? 8, lights: a.lights !== false, seq: ++this.seq, ...this.riderOf(a.rider), ...this.soloOf(a.rider) }] };
     } else if ("vehicleOff" in a) {
       this.world = { ...this.world, vehicles: this.world.vehicles.filter((v) => v.id !== a.vehicleOff) };
     } else if ("walk" in a) {
@@ -641,7 +641,9 @@ export class StoryDirector {
   private needsStage(who: string): boolean {
     const st = this.st, c = this.castRef(who);
     if (!st || !c || "player" in c || "at" in c || "entity" in c || "last" in c || !this.host.inFrame) return false;
-    const at = this.castAt(who, st);
+    // a figure already walked in (or standing) on screen is staged; only where they are DRAWN counts, the sim keeps them elsewhere
+    const key = this.castKey(who, st), drawn = key ? this.host.drawnAt?.(key) ?? null : null;
+    const at = drawn ?? this.castAt(who, st);
     return !!at && !this.host.inFrame(at);
   }
 
@@ -706,6 +708,13 @@ export class StoryDirector {
     return this.level.cast?.[who] ?? (who === "commander" ? { player: true } : null);
   }
 
+  /** A rider with no sim customer (Sela once the level has ended) is drawn by the vehicle itself and faces the commander. */
+  private soloOf(who: string | undefined): { solo: { faceX: number; faceZ: number } } | Record<string, never> {
+    const c = who ? this.castRef(who) : null, st = this.st;
+    if (!c || !("customer" in c) || !st?.sales || [...st.sales.queue, ...st.sales.leaving].some((x) => x.id === c.customer)) return {};
+    return { solo: { faceX: st.player.pos.x / FP, faceZ: st.player.pos.y / FP } };
+  }
+
   /** A vehicle's rider as a customer id, when the cast key names a customer. */
   private riderOf(who: string | undefined): { rider: number } | Record<string, never> {
     const c = who ? this.castRef(who) : null;
@@ -737,6 +746,9 @@ export class StoryDirector {
     if ("customer" in c) {
       // trader ids count up from 0 in arrival order (sales.ts nextCustomerId), on the walk in, in line or leaving
       const t = st.sales ? [...st.sales.queue, ...st.sales.leaving].find((x) => x.id === c.customer) : undefined;
+      // her buggy stands parked: she is at its park point (the end of its path)
+      const v = this.world.vehicles.find((x) => x.rider === c.customer && x.solo && x.path.length);
+      if (!t && v) return { ...v.path[v.path.length - 1]! };
       // gone from the map: she speaks from the kiosk she traded at
       if (!t) return st.sales ? { x: st.sales.pos.x / FP, y: st.sales.pos.y / FP } : null;
       return { x: t.pos.x / FP, y: t.pos.y / FP };

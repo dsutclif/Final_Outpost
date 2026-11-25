@@ -170,7 +170,7 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
       const q = projectPoint(at, 0, cam, fo, cam.zoom);
       const inF = onScreen(q, fo, 0);
       const dist = Math.hypot(at.x - cam.x, at.y - cam.y);
-      place = ` [at ${Math.round(at.x)},${Math.round(at.y)} ${Math.round(dist)} from centre, ${inF ? "in frame" : "OFF SCREEN"}]`;
+      place = ` [at ${Math.round(at.x)},${Math.round(at.y)} ${Math.round(dist)} from centre, ${inF ? "in frame" : "OFF SCREEN"}; cmdr ${Math.round(st.player.pos.x / FP)},${Math.round(st.player.pos.y / FP)}]`;
       if (worldSpeaker(who) && !inF) fail("a", `${who} speaks off screen (${Math.round(at.x)},${Math.round(at.y)}; camera ${Math.round(cam.x)},${Math.round(cam.y)}): "${l.text.slice(0, 50)}"`);
     } else if (worldSpeaker(who)) fail("a", `${who} speaks but has no place on the map: "${l.text.slice(0, 50)}"`);
     row("line", `${who ?? l.name}: ${l.text.slice(0, 70)}${place}`);
@@ -247,7 +247,8 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
     const pad = st.pads.find((p) => near(p.pos));
     const cap = st.captures.find((c) => near(c.pos));
     let bad = "";
-    if (pad?.done && !st.pads.some((p) => !p.done && near(p.pos))) bad = `a pad already done (${pad.id})`;
+    // a finished pad that also holds a live resource node (the grow dome IS the greens field) is a real target, not a stale one
+    if (pad?.done && !st.pads.some((p) => !p.done && near(p.pos)) && !st.nodes.some((n) => near(n.pos))) bad = `a pad already done (${pad.id})`;
     else if (pad && !pad.visible) bad = `a hidden pad (${pad.id})`;
     else if (cap?.state === "hidden") bad = `a capture not yet revealed (${cap.id})`;
     if (bad && !staleArrowSeen.has(key)) { staleArrowSeen.add(key); fail("d", `arrow (${a.from}) points at ${bad}`); }
