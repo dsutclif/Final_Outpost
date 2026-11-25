@@ -993,16 +993,18 @@ export const marsGreenhouse: Skin = {
             { line: "The reactor held. There's still not enough power for bays five to eight, but my sensors are back.", who: "kiln", head: "K.I.L.N. · DAY 2" },
             { line: "Bays one to four were thrown clear when we hit. Four crew are out there in their pods, and they're freezing.", who: "kiln" },
             { line: "Their glow fades as they freeze. If a pod goes dark, we've lost them. I'll mark them for you.", who: "kiln" },
-            { guide: true },
+            // the arrows lead pod to pod (never to "fuel the reactor", which the default guide picks while the reactor runs low)
+            { guide: true, to: { entity: "pod_pip" } },
             { line: "Loop a pod and your tow line catches. The tally over your head fills a slot for every pod in tow.", who: "kiln" },
             { line: "Two pods came down close together. Bring them both in one trip.", who: "kiln" },
           ] },
           { on: { event: "joined", match: { capture: 0 } }, do: [
+            { guide: true, to: { entity: "pod_rhee" } },
             { crew: "Boss! Tell me this is the landing site. No? Thought not. Where is everyone?", who: "pip" },
             { line: "Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?", who: "commander" },
             { line: "Just hand me a pick, Boss. I'll make sure the fire stays on.", who: "pip" },
           ] },
-          { on: { event: "joined", match: { capture: 1 } }, do: [{ crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
+          { on: { event: "joined", match: { capture: 1 } }, do: [{ guide: true, to: { entity: "pod_okafor" } }, { crew: "How long were we under? Never mind. Is anyone hurt? I'll set up by the reactor.", who: "rhee" }] },
           // Okafor walks the camp's edge as he says it (S6), then is let go back to his post
           { on: { event: "joined", match: { capture: 2 } }, ordered: true, do: [
             { walk: "okafor", to: { at: [462, 330] } },
@@ -1010,6 +1012,7 @@ export const marsGreenhouse: Skin = {
             { walk: "okafor", to: false },
           ] },
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
+            { guide: true, to: { entity: "pod_tam" } },
             // the lander pod lights (manifest hiddenUntil: pair): the camera looks out to it and stays there while KILN names it,
             // so the line comes up with the pod on screen (a nudge runs beside the line; a frozen beat would hand back first)
             { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 6, back: 0.7, freeze: false } },
@@ -1021,12 +1024,14 @@ export const marsGreenhouse: Skin = {
             { goal: "main" },
           ] },
           { on: { event: "released", match: { capture: 3 } }, do: [
+            { guide: true, to: { entity: "pod_old" } },
             { crew: "So this is the new world. Bit cold. Give me something to do.", who: "tam" },
             { line: "Soon. We'll need a grow dome, and someone to run it.", who: "commander" },
           ] },
           // the scorched pod in the heat, still there while the lines play (they pause the sim); Rhee walks over to it
           { on: { event: "pod_home", match: { decoy: true } }, ordered: true, do: [
             { walk: "rhee", to: { last: "pod_home" } },
+            { guide: false },
             { line: "Who was in this?", who: "commander" },
             { line: "My logs record the launch. It was flown down manually, no auto-release. Nobody was assigned to it.", who: "kiln" },
             { line: "Opened from the inside. The hatch is packed with dust. Whoever rode it down walked away, a while back.", who: "rhee" },
@@ -1311,8 +1316,11 @@ export const marsGreenhouse: Skin = {
           ] },
           // Tam's greens now go to the galley (the galley pad's repoint): no pad, no cost
           { on: { goal: "galleyBuilt", is: "done" }, ordered: true, do: [
+            // Tam walks up beside the commander before she speaks, so she is on screen for her line
+            { walk: "tam", to: { last: "player", by: [-16, 24] } },
             { line: "Tam, greens go to the galley from now on.", who: "commander" },
             { line: "Greens to the galley. Fine.", who: "tam" },
+            { walk: "tam", to: false },
             { line: "Three more jobs will keep it running: cook at the galley, carry meals to the kiosk, mind the counter.", who: "kiln" },
             { line: "Do each job once yourself and its training pad lights. Then stand on the pad to train one of the newcomers.", who: "kiln" },
             { goal: "train" },
@@ -1369,7 +1377,7 @@ export const marsGreenhouse: Skin = {
           { id: "turret", label: "Build a turret" },
           { id: "arrive", hold: true, label: "Let the settlers in" },
           { id: "train", label: "Train a guard" },
-          { id: "hold", label: "Keep collecting scrap, hiring guards, and fighting defenders to protect our camp till sunrise" },
+          { id: "hold", label: "Keep collecting scrap, hire 2 more guards, and fight defenders to protect our camp till sunrise" },
           { id: "main", label: "Pick up the helmet" },
         ],
         cues: [

@@ -43,7 +43,7 @@
     548,
     318
    ],
-   "stock": 2
+   "stock": 3
   },
   {
    "type": "node.fuel_deposit",
@@ -52,7 +52,7 @@
     452,
     362
    ],
-   "stock": 2
+   "stock": 3
   },
   {
    "type": "zone.blocked",
