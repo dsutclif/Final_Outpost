@@ -1333,7 +1333,7 @@ export const marsGreenhouse: Skin = {
           ] },
           // no opening camera move; the camera looks east to the wreck only when KILN names the recorder
           { on: { start: true }, ordered: true, do: [
-            { vehicle: "buggy", path: [{ at: [1000, 865] }, { at: [880, 825] }, { at: [783, 817] }], seconds: 2.2, lights: true, rider: "sela", parked: true },
+            { vehicle: "buggy", path: [{ at: [1000, 865] }, { at: [880, 825] }, { at: [795, 805] }], seconds: 2.2, lights: true, rider: "sela", parked: true },
             // Rhee stands beside the commander before she speaks (Doug: she is on screen for her lines)
             { walk: "rhee", to: { at: [630, 790] } },
             { line: "KILN. Is it true? Eleven years?", who: "commander" },
