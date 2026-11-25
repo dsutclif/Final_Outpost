@@ -160,7 +160,7 @@ export type StoryAction =
    * stop at the last one, and stays parked there with its headlights on (`lights: false` for dark). Drawn only. `rider` (a cast key that is a customer) is
    * not drawn while the vehicle drives, and steps out beside it once it has parked.
    */
-  | { vehicle: string; path: readonly StoryPlace[]; seconds?: number; lights?: boolean; rider?: string }
+  | { vehicle: string; path: readonly StoryPlace[]; seconds?: number; lights?: boolean; rider?: string; parked?: boolean }
   /** Take a vehicle out of the world. */
   | { vehicleOff: string };
 

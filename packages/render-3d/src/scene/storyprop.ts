@@ -147,7 +147,7 @@ export class StoryProps {
         if (r.info) { r.ride = SelaRide.make(r.info.model, r.info.height); if (r.ride) { r.ride.root.visible = false; this.attach(r.ride.root); this.attach(r.ride.lamp); } }
         if (!r.ride && t - r.w0 < WAIT) continue;
       }
-      r.t0 ??= t;
+      r.t0 ??= r.spec.parked ? t - r.spec.seconds - SIT - EXIT - 1 : t;
       const u = (t - r.t0) / Math.max(0.1, r.spec.seconds);
       r.driven = u;
       const s = r.len * Math.min(1, ease(u) ** 0.6);

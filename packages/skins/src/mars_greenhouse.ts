@@ -1311,8 +1311,10 @@ export const marsGreenhouse: Skin = {
           { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }, { padVisible: "cashier" }], to: { entity: "field1" } },
           { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }], to: { entity: "kiosk" } },
         ],
-        // manifest people order: Pip, Rhee, Okafor, Tam, then Sela's two drivers
-        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 } },
+        // manifest people order: Pip, Rhee, Okafor, Tam, then Sela's two drivers. Sela is a standing rider (customer id 99, never a real
+        // trader) so the level's first real buyer is not drawn as her
+        customerModels: { 99: "unit.customer_sela" },
+        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 99 } },
         goals: [
           { id: "arrive", hold: true, label: "Let the newcomers in" },
           { id: "galleyBuilt", hold: true, label: "Build the galley" },
@@ -1331,6 +1333,7 @@ export const marsGreenhouse: Skin = {
           ] },
           // no opening camera move; the camera looks east to the wreck only when KILN names the recorder
           { on: { start: true }, ordered: true, do: [
+            { vehicle: "buggy", path: [{ at: [1000, 865] }, { at: [880, 825] }, { at: [795, 805] }], seconds: 2.2, lights: true, rider: "sela", parked: true },
             // Rhee stands beside the commander before she speaks (Doug: she is on screen for her lines)
             { walk: "rhee", to: { at: [630, 790] } },
             { line: "KILN. Is it true? Eleven years?", who: "commander" },
@@ -1347,10 +1350,9 @@ export const marsGreenhouse: Skin = {
             { line: "That's a long walk, and there's a line at the kiosk. If I go, the town stops.", who: "commander" },
             { line: "Then we'll learn to run things on our own. We need that box to know what happened to us.", who: "rhee" },
             { walk: "rhee", to: false },
-            // Sela's buggy pulls up at the kiosk again; her three hands climb out and walk to the camp gate (the arrivals
-            // rule: they spawn near the kiosk, level params gate.spawnOffsetY)
-            { vehicle: "buggy", path: [{ at: [950, 1262] }, { at: [815, 1224] }, { at: [750, 1206] }, { at: [560, 1190] }, { at: [450, 1180] }, { at: [380, 1175] }, { at: [335, 1170] }], seconds: 8, lights: true, rider: "sela" },
-            { wait: 4.5 },
+            // Sela is already here: her buggy stands parked where level 3 left it (the same park point, 300 up the longer map) and she
+            // stands at its door; her three hands climb out at the kiosk and walk to the camp gate (the arrivals rule: they spawn near
+            // the kiosk, level params gate.spawnOffsetY). No drive-in (Doug 2026-11-25).
             { stage: "sela" },
             { line: "Storm season's close. The towns will pay well for hot meals.", who: "sela" },
             { line: "I've brought three hands who want steady work. They're at your gate.", who: "sela" },

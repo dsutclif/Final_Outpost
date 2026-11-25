@@ -15,6 +15,9 @@ import { traceStory, type TraceFailure } from "../src/story/trace.js";
 
 const PHASE_B = "phase B: known sequencing fault found by the r4 trace, to be fixed in the level's data";
 const ALLOW: readonly { level: string; check: TraceFailure["check"]; cue: string; has: string; why: string }[] = [
+  // Doug 2026-11-25: Sela is parked at exactly her level 3 end spot from the first frame (no drive-in). From the commander's start the buggy sits
+  // near the right edge of a 390 px phone (her figure and her lines are in frame); the trace models it as a drive-in, so it is allowed here.
+  { level: "story-L004", check: "a", cue: "#1", has: "parks at 795,805", why: "Sela stands at her level 3 spot from the start (Doug)" },
 ];
 
 const manifest = (id: string): unknown => JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "levels", "story", `${id}.json`), "utf8"));
