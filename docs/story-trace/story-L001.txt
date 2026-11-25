@@ -78,48 +78,50 @@
    584     56.7  #9               arrow       off
   1657     92.4  storm            cue         event=hazard_start
   1657     92.4  gust             cue         event=node_revealed
-  1657     92.4  gust             camera      {"to":{"entity":"ore22"},"pan":0.5,"hold":1.2,"back":0.4,"zoom":0.8}
-  1657     94.5  gust             line        kiln: The wind has blown the sand off something. There seems to have been or
-  1657     94.5  gust             held        2.1 s (camera)
-  1664     96.8  gust             arrow       guide gather@322,455
-  1679     97.3  gust             arrow       guide gather@326,466
-  1694     97.8  gust             arrow       guide feed@330,442
-  1709     98.3  gust             arrow       guide feed@314,439
-  1754     99.8  gust             arrow       guide gather@292,464
-  1769    100.3  gust             arrow       guide feed@300,430
-  1844    102.8  gust             arrow       guide gather@241,432
-  1859    103.3  gust             arrow       guide feed@291,416
-  1904    104.8  gust             arrow       guide feed@300,430
-  1934    105.8  gust             arrow       guide feed@314,439
-  1949    106.3  gust             arrow       off
-  2024    108.8  gust             arrow       guide gather@292,464
-  2039    109.3  gust             arrow       guide feed@314,439
-  2054    109.8  gust             arrow       off
-  2099    111.3  gust             arrow       guide feed@314,439
-  2107    111.5  #12              cue         after=storm ticks=450
-  2107    111.5  #12              ridge       
-  2107    111.5  #12              ridgeFlash  
-  2107    111.5  #12              spirit      
-  2107    111.5  #12              camera      {"to":{"entity":"ridge3"},"share":0.2,"pan":0.35,"hold":1.5,"back":0.5,"freeze":false}
-  2107    111.5  #12              line        kiln: Something on that ridge is sending a signal. I can't read it.
-  2107    111.5  #12              arrow       off
-  2107    113.6  #12              arrow       guide feed@314,439
-  2114    113.8  #12              arrow       off
-  2144    114.8  #12              arrow       guide feed@314,439
-  2189    116.3  #12              arrow       off
-  2249    118.3  #12              arrow       guide gather@292,464
-  2264    118.8  #12              arrow       guide feed@314,439
-  2279    119.3  #12              arrow       off
-  2369    122.3  #12              arrow       guide feed@314,439
-  2384    122.8  #12              arrow       off
-  2474    125.8  #12              arrow       guide feed@330,442
-  2519    127.3  #12              arrow       off
-  2549    128.3  #12              arrow       guide feed@314,439
-  2557    128.5  #13              cue         event=hazard_end
-  2557    128.5  #13              light       
-  2564    128.8  #13              arrow       off
-  2804    136.8  #13              arrow       guide feed@314,439
-  2819    137.3  #13              arrow       off
-  3007    143.6  #13              objective   main done
-  3007    143.6  #13              level_end   won (goal)
-  3007    145.1  #13              result      shown
+  1657     92.4  gust             camera      {"to":{"entity":"ore22"},"pan":0.5,"hold":6,"back":0.6,"zoom":0.8,"freeze":false}
+  1657     92.4  gust             wait        1.1
+  1664     92.7  gust             arrow       guide gather@322,455
+  1679     93.2  gust             arrow       guide gather@326,466
+  1689     93.5  gust             line        kiln: The wind has blown the sand off something. There seems to have been or
+  1689     93.5  gust             arrow       off
+  1690     95.5  gust             arrow       guide gather@326,466
+  1694     95.7  gust             arrow       guide feed@330,442
+  1709     96.2  gust             arrow       guide feed@314,439
+  1754     97.7  gust             arrow       guide gather@292,464
+  1769     98.2  gust             arrow       guide feed@300,430
+  1844    100.7  gust             arrow       guide gather@241,432
+  1859    101.2  gust             arrow       guide feed@291,416
+  1904    102.7  gust             arrow       guide feed@300,430
+  1934    103.7  gust             arrow       guide feed@314,439
+  1949    104.2  gust             arrow       off
+  2024    106.7  gust             arrow       guide gather@292,464
+  2039    107.2  gust             arrow       guide feed@314,439
+  2054    107.7  gust             arrow       off
+  2099    109.2  gust             arrow       guide feed@314,439
+  2107    109.4  #12              cue         after=storm ticks=450
+  2107    109.4  #12              ridge       
+  2107    109.4  #12              ridgeFlash  
+  2107    109.4  #12              spirit      
+  2107    109.4  #12              camera      {"to":{"entity":"ridge3"},"share":0.2,"pan":0.35,"hold":1.5,"back":0.5,"freeze":false}
+  2107    109.4  #12              line        kiln: Something on that ridge is sending a signal. I can't read it.
+  2107    109.4  #12              arrow       off
+  2107    111.5  #12              arrow       guide feed@314,439
+  2114    111.7  #12              arrow       off
+  2144    112.7  #12              arrow       guide feed@314,439
+  2189    114.2  #12              arrow       off
+  2249    116.2  #12              arrow       guide gather@292,464
+  2264    116.7  #12              arrow       guide feed@314,439
+  2279    117.2  #12              arrow       off
+  2369    120.2  #12              arrow       guide feed@314,439
+  2384    120.7  #12              arrow       off
+  2474    123.7  #12              arrow       guide feed@330,442
+  2519    125.2  #12              arrow       off
+  2549    126.2  #12              arrow       guide feed@314,439
+  2557    126.4  #13              cue         event=hazard_end
+  2557    126.4  #13              light       
+  2564    126.7  #13              arrow       off
+  2804    134.7  #13              arrow       guide feed@314,439
+  2819    135.2  #13              arrow       off
+  3007    141.5  #13              objective   main done
+  3007    141.5  #13              level_end   won (goal)
+  3007    143.0  #13              result      shown

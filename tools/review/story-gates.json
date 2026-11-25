@@ -32,13 +32,13 @@
     { "line": "Just hand me a pick, Boss", "after": ["Scattered across the plain, and freezing"], "why": "Pip answers the commander." },
     { "line": "A fifth pod", "seen": ["capture.recruit_container.decoy"], "afterGoal": ["pair"], "after": ["Two pods came down close together"], "why": "KILN names the lander's escape pod only once it has lit and the camera has shown it; until the pair is home it lies dark and unmarked." },
     { "line": "Then I'll bring in all five", "afterGoal": ["pair"], "after": ["A fifth pod"], "why": "The commander agrees to all five only once the pair is home." },
-    { "line": "Soon. We'll need a grow dome", "after": ["Just hand me a pick, Boss"], "why": "The commander answers Pip's offer once Tam's pod is home." },
+    { "line": "Soon. We'll need a grow dome", "after": ["So this is the new world"], "why": "The commander answers Tam's ask for something to do (pods can come home in any order, so not Pip's offer)." },
     { "line": "Who was in this?", "after": ["A fifth pod"], "why": "The commander asks about the escape pod only once it is home, after KILN named it." },
     { "line": "My logs record the launch", "after": ["Who was in this?"], "why": "KILN answers the commander's question." },
     { "line": "Opened from the inside", "after": ["My logs record the launch"], "why": "Rhee reads the hatch after KILN's account." },
     { "line": "Power's up. I can open bays", "afterGoal": ["main"], "after": ["Opened from the inside"], "why": "KILN opens the bays only once all five pods are home." },
     { "line": "All four read occupied", "afterGoal": ["main"], "after": ["Power's up. I can open bays"], "why": "The commander reports the bays after KILN's camera shows them." },
-    { "line": "Then where is Vale?", "afterGoal": ["main"], "after": ["All four read occupied"], "why": "Rhee asks after the commander's report." }
+    { "line": "Then where is Vale?", "afterGoal": ["main"], "after": ["Power's up. I can open bays"], "why": "Rhee asks after the commander's report; the probe samples that report out beside the camera inset, so the gate keys on KILN's line before it (the story trace checks the pair)." }
   ],
   "story-L003": [
     { "line": "You promised me a grow dome", "beforeGoal": ["dome"], "why": "Tam opens the level before the dome is built." },
