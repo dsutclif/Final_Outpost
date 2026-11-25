@@ -1006,6 +1006,13 @@ export const marsGreenhouse: Skin = {
           // Order Pip, Rhee, Okafor, Tam, then the lander pod (hidden until the pair is home). The ids let a cue skip a pod
           // already home, so the arrows never point at a pod in the heat or at the hidden pod, nor switch off while one is out. Once the
           // last pod in this order is home the guide's own pick takes over (any pod still out, towed in a different pairing).
+          // Hooking a pod moves the arrows on: Pip's pod hooked, they point at the pair's next pod; any other pod hooked, they lead
+          // home to the heat, so two in tow never leaves them on a starting spot (outpost-ops#393).
+          { on: { event: "captured", match: { capture: 0 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
+          { on: { event: "captured", match: { capture: 1 } }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
+          { on: { event: "captured", match: { capture: 2 } }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
+          { on: { event: "captured", match: { capture: 3 } }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
+          { on: { event: "captured", match: { capture: 4 } }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
           { on: { event: "joined", match: { capture: 0 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
           { on: { event: "joined", match: { capture: 1 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_okafor" } }] },
           { on: { event: "joined", match: { capture: 2 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
