@@ -126,6 +126,15 @@ describe("converters_running sources", () => {
     expect(sim.state.objectives[1]!.done).toBe(true);
   });
 
+  it("afterHired holds the run back until that many hires are made", () => {
+    const sim = newSim({}, staffed({ sources: 1, afterHired: 1 }));
+    idle(sim, 2 * TPS);
+    expect(sim.state.objectives[1]!.done).toBe(false);
+    sim.state.stats.hired = 1;
+    idle(sim, 2 * TPS);
+    expect(sim.state.objectives[1]!.done).toBe(true);
+  });
+
   it("is opt-in: without it the same gatherer counts for nothing", () => {
     const sim = newSim({}, staffed({}));
     idle(sim, 2 * TPS);

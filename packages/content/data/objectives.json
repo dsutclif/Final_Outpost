@@ -32,7 +32,7 @@
   "earn_within": { "description": "Earn N credits within T seconds", "families": ["harvest"], "main": true, "guard": false, "params": { "n": "int", "seconds": "seconds" } },
   "bulk_order": { "description": "Fill N bulk orders (default 1)", "families": ["harvest"], "main": true, "guard": false, "params": { "n": "int?" } },
   "produce": { "description": "Produce N processed goods (optionally of one type)", "families": ["industrialize"], "main": true, "guard": false, "params": { "n": "int", "res": "res?" } },
-  "converters_running": { "description": "Run K converters at once for T seconds in a row (sources: a staffed source node counts as one)", "families": ["industrialize"], "main": true, "guard": false, "params": { "k": "int", "seconds": "seconds", "sources": "flag?" } },
+  "converters_running": { "description": "Run K converters at once for T seconds in a row (sources: a staffed source node counts as one)", "families": ["industrialize"], "main": true, "guard": false, "params": { "k": "int", "seconds": "seconds", "sources": "flag?", "afterHired": "int?" } },
   "haul": { "description": "Haulers deliver N goods", "families": ["industrialize"], "main": true, "guard": false, "params": { "n": "int" } },
   "chain": { "description": "Produce N goods on a tier-2 converter (default 1)", "families": ["industrialize"], "main": true, "guard": false, "params": { "n": "int?" } },
   "automate": { "description": "Credits flow for T seconds with no player deposits (machines: while that many converters run)", "families": ["industrialize"], "main": true, "guard": false, "params": { "seconds": "seconds", "machines": "int?" } },

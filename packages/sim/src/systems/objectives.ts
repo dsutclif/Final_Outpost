@@ -138,7 +138,8 @@ export const OBJECTIVE_KINDS: Record<string, Kind> = {
     return count(o, res === undefined ? st.stats.converted : st.stats.convertedBy[res] ?? 0, num(p, "n"));
   },
   converters_running: ({ st, cp, p, o }) =>
-    hold(o, st.converters.filter((cv) => converterRunnable(cp, cv) && operated(st, cp, cv)).length + (num(p, "sources") > 0 ? staffedSources(st, cp) : 0) >= num(p, "k"), secs(p)),
+    // afterHired: the run only counts once that many hires are made (story level 4: the town runs itself after the third hire)
+    hold(o, st.stats.hired >= num(p, "afterHired") && st.converters.filter((cv) => converterRunnable(cp, cv) && operated(st, cp, cv)).length + (num(p, "sources") > 0 ? staffedSources(st, cp) : 0) >= num(p, "k"), secs(p)),
   haul: ({ st, p, o }) => count(o, st.stats.hauled, num(p, "n")),
   chain: ({ st, p, o }) => count(o, st.stats.tier2Made, num(p, "n", 1)),
   // machines > 0: the hands-off run only grows while at least that many converters are running

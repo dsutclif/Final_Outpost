@@ -143,6 +143,33 @@ describe("guide rules", () => {
   });
 });
 
+describe("guide conditions for a machine output and a full shelf", () => {
+  const level: StoryLevel = { goals: [], cues: [], guideRules: [
+    { when: [{ shelfFull: true }], to: { at: [8, 8] } },
+    { when: [{ outputWaiting: "conv.food_processor" }], to: { at: [4, 4] } },
+  ] };
+  const conv = (out: number, type = "conv.food_processor") => ({ converters: [{ type, out, inQ: [] }] });
+  it("outputWaiting leads to the machine only while finished goods wait in a converter of that type", () => {
+    const h = harness(level);
+    h.d.update(16, state(conv(0)));
+    expect(h.d.world.guideTo).toBeNull();
+    h.d.update(16, state(conv(1, "conv.other")));
+    expect(h.d.world.guideTo).toBeNull();
+    h.d.update(16, state(conv(2)));
+    expect(h.d.world.guideTo).toEqual({ x: 4, y: 4 });
+    h.d.update(16, state(conv(0)));
+    expect(h.d.world.guideTo).toBeNull();
+  });
+  it("shelfFull holds only when every shelf of the kiosk is at its cap", () => {
+    const h = harness(level);
+    const sales = (shelf: Record<string, number>) => ({ converters: [], sales: { pileN: 0, queue: [], leaving: [], sells: ["a", "b"], shelf } });
+    h.d.update(16, state(sales({ a: 8, b: 7 })));
+    expect(h.d.world.guideTo).toBeNull();
+    h.d.update(16, state(sales({ a: 8, b: 8 })));
+    expect(h.d.world.guideTo).toEqual({ x: 8, y: 8 });
+  });
+});
+
 describe("a closing scene that needs no walking", () => {
   it("queues the whole scene when the main goal is done and holds the result until it is told", async () => {
     vi.useFakeTimers();
