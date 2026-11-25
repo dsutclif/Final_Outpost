@@ -479,7 +479,8 @@
    ],
    "closed": true,
    "gates": [
-    4
+    3,
+    5
    ],
    "prebuilt": [
     0,
@@ -555,8 +556,8 @@
    "type": "struct.gate",
    "id": "gate",
    "at": [
-    422.5,
-    790
+    490,
+    727.5
    ],
    "arrivals": {
     "every": 3,

@@ -33,66 +33,66 @@
    163     34.2  #1               goal        arrive
    163     34.2  #1               guide_cue   true {"entity":"gate"}
    163     34.2  -                goal_card   Let the newcomers in
-   163     36.2  -                arrow       story@423,790
+   163     36.2  -                arrow       story@490,728
    180     36.7  -                vehicle_parked buggy at 292,1150 screen 243,499 of 390x845
-   639     52.0  #2               cue         goal=arrive is=done
-   639     52.0  #2               vehicleOff  
-   639     52.0  #2               guide_cue   true ""
-   639     52.0  #2               line        kiln: Build a galley to turn greens into meals. They sell more that way.
-   639     52.0  #2               objective   arrive done
-   639     52.0  #2               arrow       off
-   639     54.1  #2               goal        galleyBuilt
-   639     54.1  #2               wait        0.5
-   654     54.6  #2               guide_cue   true {"entity":"galley"}
-   654     54.6  #2               arrow       story@350,1010
-   710     56.4  #3               cue         goal=galleyBuilt is=done
-   710     56.4  #3               light       
-   710     56.4  #3               guide_cue   true ""
-   710     56.4  #4               cue         goal=galleyBuilt is=done
-   710     56.4  #4               stage       tam
-   710     56.4  #4               objective   galleyBuilt done
-   710     56.4  #4               arrow       off
-   710     58.0  #4               line        commander: Tam, greens go to the galley from now on. [at 352,1001 37 from centre, in frame; cmdr 352,1001]
-   710     58.0  #4               held        1.6 s (stage)
-   710     60.0  #4               line        tam: Greens to the galley. Fine. [at 341,1019 47 from centre, in frame; cmdr 352,1001]
-   710     62.0  #4               walk        tam -> false
-   710     62.0  #4               line        kiln: Three more jobs will keep it running: cook at the galley, carry meals 
-   710     64.1  #4               line        kiln: Do each job once yourself and its training pad lights. Then stand on t
-   710     66.1  #4               goal        train
-  1132     80.1  #4               objective   auto done
-  1755    100.9  handsOff         cue         event=hired match={"pad":"cashier"}
-  1755    100.9  handsOff         guide_cue   true {"entity":"recorder"}
-  1755    100.9  handsOff         dots        
-  1755    100.9  handsOff         edgeGlow    
-  1755    100.9  handsOff         line        kiln: They've got it now. Head east to the wreck while the crew keep the tow
-  1755    100.9  handsOff         objective   train done
-  1755    100.9  revealed         cue         event=capture_revealed
-  1755    102.9  handsOff         arrow       story@788,148
-  1962    109.8  #7               cue         near={"entity":"recorder"} r=140
-  1962    109.8  #7               edgeGlow    
-  1980    110.4  #8               cue         near={"entity":"recorder"} r=50
-  1980    110.4  #8               dotsOff     
-  2026    111.9  #10              cue         event=captured
-  2026    111.9  #10              guide_cue   true ""
-  2026    111.9  #10              camera      {"to":{"entity":"recorder"},"pan":0.5,"hold":0.4,"back":0.6}
-  2026    111.9  #10              arrow       off
-  2026    113.4  #10              line        kiln: That's it. Bring it home to me.
-  2026    113.4  #10              held        1.5 s (camera)
-  2216    121.8  #11              cue         event=crate_delivered
-  2216    121.8  #11              spirit      
-  2216    121.8  #11              film        crash_log
-  2216    121.8  #11              objective   main done
-  2216    121.8  #11              level_end   won (goal)
-  2216    123.3  #11              result_held the result waits for the story queue
-  2216    127.8  #11              line        kiln: Four minutes before impact, they let themselves out.
-  2216    129.8  #11              line        kiln: Then they locked their pods behind them, empty, so the pods would stil
-  2216    131.8  #11              line        commander: Vale and three others walked away from their own pods? [at 372,670 32 from centre, in frame; cmdr 372,670]
-  2216    133.8  #11              line        kiln: And into the lander's escape pod, the scorched one you towed in. It ha
-  2216    135.8  #11              line        commander: Four seats. So they saved themselves, and left the rest of us asleep. [at 372,670 32 from centre, in frame; cmdr 372,670]
-  2216    137.8  #11              line        kiln: Not quite. Someone hauled the reactor off the ship, set it out on the 
-  2216    139.8  #11              line        kiln: They kept it running on fuel cells until the cells ran out. With no or
-  2216    141.8  #11              line        commander: They kept us alive. Then they left. Why? [at 372,670 32 from centre, in frame; cmdr 372,670]
-  2216    143.8  #11              ridgeFlash  
-  2216    143.8  #11              line        kiln: That red shudder I felt on your first night. It's back.
-  2216    145.8  #11              line        kiln: I'm sensing more movement on the ridge.
-  2216    147.8  #11              result      shown
+   449     45.7  #2               cue         goal=arrive is=done
+   449     45.7  #2               vehicleOff  
+   449     45.7  #2               guide_cue   true ""
+   449     45.7  #2               line        kiln: Build a galley to turn greens into meals. They sell more that way.
+   449     45.7  #2               objective   arrive done
+   449     45.7  #2               arrow       off
+   449     47.7  #2               goal        galleyBuilt
+   449     47.7  #2               wait        0.5
+   464     48.2  #2               guide_cue   true {"entity":"galley"}
+   464     48.2  #2               arrow       story@350,1010
+   538     50.7  #3               cue         goal=galleyBuilt is=done
+   538     50.7  #3               light       
+   538     50.7  #3               guide_cue   true ""
+   538     50.7  #4               cue         goal=galleyBuilt is=done
+   538     50.7  #4               stage       tam
+   538     50.7  #4               objective   galleyBuilt done
+   538     50.7  #4               arrow       off
+   538     51.6  #4               line        commander: Tam, greens go to the galley from now on. [at 356,1001 37 from centre, in frame; cmdr 356,1001]
+   538     51.6  #4               held        0.9 s (stage)
+   538     53.6  #4               line        tam: Greens to the galley. Fine. [at 334,1030 55 from centre, in frame; cmdr 356,1001]
+   538     55.6  #4               walk        tam -> false
+   538     55.6  #4               line        kiln: Three more jobs will keep it running: cook at the galley, carry meals 
+   538     57.6  #4               line        kiln: Do each job once yourself and its training pad lights. Then stand on t
+   538     59.6  #4               goal        train
+  1315     85.5  #4               objective   auto done
+  1549     93.3  handsOff         cue         event=hired match={"pad":"cashier"}
+  1549     93.3  handsOff         guide_cue   true {"entity":"recorder"}
+  1549     93.3  handsOff         dots        
+  1549     93.3  handsOff         edgeGlow    
+  1549     93.3  handsOff         line        kiln: They've got it now. Head east to the wreck while the crew keep the tow
+  1549     93.3  handsOff         objective   train done
+  1549     93.3  revealed         cue         event=capture_revealed
+  1549     95.3  handsOff         arrow       story@788,148
+  1756    102.2  #7               cue         near={"entity":"recorder"} r=140
+  1756    102.2  #7               edgeGlow    
+  1773    102.8  #8               cue         near={"entity":"recorder"} r=50
+  1773    102.8  #8               dotsOff     
+  1820    104.3  #10              cue         event=captured
+  1820    104.3  #10              guide_cue   true ""
+  1820    104.3  #10              camera      {"to":{"entity":"recorder"},"pan":0.5,"hold":0.4,"back":0.6}
+  1820    104.3  #10              arrow       off
+  1820    105.9  #10              line        kiln: That's it. Bring it home to me.
+  1820    105.9  #10              held        1.5 s (camera)
+  1969    112.8  #11              cue         event=crate_delivered
+  1969    112.8  #11              spirit      
+  1969    112.8  #11              film        crash_log
+  1969    112.8  #11              objective   main done
+  1969    112.8  #11              level_end   won (goal)
+  1969    114.3  #11              result_held the result waits for the story queue
+  1969    118.8  #11              line        kiln: Four minutes before impact, they let themselves out.
+  1969    120.9  #11              line        kiln: Then they locked their pods behind them, empty, so the pods would stil
+  1969    122.9  #11              line        commander: Vale and three others walked away from their own pods? [at 393,637 33 from centre, in frame; cmdr 393,637]
+  1969    124.9  #11              line        kiln: And into the lander's escape pod, the scorched one you towed in. It ha
+  1969    126.9  #11              line        commander: Four seats. So they saved themselves, and left the rest of us asleep. [at 393,637 33 from centre, in frame; cmdr 393,637]
+  1969    128.9  #11              line        kiln: Not quite. Someone hauled the reactor off the ship, set it out on the 
+  1969    130.9  #11              line        kiln: They kept it running on fuel cells until the cells ran out. With no or
+  1969    132.9  #11              line        commander: They kept us alive. Then they left. Why? [at 393,637 33 from centre, in frame; cmdr 393,637]
+  1969    134.9  #11              ridgeFlash  
+  1969    134.9  #11              line        kiln: That red shudder I felt on your first night. It's back.
+  1969    136.9  #11              line        kiln: I'm sensing more movement on the ridge.
+  1969    138.9  #11              result      shown
