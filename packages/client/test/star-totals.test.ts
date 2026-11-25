@@ -25,6 +25,7 @@ describe("per-level star totals", () => {
     expect(starText(2)).toBe("★★☆");
     expect(starText(4, 5)).toBe("★★★★☆");
     expect(starText(7, 5)).toBe("★★★★★");
+    expect(starText(3, 7)).toBe("★ 3/7");
   });
 
   it("an old-format save (stars as a bare count, no starSet) still loads", () => {

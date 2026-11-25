@@ -124,7 +124,11 @@ export class StoryProps {
   }
 
   /** Per frame, `t` seconds on the renderer clock. The drive's clock starts once the models are in, so a slow load never skips it. */
-  update(t: number, dt: number): void {
+  /** Seconds the vehicles have stood still under a story line: their drive clock is the renderer clock minus this. */
+  private held = 0;
+  update(t0: number, dt: number, hold = false): void {
+    if (hold) this.held += dt;
+    const t = t0 - this.held;
     for (const r of this.runs.values()) {
       r.group ??= this.build(r);
       const g = r.group;

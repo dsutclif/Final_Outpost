@@ -79,7 +79,7 @@ import { LOOK_TUNE, LookTest } from "./lookTest.js";
 import { Batch, Blobs, Crowd } from "./scene/instancing.js";
 import { Items } from "./scene/items.js";
 import { ItemIcons } from "./scene/itemicons.js";
-import { Labels, drawIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
+import { Labels, drawIcon, drawResIcon, roundRect, FONT, type CanvasMaker, type LabelArt } from "./scene/labels.js";
 import { heldJob, padLockReason } from "./padlock.js";
 import { resToken, type Tokens } from "./tokens.js";
 import { ART_M, BUILD_K, CHAR_K, DRONE_K, FOLLOW_RATE, FOV_DEG, ITEM_K, LABEL_VIEW_W, PITCH_DEG, TEXT, TIERS, YAW_DEG, viewWFor, textSprite, type QualityTier } from "./units.js";
@@ -136,6 +136,8 @@ const ORDER_H = textSprite(TEXT.main, 56, 180), ORDER_H_OLD = textSprite(TEXT.ma
 /** Floating pin height in label units: half the old 5, so a quarter of the area. */
 const PIN_SIZE = 2.5;
 const PAD_ART_H = 132, PAD_ART_H2 = 208, PAD_PER_ROW = 3, PAD_LABEL_H = textSprite(TEXT.main, 44, PAD_ART_H), PAD_LOCK_H = 54;
+/** Height of the flat pad decals (world units); anything loose on the ground that can lie on a pad sits above it. */
+const DECAL_Y = 2.4;
 /** Pad label canvas height: the (optional) name, the lock reason, then one or two rows of cost pills. */
 function padArtH(named: boolean, rows: number, lock: boolean): number {
   const top = named ? 48 + (lock ? PAD_LOCK_H : 0) : lock ? 58 : 4;
@@ -1832,7 +1834,7 @@ export class Renderer3D implements Renderer {
     const pn = lit ? Math.min(30, sales.pileN) : 0;
     for (let i = 0; i < pn; i++) {
       const col = i % 3, row = Math.floor(i / 3);
-      items.add(coin, pile.x + (col - 1) * 8 + (row % 2) * 2, row * items.height(coin), pile.z + ((col * 7) % 3) * 2, row * 0.7);
+      items.add(coin, pile.x + (col - 1) * 8 + (row % 2) * 2, DECAL_Y + 0.4 + row * items.height(coin), pile.z + ((col * 7) % 3) * 2, row * 0.7);
     }
     // customers: queue faces the kiosk, leaving ones walk off
     sales.queue.forEach((c, i) => this.customer(`q:${i}`, c, a, true, kiosk, sales.serving));
@@ -2885,7 +2887,7 @@ export class Renderer3D implements Renderer {
   private syncDrops(s: State): void {
     for (const d of s.drops) {
       const at = this.wv(d.pos);
-      const bounce = Math.abs(Math.sin(this.t * 5 + d.id)) * 7;
+      const bounce = DECAL_Y + 0.4 + Math.abs(Math.sin(this.t * 5 + d.id)) * 7; // never below the flat pad decals
       this.items!.addDrop(d.res, at.x, bounce, at.z, this.t * 2 + d.id);
       this.blobs!.add(at.x, at.z, 6);
     }
@@ -3855,7 +3857,7 @@ export class Renderer3D implements Renderer {
           row.forEach((o, i) => {
             const cw = rowCells[ri]![i]!;
             g.globalAlpha = o.left === 0 && owed.length > 1 ? 0.45 : 1;
-            drawIcon(g, x + 24, y + 34, 20, resToken(t, o.res), t.ink);
+            drawResIcon(g, x + 24, y + 34, 20, resToken(t, o.res), t.ink, o.res);
             g.font = `800 ${big}px ${FONT}`;
             g.fillStyle = ui.panel; g.fillText(`${o.left}`, x + 48 + (cw - 48) / 2 - 4, y + 37);
             g.globalAlpha = 1;
@@ -3875,7 +3877,7 @@ export class Renderer3D implements Renderer {
       draw: (g, W) => {
         roundRect(g, 3, 3, W - 6, 64, 32);
         g.fillStyle = t.ink; g.globalAlpha = 0.8; g.fill(); g.globalAlpha = 1;
-        drawIcon(g, 36, 35, 20, resToken(t, res), t.ink);
+        drawResIcon(g, 36, 35, 20, resToken(t, res), t.ink, res);
         g.font = `800 40px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
         g.fillStyle = ui.panel; g.fillText(num, 36 + (W - 36) / 2, 38);
       },

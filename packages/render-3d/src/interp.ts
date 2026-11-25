@@ -33,6 +33,7 @@ export class Interp {
   private prev = new Map<string, V>();
   private curr = new Map<string, V>();
   private tick = Number.NaN;
+  private holding = false;
   /** Movers the story holds at a drawn place (the sim keeps its own); `to` null walks back to the sim's spot, then lets go. */
   private readonly staged = new Map<string, { at: V | null; to: V | null; v: V }>();
 
@@ -45,6 +46,7 @@ export class Interp {
 
   /** Per frame: move the staged movers along, `dt` seconds. */
   stepStaged(dt: number, hold = false): void {
+    this.holding = hold;
     for (const [key, s] of this.staged) {
       // a story line is up: everyone stands still in idle (no walk cycle) and resumes after it
       if (hold) { s.v = { x: 0, y: 0 }; continue; }
@@ -96,6 +98,8 @@ export class Interp {
   }
 
   vel(key: string): V {
+    // under a story line the sim is frozen but the last tick's step would still read as walking: report standing still
+    if (this.holding) return { x: 0, y: 0 };
     const held = this.staged.get(key);
     if (held?.at) return held.v;
     const c = this.curr.get(key), p = this.prev.get(key);
