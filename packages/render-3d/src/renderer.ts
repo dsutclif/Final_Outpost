@@ -54,6 +54,7 @@ import { disposeGeo, getAnchor, mesh, model, type BuildCtx, type Model } from ".
 import { createBuildCtx, disposeBuildCtx } from "./assets/context.js";
 import { buildTurret } from "./assets/buildings.js";
 import { markOccluder } from "./materials.js";
+import { converterCue, padPulse } from "./converterCue.js";
 import { PAD_FILL_STEPS, padFillStep, padPinFillKey } from "./padring.js";
 import { FALL_CAM_IN, FALL_CAM_OUT, FALL_LEAD, FALL_PITCH, FALL_ZOOM, ROLL_S, helmetMiddle, rollPose, wearHelmet, type Pose } from "./scene/fallstage.js";
 import { applyMeshy, gateDoorFit, loadMeshy, meshyRig, meshyBase, meshyBelt, meshyBeltTop, meshyBounds, meshyEntries, meshyIdsFor, meshyGeometry, meshyScene, meshyTools, type MeshyEntry } from "./assets/meshy.js";
@@ -2183,7 +2184,11 @@ export class Renderer3D implements Renderer {
     m.scale.setScalar(0.75 * (this.devPlateSize ?? ART_M));
   }
 
+  /** Converters whose input tray is full this frame; their upgrade pads pulse. */
+  private backedUp = new Set<string>();
+
   private syncConverters(s: State): void {
+    this.backedUp.clear();
     const items = this.items!;
     this.workSpots.length = 0;
     for (const cv of s.converters) {
@@ -2200,10 +2205,12 @@ export class Renderer3D implements Renderer {
       }
       if (this.devPlateSize !== null) this.fixedPlates(p, cv.operatorPos, cv.pickupPos);
       this.operatorSpot(p, cv.operatorPos);
-      const def = this.content.converters[cv.type] as { outCap?: number; range?: number; role?: string; output?: string; rate?: number; upgradeRates?: number[] } | undefined;
+      const def = this.content.converters[cv.type] as { outCap?: number; inCap?: number; range?: number; role?: string; output?: string; rate?: number; upgradeRates?: number[] } | undefined;
       const manned = this.converterManned(s, cv, def);
-      const blocked = cv.out >= (def?.outCap ?? 99);
+      const cue = converterCue({ out: cv.out, outCap: def?.outCap ?? 99, inQ: cv.inQ.length, inCap: def?.inCap ?? 99, manned });
+      const blocked = cue.outputFull;
       const working = manned && cv.inQ.length > 0 && !blocked;
+      if (cue.inputFull) this.backedUp.add(cv.id);
       // the unit going in next, for the conversion animation (the sim has already taken it when it reports)
       if (cv.inQ[0]) p.data["front"] = cv.inQ[0];
       // every machine has a spot: its operator faces it whether or not it runs
@@ -2220,7 +2227,7 @@ export class Renderer3D implements Renderer {
       const spin = p.model.parts["spin"];
       if (spin) spin.rotation.z += working ? 0.18 : 0.004;
       const status = p.model.parts["status"] as Mesh | undefined;
-      if (status) (status.material as MeshBasicMaterial).color.set(blocked ? this.tokens.danger : working ? this.tokens.ok : this.tokens.accent);
+      if (status) (status.material as MeshBasicMaterial).color.set(cue.red ? this.tokens.danger : working ? this.tokens.ok : this.tokens.accent);
       const melt = p.model.parts["melt"];
       if (melt) melt.visible = working || Math.sin(this.t * 2) > 0.3;
       if (working && Math.random() < 0.12) {
@@ -2245,9 +2252,9 @@ export class Renderer3D implements Renderer {
         chip.position.set(pick.x, pick.y + Math.ceil(Math.min(12, cv.out) / 2) * items.height(outRes) + 10, pick.z);
       } else chip.visible = false;
       const warn = this.sprite(p, 0);
-      if (blocked || !manned) {
-        const txt = blocked ? "!" : "?";
-        warn.visible = this.labels.apply(warn, `warn|${txt}`, () => this.warnArt(txt, blocked ? this.tokens.danger : this.tokens.interactive), 12);
+      if (cue.warn) {
+        const txt = cue.warn;
+        warn.visible = this.labels.apply(warn, `warn|${txt}`, () => this.warnArt(txt, txt === "!" ? this.tokens.danger : this.tokens.interactive), 12);
         warn.position.set(p.model.root.position.x, ART_M * 2.5 + Math.sin(this.t * 4) * 1.5, p.model.root.position.z);
       } else warn.visible = false;
     }
@@ -2414,7 +2421,7 @@ export class Renderer3D implements Renderer {
       const dm = this.labels.meshMaterial(`pd|${fb}|${locked}|${color}|${icon}|${iconOk}|${lightMark}|glow`, () => this.padDecalArt(fb / 24, locked, lightMark, color, icon, true));
       if (dm) { dm.opacity = 1; dm.blending = AdditiveBlending; decal.material = dm; decal.visible = true; } else decal.visible = false;
       decal.position.set(at.x, 2.4, at.z);
-      decal.scale.setScalar(2.1 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M));
+      decal.scale.setScalar(2.1 * ART_M * sc * Math.min(1, p.model.root.scale.y / ART_M) * padPulse(info?.what === "conv.level" && !!info.target && this.backedUp.has(info.target), this.t));
       if (dm) this.hideUnderCharacters(dm);
       pts.push({ id: pad.id, x: at.x, z: at.z });
       this.padPin(p, pad.id, at, icon, color, lightMark, locked, fb);
