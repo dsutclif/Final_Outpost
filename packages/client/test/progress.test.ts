@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import level1 from "../../../levels/golden/proto-L001.json";
 import level4 from "../../../levels/golden/proto-L004.json";
 import type { LevelMeta } from "../src/levels.js";
-import { UNLOCK_ALL_LEVELS, budgetSeconds, chapters, isUnlocked, nextLevel, starsFor, winMargin } from "../src/progress.js";
+import { UNLOCK_ALL_LEVELS, budgetSeconds, chapters, isUnlocked, nextLevel, starText, starsFor, winMargin } from "../src/progress.js";
 import { DEFAULT_PROGRESS, type Progress } from "../src/save.js";
 import { autoTier } from "../src/render.js";
 
@@ -123,5 +123,17 @@ describe("progress epoch (alpha rule: a regenerated pack restarts at L1)", () =>
     expect(await store.restore()).toBe(false);
     expect(await store.progressChoicePending()).toBe(true);
     expect((await store.getProgress("keep")).cleared).toEqual({ L0: true });
+  });
+});
+
+describe("starText", () => {
+  it("draws icons for 3 or fewer stars", () => {
+    expect(starText(2, 3)).toBe("★★☆");
+    expect(starText(1, 1)).toBe("★");
+  });
+  it("shows x/y for totals above 3", () => {
+    expect(starText(5, 8)).toBe("★ 5/8");
+    expect(starText(2, 4)).toBe("★ 2/4");
+    expect(starText(9, 8)).toBe("★ 8/8");
   });
 });
