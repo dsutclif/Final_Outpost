@@ -1097,7 +1097,8 @@ export const marsGreenhouse: Skin = {
           { when: [{ fired: "proteinTip" }, { not: "digDone" }], to: { entity: "rockslide" } },
           // after the dig the arrows go to the hoppers, never the dome (Doug 2026-11-24)
           { when: [{ fired: "digDone" }, { credits: 120 }], to: { entity: "hub" } },
-          { when: [{ fired: "digDone" }, { coinsWaiting: true }], to: { entity: "kiosk" } },
+          // coins at the register: the arrow stands on the clerk pad (the kiosk plus the register offset 0,43), where a sale is made and the pile collected (outpost-ops#394)
+          { when: [{ fired: "digDone" }, { coinsWaiting: true }], to: { at: [220, 873] } },
           { when: [{ fired: "digDone" }, { carrying: "res.food_raw_2" }], to: { entity: "kiosk" } },
           { when: [{ fired: "tamOffer" }, { not: "tamTrained" }], to: { entity: "picker" } },
           { when: [{ fired: "digDone" }], to: { entity: "flats" } },
@@ -1146,8 +1147,8 @@ export const marsGreenhouse: Skin = {
             { edgeGlow: { entity: "kiosk", size: 28, strength: 0.35, arrow: true } },
             { goal: "lights" },
           ] },
-          // found by walking: the glow goes out at the road, the kiosk's door (r 100, the same reach that opens the kiosk to customers, so the kiosk is on screen when the line plays: outpost-ops#385)
-          { id: "kioskFound", on: { near: { entity: "kiosk" }, r: 100 }, do: [
+          // found by walking: the glow goes out at the road, the kiosk's door (r 45, the same reach that opens the kiosk to customers: the phone view is only 170 world units wide, so at r 100 the kiosk was off screen from some approaches; tests story-l3-kiosk-frame, outpost-ops#385)
+          { id: "kioskFound", on: { near: { entity: "kiosk" }, r: 45 }, do: [
             { edgeGlow: null },
             { vehicleOff: "buggy" },
             { walk: "tam", to: false },
@@ -1171,7 +1172,7 @@ export const marsGreenhouse: Skin = {
             // play stays held until she has climbed out at the door: the drive (2 s), a pause (0.5 s) and the step-out (1.3 s) take
             // 3.8 s, so the wait is 3.9 s. Her sim figure walks the moment play runs, so freeing it earlier drew her sliding along
             // the buggy's side as her step-out target ran off. The park point (360,914) and her route start (the door) are placed so
-            // the buggy, her and the commander all sit in frame under the kiosk camera nudge (levels/story/story-L003.json, openAfter r100)
+            // the buggy, her and the commander all sit in frame under the kiosk camera nudge (levels/story/story-L003.json, openAfter r45)
             { wait: 3.9 },
             { freeze: false },
           ] },
