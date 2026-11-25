@@ -178,6 +178,10 @@ export type StoryCond =
   | { padVisible: string }
   /** Coins wait at the register for the commander to collect. */
   | { coinsWaiting: true }
+  /** A finished good waits at the output of a converter of this type (conv.food_processor) for the commander to pick up. */
+  | { outputWaiting: string }
+  /** Every shelf of the kiosk is at its cap: more goods cannot be put on it. */
+  | { shelfFull: true }
   /** A goal (sim objective or story step) is done / still open. */
   | { goal: string; is: "done" | "open" };
 

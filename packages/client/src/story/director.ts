@@ -1,4 +1,4 @@
-import { viewWidth } from "@fo/content";
+import { content, viewWidth } from "@fo/content";
 import { FP, TPS, type SimEvent, type State } from "@fo/sim";
 import type { SkinStory, StoryAction, StoryCameraBeat, StoryCastRef, StoryCond, StoryCue, StoryGhost, StoryGoal, StoryHudPart, StoryLevel, StoryPlace, StoryTrigger } from "@fo/skins";
 import { CameraBeatPlayer, type BeatCamera } from "./camera.js";
@@ -46,6 +46,9 @@ export interface StoryView {
 }
 
 /** What the director needs from the client; app.ts supplies it. */
+/** A kiosk shelf holds this many of a good (the content value), for the shelfFull guide condition. */
+const SHELF_CAP = (content.sinks["sink.sales_point"] as { shelfCap?: number } | undefined)?.shelfCap ?? 8;
+
 export interface StoryHost {
   /** The session camera. */
   cam: BeatCamera;
@@ -703,6 +706,8 @@ export class StoryDirector {
     if ("credits" in c) return st.currency >= c.credits;
     if ("padVisible" in c) return !!st.pads.find((p) => p.id === c.padVisible)?.visible;
     if ("coinsWaiting" in c) return (st.sales?.pileN ?? 0) > 0;
+    if ("outputWaiting" in c) return st.converters.some((cv) => cv.type === c.outputWaiting && cv.out > 0);
+    if ("shelfFull" in c) return !!st.sales && st.sales.sells.length > 0 && st.sales.sells.every((r) => (st.sales!.shelf[r] ?? 0) >= SHELF_CAP);
     const g = this.level.goals.find((x) => x.id === c.goal);
     const done = g?.until ? this.stepDone.has(c.goal) : !!st.objectives.find((o) => o.id === c.goal)?.done;
     return c.is === "done" ? done : !done;

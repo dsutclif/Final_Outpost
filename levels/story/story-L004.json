@@ -784,7 +784,8 @@
    "params": {
     "k": 3,
     "seconds": 12,
-    "sources": 1
+    "sources": 1,
+    "afterHired": 3
    }
   }
  ],
