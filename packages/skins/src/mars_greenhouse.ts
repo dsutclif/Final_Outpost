@@ -1382,7 +1382,7 @@ export const marsGreenhouse: Skin = {
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam, the cook, the runner and the clerk (level 4's town, at its posts all
         // level), then the two settlers who come in at the gate
-        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, settler: { person: 7 }, lieutenant: { boss: true } },
+        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, settler: { at: [325, 1120] }, lieutenant: { boss: true } },
         // after the fall scene the warlord runs off in play as Vale, helmet off, and the helmet lies where it fell (#6)
         fleeingModels: { "hostile.boss": "hostile.boss_vale" },
         showDropped: true,
@@ -1391,8 +1391,13 @@ export const marsGreenhouse: Skin = {
           { id: "turret", label: "Build a turret" },
           { id: "arrive", hold: true, label: "Let the settlers in" },
           { id: "train", label: "Train a guard" },
-          { id: "hold", label: "Keep collecting scrap, hire 2 more guards, and fight defenders to protect our camp till sunrise" },
+          { id: "hold", label: "Keep collecting scrap, hire 1 more guard, and fight defenders to protect our camp till sunrise" },
           { id: "main", label: "Pick up the helmet" },
+        ],
+        // the guard is paid in scrap: arrows go to scrap until the commander carries the price, then to the guard pad once it is on the map
+        guideRules: [
+          { when: [{ fired: "trainOpen" }, { not: "trainHired" }, { not: "dawn" }, { padVisible: "train" }, { carrying: "res.salvage" }], to: { entity: "train" } },
+          { when: [{ fired: "trainOpen" }, { not: "trainHired" }, { not: "dawn" }] },
         ],
         cues: [
           { on: { start: true }, do: [
@@ -1429,19 +1434,18 @@ export const marsGreenhouse: Skin = {
           // plays when they do, not on a timer a slow player could outrun
           { on: { event: "gate_arrival" }, ordered: true, do: [
             // the camera shows them on the road below the gate, asking to be let in (Doug, 2026-11-22); they spawn about 170 below the gate, so centre below it (outpost-ops#340; gate moved with the kiosk, r3-kiosk)
-            { camera: { to: { at: [325, 1120] }, zoom: 0.72, pan: 0.8, hold: 5, back: 0.8 } },
+            { camera: { to: { at: [325, 1120] }, zoom: 0.72, pan: 0.8, hold: 6, back: 0.8, freeze: false } },
+            { wait: 1 },
             { line: "Let us in! They burned our camp on the road!", who: "settler" },
             { line: "Two at the gate. Stand by it to let them in.", who: "kiln" },
             { goal: "arrive" },
           ] },
-          // train a guard: arrows to the cash pile at the kiosk until the camp holds the guard's price, then to the guard pad (outpost-ops#371)
+          // train a guard (paid in scrap): the guide rules below send the arrows to scrap until the commander carries the price, then to the guard pad
           { id: "trainOpen", on: { goal: "arrive", is: "done" }, ordered: true, do: [
-            { guide: true, to: { at: [518, 1154] } },
             { dots: [{ entity: "train" }], period: 2 },
             { line: "Good. Train one as a guard to hold the gate with me.", who: "okafor" },
           ] },
-          { on: { credits: 5, after: "trainOpen" }, do: [{ guide: true, to: { entity: "train" } }] },
-          { on: { event: "hired", match: { pad: "train" } }, do: [
+          { id: "trainHired", on: { event: "hired", match: { pad: "train" } }, do: [
             { dotsOff: true },
             { line: "Hold them off until sunrise.", who: "kiln" },
             { guide: true, to: { at: [760, 727] } },
@@ -1453,9 +1457,9 @@ export const marsGreenhouse: Skin = {
           { on: { start: true }, do: [{ light: "ember", seconds: 200 }] },
           // the first dust mites up out of the sand, measured from the east side of the base, wide enough to cover the whole east edge (not the player, who may be at the
           // far pad: a nearby kill never let the line play), as they come in among the raiders
-          { on: { hostile: "hostile.swarmling", r: 800, at: { at: [1000, 800] } }, do: [{ line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
+          { on: { hostile: "hostile.swarmling", r: 800, at: { at: [1000, 800] } }, ordered: true, do: [{ stage: "okafor", by: [-30, -190] }, { line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
           // just before the warlord walks into frame (it spawns beyond the map's edge), not when it spawns (Doug)
-          { on: { hostile: "hostile.boss", r: 330 }, do: [{ line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
+          { on: { hostile: "hostile.boss", r: 330 }, ordered: true, do: [{ stage: "lieutenant" }, { line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
             // the commander's last shot: the warlord is thrown down, the helmet comes off, Vale gets up and runs (S32),
             // filmed in the level with play paused (Doug, 2026-11-08); the live scene stands in without the models.

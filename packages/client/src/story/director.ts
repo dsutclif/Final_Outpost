@@ -681,6 +681,7 @@ export class StoryDirector {
     if ("not" in c) return !this.firedAt.has(c.not);
     if ("carrying" in c) return st.player.stack.includes(c.carrying);
     if ("credits" in c) return st.currency >= c.credits;
+    if ("padVisible" in c) return !!st.pads.find((p) => p.id === c.padVisible)?.visible;
     if ("coinsWaiting" in c) return (st.sales?.pileN ?? 0) > 0;
     const g = this.level.goals.find((x) => x.id === c.goal);
     const done = g?.until ? this.stepDone.has(c.goal) : !!st.objectives.find((o) => o.id === c.goal)?.done;

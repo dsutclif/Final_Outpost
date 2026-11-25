@@ -21,11 +21,6 @@ const ALLOW: readonly { level: string; check: TraceFailure["check"]; cue: string
   { level: "story-L003", check: "c", cue: "proteinTip", has: "play held", why: PHASE_B },
   { level: "story-L003", check: "a", cue: "hubDone", has: "sela speaks off screen", why: PHASE_B },
   { level: "story-L003", check: "c", cue: "hubDone", has: "play held", why: PHASE_B },
-  { level: "story-L005", check: "a", cue: "#4", has: "settler speaks but has no place", why: PHASE_B },
-  { level: "story-L005", check: "c", cue: "#4", has: "play held", why: PHASE_B },
-  { level: "story-L005", check: "a", cue: "#9", has: "okafor speaks off screen", why: PHASE_B },
-  { level: "story-L005", check: "d", cue: "#6", has: "hidden pad (train)", why: PHASE_B },
-  { level: "story-L005", check: "a", cue: "#10", has: "lieutenant speaks off screen", why: PHASE_B },
 ];
 
 const manifest = (id: string): unknown => JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "levels", "story", `${id}.json`), "utf8"));

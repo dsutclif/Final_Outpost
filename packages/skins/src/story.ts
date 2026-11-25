@@ -172,6 +172,8 @@ export type StoryCond =
   | { carrying: string }
   /** At least this many credits in hand. */
   | { credits: number }
+  /** The pad with this id is on the map (not hidden behind a step still to do). */
+  | { padVisible: string }
   /** Coins wait at the register for the commander to collect. */
   | { coinsWaiting: true }
   /** A goal (sim objective or story step) is done / still open. */
