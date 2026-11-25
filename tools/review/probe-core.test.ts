@@ -501,3 +501,17 @@ describe("speaker on screen and cue audit", () => {
     expect(analyzeCues({ ...bad, glow: { ...bad.glow, offScreen: false } }).map((h) => h.check)).toEqual(["guide-arrow-missing"]);
   });
 });
+
+describe("story play budget (outpost-ops#391)", () => {
+  it("gives a story level long play, its variants and no per-line pictures by default", () => {
+    const a = parseArgs(["--out", "x", "--story", "story-L001"]);
+    expect(a.storySeconds).toBeGreaterThanOrEqual(900);
+    expect(a.storyWall).toBeGreaterThanOrEqual(1200);
+    expect(a.variants).toBe(true);
+    expect(a.lineShots).toBe(false);
+  });
+  it("lets a run turn the variants and the line pictures on or off", () => {
+    const a = parseArgs(["--out", "x", "--no-variants", "--line-shots", "--story-wall", "100", "--story-seconds", "50"]);
+    expect([a.variants, a.lineShots, a.storyWall, a.storySeconds]).toEqual([false, true, 100, 50]);
+  });
+});

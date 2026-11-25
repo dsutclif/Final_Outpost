@@ -356,6 +356,15 @@ export function installReview(app: App): void {
         guide: { to: w.guideTo, off: w.guideOff, drawn: !!v.guide, toOnScreen: q ? q.x >= 0 && q.y >= 0 && q.x <= window.innerWidth && q.y <= window.innerHeight : null },
       };
     },
+    scene() { const d = app.debugView?.director; return d ? { on: d.scene.on, why: d.scene.on ? d.scene.why : null, pending: d.pendingStory } : null; },
+    progress(id) { return app.debugSim?.state.objectives?.find((o) => o.id === id)?.progress ?? null; },
+    breakHold(id) {
+      // review probe only: the director reads a drop in a hold goal's run as "a job stopped"
+      const o = app.debugSim?.state.objectives?.find((x) => x.id === id);
+      if (!o || o.done) return false;
+      o.progress = 0;
+      return true;
+    },
     settle(frames) {
       // a few drawn frames on the made-up clock, so a caption finds its place over its speaker
       const a = app as unknown as { frame: (now: number) => void; last: number };

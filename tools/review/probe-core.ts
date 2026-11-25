@@ -549,7 +549,7 @@ export function continuityHits(levelId: string, film: string, filmLight: number 
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-export interface Args { out: string; levels: string[]; story: string[]; base: string | null; throttle: number; seconds: number; wall: number; limits: string; interrupt: boolean; colourBlind: boolean; notch: boolean; keepServer: boolean }
+export interface Args { out: string; levels: string[]; story: string[]; base: string | null; throttle: number; seconds: number; wall: number; limits: string; interrupt: boolean; colourBlind: boolean; notch: boolean; keepServer: boolean; storySeconds: number; storyWall: number; lineShots: boolean; variants: boolean }
 
 export function parseArgs(argv: readonly string[]): Args {
   const a = argv.filter((x) => x !== "--");
@@ -561,6 +561,8 @@ export function parseArgs(argv: readonly string[]): Args {
     out: resolve(out), levels: list("--levels"), story: list("--story"), base: get("--base") ?? null, throttle: Number(get("--throttle") ?? 1),
     seconds: Number(get("--seconds") ?? 90), wall: Number(get("--wall") ?? 420), limits: resolve(get("--limits") ?? join(here, "probe-limits.json")),
     interrupt: !a.includes("--no-interrupt"), colourBlind: !a.includes("--no-colourblind"), notch: !a.includes("--no-notch"), keepServer: a.includes("--keep-server"),
+    // a story level plays on until its director goes quiet, so it gets far more game time and wall time than a generated level
+    storySeconds: Number(get("--story-seconds") ?? 1200), storyWall: Number(get("--story-wall") ?? 1500), lineShots: a.includes("--line-shots"), variants: !a.includes("--no-variants"),
   };
 }
 

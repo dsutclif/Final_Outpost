@@ -155,6 +155,12 @@ export interface ReviewApi {
   ff(seconds: number, seenSeq: number, stopOnCamera?: boolean): { tick: number; seq: number; over: boolean };
   /** The story's non-caption cues right now: a camera beat moving, the named edge glow and its arrow, the guide arrow. Null outside a story level. */
   cues(): CueSample | null;
+  /** Why the story is holding play right now (the director's scene mode), for a probe that finds nothing moving. */
+  scene(): { on: boolean; why: string | null; pending: boolean } | null;
+  /** Progress of one sim objective (a hold goal's run of ticks), null when there is no such goal. */
+  progress(id: string): number | null;
+  /** Scripted stall: a hold goal's run is cut back to nothing, as when one of the jobs it counts stops; it grows again on the next tick if they still run. False when there is no such goal. */
+  breakHold(id: string): boolean;
   /** Draws `frames` frames on the made-up clock, so a caption settles over its speaker. */
   settle(frames: number): void;
   /** Frame-time log entries from index `from`. */
