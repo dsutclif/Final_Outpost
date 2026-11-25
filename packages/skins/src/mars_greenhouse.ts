@@ -1047,11 +1047,33 @@ export const marsGreenhouse: Skin = {
       // Open for Trade (docs/STORY-SCREENPLAY.md, level 3). Sela comes first, then the hub and its price; selling meat is a
       // story step (no star). The H coin close-up is a card with the coin's render.
       "story-L003": {
-        // Rhee's aid station stays beside the reactor from level 2 on
-        aidStation: true,
         hide: ["credits", "walls"],
         solid: ["sink.core"],
         goalCards: true,
+        // r4 (Doug 2026-11-24): a speaker who is off screen walks in beside the commander before their line, and the arrows follow the
+        // state of the level (the goals, what is carried, the credits) instead of the last cue that happened to fire
+        autoStage: true,
+        guideRules: [
+          { when: [{ fired: "hubDone" }], off: true },
+          { when: [{ not: "domeDone" }, { carrying: "res.salvage" }], to: { entity: "dome" } },
+          { when: [{ not: "domeDone" }], to: { entity: "scrapA" } },
+          { when: [{ fired: "domeDone" }, { not: "kioskFound" }], to: { entity: "kiosk" } },
+          { when: [{ fired: "kioskFound" }, { not: "selaMet" }], off: true },
+          { when: [{ fired: "selaMet" }, { not: "firstDone" }, { carrying: "res.food_raw_1" }], to: { entity: "kiosk" } },
+          { when: [{ fired: "selaMet" }, { not: "firstDone" }], to: { entity: "field1" } },
+          { when: [{ fired: "firstDone" }, { not: "wallDone" }, { carrying: "res.food_raw_1" }], to: { entity: "kiosk" } },
+          { when: [{ fired: "firstDone" }, { not: "wallDone" }, { credits: 8 }], to: { at: [220, 240] } },
+          { when: [{ fired: "firstDone" }, { not: "wallDone" }], to: { entity: "field1" } },
+          { when: [{ fired: "wallDone" }, { not: "proteinTip" }, { carrying: "res.food_raw_1" }], to: { entity: "kiosk" } },
+          { when: [{ fired: "wallDone" }, { not: "proteinTip" }], to: { entity: "field1" } },
+          { when: [{ fired: "proteinTip" }, { not: "digDone" }], to: { entity: "rockslide" } },
+          // after the dig the arrows go to the hoppers, never the dome (Doug 2026-11-24)
+          { when: [{ fired: "digDone" }, { credits: 120 }], to: { entity: "hub" } },
+          { when: [{ fired: "digDone" }, { coinsWaiting: true }], to: { entity: "kiosk" } },
+          { when: [{ fired: "digDone" }, { carrying: "res.food_raw_2" }], to: { entity: "kiosk" } },
+          { when: [{ fired: "tamOffer" }, { not: "tamTrained" }], to: { entity: "picker" } },
+          { when: [{ fired: "digDone" }], to: { entity: "flats" } },
+        ],
         // manifest people order: Pip, Rhee, Okafor, Tam. Sela is the first trader to arrive and speaks from where she
         // stands (Doug: not from the kiosk); the angry trader still speaks from the kiosk
         customerModels: { 0: "unit.customer_sela" },
@@ -1082,8 +1104,6 @@ export const marsGreenhouse: Skin = {
             // the arrows lead to the scrap, never the rockslide in front of the hoppers (outpost-ops#303)
             { guide: true, to: { entity: "scrapA" } },
           ] },
-          { on: { event: "gathered", match: { res: "res.salvage" } }, repeat: true, unless: "domeDone", do: [{ guide: true, to: { entity: "dome" } }] },
-          { on: { event: "pad_paid", match: { pad: "dome" } }, repeat: true, unless: "domeDone", do: [{ guide: true, to: { entity: "scrapA" } }] },
           // Tam walks out to the dome's frame while the commander fills it, so her line comes from beside it, on screen
           { on: { near: { entity: "dome" }, r: 170 }, do: [{ walk: "tam", to: { at: [405, 598] } }] },
           // the dome stands and night falls: the lit kiosk to the south goes dark until the commander sees its lights
@@ -1112,14 +1132,20 @@ export const marsGreenhouse: Skin = {
             // the arrival is one in-level shot, no film ahead of it (Doug 2026-11-09): the camera cuts to the road at once, the buggy
             // drives in and parks with its lights on, Sela steps out at its door (hidden while it drives, where her route starts in
             // story-L003) and the camera then glides on to the kiosk, where she and the commander stand and talk.
-            { light: "night", seconds: 1.5 },
-            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }, { at: [630, 905] }, { at: [520, 912] }, { at: [422, 922] }], seconds: 12, lights: true, rider: "sela" },
+            // r4: play is held while the buggy drives in, stops and she steps out at its door (about 11 s of her arriving in view), so her
+            // walk to the kiosk starts at the door; she never speaks from inside the buggy (Doug 2026-11-24)
+            { light: "night", seconds: 1.5, real: true },
+            { freeze: true },
+            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [880, 946] }, { at: [815, 924] }, { at: [750, 906] }, { at: [630, 905] }, { at: [520, 912] }, { at: [422, 922] }], seconds: 9, lights: true, rider: "sela" },
             // the commander is already at the kiosk (she only drives in once he has found it), so the camera stays with him and
             // takes one slow nudge toward the kiosk: no cut to the road and back (Doug 2026-11-22)
             { camera: { to: { entity: "kiosk" }, share: 0.6, pan: 1.4, hold: 36, back: 0.9, freeze: false } },
+            { wait: 11.4 },
+            { freeze: false },
           ] },
           // she speaks once she has walked up to the kiosk, so her bubbles stand over her on screen (Doug)
-          { on: { who: "sela", at: { entity: "kiosk" }, r: 150, after: "selaIn" }, ordered: true, do: [
+          { id: "selaMet", on: { who: "sela", at: { entity: "kiosk" }, r: 150, after: "selaIn" }, ordered: true, do: [
+            { stage: "sela" },
             { line: "Well, I guess somebody's living out here. I'm Sela.", who: "sela" },
             { line: "I trade between the settlements. Salvage, food, whatever people need.", who: "sela" },
             { line: "Settlements? There are other people on this planet?", who: "commander" },
@@ -1135,81 +1161,62 @@ export const marsGreenhouse: Skin = {
           // greens in hand: the arrows lead to the kiosk
           { on: { event: "gathered", match: { res: "res.food_raw_1" }, after: "selaIn" }, do: [{ guide: true, to: { entity: "kiosk" } }] },
           // the first coins go on a wall: KILN looks ahead to the nights and to the raiders of level 5
-          { on: { goal: "first", is: "done" }, ordered: true, do: [
+          { id: "firstDone", on: { goal: "first", is: "done" }, ordered: true, do: [
             { show: ["credits"] },
             { dotsOff: true },
-            { guide: true, to: { at: [220, 240] } },
             // Sela speaks first, while the commander still stands beside her at the counter (she is a trader and cannot walk to
             // him); Okafor then walks up to the commander wherever he has gone
             { line: "Those coins seem to be the local currency.", who: "kiln" },
             { line: "You built that dome yourselves? Out of your own hull?", who: "sela" },
             { line: "Save your scrap. My road crew builds for credits, and they bring their own steel.", who: "sela" },
-            // play holds while each crew member walks up (about 70 units a second, so the waits cover their longest walk), so the commander stays where the camera is
-            { freeze: true },
-            { walk: "okafor", to: { last: "player", by: [-16, 24] } },
-            { wait: 9 },
+            // Okafor walks in from the edge of the frame beside the commander, then speaks (no fixed wait)
+            { stage: "okafor", by: [-16, 24] },
             { line: "A road that brings traders can bring raiders, so... let's build a wall first...", who: "okafor" },
-            { freeze: false },
             { line: "Once you've saved enough credits, walk the dashed line and the wall goes up behind you.", who: "kiln" },
             { walk: "okafor", to: false },
           ] },
           // the wall stands: the hub and its price, then the trader who wants meat and the slide in the way
           { id: "wallDone", on: { goal: "walls", is: "done" }, ordered: true, do: [
             // no road-crew buggy here: it drove into a commander walking outside the wall, and it drives in again for the hub
-            { freeze: true },
-            { walk: "rhee", to: { last: "player", by: [16, -24] } },
-            { wait: 6 },
-            { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
+            // the hub is shown first, then Rhee walks in beside the commander and says what it is for
             { camera: { to: { entity: "hub" }, pan: 0.7, hold: 1.6, back: 0.6 } },
+            { stage: "rhee", by: [16, -24] },
+            { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
             { line: "Take one more load of greens to the kiosk, and keep saving credits for that hub.", who: "kiln" },
             { walk: "rhee", to: false },
-            { guide: true, to: { entity: "field1" } },
           ] },
           // picking up greens after the wall: the arrows lead to the kiosk
-          { on: { event: "gathered", match: { res: "res.food_raw_1" }, after: "wallDone" }, do: [{ guide: true, to: { entity: "kiosk" } }] },
           // the checkout sale of those greens: the next trader wants protein
-          { on: { event: "sold", match: { res: "res.food_raw_1" }, after: "wallDone" }, ordered: true, do: [
+          { id: "proteinTip", on: { event: "sold", match: { res: "res.food_raw_1" }, after: "wallDone" }, ordered: true, do: [
             { line: "No protein? I'm leaving.", who: "trader" },
             { line: "Protein sells for a premium around here. Those rock hoppers past the rockslide would fetch a good price.", who: "sela" },
             // back 0.001: the hoppers hand straight over to the rock pile, no re-centre on the commander between them (outpost-ops#361)
             { camera: { to: { entity: "flats" }, pan: 0.8, hold: 1.4, back: 0.001 } },
             { camera: { to: { entity: "rockslide" }, pan: 0.4, hold: 1, back: 0.8 } },
             { line: "The slide is loose rock... walk up to it and dig... one section at a time.", who: "kiln" },
-            { guide: true, to: { entity: "rockslide" } },
           ] },
           // dug by hand: no credits, so no road crew
           { id: "digDone", on: { event: "zone_cleared" }, ordered: true, do: [
-            { guide: true, to: { entity: "flats" } },
             { line: "That slide is fresh. Something up on the ridge shook it loose.", who: "kiln" },
             { line: "Rock hoppers. Run into one to knock it down, then pick up the protein when it falls.", who: "kiln" },
           ] },
           // hunt and cashier, back and forth until the hub's price is in hand, then the hub (Doug, 2026-11-22). Protein in hand: the
           // cashier; sold: the coin pile at the counter; coins collected: back to the hoppers. The cashier cues sit before the
           // first-sale cue below so its arrow to Tam's pad wins that once.
-          { on: { event: "picked", match: { res: "res.food_raw_2" }, after: "digDone" }, repeat: true, do: [{ guide: true, to: { entity: "kiosk" } }] },
-          { on: { event: "sold", match: { res: "res.food_raw_2" }, after: "digDone" }, repeat: true, do: [{ guide: true, to: { entity: "kiosk" } }] },
-          { on: { event: "collected", match: { res: "res.currency" }, after: "digDone" }, repeat: true, unless: "hubReady", do: [{ guide: true, to: { entity: "flats" } }] },
-          { id: "hubReady", on: { credits: 120, after: "digDone" }, do: [{ guide: true, to: { entity: "hub" } }] },
           // the first protein sale (after the protein customer and Sela's hopper line): Tam stands at the dome to offer to run it
           // (outpost-ops#320), then KILN's gear line and the arrows to her pad
-          { on: { event: "sold", match: { res: "res.food_raw_2" } }, ordered: true, do: [
-            { freeze: true },
-            { walk: "tam", to: { last: "player", by: [-16, 24] } },
-            { wait: 8 },
+          { id: "tamOffer", on: { event: "sold", match: { res: "res.food_raw_2" } }, ordered: true, do: [
+            { stage: "tam", by: [-16, 24] },
             { line: "Boss, let me run the dome. You hunt; I'll keep the shelf full of greens.", who: "tam" },
-            { guide: true, to: { entity: "picker" } },
             { line: "Pip, Rhee and Okafor are doing the jobs they trained for. A new job needs gear and training, and that costs credits. Stand on Tam's pad when you have them.", who: "kiln" },
             { goal: "train" },
           ] },
           // Tam is hired: her drawn self comes home to the sim's Tam; Rhee walks over so her line comes on screen
           { id: "tamTrained", on: { goal: "train", is: "done" }, ordered: true, do: [
             { walk: "tam", to: false },
-            { freeze: true },
-            { walk: "rhee", to: { last: "player", by: [16, -24] } },
-            { wait: 6 },
+            { stage: "rhee", by: [16, -24] },
             { line: "Keep selling. When we have enough, we'll build the hub.", who: "rhee" },
             { walk: "rhee", to: false },
-            { guide: true, to: { entity: "flats" } },
           ] },
           // about half the hub's price: a trader at the counter looks up at the ridge
           { on: { credits: 75, after: "tamTrained" }, ordered: true, do: [
@@ -1217,19 +1224,16 @@ export const marsGreenhouse: Skin = {
             { line: "What's on the ridge?", who: "commander" },
             { line: "I don't know, but those folk don't trade, and they aren't friendly.", who: "trader" },
           ] },
-          // the hub stands; Sela pays in Halcyon chips, and the eleven years land
-          // outpost-ops#365: before Sela drives in, the arrows walk the commander out of the hub to a spot beside her parking place
-          // (left of the hub, clear of the buggy's path), so the hub turns solid on screen and both speakers share one frame with no
-          // camera move. the spot follows the buggy stop (520,430) from train/r3-l3-layout (#364); re-check if that moves.
-          { id: "hubDone", on: { goal: "main", is: "done" }, do: [{ guide: true, to: { at: [470, 450] } }] },
-          { on: { near: { at: [470, 450] }, r: 45, after: "hubDone" }, ordered: true, do: [
+          // the hub stands; Sela pays in Halcyon chips, and the eleven years land. The level ends the moment the hub is paid for and
+          // the sim stops, so nothing here waits for the commander to walk anywhere (Doug 2026-11-24): the whole scene plays where he
+          // stands. Sela's buggy drives in from off screen to a stop beside him, then the coin, then the lines.
+          { id: "hubDone", on: { goal: "main", is: "done" }, ordered: true, do: [
             { guide: false },
-            // Sela's road crew raise the hub like every paid build (they drive up, wait and go), then she hands the commander the chip
-            // (the chip_handoff live scene) and speaks; play is held while the buggy drives so it never runs the commander down
             { freeze: true },
-            { vehicle: "buggy", path: [{ at: [950, 962] }, { at: [800, 920] }, { at: [520, 430] }], seconds: 5, lights: true },
-            { wait: 5.5 },
+            { vehicle: "buggy", path: [{ last: "player", by: [520, 300] }, { last: "player", by: [240, 110] }, { last: "player", by: [74, 26] }], seconds: 6, lights: true },
+            { wait: 6.6 },
             { vehicleOff: "buggy" },
+            { line: "Congratulations. A roof over your heads and a camp worth trading with. Not many manage that out here.", who: "sela" },
             { film: "chip_handoff" },
             { line: "For your first night under a roof. A Halcyon chip.", who: "sela" },
             { line: "Halcyon chips? That's our ship's money. Where did you get it?", who: "commander" },
@@ -1237,15 +1241,12 @@ export const marsGreenhouse: Skin = {
             { line: "That's not possible. We've only been down three days.", who: "commander" },
             { line: "Friend. The Halcyon came down eleven years ago.", who: "sela" },
             { line: "Eleven... years?", who: "pip" },
-            { card: "", seconds: 2 },
           ] },
         ],
       },
       // Halcyon Works (docs/STORY-SCREENPLAY.md, level 4). The crash_log live scene plays when the recorder is home. Ordered cues
       // put KILN's dim, the look east and the ridge flash on their lines. Training the crew is a story step (no star).
       "story-L004": {
-        // Rhee's aid station stays beside the reactor from level 2 on
-        aidStation: true,
         // the flight recorder lies dark on the sand from the start, so the camera pan to the wreck shows it (Doug: on the sand)
         darkPods: true,
         hide: ["walls"],
@@ -1354,8 +1355,6 @@ export const marsGreenhouse: Skin = {
       // last wave: the main goal is picking it up by hand. Stopping the first raiders and training a guard are story steps (no star).
       // The lieutenant's slow-motion fall is a text card until it is made.
       "story-L005": {
-        // Rhee's aid station stays beside the reactor from level 2 on
-        aidStation: true,
         solid: ["sink.core"],
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam, the cook, the runner and the clerk (level 4's town, at its posts all

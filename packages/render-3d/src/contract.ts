@@ -140,7 +140,7 @@ export interface StoryPresentation {
     follow(f: { right: number; up: number; lag: number; height: number; size: number; glow?: number } | null): void;
   };
   /** Walk a mover (interp key: "player", "r:<id>", "h:<id>") to a ground spot and hold it there, drawn only; null walks it back. */
-  actor(key: string, to: { x: number; z: number } | null): void;
+  actor(key: string, to: { x: number; z: number } | null, opts?: { from?: { x: number; z: number }; face?: boolean }): void;
   /** Where a mover is drawn now (ground units), or null for a key with nothing drawn. */
   actorAt(key: string): { x: number; z: number } | null;
   /** Set while a story line is on screen: staged walkers stand still in idle until it ends. */
@@ -159,8 +159,6 @@ export interface StoryPresentation {
   showDropped(on: boolean): void;
   /** Draw captures that wait on a `hiddenUntil` dark where they lie (no glow, no ring, not towable) until revealed (story level 2: the lander pod). */
   showDark?(on: boolean): void;
-  /** Rhee's aid station (a med crate and a lamp) at this spot; null takes it away. */
-  aidStation?(at: { x: number; z: number } | null): void;
   /** Stop drawing unbuilt wall lines (their dashes and cost) while on. */
   wallMarks?(on: boolean): void;
   /** Entity ids the renderer keeps solid (never faded) when the hero stands among them. */

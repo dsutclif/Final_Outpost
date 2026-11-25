@@ -226,7 +226,7 @@ a time, play held, a tap for each.*
 
 **OKAFOR · guard:** Camp's wide open and nobody's on watch. I'll take the first shift.
 
-*Goal star. Rhee kneels beside Pip; no crate or lamp appears. (The aid station beside the reactor starts in Level 3.) Okafor walks the camp's edge.*
+*Goal star. Rhee kneels beside Pip; no crate or lamp appears. Okafor walks the camp's edge.*
 
 *Far out, a fifth glow comes on, dull scorched orange, and its pointer appears. The camera swings out to it first and holds there before KILN speaks.*
 
@@ -499,7 +499,7 @@ gate, where they wait.*
 *The commander cooks one batch by hand: stands at the galley until a meal comes out, carries the meal to the kiosk
 and rings up the sale. Each step done by hand lights that job's training pad, one after another: cook, runner, clerk.
 Each pad shows its price in credits. Standing on a lit pad with enough credits trains one newcomer, who walks to that
-post. The goal card ticks one, two, three. Pip stays on ore, Rhee at the aid station, Okafor on watch. Goal star.*
+post. The goal card ticks one, two, three. Pip stays on ore, Rhee beside the pods, Okafor on watch. Goal star.*
 
 **KILN:** They've got it now. Head east to the wreck while the crew keep the town running.
 
@@ -696,7 +696,7 @@ Each line is a change against the live game as of 2026-11-12. The work items are
 - Three opening lines replace four; the freeze warning moves to the opening.
 - The lander pod is dark and unmarked until KILN names it after the pair.
 - Pip's and Tam's first lines; Tam is a grower; "grow dome" replaces "fields".
-- Rhee's aid station appears beside the reactor.
+- (Rhee's aid station was cut on 2026-11-24: no med crate or lamp appears in any level.)
 - The lander pod gets an open hatch and four seats, and is a little bigger than a stasis pod.
 - All four bay pods open empty on KILN's camera, each with a name plate, and stay open from level 3 on. Today only
   bay 5 opens.

@@ -3177,6 +3177,8 @@ export class Renderer3D implements Renderer {
         const w = this.workSpots.find((ws) => (ws.op.x - pos.x) ** 2 + (ws.op.y - pos.y) ** 2 < (ART_M * 0.6) ** 2);
         if (w) this.acts.set(key, { act: w.working && rrig?.clips?.["work"] ? "work" : "face", until: this.t + 0.3, at: w.at });
       }
+      // a story speaker staged beside the commander stands turned to him (Doug 2026-11-24: they faced away while talking)
+      if (!moving && this.interp.facesPlayer(key)) this.acts.set(key, { act: "face", until: this.t + 0.3, at: { x: pl.x, y: pl.y } });
       let ryaw = this.faceAct(key, pos, ry, moving);
       const carrying = !!r.carry && r.n > 0;
       // shot down in the field (a guard left lying where it fell, with fall and get-up clips): it falls and lies on

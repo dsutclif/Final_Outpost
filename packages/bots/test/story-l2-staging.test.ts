@@ -7,7 +7,7 @@ import { ENGINE_VERSION, createSim } from "@fo/sim";
 import { PROFILES, playBot } from "../src/index.js";
 
 // Level 2 staging (outpost-ops#127): the lander's escape pod starts dark and untowable until KILN names it after the pair,
-// and Rhee's aid station stands beside the reactor from her line on, through levels 3-5.
+// (Rhee's aid station was removed from the story, 2026-11-24).
 
 const here = dirname(fileURLToPath(import.meta.url));
 const manifest = (): Manifest => Manifest.parse({
