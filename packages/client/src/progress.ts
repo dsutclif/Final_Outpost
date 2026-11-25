@@ -39,7 +39,7 @@ export function starsFor(margin: number): 1 | 2 | 3 {
 /** Star slots a level offers: its own objective count (story levels list 3 to 8), else 3. */
 export const starTotalOf = (meta: { starTotal?: number } | undefined): number => Math.max(1, meta?.starTotal ?? 3);
 
-export const starText = (n: number, total = 3): string => total > 5 ? `★ ${Math.min(n, total)}/${total}` : "★".repeat(Math.min(n, total)) + "☆".repeat(Math.max(0, total - n));
+export const starText = (n: number, total = 3): string => total > 3 ? `★ ${Math.min(n, total)}/${total}` : "★".repeat(Math.min(n, total)) + "☆".repeat(Math.max(0, total - n));
 
 /** Cleared or skipped: either way the player may move on to the next level. */
 export const passed = (p: Pick<Progress, "cleared" | "skipped">, id: string): boolean => !!p.cleared[id] || !!p.skipped?.[id];
